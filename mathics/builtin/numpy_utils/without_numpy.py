@@ -4,18 +4,19 @@
 A couple of helper functions for doing numpy-like stuff without numpy.
 """
 
-from mathics.core.list import ListExpression
-from itertools import chain
-from contextlib import contextmanager
-from math import (
-    sin as sinf,
-    cos as cosf,
-    sqrt as sqrtf,
-    atan2 as atan2f,
-    floor as floorf,
-)
-import operator
 import inspect
+import operator
+from contextlib import contextmanager
+from itertools import chain
+from math import (
+    atan2 as atan2f,
+    cos as cosf,
+    floor as floorf,
+    sin as sinf,
+    sqrt as sqrtf,
+)
+
+from mathics.core.list import ListExpression
 
 # If numpy is not available, we define the following fallbacks that are useful for implementing a similar
 # logic in pure python without numpy. They obviously work on regular python array though, not numpy arrays.

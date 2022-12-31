@@ -8,23 +8,27 @@ from sympy.physics.quantum import TensorProduct
 
 from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.atoms import Complex, Integer, Integer0, Integer1, Real
+from mathics.core.attributes import (  # A_LISTABLE,; A_NUMERIC_FUNCTION,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+)
 from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolDot, SymbolConjugate
-from mathics.core.attributes import (
-    # A_LISTABLE,
-    # A_NUMERIC_FUNCTION,
-    A_PROTECTED,
-    A_READ_PROTECTED,
-)
+from mathics.core.systemsymbols import SymbolConjugate, SymbolDot
 
 
 class KroneckerProduct(SympyFunction):
     """
-    <url>:Kronecker product: https://en.wikipedia.org/wiki/Kronecker_product</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/physics/quantum/tensorproduct.html</url>, <url>:WMA: https://reference.wolfram.com/language/ref/KroneckerProduct.html</url>)
+    <url>
+    :Kronecker product:
+    https://en.wikipedia.org/wiki/Kronecker_product</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/physics/quantum/tensorproduct.html</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/KroneckerProduct.html</url>)
 
     <dl>
       <dt>'KroneckerProduct[$m1$, $m2$, ...]'
@@ -57,7 +61,7 @@ class KroneckerProduct(SympyFunction):
     summary_text = "Kronecker product"
     sympy_name = "physics.quantum.TensorProduct"
 
-    def apply(self, mi: ListExpression, evaluation: Evaluation):
+    def eval(self, mi: ListExpression, evaluation: Evaluation):
         "KroneckerProduct[mi__List]"
         sympy_mi = [to_sympy_matrix(m) for m in mi.elements]
         return from_sympy(TensorProduct(*sympy_mi))
@@ -65,6 +69,8 @@ class KroneckerProduct(SympyFunction):
 
 class Normalize(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/KroneckerProduct.html</url>
+
     <dl>
       <dt>'Normalize[$v$]'
       <dd>calculates the normalized vector $v$.
@@ -95,6 +101,8 @@ class Normalize(Builtin):
 
 class Projection(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Projection.html</url>
+
     <dl>
       <dt>'Projection[$u$, $v$]'
       <dd>gives the projection of the vector $u$ onto $v$
@@ -132,7 +140,7 @@ class Projection(Builtin):
 
     summary_text = "find the projection of one vector on another"
 
-    def apply(self, u: ListExpression, v: ListExpression, evaluation):
+    def eval(self, u: ListExpression, v: ListExpression, evaluation):
         "Projection[u_, v_]"
 
         all_elements = u.elements + v.elements
@@ -154,6 +162,12 @@ class Projection(Builtin):
 
 class UnitVector(Builtin):
     """
+    <url>
+    :Unit vector:
+    https://en.wikipedia.org/wiki/Unit_vector</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/UnitVector.html</url>)
+
     <dl>
       <dt>'UnitVector[$n$, $k$]'
       <dd>returns the $n$-dimensional unit vector with a 1 in position $k$.
@@ -177,7 +191,7 @@ class UnitVector(Builtin):
     }
     summary_text = "unit vector along a coordinate direction"
 
-    def apply(self, n: Integer, k: Integer, evaluation):
+    def eval(self, n: Integer, k: Integer, evaluation):
         "UnitVector[n_Integer, k_Integer]"
 
         py_n = n.value
@@ -199,6 +213,8 @@ class UnitVector(Builtin):
 
 class VectorAngle(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/VectorAngle.html</url>
+
     <dl>
       <dt>'VectorAngle[$u$, $v$]'
       <dd>gives the angles between vectors $u$ and $v$

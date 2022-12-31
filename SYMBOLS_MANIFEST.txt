@@ -56,6 +56,7 @@ System`$PreRead
 System`$PrintForms
 System`$ProcessID
 System`$ProcessorType
+System`$PythonImplementation
 System`$RandomState
 System`$RecursionLimit
 System`$RootDirectory
@@ -244,7 +245,6 @@ System`Continue
 System`ContinuedFraction
 System`Convert`B64Dump`B64Decode
 System`Convert`B64Dump`B64Encode
-System`Convert`CommonDump`RemoveLinearSyntax
 System`ConvertersDump`$extensionMappings
 System`ConvertersDump`$formatMappings
 System`CoprimeQ
@@ -311,6 +311,7 @@ System`DirectoryName
 System`DirectoryQ
 System`DirectoryStack
 System`DiscreteLimit
+System`DiscretePlot
 System`DisjointQ
 System`Disk
 System`DiskBox
@@ -462,7 +463,7 @@ System`Hash
 System`Haversine
 System`Head
 System`HermiteH
-System`HexidecimalCharacter
+System`HexadecimalCharacter
 System`Histogram
 System`Hold
 System`HoldAll
@@ -592,6 +593,7 @@ System`LinearModelFit
 System`LinearSolve
 System`List
 System`ListLinePlot
+System`ListLogPlot
 System`ListPlot
 System`ListQ
 System`Listable
@@ -601,6 +603,7 @@ System`Log
 System`Log10
 System`Log2
 System`LogGamma
+System`LogPlot
 System`LogisticSigmoid
 System`Longest
 System`Lookup

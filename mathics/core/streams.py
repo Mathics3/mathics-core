@@ -3,15 +3,14 @@
 """
 File Stream Operations
 """
-from io import open as io_open
 import os
-import requests
+import os.path as osp
 import sys
 import tempfile
-
+from io import open as io_open
 from typing import Optional, Tuple
 
-import os.path as osp
+import requests
 
 from mathics.settings import ROOT_DIR
 

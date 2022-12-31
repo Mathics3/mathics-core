@@ -4,67 +4,23 @@
 Mathematical Operations
 """
 
-from typing import Optional
 import sympy
 
 from mathics.builtin.base import Builtin, SympyFunction
-from mathics.core.atoms import Integer, Real, String
 from mathics.core.attributes import A_PROTECTED
-from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
-
 from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
-from mathics.core.symbols import Symbol
-
-
-def eval_2_Norm(m: Expression, evaluation: Evaluation) -> Optional[Expression]:
-    """
-    2-Norm[] evaluation function
-    """
-    sympy_m = to_sympy_matrix(m)
-    if sympy_m is None:
-        return evaluation.message("Norm", "nvm")
-
-    return from_sympy(sympy_m.norm())
-
-
-def eval_p_norm(
-    m: Expression, p: Expression, evaluation: Evaluation
-) -> Optional[Expression]:
-    """
-    p2-Norm[] evaluation function
-    """
-    if isinstance(p, Symbol):
-        sympy_p = p.to_sympy()
-    elif isinstance(p, String):
-        sympy_p = p.value
-        if sympy_p == "Frobenius":
-            sympy_p = "fro"
-    elif isinstance(p, (Real, Integer)) and p.to_python() >= 1:
-        sympy_p = p.to_sympy()
-    else:
-        return evaluation.message("Norm", "ptype", p)
-
-    if sympy_p is None:
-        return
-    matrix = to_sympy_matrix(m)
-
-    if matrix is None:
-        return evaluation.message("Norm", "nvm")
-    if len(matrix) == 0:
-        return
-
-    try:
-        res = matrix.norm(sympy_p)
-    except NotImplementedError:
-        return evaluation.message("Norm", "normnotimplemented")
-
-    return from_sympy(res)
+from mathics.eval.math_ops import eval_2_Norm, eval_p_norm
 
 
 class Cross(Builtin):
     """
-    <url>:Cross product: https://en.wikipedia.org/wiki/Cross_product</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/physics/vector/api/functions.html#sympy.physics.vector.functions.cross</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Cross.html</url>)
+    <url>
+    :Cross product:
+    https://en.wikipedia.org/wiki/Cross_product</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/physics/vector/api/functions.html#sympy.physics.vector.functions.cross</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Cross.html</url>)
 
     <dl>
       <dt>'Cross[$a$, $b$]'
@@ -107,7 +63,7 @@ class Cross(Builtin):
     rules = {"Cross[{x_, y_}]": "{-y, x}"}
     summary_text = "vector cross product"
 
-    def apply(self, a, b, evaluation):
+    def eval(self, a, b, evaluation):
         "Cross[a_, b_]"
         a = to_sympy_matrix(a)
         b = to_sympy_matrix(b)
@@ -124,7 +80,11 @@ class Cross(Builtin):
 
 class Curl(SympyFunction):
     """
-    <url>:Curl: https://en.wikipedia.org/wiki/Curl_(mathematics)</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/vector/api/vectorfunctions.html#sympy.vector.curl</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Curl.html</url>)
+    <url>
+    :Curl:
+    https://en.wikipedia.org/wiki/Curl_(mathematics)</url> (<url>
+    :SymPy: https://docs.sympy.org/latest/modules/vector/api/vectorfunctions.html#sympy.vector.curl</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/Curl.html</url>)
 
     <dl>
       <dt>'Curl[{$f1$, $f2$}, {$x1$, $x2$}]'
@@ -165,7 +125,12 @@ class Curl(SympyFunction):
 
 class Norm(Builtin):
     """
-    <url>:Matrix norms induced by vector p-norms: https://en.wikipedia.org/wiki/Matrix_norm#Matrix_norms_induced_by_vector_p-norms</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/matrices/matrices.html#sympy.matrices.matrices.MatrixBase.norm</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Norm.html</url>)
+    <url>
+    :Matrix norms induced by vector p-norms: https://en.wikipedia.org/wiki/Matrix_norm#Matrix_norms_induced_by_vector_p-norms</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/matrices/matrices.html#sympy.matrices.matrices.MatrixBase.norm</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Norm.html</url>)
 
     <dl>
       <dt>'Norm[$m$, $p$]'
@@ -221,11 +186,11 @@ class Norm(Builtin):
     }
     summary_text = "norm of a vector or matrix"
 
-    def apply_two_norm(self, m, evaluation):
+    def eval_two_norm(self, m, evaluation):
         "Norm[m_]"
         return eval_2_Norm(m, evaluation)
 
-    def apply_p_norm(self, m, p, evaluation):
+    def eval_p_norm(self, m, p, evaluation):
         "Norm[m_, p_]"
         return eval_p_norm(m, p, evaluation)
 

@@ -5,21 +5,20 @@ In integral calculus, an <url>:elliptic integral: https://en.wikipedia.org/wiki/
 
 """
 
-from mathics.core.attributes import (
-    A_LISTABLE,
-    A_NUMERIC_FUNCTION,
-    A_PROTECTED,
-)
+import sympy
+
 from mathics.builtin.base import SympyFunction
 from mathics.core.atoms import Integer
+from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.convert.expression import to_numeric_sympy_args
 from mathics.core.convert.sympy import from_sympy
-
-import sympy
+from mathics.eval.numerify import numerify
 
 
 class EllipticE(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EllipticE.html</url>
+
     <dl>
       <dt>'EllipticE[$m$]'
       <dd>computes the complete elliptic integral $E$($m$).
@@ -53,7 +52,7 @@ class EllipticE(SympyFunction):
 
     def apply_m(self, m, evaluation):
         "%(name)s[m_]"
-        sympy_arg = m.numerify(evaluation).to_sympy()
+        sympy_arg = numerify(m, evaluation).to_sympy()
         try:
             return from_sympy(sympy.elliptic_e(sympy_arg))
         except:
@@ -61,7 +60,7 @@ class EllipticE(SympyFunction):
 
     def apply_phi_m(self, phi, m, evaluation):
         "%(name)s[phi_, m_]"
-        sympy_args = [a.numerify(evaluation).to_sympy() for a in (phi, m)]
+        sympy_args = [numerify(a, evaluation).to_sympy() for a in (phi, m)]
         try:
             return from_sympy(sympy.elliptic_e(*sympy_args))
         except:
@@ -70,8 +69,10 @@ class EllipticE(SympyFunction):
 
 class EllipticF(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EllipticF.html</url>
+
     <dl>
-      <dt>'EllipticF[$m$]'
+      <dt>'EllipticF[$phi$, $m$]'
       <dd>computes the elliptic integral of the first kind $F$($ϕ$|$m$).
     </dl>
 
@@ -97,7 +98,7 @@ class EllipticF(SympyFunction):
 
     def apply(self, phi, m, evaluation):
         "%(name)s[phi_, m_]"
-        sympy_args = [a.numerify(evaluation).to_sympy() for a in (phi, m)]
+        sympy_args = [numerify(a, evaluation).to_sympy() for a in (phi, m)]
         try:
             return from_sympy(sympy.elliptic_f(*sympy_args))
         except:
@@ -106,6 +107,8 @@ class EllipticF(SympyFunction):
 
 class EllipticK(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EllipticK.html</url>
+
     <dl>
       <dt>'EllipticK[$m$]'
       <dd>computes the elliptic integral of the first kind $K$($m$).
@@ -136,7 +139,7 @@ class EllipticK(SympyFunction):
 
     def apply(self, m, evaluation):
         "%(name)s[m_]"
-        args = m.numerify(evaluation).get_sequence()
+        args = numerify(m, evaluation).get_sequence()
         sympy_args = [a.to_sympy() for a in args]
         try:
             return from_sympy(sympy.elliptic_k(*sympy_args))
@@ -146,6 +149,8 @@ class EllipticK(SympyFunction):
 
 class EllipticPi(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EllipticPi.html</url>
+
     <dl>
       <dt>'EllipticPi[$n$, $m$]'
       <dd>computes the elliptic integral of the third kind $Pi$($m$).

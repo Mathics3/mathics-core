@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from mathics.builtin.base import BoxExpression
+from mathics.builtin.box.expression import BoxExpression
 
 
 class CompiledCodeBox(BoxExpression):

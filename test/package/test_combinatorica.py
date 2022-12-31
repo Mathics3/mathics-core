@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from test.helper import evaluate, check_evaluation, reset_session
+from test.helper import check_evaluation, evaluate, reset_session
+
 import pytest
 
 # This variable is set to initialize the module just once,

@@ -13,6 +13,8 @@ from mathics.builtin.base import Builtin
 
 class AngleVector(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AngleVector.html</url>
+
     <dl>
       <dt>'AngleVector[$phi$]'
       <dd>returns the point at angle $phi$ on the unit circle.

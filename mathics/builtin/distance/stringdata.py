@@ -4,12 +4,9 @@ String Distances and Similarity Measures
 """
 
 import unicodedata
-
 from typing import Callable
 
-
 from mathics.builtin.base import Builtin
-
 from mathics.core.atoms import Integer, String, Symbol
 from mathics.core.expression import Expression
 from mathics.core.symbols import SymbolTrue
@@ -147,6 +144,8 @@ class _StringDistance(Builtin):
 
 class DamerauLevenshteinDistance(_StringDistance):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DamerauLevenshteinDistance.html</url>
+
     <dl>
     <dt>'DamerauLevenshteinDistance[$a$, $b$]'
         <dd>returns the Damerau-Levenshtein distance of $a$ and $b$, which is defined as the minimum number of
@@ -187,6 +186,8 @@ class DamerauLevenshteinDistance(_StringDistance):
 
 class EditDistance(_StringDistance):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EditDistance.html</url>
+
     <dl>
     <dt>'EditDistance[$a$, $b$]'
         <dd>returns the Levenshtein distance of $a$ and $b$, which is defined as the minimum number of
@@ -226,6 +227,8 @@ class EditDistance(_StringDistance):
 
 class HammingDistance(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/HammingDistance.html</url>
+
     <dl>
     <dt>'HammingDistance[$u$, $v$]'
       <dd>returns the Hamming distance between $u$ and $v$, i.e. the number of different elements.

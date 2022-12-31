@@ -3,33 +3,31 @@
 """
 Calculus
 
-Originally called infinitesimal calculus or "the calculus of infinitesimals", is the mathematical study of continuous change, in the same way that geometry is the study of shape and algebra is the study of generalizations of arithmetic operations.
+Originally called infinitesimal calculus or "the calculus of infinitesimals", \
+is the mathematical study of continuous change, in the same way that geometry \
+is the study of shape and algebra is the study of generalizations of arithmetic operations.
 """
 
-import numpy as np
 from itertools import product
 from typing import Optional
 
+import numpy as np
+import sympy
 
 from mathics.algorithm.integrators import (
-    apply_D_to_Integral,
     _fubini,
     _internal_adaptative_simpsons_rule,
+    apply_D_to_Integral,
     decompose_domain,
 )
-
-
 from mathics.algorithm.series import (
     build_series,
+    series_derivative,
     series_plus_series,
     series_times_series,
-    series_derivative,
 )
-
-
 from mathics.builtin.base import Builtin, PostfixOperator, SympyFunction
 from mathics.builtin.scoping import dynamic_scoping
-
 from mathics.core.atoms import (
     Atom,
     Integer,
@@ -50,18 +48,15 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
-
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.function import expression_to_callable_and_args
 from mathics.core.convert.python import from_python
-from mathics.core.convert.sympy import sympy_symbol_prefix, SympyExpression, from_sympy
+from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
 from mathics.core.evaluation import Evaluation
-from mathics.eval.nevaluator import eval_N
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps, machine_epsilon
 from mathics.core.rules import Pattern
-
 from mathics.core.symbols import (
     BaseElement,
     Symbol,
@@ -72,7 +67,6 @@ from mathics.core.symbols import (
     SymbolTimes,
     SymbolTrue,
 )
-
 from mathics.core.systemsymbols import (
     SymbolAnd,
     SymbolAutomatic,
@@ -93,10 +87,8 @@ from mathics.core.systemsymbols import (
     SymbolSimplify,
     SymbolUndefined,
 )
-
 from mathics.eval.makeboxes import format_element
-
-import sympy
+from mathics.eval.nevaluator import eval_N
 
 # These should be used in lower-level formatting
 SymbolDifferentialD = Symbol("System`DifferentialD")
@@ -106,6 +98,8 @@ SymbolIntegral = Symbol("System`Integral")
 # Maybe this class should be in a module "mathics.builtin.domains" or something like that
 class Complexes(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Complexes.html</url>
+
     <dl>
     <dt>'Complexes'
         <dd>the domain of complex numbers, as in $x$ in Complexes.
@@ -117,6 +111,9 @@ class Complexes(Builtin):
 
 class D(SympyFunction):
     """
+    <url>:Derivative:https://en.wikipedia.org/wiki/Derivative</url>\
+    (<url>:WMA:https://reference.wolfram.com/language/ref/D.html</url>)
+
     <dl>
       <dt>'D[$f$, $x$]'
       <dd>gives the partial derivative of $f$ with respect to $x$.
@@ -371,6 +368,9 @@ class D(SympyFunction):
 
 class Derivative(PostfixOperator, SympyFunction):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Derivative.html</url>
+
     <dl>
       <dt>'Derivative[$n$][$f$]'
       <dd>represents the $n$th derivative of the function $f$.
@@ -523,6 +523,9 @@ class Derivative(PostfixOperator, SympyFunction):
 
 class DiscreteLimit(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/DiscreteLimit.html</url>
+
     <dl>
       <dt>'DiscreteLimit[$f$, $k$->Infinity]'
       <dd>gives the limit of the sequence $f$ as $k$ tends to infinity.
@@ -713,12 +716,15 @@ class _BaseFinder(Builtin):
 
 class FindMaximum(_BaseFinder):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FindMaximum.html</url>
+
     <dl>
     <dt>'FindMaximum[$f$, {$x$, $x0$}]'
         <dd>searches for a numerical maximum of $f$, starting from '$x$=$x0$'.
     </dl>
 
-    'FindMaximum' by default uses Newton\'s method, so the function of interest should have a first derivative.
+    'FindMaximum' by default uses Newton\'s method, so the function of \
+    interest should have a first derivative.
 
     >> FindMaximum[-(x-3)^2+2., {x, 1}]
      : Encountered a gradient that is effectively zero. The result returned may not be a maximum; it may be a minimum or a saddle point.
@@ -757,12 +763,16 @@ class FindMaximum(_BaseFinder):
 
 class FindMinimum(_BaseFinder):
     r"""
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/FindMinimum.html</url>
+
     <dl>
     <dt>'FindMinimum[$f$, {$x$, $x0$}]'
         <dd>searches for a numerical minimum of $f$, starting from '$x$=$x0$'.
     </dl>
 
-    'FindMinimum' by default uses Newton\'s method, so the function of interest should have a first derivative.
+    'FindMinimum' by default uses Newton\'s method, so the function of \
+    interest should have a first derivative.
 
 
     >> FindMinimum[(x-3)^2+2., {x, 1}]
@@ -806,6 +816,8 @@ class FindMinimum(_BaseFinder):
 
 class FindRoot(_BaseFinder):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FindRoot.html</url>
+
     <dl>
       <dt>'FindRoot[$f$, {$x$, $x0$}]'
       <dd>searches for a numerical root of $f$, starting from '$x$=$x0$'.
@@ -814,7 +826,8 @@ class FindRoot(_BaseFinder):
       <dd>tries to solve the equation '$lhs$ == $rhs$'.
     </dl>
 
-    'FindRoot' by default uses Newton\'s method, so the function of interest should have a first derivative.
+    'FindRoot' by default uses Newton\'s method, so the function of interest \
+    should have a first derivative.
 
     >> FindRoot[Cos[x], {x, 1}]
      = {x -> 1.5708}
@@ -871,8 +884,8 @@ class FindRoot(_BaseFinder):
 
     try:
         from mathics.algorithm.optimizers import (
-            native_findroot_methods,
             native_findroot_messages,
+            native_findroot_methods,
         )
 
         methods.update(native_findroot_methods)
@@ -895,6 +908,9 @@ class FindRoot(_BaseFinder):
 # Move to mathics.builtin.domains...
 class Integers(Builtin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Integers.html</url>
+
     <dl>
       <dt>'Integers'
       <dd>the domain of integer numbers, as in $x$ in Integers.
@@ -912,9 +928,13 @@ class Integers(Builtin):
 
 class Integrate(SympyFunction):
     r"""
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Integrate.html</url>
+
     <dl>
       <dt>'Integrate[$f$, $x$]'
-      <dd>integrates $f$ with respect to $x$. The result does not contain the additive integration constant.
+      <dd>integrates $f$ with respect to $x$. The result does not contain the \
+      additive integration constant.
 
       <dt>'Integrate[$f$, {$x$, $a$, $b$}]'
       <dd>computes the definite integral of $f$ with respect to $x$ from $a$ to $b$.
@@ -1187,6 +1207,9 @@ class Integrate(SympyFunction):
 
 class Limit(Builtin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Limit.html</url>
+
     <dl>
       <dt>'Limit[$expr$, $x$->$x0$]'
       <dd>gives the limit of $expr$ as $x$ approaches $x0$.
@@ -1267,6 +1290,8 @@ class Limit(Builtin):
 
 class NIntegrate(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/NIntegrate.html</url>
+
     <dl>
        <dt>'NIntegrate[$expr$, $interval$]'
        <dd>returns a numeric approximation to the definite integral of $expr$ with limits $interval$ and with a precision of $prec$ digits.
@@ -1332,8 +1357,8 @@ class NIntegrate(Builtin):
     try:
         # builtin integrators
         from mathics.algorithm.integrators import (
-            integrator_methods,
             integrator_messages,
+            integrator_methods,
         )
 
         methods.update(integrator_methods)
@@ -1344,8 +1369,8 @@ class NIntegrate(Builtin):
     try:
         # scipy integrators
         from mathics.builtin.scipy_utils.integrators import (
-            scipy_nintegrate_methods,
             scipy_nintegrate_messages,
+            scipy_nintegrate_methods,
         )
 
         methods.update(scipy_nintegrate_methods)
@@ -1540,10 +1565,14 @@ class NIntegrate(Builtin):
 
 class O_(Builtin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/O.html</url>
+
     <dl>
       <dt>'O[$x$]^n'
       <dd> Represents a term of order $x^n$.
-      <dd> O[x]^n is generated to represent omitted higher order terms in power series.
+      <dd> O[x]^n is generated to represent omitted higher order terms in \
+           power series.
     </dl>
 
     >> Series[1/(1-x),{x,0,2}]
@@ -1564,6 +1593,8 @@ class O_(Builtin):
 
 class Reals(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Reals.html</url>
+
     <dl>
     <dt>'Reals'
         <dd>is the domain real numbers, as in $x$ in Reals.
@@ -1579,9 +1610,12 @@ class Reals(Builtin):
 
 class Root(SympyFunction):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Root.html</url>
+
     <dl>
-    <dt>'Root[$f$, $i$]'
-        <dd>represents the i-th complex root of the polynomial $f$
+      <dt>'Root[$f$, $i$]'
+      <dd>represents the i-th complex root of the polynomial $f$.
     </dl>
 
     >> Root[#1 ^ 2 - 1&, 1]
@@ -1657,6 +1691,8 @@ class Root(SympyFunction):
 
 class Series(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Series.html</url>
+
     <dl>
       <dt>'Series[$f$, {$x$, $x0$, $n$}]'
       <dd>Represents the series expansion around '$x$=$x0$' up to order $n$.
@@ -1716,9 +1752,12 @@ class Series(Builtin):
 
 class SeriesData(Builtin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SeriesData.html</url>
+
     <dl>
       <dt>'SeriesData[...]'
-      <dd>Represents a series expansion
+      <dd>Represents a series expansion.
     </dl>
 
     Sum of two series:
@@ -2058,7 +2097,13 @@ class SeriesData(Builtin):
 
 class Solve(Builtin):
     """
-    <url>:Equation solving: https://en.wikipedia.org/wiki/Equation_solving</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/solvers/solvers.html#module-sympy.solvers</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Solve.html</url>)
+    <url>:Equation solving:
+    https://en.wikipedia.org/wiki/Equation_solving</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/solvers/solvers.html#module-sympy.solvers</url>, \
+    <url>:WMA:
+    https://reference.wolfram.com/language/ref/Solve.html</url>)
+
     <dl>
       <dt>'Solve[$equation$, $vars$]'
       <dd>attempts to solve $equation$ for the variables $vars$.

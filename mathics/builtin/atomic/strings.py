@@ -7,50 +7,30 @@ import io
 import re
 import unicodedata
 from binascii import hexlify, unhexlify
-from heapq import heappush, heappop
+from heapq import heappop, heappush
 from typing import Any, List
 
+from mathics_scanner import TranslateError
 
-from mathics.builtin.base import (
-    Builtin,
-    Test,
-    Predefined,
-    PrefixOperator,
-)
-
-from mathics.core.atoms import (
-    String,
-    Integer,
-    Integer0,
-    Integer1,
-)
+from mathics.builtin.base import Builtin, Predefined, PrefixOperator, Test
+from mathics.core.atoms import Integer, Integer0, Integer1, String
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
+from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.python import from_bool
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.convert.expression import to_mathics_list
-from mathics.core.convert.op import ascii_op_to_unicode
-from mathics.core.convert.python import from_bool
-from mathics.core.element import BaseElement
 from mathics.core.list import ListExpression
 from mathics.core.parser import MathicsFileLineFeeder, parse
-from mathics.core.symbols import (
-    Symbol,
-    SymbolTrue,
-)
-
+from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolBlank,
-    SymbolFailed,
     SymbolDirectedInfinity,
+    SymbolFailed,
     SymbolInputForm,
     SymbolOutputForm,
 )
-
-from mathics.eval.makeboxes import format_element
-
+from mathics.eval.strings import eval_ToString
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
-from mathics_scanner import TranslateError
-
 
 SymbolToExpression = Symbol("ToExpression")
 
@@ -271,7 +251,7 @@ def to_regex(
             "System`EndOfString": r"\Z",
             "System`WordBoundary": r"\b",
             "System`LetterCharacter": r"(?u)[^\W_0-9]",
-            "System`HexidecimalCharacter": r"[0-9a-fA-F]",
+            "System`HexadecimalCharacter": r"[0-9a-fA-F]",
         }.get(expr.get_name())
 
     if expr.has_form("CharacterRange", 2):
@@ -429,7 +409,10 @@ def to_python_encoding(encoding):
 
 class Alphabet(Builtin):
     """
-     <dl>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Alphabet.html</url>
+    <dl>
       <dt>'Alphabet'[]
       <dd>gives the list of lowercase letters a-z in the English alphabet .
 
@@ -457,7 +440,7 @@ class Alphabet(Builtin):
 
     summary_text = "lowercase letters in an alphabet"
 
-    def apply(self, alpha, evaluation):
+    def eval(self, alpha, evaluation):
         """Alphabet[alpha_String]"""
         alphakey = alpha.value
         alphakey = alphabet_alias.get(alphakey, alphakey)
@@ -473,17 +456,26 @@ class Alphabet(Builtin):
 
 class CharacterEncoding(Predefined):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/$CharacterEncoding.html</url>
+
     <dl>
-      <dt>'CharacterEncoding'
-      <dd>specifies the default raw character encoding to use for input and output when no encoding is explicitly specified. Initially this is set to '$SystemCharacterEncoding'.
+      <dt>'$CharacterEncoding'
+      <dd>specifies the default raw character encoding to use for input and \
+      output when no encoding is explicitly specified. \
+      Initially this is set to '$SystemCharacterEncoding'.
     </dl>
 
-    See the character encoding current is in effect and used in input and output functions functions like 'OpenRead[]':
+    See the character encoding current is in effect and used in input and \
+    output functions functions like 'OpenRead[]':
 
     >> $CharacterEncoding
      = ...
 
-    See also <url>:$SystemCharacterEncoding: /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/string-manipulation/$systemcharacterencoding/</url>.
+    See also <url>
+    :$SystemCharacterEncoding:
+    /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/string-manipulation/$systemcharacterencoding/</url>.
     """
 
     name = "$CharacterEncoding"
@@ -497,6 +489,10 @@ class CharacterEncoding(Predefined):
 
 class CharacterEncodings(Predefined):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/$CharacterEncodings.html</url>
+
     <dl>
       <dt>'$CharacterEncodings'
       <dd>stores the list of available character encodings.
@@ -514,14 +510,18 @@ class CharacterEncodings(Predefined):
     summary_text = "available character encodings"
 
 
-class HexidecimalCharacter(Builtin):
+class HexadecimalCharacter(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/HexadecimalCharacter.html</url>
+
     <dl>
-    <dt>'HexidecimalCharacter'
+      <dt>'HexadecimalCharacter'
       <dd>represents the characters 0-9, a-f and A-F.
     </dl>
 
-    >> StringMatchQ[#, HexidecimalCharacter] & /@ {"a", "1", "A", "x", "H", " ", "."}
+    >> StringMatchQ[#, HexadecimalCharacter] & /@ {"a", "1", "A", "x", "H", " ", "."}
      = {True, True, True, False, False, False, False}
     """
 
@@ -532,10 +532,13 @@ class HexidecimalCharacter(Builtin):
 # in mathics.builtin.box for now.
 class InterpretedBox(PrefixOperator):
     r"""
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/InterpretedBox.html</url>
+
     <dl>
       <dt>'InterpretedBox[$box$]'
-      <dd>is the ad hoc fullform for \! $box$. just
-          for internal use...
+      <dd>is the ad hoc fullform for \! $box$. just for internal use...
     </dl>
     >> \! \(2+2\)
      = 4
@@ -545,7 +548,7 @@ class InterpretedBox(PrefixOperator):
     precedence = 670
     summary_text = "interpret boxes as an expression"
 
-    def apply_dummy(self, boxes, evaluation: Evaluation):
+    def eval_dummy(self, boxes, evaluation: Evaluation):
         """InterpretedBox[boxes_]"""
         # TODO: the following is a very raw and dummy way to
         # handle these expressions.
@@ -557,6 +560,9 @@ class InterpretedBox(PrefixOperator):
 
 class LetterNumber(Builtin):
     r"""
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/LetterNumber.html</url>
     <dl>
       <dt>'LetterNumber'[$c$]
       <dd>returns the position of the character $c$ in the English alphabet.
@@ -607,7 +613,7 @@ class LetterNumber(Builtin):
 
     summary_text = "position of a letter in an alphabet"
 
-    def apply_alpha_str(self, chars: List[Any], alpha: String, evaluation):
+    def eval_alpha_str(self, chars: List[Any], alpha: String, evaluation):
         "LetterNumber[chars_, alpha_String]"
         alphakey = alpha.value
         alphakey = alphabet_alias.get(alphakey, alphakey)
@@ -646,7 +652,7 @@ class LetterNumber(Builtin):
             return evaluation.message(self.__class__.__name__, "nas", chars)
         return None
 
-    def apply(self, chars: List[Any], evaluation):
+    def eval(self, chars: List[Any], evaluation):
         "LetterNumber[chars_]"
 
         start_ord = ord("a") - 1
@@ -664,7 +670,7 @@ class LetterNumber(Builtin):
         elif chars.has_form("List", 1, None):
             result = []
             for element in chars.elements:
-                result.append(self.apply(element, evaluation))
+                result.append(self.eval(element, evaluation))
             return ListExpression(*result)
         else:
             return evaluation.message(self.__class__.__name__, "nas", chars)
@@ -673,8 +679,11 @@ class LetterNumber(Builtin):
 
 class NumberString(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/NumberString.html</url>
     <dl>
-    <dt>'NumberString'
+      <dt>'NumberString'
       <dd>represents the characters in a number.
     </dl>
 
@@ -693,9 +702,12 @@ class NumberString(Builtin):
 
 class RemoveDiacritics(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RemoveDiacritics.html</url>
     <dl>
-    <dt>'RemoveDiacritics[$s$]'
-        <dd>returns a version of $s$ with all diacritics removed.
+      <dt>'RemoveDiacritics[$s$]'
+      <dd>returns a version of $s$ with all diacritics removed.
     </dl>
 
     >> RemoveDiacritics["en prononçant pêcher et pécher"]
@@ -707,7 +719,7 @@ class RemoveDiacritics(Builtin):
 
     summary_text = "remove diacritics"
 
-    def apply(self, s, evaluation: Evaluation):
+    def eval(self, s, evaluation: Evaluation):
         "RemoveDiacritics[s_String]"
         return String(
             unicodedata.normalize("NFKD", s.value)
@@ -804,6 +816,9 @@ class _StringFind(Builtin):
 
 class String_(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/String.html</url>
     <dl>
       <dt>'String'
       <dd>is the head of strings.
@@ -829,13 +844,18 @@ class String_(Builtin):
 
 class StringContainsQ(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/StringContainsQ.html</url>
     <dl>
-    <dt>'StringContainsQ["$string$", $patt$]'
-        <dd>returns True if any part of $string$ matches $patt$, and returns False otherwise.
-    <dt>'StringContainsQ[{"s1", "s2", ...}, patt]'
-        <dd>returns the list of results for each element of string list.
-    <dt>'StringContainsQ[patt]'
-        <dd>represents an operator form of StringContainsQ that can be applied to an expression.
+      <dt>'StringContainsQ["$string$", $patt$]'
+      <dd>returns True if any part of $string$ matches $patt$, and returns False otherwise.
+
+      <dt>'StringContainsQ[{"s1", "s2", ...}, patt]'
+      <dd>returns the list of results for each element of string list.
+
+      <dt>'StringContainsQ[patt]'
+      <dd>represents an operator form of StringContainsQ that can be applied to an expression.
     </dl>
 
     >> StringContainsQ["mathics", "m" ~~ __ ~~ "s"]
@@ -917,7 +937,7 @@ class StringContainsQ(Builtin):
 
     summary_text = "test whether a pattern matches with a substring"
 
-    def apply(self, string, patt, evaluation, options):
+    def eval(self, string, patt, evaluation, options):
         "StringContainsQ[string_, patt_, OptionsPattern[%(name)s]]"
         return _pattern_search(
             self.__class__.__name__, string, patt, evaluation, options, True
@@ -926,8 +946,11 @@ class StringContainsQ(Builtin):
 
 class StringQ(Test):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/StringQ.html</url>
     <dl>
-    <dt>'StringQ[$expr$]'
+      <dt>'StringQ[$expr$]'
       <dd>returns 'True' if $expr$ is a 'String', or 'False' otherwise.
     </dl>
 
@@ -947,6 +970,9 @@ class StringQ(Test):
 
 class StringRepeat(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/StringRepeat.html</url>
     <dl>
       <dt>'StringRepeat["$string$", $n$]'
       <dd>gives $string$ repeated $n$ times.
@@ -973,7 +999,7 @@ class StringRepeat(Builtin):
 
     summary_text = "build a string by concatenating repetitions"
 
-    def apply(self, s, n, expression, evaluation):
+    def eval(self, s, n, expression, evaluation):
         "StringRepeat[s_String, n_]"
         py_n = n.value if isinstance(n, Integer) else 0
         if py_n < 1:
@@ -981,7 +1007,7 @@ class StringRepeat(Builtin):
         else:
             return String(s.value * py_n)
 
-    def apply_truncated(self, s, n, m, expression, evaluation):
+    def eval_truncated(self, s, n, m, expression, evaluation):
         "StringRepeat[s_String, n_Integer, m_Integer]"
         # The above rule insures that n and m are boht Integer type
         py_n = n.value
@@ -1000,6 +1026,9 @@ class StringRepeat(Builtin):
 
 class SystemCharacterEncoding(Predefined):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/$SystemCharacterEncoding.html</url>
     <dl>
       <dt>$SystemCharacterEncoding
       <dd>gives the default character encoding of the system.
@@ -1022,6 +1051,9 @@ class SystemCharacterEncoding(Predefined):
 
 class ToExpression(Builtin):
     r"""
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ToExpression.html</url>
     <dl>
       <dt>'ToExpression[$input$]'
       <dd>inteprets a given string as Mathics input.
@@ -1084,7 +1116,7 @@ class ToExpression(Builtin):
     }
     summary_text = "build an expression from formatted text"
 
-    def apply(self, seq, evaluation: Evaluation):
+    def eval(self, seq, evaluation: Evaluation):
         "ToExpression[seq__]"
 
         # Organise Arguments
@@ -1140,7 +1172,7 @@ class ToExpression(Builtin):
 
         return result
 
-    def apply_empty(self, evaluation: Evaluation):
+    def eval_empty(self, evaluation: Evaluation):
         "ToExpression[]"
         evaluation.message(
             "ToExpression", "argb", "ToExpression", Integer0, Integer1, Integer(3)
@@ -1148,16 +1180,11 @@ class ToExpression(Builtin):
         return
 
 
-def eval_ToString(
-    expr: BaseElement, form: Symbol, encoding: String, evaluation: Evaluation
-) -> String:
-    boxes = format_element(expr, evaluation, form, encoding=encoding)
-    text = boxes.boxes_to_text(evaluation=evaluation)
-    return String(text)
-
-
 class ToString(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ToString.html</url>
     <dl>
       <dt>'ToString[$expr$]'
       <dd>returns a string representation of $expr$.
@@ -1194,11 +1221,11 @@ class ToString(Builtin):
 
     summary_text = "format an expression and produce a string"
 
-    def apply_default(self, value, evaluation, options):
+    def eval_default(self, value, evaluation, options):
         "ToString[value_, OptionsPattern[ToString]]"
-        return self.apply_form(value, SymbolOutputForm, evaluation, options)
+        return self.eval_form(value, SymbolOutputForm, evaluation, options)
 
-    def apply_form(self, expr, form, evaluation, options):
+    def eval_form(self, expr, form, evaluation, options):
         "ToString[expr_, form_, OptionsPattern[ToString]]"
         encoding = options["System`CharacterEncoding"]
         return eval_ToString(expr, form, encoding.value, evaluation)
@@ -1206,9 +1233,12 @@ class ToString(Builtin):
 
 class Transliterate(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Transliterate.html</url>
     <dl>
-    <dt>'Transliterate[$s$]'
-        <dd>transliterates a text in some script into an ASCII string.
+      <dt>'Transliterate[$s$]'
+      <dd>transliterates a text in some script into an ASCII string.
     </dl>
 
     ASCII translateration examples:
@@ -1231,7 +1261,7 @@ class Transliterate(Builtin):
     requires = ("unidecode",)
     summary_text = "transliterate an UTF string in different alphabets to ASCII"
 
-    def apply(self, s, evaluation: Evaluation):
+    def eval(self, s, evaluation: Evaluation):
         "Transliterate[s_String]"
         from unidecode import unidecode
 
@@ -1240,8 +1270,11 @@ class Transliterate(Builtin):
 
 class Whitespace(Builtin):
     r"""
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Whitespace.html</url>
     <dl>
-    <dt>'Whitespace'
+      <dt>'Whitespace'
       <dd>represents a sequence of whitespace characters.
     </dl>
 

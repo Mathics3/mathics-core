@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import mpmath
-import sympy
 from functools import lru_cache
 
+import mpmath
+import sympy
 
-from mathics.core.atoms import (
-    Complex,
-    MachineReal,
-    PrecisionReal,
-)
+from mathics.core.atoms import Complex, MachineReal, MachineReal0, PrecisionReal
 
 
 @lru_cache(maxsize=1024)
@@ -28,7 +24,7 @@ def from_mpmath(value, prec=None, acc=None):
         # If the error if of the order of the number, the number
         # is compatible with 0.
         if prec < 1.0:
-            return MachineReal(float(0))
+            return MachineReal0
         # HACK: use str here to prevent loss of precision
         return PrecisionReal(sympy.Float(str(value), prec))
     elif isinstance(value, mpmath.mpc):

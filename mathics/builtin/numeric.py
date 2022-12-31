@@ -16,10 +16,10 @@ from mathics.builtin.base import Builtin
 from mathics.core.atoms import Complex, Integer, Integer0, Rational, Real
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.convert.sympy import from_sympy
-from mathics.eval.nevaluator import eval_nvalues
 from mathics.core.expression import Expression
 from mathics.core.number import machine_epsilon
 from mathics.core.symbols import SymbolDivide, SymbolMachinePrecision, SymbolTimes
+from mathics.eval.nevaluator import eval_nvalues
 
 
 def chop(expr, delta=10.0 ** (-10.0)):
@@ -44,6 +44,8 @@ def chop(expr, delta=10.0 ** (-10.0)):
 
 class Chop(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Chop.html</url>
+
     <dl>
       <dt>'Chop[$expr$]'
       <dd>replaces floating point numbers close to 0 by 0.
@@ -84,6 +86,8 @@ class Chop(Builtin):
 
 class N(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/N.html</url>
+
     <dl>
     <dt>'N[$expr$, $prec$]'
         <dd>evaluates $expr$ numerically with a precision of $prec$ digits.
@@ -245,6 +249,8 @@ class N(Builtin):
 
 class Rationalize(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Rationalize.html</url>
+
     <dl>
       <dt>'Rationalize[$x$]'
       <dd>converts a real number $x$ to a nearby rational number with small denominator.
@@ -407,6 +413,8 @@ class RealValuedNumericQ(Builtin):
 
 class Round(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Round.html</url>
+
     <dl>
       <dt>'Round[$expr$]'
       <dd>rounds $expr$ to the nearest integer.

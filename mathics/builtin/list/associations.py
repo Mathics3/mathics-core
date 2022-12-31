@@ -7,10 +7,7 @@ An Association maps keys to values and is similar to a dictionary in Python; it 
 """
 
 
-from mathics.builtin.base import (
-    Builtin,
-    Test,
-)
+from mathics.builtin.base import Builtin, Test
 from mathics.builtin.box.layout import RowBox
 from mathics.builtin.lists import list_boxes
 from mathics.core.atoms import Integer
@@ -18,15 +15,13 @@ from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolAssociation,
-    SymbolMakeBoxes,
-    SymbolMissing,
-)
+from mathics.core.systemsymbols import SymbolAssociation, SymbolMakeBoxes, SymbolMissing
 
 
 class Association(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Association.html</url>
+
     <dl>
       <dt>'Association[$key1$ -> $val1$, $key2$ -> $val2$, ...]'
       <dt>'<|$key1$ -> $val1$, $key2$ -> $val2$, ...|>'
@@ -163,6 +158,8 @@ class Association(Builtin):
 
 class AssociationQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AssociationQ.html</url>
+
     <dl>
       <dt>'AssociationQ[$expr$]'
       <dd>return True if $expr$ is a valid Association object, and False otherwise.
@@ -194,6 +191,8 @@ class AssociationQ(Test):
 
 class Keys(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Keys.html</url>
+
     <dl>
       <dt>'Keys[<|$key1$ -> $val1$, $key2$ -> $val2$, ...|>]'
       <dd>return a list of the keys $keyi$ in an association.
@@ -288,6 +287,8 @@ class Keys(Builtin):
 
 class Lookup(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Lookup.html</url>
+
     <dl>
       <dt>Lookup[$assoc$, $key$]
       <dd> looks up the value associated with $key$ in the association $assoc$, or Missing[$KeyAbsent$].
@@ -305,6 +306,8 @@ class Lookup(Builtin):
 
 class Missing(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Missing.html</url>
+
     <dl>
       <dd>'Missing[]'
       <dt> represents a data that is misssing.
@@ -318,6 +321,8 @@ class Missing(Builtin):
 
 class Values(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Values.html</url>
+
     <dl>
       <dt>'Values[<|$key1$ -> $val1$, $key2$ -> $val2$, ...|>]'
       <dd>return a list of the values $vali$ in an association.

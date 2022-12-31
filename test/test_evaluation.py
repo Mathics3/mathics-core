@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-from .helper import evaluate, check_evaluation
-
 import sys
+
 import pytest
+
+from .helper import check_evaluation, evaluate
 
 
 @pytest.mark.parametrize(
