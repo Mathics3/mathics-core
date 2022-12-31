@@ -993,10 +993,10 @@ class InsetBox(_GraphicsElementBox):
             self.pos = pos
             self.opos = opos
 
-        if isinstance(self.content, String):
-            self.content = self.content.atom_to_boxes(
-                SymbolStandardForm, evaluation=self.graphics.evaluation
-            )
+        # if isinstance(self.content, String):
+        #    self.content = self.content.atom_to_boxes(
+        #        SymbolStandardForm, evaluation=self.graphics.evaluation
+        #    )
         self.content_text = self.content.boxes_to_text(
             evaluation=self.graphics.evaluation
         )

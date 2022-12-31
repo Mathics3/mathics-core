@@ -123,7 +123,6 @@ def string(self, **options) -> str:
         # is required, to so get the standard WMA behaviour,
         # this option is set to False:
         # show_string_characters = False
-
         if show_string_characters:
             return render(r"\text{``%s''}", text[1:-1], in_text=True)
         else:
