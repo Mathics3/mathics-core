@@ -12,10 +12,8 @@ sort_order = "mathics.builtin.applying-functions-to-lists"
 
 from typing import Iterable
 
-from mathics.builtin.base import (
-    Builtin,
-    BinaryOperator,
-)
+from mathics.builtin.base import BinaryOperator, Builtin
+from mathics.builtin.lists import List, python_levelspec, walk_levels
 from mathics.core.atoms import Integer
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.exceptions import (
@@ -25,20 +23,8 @@ from mathics.core.exceptions import (
 )
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    SymbolNull,
-    SymbolTrue,
-)
-
+from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import SymbolRule
-
-from mathics.builtin.lists import (
-    python_levelspec,
-    walk_levels,
-    List,
-)
 
 SymbolMapThread = Symbol("MapThread")
 

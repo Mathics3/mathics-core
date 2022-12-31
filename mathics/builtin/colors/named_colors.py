@@ -5,7 +5,6 @@ Mathics has definitions for the most common color names which can be used in a g
 """
 
 from mathics.builtin.base import Builtin
-
 from mathics.core.symbols import strip_context
 
 
@@ -19,6 +18,7 @@ class _ColorObject(Builtin):
         else:
             text_name = self.text_name
         doc = """
+            <url>:WMA link:https://reference.wolfram.com/language/ref/%(text_name)s.html</url>
             <dl>
             <dt>'%(name)s'
             <dd>represents the color %(text_name)s in graphics.
@@ -42,6 +42,8 @@ class _ColorObject(Builtin):
 
 class Black(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Black.html</url>
+
     >> Black
      = RGBColor[0, 0, 0]
     """
@@ -51,6 +53,8 @@ class Black(_ColorObject):
 
 class Blue(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Blue.html</url>
+
     >> Blue
      = RGBColor[0, 0, 1]
     """
@@ -60,6 +64,8 @@ class Blue(_ColorObject):
 
 class Brown(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Brown.html</url>
+
     >> Brown
      = RGBColor[0.6, 0.4, 0.2]
     """
@@ -69,6 +75,8 @@ class Brown(_ColorObject):
 
 class Cyan(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Cyan.html</url>
+
     >> Cyan
      = RGBColor[0, 1, 1]
     """
@@ -78,6 +86,8 @@ class Cyan(_ColorObject):
 
 class Gray(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Gray.html</url>
+
     >> Gray
      = GrayLevel[0.5]
     """
@@ -87,6 +97,8 @@ class Gray(_ColorObject):
 
 class Green(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Green.html</url>
+
     >> Green
      = RGBColor[0, 1, 0]
     """
@@ -96,6 +108,8 @@ class Green(_ColorObject):
 
 class Magenta(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Magenta.html</url>
+
     >> Magenta
      = RGBColor[1, 0, 1]
     """
@@ -105,6 +119,8 @@ class Magenta(_ColorObject):
 
 class LightBlue(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LightBlue.html</url>
+
     >> Graphics[{LightBlue, EdgeForm[Black], Disk[]}]
      = -Graphics-
 
@@ -182,6 +198,8 @@ class Orange(_ColorObject):
 
 class Red(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Red.html</url>
+
     >> Red
      = RGBColor[1, 0, 0]
     """
@@ -191,6 +209,8 @@ class Red(_ColorObject):
 
 class Yellow(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Yellow.html</url>
+
     >> Yellow
      = RGBColor[1, 1, 0]
     """
@@ -200,6 +220,8 @@ class Yellow(_ColorObject):
 
 class White(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/White.html</url>
+
     >> White
      = GrayLevel[1]
     """

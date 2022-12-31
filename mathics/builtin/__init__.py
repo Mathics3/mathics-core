@@ -1,8 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-Mathics Built-in Functions and Variables.
+Mathics Builtin Functions and  Variables.
 
-Mathics has over a thousand Built-in Functions and variables, all of which are defined here.
+Mathics has over a thousand Built-in functions and variables, all of
+which are defined here.
+
+Note that there are other modules to collect specific aspects a
+Builtin, such as ``mathics.eval`` for evaluation specifics, or
+``mathics.format`` for rendering details, or ``mathics.compile`` for
+compilation details.
+
+What remains here is then mostly the top-level definition of a Mathics
+Builtin, and attributes that have not been segregated elsewhere such
+as has been done for one of the other modules listed above.
+
+A Mathics Builtin is implemented one of a particular kind of Python
+class.  Within these classes class variables give properties of the
+builtin class such as the Builtin's Attributes, its Information text,
+among other things.
 """
 
 import glob
@@ -153,9 +168,9 @@ def name_is_builtin_symbol(module, name: str) -> Optional[type]:
 
 
 # FIXME: redo using importlib since that is probably less fragile.
-exclude_files = set(("codetables", "base"))
+exclude_files = {"codetables", "base"}
 module_names = [
-    f for f in __py_files__ if re.match("^[a-z0-9]+$", f) if f not in exclude_files
+    f for f in __py_files__ if re.match(r"^[a-z\d]+$", f) if f not in exclude_files
 ]
 
 modules = []
@@ -164,9 +179,7 @@ import_builtins(module_names)
 _builtins_list = []
 builtins_by_module = {}
 
-disable_file_module_names = (
-    [] if ENABLE_FILES_MODULE else ["files_io.files", "files_io.importexport"]
-)
+disable_file_module_names = [] if ENABLE_FILES_MODULE else ["files_io"]
 
 for subdir in (
     "arithfns",
@@ -193,7 +206,7 @@ for subdir in (
 ):
     import_name = f"{__name__}.{subdir}"
 
-    if import_name in disable_file_module_names:
+    if subdir in disable_file_module_names:
         continue
 
     builtin_module = importlib.import_module(import_name)
@@ -203,33 +216,6 @@ for subdir in (
     ]
     # print("XXX3", submodule_names)
     import_builtins(submodule_names, subdir)
-
-# FIXME: move this somewhere else...
-
-# Set this to True to print all the builtins that do not have
-# a summary_text. In the future, we can set this to True
-# and raise an error if a new builtin is added without
-# this property or if it does not fulfill some other conditions.
-RUN_SANITY_TEST = False
-
-
-def sanity_check(cls, module):
-    if not RUN_SANITY_TEST:
-        return True
-
-    if not hasattr(cls, "summary_text"):
-        print(
-            "In ",
-            module.__name__,
-            cls.__name__,
-            " does not have a summary_text.",
-        )
-        return False
-    return True
-
-
-# End FIXME
-
 
 for module in modules:
     builtins_by_module[module.__name__] = []
@@ -244,10 +230,6 @@ for module in modules:
                 # This set the default context for symbols in mathics.builtins
                 if not type(instance).context:
                     type(instance).context = "System`"
-                assert sanity_check(
-                    builtin_class, module
-                ), f"In {module.__name__} Builtin <<{builtin_class.__name__}>> did not pass the sanity check."
-
                 _builtins_list.append((instance.get_name(), instance))
                 builtins_by_module[module.__name__].append(instance)
 

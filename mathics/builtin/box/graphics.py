@@ -6,39 +6,31 @@ Boxing Routines for 2D Graphics
 
 from math import atan2, ceil, cos, degrees, floor, log10, pi, sin
 
-
-from mathics.builtin.base import BoxExpression
+from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.colors.color_directives import (
-    _ColorObject,
     ColorError,
     Opacity,
     RGBColor,
+    _ColorObject,
 )
-from mathics.builtin.drawing.graphics_internals import _GraphicsElementBox, GLOBALS
+from mathics.builtin.drawing.graphics_internals import GLOBALS, _GraphicsElementBox
 from mathics.builtin.graphics import (
+    DEFAULT_POINT_FACTOR,
     Arrowheads,
     Coords,
-    DEFAULT_POINT_FACTOR,
     Graphics,
     GraphicsElements,
     PointSize,
     _BezierCurve,
-    _Line,
-    _Polyline,
     _data_and_options,
     _extract_graphics,
+    _Line,
     _norm,
+    _Polyline,
     _to_float,
     coords,
 )
-
-
-from mathics.core.atoms import (
-    Integer,
-    Real,
-    String,
-)
-
+from mathics.core.atoms import Integer, Real, String
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.exceptions import BoxExpressionError
 from mathics.core.expression import Expression
@@ -46,7 +38,6 @@ from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolTraditionalForm
-
 from mathics.eval.makeboxes import format_element
 
 SymbolRegularPolygonBox = Symbol("RegularPolygonBox")
@@ -702,6 +693,7 @@ class GraphicsBox(BoxExpression):
         return svg_body
 
     def create_axes(self, elements, graphics_options, xmin, xmax, ymin, ymax):
+        use_log_for_y_axis = graphics_options.get("System`LogPlot", False)
         axes = graphics_options.get("System`Axes")
         if axes is SymbolTrue:
             axes = (True, True)
@@ -744,7 +736,17 @@ class GraphicsBox(BoxExpression):
 
         for (
             index,
-            (min, max, p_self0, p_other0, p_origin, ticks, ticks_small, ticks_int),
+            (
+                min,
+                max,
+                p_self0,
+                p_other0,
+                p_origin,
+                ticks,
+                ticks_small,
+                ticks_int,
+                is_logscale,
+            ),
         ) in enumerate(
             [
                 (
@@ -756,6 +758,7 @@ class GraphicsBox(BoxExpression):
                     ticks_x,
                     ticks_x_small,
                     ticks_x_int,
+                    False,
                 ),
                 (
                     ymin,
@@ -766,6 +769,7 @@ class GraphicsBox(BoxExpression):
                     ticks_y,
                     ticks_y_small,
                     ticks_y_int,
+                    use_log_for_y_axis,
                 ),
             ]
         ):
@@ -798,12 +802,20 @@ class GraphicsBox(BoxExpression):
                             ),
                         ]
                     )
+
+                    # FIXME: for log plots we labels should appear
+                    # as 10^x rather than say 1000000.
+                    tick_value = 10**x if is_logscale else x
                     if ticks_int:
-                        content = String(str(int(x)))
-                    elif x == floor(x):
-                        content = String("%.1f" % x)  # e.g. 1.0 (instead of 1.)
+                        content = String(str(int(tick_value)))
+                    elif tick_value == floor(x):
+                        content = String(
+                            "%.1f" % tick_value
+                        )  # e.g. 1.0 (instead of 1.)
                     else:
-                        content = String("%g" % x)  # fix e.g. 0.6000000000000001
+                        content = String(
+                            "%g" % tick_value
+                        )  # fix e.g. 0.6000000000000001
                     add_element(
                         InsetBox(
                             elements,

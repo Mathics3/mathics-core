@@ -6,16 +6,34 @@ CHANGES
 5.0.3dev0
 ---------
 
+API
++++
+
+#. New function ``mathics.system_info.python_implementation()`` shows the Python Implementation, e.g. CPython, PyPy, Pyston that is running Python. This is included in the information ``mathics.system_info.mathics_system__system_info()`` returns and is used in ``$PythonImplementation``
+#. A list of optional software can be found in ``mathics.optional_software``. Versions of that software are included in ``mathics.version_info``.
+
+
+Package update
+..............
+
+#. SymPy 1.11.1 accepted
+#. Numpy 1.24.0 accepted
+
+
 New Builtins
 +++++++++++
 
 #. ``$BoxForms``
 #. ``$OutputForms``
 #. ``$PrintForms``
+#. ``$PythonImplementation``
 #. ``Accuracy``
 #. ``ClebschGordan``
 #. ``Curl`` (2-D and 3-D vector forms only)
+#. ``DiscretePlot``
 #. ``Kurtosis``
+#. ``ListLogPlot``
+#. ``LogPlot``
 #. ``PauliMatrix``
 #. ``Remove``
 #. ``SetOptions``
@@ -31,18 +49,21 @@ Documentation
 #. "Exponential Functional" split out from "Trigonometry Functions"
 #. A new section on "Accuracy and Precision" was included in the manual.
 #. "Forms of Input and Output" is its own section
+#. All Builtins have links to WMA pages.
+#. More url links to Wiki pages added; more internal cross links added.
 
 Internals
 +++++++++
 
 #. ``boxes_to_`` methods are now optional for ``BoxElement`` subclasses. Most of the code is now moved to the ``mathics.format`` submodule, and implemented in a more scalable way.
 #. ``mathics.builtin.inout`` was splitted in several modules (``inout``, ``messages``, ``layout``, ``makeboxes``) in order to improve the documentation.
-#. `from_mpmath` conversion supports a new parameter ``acc`` to set the accuracy of the number.
+#. ``from_mpmath`` conversion supports a new parameter ``acc`` to set the accuracy of the number.
 #. Operator name to unicode or ASCII comes from Mathics scanner character tables.
-#. ``eval*`` methods in `Builtin` classes are considerer as synonyms of ``apply*`` methods.
-#. Modularize and improve the way in which `Builtin` classes are selected to have an associated `Definition`.
-#. `_SetOperator.assign_elementary` was renamed as `_SetOperator.assign`. All the special cases are not handled by the `_SetOperator.special_cases` dict.
-
+#. Builtin instance methods that start ``apply`` are considered rule matching and function application; the use of the name ``apply``is deprecated, when ``eval`` is intended.
+#. Modularize and improve the way in which ``Builtin`` classes are selected to have an associated ``Definition``.
+#. ``_SetOperator.assign_elementary`` was renamed as ``_SetOperator.assign``. All the special cases are not handled by the ``_SetOperator.special_cases`` dict.
+#. ``isort`` run over all Python files. More type annotations and docstrings on functions added.
+#. caching on immutable atoms like, ``String``, ``Integer``, ``Real``, etc. was improved; the ``__hash__()`` function was sped up. There is a small speedup overall from this at the expense of increased memory.
 
 
 Bugs
@@ -50,6 +71,8 @@ Bugs
 
 # ``0`` with a given precision (like in ```0`3```) is now parsed as ``0``, an integer number.
 #. ``RandomSample`` with one list argument now returns a random ordering of the list items. Previously it would return just one item.
+#. Origin placement corrected on ``ListPlot`` and ``LinePlot``.
+#. Fix long-standing bugs in Image handling
 
 
 Enhancements

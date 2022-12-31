@@ -4,7 +4,7 @@ Location Statistics
 
 from mathics.algorithm.introselect import introselect
 from mathics.builtin.base import Builtin
-from mathics.builtin.lists import _Rectangular, _NotRectangularException
+from mathics.builtin.lists import _NotRectangularException, _Rectangular
 from mathics.core.atoms import Integer2
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolDivide, SymbolPlus
@@ -12,6 +12,8 @@ from mathics.core.symbols import Symbol, SymbolDivide, SymbolPlus
 
 class Mean(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Mean.html</url>
+
     <dl>
     <dt>'Mean[$list$]'
       <dd>returns the statistical mean of $list$.
@@ -38,6 +40,8 @@ SymbolMedian = Symbol("Median")
 
 class Median(_Rectangular):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Median.html</url>
+
     <dl>
       <dt>'Median[$list$]'
       <dd>returns the median of $list$.

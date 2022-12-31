@@ -11,10 +11,9 @@ Procedural functions are integrated into Mathics symbolic programming environmen
 """
 
 
-from mathics.builtin.base import Builtin, BinaryOperator
+from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.builtin.lists import _IterationFunction
 from mathics.builtin.patterns import match
-
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_REST,
@@ -29,12 +28,7 @@ from mathics.core.interrupt import (
     ReturnInterrupt,
     WLThrowInterrupt,
 )
-from mathics.core.symbols import (
-    Symbol,
-    SymbolFalse,
-    SymbolNull,
-    SymbolTrue,
-)
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import SymbolMatchQ
 
 SymbolWhich = Symbol("Which")
@@ -42,6 +36,8 @@ SymbolWhich = Symbol("Which")
 
 class Abort(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Abort.html</url>
+
     <dl>
       <dt>'Abort[]'
       <dd>aborts an evaluation completely and returns '$Aborted'.
@@ -61,6 +57,8 @@ class Abort(Builtin):
 
 class Break(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Break.html</url>
+
     <dl>
       <dt>'Break[]'
       <dd>exits a 'For', 'While', or 'Do' loop.
@@ -85,6 +83,8 @@ class Break(Builtin):
 
 class Catch(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Catch.html</url>
+
     <dl>
       <dt>'Catch[$expr$]'
       <dd> returns the argument of the first 'Throw' generated in the evaluation of $expr$.
@@ -143,6 +143,8 @@ class Catch(Builtin):
 
 class CompoundExpression(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/CompoundExpression.html</url>
+
     <dl>
       <dt>'CompoundExpression[$e1$, $e2$, ...]'
       <dt>'$e1$; $e2$; ...'
@@ -214,6 +216,8 @@ class CompoundExpression(BinaryOperator):
 
 class Continue(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Continue.html</url>
+
     <dl>
       <dt>'Continue[]'
       <dd>continues with the next iteration in a 'For', 'While', or 'Do' loop.
@@ -240,6 +244,8 @@ class Continue(Builtin):
 
 class Do(_IterationFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Do.html</url>
+
     <dl>
       <dt>'Do[$expr$, {$max$}]'
       <dd>evaluates $expr$ $max$ times.
@@ -290,6 +296,8 @@ class Do(_IterationFunction):
 
 class For(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/For.html</url>
+
     <dl>
       <dt>'For[$start$, $test$, $incr$, $body$]'
       <dd>evaluates $start$, and then iteratively $body$ and $incr$ as long as $test$ evaluates to 'True'.
@@ -345,6 +353,8 @@ class For(Builtin):
 
 class If(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/If.html</url>
+
     <dl>
       <dt>'If[$cond$, $pos$, $neg$]'
       <dd>returns $pos$ if $cond$ evaluates to 'True', and $neg$ if it evaluates to 'False'.
@@ -402,6 +412,8 @@ class If(Builtin):
 
 class Interrupt(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Interrupt.html</url>
+
     <dl>
       <dt>'Interrupt[]'
       <dd>Interrupt an evaluation and returns '$Aborted'.
@@ -421,6 +433,8 @@ class Interrupt(Builtin):
 
 class Return(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Return.html</url>
+
     <dl>
       <dt>'Return[$expr$]'
       <dd>aborts a function call and returns $expr$.
@@ -468,6 +482,8 @@ class Return(Builtin):
 
 class Switch(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Switch.html</url>
+
     <dl>
       <dt>'Switch[$expr$, $pattern1$, $value1$, $pattern2$, $value2$, ...]'
       <dd>yields the first $value$ for which $expr$ matches the corresponding $pattern$.
@@ -521,6 +537,8 @@ class Switch(Builtin):
 
 class Which(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Which.html</url>
+
     <dl>
       <dt>'Which[$cond1$, $expr1$, $cond2$, $expr2$, ...]'
       <dd>yields $expr1$ if $cond1$ evaluates to 'True', $expr2$ if $cond2$ evaluates to 'True', etc.
@@ -579,6 +597,8 @@ class Which(Builtin):
 
 class While(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/While.html</url>
+
     <dl>
       <dt>'While[$test$, $body$]'
       <dd>evaluates $body$ as long as $test$ evaluates to 'True'.
@@ -621,6 +641,8 @@ class While(Builtin):
 
 class Throw(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Throw.html</url>
+
     <dl>
       <dt>'Throw[`value`]'
       <dd> stops evaluation and returns `value` as the value of the nearest enclosing 'Catch'.

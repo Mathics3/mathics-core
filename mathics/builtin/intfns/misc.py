@@ -1,5 +1,4 @@
 from mathics.builtin.arithmetic import _MPMathFunction
-
 from mathics.core.attributes import (
     A_LISTABLE,
     A_NUMERIC_FUNCTION,
@@ -10,6 +9,8 @@ from mathics.core.attributes import (
 
 class BernoulliB(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BernoulliB.html</url>
+
     <dl>
       <dt>'BernoulliB[$n$]'
       <dd>represents the Bernouilli number B_$n$.

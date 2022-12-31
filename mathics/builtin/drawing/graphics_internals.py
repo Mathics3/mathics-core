@@ -4,17 +4,14 @@
 # Also no docstring which may confuse the doc system
 
 
-from mathics.builtin.base import (
-    BuiltinElement,
-    BoxExpression,
-    split_name,
-)
+from mathics.builtin.base import BuiltinElement
+from mathics.builtin.box.expression import BoxExpression, split_name
 
 # Signals to Mathics doc processing not to include this module in its documentation.
 no_doc = True
 
 from mathics.core.exceptions import BoxExpressionError
-from mathics.core.symbols import system_symbols_dict, Symbol
+from mathics.core.symbols import Symbol, system_symbols_dict
 
 
 class _GraphicsDirective(BuiltinElement):

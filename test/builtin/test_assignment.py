@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
+from test.helper import check_evaluation, session
 
 import pytest
-from test.helper import check_evaluation, session
 from mathics_scanner.errors import IncompleteSyntaxError
 
 DEBUGASSIGN = int(os.environ.get("DEBUGSET", "0")) == 1

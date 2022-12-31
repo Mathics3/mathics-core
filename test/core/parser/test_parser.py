@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 
-import sys
 import random
+import sys
 import unittest
 
 from mathics_scanner import (
@@ -13,7 +13,7 @@ from mathics_scanner import (
     SingleLineFeeder,
 )
 
-from mathics.core.parser.ast import Node, Symbol, Number, String, Filename
+from mathics.core.parser.ast import Filename, Node, Number, String, Symbol
 from mathics.core.parser.parser import Parser
 
 

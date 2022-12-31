@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
-import tempfile
 import os
 import os.path as osp
-import pytest
 import sys
-from ...helper import session
+import tempfile
+
+import pytest
 
 from mathics.builtin.atomic.strings import to_python_encoding
+
+from ...helper import session
 
 # def test_import():
 #     eaccent = "\xe9"

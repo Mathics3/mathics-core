@@ -6,7 +6,6 @@ Lower-level format of Mathics objects as Asymptote strings.
 import re
 
 from mathics.builtin.box.graphics import (
-    _ArcBox,
     ArrowBox,
     BezierCurveBox,
     FilledCurveBox,
@@ -15,22 +14,22 @@ from mathics.builtin.box.graphics import (
     PointBox,
     PolygonBox,
     RectangleBox,
+    _ArcBox,
     _RoundBox,
 )
-
 from mathics.builtin.box.graphics3d import (
-    Graphics3DElements,
     Arrow3DBox,
     Cone3DBox,
     Cuboid3DBox,
     Cylinder3DBox,
+    Graphics3DElements,
     Line3DBox,
     Point3DBox,
     Polygon3DBox,
     Sphere3DBox,
     Tube3DBox,
 )
-
+from mathics.builtin.box.uniform_polyhedra import UniformPolyhedron3DBox
 from mathics.builtin.graphics import (
     DEFAULT_POINT_FACTOR,
     GraphicsElements,
@@ -38,12 +37,10 @@ from mathics.builtin.graphics import (
     RGBColor,
 )
 
-from mathics.builtin.box.uniform_polyhedra import UniformPolyhedron3DBox
-
 INVERSE_POINT_FACTOR = 1 / DEFAULT_POINT_FACTOR
 
 
-from mathics.core.formatter import lookup_method, add_conversion_fn
+from mathics.core.formatter import add_conversion_fn, lookup_method
 from mathics.format.asy_fns import (
     asy_add_bezier_fn,
     asy_add_graph_import,

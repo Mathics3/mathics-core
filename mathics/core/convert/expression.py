@@ -6,7 +6,6 @@ from mathics.core.element import BaseElement
 from mathics.core.expression import Expression, convert_expression_elements
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList
-
 from mathics.eval.numerify import numerify
 
 

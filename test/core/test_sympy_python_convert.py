@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 import random
-import sympy
 import sys
 import unittest
 
-from mathics.core.symbols import Symbol
+import sympy
+
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -20,7 +20,7 @@ from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import SymbolPlus
+from mathics.core.symbols import Symbol, SymbolPlus
 from mathics.core.systemsymbols import (
     SymbolD,
     SymbolDerivative,

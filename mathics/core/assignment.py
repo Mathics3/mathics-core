@@ -3,10 +3,12 @@
 Support for Set and SetDelayed, and other assignment-like builtins
 """
 
+from functools import reduce
 from typing import Optional, Tuple
 
 from mathics.algorithm.parts import walk_parts
 from mathics.core.atoms import Atom, Integer
+from mathics.core.attributes import A_LOCKED, A_PROTECTED, attribute_string_to_number
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 from mathics.core.expression import Expression, SymbolDefault
@@ -16,8 +18,8 @@ from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
     SymbolList,
-    SymbolMinPrecision,
     SymbolMaxPrecision,
+    SymbolMinPrecision,
     SymbolN,
     SymbolTrue,
     valid_context_name,
@@ -33,11 +35,6 @@ from mathics.core.systemsymbols import (
     SymbolPattern,
     SymbolRuleDelayed,
 )
-
-
-from mathics.core.attributes import attribute_string_to_number, A_LOCKED, A_PROTECTED
-
-from functools import reduce
 
 
 class AssignmentException(Exception):

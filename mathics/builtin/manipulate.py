@@ -2,7 +2,6 @@
 
 
 from mathics import settings
-
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
@@ -21,8 +20,8 @@ except ImportError:
     _jupyter = False
 
 try:
-    from ipywidgets import IntSlider, FloatSlider, ToggleButtons, Box, DOMWidget
     from IPython.core.formatters import IPythonDisplayFormatter
+    from ipywidgets import Box, DOMWidget, FloatSlider, IntSlider, ToggleButtons
 
     _ipywidgets = True
 except ImportError:
@@ -87,6 +86,8 @@ class ManipulateParameter(
         "System`Private`ManipulateParameter[var_, {min_?RealNumberQ, max_?RealNumberQ, step_?RealNumberQ}]": 'Join[{Type -> "Discrete", Minimum -> min, Maximum -> max, Step -> step, Default -> min}, var]',
         "System`Private`ManipulateParameter[var_, {opt_List}] /; Length[opt] > 0": 'Join[{Type -> "Options", Options -> opt, Default -> Part[opt, 1]}, var]',
     }
+
+    summary_text = "interactive manipulation (not implemented yet)"
 
 
 def _manipulate_label(x):  # gets the label that is displayed for a symbol or name
@@ -240,6 +241,8 @@ class ManipulateOutput(Output):
 
 class Manipulate(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Manipulate.html</url>
+
     <dl>
     <dt>'Manipulate[$expr1$, {$u$, $u_min$, $u_max$}]'
         <dd>interactively compute and display an expression with different values of $u$.
@@ -301,7 +304,7 @@ class Manipulate(Builtin):
     requires = ("ipywidgets",)
     summary_text = "interactively manipulate any expression, graphic, or other object"
 
-    def apply(self, expr, args, evaluation):
+    def eval(self, expr, args, evaluation):
         "Manipulate[expr_, args__]"
         if (not _jupyter) or (not Kernel.initialized()) or (Kernel.instance() is None):
             return evaluation.message("Manipulate", "jupyter")

@@ -17,10 +17,9 @@ from mathics.core.exceptions import (
 )
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.subexpression import SubExpression
 from mathics.core.symbols import Atom, Symbol, SymbolList
 from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolInfinity
-from mathics.core.subexpression import SubExpression
-
 
 SymbolNothing = Symbol("Nothing")
 

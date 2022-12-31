@@ -3,9 +3,10 @@
 Unit tests from builtins/files_io/files.py
 """
 import os.path as osp
-import pytest
 import sys
 from test.helper import check_evaluation, evaluate
+
+import pytest
 
 
 def test_compress():

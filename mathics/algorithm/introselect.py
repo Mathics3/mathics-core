@@ -164,8 +164,8 @@ def introselect(a, k):  # changes a
 
 
 if __name__ == "__main__":
-    import random
     import itertools
+    import random
 
     def test_algorithm(l, r_max, name, f):
         a = [random.randint(-r_max, r_max) for _ in range(l)]

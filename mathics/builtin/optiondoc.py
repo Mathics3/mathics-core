@@ -22,6 +22,8 @@ from mathics.builtin.base import Builtin
 
 class Automatic(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Automatic.html</url>
+
     <dl>
       <dt>'Automatic'
       <dd>is used to specify an automatically computed option value.
@@ -39,6 +41,8 @@ class Automatic(Builtin):
 
 class Axes(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Axes.html</url>
+
     <dl>
       <dt>'Axes'
       <dd>is an option for charting and graphics functions that specifies whether axes should be drawn.
@@ -59,6 +63,8 @@ class Axes(Builtin):
 
 class Axis(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Axis.html</url>
+
     <dl>
       <dt>'Axis'
       <dd>is a possible value for the 'Filling' option.
@@ -73,6 +79,8 @@ class Axis(Builtin):
 
 class Bottom(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Bottom.html</url>
+
     <dl>
       <dt>'Bottom'
       <dd>is a possible value for the 'Filling' option.
@@ -87,6 +95,8 @@ class Bottom(Builtin):
 
 class ChartLabels(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ChartLabels.html</url>
+
     <dl>
       <dt>'ChartLabels'
       <dd>is a charting option that specifies what labels should be used for chart elements.
@@ -101,6 +111,8 @@ class ChartLabels(Builtin):
 
 class ChartLegends(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ChartLegends.html</url>
+
     <dl>
       <dt>'ChartLegends'
       <dd>is an option for charting functions that specifies the legends to be used for chart elements.
@@ -112,6 +124,8 @@ class ChartLegends(Builtin):
 
 class Filling(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Filling.html</url>
+
     <dl>
       <dt>'Filling -> [Top | Bottom| Axis]'
       <dd>'Filling' is a an option to 'ListPlot', 'Plot' or 'Plot3D', and related functions that indicates what filling to add under point, curves, and surfaces.
@@ -126,6 +140,8 @@ class Filling(Builtin):
 
 class Full(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Full.html</url>
+
     <dl>
       <dt>'Full'
       <dd>is a possible value for the 'Mesh' and 'PlotRange' options.
@@ -137,6 +153,8 @@ class Full(Builtin):
 
 class ImageSize(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageSize.html</url>
+
     <dl>
       <dt>'ImageSize'
       <dd>is an option that specifies the overall size of an image to display.
@@ -160,6 +178,8 @@ class ImageSize(Builtin):
 
 class Joined(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Joined.html</url>
+
     <dl>
       <dt>'Joined $boolean$'
       <dd>is an option for 'Plot' that gives whether to join points to make lines.
@@ -176,6 +196,8 @@ class Joined(Builtin):
 
 class MaxRecursion(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MaxRecursion.html</url>
+
     <dl>
       <dt>'MaxRecursion'
       <dd>is an option for functions like NIntegrate and Plot that specifies how many recursive subdivisions can be made.
@@ -192,6 +214,8 @@ class MaxRecursion(Builtin):
 
 class Mesh(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Mesh.html</url>
+
     <dl>
        <dt>'Mesh'
       <dd>is a charting option, such as for 'Plot', 'BarChart', 'PieChart', etc. that specifies the mesh to be drawn. The default is 'Mesh->None'.
@@ -218,6 +242,8 @@ class Mesh(Builtin):
 
 class PlotPoints(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PlotPoints.html</url>
+
     <dl>
       <dt>'PlotPoints $n$'
       <dd>A number specifies how many initial sample points to use.
@@ -232,6 +258,8 @@ class PlotPoints(Builtin):
 
 class PlotRange(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PlotRange.html</url>
+
     <dl>
       <dt>'PlotRange'
       <dd>is a charting option, such as for 'Plot', 'BarChart', 'PieChart', etc. that gives the range of coordinates to include in a plot.
@@ -256,6 +284,8 @@ class PlotRange(Builtin):
 
 class TicksStyle(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TicksStyle.html</url>
+
     <dl>
       <dt>'TicksStyle'
       <dd>is an option for graphics functions which specifies how ticks should be rendered.
@@ -276,10 +306,12 @@ class TicksStyle(Builtin):
 
 class Top(Builtin):
     """
-     <dl>
-       <dt>'Top'
-       <dd>is a possible value for the 'Filling' option.
-     </dl>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Top.html</url>
+
+    <dl>
+      <dt>'Top'
+      <dd>is a possible value for the 'Filling' option.
+    </dl>
 
     >> ListLinePlot[Table[Cos[x], {x, -5, 5, 0.2}], Filling->Top]
       = -Graphics-
