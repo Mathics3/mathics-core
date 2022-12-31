@@ -40,7 +40,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolDivide, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import SymbolRule
+from mathics.core.systemsymbols import SymbolImage, SymbolRule
 from mathics.eval.image import (
     convolve,
     extract_exif,
@@ -174,9 +174,6 @@ class ImageImport(_ImageBuiltin):
             image_list_expression.append(options_from_exif)
 
         return ListExpression(*image_list_expression)
-
-
-# image math
 
 
 class _ImageArithmetic(_ImageBuiltin):
@@ -394,9 +391,6 @@ class RandomImage(_ImageBuiltin):
         else:
             return evaluation.message("RandomImage", "imgcstype", color_space)
         return Image(data, cs)
-
-
-# simple image manipulation
 
 
 class ImageResize(_ImageBuiltin):
@@ -710,9 +704,6 @@ class ImagePartition(_ImageBuiltin):
             if row:
                 parts.append(row)
         return from_python(parts)
-
-
-# simple image filters
 
 
 class ImageAdjust(_ImageBuiltin):
@@ -1637,7 +1628,7 @@ class ImageData(_ImageBuiltin):
 
 class ImageTake(_ImageBuiltin):
     """
-    <url>:WMA link:
+    Crop Image <url>:WMA link:
     https://reference.wolfram.com/language/ref/ImageTake.html</url>
     <dl>
       <dt>'ImageTake[$image$, $n$]'
@@ -1660,11 +1651,46 @@ class ImageTake(_ImageBuiltin):
     Now crop to the include the lower half of that image:
     >> ImageTake[alice, -244]
      = -Image-
+
+    Just the text around the hat:
+    >> ImageTake[alice, {40, 150}, {500, 600}]
+     = -Image-
+
     """
 
     summary_text = "crop image"
 
-    def eval(self, image, n: Integer, evaluation: Evaluation):
+    # FIXME: this probably should be moved out since WMA docs
+    # suggest this kind of thing is done across many kinds of
+    # images.
+    def _image_slice(self, image, i1: Integer, i2: Integer, axis):
+        """
+        Extracts a slice of an image and return a slice
+        indicting a slice, a function flip, that will
+        reverse the pixels in an image if necessary.
+        """
+        n = image.pixels.shape[axis]
+        py_i1 = min(max(i1.value - 1, 0), n - 1)
+        py_i2 = min(max(i2.value - 1, 0), n - 1)
+
+        def flip(pixels):
+            if py_i1 > py_i2:
+                return numpy_flip(pixels, axis)
+            else:
+                return pixels
+
+        return slice(min(py_i1, py_i2), 1 + max(py_i1, py_i2)), flip
+
+    # The reason it is hard to make a rules that turn Image[image, n],
+    # or Image[, {r1, r2} into the generic form Image[image, {r1, r2},
+    # {c1, c2}] there can be negative numbers, e.g. -n. Also, that
+    # missing values, in particular r2 and c2, when filled out can be
+    # dependent on the size of the image.
+
+    # FIXME: create common functions to process ranges.
+    # FIXME: fix up and use _image_slice.
+
+    def eval_n(self, image, n: Integer, evaluation: Evaluation):
         "ImageTake[image_Image, n_Integer]"
         py_n = n.value
         max_y, max_x = image.pixels.shape[:2]
@@ -1684,31 +1710,97 @@ class ImageTake(_ImageBuiltin):
 
         return Image(pixels, image.color_space, pillow=pillow)
 
-    def _slice(self, image, i1: Integer, i2: Integer, axis):
-        n = image.pixels.shape[axis]
-        py_i1 = min(max(i1.value - 1, 0), n - 1)
-        py_i2 = min(max(i2.value - 1, 0), n - 1)
-
-        def flip(pixels):
-            if py_i1 > py_i2:
-                return numpy_flip(pixels, axis)
-            else:
-                return pixels
-
-        return slice(min(py_i1, py_i2), 1 + max(py_i1, py_i2)), flip
-
     def eval_rows(self, image, r1: Integer, r2: Integer, evaluation: Evaluation):
         "ImageTake[image_Image, {r1_Integer, r2_Integer}]"
-        s, f = self._slice(image, r1, r2, 0)
-        return Image(f(image.pixels[s]), image.color_space)
+
+        first_row = r1.value
+        last_row = r2.value
+
+        max_row, max_col = image.pixels.shape[:2]
+        adjusted_first_row = (
+            min(first_row, max_row) if first_row > 0 else max(0, max_row + first_row)
+        )
+        adjusted_last_row = (
+            min(last_row, max_row) if last_row > 0 else max(0, max_row + first_row)
+        )
+
+        # More complicated in that it reverses the data?
+        # if adjusted_first_row > adjusted_last_row:
+        #     adjusted_first_row, adjusted_last_row = adjusted_last_row, adjusted_first_row
+
+        pixels = image.pixels[adjusted_first_row:adjusted_last_row]
+
+        if hasattr(image, "pillow"):
+            box_coords = (0, adjusted_first_row, max_col, adjusted_last_row)
+            pillow = image.pillow.crop(box_coords)
+            pixels = numpy.asarray(pillow)
+            return Image(pixels, image.color_space, pillow=pillow)
+
+        pixels = image.pixels[adjusted_first_row:adjusted_last_row]
+        return Image(pixels, image.color_space, pillow=pillow)
 
     def eval_rows_cols(
         self, image, r1: Integer, r2: Integer, c1: Integer, c2: Integer, evaluation
     ):
         "ImageTake[image_Image, {r1_Integer, r2_Integer}, {c1_Integer, c2_Integer}]"
-        sr, fr = self._slice(image, r1, r2, 0)
-        sc, fc = self._slice(image, c1, c2, 1)
-        return Image(fc(fr(image.pixels[sr, sc])), image.color_space)
+
+        first_row = r1.value
+        last_row = r2.value
+        first_col = c1.value
+        last_col = c2.value
+
+        max_row, max_col = image.pixels.shape[:2]
+        adjusted_first_row = (
+            min(first_row, max_row) if first_row > 0 else max(0, max_row + first_row)
+        )
+        adjusted_last_row = (
+            min(last_row, max_row) if last_row > 0 else max(0, max_row + last_row)
+        )
+        adjusted_first_col = (
+            min(first_col, max_col) if first_col > 0 else max(0, max_col + first_col)
+        )
+        adjusted_last_col = (
+            min(last_col, max_col) if last_col > 0 else max(0, max_col + last_col)
+        )
+
+        # if adjusted_first_row > adjusted_last_row:
+        #     adjusted_first_row, adjusted_last_row = adjusted_last_row, adjusted_first_row
+
+        # if adjusted_first_col > adjusted_last_col:
+        #     adjusted_first_col, adjusted_last_col = adjusted_last_col, adjusted_first_col
+
+        pixels = image.pixels[
+            adjusted_first_col:adjusted_last_col, adjusted_last_row:adjusted_last_row
+        ]
+
+        if hasattr(image, "pillow"):
+            box_coords = (
+                adjusted_first_col,
+                adjusted_first_row,
+                adjusted_last_col,
+                adjusted_last_row,
+            )
+            pillow = image.pillow.crop(box_coords)
+            pixels = numpy.asarray(pillow)
+            return Image(pixels, image.color_space, pillow=pillow)
+
+        pixels = image.pixels[adjusted_first_row:adjusted_last_row]
+        return Image(pixels, image.color_space, pillow=pillow)
+
+    # Older code we can remove after we condence existing code that looks like this
+    #
+    # def eval_rows(self, image, r1: Integer, r2: Integer, evaluation: Evaluation):
+    #     "ImageTake[image_Image, {r1_Integer, r2_Integer}]"
+    #     s, f = self._slice(image, r1, r2, 0)
+    #     return Image(f(image.pixels[s]), image.color_space)
+
+    # def eval_rows_cols(
+    #     self, image, r1: Integer, r2: Integer, c1: Integer, c2: Integer, evaluation
+    # ):
+    #     "ImageTake[image_Image, {r1_Integer, r2_Integer}, {c1_Integer, c2_Integer}]"
+    #     sr, fr = self._slice(image, r1, r2, 0)
+    #     sc, fc = self._slice(image, c1, c2, 1)
+    #     return Image(fc(fr(image.pixels[sr, sc])), image.color_space)
 
 
 class PixelValue(_ImageBuiltin):
@@ -1995,13 +2087,23 @@ class ImageQ(_ImageTest):
 class Image(Atom):
     class_head_name = "System`Image"
 
-    def __init__(self, pixels, color_space, metadata={}, **kwargs):
-        if "pillow" in kwargs:
-            self.pillow = kwargs.pop("pillow")
+    # FIXME: pixels should be optional if pillow is provided.
+    def __init__(self, pixels, color_space, pillow=None, metadata={}, **kwargs):
         super(Image, self).__init__(**kwargs)
+
+        if pillow is not None:
+            self.pillow = pillow
+
+        self.pixels = pixels
+
         if len(pixels.shape) == 2:
             pixels = pixels.reshape(list(pixels.shape) + [1])
+
+        # FIXME: assigning pixels should be done lazily on demand.
+        # Turn pixels into a property? Include a setter?
+
         self.pixels = pixels
+
         self.color_space = color_space
         self.metadata = metadata
 
@@ -2012,7 +2114,7 @@ class Image(Atom):
         # event that different objects have the same Python value
         self.hash = hash(
             (
-                "Image",
+                SymbolImage,
                 self.pixels.tobytes(),
                 self.color_space,
                 frozenset(self.metadata.items()),
@@ -2125,7 +2227,12 @@ class Image(Atom):
         return self.color_convert("Grayscale")
 
     def pil(self):
+
+        if hasattr(self, "pillow") and self.pillow is not None:
+            return self.pillow
+
         # see https://pillow.readthedocs.io/en/stable/handbook/concepts.html
+
         n = self.channels()
 
         if n == 1:
