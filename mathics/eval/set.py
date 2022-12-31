@@ -1,5 +1,6 @@
-from mathics.algorithm.parts import walk_parts
+from functools import reduce
 
+from mathics.algorithm.parts import walk_parts
 from mathics.core.assignment import (
     AssignmentException,
     build_rulopc,
@@ -12,7 +13,7 @@ from mathics.core.assignment import (
     unroll_patterns,
 )
 from mathics.core.atoms import Atom, Integer
-from mathics.core.attributes import attribute_string_to_number, A_LOCKED
+from mathics.core.attributes import A_LOCKED, attribute_string_to_number
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 from mathics.core.expression import Expression, SymbolDefault
 from mathics.core.rules import Rule
@@ -20,8 +21,8 @@ from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
     SymbolList,
-    SymbolMinPrecision,
     SymbolMaxPrecision,
+    SymbolMinPrecision,
     SymbolN,
     SymbolTrue,
     valid_context_name,
@@ -37,10 +38,6 @@ from mathics.core.systemsymbols import (
     SymbolUpSet,
     SymbolUpSetDelayed,
 )
-
-
-from functools import reduce
-
 
 # In Set* operators, the default behavior is that the
 # elements of the LHS are evaluated before the assignment.
