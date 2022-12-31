@@ -5,20 +5,17 @@
 import time
 from argparse import ArgumentParser
 
-
 try:
-    from statistics import mean
-    from statistics import median_low as median
+    from statistics import mean, median_low as median
 except ImportError:
     mean = lambda l: sum(l) / len(l)
     median = lambda l: sorted(l)[len(l) // 2]
 
 
 import mathics
-from mathics.core.parser import parse, MathicsMultiLineFeeder, MathicsSingleLineFeeder
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
-
+from mathics.core.parser import MathicsMultiLineFeeder, MathicsSingleLineFeeder, parse
 
 # Default number of times to repeat each benchmark. None -> Automatic
 TESTS_PER_BENCHMARK = None

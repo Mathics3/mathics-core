@@ -4,6 +4,7 @@
 
 try:
     import numpy
+
     from mathics.builtin.numpy_utils import with_numpy as numpy_layer
 except ImportError:
     from mathics.builtin.numpy_utils import without_numpy as numpy_layer

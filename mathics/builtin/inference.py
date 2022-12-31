@@ -2,17 +2,10 @@
 
 
 from mathics.core.expression import Expression
-from mathics.core.symbols import (
-    Atom,
-    SymbolTrue,
-    SymbolFalse,
-)
-
-from mathics.core.rules import Rule
-from mathics.core.parser.util import SystemDefinitions
-
 from mathics.core.parser import parse_builtin_rule
-from mathics.core.symbols import Symbol
+from mathics.core.parser.util import SystemDefinitions
+from mathics.core.rules import Rule
+from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolAnd, SymbolEqual, SymbolNot, SymbolOr
 
 # TODO: Extend these rules?

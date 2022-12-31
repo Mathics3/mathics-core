@@ -1,7 +1,6 @@
 from typing import Callable
 
 import mathics.core.definitions as definitions
-
 from mathics.builtin.base import Builtin
 from mathics.core.element import BaseElement
 from mathics.core.symbols import Symbol

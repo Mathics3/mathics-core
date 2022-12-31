@@ -4,9 +4,9 @@ Unit tests from mathics.builtin.attributes.
 """
 
 import os
-import pytest
-
 from test.helper import check_evaluation
+
+import pytest
 
 DEBUGRULESPAT = int(os.environ.get("DEBUGRULESPAT", "0")) == 1
 

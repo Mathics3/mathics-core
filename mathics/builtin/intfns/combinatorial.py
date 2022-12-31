@@ -2,15 +2,20 @@
 """
 Combinatorial Functions
 
-<url>:Combinatorics: https://en.wikipedia.org/wiki/Combinatorics</url> is an area of mathematics primarily concerned with counting, both as a means and an end in obtaining results, and certain properties of finite structures.
+<url>:Combinatorics: https://en.wikipedia.org/wiki/Combinatorics</url> is an \
+area of mathematics primarily concerned with counting, both as a means and an \
+end in obtaining results, and certain properties of finite structures.
 
-It is closely related to many other areas of Mathematics and has many applications ranging from logic to statistical physics, from evolutionary biology to computer science, etc.
+It is closely related to many other areas of Mathematics and has many \
+applications ranging from logic to statistical physics, from evolutionary \
+biology to computer science, etc.
 """
 
 
+from itertools import combinations
+
 from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.builtin.base import Builtin, SympyFunction
-
 from mathics.core.atoms import Integer
 from mathics.core.attributes import (
     A_LISTABLE,
@@ -30,7 +35,6 @@ from mathics.core.symbols import (
     SymbolTimes,
     SymbolTrue,
 )
-from itertools import combinations
 
 SymbolBinomial = Symbol("Binomial")
 SymbolSubsets = Symbol("Subsets")
@@ -62,7 +66,7 @@ class _BooleanDissimilarity(Builtin):
         except _NoBoolVector:
             return None
 
-    def apply(self, u, v, evaluation):
+    def eval(self, u, v, evaluation):
         "%(name)s[u_List, v_List]"
         if len(u.elements) != len(v.elements):
             return
@@ -84,7 +88,14 @@ class _NoBoolVector(Exception):
 
 class Binomial(_MPMathFunction):
     """
-    <url>:Binomial Coefficient: https://en.wikipedia.org/wiki/Binomial_coefficient</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#binomial</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Binomial.html</url>)
+
+    <url>
+    :Binomial Coefficient:
+    https://en.wikipedia.org/wiki/Binomial_coefficient</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/combinatorial.html#binomial</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Binomial.html</url>)
 
     <dl>
       <dt>'Binomial[$n$, $k$]'
@@ -119,7 +130,14 @@ class Binomial(_MPMathFunction):
 
 class CatalanNumber(SympyFunction):
     """
-    <url>:Catalan Number: https://en.wikipedia.org/wiki/Catalan_number</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.catalan</url>, <url>:WMA: https://reference.wolfram.com/language/ref/CatalanNumber.html</url>)
+    <url>
+    :Catalan Number:
+    https://en.wikipedia.org/wiki/Catalan_number</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.catalan</url>, \
+    <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/CatalanNumber.html</url>)
 
     <dl>
       <dt>'CatalanNumber[$n$]'
@@ -138,19 +156,25 @@ class CatalanNumber(SympyFunction):
 
     # We (and sympy) do not handle fractions or other non-integers
     # right now.
-    def apply_integer(self, n: Integer, evaluation):
+    def eval_integer(self, n: Integer, evaluation):
         "CatalanNumber[n_Integer]"
-        return self.apply(n, evaluation)
+        return self.eval(n, evaluation)
 
 
 class DiceDissimilarity(_BooleanDissimilarity):
     r"""
-    <url>:Sørensen–Dice coefficient: https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient</url> (<url>:Sympy: https://docs.scipy.org/doc/scipy/search.html</url>, <url>:DiceDissimilarity: https://reference.wolfram.com/language/ref/DiceDissimilarity.html</url>)
+    <url>
+    :Sørensen–Dice coefficient:
+    https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient</url> (<url>
+    :Sympy:
+    https://docs.scipy.org/doc/scipy/search.html</url>, <url>
+    :DiceDissimilarity:
+    https://reference.wolfram.com/language/ref/DiceDissimilarity.html</url>)
     <dl>
       <dt>'DiceDissimilarity[$u$, $v$]'
-      <dd>returns the Dice dissimilarity between the two boolean 1-D lists $u$ and $v$,
-      which is defined as (c_tf + c_ft) / (2 * c_tt + c_ft + c_tf), where $n$ is len($u$) and c_ij is
-      the number of occurrences of $u$[k]=i and $v$[k]=j for $k$ < $n$.
+      <dd>returns the Dice dissimilarity between the two boolean 1-D lists $u$ and $v$.
+      This is defined as ($c_tf$ + $c_ft$) / (2 * $c_tt$ + $c_ft$ + c_tf).
+      $n$ is len($u$) and $c_ij$ is the number of occurrences of $u$[$k$]=$i$ and $v$[$k$]=$j$ for $k$ < $n$.
     </dl>
 
     >> DiceDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -167,10 +191,20 @@ class DiceDissimilarity(_BooleanDissimilarity):
 
 class JaccardDissimilarity(_BooleanDissimilarity):
     """
-    <url>:Jaccard index: https://en.wikipedia.org/wiki/Jaccard_index</url> (<url>:SciPy: https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.jaccard.html</url>, <url>:WMA: https://reference.wolfram.com/language/ref/JaccardDissimilarity.html</url>)
+    <url>
+    :Jaccard index:
+    https://en.wikipedia.org/wiki/Jaccard_index</url> (<url>
+    :SciPy:
+    https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.jaccard.html</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/JaccardDissimilarity.html</url>)
     <dl>
       <dt>'JaccardDissimilarity[$u$, $v$]'
-      <dd>returns the Jaccard-Needham dissimilarity between the two boolean 1-D lists $u$ and $v$, which is defined as (c_tf + c_ft) / (c_tt + c_ft + c_tf), where $n$ is len($u$) and c_ij is the number of occurrences of $u$[k]=i and $v$[k]=j for $k$ < $n$.
+      <dd>returns the Jaccard-Needham dissimilarity between the two boolean \
+          1-D lists $u$ and $v$, which is defined as \
+          ($c_tf$ + $c_ft$) / ($c_tt$ + $c_ft$ + $c_tf$), where $n$ is \
+          len($u$) and $c_ij$ is the number of occurrences of \
+          $u$[$k$]=$i$ and $v$[$k$]=$j$ for $k$ < $n$.
     </dl>
 
     >> JaccardDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -188,9 +222,14 @@ class JaccardDissimilarity(_BooleanDissimilarity):
 
 class MatchingDissimilarity(_BooleanDissimilarity):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MatchingDissimilarity.html</url>
+
     <dl>
       <dt>'MatchingDissimilarity[$u$, $v$]'
-      <dd>returns the Matching dissimilarity between the two boolean 1-D lists $u$ and $v$, which is defined as (c_tf + c_ft) / $n$, where $n$ is len($u$) and c_ij is the number of occurrences of $u$[$k$]=$i$ and $v$[k]=$j$ for $k$ < $n$.
+      <dd>returns the Matching dissimilarity between the two boolean \
+      1-D lists $u$ and $v$, which is defined as ($c_tf$ + $c_ft$) / $n$, \
+      where $n$ is len($u$) and $c_ij$ is the number of occurrences of \
+      $u$[$k$]=$i$ and $v$[$k$]=$j$ for $k$ < $n$.
     </dl>
 
     >> MatchingDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -205,7 +244,10 @@ class MatchingDissimilarity(_BooleanDissimilarity):
 
 class Multinomial(Builtin):
     """
-    <url>:Multinomial distribution: https://en.wikipedia.org/wiki/Multinomial_distribution</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Multinomial.html</url>)
+    <url>
+    :Multinomial distribution:
+    https://en.wikipedia.org/wiki/Multinomial_distribution</url> (<url>\
+    :WMA: https://reference.wolfram.com/language/ref/Multinomial.html</url>)
     <dl>
       <dt>'Multinomial[$n1$, $n2$, ...]'
       <dd>gives the multinomial coefficient '($n1$+$n2$+...)!/($n1$!$n2$!...)'.
@@ -226,7 +268,7 @@ class Multinomial(Builtin):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_ORDERLESS | A_PROTECTED
     summary_text = "multinomial coefficients"
 
-    def apply(self, values, evaluation):
+    def eval(self, values, evaluation):
         "Multinomial[values___]"
 
         values = values.get_sequence()
@@ -242,11 +284,17 @@ class Multinomial(Builtin):
 
 class RogersTanimotoDissimilarity(_BooleanDissimilarity):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RogersTanimotoDissimilarity.html</url>
+
     <dl>
       <dt>'RogersTanimotoDissimilarity[$u$, $v$]'
-      <dd>returns the Rogers-Tanimoto dissimilarity between the two boolean 1-D lists $u$ and $v$,
-      which is defined as $R$ / (c_tt + c_ff + $R$) where $n$ is len($u$), c_ij is
-      the number of occurrences of $u$[$k$]=$i$ and $v$[$k]$=$j$ for $k$<n, and $R$ = 2 * (c_tf + c_ft).
+      <dd>returns the Rogers-Tanimoto dissimilarity between the two boolean \
+      1-D lists $u$ and $v$, which is defined as \
+      $R$ / (c_tt + c_ff + $R$) where $n$ is len($u$), c_ij is \
+      the number of occurrences of $u$[$k$]=$i$ and $v$[$k]$=$j$ for $k$<n, \
+      and $R$ = 2 * ($c_tf$ + $c_ft$).
     </dl>
 
     >> RogersTanimotoDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -262,11 +310,16 @@ class RogersTanimotoDissimilarity(_BooleanDissimilarity):
 
 class RussellRaoDissimilarity(_BooleanDissimilarity):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RusselRaoDissimilarity.html</url>
+
     <dl>
       <dt>'RussellRaoDissimilarity[$u$, $v$]'
-      <dd>returns the Russell-Rao dissimilarity between the two boolean 1-D lists $u$ and $v$,
-      which is defined as (n - c_tt) / c_tt where n is len($u$) and c_ij is
-      the number of occurrences of $u$[k]=i and $v$[k]=j for k<n.
+      <dd>returns the Russell-Rao dissimilarity between the two boolean \
+      1-D lists $u$ and $v$, which is defined as ($n$ - $c_tt$) / $c_tt$ \
+      where $n$ is len($u$) and $c_ij$ is \
+      the number of occurrences of $u$[k]=i and $v$[$k$]=$j$ for $k$ < $n$.
     </dl>
 
     >> RussellRaoDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -281,10 +334,17 @@ class RussellRaoDissimilarity(_BooleanDissimilarity):
 
 class SokalSneathDissimilarity(_BooleanDissimilarity):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/SokalSneathDissimilarity.html</url>
+
     <dl>
       <dt>'SokalSneathDissimilarity[$u$, $v$]'
-      <dd>returns the Sokal-Sneath dissimilarity between the two boolean 1-D lists $u$ and $v$,
-      which is defined as $R$ / (c_tt + $R$) where $n$ is len($u$), c_ij is the number of occurrences of $u$[$k$]=$i$ and $v$[k]=$j$ for $k$ < $n$, and R = 2 * (c_tf + c_ft).
+      <dd>returns the Sokal-Sneath dissimilarity between the two boolean \
+      1-D lists $u$ and $v$, which is defined as $R$ / (c_tt + $R$) where \
+      $n$ is len($u$), $c_ij$ is the number of occurrences of \
+      $u$[$k$]=$i$ and $v$[k]=$j$ for $k$ < $n$, \
+      and $R$ = 2 * ($c_tf$ + $c_ft$).
     </dl>
 
     >> SokalSneathDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -300,6 +360,8 @@ class SokalSneathDissimilarity(_BooleanDissimilarity):
 
 class Subsets(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Subsets.html</url>
+
     <dl>
       <dt>'Subsets[$list$]'
       <dd>finds a list of all possible subsets of $list$.
@@ -311,7 +373,8 @@ class Subsets(Builtin):
       <dd>finds a list of all possible subsets containing exactly $n$ elements.
 
       <dt>'Subsets[$list$, {$min$, $max$}]'
-      <dd>finds a list of all possible subsets containing between $min$ and $max$ elements.
+      <dd>finds a list of all possible subsets containing between $min$ and \
+          $max$ elements.
 
       <dt>'Subsets[$list$, $spec$, $n$]'
       <dd>finds a list of the first $n$ possible subsets.
@@ -440,16 +503,16 @@ class Subsets(Builtin):
 
     summary_text = "list all the subsets"
 
-    def apply_list(self, list, evaluation):
+    def eval_list(self, list, evaluation):
         "Subsets[list_]"
 
         return (
             evaluation.message("Subsets", "normal", Expression(SymbolSubsets, list))
             if isinstance(list, Atom)
-            else self.apply_list_n(list, Integer(len(list.elements)), evaluation)
+            else self.eval_list_n(list, Integer(len(list.elements)), evaluation)
         )
 
-    def apply_list_n(self, list, n, evaluation):
+    def eval_list_n(self, list, n, evaluation):
         "Subsets[list_, n_]"
 
         expr = Expression(SymbolSubsets, list, n)
@@ -472,7 +535,7 @@ class Subsets(Builtin):
 
             return ListExpression(*nested_list)
 
-    def apply_list_pattern(self, list, n, evaluation):
+    def eval_list_pattern(self, list, n, evaluation):
         "Subsets[list_, Pattern[n,_List|All|DirectedInfinity[1]]]"
 
         expr = Expression(SymbolSubsets, list, n)
@@ -482,7 +545,7 @@ class Subsets(Builtin):
         else:
             head_t = list.head
             if n.get_name() == "System`All" or n.has_form("DirectedInfinity", 1):
-                return self.apply_list(list, evaluation)
+                return self.eval_list(list, evaluation)
 
             n_len = len(n.elements)
 
@@ -546,7 +609,7 @@ class Subsets(Builtin):
 
             return ListExpression(*nested_list)
 
-    def apply_atom_pattern(self, list, n, spec, evaluation):
+    def eval_atom_pattern(self, list, n, spec, evaluation):
         "Subsets[list_?AtomQ, Pattern[n,_List|All|DirectedInfinity[1]], spec_]"
 
         return evaluation.message(
@@ -556,9 +619,15 @@ class Subsets(Builtin):
 
 class YuleDissimilarity(_BooleanDissimilarity):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/YuleDissimilarity.html</url>
+
     <dl>
       <dt>'YuleDissimilarity[$u$, $v$]'
-      <dd>returns the Yule dissimilarity between the two boolean 1-D lists $u$ and $v$, which is defined as R / (c_tt * c_ff + R / 2) where n is len($u$), c_ij is the number of occurrences of $u$[k]=i and $v$[k]=j for $k$<$n$, and $R$ = 2 * c_tf * c_ft.
+      <dd>returns the Yule dissimilarity between the two boolean 1-D lists $u$ \
+          and $v$, which is defined as $R$ / ($c_tt$ * $c_ff$ + $R$ / 2) \
+          where $n$ is len($u$), $c_ij$ is the number of occurrences of \
+          $u$[$k$]=$i$ and $v$[$k$]=$j$ for $k$<$n$, \
+          and $R$ = 2 * $c_tf$ * $c_ft$.
     </dl>
 
     >> YuleDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]

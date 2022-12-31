@@ -9,16 +9,14 @@ import os.path as osp
 import pickle
 import subprocess
 import sys
-
 from argparse import ArgumentParser
+
 from mpmath import __version__ as mpmathVersion
 from numpy import __version__ as NumPyVersion
 from sympy import __version__ as SymPyVersion
 
 import mathics
-
-from mathics import version_string, __version__
-from mathics import settings
+from mathics import __version__, settings, version_string
 from mathics.doc.common_doc import MathicsMainDocumentation
 
 # Global variables

@@ -14,7 +14,6 @@ sort_order = "mathics.builtin.mathematical-optimization"
 import sympy
 
 from mathics.builtin.base import Builtin
-
 from mathics.core.atoms import IntegerM1
 from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.python import from_python
@@ -29,6 +28,8 @@ SymbolMinimize = Symbol("Minimize")
 
 class Maximize(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Maximize.html</url>
+
     <dl>
       <dt>'Maximize[$f$, $x$]'
       <dd>compute the maximum of $f$ respect $x$ that change between $a$ and $b$
@@ -85,6 +86,8 @@ class Maximize(Builtin):
 
 class Minimize(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Minimize.html</url>
+
     <dl>
     <dt>'Minimize[$f$, $x$]'
         <dd>compute the minimum of $f$ respect $x$ that change between $a$ and $b$

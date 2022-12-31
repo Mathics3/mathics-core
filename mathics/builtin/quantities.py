@@ -1,28 +1,21 @@
 # -*- coding: utf-8 -*-
 
 
-from mathics.builtin.base import Builtin, Test
-from mathics.core.atoms import (
-    String,
-    Integer,
-    Integer1,
-    Real,
-    Number,
-)
-from mathics.core.convert.expression import to_mathics_list
-from mathics.core.expression import Expression
-from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolRowBox
+from pint import UnitRegistry
 
+from mathics.builtin.base import Builtin, Test
+from mathics.core.atoms import Integer, Integer1, Number, Real, String
 from mathics.core.attributes import (
     A_HOLD_REST,
     A_N_HOLD_REST,
     A_PROTECTED,
     A_READ_PROTECTED,
 )
-
-from pint import UnitRegistry
+from mathics.core.convert.expression import to_mathics_list
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolRowBox
 
 SymbolQuantity = Symbol("Quantity")
 
@@ -31,8 +24,9 @@ Q_ = ureg.Quantity
 
 
 class KnownUnitQ(Test):
-
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/KnownUnitQ.html</url>
+
     <dl>
     <dt>'KnownUnitQ[$unit$]'
         <dd>returns True if $unit$ is a canonical unit, and False otherwise.
@@ -61,6 +55,8 @@ class KnownUnitQ(Test):
 
 class Quantity(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Quantity.html</url>
+
     <dl>
     <dt>'Quantity[$magnitude$, $unit$]'
         <dd>represents a quantity with size $magnitude$ and unit specified by $unit$.
@@ -144,6 +140,8 @@ class Quantity(Builtin):
 
 class QuantityMagnitude(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/QuantityMagnitude.html</url>
+
     <dl>
     <dt>'QuantityMagnitude[$quantity$]'
         <dd>gives the amount of the specified $quantity$.
@@ -245,6 +243,7 @@ class QuantityMagnitude(Builtin):
 
 class QuantityQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/QuantityQ.html</url>
     <dl>
     <dt>'QuantityQ[$expr$]'
         <dd>return True if $expr$ is a valid Association object, and False otherwise.
@@ -294,6 +293,8 @@ class QuantityQ(Test):
 
 class QuantityUnit(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/QuantityUnit.html</url>
+
     <dl>
     <dt>'QuantityUnit[$quantity$]'
         <dd>returns the unit associated with the specified $quantity$.
@@ -338,6 +339,8 @@ class QuantityUnit(Builtin):
 class UnitConvert(Builtin):
 
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/UnitConvert.html</url>
+
     <dl>
     <dt>'UnitConvert[$quantity$, $targetunit$] '
         <dd> converts the specified $quantity$ to the specified $targetunit$.

@@ -11,7 +11,6 @@
 Forms which appear in '$OutputForms'.
 """
 import re
-
 from typing import Optional
 
 from mathics.builtin.base import Builtin
@@ -20,7 +19,6 @@ from mathics.builtin.comparison import expr_min
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.builtin.makeboxes import MakeBoxes, number_form
 from mathics.builtin.tensors import get_dimensions
-
 from mathics.core.atoms import (
     Integer,
     MachineReal,
@@ -29,25 +27,17 @@ from mathics.core.atoms import (
     String,
     StringFromPython,
 )
-
-from mathics.core.expression import Expression, BoxError
+from mathics.core.expression import BoxError, Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import (
-    convert_base,
-    dps,
-    machine_precision,
-    reconstruct_digits,
-)
-
+from mathics.core.number import convert_base, dps, machine_precision, reconstruct_digits
 from mathics.core.symbols import (
     Symbol,
+    SymbolFalse,
     SymbolFullForm,
     SymbolList,
-    SymbolFalse,
     SymbolNull,
     SymbolTrue,
 )
-
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolInfinity,
@@ -59,7 +49,6 @@ from mathics.core.systemsymbols import (
     SymbolSubscriptBox,
     SymbolSuperscriptBox,
 )
-
 from mathics.eval.makeboxes import format_element
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")

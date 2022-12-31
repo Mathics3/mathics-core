@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
-import pkg_resources
-import sys
 import os
 import os.path as osp
+import sys
 from pathlib import Path
+
+import pkg_resources
 
 
 def get_srcdir():

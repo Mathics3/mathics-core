@@ -7,20 +7,15 @@ Numerical values and derivatives can be computed; however, most special exact va
 """
 
 import math
-import mpmath
-
 from collections import namedtuple
 from contextlib import contextmanager
 from itertools import chain
 
+import mpmath
+
 from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.builtin.base import Builtin
-from mathics.core.atoms import (
-    Integer,
-    Integer0,
-    IntegerM1,
-    Real,
-)
+from mathics.core.atoms import Integer, Integer0, IntegerM1, Real
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -168,6 +163,8 @@ class Fold:
 
 class AnglePath(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AnglePath.html</url>
+
     <dl>
       <dt>'AnglePath[{$phi1$, $phi2$, ...}]'
       <dd>returns the points formed by a turtle starting at {0, 0} and angled at 0 degrees going through
@@ -329,6 +326,8 @@ class AnglePathFold(Fold):
 
 class ArcCos(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcCos.html</url>
+
     <dl>
       <dt>'ArcCos[$z$]'
       <dd>returns the inverse cosine of $z$.
@@ -356,6 +355,8 @@ class ArcCos(_MPMathFunction):
 
 class ArcCot(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcCot.html</url>
+
     <dl>
       <dt>'ArcCot[$z$]'
       <dd>returns the inverse cotangent of $z$.
@@ -381,6 +382,8 @@ class ArcCot(_MPMathFunction):
 
 class ArcCsc(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcCsc.html</url>
+
     <dl>
       <dt>'ArcCsc[$z$]'
       <dd>returns the inverse cosecant of $z$.
@@ -412,6 +415,8 @@ class ArcCsc(_MPMathFunction):
 
 class ArcSec(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcSec.html</url>
+
     <dl>
       <dt>'ArcSec[$z$]'
       <dd>returns the inverse secant of $z$.
@@ -444,6 +449,8 @@ class ArcSec(_MPMathFunction):
 
 class ArcSin(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcSin.html</url>
+
     <dl>
       <dt>'ArcSin[$z$]'
       <dd>returns the inverse sine of $z$.
@@ -470,6 +477,8 @@ class ArcSin(_MPMathFunction):
 
 class ArcTan(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcTan.html</url>
+
     <dl>
       <dt>'ArcTan[$z$]'
       <dd>returns the inverse tangent of $z$.
@@ -520,6 +529,8 @@ class ArcTan(_MPMathFunction):
 
 class Cos(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Cos.html</url>
+
     <dl>
       <dt>'Cos[$z$]'
       <dd>returns the cosine of $z$.
@@ -548,6 +559,8 @@ class Cos(_MPMathFunction):
 
 class Cot(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Cot.html</url>
+
     <dl>
       <dt>'Cot[$z$]'
       <dd>returns the cotangent of $z$.
@@ -572,6 +585,8 @@ class Cot(_MPMathFunction):
 
 class Csc(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Csc.html</url>
+
     <dl>
       <dt>'Csc[$z$]'
       <dd>returns the cosecant of $z$.
@@ -604,6 +619,8 @@ class Csc(_MPMathFunction):
 
 class Haversine(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Haversine.html</url>
+
     <dl>
       <dt>'Haversine[$z$]'
       <dd>returns the haversine function of $z$.
@@ -622,6 +639,8 @@ class Haversine(_MPMathFunction):
 
 class InverseHaversine(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/InverseHaversine.html</url>
+
     <dl>
       <dt>'InverseHaversine[$z$]'
       <dd>returns the inverse haversine function of $z$.
@@ -640,6 +659,8 @@ class InverseHaversine(_MPMathFunction):
 
 class Sec(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Sec.html</url>
+
     <dl>
       <dt>'Sec[$z$]'
       <dd>returns the secant of $z$.
@@ -670,6 +691,8 @@ class Sec(_MPMathFunction):
 
 class Sin(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Sin.html</url>
+
     <dl>
       <dt>'Sin[$z$]'
       <dd>returns the sine of $z$.
@@ -706,6 +729,8 @@ class Sin(_MPMathFunction):
 
 class Tan(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Tan.html</url>
+
     <dl>
       <dt>'Tan[$z$]'
       <dd>returns the tangent of $z$.

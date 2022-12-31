@@ -7,33 +7,20 @@ Message related functions.
 import typing
 from typing import Any
 
-
-from mathics.builtin.base import (
-    Builtin,
-    BinaryOperator,
-)
-
+from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.core.atoms import String
-from mathics.core.attributes import (
-    A_HOLD_ALL,
-    A_HOLD_FIRST,
-    A_PROTECTED,
-)
+from mathics.core.attributes import A_HOLD_ALL, A_HOLD_FIRST, A_PROTECTED
 from mathics.core.evaluation import Message as EvaluationMessage
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    Symbol,
-    SymbolNull,
-)
-from mathics.core.systemsymbols import (
-    SymbolMessageName,
-    SymbolQuiet,
-)
+from mathics.core.symbols import Symbol, SymbolNull
+from mathics.core.systemsymbols import SymbolMessageName, SymbolQuiet
 
 
 class Message(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Message.html</url>
+
     <dl>
       <dt>'Message[$symbol$::$msg$, $expr1$, $expr2$, ...]'
       <dd>displays the specified message, replacing placeholders in
@@ -75,6 +62,8 @@ def check_message(expr) -> bool:
 
 class Check(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Check.html</url>
+
     <dl>
       <dt>'Check[$expr$, $failexpr$]'
       <dd>evaluates $expr$, and returns the result, unless messages were generated, in which case it evaluates and $failexpr$ will be returned.
@@ -207,6 +196,8 @@ class Check(Builtin):
 
 class Quiet(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Quiet.html</url>
+
     <dl>
       <dt>'Quiet[$expr$, {$s1$::$t1$, ...}]'
       <dd>evaluates $expr$, without messages '{$s1$::$t1$, ...}' being displayed.
@@ -335,6 +326,8 @@ class Quiet(Builtin):
 
 class Off(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Off.html</url>
+
     <dl>
       <dt>'Off[$symbol$::$tag$]'
       <dd>turns a message off so it is no longer printed.
@@ -382,6 +375,8 @@ class Off(Builtin):
 
 class On(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/On.html</url>
+
     <dl>
       <dt>'On[$symbol$::$tag$]'
       <dd>turns a message on for printing.
@@ -429,6 +424,8 @@ class On(Builtin):
 
 class MessageName(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MessageName.html</url>
+
     <dl>
       <dt>'MessageName[$symbol$, $tag$]'
       <dt>'$symbol$::$tag$'
@@ -472,6 +469,8 @@ class MessageName(BinaryOperator):
 
 class Syntax(Builtin):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Syntax.html</url>
+
     <dl>
       <dt>'Syntax'
       <dd>is a symbol to which all syntax messages are assigned.
@@ -576,6 +575,8 @@ class Syntax(Builtin):
 
 class General(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/General.html</url>
+
     <dl>
       <dt>'General'
       <dd>is a symbol to which all general-purpose messages are assigned.

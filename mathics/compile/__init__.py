@@ -1,5 +1,11 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+Mathics ``Compile`` implementation.
+
+Here we have routines for compiling Mathics code.
+
+At present, we use LLVM for this.
+"""
 
 try:
     import llvmlite
@@ -10,7 +16,7 @@ except ImportError:
 
 
 if has_llvmlite:
-    from .ir import IRGenerator
-    from .compile import _compile
     from .base import CompileArg, CompileError
+    from .compile import _compile
+    from .ir import IRGenerator
     from .types import *

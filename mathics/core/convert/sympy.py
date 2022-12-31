@@ -5,13 +5,14 @@ Converts expressions from SymPy to Mathics expressions.
 Conversion to SymPy is handled directly in BaseElement descendants.
 """
 
-import sympy
-
 from typing import Optional
+
+import sympy
 
 BasicSympy = sympy.Expr
 
 
+from mathics.core.convert.matrix import matrix_data
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
@@ -19,8 +20,8 @@ from mathics.core.symbols import (
     SymbolPower,
     SymbolTimes,
     SymbolTrue,
-    sympy_symbol_prefix,
     sympy_slot_prefix,
+    sympy_symbol_prefix,
 )
 from mathics.core.systemsymbols import (
     SymbolC,
@@ -38,8 +39,6 @@ from mathics.core.systemsymbols import (
     SymbolSlot,
     SymbolUnequal,
 )
-
-from mathics.core.convert.matrix import matrix_data
 
 SymbolPrime = Symbol("Prime")
 SymbolRoot = Symbol("Root")
@@ -157,23 +156,20 @@ class SympyPrime(sympy.Function):
 def from_sympy(expr):
     from mathics.builtin import sympy_to_mathics
     from mathics.core.atoms import (
+        Complex,
         Integer,
         Integer0,
         Integer1,
+        MachineReal,
         Rational,
         Real,
-        Complex,
         String,
-        MachineReal,
     )
     from mathics.core.convert.expression import to_expression, to_mathics_list
     from mathics.core.expression import Expression
     from mathics.core.list import ListExpression
-    from mathics.core.symbols import (
-        Symbol,
-        SymbolNull,
-    )
     from mathics.core.number import machine_precision
+    from mathics.core.symbols import Symbol, SymbolNull
 
     if isinstance(expr, (tuple, list)):
         return to_mathics_list(*expr, elements_conversion_fn=from_sympy)

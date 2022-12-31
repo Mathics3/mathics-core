@@ -9,25 +9,16 @@ sort_order = "mathics.builtin.global-system-information"
 import gc
 import os
 import platform
-import sys
 import subprocess
+import sys
 
 from mathics import version_string
 from mathics.builtin.base import Builtin, Predefined
-from mathics.core.atoms import (
-    Integer,
-    Integer0,
-    IntegerM1,
-    Real,
-    String,
-)
+from mathics.core.atoms import Integer, Integer0, IntegerM1, Real, String
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.systemsymbols import (
-    SymbolFailed,
-    SymbolRule,
-)
+from mathics.core.systemsymbols import SymbolFailed, SymbolRule
 from mathics.version import __version__
 
 try:
@@ -40,6 +31,8 @@ else:
 
 class Aborted(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Aborted.html</url>
+
     <dl>
     <dt>'$Aborted'
         <dd>is returned by a calculation that has been aborted.
@@ -52,6 +45,7 @@ class Aborted(Predefined):
 
 class CommandLine(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$CommandLine.html</url>
     <dl>
     <dt>'$CommandLine'
       <dd>is a list of strings passed on the command line to launch the Mathics session.
@@ -69,6 +63,8 @@ class CommandLine(Predefined):
 
 class Environment(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Environment.html</url>
+
     <dl>
       <dt>'Environment[$var$]'
       <dd>gives the value of an operating system environment variable.
@@ -79,7 +75,7 @@ class Environment(Builtin):
 
     summary_text = "list the system environment variables"
 
-    def apply(self, var, evaluation):
+    def eval(self, var, evaluation):
         "Environment[var_String]"
         env_var = var.get_string_value()
         if env_var not in os.environ:
@@ -90,6 +86,7 @@ class Environment(Builtin):
 
 class Failed(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$Failed.html</url>
     <dl>
     <dt>'$Failed'
         <dd>is returned by some functions in the event of an error.
@@ -106,6 +103,8 @@ class Failed(Predefined):
 
 class GetEnvironment(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/GetEnvironment.html</url>
+
     <dl>
     <dt>'GetEnvironment["$var$"]'
         <dd>gives the setting corresponding to the variable "var" in the operating system environment.
@@ -117,7 +116,7 @@ class GetEnvironment(Builtin):
 
     summary_text = "retrieve the value of a system environment variable"
 
-    def apply(self, var, evaluation):
+    def eval(self, var, evaluation):
         "GetEnvironment[var___]"
         if isinstance(var, String):
             env_var = var.get_string_value()
@@ -141,6 +140,8 @@ class GetEnvironment(Builtin):
 
 class Machine(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$Machine.html</url>
+
     <dl>
     <dt>'$Machine'
         <dd>returns a string describing the type of computer system on which the Mathics is being run.
@@ -158,6 +159,8 @@ class Machine(Predefined):
 
 class MachineName(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MachineName.html</url>
+
     <dl>
       <dt>'$MachineName'
       <dd>is a string that gives the assigned name of the computer on which Mathics is being run, if such a name is defined.
@@ -175,6 +178,8 @@ class MachineName(Predefined):
 
 class MathicsVersion(Predefined):
     r"""
+    ## <url>:mathics native:</url>
+
     <dl>
       <dt>'MathicsVersion'
       <dd>this string is the version of Mathics we are running.
@@ -191,6 +196,8 @@ class MathicsVersion(Predefined):
 
 class Packages(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Packages.html</url>
+
     <dl>
       <dt>'$Packages'
       <dd>returns a list of the contexts corresponding to all packages which have been loaded into Mathics.
@@ -211,6 +218,8 @@ class Packages(Predefined):
 
 class ParentProcessID(Predefined):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$ParentProcessID.html</url>
+
     <dl>
       <dt>'$ParentProcesID'
       <dd>gives the ID assigned to the process which invokes the \Mathics by the operating system under which it is run.
@@ -231,6 +240,8 @@ class ParentProcessID(Predefined):
 
 class ProcessID(Predefined):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ProcessID.html</url>
+
     <dl>
       <dt>'$ProcessID'
       <dd>gives the ID assigned to the \Mathics process by the operating system under which it is run.
@@ -251,24 +262,53 @@ class ProcessID(Predefined):
 
 class ProcessorType(Predefined):
     r"""
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ProcessorType.html</url>
+
     <dl>
-    <dt>'$ProcessorType'
-        <dd>gives a string giving the architecture of the processor on which the \Mathics is being run.
+      <dt>'$ProcessorType'
+      <dd>gives a string giving the architecture of the processor on which the \Mathics is being run.
     </dl>
-    X> $ProcessorType
-    = x86_64
+
+    >> $ProcessorType
+    = ...
     """
+    name = "$ProcessorType"
+
     summary_text = (
         "name of the architecture of the processor over which Mathics is running"
     )
-    name = "$ProcessorType"
 
     def evaluate(self, evaluation):
         return String(platform.machine())
 
 
+class PythonImplementation(Predefined):
+    r"""
+    ## <url>:PythonImplementation native symbol:</url>
+
+    <dl>
+    <dt>'$PythonImplementation'
+        <dd>gives a string indication the Python implementation used to run \Mathics.
+    </dl>
+    >> $PythonImplementation
+    = ...
+    """
+    name = "$PythonImplementation"
+
+    summary_text = "name of the Python implementation running Mathics"
+
+    def evaluate(self, evaluation):
+        from mathics.system_info import python_implementation
+
+        return String(python_implementation())
+
+
 class ScriptCommandLine(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ScriptCommandLine.html</url>
+
     <dl>
       <dt>'$ScriptCommandLine'
       <dd>is a list of string arguments when running the kernel is script mode.
@@ -293,6 +333,8 @@ class ScriptCommandLine(Predefined):
 
 class Run(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Run.html</url>
+
     <dl>
       <dt>'Run[$command$]'
       <dd>runs command as an external operating system command, returning the exit code obtained.
@@ -303,7 +345,7 @@ class Run(Builtin):
 
     summary_text = "run a system command"
 
-    def apply(self, command, evaluation):
+    def eval(self, command, evaluation):
         "Run[command_String]"
         command_str = command.to_python()
         return Integer(subprocess.call(command_str, shell=True))
@@ -311,6 +353,8 @@ class Run(Builtin):
 
 class SystemID(Predefined):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SystemID.html</url>
+
     <dl>
        <dt>'$SystemID'
        <dd>is a short string that identifies the type of computer system on which the \Mathics is being run.
@@ -327,6 +371,8 @@ class SystemID(Predefined):
 
 class SystemWordLength(Predefined):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SystemWordLength.html</url>
+
     <dl>
       <dt>'$SystemWordLength'
       <dd>gives the effective number of bits in raw machine words on the computer system where \Mathics is running.
@@ -352,6 +398,8 @@ class SystemWordLength(Predefined):
 
 class UserName(Predefined):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/UserName.html</url>
+
     <dl>
       <dt>$UserName
       <dd>returns the login name, according to the operative system, of the user that started the current
@@ -376,6 +424,8 @@ class UserName(Predefined):
 
 class Version(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Version.html</url>
+
     <dl>
       <dt>'$Version'
       <dd>returns a string with the current Mathics version and the versions of relevant libraries.
@@ -394,6 +444,8 @@ class Version(Predefined):
 
 class VersionNumber(Predefined):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/VersionNumber.html</url>
+
     <dl>
       <dt>'$VersionNumber'
       <dd>is a real number which gives the current Wolfram Language version that \Mathics tries to be compatible with.
@@ -416,6 +468,8 @@ if have_psutil:
 
     class SystemMemory(Predefined):
         """
+        <url>:WMA link:https://reference.wolfram.com/language/ref/SystemMemory.html</url>
+
         <dl>
           <dt>'$SystemMemory'
           <dd>Returns the total amount of physical memory.
@@ -434,6 +488,8 @@ if have_psutil:
 
     class MemoryAvailable(Builtin):
         """
+        <url>:WMA link:https://reference.wolfram.com/language/ref/MemoryAvailable.html</url>
+
         <dl>
           <dt>'MemoryAvailable'
           <dd>Returns the amount of the available physical memory.
@@ -449,7 +505,7 @@ if have_psutil:
 
         summary_text = "the available amount of physical memory in the system"
 
-        def apply(self, evaluation) -> Integer:
+        def eval(self, evaluation) -> Integer:
             """MemoryAvailable[]"""
             totalmem = psutil.virtual_memory().available
             return Integer(totalmem)
@@ -458,6 +514,8 @@ else:
 
     class SystemMemory(Predefined):
         """
+        <url>:WMA link:https://reference.wolfram.com/language/ref/SystemMemory.html</url>
+
         <dl>
           <dt>'$SystemMemory'
           <dd>Returns the total amount of physical memory when Python module "psutil" is installed.
@@ -476,6 +534,8 @@ else:
 
     class MemoryAvailable(Builtin):
         """
+        <url>:WMA link:https://reference.wolfram.com/language/ref/MemoryAvailable.html</url>
+
         <dl>
           <dt>'MemoryAvailable'
           <dd>Returns the amount of the available physical when Python module "psutil" is installed.
@@ -488,13 +548,15 @@ else:
 
         summary_text = "the available amount of physical memory in the system"
 
-        def apply(self, evaluation) -> Integer:
+        def eval(self, evaluation) -> Integer:
             """MemoryAvailable[]"""
             return Integer(-1)
 
 
 class MemoryInUse(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MemoryInUse.html</url>
+
     <dl>
       <dt>'MemoryInUse[]'
       <dd>Returns the amount of memory used by all of the definitions objects if we can determine that; -1 otherwise.
@@ -506,7 +568,7 @@ class MemoryInUse(Builtin):
 
     summary_text = "number of bytes of memory currently being used by Mathics"
 
-    def apply_0(self, evaluation) -> Integer:
+    def eval_0(self, evaluation) -> Integer:
         """MemoryInUse[]"""
         # Partially borrowed from https://code.activestate.com/recipes/577504/
         from itertools import chain
@@ -543,6 +605,8 @@ class MemoryInUse(Builtin):
 
 class Share(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Share.html</url>
+
     <dl>
       <dt>'Share[]'
       <dd>release memory forcing Python to do garbage collection. If Python package is 'psutil' installed is the amount of released memoryis returned. Otherwise returns $0$. This function differs from WMA which tries to reduce the amount of memory required to store definitions, by reducing duplicated definitions.
@@ -557,7 +621,7 @@ class Share(Builtin):
 
     summary_text = "force Python garbage collection"
 
-    def apply(self, evaluation) -> Integer:
+    def eval(self, evaluation) -> Integer:
         """Share[]"""
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then
@@ -571,7 +635,7 @@ class Share(Builtin):
             gc.collect()
             return Integer0
 
-    def apply_with_symbol(self, symbol, evaluation) -> Integer:
+    def eval_with_symbol(self, symbol, evaluation) -> Integer:
         """Share[symbol_Symbol]"""
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then

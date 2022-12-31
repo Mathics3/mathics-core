@@ -4,20 +4,22 @@ Bessel and Related Functions
 
 import mpmath
 
-
 from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer
-from mathics.core.convert.mpmath import from_mpmath
-from mathics.core.number import machine_precision, get_precision, PrecisionValueError
-from mathics.core.number import prec as _prec
-
 from mathics.core.attributes import (
     A_LISTABLE,
     A_N_HOLD_FIRST,
     A_NUMERIC_FUNCTION,
     A_PROTECTED,
     A_READ_PROTECTED,
+)
+from mathics.core.convert.mpmath import from_mpmath
+from mathics.core.number import (
+    PrecisionValueError,
+    get_precision,
+    machine_precision,
+    prec as _prec,
 )
 
 
@@ -61,7 +63,7 @@ class AiryAi(_MPMathFunction):
 
 class AiryAiPrime(_MPMathFunction):
     """
-    Derivative of Airy function (<url>:Sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.airyaiprime</url>, <url>:WMA:https://reference.wolfram.com/language/ref/AiryAiPrime.html</url>)
+    Derivative of Airy function (<url>:Sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.airyaiprime</url>, <url>:WMA link:https://reference.wolfram.com/language/ref/AiryAiPrime.html</url>)
     <dl>
       <dt>'AiryAiPrime[$x$]'
       <dd>returns the derivative of the Airy function 'AiryAi[$x$]'.
@@ -91,6 +93,8 @@ class AiryAiPrime(_MPMathFunction):
 
 class AiryAiZero(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AiryAiZero.html</url>
+
     <dl>
       <dt>'AiryAiZero[$k$]'
       <dd>returns the $k$th zero of the Airy function Ai($z$).
@@ -150,6 +154,8 @@ class AiryAiZero(Builtin):
 
 class AiryBi(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AiryBi.html</url>
+
     <dl>
     <dt>'AiryBi[$x$]'
       <dd>returns the Airy function of the second kind Bi($x$).
@@ -181,6 +187,8 @@ class AiryBi(_MPMathFunction):
 
 class AiryBiPrime(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AiryBiPrime.html</url>
+
     <dl>
     <dt>'AiryBiPrime[$x$]'
         <dd>returns the derivative of the Airy function of the second
@@ -211,6 +219,8 @@ class AiryBiPrime(_MPMathFunction):
 
 class AiryBiZero(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AiryBiZero.html</url>
+
     <dl>
     <dt>'AiryBiZero[$k$]'
       <dd>returns the $k$th zero of the Airy function Bi($z$).
@@ -296,6 +306,7 @@ class AngerJ(_Bessel):
 class BesselI(_Bessel):
     """
 
+
     <url>:Modified Bessel function of the first kind: https://en.wikipedia.org/wiki/Bessel_function#Bessel_functions_of_the_first_kind:_J%CE%B1</url> (<url>:Sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.besseli</url>, <url>:WMA: https://reference.wolfram.com/language/ref/BesselI.html</url>)
 
     <dl>
@@ -367,6 +378,7 @@ class BesselJ(_Bessel):
 
 class BesselK(_Bessel):
     """
+
     <url>:Modified Bessel function of the second kind: https://en.wikipedia.org/wiki/Bessel_function#Modified_Bessel_functions:_I%CE%B1,_K%CE%B1</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.besselk</url>, <url>:WMA:https://reference.wolfram.com/language/ref/BesselJ.html</url>)
 
     <dl>
@@ -395,6 +407,9 @@ class BesselK(_Bessel):
 
 class BesselY(_Bessel):
     """
+    <url>:Bessel function of the second kind: https://en.wikipedia.org/wiki/Bessel_function#Bessel_functions_of_the_second_kind:_Y%CE%B1</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.bessely</url>, <url>:WMA:https://reference.wolfram.com/language/ref/BesselY.html</url>)
+
+
     <dl>
       <dt>'BesselY[$n$, $z$]'
       <dd>returns the Bessel function of the second kind Y_$n$($z$).
@@ -431,6 +446,8 @@ class BesselY(_Bessel):
 
 class BesselJZero(_Bessel):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BesselJZero.html</url>
+
     <dl>
       <dt>'BesselJZero[$n$, $k$]'
       <dd>returns the $k$th zero of the Bessel function of the first kind J_$n$($z$).
@@ -450,6 +467,8 @@ class BesselJZero(_Bessel):
 
 class BesselYZero(_Bessel):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BesselYZero.html</url>
+
     <dl>
       <dt>'BesselYZero[$n$, $k$]'
       <dd>returns the $k$th zero of the Bessel function of the second kind Y_$n$($z$).
@@ -472,6 +491,8 @@ class BesselYZero(_Bessel):
 
 class HankelH1(_Bessel):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/HankelH1.html</url>
+
     <dl>
       <dt>'HankelH1[$n$, $z$]'
       <dd>returns the Hankel function of the first kind H_$n$^1 ($z$).
@@ -492,6 +513,8 @@ class HankelH1(_Bessel):
 
 class HankelH2(_Bessel):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/HankelH2.html</url>
+
     <dl>
       <dt>'HankelH2[$n$, $z$]'
       <dd>returns the Hankel function of the second kind H_$n$^2 ($z$).
@@ -515,6 +538,7 @@ class HankelH2(_Bessel):
 
 class KelvinBei(_Bessel):
     """
+
     <url>:Kelvin function bei: https://en.wikipedia.org/wiki/Kelvin_functions#bei(x)</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/bessel.html#bei</url>, <url>:WMA: https://reference.wolfram.com/language/ref/KelvinBei.html</url>)
 
     <dl>
@@ -584,6 +608,7 @@ class KelvinBer(_Bessel):
 
 class KelvinKei(_Bessel):
     """
+
     <url>:Kelvin function kei: https://en.wikipedia.org/wiki/Kelvin_functions#kei(x)</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/bessel.html#kei</url>, <url>:WMA: https://reference.wolfram.com/language/ref/KelvinKei.html</url>)
 
     <dl>
@@ -651,7 +676,6 @@ class KelvinKer(_Bessel):
 
 class SphericalBesselJ(_Bessel):
     """
-
     <url>:Spherical Bessel function of the first kind: https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url> (<url>:Sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.jn</url>, <url>:WMA: https://reference.wolfram.com/language/ref/SphericalBesselJ.html</url>)
 
     <dl>
@@ -697,8 +721,8 @@ class SphericalBesselY(_Bessel):
 
 class SphericalHankelH1(_Bessel):
     """
-
-    <url>:Spherical Bessel function of the first kind: https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url>
+    <url>:Spherical Bessel function of the first kind: https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url>\
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/SphericalHankelH1.html</url>)
 
     <dl>
       <dt>'SphericalHankelH1[$n$, $z$]'
@@ -718,7 +742,8 @@ class SphericalHankelH1(_Bessel):
 class SphericalHankelH2(_Bessel):
     """
 
-    <url>:Spherical Bessel function of the second kind: https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url>
+    <url>:Spherical Bessel function of the second kind: https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url>\
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/SphericalHankelH2.html</url>)
 
     <dl>
       <dt>'SphericalHankelH1[$n$, $z$]'
@@ -737,7 +762,11 @@ class SphericalHankelH2(_Bessel):
 
 class StruveH(_Bessel):
     """
-    <url>:Struve functions H: https://en.wikipedia.org/wiki/Struve_function</url>
+
+    <url>:Struve functions H:
+    https://en.wikipedia.org/wiki/Struve_function</url>\
+    (<url>:WMA:https://reference.wolfram.com/language/ref/StruveH.html</url>)
+
     <dl>
       <dt>'StruveH[$n$, $z$]'
       <dd>returns the Struve function H_$n$($z$).
@@ -785,6 +814,8 @@ class StruveL(_Bessel):
 
 class WeberE(_Bessel):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/WeberE.html</url>
+
     <dl>
       <dt>'WeberE[$n$, $z$]'
       <dd>returns the Weber function E_$n$($z$).

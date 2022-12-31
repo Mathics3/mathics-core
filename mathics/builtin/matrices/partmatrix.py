@@ -13,11 +13,16 @@ from mathics.core.list import ListExpression
 
 class Diagonal(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Diagonal.html</url>
+
     <dl>
         <dt>'Diagonal[$m$]'
         <dd>gives a list with the values in the diagonal of the matrix $m$.
+
         <dt>'Diagonal[$m$, $k$]'
-        <dd>gives a list with the values in the $k$ diagonal of the matrix $m$.
+        <dd>gives a list with the values in the $k$ diagonal of the \
+            matrix $m$.
     </dl>
 
     >> Diagonal[{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}]
@@ -58,12 +63,15 @@ class Diagonal(Builtin):
 
 class MatrixQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MatrixQ.html</url>
+
     <dl>
       <dt>'MatrixQ[$m$]'
       <dd>gives 'True' if $m$ is a list of equal-length lists.
 
       <dt>'MatrixQ[$m$, $f$]'
-      <dd>gives 'True' only if '$f$[$x$]' returns 'True' for when applied to element $x$ of the matrix $m$.
+      <dd>gives 'True' only if '$f$[$x$]' returns 'True' for when applied to \
+         element $x$ of the matrix $m$.
     </dl>
 
     >> MatrixQ[{{1, 3}, {4.0, 3/2}}, NumberQ]

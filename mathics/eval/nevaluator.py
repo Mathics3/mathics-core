@@ -14,11 +14,7 @@ from typing import Optional
 import sympy
 
 from mathics.core.atoms import Number
-from mathics.core.attributes import (
-    A_N_HOLD_ALL,
-    A_N_HOLD_FIRST,
-    A_N_HOLD_REST,
-)
+from mathics.core.attributes import A_N_HOLD_ALL, A_N_HOLD_FIRST, A_N_HOLD_REST
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation

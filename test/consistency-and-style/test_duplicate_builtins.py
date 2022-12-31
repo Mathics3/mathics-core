@@ -4,9 +4,11 @@ Checks that builtin functions do not get redefined.
 In the past when reorganizing builtin functions we sometimes
 had missing or duplicate build-in functions definitions.
 """
-import pytest
 import os
-from mathics.builtin import name_is_builtin_symbol, modules
+
+import pytest
+
+from mathics.builtin import modules, name_is_builtin_symbol
 from mathics.builtin.base import Builtin
 
 

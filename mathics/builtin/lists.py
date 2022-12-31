@@ -6,10 +6,9 @@ Functions here will eventually get moved to more suitable subsections.
 """
 
 import heapq
-import sympy
-
 from itertools import chain
 
+import sympy
 
 from mathics.algorithm.clusters import (
     AutomaticMergeCriterion,
@@ -20,11 +19,7 @@ from mathics.algorithm.clusters import (
     kmeans,
     optimize,
 )
-from mathics.algorithm.parts import (
-    python_levelspec,
-    walk_levels,
-)
-
+from mathics.algorithm.parts import python_levelspec, walk_levels
 from mathics.builtin.base import (
     Builtin,
     CountableInteger,
@@ -33,12 +28,10 @@ from mathics.builtin.base import (
     SympyFunction,
     Test,
 )
-
 from mathics.builtin.box.layout import RowBox
 from mathics.builtin.numbers.algebra import cancel
 from mathics.builtin.options import options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
-
 from mathics.core.atoms import (
     Integer,
     Integer0,
@@ -50,13 +43,7 @@ from mathics.core.atoms import (
     machine_precision,
     min_prec,
 )
-
-from mathics.core.attributes import (
-    A_HOLD_ALL,
-    A_LOCKED,
-    A_PROTECTED,
-    A_READ_PROTECTED,
-)
+from mathics.core.attributes import A_HOLD_ALL, A_LOCKED, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.exceptions import (
@@ -67,7 +54,6 @@ from mathics.core.exceptions import (
     PartRangeError,
 )
 from mathics.core.expression import Expression, structure
-
 from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
@@ -78,7 +64,6 @@ from mathics.core.symbols import (
     SymbolTrue,
     strip_context,
 )
-
 from mathics.core.systemsymbols import (
     SymbolAlternatives,
     SymbolFailed,
@@ -91,9 +76,6 @@ from mathics.core.systemsymbols import (
     SymbolSequence,
     SymbolSubsetQ,
 )
-
-from mathics.eval.nevaluator import eval_N
-
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 
@@ -106,6 +88,8 @@ SymbolSplit = Symbol("Split")
 
 class All(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/All.html</url>
+
     <dl>
       <dt>'All'
       <dd>is a possible option value for 'Span', 'Quiet', 'Part' and related functions. 'All' specifies all parts at a particular level.
@@ -117,6 +101,8 @@ class All(Predefined):
 
 class ContainsOnly(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ContainsOnly.html</url>
+
     <dl>
       <dt>'ContainsOnly[$list1$, $list2$]'
       <dd>yields True if $list1$ contains only elements that appear in $list2$.
@@ -212,6 +198,8 @@ class ContainsOnly(Builtin):
 
 class Delete(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Delete.html</url>
+
     <dl>
       <dt>'Delete[$expr$, $i$]'
       <dd>deletes the element at position $i$ in $expr$. The position is counted from the end if $i$ is negative.
@@ -356,6 +344,8 @@ class Delete(Builtin):
 
 class Failure(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Failure.html</url>
+
     <dl>
       <dt>Failure[$tag$, $assoc$]
       <dd> represents a failure of a type indicated by $tag$, with details given by the association $assoc$.
@@ -374,6 +364,8 @@ class Failure(Builtin):
 
 class Key(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Key.html</url>
+
     <dl>
       <dt>Key[$key$]
       <dd> represents a key used to access a value in an association.
@@ -390,6 +382,8 @@ class Key(Builtin):
 
 class Level(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Level.html</url>
+
     <dl>
       <dt>'Level[$expr$, $levelspec$]'
       <dd>gives a list of all subexpressions of $expr$ at the
@@ -467,6 +461,8 @@ class Level(Builtin):
 
 class LevelQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LevelQ.html</url>
+
     <dl>
       <dt>'LevelQ[$expr$]'
       <dd>tests whether $expr$ is a valid level specification.
@@ -494,6 +490,8 @@ class LevelQ(Test):
 
 class List(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/List.html</url>
+
     <dl>
       <dt>'List[$e1$, $e2$, ..., $ei$]'
       <dt>'{$e1$, $e2$, ..., $ei$}'
@@ -531,6 +529,8 @@ class List(Builtin):
 
 class ListQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ListQ.html</url>
+
     <dl>
       <dt>'ListQ[$expr$]'
       <dd>tests whether $expr$ is a 'List'.
@@ -552,6 +552,8 @@ class ListQ(Test):
 
 class NotListQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/NotListQ.html</url>
+
     <dl>
       <dt>'NotListQ[$expr$]'
       <dd>returns true if $expr$ is not a list.
@@ -597,6 +599,8 @@ def list_boxes(items, f, evaluation, open=None, close=None):
 
 class None_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/None.html</url>
+
     <dl>
       <dt>'None'
       <dd>is a possible value for 'Span' and 'Quiet'.
@@ -609,6 +613,8 @@ class None_(Predefined):
 
 class Split(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Split.html</url>
+
     <dl>
       <dt>'Split[$list$]'
       <dd>splits $list$ into collections of consecutive identical elements.
@@ -679,6 +685,8 @@ class Split(Builtin):
 
 class SplitBy(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SplitBy.html</url>
+
     <dl>
       <dt>'SplitBy[$list$, $f$]'
       <dd>splits $list$ into collections of consecutive elements
@@ -747,6 +755,8 @@ class SplitBy(Builtin):
 
 class LeafCount(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LeafCount.html</url>
+
     <dl>
       <dt>'LeafCount[$expr$]'
       <dd>returns the total number of indivisible subexpressions in $expr$.
@@ -787,7 +797,7 @@ class LeafCount(Builtin):
     def eval(self, expr, evaluation):
         "LeafCount[expr___]"
 
-        from mathics.core.atoms import Rational, Complex
+        from mathics.core.atoms import Complex, Rational
 
         elements = []
 
@@ -1016,6 +1026,8 @@ class _IterationFunction(Builtin):
 
 class Insert(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Insert.html</url>
+
     <dl>
       <dt>'Insert[$list$, $elem$, $n$]'
       <dd>inserts $elem$ at position $n$ in $list$. When $n$ is negative, the position is counted from the end.
@@ -1052,6 +1064,8 @@ def get_tuples(items):
 
 class IntersectingQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/IntersectingQ.html</url>
+
     <dl>
       <dt>'IntersectingQ[$a$, $b$]'
       <dd>gives True if there are any common elements in $a and $b, or False if $a and $b are disjoint.
@@ -1064,6 +1078,8 @@ class IntersectingQ(Builtin):
 
 class DisjointQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DisjointQ.html</url>
+
     <dl>
       <dt>'DisjointQ[$a$, $b$]'
       <dd>gives True if $a and $b are disjoint, or False if $a and $b have any common elements.
@@ -1218,6 +1234,8 @@ class _RankedTakeLargest(_RankedTake):
 
 class TakeLargestBy(_RankedTakeLargest):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TakeLargestBy.html</url>
+
     <dl>
       <dt>'TakeLargestBy[$list$, $f$, $n$]'
       <dd>returns the a sorted list of the $n$ largest items in $list$
@@ -1242,6 +1260,8 @@ class TakeLargestBy(_RankedTakeLargest):
 
 class TakeSmallestBy(_RankedTakeSmallest):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TakeSmallestBy.html</url>
+
     <dl>
       <dt>'TakeSmallestBy[$list$, $f$, $n$]'
       <dd>returns the a sorted list of the $n$ smallest items in $list$
@@ -1455,6 +1475,8 @@ class _Pad(Builtin):
 
 class PadLeft(_Pad):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PadLeft.html</url>
+
     <dl>
       <dt>'PadLeft[$list$, $n$]'
       <dd>pads $list$ to length $n$ by adding 0 on the left.
@@ -1491,6 +1513,8 @@ class PadLeft(_Pad):
 
 class PadRight(_Pad):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PadRight.html</url>
+
     <dl>
       <dt>'PadRight[$list$, $n$]'
       <dd>pads $list$ to length $n$ by adding 0 on the right.
@@ -1769,6 +1793,8 @@ class _Cluster(Builtin):
 
 class FindClusters(_Cluster):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FindClusters.html</url>
+
     <dl>
       <dt>'FindClusters[$list$]'
       <dd>returns a list of clusters formed from the elements of $list$. The number of cluster is determined
@@ -1848,6 +1874,8 @@ class FindClusters(_Cluster):
 
 class ClusteringComponents(_Cluster):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ClusteringComponents.html</url>
+
     <dl>
       <dt>'ClusteringComponents[$list$]'
       <dd>forms clusters from $list$ and returns a list of cluster indices, in which each
@@ -1895,6 +1923,8 @@ class ClusteringComponents(_Cluster):
 
 class Nearest(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Nearest.html</url>
+
     <dl>
       <dt>'Nearest[$list$, $x$]'
       <dd>returns the one item in $list$ that is nearest to $x$.
@@ -2035,6 +2065,8 @@ class Nearest(Builtin):
 
 class SubsetQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SubsetQ.html</url>
+
     <dl>
       <dt>'SubsetQ[$list1$, $list2$]'
       <dd>returns True if $list2$ is a subset of $list1$, and False otherwise.
