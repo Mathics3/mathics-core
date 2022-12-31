@@ -1365,7 +1365,12 @@ NumberOfTableaux[s_List] :=
 
 NumberOfTableaux[n_Integer] := Apply[Plus, Map[NumberOfTableaux, Partitions[n]]]
 
-CatalanNumber[n_] := Binomial[2n,n]/(n+1)	/; (n>=0)
+
+(* Mathics now provides CatalanNumber via SymPy. And
+   there is something broken with respect to Context that
+   would cause this definition to interfere with the Builtin definition.
+ *)
+(* CatalanNumber[n_] := Binomial[2n,n]/(n+1)	/; (n>=0) *)
 
 RandomTableau[shape_List] :=
 	Module[{i=j=n=Apply[Plus,shape],done,l,m,h=1,k,y,p=shape},

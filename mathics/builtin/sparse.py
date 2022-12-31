@@ -6,10 +6,7 @@ SparseArray Functions
 
 
 from mathics.algorithm.parts import walk_parts
-
 from mathics.builtin.base import Builtin
-
-
 from mathics.core.atoms import Integer, Integer0
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -21,6 +18,8 @@ SymbolSparseArray = Symbol("SparseArray")
 
 class SparseArray(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SparseArray.html</url>
+
     <dl>
     <dt>'SparseArray[$rules$]'
         <dd>Builds a sparse array acording to the list of $rules$.

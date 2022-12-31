@@ -9,11 +9,11 @@ Numerical values and derivatives can be computed; however, most special exact va
 """
 
 from typing import Optional
-from mathics.core.convert.sympy import SympyExpression
 
 from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import IntegerM1
+from mathics.core.convert.sympy import SympyExpression
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolPower
 
@@ -25,6 +25,8 @@ SymbolSinh = Symbol("Sinh")
 
 class ArcCosh(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcCosh.html</url>
+
     <dl>
       <dt>'ArcCosh[$z$]'
       <dd>returns the inverse hyperbolic cosine of $z$.
@@ -52,6 +54,8 @@ class ArcCosh(_MPMathFunction):
 
 class ArcCoth(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcCoth.html</url>
+
     <dl>
       <dt>'ArcCoth[$z$]'
       <dd>returns the inverse hyperbolic cotangent of $z$.
@@ -83,6 +87,8 @@ class ArcCoth(_MPMathFunction):
 
 class ArcCsch(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcCsch.html</url>
+
     <dl>
       <dt>'ArcCsch[$z$]'
       <dd>returns the inverse hyperbolic cosecant of $z$.
@@ -115,6 +121,8 @@ class ArcCsch(_MPMathFunction):
 
 class ArcSech(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcSech.html</url>
+
     <dl>
       <dt>'ArcSech[$z$]'
       <dd>returns the inverse hyperbolic secant of $z$.
@@ -149,6 +157,8 @@ class ArcSech(_MPMathFunction):
 
 class ArcSinh(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcSinh.html</url>
+
     <dl>
       <dt>'ArcSinh[$z$]'
       <dd>returns the inverse hyperbolic sine of $z$.
@@ -174,6 +184,8 @@ class ArcSinh(_MPMathFunction):
 
 class ArcTanh(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcTanh.html</url>
+
     <dl>
       <dt>'ArcTanh[$z$]'
       <dd>returns the inverse hyperbolic tangent of $z$.
@@ -205,6 +217,8 @@ class ArcTanh(_MPMathFunction):
 
 class Cosh(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Cosh.html</url>
+
     <dl>
       <dt>'Cosh[$z$]'
       <dd>returns the hyperbolic cosine of $z$.
@@ -226,6 +240,8 @@ class Cosh(_MPMathFunction):
 
 class Coth(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Coth.html</url>
+
     <dl>
       <dt>'Coth[$z$]'
       <dd>returns the hyperbolic cotangent of $z$.
@@ -249,6 +265,7 @@ class Coth(_MPMathFunction):
 
 class Gudermannian(Builtin):
     """
+
     <url>:Gudermannian function: https://en.wikipedia.org/wiki/Gudermannian_function</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Gudermannian.html</url>, <url>:MathWorld: https://mathworld.wolfram.com/Gudermannian.html</url>)
     <dl>
       <dt>'Gudermannian[$z$]'
@@ -325,6 +342,8 @@ class InverseGudermannian(Builtin):
 
 class Sech(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Sech.html</url>
+
     <dl>
       <dt>'Sech[$z$]'
       <dd>returns the hyperbolic secant of $z$.
@@ -352,6 +371,8 @@ class Sech(_MPMathFunction):
 
 class Sinh(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Sinh.html</url>
+
     <dl>
       <dt>'Sinh[$z$]'
       <dd>returns the hyperbolic sine of $z$.
@@ -372,6 +393,8 @@ class Sinh(_MPMathFunction):
 
 class Tanh(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Tanh.html</url>
+
     <dl>
       <dt>'Tanh[$z$]'
       <dd>returns the hyperbolic tangent of $z$.

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from mathics.core.symbols import (
-    SymbolList,
-)
+from mathics.core.symbols import SymbolList
 
 
 class Structure:

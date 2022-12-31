@@ -17,27 +17,24 @@ import re
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
+    FractionBox,
     GridBox,
     RowBox,
+    SqrtBox,
     StyleBox,
     SubscriptBox,
-    SuperscriptBox,
     SubsuperscriptBox,
-    SqrtBox,
-    FractionBox,
+    SuperscriptBox,
 )
 from mathics.builtin.colors.color_directives import RGBColor
-
 from mathics.core.atoms import String
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
-    lookup_method as lookup_conversion_method,
     add_conversion_fn,
+    lookup_method as lookup_conversion_method,
 )
 from mathics.core.symbols import SymbolTrue
-
 from mathics.format.asy_fns import asy_color, asy_create_pens, asy_number
-
 
 # mathics_scanner does not generates this table in a way that we can load it here.
 # When it get fixed, we can use that table instead of this one:
@@ -126,7 +123,6 @@ def string(self, **options) -> str:
         # is required, to so get the standard WMA behaviour,
         # this option is set to False:
         # show_string_characters = False
-
         if show_string_characters:
             return render(r"\text{``%s''}", text[1:-1], in_text=True)
         else:

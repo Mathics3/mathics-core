@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 
-import pickle
-
-import os
 import base64
-import re
 import bisect
-
+import os
+import pickle
+import re
 from collections import defaultdict
-
 from typing import List, Optional
+
+from mathics_scanner.tokeniser import full_names_pattern
 
 from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_NO_ATTRIBUTES
@@ -18,14 +17,8 @@ from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.expression import Expression
 from mathics.core.pattern import Pattern
 from mathics.core.rules import Rule
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    strip_context,
-)
+from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolGet
-
-from mathics_scanner.tokeniser import full_names_pattern
 
 type_compiled_pattern = type(re.compile("a.a"))
 
@@ -44,7 +37,7 @@ def get_file_time(file) -> float:
 
 
 def valuesname(name) -> str:
-    "'NValues' -> 'n'"
+    """'NValues' -> 'n'"""
 
     assert name.startswith("System`"), name
     if name == "System`Messages":
@@ -85,10 +78,11 @@ class Definitions:
 
     In the current implementation, the ``Definitions`` object stores ``Definition`` s in four dictionaries:
 
-    - builtins: stores the defintions of the ``Builtin`` symbols
+    - builtins: stores the definitions of the ``Builtin`` symbols
     - pymathics: stores the definitions of the ``Builtin`` symbols added from pymathics modules.
     - user: stores the definitions created during the runtime.
-    - definition_cache: keep definitions obtained by merging builtins, pymathics, and user definitions associated to the same symbol.
+    - definition_cache: keep definitions obtained by merging builtins, pymathics, and user definitions associated to the
+     same symbol.
     """
 
     def __init__(
@@ -109,11 +103,6 @@ class Definitions:
             "Global`",
         )
 
-        from mathics.core.pymathics import (
-            PyMathicsLoadException,
-            load_pymathics_module,
-        )
-
         # Importing "mathics.format" populates the Symbol of the
         # PrintForms and OutputForms sets.
         #
@@ -122,8 +111,8 @@ class Definitions:
         #   2 were given
         # Rocky: this smells of something not quite right in terms of
         # modularity.
-
         import mathics.format  # noqa
+        from mathics.core.pymathics import PyMathicsLoadException, load_pymathics_module
 
         self.printforms = list(PrintForms)
         self.outputforms = list(OutputForms)
@@ -131,7 +120,7 @@ class Definitions:
         self.timing_trace_evaluation = False
 
         if add_builtin:
-            from mathics.builtin import modules, contribute
+            from mathics.builtin import contribute, modules
             from mathics.settings import ROOT_DIR
 
             loaded = False
@@ -178,7 +167,7 @@ class Definitions:
         # the definitions cache (self.definitions_cache) caches (incomplete and complete) names -> Definition(),
         # e.g. "xy" -> d and "MyContext`xy" -> d. we need to clear this cache if a Definition() changes (which
         # would happen if a Definition is combined from a builtin and a user definition and some content in the
-        # user definition is updated) or if the lookup rules change and we could end up at a completely different
+        # user definition is updated) or if the lookup rules change, and we could end up at a completely different
         # Definition.
 
         # the lookup cache (self.lookup_cache) caches what lookup_name() does. we only need to update this if some
@@ -275,7 +264,7 @@ class Definitions:
         )
 
     def get_accessible_contexts(self):
-        "Return the contexts reachable though $Context or $ContextPath."
+        """Return the contexts reachable though $Context or $ContextPath."""
         accessible_ctxts = set(ctx for ctx in self.context_path)
         accessible_ctxts.add(self.current_context)
         return accessible_ctxts
@@ -414,7 +403,6 @@ class Definitions:
 
         candidates = [user] if user else []
         builtin_instance = None
-        is_numeric = False
 
         if pymathics:
             builtin_instance = pymathics
@@ -449,7 +437,7 @@ class Definitions:
                 # This behaviour for options is wrong:
                 # because of this, ``Unprotect[Expand]; ClearAll[Expand]; Options[Expand]``
                 # returns the builtin options of ``Expand`` instead of an empty list, like
-                # in WMA. This suggest that this idea of keeping differnt dicts for builtin
+                # in WMA. This suggests that this idea of keeping different dicts for builtin
                 # and user definitions is pointless.
                 curr = its.pop()
                 options.update(curr.options)

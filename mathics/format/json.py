@@ -5,12 +5,6 @@ Lower-level formatter of Mathics objects as JSON data.
 Right now this happens mostly for graphics primitives.
 """
 
-from mathics.builtin.graphics import PointSize
-
-from mathics.builtin.drawing.graphics3d import (
-    Graphics3DElements,
-)
-
 from mathics.builtin.box.graphics3d import (
     Arrow3DBox,
     Cone3DBox,
@@ -22,14 +16,13 @@ from mathics.builtin.box.graphics3d import (
     Sphere3DBox,
     Tube3DBox,
 )
-
 from mathics.builtin.box.uniform_polyhedra import UniformPolyhedron3DBox
+from mathics.builtin.drawing.graphics3d import Graphics3DElements
+from mathics.builtin.graphics import PointSize
+from mathics.core.formatter import add_conversion_fn, lookup_method
 
 # FIXME
 # Add 2D elements like DensityPlot
-
-
-from mathics.core.formatter import lookup_method, add_conversion_fn
 
 
 def convert_coord_collection(

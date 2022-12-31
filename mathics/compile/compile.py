@@ -1,9 +1,9 @@
-import llvmlite.binding as llvm
 from ctypes import CFUNCTYPE
 
-from mathics.compile.utils import llvm_to_ctype
-from mathics.compile.ir import IRGenerator
+import llvmlite.binding as llvm
 
+from mathics.compile.ir import IRGenerator
+from mathics.compile.utils import llvm_to_ctype
 
 # setup llvm for code generation
 llvm.initialize()

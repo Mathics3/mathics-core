@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-import pytest
 from test.helper import check_evaluation, session
+
+import pytest
 
 
 @pytest.mark.parametrize(

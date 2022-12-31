@@ -6,30 +6,27 @@ Formatting constructs are represented as a hierarchy of low-level symbolic "boxe
 The routines here assist in boxing at the bottom of the hierarchy. At the other end, the top level, we have a Notebook which is just a collection of Expressions usually contained in boxes.
 """
 
-from mathics.builtin.base import BoxExpression, Builtin
+from mathics.builtin.base import Builtin
+from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.options import options_to_rules
-
 from mathics.core.atoms import Atom, String
-from mathics.core.attributes import (
-    A_HOLD_ALL_COMPLETE,
-    A_PROTECTED,
-    A_READ_PROTECTED,
-)
+from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.element import BoxElementMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolMakeBoxes
+from mathics.core.symbols import Symbol, SymbolFullForm
 from mathics.core.systemsymbols import (
     SymbolFractionBox,
     SymbolRowBox,
     SymbolSqrtBox,
     SymbolStandardForm,
-    SymbolSubsuperscriptBox,
     SymbolSubscriptBox,
+    SymbolSubsuperscriptBox,
     SymbolSuperscriptBox,
 )
+from mathics.eval.makeboxes import eval_makeboxes
 
 
 def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
@@ -57,6 +54,8 @@ def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
 
 class BoxData(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BoxData.html</url>
+
     <dl>
       <dt>'BoxData[...]'
       <dd>is a low-level representation of the contents of a typesetting
@@ -88,6 +87,10 @@ def is_constant_list(list):
 
 class FractionBox(BoxExpression):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/FractionBox.html</url>
+
     <dl>
       <dt>'FractionBox[$x$, $y$]'
       <dd> FractionBox[x, y] is a low-level formatting construct that represents $\frac{x}{y}$.
@@ -159,9 +162,14 @@ class GridBox(BoxExpression):
 
 class InterpretationBox(BoxExpression):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/InterpretationBox.html</url>
+
     <dl>
       <dt>'InterpretationBox[{...}, expr]'
-      <dd> is a low-level box construct that displays as boxes, but is interpreted on input as expr.
+      <dd> is a low-level box construct that displays as boxes, but is \
+           interpreted on input as expr.
     </dl>
 
     >> A = InterpretationBox["Pepe", 4]
@@ -186,9 +194,13 @@ class InterpretationBox(BoxExpression):
 
 class RowBox(BoxExpression):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RowBox.html</url>
     <dl>
       <dt>'RowBox[{...}]'
-      <dd>is a box construct that represents a sequence of boxes arranged in a horizontal row.
+      <dd>is a box construct that represents a sequence of boxes arranged in \
+          a horizontal row.
     </dl>
     """
 
@@ -229,7 +241,7 @@ class RowBox(BoxExpression):
             return item
 
         self.items = tuple((check_item(item) for item in items))
-        self._elements = None
+        self._elements = self.items
 
     def to_expression(self) -> Expression:
         """
@@ -237,7 +249,7 @@ class RowBox(BoxExpression):
         to implement the interface of normal Expressions, for example, when a boxed expression
         is manipulated to produce a new boxed expression.
 
-        For instance, consider the folling definition:
+        For instance, consider the following definition:
         ```
         MakeBoxes[{items___}, StandardForm] := RowBox[{"[", Sequence @@ Riffle[MakeBoxes /@ {items}, " "], "]"}]
         ```
@@ -246,18 +258,19 @@ class RowBox(BoxExpression):
         in the apply method, this function must be called.
         """
         if self._elements is None:
-            items = tuple(
+            self._elements = tuple(
                 item.to_expression() if isinstance(item, BoxElementMixin) else item
                 for item in self.items
             )
 
-            self._elements = Expression(SymbolRowBox, ListExpression(*items))
-        return self._elements
+        return Expression(SymbolRowBox, ListExpression(*self._elements))
 
 
 class ShowStringCharacters(Builtin):
     """
-    <url>:WMA link: https://reference.wolfram.com/language/ref/ShowStringCharacters.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ShowStringCharacters.html</url>
     <dl>
       <dt>'ShowStringCharacters'
       <dd>is an option for Cell that directs whether to display '"' in strings.
@@ -276,6 +289,9 @@ class ShowStringCharacters(Builtin):
 
 class SqrtBox(BoxExpression):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/SqrtData.html</url>
     <dl>
       <dt>'SqrtBox[$x$]'
       <dd> is a low-level formatting construct that represents $\\sqrt{x}$.
@@ -315,6 +331,7 @@ class SqrtBox(BoxExpression):
 
 class StyleBox(BoxExpression):
     """
+
     <url>:WMA link: https://reference.wolfram.com/language/ref/StyleBox.html</url>
     <dl>
       <dt>'StyleBox[boxes, options]'
@@ -408,6 +425,10 @@ class SubscriptBox(BoxExpression):
 
 class SubsuperscriptBox(BoxExpression):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/SubsuperscriptBox.html</url>
+
     <dl>
       <dt>'SubsuperscriptBox[$a$, $b$, $c$]'
       <dd>is a box construct that represents $a_b^c$.
@@ -446,6 +467,9 @@ class SubsuperscriptBox(BoxExpression):
 
 class SuperscriptBox(BoxExpression):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/SuperscriptBox.html</url>
     <dl>
       <dt>'SuperscriptBox[$a$, $b$]'
       <dd>is a box construct that represents $a^b$.
@@ -481,6 +505,8 @@ class SuperscriptBox(BoxExpression):
 
 class TagBox(BoxExpression):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TagBox.html</url>
+
     <dl>
       <dt>'TagBox[boxes, tag]'
       <dd> is a low-level box construct that displays as
@@ -494,6 +520,9 @@ class TagBox(BoxExpression):
 
 class TemplateBox(BoxExpression):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/TemplateBox.html</url>
     <dl>
       <dt>'TemplateBox[{$box_1$, $box_2$,...}, tag]'
       <dd>is a low-level box structure that parameterizes the display and evaluation of the boxes $box_i$ .
@@ -506,6 +535,10 @@ class TemplateBox(BoxExpression):
 
 class TextData(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/TextData.html</url>
+
     <dl>
       <dt>'TextData[...]'
       <dd>is a low-level representation of the contents of a textual
@@ -518,6 +551,10 @@ class TextData(Builtin):
 
 class TooltipBox(BoxExpression):
     """
+    ## <url>
+    ## :WMA link:
+    ## https://reference.wolfram.com/language/ref/TooltipBox.html</url>
+
     <dl>
       <dt>'TooltipBox[{...}]'
       <dd>undocumented...

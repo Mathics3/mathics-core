@@ -1,12 +1,13 @@
 import re
-from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
+
+from mathics.builtin.makeboxes import MakeBoxes
 from mathics.core.atoms import Integer0, Integer1
 from mathics.core.evaluation import Evaluation
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolGraphics, SymbolPoint
 from mathics.session import MathicsSession
-from mathics.builtin.makeboxes import MakeBoxes
 
 session = MathicsSession(add_builtin=True, catch_interrupt=False)
 evaluation = Evaluation(session.definitions)

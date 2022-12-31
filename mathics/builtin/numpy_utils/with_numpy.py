@@ -4,12 +4,12 @@
 A couple of helper functions for doing numpy-like stuff with numpy.
 """
 
-from functools import reduce
-
 import ast
 import inspect
-import numpy
 import sys
+from functools import reduce
+
+import numpy
 
 from mathics.core.list import ListExpression
 

@@ -6,26 +6,23 @@
 
 from math import pi
 
-
 from mathics.builtin.numpy_utils import (
-    sqrt,
-    floor,
-    mod,
-    cos,
-    sin,
     arctan2,
-    minimum,
-    maximum,
-    dot_t,
-)
-from mathics.builtin.numpy_utils import (
-    stack,
-    unstack,
     array,
+    choose,
     clip,
     conditional,
-    choose,
+    cos,
+    dot_t,
+    floor,
+    maximum,
+    minimum,
+    mod,
+    sin,
+    sqrt,
+    stack,
     stacked,
+    unstack,
 )
 
 # in the long run, we might want to implement these functions using Compile[]. until Compile[] is available for all

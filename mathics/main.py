@@ -5,24 +5,22 @@ import argparse
 import atexit
 import locale
 import os
+import os.path as osp
 import re
 import subprocess
 import sys
 
-import os.path as osp
-
-from mathics import settings
-from mathics import version_string, license_string, __version__
+from mathics import __version__, license_string, settings, version_string
 from mathics.builtin.trace import TraceBuiltins, traced_do_replace
 from mathics.core.atoms import String
-from mathics.core.definitions import autoload_files, Definitions, Symbol
+from mathics.core.definitions import Definitions, Symbol, autoload_files
 from mathics.core.evaluation import Evaluation, Output
 from mathics.core.expression import Expression
 from mathics.core.parser import MathicsFileLineFeeder, MathicsLineFeeder
 from mathics.core.read import channel_to_stream
 from mathics.core.rules import BuiltinRule
-from mathics.core.symbols import strip_context, SymbolNull
 from mathics.core.streams import stream_manager
+from mathics.core.symbols import SymbolNull, strip_context
 from mathics.timing import show_lru_cache_statistics
 
 
@@ -347,7 +345,7 @@ Please contribute to Mathics!""",
     )
     args, script_args = argparser.parse_known_args()
 
-    quit_command = "CTRL-BREAK" if sys.platform == "win32" else "CONTROL-D"
+    quit_command = "CTRL-BREAK" if sys.platform in ("win32", "nt") else "CONTROL-D"
 
     extension_modules = []
     if args.pyextensions:

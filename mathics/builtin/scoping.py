@@ -4,23 +4,13 @@ Scoping Constructs
 """
 
 
-from mathics.core.attributes import (
-    A_HOLD_ALL,
-    A_PROTECTED,
-    attribute_string_to_number,
-)
 from mathics.builtin.base import Builtin, Predefined
 from mathics.core.assignment import get_symbol_list
-from mathics.core.atoms import (
-    String,
-    Integer,
-)
+from mathics.core.atoms import Integer, String
+from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, attribute_string_to_number
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    Symbol,
-    fully_qualified_symbol_name,
-)
+from mathics.core.symbols import Symbol, fully_qualified_symbol_name
 
 
 def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
@@ -78,6 +68,8 @@ def dynamic_scoping(func, vars, evaluation: Evaluation):
 
 class Begin(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Begin.html</url>
+
     <dl>
       <dt>'Begin'[$context$]
       <dd>temporarily sets the current context to $context$.
@@ -116,6 +108,8 @@ class Begin(Builtin):
 
 class BeginPackage(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BeginPackage.html</url>
+
     <dl>
       <dt>'BeginPackage'[$context$]
       <dd>starts the package given by $context$.
@@ -148,6 +142,8 @@ class BeginPackage(Builtin):
 
 class Block(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Block.html</url>
+
     <dl>
       <dt>'Block[{$x$, $y$, ...}, $expr$]'
       <dd>temporarily removes the definitions of the given variables, evaluates $expr$, and restores the original definitions afterwards.
@@ -205,6 +201,7 @@ class Block(Builtin):
 
 class Context_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$Context.html</url>
     <dl>
       <dt>'$Context'
       <dd>is the current context.
@@ -233,6 +230,8 @@ class Context_(Predefined):
 
 class Contexts(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Contexts.html</url>
+
     <dl>
       <dt>'Contexts[]'
       <dd>yields a list of all contexts.
@@ -257,6 +256,7 @@ class Contexts(Builtin):
 
 class ContextPath_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$ContextPath.html</url>
     <dl>
       <dt>'$ContextPath'
       <dd>is the search path for contexts.
@@ -284,6 +284,8 @@ class ContextPath_(Predefined):
 
 class ContextPathStack(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ContextPathStack.html</url>
+
     <dl>
       <dt>'System`Private`$ContextPathStack'
       <dd>is an internal variable tracking the values of '$ContextPath' saved by 'Begin' and 'BeginPackage'.
@@ -301,6 +303,7 @@ class ContextPathStack(Builtin):
 
 class ContextStack(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ContextStack.html</url>
     <dl>
         <dt>'System`Private`$ContextStack'
         <dd>is an internal variable tracking the values of '$Context'
@@ -319,6 +322,8 @@ class ContextStack(Builtin):
 
 class End(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/End.html</url>
+
     <dl>
       <dt>'End[]'
       <dd>ends a context started by 'Begin'.
@@ -347,6 +352,8 @@ class End(Builtin):
 
 class EndPackage(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EndPackage.html</url>
+
     <dl>
       <dt>'EndPackage[]'
       <dd>marks the end of a package, undoing a previous 'BeginPackage'.
@@ -378,6 +385,8 @@ class EndPackage(Builtin):
 
 class Module(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Module.html</url>
+
     <dl>
       <dt>'Module[{$vars$}, $expr$]'
       <dd>localizes variables by giving them a temporary name of the form 'name$number', where number is the current value of '$ModuleNumber'. Each time a module is evaluated, '$ModuleNumber' is incremented.
@@ -447,6 +456,7 @@ class Module(Builtin):
 
 class ModuleNumber_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$ModuleNumber.html</url>
     <dl>
       <dt>'$ModuleNumber'
       <dd>is the current "serial number" to be used for local module variables.
@@ -489,6 +499,8 @@ class ModuleNumber_(Predefined):
 
 class Unique(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Unique.html</url>
+
     <dl>
       <dt>'Unique[]'
       <dd>generates a new symbol and gives a name of the form '$number'.
@@ -640,8 +652,9 @@ class Unique(Predefined):
 
 class With(Builtin):
     """
-    <dl>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/With.html</url>
 
+    <dl>
       <dt>'With[{$x$=$x0$, $y$=$y0$, ...}, $expr$]'
       <dd>specifies that all occurrences of the symbols $x$, $y$, ... in $expr$ should be replaced by $x0$, $y0$, ...
     </dl>

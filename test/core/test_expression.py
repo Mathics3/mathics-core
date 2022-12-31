@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import pytest
 from test.helper import check_evaluation
+
+import pytest
+
 from mathics.builtin.base import check_requires_list
+
 
 # FIXME: come up with an example that doesn't require skimage.
 @pytest.mark.skipif(

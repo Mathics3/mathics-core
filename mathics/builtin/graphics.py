@@ -5,52 +5,44 @@
 Drawing Graphics
 """
 
-# This tells documentation how to sort this module
+# This following line tells documentation how to sort this module
 sort_order = "mathics.builtin.drawing-graphics"
 
 from math import sqrt
 
-
-from mathics.eval.nevaluator import eval_N
-
 from mathics.builtin.base import Builtin
-
 from mathics.builtin.colors.color_directives import (
-    _ColorObject,
-    Opacity,
     CMYKColor,
     GrayLevel,
     Hue,
     LABColor,
     LCHColor,
     LUVColor,
+    Opacity,
     RGBColor,
     XYZColor,
+    _ColorObject,
 )
-
 from mathics.builtin.drawing.graphics_internals import (
+    GLOBALS,
     _GraphicsDirective,
     _GraphicsElementBox,
-    GLOBALS,
     get_class,
 )
 from mathics.builtin.options import options_to_rules
-
-from mathics.core.atoms import (
-    Integer,
-    Rational,
-    Real,
-)
+from mathics.core.atoms import Integer, Rational, Real
+from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.exceptions import BoxExpressionError
 from mathics.core.expression import Expression
+from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Symbol,
-    symbol_set,
-    system_symbols_dict,
     SymbolList,
     SymbolNull,
+    symbol_set,
+    system_symbols_dict,
 )
 from mathics.core.systemsymbols import (
     SymbolEdgeForm,
@@ -58,11 +50,7 @@ from mathics.core.systemsymbols import (
     SymbolMakeBoxes,
     SymbolRule,
 )
-
-from mathics.core.formatter import lookup_method
-
-from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
-
+from mathics.eval.nevaluator import eval_N
 
 GRAPHICS_OPTIONS = {
     "AspectRatio": "Automatic",
@@ -197,6 +185,9 @@ def _extract_graphics(graphics, format, evaluation):
 
 class Show(Builtin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Show.html</url>
+
     <dl>
       <dt>'Show[$graphics$, $options$]'
       <dd>shows a list of graphics with the specified options added.
@@ -209,7 +200,7 @@ class Show(Builtin):
     options = GRAPHICS_OPTIONS
     summary_text = "display graphic objects"
 
-    def apply(self, graphics, evaluation, options):
+    def eval(self, graphics, evaluation, options):
         """Show[graphics_, OptionsPattern[%(name)s]]"""
 
         for option in options:
@@ -236,6 +227,8 @@ class Show(Builtin):
 
 class Graphics(Builtin):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Graphics.html</url>
+
     <dl>
       <dt>'Graphics[$primitives$, $options$]'
       <dd>represents a graphic.
@@ -285,7 +278,7 @@ class Graphics(Builtin):
     box_suffix = "Box"
     summary_text = "general two‐dimensional graphics"
 
-    def apply_makeboxes(self, content, evaluation, options):
+    def eval_makeboxes(self, content, evaluation, options):
         """MakeBoxes[%(name)s[content_, OptionsPattern[%(name)s]],
         StandardForm|TraditionalForm|OutputForm]"""
 
@@ -315,7 +308,7 @@ class Graphics(Builtin):
                         if inset.get_head() is Symbol("System`Graphics"):
                             opts = {}
                             # opts = dict(opt._elements[0].name:opt_elements[1]   for opt in  inset._elements[1:])
-                            inset = self.apply_makeboxes(
+                            inset = self.eval_makeboxes(
                                 inset._elements[0], evaluation, opts
                             )
                         n_elements = [inset] + [
@@ -347,38 +340,6 @@ class Graphics(Builtin):
             return Graphics3DBox(
                 convert(content), evaluation=evaluation, *options_to_rules(options)
             )
-
-
-class _Size(_GraphicsDirective):
-    def init(self, graphics, item=None, value=None):
-        super(_Size, self).init(graphics, item)
-        if item is not None:
-            self.value = item.elements[0].round_to_float()
-        elif value is not None:
-            self.value = value
-        else:
-            raise BoxExpressionError
-        if self.value < 0:
-            raise BoxExpressionError
-
-
-class _Thickness(_Size):
-    pass
-
-
-class AbsoluteThickness(_Thickness):
-    """
-    <dl>
-      <dt>'AbsoluteThickness[$p$]'
-      <dd>sets the line thickness for subsequent graphics primitives to $p$ points.
-    </dl>
-
-    >> Graphics[Table[{AbsoluteThickness[t], Line[{{20 t, 10}, {20 t, 80}}], Text[ToString[t]<>"pt", {20 t, 0}]}, {t, 0, 10}]]
-     = -Graphics-
-    """
-
-    def get_thickness(self):
-        return self.graphics.translate_absolute((self.value, 0))[0]
 
 
 class _Polyline(_GraphicsElementBox):
@@ -420,8 +381,49 @@ class _Polyline(_GraphicsElementBox):
         return result
 
 
+class _Size(_GraphicsDirective):
+    def init(self, graphics, item=None, value=None):
+        super(_Size, self).init(graphics, item)
+        if item is not None:
+            self.value = item.elements[0].round_to_float()
+        elif value is not None:
+            self.value = value
+        else:
+            raise BoxExpressionError
+        if self.value < 0:
+            raise BoxExpressionError
+
+
+class _Thickness(_Size):
+    pass
+
+
+class AbsoluteThickness(_Thickness):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/AbsoluteThickness.html</url>
+
+    <dl>
+      <dt>'AbsoluteThickness[$p$]'
+      <dd>sets the line thickness for subsequent graphics primitives to $p$ \
+          points.
+    </dl>
+
+    >> Graphics[Table[{AbsoluteThickness[t], Line[{{20 t, 10}, {20 t, 80}}], Text[ToString[t]<>"pt", {20 t, 0}]}, {t, 0, 10}]]
+     = -Graphics-
+    """
+
+    summary_text = "graphics directive be specifying absolute line thickness"
+
+    def get_thickness(self):
+        return self.graphics.translate_absolute((self.value, 0))[0]
+
+
 class Point(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Point.html</url>
+
     <dl>
       <dt>'Point[{$point_1$, $point_2$ ...}]'
       <dd>represents the point primitive.
@@ -451,6 +453,8 @@ class Point(Builtin):
 
 class PointSize(_Size):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PointSize.html</url>
+
     <dl>
       <dt>'PointSize[$t$]'
       <dd>sets the diameter of points to $t$, which is relative to the overall width.
@@ -478,6 +482,9 @@ class PointSize(_Size):
 # is kind of  wrong.
 class Line(Builtin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Line.html</url>
+
     <dl>
       <dt>'Line[{$point_1$, $point_2$ ...}]'
       <dd>represents the line primitive.
@@ -530,6 +537,11 @@ def _svg_bezier(*segments):
 
 class FilledCurve(Builtin):
     """
+
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/FilledCurve.html</url>
+
     <dl>
       <dt>'FilledCurve[{$segment1$, $segment2$ ...}]'
       <dd>represents a filled curve.
@@ -547,6 +559,8 @@ class FilledCurve(Builtin):
 
 class Polygon(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Polygon.html</url>
+
     <dl>
       <dt>'Polygon[{$point_1$, $point_2$ ...}]'
       <dd>represents the filled polygon primitive.
@@ -574,6 +588,11 @@ class Polygon(Builtin):
 
 class RegularPolygon(Builtin):
     """
+
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RegularPolygon.html</url>
+
     <dl>
       <dt>'RegularPolygon[$n$]'
       <dd>gives the regular polygon with $n$ edges.
@@ -597,6 +616,10 @@ class RegularPolygon(Builtin):
 
 class Arrow(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Arrow.html</url>
+
     <dl>
       <dt>'Arrow[{$p1$, $p2$}]'
       <dd>represents a line from $p1$ to $p2$ that ends with an arrow at $p2$.
@@ -633,6 +656,11 @@ class Arrow(Builtin):
 
 class Arrowheads(_GraphicsDirective):
     """
+
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Arrowheads.html</url>
+
     <dl>
       <dt>'Arrowheads[$s$]'
       <dd>specifies that Arrow[] draws one arrow of size $s$ (relative to width of image, defaults to 0.04).
@@ -1160,6 +1188,8 @@ class GraphicsElements(_GraphicsElements):
 
 class Circle(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Circle.html</url>
+
     <dl>
       <dt>'Circle[{$cx$, $cy$}, $r$]'
       <dd>draws a circle with center '($cx$, $cy$)' and radius $r$.
@@ -1190,6 +1220,8 @@ class Circle(Builtin):
 
 class Disk(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Disk.html</url>
+
     <dl>
       <dt>'Disk[{$cx$, $cy$}, $r$]'
       <dd>fills a circle with center '($cx$, $cy$)' and radius $r$.
@@ -1226,6 +1258,8 @@ class Disk(Builtin):
 
 class Directive(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Directive.html</url>
+
     <dl>
       <dt> 'Directive'[$g_1$, $g_2$, ...]
       <dd> represents a single graphics directive composed of the directives $g_1$, $g_2$, ...
@@ -1238,6 +1272,8 @@ class Directive(Builtin):
 
 class EdgeForm(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EdgeForm.html</url>
+
     <dl>
       <dt> 'EdgeForm[$g$]'
       <dd> is a graphics directive that specifies that edges of filled graphics objects are to be drawn using the graphics directive or list of directives $g$.
@@ -1254,6 +1290,8 @@ class EdgeForm(Builtin):
 
 class FaceForm(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FaceForm.html</url>
+
     <dl>
       <dt> 'FaceForm[$g$]'
       <dd> is a graphics directive that specifies that faces of filled graphics objects are to be drawn using the graphics directive or list of directives $ g$.
@@ -1265,6 +1303,8 @@ class FaceForm(Builtin):
 
 class FontColor(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FontColor.html</url>
+
     <dl>
       <dt>'FontColor'
       <dd>is an option for Style to set the font color.
@@ -1276,6 +1316,8 @@ class FontColor(Builtin):
 
 class Inset(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Inset.html</url>
+
     <dl>
       <dt>'Text[$obj$]'
       <dd>represents an object $obj$ inset in a graphic.
@@ -1294,6 +1336,8 @@ class Inset(Builtin):
 
 class Large(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Large.html</url>
+
     <dl>
       <dt>'ImageSize' -> 'Large'
       <dd>produces a large image.
@@ -1305,6 +1349,8 @@ class Large(Builtin):
 
 class Medium(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Medium.html</url>
+
     <dl>
       <dt>'ImageSize' -> 'Medium'
       <dd>produces a medium-sized image.
@@ -1316,6 +1362,8 @@ class Medium(Builtin):
 
 class Offset(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Offset.html</url>
+
     <dl>
       <dt>'Offset[{$dx$, $dy$}, $position$]'
       <dd>gives the position of a graphical object obtained by starting at the specified $position$ and then moving by absolute offset {$dx$,$dy$}.
@@ -1327,6 +1375,8 @@ class Offset(Builtin):
 
 class Rectangle(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Rectangle.html</url>
+
     <dl>
       <dt>'Rectangle[{$xmin$, $ymin$}]'
       <dd>represents a unit square with bottom-left corner at {$xmin$, $ymin$}.
@@ -1348,6 +1398,8 @@ class Rectangle(Builtin):
 
 class Small(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Small.html</url>
+
     <dl>
       <dt>'ImageSize' -> 'Small'
       <dd>produces a small image.
@@ -1359,6 +1411,8 @@ class Small(Builtin):
 
 class Text(Inset):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Text.html</url>
+
     <dl>
       <dt>'Text["$text$", {$x$, $y$}]'
       <dd>draws $text$ centered on position '{$x$, $y$}'.
@@ -1376,6 +1430,8 @@ class Text(Inset):
 
 class Thick(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Thick.html</url>
+
     <dl>
       <dt>'Thick'
       <dd>sets the line width for subsequent graphics primitives to 2pt.
@@ -1388,6 +1444,8 @@ class Thick(Builtin):
 
 class Thin(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Thin.html</url>
+
     <dl>
       <dt>'Thin'
       <dd>sets the line width for subsequent graphics primitives to 0.5pt.
@@ -1400,6 +1458,8 @@ class Thin(Builtin):
 
 class Thickness(_Thickness):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Thickness.html</url>
+
     <dl>
       <dt>'Thickness[$t$]'
       <dd>sets the line thickness for subsequent graphics primitives to $t$ times the size of the plot area.
@@ -1417,6 +1477,8 @@ class Thickness(_Thickness):
 
 class Tiny(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Tiny.html</url>
+
     <dl>
       <dt>'ImageSize' -> 'Tiny'
       <dd>produces a tiny image.
