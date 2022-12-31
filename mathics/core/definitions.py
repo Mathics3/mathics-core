@@ -10,11 +10,13 @@ from typing import List, Optional
 
 from mathics_scanner.tokeniser import full_names_pattern
 
-from mathics.core.atoms import String
+from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.expression import Expression
+from mathics.core.pattern import Pattern
+from mathics.core.rules import Rule
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolGet
 
@@ -642,9 +644,6 @@ class Definitions:
         return None
 
     def set_ownvalue(self, name, value) -> None:
-        from .expression import Symbol
-        from .rules import Rule
-
         name = self.lookup_name(name)
         self.add_rule(name, Rule(Symbol(name), value))
         self.clear_cache(name)
@@ -680,8 +679,6 @@ class Definitions:
             return default
 
     def set_config_value(self, name, new_value) -> None:
-        from mathics.core.expression import Integer
-
         self.set_ownvalue(name, Integer(new_value))
 
     def set_line_no(self, line_no) -> None:
@@ -701,6 +698,25 @@ class Definitions:
 
 
 def get_tag_position(pattern, name) -> Optional[str]:
+    # Strip first the pattern from HoldPattern, Pattern
+    # and Condition wrappings
+    while True:
+        # TODO: Not Atom/Expression,
+        # pattern -> pattern.to_expression()
+        if isinstance(pattern, Pattern):
+            pattern = pattern.expr
+            continue
+        if pattern.has_form("System`HoldPattern", 1):
+            pattern = pattern.elements[0]
+            continue
+        if pattern.has_form("System`Pattern", 2):
+            pattern = pattern.elements[1]
+            continue
+        if pattern.has_form("System`Condition", 2):
+            pattern = pattern.elements[0]
+            continue
+        break
+
     if pattern.get_name() == name:
         return "own"
     elif isinstance(pattern, Atom):
@@ -709,10 +725,8 @@ def get_tag_position(pattern, name) -> Optional[str]:
         head_name = pattern.get_head_name()
         if head_name == name:
             return "down"
-        elif head_name == "System`N" and len(pattern.elements) == 2:
+        elif pattern.has_form("System`N", 2):
             return "n"
-        elif head_name == "System`Condition" and len(pattern.elements) > 0:
-            return get_tag_position(pattern.elements[0], name)
         elif pattern.get_lookup_name() == name:
             return "sub"
         else:
@@ -722,11 +736,18 @@ def get_tag_position(pattern, name) -> Optional[str]:
         return None
 
 
-def insert_rule(values, rule) -> None:
+def insert_rule(values: list, rule: Rule) -> None:
+    rhs_conds = getattr(rule, "rhs_conditions", [])
     for index, existing in enumerate(values):
         if existing.pattern.sameQ(rule.pattern):
-            del values[index]
-            break
+            # Check for coincidences in the replace conditions,
+            # it they are there.
+            # This ensures that the rules are equivalent even taking
+            # into accound the RHS conditions.
+            existing_rhs_conds = getattr(existing, "rhs_conditions", [])
+            if existing_rhs_conds == rhs_conds:
+                del values[index]
+                break
     # use insort_left to guarantee that if equal rules exist, newer rules will
     # get higher precedence by being inserted before them. see DownValues[].
     bisect.insort_left(values, rule)
