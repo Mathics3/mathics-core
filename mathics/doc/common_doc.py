@@ -138,7 +138,7 @@ SPECIAL_COMMANDS = {
 test_result_map = {}
 
 
-def get_module_doc(module):
+def get_module_doc(module: ModuleType):
     doc = module.__doc__
     if doc is not None:
         doc = doc.strip()
@@ -1138,7 +1138,7 @@ class PyMathicsDocumentation(Documentation):
                     part.is_appendix = True
                     appendix.append(part)
 
-        # Builds the automatic documentation
+        # Builds the automatic Pymathics documentation
         builtin_part = DocPart(self, "Pymathics Modules", is_reference=True)
         title, text = get_module_doc(self.pymathicsmodule)
         chapter = DocChapter(builtin_part, title, XMLDoc(text, title))

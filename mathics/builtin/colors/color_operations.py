@@ -12,7 +12,7 @@ from math import floor
 from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_directives import ColorError, RGBColor, _ColorObject
 from mathics.builtin.colors.color_internals import convert_color
-from mathics.builtin.drawing.image import Image, _ImageBuiltin
+from mathics.builtin.image.base import Image
 from mathics.core.atoms import Integer, MachineReal, Rational, Real
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.expression import Expression
@@ -22,13 +22,8 @@ from mathics.core.systemsymbols import SymbolRGBColor
 
 _image_requires = ("numpy", "PIL")
 
-try:
-    import numpy
-    import PIL.ImageOps
-
-    _enabled = True
-except ImportError:
-    _enabled = False
+import numpy
+import PIL.ImageOps
 
 
 class Blend(Builtin):
@@ -204,9 +199,11 @@ class ColorConvert(Builtin):
             return color_to_expression(converted_components, py_colorspace)
 
 
-class ColorNegate(_ImageBuiltin):
+class ColorNegate(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ColorNegate.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ColorNegate.html</url>
 
     <dl>
       <dt>'ColorNegate[$image$]'
@@ -239,7 +236,9 @@ class ColorNegate(_ImageBuiltin):
 
 class Darker(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Darker.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Darker.html</url>
 
     <dl>
     <dt>'Darker[$c$, $f$]'
@@ -262,9 +261,11 @@ class Darker(Builtin):
     summary_text = "make a color darker"
 
 
-class DominantColors(_ImageBuiltin):
+class DominantColors(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/DominantColors.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/DominantColors.html</url>
 
     <dl>
       <dt>'DominantColors[$image$]'

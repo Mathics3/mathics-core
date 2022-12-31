@@ -9,6 +9,7 @@ from typing import List, Optional
 
 import numpy
 import PIL
+import PIL.Image
 
 from mathics.builtin.base import String
 from mathics.core.atoms import Rational
@@ -234,7 +235,7 @@ def resize_width_height(
     """
     workhorse part of ImageResize[] after mathic options have been processed.
     """
-    from mathics.builtin.drawing.image import Image
+    from mathics.builtin.image.base import Image
 
     if resampling_name not in resampling_names2PIL.keys():
         return evaluation.message("ImageResize", "imgrsm", resampling_name)
