@@ -443,6 +443,12 @@ def escape_latex(text):
             if text is None:
                 return "\\url{%s}" % content
             else:
+                if content.find("/doc/") == 0:
+                    slug = "/".join(content.split("/")[2:]).rstrip("/")
+                    return "section~\\ref{%s}" % slug
+                else:
+                    return "\\href{%s}{%s}" % (content, text)
+                print(content)
                 return "\\href{%s}{%s}" % (content, text)
 
     text = QUOTATIONS_RE.sub(repl_quotation, text)
@@ -1309,21 +1315,17 @@ class DocSection:
             else ""
         )
         content = self.doc.latex(doc_data)
+        sections = "\n\n".join(section.latex(doc_data) for section in self.subsections)
+        slug = f"{self.chapter.part.slug}/{self.chapter.slug}/{self.slug}"
         section_string = (
-            "\n\n\\%(sub)ssection*{%(title)s}%(index)s\n"
-            "\\%(sub)ssectionstart\n\n%(content)s"
-            "\\addcontentsline{toc}{%(sub)ssection}{%(title)s}"
-            "%(sections)s"
-            "\\%(sub)ssectionend"
-        ) % {
-            "sub": "",  # sub,
-            "title": title,
-            "index": index,
-            "sections": "\n\n".join(
-                section.latex(doc_data) for section in self.subsections
-            ),
-            "content": content,
-        }
+            "\n\n\\section*{%s}{%s}\n" % (title, index)
+            + "\n\label{%s}" % slug
+            + "\n\\sectionstart\n\n"
+            + f"{content}"
+            + ("\\addcontentsline{toc}{section}{%s}" % title)
+            + sections
+            + "\\sectionend"
+        )
         return section_string
 
 
@@ -1479,14 +1481,16 @@ class DocSubsection:
             else ""
         )
         content = self.doc.latex(doc_data)
+        slug = f"{self.chapter.part.slug}/{self.chapter.slug}/{self.section.slug}/{self.slug}"
+
         section_string = (
-            "\n\n\\%(sub)ssection*{%(title)s}%(index)s\n"
-            "\\%(sub)ssectionstart\n\n%(content)s"
-            "\\addcontentsline{toc}{%(sub)ssection}{%(title)s}"
+            "\n\n\\subsection*{%(title)s}%(index)s\n"
+            + "\n\label{%s}" % slug
+            + "\n\\subsectionstart\n\n%(content)s"
+            "\\addcontentsline{toc}{subsection}{%(title)s}"
             "%(sections)s"
-            "\\%(sub)ssectionend"
+            "\\subsectionend"
         ) % {
-            "sub": "sub",
             "title": title,
             "index": index,
             "content": content,
