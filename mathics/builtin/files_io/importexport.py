@@ -996,8 +996,10 @@ class ConverterDumpsExtensionMappings(Predefined):
       <dd>Returns a list of associations between file extensions and file types.
     </dl>
 
-    >> System`ConvertersDump`$ExtensionMappings
-     = ...
+    The format associated to the extension "*.jpg"
+    >> "*.jpg"/. System`ConvertersDump`$ExtensionMappings
+     = JPEG
+
     """
 
     attributes = A_NO_ATTRIBUTES
@@ -1018,8 +1020,10 @@ class ConverterDumpsFormatMappings(Predefined):
       <dd>Returns a list of associations between file extensions and file types.
     </dl>
 
-    >> System`ConvertersDump`$FormatMappings
+    The list of MIME types associated to the extension JPEG:
+    >> Select[System`ConvertersDump`$FormatMappings,(#1[[2]]=="JPEG")&][[All, 1]]
      = ...
+
     """
 
     attributes = A_NO_ATTRIBUTES
