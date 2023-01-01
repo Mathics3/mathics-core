@@ -79,7 +79,7 @@ class Head(Builtin):
 
     summary_text = "find the head of any expression, including an atom"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "Head[expr_]"
 
         return expr.get_head()

@@ -1,4 +1,4 @@
-.PHONY: all clean doc doc-data latex texdoc
+.PHONY: all clean doc doc-data latex pdf texdoc
 
 PYTHON ?= python
 XETEX ?= xelatex
@@ -37,7 +37,7 @@ documentation.tex: $(DOC_TEX_DATA_PCL)
 	$(PYTHON) ./doc2latex.py
 
 #: Same as mathics.pdf
-latex: mathics.pdf
+pdf latex: mathics.pdf
 
 #: Remove all auto-generated files
 clean:
