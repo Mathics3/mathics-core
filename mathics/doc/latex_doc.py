@@ -325,7 +325,7 @@ def get_latex_escape_char(text):
 
 
 def latex_label_safe(s: str) -> str:
-    s = s.replace("\\$", "slash-dollar-")
+    s = s.replace("\\$", "dollar-")
     s = s.replace("$", "dollar-")
     return s
 
