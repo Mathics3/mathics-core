@@ -325,8 +325,8 @@ def get_latex_escape_char(text):
 
 
 def latex_label_safe(s: str) -> str:
-    s = s.replace("\\$", "")
-    s = s.replace("$", "")
+    s = s.replace("\\$", "dollar-")
+    s = s.replace("$", "dollar-")
     return s
 
 
@@ -533,6 +533,17 @@ class LaTeXDocTest(DocTest):
         return self.test
 
     def latex(self, doc_data: dict) -> str:
+        """
+        Produces the LaTeX-formatted fragment that corresponds the
+        test sequence and results for a single Builtin that has been run.
+
+        The key for doc_data is the part/chapter/section{/subsection} test number
+        and the value contains Result object data turned into a dictionary.
+
+        In partuclar, each test in the test sequence includes the, input test,
+        the result produced and any additional error output.
+        The LaTeX-formatted string fragment is returned.
+        """
         if self.key is None:
             return ""
         output_for_key = doc_data.get(self.key, None)
