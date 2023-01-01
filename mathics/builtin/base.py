@@ -83,13 +83,13 @@ class Builtin:
     Function application pattern matching
     -------------------------------------
 
-    Method names of a builtin-class that start with the word ``apply`` are evaluation methods that
+    Method names of a builtin-class that start with the word ``eval`` are evaluation methods that
     will get called when the docstring of that method matches the expression to be evaluated.
 
     For example:
 
     ```
-        def apply(x, evaluation):
+        def eval(x, evaluation):
              "F[x_Real]"
              return Expression(Symbol("G"), x*2)
     ```
@@ -102,16 +102,16 @@ class Builtin:
     ``x``. The method must also have an evaluation parameter, and may
     have an optional `options` parameter.
 
-    If the ``apply*`` method returns ``None``, the replacement fails, and the expression keeps its original form.
+    If the ``eval*`` method returns ``None``, the replacement fails, and the expression keeps its original form.
 
     For rules including ``OptionsPattern``
     ```
-        def apply_with_options(x, evaluation, options):
+        def eval_with_options(x, evaluation, options):
              '''F[x_Real, OptionsPattern[]]'''
              ...
     ```
     the options are stored as a dictionary in the last parameter. For example, if the rule is applied to ``F[x, Method->Automatic]``
-    the expression is replaced by the output of ``apply_with_options(x, evaluation, {"System`Method": Symbol("Automatic")})
+    the expression is replaced by the output of ``eval_with_options(x, evaluation, {"System`Method": Symbol("Automatic")})
 
     The method ``contribute`` stores the definition of the  ``Builtin`` ` `Symbol`` into a set of ``Definitions``. For example,
 
@@ -417,7 +417,7 @@ class Builtin:
     def _get_unavailable_function(self) -> Optional[Callable]:
         """
         If some of the required libraries for a symbol are not available,
-        returns a default function that override the ``apply_`` methods
+        returns a default function that override the ``eval_`` methods
         of the class. Otherwise, returns ``None``.
         """
 
@@ -487,7 +487,7 @@ class AtomBuiltin(Builtin):
     have the Builtin function/variable/object properties.
     """
 
-    # allows us to define apply functions, rules, messages, etc. for Atoms
+    # allows us to define eval functions, rules, messages, etc. for Atoms
     # which are by default not in the definitions' contribution pipeline.
     # see Image[] for an example of this.
 
@@ -613,7 +613,7 @@ class BinaryOperator(Operator):
 
 
 class Test(Builtin):
-    def apply(self, expr, evaluation) -> Optional[Symbol]:
+    def eval(self, expr, evaluation) -> Optional[Symbol]:
         "%(name)s[expr_]"
         test_expr = self.test(expr)
         return None if test_expr is None else from_bool(bool(test_expr))
@@ -633,7 +633,7 @@ class SympyFunction(SympyObject):
         # Note: we omit a docstring here, so as not to confuse
         # function signature collector ``contribute``.
 
-        # Generic apply method that uses the class sympy_name.
+        # Generic eval method that uses the class sympy_name.
         # to call the corresponding sympy function. Arguments are
         # converted to python and the result is converted from sympy
         #

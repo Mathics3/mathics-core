@@ -201,7 +201,7 @@ class Accuracy(Builtin):
 
     summary_text = "find the accuracy of a number"
 
-    def apply(self, z, evaluation):
+    def eval(self, z, evaluation):
         "Accuracy[z_]"
         if isinstance(z, Real):
             if z.is_zero:
@@ -211,8 +211,8 @@ class Accuracy(Builtin):
             return MachineReal(dps(z.get_precision()) - log10_z)
 
         if isinstance(z, Complex):
-            acc_real = self.apply(z.real, evaluation)
-            acc_imag = self.apply(z.imag, evaluation)
+            acc_real = self.eval(z.real, evaluation)
+            acc_imag = self.eval(z.imag, evaluation)
             if acc_real is SymbolInfinity:
                 return acc_imag
             if acc_imag is SymbolInfinity:
@@ -222,7 +222,7 @@ class Accuracy(Builtin):
         if isinstance(z, Expression):
             result = None
             for element in z.elements:
-                candidate = self.apply(element, evaluation)
+                candidate = self.eval(element, evaluation)
                 if isinstance(candidate, Real):
                     candidate_f = candidate.to_python()
                     if result is None or candidate_f < result:
@@ -296,7 +296,7 @@ class IntegerExponent(Builtin):
 
     summary_text = "number of trailing 0s in a given base"
 
-    def apply_two_arg_integers(self, n: Integer, b: Integer, evaluation):
+    def eval_two_arg_integers(self, n: Integer, b: Integer, evaluation):
         "IntegerExponent[n_Integer, b_Integer]"
 
         py_n, py_b = n.value, b.value
@@ -313,7 +313,7 @@ class IntegerExponent(Builtin):
 
     # FIXME: If WMA supports things other than Integers, the below code might
     # be useful as a starting point.
-    # def apply(self, n: Integer, b: Integer, evaluation):
+    # def eval(self, n: Integer, b: Integer, evaluation):
     #     "IntegerExponent[n_Integer, b_Integer]"
 
     #     py_n, py_b = n.to_python(), b.to_python()
@@ -386,7 +386,7 @@ class IntegerLength(Builtin):
 
     summary_text = "total number of digits in any base"
 
-    def apply(self, n, b, evaluation):
+    def eval(self, n, b, evaluation):
         "IntegerLength[n_, b_]"
 
         n, b = n.get_int_value(), b.get_int_value()
@@ -587,17 +587,17 @@ class RealDigits(Builtin):
 
     summary_text = "digits of a real number"
 
-    def apply_complex(self, n, var, evaluation):
+    def eval_complex(self, n, var, evaluation):
         "%(name)s[n_Complex, var___]"
         return evaluation.message("RealDigits", "realx", n)
 
-    def apply_rational_with_base(self, n, b, evaluation):
+    def eval_rational_with_base(self, n, b, evaluation):
         "%(name)s[n_Rational, b_Integer]"
         # expr = Expression(SymbolRealDigits, n)
         py_n = abs(n.value)
         py_b = b.value
         if check_finite_decimal(n.denominator().get_int_value()) and not py_b % 2:
-            return self.apply_with_base(n, b, evaluation)
+            return self.eval_with_base(n, b, evaluation)
         else:
             exp = int(mpmath.ceil(mpmath.log(py_n, py_b)))
             (head, tails) = convert_repeating_decimal(
@@ -612,12 +612,12 @@ class RealDigits(Builtin):
             list_expr = ListExpression(*elements)
         return ListExpression(list_expr, Integer(exp))
 
-    def apply_rational_without_base(self, n, evaluation):
+    def eval_rational_without_base(self, n, evaluation):
         "%(name)s[n_Rational]"
 
-        return self.apply_rational_with_base(n, Integer(10), evaluation)
+        return self.eval_rational_with_base(n, Integer(10), evaluation)
 
-    def apply(self, n, evaluation):
+    def eval(self, n, evaluation):
         "%(name)s[n_]"
 
         # Handling the testcases that throw the error message and return the
@@ -626,9 +626,9 @@ class RealDigits(Builtin):
             return evaluation.message("RealDigits", "ndig", n)
 
         if n.is_numeric(evaluation):
-            return self.apply_with_base(n, from_python(10), evaluation)
+            return self.eval_with_base(n, from_python(10), evaluation)
 
-    def apply_with_base(self, n, b, evaluation, nr_elements=None, pos=None):
+    def eval_with_base(self, n, b, evaluation, nr_elements=None, pos=None):
         "%(name)s[n_?NumericQ, b_Integer]"
 
         expr = Expression(SymbolRealDigits, n)
@@ -739,7 +739,7 @@ class RealDigits(Builtin):
         list_expr = ListExpression(*elements)
         return ListExpression(list_expr, Integer(exp))
 
-    def apply_with_base_and_length(self, n, b, length, evaluation, pos=None):
+    def eval_with_base_and_length(self, n, b, length, evaluation, pos=None):
         "%(name)s[n_?NumericQ, b_Integer, length_]"
         elements = []
         if pos is not None:
@@ -748,18 +748,18 @@ class RealDigits(Builtin):
         if not (isinstance(length, Integer) and length.get_int_value() >= 0):
             return evaluation.message("RealDigits", "intnm", expr)
 
-        return self.apply_with_base(
+        return self.eval_with_base(
             n, b, evaluation, nr_elements=length.get_int_value(), pos=pos
         )
 
-    def apply_with_base_length_and_precision(self, n, b, length, p, evaluation):
+    def eval_with_base_length_and_precision(self, n, b, length, p, evaluation):
         "%(name)s[n_?NumericQ, b_Integer, length_, p_]"
         if not isinstance(p, Integer):
             return evaluation.message(
                 "RealDigits", "intm", Expression(SymbolRealDigits, n, b, length, p)
             )
 
-        return self.apply_with_base_and_length(
+        return self.eval_with_base_and_length(
             n, b, length, evaluation, pos=p.get_int_value()
         )
 
@@ -1004,7 +1004,7 @@ class NumericQ(Builtin):
     }
     summary_text = "test whether an expression is a number"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "NumericQ[expr_]"
         return from_bool(expr.is_numeric(evaluation))
 
@@ -1060,7 +1060,7 @@ class Precision(Builtin):
 
     summary_text = "find the precision of a number"
 
-    def apply(self, z, evaluation):
+    def eval(self, z, evaluation):
         "Precision[z_]"
         if isinstance(z, Real):
             if z.is_zero:
@@ -1068,8 +1068,8 @@ class Precision(Builtin):
             return MachineReal(dps(z.get_precision()))
 
         if isinstance(z, Complex):
-            prec_real = self.apply(z.real, evaluation)
-            prec_imag = self.apply(z.imag, evaluation)
+            prec_real = self.eval(z.real, evaluation)
+            prec_imag = self.eval(z.imag, evaluation)
             if prec_real is SymbolInfinity:
                 return prec_imag
             if prec_imag is SymbolInfinity:
@@ -1080,7 +1080,7 @@ class Precision(Builtin):
         if isinstance(z, Expression):
             result = None
             for element in z.elements:
-                candidate = self.apply(element, evaluation)
+                candidate = self.eval(element, evaluation)
                 if isinstance(candidate, Real):
                     candidate_f = candidate.to_python()
                     if result is None or candidate_f < result:

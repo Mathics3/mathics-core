@@ -1250,7 +1250,7 @@ class URLFetch(Builtin):
     # = ...
     """
 
-    summary_text = "fetch data form an URL"
+    summary_text = "fetch data from a URL"
     messages = {
         "httperr": "`1` could not be retrieved; `2`.",
     }
