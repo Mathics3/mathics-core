@@ -99,7 +99,8 @@ SPECIAL_COMMANDS = {
         r"<em>Mathematica</em>&reg;",
         r"\emph{Mathematica}\textregistered{}",
     ),
-    "Mathics": (r"<em>Mathics</em>", r"\emph{Mathics}"),
+    "Mathics": (r"<em>Mathics3</em>", r"\emph{Mathics3}"),
+    "Mathics3": (r"<em>Mathics3</em>", r"\emph{Mathics3}"),
     "Sage": (r"<em>Sage</em>", r"\emph{Sage}"),
     "Wolfram": (r"<em>Wolfram</em>", r"\emph{Wolfram}"),
     "skip": (r"<br /><br />", r"\bigskip"),
@@ -624,7 +625,7 @@ class DocTest:
             any blanks that appear before will be preserved.
 
             Some tests require some lines to be blank or entry because
-            Mathics output can be that way
+            Mathics3 output can be that way
             """
             if line.endswith(END_LINE_SENTINAL):
                 line = line[: -len(END_LINE_SENTINAL)]
