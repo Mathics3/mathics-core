@@ -52,20 +52,20 @@ Some of the features of \Mathics are:
 </section>
 
 <section title="History">
-The version alpha version of \Mathics was done in 2011 by Jan Pöschko. He worked on it for a couple of years to about v0.5 which had 386 built-in symbols.
+The first alpha versions of \Mathics were done in 2011 by Jan Pöschko. He worked on it for a couple of years to about v0.5 which had 386 built-in symbols. Currently there are over a 1,000.
 
-After that Angus Griffith took over primary leadership and rewrote the parser to pretty much the stage it is in now. He and later Ben Jones worked on it from 2013 to about 2017 to the v1.0 release. Towards the end of this period Bernhard Liebl worked on this mostly focused on graphics.
+After that, Angus Griffith took over primary leadership and rewrote the parser to pretty much the stage it is in now. He and later Ben Jones worked on it from 2013 to about 2017 to the v1.0 release. Towards the end of this period, Bernhard Liebl worked on this mostly focused on graphics.
 
 A <url>:docker image of the v.9 release: https://hub.docker.com/r/arkadi/mathics</url> can be found on dockerhub.
 
 The project was largely abandoned in its Python 2.7 state around 2017. Subsequently it was picked up by the current developers. A list of authors and contributors can be found in the
-<url>:<con>AUTHORS.txt</con>: https://github.com/Mathics-3/mathics/blob/master/AUTHORS.txt</url> file.
+<url>:<con>AUTHORS.txt</con>: https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url> file.
 </section>
 
 <section title="What is missing?">
 There are lots of ways in which \Mathics could still be improved. <url>:<con>FUTURE.rst</con>: https://github.com/Mathics-3/mathics/blob/master/FUTURE.txt</url> has the current roadmap.
 
-While we always could use Python programming help, there are numerous other ways where we could use assistance.
+While we always could use help, such as in Python programming, improving Documentation. But there are other ways to help. For example:
 
 <ul>
 <li>Ensure this document is complete and accurate. We could use help to ensure all of the Builtin functions described properly and fully, and that they have link to corresponding Wiki, Sympy, WMA and/or mpath links.
@@ -77,6 +77,8 @@ Make sure the builtin summaries and examples clear and useful.</li>
 <li>Consider donating via <url>:Github Sponsors: https://github.com/sponsors</url> or some other mechanism.</li>
 </ul>
 </section>
+
+See <url>:The Mathics3 Developer Guide:https://mathics-development-guide.readthedocs.io/en/latest/</url> for how to get started using and developing \Mathics.
 
 </chapter>
 
@@ -1249,7 +1251,7 @@ It is not very sophisticated from a mathematical point of view, but it\'s beauti
 
 In the future, we plan on providing an interface to Jupyter as a separate package.
 
-However currently as part \Mathics, we distribute a browser-based interface using long-term-release (LTS) Django 3.2.
+However currently as part \Mathics, we distribute a browser-based interface using long-term-release (LTS) Django 4.
 
 Since a Jupyter-based interface seems preferable to the home-grown interface described here, it is doubtful whether there will be future improvements to the this interface.
 
@@ -1259,6 +1261,9 @@ It looks like this:
 
 <imgpng src="menubar.png" title="Mathics Menu Bar" label="menubar">
 
+These save and load worksheets, share sessions, run a gallery of examples, go to the GitHub organization page, and provide information about the particular Mathics3 installation.
+
+These are explained in the sections below.
 
 <section title="URIs">
 
@@ -1275,6 +1280,7 @@ Assuming your are running locally or on a host called 'localhost' using the defa
     <li>directory path information for the current setup
     <li>machine information
     <li>system information
+    <li>customizable system settings
   </ul>
   <dt><url>http://localhost:8000/doc</url>
   <dd>An on-line formatted version of the documentation, which include this text. You can see this as a right side frame of the main page, when clicking "?" on the right-hand upper corner.
@@ -1298,7 +1304,17 @@ Saved worksheets can be loaded or deleted using the <em>File Open</em> button wh
 
 Depending on browser, desktop, and OS-settings, the "Ctrl+O" key combination may do the same thing.
 
-A popup menu should appear with the list of saved worksheets with an option to either load or delete the worksheet.
+A pop-up menu should appear with the list of saved worksheets with an option to either load or delete the worksheet.
+
+</section>
+
+<section title="Gallery Examples">
+
+We have a number of examples showing off briefly some of the capabilities of the system. These are run when you hit hit the button that looks like this:
+
+<imgpng src="gallery.png" title="Run Gallery Demo examples Button" label="gallery-button">
+
+It is also shown in the pop-up text that appears when Mathics3 is first run.
 
 </section>
 
@@ -1332,7 +1348,7 @@ There are some keyboard commands you can use in the Django-based Web interface o
 <dt>'Shift+Return'</dt>
 	<dd>This evaluates the current cell (the most important one, for sure). On the right-hand side you may also see an "=" button which can be clicked to do the same thing.</dd>
 <dt>'Ctrl+D'</dt>
-	<dd>This moves the cursor over to the documentation pane on the right-hand side. From here you can preform a search for a pre-defined \Mathics function, or symbol. Clicking on the "?" symbol on the right-hand side does the same thing.</dd>
+	<dd>This moves the cursor over to the documentation pane on the right-hand side. From here you can perform a search for a pre-defined \Mathics function, or symbol. Clicking on the "?" symbol on the right-hand side does the same thing.</dd>
 <dt>'Ctrl+C'</dt>
 	<dd>This moves the cursor back to document code pane area where you type \Mathics expressions</dd>
 <dt>'Ctrl+S'</dt>
