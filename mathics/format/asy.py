@@ -411,7 +411,11 @@ def inset_box(self, **options) -> str:
     x, y = self.pos.pos()
     opacity_value = self.opacity.opacity if self.opacity else None
     content = self.content.boxes_to_tex(evaluation=self.graphics.evaluation)
-    pen = asy_create_pens(edge_color=self.color, edge_opacity=opacity_value)
+    # FIXME: don't hard code text_style_opts, but allow these to be adjustable.
+    font_size = 3
+    pen = asy_create_pens(
+        edge_color=self.color, edge_opacity=opacity_value, fontsize=font_size
+    )
     asy = """// InsetBox
 label("$%s$", (%s,%s), (%s,%s), %s);\n""" % (
         content,
