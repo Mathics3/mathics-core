@@ -18,7 +18,7 @@ from mathics.builtin.graphics import (
     _GraphicsElements,
 )
 from mathics.core.atoms import Integer, Rational, Real
-from mathics.core.expression import Expression
+from mathics.core.expression import Evaluation, Expression
 from mathics.core.symbols import SymbolN
 from mathics.eval.nevaluator import eval_N
 
@@ -242,7 +242,7 @@ class Cone(Builtin):
         "Cone[positions_List]": "Cone[positions, 1]",
     }
 
-    def apply_check(self, positions, radius, evaluation):
+    def eval_check(self, positions, radius, evaluation: Evaluation):
         "Cone[positions_List, radius_]"
 
         if len(positions.elements) % 2 == 1:
@@ -300,7 +300,7 @@ class Cuboid(Builtin):
 
     summary_text = "unit cube"
 
-    def apply_check(self, positions, evaluation):
+    def eval_check(self, positions, evaluation: Evaluation):
         "Cuboid[positions_List]"
 
         if len(positions.elements) % 2 == 1:
@@ -343,7 +343,7 @@ class Cylinder(Builtin):
         "Cylinder[positions_List]": "Cylinder[positions, 1]",
     }
 
-    def apply_check(self, positions, radius, evaluation):
+    def eval_check(self, positions, radius, evaluation: Evaluation):
         "Cylinder[positions_List, radius_]"
 
         if len(positions.elements) % 2 == 1:
