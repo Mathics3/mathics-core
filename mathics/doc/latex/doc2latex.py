@@ -17,12 +17,13 @@ from sympy import __version__ as SymPyVersion
 
 import mathics
 from mathics import __version__, settings, version_string
-from mathics.doc.latex_doc import LaTeXMathicsMainDocumentation
+from mathics.doc.latex_doc import LaTeXMathicsMainDocumentation, open_ensure_dir
 
 # Global variables
 logfile = None
 
 DOC_LATEX_FILE = os.environ.get("DOC_LATEX_FILE", settings.DOC_LATEX_FILE)
+DOC_LATEX_DIR = osp.dirname(DOC_LATEX_FILE)
 
 
 def extract_doc_from_source(quiet=False):
@@ -43,16 +44,6 @@ def load_doc_data(data_path, quiet=False):
         print(f"Loading LaTeX internal data from {data_path}")
     with open_ensure_dir(data_path, "rb") as doc_data_fp:
         return pickle.load(doc_data_fp)
-
-
-def open_ensure_dir(f, *args, **kwargs):
-    try:
-        return open(f, *args, **kwargs)
-    except (IOError, OSError):
-        d = osp.dirname(f)
-        if d and not osp.exists(d):
-            os.makedirs(d)
-        return open(f, *args, **kwargs)
 
 
 def print_and_log(*args):
