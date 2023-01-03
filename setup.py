@@ -59,8 +59,8 @@ elif sys.version_info[:2] == (3, 6):
 else:
     INSTALL_REQUIRES += ["numpy<=1.24", "llvmlite", "sympy>=1.8, < 1.12"]
 
-if not is_PyPy:
-    INSTALL_REQUIRES += ["recordclass"]
+# if not is_PyPy:
+#     INSTALL_REQUIRES += ["recordclass"]
 
 
 def get_srcdir():
