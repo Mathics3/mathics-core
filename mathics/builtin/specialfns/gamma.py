@@ -33,7 +33,12 @@ from mathics.eval.numerify import numerify
 
 class Beta(_MPMathMultiFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Beta.html</url>
+    <url>
+    :Euler beta function:
+    https://en.wikipedia.org/wiki/Beta_function</url> (<url>:SymPy:
+    https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.beta_functions.beta</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Beta.html</url>)
 
     <dl>
       <dt>'Beta[$a$, $b$]'
@@ -75,8 +80,8 @@ class Beta(_MPMathMultiFunction):
         else:
             return Expression(Symbol(self.get_name()), *elements)
 
-    # sympy does not handles Beta for integer arguments.
-    def apply_2(self, a, b, evaluation):
+    # SymPy does not handles Beta for integer arguments.
+    def eval(self, a, b, evaluation):
         """Beta[a_, b_]"""
         if not (a.is_numeric() and b.is_numeric()):
             return
@@ -85,7 +90,7 @@ class Beta(_MPMathMultiFunction):
         gamma_a_plus_b = Expression(SymbolGamma, a + b)
         return gamma_a * gamma_b / gamma_a_plus_b
 
-    def apply_3(self, z, a, b, evaluation):
+    def eval_with_z(self, z, a, b, evaluation):
         """Beta[z_, a_, b_]"""
         # Here I needed to do that because the order of the arguments in WL
         # is different from the order in mpmath. Most of the code is the same
@@ -215,7 +220,7 @@ class Factorial2(PostfixOperator, _MPMathFunction):
     summary_text = "semi-factorial"
     options = {"Method": "Automatic"}
 
-    def apply(self, number, evaluation, options={}):
+    def eval(self, number, evaluation, options={}):
         "Factorial2[number_?NumberQ, OptionsPattern[%(name)s]]"
 
         try:
@@ -357,10 +362,11 @@ class Gamma(_MPMathMultiFunction):
 
 class LogGamma(_MPMathMultiFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/LogGamma.html</url>
-
-    In number theory the logarithm of the gamma function often appears. For positive real numbers, this can be evaluated as 'Log[Gamma[$z$]]'.
-
+    <url>:log-gamma function:
+    https://en.wikipedia.org/wiki/Gamma_function#The_log-gamma_function</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.gamma_functions.loggamma</url>, <url>
+    :WMA:https://reference.wolfram.com/language/ref/LogGamma.html</url>)
     <dl>
       <dt>'LogGamma[$z$]'
       <dd>is the logarithm of the gamma function on the complex number $z$.
