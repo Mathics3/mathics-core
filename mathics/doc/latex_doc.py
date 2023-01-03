@@ -3,6 +3,7 @@ This code is the LaTeX-specific part of the homegrown sphinx documentation.
 FIXME: Ditch this and hook into sphinx.
 """
 
+import os
 import os.path as osp
 import re
 from os import getenv, listdir
@@ -47,13 +48,15 @@ from mathics.doc.common_doc import (
     gather_tests,
     get_doc_name_from_module,
     get_module_doc,
-    get_results_by_test,
     post_sub,
     pre_sub,
     skip_module_doc,
     sorted_chapters,
 )
 from mathics.doc.utils import slugify
+
+DOC_LATEX_FILE = os.environ.get("DOC_LATEX_FILE", settings.DOC_LATEX_FILE)
+DOC_LATEX_DIR = osp.dirname(DOC_LATEX_FILE)
 
 # We keep track of the number of \begin{asy}'s we see so that
 # we can assocation asymptote file numbers with where they are
@@ -436,6 +439,16 @@ def post_process_latex(result):
     return OUTSIDE_ASY_RE.sub(repl_nonasy, result)
 
 
+def open_ensure_dir(f, *args, **kwargs):
+    try:
+        return open(f, *args, **kwargs)
+    except (IOError, OSError):
+        d = osp.dirname(f)
+        if d and not osp.exists(d):
+            os.makedirs(d)
+        return open(f, *args, **kwargs)
+
+
 def strip_system_prefix(name):
     if name.startswith("System`"):
         stripped_name = name[len("System`") :]
@@ -546,31 +559,54 @@ class LaTeXDocTest(DocTest):
         """
         if self.key is None:
             return ""
-        output_for_key = doc_data.get(self.key, None)
-        if output_for_key is None:
-            output_for_key = get_results_by_test(self.test, self.key, doc_data)
-        text = f"%% Test {'/'.join((str(x) for x in self.key))}\n"
-        text += "\\begin{testcase}\n"
-        text += "\\test{%s}\n" % escape_latex_code(self.test)
 
-        results = output_for_key.get("results", [])
-        for result in results:
-            for out in result["out"]:
-                kind = "message" if out["message"] else "print"
-                text += "\\begin{test%s}%s\\end{test%s}" % (
+        # Add as a LaTeX comment the test case inforamtion we saw.
+        text = f"%% Test {'/'.join((str(x) for x in self.key))}\n"
+
+        output_for_key = doc_data.get(self.key)
+
+        if output_for_key is None:
+            return text
+
+        result_dict = output_for_key.get("result", None)
+        if result_dict is None:
+            return text
+
+        # Format a LaTeX "testcase" fragment for this test.
+        # Start out with the LaTeX environment and the test name.
+        text += "\\begin{testcase}\n"
+        text += "  \\test{%s}\n" % escape_latex_code(self.test)
+
+        # Next output any messages or non-expression messages
+        for out in result_dict["out"]:
+            kind = "message" if out["message"] else "print"
+            text += (
+                "  \\begin{test%s}%s\\end{test%s}"
+                % (
                     kind,
                     escape_latex_output(out["text"]),
                     kind,
                 )
+                + "\n"
+            )
 
-            test_text = result["result"]
-            if test_text:  # is not None and result['result'].strip():
-                if test_text.find("\\begin{asy}") >= 0:
-                    global asy_count
-                    asy_count += 1
-                    text += f"%% mathics-{asy_count}.asy\n"
+        # Next output expression-result info.
+        test_result_text = result_dict["result"]
+        if test_result_text:  # is not None and result['result'].strip():
 
-                text += "\\begin{testresult}%s\\end{testresult}" % result["result"]
+            # If we have asymptote output, keep track of the
+            # number of we have seen so far. And add that as a comment too
+            # Each asymptote output has a file name  with a number.
+            if test_result_text.find("\\begin{asy}") >= 0:
+                global asy_count
+                asy_count += 1
+                text += f"  %% mathics-{asy_count}.asy\n"
+            elif result_dict["form"] == "PNG":
+                text += "  \\includegraphics{%s}\n" % test_result_text
+            else:
+                # Add in expression evaluation output
+                text += "\\begin{testresult}%s\\end{testresult}" % result_dict["result"]
+
         text += "\\end{testcase}"
         return text
 
@@ -656,7 +692,7 @@ class LaTeXDoc(XMLDoc):
 
 
 class LaTeXMathicsMainDocumentation(MathicsMainDocumentation):
-    def __init__(self, want_sorting=False):
+    def __init__(self):
         self.doc_dir = settings.DOC_DIR
         self.latex_file = settings.DOC_LATEX_FILE
         self.parts = []
@@ -722,15 +758,12 @@ class LaTeXMathicsMainDocumentation(MathicsMainDocumentation):
 
             builtin_part = LaTeXDocPart(self, title, is_reference=start)
             modules_seen = set()
-            if want_sorting:
-                module_collection_fn = lambda x: sorted(
-                    modules,
-                    key=lambda module: module.sort_order
-                    if hasattr(module, "sort_order")
-                    else module.__name__,
-                )
-            else:
-                module_collection_fn = lambda x: x
+            module_collection_fn = lambda x: sorted(
+                modules,
+                key=lambda module: module.sort_order
+                if hasattr(module, "sort_order")
+                else module.__name__,
+            )
 
             for module in module_collection_fn(modules):
                 if skip_module_doc(module, modules_seen):
@@ -833,7 +866,7 @@ class LaTeXMathicsMainDocumentation(MathicsMainDocumentation):
             self.parts.append(part)
 
         # set keys of tests
-        for tests in self.get_tests(want_sorting=want_sorting):
+        for tests in self.get_tests():
             for test in tests.tests:
                 test.key = (tests.part, tests.chapter, tests.section, test.index)
 
@@ -921,8 +954,8 @@ class LaTeXMathicsMainDocumentation(MathicsMainDocumentation):
         `output` is not used here but passed along to the bottom-most
         level in getting expected test results.
         """
-        parts = []
         appendix = False
+        result = "\\graphicspath{ {%s} }\n" % settings.DATA_DIR
         for part in self.parts:
             if filter_parts:
                 if part.title not in filter_parts:
@@ -936,9 +969,12 @@ class LaTeXMathicsMainDocumentation(MathicsMainDocumentation):
             if part.is_appendix and not appendix:
                 appendix = True
                 text = "\n\\appendix\n" + text
-            parts.append(text)
-        result = "\n\n".join(parts)
-        result = post_process_latex(result)
+            short_path = f"{part.slug}.tex"
+            part_path = osp.join(DOC_LATEX_DIR, "part", short_path)
+            text = post_process_latex(text)
+            with open_ensure_dir(part_path, "w") as fp:
+                fp.write(text)
+            result += "\\input{part/%s}\n" % short_path
         return result
 
 
@@ -956,7 +992,7 @@ class LaTeXDocPart(DocPart):
         else:
             chapter_fn = lambda x: x
         result = "\n\n\\part{%s}\n\n" % escape_latex(self.title) + (
-            "\n\n".join(
+            "\n".join(
                 chapter.latex(doc_data, quiet, filter_sections=filter_sections)
                 for chapter in chapter_fn(self.chapters)
                 if not filter_chapters or chapter.title in filter_chapters
@@ -984,6 +1020,7 @@ class LaTeXDocChapter(DocChapter):
                 intro,
                 short,
             )
+
         chapter_sections = [
             ("\n\n\\chapter{%(title)s}\n\\chapterstart\n\n%(intro)s")
             % {"title": escape_latex(self.title), "intro": intro},
@@ -995,7 +1032,14 @@ class LaTeXDocChapter(DocChapter):
             ),
             "\n\\chapterend\n",
         ]
-        return "".join(chapter_sections)
+
+        chapter_text = "".join(chapter_sections)
+        short_path = f"{self.slug}.tex"
+        part_path = osp.join(DOC_LATEX_DIR, "part", self.part.slug, short_path)
+        chapter_text = post_process_latex(chapter_text)
+        with open_ensure_dir(part_path, "w") as fp:
+            fp.write(chapter_text)
+        return "  \\input{part/%s/%s}" % (self.part.slug, short_path)
 
 
 class LaTeXDocSection(DocSection):
@@ -1233,7 +1277,11 @@ class LaTeXDocSubsection:
 
 
 class LaTeXDocTests(DocTests):
-    def latex(self, doc_data: dict):
+    def latex(self, doc_data: dict) -> str:
+        """
+        Returns a a LaTeX-formatted fragment that corresponds to a sequence
+        of tests that were run.
+        """
         if len(self.tests) == 0:
             return "\n"
 
