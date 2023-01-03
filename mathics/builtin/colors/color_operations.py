@@ -15,6 +15,7 @@ from mathics.builtin.colors.color_internals import convert_color
 from mathics.builtin.image.base import Image
 from mathics.core.atoms import Integer, MachineReal, Rational, Real
 from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
@@ -28,7 +29,8 @@ import PIL.ImageOps
 
 class Blend(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Blend.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Blend.html</url>
 
     <dl>
       <dt>'Blend[{$c1$, $c2$}]'
@@ -99,7 +101,7 @@ class Blend(Builtin):
                 result = [r + p for r, p in zip(result, part)]
         return type(components=result)
 
-    def eval(self, colors, u, evaluation):
+    def eval(self, colors, u, evaluation: Evaluation):
         "Blend[{colors___}, u_]"
 
         colors_orig = colors
@@ -171,7 +173,7 @@ class ColorConvert(Builtin):
     }
     summary_text = "convert between color models"
 
-    def eval(self, input, colorspace, evaluation):
+    def eval(self, input, colorspace, evaluation: Evaluation):
         "ColorConvert[input_, colorspace_String]"
 
         if isinstance(input, Image):
@@ -201,26 +203,32 @@ class ColorConvert(Builtin):
 
 class ColorNegate(Builtin):
     """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/ColorNegate.html</url>
+    Color Inversion (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/ColorNegate.html</url>)
 
     <dl>
-      <dt>'ColorNegate[$image$]'
-      <dd>returns the negative of $image$ in which colors have been negated.
-
       <dt>'ColorNegate[$color$]'
-      <dd>returns the negative of a color.
+      <dd>returns the negative of a color, that is, the RGB color \
+          subtracted from white.
 
-      Yellow is RGBColor[1.0, 1.0, 0.0]
-      >> ColorNegate[Yellow]
-       = RGBColor[0., 0., 1.]
+      <dt>'ColorNegate[$image$]'
+      <dd>returns an image where each pixel has its color negated.
     </dl>
+
+    Yellow is 'RGBColor[1.0, 1.0, 0.0]' So when inverted or subtracted \
+    from 'White', we get blue:
+
+    >> ColorNegate[Yellow] == Blue
+     = True
+
+    >> ColorNegate[Import["ExampleData/sunflowers.jpg"]]
+     = -Image-
     """
 
-    summary_text = "the negative color of a given color"
+    summary_text = "perform color inversion on a color or image"
 
-    def eval_for_color(self, color, evaluation):
+    def eval_for_color(self, color, evaluation: Evaluation):
         "ColorNegate[color_RGBColor]"
         # Get components
         r, g, b = [element.to_python() for element in color.elements]
@@ -229,7 +237,7 @@ class ColorNegate(Builtin):
         # Reconstitute
         return Expression(SymbolRGBColor, Real(r), Real(g), Real(b))
 
-    def eval_for_image(self, image, evaluation):
+    def eval_for_image(self, image, evaluation: Evaluation):
         "ColorNegate[image_Image]"
         return image.filter(lambda im: PIL.ImageOps.invert(im))
 
