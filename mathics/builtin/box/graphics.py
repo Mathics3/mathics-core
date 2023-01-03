@@ -711,6 +711,8 @@ class GraphicsBox(BoxExpression):
         else:
             axes = (False, False)
 
+        # The Style option pushes its setting down into graphics components
+        # like ticks, axes, and labels.
         ticks_style_option = graphics_options.get("System`TicksStyle")
         axes_style_option = graphics_options.get("System`AxesStyle")
         label_style = graphics_options.get("System`LabelStyle")
