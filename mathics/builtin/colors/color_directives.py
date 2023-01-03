@@ -1,7 +1,9 @@
 """
 Color Directives
 
-There are many different way to specify color; we support all of the color formats below and will convert between the different color formats.
+There are many different way to specify color, and we support many of these.
+
+We can convert between the different color formats.
 """
 
 from math import atan2, cos, exp, pi, radians, sin, sqrt
@@ -117,6 +119,24 @@ def _component_distance(a, b, i):
 
 def _euclidean_distance(a, b):
     return sqrt(sum((x1 - x2) * (x1 - x2) for x1, x2 in zip(a, b)))
+
+
+def color_to_expression(components, colorspace):
+    if colorspace == "Grayscale":
+        converted_color_name = "GrayLevel"
+    elif colorspace == "HSB":
+        converted_color_name = "Hue"
+    else:
+        converted_color_name = colorspace + "Color"
+
+    return to_expression(converted_color_name, *components)
+
+
+def expression_to_color(color):
+    try:
+        return _ColorObject.create(color)
+    except ColorError:
+        return None
 
 
 class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
@@ -306,7 +326,7 @@ class ColorDistance(Builtin):
         / 100,
     }
 
-    def apply(self, c1, c2, evaluation, options):
+    def eval(self, c1, c2, evaluation, options):
         "ColorDistance[c1_, c2_, OptionsPattern[ColorDistance]]"
 
         distance_function = options.get("System`DistanceFunction")
@@ -431,7 +451,9 @@ class ColorError(BoxExpressionError):
 
 class GrayLevel(_ColorObject):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/GrayLevel.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/GrayLevel.html</url>
 
     <dl>
       <dt>'GrayLevel[$g$]'
@@ -449,7 +471,9 @@ class GrayLevel(_ColorObject):
 
 class Hue(_ColorObject):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Hue.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Hue.html</url>
 
     <dl>
       <dt>'Hue[$h$, $s$, $l$, $a$]'
@@ -509,7 +533,9 @@ class Hue(_ColorObject):
 
 class LABColor(_ColorObject):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/LABColor.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/LABColor.html</url>
 
     <dl>
       <dt>'LABColor[$l$, $a$, $b$]'
@@ -525,7 +551,9 @@ class LABColor(_ColorObject):
 
 class LCHColor(_ColorObject):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/LCHColor.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/LCHColor.html</url>
 
     <dl>
       <dt>'LCHColor[$l$, $c$, $h$]'
@@ -556,7 +584,9 @@ class LUVColor(_ColorObject):
 
 class Opacity(_GraphicsDirective):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Opacity.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Opacity.html</url>
 
     <dl>
       <dt>'Opacity[$level$]'
@@ -592,7 +622,9 @@ class Opacity(_GraphicsDirective):
 
 class RGBColor(_ColorObject):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/RGBColor.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RGBColor.html</url>
 
     <dl>
       <dt>'RGBColor[$r$, $g$, $b$]'
@@ -620,7 +652,9 @@ class RGBColor(_ColorObject):
 
 class XYZColor(_ColorObject):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/XYZColor.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/XYZColor.html</url>
 
     <dl>
       <dt>'XYZColor[$x$, $y$, $z$]'
@@ -631,21 +665,3 @@ class XYZColor(_ColorObject):
     color_space = "XYZ"
     components_sizes = [3, 4]
     default_components = [0, 0, 0, 1]
-
-
-def expression_to_color(color):
-    try:
-        return _ColorObject.create(color)
-    except ColorError:
-        return None
-
-
-def color_to_expression(components, colorspace):
-    if colorspace == "Grayscale":
-        converted_color_name = "GrayLevel"
-    elif colorspace == "HSB":
-        converted_color_name = "Hue"
-    else:
-        converted_color_name = colorspace + "Color"
-
-    return to_expression(converted_color_name, *components)
