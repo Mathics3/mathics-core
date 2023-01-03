@@ -39,7 +39,7 @@ is_PyPy = platform.python_implementation() == "PyPy" or hasattr(
     sys, "pypy_version_info"
 )
 
-INSTALL_REQUIRES = ["Mathics-Scanner >= 1.3.0.dev0", "cython", "pillow"]
+INSTALL_REQUIRES = ["Mathics-Scanner >= 1.3.0.dev0", "pillow"]
 
 # Ensure user has the correct Python version
 # Address specific package dependencies based on Python version
@@ -59,8 +59,8 @@ elif sys.version_info[:2] == (3, 6):
 else:
     INSTALL_REQUIRES += ["numpy<=1.24", "llvmlite", "sympy>=1.8, < 1.12"]
 
-if not is_PyPy:
-    INSTALL_REQUIRES += ["recordclass"]
+# if not is_PyPy:
+#     INSTALL_REQUIRES += ["recordclass"]
 
 
 def get_srcdir():
