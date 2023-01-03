@@ -209,11 +209,11 @@ class ColorNegate(Builtin):
 
     <dl>
       <dt>'ColorNegate[$color$]'
-      <dd>returns the RGB color when it is subtracted from white.
+      <dd>returns the negative of a color, that is, the RGB color \
+          subtracted from white.
 
       <dt>'ColorNegate[$image$]'
-      <dd>returns an image where each pixel in the image is replaced \
-          with the negative of that pixel.
+      <dd>returns an image where each pixel has its color negated.
     </dl>
 
     Yellow is 'RGBColor[1.0, 1.0, 0.0]' So when inverted or subtracted \
