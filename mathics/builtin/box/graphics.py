@@ -1034,7 +1034,9 @@ class InsetBox(_GraphicsElementBox):
 
 
 class LineBox(_Polyline):
-    # Boxing methods for a list of Line.
+    """
+    Boxing methods for a list of Lines.
+    """
 
     def init(self, graphics, style, item=None, lines=None):
         super(LineBox, self).init(graphics, item, style)

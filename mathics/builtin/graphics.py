@@ -343,6 +343,14 @@ class Graphics(Builtin):
 
 
 class _Polyline(_GraphicsElementBox):
+    """
+    A structure containing a list of line segments
+    stored in ``self.lines`` created from
+    a list of points.
+
+    Lines are formed by pairs of consecutive point.
+    """
+
     def do_init(self, graphics, points):
         if not points.has_form("List", None):
             raise BoxExpressionError
@@ -356,6 +364,10 @@ class _Polyline(_GraphicsElementBox):
         ):
             elements = points.elements
             self.multi_parts = True
+        elif len(points.elements) == 0:
+            # Ensure there are no line segments if there are no points.
+            self.lines = []
+            return
         else:
             elements = [ListExpression(*points.elements)]
             self.multi_parts = False
