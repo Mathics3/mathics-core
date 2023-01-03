@@ -5,7 +5,7 @@ import sys
 import time
 from queue import Queue
 from threading import Thread, stack_size as set_thread_stack_size
-from typing import Tuple
+from typing import List, Tuple
 
 from mathics_scanner import TranslateError
 
@@ -142,7 +142,7 @@ def run_with_timeout_and_stack(request, timeout, evaluation):
         raise result[0].with_traceback(result[1], result[2])
 
 
-class Out(KeyComparable):
+class _Out(KeyComparable):
     def __init__(self) -> None:
         self.is_message = False
         self.is_print = False
@@ -150,80 +150,6 @@ class Out(KeyComparable):
 
     def get_sort_key(self) -> Tuple[bool, bool, str]:
         return (self.is_message, self.is_print, self.text)
-
-
-class Message(Out):
-    def __init__(self, symbol, tag, text: str) -> None:
-        super(Message, self).__init__()
-        self.is_message = True
-        self.symbol = symbol
-        self.tag = tag
-        self.text = text
-
-    def __str__(self) -> str:
-        return "{}::{}: {}".format(self.symbol, self.tag, self.text)
-
-    def __eq__(self, other) -> bool:
-        return self.is_message == other.is_message and self.text == other.text
-
-    def get_data(self):
-        return {
-            "message": True,
-            "symbol": self.symbol,
-            "tag": self.tag,
-            "prefix": "%s::%s" % (self.symbol, self.tag),
-            "text": self.text,
-        }
-
-
-class Print(Out):
-    def __init__(self, text) -> None:
-        super(Print, self).__init__()
-        self.is_print = True
-        self.text = text
-
-    def __str__(self) -> str:
-        return self.text
-
-    def __eq__(self, other) -> bool:
-        return self.is_message == other.is_message and self.text == other.text
-
-    def get_data(self):
-        return {
-            "message": False,
-            "text": self.text,
-        }
-
-
-class Result:
-    def __init__(self, out, result, line_no, last_eval=None, form=None) -> None:
-        self.out = out
-        self.result = result
-        self.line_no = line_no
-        self.last_eval = last_eval
-        self.form = form
-
-    def get_data(self):
-        return {
-            "out": [out.get_data() for out in self.out],
-            "result": self.result,
-            "line": self.line_no,
-            "form": self.form,
-        }
-
-
-class Output:
-    def max_stored_size(self, settings) -> int:
-        return settings.MAX_STORED_SIZE
-
-    def out(self, out):
-        pass
-
-    def clear(self, wait):
-        raise NotImplementedError
-
-    def display(self, data, metadata):
-        raise NotImplementedError
 
 
 class Evaluation:
@@ -620,3 +546,92 @@ class Evaluation:
         for listener in listeners:
             if listener(*args, **kwargs):
                 break
+
+
+class Message(_Out):
+    def __init__(self, symbol, tag, text: str) -> None:
+        super(Message, self).__init__()
+        self.is_message = True
+        self.symbol = symbol
+        self.tag = tag
+        self.text = text
+
+    def __str__(self) -> str:
+        return "{}::{}: {}".format(self.symbol, self.tag, self.text)
+
+    def __eq__(self, other) -> bool:
+        return self.is_message == other.is_message and self.text == other.text
+
+    def get_data(self):
+        return {
+            "message": True,
+            "symbol": self.symbol,
+            "tag": self.tag,
+            "prefix": "%s::%s" % (self.symbol, self.tag),
+            "text": self.text,
+        }
+
+
+class Print(_Out):
+    def __init__(self, text) -> None:
+        super(Print, self).__init__()
+        self.is_print = True
+        self.text = text
+
+    def __str__(self) -> str:
+        return self.text
+
+    def __eq__(self, other) -> bool:
+        return self.is_message == other.is_message and self.text == other.text
+
+    def get_data(self):
+        return {
+            "message": False,
+            "text": self.text,
+        }
+
+
+class Output:
+    def max_stored_size(self, settings) -> int:
+        return settings.MAX_STORED_SIZE
+
+    def out(self, out):
+        pass
+
+    def clear(self, wait):
+        raise NotImplementedError
+
+    def display(self, data, metadata):
+        raise NotImplementedError
+
+
+OutputLines = List[str]
+
+
+class Result:
+    """
+    A structure containing the result of an evaluation.
+
+    In particular, there are the following fields:
+
+    result: the actual result produced. However the dataset and form of this is influenced by "form".
+    out: a list of additional output product
+    """
+
+    def __init__(
+        self, out: OutputLines, result, line_no: int, last_eval=None, form=None
+    ) -> None:
+        self.out = out
+        self.result = result
+        self.line_no = line_no
+        self.last_eval = last_eval
+        self.form = form
+
+    # FIXME: consider using a named tuple
+    def get_data(self) -> dict:
+        return {
+            "out": [out.get_data() for out in self.out],
+            "result": self.result,
+            "line": self.line_no,
+            "form": self.form,
+        }
