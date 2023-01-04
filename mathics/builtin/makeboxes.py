@@ -485,7 +485,7 @@ class MakeBoxes(Builtin):
                 return op
             return operator
 
-        precedence = prec.value
+        precedence = prec.value if hasattr(prec, "value") else 0
         grouping = grouping.get_name()
 
         if isinstance(expr, Atom):

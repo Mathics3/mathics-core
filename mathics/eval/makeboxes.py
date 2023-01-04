@@ -7,7 +7,7 @@ formatting rules.
 
 
 import typing
-from typing import Any
+from typing import Any, Dict, Type
 
 from mathics.core.atoms import Complex, Integer, Rational, String, SymbolI
 from mathics.core.convert.expression import to_expression_with_specialization
@@ -41,6 +41,8 @@ from mathics.core.systemsymbols import (
     SymbolStandardForm,
 )
 
+builtins_precedence: Dict[Symbol, int] = {}
+
 element_formatters = {}
 
 
@@ -51,18 +53,36 @@ def _boxed_string(string: str, **options):
     return StyleBox(String(string), **options)
 
 
-def eval_makeboxes(self, expr, evaluation, f=SymbolStandardForm):
+def eval_fullform_makeboxes(
+    self, expr, evaluation: Evaluation, form=SymbolStandardForm
+) -> Expression:
     """
-    This function takes the definitions prodived by the evaluation
+    This function takes the definitions provided by the evaluation
     object, and produces a boxed form for expr.
+
+    Basically: MakeBoxes[expr // FullForm]
     """
     # This is going to be reimplemented.
-    return Expression(SymbolMakeBoxes, expr, f).evaluate(evaluation)
+    expr = Expression(SymbolFullForm, expr)
+    return Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
+
+
+def eval_makeboxes(
+    self, expr, evaluation: Evaluation, form=SymbolStandardForm
+) -> Expression:
+    """
+    This function takes the definitions provided by the evaluation
+    object, and produces a boxed fullform for expr.
+
+    Basically: MakeBoxes[expr // form]
+    """
+    # This is going to be reimplemented.
+    return Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
 
 
 def format_element(
     element: BaseElement, evaluation: Evaluation, form: Symbol, **kwargs
-) -> BaseElement:
+) -> Type[BaseElement]:
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
@@ -82,14 +102,14 @@ def format_element(
 
 def do_format(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> BaseElement:
+) -> Type[BaseElement]:
     do_format_method = element_formatters.get(type(element), do_format_element)
     return do_format_method(element, evaluation, form)
 
 
 def do_format_element(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> BaseElement:
+) -> Type[BaseElement]:
     """
     Applies formats associated to the expression and removes
     superfluous enclosing formats.
@@ -207,7 +227,7 @@ def do_format_element(
 
 def do_format_rational(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> BaseElement:
+) -> Type[BaseElement]:
     if form is SymbolFullForm:
         return do_format_expression(
             Expression(
@@ -232,7 +252,7 @@ def do_format_rational(
 
 def do_format_complex(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> BaseElement:
+) -> Type[BaseElement]:
     if form is SymbolFullForm:
         return do_format_expression(
             Expression(
@@ -260,7 +280,7 @@ def do_format_complex(
 
 def do_format_expression(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> BaseElement:
+) -> Type[BaseElement]:
     # # not sure how much useful is this format_cache
     # if element._format_cache is None:
     #    element._format_cache = {}
