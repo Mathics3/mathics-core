@@ -14,19 +14,31 @@ from mathics.core.attributes import (
     A_READ_PROTECTED,
 )
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolRowBox
+from mathics.core.systemsymbols import SymbolQuantity, SymbolRowBox
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.units-and-quantites"
 
-SymbolQuantity = Symbol("Quantity")
-
 ureg = UnitRegistry()
 Q_ = ureg.Quantity
+
+
+def get_converted_magnitude(magnitude_expr, evaluation: Evaluation) -> float:
+    """
+    The Pythion "pint" library mixes in a Python numeric value as a multiplier inside
+    a Mathics Expression. here we pick out that multiplier and
+    convert it from a Python numeric to a Mathics numeric.
+    """
+    magnitude_elements = list(magnitude_expr.elements)
+    magnitude_elements[1] = from_python(magnitude_elements[1])
+    magnitude_expr._elements = tuple(magnitude_elements)
+    # FIXME: consider returning an int when that is possible
+    return magnitude_expr.evaluate(evaluation).get_float_value()
 
 
 class KnownUnitQ(Test):
@@ -112,7 +124,9 @@ class Quantity(Builtin):
 
         q_unit = unit.value.lower()
         if self.validate(unit, evaluation):
-            return Expression(SymbolRowBox, ListExpression(mag, " ", q_unit))
+            return Expression(
+                SymbolRowBox, ListExpression(mag, String(" "), String(q_unit))
+            )
         else:
             return Expression(
                 SymbolRowBox,
@@ -136,7 +150,7 @@ class Quantity(Builtin):
             else:
                 quantity = Q_(mag, unit.value.lower())
                 return Expression(
-                    "Quantity", quantity.magnitude, String(quantity.units)
+                    SymbolQuantity, quantity.magnitude, String(quantity.units)
                 )
         else:
             return evaluation.message("Quantity", "unkunit", unit)
@@ -217,9 +231,9 @@ class QuantityMagnitude(Builtin):
         "QuantityMagnitude[expr_, unit_]"
 
         def get_magnitude(elements, targetUnit, evaluation: Evaluation):
-            quanity = Q_(elements[0], elements[1].get_string_value())
-            converted_quantity = quanity.to(targetUnit)
-            q_mag = converted_quantity.magnitude.evaluate(evaluation).get_float_value()
+            quantity = Q_(elements[0], elements[1].get_string_value())
+            converted_quantity = quantity.to(targetUnit)
+            q_mag = get_converted_magnitude(converted_quantity.magnitude, evaluation)
 
             # Displaying the magnitude in Integer form if the convert rate is an Integer
             if q_mag - int(q_mag) > 0:
@@ -304,7 +318,7 @@ class QuantityQ(Test):
                 else:
                     return False
 
-        return expr.get_head_name() == "System`Quantity" and validate(expr.elements)
+        return expr.get_head() == SymbolQuantity and validate(expr.elements)
 
 
 class QuantityUnit(Builtin):
@@ -406,13 +420,13 @@ class UnitConvert(Builtin):
             quantity = Q_(mag, unit)
             converted_quantity = quantity.to(target)
 
-            q_mag = converted_quantity.magnitude.evaluate(evaluation).get_float_value()
+            q_mag = get_converted_magnitude(converted_quantity.magnitude, evaluation)
 
             # Displaying the magnitude in Integer form if the convert rate is an Integer
             if q_mag - int(q_mag) > 0:
-                return Expression(SymbolQuantity, Real(q_mag), target)
+                return Expression(SymbolQuantity, Real(q_mag), String(target))
             else:
-                return Expression(SymbolQuantity, Integer(q_mag), target)
+                return Expression(SymbolQuantity, Integer(q_mag), String(target))
 
         if len(evaluation.out) > 0:
             return
@@ -447,8 +461,10 @@ class UnitConvert(Builtin):
             quantity = Q_(mag, unit)
             converted_quantity = quantity.to_base_units()
 
+            mag = get_converted_magnitude(converted_quantity.magnitude, evaluation)
+
             return Expression(
-                "Quantity",
+                SymbolQuantity,
                 converted_quantity.magnitude,
                 String(converted_quantity.units),
             )

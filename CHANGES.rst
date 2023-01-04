@@ -74,6 +74,7 @@ Bugs
 #. ``RandomSample`` with one list argument now returns a random ordering of the list items. Previously it would return just one item.
 #. Origin placement corrected on ``ListPlot`` and ``LinePlot``.
 #. Fix long-standing bugs in Image handling
+#. Units and Quantities were sometimes failing. Also they were omitted from documentation.
 
 
 Enhancements
