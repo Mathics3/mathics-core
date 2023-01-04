@@ -33,7 +33,12 @@ from mathics.eval.numerify import numerify
 
 class Beta(_MPMathMultiFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Beta.html</url>
+    <url>
+    :Euler beta function:
+    https://en.wikipedia.org/wiki/Beta_function</url> (<url>:SymPy:
+    https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.beta_functions.beta</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Beta.html</url>)
 
     <dl>
       <dt>'Beta[$a$, $b$]'
@@ -75,8 +80,8 @@ class Beta(_MPMathMultiFunction):
         else:
             return Expression(Symbol(self.get_name()), *elements)
 
-    # sympy does not handles Beta for integer arguments.
-    def apply_2(self, a, b, evaluation):
+    # SymPy does not handles Beta for integer arguments.
+    def eval(self, a, b, evaluation):
         """Beta[a_, b_]"""
         if not (a.is_numeric() and b.is_numeric()):
             return
@@ -85,7 +90,7 @@ class Beta(_MPMathMultiFunction):
         gamma_a_plus_b = Expression(SymbolGamma, a + b)
         return gamma_a * gamma_b / gamma_a_plus_b
 
-    def apply_3(self, z, a, b, evaluation):
+    def eval_with_z(self, z, a, b, evaluation):
         """Beta[z_, a_, b_]"""
         # Here I needed to do that because the order of the arguments in WL
         # is different from the order in mpmath. Most of the code is the same
@@ -215,7 +220,7 @@ class Factorial2(PostfixOperator, _MPMathFunction):
     summary_text = "semi-factorial"
     options = {"Method": "Automatic"}
 
-    def apply(self, number, evaluation, options={}):
+    def eval(self, number, evaluation, options={}):
         "Factorial2[number_?NumberQ, OptionsPattern[%(name)s]]"
 
         try:
@@ -357,10 +362,11 @@ class Gamma(_MPMathMultiFunction):
 
 class LogGamma(_MPMathMultiFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/LogGamma.html</url>
-
-    In number theory the logarithm of the gamma function often appears. For positive real numbers, this can be evaluated as 'Log[Gamma[$z$]]'.
-
+    <url>:log-gamma function:
+    https://en.wikipedia.org/wiki/Gamma_function#The_log-gamma_function</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.gamma_functions.loggamma</url>, <url>
+    :WMA:https://reference.wolfram.com/language/ref/LogGamma.html</url>)
     <dl>
       <dt>'LogGamma[$z$]'
       <dd>is the logarithm of the gamma function on the complex number $z$.
@@ -402,22 +408,53 @@ class LogGamma(_MPMathMultiFunction):
 
 class Pochhammer(SympyFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Pochhammer.html</url>
+    <url>:Rising factorial:
+    https://en.wikipedia.org/wiki/Falling_and_rising_factorials</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/combinatorial.html#risingfactorial</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Pochhammer.html</url>)
 
-    The Pochhammer symbol or rising factorial often appears in series expansions for hypergeometric functions.
-    The Pochammer symbol has a definie value even when the gamma functions which appear in its definition are infinite.
+    The Pochhammer symbol or rising factorial often appears in series \
+    expansions for hypergeometric functions.
+
+    The Pochammer symbol has a definite value even when the gamma \
+    functions which appear in its definition are infinite.
     <dl>
       <dt>'Pochhammer[$a$, $n$]'
-      <dd>is the Pochhammer symbol (a)_n.
+      <dd>is the Pochhammer symbol $a_n$.
     </dl>
 
-    >> Pochhammer[4, 8]
-     = 6652800
+    Product of the first 3 numbers:
+    >> Pochhammer[1, 3]
+     = 6
+
+    'Pochhammer[1, $n$]' is \
+    the same as Pochhammer[2, $n$-1] since 1 is a multiplicative identity.
+
+    >> Pochhammer[1, 3] == Pochhammer[2, 2]
+     = True
+
+    Although sometimes 'Pochhammer[0, $n$]' is taken to be 1, in Mathics it is 0:
+    >> Pochhammer[0, n]
+     = 0
+
+    Pochhammer uses Gamma for non-Integer values of $n$:
+
+    >> Pochhammer[1, 3.001]
+     = 6.00754
+
+    >> Pochhammer[1, 3.001] == Pochhammer[2, 2.001]
+     = True
+
+    >> Pochhammer[1.001, 3] == 1.001 2.001 3.001
+      = True
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     rules = {
+        "Pochhammer[0, n_]": "0",  # Wikipedia says it should be 1 though.
         "Pochhammer[a_, n_]": "Gamma[a + n] / Gamma[a]",
         "Derivative[1,0][Pochhammer]": "(Pochhammer[#1, #2]*(-PolyGamma[0, #1] + PolyGamma[0, #1 + #2]))&",
         "Derivative[0,1][Pochhammer]": "(Pochhammer[#1, #2]*PolyGamma[0, #1 + #2])&",
@@ -428,7 +465,12 @@ class Pochhammer(SympyFunction):
 
 class PolyGamma(_MPMathMultiFunction):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/PolyGamma.html</url>
+    <url>:Polygamma function:
+    https://en.wikipedia.org/wiki/Polygamma_function</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.gamma_functions.polygamma</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/PolyGamma.html</url>)
 
     PolyGamma is a meromorphic function on the complex numbers and is defined as a derivative of the logarithm of the gamma function.
     <dl>
@@ -464,13 +506,17 @@ class PolyGamma(_MPMathMultiFunction):
 
 
 class StieltjesGamma(SympyFunction):
-    r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/StieltjesGamma.html</url>
+    """
+    <url>:Stieltjes constants:
+    https://en.wikipedia.org/wiki/Stieltjes_constants</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.zeta_functions.stieltjes</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/StieltjesGamma.html</url>)
 
-    PolyGamma is a meromorphic function on the complex numbers and is defined as a derivative of the logarithm of the gamma function.
     <dl>
       <dt>'StieltjesGamma[$n$]'
-      <dd>returns the Stieljs contstant for $n$.
+      <dd>returns the Stieltjes constant for $n$.
 
       <dt>'StieltjesGamma[$n$, $a$]'
       <dd>gives the generalized Stieltjes constant of its parameters
