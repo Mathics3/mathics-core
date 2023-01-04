@@ -224,7 +224,7 @@ class _Pad(Builtin):
             )
             return None
 
-    def eval_zero(self, element, n, evaluation):
+    def eval_zero(self, element, n, evaluation: Evaluation):
         "%(name)s[element_, n_]"
         return self._pad(
             element,
@@ -235,7 +235,7 @@ class _Pad(Builtin):
             lambda: Expression(self.get_name(), element, n),
         )
 
-    def eval(self, element, n, x, evaluation):
+    def eval(self, element, n, x, evaluation: Evaluation):
         "%(name)s[element_, n_, x_]"
         return self._pad(
             element,
@@ -246,7 +246,7 @@ class _Pad(Builtin):
             lambda: Expression(self.get_name(), element, n, x),
         )
 
-    def eval_margin(self, element, n, x, m, evaluation):
+    def eval_margin(self, element, n, x, m, evaluation: Evaluation):
         "%(name)s[element_, n_, x_, m_]"
         return self._pad(
             element,
@@ -308,7 +308,7 @@ class _GatherOperation(Builtin):
         ),
     }
 
-    def apply(self, values, test, evaluation: Evaluation):
+    def eval(self, values, test, evaluation: Evaluation):
         "%(name)s[values_, test_]"
         if not self._check_list(values, test, evaluation):
             return
@@ -372,11 +372,11 @@ class _Rotate(Builtin):
 
         return expr.restructure(expr.head, new_elements, evaluation)
 
-    def apply_one(self, expr, evaluation: Evaluation):
+    def eval_one(self, expr, evaluation: Evaluation):
         "%(name)s[expr_]"
         return self._rotate(expr, [1], evaluation)
 
-    def apply(self, expr, n, evaluation: Evaluation):
+    def eval(self, expr, n, evaluation: Evaluation):
         "%(name)s[expr_, n_]"
         if isinstance(n, Integer):
             py_cycles = [n.get_int_value()]
@@ -419,7 +419,7 @@ class _SetOperation(Builtin):
                 result.append(a)
         return result
 
-    def apply(self, lists, evaluation, options={}):
+    def eval(self, lists, evaluation, options={}):
         "%(name)s[lists__, OptionsPattern[%(name)s]]"
 
         seq = lists.get_sequence()
@@ -487,7 +487,7 @@ class Catenate(Builtin):
     summary_text = "catenate elements from a list of lists"
     messages = {"invrp": "`1` is not a list."}
 
-    def apply(self, lists, evaluation: Evaluation):
+    def eval(self, lists, evaluation: Evaluation):
         "Catenate[lists_List]"
 
         def parts():
@@ -651,7 +651,7 @@ class GatherBy(_GatherOperation):
     summary_text = "gather based on values of a function applied to elements"
     _bin = _GatherBin
 
-    def apply(self, values, func, evaluation: Evaluation):
+    def eval(self, values, func, evaluation: Evaluation):
         "%(name)s[values_, func_]"
 
         if not self._check_list(values, func, evaluation):
@@ -704,7 +704,7 @@ class Join(Builtin):
     attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
     summary_text = "join lists together at any level"
 
-    def apply(self, lists, evaluation: Evaluation):
+    def eval(self, lists, evaluation: Evaluation):
         "Join[lists___]"
 
         result = []
@@ -855,12 +855,12 @@ class Partition(Builtin):
 
         return outer(slices())
 
-    def apply_no_overlap(self, li, n, evaluation: Evaluation):
+    def eval_no_overlap(self, li, n, evaluation: Evaluation):
         "Partition[li_List, n_Integer]"
         # TODO: Error checking
         return self._partition(li, n.get_int_value(), n.get_int_value(), evaluation)
 
-    def apply(self, li, n, d, evaluation: Evaluation):
+    def eval(self, li, n, d, evaluation: Evaluation):
         "Partition[li_List, n_Integer, d_Integer]"
         # TODO: Error checking
         return self._partition(li, n.get_int_value(), d.get_int_value(), evaluation)
@@ -929,11 +929,11 @@ class Reverse(Builtin):
 
         return expr
 
-    def apply_top_level(self, expr, evaluation: Evaluation):
+    def eval_top_level(self, expr, evaluation: Evaluation):
         "Reverse[expr_]"
         return Reverse._reverse(expr, 1, (1,), evaluation)
 
-    def apply(self, expr, levels, evaluation: Evaluation):
+    def eval(self, expr, levels, evaluation: Evaluation):
         "Reverse[expr_, levels_]"
         if isinstance(levels, Integer):
             py_levels = [levels.get_int_value()]
@@ -1007,7 +1007,7 @@ class Riffle(Builtin):
 
     summary_text = "intersperse additional elements"
 
-    def apply(self, list, sep, evaluation: Evaluation):
+    def eval(self, list, sep, evaluation: Evaluation):
         "Riffle[list_List, sep_]"
 
         if sep.has_form("List", None):
@@ -1020,7 +1020,9 @@ class Riffle(Builtin):
 
 class RotateLeft(_Rotate):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/RotateLeft.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RotateLeft.html</url>
 
     <dl>
       <dt>'RotateLeft[$expr$]'
@@ -1049,7 +1051,9 @@ class RotateLeft(_Rotate):
 
 class RotateRight(_Rotate):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/RotateRight.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RotateRight.html</url>
 
     <dl>
       <dt>'RotateRight[$expr$]'
@@ -1226,10 +1230,12 @@ class Tally(_GatherOperation):
 
     <dl>
       <dt>'Tally[$list$]'
-      <dd>counts and returns the number of occurences of objects and returns the result as a list of pairs {object, count}.
+      <dd>counts and returns the number of occurences of objects and returns \
+          the result as a list of pairs {object, count}.
 
       <dt>'Tally[$list$, $test$]'
-      <dd>counts the number of occurences of  objects and uses $test to determine if two objects should be counted in the same bin.
+      <dd>counts the number of occurences of objects and uses $test to \
+          determine if two objects should be counted in the same bin.
     </dl>
 
     >> Tally[{a, b, c, b, a}]
@@ -1246,11 +1252,14 @@ class Tally(_GatherOperation):
 
 class Union(_SetOperation):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Union.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Union.html</url>
 
     <dl>
       <dt>'Union[$a$, $b$, ...]'
-      <dd>gives the union of the given set or sets. The resulting list will be sorted and each element will only occur once.
+      <dd>gives the union of the given set or sets. The resulting list \
+          will be sorted and each element will only occur once.
     </dl>
 
     >> Union[{5, 1, 3, 7, 1, 8, 3}]
