@@ -750,21 +750,4 @@ def uniform_polyhedron_3d_box(self: RectangleBox, **options) -> str:
     )
 
 
-def tetrahedron_polyhedron_3d_box(self: RectangleBox, **options) -> str:
-    # l = self.style.get_line_width(face_element=True)
-
-    face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
-    opacity = self.face_opacity
-    color_str = build_3d_pen_color(face_color, opacity)
-
-    # Build an equalateral triangle:
-    # equilatrial = Polygon[{{1, 0}, {0, Sqrt[3]}, {-1, 0}}]
-
-    # See https://stackoverflow.com/questions/4372556/given-three-points-on-a-tetrahedron-find-the-4th
-
-    return (
-        "// Tetrahedara3DBox\n // Still not really implemented. Draw a sphere instead\n"
-    )
-
-
 add_conversion_fn(UniformPolyhedron3DBox, uniform_polyhedron_3d_box)
