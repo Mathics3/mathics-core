@@ -175,7 +175,6 @@ class EllipticPi(SympyFunction):
     https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.elliptic_integrals.elliptic_pi</url>, <url>
     :WMA:
     https://reference.wolfram.com/language/ref/EllipticPi.html</url>)
-    <url>
 
     <dl>
       <dt>'EllipticPi[$n$, $m$]'
