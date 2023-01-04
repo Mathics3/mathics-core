@@ -30,7 +30,7 @@ Q_ = ureg.Quantity
 
 def get_converted_magnitude(magnitude_expr, evaluation: Evaluation) -> float:
     """
-    The Pythion "pint" library mixes in a Python numeric value as a multiplier inside
+    The Python "pint" library mixes in a Python numeric value as a multiplier inside
     a Mathics Expression. here we pick out that multiplier and
     convert it from a Python numeric to a Mathics numeric.
     """
