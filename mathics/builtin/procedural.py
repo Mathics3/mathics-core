@@ -11,8 +11,7 @@ Procedural functions are integrated into Mathics symbolic programming environmen
 """
 
 
-from mathics.builtin.base import BinaryOperator, Builtin
-from mathics.builtin.lists import _IterationFunction
+from mathics.builtin.base import BinaryOperator, Builtin, IterationFunction
 from mathics.builtin.patterns import match
 from mathics.core.attributes import (
     A_HOLD_ALL,
@@ -242,7 +241,7 @@ class Continue(Builtin):
         raise ContinueInterrupt
 
 
-class Do(_IterationFunction):
+class Do(IterationFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Do.html</url>
 

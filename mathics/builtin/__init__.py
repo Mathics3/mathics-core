@@ -198,6 +198,7 @@ for subdir in (
     "intfns",
     "list",
     "matrices",
+    "messages",
     "numbers",
     "quantum_mechanics",
     "specialfns",

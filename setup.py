@@ -182,6 +182,7 @@ setup(
         "mathics.builtin.intfns",
         "mathics.builtin.list",
         "mathics.builtin.matrices",
+        "mathics.builtin.message",
         "mathics.builtin.numbers",
         "mathics.builtin.numpy_utils",
         "mathics.builtin.pymimesniffer",

@@ -189,6 +189,24 @@ class AssociationQ(Test):
         return expr.get_head_name() == "System`Association" and validate(expr.elements)
 
 
+class Key(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Key.html</url>
+
+    <dl>
+      <dt>Key[$key$]
+      <dd> represents a key used to access a value in an association.
+      <dt>Key[$key$][$assoc$]
+      <dd>
+    </dl>
+    """
+
+    rules = {
+        "Key[key_][assoc_Association]": "assoc[key]",
+    }
+    summary_text = "indicate a key within a part specification"
+
+
 class Keys(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Keys.html</url>
@@ -302,21 +320,6 @@ class Lookup(Builtin):
     }
 
     summary_text = "perform lookup of a value by key, returning a specified default if it is not found"
-
-
-class Missing(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Missing.html</url>
-
-    <dl>
-      <dd>'Missing[]'
-      <dt> represents a data that is misssing.
-    </dl>
-    >> ElementData["Meitnerium","MeltingPoint"]
-     = Missing[NotAvailable]
-    """
-
-    summary_text = "symbolic representation of missing data"
 
 
 class Values(Builtin):

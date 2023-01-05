@@ -5,48 +5,22 @@ List Functions - Miscellaneous
 Functions here will eventually get moved to more suitable subsections.
 """
 
-import heapq
-
-import sympy
-
 from mathics.algorithm.parts import python_levelspec, walk_levels
-from mathics.builtin.base import (
-    Builtin,
-    CountableInteger,
-    NegativeIntegerException,
-    Predefined,
-    SympyFunction,
-    Test,
-)
+from mathics.builtin.base import Builtin, Predefined, Test
 from mathics.builtin.box.layout import RowBox
-from mathics.builtin.numbers.algebra import cancel
-from mathics.builtin.scoping import dynamic_scoping
-from mathics.core.atoms import Integer, Integer0, Integer1, Integer2, Number, String
-from mathics.core.attributes import A_HOLD_ALL, A_LOCKED, A_PROTECTED
+from mathics.core.atoms import Integer, Integer1, Integer2, String
+from mathics.core.attributes import A_LOCKED, A_PROTECTED
 from mathics.core.convert.expression import to_expression
-from mathics.core.convert.sympy import from_sympy
 from mathics.core.exceptions import (
     InvalidLevelspecError,
-    MessageException,
     PartDepthError,
     PartError,
     PartRangeError,
 )
 from mathics.core.expression import Expression
-from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolPlus, SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolAlternatives,
-    SymbolGreaterEqual,
-    SymbolLess,
-    SymbolLessEqual,
-    SymbolMakeBoxes,
-    SymbolMatchQ,
-    SymbolSequence,
-    SymbolSubsetQ,
-)
-from mathics.eval.numerify import numerify
+from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
+from mathics.core.systemsymbols import SymbolMakeBoxes, SymbolSequence, SymbolSubsetQ
 
 SymbolKey = Symbol("Key")
 
@@ -133,210 +107,6 @@ def get_tuples(items):
         for item in items[0]:
             for rest in get_tuples(items[1:]):
                 yield [item] + rest
-
-
-class _IterationFunction(Builtin):
-    """
-    >> Sum[k, {k, Range[5]}]
-     = 15
-    """
-
-    attributes = A_HOLD_ALL | A_PROTECTED
-    allow_loopcontrol = False
-    throw_iterb = True
-
-    def get_result(self, items):
-        pass
-
-    def eval_symbol(self, expr, iterator, evaluation):
-        "%(name)s[expr_, iterator_Symbol]"
-        iterator = iterator.evaluate(evaluation)
-        if iterator.has_form(["List", "Range", "Sequence"], None):
-            elements = iterator.elements
-            if len(elements) == 1:
-                return self.apply_max(expr, *elements, evaluation)
-            elif len(elements) == 2:
-                if elements[1].has_form(["List", "Sequence"], None):
-                    seq = Expression(SymbolSequence, *(elements[1].elements))
-                    return self.eval_list(expr, elements[0], seq, evaluation)
-                else:
-                    return self.eval_range(expr, *elements, evaluation)
-            elif len(elements) == 3:
-                return self.eval_iter_nostep(expr, *elements, evaluation)
-            elif len(elements) == 4:
-                return self.eval_iter(expr, *elements, evaluation)
-
-        if self.throw_iterb:
-            evaluation.message(self.get_name(), "iterb")
-        return
-
-    def eval_range(self, expr, i, imax, evaluation):
-        "%(name)s[expr_, {i_Symbol, imax_}]"
-        imax = imax.evaluate(evaluation)
-        if imax.has_form("Range", None):
-            # FIXME: this should work as an iterator in Python3, not
-            # building the sequence explicitly...
-            seq = Expression(SymbolSequence, *(imax.evaluate(evaluation).elements))
-            return self.apply_list(expr, i, seq, evaluation)
-        elif imax.has_form("List", None):
-            seq = Expression(SymbolSequence, *(imax.elements))
-            return self.eval_list(expr, i, seq, evaluation)
-        else:
-            return self.eval_iter(expr, i, Integer1, imax, Integer1, evaluation)
-
-    def eval_max(self, expr, imax, evaluation):
-        "%(name)s[expr_, {imax_}]"
-
-        # Even though `imax` should be an integeral value, its type does not
-        # have to be an Integer.
-
-        result = []
-
-        def do_iteration():
-            evaluation.check_stopped()
-            try:
-                result.append(expr.evaluate(evaluation))
-            except ContinueInterrupt:
-                if self.allow_loopcontrol:
-                    pass
-                else:
-                    raise
-            except BreakInterrupt:
-                if self.allow_loopcontrol:
-                    raise StopIteration
-                else:
-                    raise
-            except ReturnInterrupt as e:
-                if self.allow_loopcontrol:
-                    return e.expr
-                else:
-                    raise
-
-        if isinstance(imax, Integer):
-            try:
-                for _ in range(imax.value):
-                    do_iteration()
-            except StopIteration:
-                pass
-
-        else:
-            imax = imax.evaluate(evaluation)
-            imax = numerify(imax, evaluation)
-            if isinstance(imax, Number):
-                imax = imax.round()
-            py_max = imax.get_float_value()
-            if py_max is None:
-                if self.throw_iterb:
-                    evaluation.message(self.get_name(), "iterb")
-                return
-
-            index = 0
-            try:
-                while index < py_max:
-                    do_iteration()
-                    index += 1
-            except StopIteration:
-                pass
-
-        return self.get_result(result)
-
-    def eval_iter_nostep(self, expr, i, imin, imax, evaluation):
-        "%(name)s[expr_, {i_Symbol, imin_, imax_}]"
-        return self.eval_iter(expr, i, imin, imax, Integer1, evaluation)
-
-    def eval_iter(self, expr, i, imin, imax, di, evaluation):
-        "%(name)s[expr_, {i_Symbol, imin_, imax_, di_}]"
-
-        if isinstance(self, SympyFunction) and di.get_int_value() == 1:
-            whole_expr = to_expression(
-                self.get_name(), expr, ListExpression(i, imin, imax)
-            )
-            sympy_expr = whole_expr.to_sympy(evaluation=evaluation)
-            if sympy_expr is None:
-                return None
-
-            # apply Together to produce results similar to Mathematica
-            result = sympy.together(sympy_expr)
-            result = from_sympy(result)
-            result = cancel(result)
-
-            if not result.sameQ(whole_expr):
-                return result
-            return
-
-        index = imin.evaluate(evaluation)
-        imax = imax.evaluate(evaluation)
-        di = di.evaluate(evaluation)
-
-        result = []
-        compare_type = (
-            SymbolGreaterEqual
-            if Expression(SymbolLess, di, Integer0).evaluate(evaluation).to_python()
-            else SymbolLessEqual
-        )
-        while True:
-            cont = Expression(compare_type, index, imax).evaluate(evaluation)
-            if cont is SymbolFalse:
-                break
-            if cont is not SymbolTrue:
-                if self.throw_iterb:
-                    evaluation.message(self.get_name(), "iterb")
-                return
-
-            evaluation.check_stopped()
-            try:
-                item = dynamic_scoping(expr.evaluate, {i.name: index}, evaluation)
-                result.append(item)
-            except ContinueInterrupt:
-                if self.allow_loopcontrol:
-                    pass
-                else:
-                    raise
-            except BreakInterrupt:
-                if self.allow_loopcontrol:
-                    break
-                else:
-                    raise
-            except ReturnInterrupt as e:
-                if self.allow_loopcontrol:
-                    return e.expr
-                else:
-                    raise
-            index = Expression(SymbolPlus, index, di).evaluate(evaluation)
-        return self.get_result(result)
-
-    def eval_list(self, expr, i, items, evaluation):
-        "%(name)s[expr_, {i_Symbol, {items___}}]"
-        items = items.evaluate(evaluation).get_sequence()
-        result = []
-        for item in items:
-            evaluation.check_stopped()
-            try:
-                item = dynamic_scoping(expr.evaluate, {i.name: item}, evaluation)
-                result.append(item)
-            except ContinueInterrupt:
-                if self.allow_loopcontrol:
-                    pass
-                else:
-                    raise
-            except BreakInterrupt:
-                if self.allow_loopcontrol:
-                    break
-                else:
-                    raise
-            except ReturnInterrupt as e:
-                if self.allow_loopcontrol:
-                    return e.expr
-                else:
-                    raise
-        return self.get_result(result)
-
-    def eval_multi(self, expr, first, sequ, evaluation):
-        "%(name)s[expr_, first_, sequ__]"
-
-        sequ = sequ.get_sequence()
-        name = self.get_name()
-        return to_expression(name, to_expression(name, expr, *sequ), first)
 
 
 class All(Predefined):
@@ -517,19 +287,6 @@ class DisjointQ(Test):
     summary_text = "test whether two lists do not have common elements"
 
 
-class Failure(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Failure.html</url>
-
-    <dl>
-      <dt>Failure[$tag$, $assoc$]
-      <dd> represents a failure of a type indicated by $tag$, with details given by the association $assoc$.
-    </dl>
-    """
-
-    summary_text = "a failure at the level of the interpreter"
-
-
 # From backports in CellsToTeX. This functions provides compatibility to WMA 10.
 #  TODO:
 #  * Add doctests
@@ -578,24 +335,6 @@ class IntersectingQ(Builtin):
 
     rules = {"IntersectingQ[a_List, b_List]": "Length[Intersect[a, b]] > 0"}
     summary_text = "test whether two lists have common elements"
-
-
-class Key(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Key.html</url>
-
-    <dl>
-      <dt>Key[$key$]
-      <dd> represents a key used to access a value in an association.
-      <dt>Key[$key$][$assoc$]
-      <dd>
-    </dl>
-    """
-
-    rules = {
-        "Key[key_][assoc_Association]": "assoc[key]",
-    }
-    summary_text = "indicate a key within a part specification"
 
 
 class LeafCount(Builtin):
@@ -895,170 +634,6 @@ class _Rectangular(Builtin):
         )
 
 
-class _RankedTake(Builtin):
-    messages = {
-        "intpm": "Expected non-negative integer at position `1` in `2`.",
-        "rank": "The specified rank `1` is not between 1 and `2`.",
-    }
-
-    options = {
-        "ExcludedForms": "Automatic",
-    }
-
-    def _compute(self, t, n, evaluation, options, f=None):
-        try:
-            limit = CountableInteger.from_expression(n)
-        except MessageException as e:
-            e.message(evaluation)
-            return
-        except NegativeIntegerException:
-            if f:
-                args = (3, Expression(self.get_name(), t, f, n))
-            else:
-                args = (2, Expression(self.get_name(), t, n))
-            evaluation.message(self.get_name(), "intpm", *args)
-            return
-
-        if limit is None:
-            return
-
-        if limit == 0:
-            return ListExpression()
-        else:
-            excluded = self.get_option(options, "ExcludedForms", evaluation)
-            if excluded:
-                if (
-                    isinstance(excluded, Symbol)
-                    and excluded.get_name() == "System`Automatic"
-                ):
-
-                    def exclude(item):
-                        if isinstance(item, Symbol) and item.get_name() in (
-                            "System`None",
-                            "System`Null",
-                            "System`Indeterminate",
-                        ):
-                            return True
-                        elif item.get_head_name() == "System`Missing":
-                            return True
-                        else:
-                            return False
-
-                else:
-                    excluded = Expression(SymbolAlternatives, *excluded.elements)
-
-                    def exclude(item):
-                        return (
-                            Expression(SymbolMatchQ, item, excluded).evaluate(
-                                evaluation
-                            )
-                            is SymbolTrue
-                        )
-
-                filtered = [element for element in t.elements if not exclude(element)]
-            else:
-                filtered = t.elements
-
-            if limit > len(filtered):
-                if not limit.is_upper_limit():
-                    evaluation.message(
-                        self.get_name(), "rank", limit.get_int_value(), len(filtered)
-                    )
-                    return
-                else:
-                    py_n = len(filtered)
-            else:
-                py_n = limit.get_int_value()
-
-            if py_n < 1:
-                return ListExpression()
-
-            if f:
-                heap = [
-                    (Expression(f, element).evaluate(evaluation), element, i)
-                    for i, element in enumerate(filtered)
-                ]
-                element_pos = 1  # in tuple above
-            else:
-                heap = [(element, i) for i, element in enumerate(filtered)]
-                element_pos = 0  # in tuple above
-
-            if py_n == 1:
-                result = [self._get_1(heap)]
-            else:
-                result = self._get_n(py_n, heap)
-
-            return t.restructure("List", [x[element_pos] for x in result], evaluation)
-
-
-class _RankedTakeSmallest(_RankedTake):
-    def _get_1(self, a):
-        return min(a)
-
-    def _get_n(self, n, heap):
-        return heapq.nsmallest(n, heap)
-
-
-class _RankedTakeLargest(_RankedTake):
-    def _get_1(self, a):
-        return max(a)
-
-    def _get_n(self, n, heap):
-        return heapq.nlargest(n, heap)
-
-
-class TakeLargestBy(_RankedTakeLargest):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/TakeLargestBy.html</url>
-
-    <dl>
-      <dt>'TakeLargestBy[$list$, $f$, $n$]'
-      <dd>returns the a sorted list of the $n$ largest items in $list$
-        using $f$ to retrieve the items' keys to compare them.
-    </dl>
-
-    For details on how to use the ExcludedForms option, see TakeLargest[].
-
-    >> TakeLargestBy[{{1, -1}, {10, 100}, {23, 7, 8}, {5, 1}}, Total, 2]
-     = {{10, 100}, {23, 7, 8}}
-
-    >> TakeLargestBy[{"abc", "ab", "x"}, StringLength, 1]
-     = {abc}
-    """
-
-    summary_text = "sublist of n largest elements according to a given criteria"
-
-    def eval(self, element, f, n, evaluation, options):
-        "TakeLargestBy[element_List, f_, n_, OptionsPattern[TakeLargestBy]]"
-        return self._compute(element, n, evaluation, options, f=f)
-
-
-class TakeSmallestBy(_RankedTakeSmallest):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/TakeSmallestBy.html</url>
-
-    <dl>
-      <dt>'TakeSmallestBy[$list$, $f$, $n$]'
-      <dd>returns the a sorted list of the $n$ smallest items in $list$
-        using $f$ to retrieve the items' keys to compare them.
-    </dl>
-
-    For details on how to use the ExcludedForms option, see TakeLargest[].
-
-    >> TakeSmallestBy[{{1, -1}, {10, 100}, {23, 7, 8}, {5, 1}}, Total, 2]
-     = {{1, -1}, {5, 1}}
-
-    >> TakeSmallestBy[{"abc", "ab", "x"}, StringLength, 1]
-     = {x}
-    """
-
-    summary_text = "sublist of n largest elements according to a criteria"
-
-    def eval(self, element, f, n, evaluation, options):
-        "TakeSmallestBy[element_List, f_, n_, OptionsPattern[TakeSmallestBy]]"
-        return self._compute(element, n, evaluation, options, f=f)
-
-
 class SubsetQ(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/SubsetQ.html</url>
@@ -1146,8 +721,3 @@ class SubsetQ(Builtin):
             return SymbolTrue
         else:
             return SymbolFalse
-
-
-#    rules = {'Failure /: MakeBoxes[Failure[tag_, assoc_Association], StandardForm]' :
-# 		'With[{msg = assoc["MessageTemplate"], msgParam = assoc["MessageParameters"], type = assoc["Type"]}, ToBoxes @ Interpretation["Failure" @ Panel @ Grid[{{Style["\[WarningSign]", "Message", FontSize -> 35], Style["Message:", FontColor->GrayLevel[0.5]], ToString[StringForm[msg, Sequence @@ msgParam], StandardForm]}, {SpanFromAbove, Style["Tag:", FontColor->GrayLevel[0.5]], ToString[tag, StandardForm]},{SpanFromAbove,Style["Type:", FontColor->GrayLevel[0.5]],ToString[type, StandardForm]}},Alignment -> {Left, Top}], Failure[tag, assoc]] /; msg =!= Missing["KeyAbsent", "MessageTemplate"] && msgParam =!= Missing["KeyAbsent", "MessageParameters"] && msgParam =!= Missing["KeyAbsent", "Type"]]',
-#     }
