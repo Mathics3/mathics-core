@@ -7,9 +7,9 @@ formatting rules.
 
 
 import typing
-from typing import Any
+from typing import Any, Optional
 
-from mathics.core.atoms import Complex, Integer, Rational, String, SymbolI
+from mathics.core.atoms import Complex, Integer, Rational, Real, String, SymbolI
 from mathics.core.convert.expression import to_expression_with_specialization
 from mathics.core.definitions import OutputForms
 from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
@@ -39,6 +39,7 @@ from mathics.core.systemsymbols import (
     SymbolOutputForm,
     SymbolRational,
     SymbolStandardForm,
+    SymbolTraditionalForm,
 )
 
 element_formatters = {}
@@ -51,7 +52,42 @@ def _boxed_string(string: str, **options):
     return StyleBox(String(string), **options)
 
 
-def eval_makeboxes(self, expr, evaluation, f=SymbolStandardForm):
+def compare_precedence(
+    element: BaseElement, precedence: Optional[int] = None
+) -> Optional[int]:
+    """
+    compare the precedence of the element regarding a precedence value.
+    If both precedences are equivalent, return 0. If precedence of element
+    is higher, return 1, otherwise -1.
+    If precedences cannot be compared, return None.
+    """
+
+    from mathics.builtin import builtins_precedence
+
+    while element.has_form("HoldForm", 1):
+        element = element.elements[0]
+
+    if precedence is None:
+        return None
+    if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
+        element_prec = element.elements[2].value
+    elif element.has_form("PrecedenceForm", 2):
+        element_prec = element.elements[1].value
+    # For negative values, ensure that the element_precedence is at least the precedence. (Fixes #332)
+    elif isinstance(element, (Integer, Real)) and element.value < 0:
+        element_prec = precedence
+    else:
+        element_prec = builtins_precedence.get(element.get_head_name())
+
+    if element_prec is None:
+        return None
+
+    if element_prec == precedence:
+        return 0
+    return 1 if element_prec > precedence else -1
+
+
+def eval_makeboxes(expr, evaluation, f=SymbolStandardForm):
     """
     This function takes the definitions prodived by the evaluation
     object, and produces a boxed form for expr.
@@ -66,8 +102,19 @@ def format_element(
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
+
+    from mathics.core.convert.prettyprint import expression_to_2d_text
+
+    if False and form is SymbolOutputForm:
+        txt2d_form = expression_to_2d_text(element, evaluation, form, **kwargs)
+        return String(txt2d_form.text)
+
     expr = do_format(element, evaluation, form)
-    result = Expression(SymbolMakeBoxes, expr, form)
+    if form in (SymbolStandardForm, SymbolTraditionalForm):
+        result = Expression(SymbolMakeBoxes, expr, form)
+    else:
+        expr = Expression(form, expr)
+        result = Expression(SymbolMakeBoxes, expr, SymbolStandardForm)
     result_box = result.evaluate(evaluation)
     if isinstance(result_box, String):
         return result_box

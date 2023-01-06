@@ -191,7 +191,7 @@ class Divide(BinaryOperator):
     }
 
     formats = {
-        (("InputForm", "OutputForm"), "Divide[x_, y_]"): (
+        (("InputForm",), "Divide[x_, y_]"): (
             'Infix[{HoldForm[x], HoldForm[y]}, "/", 400, Left]'
         ),
     }
@@ -573,7 +573,7 @@ class Power(BinaryOperator, _MPMathFunction):
             Expression(SymbolPattern, Symbol("x"), Expression(SymbolBlank)),
             RationalOneHalf,
         ): "HoldForm[Sqrt[x]]",
-        (("InputForm", "OutputForm"), "x_ ^ y_"): (
+        (("InputForm",), "x_ ^ y_"): (
             'Infix[{HoldForm[x], HoldForm[y]}, "^", 590, Right]'
         ),
         ("", "x_ ^ y_"): (

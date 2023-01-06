@@ -9,7 +9,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Union, cast
 
 import sympy
 
-from mathics.core.atoms import Integer, MachineReal, PrecisionReal, String
+from mathics.core.atoms import Integer, MachineReal, PrecisionReal, Real, String
 from mathics.core.attributes import A_NO_ATTRIBUTES, A_PROTECTED
 from mathics.core.convert.expression import to_expression, to_numeric_sympy_args
 from mathics.core.convert.op import ascii_operator_to_symbol

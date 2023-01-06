@@ -20,7 +20,7 @@ from mathics.core.list import ListExpression
 from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import SymbolInputForm, SymbolOutputForm, SymbolRowBox
-from mathics.eval.makeboxes import _boxed_string, format_element
+from mathics.eval.makeboxes import _boxed_string, compare_precedence, format_element
 
 
 def int_to_s_exp(expr, n):
@@ -36,26 +36,12 @@ def int_to_s_exp(expr, n):
 
 
 def parenthesize(precedence, element, element_boxes, when_equal):
-    from mathics.builtin import builtins_precedence
-
-    while element.has_form("HoldForm", 1):
-        element = element.elements[0]
-
-    if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
-        element_prec = element.elements[2].value
-    elif element.has_form("PrecedenceForm", 2):
-        element_prec = element.elements[1].value
-    # For negative values, ensure that the element_precedence is at least the precedence. (Fixes #332)
-    elif isinstance(element, (Integer, Real)) and element.value < 0:
-        element_prec = precedence
-    else:
-        element_prec = builtins_precedence.get(element.get_head_name())
-    if precedence is not None and element_prec is not None:
-        if precedence > element_prec or (precedence == element_prec and when_equal):
-            return Expression(
-                SymbolRowBox,
-                ListExpression(String("("), element_boxes, String(")")),
-            )
+    cmp = compare_precedence(element, precedence)
+    if cmp is not None and (cmp == -1 or cmp == 0 and when_equal):
+        return Expression(
+            SymbolRowBox,
+            ListExpression(String("("), element_boxes, String(")")),
+        )
     return element_boxes
 
 
@@ -359,9 +345,9 @@ class MakeBoxes(Builtin):
             'MakeBoxes[Infix[head[elements], StringForm["~`1`~", head]], f]'
         ),
         "MakeBoxes[expr_]": "MakeBoxes[expr, StandardForm]",
-        "MakeBoxes[(form:StandardForm|TraditionalForm|OutputForm|TeXForm|"
+        "MakeBoxes[(form:StandardForm|TraditionalForm|TeXForm|"
         "MathMLForm)[expr_], StandardForm|TraditionalForm]": ("MakeBoxes[expr, form]"),
-        "MakeBoxes[(form:StandardForm|OutputForm|MathMLForm|TeXForm)[expr_], OutputForm]": "MakeBoxes[expr, form]",
+        "MakeBoxes[(form:StandardForm|MathMLForm|TeXForm)[expr_], OutputForm]": "MakeBoxes[expr, form]",
         "MakeBoxes[(form:FullForm|InputForm)[expr_], StandardForm|TraditionalForm|OutputForm]": "StyleBox[MakeBoxes[expr, form], ShowStringCharacters->True]",
         "MakeBoxes[PrecedenceForm[expr_, prec_], f_]": "MakeBoxes[expr, f]",
         "MakeBoxes[Style[expr_, OptionsPattern[Style]], f_]": (
