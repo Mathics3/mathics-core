@@ -108,6 +108,7 @@ expr_to_2d_text_map["System`HoldForm"] = holdform_expression_to_2d_text
 
 
 def pre_pos_infix_expression_to_2d_text(expr, evaluation, form, **kwargs):
+    print("processing ", expr)
     elements = expr.elements
     if not (0 <= len(elements) <= 4):
         raise _WrongFormattedExpression
@@ -201,7 +202,11 @@ def pre_pos_infix_expression_to_2d_text(expr, evaluation, form, **kwargs):
         for index, operand in enumerate(operands):
             operand_txt = expression_to_2d_text(operand, evaluation, form, **kwargs)
             cmp_precedence = compare_precedence(operand, precedence)
-            if cmp_precedence == -1 or (cmp_precedence == 0 and parenthesized):
+            print("calling compare_precedence", [operand, precedence, cmp_precedence])
+            if cmp_precedence is not None and (
+                cmp_precedence == -1 or (cmp_precedence == 0 and parenthesized)
+            ):
+                print("->parenthesize")
                 operand_txt = parenthesize(operand_txt)
 
             if index == 0:
@@ -335,6 +340,7 @@ expr_to_2d_text_map["System`Plus"] = plus_expression_to_2d_text
 
 
 def power_expression_to_2d_text(expr, evaluation, form, **kwargs):
+    print("@@@@@@@@@@@power_expr")
     if len(expr.elements) != 2:
         return default_expression_to_2d_text(expr, evaluation, form, **kwargs)
     if kwargs.get("2d", False):
@@ -497,6 +503,7 @@ expr_to_2d_text_map["System`StringForm"] = stringform_expression_to_2d_text
 
 
 def superscript_expression_to_2d_text(expr, evaluation, form, **kwargs):
+    print("Superscript", [expr])
     if len(expr.elements) != 2:
         raise _WrongFormattedExpression
     if kwargs.get("2d", False):

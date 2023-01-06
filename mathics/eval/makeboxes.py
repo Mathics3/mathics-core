@@ -61,7 +61,6 @@ def compare_precedence(
     is higher, return 1, otherwise -1.
     If precedences cannot be compared, return None.
     """
-
     from mathics.builtin import builtins_precedence
 
     while element.has_form("HoldForm", 1):
@@ -81,10 +80,7 @@ def compare_precedence(
 
     if element_prec is None:
         return None
-
-    if element_prec == precedence:
-        return 0
-    return 1 if element_prec > precedence else -1
+    return 0 if element_prec == precedence else (1 if element_prec > precedence else -1)
 
 
 def eval_makeboxes(expr, evaluation, f=SymbolStandardForm):
