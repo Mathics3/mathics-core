@@ -197,11 +197,10 @@ def pre_pos_infix_expression_to_2d_text(expr, evaluation, form, **kwargs):
             target_txt = parenthesize(target_txt)
         return target_txt + ops_txt[0]
     else:  # Infix
-        parenthesized = group in (None, SymbolLeft, SymbolNonAssociative)
+        parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
         for index, operand in enumerate(operands):
             operand_txt = expression_to_2d_text(operand, evaluation, form, **kwargs)
             cmp_precedence = compare_precedence(operand, precedence)
-            print("   ", [operand, precedence, cmp_precedence, parenthesized, group])
             if cmp_precedence == -1 or (cmp_precedence == 0 and parenthesized):
                 operand_txt = parenthesize(operand_txt)
 
@@ -606,7 +605,6 @@ def expression_to_2d_text(
         format_expr = format_expr.elements[0]
 
     lookup_name = format_expr.get_head().get_lookup_name()
-    print([lookup_name, format_expr])
     try:
         return expr_to_2d_text_map[lookup_name](format_expr, evaluation, form, **kwargs)
     except _WrongFormattedExpression:

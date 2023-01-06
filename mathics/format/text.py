@@ -43,7 +43,6 @@ add_conversion_fn(String, string)
 
 
 def interpretation_panebox(self, **options):
-    print("interpretation_panebox to text", self.elements[0])
     return boxes_to_text(self.elements[0], **options)
 
 
