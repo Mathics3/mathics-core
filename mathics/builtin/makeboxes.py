@@ -19,8 +19,13 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol
-from mathics.core.systemsymbols import SymbolInputForm, SymbolOutputForm, SymbolRowBox
-from mathics.eval.makeboxes import _boxed_string, format_element
+from mathics.core.systemsymbols import (
+    SymbolInputForm,
+    SymbolNone,
+    SymbolOutputForm,
+    SymbolRowBox,
+)
+from mathics.eval.makeboxes import _boxed_string, format_element, parenthesize
 
 
 def int_to_s_exp(expr, n):
@@ -33,30 +38,6 @@ def int_to_s_exp(expr, n):
         s = str(n)
     exp = len(s) - 1
     return s, exp, nonnegative
-
-
-def parenthesize(precedence, element, element_boxes, when_equal):
-    from mathics.builtin import builtins_precedence
-
-    while element.has_form("HoldForm", 1):
-        element = element.elements[0]
-
-    if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
-        element_prec = element.elements[2].value
-    elif element.has_form("PrecedenceForm", 2):
-        element_prec = element.elements[1].value
-    # For negative values, ensure that the element_precedence is at least the precedence. (Fixes #332)
-    elif isinstance(element, (Integer, Real)) and element.value < 0:
-        element_prec = precedence
-    else:
-        element_prec = builtins_precedence.get(element.get_head_name())
-    if precedence is not None and element_prec is not None:
-        if precedence > element_prec or (precedence == element_prec and when_equal):
-            return Expression(
-                SymbolRowBox,
-                ListExpression(String("("), element_boxes, String(")")),
-            )
-    return element_boxes
 
 
 # FIXME: op should be a string, so remove the Union.
@@ -451,11 +432,37 @@ class MakeBoxes(Builtin):
         else:
             return MakeBoxes(expr, f).evaluate(evaluation)
 
+    # FIXME: prec is sometimes not an Integer for a ListExpession.
+    # And this is recent with respect to PredefinedSymbol revision.
+    # How does this get set and why?
     def eval_infix(
-        self, expr, operator, prec: Integer, grouping, form: Symbol, evaluation
+        self, expr, operator, precedence: Integer, grouping, form: Symbol, evaluation
     ):
-        """MakeBoxes[Infix[expr_, operator_, prec_:None, grouping_:None],
+        """MakeBoxes[Infix[expr_, operator_, precedence_:None, grouping_:None],
         form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+
+        # In WMA, this is covered with two different rules:
+        #  * ```MakeBoxes[Infix[expr_, operator_]```
+        #  * ```MakeBoxes[Infix[expr_, operator_, precedence_, grouping_:None]```
+        # In the second form, precedence must be an Integer. Otherwise, a message is
+        # shown and fall back to the standard MakeBoxes form.
+        # Here we allow Precedence to be ```System`None```, to have just one rule.
+
+        if precedence is SymbolNone:
+            precedence_value = None
+        elif isinstance(precedence, Integer):
+            precedence_value = precedence.value
+        else:
+            if grouping is not SymbolNone:
+                # Here I use a String as a head to avoid a circular evaluation.
+                # TODO: Use SymbolInfix when the MakeBoxes refactor be done.
+                expr = Expression(String("Infix"), expr, operator, precedence, grouping)
+            else:
+                expr = Expression(String("Infix"), expr, operator, precedence)
+            evaluation.message("Infix", "intm", expr)
+            return self.eval_general(expr, form, evaluation)
+
+        grouping = grouping
 
         ## FIXME: this should go into a some formatter.
         def format_operator(operator) -> Union[String, BaseElement]:
@@ -485,7 +492,7 @@ class MakeBoxes(Builtin):
                 return op
             return operator
 
-        precedence = prec.value if hasattr(prec, "value") else 0
+        precedence = precedence.value if hasattr(precedence, "value") else 0
         grouping = grouping.get_name()
 
         if isinstance(expr, Atom):
@@ -496,7 +503,9 @@ class MakeBoxes(Builtin):
         if len(elements) > 1:
             if operator.has_form("List", len(elements) - 1):
                 operator = [format_operator(op) for op in operator.elements]
-                return make_boxes_infix(elements, operator, precedence, grouping, form)
+                return make_boxes_infix(
+                    elements, operator, precedence_value, grouping, form
+                )
             else:
                 encoding_rule = evaluation.definitions.get_ownvalue(
                     "$CharacterEncoding"
@@ -518,7 +527,9 @@ class MakeBoxes(Builtin):
                         String(operator_to_unicode.get(op_str, op_str))
                     )
 
-            return make_boxes_infix(elements, operator, precedence, grouping, form)
+            return make_boxes_infix(
+                elements, operator, precedence_value, grouping, form
+            )
 
         elif len(elements) == 1:
             return MakeBoxes(elements[0], form)
