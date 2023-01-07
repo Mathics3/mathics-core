@@ -18,9 +18,14 @@ from functools import lru_cache
 import mpmath
 import sympy
 
-from mathics.builtin.base import Builtin, Predefined, SympyFunction, Test
+from mathics.builtin.base import (
+    Builtin,
+    IterationFunction,
+    Predefined,
+    SympyFunction,
+    Test,
+)
 from mathics.builtin.inference import evaluate_predicate, get_assumptions_list
-from mathics.builtin.lists import _IterationFunction
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
     Complex,
@@ -980,7 +985,7 @@ class PossibleZeroQ(SympyFunction):
         return from_python(result)
 
 
-class Product(_IterationFunction, SympyFunction):
+class Product(IterationFunction, SympyFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Product.html</url>
 
@@ -1030,7 +1035,7 @@ class Product(_IterationFunction, SympyFunction):
 
     sympy_name = "Product"
 
-    rules = _IterationFunction.rules.copy()
+    rules = IterationFunction.rules.copy()
     rules.update(
         {
             "MakeBoxes[Product[f_, {i_, a_, b_, 1}],"
@@ -1299,7 +1304,7 @@ class Sign(SympyFunction):
         return evaluation.message("Sign", "argx", Integer(len(seqs.get_sequence()) + 1))
 
 
-class Sum(_IterationFunction, SympyFunction):
+class Sum(IterationFunction, SympyFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Sum.html</url>
 
@@ -1316,6 +1321,7 @@ class Sum(_IterationFunction, SympyFunction):
       <dt>'Sum[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]'
       <dd>evaluates $expr$ as a multiple sum, with {$i$, ...}, {$j$, ...}, ... being in outermost-to-innermost order.
     </dl>
+
 
     A sum that Gauss in elementary school was asked to do to kill time:
     >> Sum[k, {k, 1, 10}]
@@ -1353,6 +1359,9 @@ class Sum(_IterationFunction, SympyFunction):
     >> Sum[k, {k, I, I + 1}]
      = 1 + 2 I
 
+    >> Sum[k, {k, Range[5]}]
+     = 15
+
     >> Sum[f[i], {i, 1, 7}]
      = f[1] + f[2] + f[3] + f[4] + f[5] + f[6] + f[7]
 
@@ -1381,7 +1390,7 @@ class Sum(_IterationFunction, SympyFunction):
 
     sympy_name = "Sum"
 
-    rules = _IterationFunction.rules.copy()
+    rules = IterationFunction.rules.copy()
     rules.update(
         {
             "MakeBoxes[Sum[f_, {i_, a_, b_, 1}],"

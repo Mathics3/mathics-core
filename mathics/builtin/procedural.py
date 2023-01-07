@@ -3,16 +3,21 @@
 """
 Procedural Programming
 
-Procedural programming is a programming paradigm, derived from imperative programming, based on the concept of the procedure call. This term is sometimes compared and contrasted with Functional Programming.
+Procedural programming is a programming paradigm, derived from imperative \
+programming, based on the concept of the procedure call. This term is \
+sometimes compared and contrasted with Functional Programming.
 
-Procedures (a type of routine or subroutine) simply contain a series of computational steps to be carried out. Any given procedure might be called at any point during a program's execution, including by other procedures or itself.
+Procedures (a type of routine or subroutine) simply contain a series of \
+computational steps to be carried out. Any given procedure might be called \
+at any point during a program's execution, including by other procedures \
+or itself.
 
-Procedural functions are integrated into Mathics symbolic programming environment.
+Procedural functions are integrated into Mathics symbolic programming \
+environment.
 """
 
 
-from mathics.builtin.base import BinaryOperator, Builtin
-from mathics.builtin.lists import _IterationFunction
+from mathics.builtin.base import BinaryOperator, Builtin, IterationFunction
 from mathics.builtin.patterns import match
 from mathics.core.attributes import (
     A_HOLD_ALL,
@@ -36,7 +41,8 @@ SymbolWhich = Symbol("Which")
 
 class Abort(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Abort.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Abort.html</url>
 
     <dl>
       <dt>'Abort[]'
@@ -49,7 +55,7 @@ class Abort(Builtin):
 
     summary_text = "generate an abort"
 
-    def apply(self, evaluation):
+    def eval(self, evaluation):
         "Abort[]"
 
         raise AbortInterrupt
@@ -75,7 +81,7 @@ class Break(Builtin):
 
     summary_text = "exit a 'For', 'While', or 'Do' loop"
 
-    def apply(self, evaluation):
+    def eval(self, evaluation):
         "Break[]"
 
         raise BreakInterrupt
@@ -116,7 +122,7 @@ class Catch(Builtin):
 
     summary_text = "handle an exception raised by a 'Throw'"
 
-    def apply_expr(self, expr, evaluation):
+    def eval_expr(self, expr, evaluation):
         "Catch[expr_]"
         try:
             ret = expr.evaluate(evaluation)
@@ -124,7 +130,7 @@ class Catch(Builtin):
             return e.value
         return ret
 
-    def apply_with_form_and_fn(self, expr, form, f, evaluation):
+    def eval_with_form_and_fn(self, expr, form, f, evaluation):
         "Catch[expr_, form_, f__:Identity]"
         try:
             ret = expr.evaluate(evaluation)
@@ -196,7 +202,7 @@ class CompoundExpression(BinaryOperator):
 
     summary_text = "execute expressions in sequence"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "CompoundExpression[expr___]"
 
         items = expr.get_sequence()
@@ -236,13 +242,13 @@ class Continue(Builtin):
 
     summary_text = "continue with the next iteration in a 'For', 'While' or 'Do' loop"
 
-    def apply(self, evaluation):
+    def eval(self, evaluation):
         "Continue[]"
 
         raise ContinueInterrupt
 
 
-class Do(_IterationFunction):
+class Do(IterationFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Do.html</url>
 
@@ -330,7 +336,7 @@ class For(Builtin):
     }
     summary_text = "a 'For' loop"
 
-    def apply(self, start, test, incr, body, evaluation):
+    def eval(self, start, test, incr, body, evaluation):
         "For[start_, test_, incr_, body_]"
         while test.evaluate(evaluation) is SymbolTrue:
             evaluation.check_stopped()
@@ -383,7 +389,7 @@ class If(Builtin):
     attributes = A_HOLD_REST | A_PROTECTED
     summary_text = "test if a condition is true, false, or of unknown truth value"
 
-    def apply_2(self, condition, t, evaluation):
+    def eval(self, condition, t, evaluation):
         "If[condition_, t_]"
 
         if condition is SymbolTrue:
@@ -391,7 +397,7 @@ class If(Builtin):
         elif condition is SymbolFalse:
             return SymbolNull
 
-    def apply_3(self, condition, t, f, evaluation):
+    def eval_with_false(self, condition, t, f, evaluation):
         "If[condition_, t_, f_]"
 
         if condition is SymbolTrue:
@@ -399,7 +405,7 @@ class If(Builtin):
         elif condition is SymbolFalse:
             return f.evaluate(evaluation)
 
-    def apply_4(self, condition, t, f, u, evaluation):
+    def eval_with_false_and_other(self, condition, t, f, u, evaluation):
         "If[condition_, t_, f_, u_]"
 
         if condition is SymbolTrue:
@@ -425,7 +431,7 @@ class Interrupt(Builtin):
 
     summary_text = "interrupt evaluation and return '$Aborted'"
 
-    def apply(self, evaluation):
+    def eval(self, evaluation):
         "Interrupt[]"
 
         raise AbortInterrupt
@@ -433,7 +439,8 @@ class Interrupt(Builtin):
 
 class Return(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Return.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Return.html</url>
 
     <dl>
       <dt>'Return[$expr$]'
@@ -474,7 +481,7 @@ class Return(Builtin):
 
     summary_text = "return from a function"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "Return[expr_]"
 
         raise ReturnInterrupt(expr)
@@ -482,11 +489,13 @@ class Return(Builtin):
 
 class Switch(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Switch.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Switch.html</url>
 
     <dl>
       <dt>'Switch[$expr$, $pattern1$, $value1$, $pattern2$, $value2$, ...]'
-      <dd>yields the first $value$ for which $expr$ matches the corresponding $pattern$.
+      <dd>yields the first $value$ for which $expr$ matches the corresponding \
+          $pattern$.
     </dl>
 
     >> Switch[2, 1, x, 2, y, 3, z]
@@ -522,7 +531,7 @@ class Switch(Builtin):
 
     summary_text = "switch based on a value, with patterns allowed"
 
-    def apply(self, expr, rules, evaluation):
+    def eval(self, expr, rules, evaluation):
         "Switch[expr_, rules___]"
 
         rules = rules.get_sequence()
@@ -537,11 +546,14 @@ class Switch(Builtin):
 
 class Which(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Which.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Which.html</url>
 
     <dl>
       <dt>'Which[$cond1$, $expr1$, $cond2$, $expr2$, ...]'
-      <dd>yields $expr1$ if $cond1$ evaluates to 'True', $expr2$ if $cond2$ evaluates to 'True', etc.
+      <dd>yields $expr1$ if $cond1$ evaluates to 'True', $expr2$ if $cond2$ \
+          evaluates to 'True', etc.
     </dl>
 
     >> n = 5;
@@ -571,7 +583,7 @@ class Which(Builtin):
     attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "test which of a sequence of conditions are true"
 
-    def apply(self, items, evaluation):
+    def eval(self, items, evaluation):
         "Which[items___]"
 
         items = items.get_sequence()
@@ -597,7 +609,8 @@ class Which(Builtin):
 
 class While(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/While.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/While.html</url>
 
     <dl>
       <dt>'While[$test$, $body$]'
@@ -623,7 +636,7 @@ class While(Builtin):
         "While[test_]": "While[test, Null]",
     }
 
-    def apply(self, test, body, evaluation):
+    def eval(self, test, body, evaluation):
         "While[test_, body_]"
 
         while test.evaluate(evaluation) is SymbolTrue:
@@ -641,11 +654,13 @@ class While(Builtin):
 
 class Throw(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Throw.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Throw.html</url>
 
     <dl>
       <dt>'Throw[`value`]'
-      <dd> stops evaluation and returns `value` as the value of the nearest enclosing 'Catch'.
+      <dd> stops evaluation and returns `value` as the value of the nearest \
+           enclosing 'Catch'.
 
       <dt>'Catch[`value`, `tag`]'
       <dd> is caught only by `Catch[expr,form]`, where tag matches form.
@@ -668,10 +683,10 @@ class Throw(Builtin):
 
     summary_text = "throw an expression to be caught by a surrounding 'Catch'"
 
-    def apply1(self, value, evaluation):
+    def eval1(self, value, evaluation):
         "Throw[value_]"
         raise WLThrowInterrupt(value)
 
-    def apply_with_tag(self, value, tag, evaluation):
+    def eval_with_tag(self, value, tag, evaluation):
         "Throw[value_, tag_]"
         raise WLThrowInterrupt(value, tag)
