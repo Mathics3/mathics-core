@@ -32,7 +32,7 @@ optional_software: Dict[str, str] = (
     "networkx",
     "nltk",
     "psutil",
-    "scikit-image",
+    "skimage",
     "scipy",
     "wordcloud",
 )
