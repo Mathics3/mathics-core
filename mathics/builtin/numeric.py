@@ -213,7 +213,7 @@ class N(Builtin):
 
     summary_text = "numerical evaluation to specified precision and accuracy"
 
-    def eval_with_prec(self, expr, prec, evaluation, options=None):
+    def apply_with_prec(self, expr, prec, evaluation, options=None):
         "N[expr_, prec_, OptionsPattern[%(name)s]]"
 
         # If options are passed, set the preference in evaluation, and call again
@@ -244,7 +244,7 @@ class N(Builtin):
 
         return eval_nvalues(expr, prec, evaluation)
 
-    def eval_N(self, expr, evaluation: Evaluation):
+    def apply_N(self, expr, evaluation):
         """N[expr_]"""
         # TODO: Specialize for atoms
         return eval_nvalues(expr, SymbolMachinePrecision, evaluation)
