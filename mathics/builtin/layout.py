@@ -16,9 +16,9 @@ from mathics.builtin.lists import list_boxes
 from mathics.builtin.makeboxes import MakeBoxes
 from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Integer, Integer1, Real, String
-from mathics.core.expression import Evaluation, Expression
 from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
 from mathics.core.element import BaseElement
+from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import (

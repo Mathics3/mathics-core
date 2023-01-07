@@ -5,18 +5,26 @@
 Low level Format definitions
 """
 
+from typing import Union
+
 import mpmath
 
 from mathics.builtin.base import Builtin, Predefined
 from mathics.builtin.box.layout import RowBox, to_boxes
-from mathics.core.atoms import Integer, Real, String
+from mathics.core.atoms import Integer, Integer1, Real, String
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_READ_PROTECTED
-from mathics.core.element import BoxElementMixin
+from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
+from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps
-from mathics.core.symbols import Atom
-from mathics.core.systemsymbols import SymbolRowBox
+from mathics.core.symbols import Atom, Symbol
+from mathics.core.systemsymbols import (
+    SymbolInputForm,
+    SymbolNone,
+    SymbolOutputForm,
+    SymbolRowBox,
+)
 from mathics.eval.makeboxes import _boxed_string, format_element, parenthesize
 
 
@@ -30,6 +38,32 @@ def int_to_s_exp(expr, n):
         s = str(n)
     exp = len(s) - 1
     return s, exp, nonnegative
+
+
+# FIXME: op should be a string, so remove the Union.
+def make_boxes_infix(
+    elements, op: Union[String, list], precedence: int, grouping, form: Symbol
+):
+    result = []
+    for index, element in enumerate(elements):
+        if index > 0:
+            if isinstance(op, list):
+                result.append(op[index - 1])
+            else:
+                result.append(op)
+        parenthesized = False
+        if grouping == "System`NonAssociative":
+            parenthesized = True
+        elif grouping == "System`Left" and index > 0:
+            parenthesized = True
+        elif grouping == "System`Right" and index == 0:
+            parenthesized = True
+
+        element_boxes = MakeBoxes(element, form)
+        element = parenthesize(precedence, element, element_boxes, parenthesized)
+
+        result.append(element)
+    return Expression(SymbolRowBox, ListExpression(*result))
 
 
 def real_to_s_exp(expr, n):
@@ -428,7 +462,7 @@ class MakeBoxes(Builtin):
             evaluation.message("Infix", "intm", expr)
             return self.eval_general(expr, form, evaluation)
 
-        grouping = grouping.get_name()
+        grouping = grouping
 
         ## FIXME: this should go into a some formatter.
         def format_operator(operator) -> Union[String, BaseElement]:
@@ -458,7 +492,7 @@ class MakeBoxes(Builtin):
                 return op
             return operator
 
-        precedence = prec.value if hasattr(prec, "value") else 0
+        precedence = precedence.value if hasattr(precedence, "value") else 0
         grouping = grouping.get_name()
 
         if isinstance(expr, Atom):
