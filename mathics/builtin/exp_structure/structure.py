@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Structural Operations on Expressions
+Expression Structure
 
-Structural transformations on lists, and general symbolic expressions.
+Structural transformations on Lists.
 """
 
 import platform
@@ -28,7 +28,9 @@ SymbolSortBy = Symbol("SortBy")
 
 class ApplyLevel(BinaryOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ApplyLevel.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ApplyLevel.html</url>
 
     <dl>
       <dt>'ApplyLevel[$f$, $expr$]'
@@ -54,7 +56,9 @@ class ApplyLevel(BinaryOperator):
 
 class BinarySearch(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/BinarySearch.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/BinarySearch.html</url>
 
     <dl>
       <dt>'CombinatoricaOld`BinarySearch[$l$, $k$]'
@@ -95,7 +99,7 @@ class BinarySearch(Builtin):
 
     summary_text = "search a sorted list for a key"
 
-    def apply(self, l, k, f, evaluation):
+    def eval(self, l, k, f, evaluation):
         "CombinatoricaOld`BinarySearch[l_List, k_, f_] /; Length[l] > 0"
 
         elements = l.elements
@@ -145,7 +149,9 @@ class BinarySearch(Builtin):
 
 class ByteCount(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ByteCount.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ByteCount.html</url>
 
     <dl>
       <dt>'ByteCount[$expr$]'
@@ -157,7 +163,7 @@ class ByteCount(Builtin):
 
     summary_text = "amount of memory used by expr, in bytes"
 
-    def apply(self, expression, evaluation):
+    def eval(self, expression, evaluation):
         "ByteCount[expression_]"
         if not bytecount_support:
             return evaluation.message("ByteCount", "pypy")
@@ -196,7 +202,7 @@ class Depth(Builtin):
 
     summary_text = "the maximum number of indices to specify any part"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "Depth[expr_]"
         expr, depth = walk_levels(expr)
         return Integer(depth + 1)
@@ -204,7 +210,9 @@ class Depth(Builtin):
 
 class Flatten(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Flatten.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Flatten.html</url>
 
     <dl>
       <dt>'Flatten[$expr$]'
@@ -286,7 +294,7 @@ class Flatten(Builtin):
 
     summary_text = "flatten out any sequence of levels in a nested list"
 
-    def apply_list(self, expr, n, h, evaluation):
+    def eval_list(self, expr, n, h, evaluation):
         "Flatten[expr_, n_List, h_]"
 
         # prepare levels
@@ -381,7 +389,7 @@ class Flatten(Builtin):
 
         return Expression(h, *insert_element(elements))
 
-    def apply(self, expr, n, h, evaluation):
+    def eval(self, expr, n, h, evaluation):
         "Flatten[expr_, n_, h_]"
 
         if n == Expression(SymbolDirectedInfinity, Integer1):
@@ -399,7 +407,9 @@ class Flatten(Builtin):
 
 class FreeQ(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/FreeQ.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/FreeQ.html</url>
 
     <dl>
       <dt>'FreeQ[$expr$, $x$]'
@@ -428,7 +438,7 @@ class FreeQ(Builtin):
         "test whether an expression is free of subexpressions matching a pattern"
     )
 
-    def apply(self, expr, form, evaluation):
+    def eval(self, expr, form, evaluation):
         "FreeQ[expr_, form_]"
 
         form = Pattern.create(form)
@@ -440,7 +450,9 @@ class FreeQ(Builtin):
 
 class Null(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Null.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Null.html</url>
 
     <dl>
       <dt>'Null'
@@ -462,7 +474,9 @@ class Null(Predefined):
 
 class Operate(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Operate.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Operate.html</url>
 
     <dl>
       <dt>'Operate[$p$, $expr$]'
@@ -493,7 +507,7 @@ class Operate(Builtin):
         "intnn": "Non-negative integer expected at position `2` in `1`.",
     }
 
-    def apply(self, p, expr, n, evaluation):
+    def eval(self, p, expr, n, evaluation):
         "Operate[p_, expr_, Optional[n_, 1]]"
 
         head_depth = n.get_int_value()
@@ -533,8 +547,10 @@ class Order(Builtin):
 
     <dl>
       <dt>'Order[$x$, $y$]'
-      <dd>returns a number indicating the canonical ordering of $x$ and $y$. 1 indicates that $x$ is before $y$,
-        -1 that $y$ is before $x$. 0 indicates that there is no specific ordering. Uses the same order as 'Sort'.
+      <dd>returns a number indicating the canonical ordering of $x$ and $y$. \
+         1 indicates that $x$ is before $y$, \-1 that $y$ is before $x$. \
+         0 indicates that there is no specific ordering. Uses the same order \
+         as 'Sort'.
     </dl>
 
     >> Order[7, 11]
@@ -552,7 +568,7 @@ class Order(Builtin):
 
     summary_text = "canonical ordering of expressions"
 
-    def apply(self, x, y, evaluation):
+    def eval(self, x, y, evaluation):
         "Order[x_, y_]"
         if x < y:
             return Integer1
@@ -564,7 +580,9 @@ class Order(Builtin):
 
 class OrderedQ(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/OrderedQ.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/OrderedQ.html</url>
 
     <dl>
       <dt>'OrderedQ[{$a$, $b$}]'
@@ -580,7 +598,7 @@ class OrderedQ(Builtin):
 
     summary_text = "test whether elements are canonically sorted"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "OrderedQ[expr_]"
 
         for index, value in enumerate(expr.elements[:-1]):
@@ -593,7 +611,9 @@ class OrderedQ(Builtin):
 
 class PatternsOrderedQ(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/PatternsOrderedQ.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/PatternsOrderedQ.html</url>
 
     <dl>
       <dt>'PatternsOrderedQ[$patt1$, $patt2$]'
@@ -611,7 +631,7 @@ class PatternsOrderedQ(Builtin):
 
     summary_text = "test whether patterns are canonically sorted"
 
-    def apply(self, p1, p2, evaluation):
+    def eval(self, p1, p2, evaluation):
         "PatternsOrderedQ[p1_, p2_]"
 
         if p1.get_sort_key(True) <= p2.get_sort_key(True):
@@ -622,13 +642,17 @@ class PatternsOrderedQ(Builtin):
 
 class SortBy(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/SortBy.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/SortBy.html</url>
 
     <dl>
       <dt>'SortBy[$list$, $f$]'
-      <dd>sorts $list$ (or the elements of any other expression) according to canonical ordering of the keys that are
-    extracted from the $list$'s elements using $f. Chunks of elements that appear the same under $f are sorted
-    according to their natural order (without applying $f).
+      <dd>sorts $list$ (or the elements of any other expression) according to \
+         canonical ordering of the keys that are extracted from the $list$'s \
+         elements using $f. Chunks of elements that appear the same under $f \
+         are sorted according to their natural order (without applying $f).
+
       <dt>'SortBy[$f$]'
       <dd>creates an operator function that, when applied, sorts by $f.
     </dl>
@@ -651,7 +675,7 @@ class SortBy(Builtin):
 
     summary_text = "sort by the values of a function applied to elements"
 
-    def apply(self, li, f, evaluation):
+    def eval(self, li, f, evaluation):
         "SortBy[li_, f_]"
 
         if isinstance(li, Atom):
@@ -696,7 +720,9 @@ class SortBy(Builtin):
 
 class Through(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Through.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Through.html</url>
 
     <dl>
       <dt>'Through[$p$[$f$][$x$]]'
@@ -711,7 +737,7 @@ class Through(Builtin):
 
     summary_text = "distribute operators that appears inside the head of expressions"
 
-    def apply(self, p, args, x, evaluation):
+    def eval(self, p, args, x, evaluation):
         "Through[p_[args___][x___]]"
 
         elements = []
