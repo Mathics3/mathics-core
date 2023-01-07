@@ -11,6 +11,7 @@ from csv import reader as csvreader
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer, String
 from mathics.core.convert.python import from_python
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, strip_context
 
@@ -113,16 +114,16 @@ class ElementData(Builtin):
 
     summary_text = "Data about chemical elements"
 
-    def apply_all(self, evaluation):
+    def eval_all(self, evaluation: Evaluation):
         "ElementData[All]"
         iprop = _ELEMENT_DATA[0].index("StandardName")
         return from_python([element[iprop] for element in _ELEMENT_DATA[1:]])
 
-    def apply_all_properties(self, evaluation):
+    def eval_all_properties(self, evaluation: Evaluation):
         'ElementData[All, "Properties"]'
         return from_python(sorted(_ELEMENT_DATA[0]))
 
-    def apply_name(self, expr, prop, evaluation):
+    def eval_name(self, expr, prop, evaluation: Evaluation):
         "ElementData[expr_, prop_]"
 
         if isinstance(expr, String):

@@ -63,7 +63,7 @@ class RSolve(Builtin):
     }
     summary_text = "recurrence equations solver"
 
-    def apply(self, eqns, a, n, evaluation):
+    def eval(self, eqns, a, n, evaluation):
         "RSolve[eqns_, a_, n_]"
 
         # TODO: Do this with rules?
