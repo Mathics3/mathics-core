@@ -308,7 +308,8 @@ class Failure(Builtin):
 
     <dl>
       <dt>Failure[$tag$, $assoc$]
-      <dd> represents a failure of a type indicated by $tag$, with details given by the association $assoc$.
+      <dd> represents a failure of a type indicated by $tag$, with details \
+           given by the association $assoc$.
     </dl>
     """
 
@@ -328,7 +329,8 @@ class Insert(Builtin):
 
     <dl>
       <dt>'Insert[$list$, $elem$, $n$]'
-      <dd>inserts $elem$ at position $n$ in $list$. When $n$ is negative, the position is counted from the end.
+      <dd>inserts $elem$ at position $n$ in $list$. When $n$ is negative, \
+          the position is counted from the end.
     </dl>
 
     >> Insert[{a,b,c,d,e}, x, 3]
@@ -353,11 +355,14 @@ class Insert(Builtin):
 
 class IntersectingQ(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/IntersectingQ.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/IntersectingQ.html</url>
 
     <dl>
       <dt>'IntersectingQ[$a$, $b$]'
-      <dd>gives True if there are any common elements in $a and $b, or False if $a and $b are disjoint.
+      <dd>gives True if there are any common elements in $a and $b, or \
+          False if $a and $b are disjoint.
     </dl>
     """
 
@@ -367,7 +372,9 @@ class IntersectingQ(Builtin):
 
 class Key(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Key.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Key.html</url>
 
     <dl>
       <dt>Key[$key$]
@@ -385,7 +392,9 @@ class Key(Builtin):
 
 class LeafCount(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/LeafCount.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/LeafCount.html</url>
 
     <dl>
       <dt>'LeafCount[$expr$]'
