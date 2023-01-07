@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 """
+Layout
+
 This module contains symbols used to define the high level layout for
 expression formatting.
 
