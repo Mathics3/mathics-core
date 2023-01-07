@@ -31,13 +31,12 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAlternatives,
+    SymbolKey,
     SymbolMakeBoxes,
     SymbolMatchQ,
     SymbolSequence,
     SymbolSubsetQ,
 )
-
-SymbolKey = Symbol("Key")
 
 
 def delete_one(expr, pos):
@@ -368,26 +367,6 @@ class IntersectingQ(Builtin):
 
     rules = {"IntersectingQ[a_List, b_List]": "Length[Intersect[a, b]] > 0"}
     summary_text = "test whether two lists have common elements"
-
-
-class Key(Builtin):
-    """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/Key.html</url>
-
-    <dl>
-      <dt>Key[$key$]
-      <dd> represents a key used to access a value in an association.
-      <dt>Key[$key$][$assoc$]
-      <dd>
-    </dl>
-    """
-
-    rules = {
-        "Key[key_][assoc_Association]": "assoc[key]",
-    }
-    summary_text = "indicate a key within a part specification"
 
 
 class LeafCount(Builtin):
