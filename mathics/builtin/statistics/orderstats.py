@@ -12,7 +12,7 @@ from mpmath import ceil as mpceil, floor as mpfloor
 
 from mathics.algorithm.introselect import introselect
 from mathics.builtin.base import Builtin
-from mathics.builtin.lists import _RankedTakeLargest, _RankedTakeSmallest
+from mathics.builtin.list.math import _RankedTakeLargest, _RankedTakeSmallest
 from mathics.core.atoms import Atom, Integer, Symbol, SymbolTrue
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
