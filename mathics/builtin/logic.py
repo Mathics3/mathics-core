@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 
+from mathics.algorithm.parts import python_levelspec, walk_levels
 from mathics.builtin.base import BinaryOperator, Builtin, Predefined, PrefixOperator
-from mathics.builtin.lists import InvalidLevelspecError, python_levelspec, walk_levels
 from mathics.core.attributes import (
     A_FLAT,
     A_HOLD_ALL,
@@ -11,6 +11,7 @@ from mathics.core.attributes import (
     A_ORDERLESS,
     A_PROTECTED,
 )
+from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import (

@@ -173,6 +173,7 @@ setup(
         "mathics.builtin.box",
         "mathics.builtin.colors",
         "mathics.builtin.distance",
+        "mathics.builtin.exp_structure",
         "mathics.builtin.drawing",
         "mathics.builtin.fileformats",
         "mathics.builtin.files_io",

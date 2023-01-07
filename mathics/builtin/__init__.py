@@ -190,6 +190,7 @@ for subdir in (
     "colors",
     "distance",
     "drawing",
+    "exp_structure",
     "fileformats",
     "files_io",
     "forms",
