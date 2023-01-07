@@ -12,6 +12,7 @@ sort_order = "mathics.builtin.special-moments"
 from mathics.builtin.base import Builtin
 from mathics.builtin.lists import _NotRectangularException, _Rectangular
 from mathics.core.atoms import Integer
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolDivide
 from mathics.core.systemsymbols import SymbolDot, SymbolMean, SymbolSubtract
@@ -29,7 +30,11 @@ SymbolVariance = Symbol("Variance")
 
 class Correlation(Builtin):
     """
-    <url>:Pearson correlation coefficient:https://en.wikipedia.org/wiki/Pearson_correlation_coefficient</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Correlation.html</url>)
+    <url>
+    :Pearson correlation coefficient:
+    https://en.wikipedia.org/wiki/Pearson_correlation_coefficient</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Correlation.html</url>)
 
     <dl>
       <dt>'Correlation[$a$, $b$]'
@@ -48,7 +53,7 @@ class Correlation(Builtin):
     }
     summary_text = "Pearson's correlation of a pair of datasets"
 
-    def apply(self, a, b, evaluation):
+    def eval(self, a, b, evaluation: Evaluation):
         "Correlation[a_List, b_List]"
 
         if len(a.elements) != len(b.elements):
@@ -65,7 +70,11 @@ class Correlation(Builtin):
 
 class Covariance(Builtin):
     """
-    <url>:Covariance: https://en.wikipedia.org/wiki/Covariance</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Covariance.html</url>)
+    <url>
+    :Covariance:
+    https://en.wikipedia.org/wiki/Covariance</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Covariance.html</url>)
     <dl>
       <dt>'Covariance[$a$, $b$]'
       <dd>computes the covariance between the equal-sized vectors $a$ and $b$.
@@ -81,7 +90,7 @@ class Covariance(Builtin):
     }
     summary_text = "covariance matrix for a pair of datasets"
 
-    def apply(self, a, b, evaluation):
+    def eval(self, a, b, evaluation: Evaluation):
         "Covariance[a_List, b_List]"
 
         if len(a.elements) != len(b.elements):
@@ -102,10 +111,15 @@ class Covariance(Builtin):
 
 class StandardDeviation(_Rectangular):
     """
-    <url>:Standard deviation: https://en.wikipedia.org/wiki/Standard_deviation</url> (<url>:WMA: https://reference.wolfram.com/language/ref/StandardDeviation.html</url>)
+    <url>
+    :Standard deviation:
+    https://en.wikipedia.org/wiki/Standard_deviation</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/StandardDeviation.html</url>)
     <dl>
       <dt>'StandardDeviation[$list$]'
-      <dd>computes the standard deviation of $list. $list$ may consist of numerical values or symbols. Numerical values may be real or complex.
+      <dd>computes the standard deviation of $list. $list$ may consist of \
+          numerical values or symbols. Numerical values may be real or complex.
 
       StandardDeviation[{{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}] will yield
       {StandardDeviation[{$a1$, $b1$, ...}, StandardDeviation[{$a2$, $b2$, ...}], ...}.
@@ -130,7 +144,7 @@ class StandardDeviation(_Rectangular):
     }
     summary_text = "standard deviation of a dataset"
 
-    def apply(self, l, evaluation):
+    def eval(self, l, evaluation: Evaluation):
         "StandardDeviation[l_List]"
         if len(l.elements) <= 1:
             evaluation.message("StandardDeviation", "shlen", l)
@@ -147,7 +161,11 @@ class StandardDeviation(_Rectangular):
 
 class Variance(_Rectangular):
     """
-    <url>:Variance: https://en.wikipedia.org/wiki/Variance</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Variance.html</url>)
+    <url>
+    :Variance:
+    https://en.wikipedia.org/wiki/Variance</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Variance.html</url>)
     <dl>
       <dt>'Variance[$list$]'
       <dd>computes the variance of $list. $list$ may consist of numerical values or symbols. Numerical values may be real or complex.
@@ -180,7 +198,7 @@ class Variance(_Rectangular):
     # for the general formulation of real and complex variance below, see for example
     # https://en.wikipedia.org/wiki/Variance#Generalizations
 
-    def apply(self, l, evaluation):
+    def eval(self, l, evaluation: Evaluation):
         "Variance[l_List]"
         if len(l.elements) <= 1:
             evaluation.message("Variance", "shlen", l)
