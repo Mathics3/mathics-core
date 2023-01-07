@@ -276,6 +276,10 @@ class Gamma(_MPMathMultiFunction):
     https://mpmath.org/doc/current/functions/gamma.html#gamma</url>, <url>
     :WMA:https://reference.wolfram.com/language/ref/Gamma.html</url>)
 
+    The gamma function is one commonly used extension of the factorial function \
+    applied to complex numbers, and is defined for all complex numbers except \
+    the non-positive integers.
+
     <dl>
       <dt>'Gamma[$z$]'
       <dd>is the gamma function on the complex number $z$.

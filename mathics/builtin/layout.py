@@ -16,7 +16,7 @@ from mathics.builtin.lists import list_boxes
 from mathics.builtin.makeboxes import MakeBoxes
 from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Real, String
-from mathics.core.expression import Expression
+from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolMakeBoxes
@@ -93,7 +93,7 @@ class Grid(Builtin):
     options = GridBox.options
     summary_text = " 2D layout containing arbitrary objects"
 
-    def apply_makeboxes(self, array, f, evaluation, options) -> Expression:
+    def eval_makeboxes(self, array, f, evaluation, options) -> Expression:
         """MakeBoxes[Grid[array_?MatrixQ, OptionsPattern[Grid]],
         f:StandardForm|TraditionalForm|OutputForm]"""
         return GridBox(
@@ -230,7 +230,7 @@ class Precedence(Builtin):
 
     summary_text = "an object to be parenthesized with a given precedence level"
 
-    def apply(self, expr, evaluation) -> Real:
+    def eval(self, expr, evaluation) -> Real:
         "Precedence[expr_]"
 
         name = expr.get_name()
@@ -307,7 +307,7 @@ class Row(Builtin):
 
     summary_text = "1D layouts containing arbitrary objects in a row"
 
-    def apply_makeboxes(self, items, sep, f, evaluation):
+    def eval_makeboxes(self, items, sep, f, evaluation: Evaluation):
         """MakeBoxes[Row[{items___}, sep_:""],
         f:StandardForm|TraditionalForm|OutputForm]"""
 
@@ -369,7 +369,9 @@ class Style(Builtin):
 
 class Subscript(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Subscript.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Subscript.html</url>
 
     <dl>
       <dt>'Subscript[$a$, $i$]'
@@ -382,7 +384,7 @@ class Subscript(Builtin):
 
     summary_text = "format an expression with a subscript"
 
-    def apply_makeboxes(self, x, y, f, evaluation) -> Expression:
+    def eval_makeboxes(self, x, y, f, evaluation) -> Expression:
         "MakeBoxes[Subscript[x_, y__], f:StandardForm|TraditionalForm]"
 
         y = y.get_sequence()
