@@ -7,7 +7,7 @@ This module contains symbols used to define the high level layout for
 expression formatting.
 
 For instance, to represent a set of consecutive expressions in a row,
-we can use ``Row``
+we can use 'Row'.
 
 """
 
