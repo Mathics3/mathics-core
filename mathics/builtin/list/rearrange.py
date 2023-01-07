@@ -10,14 +10,15 @@ from collections import defaultdict
 from itertools import chain
 from typing import Callable
 
+from mathics.algorithm.parts import walk_levels
 from mathics.builtin.base import Builtin, MessageException
-from mathics.core.atoms import Integer, Integer0
+from mathics.core.atoms import Integer, Integer0, Integer1
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, structure
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolTrue
-from mathics.core.systemsymbols import SymbolMap, SymbolSplit
+from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolMap, SymbolSplit
 
 SymbolReverse = Symbol("Reverse")
 
@@ -611,6 +612,203 @@ class Gather(_GatherOperation):
 
     summary_text = "gather sublists of identical elements"
     _bin = _GatherBin
+
+
+class Flatten(Builtin):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Flatten.html</url>
+
+    <dl>
+      <dt>'Flatten[$expr$]'
+      <dd>flattens out nested lists in $expr$.
+
+      <dt>'Flatten[$expr$, $n$]'
+      <dd>stops flattening at level $n$.
+
+      <dt>'Flatten[$expr$, $n$, $h$]'
+      <dd>flattens expressions with head $h$ instead of 'List'.
+    </dl>
+
+    >> Flatten[{{a, b}, {c, {d}, e}, {f, {g, h}}}]
+     = {a, b, c, d, e, f, g, h}
+    >> Flatten[{{a, b}, {c, {e}, e}, {f, {g, h}}}, 1]
+     = {a, b, c, {e}, e, f, {g, h}}
+    >> Flatten[f[a, f[b, f[c, d]], e], Infinity, f]
+     = f[a, b, c, d, e]
+
+    >> Flatten[{{a, b}, {c, d}}, {{2}, {1}}]
+     = {{a, c}, {b, d}}
+
+    >> Flatten[{{a, b}, {c, d}}, {{1, 2}}]
+     = {a, b, c, d}
+
+    Flatten also works in irregularly shaped arrays
+    >> Flatten[{{1, 2, 3}, {4}, {6, 7}, {8, 9, 10}}, {{2}, {1}}]
+     = {{1, 4, 6, 8}, {2, 7, 9}, {3, 10}}
+
+    #> Flatten[{{1, 2}, {3, 4}}, {{-1, 2}}]
+     : Levels to be flattened together in {{-1, 2}} should be lists of positive integers.
+     = Flatten[{{1, 2}, {3, 4}}, {{-1, 2}}, List]
+
+    #> Flatten[{a, b}, {{1}, {2}}]
+     : Level 2 specified in {{1}, {2}} exceeds the levels, 1, which can be flattened together in {a, b}.
+     = Flatten[{a, b}, {{1}, {2}}, List]
+
+    ## Check `n` completion
+    #> m = {{{1, 2}, {3}}, {{4}, {5, 6}}};
+    #> Flatten[m, {{2}, {1}, {3}, {4}}]
+     : Level 4 specified in {{2}, {1}, {3}, {4}} exceeds the levels, 3, which can be flattened together in {{{1, 2}, {3}}, {{4}, {5, 6}}}.
+     = Flatten[{{{1, 2}, {3}}, {{4}, {5, 6}}}, {{2}, {1}, {3}, {4}}, List]
+
+    ## Test from issue #251
+    #> m = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    #> Flatten[m, {3}]
+     : Level 3 specified in {3} exceeds the levels, 2, which can be flattened together in {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}.
+     = Flatten[{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, {3}, List]
+
+    ## Reproduce strange head behaviour
+    #> Flatten[{{1}, 2}, {1, 2}]
+     : Level 2 specified in {1, 2} exceeds the levels, 1, which can be flattened together in {{1}, 2}.
+     = Flatten[{{1}, 2}, {1, 2}, List]
+    #> Flatten[a[b[1, 2], b[3]], {1, 2}, b]     (* MMA BUG: {{1, 2}} not {1, 2}  *)
+     : Level 1 specified in {1, 2} exceeds the levels, 0, which can be flattened together in a[b[1, 2], b[3]].
+     = Flatten[a[b[1, 2], b[3]], {1, 2}, b]
+
+    #> Flatten[{{1, 2}, {3, {4}}}, {{1, 2, 3}}]
+     : Level 3 specified in {{1, 2, 3}} exceeds the levels, 2, which can be flattened together in {{1, 2}, {3, {4}}}.
+     = Flatten[{{1, 2}, {3, {4}}}, {{1, 2, 3}}, List]
+    """
+
+    messages = {
+        "flpi": (
+            "Levels to be flattened together in `1` "
+            "should be lists of positive integers."
+        ),
+        "flrep": ("Level `1` specified in `2` should not be repeated."),
+        "fldep": (
+            "Level `1` specified in `2` exceeds the levels, `3`, "
+            "which can be flattened together in `4`."
+        ),
+    }
+
+    rules = {
+        "Flatten[expr_]": "Flatten[expr, Infinity, Head[expr]]",
+        "Flatten[expr_, n_]": "Flatten[expr, n, Head[expr]]",
+    }
+
+    summary_text = "flatten out any sequence of levels in a nested list"
+
+    def eval_list(self, expr, n, h, evaluation):
+        "Flatten[expr_, n_List, h_]"
+
+        # prepare levels
+        # find max depth which matches `h`
+        expr, max_depth = walk_levels(expr)
+        max_depth = {"max_depth": max_depth}  # hack to modify max_depth from callback
+
+        def callback(expr, pos):
+            if len(pos) < max_depth["max_depth"] and (
+                isinstance(expr, Atom) or expr.head != h
+            ):
+                max_depth["max_depth"] = len(pos)
+            return expr
+
+        expr, depth = walk_levels(expr, callback=callback, include_pos=True, start=0)
+        max_depth = max_depth["max_depth"]
+
+        levels = n.to_python()
+
+        # mappings
+        if isinstance(levels, list) and all(isinstance(level, int) for level in levels):
+            levels = [levels]
+
+        # verify levels is list of lists of positive ints
+        if not (isinstance(levels, list) and len(levels) > 0):
+            evaluation.message("Flatten", "flpi", n)
+            return
+        seen_levels = []
+        for level in levels:
+            if not (isinstance(level, list) and len(level) > 0):
+                evaluation.message("Flatten", "flpi", n)
+                return
+            for r in level:
+                if not (isinstance(r, int) and r > 0):
+                    evaluation.message("Flatten", "flpi", n)
+                    return
+                if r in seen_levels:
+                    # level repeated
+                    evaluation.message("Flatten", "flrep", r)
+                    return
+                seen_levels.append(r)
+
+        # complete the level spec e.g. {{2}} -> {{2}, {1}, {3}}
+        for s in range(1, max_depth + 1):
+            if s not in seen_levels:
+                levels.append([s])
+
+        # verify specified levels are smaller max depth
+        for level in levels:
+            for s in level:
+                if s > max_depth:
+                    evaluation.message("Flatten", "fldep", s, n, max_depth, expr)
+                    return
+
+        # assign new indices to each element
+        new_indices = {}
+
+        def callback(expr, pos):
+            if len(pos) == max_depth:
+                new_depth = tuple(tuple(pos[i - 1] for i in level) for level in levels)
+                new_indices[new_depth] = expr
+            return expr
+
+        expr, depth = walk_levels(expr, callback=callback, include_pos=True)
+
+        # build new tree inserting nodes as needed
+        elements = sorted(new_indices.items())
+
+        def insert_element(elements):
+            # gather elements into groups with the same leading index
+            # e.g. [((0, 0), a), ((0, 1), b), ((1, 0), c), ((1, 1), d)]
+            # -> [[(0, a), (1, b)], [(0, c), (1, d)]]
+            leading_index = None
+            grouped_elements = []
+            for index, element in elements:
+                if index[0] == leading_index:
+                    grouped_elements[-1].append((index[1:], element))
+                else:
+                    leading_index = index[0]
+                    grouped_elements.append([(index[1:], element)])
+            # for each group of elements we either insert them into the current level
+            # or make a new level and recurse
+            new_elements = []
+            for group in grouped_elements:
+                if len(group[0][0]) == 0:  # bottom level element or leaf
+                    assert len(group) == 1
+                    new_elements.append(group[0][1])
+                else:
+                    new_elements.append(Expression(h, *insert_element(group)))
+
+            return new_elements
+
+        return Expression(h, *insert_element(elements))
+
+    def eval(self, expr, n, h, evaluation):
+        "Flatten[expr_, n_, h_]"
+
+        if n == Expression(SymbolDirectedInfinity, Integer1):
+            n = -1  # a negative number indicates an unbounded level
+        else:
+            n_int = n.get_int_value()
+            # Here we test for negative since in Mathics Flatten[] as opposed to flatten_with_respect_to_head()
+            # negative numbers (and None) are not allowed.
+            if n_int is None or n_int < 0:
+                return evaluation.message("Flatten", "flpi", n)
+            n = n_int
+
+        return expr.flatten_with_respect_to_head(h, level=n)
 
 
 class GatherBy(_GatherOperation):

@@ -12,8 +12,9 @@ sort_order = "mathics.builtin.applying-functions-to-lists"
 
 from typing import Iterable
 
+from mathics.algorithm.parts import python_levelspec, walk_levels
 from mathics.builtin.base import BinaryOperator, Builtin
-from mathics.builtin.lists import List, python_levelspec, walk_levels
+from mathics.builtin.lists import List
 from mathics.core.atoms import Integer
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.exceptions import (
