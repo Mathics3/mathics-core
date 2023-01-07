@@ -3,11 +3,19 @@
 """
 Tensors
 
-A <url>:tensor: https://en.wikipedia.org/wiki/Tensor</url> is an algebraic object that describes a (multilinear) relationship between sets of algebraic objects related to a vector space. Objects that tensors may map between include vectors and scalars, and even other tensors.
+A <url>:tensor: https://en.wikipedia.org/wiki/Tensor</url> is an algebraic \
+object that describes a (multilinear) relationship between sets of algebraic \
+objects related to a vector space. Objects that tensors may map between \
+include vectors and scalars, and even other tensors.
 
-There are many types of tensors, including scalars and vectors (which are the simplest tensors), dual vectors, multilinear maps between vector spaces, and even some operations such as the dot product. Tensors are defined independent of any basis, although they are often referred to by their components in a basis related to a particular coordinate system.
+There are many types of tensors, including scalars and vectors (which are \
+the simplest tensors), dual vectors, multilinear maps between vector spaces, \
+and even some operations such as the dot product. Tensors are defined \
+independent of any basis, although they are often referred to by their \
+components in a basis related to a particular coordinate system.
 
-Mathics represents tensors of vectors and matrices as lists; tensors of any rank can be handled.
+Mathics3 represents tensors of vectors and matrices as lists; tensors \
+of any rank can be handled.
 """
 
 
@@ -15,6 +23,7 @@ from mathics.algorithm.parts import get_part
 from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import Pattern
@@ -74,11 +83,13 @@ def get_dimensions(expr, head=None):
 
 class ArrayDepth(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/ArrayDepth.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/ArrayDepth.html</url>
 
     <dl>
       <dt>'ArrayDepth[$a$]'
-      <dd>returns the depth of the non-ragged array $a$, defined as 'Length[Dimensions[$a$]]'.
+      <dd>returns the depth of the non-ragged array $a$, defined as \
+      'Length[Dimensions[$a$]]'.
     </dl>
 
     >> ArrayDepth[{{a,b},{c,d}}]
@@ -127,7 +138,7 @@ class ArrayQ(Builtin):
 
     summary_text = "test whether an object is a tensor of a given rank"
 
-    def apply(self, expr, pattern, test, evaluation):
+    def eval(self, expr, pattern, test, evaluation: Evaluation):
         "ArrayQ[expr_, pattern_, test_]"
 
         pattern = Pattern.create(pattern)
@@ -196,7 +207,7 @@ class Dimensions(Builtin):
 
     summary_text = "the dimensions of a tensor"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation):
         "Dimensions[expr_]"
 
         return ListExpression(*[Integer(dim) for dim in get_dimensions(expr)])
@@ -285,7 +296,7 @@ class Inner(Builtin):
 
     summary_text = "generalized inner product"
 
-    def apply(self, f, list1, list2, g, evaluation):
+    def eval(self, f, list1, list2, g, evaluation: Evaluation):
         "Inner[f_, list1_, list2_, g_]"
 
         m = get_dimensions(list1)
@@ -369,7 +380,7 @@ class Outer(Builtin):
 
     summary_text = "generalized outer product"
 
-    def apply(self, f, lists, evaluation):
+    def eval(self, f, lists, evaluation: Evaluation):
         "Outer[f_, lists__]"
 
         lists = lists.get_sequence()
@@ -554,7 +565,7 @@ class Transpose(Builtin):
 
     summary_text = "transpose to rearrange indices in any way"
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "Transpose[m_?MatrixQ]"
 
         result = []
@@ -571,7 +582,8 @@ class Transpose(Builtin):
 # are subsumed by Elements of Lists.
 class VectorQ(Builtin):
     """
-    <url>:WMA link: https://reference.wolfram.com/language/ref/VectorQ.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/VectorQ.html</url>
 
     <dl>
       <dt>'VectorQ[$v$]'

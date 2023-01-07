@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 
 # Note: docstring is flowed in documentation. Line breaks in the docstring will appear in the
-# printed output, so be carful not to add then mid-sentence.
+# printed output, so be careful not to add them mid-sentence. Line breaks  like \
+# this work though.
 
 """
 Numerical Functions
 
-Support for approximate real numbers and exact real numbers represented in algebraic or symbolic form.
+Support for approximate real numbers and exact real numbers represented \
+in algebraic or symbolic form.
 """
 
 import sympy
@@ -16,6 +18,7 @@ from mathics.builtin.base import Builtin
 from mathics.core.atoms import Complex, Integer, Integer0, Rational, Real
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.convert.sympy import from_sympy
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.number import machine_epsilon
 from mathics.core.symbols import SymbolDivide, SymbolMachinePrecision, SymbolTimes
@@ -74,7 +77,7 @@ class Chop(Builtin):
 
     summary_text = "set sufficiently small numbers or imaginary parts to zero"
 
-    def apply(self, expr, delta, evaluation):
+    def eval(self, expr, delta, evaluation: Evaluation):
         "Chop[expr_, delta_:(10^-10)]"
 
         delta = delta.round_to_float(evaluation)
@@ -249,11 +252,13 @@ class N(Builtin):
 
 class Rationalize(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Rationalize.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Rationalize.html</url>
 
     <dl>
       <dt>'Rationalize[$x$]'
-      <dd>converts a real number $x$ to a nearby rational number with small denominator.
+      <dd>converts a real number $x$ to a nearby rational number with \
+          small denominator.
 
       <dt>'Rationalize[$x$, $dx$]'
       <dd>finds the rational number lies within $dx$ of $x$.
@@ -262,7 +267,8 @@ class Rationalize(Builtin):
     >> Rationalize[2.2]
     = 11 / 5
 
-    For negative $x$, '-Rationalize[-$x$] == Rationalize[$x$]' which gives symmetric results:
+    For negative $x$, '-Rationalize[-$x$] == Rationalize[$x$]' which \
+    gives symmetric results:
     >> Rationalize[-11.5, 1]
     = -11
 
@@ -298,7 +304,7 @@ class Rationalize(Builtin):
 
     summary_text = "find a rational approximation"
 
-    def apply(self, x, evaluation):
+    def eval(self, x, evaluation: Evaluation):
         "Rationalize[x_]"
 
         py_x = x.to_sympy()
@@ -341,7 +347,7 @@ class Rationalize(Builtin):
             if abs(x - i) < machine_epsilon:
                 return i
 
-    def apply_dx(self, x, dx, evaluation):
+    def eval_dx(self, x, dx, evaluation: Evaluation):
         "Rationalize[x_, dx_]"
         py_x = x.to_sympy()
         if py_x is None:
@@ -470,7 +476,7 @@ class Round(Builtin):
 
     summary_text = "find closest integer or multiple of"
 
-    def apply(self, expr, k, evaluation):
+    def eval(self, expr, k, evaluation: Evaluation):
         "Round[expr_?NumericQ, k_?NumericQ]"
 
         n = Expression(SymbolDivide, expr, k).round_to_float(

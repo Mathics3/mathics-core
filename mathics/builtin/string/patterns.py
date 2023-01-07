@@ -16,6 +16,7 @@ from mathics.builtin.atomic.strings import (
 from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.core.atoms import Integer1, String
 from mathics.core.attributes import A_FLAT, A_LISTABLE, A_ONE_IDENTITY, A_PROTECTED
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
@@ -223,7 +224,7 @@ class StringCases(_StringFind):
     }
     summary_text = "occurrences of string patterns in a string"
 
-    def _find(self, py_stri, py_rules, py_n, flags, evaluation):
+    def _find(self, py_stri, py_rules, py_n, flags, evaluation: Evaluation):
         def cases():
             for match, form in _parallel_match(py_stri, py_rules, flags, py_n):
                 if form is None:
@@ -233,7 +234,7 @@ class StringCases(_StringFind):
 
         return ListExpression(*list(cases()))
 
-    def apply(self, string, rule, n, evaluation, options):
+    def eval(self, string, rule, n, evaluation: Evaluation, options):
         "%(name)s[string_, rule_, OptionsPattern[%(name)s], n_:System`Private`Null]"
         # this pattern is a slight hack to get around missing Shortest/Longest.
         return self._apply(string, rule, n, evaluation, options, True)
@@ -268,7 +269,7 @@ class StringExpression(BinaryOperator):
     }
     summary_text = "an arbitrary string expression"
 
-    def apply(self, args, evaluation):
+    def eval(self, args, evaluation: Evaluation):
         "StringExpression[args__String]"
         args = args.get_sequence()
         args = [arg.get_string_value() for arg in args]
@@ -376,7 +377,7 @@ class StringFreeQ(Builtin):
 
     summary_text = "test whether a string is free of substrings matching a pattern"
 
-    def apply(self, string, patt, evaluation, options):
+    def eval(self, string, patt, evaluation: Evaluation, options):
         "StringFreeQ[string_, patt_, OptionsPattern[%(name)s]]"
         return _pattern_search(
             self.__class__.__name__, string, patt, evaluation, options, False
@@ -461,7 +462,7 @@ class StringMatchQ(Builtin):
     }
     summary_text = "test whether a string matches a pattern"
 
-    def apply(self, string, patt, evaluation, options):
+    def eval(self, string, patt, evaluation: Evaluation, options):
         "StringMatchQ[string_, patt_, OptionsPattern[%(name)s]]"
         py_string = string.get_string_value()
         if py_string is None:
