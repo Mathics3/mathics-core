@@ -10,8 +10,8 @@ See also Constructing Vectors.
 
 from itertools import permutations
 
-from mathics.builtin.base import Builtin, Pattern
-from mathics.builtin.lists import _IterationFunction, get_tuples
+from mathics.builtin.base import Builtin, IterationFunction, Pattern
+from mathics.builtin.lists import get_tuples
 from mathics.core.atoms import Integer, Symbol
 from mathics.core.attributes import A_HOLD_FIRST, A_LISTABLE, A_PROTECTED
 from mathics.core.convert.expression import to_expression
@@ -405,9 +405,11 @@ class Sow(Builtin):
         return e
 
 
-class Table(_IterationFunction):
+class Table(IterationFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Table.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Table.html</url>
 
     <dl>
       <dt>'Table[$expr$, $n$]'

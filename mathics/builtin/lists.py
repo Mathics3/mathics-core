@@ -7,24 +7,18 @@ Functions here will eventually get moved to more suitable subsections.
 
 import heapq
 
-import sympy
-
 from mathics.algorithm.parts import python_levelspec, walk_levels
 from mathics.builtin.base import (
     Builtin,
     CountableInteger,
     NegativeIntegerException,
     Predefined,
-    SympyFunction,
     Test,
 )
 from mathics.builtin.box.layout import RowBox
-from mathics.builtin.numbers.algebra import cancel
-from mathics.builtin.scoping import dynamic_scoping
-from mathics.core.atoms import Integer, Integer0, Integer1, Integer2, Number, String
-from mathics.core.attributes import A_HOLD_ALL, A_LOCKED, A_PROTECTED
+from mathics.core.atoms import Integer, Integer1, Integer2, String
+from mathics.core.attributes import A_LOCKED, A_PROTECTED
 from mathics.core.convert.expression import to_expression
-from mathics.core.convert.sympy import from_sympy
 from mathics.core.exceptions import (
     InvalidLevelspecError,
     MessageException,
@@ -33,20 +27,15 @@ from mathics.core.exceptions import (
     PartRangeError,
 )
 from mathics.core.expression import Expression
-from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolPlus, SymbolTrue
+from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAlternatives,
-    SymbolGreaterEqual,
-    SymbolLess,
-    SymbolLessEqual,
     SymbolMakeBoxes,
     SymbolMatchQ,
     SymbolSequence,
     SymbolSubsetQ,
 )
-from mathics.eval.numerify import numerify
 
 SymbolKey = Symbol("Key")
 
@@ -133,210 +122,6 @@ def get_tuples(items):
         for item in items[0]:
             for rest in get_tuples(items[1:]):
                 yield [item] + rest
-
-
-class _IterationFunction(Builtin):
-    """
-    >> Sum[k, {k, Range[5]}]
-     = 15
-    """
-
-    attributes = A_HOLD_ALL | A_PROTECTED
-    allow_loopcontrol = False
-    throw_iterb = True
-
-    def get_result(self, items):
-        pass
-
-    def eval_symbol(self, expr, iterator, evaluation):
-        "%(name)s[expr_, iterator_Symbol]"
-        iterator = iterator.evaluate(evaluation)
-        if iterator.has_form(["List", "Range", "Sequence"], None):
-            elements = iterator.elements
-            if len(elements) == 1:
-                return self.apply_max(expr, *elements, evaluation)
-            elif len(elements) == 2:
-                if elements[1].has_form(["List", "Sequence"], None):
-                    seq = Expression(SymbolSequence, *(elements[1].elements))
-                    return self.eval_list(expr, elements[0], seq, evaluation)
-                else:
-                    return self.eval_range(expr, *elements, evaluation)
-            elif len(elements) == 3:
-                return self.eval_iter_nostep(expr, *elements, evaluation)
-            elif len(elements) == 4:
-                return self.eval_iter(expr, *elements, evaluation)
-
-        if self.throw_iterb:
-            evaluation.message(self.get_name(), "iterb")
-        return
-
-    def eval_range(self, expr, i, imax, evaluation):
-        "%(name)s[expr_, {i_Symbol, imax_}]"
-        imax = imax.evaluate(evaluation)
-        if imax.has_form("Range", None):
-            # FIXME: this should work as an iterator in Python3, not
-            # building the sequence explicitly...
-            seq = Expression(SymbolSequence, *(imax.evaluate(evaluation).elements))
-            return self.apply_list(expr, i, seq, evaluation)
-        elif imax.has_form("List", None):
-            seq = Expression(SymbolSequence, *(imax.elements))
-            return self.eval_list(expr, i, seq, evaluation)
-        else:
-            return self.eval_iter(expr, i, Integer1, imax, Integer1, evaluation)
-
-    def eval_max(self, expr, imax, evaluation):
-        "%(name)s[expr_, {imax_}]"
-
-        # Even though `imax` should be an integeral value, its type does not
-        # have to be an Integer.
-
-        result = []
-
-        def do_iteration():
-            evaluation.check_stopped()
-            try:
-                result.append(expr.evaluate(evaluation))
-            except ContinueInterrupt:
-                if self.allow_loopcontrol:
-                    pass
-                else:
-                    raise
-            except BreakInterrupt:
-                if self.allow_loopcontrol:
-                    raise StopIteration
-                else:
-                    raise
-            except ReturnInterrupt as e:
-                if self.allow_loopcontrol:
-                    return e.expr
-                else:
-                    raise
-
-        if isinstance(imax, Integer):
-            try:
-                for _ in range(imax.value):
-                    do_iteration()
-            except StopIteration:
-                pass
-
-        else:
-            imax = imax.evaluate(evaluation)
-            imax = numerify(imax, evaluation)
-            if isinstance(imax, Number):
-                imax = imax.round()
-            py_max = imax.get_float_value()
-            if py_max is None:
-                if self.throw_iterb:
-                    evaluation.message(self.get_name(), "iterb")
-                return
-
-            index = 0
-            try:
-                while index < py_max:
-                    do_iteration()
-                    index += 1
-            except StopIteration:
-                pass
-
-        return self.get_result(result)
-
-    def eval_iter_nostep(self, expr, i, imin, imax, evaluation):
-        "%(name)s[expr_, {i_Symbol, imin_, imax_}]"
-        return self.eval_iter(expr, i, imin, imax, Integer1, evaluation)
-
-    def eval_iter(self, expr, i, imin, imax, di, evaluation):
-        "%(name)s[expr_, {i_Symbol, imin_, imax_, di_}]"
-
-        if isinstance(self, SympyFunction) and di.get_int_value() == 1:
-            whole_expr = to_expression(
-                self.get_name(), expr, ListExpression(i, imin, imax)
-            )
-            sympy_expr = whole_expr.to_sympy(evaluation=evaluation)
-            if sympy_expr is None:
-                return None
-
-            # apply Together to produce results similar to Mathematica
-            result = sympy.together(sympy_expr)
-            result = from_sympy(result)
-            result = cancel(result)
-
-            if not result.sameQ(whole_expr):
-                return result
-            return
-
-        index = imin.evaluate(evaluation)
-        imax = imax.evaluate(evaluation)
-        di = di.evaluate(evaluation)
-
-        result = []
-        compare_type = (
-            SymbolGreaterEqual
-            if Expression(SymbolLess, di, Integer0).evaluate(evaluation).to_python()
-            else SymbolLessEqual
-        )
-        while True:
-            cont = Expression(compare_type, index, imax).evaluate(evaluation)
-            if cont is SymbolFalse:
-                break
-            if cont is not SymbolTrue:
-                if self.throw_iterb:
-                    evaluation.message(self.get_name(), "iterb")
-                return
-
-            evaluation.check_stopped()
-            try:
-                item = dynamic_scoping(expr.evaluate, {i.name: index}, evaluation)
-                result.append(item)
-            except ContinueInterrupt:
-                if self.allow_loopcontrol:
-                    pass
-                else:
-                    raise
-            except BreakInterrupt:
-                if self.allow_loopcontrol:
-                    break
-                else:
-                    raise
-            except ReturnInterrupt as e:
-                if self.allow_loopcontrol:
-                    return e.expr
-                else:
-                    raise
-            index = Expression(SymbolPlus, index, di).evaluate(evaluation)
-        return self.get_result(result)
-
-    def eval_list(self, expr, i, items, evaluation):
-        "%(name)s[expr_, {i_Symbol, {items___}}]"
-        items = items.evaluate(evaluation).get_sequence()
-        result = []
-        for item in items:
-            evaluation.check_stopped()
-            try:
-                item = dynamic_scoping(expr.evaluate, {i.name: item}, evaluation)
-                result.append(item)
-            except ContinueInterrupt:
-                if self.allow_loopcontrol:
-                    pass
-                else:
-                    raise
-            except BreakInterrupt:
-                if self.allow_loopcontrol:
-                    break
-                else:
-                    raise
-            except ReturnInterrupt as e:
-                if self.allow_loopcontrol:
-                    return e.expr
-                else:
-                    raise
-        return self.get_result(result)
-
-    def eval_multi(self, expr, first, sequ, evaluation):
-        "%(name)s[expr_, first_, sequ__]"
-
-        sequ = sequ.get_sequence()
-        name = self.get_name()
-        return to_expression(name, to_expression(name, expr, *sequ), first)
 
 
 class All(Predefined):
