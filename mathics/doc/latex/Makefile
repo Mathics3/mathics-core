@@ -12,7 +12,7 @@ DOC_TEX_DATA_PCL ?= $(HOME)/.local/var/mathics/doc_tex_data.pcl
 all doc texdoc: mathics.pdf
 
 #: Create internal Document Data from .mdoc and Python builtin module docstrings
-doc-data $(DOC_TEX_DATA_PCL):
+doc-data $(DOC_USER_TEX_DATA_PCL):
 	(cd ../.. && MATHICS_CHARACTER_ENCODING="" $(PYTHON) docpipeline.py --output --keep-going --want-sorting)
 
 #: Build mathics PDF
