@@ -663,7 +663,7 @@ class LaTeXMathicsMainDocumentation(MathicsMainDocumentation):
         self.parts = []
         self.parts_by_slug = {}
         self.pymathics_doc_loaded = False
-        self.doc_data_file = settings.get_doc_tex_data_path(should_be_readable=True)
+        self.doc_data_file = settings.get_doc_latex_data_path(should_be_readable=True)
         self.title = "Overview"
         files = listdir(self.doc_dir)
         files.sort()

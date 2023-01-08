@@ -18,13 +18,13 @@ Workflow
 The overall top-level LaTeX document is ``mathic.tex``. The pulls in
 ``documentation.tex`` which is automatically generated from the Python
 program ``doc2latex.py`` and that in turn gets its data from
-``doc_tex_data.pcl`` which in turn gets its data from ``../documentation/*.mdoc``.
+``doc_latex_data.pcl`` which in turn gets its data from ``../documentation/*.mdoc``.
 
 Here is a flow of the data::
 
     doc/documentation/*.mdoc --+
                                |
-    bultins/*.py  -------------+--> doc_tex_data.pcl ---> documentation.tex -+
+    bultins/*.py  -------------+--> doc_latex_data.pcl -> documentation.tex -+
                    docpipeline.py                  doc2latex.py              |
                                                                              |
     doc/images/*.svg -------------> doc/tex/log*.pdf ------------------------+------------------------------> mathics.pdf
