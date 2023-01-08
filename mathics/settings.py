@@ -57,7 +57,8 @@ DOC_SYSTEM_LATEX_DATA_PCL = os.environ.get(
 )
 
 DOC_DIR = osp.join(LOCAL_ROOT_DIR, "doc", "documentation")
-DOC_LATEX_FILE = osp.join(LOCAL_ROOT_DIR, "doc", "latex", "documentation.tex")
+DOC_LATEX_DIR = osp.join(LOCAL_ROOT_DIR, "doc", "latex")
+DOC_LATEX_FILE = osp.join(DOC_LATEX_DIR, "documentation.tex")
 
 # Set this True if you prefer 12 hour time to be the default
 TIME_12HOUR = False
@@ -90,7 +91,9 @@ def get_doc_latex_data_path(should_be_readable=False, create_parent=False) -> st
 
     if should_be_readable:
         return (
-            DATA_DIR if doc_user_latex_data_pcl.is_file() else DOC_SYSTEM_LATEX_DATA_PCL
+            DOC_LATEX_DATA_PCL
+            if doc_user_latex_data_pcl.is_file()
+            else DOC_SYSTEM_LATEX_DATA_PCL
         )
     else:
         return DOC_LATEX_DATA_PCL

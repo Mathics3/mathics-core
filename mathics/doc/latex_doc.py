@@ -659,7 +659,7 @@ class LaTeXDoc(XMLDoc):
 class LaTeXMathicsMainDocumentation(MathicsMainDocumentation):
     def __init__(self, want_sorting=False):
         self.doc_dir = settings.DOC_DIR
-        self.latex_file = settings.DOC_LATEX_FILE
+        self.latex_pcl_path = settings.DOC_LATEX_DATA_PCL
         self.parts = []
         self.parts_by_slug = {}
         self.pymathics_doc_loaded = False
