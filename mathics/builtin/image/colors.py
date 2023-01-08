@@ -75,7 +75,7 @@ class Binarize(Builtin):
       <dd>map $t1$ < $x$ < $t2$ to 1, and all other values to 0.
     </dl>
 
-    S> img = Import["ExampleData/lena.tif"];
+    S> img = Import["ExampleData/hedy.tif"];
     S> Binarize[img]
      = -Image-
     S> Binarize[img, 0.7]
@@ -159,7 +159,7 @@ class ColorQuantize(Builtin):
       <dd>gives a version of $image$ using only $n$ colors.
     </dl>
 
-    >> img = Import["ExampleData/lena.tif"];
+    >> img = Import["ExampleData/hedy.tif"];
     >> ColorQuantize[img, 6]
      = -Image-
 
@@ -201,7 +201,7 @@ class ColorSeparate(Builtin):
       <dd>Gives each channel of $image$ as a separate grayscale image.
     </dl>
 
-    >> img = Import["ExampleData/lena.tif"];
+    >> img = Import["ExampleData/hedy.tif"];
     >> ColorSeparate[img]
      = ...
 

@@ -2134,7 +2134,7 @@ class FileFormat(Builtin):
     >> FileFormat["ExampleData/EinsteinSzilLetter.txt"]
      = Text
 
-    >> FileFormat["ExampleData/lena.tif"]
+    >> FileFormat["ExampleData/hedy.tif"]
      = TIFF
 
     ## ASCII text

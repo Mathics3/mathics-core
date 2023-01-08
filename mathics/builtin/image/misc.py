@@ -65,7 +65,7 @@ class ImageImport(Builtin):
      = -Image-
     >> Import["ExampleData/moon.tif"]
      = -Image-
-    >> Import["ExampleData/lena.tif"]
+    >> Import["ExampleData/hedy.tif"]
      = -Image-
     """
 
@@ -174,12 +174,12 @@ class EdgeDetect(_SkimageBuiltin):
       <dd>returns an image showing the edges in $image$.
     </dl>
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> EdgeDetect[lena]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> EdgeDetect[hedy]
      = -Image-
-    >> EdgeDetect[lena, 5]
+    >> EdgeDetect[hedy, 5]
      = -Image-
-    >> EdgeDetect[lena, 4, 0.5]
+    >> EdgeDetect[hedy, 4, 0.5]
      = -Image-
     """
 

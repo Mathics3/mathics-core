@@ -35,8 +35,8 @@ class GaussianFilter(Builtin):
       <dd>blurs $image$ using a Gaussian blur filter of radius $r$.
     </dl>
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> GaussianFilter[lena, 2.5]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> GaussianFilter[hedy, 2.5]
      = -Image-
     """
 
@@ -63,7 +63,7 @@ class ImageConvolve(Builtin):
       <dd>Computes the convolution of $image$ using $kernel$.
     </dl>
 
-    >> img = Import["ExampleData/lena.tif"];
+    >> img = Import["ExampleData/hedy.tif"];
     >> ImageConvolve[img, DiamondMatrix[5] / 61]
      = -Image-
     >> ImageConvolve[img, DiskMatrix[5] / 97]
@@ -98,8 +98,8 @@ class MaxFilter(_PillowImageFilter):
           picks the largest value in the filter's area.
     </dl>
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> MaxFilter[lena, 5]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> MaxFilter[hedy, 5]
      = -Image-
     """
 
@@ -122,8 +122,8 @@ class MedianFilter(_PillowImageFilter):
           picks the median value in the filter's area.
     </dl>
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> MedianFilter[lena, 5]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> MedianFilter[hedy, 5]
      = -Image-
     """
 
@@ -146,8 +146,8 @@ class MinFilter(_PillowImageFilter):
           picks the smallest value in the filter's area.
     </dl>
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> MinFilter[lena, 5]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> MinFilter[hedy, 5]
      = -Image-
     """
 

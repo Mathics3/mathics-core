@@ -14,9 +14,9 @@ from mathics.core.symbols import SymbolNull
 
 # Note we test with tif, jpg, and gif. Add others?
 image_tests = [
-    ('lena = Import["ExampleData/lena.tif"];', None, ""),
-    ("BinaryImageQ[lena]", "False", ""),
-    ("BinaryImageQ[Binarize[lena]]", "True", ""),
+    ('hedy = Import["ExampleData/hedy.tif"];', None, ""),
+    ("BinaryImageQ[hedy]", "False", ""),
+    ("BinaryImageQ[Binarize[hedy]]", "True", ""),
     (
         """ein = Import["ExampleData/Einstein.jpg"]; ImageDimensions[ein]""",
         "{615, 768}",

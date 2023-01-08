@@ -301,7 +301,7 @@ class DominantColors(Builtin):
     The option "MinColorDistance" specifies the distance (in LAB color space) up \
     to which colors are merged and thus regarded as belonging to the same dominant color.
 
-    >> img = Import["ExampleData/lena.tif"]
+    >> img = Import["ExampleData/hedy.tif"]
      = -Image-
 
     >> DominantColors[img]
