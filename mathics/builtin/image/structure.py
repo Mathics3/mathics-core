@@ -1,5 +1,5 @@
 """
-Structural Image Operations
+Operations on Image Structure
 """
 import numpy
 
@@ -8,6 +8,9 @@ from mathics.builtin.image.base import Image
 from mathics.core.atoms import Integer
 from mathics.core.evaluation import Evaluation
 from mathics.eval.image import numpy_flip
+
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.image.operations"
 
 
 def clip_to(i: int, upper) -> int:
