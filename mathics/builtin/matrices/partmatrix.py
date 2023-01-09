@@ -8,6 +8,7 @@ Methods for manipulating Matrices.
 
 
 from mathics.builtin.base import Builtin
+from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
 
 
@@ -47,7 +48,7 @@ class Diagonal(Builtin):
 
     summary_text = "gives a list with the diagonal elements of a given matrix"
 
-    def apply(self, expr, diag, evaluation):
+    def eval(self, expr, diag, evaluation: Evaluation):
         "Diagonal[expr_List, diag_Integer]"
 
         result = []
@@ -63,7 +64,9 @@ class Diagonal(Builtin):
 
 class MatrixQ(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/MatrixQ.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/MatrixQ.html</url>
 
     <dl>
       <dt>'MatrixQ[$m$]'

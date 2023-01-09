@@ -1,6 +1,5 @@
 """
-Message related functions.
-
+Message-related functions.
 """
 
 
@@ -10,7 +9,7 @@ from typing import Any
 from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.core.atoms import String
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_FIRST, A_PROTECTED
-from mathics.core.evaluation import Message as EvaluationMessage
+from mathics.core.evaluation import Evaluation, Message as EvaluationMessage
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolNull
@@ -19,7 +18,9 @@ from mathics.core.systemsymbols import SymbolMessageName, SymbolQuiet
 
 class Message(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Message.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Message.html</url>
 
     <dl>
       <dt>'Message[$symbol$::$msg$, $expr1$, $expr2$, ...]'
@@ -43,7 +44,7 @@ class Message(Builtin):
     }
     summary_text = "display a message"
 
-    def apply(self, symbol, tag, params, evaluation):
+    def eval(self, symbol: Symbol, tag: String, params, evaluation: Evaluation):
         "Message[MessageName[symbol_Symbol, tag_String], params___]"
 
         params = params.get_sequence()
@@ -62,11 +63,14 @@ def check_message(expr) -> bool:
 
 class Check(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Check.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Check.html</url>
 
     <dl>
       <dt>'Check[$expr$, $failexpr$]'
-      <dd>evaluates $expr$, and returns the result, unless messages were generated, in which case it evaluates and $failexpr$ will be returned.
+      <dd>evaluates $expr$, and returns the result, unless messages were \
+          generated, in which case it evaluates and $failexpr$ will be returned.
       <dt>'Check[$expr$, $failexpr$, {s1::t1,s2::t2,...}]'
       <dd>checks only for the specified messages.
     </dl>
@@ -141,11 +145,11 @@ class Check(Builtin):
     }
     summary_text = "discard the result if the evaluation produced messages"
 
-    def apply_1_argument(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation):
         "Check[expr_]"
         return evaluation.message("Check", "argmu")
 
-    def apply(self, expr, failexpr, params, evaluation):
+    def eval_with_fail(self, expr, failexpr, params, evaluation: Evaluation):
         "Check[expr_, failexpr_, params___]"
 
         # Todo: To implement the third form of this function , we need to implement the function $MessageGroups first
@@ -257,7 +261,7 @@ class Quiet(Builtin):
     }
     summary_text = "evaluate without showing messages"
 
-    def apply(self, expr, moff, mon, evaluation):
+    def eval(self, expr, moff, mon, evaluation: Evaluation):
         "Quiet[expr_, moff_, mon_]"
 
         def get_msg_list(expr):
@@ -351,7 +355,7 @@ class Off(Builtin):
     attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "turn off a message for printing"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation):
         "Off[expr___]"
 
         seq = expr.get_sequence()
@@ -399,7 +403,7 @@ class On(Builtin):
     attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "turn on a message for printing"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation):
         "On[expr___]"
 
         seq = expr.get_sequence()
@@ -458,7 +462,7 @@ class MessageName(BinaryOperator):
         ),
     }
 
-    def apply(self, symbol, tag, evaluation):
+    def eval(self, symbol: Symbol, tag: String, evaluation: Evaluation):
         "MessageName[symbol_Symbol, tag_String]"
 
         pattern = Expression(SymbolMessageName, symbol, tag)
@@ -575,7 +579,9 @@ class Syntax(Builtin):
 
 class General(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/General.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/General.html</url>
 
     <dl>
       <dt>'General'

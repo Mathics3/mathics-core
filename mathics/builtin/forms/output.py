@@ -1,11 +1,13 @@
 # FIXME: split these forms up further.
-# MathML and TeXForm feel more closely related since they go with specific kinds of interpreters:
-# LaTeX and MathML
+# MathML and TeXForm feel more closely related since they go with
+# specific kinds of interpreters: LaTeX and MathML
 
-# SympyForm and PythonForm feel related since are our own hacky thing (and mostly broken for now)
+# SympyForm and PythonForm feel related since are our own hacky thing
+# (and mostly broken for now)
 
-# NumberForm, TableForm, and MatrixForm seem closely related since they seem to be relevant
-# for particular kinds of structures rather than applicable to all kinds of expressions.
+# NumberForm, TableForm, and MatrixForm seem closely related since
+# they seem to be relevant for particular kinds of structures rather
+# than applicable to all kinds of expressions.
 
 """
 Forms which appear in '$OutputForms'.
@@ -50,7 +52,7 @@ from mathics.core.systemsymbols import (
     SymbolSubscriptBox,
     SymbolSuperscriptBox,
 )
-from mathics.eval.makeboxes import format_element
+from mathics.eval.makeboxes import StringLParen, StringRParen, format_element
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
@@ -1058,12 +1060,12 @@ class MatrixForm(TableForm):
     in_printforms = False
     summary_text = "format as a matrix"
 
-    def eval_makeboxes_matrix(self, table, f, evaluation, options):
+    def eval_makeboxes_matrix(self, table, form, evaluation, options):
         """MakeBoxes[%(name)s[table_, OptionsPattern[%(name)s]],
-        f:StandardForm|TraditionalForm]"""
+        form:StandardForm|TraditionalForm]"""
 
-        result = super(MatrixForm, self).eval_makeboxes(table, f, evaluation, options)
+        result = super(MatrixForm, self).eval_makeboxes(
+            table, form, evaluation, options
+        )
         if result.get_head_name() == "System`GridBox":
-            return RowBox(String("("), result, String(")"))
-
-        return result
+            return RowBox(StringLParen, result, StringRParen)
