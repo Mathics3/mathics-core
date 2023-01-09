@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-
-
 """
 Low level Format definitions
 """
@@ -20,7 +18,12 @@ from mathics.core.list import ListExpression
 from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import SymbolInputForm, SymbolOutputForm, SymbolRowBox
-from mathics.eval.makeboxes import _boxed_string, format_element
+from mathics.eval.makeboxes import (
+    NEVER_ADD_PARENTHESIS,
+    _boxed_string,
+    format_element,
+    parenthesize,
+)
 
 
 def int_to_s_exp(expr, n):
@@ -33,30 +36,6 @@ def int_to_s_exp(expr, n):
         s = str(n)
     exp = len(s) - 1
     return s, exp, nonnegative
-
-
-def parenthesize(precedence, element, element_boxes, when_equal):
-    from mathics.builtin import builtins_precedence
-
-    while element.has_form("HoldForm", 1):
-        element = element.elements[0]
-
-    if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
-        element_prec = element.elements[2].value
-    elif element.has_form("PrecedenceForm", 2):
-        element_prec = element.elements[1].value
-    # For negative values, ensure that the element_precedence is at least the precedence. (Fixes #332)
-    elif isinstance(element, (Integer, Real)) and element.value < 0:
-        element_prec = precedence
-    else:
-        element_prec = builtins_precedence.get(element.get_head_name())
-    if precedence is not None and element_prec is not None:
-        if precedence > element_prec or (precedence == element_prec and when_equal):
-            return Expression(
-                SymbolRowBox,
-                ListExpression(String("("), element_boxes, String(")")),
-            )
-    return element_boxes
 
 
 # FIXME: op should be a string, so remove the Union.
@@ -420,28 +399,28 @@ class MakeBoxes(Builtin):
             result.append(to_boxes(String(right), evaluation))
             return RowBox(*result)
 
-    def eval_outerprecedenceform(self, expr, prec, evaluation):
-        """MakeBoxes[PrecedenceForm[expr_, prec_],
+    def eval_outerprecedenceform(self, expr, precedence, evaluation):
+        """MakeBoxes[PrecedenceForm[expr_, precedence_],
         StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
-        precedence = prec.get_int_value()
+        py_precedence = precedence.get_int_value()
         boxes = MakeBoxes(expr)
-        return parenthesize(precedence, expr, boxes, True)
+        return parenthesize(py_precedence, expr, boxes, True)
 
-    def eval_postprefix(self, p, expr, h, prec, f, evaluation):
-        """MakeBoxes[(p:Prefix|Postfix)[expr_, h_, prec_:None],
-        f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+    def eval_postprefix(self, p, expr, h, precedence, form, evaluation):
+        """MakeBoxes[(p:Prefix|Postfix)[expr_, h_, precedence_:None],
+        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
         if not isinstance(h, String):
-            h = MakeBoxes(h, f)
+            h = MakeBoxes(h, form)
 
-        precedence = prec.get_int_value()
+        py_precedence = precedence.get_int_value()
 
         elements = expr.elements
         if len(elements) == 1:
             element = elements[0]
-            element_boxes = MakeBoxes(element, f)
-            element = parenthesize(precedence, element, element_boxes, True)
+            element_boxes = MakeBoxes(element, form)
+            element = parenthesize(py_precedence, element, element_boxes, True)
             if p.get_name() == "System`Postfix":
                 args = (element, h)
             else:
@@ -449,12 +428,12 @@ class MakeBoxes(Builtin):
 
             return Expression(SymbolRowBox, ListExpression(*args).evaluate(evaluation))
         else:
-            return MakeBoxes(expr, f).evaluate(evaluation)
+            return MakeBoxes(expr, form).evaluate(evaluation)
 
     def eval_infix(
-        self, expr, operator, prec: Integer, grouping, form: Symbol, evaluation
+        self, expr, operator, precedence: Integer, grouping, form: Symbol, evaluation
     ):
-        """MakeBoxes[Infix[expr_, operator_, prec_:None, grouping_:None],
+        """MakeBoxes[Infix[expr_, operator_, precedence_:None, grouping_:None],
         form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
         ## FIXME: this should go into a some formatter.
@@ -485,7 +464,9 @@ class MakeBoxes(Builtin):
                 return op
             return operator
 
-        precedence = prec.value if hasattr(prec, "value") else 0
+        py_precedence = (
+            precedence.value if hasattr(precedence, "value") else NEVER_ADD_PARENTHESIS
+        )
         grouping = grouping.get_name()
 
         if isinstance(expr, Atom):
@@ -496,7 +477,9 @@ class MakeBoxes(Builtin):
         if len(elements) > 1:
             if operator.has_form("List", len(elements) - 1):
                 operator = [format_operator(op) for op in operator.elements]
-                return make_boxes_infix(elements, operator, precedence, grouping, form)
+                return make_boxes_infix(
+                    elements, operator, py_precedence, grouping, form
+                )
             else:
                 encoding_rule = evaluation.definitions.get_ownvalue(
                     "$CharacterEncoding"
@@ -518,7 +501,7 @@ class MakeBoxes(Builtin):
                         String(operator_to_unicode.get(op_str, op_str))
                     )
 
-            return make_boxes_infix(elements, operator, precedence, grouping, form)
+            return make_boxes_infix(elements, operator, py_precedence, grouping, form)
 
         elif len(elements) == 1:
             return MakeBoxes(elements[0], form)
@@ -528,7 +511,9 @@ class MakeBoxes(Builtin):
 
 class ToBoxes(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ToBoxes.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ToBoxes.html</url>
 
     <dl>
       <dt>'ToBoxes[$expr$]'
