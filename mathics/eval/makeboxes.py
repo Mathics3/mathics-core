@@ -49,7 +49,7 @@ from mathics.core.systemsymbols import (
 # will be surrounded by parenthesis, e.g. ... (...op...) ...
 # In named-characters.yml of mathics-scanner we start at 0.
 # However, negative values would also work.
-NO_PARENTHESIS_EVER = 0
+NEVER_ADD_PARENTHESIS = 0
 
 # These Strings are used in Boxing output
 StringElipsis = String("...")

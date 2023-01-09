@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-
-
 """
 Low level Format definitions
 """
@@ -21,7 +19,7 @@ from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import SymbolInputForm, SymbolOutputForm, SymbolRowBox
 from mathics.eval.makeboxes import (
-    NO_PARENTHESIS_EVER,
+    NEVER_ADD_PARENTHESIS,
     _boxed_string,
     format_element,
     parenthesize,
@@ -467,7 +465,7 @@ class MakeBoxes(Builtin):
             return operator
 
         py_precedence = (
-            precedence.value if hasattr(precedence, "value") else NO_PARENTHESIS_EVER
+            precedence.value if hasattr(precedence, "value") else NEVER_ADD_PARENTHESIS
         )
         grouping = grouping.get_name()
 
