@@ -51,6 +51,12 @@ from mathics.core.systemsymbols import (
 # However, negative values would also work.
 NO_PARENTHESIS_EVER = 0
 
+# These Strings are used in Boxing output
+StringElipsis = String("...")
+StringLParen = String("(")
+StringRParen = String(")")
+StringRepeated = String("..")
+
 builtins_precedence: Dict[Symbol, int] = {}
 
 element_formatters = {}
@@ -154,7 +160,7 @@ def do_format_element(
                     Expression(
                         SymbolPostfix,
                         ListExpression(elements[0]),
-                        String(".."),
+                        StringRepeated,
                         Integer(170),
                     ),
                 )
@@ -167,7 +173,7 @@ def do_format_element(
                     Expression(
                         SymbolPostfix,
                         Expression(SymbolList, elements[0]),
-                        String("..."),
+                        StringElipsis,
                         Integer(170),
                     ),
                 )
@@ -327,8 +333,11 @@ def parenthesize(
         element_prec = element.elements[2].value
     elif element.has_form("PrecedenceForm", 2):
         element_prec = element.elements[1].value
-    # For negative values, ensure that the element_precedence is at least the precedence. (Fixes #332)
+    # If "element" is a negative number, we need to parenthesize the number. (Fixes #332)
     elif isinstance(element, (Integer, Real)) and element.value < 0:
+        # Force parenthesis by adjusting the surrounding context's precedence value,
+        # We can't change the precedence for the number since it, doesn't
+        # have a precedence value.
         element_prec = precedence
     else:
         element_prec = builtins_precedence.get(element.get_head())
@@ -336,7 +345,7 @@ def parenthesize(
         if precedence > element_prec or (precedence == element_prec and when_equal):
             return Expression(
                 SymbolRowBox,
-                ListExpression(String("("), element_boxes, String(")")),
+                ListExpression(StringLParen, element_boxes, StringRParen),
             )
     return element_boxes
 
