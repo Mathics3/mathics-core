@@ -9,7 +9,7 @@ formatting rules.
 import typing
 from typing import Any, Dict, Type
 
-from mathics.core.atoms import Complex, Integer, Rational, String, SymbolI
+from mathics.core.atoms import Complex, Integer, Rational, Real, String, SymbolI
 from mathics.core.convert.expression import to_expression_with_specialization
 from mathics.core.definitions import OutputForms
 from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
@@ -38,8 +38,18 @@ from mathics.core.systemsymbols import (
     SymbolMinus,
     SymbolOutputForm,
     SymbolRational,
+    SymbolRowBox,
     SymbolStandardForm,
 )
+
+# An operator precedence value that will ensure that whatever operator
+# this is attached to does not have parenthesis surrounding it.
+# Operator precedence values are integers; If if an operator
+# "op" is greater than the surrounding precedence, then "op"
+# will be surrounded by parenthesis, e.g. ... (...op...) ...
+# In named-characters.yml of mathics-scanner we start at 0.
+# However, negative values would also work.
+NO_PARENTHESIS_EVER = 0
 
 builtins_precedence: Dict[Symbol, int] = {}
 
@@ -297,6 +307,38 @@ def do_format_expression(
     expr = do_format_element(element, evaluation, form)
     # element._format_cache[form] = (evaluation.definitions.now, expr)
     return expr
+
+
+def parenthesize(
+    precedence: int, element: Type[BaseElement], element_boxes, when_equal: bool
+) -> Type[Expression]:
+    """
+    "Determines if ``element_boxes`` needs to be surrounded with parenthesis.
+    This is done based on ``precedence`` and the computed preceence of
+    ``element``.  The adjusted ListExpression is returned.
+
+    If when_equal is True, parentheses will be added if the two
+    precedence values are equal.
+    """
+    while element.has_form("HoldForm", 1):
+        element = element.elements[0]
+
+    if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
+        element_prec = element.elements[2].value
+    elif element.has_form("PrecedenceForm", 2):
+        element_prec = element.elements[1].value
+    # For negative values, ensure that the element_precedence is at least the precedence. (Fixes #332)
+    elif isinstance(element, (Integer, Real)) and element.value < 0:
+        element_prec = precedence
+    else:
+        element_prec = builtins_precedence.get(element.get_head())
+    if precedence is not None and element_prec is not None:
+        if precedence > element_prec or (precedence == element_prec and when_equal):
+            return Expression(
+                SymbolRowBox,
+                ListExpression(String("("), element_boxes, String(")")),
+            )
+    return element_boxes
 
 
 element_formatters[Rational] = do_format_rational
