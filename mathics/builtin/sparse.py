@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
 """
-SparseArray Functions
+Sparse Array Functions
 """
 
 
 from mathics.algorithm.parts import walk_parts
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer, Integer0
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol
@@ -18,15 +19,19 @@ SymbolSparseArray = Symbol("SparseArray")
 
 class SparseArray(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/SparseArray.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/SparseArray.html</url>
 
     <dl>
-    <dt>'SparseArray[$rules$]'
-        <dd>Builds a sparse array acording to the list of $rules$.
-    <dt>'SparseArray[$rules$, $dims$]'
-        <dd>Builds a sparse array of dimensions $dims$ acording to the $rules$.
-    <dt>'SparseArray[$list$]'
-        <dd>Builds a sparse representation of $list$.
+      <dt>'SparseArray[$rules$]'
+      <dd>Builds a sparse array acording to the list of $rules$.
+
+      <dt>'SparseArray[$rules$, $dims$]'
+      <dd>Builds a sparse array of dimensions $dims$ acording to the $rules$.
+
+      <dt>'SparseArray[$list$]'
+      <dd>Builds a sparse representation of $list$.
     </dl>
 
     >> SparseArray[{{1, 2} -> 1, {2, 1} -> 1}]
@@ -47,7 +52,7 @@ class SparseArray(Builtin):
     }
     summary_text = "an array by the values of the non-zero elements"
 
-    def list_to_sparse(self, array, evaluation):
+    def list_to_sparse(self, array, evaluation: Evaluation):
         # TODO: Simplify and modularize this method.
 
         elements = []
@@ -114,11 +119,11 @@ class SparseArray(Builtin):
             ListExpression(*rules),
         )
 
-    def apply_dimensions(self, dims, default, data, evaluation):
+    def eval_dimensions(self, dims, default, data, evaluation: Evaluation):
         """System`Dimensions[System`SparseArray[System`Automatic, dims_List, default_, data_List]]"""
         return dims
 
-    def apply_normal(self, dims, default, data, evaluation):
+    def eval_normal(self, dims, default, data, evaluation: Evaluation):
         """System`Normal[System`SparseArray[System`Automatic, dims_List, default_, data_List]]"""
         its = [ListExpression(n) for n in dims.elements]
         table = Expression(SymbolTable, default, *its)
@@ -130,7 +135,7 @@ class SparseArray(Builtin):
                 walk_parts([table], pos.elements, evaluation, val)
         return table
 
-    def find_dimensions(self, rules, evaluation):
+    def find_dimensions(self, rules, evaluation: Evaluation):
         dims = None
         for rule in rules:
             pos = rule.elements[0]
@@ -146,7 +151,7 @@ class SparseArray(Builtin):
             return
         return ListExpression(*[Integer(d) for d in dims])
 
-    def apply_1(self, rules, evaluation):
+    def eval_with_rules(self, rules, evaluation: Evaluation):
         """SparseArray[rules_List]"""
         if not (rules.has_form("List", None) and len(rules.elements) > 0):
             if rules is Symbol("Automatic"):
@@ -164,13 +169,17 @@ class SparseArray(Builtin):
             dims = self.find_dimensions(rules.elements, evaluation)
             if dims is None:
                 return
-            return self.apply_3(rules, dims, Integer0, evaluation)
+            return self.eval_with_rules_dims_and_default(
+                rules, dims, Integer0, evaluation
+            )
         return self.list_to_sparse(rules, evaluation)
 
-    def apply_2(self, rules, dims, evaluation):
+    def eval_with_rules_and_dims(self, rules, dims, evaluation: Evaluation):
         """SparseArray[rules_List, dims_List]"""
-        return self.apply_3(rules, dims, Integer0, evaluation)
+        return self.eval_with_rules_dims_and_default(rules, dims, Integer0, evaluation)
 
-    def apply_3(self, rules, dims, default, evaluation):
+    def eval_with_rules_dims_and_default(
+        self, rules, dims, default, evaluation: Evaluation
+    ):
         """SparseArray[rules_List, dims_List, default_]"""
         return Expression(SymbolSparseArray, SymbolAutomatic, dims, default, rules)
