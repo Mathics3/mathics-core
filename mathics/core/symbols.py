@@ -341,7 +341,11 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     also associated with a ``Definition``. But it has a ``DownValue``
     that is used in its evaluation.
 
-    We also have Symbols which in contrast to Variables Symbols have
+    A Function Symbol, like a Variable Symbol, is a ``Symbol`` that is
+    also associated with a ``Definition``. But it has a ``DownValue``
+    that is used in its evaluation.
+
+    We also have Symbols which, in contrast to Variables Symbols, have
     a constant value that cannot change. System`True and System`False
     are like this.
 

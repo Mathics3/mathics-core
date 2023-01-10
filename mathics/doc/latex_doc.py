@@ -659,11 +659,11 @@ class LaTeXDoc(XMLDoc):
 class LaTeXMathicsMainDocumentation(MathicsMainDocumentation):
     def __init__(self, want_sorting=False):
         self.doc_dir = settings.DOC_DIR
-        self.latex_file = settings.DOC_LATEX_FILE
+        self.latex_pcl_path = settings.DOC_LATEX_DATA_PCL
         self.parts = []
         self.parts_by_slug = {}
         self.pymathics_doc_loaded = False
-        self.doc_data_file = settings.get_doc_tex_data_path(should_be_readable=True)
+        self.doc_data_file = settings.get_doc_latex_data_path(should_be_readable=True)
         self.title = "Overview"
         files = listdir(self.doc_dir)
         files.sort()
