@@ -324,9 +324,12 @@ class Gudermannian(Builtin):
         "Gudermannian[Undefined]": "Undefined",
         "Gudermannian[0]": "0",
         "Gudermannian[2*Pi*I]": "0",
-        "Gudermannian[6/4*Pi*I]": "DirectedInfinity[-I]",
-        "Gudermannian[Infinity]": "Pi/2",
-        "Gudermannian[-Infinity]": "Pi/2",
+        # FIXME: handling DirectedInfinity[-I] leads to problems
+        # "Gudermannian[6/4 Pi I]": "DirectedInfinity[-I]",
+        # Handled already
+        # "Gudermannian[Infinity]": "Pi/2",
+        # FIXME: Pi/2 from Sympy seems to take precedence
+        "Gudermannian[-Infinity]": "-Pi/2",
         # Below, we don't use instead of ComplexInfinity that gets
         # substituted out for DirectedInfinity[] before we match on
         # Gudermannian[...]

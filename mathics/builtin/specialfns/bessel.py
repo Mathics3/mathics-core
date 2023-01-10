@@ -349,6 +349,8 @@ class BesselI(_Bessel):
     rules = {
         "BesselI[Undefined, x_]": "Undefined",
         "BesselI[y_, Undefined]": "Undefined",
+        # "BesselI[x_, -I Infinity]": "0",
+        "BesselI[x_, Infinity]": "0",
     }
     sympy_name = "besseli"
     summary_text = "Bessel's function of the second kind"

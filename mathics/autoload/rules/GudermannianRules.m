@@ -1,4 +1,4 @@
-(* Adapted from symja_android_library/symja_android_library/rules/QuantileRules.m *)
+(* Adapted from symja_android_library/symja_android_library/rules/Gudermannian.m *)
 (* This has been added as a Mathics Builtin in mathics.builtin.numbers.hyperbolic
 Begin["System`"]
 
