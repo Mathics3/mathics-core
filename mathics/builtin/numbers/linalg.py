@@ -9,19 +9,22 @@ import sympy
 from sympy import im, re
 
 from mathics.builtin.base import Builtin
-from mathics.core.atoms import Integer, Integer0, Real
+from mathics.core.atoms import Integer, Integer0
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.matrix import matrix_data
 from mathics.core.convert.mpmath import from_mpmath, to_mpmath_matrix
 from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.symbols import SymbolList
 
 
 class DesignMatrix(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/DesignMatrix.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/DesignMatrix.html</url>
 
     <dl>
       <dt>'DesignMatrix[$m$, $f$, $x$]'
@@ -63,7 +66,7 @@ class Det(Builtin):
 
     summary_text = "determinant of a matrix"
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "Det[m_]"
 
         matrix = to_sympy_matrix(m)
@@ -148,7 +151,7 @@ class Eigenvalues(Builtin):
 
     options = {"Method": "sympy"}
 
-    def apply(self, m, evaluation, options={}) -> Expression:
+    def eval(self, m, evaluation, options={}) -> Expression:
         "Eigenvalues[m_, OptionsPattern[Eigenvalues]]"
 
         method = self.get_option(options, "Method", evaluation)
@@ -226,7 +229,7 @@ class Eigenvectors(Builtin):
     summary_text = "list of matrix eigenvectors"
     # TODO: Normalise the eigenvectors
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "Eigenvectors[m_]"
 
         matrix = to_sympy_matrix(m)
@@ -312,7 +315,7 @@ class Inverse(Builtin):
     }
     summary_text = "inverse matrix"
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "Inverse[m_List]"
         rows = m.elements
         nrows = len(rows)
@@ -374,7 +377,7 @@ class LeastSquares(Builtin):
     }
     summary_text = "least square solver for linear problems"
 
-    def apply(self, m, b, evaluation):
+    def eval(self, m, b, evaluation: Evaluation):
         "LeastSquares[m_, b_]"
 
         matrix = to_sympy_matrix(m)
@@ -515,7 +518,7 @@ class LinearSolve(Builtin):
     }
     summary_text = "solves linear systems in matrix form"
 
-    def apply(self, m, b, evaluation):
+    def eval(self, m, b, evaluation: Evaluation):
         "LinearSolve[m_, b_]"
 
         matrix = matrix_data(m)
@@ -580,7 +583,7 @@ class MatrixExp(Builtin):
     # TODO fix precision
     summary_text = "matrix exponentiation"
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "MatrixExp[m_]"
         sympy_m = to_sympy_matrix(m)
         if sympy_m is None:
@@ -623,7 +626,7 @@ class MatrixPower(Builtin):
     }
     summary_text = "power of a matrix"
 
-    def apply(self, m, power, evaluation):
+    def eval(self, m, power, evaluation: Evaluation):
         "MatrixPower[m_, power_]"
         sympy_m = to_sympy_matrix(m)
         if sympy_m is None:
@@ -668,7 +671,7 @@ class MatrixRank(Builtin):
     }
     summary_text = "rank of a matrix"
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "MatrixRank[m_]"
 
         matrix = to_sympy_matrix(m)
@@ -707,7 +710,7 @@ class NullSpace(Builtin):
     }
     summary_text = "generators for the null space of a matrix"
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "NullSpace[m_]"
 
         matrix = to_sympy_matrix(m)
@@ -749,7 +752,7 @@ class PseudoInverse(Builtin):
     }
     summary_text = "Moore-Penrose pseudoinverse"
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "PseudoInverse[m_]"
 
         matrix = to_sympy_matrix(m)
@@ -783,7 +786,7 @@ class QRDecomposition(Builtin):
     }
     summary_text = "qr decomposition"
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "QRDecomposition[m_]"
 
         matrix = to_sympy_matrix(m)
@@ -826,7 +829,7 @@ class RowReduce(Builtin):
     }
     summary_text = "matrix reduced row-echelon form"
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "RowReduce[m_]"
 
         matrix = to_sympy_matrix(m)
@@ -877,7 +880,7 @@ class SingularValueDecomposition(Builtin):
     }
     summary_text = "singular value decomposition"
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "SingularValueDecomposition[m_]"
 
         matrix = to_mpmath_matrix(m)
@@ -921,7 +924,7 @@ class Tr(Builtin):
 
     # TODO: generalize to vectors and higher-rank tensors, and allow function arguments for application
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "Tr[m_]"
 
         matrix = to_sympy_matrix(m)
