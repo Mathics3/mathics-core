@@ -70,7 +70,7 @@ class ImageImport(Builtin):
     """
 
     messages = {
-        "imgtype": "Can't identify image file type for `1`.",
+        "infer": "Cannot infer format of file `1`.",
         "imgmisc": "PIL error: `1`.",
     }
 
@@ -81,7 +81,7 @@ class ImageImport(Builtin):
         try:
             pillow = PIL.Image.open(path.value)
         except PIL.UnidentifiedImageError:
-            evaluation.message("ImageImport", "imgtype", path)
+            evaluation.message("ImageImport", "infer", path)
             return SymbolFailed
         except Exception as e:
             evaluation.message("ImageImport", "imgmisc", str(e))
