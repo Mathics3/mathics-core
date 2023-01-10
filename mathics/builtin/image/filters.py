@@ -63,12 +63,12 @@ class ImageConvolve(Builtin):
       <dd>Computes the convolution of $image$ using $kernel$.
     </dl>
 
-    >> img = Import["ExampleData/hedy.tif"];
-    >> ImageConvolve[img, DiamondMatrix[5] / 61]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> ImageConvolve[hedy, DiamondMatrix[5] / 61]
      = -Image-
-    >> ImageConvolve[img, DiskMatrix[5] / 97]
+    >> ImageConvolve[hedy, DiskMatrix[5] / 97]
      = -Image-
-    >> ImageConvolve[img, BoxMatrix[5] / 121]
+    >> ImageConvolve[hedy, BoxMatrix[5] / 121]
      = -Image-
     """
 

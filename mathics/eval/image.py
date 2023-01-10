@@ -4,8 +4,9 @@
 helper functions for images
 """
 
+import functools
 from operator import itemgetter
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import numpy
 import PIL
@@ -162,6 +163,39 @@ def get_image_size_spec(old_size, new_size) -> Optional[float]:
             return None
         return max(1, old_size * s)  # handle negative s values silently
     return None
+
+
+def linearize_numpy_array(a: numpy.array) -> Tuple[numpy.array, int]:
+    """
+    Transforms a numpy array numpy array and return the array and the number
+    of dimensions in the array
+
+    A binary search is used.
+    """
+
+    orig_shape = a.shape
+    a = a.reshape((functools.reduce(lambda x, y: x * y, a.shape),))  # 1 dimension
+
+    u = numpy.unique(a)
+    n = len(u)
+
+    lower = numpy.ndarray(a.shape, dtype=int)
+    lower.fill(0)
+    upper = numpy.ndarray(a.shape, dtype=int)
+    upper.fill(n - 1)
+
+    h = numpy.sort(u)
+    q = n  # worst case partition size
+
+    while q > 2:
+        m = numpy.right_shift(lower + upper, 1)
+        f = a <= h[m]
+        # (lower, m) vs (m + 1, upper)
+        lower = numpy.where(f, lower, m + 1)
+        upper = numpy.where(f, m, upper)
+        q = (q + 1) // 2
+
+    return numpy.where(a == h[lower], lower, upper).reshape(orig_shape), n
 
 
 def matrix_to_numpy(a):
