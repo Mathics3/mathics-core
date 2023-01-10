@@ -132,21 +132,21 @@ class ImagePartition(Builtin):
 
     >> hedy = Import["ExampleData/hedy.tif"];
     >> ImageDimensions[hedy]
-     = {512, 512}
+     = {646, 800}
     >> ImagePartition[hedy, 256]
-     = {{-Image-, -Image-}, {-Image-, -Image-}}
+     = {{-Image-, -Image-}, {-Image-, -Image-}, {-Image-, -Image-}}
 
     >> ImagePartition[hedy, {512, 128}]
-     = {{-Image-}, {-Image-}, {-Image-}, {-Image-}}
+     = {{-Image-}, {-Image-}, {-Image-}, {-Image-}, {-Image-}, {-Image-}}
 
     #> ImagePartition[hedy, 257]
+     = {{-Image-, -Image-}, {-Image-, -Image-}, {-Image-, -Image-}}
+    #> ImagePartition[hedy, 646]
      = {{-Image-}}
-    #> ImagePartition[hedy, 512]
-     = {{-Image-}}
-    #> ImagePartition[hedy, 513]
+    #> ImagePartition[hedy, 647]
      = {}
     #> ImagePartition[hedy, {256, 300}]
-     = {{-Image-, -Image-}}
+     = {{-Image-, -Image-}, {-Image-, -Image-}}
 
     #> ImagePartition[hedy, {0, 300}]
      : {0, 300} is not a valid size specification for image partitions.
@@ -224,13 +224,13 @@ class Threshold(Builtin):
 
     >> img = Import["ExampleData/hedy.tif"];
     >> Threshold[img]
-     = 0.456739
+     = 0.408203
     X> Binarize[img, %]
      = -Image-
     X> Threshold[img, Method -> "Mean"]
-     = 0.486458
+     = 0.22086
     X> Threshold[img, Method -> "Median"]
-     = 0.504726
+     = 0.0593961
     """
 
     summary_text = "estimate a threshold value for binarize an image"

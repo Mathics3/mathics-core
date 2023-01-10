@@ -24,21 +24,21 @@ class PixelValue(Builtin):
 
     >> hedy = Import["ExampleData/hedy.tif"];
     >> PixelValue[hedy, {1, 1}]
-     = {0.321569, 0.0862745, 0.223529}
+     = {0.439216, 0.356863, 0.337255}
     #> {82 / 255, 22 / 255, 57 / 255} // N  (* pixel byte values from bottom left corner *)
      = {0.321569, 0.0862745, 0.223529}
 
     #> PixelValue[hedy, {0, 1}];
      : Padding not implemented for PixelValue.
     #> PixelValue[hedy, {512, 1}]
-     = {0.72549, 0.290196, 0.317647}
-    #> PixelValue[hedy, {513, 1}];
+     = {0.0509804, 0.0509804, 0.0588235}
+    #> PixelValue[hedy, {647, 1}];
      : Padding not implemented for PixelValue.
     #> PixelValue[hedy, {1, 0}];
      : Padding not implemented for PixelValue.
     #> PixelValue[hedy, {1, 512}]
-     = {0.886275, 0.537255, 0.490196}
-    #> PixelValue[hedy, {1, 513}];
+     = {0.286275, 0.4, 0.423529}
+    #> PixelValue[hedy, {1, 801}];
      : Padding not implemented for PixelValue.
     """
 
@@ -77,10 +77,10 @@ class PixelValuePositions(Builtin):
      = {{2, 2}, {2, 3}}
 
     >> img = Import["ExampleData/hedy.tif"];
-    >> PixelValuePositions[img, 3 / 255, 0.5 / 255]
-     = {{180, 192, 2}, {181, 192, 2}, {181, 193, 2}, {188, 204, 2}, {265, 314, 2}, {364, 77, 2}, {365, 72, 2}, {365, 73, 2}, {365, 77, 2}, {366, 70, 2}, {367, 65, 2}}
+    >> PixelValuePositions[img, 1, 0][[1]]
+     = {101, 491, 1}
     >> PixelValue[img, {180, 192}]
-     = {0.25098, 0.0117647, 0.215686}
+     = {0.00784314, 0.00784314, 0.0156863}
     """
 
     rules = {

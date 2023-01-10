@@ -31,7 +31,7 @@ class ImageAspectRatio(Builtin):
 
     >> img = Import["ExampleData/hedy.tif"];
     >> ImageAspectRatio[img]
-     = 1
+     = 400 / 323
 
     >> ImageAspectRatio[Image[{{0, 1}, {1, 0}, {1, 1}}]]
      = 3 / 2
@@ -134,7 +134,7 @@ class ImageDimensions(Builtin):
 
     >> hedy = Import["ExampleData/hedy.tif"];
     >> ImageDimensions[hedy]
-     = {512, 512}
+     = {646, 800}
 
     >> ImageDimensions[RandomImage[1, {50, 70}]]
      = {50, 70}
@@ -166,7 +166,6 @@ class ImageType(Builtin):
 
     X> ImageType[Binarize[img]]
      = Bit
-
     """
 
     summary_text = "type of values used for each pixel element in an image"
