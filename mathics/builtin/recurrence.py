@@ -5,7 +5,8 @@ Solving Recurrence Equations
 """
 
 # This tells documentation how to sort this module
-# Here we are also hiding "moments" since this erroneously appears at the top level.
+# Here we are also hiding "moments" since this erroneously appears at the
+# top level.
 sort_order = "mathics.builtin.solving-recurrence-equations"
 
 
@@ -15,6 +16,7 @@ from mathics.builtin.base import Builtin
 from mathics.core.atoms import IntegerM1
 from mathics.core.attributes import A_CONSTANT
 from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolTimes
@@ -23,7 +25,9 @@ from mathics.core.systemsymbols import SymbolFunction, SymbolRule
 
 class RSolve(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/RSolve.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RSolve.html</url>
 
     <dl>
     <dt>'RSolve[$eqn$, $a$[$n$], $n$]'
@@ -63,7 +67,7 @@ class RSolve(Builtin):
     }
     summary_text = "recurrence equations solver"
 
-    def eval(self, eqns, a, n, evaluation):
+    def eval(self, eqns, a, n, evaluation: Evaluation):
         "RSolve[eqns_, a_, n_]"
 
         # TODO: Do this with rules?

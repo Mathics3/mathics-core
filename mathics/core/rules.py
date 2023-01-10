@@ -26,12 +26,15 @@ class BaseRule(KeyComparable):
     """
     This is the base class from which all other Rules are derived from.
 
-    Rules are part of the rewriting system of Mathics. See https://en.wikipedia.org/wiki/Rewriting
+    Rules are part of the rewriting system of Mathics. See
+    https://en.wikipedia.org/wiki/Rewriting
 
-    This class is not complete in of itself and subclasses should adapt or fill in
-    what is needed. In particular ``do_replace()`` needs to be implemented.
+    This class is not complete in of itself and subclasses should
+    adapt or fill in what is needed. In particular ``do_replace()``
+    needs to be implemented.
 
     Important subclasses: BuiltinRule and Rule.
+
     """
 
     def __init__(self, pattern, system=False) -> None:

@@ -1,9 +1,9 @@
 # cython: language_level=3
 # -*- coding: utf-8 -*-
 
-# Note: docstring is flowed in documentation. Line breaks in the docstring will appear in the
-# printed output, so be careful not to add them mid-sentence. Line breaks  like \
-# this work though.
+# Note: docstring is flowed in documentation. Line breaks in the
+# docstring will appear in the printed output, so be careful not to
+# add them mid-sentence. Line breaks like \ this work though.
 
 """
 Numerical Functions
@@ -89,7 +89,8 @@ class Chop(Builtin):
 
 class N(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/N.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/N.html</url>
 
     <dl>
     <dt>'N[$expr$, $prec$]'
@@ -213,7 +214,7 @@ class N(Builtin):
 
     summary_text = "numerical evaluation to specified precision and accuracy"
 
-    def apply_with_prec(self, expr, prec, evaluation, options=None):
+    def eval_with_prec(self, expr, prec, evaluation, options=None):
         "N[expr_, prec_, OptionsPattern[%(name)s]]"
 
         # If options are passed, set the preference in evaluation, and call again
@@ -236,7 +237,7 @@ class N(Builtin):
             if preference:
                 preference_queue.append(preference)
                 try:
-                    result = self.apply_with_prec(expr, prec, evaluation)
+                    result = self.eval_with_prec(expr, prec, evaluation)
                 except Exception:
                     result = None
                 preference_queue.pop()
@@ -244,7 +245,7 @@ class N(Builtin):
 
         return eval_nvalues(expr, prec, evaluation)
 
-    def apply_N(self, expr, evaluation):
+    def eval_N(self, expr, evaluation: Evaluation):
         """N[expr_]"""
         # TODO: Specialize for atoms
         return eval_nvalues(expr, SymbolMachinePrecision, evaluation)
