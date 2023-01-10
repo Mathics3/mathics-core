@@ -90,9 +90,9 @@ class ImageAdd(_ImageArithmetic):
     >> ImageAdd[noise, ein]
      = -Image-
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> noise = RandomImage[{-0.2, 0.2}, ImageDimensions[lena], ColorSpace -> "RGB"];
-    >> ImageAdd[noise, lena]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> noise = RandomImage[{-0.2, 0.2}, ImageDimensions[hedy], ColorSpace -> "RGB"];
+    >> ImageAdd[noise, hedy]
      = -Image-
     """
 

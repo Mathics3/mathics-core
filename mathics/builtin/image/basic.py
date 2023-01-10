@@ -33,10 +33,10 @@ class Blur(Builtin):
       <dd>blurs $image$ with a kernel of size $r$.
     </dl>
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> Blur[lena]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> Blur[hedy]
      = -Image-
-    >> Blur[lena, 5]
+    >> Blur[hedy, 5]
      = -Image-
     """
 
@@ -67,8 +67,8 @@ class ImageAdjust(Builtin):
       <dd>adjusts the contrast $c$, brightness $b$, and gamma $g$ in $image$.
     </dl>
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> ImageAdjust[lena]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> ImageAdjust[hedy]
      = -Image-
     """
 
@@ -130,25 +130,25 @@ class ImagePartition(Builtin):
       <dd>Partitions an image into an array of $w$ x $h$ pixel subimages.
     </dl>
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> ImageDimensions[lena]
-     = {512, 512}
-    >> ImagePartition[lena, 256]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> ImageDimensions[hedy]
+     = {646, 800}
+    >> ImagePartition[hedy, 256]
+     = {{-Image-, -Image-}, {-Image-, -Image-}, {-Image-, -Image-}}
+
+    >> ImagePartition[hedy, {512, 128}]
+     = {{-Image-}, {-Image-}, {-Image-}, {-Image-}, {-Image-}, {-Image-}}
+
+    #> ImagePartition[hedy, 257]
+     = {{-Image-, -Image-}, {-Image-, -Image-}, {-Image-, -Image-}}
+    #> ImagePartition[hedy, 646]
+     = {{-Image-}}
+    #> ImagePartition[hedy, 647]
+     = {}
+    #> ImagePartition[hedy, {256, 300}]
      = {{-Image-, -Image-}, {-Image-, -Image-}}
 
-    >> ImagePartition[lena, {512, 128}]
-     = {{-Image-}, {-Image-}, {-Image-}, {-Image-}}
-
-    #> ImagePartition[lena, 257]
-     = {{-Image-}}
-    #> ImagePartition[lena, 512]
-     = {{-Image-}}
-    #> ImagePartition[lena, 513]
-     = {}
-    #> ImagePartition[lena, {256, 300}]
-     = {{-Image-, -Image-}}
-
-    #> ImagePartition[lena, {0, 300}]
+    #> ImagePartition[hedy, {0, 300}]
      : {0, 300} is not a valid size specification for image partitions.
      = ImagePartition[-Image-, {0, 300}]
     """
@@ -192,10 +192,10 @@ class Sharpen(Builtin):
       <dd>sharpens $image$ with a kernel of size $r$.
     </dl>
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> Sharpen[lena]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> Sharpen[hedy]
      = -Image-
-    >> Sharpen[lena, 5]
+    >> Sharpen[hedy, 5]
      = -Image-
     """
 
@@ -222,15 +222,15 @@ class Threshold(Builtin):
 
     The option "Method" may be "Cluster" (use Otsu's threshold), "Median", or "Mean".
 
-    >> img = Import["ExampleData/lena.tif"];
+    >> img = Import["ExampleData/hedy.tif"];
     >> Threshold[img]
-     = 0.456739
+     = 0.408203
     X> Binarize[img, %]
      = -Image-
     X> Threshold[img, Method -> "Mean"]
-     = 0.486458
+     = 0.22086
     X> Threshold[img, Method -> "Median"]
-     = 0.504726
+     = 0.0593961
     """
 
     summary_text = "estimate a threshold value for binarize an image"

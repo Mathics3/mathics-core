@@ -301,32 +301,32 @@ class DominantColors(Builtin):
     The option "MinColorDistance" specifies the distance (in LAB color space) up \
     to which colors are merged and thus regarded as belonging to the same dominant color.
 
-    >> img = Import["ExampleData/lena.tif"]
+    >> img = Import["ExampleData/hedy.tif"]
      = -Image-
 
     >> DominantColors[img]
-     = {RGBColor[0.827451, 0.537255, 0.486275], RGBColor[0.87451, 0.439216, 0.45098], RGBColor[0.341176, 0.0705882, 0.254902], RGBColor[0.690196, 0.266667, 0.309804], RGBColor[0.533333, 0.192157, 0.298039], RGBColor[0.878431, 0.760784, 0.721569]}
+     = {RGBColor[0.00784314, 0.00784314, 0.0156863], RGBColor[0.996078, 0.803922, 0.721569], RGBColor[0.227451, 0.329412, 0.360784]}
 
     >> DominantColors[img, 3]
-     = {RGBColor[0.827451, 0.537255, 0.486275], RGBColor[0.87451, 0.439216, 0.45098], RGBColor[0.341176, 0.0705882, 0.254902]}
+     = {RGBColor[0.00784314, 0.00784314, 0.0156863], RGBColor[0.996078, 0.803922, 0.721569], RGBColor[0.227451, 0.329412, 0.360784]}
 
     >> DominantColors[img, 3, "Coverage"]
-     = {28579 / 131072, 751 / 4096, 23841 / 131072}
+     = {68817 / 103360, 62249 / 516800, 37953 / 516800}
 
     >> DominantColors[img, 3, "CoverageImage"]
      = {-Image-, -Image-, -Image-}
 
     >> DominantColors[img, 3, "Count"]
-     = {57158, 48064, 47682}
+     = {344085, 62249, 37953}
 
     >> DominantColors[img, 2, "LABColor"]
-     = {LABColor[0.646831, 0.279785, 0.193184], LABColor[0.608465, 0.443559, 0.195911]}
+     = {LABColor[0.00581591, 0.00207458, -0.00760911], LABColor[0.863667, 0.156864, 0.173956]}
 
     >> DominantColors[img, MinColorDistance -> 0.5]
-     = {RGBColor[0.87451, 0.439216, 0.45098], RGBColor[0.341176, 0.0705882, 0.254902]}
+     = {RGBColor[0.00784314, 0.00784314, 0.0156863], RGBColor[0.996078, 0.803922, 0.721569]}
 
     >> DominantColors[img, ColorCoverage -> 0.15]
-     = {RGBColor[0.827451, 0.537255, 0.486275], RGBColor[0.87451, 0.439216, 0.45098], RGBColor[0.341176, 0.0705882, 0.254902]}
+     = {RGBColor[0.00784314, 0.00784314, 0.0156863]}
     """
 
     rules = {

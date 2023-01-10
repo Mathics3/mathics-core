@@ -15,7 +15,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolNull
-from mathics.core.systemsymbols import SymbolRule
+from mathics.core.systemsymbols import SymbolFailed, SymbolRule
 from mathics.eval.image import extract_exif
 
 _skimage_requires = ("skimage", "scipy", "matplotlib", "networkx")
@@ -65,15 +65,28 @@ class ImageImport(Builtin):
      = -Image-
     >> Import["ExampleData/moon.tif"]
      = -Image-
-    >> Import["ExampleData/lena.tif"]
+    >> Import["ExampleData/hedy.tif"]
      = -Image-
     """
+
+    messages = {
+        "infer": "Cannot infer format of file `1`.",
+        "imgmisc": "PIL error: `1`.",
+    }
 
     no_doc = True
 
     def eval(self, path: String, evaluation: Evaluation):
         """ImageImport[path_String]"""
-        pillow = PIL.Image.open(path.value)
+        try:
+            pillow = PIL.Image.open(path.value)
+        except PIL.UnidentifiedImageError:
+            evaluation.message("ImageImport", "infer", path)
+            return SymbolFailed
+        except Exception as e:
+            evaluation.message("ImageImport", "imgmisc", str(e))
+            return SymbolFailed
+
         pixels = numpy.asarray(pillow)
         is_rgb = len(pixels.shape) >= 3 and pixels.shape[2] >= 3
         options_from_exif = extract_exif(pillow, evaluation)
@@ -95,11 +108,13 @@ class RandomImage(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/RandomImage.html</url>
 
     <dl>
-    <dt>'RandomImage[$max$]'
+      <dt>'RandomImage[$max$]'
       <dd>creates an image of random pixels with values 0 to $max$.
-    <dt>'RandomImage[{$min$, $max$}]'
+
+      <dt>'RandomImage[{$min$, $max$}]'
       <dd>creates an image of random pixels with values $min$ to $max$.
-    <dt>'RandomImage[..., $size$]'
+
+      <dt>'RandomImage[..., $size$]'
       <dd>creates an image of the given $size$.
     </dl>
 
@@ -174,12 +189,12 @@ class EdgeDetect(_SkimageBuiltin):
       <dd>returns an image showing the edges in $image$.
     </dl>
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> EdgeDetect[lena]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> EdgeDetect[hedy]
      = -Image-
-    >> EdgeDetect[lena, 5]
+    >> EdgeDetect[hedy, 5]
      = -Image-
-    >> EdgeDetect[lena, 4, 0.5]
+    >> EdgeDetect[hedy, 4, 0.5]
      = -Image-
     """
 
