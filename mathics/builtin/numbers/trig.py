@@ -757,7 +757,6 @@ class Sec(_MPMathFunction):
     https://mpmath.org/doc/current/functions/trigonometric.html#sec</url>, <url>
     :WMA:
     https://reference.wolfram.com/language/ref/Sec.html</url>)
-    <url>
 
     <dl>
       <dt>'Sec[$z$]'
@@ -847,7 +846,6 @@ class Tan(_MPMathFunction):
     https://mpmath.org/doc/current/functions/trigonometric.html#tan</url>, <url>
     :WMA:
     https://reference.wolfram.com/language/ref/Tan.html</url>)
-    <url>
 
     <dl>
       <dt>'Tan[$z$]'
