@@ -1495,6 +1495,8 @@ class Import(Builtin):
                     stream = None
                 import_expression = Expression(tmp_function, findfile, *joined_options)
                 tmp = import_expression.evaluate(evaluation)
+                if tmp is SymbolFailed:
+                    return SymbolFailed
                 if tmpfile:
                     Expression(SymbolDeleteFile, findfile).evaluate(evaluation)
             elif function_channels == ListExpression(String("Streams")):
@@ -1535,6 +1537,8 @@ class Import(Builtin):
             defaults = get_results(default_function, findfile)
             if defaults is None:
                 evaluation.predetermined_out = current_predetermined_out
+                return SymbolFailed
+            elif defaults is SymbolFailed:
                 return SymbolFailed
             if default_element is Symbol("Automatic"):
                 evaluation.predetermined_out = current_predetermined_out

@@ -39,7 +39,12 @@ is_PyPy = platform.python_implementation() == "PyPy" or hasattr(
     sys, "pypy_version_info"
 )
 
-INSTALL_REQUIRES = ["Mathics-Scanner >= 1.3.0.dev0", "pillow"]
+INSTALL_REQUIRES = [
+    "Mathics-Scanner >= 1.3.0.dev0",
+    # Pillow 9.1.0 supports BigTIFF with big-endian byte order.
+    # ExampleData image hedy.tif is in this format.
+    "pillow >= 9.1.0",
+]
 
 # Ensure user has the correct Python version
 # Address specific package dependencies based on Python version

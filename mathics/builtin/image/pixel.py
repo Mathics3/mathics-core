@@ -4,6 +4,7 @@ Pixel Operations
 import numpy
 
 from mathics.builtin.base import Builtin
+from mathics.builtin.image.base import Image
 from mathics.core.atoms import Integer, MachineReal
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
@@ -46,7 +47,7 @@ class PixelValue(Builtin):
 
     summary_text = "get pixel value of image at a given position"
 
-    def eval(self, image, x, y, evaluation: Evaluation):
+    def eval(self, image: Image, x, y, evaluation: Evaluation):
         "PixelValue[image_Image, {x_?RealNumberQ, y_?RealNumberQ}]"
         x = int(x.round_to_float())
         y = int(y.round_to_float())
@@ -76,10 +77,10 @@ class PixelValuePositions(Builtin):
     >> PixelValuePositions[Image[{{0.2, 0.4}, {0.9, 0.6}, {0.3, 0.8}}], 0.5, 0.15]
      = {{2, 2}, {2, 3}}
 
-    >> img = Import["ExampleData/hedy.tif"];
-    >> PixelValuePositions[img, 1, 0][[1]]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> PixelValuePositions[hedy, 1, 0][[1]]
      = {101, 491, 1}
-    >> PixelValue[img, {180, 192}]
+    >> PixelValue[hedy, {180, 192}]
      = {0.00784314, 0.00784314, 0.0156863}
     """
 
@@ -89,7 +90,7 @@ class PixelValuePositions(Builtin):
 
     summary_text = "list the position of pixels with a given value"
 
-    def eval(self, image, val, d, evaluation: Evaluation):
+    def eval(self, image: Image, val, d, evaluation: Evaluation):
         "PixelValuePositions[image_Image, val_?RealNumberQ, d_?RealNumberQ]"
         val = val.round_to_float()
         d = d.round_to_float()
