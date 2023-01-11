@@ -210,7 +210,7 @@ class Equivalent(BinaryOperator):
     If all expressions do not evaluate to 'True' or 'False', 'Equivalent' \
     returns a result in symbolic form:
     >> Equivalent[a, b, c]
-     = a \u29E6 b \u29E6 c
+     = a \\[Equivalent] b \\[Equivalent] c
      Otherwise, 'Equivalent' returns a result in DNF
     >> Equivalent[a, b, True, c]
      = a && b && c
@@ -286,7 +286,7 @@ class Implies(BinaryOperator):
     If an expression does not evaluate to 'True' or 'False', 'Implies'
     returns a result in symbolic form:
     >> Implies[a, Implies[b, Implies[True, c]]]
-     = a \u21D2 b \u21D2 c
+     = a Implies b Implies c
     """
 
     operator = "\u21D2"
@@ -308,15 +308,21 @@ class Implies(BinaryOperator):
 
 class NoneTrue(_ManyTrue):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/NoneTrue.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/NoneTrue.html</url>
 
     <dl>
-    <dt>'NoneTrue[{$expr1$, $expr2$, ...}, $test$]'
-        <dd>returns True if no application of $test$ to $expr1$, $expr2$, ... evaluates to True.
-    <dt>'NoneTrue[$list$, $test$, $level$]'
-        <dd>returns True if no application of $test$ to items of $list$ at $level$ evaluates to True.
-    <dt>'NoneTrue[$test$]'
-        <dd>gives an operator that may be applied to expressions.
+      <dt>'NoneTrue[{$expr1$, $expr2$, ...}, $test$]'
+      <dd>returns True if no application of $test$ to $expr1$, $expr2$, ... \
+          evaluates to True.
+
+      <dt>'NoneTrue[$list$, $test$, $level$]'
+      <dd>returns True if no application of $test$ to items of $list$ at \
+          $level$ evaluates to True.
+
+      <dt>'NoneTrue[$test$]'
+      <dd>gives an operator that may be applied to expressions.
     </dl>
 
     >> NoneTrue[{1, 3, 5}, EvenQ]
@@ -396,9 +402,10 @@ class Nand(Builtin):
     https://reference.wolfram.com/language/ref/Nand.html</url>
 
     <dl>
-    <dt>'Nand[$expr1$, $expr2$, ...]'
-    <dt>$expr1$ \u22BC $expr2$ \u22BC ...
-        <dd> Implements the logical NAND function.  The same as 'Not[And['$expr1$, $expr2$, ...']]'
+      <dt>'Nand[$expr1$, $expr2$, ...]'
+
+      <dt>$expr1$ \u22BC $expr2$ \u22BC ...
+      <dd> Implements the logical NAND function.  The same as 'Not[And['$expr1$, $expr2$, ...']]'
     </dl>
     >> Nand[True, False]
      = True
@@ -416,9 +423,10 @@ class Nor(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Nor.html</url>
 
     <dl>
-    <dt>'Nor[$expr1$, $expr2$, ...]'
-    <dt>$expr1$ \u22BD $expr2$ \u22BD ...
-        <dd>Implements the logical NOR function.  The same as 'Not[Or['$expr1$, $expr2$, ...']]'
+      <dt>'Nor[$expr1$, $expr2$, ...]'
+
+      <dt>$expr1$ \u22BD $expr2$ \u22BD ...
+      <dd>Implements the logical NOR function.  The same as 'Not[Or['$expr1$, $expr2$, ...']]'
     </dl>
     >> Nor[True, False]
      = False
@@ -496,7 +504,7 @@ class Xor(BinaryOperator):
     If an expression does not evaluate to 'True' or 'False', 'Xor'
     returns a result in symbolic form:
     >> Xor[a, False, b]
-     = a \u22BB b
+     = a \\[Xor] b
     #> Xor[]
      = False
     #> Xor[a]
@@ -506,7 +514,7 @@ class Xor(BinaryOperator):
     #> Xor[True]
      = True
     #> Xor[a, b]
-     = a \u22BB b
+     = a \\[Xor] b
     """
 
     attributes = A_FLAT | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
