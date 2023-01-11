@@ -1410,7 +1410,7 @@ class Repeated(PostfixOperator, PatternObject):
 
     operator = ".."
     precedence = 170
-    summary_text = "match to one or more occurences of a pattern"
+    summary_text = "match to one or more occurrences of a pattern"
 
     def init(self, expr, min=1):
         self.pattern = Pattern.create(expr.elements[0])
@@ -1484,7 +1484,7 @@ class RepeatedNull(Repeated):
 
     operator = "..."
     precedence = 170
-    summary_text = "match to zero or more occurences of a pattern"
+    summary_text = "match to zero or more occurrences of a pattern"
 
     def init(self, expr):
         super(RepeatedNull, self).init(expr, min=0)

@@ -194,7 +194,7 @@ class Colorize(Builtin):
     <dl>
       <dt>'Colorize[$values$]'
       <dd>returns an image where each number in the rectangular matrix \
-          $values$ is a pixel and each occurence of the same number is \
+          $values$ is a pixel and each occurrence of the same number is \
           displayed in the same unique color, which is different from the \
           colors of all non-identical numbers.
 

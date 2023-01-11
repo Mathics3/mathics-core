@@ -285,9 +285,9 @@ class FilePrint(Builtin):
      : File specification Sin[1] is not a string of one or more characters.
      = FilePrint[Sin[1]]
 
-    #> FilePrint["somenonexistantpath_h47sdmk^&h4"]
-     : Cannot open somenonexistantpath_h47sdmk^&h4.
-     = FilePrint[somenonexistantpath_h47sdmk^&h4]
+    #> FilePrint["somenonexistentpath_h47sdmk^&h4"]
+     : Cannot open somenonexistentpath_h47sdmk^&h4.
+     = FilePrint[somenonexistentpath_h47sdmk^&h4]
 
     #> FilePrint[""]
      : File specification  is not a string of one or more characters.
@@ -927,7 +927,7 @@ class Read(Builtin):
      = 5
     >> Close[stream];
 
-    Reading a comment however will return the empy list:
+    Reading a comment however will return the empty list:
     >> stream = StringToStream["(* ::Package:: *)"];
 
     >> Read[stream, Hold[Expression]]
@@ -1686,7 +1686,7 @@ class Streams(Builtin):
     #> Streams[%[[1]]]
      = {OutputStream[...]}
 
-    #> Streams["some_nonexistant_name"]
+    #> Streams["some_nonexistent_name"]
      = {}
     """
 

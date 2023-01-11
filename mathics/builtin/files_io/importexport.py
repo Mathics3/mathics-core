@@ -1043,13 +1043,18 @@ class RegisterImport(Builtin):
 
     <dl>
       <dt>'RegisterImport["$format$", $defaultFunction$]'
-      <dd>register '$defaultFunction$' as the default function used when importing from a file of type '"$format$"'.
+      <dd>register '$defaultFunction$' as the default function used when \
+          importing from a file of type '"$format$"'.
 
-      <dt>'RegisterImport["$format$", {"$elem1$" :> $conditionalFunction1$, "$elem2$" :> $conditionalFunction2$, ..., $defaultFunction$}]'
-      <dd>registers multiple elements ($elem1$, ...) and their corresponding converter functions ($conditionalFunction1$, ...) in addition to the $defaultFunction$.
+      <dt>'RegisterImport["$format$", {"$elem1$" :> $conditionalFunction1$, \
+          "$elem2$" :> $conditionalFunction2$, ..., $defaultFunction$}]'
+      <dd>registers multiple elements ($elem1$, ...) and their corresponding \
+          converter functions ($conditionalFunction1$, ...) in addition to the $defaultFunction$.
 
-      <dt>'RegisterImport["$format$", {"$conditionalFunctions$, $defaultFunction$, "$elem3$" :> $postFunction3$, "$elem4$" :> $postFunction4$, ...}]'
-      <dd>also registers additional elements ($elem3$, ...) whose converters ($postFunction3$, ...) act on output from the low-level funcions.
+      <dt>'RegisterImport["$format$", {"$conditionalFunctions$, $defaultFunction$, \
+           "$elem3$" :> $postFunction3$, "$elem4$" :> $postFunction4$, ...}]'
+      <dd>also registers additional elements ($elem3$, ...) whose converters \
+          ($postFunction3$, ...) act on output from the low-level functions.
     </dl>
 
     First, define the default function used to import the data.
@@ -1210,17 +1215,17 @@ class RegisterExport(Builtin):
     context = "ImportExport`"
 
     options = {
-        "Path": "Automatic",
-        "FunctionChannels": '{"FileNames"}',
-        "Sources": "None",
-        "DefaultElement": "None",
+        "AlphaChannel": "False",
         "AvailableElements": "None",
-        "Options": "{}",
-        "OriginalChannel": "False",
         "BinaryFormat": "False",
+        "DefaultElement": "None",
         "Encoding": "False",
         "Extensions": "{}",
-        "AlphaChannel": "False",
+        "FunctionChannels": '{"FileNames"}',
+        "Options": "{}",
+        "OriginalChannel": "False",
+        "Path": "Automatic",
+        "Sources": "None",
     }
 
     def eval(self, formatname: String, function, evaluation: Evaluation, options):

@@ -165,11 +165,11 @@ class DigitCount(_IntBaseBuiltin):
         base = self._valid_base(b, evaluation)
         if not base:
             return
-        occurence_count = [0] * base
+        occurrence_count = [0] * base
         for digit in _reversed_digits(n.get_int_value(), base):
-            occurence_count[digit] += 1
+            occurrence_count[digit] += 1
         # result list is rotated by one element to the left
-        return to_mathics_list(*(occurence_count[1:] + [occurence_count[0]]))
+        return to_mathics_list(*(occurrence_count[1:] + [occurrence_count[0]]))
 
 
 class Floor(SympyFunction):
@@ -471,13 +471,18 @@ class IntegerString(Builtin):
 
 class IntegerReverse(_IntBaseBuiltin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/IntegerReverse.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/IntegerReverse.html</url>
 
     <dl>
       <dt>'IntegerReverse[$n$]'
-      <dd>returns the integer that has the reverse decimal representation of $x$ without sign.
+      <dd>returns the integer that has the reverse decimal representation \
+          of $x$ without sign.
+
       <dt>'IntegerReverse[$n$, $b$]'
-      <dd>returns the integer that has the reverse base $b$ represenation of $x$ without sign.
+      <dd>returns the integer that has the reverse base $b$ representation \
+          of $x$ without sign.
     </dl>
 
     >> IntegerReverse[1234]

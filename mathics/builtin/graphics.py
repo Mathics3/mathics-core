@@ -652,7 +652,7 @@ class Arrow(Builtin):
     >> Graphics[{Circle[], Arrow[{{2, 1}, {0, 0}}, 1]}]
     = -Graphics-
 
-    Arrows can also be drawn in 3D by giving poing in three dimensions:
+    Arrows can also be drawn in 3D by giving point in three dimensions:
 
     >> Graphics3D[Arrow[{{1, 1, -1}, {2, 2, 0}, {3, 3, -1}, {4, 4, 0}}]]
      = -Graphics3D-
@@ -1401,7 +1401,7 @@ class Rectangle(Builtin):
       <dd>represents a unit square with bottom-left corner at {$xmin$, $ymin$}.
 
       <dt>'Rectangle[{$xmin$, $ymin$}, {$xmax$, $ymax$}]
-      <dd>is a rectange extending from {$xmin$, $ymin$} to {$xmax$, $ymax$}.
+      <dd>is a rectangle extending from {$xmin$, $ymin$} to {$xmax$, $ymax$}.
     </dl>
 
     >> Graphics[Rectangle[]]

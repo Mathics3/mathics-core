@@ -172,8 +172,8 @@ class N(Builtin):
     >> % // Precision
      = 20.
 
-    N can also accept an option "Method". This establishes what is the prefered underlying method to
-    compute numerical values:
+    N can also accept an option "Method". This establishes what is the \
+    prefrered underlying method to compute numerical values:
     >> N[F[Pi], 30, Method->"numpy"]
      = F[3.14159265358979300000000000000]
     >> N[F[Pi], 30, Method->"sympy"]

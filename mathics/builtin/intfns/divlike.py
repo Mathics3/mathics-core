@@ -278,7 +278,7 @@ class ModularInverse(SympyFunction):
     >> k = 2; n = 3; Mod[ModularInverse[k, n] * k, n] == 1
      = True
 
-    Some modular inverses just do not exists. For example when $k$ is a multple of $n$:
+    Some modular inverses just do not exists. For example when $k$ is a multiple of $n$:
     >> ModularInverse[k, k]
      = ModularInverse[2, 2]
 

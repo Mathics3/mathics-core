@@ -370,7 +370,7 @@ class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
 
     <dl>
       <dt>'EulerGamma'
-      <dd>is Euler's constant \u03b3 with numerial value \u2243 0.577216.
+      <dd>is Euler's constant \u03b3 with numerical value \u2243 0.577216.
     </dl>
 
     >> EulerGamma // N

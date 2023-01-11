@@ -258,18 +258,23 @@ class PlotPoints(Builtin):
 
 class PlotRange(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/PlotRange.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/PlotRange.html</url>
 
     <dl>
       <dt>'PlotRange'
-      <dd>is a charting option, such as for 'Plot', 'BarChart', 'PieChart', etc. that gives the range of coordinates to include in a plot.
+      <dd>is a charting option, such as for 'Plot', 'BarChart', 'PieChart', \
+          etc. that gives the range of coordinates to include in a plot.
     </dl>
     <ul>
       <li>All all points are included.
       <li>Automatic - outlying points are dropped.
       <li>$max$ - explicit limit for each function.
-      <li>{$min$, $max$} - explicit limits for $y$ (2D), $z$ (3D), or array values.
-      <li>{{$x$_$min$, $x$_$max$}, {{$y_min}, {$y_max}} - explit limits for $x$ and $y$.
+      <li>{$min$, $max$} - explicit limits for $y$ (2D), $z$ (3D), \
+          or array values.
+      <li>{{$x$_$min$, $x$_$max$}, {{$y_min}, {$y_max}} - explicit limits for \
+          $x$ and $y$.
     </ul>
 
     >> Plot[Sin[Cos[x^2]],{x,-4,4}, PlotRange -> All]

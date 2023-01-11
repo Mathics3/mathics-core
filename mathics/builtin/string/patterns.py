@@ -172,19 +172,19 @@ class StringCases(_StringFind):
 
     <dl>
       <dt>'StringCases["$string$", $pattern$]'
-      <dd>gives all occurences of $pattern$ in $string$.
+      <dd>gives all occurrences of $pattern$ in $string$.
 
       <dt>'StringReplace["$string$", $pattern$ -> $form$]'
-      <dd>gives all instances of $form$ that stem from occurences of $pattern$ in $string$.
+      <dd>gives all instances of $form$ that stem from occurrences of $pattern$ in $string$.
 
       <dt>'StringCases["$string$", {$pattern1$, $pattern2$, ...}]'
-      <dd>gives all occurences of $pattern1$, $pattern2$, ....
+      <dd>gives all occurrences of $pattern1$, $pattern2$, ....
 
       <dt>'StringReplace["$string$", $pattern$, $n$]'
-      <dd>gives only the first $n$ occurences.
+      <dd>gives only the first $n$ occurrences.
 
       <dt>'StringReplace[{"$string1$", "$string2$", ...}, $pattern$]'
-      <dd>gives occurences in $string1$, $string2$, ...
+      <dd>gives occurrences in $string1$, $string2$, ...
     </dl>
 
     >> StringCases["axbaxxb", "a" ~~ x_ ~~ "b"]
@@ -206,7 +206,7 @@ class StringCases(_StringFind):
      = {abc}
 
     #> StringCases["abc-abc xyz-uvw", Shortest[x : WordCharacter .. ~~ "-" ~~ x : LetterCharacter] -> x]
-     : Ignored restriction given for x in x : LetterCharacter as it does not match previous occurences of x.
+     : Ignored restriction given for x in x : LetterCharacter as it does not match previous occurrences of x.
      = {abc}
 
     >> StringCases["abba", {"a" -> 10, "b" -> 20}, 2]
@@ -265,7 +265,7 @@ class StringExpression(BinaryOperator):
 
     messages = {
         "invld": "Element `1` is not a valid string or pattern element in `2`.",
-        "cond": "Ignored restriction given for `1` in `2` as it does not match previous occurences of `1`.",
+        "cond": "Ignored restriction given for `1` in `2` as it does not match previous occurrences of `1`.",
     }
     summary_text = "an arbitrary string expression"
 
@@ -390,7 +390,7 @@ class StringMatchQ(Builtin):
     https://reference.wolfram.com/language/ref/StringMatchQ.html</url>
 
     <dl>
-      <dt>'StringMatchQ["string", $patern$]'
+      <dt>'StringMatchQ["string", $pattern$]'
       <dd> checks  is "string" matches $pattern$
     </dl>
 
