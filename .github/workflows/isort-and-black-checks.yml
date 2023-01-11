@@ -18,7 +18,7 @@ jobs:
         run: pip install 'click==8.0.4' 'black==22.3.0' 'isort==5.10.1'
       - name: Run isort --check .
         run: isort --check .
-      - name: Run isort --check .
+      - name: Run black --check .
         run: black --check .
       # - name: If needed, commit black changes to the pull request
       #   if: failure()
