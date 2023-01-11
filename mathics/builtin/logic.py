@@ -12,6 +12,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
 )
 from mathics.core.exceptions import InvalidLevelspecError
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import (
@@ -41,7 +42,7 @@ class _ManyTrue(Builtin):
     def _no_short_circuit(self):
         raise NotImplementedError
 
-    def apply(self, expr, test, level, evaluation):
+    def eval(self, expr, test, level, evaluation: Evaluation):
         "%(name)s[expr_, test_, level_]"
 
         try:
@@ -66,7 +67,8 @@ class _ManyTrue(Builtin):
 
 class And(BinaryOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/And.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/And.html</url>
 
     <dl>
       <dt>'And[$expr1$, $expr2$, ...]'
@@ -95,7 +97,7 @@ class And(BinaryOperator):
     #        "And[pred1___, a_, pred2___, a_, pred3___]": "And[pred1, a, pred2, pred3]",
     #    }
 
-    def apply(self, args, evaluation):
+    def eval(self, args, evaluation: Evaluation):
         "And[args___]"
 
         args = args.get_sequence()
@@ -117,7 +119,9 @@ class And(BinaryOperator):
 
 class AnyTrue(_ManyTrue):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/AnyTrue.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/AnyTrue.html</url>
 
     <dl>
       <dt>'AnyTrue[{$expr1$, $expr2$, ...}, $test$]'
@@ -220,7 +224,7 @@ class Equivalent(BinaryOperator):
     precedence = 205
     summary_text = "logic equivalence"
 
-    def apply(self, args, evaluation):
+    def eval(self, args, evaluation: Evaluation):
         "Equivalent[args___]"
 
         args = args.get_sequence()
@@ -245,7 +249,9 @@ class Equivalent(BinaryOperator):
 
 class False_(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/False.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/False.html</url>
 
     <dl>
       <dt>'False'
@@ -287,7 +293,7 @@ class Implies(BinaryOperator):
     grouping = "Right"
     summary_text = "logic implication"
 
-    def apply(self, x, y, evaluation):
+    def eval(self, x, y, evaluation: Evaluation):
         "Implies[x_, y_]"
 
         result0 = x.evaluate(evaluation)
@@ -363,7 +369,7 @@ class Or(BinaryOperator):
     #        "Or[a_, a_]": "a",
     #        "Or[pred1___, a_, pred2___, a_, pred3___]": "Or[pred1, a, pred2, pred3]",
     #    }
-    def apply(self, args, evaluation):
+    def eval(self, args, evaluation: Evaluation):
         "Or[args___]"
 
         args = args.get_sequence()
@@ -385,7 +391,8 @@ class Or(BinaryOperator):
 
 class Nand(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Nand.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Nand.html</url>
 
     <dl>
     <dt>'Nand[$expr1$, $expr2$, ...]'
@@ -506,7 +513,7 @@ class Xor(BinaryOperator):
     precedence = 215
     summary_text = "logic (exclusive) disjunction"
 
-    def apply(self, args, evaluation):
+    def eval(self, args, evaluation: Evaluation):
         "Xor[args___]"
 
         args = args.get_sequence()

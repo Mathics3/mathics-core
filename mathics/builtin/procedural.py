@@ -12,7 +12,7 @@ computational steps to be carried out. Any given procedure might be called \
 at any point during a program's execution, including by other procedures \
 or itself.
 
-Procedural functions are integrated into Mathics symbolic programming \
+Procedural functions are integrated into \Mathics symbolic programming \
 environment.
 """
 
