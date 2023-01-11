@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-
-
+"""
+Logic and Boolean Algrebra
+"""
 from mathics.algorithm.parts import python_levelspec, walk_levels
 from mathics.builtin.base import BinaryOperator, Builtin, Predefined, PrefixOperator
 from mathics.core.attributes import (
@@ -11,8 +12,8 @@ from mathics.core.attributes import (
     A_ORDERLESS,
     A_PROTECTED,
 )
-from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.evaluation import Evaluation
+from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import (
