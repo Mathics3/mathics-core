@@ -140,7 +140,7 @@ class Norm(Builtin):
      <dd>computes the 2-norm of matrix m.
     </dl>
 
-    The Norm of of a vector is its Euclidian distance:
+    The Norm of of a vector is its Euclidean distance:
     >> Norm[{x, y, z}]
      = Sqrt[Abs[x] ^ 2 + Abs[y] ^ 2 + Abs[z] ^ 2]
 

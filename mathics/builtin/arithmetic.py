@@ -1339,7 +1339,7 @@ class Sum(IterationFunction, SympyFunction):
     >> Sum[1 / 2 ^ i, {i, 1, Infinity}]
      = 1
 
-    Leibniz forumla used in computing Pi:
+    Leibniz formula used in computing Pi:
     >> Sum[1 / ((-1)^k (2k + 1)), {k, 0, Infinity}]
      = Pi / 4
 

@@ -1033,7 +1033,9 @@ class SystemCharacterEncoding(Predefined):
       <dt>$SystemCharacterEncoding
       <dd>gives the default character encoding of the system.
 
-      On startup, the value of environment variable 'MATHICS_CHARACTER_ENCODING' sets this value. However if that evironment varaible is not set, set the value is set in Python using 'sys.getdefaultencoding()'.
+      On startup, the value of environment variable 'MATHICS_CHARACTER_ENCODING' \
+      sets this value. However if that environment variable is not set, set the value \
+      is set in Python using 'sys.getdefaultencoding()'.
     </dl>
 
     >> $SystemCharacterEncoding
@@ -1056,7 +1058,7 @@ class ToExpression(Builtin):
     https://reference.wolfram.com/language/ref/ToExpression.html</url>
     <dl>
       <dt>'ToExpression[$input$]'
-      <dd>inteprets a given string as Mathics input.
+      <dd>interprets a given string as Mathics input.
 
       <dt>'ToExpression[$input$, $form$]'
       <dd>reads the given input in the specified $form$.

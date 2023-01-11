@@ -25,10 +25,10 @@ class SparseArray(Builtin):
 
     <dl>
       <dt>'SparseArray[$rules$]'
-      <dd>Builds a sparse array acording to the list of $rules$.
+      <dd>Builds a sparse array according to the list of $rules$.
 
       <dt>'SparseArray[$rules$, $dims$]'
-      <dd>Builds a sparse array of dimensions $dims$ acording to the $rules$.
+      <dd>Builds a sparse array of dimensions $dims$ according to the $rules$.
 
       <dt>'SparseArray[$list$]'
       <dd>Builds a sparse representation of $list$.

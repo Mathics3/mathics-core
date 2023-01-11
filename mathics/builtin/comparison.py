@@ -560,7 +560,7 @@ class Equal(_EqualityOperator, _SympyComparison):
     >> a = b; a == b
      = True
 
-    Comparision to mismatched types is False:
+    Comparison to mismatched types is False:
 
     >> Equal[11, "11"]
      = False
@@ -571,8 +571,8 @@ class Equal(_EqualityOperator, _SympyComparison):
     >> {1, 2} == {1, 2, 3}
      = False
 
-    For chains of equalities, the comparison is done amongs all the pairs. The evaluation is successful
-    only if the equality is satisfied over all the pairs:
+    For chains of equalities, the comparison is done amongst all the pairs. \
+    The evaluation is successful only if the equality is satisfied over all the pairs:
 
     >> g[1] == g[1] == g[1]
      = True
@@ -726,7 +726,7 @@ class Less(_ComparisonOperator, _SympyComparison):
     >> 2/18 < 1/5 < Pi/10
      = True
 
-    Using less on an undfined symbol value:
+    Using less on an undefined symbol value:
     >> 1 < 3 < x < 2
      = 1 < 3 < x < 2
     """
@@ -951,13 +951,15 @@ class SameQ(_ComparisonOperator):
     <dl>
       <dt>'SameQ[$x$, $y$]'
       <dt>'$x$ === $y$'
-      <dd>returns 'True' if $x$ and $y$ are structurally identical.
-      Commutative properties apply, so if $x$ === $y$ then $y$ === $x$.
+      <dd>returns 'True' if $x$ and $y$ are structurally identical. \
+          Commutative properties apply, so if $x$ === $y$ then $y$ === $x$.
 
     </dl>
 
     <ul>
-      <li>'SameQ' requires exact correspondence between expressions, expet that it still considers 'Real' numbers equal if they differ in their last binary digit.
+      <li>'SameQ' requires exact correspondence between expressions, expect that \
+           it still considers 'Real' numbers equal if they differ in their last \
+           binary digit.
       <li>$e1$ === $e2$ === $e3$ gives 'True' if all the $ei$'s are identical.
       <li>'SameQ[]' and 'SameQ[$expr$]' always yield 'True'.
     </ul>
@@ -971,7 +973,8 @@ class SameQ(_ComparisonOperator):
     >> SameQ[a] === SameQ[] === True
      = True
 
-    Unlike 'Equal', 'SameQ' only yields 'True' if $x$ and $y$ have the same type:
+    Unlike 'Equal', 'SameQ' only yields 'True' if $x$ and $y$ have the same \
+    type:
     >> {1==1., 1===1.}
      = {True, False}
 
@@ -1034,21 +1037,24 @@ class TrueQ(Builtin):
 
 class Unequal(_EqualityOperator, _SympyComparison):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Unequal.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Unequal.html</url>
 
     <dl>
       <dt>'Unequal[$x$, $y$]' or $x$ != $y$ or $x$ \u2260 $y$
-      <dd>is 'False' if $x$ and $y$ are known to be equal, or 'True' if $x$ and $y$ are known to be unequal.
+      <dd>is 'False' if $x$ and $y$ are known to be equal, or 'True' if $x$ \
+          and $y$ are known to be unequal.
 
         Commutative properties apply so if $x$ != $y$ then $y$ != $x$.
 
-        For any expression $x$ and $y$, Unequal[$x$, $y$] == Not[Equal[$x$, $y$]].
+        For any expression $x$ and $y$, 'Unequal[$x$, $y$]' == 'Not[Equal[$x$, $y$]]'.
     </dl>
 
     >> 1 != 1.
      = False
 
-    Comparsion can be chained:
+    Comparisons can be chained:
     >> 1 != 2 != 3
      = True
 
@@ -1059,7 +1065,7 @@ class Unequal(_EqualityOperator, _SympyComparison):
     >> Unequal["11", "11"]
      = False
 
-    Comparision to mismatched types is True:
+    Comparison to mismatched types is True:
     >> Unequal[11, "11"]
      = True
 

@@ -595,7 +595,7 @@ class StringReplace(_StringFind):
     >> StringReplace["xyzwxyzwxxyzxyzw", {"xyz" -> "A", "w" -> "BCD"}]
      = ABCDABCDxAABCD
 
-    Only replace the first 2 occurences:
+    Only replace the first 2 occurrences:
     >> StringReplace["xyxyxyyyxxxyyxy", "xy" -> "A", 2]
      = AAxyyyxxxyyxy
 

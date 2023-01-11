@@ -1428,11 +1428,11 @@ class Tally(_GatherOperation):
 
     <dl>
       <dt>'Tally[$list$]'
-      <dd>counts and returns the number of occurences of objects and returns \
+      <dd>counts and returns the number of occurrences of objects and returns \
           the result as a list of pairs {object, count}.
 
       <dt>'Tally[$list$, $test$]'
-      <dd>counts the number of occurences of objects and uses $test to \
+      <dd>counts the number of occurrences of objects and uses $test to \
           determine if two objects should be counted in the same bin.
     </dl>
 

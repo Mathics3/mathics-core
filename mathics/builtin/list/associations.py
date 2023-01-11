@@ -312,7 +312,8 @@ class Lookup(Builtin):
 
     <dl>
       <dt>Lookup[$assoc$, $key$]
-      <dd> looks up the value associated with $key$ in the association $assoc$, or Missing[$KeyAbsent$].
+      <dd>looks up the value associated with $key$ in the association $assoc$, \
+          or Missing[$KeyAbsent$].
     </dl>
     """
 
@@ -327,11 +328,13 @@ class Lookup(Builtin):
 
 class Missing(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Missing.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Missing.html</url>
 
     <dl>
       <dd>'Missing[]'
-      <dt> represents a data that is misssing.
+      <dt> represents a data that is missing.
     </dl>
     >> ElementData["Meitnerium","MeltingPoint"]
      = Missing[NotAvailable]

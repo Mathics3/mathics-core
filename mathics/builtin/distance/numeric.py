@@ -1,5 +1,5 @@
 """
-Numerial Data
+Numercial Data
 """
 
 from mathics.builtin.base import Builtin
