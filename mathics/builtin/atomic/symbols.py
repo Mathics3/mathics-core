@@ -556,7 +556,7 @@ class Information(PrefixOperator):
                         return Expression(SymbolFormat, expr, Symbol(format))
 
                     def rhs(expr):
-                        if expr.has_formf(SymbolInfix, None):
+                        if expr.has_form(SymbolInfix, None):
                             expr = Expression(
                                 Expression(SymbolHoldForm, expr.head), *expr.elements
                             )

@@ -101,7 +101,7 @@ def format_element(
 
     from mathics.core.convert.prettyprint import expression_to_2d_text
 
-    if False and form is SymbolOutputForm:
+    if form is SymbolOutputForm:
         txt2d_form = expression_to_2d_text(element, evaluation, form, **kwargs)
         return String(txt2d_form.text)
 

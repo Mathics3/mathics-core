@@ -2,7 +2,7 @@
 This module builts the 2D string associated to the OutputForm
 """
 
-from mathics.core.atoms import Integer, IntegerM1, Rational, Real, String
+from mathics.core.atoms import Integer, Integer1, IntegerM1, Rational, Real, String
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -10,6 +10,7 @@ from mathics.core.prettyprint import (
     TextBlock,
     bracket,
     fraction,
+    grid,
     integral_definite,
     integral_indefinite,
     parenthesize,
@@ -27,7 +28,7 @@ from mathics.core.systemsymbols import (
     SymbolStandardForm,
     SymbolTraditionalForm,
 )
-from mathics.eval.makeboxes import compare_precedence, do_format
+from mathics.eval.makeboxes import compare_precedence, do_format  # , format_element
 
 SymbolNonAssociative = Symbol("System`NonAssociative")
 SymbolPostfix = Symbol("System`Postfix")
@@ -47,7 +48,40 @@ class _WrongFormattedExpression(Exception):
     pass
 
 
-def default_expression_to_2d_text(expr, evaluation, form, **kwargs):
+class IsNotGrid(Exception):
+    pass
+
+
+class IsNot2DArray(Exception):
+    pass
+
+
+def expression_to_2d_text(
+    expr, evaluation: Evaluation, form=SymbolStandardForm, **kwargs
+):
+    """
+    Build a 2d text from an `Expression`
+    """
+    ## TODO: format the expression
+    format_expr = do_format(expr, evaluation, SymbolOutputForm)
+
+    # Strip HoldForm
+    while format_expr.has_form("HoldForm", 1):
+        format_expr = format_expr.elements[0]
+
+    lookup_name = format_expr.get_head().get_lookup_name()
+    try:
+        return expr_to_2d_text_map[lookup_name](format_expr, evaluation, form, **kwargs)
+    except _WrongFormattedExpression:
+        # If the key is not present, or the execution fails for any reason, use
+        # the default
+        pass
+    except KeyError:
+        pass
+    return _default_expression_to_2d_text(format_expr, evaluation, form, **kwargs)
+
+
+def _default_expression_to_2d_text(expr, evaluation, form, **kwargs):
     head = expression_to_2d_text(expr.head, evaluation)
     comma = TextBlock(", ")
     elements = [expression_to_2d_text(elem, evaluation) for elem in expr.elements]
@@ -63,15 +97,23 @@ def default_expression_to_2d_text(expr, evaluation, form, **kwargs):
 def _divide(num, den, evaluation, form, **kwargs):
     if kwargs.get("2d", False):
         return fraction(
-            *(
-                expression_to_2d_text(item, evaluation, form, **kwargs)
-                for item in expr.elements
-            )
+            expression_to_2d_text(num, evaluation, form, **kwargs),
+            expression_to_2d_text(den, evaluation, form, **kwargs),
         )
     infix_form = Expression(
         SymbolInfix, ListExpression(num, den), String("/"), Integer(400), SymbolLeft
     )
     return expression_to_2d_text(infix_form, evaluation, form, **kwargs)
+
+
+def _strip_1_parm_expression_to_2d_text(expr, evaluation, form, **kwargs):
+    if len(expr.elements) != 1:
+        raise _WrongFormattedExpression
+    return expression_to_2d_text(expr.elements[0], evaluation, form, **kwargs)
+
+
+expr_to_2d_text_map["System`HoldForm"] = _strip_1_parm_expression_to_2d_text
+expr_to_2d_text_map["System`InputForm"] = _strip_1_parm_expression_to_2d_text
 
 
 def divide_expression_to_2d_text(expr, evaluation, form, **kwargs):
@@ -98,17 +140,193 @@ def graphics3d(expr, evaluation, form, **kwargs):
 expr_to_2d_text_map["System`Graphics3D"] = graphics3d
 
 
-def holdform_expression_to_2d_text(expr, evaluation, form, **kwargs):
-    if len(expr.elements) != 1:
+def grid_expression_to_2d_text(expr, evaluation, form, **kwargs):
+    if len(expr.elements) == 0:
+        raise IsNotGrid
+    if len(expr.elements) > 1 and not expr.elements[1].has_form(
+        ["Rule", "RuleDelayed"], 2
+    ):
+        raise IsNotGrid
+    if not expr.elements[0].has_form("List", None):
+        raise IsNotGrid
+
+    elements = expr.elements[0].elements
+    rows = []
+    for idx, item in enumerate(elements):
+        if item.has_form("List", None):
+            rows.append(
+                [
+                    expression_to_2d_text(item_elem, evaluation, form, **kwargs)
+                    for item_elem in item.elements
+                ]
+            )
+        else:
+            rows.append(expression_to_2d_text(item, evaluation, form, **kwargs))
+
+    return grid(rows)
+
+
+expr_to_2d_text_map["System`Grid"] = grid_expression_to_2d_text
+
+
+def integer_expression_to_2d_text(n, evaluation, form, **kwargs):
+    return TextBlock(str(n.value))
+
+
+expr_to_2d_text_map["System`Integer"] = integer_expression_to_2d_text
+
+
+def integrate_expression_to_2d_text(expr, evaluation, form, **kwargs):
+    elems = list(expr.elements)
+    if len(elems) > 2 or not kwargs.get("2d", False):
         raise _WrongFormattedExpression
-    return expression_to_2d_text(expr.elements[0], evaluation, form, **kwargs)
+
+    result = expression_to_2d_text(elems.pop(0), evaluation, form, **kwargs)
+    while elems:
+        var = elems.pop(0)
+        if var.has_form("List", 3):
+            var_txt, a, b = (
+                expression_to_2d_text(item, evaluation, form, **kwargs)
+                for item in var.elements
+            )
+            result = integral_definite(result, var_txt, a, b)
+        elif isinstance(var, Symbol):
+            var_txt = expression_to_2d_text(var, evaluation, form, **kwargs)
+            result = integral_indefinite(result, var_txt)
+        else:
+            break
+    return result
 
 
-expr_to_2d_text_map["System`HoldForm"] = holdform_expression_to_2d_text
+expr_to_2d_text_map["System`Integrate"] = integrate_expression_to_2d_text
+
+
+def list_expression_to_2d_text(expr, evaluation, form, **kwargs):
+    return (
+        TextBlock("{")
+        + TextBlock(", ").join(
+            [
+                expression_to_2d_text(elem, evaluation, form, **kwargs)
+                for elem in expr.elements
+            ]
+        )
+        + TextBlock("}")
+    )
+
+
+expr_to_2d_text_map["System`List"] = list_expression_to_2d_text
+
+
+def mathmlform_expression_to_2d_text(expr, evaluation, form, **kwargs):
+    #  boxes = format_element(expr.elements[0], evaluation, form)
+    boxes = Expression(
+        Symbol("System`MakeBoxes"), expr.elements[0], SymbolStandardForm
+    ).evaluate(evaluation)
+    return TextBlock(boxes.boxes_to_mathml())
+
+
+expr_to_2d_text_map["System`MathMLForm"] = mathmlform_expression_to_2d_text
+
+
+def matrixform_expression_to_2d_text(expr, evaluation, form, **kwargs):
+    # return parenthesize(tableform_expression_to_2d_text(expr, evaluation, form, **kwargs))
+    return tableform_expression_to_2d_text(expr, evaluation, form, **kwargs)
+
+
+expr_to_2d_text_map["System`MatrixForm"] = matrixform_expression_to_2d_text
+
+
+def plus_expression_to_2d_text(expr, evaluation, form, **kwargs):
+    elements = expr.elements
+    result = TextBlock("")
+    for i, elem in enumerate(elements):
+        if elem.has_form("Times", None):
+            # If the first element is -1, remove it and use
+            # a minus sign. Otherwise, if negative, do not add a sign.
+            first = elem.elements[0]
+            if isinstance(first, Integer):
+                if first.value == -1:
+                    result = (
+                        result
+                        + " - "
+                        + expression_to_2d_text(
+                            Expression(SymbolTimes, *elem.elements[1:]),
+                            evaluation,
+                            form,
+                            **kwargs
+                        )
+                    )
+                    continue
+                elif first.value < 0:
+                    result = (
+                        result
+                        + " "
+                        + expression_to_2d_text(elem, evaluation, form, **kwargs)
+                    )
+                    continue
+            elif isinstance(first, Real):
+                if first.value < 0:
+                    result = (
+                        result
+                        + " "
+                        + expression_to_2d_text(elem, evaluation, form, **kwargs)
+                    )
+                    continue
+            result = (
+                result + " + " + expression_to_2d_text(elem, evaluation, form, **kwargs)
+            )
+            ## TODO: handle complex numbers?
+        else:
+            elem_txt = expression_to_2d_text(elem, evaluation, form, **kwargs)
+            if compare_precedence(elem, 310) < 0:
+                elem_txt = parenthesize(elem_txt)
+                result = result + " + " + elem_txt
+            elif i == 0 or (
+                (isinstance(elem, Integer) and elem.value < 0)
+                or (isinstance(elem, Real) and elem.value < 0)
+            ):
+                result = result + elem_txt
+            else:
+                result = (
+                    result
+                    + " + "
+                    + expression_to_2d_text(elem, evaluation, form, **kwargs)
+                )
+    return result
+
+
+expr_to_2d_text_map["System`Plus"] = plus_expression_to_2d_text
+
+
+def power_expression_to_2d_text(expr, evaluation, form, **kwargs):
+    if len(expr.elements) != 2:
+        raise _WrongFormattedExpression
+    if kwargs.get("2d", False):
+        base, exponent = (
+            expression_to_2d_text(elem, evaluation, form, **kwargs)
+            for elem in expr.elements
+        )
+        base_precedence = builtins_precedence.get(
+            expr.elements[0].get_head_name(), None
+        )
+        if compare_precedence(expr.elements[0], 590) == -1:
+            base = parenthesize(base)
+        return superscript(base, exponent)
+
+    infix_form = Expression(
+        SymbolInfix,
+        ListExpression(*(expr.elements)),
+        String("^"),
+        Integer(590),
+        SymbolRight,
+    )
+    return expression_to_2d_text(infix_form, evaluation, form, **kwargs)
+
+
+expr_to_2d_text_map["System`Power"] = power_expression_to_2d_text
 
 
 def pre_pos_infix_expression_to_2d_text(expr, evaluation, form, **kwargs):
-    print("processing ", expr)
     elements = expr.elements
     if not (0 <= len(elements) <= 4):
         raise _WrongFormattedExpression
@@ -202,11 +420,9 @@ def pre_pos_infix_expression_to_2d_text(expr, evaluation, form, **kwargs):
         for index, operand in enumerate(operands):
             operand_txt = expression_to_2d_text(operand, evaluation, form, **kwargs)
             cmp_precedence = compare_precedence(operand, precedence)
-            print("calling compare_precedence", [operand, precedence, cmp_precedence])
             if cmp_precedence is not None and (
                 cmp_precedence == -1 or (cmp_precedence == 0 and parenthesized)
             ):
-                print("->parenthesize")
                 operand_txt = parenthesize(operand_txt)
 
             if index == 0:
@@ -229,149 +445,10 @@ expr_to_2d_text_map["System`Postfix"] = pre_pos_infix_expression_to_2d_text
 expr_to_2d_text_map["System`Infix"] = pre_pos_infix_expression_to_2d_text
 
 
-def integer_expression_to_2d_text(n, evaluation, form, **kwargs):
-    return TextBlock(str(n.value))
-
-
-expr_to_2d_text_map["System`Integer"] = integer_expression_to_2d_text
-
-
-def integrate_expression_to_2d_text(expr, evaluation, form, **kwargs):
-    elems = list(expr.elements)
-    if len(elems) > 2 or not kwargs.get("2d", False):
-        return default_expression_to_2d_text(expr, evaluation, form, **kwargs)
-
-    result = expression_to_2d_text(elems.pop(0), evaluation, form, **kwargs)
-    while elems:
-        var = elems.pop(0)
-        if var.has_form("List", 3):
-            var_txt, a, b = (
-                expression_to_2d_text(item, evaluation, form, **kwargs)
-                for item in var.elements
-            )
-            result = integral_definite(result, var_txt, a, b)
-        elif isinstance(var, Symbol):
-            var_txt = expression_to_2d_text(var, evaluation, form, **kwargs)
-            result = integral_indefinite(result, var_txt)
-        else:
-            break
-    return result
-
-
-expr_to_2d_text_map["System`Integrate"] = integrate_expression_to_2d_text
-
-
-def list_expression_to_2d_text(expr, evaluation, form, **kwargs):
-    return (
-        TextBlock("{")
-        + TextBlock(", ").join(
-            [
-                expression_to_2d_text(elem, evaluation, form, **kwargs)
-                for elem in expr.elements
-            ]
-        )
-        + TextBlock("}")
-    )
-
-
-expr_to_2d_text_map["System`List"] = list_expression_to_2d_text
-
-
-def plus_expression_to_2d_text(expr, evaluation, form, **kwargs):
-    elements = expr.elements
-    result = TextBlock("")
-    for i, elem in enumerate(elements):
-        if elem.has_form("Times", None):
-            # If the first element is -1, remove it and use
-            # a minus sign. Otherwise, if negative, do not add a sign.
-            first = elem.elements[0]
-            if isinstance(first, Integer):
-                if first.value == -1:
-                    result = (
-                        result
-                        + " - "
-                        + expression_to_2d_text(
-                            Expression(SymbolTimes, *elem.elements[1:]),
-                            evaluation,
-                            form,
-                            **kwargs
-                        )
-                    )
-                    continue
-                elif first.value < 0:
-                    result = (
-                        result
-                        + " "
-                        + expression_to_2d_text(elem, evaluation, form, **kwargs)
-                    )
-                    continue
-            elif isinstance(first, Real):
-                if first.value < 0:
-                    result = (
-                        result
-                        + " "
-                        + expression_to_2d_text(elem, evaluation, form, **kwargs)
-                    )
-                    continue
-            result = (
-                result + " + " + expression_to_2d_text(elem, evaluation, form, **kwargs)
-            )
-            ## TODO: handle complex numbers?
-        else:
-            elem_txt = expression_to_2d_text(elem, evaluation, form, **kwargs)
-            if compare_precedence(elem, 310) < 0:
-                elem_txt = parenthesize(elem_txt)
-                result = result + " + " + elem_txt
-            elif i == 0 or (
-                (isinstance(elem, Integer) and elem.value < 0)
-                or (isinstance(elem, Real) and elem.value < 0)
-            ):
-                result = result + elem_txt
-            else:
-                result = (
-                    result
-                    + " + "
-                    + expression_to_2d_text(elem, evaluation, form, **kwargs)
-                )
-    return result
-
-
-expr_to_2d_text_map["System`Plus"] = plus_expression_to_2d_text
-
-
-def power_expression_to_2d_text(expr, evaluation, form, **kwargs):
-    print("@@@@@@@@@@@power_expr")
-    if len(expr.elements) != 2:
-        return default_expression_to_2d_text(expr, evaluation, form, **kwargs)
-    if kwargs.get("2d", False):
-        base, exponent = (
-            expression_to_2d_text(elem, evaluation, form, **kwargs)
-            for elem in expr.elements
-        )
-        base_precedence = builtins_precedence.get(
-            expr.elements[0].get_head_name(), None
-        )
-        if compare_precedence(expr.elements[0], 590) == -1:
-            base = parenthesize(base)
-        return superscript(base, exponent)
-
-    infix_form = Expression(
-        SymbolInfix,
-        ListExpression(*(expr.elements)),
-        String("^"),
-        Integer(590),
-        SymbolRight,
-    )
-    return expression_to_2d_text(infix_form, evaluation, form, **kwargs)
-
-
-expr_to_2d_text_map["System`Power"] = power_expression_to_2d_text
-
-
 def precedenceform_expression_to_2d_text(expr, evaluation, form, **kwargs):
     if len(expr.elements) == 2:
         return expression_to_2d_text(expr.elements[0], evaluation, form, **kwargs)
-    return default_expression_to_2d_text(expr, evaluation, form, **kwargs)
+    raise _WrongFormattedExpression
 
 
 expr_to_2d_text_map["System`PrecedenceForm"] = precedenceform_expression_to_2d_text
@@ -406,7 +483,7 @@ def sqrt_expression_to_2d_text(expr, evaluation, form, **kwargs):
                 for item in expr.elements
             )
         )
-    return default_expression_to_2d_text(expr, evaluation, form, **kwargs)
+    raise _WrongFormattedExpression
 
 
 expr_to_2d_text_map["System`Sqrt"] = sqrt_expression_to_2d_text
@@ -422,7 +499,7 @@ def subscript_expression_to_2d_text(expr, evaluation, form, **kwargs):
                 for item in expr.elements
             )
         )
-    return default_expression_to_2d_text(expr, evaluation, form, **kwargs)
+    raise _WrongFormattedExpression
 
 
 expr_to_2d_text_map["System`Subscript"] = subscript_expression_to_2d_text
@@ -438,7 +515,7 @@ def subsuperscript_expression_to_2d_text(expr, evaluation, form, **kwargs):
                 for item in expr.elements
             )
         )
-    return default_expression_to_2d_text(expr, evaluation, form, **kwargs)
+    raise _WrongFormattedExpression
 
 
 expr_to_2d_text_map["System`Subsuperscript"] = subsuperscript_expression_to_2d_text
@@ -469,17 +546,17 @@ def stringform_expression_to_2d_text(expr, evaluation, form, **kwargs):
 
     quote_open = True
     remaining = len(parts) - 1
+
     for part in parts[1:]:
         remaining -= 1
         if quote_open:
-            if len(part) == 0:
-                result = result + items[curr_indx]
-                continue
             if remaining == 0:
                 result = result + "`" + part
                 quote_open = False
                 continue
-
+            if len(part) == 0:
+                result = result + items[curr_indx]
+                continue
             try:
                 idx = int(part)
             except ValueError:
@@ -495,6 +572,7 @@ def stringform_expression_to_2d_text(expr, evaluation, form, **kwargs):
                 continue
         else:
             result = result + part
+            quote_open = True
 
     return result
 
@@ -503,7 +581,6 @@ expr_to_2d_text_map["System`StringForm"] = stringform_expression_to_2d_text
 
 
 def superscript_expression_to_2d_text(expr, evaluation, form, **kwargs):
-    print("Superscript", [expr])
     if len(expr.elements) != 2:
         raise _WrongFormattedExpression
     if kwargs.get("2d", False):
@@ -531,6 +608,24 @@ def symbol_expression_to_2d_text(symb, evaluation, form, **kwargs):
 
 
 expr_to_2d_text_map["System`Symbol"] = symbol_expression_to_2d_text
+
+
+def tableform_expression_to_2d_text(expr, evaluation, form, **kwargs):
+    return grid_expression_to_2d_text(expr, evaluation, form)
+
+
+expr_to_2d_text_map["System`TableForm"] = tableform_expression_to_2d_text
+
+
+def texform_expression_to_2d_text(expr, evaluation, form, **kwargs):
+    #  boxes = format_element(expr.elements[0], evaluation, form)
+    boxes = Expression(
+        Symbol("System`MakeBoxes"), expr.elements[0], SymbolStandardForm
+    ).evaluate(evaluation)
+    return TextBlock(boxes.boxes_to_tex())
+
+
+expr_to_2d_text_map["System`TeXForm"] = texform_expression_to_2d_text
 
 
 def times_expression_to_2d_text(expr, evaluation, form, **kwargs):
@@ -600,24 +695,3 @@ def times_expression_to_2d_text(expr, evaluation, form, **kwargs):
 
 
 expr_to_2d_text_map["System`Times"] = times_expression_to_2d_text
-
-
-def expression_to_2d_text(
-    expr, evaluation: Evaluation, form=SymbolStandardForm, **kwargs
-):
-    ## TODO: format the expression
-    format_expr = do_format(expr, evaluation, form)
-    # Strip HoldForm
-    while format_expr.has_form("HoldForm", 1):
-        format_expr = format_expr.elements[0]
-
-    lookup_name = format_expr.get_head().get_lookup_name()
-    try:
-        return expr_to_2d_text_map[lookup_name](format_expr, evaluation, form, **kwargs)
-    except _WrongFormattedExpression:
-        # If the key is not present, or the execution fails for any reason, use
-        # the default
-        pass
-    except KeyError:
-        pass
-    return default_expression_to_2d_text(format_expr, evaluation, form, **kwargs)

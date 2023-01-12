@@ -577,7 +577,9 @@ class Power(BinaryOperator, _MPMathFunction):
             'Infix[{HoldForm[x], HoldForm[y]}, "^", 590, Right]'
         ),
         ("", "x_ ^ y_"): (
-            "PrecedenceForm[Superscript[PrecedenceForm[HoldForm[x], 590],"
+            #    "PrecedenceForm[Superscript[PrecedenceForm[HoldForm[x], 590],"
+            #    "  HoldForm[y]], 590]"
+            "PrecedenceForm[Superscript[HoldForm[x],"
             "  HoldForm[y]], 590]"
         ),
         ("", "x_ ^ y_?Negative"): (
