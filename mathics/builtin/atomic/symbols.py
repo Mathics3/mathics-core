@@ -342,19 +342,18 @@ class Definition(Builtin):
                     ),
                 )
             )
-        if grid:
-            if lines:
+        if lines:
+            if grid:
                 return Expression(
                     SymbolGrid,
                     ListExpression(*(ListExpression(line) for line in lines)),
                     Expression(SymbolRule, Symbol("ColumnAlignments"), Symbol("Left")),
                 )
             else:
-                return SymbolNull
-        else:
-            for line in lines:
-                evaluation.print_out(Expression(SymbolInputForm, line))
-            return SymbolNull
+                for line in lines:
+                    evaluation.print_out(Expression(SymbolInputForm, line))
+
+        return SymbolNull
 
     def format_definition_input(self, symbol, evaluation):
         "InputForm: Definition[symbol_]"

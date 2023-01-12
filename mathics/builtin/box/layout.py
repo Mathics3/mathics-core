@@ -151,16 +151,29 @@ class GridBox(BoxExpression):
     # elements in its evaluated form.
 
     def get_array(self, elements, evaluation):
-        options = self.get_option_values(elements=elements[1:], evaluation=evaluation)
         if not elements:
             raise BoxConstructError
+
+        options = self.get_option_values(elements=elements[1:], evaluation=evaluation)
         expr = elements[0]
         if not expr.has_form("List", None):
             if not all(element.has_form("List", None) for element in expr.elements):
                 raise BoxConstructError
-        items = [element.elements for element in expr.elements]
-        if not is_constant_list([len(row) for row in items]):
-            raise BoxConstructError
+        items = [
+            element.elements if element.has_form("List", None) else element
+            for element in expr.elements
+        ]
+        if not is_constant_list([len(row) for row in items if isinstance(row, tuple)]):
+            max_len = max(len(items) for item in items)
+            empty_string = String("")
+
+            def complete_rows(row):
+                if isinstance(row, tuple):
+                    return row + (max_len - len(row)) * (empty_string,)
+                return row
+
+            items = [complete_rows(row) for row in items]
+
         return items, options
 
 
