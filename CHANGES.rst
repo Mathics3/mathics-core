@@ -71,10 +71,21 @@ Bugs
 ++++
 
 # ``0`` with a given precision (like in ```0`3```) is now parsed as ``0``, an integer number.
+#. ``Random[]`` works now.
 #. ``RandomSample`` with one list argument now returns a random ordering of the list items. Previously it would return just one item.
 #. Origin placement corrected on ``ListPlot`` and ``LinePlot``.
 #. Fix long-standing bugs in Image handling
 #. Units and Quantities were sometimes failing. Also they were omitted from documentation.
+
+PyPI Package requirements
++++++++++++++++++++++++++
+
+Mathics3 now aims at a more richer set of functionality.
+
+Therefore NumPy and Pillow are required Python packages where they had
+been optional before.  In truth, probably running Mathics without one
+or both probably did not work well if it worked at all; we had not
+been testing setups that did not have NumPy.
 
 
 Enhancements
