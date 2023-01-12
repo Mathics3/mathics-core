@@ -8,9 +8,13 @@ Random numbers are generated using the Mersenne Twister.
 
 import binascii
 import hashlib
+import os
 import pickle
+import time
 from functools import reduce
 from operator import mul as operator_mul
+
+import numpy
 
 from mathics.builtin.base import Builtin
 from mathics.builtin.numpy_utils import instantiate_elements, stack
@@ -25,48 +29,24 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.nevaluator import eval_N
 
-try:
-    import numpy
+# mathics.builtin.__init__.py module scanning logic gets confused
+# if we assign numpy.random.get_state to a variable here. so we
+# use defs to safely wrap the offending objects.
 
-    _numpy = True
-except ImportError:  # no numpy?
-    _numpy = False
-    import random
 
-if _numpy:
-    import os
-    import time
+def random_get_state():
+    return numpy.random.get_state()
 
-    # mathics.builtin.__init__.py module scanning logic gets confused
-    # if we assign numpy.random.get_state to a variable here. so we
-    # use defs to safely wrap the offending objects.
 
-    def random_get_state():
-        return numpy.random.get_state()
+def random_set_state(state):
+    return numpy.random.set_state(state)
 
-    def random_set_state(state):
-        return numpy.random.set_state(state)
 
-    def random_seed(x=None):
-        if x is None:  # numpy does not know how to seed itself randomly
-            x = int(time.time() * 1000) ^ hash(os.urandom(16))
-        # for numpy, seed must be convertible to 32 bit unsigned integer
-        numpy.random.seed(abs(x) & 0xFFFFFFFF)
-
-else:
-    random_get_state = random.getstate
-    random_set_state = random.setstate
-    random_seed = random.seed
-
-    def _create_array(size, f):
-        # creates an array of the shape 'size' with each element being
-        # generated through a call to 'f' (which gives a random number
-        # in our case).
-
-        if size is None or len(size) == 0:
-            return f()
-        else:
-            return [_create_array(size[1:], f) for _ in range(size[0])]
+def random_seed(x=None):
+    if x is None:  # numpy does not know how to seed itself randomly
+        x = int(time.time() * 1000) ^ hash(os.urandom(16))
+    # for numpy, seed must be convertible to 32 bit unsigned integer
+    numpy.random.seed(abs(x) & 0xFFFFFFFF)
 
 
 def get_random_state():
@@ -108,21 +88,7 @@ class _RandomEnvBase:
         random_seed(x)
 
 
-class NoNumPyRandomEnv(_RandomEnvBase):
-    def randint(self, a, b, size=None):
-        return _create_array(size, lambda: random.randint(a, b))
-
-    def randreal(self, a, b, size=None):
-        return _create_array(size, lambda: random.uniform(a, b))
-
-    def randchoice(self, n, size, replace, p):
-        if replace:
-            return random.choices([i for i in range(n)], weights=p, k=size)
-        else:
-            return random.sample([i for i in range(n)], size)
-
-
-class NumPyRandomEnv(_RandomEnvBase):
+class RandomEnv(_RandomEnvBase):
     def randint(self, a, b, size=None):
         # return numpy.random.random_integers(a, b, size)
         return numpy.random.randint(a, b + 1, size)
@@ -133,12 +99,6 @@ class NumPyRandomEnv(_RandomEnvBase):
 
     def randchoice(self, n, size, replace, p):
         return numpy.random.choice(n, size=size, replace=replace, p=p)
-
-
-if _numpy:
-    RandomEnv = NumPyRandomEnv
-else:
-    RandomEnv = NoNumPyRandomEnv
 
 
 class RandomState(Builtin):
@@ -279,21 +239,27 @@ class _RandomSelection(_RandomBase):
         return False, py_weights
 
 
+# FIXME: This class should be removed and put in a Mathematica V.5 compatibility package
 class Random(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/Random.html</url>
+    <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Random.html</url>
     <dl>
       <dt>'Random[]'
       <dd>gives a uniformly distributed pseudorandom Real number in the range 0 to 1.
 
       <dt>'Random[$type$, $range$]'
-      <dd>gives a uniformly distributed pseudorandom number of the type $type$, in the specified interval $range$. Possible types are 'Integer', 'Real' or 'Complex'.
+      <dd>gives a uniformly distributed pseudorandom number of the type \
+          $type$, in the specified interval $range$. Possible types are \
+          'Integer', 'Real' or 'Complex'.
     </dl>
     Legacy function. Superseded by RandomReal, RandomInteger and RandomComplex.
 
     """
 
     rules = {
+        "Random[]": "RandomReal[0, 1]",
         "Random[Integer]": "RandomInteger[]",
         "Random[Integer,  zmax_Integer]": "RandomInteger[zmax]",
         "Random[Integer, {zmin_Integer, zmax_Integer}]": "RandomInteger[{zmin, zmax}]",
@@ -800,9 +766,3 @@ class RandomSample(_RandomSelection):
 
     _replace = False
     summary_text = "pick a sample at random from a list"
-
-
-if not _numpy:  # hide symbols from non-numpy envs
-    _RandomSelection = None
-    RandomChoice = None  # noqa
-    RandomSample = None  # noqa
