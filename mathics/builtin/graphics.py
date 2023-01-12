@@ -343,6 +343,14 @@ class Graphics(Builtin):
 
 
 class _Polyline(_GraphicsElementBox):
+    """
+    A structure containing a list of line segments
+    stored in ``self.lines`` created from
+    a list of points.
+
+    Lines are formed by pairs of consecutive point.
+    """
+
     def do_init(self, graphics, points):
         if not points.has_form("List", None):
             raise BoxExpressionError
@@ -356,6 +364,10 @@ class _Polyline(_GraphicsElementBox):
         ):
             elements = points.elements
             self.multi_parts = True
+        elif len(points.elements) == 0:
+            # Ensure there are no line segments if there are no points.
+            self.lines = []
+            return
         else:
             elements = [ListExpression(*points.elements)]
             self.multi_parts = False
@@ -640,7 +652,7 @@ class Arrow(Builtin):
     >> Graphics[{Circle[], Arrow[{{2, 1}, {0, 0}}, 1]}]
     = -Graphics-
 
-    Arrows can also be drawn in 3D by giving poing in three dimensions:
+    Arrows can also be drawn in 3D by giving point in three dimensions:
 
     >> Graphics3D[Arrow[{{1, 1, -1}, {2, 2, 0}, {3, 3, -1}, {4, 4, 0}}]]
      = -Graphics3D-
@@ -1389,7 +1401,7 @@ class Rectangle(Builtin):
       <dd>represents a unit square with bottom-left corner at {$xmin$, $ymin$}.
 
       <dt>'Rectangle[{$xmin$, $ymin$}, {$xmax$, $ymax$}]
-      <dd>is a rectange extending from {$xmin$, $ymin$} to {$xmax$, $ymax$}.
+      <dd>is a rectangle extending from {$xmin$, $ymin$} to {$xmax$, $ymax$}.
     </dl>
 
     >> Graphics[Rectangle[]]

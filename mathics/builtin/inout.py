@@ -6,6 +6,7 @@ import re
 
 from mathics.builtin.base import Builtin, Predefined
 from mathics.core.attributes import A_NO_ATTRIBUTES
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolNull
@@ -37,7 +38,9 @@ class Echo_(Predefined):
 
 class Print(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Print.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Print.html</url>
 
     <dl>
       <dt>'Print[$expr$, ...]'
@@ -56,7 +59,7 @@ class Print(Builtin):
 
     summary_text = "print strings and formatted text"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation):
         "Print[expr__]"
 
         expr = expr.get_sequence()

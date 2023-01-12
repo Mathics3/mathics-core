@@ -329,7 +329,7 @@ class DeleteCases(Builtin):
         # If levelspec is specified to a non-trivial value,
         # we need to proceed with this complicate procedure
         # involving 1) decode what is the levelspec means
-        # 2) find all the occurences
+        # 2) find all the occurrences
         # 3) Set all the occurences to ```System`Nothing```
 
         levelspec = python_levelspec(levelspec)

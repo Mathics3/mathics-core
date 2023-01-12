@@ -4,9 +4,7 @@
 Operations on Strings
 """
 
-import hashlib
 import re
-import zlib
 
 from mathics.algorithm.parts import convert_seq, python_seq
 from mathics.builtin.atomic.strings import (
@@ -17,7 +15,7 @@ from mathics.builtin.atomic.strings import (
     to_regex,
 )
 from mathics.builtin.base import BinaryOperator, Builtin
-from mathics.core.atoms import ByteArrayAtom, Integer, Integer1, String
+from mathics.core.atoms import Integer, Integer1, String
 from mathics.core.attributes import (
     A_FLAT,
     A_LISTABLE,
@@ -31,7 +29,6 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAll,
-    SymbolByteArray,
     SymbolDirectedInfinity,
     SymbolOutputForm,
 )
@@ -44,102 +41,11 @@ SymbolStringRiffle = Symbol("StringRiffle")
 SymbolStringSplit = Symbol("StringSplit")
 
 
-class _ZLibHash:  # make zlib hashes behave as if they were from hashlib
-    def __init__(self, fn):
-        self._bytes = b""
-        self._fn = fn
-
-    def update(self, bytes):
-        self._bytes += bytes
-
-    def hexdigest(self):
-        return format(self._fn(self._bytes), "x")
-
-
-class Hash(Builtin):
-    """
-    <url>:Hash function:https://en.wikipedia.org/wiki/Hash_function</url> \
-    (<url>:WMA link:https://reference.wolfram.com/language/ref/Hash.html</url>) 
-
-    <dl>
-      <dt>'Hash[$expr$]'
-      <dd>returns an integer hash for the given $expr$.
-
-      <dt>'Hash[$expr$, $type$]'
-      <dd>returns an integer hash of the specified $type$ for the given $expr$.
-      <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", "SHA256", "SHA384", and "SHA512".
-
-      <dt>'Hash[$expr$, $type$, $format$]'
-      <dd>Returns the hash in the specified format.
-    </dl>
-
-    > Hash["The Adventures of Huckleberry Finn"]
-    = 213425047836523694663619736686226550816
-
-    > Hash["The Adventures of Huckleberry Finn", "SHA256"]
-    = 95092649594590384288057183408609254918934351811669818342876362244564858646638
-
-    > Hash[1/3]
-    = 56073172797010645108327809727054836008
-
-    > Hash[{a, b, {c, {d, e, f}}}]
-    = 135682164776235407777080772547528225284
-
-    > Hash[SomeHead[3.1415]]
-    = 58042316473471877315442015469706095084
-
-    >> Hash[{a, b, c}, "xyzstr"]
-     = Hash[{a, b, c}, xyzstr, Integer]
-    """
-
-    attributes = A_PROTECTED | A_READ_PROTECTED
-
-    rules = {
-        "Hash[expr_]": 'Hash[expr, "MD5", "Integer"]',
-        "Hash[expr_, type_String]": 'Hash[expr, type, "Integer"]',
-    }
-
-    summary_text = "compute hash codes for a string"
-
-    # FIXME md2
-    _supported_hashes = {
-        "Adler32": lambda: _ZLibHash(zlib.adler32),
-        "CRC32": lambda: _ZLibHash(zlib.crc32),
-        "MD5": hashlib.md5,
-        "SHA": hashlib.sha1,
-        "SHA224": hashlib.sha224,
-        "SHA256": hashlib.sha256,
-        "SHA384": hashlib.sha384,
-        "SHA512": hashlib.sha512,
-    }
-
-    @staticmethod
-    def compute(user_hash, py_hashtype, py_format):
-        hash_func = Hash._supported_hashes.get(py_hashtype)
-        if hash_func is None:  # unknown hash function?
-            return  # in order to return original Expression
-        h = hash_func()
-        user_hash(h.update)
-        res = h.hexdigest()
-        if py_format in ("HexString", "HexStringLittleEndian"):
-            return String(res)
-        res = int(res, 16)
-        if py_format == "DecimalString":
-            return String(str(res))
-        elif py_format == "ByteArray":
-            return Expression(SymbolByteArray, ByteArrayAtom(res))
-        return Integer(res)
-
-    def apply(self, expr, hashtype, outformat, evaluation):
-        "Hash[expr_, hashtype_String, outformat_String]"
-        return Hash.compute(
-            expr.user_hash, hashtype.get_string_value(), outformat.get_string_value()
-        )
-
-
 class StringDrop(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/StringDrop.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/StringDrop.html</url>
 
     <dl>
       <dt>'StringDrop["$string$", $n$]'
@@ -177,7 +83,7 @@ class StringDrop(Builtin):
 
     summary_text = "drop a part of a string"
 
-    def apply_with_n(self, string, n, evaluation):
+    def eval_with_n(self, string, n, evaluation):
         "StringDrop[string_,n_Integer]"
         if not isinstance(string, String):
             return evaluation.message("StringDrop", "strse")
@@ -195,7 +101,7 @@ class StringDrop(Builtin):
                 return string
         return evaluation.message("StringDrop", "mseqs")
 
-    def apply_with_ni_nf(self, string, ni, nf, evaluation):
+    def eval_with_ni_nf(self, string, ni, nf, evaluation):
         "StringDrop[string_,{ni_Integer,nf_Integer}]"
         if not isinstance(string, String):
             return evaluation.message("StringDrop", "strse", string)
@@ -217,7 +123,7 @@ class StringDrop(Builtin):
             return string  # this is what actually mma does
         return String(fullstring[: (posi - 1)] + fullstring[posf:])
 
-    def apply_with_ni(self, string, ni, evaluation):
+    def eval_with_ni(self, string, ni, evaluation):
         "StringDrop[string_,{ni_Integer}]"
         if not isinstance(string, String):
             return evaluation.message("StringDrop", "strse", string)
@@ -232,7 +138,7 @@ class StringDrop(Builtin):
             return evaluation.message("StringDrop", "drop", ni, ni, fullstring)
         return String(fullstring[: (posi - 1)] + fullstring[posi:])
 
-    def apply(self, string, something, evaluation):
+    def eval(self, string, something, evaluation):
         "StringDrop[string_,something___]"
         if not isinstance(string, String):
             return evaluation.message("StringDrop", "strse")
@@ -386,7 +292,7 @@ class StringInsert(Builtin):
 
         return result
 
-    def apply(self, strsource, strnew, pos, evaluation):
+    def eval(self, strsource, strnew, pos, evaluation):
         "StringInsert[strsource_, strnew_, pos_]"
 
         exp = Expression(SymbolStringInsert, strsource, strnew, pos)
@@ -457,7 +363,7 @@ class StringJoin(BinaryOperator):
     precedence = 600
     summary_text = "join strings together"
 
-    def apply(self, items, evaluation):
+    def eval(self, items, evaluation):
         "StringJoin[items___]"
         result = ""
         if hasattr(items, "flatten_with_respect_to_head"):
@@ -498,7 +404,7 @@ class StringLength(Builtin):
 
     summary_text = "length of a string (in Unicode characters)"
 
-    def apply(self, str, evaluation):
+    def eval(self, str, evaluation):
         "StringLength[str_]"
         if not isinstance(str, String):
             evaluation.message("StringLength", "string")
@@ -580,9 +486,9 @@ class StringPosition(Builtin):
 
     summary_text = "range of positions where substrings match a pattern"
 
-    def apply(self, string, patt, evaluation, options):
+    def eval(self, string, patt, evaluation, options):
         "StringPosition[string_, patt_, OptionsPattern[StringPosition]]"
-        return self.apply_n(
+        return self.eval_n(
             string,
             patt,
             Expression(SymbolDirectedInfinity, Integer1),
@@ -590,7 +496,7 @@ class StringPosition(Builtin):
             options,
         )
 
-    def apply_n(self, string, patt, n, evaluation, options):
+    def eval_n(self, string, patt, n, evaluation, options):
         "StringPosition[string_, patt_, n:(_Integer|DirectedInfinity[1]), OptionsPattern[StringPosition]]"
         expr = Expression(SymbolStringPosition, string, patt, n)
 
@@ -689,7 +595,7 @@ class StringReplace(_StringFind):
     >> StringReplace["xyzwxyzwxxyzxyzw", {"xyz" -> "A", "w" -> "BCD"}]
      = ABCDABCDxAABCD
 
-    Only replace the first 2 occurences:
+    Only replace the first 2 occurrences:
     >> StringReplace["xyxyxyyyxxxyyxy", "xy" -> "A", 2]
      = AAxyyyxxxyyxy
 
@@ -777,7 +683,7 @@ class StringReplace(_StringFind):
 
         return Expression(SymbolStringJoin, *list(cases()))
 
-    def apply(self, string, rule, n, evaluation, options):
+    def eval(self, string, rule, n, evaluation, options):
         "%(name)s[string_, rule_, OptionsPattern[%(name)s], n_:System`Private`Null]"
         # this pattern is a slight hack to get around missing Shortest/Longest.
         return self._apply(string, rule, n, evaluation, options, False)
@@ -799,7 +705,7 @@ class StringReverse(Builtin):
     attributes = A_LISTABLE | A_PROTECTED
     summary_text = "reverses the order of the characters in a string"
 
-    def apply(self, string, evaluation):
+    def eval(self, string, evaluation):
         "StringReverse[string_String]"
         return String(string.get_string_value()[::-1])
 
@@ -880,7 +786,7 @@ class StringRiffle(Builtin):
 
     summary_text = "assemble a string from a list, inserting delimiters"
 
-    def apply(self, liststr, seps, evaluation):
+    def eval(self, liststr, seps, evaluation):
         "StringRiffle[liststr_, seps___]"
         separators = seps.get_sequence()
         exp = (
@@ -1006,12 +912,12 @@ class StringSplit(Builtin):
 
     summary_text = "split strings at whitespace, or at a pattern"
 
-    def apply(self, string, patt, evaluation, options):
+    def eval(self, string, patt, evaluation, options):
         "StringSplit[string_, patt_, OptionsPattern[%(name)s]]"
 
         if string.get_head_name() == "System`List":
             elements = [
-                self.apply(s, patt, evaluation, options) for s in string.elements
+                self.eval(s, patt, evaluation, options) for s in string.elements
             ]
             return ListExpression(*elements)
 
@@ -1129,7 +1035,7 @@ class StringTake(Builtin):
 
     summary_text = "sub-string from a range of positions"
 
-    def apply(self, string, seqspec, evaluation):
+    def eval(self, string, seqspec, evaluation):
         "StringTake[string_String, seqspec_]"
         result = string.get_string_value()
         if result is None:
@@ -1155,11 +1061,11 @@ class StringTake(Builtin):
 
         return String(result[py_slice])
 
-    def apply_strings(self, strings, spec, evaluation):
+    def eval_strings(self, strings, spec, evaluation):
         "StringTake[strings__, spec_]"
         result_list = []
         for string in strings.elements:
-            result = self.apply(string, spec, evaluation)
+            result = self.eval(string, spec, evaluation)
             if result is None:
                 return None
             result_list.append(result)
@@ -1184,11 +1090,11 @@ class StringTrim(Builtin):
 
     summary_text = "trim whitespace etc. from strings"
 
-    def apply(self, s, evaluation):
+    def eval(self, s, evaluation):
         "StringTrim[s_String]"
         return String(s.get_string_value().strip(" \t\n"))
 
-    def apply_pattern(self, s, patt, expression, evaluation):
+    def eval_pattern(self, s, patt, expression, evaluation):
         "StringTrim[s_String, patt_]"
         text = s.get_string_value()
         if not text:

@@ -58,7 +58,7 @@ from mathics.doc.utils import slugify
 # We keep track of the number of \begin{asy}'s we see so that
 # we can assocation asymptote file numbers with where they are
 # in the document
-asy_count = 0
+next_asy_number = 1
 
 ITALIC_RE = re.compile(r"(?s)<(?P<tag>i)>(?P<content>.*?)</(?P=tag)>")
 
@@ -565,10 +565,11 @@ class LaTeXDocTest(DocTest):
 
             test_text = result["result"]
             if test_text:  # is not None and result['result'].strip():
-                if test_text.find("\\begin{asy}") >= 0:
-                    global asy_count
-                    asy_count += 1
-                    text += f"%% mathics-{asy_count}.asy\n"
+                asy_count = test_text.count("\\begin{asy}")
+                if asy_count >= 0:
+                    global next_asy_number
+                    text += f"%% mathics-{next_asy_number}.asy\n"
+                    next_asy_number += asy_count
 
                 text += "\\begin{testresult}%s\\end{testresult}" % result["result"]
         text += "\\end{testcase}"
@@ -658,11 +659,11 @@ class LaTeXDoc(XMLDoc):
 class LaTeXMathicsMainDocumentation(MathicsMainDocumentation):
     def __init__(self, want_sorting=False):
         self.doc_dir = settings.DOC_DIR
-        self.latex_file = settings.DOC_LATEX_FILE
+        self.latex_pcl_path = settings.DOC_LATEX_DATA_PCL
         self.parts = []
         self.parts_by_slug = {}
         self.pymathics_doc_loaded = False
-        self.doc_data_file = settings.get_doc_tex_data_path(should_be_readable=True)
+        self.doc_data_file = settings.get_doc_latex_data_path(should_be_readable=True)
         self.title = "Overview"
         files = listdir(self.doc_dir)
         files.sort()

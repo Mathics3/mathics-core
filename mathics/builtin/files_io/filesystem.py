@@ -14,9 +14,9 @@ import time
 
 from mathics.builtin.atomic.strings import to_regex
 from mathics.builtin.base import Builtin, MessageException, Predefined
+from mathics.builtin.exp_structure.size_and_sig import Hash
 from mathics.builtin.files_io.files import INITIAL_DIR  # noqa is used via global
 from mathics.builtin.files_io.files import DIRECTORY_STACK, MathicsOpen
-from mathics.builtin.string.operations import Hash
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.attributes import (
     A_LISTABLE,
@@ -1157,7 +1157,9 @@ class FileNameJoin(Builtin):
 
 class FileType(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/FileType.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/FileType.html</url>
 
     <dl>
       <dt>'FileType["$file$"]'
@@ -1168,7 +1170,7 @@ class FileType(Builtin):
      = File
     >> FileType["ExampleData"]
      = Directory
-    >> FileType["ExampleData/nonexistant"]
+    >> FileType["ExampleData/nonexistent"]
      = None
 
     #> FileType[x]
@@ -1901,11 +1903,13 @@ class Path(Predefined):
 
 class PathnameSeparator(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$PathnameSeparator.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/$PathnameSeparator.html</url>
 
     <dl>
       <dt>'$PathnameSeparator'
-      <dd>returns a string for the seperator in paths.
+      <dd>returns a string for the separator in paths.
     </dl>
 
     >> $PathnameSeparator

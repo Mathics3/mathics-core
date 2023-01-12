@@ -26,7 +26,7 @@ class BinaryImageQ(_ImageTest):
       <dd>returns True if the pixels of $image are binary bit values, and False otherwise.
     </dl>
 
-    S> img = Import["ExampleData/lena.tif"];
+    S> img = Import["ExampleData/hedy.tif"];
     S> BinaryImageQ[img]
      = False
 

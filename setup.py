@@ -39,7 +39,12 @@ is_PyPy = platform.python_implementation() == "PyPy" or hasattr(
     sys, "pypy_version_info"
 )
 
-INSTALL_REQUIRES = ["Mathics-Scanner >= 1.3.0.dev0", "pillow"]
+INSTALL_REQUIRES = [
+    "Mathics-Scanner >= 1.3.0.dev0",
+    # Pillow 9.1.0 supports BigTIFF with big-endian byte order.
+    # ExampleData image hedy.tif is in this format.
+    "pillow >= 9.1.0",
+]
 
 # Ensure user has the correct Python version
 # Address specific package dependencies based on Python version
@@ -59,8 +64,8 @@ elif sys.version_info[:2] == (3, 6):
 else:
     INSTALL_REQUIRES += ["numpy<=1.24", "llvmlite", "sympy>=1.8, < 1.12"]
 
-if not is_PyPy:
-    INSTALL_REQUIRES += ["recordclass"]
+# if not is_PyPy:
+#     INSTALL_REQUIRES += ["recordclass"]
 
 
 def get_srcdir():
@@ -173,6 +178,7 @@ setup(
         "mathics.builtin.box",
         "mathics.builtin.colors",
         "mathics.builtin.distance",
+        "mathics.builtin.exp_structure",
         "mathics.builtin.drawing",
         "mathics.builtin.fileformats",
         "mathics.builtin.files_io",

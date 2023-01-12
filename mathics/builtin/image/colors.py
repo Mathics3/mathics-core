@@ -2,9 +2,6 @@
 Image Colors
 """
 
-import functools
-from typing import Tuple
-
 import numpy
 import PIL
 
@@ -16,46 +13,15 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
-from mathics.core.systemsymbols import SymbolMatrixQ, SymbolThreshold
-from mathics.eval.image import matrix_to_numpy, pixels_as_ubyte
+from mathics.core.systemsymbols import (
+    SymbolColorQuantize,
+    SymbolMatrixQ,
+    SymbolThreshold,
+)
+from mathics.eval.image import linearize_numpy_array, matrix_to_numpy, pixels_as_ubyte
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.image.image-colors"
-
-SymbolColorQuantize = Symbol("ColorQuantize")
-
-
-def _linearize_numpy_array(a: numpy.array) -> Tuple[numpy.array, int]:
-    """
-    Transforms a numpy array numpy array and return the array and the number
-    of dimensions in the array
-
-    A binary search is used.
-    """
-
-    orig_shape = a.shape
-    a = a.reshape((functools.reduce(lambda x, y: x * y, a.shape),))  # 1 dimension
-
-    u = numpy.unique(a)
-    n = len(u)
-
-    lower = numpy.ndarray(a.shape, dtype=int)
-    lower.fill(0)
-    upper = numpy.ndarray(a.shape, dtype=int)
-    upper.fill(n - 1)
-
-    h = numpy.sort(u)
-    q = n  # worst case partition size
-
-    while q > 2:
-        m = numpy.right_shift(lower + upper, 1)
-        f = a <= h[m]
-        # (lower, m) vs (m + 1, upper)
-        lower = numpy.where(f, lower, m + 1)
-        upper = numpy.where(f, m, upper)
-        q = (q + 1) // 2
-
-    return numpy.where(a == h[lower], lower, upper).reshape(orig_shape), n
 
 
 class Binarize(Builtin):
@@ -75,18 +41,18 @@ class Binarize(Builtin):
       <dd>map $t1$ < $x$ < $t2$ to 1, and all other values to 0.
     </dl>
 
-    S> img = Import["ExampleData/lena.tif"];
-    S> Binarize[img]
+    S> hedy = Import["ExampleData/hedy.tif"];
+    S> Binarize[hedy]
      = -Image-
-    S> Binarize[img, 0.7]
+    S> Binarize[hedy, 0.7]
      = -Image-
-    S> Binarize[img, {0.2, 0.6}]
+    S> Binarize[hedy, {0.2, 0.6}]
      = -Image-
     """
 
     summary_text = "create a binarized image"
 
-    def eval(self, image, evaluation: Evaluation):
+    def eval(self, image: Image, evaluation: Evaluation):
         "Binarize[image_Image]"
         image = image.grayscale()
         thresh = (
@@ -95,12 +61,12 @@ class Binarize(Builtin):
         if thresh is not None:
             return Image(image.pixels > thresh, "Grayscale")
 
-    def eval_t(self, image, t, evaluation: Evaluation):
+    def eval_t(self, image: Image, t, evaluation: Evaluation):
         "Binarize[image_Image, t_?RealNumberQ]"
         pixels = image.grayscale().pixels
         return Image(pixels > t.round_to_float(), "Grayscale")
 
-    def eval_t1_t2(self, image, t1, t2, evaluation: Evaluation):
+    def eval_t1_t2(self, image: Image, t1, t2, evaluation: Evaluation):
         "Binarize[image_Image, {t1_?RealNumberQ, t2_?RealNumberQ}]"
         pixels = image.grayscale().pixels
         mask1 = pixels > t1.round_to_float()
@@ -159,7 +125,7 @@ class ColorQuantize(Builtin):
       <dd>gives a version of $image$ using only $n$ colors.
     </dl>
 
-    >> img = Import["ExampleData/lena.tif"];
+    >> img = Import["ExampleData/hedy.tif"];
     >> ColorQuantize[img, 6]
      = -Image-
 
@@ -201,7 +167,7 @@ class ColorSeparate(Builtin):
       <dd>Gives each channel of $image$ as a separate grayscale image.
     </dl>
 
-    >> img = Import["ExampleData/lena.tif"];
+    >> img = Import["ExampleData/hedy.tif"];
     >> ColorSeparate[img]
      = ...
 
@@ -228,7 +194,7 @@ class Colorize(Builtin):
     <dl>
       <dt>'Colorize[$values$]'
       <dd>returns an image where each number in the rectangular matrix \
-          $values$ is a pixel and each occurence of the same number is \
+          $values$ is a pixel and each occurrence of the same number is \
           displayed in the same unique color, which is different from the \
           colors of all non-identical numbers.
 
@@ -261,7 +227,7 @@ class Colorize(Builtin):
                 return
             matrix = matrix_to_numpy(values)
 
-        a, n = _linearize_numpy_array(matrix)
+        a, n = linearize_numpy_array(matrix)
         # the maximum value for n is the number of pixels in a, which is acceptable and never too large.
 
         color_function = self.get_option(options, "ColorFunction", evaluation)

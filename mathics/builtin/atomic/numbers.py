@@ -9,7 +9,7 @@
 Representation of Numbers
 
 Integers and Real numbers with any number of digits, automatically tagging \
-numerical preceision when appropriate.
+numerical precision when appropriate.
 
 Precision is not "guarded" through the evaluation process. Only integer \
 precision is supported.

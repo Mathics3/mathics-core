@@ -6,13 +6,16 @@ from mathics.algorithm.introselect import introselect
 from mathics.builtin.base import Builtin
 from mathics.builtin.lists import _NotRectangularException, _Rectangular
 from mathics.core.atoms import Integer2
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolDivide, SymbolPlus
 
 
 class Mean(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Mean.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Mean.html</url>
 
     <dl>
     <dt>'Mean[$list$]'
@@ -62,7 +65,7 @@ class Median(_Rectangular):
     messages = {"rectn": "Expected a rectangular array of numbers at position 1 in ``."}
     summary_text = "central value of a dataset"
 
-    def apply(self, data, evaluation):
+    def eval(self, data, evaluation: Evaluation):
         "Median[data_List]"
         if not data.elements:
             return

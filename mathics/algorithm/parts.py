@@ -25,7 +25,7 @@ SymbolNothing = Symbol("Nothing")
 
 
 def get_part(expression: BaseElement, indices: List[int]) -> BaseElement:
-    """Extract part of ``expression`` specified by ``indicies`` and
+    """Extract part of ``expression`` specified by ``indices`` and
     return that.
     """
 
@@ -549,10 +549,14 @@ def deletecases_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
     """
     This function walks the expression `expr` and deleting occurrencies of `pattern`
 
-    If levelspec specifies a number, only those positions with  `levelspec` "coordinates" are return. By default, it just return occurences in the first level.
+    If levelspec specifies a number, only those positions with
+    `levelspec` "coordinates" are return. By default, it just return
+    occurrences in the first level.
 
-    If a tuple (nmin, nmax) is provided, it just return those occurences with a number of "coordinates" between nmin and nmax.
-    n indicates the number of occurrences to return. By default, it returns all the occurences.
+    If a tuple (nmin, nmax) is provided, it just return those
+    occurrences with a number of "coordinates" between nmin and nmax.
+    n indicates the number of occurrences to return. By default, it
+    returns all the occurrences.
     """
     nothing = SymbolNothing
     from mathics.builtin.patterns import Matcher
@@ -617,12 +621,16 @@ def deletecases_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
 def find_matching_indices_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
     """
     This function walks the expression `expr` looking for a pattern `pattern`
-    and returns the positions of each occurence.
+    and returns the positions of each occurrence.
 
-    If levelspec specifies a number, only those positions with  `levelspec` "coordinates" are return. By default, it just return occurences in the first level.
+    If levelspec specifies a number, only those positions with
+    `levelspec` "coordinates" are return. By default, it just return
+    occurrences in the first level.
 
-    If a tuple (nmin, nmax) is provided, it just return those occurences with a number of "coordinates" between nmin and nmax.
-    n indicates the number of occurrences to return. By default, it returns all the occurences.
+    If a tuple (nmin, nmax) is provided, it just return those
+    occurrences with a number of "coordinates" between nmin and nmax.
+    n indicates the number of occurrences to return. By default, it
+    returns all the occurrences.
     """
     from mathics.builtin.patterns import Matcher
 

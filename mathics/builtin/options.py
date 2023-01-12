@@ -180,7 +180,7 @@ class OptionQ(Test):
     >> OptionQ[{a :> True}]
      = True
 
-    Options lists are flattened when are applyied, so
+    Options lists are flattened when are applied, so
     >> OptionQ[{a -> True, {b->1, "c"->2}}]
      = True
     >> OptionQ[{a -> True, {b->1, c}}]

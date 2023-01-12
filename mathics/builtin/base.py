@@ -9,8 +9,16 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Union, cast
 
 import sympy
 
-from mathics.core.atoms import Integer, MachineReal, PrecisionReal, String
-from mathics.core.attributes import A_NO_ATTRIBUTES, A_PROTECTED
+from mathics.core.atoms import (
+    Integer,
+    Integer0,
+    Integer1,
+    MachineReal,
+    Number,
+    PrecisionReal,
+    String,
+)
+from mathics.core.attributes import A_HOLD_ALL, A_NO_ATTRIBUTES, A_PROTECTED
 from mathics.core.convert.expression import to_expression, to_numeric_sympy_args
 from mathics.core.convert.op import ascii_operator_to_symbol
 from mathics.core.convert.python import from_bool
@@ -18,11 +26,31 @@ from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import Definition
 from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression, SymbolDefault
+from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
+from mathics.core.list import ListExpression
 from mathics.core.number import PrecisionValueError, get_precision
 from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
 from mathics.core.rules import BuiltinRule, Pattern, Rule
-from mathics.core.symbols import BaseElement, Symbol, ensure_context, strip_context
-from mathics.core.systemsymbols import SymbolMessageName, SymbolRule
+from mathics.core.symbols import (
+    BaseElement,
+    Symbol,
+    SymbolFalse,
+    SymbolPlus,
+    SymbolTrue,
+    ensure_context,
+    strip_context,
+)
+from mathics.core.systemsymbols import (
+    SymbolGreaterEqual,
+    SymbolLess,
+    SymbolLessEqual,
+    SymbolMessageName,
+    SymbolRule,
+    SymbolSequence,
+)
+from mathics.eval.numbers import cancel
+from mathics.eval.numerify import numerify
+from mathics.eval.scoping import dynamic_scoping
 
 # Signals to Mathics doc processing not to include this module in its documentation.
 no_doc = True
@@ -421,7 +449,7 @@ class Builtin:
         of the class. Otherwise, returns ``None``.
         """
 
-        def apply_unavailable(**kwargs):  # will override apply method
+        def eval_unavailable(**kwargs):  # will override apply method
             kwargs["evaluation"].message(
                 "General",
                 "pyimport",  # see inout.py
@@ -429,7 +457,7 @@ class Builtin:
             )
 
         requires = getattr(self, "requires", [])
-        return None if check_requires_list(requires) else apply_unavailable
+        return None if check_requires_list(requires) else eval_unavailable
 
     def get_option_string(self, *params):
         s = self.get_option(*params)
@@ -494,6 +522,205 @@ class AtomBuiltin(Builtin):
     def get_name(self, short=False) -> str:
         name = super().get_name(short=short)
         return re.sub(r"Atom$", "", name)
+
+
+class IterationFunction(Builtin):
+    attributes = A_HOLD_ALL | A_PROTECTED
+    allow_loopcontrol = False
+    throw_iterb = True
+
+    def get_result(self, items):
+        pass
+
+    def eval_symbol(self, expr, iterator, evaluation):
+        "%(name)s[expr_, iterator_Symbol]"
+        iterator = iterator.evaluate(evaluation)
+        if iterator.has_form(["List", "Range", "Sequence"], None):
+            elements = iterator.elements
+            if len(elements) == 1:
+                return self.apply_max(expr, *elements, evaluation)
+            elif len(elements) == 2:
+                if elements[1].has_form(["List", "Sequence"], None):
+                    seq = Expression(SymbolSequence, *(elements[1].elements))
+                    return self.eval_list(expr, elements[0], seq, evaluation)
+                else:
+                    return self.eval_range(expr, *elements, evaluation)
+            elif len(elements) == 3:
+                return self.eval_iter_nostep(expr, *elements, evaluation)
+            elif len(elements) == 4:
+                return self.eval_iter(expr, *elements, evaluation)
+
+        if self.throw_iterb:
+            evaluation.message(self.get_name(), "iterb")
+        return
+
+    def eval_range(self, expr, i, imax, evaluation):
+        "%(name)s[expr_, {i_Symbol, imax_}]"
+        imax = imax.evaluate(evaluation)
+        if imax.has_form("Range", None):
+            # FIXME: this should work as an iterator in Python3, not
+            # building the sequence explicitly...
+            seq = Expression(SymbolSequence, *(imax.evaluate(evaluation).elements))
+            return self.apply_list(expr, i, seq, evaluation)
+        elif imax.has_form("List", None):
+            seq = Expression(SymbolSequence, *(imax.elements))
+            return self.eval_list(expr, i, seq, evaluation)
+        else:
+            return self.eval_iter(expr, i, Integer1, imax, Integer1, evaluation)
+
+    def eval_max(self, expr, imax, evaluation):
+        "%(name)s[expr_, {imax_}]"
+
+        # Even though `imax` should be an integeral value, its type does not
+        # have to be an Integer.
+
+        result = []
+
+        def do_iteration():
+            evaluation.check_stopped()
+            try:
+                result.append(expr.evaluate(evaluation))
+            except ContinueInterrupt:
+                if self.allow_loopcontrol:
+                    pass
+                else:
+                    raise
+            except BreakInterrupt:
+                if self.allow_loopcontrol:
+                    raise StopIteration
+                else:
+                    raise
+            except ReturnInterrupt as e:
+                if self.allow_loopcontrol:
+                    return e.expr
+                else:
+                    raise
+
+        if isinstance(imax, Integer):
+            try:
+                for _ in range(imax.value):
+                    do_iteration()
+            except StopIteration:
+                pass
+
+        else:
+            imax = imax.evaluate(evaluation)
+            imax = numerify(imax, evaluation)
+            if isinstance(imax, Number):
+                imax = imax.round()
+            py_max = imax.get_float_value()
+            if py_max is None:
+                if self.throw_iterb:
+                    evaluation.message(self.get_name(), "iterb")
+                return
+
+            index = 0
+            try:
+                while index < py_max:
+                    do_iteration()
+                    index += 1
+            except StopIteration:
+                pass
+
+        return self.get_result(result)
+
+    def eval_iter_nostep(self, expr, i, imin, imax, evaluation):
+        "%(name)s[expr_, {i_Symbol, imin_, imax_}]"
+        return self.eval_iter(expr, i, imin, imax, Integer1, evaluation)
+
+    def eval_iter(self, expr, i, imin, imax, di, evaluation):
+        "%(name)s[expr_, {i_Symbol, imin_, imax_, di_}]"
+
+        if isinstance(self, SympyFunction) and di.get_int_value() == 1:
+            whole_expr = to_expression(
+                self.get_name(), expr, ListExpression(i, imin, imax)
+            )
+            sympy_expr = whole_expr.to_sympy(evaluation=evaluation)
+            if sympy_expr is None:
+                return None
+
+            # apply Together to produce results similar to Mathematica
+            result = sympy.together(sympy_expr)
+            result = from_sympy(result)
+            result = cancel(result)
+
+            if not result.sameQ(whole_expr):
+                return result
+            return
+
+        index = imin.evaluate(evaluation)
+        imax = imax.evaluate(evaluation)
+        di = di.evaluate(evaluation)
+
+        result = []
+        compare_type = (
+            SymbolGreaterEqual
+            if Expression(SymbolLess, di, Integer0).evaluate(evaluation).to_python()
+            else SymbolLessEqual
+        )
+        while True:
+            cont = Expression(compare_type, index, imax).evaluate(evaluation)
+            if cont is SymbolFalse:
+                break
+            if cont is not SymbolTrue:
+                if self.throw_iterb:
+                    evaluation.message(self.get_name(), "iterb")
+                return
+
+            evaluation.check_stopped()
+            try:
+                item = dynamic_scoping(expr.evaluate, {i.name: index}, evaluation)
+                result.append(item)
+            except ContinueInterrupt:
+                if self.allow_loopcontrol:
+                    pass
+                else:
+                    raise
+            except BreakInterrupt:
+                if self.allow_loopcontrol:
+                    break
+                else:
+                    raise
+            except ReturnInterrupt as e:
+                if self.allow_loopcontrol:
+                    return e.expr
+                else:
+                    raise
+            index = Expression(SymbolPlus, index, di).evaluate(evaluation)
+        return self.get_result(result)
+
+    def eval_list(self, expr, i, items, evaluation):
+        "%(name)s[expr_, {i_Symbol, {items___}}]"
+        items = items.evaluate(evaluation).get_sequence()
+        result = []
+        for item in items:
+            evaluation.check_stopped()
+            try:
+                item = dynamic_scoping(expr.evaluate, {i.name: item}, evaluation)
+                result.append(item)
+            except ContinueInterrupt:
+                if self.allow_loopcontrol:
+                    pass
+                else:
+                    raise
+            except BreakInterrupt:
+                if self.allow_loopcontrol:
+                    break
+                else:
+                    raise
+            except ReturnInterrupt as e:
+                if self.allow_loopcontrol:
+                    return e.expr
+                else:
+                    raise
+        return self.get_result(result)
+
+    def eval_multi(self, expr, first, sequ, evaluation):
+        "%(name)s[expr_, first_, sequ__]"
+
+        sequ = sequ.get_sequence()
+        name = self.get_name()
+        return to_expression(name, to_expression(name, expr, *sequ), first)
 
 
 class Operator(Builtin):

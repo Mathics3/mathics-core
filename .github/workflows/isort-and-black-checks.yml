@@ -18,15 +18,15 @@ jobs:
         run: pip install 'click==8.0.4' 'black==22.3.0' 'isort==5.10.1'
       - name: Run isort --check .
         run: isort --check .
-      - name: Run isort --check .
+      - name: Run black --check .
         run: black --check .
-      - name: If needed, commit black changes to the pull request
-        if: failure()
-        run: |
-          black .
-          git config --global user.name 'autoblack'
-          git config --global user.email 'rocky@users.noreply.github.com'
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
-          git checkout $GITHUB_HEAD_REF
-          git commit -am "fixup: Format Python code with Black"
-          git push
+      # - name: If needed, commit black changes to the pull request
+      #   if: failure()
+      #   run: |
+      #     black .
+      #     git config --global user.name 'autoblack'
+      #     git config --global user.email 'rocky@users.noreply.github.com'
+      #     git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
+      #     git checkout $GITHUB_HEAD_REF
+      #     git commit -am "fixup: Format Python code with Black"
+      #     git push

@@ -3,9 +3,11 @@
 """
 Rules and Patterns
 
-The concept of transformation rules for arbitrary symbolic patterns is key in Mathics.
+The concept of transformation rules for arbitrary symbolic patterns is key \
+in \Mathics.
 
-Also, functions can get applied or transformed depending on whether or not functions arguments match.
+Also, functions can get applied or transformed depending on whether or not \
+functions arguments match.
 
 Some examples:
 >> a + b + c /. a + b -> t
@@ -58,6 +60,7 @@ from mathics.core.attributes import (
     A_SEQUENCE_HOLD,
 )
 from mathics.core.element import EvalMixin
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, SymbolVerbatim
 from mathics.core.list import ListExpression
 from mathics.core.pattern import Pattern, StopGenerator
@@ -184,7 +187,9 @@ def create_rules(rules_expr, expr, name, evaluation, extra_args=[]):
 class Replace(Builtin):
     """
 
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Replace.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Replace.html</url>
 
     <dl>
       <dt>'Replace[$expr$, $x$ -> $y$]'
@@ -245,7 +250,7 @@ class Replace(Builtin):
     rules = {"Replace[rules_][expr_]": "Replace[expr, rules]"}
     summary_text = "apply a replacement rule"
 
-    def apply_levelspec(self, expr, rules, ls, evaluation, options):
+    def eval_levelspec(self, expr, rules, ls, evaluation, options):
         "Replace[expr_, rules_, Optional[Pattern[ls, _?LevelQ], {0}], OptionsPattern[Replace]]"
         try:
             rules, ret = create_rules(rules, expr, "Replace", evaluation)
@@ -270,7 +275,9 @@ class Replace(Builtin):
 
 class ReplaceAll(BinaryOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ReplaceAll.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ReplaceAll.html</url>
 
     <dl>
       <dt>'ReplaceAll[$expr$, $x$ -> $y$]'
@@ -326,7 +333,7 @@ class ReplaceAll(BinaryOperator):
     rules = {"ReplaceAll[rules_][expr_]": "ReplaceAll[expr, rules]"}
     summary_text = "apply a replacement rule on each subexpression"
 
-    def apply(self, expr, rules, evaluation):
+    def eval(self, expr, rules, evaluation: Evaluation):
         "ReplaceAll[expr_, rules_]"
         try:
             rules, ret = create_rules(rules, expr, "ReplaceAll", evaluation)
@@ -341,7 +348,9 @@ class ReplaceAll(BinaryOperator):
 class ReplaceRepeated(BinaryOperator):
     """
 
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ReplaceRepeated.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ReplaceRepeated.html</url>
 
     <dl>
       <dt>'ReplaceRepeated[$expr$, $x$ -> $y$]'
@@ -386,7 +395,7 @@ class ReplaceRepeated(BinaryOperator):
     }
     summary_text = "iteratively replace until the expression does not change anymore"
 
-    def apply_list(self, expr, rules, evaluation, options):
+    def eval_list(self, expr, rules, evaluation, options):
         "ReplaceRepeated[expr_, rules_, OptionsPattern[ReplaceRepeated]]"
         try:
             rules, ret = create_rules(rules, expr, "ReplaceRepeated", evaluation)
@@ -421,7 +430,9 @@ class ReplaceRepeated(BinaryOperator):
 
 class ReplaceList(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ReplaceList.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ReplaceList.html</url>
 
     <dl>
       <dt>'ReplaceList[$expr$, $rules$]'
@@ -459,7 +470,7 @@ class ReplaceList(Builtin):
     }
     summary_text = "list of possible replacement results"
 
-    def apply(self, expr, rules, max, evaluation):
+    def eval(self, expr, rules, max, evaluation: Evaluation):
         "ReplaceList[expr_, rules_, max_:Infinity]"
 
         if max.get_name() == "System`Infinity":
@@ -491,7 +502,9 @@ class ReplaceList(Builtin):
 class PatternTest(BinaryOperator, PatternObject):
     """
 
-    <url>:WMA link:https://reference.wolfram.com/language/ref/PatternTest.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/PatternTest.html</url>
 
     <dl>
       <dt>'PatternTest[$pattern$, $test$]'
@@ -648,7 +661,7 @@ class PatternTest(BinaryOperator, PatternObject):
 
         self.pattern.match(yield_match, expression, vars, evaluation)
 
-    def quick_pattern_test(self, candidate, test, evaluation):
+    def quick_pattern_test(self, candidate, test, evaluation: Evaluation):
         if test == "System`NegativePowerQ":
             return (
                 candidate.has_form("Power", 2)
@@ -706,7 +719,9 @@ class PatternTest(BinaryOperator, PatternObject):
 
 class Alternatives(BinaryOperator, PatternObject):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Alternatives.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Alternatives.html</url>
 
     <dl>
       <dt>'Alternatives[$p1$, $p2$, ..., $p_i$]'
@@ -763,11 +778,15 @@ class _StopGeneratorExcept(StopGenerator):
 
 class Except(PatternObject):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Except.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Except.html</url>
 
     <dl>
       <dt>'Except[$c$]'
-      <dd>represents a pattern object that matches any expression except those matching $c$.
+      <dd>represents a pattern object that matches any expression except \
+          those matching $c$.
+
       <dt>'Except[$c$, $p$]'
       <dd>represents a pattern object that matches $p$ but not $c$.
     </dl>
@@ -820,7 +839,7 @@ class Matcher:
         else:
             self.form = Pattern.create(form)
 
-    def match(self, expr, evaluation):
+    def match(self, expr, evaluation: Evaluation):
         def yield_func(vars, rest):
             raise _StopGeneratorMatchQ(True)
 
@@ -831,7 +850,7 @@ class Matcher:
         return False
 
 
-def match(expr, form, evaluation):
+def match(expr, form, evaluation: Evaluation):
     return Matcher(form).match(expr, evaluation)
 
 
@@ -859,7 +878,7 @@ class MatchQ(Builtin):
     rules = {"MatchQ[form_][expr_]": "MatchQ[expr, form]"}
     summary_text = "test whether an expression matches a pattern"
 
-    def apply(self, expr, form, evaluation):
+    def eval(self, expr, form, evaluation: Evaluation):
         "MatchQ[expr_, form_]"
 
         try:
@@ -1410,7 +1429,7 @@ class Repeated(PostfixOperator, PatternObject):
 
     operator = ".."
     precedence = 170
-    summary_text = "match to one or more occurences of a pattern"
+    summary_text = "match to one or more occurrences of a pattern"
 
     def init(self, expr, min=1):
         self.pattern = Pattern.create(expr.elements[0])
@@ -1484,7 +1503,7 @@ class RepeatedNull(Repeated):
 
     operator = "..."
     precedence = 170
-    summary_text = "match to zero or more occurences of a pattern"
+    summary_text = "match to zero or more occurrences of a pattern"
 
     def init(self, expr):
         super(RepeatedNull, self).init(expr, min=0)
@@ -1511,11 +1530,14 @@ class Shortest(Builtin):
 
 class Longest(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Longest.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Longest.html</url>
 
     <dl>
       <dt>'Longest[$pat$]'
-      <dd>is a pattern object that matches the longest sequence consistent with the pattern $p$.
+      <dd>is a pattern object that matches the longest sequence consistent \
+      with the pattern $p$.
     </dl>
     >> StringCases["aabaaab", Longest["a" ~~ __ ~~ "b"]]
      = {aabaaab}
@@ -1529,7 +1551,9 @@ class Longest(Builtin):
 
 class Condition(BinaryOperator, PatternObject):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Condition.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Condition.html</url>
 
     <dl>
       <dt>'Condition[$pattern$, $expr$]'
@@ -1584,18 +1608,21 @@ class Condition(BinaryOperator, PatternObject):
 
 class OptionsPattern(PatternObject):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/OptionsPattern.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/OptionsPattern.html</url>
 
     <dl>
       <dt>'OptionsPattern[$f$]'
-      <dd>is a pattern that stands for a sequence of options given
-        to a function, with default values taken from 'Options[$f$]'.
+      <dd>is a pattern that stands for a sequence of options given \
+        to a function, with default values taken from 'Options[$f$]'. \
         The options can be of the form '$opt$->$value$' or
         '$opt$:>$value$', and might be in arbitrarily nested lists.
+
       <dt>'OptionsPattern[{$opt1$->$value1$, ...}]'
       <dd>takes explicit default values from the given list. The
-        list may also contain symbols $f$, for which 'Options[$f$]' is
-        taken into account; it may be arbitrarily nested.
+        list may also contain symbols $f$, for which 'Options[$f$]' is \
+        taken into account; it may be arbitrarily nested. \
         'OptionsPattern[{}]' does not use any default values.
     </dl>
 
@@ -1700,7 +1727,7 @@ class OptionsPattern(PatternObject):
 class Dispatch(Atom):
     class_head_name = "System`Dispatch"
 
-    def __init__(self, rulelist, evaluation):
+    def __init__(self, rulelist, evaluation: Evaluation):
         self.src = ListExpression(*rulelist)
         self.rules = [Rule(rule.elements[0], rule.elements[1]) for rule in rulelist]
         self._elements = None
@@ -1715,7 +1742,7 @@ class Dispatch(Atom):
     def __repr__(self):
         return "dispatch"
 
-    def atom_to_boxes(self, f, evaluation):
+    def atom_to_boxes(self, f, evaluation: Evaluation):
         from mathics.builtin.box.layout import RowBox
         from mathics.eval.makeboxes import format_element
 
@@ -1725,13 +1752,15 @@ class Dispatch(Atom):
 
 class DispatchAtom(AtomBuiltin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/DispatchAtom.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/DispatchAtom.html</url>
 
     <dl>
       <dt>'Dispatch[$rulelist$]'
-      <dd>Introduced for compatibility. Currently, it just return $rulelist$.
-            In the future, it should return an optimized DispatchRules atom,
-            containing an optimized set of rules.
+      <dd>Introduced for compatibility. Currently, it just return $rulelist$. \
+          In the future, it should return an optimized DispatchRules atom, \
+          containing an optimized set of rules.
     </dl>
     >> rules = {{a_,b_}->a^b, {1,2}->3., F[x_]->x^2};
     >> F[2] /. rules
@@ -1751,7 +1780,7 @@ class DispatchAtom(AtomBuiltin):
     def __repr__(self):
         return "dispatchatom"
 
-    def apply_create(self, rules, evaluation):
+    def eval_create(self, rules, evaluation: Evaluation):
         """Dispatch[rules_List]"""
         # TODO:
         # The next step would be to enlarge this method, in order to
@@ -1773,7 +1802,7 @@ class DispatchAtom(AtomBuiltin):
 
         all_list = all(rule.has_form("List", None) for rule in rules)
         if all_list:
-            elements = [self.apply_create(rule, evaluation) for rule in rules]
+            elements = [self.eval_create(rule, evaluation) for rule in rules]
             return ListExpression(*elements)
         flatten_list = []
         for rule in rules:
@@ -1795,7 +1824,7 @@ class DispatchAtom(AtomBuiltin):
         except Exception:
             return
 
-    def apply_normal(self, dispatch, evaluation):
+    def eval_normal(self, dispatch, evaluation: Evaluation):
         """Normal[dispatch_Dispatch]"""
         if isinstance(dispatch, Dispatch):
             return dispatch.src

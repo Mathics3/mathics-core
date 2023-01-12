@@ -1,26 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Structural Operations on Expressions
-
-Structural transformations on lists, and general symbolic expressions.
+General Structural Expression Functions
 """
 
-import platform
-
+from mathics.algorithm.parts import python_levelspec, walk_levels
 from mathics.builtin.base import BinaryOperator, Builtin, Predefined
-from mathics.builtin.lists import walk_levels
 from mathics.core.atoms import Integer, Integer0, Integer1, Rational
-from mathics.core.expression import Expression
+from mathics.core.exceptions import InvalidLevelspecError
+from mathics.core.expression import Evaluation, Expression
+from mathics.core.list import ListExpression
 from mathics.core.rules import Pattern
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolMap
-
-if platform.python_implementation() == "PyPy":
-    bytecount_support = False
-else:
-    from .pympler.asizeof import asizeof as count_bytes
-
-    bytecount_support = True
 
 SymbolOperate = Symbol("Operate")
 SymbolSortBy = Symbol("SortBy")
@@ -28,7 +19,9 @@ SymbolSortBy = Symbol("SortBy")
 
 class ApplyLevel(BinaryOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ApplyLevel.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ApplyLevel.html</url>
 
     <dl>
       <dt>'ApplyLevel[$f$, $expr$]'
@@ -54,7 +47,9 @@ class ApplyLevel(BinaryOperator):
 
 class BinarySearch(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/BinarySearch.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/BinarySearch.html</url>
 
     <dl>
       <dt>'CombinatoricaOld`BinarySearch[$l$, $k$]'
@@ -95,7 +90,7 @@ class BinarySearch(Builtin):
 
     summary_text = "search a sorted list for a key"
 
-    def apply(self, l, k, f, evaluation):
+    def eval(self, l, k, f, evaluation: Evaluation):
         "CombinatoricaOld`BinarySearch[l_List, k_, f_] /; Length[l] > 0"
 
         elements = l.elements
@@ -143,28 +138,6 @@ class BinarySearch(Builtin):
                 lower_index = pivot_index + 1
 
 
-class ByteCount(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ByteCount.html</url>
-
-    <dl>
-      <dt>'ByteCount[$expr$]'
-      <dd>gives the internal memory space used by $expr$, in bytes.
-    </dl>
-
-    The results may heavily depend on the Python implementation in use.
-    """
-
-    summary_text = "amount of memory used by expr, in bytes"
-
-    def apply(self, expression, evaluation):
-        "ByteCount[expression_]"
-        if not bytecount_support:
-            return evaluation.message("ByteCount", "pypy")
-        else:
-            return Integer(count_bytes(expression))
-
-
 class Depth(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Depth.html</url>
@@ -196,210 +169,17 @@ class Depth(Builtin):
 
     summary_text = "the maximum number of indices to specify any part"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation):
         "Depth[expr_]"
         expr, depth = walk_levels(expr)
         return Integer(depth + 1)
 
 
-class Flatten(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Flatten.html</url>
-
-    <dl>
-      <dt>'Flatten[$expr$]'
-      <dd>flattens out nested lists in $expr$.
-
-      <dt>'Flatten[$expr$, $n$]'
-      <dd>stops flattening at level $n$.
-
-      <dt>'Flatten[$expr$, $n$, $h$]'
-      <dd>flattens expressions with head $h$ instead of 'List'.
-    </dl>
-
-    >> Flatten[{{a, b}, {c, {d}, e}, {f, {g, h}}}]
-     = {a, b, c, d, e, f, g, h}
-    >> Flatten[{{a, b}, {c, {e}, e}, {f, {g, h}}}, 1]
-     = {a, b, c, {e}, e, f, {g, h}}
-    >> Flatten[f[a, f[b, f[c, d]], e], Infinity, f]
-     = f[a, b, c, d, e]
-
-    >> Flatten[{{a, b}, {c, d}}, {{2}, {1}}]
-     = {{a, c}, {b, d}}
-
-    >> Flatten[{{a, b}, {c, d}}, {{1, 2}}]
-     = {a, b, c, d}
-
-    Flatten also works in irregularly shaped arrays
-    >> Flatten[{{1, 2, 3}, {4}, {6, 7}, {8, 9, 10}}, {{2}, {1}}]
-     = {{1, 4, 6, 8}, {2, 7, 9}, {3, 10}}
-
-    #> Flatten[{{1, 2}, {3, 4}}, {{-1, 2}}]
-     : Levels to be flattened together in {{-1, 2}} should be lists of positive integers.
-     = Flatten[{{1, 2}, {3, 4}}, {{-1, 2}}, List]
-
-    #> Flatten[{a, b}, {{1}, {2}}]
-     : Level 2 specified in {{1}, {2}} exceeds the levels, 1, which can be flattened together in {a, b}.
-     = Flatten[{a, b}, {{1}, {2}}, List]
-
-    ## Check `n` completion
-    #> m = {{{1, 2}, {3}}, {{4}, {5, 6}}};
-    #> Flatten[m, {{2}, {1}, {3}, {4}}]
-     : Level 4 specified in {{2}, {1}, {3}, {4}} exceeds the levels, 3, which can be flattened together in {{{1, 2}, {3}}, {{4}, {5, 6}}}.
-     = Flatten[{{{1, 2}, {3}}, {{4}, {5, 6}}}, {{2}, {1}, {3}, {4}}, List]
-
-    ## Test from issue #251
-    #> m = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-    #> Flatten[m, {3}]
-     : Level 3 specified in {3} exceeds the levels, 2, which can be flattened together in {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}.
-     = Flatten[{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, {3}, List]
-
-    ## Reproduce strange head behaviour
-    #> Flatten[{{1}, 2}, {1, 2}]
-     : Level 2 specified in {1, 2} exceeds the levels, 1, which can be flattened together in {{1}, 2}.
-     = Flatten[{{1}, 2}, {1, 2}, List]
-    #> Flatten[a[b[1, 2], b[3]], {1, 2}, b]     (* MMA BUG: {{1, 2}} not {1, 2}  *)
-     : Level 1 specified in {1, 2} exceeds the levels, 0, which can be flattened together in a[b[1, 2], b[3]].
-     = Flatten[a[b[1, 2], b[3]], {1, 2}, b]
-
-    #> Flatten[{{1, 2}, {3, {4}}}, {{1, 2, 3}}]
-     : Level 3 specified in {{1, 2, 3}} exceeds the levels, 2, which can be flattened together in {{1, 2}, {3, {4}}}.
-     = Flatten[{{1, 2}, {3, {4}}}, {{1, 2, 3}}, List]
-    """
-
-    messages = {
-        "flpi": (
-            "Levels to be flattened together in `1` "
-            "should be lists of positive integers."
-        ),
-        "flrep": ("Level `1` specified in `2` should not be repeated."),
-        "fldep": (
-            "Level `1` specified in `2` exceeds the levels, `3`, "
-            "which can be flattened together in `4`."
-        ),
-    }
-
-    rules = {
-        "Flatten[expr_]": "Flatten[expr, Infinity, Head[expr]]",
-        "Flatten[expr_, n_]": "Flatten[expr, n, Head[expr]]",
-    }
-
-    summary_text = "flatten out any sequence of levels in a nested list"
-
-    def apply_list(self, expr, n, h, evaluation):
-        "Flatten[expr_, n_List, h_]"
-
-        # prepare levels
-        # find max depth which matches `h`
-        expr, max_depth = walk_levels(expr)
-        max_depth = {"max_depth": max_depth}  # hack to modify max_depth from callback
-
-        def callback(expr, pos):
-            if len(pos) < max_depth["max_depth"] and (
-                isinstance(expr, Atom) or expr.head != h
-            ):
-                max_depth["max_depth"] = len(pos)
-            return expr
-
-        expr, depth = walk_levels(expr, callback=callback, include_pos=True, start=0)
-        max_depth = max_depth["max_depth"]
-
-        levels = n.to_python()
-
-        # mappings
-        if isinstance(levels, list) and all(isinstance(level, int) for level in levels):
-            levels = [levels]
-
-        # verify levels is list of lists of positive ints
-        if not (isinstance(levels, list) and len(levels) > 0):
-            evaluation.message("Flatten", "flpi", n)
-            return
-        seen_levels = []
-        for level in levels:
-            if not (isinstance(level, list) and len(level) > 0):
-                evaluation.message("Flatten", "flpi", n)
-                return
-            for r in level:
-                if not (isinstance(r, int) and r > 0):
-                    evaluation.message("Flatten", "flpi", n)
-                    return
-                if r in seen_levels:
-                    # level repeated
-                    evaluation.message("Flatten", "flrep", r)
-                    return
-                seen_levels.append(r)
-
-        # complete the level spec e.g. {{2}} -> {{2}, {1}, {3}}
-        for s in range(1, max_depth + 1):
-            if s not in seen_levels:
-                levels.append([s])
-
-        # verify specified levels are smaller max depth
-        for level in levels:
-            for s in level:
-                if s > max_depth:
-                    evaluation.message("Flatten", "fldep", s, n, max_depth, expr)
-                    return
-
-        # assign new indices to each element
-        new_indices = {}
-
-        def callback(expr, pos):
-            if len(pos) == max_depth:
-                new_depth = tuple(tuple(pos[i - 1] for i in level) for level in levels)
-                new_indices[new_depth] = expr
-            return expr
-
-        expr, depth = walk_levels(expr, callback=callback, include_pos=True)
-
-        # build new tree inserting nodes as needed
-        elements = sorted(new_indices.items())
-
-        def insert_element(elements):
-            # gather elements into groups with the same leading index
-            # e.g. [((0, 0), a), ((0, 1), b), ((1, 0), c), ((1, 1), d)]
-            # -> [[(0, a), (1, b)], [(0, c), (1, d)]]
-            leading_index = None
-            grouped_elements = []
-            for index, element in elements:
-                if index[0] == leading_index:
-                    grouped_elements[-1].append((index[1:], element))
-                else:
-                    leading_index = index[0]
-                    grouped_elements.append([(index[1:], element)])
-            # for each group of elements we either insert them into the current level
-            # or make a new level and recurse
-            new_elements = []
-            for group in grouped_elements:
-                if len(group[0][0]) == 0:  # bottom level element or leaf
-                    assert len(group) == 1
-                    new_elements.append(group[0][1])
-                else:
-                    new_elements.append(Expression(h, *insert_element(group)))
-
-            return new_elements
-
-        return Expression(h, *insert_element(elements))
-
-    def apply(self, expr, n, h, evaluation):
-        "Flatten[expr_, n_, h_]"
-
-        if n == Expression(SymbolDirectedInfinity, Integer1):
-            n = -1  # a negative number indicates an unbounded level
-        else:
-            n_int = n.get_int_value()
-            # Here we test for negative since in Mathics Flatten[] as opposed to flatten_with_respect_to_head()
-            # negative numbers (and None) are not allowed.
-            if n_int is None or n_int < 0:
-                return evaluation.message("Flatten", "flpi", n)
-            n = n_int
-
-        return expr.flatten_with_respect_to_head(h, level=n)
-
-
 class FreeQ(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/FreeQ.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/FreeQ.html</url>
 
     <dl>
       <dt>'FreeQ[$expr$, $x$]'
@@ -428,7 +208,7 @@ class FreeQ(Builtin):
         "test whether an expression is free of subexpressions matching a pattern"
     )
 
-    def apply(self, expr, form, evaluation):
+    def eval(self, expr, form, evaluation: Evaluation):
         "FreeQ[expr_, form_]"
 
         form = Pattern.create(form)
@@ -438,9 +218,92 @@ class FreeQ(Builtin):
             return SymbolFalse
 
 
+class Level(Builtin):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Level.html</url>
+
+    <dl>
+      <dt>'Level[$expr$, $levelspec$]'
+      <dd>gives a list of all subexpressions of $expr$ at the
+        level(s) specified by $levelspec$.
+    </dl>
+
+    Level uses standard level specifications:
+
+    <dl>
+      <dt>$n$
+      <dd>levels 1 through $n$
+      <dt>'Infinity'
+      <dd>all levels from level 1
+      <dt>'{$n$}'
+      <dd>level $n$ only
+      <dt>'{$m$, $n$}'
+      <dd>levels $m$ through $n$
+    </dl>
+
+    Level 0 corresponds to the whole expression.
+
+    A negative level '-$n$' consists of parts with depth $n$.
+
+    Level -1 is the set of atoms in an expression:
+    >> Level[a + b ^ 3 * f[2 x ^ 2], {-1}]
+     = {a, b, 3, 2, x, 2}
+
+    >> Level[{{{{a}}}}, 3]
+     = {{a}, {{a}}, {{{a}}}}
+    >> Level[{{{{a}}}}, -4]
+     = {{{{a}}}}
+    >> Level[{{{{a}}}}, -5]
+     = {}
+
+    >> Level[h0[h1[h2[h3[a]]]], {0, -1}]
+     = {a, h3[a], h2[h3[a]], h1[h2[h3[a]]], h0[h1[h2[h3[a]]]]}
+
+    Use the option 'Heads -> True' to include heads:
+    >> Level[{{{{a}}}}, 3, Heads -> True]
+     = {List, List, List, {a}, {{a}}, {{{a}}}}
+    >> Level[x^2 + y^3, 3, Heads -> True]
+     = {Plus, Power, x, 2, x ^ 2, Power, y, 3, y ^ 3}
+
+    >> Level[a ^ 2 + 2 * b, {-1}, Heads -> True]
+     = {Plus, Power, a, 2, Times, 2, b}
+    >> Level[f[g[h]][x], {-1}, Heads -> True]
+     = {f, g, h, x}
+    >> Level[f[g[h]][x], {-2, -1}, Heads -> True]
+     = {f, g, h, g[h], x, f[g[h]][x]}
+    """
+
+    options = {
+        "Heads": "False",
+    }
+    summary_text = "parts specified by a given number of indices"
+
+    def eval(self, expr, ls, evaluation, options={}):
+        "Level[expr_, ls_, OptionsPattern[Level]]"
+
+        try:
+            start, stop = python_levelspec(ls)
+        except InvalidLevelspecError:
+            evaluation.message("Level", "level", ls)
+            return
+        result = []
+
+        def callback(level):
+            result.append(level)
+            return level
+
+        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
+        walk_levels(expr, start, stop, heads=heads, callback=callback)
+        return ListExpression(*result)
+
+
 class Null(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Null.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Null.html</url>
 
     <dl>
       <dt>'Null'
@@ -462,7 +325,9 @@ class Null(Predefined):
 
 class Operate(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Operate.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Operate.html</url>
 
     <dl>
       <dt>'Operate[$p$, $expr$]'
@@ -493,7 +358,7 @@ class Operate(Builtin):
         "intnn": "Non-negative integer expected at position `2` in `1`.",
     }
 
-    def apply(self, p, expr, n, evaluation):
+    def eval(self, p, expr, n, evaluation: Evaluation):
         "Operate[p_, expr_, Optional[n_, 1]]"
 
         head_depth = n.get_int_value()
@@ -533,8 +398,10 @@ class Order(Builtin):
 
     <dl>
       <dt>'Order[$x$, $y$]'
-      <dd>returns a number indicating the canonical ordering of $x$ and $y$. 1 indicates that $x$ is before $y$,
-        -1 that $y$ is before $x$. 0 indicates that there is no specific ordering. Uses the same order as 'Sort'.
+      <dd>returns a number indicating the canonical ordering of $x$ and $y$. \
+         1 indicates that $x$ is before $y$, \-1 that $y$ is before $x$. \
+         0 indicates that there is no specific ordering. Uses the same order \
+         as 'Sort'.
     </dl>
 
     >> Order[7, 11]
@@ -552,7 +419,7 @@ class Order(Builtin):
 
     summary_text = "canonical ordering of expressions"
 
-    def apply(self, x, y, evaluation):
+    def eval(self, x, y, evaluation: Evaluation):
         "Order[x_, y_]"
         if x < y:
             return Integer1
@@ -564,7 +431,9 @@ class Order(Builtin):
 
 class OrderedQ(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/OrderedQ.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/OrderedQ.html</url>
 
     <dl>
       <dt>'OrderedQ[{$a$, $b$}]'
@@ -580,7 +449,7 @@ class OrderedQ(Builtin):
 
     summary_text = "test whether elements are canonically sorted"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation):
         "OrderedQ[expr_]"
 
         for index, value in enumerate(expr.elements[:-1]):
@@ -593,7 +462,9 @@ class OrderedQ(Builtin):
 
 class PatternsOrderedQ(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/PatternsOrderedQ.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/PatternsOrderedQ.html</url>
 
     <dl>
       <dt>'PatternsOrderedQ[$patt1$, $patt2$]'
@@ -611,7 +482,7 @@ class PatternsOrderedQ(Builtin):
 
     summary_text = "test whether patterns are canonically sorted"
 
-    def apply(self, p1, p2, evaluation):
+    def eval(self, p1, p2, evaluation: Evaluation):
         "PatternsOrderedQ[p1_, p2_]"
 
         if p1.get_sort_key(True) <= p2.get_sort_key(True):
@@ -622,13 +493,17 @@ class PatternsOrderedQ(Builtin):
 
 class SortBy(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/SortBy.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/SortBy.html</url>
 
     <dl>
       <dt>'SortBy[$list$, $f$]'
-      <dd>sorts $list$ (or the elements of any other expression) according to canonical ordering of the keys that are
-    extracted from the $list$'s elements using $f. Chunks of elements that appear the same under $f are sorted
-    according to their natural order (without applying $f).
+      <dd>sorts $list$ (or the elements of any other expression) according to \
+         canonical ordering of the keys that are extracted from the $list$'s \
+         elements using $f. Chunks of elements that appear the same under $f \
+         are sorted according to their natural order (without applying $f).
+
       <dt>'SortBy[$f$]'
       <dd>creates an operator function that, when applied, sorts by $f.
     </dl>
@@ -651,7 +526,7 @@ class SortBy(Builtin):
 
     summary_text = "sort by the values of a function applied to elements"
 
-    def apply(self, li, f, evaluation):
+    def eval(self, li, f, evaluation: Evaluation):
         "SortBy[li_, f_]"
 
         if isinstance(li, Atom):
@@ -696,7 +571,9 @@ class SortBy(Builtin):
 
 class Through(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Through.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Through.html</url>
 
     <dl>
       <dt>'Through[$p$[$f$][$x$]]'
@@ -711,7 +588,7 @@ class Through(Builtin):
 
     summary_text = "distribute operators that appears inside the head of expressions"
 
-    def apply(self, p, args, x, evaluation):
+    def eval(self, p, args, x, evaluation: Evaluation):
         "Through[p_[args___][x___]]"
 
         elements = []

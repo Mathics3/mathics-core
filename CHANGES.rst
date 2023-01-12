@@ -1,7 +1,7 @@
 	.. contents::
 
 CHANGES
-=======
+-------
 
 5.0.3dev0
 ---------
@@ -45,36 +45,54 @@ New Builtins
 Documentation
 +++++++++++++
 
-#. "Functional Programming" section split out.
-#. "Exponential Functional" split out from "Trigonometry Functions"
-#. A new section on "Accuracy and Precision" was included in the manual.
-#. "Forms of Input and Output" is its own section
 #. All Builtins have links to WMA pages.
+#. "Accuracy and Precision" section added to the Tutorial portion.
+#. "Attribute Definitions" section reinstated.
+#. "Expression Structure" split out as a guide section (was "Structure of Expressions").
+#. "Exponential Functional" split out from "Trigonometry Functions"
+#. "Functional Programming" section split out.
+#. "Image Manipulation" has been split off from Graphics and Drawing and turned into a guide section.
+#. "Logic and Boolean Algebra" section reinstated.
+#. "Forms of Input and Output" is its own guide section.
 #. More url links to Wiki pages added; more internal cross links added.
-#. Image has been split off from Graphics and Drawing. There are now subsections for Image
+#. "Units and Quantities" section reinstated.
 
 Internals
 +++++++++
 
 #. ``boxes_to_`` methods are now optional for ``BoxElement`` subclasses. Most of the code is now moved to the ``mathics.format`` submodule, and implemented in a more scalable way.
-#. ``mathics.builtin.inout`` was splitted in several modules (``inout``, ``messages``, ``layout``, ``makeboxes``) in order to improve the documentation.
 #. ``from_mpmath`` conversion supports a new parameter ``acc`` to set the accuracy of the number.
+#. ``mathics.builtin.inout`` was split in several modules (``inout``, ``messages``, ``layout``, ``makeboxes``) in order to improve the documentation.
+#. ``mathics.eval`` was create to have code that might be put in an instruction interperter. The opcodes-like functions start ``eval_``, other functions are helper functions for those.
 #. Operator name to unicode or ASCII comes from Mathics scanner character tables.
 #. Builtin instance methods that start ``apply`` are considered rule matching and function application; the use of the name ``apply``is deprecated, when ``eval`` is intended.
 #. Modularize and improve the way in which ``Builtin`` classes are selected to have an associated ``Definition``.
 #. ``_SetOperator.assign_elementary`` was renamed as ``_SetOperator.assign``. All the special cases are not handled by the ``_SetOperator.special_cases`` dict.
 #. ``isort`` run over all Python files. More type annotations and docstrings on functions added.
 #. caching on immutable atoms like, ``String``, ``Integer``, ``Real``, etc. was improved; the ``__hash__()`` function was sped up. There is a small speedup overall from this at the expense of increased memory.
+#. more type annotations added to functions, especially builtin functions
 
 
 Bugs
 ++++
 
 # ``0`` with a given precision (like in ```0`3```) is now parsed as ``0``, an integer number.
+# Reading certain GIFs now work again
+#. ``Random[]`` works now.
 #. ``RandomSample`` with one list argument now returns a random ordering of the list items. Previously it would return just one item.
 #. Origin placement corrected on ``ListPlot`` and ``LinePlot``.
 #. Fix long-standing bugs in Image handling
+#. Units and Quantities were sometimes failing. Also they were omitted from documentation.
 
+PyPI Package requirements
++++++++++++++++++++++++++
+
+Mathics3 aims at a more richer set of functionality.
+
+Therefore NumPy and Pillow (9.10 or later) are required Python
+packages where they had been optional before.  In truth, probably
+running Mathics without one or both probably did not work well if it
+worked at all; we had not been testing setups that did not have NumPy.
 
 Enhancements
 ++++++++++++
@@ -84,6 +102,7 @@ Enhancements
 #. Improved implementation for  ``Precision``.
 #. Infix operators, like ``->`` render with their Unicode symbol when ``$CharacterEncoding`` is not "ASCII".
 #. ``Grid`` compatibility with WMA was improved.  Now it supports non-uniform list of lists and lists with general elements.
+#. Support for BigEndian Big TIFF
 
 5.0.2
 -----

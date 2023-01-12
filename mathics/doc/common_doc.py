@@ -99,7 +99,8 @@ SPECIAL_COMMANDS = {
         r"<em>Mathematica</em>&reg;",
         r"\emph{Mathematica}\textregistered{}",
     ),
-    "Mathics": (r"<em>Mathics</em>", r"\emph{Mathics}"),
+    "Mathics": (r"<em>Mathics3</em>", r"\emph{Mathics3}"),
+    "Mathics3": (r"<em>Mathics3</em>", r"\emph{Mathics3}"),
     "Sage": (r"<em>Sage</em>", r"\emph{Sage}"),
     "Wolfram": (r"<em>Wolfram</em>", r"\emph{Wolfram}"),
     "skip": (r"<br /><br />", r"\bigskip"),
@@ -624,7 +625,7 @@ class DocTest:
             any blanks that appear before will be preserved.
 
             Some tests require some lines to be blank or entry because
-            Mathics output can be that way
+            Mathics3 output can be that way
             """
             if line.endswith(END_LINE_SENTINAL):
                 line = line[: -len(END_LINE_SENTINAL)]
@@ -690,11 +691,11 @@ class DocTest:
 class MathicsMainDocumentation(Documentation):
     def __init__(self, want_sorting=False):
         self.doc_dir = settings.DOC_DIR
-        self.latex_file = settings.DOC_LATEX_FILE
+        self.latex_pcl_path = settings.DOC_LATEX_DATA_PCL
         self.parts = []
         self.parts_by_slug = {}
         self.pymathics_doc_loaded = False
-        self.doc_data_file = settings.get_doc_tex_data_path(should_be_readable=True)
+        self.doc_data_file = settings.get_doc_latex_data_path(should_be_readable=True)
         self.title = "Overview"
         files = listdir(self.doc_dir)
         files.sort()

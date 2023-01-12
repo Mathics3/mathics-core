@@ -22,6 +22,8 @@ from mathics.doc.latex_doc import LaTeXMathicsMainDocumentation
 # Global variables
 logfile = None
 
+DOC_LATEX_DATA_PCL = settings.DOC_LATEX_DATA_PCL
+DOC_LATEX_DIR = os.environ.get("DOC_LATEX_DIR", settings.DOC_LATEX_DIR)
 DOC_LATEX_FILE = os.environ.get("DOC_LATEX_FILE", settings.DOC_LATEX_FILE)
 
 
@@ -32,7 +34,7 @@ def extract_doc_from_source(quiet=False):
     if not quiet:
         print(f"Extracting internal doc data for {version_string}")
     try:
-        return load_doc_data(settings.get_doc_tex_data_path(should_be_readable=True))
+        return load_doc_data(settings.get_doc_latex_data_path(should_be_readable=True))
     except KeyboardInterrupt:
         print("\nAborted.\n")
         return
@@ -106,7 +108,7 @@ def write_latex(
         )
         content = content.encode("utf-8")
         doc.write(content)
-    DOC_VERSION_FILE = osp.join(osp.dirname(DOC_LATEX_FILE), "version-info.tex")
+    DOC_VERSION_FILE = osp.join(osp.dirname(DOC_LATEX_DIR), "version-info.tex")
     if not quiet:
         print(f"Writing Mathics Core Version Information to {DOC_VERSION_FILE}")
     with open(DOC_VERSION_FILE, "w") as doc:

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
 Tracing Built-in Functions
 
@@ -7,7 +6,8 @@ Built-in Function Tracing provides one high-level way understand what is \
 getting evaluated and where the time is spent in evaluation.
 
 With this, it may be possible for both users and implementers to follow \
-how Mathics arrives at its results, or guide how to speed up expression evaluation.
+how Mathics3 arrives at its results, or guide how to speed up expression \
+evaluation.
 """
 
 
@@ -24,7 +24,7 @@ from mathics.core.rules import BuiltinRule
 from mathics.core.symbols import SymbolFalse, SymbolNull, SymbolTrue, strip_context
 
 
-def traced_do_replace(self, expression, vars, options, evaluation):
+def traced_do_replace(self, expression, vars, options, evaluation: Evaluation):
     if options and self.check_options:
         if not self.check_options(options, evaluation):
             return None
@@ -80,7 +80,7 @@ class ClearTrace(Builtin):
 
     summary_text = "clear any statistics collected for Built-in functions"
 
-    def apply(self, evaluation):
+    def eval(self, evaluation: Evaluation):
         "%(name)s[]"
 
         TraceBuiltins.function_stats: "defaultdict" = defaultdict(
@@ -124,7 +124,7 @@ class PrintTrace(_TraceBase):
 
     summary_text = "print statistics collected for Built-in functions"
 
-    def apply(self, evaluation, options={}):
+    def eval(self, evaluation, options={}):
         "%(name)s[OptionsPattern[%(name)s]]"
 
         TraceBuiltins.dump_tracing_stats(
@@ -229,7 +229,7 @@ class TraceBuiltins(_TraceBase):
         BuiltinRule.do_replace = TraceBuiltins.do_replace_copy
         evaluation.definitions = TraceBuiltins.definitions_copy
 
-    def apply(self, expr, evaluation, options={}):
+    def eval(self, expr, evaluation, options={}):
         "%(name)s[expr_, OptionsPattern[%(name)s]]"
 
         # Reset function_stats
@@ -295,12 +295,12 @@ class TraceBuiltinsVariable(Builtin):
 
     summary_text = "enable or disable Built-in function evaluation statistics"
 
-    def apply_get(self, evaluation):
+    def eval_get(self, evaluation: Evaluation):
         "%(name)s"
 
         return self.value
 
-    def apply_set(self, value, evaluation):
+    def eval_set(self, value, evaluation: Evaluation):
         "%(name)s = value_"
 
         if value is SymbolTrue:
@@ -339,7 +339,7 @@ class TraceEvaluation(Builtin):
     }
     summary_text = "trace the succesive evaluations"
 
-    def apply(self, expr, evaluation, options):
+    def eval(self, expr, evaluation, options):
         "TraceEvaluation[expr_, OptionsPattern[]]"
         curr_trace_evaluation = evaluation.definitions.trace_evaluation
         curr_time_by_steps = evaluation.definitions.timing_trace_evaluation
@@ -393,11 +393,11 @@ class TraceEvaluationVariable(Builtin):
 
     summary_text = "enable or disable displaying the steps to get the result"
 
-    def apply_get(self, evaluation):
+    def eval_get(self, evaluation: Evaluation):
         "%(name)s"
         return from_bool(evaluation.definitions.trace_evaluation)
 
-    def apply_set(self, value, evaluation):
+    def eval_set(self, value, evaluation: Evaluation):
         "%(name)s = value_"
         if value is SymbolTrue:
             evaluation.definitions.trace_evaluation = True

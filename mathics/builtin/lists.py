@@ -5,85 +5,111 @@ List Functions - Miscellaneous
 Functions here will eventually get moved to more suitable subsections.
 """
 
-import heapq
-from itertools import chain
-
-import sympy
-
-from mathics.algorithm.clusters import (
-    AutomaticMergeCriterion,
-    AutomaticSplitCriterion,
-    LazyDistances,
-    PrecomputedDistances,
-    agglomerate,
-    kmeans,
-    optimize,
-)
-from mathics.algorithm.parts import python_levelspec, walk_levels
-from mathics.builtin.base import (
-    Builtin,
-    CountableInteger,
-    NegativeIntegerException,
-    Predefined,
-    SympyFunction,
-    Test,
-)
+from mathics.algorithm.parts import python_levelspec
+from mathics.builtin.base import Builtin, Predefined, Test
 from mathics.builtin.box.layout import RowBox
-from mathics.builtin.numbers.algebra import cancel
-from mathics.builtin.options import options_to_rules
-from mathics.builtin.scoping import dynamic_scoping
-from mathics.core.atoms import (
-    Integer,
-    Integer0,
-    Integer1,
-    Integer2,
-    Number,
-    Real,
-    String,
-    machine_precision,
-    min_prec,
-)
-from mathics.core.attributes import A_HOLD_ALL, A_LOCKED, A_PROTECTED, A_READ_PROTECTED
-from mathics.core.convert.expression import to_expression, to_mathics_list
-from mathics.core.convert.sympy import from_sympy
+from mathics.core.atoms import Integer, Integer1, Integer2, String
+from mathics.core.attributes import A_LOCKED, A_PROTECTED
+from mathics.core.convert.expression import to_expression
 from mathics.core.exceptions import (
     InvalidLevelspecError,
-    MessageException,
     PartDepthError,
     PartError,
     PartRangeError,
 )
-from mathics.core.expression import Expression, structure
-from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    SymbolFalse,
-    SymbolPlus,
-    SymbolTrue,
-    strip_context,
-)
+from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import (
-    SymbolAlternatives,
-    SymbolFailed,
-    SymbolGreaterEqual,
-    SymbolLess,
-    SymbolLessEqual,
+    SymbolKey,
     SymbolMakeBoxes,
-    SymbolMatchQ,
-    SymbolRule,
     SymbolSequence,
     SymbolSubsetQ,
 )
-from mathics.eval.nevaluator import eval_N
-from mathics.eval.numerify import numerify
 
-SymbolClusteringComponents = Symbol("ClusteringComponents")
-SymbolContainsOnly = Symbol("ContainsOnly")
-SymbolFindClusters = Symbol("FindClusters")
-SymbolKey = Symbol("Key")
-SymbolSplit = Symbol("Split")
+
+def delete_one(expr, pos):
+    if isinstance(expr, Atom):
+        raise PartDepthError(pos)
+    elements = expr.elements
+    if pos == 0:
+        return Expression(SymbolSequence, *elements)
+    s = len(elements)
+    truepos = pos
+    if truepos < 0:
+        truepos = s + truepos
+    else:
+        truepos = truepos - 1
+    if truepos < 0 or truepos >= s:
+        raise PartRangeError
+    elements = (
+        elements[:truepos]
+        + (to_expression("System`Sequence"),)
+        + elements[truepos + 1 :]
+    )
+    return to_expression(expr.get_head(), *elements)
+
+
+def delete_rec(expr, pos):
+    if len(pos) == 1:
+        return delete_one(expr, pos[0])
+    truepos = pos[0]
+    if truepos == 0 or isinstance(expr, Atom):
+        raise PartDepthError(pos[0])
+    elements = expr.elements
+    s = len(elements)
+    if truepos < 0:
+        truepos = truepos + s
+        if truepos < 0:
+            raise PartRangeError
+        newelement = delete_rec(elements[truepos], pos[1:])
+        elements = elements[:truepos] + (newelement,) + elements[truepos + 1 :]
+    else:
+        if truepos > s:
+            raise PartRangeError
+        newelement = delete_rec(elements[truepos - 1], pos[1:])
+        elements = elements[: truepos - 1] + (newelement,) + elements[truepos:]
+    return Expression(expr.get_head(), *elements)
+
+
+def riffle(items, sep):
+    result = items[:1]
+    for item in items[1:]:
+        result.append(sep)
+        result.append(item)
+    return result
+
+
+def list_boxes(items, f, evaluation, open=None, close=None):
+    result = [
+        Expression(SymbolMakeBoxes, item, f).evaluate(evaluation) for item in items
+    ]
+    if f.get_name() in ("System`OutputForm", "System`InputForm"):
+        sep = ", "
+    else:
+        sep = ","
+    result = riffle(result, String(sep))
+    if len(items) > 1:
+        result = RowBox(*result)
+    elif items:
+        result = result[0]
+    if result:
+        result = [result]
+    else:
+        result = []
+    if open is not None and close is not None:
+        return [String(open)] + result + [String(close)]
+    else:
+        return result
+
+
+def get_tuples(items):
+    if not items:
+        yield []
+    else:
+        for item in items[0]:
+            for rest in get_tuples(items[1:]):
+                yield [item] + rest
 
 
 class All(Predefined):
@@ -99,106 +125,11 @@ class All(Predefined):
     summary_text = "all the parts in the level"
 
 
-class ContainsOnly(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ContainsOnly.html</url>
-
-    <dl>
-      <dt>'ContainsOnly[$list1$, $list2$]'
-      <dd>yields True if $list1$ contains only elements that appear in $list2$.
-    </dl>
-
-    >> ContainsOnly[{b, a, a}, {a, b, c}]
-     = True
-
-    The first list contains elements not present in the second list:
-    >> ContainsOnly[{b, a, d}, {a, b, c}]
-     = False
-
-    >> ContainsOnly[{}, {a, b, c}]
-     = True
-
-    #> ContainsOnly[1, {1, 2, 3}]
-     : List or association expected instead of 1.
-     = ContainsOnly[1, {1, 2, 3}]
-
-    #> ContainsOnly[{1, 2, 3}, 4]
-     : List or association expected instead of 4.
-     = ContainsOnly[{1, 2, 3}, 4]
-
-    Use Equal as the comparison function to have numerical tolerance:
-    >> ContainsOnly[{a, 1.0}, {1, a, b}, {SameTest -> Equal}]
-     = True
-
-    #> ContainsOnly[{c, a}, {a, b, c}, IgnoreCase -> True]
-     : Unknown option IgnoreCase -> True in ContainsOnly.
-     : Unknown option IgnoreCase in .
-     = True
-    """
-
-    attributes = A_PROTECTED | A_READ_PROTECTED
-
-    messages = {
-        "lsa": "List or association expected instead of `1`.",
-        "nodef": "Unknown option `1` for ContainsOnly.",
-        "optx": "Unknown option `1` in `2`.",
-    }
-
-    options = {
-        "SameTest": "SameQ",
-    }
-
-    summary_text = "test if all the elements of a list appears into another list"
-
-    def check_options(self, expr, evaluation, options):
-        for key in options:
-            if key != "System`SameTest":
-                if expr is None:
-                    evaluation.message("ContainsOnly", "optx", Symbol(key))
-                else:
-                    return evaluation.message("ContainsOnly", "optx", Symbol(key), expr)
-        return None
-
-    def eval(self, list1, list2, evaluation, options={}):
-        "ContainsOnly[list1_List, list2_List, OptionsPattern[ContainsOnly]]"
-
-        same_test = self.get_option(options, "SameTest", evaluation)
-
-        def sameQ(a, b) -> bool:
-            """Mathics SameQ"""
-            result = Expression(same_test, a, b).evaluate(evaluation)
-            return result is SymbolTrue
-
-        self.check_options(None, evaluation, options)
-        for a in list1.elements:
-            if not any(sameQ(a, b) for b in list2.elements):
-                return SymbolFalse
-        return SymbolTrue
-
-    def eval_msg(self, e1, e2, evaluation, options={}):
-        "ContainsOnly[e1_, e2_, OptionsPattern[ContainsOnly]]"
-
-        opts = (
-            options_to_rules(options)
-            if len(options) <= 1
-            else [ListExpression(*options_to_rules(options))]
-        )
-        expr = Expression(SymbolContainsOnly, e1, e2, *opts)
-
-        if not isinstance(e1, Symbol) and not e1.has_form("List", None):
-            evaluation.message("ContainsOnly", "lsa", e1)
-            return self.check_options(expr, evaluation, options)
-
-        if not isinstance(e2, Symbol) and not e2.has_form("List", None):
-            evaluation.message("ContainsOnly", "lsa", e2)
-            return self.check_options(expr, evaluation, options)
-
-        return self.check_options(expr, evaluation, options)
-
-
 class Delete(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Delete.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Delete.html</url>
 
     <dl>
       <dt>'Delete[$expr$, $i$]'
@@ -342,17 +273,41 @@ class Delete(Builtin):
         return newexpr
 
 
+class DisjointQ(Test):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/DisjointQ.html</url>
+
+    <dl>
+      <dt>'DisjointQ[$a$, $b$]'
+      <dd>gives True if $a$ and $b$ are disjoint, or False if $a$ and \
+      $b$ have any common elements.
+    </dl>
+    """
+
+    rules = {"DisjointQ[a_List, b_List]": "Not[IntersectingQ[a, b]]"}
+    summary_text = "test whether two lists do not have common elements"
+
+
 class Failure(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Failure.html</url>
 
     <dl>
       <dt>Failure[$tag$, $assoc$]
-      <dd> represents a failure of a type indicated by $tag$, with details given by the association $assoc$.
+      <dd> represents a failure of a type indicated by $tag$, with details \
+           given by the association $assoc$.
     </dl>
     """
 
     summary_text = "a failure at the level of the interpreter"
+
+
+# TODO: seems to want to produces a fancy box for failure.
+#    rules = {'Failure /: MakeBoxes[Failure[tag_, assoc_Association], StandardForm]' :
+# 		'With[{msg = assoc["MessageTemplate"], msgParam = assoc["MessageParameters"], type = assoc["Type"]}, ToBoxes @ Interpretation["Failure" @ Panel @ Grid[{{Style["\[WarningSign]", "Message", FontSize -> 35], Style["Message:", FontColor->GrayLevel[0.5]], ToString[StringForm[msg, Sequence @@ msgParam], StandardForm]}, {SpanFromAbove, Style["Tag:", FontColor->GrayLevel[0.5]], ToString[tag, StandardForm]},{SpanFromAbove,Style["Type:", FontColor->GrayLevel[0.5]],ToString[type, StandardForm]}},Alignment -> {Left, Top}], Failure[tag, assoc]] /; msg =!= Missing["KeyAbsent", "MessageTemplate"] && msgParam =!= Missing["KeyAbsent", "MessageParameters"] && msgParam =!= Missing["KeyAbsent", "Type"]]',
+#     }
 
 
 # From backports in CellsToTeX. This functions provides compatibility to WMA 10.
@@ -362,101 +317,51 @@ class Failure(Builtin):
 #  * Complete the support.
 
 
-class Key(Builtin):
+class Insert(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Key.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Insert.html</url>
 
     <dl>
-      <dt>Key[$key$]
-      <dd> represents a key used to access a value in an association.
-      <dt>Key[$key$][$assoc$]
-      <dd>
+      <dt>'Insert[$list$, $elem$, $n$]'
+      <dd>inserts $elem$ at position $n$ in $list$. When $n$ is negative, \
+          the position is counted from the end.
+    </dl>
+
+    >> Insert[{a,b,c,d,e}, x, 3]
+     = {a, b, x, c, d, e}
+
+    >> Insert[{a,b,c,d,e}, x, -2]
+     = {a, b, c, d, x, e}
+    """
+
+    summary_text = "insert an element at a given position"
+
+    def eval(self, expr, elem, n: Integer, evaluation):
+        "Insert[expr_List, elem_, n_Integer]"
+
+        py_n = n.value
+        new_list = list(expr.get_elements())
+
+        position = py_n - 1 if py_n > 0 else py_n + 1
+        new_list.insert(position, elem)
+        return expr.restructure(expr.head, new_list, evaluation, deps=(expr, elem))
+
+
+class IntersectingQ(Builtin):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/IntersectingQ.html</url>
+
+    <dl>
+      <dt>'IntersectingQ[$a$, $b$]'
+      <dd>gives True if there are any common elements in $a and $b, or \
+          False if $a and $b are disjoint.
     </dl>
     """
 
-    rules = {
-        "Key[key_][assoc_Association]": "assoc[key]",
-    }
-    summary_text = "indicate a key within a part specification"
-
-
-class Level(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Level.html</url>
-
-    <dl>
-      <dt>'Level[$expr$, $levelspec$]'
-      <dd>gives a list of all subexpressions of $expr$ at the
-        level(s) specified by $levelspec$.
-    </dl>
-
-    Level uses standard level specifications:
-
-    <dl>
-      <dt>$n$
-      <dd>levels 1 through $n$
-      <dt>'Infinity'
-      <dd>all levels from level 1
-      <dt>'{$n$}'
-      <dd>level $n$ only
-      <dt>'{$m$, $n$}'
-      <dd>levels $m$ through $n$
-    </dl>
-
-    Level 0 corresponds to the whole expression.
-
-    A negative level '-$n$' consists of parts with depth $n$.
-
-    Level -1 is the set of atoms in an expression:
-    >> Level[a + b ^ 3 * f[2 x ^ 2], {-1}]
-     = {a, b, 3, 2, x, 2}
-
-    >> Level[{{{{a}}}}, 3]
-     = {{a}, {{a}}, {{{a}}}}
-    >> Level[{{{{a}}}}, -4]
-     = {{{{a}}}}
-    >> Level[{{{{a}}}}, -5]
-     = {}
-
-    >> Level[h0[h1[h2[h3[a]]]], {0, -1}]
-     = {a, h3[a], h2[h3[a]], h1[h2[h3[a]]], h0[h1[h2[h3[a]]]]}
-
-    Use the option 'Heads -> True' to include heads:
-    >> Level[{{{{a}}}}, 3, Heads -> True]
-     = {List, List, List, {a}, {{a}}, {{{a}}}}
-    >> Level[x^2 + y^3, 3, Heads -> True]
-     = {Plus, Power, x, 2, x ^ 2, Power, y, 3, y ^ 3}
-
-    >> Level[a ^ 2 + 2 * b, {-1}, Heads -> True]
-     = {Plus, Power, a, 2, Times, 2, b}
-    >> Level[f[g[h]][x], {-1}, Heads -> True]
-     = {f, g, h, x}
-    >> Level[f[g[h]][x], {-2, -1}, Heads -> True]
-     = {f, g, h, g[h], x, f[g[h]][x]}
-    """
-
-    options = {
-        "Heads": "False",
-    }
-    summary_text = "parts specified by a given number of indices"
-
-    def eval(self, expr, ls, evaluation, options={}):
-        "Level[expr_, ls_, OptionsPattern[Level]]"
-
-        try:
-            start, stop = python_levelspec(ls)
-        except InvalidLevelspecError:
-            evaluation.message("Level", "level", ls)
-            return
-        result = []
-
-        def callback(level):
-            result.append(level)
-            return level
-
-        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
-        walk_levels(expr, start, stop, heads=heads, callback=callback)
-        return ListExpression(*result)
+    rules = {"IntersectingQ[a_List, b_List]": "Length[Intersect[a, b]] > 0"}
+    summary_text = "test whether two lists have common elements"
 
 
 class LevelQ(Test):
@@ -550,53 +455,6 @@ class ListQ(Test):
         return expr.get_head_name() == "System`List"
 
 
-class NotListQ(Test):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/NotListQ.html</url>
-
-    <dl>
-      <dt>'NotListQ[$expr$]'
-      <dd>returns true if $expr$ is not a list.
-    </dl>
-    """
-
-    summary_text = "test if an expression is not a list"
-
-    def test(self, expr):
-        return expr.get_head_name() != "System`List"
-
-
-def riffle(items, sep):
-    result = items[:1]
-    for item in items[1:]:
-        result.append(sep)
-        result.append(item)
-    return result
-
-
-def list_boxes(items, f, evaluation, open=None, close=None):
-    result = [
-        Expression(SymbolMakeBoxes, item, f).evaluate(evaluation) for item in items
-    ]
-    if f.get_name() in ("System`OutputForm", "System`InputForm"):
-        sep = ", "
-    else:
-        sep = ","
-    result = riffle(result, String(sep))
-    if len(items) > 1:
-        result = RowBox(*result)
-    elif items:
-        result = result[0]
-    if result:
-        result = [result]
-    else:
-        result = []
-    if open is not None and close is not None:
-        return [String(open)] + result + [String(close)]
-    else:
-        return result
-
-
 class None_(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/None.html</url>
@@ -611,483 +469,20 @@ class None_(Predefined):
     summary_text = "not any part"
 
 
-class Split(Builtin):
+class NotListQ(Test):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Split.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/NotListQ.html</url>
 
     <dl>
-      <dt>'Split[$list$]'
-      <dd>splits $list$ into collections of consecutive identical elements.
-      <dt>'Split[$list$, $test$]'
-      <dd>splits $list$ based on whether the function $test$ yields
-        'True' on consecutive elements.
-    </dl>
-
-    >> Split[{x, x, x, y, x, y, y, z}]
-     = {{x, x, x}, {y}, {x}, {y, y}, {z}}
-
-    #> Split[{x, x, x, y, x, y, y, z}, x]
-     = {{x}, {x}, {x}, {y}, {x}, {y}, {y}, {z}}
-
-    Split into increasing or decreasing runs of elements
-    >> Split[{1, 5, 6, 3, 6, 1, 6, 3, 4, 5, 4}, Less]
-     = {{1, 5, 6}, {3, 6}, {1, 6}, {3, 4, 5}, {4}}
-
-    >> Split[{1, 5, 6, 3, 6, 1, 6, 3, 4, 5, 4}, Greater]
-     = {{1}, {5}, {6, 3}, {6, 1}, {6, 3}, {4}, {5, 4}}
-
-    Split based on first element
-    >> Split[{x -> a, x -> y, 2 -> a, z -> c, z -> a}, First[#1] === First[#2] &]
-     = {{x -> a, x -> y}, {2 -> a}, {z -> c, z -> a}}
-
-    #> Split[{}]
-     = {}
-
-    #> A[x__] := 321 /; Length[{x}] == 5;
-    #> Split[A[x, x, x, y, x, y, y, z]]
-     = 321
-    #> ClearAll[A];
-    """
-
-    rules = {
-        "Split[list_]": "Split[list, SameQ]",
-    }
-
-    messages = {
-        "normal": "Nonatomic expression expected at position `1` in `2`.",
-    }
-    summary_text = "split into runs of identical elements"
-
-    def eval(self, mlist, test, evaluation):
-        "Split[mlist_, test_]"
-
-        expr = Expression(SymbolSplit, mlist, test)
-
-        if isinstance(mlist, Atom):
-            evaluation.message("Select", "normal", 1, expr)
-            return
-
-        if not mlist.elements:
-            return Expression(mlist.head)
-
-        result = [[mlist.elements[0]]]
-        for element in mlist.elements[1:]:
-            applytest = Expression(test, result[-1][-1], element)
-            if applytest.evaluate(evaluation) is SymbolTrue:
-                result[-1].append(element)
-            else:
-                result.append([element])
-
-        inner = structure("List", mlist, evaluation)
-        outer = structure(mlist.head, inner, evaluation)
-        return outer([inner(t) for t in result])
-
-
-class SplitBy(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/SplitBy.html</url>
-
-    <dl>
-      <dt>'SplitBy[$list$, $f$]'
-      <dd>splits $list$ into collections of consecutive elements
-        that give the same result when $f$ is applied.
-    </dl>
-
-    >> SplitBy[Range[1, 3, 1/3], Round]
-     = {{1, 4 / 3}, {5 / 3, 2, 7 / 3}, {8 / 3, 3}}
-
-    >> SplitBy[{1, 2, 1, 1.2}, {Round, Identity}]
-     = {{{1}}, {{2}}, {{1}, {1.2}}}
-
-    #> SplitBy[Tuples[{1, 2}, 3], First]
-     = {{{1, 1, 1}, {1, 1, 2}, {1, 2, 1}, {1, 2, 2}}, {{2, 1, 1}, {2, 1, 2}, {2, 2, 1}, {2, 2, 2}}}
-    """
-
-    messages = {
-        "normal": "Nonatomic expression expected at position `1` in `2`.",
-    }
-
-    rules = {
-        "SplitBy[list_]": "SplitBy[list, Identity]",
-    }
-
-    summary_text = "split based on values of a function applied to elements"
-
-    def eval(self, mlist, func, evaluation):
-        "SplitBy[mlist_, func_?NotListQ]"
-
-        expr = Expression(SymbolSplit, mlist, func)
-
-        if isinstance(mlist, Atom):
-            evaluation.message("Select", "normal", 1, expr)
-            return
-
-        plist = [t for t in mlist.elements]
-
-        result = [[plist[0]]]
-        prev = Expression(func, plist[0]).evaluate(evaluation)
-        for element in plist[1:]:
-            curr = Expression(func, element).evaluate(evaluation)
-            if curr == prev:
-                result[-1].append(element)
-            else:
-                result.append([element])
-            prev = curr
-
-        inner = structure("List", mlist, evaluation)
-        outer = structure(mlist.head, inner, evaluation)
-        return outer([inner(t) for t in result])
-
-    def eval_multiple(self, mlist, funcs, evaluation):
-        "SplitBy[mlist_, funcs_List]"
-        expr = Expression(SymbolSplit, mlist, funcs)
-
-        if isinstance(mlist, Atom):
-            evaluation.message("Select", "normal", 1, expr)
-            return
-
-        result = mlist
-        for f in funcs.elements[::-1]:
-            result = self.eval(result, f, evaluation)
-
-        return result
-
-
-class LeafCount(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/LeafCount.html</url>
-
-    <dl>
-      <dt>'LeafCount[$expr$]'
-      <dd>returns the total number of indivisible subexpressions in $expr$.
-    </dl>
-
-    >> LeafCount[1 + x + y^a]
-     = 6
-
-    >> LeafCount[f[x, y]]
-     = 3
-
-    >> LeafCount[{1 / 3, 1 + I}]
-     = 7
-
-    >> LeafCount[Sqrt[2]]
-     = 5
-
-    >> LeafCount[100!]
-     = 1
-
-    #> LeafCount[f[a, b][x, y]]
-     = 5
-
-    #> NestList[# /. s[x_][y_][z_] -> x[z][y[z]] &, s[s][s][s[s]][s][s], 4];
-    #> LeafCount /@ %
-     = {7, 8, 8, 11, 11}
-
-    #> LeafCount[1 / 3, 1 + I]
-     : LeafCount called with 2 arguments; 1 argument is expected.
-     = LeafCount[1 / 3, 1 + I]
-    """
-
-    messages = {
-        "argx": "LeafCount called with `1` arguments; 1 argument is expected.",
-    }
-    summary_text = "the total number of atomic subexpressions"
-
-    def eval(self, expr, evaluation):
-        "LeafCount[expr___]"
-
-        from mathics.core.atoms import Complex, Rational
-
-        elements = []
-
-        def callback(level):
-            if isinstance(level, Rational):
-                elements.extend(
-                    [level.get_head(), level.numerator(), level.denominator()]
-                )
-            elif isinstance(level, Complex):
-                elements.extend([level.get_head(), level.real, level.imag])
-            else:
-                elements.append(level)
-            return level
-
-        expr = expr.get_sequence()
-        if len(expr) != 1:
-            return evaluation.message("LeafCount", "argx", Integer(len(expr)))
-
-        walk_levels(expr[0], start=-1, stop=-1, heads=True, callback=callback)
-        return Integer(len(elements))
-
-
-class _IterationFunction(Builtin):
-    """
-    >> Sum[k, {k, Range[5]}]
-     = 15
-    """
-
-    attributes = A_HOLD_ALL | A_PROTECTED
-    allow_loopcontrol = False
-    throw_iterb = True
-
-    def get_result(self, items):
-        pass
-
-    def eval_symbol(self, expr, iterator, evaluation):
-        "%(name)s[expr_, iterator_Symbol]"
-        iterator = iterator.evaluate(evaluation)
-        if iterator.has_form(["List", "Range", "Sequence"], None):
-            elements = iterator.elements
-            if len(elements) == 1:
-                return self.apply_max(expr, *elements, evaluation)
-            elif len(elements) == 2:
-                if elements[1].has_form(["List", "Sequence"], None):
-                    seq = Expression(SymbolSequence, *(elements[1].elements))
-                    return self.eval_list(expr, elements[0], seq, evaluation)
-                else:
-                    return self.eval_range(expr, *elements, evaluation)
-            elif len(elements) == 3:
-                return self.eval_iter_nostep(expr, *elements, evaluation)
-            elif len(elements) == 4:
-                return self.eval_iter(expr, *elements, evaluation)
-
-        if self.throw_iterb:
-            evaluation.message(self.get_name(), "iterb")
-        return
-
-    def eval_range(self, expr, i, imax, evaluation):
-        "%(name)s[expr_, {i_Symbol, imax_}]"
-        imax = imax.evaluate(evaluation)
-        if imax.has_form("Range", None):
-            # FIXME: this should work as an iterator in Python3, not
-            # building the sequence explicitly...
-            seq = Expression(SymbolSequence, *(imax.evaluate(evaluation).elements))
-            return self.apply_list(expr, i, seq, evaluation)
-        elif imax.has_form("List", None):
-            seq = Expression(SymbolSequence, *(imax.elements))
-            return self.eval_list(expr, i, seq, evaluation)
-        else:
-            return self.eval_iter(expr, i, Integer1, imax, Integer1, evaluation)
-
-    def eval_max(self, expr, imax, evaluation):
-        "%(name)s[expr_, {imax_}]"
-
-        # Even though `imax` should be an integeral value, its type does not
-        # have to be an Integer.
-
-        result = []
-
-        def do_iteration():
-            evaluation.check_stopped()
-            try:
-                result.append(expr.evaluate(evaluation))
-            except ContinueInterrupt:
-                if self.allow_loopcontrol:
-                    pass
-                else:
-                    raise
-            except BreakInterrupt:
-                if self.allow_loopcontrol:
-                    raise StopIteration
-                else:
-                    raise
-            except ReturnInterrupt as e:
-                if self.allow_loopcontrol:
-                    return e.expr
-                else:
-                    raise
-
-        if isinstance(imax, Integer):
-            try:
-                for _ in range(imax.value):
-                    do_iteration()
-            except StopIteration:
-                pass
-
-        else:
-            imax = imax.evaluate(evaluation)
-            imax = numerify(imax, evaluation)
-            if isinstance(imax, Number):
-                imax = imax.round()
-            py_max = imax.get_float_value()
-            if py_max is None:
-                if self.throw_iterb:
-                    evaluation.message(self.get_name(), "iterb")
-                return
-
-            index = 0
-            try:
-                while index < py_max:
-                    do_iteration()
-                    index += 1
-            except StopIteration:
-                pass
-
-        return self.get_result(result)
-
-    def eval_iter_nostep(self, expr, i, imin, imax, evaluation):
-        "%(name)s[expr_, {i_Symbol, imin_, imax_}]"
-        return self.eval_iter(expr, i, imin, imax, Integer1, evaluation)
-
-    def eval_iter(self, expr, i, imin, imax, di, evaluation):
-        "%(name)s[expr_, {i_Symbol, imin_, imax_, di_}]"
-
-        if isinstance(self, SympyFunction) and di.get_int_value() == 1:
-            whole_expr = to_expression(
-                self.get_name(), expr, ListExpression(i, imin, imax)
-            )
-            sympy_expr = whole_expr.to_sympy(evaluation=evaluation)
-            if sympy_expr is None:
-                return None
-
-            # apply Together to produce results similar to Mathematica
-            result = sympy.together(sympy_expr)
-            result = from_sympy(result)
-            result = cancel(result)
-
-            if not result.sameQ(whole_expr):
-                return result
-            return
-
-        index = imin.evaluate(evaluation)
-        imax = imax.evaluate(evaluation)
-        di = di.evaluate(evaluation)
-
-        result = []
-        compare_type = (
-            SymbolGreaterEqual
-            if Expression(SymbolLess, di, Integer0).evaluate(evaluation).to_python()
-            else SymbolLessEqual
-        )
-        while True:
-            cont = Expression(compare_type, index, imax).evaluate(evaluation)
-            if cont is SymbolFalse:
-                break
-            if cont is not SymbolTrue:
-                if self.throw_iterb:
-                    evaluation.message(self.get_name(), "iterb")
-                return
-
-            evaluation.check_stopped()
-            try:
-                item = dynamic_scoping(expr.evaluate, {i.name: index}, evaluation)
-                result.append(item)
-            except ContinueInterrupt:
-                if self.allow_loopcontrol:
-                    pass
-                else:
-                    raise
-            except BreakInterrupt:
-                if self.allow_loopcontrol:
-                    break
-                else:
-                    raise
-            except ReturnInterrupt as e:
-                if self.allow_loopcontrol:
-                    return e.expr
-                else:
-                    raise
-            index = Expression(SymbolPlus, index, di).evaluate(evaluation)
-        return self.get_result(result)
-
-    def eval_list(self, expr, i, items, evaluation):
-        "%(name)s[expr_, {i_Symbol, {items___}}]"
-        items = items.evaluate(evaluation).get_sequence()
-        result = []
-        for item in items:
-            evaluation.check_stopped()
-            try:
-                item = dynamic_scoping(expr.evaluate, {i.name: item}, evaluation)
-                result.append(item)
-            except ContinueInterrupt:
-                if self.allow_loopcontrol:
-                    pass
-                else:
-                    raise
-            except BreakInterrupt:
-                if self.allow_loopcontrol:
-                    break
-                else:
-                    raise
-            except ReturnInterrupt as e:
-                if self.allow_loopcontrol:
-                    return e.expr
-                else:
-                    raise
-        return self.get_result(result)
-
-    def eval_multi(self, expr, first, sequ, evaluation):
-        "%(name)s[expr_, first_, sequ__]"
-
-        sequ = sequ.get_sequence()
-        name = self.get_name()
-        return to_expression(name, to_expression(name, expr, *sequ), first)
-
-
-class Insert(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Insert.html</url>
-
-    <dl>
-      <dt>'Insert[$list$, $elem$, $n$]'
-      <dd>inserts $elem$ at position $n$ in $list$. When $n$ is negative, the position is counted from the end.
-    </dl>
-
-    >> Insert[{a,b,c,d,e}, x, 3]
-     = {a, b, x, c, d, e}
-
-    >> Insert[{a,b,c,d,e}, x, -2]
-     = {a, b, c, d, x, e}
-    """
-
-    summary_text = "insert an element at a given position"
-
-    def eval(self, expr, elem, n: Integer, evaluation):
-        "Insert[expr_List, elem_, n_Integer]"
-
-        py_n = n.value
-        new_list = list(expr.get_elements())
-
-        position = py_n - 1 if py_n > 0 else py_n + 1
-        new_list.insert(position, elem)
-        return expr.restructure(expr.head, new_list, evaluation, deps=(expr, elem))
-
-
-def get_tuples(items):
-    if not items:
-        yield []
-    else:
-        for item in items[0]:
-            for rest in get_tuples(items[1:]):
-                yield [item] + rest
-
-
-class IntersectingQ(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/IntersectingQ.html</url>
-
-    <dl>
-      <dt>'IntersectingQ[$a$, $b$]'
-      <dd>gives True if there are any common elements in $a and $b, or False if $a and $b are disjoint.
+      <dt>'NotListQ[$expr$]'
+      <dd>returns true if $expr$ is not a list.
     </dl>
     """
 
-    rules = {"IntersectingQ[a_List, b_List]": "Length[Intersect[a, b]] > 0"}
-    summary_text = "test whether two lists have common elements"
+    summary_text = "test if an expression is not a list"
 
-
-class DisjointQ(Test):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/DisjointQ.html</url>
-
-    <dl>
-      <dt>'DisjointQ[$a$, $b$]'
-      <dd>gives True if $a and $b are disjoint, or False if $a and $b have any common elements.
-    </dl>
-    """
-
-    rules = {"DisjointQ[a_List, b_List]": "Not[IntersectingQ[a, b]]"}
-    summary_text = "test whether two lists do not have common elements"
+    def test(self, expr):
+        return expr.get_head_name() != "System`List"
 
 
 class _NotRectangularException(Exception):
@@ -1118,949 +513,6 @@ class _Rectangular(Builtin):
                 for items in transposed
             ],
         )
-
-
-class _RankedTake(Builtin):
-    messages = {
-        "intpm": "Expected non-negative integer at position `1` in `2`.",
-        "rank": "The specified rank `1` is not between 1 and `2`.",
-    }
-
-    options = {
-        "ExcludedForms": "Automatic",
-    }
-
-    def _compute(self, t, n, evaluation, options, f=None):
-        try:
-            limit = CountableInteger.from_expression(n)
-        except MessageException as e:
-            e.message(evaluation)
-            return
-        except NegativeIntegerException:
-            if f:
-                args = (3, Expression(self.get_name(), t, f, n))
-            else:
-                args = (2, Expression(self.get_name(), t, n))
-            evaluation.message(self.get_name(), "intpm", *args)
-            return
-
-        if limit is None:
-            return
-
-        if limit == 0:
-            return ListExpression()
-        else:
-            excluded = self.get_option(options, "ExcludedForms", evaluation)
-            if excluded:
-                if (
-                    isinstance(excluded, Symbol)
-                    and excluded.get_name() == "System`Automatic"
-                ):
-
-                    def exclude(item):
-                        if isinstance(item, Symbol) and item.get_name() in (
-                            "System`None",
-                            "System`Null",
-                            "System`Indeterminate",
-                        ):
-                            return True
-                        elif item.get_head_name() == "System`Missing":
-                            return True
-                        else:
-                            return False
-
-                else:
-                    excluded = Expression(SymbolAlternatives, *excluded.elements)
-
-                    def exclude(item):
-                        return (
-                            Expression(SymbolMatchQ, item, excluded).evaluate(
-                                evaluation
-                            )
-                            is SymbolTrue
-                        )
-
-                filtered = [element for element in t.elements if not exclude(element)]
-            else:
-                filtered = t.elements
-
-            if limit > len(filtered):
-                if not limit.is_upper_limit():
-                    evaluation.message(
-                        self.get_name(), "rank", limit.get_int_value(), len(filtered)
-                    )
-                    return
-                else:
-                    py_n = len(filtered)
-            else:
-                py_n = limit.get_int_value()
-
-            if py_n < 1:
-                return ListExpression()
-
-            if f:
-                heap = [
-                    (Expression(f, element).evaluate(evaluation), element, i)
-                    for i, element in enumerate(filtered)
-                ]
-                element_pos = 1  # in tuple above
-            else:
-                heap = [(element, i) for i, element in enumerate(filtered)]
-                element_pos = 0  # in tuple above
-
-            if py_n == 1:
-                result = [self._get_1(heap)]
-            else:
-                result = self._get_n(py_n, heap)
-
-            return t.restructure("List", [x[element_pos] for x in result], evaluation)
-
-
-class _RankedTakeSmallest(_RankedTake):
-    def _get_1(self, a):
-        return min(a)
-
-    def _get_n(self, n, heap):
-        return heapq.nsmallest(n, heap)
-
-
-class _RankedTakeLargest(_RankedTake):
-    def _get_1(self, a):
-        return max(a)
-
-    def _get_n(self, n, heap):
-        return heapq.nlargest(n, heap)
-
-
-class TakeLargestBy(_RankedTakeLargest):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/TakeLargestBy.html</url>
-
-    <dl>
-      <dt>'TakeLargestBy[$list$, $f$, $n$]'
-      <dd>returns the a sorted list of the $n$ largest items in $list$
-        using $f$ to retrieve the items' keys to compare them.
-    </dl>
-
-    For details on how to use the ExcludedForms option, see TakeLargest[].
-
-    >> TakeLargestBy[{{1, -1}, {10, 100}, {23, 7, 8}, {5, 1}}, Total, 2]
-     = {{10, 100}, {23, 7, 8}}
-
-    >> TakeLargestBy[{"abc", "ab", "x"}, StringLength, 1]
-     = {abc}
-    """
-
-    summary_text = "sublist of n largest elements according to a given criteria"
-
-    def eval(self, element, f, n, evaluation, options):
-        "TakeLargestBy[element_List, f_, n_, OptionsPattern[TakeLargestBy]]"
-        return self._compute(element, n, evaluation, options, f=f)
-
-
-class TakeSmallestBy(_RankedTakeSmallest):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/TakeSmallestBy.html</url>
-
-    <dl>
-      <dt>'TakeSmallestBy[$list$, $f$, $n$]'
-      <dd>returns the a sorted list of the $n$ smallest items in $list$
-        using $f$ to retrieve the items' keys to compare them.
-    </dl>
-
-    For details on how to use the ExcludedForms option, see TakeLargest[].
-
-    >> TakeSmallestBy[{{1, -1}, {10, 100}, {23, 7, 8}, {5, 1}}, Total, 2]
-     = {{1, -1}, {5, 1}}
-
-    >> TakeSmallestBy[{"abc", "ab", "x"}, StringLength, 1]
-     = {x}
-    """
-
-    summary_text = "sublist of n largest elements according to a criteria"
-
-    def eval(self, element, f, n, evaluation, options):
-        "TakeSmallestBy[element_List, f_, n_, OptionsPattern[TakeSmallestBy]]"
-        return self._compute(element, n, evaluation, options, f=f)
-
-
-class _IllegalPaddingDepth(Exception):
-    def __init__(self, level):
-        self.level = level
-
-
-class _Pad(Builtin):
-    messages = {
-        "normal": "Expression at position 1 in `` must not be an atom.",
-        "level": "Cannot pad list `3` which has `4` using padding `1` which specifies `2`.",
-        "ilsm": "Expected an integer or a list of integers at position `1` in `2`.",
-    }
-
-    rules = {"%(name)s[l_]": "%(name)s[l, Automatic]"}
-
-    @staticmethod
-    def _find_dims(expr):
-        def dive(expr, level):
-            if isinstance(expr, Expression):
-                if expr.elements:
-                    return max(dive(x, level + 1) for x in expr.elements)
-                else:
-                    return level + 1
-            else:
-                return level
-
-        def calc(expr, dims, level):
-            if isinstance(expr, Expression):
-                for x in expr.elements:
-                    calc(x, dims, level + 1)
-                dims[level] = max(dims[level], len(expr.elements))
-
-        dims = [0] * dive(expr, 0)
-        calc(expr, dims, 0)
-        return dims
-
-    @staticmethod
-    def _build(
-        element, n, x, m, level, mode
-    ):  # mode < 0 for left pad, > 0 for right pad
-        if not n:
-            return element
-        if not isinstance(element, Expression):
-            raise _IllegalPaddingDepth(level)
-
-        if isinstance(m, (list, tuple)):
-            current_m = m[0] if m else 0
-            next_m = m[1:]
-        else:
-            current_m = m
-            next_m = m
-
-        def clip(a, d, s):
-            assert d != 0
-            if s < 0:
-                return a[-d:]  # end with a[-1]
-            else:
-                return a[:d]  # start with a[0]
-
-        def padding(amount, sign):
-            if amount == 0:
-                return []
-            elif len(n) > 1:
-                return [
-                    _Pad._build(ListExpression(), n[1:], x, next_m, level + 1, mode)
-                ] * amount
-            else:
-                return clip(x * (1 + amount // len(x)), amount, sign)
-
-        elements = element.elements
-        d = n[0] - len(elements)
-        if d < 0:
-            new_elements = clip(elements, d, mode)
-            padding_main = []
-        elif d >= 0:
-            new_elements = elements
-            padding_main = padding(d, mode)
-
-        if current_m > 0:
-            padding_margin = padding(
-                min(current_m, len(new_elements) + len(padding_main)), -mode
-            )
-
-            if len(padding_margin) > len(padding_main):
-                padding_main = []
-                new_elements = clip(
-                    new_elements, -(len(padding_margin) - len(padding_main)), mode
-                )
-            elif len(padding_margin) > 0:
-                padding_main = clip(padding_main, -len(padding_margin), mode)
-        else:
-            padding_margin = []
-
-        if len(n) > 1:
-            new_elements = (
-                _Pad._build(e, n[1:], x, next_m, level + 1, mode) for e in new_elements
-            )
-
-        if mode < 0:
-            parts = (padding_main, new_elements, padding_margin)
-        else:
-            parts = (padding_margin, new_elements, padding_main)
-
-        return Expression(element.get_head(), *list(chain(*parts)))
-
-    def _pad(self, in_l, in_n, in_x, in_m, evaluation, expr):
-        if not isinstance(in_l, Expression):
-            evaluation.message(self.get_name(), "normal", expr())
-            return
-
-        py_n = None
-        if isinstance(in_n, Symbol) and in_n.get_name() == "System`Automatic":
-            py_n = _Pad._find_dims(in_l)
-        elif in_n.get_head_name() == "System`List":
-            if all(isinstance(element, Integer) for element in in_n.elements):
-                py_n = [element.get_int_value() for element in in_n.elements]
-        elif isinstance(in_n, Integer):
-            py_n = [in_n.get_int_value()]
-
-        if py_n is None:
-            evaluation.message(self.get_name(), "ilsm", 2, expr())
-            return
-
-        if in_x.get_head_name() == "System`List":
-            py_x = in_x.elements
-        else:
-            py_x = [in_x]
-
-        if isinstance(in_m, Integer):
-            py_m = in_m.get_int_value()
-        else:
-            if not all(isinstance(x, Integer) for x in in_m.elements):
-                evaluation.message(self.get_name(), "ilsm", 4, expr())
-                return
-            py_m = [x.get_int_value() for x in in_m.elements]
-
-        try:
-            return _Pad._build(in_l, py_n, py_x, py_m, 1, self._mode)
-        except _IllegalPaddingDepth as e:
-
-            def levels(k):
-                if k == 1:
-                    return "1 level"
-                else:
-                    return "%d levels" % k
-
-            evaluation.message(
-                self.get_name(),
-                "level",
-                in_n,
-                levels(len(py_n)),
-                in_l,
-                levels(e.level - 1),
-            )
-            return None
-
-    def eval_zero(self, element, n, evaluation):
-        "%(name)s[element_, n_]"
-        return self._pad(
-            element,
-            n,
-            Integer0,
-            Integer0,
-            evaluation,
-            lambda: Expression(self.get_name(), element, n),
-        )
-
-    def eval(self, element, n, x, evaluation):
-        "%(name)s[element_, n_, x_]"
-        return self._pad(
-            element,
-            n,
-            x,
-            Integer0,
-            evaluation,
-            lambda: Expression(self.get_name(), element, n, x),
-        )
-
-    def eval_margin(self, element, n, x, m, evaluation):
-        "%(name)s[element_, n_, x_, m_]"
-        return self._pad(
-            element,
-            n,
-            x,
-            m,
-            evaluation,
-            lambda: Expression(self.get_name(), element, n, x, m),
-        )
-
-
-class PadLeft(_Pad):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/PadLeft.html</url>
-
-    <dl>
-      <dt>'PadLeft[$list$, $n$]'
-      <dd>pads $list$ to length $n$ by adding 0 on the left.
-      <dt>'PadLeft[$list$, $n$, $x$]'
-      <dd>pads $list$ to length $n$ by adding $x$ on the left.
-      <dt>'PadLeft[$list$, {$n1$, $n2, ...}, $x$]'
-      <dd>pads $list$ to lengths $n1$, $n2$ at levels 1, 2, ... respectively by adding $x$ on the left.
-      <dt>'PadLeft[$list$, $n$, $x$, $m$]'
-      <dd>pads $list$ to length $n$ by adding $x$ on the left and adding a margin of $m$ on the right.
-      <dt>'PadLeft[$list$, $n$, $x$, {$m1$, $m2$, ...}]'
-      <dd>pads $list$ to length $n$ by adding $x$ on the left and adding margins of $m1$, $m2$, ...
-         on levels 1, 2, ... on the right.
-      <dt>'PadLeft[$list$]'
-      <dd>turns the ragged list $list$ into a regular list by adding 0 on the left.
-    </dl>
-
-    >> PadLeft[{1, 2, 3}, 5]
-     = {0, 0, 1, 2, 3}
-    >> PadLeft[x[a, b, c], 5]
-     = x[0, 0, a, b, c]
-    >> PadLeft[{1, 2, 3}, 2]
-     = {2, 3}
-    >> PadLeft[{{}, {1, 2}, {1, 2, 3}}]
-     = {{0, 0, 0}, {0, 1, 2}, {1, 2, 3}}
-    >> PadLeft[{1, 2, 3}, 10, {a, b, c}, 2]
-     = {b, c, a, b, c, 1, 2, 3, a, b}
-    >> PadLeft[{{1, 2, 3}}, {5, 2}, x, 1]
-     = {{x, x}, {x, x}, {x, x}, {3, x}, {x, x}}
-    """
-
-    _mode = -1
-    summary_text = "pad out by the left a ragged array to make a matrix"
-
-
-class PadRight(_Pad):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/PadRight.html</url>
-
-    <dl>
-      <dt>'PadRight[$list$, $n$]'
-      <dd>pads $list$ to length $n$ by adding 0 on the right.
-      <dt>'PadRight[$list$, $n$, $x$]'
-      <dd>pads $list$ to length $n$ by adding $x$ on the right.
-      <dt>'PadRight[$list$, {$n1$, $n2, ...}, $x$]'
-      <dd>pads $list$ to lengths $n1$, $n2$ at levels 1, 2, ... respectively by adding $x$ on the right.
-      <dt>'PadRight[$list$, $n$, $x$, $m$]'
-      <dd>pads $list$ to length $n$ by adding $x$ on the left and adding a margin of $m$ on the left.
-      <dt>'PadRight[$list$, $n$, $x$, {$m1$, $m2$, ...}]'
-      <dd>pads $list$ to length $n$ by adding $x$ on the right and adding margins of $m1$, $m2$, ...
-         on levels 1, 2, ... on the left.
-      <dt>'PadRight[$list$]'
-      <dd>turns the ragged list $list$ into a regular list by adding 0 on the right.
-    </dl>
-
-    >> PadRight[{1, 2, 3}, 5]
-     = {1, 2, 3, 0, 0}
-    >> PadRight[x[a, b, c], 5]
-     = x[a, b, c, 0, 0]
-    >> PadRight[{1, 2, 3}, 2]
-     = {1, 2}
-    >> PadRight[{{}, {1, 2}, {1, 2, 3}}]
-     = {{0, 0, 0}, {1, 2, 0}, {1, 2, 3}}
-    >> PadRight[{1, 2, 3}, 10, {a, b, c}, 2]
-     = {b, c, 1, 2, 3, a, b, c, a, b}
-    >> PadRight[{{1, 2, 3}}, {5, 2}, x, 1]
-     = {{x, x}, {x, 1}, {x, x}, {x, x}, {x, x}}
-    """
-
-    _mode = 1
-    summary_text = "pad out by the right a ragged array to make a matrix"
-
-
-class _IllegalDistance(Exception):
-    def __init__(self, distance):
-        self.distance = distance
-
-
-class _IllegalDataPoint(Exception):
-    pass
-
-
-def _to_real_distance(d):
-    if not isinstance(d, (Real, Integer)):
-        raise _IllegalDistance(d)
-
-    mpd = d.to_mpmath()
-    if mpd is None or mpd < 0:
-        raise _IllegalDistance(d)
-
-    return mpd
-
-
-class _PrecomputedDistances(PrecomputedDistances):
-    # computes all n^2 distances for n points with one big evaluation in the beginning.
-
-    def __init__(self, df, p, evaluation):
-        distances_form = [df(p[i], p[j]) for i in range(len(p)) for j in range(i)]
-        distances = eval_N(ListExpression(*distances_form), evaluation)
-        mpmath_distances = [_to_real_distance(d) for d in distances.elements]
-        super(_PrecomputedDistances, self).__init__(mpmath_distances)
-
-
-class _LazyDistances(LazyDistances):
-    # computes single distances only as needed, caches already computed distances.
-
-    def __init__(self, df, p, evaluation):
-        super(_LazyDistances, self).__init__()
-        self._df = df
-        self._p = p
-        self._evaluation = evaluation
-
-    def _compute_distance(self, i, j):
-        p = self._p
-        d = eval_N(self._df(p[i], p[j]), self._evaluation)
-        return _to_real_distance(d)
-
-
-def _dist_repr(p):
-    dist_p = repr_p = None
-    if p.has_form("Rule", 2):
-        if all(q.get_head_name() == "System`List" for q in p.elements):
-            dist_p, repr_p = (q.elements for q in p.elements)
-        elif (
-            p.elements[0].get_head_name() == "System`List"
-            and p.elements[1].get_name() == "System`Automatic"
-        ):
-            dist_p = p.elements[0].elements
-            repr_p = [Integer(i + 1) for i in range(len(dist_p))]
-    elif p.get_head_name() == "System`List":
-        if all(q.get_head_name() == "System`Rule" for q in p.elements):
-            dist_p, repr_p = ([q.elements[i] for q in p.elements] for i in range(2))
-        else:
-            dist_p = repr_p = p.elements
-    return dist_p, repr_p
-
-
-class _Cluster(Builtin):
-    options = {
-        "Method": "Optimize",
-        "DistanceFunction": "Automatic",
-        "RandomSeed": "Automatic",
-    }
-
-    messages = {
-        "amtd": "`1` failed to pick a suitable distance function for `2`.",
-        "bdmtd": 'Method in `` must be either "Optimize", "Agglomerate" or "KMeans".',
-        "intpm": "Positive integer expected at position 2 in ``.",
-        "list": "Expected a list or a rule with equally sized lists at position 1 in ``.",
-        "nclst": "Cannot find more clusters than there are elements: `1` is larger than `2`.",
-        "xnum": "The distance function returned ``, which is not a non-negative real value.",
-        "rseed": "The random seed specified through `` must be an integer or Automatic.",
-        "kmsud": "KMeans only supports SquaredEuclideanDistance as distance measure.",
-    }
-
-    _criteria = {
-        "Optimize": AutomaticSplitCriterion,
-        "Agglomerate": AutomaticMergeCriterion,
-        "KMeans": None,
-    }
-
-    def _cluster(self, p, k, mode, evaluation, options, expr):
-        method_string, method = self.get_option_string(options, "Method", evaluation)
-        if method_string not in ("Optimize", "Agglomerate", "KMeans"):
-            evaluation.message(
-                self.get_name(), "bdmtd", Expression(SymbolRule, "Method", method)
-            )
-            return
-
-        dist_p, repr_p = _dist_repr(p)
-
-        if dist_p is None or len(dist_p) != len(repr_p):
-            evaluation.message(self.get_name(), "list", expr)
-            return
-
-        if not dist_p:
-            return ListExpression()
-
-        if k is not None:  # the number of clusters k is specified as an integer.
-            if not isinstance(k, Integer):
-                evaluation.message(self.get_name(), "intpm", expr)
-                return
-            py_k = k.get_int_value()
-            if py_k < 1:
-                evaluation.message(self.get_name(), "intpm", expr)
-                return
-            if py_k > len(dist_p):
-                evaluation.message(self.get_name(), "nclst", py_k, len(dist_p))
-                return
-            elif py_k == 1:
-                return ListExpression(*repr_p)
-            elif py_k == len(dist_p):
-                return ListExpression(*[ListExpression(q) for q in repr_p])
-        else:  # automatic detection of k. choose a suitable method here.
-            if len(dist_p) <= 2:
-                return ListExpression(*repr_p)
-            constructor = self._criteria.get(method_string)
-            py_k = (constructor, {}) if constructor else None
-
-        seed_string, seed = self.get_option_string(options, "RandomSeed", evaluation)
-        if seed_string == "Automatic":
-            py_seed = 12345
-        elif isinstance(seed, Integer):
-            py_seed = seed.get_int_value()
-        else:
-            evaluation.message(
-                self.get_name(), "rseed", Expression(SymbolRule, "RandomSeed", seed)
-            )
-            return
-
-        distance_function_string, distance_function = self.get_option_string(
-            options, "DistanceFunction", evaluation
-        )
-        if distance_function_string == "Automatic":
-            from mathics.builtin.tensors import get_default_distance
-
-            distance_function = get_default_distance(dist_p)
-            if distance_function is None:
-                name_of_builtin = strip_context(self.get_name())
-                evaluation.message(
-                    self.get_name(),
-                    "amtd",
-                    name_of_builtin,
-                    ListExpression(*dist_p),
-                )
-                return
-        if method_string == "KMeans" and distance_function is not Symbol(
-            "SquaredEuclideanDistance"
-        ):
-            evaluation.message(self.get_name(), "kmsud")
-            return
-
-        def df(i, j) -> Expression:
-            return Expression(distance_function, i, j)
-
-        try:
-            if method_string == "Agglomerate":
-                clusters = self._agglomerate(mode, repr_p, dist_p, py_k, df, evaluation)
-            elif method_string == "Optimize":
-                clusters = optimize(
-                    repr_p, py_k, _LazyDistances(df, dist_p, evaluation), mode, py_seed
-                )
-            elif method_string == "KMeans":
-                clusters = self._kmeans(mode, repr_p, dist_p, py_k, py_seed, evaluation)
-        except _IllegalDistance as e:
-            evaluation.message(self.get_name(), "xnum", e.distance)
-            return
-        except _IllegalDataPoint:
-            name_of_builtin = strip_context(self.get_name())
-            evaluation.message(
-                self.get_name(),
-                "amtd",
-                name_of_builtin,
-                ListExpression(*dist_p),
-            )
-            return
-
-        if mode == "clusters":
-            return ListExpression(*[ListExpression(*c) for c in clusters])
-        elif mode == "components":
-            return to_mathics_list(*clusters)
-        else:
-            raise ValueError("illegal mode %s" % mode)
-
-    def _agglomerate(self, mode, repr_p, dist_p, py_k, df, evaluation):
-        if mode == "clusters":
-            clusters = agglomerate(
-                repr_p, py_k, _PrecomputedDistances(df, dist_p, evaluation), mode
-            )
-        elif mode == "components":
-            clusters = agglomerate(
-                repr_p, py_k, _PrecomputedDistances(df, dist_p, evaluation), mode
-            )
-
-        return clusters
-
-    def _kmeans(self, mode, repr_p, dist_p, py_k, py_seed, evaluation):
-        items = []
-
-        def convert_scalars(p):
-            for q in p:
-                if not isinstance(q, (Real, Integer)):
-                    raise _IllegalDataPoint
-                mpq = q.to_mpmath()
-                if mpq is None:
-                    raise _IllegalDataPoint
-                items.append(q)
-                yield mpq
-
-        def convert_vectors(p):
-            d = None
-            for q in p:
-                if q.get_head_name() != "System`List":
-                    raise _IllegalDataPoint
-                v = list(convert_scalars(q.elements))
-                if d is None:
-                    d = len(v)
-                elif len(v) != d:
-                    raise _IllegalDataPoint
-                yield v
-
-        if dist_p[0].is_numeric(evaluation):
-            numeric_p = [[x] for x in convert_scalars(dist_p)]
-        else:
-            numeric_p = list(convert_vectors(dist_p))
-
-        # compute epsilon similar to Real.__eq__, such that "numbers that differ in their last seven binary digits
-        # are considered equal"
-
-        prec = min_prec(*items) or machine_precision
-        eps = 0.5 ** (prec - 7)
-
-        return kmeans(numeric_p, repr_p, py_k, mode, py_seed, eps)
-
-
-class FindClusters(_Cluster):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/FindClusters.html</url>
-
-    <dl>
-      <dt>'FindClusters[$list$]'
-      <dd>returns a list of clusters formed from the elements of $list$. The number of cluster is determined
-        automatically.
-      <dt>'FindClusters[$list$, $k$]'
-      <dd>returns a list of $k$ clusters formed from the elements of $list$.
-    </dl>
-
-    >> FindClusters[{1, 2, 20, 10, 11, 40, 19, 42}]
-     = {{1, 2, 20, 10, 11, 19}, {40, 42}}
-
-    >> FindClusters[{25, 100, 17, 20}]
-     = {{25, 17, 20}, {100}}
-
-    >> FindClusters[{3, 6, 1, 100, 20, 5, 25, 17, -10, 2}]
-     = {{3, 6, 1, 5, -10, 2}, {100}, {20, 25, 17}}
-
-    >> FindClusters[{1, 2, 10, 11, 20, 21}]
-     = {{1, 2}, {10, 11}, {20, 21}}
-
-    >> FindClusters[{1, 2, 10, 11, 20, 21}, 2]
-     = {{1, 2, 10, 11}, {20, 21}}
-
-    >> FindClusters[{1 -> a, 2 -> b, 10 -> c}]
-     = {{a, b}, {c}}
-
-    >> FindClusters[{1, 2, 5} -> {a, b, c}]
-     = {{a, b}, {c}}
-
-    >> FindClusters[{1, 2, 3, 1, 2, 10, 100}, Method -> "Agglomerate"]
-     = {{1, 2, 3, 1, 2, 10}, {100}}
-
-    >> FindClusters[{1, 2, 3, 10, 17, 18}, Method -> "Agglomerate"]
-     = {{1, 2, 3}, {10}, {17, 18}}
-
-    >> FindClusters[{{1}, {5, 6}, {7}, {2, 4}}, DistanceFunction -> (Abs[Length[#1] - Length[#2]]&)]
-     = {{{1}, {7}}, {{5, 6}, {2, 4}}}
-
-    >> FindClusters[{"meep", "heap", "deep", "weep", "sheep", "leap", "keep"}, 3]
-     = {{meep, deep, weep, keep}, {heap, leap}, {sheep}}
-
-    FindClusters' automatic distance function detection supports scalars, numeric tensors, boolean vectors and
-    strings.
-
-    The Method option must be either "Agglomerate" or "Optimize". If not specified, it defaults to "Optimize".
-    Note that the Agglomerate and Optimize methods usually produce different clusterings.
-
-    The runtime of the Agglomerate method is quadratic in the number of clustered points n, builds the clustering
-    from the bottom up, and is exact (no element of randomness). The Optimize method's runtime is linear in n,
-    Optimize builds the clustering from top down, and uses random sampling.
-    """
-
-    summary_text = "divide data into lists of similar elements"
-
-    def eval(self, p, evaluation, options):
-        "FindClusters[p_, OptionsPattern[%(name)s]]"
-        return self._cluster(
-            p,
-            None,
-            "clusters",
-            evaluation,
-            options,
-            Expression(SymbolFindClusters, p, *options_to_rules(options)),
-        )
-
-    def eval_manual_k(self, p, k: Integer, evaluation, options):
-        "FindClusters[p_, k_Integer, OptionsPattern[%(name)s]]"
-        return self._cluster(
-            p,
-            k,
-            "clusters",
-            evaluation,
-            options,
-            Expression(SymbolFindClusters, p, k, *options_to_rules(options)),
-        )
-
-
-class ClusteringComponents(_Cluster):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ClusteringComponents.html</url>
-
-    <dl>
-      <dt>'ClusteringComponents[$list$]'
-      <dd>forms clusters from $list$ and returns a list of cluster indices, in which each
-        element shows the index of the cluster in which the corresponding element in $list$
-        ended up.
-      <dt>'ClusteringComponents[$list$, $k$]'
-      <dd>forms $k$ clusters from $list$ and returns a list of cluster indices, in which
-        each element shows the index of the cluster in which the corresponding element in
-        $list$ ended up.
-    </dl>
-
-    For more detailed documentation regarding options and behavior, see FindClusters[].
-
-    >> ClusteringComponents[{1, 2, 3, 1, 2, 10, 100}]
-     = {1, 1, 1, 1, 1, 1, 2}
-
-    >> ClusteringComponents[{10, 100, 20}, Method -> "KMeans"]
-     = {1, 0, 1}
-    """
-
-    summary_text = "label data with the index of the cluster it is in"
-
-    def eval(self, p, evaluation, options):
-        "ClusteringComponents[p_, OptionsPattern[%(name)s]]"
-        return self._cluster(
-            p,
-            None,
-            "components",
-            evaluation,
-            options,
-            Expression(SymbolClusteringComponents, p, *options_to_rules(options)),
-        )
-
-    def eval_manual_k(self, p, k: Integer, evaluation, options):
-        "ClusteringComponents[p_, k_Integer, OptionsPattern[%(name)s]]"
-        return self._cluster(
-            p,
-            k,
-            "components",
-            evaluation,
-            options,
-            Expression(SymbolClusteringComponents, p, k, *options_to_rules(options)),
-        )
-
-
-class Nearest(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Nearest.html</url>
-
-    <dl>
-      <dt>'Nearest[$list$, $x$]'
-      <dd>returns the one item in $list$ that is nearest to $x$.
-
-      <dt>'Nearest[$list$, $x$, $n$]'
-      <dd>returns the $n$ nearest items.
-
-      <dt>'Nearest[$list$, $x$, {$n$, $r$}]'
-      <dd>returns up to $n$ nearest items that are not farther from $x$ than $r$.
-
-      <dt>'Nearest[{$p1$ -> $q1$, $p2$ -> $q2$, ...}, $x$]'
-      <dd>returns $q1$, $q2$, ... but measures the distances using $p1$, $p2$, ...
-
-      <dt>'Nearest[{$p1$, $p2$, ...} -> {$q1$, $q2$, ...}, $x$]'
-      <dd>returns $q1$, $q2$, ... but measures the distances using $p1$, $p2$, ...
-    </dl>
-
-    >> Nearest[{5, 2.5, 10, 11, 15, 8.5, 14}, 12]
-     = {11}
-
-    Return all items within a distance of 5:
-
-    >> Nearest[{5, 2.5, 10, 11, 15, 8.5, 14}, 12, {All, 5}]
-     = {11, 10, 14}
-
-    >> Nearest[{Blue -> "blue", White -> "white", Red -> "red", Green -> "green"}, {Orange, Gray}]
-     = {{red}, {white}}
-
-    >> Nearest[{{0, 1}, {1, 2}, {2, 3}} -> {a, b, c}, {1.1, 2}]
-     = {b}
-    """
-
-    messages = {
-        "amtd": "`1` failed to pick a suitable distance function for `2`.",
-        "list": "Expected a list or a rule with equally sized lists at position 1 in ``.",
-        "nimp": "Method `1` is not implemented yet.",
-    }
-
-    options = {
-        "DistanceFunction": "Automatic",
-        "Method": '"Scan"',
-    }
-
-    rules = {
-        "Nearest[list_, pattern_]": "Nearest[list, pattern, 1]",
-        "Nearest[pattern_][list_]": "Nearest[list, pattern]",
-    }
-    summary_text = "the nearest element from a list"
-
-    def eval(self, items, pivot, limit, expression, evaluation, options):
-        "Nearest[items_, pivot_, limit_, OptionsPattern[%(name)s]]"
-
-        method = self.get_option(options, "Method", evaluation)
-        if not isinstance(method, String) or method.get_string_value() != "Scan":
-            evaluation("Nearest", "nimp", method)
-            return
-
-        dist_p, repr_p = _dist_repr(items)
-
-        if dist_p is None or len(dist_p) != len(repr_p):
-            evaluation.message(self.get_name(), "list", expression)
-            return
-
-        if limit.has_form("List", 2):
-            up_to = limit.elements[0]
-            py_r = limit.elements[1].to_mpmath()
-        else:
-            up_to = limit
-            py_r = None
-
-        if isinstance(up_to, Integer):
-            py_n = up_to.get_int_value()
-        elif up_to.get_name() == "System`All":
-            py_n = None
-        else:
-            return
-
-        if not dist_p or (py_n is not None and py_n < 1):
-            return ListExpression()
-
-        multiple_x = False
-
-        distance_function_string, distance_function = self.get_option_string(
-            options, "DistanceFunction", evaluation
-        )
-        if distance_function_string == "Automatic":
-            from mathics.builtin.tensors import get_default_distance
-
-            distance_function = get_default_distance(dist_p)
-            if distance_function is None:
-                evaluation.message(
-                    self.get_name(), "amtd", "Nearest", ListExpression(*dist_p)
-                )
-                return
-
-            if pivot.get_head_name() == "System`List":
-                _, depth_x = walk_levels(pivot)
-                _, depth_items = walk_levels(dist_p[0])
-
-                if depth_x > depth_items:
-                    multiple_x = True
-
-        def nearest(x) -> ListExpression:
-            calls = [Expression(distance_function, x, y) for y in dist_p]
-            distances = ListExpression(*calls).evaluate(evaluation)
-
-            if not distances.has_form("List", len(dist_p)):
-                raise ValueError()
-
-            py_distances = [
-                (_to_real_distance(d), i) for i, d in enumerate(distances.elements)
-            ]
-
-            if py_r is not None:
-                py_distances = [(d, i) for d, i in py_distances if d <= py_r]
-
-            def pick():
-                if py_n is None:
-                    candidates = sorted(py_distances)
-                else:
-                    candidates = heapq.nsmallest(py_n, py_distances)
-
-                for d, i in candidates:
-                    yield repr_p[i]
-
-            return ListExpression(*list(pick()))
-
-        try:
-            if not multiple_x:
-                return nearest(pivot)
-            else:
-                return ListExpression(*[nearest(t) for t in pivot.elements])
-        except _IllegalDistance:
-            return SymbolFailed
-        except ValueError:
-            return SymbolFailed
 
 
 class SubsetQ(Builtin):
@@ -2150,52 +602,3 @@ class SubsetQ(Builtin):
             return SymbolTrue
         else:
             return SymbolFalse
-
-
-def delete_one(expr, pos):
-    if isinstance(expr, Atom):
-        raise PartDepthError(pos)
-    elements = expr.elements
-    if pos == 0:
-        return Expression(SymbolSequence, *elements)
-    s = len(elements)
-    truepos = pos
-    if truepos < 0:
-        truepos = s + truepos
-    else:
-        truepos = truepos - 1
-    if truepos < 0 or truepos >= s:
-        raise PartRangeError
-    elements = (
-        elements[:truepos]
-        + (to_expression("System`Sequence"),)
-        + elements[truepos + 1 :]
-    )
-    return to_expression(expr.get_head(), *elements)
-
-
-def delete_rec(expr, pos):
-    if len(pos) == 1:
-        return delete_one(expr, pos[0])
-    truepos = pos[0]
-    if truepos == 0 or isinstance(expr, Atom):
-        raise PartDepthError(pos[0])
-    elements = expr.elements
-    s = len(elements)
-    if truepos < 0:
-        truepos = truepos + s
-        if truepos < 0:
-            raise PartRangeError
-        newelement = delete_rec(elements[truepos], pos[1:])
-        elements = elements[:truepos] + (newelement,) + elements[truepos + 1 :]
-    else:
-        if truepos > s:
-            raise PartRangeError
-        newelement = delete_rec(elements[truepos - 1], pos[1:])
-        elements = elements[: truepos - 1] + (newelement,) + elements[truepos:]
-    return Expression(expr.get_head(), *elements)
-
-
-#    rules = {'Failure /: MakeBoxes[Failure[tag_, assoc_Association], StandardForm]' :
-# 		'With[{msg = assoc["MessageTemplate"], msgParam = assoc["MessageParameters"], type = assoc["Type"]}, ToBoxes @ Interpretation["Failure" @ Panel @ Grid[{{Style["\[WarningSign]", "Message", FontSize -> 35], Style["Message:", FontColor->GrayLevel[0.5]], ToString[StringForm[msg, Sequence @@ msgParam], StandardForm]}, {SpanFromAbove, Style["Tag:", FontColor->GrayLevel[0.5]], ToString[tag, StandardForm]},{SpanFromAbove,Style["Type:", FontColor->GrayLevel[0.5]],ToString[type, StandardForm]}},Alignment -> {Left, Top}], Failure[tag, assoc]] /; msg =!= Missing["KeyAbsent", "MessageTemplate"] && msgParam =!= Missing["KeyAbsent", "MessageParameters"] && msgParam =!= Missing["KeyAbsent", "Type"]]',
-#     }

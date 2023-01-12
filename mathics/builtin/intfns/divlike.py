@@ -23,17 +23,21 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_bool
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolComplexInfinity
-
-SymbolQuotient = Symbol("Quotient")
-SymbolQuotientRemainder = Symbol("QuotientRemainder")
+from mathics.core.symbols import SymbolFalse, SymbolTrue
+from mathics.core.systemsymbols import (
+    SymbolComplexInfinity,
+    SymbolQuotient,
+    SymbolQuotientRemainder,
+)
 
 
 class CompositeQ(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/CompositeQ.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/CompositeQ.html</url>
 
     <dl>
       <dt>'CompositeQ[$n$]'
@@ -41,8 +45,10 @@ class CompositeQ(Builtin):
     </dl>
 
     <ul>
-      <li>A composite number is a positive number that is the product of two integers other than 1.
-      <li>For negative integer $n$, 'CompositeQ[$n$]' is effectively equivalent to 'CompositeQ[-$n$]'.
+      <li>A composite number is a positive number that is the product of two \
+          integers other than 1.
+      <li>For negative integer $n$, 'CompositeQ[$n$]' is effectively equivalent \
+          to 'CompositeQ[-$n$]'.
     </ul>
 
     >> Table[CompositeQ[n], {n, 0, 10}]
@@ -52,7 +58,7 @@ class CompositeQ(Builtin):
     attributes = A_LISTABLE | A_PROTECTED
     summary_text = "test whether a number is composite"
 
-    def apply(self, n, evaluation):
+    def eval(self, n: Integer, evaluation: Evaluation):
         "CompositeQ[n_Integer]"
         return from_bool(ask(Q.composite(n.value)))
 
@@ -63,7 +69,8 @@ class CoprimeQ(Builtin):
 
     <dl>
       <dt>'CoprimeQ[$x$, $y$]'
-      <dd>tests whether $x$ and $y$ are coprime by computing their greatest common divisor.
+      <dd>tests whether $x$ and $y$ are coprime by computing their greatest \
+          common divisor.
     </dl>
 
     >> CoprimeQ[7, 9]
@@ -92,7 +99,7 @@ class CoprimeQ(Builtin):
     attributes = A_LISTABLE | A_PROTECTED
     summary_text = "test whether elements are coprime"
 
-    def apply(self, args, evaluation):
+    def eval(self, args, evaluation: Evaluation):
         "CoprimeQ[args__]"
 
         py_args = [arg.to_python() for arg in args.get_sequence()]
@@ -183,7 +190,7 @@ class GCD(Builtin):
     attributes = A_FLAT | A_LISTABLE | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
     summary_text = "greatest common divisor"
 
-    def apply(self, ns, evaluation):
+    def eval(self, ns, evaluation: Evaluation):
         "GCD[ns___Integer]"
 
         ns = ns.get_sequence()
@@ -214,7 +221,7 @@ class LCM(Builtin):
     attributes = A_FLAT | A_LISTABLE | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
     summary_text = "least common multiple"
 
-    def apply(self, ns: List[Integer], evaluation):
+    def eval(self, ns: List[Integer], evaluation: Evaluation):
         "LCM[ns___Integer]"
 
         ns = ns.get_sequence()
@@ -250,7 +257,7 @@ class Mod(Builtin):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     summary_text = "the remainder in an integer division"
 
-    def apply(self, n: Integer, m: Integer, evaluation):
+    def eval(self, n: Integer, m: Integer, evaluation: Evaluation):
         "Mod[n_Integer, m_Integer]"
 
         n, m = n.value, m.value
@@ -262,14 +269,20 @@ class Mod(Builtin):
 
 class ModularInverse(SympyFunction):
     """
-    <url>:Modular multiplicative inverse: https://en.wikipedia.org/wiki/Modular_multiplicative_inverse</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.mod_inverse</url>, <url>:WMA: https://reference.wolfram.com/language/ref/ModularInverse.html</url>)
+    <url>
+    :Modular multiplicative inverse:
+    https://en.wikipedia.org/wiki/Modular_multiplicative_inverse</url> (<url>
+    :SymPy: https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.mod_inverse</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/ModularInverse.html
+    </url>)
 
     <dl>
       <dt>'ModularInverse[$k$, $n$]'
       <dd>returns the modular inverse $k$^(-1) mod $n$.
     </dl>
 
-    'ModularInverse[$k$,$n$]' gives the smallest positive integer $r$ where the remainder of the division of $r$ x $k$ by $n$ is equal to 1.
+    'ModularInverse[$k$,$n$]' gives the smallest positive integer $r$ where the remainder \
+    of the division of $r$ x $k$ by $n$ is equal to 1.
 
     >> ModularInverse[2, 3]
      = 2
@@ -278,7 +291,7 @@ class ModularInverse(SympyFunction):
     >> k = 2; n = 3; Mod[ModularInverse[k, n] * k, n] == 1
      = True
 
-    Some modular inverses just do not exists. For example when $k$ is a multple of $n$:
+    Some modular inverses just do not exists. For example when $k$ is a multiple of $n$:
     >> ModularInverse[k, k]
      = ModularInverse[2, 2]
 
@@ -289,7 +302,7 @@ class ModularInverse(SympyFunction):
     summary_text = "returns the modular inverse $k^(-1)$ mod $n$"
     sympy_name = "mod_inverse"
 
-    def apply_k_n(self, k: Integer, n: Integer, evaluation):
+    def eval_k_n(self, k: Integer, n: Integer, evaluation: Evaluation):
         "ModularInverse[k_Integer, n_Integer]"
         try:
             r = sympy.mod_inverse(k.value, n.value)
@@ -352,7 +365,7 @@ class PowerMod(Builtin):
     }
     summary_text = "modular exponentiation"
 
-    def apply(self, a: Integer, b: Integer, m: Integer, evaluation):
+    def eval(self, a: Integer, b: Integer, m: Integer, evaluation: Evaluation):
         "PowerMod[a_Integer, b_Integer, m_Integer]"
 
         a_int = a
@@ -411,7 +424,7 @@ class PrimeQ(SympyFunction):
     sympy_name = "isprime"
     summary_text = "test whether elements are prime numbers"
 
-    def apply(self, n, evaluation):
+    def eval(self, n, evaluation: Evaluation):
         "PrimeQ[n_]"
 
         n = n.get_int_value()
@@ -455,7 +468,7 @@ class Quotient(Builtin):
     }
     summary_text = "integer quotient"
 
-    def apply(self, m: Integer, n: Integer, evaluation):
+    def eval(self, m: Integer, n: Integer, evaluation: Evaluation):
         "Quotient[m_Integer, n_Integer]"
         py_m = m.value
         py_n = n.value
@@ -503,7 +516,7 @@ class QuotientRemainder(Builtin):
     }
     summary_text = "integer quotient and remainder"
 
-    def apply(self, m, n, evaluation):
+    def eval(self, m, n, evaluation: Evaluation):
         "QuotientRemainder[m_, n_]"
         if m.is_numeric(evaluation) and n.is_numeric():
             py_m = m.to_python()

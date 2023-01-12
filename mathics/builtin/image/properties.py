@@ -29,9 +29,9 @@ class ImageAspectRatio(Builtin):
       <dd>gives the aspect ratio of $image$.
     </dl>
 
-    >> img = Import["ExampleData/lena.tif"];
+    >> img = Import["ExampleData/hedy.tif"];
     >> ImageAspectRatio[img]
-     = 1
+     = 400 / 323
 
     >> ImageAspectRatio[Image[{{0, 1}, {1, 0}, {1, 1}}]]
      = 3 / 2
@@ -58,7 +58,7 @@ class ImageChannels(Builtin):
     >> ImageChannels[Image[{{0, 1}, {1, 0}}]]
      = 1
 
-    >> img = Import["ExampleData/lena.tif"];
+    >> img = Import["ExampleData/hedy.tif"];
     >> ImageChannels[img]
      = 3
     """
@@ -132,9 +132,9 @@ class ImageDimensions(Builtin):
       <dd>Returns the dimensions {$width$, $height$} of $image$ in pixels.
     </dl>
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> ImageDimensions[lena]
-     = {512, 512}
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> ImageDimensions[hedy]
+     = {646, 800}
 
     >> ImageDimensions[RandomImage[1, {50, 70}]]
      = {50, 70}
@@ -157,7 +157,7 @@ class ImageType(Builtin):
       <dd>gives the interval storage type of $image$, e.g. "Real", "Bit32", or "Bit".
     </dl>
 
-    >> img = Import["ExampleData/lena.tif"];
+    >> img = Import["ExampleData/hedy.tif"];
     >> ImageType[img]
      = Byte
 
@@ -166,7 +166,6 @@ class ImageType(Builtin):
 
     X> ImageType[Binarize[img]]
      = Bit
-
     """
 
     summary_text = "type of values used for each pixel element in an image"

@@ -46,18 +46,19 @@ LOCAL_ROOT_DIR = get_srcdir()
 
 # We need two versions, one in the user space which is updated with
 # local packages installed and is user writable.
-DOC_USER_TEX_DATA_PATH = os.environ.get(
-    "DOC_USER_TEX_DATA_PATH", osp.join(DATA_DIR, "doc_tex_data.pcl")
+DOC_LATEX_DATA_PCL = os.environ.get(
+    "DOC_LATEX_DATA_PCL", osp.join(DATA_DIR, "doc_latex_data.pcl")
 )
 
 # We need another version as a fallback, and that is distributed with the
 # package. It is note user writable and not in the user space.
-DOC_SYSTEM_TEX_DATA_PATH = os.environ.get(
-    "DOC_SYSTEM_TEX_DATA_PATH", osp.join(LOCAL_ROOT_DIR, "data", "doc_tex_data.pcl")
+DOC_SYSTEM_LATEX_DATA_PCL = os.environ.get(
+    "DOC_SYSTEM_LATEX_DATA_PCL", osp.join(LOCAL_ROOT_DIR, "data", "doc_latex_data.pcl")
 )
 
 DOC_DIR = osp.join(LOCAL_ROOT_DIR, "doc", "documentation")
-DOC_LATEX_FILE = osp.join(LOCAL_ROOT_DIR, "doc", "latex", "documentation.tex")
+DOC_LATEX_DIR = osp.join(LOCAL_ROOT_DIR, "doc", "latex")
+DOC_LATEX_FILE = osp.join(DOC_LATEX_DIR, "documentation.tex")
 
 # Set this True if you prefer 12 hour time to be the default
 TIME_12HOUR = False
@@ -76,23 +77,23 @@ character_encoding = os.environ.get(
 SYSTEM_CHARACTER_ENCODING = "UTF-8" if character_encoding == "utf-8" else "ASCII"
 
 
-def get_doc_tex_data_path(should_be_readable=False, create_parent=False) -> str:
+def get_doc_latex_data_path(should_be_readable=False, create_parent=False) -> str:
     """Returns a string path where we can find Python Pickle data for LaTeX
     processing.
 
     If `should_be_readable` is True, the we will check to see whether this file is
     readable (which also means it exists). If not, we'll return the `DOC_SYSTEM_DATA_PATH`.
     """
-    doc_user_tex_data_path = Path(DOC_USER_TEX_DATA_PATH)
-    base_config_dir = doc_user_tex_data_path.parent
+    doc_user_latex_data_pcl = Path(DOC_LATEX_DATA_PCL)
+    base_config_dir = doc_user_latex_data_pcl.parent
     if not base_config_dir.is_dir() and create_parent:
         Path("base_config_dir").mkdir(parents=True, exist_ok=True)
 
     if should_be_readable:
         return (
-            DOC_USER_TEX_DATA_PATH
-            if doc_user_tex_data_path.is_file()
-            else DOC_SYSTEM_TEX_DATA_PATH
+            DOC_LATEX_DATA_PCL
+            if doc_user_latex_data_pcl.is_file()
+            else DOC_SYSTEM_LATEX_DATA_PCL
         )
     else:
-        return DOC_USER_TEX_DATA_PATH
+        return DOC_LATEX_DATA_PCL

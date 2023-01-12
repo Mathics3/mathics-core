@@ -338,7 +338,7 @@ def test_all(
     if generate_output:
         if texdatafolder is None:
             texdatafolder = osp.dirname(
-                settings.get_doc_tex_data_path(
+                settings.get_doc_latex_data_path(
                     should_be_readable=False, create_parent=True
                 )
             )
@@ -403,18 +403,18 @@ def test_all(
 
 
 def load_doc_data():
-    doc_tex_data_path = settings.get_doc_tex_data_path(should_be_readable=True)
-    print(f"Loading internal document data from {doc_tex_data_path}")
-    with open_ensure_dir(doc_tex_data_path, "rb") as doc_data_file:
+    doc_latex_data_path = settings.get_doc_latex_data_path(should_be_readable=True)
+    print(f"Loading internal document data from {doc_latex_data_path}")
+    with open_ensure_dir(doc_latex_data_path, "rb") as doc_data_file:
         return pickle.load(doc_data_file)
 
 
 def save_doc_data(output_data):
-    doc_tex_data_path = settings.get_doc_tex_data_path(
+    doc_latex_data_path = settings.get_doc_latex_data_path(
         should_be_readable=False, create_parent=True
     )
-    print(f"Writing internal document data to {doc_tex_data_path}")
-    with open(settings.DOC_USER_TEX_DATA_PATH, "wb") as output_file:
+    print(f"Writing internal document data to {doc_latex_data_path}")
+    with open(doc_latex_data_path, "wb") as output_file:
         pickle.dump(output_data, output_file, 4)
 
 

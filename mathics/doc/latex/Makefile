@@ -6,17 +6,17 @@ LATEXMK ?= latexmk
 BASH ?= /bin/bash
 #-quiet
 
-DOC_TEX_DATA_PCL ?= $(HOME)/.local/var/mathics/doc_tex_data.pcl
+DOC_LATEX_DATA_PCL ?= $(HOME)/.local/var/mathics/doc_latex_data.pcl
 
 #: Default target: Make everything
 all doc texdoc: mathics.pdf
 
 #: Create internal Document Data from .mdoc and Python builtin module docstrings
-doc-data $(DOC_TEX_DATA_PCL):
+doc-data $(DOC_LATEX_DATA_PCL):
 	(cd ../.. && MATHICS_CHARACTER_ENCODING="" $(PYTHON) docpipeline.py --output --keep-going --want-sorting)
 
 #: Build mathics PDF
-mathics.pdf: mathics.tex documentation.tex logo-text-nodrop.pdf logo-heptatom.pdf version-info.tex $(DOC_TEX_DATA_PCL)
+mathics.pdf: mathics.tex documentation.tex logo-text-nodrop.pdf logo-heptatom.pdf version-info.tex $(DOC_LATEX_DATA_PCL)
 	$(LATEXMK) --verbose -f -pdf -pdflatex="$(XETEX) -halt-on-error" mathics
 
 #: File containing version information
@@ -33,7 +33,7 @@ logo-heptatom.pdf logo-text-nodrop.pdf:
 	(cd .. && $(BASH) ./images.sh)
 
 #: The build of the documentation which is derived from docstrings in the Python code
-documentation.tex: $(DOC_TEX_DATA_PCL)
+documentation.tex: $(DOC_LATEX_DATA_PCL)
 	$(PYTHON) ./doc2latex.py
 
 #: Same as mathics.pdf
@@ -46,6 +46,6 @@ clean:
 	rm -f mathics.fdb_latexmk mathics.ilg mathics.ind mathics.maf mathics.pre || true
 	rm -f mathics_*.* || true
 	rm -f mathics-test.asy mathics-test.aux mathics-test.idx mathics-test.log mathics-test.mtc mathicsest.mtc* mathics-test.out mathics-test.toc || true
-	rm -f documentation.tex $(DOC_TEX_DATA_PCL) || true
+	rm -f documentation.tex $(DOC_LATEX_DATA_PCL) || true
 	rm -f mathics.pdf mathics.dvi test-mathics.pdf test-mathics.dvi || true
 	rm -f mathics-test.pdf mathics-test.dvi version-info.tex || true
