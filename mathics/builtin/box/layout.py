@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 
 """
-Formatting constructs are represented as a hierarchy of low-level symbolic "boxes".
+Formatting constructs are represented as a hierarchy of low-level \
+symbolic "boxes".
 
-The routines here assist in boxing at the bottom of the hierarchy. At the other end, the top level, we have a Notebook which is just a collection of Expressions usually contained in boxes.
+The routines here assist in boxing at the bottom of the hierarchy. \
+At the other end, the top level, we have a Notebook which is just a \
+collection of Expressions usually contained in boxes.
 """
 
 from mathics.builtin.base import Builtin
@@ -70,7 +73,8 @@ class ButtonBox(BoxExpression):
     """
     <dl>
       <dt>'ButtonBox[$boxes$]'
-      <dd> is a low-level box construct that represents a button in a notebook expression.
+      <dd> is a low-level box construct that represents a button \
+           in a notebook expression.
     </dl>
     """
 
@@ -102,7 +106,7 @@ class FractionBox(BoxExpression):
         "FractionLine": "Automatic",
     }
 
-    def apply(self, num, den, evaluation, options):
+    def eval(self, num, den, evaluation, options):
         """FractionBox[num_, den_, OptionsPattern[]]"""
         num_box, den_box = (
             to_boxes(num, evaluation, options),
@@ -183,11 +187,11 @@ class InterpretationBox(BoxExpression):
     attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED | A_READ_PROTECTED
     summary_text = "box associated to an input expression"
 
-    def apply_to_expression(boxexpr, form, evaluation):
+    def eval_to_expression(boxexpr, form, evaluation):
         """ToExpression[boxexpr_IntepretationBox, form___]"""
         return boxexpr.elements[1]
 
-    def apply_display(boxexpr, evaluation):
+    def eval_display(boxexpr, evaluation):
         """DisplayForm[boxexpr_IntepretationBox]"""
         return boxexpr.elements[0]
 
@@ -209,7 +213,7 @@ class RowBox(BoxExpression):
     def __repr__(self):
         return "RowBox[List[" + self.items.__repr__() + "]]"
 
-    def apply_list(self, boxes, evaluation):
+    def eval_list(self, boxes, evaluation):
         """RowBox[boxes_List]"""
         boxes = boxes.evaluate(evaluation)
         items = tuple(to_boxes(b, evaluation) for b in boxes.elements)
@@ -305,7 +309,7 @@ class SqrtBox(BoxExpression):
         "MinSize": "Automatic",
     }
 
-    def apply_index(self, radicand, index, evaluation, options):
+    def eval_index(self, radicand, index, evaluation, options):
         """SqrtBox[radicand_, index_, OptionsPattern[]]"""
         radicand_box, index_box = (
             to_boxes(radicand, evaluation, options),
@@ -313,7 +317,7 @@ class SqrtBox(BoxExpression):
         )
         return SqrtBox(radicand_box, index_box, **options)
 
-    def apply(self, radicand, evaluation, options):
+    def eval(self, radicand, evaluation, options):
         """SqrtBox[radicand_, OptionsPattern[]]"""
         radicand_box = to_boxes(radicand, evaluation, options)
         return SqrtBox(radicand_box, None, **options)
@@ -346,11 +350,11 @@ class StyleBox(BoxExpression):
     attributes = A_PROTECTED | A_READ_PROTECTED
     summary_text = "associate boxes with styles"
 
-    def apply_options(self, boxes, evaluation, options):
+    def eval_options(self, boxes, evaluation, options):
         """StyleBox[boxes_, OptionsPattern[]]"""
         return StyleBox(boxes, style="", **options)
 
-    def apply_style(self, boxes, style, evaluation, options):
+    def eval_style(self, boxes, style, evaluation, options):
         """StyleBox[boxes_, style_String, OptionsPattern[]]"""
         return StyleBox(boxes, style=style, **options)
 
@@ -401,7 +405,7 @@ class SubscriptBox(BoxExpression):
         "MultilineFunction": "Automatic",
     }
 
-    def apply(self, a, b, evaluation, options):
+    def eval(self, a, b, evaluation, options):
         """SubscriptBox[a_, b__, OptionsPattern[]]"""
         a_box, b_box = (
             to_boxes(a, evaluation, options),
@@ -439,7 +443,7 @@ class SubsuperscriptBox(BoxExpression):
         "MultilineFunction": "Automatic",
     }
 
-    def apply(self, a, b, c, evaluation, options):
+    def eval(self, a, b, c, evaluation, options):
         """SubsuperscriptBox[a_, b__, c__, OptionsPattern[]]"""
         a_box, b_box, c_box = (
             to_boxes(a, evaluation, options),
@@ -481,7 +485,7 @@ class SuperscriptBox(BoxExpression):
         "MultilineFunction": "Automatic",
     }
 
-    def apply(self, a, b, evaluation, options):
+    def eval(self, a, b, evaluation, options):
         """SuperscriptBox[a_, b__, OptionsPattern[]]"""
         a_box, b_box = (
             to_boxes(a, evaluation, options),
@@ -505,7 +509,9 @@ class SuperscriptBox(BoxExpression):
 
 class TagBox(BoxExpression):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/TagBox.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/TagBox.html</url>
 
     <dl>
       <dt>'TagBox[boxes, tag]'

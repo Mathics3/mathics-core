@@ -25,7 +25,7 @@ SymbolNothing = Symbol("Nothing")
 
 
 def get_part(expression: BaseElement, indices: List[int]) -> BaseElement:
-    """Extract part of ``expression`` specified by ``indicies`` and
+    """Extract part of ``expression`` specified by ``indices`` and
     return that.
     """
 
