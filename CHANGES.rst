@@ -46,15 +46,16 @@ Documentation
 +++++++++++++
 
 #. All Builtins have links to WMA pages.
-#. "Accuracy and Precision" section added to the Tutorial portion
-#. "Attribute Definitions" section reinstated
-#. "Expression Structure" split out as a guide section (was "Structure of Expressions")
+#. "Accuracy and Precision" section added to the Tutorial portion.
+#. "Attribute Definitions" section reinstated.
+#. "Expression Structure" split out as a guide section (was "Structure of Expressions").
 #. "Exponential Functional" split out from "Trigonometry Functions"
 #. "Functional Programming" section split out.
-#. Image has been split off from Graphics and Drawing. There are now subsections for Image
+#. "Image Manipulation" has been split off from Graphics and Drawing and turned into a guide section.
 #. "Logic and Boolean Algebra" section reinstated.
 #. "Forms of Input and Output" is its own guide section.
 #. More url links to Wiki pages added; more internal cross links added.
+#. "Units and Quantities" section reinstated.
 
 Internals
 +++++++++
