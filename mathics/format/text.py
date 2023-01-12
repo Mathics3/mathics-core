@@ -66,21 +66,37 @@ def gridbox(self, elements=None, **box_options) -> str:
     result = ""
     if not items:
         return ""
-    widths = [0] * len(items[0])
+    try:
+        widths = [0] * max(1, max(len(row) for row in items if isinstance(row, tuple)))
+    except ValueError:
+        widths = [0]
+
     cells = [
         [
             # TODO: check if this evaluation is necesary.
             boxes_to_text(item, **box_options).splitlines()
             for item in row
         ]
+        if isinstance(row, tuple)
+        else [boxes_to_text(row, **box_options).splitlines()]
         for row in items
     ]
-    for row in cells:
+
+    # compute widths
+    full_width = 0
+    for i, row in enumerate(cells):
         for index, cell in enumerate(row):
             if index >= len(widths):
                 raise BoxConstructError
-            for line in cell:
-                widths[index] = max(widths[index], len(line))
+            if not isinstance(items[i], tuple):
+                for line in cell:
+                    full_width = max(full_width, len(line))
+            else:
+                for line in cell:
+                    widths[index] = max(widths[index], len(line))
+
+    full_width = max(sum(widths), full_width)
+
     for row_index, row in enumerate(cells):
         if row_index > 0:
             result += "\n"
@@ -95,10 +111,12 @@ def gridbox(self, elements=None, **box_options) -> str:
                 else:
                     text = ""
                 line += text
-                if cell_index < len(row) - 1:
-                    line += " " * (widths[cell_index] - len(text))
-                    # if cell_index < len(row) - 1:
-                    line += "   "
+                if isinstance(items[row_index], tuple):
+                    if cell_index < len(row) - 1:
+                        line += " " * (widths[cell_index] - len(text))
+                        # if cell_index < len(row) - 1:
+                        line += "   "
+
             if line_exists:
                 result += line + "\n"
             else:

@@ -83,6 +83,7 @@ Enhancements
 #. Better handling of comparisons with finite precision numbers.
 #. Improved implementation for  ``Precision``.
 #. Infix operators, like ``->`` render with their Unicode symbol when ``$CharacterEncoding`` is not "ASCII".
+#. ``Grid`` compatibility with WMA was improved.  Now it supports non-uniform list of lists and lists with general elements.
 
 5.0.2
 -----

@@ -88,23 +88,62 @@ class Grid(Builtin):
      = a   b
      .
      . c   d
+
+    For shallow lists, elements are shown as a column
+    >> Grid[{a, b, c}]
+     = a
+     .
+     . b
+     . 
+     . c 
+
+    If the sublists have different sizes, the grid has the number of columns of the \
+    largest one. Incomplete rows are completed with empty strings:
+
+    >> Grid[{{"first", "second", "third"},{a},{1, 2, 3}}]
+     = first   second   third   
+     .
+     . a                      
+     .
+     . 1       2        3    
+
+    If the list is a mixture of lists and other expressions, the non-list expressions are
+    shown as rows:
+
+    >> Grid[{"This is a long title", {"first", "second", "third"},{a},{1, 2, 3}}]
+     = This is a long title
+     .
+     . first   second   third   
+     .
+     . a                      
+     .
+     . 1       2        3    
+
     """
 
     options = GridBox.options
     summary_text = " 2D layout containing arbitrary objects"
 
     def apply_makeboxes(self, array, f, evaluation, options) -> Expression:
-        """MakeBoxes[Grid[array_?MatrixQ, OptionsPattern[Grid]],
+        """MakeBoxes[Grid[array_List, OptionsPattern[Grid]],
         f:StandardForm|TraditionalForm|OutputForm]"""
+
+        elements = array.elements
+
+        rows = (
+            element.elements if element.has_form("List", None) else element
+            for element in elements
+        )
+
+        def format_row(row):
+            if isinstance(row, tuple):
+                return ListExpression(
+                    *(format_element(item, evaluation, f) for item in row),
+                )
+            return format_element(row, evaluation, f)
+
         return GridBox(
-            ListExpression(
-                *(
-                    ListExpression(
-                        *(format_element(item, evaluation, f) for item in row.elements),
-                    )
-                    for row in array.elements
-                ),
-            ),
+            ListExpression(*(format_row(row) for row in rows)),
             *options_to_rules(options),
         )
 
