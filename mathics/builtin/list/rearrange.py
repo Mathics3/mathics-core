@@ -513,19 +513,24 @@ class Catenate(Builtin):
 
 class Complement(_SetOperation):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Complement.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Complement.html</url>
 
     <dl>
       <dt>'Complement[$all$, $e1$, $e2$, ...]'
-      <dd>returns an expression containing the elements in the set $all$ that are not in any of $e1$, $e2$, etc.
+      <dd>returns an expression containing the elements in the set $all$ \
+          that are not in any of $e1$, $e2$, etc.
 
       <dt>'Complement[$all$, $e1$, $e2$, ..., SameTest->$test$]'
-      <dd>applies $test$ to the elements in $all$ and each of the $ei$ to determine equality.
+      <dd>applies $test$ to the elements in $all$ and each of the $ei$ to \
+          determine equality.
     </dl>
 
     The sets $all$, $e1$, etc can have any head, which must all match.
-    The returned expression has the same head as the input
-    expressions. The expression will be sorted and each element will
+
+    The returned expression has the same head as the input \
+    expressions. The expression will be sorted and each element will \
     only occur once.
 
     >> Complement[{a, b, c}, {a, c}]
@@ -560,16 +565,19 @@ class Complement(_SetOperation):
 
 class DeleteDuplicates(_GatherOperation):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/DeleteDuplicates.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/DeleteDuplicates.html</url>
 
     <dl>
       <dt>'DeleteDuplicates[$list$]'
       <dd>deletes duplicates from $list$.
 
       <dt>'DeleteDuplicates[$list$, $test$]'
-      <dd>deletes elements from $list$ based on whether the function $test$ yields 'True' on pairs of elements.
+      <dd>deletes elements from $list$ based on whether the function $test$ yields \
+          'True' on pairs of elements.
 
-      DeleteDuplicates does not change the order of the remaining elements.
+      'DeleteDuplicates' does not change the order of the remaining elements.
     </dl>
 
     >> DeleteDuplicates[{1, 7, 8, 4, 3, 4, 1, 9, 9, 2, 1}]
@@ -591,7 +599,9 @@ class DeleteDuplicates(_GatherOperation):
 
 class Gather(_GatherOperation):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Gather.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Gather.html</url>
 
     <dl>
       <dt>'Gather[$list$, $test$]'
@@ -1002,14 +1012,17 @@ class PadRight(_Pad):
 
 class Partition(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Partition.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Partition.html</url>
 
     <dl>
       <dt>'Partition[$list$, $n$]'
       <dd>partitions $list$ into sublists of length $n$.
 
       <dt>'Parition[$list$, $n$, $d$]'
-      <dd>partitions $list$ into sublists of length $n$ which overlap $d$ indicies.
+      <dd>partitions $list$ into sublists of length $n$ which overlap $d$ \
+          indices.
     </dl>
 
     >> Partition[{a, b, c, d, e, f}, 2]
@@ -1053,12 +1066,12 @@ class Partition(Builtin):
 
         return outer(slices())
 
-    def eval_no_overlap(self, li, n, evaluation: Evaluation):
+    def eval_no_overlap(self, li, n: Integer, evaluation: Evaluation):
         "Partition[li_List, n_Integer]"
         # TODO: Error checking
         return self._partition(li, n.get_int_value(), n.get_int_value(), evaluation)
 
-    def eval(self, li, n, d, evaluation: Evaluation):
+    def eval(self, li, n: Integer, d: Integer, evaluation: Evaluation):
         "Partition[li_List, n_Integer, d_Integer]"
         # TODO: Error checking
         return self._partition(li, n.get_int_value(), d.get_int_value(), evaluation)
@@ -1066,7 +1079,9 @@ class Partition(Builtin):
 
 class Reverse(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Reverse.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Reverse.html</url>
 
     <dl>
       <dt>'Reverse[$expr$]'
@@ -1171,7 +1186,9 @@ def riffle_lists(items, seps):
 
 class Riffle(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Riffle.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Riffle.html</url>
 
     <dl>
       <dt>'Riffle[$list$, $x$]'
@@ -1230,7 +1247,8 @@ class RotateLeft(_Rotate):
       <dd>rotates the items of $expr$' by $n$ items to the left.
 
       <dt>'RotateLeft[$expr$, {$n1$, $n2$, ...}]'
-      <dd>rotates the items of $expr$' by $n1$ items to the left at the first level, by $n2$ items to the left at the second level, and so on.
+      <dd>rotates the items of $expr$' by $n1$ items to the left at \
+          the first level, by $n2$ items to the left at the second level, and so on.
     </dl>
 
     >> RotateLeft[{1, 2, 3}]

@@ -449,7 +449,7 @@ class Builtin:
         of the class. Otherwise, returns ``None``.
         """
 
-        def apply_unavailable(**kwargs):  # will override apply method
+        def eval_unavailable(**kwargs):  # will override apply method
             kwargs["evaluation"].message(
                 "General",
                 "pyimport",  # see inout.py
@@ -457,7 +457,7 @@ class Builtin:
             )
 
         requires = getattr(self, "requires", [])
-        return None if check_requires_list(requires) else apply_unavailable
+        return None if check_requires_list(requires) else eval_unavailable
 
     def get_option_string(self, *params):
         s = self.get_option(*params)
