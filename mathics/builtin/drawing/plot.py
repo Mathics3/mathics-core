@@ -2103,15 +2103,20 @@ class LogPlot(_Plot):
 
 class NumberLinePlot(_ListPlot):
     """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/NumberLinePlot.html</url>
-    <dl>
-      <dt>'NumberPlot[{$v_1$, $v_2$, ...}]'
-      <dd>plots a list of values along a line.
-    </dl>
+     <url>:WMA link:
+     https://reference.wolfram.com/language/ref/NumberLinePlot.html</url>
+     <dl>
+       <dt>'NumberPlot[{$v_1$, $v_2$, ...}]'
+       <dd>plots a list of values along a line.
+     </dl>
 
-    >> NumberLinePlot[Table[Prime[x], {x, 10}]]
-     = -Graphics-
+     >> NumberLinePlot[Prime[Range[10]]]
+      = -Graphics-
+
+    Compare with:
+     >> NumberLinePlot[Table[x^2, {x, 10}]]
+
+      = -Graphics-
     """
 
     options = Graphics.options.copy()
