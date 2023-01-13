@@ -91,23 +91,23 @@ class Grid(Builtin):
      .
      . c   d
 
-    For shallow lists, elements are shown as a column
+    For shallow lists, elements are shown as a column:
     >> Grid[{a, b, c}]
      = a
      .
      . b
-     . 
-     . c 
+     .
+     . c
 
     If the sublists have different sizes, the grid has the number of columns of the \
     largest one. Incomplete rows are completed with empty strings:
 
     >> Grid[{{"first", "second", "third"},{a},{1, 2, 3}}]
-     = first   second   third   
+     = first   second   third
      .
-     . a                      
+     . a
      .
-     . 1       2        3    
+     . 1       2        3
 
     If the list is a mixture of lists and other expressions, the non-list expressions are
     shown as rows:
@@ -115,11 +115,11 @@ class Grid(Builtin):
     >> Grid[{"This is a long title", {"first", "second", "third"},{a},{1, 2, 3}}]
      = This is a long title
      .
-     . first   second   third   
+     . first   second   third
      .
-     . a                      
+     . a
      .
-     . 1       2        3    
+     . 1       2        3
 
     """
 
