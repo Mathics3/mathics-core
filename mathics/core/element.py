@@ -344,7 +344,7 @@ class BaseElement(KeyComparable):
         # Below, we special-case for SymbolSequence. Here is an example to suggest why.
         # Suppose we have this evaluation method:
         #
-        # def apply(x, evaluation):
+        # def eval(x, evaluation: Evaluation):
         #     """F[x__]"""
         #     args = x.get_sequence()
         #

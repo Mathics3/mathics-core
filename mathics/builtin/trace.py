@@ -24,7 +24,7 @@ from mathics.core.rules import BuiltinRule
 from mathics.core.symbols import SymbolFalse, SymbolNull, SymbolTrue, strip_context
 
 
-def traced_do_replace(self, expression, vars, options, evaluation: Evaluation):
+def traced_do_replace(self, expression, vars, options: dict, evaluation: Evaluation):
     if options and self.check_options:
         if not self.check_options(options, evaluation):
             return None
@@ -339,7 +339,7 @@ class TraceEvaluation(Builtin):
     }
     summary_text = "trace the succesive evaluations"
 
-    def eval(self, expr, evaluation, options):
+    def eval(self, expr, evaluation: Evaluation, options: dict):
         "TraceEvaluation[expr_, OptionsPattern[]]"
         curr_trace_evaluation = evaluation.definitions.trace_evaluation
         curr_time_by_steps = evaluation.definitions.timing_trace_evaluation

@@ -5,6 +5,7 @@ from inspect import signature
 from itertools import chain
 
 from mathics.core.element import KeyComparable
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.pattern import Pattern, StopGenerator
 from mathics.core.symbols import strip_context
@@ -137,7 +138,7 @@ class Rule(BaseRule):
         super(Rule, self).__init__(pattern, system=system)
         self.replace = replace
 
-    def do_replace(self, expression, vars, options, evaluation):
+    def do_replace(self, expression, vars, options: dict, evaluation: Evaluation):
         new = self.replace.replace_vars(vars)
         new.options = options
 
@@ -209,7 +210,7 @@ class BuiltinRule(BaseRule):
 
     # If you update this, you must also update traced_do_replace
     # (that's in the same file TraceBuiltins is)
-    def do_replace(self, expression, vars, options, evaluation):
+    def do_replace(self, expression, vars, options: dict, evaluation: Evaluation):
         if options and self.check_options:
             if not self.check_options(options, evaluation):
                 return None

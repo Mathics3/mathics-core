@@ -16,7 +16,7 @@ from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.element import ImmutableValueMixin
 from mathics.core.exceptions import BoxExpressionError
-from mathics.core.expression import Expression
+from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import machine_epsilon
 from mathics.core.symbols import Symbol
@@ -326,7 +326,7 @@ class ColorDistance(Builtin):
         / 100,
     }
 
-    def eval(self, c1, c2, evaluation, options):
+    def eval(self, c1, c2, evaluation: Evaluation, options: dict):
         "ColorDistance[c1_, c2_, OptionsPattern[ColorDistance]]"
 
         distance_function = options.get("System`DistanceFunction")

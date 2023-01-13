@@ -18,8 +18,8 @@ import sympy
 from mathics.algorithm.integrators import (
     _fubini,
     _internal_adaptative_simpsons_rule,
-    apply_D_to_Integral,
     decompose_domain,
+    eval_D_to_Integral,
 )
 from mathics.algorithm.series import (
     build_series,
@@ -554,7 +554,7 @@ class DiscreteLimit(Builtin):
     }
     summary_text = "limits of sequences including recurrence and number theory"
 
-    def eval(self, f, n, n0, evaluation, options={}):
+    def eval(self, f, n, n0, evaluation: Evaluation, options: dict = {}):
         "DiscreteLimit[f_, n_->n0_, OptionsPattern[DiscreteLimit]]"
 
         f = f.to_sympy(convert_all_global_functions=True)
@@ -612,7 +612,7 @@ class _BaseFinder(Builtin):
         "Jacobian": "Automatic",
     }
 
-    def eval(self, f, x, x0, evaluation, options):
+    def eval(self, f, x, x0, evaluation: Evaluation, options: dict):
         "%(name)s[f_, {x_, x0_}, OptionsPattern[]]"
         # This is needed to get the right messages
         options["_isfindmaximum"] = self.__class__ is FindMaximum
@@ -694,7 +694,7 @@ class _BaseFinder(Builtin):
         else:
             return ListExpression(Expression(SymbolRule, x, x0))
 
-    def eval_with_x_tuple(self, f, xtuple, evaluation, options):
+    def eval_with_x_tuple(self, f, xtuple, evaluation: Evaluation, options: dict):
         "%(name)s[f_, xtuple_, OptionsPattern[]]"
         f_val = f.evaluate(evaluation)
 
@@ -1071,7 +1071,7 @@ class Integrate(SympyFunction):
         new_elements = [elements[0]] + args
         return Expression(Symbol(self.get_name()), *new_elements)
 
-    def eval(self, f, xs, evaluation, options):
+    def eval(self, f, xs, evaluation: Evaluation, options: dict):
         "Integrate[f_, xs__, OptionsPattern[]]"
         f_sympy = f.to_sympy()
         if f_sympy.is_infinite:
@@ -1199,9 +1199,9 @@ class Integrate(SympyFunction):
             evaluation.definitions.set_ownvalue("System`$Assumptions", old_assumptions)
         return result
 
-    def eval_D(self, func, domain, var, evaluation: Evaluation, options):
+    def eval_D(self, func, domain, var, evaluation: Evaluation, options: dict):
         """D[%(name)s[func_, domain__, OptionsPattern[%(name)s]], var_Symbol]"""
-        return apply_D_to_Integral(
+        return eval_D_to_Integral(
             func, domain, var, evaluation, options, SymbolIntegrate
         )
 
@@ -1388,7 +1388,9 @@ class NIntegrate(Builtin):
         }
     )
 
-    def eval_with_func_domain(self, func, domain, evaluation, options):
+    def eval_with_func_domain(
+        self, func, domain, evaluation: Evaluation, options: dict
+    ):
         "%(name)s[func_, domain__, OptionsPattern[%(name)s]]"
         if func.is_numeric() and func.is_zero:
             return Integer0
@@ -1557,9 +1559,9 @@ class NIntegrate(Builtin):
         #                                         be implemented...
         return from_python(result)
 
-    def eval_D(self, func, domain, var, evaluation, options):
+    def eval_D(self, func, domain, var, evaluation: Evaluation, options: dict):
         """D[%(name)s[func_, domain__, OptionsPattern[%(name)s]], var_Symbol]"""
-        return apply_D_to_Integral(
+        return eval_D_to_Integral(
             func, domain, var, evaluation, options, SymbolNIntegrate
         )
 
