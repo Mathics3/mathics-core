@@ -405,7 +405,7 @@ class Builtin:
     def get_operator_display(self) -> Optional[str]:
         return None
 
-    def get_functions(self, prefix="apply", is_pymodule=False):
+    def get_functions(self, prefix="eval", is_pymodule=False):
         from mathics.core.parser import parse_builtin_rule
 
         unavailable_function = self._get_unavailable_function()
@@ -742,9 +742,9 @@ class Operator(Builtin):
 
 
 class Predefined(Builtin):
-    def get_functions(self, prefix="apply", is_pymodule=False) -> List[Callable]:
+    def get_functions(self, prefix="eval", is_pymodule=False) -> List[Callable]:
         functions = list(super().get_functions(prefix))
-        if prefix in ("apply", "eval") and hasattr(self, "evaluate"):
+        if prefix == "eval" and hasattr(self, "evaluate"):
             functions.append((Symbol(self.get_name()), self.evaluate))
         return functions
 
