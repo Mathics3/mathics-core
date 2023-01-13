@@ -13,7 +13,7 @@ from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_directives import ColorError, RGBColor, _ColorObject
 from mathics.builtin.colors.color_internals import convert_color
 from mathics.builtin.image.base import Image
-from mathics.core.atoms import Integer, MachineReal, Rational, Real
+from mathics.core.atoms import Integer, MachineReal, Rational, Real, String
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -337,10 +337,17 @@ class DominantColors(Builtin):
     options = {"ColorCoverage": "Automatic", "MinColorDistance": "Automatic"}
     summary_text = "find a list of dominant colors"
 
-    def eval(self, image, n, prop, evaluation, options):
+    def eval(
+        self,
+        image: Image,
+        n: Integer,
+        prop: String,
+        evaluation: Evaluation,
+        options: dict,
+    ):
         "DominantColors[image_Image, n_Integer, prop_String, OptionsPattern[%(name)s]]"
 
-        py_prop = prop.get_string_value()
+        py_prop = prop.value
         if py_prop not in ("Color", "LABColor", "Count", "Coverage", "CoverageImage"):
             return
 

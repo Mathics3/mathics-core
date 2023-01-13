@@ -134,7 +134,7 @@ class Builtin:
 
     For rules including ``OptionsPattern``
     ```
-        def eval_with_options(x, evaluation, options):
+        def eval_with_options(x, evaluation: Evaluation, options: dict):
              '''F[x_Real, OptionsPattern[]]'''
              ...
     ```

@@ -26,7 +26,11 @@ from mathics.core.attributes import (
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.element import ImmutableValueMixin
-from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack
+from mathics.core.evaluation import (
+    Evaluation,
+    TimeoutInterrupt,
+    run_with_timeout_and_stack,
+)
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolNull
@@ -625,7 +629,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
         " an object representing a date of any granularity (year, hour, instant, ...)"
     )
 
-    def eval_any(self, args, evaluation, options):
+    def eval_any(self, args, evaluation: Evaluation, options: dict):
         "DateObject[args_, OptionsPattern[]]"
         datelist = None
         tz = None

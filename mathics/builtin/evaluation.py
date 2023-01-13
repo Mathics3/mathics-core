@@ -4,7 +4,11 @@
 from mathics.builtin.base import Builtin, Predefined
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
-from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
+from mathics.core.evaluation import (
+    MAX_RECURSION_DEPTH,
+    Evaluation,
+    set_python_recursion_limit,
+)
 
 
 class RecursionLimit(Predefined):
@@ -376,7 +380,7 @@ class Quit(Builtin):
     }
     summary_text = "terminate the session"
 
-    def apply(self, evaluation, n):
+    def eval(self, evaluation: Evaluation, n):
         "%(name)s[n___]"
         exitcode = 0
         if isinstance(n, Integer):
