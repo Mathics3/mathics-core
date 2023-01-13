@@ -12,10 +12,13 @@ LaTeX or more specifically that we the additional AMS Mathematical
 Symbols exist.
 """
 
+import base64
 import re
+import tempfile
 
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
+from mathics.builtin.box.image import ImageBox
 from mathics.builtin.box.layout import (
     FractionBox,
     GridBox,
@@ -573,3 +576,20 @@ currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
 
 
 add_conversion_fn(Graphics3DBox, graphics3dbox)
+
+
+def imagebox(self, elements=None, **options) -> str:
+    if elements is None:
+        elements = self.elements
+    fp = tempfile.NamedTemporaryFile(delete=True, suffix=".png")
+    path = fp.name
+    fp.close()
+    base64data = elements[0].value.encode("utf-8")[22:]
+    data = base64.decodebytes(base64data)
+    with open(path, "wb") as imgfile:
+        imgfile.write(data)
+
+    return "\\includegraphics[width=2.5cm]{" + path + "}"
+
+
+add_conversion_fn(ImageBox, imagebox)

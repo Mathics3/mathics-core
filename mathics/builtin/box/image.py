@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import base64
+import tempfile
+
 from mathics.builtin.box.expression import BoxExpression
 
 
@@ -27,4 +30,12 @@ class ImageBox(BoxExpression):
         )
 
     def boxes_to_tex(self, elements=None, **options):
-        return "-Image-"
+        fp = tempfile.NamedTemporaryFile(delete=True, suffix=".png")
+        path = fp.name
+        fp.close()
+        base64data = self.elements[0].value.encode("utf-8")
+        data = base64.decodebytes(data[22:])
+        with open(path, "wb") as imgfile:
+            imgfile.write(data)
+
+        return "\\includegraphics[width=3cm]{" + path + "}"
