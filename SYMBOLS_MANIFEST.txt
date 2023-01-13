@@ -690,6 +690,7 @@ System`NumberForm
 System`NumberQ
 System`NumberString
 System`Numerator
+System`NumberLinePlot
 System`NumericFunction
 System`NumericQ
 System`O

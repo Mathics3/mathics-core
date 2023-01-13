@@ -62,6 +62,8 @@ SymbolFaceForm = Symbol("FaceForm")
 SymbolRectangle = Symbol("Rectangle")
 SymbolText = Symbol("Text")
 
+TwoTenths = Real(0.2)
+MTwoTenths = -TwoTenths
 
 # PlotRange Option
 def check_plot_range(range, range_type) -> bool:
@@ -1184,7 +1186,7 @@ class BarChart(_Chart):
             yield Expression(SymbolFaceForm, Symbol("Black"))
 
             def points(x):
-                return ListExpression(vector2(x, 0), vector2(x, Real(-0.2)))
+                return ListExpression(vector2(x, 0), vector2(x, MTwoTenths))
 
             for (k, n), x0, x1, y in boxes():
                 if k == 1:
@@ -1199,7 +1201,7 @@ class BarChart(_Chart):
                 if k <= len(names):
                     name = names[k - 1]
                     yield Expression(
-                        SymbolText, name, vector2((x0 + x1) / 2, Real(-0.2))
+                        SymbolText, name, vector2((x0 + x1) / 2, MTwoTenths)
                     )
 
         x_coords = list(itertools.chain(*[[x0, x1] for (k, n), x0, x1, y in boxes()]))
@@ -1987,7 +1989,9 @@ class ListPlot(_ListPlot):
 
 class ListLinePlot(_ListPlot):
     """
-    <url>:WMA link: https://reference.wolfram.com/language/ref/ListLinePlot.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ListLinePlot.html</url>
     <dl>
       <dt>'ListLinePlot[{$y_1$, $y_2$, ...}]'
       <dd>plots a line through a list of $y$-values, assuming integer $x$-values 1, 2, 3, ...
@@ -2092,9 +2096,56 @@ class LogPlot(_Plot):
 
     """
 
-    summary_text = "plots on a log scale curves of one or more functions"
+    summary_text = "plot on a log scale curves of one or more functions"
 
     use_log_scale = True
+
+
+class NumberLinePlot(_ListPlot):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/NumberLinePlot.html</url>
+    <dl>
+      <dt>'NumberPlot[{$v_1$, $v_2$, ...}]'
+      <dd>plots a list of values along a line.
+    </dl>
+
+    >> NumberLinePlot[Table[Prime[x], {x, 10}]]
+     = -Graphics-
+    """
+
+    options = Graphics.options.copy()
+
+    # This is ListPlot with some tweaks:
+    # * remove the Y axis in display,
+    # * set the Y value to a constant, and
+    # * set the aspect ratio to reduce the distance above the
+    #   x-axis
+    options.update(
+        {
+            "Axes": "{True, False}",
+            "AspectRatio": "1 / 10",
+            "Mesh": "None",
+            "PlotRange": "Automatic",
+            "PlotPoints": "None",
+            "Filling": "None",
+            "Joined": "False",
+        }
+    )
+    summary_text = "plot along a number line"
+
+    use_log_scale = False
+
+    def eval(self, values, evaluation: Evaluation, options: dict):
+        "%(name)s[values_, OptionsPattern[%(name)s]]"
+
+        # Fill in a Y value, and use the generic _ListPlot.eval().
+        # Some graphics options have been adjusted above.
+        points_list = [
+            ListExpression(eval_N(value, evaluation), Integer1)
+            for value in values.elements
+        ]
+        return _ListPlot.eval(self, ListExpression(*points_list), evaluation, options)
 
 
 class PieChart(_Chart):
@@ -2194,7 +2245,7 @@ class PieChart(_Chart):
         sector_spacing = self.get_option(options, "SectorSpacing", evaluation)
         if isinstance(sector_spacing, Symbol):
             if sector_spacing.get_name() == "System`Automatic":
-                sector_spacing = ListExpression(Integer0, Real(0.2))
+                sector_spacing = ListExpression(Integer0, TwoTenths)
             elif sector_spacing.get_name() == "System`None":
                 sector_spacing = ListExpression(Integer0, Integer0)
             else:
