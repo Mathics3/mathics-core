@@ -61,7 +61,7 @@ class CustomGraphicsBox(BoxExpression):
     def to_expression(self):
         return Expression(SymbolCustomGraphicsBox, *self.elements)
 
-    def eval(self, expr, evaluation: Evaluation, options: dict):
+    def eval_box(self, expr, evaluation: Evaluation, options: dict):
         """System`MakeBoxes[System`Graphics[System`expr_, System`OptionsPattern[System`Graphics]],
         System`StandardForm|System`TraditionalForm|System`OutputForm]"""
         instance = CustomGraphicsBox(*(expr.elements), evaluation=evaluation)
