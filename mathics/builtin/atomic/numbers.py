@@ -639,7 +639,7 @@ class RealDigits(Builtin):
         if isinstance(n, (Expression, Symbol, Rational)):
             pos_len = abs(pos) + 1 if pos is not None and pos < 0 else 1
             if nr_elements is not None:
-                # we can't use apply_n here because we have the two-arguemnt form
+                # we can't use eval_n here because we have the two-arguemnt form
                 n = Expression(
                     SymbolN,
                     n,

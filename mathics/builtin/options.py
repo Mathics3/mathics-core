@@ -3,8 +3,8 @@
 """
 Options Management
 
-A number of functions have various options which control the behavior or the default behavior that function.
-Default options can be queried or set.
+A number of functions have various options which control the behavior or \
+the default behavior that function. Default options can be queried or set.
 
 <url>
 :WMA link:
@@ -23,8 +23,6 @@ from mathics.core.systemsymbols import SymbolRule, SymbolRuleDelayed
 
 class Default(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Default.html</url>
-
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/Default.html</url>
@@ -126,7 +124,9 @@ class FilterRules(Builtin):
 # Has this been removed from WL? I cannot find a WMA link.
 class NotOptionQ(Test):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/NotOptionQ.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/NotOptionQ.html</url>
 
     <dl>
       <dt>'NotOptionQ[$expr$]'
@@ -162,7 +162,9 @@ class NotOptionQ(Test):
 # Has this been removed from WL? I cannot find a WMA link.
 class OptionQ(Test):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/OptionQ.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/OptionQ.html</url>
 
     <dl>
       <dt>'OptionQ[$expr$]'
@@ -300,11 +302,9 @@ class Options(Builtin):
 
 class OptionValue(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/OptionValue.html</url>
-
     <url>
-      :WMA link:
-      https://reference.wolfram.com/language/ref/OptionValue.html</url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/OptionValue.html</url>
 
     <dl>
       <dt>'OptionValue[$name$]'
@@ -348,7 +348,7 @@ class OptionValue(Builtin):
     }
     summary_text = "retrieve values of options while executing a function"
 
-    def eval_1(self, optname, evaluation):
+    def eval(self, optname, evaluation):
         "OptionValue[optname_]"
         if evaluation.options is None:
             return
@@ -373,11 +373,11 @@ class OptionValue(Builtin):
             return Symbol(name)
         return val
 
-    def eval_2(self, f, optname, evaluation):
+    def eval_with_f(self, f, optname, evaluation):
         "OptionValue[f_, optname_]"
-        return self.apply_3(f, None, optname, evaluation)
+        return self.eval_with_f_and_optvals(f, None, optname, evaluation)
 
-    def eval_3(self, f, optvals, optname, evaluation):
+    def eval_with_f_and_optvals(self, f, optvals, optname, evaluation):
         "OptionValue[f_, optvals_, optname_]"
         if type(optname) is String:
             name = optname.to_python()[1:-1]
@@ -427,9 +427,6 @@ class OptionValue(Builtin):
             evaluation.message("OptionValue", "optnf", optname)
             return Symbol(name)
         return val
-
-    # FIXME until we figure out what test/test_evaluation.py fails
-    apply_3 = eval_3
 
 
 class SetOptions(Builtin):

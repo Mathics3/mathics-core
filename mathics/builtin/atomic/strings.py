@@ -646,7 +646,7 @@ class LetterNumber(Builtin):
         elif chars.has_form("List", 1, None):
             result = []
             for element in chars.elements:
-                result.append(self.apply_alpha_str(element, alpha, evaluation))
+                result.append(self.eval_alpha_str(element, alpha, evaluation))
             return ListExpression(*result)
         else:
             return evaluation.message(self.__class__.__name__, "nas", chars)
