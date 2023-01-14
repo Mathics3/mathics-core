@@ -22,6 +22,7 @@ from mathics.core.attributes import (
     attributes_bitset_to_list,
 )
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import Rule
@@ -583,7 +584,7 @@ class Information(PrefixOperator):
             )
         return
 
-    def format_definition_input(self, symbol, evaluation, options):
+    def format_definition_input(self, symbol, evaluation: Evaluation, options: dict):
         "InputForm: Information[symbol_, OptionsPattern[Information]]"
         self.format_definition(symbol, evaluation, options, grid=False)
         ret = SymbolNull

@@ -106,7 +106,7 @@ class FractionBox(BoxExpression):
         "FractionLine": "Automatic",
     }
 
-    def eval(self, num, den, evaluation, options):
+    def eval(self, num, den, evaluation: Evaluation, options: dict):
         """FractionBox[num_, den_, OptionsPattern[]]"""
         num_box, den_box = (
             to_boxes(num, evaluation, options),
@@ -322,7 +322,7 @@ class SqrtBox(BoxExpression):
         "MinSize": "Automatic",
     }
 
-    def eval_index(self, radicand, index, evaluation, options):
+    def eval_index(self, radicand, index, evaluation: Evaluation, options: dict):
         """SqrtBox[radicand_, index_, OptionsPattern[]]"""
         radicand_box, index_box = (
             to_boxes(radicand, evaluation, options),
@@ -330,7 +330,7 @@ class SqrtBox(BoxExpression):
         )
         return SqrtBox(radicand_box, index_box, **options)
 
-    def eval(self, radicand, evaluation, options):
+    def eval(self, radicand, evaluation: Evaluation, options: dict):
         """SqrtBox[radicand_, OptionsPattern[]]"""
         radicand_box = to_boxes(radicand, evaluation, options)
         return SqrtBox(radicand_box, None, **options)
@@ -363,11 +363,11 @@ class StyleBox(BoxExpression):
     attributes = A_PROTECTED | A_READ_PROTECTED
     summary_text = "associate boxes with styles"
 
-    def eval_options(self, boxes, evaluation, options):
+    def eval_options(self, boxes, evaluation: Evaluation, options: dict):
         """StyleBox[boxes_, OptionsPattern[]]"""
         return StyleBox(boxes, style="", **options)
 
-    def eval_style(self, boxes, style, evaluation, options):
+    def eval_style(self, boxes, style, evaluation: Evaluation, options: dict):
         """StyleBox[boxes_, style_String, OptionsPattern[]]"""
         return StyleBox(boxes, style=style, **options)
 
@@ -418,7 +418,7 @@ class SubscriptBox(BoxExpression):
         "MultilineFunction": "Automatic",
     }
 
-    def eval(self, a, b, evaluation, options):
+    def eval(self, a, b, evaluation: Evaluation, options: dict):
         """SubscriptBox[a_, b__, OptionsPattern[]]"""
         a_box, b_box = (
             to_boxes(a, evaluation, options),
@@ -456,7 +456,7 @@ class SubsuperscriptBox(BoxExpression):
         "MultilineFunction": "Automatic",
     }
 
-    def eval(self, a, b, c, evaluation, options):
+    def eval(self, a, b, c, evaluation: Evaluation, options: dict):
         """SubsuperscriptBox[a_, b__, c__, OptionsPattern[]]"""
         a_box, b_box, c_box = (
             to_boxes(a, evaluation, options),
@@ -498,7 +498,7 @@ class SuperscriptBox(BoxExpression):
         "MultilineFunction": "Automatic",
     }
 
-    def eval(self, a, b, evaluation, options):
+    def eval(self, a, b, evaluation: Evaluation, options: dict):
         """SuperscriptBox[a_, b__, OptionsPattern[]]"""
         a_box, b_box = (
             to_boxes(a, evaluation, options),

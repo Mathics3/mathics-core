@@ -27,6 +27,7 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.streams import (
     HOME_DIR,
@@ -270,7 +271,7 @@ class CreateDirectory(Builtin):
     }
     summary_text = "create a directory"
 
-    def eval(self, dirname, evaluation, options):
+    def eval(self, dirname, evaluation: Evaluation, options: dict):
         "CreateDirectory[dirname_, OptionsPattern[CreateDirectory]]"
 
         expr = to_expression("CreateDirectory", dirname)
@@ -294,7 +295,7 @@ class CreateDirectory(Builtin):
 
         return String(osp.abspath(py_dirname))
 
-    def eval_empty(self, evaluation, options):
+    def eval_empty(self, evaluation: Evaluation, options: dict):
         "CreateDirectory[OptionsPattern[CreateDirectory]]"
         dirname = tempfile.mkdtemp(prefix="m", dir=TMP_DIR)
         return String(dirname)
@@ -391,7 +392,7 @@ class DeleteDirectory(Builtin):
     }
     summary_text = "delete a directory"
 
-    def eval(self, dirname, evaluation, options):
+    def eval(self, dirname, evaluation: Evaluation, options: dict):
         "DeleteDirectory[dirname_, OptionsPattern[DeleteDirectory]]"
 
         expr = to_expression("DeleteDirectory", dirname)
@@ -554,7 +555,7 @@ class DirectoryName(Builtin):
     }
     summary_text = "directory part of a filename"
 
-    def eval_with_n(self, name, n, evaluation, options):
+    def eval_with_n(self, name, n, evaluation: Evaluation, options: dict):
         "DirectoryName[name_, n_, OptionsPattern[DirectoryName]]"
 
         if n is None:
@@ -580,7 +581,7 @@ class DirectoryName(Builtin):
 
         return String(result)
 
-    def eval(self, name, evaluation, options):
+    def eval(self, name, evaluation: Evaluation, options: dict):
         "DirectoryName[name_, OptionsPattern[DirectoryName]]"
         return self.eval_with_n(name, None, evaluation, options)
 
@@ -723,7 +724,7 @@ class FileBaseName(Builtin):
     }
     summary_text = "base name of the file"
 
-    def eval(self, filename, evaluation, options):
+    def eval(self, filename, evaluation: Evaluation, options: dict):
         "FileBaseName[filename_String, OptionsPattern[FileBaseName]]"
         path = filename.to_python()[1:-1]
 
@@ -944,7 +945,7 @@ class FileExtension(Builtin):
     }
     summary_text = "file extension"
 
-    def eval(self, filename, evaluation, options):
+    def eval(self, filename, evaluation: Evaluation, options: dict):
         "FileExtension[filename_String, OptionsPattern[FileExtension]]"
         path = filename.to_python()[1:-1]
         filename_base, filename_ext = osp.splitext(path)
@@ -1116,7 +1117,7 @@ class FileNameJoin(Builtin):
     }
     summary_text = "join parts into a path"
 
-    def eval(self, pathlist, evaluation, options):
+    def eval(self, pathlist, evaluation: Evaluation, options: dict):
         "FileNameJoin[pathlist_List, OptionsPattern[FileNameJoin]]"
 
         py_pathlist = pathlist.to_python()
@@ -1420,7 +1421,7 @@ class FileNameSplit(Builtin):
 
     summary_text = "split the file name in a list of parts"
 
-    def eval(self, filename, evaluation, options):
+    def eval(self, filename, evaluation: Evaluation, options: dict):
         "FileNameSplit[filename_String, OptionsPattern[FileNameSplit]]"
 
         path = filename.to_python()[1:-1]
@@ -1483,12 +1484,12 @@ class FileNameTake(Builtin):
     }
     summary_text = "take a part of the filename"
 
-    def eval(self, filename, evaluation, options):
+    def eval(self, filename, evaluation: Evaluation, options: dict):
         "FileNameTake[filename_String, OptionsPattern[FileBaseName]]"
         path = pathlib.Path(filename.to_python()[1:-1])
         return String(path.name)
 
-    def eval_n(self, filename, n, evaluation, options):
+    def eval_n(self, filename, n, evaluation: Evaluation, options: dict):
         "FileNameTake[filename_String, n_Integer, OptionsPattern[FileBaseName]]"
         n_int = n.get_int_value()
         parts = pathlib.Path(filename.to_python()[1:-1]).parts
@@ -1545,11 +1546,11 @@ class FindList(Builtin):
     # TODO: Extra options AnchoredSearch, IgnoreCase RecordSeparators,
     # WordSearch, WordSeparators this is probably best done with a regex
 
-    def eval_without_n(self, filename, text, evaluation, options):
+    def eval_without_n(self, filename, text, evaluation: Evaluation, options: dict):
         "FindList[filename_, text_, OptionsPattern[FindList]]"
         return self.eval(filename, text, None, evaluation, options)
 
-    def eval(self, filename, text, n, evaluation, options):
+    def eval(self, filename, text, n, evaluation: Evaluation, options: dict):
         "FindList[filename_, text_, n_, OptionsPattern[FindList]]"
         py_text = text.to_python()
         py_name = filename.to_python()

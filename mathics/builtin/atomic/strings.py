@@ -937,7 +937,7 @@ class StringContainsQ(Builtin):
 
     summary_text = "test whether a pattern matches with a substring"
 
-    def eval(self, string, patt, evaluation, options):
+    def eval(self, string, patt, evaluation: Evaluation, options: dict):
         "StringContainsQ[string_, patt_, OptionsPattern[%(name)s]]"
         return _pattern_search(
             self.__class__.__name__, string, patt, evaluation, options, True
@@ -1223,11 +1223,11 @@ class ToString(Builtin):
 
     summary_text = "format an expression and produce a string"
 
-    def eval_default(self, value, evaluation, options):
+    def eval_default(self, value, evaluation: Evaluation, options: dict):
         "ToString[value_, OptionsPattern[ToString]]"
         return self.eval_form(value, SymbolOutputForm, evaluation, options)
 
-    def eval_form(self, expr, form, evaluation, options):
+    def eval_form(self, expr, form, evaluation: Evaluation, options: dict):
         "ToString[expr_, form_, OptionsPattern[ToString]]"
         encoding = options["System`CharacterEncoding"]
         return eval_ToString(expr, form, encoding.value, evaluation)

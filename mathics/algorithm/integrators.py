@@ -162,7 +162,7 @@ def _fubini(func, ranges, **opts):
         return val
 
 
-def apply_D_to_Integral(func, domain, var, evaluation, options, head):
+def eval_D_to_Integral(func, domain, var, evaluation, options, head):
     """Implements D[%(name)s[func_, domain__, OptionsPattern[%(name)s]], var_Symbol]"""
     if head is SymbolNIntegrate:
         options = tuple(

@@ -275,7 +275,7 @@ class _NumberForm(Builtin):
         "sigz": "In addition to the number of digits requested, one or more zeros will appear as placeholders.",
     }
 
-    def check_options(self, options, evaluation: Evaluation):
+    def check_options(self, options: dict, evaluation: Evaluation):
         """
         Checks options are valid and converts them to python.
         """
