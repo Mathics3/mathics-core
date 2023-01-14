@@ -538,7 +538,7 @@ class IterationFunction(Builtin):
         if iterator.has_form(["List", "Range", "Sequence"], None):
             elements = iterator.elements
             if len(elements) == 1:
-                return self.apply_max(expr, *elements, evaluation)
+                return self.eval_max(expr, *elements, evaluation)
             elif len(elements) == 2:
                 if elements[1].has_form(["List", "Sequence"], None):
                     seq = Expression(SymbolSequence, *(elements[1].elements))
@@ -561,7 +561,7 @@ class IterationFunction(Builtin):
             # FIXME: this should work as an iterator in Python3, not
             # building the sequence explicitly...
             seq = Expression(SymbolSequence, *(imax.evaluate(evaluation).elements))
-            return self.apply_list(expr, i, seq, evaluation)
+            return self.eval_list(expr, i, seq, evaluation)
         elif imax.has_form("List", None):
             seq = Expression(SymbolSequence, *(imax.elements))
             return self.eval_list(expr, i, seq, evaluation)

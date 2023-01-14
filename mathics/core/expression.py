@@ -454,9 +454,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         """
         Apply transformation rules and expression evaluation to ``evaluation`` via
         ``rewrite_apply_eval_step()`` until that method tells us to stop,
-        or unti we hit an $IterationLimit or TimeConstrained limit.
+        or until we hit an $IterationLimit or TimeConstrained limit.
 
-        Evaluation is a recusive:``rewrite_apply_eval_step()`` may call us.
+        Evaluation is recursive:``rewrite_apply_eval_step()`` may call us.
         """
         if evaluation.timeout:
             return
