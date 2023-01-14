@@ -2106,7 +2106,7 @@ class NumberLinePlot(_ListPlot):
      <url>:WMA link:
      https://reference.wolfram.com/language/ref/NumberLinePlot.html</url>
      <dl>
-       <dt>'NumberPlot[{$v_1$, $v_2$, ...}]'
+       <dt>'NumberLinePlot[{$v_1$, $v_2$, ...}]'
        <dd>plots a list of values along a line.
      </dl>
 
