@@ -34,6 +34,7 @@ New Builtins
 #. ``Kurtosis``
 #. ``ListLogPlot``
 #. ``LogPlot``
+#. ``NumberLinePlot``
 #. ``PauliMatrix``
 #. ``Remove``
 #. ``SetOptions``
