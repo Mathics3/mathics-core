@@ -24,6 +24,7 @@ from mathics.core.attributes import (
     A_READ_PROTECTED,
 )
 from mathics.core.convert.python import from_python
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, string_list
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolTrue
@@ -486,7 +487,7 @@ class StringPosition(Builtin):
 
     summary_text = "range of positions where substrings match a pattern"
 
-    def eval(self, string, patt, evaluation, options):
+    def eval(self, string, patt, evaluation: Evaluation, options: dict):
         "StringPosition[string_, patt_, OptionsPattern[StringPosition]]"
         return self.eval_n(
             string,
@@ -496,7 +497,7 @@ class StringPosition(Builtin):
             options,
         )
 
-    def eval_n(self, string, patt, n, evaluation, options):
+    def eval_n(self, string, patt, n, evaluation: Evaluation, options: dict):
         "StringPosition[string_, patt_, n:(_Integer|DirectedInfinity[1]), OptionsPattern[StringPosition]]"
         expr = Expression(SymbolStringPosition, string, patt, n)
 
@@ -683,7 +684,7 @@ class StringReplace(_StringFind):
 
         return Expression(SymbolStringJoin, *list(cases()))
 
-    def eval(self, string, rule, n, evaluation, options):
+    def eval(self, string, rule, n, evaluation: Evaluation, options: dict):
         "%(name)s[string_, rule_, OptionsPattern[%(name)s], n_:System`Private`Null]"
         # this pattern is a slight hack to get around missing Shortest/Longest.
         return self._apply(string, rule, n, evaluation, options, False)
@@ -912,7 +913,7 @@ class StringSplit(Builtin):
 
     summary_text = "split strings at whitespace, or at a pattern"
 
-    def eval(self, string, patt, evaluation, options):
+    def eval(self, string, patt, evaluation: Evaluation, options: dict):
         "StringSplit[string_, patt_, OptionsPattern[%(name)s]]"
 
         if string.get_head_name() == "System`List":

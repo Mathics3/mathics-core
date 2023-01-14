@@ -811,11 +811,14 @@ class _CoefficientHandler(Builtin):
 class CoefficientArrays(_CoefficientHandler):
     """
 
-    <url>:WMA link:https://reference.wolfram.com/language/ref/CoefficientArrays.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/CoefficientArrays.html</url>
 
     <dl>
       <dt>'CoefficientArrays[$polys$, $vars$]'
-      <dd>returns a list of arrays of coefficients of the variables $vars$ in the polynomial  $poly$.
+      <dd>returns a list of arrays of coefficients of the variables $vars$ \
+          in the polynomial  $poly$.
     </dl>
 
     >> CoefficientArrays[1 + x^3, x]
@@ -841,7 +844,7 @@ class CoefficientArrays(_CoefficientHandler):
         "array of coefficients associated with a polynomial in many variables"
     )
 
-    def eval_list(self, polys, varlist, evaluation, options):
+    def eval_list(self, polys, varlist, evaluation: Evaluation, options: dict):
         "%(name)s[polys_, varlist_, OptionsPattern[]]"
         from mathics.algorithm.parts import walk_parts
 
@@ -1130,7 +1133,7 @@ class _Expand(Builtin):
         "opttf": "Value of option `1` -> `2` should be True or False.",
     }
 
-    def convert_options(self, options, evaluation):
+    def convert_options(self, options: dict, evaluation: Evaluation):
         modulus = options["System`Modulus"]
         py_modulus = modulus.get_int_value()
         if py_modulus is None:
@@ -1153,7 +1156,9 @@ class _Expand(Builtin):
 
 class Expand(_Expand):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Expand.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Expand.html</url>
 
     <dl>
       <dt>'Expand[$expr$]'
@@ -1221,7 +1226,7 @@ class Expand(_Expand):
 
     summary_text = "expand out products and powers"
 
-    def eval_patt(self, expr, target, evaluation, options):
+    def eval_patt(self, expr, target, evaluation: Evaluation, options: dict):
         "Expand[expr_, target_, OptionsPattern[Expand]]"
 
         if target.get_head_name() in ("System`Rule", "System`DelayedRule"):
@@ -1238,7 +1243,7 @@ class Expand(_Expand):
         kwargs["evaluation"] = evaluation
         return expand(expr, True, False, **kwargs)
 
-    def eval(self, expr, evaluation, options):
+    def eval(self, expr, evaluation: Evaluation, options: dict):
         "Expand[expr_, OptionsPattern[Expand]]"
 
         kwargs = self.convert_options(options, evaluation)
@@ -1285,7 +1290,7 @@ class ExpandAll(_Expand):
 
     summary_text = "expand products and powers, including negative integer powers"
 
-    def eval_patt(self, expr, target, evaluation, options):
+    def eval_patt(self, expr, target, evaluation: Evaluation, options: dict):
         "ExpandAll[expr_, target_, OptionsPattern[Expand]]"
         if target.get_head_name() in ("System`Rule", "System`DelayedRule"):
             optname = target.elements[0].get_name()
@@ -1301,7 +1306,7 @@ class ExpandAll(_Expand):
         kwargs["evaluation"] = evaluation
         return expand(expr, numer=True, denom=True, deep=True, **kwargs)
 
-    def eval(self, expr, evaluation, options):
+    def eval(self, expr, evaluation: Evaluation, options: dict):
         "ExpandAll[expr_, OptionsPattern[ExpandAll]]"
 
         kwargs = self.convert_options(options, evaluation)
@@ -1335,7 +1340,7 @@ class ExpandDenominator(_Expand):
 
     summary_text = "expand just the denominator of a rational expression"
 
-    def eval(self, expr, evaluation, options):
+    def eval(self, expr, evaluation: Evaluation, options: dict):
         "ExpandDenominator[expr_, OptionsPattern[ExpandDenominator]]"
 
         kwargs = self.convert_options(options, evaluation)

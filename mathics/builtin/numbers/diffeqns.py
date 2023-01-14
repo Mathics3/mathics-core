@@ -112,7 +112,7 @@ class DSolve(Builtin):
     }
     summary_text = "Differential equation analytical solver."
 
-    def apply(self, eqn, y, x, evaluation: Evaluation):
+    def eval(self, eqn, y, x, evaluation: Evaluation):
         "DSolve[eqn_, y_, x_]"
 
         if eqn.has_form("List", None):

@@ -234,7 +234,7 @@ class StringCases(_StringFind):
 
         return ListExpression(*list(cases()))
 
-    def eval(self, string, rule, n, evaluation: Evaluation, options):
+    def eval(self, string, rule, n, evaluation: Evaluation, options: dict):
         "%(name)s[string_, rule_, OptionsPattern[%(name)s], n_:System`Private`Null]"
         # this pattern is a slight hack to get around missing Shortest/Longest.
         return self._apply(string, rule, n, evaluation, options, True)
@@ -377,7 +377,7 @@ class StringFreeQ(Builtin):
 
     summary_text = "test whether a string is free of substrings matching a pattern"
 
-    def eval(self, string, patt, evaluation: Evaluation, options):
+    def eval(self, string, patt, evaluation: Evaluation, options: dict):
         "StringFreeQ[string_, patt_, OptionsPattern[%(name)s]]"
         return _pattern_search(
             self.__class__.__name__, string, patt, evaluation, options, False
@@ -462,7 +462,7 @@ class StringMatchQ(Builtin):
     }
     summary_text = "test whether a string matches a pattern"
 
-    def eval(self, string, patt, evaluation: Evaluation, options):
+    def eval(self, string, patt, evaluation: Evaluation, options: dict):
         "StringMatchQ[string_, patt_, OptionsPattern[%(name)s]]"
         py_string = string.get_string_value()
         if py_string is None:

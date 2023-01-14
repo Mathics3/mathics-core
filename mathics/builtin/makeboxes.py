@@ -13,6 +13,7 @@ from mathics.core.atoms import Integer, Integer1, Real, String
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_READ_PROTECTED
 from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
 from mathics.core.element import BaseElement, BoxElementMixin
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps
@@ -120,7 +121,7 @@ def real_to_s_exp(expr, n):
     return s, exp, nonnegative
 
 
-def number_form(expr, n, f, evaluation, options):
+def number_form(expr, n, f, evaluation: Evaluation, options: dict):
     """
     Converts a Real or Integer instance to Boxes.
 

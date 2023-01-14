@@ -26,6 +26,7 @@ from mathics.core.atoms import Integer, String, SymbolString
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.read import (
@@ -110,7 +111,7 @@ class _OpenAction(Builtin):
         ),
     }
 
-    def eval_empty(self, evaluation, options):
+    def eval_empty(self, evaluation: Evaluation, options: dict):
         "%(name)s[OptionsPattern[]]"
 
         if isinstance(self, (OpenWrite, OpenAppend)):
@@ -128,7 +129,7 @@ class _OpenAction(Builtin):
             evaluation.message("OpenRead", "argx")
             return
 
-    def eval_path(self, path, evaluation, options):
+    def eval_path(self, path, evaluation: Evaluation, options: dict):
         "%(name)s[path_?NotOptionQ, OptionsPattern[]]"
 
         # Options
@@ -267,8 +268,8 @@ class Expression_(Builtin):
     https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overview/ast.html</url>.
     """
 
-    summary_text = "WL expression"
     name = "Expression"
+    summary_text = "WL expression"
 
 
 class FilePrint(Builtin):
@@ -294,7 +295,6 @@ class FilePrint(Builtin):
      = FilePrint[]
     """
 
-    summary_text = "display the contents of a file"
     messages = {
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
@@ -306,8 +306,9 @@ class FilePrint(Builtin):
         "RecordSeparators": '{"\r\n", "\n", "\r"}',
         "WordSeparators": '{" ", "\t"}',
     }
+    summary_text = "display the contents of a file"
 
-    def eval(self, path, evaluation, options):
+    def eval(self, path, evaluation: Evaluation, options: dict):
         "FilePrint[path_, OptionsPattern[FilePrint]]"
         pypath = path.to_python()
         if not (
@@ -367,8 +368,8 @@ class Number_(Builtin):
     </dl>
     """
 
-    summary_text = "exact or approximate number in Fortran‐like notation"
     name = "Number"
+    summary_text = "exact or approximate number in Fortran‐like notation"
 
 
 class Get(PrefixOperator):
@@ -408,14 +409,14 @@ class Get(PrefixOperator):
     #> Hold[<<`/.\-_:$*~?] // FullForm
      = Hold[Get["`/.\\\\-_:$*~?"]]
     """
-    summary_text = "read in a file and evaluate commands in it"
     operator = "<<"
-    precedence = 720
     options = {
         "Trace": "False",
     }
+    precedence = 720
+    summary_text = "read in a file and evaluate commands in it"
 
-    def eval(self, path, evaluation, options):
+    def eval(self, path, evaluation: Evaluation, options: dict):
         "Get[path_String, OptionsPattern[Get]]"
 
         def check_options(options):
@@ -607,11 +608,11 @@ class OpenAppend(_OpenAction):
     #> DeleteFile["MathicsNonExampleFile"]
     """
 
+    mode = "a"
+    stream_type = "OutputStream"
     summary_text = (
         "open an output stream to a file, appending to what was already in the file"
     )
-    mode = "a"
-    stream_type = "OutputStream"
 
 
 class Put(BinaryOperator):
@@ -667,9 +668,9 @@ class Put(BinaryOperator):
     S> DeleteFile[filename]
     """
 
-    summary_text = "write an expression to a file"
     operator = ">>"
     precedence = 30
+    summary_text = "write an expression to a file"
 
     def eval(self, exprs, filename, evaluation):
         "Put[exprs___, filename_String]"
@@ -765,9 +766,9 @@ class PutAppend(BinaryOperator):
      = x >>> /proc/uptime
     """
 
-    summary_text = "append an expression to a file"
     operator = ">>>"
     precedence = 30
+    summary_text = "append an expression to a file"
 
     def eval(self, exprs, filename, evaluation):
         "PutAppend[exprs___, filename_String]"
@@ -962,7 +963,6 @@ class Read(Builtin):
 
     """
 
-    summary_text = "read an object of the specified type from a stream"
     messages = {
         "openx": "`1` is not open.",
         "readf": "`1` is not a valid format specification.",
@@ -984,6 +984,7 @@ class Read(Builtin):
         "TokenWords": "{}",
         "WordSeparators": '{" ", "\t"}',
     }
+    summary_text = "read an object of the specified type from a stream"
 
     def check_options(self, options):
         # Options
@@ -1050,7 +1051,7 @@ class Read(Builtin):
 
         return result
 
-    def eval(self, channel, types, evaluation, options):
+    def eval(self, channel, types, evaluation: Evaluation, options: dict):
         "Read[channel_, types_, OptionsPattern[Read]]"
 
         name, n, stream = read_name_and_stream_from_channel(channel, evaluation)
@@ -1258,7 +1259,6 @@ class ReadList(Read):
     >> InputForm[%]
      = {123, abc}
     """
-    summary_text = "read a sequence of elements from a file, and put them in a WL list"
     rules = {
         "ReadList[stream_]": "ReadList[stream, Expression]",
     }
@@ -1270,8 +1270,9 @@ class ReadList(Read):
         "TokenWords": "{}",
         "WordSeparators": '{" ", "\t"}',
     }
+    summary_text = "read a sequence of elements from a file, and put them in a WL list"
 
-    def eval(self, channel, types, evaluation, options):
+    def eval(self, channel, types, evaluation: Evaluation, options: dict):
         "ReadList[channel_, types_, OptionsPattern[ReadList]]"
 
         # Options
@@ -1298,7 +1299,7 @@ class ReadList(Read):
             result.append(tmp)
         return from_python(result)
 
-    def eval_m(self, channel, types, m, evaluation, options):
+    def eval_m(self, channel, types, m, evaluation: Evaluation, options: dict):
         "ReadList[channel_, types_, m_, OptionsPattern[ReadList]]"
 
         # Options
@@ -1507,7 +1508,7 @@ class Skip(Read):
     }
     summary_text = "skip over an object of the specified type in an input stream"
 
-    def eval(self, name, n, types, m, evaluation, options):
+    def eval(self, name, n, types, m, evaluation: Evaluation, options: dict):
         "Skip[InputStream[name_, n_], types_, m_, OptionsPattern[Skip]]"
 
         channel = to_expression("InputStream", name, n)
@@ -1571,7 +1572,7 @@ class Find(Read):
     }
     summary_text = "find the next occurrence of a string"
 
-    def eval(self, name, n, text, evaluation, options):
+    def eval(self, name, n, text, evaluation: Evaluation, options: dict):
         "Find[InputStream[name_, n_], text_, OptionsPattern[Find]]"
 
         # Options

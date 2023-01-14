@@ -244,7 +244,7 @@ class Threshold(Builtin):
         "skimage": "Please install scikit-image to use Method -> Cluster.",
     }
 
-    def eval(self, image, evaluation: Evaluation, options):
+    def eval(self, image, evaluation: Evaluation, options: dict):
         "Threshold[image_Image, OptionsPattern[Threshold]]"
         pixels = image.grayscale().pixels
 
