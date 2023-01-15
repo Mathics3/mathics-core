@@ -345,7 +345,7 @@ class BesselI(_Bessel):
     rules = {
         "BesselI[Undefined, x_]": "Undefined",
         "BesselI[y_, Undefined]": "Undefined",
-        # FIXME: thes are not respected. Why?
+        # FIXME: these are not respected. Why?
         "BesselI[x_, -I Infinity]": "0",
         "BesselI[x_, Infinity]": "0",
         "Derivative[0, 1][BesselI]": "((BesselI[-1 + #1, #2] + BesselI[1 + #1, #2])/2)&",
