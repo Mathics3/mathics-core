@@ -672,12 +672,12 @@ class Complex(Number):
     # clearing the cache and the object store which might be useful in implementing
     # Builtin Share[].
     def __new__(cls, real, imag):
-        if isinstance(real, Complex) or not isinstance(real, Number):
-            raise ValueError("Argument 'real' must be a Real number.")
+        if not isinstance(real, Number):
+            raise ValueError(f"Argument 'real' must be a Number; is {real}.")
         if imag is SymbolInfinity:
             return SymbolI * SymbolInfinity
-        if isinstance(imag, Complex) or not isinstance(imag, Number):
-            raise ValueError("Argument 'imag' must be a Real number.")
+        if not isinstance(imag, Number):
+            raise ValueError(f"Argument 'imag' must be a Number; is {imag}.")
 
         if imag.sameQ(Integer0):
             return real
