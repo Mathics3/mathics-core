@@ -8,7 +8,7 @@ Functions here will eventually get moved to more suitable subsections.
 from mathics.algorithm.parts import python_levelspec
 from mathics.builtin.base import Builtin, Predefined, Test
 from mathics.builtin.box.layout import RowBox
-from mathics.core.atoms import Integer, Integer1, Integer2, String
+from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_LOCKED, A_PROTECTED
 from mathics.core.convert.expression import to_expression
 from mathics.core.exceptions import (
@@ -19,13 +19,8 @@ from mathics.core.exceptions import (
 )
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolKey,
-    SymbolMakeBoxes,
-    SymbolSequence,
-    SymbolSubsetQ,
-)
+from mathics.core.symbols import Atom, Symbol
+from mathics.core.systemsymbols import SymbolKey, SymbolMakeBoxes, SymbolSequence
 
 
 def delete_one(expr, pos):
@@ -273,23 +268,6 @@ class Delete(Builtin):
         return newexpr
 
 
-class DisjointQ(Test):
-    """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/DisjointQ.html</url>
-
-    <dl>
-      <dt>'DisjointQ[$a$, $b$]'
-      <dd>gives True if $a$ and $b$ are disjoint, or False if $a$ and \
-      $b$ have any common elements.
-    </dl>
-    """
-
-    rules = {"DisjointQ[a_List, b_List]": "Not[IntersectingQ[a, b]]"}
-    summary_text = "test whether two lists do not have common elements"
-
-
 class Failure(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Failure.html</url>
@@ -345,23 +323,6 @@ class Insert(Builtin):
         position = py_n - 1 if py_n > 0 else py_n + 1
         new_list.insert(position, elem)
         return expr.restructure(expr.head, new_list, evaluation, deps=(expr, elem))
-
-
-class IntersectingQ(Builtin):
-    """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/IntersectingQ.html</url>
-
-    <dl>
-      <dt>'IntersectingQ[$a$, $b$]'
-      <dd>gives True if there are any common elements in $a and $b, or \
-          False if $a and $b are disjoint.
-    </dl>
-    """
-
-    rules = {"IntersectingQ[a_List, b_List]": "Length[Intersect[a, b]] > 0"}
-    summary_text = "test whether two lists have common elements"
 
 
 class LevelQ(Test):
@@ -432,29 +393,6 @@ class List(Builtin):
         return RowBox(*list_boxes(items, f, evaluation, "{", "}"))
 
 
-class ListQ(Test):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ListQ.html</url>
-
-    <dl>
-      <dt>'ListQ[$expr$]'
-      <dd>tests whether $expr$ is a 'List'.
-    </dl>
-
-    >> ListQ[{1, 2, 3}]
-     = True
-    >> ListQ[{{1, 2}, {3, 4}}]
-     = True
-    >> ListQ[x]
-     = False
-    """
-
-    summary_text = "test if an expression is a list"
-
-    def test(self, expr):
-        return expr.get_head_name() == "System`List"
-
-
 class None_(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/None.html</url>
@@ -513,92 +451,3 @@ class _Rectangular(Builtin):
                 for items in transposed
             ],
         )
-
-
-class SubsetQ(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/SubsetQ.html</url>
-
-    <dl>
-      <dt>'SubsetQ[$list1$, $list2$]'
-      <dd>returns True if $list2$ is a subset of $list1$, and False otherwise.
-    </dl>
-
-    >> SubsetQ[{1, 2, 3}, {3, 1}]
-     = True
-
-    The empty list is a subset of every list:
-    >> SubsetQ[{}, {}]
-     = True
-
-    >> SubsetQ[{1, 2, 3}, {}]
-     = True
-
-    Every list is a subset of itself:
-    >> SubsetQ[{1, 2, 3}, {1, 2, 3}]
-     = True
-
-    #> SubsetQ[{1, 2, 3}, {0, 1}]
-     = False
-
-    #> SubsetQ[{1, 2, 3}, {1, 2, 3, 4}]
-     = False
-
-    #> SubsetQ[{1, 2, 3}]
-     : SubsetQ called with 1 argument; 2 arguments are expected.
-     = SubsetQ[{1, 2, 3}]
-
-    #> SubsetQ[{1, 2, 3}, {1, 2}, {3}]
-     : SubsetQ called with 3 arguments; 2 arguments are expected.
-     = SubsetQ[{1, 2, 3}, {1, 2}, {3}]
-
-    #> SubsetQ[a + b + c, {1}]
-     : Heads Plus and List at positions 1 and 2 are expected to be the same.
-     = SubsetQ[a + b + c, {1}]
-
-    #> SubsetQ[{1, 2, 3}, n]
-     : Nonatomic expression expected at position 2 in SubsetQ[{1, 2, 3}, n].
-     = SubsetQ[{1, 2, 3}, n]
-
-    #> SubsetQ[f[a, b, c], f[a]]
-     = True
-    """
-
-    messages = {
-        # FIXME: This message doesn't exist in more modern WMA, and
-        # Subset *can* take more than 2 arguments.
-        "argr": "SubsetQ called with 1 argument; 2 arguments are expected.",
-        "argrx": "SubsetQ called with `1` arguments; 2 arguments are expected.",
-        "heads": "Heads `1` and `2` at positions 1 and 2 are expected to be the same.",
-        "normal": "Nonatomic expression expected at position `1` in `2`.",
-    }
-    summary_text = "test if a list is a subset of another list"
-
-    def eval(self, expr, subset, evaluation):
-        "SubsetQ[expr_, subset___]"
-
-        if isinstance(expr, Atom):
-            return evaluation.message(
-                "SubsetQ", "normal", Integer1, Expression(SymbolSubsetQ, expr, subset)
-            )
-
-        subset = subset.get_sequence()
-        if len(subset) > 1:
-            return evaluation.message("SubsetQ", "argrx", Integer(len(subset) + 1))
-        elif len(subset) == 0:
-            return evaluation.message("SubsetQ", "argr")
-
-        subset = subset[0]
-        if isinstance(subset, Atom):
-            return evaluation.message(
-                "SubsetQ", "normal", Integer2, Expression(SymbolSubsetQ, expr, subset)
-            )
-        if expr.get_head_name() != subset.get_head_name():
-            return evaluation.message(
-                "SubsetQ", "heads", expr.get_head(), subset.get_head()
-            )
-
-        if set(subset.elements).issubset(set(expr.elements)):
-            return SymbolTrue
-        else:
-            return SymbolFalse

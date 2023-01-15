@@ -19,9 +19,12 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.subexpression import SubExpression
 from mathics.core.symbols import Atom, Symbol, SymbolList
-from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolInfinity
-
-SymbolNothing = Symbol("Nothing")
+from mathics.core.systemsymbols import (
+    SymbolDirectedInfinity,
+    SymbolInfinity,
+    SymbolNothing,
+)
+from mathics.eval.patterns import Matcher
 
 
 def get_part(expression: BaseElement, indices: List[int]) -> BaseElement:
@@ -559,7 +562,6 @@ def deletecases_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
     returns all the occurrences.
     """
     nothing = SymbolNothing
-    from mathics.builtin.patterns import Matcher
 
     match = Matcher(pattern)
     match = match.match

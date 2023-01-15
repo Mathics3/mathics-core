@@ -19,6 +19,7 @@ from mathics.core.expression import Expression, SymbolDefault, get_default_value
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList, ensure_context, strip_context
 from mathics.core.systemsymbols import SymbolRule, SymbolRuleDelayed
+from mathics.eval.patterns import Matcher
 
 
 class Default(Builtin):
@@ -109,7 +110,6 @@ class FilterRules(Builtin):
 
     def eval(self, rules, pattern, evaluation):
         "FilterRules[rules_List, pattern_]"
-        from mathics.builtin.patterns import Matcher
 
         match = Matcher(pattern).match
 
