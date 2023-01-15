@@ -4,13 +4,12 @@
 Division-Related Functions
 """
 
-from itertools import combinations
 from typing import List
 
 import sympy
 from sympy import Q, ask
 
-from mathics.builtin.base import Builtin, SympyFunction, Test
+from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.atoms import Integer
 from mathics.core.attributes import (
     A_FLAT,
@@ -25,7 +24,6 @@ from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_bool
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.symbols import SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolComplexInfinity,
     SymbolQuotient,
@@ -41,7 +39,7 @@ class CompositeQ(Builtin):
 
     <dl>
       <dt>'CompositeQ[$n$]'
-      <dd>returns True if $n$ is a composite number
+      <dd>returns 'True' if $n$ is a composite number
     </dl>
 
     <ul>
@@ -61,55 +59,6 @@ class CompositeQ(Builtin):
     def eval(self, n: Integer, evaluation: Evaluation):
         "CompositeQ[n_Integer]"
         return from_bool(ask(Q.composite(n.value)))
-
-
-class CoprimeQ(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/CoprimeQ.html</url>
-
-    <dl>
-      <dt>'CoprimeQ[$x$, $y$]'
-      <dd>tests whether $x$ and $y$ are coprime by computing their greatest \
-          common divisor.
-    </dl>
-
-    >> CoprimeQ[7, 9]
-     = True
-
-    >> CoprimeQ[-4, 9]
-     = True
-
-    >> CoprimeQ[12, 15]
-     = False
-
-    CoprimeQ also works for complex numbers
-    >> CoprimeQ[1+2I, 1-I]
-     = True
-
-    >> CoprimeQ[4+2I, 6+3I]
-     = True
-
-    >> CoprimeQ[2, 3, 5]
-     = True
-
-    >> CoprimeQ[2, 4, 5]
-     = False
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED
-    summary_text = "test whether elements are coprime"
-
-    def eval(self, args, evaluation: Evaluation):
-        "CoprimeQ[args__]"
-
-        py_args = [arg.to_python() for arg in args.get_sequence()]
-        if not all(isinstance(i, int) or isinstance(i, complex) for i in py_args):
-            return SymbolFalse
-
-        if all(sympy.gcd(n, m) == 1 for (n, m) in combinations(py_args, 2)):
-            return SymbolTrue
-        else:
-            return SymbolFalse
 
 
 class Divisible(Builtin):
@@ -141,34 +90,11 @@ class Divisible(Builtin):
     summary_text = "test whether one number is divisible by the other"
 
 
-class EvenQ(Test):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/EvenQ.html</url>
-
-    <dl>
-      <dt>'EvenQ[$x$]'
-      <dd>returns 'True' if $x$ is even, and 'False' otherwise.
-    </dl>
-
-    >> EvenQ[4]
-     = True
-    >> EvenQ[-3]
-     = False
-    >> EvenQ[n]
-     = False
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED
-    summary_text = "test whether one number is divisible by the other"
-
-    def test(self, n):
-        value = n.get_int_value()
-        return value is not None and value % 2 == 0
-
-
 class GCD(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/GCD.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/GCD.html</url>
 
     <dl>
       <dt>'GCD[$n1$, $n2$, ...]'
@@ -311,29 +237,6 @@ class ModularInverse(SympyFunction):
         return Integer(r)
 
 
-class OddQ(Test):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/OddQ.html</url>
-
-    <dl>
-      <dt>'OddQ[$x$]'
-      <dd>returns 'True' if $x$ is odd, and 'False' otherwise.
-    </dl>
-
-    >> OddQ[-3]
-     = True
-    >> OddQ[0]
-     = False
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED
-    summary_text = "test whether elements are odd numbers"
-
-    def test(self, n):
-        value = n.get_int_value()
-        return value is not None and value % 2 != 0
-
-
 class PowerMod(Builtin):
     """
     Modular exponentiaion.
@@ -382,60 +285,6 @@ class PowerMod(Builtin):
                 evaluation.message("PowerMod", "ninv", a_int, m_int)
                 return
         return Integer(pow(a, b, m))
-
-
-class PrimeQ(SympyFunction):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/PrimeQ.html</url>
-
-    <dl>
-      <dt>'PrimeQ[$n$]'
-      <dd>returns 'True' if $n$ is a prime number.
-    </dl>
-
-    For very large numbers, 'PrimeQ' uses probabilistic prime testing, so it might be wrong sometimes
-    (a number might be composite even though 'PrimeQ' says it is prime).
-    The algorithm might be changed in the future.
-
-    >> PrimeQ[2]
-     = True
-    >> PrimeQ[-3]
-     = True
-    >> PrimeQ[137]
-     = True
-    >> PrimeQ[2 ^ 127 - 1]
-     = True
-
-    #> PrimeQ[1]
-     = False
-    #> PrimeQ[2 ^ 255 - 1]
-     = False
-
-    All prime numbers between 1 and 100:
-    >> Select[Range[100], PrimeQ]
-     = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97}
-
-    'PrimeQ' has attribute 'Listable':
-    >> PrimeQ[Range[20]]
-     = {False, True, True, False, True, False, True, False, False, False, True, False, True, False, False, False, True, False, True, False}
-    """
-
-    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
-    sympy_name = "isprime"
-    summary_text = "test whether elements are prime numbers"
-
-    def eval(self, n, evaluation: Evaluation):
-        "PrimeQ[n_]"
-
-        n = n.get_int_value()
-        if n is None:
-            return SymbolFalse
-
-        n = abs(n)
-        if sympy.isprime(n):
-            return SymbolTrue
-        else:
-            return SymbolFalse
 
 
 class Quotient(Builtin):

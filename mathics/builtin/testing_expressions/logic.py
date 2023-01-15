@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Logic and Boolean Algrebra
+Logical Combinations
 """
 from mathics.algorithm.parts import python_levelspec, walk_levels
 from mathics.builtin.base import BinaryOperator, Builtin, Predefined, PrefixOperator

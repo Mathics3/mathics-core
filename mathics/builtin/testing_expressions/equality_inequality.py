@@ -1,15 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Testing Expressions
-
-There are a number of functions for testing Expressions.
-
-Functions that "ask a question" have names that end in "Q". \
-They return 'True' for an explicit answer, and 'False' otherwise.
+Equality and Inequality
 """
-
-# This tells documentation how to sort this module
-sort_order = "mathics.builtin.testing-expressions"
 
 from typing import Any, Optional
 
@@ -17,19 +9,9 @@ import sympy
 
 from mathics.builtin.base import BinaryOperator, Builtin, SympyFunction
 from mathics.builtin.numbers.constants import mp_convert_constant
-from mathics.core.atoms import (
-    COMPARE_PREC,
-    Complex,
-    Integer,
-    Integer0,
-    Integer1,
-    IntegerM1,
-    Number,
-    String,
-)
+from mathics.core.atoms import COMPARE_PREC, Integer, Integer1, Number, String
 from mathics.core.attributes import (
     A_FLAT,
-    A_LISTABLE,
     A_NUMERIC_FUNCTION,
     A_ONE_IDENTITY,
     A_ORDERLESS,
@@ -43,13 +25,16 @@ from mathics.core.systemsymbols import (
     SymbolAnd,
     SymbolComplexInfinity,
     SymbolDirectedInfinity,
+    SymbolExactNumberQ,
     SymbolInequality,
     SymbolInfinity,
+    SymbolMaxExtraPrecision,
     SymbolMaxPrecision,
     SymbolSign,
 )
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
+from mathics.eval.testing_expressions import do_cmp, do_cplx_equal, is_number
 
 operators = {
     "System`Less": (-1,),
@@ -59,108 +44,6 @@ operators = {
     "System`Greater": (1,),
     "System`Unequal": (-1, 1),
 }
-
-SymbolExactNumberQ = Symbol("ExactNumberQ")
-SymbolMaxExtraPrecision = Symbol("$MaxExtraPrecision")
-
-
-def cmp(a, b) -> int:
-    "Returns 0 if a == b, -1 if a < b and 1 if a > b"
-    return (a > b) - (a < b)
-
-
-def do_cmp(x1, x2) -> Optional[int]:
-
-    # don't attempt to compare complex numbers
-    for x in (x1, x2):
-        # TODO: Send message General::nord
-        if isinstance(x, Complex) or (
-            x.has_form("DirectedInfinity", 1) and isinstance(x.elements[0], Complex)
-        ):
-            return None
-
-    s1 = x1.to_sympy()
-    s2 = x2.to_sympy()
-
-    # Use internal comparisons only for Real which is uses
-    # WL's interpretation of equal (which allows for slop
-    # in the least significant digit of precision), and use
-    # use sympy for everything else
-    if s1.is_Float and s2.is_Float:
-        if x1 == x2:
-            return 0
-        if x1 < x2:
-            return -1
-        return 1
-
-    # we don't want to compare anything that
-    # cannot be represented as a numeric value
-    if s1.is_number and s2.is_number:
-        if s1 == s2:
-            return 0
-        if s1 < s2:
-            return -1
-        return 1
-
-    return None
-
-
-def do_cplx_equal(x, y) -> Optional[int]:
-    if isinstance(y, Complex):
-        x, y = y, x
-    if isinstance(x, Complex):
-        if isinstance(y, Complex):
-            c = do_cmp(x.real, y.real)
-            if c is None:
-                return
-            if c != 0:
-                return False
-            c = do_cmp(x.imag, y.imag)
-            if c is None:
-                return
-            if c != 0:
-                return False
-            else:
-                return True
-        else:
-            c = do_cmp(x.imag, Integer0)
-            if c is None:
-                return
-            if c != 0:
-                return False
-            c = do_cmp(x.real, y.real)
-            if c is None:
-                return
-            if c != 0:
-                return False
-            else:
-                return True
-    c = do_cmp(x, y)
-    if c is None:
-        return None
-    return c == 0
-
-
-def expr_max(elements):
-    result = Expression(SymbolDirectedInfinity, IntegerM1)
-    for element in elements:
-        c = do_cmp(element, result)
-        if c > 0:
-            result = element
-    return result
-
-
-def expr_min(elements):
-    result = Expression(SymbolDirectedInfinity, Integer1)
-    for element in elements:
-        c = do_cmp(element, result)
-        if c < 0:
-            result = element
-    return result
-
-
-def is_number(sympy_value) -> bool:
-    return hasattr(sympy_value, "is_number") or isinstance(sympy_value, sympy.Float)
 
 
 class _InequalityOperator(BinaryOperator):
@@ -834,114 +717,6 @@ class Min(_MinMax):
 
     sense = -1
     summary_text = "the minimum value"
-
-
-class Negative(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Negative.html</url>
-
-    <dl>
-      <dt>'Negative[$x$]'
-      <dd>returns 'True' if $x$ is a negative real number.
-    </dl>
-    >> Negative[0]
-     = False
-    >> Negative[-3]
-     = True
-    >> Negative[10/7]
-     = False
-    >> Negative[1+2I]
-     = False
-    >> Negative[a + b]
-     = Negative[a + b]
-    #> Negative[-E]
-     = True
-    #> Negative[Sin[{11, 14}]]
-     = {True, False}
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED
-
-    rules = {
-        "Negative[x_?NumericQ]": "If[x < 0, True, False, False]",
-    }
-    summary_text = "test whether an expression is a negative number"
-
-
-class NonNegative(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/NonNegative.html</url>
-
-    <dl>
-      <dt>'NonNegative[$x$]'
-      <dd>returns 'True' if $x$ is a positive real number or zero.
-    </dl>
-
-    >> {Positive[0], NonNegative[0]}
-     = {False, True}
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED
-
-    rules = {
-        "NonNegative[x_?NumericQ]": "If[x >= 0, True, False, False]",
-    }
-    summary_text = "test whether an expression is a non-negative number"
-
-
-class NonPositive(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/NonPositive.html</url>
-
-    <dl>
-      <dt>'NonPositive[$x$]'
-      <dd>returns 'True' if $x$ is a negative real number or zero.
-    </dl>
-
-    >> {Negative[0], NonPositive[0]}
-     = {False, True}
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED
-
-    rules = {
-        "NonPositive[x_?NumericQ]": "If[x <= 0, True, False, False]",
-    }
-    summary_text = "test whether an expression is a non-positive number"
-
-
-class Positive(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Positive.html</url>
-
-    <dl>
-      <dt>'Positive[$x$]'
-      <dd>returns 'True' if $x$ is a positive real number.
-    </dl>
-
-    >> Positive[1]
-     = True
-
-    'Positive' returns 'False' if $x$ is zero or a complex number:
-    >> Positive[0]
-     = False
-    >> Positive[1 + 2 I]
-     = False
-
-    #> Positive[Pi]
-     = True
-    #> Positive[x]
-     = Positive[x]
-    #> Positive[Sin[{11, 14}]]
-     = {False, True}
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED
-
-    rules = {
-        "Positive[x_?NumericQ]": "If[x > 0, True, False, False]",
-    }
-    summary_text = "test whether an expression is a positive number"
 
 
 class SameQ(_ComparisonOperator):

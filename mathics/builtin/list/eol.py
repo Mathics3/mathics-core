@@ -47,6 +47,7 @@ from mathics.core.systemsymbols import (
     SymbolSequence,
     SymbolSet,
 )
+from mathics.eval.patterns import Matcher
 
 SymbolAppendTo = Symbol("System`AppendTo")
 SymbolDeleteCases = Symbol("System`DeleteCases")
@@ -219,8 +220,6 @@ class Cases(Builtin):
         if isinstance(items, Atom):
             return ListExpression()
 
-        from mathics.builtin.patterns import Matcher
-
         if ls.has_form("Rule", 2):
             if ls.elements[0].get_name() == "System`Heads":
                 heads = ls.elements[1] is SymbolTrue
@@ -355,7 +354,6 @@ class DeleteCases(Builtin):
         if levelspec[0] != 1 or levelspec[1] != 1:
             return deletecases_with_levelspec(items, pattern, evaluation, levelspec, n)
         # A more efficient way to proceed if levelspec == 1
-        from mathics.builtin.patterns import Matcher
 
         match = Matcher(pattern).match
         if n == -1:
@@ -791,32 +789,6 @@ class Length(Builtin):
             return Integer(len(expr.elements))
 
 
-class MemberQ(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/MemberQ.html</url>
-
-    <dl>
-      <dt>'MemberQ[$list$, $pattern$]'
-      <dd>returns 'True' if $pattern$ matches any element of $list$, or 'False' otherwise.
-    </dl>
-
-    >> MemberQ[{a, b, c}, b]
-     = True
-    >> MemberQ[{a, b, c}, d]
-     = False
-    >> MemberQ[{"a", b, f[x]}, _?NumericQ]
-     = False
-    >> MemberQ[_List][{{}}]
-     = True
-    """
-
-    rules = {
-        "MemberQ[list_, pattern_]": ("Length[Select[list, MatchQ[#, pattern]&]] > 0"),
-        "MemberQ[pattern_][expr_]": "MemberQ[expr, pattern]",
-    }
-    summary_text = "test whether an element is a member of a list"
-
-
 class Most(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Most.html</url>
@@ -1073,7 +1045,6 @@ class Pick(Builtin):
 
     def eval_pattern(self, items, sel, pattern, evaluation):
         "Pick[items_, sel_, pattern_]"
-        from mathics.builtin.patterns import Matcher
 
         match = Matcher(pattern).match
         return self._do(items, sel, lambda s: match(s, evaluation), evaluation)
@@ -1127,8 +1098,6 @@ class Position(Builtin):
             start, stop = python_levelspec(ls)
         except InvalidLevelspecError:
             return evaluation.message("Position", "level", ls)
-
-        from mathics.builtin.patterns import Matcher
 
         match = Matcher(patt).match
         result = []

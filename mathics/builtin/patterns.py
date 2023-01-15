@@ -65,10 +65,8 @@ from mathics.core.expression import Expression, SymbolVerbatim
 from mathics.core.list import ListExpression
 from mathics.core.pattern import Pattern, StopGenerator
 from mathics.core.rules import Rule
-from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
-from mathics.core.systemsymbols import SymbolBlank, SymbolDispatch
-
-SymbolDefault = Symbol("Default")
+from mathics.core.symbols import Atom, Symbol, SymbolList, SymbolTrue
+from mathics.core.systemsymbols import SymbolBlank, SymbolDefault, SymbolDispatch
 
 
 class Rule_(BinaryOperator):
@@ -828,71 +826,11 @@ class Except(PatternObject):
             self.p.match(yield_func, expression, vars, evaluation)
 
 
-class _StopGeneratorMatchQ(StopGenerator):
-    pass
-
-
-class Matcher:
-    def __init__(self, form):
-        if isinstance(form, Pattern):
-            self.form = form
-        else:
-            self.form = Pattern.create(form)
-
-    def match(self, expr, evaluation: Evaluation):
-        def yield_func(vars, rest):
-            raise _StopGeneratorMatchQ(True)
-
-        try:
-            self.form.match(yield_func, expr, {}, evaluation)
-        except _StopGeneratorMatchQ:
-            return True
-        return False
-
-
-def match(expr, form, evaluation: Evaluation):
-    return Matcher(form).match(expr, evaluation)
-
-
-class MatchQ(Builtin):
-    """
-
-    <url>:WMA link:https://reference.wolfram.com/language/ref/MatchQ.html</url>
-
-    <dl>
-      <dt>'MatchQ[$expr$, $form$]'
-      <dd>tests whether $expr$ matches $form$.
-    </dl>
-
-    >> MatchQ[123, _Integer]
-     = True
-    >> MatchQ[123, _Real]
-     = False
-    >> MatchQ[_Integer][123]
-     = True
-    >> MatchQ[3, Pattern[3]]
-     : First element in pattern Pattern[3] is not a valid pattern name.
-     = False
-    """
-
-    rules = {"MatchQ[form_][expr_]": "MatchQ[expr, form]"}
-    summary_text = "test whether an expression matches a pattern"
-
-    def eval(self, expr, form, evaluation: Evaluation):
-        "MatchQ[expr_, form_]"
-
-        try:
-            if match(expr, form, evaluation):
-                return SymbolTrue
-            return SymbolFalse
-        except PatternError as e:
-            evaluation.message(e.name, e.tag, *(e.args))
-            return SymbolFalse
-
-
 class Verbatim(PatternObject):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Verbatim.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Verbatim.html</url>
 
     <dl>
       <dt>'Verbatim[$expr$]'

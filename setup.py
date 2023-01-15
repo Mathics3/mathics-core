@@ -198,6 +198,7 @@ setup(
         "mathics.builtin.specialfns",
         "mathics.builtin.statistics",
         "mathics.builtin.string",
+        "mathics.builtin.testing_expressions",
         "mathics.builtin.vectors",
         "mathics.eval",
         "mathics.doc",

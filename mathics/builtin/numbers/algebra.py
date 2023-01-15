@@ -63,6 +63,7 @@ from mathics.core.systemsymbols import (
     SymbolTanh,
 )
 from mathics.eval.numbers import cancel, sympy_factor
+from mathics.eval.patterns import match
 
 
 def expand(expr, numer=True, denom=False, deep=False, **kwargs):
@@ -553,7 +554,6 @@ class _CoefficientHandler(Builtin):
         """
         This method returns a list of terms grouped by different powers of the expressions in var_expr.
         """
-        from mathics.builtin.patterns import match
 
         if len(var_exprs) == 0:
             if form == "expr":

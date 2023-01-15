@@ -35,7 +35,7 @@ from mathics.core.atoms import (
     Real,
 )
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
-from mathics.core.convert.python import from_bool, from_python
+from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps, machine_epsilon, machine_precision
@@ -448,55 +448,6 @@ class InexactNumberQ(Test):
 
     def test(self, expr):
         return isinstance(expr, Number) and expr.is_inexact()
-
-
-class IntegerQ(Test):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/IntegerQ.html</url>
-
-    <dl>
-      <dt>'IntegerQ[$expr$]'
-      <dd>returns 'True' if $expr$ is an integer, and 'False' otherwise.
-    </dl>
-
-    >> IntegerQ[3]
-     = True
-    >> IntegerQ[Pi]
-     = False
-    """
-
-    summary_text = "test whether an expression is an integer"
-
-    def test(self, expr):
-        return isinstance(expr, Integer)
-
-
-class MachineNumberQ(Test):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/MachineNumberQ.html</url>
-
-    <dl>
-      <dt>'MachineNumberQ[$expr$]'
-      <dd>returns 'True' if $expr$ is a machine-precision real or complex number.
-    </dl>
-
-     = True
-    >> MachineNumberQ[3.14159265358979324]
-     = False
-    >> MachineNumberQ[1.5 + 2.3 I]
-     = True
-    >> MachineNumberQ[2.71828182845904524 + 3.14159265358979324 I]
-     = False
-    #> MachineNumberQ[1.5 + 3.14159265358979324 I]
-     = True
-    #> MachineNumberQ[1.5 + 5 I]
-     = True
-    """
-
-    summary_text = "test if expression is a machine‐precision real or complex number"
-
-    def test(self, expr):
-        return expr.is_machine_precision()
 
 
 class RealDigits(Builtin):
@@ -956,57 +907,6 @@ class MinPrecision(Builtin):
     }
 
     summary_text = "settable global minimum precision bound"
-
-
-class NumericQ(Builtin):
-    """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/NumericQ.html</url>
-
-    <dl>
-      <dt>'NumericQ[$expr$]'
-      <dd>tests whether $expr$ represents a numeric quantity.
-    </dl>
-
-    >> NumericQ[2]
-     = True
-    >> NumericQ[Sqrt[Pi]]
-     = True
-    >> NumberQ[Sqrt[Pi]]
-     = False
-
-    It is possible to set that a symbol is numeric or not by assign a boolean value
-    to ``NumericQ``
-    >> NumericQ[a]=True
-     = True
-    >> NumericQ[a]
-     = True
-    >> NumericQ[Sin[a]]
-     = True
-
-    Clear and ClearAll do not restore the default value.
-
-    >> Clear[a]; NumericQ[a]
-     = True
-    >> ClearAll[a]; NumericQ[a]
-     = True
-    >> NumericQ[a]=False; NumericQ[a]
-     = False
-    NumericQ can only set to True or False
-    >> NumericQ[a] = 37
-     : Cannot set NumericQ[a] to 37; the lhs argument must be a symbol and the rhs must be True or False.
-     = 37
-    """
-
-    messages = {
-        "argx": "NumericQ called with `1` arguments; 1 argument is expected.",
-        "set": "Cannot set `1` to `2`; the lhs argument must be a symbol and the rhs must be True or False.",
-    }
-    summary_text = "test whether an expression is a number"
-
-    def eval(self, expr, evaluation):
-        "NumericQ[expr_]"
-        return from_bool(expr.is_numeric(evaluation))
 
 
 class Precision(Builtin):

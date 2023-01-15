@@ -206,6 +206,7 @@ for subdir in (
     "specialfns",
     "statistics",
     "string",
+    "testing_expressions",
     "vectors",
 ):
     import_name = f"{__name__}.{subdir}"

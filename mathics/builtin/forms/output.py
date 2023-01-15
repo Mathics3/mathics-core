@@ -17,7 +17,6 @@ from typing import Optional
 
 from mathics.builtin.base import Builtin
 from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
-from mathics.builtin.comparison import expr_min
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.builtin.makeboxes import MakeBoxes, number_form
 from mathics.builtin.tensors import get_dimensions
@@ -53,6 +52,7 @@ from mathics.core.systemsymbols import (
     SymbolSuperscriptBox,
 )
 from mathics.eval.makeboxes import StringLParen, StringRParen, format_element
+from mathics.eval.testing_expressions import expr_min
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
