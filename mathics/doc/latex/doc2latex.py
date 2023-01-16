@@ -108,7 +108,7 @@ def write_latex(
         )
         content = content.encode("utf-8")
         doc.write(content)
-    DOC_VERSION_FILE = osp.join(osp.dirname(DOC_LATEX_DIR), "version-info.tex")
+    DOC_VERSION_FILE = osp.join(DOC_LATEX_DIR, "version-info.tex")
     if not quiet:
         print(f"Writing Mathics Core Version Information to {DOC_VERSION_FILE}")
     with open(DOC_VERSION_FILE, "w") as doc:
