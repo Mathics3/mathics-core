@@ -282,8 +282,13 @@
 
 \input{documentation.tex}
 
+\part*{Appendices}
 \printindex
 \begin{colophon}
+% Add this into table of contents
+% The page reference may come out wrong and refer to the index.
+% If so, adjust by hand, or diff file.
+\addcontentsline{toc}{chapter}{Colophon}
 \begin{description}
   \item[Mathics3 Core] \hfill \\ \MathicsCoreVersion
   \item[Python] \hfill \\ \PythonVersion
