@@ -95,7 +95,8 @@ class ImageBox(BoxExpression):
     def boxes_to_tex(self, elements=None, **options):
         data, size = self.boxes_to_png(elements, **options)
         res = 100  # pixels/cm
-        head = rf"\includegraphics[width={size[0]/res}, height={size[1]/res}]"
+        width_str, height_str = (str(n / res).strip() for n in size)
+        head = rf"\includegraphics[width={width_str}cm,height={height_str}cm]"
 
         # This produces a random name, where the png file is going to be stored.
         # LaTeX does not have a native way to store an figure embeded in
