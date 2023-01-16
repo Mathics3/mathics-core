@@ -1,12 +1,9 @@
-import base64
-from copy import deepcopy
-from io import BytesIO
 from typing import Tuple
 
 from mathics.builtin.base import AtomBuiltin, String
 from mathics.builtin.box.image import ImageBox
 from mathics.builtin.colors.color_internals import convert_color
-from mathics.core.atoms import Atom, Integer
+from mathics.core.atoms import Atom
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -17,8 +14,6 @@ _skimage_requires = ("skimage", "scipy", "matplotlib", "networkx")
 
 
 try:
-    import warnings
-
     import numpy
     import PIL
     import PIL.Image
@@ -91,51 +86,7 @@ class Image(Atom):
         """
         Converts our internal Image object into a PNG base64-encoded.
         """
-        pixels = pixels_as_ubyte(self.color_convert("RGB", True).pixels)
-        shape = pixels.shape
-
-        width = shape[1]
-        height = shape[0]
-        scaled_width = width
-        scaled_height = height
-
-        # If the image was created from PIL, use that rather than
-        # reconstruct it from pixels which we can get wrong.
-        # In particular getting color-mapping info right can be
-        # tricky.
-        if hasattr(self, "pillow"):
-            pillow = deepcopy(self.pillow)
-        else:
-            pixels_format = "RGBA" if len(shape) >= 3 and shape[2] == 4 else "RGB"
-            pillow = PIL.Image.fromarray(pixels, pixels_format)
-
-        # if the image is very small, scale it up using nearest neighbour.
-        min_size = 128
-        if width < min_size and height < min_size:
-            scale = min_size / max(width, height)
-            scaled_width = int(scale * width)
-            scaled_height = int(scale * height)
-            pillow = pillow.resize(
-                (scaled_height, scaled_width), resample=PIL.Image.NEAREST
-            )
-
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-
-            stream = BytesIO()
-            pillow.save(stream, format="png")
-            stream.seek(0)
-            contents = stream.read()
-            stream.close()
-
-        encoded = base64.b64encode(contents)
-        encoded = b"data:image/png;base64," + encoded
-
-        return ImageBox(
-            String(encoded.decode("utf-8")),
-            Integer(scaled_width),
-            Integer(scaled_height),
-        )
+        return ImageBox(self)
 
     # __hash__ is defined so that we can store Number-derived objects
     # in a set or dictionary.

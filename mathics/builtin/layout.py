@@ -96,8 +96,6 @@ class Grid(Builtin):
      = a
      .
      . b
-     . 
-     . c 
      .
      . c
 
