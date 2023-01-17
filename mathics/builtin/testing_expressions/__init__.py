@@ -1,5 +1,5 @@
 """
-Testing Expresssions
+Testing Expressions
 
 
 There are a number of functions for testing Expressions.
