@@ -228,9 +228,17 @@ class TextRecognize(Builtin):
     https://reference.wolfram.com/language/ref/TextRecognize.html</url>
 
     <dl>
-      <dt>'TextRecognize[{$image$}]'
-      <dd>Recognizes text in $image$ and returns it as string.
+      <dt>'TextRecognize[$image$]'
+      <dd>Recognizes text in $image$ and returns it as a 'String'.
     </dl>
+
+    >> textimage = Import["ExampleData/TextRecognize.png"]
+     = -Image-
+
+    >> TextRecognize[textimage]
+     = TextRecognize[ image]
+     .
+     . Recognizes text in image and returns it as a String.
     """
 
     messages = {
@@ -241,7 +249,7 @@ class TextRecognize(Builtin):
 
     options = {"Language": '"English"'}
 
-    requires = "pyocr"
+    requires = ("pyocr",)
 
     summary_text = "recognize text in an image"
 
