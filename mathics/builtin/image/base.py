@@ -16,9 +16,6 @@ _skimage_requires = ("skimage", "scipy", "matplotlib", "networkx")
 import numpy
 import PIL
 import PIL.Image
-import PIL.ImageEnhance
-import PIL.ImageFilter
-import PIL.ImageOps
 
 
 def _image_pixels(matrix):
