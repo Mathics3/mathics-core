@@ -24,7 +24,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        brew install llvm@11
+        brew install llvm@11 tesseract
         python -m pip install --upgrade pip
         LLVM_CONFIG=/usr/local/Cellar/llvm@11/11.1.0/bin/llvm-config pip install llvmlite
         # We can comment out after next Mathics-Scanner release

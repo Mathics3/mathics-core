@@ -23,7 +23,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install wheel
-        choco install llvm
+        choco install llvm tesseract
         set LLVM_DIR="C:\Program Files\LLVM"
         # We can comment out after next Mathics-Scanner release
         python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
