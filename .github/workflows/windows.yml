@@ -39,6 +39,7 @@ jobs:
       #     we needs some CI that tests running when packages aren't available
       # So "dev" only below, not "dev,full".
       run: |
+        pip install pyocr # from full
         pip install -e .[dev]
         set PYTEST_WORKERS="-n3"
         make check
