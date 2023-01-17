@@ -80,6 +80,16 @@ LATEX_TESTOUT_RE = re.compile(
 )
 
 LATEX_TESTOUT_DELIM_RE = re.compile(r", ")
+
+# The goal of the following pattern is to enclose the numbers included in
+# expressions produced by tests between ```\allowbreak{}```. The pattern matches
+# with negative numbers or positive numbers preceded by a space character.
+# To avoid applying the replacement, what is needed if the number is part of a
+# LaTeX parameter (for instance ```\includegraphics[width=5cm]{...}```)
+# the space before the number must be avoided. For example,
+# ```\includegraphics[width= 5cm]{...}``` must be rewritten as
+# \includegraphics[width=\allowbreak{}5\allowbreak{}cm]{...} which is not a valid
+# LaTeX command.
 NUMBER_RE = re.compile(r"([ -])(\d*(?<!\.)\.\d+|\d+\.(?!\.)\d*|\d+)")
 OUTSIDE_ASY_RE = re.compile(r"(?s)((?:^|\\end\{asy\}).*?(?:$|\\begin\{asy\}))")
 

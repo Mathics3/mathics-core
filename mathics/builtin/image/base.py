@@ -13,16 +13,12 @@ from mathics.eval.image import pixels_as_float, pixels_as_ubyte
 _skimage_requires = ("skimage", "scipy", "matplotlib", "networkx")
 
 
-try:
-    import numpy
-    import PIL
-    import PIL.Image
-    import PIL.ImageEnhance
-    import PIL.ImageFilter
-    import PIL.ImageOps
-
-except ImportError:
-    pass
+import numpy
+import PIL
+import PIL.Image
+import PIL.ImageEnhance
+import PIL.ImageFilter
+import PIL.ImageOps
 
 
 def _image_pixels(matrix):
