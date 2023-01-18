@@ -771,13 +771,7 @@ class MathicsMainDocumentation(Documentation):
                 title, text = get_module_doc(module)
                 chapter = DocChapter(builtin_part, title, XMLDoc(text, title, None))
                 builtins = builtins_by_module[module.__name__]
-                # FIXME: some Box routines, like RowBox *are*
-                # documented
-                sections = [
-                    builtin
-                    for builtin in builtins
-                    if not builtin.__class__.__name__.endswith("Box")
-                ]
+                sections = [builtin for builtin in builtins]
                 if module.__file__.endswith("__init__.py"):
                     # We have a Guide Section.
                     name = get_doc_name_from_module(module)
@@ -823,6 +817,9 @@ class MathicsMainDocumentation(Documentation):
                             if not builtin.__class__.__name__.endswith("Box")
                         ]
                         for instance in subsections:
+                            if hasattr(instance, "no_doc") and instance.no_doc:
+                                continue
+
                             modules_seen.add(instance)
                             name = instance.get_name(short=True)
                             self.add_subsection(
@@ -835,7 +832,9 @@ class MathicsMainDocumentation(Documentation):
                             )
                 else:
                     for instance in sections:
-                        if instance not in modules_seen:
+                        if instance not in modules_seen and (
+                            not hasattr(instance, "no_doc") or not instance.no_doc
+                        ):
                             name = instance.get_name(short=True)
                             self.add_section(
                                 chapter,

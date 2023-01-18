@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Boxing Routines for 3D Graphics
+Boxing Symbols for 3D Graphics
 """
 
 import json
@@ -29,18 +29,18 @@ from mathics.eval.nevaluator import eval_N
 class Graphics3DBox(GraphicsBox):
     """
     <dl>
-      <dt>'Graphics3DBox[{...}]'
-      <dd>a box structure for Graphics3D elements.
+      <dt>'Graphics3DBox'
+      <dd>is the symbol used in boxing 'Graphics3D' expressions.
     </dl>
-    Routines which get called when Boxing (adding formatting and bounding-box information)
-    a Graphics3D object.
     """
 
-    def _prepare_elements(self, leaves, options, max_width=None):
-        if not leaves:
+    summary_text = "symbol used boxing Graphics3D expresssions"
+
+    def _prepare_elements(self, elements, options, max_width=None):
+        if not elements:
             raise BoxExpressionError
 
-        self.graphics_options = self.get_option_values(leaves[1:], **options)
+        self.graphics_options = self.get_option_values(elements[1:], **options)
 
         background = self.graphics_options["System`Background"]
         if (
@@ -224,7 +224,7 @@ class Graphics3DBox(GraphicsBox):
         if not isinstance(plot_range, list) or len(plot_range) != 3:
             raise BoxExpressionError
 
-        elements = Graphics3DElements(leaves[0], evaluation)
+        elements = Graphics3DElements(elements[0], evaluation)
 
         def calc_dimensions(final_pass=True):
             if "System`Automatic" in plot_range:
@@ -475,6 +475,9 @@ class Graphics3DBox(GraphicsBox):
 
 
 class Arrow3DBox(ArrowBox):
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(self, *args, **kwargs):
         super(Arrow3DBox, self).init(*args, **kwargs)
 
@@ -495,6 +498,9 @@ class Cone3DBox(_GraphicsElementBox):
     # """
     # Internal Python class used when Boxing a 'Cone' object.
     # """
+
+    # We have no documentation for this (yet).
+    no_doc = True
 
     def init(self, graphics, style, item):
         self.edge_color, self.face_color = style.get_style(
@@ -544,6 +550,9 @@ class Cuboid3DBox(_GraphicsElementBox):
     # Internal Python class used when Boxing a 'Cuboid' object.
     # """
 
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(self, graphics, style, item):
         self.edge_color, self.face_color = style.get_style(
             _ColorObject, face_element=True
@@ -575,6 +584,9 @@ class Cylinder3DBox(_GraphicsElementBox):
     # """
     # Internal Python class used when Boxing a 'Cylinder' object.
     # """
+
+    # We have no documentation for this (yet).
+    no_doc = True
 
     def init(self, graphics, style, item):
         self.edge_color, self.face_color = style.get_style(
@@ -622,6 +634,9 @@ class Cylinder3DBox(_GraphicsElementBox):
 class Line3DBox(LineBox):
     # summary_text = "box representation for a 3D line"
 
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(self, *args, **kwargs):
         super(Line3DBox, self).init(*args, **kwargs)
 
@@ -640,6 +655,9 @@ class Line3DBox(LineBox):
 
 class Point3DBox(PointBox):
     # summary_text = "box representation for a 3D point"
+
+    # We have no documentation for this (yet).
+    no_doc = True
 
     def get_default_face_color(self):
         return RGBColor(components=(0, 0, 0, 1))
@@ -669,6 +687,9 @@ class Point3DBox(PointBox):
 class Polygon3DBox(PolygonBox):
     # summary_text = "box representation for a 3D polygon"
 
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(self, *args, **kwargs):
         self.vertex_normals = None
         super(Polygon3DBox, self).init(*args, **kwargs)
@@ -692,6 +713,9 @@ class Polygon3DBox(PolygonBox):
 
 class Sphere3DBox(_GraphicsElementBox):
     # summary_text = "box representation for a sphere"
+
+    # We have no documentation for this (yet).
+    no_doc = True
 
     def init(self, graphics, style, item):
         self.edge_color, self.face_color = style.get_style(
@@ -738,6 +762,9 @@ class Sphere3DBox(_GraphicsElementBox):
 
 class Tube3DBox(_GraphicsElementBox):
     # summary_text = "box representation for a tube"
+
+    # We have no documentation for this (yet).
+    no_doc = True
 
     def init(self, graphics, style, item):
         self.graphics = graphics
