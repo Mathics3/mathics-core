@@ -7,7 +7,6 @@ The functions here are the basic arithmetic operations that you might find on a 
 """
 
 
-import mpmath
 import sympy
 
 from mathics.builtin.arithmetic import _MPMathFunction, create_infix
@@ -37,11 +36,10 @@ from mathics.core.attributes import (
     A_READ_PROTECTED,
 )
 from mathics.core.convert.expression import to_expression
-from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.expression import ElementsProperties, Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import dps, min_prec
+from mathics.core.number import min_prec
 from mathics.core.symbols import (
     Symbol,
     SymbolDivide,
@@ -52,7 +50,6 @@ from mathics.core.symbols import (
     SymbolTimes,
 )
 from mathics.core.systemsymbols import (
-    SymbolAccuracy,
     SymbolBlank,
     SymbolComplexInfinity,
     SymbolDirectedInfinity,
@@ -64,6 +61,7 @@ from mathics.core.systemsymbols import (
     SymbolPattern,
     SymbolSequence,
 )
+from mathics.eval.arithmetic import eval_add_numbers, eval_multiply_numbers
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 
@@ -431,24 +429,7 @@ class Plus(BinaryOperator, SympyFunction):
         append_last()
 
         if numbers:
-            if prec is not None:
-                if is_machine_precision:
-                    numbers = [item.to_mpmath() for item in numbers]
-                    number = mpmath.fsum(numbers)
-                    number = from_mpmath(number)
-                else:
-                    # For a sum, what is relevant is the minimum accuracy of the terms
-                    acc = (
-                        Expression(SymbolAccuracy, ListExpression(items))
-                        .evaluate(evaluation)
-                        .to_python()
-                    )
-                    with mpmath.workprec(prec):
-                        numbers = [item.to_mpmath() for item in numbers]
-                        number = mpmath.fsum(numbers)
-                        number = from_mpmath(number, acc=acc)
-            else:
-                number = from_sympy(sum(item.to_sympy() for item in numbers))
+            number = eval_add_numbers(numbers, prec, is_machine_precision)
         else:
             number = Integer0
 
@@ -948,19 +929,7 @@ class Times(BinaryOperator, SympyFunction):
                 elements.append(item)
 
         if numbers:
-            if prec is not None:
-                if is_machine_precision:
-                    numbers = [item.to_mpmath() for item in numbers]
-                    number = mpmath.fprod(numbers)
-                    number = from_mpmath(number)
-                else:
-                    with mpmath.workprec(prec):
-                        numbers = [item.to_mpmath() for item in numbers]
-                        number = mpmath.fprod(numbers)
-                        number = from_mpmath(number, dps(prec))
-            else:
-                number = sympy.Mul(*[item.to_sympy() for item in numbers])
-                number = from_sympy(number)
+            number = eval_multiply_numbers(numbers, prec, is_machine_precision)
         else:
             number = Integer1
 
