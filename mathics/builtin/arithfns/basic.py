@@ -6,7 +6,6 @@ The functions here are the basic arithmetic operations that you might find on a 
 
 """
 
-
 import sympy
 
 from mathics.builtin.arithmetic import _MPMathFunction, create_infix
@@ -39,7 +38,6 @@ from mathics.core.convert.expression import to_expression
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.expression import ElementsProperties, Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import min_prec
 from mathics.core.symbols import (
     Symbol,
     SymbolDivide,
@@ -379,9 +377,6 @@ class Plus(BinaryOperator, SympyFunction):
         items_tuple = numerify(items, evaluation).get_sequence()
         elements = []
         last_item = last_count = None
-
-        prec = min_prec(*items_tuple)
-        is_machine_precision = any(item.is_machine_precision() for item in items_tuple)
         numbers = []
 
         def append_last():
@@ -428,21 +423,21 @@ class Plus(BinaryOperator, SympyFunction):
                     last_count = count
         append_last()
 
-        if numbers:
-            number = eval_add_numbers(numbers, prec, is_machine_precision)
-        else:
-            number = Integer0
-
-        if not number.sameQ(Integer0):
-            elements.insert(0, number)
-
+        number = eval_add_numbers(numbers)
         if not elements:
-            return Integer0
+            return number
+
+        if number is not Integer0:
+            elements.insert(0, number)
         elif len(elements) == 1:
             return elements[0]
-        else:
-            elements.sort()
-            return Expression(SymbolPlus, *elements)
+
+        elements.sort()
+        return Expression(
+            SymbolPlus,
+            *elements,
+            elements_properties=ElementsProperties(False, False, True),
+        )
 
 
 class Power(BinaryOperator, _MPMathFunction):
@@ -875,9 +870,6 @@ class Times(BinaryOperator, SympyFunction):
         numbers = []
         infinity_factor = False
 
-        prec = min_prec(*items)
-        is_machine_precision = any(item.is_machine_precision() for item in items)
-
         # find numbers and simplify Times -> Power
         for item in items:
             if isinstance(item, Number):
@@ -928,10 +920,7 @@ class Times(BinaryOperator, SympyFunction):
             else:
                 elements.append(item)
 
-        if numbers:
-            number = eval_multiply_numbers(numbers, prec, is_machine_precision)
-        else:
-            number = Integer1
+        number = eval_multiply_numbers(numbers)
 
         if number.sameQ(Integer1):
             number = None

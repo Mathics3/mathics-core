@@ -54,10 +54,7 @@ def eval_accuracy(z: BaseElement) -> Optional[float]:
 
     if isinstance(z, Expression):
         elem_accuracies = (eval_accuracy(z_elem) for z_elem in z.elements)
-        try:
-            return min(acc for acc in elem_accuracies if acc is not None)
-        except ValueError:
-            pass
+        return min((acc for acc in elem_accuracies if acc is not None), default=None)
     return None
 
 
@@ -96,9 +93,7 @@ def eval_precision(z: BaseElement) -> Optional[float]:
 
     if isinstance(z, Expression):
         elem_prec = (eval_precision(z_elem) for z_elem in z.elements)
-        candidates = tuple((prec for prec in elem_prec if prec is not None))
-        result = min(candidates)
-        return result
+        return min((prec for prec in elem_prec if prec is not None), default=None)
 
     return None
 

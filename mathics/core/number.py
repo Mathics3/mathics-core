@@ -119,12 +119,10 @@ def prec(dps) -> int:
 
 
 def min_prec(*args):
-    result = None
-    for arg in args:
-        prec = arg.get_precision()
-        if result is None or (prec is not None and prec < result):
-            result = prec
-    return result
+    args_prec = (arg.get_precision() for arg in args)
+    return min(
+        (arg_prec for arg_prec in args_prec if arg_prec is not None), default=None
+    )
 
 
 def pickle_mp(value):
