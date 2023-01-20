@@ -223,7 +223,9 @@ class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
 
 class CMYKColor(_ColorObject):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/CMYKColor.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/CMYKColor.html</url>
 
     <dl>
       <dt>'CMYKColor[$c$, $m$, $y$, $k$]'
@@ -238,6 +240,7 @@ class CMYKColor(_ColorObject):
     color_space = "CMYK"
     components_sizes = [3, 4, 5]
     default_components = [0, 0, 0, 0, 1]
+    summary_text = "specify a CMYK color"
 
 
 class ColorDistance(Builtin):
@@ -278,7 +281,6 @@ class ColorDistance(Builtin):
 
     """
 
-    summary_text = "distance between two colors"
     options = {"DistanceFunction": "Automatic"}
 
     requires = ("numpy",)
@@ -288,6 +290,8 @@ class ColorDistance(Builtin):
         "invarg": "`1` and `2` should be two colors or a color and a lists of colors or "
         + "two lists of colors of the same length.",
     }
+
+    summary_text = "get distance between two colors"
 
     # If numpy is not installed, 100 * c1.to_color_space returns
     # a list of 100 x 3 elements, instead of doing elementwise multiplication
@@ -468,6 +472,8 @@ class GrayLevel(_ColorObject):
     components_sizes = [1, 2]
     default_components = [0, 1]
 
+    summary_text = "specify a Grayscale color"
+
 
 class Hue(_ColorObject):
     """
@@ -499,6 +505,8 @@ class Hue(_ColorObject):
     color_space = "HSB"
     components_sizes = [1, 2, 3, 4]
     default_components = [0, 1, 1, 1]
+
+    summary_text = "specify a color with hue, saturation lightness, and opacity"
 
     def hsl_to_rgba(self) -> tuple:
         h, s, l = self.components[:3]
@@ -548,6 +556,8 @@ class LABColor(_ColorObject):
     components_sizes = [3, 4]
     default_components = [0, 0, 0, 1]
 
+    summary_text = "specify a LAB color"
+
 
 class LCHColor(_ColorObject):
     """
@@ -566,6 +576,8 @@ class LCHColor(_ColorObject):
     components_sizes = [3, 4]
     default_components = [0, 0, 0, 1]
 
+    summary_text = "specify a LHC color"
+
 
 class LUVColor(_ColorObject):
     """
@@ -580,6 +592,8 @@ class LUVColor(_ColorObject):
     color_space = "LUV"
     components_sizes = [3, 4]
     default_components = [0, 0, 0, 1]
+
+    summary_text = "specify a LUV color"
 
 
 class Opacity(_GraphicsDirective):
@@ -619,6 +633,8 @@ class Opacity(_GraphicsDirective):
     def create_as_style(klass, graphics, item):
         return klass(item)
 
+    summary_text = "specify a Opacity level"
+
 
 class RGBColor(_ColorObject):
     """
@@ -649,6 +665,8 @@ class RGBColor(_ColorObject):
     def to_rgba(self):
         return self.components
 
+    summary_text = "specify an RGB color"
+
 
 class XYZColor(_ColorObject):
     """
@@ -665,3 +683,5 @@ class XYZColor(_ColorObject):
     color_space = "XYZ"
     components_sizes = [3, 4]
     default_components = [0, 0, 0, 1]
+
+    summary_text = "specify an XYZ color"

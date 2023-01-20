@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 Boxing Symbols for 2D Graphics
-
 """
+# Docs are not yet ready for prime time. Maybe after release 6.0.0.
+no_doc = True
 
 
 from math import atan2, ceil, cos, degrees, floor, log10, pi, sin

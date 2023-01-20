@@ -2,6 +2,8 @@
 """
 Boxing Symbols for 3D Graphics
 """
+# Docs are not yet ready for prime time. Maybe after release 6.0.0.
+no_doc = True
 
 import json
 import numbers

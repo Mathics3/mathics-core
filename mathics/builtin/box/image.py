@@ -2,6 +2,8 @@
 """
 Boxing Symbol for Raster Images
 """
+# Docs are not yet ready for prime time. Maybe after release 6.0.0.
+no_doc = True
 
 import base64
 import tempfile
@@ -24,8 +26,9 @@ class ImageBox(BoxExpression):
       <dd>is the symbol used in boxing 'Image' expressions.
     </dl>
 
-    summary_text = "symbol used boxing Image expresssions"
     """
+
+    summary_text = "symbol used boxing Image expresssions"
 
     def boxes_to_b64text(
         self, elements: Tuple[BaseElement] = None, **options

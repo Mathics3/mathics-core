@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
 Formatting constructs are represented as a hierarchy of low-level \
 symbolic "boxes".
@@ -8,6 +7,8 @@ The routines here assist in boxing at the bottom of the hierarchy. \
 At the other end, the top level, we have a Notebook which is just a \
 collection of Expressions usually contained in boxes.
 """
+# Docs are not yet ready for prime time. Maybe after release 6.0.0.
+no_doc = True
 
 from mathics.builtin.base import Builtin
 from mathics.builtin.box.expression import BoxExpression
