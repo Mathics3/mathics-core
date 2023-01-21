@@ -91,7 +91,7 @@ class ImageBox(BoxExpression):
 
     def boxes_to_mathml(self, elements=None, **options) -> str:
         encoded, size = self.boxes_to_b64text(elements, **options)
-        decoded = encoded.decode("uft8")
+        decoded = encoded.decode("utf8")
         # see https://tools.ietf.org/html/rfc2397
         return f'<mglyph src="{decoded}" width="{size[0]}px" height="{size[1]}px" />'
 
