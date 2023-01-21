@@ -29,20 +29,6 @@ else:
     have_psutil = True
 
 
-class Aborted(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Aborted.html</url>
-
-    <dl>
-    <dt>'$Aborted'
-        <dd>is returned by a calculation that has been aborted.
-    </dl>
-    """
-
-    summary_text = "return value for aborted evaluations"
-    name = "$Aborted"
-
-
 class CommandLine(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/$CommandLine.html</url>
@@ -82,23 +68,6 @@ class Environment(Builtin):
             return SymbolFailed
         else:
             return String(os.environ[env_var])
-
-
-class Failed(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$Failed.html</url>
-    <dl>
-    <dt>'$Failed'
-        <dd>is returned by some functions in the event of an error.
-    </dl>
-
-    #> Get["nonexistent_file.m"]
-     : Cannot open nonexistent_file.m.
-     = $Failed
-    """
-
-    summary_text = "retrieved result for failed evaluations"
-    name = "$Failed"
 
 
 class GetEnvironment(Builtin):
