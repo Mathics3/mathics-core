@@ -5,7 +5,7 @@
 
 
 from mathics.builtin.base import BuiltinElement
-from mathics.builtin.box.expression import BoxExpression, split_name
+from mathics.builtin.box.expression import BoxExpression
 
 # Signals to Mathics doc processing not to include this module in its documentation.
 no_doc = True
@@ -15,30 +15,6 @@ from mathics.core.symbols import Symbol, system_symbols_dict
 
 
 class _GraphicsDirective(BuiltinElement):
-    def __new__(cls, *args, **kwargs):
-        # This ensures that all the graphics directive have a well formatted docstring
-        # and a summary_text
-        instance = super().__new__(cls, *args, **kwargs)
-        if not hasattr(instance, "summary_text"):
-            article = (
-                "an "
-                if instance.get_name()[0].lower() in ("a", "e", "i", "o", "u")
-                else "a "
-            )
-            instance.summary_text = (
-                "graphics directive setting "
-                + article
-                + split_name(cls.get_name(short=True)[:-3])
-            )
-        if not instance.__doc__:
-            instance.__doc__ = f"""
-    <dl>
-      <dt>'{cls.get_name()}[...]'
-      <dd>is a graphics directive that sets {cls.get_name().lower()[:3]}
-    </dl>
-                """
-        return instance
-
     def init(self, graphics, item=None):
         if item is not None and not item.has_form(self.get_name(), None):
             raise BoxExpressionError

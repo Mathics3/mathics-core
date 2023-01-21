@@ -14,7 +14,6 @@ _skimage_requires = ("skimage", "scipy", "matplotlib", "networkx")
 
 
 import numpy
-import PIL
 import PIL.Image
 
 

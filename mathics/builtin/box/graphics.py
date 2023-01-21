@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Boxing Routines for 2D Graphics
+Boxing Symbols for 2D Graphics
 """
+# Docs are not yet ready for prime time. Maybe after release 6.0.0.
+no_doc = True
 
 
 from math import atan2, ceil, cos, degrees, floor, log10, pi, sin
@@ -138,10 +140,12 @@ class _ArcBox(_RoundBox):
 class ArrowBox(_Polyline):
     """
     <dl>
-      <dt>'ArrowBox[...]'
-      <dd>is a box structure for 'Arrow' elements.
+      <dt>'ArrowBox'
+      <dd>is the symbol used in boxing 'Arrow' expressions.
     </dl>
     """
+
+    summary_text = "symbol used in boxing 'Arrow' expressions"
 
     def init(self, graphics, style, item=None):
         if not item:
@@ -338,10 +342,12 @@ class ArrowBox(_Polyline):
 class BezierCurveBox(_Polyline):
     """
     <dl>
-      <dt>'BezierCurveBox[...]'
-      <dd>is a box structure for a 'BezierCurve' element.
+      <dt>'BezierCurveBox'
+      <dd>is the symbol used in boxing 'BezierCurve' expressions.
     </dl>
     """
+
+    summary_text = "symbol used in boxing 'BezierCurve' expressions"
 
     def init(self, graphics, style, item, options):
         super(BezierCurveBox, self).init(graphics, item, style)
@@ -360,40 +366,38 @@ class BezierCurveBox(_Polyline):
 class CircleBox(_ArcBox):
     """
     <dl>
-      <dt>'CircleBox[...]'
-      <dd>box structure for a 'Circle' element.
+      <dt>'CircleBox'
+      <dd>is the symbol used in boxing 'Circle' expressions.
     </dl>
     """
 
     face_element = False
-    summary_text = "internal box representation for 'Circle' elements"
+    summary_text = "is the symbol used in boxing 'Circle' expressions"
 
 
 class DiskBox(_ArcBox):
     """
     <dl>
-      <dt>'DiskBox[...]'
-      <dd>box structure for a 'Disk' element.
+      <dt>'DiskBox'
+      <dd>is the symbol used in boxing 'Disk' expressions.
     </dl>
     """
 
     face_element = True
-    summary_text = "internal box representation for 'Disk' elements"
+    summary_text = "symbol used in boxing 'Disk' expressions"
 
 
 class GraphicsBox(BoxExpression):
     """
     <dl>
-      <dt>'GraphicsBox[...]'
-      <dd>box structure holding a 'Graphics' object.
+      <dt>'GraphicsBox'
+      <dd>is the symbol used in boxing 'Graphics'.
     </dl>
-
-    Boxing method which get called when Boxing (adding formatting and bounding-box information)
-    Graphics.
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
     options = Graphics.options
+    summary_text = "symbol used in boxing 'Graphics'"
 
     def __new__(cls, *elements, **kwargs):
         instance = super().__new__(cls, *elements, **kwargs)
@@ -891,8 +895,8 @@ class GraphicsBox(BoxExpression):
 class FilledCurveBox(_GraphicsElementBox):
     """
     <dl>
-      <dt>'FilledCurveBox[...]'
-      <dd>is a box structure for 'FilledCurve' elements.
+      <dt>'FilledCurveBox'
+      <dd>is the symbol used in boxing 'FilledCurve' expressions.
     </dl>
     """
 
@@ -969,6 +973,9 @@ class FilledCurveBox(_GraphicsElementBox):
 
 
 class InsetBox(_GraphicsElementBox):
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(
         self,
         graphics,
@@ -1035,8 +1042,13 @@ class InsetBox(_GraphicsElementBox):
 
 class LineBox(_Polyline):
     """
-    Boxing methods for a list of Lines.
+    <dl>
+      <dt>'LineBox'
+      <dd>is the symbol used in boxing 'Line' expressions.
+    </dl>
     """
+
+    summary_text = "symbol used in boxing 'Line' expressions"
 
     def init(self, graphics, style, item=None, lines=None):
         super(LineBox, self).init(graphics, item, style)
@@ -1056,19 +1068,14 @@ class LineBox(_Polyline):
 class PointBox(_Polyline):
     """
     <dl>
-      <dt>'PointBox'[{$x$, $y$}]
-      <dd> a box construction representing a point in a Graphic.
-      <dt>'PointBox'[{$x$, $y$, $z$}]
-      <dd> represents a point in a Graphic3D.
-      <dt>'PointBox'[{$p_1$, $p_2$,...}]
-      <dd> represents a set of points.
+      <dt>'PointBox']
+      <dd>is the symbol used in boxing 'Point' expessions.
     </dl>
-    ## Boxing methods for a list of Point.
-    ##
-    ## object attributes:
-    ## edge_color: _ColorObject
-    ## point_radius: radius of each point
+
+    Options include the edge color and the point radius for each of the points.
     """
+
+    summary_text = "symbol used in boxing 'Point' expressions"
 
     def init(self, graphics, style, item=None):
         super(PointBox, self).init(graphics, item, style)
@@ -1121,6 +1128,9 @@ class PointBox(_Polyline):
 
 
 class PolygonBox(_Polyline):
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(self, graphics, style, item=None):
         super(PolygonBox, self).init(graphics, item, style)
         self.edge_color, self.face_color = style.get_style(
@@ -1172,6 +1182,9 @@ class PolygonBox(_Polyline):
 
 
 class RectangleBox(_GraphicsElementBox):
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(self, graphics, style, item):
         super(RectangleBox, self).init(graphics, item, style)
         if len(item.elements) not in (1, 2):
@@ -1205,6 +1218,9 @@ class RectangleBox(_GraphicsElementBox):
 
 
 class RegularPolygonBox(PolygonBox):
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(self, graphics, style, item):
         if len(item.elements) in (1, 2, 3) and isinstance(item.elements[-1], Integer):
             r = 1.0

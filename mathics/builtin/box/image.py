@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Boxing Routines for raster images.
+Boxing Symbol for Raster Images
 """
+# Docs are not yet ready for prime time. Maybe after release 6.0.0.
+no_doc = True
 
 import base64
 import tempfile
@@ -10,7 +12,6 @@ from copy import deepcopy
 from io import BytesIO
 from typing import Tuple
 
-import PIL
 import PIL.Image
 
 from mathics.builtin.box.expression import BoxExpression
@@ -21,12 +22,13 @@ from mathics.eval.image import pixels_as_ubyte
 class ImageBox(BoxExpression):
     """
     <dl>
-      <dt>'ImageBox[...]'
-      <dd>is a box structure for an image element.
+      <dt>'ImageBox'
+      <dd>is the symbol used in boxing 'Image' expressions.
     </dl>
-    Routines which get called when Boxing (adding formatting and bounding-box information)
-    an Image object.
+
     """
+
+    summary_text = "symbol used boxing Image expresssions"
 
     def boxes_to_b64text(
         self, elements: Tuple[BaseElement] = None, **options
