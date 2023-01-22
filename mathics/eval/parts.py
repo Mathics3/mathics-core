@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Algorithms to access and manipulate elements in nested lists / expressions
+Evaluation methods for accessing and manipulating elements in nested lists / expressions
 """
 
 from typing import List
@@ -277,7 +277,7 @@ def _list_parts(exprs, selectors, evaluation):
                 yield unwrap(picked)
 
 
-def _parts(expr, selectors, evaluation):
+def parts(expr, selectors, evaluation) -> list:
     """
     Select from the `Expression` expr those elements indicated by
     the `selectors`.
@@ -316,7 +316,7 @@ def walk_parts(list_of_list, indices, evaluation, assign_rhs=None):
         return result
     else:
         try:
-            result = _parts(walk_list, _part_selectors(indices), evaluation)
+            result = parts(walk_list, _part_selectors(indices), evaluation)
         except MessageException as e:
             e.message(evaluation)
             return False

@@ -3,7 +3,6 @@
 General Structural Expression Functions
 """
 
-from mathics.algorithm.parts import python_levelspec, walk_levels
 from mathics.builtin.base import BinaryOperator, Builtin, Predefined
 from mathics.core.atoms import Integer, Integer0, Integer1, Rational
 from mathics.core.exceptions import InvalidLevelspecError
@@ -11,7 +10,8 @@ from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import Pattern
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolMap
+from mathics.core.systemsymbols import SymbolMap
+from mathics.eval.parts import python_levelspec, walk_levels
 
 SymbolOperate = Symbol("Operate")
 SymbolSortBy = Symbol("SortBy")

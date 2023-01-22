@@ -6,7 +6,6 @@ Support for Set and SetDelayed, and other assignment-like builtins
 from functools import reduce
 from typing import Optional, Tuple
 
-from mathics.algorithm.parts import walk_parts
 from mathics.core.atoms import Atom, Integer
 from mathics.core.attributes import A_LOCKED, A_PROTECTED, attribute_string_to_number
 from mathics.core.element import BaseElement
@@ -35,6 +34,7 @@ from mathics.core.systemsymbols import (
     SymbolPattern,
     SymbolRuleDelayed,
 )
+from mathics.eval.parts import walk_parts
 
 
 class AssignmentException(Exception):

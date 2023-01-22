@@ -10,22 +10,24 @@ Dependency and Dispursion Statistics
 sort_order = "mathics.builtin.special-moments"
 
 from mathics.builtin.base import Builtin
-from mathics.builtin.lists import _NotRectangularException, _Rectangular
+from mathics.builtin.statistics.base import NotRectangularException, Rectangular
 from mathics.core.atoms import Integer
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolDivide
-from mathics.core.systemsymbols import SymbolDot, SymbolMean, SymbolSubtract
-
-SymbolConjugate = Symbol("Conjugate")
-SymbolCovariance = Symbol("Covariance")
+from mathics.core.systemsymbols import (
+    SymbolConjugate,
+    SymbolCovariance,
+    SymbolDot,
+    SymbolMean,
+    SymbolStandardDeviation,
+    SymbolSubtract,
+    SymbolVariance,
+)
 
 # Something is weird here. No System`. And we can't use what is in
 # SymbolSqrt from systemsymbols?
 SymbolSqrt = Symbol("Sqrt")
-
-SymbolStandardDeviation = Symbol("StandardDeviation")
-SymbolVariance = Symbol("Variance")
 
 
 class Correlation(Builtin):
@@ -109,7 +111,7 @@ class Covariance(Builtin):
             )
 
 
-class StandardDeviation(_Rectangular):
+class StandardDeviation(Rectangular):
     """
     <url>
     :Standard deviation:
@@ -151,7 +153,7 @@ class StandardDeviation(_Rectangular):
         elif all(element.get_head_name() == "System`List" for element in l.elements):
             try:
                 return self.rect(l)
-            except _NotRectangularException:
+            except NotRectangularException:
                 evaluation.message(
                     "StandardDeviation", "rectt", Expression(SymbolStandardDeviation, l)
                 )
@@ -159,7 +161,7 @@ class StandardDeviation(_Rectangular):
             return Expression(SymbolSqrt, Expression(SymbolVariance, l))
 
 
-class Variance(_Rectangular):
+class Variance(Rectangular):
     """
     <url>
     :Variance:
@@ -205,7 +207,7 @@ class Variance(_Rectangular):
         elif all(element.get_head_name() == "System`List" for element in l.elements):
             try:
                 return self.rect(l)
-            except _NotRectangularException:
+            except NotRectangularException:
                 evaluation.message("Variance", "rectt", Expression(SymbolVariance, l))
         else:
             d = Expression(SymbolSubtract, l, Expression(SymbolMean, l))

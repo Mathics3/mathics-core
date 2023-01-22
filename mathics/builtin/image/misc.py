@@ -9,7 +9,7 @@ import numpy
 import PIL
 
 from mathics.builtin.base import Builtin, String
-from mathics.builtin.image.base import Image, _SkimageBuiltin
+from mathics.builtin.image.base import Image, SkimageBuiltin
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -177,7 +177,7 @@ class RandomImage(Builtin):
         return Image(data, cs)
 
 
-class EdgeDetect(_SkimageBuiltin):
+class EdgeDetect(SkimageBuiltin):
     """
 
     <url>

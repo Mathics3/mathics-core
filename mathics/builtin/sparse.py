@@ -5,16 +5,19 @@ Sparse Array Functions
 """
 
 
-from mathics.algorithm.parts import walk_parts
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer, Integer0
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol
-from mathics.core.systemsymbols import SymbolAutomatic, SymbolRule, SymbolTable
-
-SymbolSparseArray = Symbol("SparseArray")
+from mathics.core.systemsymbols import (
+    SymbolAutomatic,
+    SymbolRule,
+    SymbolSparseArray,
+    SymbolTable,
+)
+from mathics.eval.parts import walk_parts
 
 
 class SparseArray(Builtin):

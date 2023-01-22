@@ -4,11 +4,12 @@ Location Statistics
 
 from mathics.algorithm.introselect import introselect
 from mathics.builtin.base import Builtin
-from mathics.builtin.lists import _NotRectangularException, _Rectangular
+from mathics.builtin.statistics.base import NotRectangularException, Rectangular
 from mathics.core.atoms import Integer2
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolDivide, SymbolPlus
+from mathics.core.symbols import SymbolDivide, SymbolPlus
+from mathics.core.systemsymbols import SymbolMedian
 
 
 class Mean(Builtin):
@@ -38,12 +39,11 @@ class Mean(Builtin):
     }
 
 
-SymbolMedian = Symbol("Median")
-
-
-class Median(_Rectangular):
+class Median(Rectangular):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Median.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Median.html</url>
 
     <dl>
       <dt>'Median[$list$]'
@@ -72,7 +72,7 @@ class Median(_Rectangular):
         if all(element.get_head_name() == "System`List" for element in data.elements):
             try:
                 return self.rect(data)
-            except _NotRectangularException:
+            except NotRectangularException:
                 evaluation.message("Median", "rectn", Expression(SymbolMedian, data))
         elif all(element.is_numeric(evaluation) for element in data.elements):
             v = data.get_mutable_elements()  # copy needed for introselect

@@ -3,13 +3,13 @@ Morphological Image Processing
 """
 
 from mathics.builtin.base import Builtin
-from mathics.builtin.image.base import Image, _SkimageBuiltin
+from mathics.builtin.image.base import Image, SkimageBuiltin
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.eval.image import matrix_to_numpy, pixels_as_float, pixels_as_ubyte
 
 
-class _MorphologyFilter(_SkimageBuiltin, Builtin):
+class _MorphologyFilter(SkimageBuiltin, Builtin):
     """
     Base class for many Morphological Image Processing filters.
     This requires scikit-mage to be installed.
@@ -91,7 +91,7 @@ class Erosion(_MorphologyFilter):
     summary_text = "give the erotion with respect to a range-r square"
 
 
-class MorphologicalComponents(_SkimageBuiltin):
+class MorphologicalComponents(SkimageBuiltin):
     """
     <url>
     :WMA link:

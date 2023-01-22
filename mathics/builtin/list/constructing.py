@@ -11,7 +11,6 @@ See also Constructing Vectors.
 from itertools import permutations
 
 from mathics.builtin.base import Builtin, IterationFunction, Pattern
-from mathics.builtin.lists import get_tuples
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_HOLD_FIRST, A_LISTABLE, A_PROTECTED
 from mathics.core.convert.expression import to_expression
@@ -22,6 +21,7 @@ from mathics.core.expression import Expression, structure
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import SymbolNormal
+from mathics.eval.lists import get_tuples
 
 
 class Array(Builtin):

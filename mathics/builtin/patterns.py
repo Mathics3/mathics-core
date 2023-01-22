@@ -41,7 +41,6 @@ The attributes 'Flat', 'Orderless', and 'OneIdentity' affect pattern matching.
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.rules-and-patterns"
 
-from mathics.algorithm.parts import python_levelspec
 from mathics.builtin.base import (
     AtomBuiltin,
     BinaryOperator,
@@ -67,6 +66,7 @@ from mathics.core.pattern import Pattern, StopGenerator
 from mathics.core.rules import Rule
 from mathics.core.symbols import Atom, Symbol, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import SymbolBlank, SymbolDefault, SymbolDispatch
+from mathics.eval.parts import python_levelspec
 
 
 class Rule_(BinaryOperator):

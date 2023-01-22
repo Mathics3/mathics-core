@@ -1,4 +1,10 @@
+"""
+Base classes for Image Manipulation
+"""
 from typing import Tuple
+
+import numpy
+import PIL.Image
 
 from mathics.builtin.base import AtomBuiltin, String
 from mathics.builtin.box.image import ImageBox
@@ -8,28 +14,15 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.systemsymbols import SymbolImage, SymbolRule
-from mathics.eval.image import pixels_as_float, pixels_as_ubyte
+from mathics.eval.image import image_pixels, pixels_as_float, pixels_as_ubyte
 
-_skimage_requires = ("skimage", "scipy", "matplotlib", "networkx")
+_skimage_requires = ("skimage",)
 
-
-import numpy
-import PIL.Image
-
-
-def _image_pixels(matrix):
-    try:
-        pixels = numpy.array(matrix, dtype="float64")
-    except ValueError:  # irregular array, e.g. {{0, 1}, {0, 1, 1}}
-        return None
-    shape = pixels.shape
-    if len(shape) == 2 or (len(shape) == 3 and shape[2] in (1, 3, 4)):
-        return pixels
-    else:
-        return None
+# No user docs here.
+no_doc = True
 
 
-class _SkimageBuiltin:
+class SkimageBuiltin:
     """
     Image Builtins that require scikit-image.
     """
@@ -246,7 +239,7 @@ class ImageAtom(AtomBuiltin):
 
     def eval_create(self, array, evaluation: Evaluation):
         "Image[array_]"
-        pixels = _image_pixels(array.to_python())
+        pixels = image_pixels(array.to_python())
         if pixels is not None:
             shape = pixels.shape
             is_rgb = len(shape) == 3 and shape[2] in (3, 4)

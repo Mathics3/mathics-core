@@ -2,7 +2,6 @@
 """
 Logical Combinations
 """
-from mathics.algorithm.parts import python_levelspec, walk_levels
 from mathics.builtin.base import BinaryOperator, Builtin, Predefined, PrefixOperator
 from mathics.core.attributes import (
     A_FLAT,
@@ -24,6 +23,7 @@ from mathics.core.systemsymbols import (
     SymbolOr,
     SymbolXor,
 )
+from mathics.eval.parts import python_levelspec, walk_levels
 
 
 class _ShortCircuit(Exception):
