@@ -149,6 +149,7 @@ INSTALL_REQUIRES += [
     "pint",
     "python-dateutil",
     "requests",
+    "setuptools",
 ]
 
 print(f'Installation requires "{", ".join(INSTALL_REQUIRES)}')
