@@ -10,7 +10,6 @@ from collections import defaultdict
 from itertools import chain
 from typing import Callable
 
-from mathics.algorithm.parts import walk_levels
 from mathics.builtin.base import Builtin, MessageException
 from mathics.core.atoms import Integer, Integer0, Integer1
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
@@ -18,9 +17,13 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, structure
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolTrue
-from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolMap, SymbolSplit
-
-SymbolReverse = Symbol("Reverse")
+from mathics.core.systemsymbols import (
+    SymbolDirectedInfinity,
+    SymbolMap,
+    SymbolReverse,
+    SymbolSplit,
+)
+from mathics.eval.parts import walk_levels
 
 
 def _test_pair(test, a, b, evaluation, name):

@@ -5,13 +5,13 @@ import hashlib
 import platform
 import zlib
 
-from mathics.algorithm.parts import walk_levels
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import ByteArrayAtom, Integer, String
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.systemsymbols import SymbolByteArray
+from mathics.eval.parts import walk_levels
 
 if platform.python_implementation() == "PyPy":
     bytecount_support = False

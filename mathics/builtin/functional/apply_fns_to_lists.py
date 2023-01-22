@@ -14,7 +14,6 @@ sort_order = "mathics.builtin.applying-functions-to-lists"
 
 from typing import Iterable
 
-from mathics.algorithm.parts import python_levelspec, walk_levels
 from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.builtin.lists import List
 from mathics.core.atoms import Integer
@@ -29,6 +28,7 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import SymbolMapThread, SymbolRule
+from mathics.eval.parts import python_levelspec, walk_levels
 
 
 class Apply(BinaryOperator):

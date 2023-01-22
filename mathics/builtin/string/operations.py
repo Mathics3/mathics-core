@@ -6,7 +6,6 @@ Operations on Strings
 
 import re
 
-from mathics.algorithm.parts import convert_seq, python_seq
 from mathics.builtin.atomic.strings import (
     _evaluate_match,
     _parallel_match,
@@ -27,19 +26,19 @@ from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, string_list
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolTrue
+from mathics.core.symbols import SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAll,
     SymbolDirectedInfinity,
     SymbolOutputForm,
+    SymbolStringInsert,
+    SymbolStringJoin,
+    SymbolStringPosition,
+    SymbolStringRiffle,
+    SymbolStringSplit,
 )
 from mathics.eval.makeboxes import format_element
-
-SymbolStringInsert = Symbol("StringInsert")
-SymbolStringJoin = Symbol("StringJoin")
-SymbolStringPosition = Symbol("StringPosition")
-SymbolStringRiffle = Symbol("StringRiffle")
-SymbolStringSplit = Symbol("StringSplit")
+from mathics.eval.parts import convert_seq, python_seq
 
 
 class StringDrop(Builtin):

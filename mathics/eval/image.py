@@ -165,6 +165,18 @@ def get_image_size_spec(old_size, new_size) -> Optional[float]:
     return None
 
 
+def image_pixels(matrix):
+    try:
+        pixels = numpy.array(matrix, dtype="float64")
+    except ValueError:  # irregular array, e.g. {{0, 1}, {0, 1, 1}}
+        return None
+    shape = pixels.shape
+    if len(shape) == 2 or (len(shape) == 3 and shape[2] in (1, 3, 4)):
+        return pixels
+    else:
+        return None
+
+
 def linearize_numpy_array(a: numpy.array) -> Tuple[numpy.array, int]:
     """
     Transforms a numpy array numpy array and return the array and the number

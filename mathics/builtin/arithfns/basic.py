@@ -39,7 +39,7 @@ from mathics.core.attributes import (
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
-from mathics.core.expression import ElementsProperties, Expression
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps, min_prec
 from mathics.core.symbols import (
@@ -70,8 +70,10 @@ from mathics.eval.numerify import numerify
 
 class CubeRoot(Builtin):
     """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/CubeRoot.html</url>
+    <url>
+    :Cube root:
+    https://en.wikipedia.org/wiki/Cube_root</url> (<url> :WMA:
+    https://reference.wolfram.com/language/ref/CubeRoot.html</url>)
 
     <dl>
       <dt>'CubeRoot[$n$]'
@@ -115,7 +117,7 @@ class CubeRoot(Builtin):
         ),
     }
 
-    summary_text = "cubed root"
+    summary_text = "cube root"
 
     def eval(self, n, evaluation):
         "CubeRoot[n_Complex]"
@@ -124,18 +126,17 @@ class CubeRoot(Builtin):
         return Expression(
             SymbolPower,
             n,
-            Expression(
-                SymbolDivide,
-                Integer1,
-                Integer3,
-                elements_properties=ElementsProperties(True, True, True),
-            ),
+            Integer1 / Integer3,
         )
 
 
 class Divide(BinaryOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Divide.html</url>
+    <url>
+    :Division:
+    https://en.wikipedia.org/wiki/Division_(mathematics)</url> (<url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Divide.html</url>)
 
     <dl>
       <dt>'Divide[$a$, $b$]'
@@ -176,12 +177,19 @@ class Divide(BinaryOperator):
 
     """
 
-    operator = "/"
-    precedence = 470
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
-    grouping = "Left"
 
     default_formats = False
+
+    formats = {
+        (("InputForm", "OutputForm"), "Divide[x_, y_]"): (
+            'Infix[{HoldForm[x], HoldForm[y]}, "/", 400, Left]'
+        ),
+    }
+
+    grouping = "Left"
+    operator = "/"
+    precedence = 470
 
     rules = {
         "Divide[x_, y_]": "Times[x, Power[y, -1]]",
@@ -190,18 +198,16 @@ class Divide(BinaryOperator):
         ),
     }
 
-    formats = {
-        (("InputForm", "OutputForm"), "Divide[x_, y_]"): (
-            'Infix[{HoldForm[x], HoldForm[y]}, "/", 400, Left]'
-        ),
-    }
-
-    summary_text = r"division"
+    summary_text = "divide"
 
 
 class Minus(PrefixOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Minus.html</url>
+    <url>
+    :Additive inverse:
+    https://en.wikipedia.org/wiki/Additive_inverse</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Minus.html</url>)
 
     <dl>
       <dt>'Minus[$expr$]'
@@ -220,13 +226,7 @@ class Minus(PrefixOperator):
     = {-1, -2, -3, -4, -5, -6, -7, -8, -9, -10}
     """
 
-    operator = "-"
-    precedence = 480
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
-
-    rules = {
-        "Minus[x_]": "Times[-1, x]",
-    }
 
     formats = {
         "Minus[x_]": 'Prefix[{HoldForm[x]}, "-", 480]',
@@ -237,7 +237,14 @@ class Minus(PrefixOperator):
         ),
     }
 
-    summary_text = "arithmetic negation"
+    operator = "-"
+    precedence = 480
+
+    rules = {
+        "Minus[x_]": "Times[-1, x]",
+    }
+
+    summary_text = "arithmetic negate"
 
     def eval_int(self, x: Integer, evaluation):
         "Minus[x_Integer]"
@@ -246,7 +253,13 @@ class Minus(PrefixOperator):
 
 class Plus(BinaryOperator, SympyFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Plus.html</url>
+    <url>
+    :Addition:
+    https://en.wikipedia.org/wiki/Addition</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/core.html#id48</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Plus.html</url>)
 
     <dl>
       <dt>'Plus[$a$, $b$, ...]'
@@ -304,8 +317,6 @@ class Plus(BinaryOperator, SympyFunction):
      = 30.
     """
 
-    operator = "+"
-    precedence = 310
     attributes = (
         A_FLAT
         | A_LISTABLE
@@ -321,7 +332,13 @@ class Plus(BinaryOperator, SympyFunction):
         None: "0",
     }
 
-    summary_text = "addition of numbers, lists, arrays, or symbolic expressions"
+    operator = "+"
+    precedence = 310
+
+    summary_text = "add"
+
+    # FIXME Note this is deprecated in 1.11
+    # Remember to up sympy doc link when this is corrected
     sympy_name = "Add"
 
     def format_plus(self, items, evaluation):
@@ -466,7 +483,13 @@ class Plus(BinaryOperator, SympyFunction):
 
 class Power(BinaryOperator, _MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Power.html</url>
+    <url>
+    :Exponentiation:
+    https://en.wikipedia.org/wiki/Exponentiation</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/core.html#sympy.core.power.Pow</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Power.html</url>)
 
     <dl>
       <dt>'Power[$a$, $b$]'
@@ -547,21 +570,8 @@ class Power(BinaryOperator, _MPMathFunction):
      = a ^ b
     """
 
-    operator = "^"
-    precedence = 590
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_ONE_IDENTITY | A_PROTECTED
-    grouping = "Right"
-
     default_formats = False
-
-    sympy_name = "Pow"
-    mpmath_name = "power"
-    nargs = {2}
-
-    messages = {
-        "infy": "Infinite expression `1` encountered.",
-        "indet": "Indeterminate expression `1` encountered.",
-    }
 
     defaults = {
         2: "1",
@@ -588,12 +598,29 @@ class Power(BinaryOperator, _MPMathFunction):
         ),
     }
 
+    grouping = "Right"
+
+    mpmath_name = "power"
+
+    messages = {
+        "infy": "Infinite expression `1` encountered.",
+        "indet": "Indeterminate expression `1` encountered.",
+    }
+
+    nargs = {2}
+    operator = "^"
+    precedence = 590
+
     rules = {
         "Power[]": "1",
         "Power[x_]": "x",
     }
 
-    summary_text = "exponentiation"
+    summary_text = "exponentiate"
+
+    # FIXME Note this is deprecated in 1.11
+    # Remember to up sympy doc link when this is corrected
+    sympy_name = "Pow"
 
     def eval_check(self, x, y, evaluation):
         "Power[x_, y_]"
@@ -632,7 +659,13 @@ class Power(BinaryOperator, _MPMathFunction):
 
 class Sqrt(SympyFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Sqrt.html</url>
+    <url>
+    :Square root:
+    https://en.wikipedia.org/wiki/Square_root</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/codegen.html#sympy.codegen.cfunctions.Sqrt</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Sqrt.html</url>)
 
     <dl>
       <dt>'Sqrt[$expr$]'
@@ -675,8 +708,10 @@ class Sqrt(SympyFunction):
 
 class Subtract(BinaryOperator):
     """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/Subtract.html</url>
+    <url>
+    :Subtraction:
+    https://en.wikipedia.org/wiki/Subtraction</url>, (<url>:WMA:
+    https://reference.wolfram.com/language/ref/Subtract.html</url>)
 
     <dl>
       <dt>'Subtract[$a$, $b$]'
@@ -694,22 +729,27 @@ class Subtract(BinaryOperator):
      = a - b + c
     """
 
-    operator = "-"
-    precedence_parse = 311
-    precedence = 310
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     grouping = "Left"
 
+    operator = "-"
+    precedence = 310
+    precedence_parse = 311
     rules = {
         "Subtract[x_, y_]": "Plus[x, Times[-1, y]]",
     }
 
-    summary_text = "subtraction"
+    summary_text = "subtract"
 
 
 class Times(BinaryOperator, SympyFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Times.html</url>
+    <url>
+    :Multiplication:
+    https://en.wikipedia.org/wiki/Multiplication</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/core.html#sympy.core.mul.Mul</url>, <url>
+    :WMA:https://reference.wolfram.com/language/ref/Times.html</url>)
 
     <dl>
       <dt>'Times[$a$, $b$, ...]'
@@ -789,9 +829,6 @@ class Times(BinaryOperator, SympyFunction):
      = 30.
     """
 
-    operator = "*"
-    operator_display = " "
-    precedence = 400
     attributes = (
         A_FLAT
         | A_LISTABLE
@@ -809,11 +846,17 @@ class Times(BinaryOperator, SympyFunction):
 
     formats = {}
 
+    operator = "*"
+    operator_display = " "
+
+    precedence = 400
     rules = {}
 
+    # FIXME Note this is deprecated in 1.11
+    # Remember to up sympy doc link when this is corrected
     sympy_name = "Mul"
 
-    summary_text = "mutiplication"
+    summary_text = "mutiply"
 
     def format_times(self, items, evaluation, op="\u2062"):
         "Times[items__]"

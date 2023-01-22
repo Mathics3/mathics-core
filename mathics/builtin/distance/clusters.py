@@ -13,7 +13,6 @@ from mathics.algorithm.clusters import (
     kmeans,
     optimize,
 )
-from mathics.algorithm.parts import walk_levels
 from mathics.builtin.base import Builtin
 from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Integer, Real, String, machine_precision, min_prec
@@ -35,6 +34,7 @@ from mathics.eval.distance import (
     to_real_distance,
 )
 from mathics.eval.nevaluator import eval_N
+from mathics.eval.parts import walk_levels
 
 
 class _LazyDistances(LazyDistances):
