@@ -2,21 +2,13 @@
 Image testing
 """
 from mathics.builtin.base import Test
-from mathics.builtin.image.base import Image, _skimage_requires
+from mathics.builtin.image.base import Image, skimage_requires
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.image.image-filters"
 
 
-class _ImageTest(Test):
-    """
-    Testing Image Builtins -- those function names ending with "Q" -- that require scikit-image.
-    """
-
-    requires = _skimage_requires
-
-
-class BinaryImageQ(_ImageTest):
+class BinaryImageQ(Test):
     """
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/BinaryImageQ.html</url>
@@ -35,13 +27,15 @@ class BinaryImageQ(_ImageTest):
      : ...
     """
 
+    requires = skimage_requires
+
     summary_text = "test whether pixels in an image are binary bit values"
 
     def test(self, expr):
         return isinstance(expr, Image) and expr.storage_type() == "Bit"
 
 
-class ImageQ(_ImageTest):
+class ImageQ(Test):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/ImageQ.html</url>
 
@@ -65,6 +59,8 @@ class ImageQ(_ImageTest):
     >> ImageQ["abc"]
      = False
     """
+
+    requires = skimage_requires
 
     summary_text = "test whether is a valid image"
 

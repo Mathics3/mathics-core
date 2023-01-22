@@ -9,7 +9,7 @@ import numpy
 import PIL
 
 from mathics.builtin.base import Builtin, String
-from mathics.builtin.image.base import Image, SkimageBuiltin
+from mathics.builtin.image.base import Image, skimage_requires
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -17,8 +17,6 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import SymbolFailed, SymbolRule
 from mathics.eval.image import extract_exif
-
-_skimage_requires = ("skimage", "scipy", "matplotlib", "networkx")
 
 # The following classes are used to allow inclusion of
 # Builtin Functions only when certain Python packages
@@ -177,9 +175,8 @@ class RandomImage(Builtin):
         return Image(data, cs)
 
 
-class EdgeDetect(SkimageBuiltin):
+class EdgeDetect(Builtin):
     """
-
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/EdgeDetect.html</url>
@@ -199,6 +196,8 @@ class EdgeDetect(SkimageBuiltin):
     """
 
     summary_text = "detect edges in an image using Canny and other methods"
+    requires = skimage_requires
+
     rules = {
         "EdgeDetect[i_Image]": "EdgeDetect[i, 2, 0.2]",
         "EdgeDetect[i_Image, r_?RealNumberQ]": "EdgeDetect[i, r, 0.2]",
