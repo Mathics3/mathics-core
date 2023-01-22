@@ -3,7 +3,7 @@ import sys
 
 import pytest
 
-from .helper import check_evaluation, evaluate
+from .helper import check_evaluation, evaluate, session
 
 
 @pytest.mark.parametrize(
@@ -200,37 +200,55 @@ if sys.platform in ("linux",):
         Close[str]; res]
         """
         )
-        for str_expr, str_expected, message in (
+
+        test_input_and_name = (
             (
-                r'WRb[{1885507541, 4157323149}, Table["UnsignedInteger32", {2}]]',
-                r"{213, 143, 98, 112, 141, 183, 203, 247}",
+                'WRb[{1885507541, 4157323149}, Table["UnsignedInteger32", {2}]]',
                 "UnsignedInteger32",
             ),
             (
-                r'WRb[{384206740, 1676316040}, Table["UnsignedInteger32", {2}]]',
-                r"{148, 135, 230, 22, 136, 141, 234, 99}",
+                'WRb[{384206740, 1676316040}, Table["UnsignedInteger32", {2}]]',
                 "UnsignedInteger32 - 2nd test",
             ),
             (
-                r'WRb[7079445437368829279, "UnsignedInteger64"]',
-                r"{95, 5, 33, 229, 29, 62, 63, 98}",
+                'WRb[7079445437368829279, "UnsignedInteger64"]',
                 "UnsignedInteger64",
             ),
             (
-                r'WRb[5381171935514265990, "UnsignedInteger64"]',
-                r"{134, 9, 161, 91, 93, 195, 173, 74}",
+                'WRb[5381171935514265990, "UnsignedInteger64"]',
                 "UnsignedInteger64 - 2nd test",
             ),
             (
-                r'WRb[293382001665435747348222619884289871468, "UnsignedInteger128"]',
-                r"{108, 78, 217, 150, 88, 126, 152, 101, 231, 134, 176, 140, 118, 81, 183, 220}",
+                'WRb[293382001665435747348222619884289871468, "UnsignedInteger128"]',
                 "UnsignedInteger128",
             ),
             (
-                r'WRb[253033302833692126095975097811212718901, "UnsignedInteger128"]',
-                r"{53, 83, 116, 79, 81, 100, 60, 126, 202, 52, 241, 48, 5, 113, 92, 190}",
+                'WRb[253033302833692126095975097811212718901, "UnsignedInteger128"]',
                 "UnsignedInteger128 - 2nd test",
             ),
+        )
+
+        is_little_endian = session.evaluate("$ByteOrdering").value == -1
+        if is_little_endian:
+            expected = (
+                "{213, 143, 98, 112, 141, 183, 203, 247}",
+                "{148, 135, 230, 22, 136, 141, 234, 99}",
+                "{95, 5, 33, 229, 29, 62, 63, 98}",
+                "{134, 9, 161, 91, 93, 195, 173, 74}",
+                "{108, 78, 217, 150, 88, 126, 152, 101, 231, 134, 176, 140, 118, 81, 183, 220}",
+                "{53, 83, 116, 79, 81, 100, 60, 126, 202, 52, 241, 48, 5, 113, 92, 190}",
+            )
+        else:
+            expected = (
+                "{112, 98, 143, 213, 247, 203, 183, 141}",
+                "{22, 230, 135, 148, 99, 234, 141, 136}",
+                "{98, 63, 62, 29, 229, 33, 5, 95}",
+                "{74, 173, 195, 93, 91, 161, 9, 134}",
+                "{101, 152, 126, 88, 150, 217, 78, 108, 220, 183, 81, 118, 140, 176, 134, 231}",
+                "{126, 60, 100, 81, 79, 116, 83, 53, 190, 92, 113, 5, 48, 241, 52, 202}",
+            )
+
+        for i, (str_expr, message) in enumerate(test_input_and_name):
             # This works but the $Precision is coming out UnsignedInt128 rather tha
             # UnsignedInt32
             # (
@@ -240,9 +258,7 @@ if sys.platform in ("linux",):
             #     " {-0.0832756, 0.765142, 0.638454}}",
             #     "Eigenvalues via mpmath",
             # ),
-        ):
-
-            check_evaluation(str_expr, str_expected, message)
+            check_evaluation(str_expr, expected[i], message)
 
 
 # import os.path as osp
