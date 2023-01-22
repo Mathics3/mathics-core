@@ -19,7 +19,7 @@ from mathics.core.exceptions import (
 )
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Atom, Symbol
+from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import SymbolKey, SymbolMakeBoxes, SymbolSequence
 
 
@@ -407,33 +407,3 @@ class NotListQ(Test):
 
     def test(self, expr):
         return expr.get_head_name() != "System`List"
-
-
-class _NotRectangularException(Exception):
-    pass
-
-
-class _Rectangular(Builtin):
-    # A helper for Builtins X that allow X[{a1, a2, ...}, {b1, b2, ...}, ...] to be evaluated
-    # as {X[{a1, b1, ...}, {a1, b2, ...}, ...]}.
-
-    def rect(self, element):
-        lengths = [len(element.elements) for element in element.elements]
-        if all(length == 0 for length in lengths):
-            return  # leave as is, without error
-
-        n_columns = lengths[0]
-        if any(length != n_columns for length in lengths[1:]):
-            raise _NotRectangularException()
-
-        transposed = [
-            [element.elements[i] for element in element.elements]
-            for i in range(n_columns)
-        ]
-
-        return ListExpression(
-            *[
-                Expression(Symbol(self.get_name()), ListExpression(*items))
-                for items in transposed
-            ],
-        )

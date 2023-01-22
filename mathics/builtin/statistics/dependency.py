@@ -10,7 +10,7 @@ Dependency and Dispursion Statistics
 sort_order = "mathics.builtin.special-moments"
 
 from mathics.builtin.base import Builtin
-from mathics.builtin.lists import _NotRectangularException, _Rectangular
+from mathics.builtin.statistics.base import NotRectangularException, Rectangular
 from mathics.core.atoms import Integer
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -109,7 +109,7 @@ class Covariance(Builtin):
             )
 
 
-class StandardDeviation(_Rectangular):
+class StandardDeviation(Rectangular):
     """
     <url>
     :Standard deviation:
@@ -151,7 +151,7 @@ class StandardDeviation(_Rectangular):
         elif all(element.get_head_name() == "System`List" for element in l.elements):
             try:
                 return self.rect(l)
-            except _NotRectangularException:
+            except NotRectangularException:
                 evaluation.message(
                     "StandardDeviation", "rectt", Expression(SymbolStandardDeviation, l)
                 )
@@ -159,7 +159,7 @@ class StandardDeviation(_Rectangular):
             return Expression(SymbolSqrt, Expression(SymbolVariance, l))
 
 
-class Variance(_Rectangular):
+class Variance(Rectangular):
     """
     <url>
     :Variance:
@@ -205,7 +205,7 @@ class Variance(_Rectangular):
         elif all(element.get_head_name() == "System`List" for element in l.elements):
             try:
                 return self.rect(l)
-            except _NotRectangularException:
+            except NotRectangularException:
                 evaluation.message("Variance", "rectt", Expression(SymbolVariance, l))
         else:
             d = Expression(SymbolSubtract, l, Expression(SymbolMean, l))
