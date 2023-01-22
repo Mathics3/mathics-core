@@ -1325,13 +1325,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             return False
         if self is other:
             return True
-        if not self._head.sameQ(other.get_head()):
+        if not self._head.sameQ(other._head):
             return False
-        if len(self._elements) != len(other.get_elements()):
+        if len(self._elements) != len(other._elements):
             return False
         return all(
             (id(element) == id(oelement) or element.sameQ(oelement))
-            for element, oelement in zip(self._elements, other.get_elements())
+            for element, oelement in zip(self._elements, other._elements)
         )
 
     def sequences(self):
