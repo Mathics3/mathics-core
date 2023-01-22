@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+"""
+Interactive Manipulation
+"""
+
+# This largely is not usable.
+no_doc = True
 
 
 from mathics import settings
@@ -241,21 +247,28 @@ class ManipulateOutput(Output):
 
 class Manipulate(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Manipulate.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Manipulate.html</url>
 
     <dl>
-    <dt>'Manipulate[$expr1$, {$u$, $u_min$, $u_max$}]'
-        <dd>interactively compute and display an expression with different values of $u$.
-    <dt>'Manipulate[$expr1$, {$u$, $u_min$, $u_max$, $du$}]'
-        <dd>allows $u$ to vary between $u_min$ and $u_max$ in steps of $du$.
-    <dt>'Manipulate[$expr1$, {{$u$, $u_init$}, $u_min$, $u_max$, ...}]'
-        <dd>starts with initial value of $u_init$.
-    <dt>'Manipulate[$expr1$, {{$u$, $u_init$, $u_lbl$}, ...}]'
-        <dd>labels the $u$ controll by $u_lbl$.
-    <dt>'Manipulate[$expr1$, {$u$, {$u_1$, $u_2$, ...}}]'
-        <dd>sets $u$ to take discrete values $u_1$, $u_2$, ... .
-    <dt>'Manipulate[$expr1$, {$u$, ...}, {$v$, ...}, ...]'
-        <dd>control each of $u$, $v$, ... .
+      <dt>'Manipulate[$expr1$, {$u$, $u_min$, $u_max$}]'
+      <dd>interactively compute and display an expression with different values of $u$.
+
+      <dt>'Manipulate[$expr1$, {$u$, $u_min$, $u_max$, $du$}]'
+      <dd>allows $u$ to vary between $u_min$ and $u_max$ in steps of $du$.
+
+      <dt>'Manipulate[$expr1$, {{$u$, $u_init$}, $u_min$, $u_max$, ...}]'
+      <dd>starts with initial value of $u_init$.
+
+      <dt>'Manipulate[$expr1$, {{$u$, $u_init$, $u_lbl$}, ...}]'
+      <dd>labels the $u$ controll by $u_lbl$.
+
+      <dt>'Manipulate[$expr1$, {$u$, {$u_1$, $u_2$, ...}}]'
+      <dd>sets $u$ to take discrete values $u_1$, $u_2$, ... .
+
+      <dt>'Manipulate[$expr1$, {$u$, ...}, {$v$, ...}, ...]'
+      <dd>control each of $u$, $v$, ... .
     </dl>
 
     >> Manipulate[N[Sin[y]], {y, 1, 20, 2}]
@@ -300,6 +313,8 @@ class Manipulate(Builtin):
         "widgetargs": "Illegal variable range or step parameters for ``.",
         "widgetdisp": "Jupyter failed to display the widget.",
     }
+
+    no_doc = True  # This largely doesn't work
 
     requires = ("ipywidgets",)
     summary_text = "interactively manipulate any expression, graphic, or other object"

@@ -3,8 +3,12 @@
 CHANGES
 =======
 
-5.0.3dev0
+6.0.0dev0
 ---------
+
+A fair bit of code refactoring has gone on so that we might be able to scale the code, get it to be more performant, and more in line with other interpreters.
+
+Image Routines have been gone over. A number of Built-in functions that were implemented were not accessible for various reasons.
 
 API
 +++
@@ -53,6 +57,7 @@ Documentation
 #. "Exponential Functional" split out from "Trigonometry Functions"
 #. "Functional Programming" section split out.
 #. "Image Manipulation" has been split off from Graphics and Drawing and turned into a guide section.
+#. Image examples now appear in the PDF doc
 #. "Logic and Boolean Algebra" section reinstated.
 #. "Forms of Input and Output" is its own guide section.
 #. More url links to Wiki pages added; more internal cross links added.
@@ -83,6 +88,8 @@ Bugs
 #. ``RandomSample`` with one list argument now returns a random ordering of the list items. Previously it would return just one item.
 #. Origin placement corrected on ``ListPlot`` and ``LinePlot``.
 #. Fix long-standing bugs in Image handling
+#. Some scikit image routines line ``EdgeDetect`` were getting omitted due to overly stringent PYPI requirements
+
 #. Units and Quantities were sometimes failing. Also they were omitted from documentation.
 
 PyPI Package requirements
