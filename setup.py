@@ -44,7 +44,6 @@ INSTALL_REQUIRES = [
     # Pillow 9.1.0 supports BigTIFF with big-endian byte order.
     # ExampleData image hedy.tif is in this format.
     # Pillow 9.2 handles sunflowers.jpg
-    "pillow >= 9.2.0",
 ]
 
 # Ensure user has the correct Python version
@@ -57,6 +56,7 @@ elif sys.version_info[:2] == (3, 6):
         "recordclass",
         "numpy",
         "llvmlite<0.37",
+        "pillow >= 8.4.0",
         "sympy>=1.8,<1.12",
     ]
     if is_PyPy:
