@@ -15,17 +15,19 @@ from mathics.core.atoms import Integer
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolDivide
-from mathics.core.systemsymbols import SymbolDot, SymbolMean, SymbolSubtract
-
-SymbolConjugate = Symbol("Conjugate")
-SymbolCovariance = Symbol("Covariance")
+from mathics.core.systemsymbols import (
+    SymbolConjugate,
+    SymbolCovariance,
+    SymbolDot,
+    SymbolMean,
+    SymbolStandardDeviation,
+    SymbolSubtract,
+    SymbolVariance,
+)
 
 # Something is weird here. No System`. And we can't use what is in
 # SymbolSqrt from systemsymbols?
 SymbolSqrt = Symbol("Sqrt")
-
-SymbolStandardDeviation = Symbol("StandardDeviation")
-SymbolVariance = Symbol("Variance")
 
 
 class Correlation(Builtin):

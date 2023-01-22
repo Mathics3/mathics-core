@@ -9,16 +9,6 @@ patterns of criteria.
 
 from itertools import chain
 
-from mathics.algorithm.parts import (
-    _drop_span_selector,
-    _parts,
-    _take_span_selector,
-    deletecases_with_levelspec,
-    python_levelspec,
-    set_part,
-    walk_levels,
-    walk_parts,
-)
 from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.builtin.box.layout import RowBox
 from mathics.builtin.lists import list_boxes
@@ -46,6 +36,16 @@ from mathics.core.systemsymbols import (
     SymbolMissing,
     SymbolSequence,
     SymbolSet,
+)
+from mathics.eval.parts import (
+    _drop_span_selector,
+    _take_span_selector,
+    deletecases_with_levelspec,
+    parts,
+    python_levelspec,
+    set_part,
+    walk_levels,
+    walk_parts,
 )
 from mathics.eval.patterns import Matcher
 
@@ -435,7 +435,7 @@ class Drop(Builtin):
             )
 
         try:
-            return _parts(items, [_drop_span_selector(seq) for seq in seqs], evaluation)
+            return parts(items, [_drop_span_selector(seq) for seq in seqs], evaluation)
         except MessageException as e:
             e.message(evaluation)
 
@@ -791,7 +791,9 @@ class Length(Builtin):
 
 class Most(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Most.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Most.html</url>
 
     <dl>
       <dt>'Most[$expr$]'
@@ -1522,7 +1524,7 @@ class Take(Builtin):
             )
 
         try:
-            return _parts(items, [_take_span_selector(seq) for seq in seqs], evaluation)
+            return parts(items, [_take_span_selector(seq) for seq in seqs], evaluation)
         except MessageException as e:
             e.message(evaluation)
 

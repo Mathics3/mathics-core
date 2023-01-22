@@ -5,7 +5,6 @@ List Functions - Miscellaneous
 Functions here will eventually get moved to more suitable subsections.
 """
 
-from mathics.algorithm.parts import python_levelspec
 from mathics.builtin.base import Builtin, Predefined, Test
 from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import Integer, String
@@ -21,6 +20,7 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import SymbolKey, SymbolMakeBoxes, SymbolSequence
+from mathics.eval.parts import python_levelspec
 
 
 def delete_one(expr, pos):

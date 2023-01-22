@@ -63,6 +63,7 @@ from mathics.core.systemsymbols import (
     SymbolTanh,
 )
 from mathics.eval.numbers import cancel, sympy_factor
+from mathics.eval.parts import walk_parts
 from mathics.eval.patterns import match
 
 
@@ -817,7 +818,6 @@ class CoefficientArrays(_CoefficientHandler):
 
     def eval_list(self, polys, varlist, evaluation: Evaluation, options: dict):
         "%(name)s[polys_, varlist_, OptionsPattern[]]"
-        from mathics.algorithm.parts import walk_parts
 
         if polys.has_form("List", None):
             list_polys = polys.elements

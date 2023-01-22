@@ -8,7 +8,8 @@ from mathics.builtin.statistics.base import NotRectangularException, Rectangular
 from mathics.core.atoms import Integer2
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolDivide, SymbolPlus
+from mathics.core.symbols import SymbolDivide, SymbolPlus
+from mathics.core.systemsymbols import SymbolMedian
 
 
 class Mean(Builtin):
@@ -36,9 +37,6 @@ class Mean(Builtin):
     rules = {
         "Mean[list_]": "Total[list] / Length[list]",
     }
-
-
-SymbolMedian = Symbol("Median")
 
 
 class Median(Rectangular):
