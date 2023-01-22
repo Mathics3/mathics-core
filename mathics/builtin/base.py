@@ -65,8 +65,10 @@ def check_requires_list(requires: list) -> bool:
         try:
             lib_is_installed = importlib.util.find_spec(package) is not None
         except ImportError:
+            # print("XXX requires import error", requires)
             lib_is_installed = False
         if not lib_is_installed:
+            # print("XXX requires not found error", requires)
             return False
     return True
 

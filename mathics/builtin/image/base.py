@@ -16,18 +16,10 @@ from mathics.core.list import ListExpression
 from mathics.core.systemsymbols import SymbolImage, SymbolRule
 from mathics.eval.image import image_pixels, pixels_as_float, pixels_as_ubyte
 
-_skimage_requires = ("skimage",)
+skimage_requires = ("skimage",)
 
 # No user docs here.
 no_doc = True
-
-
-class SkimageBuiltin:
-    """
-    Image Builtins that require scikit-image.
-    """
-
-    requires = _skimage_requires
 
 
 class Image(Atom):
