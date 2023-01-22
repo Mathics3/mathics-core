@@ -22,7 +22,13 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
-from mathics.core.exceptions import InvalidLevelspecError, MessageException, PartError
+from mathics.core.exceptions import (
+    InvalidLevelspecError,
+    MessageException,
+    PartDepthError,
+    PartError,
+    PartRangeError,
+)
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import Rule
@@ -32,11 +38,13 @@ from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolFailed,
     SymbolInfinity,
+    SymbolKey,
     SymbolMakeBoxes,
     SymbolMissing,
     SymbolSequence,
     SymbolSet,
 )
+from mathics.eval.lists import delete_one, delete_rec
 from mathics.eval.parts import (
     _drop_span_selector,
     _take_span_selector,
@@ -285,6 +293,160 @@ class Count(Builtin):
         "Count[list_, arguments__]": "Length[Cases[list, arguments]]",
     }
     summary_text = "count the number of occurrences of a pattern"
+
+
+class Delete(Builtin):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Delete.html</url>
+
+    <dl>
+      <dt>'Delete[$expr$, $i$]'
+      <dd>deletes the element at position $i$ in $expr$. The position is counted from the end if $i$ is negative.
+      <dt>'Delete[$expr$, {$m$, $n$, ...}]'
+      <dd>deletes the element at position {$m$, $n$, ...}.
+      <dt>'Delete[$expr$, {{$m1$, $n1$, ...}, {$m2$, $n2$, ...}, ...}]'
+      <dd>deletes the elements at several positions.
+    </dl>
+
+    Delete the element at position 3:
+    >> Delete[{a, b, c, d}, 3]
+     = {a, b, d}
+
+    Delete at position 2 from the end:
+    >> Delete[{a, b, c, d}, -2]
+     = {a, b, d}
+
+    Delete at positions 1 and 3:
+    >> Delete[{a, b, c, d}, {{1}, {3}}]
+     = {b, d}
+
+    Delete in a 2D array:
+    >> Delete[{{a, b}, {c, d}}, {2, 1}]
+     = {{a, b}, {d}}
+
+    Deleting the head of a whole expression gives a Sequence object:
+    >> Delete[{a, b, c}, 0]
+     = Sequence[a, b, c]
+
+    Delete in an expression with any head:
+    >> Delete[f[a, b, c, d], 3]
+     = f[a, b, d]
+
+    Delete a head to splice in its arguments:
+    >> Delete[f[a, b, u + v, c], {3, 0}]
+     = f[a, b, u, v, c]
+
+    >> Delete[{a, b, c}, 0]
+     = Sequence[a, b, c]
+
+    #> Delete[1 + x ^ (a + b + c), {2, 2, 3}]
+     = 1 + x ^ (a + b)
+
+    #> Delete[f[a, g[b, c], d], {{2}, {2, 1}}]
+     = f[a, d]
+
+    #> Delete[f[a, g[b, c], d], m + n]
+     : The expression m + n cannot be used as a part specification. Use Key[m + n] instead.
+     = Delete[f[a, g[b, c], d], m + n]
+
+    Delete without the position:
+    >> Delete[{a, b, c, d}]
+     : Delete called with 1 argument; 2 arguments are expected.
+     = Delete[{a, b, c, d}]
+
+    Delete with many arguments:
+    >> Delete[{a, b, c, d}, 1, 2]
+     : Delete called with 3 arguments; 2 arguments are expected.
+     = Delete[{a, b, c, d}, 1, 2]
+
+    Delete the element out of range:
+    >> Delete[{a, b, c, d}, 5]
+     : Part {5} of {a, b, c, d} does not exist.
+     = Delete[{a, b, c, d}, 5]
+
+    #> Delete[{a, b, c, d}, {1, 2}]
+     : Part 2 of {a, b, c, d} does not exist.
+     = Delete[{a, b, c, d}, {1, 2}]
+
+    Delete the position not integer:
+    >> Delete[{a, b, c, d}, {1, n}]
+     : Position specification n in {a, b, c, d} is not a machine-sized integer or a list of machine-sized integers.
+     = Delete[{a, b, c, d}, {1, n}]
+
+    #> Delete[{a, b, c, d}, {{1}, n}]
+     : Position specification {n, {1}} in {a, b, c, d} is not a machine-sized integer or a list of machine-sized integers.
+     = Delete[{a, b, c, d}, {{1}, n}]
+
+    #> Delete[{a, b, c, d}, {{1}, {n}}]
+     : Position specification n in {a, b, c, d} is not a machine-sized integer or a list of machine-sized integers.
+     = Delete[{a, b, c, d}, {{1}, {n}}]
+    """
+
+    messages = {
+        # FIXME: This message doesn't exist in more modern WMA, and
+        # Delete *can* take more than 2 arguments.
+        "argr": "Delete called with 1 argument; 2 arguments are expected.",
+        "argt": "Delete called with `1` arguments; 2 arguments are expected.",
+        "psl": "Position specification `1` in `2` is not a machine-sized integer or a list of machine-sized integers.",
+        "pkspec": "The expression `1` cannot be used as a part specification. Use `2` instead.",
+    }
+    summary_text = "delete elements from a list at given positions"
+
+    def eval_one(self, expr, position: Integer, evaluation):
+        "Delete[expr_, position_Integer]"
+        pos = position.value
+        try:
+            return delete_one(expr, pos)
+        except PartRangeError:
+            evaluation.message("Part", "partw", ListExpression(position), expr)
+
+    def eval(self, expr, positions, evaluation):
+        "Delete[expr_, positions___]"
+        positions = positions.get_sequence()
+        if len(positions) > 1:
+            return evaluation.message("Delete", "argt", Integer(len(positions) + 1))
+        elif len(positions) == 0:
+            return evaluation.message("Delete", "argr")
+
+        positions = positions[0]
+        if not positions.has_form("List", None):
+            return evaluation.message(
+                "Delete", "pkspec", positions, Expression(SymbolKey, positions)
+            )
+
+        # Create new python list of the positions and sort it
+        positions = (
+            [t for t in positions.elements]
+            if positions.elements[0].has_form("List", None)
+            else [positions]
+        )
+        positions.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
+        newexpr = expr
+        for position in positions:
+            pos = [p.get_int_value() for p in position.get_elements()]
+            if None in pos:
+                return evaluation.message(
+                    "Delete", "psl", position.elements[pos.index(None)], expr
+                )
+            if len(pos) == 0:
+                return evaluation.message(
+                    "Delete", "psl", ListExpression(*positions), expr
+                )
+            try:
+                newexpr = delete_rec(newexpr, pos)
+            except PartDepthError as exc:
+                return evaluation.message("Part", "partw", Integer(exc.index), expr)
+            except PartError:
+                return evaluation.message("Part", "partw", ListExpression(*pos), expr)
+        return newexpr
+
+
+# TODO: seems to want to produces a fancy box for failure.
+#    rules = {'Failure /: MakeBoxes[Failure[tag_, assoc_Association], StandardForm]' :
+# 		'With[{msg = assoc["MessageTemplate"], msgParam = assoc["MessageParameters"], type = assoc["Type"]}, ToBoxes @ Interpretation["Failure" @ Panel @ Grid[{{Style["\[WarningSign]", "Message", FontSize -> 35], Style["Message:", FontColor->GrayLevel[0.5]], ToString[StringForm[msg, Sequence @@ msgParam], StandardForm]}, {SpanFromAbove, Style["Tag:", FontColor->GrayLevel[0.5]], ToString[tag, StandardForm]},{SpanFromAbove,Style["Type:", FontColor->GrayLevel[0.5]],ToString[type, StandardForm]}},Alignment -> {Left, Top}], Failure[tag, assoc]] /; msg =!= Missing["KeyAbsent", "MessageTemplate"] && msgParam =!= Missing["KeyAbsent", "MessageParameters"] && msgParam =!= Missing["KeyAbsent", "Type"]]',
+#     }
 
 
 class DeleteCases(Builtin):
@@ -705,6 +867,43 @@ class FirstPosition(Builtin):
             minLevel=min_Level,
             maxLevel=max_Level,
         )
+
+
+# From backports in CellsToTeX. This functions provides compatibility to WMA 10.
+#  TODO:
+#  * Add doctests
+#  * Translate to python the more complex rules
+#  * Complete the support.
+
+
+class Insert(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Insert.html</url>
+
+    <dl>
+      <dt>'Insert[$list$, $elem$, $n$]'
+      <dd>inserts $elem$ at position $n$ in $list$. When $n$ is negative, \
+          the position is counted from the end.
+    </dl>
+
+    >> Insert[{a,b,c,d,e}, x, 3]
+     = {a, b, x, c, d, e}
+
+    >> Insert[{a,b,c,d,e}, x, -2]
+     = {a, b, c, d, x, e}
+    """
+
+    summary_text = "insert an element at a given position"
+
+    def eval(self, expr, elem, n: Integer, evaluation):
+        "Insert[expr_List, elem_, n_Integer]"
+
+        py_n = n.value
+        new_list = list(expr.get_elements())
+
+        position = py_n - 1 if py_n > 0 else py_n + 1
+        new_list.insert(position, elem)
+        return expr.restructure(expr.head, new_list, evaluation, deps=(expr, elem))
 
 
 class Last(Builtin):
