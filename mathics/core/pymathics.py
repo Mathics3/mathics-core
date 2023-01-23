@@ -77,7 +77,7 @@ def load_pymathics_module(definitions, module):
         raise PyMathicsLoadException(module)
     for name in vars - set(("pymathics_version_data", "__version__")):
         var = name_is_builtin_symbol(loaded_module, name)
-        if name_is_builtin_symbol:
+        if var is not None:
             instance = var(expression=False)
             if isinstance(instance, Builtin):
                 if not var.context:
