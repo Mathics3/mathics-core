@@ -341,14 +341,14 @@ class BesselI(_Bessel):
      = -Graphics-
     """
 
-    rules = {
-        "Derivative[0, 1][BesselI]": "((BesselI[-1 + #1, #2] + BesselI[1 + #1, #2])/2)&",
-    }
-
     mpmath_name = "besseli"
     rules = {
         "BesselI[Undefined, x_]": "Undefined",
         "BesselI[y_, Undefined]": "Undefined",
+        # FIXME: these are not respected. Why?
+        "BesselI[x_, -I Infinity]": "0",
+        "BesselI[x_, Infinity]": "0",
+        "Derivative[0, 1][BesselI]": "((BesselI[-1 + #1, #2] + BesselI[1 + #1, #2])/2)&",
     }
     sympy_name = "besseli"
     summary_text = "Bessel's function of the second kind"
