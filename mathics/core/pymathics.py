@@ -11,6 +11,9 @@ from mathics.builtin import name_is_builtin_symbol
 from mathics.builtin.base import Builtin
 from mathics.core.evaluation import Evaluation
 
+# The below set and dictionary are used in document generation
+# for Pymathics modules.
+# The are similar to "builtin_by_module" and "builtin_modules" of mathics.builtins.
 pymathics_modules = set()
 pymathics_builtins_by_module = {}
 
@@ -44,17 +47,6 @@ class PyMathicsLoadException(Exception):
     def __init__(self, module):
         self.name = module + " is not a valid pymathics module"
         self.module = module
-
-
-# Why do we need this?
-def eval_clear_pymathics_modules():
-    from mathics.builtin import builtins_by_module
-
-    for key in list(builtins_by_module.keys()):
-        if not key.startswith("mathics."):
-            del builtins_by_module[key]
-
-    return None
 
 
 def eval_load_module(module_name: str, evaluation: Evaluation) -> str:
