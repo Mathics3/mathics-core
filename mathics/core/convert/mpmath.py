@@ -11,7 +11,12 @@ from mathics.core.atoms import Complex, MachineReal, MachineReal0, PrecisionReal
 @lru_cache(maxsize=1024)
 def from_mpmath(value, prec=None, acc=None):
     "Converts mpf or mpc to Number."
+    if mpmath.isnan(value):
+        return SymbolIndeterminate
     if isinstance(value, mpmath.mpf):
+        if mpmath.isinf(value):
+            direction = Integer1 if value > 0 else IntegerM1
+            return Expression(SymbolDirectedInfinity, direction)
         # if accuracy is given, override
         # prec:
         if acc is not None:
@@ -28,6 +33,8 @@ def from_mpmath(value, prec=None, acc=None):
         # HACK: use str here to prevent loss of precision
         return PrecisionReal(sympy.Float(str(value), prec))
     elif isinstance(value, mpmath.mpc):
+        if mpmath.isinf(value):
+            return SymbolComplexInfinity
         if value.imag == 0.0:
             return from_mpmath(value.real, prec, acc)
         real = from_mpmath(value.real, prec, acc)

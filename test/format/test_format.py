@@ -456,53 +456,34 @@ all_test = {
     "Sqrt[1/(1+1/(1+1/a))]": {
         "msg": "SqrtBox",
         "text": {
-            "System`StandardForm": "1 / Sqrt[1+1 / (1+1 / a)]",
-            "System`TraditionalForm": "1 / Sqrt[1+1 / (1+1 / a)]",
-            "System`InputForm": "1 / Sqrt[1 + 1 / (1 + 1 / a)]",
-            "System`OutputForm": "1 / Sqrt[1 + 1 / (1 + 1 / a)]",
+            "System`StandardForm": "Sqrt[1 / (1+1 / (1+1 / a))]",
+            "System`TraditionalForm": "Sqrt[1 / (1+1 / (1+1 / a))]",
+            "System`InputForm": "Sqrt[1 / (1 + 1 / (1 + 1 / a))]",
+            "System`OutputForm": "Sqrt[1 / (1 + 1 / (1 + 1 / a))]",
         },
         "mathml": {
             "System`StandardForm": (
-                (
-                    r"<mfrac><mn>1</mn> <msqrt> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> "
-                    r"<mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow> "
-                    r"</msqrt></mfrac>"
-                ),
+                "<msqrt> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac> </msqrt>",
                 "Fragile!",
             ),
             "System`TraditionalForm": (
-                (
-                    r"<mfrac><mn>1</mn> <msqrt> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> "
-                    r"<mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow> "
-                    r"</msqrt></mfrac>"
-                ),
+                "<msqrt> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac> </msqrt>",
                 "Fragile!",
             ),
             "System`InputForm": (
-                (
-                    r"<mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mi>Sqrt</mi> <mo>[</mo> "
-                    r"<mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> "
-                    r"<mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>"
-                    r"&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>]</mo></mrow></mrow>"
-                ),
+                "<mrow><mi>Sqrt</mi> <mo>[</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow> <mo>]</mo></mrow>",
                 "Fragile!",
             ),
             "System`OutputForm": (
-                (
-                    r"<mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mi>Sqrt</mi> <mo>["
-                    r"</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> "
-                    r"<mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>"
-                    r"&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> "
-                    r"<mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>]</mo></mrow></mrow>"
-                ),
+                "<mrow><mi>Sqrt</mi> <mo>[</mo> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow> <mo>]</mo></mrow>",
                 "Fragile!",
             ),
         },
         "latex": {
-            "System`StandardForm": "\\frac{1}{\\sqrt{1+\\frac{1}{1+\\frac{1}{a}}}}",
-            "System`TraditionalForm": "\\frac{1}{\\sqrt{1+\\frac{1}{1+\\frac{1}{a}}}}",
-            "System`InputForm": r"1\text{ / }\text{Sqrt}\left[1\text{ + }1\text{ / }\left(1\text{ + }1\text{ / }a\right)\right]",
-            "System`OutputForm": r"1\text{ / }\text{Sqrt}\left[1\text{ + }1\text{ / }\left(1\text{ + }1\text{ / }a\right)\right]",
+            "System`StandardForm": "\\sqrt{\\frac{1}{1+\\frac{1}{1+\\frac{1}{a}}}}",
+            "System`TraditionalForm": "\\sqrt{\\frac{1}{1+\\frac{1}{1+\\frac{1}{a}}}}",
+            "System`InputForm": "\\text{Sqrt}\\left[1\\text{ / }\\left(1\\text{ + }1\\text{ / }\\left(1\\text{ + }1\\text{ / }a\\right)\\right)\\right]",
+            "System`OutputForm": "\\text{Sqrt}\\left[1\\text{ / }\\left(1\\text{ + }1\\text{ / }\\left(1\\text{ + }1\\text{ / }a\\right)\\right)\\right]",
         },
     },
     # Grids, arrays and matrices
