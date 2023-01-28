@@ -58,9 +58,9 @@ class ArcCosh(_MPMathFunction):
 
     rules = {
         "ArcCosh[Undefined]": "Undefined",
-        "ArcCosh[I Infinity]": "Infinity",
-        "ArcCosh[-I Infinity]": "Infinity",
-        "ArcCosh[ComplexInfinity]": "Infinity",
+        "ArcCosh[DirectedInfinity[I]]": "Infinity",
+        "ArcCosh[DirectedInfinity[-I]]": "Infinity",
+        "ArcCosh[DirectedInfinity[]]": "Infinity",
         "Derivative[1][ArcCosh]": "1/(Sqrt[#-1]*Sqrt[#+1])&",
     }
     summary_text = "inverse hyperbolic cosine function"
@@ -327,9 +327,9 @@ class Gudermannian(Builtin):
         # FIXME: handling DirectedInfinity[-I] leads to problems
         # "Gudermannian[6/4 Pi I]": "DirectedInfinity[-I]",
         # Handled already
-        # "Gudermannian[Infinity]": "Pi/2",
+        # "Gudermannian[DirectedInfinity[1]]": "Pi/2",
         # FIXME: Pi/2 from Sympy seems to take precedence
-        "Gudermannian[-Infinity]": "-Pi/2",
+        "Gudermannian[DirectedInfinity[-1]]": "-Pi/2",
         # Below, we don't use instead of ComplexInfinity that gets
         # substituted out for DirectedInfinity[] before we match on
         # Gudermannian[...]

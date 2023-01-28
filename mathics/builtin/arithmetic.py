@@ -685,9 +685,7 @@ class DirectedInfinity(SympyFunction):
             "  Unevaluated[DirectedInfinity[0.]]];"
             "Indeterminate"
         ),
-        "DirectedInfinity[ComplexInfinity]": "ComplexInfinity",
-        "DirectedInfinity[Infinity]": "Infinity",
-        "DirectedInfinity[-Infinity]": "-Infinity",
+        "DirectedInfinity[DirectedInfinity[x___]]": "DirectedInfinity[x]",
     }
 
     formats = {

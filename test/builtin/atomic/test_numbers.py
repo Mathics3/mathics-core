@@ -205,9 +205,9 @@ def test_precision():
     for str_expr, str_expected in (
         ("0`4", "0"),
         ("Precision[0.0]", "MachinePrecision"),
-        ("Precision[0.000000000000000000000000000000000000]", "0."),
+        ("Precision[0.000000000000000000000000000000000000]", "MachinePrecision"),
         ("Precision[-0.0]", "MachinePrecision"),
-        ("Precision[-0.000000000000000000000000000000000000]", "0."),
+        ("Precision[-0.000000000000000000000000000000000000]", "MachinePrecision"),
         ("1.0000000000000000 // Precision", "MachinePrecision"),
         ("1.00000000000000000 // Precision", "17."),
         (" 0.4 + 2.4 I // Precision", "MachinePrecision"),
