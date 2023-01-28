@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Pymathics module handling
+PyMathics3 module handling
 """
 
 import importlib
@@ -16,31 +16,6 @@ from mathics.core.evaluation import Evaluation
 # The are similar to "builtin_by_module" and "builtin_modules" of mathics.builtins.
 pymathics_modules = set()
 pymathics_builtins_by_module = {}
-
-
-def update_pymathics(module):
-    """
-    Update variables used in documentation to include Pymathics
-    """
-    module_vars = dir(module)
-
-    for name in module_vars:
-        builtin_class = name_is_builtin_symbol(module, name)
-        module_name = module.__name__
-
-        # Add Builtin classes to pymathics_builtins
-        if builtin_class is not None:
-            instance = builtin_class(expression=False)
-
-            if isinstance(instance, Builtin):
-                submodules = pymathics_builtins_by_module.get(module_name, [])
-                submodules.append(instance)
-                pymathics_builtins_by_module[module_name] = submodules
-
-        # Add submodules to pymathics_builtins
-        module_var = getattr(module, name)
-        if inspect.ismodule(module_var) and module_var.__name__.startswith("pymathics"):
-            update_pymathics(module_var)
 
 
 class PyMathicsLoadException(Exception):
@@ -116,3 +91,28 @@ def load_pymathics_module(definitions, module_name: str):
     update_pymathics(loaded_module)
     pymathics_modules.add(loaded_module)
     return loaded_module
+
+
+def update_pymathics(module):
+    """
+    Update variables used in documentation to include Pymathics
+    """
+    module_vars = dir(module)
+
+    for name in module_vars:
+        builtin_class = name_is_builtin_symbol(module, name)
+        module_name = module.__name__
+
+        # Add Builtin classes to pymathics_builtins
+        if builtin_class is not None:
+            instance = builtin_class(expression=False)
+
+            if isinstance(instance, Builtin):
+                submodules = pymathics_builtins_by_module.get(module_name, [])
+                submodules.append(instance)
+                pymathics_builtins_by_module[module_name] = submodules
+
+        # Add submodules to pymathics_builtins
+        module_var = getattr(module, name)
+        if inspect.ismodule(module_var) and module_var.__name__.startswith("pymathics"):
+            update_pymathics(module_var)
