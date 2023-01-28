@@ -979,7 +979,7 @@ class Times(BinaryOperator, SympyFunction):
                 )
             elif item.get_head().sameQ(SymbolDirectedInfinity):
                 infinity_factor = True
-                if len(item.elements) > 1:
+                if len(item.elements) > 0:
                     direction = item.elements[0]
                     if isinstance(direction, Number):
                         numbers.append(direction)

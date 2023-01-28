@@ -49,6 +49,7 @@ from mathics.core.attributes import (
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
+from mathics.core.element import ElementsProperties
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import SpecialValueError, dps, min_prec
@@ -658,9 +659,9 @@ class DirectedInfinity(SympyFunction):
         "DirectedInfinity[Indeterminate]": "Indeterminate",
         "DirectedInfinity[args___] ^ -1": "0",
         "0 * DirectedInfinity[args___]": "Message[Infinity::indet, Unevaluated[0 DirectedInfinity[args]]]; Indeterminate",
-        "DirectedInfinity[a_?NumericQ] /; N[Abs[a]] != 1": "DirectedInfinity[a / Abs[a]]",
-        "DirectedInfinity[a_] * DirectedInfinity[b_]": "DirectedInfinity[a*b]",
-        "DirectedInfinity[] * DirectedInfinity[args___]": "DirectedInfinity[]",
+        # "DirectedInfinity[a_?NumericQ] /; N[Abs[a]] != 1": "DirectedInfinity[a / Abs[a]]",
+        # "DirectedInfinity[a_] * DirectedInfinity[b_]": "DirectedInfinity[a*b]",
+        # "DirectedInfinity[] * DirectedInfinity[args___]": "DirectedInfinity[]",
         # Rules already implemented in Times.eval
         #        "z_?NumberQ * DirectedInfinity[]": "DirectedInfinity[]",
         #        "z_?NumberQ * DirectedInfinity[a_]": "DirectedInfinity[z * a]",
@@ -695,6 +696,19 @@ class DirectedInfinity(SympyFunction):
         "DirectedInfinity[DirectedInfinity[z_]]": "DirectedInfinity[z]",
         "DirectedInfinity[z_?NumericQ]": "HoldForm[z Infinity]",
     }
+
+    def eval(self, z, evaluation):
+        """DirectedInfinity[z_]"""
+        if z in (Integer1, IntegerM1):
+            return None
+        if isinstance(z, Number) or isinstance(eval_N(z, evaluation), Number):
+            direction = (z / Expression(SymbolAbs, z)).evaluate(evaluation)
+            return Expression(
+                SymbolDirectedInfinity,
+                direction,
+                elements_properties=ElementsProperties(True, True, True),
+            )
+        return None
 
     def to_sympy(self, expr, **kwargs):
         if len(expr.elements) == 1:

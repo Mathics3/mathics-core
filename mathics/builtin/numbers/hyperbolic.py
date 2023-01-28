@@ -325,7 +325,7 @@ class Gudermannian(Builtin):
         "Gudermannian[0]": "0",
         "Gudermannian[2*Pi*I]": "0",
         # FIXME: handling DirectedInfinity[-I] leads to problems
-        # "Gudermannian[6/4 Pi I]": "DirectedInfinity[-I]",
+        "Gudermannian[3 I / 2 Pi]": "DirectedInfinity[-I]",
         # Handled already
         # "Gudermannian[DirectedInfinity[1]]": "Pi/2",
         # FIXME: Pi/2 from Sympy seems to take precedence

@@ -252,10 +252,14 @@ def from_sympy(expr):
         elif expr is sympy.false:
             return SymbolFalse
 
-    elif expr.is_number and all([x.is_Number for x in expr.as_real_imag()]):
+    if expr.is_number and all([x.is_Number for x in expr.as_real_imag()]):
         # Hack to convert <Integer> * I to Complex[0, <Integer>]
-        return Complex(*[from_sympy(arg) for arg in expr.as_real_imag()])
-    elif expr.is_Add:
+        try:
+            return Complex(*[from_sympy(arg) for arg in expr.as_real_imag()])
+        except ValueError:
+            # The exception happens if one of the components is infinity
+            pass
+    if expr.is_Add:
         return to_expression(
             SymbolPlus, *sorted([from_sympy(arg) for arg in expr.args])
         )
