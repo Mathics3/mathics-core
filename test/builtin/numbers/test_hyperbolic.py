@@ -14,10 +14,10 @@ def test_gudermannian():
         ("Gudermannian[0]", "0"),
         ("Gudermannian[2 Pi I]", "0"),
         # FIXME: Mathics can't handle Rule substitution
-        # ("Gudermannian[6/4 Pi I]", "DirectedInfinity[-I]"),
+        ("Gudermannian[6/4 Pi I]", "DirectedInfinity[-I]"),
         ("Gudermannian[Infinity]", "Pi/2"),
         # FIXME: rule does not work
-        # ("Gudermannian[-Infinity]", "-Pi/2"),
+        ("Gudermannian[-Infinity]", "-Pi/2"),
         ("Gudermannian[ComplexInfinity]", "Indeterminate"),
         # FIXME Tanh[1 / 2] doesn't eval but Tanh[0.5] does
         ("Gudermannian[z]", "2 ArcTan[Tanh[z / 2]]"),

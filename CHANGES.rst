@@ -91,7 +91,10 @@ Bugs
 #. Some scikit image routines line ``EdgeDetect`` were getting omitted due to overly stringent PYPI requirements
 
 #. Units and Quantities were sometimes failing. Also they were omitted from documentation.
+#. Better handling of ``Infinite`` quantities.
+#. Fix ``Precision`` compatibility with WMA.
 
+   
 PyPI Package requirements
 +++++++++++++++++++++++++
 

@@ -862,7 +862,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                         exps[name] = exps.get(name, 0) + 1
             elif self.has_form("Power", 2):
                 var = self._elements[0].get_name()
-                exp = self._elements[1].round_to_float()
+                # TODO: Check if this is the expected behaviour.
+                # round_to_float is an attribute of Expression,
+                # but not for Atoms.
+                try:
+                    exp = self._elements[1].round_to_float()
+                except AttributeError:
+                    exp = None
                 if var and exp is not None:
                     exps[var] = exps.get(var, 0) + exp
             if exps:

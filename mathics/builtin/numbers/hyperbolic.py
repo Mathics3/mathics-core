@@ -58,9 +58,9 @@ class ArcCosh(_MPMathFunction):
 
     rules = {
         "ArcCosh[Undefined]": "Undefined",
-        "ArcCosh[I Infinity]": "Infinity",
-        "ArcCosh[-I Infinity]": "Infinity",
-        "ArcCosh[ComplexInfinity]": "Infinity",
+        "ArcCosh[DirectedInfinity[I]]": "Infinity",
+        "ArcCosh[DirectedInfinity[-I]]": "Infinity",
+        "ArcCosh[DirectedInfinity[]]": "Infinity",
         "Derivative[1][ArcCosh]": "1/(Sqrt[#-1]*Sqrt[#+1])&",
     }
     summary_text = "inverse hyperbolic cosine function"
@@ -324,15 +324,8 @@ class Gudermannian(Builtin):
         "Gudermannian[Undefined]": "Undefined",
         "Gudermannian[0]": "0",
         "Gudermannian[2*Pi*I]": "0",
-        # FIXME: handling DirectedInfinity[-I] leads to problems
-        # "Gudermannian[6/4 Pi I]": "DirectedInfinity[-I]",
-        # Handled already
-        # "Gudermannian[Infinity]": "Pi/2",
-        # FIXME: Pi/2 from Sympy seems to take precedence
-        "Gudermannian[-Infinity]": "-Pi/2",
-        # Below, we don't use instead of ComplexInfinity that gets
-        # substituted out for DirectedInfinity[] before we match on
-        # Gudermannian[...]
+        "Gudermannian[3 I / 2 Pi]": "DirectedInfinity[-I]",
+        "Gudermannian[DirectedInfinity[-1]]": "-Pi/2",
         "Gudermannian[DirectedInfinity[]]": "Indeterminate",
         "Gudermannian[z_]": "2 ArcTan[Tanh[z / 2]]",
         # Commented out because := might not work properly
