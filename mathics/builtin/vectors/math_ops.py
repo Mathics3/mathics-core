@@ -69,12 +69,14 @@ class Cross(Builtin):
         b = to_sympy_matrix(b)
 
         if a is None or b is None:
-            return evaluation.message("Cross", "nonn1")
+            evaluation.message("Cross", "nonn1")
+            return
 
         try:
             res = a.cross(b)
         except sympy.ShapeError:
-            return evaluation.message("Cross", "nonn1")
+            evaluation.message("Cross", "nonn1")
+            return
         return from_sympy(res)
 
 

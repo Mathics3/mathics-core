@@ -298,7 +298,8 @@ class Keys(Builtin):
 
         rules = rules.get_sequence()
         if len(rules) != 1:
-            return evaluation.message("Keys", "argx", Integer(len(rules)))
+            evaluation.message("Keys", "argx", Integer(len(rules)))
+            return
 
         try:
             return get_keys(rules[0])
@@ -432,9 +433,10 @@ class Values(Builtin):
 
         rules = rules.get_sequence()
         if len(rules) != 1:
-            return evaluation.message("Values", "argx", Integer(len(rules)))
+            evaluation.message("Values", "argx", Integer(len(rules)))
+            return
 
         try:
             return get_values(rules[0])
         except TypeError:
-            return evaluation.message("Values", "invrl", rules[0])
+            evaluation.message("Values", "invrl", rules[0])

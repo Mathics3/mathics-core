@@ -46,7 +46,8 @@ class GaussianFilter(Builtin):
     def eval_radius(self, image, radius, evaluation: Evaluation):
         "GaussianFilter[image_Image, radius_?RealNumberQ]"
         if len(image.pixels.shape) > 2 and image.pixels.shape[2] > 3:
-            return evaluation.message("GaussianFilter", "only3")
+            evaluation.message("GaussianFilter", "only3")
+            return
         else:
             f = PIL.ImageFilter.GaussianBlur(radius.round_to_float())
             return image.filter(lambda im: im.filter(f))

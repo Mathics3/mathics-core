@@ -86,28 +86,34 @@ class StringDrop(Builtin):
     def eval_with_n(self, string, n, evaluation):
         "StringDrop[string_,n_Integer]"
         if not isinstance(string, String):
-            return evaluation.message("StringDrop", "strse")
+            evaluation.message("StringDrop", "strse")
+            return
         if isinstance(n, Integer):
             pos = n.value
             if pos > len(string.get_string_value()):
-                return evaluation.message("StringDrop", "drop", 1, pos, string)
+                evaluation.message("StringDrop", "drop", 1, pos, string)
+                return
             if pos < -len(string.get_string_value()):
-                return evaluation.message("StringDrop", "drop", pos, -1, string)
+                evaluation.message("StringDrop", "drop", pos, -1, string)
+                return
             if pos > 0:
                 return String(string.get_string_value()[pos:])
             if pos < 0:
                 return String(string.get_string_value()[:(pos)])
             if pos == 0:
                 return string
-        return evaluation.message("StringDrop", "mseqs")
+        evaluation.message("StringDrop", "mseqs")
+        return
 
     def eval_with_ni_nf(self, string, ni, nf, evaluation):
         "StringDrop[string_,{ni_Integer,nf_Integer}]"
         if not isinstance(string, String):
-            return evaluation.message("StringDrop", "strse", string)
+            evaluation.message("StringDrop", "strse", string)
+            return
 
         if ni.value == 0 or nf.value == 0:
-            return evaluation.message("StringDrop", "drop", ni, nf)
+            evaluation.message("StringDrop", "drop", ni, nf)
+            return
         fullstring = string.get_string_value()
         lenfullstring = len(fullstring)
         posi = ni.value
@@ -118,7 +124,8 @@ class StringDrop(Builtin):
             posf = lenfullstring + posf + 1
         if posf > lenfullstring or posi > lenfullstring or posf <= 0 or posi <= 0:
             # positions out or range
-            return evaluation.message("StringDrop", "drop", ni, nf, fullstring)
+            evaluation.message("StringDrop", "drop", ni, nf, fullstring)
+            return
         if posf < posi:
             return string  # this is what actually mma does
         return String(fullstring[: (posi - 1)] + fullstring[posf:])
@@ -126,28 +133,34 @@ class StringDrop(Builtin):
     def eval_with_ni(self, string, ni, evaluation):
         "StringDrop[string_,{ni_Integer}]"
         if not isinstance(string, String):
-            return evaluation.message("StringDrop", "strse", string)
+            evaluation.message("StringDrop", "strse", string)
+            return
         if ni.value == 0:
-            return evaluation.message("StringDrop", "drop", ni, ni)
+            evaluation.message("StringDrop", "drop", ni, ni)
+            return
         fullstring = string.get_string_value()
         lenfullstring = len(fullstring)
         posi = ni.value
         if posi < 0:
             posi = lenfullstring + posi + 1
         if posi > lenfullstring or posi <= 0:
-            return evaluation.message("StringDrop", "drop", ni, ni, fullstring)
+            evaluation.message("StringDrop", "drop", ni, ni, fullstring)
+            return
         return String(fullstring[: (posi - 1)] + fullstring[posi:])
 
     def eval(self, string, something, evaluation):
         "StringDrop[string_,something___]"
         if not isinstance(string, String):
-            return evaluation.message("StringDrop", "strse")
-        return evaluation.message("StringDrop", "mseqs")
+            evaluation.message("StringDrop", "strse")
+            return
+        evaluation.message("StringDrop", "mseqs")
 
 
 class StringInsert(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/StringInsert.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/StringInsert.html</url>
 
     <dl>
       <dt>'StringInsert["$string$", "$snew$", $n$]'
@@ -299,7 +312,8 @@ class StringInsert(Builtin):
 
         py_strnew = strnew.get_string_value()
         if py_strnew is None:
-            return evaluation.message("StringInsert", "string", Integer(2), exp)
+            evaluation.message("StringInsert", "string", Integer(2), exp)
+            return
 
         # Check and create list of position
         listpos = []
@@ -311,19 +325,22 @@ class StringInsert(Builtin):
                 for i, posi in enumerate(elements):
                     py_posi = posi.get_int_value()
                     if py_posi is None:
-                        return evaluation.message("StringInsert", "psl", pos, exp)
+                        evaluation.message("StringInsert", "psl", pos, exp)
+                        return
                     listpos.append(py_posi)
         else:
             py_pos = pos.get_int_value()
             if py_pos is None:
-                return evaluation.message("StringInsert", "psl", pos, exp)
+                evaluation.message("StringInsert", "psl", pos, exp)
+                return
             listpos.append(py_pos)
 
         # Check and perform the insertion
         if strsource.has_form("List", None):
             py_strsource = [sub.get_string_value() for sub in strsource.elements]
             if any(sub is None for sub in py_strsource):
-                return evaluation.message("StringInsert", "strse", Integer1, exp)
+                evaluation.message("StringInsert", "strse", Integer1, exp)
+                return
             return ListExpression(
                 *[
                     String(self._insert(s, py_strnew, listpos, evaluation))
@@ -333,7 +350,8 @@ class StringInsert(Builtin):
         else:
             py_strsource = strsource.get_string_value()
             if py_strsource is None:
-                return evaluation.message("StringInsert", "strse", Integer1, exp)
+                evaluation.message("StringInsert", "strse", Integer1, exp)
+                return
             return String(self._insert(py_strsource, py_strnew, listpos, evaluation))
 
 
@@ -506,7 +524,8 @@ class StringPosition(Builtin):
         else:
             py_n = n.get_int_value()
             if py_n is None or py_n < 0:
-                return evaluation.message("StringPosition", "innf", expr, Integer(3))
+                evaluation.message("StringPosition", "innf", expr, Integer(3))
+                return
 
         # check options
         if options["System`Overlaps"] is SymbolTrue:
@@ -529,7 +548,8 @@ class StringPosition(Builtin):
         for p in patts:
             py_p = to_regex(p, evaluation)
             if py_p is None:
-                return evaluation.message("StringExpression", "invld", p, patt)
+                evaluation.message("StringExpression", "invld", p, patt)
+                returna
             re_patts.append(py_p)
         compiled_patts = [re.compile(re_patt) for re_patt in re_patts]
 
@@ -797,22 +817,27 @@ class StringRiffle(Builtin):
 
         # Validate separators
         if len(separators) > 1:
-            return evaluation.message("StringRiffle", "mulsep")
+            evaluation.message("StringRiffle", "mulsep")
+            return
         elif len(separators) == 1:
             if separators[0].has_form("List", None):
                 if len(separators[0].elements) != 3 or any(
                     not isinstance(s, String) for s in separators[0].elements
                 ):
-                    return evaluation.message("StringRiffle", "string", Integer(2), exp)
+                    evaluation.message("StringRiffle", "string", Integer(2), exp)
+                    return
             elif not isinstance(separators[0], String):
-                return evaluation.message("StringRiffle", "string", Integer(2), exp)
+                evaluation.message("StringRiffle", "string", Integer(2), exp)
+                return
 
         # Validate list of string
         if not liststr.has_form("List", None):
             evaluation.message("StringRiffle", "list", Integer1, exp)
-            return evaluation.message("StringRiffle", "argmu", exp)
+            evaluation.message("StringRiffle", "argmu", exp)
+            return
         elif any(element.has_form("List", None) for element in liststr.elements):
-            return evaluation.message("StringRiffle", "sublist")
+            evaluation.message("StringRiffle", "sublist")
+            return
 
         # Determine the separation token
         left, right = "", ""
@@ -924,9 +949,10 @@ class StringSplit(Builtin):
         py_string = string.get_string_value()
 
         if py_string is None:
-            return evaluation.message(
+            evaluation.message(
                 "StringSplit", "strse", Integer1, Expression(SymbolStringSplit, string)
             )
+            return
 
         if patt.has_form("List", None):
             patts = patt.get_elements()
@@ -936,7 +962,8 @@ class StringSplit(Builtin):
         for p in patts:
             py_p = to_regex(p, evaluation)
             if py_p is None:
-                return evaluation.message("StringExpression", "invld", p, patt)
+                evaluation.message("StringExpression", "invld", p, patt)
+                return
             re_patts.append(py_p)
 
         flags = re.MULTILINE
@@ -1039,7 +1066,8 @@ class StringTake(Builtin):
         "StringTake[string_String, seqspec_]"
         result = string.get_string_value()
         if result is None:
-            return evaluation.message("StringTake", "strse")
+            evaluation.message("StringTake", "strse")
+            return
 
         if isinstance(seqspec, Integer):
             pos = seqspec.get_int_value()
@@ -1051,13 +1079,15 @@ class StringTake(Builtin):
             seq = convert_seq(seqspec)
 
         if seq is None:
-            return evaluation.message("StringTake", "mseqs")
+            evaluation.message("StringTake", "mseqs")
+            return
 
         start, stop, step = seq
         py_slice = python_seq(start, stop, step, len(result))
 
         if py_slice is None:
-            return evaluation.message("StringTake", "take", start, stop, string)
+            evaluation.message("StringTake", "take", start, stop, string)
+            return
 
         return String(result[py_slice])
 
@@ -1102,7 +1132,8 @@ class StringTrim(Builtin):
 
         py_patt = to_regex(patt, evaluation)
         if py_patt is None:
-            return evaluation.message("StringExpression", "invld", patt, expression)
+            evaluation.message("StringExpression", "invld", patt, expression)
+            return
 
         if not py_patt.startswith(r"\A"):
             left_patt = r"\A" + py_patt

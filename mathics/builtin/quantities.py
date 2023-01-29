@@ -153,12 +153,12 @@ class Quantity(Builtin):
                     SymbolQuantity, quantity.magnitude, String(quantity.units)
                 )
         else:
-            return evaluation.message("Quantity", "unkunit", unit)
+            evaluation.message("Quantity", "unkunit", unit)
 
     def eval(self, unit, evaluation: Evaluation):
         "Quantity[unit_]"
         if not isinstance(unit, String):
-            return evaluation.message("Quantity", "unkunit", unit)
+            evaluation.message("Quantity", "unkunit", unit)
         else:
             return self.eval_n(Integer1, unit, evaluation)
 

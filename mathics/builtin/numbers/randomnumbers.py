@@ -161,7 +161,8 @@ class _RandomBase(Builtin):
             not all(isinstance(i, int) and i >= 0 for i in py_size)
         ):
             expr = Expression(Symbol(self.get_name()), domain, size)
-            return evaluation.message(self.get_name(), "array", size, expr), None
+            evaluation.message(self.get_name(), "array", size, expr), None
+            return
 
         return False, py_size
 
@@ -190,19 +191,22 @@ class _RandomSelection(_RandomBase):
             if domain.elements[1].get_head_name() != "System`List" or len(
                 py_weights
             ) != len(elements):
-                return evaluation.message(self.get_name(), "wghtv", domain)
+                evaluation.message(self.get_name(), "wghtv", domain)
+                return
         elif domain.get_head_name() == "System`List":  # only elements
             py_weights = None
             elements = domain.elements
         else:
-            return evaluation.message(self.get_name(), "lrwl", domain)
+            evaluation.message(self.get_name(), "lrwl", domain)
+            return
         err, py_size = self._size_to_python(domain, size, evaluation)
         if py_size is None:
             return err
         if not self._replace:  # i.e. RandomSample?
             n_chosen = reduce(operator_mul, py_size, 1)
             if len(elements) < n_chosen:
-                return evaluation.message("smplen", size, domain), None
+                evaluation.message("smplen", size, domain), None
+                return
         with RandomEnv(evaluation) as rand:
             return instantiate_elements(
                 rand.randchoice(
@@ -227,14 +231,16 @@ class _RandomSelection(_RandomBase):
             if norm_weights is None or not all(
                 w.is_numeric(evaluation) for w in norm_weights.elements
             ):
-                return evaluation.message(self.get_name(), "wghtv", weights), None
+                evaluation.message(self.get_name(), "wghtv", weights), None
+                return
             weights = norm_weights
 
         py_weights = eval_N(weights, evaluation).to_python() if is_proper_spec else None
         if (py_weights is None) or (
             not all(isinstance(w, (int, float)) and w >= 0 for w in py_weights)
         ):
-            return evaluation.message(self.get_name(), "wghtv", weights), None
+            evaluation.message(self.get_name(), "wghtv", weights), None
+            return
 
         return False, py_weights
 
@@ -363,9 +369,8 @@ class RandomComplex(Builtin):
             self.to_complex(zmax, evaluation),
         )
         if min_value is None or max_value is None:
-            return evaluation.message(
-                "RandomComplex", "unifr", ListExpression(zmin, zmax)
-            )
+            evaluation.message("RandomComplex", "unifr", ListExpression(zmin, zmax))
+            return
 
         with RandomEnv(evaluation) as rand:
             real = Real(rand.randreal(min_value.real, max_value.real))
@@ -381,16 +386,16 @@ class RandomComplex(Builtin):
             self.to_complex(zmax, evaluation),
         )
         if min_value is None or max_value is None:
-            return evaluation.message(
-                "RandomComplex", "unifr", ListExpression(zmin, zmax)
-            )
+            evaluation.message("RandomComplex", "unifr", ListExpression(zmin, zmax))
+            return
 
         py_ns = ns.to_python()
         if not isinstance(py_ns, list):
             py_ns = [py_ns]
 
         if not all([isinstance(i, int) and i >= 0 for i in py_ns]):
-            return evaluation.message("RandomComplex", "array", ns, expr)
+            evaluation.message("RandomComplex", "array", ns, expr)
+            return
 
         with RandomEnv(evaluation) as rand:
             real = rand.randreal(min_value.real, max_value.real, py_ns)
@@ -460,9 +465,8 @@ class RandomInteger(Builtin):
         "RandomInteger[{rmin_, rmax_}]"
 
         if not isinstance(rmin, Integer) or not isinstance(rmax, Integer):
-            return evaluation.message(
-                "RandomInteger", "unifr", ListExpression(rmin, rmax)
-            )
+            evaluation.message("RandomInteger", "unifr", ListExpression(rmin, rmax))
+            return
         rmin, rmax = rmin.value, rmax.value
         with RandomEnv(evaluation) as rand:
             return Integer(rand.randint(rmin, rmax))
@@ -470,9 +474,8 @@ class RandomInteger(Builtin):
     def eval_list(self, rmin, rmax, ns, evaluation):
         "RandomInteger[{rmin_, rmax_}, ns_List]"
         if not isinstance(rmin, Integer) or not isinstance(rmax, Integer):
-            return evaluation.message(
-                "RandomInteger", "unifr", ListExpression(rmin, rmax)
-            )
+            evaluation.message("RandomInteger", "unifr", ListExpression(rmin, rmax))
+            return
         rmin, rmax = rmin.value, rmax.value
         result = ns.to_python()
 
@@ -545,7 +548,8 @@ class RandomReal(Builtin):
         if not (
             isinstance(xmin, (Real, Integer)) and isinstance(xmax, (Real, Integer))
         ):
-            return evaluation.message("RandomReal", "unifr", ListExpression(xmin, xmax))
+            evaluation.message("RandomReal", "unifr", ListExpression(xmin, xmax))
+            return
 
         min_value, max_value = xmin.to_python(), xmax.to_python()
 
@@ -558,14 +562,16 @@ class RandomReal(Builtin):
         if not (
             isinstance(xmin, (Real, Integer)) and isinstance(xmax, (Real, Integer))
         ):
-            return evaluation.message("RandomReal", "unifr", ListExpression(xmin, xmax))
+            evaluation.message("RandomReal", "unifr", ListExpression(xmin, xmax))
+            return
 
         min_value, max_value = xmin.to_python(), xmax.to_python()
         result = ns.to_python()
 
         if not all([isinstance(i, int) and i >= 0 for i in result]):
             expr = Expression(SymbolRandomReal, ListExpression(xmin, xmax), ns)
-            return evaluation.message("RandomReal", "array", expr, ns)
+            evaluation.message("RandomReal", "array", expr, ns)
+            return
 
         assert all([isinstance(i, int) for i in result])
 
@@ -631,7 +637,8 @@ class SeedRandom(Builtin):
                 hashlib.md5(x.get_string_value().encode("utf8")).hexdigest(), 16
             )
         else:
-            return evaluation.message("SeedRandom", "seed", x)
+            evaluation.message("SeedRandom", "seed", x)
+            return
         with RandomEnv(evaluation) as rand:
             rand.seed(value)
         return SymbolNull

@@ -466,21 +466,23 @@ class StringMatchQ(Builtin):
         "StringMatchQ[string_, patt_, OptionsPattern[%(name)s]]"
         py_string = string.get_string_value()
         if py_string is None:
-            return evaluation.message(
+            evaluation.message(
                 "StringMatchQ",
                 "strse",
                 Integer1,
                 Expression(SymbolStringMatchQ, string, patt),
             )
+            return
 
         re_patt = to_regex(patt, evaluation, abbreviated_patterns=True)
         if re_patt is None:
-            return evaluation.message(
+            evaluation.message(
                 "StringExpression",
                 "invld",
                 patt,
                 Expression(SymbolStringExpression, patt),
             )
+            return
 
         re_patt = anchor_pattern(re_patt)
 

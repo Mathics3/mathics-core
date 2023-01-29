@@ -82,7 +82,8 @@ class Chop(Builtin):
 
         delta = delta.round_to_float(evaluation)
         if delta is None or delta < 0:
-            return evaluation.message("Chop", "tolnn")
+            evaluation.message("Chop", "tolnn")
+            return
 
         return chop(expr, delta=delta)
 
@@ -360,7 +361,8 @@ class Rationalize(Builtin):
             or (not py_dx.is_real)
             or py_dx.is_negative
         ):
-            return evaluation.message("Rationalize", "tolnn", dx)
+            evaluation.message("Rationalize", "tolnn", dx)
+            return
         elif py_dx == 0:
             return from_sympy(self.find_exact(py_x))
 

@@ -144,9 +144,10 @@ class ColorQuantize(Builtin):
         "ColorQuantize[image_Image, n_Integer]"
         py_value = n.value
         if py_value <= 0:
-            return evaluation.message(
+            evaluation.message(
                 "ColorQuantize", "intp", Expression(SymbolColorQuantize, image, n), 2
             )
+            return
         converted = image.color_convert("RGB")
         if converted is None:
             return

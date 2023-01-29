@@ -155,7 +155,8 @@ def _pattern_search(name, string, patt, evaluation, options, matched):
     for p in patts:
         py_p = to_regex(p, evaluation)
         if py_p is None:
-            return evaluation.message("StringExpression", "invld", p, patt)
+            evaluation.message("StringExpression", "invld", p, patt)
+            return
         re_patts.append(py_p)
 
     flags = re.MULTILINE
@@ -171,16 +172,18 @@ def _pattern_search(name, string, patt, evaluation, options, matched):
     if string.has_form("List", None):
         py_s = [s.get_string_value() for s in string.elements]
         if any(s is None for s in py_s):
-            return evaluation.message(
+            evaluation.message(
                 name, "strse", Integer1, Expression(Symbol(name), string, patt)
             )
+            return
         return to_mathics_list(*[_search(re_patts, s, flags, matched) for s in py_s])
     else:
         py_s = string.get_string_value()
         if py_s is None:
-            return evaluation.message(
+            evaluation.message(
                 name, "strse", Integer1, Expression(Symbol(name), string, patt)
             )
+            return
         return _search(re_patts, py_s, flags, matched)
 
 
@@ -649,7 +652,8 @@ class LetterNumber(Builtin):
                 result.append(self.eval_alpha_str(element, alpha, evaluation))
             return ListExpression(*result)
         else:
-            return evaluation.message(self.__class__.__name__, "nas", chars)
+            evaluation.message(self.__class__.__name__, "nas", chars)
+            return
         return None
 
     def eval(self, chars: List[Any], evaluation):
@@ -673,7 +677,7 @@ class LetterNumber(Builtin):
                 result.append(self.eval(element, evaluation))
             return ListExpression(*result)
         else:
-            return evaluation.message(self.__class__.__name__, "nas", chars)
+            evaluation.message(self.__class__.__name__, "nas", chars)
         return None
 
 
@@ -757,29 +761,34 @@ class _StringFind(Builtin):
         if string.has_form("List", None):
             py_strings = [stri.get_string_value() for stri in string.elements]
             if None in py_strings:
-                return evaluation.message(self.get_name(), "strse", Integer1, expr)
+                evaluation.message(self.get_name(), "strse", Integer1, expr)
+                return
         else:
             py_strings = string.get_string_value()
             if py_strings is None:
-                return evaluation.message(self.get_name(), "strse", Integer1, expr)
+                evaluation.message(self.get_name(), "strse", Integer1, expr)
+                return
 
         # convert rule
         def convert_rule(r):
             if r.has_form("Rule", None) and len(r.elements) == 2:
                 py_s = to_regex(r.elements[0], evaluation)
                 if py_s is None:
-                    return evaluation.message(
+                    evaluation.message(
                         "StringExpression", "invld", r.elements[0], r.elements[0]
                     )
+                    return
                 py_sp = r.elements[1]
                 return py_s, py_sp
             elif cases:
                 py_s = to_regex(r, evaluation)
                 if py_s is None:
-                    return evaluation.message("StringExpression", "invld", r, r)
+                    evaluation.message("StringExpression", "invld", r, r)
+                    return
                 return py_s, None
 
-            return evaluation.message(self.get_name(), "srep", r)
+            evaluation.message(self.get_name(), "srep", r)
+            return
 
         if rule.has_form("List", None):
             py_rules = [convert_rule(r) for r in rule.elements]
@@ -796,7 +805,8 @@ class _StringFind(Builtin):
         else:
             py_n = n.get_int_value()
             if py_n is None or py_n < 0:
-                return evaluation.message(self.get_name(), "innf", Integer(3), expr)
+                evaluation.message(self.get_name(), "innf", Integer(3), expr)
+                return
 
         # flags
         flags = re.MULTILINE

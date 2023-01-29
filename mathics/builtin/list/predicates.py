@@ -70,7 +70,8 @@ class ContainsOnly(Builtin):
                 if expr is None:
                     evaluation.message("ContainsOnly", "optx", Symbol(key))
                 else:
-                    return evaluation.message("ContainsOnly", "optx", Symbol(key), expr)
+                    evaluation.message("ContainsOnly", "optx", Symbol(key), expr)
+
         return None
 
     def eval(self, list1, list2, evaluation, options={}):

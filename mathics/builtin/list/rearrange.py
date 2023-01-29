@@ -430,19 +430,21 @@ class _SetOperation(Builtin):
 
         for pos, e in enumerate(seq):
             if isinstance(e, Atom):
-                return evaluation.message(
+                evaluation.message(
                     self.get_name(),
                     "normal",
                     pos + 1,
                     Expression(Symbol(self.get_name()), *seq),
                 )
+                return
 
         for pos, e in enumerate(zip(seq, seq[1:])):
             e1, e2 = e
             if e1.head != e2.head:
-                return evaluation.message(
+                evaluation.message(
                     self.get_name(), "heads", e1.head, e2.head, pos + 1, pos + 2
                 )
+                return
 
         same_test = self.get_option(options, "SameTest", evaluation)
         operands = [li.elements for li in seq]
@@ -818,7 +820,8 @@ class Flatten(Builtin):
             # Here we test for negative since in Mathics Flatten[] as opposed to flatten_with_respect_to_head()
             # negative numbers (and None) are not allowed.
             if n_int is None or n_int < 0:
-                return evaluation.message("Flatten", "flpi", n)
+                evaluation.message("Flatten", "flpi", n)
+                return
             n = n_int
 
         return expr.flatten_with_respect_to_head(h, level=n)

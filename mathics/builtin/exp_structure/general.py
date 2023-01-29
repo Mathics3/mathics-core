@@ -363,9 +363,10 @@ class Operate(Builtin):
 
         head_depth = n.get_int_value()
         if head_depth is None or head_depth < 0:
-            return evaluation.message(
+            evaluation.message(
                 "Operate", "intnn", Expression(SymbolOperate, p, expr, n), 3
             )
+            return
 
         if head_depth == 0:
             # Act like Apply
@@ -530,10 +531,12 @@ class SortBy(Builtin):
         "SortBy[li_, f_]"
 
         if isinstance(li, Atom):
-            return evaluation.message("Sort", "normal")
+            evaluation.message("Sort", "normal")
+            return
         elif li.get_head_name() != "System`List":
             expr = Expression(SymbolSortBy, li, f)
-            return evaluation.message(self.get_name(), "list", expr, 1)
+            evaluation.message(self.get_name(), "list", expr, 1)
+            return
         else:
             keys_expr = Expression(SymbolMap, f, li).evaluate(evaluation)  # precompute:
             # even though our sort function has only (n log n) comparisons, we should
@@ -545,7 +548,8 @@ class SortBy(Builtin):
                 or len(keys_expr.elements) != len(li.elements)
             ):
                 expr = Expression(SymbolSortBy, li, f)
-                return evaluation.message("SortBy", "func", expr, 2)
+                evaluation.message("SortBy", "func", expr, 2)
+                return
 
             keys = keys_expr.elements
             raw_keys = li.elements

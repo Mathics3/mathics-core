@@ -163,7 +163,8 @@ class ImagePartition(Builtin):
         py_w = w.value
         py_h = h.value
         if py_w <= 0 or py_h <= 0:
-            return evaluation.message("ImagePartition", "arg2", ListExpression(w, h))
+            evaluation.message("ImagePartition", "arg2", ListExpression(w, h))
+            return
         pixels = image.pixels
         shape = pixels.shape
 
@@ -264,7 +265,8 @@ class Threshold(Builtin):
         elif method_name == "Mean":
             threshold = numpy.mean(pixels)
         else:
-            return evaluation.message("Threshold", "illegalmethod", method)
+            evaluation.message("Threshold", "illegalmethod", method)
+            return
 
         return MachineReal(float(threshold))
 
