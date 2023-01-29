@@ -283,6 +283,7 @@ def skip_module_doc(module, modules_seen) -> bool:
     return (
         module.__doc__ is None
         or module in modules_seen
+        or module.__name__.split(".")[0] not in ("mathics", "pymathics")
         or hasattr(module, "no_doc")
         and module.no_doc
     )

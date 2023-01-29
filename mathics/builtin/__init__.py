@@ -148,15 +148,18 @@ def name_is_builtin_symbol(module, name: str) -> Optional[type]:
     # via the inspect module which is not implementation specific.
 
     # Skip those builtins defined in or imported from another module.
-    if module_object.__module__ != module.__name__:
-        return None
+    # if module_object.__module__ != module.__name__:
+    #     return None
 
     # Skip objects in module mathics.builtin.base.
     if module_object.__module__ == "mathics.builtin.base":
         return None
 
     # Skip those builtins that are not submodules of mathics.builtin.
-    if not module_object.__module__.startswith("mathics.builtin."):
+    if not (
+        module_object.__module__.startswith("mathics.builtin.")
+        or module_object.__module__.startswith("pymathics.")
+    ):
         return None
 
     # If it is not a subclass of Builtin, skip it.
