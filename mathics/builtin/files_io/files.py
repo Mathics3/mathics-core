@@ -1880,11 +1880,12 @@ class WriteString(Builtin):
             try:
                 result = result.boxes_to_text(evaluation=evaluation)
             except BoxError:
-                return evaluation.message(
+                evaluation.message(
                     "General",
                     "notboxes",
                     to_expression("FullForm", result).evaluate(evaluation),
                 )
+                return
             exprs.append(result)
         line = "".join(exprs)
         if type(stream) is BytesIO:

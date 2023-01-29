@@ -54,7 +54,8 @@ class PixelValue(Builtin):
         height = image.pixels.shape[0]
         width = image.pixels.shape[1]
         if not (1 <= x <= width and 1 <= y <= height):
-            return evaluation.message("PixelValue", "nopad")
+            evaluation.message("PixelValue", "nopad")
+            return
         pixel = pixels_as_float(image.pixels)[height - y, x - 1]
         if isinstance(pixel, (numpy.ndarray, numpy.generic, list)):
             return ListExpression(*[MachineReal(float(x)) for x in list(pixel)])

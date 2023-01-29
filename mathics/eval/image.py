@@ -284,13 +284,15 @@ def resize_width_height(
     from mathics.builtin.image.base import Image
 
     if resampling_name not in resampling_names2PIL.keys():
-        return evaluation.message("ImageResize", "imgrsm", resampling_name)
+        evaluation.message("ImageResize", "imgrsm", resampling_name)
+        return
     resample = resampling_names2PIL[resampling_name]
 
     # perform the resize
     if hasattr(image, "pillow"):
         if resampling_name not in resampling_names2PIL.keys():
-            return evaluation.message("ImageResize", "imgrsm", resampling_name)
+            evaluation.message("ImageResize", "imgrsm", resampling_name)
+            return
         pillow = image.pillow.resize(size=(width, height), resample=resample)
         pixels = numpy.asarray(pillow)
         return Image(pixels, image.color_space, pillow=pillow)
@@ -319,7 +321,8 @@ def resize_width_height(
     #         s = sx
     #     if err > 1.5:
     #         # TODO overcome this limitation
-    #         return evaluation.message("ImageResize", "gaussaspect")
+    #         evaluation.message("ImageResize", "gaussaspect")
+    #         return
     #     elif s > 1:
     #         pixels = transform.pyramid_expand(
     #             image.pixels, upscale=s, multichannel=multichannel

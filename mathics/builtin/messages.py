@@ -112,11 +112,12 @@ class Check(Builtin):
         "argmu": "Check called with 1 argument; 2 or more arguments are expected.",
         "name": "Message name `1` is not of the form symbol::name or symbol::name::language.",
     }
+
     summary_text = "discard the result if the evaluation produced messages"
 
     def eval(self, expr, evaluation: Evaluation):
         "Check[expr_]"
-        return evaluation.message("Check", "argmu")
+        evaluation.message("Check", "argmu")
 
     def eval_with_fail(self, expr, failexpr, params, evaluation: Evaluation):
         "Check[expr_, failexpr_, params___]"

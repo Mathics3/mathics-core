@@ -455,7 +455,8 @@ class _Plot(Builtin):
         if plotpoints == "System`None":
             plotpoints = 57
         if not (isinstance(plotpoints, int) and plotpoints >= 2):
-            return evaluation.message(self.get_name(), "ppts", plotpoints)
+            evaluation.message(self.get_name(), "ppts", plotpoints)
+            return
 
         # MaxRecursion Option
         max_recursion_limit = 15
@@ -591,9 +592,11 @@ class _Plot(Builtin):
         py_start = start.round_to_float(evaluation)
         py_stop = stop.round_to_float(evaluation)
         if py_start is None or py_stop is None:
-            return evaluation.message(self.get_name(), "plln", stop, expr)
+            evaluation.message(self.get_name(), "plln", stop, expr)
+            return
         if py_start >= py_stop:
-            return evaluation.message(self.get_name(), "plld", expr_limits)
+            evaluation.message(self.get_name(), "plld", expr_limits)
+            return
 
         plotrange_option = self.get_option(options, "PlotRange", evaluation)
         plot_range = eval_N(plotrange_option, evaluation).to_python()
@@ -1595,9 +1598,11 @@ class DiscretePlot(_Plot):
         py_nmax = nmax.value
         py_step = step.value
         if py_start is None or py_nmax is None:
-            return evaluation.message(self.get_name(), "plln", nmax, expr)
+            evaluation.message(self.get_name(), "plln", nmax, expr)
+            return
         if py_start >= py_nmax:
-            return evaluation.message(self.get_name(), "plld", expr_limits)
+            evaluation.message(self.get_name(), "plld", expr_limits)
+            return
 
         plotrange_option = self.get_option(options, "PlotRange", evaluation)
         plot_range = eval_N(plotrange_option, evaluation).to_python()

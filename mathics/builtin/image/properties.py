@@ -117,7 +117,8 @@ class ImageData(Builtin):
         elif stype == "Bit":
             pixels = pixels.astype(int)
         else:
-            return evaluation.message("ImageData", "pixelfmt", stype)
+            evaluation.message("ImageData", "pixelfmt", stype)
+            return
         return from_python(numpy_to_matrix(pixels))
 
 

@@ -439,7 +439,8 @@ def _coefficient(name, expr, form, n, evaluation):
         return Integer0
 
     if not (isinstance(form, Symbol)) and not (isinstance(form, Expression)):
-        return evaluation.message(name, "ivar", form)
+        evaluation.message(name, "ivar", form)
+        return
 
     sympy_exprs = expr.to_sympy().as_ordered_terms()
     sympy_var = form.to_sympy()
@@ -532,7 +533,7 @@ class Coefficient(Builtin):
 
     def eval_noform(self, expr, evaluation):
         "Coefficient[expr_]"
-        return evaluation.message("Coefficient", "argtu")
+        evaluation.message("Coefficient", "argtu")
 
     def eval(self, expr, form, evaluation):
         "Coefficient[expr_, form_]"
@@ -933,7 +934,7 @@ class CoefficientList(Builtin):
 
     def eval_noform(self, expr, evaluation):
         "CoefficientList[expr_]"
-        return evaluation.message("CoefficientList", "argtu")
+        evaluation.message("CoefficientList", "argtu")
 
     def eval(self, expr, form, evaluation):
         "CoefficientList[expr_, form_]"
@@ -942,7 +943,8 @@ class CoefficientList(Builtin):
         # check form is not a variable
         for v in vars:
             if not (isinstance(v, Symbol)) and not (isinstance(v, Expression)):
-                return evaluation.message("CoefficientList", "ivar", v)
+                evaluation.message("CoefficientList", "ivar", v)
+                return
 
         # special cases for expr and form
         e_null = expr is SymbolNull
@@ -962,7 +964,8 @@ class CoefficientList(Builtin):
         sympy_vars = [v.to_sympy() for v in vars]
 
         if not sympy_expr.is_polynomial(*[x for x in sympy_vars]):
-            return evaluation.message("CoefficientList", "poly", expr)
+            evaluation.message("CoefficientList", "poly", expr)
+            return
 
         try:
             sympy_poly, sympy_opt = sympy.poly_from_expr(sympy_expr, sympy_vars)
@@ -1010,7 +1013,7 @@ class CoefficientList(Builtin):
 
                 return _nth(sympy_poly, dimensions, [])
         except sympy.PolificationFailed:
-            return evaluation.message("CoefficientList", "poly", expr)
+            evaluation.message("CoefficientList", "poly", expr)
 
 
 class Collect(_CoefficientHandler):
@@ -1108,9 +1111,8 @@ class _Expand(Builtin):
         modulus = options["System`Modulus"]
         py_modulus = modulus.get_int_value()
         if py_modulus is None:
-            return evaluation.message(
-                self.get_name(), "modn", Symbol("Modulus"), modulus
-            )
+            evaluation.message(self.get_name(), "modn", Symbol("Modulus"), modulus)
+            return
         if py_modulus == 0:
             py_modulus = None
 
@@ -1120,7 +1122,8 @@ class _Expand(Builtin):
         elif trig is SymbolFalse:
             py_trig = False
         else:
-            return evaluation.message(self.get_name(), "opttf", Symbol("Trig"), trig)
+            evaluation.message(self.get_name(), "opttf", Symbol("Trig"), trig)
+            return
 
         return {"modulus": py_modulus, "trig": py_trig}
 
@@ -1369,7 +1372,7 @@ class Exponent(Builtin):
 
     def eval_novar(self, expr, evaluation):
         "Exponent[expr_]"
-        return evaluation.message("Exponent", "argtu", Integer1)
+        evaluation.message("Exponent", "argtu", Integer1)
 
     def eval(self, expr, form, h, evaluation):
         "Exponent[expr_, form_, h_]"
@@ -1492,7 +1495,8 @@ class FactorTermsList(Builtin):
 
         for x in vars.elements:
             if not (isinstance(x, Atom)):
-                return evaluation.message("CoefficientList", "ivar", x)
+                evaluation.message("CoefficientList", "ivar", x)
+                return
 
         sympy_expr = expr.to_sympy()
         if sympy_expr is None:
@@ -1798,10 +1802,12 @@ class MinimalPolynomial(Builtin):
         "MinimalPolynomial[s_, x_]"
         variables = find_all_vars(s)
         if len(variables) > 0:
-            return evaluation.message("MinimalPolynomial", "nalg", s)
+            evaluation.message("MinimalPolynomial", "nalg", s)
+            return
 
         if s is SymbolNull:
-            return evaluation.message("MinimalPolynomial", "nalg", s)
+            evaluation.message("MinimalPolynomial", "nalg", s)
+            return
 
         sympy_s, sympy_x = s.to_sympy(), x.to_sympy()
         if sympy_s is None or sympy_x is None:
@@ -1912,16 +1918,19 @@ class PolynomialQ(Builtin):
 
         v = v.get_sequence()
         if len(v) > 1:
-            return evaluation.message("PolynomialQ", "argt", Integer(len(v) + 1))
+            evaluation.message("PolynomialQ", "argt", Integer(len(v) + 1))
+            return
         elif len(v) == 0:
-            return evaluation.message("PolynomialQ", "novar")
+            evaluation.message("PolynomialQ", "novar")
+            return
 
         var = v[0]
         if var is SymbolNull:
             return SymbolTrue
         elif var.has_form("List", None):
             if len(var.elements) == 0:
-                return evaluation.message("PolynomialQ", "novar")
+                evaluation.message("PolynomialQ", "novar")
+                return
             sympy_var = [x.to_sympy() for x in var.elements]
         else:
             sympy_var = [var.to_sympy()]

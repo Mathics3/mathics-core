@@ -1270,7 +1270,8 @@ class Limit(Builtin):
         elif value == 1:
             dir_sympy = "-"
         else:
-            return evaluation.message("Limit", "ldir", direction)
+            evaluation.message("Limit", "ldir", direction)
+            return
 
         try:
             result = sympy.limit(expr, x, x0, dir_sympy)
@@ -2260,7 +2261,8 @@ class Solve(Builtin):
             elif eq is SymbolFalse:
                 return ListExpression()
             elif not eq.has_form("Equal", 2):
-                return evaluation.message("Solve", "eqf", eqs)
+                evaluation.message("Solve", "eqf", eqs)
+                return
             else:
                 left, right = eq.elements
                 left = left.to_sympy()

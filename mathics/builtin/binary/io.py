@@ -1016,12 +1016,14 @@ class BinaryWrite(Builtin):
                 x_py = x.get_int_value()
 
             if x_py is None:
-                return evaluation.message(SymbolBinaryWrite, "nocoerce", b)
+                evaluation.message(SymbolBinaryWrite, "nocoerce", b)
+                return
 
             try:
                 self.writers[t](stream.io, x_py)
             except struct.error:
-                return evaluation.message(SymbolBinaryWrite, "nocoerce", b)
+                evaluation.message(SymbolBinaryWrite, "nocoerce", b)
+                return
             i += 1
 
         try:

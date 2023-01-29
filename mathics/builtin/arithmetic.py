@@ -1218,7 +1218,7 @@ class Sign(SympyFunction):
 
     def eval_error(self, x, seqs, evaluation):
         "Sign[x_, seqs__]"
-        return evaluation.message("Sign", "argx", Integer(len(seqs.get_sequence()) + 1))
+        evaluation.message("Sign", "argx", Integer(len(seqs.get_sequence()) + 1))
 
 
 class Sum(IterationFunction, SympyFunction):

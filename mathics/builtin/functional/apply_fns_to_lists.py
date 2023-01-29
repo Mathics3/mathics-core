@@ -389,12 +389,14 @@ class MapThread(Builtin):
             n = n.get_int_value()
 
         if n is None or n < 0:
-            return evaluation.message("MapThread", "intnm", full_expr, 3)
+            evaluation.message("MapThread", "intnm", full_expr, 3)
+            return
 
         if expr.has_form("List", 0):
             return ListExpression()
         if not expr.has_form("List", None):
-            return evaluation.message("MapThread", "list", 2, full_expr)
+            evaluation.message("MapThread", "list", 2, full_expr)
+            return
 
         heads = expr.elements
 
@@ -473,7 +475,7 @@ class Scan(Builtin):
     def eval_invalidlevel(self, f, expr, ls, evaluation, options={}):
         "Scan[f_, expr_, ls_, OptionsPattern[Map]]"
 
-        return evaluation.message("Map", "level", ls)
+        evaluation.message("Map", "level", ls)
 
     def eval_level(self, f, expr, ls, evaluation, options={}):
         """Scan[f_, expr_, Optional[Pattern[ls, _?LevelQ], {1}],

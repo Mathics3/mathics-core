@@ -265,9 +265,8 @@ class FromCharacterCode(Builtin):
             else:
                 pyn = n.get_int_value()
                 if not (isinstance(pyn, int) and pyn > 0 and pyn < sys.maxsize):
-                    return evaluation.message(
-                        "FromCharacterCode", "intnm", exp, Integer1
-                    )
+                    evaluation.message("FromCharacterCode", "intnm", exp, Integer1)
+                    return
                 return String(convert_codepoint_list([n]))
         except _InvalidCodepointError:
             return

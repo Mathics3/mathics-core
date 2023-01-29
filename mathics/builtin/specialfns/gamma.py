@@ -252,7 +252,8 @@ class Factorial2(PostfixOperator, _MPMathFunction):
             convert_from_fn = from_sympy
             fact2_fn = getattr(sympy, self.sympy_name)
         else:
-            return evaluation.message("Factorial2", "unknownp", preference)
+            evaluation.message("Factorial2", "unknownp", preference)
+            return
 
         try:
             result = fact2_fn(number_arg)
@@ -261,9 +262,8 @@ class Factorial2(PostfixOperator, _MPMathFunction):
             # Maybe an even negative number? Try generic routine
             if is_automatic and fact2_generic:
                 return from_python(fact2_generic(number_arg))
-            return evaluation.message(
-                "Factorial2", "ndf", preference, str(sys.exc_info()[1])
-            )
+            evaluation.message("Factorial2", "ndf", preference, str(sys.exc_info()[1]))
+            return
         return convert_from_fn(result)
 
 

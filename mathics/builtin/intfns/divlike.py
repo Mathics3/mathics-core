@@ -371,11 +371,12 @@ class QuotientRemainder(Builtin):
             py_m = m.to_python()
             py_n = n.to_python()
             if py_n == 0:
-                return evaluation.message(
+                evaluation.message(
                     "QuotientRemainder",
                     "divz",
                     Expression(SymbolQuotientRemainder, m, n),
                 )
+                return
             # Note: py_m % py_n can be a float or an int.
             # Also note that we *want* the first arguemnt to be an Integer.
             return to_mathics_list(Integer(py_m // py_n), py_m % py_n)

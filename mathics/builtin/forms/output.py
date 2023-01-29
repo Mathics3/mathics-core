@@ -132,7 +132,8 @@ class BaseForm(Builtin):
         try:
             val = convert_base(x, base, p)
         except ValueError:
-            return evaluation.message("BaseForm", "basf", n)
+            evaluation.message("BaseForm", "basf", n)
+            return
 
         if f is SymbolOutputForm:
             return to_boxes(String("%s_%d" % (val, base)), evaluation)
@@ -313,7 +314,7 @@ class _NumberForm(Builtin):
             result = [nleft, nright]
             if None not in result:
                 return result
-        return evaluation.message(self.get_name(), "dblk", value)
+        evaluation.message(self.get_name(), "dblk", value)
 
     def check_ExponentFunction(self, value, evaluation: Evaluation):
         if value.sameQ(SymbolAutomatic):
@@ -348,7 +349,8 @@ class _NumberForm(Builtin):
     def check_ExponentStep(self, value, evaluation: Evaluation):
         result = value.get_int_value()
         if result is None or result <= 0:
-            return evaluation.message(self.get_name(), "estep", "ExponentStep", value)
+            evaluation.message(self.get_name(), "estep", "ExponentStep", value)
+            return
         return result
 
     def check_SignPadding(self, value, evaluation: Evaluation):
@@ -356,14 +358,14 @@ class _NumberForm(Builtin):
             return True
         elif value.sameQ(SymbolFalse):
             return False
-        return evaluation.message(self.get_name(), "opttf", value)
+        evaluation.message(self.get_name(), "opttf", value)
 
     def _check_List2str(self, value, msg, evaluation: Evaluation):
         if value.has_form("List", 2):
             result = [element.get_string_value() for element in value.elements]
             if None not in result:
                 return result
-        return evaluation.message(self.get_name(), msg, value)
+        evaluation.message(self.get_name(), msg, value)
 
     def check_NumberSigns(self, value, evaluation: Evaluation):
         return self._check_List2str(value, "nsgn", evaluation)

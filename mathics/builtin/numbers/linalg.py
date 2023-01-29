@@ -71,19 +71,22 @@ class Det(Builtin):
 
         matrix = to_sympy_matrix(m)
         if matrix is None or matrix.cols != matrix.rows or matrix.cols == 0:
-            return evaluation.message("Det", "matsq", m)
+            evaluation.message("Det", "matsq", m)
+            return
         det = matrix.det()
         return from_sympy(det)
 
 
 class Eigensystem(Builtin):
     """
-    <url>:Matrix Eigenvalues: https://en.wikipedia.org/wiki/Eigenvalues_and_eigenvectors</url> \
-    (<url>:WMA link:https://reference.wolfram.com/language/ref/Eigensystem.html</url>)
+    <url>
+    :Matrix Eigenvalues:
+    https://en.wikipedia.org/wiki/Eigenvalues_and_eigenvectors</url> (<url>:WMA:
+    https://reference.wolfram.com/language/ref/Eigensystem.html</url>)
 
     <dl>
-    <dt>'Eigensystem[$m$]'
-        <dd>returns the list '{Eigenvalues[$m$], Eigenvectors[$m$]}'.
+      <dt>'Eigensystem[$m$]'
+      <dd>returns the list '{Eigenvalues[$m$], Eigenvectors[$m$]}'.
     </dl>
 
     >> Eigensystem[{{1, 1, 0}, {1, 0, 1}, {0, 1, 1}}]
@@ -162,10 +165,12 @@ class Eigenvalues(Builtin):
 
         sympy_matrix = to_sympy_matrix(m)
         if sympy_matrix is None:
-            return evaluation.message("Eigenvalues", "matrix", m, 1)
+            evaluation.message("Eigenvalues", "matrix", m, 1)
+            return
 
         if sympy_matrix.cols != sympy_matrix.rows or sympy_matrix.cols == 0:
-            return evaluation.message("Eigenvalues", "matsq", m)
+            evaluation.message("Eigenvalues", "matsq", m)
+            return
 
         eigenvalues = list(sympy_matrix.eigenvals().items())
         if all(v.is_complex for (v, _) in eigenvalues):
@@ -234,12 +239,14 @@ class Eigenvectors(Builtin):
 
         matrix = to_sympy_matrix(m)
         if matrix is None or matrix.cols != matrix.rows or matrix.cols == 0:
-            return evaluation.message("Eigenvectors", "matsq", m)
+            evaluation.message("Eigenvectors", "matsq", m)
+            return
         # sympy raises an error for some matrices that Mathematica can compute.
         try:
             eigenvects = matrix.eigenvects(simplify=True)
         except NotImplementedError:
-            return evaluation.message("Eigenvectors", "eigenvecnotimplemented", m)
+            evaluation.message("Eigenvectors", "eigenvecnotimplemented", m)
+            return
 
         # Try to sort the eigenvectors by their corresponding eigenvalues
         if all(v.is_complex for (v, _, _) in eigenvects):
@@ -333,7 +340,8 @@ class Inverse(Builtin):
         matrix = to_sympy_matrix(m)
         det = matrix.det()
         if det == 0:
-            return evaluation.message("Inverse", "sing", m)
+            evaluation.message("Inverse", "sing", m)
+            return
         inv = matrix.adjugate() / det
         return from_sympy(inv)
 
@@ -382,16 +390,19 @@ class LeastSquares(Builtin):
 
         matrix = to_sympy_matrix(m)
         if matrix is None:
-            return evaluation.message("LeastSquares", "matrix", m, 1)
+            evaluation.message("LeastSquares", "matrix", m, 1)
+            return
 
         b_vector = to_sympy_matrix(b)
         if b_vector is None:
-            return evaluation.message("LeastSquares", "matrix", b, 2)
+            evaluation.message("LeastSquares", "matrix", b, 2)
+            return
 
         try:
             solution = matrix.solve_least_squares(b_vector)  # default method = Cholesky
         except NotImplementedError:
-            return evaluation.message("LeastSquares", "underdetermined")
+            evaluation.message("LeastSquares", "underdetermined")
+            return
 
         return from_sympy(solution)
 
@@ -523,20 +534,24 @@ class LinearSolve(Builtin):
 
         matrix = matrix_data(m)
         if matrix is None:
-            return evaluation.message("LinearSolve", "matrix", m, 1)
+            evaluation.message("LinearSolve", "matrix", m, 1)
+            return
         if not b.has_form("List", None):
             return
         if len(b.elements) != len(matrix):
-            return evaluation.message("LinearSolve", "lslc")
+            evaluation.message("LinearSolve", "lslc")
+            return
 
         for element in b.elements:
             if element.has_form("List", None):
-                return evaluation.message("LinearSolve", "matrix", b, 2)
+                evaluation.message("LinearSolve", "matrix", b, 2)
+                return
 
         system = [mm + [v.to_sympy()] for mm, v in zip(matrix, b.elements)]
         system = to_sympy_matrix(system)
         if system is None:
-            return evaluation.message("LinearSolve", "matrix", b, 2)
+            evaluation.message("LinearSolve", "matrix", b, 2)
+            return
         syms = [sympy.Dummy("LinearSolve_var%d" % k) for k in range(system.cols - 1)]
         sol = sympy.solve_linear_system(system, *syms)
         if sol:
@@ -549,7 +564,8 @@ class LinearSolve(Builtin):
             ]
             return from_sympy(sol)
         else:
-            return evaluation.message("LinearSolve", "nosol")
+            evaluation.message("LinearSolve", "nosol")
+            return
 
 
 class MatrixExp(Builtin):
@@ -587,12 +603,14 @@ class MatrixExp(Builtin):
         "MatrixExp[m_]"
         sympy_m = to_sympy_matrix(m)
         if sympy_m is None:
-            return evaluation.message("MatrixExp", "matrix", m, 1)
+            evaluation.message("MatrixExp", "matrix", m, 1)
+            return
 
         try:
             res = sympy_m.exp()
         except NotImplementedError:
-            return evaluation.message("MatrixExp", "matrixexpnotimplemented", m)
+            evaluation.message("MatrixExp", "matrixexpnotimplemented", m)
+            return
         return from_sympy(res)
 
 
@@ -630,7 +648,8 @@ class MatrixPower(Builtin):
         "MatrixPower[m_, power_]"
         sympy_m = to_sympy_matrix(m)
         if sympy_m is None:
-            return evaluation.message("MatrixPower", "matrix", m, 1)
+            evaluation.message("MatrixPower", "matrix", m, 1)
+            return
 
         sympy_power = power.to_sympy()
         if sympy_power is None:
@@ -639,9 +658,11 @@ class MatrixPower(Builtin):
         try:
             res = sympy_m**sympy_power
         except NotImplementedError:
-            return evaluation.message("MatrixPower", "matrixpowernotimplemented", m)
+            evaluation.message("MatrixPower", "matrixpowernotimplemented", m)
+            return
         except ValueError:
-            return evaluation.message("MatrixPower", "matrixpowernotinvertible", m)
+            evaluation.message("MatrixPower", "matrixpowernotinvertible", m)
+            return
         return from_sympy(res)
 
 
@@ -676,7 +697,8 @@ class MatrixRank(Builtin):
 
         matrix = to_sympy_matrix(m)
         if matrix is None:
-            return evaluation.message("MatrixRank", "matrix", m, 1)
+            evaluation.message("MatrixRank", "matrix", m, 1)
+            return
         rank = len(matrix.rref()[1])
         return Integer(rank)
 
@@ -715,7 +737,8 @@ class NullSpace(Builtin):
 
         matrix = to_sympy_matrix(m)
         if matrix is None:
-            return evaluation.message("NullSpace", "matrix", m, 1)
+            evaluation.message("NullSpace", "matrix", m, 1)
+            return
 
         nullspace = matrix.nullspace()
         # convert n x 1 matrices to vectors
@@ -757,7 +780,8 @@ class PseudoInverse(Builtin):
 
         matrix = to_sympy_matrix(m)
         if matrix is None:
-            return evaluation.message("PseudoInverse", "matrix", m, 1)
+            evaluation.message("PseudoInverse", "matrix", m, 1)
+            return
         pinv = matrix.pinv()
         return from_sympy(pinv)
 
@@ -791,11 +815,13 @@ class QRDecomposition(Builtin):
 
         matrix = to_sympy_matrix(m)
         if matrix is None:
-            return evaluation.message("QRDecomposition", "matrix", m, 1)
+            evaluation.message("QRDecomposition", "matrix", m, 1)
+            return
         try:
             Q, R = matrix.QRdecomposition()
         except sympy.matrices.MatrixError:
-            return evaluation.message("QRDecomposition", "sympy")
+            evaluation.message("QRDecomposition", "sympy")
+            return
         Q = Q.transpose()
         return ListExpression(*[from_sympy(Q), from_sympy(R)])
 
@@ -834,7 +860,8 @@ class RowReduce(Builtin):
 
         matrix = to_sympy_matrix(m)
         if matrix is None:
-            return evaluation.message("RowReduce", "matrix", m, 1)
+            evaluation.message("RowReduce", "matrix", m, 1)
+            return
         reduced = matrix.rref()[0]
         return from_sympy(reduced)
 
@@ -885,7 +912,8 @@ class SingularValueDecomposition(Builtin):
 
         matrix = to_mpmath_matrix(m)
         if matrix is None:
-            return evaluation.message("SingularValueDecomposition", "matrix", m, 1)
+            evaluation.message("SingularValueDecomposition", "matrix", m, 1)
+            return
 
         if not any(
             element.is_inexact() for row in m.elements for element in row.elements
@@ -929,6 +957,7 @@ class Tr(Builtin):
 
         matrix = to_sympy_matrix(m)
         if matrix is None or matrix.cols != matrix.rows or matrix.cols == 0:
-            return evaluation.message("Tr", "matsq", m)
+            evaluation.message("Tr", "matsq", m)
+            return
         tr = matrix.trace()
         return from_sympy(tr)

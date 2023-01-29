@@ -239,7 +239,7 @@ class FactorInteger(Builtin):
                 *(to_mathics_list(factor, exp) for factor, exp in factors)
             )
         else:
-            return evaluation.message("FactorInteger", "exact", n)
+            evaluation.message("FactorInteger", "exact", n)
 
 
 def _fractional_part(self, n, expr, evaluation: Evaluation):

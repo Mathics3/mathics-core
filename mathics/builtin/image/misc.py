@@ -44,7 +44,8 @@ class ImageExport(Builtin):
             expr.pil().save(path.value)
             return SymbolNull
         else:
-            return evaluation.message("ImageExport", "noimage")
+            evaluation.message("ImageExport", "noimage")
+            return
 
 
 class ImageImport(Builtin):
@@ -158,7 +159,8 @@ class RandomImage(Builtin):
             cs = color_space.get_string_value()
         size = [w.value, h.value]
         if size[0] <= 0 or size[1] <= 0:
-            return evaluation.message("RandomImage", "bddim", from_python(size))
+            evaluation.message("RandomImage", "bddim", from_python(size))
+            return
         minrange, maxrange = minval.round_to_float(), maxval.round_to_float()
 
         if cs == "Grayscale":
@@ -171,7 +173,8 @@ class RandomImage(Builtin):
                 + minrange
             )
         else:
-            return evaluation.message("RandomImage", "imgcstype", color_space)
+            evaluation.message("RandomImage", "imgcstype", color_space)
+            return
         return Image(data, cs)
 
 

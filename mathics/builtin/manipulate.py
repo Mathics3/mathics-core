@@ -322,7 +322,8 @@ Interactive Manipulation
 #     def eval(self, expr, args, evaluation):
 #         "Manipulate[expr_, args__]"
 #         if (not _jupyter) or (not Kernel.initialized()) or (Kernel.instance() is None):
-#             return evaluation.message("Manipulate", "jupyter")
+#             evaluation.message("Manipulate", "jupyter")
+#             return
 
 #         instantiator = (
 #             _WidgetInstantiator()
@@ -335,20 +336,22 @@ Interactive Manipulation
 #                 ):  # not a valid argument pattern?
 #                     return
 #             except IllegalWidgetArguments as e:
-#                 return evaluation.message(
+#                 evaluation.message(
 #                     "Manipulate", "widgetargs", strip_context(str(e.var))
 #                 )
+#                 return
 #             except JupyterWidgetError as e:
-#                 return evaluation.message("Manipulate", "widgetmake", e.err)
-
+#                 evaluation.message("Manipulate", "widgetmake", e.err)
+#                 return
+#
 #         clear_output_callback = evaluation.output.clear
 #         display_data_callback = evaluation.output.display  # for pushing updates
 
 #         try:
 #             clear_output_callback(wait=True)
 #         except NotImplementedError:
-#             return evaluation.message("Manipulate", "imathics")
-
+#             evaluation.message("Manipulate", "imathics")
+#             return
 #         def callback(**kwargs):
 #             clear_output_callback(wait=True)
 
@@ -377,8 +380,8 @@ Interactive Manipulation
 #             )  # create the widget
 #             formatter = IPythonDisplayFormatter()
 #             if not formatter(box):  # make the widget appear on the Jupyter notebook
-#                 return evaluation.message("Manipulate", "widgetdisp")
-
+#                 evaluation.message("Manipulate", "widgetdisp")
+#                 return
 #         return Symbol(
 #             "Null"
 #         )  # the interactive output is pushed via kernel.display_data_callback (see above)

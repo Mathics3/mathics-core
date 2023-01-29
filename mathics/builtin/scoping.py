@@ -631,7 +631,8 @@ class Unique(Predefined):
 
         attributes = attributes.get_sequence()
         if len(attributes) > 1:
-            return evaluation.message("Unique", "argrx", Integer(len(attributes) + 1))
+            evaluation.message("Unique", "argrx", Integer(len(attributes) + 1))
+            return
 
         # Check valid symbol variables
         symbols = vars.elements if vars.has_form("List", None) else [vars]
@@ -639,7 +640,8 @@ class Unique(Predefined):
             if not isinstance(symbol, Symbol):
                 text = symbol.get_string_value()
                 if text is None or not is_symbol_name(text):
-                    return evaluation.message("Unique", "usym", symbol)
+                    evaluation.message("Unique", "usym", symbol)
+                    return
 
         # Check valid attributes
         attrs = []

@@ -248,25 +248,28 @@ class SubsetQ(Builtin):
         "SubsetQ[expr_, subset___]"
 
         if isinstance(expr, Atom):
-            return evaluation.message(
+            evaluation.message(
                 "SubsetQ", "normal", Integer1, Expression(SymbolSubsetQ, expr, subset)
             )
+            return
 
         subset = subset.get_sequence()
         if len(subset) > 1:
-            return evaluation.message("SubsetQ", "argrx", Integer(len(subset) + 1))
+            evaluation.message("SubsetQ", "argrx", Integer(len(subset) + 1))
+            return
         elif len(subset) == 0:
-            return evaluation.message("SubsetQ", "argr")
+            evaluation.message("SubsetQ", "argr")
+            return
 
         subset = subset[0]
         if isinstance(subset, Atom):
-            return evaluation.message(
+            evaluation.message(
                 "SubsetQ", "normal", Integer2, Expression(SymbolSubsetQ, expr, subset)
             )
+            return
         if expr.get_head_name() != subset.get_head_name():
-            return evaluation.message(
-                "SubsetQ", "heads", expr.get_head(), subset.get_head()
-            )
+            evaluation.message("SubsetQ", "heads", expr.get_head(), subset.get_head())
+            return
 
         if set(subset.elements).issubset(set(expr.elements)):
             return SymbolTrue

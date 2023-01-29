@@ -96,7 +96,8 @@ class Append(Builtin):
         "Append[expr_, item_]"
 
         if isinstance(expr, Atom):
-            return evaluation.message("Append", "normal")
+            evaluation.message("Append", "normal")
+            return
 
         return expr.restructure(
             expr.head,
@@ -149,7 +150,8 @@ class AppendTo(Builtin):
         "AppendTo[s_, element_]"
         resolved_s = s.evaluate(evaluation)
         if s == resolved_s:
-            return evaluation.message("AppendTo", "rvalue", s)
+            evaluation.message("AppendTo", "rvalue", s)
+            return
 
         if not isinstance(resolved_s, Atom):
             result = Expression(
@@ -157,9 +159,7 @@ class AppendTo(Builtin):
             )
             return result.evaluate(evaluation)
 
-        return evaluation.message(
-            "AppendTo", "normal", Expression(SymbolAppendTo, s, element)
-        )
+        evaluation.message("AppendTo", "normal", Expression(SymbolAppendTo, s, element))
 
 
 class Cases(Builtin):
@@ -233,14 +233,16 @@ class Cases(Builtin):
                 heads = ls.elements[1] is SymbolTrue
                 ls = ListExpression(Integer1)
             else:
-                return evaluation.message("Position", "level", ls)
+                evaluation.message("Position", "level", ls)
+                return
         else:
             heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
 
         try:
             start, stop = python_levelspec(ls)
         except InvalidLevelspecError:
-            return evaluation.message("Position", "level", ls)
+            evaluation.message("Position", "level", ls)
+            return
 
         results = []
 
@@ -406,15 +408,18 @@ class Delete(Builtin):
         "Delete[expr_, positions___]"
         positions = positions.get_sequence()
         if len(positions) > 1:
-            return evaluation.message("Delete", "argt", Integer(len(positions) + 1))
+            evaluation.message("Delete", "argt", Integer(len(positions) + 1))
+            return
         elif len(positions) == 0:
-            return evaluation.message("Delete", "argr")
+            evaluation.message("Delete", "argr")
+            return
 
         positions = positions[0]
         if not positions.has_form("List", None):
-            return evaluation.message(
+            evaluation.message(
                 "Delete", "pkspec", positions, Expression(SymbolKey, positions)
             )
+            return
 
         # Create new python list of the positions and sort it
         positions = (
@@ -427,19 +432,21 @@ class Delete(Builtin):
         for position in positions:
             pos = [p.get_int_value() for p in position.get_elements()]
             if None in pos:
-                return evaluation.message(
+                evaluation.message(
                     "Delete", "psl", position.elements[pos.index(None)], expr
                 )
+                return
             if len(pos) == 0:
-                return evaluation.message(
-                    "Delete", "psl", ListExpression(*positions), expr
-                )
+                evaluation.message("Delete", "psl", ListExpression(*positions), expr)
+                return
             try:
                 newexpr = delete_rec(newexpr, pos)
             except PartDepthError as exc:
-                return evaluation.message("Part", "partw", Integer(exc.index), expr)
+                evaluation.message("Part", "partw", Integer(exc.index), expr)
+                return
             except PartError:
-                return evaluation.message("Part", "partw", ListExpression(*pos), expr)
+                evaluation.message("Part", "partw", ListExpression(*pos), expr)
+                return
         return newexpr
 
 
@@ -592,9 +599,10 @@ class Drop(Builtin):
         seqs = seqs.get_sequence()
 
         if isinstance(items, Atom):
-            return evaluation.message(
+            evaluation.message(
                 "Drop", "normal", 1, Expression(SymbolDrop, items, *seqs)
             )
+            return
 
         try:
             return parts(items, [_drop_span_selector(seq) for seq in seqs], evaluation)
@@ -845,7 +853,8 @@ class FirstPosition(Builtin):
         if level.has_form("List", None):
             len_list = len(level.elements)
             if len_list > 2 or not is_interger_list(level):
-                return evaluation.message("FirstPosition", "level", level)
+                evaluation.message("FirstPosition", "level", level)
+                return
             elif len_list == 0:
                 min_Level = max_Level = None
             elif len_list == 1:
@@ -857,7 +866,8 @@ class FirstPosition(Builtin):
             min_Level = 0
             max_Level = level.get_int_value()
         else:
-            return evaluation.message("FirstPosition", "level", level)
+            evaluation.message("FirstPosition", "level", level)
+            return
 
         return self.eval(
             expr,
@@ -1289,7 +1299,8 @@ class Position(Builtin):
     def eval_invalidlevel(self, patt, expr, ls, evaluation, options={}):
         "Position[expr_, patt_, ls_, OptionsPattern[Position]]"
 
-        return evaluation.message("Position", "level", ls)
+        evaluation.message("Position", "level", ls)
+        return
 
     def eval_level(self, expr, patt, ls, evaluation, options={}):
         """Position[expr_, patt_, Optional[Pattern[ls, _?LevelQ], {0, DirectedInfinity[1]}],
@@ -1298,7 +1309,8 @@ class Position(Builtin):
         try:
             start, stop = python_levelspec(ls)
         except InvalidLevelspecError:
-            return evaluation.message("Position", "level", ls)
+            evaluation.message("Position", "level", ls)
+            return
 
         match = Matcher(patt).match
         result = []
@@ -1349,7 +1361,8 @@ class Prepend(Builtin):
         "Prepend[expr_, item_]"
 
         if isinstance(expr, Atom):
-            return evaluation.message("Prepend", "normal")
+            evaluation.message("Prepend", "normal")
+            return
 
         return expr.restructure(
             expr.head,
@@ -1413,7 +1426,8 @@ class PrependTo(Builtin):
         "PrependTo[s_, item_]"
         resolved_s = s.evaluate(evaluation)
         if s == resolved_s:
-            return evaluation.message("PrependTo", "rvalue", s)
+            evaluation.message("PrependTo", "rvalue", s)
+            return
 
         if not isinstance(resolved_s, Atom):
             result = Expression(
@@ -1421,9 +1435,7 @@ class PrependTo(Builtin):
             )
             return result.evaluate(evaluation)
 
-        return evaluation.message(
-            "PrependTo", "normal", Expression(SymbolPrependTo, s, item)
-        )
+        evaluation.message("PrependTo", "normal", Expression(SymbolPrependTo, s, item))
 
 
 class ReplacePart(Builtin):
@@ -1718,9 +1730,10 @@ class Take(Builtin):
         seqs = seqs.get_sequence()
 
         if isinstance(items, Atom):
-            return evaluation.message(
+            evaluation.message(
                 "Take", "normal", 1, Expression(SymbolTake, items, *seqs)
             )
+            return
 
         try:
             return parts(items, [_take_span_selector(seq) for seq in seqs], evaluation)

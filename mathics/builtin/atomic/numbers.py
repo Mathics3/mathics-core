@@ -540,7 +540,7 @@ class RealDigits(Builtin):
 
     def eval_complex(self, n, var, evaluation):
         "%(name)s[n_Complex, var___]"
-        return evaluation.message("RealDigits", "realx", n)
+        evaluation.message("RealDigits", "realx", n)
 
     def eval_rational_with_base(self, n, b, evaluation):
         "%(name)s[n_Rational, b_Integer]"
@@ -574,7 +574,8 @@ class RealDigits(Builtin):
         # Handling the testcases that throw the error message and return the
         # output that doesn't include `base` argument
         if isinstance(n, Symbol) and n.name.startswith("System`"):
-            return evaluation.message("RealDigits", "ndig", n)
+            evaluation.message("RealDigits", "ndig", n)
+            return
 
         if n.is_numeric(evaluation):
             return self.eval_with_base(n, from_python(10), evaluation)
@@ -600,14 +601,17 @@ class RealDigits(Builtin):
                 if rational_no:
                     n = eval_N(n, evaluation)
                 else:
-                    return evaluation.message("RealDigits", "ndig", expr)
+                    evaluation.message("RealDigits", "ndig", expr)
+                    return
         py_n = abs(n.value)
 
         if not py_b > 1:
-            return evaluation.message("RealDigits", "rbase", py_b)
+            evaluation.message("RealDigits", "rbase", py_b)
+            return
 
         if isinstance(py_n, complex):
-            return evaluation.message("RealDigits", "realx", expr)
+            evaluation.message("RealDigits", "realx", expr)
+            return
 
         if isinstance(n, Integer):
             display_len = (
@@ -697,7 +701,8 @@ class RealDigits(Builtin):
             elements.append(from_python(pos))
         expr = Expression(SymbolRealDigits, n, b, length, *elements)
         if not (isinstance(length, Integer) and length.get_int_value() >= 0):
-            return evaluation.message("RealDigits", "intnm", expr)
+            evaluation.message("RealDigits", "intnm", expr)
+            return
 
         return self.eval_with_base(
             n, b, evaluation, nr_elements=length.get_int_value(), pos=pos
@@ -706,9 +711,10 @@ class RealDigits(Builtin):
     def eval_with_base_length_and_precision(self, n, b, length, p, evaluation):
         "%(name)s[n_?NumericQ, b_Integer, length_, p_]"
         if not isinstance(p, Integer):
-            return evaluation.message(
+            evaluation.message(
                 "RealDigits", "intm", Expression(SymbolRealDigits, n, b, length, p)
             )
+            return
 
         return self.eval_with_base_and_length(
             n, b, length, evaluation, pos=p.get_int_value()

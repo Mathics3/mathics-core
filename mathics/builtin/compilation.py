@@ -104,7 +104,8 @@ class Compile(Builtin):
         "Compile[vars_, expr_]"
 
         if not vars.has_form("List", None):
-            return evaluation.message("Compile", "invars")
+            evaluation.message("Compile", "invars")
+            return
 
         try:
             cfunc, args = expression_to_callable_and_args(
@@ -222,5 +223,6 @@ class CompiledFunction(Builtin):
         try:
             result = code.cfunc(*py_args)
         except (TypeError, ctypes.ArgumentError):
-            return evaluation.message("CompiledFunction", "argerr", args)
+            evaluation.message("CompiledFunction", "argerr", args)
+            return
         return from_python(result)

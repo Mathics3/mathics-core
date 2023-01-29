@@ -130,7 +130,8 @@ class DSolve(Builtin):
         elif x.has_form("List", 1, None):
             syms = sorted(x.elements)
         else:
-            return evaluation.message("DSolve", "dsvar", x)
+            evaluation.message("DSolve", "dsvar", x)
+            return
 
         # Fixes pathalogical DSolve[y''[x] == y[x], y, x]
         try:
