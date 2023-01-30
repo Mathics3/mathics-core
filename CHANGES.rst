@@ -38,6 +38,8 @@ New Builtins
 #. ``Kurtosis``
 #. ``ListLogPlot``
 #. ``LogPlot``
+#. ``$MaxMachineNumber``
+#. ``$MinMachineNumber``
 #. ``NumberLinePlot``
 #. ``PauliMatrix``
 #. ``Remove``
