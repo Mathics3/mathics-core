@@ -160,7 +160,8 @@ class Accuracy(Builtin):
       <dd>examines the number of significant digits of $expr$ after the \
       decimal point in the number x.
     </dl>
-    <i>This is rather a proof-of-concept than a full implementation.</i>
+    <i>Notice that the result could be slighly different than the obtained
+    in WMA, due to differencs in the internal representation of the real numbers.</i>
 
     Accuracy of a real number is estimated from its value and its precision:
 
@@ -186,7 +187,7 @@ class Accuracy(Builtin):
      = Infinity
 
     >> Accuracy[F[1.3, Pi, A]]
-     = 15.8406
+     = ...
 
     'Accuracy' for the value 0 is a fixed-precision Real number:
      >> 0``2
@@ -194,7 +195,7 @@ class Accuracy(Builtin):
      >> Accuracy[0.``2]
       = 2.
 
-    For 0.`, the accuracy is the 
+    For 0.`, the accuracy is
     >> Accuracy[0.`] == $MachinePrecision - Log[10, $MinMachineNumber]
      = True
 
@@ -907,8 +908,8 @@ class Precision(Builtin):
       <dt>'Precision[$expr$]'
       <dd>examines the number of significant digits of $expr$.
     </dl>
-
-    <i>This is rather a proof-of-concept than a full implementation.</i>
+    <i>Notice that the result could be slighly different than the obtained\
+    in WMA, due to differencs in the internal representation of the real numbers.</i>
 
     The precision of an exact number, e.g. an Integer, is 'Infinity':
 
@@ -934,19 +935,19 @@ class Precision(Builtin):
     >> Precision[{{1, 1.`},{1.`5, 1.`10}}]
      = 5.
 
-    For non-zero Real values, it holds in general
+    For non-zero Real values, it holds in general:
 
-    $$Accuracy[z] == Precision[z] + Log[z]$$
+    'Accuracy'[$z$] == 'Precision'[$z$] + 'Log'[$z$]
 
     >> (Accuracy[z] == Precision[z] + Log[z])/.z-> 37.`
      = True
 
-    The case of `0.` values is special. Following WMA, in a Machine Real representation, the precision is
-    set to $MachinePrecision:
+    The case of `0.` values is special. Following WMA, in a Machine Real\
+    representation, the precision is set to 'MachinePrecision':
     >> Precision[0.]
      = MachinePrecision
 
-    On the other hand, for a Precision Real with fixed accuracy,
+    On the other hand, for a Precision Real with fixed accuracy,\
     the precision is evaluated to 0.:
     >> Precision[0.``3]
      = 0.
@@ -956,10 +957,6 @@ class Precision(Builtin):
     :'Accuracy':
     /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/accuracy/</url>.
     """
-
-    rules = {
-        "Precision[z_?MachineNumberQ]": "MachinePrecision",
-    }
 
     summary_text = "find the precision of a number"
 

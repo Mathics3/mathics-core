@@ -19,6 +19,7 @@ import sympy
 from mathics.builtin.base import Builtin, Predefined, SympyObject
 from mathics.core.atoms import MachineReal, PrecisionReal
 from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.evaluation import Evaluation
 from mathics.core.number import (
     MAX_MACHINE_NUMBER,
     MIN_MACHINE_NUMBER,
@@ -594,7 +595,7 @@ class MaxMachineNumber(Predefined):
           as a normalized machine number in the system.
     </dl>
 
-    The product of \$MaxMachineNumber and  \$MinMachineNumber is a constant:
+    The product of '$MaxMachineNumber' and  '$MinMachineNumber' is a constant:
     >> $MaxMachineNumber * $MinMachineNumber
      = 4.
 
@@ -603,7 +604,7 @@ class MaxMachineNumber(Predefined):
     name = "$MaxMachineNumber"
     summary_text = "largest normalized positive machine number"
 
-    def evaluate(self, evaluation) -> MachineReal:
+    def evaluate(self, evaluation: Evaluation) -> MachineReal:
         return MachineReal(MAX_MACHINE_NUMBER)
 
 
@@ -620,8 +621,8 @@ class MinMachineNumber(Predefined):
           as a normalized machine number in the system.
     </dl>
 
-    MachinePrecision minus the Log base 10 of this number is the 
-    accuracy of 0`:
+    'MachinePrecision' minus the 'Log' base 10 of this number is the 
+    'Accuracy' of 0`:
     >> MachinePrecision -Log[10., $MinMachineNumber]==Accuracy[0`]
      = True
 
@@ -630,7 +631,7 @@ class MinMachineNumber(Predefined):
     name = "$MinMachineNumber"
     summary_text = "smallest normalized positive machine number"
 
-    def evaluate(self, evaluation) -> MachineReal:
+    def evaluate(self, evaluation: Evaluation) -> MachineReal:
         return MachineReal(MIN_MACHINE_NUMBER)
 
 

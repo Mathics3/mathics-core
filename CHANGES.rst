@@ -94,8 +94,8 @@ Bugs
 
 #. Units and Quantities were sometimes failing. Also they were omitted from documentation.
 #. Better handling of ``Infinite`` quantities.
-#. Fix ``Precision`` and ``Accuracy``compatibility with WMA. In particular, ``Precision[0.]`` and ``Accuracy[0.]``
-#. Accuracy in numbers usint the notation ``` n.nnn``acc ```  now is properly handled.
+#. Improved ``Precision`` and ``Accuracy``compatibility with WMA. In particular, ``Precision[0.]`` and ``Accuracy[0.]``
+#. Accuracy in numbers using the notation ``` n.nnn``acc ```  now is properly handled.
 
 
 PyPI Package requirements

@@ -14,15 +14,15 @@ from mathics.core.symbols import SymbolPlus
 def eval_Accuracy(z: BaseElement) -> Optional[float]:
     """
     Determine the accuracy of an expression expr.
-    If z is a Real value, returns the difference between
-    the number of significant decimal figures (Precision) and
-    log_10(z).
+    If z is a Real value, returns a Python float value
+    representing the difference between the number of
+    significant decimal figures (Precision) and log_10(z).
 
     For example,
     ```
     12.345`2
     ```
-    which is equivalent to 12.`2  has an accuracy of
+    which is equivalent to 12.`2  has an accuracy of:
     ```
     0.908509 == 2. -  log(10, 12.345)
     ```
