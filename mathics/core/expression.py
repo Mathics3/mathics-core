@@ -54,6 +54,7 @@ from mathics.core.systemsymbols import (
     SymbolDirectedInfinity,
     SymbolFunction,
     SymbolMinus,
+    SymbolOverflow,
     SymbolPattern,
     SymbolPower,
     SymbolSequence,
@@ -1266,7 +1267,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     yield rule
 
         for rule in rules():
-            result = rule.apply(new, evaluation, fully=False)
+            try:
+                result = rule.apply(new, evaluation, fully=False)
+            except OverflowError:
+                evaluation.message("General", "ovfl")
+                return Expression(SymbolOverflow), False
             if result is not None:
                 if not isinstance(result, EvalMixin):
                     return result, False

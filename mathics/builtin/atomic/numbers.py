@@ -24,32 +24,35 @@ import sympy
 
 from mathics.builtin.base import Builtin, Predefined, Test
 from mathics.core.atoms import (
-    Complex,
     Integer,
     Integer0,
     Integer10,
     MachineReal,
-    MachineReal0,
     Number,
     Rational,
-    Real,
 )
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import dps, machine_epsilon, machine_precision
+from mathics.core.number import (
+    MACHINE_PRECISION_VALUE,
+    machine_epsilon,
+    machine_precision,
+)
 from mathics.core.symbols import Symbol, SymbolDivide
 from mathics.core.systemsymbols import (
     SymbolIndeterminate,
     SymbolInfinity,
     SymbolLog,
+    SymbolMachinePrecision,
     SymbolN,
     SymbolPrecision,
     SymbolRealDigits,
     SymbolRound,
 )
 from mathics.eval.nevaluator import eval_N
+from mathics.eval.numbers import eval_accuracy, eval_precision
 
 SymbolIntegerDigits = Symbol("IntegerDigits")
 SymbolIntegerExponent = Symbol("IntegerExponent")
@@ -183,7 +186,7 @@ class Accuracy(Builtin):
      = Infinity
 
     >> Accuracy[F[1.3, Pi, A]]
-     = 14.8861
+     = 15.8406
 
     'Accuracy' for the value 0 is a fixed-precision Real number:
      >> 0``2
@@ -203,33 +206,10 @@ class Accuracy(Builtin):
 
     def eval(self, z, evaluation):
         "Accuracy[z_]"
-        if isinstance(z, Real):
-            if z.is_zero:
-                return MachineReal(dps(z.get_precision()))
-            z_f = z.to_python()
-            log10_z = mpmath.log((-z_f if z_f < 0 else z_f), 10)
-            return MachineReal(dps(z.get_precision()) - log10_z)
-
-        if isinstance(z, Complex):
-            acc_real = self.eval(z.real, evaluation)
-            acc_imag = self.eval(z.imag, evaluation)
-            if acc_real is SymbolInfinity:
-                return acc_imag
-            if acc_imag is SymbolInfinity:
-                return acc_real
-            return Real(min(acc_real.to_python(), acc_imag.to_python()))
-
-        if isinstance(z, Expression):
-            result = None
-            for element in z.elements:
-                candidate = self.eval(element, evaluation)
-                if isinstance(candidate, Real):
-                    candidate_f = candidate.to_python()
-                    if result is None or candidate_f < result:
-                        result = candidate_f
-            if result is not None:
-                return Real(result)
-        return SymbolInfinity
+        acc = eval_accuracy(z)
+        if acc is None:
+            return SymbolInfinity
+        return MachineReal(acc)
 
 
 class ExactNumberQ(Test):
@@ -962,29 +942,12 @@ class Precision(Builtin):
 
     def eval(self, z, evaluation):
         "Precision[z_]"
-        if isinstance(z, Real):
-            if z.is_zero:
-                return MachineReal0
-            return MachineReal(dps(z.get_precision()))
+        if isinstance(z, MachineReal):
+            return SymbolMachinePrecision
 
-        if isinstance(z, Complex):
-            prec_real = self.eval(z.real, evaluation)
-            prec_imag = self.eval(z.imag, evaluation)
-            if prec_real is SymbolInfinity:
-                return prec_imag
-            if prec_imag is SymbolInfinity:
-                return prec_real
-
-            return Real(min(prec_real.to_python(), prec_imag.to_python()))
-
-        if isinstance(z, Expression):
-            result = None
-            for element in z.elements:
-                candidate = self.eval(element, evaluation)
-                if isinstance(candidate, Real):
-                    candidate_f = candidate.to_python()
-                    if result is None or candidate_f < result:
-                        result = candidate_f
-            if result is not None:
-                return Real(result)
-        return SymbolInfinity
+        prec = eval_precision(z)
+        if prec is None:
+            return SymbolInfinity
+        if prec == MACHINE_PRECISION_VALUE:
+            return SymbolMachinePrecision
+        return MachineReal(prec)
