@@ -83,14 +83,16 @@ class GenericConverter:
             if suffix is None:
                 # MachineReal/PrecisionReal is determined by number of digits
                 # in the mantissa
-                d = len(man) - 2  # one less for decimal point
-                if d < reconstruct_digits(machine_precision):
+                # if the number of digits is less than 17, then MachineReal is used.
+                # If more digits are provided, then PrecisionReal is used.
+                digits = len(man) - 2
+                if digits < reconstruct_digits(machine_precision):
                     return "MachineReal", sign * float(s)
                 else:
                     return (
                         "PrecisionReal",
                         ("DecimalString", str("-" + s if sign == -1 else s)),
-                        d,
+                        digits,
                     )
             elif suffix == "":
                 return "MachineReal", sign * float(s)
@@ -118,10 +120,15 @@ class GenericConverter:
                 # so ``` 0`3 === 0 ``` and  ``` 0.`3 === 0.`4 ```
                 if node.value == "0":
                     return "Integer", 0
+
+                s_float = float(s)
+                prec = float(suffix)
+                if s_float == 0.0:
+                    return "MachineReal", sign * s_float
                 return (
                     "PrecisionReal",
                     ("DecimalString", str("-" + s if sign == -1 else s)),
-                    float(suffix),
+                    prec,
                 )
 
         # Put into standard form mantissa * base ^ n

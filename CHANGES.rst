@@ -38,6 +38,8 @@ New Builtins
 #. ``Kurtosis``
 #. ``ListLogPlot``
 #. ``LogPlot``
+#. ``$MaxMachineNumber``
+#. ``$MinMachineNumber``
 #. ``NumberLinePlot``
 #. ``PauliMatrix``
 #. ``Remove``
@@ -92,9 +94,10 @@ Bugs
 
 #. Units and Quantities were sometimes failing. Also they were omitted from documentation.
 #. Better handling of ``Infinite`` quantities.
-#. Fix ``Precision`` compatibility with WMA.
+#. Improved ``Precision`` and ``Accuracy``compatibility with WMA. In particular, ``Precision[0.]`` and ``Accuracy[0.]``
+#. Accuracy in numbers using the notation ``` n.nnn``acc ```  now is properly handled.
 
-   
+
 PyPI Package requirements
 +++++++++++++++++++++++++
 
@@ -115,6 +118,8 @@ Enhancements
 #. ``Grid`` compatibility with WMA was improved.  Now it supports non-uniform list of lists and lists with general elements.
 #. Support for BigEndian Big TIFF
 
+
+   
 5.0.2
 -----
 

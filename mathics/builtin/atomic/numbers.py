@@ -24,32 +24,35 @@ import sympy
 
 from mathics.builtin.base import Builtin, Predefined, Test
 from mathics.core.atoms import (
-    Complex,
     Integer,
     Integer0,
     Integer10,
     MachineReal,
-    MachineReal0,
     Number,
     Rational,
-    Real,
 )
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import dps, machine_epsilon, machine_precision
+from mathics.core.number import (
+    MACHINE_PRECISION_VALUE,
+    machine_epsilon,
+    machine_precision,
+)
 from mathics.core.symbols import Symbol, SymbolDivide
 from mathics.core.systemsymbols import (
     SymbolIndeterminate,
     SymbolInfinity,
     SymbolLog,
+    SymbolMachinePrecision,
     SymbolN,
     SymbolPrecision,
     SymbolRealDigits,
     SymbolRound,
 )
 from mathics.eval.nevaluator import eval_N
+from mathics.eval.numbers import eval_Accuracy, eval_Precision
 
 SymbolIntegerDigits = Symbol("IntegerDigits")
 SymbolIntegerExponent = Symbol("IntegerExponent")
@@ -157,7 +160,8 @@ class Accuracy(Builtin):
       <dd>examines the number of significant digits of $expr$ after the \
       decimal point in the number x.
     </dl>
-    <i>This is rather a proof-of-concept than a full implementation.</i>
+    <i>Notice that the result could be slighly different than the obtained\
+    in WMA, due to differencs in the internal representation of the real numbers.</i>
 
     Accuracy of a real number is estimated from its value and its precision:
 
@@ -183,11 +187,17 @@ class Accuracy(Builtin):
      = Infinity
 
     >> Accuracy[F[1.3, Pi, A]]
-     = 14.8861
+     = ...
 
     'Accuracy' for the value 0 is a fixed-precision Real number:
      >> 0``2
       = 0.00
+     >> Accuracy[0.``2]
+      = 2.
+
+    For 0.`, the accuracy satisfies:
+    >> Accuracy[0.`] == $MachinePrecision - Log[10, $MinMachineNumber]
+     = True
 
     In compound expressions, the 'Accuracy' is fixed by the number with
     the lowest 'Accuracy':
@@ -203,33 +213,10 @@ class Accuracy(Builtin):
 
     def eval(self, z, evaluation):
         "Accuracy[z_]"
-        if isinstance(z, Real):
-            if z.is_zero:
-                return MachineReal(dps(z.get_precision()))
-            z_f = z.to_python()
-            log10_z = mpmath.log((-z_f if z_f < 0 else z_f), 10)
-            return MachineReal(dps(z.get_precision()) - log10_z)
-
-        if isinstance(z, Complex):
-            acc_real = self.eval(z.real, evaluation)
-            acc_imag = self.eval(z.imag, evaluation)
-            if acc_real is SymbolInfinity:
-                return acc_imag
-            if acc_imag is SymbolInfinity:
-                return acc_real
-            return Real(min(acc_real.to_python(), acc_imag.to_python()))
-
-        if isinstance(z, Expression):
-            result = None
-            for element in z.elements:
-                candidate = self.eval(element, evaluation)
-                if isinstance(candidate, Real):
-                    candidate_f = candidate.to_python()
-                    if result is None or candidate_f < result:
-                        result = candidate_f
-            if result is not None:
-                return Real(result)
-        return SymbolInfinity
+        acc = eval_Accuracy(z)
+        if acc is None:
+            return SymbolInfinity
+        return MachineReal(acc)
 
 
 class ExactNumberQ(Test):
@@ -927,8 +914,8 @@ class Precision(Builtin):
       <dt>'Precision[$expr$]'
       <dd>examines the number of significant digits of $expr$.
     </dl>
-
-    <i>This is rather a proof-of-concept than a full implementation.</i>
+    <i>Notice that the result could be slighly different than the obtained\
+    in WMA, due to differencs in the internal representation of the real numbers.</i>
 
     The precision of an exact number, e.g. an Integer, is 'Infinity':
 
@@ -954,43 +941,39 @@ class Precision(Builtin):
     >> Precision[{{1, 1.`},{1.`5, 1.`10}}]
      = 5.
 
+    For non-zero Real values, it holds in general:
+
+    'Accuracy'[$z$] == 'Precision'[$z$] + 'Log'[$z$]
+
+    >> (Accuracy[z] == Precision[z] + Log[z])/.z-> 37.`
+     = True
+
+    The case of `0.` values is special. Following WMA, in a Machine Real\
+    representation, the precision is set to 'MachinePrecision':
+    >> Precision[0.]
+     = MachinePrecision
+
+    On the other hand, for a Precision Real with fixed accuracy,\
+    the precision is evaluated to 0.:
+    >> Precision[0.``3]
+     = 0.
+
 
     See also <url>
     :'Accuracy':
     /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/accuracy/</url>.
     """
 
-    rules = {
-        "Precision[z_?MachineNumberQ]": "MachinePrecision",
-    }
-
     summary_text = "find the precision of a number"
 
     def eval(self, z, evaluation):
         "Precision[z_]"
-        if isinstance(z, Real):
-            if z.is_zero:
-                return MachineReal0
-            return MachineReal(dps(z.get_precision()))
+        if isinstance(z, MachineReal):
+            return SymbolMachinePrecision
 
-        if isinstance(z, Complex):
-            prec_real = self.eval(z.real, evaluation)
-            prec_imag = self.eval(z.imag, evaluation)
-            if prec_real is SymbolInfinity:
-                return prec_imag
-            if prec_imag is SymbolInfinity:
-                return prec_real
-
-            return Real(min(prec_real.to_python(), prec_imag.to_python()))
-
-        if isinstance(z, Expression):
-            result = None
-            for element in z.elements:
-                candidate = self.eval(element, evaluation)
-                if isinstance(candidate, Real):
-                    candidate_f = candidate.to_python()
-                    if result is None or candidate_f < result:
-                        result = candidate_f
-            if result is not None:
-                return Real(result)
-        return SymbolInfinity
+        prec = eval_Precision(z)
+        if prec is None:
+            return SymbolInfinity
+        if prec == MACHINE_PRECISION_VALUE:
+            return SymbolMachinePrecision
+        return MachineReal(prec)
