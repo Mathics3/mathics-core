@@ -601,7 +601,7 @@ class MaxMachineNumber(Predefined):
     """
 
     name = "$MaxMachineNumber"
-    usage = "largest normalized positive machine number"
+    summary_text = "largest normalized positive machine number"
 
     def evaluate(self, evaluation) -> MachineReal:
         return MachineReal(MAX_MACHINE_NUMBER)
@@ -628,7 +628,7 @@ class MinMachineNumber(Predefined):
     """
 
     name = "$MinMachineNumber"
-    usage = "smallest normalized positive machine number"
+    summary_text = "smallest normalized positive machine number"
 
     def evaluate(self, evaluation) -> MachineReal:
         return MachineReal(MIN_MACHINE_NUMBER)
