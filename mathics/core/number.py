@@ -9,6 +9,7 @@ from typing import List, Optional
 import mpmath
 import sympy
 
+from mathics.core.element import BaseElement
 from mathics.core.symbols import (
     SymbolMachinePrecision,
     SymbolMaxPrecision,
@@ -122,7 +123,14 @@ def prec(dps) -> int:
     return max(1, int(round((int(dps) + 1) * C)))
 
 
-def min_prec(*args):
+def min_prec(*args: BaseElement) -> Optional[float]:
+    """
+    Returns the precision of the expression with the minimum precision.
+    If all the expressions are exact or non numeric, return None.
+    If one of the expressions is an inexact value with zero
+    nominal value, then its accuracy is used instead. For example,
+    ```min_prec(1, 0.``4) ``` returns 4.
+    """
     args_prec = (arg.get_precision() for arg in args)
     return min(
         (arg_prec for arg_prec in args_prec if arg_prec is not None), default=None

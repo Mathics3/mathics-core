@@ -191,6 +191,12 @@ class Accuracy(Builtin):
     'Accuracy' for the value 0 is a fixed-precision Real number:
      >> 0``2
       = 0.00
+     >> Accuracy[0.``2]
+      = 2.
+
+    For 0.`, the accuracy is the 
+    >> Accuracy[0.`] == $MachinePrecision - Log[10, $MinMachineNumber]
+     = True
 
     In compound expressions, the 'Accuracy' is fixed by the number with
     the lowest 'Accuracy':
@@ -927,6 +933,23 @@ class Precision(Builtin):
     the lowest 'Precision':
     >> Precision[{{1, 1.`},{1.`5, 1.`10}}]
      = 5.
+
+    For non-zero Real values, it holds in general
+
+    $$Accuracy[z] == Precision[z] + Log[z]$$
+
+    >> (Accuracy[z] == Precision[z] + Log[z])/.z-> 37.`
+     = True
+
+    The case of `0.` values is special. Following WMA, in a Machine Real representation, the precision is
+    set to $MachinePrecision:
+    >> Precision[0.]
+     = MachinePrecision
+
+    On the other hand, for a Precision Real with fixed accuracy,
+    the precision is evaluated to 0.:
+    >> Precision[0.``3]
+     = 0.
 
 
     See also <url>

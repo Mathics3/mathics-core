@@ -19,7 +19,13 @@ import sympy
 from mathics.builtin.base import Builtin, Predefined, SympyObject
 from mathics.core.atoms import MachineReal, PrecisionReal
 from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
-from mathics.core.number import PrecisionValueError, get_precision, machine_precision
+from mathics.core.number import (
+    MAX_MACHINE_NUMBER,
+    MIN_MACHINE_NUMBER,
+    PrecisionValueError,
+    get_precision,
+    machine_precision,
+)
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolIndeterminate
 
@@ -573,6 +579,59 @@ class Overflow(Builtin):
         "Power[Overflow[], -1]": "Underflow[]",
     }
     summary_text = "overflow in numeric evaluation"
+
+
+class MaxMachineNumber(Predefined):
+    """
+    Largest normalizable machine number (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/$MaxMachineNumber.html
+    </url>)
+
+    <dl>
+      <dt>'$MaxMachineNumber'
+      <dd>Represents the largest positive number that can be represented \
+          as a normalized machine number in the system.
+    </dl>
+
+    The product of \$MaxMachineNumber and  \$MinMachineNumber is a constant:
+    >> $MaxMachineNumber * $MinMachineNumber
+     = 4.
+
+    """
+
+    name = "$MaxMachineNumber"
+    usage = "largest normalized positive machine number"
+
+    def evaluate(self, evaluation) -> MachineReal:
+        return MachineReal(MAX_MACHINE_NUMBER)
+
+
+class MinMachineNumber(Predefined):
+    """
+    Smallest normalizable machine number (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/$MinMachineNumber.html
+    </url>)
+
+    <dl>
+      <dt>'$MinMachineNumber'
+      <dd>Represents the smallest positive number that can be represented \
+          as a normalized machine number in the system.
+    </dl>
+
+    MachinePrecision minus the Log base 10 of this number is the 
+    accuracy of 0`:
+    >> MachinePrecision -Log[10., $MinMachineNumber]==Accuracy[0`]
+     = True
+
+    """
+
+    name = "$MinMachineNumber"
+    usage = "smallest normalized positive machine number"
+
+    def evaluate(self, evaluation) -> MachineReal:
+        return MachineReal(MIN_MACHINE_NUMBER)
 
 
 class Pi(_MPMathConstant, _SympyConstant):
