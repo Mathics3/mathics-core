@@ -52,7 +52,7 @@ from mathics.core.systemsymbols import (
     SymbolRound,
 )
 from mathics.eval.nevaluator import eval_N
-from mathics.eval.numbers import eval_accuracy, eval_precision
+from mathics.eval.numbers import eval_Accuracy, eval_Precision
 
 SymbolIntegerDigits = Symbol("IntegerDigits")
 SymbolIntegerExponent = Symbol("IntegerExponent")
@@ -212,7 +212,7 @@ class Accuracy(Builtin):
 
     def eval(self, z, evaluation):
         "Accuracy[z_]"
-        acc = eval_accuracy(z)
+        acc = eval_Accuracy(z)
         if acc is None:
             return SymbolInfinity
         return MachineReal(acc)
@@ -968,7 +968,7 @@ class Precision(Builtin):
         if isinstance(z, MachineReal):
             return SymbolMachinePrecision
 
-        prec = eval_precision(z)
+        prec = eval_Precision(z)
         if prec is None:
             return SymbolInfinity
         if prec == MACHINE_PRECISION_VALUE:

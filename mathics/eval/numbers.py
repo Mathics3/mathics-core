@@ -3,7 +3,7 @@ from typing import Optional
 import mpmath
 import sympy
 
-from mathics.core.atoms import Complex, MachineReal, PrecisionReal, Real
+from mathics.core.atoms import Complex, MachineReal, PrecisionReal
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
 from mathics.core.expression import Expression
@@ -11,7 +11,7 @@ from mathics.core.number import MACHINE_PRECISION_VALUE, ZERO_MACHINE_ACCURACY, 
 from mathics.core.symbols import SymbolPlus
 
 
-def eval_accuracy(z: BaseElement) -> Optional[float]:
+def eval_Accuracy(z: BaseElement) -> Optional[float]:
     """
     Determine the accuracy of an expression expr.
     If z is a Real value, returns the difference between
@@ -47,8 +47,8 @@ def eval_accuracy(z: BaseElement) -> Optional[float]:
         return dps(z.get_precision()) - log10_z
 
     if isinstance(z, Complex):
-        acc_real = eval_accuracy(z.real)
-        acc_imag = eval_accuracy(z.imag)
+        acc_real = eval_Accuracy(z.real)
+        acc_imag = eval_Accuracy(z.imag)
         if acc_real is None:
             return acc_imag
         if acc_imag is None:
@@ -56,12 +56,12 @@ def eval_accuracy(z: BaseElement) -> Optional[float]:
         return min(acc_real, acc_imag)
 
     if isinstance(z, Expression):
-        elem_accuracies = (eval_accuracy(z_elem) for z_elem in z.elements)
+        elem_accuracies = (eval_Accuracy(z_elem) for z_elem in z.elements)
         return min((acc for acc in elem_accuracies if acc is not None), default=None)
     return None
 
 
-def eval_precision(z: BaseElement) -> Optional[float]:
+def eval_Precision(z: BaseElement) -> Optional[float]:
     """
     Determine the precision of an expression expr.
     If z is a Real value, returns the number of significant
@@ -89,8 +89,8 @@ def eval_precision(z: BaseElement) -> Optional[float]:
         return float(dps(z.get_precision()))
 
     if isinstance(z, Complex):
-        prec_real = eval_precision(z.real)
-        prec_imag = eval_precision(z.imag)
+        prec_real = eval_Precision(z.real)
+        prec_imag = eval_Precision(z.imag)
         if prec_real is None:
             return prec_imag
         if prec_imag is None:
@@ -98,7 +98,7 @@ def eval_precision(z: BaseElement) -> Optional[float]:
         return min(prec_real, prec_imag)
 
     if isinstance(z, Expression):
-        elem_prec = (eval_precision(z_elem) for z_elem in z.elements)
+        elem_prec = (eval_Precision(z_elem) for z_elem in z.elements)
         return min((prec for prec in elem_prec if prec is not None), default=None)
 
     return None

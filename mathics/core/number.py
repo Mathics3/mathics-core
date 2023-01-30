@@ -127,9 +127,13 @@ def min_prec(*args: BaseElement) -> Optional[float]:
     """
     Returns the precision of the expression with the minimum precision.
     If all the expressions are exact or non numeric, return None.
+
     If one of the expressions is an inexact value with zero
     nominal value, then its accuracy is used instead. For example,
     ```min_prec(1, 0.``4) ``` returns 4.
+
+    Notice that this behaviour is different that the one obtained
+    using mathics.core.numbers.eval_Precision.
     """
     args_prec = (arg.get_precision() for arg in args)
     return min(
