@@ -160,7 +160,7 @@ class Accuracy(Builtin):
       <dd>examines the number of significant digits of $expr$ after the \
       decimal point in the number x.
     </dl>
-    <i>Notice that the result could be slighly different than the obtained
+    <i>Notice that the result could be slighly different than the obtained\
     in WMA, due to differencs in the internal representation of the real numbers.</i>
 
     Accuracy of a real number is estimated from its value and its precision:
@@ -195,7 +195,7 @@ class Accuracy(Builtin):
      >> Accuracy[0.``2]
       = 2.
 
-    For 0.`, the accuracy is
+    For 0.`, the accuracy satisfies
     >> Accuracy[0.`] == $MachinePrecision - Log[10, $MinMachineNumber]
      = True
 

@@ -621,7 +621,7 @@ class MinMachineNumber(Predefined):
           as a normalized machine number in the system.
     </dl>
 
-    'MachinePrecision' minus the 'Log' base 10 of this number is the 
+    'MachinePrecision' minus the 'Log' base 10 of this number is the\
     'Accuracy' of 0`:
     >> MachinePrecision -Log[10., $MinMachineNumber]==Accuracy[0`]
      = True
