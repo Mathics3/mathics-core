@@ -195,7 +195,7 @@ class Accuracy(Builtin):
      >> Accuracy[0.``2]
       = 2.
 
-    For 0.`, the accuracy satisfies
+    For 0.`, the accuracy satisfies:
     >> Accuracy[0.`] == $MachinePrecision - Log[10, $MinMachineNumber]
      = True
 
