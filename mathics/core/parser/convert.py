@@ -10,7 +10,10 @@ import sympy
 
 from mathics.core.atoms import Integer, MachineReal, PrecisionReal, Rational, String
 from mathics.core.convert.expression import to_expression, to_mathics_list
-from mathics.core.number import machine_precision, reconstruct_digits
+from mathics.core.number import (
+    FP_MANTISA_BINARY_DIGITS,
+    RECONSTRUCT_MACHINE_PRECISION_DIGITS,
+)
 from mathics.core.parser.ast import (
     Filename as AST_Filename,
     Number as AST_Number,
@@ -86,7 +89,7 @@ class GenericConverter:
                 # if the number of digits is less than 17, then MachineReal is used.
                 # If more digits are provided, then PrecisionReal is used.
                 digits = len(man) - 2
-                if digits < reconstruct_digits(machine_precision):
+                if digits < RECONSTRUCT_MACHINE_PRECISION_DIGITS:
                     return "MachineReal", sign * float(s)
                 else:
                     return (
@@ -156,7 +159,7 @@ class GenericConverter:
                 prec10 = acc10
             else:
                 prec10 = acc10 + log10(abs(x))
-            if prec10 < reconstruct_digits(machine_precision):
+            if prec10 < RECONSTRUCT_MACHINE_PRECISION_DIGITS:
                 prec10 = None
         elif suffix == "":
             prec10 = None

@@ -168,7 +168,7 @@ def from_sympy(expr):
     from mathics.core.convert.expression import to_expression, to_mathics_list
     from mathics.core.expression import Expression
     from mathics.core.list import ListExpression
-    from mathics.core.number import machine_precision
+    from mathics.core.number import FP_MANTISA_BINARY_DIGITS
     from mathics.core.symbols import Symbol, SymbolNull
 
     if isinstance(expr, (tuple, list)):
@@ -240,7 +240,7 @@ def from_sympy(expr):
                     return SymbolIndeterminate
             return Rational(numerator, denominator)
         elif isinstance(expr, sympy.Float):
-            if expr._prec == machine_precision:
+            if expr._prec == FP_MANTISA_BINARY_DIGITS:
                 return MachineReal(float(expr))
             return Real(expr)
         elif isinstance(expr, sympy.core.numbers.NaN):

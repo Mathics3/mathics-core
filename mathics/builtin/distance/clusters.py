@@ -15,7 +15,7 @@ from mathics.algorithm.clusters import (
 )
 from mathics.builtin.base import Builtin
 from mathics.builtin.options import options_to_rules
-from mathics.core.atoms import Integer, Real, String, machine_precision, min_prec
+from mathics.core.atoms import FP_MANTISA_BINARY_DIGITS, Integer, Real, String, min_prec
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -234,7 +234,7 @@ class _Cluster(Builtin):
         # compute epsilon similar to Real.__eq__, such that "numbers that differ in their last seven binary digits
         # are considered equal"
 
-        prec = min_prec(*items) or machine_precision
+        prec = min_prec(*items) or FP_MANTISA_BINARY_DIGITS
         eps = 0.5 ** (prec - 7)
 
         return kmeans(numeric_p, repr_p, py_k, mode, py_seed, eps)

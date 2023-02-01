@@ -36,9 +36,9 @@ from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import (
+    FP_MANTISA_BINARY_DIGITS,
+    MACHINE_EPSILON,
     MACHINE_PRECISION_VALUE,
-    machine_epsilon,
-    machine_precision,
 )
 from mathics.core.symbols import Symbol, SymbolDivide
 from mathics.core.systemsymbols import (
@@ -790,7 +790,7 @@ class MachineEpsilon_(Predefined):
     summary_text = "the difference between 1.0 and the next-nearest number representable as a machine-precision number"
 
     def evaluate(self, evaluation):
-        return MachineReal(machine_epsilon)
+        return MachineReal(MACHINE_EPSILON)
 
 
 class MachinePrecision_(Predefined):
@@ -839,7 +839,9 @@ class MachinePrecision(Predefined):
 
     is_numeric = True
     rules = {
-        "N[MachinePrecision, prec_]": ("N[Log[10, 2] * %i, prec]" % machine_precision),
+        "N[MachinePrecision, prec_]": (
+            "N[Log[10, 2] * %i, prec]" % FP_MANTISA_BINARY_DIGITS
+        ),
     }
 
     summary_text = "symbol used to indicate machine‐number precision"

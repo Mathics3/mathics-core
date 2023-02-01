@@ -18,7 +18,7 @@ from mathics.core.element import ImmutableValueMixin
 from mathics.core.exceptions import BoxExpressionError
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import machine_epsilon
+from mathics.core.number import MACHINE_EPSILON
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolApply
 
@@ -27,7 +27,7 @@ SymbolOpacity = Symbol("Opacity")
 
 def _cie2000_distance(lab1, lab2):
     # reference: https://en.wikipedia.org/wiki/Color_difference#CIEDE2000
-    e = machine_epsilon
+    e = MACHINE_EPSILON
     kL = kC = kH = 1  # common values
 
     L1, L2 = lab1[0], lab2[0]
@@ -92,7 +92,7 @@ def _CMC_distance(lab1, lab2, l, c):
     b1, b2 = lab1[2], lab2[2]
 
     dL, da, db = L2 - L1, a2 - a1, b2 - b1
-    e = machine_epsilon
+    e = MACHINE_EPSILON
 
     C1 = sqrt(a1**2 + b1**2)
     C2 = sqrt(a2**2 + b2**2)

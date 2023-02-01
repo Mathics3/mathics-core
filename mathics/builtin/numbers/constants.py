@@ -21,11 +21,12 @@ from mathics.core.atoms import MachineReal, PrecisionReal
 from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.evaluation import Evaluation
 from mathics.core.number import (
+    FP_MANTISA_BINARY_DIGITS,
+    MACHINE_DIGITS,
     MAX_MACHINE_NUMBER,
     MIN_MACHINE_NUMBER,
     PrecisionValueError,
     get_precision,
-    machine_precision,
 )
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolIndeterminate
@@ -87,7 +88,6 @@ class _Constant_Common(Predefined):
 
     def get_constant(self, precision, evaluation):
         # first, determine the precision
-        machine_d = int(0.30103 * machine_precision)
         d = None
         if precision:
             try:
@@ -96,7 +96,7 @@ class _Constant_Common(Predefined):
                 pass
 
         if d is None:
-            d = machine_d
+            d = MACHINE_DIGITS
 
         # If preference not especified, determine it
         # from the precision.
@@ -109,7 +109,7 @@ class _Constant_Common(Predefined):
                 break
 
         if preference is None:
-            if d <= machine_d:
+            if d <= MACHINE_DIGITS:
                 preference = "numpy"
             else:
                 preference = "mpmath"
@@ -130,7 +130,7 @@ class _Constant_Common(Predefined):
                 preference = ""
         if preference == "numpy":
             value = numpy_constant(self.numpy_name)
-            if d == machine_d:
+            if d == MACHINE_DIGITS:
                 return MachineReal(value)
         if preference == "sympy":
             value = sympy_constant(self.sympy_name, d + 2)

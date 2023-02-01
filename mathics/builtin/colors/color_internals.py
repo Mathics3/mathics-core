@@ -326,7 +326,7 @@ def lab_to_xyz(l, a, b, *rest):
 # s = FindShortestPath[g, All, All]; {#, s @@ #} & /@ Permutations[{
 #   "Grayscale", "RGB", "CMYK", "HSB", "XYZ", "LAB", "LUV", "LCH"}, {2}] // CForm
 
-_paths = dict(
+_PATHS = dict(
     (
         (("Grayscale", "RGB"), ("Grayscale", "RGB")),
         (("Grayscale", "CMYK"), ("Grayscale", "RGB", "CMYK")),
@@ -387,7 +387,7 @@ _paths = dict(
     )
 )
 
-conversions = {
+CONVERSIONS = {
     "Grayscale>RGB": grayscale_to_rgb,
     "RGB>Grayscale": rgb_to_grayscale,
     "CMYK>RGB": cmyk_to_rgb,
@@ -435,12 +435,12 @@ def convert_color(components, src, dst, preserve_alpha=True):
     if src == dst:
         return components
 
-    path = _paths.get((src, dst), None)
+    path = _PATHS.get((src, dst), None)
     if path is None:
         return None
 
     for s, d in zip(path[:-1], path[1:]):
-        func = conversions.get("%s>%s" % (s, d))
+        func = CONVERSIONS.get("%s>%s" % (s, d))
         if not func:
             return None
         components = stacked(func, components)
