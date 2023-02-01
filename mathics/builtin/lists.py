@@ -5,28 +5,13 @@ List Functions - Miscellaneous
 Functions here will eventually get moved to more suitable subsections.
 """
 
-from mathics.builtin.base import Builtin, Predefined, Test
+from mathics.builtin.base import Builtin, Test
 from mathics.builtin.box.layout import RowBox
 from mathics.core.attributes import A_LOCKED, A_PROTECTED
 from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.list import ListExpression
 from mathics.eval.lists import list_boxes
 from mathics.eval.parts import python_levelspec
-
-
-class All(Predefined):
-    """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/All.html</url>
-
-    <dl>
-      <dt>'All'
-      <dd>is a possible option value for 'Span', 'Quiet', 'Part' and related functions. 'All' specifies all parts at a particular level.
-    </dl>
-    """
-
-    summary_text = "all the parts in the level"
 
 
 class LevelQ(Test):
@@ -97,20 +82,6 @@ class List(Builtin):
 
         items = items.get_sequence()
         return RowBox(*list_boxes(items, f, evaluation, "{", "}"))
-
-
-class None_(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/None.html</url>
-
-    <dl>
-      <dt>'None'
-      <dd>is a possible value for 'Span' and 'Quiet'.
-    </dl>
-    """
-
-    name = "None"
-    summary_text = "not any part"
 
 
 class NotListQ(Test):

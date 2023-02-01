@@ -11,7 +11,7 @@ the default behavior that function. Default options can be queried or set.
 https://reference.wolfram.com/language/guide/OptionsManagement.html</url>
 """
 
-from mathics.builtin.base import Builtin, Test, get_option
+from mathics.builtin.base import Builtin, Predefined, Test, get_option
 from mathics.builtin.image.base import Image
 from mathics.core.atoms import String
 from mathics.core.evaluation import Evaluation
@@ -20,6 +20,52 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList, ensure_context, strip_context
 from mathics.core.systemsymbols import SymbolRule, SymbolRuleDelayed
 from mathics.eval.patterns import Matcher
+
+
+class All(Predefined):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/All.html</url>
+
+    <dl>
+      <dt>'All'
+      <dd>is an option value for a number of functions indicating to include everything.
+    </dl>
+
+
+    In list functions, it indicates all levels of the list.
+
+    For example, in <url>
+    :Part:
+    /doc/reference-of-built-in-symbols/list-functions/elements-of-lists/part</url>, \
+    'All', extracts into a first column vector the first element of each of the list elements:
+
+    >> {{1, 3}, {5, 7}}[[All, 1]]
+     = {1, 5}
+
+    while in <url>
+    :Take:
+    /doc/reference-of-built-in-symbols/list-functions/elements-of-lists/part</url>, \
+    'All' extracts as a column matrix the first element as a list for each of the list elements:
+
+    >> Take[{{1, 3}, {5, 7}}, All, {1}]
+     = {{1}, {5}}
+
+    In <url>
+    :Plot:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/plotting-data/plot</url> \
+    </url>, setting the <url>
+    :Mesh:
+    /doc/reference-of-built-in-symbols/drawing-options-and-option-values/mesh</url> \
+    option to 'All' will show the specific plot points:
+
+    >> Plot[x^2, {x, -1, 1}, MaxRecursion->5, Mesh->All]
+     = -Graphics-
+
+    """
+
+    summary_text = "option value that specify using everything"
 
 
 class Default(Builtin):
@@ -119,6 +165,29 @@ class FilterRules(Builtin):
                     yield rule
 
         return ListExpression(*list(matched()))
+
+
+class None_(Predefined):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/None.html</url>
+
+    <dl>
+      <dt>'None'
+      <dd>is a setting value for many options.
+    </dl>
+
+    Plot3D shows the mesh grid between computed points by default. This the <url>
+    :Mesh:
+    /doc/reference-of-built-in-symbols/drawing-option-and-values/mesh</url> option.
+
+    However, you hide the mesh by setting thes 'Mesh' option value to 'None':
+
+    >> Plot3D[{x^2 + y^2, -x^2 - y^2}, {x, -2, 2}, {y, -2, 2}, BoxRatios-> Automatic, Mesh->None]
+     = -Graphics3D-
+    """
+
+    name = "None"
+    summary_text = "option value that disables the option"
 
 
 # Has this been removed from WL? I cannot find a WMA link.
