@@ -20,7 +20,7 @@ from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.number import machine_epsilon
+from mathics.core.number import MACHINE_EPSILON
 from mathics.core.symbols import SymbolDivide, SymbolMachinePrecision, SymbolTimes
 from mathics.eval.nevaluator import eval_nvalues
 
@@ -334,7 +334,7 @@ class Rationalize(Builtin):
             tol = c / q**2
             if abs(i - x) <= tol:
                 return i
-            if tol < machine_epsilon:
+            if tol < MACHINE_EPSILON:
                 break
         return x
 
@@ -346,7 +346,7 @@ class Rationalize(Builtin):
         )
         for i in it:
             p, q = i.as_numer_denom()
-            if abs(x - i) < machine_epsilon:
+            if abs(x - i) < MACHINE_EPSILON:
                 return i
 
     def eval_dx(self, x, dx, evaluation: Evaluation):

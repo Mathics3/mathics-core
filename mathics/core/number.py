@@ -16,29 +16,33 @@ from mathics.core.symbols import (
     SymbolMinPrecision,
 )
 
-C = mpmath.log(10.0, 2.0)  # ~ 3.3219280948873626
+LOG2_10 = mpmath.log(10.0, 2.0)  # ~ 3.3219280948873626
 
-machine_precision = float_info.mant_dig
-machine_digits = float_info.dig
+# Number of digits in the mantisa of a normalized floatting point number:
+FP_MANTISA_BINARY_DIGITS = float_info.mant_dig  # ~53
 
+# the (integer) number of decimal digits hold by a
+# normalized floatting point number.
+MACHINE_DIGITS = float_info.dig  # ~15
+
+# the difference between 1. and the next
+# representable floatting point number:
 MACHINE_EPSILON = float_info.epsilon
-MACHINE_PRECISION_VALUE = float_info.mant_dig / C
-MIN_MACHINE_NUMBER = float_info.min
+# the number of accurate decimal digits hold by a normalized floatting point number.
+MACHINE_PRECISION_VALUE = float_info.mant_dig / LOG2_10
+
+
+#  Maximum normalized float
 MAX_MACHINE_NUMBER = float_info.max
+
+#  Minimum positive normalized float
+MIN_MACHINE_NUMBER = float_info.min
+
+# the accuracy associated to 0.`
 ZERO_MACHINE_ACCURACY = -mpmath.log(MIN_MACHINE_NUMBER, 10.0) + MACHINE_PRECISION_VALUE
 
-# backward compatibility
-machine_epsilon = MACHINE_EPSILON
-
-
-def reconstruct_digits(bits) -> int:
-    """
-    Number of digits needed to reconstruct a number with given bits of precision.
-
-    >>> reconstruct_digits(53)
-    17
-    """
-    return int(ceil(bits / C) + 1)
+# the (integer) number of decimal digits needed to reconstruct a floatting point number.
+RECONSTRUCT_MACHINE_PRECISION_DIGITS = int(ceil(float_info.mant_dig / LOG2_10) + 1)
 
 
 class PrecisionValueError(Exception):
@@ -116,11 +120,11 @@ def sameQ(v1, v2) -> bool:
 
 
 def dps(prec) -> int:
-    return max(1, int(round(int(prec) / C - 1)))
+    return max(1, int(round(int(prec) / LOG2_10 - 1)))
 
 
 def prec(dps) -> int:
-    return max(1, int(round((int(dps) + 1) * C)))
+    return max(1, int(round((int(dps) + 1) * LOG2_10)))
 
 
 def min_prec(*args: BaseElement) -> Optional[float]:

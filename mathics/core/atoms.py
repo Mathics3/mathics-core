@@ -10,7 +10,13 @@ import mpmath
 import sympy
 
 from mathics.core.element import BoxElementMixin, ImmutableValueMixin
-from mathics.core.number import dps, machine_digits, machine_precision, min_prec, prec
+from mathics.core.number import (
+    FP_MANTISA_BINARY_DIGITS,
+    MACHINE_PRECISION_VALUE,
+    dps,
+    min_prec,
+    prec,
+)
 from mathics.core.symbols import (
     Atom,
     NumericOperators,
@@ -246,11 +252,11 @@ class Integer(Number):
     def round(self, d=None) -> Union["MachineReal", "PrecisionReal"]:
         if d is None:
             d = self.value.bit_length()
-            if d <= machine_precision:
+            if d <= FP_MANTISA_BINARY_DIGITS:
                 return MachineReal(float(self.value))
             else:
-                # machine_precision / log_2(10) + 1
-                d = machine_digits
+                # FP_MANTISA_BINARY_DIGITS / log_2(10) + 1
+                d = MACHINE_PRECISION_VALUE
         return PrecisionReal(sympy.Float(self.value, d))
 
     def get_int_value(self) -> int:
@@ -301,20 +307,22 @@ class Real(Number):
             if p is None:
                 digits = ("".join(re.findall("[0-9]+", value))).lstrip("0")
                 if digits == "":  # Handle weird Mathematica zero case
-                    p = max(prec(len(value.replace("0.", ""))), machine_precision)
+                    p = max(
+                        prec(len(value.replace("0.", ""))), FP_MANTISA_BINARY_DIGITS
+                    )
                 else:
-                    p = prec(len(digits.zfill(dps(machine_precision))))
+                    p = prec(len(digits.zfill(dps(FP_MANTISA_BINARY_DIGITS))))
         elif isinstance(value, sympy.Float):
             if p is None:
                 p = value._prec + 1
         elif isinstance(value, (Integer, sympy.Number, mpmath.mpf, float, int)):
-            if p is not None and p > machine_precision:
+            if p is not None and p > FP_MANTISA_BINARY_DIGITS:
                 value = str(value)
         else:
             raise TypeError("Unknown number type: %s (type %s)" % (value, type(value)))
 
         # return either machine precision or arbitrary precision real
-        if p is None or p == machine_precision:
+        if p is None or p == FP_MANTISA_BINARY_DIGITS:
             return MachineReal.__new__(MachineReal, value)
         else:
             return PrecisionReal.__new__(PrecisionReal, value)
@@ -334,8 +342,8 @@ class Real(Number):
 
     def __hash__(self):
         # ignore last 7 binary digits when hashing
-        _prec = self.get_precision()
-        return hash(("Real", self.to_sympy().n(dps(_prec))))
+        _prec = dps(self.get_precision())
+        return hash(("Real", self.to_sympy().n(_prec)))
 
     def __ne__(self, other) -> bool:
         # Real is a total order
@@ -349,8 +357,8 @@ class Real(Number):
 
     def user_hash(self, update):
         # ignore last 7 binary digits when hashing
-        _prec = self.get_precision()
-        update(b"System`Real>" + str(self.to_sympy().n(dps(_prec))).encode("utf8"))
+        _prec = dps(self.get_precision())
+        update(b"System`Real>" + str(self.to_sympy().n(_prec)).encode("utf8"))
 
 
 # Has to come before PrecisionReal
@@ -402,7 +410,7 @@ class MachineReal(Real):
 
     def get_precision(self) -> float:
         """Returns the default specification for precision in N and other numerical functions."""
-        return machine_precision
+        return FP_MANTISA_BINARY_DIGITS
 
     def get_float_value(self, permit_complex=False) -> float:
         return self.value

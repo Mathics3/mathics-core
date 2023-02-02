@@ -1,15 +1,21 @@
 # -*- coding: utf-8 -*-
 
 from functools import lru_cache
+from typing import Optional, Union
 
 import mpmath
 import sympy
 
 from mathics.core.atoms import Complex, MachineReal, MachineReal0, PrecisionReal
+from mathics.core.symbols import Atom
 
 
 @lru_cache(maxsize=1024)
-def from_mpmath(value, prec=None, acc=None):
+def from_mpmath(
+    value: Union[mpmath.mpf, mpmath.mpc],
+    prec: Optional[float] = None,
+    acc: Optional[float] = None,
+) -> Atom:
     "Converts mpf or mpc to Number."
     if mpmath.isnan(value):
         return SymbolIndeterminate

@@ -79,7 +79,7 @@ Internals
 #. ``isort`` run over all Python files. More type annotations and docstrings on functions added.
 #. caching on immutable atoms like, ``String``, ``Integer``, ``Real``, etc. was improved; the ``__hash__()`` function was sped up. There is a small speedup overall from this at the expense of increased memory.
 #. more type annotations added to functions, especially builtin functions
-
+#. Numerical constants used along the code was renamed using caps, according to the Python's convention.
 
 Bugs
 ++++

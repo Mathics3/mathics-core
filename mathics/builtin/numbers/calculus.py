@@ -56,7 +56,7 @@ from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import dps, machine_epsilon
+from mathics.core.number import MACHINE_EPSILON, dps
 from mathics.core.rules import Pattern
 from mathics.core.symbols import (
     BaseElement,
@@ -1460,7 +1460,7 @@ class NIntegrate(Builtin):
                     if b.get_head_name() == "System`DirectedInfinity":
                         a = a.to_python()
                         b = b.to_python()
-                        le = 1 - machine_epsilon
+                        le = 1 - MACHINE_EPSILON
                         if a == b:
                             nulldomain = True
                             break
@@ -1477,7 +1477,7 @@ class NIntegrate(Builtin):
                             return
                         z = a.elements[0].value
                         b = b.value
-                        subdomain2.append([machine_epsilon, 1.0])
+                        subdomain2.append([MACHINE_EPSILON, 1.0])
                         coordtransform.append(
                             (lambda u: b - z + z / u, lambda u: -z * u ** (-2.0))
                         )
@@ -1487,7 +1487,7 @@ class NIntegrate(Builtin):
                         return
                     a = a.value
                     z = b.elements[0].value
-                    subdomain2.append([machine_epsilon, 1.0])
+                    subdomain2.append([MACHINE_EPSILON, 1.0])
                     coordtransform.append(
                         (lambda u: a - z + z / u, lambda u: z * u ** (-2.0))
                     )

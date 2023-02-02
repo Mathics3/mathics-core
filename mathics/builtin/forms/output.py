@@ -13,6 +13,7 @@
 Forms which appear in '$OutputForms'.
 """
 import re
+from math import ceil
 from typing import Optional
 
 from mathics.builtin.base import Builtin
@@ -31,7 +32,13 @@ from mathics.core.atoms import (
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import convert_base, dps, machine_precision, reconstruct_digits
+from mathics.core.number import (
+    FP_MANTISA_BINARY_DIGITS,
+    LOG2_10,
+    RECONSTRUCT_MACHINE_PRECISION_DIGITS,
+    convert_base,
+    dps,
+)
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
@@ -119,10 +126,10 @@ class BaseForm(Builtin):
 
         if isinstance(expr, PrecisionReal):
             x = expr.to_sympy()
-            p = reconstruct_digits(expr.get_precision())
+            p = int(ceil(expr.get_precision() / LOG2_10) + 1)
         elif isinstance(expr, MachineReal):
             x = expr.value
-            p = reconstruct_digits(machine_precision)
+            p = RECONSTRUCT_MACHINE_PRECISION_DIGITS
         elif isinstance(expr, Integer):
             x = expr.value
             p = 0

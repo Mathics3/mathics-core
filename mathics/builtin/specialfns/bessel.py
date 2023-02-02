@@ -17,9 +17,9 @@ from mathics.core.attributes import (
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.evaluation import Evaluation
 from mathics.core.number import (
+    FP_MANTISA_BINARY_DIGITS,
     PrecisionValueError,
     get_precision,
-    machine_precision,
     prec as _prec,
 )
 
@@ -149,7 +149,7 @@ class AiryAiZero(Builtin):
             return
 
         if d is None:
-            p = machine_precision
+            p = FP_MANTISA_BINARY_DIGITS
         else:
             p = _prec(d)
 
@@ -275,7 +275,7 @@ class AiryBiZero(Builtin):
             return
 
         if d is None:
-            p = machine_precision
+            p = FP_MANTISA_BINARY_DIGITS
         else:
             p = _prec(d)
 
