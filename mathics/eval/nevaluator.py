@@ -34,7 +34,7 @@ def eval_N(
     Equivalent to Expression(SymbolN, expression).evaluate(evaluation)
     """
     evaluated_expression = expression.evaluate(evaluation)
-    result = eval_nvalues(evaluated_expression, prec, evaluation)
+    result = eval_NValues(evaluated_expression, prec, evaluation)
     if result is None:
         return expression
     if isinstance(result, Number):
@@ -42,7 +42,7 @@ def eval_N(
     return result.evaluate(evaluation)
 
 
-def eval_nvalues(
+def eval_NValues(
     expr: BaseElement, prec: BaseElement, evaluation: Evaluation
 ) -> Optional[BaseElement]:
     """
@@ -67,14 +67,14 @@ def eval_nvalues(
 
     # If expr is a List, or a Rule (or maybe expressions with heads for
     # which we are sure do not have NValues or special attributes)
-    # just apply `eval_nvalues` to each element and return the new list.
+    # just apply `eval_NValues` to each element and return the new list.
     if expr.get_head_name() in ("System`List", "System`Rule"):
         elements = expr.elements
 
         # FIXME: incorporate these lines into Expression call
         result = Expression(expr.head)
         new_elements = [
-            eval_nvalues(element, prec, evaluation) for element in expr.elements
+            eval_NValues(element, prec, evaluation) for element in expr.elements
         ]
         result.elements = tuple(
             new_element if new_element else element
@@ -91,7 +91,7 @@ def eval_nvalues(
     # Here we look for the NValues associated to the
     # lookup_name of the expression.
     # If a rule is found and successfuly applied,
-    # reevaluate the result and apply `eval_nvalues` again.
+    # reevaluate the result and apply `eval_NValues` again.
     # This should be implemented as a loop instead of
     # recursively.
     name = expr.get_lookup_name()
@@ -103,7 +103,7 @@ def eval_nvalues(
         if result is not None:
             if not result.sameQ(nexpr):
                 result = result.evaluate(evaluation)
-                result = eval_nvalues(result, prec, evaluation)
+                result = eval_NValues(result, prec, evaluation)
                 return result
 
     # If we are here, is because there are not NValues that matches
@@ -113,7 +113,7 @@ def eval_nvalues(
         return expr
     else:
         # Otherwise, look at the attributes, determine over which elements
-        # we need to apply `eval_nvalues`, and rebuild the expression with
+        # we need to apply `eval_NValues`, and rebuild the expression with
         # the results.
         attributes = expr.head.get_attributes(evaluation.definitions)
         head = expr.head
@@ -130,11 +130,11 @@ def eval_nvalues(
         else:
             eval_range = range(len(elements))
 
-        newhead = eval_nvalues(head, prec, evaluation)
+        newhead = eval_NValues(head, prec, evaluation)
         head = head if newhead is None else newhead
 
         for index in eval_range:
-            new_element = eval_nvalues(elements[index], prec, evaluation)
+            new_element = eval_NValues(elements[index], prec, evaluation)
             if new_element:
                 elements[index] = new_element
 

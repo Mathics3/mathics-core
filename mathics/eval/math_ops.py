@@ -7,9 +7,9 @@ from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 
 
-def eval_2_Norm(m: Expression, evaluation: Evaluation) -> Optional[Expression]:
+def eval_Norm(m: Expression, evaluation: Evaluation) -> Optional[Expression]:
     """
-    2-Norm[] evaluation function
+    Norm[m] evaluation function - the 2-norm of matrix m
     """
     sympy_m = to_sympy_matrix(m)
     if sympy_m is None:
@@ -19,11 +19,11 @@ def eval_2_Norm(m: Expression, evaluation: Evaluation) -> Optional[Expression]:
     return from_sympy(sympy_m.norm())
 
 
-def eval_p_norm(
+def eval_Norm_p(
     m: Expression, p: Expression, evaluation: Evaluation
 ) -> Optional[Expression]:
     """
-    p2-Norm[] evaluation function
+    Norm[m, p] evaluation function - the p-norm of matrix m.
     """
     if isinstance(p, Symbol):
         sympy_p = p.to_sympy()
