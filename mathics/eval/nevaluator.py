@@ -46,9 +46,9 @@ def eval_NValues(
     expr: BaseElement, prec: BaseElement, evaluation: Evaluation
 ) -> Optional[BaseElement]:
     """
-    Looks for the numeric value of ```expr`` with precision ``prec`` by appling NValues rules
+    Looks for the numeric value of ```expr`` with precision ``prec`` by applying NValues rules
     stored in ``evaluation.definitions``.
-    If `prec` can not be evaluated as a number, returns None, otherwise, returns an expression.
+    If ``prec`` can not be evaluated as a number, returns None, otherwise, returns an expression.
     """
 
     # The first step is to determine the precision goal
