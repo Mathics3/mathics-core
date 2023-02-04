@@ -7,41 +7,30 @@ import mpmath
 import sympy
 
 from mathics.core.atoms import Complex, MachineReal, MachineReal0, PrecisionReal
-from mathics.core.number import LOG2_10
 from mathics.core.symbols import Atom
 
 
 @lru_cache(maxsize=1024)
 def from_mpmath(
     value: Union[mpmath.mpf, mpmath.mpc],
-    *,
-    precision: Optional[float] = None,
-    prec: Optional[float] = None,
-    acc: Optional[float] = None,
+    precision: Optional[int] = None,
 ) -> Atom:
-    "Converts mpf or mpc to Number."
+    """
+    Converts mpf or mpc to Number.
+    The optional parameter `precision` represents
+    the binary precision.
+    """
     if mpmath.isnan(value):
         return SymbolIndeterminate
     if isinstance(value, mpmath.mpf):
         if mpmath.isinf(value):
             direction = Integer1 if value > 0 else IntegerM1
             return Expression(SymbolDirectedInfinity, direction)
-        # if accuracy is given, override
-        # prec:
-        if acc is not None:
-            prec = acc
-            if value != 0.0:
-                offset = mpmath.log(-value if value < 0.0 else value, 10)
-                prec += offset
-            precision = LOG2_10 * prec
-        elif prec is not None:
-            precision = LOG2_10 * prec
-
         if precision is None:
             return MachineReal(float(value))
         # If the error if of the order of the number, the number
         # is compatible with 0.
-        if precision < 1.0:
+        if precision < 1:
             return MachineReal0
         # HACK: use str here to prevent loss of precision
         return PrecisionReal(sympy.Float(str(value), precision=precision - 1))
@@ -49,9 +38,9 @@ def from_mpmath(
         if mpmath.isinf(value):
             return SymbolComplexInfinity
         if value.imag == 0.0:
-            return from_mpmath(value.real, precision=precision, prec=prec, acc=acc)
-        real = from_mpmath(value.real, precision=precision, prec=prec, acc=acc)
-        imag = from_mpmath(value.imag, precision=precision, prec=prec, acc=acc)
+            return from_mpmath(value.real, precision=precision)
+        real = from_mpmath(value.real, precision=precision)
+        imag = from_mpmath(value.imag, precision=precision)
         return Complex(real, imag)
     else:
         raise TypeError(type(value))
