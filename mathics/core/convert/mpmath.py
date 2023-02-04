@@ -7,6 +7,7 @@ import mpmath
 import sympy
 
 from mathics.core.atoms import Complex, MachineReal, MachineReal0, PrecisionReal
+from mathics.core.number import LOG2_10
 from mathics.core.symbols import Atom
 
 
@@ -36,8 +37,11 @@ def from_mpmath(
         # is compatible with 0.
         if prec < 1.0:
             return MachineReal0
-        # HACK: use str here to prevent loss of precision
-        return PrecisionReal(sympy.Float(str(value), prec))
+        # HACK: use str here to prevent loss of precision.
+        #
+        # sympy.Float internally work with binary precision instead of
+        # decimal precision. TODO: avoid the irrelevant conversion
+        return PrecisionReal(sympy.Float(str(value), precision=(LOG2_10 * prec + 2)))
     elif isinstance(value, mpmath.mpc):
         if mpmath.isinf(value):
             return SymbolComplexInfinity
