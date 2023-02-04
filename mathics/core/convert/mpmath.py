@@ -7,12 +7,15 @@ import mpmath
 import sympy
 
 from mathics.core.atoms import Complex, MachineReal, MachineReal0, PrecisionReal
+from mathics.core.number import LOG2_10
 from mathics.core.symbols import Atom
 
 
 @lru_cache(maxsize=1024)
 def from_mpmath(
     value: Union[mpmath.mpf, mpmath.mpc],
+    *,
+    precision: Optional[float] = None,
     prec: Optional[float] = None,
     acc: Optional[float] = None,
 ) -> Atom:
@@ -30,21 +33,25 @@ def from_mpmath(
             if value != 0.0:
                 offset = mpmath.log(-value if value < 0.0 else value, 10)
                 prec += offset
-        if prec is None:
+            precision = LOG2_10 * prec
+        elif prec is not None:
+            precision = LOG2_10 * prec
+
+        if precision is None:
             return MachineReal(float(value))
         # If the error if of the order of the number, the number
         # is compatible with 0.
-        if prec < 1.0:
+        if precision < 1.0:
             return MachineReal0
         # HACK: use str here to prevent loss of precision
-        return PrecisionReal(sympy.Float(str(value), prec))
+        return PrecisionReal(sympy.Float(str(value), precision=precision - 1))
     elif isinstance(value, mpmath.mpc):
         if mpmath.isinf(value):
             return SymbolComplexInfinity
         if value.imag == 0.0:
-            return from_mpmath(value.real, prec, acc)
-        real = from_mpmath(value.real, prec, acc)
-        imag = from_mpmath(value.imag, prec, acc)
+            return from_mpmath(value.real, precision=precision, prec=prec, acc=acc)
+        real = from_mpmath(value.real, precision=precision, prec=prec, acc=acc)
+        imag = from_mpmath(value.imag, precision=precision, prec=prec, acc=acc)
         return Complex(real, imag)
     else:
         raise TypeError(type(value))

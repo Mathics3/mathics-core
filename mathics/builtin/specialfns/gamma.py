@@ -133,7 +133,7 @@ class Beta(_MPMathMultiFunction):
                     return
                 result = call_mpmath(mpmath_function, tuple(mpmath_args))
                 if isinstance(result, (mpmath.mpc, mpmath.mpf)):
-                    result = from_mpmath(result, d)
+                    result = from_mpmath(result, precision=prec)
         return result
 
 

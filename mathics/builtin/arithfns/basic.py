@@ -446,24 +446,31 @@ class Plus(BinaryOperator, SympyFunction):
                     last_item = rest
                     last_count = count
         append_last()
-
         if numbers:
+            # TODO: reorganize de conditions to avoid compute unnecesary
+            # quantities. In particular, is we check mathine_precision,
+            # we do not need to evaluate prec.
             if prec is not None:
                 if is_machine_precision:
                     numbers = [item.to_mpmath() for item in numbers]
                     number = mpmath.fsum(numbers)
                     number = from_mpmath(number)
                 else:
-                    # For a sum, what is relevant is the minimum accuracy of the terms
-                    acc = (
-                        Expression(SymbolAccuracy, ListExpression(items))
-                        .evaluate(evaluation)
-                        .to_python()
-                    )
+                    # TODO: If there are Complex numbers in `numbers`,
+                    # and we are not working in machine precision, compute the sum of the real and imaginary
+                    # parts separately, to preserve precision. For example,
+                    # 1.`2 + 1.`3 I should produce
+                    # Complex[1.`2, 1.`3]
+                    # but with this implementation returns
+                    # Complex[1.`2, 1.`2]
+                    #
+                    # TODO: if the precision are not equal for each number,
+                    # we should estimate the result precision by computing the sum of individual errors
+                    # prec =  sum(abs(n.value) * 2**(-n.value._prec)    for n in number if n.value._prec is not None)/sum(abs(n))
                     with mpmath.workprec(prec):
                         numbers = [item.to_mpmath() for item in numbers]
                         number = mpmath.fsum(numbers)
-                        number = from_mpmath(number, acc=acc)
+                        number = from_mpmath(number, precision=prec)
             else:
                 number = from_sympy(sum(item.to_sympy() for item in numbers))
         else:
@@ -936,7 +943,8 @@ class Times(BinaryOperator, SympyFunction):
         elements = []
         numbers = []
         infinity_factor = False
-
+        # These quantities only have sense if there are numeric terms.
+        # Also, prec is only needed if is_machine_precision is not True.
         prec = min_prec(*items)
         is_machine_precision = any(item.is_machine_precision() for item in items)
 
@@ -1000,7 +1008,7 @@ class Times(BinaryOperator, SympyFunction):
                     with mpmath.workprec(prec):
                         numbers = [item.to_mpmath() for item in numbers]
                         number = mpmath.fprod(numbers)
-                        number = from_mpmath(number, dps(prec))
+                        number = from_mpmath(number, precision=prec)
             else:
                 number = sympy.Mul(*[item.to_sympy() for item in numbers])
                 number = from_sympy(number)
