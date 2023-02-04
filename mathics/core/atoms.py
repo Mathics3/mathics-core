@@ -297,10 +297,11 @@ class Real(Number):
 
     # __new__ rather than __init__ is used here because the kind of
     # object created differs based on contents of "value".
-    def __new__(cls, value, p=None) -> "Real":
+    def __new__(cls, value, p: int = None) -> "Real":
         """
         Return either a MachineReal or a PrecisionReal object.
-        Or raise a TypeError
+        Or raise a TypeError.
+        p is the number of binary digits of precision.
         """
         if isinstance(value, str):
             value = str(value)
@@ -325,6 +326,7 @@ class Real(Number):
         if p is None or p == FP_MANTISA_BINARY_DIGITS:
             return MachineReal.__new__(MachineReal, value)
         else:
+            # TODO: check where p is set in value:
             return PrecisionReal.__new__(PrecisionReal, value)
 
     def __eq__(self, other) -> bool:

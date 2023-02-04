@@ -7,6 +7,7 @@ import mpmath
 import sympy
 
 from mathics.core.atoms import Complex, MachineReal, MachineReal0, PrecisionReal
+from mathics.core.number import LOG2_10
 from mathics.core.symbols import Atom
 
 
