@@ -39,8 +39,9 @@ def from_mpmath(
             return MachineReal0
         # HACK: use str here to prevent loss of precision.
         #
-        # sympy.Float internally work with binary precision instead of
-        # decimal precision. TODO: avoid the irrelevant conversion
+        # sympy.Float internally works with (rounded) binary precision
+        # instead of decimal precision. Let's use it to avoid rounding errors.
+        # TODO: avoid the irrelevant conversion
         return PrecisionReal(sympy.Float(str(value), precision=(LOG2_10 * prec + 2)))
     elif isinstance(value, mpmath.mpc):
         if mpmath.isinf(value):
