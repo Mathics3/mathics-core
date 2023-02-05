@@ -83,7 +83,7 @@ class LoadModule(Builtin):
     def eval(self, module, evaluation):
         "LoadModule[module_String]"
         try:
-            eval_LoadModule(module.value, evaluation)
+            eval_LoadModule(module.value, evaluation.definitions)
         except PyMathicsLoadException:
             evaluation.message(self.name, "notmathicslib", module)
             return SymbolFailed

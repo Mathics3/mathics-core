@@ -25,6 +25,8 @@ from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
 from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.doc.common_doc import MathicsMainDocumentation
+
+# from mathics.eval.pymathics import eval_LoadModule
 from mathics.timing import show_lru_cache_statistics
 
 builtins = builtins_dict()
@@ -443,6 +445,10 @@ def main():
     global logfile
     global check_partial_enlapsed_time
     definitions = Definitions(add_builtin=True)
+
+    # # Add pymathics modules load here
+    # for name in ("pymathics.graph", "pymathics.natlang"):
+    #     print(eval_LoadModule, name, definitions)
 
     parser = ArgumentParser(description="Mathics test suite.", add_help=False)
     parser.add_argument(

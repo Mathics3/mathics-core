@@ -8,7 +8,7 @@ import sys
 
 from mathics.builtin import name_is_builtin_symbol
 from mathics.builtin.base import Builtin
-from mathics.core.evaluation import Evaluation
+from mathics.core.definitions import Definitions
 
 # The below set and dictionary are used in document generation
 # for Pymathics modules.
@@ -23,9 +23,9 @@ class PyMathicsLoadException(Exception):
         self.module = module
 
 
-def eval_LoadModule(module_name: str, evaluation: Evaluation) -> str:
+def eval_LoadModule(module_name: str, definitions: Definitions) -> str:
     try:
-        load_pymathics_module(evaluation.definitions, module_name)
+        load_pymathics_module(definitions, module_name)
     except (PyMathicsLoadException, ImportError):
         raise
     else:
@@ -36,10 +36,10 @@ def eval_LoadModule(module_name: str, evaluation: Evaluation) -> str:
         # reference manual where PackletManager appears first in
         # the list, it seems to be preferable to add this PyMathics
         # at the beginning.
-        context_path = list(evaluation.definitions.get_context_path())
+        context_path = list(definitions.get_context_path())
         if "Pymathics`" not in context_path:
             context_path.insert(0, "Pymathics`")
-            evaluation.definitions.set_context_path(context_path)
+            definitions.set_context_path(context_path)
     return module_name
 
 
