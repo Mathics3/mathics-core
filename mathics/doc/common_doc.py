@@ -493,7 +493,7 @@ class Documentation:
                             instance.get_name(short=True),
                             instance,
                             instance.get_operator(),
-                            in_guide=False,
+                            in_guide=True,
                         )
             else:
                 self.doc_sections(sections, modules_seen, chapter)
@@ -590,8 +590,7 @@ class Documentation:
         for tests in self.get_tests():
             for test in tests.tests:
                 test.key = (tests.part, tests.chapter, tests.section, test.index)
-
-        pass
+        return
 
     def get_part(self, part_slug):
         return self.parts_by_slug.get(part_slug)

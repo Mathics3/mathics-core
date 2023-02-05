@@ -612,7 +612,6 @@ def main():
             chapters, stop_on_failure=args.stop_on_failure, reload=args.reload
         )
     else:
-        # if we want to check also the pymathics modules
         if args.doc_only:
             extract_doc_from_source(
                 quiet=args.quiet,
