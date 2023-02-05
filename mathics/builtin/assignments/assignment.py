@@ -75,8 +75,8 @@ class LoadModule(Builtin):
 
     name = "LoadModule"
     messages = {
-        "notfound": "Python module `1` does not exist.",
-        "notmathicslib": "Python module `1` is not a pymathics module.",
+        "notfound": "Python module `1` does not import.",
+        "notmathicslib": "Python module `1` is not a Mathics3 module.",
     }
     summary_text = "load a pymathics module"
 

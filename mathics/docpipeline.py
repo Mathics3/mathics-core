@@ -25,7 +25,7 @@ from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
 from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.doc.common_doc import MathicsMainDocumentation
-
+from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 from mathics.timing import show_lru_cache_statistics
 
 builtins = builtins_dict()
@@ -488,8 +488,8 @@ def main():
         "--pymathics",
         "-l",
         dest="pymathics",
-        action="store_true",
-        help="also checks pymathics modules.",
+        metavar="MATHIC3-MODULE",
+        help="load Mathics3 module MATHICS3-MODULE. ",
     )
     parser.add_argument(
         "--time-each",
@@ -579,13 +579,25 @@ def main():
         logfile = open(args.logfilename, "wt")
 
     global documentation
-    documentation = LaTeXMathicsDocumentation()
+    documentation = MathicsMainDocumentation()
+
+    # LoadModule Mathics3 modules
+    if args.pymathics:
+        for module_name in args.pymathics.split(","):
+            try:
+                eval_LoadModule(module_name, definitions)
+            except PyMathicsLoadException:
+                print(f"Python module {module_name} is not a Mathics3 module.")
+
+            except ImportError:
+                print(f"Python module {module_name} does not exist")
+            else:
+                print(f"Mathics3 Module {module_name} loaded")
+
     documentation.gather_doc_data()
 
     if args.sections:
         sections = set(args.sections.split(","))
-        if args.pymathics:  # in case the section is in a pymathics module...
-            documentation.load_pymathics_doc()
 
         test_sections(
             sections,
@@ -595,18 +607,13 @@ def main():
         )
     elif args.chapters:
         chapters = set(args.chapters.split(","))
-        if args.pymathics:  # in case the section is in a pymathics module...
-            documentation.load_pymathics_doc()
 
         test_chapters(
             chapters, stop_on_failure=args.stop_on_failure, reload=args.reload
         )
     else:
         # if we want to check also the pymathics modules
-        if args.pymathics:
-            print("Building pymathics documentation object")
-            documentation.load_pymathics_doc()
-        elif args.doc_only:
+        if args.doc_only:
             extract_doc_from_source(
                 quiet=args.quiet,
                 reload=args.reload,
