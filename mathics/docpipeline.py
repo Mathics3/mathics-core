@@ -553,11 +553,12 @@ def main():
         action="store_true",
         help="print cache statistics",
     )
-    # FIXME: there is some weird interacting going on with
-    # mathics when tests in sorted order. Some of the Plot
-    # show a noticeable 2 minute delay in processing.
-    # I think the problem is in Mathics itself rather than
-    # sorting, but until we figure that out, use
+    # FIXME: historically was weird interacting going on with
+    # mathics when tests in sorted order. Possibly a
+    # mpmath precsion reset bug.
+    # We see a noticeable 2 minute delay in processing.
+    # WHile the problem is in Mathics itself rather than
+    # sorting, until we get this fixed, use
     # sort as an option only. For normal testing we don't
     # want it for speed. But for document building which is
     # rarely done, we do want sorting of the sections and chapters.
@@ -629,7 +630,7 @@ def main():
                 count=args.count,
                 doc_even_if_error=args.keep_going,
                 excludes=excludes,
-v                want_sorting=args.want_sorting,
+                want_sorting=args.want_sorting,
             )
             end_time = datetime.now()
             print("Tests took ", end_time - start_time)
