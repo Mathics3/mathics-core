@@ -42,7 +42,7 @@ sep = "-" * 70 + "\n"
 # Global variables
 definitions = None
 documentation = None
-check_partial_enlapsed_time = False
+check_partial_elapsed_time = False
 logfile = None
 
 
@@ -82,7 +82,7 @@ stars = "*" * 10
 
 
 def test_case(test, tests, index=0, subindex=0, quiet=False, section=None) -> bool:
-    global check_partial_enlapsed_time
+    global check_partial_elapsed_time
     test, wanted_out, wanted = test.test, test.outs, test.result
 
     def fail(why):
@@ -107,7 +107,7 @@ def test_case(test, tests, index=0, subindex=0, quiet=False, section=None) -> bo
     try:
         time_parsing = datetime.now()
         query = evaluation.parse_feeder(feeder)
-        if check_partial_enlapsed_time:
+        if check_partial_elapsed_time:
             print("   parsing took", datetime.now() - time_parsing)
         if query is None:
             # parsed expression is None
@@ -115,7 +115,7 @@ def test_case(test, tests, index=0, subindex=0, quiet=False, section=None) -> bo
             out = evaluation.out
         else:
             result = evaluation.evaluate(query)
-            if check_partial_enlapsed_time:
+            if check_partial_elapsed_time:
                 print("   evaluation took", datetime.now() - time_parsing)
             out = result.out
             result = result.result
@@ -128,7 +128,7 @@ def test_case(test, tests, index=0, subindex=0, quiet=False, section=None) -> bo
     time_comparing = datetime.now()
     comparison_result = compare(result, wanted)
 
-    if check_partial_enlapsed_time:
+    if check_partial_elapsed_time:
         print("   comparison took ", datetime.now() - time_comparing)
     if not comparison_result:
         print("result =!=wanted")
@@ -151,7 +151,7 @@ def test_case(test, tests, index=0, subindex=0, quiet=False, section=None) -> bo
             if not got == wanted and wanted.text != "...":
                 output_ok = False
                 break
-    if check_partial_enlapsed_time:
+    if check_partial_elapsed_time:
         print("   comparing messages took ", datetime.now() - time_comparing)
     if not output_ok:
         return fail(
@@ -443,12 +443,8 @@ def extract_doc_from_source(quiet=False, reload=False):
 def main():
     global definitions
     global logfile
-    global check_partial_enlapsed_time
+    global check_partial_elapsed_time
     definitions = Definitions(add_builtin=True)
-
-    # # Add pymathics modules load here
-    # for name in ("pymathics.graph", "pymathics.natlang"):
-    #     print(eval_LoadModule, name, definitions)
 
     parser = ArgumentParser(description="Mathics test suite.", add_help=False)
     parser.add_argument(
@@ -499,7 +495,7 @@ def main():
     parser.add_argument(
         "--time-each",
         "-d",
-        dest="enlapsed_times",
+        dest="elapsed_times",
         action="store_true",
         help="check the time that take each test to parse, evaluate and compare.",
     )
@@ -576,8 +572,8 @@ def main():
 
     args = parser.parse_args()
 
-    if args.enlapsed_times:
-        check_partial_enlapsed_time = True
+    if args.elapsed_times:
+        check_partial_elapsed_time = True
     # If a test for a specific section is called
     # just test it
     if args.logfilename:
