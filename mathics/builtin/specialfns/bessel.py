@@ -157,7 +157,7 @@ class AiryAiZero(Builtin):
 
         with mpmath.workprec(p):
             result = mpmath.airyaizero(k_int)
-            return from_mpmath(result, d)
+            return from_mpmath(result, precision=p)
 
 
 class AiryBi(_MPMathFunction):
@@ -283,7 +283,7 @@ class AiryBiZero(Builtin):
 
         with mpmath.workprec(p):
             result = mpmath.airybizero(k_int)
-            return from_mpmath(result, d)
+            return from_mpmath(result, precision=p)
 
 
 class AngerJ(_Bessel):

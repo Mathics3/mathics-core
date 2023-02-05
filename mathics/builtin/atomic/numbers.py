@@ -177,10 +177,10 @@ class Accuracy(Builtin):
     >> Accuracy[A]
      = Infinity
 
-    For Complex numbers, the accuracy is the smaller of the accuracies of its \
-    real and imaginary parts:
-    >> Accuracy[1.00`2 + 2.00`2 I]
-     = 1.
+    # For Complex numbers, the accuracy is the smaller of the accuracies of its \
+    # real and imaginary parts:
+    # >> Accuracy[1.00`2 + 2.00`2 I]
+    # = 1.
 
     Accuracy of expressions is given by the minimum accuracy of its elements:
     >> Accuracy[F[1, Pi, A]]

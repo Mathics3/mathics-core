@@ -13,38 +13,34 @@ from mathics.core.symbols import Atom
 @lru_cache(maxsize=1024)
 def from_mpmath(
     value: Union[mpmath.mpf, mpmath.mpc],
-    prec: Optional[float] = None,
-    acc: Optional[float] = None,
+    precision: Optional[int] = None,
 ) -> Atom:
-    "Converts mpf or mpc to Number."
+    """
+    Converts mpf or mpc to Number.
+    The optional parameter `precision` represents
+    the binary precision.
+    """
     if mpmath.isnan(value):
         return SymbolIndeterminate
     if isinstance(value, mpmath.mpf):
         if mpmath.isinf(value):
             direction = Integer1 if value > 0 else IntegerM1
             return Expression(SymbolDirectedInfinity, direction)
-        # if accuracy is given, override
-        # prec:
-        if acc is not None:
-            prec = acc
-            if value != 0.0:
-                offset = mpmath.log(-value if value < 0.0 else value, 10)
-                prec += offset
-        if prec is None:
+        if precision is None:
             return MachineReal(float(value))
         # If the error if of the order of the number, the number
         # is compatible with 0.
-        if prec < 1.0:
+        if precision < 1:
             return MachineReal0
         # HACK: use str here to prevent loss of precision
-        return PrecisionReal(sympy.Float(str(value), prec))
+        return PrecisionReal(sympy.Float(str(value), precision=precision - 1))
     elif isinstance(value, mpmath.mpc):
         if mpmath.isinf(value):
             return SymbolComplexInfinity
         if value.imag == 0.0:
-            return from_mpmath(value.real, prec, acc)
-        real = from_mpmath(value.real, prec, acc)
-        imag = from_mpmath(value.imag, prec, acc)
+            return from_mpmath(value.real, precision=precision)
+        real = from_mpmath(value.real, precision=precision)
+        imag = from_mpmath(value.imag, precision=precision)
         return Complex(real, imag)
     else:
         raise TypeError(type(value))

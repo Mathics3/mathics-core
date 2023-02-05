@@ -193,7 +193,7 @@ class _BinaryFormat:
             else:
                 result = mpmath.fdiv(core, 2**-exp)
 
-            return from_mpmath(result, dps(112))
+            return from_mpmath(result, precision=112)
 
     @staticmethod
     def _TerminatedString_reader(s):
