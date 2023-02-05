@@ -34,7 +34,6 @@ from mathics.doc.common_doc import (
     DocTests,
     DocText,
     Documentation,
-    MathicsMainDocumentation,
     XMLDoc,
     _replace_all,
     gather_tests,
@@ -669,7 +668,7 @@ class LaTeXMathicsDocumentation(Documentation):
         self.parts_by_slug = {}
         self.title = "Overview"
 
-        self.gather_doc_data(want_sorting)
+        self.gather_doc_data()
 
     def latex(
         self,
