@@ -213,7 +213,7 @@ def test_n():
         # For some reason, the following test
         # would fail in WMA
         ("1. I", "Accuracy[1.]"),
-        (" 0.4 + 2.4 I", "Accuracy[2.4]"),
+        (" 0.4 + 2.4 I", "$MachinePrecision-Log[10, Abs[.4+2.4 I]]"),
         ("2 + 3 I", "Infinity"),
         ('"abc"', "Infinity"),
         # Returns the accuracy of ``` 3.2`3 ```
