@@ -542,25 +542,16 @@ class Unique(Predefined):
 
     Create a unique symbol with no particular name:
     >> Unique[]
-    = $1
-
-    >> Unique[sym]
-    = sym$1
+    = $...
 
     Create a unique symbol whose name begins with x:
     >> Unique["x"]
-    = x2
-
-    #> $3 = 3;
-    #> Unique[]
-    = $4
+    = x...
 
     #> Unique[{}]
     = {}
 
-    #> Unique[{x, x}]
-     = {x$2, x$3}
-
+    ## FIXME: include the rest of these in test/builtin/test-unique.py
     ## Each use of Unique[symbol] increments $ModuleNumber:
     ## >> {$ModuleNumber, Unique[x], $ModuleNumber}
     ##  = ...

@@ -551,14 +551,14 @@ class InterpretedBox(PrefixOperator):
     precedence = 670
     summary_text = "interpret boxes as an expression"
 
-    def eval_dummy(self, boxes, evaluation: Evaluation):
+    def eval(self, boxes, evaluation: Evaluation):
         """InterpretedBox[boxes_]"""
         # TODO: the following is a very raw and dummy way to
         # handle these expressions.
         # In the first place, this should handle different kind
         # of boxes in different ways.
         reinput = boxes.boxes_to_text()
-        return Expression(SymbolToExpression, reinput).evaluate(evaluation)
+        return Expression(SymbolToExpression, String(reinput)).evaluate(evaluation)
 
 
 class LetterNumber(Builtin):
