@@ -580,7 +580,7 @@ def main():
 
     global documentation
     documentation = LaTeXMathicsDocumentation()
-    documentation.gather_doc_data(want_sorting=args.want_sorting)
+    documentation.gather_doc_data()
 
     if args.sections:
         sections = set(args.sections.split(","))

@@ -551,7 +551,6 @@ class Unique(Predefined):
     #> Unique[{}]
     = {}
 
-    ## FIXME: include the rest of these in test/builtin/test-unique.py
     ## Each use of Unique[symbol] increments $ModuleNumber:
     ## >> {$ModuleNumber, Unique[x], $ModuleNumber}
     ##  = ...
