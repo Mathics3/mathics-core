@@ -66,17 +66,17 @@ class LoadModule(Builtin):
       <dd>'Load Mathics definitions from the python module $module$
     </dl>
     >> LoadModule["nomodule"]
-     : Python module nomodule does not exist.
+     : Problem importing Python module: nomodule.
      = $Failed
     >> LoadModule["sys"]
-     : Python module sys is not a pymathics module.
+     : Python module "sys" is not a Mathics3 module.
      = $Failed
     """
 
     name = "LoadModule"
     messages = {
-        "notfound": "Python module `1` does not import.",
-        "notmathicslib": "Python module `1` is not a Mathics3 module.",
+        "notfound": """Problem importing Python module: `1`.""",
+        "notmathicslib": """Python module "`1`" is not a Mathics3 module.""",
     }
     summary_text = "load a pymathics module"
 
