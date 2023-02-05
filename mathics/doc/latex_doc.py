@@ -650,7 +650,9 @@ class LaTeXDoc(XMLDoc):
                 # We have text but no tests
                 return escape_latex(self.rawdoc)
 
-        return "\n".join(item.latex(doc_data) for item in self.items)
+        return "\n".join(
+            item.latex(doc_data) for item in self.items if not item.is_private()
+        )
 
 
 class LaTeXMathicsDocumentation(Documentation):
