@@ -22,7 +22,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.number import MACHINE_EPSILON
 from mathics.core.symbols import SymbolDivide, SymbolMachinePrecision, SymbolTimes
-from mathics.eval.nevaluator import eval_nvalues
+from mathics.eval.nevaluator import eval_NValues
 
 
 def chop(expr, delta=10.0 ** (-10.0)):
@@ -244,12 +244,12 @@ class N(Builtin):
                 preference_queue.pop()
                 return result
 
-        return eval_nvalues(expr, prec, evaluation)
+        return eval_NValues(expr, prec, evaluation)
 
     def eval_N(self, expr, evaluation: Evaluation):
         """N[expr_]"""
         # TODO: Specialize for atoms
-        return eval_nvalues(expr, SymbolMachinePrecision, evaluation)
+        return eval_NValues(expr, SymbolMachinePrecision, evaluation)
 
 
 class Rationalize(Builtin):

@@ -44,7 +44,7 @@ class All(Predefined):
     >> {{1, 3}, {5, 7}}[[All, 1]]
      = {1, 5}
 
-    while in <url>
+    While in <url>
     :Take:
     /doc/reference-of-built-in-symbols/list-functions/elements-of-lists/part</url>, \
     'All' extracts as a column matrix the first element as a list for each of the list elements:
