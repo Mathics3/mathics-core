@@ -437,7 +437,9 @@ class Documentation:
             if module.__file__.endswith("__init__.py"):
                 # We have a Guide Section.
                 name = get_doc_name_from_module(module)
-                self.add_section(chapter, name, module, operator=None, is_guide=True)
+                guide_section = self.add_section(
+                    chapter, name, module, operator=None, is_guide=True
+                )
                 submodules = [
                     value
                     for value in module.__dict__.values()
@@ -471,8 +473,10 @@ class Documentation:
                         submodule,
                         operator=None,
                         is_guide=False,
+                        in_guide=True,
                     )
                     modules_seen.add(submodule)
+                    guide_section.subsections.append(section)
 
                     builtins = builtins_by_module.get(submodule.__name__, [])
                     subsections = [builtin for builtin in builtins]
@@ -922,16 +926,28 @@ class DocTest:
 
 
 class MathicsMainDocumentation(Documentation):
+    """
+    This module is used for creating test data and saving it to a Python Pickle file
+    and running tests that appear in the documentation (doctests).
+
+    There are other classes DjangoMathicsDocumentation and LaTeXMathicsDocumentation
+    format the data accumulated here.
+    """
+
     def __init__(self, want_sorting=False):
+        self.doc_chapter_fn = DocChapter
         self.doc_dir = settings.DOC_DIR
+        self.doc_fn = XMLDoc
+        self.doc_guide_section_fn = DocGuideSection
+        self.doc_part_fn = DocPart
+        self.doc_section_fn = DocSection
+        self.doc_subsection_fn = DocSubsection
         self.latex_pcl_path = settings.DOC_LATEX_DATA_PCL
         self.parts = []
         self.parts_by_slug = {}
         self.pymathics_doc_loaded = False
         self.doc_data_file = settings.get_doc_latex_data_path(should_be_readable=True)
         self.title = "Overview"
-
-        self.gather_doc_data()
 
 
 class XMLDoc:
