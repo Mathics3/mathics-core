@@ -26,7 +26,6 @@ from mathics.core.evaluation import Evaluation, Output
 from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.doc.common_doc import MathicsMainDocumentation
 
-# from mathics.eval.pymathics import eval_LoadModule
 from mathics.timing import show_lru_cache_statistics
 
 builtins = builtins_dict()
@@ -580,7 +579,9 @@ def main():
         logfile = open(args.logfilename, "wt")
 
     global documentation
-    documentation = MathicsMainDocumentation(want_sorting=args.want_sorting)
+    documentation = LaTeXMathicsDocumentation()
+    documentation.gather_doc_data(want_sorting=args.want_sorting)
+
     if args.sections:
         sections = set(args.sections.split(","))
         if args.pymathics:  # in case the section is in a pymathics module...
@@ -622,7 +623,7 @@ def main():
                 count=args.count,
                 doc_even_if_error=args.keep_going,
                 excludes=excludes,
-                want_sorting=args.want_sorting,
+v                want_sorting=args.want_sorting,
             )
             end_time = datetime.now()
             print("Tests took ", end_time - start_time)
