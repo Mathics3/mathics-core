@@ -1022,6 +1022,9 @@ class DocText:
     def get_tests(self):
         return []
 
+    def is_private(self):
+        return False
+
     def test_indices(self):
         return []
 
@@ -1033,6 +1036,9 @@ class DocTests:
 
     def get_tests(self):
         return self.tests
+
+    def is_private(self):
+        return all(test.private for test in self.tests)
 
     def __str__(self):
         return "\n".join(str(test) for test in self.tests)
