@@ -17,9 +17,9 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_SEQUENCE_HOLD,
 )
-from mathics.core.pymathics import PyMathicsLoadException, eval_load_module
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
+from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 
 
 class _SetOperator:
@@ -83,7 +83,7 @@ class LoadModule(Builtin):
     def eval(self, module, evaluation):
         "LoadModule[module_String]"
         try:
-            eval_load_module(module.value, evaluation)
+            eval_LoadModule(module.value, evaluation)
         except PyMathicsLoadException:
             evaluation.message(self.name, "notmathicslib", module)
             return SymbolFailed

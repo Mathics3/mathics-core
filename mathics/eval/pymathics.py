@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 PyMathics3 module handling
 """
@@ -24,7 +23,7 @@ class PyMathicsLoadException(Exception):
         self.module = module
 
 
-def eval_load_module(module_name: str, evaluation: Evaluation) -> str:
+def eval_LoadModule(module_name: str, evaluation: Evaluation) -> str:
     try:
         load_pymathics_module(evaluation.definitions, module_name)
     except (PyMathicsLoadException, ImportError):

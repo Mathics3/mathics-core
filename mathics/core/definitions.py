@@ -110,7 +110,7 @@ class Definitions:
         # Rocky: this smells of something not quite right in terms of
         # modularity.
         import mathics.format  # noqa
-        from mathics.core.pymathics import PyMathicsLoadException, load_pymathics_module
+        from mathics.eval.pymathics import PyMathicsLoadException, load_pymathics_module
 
         self.printforms = list(PrintForms)
         self.outputforms = list(OutputForms)
