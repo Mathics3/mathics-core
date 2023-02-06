@@ -79,7 +79,10 @@ from mathics.core.systemsymbols import (
 from mathics.eval.nevaluator import eval_N
 
 
-@lru_cache(maxsize=4096)
+# Caching this function produce problems tracking
+# precision.
+#
+# @lru_cache(maxsize=4096)
 def call_mpmath(mpmath_function, mpmath_args):
     try:
         return mpmath_function(*mpmath_args)

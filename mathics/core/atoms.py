@@ -249,13 +249,18 @@ class Integer(Number):
     def to_python(self, *args, **kwargs):
         return self.value
 
-    def round(self, d=None) -> Union["MachineReal", "PrecisionReal"]:
+    def round(self, d: Optional[int] = None) -> Union["MachineReal", "PrecisionReal"]:
+        """
+        Produce a Real approximation of ``self`` with decimal precision ``d``.
+        If ``d`` is  ``None``, and self.value fits in a float,
+        returns a ``MachineReal`` number.
+        Is the low-level equivalent to ``N[self, d]``.
+        """
         if d is None:
             d = self.value.bit_length()
             if d <= FP_MANTISA_BINARY_DIGITS:
                 return MachineReal(float(self.value))
             else:
-                # FP_MANTISA_BINARY_DIGITS / log_2(10) + 1
                 d = MACHINE_PRECISION_VALUE
         return PrecisionReal(sympy.Float(self.value, d))
 
@@ -441,7 +446,10 @@ class MachineReal(Real):
     def is_zero(self) -> bool:
         return self.value == 0.0
 
-    def round(self, d=None) -> "MachineReal":
+    def round(self, d: Optional[int] = None) -> "MachineReal":
+        """
+        Produce a Real approximation of ``self`` with decimal precision ``d``.
+        """
         return self
 
     def sameQ(self, other) -> bool:
@@ -540,12 +548,11 @@ class PrecisionReal(Real):
             self, dps(self.get_precision()), None, None, _number_form_options
         )
 
-    def round(self, d=None) -> Union[MachineReal, "PrecisionReal"]:
+    def round(self, d: Optional[int] = None) -> Union[MachineReal, "PrecisionReal"]:
         if d is None:
             return MachineReal(float(self.value))
-        else:
-            d = min(dps(self.get_precision()), d)
-            return PrecisionReal(self.value.n(d))
+        _prec = min(prec(d), self.value._prec)
+        return PrecisionReal(sympy.Float(self.value, precision=_prec))
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ for PrecisionReal"""
