@@ -580,7 +580,7 @@ def main():
         logfile = open(args.logfilename, "wt")
 
     global documentation
-    documentation = MathicsMainDocumentation()
+    documentation = MathicsMainDocumentation(want_sorting=args.want_sorting)
 
     # LoadModule Mathics3 modules
     if args.pymathics:
