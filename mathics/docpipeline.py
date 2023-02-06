@@ -592,8 +592,8 @@ def main():
             except PyMathicsLoadException:
                 print(f"Python module {module_name} is not a Mathics3 module.")
 
-            except ImportError:
-                print(f"Python module {module_name} does not exist")
+            except Exception as e:
+                print(f"Python import errors with: {e}.")
             else:
                 print(f"Mathics3 Module {module_name} loaded")
 
