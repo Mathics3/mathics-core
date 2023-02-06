@@ -1,3 +1,29 @@
+# -*- coding: utf-8 -*-
+"""A module and library that assists in organizing document data
+previously obtained from static files and Python module/class doc
+strings. This data is stored in a way that facilitates:
+
+* organizing information to produce a LaTeX file
+* running documentation tests
+* producing HTML-based documentation
+
+The command-line utility `docpipeline.py`, which loads the data from
+Python modules and static files, accesses the functions here.
+
+Mathics-core routines also use this to get usage strings of Mathics
+Built-in functions.
+
+Mathics Django also uses this library for its HTML-based documentation.
+
+As with reading in data, final assembly to a LateX file or running
+documentation tests is done elsewhere.
+
+FIXME: Code should be moved for both to a separate package.
+
+More importantly, this code should be replaced by Sphinx and autodoc.
+Things are such a mess, that it is too difficult to contemplate this right now.
+"""
+import importlib
 import os.path as osp
 import pkgutil
 import re
@@ -390,8 +416,25 @@ class Documentation:
         # to allow a docstring and indicate it is not to go in the
         # user manual
 
+        """
+        Append a subsection for ``instance`` into ``section.subsections``
+        """
+        installed = True
+        for package in getattr(instance, "requires", []):
+            try:
+                importlib.import_module(package)
+            except ImportError:
+                installed = False
+                break
+
+        # FIXME add an additional mechanism in the module
+        # to allow a docstring and indicate it is not to go in the
+        # user manual
         if not instance.__doc__:
             return
+        summary_text = (
+            instance.summary_text if hasattr(instance, "summary_text") else ""
+        )
         subsection = self.doc_subsection_fn(
             chapter,
             section,
@@ -400,6 +443,7 @@ class Documentation:
             operator=operator,
             installed=installed,
             in_guide=in_guide,
+            summary_text=summary_text,
         )
         section.subsections.append(subsection)
 
@@ -694,7 +738,14 @@ class DocChapter:
 
 class DocSection:
     def __init__(
-        self, chapter, title, text, operator=None, installed=True, in_guide=False
+        self,
+        chapter,
+        title: str,
+        text: str,
+        operator,
+        installed=True,
+        in_guide=False,
+        summary_text="",
     ):
 
         self.chapter = chapter
@@ -705,7 +756,9 @@ class DocSection:
         self.slug = slugify(title)
         self.subsections = []
         self.subsections_by_slug = {}
+        self.summary_text = summary_text
         self.title = title
+
         if text.count("<dl>") != text.count("</dl>"):
             raise ValueError(
                 "Missing opening or closing <dl> tag in "
@@ -792,6 +845,7 @@ class DocSubsection:
         operator=None,
         installed=True,
         in_guide=False,
+        summary_text="",
     ):
         """
         Information that goes into a subsection object. This can be a written text, or
@@ -807,6 +861,11 @@ class DocSubsection:
         the "section" name for the class Read (the subsection) inside it.
         """
 
+        title_summary_text = re.split(" -- ", title)
+        n = len(title_summary_text)
+        self.title = title_summary_text[0] if n > 0 else ""
+        self.summary_text = title_summary_text[1] if n > 1 else summary_text
+
         self.doc = XMLDoc(text, title, section)
         self.chapter = chapter
         self.in_guide = in_guide
@@ -818,16 +877,24 @@ class DocSubsection:
         self.subsections = []
         self.title = title
 
+        if section:
+            chapter = section.chapter
+            part = chapter.part
+            # Note: we elide section.title
+            key_prefix = (part.title, chapter.title, title)
+        else:
+            key_prefix = None
+
         if in_guide:
             # Tests haven't been picked out yet from the doc string yet.
             # Gather them here.
-            self.items = gather_tests(text, DocTests, DocTest, DocText)
+            self.items = gather_tests(text, DocTests, DocTest, DocText, key_prefix)
         else:
             self.items = []
 
         if text.count("<dl>") != text.count("</dl>"):
             raise ValueError(
-                "Missing opening or closing <dl> tag in "
+                "Missing openning or closing <dl> tag in "
                 "{} documentation".format(title)
             )
         self.section.subsections_by_slug[self.slug] = self
