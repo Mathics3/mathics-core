@@ -485,11 +485,13 @@ def main():
         help="stores the output in [logfilename]. ",
     )
     parser.add_argument(
-        "--pymathics",
+        "--load-module",
         "-l",
         dest="pymathics",
-        metavar="MATHIC3-MODULE",
-        help="load Mathics3 module MATHICS3-MODULE. ",
+        metavar="MATHIC3-MODULES",
+        help="load Mathics3 module MATHICS3-MODULES. "
+        "You can list multiple Mathics3 Modules by adding a comma (and no space) in between "
+        "module names.",
     )
     parser.add_argument(
         "--time-each",
