@@ -561,6 +561,15 @@ class Documentation:
                 modules_seen.add(instance)
 
     def gather_doc_data(self):
+        """
+        Extract documentation data from various static XML-like doc files, Mathics3 Built-in functions
+        (inside mathics.builtin), and external Mathics3 Modules.
+
+        The extracted structure is stored in ``self``.
+        """
+
+        # First gather data from static XML-like files. This constitutes "Part 1" of the
+        # documentation.
         files = listdir(self.doc_dir)
         files.sort()
         appendix = []
@@ -607,6 +616,10 @@ class Documentation:
                     part.is_appendix = True
                     appendix.append(part)
 
+        # Next extract data that has been loaded into Mathics3 when it runs.
+        # This is information from  `mathics.builtin`.
+        # This is Part 2 of the documentation.
+
         for title, modules, builtins_by_module, start in [
             (
                 "Reference of Built-in Symbols",
@@ -616,6 +629,11 @@ class Documentation:
             )
         ]:
             self.doc_part(title, modules, builtins_by_module, start)
+
+        # Now extract external Mathics3 Modules that have been loaded via
+        # LoadModule, or eval_LoadModule.
+
+        # This is Part 3 of the documentation.
 
         for title, modules, builtins_by_module, start in [
             (
@@ -627,10 +645,18 @@ class Documentation:
         ]:
             self.doc_part(title, modules, builtins_by_module, start)
 
+        # Now extract Appendix information. This include License text
+
+        # This is the final Part of the documentation.
+
         for part in appendix:
             self.parts.append(part)
 
-        # set keys of tests
+        # Via the wanderings above, collect all tests that have been
+        # seen.
+        #
+        # Each test is accessble by its part + chapter + section and test number
+        # in that section.
         for tests in self.get_tests():
             for test in tests.tests:
                 test.key = (tests.part, tests.chapter, tests.section, test.index)
@@ -894,7 +920,7 @@ class DocSubsection:
 
         if text.count("<dl>") != text.count("</dl>"):
             raise ValueError(
-                "Missing openning or closing <dl> tag in "
+                "Missing opening or closing <dl> tag in "
                 "{} documentation".format(title)
             )
         self.section.subsections_by_slug[self.slug] = self
@@ -991,13 +1017,16 @@ class DocTest:
         return self.test
 
 
+# FIXME: think about - do we need this? Or can we use DjangoMathicsDocumentation and
+# LatTeXMathicsDocumentation only?
 class MathicsMainDocumentation(Documentation):
     """
     This module is used for creating test data and saving it to a Python Pickle file
     and running tests that appear in the documentation (doctests).
 
     There are other classes DjangoMathicsDocumentation and LaTeXMathicsDocumentation
-    format the data accumulated here.
+    that format the data accumulated here. In fact I think those can sort of serve
+    instead of this.
     """
 
     def __init__(self, want_sorting=False):
