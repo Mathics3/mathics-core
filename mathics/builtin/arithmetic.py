@@ -86,6 +86,13 @@ from mathics.eval.nevaluator import eval_N
 
 @lru_cache(maxsize=4096)
 def call_mpmath(mpmath_function, mpmath_args, prec=None):
+    """
+    calls the mpmath_function with mpmath_args parms
+    if prec=None, use floatting point arithmetic.
+    Otherwise, work with prec bits of precision.
+    """
+    # TODO: rocky, please help me with the annotations
+    # in the signature of this function.
     if prec is None:
         prec = FP_MANTISA_BINARY_DIGITS
     with mpmath.workprec(prec):
