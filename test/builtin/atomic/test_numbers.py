@@ -270,3 +270,38 @@ def test_accuracy(str_expr, str_expected):
 )
 def test_precision(str_expr, str_expected):
     check_evaluation(f"Precision[{str_expr}]", str_expected)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        (None, None, None),
+        ("N[Sqrt[2], 41]//Precision", "41.", "first round sqrt[2`41]"),
+        ("N[Sqrt[2], 40]//Precision", "40.", "first round sqrt[2`40]"),
+        ("N[Sqrt[2], 41]//Precision", "41.", "second round sqrt[2`41]"),
+        ("N[Sqrt[2], 40]//Precision", "40.", "second round sqrt[2`40]"),
+        (
+            "N[Sqrt[2], 41]",
+            '"1.4142135623730950488016887242096980785697"',
+            "third round sqrt[2`41]",
+        ),
+        (
+            "Precision/@Table[N[Pi,p],{p, {5, 100, MachinePrecision, 20}}]",
+            "{5., 100., MachinePrecision, 20.}",
+            None,
+        ),
+        (
+            "Precision/@Table[N[Sin[1],p],{p, {5, 100, MachinePrecision, 20}}]",
+            "{5., 100., MachinePrecision, 20.}",
+            None,
+        ),
+        ("N[Sqrt[2], 40]", '"1.414213562373095048801688724209698078570"', None),
+        ("N[Sqrt[2], 4]", '"1.414"', None),
+        ("N[Pi, 40]", '"3.141592653589793238462643383279502884197"', None),
+        ("N[Pi, 4]", '"3.142"', None),
+        ("N[Pi, 41]", '"3.1415926535897932384626433832795028841972"', None),
+        ("N[Sqrt[2], 41]", '"1.4142135623730950488016887242096980785697"', None),
+    ],
+)
+def test_change_prec(str_expr, str_expected, msg):
+    check_evaluation(str_expr, str_expected, failure_message=msg)
