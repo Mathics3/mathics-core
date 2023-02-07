@@ -112,17 +112,6 @@ class Beta(_MPMathMultiFunction):
                 return
 
             result = call_mpmath(mpmath_function, tuple(float_args))
-            if isinstance(result, (mpmath.mpc, mpmath.mpf)):
-                if mpmath.isinf(result) and isinstance(result, mpmath.mpc):
-                    result = SymbolComplexInfinity
-                elif mpmath.isinf(result) and result > 0:
-                    result = Expression(SymbolDirectedInfinity, Integer1)
-                elif mpmath.isinf(result) and result < 0:
-                    result = Expression(SymbolDirectedInfinity, Integer(-1))
-                elif mpmath.isnan(result):
-                    result = SymbolIndeterminate
-                else:
-                    result = from_mpmath(result)
         else:
             prec = min_prec(*args)
             d = dps(prec)
@@ -131,9 +120,7 @@ class Beta(_MPMathMultiFunction):
                 mpmath_args = [x.to_mpmath() for x in args]
                 if None in mpmath_args:
                     return
-                result = call_mpmath(mpmath_function, tuple(mpmath_args))
-                if isinstance(result, (mpmath.mpc, mpmath.mpf)):
-                    result = from_mpmath(result, precision=prec)
+                result = call_mpmath(mpmath_function, tuple(mpmath_args), prec)
         return result
 
 

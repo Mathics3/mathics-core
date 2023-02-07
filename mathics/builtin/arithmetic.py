@@ -52,7 +52,12 @@ from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol
 from mathics.core.element import ElementsProperties
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import SpecialValueError, dps, min_prec
+from mathics.core.number import (
+    FP_MANTISA_BINARY_DIGITS,
+    SpecialValueError,
+    dps,
+    min_prec,
+)
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -79,23 +84,26 @@ from mathics.core.systemsymbols import (
 from mathics.eval.nevaluator import eval_N
 
 
-# Caching this function produce problems tracking
-# precision.
-#
-# @lru_cache(maxsize=4096)
-def call_mpmath(mpmath_function, mpmath_args):
-    try:
-        return mpmath_function(*mpmath_args)
-    except ValueError as exc:
-        text = str(exc)
-        if text == "gamma function pole":
-            return SymbolComplexInfinity
-        else:
-            raise
-    except ZeroDivisionError:
-        return
-    except SpecialValueError as exc:
-        return Symbol(exc.name)
+@lru_cache(maxsize=4096)
+def call_mpmath(mpmath_function, mpmath_args, prec=None):
+    if prec is None:
+        prec = FP_MANTISA_BINARY_DIGITS
+    with mpmath.workprec(prec):
+        try:
+            result_mp = mpmath_function(*mpmath_args)
+            if prec != FP_MANTISA_BINARY_DIGITS:
+                return from_mpmath(result_mp, prec)
+            return from_mpmath(result_mp)
+        except ValueError as exc:
+            text = str(exc)
+            if text == "gamma function pole":
+                return SymbolComplexInfinity
+            else:
+                raise
+        except ZeroDivisionError:
+            return
+        except SpecialValueError as exc:
+            return Symbol(exc.name)
 
 
 class _MPMathFunction(SympyFunction):
@@ -150,38 +158,18 @@ class _MPMathFunction(SympyFunction):
                 return
 
             result = call_mpmath(mpmath_function, tuple(float_args))
-
-            if isinstance(result, (mpmath.mpc, mpmath.mpf)):
-                if mpmath.isinf(result) and isinstance(result, mpmath.mpc):
-                    result = SymbolComplexInfinity
-                elif mpmath.isinf(result) and result > 0:
-                    result = Expression(SymbolDirectedInfinity, Integer1)
-                elif mpmath.isinf(result) and result < 0:
-                    result = Expression(SymbolDirectedInfinity, IntegerM1)
-                elif mpmath.isnan(result):
-                    result = SymbolIndeterminate
-                else:
-                    # FIXME: replace try/except as a context manager
-                    # like "with evaluation.from_mpmath()...
-                    # which can be instrumented for
-                    # or mpmath tracing and benchmarking on demand.
-                    # Then use it on other places where mpmath appears.
-                    try:
-                        result = from_mpmath(result)
-                    except OverflowError:
-                        evaluation.message("General", "ovfl")
-                        result = Expression(SymbolOverflow)
         else:
             prec = min_prec(*args)
             d = dps(prec)
             args = [eval_N(arg, evaluation, Integer(d)) for arg in args]
+
             with mpmath.workprec(prec):
+                # to_mpmath seems to require that the precision is set from outside
                 mpmath_args = [x.to_mpmath() for x in args]
                 if None in mpmath_args:
                     return
-                result = call_mpmath(mpmath_function, tuple(mpmath_args))
-                if isinstance(result, (mpmath.mpc, mpmath.mpf)):
-                    result = from_mpmath(result, precision=prec)
+
+                result = call_mpmath(mpmath_function, tuple(mpmath_args), prec)
         return result
 
 

@@ -6,8 +6,17 @@ from typing import Optional, Union
 import mpmath
 import sympy
 
-from mathics.core.atoms import Complex, MachineReal, MachineReal0, PrecisionReal
+from mathics.core.atoms import (
+    Complex,
+    Integer1,
+    IntegerM1,
+    MachineReal,
+    MachineReal0,
+    PrecisionReal,
+)
+from mathics.core.expression import Expression
 from mathics.core.symbols import Atom
+from mathics.core.systemsymbols import SymbolDirectedInfinity
 
 
 @lru_cache(maxsize=1024)
