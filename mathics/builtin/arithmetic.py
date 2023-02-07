@@ -6,6 +6,7 @@ Mathematical Functions
 
 Basic arithmetic functions, including complex number arithmetic.
 """
+from typing import Callable, Optional
 
 from mathics.eval.numerify import numerify
 
@@ -73,9 +74,7 @@ from mathics.core.systemsymbols import (
     SymbolAnd,
     SymbolComplexInfinity,
     SymbolDirectedInfinity,
-    SymbolIndeterminate,
     SymbolInfix,
-    SymbolOverflow,
     SymbolPiecewise,
     SymbolPossibleZeroQ,
     SymbolTable,
@@ -84,11 +83,13 @@ from mathics.core.systemsymbols import (
 from mathics.eval.nevaluator import eval_N
 
 
-@lru_cache(maxsize=4096)
-def call_mpmath(mpmath_function, mpmath_args, prec=None):
+# @lru_cache(maxsize=4096)
+def call_mpmath(
+    mpmath_function: Callable, mpmath_args: tuple, prec: Optional[int] = None
+):
     """
     calls the mpmath_function with mpmath_args parms
-    if prec=None, use floatting point arithmetic.
+    if prec=None, use floating point arithmetic.
     Otherwise, work with prec bits of precision.
     """
     # TODO: rocky, please help me with the annotations
@@ -721,7 +722,7 @@ class DirectedInfinity(SympyFunction):
             return sympy.zoo
 
 
-class I(Predefined):
+class I_(Predefined):
     """
     <url>:Imaginary unit:https://en.wikipedia.org/wiki/Imaginary_unit</url> \
     (<url>:WMA:https://reference.wolfram.com/language/ref/I.html</url>)
@@ -737,6 +738,7 @@ class I(Predefined):
      = 10
     """
 
+    name = "I"
     summary_text = "imaginary unit"
     python_equivalent = 1j
 
