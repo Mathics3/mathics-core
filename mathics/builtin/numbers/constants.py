@@ -27,6 +27,7 @@ from mathics.core.number import (
     MIN_MACHINE_NUMBER,
     PrecisionValueError,
     get_precision,
+    prec,
 )
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolIndeterminate
@@ -43,8 +44,11 @@ def mp_constant(fn: str, d=None) -> mpmath.mpf:
         # ask for a certain number of digits, but the
         # accuracy will be less than that. Figure out
         # what's up and compensate somehow.
-        mpmath.mp.dps = int_d = int(d * 3.321928)
-        return getattr(mpmath, fn)(prec=int_d)
+
+        int_d = prec(d)
+        with mpmath.workprec(int_d):
+            result = str(getattr(mpmath, fn)(prec=int_d))
+            return result
 
 
 def mp_convert_constant(obj, **kwargs):

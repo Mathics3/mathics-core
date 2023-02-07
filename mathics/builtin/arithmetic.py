@@ -6,6 +6,7 @@ Mathematical Functions
 
 Basic arithmetic functions, including complex number arithmetic.
 """
+from typing import Callable, Optional
 
 from mathics.eval.numerify import numerify
 
@@ -52,7 +53,12 @@ from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol
 from mathics.core.element import ElementsProperties
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import SpecialValueError, dps, min_prec
+from mathics.core.number import (
+    FP_MANTISA_BINARY_DIGITS,
+    SpecialValueError,
+    dps,
+    min_prec,
+)
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -68,9 +74,7 @@ from mathics.core.systemsymbols import (
     SymbolAnd,
     SymbolComplexInfinity,
     SymbolDirectedInfinity,
-    SymbolIndeterminate,
     SymbolInfix,
-    SymbolOverflow,
     SymbolPiecewise,
     SymbolPossibleZeroQ,
     SymbolTable,
@@ -79,20 +83,35 @@ from mathics.core.systemsymbols import (
 from mathics.eval.nevaluator import eval_N
 
 
-@lru_cache(maxsize=4096)
-def call_mpmath(mpmath_function, mpmath_args):
-    try:
-        return mpmath_function(*mpmath_args)
-    except ValueError as exc:
-        text = str(exc)
-        if text == "gamma function pole":
-            return SymbolComplexInfinity
-        else:
-            raise
-    except ZeroDivisionError:
-        return
-    except SpecialValueError as exc:
-        return Symbol(exc.name)
+# @lru_cache(maxsize=4096)
+def call_mpmath(
+    mpmath_function: Callable, mpmath_args: tuple, prec: Optional[int] = None
+):
+    """
+    calls the mpmath_function with mpmath_args parms
+    if prec=None, use floating point arithmetic.
+    Otherwise, work with prec bits of precision.
+    """
+    # TODO: rocky, please help me with the annotations
+    # in the signature of this function.
+    if prec is None:
+        prec = FP_MANTISA_BINARY_DIGITS
+    with mpmath.workprec(prec):
+        try:
+            result_mp = mpmath_function(*mpmath_args)
+            if prec != FP_MANTISA_BINARY_DIGITS:
+                return from_mpmath(result_mp, prec)
+            return from_mpmath(result_mp)
+        except ValueError as exc:
+            text = str(exc)
+            if text == "gamma function pole":
+                return SymbolComplexInfinity
+            else:
+                raise
+        except ZeroDivisionError:
+            return
+        except SpecialValueError as exc:
+            return Symbol(exc.name)
 
 
 class _MPMathFunction(SympyFunction):
@@ -147,38 +166,18 @@ class _MPMathFunction(SympyFunction):
                 return
 
             result = call_mpmath(mpmath_function, tuple(float_args))
-
-            if isinstance(result, (mpmath.mpc, mpmath.mpf)):
-                if mpmath.isinf(result) and isinstance(result, mpmath.mpc):
-                    result = SymbolComplexInfinity
-                elif mpmath.isinf(result) and result > 0:
-                    result = Expression(SymbolDirectedInfinity, Integer1)
-                elif mpmath.isinf(result) and result < 0:
-                    result = Expression(SymbolDirectedInfinity, IntegerM1)
-                elif mpmath.isnan(result):
-                    result = SymbolIndeterminate
-                else:
-                    # FIXME: replace try/except as a context manager
-                    # like "with evaluation.from_mpmath()...
-                    # which can be instrumented for
-                    # or mpmath tracing and benchmarking on demand.
-                    # Then use it on other places where mpmath appears.
-                    try:
-                        result = from_mpmath(result)
-                    except OverflowError:
-                        evaluation.message("General", "ovfl")
-                        result = Expression(SymbolOverflow)
         else:
             prec = min_prec(*args)
             d = dps(prec)
             args = [eval_N(arg, evaluation, Integer(d)) for arg in args]
+
             with mpmath.workprec(prec):
+                # to_mpmath seems to require that the precision is set from outside
                 mpmath_args = [x.to_mpmath() for x in args]
                 if None in mpmath_args:
                     return
-                result = call_mpmath(mpmath_function, tuple(mpmath_args))
-                if isinstance(result, (mpmath.mpc, mpmath.mpf)):
-                    result = from_mpmath(result, precision=prec)
+
+                result = call_mpmath(mpmath_function, tuple(mpmath_args), prec)
         return result
 
 
@@ -723,7 +722,7 @@ class DirectedInfinity(SympyFunction):
             return sympy.zoo
 
 
-class I(Predefined):
+class I_(Predefined):
     """
     <url>:Imaginary unit:https://en.wikipedia.org/wiki/Imaginary_unit</url> \
     (<url>:WMA:https://reference.wolfram.com/language/ref/I.html</url>)
@@ -739,6 +738,7 @@ class I(Predefined):
      = 10
     """
 
+    name = "I"
     summary_text = "imaginary unit"
     python_equivalent = 1j
 
