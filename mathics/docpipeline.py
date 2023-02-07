@@ -25,8 +25,7 @@ from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
 from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.doc.common_doc import MathicsMainDocumentation
-
-# from mathics.eval.pymathics import eval_LoadModule
+from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 from mathics.timing import show_lru_cache_statistics
 
 builtins = builtins_dict()
@@ -486,11 +485,13 @@ def main():
         help="stores the output in [logfilename]. ",
     )
     parser.add_argument(
-        "--pymathics",
+        "--load-module",
         "-l",
         dest="pymathics",
-        action="store_true",
-        help="also checks pymathics modules.",
+        metavar="MATHIC3-MODULES",
+        help="load Mathics3 module MATHICS3-MODULES. "
+        "You can list multiple Mathics3 Modules by adding a comma (and no space) in between "
+        "module names.",
     )
     parser.add_argument(
         "--time-each",
@@ -554,11 +555,12 @@ def main():
         action="store_true",
         help="print cache statistics",
     )
-    # FIXME: there is some weird interacting going on with
-    # mathics when tests in sorted order. Some of the Plot
-    # show a noticeable 2 minute delay in processing.
-    # I think the problem is in Mathics itself rather than
-    # sorting, but until we figure that out, use
+    # FIXME: historically was weird interacting going on with
+    # mathics when tests in sorted order. Possibly a
+    # mpmath precsion reset bug.
+    # We see a noticeable 2 minute delay in processing.
+    # WHile the problem is in Mathics itself rather than
+    # sorting, until we get this fixed, use
     # sort as an option only. For normal testing we don't
     # want it for speed. But for document building which is
     # rarely done, we do want sorting of the sections and chapters.
@@ -581,10 +583,24 @@ def main():
 
     global documentation
     documentation = MathicsMainDocumentation(want_sorting=args.want_sorting)
+
+    # LoadModule Mathics3 modules
+    if args.pymathics:
+        for module_name in args.pymathics.split(","):
+            try:
+                eval_LoadModule(module_name, definitions)
+            except PyMathicsLoadException:
+                print(f"Python module {module_name} is not a Mathics3 module.")
+
+            except Exception as e:
+                print(f"Python import errors with: {e}.")
+            else:
+                print(f"Mathics3 Module {module_name} loaded")
+
+    documentation.gather_doc_data()
+
     if args.sections:
         sections = set(args.sections.split(","))
-        if args.pymathics:  # in case the section is in a pymathics module...
-            documentation.load_pymathics_doc()
 
         test_sections(
             sections,
@@ -594,18 +610,12 @@ def main():
         )
     elif args.chapters:
         chapters = set(args.chapters.split(","))
-        if args.pymathics:  # in case the section is in a pymathics module...
-            documentation.load_pymathics_doc()
 
         test_chapters(
             chapters, stop_on_failure=args.stop_on_failure, reload=args.reload
         )
     else:
-        # if we want to check also the pymathics modules
-        if args.pymathics:
-            print("Building pymathics documentation object")
-            documentation.load_pymathics_doc()
-        elif args.doc_only:
+        if args.doc_only:
             extract_doc_from_source(
                 quiet=args.quiet,
                 reload=args.reload,
