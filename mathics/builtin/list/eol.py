@@ -11,7 +11,6 @@ from itertools import chain
 
 from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.builtin.box.layout import RowBox
-from mathics.builtin.lists import list_boxes
 from mathics.core.atoms import Integer, Integer0, Integer1, String
 from mathics.core.attributes import (
     A_HOLD_FIRST,
@@ -44,7 +43,7 @@ from mathics.core.systemsymbols import (
     SymbolSequence,
     SymbolSet,
 )
-from mathics.eval.lists import delete_one, delete_rec
+from mathics.eval.lists import delete_one, delete_rec, list_boxes
 from mathics.eval.parts import (
     _drop_span_selector,
     _take_span_selector,
@@ -1276,15 +1275,18 @@ class Position(Builtin):
     >> Position[{1, 2, 2, 1, 2, 3, 2}, 2]
      = {{2}, {3}, {5}, {7}}
 
-    Find positions upto 3 levels deep
+    Find positions upto 3 levels deep:
+
     >> Position[{1 + Sin[x], x, (Tan[x] - y)^2}, x, 3]
      = {{1, 2, 1}, {2}}
 
-    Find all powers of x
+    Find all powers of x:
+
     >> Position[{1 + x^2, x y ^ 2,  4 y,  x ^ z}, x^_]
      = {{1, 2}, {4}}
 
-    Use Position as an operator
+    Use Position as an operator:
+
     >> Position[_Integer][{1.5, 2, 2.5}]
      = {{2}}
     """
@@ -1327,7 +1329,9 @@ class Position(Builtin):
 
 class Prepend(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Prepend.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Prepend.html</url>
 
     <dl>
       <dt>'Prepend[$expr$, $item$]'

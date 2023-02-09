@@ -49,7 +49,6 @@ from mathics.builtin.base import (
     PatternObject,
     PostfixOperator,
 )
-from mathics.builtin.lists import InvalidLevelspecError
 from mathics.core.atoms import Integer, Number, Rational, Real, String
 from mathics.core.attributes import (
     A_HOLD_ALL,
@@ -60,6 +59,7 @@ from mathics.core.attributes import (
 )
 from mathics.core.element import EvalMixin
 from mathics.core.evaluation import Evaluation
+from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Expression, SymbolVerbatim
 from mathics.core.list import ListExpression
 from mathics.core.pattern import Pattern, StopGenerator
