@@ -11,7 +11,6 @@ actual keys found in the collection.
 
 from mathics.builtin.base import Builtin, Test
 from mathics.builtin.box.layout import RowBox
-from mathics.builtin.lists import list_boxes
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED
 from mathics.core.convert.expression import to_mathics_list
@@ -19,11 +18,14 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolAssociation, SymbolMakeBoxes, SymbolMissing
+from mathics.eval.lists import list_boxes
 
 
 class Association(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Association.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Association.html</url>
 
     <dl>
       <dt>'Association[$key1$ -> $val1$, $key2$ -> $val2$, ...]'

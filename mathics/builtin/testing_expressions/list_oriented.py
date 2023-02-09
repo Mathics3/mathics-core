@@ -5,15 +5,19 @@ List-Oriented Tests
 from mathics.builtin.base import Builtin, Test
 from mathics.core.atoms import Integer, Integer1, Integer2
 from mathics.core.evaluation import Evaluation
+from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Expression
 from mathics.core.rules import Pattern
 from mathics.core.symbols import Atom, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolSubsetQ
+from mathics.eval.parts import python_levelspec
 
 
 class ArrayQ(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/ArrayQ.html</url>
+    <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/ArrayQ.html</url>
 
     <dl>
       <dt>'ArrayQ[$expr$]'
@@ -114,6 +118,57 @@ class IntersectingQ(Builtin):
     summary_text = "test whether two lists have common elements"
 
 
+class LevelQ(Test):
+    """
+    <dl>
+      <dt>'LevelQ[$expr$]'
+      <dd>tests whether $expr$ is a valid level specification. This function \
+          is primarily used in function patterns for specifying type of a \
+          parameter.
+    </dl>
+
+    >> LevelQ[2]
+     = True
+    >> LevelQ[{2, 4}]
+     = True
+    >> LevelQ[Infinity]
+     = True
+    >> LevelQ[a + b]
+     = False
+
+    We will define MyMap with the "level" parameter as a synonym for the \
+    Builtin Map equivalent:
+
+    >> MyMap[f_, expr_, Pattern[levelspec, _?LevelQ]] := Map[f, expr, levelspec]
+
+    >> MyMap[f, {{a, b}, {c, d}}, {2}]
+      = {{f[a], f[b]}, {f[c], f[d]}}
+
+    >> Map[f, {{a, b}, {c, d}}, {2}]
+      = {{f[a], f[b]}, {f[c], f[d]}}
+
+    But notice that when we pass an invalid level specification, MyMap \
+    does not match and therefore does not pass the arguments through to 'Map'. \
+    So we do not see the error message that 'Map' would normally produce
+
+    >> Map[f, {{a, b}, {c, d}}, x]
+     : Level specification x is not of the form n, {n}, or {m, n}.
+     = Map[f, {{a, b}, {c, d}}, x]
+
+    >> MyMap[f, {{a, b}, {c, d}}, {1, 2, 3}]
+     = MyMap[f, {{a, b}, {c, d}}, {1, 2, 3}]
+    """
+
+    summary_text = "test whether is a valid level specification"
+
+    def test(self, ls):
+        try:
+            start, stop = python_levelspec(ls)
+            return True
+        except InvalidLevelspecError:
+            return False
+
+
 class MatrixQ(Builtin):
     """
     <url>
@@ -183,6 +238,42 @@ class MemberQ(Builtin):
     summary_text = "test whether an element is a member of a list"
 
 
+class NotListQ(Test):
+    """
+    <dl>
+      <dt>'NotListQ[$expr$]'
+      <dd>returns 'True' if $expr$ is not a list. This function is primarily \
+          used in function patterns for specifying type of a parameter.
+    </dl>
+
+    Consider this definition for taking the deriviate 'Sin' of a function:
+
+    >> MyD[Sin[f_],x_?NotListQ] := D[f,x]*Cos[f]
+     =
+
+    We use "MyD" above to distinguish it from the Builtin 'D'. Now let's try it:
+
+    >> MyD[Sin[2 x], x]
+     = 2 Cos[2 x]
+
+    And compare it with the Builtin deriviative function 'D':
+
+    >> D[Sin[2 x], x]
+     = 2 Cos[2 x]
+
+    Note however the pattern only matches if the $x$ parameter is not a list:
+
+    >> MyD[{Sin[2], Sin[4]}, {1, 2}]
+     = MyD[{Sin[2], Sin[4]}, {1, 2}]
+
+    """
+
+    summary_text = "test if an expression is not a list"
+
+    def test(self, expr):
+        return expr.get_head_name() != "System`List"
+
+
 class SubsetQ(Builtin):
     """
     <url>
@@ -244,7 +335,7 @@ class SubsetQ(Builtin):
     }
     summary_text = "test if a list is a subset of another list"
 
-    def eval(self, expr, subset, evaluation):
+    def eval(self, expr, subset, evaluation: Evaluation):
         "SubsetQ[expr_, subset___]"
 
         if isinstance(expr, Atom):

@@ -15,7 +15,7 @@ sort_order = "mathics.builtin.applying-functions-to-lists"
 from typing import Iterable
 
 from mathics.builtin.base import BinaryOperator, Builtin
-from mathics.builtin.lists import List
+from mathics.builtin.list.constructing import List
 from mathics.core.atoms import Integer
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
