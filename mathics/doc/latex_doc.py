@@ -917,6 +917,7 @@ class LaTeXDocSubsection:
         operator=None,
         installed=True,
         in_guide=False,
+        summary_text="",
     ):
         """
         Information that goes into a subsection object. This can be a written text, or
