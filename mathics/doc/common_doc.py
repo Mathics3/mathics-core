@@ -560,9 +560,9 @@ class Documentation:
                 )
                 modules_seen.add(instance)
 
-    def gather_doc_data(self):
+    def gather_doctest_data(self):
         """
-        Extract documentation data from various static XML-like doc files, Mathics3 Built-in functions
+        Extract doctest data from various static XML-like doc files, Mathics3 Built-in functions
         (inside mathics.builtin), and external Mathics3 Modules.
 
         The extracted structure is stored in ``self``.
@@ -1037,11 +1037,13 @@ class MathicsMainDocumentation(Documentation):
         self.doc_part_fn = DocPart
         self.doc_section_fn = DocSection
         self.doc_subsection_fn = DocSubsection
-        self.latex_pcl_path = settings.DOC_LATEX_DATA_PCL
+        self.doctest_latex_pcl_path = settings.DOCTEST_LATEX_DATA_PCL
         self.parts = []
         self.parts_by_slug = {}
         self.pymathics_doc_loaded = False
-        self.doc_data_file = settings.get_doc_latex_data_path(should_be_readable=True)
+        self.doc_data_file = settings.get_doctest_latex_data_path(
+            should_be_readable=True
+        )
         self.title = "Overview"
 
 

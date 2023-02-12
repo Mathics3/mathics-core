@@ -539,7 +539,7 @@ class LaTeXDocTest(DocTest):
         The key for doc_data is the part/chapter/section{/subsection} test number
         and the value contains Result object data turned into a dictionary.
 
-        In partuclar, each test in the test sequence includes the, input test,
+        In particular, each test in the test sequence includes the, input test,
         the result produced and any additional error output.
         The LaTeX-formatted string fragment is returned.
         """
@@ -660,17 +660,19 @@ class LaTeXMathicsDocumentation(Documentation):
         self.doc_chapter_fn = LaTeXDocChapter
         self.doc_dir = settings.DOC_DIR
         self.doc_fn = LaTeXDoc
-        self.doc_data_file = settings.get_doc_latex_data_path(should_be_readable=True)
+        self.doc_data_file = settings.get_doctest_latex_data_path(
+            should_be_readable=True
+        )
         self.doc_guide_section_fn = LaTeXDocGuideSection
         self.doc_part_fn = LaTeXDocPart
         self.doc_section_fn = LaTeXDocSection
         self.doc_subsection_fn = LaTeXDocSubsection
-        self.latex_pcl_path = settings.DOC_LATEX_DATA_PCL
+        self.doctest_latex_pcl_path = settings.DOCTEST_LATEX_DATA_PCL
         self.parts = []
         self.parts_by_slug = {}
         self.title = "Overview"
 
-        self.gather_doc_data()
+        self.gather_doctest_data()
 
     def latex(
         self,

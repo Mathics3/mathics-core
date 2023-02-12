@@ -41,19 +41,24 @@ else:
 # from checked-out source and that is where this should be put.
 LOCAL_ROOT_DIR = get_srcdir()
 
-# Location of internal document data. Currently this is in Python
-# Pickle form, but storing this in JSON if possible would be preferable and faster
+# Location of doctests and test results formated for LaTeX.  This data
+# is stoared as a Python Pickle format, but storing this in JSON if
+# possible would be preferable and faster
 
-# We need two versions, one in the user space which is updated with
+# We need two versions of doctest data, one is in the user space which is updated with
 # local packages installed and is user writable.
-DOC_LATEX_DATA_PCL = os.environ.get(
-    "DOC_LATEX_DATA_PCL", osp.join(DATA_DIR, "doc_latex_data.pcl")
+
+
+DOCTEST_LATEX_DATA_PCL = os.environ.get(
+    "DOCTEST_LATEX_DATA_PCL", osp.join(DATA_DIR, "doctest_latex_data.pcl")
 )
 
-# We need another version as a fallback, and that is distributed with the
+# We need another version of doctest data as a fallback, and that is distributed with the
 # package. It is note user writable and not in the user space.
-DOC_SYSTEM_LATEX_DATA_PCL = os.environ.get(
-    "DOC_SYSTEM_LATEX_DATA_PCL", osp.join(LOCAL_ROOT_DIR, "data", "doc_latex_data.pcl")
+
+DOCTEST_SYSTEM_LATEX_DATA_PCL = os.environ.get(
+    "DOCTEST_SYSTEM_LATEX_DATA_PCL",
+    osp.join(LOCAL_ROOT_DIR, "data", "doctest_latex_data.pcl"),
 )
 
 DOC_DIR = osp.join(LOCAL_ROOT_DIR, "doc", "documentation")
@@ -77,23 +82,23 @@ character_encoding = os.environ.get(
 SYSTEM_CHARACTER_ENCODING = "UTF-8" if character_encoding == "utf-8" else "ASCII"
 
 
-def get_doc_latex_data_path(should_be_readable=False, create_parent=False) -> str:
-    """Returns a string path where we can find Python Pickle data for LaTeX
+def get_doctest_latex_data_path(should_be_readable=False, create_parent=False) -> str:
+    """Returns a string path where we can find Python Pickle doctest data for LaTeX
     processing.
 
     If `should_be_readable` is True, the we will check to see whether this file is
-    readable (which also means it exists). If not, we'll return the `DOC_SYSTEM_DATA_PATH`.
+    readable (which also means it exists). If not, we'll return the `DOCTEST_SYSTEM_DATA_PATH`.
     """
-    doc_user_latex_data_pcl = Path(DOC_LATEX_DATA_PCL)
+    doc_user_latex_data_pcl = Path(DOCTEST_LATEX_DATA_PCL)
     base_config_dir = doc_user_latex_data_pcl.parent
     if not base_config_dir.is_dir() and create_parent:
         Path("base_config_dir").mkdir(parents=True, exist_ok=True)
 
     if should_be_readable:
         return (
-            DOC_LATEX_DATA_PCL
+            DOCTEST_LATEX_DATA_PCL
             if doc_user_latex_data_pcl.is_file()
-            else DOC_SYSTEM_LATEX_DATA_PCL
+            else DOCTEST_SYSTEM_LATEX_DATA_PCL
         )
     else:
-        return DOC_LATEX_DATA_PCL
+        return DOCTEST_LATEX_DATA_PCL
