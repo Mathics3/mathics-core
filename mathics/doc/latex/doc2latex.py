@@ -49,7 +49,7 @@ DOC_LATEX_DIR = os.environ.get("DOC_LATEX_DIR", settings.DOC_LATEX_DIR)
 DOC_LATEX_FILE = os.environ.get("DOC_LATEX_FILE", settings.DOC_LATEX_FILE)
 
 
-def read_doctest_data(quiet=False) -> Optional[dict]:
+def read_doctest_data(quiet=False) -> Optional[Dict[tuple, dict]]:
     """
     Read doctest information from PCL file and return this.
     This is a wrapper around laod_doctest_data().
@@ -65,7 +65,20 @@ def read_doctest_data(quiet=False) -> Optional[dict]:
         return
 
 
-def load_doctest_data(data_path, quiet=False):
+def load_doctest_data(data_path, quiet=False) -> Dict[tuple, dict]:
+    """
+    Read doctest information from PCL file and return this.
+
+    The return value is a dictionary of test results. The key is a tuple
+    of:
+    * Part name,
+    * Chapter name,
+    * [Guide Section name],
+    * Section name,
+    * Subsection name,
+    * test number
+    and the value is a dictionary of a Result.getdata() dictionary.
+    """
     if not quiet:
         print(f"Loading LaTeX internal data from {data_path}")
     with open_ensure_dir(data_path, "rb") as doc_data_fp:

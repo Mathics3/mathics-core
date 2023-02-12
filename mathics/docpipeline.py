@@ -16,6 +16,7 @@ import re
 import sys
 from argparse import ArgumentParser
 from datetime import datetime
+from typing import Dict
 
 import mathics
 import mathics.settings
@@ -403,7 +404,13 @@ def test_all(
         return sys.exit(1)  # Travis-CI knows the tests have failed
 
 
-def load_doctest_data():
+def load_doctest_data() -> Dict[tuple, dict]:
+    """
+    Load doctest tests and test results from Python PCL file.
+
+    See ``save_doctest_data()`` for the format of the loaded PCL data
+    (a dict).
+    """
     doctest_latex_data_path = settings.get_doctest_latex_data_path(
         should_be_readable=True
     )
@@ -412,7 +419,20 @@ def load_doctest_data():
         return pickle.load(doctest_data_file)
 
 
-def save_doctest_data(output_data):
+def save_doctest_data(output_data: Dict[tuple, dict]):
+    """
+    Save doctest tests and test results to a Python PCL file.
+
+    ``output_data`` is a dictionary of test results. The key is a tuple
+    of:
+    * Part name,
+    * Chapter name,
+    * [Guide Section name],
+    * Section name,
+    * Subsection name,
+    * test number
+    and the value is a dictionary of a Result.getdata() dictionary.
+    """
     doctest_latex_data_path = settings.get_doctest_latex_data_path(
         should_be_readable=False, create_parent=True
     )
@@ -423,7 +443,8 @@ def save_doctest_data(output_data):
 
 def write_doctest_data(quiet=False, reload=False):
     """
-    Get doctest information and write that out.
+    Get doctest information, which involves running the tests to obtain
+    test results and write out both the tests and the test results.
     """
     if not quiet:
         print(f"Extracting internal doc data for {version_string}")

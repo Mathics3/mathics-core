@@ -29,7 +29,7 @@ MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
    dist \
    doc \
    doctest \
-   doc-data \
+   doctest-data \
    djangotest \
    gstest \
    latexdoc \
@@ -123,8 +123,8 @@ gstest:
 	(cd examples/symbolic_logic/gries_schneider && $(PYTHON) test_gs.py)
 
 
-#: Create data that is used to in Django docs and to build LaTeX PDF
-doc-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/documentation/images/*
+#: Create doctest test data and test results that is used to build LaTeX PDF
+doctest-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/documentation/images/*
 	MATHICS_CHARACTER_ENCODING="ASCII" $(PYTHON) mathics/docpipeline.py --output --keep-going $(MATHICS3_MODULE_OPTION)
 
 #: Run tests that appear in docstring in the code.
