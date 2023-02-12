@@ -21,7 +21,7 @@ import pickle
 import subprocess
 import sys
 from argparse import ArgumentParser
-from typing import Optional
+from typing import Dict, Optional
 
 from mpmath import __version__ as mpmathVersion
 from numpy import __version__ as NumPyVersion

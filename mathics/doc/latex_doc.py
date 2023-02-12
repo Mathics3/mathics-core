@@ -539,7 +539,7 @@ class LaTeXDocTest(DocTest):
         The key for doc_data is the part/chapter/section{/subsection} test number
         and the value contains Result object data turned into a dictionary.
 
-        In partuclar, each test in the test sequence includes the, input test,
+        In particular, each test in the test sequence includes the, input test,
         the result produced and any additional error output.
         The LaTeX-formatted string fragment is returned.
         """

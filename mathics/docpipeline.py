@@ -414,7 +414,7 @@ def load_doctest_data() -> Dict[tuple, dict]:
     doctest_latex_data_path = settings.get_doctest_latex_data_path(
         should_be_readable=True
     )
-    print(f"Loading internal doctrest data from {doctest_latex_data_path}")
+    print(f"Loading internal doctest data from {doctest_latex_data_path}")
     with open_ensure_dir(doctest_latex_data_path, "rb") as doctest_data_file:
         return pickle.load(doctest_data_file)
 
