@@ -204,7 +204,7 @@ def test_tests(
 
 
 # FIXME: move this to common routine
-def create_output(tests, doc_data, format="latex"):
+def create_output(tests, doctest_data, format="latex"):
     definitions.reset_user_definitions()
     for test in tests.tests:
         if test.private:
@@ -221,7 +221,7 @@ def create_output(tests, doc_data, format="latex"):
             result = []
         else:
             result = [result.get_data()]
-        doc_data[key] = {
+        doctest_data[key] = {
             "query": test.test,
             "results": result,
         }
@@ -239,7 +239,7 @@ def test_chapters(
     index = 0
     chapter_names = ", ".join(chapters)
     print(f"Testing chapter(s): {chapter_names}")
-    output_data = load_doc_data() if reload else {}
+    output_data = load_doctest_data() if reload else {}
     prev_key = []
     for tests in documentation.get_tests():
         if tests.chapter in chapters:
@@ -281,7 +281,7 @@ def test_sections(
     section_names = ", ".join(sections)
     print(f"Testing section(s): {section_names}")
     sections |= {"$" + s for s in sections}
-    output_data = load_doc_data() if reload else {}
+    output_data = load_doctest_data() if reload else {}
     prev_key = []
     for tests in documentation.get_tests():
         if tests.section in sections:
@@ -309,7 +309,7 @@ def test_sections(
     else:
         print_and_log("All tests passed.")
     if generate_output and (failed == 0):
-        save_doc_data(output_data)
+        save_doctest_data(output_data)
 
 
 def open_ensure_dir(f, *args, **kwargs):
@@ -339,7 +339,7 @@ def test_all(
     if generate_output:
         if texdatafolder is None:
             texdatafolder = osp.dirname(
-                settings.get_doc_latex_data_path(
+                settings.get_doctest_latex_data_path(
                     should_be_readable=False, create_parent=True
                 )
             )
@@ -393,7 +393,7 @@ def test_all(
             print_and_log("  - %s in %s / %s" % (section, part, chapter))
 
     if generate_output and (failed == 0 or doc_even_if_error):
-        save_doc_data(output_data)
+        save_doctest_data(output_data)
         return True
 
     if failed == 0:
@@ -403,32 +403,34 @@ def test_all(
         return sys.exit(1)  # Travis-CI knows the tests have failed
 
 
-def load_doc_data():
-    doc_latex_data_path = settings.get_doc_latex_data_path(should_be_readable=True)
-    print(f"Loading internal document data from {doc_latex_data_path}")
-    with open_ensure_dir(doc_latex_data_path, "rb") as doc_data_file:
-        return pickle.load(doc_data_file)
+def load_doctest_data():
+    doctest_latex_data_path = settings.get_doctest_latex_data_path(
+        should_be_readable=True
+    )
+    print(f"Loading internal doctrest data from {doctest_latex_data_path}")
+    with open_ensure_dir(doctest_latex_data_path, "rb") as doctest_data_file:
+        return pickle.load(doctest_data_file)
 
 
-def save_doc_data(output_data):
-    doc_latex_data_path = settings.get_doc_latex_data_path(
+def save_doctest_data(output_data):
+    doctest_latex_data_path = settings.get_doctest_latex_data_path(
         should_be_readable=False, create_parent=True
     )
-    print(f"Writing internal document data to {doc_latex_data_path}")
-    with open(doc_latex_data_path, "wb") as output_file:
+    print(f"Writing internal document data to {doctest_latex_data_path}")
+    with open(doctest_latex_data_path, "wb") as output_file:
         pickle.dump(output_data, output_file, 4)
 
 
-def extract_doc_from_source(quiet=False, reload=False):
+def write_doctest_data(quiet=False, reload=False):
     """
-    Write internal (pickled) doc files and example data in docstrings.
+    Get doctest information and write that out.
     """
     if not quiet:
         print(f"Extracting internal doc data for {version_string}")
         print("This may take a while...")
 
     try:
-        output_data = load_doc_data() if reload else {}
+        output_data = load_doctest_data() if reload else {}
         for tests in documentation.get_tests():
             create_output(tests, output_data)
     except KeyboardInterrupt:
@@ -436,7 +438,7 @@ def extract_doc_from_source(quiet=False, reload=False):
         return
 
     print("done.\n")
-    save_doc_data(output_data)
+    save_doctest_data(output_data)
 
 
 def main():
@@ -597,7 +599,7 @@ def main():
             else:
                 print(f"Mathics3 Module {module_name} loaded")
 
-    documentation.gather_doc_data()
+    documentation.gather_doctest_data()
 
     if args.sections:
         sections = set(args.sections.split(","))
@@ -616,7 +618,7 @@ def main():
         )
     else:
         if args.doc_only:
-            extract_doc_from_source(
+            write_doctest_data(
                 quiet=args.quiet,
                 reload=args.reload,
             )
