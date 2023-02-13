@@ -24,9 +24,9 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression, string_list
+from mathics.core.expression import BoxError, Expression, string_list
 from mathics.core.list import ListExpression
-from mathics.core.symbols import SymbolFalse, SymbolList, SymbolTrue
+from mathics.core.symbols import SymbolFalse, SymbolFullForm, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAll,
     SymbolDirectedInfinity,
@@ -280,13 +280,25 @@ class StringInsert(Builtin):
                 add_string = String(add)
                 lpos_element = Integer(lpos[0]) if len(lpos) == 1 else from_python(lpos)
                 evaluation.message("StringInsert", "ins", Integer(pos), str_string)
-                return evaluation.format_output(
+
+                # In Mathics-server, evaluation.format_output is modified.
+                # Let's avoid to use it if we want a front-end independent result.
+                # Eventually, we are going to replace this by a `MakeBoxes` call.
+                def do_format_output(expr, evaluation):
+                    try:
+                        boxed_expr = format_element(expr, evaluation, SymbolOutputForm)
+                    except BoxError:
+                        boxed_expr = format_element(expr, evaluation, SymbolFullForm)
+                    return boxed_expr.boxes_to_text()
+
+                return do_format_output(
                     Expression(
                         SymbolStringInsert,
                         str_string,
                         add_string,
                         lpos_element,
-                    )
+                    ),
+                    evaluation,
                 )
 
         # Create new list of position which are rearranged
