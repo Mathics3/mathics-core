@@ -5,7 +5,7 @@ import sys
 import time
 from queue import Queue
 from threading import Thread, stack_size as set_thread_stack_size
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 from mathics_scanner import TranslateError
 
@@ -379,7 +379,17 @@ class Evaluation:
     def stop(self) -> None:
         self.stopped = True
 
-    def format_output(self, expr, format=None):
+    def format_output(
+        self, expr: "Expression", format: Optional[str] = None
+    ) -> Union["Expression", str]:
+        """
+        This function takes an expression `expr` and
+        a format `format`. If `format` is None, then returns `expr`. Otherwise,
+        produce an str with the proper format.
+
+        Notice that this function can be overwritten by the front-ends, so it should not be
+        used in Builtin classes where it is expected a front-end independent result.
+        """
         from mathics.eval.makeboxes import format_element
 
         if format is None:
