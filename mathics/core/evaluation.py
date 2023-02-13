@@ -12,7 +12,7 @@ from mathics_scanner import TranslateError
 from mathics import settings
 from mathics.core.atoms import Integer, String
 from mathics.core.convert.python import from_python
-from mathics.core.element import KeyComparable, ensure_context
+from mathics.core.element import BaseElement, KeyComparable, ensure_context
 from mathics.core.interrupt import (
     AbortInterrupt,
     BreakInterrupt,
@@ -380,8 +380,8 @@ class Evaluation:
         self.stopped = True
 
     def format_output(
-        self, expr: "Expression", format: Optional[str] = None
-    ) -> Union["Expression", str]:
+        self, expr: BaseElement, format: Optional[str] = None
+    ) -> Union[BaseElement, str]:
         """
         This function takes an expression `expr` and
         a format `format`. If `format` is None, then returns `expr`. Otherwise,
