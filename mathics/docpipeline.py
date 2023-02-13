@@ -81,7 +81,9 @@ def compare(result, wanted) -> bool:
 stars = "*" * 10
 
 
-def test_case(test, tests, index=0, subindex=0, quiet=False, section=None) -> bool:
+def test_case(
+    test, tests, index=0, subindex=0, quiet=False, section=None, format="text"
+) -> bool:
     global check_partial_elapsed_time
     test, wanted_out, wanted = test.test, test.outs, test.result
 
@@ -103,7 +105,9 @@ def test_case(test, tests, index=0, subindex=0, quiet=False, section=None) -> bo
         print(f"{index:4d} ({subindex:2d}): TEST {test}".encode("utf-8"))
 
     feeder = MathicsSingleLineFeeder(test, "<test>")
-    evaluation = Evaluation(definitions, catch_interrupt=False, output=TestOutput())
+    evaluation = Evaluation(
+        definitions, catch_interrupt=False, output=TestOutput(), format=format
+    )
     try:
         time_parsing = datetime.now()
         query = evaluation.parse_feeder(feeder)
@@ -284,6 +288,7 @@ def test_sections(
     sections |= {"$" + s for s in sections}
     output_data = load_doctest_data() if reload else {}
     prev_key = []
+    format = "latex" if generate_output else "text"
     for tests in documentation.get_tests():
         if tests.section in sections:
             for test in tests.tests:
@@ -295,7 +300,7 @@ def test_sections(
                 if test.ignore:
                     continue
                 index += 1
-                if not test_case(test, tests, index, quiet=quiet):
+                if not test_case(test, tests, index, quiet=quiet, format=format):
                     failed += 1
                     if stop_on_failure:
                         break
