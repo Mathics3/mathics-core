@@ -27,8 +27,6 @@ def call_mpmath(
     if prec=None, use floating point arithmetic.
     Otherwise, work with prec bits of precision.
     """
-    # TODO: rocky, please help me with the annotations
-    # in the signature of this function.
     if prec is None:
         prec = FP_MANTISA_BINARY_DIGITS
     with mpmath.workprec(prec):
