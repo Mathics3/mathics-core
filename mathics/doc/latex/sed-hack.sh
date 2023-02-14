@@ -19,12 +19,13 @@ sed -i -e s/”/''/g documentation.tex
 sed -i -e s/″/''/g documentation.tex
 # sed -i -e s/\\′/'/g documentation.text
 #sed -i -e s/′/'/ documentation.tex
-sed -i -e s/μ/$\\\\mu$/g documentation.tex
 sed -i -e 's/–/--/g' documentation.tex
+
+# Greek
 sed -i -e 's/Φ/$\\\\Phi$/g' documentation.tex
-sed -i -e 's/ϕ/Phi/g' documentation.tex
-sed -i -e 's/→/->/g' documentation.tex
-sed -i -e 's/→/->/g' documentation.tex
+sed -i -e 's/ϕ/phi/g' documentation.tex
+sed -i -e s/μ/$\\\\mu$/g documentation.tex
+
 sed -i -e 's/⧴/:>/g' documentation.tex
 sed -i -e 's/—/-/g' documentation.tex
 sed -i -e 's/≤/<=/g' documentation.tex
@@ -34,6 +35,11 @@ sed -i -e 's/∧/&&/g' documentation.tex
 sed -i -e 's/⧦/\\\\Equiv/g' documentation.tex
 sed -i -e 's/⊻/xor/g' documentation.tex
 sed -i -e 's/∧/&&/g' documentation.tex
-# This may looks he same as the above, but it is different.
-sed -i -e 's/∧/&&/g' documentation.tex
 sed -i -e 's/‖/||/g' documentation.tex
+sed -i -e 's/→/->/g' documentation.tex
+
+# This kind of tick mark appears in latitude/longitude "minute" tick marks of ExampleData/PrimeMeridian.html
+sed -i -e "s/′/'/g" documentation.tex
+
+# assumes LaTeX gensymb package
+sed -i -e "s/°/\\\\degree{}/g" documentation.tex
