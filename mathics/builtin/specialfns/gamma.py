@@ -6,11 +6,7 @@ import sys
 import mpmath
 import sympy
 
-from mathics.builtin.arithmetic import (
-    _MPMathFunction,
-    _MPMathMultiFunction,
-    call_mpmath,
-)
+from mathics.builtin.arithmetic import _MPMathFunction, _MPMathMultiFunction
 from mathics.builtin.base import PostfixOperator, SympyFunction
 from mathics.core.atoms import Integer, Integer0, Integer1, Number
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
@@ -27,6 +23,7 @@ from mathics.core.systemsymbols import (
     SymbolGamma,
     SymbolIndeterminate,
 )
+from mathics.eval.arithmetic import call_mpmath
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 

@@ -6,7 +6,6 @@ Mathematical Functions
 
 Basic arithmetic functions, including complex number arithmetic.
 """
-from typing import Callable, Optional
 
 from mathics.eval.numerify import numerify
 
@@ -48,17 +47,11 @@ from mathics.core.attributes import (
     A_PROTECTED,
 )
 from mathics.core.convert.expression import to_expression
-from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
 from mathics.core.element import ElementsProperties
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import (
-    FP_MANTISA_BINARY_DIGITS,
-    SpecialValueError,
-    dps,
-    min_prec,
-)
+from mathics.core.number import dps, min_prec
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -72,7 +65,6 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     SymbolAnd,
-    SymbolComplexInfinity,
     SymbolDirectedInfinity,
     SymbolInfix,
     SymbolPiecewise,
@@ -80,38 +72,8 @@ from mathics.core.systemsymbols import (
     SymbolTable,
     SymbolUndefined,
 )
+from mathics.eval.arithmetic import eval_mpmath_function
 from mathics.eval.nevaluator import eval_N
-
-
-# @lru_cache(maxsize=4096)
-def call_mpmath(
-    mpmath_function: Callable, mpmath_args: tuple, prec: Optional[int] = None
-):
-    """
-    calls the mpmath_function with mpmath_args parms
-    if prec=None, use floating point arithmetic.
-    Otherwise, work with prec bits of precision.
-    """
-    # TODO: rocky, please help me with the annotations
-    # in the signature of this function.
-    if prec is None:
-        prec = FP_MANTISA_BINARY_DIGITS
-    with mpmath.workprec(prec):
-        try:
-            result_mp = mpmath_function(*mpmath_args)
-            if prec != FP_MANTISA_BINARY_DIGITS:
-                return from_mpmath(result_mp, prec)
-            return from_mpmath(result_mp)
-        except ValueError as exc:
-            text = str(exc)
-            if text == "gamma function pole":
-                return SymbolComplexInfinity
-            else:
-                raise
-        except ZeroDivisionError:
-            return
-        except SpecialValueError as exc:
-            return Symbol(exc.name)
 
 
 class _MPMathFunction(SympyFunction):
@@ -140,8 +102,6 @@ class _MPMathFunction(SympyFunction):
         "%(name)s[z__]"
 
         args = numerify(z, evaluation).get_sequence()
-        mpmath_function = self.get_mpmath_function(tuple(args))
-        result = None
 
         # if no arguments are inexact attempt to use sympy
         if all(not x.is_inexact() for x in args):
@@ -150,35 +110,22 @@ class _MPMathFunction(SympyFunction):
             result = from_sympy(result)
             # evaluate elements to convert e.g. Plus[2, I] -> Complex[2, 1]
             return result.evaluate_elements(evaluation)
-        elif mpmath_function is None:
-            return
 
         if not all(isinstance(arg, Number) for arg in args):
             return
 
-        if any(arg.is_machine_precision() for arg in args):
-            # if any argument has machine precision then the entire calculation
-            # is done with machine precision.
-            float_args = [
-                arg.round().get_float_value(permit_complex=True) for arg in args
-            ]
-            if None in float_args:
-                return
+        mpmath_function = self.get_mpmath_function(tuple(args))
+        if mpmath_function is None:
+            return
 
-            result = call_mpmath(mpmath_function, tuple(float_args))
+        if any(arg.is_machine_precision() for arg in args):
+            prec = None
         else:
             prec = min_prec(*args)
             d = dps(prec)
-            args = [eval_N(arg, evaluation, Integer(d)) for arg in args]
+            args = [arg.round(d) for arg in args]
 
-            with mpmath.workprec(prec):
-                # to_mpmath seems to require that the precision is set from outside
-                mpmath_args = [x.to_mpmath() for x in args]
-                if None in mpmath_args:
-                    return
-
-                result = call_mpmath(mpmath_function, tuple(mpmath_args), prec)
-        return result
+        return eval_mpmath_function(mpmath_function, *args, prec=prec)
 
 
 class _MPMathMultiFunction(_MPMathFunction):
