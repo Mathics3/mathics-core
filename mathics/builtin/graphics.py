@@ -382,13 +382,18 @@ class _Polyline(_GraphicsElementBox):
         ]
 
     def extent(self) -> list:
-        l = self.style.get_line_width(face_element=False)
+        lw = self.style.get_line_width(face_element=False)
         result = []
         for line in self.lines:
             for c in line:
                 x, y = c.pos()
                 result.extend(
-                    [(x - l, y - l), (x - l, y + l), (x + l, y - l), (x + l, y + l)]
+                    [
+                        (x - lw, y - lw),
+                        (x - lw, y + lw),
+                        (x + lw, y - lw),
+                        (x + lw, y + lw),
+                    ]
                 )
         return result
 
@@ -1156,8 +1161,8 @@ class GraphicsElements(_GraphicsElements):
         if self.pixel_width is None:
             return (0, 0)
         else:
-            l = 96.0 / 72
-            return (d[0] * l, (-1 if self.neg_y else 1) * d[1] * l)
+            lw = 96.0 / 72
+            return (d[0] * lw, (-1 if self.neg_y else 1) * d[1] * lw)
 
     def translate_relative(self, x):
         if self.pixel_width is None:

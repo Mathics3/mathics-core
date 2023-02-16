@@ -289,17 +289,17 @@ class FromDigits(Builtin):
 
         return value
 
-    def eval(self, l, b, evaluation):
-        "FromDigits[l_, b_]"
-        if l.get_head_name() == "System`List":
+    def eval(self, dl, b, evaluation):
+        "FromDigits[dl_, b_]"
+        if dl.get_head_name() == "System`List":
             value = Integer0
-            for element in l.elements:
+            for element in dl.elements:
                 value = Expression(
                     SymbolPlus, Expression(SymbolTimes, value, b), element
                 )
             return value
-        elif isinstance(l, String):
-            value = FromDigits._parse_string(l.get_string_value(), b)
+        elif isinstance(dl, String):
+            value = FromDigits._parse_string(dl.get_string_value(), b)
             if value is None:
                 evaluation.message("FromDigits", "nlst")
             else:

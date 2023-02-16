@@ -1042,10 +1042,10 @@ class EasterSunday(Builtin):  # Calendar`EasterSunday
         h = (19 * a + b - d - g + 15) % 30
         i = c // 4
         k = c % 4
-        l = (32 + 2 * e + 2 * i - h - k) % 7
-        m = (a + 11 * h + 22 * l) // 451
-        month = (h + l - 7 * m + 114) // 31
-        day = ((h + l - 7 * m + 114) % 31) + 1
+        le = (32 + 2 * e + 2 * i - h - k) % 7
+        m = (a + 11 * h + 22 * le) // 451
+        month = (h + le - 7 * m + 114) // 31
+        day = ((h + le - 7 * m + 114) % 31) + 1
 
         return ListExpression(year, Integer(month), Integer(day))
 
@@ -1189,7 +1189,7 @@ if sys.platform != "win32" and not hasattr(sys, "pyston_version_info"):
             except TimeoutInterrupt:
                 evaluation.timeout_queue.pop()
                 return failexpr.evaluate(evaluation)
-            except:
+            except Exception:
                 evaluation.timeout_queue.pop()
                 raise
             evaluation.timeout_queue.pop()

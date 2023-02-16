@@ -141,7 +141,7 @@ class Eigenvalues(Builtin):
     def mp_eig(mp_matrix) -> Expression:
         try:
             _, ER = mpmath.eig(mp_matrix)
-        except:
+        except Exception:
             return None
 
         eigenvalues = ER.tolist()

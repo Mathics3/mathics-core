@@ -871,7 +871,7 @@ class SympyFunction(SympyObject):
         sympy_fn = getattr(sympy, self.sympy_name)
         try:
             return from_sympy(run_sympy(sympy_fn, *sympy_args))
-        except:
+        except Exception:
             return
 
     def get_constant(self, precision, evaluation, have_mpmath=False):

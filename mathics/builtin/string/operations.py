@@ -561,7 +561,7 @@ class StringPosition(Builtin):
             py_p = to_regex(p, evaluation)
             if py_p is None:
                 evaluation.message("StringExpression", "invld", p, patt)
-                returna
+                return
             re_patts.append(py_p)
         compiled_patts = [re.compile(re_patt) for re_patt in re_patts]
 

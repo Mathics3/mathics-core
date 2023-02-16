@@ -23,7 +23,7 @@ from mathics.version import __version__
 
 try:
     import psutil
-except:
+except ImportError:
     have_psutil = False
 else:
     have_psutil = True
@@ -384,7 +384,7 @@ class UserName(Predefined):
     def evaluate(self, evaluation) -> String:
         try:
             user = os.getlogin()
-        except:
+        except Exception:
             import pwd
 
             user = pwd.getpwuid(os.getuid())[0]

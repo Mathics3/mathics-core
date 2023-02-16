@@ -15,7 +15,6 @@ from mathics.core.atoms import Complex, Integer, MachineReal, Real, String
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.expression import Expression
-from mathics.core.number import dps
 from mathics.core.read import SymbolEndOfFile
 from mathics.core.streams import stream_manager
 from mathics.core.symbols import Symbol

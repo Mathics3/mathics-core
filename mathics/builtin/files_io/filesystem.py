@@ -335,7 +335,7 @@ class CreateFile(Builtin):
                 return String(res)
             else:
                 return filename
-        except:
+        except Exception:
             return SymbolFailed
 
 
@@ -355,7 +355,7 @@ class CreateTemporary(Builtin):
         "CreateTemporary[]"
         try:
             res = create_temporary_file()
-        except:
+        except Exception:
             return SymbolFailed
         return String(res)
 
@@ -2129,7 +2129,7 @@ class SetDirectory(Builtin):
 
         try:
             os.chdir(py_path)
-        except:
+        except Exception:
             return SymbolFailed
 
         DIRECTORY_STACK.append(os.getcwd())
@@ -2266,7 +2266,7 @@ class SetFileDate(Builtin):
                 os.utime(py_filename, (osp.getatime(py_filename), stattime))
             if py_attr == "All":
                 os.utime(py_filename, (stattime, stattime))
-        except OSError:  #  as e:
+        except OSError:
             # evaluation.message(...)
             return SymbolFailed
 

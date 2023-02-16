@@ -65,6 +65,7 @@ SymbolText = Symbol("Text")
 TwoTenths = Real(0.2)
 MTwoTenths = -TwoTenths
 
+
 # PlotRange Option
 def check_plot_range(range, range_type) -> bool:
     """

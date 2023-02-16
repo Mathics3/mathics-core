@@ -21,7 +21,6 @@ from mathics.core.atoms import MachineReal, PrecisionReal
 from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.evaluation import Evaluation
 from mathics.core.number import (
-    FP_MANTISA_BINARY_DIGITS,
     MACHINE_DIGITS,
     MAX_MACHINE_NUMBER,
     MIN_MACHINE_NUMBER,
