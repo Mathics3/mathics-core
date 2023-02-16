@@ -233,6 +233,19 @@ def escape_latex(text):
     def repl_hypertext(match) -> str:
         tag = match.group("tag")
         content = match.group("content")
+        #
+        # Sometimes it happens that the URL does not
+        # fit in 80 characters. Then, to avoid that
+        # flake8 complains, and also to have a
+        # nice and readable ASCII representation,
+        # we would like to split the URL in several,
+        # lines, having indentation spaces.
+        #
+        # The following line removes these extra
+        # characters, which would spoil the URL,
+        # producing a single line, space-free string.
+        #
+        content = content.replace(" ", "").replace("\n", "")
         if tag == "em":
             return r"\emph{%s}" % content
         elif tag == "url":
