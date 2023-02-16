@@ -124,8 +124,9 @@ gstest:
 
 
 #: Create doctest test data and test results that is used to build LaTeX PDF
+# For LaTeX docs we assume Unicode
 doctest-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/documentation/images/*
-	MATHICS_CHARACTER_ENCODING="ASCII" $(PYTHON) mathics/docpipeline.py --output --keep-going $(MATHICS3_MODULE_OPTION)
+	MATHICS_CHARACTER_ENCODING="UTF-8" $(PYTHON) mathics/docpipeline.py --output --keep-going $(MATHICS3_MODULE_OPTION)
 
 #: Run tests that appear in docstring in the code.
 doctest:
