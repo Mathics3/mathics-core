@@ -16,7 +16,11 @@ from mathics.core.atoms import (
 )
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom
-from mathics.core.systemsymbols import SymbolDirectedInfinity
+from mathics.core.systemsymbols import (
+    SymbolComplexInfinity,
+    SymbolDirectedInfinity,
+    SymbolIndeterminate,
+)
 
 
 @lru_cache(maxsize=1024)

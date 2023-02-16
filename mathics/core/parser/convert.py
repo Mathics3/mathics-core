@@ -10,10 +10,7 @@ import sympy
 
 from mathics.core.atoms import Integer, MachineReal, PrecisionReal, Rational, String
 from mathics.core.convert.expression import to_expression, to_mathics_list
-from mathics.core.number import (
-    FP_MANTISA_BINARY_DIGITS,
-    RECONSTRUCT_MACHINE_PRECISION_DIGITS,
-)
+from mathics.core.number import RECONSTRUCT_MACHINE_PRECISION_DIGITS
 from mathics.core.parser.ast import (
     Filename as AST_Filename,
     Number as AST_Number,

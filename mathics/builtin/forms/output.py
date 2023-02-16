@@ -33,7 +33,6 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import (
-    FP_MANTISA_BINARY_DIGITS,
     LOG2_10,
     RECONSTRUCT_MACHINE_PRECISION_DIGITS,
     convert_base,

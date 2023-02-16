@@ -34,13 +34,13 @@ SymbolEditDistance = Symbol("EditDistance")
 # note: double brackets indicate 1-based indices below, e.g. s1[[1]]
 
 
-def _one_based(l):  # makes an enumerated generator 1-based
-    return ((i + 1, x) for i, x in l)
+def _one_based(le):  # makes an enumerated generator 1-based
+    return ((i + 1, x) for i, x in le)
 
 
-def _prev_curr(l):  # yields pairs of (x[i - 1], x[i]) for i in 1, 2, ...
+def _prev_curr(le):  # yields pairs of (x[i - 1], x[i]) for i in 1, 2, ...
     prev = None
-    for curr in l:
+    for curr in le:
         yield prev, curr
         prev = curr
 

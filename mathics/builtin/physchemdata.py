@@ -28,9 +28,9 @@ def load_element_data():
 
         datadir = mathics_scanner.__file__[:-11]
         element_file = open(os.path.join(datadir, "data/element.csv"), "r")
-    except:
-        print(os.path.join(datadir, "data/element.csv"), "  not found.")
-        return None
+    except Exception:
+        raise NoElementDataFile("data/elements.csv is not available.")
+
     reader = csvreader(element_file, delimiter="\t")
     element_data = []
     for row in reader:
@@ -40,9 +40,6 @@ def load_element_data():
 
 
 _ELEMENT_DATA = load_element_data()
-
-if _ELEMENT_DATA is None:
-    raise NoElementDataFile("data/elements.csv is not available.")
 
 
 class ElementData(Builtin):

@@ -8,7 +8,7 @@ import mpmath
 import sympy
 
 from mathics.builtin.base import Builtin, SympyFunction
-from mathics.core.atoms import Integer, Integer0, Integer10, Rational
+from mathics.core.atoms import Integer, Integer0, Integer10, Rational, Real
 from mathics.core.attributes import (
     A_LISTABLE,
     A_NUMERIC_FUNCTION,

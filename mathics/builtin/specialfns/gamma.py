@@ -8,7 +8,7 @@ import sympy
 
 from mathics.builtin.arithmetic import _MPMathFunction, _MPMathMultiFunction
 from mathics.builtin.base import PostfixOperator, SympyFunction
-from mathics.core.atoms import Integer, Integer0, Integer1, Number
+from mathics.core.atoms import Integer, Integer0, Number
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.python import from_python
@@ -16,13 +16,7 @@ from mathics.core.convert.sympy import from_sympy
 from mathics.core.expression import Expression
 from mathics.core.number import dps, min_prec
 from mathics.core.symbols import Symbol, SymbolSequence
-from mathics.core.systemsymbols import (
-    SymbolAutomatic,
-    SymbolComplexInfinity,
-    SymbolDirectedInfinity,
-    SymbolGamma,
-    SymbolIndeterminate,
-)
+from mathics.core.systemsymbols import SymbolAutomatic, SymbolGamma
 from mathics.eval.arithmetic import call_mpmath
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify

@@ -85,22 +85,22 @@ class BinarySearch(Builtin):
     context = "CombinatoricaOld`"
 
     rules = {
-        "CombinatoricaOld`BinarySearch[l_List, k_] /; Length[l] > 0": "CombinatoricaOld`BinarySearch[l, k, Identity]"
+        "CombinatoricaOld`BinarySearch[li_List, k_] /; Length[li] > 0": "CombinatoricaOld`BinarySearch[li, k, Identity]"
     }
 
     summary_text = "search a sorted list for a key"
 
-    def eval(self, l, k, f, evaluation: Evaluation):
-        "CombinatoricaOld`BinarySearch[l_List, k_, f_] /; Length[l] > 0"
+    def eval(self, li, k, f, evaluation: Evaluation):
+        "CombinatoricaOld`BinarySearch[li_List, k_, f_] /; Length[li] > 0"
 
-        elements = l.elements
+        elements = li.elements
 
         lower_index = 1
         upper_index = len(elements)
 
         if (
             lower_index > upper_index
-        ):  # empty list l? Length[l] > 0 condition should guard us, but check anyway
+        ):  # empty list li? Length[l] > 0 condition should guard us, but check anyway
             return Symbol("$Aborted")
 
         # "transform" is a handy wrapper for applying "f" or nothing
