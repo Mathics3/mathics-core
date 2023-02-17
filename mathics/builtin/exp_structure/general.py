@@ -48,32 +48,49 @@ class ApplyLevel(BinaryOperator):
 class BinarySearch(Builtin):
     """
     <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/BinarySearch.html</url>
+    :Binary search algorithm:
+    https://en.wikipedia.org/wiki/Binary_search_algorithm</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/BinarySearch.html</url>)
 
     <dl>
       <dt>'CombinatoricaOld`BinarySearch[$l$, $k$]'
-      <dd>searches the list $l$, which has to be sorted, for key $k$ and returns its index in $l$. If $k$ does not
-        exist in $l$, 'BinarySearch' returns (a + b) / 2, where a and b are the indices between which $k$ would have
-        to be inserted in order to maintain the sorting order in $l$. Please note that $k$ and the elements in $l$
-        need to be comparable under a strict total order (see https://en.wikipedia.org/wiki/Total_order).
+      <dd>searches the list $l$, which has to be sorted, for key $k$ and \
+          returns its index in $l$.
+
+          If $k$ does not exist in $l$, 'BinarySearch' returns ($a$ + $b$) / 2, \
+          where $a$ and $b$ are the indices between which $k$ would have  \
+          to be inserted in order to maintain the sorting order in $l$.
+
+          Please note that $k$ and the elements in $l$ need to be comparable \
+          under a <url>
+          :strict total order:
+          https://en.wikipedia.org/wiki/Total_order</url>.
 
       <dt>'CombinatoricaOld`BinarySearch[$l$, $k$, $f$]'
-      <dd>the index of $k in the elements of $l$ if $f$ is applied to the latter prior to comparison. Note that $f$
-        needs to yield a sorted sequence if applied to the elements of $l.
+      <dd>gives the index of $k$ in the elements of $l$ if $f$ is applied to the \
+          latter prior to comparison. Note that $f$ \
+          needs to yield a sorted sequence if applied to the elements of $l$.
     </dl>
+
+    Number 100 is found at exactly in the fourth place of the given list:
 
     >> CombinatoricaOld`BinarySearch[{3, 4, 10, 100, 123}, 100]
      = 4
 
+     Number 7 is found in between the second and third place (3, and 9)\
+     of the given list. The numerical difference between 3 and 9 does \
+     not figure into the .5 part of 2.5:
+
     >> CombinatoricaOld`BinarySearch[{2, 3, 9}, 7] // N
      = 2.5
 
-    >> CombinatoricaOld`BinarySearch[{2, 7, 9, 10}, 3] // N
-     = 1.5
+    0.5 is what you get when the item comes before the given list:
 
     >> CombinatoricaOld`BinarySearch[{-10, 5, 8, 10}, -100] // N
      = 0.5
+
+    And here is what you see when the item comes at the end of the list:
 
     >> CombinatoricaOld`BinarySearch[{-10, 5, 8, 10}, 20] // N
      = 4.5

@@ -81,7 +81,9 @@ def compare(result, wanted) -> bool:
 stars = "*" * 10
 
 
-def test_case(test, tests, index=0, subindex=0, quiet=False, section=None) -> bool:
+def test_case(
+    test, tests, index=0, subindex=0, quiet=False, section=None, format="text"
+) -> bool:
     global check_partial_elapsed_time
     test, wanted_out, wanted = test.test, test.outs, test.result
 
@@ -103,7 +105,9 @@ def test_case(test, tests, index=0, subindex=0, quiet=False, section=None) -> bo
         print(f"{index:4d} ({subindex:2d}): TEST {test}".encode("utf-8"))
 
     feeder = MathicsSingleLineFeeder(test, "<test>")
-    evaluation = Evaluation(definitions, catch_interrupt=False, output=TestOutput())
+    evaluation = Evaluation(
+        definitions, catch_interrupt=False, output=TestOutput(), format=format
+    )
     try:
         time_parsing = datetime.now()
         query = evaluation.parse_feeder(feeder)
@@ -221,7 +225,10 @@ def create_output(tests, doctest_data, format="latex"):
         if result is None:
             result = []
         else:
-            result = [result.get_data()]
+            result_data = result.get_data()
+            result_data["form"] = format
+            result = [result_data]
+
         doctest_data[key] = {
             "query": test.test,
             "results": result,
@@ -235,6 +242,7 @@ def test_chapters(
     generate_output=False,
     reload=False,
     want_sorting=False,
+    keep_going=False,
 ):
     failed = 0
     index = 0
@@ -264,7 +272,8 @@ def test_chapters(
     if index == 0:
         print_and_log(f"No chapters found named {chapter_names}.")
     elif failed > 0:
-        print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
+        if not (keep_going and format == "latex"):
+            print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
     else:
         print_and_log("All tests passed.")
 
@@ -276,6 +285,7 @@ def test_sections(
     generate_output=False,
     reload=False,
     want_sorting=False,
+    keep_going=False,
 ):
     failed = 0
     index = 0
@@ -284,6 +294,7 @@ def test_sections(
     sections |= {"$" + s for s in sections}
     output_data = load_doctest_data() if reload else {}
     prev_key = []
+    format = "latex" if generate_output else "text"
     for tests in documentation.get_tests():
         if tests.section in sections:
             for test in tests.tests:
@@ -295,21 +306,22 @@ def test_sections(
                 if test.ignore:
                     continue
                 index += 1
-                if not test_case(test, tests, index, quiet=quiet):
+                if not test_case(test, tests, index, quiet=quiet, format=format):
                     failed += 1
                     if stop_on_failure:
                         break
-            if generate_output and failed == 0:
-                create_output(tests, output_data)
+            if generate_output and (failed == 0 or keep_going):
+                create_output(tests, output_data, format=format)
 
     print()
     if index == 0:
         print_and_log(f"No sections found named {section_names}.")
     elif failed > 0:
-        print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
+        if not (keep_going and format == "latex"):
+            print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
     else:
         print_and_log("All tests passed.")
-    if generate_output and (failed == 0):
+    if generate_output and (failed == 0 or keep_going):
         save_doctest_data(output_data)
 
 
@@ -630,6 +642,7 @@ def main():
             stop_on_failure=args.stop_on_failure,
             generate_output=args.output,
             reload=args.reload,
+            keep_going=args.keep_going,
         )
     elif args.chapters:
         chapters = set(args.chapters.split(","))
