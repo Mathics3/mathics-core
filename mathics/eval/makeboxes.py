@@ -142,7 +142,7 @@ def do_format_element(
         # removes the format from the expression.
         if head in OutputForms and len(expr.elements) == 1:
             expr = elements[0]
-            if not (form is SymbolOutputForm and head is SymbolStandardForm):
+            if not form.sameQ(head):
                 form = head
                 include_form = True
 

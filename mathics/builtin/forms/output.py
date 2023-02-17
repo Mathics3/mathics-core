@@ -754,8 +754,12 @@ class OutputForm(FormBaseClass):
      = f'[x]
     >> OutputForm[Derivative[1, 0][f][x]]
      = Derivative[1, 0][f][x]
-    >> OutputForm["A string"]
-     = A string
+
+    'OutputForm' is used by default:
+    >> OutputForm[{"A string", a + b}]
+     = {A string, a + b}
+    >> {"A string", a + b}
+     = {A string, a + b}
     >> OutputForm[Graphics[Rectangle[]]]
      = -Graphics-
     """
@@ -850,11 +854,8 @@ class StandardForm(FormBaseClass):
     </dl>
 
     >> StandardForm[a + b * c]
-     = a + b c
+     = a+b c
     >> StandardForm["A string"]
-     = A string
-    'StandardForm' is used by default:
-    >> "A string"
      = A string
     >> f'[x]
      = f'[x]
