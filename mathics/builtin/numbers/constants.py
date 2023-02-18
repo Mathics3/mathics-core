@@ -652,6 +652,9 @@ class Pi(_MPMathConstant, _SympyConstant):
       <dd>is the constant \u03c0.
     </dl>
 
+    >> Pi
+     = Pi
+
     >> N[Pi]
      = 3.14159
 
