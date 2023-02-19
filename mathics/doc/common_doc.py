@@ -144,7 +144,7 @@ def get_module_doc(module: ModuleType) -> tuple:
     return title, text
 
 
-def get_results_by_test(test_expr: str, full_test_key: list, doc_data: dict) -> list:
+def get_results_by_test(test_expr: str, full_test_key: list, doc_data: dict) -> dict:
     """
     Sometimes test numbering is off, either due to bugs or changes since the
     data was read.
@@ -348,7 +348,7 @@ def gather_tests(
 
 
 class Documentation:
-    def __init__(self, part: str, title: str, doc=None):
+    def __init__(self, part, title: str, doc=None):
         self.doc = doc
         self.guide_sections = []
         self.part = part
@@ -499,10 +499,6 @@ class Documentation:
 
                 # Add sections in the guide section...
                 for submodule in sorted_submodule(submodules):
-                    # FIXME add an additional mechanism in the module
-                    # to allow a docstring and indicate it is not to go in the
-                    # user manual
-
                     if skip_module_doc(submodule, modules_seen):
                         continue
                     elif IS_PYPY and submodule.__name__ == "builtins":
@@ -679,6 +675,32 @@ class Documentation:
                 return chapter.sections_by_slug.get(section_slug)
         return None
 
+    def get_section_tests(self, section):
+        for docsection in section.subsections:
+            for docsubsection in docsection.subsections:
+                # FIXME: Something is weird here where tests for subsection items
+                # appear not as a collection but individually and need to be
+                # iterated below. Probably some other code is faulty and
+                # when fixed the below loop and collection into doctest_list[]
+                # will be removed.
+                if hasattr(docsubsection, "installed") and not docsubsection.installed:
+                    continue
+                doctest_list = []
+                index = 1
+                for doctests in docsubsection.items:
+                    doctest_list += list(doctests.get_tests())
+                    for test in doctest_list:
+                        test.index = index
+                        index += 1
+
+                if doctest_list:
+                    yield Tests(
+                        section.chapter.part.title,
+                        section.chapter.title,
+                        docsubsection.title,
+                        doctest_list,
+                    )
+
     def get_subsection(self, part_slug, chapter_slug, section_slug, subsection_slug):
         part = self.parts_by_slug.get(part_slug)
         if part:
@@ -705,28 +727,7 @@ class Documentation:
                         if isinstance(section, DocGuideSection):
                             for docsection in section.subsections:
                                 for docsubsection in docsection.subsections:
-                                    # FIXME: Something is weird here where tests for subsection items
-                                    # appear not as a collection but individually and need to be
-                                    # iterated below. Probably some other code is faulty and
-                                    # when fixed the below loop and collection into doctest_list[]
-                                    # will be removed.
-                                    if not docsubsection.installed:
-                                        continue
-                                    doctest_list = []
-                                    index = 1
-                                    for doctests in docsubsection.items:
-                                        doctest_list += list(doctests.get_tests())
-                                        for test in doctest_list:
-                                            test.index = index
-                                            index += 1
-
-                                    if doctest_list:
-                                        yield Tests(
-                                            section.chapter.part.title,
-                                            section.chapter.title,
-                                            docsubsection.title,
-                                            doctest_list,
-                                        )
+                                    self.get_section_tests(docsubsection)
                         else:
                             tests = section.doc.get_tests()
                             if tests:
@@ -1049,7 +1050,9 @@ class MathicsMainDocumentation(Documentation):
 
 class XMLDoc:
     """A class to hold our internal XML-like format data.
-    The `latex()` method can turn this into LaTeX.
+    Specialized classes like LaTeXDoc or and DjangoDoc provide methods for
+    getting formatted output. For LaTeXDoc ``latex()`` is added while for
+    DjangoDoc ``html()`` is added
 
     Mathics core also uses this in getting usage strings (`??`).
     """

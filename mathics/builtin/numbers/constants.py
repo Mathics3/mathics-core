@@ -236,7 +236,7 @@ class ComplexInfinity(_SympyConstant):
     :Complex Infinity:
     https://en.wikipedia.org/wiki/Infinity#Complex_analysis</url> \
     is an infinite number in the complex plane whose complex argument \
-    is unkown or undefined. (<url>
+    is unknown or undefined. (<url>
     :SymPy:
     https://docs.sympy.org/latest/modules/core.html?highlight=zoo#complexinfinity</url>, <url>
     :MathWorld:
