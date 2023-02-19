@@ -234,6 +234,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         self._sequences = None
         self._cache = None
 
+        # self.copy creates this
+        self.original: Optional[Expression] = None
+
     def __getnewargs__(self):
         return (self._head, self._elements)
 

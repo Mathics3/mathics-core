@@ -66,7 +66,7 @@ def to_expression_with_specialization(
 
 def to_mathics_list(
     *elements: Any, elements_conversion_fn: Callable = from_python, is_literal=False
-) -> Expression:
+) -> ListExpression:
     """
     This is an expression constructor for list that can be used when the elements are not Mathics
     objects. For example:
