@@ -675,32 +675,6 @@ class Documentation:
                 return chapter.sections_by_slug.get(section_slug)
         return None
 
-    def get_section_tests(self, section):
-        for docsection in section.subsections:
-            for docsubsection in docsection.subsections:
-                # FIXME: Something is weird here where tests for subsection items
-                # appear not as a collection but individually and need to be
-                # iterated below. Probably some other code is faulty and
-                # when fixed the below loop and collection into doctest_list[]
-                # will be removed.
-                if hasattr(docsubsection, "installed") and not docsubsection.installed:
-                    continue
-                doctest_list = []
-                index = 1
-                for doctests in docsubsection.items:
-                    doctest_list += list(doctests.get_tests())
-                    for test in doctest_list:
-                        test.index = index
-                        index += 1
-
-                if doctest_list:
-                    yield Tests(
-                        section.chapter.part.title,
-                        section.chapter.title,
-                        docsubsection.title,
-                        doctest_list,
-                    )
-
     def get_subsection(self, part_slug, chapter_slug, section_slug, subsection_slug):
         part = self.parts_by_slug.get(part_slug)
         if part:
@@ -727,7 +701,28 @@ class Documentation:
                         if isinstance(section, DocGuideSection):
                             for docsection in section.subsections:
                                 for docsubsection in docsection.subsections:
-                                    self.get_section_tests(docsubsection)
+                                    # FIXME: Something is weird here where tests for subsection items
+                                    # appear not as a collection but individually and need to be
+                                    # iterated below. Probably some other code is faulty and
+                                    # when fixed the below loop and collection into doctest_list[]
+                                    # will be removed.
+                                    if not docsubsection.installed:
+                                        continue
+                                    doctest_list = []
+                                    index = 1
+                                    for doctests in docsubsection.items:
+                                        doctest_list += list(doctests.get_tests())
+                                        for test in doctest_list:
+                                            test.index = index
+                                            index += 1
+
+                                    if doctest_list:
+                                        yield Tests(
+                                            section.chapter.part.title,
+                                            section.chapter.title,
+                                            docsubsection.title,
+                                            doctest_list,
+                                        )
                         else:
                             tests = section.doc.get_tests()
                             if tests:
