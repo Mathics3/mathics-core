@@ -119,7 +119,7 @@ Enhancements
 #. Support for BigEndian Big TIFF
 
 
-   
+
 5.0.2
 -----
 
@@ -1042,8 +1042,8 @@ Backward incompatibilities
 
 -----
 
-1.0
---
+1.0 (October 2016)
+------------------
 
 New features
 ++++++++++++
@@ -1198,15 +1198,15 @@ Performance improvements
 
 -----
 
-0.9
----
+0.9 (March 2016)
+----------------
 
 New features
 ++++++++++++
 
 #. Improve syntax error messages #329
 #. ``SVD``, ``LeastSquares``, ``PseudoInverse`` #258, #321
-#. Python 3 support #317
+#. Python 2.7, 3.2-3.5 via six support #317
 #. Improvements to ``Riffle`` #313
 #. Tweaks to ``PolarPlot`` #305
 #. ``StringTake`` #285
@@ -1242,8 +1242,8 @@ Bug fixes
 
 -----------
 
-0.8
----
+0.8 (late May 2015)
+-------------------
 
 New features
 +++++++++++++
@@ -1266,8 +1266,8 @@ Bug fixes
 
 -----------
 
-0.7
----
+0.7 (Dec 2014)
+--------------
 
 New features
 ++++++++++++
@@ -1299,8 +1299,8 @@ Bugs fixed
 
 --------------
 
-0.6
----
+0.6 (late October 2013)
+------------------------
 
 New features
 ++++++++++++
@@ -1335,8 +1335,8 @@ Bugs fixed
 
 -------
 
-0.5
----
+0.5 (August 2012)
+-----------------
 
 #. Compatibility with Sage 5, SymPy 0.7, Cython 0.15, Django 1.2
 #. 3D graphics and plots using WebGL in the browser and Asymptote in TeX output
