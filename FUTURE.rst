@@ -2,6 +2,91 @@
 
 .. contents::
 
+The following 2023 roadmap that appears the 6.0.0 hasn't gone through enough discussion. This provisional.
+Check the github repository for updates.
+
+
+2023 Roadmap
+============
+
+
+When the release settles, "Forms, Boxing, And "Formatting" is the next
+large refactor slated.  Having this will allow us to supporting Jupyter or other front
+ends. And it is something that is most visibly wrong in Mathics3 output.
+
+See ``PAST.rst`` for how the 2023 Roadmap compares to the 2022 Roadmap.
+
+Forms, Boxing and Formatting
+----------------------------
+
+This remains the biggest holdover item from 2022, and seems easily doable.
+It hinders interaction with Jupyter or other front ends.
+
+Right now "Form" (a high-level specification of how to format) and
+"format" (a low level specification of how output is encoded) are sometimes muddied.
+
+For example, TeXForm may be a "Form", but output encoded for AMS-LaTeX is done by a *formatter*.
+So AMS-LaTeX rendering and other kinds of rendering should be split into its own rendering for formatter module.
+Currently we have asymptote, and svg "format" modules.
+
+Back to high-level again, Boxing is something that can be written in Mathics3, and doing this at
+least initally ensures that we have design that fits more naturally
+into the Wolfram Language philosophy.
+
+
+Performance
+-----------
+
+While this is probably more of an overall concert, for now, the winds and bigger tasks like
+going over pattern matching will get done after Forms, Boxing and Formatting .
+
+Forms, Boxing and Formatting will however contain one improvement that
+should speed up our performance: separating M-Expression evaluation from
+Box "evaluations).
+
+
+More Custom kinds of (compound) Expressions
++++++++++++++++++++++++++++++++++++++++++++
+
+We scratched the surface here with ListExpression. Associations and Python/Sympy/numpy literals can be customized with an aim towards reducing conversions from and to M-expressions.
+A number of compound expressions, especially those which involve literals are more efficiently represented in some other way. For example
+an Association as a Python ordered dictionary, a List as a Python list or tuple, or as a numpy array.
+
+
+Further Code Reorganization in Core and Eval
+--------------------------------------------
+
+Core object like BaseElement and possibly Symbol, although no doubt there are others are too "fat". They have too many custom methods that are not applicable for most of the subclasses support.
+It is likely another pass will be made over this.
+
+We have started moving "eval" code out of the "eval" menthods and into its own
+
+Mathics3 Module Enhancement
+---------------------------
+
+While we have put in quite a bit of effort to get these to be 6.0.0 compliant. There is still more work to do, and numerous bugs there.
+Refactoring code to generate Graphs in pymathics.graph might happen. Porting the pymathics.graph code to use NetworkX 3.0 would be nice.
+Pymathics.natlang could also use a look over in terms of the libraries we are using.
+
+
+Deferred
+--------
+
+As mentioned before, pattern-matching revision is for later. There are probably various scoping/context issues that need work that will be deferred.
+
+Way down the line, is converting to a more sequence-based interpreter which is needed for JIT'ing and better Compilation support.
+
+Likewise, speeding up startup time via saving and loading an image is something that is more of a long-term goal.
+
+
+Miscellaneous
+-------------
+
+No doubt there will be numerous bug fixes, and builtin-function additions especially not that we have a better framework to support this kind of growth.
+Some of the smaller deferred issues refactorings may get addressed.
+
+
+
 2022 Roadmap
 =============
 
