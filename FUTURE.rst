@@ -68,6 +68,11 @@ While we have put in quite a bit of effort to get these to be 6.0.0 compliant. T
 Refactoring code to generate Graphs in pymathics.graph might happen. Porting the pymathics.graph code to use NetworkX 3.0 would be nice.
 Pymathics.natlang could also use a look over in terms of the libraries we are using.
 
+Python upgrades
+---------------
+
+After Mathics3 Version 6.0.0, Python 3.6 wll be dropped and possibly 3.7. Changes are needed to support 3.11 so we will be focusing on 3.8 to 3.11.
+
 
 Deferred
 --------

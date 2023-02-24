@@ -24,6 +24,9 @@ Mathics3 Modules are better integrated into the documentation.
 Existing Mathics3 modules pymathics.graph and pymathics.natlang have
 had a major overhaul, although more is needed. And will continue after th 6.0.0 release
 
+We have gradually been rolling in more Python type annotations and
+current Python practices such as using ``isort``, ``black`` and ``flake8``.
+
 
 Boxing and Formatting
 ---------------------
