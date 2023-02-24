@@ -72,7 +72,12 @@ Pymathics.natlang could also use a look over in terms of the libraries we are us
 Deferred
 --------
 
-As mentioned before, pattern-matching revision is for later. There are probably various scoping/context issues that need work that will be deferred.
+As mentioned before, pattern-matching revision is for later. `This
+discussion
+<https://github.com/Mathics3/mathics-core/discussions/800>`_ is a
+placeholder for this discussion.
+
+There are probably various scoping/context issues that need work that will be deferred.
 
 Way down the line, is converting to a more sequence-based interpreter which is needed for JIT'ing and better Compilation support.
 
