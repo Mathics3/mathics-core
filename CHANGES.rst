@@ -3,12 +3,31 @@
 CHANGES
 =======
 
-6.0.0dev0
----------
+6.0.0
+-----
 
-A fair bit of code refactoring has gone on so that we might be able to scale the code, get it to be more performant, and more in line with other interpreters.
+A fair bit of code refactoring has gone on so that we might be able to
+scale the code, get it to be more performant, and more in line with
+other interpreters. There is Greater use of Symbols as opposed to strings.
 
-Image Routines have been gone over. A number of Built-in functions that were implemented were not accessible for various reasons.
+The builtin Functions have been organized into grouping akin to what is found in WMA.
+This is not just for documentation purposes, but it better modularizes the code and keep
+the modules smaller while suggesting where functions below as we scale.
+
+Image Routines have been gone over and fixed. Basically we use Pillow
+imaging routines and as opposed to home-grown image code.
+
+A number of Built-in functions that were implemented were not accessible for various reasons.
+
+Mathics3 Modules are better integrated into the documentation.
+Existing Mathics3 modules ``pymathics.graph`` and ``pymathics.natlang`` have
+had a major overhaul, although more is needed. And will continue after th 6.0.0 release
+
+We have gradually been rolling in more Python type annotations and
+current Python practices such as using ``isort``, ``black`` and ``flake8``.
+
+Evaluation methods of built-in functions start ``eval_`` not ``apply_``.
+
 
 API
 +++
@@ -59,11 +78,12 @@ Documentation
 #. "Exponential Functional" split out from "Trigonometry Functions"
 #. "Functional Programming" section split out.
 #. "Image Manipulation" has been split off from Graphics and Drawing and turned into a guide section.
-#. Image examples now appear in the PDF doc
+#. Image examples now appear in the LaTeX and therfore the PDF doc
 #. "Logic and Boolean Algebra" section reinstated.
 #. "Forms of Input and Output" is its own guide section.
-#. More url links to Wiki pages added; more internal cross links added.
+#. More URL links to Wiki pages added; more internal cross links added.
 #. "Units and Quantities" section reinstated.
+#. The Mathics3 Modules are now included in LaTeX and therefore the PDF doc.
 
 Internals
 +++++++++
@@ -71,9 +91,9 @@ Internals
 #. ``boxes_to_`` methods are now optional for ``BoxElement`` subclasses. Most of the code is now moved to the ``mathics.format`` submodule, and implemented in a more scalable way.
 #. ``from_mpmath`` conversion supports a new parameter ``acc`` to set the accuracy of the number.
 #. ``mathics.builtin.inout`` was split in several modules (``inout``, ``messages``, ``layout``, ``makeboxes``) in order to improve the documentation.
-#. ``mathics.eval`` was create to have code that might be put in an instruction interperter. The opcodes-like functions start ``eval_``, other functions are helper functions for those.
-#. Operator name to unicode or ASCII comes from Mathics scanner character tables.
-#. Builtin instance methods that start ``apply`` are considered rule matching and function application; the use of the name ``apply``is deprecated, when ``eval`` is intended.
+#. ``mathics.eval`` was create to have code that might be put in an instruction interpreter. The opcodes-like functions start ``eval_``, other functions are helper functions for those.
+#. Operator name to Unicode or ASCII comes from Mathics scanner character tables.
+#. Builtin instance methods that start ``eval`` are considered rule matching and function application; the use of the name ``apply``is deprecated, when ``eval`` is intended.
 #. Modularize and improve the way in which ``Builtin`` classes are selected to have an associated ``Definition``.
 #. ``_SetOperator.assign_elementary`` was renamed as ``_SetOperator.assign``. All the special cases are not handled by the ``_SetOperator.special_cases`` dict.
 #. ``isort`` run over all Python files. More type annotations and docstrings on functions added.
@@ -90,12 +110,14 @@ Bugs
 #. ``RandomSample`` with one list argument now returns a random ordering of the list items. Previously it would return just one item.
 #. Origin placement corrected on ``ListPlot`` and ``LinePlot``.
 #. Fix long-standing bugs in Image handling
-#. Some scikit image routines line ``EdgeDetect`` were getting omitted due to overly stringent PYPI requirements
-
+#. Some scikit image routines line ``EdgeDetect`` were getting omitted due to overly stringent PyPI requirements
 #. Units and Quantities were sometimes failing. Also they were omitted from documentation.
 #. Better handling of ``Infinite`` quantities.
 #. Improved ``Precision`` and ``Accuracy``compatibility with WMA. In particular, ``Precision[0.]`` and ``Accuracy[0.]``
 #. Accuracy in numbers using the notation ``` n.nnn``acc ```  now is properly handled.
+#. numeric precision in mpmath was not reset after operations that changed these. This cause huges slowdowns after an operation that set the mpmath precison high. This was the source of several-minute slowdowns in testing.
+#. GIF87a (```MadTeaParty.gif`` or ExampleData) image loading fixed
+#. Replace non-free Leena image with a a freely distributable image. Issue #728
 
 
 PyPI Package requirements
@@ -125,6 +147,12 @@ Enhancements
 
 Get in `requirements-cython.txt`` into tarball. Issue #483
 
+New Symbols
++++++++++++
+
+#. ``Undefined``
+
+
 
 5.0.1
 -----
@@ -146,7 +174,7 @@ New Builtin
 Documentation
 +++++++++++++
 
-Hyperbolic functions were split off form trigonometry and exponential functions. More url links were added.
+Hyperbolic functions were split off form trigonometry and exponential functions. More URL links were added.
 
 Bugs
 ++++
