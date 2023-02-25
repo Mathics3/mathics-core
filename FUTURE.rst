@@ -73,6 +73,9 @@ Python upgrades
 
 After Mathics3 Version 6.0.0, Python 3.6 wll be dropped and possibly 3.7. Changes are needed to support 3.11 so we will be focusing on 3.8 to 3.11.
 
+We have gradually been using a more modern Python programming style and idioms: more type annotation, use of isort (sort imports), black (code formatting),
+and flake8 (lint checking).
+
 
 Deferred
 --------
@@ -82,19 +85,29 @@ discussion
 <https://github.com/Mathics3/mathics-core/discussions/800>`_ is a
 placeholder for this discussion.
 
-There are probably various scoping/context issues that need work that will be deferred.
+Overhauling the documentation to use something better supported and
+more mainstream like sphinx is deferred. This would really be nice to
+have, but it will require a bit of effort and detracts from all of the other work that is needed.
+
+We will probably try this out in a limited basis in one of the Mathics3 modules.
+
+Speaking of Mathics3 Modules, there are probably various scoping/context issues that Mathics3 modules make more apparent.
+This will is deferred for now.
 
 Way down the line, is converting to a more sequence-based interpreter which is needed for JIT'ing and better Compilation support.
 
 Likewise, speeding up startup time via saving and loading an image is something that is more of a long-term goal.
 
+Things in this section can change, depending on the help we can get.
+
 
 Miscellaneous
 -------------
 
-No doubt there will be numerous bug fixes, and builtin-function additions especially not that we have a better framework to support this kind of growth.
+No doubt there will be numerous bug fixes, and builtin-function additions especially now that we have a better framework to support this kind of growth.
 Some of the smaller deferred issues refactorings may get addressed.
 
+As always, where and how fast things grow here depends on help available.
 
 
 2022 Roadmap
