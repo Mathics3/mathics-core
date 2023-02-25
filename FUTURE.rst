@@ -2,7 +2,7 @@
 
 .. contents::
 
-The following 2023 roadmap that appears the 6.0.0 hasn't gone through enough discussion. This provisional.
+The following 2023 road map that appears the 6.0.0 hasn't gone through enough discussion. This provisional.
 Check the github repository for updates.
 
 
@@ -30,51 +30,57 @@ So AMS-LaTeX rendering and other kinds of rendering should be split into its own
 Currently we have asymptote, and svg "format" modules.
 
 Back to high-level again, Boxing is something that can be written in Mathics3, and doing this at
-least initally ensures that we have design that fits more naturally
+least initially ensures that we have design that fits more naturally
 into the Wolfram Language philosophy.
 
 
 Performance
 -----------
 
-While this is probably more of an overall concert, for now, the winds and bigger tasks like
-going over pattern matching will get done after Forms, Boxing and Formatting .
+While this is probably more of an overall concern, for now, big refactoring needed here, such as
+going over pattern matching, will get done after Forms, Boxing and Formatting .
 
 Forms, Boxing and Formatting will however contain one improvement that
 should speed up our performance: separating M-Expression evaluation from
 Box "evaluations).
+
+We expect there will be other little opportunities here and there as we have seen in the past.
 
 
 More Custom kinds of (compound) Expressions
 +++++++++++++++++++++++++++++++++++++++++++
 
 We scratched the surface here with ListExpression. Associations and Python/Sympy/numpy literals can be customized with an aim towards reducing conversions from and to M-expressions.
-A number of compound expressions, especially those which involve literals are more efficiently represented in some other way. For example
-an Association as a Python ordered dictionary, a List as a Python list or tuple, or as a numpy array.
+A number of compound expressions, especially those which involve literals are more efficiently represented in some other way. For example,
+representing a Mathics3 Association as a Python ordered dictionary, a Mathics3 List as a Python list or tuple, or as a numpy array.
 
 
 Further Code Reorganization in Core and Eval
 --------------------------------------------
 
-Core object like BaseElement and possibly Symbol, although no doubt there are others are too "fat". They have too many custom methods that are not applicable for most of the subclasses support.
-It is likely another pass will be made over this.
+Core object like ``BaseElement`` and possibly ``Symbol``, (and
+probably others) are too "fat": they have too many custom methods that
+are not applicable for most of the subclasses support.  It is likely
+another pass will be made over this.
 
-We have started moving "eval" code out of the "eval" menthods and into its own
+We have started moving "eval" code out of the "eval" methods and into its own module.
 
 Mathics3 Module Enhancement
 ---------------------------
 
-While we have put in quite a bit of effort to get these to be 6.0.0 compliant. There is still more work to do, and numerous bugs there.
-Refactoring code to generate Graphs in pymathics.graph might happen. Porting the pymathics.graph code to use NetworkX 3.0 would be nice.
-Pymathics.natlang could also use a look over in terms of the libraries we are using.
+While we have put in quite a bit of effort to get these to be 6.0.0 compliant. There is still more work to do, and there are numerous bugs there.
+Refactoring code to generate Graphs in ``pymathics.graph`` might happen. Porting the ``pymathics.graph`` code to use NetworkX 3.0 would be nice;
+``pymathics.natlang`` could also use a look over in terms of the libraries we are using.
 
 Python upgrades
 ---------------
 
-After Mathics3 Version 6.0.0, Python 3.6 wll be dropped and possibly 3.7. Changes are needed to support 3.11 so we will be focusing on 3.8 to 3.11.
+After Mathics3 Version 6.0.0, Python 3.6 will be dropped and possibly 3.7. Changes are needed to support 3.11 so we will be focusing on 3.8 to 3.11.
 
-We have gradually been using a more modern Python programming style and idioms: more type annotation, use of isort (sort imports), black (code formatting),
-and flake8 (lint checking).
+We have gradually been using a more modern Python programming style
+and idioms: more type annotation, use of ``isort`` (order Python
+imports), ``black`` (code formatting), and ``flake8`` (Python lint
+checking).
 
 
 Deferred
@@ -165,11 +171,11 @@ The current home-grown documentation should be replaced with Sphynx and autodoc.
 Compilation
 -----------
 
-Complation is a rather unsophisticated process by trying to speed up Python code using llvmlite. The gains here will always be small compared the kinds of gains a compiler can get. However in order to even be able to contemplate writing a compiler (let alone say a JIT compiler), the code base needs to be made to work more like a traditional interpreter. Some work will be needed just to be able or create a sequence of instructions to run.
+Compilation is a rather unsophisticated process by trying to speed up Python code using llvmlite. The gains here will always be small compared the kinds of gains a compiler can get. However in order to even be able to contemplate writing a compiler (let alone say a JIT compiler), the code base needs to be made to work more like a traditional interpreter. Some work will be needed just to be able or create a sequence of instructions to run.
 
-Right now the interpreter is strictly a tree interperter.
+Right now the interpreter is strictly a tree interpreter.
 
-Simpiler Things
+Simpler Things
 ---------------
 
 There have been a number of things that have been deferred:
