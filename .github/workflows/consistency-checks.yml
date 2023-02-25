@@ -1,4 +1,4 @@
-name: Mathics (Consistency Checks)
+name: Mathics3 (Consistency Checks)
 
 on:
   push:

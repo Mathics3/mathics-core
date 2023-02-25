@@ -1,4 +1,4 @@
-name: Mathics (ubuntu full with Cython)
+name: Mathics3 (ubuntu full with Cython)
 
 on:
   push:
