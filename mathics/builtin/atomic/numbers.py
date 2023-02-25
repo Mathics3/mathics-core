@@ -917,7 +917,7 @@ class Precision(Builtin):
       <dt>'Precision[$expr$]'
       <dd>examines the number of significant digits of $expr$.
     </dl>
-    <i>Notice that the result could be slighly different than the obtained\
+    <i>Note that the result could be slightly different than the obtained \
     in WMA, due to differencs in the internal representation of the real numbers.</i>
 
     The precision of an exact number, e.g. an Integer, is 'Infinity':

@@ -180,7 +180,7 @@ class None_(Predefined):
     :Mesh:
     /doc/reference-of-built-in-symbols/drawing-option-and-values/mesh</url> option.
 
-    However, you hide the mesh by setting thes 'Mesh' option value to 'None':
+    However, you hide the mesh by setting the 'Mesh' option value to 'None':
 
     >> Plot3D[{x^2 + y^2, -x^2 - y^2}, {x, -2, 2}, {y, -2, 2}, BoxRatios-> Automatic, Mesh->None]
      = -Graphics3D-
