@@ -10,7 +10,7 @@ Progress from 2022
 
 A fair bit of code refactoring has gone on so that we might be able to
 scale the code, get it to be more performant, and more in line with
-other interpreters.
+other interpreters. There is Greater use of Symbols as opposed to strings.
 
 The buitin Functions have been organized into grouping akind to what is found in WMA.
 This is not just for documentation purposes, but it better modularizes the code and keep
@@ -21,7 +21,7 @@ Image Routines have been gone over.
 A number of Built-in functions that were implemented were not accessible for various reasons.
 
 Mathics3 Modules are better integrated into the documentation.
-Existing Mathics3 modules pymathics.graph and pymathics.natlang have
+Existing Mathics3 modules ``pymathics.graph`` and ``pymathics.natlang`` have
 had a major overhaul, although more is needed. And will continue after th 6.0.0 release
 
 We have gradually been rolling in more Python type annotations and

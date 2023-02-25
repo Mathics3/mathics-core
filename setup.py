@@ -40,7 +40,7 @@ is_PyPy = platform.python_implementation() == "PyPy" or hasattr(
 )
 
 INSTALL_REQUIRES = [
-    "Mathics-Scanner >= 1.3.0.dev0",
+    "Mathics-Scanner >= 1.3.0",
     # Pillow 9.1.0 supports BigTIFF with big-endian byte order.
     # ExampleData image hedy.tif is in this format.
     # Pillow 9.2 handles sunflowers.jpg
