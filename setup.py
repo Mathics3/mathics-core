@@ -63,7 +63,12 @@ elif sys.version_info[:2] == (3, 6):
         print("Mathics does not support PyPy Python 3.6" % sys.version_info[:2])
         sys.exit(-1)
 else:
-    INSTALL_REQUIRES += ["numpy<=1.24", "llvmlite", "sympy>=1.8, < 1.12"]
+    INSTALL_REQUIRES += [
+        "numpy<=1.24",
+        "llvmlite",
+        "sympy>=1.8, < 1.12",
+        "pillow >= 9.2",
+    ]
 
 # if not is_PyPy:
 #     INSTALL_REQUIRES += ["recordclass"]
