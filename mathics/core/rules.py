@@ -3,8 +3,9 @@
 
 from inspect import signature
 from itertools import chain
+from typing import Callable, Optional
 
-from mathics.core.element import KeyComparable
+from mathics.core.element import BaseElement, KeyComparable
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.pattern import Pattern, StopGenerator
@@ -38,12 +39,17 @@ class BaseRule(KeyComparable):
 
     """
 
-    def __init__(self, pattern, system=False) -> None:
+    def __init__(self, pattern: BaseElement, system: bool = False) -> None:
         self.pattern = Pattern.create(pattern)
         self.system = system
 
     def apply(
-        self, expression, evaluation, fully=True, return_list=False, max_list=None
+        self,
+        expression: BaseElement,
+        evaluation: Evaluation,
+        fully: bool = True,
+        return_list: bool = False,
+        max_list: Optional[int] = None,
     ):
         result_list = []
         # count = 0
@@ -134,11 +140,15 @@ class Rule(BaseRule):
     ``G[1.^2, a^2]``
     """
 
-    def __init__(self, pattern, replace, system=False) -> None:
+    def __init__(
+        self, pattern: BaseElement, replace: BaseElement, system: bool = False
+    ) -> None:
         super(Rule, self).__init__(pattern, system=system)
         self.replace = replace
 
-    def do_replace(self, expression, vars, options: dict, evaluation: Evaluation):
+    def do_replace(
+        self, expression: BaseElement, vars: dict, options: dict, evaluation: Evaluation
+    ):
         new = self.replace.replace_vars(vars)
         new.options = options
 
@@ -201,7 +211,14 @@ class BuiltinRule(BaseRule):
     This will cause `Expression.evalate() to perform an additional ``rewrite_apply_eval()`` step.
     """
 
-    def __init__(self, name, pattern, function, check_options, system=False) -> None:
+    def __init__(
+        self,
+        name: str,
+        pattern: BaseElement,
+        function: Callable,
+        check_options: Callable,
+        system: bool = False,
+    ) -> None:
         super(BuiltinRule, self).__init__(pattern, system=system)
         self.name = name
         self.function = function
@@ -210,7 +227,9 @@ class BuiltinRule(BaseRule):
 
     # If you update this, you must also update traced_do_replace
     # (that's in the same file TraceBuiltins is)
-    def do_replace(self, expression, vars, options: dict, evaluation: Evaluation):
+    def do_replace(
+        self, expression: BaseElement, vars: dict, options: dict, evaluation: Evaluation
+    ):
         if options and self.check_options:
             if not self.check_options(options, evaluation):
                 return None

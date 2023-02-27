@@ -3,7 +3,7 @@
 # -*- coding: utf-8 -*-
 
 from itertools import chain
-from typing import Optional
+from typing import Callable, List, Optional, Tuple
 
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_ORDERLESS
@@ -75,6 +75,25 @@ class Pattern:
     When the pattern matches, the symbol is bound to the parameter ``x``.
     """
 
+    # TODO: In WMA, when a Pattern is created, the attributes
+    # from the head are read from the evaluation context and
+    # stored as a part of a rule.
+    #
+    # As Patterns are nested structures, the factory not only needs
+    # the attributes of the head, but also the full evaluation context
+    # which is needed to create patterns for its elements.
+    #
+    # Also, when the initial Definitions object for the evaluation
+    # context is created, many rules must be created without an
+    # evaluation context available. For that case, we still
+    # must be able to create Patten objects without the evaluation context.
+    #
+    # In any case, just by caching the attributes in the first use of
+    # the pattern there is a win ~5% in performance.
+    #
+    # A better implementation would take into account the attributes
+    # to specialize the match method.
+
     @staticmethod
     def create(expr: BaseElement) -> "Pattern":
         """
@@ -94,23 +113,28 @@ class Pattern:
 
     def match(
         self,
-        yield_func,
-        expression,
-        vars,
-        evaluation,
-        head=None,
-        element_index=None,
-        element_count=None,
-        fully=True,
+        yield_func: Callable,
+        expression: BaseElement,
+        vars: dict,
+        evaluation: Evaluation,
+        head: Symbol = None,
+        element_index: int = None,
+        element_count: int = None,
+        fully: bool = True,
     ):
         """
         Check if the expression matches the pattern (self).
         If it does, calls `yield_func`.
-        vars collects subexpressions associated to subpatterns.
-        head ?
-        element_index ?
-        element_count ?
-        fully is used in match_elements, for the case of Orderless patterns.
+        vars collects subexpressions associated to named subpatterns.
+        head: Symbol. Provided by match_element, used by `Optional`.
+        element_index: int  the position
+        element_count: int and the number of optional elements. Used by `Optional`
+        for calling `get_default_value`.
+
+        Note: this complexity would disappear if Defaults would be stored as in WMA
+        at the creation time of the object.
+
+        fully is used in `match_element`, for the case of Orderless patterns.
         """
         raise NotImplementedError
 
@@ -147,7 +171,7 @@ class Pattern:
     def get_head_name(self):
         return self.expr.get_head_name()
 
-    def sameQ(self, other) -> bool:
+    def sameQ(self, other: BaseElement) -> bool:
         """Mathics SameQ"""
         return self.expr.sameQ(other.expr)
 
@@ -157,7 +181,7 @@ class Pattern:
     def get_elements(self):
         return self.expr.get_elements()
 
-    def get_sort_key(self, pattern_sort=False) -> tuple:
+    def get_sort_key(self, pattern_sort: bool = False) -> tuple:
         return self.expr.get_sort_key(pattern_sort=pattern_sort)
 
     def get_lookup_name(self):
@@ -176,12 +200,22 @@ class Pattern:
         return self.expr.has_form(*args)
 
     def get_match_candidates(
-        self, elements, expression, attributes, evaluation, vars={}
+        self,
+        elements: Tuple[BaseElement],
+        expression: BaseElement,
+        attributes: int,
+        evaluation: Evaluation,
+        vars: dict = {},
     ):
         return []
 
     def get_match_candidates_count(
-        self, elements, expression, attributes, evaluation, vars={}
+        self,
+        elements: Tuple[BaseElement],
+        expression: BaseElement,
+        attributes: int,
+        evaluation: Evaluation,
+        vars: dict = {},
     ):
         return len(
             self.get_match_candidates(
@@ -191,7 +225,7 @@ class Pattern:
 
 
 class AtomPattern(Pattern):
-    def __init__(self, expr):
+    def __init__(self, expr: Atom):
         self.atom = expr
         self.expr = expr
         if isinstance(expr, Symbol):
@@ -222,21 +256,26 @@ class AtomPattern(Pattern):
 
     def match(
         self,
-        yield_func,
-        expression,
-        vars,
-        evaluation,
-        head=None,
-        element_index=None,
-        element_count=None,
-        fully=True,
+        yield_func: Callable,
+        expression: BaseElement,
+        vars: dict,
+        evaluation: Evaluation,
+        head: Optional[Symbol] = None,
+        element_index: Optional[int] = None,
+        element_count: Optional[int] = None,
+        fully: bool = True,
     ):
         if isinstance(expression, Atom) and expression.sameQ(self.atom):
             # yield vars, None
             yield_func(vars, None)
 
     def get_match_candidates(
-        self, elements, expression, attributes, evaluation, vars={}
+        self,
+        elements: Tuple[BaseElement],
+        expression: BaseElement,
+        attributes: int,
+        evaluation: Evaluation,
+        vars: dict = {},
     ):
         return [
             element
@@ -244,7 +283,7 @@ class AtomPattern(Pattern):
             if (isinstance(element, Atom) and element.sameQ(self.atom))
         ]
 
-    def get_match_count(self, vars={}):
+    def get_match_count(self, vars: dict = {}):
         return (1, 1)
 
 
@@ -258,14 +297,14 @@ class ExpressionPattern(Pattern):
 
     def match(
         self,
-        yield_func,
-        expression,
-        vars,
-        evaluation,
-        head=None,
-        element_index=None,
-        element_count=None,
-        fully=True,
+        yield_func: Callable,
+        expression: BaseElement,
+        vars: dict,
+        evaluation: Evaluation,
+        head: Optional[Symbol] = None,
+        element_index: Optional[int] = None,
+        element_count: Optional[int] = None,
+        fully: bool = True,
     ):
         evaluation.check_stopped()
         attributes = self.head.get_attributes(evaluation.definitions)
@@ -443,7 +482,13 @@ class ExpressionPattern(Pattern):
                 fully=fully,
             )
 
-    def get_pre_choices(self, yield_choice, expression, attributes, vars):
+    def get_pre_choices(
+        self,
+        yield_choice: Callable,
+        expression: BaseElement,
+        attributes: int,
+        vars: dict,
+    ):
         """
         If not Orderless, call yield_choice with vars as the parameter.
         """
@@ -474,7 +519,7 @@ class ExpressionPattern(Pattern):
             for element in expression.elements:
                 expr_groups[element] = expr_groups.get(element, 0) + 1
 
-            def per_name(yield_name, groups, vars):
+            def per_name(yield_name: Callable, groups: Tuple, vars: dict):
                 """
                 Yields possible variable settings (dictionaries) for the
                 remaining pattern groups
@@ -544,12 +589,12 @@ class ExpressionPattern(Pattern):
         else:
             yield_choice(vars)
 
-    def __init__(self, expr):
+    def __init__(self, expr: Expression):
         self.head = Pattern.create(expr.head)
         self.elements = [Pattern.create(element) for element in expr.elements]
         self.expr = expr
 
-    def filter_elements(self, head_name):
+    def filter_elements(self, head_name: str):
         head_name = ensure_context(head_name)
         return [
             element for element in self.elements if element.get_head_name() == head_name
@@ -558,17 +603,17 @@ class ExpressionPattern(Pattern):
     def __repr__(self):
         return "<ExpressionPattern: %s>" % self.expr
 
-    def get_match_count(self, vars={}):
+    def get_match_count(self, vars: dict = {}):
         return (1, 1)
 
     def get_wrappings(
         self,
-        yield_func,
-        items,
-        max_count,
-        expression,
-        attributes,
-        include_flattened=True,
+        yield_func: Callable,
+        items: Tuple,
+        max_count: Optional[int],
+        expression: Expression,
+        attributes: int,
+        include_flattened: bool = True,
     ):
         if len(items) == 1:
             yield_func(items[0])
@@ -588,19 +633,19 @@ class ExpressionPattern(Pattern):
 
     def match_element(
         self,
-        yield_func,
-        element,
-        rest_elements,
-        rest_expression,
-        vars,
-        expression,
-        attributes,
-        evaluation,
-        element_index=1,
-        element_count=None,
-        first=False,
-        fully=True,
-        depth=1,
+        yield_func: Callable,
+        element: BaseElement,
+        rest_elements: Tuple,
+        rest_expression: Tuple[List, List],
+        vars: dict,
+        expression: BaseElement,
+        attributes: int,
+        evaluation: Evaluation,
+        element_index: int = 1,
+        element_count: Optional[int] = None,
+        first: bool = False,
+        fully: bool = True,
+        depth: int = 1,
     ):
 
         if rest_expression is None:
@@ -764,7 +809,12 @@ class ExpressionPattern(Pattern):
             )
 
     def get_match_candidates(
-        self, elements, expression, attributes, evaluation, vars={}
+        self,
+        elements: Tuple[BaseElement],
+        expression: BaseElement,
+        attributes: int,
+        evaluation: Evaluation,
+        vars: dict = {},
     ):
         """
         Finds possible elements that could match the pattern, ignoring future
@@ -780,7 +830,12 @@ class ExpressionPattern(Pattern):
         ]
 
     def get_match_candidates_count(
-        self, elements, expression, attributes, evaluation, vars={}
+        self,
+        elements: Tuple[BaseElement],
+        expression: BaseElement,
+        attributes: int,
+        evaluation: Evaluation,
+        vars: dict = {},
     ):
         """
         Finds possible elements that could match the pattern, ignoring future
