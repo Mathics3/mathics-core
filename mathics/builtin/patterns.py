@@ -41,7 +41,7 @@ The attributes 'Flat', 'Orderless', and 'OneIdentity' affect pattern matching.
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.rules-and-patterns"
 
-from typing import Optional as OptionalType
+from typing import List, Optional as OptionalType, Tuple
 
 from mathics.builtin.base import (
     AtomBuiltin,
@@ -59,7 +59,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_SEQUENCE_HOLD,
 )
-from mathics.core.element import EvalMixin
+from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Expression, SymbolVerbatim
@@ -127,7 +127,20 @@ class RuleDelayed(BinaryOperator):
     summary_text = "a rule that keeps the replacement unevaluated"
 
 
-def create_rules(rules_expr, expr, name, evaluation, extra_args=[]):
+# TODO: reformulate and disentangle this evil spawn.
+def create_rules(
+    rules_expr: BaseElement,
+    expr: BaseElement,
+    name: str,
+    evaluation: Evaluation,
+    extra_args: List = [],
+) -> Tuple[BaseElement, bool]:
+    """
+    Create rules from rules_expr, applyies to expr. If rules_expr is a
+    List of List of rules, then produce a list of results for each set of rules.
+    Returns a tuple. The first element is the result, and the second is a boolean telling to the caller if the result must be return directly,
+    or used as a set of rules.
+    """
     if isinstance(rules_expr, Dispatch):
         return rules_expr.rules, False
     elif rules_expr.has_form("Dispatch", None):
@@ -527,7 +540,9 @@ class PatternTest(BinaryOperator, PatternObject):
     precedence = 680
     summary_text = "match to a pattern conditioned to a test result"
 
-    def init(self, expr, evaluation: OptionalType[Evaluation] = None):
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
         super(PatternTest, self).init(expr, evaluation=evaluation)
         # This class has an important effect in the general performance,
         # since all the rules that requires specify the type of patterns
@@ -747,7 +762,9 @@ class Alternatives(BinaryOperator, PatternObject):
     precedence = 160
     summary_text = "match to any of several patterns"
 
-    def init(self, expr, evaluation: OptionalType[Evaluation] = None):
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
         super(Alternatives, self).init(expr, evaluation=evaluation)
         self.alternatives = [
             Pattern.create(element, evaluation=evaluation) for element in expr.elements
@@ -810,7 +827,9 @@ class Except(PatternObject):
     arg_counts = [1, 2]
     summary_text = "match to expressions that do not match with a pattern"
 
-    def init(self, expr, evaluation: OptionalType[Evaluation] = None):
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
         super(Except, self).init(expr, evaluation=evaluation)
         self.c = Pattern.create(expr.elements[0])
         if len(expr.elements) == 2:
@@ -856,7 +875,9 @@ class Verbatim(PatternObject):
     arg_counts = [1, 2]
     summary_text = "take the pattern elements as literals"
 
-    def init(self, expr, evaluation: OptionalType[Evaluation] = None):
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
         super(Verbatim, self).init(expr, evaluation=evaluation)
         self.content = expr.elements[0]
 
@@ -890,7 +911,9 @@ class HoldPattern(PatternObject):
     attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "took the expression as a literal pattern"
 
-    def init(self, expr, evaluation: OptionalType[Evaluation] = None):
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
         super(HoldPattern, self).init(expr, evaluation=evaluation)
         self.pattern = Pattern.create(expr.elements[0], evaluation=evaluation)
 
@@ -969,7 +992,9 @@ class Pattern_(PatternObject):
     }
     summary_text = "a named pattern"
 
-    def init(self, expr, evaluation: OptionalType[Evaluation] = None):
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
         if len(expr.elements) != 2:
             self.error("patvar", expr)
         varname = expr.elements[0].get_name()
@@ -1083,7 +1108,9 @@ class Optional(BinaryOperator, PatternObject):
     precedence = 140
     summary_text = "an optional argument with a default value"
 
-    def init(self, expr, evaluation: OptionalType[Evaluation] = None):
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
         super(Optional, self).init(expr, evaluation=evaluation)
         self.pattern = Pattern.create(expr.elements[0], evaluation=evaluation)
         if len(expr.elements) == 2:
@@ -1152,7 +1179,9 @@ def get_default_value(name, evaluation, k=None, n=None):
 class _Blank(PatternObject):
     arg_counts = [0, 1]
 
-    def init(self, expr, evaluation: OptionalType[Evaluation] = None):
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
         super(_Blank, self).init(expr, evaluation=evaluation)
         if expr.elements:
             self.head = expr.elements[0]
@@ -1452,7 +1481,9 @@ class RepeatedNull(Repeated):
     precedence = 170
     summary_text = "match to zero or more occurrences of a pattern"
 
-    def init(self, expr: Expression, evaluation: OptionalType[Evaluation] = None):
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
         super(RepeatedNull, self).init(expr, min=0, evaluation=evaluation)
 
 
@@ -1618,7 +1649,9 @@ class OptionsPattern(PatternObject):
     arg_counts = [0, 1]
     summary_text = "a sequence of optional named arguments"
 
-    def init(self, expr, evaluation: OptionalType[Evaluation] = None):
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
         super(OptionsPattern, self).init(expr, evaluation=evaluation)
         try:
             self.defaults = expr.elements[0]
