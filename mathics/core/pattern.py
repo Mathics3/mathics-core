@@ -272,6 +272,7 @@ class ExpressionPattern(Pattern):
         if self.attributes is None:
             self.attributes = self.head.get_attributes(evaluation.definitions)
         attributes = self.attributes
+
         if not A_FLAT & attributes:
             fully = True
         if not isinstance(expression, Atom):
