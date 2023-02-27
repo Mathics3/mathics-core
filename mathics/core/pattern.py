@@ -76,21 +76,20 @@ class Pattern:
     """
 
     @staticmethod
-    def create(expr: BaseElement) -> "Pattern":
+    def create(expr: BaseElement, evaluation: Optional[Evaluation] = None) -> "Pattern":
         """
         If ``expr`` is listed in ``pattern_object``  return the pattern found there.
         Otherwise, if ``expr`` is an ``Atom``, create and return  ``AtomPattern`` for ``expr``.
         Otherwise, create and return and ``ExpressionPattern`` for ``expr``.
         """
-
         name = expr.get_head_name()
         pattern_object = pattern_objects.get(name)
         if pattern_object is not None:
-            return pattern_object(expr)
+            return pattern_object(expr, evaluation=evaluation)
         if isinstance(expr, Atom):
-            return AtomPattern(expr)
+            return AtomPattern(expr, evaluation)
         else:
-            return ExpressionPattern(expr)
+            return ExpressionPattern(expr, evaluation)
 
     def match(
         self,
@@ -191,7 +190,9 @@ class Pattern:
 
 
 class AtomPattern(Pattern):
-    def __init__(self, expr):
+    def __init__(
+        self, expr: Expression, evaluation: Optional[Evaluation] = None
+    ) -> None:
         self.atom = expr
         self.expr = expr
         if isinstance(expr, Symbol):
@@ -268,7 +269,9 @@ class ExpressionPattern(Pattern):
         fully=True,
     ):
         evaluation.check_stopped()
-        attributes = self.head.get_attributes(evaluation.definitions)
+        if self.attributes is None:
+            self.attributes = self.head.get_attributes(evaluation.definitions)
+        attributes = self.attributes
         if not A_FLAT & attributes:
             fully = True
         if not isinstance(expression, Atom):
@@ -544,8 +547,12 @@ class ExpressionPattern(Pattern):
         else:
             yield_choice(vars)
 
-    def __init__(self, expr):
-        self.head = Pattern.create(expr.head)
+    def __init__(self, expr: Expression, evaluation: Optional[Evaluation] = None):
+        head = expr.head
+        self.attributes = (
+            None if evaluation is None else head.get_attributes(evaluation.definition)
+        )
+        self.head = Pattern.create(head)
         self.elements = [Pattern.create(element) for element in expr.elements]
         self.expr = expr
 

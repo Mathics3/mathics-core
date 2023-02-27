@@ -3,6 +3,7 @@
 
 from inspect import signature
 from itertools import chain
+from typing import Callable, Optional
 
 from mathics.core.element import KeyComparable
 from mathics.core.evaluation import Evaluation
@@ -38,8 +39,13 @@ class BaseRule(KeyComparable):
 
     """
 
-    def __init__(self, pattern, system=False) -> None:
-        self.pattern = Pattern.create(pattern)
+    def __init__(
+        self,
+        pattern: Expression,
+        system: bool = False,
+        evaluation: Optional[Evaluation] = None,
+    ) -> None:
+        self.pattern = Pattern.create(pattern, evaluation=evaluation)
         self.system = system
 
     def apply(
@@ -134,8 +140,14 @@ class Rule(BaseRule):
     ``G[1.^2, a^2]``
     """
 
-    def __init__(self, pattern, replace, system=False) -> None:
-        super(Rule, self).__init__(pattern, system=system)
+    def __init__(
+        self,
+        pattern: Expression,
+        replace: Expression,
+        system=False,
+        evaluation: Optional[Evaluation] = None,
+    ) -> None:
+        super(Rule, self).__init__(pattern, system=system, evaluation=evaluation)
         self.replace = replace
 
     def do_replace(self, expression, vars, options: dict, evaluation: Evaluation):
@@ -201,8 +213,16 @@ class BuiltinRule(BaseRule):
     This will cause `Expression.evalate() to perform an additional ``rewrite_apply_eval()`` step.
     """
 
-    def __init__(self, name, pattern, function, check_options, system=False) -> None:
-        super(BuiltinRule, self).__init__(pattern, system=system)
+    def __init__(
+        self,
+        name: str,
+        pattern: Expression,
+        function: Callable,
+        check_options: Callable,
+        system: bool = False,
+        evaluation: Optional[Evaluation] = None,
+    ) -> None:
+        super(BuiltinRule, self).__init__(pattern, system=system, evaluation=evaluation)
         self.name = name
         self.function = function
         self.check_options = check_options

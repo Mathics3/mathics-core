@@ -24,6 +24,7 @@ from mathics.core.convert.op import ascii_operator_to_symbol
 from mathics.core.convert.python import from_bool
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import Definition
+from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression, SymbolDefault
 from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
@@ -932,14 +933,16 @@ class PatternObject(BuiltinElement, Pattern):
 
     arg_counts: List[int] = []
 
-    def init(self, expr):
-        super().init(expr)
+    def init(self, expr, evaluation: Optional[Evaluation] = None):
+        super().init(expr, evaluation=evaluation)
         if self.arg_counts is not None:
             if len(expr.elements) not in self.arg_counts:
                 self.error_args(len(expr.elements), *self.arg_counts)
         self.expr = expr
-        self.head = Pattern.create(expr.head)
-        self.elements = [Pattern.create(element) for element in expr.elements]
+        self.head = Pattern.create(expr.head, evaluation=evaluation)
+        self.elements = [
+            Pattern.create(element, evaluation=evaluation) for element in expr.elements
+        ]
 
     def error(self, tag, *args):
         raise PatternError(self.get_name(), tag, *args)
