@@ -1,4 +1,3 @@
-
 (* :Title: Combinatorica
 *)
 (* :Author:
@@ -629,7 +628,7 @@ RankPermutation[p_?PermutationQ] := (p[[1]]-1) (Length[Rest[p]]!) +
 	RankPermutation[ Map[(If[#>p[[1]], #-1, #])&, Rest[p]] ]
 
 NthPermutation[n1_Integer,l_List] :=
-	Module[{k, n=n1, s=l, i},
+	Block[{k, n=n1, s=l, i},
 		Table[
 			n = Mod[n,(i+1)!];
 			k = s [[Quotient[n,i!]+1]];
@@ -644,6 +643,12 @@ NextPermutation[p_?PermutationQ] :=
 
 (* Section 1.1.3 RandomPermutations, Pages 6-7 *)
 
+(*** FIXME:
+  ListPlot[ RandomPermutation1[30]]
+shows that RandomPermutaiton1 isn't good. Therefore we use RandomPermutation2
+for RandomPermutation.
+ ****)
+
 RandomPermutation1[n_Integer?Positive] :=
 	Map[ Last, Sort[ Map[({RandomInteger[],#})&,Range[n]] ] ]
 
@@ -657,7 +662,8 @@ RandomPermutation2[n_Integer?Positive] :=
 		p
 	]
 
-RandomPermutation[n_Integer?Positive] := RandomPermutation1[n]
+(* rocky: RandomPermutation1 not random, so use RandomPermutation2 *)
+RandomPermutation[n_Integer?Positive] := RandomPermutation2[n]
 
 (* Section 1.1.4 Permutation from Transpostions, Page 11 *)
 MinimumChangePermutations[l_List] :=
