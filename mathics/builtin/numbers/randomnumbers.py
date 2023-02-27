@@ -101,43 +101,6 @@ class RandomEnv(_RandomEnvBase):
         return numpy.random.choice(n, size=size, replace=replace, p=p)
 
 
-class RandomState(Builtin):
-    """
-    <url>:WMA: https://reference.wolfram.com/language/ref/RandomState.html</url>
-    <dl>
-      <dt>'$RandomState'
-      <dd>is a long number representing the internal state of the \
-          pseudo-random number generator.
-    </dl>
-
-    >> Mod[$RandomState, 10^100]
-     = ...
-    >> IntegerLength[$RandomState]
-     = ...
-
-    So far, it is not possible to assign values to '$RandomState'.
-    >> $RandomState = 42
-     : It is not possible to change the random state.
-     = 42
-    Not even to its own value:
-    >> $RandomState = $RandomState;
-     : It is not possible to change the random state.
-    """
-
-    name = "$RandomState"
-    messages = {
-        "rndst": "It is not possible to change the random state.",
-        # "`1` is not a valid random state.",
-    }
-    summary_text = "internal state of the (pseudo)random number generator"
-
-    def eval(self, evaluation):
-        "$RandomState"
-
-        with RandomEnv(evaluation):
-            return Integer(get_random_state())
-
-
 class _RandomBase(Builtin):
     messages = {
         "array": (
@@ -168,16 +131,22 @@ class _RandomBase(Builtin):
 
 
 class _RandomSelection(_RandomBase):
-    # implementation note: weights are clipped to numpy floats. this might be different from MMA
-    # where weights might be handled with full dynamic precision support through the whole computation.
-    # we try to limit the error by normalizing weights with full precision, and then clipping to float.
-    # since weights are probabilities into a finite set, this should not make a difference.
+    # Implementation note: weights are clipped to numpy floats. this
+    # might be different from MMA where weights might be handled with
+    # full dynamic precision support through the whole computation.
+    # we try to limit the error by normalizing weights with full
+    # precision, and then clipping to float.  since weights are
+    # probabilities into a finite set, this should not make a
+    # difference.
 
     messages = {
-        "wghtv": "The weights on the left-hand side of `1` has to be a list of non-negative numbers "
-        + "with the same length as the list of items on the right-hand side.",
-        "lrwl": "`1` has to be a list of items or a rule of the form weights -> choices.",
-        "smplen": "RandomSample cannot choose `1` samples, as this are more samples than there are in `2`. "
+        "wghtv": "The weights on the left-hand side of `1` has to be a list of "
+        "non-negative numbers with the same length as the list of items "
+        "on the right-hand side.",
+        "lrwl": "`1` has to be a list of items or a rule of the form "
+        "weights -> choices.",
+        "smplen": "RandomSample cannot choose `1` samples, as this are more samples "
+        "than there are in `2`. "
         + "Use RandomChoice to choose items from a set with replacing.",
     }
 
@@ -249,7 +218,7 @@ class _RandomSelection(_RandomBase):
 class Random(Builtin):
     """
     <url>
-    :WMA:
+    :WMA link:
     https://reference.wolfram.com/language/ref/Random.html</url>
     <dl>
       <dt>'Random[]'
@@ -280,18 +249,81 @@ class Random(Builtin):
     summary_text = "pick a random number"
 
 
+class RandomChoice(_RandomSelection):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RandomChoice.html</url>
+
+    <dl>
+
+      <dt>'RandomChoice[$items$]'
+      <dd>randomly picks one item from $items$.
+
+      <dt>'RandomChoice[$items$, $n$]'
+      <dd>randomly picks $n$ items from $items$. Each pick in the $n$ picks happens \
+          from the given set of $items$, so each item can be picked any number of times.
+
+      <dt>'RandomChoice[$items$, {$n1$, $n2$, ...}]'
+      <dd>randomly picks items from $items$ and arranges the picked items in the \
+          nested list structure described by {$n1$, $n2$, ...}.
+
+      <dt>'RandomChoice[$weights$ -> $items$, $n$]'
+      <dd>randomly picks $n$ items from $items$ and uses the corresponding numeric \
+          values in $weights$ to determine how probable it is for each item in $items$ \
+          to get picked (in the long run, items with higher weights will get picked \
+          more often than ones with lower weight).
+
+      <dt>'RandomChoice[$weights$ -> $items$]'
+      <dd>randomly picks one items from $items$ using weights $weights$.
+
+      <dt>'RandomChoice[$weights$ -> $items$, {$n1$, $n2$, ...}]'
+      <dd>randomly picks a structured list of items from $items$ using weights \
+          $weights$.
+    </dl>
+
+    Note: 'SeedRandom' is used below so we get repeatable "random" numbers that we \
+    can test.
+
+    >> SeedRandom[42]
+    >> RandomChoice[{a, b, c}]
+     = {c}
+    >> SeedRandom[42] (* Set for repeatable randomness *)
+    >> RandomChoice[{a, b, c}, 20]
+     = {c, a, c, c, a, a, c, b, c, c, c, c, a, c, b, a, b, b, b, b}
+    >> SeedRandom[42]
+    >> RandomChoice[{"a", {1, 2}, x, {}}, 10]
+     = {x, {}, a, x, x, {}, a, a, x, {1, 2}}
+    >> SeedRandom[42]
+    >> RandomChoice[{a, b, c}, {5, 2}]
+     = {{c, a}, {c, c}, {a, a}, {c, b}, {c, c}}
+    >> SeedRandom[42]
+    >> RandomChoice[{1, 100, 5} -> {a, b, c}, 20]
+     = {b, b, b, b, b, b, b, b, b, b, b, c, b, b, b, b, b, b, b, b}
+    """
+
+    _replace = True
+    summary_text = "pick items randomly from a given list"
+
+
 class RandomComplex(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/RandomComplex.html</url>)
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RandomComplex.html</url>
+
     <dl>
       <dt>'RandomComplex[{$z_min$, $z_max$}]'
-      <dd>yields a pseudorandom complex number in the rectangle with complex corners $z_min$ and $z_max$.
+      <dd>yields a pseudorandom complex number in the rectangle with complex corners \
+          $z_min$ and $z_max$.
 
       <dt>'RandomComplex[$z_max$]'
-      <dd>yields a pseudorandom complex number in the rectangle with corners at the origin and at $z_max$.
+      <dd>yields a pseudorandom complex number in the rectangle with corners at the \
+          origin and at $z_max$.
 
       <dt>'RandomComplex[]'
-      <dd>yields a pseudorandom complex number with real and imaginary parts from 0 to 1.
+      <dd>yields a pseudorandom complex number with real and imaginary parts from 0 \
+          to 1.
 
       <dt>'RandomComplex[$range$, $n$]'
       <dd>gives a list of $n$ pseudorandom complex numbers.
@@ -407,7 +439,9 @@ class RandomComplex(Builtin):
 
 class RandomInteger(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/RandomInteger.html</url>)
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RandomInteger.html</url>
     <dl>
       <dt>'RandomInteger[{$min$, $max$}]'
       <dd>yields a pseudorandom integer in the range from $min$ to \
@@ -485,7 +519,10 @@ class RandomInteger(Builtin):
 
 class RandomReal(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/RandomReal.html</url>)
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RandomReal.html</url>
+
     <dl>
       <dt>'RandomReal[{$min$, $max$}]'
       <dd>yields a pseudorandom real number in the range from $min$ to $max$.
@@ -581,9 +618,49 @@ class RandomReal(Builtin):
             )
 
 
+class RandomState(Builtin):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/RandomState.html</url>
+    <dl>
+      <dt>'$RandomState'
+      <dd>is a long number representing the internal state of the \
+          pseudo-random number generator.
+    </dl>
+
+    >> Mod[$RandomState, 10^100]
+     = ...
+    >> IntegerLength[$RandomState]
+     = ...
+
+    So far, it is not possible to assign values to '$RandomState'.
+    >> $RandomState = 42
+     : It is not possible to change the random state.
+     = 42
+    Not even to its own value:
+    >> $RandomState = $RandomState;
+     : It is not possible to change the random state.
+    """
+
+    name = "$RandomState"
+    messages = {
+        "rndst": "It is not possible to change the random state.",
+        # "`1` is not a valid random state.",
+    }
+    summary_text = "internal state of the (pseudo)random number generator"
+
+    def eval(self, evaluation):
+        "$RandomState"
+
+        with RandomEnv(evaluation):
+            return Integer(get_random_state())
+
+
 class SeedRandom(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/SeedRandom.html</url>)
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/SeedRandom.html</url>
     <dl>
       <dt>'SeedRandom[$n$]'
       <dd>resets the pseudorandom generator with seed $n$.
@@ -651,94 +728,39 @@ class SeedRandom(Builtin):
         return SymbolNull
 
 
-# If numpy is not in the system, the following classes are going to be redefined as None. flake8 complains about this.
-# What should happen here is that, or the classes be defined just if numpy is there, or to use a fallback native
-# implementation.
-
-
-class RandomChoice(_RandomSelection):
-    """
-    <url>:WMA: https://reference.wolfram.com/language/ref/RandomChoice.html</url>
-
-    <dl>
-
-      <dt>'RandomChoice[$items$]'
-      <dd>randomly picks one item from $items$.
-
-      <dt>'RandomChoice[$items$, $n$]'
-      <dd>randomly picks $n$ items from $items$. Each pick in the $n$ picks happens from the \
-        given set of $items$, so each item can be picked any number of times.
-
-      <dt>'RandomChoice[$items$, {$n1$, $n2$, ...}]'
-      <dd>randomly picks items from $items$ and arranges the picked items in the nested list \
-        structure described by {$n1$, $n2$, ...}.
-
-      <dt>'RandomChoice[$weights$ -> $items$, $n$]'
-      <dd>randomly picks $n$ items from $items$ and uses the corresponding numeric values in \
-        $weights$ to determine how probable it is for each item in $items$ to get picked (in the \
-        long run, items with higher weights will get picked more often than ones with lower weight).
-
-      <dt>'RandomChoice[$weights$ -> $items$]'
-      <dd>randomly picks one items from $items$ using weights $weights$.
-
-      <dt>'RandomChoice[$weights$ -> $items$, {$n1$, $n2$, ...}]'
-      <dd>randomly picks a structured list of items from $items$ using weights $weights$.
-    </dl>
-
-    Note: 'SeedRandom' is used below so we get repeatable "random" numbers that we can test.
-
-    >> SeedRandom[42]
-    >> RandomChoice[{a, b, c}]
-     = {c}
-    >> SeedRandom[42] (* Set for repeatable randomness *)
-    >> RandomChoice[{a, b, c}, 20]
-     = {c, a, c, c, a, a, c, b, c, c, c, c, a, c, b, a, b, b, b, b}
-    >> SeedRandom[42]
-    >> RandomChoice[{"a", {1, 2}, x, {}}, 10]
-     = {x, {}, a, x, x, {}, a, a, x, {1, 2}}
-    >> SeedRandom[42]
-    >> RandomChoice[{a, b, c}, {5, 2}]
-     = {{c, a}, {c, c}, {a, a}, {c, b}, {c, c}}
-    >> SeedRandom[42]
-    >> RandomChoice[{1, 100, 5} -> {a, b, c}, 20]
-     = {b, b, b, b, b, b, b, b, b, b, b, c, b, b, b, b, b, b, b, b}
-    """
-
-    _replace = True
-    summary_text = "pick items randomly from a given list"
-
-
 class RandomSample(_RandomSelection):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/RandomSample.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/RandomSample.html</url>
 
     <dl>
       <dt>'RandomSample[$items$]'
       <dd>randomly picks one item from $items$.
 
       <dt>'RandomSample[$items$, $n$]'
-      <dd>randomly picks $n$ items from $items$. Each pick in the $n$ picks happens after the \
-          previous items picked have been removed from $items$, so each item can be picked at most \
-         once.
+      <dd>randomly picks $n$ items from $items$. Each pick in the $n$ picks happens \
+          after the previous items picked have been removed from $items$, so each item \
+          can be picked at most once.
 
       <dt>'RandomSample[$items$, {$n1$, $n2$, ...}]'
-      <dd>randomly picks items from $items$ and arranges the picked items in the nested list \
-          structure described by {$n1$, $n2$, ...}. \
+      <dd>randomly picks items from $items$ and arranges the picked items in the \
+          nested list structure described by {$n1$, $n2$, ...}. \
           Each item gets picked at most once.
 
       <dt>'RandomSample[$weights$ -> $items$, $n$]'
-      <dd>randomly picks $n$ items from $items$ and uses the corresponding numeric values in \
-          $weights$ to determine how probable it is for each item in $items$ to get picked (in the \
-          long run, items with higher weights will get picked more often than ones with lower weight). \
-          Each item gets picked at most once.
+      <dd>randomly picks $n$ items from $items$ and uses the corresponding numeric \
+          values in $weights$ to determine how probable it is for each item in $items$ \
+          to get picked (in the long run, items with higher weights will get \
+          picked more often than ones with lower weight). Each item gets picked at\
+          most once.
 
       <dt>'RandomSample[$weights$ -> $items$]'
       <dd>randomly picks one items from $items$ using weights $weights$. \
           Each item gets picked at most once.
 
       <dt>'RandomSample[$weights$ -> $items$, {$n1$, $n2$, ...}]'
-      <dd>randomly picks a structured list of items from $items$ using weights $weights$. Each \
-          item gets picked at most once.
+      <dd>randomly picks a structured list of items from $items$ using weights $weights$.
+          Each item gets picked at most once.
     </dl>
 
     >> SeedRandom[42]
