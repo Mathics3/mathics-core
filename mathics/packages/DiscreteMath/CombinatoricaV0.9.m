@@ -1233,10 +1233,11 @@ TransposeTableau[tb_List] :=
 
 ShapeOfTableau[t_List] := Map[Length,t]
 
+(* Section 2.3.1 Insertion and Deletion, Page 64 *)
 InsertIntoTableau[e_Integer,{}] := { {e} }
 
 InsertIntoTableau[e_Integer, t1_?TableauQ] :=
-	Module[{item=e,row=0,col,t=t1},
+	Block[{item=e,row=0,col,t=t1},
 		While [row < Length[t],
 			row++;
 			If [Last[t[[row]]] <= item,
