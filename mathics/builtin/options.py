@@ -54,8 +54,8 @@ class All(Predefined):
 
     In <url>
     :Plot:
-    /doc/reference-of-built-in-symbols/graphics-and-drawing/plotting-data/plot</url> \
-    </url>, setting the <url>
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/plotting-data/plot</url>, \
+    setting the <url>
     :Mesh:
     /doc/reference-of-built-in-symbols/drawing-options-and-option-values/mesh</url> \
     option to 'All' will show the specific plot points:
