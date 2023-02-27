@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
 Rules and Patterns
 
@@ -41,7 +40,7 @@ The attributes 'Flat', 'Orderless', and 'OneIdentity' affect pattern matching.
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.rules-and-patterns"
 
-from typing import List, Optional as OptionalType, Tuple
+from typing import Callable, List, Optional as OptionalType, Tuple, Union
 
 from mathics.builtin.base import (
     AtomBuiltin,
@@ -127,19 +126,22 @@ class RuleDelayed(BinaryOperator):
     summary_text = "a rule that keeps the replacement unevaluated"
 
 
-# TODO: reformulate and disentangle this evil spawn.
+# TODO: disentangle me
 def create_rules(
     rules_expr: BaseElement,
-    expr: BaseElement,
+    expr: Expression,
     name: str,
     evaluation: Evaluation,
     extra_args: List = [],
-) -> Tuple[BaseElement, bool]:
+) -> Tuple[Union[List[Rule], BaseElement], bool]:
     """
-    Create rules from rules_expr, applyies to expr. If rules_expr is a
-    List of List of rules, then produce a list of results for each set of rules.
-    Returns a tuple. The first element is the result, and the second is a boolean telling to the caller if the result must be return directly,
-    or used as a set of rules.
+    This function implements  `Replace`, `ReplaceAll`, `ReplaceRepeated` and `ReplaceList` eval methods.
+    `name` controls which of these methods is implemented. These methods applies the rule / list of rules
+    `rules_expr` over the expression `expr`, using the evaluation context `evaluation`.
+
+    The result is a tuple of two elements. If the second element is `True`, then the first element is the result of the method.
+    If `False`, the first element of the tuple is a list of rules.
+
     """
     if isinstance(rules_expr, Dispatch):
         return rules_expr.rules, False
@@ -408,7 +410,13 @@ class ReplaceRepeated(BinaryOperator):
     }
     summary_text = "iteratively replace until the expression does not change anymore"
 
-    def eval_list(self, expr, rules, evaluation, options):
+    def eval_list(
+        self,
+        expr: BaseElement,
+        rules: BaseElement,
+        evaluation: Evaluation,
+        options: dict,
+    ) -> OptionalType[BaseElement]:
         "ReplaceRepeated[expr_, rules_, OptionsPattern[ReplaceRepeated]]"
         try:
             rules, ret = create_rules(rules, expr, "ReplaceRepeated", evaluation)
@@ -483,7 +491,9 @@ class ReplaceList(Builtin):
     }
     summary_text = "list of possible replacement results"
 
-    def eval(self, expr, rules, max, evaluation: Evaluation):
+    def eval(
+        self, expr: BaseElement, rules: BaseElement, max: Number, evaluation: Evaluation
+    ) -> OptionalType[BaseElement]:
         "ReplaceList[expr_, rules_, max_:Infinity]"
 
         if max.get_name() == "System`Infinity":
@@ -1155,7 +1165,12 @@ class Optional(BinaryOperator, PatternObject):
         return (0, 1)
 
 
-def get_default_value(name, evaluation, k=None, n=None):
+def get_default_value(
+    name: str,
+    evaluation: Evaluation,
+    k: OptionalType[int] = None,
+    n: OptionalType[int] = None,
+):
     pos = []
     if k is not None:
         pos.append(k)
@@ -1231,7 +1246,14 @@ class Blank(_Blank):
     }
     summary_text = "match to any single expression"
 
-    def match(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match(
+        self,
+        yield_func: Callable,
+        expression: Expression,
+        vars: dict,
+        evaluation: Evaluation,
+        **kwargs
+    ):
         if not expression.has_form("Sequence", 0):
             if self.head is not None:
                 if expression.get_head().sameQ(self.head):
@@ -1287,7 +1309,14 @@ class BlankSequence(_Blank):
     }
     summary_text = "match to a non-empty sequence of elements"
 
-    def match(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match(
+        self,
+        yield_func: Callable,
+        expression: Expression,
+        vars: dict,
+        evaluation: Evaluation,
+        **kwargs
+    ):
         elements = expression.get_sequence()
         if not elements:
             return
@@ -1344,7 +1373,14 @@ class BlankNullSequence(_Blank):
     }
     summary_text = "match to a sequence of zero or more elements"
 
-    def match(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match(
+        self,
+        yield_func: Callable,
+        expression: Expression,
+        vars: dict,
+        evaluation: Evaluation,
+        **kwargs
+    ):
         elements = expression.get_sequence()
         if self.head:
             ok = True
@@ -1409,7 +1445,6 @@ class Repeated(PostfixOperator, PatternObject):
         evaluation: OptionalType[Evaluation] = None,
     ):
         self.pattern = Pattern.create(expr.elements[0], evaluation=evaluation)
-
         self.max = None
         self.min = min
         if len(expr.elements) == 2:
@@ -1574,7 +1609,14 @@ class Condition(BinaryOperator, PatternObject):
         # else:
         self.pattern = Pattern.create(expr.elements[0], evaluation=evaluation)
 
-    def match(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match(
+        self,
+        yield_func: Callable,
+        expression: Expression,
+        vars: dict,
+        evaluation: Evaluation,
+        **kwargs
+    ):
         # for new_vars, rest in self.pattern.match(expression, vars,
         # evaluation):
         def yield_match(new_vars, rest):
@@ -1660,7 +1702,14 @@ class OptionsPattern(PatternObject):
             # function. Set to not None in self.match
             self.defaults = None
 
-    def match(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match(
+        self,
+        yield_func: Callable,
+        expression: Expression,
+        vars: dict,
+        evaluation: Evaluation,
+        **kwargs
+    ):
         if self.defaults is None:
             self.defaults = kwargs.get("head")
             if self.defaults is None:
@@ -1692,13 +1741,18 @@ class OptionsPattern(PatternObject):
             new_vars["_option_" + name] = value
         yield_func(new_vars, None)
 
-    def get_match_count(self, vars={}):
+    def get_match_count(self, vars: dict = {}):
         return (0, None)
 
     def get_match_candidates(
-        self, elements, expression, attributes, evaluation, vars={}
+        self,
+        elements: Tuple[BaseElement],
+        expression: Expression,
+        attributes: int,
+        evaluation: Evaluation,
+        vars: dict = {},
     ):
-        def _match(element):
+        def _match(element: Expression):
             return element.has_form(("Rule", "RuleDelayed"), 2) or element.has_form(
                 "List", None
             )
@@ -1709,7 +1763,7 @@ class OptionsPattern(PatternObject):
 class Dispatch(Atom):
     class_head_name = "System`Dispatch"
 
-    def __init__(self, rulelist, evaluation: Evaluation):
+    def __init__(self, rulelist: Expression, evaluation: Evaluation) -> None:
         self.src = ListExpression(*rulelist)
         self.rules = [Rule(rule.elements[0], rule.elements[1]) for rule in rulelist]
         self._elements = None
@@ -1724,7 +1778,7 @@ class Dispatch(Atom):
     def __repr__(self):
         return "dispatch"
 
-    def atom_to_boxes(self, f, evaluation: Evaluation):
+    def atom_to_boxes(self, f: Symbol, evaluation: Evaluation):
         from mathics.builtin.box.layout import RowBox
         from mathics.eval.makeboxes import format_element
 
@@ -1762,7 +1816,9 @@ class DispatchAtom(AtomBuiltin):
     def __repr__(self):
         return "dispatchatom"
 
-    def eval_create(self, rules, evaluation: Evaluation):
+    def eval_create(
+        self, rules: ListExpression, evaluation: Evaluation
+    ) -> OptionalType[BaseElement]:
         """Dispatch[rules_List]"""
         # TODO:
         # The next step would be to enlarge this method, in order to
@@ -1806,7 +1862,7 @@ class DispatchAtom(AtomBuiltin):
         except Exception:
             return
 
-    def eval_normal(self, dispatch, evaluation: Evaluation):
+    def eval_normal(self, dispatch: Dispatch, evaluation: Evaluation) -> ListExpression:
         """Normal[dispatch_Dispatch]"""
         if isinstance(dispatch, Dispatch):
             return dispatch.src
