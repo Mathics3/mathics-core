@@ -142,7 +142,7 @@ class Pattern:
         self,
         expression: BaseElement,
         evaluation: Evaluation,
-        vars=Optional[dict],
+        vars: Optional[dict] = None,
         fully: bool = True,
     ) -> bool:
 
