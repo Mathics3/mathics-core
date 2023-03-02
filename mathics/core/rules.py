@@ -39,8 +39,13 @@ class BaseRule(KeyComparable):
 
     """
 
-    def __init__(self, pattern: BaseElement, system: bool = False) -> None:
-        self.pattern = Pattern.create(pattern)
+    def __init__(
+        self,
+        pattern: Expression,
+        system: bool = False,
+        evaluation: Optional[Evaluation] = None,
+    ) -> None:
+        self.pattern = Pattern.create(pattern, evaluation=evaluation)
         self.system = system
 
     def apply(
@@ -141,9 +146,13 @@ class Rule(BaseRule):
     """
 
     def __init__(
-        self, pattern: BaseElement, replace: BaseElement, system: bool = False
+        self,
+        pattern: Expression,
+        replace: Expression,
+        system=False,
+        evaluation: Optional[Evaluation] = None,
     ) -> None:
-        super(Rule, self).__init__(pattern, system=system)
+        super(Rule, self).__init__(pattern, system=system, evaluation=evaluation)
         self.replace = replace
 
     def do_replace(
@@ -214,12 +223,13 @@ class BuiltinRule(BaseRule):
     def __init__(
         self,
         name: str,
-        pattern: BaseElement,
+        pattern: Expression,
         function: Callable,
         check_options: Callable,
         system: bool = False,
+        evaluation: Optional[Evaluation] = None,
     ) -> None:
-        super(BuiltinRule, self).__init__(pattern, system=system)
+        super(BuiltinRule, self).__init__(pattern, system=system, evaluation=evaluation)
         self.name = name
         self.function = function
         self.check_options = check_options

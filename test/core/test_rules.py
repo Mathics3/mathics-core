@@ -105,7 +105,7 @@ def test_orderless_on_rules(str_expr, str_expected, msg):
         ),
         (
             "SetAttributes[Q, {Flat}];\
-          {Q[a,1,b]/.rule, Q[a,1,b]/.ruled}",
+            {Q[a,1,b]/.rule, Q[a,1,b]/.ruled}",
             "{Q[a,1,b], Q[a,1,b]}",
             "2. Set the attribute. Application is not affected.",
         ),
