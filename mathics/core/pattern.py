@@ -83,6 +83,20 @@ class Pattern:
     # the attributes of the head, but also the full evaluation context
     # which is needed to create patterns for its elements.
     #
+    #
+    # For instance,  `rule=Times[c__, Plus[Q[a_],Q[b_]]]->Q[c*(a+b)]`
+    # builds the pattern `Times[c__, Plus[Q[a_],Q[b_]]]`.
+    # The constructor of the pattern then creates recursively
+    #     `c__`
+    #     `Plus[Q[a_],Q[b_]]`
+    #         `Plus`
+    #         `Q[a_]`
+    #           `Q`
+    #           `a_`
+    #         `Q[b_]`
+    #           `Q`
+    #           `b_`
+    #
     # Also, when the initial Definitions object for the evaluation
     # context is created, many rules must be created without an
     # evaluation context available. For that case, we still
@@ -93,6 +107,48 @@ class Pattern:
     #
     # A better implementation would take into account the attributes
     # to specialize the match method.
+    #
+    #
+    # Corner case: `Alternaties`
+    # ==========================
+    #
+    # Notice also that the case of `Alternatives` is a corner case,
+    # where attributes are readed at the moment of the rule application:
+    #
+    # For example, in WMA, let's consider this example
+    # ```
+    #    In[1]:= SetAttributes[P,Orderless];
+    #    In[2]:= rule=Alternatives[P,Q][_Integer,_Symbol]->True;
+    # ```
+    #
+    # At this point, the rule `rule` was created. As the head of the pattern
+    # is an expression, it does not provides special attributes to the pattern.
+    # As expected, the pattern does not match with `Q[a, 1]` because the order of the
+    # parameters:
+    # ```
+    #    In[3]:= Q[a, 1]/.rule
+    #    Out[3]= Q[a, 1]
+    # ```
+    #
+    # On the other hand, it does take into account the attributes of `P`:
+    #
+    # ```
+    #    In[4]:= P[a, 1]/.rule
+    #    Out[4]= True
+    # ```
+    # These attributes are not stored in the rule: if we remove the attribute
+    # ```
+    #    In[5]:= Attributes[P]={};
+    # ```
+    #
+    # the attribute is not used anymore, and the rule application fails:
+    #
+    # ```
+    #    In[6]:= P[a, 1]/.rule
+    #    Out[6]= P[a, 1]
+    # ``
+    #
+    #
 
     @staticmethod
     def create(expr: BaseElement, evaluation: Optional[Evaluation] = None) -> "Pattern":
