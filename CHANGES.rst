@@ -3,6 +3,22 @@
 CHANGES
 =======
 
+6.0.1
+-----
+
+Release to get Pillow 9.2 dependency added for Python 3.7+
+
+Some Pattern-matching code gone over to add type annotations and to start
+documenting its behavior and characteristics. Function
+attributes are now stored at the time of Pattern-object creation
+rather than evaluation. This better matches WMA behavior which pulls
+out attribute this even earler than this.  These changes speed up
+doctest running time by about 7% under Pyston.
+
+Combinatorica version upgraded from 0.9 (circa 1992) to 0.91 (circa 1995) which closer matches the published book.
+
+Random builtin documentation gone over to conform to current documentation style.
+
 6.0.0
 -----
 
