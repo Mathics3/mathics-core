@@ -769,6 +769,7 @@ System`PowerMod
 System`PreDecrement
 System`PreIncrement
 System`Precedence
+System`PrecedenceForm
 System`Precision
 System`Prefix
 System`Prepend
