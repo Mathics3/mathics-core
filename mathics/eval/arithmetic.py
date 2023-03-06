@@ -3,19 +3,25 @@ from typing import Callable, Optional, Tuple
 import mpmath
 import sympy
 
-from mathics.core.atoms import Integer0, Integer1, Integer2, IntegerM1, Number
+from mathics.core.atoms import (
+    Complex,
+    Integer,
+    Integer0,
+    Integer1,
+    Integer2,
+    IntegerM1,
+    Number,
+    Rational,
+    RationalOneHalf,
+    Real,
+)
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
 from mathics.core.expression import Expression
 from mathics.core.number import FP_MANTISA_BINARY_DIGITS, SpecialValueError, min_prec
 from mathics.core.symbols import Symbol, SymbolPlus, SymbolPower, SymbolTimes
-from mathics.core.systemsymbols import (
-    SymbolComplexInfinity,
-    SymbolDirectedInfinity,
-    SymbolIndeterminate,
-    SymbolInfinity,
-)
+from mathics.core.systemsymbols import SymbolComplexInfinity, SymbolDirectedInfinity
 
 
 # @lru_cache(maxsize=4096)
@@ -45,6 +51,42 @@ def call_mpmath(
             return
         except SpecialValueError as exc:
             return Symbol(exc.name)
+
+
+def eval_abs(expr: BaseElement) -> Optional[BaseElement]:
+    """
+    if expr is a number, return the absolute value.
+    """
+    if isinstance(expr, (Integer, Rational, Real)):
+        if expr.value >= 0:
+            return expr
+        return eval_Times(IntegerM1, expr)
+    if isinstance(expr, Complex):
+        re, im = expr.real, expr.imag
+        sqabs = eval_Plus(eval_Times(re, re), eval_Times(im, im))
+        return Expression(SymbolPower, sqabs, RationalOneHalf)
+    return None
+
+
+def eval_sign(expr: BaseElement) -> Optional[BaseElement]:
+    """
+    if expr is a number, return its sign.
+    """
+    if isinstance(expr, (Integer, Rational, Real)):
+        if expr.value > 0:
+            return Integer1
+        elif expr.value == 0:
+            return Integer0
+        else:
+            return IntegerM1
+
+    if isinstance(expr, Complex):
+        re, im = expr.real, expr.imag
+        sqabs = eval_Plus(eval_Times(re, re), eval_Times(im, im))
+        return eval_Times(
+            expr, Expression(SymbolPower, sqabs, eval_Times(IntegerM1, RationalOneHalf))
+        )
+    return None
 
 
 def eval_mpmath_function(
@@ -171,7 +213,9 @@ def eval_Plus(*items: Tuple[BaseElement]) -> BaseElement:
 def eval_Times(*items):
     elements = []
     numbers = []
+    # This variable  tracks DirectInfinity[] factors.
     infinity_factor = False
+
     # These quantities only have sense if there are numeric terms.
     # Also, prec is only needed if is_machine_precision is not True.
     prec = min_prec(*items)
@@ -181,7 +225,10 @@ def eval_Times(*items):
     for item in items:
         if isinstance(item, Number):
             numbers.append(item)
-        elif elements and item == elements[-1]:
+            continue
+        if item.get_head() is SymbolDirectedInfinity:
+            infinity_factor = True
+        if elements and item == elements[-1]:
             elements[-1] = Expression(SymbolPower, elements[-1], Integer2)
         elif (
             elements
@@ -214,16 +261,6 @@ def eval_Times(*items):
                 item,
                 Expression(SymbolPlus, Integer1, elements[-1].elements[1]),
             )
-        elif item.get_head().sameQ(SymbolDirectedInfinity):
-            infinity_factor = True
-            if len(item.elements) > 0:
-                direction = item.elements[0]
-                if isinstance(direction, Number):
-                    numbers.append(direction)
-                else:
-                    elements.append(direction)
-        elif item.sameQ(SymbolInfinity) or item.sameQ(SymbolComplexInfinity):
-            infinity_factor = True
         else:
             elements.append(item)
 
@@ -247,9 +284,9 @@ def eval_Times(*items):
     if number.sameQ(Integer1):
         number = None
     elif number.is_zero:
-        if infinity_factor:
-            return SymbolIndeterminate
-        return number
+        if not infinity_factor:
+            return number
+        # else, they are handled using the DirectedInfinity upvalues rules.
     elif number.sameQ(IntegerM1) and elements and elements[0].has_form("Plus", None):
         elements[0] = Expression(
             elements[0].get_head(),
@@ -264,15 +301,14 @@ def eval_Times(*items):
         elements.insert(0, number)
 
     if not elements:
-        if infinity_factor:
-            return SymbolComplexInfinity
+        # if infinity_factor:
+        #    return SymbolComplexInfinity
         return Integer1
 
     if len(elements) == 1:
         ret = elements[0]
     else:
         ret = Expression(SymbolTimes, *elements)
-    if infinity_factor:
-        return Expression(SymbolDirectedInfinity, ret)
-    else:
-        return ret
+    # if infinity_factor:
+    #    return Expression(SymbolDirectedInfinity, ret)
+    return ret

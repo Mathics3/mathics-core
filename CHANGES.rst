@@ -3,6 +3,25 @@
 CHANGES
 =======
 
+
+API
+---
+
+* ``eval_sign`` and ``eval_abs`` are now in ``mathics.eval.arithmetic``.
+
+Compatibility
+-------------
+
+* ``*Plot`` does not show messages during the evaluation.
+
+
+
+Bugs
+----
+
+* Improved support for ``DirectedInfinity`` and ``Indeterminate``.
+
+
 6.0.1
 -----
 

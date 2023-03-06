@@ -7,7 +7,7 @@ Mathematical Functions
 Basic arithmetic functions, including complex number arithmetic.
 """
 
-from mathics.eval.numerify import numerify
+import sympy
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.mathematical-functions"
@@ -16,7 +16,6 @@ sort_order = "mathics.builtin.mathematical-functions"
 from functools import lru_cache
 
 import mpmath
-import sympy
 
 from mathics.builtin.base import (
     Builtin,
@@ -55,11 +54,9 @@ from mathics.core.number import dps, min_prec
 from mathics.core.symbols import (
     Atom,
     Symbol,
-    SymbolAbs,
     SymbolFalse,
     SymbolList,
     SymbolPlus,
-    SymbolPower,
     SymbolTimes,
     SymbolTrue,
 )
@@ -72,8 +69,11 @@ from mathics.core.systemsymbols import (
     SymbolTable,
     SymbolUndefined,
 )
-from mathics.eval.arithmetic import eval_mpmath_function
+from mathics.eval.arithmetic import eval_abs, eval_mpmath_function, eval_sign
 from mathics.eval.nevaluator import eval_N
+from mathics.eval.numerify import numerify
+
+ExpressionComplexInfinity = Expression(SymbolDirectedInfinity)
 
 
 class _MPMathFunction(SympyFunction):
@@ -207,6 +207,13 @@ class Abs(_MPMathFunction):
     }
     summary_text = "absolute value of a number"
     sympy_name = "Abs"
+
+    def eval(self, x, evaluation):
+        "%(name)s[x_]"
+        result = eval_abs(x)
+        if result is not None:
+            return result
+        return super(Abs, self).eval(x, evaluation)
 
 
 class Arg(_MPMathFunction):
@@ -590,8 +597,7 @@ class DirectedInfinity(SympyFunction):
      = Indeterminate
 
     >> DirectedInfinity[0]
-     : Indeterminate expression 0 Infinity encountered.
-     = Indeterminate
+     = ComplexInfinity
 
     #> DirectedInfinity[1+I]+DirectedInfinity[2+I]
      = (2 / 5 + I / 5) Sqrt[5] Infinity + (1 / 2 + I / 2) Sqrt[2] Infinity
@@ -602,15 +608,12 @@ class DirectedInfinity(SympyFunction):
 
     summary_text = "infinite quantity with a defined direction in the complex plane"
     rules = {
-        "DirectedInfinity[Indeterminate]": "Indeterminate",
         "DirectedInfinity[args___] ^ -1": "0",
-        "0 * DirectedInfinity[args___]": "Message[Infinity::indet, Unevaluated[0 DirectedInfinity[args]]]; Indeterminate",
-        # "DirectedInfinity[a_?NumericQ] /; N[Abs[a]] != 1": "DirectedInfinity[a / Abs[a]]",
-        # "DirectedInfinity[a_] * DirectedInfinity[b_]": "DirectedInfinity[a*b]",
-        # "DirectedInfinity[] * DirectedInfinity[args___]": "DirectedInfinity[]",
-        # Rules already implemented in Times.eval
-        #        "z_?NumberQ * DirectedInfinity[]": "DirectedInfinity[]",
-        #        "z_?NumberQ * DirectedInfinity[a_]": "DirectedInfinity[z * a]",
+        # Special arguments:
+        "DirectedInfinity[DirectedInfinity[args___]]": "DirectedInfinity[args]",
+        "DirectedInfinity[Indeterminate]": "Indeterminate",
+        "DirectedInfinity[Alternatives[0, 0.]]": "DirectedInfinity[]",
+        # Plus
         "DirectedInfinity[a_] + DirectedInfinity[b_] /; b == -a": (
             "Message[Infinity::indet,"
             "  Unevaluated[DirectedInfinity[a] + DirectedInfinity[b]]];"
@@ -622,39 +625,59 @@ class DirectedInfinity(SympyFunction):
             "Indeterminate"
         ),
         "DirectedInfinity[args___] + _?NumberQ": "DirectedInfinity[args]",
-        "DirectedInfinity[0]": (
+        # Times. See if can be reinstalled in eval_Times
+        "Alternatives[0, 0.] DirectedInfinity[z___]": (
             "Message[Infinity::indet,"
-            "  Unevaluated[DirectedInfinity[0]]];"
+            "  Unevaluated[0 DirectedInfinity[z]]];"
             "Indeterminate"
         ),
-        "DirectedInfinity[0.]": (
-            "Message[Infinity::indet,"
-            "  Unevaluated[DirectedInfinity[0.]]];"
-            "Indeterminate"
-        ),
-        "DirectedInfinity[DirectedInfinity[x___]]": "DirectedInfinity[x]",
+        "a_?NumericQ * DirectedInfinity[b_]": "DirectedInfinity[a * b]",
+        "a_ DirectedInfinity[]": "DirectedInfinity[]",
+        "DirectedInfinity[a_] * DirectedInfinity[b_]": "DirectedInfinity[a * b]",
     }
 
     formats = {
         "DirectedInfinity[1]": "HoldForm[Infinity]",
-        "DirectedInfinity[-1]": "HoldForm[-Infinity]",
+        "DirectedInfinity[-1]": "PrecedenceForm[-HoldForm[Infinity], 390]",
         "DirectedInfinity[]": "HoldForm[ComplexInfinity]",
-        "DirectedInfinity[DirectedInfinity[z_]]": "DirectedInfinity[z]",
-        "DirectedInfinity[z_?NumericQ]": "HoldForm[z Infinity]",
+        "DirectedInfinity[z_]": "PrecedenceForm[z HoldForm[Infinity], 390]",
     }
 
-    def eval(self, z, evaluation):
-        """DirectedInfinity[z_]"""
-        if z in (Integer1, IntegerM1):
+    def eval_directed_infinity(self, direction, evaluation):
+        """DirectedInfinity[direction_]"""
+        if direction in (Integer1, IntegerM1):
             return None
-        if isinstance(z, Number) or isinstance(eval_N(z, evaluation), Number):
-            direction = (z / Expression(SymbolAbs, z)).evaluate(evaluation)
-            return Expression(
-                SymbolDirectedInfinity,
-                direction,
-                elements_properties=ElementsProperties(True, True, True),
-            )
-        return None
+        if direction.is_zero:
+            return ExpressionComplexInfinity
+
+        normalized_direction = eval_sign(direction)
+        # TODO: improve eval_sign, to avoid the need of the
+        # following block:
+        #   ############################################
+        if normalized_direction is None:
+            ndir = eval_N(direction, evaluation)
+            if isinstance(ndir, (Integer, Rational, Real)):
+                if abs(ndir.value) == 1.0:
+                    normalized_direction = direction
+                else:
+                    normalized_direction = direction / Abs(direction)
+            elif isinstance(ndir, Complex):
+                re, im = ndir.value
+                if re.value**2 + im.value**2 == 1.0:
+                    normalized_direction = direction
+                else:
+                    normalized_direction = direction / Abs(direction)
+            else:
+                return None
+        #  ##############################################
+
+        if normalized_direction is None:
+            return None
+        return Expression(
+            SymbolDirectedInfinity,
+            normalized_direction.evaluate(evaluation),
+            elements_properties=ElementsProperties(True, False, False),
+        )
 
     def to_sympy(self, expr, **kwargs):
         if len(expr.elements) == 1:
@@ -719,8 +742,8 @@ class Im(SympyFunction):
 
     def eval_complex(self, number, evaluation):
         "Im[number_Complex]"
-
-        return number.imag
+        if isinstance(number, Complex):
+            return number.imag
 
     def eval_number(self, number, evaluation):
         "Im[number_?NumberQ]"
@@ -990,8 +1013,8 @@ class Re(SympyFunction):
 
     def eval_complex(self, number, evaluation):
         "Re[number_Complex]"
-
-        return number.real
+        if isinstance(number, Complex):
+            return number.real
 
     def eval_number(self, number, evaluation):
         "Re[number_?NumberQ]"
@@ -1000,7 +1023,6 @@ class Re(SympyFunction):
 
     def eval(self, number, evaluation):
         "Re[number_]"
-
         return from_sympy(sympy.re(number.to_sympy().expand(complex=True)))
 
 
@@ -1148,20 +1170,22 @@ class Sign(SympyFunction):
         "argx": "Sign called with `1` arguments; 1 argument is expected.",
     }
 
+    rules = {
+        "Sign[Power[a_, b_]]": "Power[Sign[a], b]",
+    }
+
     def eval(self, x, evaluation):
         "%(name)s[x_]"
-        # Sympy and mpmath do not give the desired form of complex number
-        if isinstance(x, Complex):
-            return Expression(
-                SymbolTimes,
-                x,
-                Expression(SymbolPower, Expression(SymbolAbs, x), IntegerM1),
-            )
+        result = eval_sign(x)
+        if result is not None:
+            return result
+        # return None
 
         sympy_x = x.to_sympy()
         if sympy_x is None:
             return None
-        return super().eval(x, evaluation)
+        # Unhandled cases. Use sympy
+        return super(Sign, self).eval(x, evaluation)
 
     def eval_error(self, x, seqs, evaluation):
         "Sign[x_, seqs__]"
