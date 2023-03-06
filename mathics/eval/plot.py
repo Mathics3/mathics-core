@@ -21,6 +21,7 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolN, SymbolPower, SymbolTrue
 from mathics.core.systemsymbols import (
+    SymbolAll,
     SymbolGraphics,
     SymbolHue,
     SymbolLine,
@@ -102,15 +103,10 @@ def compile_quiet_function(expr, arg_names, evaluation, list_is_expected: bool):
 
             return quiet_f
     expr: Optional[Type[BaseElement]] = Expression(SymbolN, expr).evaluate(evaluation)
-    quiet_expr = Expression(
-        SymbolQuiet,
-        expr,
-        ListExpression(Expression(SymbolMessageName, SymbolPower, String("infy"))),
-    )
 
     def quiet_f(*args):
         vars = {arg_name: Real(arg) for arg_name, arg in zip(arg_names, args)}
-        value = dynamic_scoping(quiet_expr.evaluate, vars, evaluation)
+        value = dynamic_scoping(expr.evaluate, vars, evaluation)
         if list_is_expected:
             if value.has_form("List", None):
                 value = [extract_pyreal(item) for item in value.elements]
@@ -391,6 +387,7 @@ def eval_Plot(
     # like the Hue.
     graphics = []
 
+    prev_quiet_all, evaluation.quiet_all = evaluation.quiet_all, True
     for index, f in enumerate(functions):
         points = []
         xvalues = []  # x value for each point in points
@@ -561,6 +558,8 @@ def eval_Plot(
             mesh_points = [to_mathics_list(xx, yy) for xx, yy in points]
             graphics.append(Expression(SymbolPoint, ListExpression(*mesh_points)))
 
+    # Restore the quiet_all state
+    evaluation.quiet_all = prev_quiet_all
     return Expression(
         SymbolGraphics, ListExpression(*graphics), *options_to_rules(options)
     )
