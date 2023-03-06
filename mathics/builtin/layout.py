@@ -288,6 +288,19 @@ class Precedence(Builtin):
         return Real(precedence)
 
 
+class PrecedenceForm(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PrecedenceForm.html</url>
+
+    <dl>
+      <dt>'PrecedenceForm'[$expr$, $prec$]
+      <dd> format $expr$ parenthesized as it would be if it contained an operator of precedence $prec$.
+    </dl>
+    """
+
+    summary_text = "parenthesize with a precedence"
+
+
 class Prefix(BinaryOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Prefix.html</url>
