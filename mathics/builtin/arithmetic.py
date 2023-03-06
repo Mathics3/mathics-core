@@ -663,7 +663,7 @@ class DirectedInfinity(SympyFunction):
                     normalized_direction = direction / Abs(direction)
             elif isinstance(ndir, Complex):
                 re, im = ndir.value
-                if re.value**2 + im.value**2 == 1.0:
+                if abs(re.value**2 + im.value**2 - 1.0) < 1.0e-9:
                     normalized_direction = direction
                 else:
                     normalized_direction = direction / Abs(direction)

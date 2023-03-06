@@ -21,7 +21,11 @@ from mathics.core.element import BaseElement
 from mathics.core.expression import Expression
 from mathics.core.number import FP_MANTISA_BINARY_DIGITS, SpecialValueError, min_prec
 from mathics.core.symbols import Symbol, SymbolPlus, SymbolPower, SymbolTimes
-from mathics.core.systemsymbols import SymbolComplexInfinity, SymbolDirectedInfinity
+from mathics.core.systemsymbols import (
+    SymbolComplexInfinity,
+    SymbolDirectedInfinity,
+    SymbolIndeterminate,
+)
 
 
 # @lru_cache(maxsize=4096)
@@ -228,6 +232,8 @@ def eval_Times(*items):
             continue
         if item.get_head() is SymbolDirectedInfinity:
             infinity_factor = True
+        if item is SymbolIndeterminate:
+            return item
         if elements and item == elements[-1]:
             elements[-1] = Expression(SymbolPower, elements[-1], Integer2)
         elif (
