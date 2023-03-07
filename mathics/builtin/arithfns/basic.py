@@ -14,6 +14,7 @@ from mathics.core.atoms import (
     Integer1,
     Integer3,
     Integer310,
+    Integer590,
     IntegerM1,
     Number,
     Rational,
@@ -50,6 +51,7 @@ from mathics.core.systemsymbols import (
     SymbolLeft,
     SymbolMinus,
     SymbolPattern,
+    SymbolRight,
     SymbolSequence,
 )
 from mathics.eval.arithmetic import eval_Plus, eval_Times
@@ -172,7 +174,7 @@ class Divide(BinaryOperator):
 
     formats = {
         (("InputForm", "OutputForm"), "Divide[x_, y_]"): (
-            'Infix[{HoldForm[x], HoldForm[y]}, "/", 400, Left]'
+            'Infix[{HoldForm[x], PrecedenceForm[HoldForm[y], 470]}, "/", 399, Left]'
         ),
     }
 
@@ -220,7 +222,7 @@ class Minus(PrefixOperator):
     formats = {
         "Minus[x_]": 'Prefix[{HoldForm[x]}, "-", 480]',
         # don't put e.g. -2/3 in parentheses
-        "Minus[expr_Divide]": 'Prefix[{HoldForm[expr]}, "-", 399]',
+        "Minus[expr_Divide]": 'Prefix[{HoldForm[expr]}, "-", 350]',
         "Minus[Infix[expr_, op_, 400, grouping_]]": (
             'Prefix[{Infix[expr, op, 400, grouping]}, "-", 399]'
         ),
@@ -499,9 +501,6 @@ class Power(BinaryOperator, _MPMathFunction):
         ("", "x_ ^ y_?Negative"): (
             "HoldForm[Divide[1, #]]&[If[y==-1, HoldForm[x], HoldForm[x]^-y]]"
         ),
-        ("", "x_?Negative ^ y_"): (
-            'Infix[{HoldForm[(x)], HoldForm[y]},"^", 590, Right]'
-        ),
     }
 
     grouping = "Right"
@@ -527,6 +526,19 @@ class Power(BinaryOperator, _MPMathFunction):
     # FIXME Note this is deprecated in 1.11
     # Remember to up sympy doc link when this is corrected
     sympy_name = "Pow"
+
+    def format_negative_basis(self, x, y, evaluation):
+        "OutputForm: Power[x_, y_]"
+
+        if isinstance(x, (Integer, Real)) and x.value < 0:
+            x = Minus(x).evaluate(evaluation)
+            x = Expression(SymbolTimes, IntegerM1, x)
+
+        operands = ListExpression(
+            Expression(SymbolHoldForm, x), Expression(SymbolHoldForm, y)
+        )
+        result = Expression(SymbolInfix, operands, String("^"), Integer590, SymbolRight)
+        return result
 
     def eval_check(self, x, y, evaluation):
         "Power[x_, y_]"

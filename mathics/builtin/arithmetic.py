@@ -590,8 +590,7 @@ class DirectedInfinity(SympyFunction):
      = Indeterminate
 
     >> DirectedInfinity[0]
-     : Indeterminate expression 0 Infinity encountered.
-     = Indeterminate
+     = ComplexInfinity
 
     #> DirectedInfinity[1+I]+DirectedInfinity[2+I]
      = (2 / 5 + I / 5) Sqrt[5] Infinity + (1 / 2 + I / 2) Sqrt[2] Infinity
@@ -622,11 +621,7 @@ class DirectedInfinity(SympyFunction):
             "Indeterminate"
         ),
         "DirectedInfinity[args___] + _?NumberQ": "DirectedInfinity[args]",
-        "DirectedInfinity[0]": (
-            "Message[Infinity::indet,"
-            "  Unevaluated[DirectedInfinity[0]]];"
-            "Indeterminate"
-        ),
+        "DirectedInfinity[0]": "DirectedInfinity[]",
         "DirectedInfinity[0.]": (
             "Message[Infinity::indet,"
             "  Unevaluated[DirectedInfinity[0.]]];"
@@ -637,10 +632,9 @@ class DirectedInfinity(SympyFunction):
 
     formats = {
         "DirectedInfinity[1]": "HoldForm[Infinity]",
-        "DirectedInfinity[-1]": "HoldForm[-Infinity]",
+        "DirectedInfinity[-1]": "HoldForm[Minus[Infinity]]",
         "DirectedInfinity[]": "HoldForm[ComplexInfinity]",
-        "DirectedInfinity[DirectedInfinity[z_]]": "DirectedInfinity[z]",
-        "DirectedInfinity[z_?NumericQ]": "HoldForm[z Infinity]",
+        "DirectedInfinity[z_?NumericQ]": "PrecedenceForm[z HoldForm[Infinity], 399]",
     }
 
     def eval(self, z, evaluation):

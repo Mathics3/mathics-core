@@ -222,7 +222,6 @@ def do_format_element(
             and not isinstance(expr, (Atom, BoxElementMixin))
             and head not in (SymbolGraphics, SymbolGraphics3D)
         ):
-            # print("Not inside graphics or numberform, and not is atom")
             new_elements = [
                 element_formatters.get(type(element), do_format_element)(
                     element, evaluation, form
@@ -334,15 +333,11 @@ def parenthesize(
     elif element.has_form("PrecedenceForm", 2):
         element_prec = element.elements[1].value
     # If "element" is a negative number, we need to parenthesize the number. (Fixes #332)
-    elif isinstance(element, (Integer, Real)) and element.value < 0:
-        # Force parenthesis by adjusting the surrounding context's precedence value,
-        # We can't change the precedence for the number since it, doesn't
-        # have a precedence value.
-        element_prec = precedence
     else:
         element_prec = builtins_precedence.get(element.get_head())
+
     if precedence is not None and element_prec is not None:
-        if precedence > element_prec or (precedence == element_prec and when_equal):
+        if precedence >= element_prec:
             return Expression(
                 SymbolRowBox,
                 ListExpression(StringLParen, element_boxes, StringRParen),

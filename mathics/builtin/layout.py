@@ -165,7 +165,7 @@ class Infix(Builtin):
     >> g[a, g[b, c]]
      = a # (b # c)
     >> g[g[a, b], c]
-     = a # b # c
+     = (a # b) # c
     >> g[a + b, c]
      = (a + b) # c
     >> g[a * b, c]
@@ -296,6 +296,22 @@ class PrecedenceForm(Builtin):
       <dt>'PrecedenceForm'[$expr$, $prec$]
       <dd> format $expr$ parenthesized as it would be if it contained an operator of precedence $prec$.
     </dl>
+
+    'PrecedenceForm' is used to force the use / omision of parenthesis in the cases where the standard\
+    overwriting the standard precedence rules.
+    For example, in
+    >> a b + c
+     = a b + c
+    parenthesis are not used in the first term because the precedence of `Times` is higher than the precedence of `Plus`:
+    >> {Precedence[Times], Precedence[Plus]}
+     = ...
+    
+    By wrapping $a b$ in a 'PrecedenceForm' expression, the precedence of 'Times' is modified locally,\
+    to be equal than the precedence of 'Plus':
+    >> PrecedenceForm[a b, Precedence[Plus]] + c
+     = c + (a b)
+
+
     """
 
     summary_text = "parenthesize with a precedence"

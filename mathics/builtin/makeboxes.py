@@ -411,7 +411,7 @@ class MakeBoxes(Builtin):
     def eval_postprefix(self, p, expr, h, precedence, form, evaluation):
         """MakeBoxes[(p:Prefix|Postfix)[expr_, h_, precedence_:None],
         form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
-
+        print("eval_postprefix", p, expr, h, precedence)
         if not isinstance(h, String):
             h = MakeBoxes(h, form)
 
