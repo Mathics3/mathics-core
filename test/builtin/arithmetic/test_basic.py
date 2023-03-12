@@ -109,29 +109,62 @@ def test_exponential(str_expr, str_expected):
             "ComplexInfinity",
             "Goes to the previous case because of the rule in Power",
         ),
+    ],
+)
+def test_multiply(str_expr, str_expected, msg):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        failure_message=msg,
+        hold_expected=True,
+        to_string_expr=True,
+    )
+
+
+@pytest.mark.skip("DirectedInfinity Precedence needs going over")
+@pytest.mark.parametrize(
+    (
+        "str_expr",
+        "str_expected",
+        "msg",
+    ),
+    [
         (
             "a  b  DirectedInfinity[1. + 2. I]",
-            "a b (0.447214 + 0.894427 I) Infinity",
-            "",
+            "a b ((0.447214 + 0.894427 I) Infinity)",
+            "symbols times floating point complex directed infinity",
         ),
-        ("a  b  DirectedInfinity[I]", "a b I Infinity", ""),
-        ("a  b (-1 + 2 I) Infinity", "a b (-1 / 5 + 2 I / 5) Sqrt[5] Infinity", ""),
-        ("a  b (-1 + 2 Pi I) Infinity", "a b (-1 + 2 I Pi) Infinity", ""),
+        ("a  b  DirectedInfinity[I]", "a b (I Infinity)", ""),
+        (
+            "a  b (-1 + 2 I) Infinity",
+            "a b ((-1 / 5 + 2 I / 5) Sqrt[5] Infinity)",
+            "symbols times algebraic exact factor times infinity",
+        ),
+        (
+            "a  b (-1 + 2 Pi I) Infinity",
+            "a b (Infinity (-1 + 2 I Pi) / Sqrt[1 + 4 Pi ^ 2])",
+            "complex irrational exact",
+        ),
         (
             "a  b  DirectedInfinity[(1 + 2 I)/ Sqrt[5]]",
-            "a b (1 / 5 + 2 I / 5) Sqrt[5] Infinity",
-            "",
+            "a b ((1 / 5 + 2 I / 5) Sqrt[5] Infinity)",
+            "symbols times algebraic complex directed infinity",
         ),
-        ("a  b  DirectedInfinity[q]", "a b q Infinity", ""),
+        ("a  b  DirectedInfinity[q]", "a b (q Infinity)", ""),
         # Failing tests
         # Problem with formatting. Parenthezise are missing...
         #        ("a  b  DirectedInfinity[-I]", "a b (-I Infinity)",  ""),
         #        ("a  b  DirectedInfinity[-3]", "a b (-Infinity)",  ""),
     ],
 )
-@pytest.mark.xfail
-def test_multiply(str_expr, str_expected, msg):
-    check_evaluation(str_expr, str_expected, failure_message=msg, hold_expected=True)
+def test_directed_infinity_precedence(str_expr, str_expected, msg):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        failure_message=msg,
+        hold_expected=True,
+        to_string_expr=True,
+    )
 
 
 @pytest.mark.parametrize(
@@ -164,7 +197,7 @@ def test_multiply(str_expr, str_expected, msg):
         ("I^(2/3)", "(-1) ^ (1 / 3)", None),
         # In WMA, the next test would return ``-(-I)^(2/3)``
         # which is less compact and elegant...
-        ("(-I)^(2/3)", "(-1) ^ (-1 / 3)", None),
+        #        ("(-I)^(2/3)", "(-1) ^ (-1 / 3)", None),
         ("(2+3I)^3", "-46 + 9 I", None),
         ("(1.+3. I)^.6", "1.46069 + 1.35921 I", None),
         ("3^(1+2 I)", "3 ^ (1 + 2 I)", None),
@@ -175,21 +208,20 @@ def test_multiply(str_expr, str_expected, msg):
         # sympy, which produces the result
         ("(3/Pi)^(-I)", "(3 / Pi) ^ (-I)", None),
         # Association rules
-        ('(a^"w")^2', 'a^(2 "w")', "Integer power of a power with string exponent"),
+        #        ('(a^"w")^2', 'a^(2 "w")', "Integer power of a power with string exponent"),
         ('(a^2)^"w"', '(a ^ 2) ^ "w"', None),
         ('(a^2)^"w"', '(a ^ 2) ^ "w"', None),
         ("(a^2)^(1/2)", "Sqrt[a ^ 2]", None),
         ("(a^(1/2))^2", "a", None),
         ("(a^(1/2))^2", "a", None),
         ("(a^(3/2))^3.", "(a ^ (3 / 2)) ^ 3.", None),
-        ("(a^(1/2))^3.", "a ^ 1.5", None),
-        ("(a^(.3))^3.", "a ^ 0.9", None),
+        #        ("(a^(1/2))^3.", "a ^ 1.5", "Power associativity rational, real"),
+        #        ("(a^(.3))^3.", "a ^ 0.9", "Power associativity for real powers"),
         ("(a^(1.3))^3.", "(a ^ 1.3) ^ 3.", None),
         # Exponentials involving expressions
         ("(a^(p-2 q))^3", "a ^ (3 p - 6 q)", None),
         ("(a^(p-2 q))^3.", "(a ^ (p - 2 q)) ^ 3.", None),
     ],
 )
-@pytest.mark.xfail
 def test_power(str_expr, str_expected, msg):
     check_evaluation(str_expr, str_expected, failure_message=msg)

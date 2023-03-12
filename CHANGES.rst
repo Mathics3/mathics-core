@@ -3,6 +3,26 @@
 CHANGES
 =======
 
+
+Compatibility
+-------------
+
+* ``*Plot`` does not show messages during the evaluation.
+
+
+
+Internals
+---
+
+* ``eval_abs`` and ``eval_sign`` extracted from ``Abs`` and ``Sign`` and added to ``mathics.eval.arithmetic``.
+
+
+Bugs
+----
+
+* Improved support for ``DirectedInfinity`` and ``Indeterminate``.
+
+
 6.0.1
 -----
 
