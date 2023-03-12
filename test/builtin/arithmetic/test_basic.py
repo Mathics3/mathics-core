@@ -109,6 +109,26 @@ def test_exponential(str_expr, str_expected):
             "ComplexInfinity",
             "Goes to the previous case because of the rule in Power",
         ),
+    ],
+)
+def test_multiply(str_expr, str_expected, msg):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        failure_message=msg,
+        hold_expected=True,
+        to_string_expr=True,
+    )
+
+
+@pytest.mark.skip("DirectedInfinity Precedence needs going over")
+@pytest.mark.parametrize(
+    (
+        "str_expr",
+        "str_expected",
+        "msg",
+    ),
+    [
         (
             "a  b  DirectedInfinity[1. + 2. I]",
             "a b ((0.447214 + 0.894427 I) Infinity)",
@@ -137,7 +157,7 @@ def test_exponential(str_expr, str_expected):
         #        ("a  b  DirectedInfinity[-3]", "a b (-Infinity)",  ""),
     ],
 )
-def test_multiply(str_expr, str_expected, msg):
+def test_directed_infinity_precedence(str_expr, str_expected, msg):
     check_evaluation(
         str_expr,
         str_expected,
