@@ -57,7 +57,7 @@ def call_mpmath(
             return Symbol(exc.name)
 
 
-def eval_abs(expr: BaseElement) -> Optional[BaseElement]:
+def eval_Abs(expr: BaseElement) -> Optional[BaseElement]:
     """
     if expr is a number, return the absolute value.
     """
@@ -72,7 +72,7 @@ def eval_abs(expr: BaseElement) -> Optional[BaseElement]:
     return None
 
 
-def eval_sign(expr: BaseElement) -> Optional[BaseElement]:
+def eval_Sign(expr: BaseElement) -> Optional[BaseElement]:
     """
     if expr is a number, return its sign.
     """

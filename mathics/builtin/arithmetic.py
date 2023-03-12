@@ -7,15 +7,11 @@ Mathematical Functions
 Basic arithmetic functions, including complex number arithmetic.
 """
 
-import sympy
-
-# This tells documentation how to sort this module
-sort_order = "mathics.builtin.mathematical-functions"
-
-
 from functools import lru_cache
+from typing import Optional
 
 import mpmath
+import sympy
 
 from mathics.builtin.base import (
     Builtin,
@@ -48,6 +44,7 @@ from mathics.core.attributes import (
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
 from mathics.core.element import ElementsProperties
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps, min_prec
@@ -69,9 +66,12 @@ from mathics.core.systemsymbols import (
     SymbolTable,
     SymbolUndefined,
 )
-from mathics.eval.arithmetic import eval_abs, eval_mpmath_function, eval_sign
+from mathics.eval.arithmetic import eval_Abs, eval_mpmath_function, eval_Sign
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
+
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.mathematical-functions"
 
 ExpressionComplexInfinity = Expression(SymbolDirectedInfinity)
 
@@ -98,7 +98,7 @@ class _MPMathFunction(SympyFunction):
             return None
         return getattr(mpmath, self.mpmath_name)
 
-    def eval(self, z, evaluation):
+    def eval(self, z, evaluation: Evaluation):
         "%(name)s[z__]"
 
         args = numerify(z, evaluation).get_sequence()
@@ -171,34 +171,35 @@ def create_infix(items, operator, prec, grouping):
 
 class Abs(_MPMathFunction):
     """
-    <url>
-    :Absolute value:
-    https://en.wikipedia.org/wiki/Absolute_value</url> (<url>
-    :SymPy:
-    https://docs.sympy.org/latest/modules/functions/elementary.html#sympy.functions.elementary.complexes.Abs</url>, <url>
-    :WMA: https://reference.wolfram.com/language/ref/Abs</url>)
+        <url>
+        :Absolute value:
+        https://en.wikipedia.org/wiki/Absolute_value</url> (<url>
+        :SymPy:
+        https://docs.sympy.org/latest/modules/functions/
+    elementary.html#sympy.functions.elementary.complexes.Abs</url>, <url>
+        :WMA: https://reference.wolfram.com/language/ref/Abs</url>)
 
-    <dl>
-      <dt>'Abs[$x$]'
-      <dd>returns the absolute value of $x$.
-    </dl>
+        <dl>
+          <dt>'Abs[$x$]'
+          <dd>returns the absolute value of $x$.
+        </dl>
 
-    >> Abs[-3]
-     = 3
+        >> Abs[-3]
+         = 3
 
-    >> Plot[Abs[x], {x, -4, 4}]
-     = -Graphics-
+        >> Plot[Abs[x], {x, -4, 4}]
+         = -Graphics-
 
-    'Abs' returns the magnitude of complex numbers:
-    >> Abs[3 + I]
-     = Sqrt[10]
-    >> Abs[3.0 + I]
-     = 3.16228
+        'Abs' returns the magnitude of complex numbers:
+        >> Abs[3 + I]
+         = Sqrt[10]
+        >> Abs[3.0 + I]
+         = 3.16228
 
-    All of the below evaluate to Infinity:
+        All of the below evaluate to Infinity:
 
-    >> Abs[Infinity] == Abs[I Infinity] == Abs[ComplexInfinity]
-     = True
+        >> Abs[Infinity] == Abs[I Infinity] == Abs[ComplexInfinity]
+         = True
     """
 
     mpmath_name = "fabs"  # mpmath actually uses python abs(x) / x.__abs__()
@@ -208,9 +209,9 @@ class Abs(_MPMathFunction):
     summary_text = "absolute value of a number"
     sympy_name = "Abs"
 
-    def eval(self, x, evaluation):
-        "%(name)s[x_]"
-        result = eval_abs(x)
+    def eval(self, x, evaluation: Evaluation):
+        "Abs[x_]"
+        result = eval_Abs(x)
         if result is not None:
             return result
         return super(Abs, self).eval(x, evaluation)
@@ -271,7 +272,7 @@ class Arg(_MPMathFunction):
     sympy_name = "arg"
 
     def eval(self, z, evaluation, options={}):
-        "%(name)s[z_, OptionsPattern[%(name)s]]"
+        "Arg[z_, OptionsPattern[Arg]]"
         if Expression(SymbolPossibleZeroQ, z).evaluate(evaluation) is SymbolTrue:
             return Integer0
         preference = self.get_option(options, "Method", evaluation).get_string_value()
@@ -309,7 +310,7 @@ class Assuming(Builtin):
     summary_text = "set assumptions during the evaluation"
     attributes = A_HOLD_REST | A_PROTECTED
 
-    def eval_assuming(self, assumptions, expr, evaluation):
+    def eval_assuming(self, assumptions, expr, evaluation: Evaluation):
         "Assuming[assumptions_, expr_]"
         assumptions = assumptions.evaluate(evaluation)
         if assumptions is SymbolTrue:
@@ -365,11 +366,11 @@ class Boole(Builtin):
      = Boole[a == 7]
     """
 
-    summary_text = "translate 'True' to 1, and 'False' to 0"
     attributes = A_LISTABLE | A_PROTECTED
+    summary_text = "translate 'True' to 1, and 'False' to 0"
 
-    def eval(self, expr, evaluation):
-        "%(name)s[expr_]"
+    def eval(self, expr, evaluation: Evaluation):
+        "Boole[expr_]"
         if expr is SymbolTrue:
             return Integer1
         elif expr is SymbolFalse:
@@ -439,8 +440,8 @@ class Complex_(Builtin):
     summary_text = "head for complex numbers"
     name = "Complex"
 
-    def eval(self, r, i, evaluation):
-        "%(name)s[r_?NumberQ, i_?NumberQ]"
+    def eval(self, r, i, evaluation: Evaluation):
+        "Complex[r_?NumberQ, i_?NumberQ]"
 
         if isinstance(r, Complex) or isinstance(i, Complex):
             sym_form = r.to_sympy() + sympy.I * i.to_sympy()
@@ -451,11 +452,13 @@ class Complex_(Builtin):
 
 class ConditionalExpression(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ConditionalExpression.html</url>
+    <url>:WMA link:https://reference.wolfram.com/
+language/ref/ConditionalExpression.html</url>
 
     <dl>
       <dt>'ConditionalExpression[$expr$, $cond$]'
-      <dd>returns $expr$ if $cond$ evaluates to $True$, $Undefined$ if $cond$ evaluates to $False$.
+      <dd>returns $expr$ if $cond$ evaluates to $True$, $Undefined$ if $cond$ \
+          evaluates to $False$.
     </dl>
 
     >> ConditionalExpression[x^2, True]
@@ -492,7 +495,7 @@ class ConditionalExpression(Builtin):
         "expr1_ ^ ConditionalExpression[expr2_, cond_]": "ConditionalExpression[expr1^expr2, cond]",
     }
 
-    def eval_generic(self, expr, cond, evaluation):
+    def eval_generic(self, expr, cond, evaluation: Evaluation):
         "ConditionalExpression[expr_, cond_]"
         # What we need here is a way to evaluate
         # cond as a predicate, using assumptions.
@@ -638,20 +641,21 @@ class DirectedInfinity(SympyFunction):
 
     formats = {
         "DirectedInfinity[1]": "HoldForm[Infinity]",
-        "DirectedInfinity[-1]": "PrecedenceForm[-HoldForm[Infinity], 390]",
+        "DirectedInfinity[-1]": "HoldForm[-Infinity]",
         "DirectedInfinity[]": "HoldForm[ComplexInfinity]",
-        "DirectedInfinity[z_]": "PrecedenceForm[z HoldForm[Infinity], 390]",
+        "DirectedInfinity[DirectedInfinity[z_]]": "DirectedInfinity[z]",
+        "DirectedInfinity[z_?NumericQ]": "HoldForm[z Infinity]",
     }
 
-    def eval_directed_infinity(self, direction, evaluation):
+    def eval_directed_infinity(self, direction, evaluation: Evaluation):
         """DirectedInfinity[direction_]"""
         if direction in (Integer1, IntegerM1):
             return None
         if direction.is_zero:
             return ExpressionComplexInfinity
 
-        normalized_direction = eval_sign(direction)
-        # TODO: improve eval_sign, to avoid the need of the
+        normalized_direction = eval_Sign(direction)
+        # TODO: improve eval_Sign, to avoid the need of the
         # following block:
         #   ############################################
         if normalized_direction is None:
@@ -712,7 +716,7 @@ class I_(Predefined):
     summary_text = "imaginary unit"
     python_equivalent = 1j
 
-    def evaluate(self, evaluation):
+    def evaluate(self, evaluation: Evaluation):
         return Complex(Integer0, Integer1)
 
 
@@ -740,17 +744,17 @@ class Im(SympyFunction):
     summary_text = "imaginary part"
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
-    def eval_complex(self, number, evaluation):
+    def eval_complex(self, number, evaluation: Evaluation):
         "Im[number_Complex]"
         if isinstance(number, Complex):
             return number.imag
 
-    def eval_number(self, number, evaluation):
+    def eval_number(self, number, evaluation: Evaluation):
         "Im[number_?NumberQ]"
 
         return Integer0
 
-    def eval(self, number, evaluation):
+    def eval(self, number, evaluation: Evaluation):
         "Im[number_]"
 
         return from_sympy(sympy.im(number.to_sympy().expand(complex=True)))
@@ -818,7 +822,7 @@ class Piecewise(SympyFunction):
 
     attributes = A_HOLD_ALL | A_PROTECTED
 
-    def eval(self, items, evaluation):
+    def eval(self, items, evaluation: Evaluation):
         "%(name)s[items__]"
         result = self.to_sympy(
             Expression(SymbolPiecewise, *items.get_sequence()), evaluation=evaluation
@@ -977,8 +981,8 @@ class Rational_(Builtin):
     summary_text = "head for rational numbers"
     name = "Rational"
 
-    def eval(self, n: Integer, m: Integer, evaluation):
-        "%(name)s[n_Integer, m_Integer]"
+    def eval(self, n: Integer, m: Integer, evaluation: Evaluation):
+        "Rational[n_Integer, m_Integer]"
 
         if m.value == 1:
             return n
@@ -1011,17 +1015,17 @@ class Re(SympyFunction):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     sympy_name = "re"
 
-    def eval_complex(self, number, evaluation):
+    def eval_complex(self, number, evaluation: Evaluation):
         "Re[number_Complex]"
         if isinstance(number, Complex):
             return number.real
 
-    def eval_number(self, number, evaluation):
+    def eval_number(self, number, evaluation: Evaluation):
         "Re[number_?NumberQ]"
 
         return number
 
-    def eval(self, number, evaluation):
+    def eval(self, number, evaluation: Evaluation):
         "Re[number_]"
         return from_sympy(sympy.re(number.to_sympy().expand(complex=True)))
 
@@ -1174,9 +1178,9 @@ class Sign(SympyFunction):
         "Sign[Power[a_, b_]]": "Power[Sign[a], b]",
     }
 
-    def eval(self, x, evaluation):
+    def eval(self, x, evaluation: Evaluation):
         "%(name)s[x_]"
-        result = eval_sign(x)
+        result = eval_Sign(x)
         if result is not None:
             return result
         # return None
@@ -1187,7 +1191,7 @@ class Sign(SympyFunction):
         # Unhandled cases. Use sympy
         return super(Sign, self).eval(x, evaluation)
 
-    def eval_error(self, x, seqs, evaluation):
+    def eval_error(self, x, seqs, evaluation: Evaluation):
         "Sign[x_, seqs__]"
         evaluation.message("Sign", "argx", Integer(len(seqs.get_sequence()) + 1))
 
@@ -1207,7 +1211,8 @@ class Sum(IterationFunction, SympyFunction):
       <dd>$i$ ranges from $imin$ to $imax$ in steps of $di$.
 
       <dt>'Sum[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]'
-      <dd>evaluates $expr$ as a multiple sum, with {$i$, ...}, {$j$, ...}, ... being in outermost-to-innermost order.
+      <dd>evaluates $expr$ as a multiple sum, with {$i$, ...}, {$j$, ...}, ... being \
+          in outermost-to-innermost order.
     </dl>
 
 
@@ -1293,7 +1298,7 @@ class Sum(IterationFunction, SympyFunction):
     def get_result(self, items):
         return Expression(SymbolPlus, *items)
 
-    def to_sympy(self, expr, **kwargs) -> SympyExpression:
+    def to_sympy(self, expr, **kwargs) -> Optional[SympyExpression]:
         """
         Perform summation via sympy.summation
         """
