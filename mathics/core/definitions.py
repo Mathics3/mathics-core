@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 import base64
 import bisect
 import os
@@ -52,7 +51,9 @@ def autoload_files(
     # Load symbols from the autoload folder
     for root, dirs, files in os.walk(os.path.join(root_dir_path, autoload_dir)):
         for path in [os.path.join(root, f) for f in files if f.endswith(".m")]:
+            defs.set_current_context("System`")
             Expression(SymbolGet, String(path)).evaluate(Evaluation(defs))
+            defs.set_current_context("Global`")
 
     if block_global_definitions:
         # Move any user definitions created by autoloaded files to
