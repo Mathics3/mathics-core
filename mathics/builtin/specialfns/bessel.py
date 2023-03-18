@@ -321,24 +321,29 @@ class BesselI(_Bessel):
     """
 
 
-    <url>
-    :Modified Bessel function of the first kind:
-    https://en.wikipedia.org/wiki/Bessel_function#Bessel_functions_of_the_first_kind:_J%CE%B1</url> (<url>
-    :Sympy:
-    https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.besseli</url>, <url>
-    :WMA:
-    https://reference.wolfram.com/language/ref/BesselI.html</url>)
+        <url>
+        :Modified Bessel function of the first kind:
+        https://en.wikipedia.org/
+    wiki/Bessel_function#Bessel_functions_of_the_first_kind:_J%CE%B1</url> (<url>
+        :Sympy:
+        https://docs.sympy.org/latest/modules/functions/
+    special.html#sympy.functions.special.bessel.besseli</url>, <url>
+        :WMA:
+        https://reference.wolfram.com/language/ref/BesselI.html</url>)
 
-    <dl>
-    <dt>'BesselI[$n$, $z$]'
-      <dd>returns the modified Bessel function of the first kind I_$n$($z$).
-    </dl>
+        <dl>
+        <dt>'BesselI[$n$, $z$]'
+          <dd>returns the modified Bessel function of the first kind I_$n$($z$).
+        </dl>
 
-    >> BesselI[1.5, 4]
-     = 8.17263
+        >> BesselI[0, 0]
+         = 1
 
-    >> Plot[BesselI[0, x], {x, 0, 5}]
-     = -Graphics-
+        >> BesselI[1.5, 4]
+         = 8.17263
+
+        >> Plot[BesselI[0, x], {x, 0, 5}]
+         = -Graphics-
     """
 
     mpmath_name = "besseli"
@@ -378,7 +383,7 @@ class BesselJ(_Bessel):
     >> D[BesselJ[n, z], z]
      = -BesselJ[1 + n, z] / 2 + BesselJ[-1 + n, z] / 2
 
-    #> BesselJ[0., 0.]
+    >> BesselJ[0., 0.]
      = 1.
 
     >> Plot[BesselJ[0, x], {x, 0, 10}]

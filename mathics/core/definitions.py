@@ -5,6 +5,7 @@ import os
 import pickle
 import re
 from collections import defaultdict
+from os.path import join as osp_join
 from typing import List, Optional
 
 from mathics_scanner.tokeniser import full_names_pattern
@@ -46,13 +47,18 @@ def valuesname(name) -> str:
 def autoload_files(
     defs, root_dir_path: str, autoload_dir: str, block_global_definitions: bool = True
 ):
+    """
+    Load Mathics code from the autoload-folder files.
+    """
     from mathics.core.evaluation import Evaluation
 
-    # Load symbols from the autoload folder
-    for root, dirs, files in os.walk(os.path.join(root_dir_path, autoload_dir)):
-        for path in [os.path.join(root, f) for f in files if f.endswith(".m")]:
+    for root, dirs, files in os.walk(osp_join(root_dir_path, autoload_dir)):
+        for path in [osp_join(root, f) for f in files if f.endswith(".m")]:
+            # Autoload definitions should be go in the System context
+            # by default, rather than the Global context.
             defs.set_current_context("System`")
             Expression(SymbolGet, String(path)).evaluate(Evaluation(defs))
+            # Restore default context to Global
             defs.set_current_context("Global`")
 
     if block_global_definitions:
