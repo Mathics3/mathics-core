@@ -127,7 +127,7 @@ class Symbol(Atom):
     are unique as they are say in Lisp, or Python.
     """
 
-    def __init__(self, value: str, context="System"):
+    def __init__(self, value: str, context: str = "System"):
         self.context = context
         self.value = value
         self.children = []

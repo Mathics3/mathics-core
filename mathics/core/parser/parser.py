@@ -2,6 +2,7 @@
 
 
 import string
+from typing import Union
 
 from mathics_scanner import (
     InvalidSyntaxError,
@@ -106,7 +107,7 @@ class Parser:
         else:
             return None
 
-    def parse_exp(self, p):
+    def parse_exp(self, p: int):
         result = self.parse_p()
         while True:
             if self.bracket_depth > 0:
@@ -231,7 +232,7 @@ class Parser:
             expr1 = Node(tag, expr1, expr2).flatten()
         return expr1
 
-    def parse_binary(self, expr1, token, p):
+    def parse_binary(self, expr1, token, p: int):
         tag = token.tag
         q = binary_ops[tag]
         if q < p:
@@ -253,7 +254,7 @@ class Parser:
             result.flatten()
         return result
 
-    def parse_postfix(self, expr1, token, p):
+    def parse_postfix(self, expr1, token, p: int):
         tag = token.tag
         q = postfix_ops[tag]
         if q < p:
@@ -288,7 +289,7 @@ class Parser:
         result.parenthesised = True
         return result
 
-    def p_RawLeftBrace(self, token):
+    def p_RawLeftBrace(self, token) -> Node:
         self.consume()
         self.bracket_depth += 1
         seq = self.parse_seq()
@@ -296,7 +297,7 @@ class Parser:
         self.bracket_depth -= 1
         return Node("List", *seq)
 
-    def p_RawLeftAssociation(self, token):
+    def p_RawLeftAssociation(self, token) -> Node:
         self.consume()
         self.bracket_depth += 1
         seq = self.parse_seq()
@@ -304,7 +305,7 @@ class Parser:
         self.bracket_depth -= 1
         return Node("Association", *seq)
 
-    def p_LeftRowBox(self, token):
+    def p_LeftRowBox(self, token) -> Node:
         self.consume()
         children = []
         self.box_depth += 1
@@ -326,7 +327,7 @@ class Parser:
         result.parenthesised = True
         return result
 
-    def p_Number(self, token):
+    def p_Number(self, token) -> Number:
         s = token.text
 
         # sign
@@ -373,18 +374,18 @@ class Parser:
         self.consume()
         return result
 
-    def p_String(self, token):
+    def p_String(self, token) -> String:
         result = String(token.text[1:-1])
         self.consume()
         return result
 
-    def p_Symbol(self, token):
+    def p_Symbol(self, token) -> Symbol:
         symbol_name = special_symbols.get(token.text, token.text)
-        result = Symbol(symbol_name, context=None)
+        result = Symbol(symbol_name)
         self.consume()
         return result
 
-    def p_Filename(self, token):
+    def p_Filename(self, token) -> Filename:
         result = Filename(token.text)
         self.consume()
         return result
@@ -400,7 +401,7 @@ class Parser:
         expr2 = self.parse_exp(outer_prec)
         return Node("Integrate", expr1, expr2)
 
-    def p_Pattern(self, token):
+    def p_Pattern(self, token) -> Node:
         self.consume()
         text = token.text
         if "." in text:
@@ -408,7 +409,7 @@ class Parser:
             if name:
                 return Node(
                     "Optional",
-                    Node("Pattern", Symbol(name, context=None), Node("Blank")),
+                    Node("Pattern", Symbol(name), Node("Blank")),
                 )
             else:
                 return Node("Optional", Node("Blank"))
@@ -421,11 +422,11 @@ class Parser:
         elif count == 3:
             name = "BlankNullSequence"
         if pieces[-1]:
-            blank = Node(name, Symbol(pieces[-1], context=None))
+            blank = Node(name, Symbol(pieces[-1]))
         else:
             blank = Node(name)
         if pieces[0]:
-            return Node("Pattern", Symbol(pieces[0], context=None), blank)
+            return Node("Pattern", Symbol(pieces[0]), blank)
         else:
             return blank
 
@@ -846,7 +847,7 @@ class Parser:
         if box1 is None:
             box1 = Symbol("StandardForm")  # RawForm
         elif is_symbol_name(box1.value):
-            box1 = Symbol(box1.value, context=None)
+            box1 = Symbol(box1.value)
         else:
             box1 = Node("Removed", String("$$Failure"))
         self.consume()
