@@ -68,6 +68,13 @@ def autoload_files(
             if name.startswith("Global`"):
                 raise ValueError("autoload defined %s." % name)
 
+    # Move the user definitions to builtin:
+    for symbol_name in defs.user:
+        defs.builtin[symbol_name] = defs.get_definition(symbol_name)
+
+    defs.user = {}
+    defs.clear_cache()
+
 
 class Definitions:
     """
@@ -145,22 +152,6 @@ class Definitions:
                     pickle.dump(self.builtin, builtin_file, -1)
 
             autoload_files(self, ROOT_DIR, "autoload")
-
-            # Move any user definitions created by autoloaded files to
-            # builtins, and clear out the user definitions list. This
-            # means that any autoloaded definitions become shared
-            # between users and no longer disappear after a Quit[].
-            #
-            # Autoloads that accidentally define a name in Global`
-            # could cause confusion, so check for this.
-            #
-            for name in self.user:
-                if name.startswith("Global`"):
-                    raise ValueError("autoload defined %s." % name)
-
-            self.builtin.update(self.user)
-            self.user = {}
-            self.clear_cache()
 
     def clear_cache(self, name=None):
         # the definitions cache (self.definitions_cache) caches (incomplete and complete) names -> Definition(),
