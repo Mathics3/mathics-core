@@ -344,6 +344,10 @@ class BesselI(_Bessel):
 
         >> Plot[BesselI[0, x], {x, 0, 5}]
          = -Graphics-
+
+        The special case of half-integer index is expanded using Rayleigh's formulas:
+        >> BesselI[3/2, x]
+         = Sqrt[2] Sqrt[x] (-Sinh[x] / x ^ 2 + Cosh[x] / x) / Sqrt[Pi]
     """
 
     mpmath_name = "besseli"
@@ -388,12 +392,14 @@ class BesselJ(_Bessel):
 
     >> Plot[BesselJ[0, x], {x, 0, 10}]
      = -Graphics-
-    """
 
-    # TODO: Sympy Backend is not as powerful as Mathematica
-    """
+    The special case of half-integer index is expanded using Rayleigh's formulas:
     >> BesselJ[1/2, x]
-     = Sqrt[2 / Pi] Sin[x] / Sqrt[x]
+     = Sqrt[2] Sin[x] / (Sqrt[x] Sqrt[Pi])
+
+    Some integrals can be expressed in terms of Bessel functions:
+    >> Integrate[Cos[3 Sin[w]], {w, 0, Pi}]
+     = Pi BesselJ[0, 3]
     """
 
     mpmath_name = "besselj"
@@ -428,6 +434,11 @@ class BesselK(_Bessel):
 
     >> Plot[BesselK[0, x], {x, 0, 5}]
      = -Graphics-
+
+    The special case of half-integer index is expanded using Rayleigh's formulas:
+    >> BesselK[-3/2, x]
+     = Sqrt[2] Sqrt[x] Sqrt[Pi] (E ^ (-x) / x ^ 2 + E ^ (-x) / x) / 2
+
     """
 
     mpmath_name = "besselk"
@@ -460,19 +471,20 @@ class BesselY(_Bessel):
     >> BesselY[1.5, 4]
      = 0.367112
 
-    ## Returns ComplexInfinity instead
-    ## #> BesselY[0., 0.]
-    ##  = -Infinity
+    >> BesselY[0., 0.]
+      = -Infinity
 
     >> Plot[BesselY[0, x], {x, 0, 10}]
      = -Graphics-
-    """
 
-    # TODO: Special Values
-    """
+    The special case of half-integer index is expanded using Rayleigh's formulas:
+    >> BesselY[-3/2, x]
+     =  Sqrt[2] Sqrt[x] (-Sin[x] / x ^ 2 + Cos[x] / x) / Sqrt[Pi]
+
     >> BesselY[0, 0]
      = -Infinity
     """
+
     rules = {
         "Derivative[0,1][BesselY]": "(BesselY[-1 + #1, #2] / 2 - BesselY[1 + #1, #2] / 2)&",
     }
