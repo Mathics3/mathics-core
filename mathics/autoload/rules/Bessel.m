@@ -17,7 +17,7 @@ Protect[HankelH2];
 
 
 Unprotect[BesselI]
-(*Rayleight's formulas for half-integer indices*)
+(*Rayleigh's formulas for half-integer indices*)
 BesselI[nu_/;(nu>0 && IntegerQ[2*nu]), z_]:=Module[{u,f,k= nu-1/2},f=Sinh[u]/u;While[k>0, k=k-1;f = (-D[f, u]/u)]; (Sqrt[2/Pi z] * ((-u)^(nu-1/2)*f))/.u->z];
 BesselI[nu_/;(nu<0 && IntegerQ[2*nu]), z_]:=Module[{u,f,k=-nu-1/2},f=Cosh[u]/u;While[k>0, k=k-1;f = (-D[f, u]/u)]; (Sqrt[2/Pi z] * ((-u)^(-nu-1/2)*f))/.u->z];
 (*Limit cases*)
@@ -29,7 +29,7 @@ BesselI[nu_, DirectedInfinity[z___]] := 0;
 Protect[BesselI]
 
 Unprotect[BesselK]
-(*Rayleight's formulas for half-integer indices*)
+(*Rayleigh's formulas for half-integer indices*)
 BesselK[nu_/;(nu>0 && IntegerQ[2*nu]), z_]:=Module[{u,f,k= nu-1/2},f=Exp[-u]/u;While[k>0, k=k-1;f = (D[f, u]/u)]; (Sqrt[Pi/2 z] * ((-u)^(nu-1/2)*f))/.u->z];
 BesselK[nu_/;(nu<0 && IntegerQ[2*nu]), z_]:=Module[{u,f,k=-nu-1/2},f=Exp[-u]/u;While[k>0, k=k-1;f = (D[f, u]/u)]; (Sqrt[Pi/2 z] * ((-u)^(-nu-1/2)*f))/.u->z];
 (*Limit cases*)
@@ -39,7 +39,7 @@ Protect[BesselK]
 
 
 Unprotect[BesselJ]
-(*Rayleight's formulas for half-integer indices*)
+(*Rayleigh's formulas for half-integer indices*)
 BesselJ[nu_/;(nu>0 && IntegerQ[2*nu]), z_]:=Module[{u,f,k= nu-1/2},f=Sin[u]/u;While[k>0, k=k-1;f = (D[f, u]/u)]; (Sqrt[2/Pi z] * ((-u)^(nu-1/2)*f))/.u->z];
 BesselJ[nu_/;(nu<0 && IntegerQ[2*nu]), z_]:=Module[{u,f,k=-nu-1/2},f=Cos[u]/u;While[k>0, k=k-1;f = (-D[f, u]/u)]; (Sqrt[2/Pi z] * ((-u)^(-nu-1/2)*f))/.u->z];
 (*Limit cases*)
@@ -52,7 +52,7 @@ Protect[BesselJ]
 
 
 Unprotect[BesselY]
-(*Rayleight's formulas for half-integer indices*)
+(*Rayleigh's formulas for half-integer indices*)
 BesselY[nu_/;(nu>0 && IntegerQ[2*nu]), z_]:=Module[{u,f,k= nu-1/2},f=Cos[u]/u;While[k>0, k=k-1;f = (D[f, u]/u)]; (-Sqrt[2/Pi z] * ((-u)^(nu-1/2)*f))/.u->z];
 BesselY[nu_/;(nu<0 && IntegerQ[2*nu]), z_]:=Module[{u,f,k=-nu-1/2},f=Sin[u]/u;While[k>0, k=k-1;f = (D[f, u]/u)]; (Sqrt[2/Pi z] * ((u)^(-nu-1/2)*f))/.u->z];
 (*Limit cases*)
