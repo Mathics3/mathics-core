@@ -337,6 +337,7 @@ System`EditDistance
 System`Eigensystem
 System`Eigenvalues
 System`Eigenvectors
+System`Element
 System`ElementData
 System`EllipticE
 System`EllipticF
