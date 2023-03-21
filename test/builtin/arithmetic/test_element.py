@@ -6,45 +6,45 @@ from test.helper import check_evaluation
 
 import pytest
 
+test_set = "{elem, {1, 2, 4, 1.3, Pi, a, True, Sqrt[5]-2, Sin[3]}}"
+
+domains = {
+    "Integers": (
+        "{True, True, True, False, False, " "Element[a, Integers], False, False, False}"
+    ),
+    "Primes": (
+        "{False, True, False, False, False, " "Element[a, Primes], False, False, False}"
+    ),
+    "Rationals": (
+        "{True, True, True, Element[1.3, Rationals], False, "
+        "Element[a, Rationals], False, False, False}"
+    ),
+    "Reals": (
+        "{True, True, True, True, True, " "Element[a, Reals], False, True, True}"
+    ),
+    "Complexes": (
+        "{True, True, True, True, True, " "Element[a, Complexes], False, True, True}"
+    ),
+    "Algebraics": (
+        "{True, True, True, Element[1.3, Algebraics], False, "
+        "Element[a, Algebraics], False, True, False}"
+    ),
+    "Booleans": (
+        "{False, False, False, False, False, "
+        "Element[a, Booleans], True, False, False}"
+    ),
+}
+
 
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
         (
-            "Table[Element[elem, Integers], {elem, {1, 1.3, Pi, a, True, Sqrt[5]-2,Sin[3]}}]",
-            "{True, False, False, Element[a, Integers], False, False, False}",
-            "Integers",
-        ),
-        (
-            "Table[Element[elem, Primes], {elem, {1, 2, 1.3, Pi, a, True, Sqrt[5]-2,Sin[3]}}]",
-            "{False, True, False, False, Element[a, Primes], False, False, False}",
-            "Primes",
-        ),
-        (
-            "Table[Element[elem, Rationals], {elem, {1, 1.3, Pi, a, True, Sqrt[5]-2,Sin[3]}}]",
-            "{True, Element[1.3, Rationals], False, Element[a, Rationals], False, False, False}",
-            "Rationals",
-        ),
-        (
-            "Table[Element[elem, Reals], {elem, {1, 1.3, Pi, a, True, Sqrt[5]-2, Sin[3]}}]",
-            "{True, True, True, Element[a, Reals], False, True, True}",
-            "Reals",
-        ),
-        (
-            "Table[Element[elem, Complexes], {elem, {1, 1.3, Pi, a, True, Sqrt[5]-2, Sin[3]}}]",
-            "{True, True, True, Element[a, Complexes], False, True, True}",
-            "Complexes",
-        ),
-        (
-            "Table[Element[elem, Algebraics], {elem, {1, 1.3, Pi, a, True, Sqrt[5]-2, Sin[3]}}]",
-            "{True, Element[1.3, Algebraics], False, Element[a, Algebraics], False, True, False}",
-            "Algebraics",
-        ),
-        (
-            "Table[Element[elem, Booleans], {elem, {1, 1.3, Pi, a, True, Sqrt[5]-2, Sin[3]}}]",
-            "{False, False, False, Element[a, Booleans], True, False, False}",
-            "Booleans",
-        ),
+            f"Table[Element[elem, {key}], {test_set}]",
+            domains[key],
+            key,
+        )
+        for key in domains
     ],
 )
 def test_element(str_expr, str_expected, msg):

@@ -705,20 +705,23 @@ class Element(Builtin):
       <dt>'Element[$expr$, $domain$]'
       <dd>returns $True$ if $expr$ is an element of $domain$
       <dt>'Element[$expr_1$|$expr_2$|..., $domain$]'
-      <dd>returns $True$ if all the $expr_i$ belongs to $domain$, and $False$ if \
-      one of the items doesn't.
+      <dd>returns $True$ if all the $expr_i$ belongs to $domain$, and \
+    $False$ if one of the items doesn't.
     </dl>
 
 
-    Check if $3$ and $a$ are both integers. If $a$ is not defined, then 'Element' reduces the condition:
+    Check if $3$ and $a$ are both integers. If $a$ is not defined, then \
+'Element' reduces the condition:
     >> Element[3 | a, Integers]
      = Element[a, Integers]
 
-    Notice that standard domain names ('Primes', 'Integers', 'Rationals', 'Algebraics', 'Reals', 'Complexes', and 'Booleans')\
+    Notice that standard domain names ('Primes', 'Integers', 'Rationals', \
+'Algebraics', 'Reals', 'Complexes', and 'Booleans')\
     are in plural form. If a singular form is used, a warning is shown:
 
     >> Element[a, Real]
-     : The second argument Real of Element should be one of: Primes, Integers, Rationals, Algebraics, Reals, Complexes, or Booleans.
+     : The second argument Real of Element should be one of: Primes, Integers, \
+Rationals, Algebraics, Reals, Complexes, or Booleans.
      = Element[a, Real]
 
     """
@@ -736,7 +739,10 @@ class Element(Builtin):
     def eval_wrong_domain(
         self, elem: BaseElement, domain: BaseElement, evaluation: Evaluation
     ):
-        """Element[elem_, domain:(Alternatives[Algebraic, Bool, Integer, Prime, Rational, Real, Complex])]"""
+        (
+            "Element[elem_, domain:(Alternatives["
+            "Algebraic, Bool, Integer, Prime, Rational, Real, Complex])]"
+        )
         evaluation.message("Element", "bset", domain)
         return None
 
