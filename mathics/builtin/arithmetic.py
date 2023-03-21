@@ -43,7 +43,7 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
-from mathics.core.element import ElementsProperties
+from mathics.core.element import BaseElement, ElementsProperties
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -694,6 +694,77 @@ class DirectedInfinity(SympyFunction):
                 return sympy.Mul((expr.elements[0].to_sympy()), sympy.zoo)
         else:
             return sympy.zoo
+
+
+class Element(Builtin):
+    """
+    <url>:Element of:https://en.wikipedia.org/wiki/Element_(mathematics)</url> \
+    (<url>:WMA:https://reference.wolfram.com/language/ref/Element.html</url>)
+
+    <dl>
+      <dt>'Element[$expr$, $domain$]'
+      <dd>returns $True$ if $expr$ is an element of $domain$
+      <dt>'Element[$expr_1$|$expr_2$|..., $domain$]'
+      <dd>returns $True$ if all the $expr_i$ belongs to $domain$, and \
+    $False$ if one of the items doesn't.
+    </dl>
+
+
+    Check if $3$ and $a$ are both integers. If $a$ is not defined, then \
+'Element' reduces the condition:
+    >> Element[3 | a, Integers]
+     = Element[a, Integers]
+
+    Notice that standard domain names ('Primes', 'Integers', 'Rationals', \
+'Algebraics', 'Reals', 'Complexes', and 'Booleans')\
+    are in plural form. If a singular form is used, a warning is shown:
+
+    >> Element[a, Real]
+     : The second argument Real of Element should be one of: Primes, Integers, \
+Rationals, Algebraics, Reals, Complexes, or Booleans.
+     = Element[a, Real]
+
+    """
+
+    messages = {
+        "bset": (
+            "The second argument `1` of Element should be one of: "
+            "Primes, Integers, Rationals, Algebraics, "
+            "Reals, Complexes, or Booleans."
+        ),
+    }
+
+    summary_text = "check whether belongs the domain"
+
+    def eval_wrong_domain(
+        self, elem: BaseElement, domain: BaseElement, evaluation: Evaluation
+    ):
+        (
+            "Element[elem_, domain:(Alternatives["
+            "Algebraic, Bool, Integer, Prime, Rational, Real, Complex])]"
+        )
+        evaluation.message("Element", "bset", domain)
+        return None
+
+    def eval_Element_alternatives(
+        self, elems: BaseElement, domain: BaseElement, evaluation: Evaluation
+    ) -> Optional[Expression]:
+        """Element[elems_Alternatives, domain_]"""
+        items = elems.elements
+        unknown = []
+        for item in items:
+            item_belongs = Element(item, domain).evaluate(evaluation)
+            if item_belongs is SymbolTrue:
+                continue
+            if item_belongs is SymbolFalse:
+                return SymbolFalse
+            unknown.append(item)
+        if len(unknown) == len(items):
+            return None
+        if len(unknown) == 0:
+            return SymbolTrue
+        # If some of the items remain unkown, return a reduced expression
+        return Element(Expression(elems.head, *unknown), domain)
 
 
 class I_(Predefined):

@@ -1,6 +1,6 @@
 (*Extended rules for handling expressions with Bessel functions*)
 
-
+Begin["internals`bessel`"]
 
 Unprotect[HankelH1];
 (*HankelH1[x_Integer?NegativeQ, z_]:=-HankelH1[-x, z];*)
@@ -77,3 +77,4 @@ Integrate[Cos[z_ Sin[Theta_]], {Theta_, 0, Pi}]:= ConditionalExpression[Pi Besse
 Protect[Integrate];
 
 (*TODO: extend me with series expansions, integrals, etc*)
+End[]
