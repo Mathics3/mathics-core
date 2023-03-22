@@ -10,6 +10,7 @@ from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer0, Integer1
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
+from mathics.eval.numbers import is_integer_rational_or_real
 
 
 def _matrix(rows):
@@ -32,10 +33,18 @@ class BoxMatrix(Builtin):
      = {{1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}}
     """
 
+    messages = {
+        "notre": "The first argument must be a non-complex number or a list of "
+        "noncomplex numbers.",
+    }
+
     summary_text = "create a matrix with all its entries set to 1"
 
     def eval(self, r, evaluation: Evaluation):
-        "BoxMatrix[r_?RealNumberQ]"
+        "BoxMatrix[r_]"
+        if not is_integer_rational_or_real(r):
+            evaluation.message(self.get_name(), "notre")
+            return
         py_r = abs(r.round_to_float())
         s = int(math.floor(1 + 2 * py_r))
         return _matrix([[Integer1] * s] * s)

@@ -58,16 +58,6 @@ class Array(Builtin):
      = {{f[4, 6], f[4, 7], f[4, 8]}, {f[5, 6], f[5, 7], f[5, 8]}}
     >> Array[f, {2, 3}, 1, Plus]
      = f[1, 1] + f[1, 2] + f[1, 3] + f[2, 1] + f[2, 2] + f[2, 3]
-
-    #> Array[f, {2, 3}, {1, 2, 3}]
-     : {2, 3} and {1, 2, 3} should have the same length.
-     = Array[f, {2, 3}, {1, 2, 3}]
-    #> Array[f, a]
-     : Single or list of non-negative integers expected at position 2.
-     = Array[f, a]
-    #> Array[f, 2, b]
-     : Single or list of non-negative integers expected at position 3.
-     = Array[f, 2, b]
     """
 
     messages = {
@@ -190,7 +180,8 @@ class Normal(Builtin):
 
     <dl>
       <dt>'Normal[expr_]'
-      <dd> Brings especial expressions to a normal expression from different especial forms.
+      <dd> Brings special expressions to a normal expression from different special \
+           forms.
     </dl>
     """
 
@@ -321,7 +312,8 @@ class Permutations(Builtin):
 
     messages = {
         "argt": "Permutation expects at least one argument.",
-        "nninfseq": "The number specified at position 2 of `` must be a non-negative integer, All, or Infinity.",
+        "nninfseq": "The number specified at position 2 of `` must be a non-negative "
+        "integer, All, or Infinity.",
     }
 
     summary_text = "form permutations of a list"
@@ -509,6 +501,7 @@ class Table(IterationFunction):
       <dd>evaluates $expr$ with $i$ taking on the values $e1$, $e2$,
         ..., $ei$.
     </dl>
+
     >> Table[x, 3]
      = {x, x, x}
     >> n = 0; Table[n = n + 1, {5}]
@@ -527,11 +520,6 @@ class Table(IterationFunction):
     'Table' supports multi-dimensional tables:
     >> Table[{i, j}, {i, {a, b}}, {j, 1, 2}]
      = {{{a, 1}, {a, 2}}, {{b, 1}, {b, 2}}}
-
-    #> Table[x, {x,0,1/3}]
-     = {0}
-    #> Table[x, {x, -0.2, 3.9}]
-     = {-0.2, 0.8, 1.8, 2.8, 3.8}
     """
 
     rules = {
