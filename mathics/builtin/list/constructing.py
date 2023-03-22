@@ -23,7 +23,7 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import SymbolNormal
 from mathics.eval.lists import get_tuples, list_boxes
-from mathics.eval.numbers import is_number
+from mathics.eval.numbers import is_integer_rational_or_real
 
 
 class Array(Builtin):
@@ -259,7 +259,7 @@ class Range(Builtin):
         "Range[imin_, imax_, di_]"
 
         for arg in imin, imax, di:
-            if not is_number(arg):
+            if not is_integer_rational_or_real(arg):
                 evaluation.message(self.get_name(), "range")
                 return
 

@@ -138,7 +138,7 @@ def cancel(expr):
             return expr
 
 
-def is_number(expr) -> bool:
+def is_integer_rational_or_real(expr) -> bool:
     """
     Return True  is expr is either an Integer, Rational, or Real.
     """
