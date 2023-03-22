@@ -161,7 +161,7 @@ class LevelQ(Test):
 
     summary_text = "test whether is a valid level specification"
 
-    def test(self, ls):
+    def test(self, ls) -> bool:
         try:
             start, stop = python_levelspec(ls)
             return True
@@ -270,7 +270,7 @@ class NotListQ(Test):
 
     summary_text = "test if an expression is not a list"
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         return expr.get_head_name() != "System`List"
 
 

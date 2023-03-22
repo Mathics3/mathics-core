@@ -207,7 +207,8 @@ class Accuracy(Builtin):
 
     See also <url>
     :'Precision':
-    /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/precision/</url>.
+    /doc/reference-of-built-in-symbols/atomic-elements-of-expressions
+/representation-of-numbers/precision/</url>.
     """
 
     summary_text = "find the accuracy of a number"
@@ -218,37 +219,6 @@ class Accuracy(Builtin):
         if acc is None:
             return SymbolInfinity
         return MachineReal(acc)
-
-
-class ExactNumberQ(Test):
-    """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/ExactNumberQ.html</url>
-
-    <dl>
-      <dt>'ExactNumberQ[$expr$]'
-      <dd>returns 'True' if $expr$ is an exact number, and 'False' otherwise.
-    </dl>
-
-    >> ExactNumberQ[10]
-     = True
-    >> ExactNumberQ[4.0]
-     = False
-    >> ExactNumberQ[n]
-     = False
-
-    'ExactNumberQ' can be applied to complex numbers:
-    >> ExactNumberQ[1 + I]
-     = True
-    >> ExactNumberQ[1 + 1. I]
-     = False
-    """
-
-    summary_text = "test if an expression is an exact real or complex number"
-
-    def test(self, expr):
-        return isinstance(expr, Number) and not expr.is_inexact()
 
 
 class IntegerExponent(Builtin):
@@ -408,34 +378,6 @@ class IntegerLength(Builtin):
             else:
                 j = k
         return Integer(j)
-
-
-class InexactNumberQ(Test):
-    """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/InexactNumberQ.html</url>
-
-    <dl>
-      <dt>'InexactNumberQ[$expr$]'
-      <dd>returns 'True' if $expr$ is not an exact number, and 'False' otherwise.
-    </dl>
-
-    >> InexactNumberQ[a]
-     = False
-    >> InexactNumberQ[3.0]
-     = True
-    >> InexactNumberQ[2/3]
-     = False
-
-    'InexactNumberQ' can be applied to complex numbers:
-    >> InexactNumberQ[4.0+I]
-     = True
-    """
-
-    summary_text = "the negation of ExactNumberQ"
-
-    def test(self, expr):
-        return isinstance(expr, Number) and expr.is_inexact()
 
 
 class RealDigits(Builtin):

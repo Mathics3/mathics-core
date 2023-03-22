@@ -161,7 +161,6 @@ class Integer(Number):
     # clearing the cache and the object store which might be useful in implementing
     # Builtin Share[].
     def __new__(cls, value) -> "Integer":
-
         n = int(value)
         self = cls._integers.get(value)
         if self is None:
@@ -711,7 +710,6 @@ class Complex(Number):
         value = (real, imag)
         self = cls._complex_numbers.get(value)
         if self is None:
-
             self = super().__new__(cls)
             self.real = real
             self.imag = imag
@@ -862,7 +860,6 @@ class Rational(Number):
     # clearing the cache and the object store which might be useful in implementing
     # Builtin Share[].
     def __new__(cls, numerator, denominator=1) -> "Rational":
-
         value = sympy.Rational(numerator, denominator)
         key = (cls, value)
         self = cls._rationals.get(key)

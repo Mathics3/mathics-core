@@ -19,7 +19,6 @@ from mathics.core.element import (
 sympy_symbol_prefix = "_Mathics_User_"
 sympy_slot_prefix = "_Mathics_Slot_"
 
-
 # FIXME: This is repeated below
 class NumericOperators:
     """
@@ -722,6 +721,11 @@ class SymbolConstant(Symbol):
     @property
     def value(self):
         return self._value
+
+
+# A BooleanType is a special form of SymbolConstant where the value
+# of the constant is either SymbolTrue or SymbolFalse.
+BooleanType = SymbolConstant
 
 
 def symbol_set(*symbols: Tuple[Symbol]) -> FrozenSet[Symbol]:

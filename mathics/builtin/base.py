@@ -34,6 +34,7 @@ from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
 from mathics.core.rules import BuiltinRule, Pattern, Rule
 from mathics.core.symbols import (
     BaseElement,
+    BooleanType,
     Symbol,
     SymbolFalse,
     SymbolPlus,
@@ -843,10 +844,17 @@ class BinaryOperator(Operator):
 
 
 class Test(Builtin):
-    def eval(self, expr, evaluation) -> Optional[Symbol]:
-        "%(name)s[expr_]"
+    def eval(self, expr, evaluation) -> Optional[BooleanType]:
+        # Note: in the docstring below, we need to use %(name)s for
+        # subclasses like ExactNumberQ to work with function-application
+        # pattern matching.
+        """%(name)s[expr_]"""
         test_expr = self.test(expr)
         return None if test_expr is None else from_bool(bool(test_expr))
+
+    def test(self, expr) -> bool:
+        """Subclasses of test must implement a boolean test function"""
+        raise NotImplementedError
 
 
 @lru_cache()
