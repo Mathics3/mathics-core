@@ -11,7 +11,7 @@ from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.convert.python import from_bool, from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.symbols import SymbolFalse, SymbolTrue
+from mathics.core.symbols import BooleanType, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolExpandAll, SymbolSimplify
 from mathics.eval.nevaluator import eval_N
 
@@ -89,9 +89,96 @@ class EvenQ(Test):
     attributes = A_LISTABLE | A_PROTECTED
     summary_text = "test whether one number is divisible by the other"
 
-    def test(self, n):
+    def test(self, n) -> bool:
         value = n.get_int_value()
         return value is not None and value % 2 == 0
+
+
+class ExactNumberQ(Test):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/ExactNumberQ.html</url>
+
+    <dl>
+      <dt>'ExactNumberQ[$expr$]'
+      <dd>returns 'True' if $expr$ is an exact real or complex number, and returns
+          'False' otherwise.
+    </dl>
+
+    >> ExactNumberQ[10]
+     = True
+
+    'ExactNumber[]' of a Real or MachineReal is 'False'
+    >> ExactNumberQ[10.0]
+     = False
+
+    'ExactNumberQ' for complex numbers:
+    >> ExactNumberQ[I]
+     = True
+
+    >> ExactNumberQ[1 + I]
+     = True
+
+    but not when composed with a Real:
+    >> ExactNumberQ[1. + I]
+     = False
+
+
+    'ExactNumber[]' is 'True' for Rational numbers:
+    >> ExactNumberQ[5/6]
+     = True
+
+    >> ExactNumberQ[4 * I + 5/6]
+     = True
+
+    """
+
+    attributes = A_PROTECTED
+
+    summary_text = "test if an expression is an exact real or complex number"
+
+    def test(self, expr) -> bool:
+        """
+        This function is the the eval() function for a Test subclass.
+        It is called by Test.eval().
+        Note that this function must return a bool, not a BaseExpression.
+        """
+        return isinstance(expr, Number) and not expr.is_inexact()
+
+
+class InexactNumberQ(Test):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/InexactNumberQ.html</url>
+
+    <dl>
+      <dt>'InexactNumberQ[$expr$]'
+      <dd>returns 'True' if $expr$ is not an exact real or complex number
+          number, and 'False' otherwise.
+    </dl>
+
+    >> InexactNumberQ[a]
+     = False
+    >> InexactNumberQ[3.0]
+     = True
+    >> InexactNumberQ[2/3]
+     = False
+
+    'InexactNumberQ' is 'True' for complex numbers:
+
+    >> InexactNumberQ[4.0+I]
+     = True
+    """
+
+    summary_text = "test if an expression is an not exact real or complex number"
+
+    def test(self, expr) -> bool:
+        """
+        This function is the the eval() function for a Test subclass.
+        It is called by Test.eval().
+        Note that this function must return a bool, not a BaseExpression.
+        """
+        return isinstance(expr, Number) and expr.is_inexact()
 
 
 class IntegerQ(Test):
@@ -141,9 +228,9 @@ class MachineNumberQ(Test):
      = True
     """
 
-    summary_text = "test if expression is a machine‐precision real or complex number"
+    summary_text = "test if expression is a machine precision real or complex number"
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         return expr.is_machine_precision()
 
 
@@ -243,7 +330,7 @@ class NumberQ(Test):
 
     summary_text = "test whether an expression is a number"
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         return isinstance(expr, Number)
 
 
@@ -318,7 +405,7 @@ class OddQ(Test):
     attributes = A_LISTABLE | A_PROTECTED
     summary_text = "test whether elements are odd numbers"
 
-    def test(self, n):
+    def test(self, n) -> bool:
         value = n.get_int_value()
         return value is not None and value % 2 != 0
 
@@ -473,7 +560,7 @@ class PrimeQ(SympyFunction):
     sympy_name = "isprime"
     summary_text = "test whether elements are prime numbers"
 
-    def eval(self, n, evaluation: Evaluation):
+    def eval(self, n, evaluation: Evaluation) -> BooleanType:
         "PrimeQ[n_]"
 
         n = n.get_int_value()
@@ -481,7 +568,4 @@ class PrimeQ(SympyFunction):
             return SymbolFalse
 
         n = abs(n)
-        if sympy.isprime(n):
-            return SymbolTrue
-        else:
-            return SymbolFalse
+        return SymbolTrue if sympy.isprime(n) else SymbolFalse

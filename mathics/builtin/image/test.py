@@ -31,7 +31,7 @@ class BinaryImageQ(Test):
 
     summary_text = "test whether pixels in an image are binary bit values"
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         return isinstance(expr, Image) and expr.storage_type() == "Bit"
 
 
@@ -64,5 +64,5 @@ class ImageQ(Test):
 
     summary_text = "test whether is a valid image"
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         return isinstance(expr, Image)

@@ -179,7 +179,7 @@ class AssociationQ(Test):
 
     summary_text = "test if an expression is a valid association"
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         def validate(elements):
             for element in elements:
                 if element.has_form(("Rule", "RuleDelayed"), 2):

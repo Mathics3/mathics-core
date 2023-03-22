@@ -28,7 +28,7 @@ class ListQ(Test):
 
     summary_text = "test if an expression is a list"
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         return expr.get_head_name() == "System`List"
 
 

@@ -23,6 +23,7 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import SymbolNormal
 from mathics.eval.lists import get_tuples, list_boxes
+from mathics.eval.numbers import is_integer_rational_or_real
 
 
 class Array(Builtin):
@@ -205,6 +206,11 @@ class Normal(Builtin):
         )
 
 
+range_list_elements_properties = ElementsProperties(
+    elements_fully_evaluated=True, is_flat=True, is_ordered=True
+)
+
+
 class Range(Builtin):
     """
     <url>
@@ -221,23 +227,41 @@ class Range(Builtin):
 
     >> Range[5]
      = {1, 2, 3, 4, 5}
+
     >> Range[-3, 2]
      = {-3, -2, -1, 0, 1, 2}
+
+    >> Range[1.0, 2.3]
+     = {1., 2.}
+
     >> Range[0, 2, 1/3]
      = {0, 1 / 3, 2 / 3, 1, 4 / 3, 5 / 3, 2}
+
+    >> Range[1.0, 2.3, .5]
+     = {1., 1.5, 2.}
+
     """
 
     attributes = A_LISTABLE | A_PROTECTED
 
+    messages = {
+        "range": "Range specification does not have appropriate bounds.",
+    }
+
     rules = {
-        "Range[imax_?RealNumberQ]": "Range[1, imax, 1]",
-        "Range[imin_?RealNumberQ, imax_?RealNumberQ]": "Range[imin, imax, 1]",
+        "Range[imax_]": "Range[1, imax, 1]",
+        "Range[imin_, imax_]": "Range[imin, imax, 1]",
     }
 
     summary_text = "form a list from a range of numbers or other objects"
 
     def eval(self, imin, imax, di, evaluation: Evaluation):
-        "Range[imin_?RealNumberQ, imax_?RealNumberQ, di_?RealNumberQ]"
+        "Range[imin_, imax_, di_]"
+
+        for arg in imin, imax, di:
+            if not is_integer_rational_or_real(arg):
+                evaluation.message(self.get_name(), "range")
+                return
 
         if (
             isinstance(imin, Integer)
@@ -245,9 +269,9 @@ class Range(Builtin):
             and isinstance(di, Integer)
         ):
             result = [Integer(i) for i in range(imin.value, imax.value + 1, di.value)]
-            # TODO: add ElementProperties in Expression interface refactor branch:
-            #   fully_evaluated, flat, are True and is_ordered = di.value >= 0
-            return ListExpression(*result)
+            return ListExpression(
+                *result, elements_properties=range_list_elements_properties
+            )
 
         imin = imin.to_sympy()
         imax = imax.to_sympy()
@@ -258,7 +282,9 @@ class Range(Builtin):
             evaluation.check_stopped()
             result.append(from_sympy(index))
             index += di
-        return ListExpression(*result)
+        return ListExpression(
+            *result, elements_properties=range_list_elements_properties
+        )
 
 
 class Permutations(Builtin):

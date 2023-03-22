@@ -1199,9 +1199,11 @@ class RealNumberQ(Test):
      = True
     """
 
+    attributes = A_NO_ATTRIBUTES
+
     summary_text = "test whether an expression is a real number"
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         return isinstance(expr, (Integer, Rational, Real))
 
 

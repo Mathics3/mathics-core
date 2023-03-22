@@ -974,7 +974,7 @@ class StringQ(Test):
 
     summary_text = "test whether an expression is a string"
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         return isinstance(expr, String)
 
 

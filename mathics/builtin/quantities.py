@@ -61,7 +61,7 @@ class KnownUnitQ(Test):
 
     summary_text = "tests whether its argument is a canonical unit."
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         def validate(unit):
             try:
                 Q_(1, unit)
@@ -292,7 +292,7 @@ class QuantityQ(Test):
 
     summary_text = "tests whether its the argument is a quantity"
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         def validate_unit(unit):
             try:
                 Q_(1, unit)
