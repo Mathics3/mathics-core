@@ -7,10 +7,9 @@ Methods for constructing Matrices.
 import math
 
 from mathics.builtin.base import Builtin
-from mathics.core.atoms import Integer0, Integer1
+from mathics.core.atoms import Integer0, Integer1, is_integer_rational_or_real
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
-from mathics.eval.numbers import is_integer_rational_or_real
 
 
 def _matrix(rows):

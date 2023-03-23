@@ -6,7 +6,7 @@ helper functions for images
 
 import functools
 from operator import itemgetter
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy
 import PIL
@@ -231,7 +231,7 @@ def numpy_to_matrix(pixels):
         return pixels.tolist()
 
 
-def pixels_as_float(pixels):
+def pixels_as_float(pixels) -> Union[numpy.float64, numpy.float32]:
     dtype = pixels.dtype
     if dtype in (numpy.float32, numpy.float64):
         return pixels
@@ -245,7 +245,7 @@ def pixels_as_float(pixels):
         raise NotImplementedError
 
 
-def pixels_as_ubyte(pixels):
+def pixels_as_ubyte(pixels) -> numpy.uint8:
     dtype = pixels.dtype
     if dtype in (numpy.float32, numpy.float64):
         pixels = numpy.maximum(numpy.minimum(pixels, 1.0), 0.0)
