@@ -48,7 +48,7 @@ class Blur(Builtin):
 
     rules = {
         "Blur[image_Image]": "Blur[image, 2]",
-        "Blur[image_Image, r_?RealNumberQ]": (
+        "Blur[image_Image, r:(_Integer|_Real|_Rational)]": (
             "ImageConvolve[image, BoxMatrix[r] / Total[Flatten[BoxMatrix[r]]]]"
         ),
     }
