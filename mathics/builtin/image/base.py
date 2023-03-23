@@ -21,6 +21,10 @@ skimage_requires = ("skimage",)
 # No user docs here.
 no_doc = True
 
+image_common_messages = {
+    "imginv": "Expecting an image instead of `1`.",
+}
+
 
 class Image(Atom):
     class_head_name = "System`Image"

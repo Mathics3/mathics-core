@@ -7,8 +7,8 @@ import PIL
 
 from mathics.builtin.base import Builtin, String
 from mathics.builtin.colors.color_internals import colorspaces as known_colorspaces
-from mathics.builtin.image.base import Image
-from mathics.core.atoms import Integer
+from mathics.builtin.image.base import Image, image_common_messages
+from mathics.core.atoms import Integer, is_integer_rational_or_real
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -52,8 +52,18 @@ class Binarize(Builtin):
 
     summary_text = "create a binarized image"
 
-    def eval(self, image: Image, evaluation: Evaluation):
-        "Binarize[image_Image]"
+    messages = {
+        "imginv": image_common_messages["imginv"],
+        "arg2": ("The argument `1` should be a real number or a pair of real numbers."),
+    }
+
+    def eval(self, image, evaluation: Evaluation):
+        "Binarize[image]"
+
+        if not isinstance(image, Image):
+            evaluation.message(self.get_name(), "imginv", image)
+            return
+
         image = image.grayscale()
         thresh = (
             Expression(SymbolThreshold, image).evaluate(evaluation).round_to_float()
@@ -61,13 +71,38 @@ class Binarize(Builtin):
         if thresh is not None:
             return Image(image.pixels > thresh, "Grayscale")
 
-    def eval_t(self, image: Image, t, evaluation: Evaluation):
-        "Binarize[image_Image, t_?RealNumberQ]"
+    def eval_with_t(self, image, t, evaluation: Evaluation):
+        "Binarize[image_, t_]"
+
+        if isinstance(t, ListExpression) and len(t.elements) == 2:
+            return self.eval_with_t1_t2(image, *t.elements, evaluation)
+
+        if not isinstance(image, Image):
+            evaluation.message(self.get_name(), "imginv", image)
+            return
+
+        if not is_integer_rational_or_real(t):
+            evaluation.message(self.get_name(), "arg2", t)
+            return
+
         pixels = image.grayscale().pixels
         return Image(pixels > t.round_to_float(), "Grayscale")
 
-    def eval_t1_t2(self, image: Image, t1, t2, evaluation: Evaluation):
-        "Binarize[image_Image, {t1_?RealNumberQ, t2_?RealNumberQ}]"
+    def eval_with_t1_t2(self, image, t1, t2, evaluation: Evaluation):
+        "Binarize[image, {t1_, t2_}]"
+
+        if not isinstance(image, Image):
+            evaluation.message(self.get_name(), "imginv", image)
+            return
+
+        if not is_integer_rational_or_real(t1):
+            evaluation.message(self.get_name(), "arg2", [t1, t2])
+            return
+
+        if not is_integer_rational_or_real(t2):
+            evaluation.message(self.get_name(), "arg2", [t1, t2])
+            return
+
         pixels = image.grayscale().pixels
         mask1 = pixels > t1.round_to_float()
         mask2 = pixels < t2.round_to_float()
