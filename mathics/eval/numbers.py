@@ -3,14 +3,7 @@ from typing import Optional
 import mpmath
 import sympy
 
-from mathics.core.atoms import (
-    Complex,
-    Integer,
-    MachineReal,
-    PrecisionReal,
-    Rational,
-    Real,
-)
+from mathics.core.atoms import Complex, MachineReal, PrecisionReal
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
 from mathics.core.expression import Expression
@@ -136,13 +129,6 @@ def cancel(expr):
         except sympy.PolynomialError:
             # e.g. for non-commutative expressions
             return expr
-
-
-def is_integer_rational_or_real(expr) -> bool:
-    """
-    Return True  is expr is either an Integer, Rational, or Real.
-    """
-    return isinstance(expr, (Integer, Rational, Real))
 
 
 def sympy_factor(expr_sympy):

@@ -1031,3 +1031,10 @@ class StringFromPython(String):
         if math.inf == value:
             self.value = "math.inf"
         return self
+
+
+def is_integer_rational_or_real(expr) -> bool:
+    """
+    Return True  is expr is either an Integer, Rational, or Real.
+    """
+    return isinstance(expr, (Integer, Rational, Real))

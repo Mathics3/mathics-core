@@ -41,34 +41,23 @@ is_PyPy = platform.python_implementation() == "PyPy" or hasattr(
 
 INSTALL_REQUIRES = [
     "Mathics-Scanner >= 1.3.0",
-    # Pillow 9.1.0 supports BigTIFF with big-endian byte order.
-    # ExampleData image hedy.tif is in this format.
-    # Pillow 9.2 handles sunflowers.jpg
 ]
 
 # Ensure user has the correct Python version
 # Address specific package dependencies based on Python version
-if sys.version_info < (3, 6):
+if sys.version_info < (3, 7):
     print("Mathics does not support Python %d.%d" % sys.version_info[:2])
     sys.exit(-1)
-elif sys.version_info[:2] == (3, 6):
-    INSTALL_REQUIRES += [
-        "recordclass",
-        "numpy",
-        "llvmlite<0.37",
-        "pillow >= 8.4.0",
-        "sympy>=1.8,<1.12",
-    ]
-    if is_PyPy:
-        print("Mathics does not support PyPy Python 3.6" % sys.version_info[:2])
-        sys.exit(-1)
-else:
-    INSTALL_REQUIRES += [
-        "numpy<=1.24",
-        "llvmlite",
-        "sympy>=1.8, < 1.12",
-        "pillow >= 9.2",
-    ]
+
+INSTALL_REQUIRES += [
+    "numpy<=1.24",
+    "llvmlite",
+    "sympy>=1.8, < 1.12",
+    # Pillow 9.1.0 supports BigTIFF with big-endian byte order.
+    # ExampleData image hedy.tif is in this format.
+    # Pillow 9.2 handles sunflowers.jpg
+    "pillow >= 9.2",
+]
 
 # if not is_PyPy:
 #     INSTALL_REQUIRES += ["recordclass"]
