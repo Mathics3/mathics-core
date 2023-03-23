@@ -46,13 +46,14 @@ class Blur(Builtin):
      = -Image-
     """
 
-    summary_text = "blur an image"
     rules = {
         "Blur[image_Image]": "Blur[image, 2]",
         "Blur[image_Image, r_?RealNumberQ]": (
             "ImageConvolve[image, BoxMatrix[r] / Total[Flatten[BoxMatrix[r]]]]"
         ),
     }
+
+    summary_text = "blur an image"
 
 
 class ImageAdjust(Builtin):
@@ -81,12 +82,15 @@ class ImageAdjust(Builtin):
     """
 
     messages = {
-        "imginv": "Expecting an image instead of `1`.",
         "arg2": "Invalid correction parameters `1`.",
-        "brght": "The brightness specficiation in {`1`, `2`}\n"
-        "should be a real number.",
-        "gamma": "The gamma correction specficiation in {`1`, `2`, `3`}\n"
-        "should be a positive number.",
+        "brght": (
+            "The brightness specficiation in {`1`, `2`}\n" "should be a real number."
+        ),
+        "gamma": (
+            "The gamma correction specficiation in {`1`, `2`, `3`}\n"
+            "should be a positive number."
+        ),
+        "imginv": "Expecting an image instead of `1`.",
     }
 
     rules = {
@@ -204,10 +208,9 @@ class ImagePartition(Builtin):
      = ImagePartition[-Image-, {0, 300}]
     """
 
-    summary_text = "divide an image in an array of sub-images"
-    rules = {"ImagePartition[i_Image, s_Integer]": "ImagePartition[i, {s, s}]"}
-
     messages = {"arg2": "`1` is not a valid size specification for image partitions."}
+    rules = {"ImagePartition[i_Image, s_Integer]": "ImagePartition[i, {s, s}]"}
+    summary_text = "divide an image in an array of sub-images"
 
     def eval(self, image, w: Integer, h: Integer, evaluation: Evaluation):
         "ImagePartition[image_Image, {w_Integer, h_Integer}]"
@@ -252,8 +255,8 @@ class Sharpen(Builtin):
     """
 
     messages = {
-        "imginv": ImageAdjust.messages["imginv"],
         "bdrad": "The specified radius should be either a non-negative number",
+        "imginv": ImageAdjust.messages["imginv"],
     }
 
     rules = {"Sharpen[i_Image]": "Sharpen[i, 2]"}
@@ -336,4 +339,5 @@ class Threshold(Builtin):
         return MachineReal(float(threshold))
 
 
-# Todo  Darker, ImageClip, ImageEffect, ImageRestyle, Lighter
+# TODO  Darker, ImageClip, ImageEffect, ImageRestyle, Lighter
+# Some existing functions allow for other forms.
