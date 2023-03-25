@@ -42,6 +42,7 @@ from mathics.core.systemsymbols import (
     SymbolGrid,
     SymbolInfix,
     SymbolInputForm,
+    SymbolLeft,
     SymbolOptions,
     SymbolRule,
     SymbolSet,
@@ -348,7 +349,7 @@ class Definition(Builtin):
                 return Expression(
                     SymbolGrid,
                     ListExpression(*(ListExpression(line) for line in lines)),
-                    Expression(SymbolRule, Symbol("ColumnAlignments"), Symbol("Left")),
+                    Expression(SymbolRule, Symbol("ColumnAlignments"), SymbolLeft),
                 )
             else:
                 for line in lines:
@@ -482,7 +483,7 @@ class Information(PrefixOperator):
                 infoshow = Expression(
                     SymbolGrid,
                     ListExpression(*(to_mathics_list(line) for line in lines)),
-                    Expression(SymbolRule, Symbol("ColumnAlignments"), Symbol("Left")),
+                    Expression(SymbolRule, Symbol("ColumnAlignments"), SymbolLeft),
                 )
                 evaluation.print_out(infoshow)
         else:

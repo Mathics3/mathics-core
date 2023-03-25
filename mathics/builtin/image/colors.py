@@ -41,12 +41,14 @@ class Binarize(Builtin):
       <dd>map $t1$ < $x$ < $t2$ to 1, and all other values to 0.
     </dl>
 
-    S> hedy = Import["ExampleData/hedy.tif"];
-    S> Binarize[hedy]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> Binarize[hedy]
      = -Image-
-    S> Binarize[hedy, 0.7]
+
+    >> Binarize[hedy, 0.7]
      = -Image-
-    S> Binarize[hedy, {0.2, 0.6}]
+
+    >> Binarize[hedy, {0.2, 0.6}]
      = -Image-
     """
 
@@ -58,7 +60,7 @@ class Binarize(Builtin):
     }
 
     def eval(self, image, evaluation: Evaluation):
-        "Binarize[image]"
+        "Binarize[image_]"
 
         if not isinstance(image, Image):
             evaluation.message(self.get_name(), "imginv", image)
@@ -74,12 +76,12 @@ class Binarize(Builtin):
     def eval_with_t(self, image, t, evaluation: Evaluation):
         "Binarize[image_, t_]"
 
-        if isinstance(t, ListExpression) and len(t.elements) == 2:
-            return self.eval_with_t1_t2(image, *t.elements, evaluation)
-
         if not isinstance(image, Image):
             evaluation.message(self.get_name(), "imginv", image)
             return
+
+        if isinstance(t, ListExpression) and len(t.elements) == 2:
+            return self.eval_with_t1_t2(image, *t.elements, evaluation)
 
         if not is_integer_rational_or_real(t):
             evaluation.message(self.get_name(), "arg2", t)
@@ -89,7 +91,7 @@ class Binarize(Builtin):
         return Image(pixels > t.round_to_float(), "Grayscale")
 
     def eval_with_t1_t2(self, image, t1, t2, evaluation: Evaluation):
-        "Binarize[image, {t1_, t2_}]"
+        "Binarize[image_, {t1_, t2_}]"
 
         if not isinstance(image, Image):
             evaluation.message(self.get_name(), "imginv", image)
@@ -109,44 +111,42 @@ class Binarize(Builtin):
         return Image(mask1 * mask2, "Grayscale")
 
 
-class ColorCombine(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ColorCombine.html</url>
+# FIXME: ColorCombine works on images, not lists
+# class ColorCombine(Builtin):
+#     """
+#     <url>:WMA link:https://reference.wolfram.com/language/ref/ColorCombine.html</url>
 
-    <dl>
-      <dt>'ColorCombine[$channels$, $colorspace$]'
-      <dd>Gives an image with $colorspace$ and the respective components described by the given channels.
-    </dl>
+#     <dl>
+#       <dt>'ColorCombine[$channels$, $colorspace$]'
+#       <dd>Gives an image with $colorspace$ and the respective components described by the given channels.
+#     </dl>
 
-    >> ColorCombine[{{{1, 0}, {0, 0.75}}, {{0, 1}, {0, 0.25}}, {{0, 0}, {1, 0.5}}}, "RGB"]
-     = -Image-
-    """
+#     >> ColorCombine[{{{1, 0}, {0, 0.75}}, {{0, 1}, {0, 0.25}}, {{0, 0}, {1, 0.5}}}, "RGB"]
+#      = -Image-
+#     """
 
-    summary_text = "combine color channels"
+#     summary_text = "combine color channels"
 
-    def eval(self, channels, colorspace, evaluation: Evaluation):
-        "ColorCombine[channels_List, colorspace_String]"
+#     def eval(self, channels, colorspace, evaluation: Evaluation):
+#         "ColorCombine[channels_List, colorspace_String]"
 
-        py_colorspace = colorspace.get_string_value()
-        if py_colorspace not in known_colorspaces:
-            return
+#         py_colorspace = colorspace.get_string_value()
+#         if py_colorspace not in known_colorspaces:
+#             return
 
-        numpy_channels = []
-        for channel in channels.elements:
-            if (
-                not Expression(SymbolMatrixQ, channel).evaluate(evaluation)
-                is SymbolTrue
-            ):
-                return
-            numpy_channels.append(matrix_to_numpy(channel))
+#         numpy_channels = []
+#         for channel in channels.elements:
+#             if Expression(SymbolMatrixQ, channel).evaluate(evaluation) is not True:
+#                 return
+#             numpy_channels.append(matrix_to_numpy(channel))
 
-        if not numpy_channels:
-            return
+#         if not numpy_channels:
+#             return
 
-        if not all(x.shape == numpy_channels[0].shape for x in numpy_channels[1:]):
-            return
+#         if not all(x.shape == numpy_channels[0].shape for x in numpy_channels[1:]):
+#             return
 
-        return Image(numpy.dstack(numpy_channels), py_colorspace)
+#         return Image(numpy.dstack(numpy_channels), py_colorspace)
 
 
 class ColorQuantize(Builtin):
@@ -163,20 +163,21 @@ class ColorQuantize(Builtin):
     >> img = Import["ExampleData/hedy.tif"];
     >> ColorQuantize[img, 6]
      = -Image-
-
-    #> ColorQuantize[img, 0]
-     : Positive integer expected at position 2 in ColorQuantize[-Image-, 0].
-     = ColorQuantize[-Image-, 0]
-    #> ColorQuantize[img, -1]
-     : Positive integer expected at position 2 in ColorQuantize[-Image-, -1].
-     = ColorQuantize[-Image-, -1]
     """
 
     summary_text = "give an approximation to image that uses only n distinct colors"
-    messages = {"intp": "Positive integer expected at position `2` in `1`."}
+    messages = {
+        "imginv": image_common_messages["imginv"],
+        "intp": "Positive integer expected at position `2` in `1`.",
+    }
 
     def eval(self, image, n: Integer, evaluation: Evaluation):
-        "ColorQuantize[image_Image, n_Integer]"
+        "ColorQuantize[image_, n_Integer]"
+
+        if not isinstance(image, Image):
+            evaluation.message(self.get_name(), "imginv", image)
+            return
+
         py_value = n.value
         if py_value <= 0:
             evaluation.message(
@@ -209,10 +210,16 @@ class ColorSeparate(Builtin):
 
     """
 
+    messages = {"imginv": image_common_messages["imginv"]}
     summary_text = "separate color channels"
 
-    def eval(self, image: Image, evaluation: Evaluation):
+    def eval(self, image, evaluation: Evaluation):
         "ColorSeparate[image_]"
+
+        if not isinstance(image, Image):
+            evaluation.message(self.get_name(), "imginv", image)
+            return
+
         images = []
         pixels = image.pixels
         if len(pixels.shape) < 3:
@@ -249,7 +256,10 @@ class Colorize(Builtin):
     options = {"ColorFunction": "Automatic"}
 
     messages = {
-        "cfun": "`1` is neither a gradient ColorData nor a pure function suitable as ColorFunction."
+        "cfun": (
+            "`1` is neither a gradient ColorData nor a pure function suitable as "
+            "ColorFunction."
+        )
     }
 
     def eval(self, values, evaluation, options):
@@ -259,12 +269,14 @@ class Colorize(Builtin):
             pixels = values.grayscale().pixels
             matrix = pixels_as_ubyte(pixels.reshape(pixels.shape[:2]))
         else:
-            if not Expression(SymbolMatrixQ, values).evaluate(evaluation) is SymbolTrue:
+            if Expression(SymbolMatrixQ, values).evaluate(evaluation) is not SymbolTrue:
                 return
             matrix = matrix_to_numpy(values)
 
         a, n = linearize_numpy_array(matrix)
-        # the maximum value for n is the number of pixels in a, which is acceptable and never too large.
+
+        # the maximum value for n is the number of pixels in a, which is acceptable and
+        # never too large.
 
         color_function = self.get_option(options, "ColorFunction", evaluation)
         if (
