@@ -143,13 +143,9 @@ def name_is_builtin_symbol(module, name: str) -> Optional[type]:
     if not inspect.isclass(module_object):
         return None
 
-    # FIXME: tests involving module_object.__module__ are fragile and
-    # Python implementation specific. Figure out how to do this
-    # via the inspect module which is not implementation specific.
-
     # Skip those builtins defined in or imported from another module.
-    # if module_object.__module__ != module.__name__:
-    #     return None
+    if inspect.getmodule(module_object) is not module:
+        return None
 
     # Skip objects in module mathics.builtin.base.
     if module_object.__module__ == "mathics.builtin.base":
