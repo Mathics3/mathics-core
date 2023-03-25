@@ -6,8 +6,14 @@ import numpy
 import PIL
 
 from mathics.builtin.base import Builtin, String
-from mathics.builtin.image.base import Image
-from mathics.core.atoms import Integer, MachineReal
+from mathics.builtin.image.base import Image, image_common_messages
+from mathics.core.atoms import (
+    Integer,
+    Integer0,
+    Integer1,
+    MachineReal,
+    is_integer_rational_or_real,
+)
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
@@ -40,11 +46,14 @@ class Blur(Builtin):
      = -Image-
     """
 
-    summary_text = "blur an image"
     rules = {
         "Blur[image_Image]": "Blur[image, 2]",
-        "Blur[image_Image, r_?RealNumberQ]": "ImageConvolve[image, BoxMatrix[r] / Total[Flatten[BoxMatrix[r]]]]",
+        "Blur[image_Image, r:(_Integer|_Real|_Rational)]": (
+            "ImageConvolve[image, BoxMatrix[r] / Total[Flatten[BoxMatrix[r]]]]"
+        ),
     }
+
+    summary_text = "blur an image"
 
 
 class ImageAdjust(Builtin):
@@ -72,14 +81,31 @@ class ImageAdjust(Builtin):
      = -Image-
     """
 
-    summary_text = "adjust levels, brightness, contrast, gamma, etc"
-    rules = {
-        "ImageAdjust[image_Image, c_?RealNumberQ]": "ImageAdjust[image, {c, 0, 1}]",
-        "ImageAdjust[image_Image, {c_?RealNumberQ, b_?RealNumberQ}]": "ImageAdjust[image, {c, b, 1}]",
+    messages = {
+        "arg2": "Invalid correction parameters `1`.",
+        "brght": (
+            "The brightness specficiation in {`1`, `2`}\n" "should be a real number."
+        ),
+        "gamma": (
+            "The gamma correction specficiation in {`1`, `2`, `3`}\n"
+            "should be a positive number."
+        ),
+        "imginv": image_common_messages["imginv"],
     }
 
+    rules = {
+        "ImageAdjust[image, {c_, b_}]": "ImageAdjust[image, {c, b, 1}]",
+    }
+
+    summary_text = "adjust levels, brightness, contrast, gamma, etc"
+
     def eval_auto(self, image, evaluation: Evaluation):
-        "ImageAdjust[image_Image]"
+        "ImageAdjust[image_]"
+
+        if not isinstance(image, Image):
+            evaluation.message(self.get_name(), "imginv", image)
+            return
+
         pixels = pixels_as_float(image.pixels)
 
         # channel limits
@@ -95,8 +121,37 @@ class ImageAdjust(Builtin):
         pixels /= scales
         return Image(pixels, image.color_space)
 
-    def eval_contrast_brightness_gamma(self, image, c, b, g, evaluation: Evaluation):
-        "ImageAdjust[image_Image, {c_?RealNumberQ, b_?RealNumberQ, g_?RealNumberQ}]"
+    def eval_with_correction(self, image, corr, evaluation: Evaluation):
+        "ImageAdjust[image_, corr_]"
+
+        if not is_integer_rational_or_real(corr):
+            evaluation.message(self.get_name(), "arg2", corr)
+            return
+
+        return self.eval_with_contrast_brightness_gamma(
+            image, corr, Integer0, Integer1, evaluation
+        )
+
+    def eval_with_contrast_brightness_gamma(
+        self, image, c, b, g, evaluation: Evaluation
+    ):
+        "ImageAdjust[image, {c_, b_, g_}]"
+
+        if not isinstance(image, Image):
+            evaluation.message(self.get_name(), "imginv", image)
+            return
+
+        if not is_integer_rational_or_real(c):
+            evaluation.message(self.get_name(), "arg2", c)
+            return
+
+        if not is_integer_rational_or_real(b):
+            evaluation.message(self.get_name(), "brght", c, b)
+            return
+
+        if not is_integer_rational_or_real(g):
+            evaluation.message(self.get_name(), "gamma", c, b, g)
+            return
 
         im = image.pil()
 
@@ -153,10 +208,9 @@ class ImagePartition(Builtin):
      = ImagePartition[-Image-, {0, 300}]
     """
 
-    summary_text = "divide an image in an array of sub-images"
-    rules = {"ImagePartition[i_Image, s_Integer]": "ImagePartition[i, {s, s}]"}
-
     messages = {"arg2": "`1` is not a valid size specification for image partitions."}
+    rules = {"ImagePartition[i_Image, s_Integer]": "ImagePartition[i, {s, s}]"}
+    summary_text = "divide an image in an array of sub-images"
 
     def eval(self, image, w: Integer, h: Integer, evaluation: Evaluation):
         "ImagePartition[image_Image, {w_Integer, h_Integer}]"
@@ -200,11 +254,25 @@ class Sharpen(Builtin):
      = -Image-
     """
 
-    summary_text = "sharpen version of an image"
+    messages = {
+        "bdrad": "The specified radius should be either a non-negative number",
+        "imginv": image_common_messages["imginv"],
+    }
+
     rules = {"Sharpen[i_Image]": "Sharpen[i, 2]"}
+    summary_text = "sharpen version of an image"
 
     def eval(self, image, r, evaluation: Evaluation):
-        "Sharpen[image_Image, r_?RealNumberQ]"
+        "Sharpen[image_, r_]"
+
+        if not isinstance(image, Image):
+            evaluation.message(self.get_name(), "imginv", image)
+            return
+
+        if not is_integer_rational_or_real(r):
+            evaluation.message(self.get_name(), "bdrad", r)
+            return
+
         f = PIL.ImageFilter.UnsharpMask(r.round_to_float())
         return image.filter(lambda im: im.filter(f))
 
@@ -271,4 +339,5 @@ class Threshold(Builtin):
         return MachineReal(float(threshold))
 
 
-# Todo  Darker, ImageClip, ImageEffect, ImageRestyle, Lighter
+# TODO  Darker, ImageClip, ImageEffect, ImageRestyle, Lighter
+# Some existing functions allow for other forms.

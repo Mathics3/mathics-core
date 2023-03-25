@@ -213,7 +213,6 @@ System`Coefficient
 System`CoefficientArrays
 System`CoefficientList
 System`Collect
-System`ColorCombine
 System`ColorConvert
 System`ColorData
 System`ColorDataFunction

@@ -2339,7 +2339,7 @@ class UserBaseDirectory(Predefined):
       <dd>returns the folder where user configurations are stored.
     </dl>
 
-    >> $RootDirectory
+    >> $UserBaseDirectory
      = ...
     """
 
