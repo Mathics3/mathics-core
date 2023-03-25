@@ -6,7 +6,7 @@ import numpy
 import PIL
 
 from mathics.builtin.base import Builtin, String
-from mathics.builtin.image.base import Image
+from mathics.builtin.image.base import Image, image_common_messages
 from mathics.core.atoms import (
     Integer,
     Integer0,
@@ -90,7 +90,7 @@ class ImageAdjust(Builtin):
             "The gamma correction specficiation in {`1`, `2`, `3`}\n"
             "should be a positive number."
         ),
-        "imginv": "Expecting an image instead of `1`.",
+        "imginv": image_common_messages["imginv"],
     }
 
     rules = {
@@ -256,7 +256,7 @@ class Sharpen(Builtin):
 
     messages = {
         "bdrad": "The specified radius should be either a non-negative number",
-        "imginv": ImageAdjust.messages["imginv"],
+        "imginv": image_common_messages["imginv"],
     }
 
     rules = {"Sharpen[i_Image]": "Sharpen[i, 2]"}
