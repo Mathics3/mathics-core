@@ -70,11 +70,11 @@ def eval_Abs(expr: BaseElement) -> Optional[BaseElement]:
     if isinstance(expr, (Integer, Rational, Real)):
         if expr.value >= 0:
             return expr
-        return eval_multiply_numbers([IntegerM1, expr])
+        return eval_multiply_numbers(*[IntegerM1, expr])
     if isinstance(expr, Complex):
         re, im = expr.real, expr.imag
         sqabs = eval_add_numbers(
-            [eval_multiply_numbers([re, re]), eval_multiply_numbers([im, im])]
+            eval_multiply_numbers(re, re), eval_multiply_numbers(im, im)
         )
         return Expression(SymbolPower, sqabs, RationalOneHalf)
     return None
@@ -94,7 +94,7 @@ def eval_Sign(expr: BaseElement) -> Optional[BaseElement]:
 
     if isinstance(expr, Complex):
         re, im = expr.real, expr.imag
-        sqabs = eval_add_numbers((eval_Times(re, re), eval_Times(im, im)))
+        sqabs = eval_add_numbers(eval_Times(re, re), eval_Times(im, im))
         norm = Expression(SymbolPower, sqabs, RationalMOneHalf)
         result = eval_Times(expr, norm)
         if result is None:
@@ -135,7 +135,7 @@ def eval_Plus(*items: Tuple[BaseElement]) -> BaseElement:
     numbers, items_tuple = segregate_numbers_from_sorted_list(*items)
     elements = []
     last_item = last_count = None
-    number = eval_add_numbers(numbers)
+    number = eval_add_numbers(*numbers) if numbers else Integer0
 
     # This reduces common factors
     # TODO: Check if it possible to avoid the conversions back and forward to sympy.
@@ -205,6 +205,7 @@ def eval_Times(*items: Tuple[BaseElement]) -> BaseElement:
     numbers, symbolic_items = segregate_numbers_from_sorted_list(*(items))
     # This loop handles factors representing infinite quantities,
     # and factors which are powers of the same basis.
+
     for item in symbolic_items:
         if item is SymbolIndeterminate:
             return item
@@ -249,7 +250,7 @@ def eval_Times(*items: Tuple[BaseElement]) -> BaseElement:
         # Otherwise, just append the element...
         elements.append(item)
 
-    number = eval_multiply_numbers(numbers)
+    number = eval_multiply_numbers(*numbers) if numbers else Integer1
 
     if len(elements) == 0 or number is Integer0:
         return number
@@ -284,32 +285,34 @@ def eval_Times(*items: Tuple[BaseElement]) -> BaseElement:
 
 
 def eval_add_numbers(
-    numbers: Tuple[Number],
+    *numbers: Tuple[Number],
 ) -> Number:
     """
     Add the elements in ``numbers``.
     """
     if len(numbers) == 0:
         return Integer0
+    if len(numbers) == 1:
+        return numbers[0]
+
+    is_machine_precision = any(number.is_machine_precision() for number in numbers)
+    if is_machine_precision:
+        numbers = (item.to_mpmath() for item in numbers)
+        number = mpmath.fsum(numbers)
+        return from_mpmath(number)
 
     prec = min_prec(*numbers)
     if prec is not None:
-        is_machine_precision = any(number.is_machine_precision() for number in numbers)
-        if is_machine_precision:
+        # For a sum, what is relevant is the minimum accuracy of the terms
+        with mpmath.workprec(prec):
             numbers = (item.to_mpmath() for item in numbers)
             number = mpmath.fsum(numbers)
-            return from_mpmath(number)
-        else:
-            # For a sum, what is relevant is the minimum accuracy of the terms
-            with mpmath.workprec(prec):
-                numbers = (item.to_mpmath() for item in numbers)
-                number = mpmath.fsum(numbers)
-                return from_mpmath(number, precision=prec)
+            return from_mpmath(number, precision=prec)
     else:
         return from_sympy(sum(item.to_sympy() for item in numbers))
 
 
-def eval_multiply_numbers(numbers: Tuple[Number]) -> Number:
+def eval_multiply_numbers(*numbers: Tuple[Number]) -> Number:
     """
     Multiply the elements in ``numbers``.
     """
@@ -318,18 +321,18 @@ def eval_multiply_numbers(numbers: Tuple[Number]) -> Number:
     if len(numbers) == 1:
         return numbers[0]
 
+    is_machine_precision = any(number.is_machine_precision() for number in numbers)
+    if is_machine_precision:
+        numbers = (item.to_mpmath() for item in numbers)
+        number = mpmath.fprod(numbers)
+        return from_mpmath(number)
+
     prec = min_prec(*numbers)
     if prec is not None:
-        is_machine_precision = any(number.is_machine_precision() for number in numbers)
-        if is_machine_precision:
+        with mpmath.workprec(prec):
             numbers = (item.to_mpmath() for item in numbers)
             number = mpmath.fprod(numbers)
-            return from_mpmath(number)
-        else:
-            with mpmath.workprec(prec):
-                numbers = (item.to_mpmath() for item in numbers)
-                number = mpmath.fprod(numbers)
-                return from_mpmath(number, prec)
+            return from_mpmath(number, prec)
     else:
         return from_sympy(sympy.Mul(*(item.to_sympy() for item in numbers)))
 
