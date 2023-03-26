@@ -104,7 +104,7 @@ def eval_Sign(expr: BaseElement) -> Optional[BaseElement]:
 
 
 def eval_mpmath_function(
-    mpmath_function: Callable, *args: Tuple[Number], prec: Optional[int] = None
+    mpmath_function: Callable, *args: Number, prec: Optional[int] = None
 ) -> Optional[Number]:
     """
     Call the mpmath function `mpmath_function` with the arguments `args`
@@ -130,7 +130,7 @@ def eval_mpmath_function(
             return call_mpmath(mpmath_function, tuple(mpmath_args), prec)
 
 
-def eval_Plus(*items: Tuple[BaseElement]) -> BaseElement:
+def eval_Plus(*items: BaseElement) -> BaseElement:
     "evaluate Plus for general elements"
     numbers, items_tuple = segregate_numbers_from_sorted_list(*items)
     elements = []
@@ -198,7 +198,7 @@ def eval_Plus(*items: Tuple[BaseElement]) -> BaseElement:
     )
 
 
-def eval_Times(*items: Tuple[BaseElement]) -> BaseElement:
+def eval_Times(*items: BaseElement) -> BaseElement:
     elements = []
     numbers = []
     # find numbers and simplify Times -> Power
@@ -285,7 +285,7 @@ def eval_Times(*items: Tuple[BaseElement]) -> BaseElement:
 
 
 def eval_add_numbers(
-    *numbers: Tuple[Number],
+    *numbers: Number,
 ) -> Number:
     """
     Add the elements in ``numbers``.
@@ -297,22 +297,22 @@ def eval_add_numbers(
 
     is_machine_precision = any(number.is_machine_precision() for number in numbers)
     if is_machine_precision:
-        numbers = (item.to_mpmath() for item in numbers)
-        number = mpmath.fsum(numbers)
+        terms = (item.to_mpmath() for item in numbers)
+        number = mpmath.fsum(terms)
         return from_mpmath(number)
 
     prec = min_prec(*numbers)
     if prec is not None:
         # For a sum, what is relevant is the minimum accuracy of the terms
         with mpmath.workprec(prec):
-            numbers = (item.to_mpmath() for item in numbers)
-            number = mpmath.fsum(numbers)
+            terms = (item.to_mpmath() for item in numbers)
+            number = mpmath.fsum(terms)
             return from_mpmath(number, precision=prec)
     else:
         return from_sympy(sum(item.to_sympy() for item in numbers))
 
 
-def eval_multiply_numbers(*numbers: Tuple[Number]) -> Number:
+def eval_multiply_numbers(*numbers: Number) -> Number:
     """
     Multiply the elements in ``numbers``.
     """
@@ -323,15 +323,15 @@ def eval_multiply_numbers(*numbers: Tuple[Number]) -> Number:
 
     is_machine_precision = any(number.is_machine_precision() for number in numbers)
     if is_machine_precision:
-        numbers = (item.to_mpmath() for item in numbers)
-        number = mpmath.fprod(numbers)
+        factors = (item.to_mpmath() for item in numbers)
+        number = mpmath.fprod(factors)
         return from_mpmath(number)
 
     prec = min_prec(*numbers)
     if prec is not None:
         with mpmath.workprec(prec):
-            numbers = (item.to_mpmath() for item in numbers)
-            number = mpmath.fprod(numbers)
+            factors = (item.to_mpmath() for item in numbers)
+            number = mpmath.fprod(factors)
             return from_mpmath(number, prec)
     else:
         return from_sympy(sympy.Mul(*(item.to_sympy() for item in numbers)))
