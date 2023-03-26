@@ -171,17 +171,23 @@ class Parser:
             self.tokeniser.sntx_message(token.pos)
             raise InvalidSyntaxError()
 
-    def parse_box(self, p):
+    def parse_box(self, precedence: int):  # -> String: ?
+        """
+        Return the String value of the next token in a box expression.
+        ``precedence`` is not used here, but may be passed
+        along
+        """
         result = None
         while True:
             token = self.next()
             tag = token.tag
             method = getattr(self, "b_" + tag, None)
             if method is not None:
-                new_result = method(result, token, p)
+                new_result = method(result, token, precedence)
             elif tag in ("OtherscriptBox", "RightRowBox"):
                 break
-            elif tag == "END":
+
+            if tag == "END":
                 self.incomplete(token.pos)
             elif result is None and tag != "END":
                 self.consume()
@@ -190,12 +196,15 @@ class Parser:
                     new_result = self.p_LeftRowBox(token)
             else:
                 new_result = None
+
             if new_result is None:
                 break
-            else:
-                result = new_result
+
+            result = new_result
+
         if result is None:
             result = NullString
+
         return result
 
     def parse_seq(self) -> list:
@@ -219,7 +228,8 @@ class Parser:
                 if tag == "RawComma":
                     self.consume()
                     continue
-                elif tag in ("RawRightAssociation", "RawRightBrace", "RawRightBracket"):
+
+                if tag in ("RawRightAssociation", "RawRightBrace", "RawRightBracket"):
                     break
         return result
 
