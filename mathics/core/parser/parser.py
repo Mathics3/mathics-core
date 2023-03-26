@@ -189,6 +189,7 @@ class Parser:
 
             if tag == "END":
                 self.incomplete(token.pos)
+                new_result = None
             elif result is None and tag != "END":
                 self.consume()
                 new_result = String(token.text)
@@ -298,19 +299,19 @@ class Parser:
     # Called with one Token and return a Node.
     # Used for prefix operators and brackets.
 
-    def p_Factorial(self, token):
+    def p_Factorial(self, token) -> Node:
         self.consume()
         q = prefix_ops["Not"]
         child = self.parse_exp(q)
         return Node("Not", child)
 
-    def p_Factorial2(self, token):
+    def p_Factorial2(self, token) -> Node:
         self.consume()
         q = prefix_ops["Not"]
         child = self.parse_exp(q)
         return Node("Not", Node("Not", child))
 
-    def p_RawLeftParenthesis(self, token):
+    def p_RawLeftParenthesis(self, token) -> Node:
         self.consume()
         self.bracket_depth += 1
         result = self.parse_exp(0)
@@ -434,6 +435,7 @@ class Parser:
     def p_Pattern(self, token) -> Node:
         self.consume()
         text = token.text
+        name: str = "?Unknown"
         if "." in text:
             name = text[:-2]
             if name:
