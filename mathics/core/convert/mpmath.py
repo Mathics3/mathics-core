@@ -14,20 +14,16 @@ from mathics.core.atoms import (
     MachineReal0,
     PrecisionReal,
 )
+from mathics.core.element import BaseElement
 from mathics.core.expression import Expression
-from mathics.core.symbols import Atom
-from mathics.core.systemsymbols import (
-    SymbolComplexInfinity,
-    SymbolDirectedInfinity,
-    SymbolIndeterminate,
-)
+from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolIndeterminate
 
 
 @lru_cache(maxsize=1024)
 def from_mpmath(
     value: Union[mpmath.mpf, mpmath.mpc],
     precision: Optional[int] = None,
-) -> Atom:
+) -> BaseElement:
     """
     Converts mpf or mpc to Number.
     The optional parameter `precision` represents
@@ -49,7 +45,7 @@ def from_mpmath(
         return PrecisionReal(sympy.Float(str(value), precision=precision - 1))
     elif isinstance(value, mpmath.mpc):
         if mpmath.isinf(value):
-            return SymbolComplexInfinity
+            return Expression(SymbolDirectedInfinity)
         if value.imag == 0.0:
             return from_mpmath(value.real, precision=precision)
         real = from_mpmath(value.real, precision=precision)

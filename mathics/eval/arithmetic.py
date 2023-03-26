@@ -286,7 +286,7 @@ def eval_Times(*items: BaseElement) -> BaseElement:
 
 def eval_add_numbers(
     *numbers: Number,
-) -> Number:
+) -> BaseElement:
     """
     Add the elements in ``numbers``.
     """
@@ -312,7 +312,7 @@ def eval_add_numbers(
         return from_sympy(sum(item.to_sympy() for item in numbers))
 
 
-def eval_multiply_numbers(*numbers: Number) -> Number:
+def eval_multiply_numbers(*numbers: Number) -> BaseElement:
     """
     Multiply the elements in ``numbers``.
     """
