@@ -8,26 +8,30 @@ import sympy
 
 from mathics.core.atoms import (
     Complex,
+    Integer0,
     Integer1,
     IntegerM1,
     MachineReal,
     MachineReal0,
     PrecisionReal,
 )
+from mathics.core.element import BaseElement
 from mathics.core.expression import Expression
-from mathics.core.symbols import Atom
-from mathics.core.systemsymbols import (
-    SymbolComplexInfinity,
-    SymbolDirectedInfinity,
-    SymbolIndeterminate,
-)
+from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolIndeterminate
+
+ExpressionInfinity = Expression(SymbolDirectedInfinity, Integer1)
+ExpressionMInfinity = Expression(SymbolDirectedInfinity, IntegerM1)
+ExpressionIInfinity = Expression(SymbolDirectedInfinity, Complex(Integer0, Integer1))
+ExpressionMIInfinity = Expression(SymbolDirectedInfinity, Complex(Integer0, IntegerM1))
+
+ExpressionComplexInfinity = Expression(SymbolDirectedInfinity)
 
 
 @lru_cache(maxsize=1024)
 def from_mpmath(
     value: Union[mpmath.mpf, mpmath.mpc],
     precision: Optional[int] = None,
-) -> Atom:
+) -> BaseElement:
     """
     Converts mpf or mpc to Number.
     The optional parameter `precision` represents
@@ -37,8 +41,7 @@ def from_mpmath(
         return SymbolIndeterminate
     if isinstance(value, mpmath.mpf):
         if mpmath.isinf(value):
-            direction = Integer1 if value > 0 else IntegerM1
-            return Expression(SymbolDirectedInfinity, direction)
+            return ExpressionInfinity if value > 0 else ExpressionMInfinity
         if precision is None:
             return MachineReal(float(value))
         # If the error if of the order of the number, the number
@@ -48,12 +51,17 @@ def from_mpmath(
         # HACK: use str here to prevent loss of precision
         return PrecisionReal(sympy.Float(str(value), precision=precision - 1))
     elif isinstance(value, mpmath.mpc):
-        if mpmath.isinf(value):
-            return SymbolComplexInfinity
         if value.imag == 0.0:
             return from_mpmath(value.real, precision=precision)
-        real = from_mpmath(value.real, precision=precision)
-        imag = from_mpmath(value.imag, precision=precision)
+        val_re, val_im = value.real, value.imag
+        if mpmath.isinf(val_re):
+            if mpmath.isinf(val_im):
+                return ExpressionComplexInfinity
+            return ExpressionInfinity if val_re > 0 else ExpressionMInfinity
+        elif mpmath.isinf(val_im):
+            return ExpressionIInfinity if val_im > 0 else ExpressionMIInfinity
+        real = from_mpmath(val_re, precision=precision)
+        imag = from_mpmath(val_im, precision=precision)
         return Complex(real, imag)
     else:
         raise TypeError(type(value))
