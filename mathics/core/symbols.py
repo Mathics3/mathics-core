@@ -4,8 +4,6 @@
 import time
 from typing import Any, FrozenSet, List, Optional, Tuple
 
-import sympy
-
 from mathics.core.element import (
     BaseElement,
     EvalMixin,
@@ -624,19 +622,9 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         return self.name
 
     def to_sympy(self, **kwargs):
-        from mathics.builtin import mathics_to_sympy
+        from mathics.core.convert.sympy import symbol_to_sympy
 
-        if self.sympy_dummy is not None:
-            return self.sympy_dummy
-
-        builtin = mathics_to_sympy.get(self.name)
-        if (
-            builtin is None
-            or not builtin.sympy_name
-            or not builtin.is_constant()  # nopep8
-        ):
-            return sympy.Symbol(sympy_symbol_prefix + self.name)
-        return builtin.to_sympy(self, **kwargs)
+        return symbol_to_sympy(self, **kwargs)
 
 
 class SymbolConstant(Symbol):

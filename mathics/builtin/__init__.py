@@ -50,6 +50,8 @@ __py_files__ = [
 
 
 def add_builtins(new_builtins):
+    from mathics.core.convert.sympy import mathics_to_sympy, sympy_to_mathics
+
     for var_name, builtin in new_builtins:
         name = builtin.get_name()
         if hasattr(builtin, "python_equivalent"):
@@ -237,8 +239,6 @@ for module in modules:
                 _builtins_list.append((instance.get_name(), instance))
                 builtins_by_module[module.__name__].append(instance)
 
-mathics_to_sympy = {}  # here we have: name -> sympy object
-sympy_to_mathics = {}
 
 new_builtins = _builtins_list
 

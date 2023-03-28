@@ -5,17 +5,45 @@ Converts expressions from SymPy to Mathics expressions.
 Conversion to SymPy is handled directly in BaseElement descendants.
 """
 
-from typing import Optional
+from typing import Optional, Type, Union
 
 import sympy
+from sympy import Symbol as Sympy_Symbol, false as SympyFalse, true as SympyTrue
+
+# Import the singleton class
+from sympy.core.numbers import S
 
 BasicSympy = sympy.Expr
 
 
+from mathics.core.atoms import (
+    MATHICS_COMPLEX_I,
+    Complex,
+    Integer,
+    Integer0,
+    Integer1,
+    IntegerM1,
+    MachineReal,
+    Rational,
+    RationalOneHalf,
+    Real,
+    String,
+)
+from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.matrix import matrix_data
+from mathics.core.element import BaseElement
+from mathics.core.expression import (
+    MATHICS_COMPLEX_INFINITY,
+    MATHICS_INFINITY,
+    MATHICS_NEG_INFINITY,
+    Expression,
+)
+from mathics.core.list import ListExpression
+from mathics.core.number import FP_MANTISA_BINARY_DIGITS
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
+    SymbolNull,
     SymbolPlus,
     SymbolPower,
     SymbolTimes,
@@ -25,16 +53,20 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     SymbolC,
+    SymbolCatalan,
+    SymbolE,
     SymbolEqual,
+    SymbolEulerGamma,
     SymbolFunction,
+    SymbolGoldenRatio,
     SymbolGreater,
     SymbolGreaterEqual,
     SymbolIndeterminate,
-    SymbolInfinity,
     SymbolLess,
     SymbolLessEqual,
     SymbolMatrixPower,
     SymbolO,
+    SymbolPi,
     SymbolPiecewise,
     SymbolSlot,
     SymbolUnequal,
@@ -43,6 +75,36 @@ from mathics.core.systemsymbols import (
 SymbolPrime = Symbol("Prime")
 SymbolRoot = Symbol("Root")
 SymbolRootSum = Symbol("RootSum")
+
+
+mathics_to_sympy = {}  # here we have: name -> sympy object
+sympy_to_mathics = {}
+
+
+sympy_singleton_to_mathics = {
+    None: SymbolNull,
+    S.Catalan: SymbolCatalan,
+    S.ComplexInfinity: MATHICS_COMPLEX_INFINITY,
+    S.EulerGamma: SymbolEulerGamma,
+    S.Exp1: SymbolE,
+    S.GoldenRatio: SymbolGoldenRatio,
+    S.Half: RationalOneHalf,
+    S.ImaginaryUnit: MATHICS_COMPLEX_I,
+    S.Infinity: MATHICS_INFINITY,
+    S.NaN: SymbolIndeterminate,
+    S.NegativeInfinity: MATHICS_NEG_INFINITY,
+    S.NegativeOne: IntegerM1,
+    S.One: Integer1,
+    S.Pi: SymbolPi,
+    S.Zero: Integer0,
+    S.false: SymbolFalse,
+    S.true: SymbolTrue,
+}
+
+
+mathics_to_sympy_singleton = {
+    key: val for val, key in sympy_singleton_to_mathics.items()
+}
 
 
 def is_Cn_expr(name) -> bool:
@@ -75,7 +137,6 @@ class SympyExpression(BasicSympy):
     def __new__(cls, *exprs):
         # sympy simplify may also recreate the object if simplification occurred
         # in the elements
-        from mathics.core.expression import Expression
 
         if all(isinstance(expr, BasicSympy) for expr in exprs):
             # called with SymPy arguments
@@ -153,23 +214,125 @@ class SympyPrime(sympy.Function):
                 pass
 
 
-def from_sympy(expr):
-    from mathics.builtin import sympy_to_mathics
-    from mathics.core.atoms import (
-        Complex,
-        Integer,
-        Integer0,
-        Integer1,
-        MachineReal,
-        Rational,
-        Real,
-        String,
-    )
-    from mathics.core.convert.expression import to_expression, to_mathics_list
-    from mathics.core.expression import Expression
-    from mathics.core.list import ListExpression
-    from mathics.core.number import FP_MANTISA_BINARY_DIGITS
-    from mathics.core.symbols import Symbol, SymbolNull
+def expression_to_sympy(expr: Expression, **kwargs):
+    """
+    Convert `expr` to its sympy form.
+    """
+
+    if "convert_all_global_functions" in kwargs:
+        if len(expr.elements) > 0 and kwargs["convert_all_global_functions"]:
+            if expr.get_head_name().startswith("Global`"):
+                return expr._as_sympy_function(**kwargs)
+
+    if "converted_functions" in kwargs:
+        functions = kwargs["converted_functions"]
+        if len(expr._elements) > 0 and expr.get_head_name() in functions:
+            sym_args = [element.to_sympy() for element in expr._elements]
+            if None in sym_args:
+                return None
+            func = sympy.Function(str(sympy_symbol_prefix + expr.get_head_name()))(
+                *sym_args
+            )
+            return func
+
+    lookup_name = expr.get_lookup_name()
+    builtin = mathics_to_sympy.get(lookup_name)
+    if builtin is not None:
+        sympy_expr = builtin.to_sympy(expr, **kwargs)
+        if sympy_expr is not None:
+            return sympy_expr
+    return SympyExpression(expr)
+
+
+def symbol_to_sympy(symbol: Symbol, **kwargs) -> Sympy_Symbol:
+    """
+    Convert `symbol` to its sympy form.
+    """
+
+    result = mathics_to_sympy_singleton.get(symbol, None)
+    if result is not None:
+        return result
+
+    if symbol.sympy_dummy is not None:
+        return symbol.sympy_dummy
+
+    builtin = mathics_to_sympy.get(symbol.name)
+    if builtin is None or not builtin.sympy_name or not builtin.is_constant():  # nopep8
+        return Sympy_Symbol(sympy_symbol_prefix + symbol.name)
+    return builtin.to_sympy(symbol, **kwargs)
+
+
+def to_numeric_sympy_args(mathics_args: Type[BaseElement], evaluation) -> list:
+    """
+    Convert Mathics arguments, such as the arguments in an evaluation
+    method a Python list that is sutiable for feeding as arguments
+    into SymPy.
+
+    We make use of fast conversions for literals.
+    """
+    from mathics.eval.numerify import numerify
+
+    if mathics_args.is_literal:
+        sympy_args = [mathics_args.value]
+    else:
+        args = numerify(mathics_args, evaluation).get_sequence()
+        sympy_args = [a.to_sympy() for a in args]
+
+    return sympy_args
+
+
+def from_sympy_matrix(
+    expr: Union[sympy.Matrix, sympy.ImmutableMatrix]
+) -> ListExpression:
+    """
+    Convert `expr` of the type sympy.Matrix or sympy.ImmutableMatrix to
+    a Mathics list.
+    """
+    if len(expr.shape) == 2 and (expr.shape[1] == 1):
+        # This is a vector (only one column)
+        # Transpose and select first row to get result equivalent to Mathematica
+        return to_mathics_list(*expr.T.tolist()[0], elements_conversion_fn=from_sympy)
+    else:
+        return to_mathics_list(*expr.tolist(), elements_conversion_fn=from_sympy)
+
+
+"""
+sympy_conversion_by_type = {
+    complex: lambda expr: Complex(Real(expr.real), Real(expr.imag)),
+    int: lambda x: Integer(x),
+    float: lambda x: Real(x),
+    tuple: lambda expr: to_mathics_list(*expr, elements_conversion_fn=from_sympy),
+    list: lambda expr: to_mathics_list(*expr, elements_conversion_fn=from_sympy),
+    str: lambda x: String(x),
+    sympy.Matrix :from_sympy_matrix,
+    sympy.ImmutableMatrix :from_sympy_matrix,
+    sympy.MatPow: lambda expr: Expression(
+            SymbolMatrixPower, from_sympy(expr.base), from_sympy(expr.exp)
+        ),
+    SympyExpression: lambda expr: expr.expr,
+    SympyPrime: lambda expr: Expression(SymbolPrime, from_sympy(expr.args[0])),
+    sympy.RootSum: lambda expr: Expression(SymbolRootSum, from_sympy(expr.poly), from_sympy(expr.fun)),
+    sympy.Tuple: lambda expr: to_mathics_list(*expr, elements_conversion_fn=from_sympy),
+}
+   
+"""
+
+# def new_from_sympy(expr)->BaseElement:
+#    """
+#    converts a SymPy object to a Mathics element.
+#    """
+#    try:
+#        return sympy_singleton_to_mathics[expr]
+#    except (KeyError, TypeError):
+#        pass
+#
+#    return sympy_conversion_by_type.get(type(expr), old_from_sympy)(expr)
+
+
+def old_from_sympy(expr) -> BaseElement:
+    """
+    converts a SymPy object to a Mathics element.
+    """
 
     if isinstance(expr, (tuple, list)):
         return to_mathics_list(*expr, elements_conversion_fn=from_sympy)
@@ -184,14 +347,7 @@ def from_sympy(expr):
     if expr is None:
         return SymbolNull
     if isinstance(expr, sympy.Matrix) or isinstance(expr, sympy.ImmutableMatrix):
-        if len(expr.shape) == 2 and (expr.shape[1] == 1):
-            # This is a vector (only one column)
-            # Transpose and select first row to get result equivalent to Mathematica
-            return to_mathics_list(
-                *expr.T.tolist()[0], elements_conversion_fn=from_sympy
-            )
-        else:
-            return to_mathics_list(*expr.tolist(), elements_conversion_fn=from_sympy)
+        return from_sympy_matrix(expr)
     if isinstance(expr, sympy.MatPow):
         return Expression(
             SymbolMatrixPower, from_sympy(expr.base), from_sympy(expr.exp)
@@ -218,23 +374,23 @@ def from_sympy(expr):
             if builtin is not None:
                 name = builtin.get_name()
             return Symbol(name)
-        elif isinstance(
-            expr, (sympy.core.numbers.Infinity, sympy.core.numbers.ComplexInfinity)
-        ):
-            return Symbol(expr.__class__.__name__)
+        elif isinstance(expr, sympy.core.numbers.Infinity):
+            return MATHICS_INFINITY
+        elif isinstance(expr, sympy.core.numbers.ComplexInfinity):
+            return MATHICS_COMPLEX_INFINITY
         elif isinstance(expr, sympy.core.numbers.NegativeInfinity):
-            return Expression(SymbolTimes, Integer(-1), SymbolInfinity)
+            return MATHICS_NEG_INFINITY
         elif isinstance(expr, sympy.core.numbers.ImaginaryUnit):
-            return Complex(Integer0, Integer1)
+            return MATHICS_COMPLEX_I
         elif isinstance(expr, sympy.Integer):
             return Integer(int(expr))
         elif isinstance(expr, sympy.Rational):
             numerator, denominator = map(int, expr.as_numer_denom())
             if denominator == 0:
                 if numerator > 0:
-                    return SymbolInfinity
+                    return MATHICS_INFINITY
                 elif numerator < 0:
-                    return Expression(SymbolTimes, Integer(-1), SymbolInfinity)
+                    return MATHICS_NEG_INFINITY
                 else:
                     assert numerator == 0
                     return SymbolIndeterminate
@@ -408,3 +564,6 @@ def from_sympy(expr):
                 expr, str(expr.__class__)
             )
         )
+
+
+from_sympy = old_from_sympy
