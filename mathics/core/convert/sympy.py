@@ -97,8 +97,8 @@ sympy_singleton_to_mathics = {
     S.One: Integer1,
     S.Pi: SymbolPi,
     S.Zero: Integer0,
-    S.false: SymbolFalse,
-    S.true: SymbolTrue,
+    SympyFalse: SymbolFalse,
+    SympyTrue: SymbolTrue,
 }
 
 
@@ -314,7 +314,7 @@ sympy_conversion_by_type = {
     sympy.RootSum: lambda expr: Expression(SymbolRootSum, from_sympy(expr.poly), from_sympy(expr.fun)),
     sympy.Tuple: lambda expr: to_mathics_list(*expr, elements_conversion_fn=from_sympy),
 }
-   
+
 """
 
 # def new_from_sympy(expr)->BaseElement:
