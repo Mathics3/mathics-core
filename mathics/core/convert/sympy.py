@@ -17,7 +17,7 @@ BasicSympy = sympy.Expr
 
 
 from mathics.core.atoms import (
-    MATHICS_COMPLEX_I,
+    MATHICS3_COMPLEX_I,
     Complex,
     Integer,
     Integer0,
@@ -33,9 +33,9 @@ from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.matrix import matrix_data
 from mathics.core.element import BaseElement
 from mathics.core.expression import (
-    MATHICS_COMPLEX_INFINITY,
-    MATHICS_INFINITY,
-    MATHICS_NEG_INFINITY,
+    MATHICS3_COMPLEX_INFINITY,
+    MATHICS3_INFINITY,
+    MATHICS3_NEG_INFINITY,
     Expression,
 )
 from mathics.core.list import ListExpression
@@ -84,15 +84,15 @@ sympy_to_mathics = {}
 sympy_singleton_to_mathics = {
     None: SymbolNull,
     S.Catalan: SymbolCatalan,
-    S.ComplexInfinity: MATHICS_COMPLEX_INFINITY,
+    S.ComplexInfinity: MATHICS3_COMPLEX_INFINITY,
     S.EulerGamma: SymbolEulerGamma,
     S.Exp1: SymbolE,
     S.GoldenRatio: SymbolGoldenRatio,
     S.Half: RationalOneHalf,
-    S.ImaginaryUnit: MATHICS_COMPLEX_I,
-    S.Infinity: MATHICS_INFINITY,
+    S.ImaginaryUnit: MATHICS3_COMPLEX_I,
+    S.Infinity: MATHICS3_INFINITY,
     S.NaN: SymbolIndeterminate,
-    S.NegativeInfinity: MATHICS_NEG_INFINITY,
+    S.NegativeInfinity: MATHICS3_NEG_INFINITY,
     S.NegativeOne: IntegerM1,
     S.One: Integer1,
     S.Pi: SymbolPi,
@@ -375,22 +375,22 @@ def old_from_sympy(expr) -> BaseElement:
                 name = builtin.get_name()
             return Symbol(name)
         elif isinstance(expr, sympy.core.numbers.Infinity):
-            return MATHICS_INFINITY
+            return MATHICS3_INFINITY
         elif isinstance(expr, sympy.core.numbers.ComplexInfinity):
-            return MATHICS_COMPLEX_INFINITY
+            return MATHICS3_COMPLEX_INFINITY
         elif isinstance(expr, sympy.core.numbers.NegativeInfinity):
-            return MATHICS_NEG_INFINITY
+            return MATHICS3_NEG_INFINITY
         elif isinstance(expr, sympy.core.numbers.ImaginaryUnit):
-            return MATHICS_COMPLEX_I
+            return MATHICS3_COMPLEX_I
         elif isinstance(expr, sympy.Integer):
             return Integer(int(expr))
         elif isinstance(expr, sympy.Rational):
             numerator, denominator = map(int, expr.as_numer_denom())
             if denominator == 0:
                 if numerator > 0:
-                    return MATHICS_INFINITY
+                    return MATHICS3_INFINITY
                 elif numerator < 0:
-                    return MATHICS_NEG_INFINITY
+                    return MATHICS3_NEG_INFINITY
                 else:
                     assert numerator == 0
                     return SymbolIndeterminate

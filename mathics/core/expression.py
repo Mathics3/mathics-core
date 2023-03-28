@@ -10,8 +10,8 @@ from typing import Any, Callable, Iterable, List, Optional, Tuple, Type
 import sympy
 
 from mathics.core.atoms import (
-    MATHICS_COMPLEX_I,
-    MATHICS_COMPLEX_I_NEG,
+    MATHICS3_COMPLEX_I,
+    MATHICS3_COMPLEX_I_NEG,
     Complex,
     Integer,
     Integer0,
@@ -1930,8 +1930,8 @@ def string_list(head, elements, evaluation):
 # TODO: See if the is a better place to declare them.
 
 
-MATHICS_COMPLEX_INFINITY = Expression(SymbolDirectedInfinity)
-MATHICS_INFINITY = Expression(SymbolDirectedInfinity, Integer1)
-MATHICS_NEG_INFINITY = Expression(SymbolDirectedInfinity, IntegerM1)
-MATHICS_I_INFINITY = Expression(SymbolDirectedInfinity, MATHICS_COMPLEX_I)
-MATHICS_I_NEG_INFINITY = Expression(SymbolDirectedInfinity, MATHICS_COMPLEX_I_NEG)
+MATHICS3_COMPLEX_INFINITY = Expression(SymbolDirectedInfinity)
+MATHICS3_INFINITY = Expression(SymbolDirectedInfinity, Integer1)
+MATHICS3_NEG_INFINITY = Expression(SymbolDirectedInfinity, IntegerM1)
+MATHICS3_I_INFINITY = Expression(SymbolDirectedInfinity, MATHICS3_COMPLEX_I)
+MATHICS3_I_NEG_INFINITY = Expression(SymbolDirectedInfinity, MATHICS3_COMPLEX_I_NEG)

@@ -9,11 +9,11 @@ import sympy
 from mathics.core.atoms import Complex, MachineReal, MachineReal0, PrecisionReal
 from mathics.core.element import BaseElement
 from mathics.core.expression import (
-    MATHICS_COMPLEX_INFINITY,
-    MATHICS_I_INFINITY,
-    MATHICS_I_NEG_INFINITY,
-    MATHICS_INFINITY,
-    MATHICS_NEG_INFINITY,
+    MATHICS3_COMPLEX_INFINITY,
+    MATHICS3_I_INFINITY,
+    MATHICS3_I_NEG_INFINITY,
+    MATHICS3_INFINITY,
+    MATHICS3_NEG_INFINITY,
 )
 from mathics.core.systemsymbols import SymbolIndeterminate
 
@@ -32,7 +32,7 @@ def from_mpmath(
         return SymbolIndeterminate
     if isinstance(value, mpmath.mpf):
         if mpmath.isinf(value):
-            return MATHICS_INFINITY if value > 0 else MATHICS_NEG_INFINITY
+            return MATHICS3_INFINITY if value > 0 else MATHICS3_NEG_INFINITY
         if precision is None:
             return MachineReal(float(value))
         # If the error if of the order of the number, the number
@@ -47,10 +47,10 @@ def from_mpmath(
         val_re, val_im = value.real, value.imag
         if mpmath.isinf(val_re):
             if mpmath.isinf(val_im):
-                return MATHICS_COMPLEX_INFINITY
-            return MATHICS_INFINITY if val_re > 0 else MATHICS_NEG_INFINITY
+                return MATHICS3_COMPLEX_INFINITY
+            return MATHICS3_INFINITY if val_re > 0 else MATHICS3_NEG_INFINITY
         elif mpmath.isinf(val_im):
-            return MATHICS_I_INFINITY if val_im > 0 else MATHICS_I_NEG_INFINITY
+            return MATHICS3_I_INFINITY if val_im > 0 else MATHICS3_I_NEG_INFINITY
         real = from_mpmath(val_re, precision=precision)
         imag = from_mpmath(val_im, precision=precision)
         return Complex(real, imag)

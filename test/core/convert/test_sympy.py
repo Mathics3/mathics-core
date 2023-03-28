@@ -4,7 +4,7 @@ import pytest
 from sympy import Float as SympyFloat
 
 from mathics.core.atoms import (
-    MATHICS_COMPLEX_I,
+    MATHICS3_COMPLEX_I,
     Complex,
     Integer,
     Integer0,
@@ -21,8 +21,8 @@ from mathics.core.atoms import (
 )
 from mathics.core.convert.sympy import from_sympy, sympy_singleton_to_mathics
 from mathics.core.expression import (
-    MATHICS_COMPLEX_INFINITY,
-    MATHICS_INFINITY,
+    MATHICS3_COMPLEX_INFINITY,
+    MATHICS3_INFINITY,
     Expression,
 )
 from mathics.core.symbols import (
@@ -102,12 +102,15 @@ def test_from_to_sympy_invariant(expr):
         (Expression(SymbolSin, SymbolPi), Integer0, None),
         (Expression(SymbolPlus, Integer1, Integer2), Integer3, None),
         (String("Hola"), SymbolNull, None),
-        (Rational(1, 0), MATHICS_COMPLEX_INFINITY, None),
-        (MATHICS_COMPLEX_I, MATHICS_COMPLEX_I, None),
+        (Rational(1, 0), MATHICS3_COMPLEX_INFINITY, None),
+        (MATHICS3_COMPLEX_I, MATHICS3_COMPLEX_I, None),
         (
             SymbolI,
-            MATHICS_COMPLEX_I,
-            "System`I evaluates to Complex[0,1] in the back and forward conversion.",
+            MATHICS3_COMPLEX_I,
+            (
+                "System`I evaluates to Complex[0,1] in the back and forward conversion. "
+                "This prevents an infinite recursion in evaluation"
+            ),
         ),
         # (Integer3**Rational(-1, 2), Rational(Integer1, Integer3)* (Integer3 ** (RationalOneHalf)), None ),
     ],
