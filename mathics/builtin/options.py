@@ -12,7 +12,6 @@ https://reference.wolfram.com/language/guide/OptionsManagement.html</url>
 """
 
 from mathics.builtin.base import Builtin, Predefined, Test, get_option
-from mathics.builtin.image.base import Image
 from mathics.core.atoms import String
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, SymbolDefault, get_default_value
@@ -353,12 +352,8 @@ class Options(Builtin):
 
         name = f.get_name()
         if not name:
-            if isinstance(f, Image):
-                # FIXME ColorSpace, MetaInformation
-                options = f.metadata
-            else:
-                evaluation.message("Options", "sym", f, 1)
-                return
+            evaluation.message("Options", "sym", f, 1)
+            return
         else:
             options = evaluation.definitions.get_options(name)
         result = []

@@ -180,7 +180,6 @@ setup(
         "mathics.builtin.files_io",
         "mathics.builtin.forms",
         "mathics.builtin.functional",
-        "mathics.builtin.image",
         "mathics.builtin.intfns",
         "mathics.builtin.list",
         "mathics.builtin.matrices",
