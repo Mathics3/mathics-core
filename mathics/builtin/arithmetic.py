@@ -46,6 +46,11 @@ from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol
 from mathics.core.element import BaseElement, ElementsProperties
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.expression_constants import (
+    MATHICS3_COMPLEX_INFINITY,
+    MATHICS3_INFINITY,
+    ConstantExpression,
+)
 from mathics.core.list import ListExpression
 from mathics.core.number import dps, min_prec
 from mathics.core.symbols import (
@@ -72,8 +77,6 @@ from mathics.eval.numerify import numerify
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.mathematical-functions"
-
-ExpressionComplexInfinity = Expression(SymbolDirectedInfinity)
 
 
 class _MPMathFunction(SympyFunction):
@@ -652,7 +655,7 @@ class DirectedInfinity(SympyFunction):
         if direction in (Integer1, IntegerM1):
             return None
         if direction.is_zero:
-            return ExpressionComplexInfinity
+            return MATHICS3_COMPLEX_INFINITY
 
         normalized_direction = eval_Sign(direction)
         # TODO: improve eval_Sign, to avoid the need of the
@@ -677,10 +680,9 @@ class DirectedInfinity(SympyFunction):
 
         if normalized_direction is None:
             return None
-        return Expression(
+        return ConstantExpression(
             SymbolDirectedInfinity,
             normalized_direction.evaluate(evaluation),
-            elements_properties=ElementsProperties(True, False, False),
         )
 
     def to_sympy(self, expr, **kwargs):

@@ -19,12 +19,12 @@ from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_bool
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.expression_constants import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolBlank,
-    SymbolDirectedInfinity,
     SymbolFailed,
     SymbolInputForm,
     SymbolOutputForm,
@@ -800,7 +800,7 @@ class _StringFind(Builtin):
         # convert n
         if n is None:
             py_n = 0
-        elif n == Expression(SymbolDirectedInfinity, Integer1):
+        elif n.sameQ(MATHICS3_INFINITY):
             py_n = 0
         else:
             py_n = n.get_int_value()
