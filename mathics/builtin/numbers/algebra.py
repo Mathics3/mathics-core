@@ -29,7 +29,7 @@ from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.expression_constants import (
+from mathics.core.expression_predefined import (
     MATHICS3_COMPLEX_INFINITY,
     MATHICS3_NEG_INFINITY,
 )

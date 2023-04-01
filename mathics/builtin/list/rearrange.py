@@ -15,7 +15,7 @@ from mathics.core.atoms import Integer, Integer0
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, structure
-from mathics.core.expression_constants import MATHICS3_INFINITY
+from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolMap, SymbolReverse, SymbolSplit

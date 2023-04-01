@@ -48,13 +48,13 @@ from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.expression_constants import (
+from mathics.core.expression_predefined import (
     MATHICS3_COMPLEX_INFINITY,
     MATHICS3_I_INFINITY,
     MATHICS3_I_NEG_INFINITY,
     MATHICS3_INFINITY,
     MATHICS3_NEG_INFINITY,
-    ConstantExpression,
+    PredefinedExpression,
 )
 from mathics.core.list import ListExpression
 from mathics.core.number import dps, min_prec
@@ -699,7 +699,7 @@ class DirectedInfinity(SympyFunction):
 
         if normalized_direction is None:
             return None
-        return ConstantExpression(
+        return PredefinedExpression(
             SymbolDirectedInfinity,
             normalized_direction.evaluate(evaluation),
         )

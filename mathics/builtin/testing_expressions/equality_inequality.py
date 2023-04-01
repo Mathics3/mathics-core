@@ -19,7 +19,7 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.expression import to_expression, to_numeric_args
 from mathics.core.expression import Expression
-from mathics.core.expression_constants import (
+from mathics.core.expression_predefined import (
     MATHICS3_COMPLEX_INFINITY,
     MATHICS3_INFINITY,
     MATHICS3_NEG_INFINITY,

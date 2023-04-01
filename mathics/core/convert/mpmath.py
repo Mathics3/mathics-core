@@ -8,7 +8,7 @@ import sympy
 
 from mathics.core.atoms import Complex, MachineReal, MachineReal0, PrecisionReal
 from mathics.core.element import BaseElement
-from mathics.core.expression_constants import (
+from mathics.core.expression_predefined import (
     MATHICS3_COMPLEX_INFINITY,
     MATHICS3_I_INFINITY,
     MATHICS3_I_NEG_INFINITY,

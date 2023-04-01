@@ -19,7 +19,7 @@ from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_bool
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.expression_constants import MATHICS3_INFINITY
+from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.symbols import Symbol, SymbolTrue

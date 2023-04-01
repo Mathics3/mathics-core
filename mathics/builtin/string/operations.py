@@ -25,7 +25,7 @@ from mathics.core.attributes import (
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression, string_list
-from mathics.core.expression_constants import MATHICS3_INFINITY
+from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolFalse, SymbolFullForm, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (

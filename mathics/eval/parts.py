@@ -16,7 +16,7 @@ from mathics.core.exceptions import (
     PartRangeError,
 )
 from mathics.core.expression import Expression
-from mathics.core.expression_constants import MATHICS3_INFINITY
+from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.subexpression import SubExpression
 from mathics.core.symbols import Atom, Symbol, SymbolList

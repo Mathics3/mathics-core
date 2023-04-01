@@ -15,7 +15,7 @@ from mathics.core.atoms import Complex, Integer, MachineReal, Real, String
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.expression import Expression
-from mathics.core.expression_constants import (
+from mathics.core.expression_predefined import (
     MATHICS3_I_INFINITY,
     MATHICS3_I_NEG_INFINITY,
     MATHICS3_INFINITY,
