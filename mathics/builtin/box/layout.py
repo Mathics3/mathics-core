@@ -48,7 +48,7 @@ def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
         if x.has_form("MakeBoxes", None):
             x_boxed = x.evaluate(evaluation)
         else:
-            x_boxed = eval_makeboxes(x, evaluation)
+            x_boxed = eval_makeboxes(expr=x, evaluation=evaluation)
         if isinstance(x_boxed, BoxElementMixin):
             return x_boxed
         if isinstance(x_boxed, Atom):

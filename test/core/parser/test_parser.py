@@ -694,10 +694,14 @@ class BoxTests(ParserTests):
         self.check("\\(   \\/   \\)", 'FractionBox["", ""]')
 
     def testFormBox(self):
-        self.check("\\( 1 \\` b \\)", 'FormBox["b", Removed["$$Failure"]]')
-        self.check("\\( \\` b \\)", 'FormBox["b", StandardForm]')
-        self.check("\\( a \\` b \\)", 'FormBox["b", a]')
-        self.check("\\( a \\` \\)", 'FormBox["", a]')
+        self.check(r"\( \` b \)", 'FormBox["b", StandardForm]')
+        self.check(r"\( a \` b \)", 'FormBox["b", a]')
+        self.check(r"\( a \` \)", 'FormBox["", a]')
+        self.check(r"\( a \` b + c \)", 'FormBox[RowBox[{"b", "+", "c"}], a]')
+        self.check(r"\( a \` b \` c \)", 'FormBox[FormBox["c", b], a]')
+        self.check(r'\( "a" \` b \)', 'FormBox["b", Removed["$$Failure"]]')
+        self.check(r"\( 3.2 \` b \)", 'FormBox["b", Removed["$$Failure"]]')
+        self.check(r"\( 3.2 + a \` b \)", 'FormBox["b", RowBox[{"3.2", "+", "a"}]]')
 
     def testRow(self):
         self.check("\\( \\)", String(""))

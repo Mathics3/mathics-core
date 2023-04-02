@@ -1,7 +1,7 @@
 	.. contents::
 
 CHANGES
-=======
+-------
 
 
 New Builtins
@@ -161,7 +161,7 @@ Bugs
 #. numeric precision in mpmath was not reset after operations that changed these. This cause huges slowdowns after an operation that set the mpmath precison high. This was the source of several-minute slowdowns in testing.
 #. GIF87a (```MadTeaParty.gif`` or ExampleData) image loading fixed
 #. Replace non-free Leena image with a a freely distributable image. Issue #728
-
+#. Improving parsing ``RowBox`` expressions including ``FormBox`` tags (``` \` ```) inside. 
 
 PyPI Package requirements
 +++++++++++++++++++++++++

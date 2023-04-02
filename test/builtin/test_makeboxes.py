@@ -184,6 +184,7 @@ def test_makeboxes_representation(str_expr, str_expected, msg):
             r"FormBox[RowBox[{a, +, b}], TraditionalForm]",
             None,
         ),
+        (r"\(x \/ \(y + z\)\)", r"FractionBox[x, RowBox[{y, +, z}]]", None),
     ],
 )
 @skip_or_fail
