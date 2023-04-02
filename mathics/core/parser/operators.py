@@ -4,6 +4,48 @@
 
 from collections import defaultdict
 
+binary_box_ops = {
+    "FractionBox": 670,
+    "OverscriptBox": 710,
+    "RadicalBox": 670,
+    "SubscriptBox": 695,
+    "SuperscriptBox": 590,
+    "UnderscriptBox": 710,
+}
+
+left_binary_ops = {
+    "Divide": 470,
+    "PlusMinus": 310,
+    "MinusPlus": 310,
+    "Subtract": 310,
+    "LeftTee": 190,
+    "DoubleLeftTee": 190,
+    "Condition": 130,
+    "ReplaceAll": 110,
+    "ReplaceRepeated": 110,
+    "Because": 50,
+    "PutAppend": 30,
+    "Put": 30,
+    "Postfix": 70,
+}
+
+misc_ops = {
+    "DifferentialD": 550,
+    "Sum": 320,
+    "Pattern": 150,
+    "Optional": 140,
+    "SqrtBox": 670,
+    "RadicalBox": 670,
+    "FractionBox": 670,
+    "OverscriptBox": 710,
+    "UnderscriptBox": 710,
+    "SubscriptBox": 695,
+    "FormBox": 670,
+    "SuperscriptBox": 590,
+    "UnderoverscriptBox": 700,
+    "SubsuperscriptBox": 690,
+}
+
 prefix_ops = {
     "Get": 720,
     "PreIncrement": 660,
@@ -33,44 +75,6 @@ postfix_ops = {
     "Repeated": 170,
     "RepeatedNull": 170,
     "Function": 90,
-}
-
-left_binary_ops = {
-    "Divide": 470,
-    "PlusMinus": 310,
-    "MinusPlus": 310,
-    "Subtract": 310,
-    "LeftTee": 190,
-    "DoubleLeftTee": 190,
-    "Condition": 130,
-    "ReplaceAll": 110,
-    "ReplaceRepeated": 110,
-    "Because": 50,
-    "PutAppend": 30,
-    "Put": 30,
-    "Postfix": 70,
-}
-
-right_binary_ops = {
-    "Apply": 620,
-    "Map": 620,
-    "MapAll": 620,
-    "Power": 590,
-    "Implies": 200,
-    "RightTee": 190,
-    "DoubleRightTee": 190,
-    "SuchThat": 180,
-    "Rule": 120,
-    "RuleDelayed": 120,
-    "AddTo": 100,
-    "SubtractFrom": 100,
-    "TimesBy": 100,
-    "DivideBy": 100,
-    "Therefore": 50,
-    "UpSet": 40,
-    "Set": 40,
-    "SetDelayed": 40,
-    "UpSetDelayed": 40,
 }
 
 flat_binary_ops = {
@@ -137,26 +141,36 @@ nonassoc_binary_ops = {
     "PatternTest": 680,
 }
 
+right_binary_ops = {
+    "Apply": 620,
+    "Map": 620,
+    "MapAll": 620,
+    "Power": 590,
+    "Implies": 200,
+    "RightTee": 190,
+    "DoubleRightTee": 190,
+    "SuchThat": 180,
+    "Rule": 120,
+    "RuleDelayed": 120,
+    "AddTo": 100,
+    "SubtractFrom": 100,
+    "TimesBy": 100,
+    "DivideBy": 100,
+    "Therefore": 50,
+    "UpSet": 40,
+    "Set": 40,
+    "SetDelayed": 40,
+    "UpSetDelayed": 40,
+}
+
+ternary_box_ops = {
+    "SubsuperscriptBox": 690,
+    "UnderoverscriptBox": 700,
+}
+
 ternary_ops = {
     "Span": 305,
     "Infix": 630,
-}
-
-misc_ops = {
-    "DifferentialD": 550,
-    "Sum": 320,
-    "Pattern": 150,
-    "Optional": 140,
-    "SqrtBox": 670,
-    "RadicalBox": 670,
-    "FractionBox": 670,
-    "OverscriptBox": 710,
-    "UnderscriptBox": 710,
-    "SubscriptBox": 695,
-    "FormBox": 670,
-    "SuperscriptBox": 590,
-    "UnderoverscriptBox": 700,
-    "SubsuperscriptBox": 690,
 }
 
 inequality_ops = ["Less", "LessEqual", "Greater", "GreaterEqual", "Equal", "Unequal"]
