@@ -29,6 +29,10 @@ from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.expression_predefined import (
+    MATHICS3_COMPLEX_INFINITY,
+    MATHICS3_NEG_INFINITY,
+)
 from mathics.core.list import ListExpression
 from mathics.core.rules import Pattern
 from mathics.core.symbols import (
@@ -46,12 +50,10 @@ from mathics.core.systemsymbols import (
     SymbolAlternatives,
     SymbolAssumptions,
     SymbolAutomatic,
-    SymbolComplexInfinity,
     SymbolCos,
     SymbolCosh,
     SymbolCot,
     SymbolCoth,
-    SymbolDirectedInfinity,
     SymbolEqual,
     SymbolIndeterminate,
     SymbolLess,
@@ -1377,7 +1379,7 @@ class Exponent(Builtin):
     def eval(self, expr, form, h, evaluation):
         "Exponent[expr_, form_, h_]"
         if expr == Integer0:
-            return Expression(SymbolDirectedInfinity, Integer(-1))
+            return MATHICS3_NEG_INFINITY
 
         if not form.has_form("List", None):
             # TODO: add ElementProperties in Expression interface refactor branch:
@@ -1647,7 +1649,7 @@ class Simplify(Builtin):
         if self.eval(Expression(SymbolLess, Integer0, b), evaluation) is SymbolTrue:
             return Integer0
         if self.eval(Expression(SymbolLess, b, Integer0), evaluation) is SymbolTrue:
-            return Symbol(SymbolComplexInfinity)
+            return MATHICS3_COMPLEX_INFINITY
         if self.eval(Expression(SymbolEqual, b, Integer0), evaluation) is SymbolTrue:
             return Symbol(SymbolIndeterminate)
         return Expression(SymbolPower, Integer0, b)

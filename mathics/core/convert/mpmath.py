@@ -6,25 +6,16 @@ from typing import Optional, Union
 import mpmath
 import sympy
 
-from mathics.core.atoms import (
-    Complex,
-    Integer0,
-    Integer1,
-    IntegerM1,
-    MachineReal,
-    MachineReal0,
-    PrecisionReal,
-)
+from mathics.core.atoms import Complex, MachineReal, MachineReal0, PrecisionReal
 from mathics.core.element import BaseElement
-from mathics.core.expression import Expression
-from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolIndeterminate
-
-ExpressionInfinity = Expression(SymbolDirectedInfinity, Integer1)
-ExpressionMInfinity = Expression(SymbolDirectedInfinity, IntegerM1)
-ExpressionIInfinity = Expression(SymbolDirectedInfinity, Complex(Integer0, Integer1))
-ExpressionMIInfinity = Expression(SymbolDirectedInfinity, Complex(Integer0, IntegerM1))
-
-ExpressionComplexInfinity = Expression(SymbolDirectedInfinity)
+from mathics.core.expression_predefined import (
+    MATHICS3_COMPLEX_INFINITY,
+    MATHICS3_I_INFINITY,
+    MATHICS3_I_NEG_INFINITY,
+    MATHICS3_INFINITY,
+    MATHICS3_NEG_INFINITY,
+)
+from mathics.core.systemsymbols import SymbolIndeterminate
 
 
 @lru_cache(maxsize=1024)
@@ -41,7 +32,7 @@ def from_mpmath(
         return SymbolIndeterminate
     if isinstance(value, mpmath.mpf):
         if mpmath.isinf(value):
-            return ExpressionInfinity if value > 0 else ExpressionMInfinity
+            return MATHICS3_INFINITY if value > 0 else MATHICS3_NEG_INFINITY
         if precision is None:
             return MachineReal(float(value))
         # If the error if of the order of the number, the number
@@ -56,10 +47,10 @@ def from_mpmath(
         val_re, val_im = value.real, value.imag
         if mpmath.isinf(val_re):
             if mpmath.isinf(val_im):
-                return ExpressionComplexInfinity
-            return ExpressionInfinity if val_re > 0 else ExpressionMInfinity
+                return MATHICS3_COMPLEX_INFINITY
+            return MATHICS3_INFINITY if val_re > 0 else MATHICS3_NEG_INFINITY
         elif mpmath.isinf(val_im):
-            return ExpressionIInfinity if val_im > 0 else ExpressionMIInfinity
+            return MATHICS3_I_INFINITY if val_im > 0 else MATHICS3_I_NEG_INFINITY
         real = from_mpmath(val_re, precision=precision)
         imag = from_mpmath(val_im, precision=precision)
         return Complex(real, imag)
