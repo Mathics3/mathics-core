@@ -30,7 +30,7 @@ from sympy import __version__ as SymPyVersion
 import mathics
 from mathics import __version__, settings, version_string
 from mathics.core.definitions import Definitions
-from mathics.doc.latex_doc import LaTeXMathicsDocumentation
+from mathics.doc.latex_doc import LaTeXMathicsMainDocumentation, open_ensure_dir
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 
 # Global variables
@@ -47,6 +47,7 @@ DOCTEST_LATEX_DATA_PCL = settings.DOCTEST_LATEX_DATA_PCL
 # Output location information
 DOC_LATEX_DIR = os.environ.get("DOC_LATEX_DIR", settings.DOC_LATEX_DIR)
 DOC_LATEX_FILE = os.environ.get("DOC_LATEX_FILE", settings.DOC_LATEX_FILE)
+DOC_LATEX_DIR = osp.dirname(DOC_LATEX_FILE)
 
 
 def read_doctest_data(quiet=False) -> Optional[Dict[tuple, dict]]:
@@ -83,16 +84,6 @@ def load_doctest_data(data_path, quiet=False) -> Dict[tuple, dict]:
         print(f"Loading LaTeX internal data from {data_path}")
     with open_ensure_dir(data_path, "rb") as doc_data_fp:
         return pickle.load(doc_data_fp)
-
-
-def open_ensure_dir(f, *args, **kwargs):
-    try:
-        return open(f, *args, **kwargs)
-    except (IOError, OSError):
-        d = osp.dirname(f)
-        if d and not osp.exists(d):
-            os.makedirs(d)
-        return open(f, *args, **kwargs)
 
 
 def print_and_log(*args):
@@ -133,7 +124,7 @@ def get_versions():
 def write_latex(
     doc_data, quiet=False, filter_parts=None, filter_chapters=None, filter_sections=None
 ):
-    documentation = LaTeXMathicsDocumentation()
+    documentation = LaTeXMathicsMainDocumentation()
     if not quiet:
         print(f"Writing LaTeX document to {DOC_LATEX_FILE}")
     with open_ensure_dir(DOC_LATEX_FILE, "wb") as doc:

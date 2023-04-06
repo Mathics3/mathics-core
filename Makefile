@@ -11,6 +11,7 @@ BASH ?= bash
 RM  ?= rm
 
 # Variable indicating Mathics3 Modules you have available on your system, in latex2doc option format
+# MATHICS3_MODULE_OPTION ?= 
 MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
 
 .PHONY: \
