@@ -24,6 +24,8 @@ from mathics.builtin.base import (
 from mathics.builtin.inference import evaluate_predicate, get_assumptions_list
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
+    MATHICS3_COMPLEX_I,
+    MATHICS3_COMPLEX_I_NEG,
     Complex,
     Integer,
     Integer0,
@@ -44,9 +46,17 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
-from mathics.core.element import BaseElement, ElementsProperties
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.expression_predefined import (
+    MATHICS3_COMPLEX_INFINITY,
+    MATHICS3_I_INFINITY,
+    MATHICS3_I_NEG_INFINITY,
+    MATHICS3_INFINITY,
+    MATHICS3_NEG_INFINITY,
+    PredefinedExpression,
+)
 from mathics.core.list import ListExpression
 from mathics.core.number import dps, min_prec
 from mathics.core.symbols import (
@@ -74,7 +84,13 @@ from mathics.eval.numerify import numerify
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.mathematical-functions"
 
-ExpressionComplexInfinity = Expression(SymbolDirectedInfinity)
+
+map_direction_infinity = {
+    Integer1: MATHICS3_INFINITY,
+    IntegerM1: MATHICS3_NEG_INFINITY,
+    MATHICS3_COMPLEX_I: MATHICS3_I_INFINITY,
+    MATHICS3_COMPLEX_I_NEG: MATHICS3_I_NEG_INFINITY,
+}
 
 
 class _MPMathFunction(SympyFunction):
@@ -648,12 +664,18 @@ class DirectedInfinity(SympyFunction):
         "DirectedInfinity[z_?NumericQ]": "HoldForm[z Infinity]",
     }
 
+    def eval_complex_infinity(self, evaluation: Evaluation):
+        """DirectedInfinity[]"""
+        return MATHICS3_COMPLEX_INFINITY
+
     def eval_directed_infinity(self, direction, evaluation: Evaluation):
         """DirectedInfinity[direction_]"""
-        if direction in (Integer1, IntegerM1):
-            return None
+        result = map_direction_infinity.get(direction, None)
+        if result:
+            return result
+
         if direction.is_zero:
-            return ExpressionComplexInfinity
+            return MATHICS3_COMPLEX_INFINITY
 
         normalized_direction = eval_Sign(direction)
         # TODO: improve eval_Sign, to avoid the need of the
@@ -678,10 +700,9 @@ class DirectedInfinity(SympyFunction):
 
         if normalized_direction is None:
             return None
-        return Expression(
+        return PredefinedExpression(
             SymbolDirectedInfinity,
             normalized_direction.evaluate(evaluation),
-            elements_properties=ElementsProperties(True, False, False),
         )
 
     def to_sympy(self, expr, **kwargs):

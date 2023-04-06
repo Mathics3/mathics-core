@@ -20,10 +20,10 @@ from mathics.core.atoms import (
     String,
 )
 from mathics.core.convert.sympy import from_sympy, sympy_singleton_to_mathics
-from mathics.core.expression import (
+from mathics.core.expression import Expression
+from mathics.core.expression_predefined import (
     MATHICS3_COMPLEX_INFINITY,
     MATHICS3_INFINITY,
-    Expression,
 )
 from mathics.core.symbols import (
     Symbol,

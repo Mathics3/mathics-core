@@ -11,18 +11,14 @@ from itertools import chain
 from typing import Callable
 
 from mathics.builtin.base import Builtin, MessageException
-from mathics.core.atoms import Integer, Integer0, Integer1
+from mathics.core.atoms import Integer, Integer0
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, structure
+from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolDirectedInfinity,
-    SymbolMap,
-    SymbolReverse,
-    SymbolSplit,
-)
+from mathics.core.systemsymbols import SymbolMap, SymbolReverse, SymbolSplit
 from mathics.eval.parts import walk_levels
 
 
@@ -813,7 +809,7 @@ class Flatten(Builtin):
     def eval(self, expr, n, h, evaluation):
         "Flatten[expr_, n_, h_]"
 
-        if n == Expression(SymbolDirectedInfinity, Integer1):
+        if n.sameQ(MATHICS3_INFINITY):
             n = -1  # a negative number indicates an unbounded level
         else:
             n_int = n.get_int_value()

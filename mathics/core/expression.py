@@ -9,16 +9,7 @@ from typing import Any, Callable, Iterable, List, Optional, Tuple, Type
 
 import sympy
 
-from mathics.core.atoms import (
-    MATHICS3_COMPLEX_I,
-    MATHICS3_COMPLEX_I_NEG,
-    Complex,
-    Integer,
-    Integer0,
-    Integer1,
-    IntegerM1,
-    String,
-)
+from mathics.core.atoms import Integer, String
 
 # FIXME: adjust mathics.core.attributes to uppercase attribute names
 from mathics.core.attributes import (
@@ -1924,14 +1915,3 @@ def convert_expression_elements(
 
 def string_list(head, elements, evaluation):
     return atom_list_constructor(evaluation, head, "String")(elements)
-
-
-# These are constant expressions used in several places.
-# TODO: See if the is a better place to declare them.
-
-
-MATHICS3_COMPLEX_INFINITY = Expression(SymbolDirectedInfinity)
-MATHICS3_INFINITY = Expression(SymbolDirectedInfinity, Integer1)
-MATHICS3_NEG_INFINITY = Expression(SymbolDirectedInfinity, IntegerM1)
-MATHICS3_I_INFINITY = Expression(SymbolDirectedInfinity, MATHICS3_COMPLEX_I)
-MATHICS3_I_NEG_INFINITY = Expression(SymbolDirectedInfinity, MATHICS3_COMPLEX_I_NEG)

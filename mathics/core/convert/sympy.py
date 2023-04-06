@@ -32,11 +32,11 @@ from mathics.core.atoms import (
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.matrix import matrix_data
 from mathics.core.element import BaseElement
-from mathics.core.expression import (
+from mathics.core.expression import Expression
+from mathics.core.expression_predefined import (
     MATHICS3_COMPLEX_INFINITY,
     MATHICS3_INFINITY,
     MATHICS3_NEG_INFINITY,
-    Expression,
 )
 from mathics.core.list import ListExpression
 from mathics.core.number import FP_MANTISA_BINARY_DIGITS

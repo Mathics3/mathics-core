@@ -60,7 +60,7 @@ Element[_Integer|_Rational|_Real|_Complex, Complexes]:=True;
 (*Elementary inexact functions*)
 Element[f:(Sin[_]|Cos[_]|Tan[_]|Cot[_]|Sec[_]|Cosec[_]|Sinh[_]|Cosh[_]|Tanh[_]|Coth[_]|Sech[_]|Cosech[_]|
 	 Log[_]|Exp[_]| ArcSin[_]|ArcCos[_]|ArcTan[_]|ArcCot[_]|ArcSec[_]|ArcCosec[_]|
-	 ArcSinh[_]|ArcCosh[_]|ArcTanh[_]|ArcCoth[_]|ArcSech[_]|ArcCosech[_]), domine:Reals|Complexes]:=Element[f[[1]], domine];
+	 ArcSinh[_]|ArcCosh[_]|ArcTanh[_]|ArcCoth[_]|ArcSech[_]|ArcCosech[_]), domain:Reals|Complexes]:=Element[f[[1]], domain];
 
 
 
@@ -75,27 +75,24 @@ Element[x_Real/;(FractionalPart[x]!=0.), Primes]:=False;
 Element[x_, Primes]:=If[Element[x, Algebraics]===True, False, HoldForm[Element[x, Primes]]];
 
 
-indice=9;
-
 (*General Algebraic*)
 
-Element[z:(_Plus|_Times), domine:(Booleans|Integers|Rationals|Reals|Complexes|Algebraics)]:=Element[Alternatives@@z, domine];
-Element[_Times, Primes]:=Element[Alternatives@@z, Primes];
+Element[z:(_Plus|_Times), domain:(Integers|Rationals|Reals|Complexes|Algebraics)]:=Element[Alternatives@@z, domain];
+Element[z:(_Plus|_Times), Booleans]:=False;
+Element[_Times, Primes]:=False;
+
 
 
 Element[z_Power, Algebraics]:=Element[Alternatives@@z, Algebraics];
 Element[z:(_Integer|_Rational|_Complex), Algebraics]:=True;
 Element[I, Algebraics]:=True;
 Element[True|False|E|EulerGamma|Khinchin|MachinePrecision|Pi, Algebraics]:=False;
-Element[z_DirectedInfinity, domine:(Booleans|Integers|Rationals|Reals|Complexes)]:=False;
+Element[z_DirectedInfinity, domain:(Booleans|Integers|Rationals|Reals|Complexes)]:=False;
 Element[z_Power, Integers]:= (Element[Alternatives@@z, Integers] && z[[2]]>=0);
-Element[z_Power/;Element[Alternatives@@z, ], Integers]:= (z[[2]]>=0);
+Element[z_Power/;Element[Alternatives@@z, Integers], Integers]:= (z[[2]]>=0);
 
 Element[z_Power, Complexes]:= Element[z, Algebraics];
 Element[Power[b_,p_], Rationals]:=Element[b, Rationals] && Element[p, Integers] ;
-
-
-indice=10;
 
 
 
@@ -109,11 +106,8 @@ Element[Sin[_]|Cos[_]|Tan[_]|Cot[_]|Sec[_]|Cosec[_]|
 
 
 
-indice=11;
-
-
 Element[Power[b_Real|b_Rational|b_Integer, _Real|_Rational], Reals]:= (b>=0);
-Element[Power[_Real|_Rational|_Integer, p_Integer], Reals]:= True;
+Element[Power[_Real|_Rational|_Integer, p_Integer], Reals]= True;
 Element[Power[b_/;(Element[b, Reals]), p_/;Element[p, Reals]], Reals]:=(Element[p, Integers] || b>=0);
 
 Protect[Element]
