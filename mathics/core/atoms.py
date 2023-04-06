@@ -942,6 +942,9 @@ class Rational(Number):
 
 
 RationalOneHalf = Rational(1, 2)
+RationalMinusOneHalf = Rational(-1, 2)
+MATHICS3_COMPLEX_I = Complex(Integer0, Integer1)
+MATHICS3_COMPLEX_I_NEG = Complex(Integer0, IntegerM1)
 
 
 class String(Atom, BoxElementMixin):

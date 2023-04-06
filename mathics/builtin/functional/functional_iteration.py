@@ -10,8 +10,8 @@ from mathics.core.atoms import Integer1
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.symbols import Symbol, SymbolTrue
-from mathics.core.systemsymbols import SymbolDirectedInfinity
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.iteratively-applying-functions"
@@ -51,7 +51,7 @@ class FixedPoint(Builtin):
 
     def eval(self, f, expr, n, evaluation: Evaluation, options: dict):
         "FixedPoint[f_, expr_, n_:DirectedInfinity[1], OptionsPattern[FixedPoint]]"
-        if n == Expression(SymbolDirectedInfinity, Integer1):
+        if n.sameQ(MATHICS3_INFINITY):
             count = None
         else:
             count = n.get_int_value()
@@ -131,7 +131,7 @@ class FixedPointList(Builtin):
     def eval(self, f, expr, n, evaluation: Evaluation):
         "FixedPointList[f_, expr_, n_:DirectedInfinity[1]]"
 
-        if n == Expression(SymbolDirectedInfinity, Integer1):
+        if n.sameQ(MATHICS3_INFINITY):
             count = None
         else:
             count = n.get_int_value()

@@ -19,11 +19,15 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.expression import to_expression, to_numeric_args
 from mathics.core.expression import Expression
+from mathics.core.expression_predefined import (
+    MATHICS3_COMPLEX_INFINITY,
+    MATHICS3_INFINITY,
+    MATHICS3_NEG_INFINITY,
+)
 from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAnd,
-    SymbolComplexInfinity,
     SymbolDirectedInfinity,
     SymbolExactNumberQ,
     SymbolInequality,
@@ -110,6 +114,8 @@ class _EqualityOperator(_InequalityOperator):
                 yield (args[i], args[j])
 
     def expr_equal(self, lhs, rhs, max_extra_prec=None) -> Optional[bool]:
+        if rhs is lhs:
+            return True
         if isinstance(rhs, Expression):
             lhs, rhs = rhs, lhs
         if not isinstance(lhs, Expression):
@@ -129,34 +135,23 @@ class _EqualityOperator(_InequalityOperator):
         return True
 
     def infty_equal(self, lhs, rhs, max_extra_prec=None) -> Optional[bool]:
-        if rhs.get_head().sameQ(SymbolDirectedInfinity):
-            lhs, rhs = rhs, lhs
-        if not lhs.get_head().sameQ(SymbolDirectedInfinity):
+        if (
+            lhs.get_head() is not SymbolDirectedInfinity
+            or rhs.get_head() is not SymbolDirectedInfinity
+        ):
             return None
-        if rhs.sameQ(SymbolInfinity) or rhs.sameQ(SymbolComplexInfinity):
-            if len(lhs.elements) == 0:
-                return True
-            else:
-                return self.equal2(
-                    to_expression(SymbolSign, lhs.elements[0]), Integer1, max_extra_prec
-                )
-        if rhs.is_numeric():
-            return False
-        elif isinstance(rhs, Atom):
+        lhs_elements, rhs_elements = lhs.elements, rhs.elements
+
+        if len(lhs_elements) != len(rhs_elements):
             return None
-        if rhs.get_head().sameQ(lhs.get_head()):
-            dir1 = dir2 = Integer1
-            if len(lhs.elements) == 1:
-                dir1 = lhs.elements[0]
-            if len(rhs.elements) == 1:
-                dir2 = rhs.elements[0]
-            if self.equal2(dir1, dir2, max_extra_prec):
-                return True
-            # Now, compare the signs:
-            dir1_sign = Expression(SymbolSign, dir1)
-            dir2_sign = Expression(SymbolSign, dir2)
-            return self.equal2(dir1_sign, dir2_sign, max_extra_prec)
-        return
+        # Both are complex infinity?
+        if len(lhs_elements) == 0:
+            return True
+        if len(lhs_elements) == 1:
+            # Check directions: Notice that they are already normalized...
+            return self.equal2(lhs_elements[0], rhs_elements[0], max_extra_prec)
+        # DirectedInfinity with more than two elements cannot be compared here...
+        return None
 
     def sympy_equal(self, lhs, rhs, max_extra_prec=None) -> Optional[bool]:
         try:
@@ -200,12 +195,12 @@ class _EqualityOperator(_InequalityOperator):
         """
         Two-argument Equal[]
         """
+        if lhs is rhs or lhs.sameQ(rhs):
+            return True
         if hasattr(lhs, "equal2"):
             result = lhs.equal2(rhs)
             if result is not None:
                 return result
-        elif lhs.sameQ(rhs):
-            return True
         # TODO: Check $Assumptions
         # Still we didn't have a result. Try with the following
         # tests
@@ -294,7 +289,7 @@ class _MinMax(Builtin):
                     results.append(element)
 
         if not results:
-            return Expression(SymbolDirectedInfinity, Integer(-self.sense))
+            return MATHICS3_INFINITY if self.sense < 0 else MATHICS3_NEG_INFINITY
         if len(results) == 1:
             return results.pop()
         if len(results) < len(items):

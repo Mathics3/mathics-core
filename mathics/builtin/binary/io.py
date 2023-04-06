@@ -15,14 +15,16 @@ from mathics.core.atoms import Complex, Integer, MachineReal, Real, String
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.expression import Expression
+from mathics.core.expression_predefined import (
+    MATHICS3_I_INFINITY,
+    MATHICS3_I_NEG_INFINITY,
+    MATHICS3_INFINITY,
+    MATHICS3_NEG_INFINITY,
+)
 from mathics.core.read import SymbolEndOfFile
 from mathics.core.streams import stream_manager
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import (
-    SymbolComplex,
-    SymbolDirectedInfinity,
-    SymbolIndeterminate,
-)
+from mathics.core.systemsymbols import SymbolIndeterminate
 from mathics.eval.nevaluator import eval_N
 
 SymbolBinaryWrite = Symbol("BinaryWrite")
@@ -38,7 +40,7 @@ class _BinaryFormat:
         if math.isnan(real):
             return SymbolIndeterminate
         elif math.isinf(real):
-            return Expression(SymbolDirectedInfinity, Integer((-1) ** (real < 0)))
+            return MATHICS3_NEG_INFINITY if real < 0 else MATHICS3_INFINITY
         else:
             return Real(real)
 
@@ -46,19 +48,13 @@ class _BinaryFormat:
     def _IEEE_cmplx(real, imag):
         if math.isnan(real) or math.isnan(imag):
             return SymbolIndeterminate
-        elif math.isinf(real) or math.isinf(imag):
-            if math.isinf(real) and math.isinf(imag):
+        if math.isinf(real):
+            if math.isinf(imag):
                 return SymbolIndeterminate
-            return Expression(
-                SymbolDirectedInfinity,
-                to_expression(
-                    SymbolComplex,
-                    (-1) ** (real < 0) if math.isinf(real) else 0,
-                    (-1) ** (imag < 0) if math.isinf(imag) else 0,
-                ),
-            )
-        else:
-            return Complex(MachineReal(real), MachineReal(imag))
+            return MATHICS3_NEG_INFINITY if real < 0 else MATHICS3_INFINITY
+        if math.isinf(imag):
+            return MATHICS3_I_NEG_INFINITY if imag < 0 else MATHICS3_I_INFINITY
+        return Complex(MachineReal(real), MachineReal(imag))
 
     @classmethod
     def get_readers(cls):
@@ -172,7 +168,7 @@ class _BinaryFormat:
             return Real(sympy.Float(0, 4965))
         elif expbits == 0x7FFF:
             if fracbits == 0:
-                return Expression(SymbolDirectedInfinity, Integer((-1) ** signbit))
+                return MATHICS3_NEG_INFINITY if signbit else MATHICS3_INFINITY
             else:
                 return SymbolIndeterminate
 

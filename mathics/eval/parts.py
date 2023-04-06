@@ -16,6 +16,7 @@ from mathics.core.exceptions import (
     PartRangeError,
 )
 from mathics.core.expression import Expression
+from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.subexpression import SubExpression
 from mathics.core.symbols import Atom, Symbol, SymbolList
@@ -394,7 +395,7 @@ def python_levelspec(levelspec):
     def value_to_level(expr):
         value = expr.get_int_value()
         if value is None:
-            if expr == Expression(SymbolDirectedInfinity, Integer1):
+            if expr.sameQ(MATHICS3_INFINITY):
                 return None
             else:
                 raise InvalidLevelspecError
