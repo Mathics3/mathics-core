@@ -22,15 +22,8 @@ from functools import lru_cache
 import mpmath
 import sympy
 
-from mathics.builtin.base import Builtin, Predefined, Test
-from mathics.core.atoms import (
-    Integer,
-    Integer0,
-    Integer10,
-    MachineReal,
-    Number,
-    Rational,
-)
+from mathics.builtin.base import Builtin, Predefined
+from mathics.core.atoms import Integer, Integer0, Integer10, MachineReal, Rational
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
@@ -179,7 +172,7 @@ class Accuracy(Builtin):
 
     For Complex numbers, the accuracy is estimated as (minus) the base-10 log
     of the square root of the squares of the errors on the real and complex parts:
-    >> z=Complex[3.00``2, 4..00``2];
+    >> z=Complex[3.00``2, 4.00``2];
     >> Accuracy[z] == -Log[10, Sqrt[10^(-2 Accuracy[Re[z]]) + 10^(-2 Accuracy[Im[z]])]]
      = True
 

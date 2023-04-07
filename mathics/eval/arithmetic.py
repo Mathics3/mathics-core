@@ -1,4 +1,12 @@
-from typing import Callable, Optional, Tuple
+# -*- coding: utf-8 -*-
+
+"""
+helper functions for arithmetic evaluation, which do not
+depend on the evaluation context. Conversions to Sympy are
+used just as a last resource.
+"""
+
+from typing import Callable, List, Optional, Tuple
 
 import mpmath
 import sympy
@@ -17,15 +25,13 @@ from mathics.core.atoms import (
 )
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
-from mathics.core.element import BaseElement
+from mathics.core.element import BaseElement, ElementsProperties
 from mathics.core.expression import Expression
 from mathics.core.number import FP_MANTISA_BINARY_DIGITS, SpecialValueError, min_prec
 from mathics.core.symbols import Symbol, SymbolPlus, SymbolPower, SymbolTimes
-from mathics.core.systemsymbols import (
-    SymbolComplexInfinity,
-    SymbolDirectedInfinity,
-    SymbolIndeterminate,
-)
+from mathics.core.systemsymbols import SymbolComplexInfinity, SymbolIndeterminate
+
+RationalMOneHalf = Rational(-1, 2)
 
 
 # @lru_cache(maxsize=4096)
@@ -64,10 +70,12 @@ def eval_Abs(expr: BaseElement) -> Optional[BaseElement]:
     if isinstance(expr, (Integer, Rational, Real)):
         if expr.value >= 0:
             return expr
-        return eval_Times(IntegerM1, expr)
+        return eval_multiply_numbers(*[IntegerM1, expr])
     if isinstance(expr, Complex):
         re, im = expr.real, expr.imag
-        sqabs = eval_Plus(eval_Times(re, re), eval_Times(im, im))
+        sqabs = eval_add_numbers(
+            eval_multiply_numbers(re, re), eval_multiply_numbers(im, im)
+        )
         return Expression(SymbolPower, sqabs, RationalOneHalf)
     return None
 
@@ -86,15 +94,17 @@ def eval_Sign(expr: BaseElement) -> Optional[BaseElement]:
 
     if isinstance(expr, Complex):
         re, im = expr.real, expr.imag
-        sqabs = eval_Plus(eval_Times(re, re), eval_Times(im, im))
-        return eval_Times(
-            expr, Expression(SymbolPower, sqabs, eval_Times(IntegerM1, RationalOneHalf))
-        )
+        sqabs = eval_add_numbers(eval_Times(re, re), eval_Times(im, im))
+        norm = Expression(SymbolPower, sqabs, RationalMOneHalf)
+        result = eval_Times(expr, norm)
+        if result is None:
+            return Expression(SymbolTimes, expr, norm)
+        return result
     return None
 
 
 def eval_mpmath_function(
-    mpmath_function: Callable, *args: Tuple[Number], prec: Optional[int] = None
+    mpmath_function: Callable, *args: Number, prec: Optional[int] = None
 ) -> Optional[Number]:
     """
     Call the mpmath function `mpmath_function` with the arguments `args`
@@ -120,15 +130,15 @@ def eval_mpmath_function(
             return call_mpmath(mpmath_function, tuple(mpmath_args), prec)
 
 
-def eval_Plus(*items: Tuple[BaseElement]) -> BaseElement:
+def eval_Plus(*items: BaseElement) -> BaseElement:
     "evaluate Plus for general elements"
+    numbers, items_tuple = segregate_numbers_from_sorted_list(*items)
     elements = []
     last_item = last_count = None
+    number = eval_add_numbers(*numbers) if numbers else Integer0
 
-    prec = min_prec(*items)
-    is_machine_precision = any(item.is_machine_precision() for item in items)
-    numbers = []
-
+    # This reduces common factors
+    # TODO: Check if it possible to avoid the conversions back and forward to sympy.
     def append_last():
         if last_item is not None:
             if last_count == 1:
@@ -145,155 +155,107 @@ def eval_Plus(*items: Tuple[BaseElement]) -> BaseElement:
                         Expression(SymbolTimes, from_sympy(last_count), last_item)
                     )
 
-    for item in items:
-        if isinstance(item, Number):
-            numbers.append(item)
+    for item in items_tuple:
+        count = rest = None
+        if item.has_form("Times", None):
+            for element in item.elements:
+                if isinstance(element, Number):
+                    count = element.to_sympy()
+                    rest = item.get_mutable_elements()
+                    rest.remove(element)
+                    if len(rest) == 1:
+                        rest = rest[0]
+                    else:
+                        rest.sort()
+                        rest = Expression(SymbolTimes, *rest)
+                    break
+        if count is None:
+            count = sympy.Integer(1)
+            rest = item
+        if last_item is not None and last_item == rest:
+            last_count = last_count + count
         else:
-            count = rest = None
-            if item.has_form("Times", None):
-                for element in item.elements:
-                    if isinstance(element, Number):
-                        count = element.to_sympy()
-                        rest = item.get_mutable_elements()
-                        rest.remove(element)
-                        if len(rest) == 1:
-                            rest = rest[0]
-                        else:
-                            rest.sort()
-                            rest = Expression(SymbolTimes, *rest)
-                        break
-            if count is None:
-                count = sympy.Integer(1)
-                rest = item
-            if last_item is not None and last_item == rest:
-                last_count = last_count + count
-            else:
-                append_last()
-                last_item = rest
-                last_count = count
+            append_last()
+            last_item = rest
+            last_count = count
     append_last()
-    if numbers:
-        # TODO: reorganize de conditions to avoid compute unnecesary
-        # quantities. In particular, is we check mathine_precision,
-        # we do not need to evaluate prec.
-        if prec is not None:
-            if is_machine_precision:
-                numbers = [item.to_mpmath() for item in numbers]
-                number = mpmath.fsum(numbers)
-                number = from_mpmath(number)
-            else:
-                # TODO: If there are Complex numbers in `numbers`,
-                # and we are not working in machine precision, compute the sum of the real and imaginary
-                # parts separately, to preserve precision. For example,
-                # 1.`2 + 1.`3 I should produce
-                # Complex[1.`2, 1.`3]
-                # but with this implementation returns
-                # Complex[1.`2, 1.`2]
-                #
-                # TODO: if the precision are not equal for each number,
-                # we should estimate the result precision by computing the sum of individual errors
-                # prec =  sum(abs(n.value) * 2**(-n.value._prec)    for n in number if n.value._prec is not None)/sum(abs(n))
-                with mpmath.workprec(prec):
-                    numbers = [item.to_mpmath() for item in numbers]
-                    number = mpmath.fsum(numbers)
-                    number = from_mpmath(number, precision=prec)
-        else:
-            number = from_sympy(sum(item.to_sympy() for item in numbers))
-    else:
-        number = Integer0
 
-    if not number.sameQ(Integer0):
-        elements.insert(0, number)
-
+    # now elements contains the symbolic terms which can not be simplified.
+    # by collecting common symbolic factors.
     if not elements:
-        return Integer0
+        return number
+
+    if number is not Integer0:
+        elements.insert(0, number)
     elif len(elements) == 1:
         return elements[0]
-    else:
-        elements.sort()
-        return Expression(SymbolPlus, *elements)
+
+    elements.sort()
+    return Expression(
+        SymbolPlus,
+        *elements,
+        elements_properties=ElementsProperties(False, False, True),
+    )
 
 
-def eval_Times(*items):
+def eval_Times(*items: BaseElement) -> BaseElement:
     elements = []
     numbers = []
-    # This variable  tracks DirectInfinity[] factors.
-    infinity_factor = False
-
-    # These quantities only have sense if there are numeric terms.
-    # Also, prec is only needed if is_machine_precision is not True.
-    prec = min_prec(*items)
-    is_machine_precision = any(item.is_machine_precision() for item in items)
-
     # find numbers and simplify Times -> Power
-    for item in items:
-        if isinstance(item, Number):
-            numbers.append(item)
-            continue
-        if item.get_head() is SymbolDirectedInfinity:
-            infinity_factor = True
+    numbers, symbolic_items = segregate_numbers_from_sorted_list(*(items))
+    # This loop handles factors representing infinite quantities,
+    # and factors which are powers of the same basis.
+
+    for item in symbolic_items:
         if item is SymbolIndeterminate:
             return item
-        if elements and item == elements[-1]:
-            elements[-1] = Expression(SymbolPower, elements[-1], Integer2)
-        elif (
-            elements
-            and item.has_form("Power", 2)
-            and elements[-1].has_form("Power", 2)
-            and item.elements[0].sameQ(elements[-1].elements[0])
-        ):
-            elements[-1] = Expression(
-                SymbolPower,
-                elements[-1].elements[0],
-                Expression(SymbolPlus, item.elements[1], elements[-1].elements[1]),
-            )
-        elif (
-            elements
-            and item.has_form("Power", 2)
-            and item.elements[0].sameQ(elements[-1])
-        ):
-            elements[-1] = Expression(
-                SymbolPower,
-                elements[-1],
-                Expression(SymbolPlus, item.elements[1], Integer1),
-            )
-        elif (
-            elements
-            and elements[-1].has_form("Power", 2)
-            and elements[-1].elements[0].sameQ(item)
-        ):
-            elements[-1] = Expression(
-                SymbolPower,
-                item,
-                Expression(SymbolPlus, Integer1, elements[-1].elements[1]),
-            )
+        # Process powers
+        if elements:
+            previous_elem = elements[-1]
+            if item == previous_elem:
+                elements[-1] = Expression(SymbolPower, previous_elem, Integer2)
+                continue
+            elif item.has_form("Power", 2):
+                base, exp = item.elements
+                if previous_elem.has_form("Power", 2) and base.sameQ(
+                    previous_elem.elements[0]
+                ):
+                    exp = eval_Plus(exp, previous_elem.elements[1])
+                    elements[-1] = Expression(
+                        SymbolPower,
+                        base,
+                        exp,
+                    )
+                    continue
+                if base.sameQ(previous_elem):
+                    exp = eval_Plus(Integer1, exp)
+                    elements[-1] = Expression(
+                        SymbolPower,
+                        base,
+                        exp,
+                    )
+                    continue
+            elif previous_elem.has_form("Power", 2) and previous_elem.elements[0].sameQ(
+                item
+            ):
+                exp = eval_Plus(Integer1, previous_elem.elements[1])
+                elements[-1] = Expression(
+                    SymbolPower,
+                    item,
+                    exp,
+                )
+                continue
         else:
-            elements.append(item)
+            item = item
+        # Otherwise, just append the element...
+        elements.append(item)
 
-    if numbers:
-        if prec is not None:
-            if is_machine_precision:
-                numbers = [item.to_mpmath() for item in numbers]
-                number = mpmath.fprod(numbers)
-                number = from_mpmath(number)
-            else:
-                with mpmath.workprec(prec):
-                    numbers = [item.to_mpmath() for item in numbers]
-                    number = mpmath.fprod(numbers)
-                    number = from_mpmath(number, precision=prec)
-        else:
-            number = sympy.Mul(*[item.to_sympy() for item in numbers])
-            number = from_sympy(number)
-    else:
-        number = Integer1
+    number = eval_multiply_numbers(*numbers) if numbers else Integer1
 
-    if number.sameQ(Integer1):
-        number = None
-    elif number.is_zero:
-        if not infinity_factor:
-            return number
-        # else, they are handled using the DirectedInfinity upvalues rules.
-    elif number.sameQ(IntegerM1) and elements and elements[0].has_form("Plus", None):
+    if len(elements) == 0 or number is Integer0:
+        return number
+
+    if number is IntegerM1 and elements and elements[0].has_form("Plus", None):
         elements[0] = Expression(
             elements[0].get_head(),
             *[
@@ -301,20 +263,105 @@ def eval_Times(*items):
                 for element in elements[0].elements
             ],
         )
-        number = None
+        number = Integer1
 
-    if number is not None:
+    if number is not Integer1:
         elements.insert(0, number)
 
-    if not elements:
-        # if infinity_factor:
-        #    return SymbolComplexInfinity
-        return Integer1
-
     if len(elements) == 1:
-        ret = elements[0]
+        return elements[0]
+
+    elements = sorted(elements)
+    items_elements = items
+    if len(elements) == len(items_elements) and all(
+        elem.sameQ(item) for elem, item in zip(elements, items_elements)
+    ):
+        return None
+    return Expression(
+        SymbolTimes,
+        *elements,
+        elements_properties=ElementsProperties(False, False, True),
+    )
+
+
+def eval_add_numbers(
+    *numbers: Number,
+) -> BaseElement:
+    """
+    Add the elements in ``numbers``.
+    """
+    if len(numbers) == 0:
+        return Integer0
+    if len(numbers) == 1:
+        return numbers[0]
+
+    is_machine_precision = any(number.is_machine_precision() for number in numbers)
+    if is_machine_precision:
+        terms = (item.to_mpmath() for item in numbers)
+        number = mpmath.fsum(terms)
+        return from_mpmath(number)
+
+    prec = min_prec(*numbers)
+    if prec is not None:
+        # For a sum, what is relevant is the minimum accuracy of the terms
+        with mpmath.workprec(prec):
+            terms = (item.to_mpmath() for item in numbers)
+            number = mpmath.fsum(terms)
+            return from_mpmath(number, precision=prec)
     else:
-        ret = Expression(SymbolTimes, *elements)
-    # if infinity_factor:
-    #    return Expression(SymbolDirectedInfinity, ret)
-    return ret
+        return from_sympy(sum(item.to_sympy() for item in numbers))
+
+
+def eval_multiply_numbers(*numbers: Number) -> BaseElement:
+    """
+    Multiply the elements in ``numbers``.
+    """
+    if len(numbers) == 0:
+        return Integer1
+    if len(numbers) == 1:
+        return numbers[0]
+
+    is_machine_precision = any(number.is_machine_precision() for number in numbers)
+    if is_machine_precision:
+        factors = (item.to_mpmath() for item in numbers)
+        number = mpmath.fprod(factors)
+        return from_mpmath(number)
+
+    prec = min_prec(*numbers)
+    if prec is not None:
+        with mpmath.workprec(prec):
+            factors = (item.to_mpmath() for item in numbers)
+            number = mpmath.fprod(factors)
+            return from_mpmath(number, prec)
+    else:
+        return from_sympy(sympy.Mul(*(item.to_sympy() for item in numbers)))
+
+
+# TODO: Annotate me
+def segregate_numbers(
+    *elements: BaseElement,
+) -> Tuple[List[Number], List[BaseElement]]:
+    """
+    From a list of elements, produce two lists, one with the numeric items
+    and the other with the remaining
+    """
+    items = {True: [], False: []}
+    for element in elements:
+        items[isinstance(element, Number)].append(element)
+    return items[True], items[False]
+
+
+# TODO: Annotate me
+def segregate_numbers_from_sorted_list(
+    *elements: BaseElement,
+) -> Tuple[List[Number], List[BaseElement]]:
+    """
+    From a list of elements, produce two lists, one with the numeric items
+    and the other with the remaining. Different from `segregate_numbers`,
+    this function assumes that elements are sorted with the numbers at
+    the begining.
+    """
+    for pos, element in enumerate(elements):
+        if not isinstance(element, Number):
+            return list(elements[:pos]), list(elements[pos:])
+    return list(elements), []
