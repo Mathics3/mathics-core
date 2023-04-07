@@ -1,25 +1,27 @@
 # -*- coding: utf-8 -*-
 
 """
+Layout
+
 This module contains symbols used to define the high level layout for
 expression formatting.
 
 For instance, to represent a set of consecutive expressions in a row,
-we can use ``Row``
+we can use 'Row'.
 
 """
 
 
 from mathics.builtin.base import BinaryOperator, Builtin, Operator
 from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
-from mathics.builtin.lists import list_boxes
 from mathics.builtin.makeboxes import MakeBoxes
 from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Real, String
-from mathics.core.expression import Expression
+from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolMakeBoxes
+from mathics.eval.lists import list_boxes
 from mathics.eval.makeboxes import format_element
 
 SymbolSubscriptBox = Symbol("System`SubscriptBox")
@@ -88,23 +90,62 @@ class Grid(Builtin):
      = a   b
      .
      . c   d
+
+    For shallow lists, elements are shown as a column:
+    >> Grid[{a, b, c}]
+     = a
+     .
+     . b
+     .
+     . c
+
+    If the sublists have different sizes, the grid has the number of columns of the \
+    largest one. Incomplete rows are completed with empty strings:
+
+    >> Grid[{{"first", "second", "third"},{a},{1, 2, 3}}]
+     = first   second   third
+     .
+     . a
+     .
+     . 1       2        3
+
+    If the list is a mixture of lists and other expressions, the non-list expressions are
+    shown as rows:
+
+    >> Grid[{"This is a long title", {"first", "second", "third"},{a},{1, 2, 3}}]
+     = This is a long title
+     .
+     . first   second   third
+     .
+     . a
+     .
+     . 1       2        3
+
     """
 
     options = GridBox.options
     summary_text = " 2D layout containing arbitrary objects"
 
-    def apply_makeboxes(self, array, f, evaluation, options) -> Expression:
-        """MakeBoxes[Grid[array_?MatrixQ, OptionsPattern[Grid]],
+    def eval_makeboxes(self, array, f, evaluation: Evaluation, options) -> Expression:
+        """MakeBoxes[Grid[array_List, OptionsPattern[Grid]],
         f:StandardForm|TraditionalForm|OutputForm]"""
+
+        elements = array.elements
+
+        rows = (
+            element.elements if element.has_form("List", None) else element
+            for element in elements
+        )
+
+        def format_row(row):
+            if isinstance(row, tuple):
+                return ListExpression(
+                    *(format_element(item, evaluation, f) for item in row),
+                )
+            return format_element(row, evaluation, f)
+
         return GridBox(
-            ListExpression(
-                *(
-                    ListExpression(
-                        *(format_element(item, evaluation, f) for item in row.elements),
-                    )
-                    for row in array.elements
-                ),
-            ),
+            ListExpression(*(format_row(row) for row in rows)),
             *options_to_rules(options),
         )
 
@@ -156,7 +197,8 @@ class Left(Builtin):
 
     <dl>
       <dt>'Left'
-      <dd>is used with operator formatting constructs to specify a left-associative operator.
+      <dd>is used with operator formatting constructs to specify a \
+          left-associative operator.
     </dl>
     """
 
@@ -230,7 +272,7 @@ class Precedence(Builtin):
 
     summary_text = "an object to be parenthesized with a given precedence level"
 
-    def apply(self, expr, evaluation) -> Real:
+    def eval(self, expr, evaluation) -> Real:
         "Precedence[expr_]"
 
         name = expr.get_name()
@@ -244,6 +286,19 @@ class Precedence(Builtin):
             else:
                 precedence = 670
         return Real(precedence)
+
+
+class PrecedenceForm(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PrecedenceForm.html</url>
+
+    <dl>
+      <dt>'PrecedenceForm'[$expr$, $prec$]
+      <dd> format $expr$ parenthesized as it would be if it contained an operator of precedence $prec$.
+    </dl>
+    """
+
+    summary_text = "parenthesize with a precedence"
 
 
 class Prefix(BinaryOperator):
@@ -307,21 +362,21 @@ class Row(Builtin):
 
     summary_text = "1D layouts containing arbitrary objects in a row"
 
-    def apply_makeboxes(self, items, sep, f, evaluation):
+    def eval_makeboxes(self, items, sep, form, evaluation: Evaluation):
         """MakeBoxes[Row[{items___}, sep_:""],
-        f:StandardForm|TraditionalForm|OutputForm]"""
+        form:StandardForm|TraditionalForm|OutputForm]"""
 
         items = items.get_sequence()
         if not isinstance(sep, String):
-            sep = MakeBoxes(sep, f)
+            sep = MakeBoxes(sep, form)
         if len(items) == 1:
-            return MakeBoxes(items[0], f)
+            return MakeBoxes(items[0], form)
         else:
             result = []
             for index, item in enumerate(items):
                 if index > 0 and not sep.sameQ(String("")):
                     result.append(to_boxes(sep, evaluation))
-                item = MakeBoxes(item, f).evaluate(evaluation)
+                item = MakeBoxes(item, form).evaluate(evaluation)
                 item = to_boxes(item, evaluation)
                 result.append(item)
             return RowBox(*result)
@@ -334,22 +389,31 @@ class Style(Builtin):
     <dl>
       <dt>'Style[$expr$, options]'
       <dd>displays $expr$ formatted using the specified option settings.
+
       <dt>'Style[$expr$, "style"]'
       <dd> uses the option settings for the specified style in the current notebook.
+
       <dt>'Style[$expr$, $color$]'
       <dd>displays using the specified color.
+
       <dt>'Style[$expr$, $Bold$]'
       <dd>displays with fonts made bold.
+
       <dt>'Style[$expr$, $Italic$]'
       <dd>displays with fonts made italic.
+
       <dt>'Style[$expr$, $Underlined$]'
       <dd>displays with fonts underlined.
+
       <dt>'Style[$expr$, $Larger$]
       <dd>displays with fonts made larger.
+
       <dt>'Style[$expr$, $Smaller$]'
       <dd>displays with fonts made smaller.
+
       <dt>'Style[$expr$, $n$]'
       <dd>displays with font size n.
+
       <dt>'Style[$expr$, $Tiny$]'
       <dt>'Style[$expr$, $Small$]', etc.
       <dd>display with fonts that are tiny, small, etc.
@@ -369,7 +433,9 @@ class Style(Builtin):
 
 class Subscript(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Subscript.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Subscript.html</url>
 
     <dl>
       <dt>'Subscript[$a$, $i$]'
@@ -382,7 +448,7 @@ class Subscript(Builtin):
 
     summary_text = "format an expression with a subscript"
 
-    def apply_makeboxes(self, x, y, f, evaluation) -> Expression:
+    def eval_makeboxes(self, x, y, f, evaluation) -> Expression:
         "MakeBoxes[Subscript[x_, y__], f:StandardForm|TraditionalForm]"
 
         y = y.get_sequence()
@@ -395,7 +461,9 @@ class Subscript(Builtin):
 
 class Subsuperscript(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Subsuperscript.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Subsuperscript.html</url>
 
     <dl>
       <dt>'Subsuperscript[$a$, $b$, $c$]'
@@ -417,7 +485,9 @@ class Subsuperscript(Builtin):
 
 class Superscript(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Superscript.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Superscript.html</url>
 
     <dl>
       <dt>'Superscript[$x$, $y$]'

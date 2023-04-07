@@ -56,7 +56,7 @@ class AtomQ(Test):
 
     summary_text = "test whether an expression is an atom"
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         return isinstance(expr, Atom)
 
 

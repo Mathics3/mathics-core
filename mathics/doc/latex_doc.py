@@ -61,7 +61,7 @@ DOC_LATEX_DIR = osp.dirname(DOC_LATEX_FILE)
 # We keep track of the number of \begin{asy}'s we see so that
 # we can assocation asymptote file numbers with where they are
 # in the document
-asy_count = 0
+next_asy_number = 1
 
 ITALIC_RE = re.compile(r"(?s)<(?P<tag>i)>(?P<content>.*?)</(?P=tag)>")
 
@@ -82,8 +82,18 @@ LATEX_TESTOUT_RE = re.compile(
     r"(?P<content>.*?)\\end\{(?P=tag)\}"
 )
 
-LATEX_TESTOUT_DELIM_RE = re.compile(r",")
-NUMBER_RE = re.compile(r"(\d*(?<!\.)\.\d+|\d+\.(?!\.)\d*|\d+)")
+LATEX_TESTOUT_DELIM_RE = re.compile(r", ")
+
+# The goal of the following pattern is to enclose the numbers included in
+# expressions produced by tests between ```\allowbreak{}```. The pattern matches
+# with negative numbers or positive numbers preceded by a space character.
+# To avoid applying the replacement, what is needed if the number is part of a
+# LaTeX parameter (for instance ```\includegraphics[width=5cm]{...}```)
+# the space before the number must be avoided. For example,
+# ```\includegraphics[width= 5cm]{...}``` must be rewritten as
+# \includegraphics[width=\allowbreak{}5\allowbreak{}cm]{...} which is not a valid
+# LaTeX command.
+NUMBER_RE = re.compile(r"([ -])(\d*(?<!\.)\.\d+|\d+\.(?!\.)\d*|\d+)")
 OUTSIDE_ASY_RE = re.compile(r"(?s)((?:^|\\end\{asy\}).*?(?:$|\\begin\{asy\}))")
 
 
@@ -237,6 +247,19 @@ def escape_latex(text):
     def repl_hypertext(match) -> str:
         tag = match.group("tag")
         content = match.group("content")
+        #
+        # Sometimes it happens that the URL does not
+        # fit in 80 characters. Then, to avoid that
+        # flake8 complains, and also to have a
+        # nice and readable ASCII representation,
+        # we would like to split the URL in several,
+        # lines, having indentation spaces.
+        #
+        # The following line removes these extra
+        # characters, which would spoil the URL,
+        # producing a single line, space-free string.
+        #
+        content = content.replace(" ", "").replace("\n", "")
         if tag == "em":
             return r"\emph{%s}" % content
         elif tag == "url":
@@ -369,13 +392,13 @@ def post_process_latex(result):
         return text
 
     def repl_out_delim(match):
-        return ",\\allowbreak{}"
+        return ",\\allowbreak{} "
 
     def repl_number(match):
         guard = r"\allowbreak{}"
         inter_groups_pre = r"\,\discretionary{\~{}}{\~{}}{}"
         inter_groups_post = r"\discretionary{\~{}}{\~{}}{}"
-        number = match.group(1)
+        number = match.group(1) + match.group(2)
         parts = number.split(".")
         if len(number) <= 3:
             return number
@@ -553,7 +576,7 @@ class LaTeXDocTest(DocTest):
         The key for doc_data is the part/chapter/section{/subsection} test number
         and the value contains Result object data turned into a dictionary.
 
-        In partuclar, each test in the test sequence includes the, input test,
+        In particular, each test in the test sequence includes the, input test,
         the result produced and any additional error output.
         The LaTeX-formatted string fragment is returned.
         """
@@ -591,6 +614,7 @@ class LaTeXDocTest(DocTest):
             )
 
         # Next output expression-result info.
+        print(result_dict)
         test_result_text = result_dict["result"]
         if test_result_text:  # is not None and result['result'].strip():
 
@@ -598,9 +622,9 @@ class LaTeXDocTest(DocTest):
             # number of we have seen so far. And add that as a comment too
             # Each asymptote output has a file name  with a number.
             if test_result_text.find("\\begin{asy}") >= 0:
-                global asy_count
-                asy_count += 1
-                text += f"  %% mathics-{asy_count}.asy\n"
+                global next_asy_number
+                next_asy_number += 1
+                text += f"  %% mathics-{next_asy_number}.asy\n"
             elif result_dict["form"] == "PNG":
                 text += "  \\includegraphics{%s}\n" % test_result_text
             else:
@@ -692,13 +716,23 @@ class LaTeXDoc(XMLDoc):
 
 
 class LaTeXMathicsMainDocumentation(MathicsMainDocumentation):
-    def __init__(self):
+    def __init__(self, want_sorting=False):
+
+        self.doc_data_file = settings.get_doctest_latex_data_path(
+            should_be_readable=True
+        )
         self.doc_dir = settings.DOC_DIR
         self.latex_file = settings.DOC_LATEX_FILE
+        self.doc_fn = LaTeXDoc
+        self.doc_guide_section_fn = LaTeXDocGuideSection
+        self.doc_chapter_fn = DocChapter
+        self.doc_part_fn = LaTeXDocPart
+        self.doc_section_fn = LaTeXDocSection
+        self.doc_subsection_fn = LaTeXDocSubsection
+        self.doctest_latex_pcl_path = settings.DOCTEST_LATEX_DATA_PCL
         self.parts = []
         self.parts_by_slug = {}
         self.pymathics_doc_loaded = False
-        self.doc_data_file = settings.get_doc_tex_data_path(should_be_readable=True)
         self.title = "Overview"
         files = listdir(self.doc_dir)
         files.sort()
@@ -758,12 +792,14 @@ class LaTeXMathicsMainDocumentation(MathicsMainDocumentation):
 
             builtin_part = LaTeXDocPart(self, title, is_reference=start)
             modules_seen = set()
-            module_collection_fn = lambda x: sorted(
-                modules,
-                key=lambda module: module.sort_order
-                if hasattr(module, "sort_order")
-                else module.__name__,
-            )
+
+            def module_collection_fn(x):
+                return sorted(
+                    modules,
+                    key=lambda module: module.sort_order
+                    if hasattr(module, "sort_order")
+                    else module.__name__,
+                )
 
             for module in module_collection_fn(modules):
                 if skip_module_doc(module, modules_seen):
@@ -792,12 +828,13 @@ class LaTeXMathicsMainDocumentation(MathicsMainDocumentation):
                         if isinstance(value, ModuleType)
                     ]
 
-                    sorted_submodule = lambda x: sorted(
-                        submodules,
-                        key=lambda submodule: submodule.sort_order
-                        if hasattr(submodule, "sort_order")
-                        else submodule.__name__,
-                    )
+                    def sorted_submodule(tuple_submodules: tuple):
+                        return sorted(
+                            tuple_submodules,
+                            key=lambda submodule: submodule.sort_order
+                            if hasattr(submodule, "sort_order")
+                            else submodule.__name__,
+                        )
 
                     # Add sections in the guide section...
                     for submodule in sorted_submodule(submodules):
@@ -990,7 +1027,10 @@ class LaTeXDocPart(DocPart):
         if self.is_reference:
             chapter_fn = sorted_chapters
         else:
-            chapter_fn = lambda x: x
+
+            def chapter_fn(x):
+                return x
+
         result = "\n\n\\part{%s}\n\n" % escape_latex(self.title) + (
             "\n".join(
                 chapter.latex(doc_data, quiet, filter_sections=filter_sections)
@@ -1197,6 +1237,7 @@ class LaTeXDocSubsection:
         operator=None,
         installed=True,
         in_guide=False,
+        summary_text="",
     ):
         """
         Information that goes into a subsection object. This can be a written text, or

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-
 import base64
 import bisect
 import os
 import pickle
 import re
 from collections import defaultdict
+from os.path import join as osp_join
 from typing import List, Optional
 
 from mathics_scanner.tokeniser import full_names_pattern
@@ -47,12 +47,19 @@ def valuesname(name) -> str:
 def autoload_files(
     defs, root_dir_path: str, autoload_dir: str, block_global_definitions: bool = True
 ):
+    """
+    Load Mathics code from the autoload-folder files.
+    """
     from mathics.core.evaluation import Evaluation
 
-    # Load symbols from the autoload folder
-    for root, dirs, files in os.walk(os.path.join(root_dir_path, autoload_dir)):
-        for path in [os.path.join(root, f) for f in files if f.endswith(".m")]:
+    for root, dirs, files in os.walk(osp_join(root_dir_path, autoload_dir)):
+        for path in [osp_join(root, f) for f in files if f.endswith(".m")]:
+            # Autoload definitions should be go in the System context
+            # by default, rather than the Global context.
+            defs.set_current_context("System`")
             Expression(SymbolGet, String(path)).evaluate(Evaluation(defs))
+            # Restore default context to Global
+            defs.set_current_context("Global`")
 
     if block_global_definitions:
         # Move any user definitions created by autoloaded files to
@@ -66,6 +73,13 @@ def autoload_files(
         for name in defs.user:
             if name.startswith("Global`"):
                 raise ValueError("autoload defined %s." % name)
+
+    # Move the user definitions to builtin:
+    for symbol_name in defs.user:
+        defs.builtin[symbol_name] = defs.get_definition(symbol_name)
+
+    defs.user = {}
+    defs.clear_cache()
 
 
 class Definitions:
@@ -110,7 +124,7 @@ class Definitions:
         # Rocky: this smells of something not quite right in terms of
         # modularity.
         import mathics.format  # noqa
-        from mathics.core.pymathics import PyMathicsLoadException, load_pymathics_module
+        from mathics.eval.pymathics import PyMathicsLoadException, load_pymathics_module
 
         self.printforms = list(PrintForms)
         self.outputforms = list(OutputForms)
@@ -144,22 +158,6 @@ class Definitions:
                     pickle.dump(self.builtin, builtin_file, -1)
 
             autoload_files(self, ROOT_DIR, "autoload")
-
-            # Move any user definitions created by autoloaded files to
-            # builtins, and clear out the user definitions list. This
-            # means that any autoloaded definitions become shared
-            # between users and no longer disappear after a Quit[].
-            #
-            # Autoloads that accidentally define a name in Global`
-            # could cause confusion, so check for this.
-            #
-            for name in self.user:
-                if name.startswith("Global`"):
-                    raise ValueError("autoload defined %s." % name)
-
-            self.builtin.update(self.user)
-            self.user = {}
-            self.clear_cache()
 
     def clear_cache(self, name=None):
         # the definitions cache (self.definitions_cache) caches (incomplete and complete) names -> Definition(),

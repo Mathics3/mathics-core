@@ -11,15 +11,16 @@ from mathics.core.assignment import (
     assign_store_rules_by_tag,
     normalize_lhs,
 )
+from mathics.core.atoms import String
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
     A_PROTECTED,
     A_SEQUENCE_HOLD,
 )
-from mathics.core.pymathics import PyMathicsLoadException, eval_load_module
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
+from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 
 
 class _SetOperator:
@@ -66,29 +67,29 @@ class LoadModule(Builtin):
       <dd>'Load Mathics definitions from the python module $module$
     </dl>
     >> LoadModule["nomodule"]
-     : Python module nomodule does not exist.
+     : Python import errors with: No module named 'nomodule'.
      = $Failed
     >> LoadModule["sys"]
-     : Python module sys is not a pymathics module.
+     : Python module "sys" is not a Mathics3 module.
      = $Failed
     """
 
     name = "LoadModule"
     messages = {
-        "notfound": "Python module `1` does not exist.",
-        "notmathicslib": "Python module `1` is not a pymathics module.",
+        "loaderror": """Python import errors with: `1`.""",
+        "notmathicslib": """Python module "`1`" is not a Mathics3 module.""",
     }
     summary_text = "load a pymathics module"
 
     def eval(self, module, evaluation):
         "LoadModule[module_String]"
         try:
-            eval_load_module(module.value, evaluation)
+            eval_LoadModule(module.value, evaluation.definitions)
         except PyMathicsLoadException:
             evaluation.message(self.name, "notmathicslib", module)
             return SymbolFailed
-        except ImportError:
-            evaluation.message(self.get_name(), "notfound", module)
+        except Exception as e:
+            evaluation.message(self.get_name(), "loaderror", String(str(e)))
             return SymbolFailed
         return module
 

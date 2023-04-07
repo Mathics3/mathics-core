@@ -8,12 +8,15 @@ from mathics.builtin.base import Builtin, Test
 from mathics.core.atoms import String
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
 
 
 class Characters(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Characters.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Characters.html</url>
 
     <dl>
       <dt>'Characters["$string$"]'
@@ -39,7 +42,7 @@ class Characters(Builtin):
     attributes = A_LISTABLE | A_PROTECTED
     summary_text = "list the characters in a string"
 
-    def apply(self, string, evaluation):
+    def eval(self, string, evaluation: Evaluation):
         "Characters[string_String]"
 
         return to_mathics_list(*string.value, elements_conversion_fn=String)
@@ -47,7 +50,9 @@ class Characters(Builtin):
 
 class CharacterRange(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/CharacterRange.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/CharacterRange.html</url>
 
     <dl>
       <dt>'CharacterRange["$a$", "$b$"]'
@@ -68,7 +73,7 @@ class CharacterRange(Builtin):
 
     summary_text = "range of characters with successive character codes"
 
-    def apply(self, start, stop, evaluation):
+    def eval(self, start, stop, evaluation: Evaluation):
         "CharacterRange[start_String, stop_String]"
 
         if len(start.value) != 1 or len(stop.value) != 1:
@@ -81,11 +86,14 @@ class CharacterRange(Builtin):
 
 class DigitQ(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/DigitQ.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/DigitQ.html</url>
 
     <dl>
       <dt>'DigitQ[$string$]'
-      <dd>yields 'True' if all the characters in the $string$ are digits, and yields 'False' otherwise.
+      <dd>yields 'True' if all the characters in the $string$ are \
+          digits, and yields 'False' otherwise.
 
     </dl>
 
@@ -113,11 +121,14 @@ class DigitQ(Builtin):
 
 class LetterQ(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/LetterQ.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/LetterQ.html</url>
 
     <dl>
       <dt>'LetterQ[$string$]'
-      <dd>  yields 'True' if all the characters in the $string$ are letters, and yields 'False' otherwise.
+      <dd> yields 'True' if all the characters in the $string$ are \
+           letters, and yields 'False' otherwise.
     </dl>
 
     >> LetterQ["m"]
@@ -166,7 +177,7 @@ class LowerCaseQ(Test):
 
     summary_text = "test wether all the characters are lower-case letters"
 
-    def test(self, s):
+    def test(self, s) -> bool:
         return isinstance(s, String) and all(c.islower() for c in s.get_string_value())
 
 
@@ -186,7 +197,7 @@ class ToLowerCase(Builtin):
     attributes = A_LISTABLE | A_PROTECTED
     summary_text = "turn all the letters into lower case"
 
-    def apply(self, s, evaluation):
+    def eval(self, s, evaluation: Evaluation):
         "ToLowerCase[s_String]"
         return String(s.get_string_value().lower())
 
@@ -207,7 +218,7 @@ class ToUpperCase(Builtin):
     attributes = A_LISTABLE | A_PROTECTED
     summary_text = "turn all the letters into upper case"
 
-    def apply(self, s, evaluation):
+    def eval(self, s, evaluation: Evaluation):
         "ToUpperCase[s_String]"
         return String(s.get_string_value().upper())
 
@@ -229,7 +240,7 @@ class UpperCaseQ(Test):
      = True
     """
 
-    summary_text = "test wether all the characters are upper-case letters"
+    summary_text = "test whether all the characters are upper-case letters"
 
-    def test(self, s):
+    def test(self, s) -> bool:
         return isinstance(s, String) and all(c.isupper() for c in s.get_string_value())

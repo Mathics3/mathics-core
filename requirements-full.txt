@@ -1,6 +1,8 @@
 # Optional packages which add functionality or speed things up
-psutil # SystemMemory and MemoryAvailable
-scikit-image >= 0.17 # FindMinimum can use this; used by Image as well
+ipywidgets  # For Manipulate
 lxml  # for HTML parsing used in builtin/fileformats/html
-wordcloud # Used in builtin/image.py by WordCloud()
+psutil # SystemMemory and MemoryAvailable
 pyocr # Used for TextRecognize
+scikit-image >= 0.17 # FindMinimum can use this; used by Image as well
+unidecode # Used in Transliterate
+wordcloud # Used in builtin/image.py by WordCloud()

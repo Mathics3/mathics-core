@@ -6,6 +6,7 @@ import zlib
 
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import String
+from mathics.core.evaluation import Evaluation
 
 
 class Compress(Builtin):
@@ -29,7 +30,7 @@ class Compress(Builtin):
     }
     summary_text = "compress an expression"
 
-    def eval(self, expr, evaluation, options):
+    def eval(self, expr, evaluation: Evaluation, options: dict):
         "Compress[expr_, OptionsPattern[Compress]]"
         if isinstance(expr, String):
             string = '"' + expr.value + '"'

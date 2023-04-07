@@ -60,7 +60,7 @@ class MathicsSession:
         add_builtin=True,
         catch_interrupt=False,
         form="InputForm",
-        character_encoding=Optional[str],
+        character_encoding: Optional[str] = None,
     ):
         if character_encoding is not None:
             mathics.settings.SYSTEM_CHARACTER_ENCODING = character_encoding

@@ -283,9 +283,9 @@ def luv_to_xyz(cie_l, cie_u, cie_v, *rest):
     return (x, y, z) + rest
 
 
-def lch_to_lab(l, c, h, *rest):
+def lch_to_lab(ll, c, h, *rest):
     h *= 2 * pi  # MMA specific
-    return (l, c * cos(h), c * sin(h)) + rest
+    return (ll, c * cos(h), c * sin(h)) + rest
 
 
 @conditional
@@ -296,15 +296,15 @@ def _wrap_lch_h(h, pi2):
         return h
 
 
-def lab_to_lch(l, a, b, *rest):
+def lab_to_lch(ll, a, b, *rest):
     h = _wrap_lch_h(arctan2(b, a), 2.0 * pi)
     h /= 2.0 * pi  # MMA specific
-    return (l, sqrt(a * a + b * b), h) + rest
+    return (ll, sqrt(a * a + b * b), h) + rest
 
 
-def lab_to_xyz(l, a, b, *rest):
+def lab_to_xyz(ll, a, b, *rest):
     # see http://www.easyrgb.com/index.php?X=MATH&H=08#text8
-    f_y = (l * 100.0 + 16.0) / 116.0
+    f_y = (ll * 100.0 + 16.0) / 116.0
     x, y, z = a / 5.0 + f_y, f_y, f_y - b / 2.0
     x, y, z = map(_scale_lab_to_xyz, (x, y, z))
 
@@ -326,7 +326,7 @@ def lab_to_xyz(l, a, b, *rest):
 # s = FindShortestPath[g, All, All]; {#, s @@ #} & /@ Permutations[{
 #   "Grayscale", "RGB", "CMYK", "HSB", "XYZ", "LAB", "LUV", "LCH"}, {2}] // CForm
 
-_paths = dict(
+_PATHS = dict(
     (
         (("Grayscale", "RGB"), ("Grayscale", "RGB")),
         (("Grayscale", "CMYK"), ("Grayscale", "RGB", "CMYK")),
@@ -387,7 +387,7 @@ _paths = dict(
     )
 )
 
-conversions = {
+CONVERSIONS = {
     "Grayscale>RGB": grayscale_to_rgb,
     "RGB>Grayscale": rgb_to_grayscale,
     "CMYK>RGB": cmyk_to_rgb,
@@ -435,12 +435,12 @@ def convert_color(components, src, dst, preserve_alpha=True):
     if src == dst:
         return components
 
-    path = _paths.get((src, dst), None)
+    path = _PATHS.get((src, dst), None)
     if path is None:
         return None
 
     for s, d in zip(path[:-1], path[1:]):
-        func = conversions.get("%s>%s" % (s, d))
+        func = CONVERSIONS.get("%s>%s" % (s, d))
         if not func:
             return None
         components = stacked(func, components)

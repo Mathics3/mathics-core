@@ -2,7 +2,7 @@
 
 import pytest
 
-from mathics.eval.nevaluator import eval_N, eval_nvalues
+from mathics.eval.nevaluator import eval_N, eval_NValues
 from mathics.eval.numerify import numerify as eval_numerify
 from mathics.session import MathicsSession
 
@@ -57,10 +57,10 @@ def test_eval_N(str_expr, prec, str_expected):
     "str_expr, prec, str_expected, setup",
     [
         ("1", "$MachinePrecision", "1.000000000", None),
-        # eval_nvalues does not call  `evaluate` over the input expression. So
+        # eval_NValues does not call  `evaluate` over the input expression. So
         # 2/9 is not evaluated to a Rational number, but kept as a division.
         ("2/9", "$MachinePrecision", "2.000000`5*9.0000000000`5^(-1.`)", None),
-        # eval_nvalues does not call  `evaluate` at the end neither. So
+        # eval_NValues does not call  `evaluate` at the end neither. So
         # Sqrt[2]->Sqrt[2.0`]
         ("Sqrt[2]", "$MachinePrecision", "Sqrt[2.0`]", None),
         ("Pi", "$MachinePrecision", "3.141592653589793`15", None),
@@ -77,13 +77,13 @@ def test_eval_N(str_expr, prec, str_expected):
         ("F[b, 2/9]", "5", "F[1.20`3, 2.*9.^(-1.`)]", "N[b,_]=1.2`3"),
     ],
 )
-def test_eval_nvalues(str_expr, prec, str_expected, setup):
+def test_eval_NValues(str_expr, prec, str_expected, setup):
     if setup:
         session.evaluate(setup)
     expr_in = session.evaluate(f"Hold[{str_expr}]").elements[0]
     prec = session.evaluate(prec)
     expr_expected = session.evaluate(f"Hold[{str_expected}]").elements[0]
-    result = eval_nvalues(expr_in, prec, evaluation)
+    result = eval_NValues(expr_in, prec, evaluation)
     session.evaluate("ClearAll[a,b,c]")
     assert expr_expected.sameQ(result)
 
@@ -95,7 +95,7 @@ def test_eval_nvalues(str_expr, prec, str_expected, setup):
         ("{1, 1.}", "{1, 1.}", None),
         ("{1.000123`6, 1.0001`4, 2/9}", "{1.000123`6, 1.0001`4, .22222`4}", None),
         ("F[1.000123`6, 1.0001`4, 2/9]", "F[1.000123`6, 1.0001`4, .22222`4]", None),
-        # eval_nvalues does not call  `evaluate` over the input expression. So
+        # eval_NValues does not call  `evaluate` over the input expression. So
         # 2/9 is not evaluated to a Rational number, but kept as a division.
         ("2/9", "2 * 9 ^ (-1)", None),
         ("Sqrt[2]", "Sqrt[2]", None),

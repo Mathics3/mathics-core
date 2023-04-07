@@ -19,7 +19,7 @@ class ListExpression(Expression):
         - *elements - optional: the remaining elements
 
     Keyword Arguments:
-        - element_properties -- properties of the collection of elements
+        - elements_properties -- properties of the collection of elements
         - literal_values -- if this is not None, then it is a tuple of Python values
     """
 

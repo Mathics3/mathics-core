@@ -184,6 +184,8 @@ def test_summary_text_available(module_name):
     """
     grammar_OK = True
     module = modules[module_name]
+    if hasattr(module, "no_doc") and module.no_doc is True:
+        return
     vars = dir(module)
     for name in vars:
         var = name_is_builtin_symbol(module, name)

@@ -41,6 +41,7 @@ from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.core.systemsymbols import SymbolExport, SymbolImage
 from mathics.doc.common_doc import sorted_chapters
 from mathics.doc.latex_doc import LaTeXDocTest, LaTeXMathicsMainDocumentation
+from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 from mathics.timing import show_lru_cache_statistics
 
 builtins = builtins_dict()
@@ -78,7 +79,7 @@ def format_expr(test: LaTeXDocTest, result: Result, evaluation: Evaluation):
         except:
             pass
 
-    result.result = expr.format(evaluation, "System`OutputForm")
+    # result.result = expr.format(evaluation, "System`OutputForm")
 
 
 class TestOutput(Output):
@@ -134,13 +135,7 @@ def test_case(test, tests, index=0, subindex=0, quiet=False, section=None) -> bo
     test, wanted_out, wanted = test.test, test.outs, test.result
 
     def fail(why):
-        print_and_log(
-            f"""{sep}
-{why}
-""".encode(
-                "utf-8"
-            )
-        )
+        print_and_log(f"""{sep}\n{why}""".encode("utf-8"))
         return False
 
     if not quiet:
@@ -407,7 +402,7 @@ def test_all(
     if generate_output:
         if texdatafolder is None:
             texdatafolder = osp.dirname(
-                settings.get_doc_tex_data_path(
+                settings.get_doctest_latex_data_path(
                     should_be_readable=False, create_parent=True
                 )
             )
@@ -472,18 +467,18 @@ def test_all(
 
 
 def load_doc_data():
-    doc_tex_data_path = settings.get_doc_tex_data_path(should_be_readable=True)
-    print(f"Loading internal document data from {doc_tex_data_path}")
-    with open_ensure_dir(doc_tex_data_path, "rb") as doc_data_file:
+    doc_latex_data_path = settings.get_doctest_latex_data_path(should_be_readable=True)
+    print(f"Loading internal document data from {doc_latex_data_path}")
+    with open_ensure_dir(doc_latex_data_path, "rb") as doc_data_file:
         return pickle.load(doc_data_file)
 
 
 def save_doc_data(output_data):
-    doc_tex_data_path = settings.get_doc_tex_data_path(
+    doc_latex_data_path = settings.get_doctest_latex_data_path(
         should_be_readable=False, create_parent=True
     )
-    print(f"Writing internal document data to {doc_tex_data_path}")
-    with open(settings.DOC_USER_TEX_DATA_PATH, "wb") as output_file:
+    print(f"Writing internal document data to {doc_latex_data_path}")
+    with open(settings.DOCTEST_LATEX_DATA_PCL, "wb") as output_file:
         pickle.dump(output_data, output_file, 4)
 
 
@@ -589,6 +584,20 @@ def main():
         action="store_true",
         help="print cache statistics",
     )
+    parser.add_argument(
+        "--load-module",
+        "-l",
+        dest="pymathics",
+        metavar="MATHIC3-MODULES",
+        help="load Mathics3 module MATHICS3-MODULES. "
+        "You can list multiple Mathics3 Modules by adding a comma (and no space) in between "
+        "module names.",
+    )
+    parser.add_argument(
+        "--want-sorting",
+        action="store_true",
+        help="For backward compatibility. Not used now...",
+    )
     global logfile
 
     args = parser.parse_args()
@@ -600,6 +609,21 @@ def main():
 
     global documentation
     documentation = LaTeXMathicsMainDocumentation()
+
+    if args.pymathics:
+        for module_name in args.pymathics.split(","):
+            try:
+                eval_LoadModule(module_name, definitions)
+            except PyMathicsLoadException:
+                print(f"Python module {module_name} is not a Mathics3 module.")
+
+            except Exception as e:
+                print(f"Python import errors with: {e}.")
+            else:
+                print(f"Mathics3 Module {module_name} loaded")
+
+    documentation.gather_doctest_data()
+
     if args.sections:
         sections = set(args.sections.split(","))
         test_sections(

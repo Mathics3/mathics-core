@@ -62,6 +62,9 @@ SymbolFaceForm = Symbol("FaceForm")
 SymbolRectangle = Symbol("Rectangle")
 SymbolText = Symbol("Text")
 
+TwoTenths = Real(0.2)
+MTwoTenths = -TwoTenths
+
 
 # PlotRange Option
 def check_plot_range(range, range_type) -> bool:
@@ -453,7 +456,8 @@ class _Plot(Builtin):
         if plotpoints == "System`None":
             plotpoints = 57
         if not (isinstance(plotpoints, int) and plotpoints >= 2):
-            return evaluation.message(self.get_name(), "ppts", plotpoints)
+            evaluation.message(self.get_name(), "ppts", plotpoints)
+            return
 
         # MaxRecursion Option
         max_recursion_limit = 15
@@ -589,9 +593,11 @@ class _Plot(Builtin):
         py_start = start.round_to_float(evaluation)
         py_stop = stop.round_to_float(evaluation)
         if py_start is None or py_stop is None:
-            return evaluation.message(self.get_name(), "plln", stop, expr)
+            evaluation.message(self.get_name(), "plln", stop, expr)
+            return
         if py_start >= py_stop:
-            return evaluation.message(self.get_name(), "plld", expr_limits)
+            evaluation.message(self.get_name(), "plld", expr_limits)
+            return
 
         plotrange_option = self.get_option(options, "PlotRange", evaluation)
         plot_range = eval_N(plotrange_option, evaluation).to_python()
@@ -1184,7 +1190,7 @@ class BarChart(_Chart):
             yield Expression(SymbolFaceForm, Symbol("Black"))
 
             def points(x):
-                return ListExpression(vector2(x, 0), vector2(x, Real(-0.2)))
+                return ListExpression(vector2(x, 0), vector2(x, MTwoTenths))
 
             for (k, n), x0, x1, y in boxes():
                 if k == 1:
@@ -1199,7 +1205,7 @@ class BarChart(_Chart):
                 if k <= len(names):
                     name = names[k - 1]
                     yield Expression(
-                        SymbolText, name, vector2((x0 + x1) / 2, Real(-0.2))
+                        SymbolText, name, vector2((x0 + x1) / 2, MTwoTenths)
                     )
 
         x_coords = list(itertools.chain(*[[x0, x1] for (k, n), x0, x1, y in boxes()]))
@@ -1593,9 +1599,11 @@ class DiscretePlot(_Plot):
         py_nmax = nmax.value
         py_step = step.value
         if py_start is None or py_nmax is None:
-            return evaluation.message(self.get_name(), "plln", nmax, expr)
+            evaluation.message(self.get_name(), "plln", nmax, expr)
+            return
         if py_start >= py_nmax:
-            return evaluation.message(self.get_name(), "plld", expr_limits)
+            evaluation.message(self.get_name(), "plld", expr_limits)
+            return
 
         plotrange_option = self.get_option(options, "PlotRange", evaluation)
         plot_range = eval_N(plotrange_option, evaluation).to_python()
@@ -1987,7 +1995,9 @@ class ListPlot(_ListPlot):
 
 class ListLinePlot(_ListPlot):
     """
-    <url>:WMA link: https://reference.wolfram.com/language/ref/ListLinePlot.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ListLinePlot.html</url>
     <dl>
       <dt>'ListLinePlot[{$y_1$, $y_2$, ...}]'
       <dd>plots a line through a list of $y$-values, assuming integer $x$-values 1, 2, 3, ...
@@ -2092,9 +2102,61 @@ class LogPlot(_Plot):
 
     """
 
-    summary_text = "plots on a log scale curves of one or more functions"
+    summary_text = "plot on a log scale curves of one or more functions"
 
     use_log_scale = True
+
+
+class NumberLinePlot(_ListPlot):
+    """
+     <url>:WMA link:
+     https://reference.wolfram.com/language/ref/NumberLinePlot.html</url>
+     <dl>
+       <dt>'NumberLinePlot[{$v_1$, $v_2$, ...}]'
+       <dd>plots a list of values along a line.
+     </dl>
+
+     >> NumberLinePlot[Prime[Range[10]]]
+      = -Graphics-
+
+    Compare with:
+     >> NumberLinePlot[Table[x^2, {x, 10}]]
+
+      = -Graphics-
+    """
+
+    options = Graphics.options.copy()
+
+    # This is ListPlot with some tweaks:
+    # * remove the Y axis in display,
+    # * set the Y value to a constant, and
+    # * set the aspect ratio to reduce the distance above the
+    #   x-axis
+    options.update(
+        {
+            "Axes": "{True, False}",
+            "AspectRatio": "1 / 10",
+            "Mesh": "None",
+            "PlotRange": "Automatic",
+            "PlotPoints": "None",
+            "Filling": "None",
+            "Joined": "False",
+        }
+    )
+    summary_text = "plot along a number line"
+
+    use_log_scale = False
+
+    def eval(self, values, evaluation: Evaluation, options: dict):
+        "%(name)s[values_, OptionsPattern[%(name)s]]"
+
+        # Fill in a Y value, and use the generic _ListPlot.eval().
+        # Some graphics options have been adjusted above.
+        points_list = [
+            ListExpression(eval_N(value, evaluation), Integer1)
+            for value in values.elements
+        ]
+        return _ListPlot.eval(self, ListExpression(*points_list), evaluation, options)
 
 
 class PieChart(_Chart):
@@ -2124,7 +2186,7 @@ class PieChart(_Chart):
       <li>SectorSpacing" (default Automatic)
     </ul>
 
-    A hypothetical comparsion between types of pets owned:
+    A hypothetical comparison between types of pets owned:
     >> PieChart[{30, 20, 10}, ChartLabels -> {Dogs, Cats, Fish}]
      = -Graphics-
 
@@ -2132,7 +2194,7 @@ class PieChart(_Chart):
     >> PieChart[{8, 16, 2}, SectorOrigin -> {Automatic, 1.5}]
      = -Graphics-
 
-    A Pie chart with multple datasets:
+    A Pie chart with multiple datasets:
     >> PieChart[{{10, 20, 30}, {15, 22, 30}}]
      = -Graphics-
 
@@ -2194,7 +2256,7 @@ class PieChart(_Chart):
         sector_spacing = self.get_option(options, "SectorSpacing", evaluation)
         if isinstance(sector_spacing, Symbol):
             if sector_spacing.get_name() == "System`Automatic":
-                sector_spacing = ListExpression(Integer0, Real(0.2))
+                sector_spacing = ListExpression(Integer0, TwoTenths)
             elif sector_spacing.get_name() == "System`None":
                 sector_spacing = ListExpression(Integer0, Integer0)
             else:
@@ -2348,7 +2410,9 @@ class Plot(_Plot):
 
 class ParametricPlot(_Plot):
     """
-    <url>:WMA link: https://reference.wolfram.com/language/ref/ParametricPlot.html</url>
+    <url>
+    :WMA link
+    : https://reference.wolfram.com/language/ref/ParametricPlot.html</url>
     <dl>
       <dt>'ParametricPlot[{$f_x$, $f_y$}, {$u$, $umin$, $umax$}]'
       <dd>plots a parametric function $f$ with the parameter $u$ ranging from $umin$ to $umax$.

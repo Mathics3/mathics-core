@@ -37,28 +37,34 @@ def check_evaluation(
     Helper function to test Mathics expression against
     its results
 
-    Compares the expressions represented by ``str_expr`` and  ``str_expected`` by evaluating
-    the first, and optionally, the second.
+    Compares the expressions represented by ``str_expr`` and  ``str_expected`` by
+    evaluating the first, and optionally, the second.
 
-    to_string_expr: If ``True`` (default value) the result of the evaluation is converted
-                    into a Python string. Otherwise, the expression is kept as an Expression
-                    object. If this argument is set to ``None``, the session is reset.
+    to_string_expr: If ``True`` (default value) the result of the evaluation is
+                    converted into a Python string. Otherwise, the expression is kept
+                    as an Expression object.
+                    If this argument is set to ``None``, the session is reset.
 
-    failure_message (str): message shown in case of failure
-    hold_expected (bool): If ``False`` (default value) the ``str_expected`` is evaluated. Otherwise,
-                          the expression is considered literally.
+    failure_message: message shown in case of failure
+    hold_expected:   If ``False`` (default value) the ``str_expected`` is evaluated.
+                     Otherwise, the expression is considered literally.
 
     to_string_expected: If ``True`` (default value) the expected expression is
-                    evaluated and then converted to a Python string. result of the evaluation is converted
-                    into a Python string. If ``False``, the expected expression is kept as an Expression object.
+                        evaluated and then converted to a Python string. result of the
+                        evaluation is converted into a Python string.
+                        If ``False``, the expected expression is kept as an Expression
+                        object.
 
-    to_python_expected: If ``True``, and ``to_string_expected`` is ``False``, the result of evaluating ``str_expr``
-                    is compared against the result of the evaluation of ``str_expected``, converted into a
-                    Python object.
+    to_python_expected: If ``True``, and ``to_string_expected`` is ``False``, the result
+                        of evaluating ``str_expr``is compared against the result of the
+                        evaluation of ``str_expected``, converted into a
+                        Python object.
 
-    expected_messages ``Optional[tuple[str]]``: If a tuple of strings are passed into this parameter, messages and prints raised during
-                    the evaluation of ``str_expr`` are compared with the elements of the list. If ``None``, this comparison
-                    is ommited.
+    expected_messages: If a tuple of strings are passed into
+                       this parameter, messages and prints raised during
+                       the evaluation of ``str_expr`` are compared with the elements of
+                       the list. If ``None``, this comparison
+                       is omitted.
     """
     if str_expr is None:
         reset_session()

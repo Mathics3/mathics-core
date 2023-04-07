@@ -1,15 +1,20 @@
-# -*- coding: utf-8 -*-
 """
-Pymathics module handling
+PyMathics3 module handling
 """
 
 import importlib
+import inspect
 import sys
 
-from mathics.core.evaluation import Evaluation
+from mathics.builtin import name_is_builtin_symbol
+from mathics.builtin.base import Builtin
+from mathics.core.definitions import Definitions
 
-# This dict probably does not belong here.
-pymathics = {}
+# The below set and dictionary are used in document generation
+# for Pymathics modules.
+# The are similar to "builtin_by_module" and "builtin_modules" of mathics.builtins.
+pymathics_modules = set()
+pymathics_builtins_by_module = {}
 
 
 class PyMathicsLoadException(Exception):
@@ -18,24 +23,9 @@ class PyMathicsLoadException(Exception):
         self.module = module
 
 
-# Why do we need this?
-def eval_clear_pymathics_modules():
-    global pymathics
-    from mathics.builtin import builtins_by_module
-
-    for key in list(builtins_by_module.keys()):
-        if not key.startswith("mathics."):
-            del builtins_by_module[key]
-    for key in pymathics:
-        del pymathics[key]
-
-    pymathics = {}
-    return None
-
-
-def eval_load_module(module_name: str, evaluation: Evaluation) -> str:
+def eval_LoadModule(module_name: str, definitions: Definitions) -> str:
     try:
-        load_pymathics_module(evaluation.definitions, module_name)
+        load_pymathics_module(definitions, module_name)
     except (PyMathicsLoadException, ImportError):
         raise
     else:
@@ -46,24 +36,24 @@ def eval_load_module(module_name: str, evaluation: Evaluation) -> str:
         # reference manual where PackletManager appears first in
         # the list, it seems to be preferable to add this PyMathics
         # at the beginning.
-        context_path = list(evaluation.definitions.get_context_path())
+        context_path = list(definitions.get_context_path())
         if "Pymathics`" not in context_path:
             context_path.insert(0, "Pymathics`")
-            evaluation.definitions.set_context_path(context_path)
+            definitions.set_context_path(context_path)
     return module_name
 
 
-def load_pymathics_module(definitions, module):
+def load_pymathics_module(definitions, module_name: str):
     """
     Loads Mathics builtin objects and their definitions
     from an external Python module in the pymathics module namespace.
     """
     from mathics.builtin import Builtin, builtins_by_module, name_is_builtin_symbol
 
-    if module in sys.modules:
-        loaded_module = importlib.reload(sys.modules[module])
+    if module_name in sys.modules:
+        loaded_module = importlib.reload(sys.modules[module_name])
     else:
-        loaded_module = importlib.import_module(module)
+        loaded_module = importlib.import_module(module_name)
 
     builtins_by_module[loaded_module.__name__] = []
     vars = set(
@@ -74,10 +64,10 @@ def load_pymathics_module(definitions, module):
 
     newsymbols = {}
     if not ("pymathics_version_data" in vars):
-        raise PyMathicsLoadException(module)
+        raise PyMathicsLoadException(module_name)
     for name in vars - set(("pymathics_version_data", "__version__")):
         var = name_is_builtin_symbol(loaded_module, name)
-        if name_is_builtin_symbol:
+        if var is not None:
             instance = var(expression=False)
             if isinstance(instance, Builtin):
                 if not var.context:
@@ -97,4 +87,31 @@ def load_pymathics_module(definitions, module):
     if onload:
         onload(definitions)
 
+    update_pymathics(loaded_module)
+    pymathics_modules.add(loaded_module)
     return loaded_module
+
+
+def update_pymathics(module):
+    """
+    Update variables used in documentation to include Pymathics
+    """
+    module_vars = dir(module)
+
+    for name in module_vars:
+        builtin_class = name_is_builtin_symbol(module, name)
+        module_name = module.__name__
+
+        # Add Builtin classes to pymathics_builtins
+        if builtin_class is not None:
+            instance = builtin_class(expression=False)
+
+            if isinstance(instance, Builtin):
+                submodules = pymathics_builtins_by_module.get(module_name, [])
+                submodules.append(instance)
+                pymathics_builtins_by_module[module_name] = submodules
+
+        # Add submodules to pymathics_builtins
+        module_var = getattr(module, name)
+        if inspect.ismodule(module_var) and module_var.__name__.startswith("pymathics"):
+            update_pymathics(module_var)

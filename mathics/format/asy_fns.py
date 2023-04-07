@@ -5,6 +5,9 @@ Asymptote-related functions
 """
 
 from itertools import chain
+from typing import Optional, Type, Union
+
+RealType = Type[Union[int, float]]
 
 
 def asy_add_bezier_fn(self) -> str:
@@ -103,13 +106,14 @@ def asy_color(self):
 
 
 def asy_create_pens(
-    edge_color=None,
-    face_color=None,
-    edge_opacity=None,
-    face_opacity=None,
+    edge_color: Optional[str] = None,
+    face_color: Optional[str] = None,
+    edge_opacity: Optional[RealType] = None,
+    face_opacity: Optional[RealType] = None,
     stroke_width=None,
     is_face_element=False,
     dotfactor=None,
+    fontsize: Optional[RealType] = None,
 ) -> str:
     """
     Return an asymptote string fragment that creates a drawing pen.
@@ -132,6 +136,8 @@ def asy_create_pens(
             opacity = edge_opacity
         if opacity is not None and opacity != 1:
             pen += f"+opacity({asy_number(opacity)})"
+        if fontsize is not None:
+            pen += f"+fontsize({fontsize})"
         if stroke_width is not None:
             pen += f"+linewidth({asy_number(stroke_width)})"
         result.append(pen)

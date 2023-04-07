@@ -1,3 +1,6 @@
+# This is never intended to go in Mathics3 docs
+no_doc = True
+
 from mathics.builtin.base import BuiltinElement
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.element import BoxElementMixin

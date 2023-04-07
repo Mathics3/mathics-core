@@ -2,7 +2,10 @@
 """
 Recurrence and Sum Functions
 
-A recurrence relation is an equation that recursively defines a sequence or multidimensional array of values, once one or more initial terms are given; each further term of the sequence or array is defined as a function of the preceding terms.
+A recurrence relation is an equation that recursively defines a \
+sequence or multidimensional array of values, once one or more initial \
+terms are given; each further term of the sequence or array is defined \
+as a function of the preceding terms.
 """
 
 
@@ -17,6 +20,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.evaluation import Evaluation
 
 
 class Fibonacci(_MPMathFunction):
@@ -51,7 +55,7 @@ class HarmonicNumber(_MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/HarmonicNumber.html</url>)
 
     <dl>
-    <dt>'HarmonicNumber[n]'
+      <dt>'HarmonicNumber[n]'
       <dd>returns the $n$th harmonic number.
     </dl>
 
@@ -76,8 +80,12 @@ class HarmonicNumber(_MPMathFunction):
 # Note: WL allows StirlingS1[{2, 4, 6}, 2], but we don't (yet).
 class StirlingS1(Builtin):
     """
-    <url>:Stirling numbers of first kind:https://en.wikipedia.org/wiki/Stirling_numbers_of_the_first_kind</url> \
-    (<url>:WMA link:https://reference.wolfram.com/language/ref/StirlingS1.html</url>)
+    <url>
+    :Stirling numbers of first kind:
+    https://en.wikipedia.org/wiki/Stirling_numbers_of_the_first_kind</url> \
+    (<url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/StirlingS1.html</url>)
 
     <dl>
       <dt>'StirlingS1[$n$, $m$]'
@@ -98,24 +106,29 @@ class StirlingS1(Builtin):
     sympy_name = "functions.combinatorial.stirling"
     mpmath_name = "stirling1"
 
-    def apply(self, n, m, evaluation):
+    def eval(self, n: Integer, m: Integer, evaluation: Evaluation):
         "%(name)s[n_Integer, m_Integer]"
-        n_value = n.get_int_value()
-        m_value = m.get_int_value()
+        n_value = n.value
+        m_value = m.value
         return Integer(stirling(n_value, m_value, kind=1, signed=True))
 
 
 class StirlingS2(Builtin):
     """
-    <url>:Stirling numbers of first kind:https://en.wikipedia.org/wiki/Stirling_numbers_of_the_second_kind</url> \
-    (<url>:WMA link:https://reference.wolfram.com/language/ref/StirlingS2.html</url>)
+    <url>
+    :Stirling numbers of second kind:
+    https://en.wikipedia.org/wiki/Stirling_numbers_of_the_second_kind</url> \
+    (<url>
+    :WMA link
+    :https://reference.wolfram.com/language/ref/StirlingS2.html</url>)
 
-      <dl>
+    <dl>
       <dt>'StirlingS2[$n$, $m$]'
       <dd>gives the Stirling number of the second kind  _n^m.
     </dl>
 
-    returns the number of ways of partitioning a set of $n$ elements into $m$ non empty subsets.
+    returns the number of ways of partitioning a set of $n$ elements into $m$ \
+    non empty subsets.
 
     >> Table[StirlingS2[10, m], {m, 10}]
     = {1, 511, 9330, 34105, 42525, 22827, 5880, 750, 45, 1}
@@ -127,8 +140,8 @@ class StirlingS2(Builtin):
     mpmath_name = "stirling2"
     summary_text = "Stirling numbers of the second kind"
 
-    def apply(self, m, n, evaluation):
+    def eval(self, m: Integer, n: Integer, evaluation: Evaluation):
         "%(name)s[n_Integer, m_Integer]"
-        n_value = n.get_int_value()
-        m_value = m.get_int_value()
+        n_value = n.value
+        m_value = m.value
         return Integer(stirling(n_value, m_value, kind=2))

@@ -8,7 +8,7 @@ import mpmath
 import sympy
 
 from mathics.builtin.base import Builtin, SympyFunction
-from mathics.core.atoms import Integer, Integer0, Integer10, Rational
+from mathics.core.atoms import Integer, Integer0, Integer10, Rational, Real
 from mathics.core.attributes import (
     A_LISTABLE,
     A_NUMERIC_FUNCTION,
@@ -239,7 +239,7 @@ class FactorInteger(Builtin):
                 *(to_mathics_list(factor, exp) for factor, exp in factors)
             )
         else:
-            return evaluation.message("FactorInteger", "exact", n)
+            evaluation.message("FactorInteger", "exact", n)
 
 
 def _fractional_part(self, n, expr, evaluation: Evaluation):

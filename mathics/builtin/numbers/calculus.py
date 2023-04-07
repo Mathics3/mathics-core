@@ -5,7 +5,8 @@ Calculus
 
 Originally called infinitesimal calculus or "the calculus of infinitesimals", \
 is the mathematical study of continuous change, in the same way that geometry \
-is the study of shape and algebra is the study of generalizations of arithmetic operations.
+is the study of shape and algebra is the study of generalizations of \
+arithmetic operations.
 """
 
 from itertools import product
@@ -17,8 +18,8 @@ import sympy
 from mathics.algorithm.integrators import (
     _fubini,
     _internal_adaptative_simpsons_rule,
-    apply_D_to_Integral,
     decompose_domain,
+    eval_D_to_Integral,
 )
 from mathics.algorithm.series import (
     build_series,
@@ -55,7 +56,7 @@ from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import dps, machine_epsilon
+from mathics.core.number import MACHINE_EPSILON, dps
 from mathics.core.rules import Pattern
 from mathics.core.symbols import (
     BaseElement,
@@ -234,7 +235,7 @@ class D(SympyFunction):
     summary_text = "partial derivatives of scalar or vector functions"
     sympy_name = "Derivative"
 
-    def apply(self, f, x, evaluation):
+    def eval(self, f, x, evaluation: Evaluation):
         "D[f_, x_?NotListQ]"
 
         # Handle partial derivative special cases:
@@ -358,7 +359,7 @@ class D(SympyFunction):
             else:
                 return Expression(SymbolPlus, *result)
 
-    def apply_wrong(self, expr, x, other, evaluation):
+    def eval_wrong(self, expr, x, other, evaluation: Evaluation):
         "D[expr_, {x_, other___}]"
 
         arg = ListExpression(x, *other.get_sequence())
@@ -439,7 +440,7 @@ class Derivative(PostfixOperator, SympyFunction):
             r'    RowBox[{"(", Sequence @@ Riffle[{n}, ","], ")"}]]]]'
         ),
         "MakeBoxes[Derivative[n:1|2][f_], form:OutputForm]": """RowBox[{MakeBoxes[f, form], If[n==1, "'", "''"]}]""",
-        # The following rules should be applied in the apply method, instead of relying on the pattern matching
+        # The following rules should be applied in the eval method, instead of relying on the pattern matching
         # mechanism.
         "Derivative[0...][f_]": "f",
         "Derivative[n__Integer][Derivative[m__Integer][f_]] /; Length[{m}] "
@@ -553,7 +554,7 @@ class DiscreteLimit(Builtin):
     }
     summary_text = "limits of sequences including recurrence and number theory"
 
-    def apply(self, f, n, n0, evaluation, options={}):
+    def eval(self, f, n, n0, evaluation: Evaluation, options: dict = {}):
         "DiscreteLimit[f_, n_->n0_, OptionsPattern[DiscreteLimit]]"
 
         f = f.to_sympy(convert_all_global_functions=True)
@@ -611,7 +612,7 @@ class _BaseFinder(Builtin):
         "Jacobian": "Automatic",
     }
 
-    def apply(self, f, x, x0, evaluation, options):
+    def eval(self, f, x, x0, evaluation: Evaluation, options: dict):
         "%(name)s[f_, {x_, x0_}, OptionsPattern[]]"
         # This is needed to get the right messages
         options["_isfindmaximum"] = self.__class__ is FindMaximum
@@ -693,7 +694,7 @@ class _BaseFinder(Builtin):
         else:
             return ListExpression(Expression(SymbolRule, x, x0))
 
-    def apply_with_x_tuple(self, f, xtuple, evaluation, options):
+    def eval_with_x_tuple(self, f, xtuple, evaluation: Evaluation, options: dict):
         "%(name)s[f_, xtuple_, OptionsPattern[]]"
         f_val = f.evaluate(evaluation)
 
@@ -710,7 +711,7 @@ class _BaseFinder(Builtin):
                 options["$$Region"] = (x0, x1)
             else:
                 return
-            return self.apply(f, x, x0, evaluation, options)
+            return self.eval(f, x, x0, evaluation, options)
         return
 
 
@@ -1070,7 +1071,7 @@ class Integrate(SympyFunction):
         new_elements = [elements[0]] + args
         return Expression(Symbol(self.get_name()), *new_elements)
 
-    def apply(self, f, xs, evaluation, options):
+    def eval(self, f, xs, evaluation: Evaluation, options: dict):
         "Integrate[f_, xs__, OptionsPattern[]]"
         f_sympy = f.to_sympy()
         if f_sympy.is_infinite:
@@ -1198,9 +1199,9 @@ class Integrate(SympyFunction):
             evaluation.definitions.set_ownvalue("System`$Assumptions", old_assumptions)
         return result
 
-    def apply_D(self, func, domain, var, evaluation, options):
+    def eval_D(self, func, domain, var, evaluation: Evaluation, options: dict):
         """D[%(name)s[func_, domain__, OptionsPattern[%(name)s]], var_Symbol]"""
-        return apply_D_to_Integral(
+        return eval_D_to_Integral(
             func, domain, var, evaluation, options, SymbolIntegrate
         )
 
@@ -1252,7 +1253,7 @@ class Limit(Builtin):
 
     summary_text = "directed and undirected limits"
 
-    def apply(self, expr, x, x0, evaluation, options={}):
+    def eval(self, expr, x, x0, evaluation: Evaluation, options={}):
         "Limit[expr_, x_->x0_, OptionsPattern[Limit]]"
 
         expr = expr.to_sympy()
@@ -1269,7 +1270,8 @@ class Limit(Builtin):
         elif value == 1:
             dir_sympy = "-"
         else:
-            return evaluation.message("Limit", "ldir", direction)
+            evaluation.message("Limit", "ldir", direction)
+            return
 
         try:
             result = sympy.limit(expr, x, x0, dir_sympy)
@@ -1387,7 +1389,9 @@ class NIntegrate(Builtin):
         }
     )
 
-    def apply_with_func_domain(self, func, domain, evaluation, options):
+    def eval_with_func_domain(
+        self, func, domain, evaluation: Evaluation, options: dict
+    ):
         "%(name)s[func_, domain__, OptionsPattern[%(name)s]]"
         if func.is_numeric() and func.is_zero:
             return Integer0
@@ -1456,7 +1460,7 @@ class NIntegrate(Builtin):
                     if b.get_head_name() == "System`DirectedInfinity":
                         a = a.to_python()
                         b = b.to_python()
-                        le = 1 - machine_epsilon
+                        le = 1 - MACHINE_EPSILON
                         if a == b:
                             nulldomain = True
                             break
@@ -1473,7 +1477,7 @@ class NIntegrate(Builtin):
                             return
                         z = a.elements[0].value
                         b = b.value
-                        subdomain2.append([machine_epsilon, 1.0])
+                        subdomain2.append([MACHINE_EPSILON, 1.0])
                         coordtransform.append(
                             (lambda u: b - z + z / u, lambda u: -z * u ** (-2.0))
                         )
@@ -1483,7 +1487,7 @@ class NIntegrate(Builtin):
                         return
                     a = a.value
                     z = b.elements[0].value
-                    subdomain2.append([machine_epsilon, 1.0])
+                    subdomain2.append([MACHINE_EPSILON, 1.0])
                     coordtransform.append(
                         (lambda u: a - z + z / u, lambda u: z * u ** (-2.0))
                     )
@@ -1556,9 +1560,9 @@ class NIntegrate(Builtin):
         #                                         be implemented...
         return from_python(result)
 
-    def apply_D(self, func, domain, var, evaluation, options):
+    def eval_D(self, func, domain, var, evaluation: Evaluation, options: dict):
         """D[%(name)s[func_, domain__, OptionsPattern[%(name)s]], var_Symbol]"""
-        return apply_D_to_Integral(
+        return eval_D_to_Integral(
             func, domain, var, evaluation, options, SymbolNIntegrate
         )
 
@@ -1637,7 +1641,7 @@ class Root(SympyFunction):
     summary_text = "the i-th root of a polynomial."
     sympy_name = "CRootOf"
 
-    def apply(self, f, i, evaluation):
+    def eval(self, f, i, evaluation: Evaluation):
         "Root[f_, i_]"
 
         try:
@@ -1730,11 +1734,11 @@ class Series(Builtin):
 
     summary_text = "power series and asymptotic expansions"
 
-    def apply_series(self, f, x, x0, n, evaluation):
+    def eval_series(self, f, x, x0, n, evaluation: Evaluation):
         """Series[f_, {x_Symbol, x0_, n_Integer}]"""
         return build_series(f, x, x0, n, evaluation)
 
-    def apply_multivariate_series(self, f, varspec, evaluation):
+    def eval_multivariate_series(self, f, varspec, evaluation: Evaluation):
         """Series[f_,varspec__List]"""
         lastvar = varspec.elements[-1]
         if not lastvar.has_form("List", 3):
@@ -1745,7 +1749,7 @@ class Series(Builtin):
             if len(varspec.elements) == 1:
                 return inner
             remain_vars = Expression(SymbolSequence, *varspec.elements[:-1])
-            result = self.apply_multivariate_series(inner, remain_vars, evaluation)
+            result = self.eval_multivariate_series(inner, remain_vars, evaluation)
             return result
         return None
 
@@ -1777,12 +1781,14 @@ class SeriesData(Builtin):
     precedence = 1000
     summary_text = "power series of a variable about a point"
 
-    def apply_reduce(self, x, x0, data, nummin, nummax, den, evaluation):
+    def eval_reduce(
+        self, x, x0, data, nummin: Integer, nummax: Integer, den, evaluation: Evaluation
+    ):
         """SeriesData[x_,x0_,data_,nummin_Integer, nummax_Integer, den_Integer]"""
         # This method tries to reduce the series expansion in two ways:
         # if x===x0, evaluates the series
         if x.sameQ(x0):
-            nummin_val = nummin.get_int_value()
+            nummin_val = nummin.value
             if nummin_val > 0:
                 return Integer0
             if nummin_val < 0:
@@ -1836,7 +1842,17 @@ class SeriesData(Builtin):
                 den,
             )
 
-    def apply_plus(self, x, x0, data, nummin, nummax, den, term, evaluation):
+    def eval_plus(
+        self,
+        x,
+        x0,
+        data,
+        nummin: Integer,
+        nummax: Integer,
+        den: Integer,
+        term,
+        evaluation: Evaluation,
+    ):
         """Plus[SeriesData[x_, x0_, data_, nummin_Integer, nummax_Integer, den_Integer], term__]"""
         # If the series is null, build a series with the remaining terms
         if all(Integer0.sameQ(element) for element in data.elements):
@@ -1917,7 +1933,9 @@ class SeriesData(Builtin):
             series_expr = Expression(SymbolPlus, *incompat_series, series_expr)
         return series_expr
 
-    def apply_times(self, x, x0, data, nummin, nummax, den, coeff, evaluation):
+    def eval_times(
+        self, x, x0, data, nummin, nummax, den, coeff, evaluation: Evaluation
+    ):
         """Times[SeriesData[x_, x0_, data_, nummin_, nummax_, den_], coeff__]"""
         series = (
             data,
@@ -1993,7 +2011,9 @@ class SeriesData(Builtin):
             series_expr = Expression(SymbolTimes, *incompat_series, series_expr)
         return series_expr
 
-    def apply_derivative(self, x, x0, data, nummin, nummax, den, y, evaluation):
+    def eval_derivative(
+        self, x, x0, data, nummin, nummax, den, y, evaluation: Evaluation
+    ):
         """D[SeriesData[x_, x0_, data_, nummin_, nummax_, den_], y_]"""
         series = (
             data,
@@ -2024,12 +2044,12 @@ class SeriesData(Builtin):
         )
         return result
 
-    def apply_normal(self, x, x0, data, nummin, nummax, den, evaluation):
+    def eval_normal(self, x, x0, data, nummin, nummax, den, evaluation: Evaluation):
         """Normal[SeriesData[x_, x0_, data_, nummin_, nummax_, den_]]"""
         new_data = []
         for element in data.elements:
             if element.has_form("SeriesData", 6):
-                element = self.apply_normal(*(element.elements), evaluation)
+                element = self.eval_normal(*(element.elements), evaluation)
                 if element is None:
                     return
             new_data.extend([element])
@@ -2042,7 +2062,7 @@ class SeriesData(Builtin):
             ],
         )
 
-    def pre_makeboxes(self, x, x0, data, nmin, nmax, den, form, evaluation):
+    def pre_makeboxes(self, x, x0, data, nmin, nmax, den, form, evaluation: Evaluation):
         if x0.is_zero:
             variable = x
         else:
@@ -2087,7 +2107,17 @@ class SeriesData(Builtin):
         )
         return Expression(SymbolInfix, expansion, String("+"), Integer(300), SymbolLeft)
 
-    def apply_makeboxes(self, x, x0, data, nmin, nmax, den, form, evaluation):
+    def eval_makeboxes(
+        self,
+        x,
+        x0,
+        data,
+        nmin: Integer,
+        nmax: Integer,
+        den: Integer,
+        form,
+        evaluation: Evaluation,
+    ):
         """MakeBoxes[SeriesData[x_, x0_, data_List, nmin_Integer, nmax_Integer, den_Integer],
         form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
@@ -2201,7 +2231,7 @@ class Solve(Builtin):
     }
     summary_text = "find generic solutions for variables"
 
-    def apply(self, eqs, vars, evaluation):
+    def eval(self, eqs, vars, evaluation: Evaluation):
         "Solve[eqs_, vars_]"
 
         vars_original = vars
@@ -2231,7 +2261,8 @@ class Solve(Builtin):
             elif eq is SymbolFalse:
                 return ListExpression()
             elif not eq.has_form("Equal", 2):
-                return evaluation.message("Solve", "eqf", eqs)
+                evaluation.message("Solve", "eqf", eqs)
+                return
             else:
                 left, right = eq.elements
                 left = left.to_sympy()

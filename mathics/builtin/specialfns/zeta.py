@@ -40,7 +40,7 @@ class LerchPhi(_MPMathFunction):
         py_a = a.to_python()
         try:
             return from_mpmath(mpmath.lerchphi(py_z, py_s, py_a))
-        except:
+        except Exception:
             pass
             # return sympy.expand_func(sympy.lerchphi(py_z, py_s, py_a))
 

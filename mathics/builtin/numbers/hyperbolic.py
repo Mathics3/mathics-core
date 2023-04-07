@@ -3,9 +3,13 @@
 """
 Hyperbolic Functions
 
-<url>:Hyperbolic functions: https://en.wikipedia.org/wiki/Hyperbolic_functions</url> are analogues of the ordinary trigonometric functions, but defined using the hyperbola rather than the circle.
+<url>:Hyperbolic functions:
+https://en.wikipedia.org/wiki/Hyperbolic_functions</url> are analogues \
+of the ordinary trigonometric functions, but defined using the hyperbola \
+rather than the circle.
 
-Numerical values and derivatives can be computed; however, most special exact values and simplification rules are not implemented yet.
+Numerical values and derivatives can be computed; however, most special \
+exact values and simplification rules are not implemented yet.
 """
 
 from typing import Optional
@@ -25,7 +29,15 @@ SymbolSinh = Symbol("Sinh")
 
 class ArcCosh(_MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcCosh.html</url>
+    <url>
+    :Inverse hyperbolic cosine:
+    https://en.wikipedia.org/wiki/Inverse_hyperbolic_functions#Inverse_hyperbolic_cosine</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/elementary.html#acosh</url>, <url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/hyperbolic.html#acosh</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/ArcCosh.html</url>)
 
     <dl>
       <dt>'ArcCosh[$z$]'
@@ -42,19 +54,30 @@ class ArcCosh(_MPMathFunction):
      = 0.867015
     """
 
-    summary_text = "inverse hyperbolic cosine function"
-    sympy_name = "acosh"
     mpmath_name = "acosh"
 
     rules = {
         "ArcCosh[Undefined]": "Undefined",
+        "ArcCosh[DirectedInfinity[I]]": "Infinity",
+        "ArcCosh[DirectedInfinity[-I]]": "Infinity",
+        "ArcCosh[DirectedInfinity[]]": "Infinity",
         "Derivative[1][ArcCosh]": "1/(Sqrt[#-1]*Sqrt[#+1])&",
     }
+    summary_text = "inverse hyperbolic cosine function"
+    sympy_name = "acosh"
 
 
 class ArcCoth(_MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcCoth.html</url>
+    <url>
+    :Inverse hyperbolic cotangent:
+    https://en.wikipedia.org/wiki/Inverse_hyperbolic_functions#Inverse_hyperbolic_cotangent</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/elementary.html#acoth</url>, <url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/hyperbolic.html#acoth</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/ArcCoth.html</url>)
 
     <dl>
       <dt>'ArcCoth[$z$]'
@@ -87,7 +110,15 @@ class ArcCoth(_MPMathFunction):
 
 class ArcCsch(_MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcCsch.html</url>
+    <url>
+    :Inverse hyperbolic cosecant:
+    https://en.wikipedia.org/wiki/Inverse_hyperbolic_functions#Inverse_hyperbolic_cosecant</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/elementary.html#acsch</url>, <url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/hyperbolic.html#acsch</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/ArcCsch.html</url>)
 
     <dl>
       <dt>'ArcCsch[$z$]'
@@ -110,7 +141,7 @@ class ArcCsch(_MPMathFunction):
     }
 
     summary_text = "inverse hyperbolic cosecant function"
-    sympy_name = ""
+    sympy_name = "acsch"
 
     def to_sympy(self, expr, **kwargs) -> Optional[SympyExpression]:
         if len(expr.elements) == 1:
@@ -265,8 +296,10 @@ class Coth(_MPMathFunction):
 
 class Gudermannian(Builtin):
     """
-
-    <url>:Gudermannian function: https://en.wikipedia.org/wiki/Gudermannian_function</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Gudermannian.html</url>, <url>:MathWorld: https://mathworld.wolfram.com/Gudermannian.html</url>)
+    <url>:Gudermannian function:
+    https://en.wikipedia.org/wiki/Gudermannian_function</url> (<url>
+    :WMA: https://reference.wolfram.com/language/ref/Gudermannian.html</url>, <url>
+    :MathWorld: https://mathworld.wolfram.com/Gudermannian.html</url>)
     <dl>
       <dt>'Gudermannian[$z$]'
       <dd>returns the Gudermannian function $gd$($z$).
@@ -291,12 +324,8 @@ class Gudermannian(Builtin):
         "Gudermannian[Undefined]": "Undefined",
         "Gudermannian[0]": "0",
         "Gudermannian[2*Pi*I]": "0",
-        "Gudermannian[6/4*Pi*I]": "DirectedInfinity[-I]",
-        "Gudermannian[Infinity]": "Pi/2",
-        "Gudermannian[-Infinity]": "Pi/2",
-        # Below, we don't use instead of ComplexInfinity that gets
-        # substituted out for DirectedInfinity[] before we match on
-        # Gudermannian[...]
+        "Gudermannian[3 I / 2 Pi]": "DirectedInfinity[-I]",
+        "Gudermannian[DirectedInfinity[-1]]": "-Pi/2",
         "Gudermannian[DirectedInfinity[]]": "Indeterminate",
         "Gudermannian[z_]": "2 ArcTan[Tanh[z / 2]]",
         # Commented out because := might not work properly
@@ -311,7 +340,11 @@ class Gudermannian(Builtin):
 
 class InverseGudermannian(Builtin):
     """
-    <url>:Inverse Gudermannian function: https://en.wikipedia.org/wiki/Gudermannian_function</url> (<url>:WMA: https://reference.wolfram.com/language/ref/InverseGudermannian.html</url>, <url>:MathWorld: https://mathworld.wolfram.com/InverseGudermannian.html</url>)
+    <url>:Inverse Gudermannian function:
+    https://en.wikipedia.org/wiki/Gudermannian_function</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/InverseGudermannian.html</url>, <url>
+    :MathWorld: https://mathworld.wolfram.com/InverseGudermannian.html</url>)
     <dl>
       <dt>'InverseGudermannian[$z$]'
       <dd>returns the inverse Gudermannian function $gd$^-1($z$).

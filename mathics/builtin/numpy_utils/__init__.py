@@ -2,12 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-try:
-    import numpy
-
-    from mathics.builtin.numpy_utils import with_numpy as numpy_layer
-except ImportError:
-    from mathics.builtin.numpy_utils import without_numpy as numpy_layer
+from mathics.builtin.numpy_utils import with_numpy as numpy_layer
 
 # we explicitly list all imported symbols so IDEs as PyCharm can properly
 # do their code intelligence.

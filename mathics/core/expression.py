@@ -54,6 +54,7 @@ from mathics.core.systemsymbols import (
     SymbolDirectedInfinity,
     SymbolFunction,
     SymbolMinus,
+    SymbolOverflow,
     SymbolPattern,
     SymbolPower,
     SymbolSequence,
@@ -232,6 +233,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         self._sequences = None
         self._cache = None
+
+        # self.copy creates this
+        self.original: Optional[Expression] = None
 
     def __getnewargs__(self):
         return (self._head, self._elements)
@@ -454,9 +458,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         """
         Apply transformation rules and expression evaluation to ``evaluation`` via
         ``rewrite_apply_eval_step()`` until that method tells us to stop,
-        or unti we hit an $IterationLimit or TimeConstrained limit.
+        or until we hit an $IterationLimit or TimeConstrained limit.
 
-        Evaluation is a recusive:``rewrite_apply_eval_step()`` may call us.
+        Evaluation is recursive:``rewrite_apply_eval_step()`` may call us.
         """
         if evaluation.timeout:
             return
@@ -862,7 +866,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                         exps[name] = exps.get(name, 0) + 1
             elif self.has_form("Power", 2):
                 var = self._elements[0].get_name()
-                exp = self._elements[1].round_to_float()
+                # TODO: Check if this is the expected behaviour.
+                # round_to_float is an attribute of Expression,
+                # but not for Atoms.
+                try:
+                    exp = self._elements[1].round_to_float()
+                except AttributeError:
+                    exp = None
                 if var and exp is not None:
                     exps[var] = exps.get(var, 0) + exp
             if exps:
@@ -1260,7 +1270,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     yield rule
 
         for rule in rules():
-            result = rule.apply(new, evaluation, fully=False)
+            try:
+                result = rule.apply(new, evaluation, fully=False)
+            except OverflowError:
+                evaluation.message("General", "ovfl")
+                return Expression(SymbolOverflow), False
             if result is not None:
                 if not isinstance(result, EvalMixin):
                     return result, False
@@ -1325,13 +1339,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             return False
         if self is other:
             return True
-        if not self._head.sameQ(other.get_head()):
+        if not self._head.sameQ(other._head):
             return False
-        if len(self._elements) != len(other.get_elements()):
+        if len(self._elements) != len(other._elements):
             return False
         return all(
             (id(element) == id(oelement) or element.sameQ(oelement))
-            for element, oelement in zip(self._elements, other.get_elements())
+            for element, oelement in zip(self._elements, other._elements)
         )
 
     def sequences(self):

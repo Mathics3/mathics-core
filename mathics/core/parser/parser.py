@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
+"""
+Precedence-climbing Parsing routines for grammar symbols.
+
+See README.md or
+https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overview/scanning-and-parsing.html#parser
+"""
 
 
 import string
+from typing import Optional, Union
 
 from mathics_scanner import (
     InvalidSyntaxError,
@@ -9,8 +16,19 @@ from mathics_scanner import (
     TranslateError,
     is_symbol_name,
 )
+from mathics_scanner.tokeniser import Token
 
-from mathics.core.parser.ast import Filename, Node, Number, String, Symbol
+from mathics.core.parser.ast import (
+    Filename,
+    Node,
+    NullString,
+    NullSymbol,
+    Number,
+    Number1,
+    NumberM1,
+    String,
+    Symbol,
+)
 from mathics.core.parser.operators import (
     all_ops,
     binary_ops,
@@ -95,7 +113,7 @@ class Parser:
         self.tokeniser.pos = pos
         self.current_token = None
 
-    def parse_e(self):
+    def parse_e(self) -> Union[Node, Optional[list]]:
         result = []
         while self.next().tag != "END":
             result.append(self.parse_exp(0))
@@ -106,7 +124,7 @@ class Parser:
         else:
             return None
 
-    def parse_exp(self, p):
+    def parse_exp(self, p: int):
         result = self.parse_p()
         while True:
             if self.bracket_depth > 0:
@@ -177,22 +195,22 @@ class Parser:
             else:
                 result = new_result
         if result is None:
-            result = String("")
+            result = NullString
         return result
 
-    def parse_seq(self):
+    def parse_seq(self) -> list:
         result = []
         while True:
             token = self.next_noend()
             tag = token.tag
             if tag == "RawComma":
                 self.tokeniser.feeder.message("Syntax", "com")
-                result.append(Symbol("Null"))
+                result.append(NullSymbol)
                 self.consume()
             elif tag in ("RawRightAssociation", "RawRightBrace", "RawRightBracket"):
                 if result:
                     self.tokeniser.feeder.message("Syntax", "com")
-                    result.append(Symbol("Null"))
+                    result.append(NullSymbol)
                 break
             else:
                 result.append(self.parse_exp(0))
@@ -205,7 +223,7 @@ class Parser:
                     break
         return result
 
-    def parse_inequality(self, expr1, token, p):
+    def parse_inequality(self, expr1, token: Token, p: int) -> Optional[Node]:
         tag = token.tag
         q = flat_binary_ops[tag]
         if q < p:
@@ -231,7 +249,7 @@ class Parser:
             expr1 = Node(tag, expr1, expr2).flatten()
         return expr1
 
-    def parse_binary(self, expr1, token, p):
+    def parse_binary(self, expr1, token: Token, p: int) -> Optional[Node]:
         tag = token.tag
         q = binary_ops[tag]
         if q < p:
@@ -253,13 +271,16 @@ class Parser:
             result.flatten()
         return result
 
-    def parse_postfix(self, expr1, token, p):
+    def parse_postfix(self, expr1, token: Token, p: int) -> Optional[Node]:
         tag = token.tag
         q = postfix_ops[tag]
         if q < p:
             return None
         self.consume()
         return Node(tag, expr1)
+
+    def parse_ternary(self, expr1, token: Token, p: int) -> Optional[Node]:
+        raise NotImplementedError
 
     # P methods
     #
@@ -288,7 +309,7 @@ class Parser:
         result.parenthesised = True
         return result
 
-    def p_RawLeftBrace(self, token):
+    def p_RawLeftBrace(self, token) -> Node:
         self.consume()
         self.bracket_depth += 1
         seq = self.parse_seq()
@@ -296,7 +317,7 @@ class Parser:
         self.bracket_depth -= 1
         return Node("List", *seq)
 
-    def p_RawLeftAssociation(self, token):
+    def p_RawLeftAssociation(self, token) -> Node:
         self.consume()
         self.bracket_depth += 1
         seq = self.parse_seq()
@@ -304,7 +325,7 @@ class Parser:
         self.bracket_depth -= 1
         return Node("Association", *seq)
 
-    def p_LeftRowBox(self, token):
+    def p_LeftRowBox(self, token) -> Node:
         self.consume()
         children = []
         self.box_depth += 1
@@ -315,7 +336,7 @@ class Parser:
             children.append(newnode)
             token = self.next()
         if len(children) == 0:
-            result = String("")
+            result = NullString
         elif len(children) == 1:
             result = children[0]
         else:
@@ -326,7 +347,7 @@ class Parser:
         result.parenthesised = True
         return result
 
-    def p_Number(self, token):
+    def p_Number(self, token) -> Number:
         s = token.text
 
         # sign
@@ -373,26 +394,26 @@ class Parser:
         self.consume()
         return result
 
-    def p_String(self, token):
+    def p_String(self, token) -> String:
         result = String(token.text[1:-1])
         self.consume()
         return result
 
-    def p_Symbol(self, token):
+    def p_Symbol(self, token) -> Symbol:
         symbol_name = special_symbols.get(token.text, token.text)
         result = Symbol(symbol_name, context=None)
         self.consume()
         return result
 
-    def p_Filename(self, token):
+    def p_Filename(self, token) -> Filename:
         result = Filename(token.text)
         self.consume()
         return result
 
     def p_Span(self, token):
-        return self.e_Span(Number("1"), token, 0)
+        return self.e_Span(Number1, token, 0)
 
-    def p_Integral(self, token):
+    def p_Integral(self, token) -> Node:
         self.consume()
         inner_prec, outer_prec = all_ops["Sum"] + 1, all_ops["Power"] - 1
         expr1 = self.parse_exp(inner_prec)
@@ -400,7 +421,7 @@ class Parser:
         expr2 = self.parse_exp(outer_prec)
         return Node("Integrate", expr1, expr2)
 
-    def p_Pattern(self, token):
+    def p_Pattern(self, token) -> Node:
         self.consume()
         text = token.text
         if "." in text:
@@ -437,7 +458,7 @@ class Parser:
             expr.value = "-" + expr.value
             return expr
         else:
-            return Node("Times", Number("1", sign=-1), expr).flatten()
+            return Node("Times", NumberM1, expr).flatten()
 
     def p_Plus(self, token):
         self.consume()
@@ -445,17 +466,17 @@ class Parser:
         # note flattening here even flattens e.g. + a + b
         return Node("Plus", self.parse_exp(q)).flatten()
 
-    def p_PlusMinus(self, token):
+    def p_PlusMinus(self, token) -> Node:
         self.consume()
         q = prefix_ops["Minus"]
         return Node("PlusMinus", self.parse_exp(q))
 
-    def p_MinusPlus(self, token):
+    def p_MinusPlus(self, token) -> Node:
         self.consume()
         q = prefix_ops["Minus"]
         return Node("MinusPlus", self.parse_exp(q))
 
-    def p_Out(self, token):
+    def p_Out(self, token) -> Node:
         self.consume()
         text = token.text
         if text == "%":
@@ -466,11 +487,11 @@ class Parser:
             n = text[1:]
         return Node("Out", Number(n))
 
-    def p_Slot(self, token):
+    def p_Slot(self, token) -> Node:
         self.consume()
         text = token.text
         if len(text) == 1:
-            n = Number("1")
+            n = Number1
         else:
             n = text[1:]
             if n.isdigit():
@@ -479,7 +500,7 @@ class Parser:
                 n = String(n)
         return Node("Slot", n)
 
-    def p_SlotSequence(self, token):
+    def p_SlotSequence(self, token) -> Node:
         self.consume()
         text = token.text
         if len(text) == 2:
@@ -488,17 +509,17 @@ class Parser:
             n = text[2:]
         return Node("SlotSequence", Number(n))
 
-    def p_Increment(self, token):
+    def p_Increment(self, token) -> Node:
         self.consume()
         q = prefix_ops["PreIncrement"]
         return Node("PreIncrement", self.parse_exp(q))
 
-    def p_Decrement(self, token):
+    def p_Decrement(self, token) -> Node:
         self.consume()
         q = prefix_ops["PreDecrement"]
         return Node("PreDecrement", self.parse_exp(q))
 
-    def p_PatternTest(self, token):
+    def p_PatternTest(self, token) -> Node:
         self.consume()
         q = prefix_ops["Definition"]
         child = self.parse_exp(q)
@@ -506,7 +527,7 @@ class Parser:
             "Information", child, Node("Rule", Symbol("LongForm"), Symbol("False"))
         )
 
-    def p_Information(self, token):
+    def p_Information(self, token) -> Node:
         self.consume()
         q = prefix_ops["Information"]
         child = self.parse_exp(q)
@@ -523,7 +544,7 @@ class Parser:
     # Used for binary and ternary operators.
     # return None if precedence is too low.
 
-    def e_Span(self, expr1, token, p):
+    def e_Span(self, expr1, token, p) -> Optional[Node]:
         q = ternary_ops["Span"]
         if q < p:
             return None
@@ -559,7 +580,7 @@ class Parser:
                 self.feeder.messages = messages
         return Node("Span", expr1, expr2)
 
-    def e_RawLeftBracket(self, expr, token, p):
+    def e_RawLeftBracket(self, expr, token: Token, p: int) -> Optional[Node]:
         q = all_ops["Part"]
         if q < p:
             return None
@@ -581,7 +602,7 @@ class Parser:
             result.parenthesised = True
             return result
 
-    def e_Infix(self, expr1, token, p):
+    def e_Infix(self, expr1, token, p) -> Optional[Node]:
         q = ternary_ops["Infix"]
         if q < p:
             return None
@@ -591,7 +612,7 @@ class Parser:
         expr3 = self.parse_exp(q + 1)
         return Node(expr2, expr1, expr3)
 
-    def e_Postfix(self, expr1, token, p):
+    def e_Postfix(self, expr1, token: Token, p: int) -> Optional[Node]:
         q = left_binary_ops["Postfix"]
         if q < p:
             return None
@@ -600,7 +621,7 @@ class Parser:
         expr2 = self.parse_exp(q + 1)
         return Node(expr2, expr1)
 
-    def e_Prefix(self, expr1, token, p):
+    def e_Prefix(self, expr1, token: Token, p: int) -> Optional[Node]:
         q = 640
         if 640 < p:
             return None
@@ -608,16 +629,16 @@ class Parser:
         expr2 = self.parse_exp(q)
         return Node(expr1, expr2)
 
-    def e_ApplyList(self, expr1, token, p):
+    def e_ApplyList(self, expr1, token: Token, p: int) -> Optional[Node]:
         q = right_binary_ops["Apply"]
         if q < p:
             return None
         self.consume()
         expr2 = self.parse_exp(q)
-        expr3 = Node("List", Number("1"))
+        expr3 = Node("List", Number1)
         return Node("Apply", expr1, expr2, expr3)
 
-    def e_Function(self, expr1, token, p):
+    def e_Function(self, expr1, token: Token, p: int) -> Optional[Node]:
         q = postfix_ops["Function"]
         if q < p:
             return None
@@ -629,7 +650,7 @@ class Parser:
             expr2 = self.parse_exp(q)
             return Node("Function", expr1, expr2)
 
-    def e_RawColon(self, expr1, token, p):
+    def e_RawColon(self, expr1, token: Token, p: int) -> Optional[Node]:
         head_name = expr1.get_head_name()
         if head_name == "Symbol":
             head = "Pattern"
@@ -650,7 +671,7 @@ class Parser:
         expr2 = self.parse_exp(q + 1)
         return Node(head, expr1, expr2)
 
-    def e_Semicolon(self, expr1, token, p):
+    def e_Semicolon(self, expr1, token: Token, p: int) -> Optional[Node]:
         q = flat_binary_ops["CompoundExpression"]
         if q < p:
             return None
@@ -663,7 +684,7 @@ class Parser:
         # So that e.g. 'x = 1;' doesn't wait for newline in the frontend
         tag = self.next().tag
         if tag == "END" and self.bracket_depth == 0:
-            expr2 = Symbol("Null")
+            expr2 = NullSymbol
             return Node("CompoundExpression", expr1, expr2).flatten()
 
         # XXX look for next expr otherwise backtrack
@@ -672,10 +693,10 @@ class Parser:
         except TranslateError:
             self.backtrack(pos)
             self.feeder.messages = messages
-            expr2 = Symbol("Null")
+            expr2 = NullSymbol
         return Node("CompoundExpression", expr1, expr2).flatten()
 
-    def e_Minus(self, expr1, token, p):
+    def e_Minus(self, expr1, token: Token, p: int) -> Optional[Node]:
         q = left_binary_ops["Subtract"]
         if q < p:
             return None
@@ -684,10 +705,10 @@ class Parser:
         if isinstance(expr2, Number) and not expr2.value.startswith("-"):
             expr2.value = "-" + expr2.value
         else:
-            expr2 = Node("Times", Number("1", sign=-1), expr2).flatten()
+            expr2 = Node("Times", NumberM1, expr2).flatten()
         return Node("Plus", expr1, expr2).flatten()
 
-    def e_TagSet(self, expr1, token, p):
+    def e_TagSet(self, expr1, token: Token, p: int) -> Optional[Node]:
         q = all_ops["Set"]
         if q < p:
             return None
@@ -711,14 +732,14 @@ class Parser:
         expr3 = self.parse_exp(q + 1)
         return Node(head, expr1, expr2, expr3)
 
-    def e_Unset(self, expr1, token, p):
+    def e_Unset(self, expr1, token: Token, p: int) -> Optional[Node]:
         q = all_ops["Set"]
         if q < p:
             return None
         self.consume()
         return Node("Unset", expr1)
 
-    def e_Derivative(self, expr1, token, p):
+    def e_Derivative(self, expr1, token: Token, p: int) -> Optional[Node]:
         q = postfix_ops["Derivative"]
         if q < p:
             return None
@@ -729,17 +750,15 @@ class Parser:
         head = Node("Derivative", Number(str(n)))
         return Node(head, expr1)
 
-    def e_Divide(self, expr1, token, p):
+    def e_Divide(self, expr1, token: Token, p: int):
         q = left_binary_ops["Divide"]
         if q < p:
             return None
         self.consume()
         expr2 = self.parse_exp(q + 1)
-        return Node(
-            "Times", expr1, Node("Power", expr2, Number("1", sign=-1))
-        ).flatten()
+        return Node("Times", expr1, Node("Power", expr2, NumberM1)).flatten()
 
-    def e_Alternatives(self, expr1, token, p):
+    def e_Alternatives(self, expr1, token: Token, p: int) -> Optional[Node]:
         q = flat_binary_ops["Alternatives"]
         if q < p:
             return None
@@ -747,7 +766,7 @@ class Parser:
         expr2 = self.parse_exp(q + 1)
         return Node("Alternatives", expr1, expr2).flatten()
 
-    def e_MessageName(self, expr1, token, p):
+    def e_MessageName(self, expr1, token: Token, p: int) -> Node:
         elements = [expr1]
         while self.next().tag == "MessageName":
             self.consume()
@@ -771,7 +790,7 @@ class Parser:
     # The first argument may be None if the LHS is absent.
     # Used for boxes.
 
-    def b_SqrtBox(self, box0, token, p):
+    def b_SqrtBox(self, box0, token: Token, p: int) -> Optional[Node]:
         if box0 is not None:
             return None
         self.consume()
@@ -784,12 +803,12 @@ class Parser:
         else:
             return Node("SqrtBox", box1)
 
-    def b_SuperscriptBox(self, box1, token, p):
+    def b_SuperscriptBox(self, box1, token: Token, p: int) -> Optional[Node]:
         q = misc_ops["SuperscriptBox"]
         if q < p:
             return None
         if box1 is None:
-            box1 = String("")
+            box1 = NullString
         self.consume()
         box2 = self.parse_box(q)
         if self.next().tag == "OtherscriptBox":
@@ -799,12 +818,12 @@ class Parser:
         else:
             return Node("SuperscriptBox", box1, box2)
 
-    def b_SubscriptBox(self, box1, token, p):
+    def b_SubscriptBox(self, box1, token: Token, p: int) -> Optional[Node]:
         q = misc_ops["SubscriptBox"]
         if q < p:
             return None
         if box1 is None:
-            box1 = String("")
+            box1 = NullString
         self.consume()
         box2 = self.parse_box(q)
         if self.next().tag == "OtherscriptBox":
@@ -814,12 +833,12 @@ class Parser:
         else:
             return Node("SubscriptBox", box1, box2)
 
-    def b_UnderscriptBox(self, box1, token, p):
+    def b_UnderscriptBox(self, box1, token: Token, p: int) -> Optional[Node]:
         q = misc_ops["UnderscriptBox"]
         if q < p:
             return None
         if box1 is None:
-            box1 = String("")
+            box1 = NullString
         self.consume()
         box2 = self.parse_box(q)
         if self.next().tag == "OtherscriptBox":
@@ -829,17 +848,17 @@ class Parser:
         else:
             return Node("UnderscriptBox", box1, box2)
 
-    def b_FractionBox(self, box1, token, p):
+    def b_FractionBox(self, box1, token: Token, p: int) -> Optional[Node]:
         q = misc_ops["FractionBox"]
         if q < p:
             return None
         if box1 is None:
-            box1 = String("")
+            box1 = NullString
         self.consume()
         box2 = self.parse_box(q + 1)
         return Node("FractionBox", box1, box2)
 
-    def b_FormBox(self, box1, token, p):
+    def b_FormBox(self, box1, token: Token, p: int) -> Optional[Node]:
         q = misc_ops["FormBox"]
         if q < p:
             return None
@@ -853,12 +872,12 @@ class Parser:
         box2 = self.parse_box(q)
         return Node("FormBox", box2, box1)
 
-    def b_OverscriptBox(self, box1, token, p):
+    def b_OverscriptBox(self, box1, token: Token, p: int) -> Optional[Node]:
         q = misc_ops["OverscriptBox"]
         if q < p:
             return None
         if box1 is None:
-            box1 = String("")
+            box1 = NullString
         self.consume()
         box2 = self.parse_box(q)
         if self.next().tag == "OtherscriptBox":

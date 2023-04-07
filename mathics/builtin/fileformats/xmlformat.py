@@ -15,7 +15,7 @@ from mathics.builtin.files_io.files import MathicsOpen
 from mathics.core.atoms import String
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
-from mathics.core.expression import Expression
+from mathics.core.expression import Evaluation, Expression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolFailed
 
@@ -211,7 +211,7 @@ def parse_xml_file(filename):
     return root
 
 
-def parse_xml(parse, text, evaluation):
+def parse_xml(parse, text, evaluation: Evaluation):
     try:
         return parse(text.get_string_value())
     except ParseError as e:
@@ -261,7 +261,7 @@ class _Get(Builtin):
         "prserr": "``.",
     }
 
-    def apply(self, text, evaluation):
+    def eval(self, text, evaluation: Evaluation):
         """%(name)s[text_String]"""
         root = parse_xml(self._parse, text, evaluation)
         if isinstance(root, Symbol):  # $Failed?
@@ -329,7 +329,7 @@ class PlaintextImport(Builtin):
     summary_text = "import plain text from xml"
     context = "XML`"
 
-    def apply(self, text, evaluation):
+    def eval(self, text, evaluation: Evaluation):
         """%(name)s[text_String]"""
         root = parse_xml(parse_xml_file, text, evaluation)
         if isinstance(root, Symbol):  # $Failed?
@@ -373,7 +373,7 @@ class TagsImport(Builtin):
         gather(root)
         return to_mathics_list(*[String(tag) for tag in sorted(list(tags))])
 
-    def apply(self, text, evaluation):
+    def eval(self, text, evaluation: Evaluation):
         """%(name)s[text_String]"""
         root = parse_xml(parse_xml_file, text, evaluation)
         if isinstance(root, Symbol):  # $Failed?
@@ -400,7 +400,7 @@ class XMLObjectImport(Builtin):
     summary_text = "import elements from xml"
     context = "XML`"
 
-    def apply(self, text, evaluation):
+    def eval(self, text, evaluation: Evaluation):
         """%(name)s[text_String]"""
         xml = to_expression("XML`Parser`XMLGet", text).evaluate(evaluation)
         return to_mathics_list(to_expression("Rule", "XMLObject", xml))

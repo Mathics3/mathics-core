@@ -2,38 +2,47 @@
 # cython: language_level=3
 
 import string
-from math import ceil, log, log2
+from math import ceil, log
+from sys import float_info
 from typing import List, Optional
 
 import mpmath
 import sympy
 
+from mathics.core.element import BaseElement
 from mathics.core.symbols import (
     SymbolMachinePrecision,
     SymbolMaxPrecision,
     SymbolMinPrecision,
 )
 
-C = log2(10)  # ~ 3.3219280948873626
+LOG2_10 = mpmath.log(10.0, 2.0)  # ~ 3.3219280948873626
 
-# Number of bits of machine precision.
-# Note this is a float, not an int.
-# WMA uses real values for precision, to take into account the internal representation of numbers.
-# This is why $MachinePrecision is not 16, but 15.9546`
-machine_precision = 53.0
-machine_digits = int(machine_precision / C)
+# Number of digits in the mantisa of a normalized floatting point number:
+FP_MANTISA_BINARY_DIGITS = float_info.mant_dig  # ~53
 
-machine_epsilon = 2 ** (1 - machine_precision)
+# the (integer) number of decimal digits hold by a
+# normalized floatting point number.
+MACHINE_DIGITS = float_info.dig  # ~15
+
+# the difference between 1. and the next
+# representable floatting point number:
+MACHINE_EPSILON = float_info.epsilon
+# the number of accurate decimal digits hold by a normalized floatting point number.
+MACHINE_PRECISION_VALUE = float_info.mant_dig / LOG2_10
 
 
-def reconstruct_digits(bits) -> int:
-    """
-    Number of digits needed to reconstruct a number with given bits of precision.
+#  Maximum normalized float
+MAX_MACHINE_NUMBER = float_info.max
 
-    >>> reconstruct_digits(53)
-    17
-    """
-    return int(ceil(bits / C) + 1)
+#  Minimum positive normalized float
+MIN_MACHINE_NUMBER = float_info.min
+
+# the accuracy associated to 0.`
+ZERO_MACHINE_ACCURACY = -mpmath.log(MIN_MACHINE_NUMBER, 10.0) + MACHINE_PRECISION_VALUE
+
+# the (integer) number of decimal digits needed to reconstruct a floatting point number.
+RECONSTRUCT_MACHINE_PRECISION_DIGITS = int(ceil(float_info.mant_dig / LOG2_10) + 1)
 
 
 class PrecisionValueError(Exception):
@@ -111,20 +120,29 @@ def sameQ(v1, v2) -> bool:
 
 
 def dps(prec) -> int:
-    return max(1, int(round(int(prec) / C - 1)))
+    return max(1, int(round(int(prec) / LOG2_10 - 1)))
 
 
 def prec(dps) -> int:
-    return max(1, int(round((int(dps) + 1) * C)))
+    return max(1, int(round((int(dps) + 1) * LOG2_10)))
 
 
-def min_prec(*args):
-    result = None
-    for arg in args:
-        prec = arg.get_precision()
-        if result is None or (prec is not None and prec < result):
-            result = prec
-    return result
+def min_prec(*args: BaseElement) -> Optional[float]:
+    """
+    Returns the precision of the expression with the minimum precision.
+    If all the expressions are exact or non numeric, return None.
+
+    If one of the expressions is an inexact value with zero
+    nominal value, then its accuracy is used instead. For example,
+    ```min_prec(1, 0.``4) ``` returns 4.
+
+    Notice that this behaviour is different that the one obtained
+    using mathics.core.numbers.eval_Precision.
+    """
+    args_prec = (arg.get_precision() for arg in args)
+    return min(
+        (arg_prec for arg_prec in args_prec if arg_prec is not None), default=None
+    )
 
 
 def pickle_mp(value):

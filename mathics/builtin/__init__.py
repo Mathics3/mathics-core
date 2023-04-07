@@ -36,6 +36,8 @@ from mathics.builtin.base import (
     mathics_to_python,
 )
 from mathics.core.pattern import pattern_objects
+from mathics.core.symbols import Symbol
+from mathics.eval.makeboxes import builtins_precedence
 from mathics.settings import ENABLE_FILES_MODULE
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
@@ -60,7 +62,7 @@ def add_builtins(new_builtins):
                 # print("XXX1", sympy_name)
                 sympy_to_mathics[sympy_name] = builtin
         if isinstance(builtin, Operator):
-            builtins_precedence[name] = builtin.precedence
+            builtins_precedence[Symbol(name)] = builtin.precedence
         if isinstance(builtin, PatternObject):
             pattern_objects[name] = builtin.__class__
     _builtins.update(dict(new_builtins))
@@ -141,12 +143,8 @@ def name_is_builtin_symbol(module, name: str) -> Optional[type]:
     if not inspect.isclass(module_object):
         return None
 
-    # FIXME: tests involving module_object.__module__ are fragile and
-    # Python implementation specific. Figure out how to do this
-    # via the inspect module which is not implementation specific.
-
     # Skip those builtins defined in or imported from another module.
-    if module_object.__module__ != module.__name__:
+    if inspect.getmodule(module_object) is not module:
         return None
 
     # Skip objects in module mathics.builtin.base.
@@ -154,7 +152,10 @@ def name_is_builtin_symbol(module, name: str) -> Optional[type]:
         return None
 
     # Skip those builtins that are not submodules of mathics.builtin.
-    if not module_object.__module__.startswith("mathics.builtin."):
+    if not (
+        module_object.__module__.startswith("mathics.builtin.")
+        or module_object.__module__.startswith("pymathics.")
+    ):
         return None
 
     # If it is not a subclass of Builtin, skip it.
@@ -190,6 +191,7 @@ for subdir in (
     "colors",
     "distance",
     "drawing",
+    "exp_structure",
     "fileformats",
     "files_io",
     "forms",
@@ -203,6 +205,7 @@ for subdir in (
     "specialfns",
     "statistics",
     "string",
+    "testing_expressions",
     "vectors",
 ):
     import_name = f"{__name__}.{subdir}"
@@ -236,8 +239,6 @@ for module in modules:
 
 mathics_to_sympy = {}  # here we have: name -> sympy object
 sympy_to_mathics = {}
-
-builtins_precedence = {}
 
 new_builtins = _builtins_list
 

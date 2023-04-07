@@ -382,12 +382,11 @@ def test_special_classes_of_permutations_1_4():
             "{0, 1, 2, 9, 44, 265, 1854, 14833, 133496, 1334961}",
             "NumberOfDerangements; 1.4.2, Page 33",
         ),
-        # This works, interactively, but not in test. Why?
-        # (
-        #     "Table[ N[ NumberOfDerangements[i]/(i!) ], {i, 1, 10} ]",
-        #     "{0., 0.5, 0.333333, 0.375, 0.366667, 0.368056, 0.367857, 0.367882, 0.367879, 0.367879}",
-        #     "Confused Secretary 1.4.2, Page 34",
-        # ),
+        (
+            "Table[ N[ NumberOfDerangements[i]/(i!) ], {i, 1, 10} ]",
+            "{0., 0.5, 0.333333, 0.375, 0.366667, 0.368056, 0.367857, 0.367882, 0.367879, 0.367879}",
+            "Confused Secretary 1.4.2, Page 34",
+        ),
         (
             "Table[Round[n!/N[E]], {n, 1, 10}]",
             "{0, 1, 2, 9, 44, 265, 1854, 14833, 133496, 1334961}",
@@ -496,7 +495,10 @@ def test_2_1_to_2_3():
 
     for str_expr, str_expected, message in (
         (
-            # 2.1.1 - 2.1.3 are broken
+            # 2.1.1 uses Partitions which is broken
+            # 2.1.2 Ferrers Diagrams can't be tested easily and robustly here
+            # easily
+            # 2.1.3 uses Partitions which is broken
             "PartitionsP[10]",
             "NumberOfPartitions[10]",
             "Counting Partitions 2.1.4, Page 57",
@@ -509,12 +511,12 @@ def test_2_1_to_2_3():
         (
             "TableauQ[{{1,2,5}, {3,4,5}, {6}}]",
             "True",
-            "Young Tableau 2.3, Page 63",
+            "Young Tableau 2.3, Page 64",
         ),
         (
             "TableauQ[{{1,2,5,9,10}, {5,4,7,13}, {4,8,12},{11}}]",
             "False",
-            "Young Tableau 2.3, Page 63",
+            "Young Tableau 2.3, Page 64",
         ),
         # Need to not evaluate expected which reformats \n's
         #         (

@@ -3,13 +3,13 @@ Morphological Image Processing
 """
 
 from mathics.builtin.base import Builtin
-from mathics.builtin.image.base import Image, _SkimageBuiltin
+from mathics.builtin.image.base import Image, skimage_requires
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.eval.image import matrix_to_numpy, pixels_as_float, pixels_as_ubyte
 
 
-class _MorphologyFilter(_SkimageBuiltin, Builtin):
+class _MorphologyFilter(Builtin):
     """
     Base class for many Morphological Image Processing filters.
     This requires scikit-mage to be installed.
@@ -19,6 +19,7 @@ class _MorphologyFilter(_SkimageBuiltin, Builtin):
         "grayscale": "Your image has been converted to grayscale as color images are not supported yet."
     }
 
+    requires = skimage_requires
     rules = {"%(name)s[i_Image, r_?RealNumberQ]": "%(name)s[i, BoxMatrix[r]]"}
 
     def eval(self, image, k, evaluation: Evaluation):
@@ -88,10 +89,10 @@ class Erosion(_MorphologyFilter):
      = -Image-
     """
 
-    summary_text = "give the erotion with respect to a range-r square"
+    summary_text = "give erosion with respect to a range-r square"
 
 
-class MorphologicalComponents(_SkimageBuiltin):
+class MorphologicalComponents(Builtin):
     """
     <url>
     :WMA link:

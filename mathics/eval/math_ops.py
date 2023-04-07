@@ -7,22 +7,23 @@ from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 
 
-def eval_2_Norm(m: Expression, evaluation: Evaluation) -> Optional[Expression]:
+def eval_Norm(m: Expression, evaluation: Evaluation) -> Optional[Expression]:
     """
-    2-Norm[] evaluation function
+    Norm[m] evaluation function - the 2-norm of matrix m
     """
     sympy_m = to_sympy_matrix(m)
     if sympy_m is None:
-        return evaluation.message("Norm", "nvm")
+        evaluation.message("Norm", "nvm")
+        return
 
     return from_sympy(sympy_m.norm())
 
 
-def eval_p_norm(
+def eval_Norm_p(
     m: Expression, p: Expression, evaluation: Evaluation
 ) -> Optional[Expression]:
     """
-    p2-Norm[] evaluation function
+    Norm[m, p] evaluation function - the p-norm of matrix m.
     """
     if isinstance(p, Symbol):
         sympy_p = p.to_sympy()
@@ -33,20 +34,23 @@ def eval_p_norm(
     elif isinstance(p, (Real, Integer)) and p.to_python() >= 1:
         sympy_p = p.to_sympy()
     else:
-        return evaluation.message("Norm", "ptype", p)
+        evaluation.message("Norm", "ptype", p)
+        return
 
     if sympy_p is None:
         return
     matrix = to_sympy_matrix(m)
 
     if matrix is None:
-        return evaluation.message("Norm", "nvm")
+        evaluation.message("Norm", "nvm")
+        return
     if len(matrix) == 0:
         return
 
     try:
         res = matrix.norm(sympy_p)
     except NotImplementedError:
-        return evaluation.message("Norm", "normnotimplemented")
+        evaluation.message("Norm", "normnotimplemented")
+        return
 
     return from_sympy(res)

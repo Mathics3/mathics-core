@@ -34,13 +34,13 @@ def test_check_duplicated():
                         builtins_by_name.get(name, None) is None
                         ), f"{name} defined in {module} already defined in {builtins_by_name[name]}."
                     """
-                    if builtins_by_name.get(name, None) is not None:
-                        print(
-                            f"\n{name} defined in {module} already defined in {builtins_by_name[name]}."
-                        )
-                        msg = (
-                            msg
-                            + f"\n{name} defined in {module} already defined in {builtins_by_name[name]}."
-                        )
+                    # if builtins_by_name.get(name, None) is not None:
+                    #     print(
+                    #         f"\n{name} defined in {module} already defined in {builtins_by_name[name]}."
+                    #     )
+                    #     msg = (
+                    #         msg
+                    #         + f"\n{name} defined in {module} already defined in {builtins_by_name[name]}."
+                    #     )
                     builtins_by_name[name] = module
     assert msg == "", msg

@@ -15,10 +15,11 @@ from mathics.core.attributes import (
     A_READ_PROTECTED,
 )
 from mathics.core.convert.mpmath import from_mpmath
+from mathics.core.evaluation import Evaluation
 from mathics.core.number import (
+    FP_MANTISA_BINARY_DIGITS,
     PrecisionValueError,
     get_precision,
-    machine_precision,
     prec as _prec,
 )
 
@@ -32,7 +33,10 @@ class _Bessel(_MPMathFunction):
 
 class AiryAi(_MPMathFunction):
     """
-    <url>:Airy function of the first kind: https://en.wikipedia.org/wiki/Airy_function</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.airyai</url>, <url>:WMA: https://reference.wolfram.com/language/ref/AiryAi.html</url>)
+    <url>:Airy function of the first kind:
+    https://en.wikipedia.org/wiki/Airy_function</url> (<url>
+    :SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.airyai</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/AiryAi.html</url>)
     <dl>
       <dt>'AiryAi[$x$]'
       <dd>returns the Airy function Ai($x$).
@@ -63,7 +67,11 @@ class AiryAi(_MPMathFunction):
 
 class AiryAiPrime(_MPMathFunction):
     """
-    Derivative of Airy function (<url>:Sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.airyaiprime</url>, <url>:WMA link:https://reference.wolfram.com/language/ref/AiryAiPrime.html</url>)
+    Derivative of Airy function (<url>
+    :Sympy:
+    https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.airyaiprime</url>, <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/AiryAiPrime.html</url>)
     <dl>
       <dt>'AiryAiPrime[$x$]'
       <dd>returns the derivative of the Airy function 'AiryAi[$x$]'.
@@ -132,7 +140,7 @@ class AiryAiZero(Builtin):
 
     summary_text = "kth zero of the Airy's function Ai"
 
-    def apply_N(self, k, precision, evaluation):
+    def eval_N(self, k, precision, evaluation: Evaluation):
         "N[AiryAiZero[k_Integer], precision_]"
 
         try:
@@ -141,7 +149,7 @@ class AiryAiZero(Builtin):
             return
 
         if d is None:
-            p = machine_precision
+            p = FP_MANTISA_BINARY_DIGITS
         else:
             p = _prec(d)
 
@@ -149,7 +157,7 @@ class AiryAiZero(Builtin):
 
         with mpmath.workprec(p):
             result = mpmath.airyaizero(k_int)
-            return from_mpmath(result, d)
+            return from_mpmath(result, precision=p)
 
 
 class AiryBi(_MPMathFunction):
@@ -258,7 +266,7 @@ class AiryBiZero(Builtin):
 
     summary_text = "kth zero of the Airy's function Bi"
 
-    def apply_N(self, k: Integer, precision, evaluation):
+    def eval_N(self, k: Integer, precision, evaluation: Evaluation):
         "N[AiryBiZero[k_Integer], precision_]"
 
         try:
@@ -267,7 +275,7 @@ class AiryBiZero(Builtin):
             return
 
         if d is None:
-            p = machine_precision
+            p = FP_MANTISA_BINARY_DIGITS
         else:
             p = _prec(d)
 
@@ -275,12 +283,18 @@ class AiryBiZero(Builtin):
 
         with mpmath.workprec(p):
             result = mpmath.airybizero(k_int)
-            return from_mpmath(result, d)
+            return from_mpmath(result, precision=p)
 
 
 class AngerJ(_Bessel):
     """
-    <url>:Anger function: https://en.wikipedia.org/wiki/Anger_function</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/bessel.html#mpmath.angerj</url>, <url>:WMA: https://reference.wolfram.com/language/ref/AngerJ.html</url>)
+    <url>
+    :Anger function:
+    https://en.wikipedia.org/wiki/Anger_function</url> (<url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/bessel.html#mpmath.angerj</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/AngerJ.html</url>)
     <dl>
       <dt>'AngerJ[$n$, $z$]'
       <dd>returns the Anger function J_$n$($z$).
@@ -307,28 +321,43 @@ class BesselI(_Bessel):
     """
 
 
-    <url>:Modified Bessel function of the first kind: https://en.wikipedia.org/wiki/Bessel_function#Bessel_functions_of_the_first_kind:_J%CE%B1</url> (<url>:Sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.besseli</url>, <url>:WMA: https://reference.wolfram.com/language/ref/BesselI.html</url>)
+        <url>
+        :Modified Bessel function of the first kind:
+        https://en.wikipedia.org/
+    wiki/Bessel_function#Bessel_functions_of_the_first_kind:_J%CE%B1</url> (<url>
+        :Sympy:
+        https://docs.sympy.org/latest/modules/functions/
+    special.html#sympy.functions.special.bessel.besseli</url>, <url>
+        :WMA:
+        https://reference.wolfram.com/language/ref/BesselI.html</url>)
 
-    <dl>
-    <dt>'BesselI[$n$, $z$]'
-      <dd>returns the modified Bessel function of the first kind I_$n$($z$).
-    </dl>
+        <dl>
+        <dt>'BesselI[$n$, $z$]'
+          <dd>returns the modified Bessel function of the first kind I_$n$($z$).
+        </dl>
 
-    >> BesselI[1.5, 4]
-     = 8.17263
+        >> BesselI[0, 0]
+         = 1
 
-    >> Plot[BesselI[0, x], {x, 0, 5}]
-     = -Graphics-
+        >> BesselI[1.5, 4]
+         = 8.17263
+
+        >> Plot[BesselI[0, x], {x, 0, 5}]
+         = -Graphics-
+
+        The special case of half-integer index is expanded using Rayleigh's formulas:
+        >> BesselI[3/2, x]
+         = Sqrt[2] Sqrt[x] (-Sinh[x] / x ^ 2 + Cosh[x] / x) / Sqrt[Pi]
     """
-
-    rules = {
-        "Derivative[0, 1][BesselI]": "((BesselI[-1 + #1, #2] + BesselI[1 + #1, #2])/2)&",
-    }
 
     mpmath_name = "besseli"
     rules = {
         "BesselI[Undefined, x_]": "Undefined",
         "BesselI[y_, Undefined]": "Undefined",
+        # FIXME: these are not respected. Why?
+        "BesselI[x_, -I Infinity]": "0",
+        "BesselI[x_, Infinity]": "0",
+        "Derivative[0, 1][BesselI]": "((BesselI[-1 + #1, #2] + BesselI[1 + #1, #2])/2)&",
     }
     sympy_name = "besseli"
     summary_text = "Bessel's function of the second kind"
@@ -336,7 +365,13 @@ class BesselI(_Bessel):
 
 class BesselJ(_Bessel):
     """
-    <url>:Bessel function of the first kind: https://en.wikipedia.org/wiki/Bessel_function#Bessel_functions_of_the_first_kind:_J%CE%B1</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.besselj</url>, <url>:WMA: https://reference.wolfram.com/language/ref/BesselJ.html</url>)
+    <url>
+    :Bessel function of the first kind:
+    https://en.wikipedia.org/wiki/Bessel_function#Bessel_functions_of_the_first_kind:_J%CE%B1</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.besselj</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/BesselJ.html</url>)
 
     <dl>
     <dt>'BesselJ[$n$, $z$]'
@@ -352,17 +387,19 @@ class BesselJ(_Bessel):
     >> D[BesselJ[n, z], z]
      = -BesselJ[1 + n, z] / 2 + BesselJ[-1 + n, z] / 2
 
-    #> BesselJ[0., 0.]
+    >> BesselJ[0., 0.]
      = 1.
 
     >> Plot[BesselJ[0, x], {x, 0, 10}]
      = -Graphics-
-    """
 
-    # TODO: Sympy Backend is not as powerful as Mathematica
-    """
+    The special case of half-integer index is expanded using Rayleigh's formulas:
     >> BesselJ[1/2, x]
-     = Sqrt[2 / Pi] Sin[x] / Sqrt[x]
+     = Sqrt[2] Sin[x] / (Sqrt[x] Sqrt[Pi])
+
+    Some integrals can be expressed in terms of Bessel functions:
+    >> Integrate[Cos[3 Sin[w]], {w, 0, Pi}]
+     = Pi BesselJ[0, 3]
     """
 
     mpmath_name = "besselj"
@@ -379,7 +416,13 @@ class BesselJ(_Bessel):
 class BesselK(_Bessel):
     """
 
-    <url>:Modified Bessel function of the second kind: https://en.wikipedia.org/wiki/Bessel_function#Modified_Bessel_functions:_I%CE%B1,_K%CE%B1</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.besselk</url>, <url>:WMA:https://reference.wolfram.com/language/ref/BesselJ.html</url>)
+    <url>
+    :Modified Bessel function of the second kind:
+    https://en.wikipedia.org/wiki/Bessel_function#Modified_Bessel_functions:_I%CE%B1,_K%CE%B1</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.besselk</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/BesselJ.html</url>)
 
     <dl>
       <dt>'BesselK[$n$, $z$]'
@@ -391,6 +434,11 @@ class BesselK(_Bessel):
 
     >> Plot[BesselK[0, x], {x, 0, 5}]
      = -Graphics-
+
+    The special case of half-integer index is expanded using Rayleigh's formulas:
+    >> BesselK[-3/2, x]
+     = Sqrt[2] Sqrt[x] Sqrt[Pi] (E ^ (-x) / x ^ 2 + E ^ (-x) / x) / 2
+
     """
 
     mpmath_name = "besselk"
@@ -407,8 +455,13 @@ class BesselK(_Bessel):
 
 class BesselY(_Bessel):
     """
-    <url>:Bessel function of the second kind: https://en.wikipedia.org/wiki/Bessel_function#Bessel_functions_of_the_second_kind:_Y%CE%B1</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.bessely</url>, <url>:WMA:https://reference.wolfram.com/language/ref/BesselY.html</url>)
-
+    <url>
+    :Bessel function of the second kind:
+    https://en.wikipedia.org/wiki/Bessel_function#Bessel_functions_of_the_second_kind:_Y%CE%B1</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.bessely</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/BesselY.html</url>)
 
     <dl>
       <dt>'BesselY[$n$, $z$]'
@@ -418,19 +471,20 @@ class BesselY(_Bessel):
     >> BesselY[1.5, 4]
      = 0.367112
 
-    ## Returns ComplexInfinity instead
-    ## #> BesselY[0., 0.]
-    ##  = -Infinity
+    >> BesselY[0., 0.]
+      = -Infinity
 
     >> Plot[BesselY[0, x], {x, 0, 10}]
      = -Graphics-
-    """
 
-    # TODO: Special Values
-    """
+    The special case of half-integer index is expanded using Rayleigh's formulas:
+    >> BesselY[-3/2, x]
+     =  Sqrt[2] Sqrt[x] (-Sin[x] / x ^ 2 + Cos[x] / x) / Sqrt[Pi]
+
     >> BesselY[0, 0]
      = -Infinity
     """
+
     rules = {
         "Derivative[0,1][BesselY]": "(BesselY[-1 + #1, #2] / 2 - BesselY[1 + #1, #2] / 2)&",
     }
@@ -539,7 +593,13 @@ class HankelH2(_Bessel):
 class KelvinBei(_Bessel):
     """
 
-    <url>:Kelvin function bei: https://en.wikipedia.org/wiki/Kelvin_functions#bei(x)</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/bessel.html#bei</url>, <url>:WMA: https://reference.wolfram.com/language/ref/KelvinBei.html</url>)
+    <url>
+    :Kelvin function bei:
+    https://en.wikipedia.org/wiki/Kelvin_functions#bei(x)</url> (<url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/bessel.html#bei</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/KelvinBei.html</url>)
 
     <dl>
       <dt>'KelvinBei[$z$]'
@@ -574,7 +634,13 @@ class KelvinBei(_Bessel):
 
 class KelvinBer(_Bessel):
     """
-    <url>:Kelvin function ber: https://en.wikipedia.org/wiki/Kelvin_functions#ber(x)</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/bessel.html#ber</url>, <url>:WMA: https://reference.wolfram.com/language/ref/KelvinBer.html</url>)
+    <url>
+    :Kelvin function ber:
+    https://en.wikipedia.org/wiki/Kelvin_functions#ber(x)</url> (<url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/bessel.html#ber</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/KelvinBer.html</url>)
     <dl>
       <dt>'KelvinBer[$z$]'
       <dd>returns the Kelvin function ber($z$).
@@ -609,7 +675,13 @@ class KelvinBer(_Bessel):
 class KelvinKei(_Bessel):
     """
 
-    <url>:Kelvin function kei: https://en.wikipedia.org/wiki/Kelvin_functions#kei(x)</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/bessel.html#kei</url>, <url>:WMA: https://reference.wolfram.com/language/ref/KelvinKei.html</url>)
+    <url>
+    :Kelvin function kei:
+    https://en.wikipedia.org/wiki/Kelvin_functions#kei(x)</url> (<url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/bessel.html#kei</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/KelvinKei.html</url>)
 
     <dl>
       <dt>'KelvinKei[$z$]'
@@ -676,7 +748,13 @@ class KelvinKer(_Bessel):
 
 class SphericalBesselJ(_Bessel):
     """
-    <url>:Spherical Bessel function of the first kind: https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url> (<url>:Sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.jn</url>, <url>:WMA: https://reference.wolfram.com/language/ref/SphericalBesselJ.html</url>)
+    <url>
+    :Spherical Bessel function of the first kind:
+    https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url> (<url>
+    :Sympy:
+    https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.jn</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/SphericalBesselJ.html</url>)
 
     <dl>
       <dt>'SphericalBesselJ[$n$, $z$]'
@@ -699,7 +777,13 @@ class SphericalBesselJ(_Bessel):
 
 class SphericalBesselY(_Bessel):
     """
-    <url>:Spherical Bessel function of the first kind: https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url> (<url>:Sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.yn</url>, <url>:WMA: https://reference.wolfram.com/language/ref/SphericalBesselY.html</url>)
+    <url>
+    :Spherical Bessel function of the first kind:
+    https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url> (<url>
+    :Sympy:
+    https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.yn</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/SphericalBesselY.html</url>)
 
     <dl>
       <dt>'SphericalBesselY[$n$, $z$]'

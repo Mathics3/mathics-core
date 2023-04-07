@@ -205,7 +205,7 @@ def instantiate_elements(a, new_element, d=1):
 # all relevant rules for @conditional functions are:
 #   - all "if" branches must exit immediately with "return".
 #   - "if"s must rely on simple binary comparisons, e.g. "b < 4" or "4 > b", or variables
-#   - the occurence of "elif" is optional, as is the occurence of "else"
+#   - the occurrence of "elif" is optional, as is the occurrence of "else"
 #   - if "else" is not provided, the provided "if" cases must cover all possible cases,
 #     otherwise there will be undefined results.
 #   - code in @conditional must not reference global variables.

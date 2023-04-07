@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Attributes of Definitions
+Definition Attributes
 
 While a definition like 'cube[$x_$] = $x$^3' gives a way to specify \
 <em>values</em> of a function, <em>attributes</em> allow a way to \
@@ -12,6 +12,9 @@ are described below.
 
 However in contrast to \Mathematica, you can set any symbol as an attribute.
 """
+
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.definition-attributes"
 
 
 from mathics.builtin.base import Builtin, Predefined

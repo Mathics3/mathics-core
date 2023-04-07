@@ -1,10 +1,10 @@
-name: Mathics (OSX)
+name: Mathics3 (OSX)
 
 on:
   push:
     branches: [ master ]
   pull_request:
-    branches: [ master ]
+    branches: '**'
 
 jobs:
   build:
@@ -15,23 +15,24 @@ jobs:
     strategy:
       matrix:
         os: [macOS]
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: ['3.7', '3.8', '3.9']
     steps:
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install dependencies
+    - name: Install OS dependencies
       run: |
-        brew install llvm@11
+        brew install llvm@11 tesseract
         python -m pip install --upgrade pip
         LLVM_CONFIG=/usr/local/Cellar/llvm@11/11.1.0/bin/llvm-config pip install llvmlite
-        # We can comment out after next Mathics-Scanner release
-        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
-    - name: Install Mathics with full dependencies
+    - name: Install Mathics3 with full Python dependencies
       run: |
+        # We can comment out after next Mathics-Scanner release
+        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        python -m pip install Mathics-Scanner
         make develop-full
-    - name: Test Mathics
+    - name: Test Mathics3
       run: |
         make -j3 check

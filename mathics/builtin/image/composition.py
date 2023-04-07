@@ -53,7 +53,8 @@ class _ImageArithmetic(Builtin):
         "%(name)s[image_Image, args__]"
         images, arg = self.convert_args(image, *args.get_sequence())
         if images is None:
-            return evaluation.message(self.get_name(), "bddarg", arg)
+            evaluation.message(self.get_name(), "bddarg", arg)
+            return
         ufunc = getattr(numpy, self.get_name(True)[5:].lower())
         result = self._reduce(images, ufunc).clip(0, 1)
         return Image(result, image.color_space)
@@ -90,9 +91,9 @@ class ImageAdd(_ImageArithmetic):
     >> ImageAdd[noise, ein]
      = -Image-
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> noise = RandomImage[{-0.2, 0.2}, ImageDimensions[lena], ColorSpace -> "RGB"];
-    >> ImageAdd[noise, lena]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> noise = RandomImage[{-0.2, 0.2}, ImageDimensions[hedy], ColorSpace -> "RGB"];
+    >> ImageAdd[noise, hedy]
      = -Image-
     """
 

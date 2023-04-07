@@ -8,6 +8,7 @@ from typing import Callable
 
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer, String, Symbol
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import SymbolTrue
 
@@ -33,13 +34,13 @@ SymbolEditDistance = Symbol("EditDistance")
 # note: double brackets indicate 1-based indices below, e.g. s1[[1]]
 
 
-def _one_based(l):  # makes an enumerated generator 1-based
-    return ((i + 1, x) for i, x in l)
+def _one_based(le):  # makes an enumerated generator 1-based
+    return ((i + 1, x) for i, x in le)
 
 
-def _prev_curr(l):  # yields pairs of (x[i - 1], x[i]) for i in 1, 2, ...
+def _prev_curr(le):  # yields pairs of (x[i - 1], x[i]) for i in 1, 2, ...
     prev = None
-    for curr in l:
+    for curr in le:
         yield prev, curr
         prev = curr
 
@@ -117,7 +118,7 @@ def _levenshtein_like_or_border_cases(s1, s2, sameQ: Callable[..., bool], comput
 class _StringDistance(Builtin):
     options = {"IgnoreCase": "False"}
 
-    def apply(self, a, b, evaluation, options):
+    def eval(self, a, b, evaluation, options):
         "%(name)s[a_, b_, OptionsPattern[%(name)s]]"
         if isinstance(a, String) and isinstance(b, String):
             py_a = a.get_string_value()
@@ -255,20 +256,20 @@ class HammingDistance(Builtin):
     summary_text = "Hamming distance"
 
     @staticmethod
-    def _compute(u, v, sameQ, evaluation):
+    def _compute(u, v, sameQ, evaluation: Evaluation):
         if len(u) != len(v):
             evaluation.message("HammingDistance", "idim", u, v)
             return None
         else:
             return Integer(sum(0 if sameQ(x, y) else 1 for x, y in zip(u, v)))
 
-    def apply_list(self, u, v, evaluation):
+    def eval_list(self, u, v, evaluation: Evaluation):
         "HammingDistance[u_List, v_List]"
         return HammingDistance._compute(
             u.elements, v.elements, lambda x, y: x.sameQ(y), evaluation
         )
 
-    def apply_string(self, u, v, evaluation, options):
+    def eval_string(self, u, v, evaluation, options):
         "HammingDistance[u_String, v_String, OptionsPattern[HammingDistance]]"
         ignore_case = self.get_option(options, "IgnoreCase", evaluation)
         py_u = u.get_string_value()

@@ -168,7 +168,7 @@ def from_sympy(expr):
     from mathics.core.convert.expression import to_expression, to_mathics_list
     from mathics.core.expression import Expression
     from mathics.core.list import ListExpression
-    from mathics.core.number import machine_precision
+    from mathics.core.number import FP_MANTISA_BINARY_DIGITS
     from mathics.core.symbols import Symbol, SymbolNull
 
     if isinstance(expr, (tuple, list)):
@@ -240,7 +240,7 @@ def from_sympy(expr):
                     return SymbolIndeterminate
             return Rational(numerator, denominator)
         elif isinstance(expr, sympy.Float):
-            if expr._prec == machine_precision:
+            if expr._prec == FP_MANTISA_BINARY_DIGITS:
                 return MachineReal(float(expr))
             return Real(expr)
         elif isinstance(expr, sympy.core.numbers.NaN):
@@ -252,10 +252,14 @@ def from_sympy(expr):
         elif expr is sympy.false:
             return SymbolFalse
 
-    elif expr.is_number and all([x.is_Number for x in expr.as_real_imag()]):
-        # Hack to convert 3 * I to Complex[0, 3]
-        return Complex(*[from_sympy(arg) for arg in expr.as_real_imag()])
-    elif expr.is_Add:
+    if expr.is_number and all([x.is_Number for x in expr.as_real_imag()]):
+        # Hack to convert <Integer> * I to Complex[0, <Integer>]
+        try:
+            return Complex(*[from_sympy(arg) for arg in expr.as_real_imag()])
+        except ValueError:
+            # The exception happens if one of the components is infinity
+            pass
+    if expr.is_Add:
         return to_expression(
             SymbolPlus, *sorted([from_sympy(arg) for arg in expr.args])
         )

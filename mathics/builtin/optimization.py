@@ -1,11 +1,16 @@
 # -*- coding: utf-8 -*-
 """Mathematical Optimization
 
-Mathematical optimization is the selection of a best element, with regard to some criterion, from some set of available alternatives.
+Mathematical optimization is the selection of a best element, with regard to \
+some criterion, from some set of available alternatives.
 
-Optimization problems of sorts arise in all quantitative disciplines from computer science and engineering to operations research and economics, and the development of solution methods has been of interest in mathematics for centuries.
+Optimization problems of sorts arise in all quantitative disciplines from \
+computer science and engineering to operations research and economics, \
+and the development of solution methods has been of interest in mathematics \
+for centuries.
 
-We intend to provide local and global optimization techniques, both numeric and symbolic.
+We intend to provide local and global optimization techniques, both numeric \
+and symbolic.
 """
 
 # This tells documentation how to sort this module
@@ -18,6 +23,7 @@ from mathics.core.atoms import IntegerM1
 from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol
@@ -28,11 +34,14 @@ SymbolMinimize = Symbol("Minimize")
 
 class Maximize(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Maximize.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Maximize.html</url>
 
     <dl>
       <dt>'Maximize[$f$, $x$]'
-      <dd>compute the maximum of $f$ respect $x$ that change between $a$ and $b$
+      <dd>compute the maximum of $f$ respect $x$ that change between \
+      $a$ and $b$.
     </dl>
 
     >> Maximize[-2 x^2 - 3 x + 5, x]
@@ -48,7 +57,7 @@ class Maximize(Builtin):
     attributes = A_PROTECTED | A_READ_PROTECTED
     summary_text = "compute the maximum of a function"
 
-    def apply(self, f, vars, evaluation):
+    def eval(self, f, vars, evaluation: Evaluation):
         "Maximize[f_?NotListQ, vars_]"
 
         dual_f = f.to_sympy() * (-1)
@@ -66,7 +75,7 @@ class Maximize(Builtin):
 
         return from_python(solutions)
 
-    def apply_constraints(self, f, vars, evaluation):
+    def eval_constraints(self, f, vars, evaluation: Evaluation):
         "Maximize[f_List, vars_]"
 
         constraints = [function for function in f.elements]
@@ -86,11 +95,14 @@ class Maximize(Builtin):
 
 class Minimize(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Minimize.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Minimize.html</url>
 
     <dl>
     <dt>'Minimize[$f$, $x$]'
-        <dd>compute the minimum of $f$ respect $x$ that change between $a$ and $b$
+        <dd>compute the minimum of $f$ respect $x$ that change between \
+        $a$ and $b$.
     </dl>
 
     >> Minimize[2 x^2 - 3 x + 5, x]
@@ -106,7 +118,7 @@ class Minimize(Builtin):
     attributes = A_PROTECTED | A_READ_PROTECTED
     summary_text = "compute the minimum of a function"
 
-    def apply_onevariable(self, f, x, evaluation):
+    def eval_onevariable(self, f, x, evaluation: Evaluation):
         "Minimize[f_?NotListQ, x_?NotListQ]"
 
         sympy_x = x.to_sympy()
@@ -137,7 +149,7 @@ class Minimize(Builtin):
             )
         )
 
-    def apply_multiplevariable(self, f, vars, evaluation):
+    def eval_multiplevariable(self, f, vars, evaluation: Evaluation):
         "Minimize[f_?NotListQ, vars_List]"
 
         head_name = vars.get_head_name()
@@ -215,7 +227,7 @@ class Minimize(Builtin):
             )
         )
 
-    def apply_constraints(self, f, vars, evaluation):
+    def eval_constraints(self, f, vars, evaluation: Evaluation):
         "Minimize[f_List, vars_List]"
         head_name = vars.get_head_name()
         vars_or = vars

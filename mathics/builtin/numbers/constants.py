@@ -19,7 +19,15 @@ import sympy
 from mathics.builtin.base import Builtin, Predefined, SympyObject
 from mathics.core.atoms import MachineReal, PrecisionReal
 from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
-from mathics.core.number import PrecisionValueError, get_precision, machine_precision
+from mathics.core.evaluation import Evaluation
+from mathics.core.number import (
+    MACHINE_DIGITS,
+    MAX_MACHINE_NUMBER,
+    MIN_MACHINE_NUMBER,
+    PrecisionValueError,
+    get_precision,
+    prec,
+)
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolIndeterminate
 
@@ -35,8 +43,11 @@ def mp_constant(fn: str, d=None) -> mpmath.mpf:
         # ask for a certain number of digits, but the
         # accuracy will be less than that. Figure out
         # what's up and compensate somehow.
-        mpmath.mp.dps = int_d = int(d * 3.321928)
-        return getattr(mpmath, fn)(prec=int_d)
+
+        int_d = prec(d)
+        with mpmath.workprec(int_d):
+            result = str(getattr(mpmath, fn)(prec=int_d))
+            return result
 
 
 def mp_convert_constant(obj, **kwargs):
@@ -80,7 +91,6 @@ class _Constant_Common(Predefined):
 
     def get_constant(self, precision, evaluation):
         # first, determine the precision
-        machine_d = int(0.30103 * machine_precision)
         d = None
         if precision:
             try:
@@ -89,7 +99,7 @@ class _Constant_Common(Predefined):
                 pass
 
         if d is None:
-            d = machine_d
+            d = MACHINE_DIGITS
 
         # If preference not especified, determine it
         # from the precision.
@@ -102,7 +112,7 @@ class _Constant_Common(Predefined):
                 break
 
         if preference is None:
-            if d <= machine_d:
+            if d <= MACHINE_DIGITS:
                 preference = "numpy"
             else:
                 preference = "mpmath"
@@ -123,7 +133,7 @@ class _Constant_Common(Predefined):
                 preference = ""
         if preference == "numpy":
             value = numpy_constant(self.numpy_name)
-            if d == machine_d:
+            if d == MACHINE_DIGITS:
                 return MachineReal(value)
         if preference == "sympy":
             value = sympy_constant(self.sympy_name, d + 2)
@@ -224,9 +234,13 @@ class ComplexInfinity(_SympyConstant):
     """
     <url>
     :Complex Infinity:
-    https://en.wikipedia.org/wiki/Infinity#Complex_analysis</url> (<url>
+    https://en.wikipedia.org/wiki/Infinity#Complex_analysis</url> \
+    is an infinite number in the complex plane whose complex argument \
+    is unknown or undefined. (<url>
     :SymPy:
     https://docs.sympy.org/latest/modules/core.html?highlight=zoo#complexinfinity</url>, <url>
+    :MathWorld:
+    https://mathworld.wolfram.com/ComplexInfinity.html</url>, <url>
     :WMA:
     https://reference.wolfram.com/language/ref/ComplexInfinity.html</url>)
 
@@ -370,7 +384,7 @@ class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
 
     <dl>
       <dt>'EulerGamma'
-      <dd>is Euler's constant \u03b3 with numerial value \u2243 0.577216.
+      <dd>is Euler's constant \u03b3 with numerical value \u2243 0.577216.
     </dl>
 
     >> EulerGamma // N
@@ -571,6 +585,59 @@ class Overflow(Builtin):
     summary_text = "overflow in numeric evaluation"
 
 
+class MaxMachineNumber(Predefined):
+    """
+    Largest normalizable machine number (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/$MaxMachineNumber.html
+    </url>)
+
+    <dl>
+      <dt>'$MaxMachineNumber'
+      <dd>Represents the largest positive number that can be represented \
+          as a normalized machine number in the system.
+    </dl>
+
+    The product of '$MaxMachineNumber' and  '$MinMachineNumber' is a constant:
+    >> $MaxMachineNumber * $MinMachineNumber
+     = 4.
+
+    """
+
+    name = "$MaxMachineNumber"
+    summary_text = "largest normalized positive machine number"
+
+    def evaluate(self, evaluation: Evaluation) -> MachineReal:
+        return MachineReal(MAX_MACHINE_NUMBER)
+
+
+class MinMachineNumber(Predefined):
+    """
+    Smallest normalizable machine number (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/$MinMachineNumber.html
+    </url>)
+
+    <dl>
+      <dt>'$MinMachineNumber'
+      <dd>Represents the smallest positive number that can be represented \
+          as a normalized machine number in the system.
+    </dl>
+
+    'MachinePrecision' minus the 'Log' base 10 of this number is the\
+    'Accuracy' of 0`:
+    >> MachinePrecision -Log[10., $MinMachineNumber]==Accuracy[0`]
+     = True
+
+    """
+
+    name = "$MinMachineNumber"
+    summary_text = "smallest normalized positive machine number"
+
+    def evaluate(self, evaluation: Evaluation) -> MachineReal:
+        return MachineReal(MIN_MACHINE_NUMBER)
+
+
 class Pi(_MPMathConstant, _SympyConstant):
     """
     <url>
@@ -584,6 +651,9 @@ class Pi(_MPMathConstant, _SympyConstant):
       <dt>'Pi'
       <dd>is the constant \u03c0.
     </dl>
+
+    >> Pi
+     = Pi
 
     >> N[Pi]
      = 3.14159

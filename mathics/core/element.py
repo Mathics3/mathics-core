@@ -128,7 +128,7 @@ class ImmutableValueMixin:
 class KeyComparable:
     """
 
-    Some Mathics/WL Symbols have an "OrderLess" attribute
+    Some Mathics3/WL Symbols have an "OrderLess" attribute
     which is used in the evaluation process to arrange items in a list.
 
     To do that, we need a way to compare Symbols, and that is what
@@ -141,7 +141,7 @@ class KeyComparable:
     mixed into other classes.
 
     Each class should provide a `get_sort_key()` method which
-    is the primative from which all other comparsions are based on.
+    is the primative from which all other comparisons are based on.
     """
 
     # FIXME: return type should be a specific kind of Tuple, not a list.
@@ -163,8 +163,8 @@ class KeyComparable:
 
         then self comes before expr.
 
-        The values in the positions of the list/tuple are used to indicate how comparison should be
-        treated for specific element classes.
+        The values in the positions of the list/tuple are used to indicate how
+        comparison should be treated for specific element classes.
         """
         raise NotImplementedError
 
@@ -344,7 +344,7 @@ class BaseElement(KeyComparable):
         # Below, we special-case for SymbolSequence. Here is an example to suggest why.
         # Suppose we have this evaluation method:
         #
-        # def apply(x, evaluation):
+        # def eval(x, evaluation: Evaluation):
         #     """F[x__]"""
         #     args = x.get_sequence()
         #

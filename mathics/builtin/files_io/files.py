@@ -26,6 +26,7 @@ from mathics.core.atoms import Integer, String, SymbolString
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.read import (
@@ -39,10 +40,11 @@ from mathics.core.read import (
     read_name_and_stream_from_channel,
 )
 from mathics.core.streams import path_search, stream_manager
-from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
+from mathics.core.symbols import Symbol, SymbolFullForm, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolHold,
+    SymbolInputForm,
     SymbolOutputForm,
     SymbolReal,
 )
@@ -110,7 +112,7 @@ class _OpenAction(Builtin):
         ),
     }
 
-    def eval_empty(self, evaluation, options):
+    def eval_empty(self, evaluation: Evaluation, options: dict):
         "%(name)s[OptionsPattern[]]"
 
         if isinstance(self, (OpenWrite, OpenAppend)):
@@ -128,7 +130,7 @@ class _OpenAction(Builtin):
             evaluation.message("OpenRead", "argx")
             return
 
-    def eval_path(self, path, evaluation, options):
+    def eval_path(self, path, evaluation: Evaluation, options: dict):
         "%(name)s[path_?NotOptionQ, OptionsPattern[]]"
 
         # Options
@@ -267,8 +269,8 @@ class Expression_(Builtin):
     https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overview/ast.html</url>.
     """
 
-    summary_text = "WL expression"
     name = "Expression"
+    summary_text = "WL expression"
 
 
 class FilePrint(Builtin):
@@ -285,16 +287,15 @@ class FilePrint(Builtin):
      : File specification Sin[1] is not a string of one or more characters.
      = FilePrint[Sin[1]]
 
-    #> FilePrint["somenonexistantpath_h47sdmk^&h4"]
-     : Cannot open somenonexistantpath_h47sdmk^&h4.
-     = FilePrint[somenonexistantpath_h47sdmk^&h4]
+    #> FilePrint["somenonexistentpath_h47sdmk^&h4"]
+     : Cannot open somenonexistentpath_h47sdmk^&h4.
+     = FilePrint[somenonexistentpath_h47sdmk^&h4]
 
     #> FilePrint[""]
      : File specification  is not a string of one or more characters.
      = FilePrint[]
     """
 
-    summary_text = "display the contents of a file"
     messages = {
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
@@ -306,8 +307,9 @@ class FilePrint(Builtin):
         "RecordSeparators": '{"\r\n", "\n", "\r"}',
         "WordSeparators": '{" ", "\t"}',
     }
+    summary_text = "display the contents of a file"
 
-    def eval(self, path, evaluation, options):
+    def eval(self, path, evaluation: Evaluation, options: dict):
         "FilePrint[path_, OptionsPattern[FilePrint]]"
         pypath = path.to_python()
         if not (
@@ -367,8 +369,8 @@ class Number_(Builtin):
     </dl>
     """
 
-    summary_text = "exact or approximate number in Fortran‐like notation"
     name = "Number"
+    summary_text = "exact or approximate number in Fortran‐like notation"
 
 
 class Get(PrefixOperator):
@@ -408,14 +410,14 @@ class Get(PrefixOperator):
     #> Hold[<<`/.\-_:$*~?] // FullForm
      = Hold[Get["`/.\\\\-_:$*~?"]]
     """
-    summary_text = "read in a file and evaluate commands in it"
     operator = "<<"
-    precedence = 720
     options = {
         "Trace": "False",
     }
+    precedence = 720
+    summary_text = "read in a file and evaluate commands in it"
 
-    def eval(self, path, evaluation, options):
+    def eval(self, path, evaluation: Evaluation, options: dict):
         "Get[path_String, OptionsPattern[Get]]"
 
         def check_options(options):
@@ -607,11 +609,11 @@ class OpenAppend(_OpenAction):
     #> DeleteFile["MathicsNonExampleFile"]
     """
 
+    mode = "a"
+    stream_type = "OutputStream"
     summary_text = (
         "open an output stream to a file, appending to what was already in the file"
     )
-    mode = "a"
-    stream_type = "OutputStream"
 
 
 class Put(BinaryOperator):
@@ -667,9 +669,9 @@ class Put(BinaryOperator):
     S> DeleteFile[filename]
     """
 
-    summary_text = "write an expression to a file"
     operator = ">>"
     precedence = 30
+    summary_text = "write an expression to a file"
 
     def eval(self, exprs, filename, evaluation):
         "Put[exprs___, filename_String]"
@@ -693,10 +695,18 @@ class Put(BinaryOperator):
             evaluation.message("Put", "openx", to_expression("OutputSteam", name, n))
             return
 
-        text = [
-            evaluation.format_output(to_expression("InputForm", expr))
-            for expr in exprs.get_sequence()
-        ]
+        # In Mathics-server, evaluation.format_output is modified.
+        # Let's avoid to use it if we want a front-end independent result.
+        # Eventually, we are going to replace this by a `MakeBoxes` call.
+        def do_format_output(expr, evaluation):
+            try:
+                boxed_expr = format_element(expr, evaluation, SymbolInputForm)
+            except BoxError:
+                boxed_expr = format_element(expr, evaluation, SymbolFullForm)
+
+            return boxed_expr.boxes_to_text()
+
+        text = [do_format_output(expr, evaluation) for expr in exprs.get_sequence()]
         text = "\n".join(text) + "\n"
         text.encode("utf-8")
 
@@ -765,9 +775,9 @@ class PutAppend(BinaryOperator):
      = x >>> /proc/uptime
     """
 
-    summary_text = "append an expression to a file"
     operator = ">>>"
     precedence = 30
+    summary_text = "append an expression to a file"
 
     def eval(self, exprs, filename, evaluation):
         "PutAppend[exprs___, filename_String]"
@@ -927,7 +937,7 @@ class Read(Builtin):
      = 5
     >> Close[stream];
 
-    Reading a comment however will return the empy list:
+    Reading a comment however will return the empty list:
     >> stream = StringToStream["(* ::Package:: *)"];
 
     >> Read[stream, Hold[Expression]]
@@ -962,7 +972,6 @@ class Read(Builtin):
 
     """
 
-    summary_text = "read an object of the specified type from a stream"
     messages = {
         "openx": "`1` is not open.",
         "readf": "`1` is not a valid format specification.",
@@ -984,6 +993,7 @@ class Read(Builtin):
         "TokenWords": "{}",
         "WordSeparators": '{" ", "\t"}',
     }
+    summary_text = "read an object of the specified type from a stream"
 
     def check_options(self, options):
         # Options
@@ -1050,7 +1060,7 @@ class Read(Builtin):
 
         return result
 
-    def eval(self, channel, types, evaluation, options):
+    def eval(self, channel, types, evaluation: Evaluation, options: dict):
         "Read[channel_, types_, OptionsPattern[Read]]"
 
         name, n, stream = read_name_and_stream_from_channel(channel, evaluation)
@@ -1258,7 +1268,6 @@ class ReadList(Read):
     >> InputForm[%]
      = {123, abc}
     """
-    summary_text = "read a sequence of elements from a file, and put them in a WL list"
     rules = {
         "ReadList[stream_]": "ReadList[stream, Expression]",
     }
@@ -1270,8 +1279,9 @@ class ReadList(Read):
         "TokenWords": "{}",
         "WordSeparators": '{" ", "\t"}',
     }
+    summary_text = "read a sequence of elements from a file, and put them in a WL list"
 
-    def eval(self, channel, types, evaluation, options):
+    def eval(self, channel, types, evaluation: Evaluation, options: dict):
         "ReadList[channel_, types_, OptionsPattern[ReadList]]"
 
         # Options
@@ -1298,7 +1308,7 @@ class ReadList(Read):
             result.append(tmp)
         return from_python(result)
 
-    def eval_m(self, channel, types, m, evaluation, options):
+    def eval_m(self, channel, types, m, evaluation: Evaluation, options: dict):
         "ReadList[channel_, types_, m_, OptionsPattern[ReadList]]"
 
         # Options
@@ -1507,7 +1517,7 @@ class Skip(Read):
     }
     summary_text = "skip over an object of the specified type in an input stream"
 
-    def eval(self, name, n, types, m, evaluation, options):
+    def eval(self, name, n, types, m, evaluation: Evaluation, options: dict):
         "Skip[InputStream[name_, n_], types_, m_, OptionsPattern[Skip]]"
 
         channel = to_expression("InputStream", name, n)
@@ -1571,7 +1581,7 @@ class Find(Read):
     }
     summary_text = "find the next occurrence of a string"
 
-    def eval(self, name, n, text, evaluation, options):
+    def eval(self, name, n, text, evaluation: Evaluation, options: dict):
         "Find[InputStream[name_, n_], text_, OptionsPattern[Find]]"
 
         # Options
@@ -1686,7 +1696,7 @@ class Streams(Builtin):
     #> Streams[%[[1]]]
      = {OutputStream[...]}
 
-    #> Streams["some_nonexistant_name"]
+    #> Streams["some_nonexistent_name"]
      = {}
     """
 
@@ -1879,11 +1889,12 @@ class WriteString(Builtin):
             try:
                 result = result.boxes_to_text(evaluation=evaluation)
             except BoxError:
-                return evaluation.message(
+                evaluation.message(
                     "General",
                     "notboxes",
                     to_expression("FullForm", result).evaluate(evaluation),
                 )
+                return
             exprs.append(result)
         line = "".join(exprs)
         if type(stream) is BytesIO:
