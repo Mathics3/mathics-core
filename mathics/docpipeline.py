@@ -622,6 +622,7 @@ def main():
     # LoadModule Mathics3 modules
     if args.pymathics:
         for module_name in args.pymathics.split(","):
+            print("trying to load ", module_name)
             try:
                 eval_LoadModule(module_name, definitions)
             except PyMathicsLoadException:

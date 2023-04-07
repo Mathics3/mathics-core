@@ -452,7 +452,6 @@ class Documentation:
         Produce documentation for a "Part" - reference section or
         possibly Pymathics modules
         """
-
         builtin_part = self.doc_part_fn(self, title, is_reference=start)
         modules_seen = set([])
 
@@ -473,7 +472,14 @@ class Documentation:
             chapter = self.doc_chapter_fn(
                 builtin_part, title, self.doc_fn(text, title, None)
             )
-            builtins = builtins_by_module[module.__name__]
+
+            builtins = builtins_by_module.get(module.__name__, None)
+            if builtins is None:
+                builtins = []
+                for name, items in builtins_by_module.items():
+                    if name.startswith(module.__name__):
+                        builtins.extend(items)
+
             sections = [
                 builtin for builtin in builtins if not skip_doc(builtin.__class__)
             ]

@@ -614,6 +614,7 @@ class LaTeXDocTest(DocTest):
             )
 
         # Next output expression-result info.
+        print(result_dict)
         test_result_text = result_dict["result"]
         if test_result_text:  # is not None and result['result'].strip():
 
@@ -621,9 +622,9 @@ class LaTeXDocTest(DocTest):
             # number of we have seen so far. And add that as a comment too
             # Each asymptote output has a file name  with a number.
             if test_result_text.find("\\begin{asy}") >= 0:
-                global asy_count
-                asy_count += 1
-                text += f"  %% mathics-{asy_count}.asy\n"
+                global next_asy_number
+                next_asy_number += 1
+                text += f"  %% mathics-{next_asy_number}.asy\n"
             elif result_dict["form"] == "PNG":
                 text += "  \\includegraphics{%s}\n" % test_result_text
             else:
@@ -724,6 +725,7 @@ class LaTeXMathicsMainDocumentation(MathicsMainDocumentation):
         self.latex_file = settings.DOC_LATEX_FILE
         self.doc_fn = LaTeXDoc
         self.doc_guide_section_fn = LaTeXDocGuideSection
+        self.doc_chapter_fn = DocChapter
         self.doc_part_fn = LaTeXDocPart
         self.doc_section_fn = LaTeXDocSection
         self.doc_subsection_fn = LaTeXDocSubsection

@@ -41,6 +41,7 @@ from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.core.systemsymbols import SymbolExport, SymbolImage
 from mathics.doc.common_doc import sorted_chapters
 from mathics.doc.latex_doc import LaTeXDocTest, LaTeXMathicsMainDocumentation
+from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 from mathics.timing import show_lru_cache_statistics
 
 builtins = builtins_dict()
@@ -78,7 +79,7 @@ def format_expr(test: LaTeXDocTest, result: Result, evaluation: Evaluation):
         except:
             pass
 
-    result.result = expr.format(evaluation, "System`OutputForm")
+    # result.result = expr.format(evaluation, "System`OutputForm")
 
 
 class TestOutput(Output):
@@ -95,8 +96,7 @@ check_partial_elapsed_time = False
 logfile = None
 
 
-# MAX_TESTS = 100000  # Number than the total number of tests
-MAX_TESTS = 10  # Number than the total number of tests
+MAX_TESTS = 100000  # Number than the total number of tests
 
 
 def print_and_log(*args):
@@ -135,13 +135,7 @@ def test_case(test, tests, index=0, subindex=0, quiet=False, section=None) -> bo
     test, wanted_out, wanted = test.test, test.outs, test.result
 
     def fail(why):
-        print_and_log(
-            f"""{sep}
-{why}
-""".encode(
-                "utf-8"
-            )
-        )
+        print_and_log(f"""{sep}\n{why}""".encode("utf-8"))
         return False
 
     if not quiet:
@@ -590,7 +584,15 @@ def main():
         action="store_true",
         help="print cache statistics",
     )
-
+    parser.add_argument(
+        "--load-module",
+        "-l",
+        dest="pymathics",
+        metavar="MATHIC3-MODULES",
+        help="load Mathics3 module MATHICS3-MODULES. "
+        "You can list multiple Mathics3 Modules by adding a comma (and no space) in between "
+        "module names.",
+    )
     parser.add_argument(
         "--want-sorting",
         action="store_true",
@@ -607,6 +609,21 @@ def main():
 
     global documentation
     documentation = LaTeXMathicsMainDocumentation()
+
+    if args.pymathics:
+        for module_name in args.pymathics.split(","):
+            try:
+                eval_LoadModule(module_name, definitions)
+            except PyMathicsLoadException:
+                print(f"Python module {module_name} is not a Mathics3 module.")
+
+            except Exception as e:
+                print(f"Python import errors with: {e}.")
+            else:
+                print(f"Mathics3 Module {module_name} loaded")
+
+    documentation.gather_doctest_data()
+
     if args.sections:
         sections = set(args.sections.split(","))
         test_sections(
