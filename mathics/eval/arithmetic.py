@@ -2,7 +2,7 @@
 
 """
 helper functions for arithmetic evaluation, which do not
-depends on the evaluation context. Conversions to Sympy are
+depend on the evaluation context. Conversions to Sympy are
 used just as a last resource.
 """
 
@@ -357,7 +357,7 @@ def segregate_numbers_from_sorted_list(
 ) -> Tuple[List[Number], List[BaseElement]]:
     """
     From a list of elements, produce two lists, one with the numeric items
-    and the other with the remaining. Differently than `segregate_numbers`,
+    and the other with the remaining. Different from `segregate_numbers`,
     this function assumes that elements are sorted with the numbers at
     the begining.
     """
