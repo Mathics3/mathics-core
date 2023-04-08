@@ -18,17 +18,19 @@ from mathics.core.symbols import (
 
 LOG2_10 = mpmath.log(10.0, 2.0)  # ~ 3.3219280948873626
 
-# Number of digits in the mantisa of a normalized floatting point number:
-FP_MANTISA_BINARY_DIGITS = float_info.mant_dig  # ~53
+# Number of digits in the mantisa of a normalized floating-point number.
+# In Python as of 2023, almost all machines and platform map
+# Python floats to IEEEE-754 "double precision", which contains exactly
+# 53 bits of precision.
+# (See https://docs.python.org/3/tutorial/floatingpoint.html)
+FP_MANTISA_BINARY_DIGITS = float_info.mant_dig
 
-# the (integer) number of decimal digits hold by a
-# normalized floatting point number.
+# The (integer) number of decimal digits in a normalized floating-point number.
 MACHINE_DIGITS = float_info.dig  # ~15
 
-# the difference between 1. and the next
-# representable floatting point number:
+# The difference between 1.0 and the next representable floating-point number:
 MACHINE_EPSILON = float_info.epsilon
-# the number of accurate decimal digits hold by a normalized floatting point number.
+# the number of accurate decimal digits hold by a normalized floating point number.
 MACHINE_PRECISION_VALUE = float_info.mant_dig / LOG2_10
 
 
@@ -38,10 +40,10 @@ MAX_MACHINE_NUMBER = float_info.max
 #  Minimum positive normalized float
 MIN_MACHINE_NUMBER = float_info.min
 
-# the accuracy associated to 0.`
+# the accuracy associated with 0.`
 ZERO_MACHINE_ACCURACY = -mpmath.log(MIN_MACHINE_NUMBER, 10.0) + MACHINE_PRECISION_VALUE
 
-# the (integer) number of decimal digits needed to reconstruct a floatting point number.
+# the (integer) number of decimal digits needed to reconstruct a floating-point number.
 RECONSTRUCT_MACHINE_PRECISION_DIGITS = int(ceil(float_info.mant_dig / LOG2_10) + 1)
 
 
