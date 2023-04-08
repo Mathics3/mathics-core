@@ -339,7 +339,6 @@ def eval_multiply_numbers(*numbers: Number) -> BaseElement:
         return from_sympy(sympy.Mul(*(item.to_sympy() for item in numbers)))
 
 
-# TODO: Annotate me
 def segregate_numbers(
     *elements: BaseElement,
 ) -> Tuple[List[Number], List[BaseElement]]:
@@ -353,7 +352,14 @@ def segregate_numbers(
     return items[True], items[False]
 
 
-# TODO: Annotate me
+# Note: we return:
+#  Tuple[List[Number], List[BaseElement]]
+#             ^^^^^
+# But the mypy type checking system can't
+# look into the loop and its condition and
+# prove that the return type is List[Number].
+# So we use the weaker type assertion
+# which is the one on elements: List[BaseElement].
 def segregate_numbers_from_sorted_list(
     *elements: BaseElement,
 ) -> Tuple[List[BaseElement], List[BaseElement]]:
@@ -361,7 +367,7 @@ def segregate_numbers_from_sorted_list(
     From a list of elements, produce two lists, one with the numeric items
     and the other with the remaining. Different from `segregate_numbers`,
     this function assumes that elements are sorted with the numbers at
-    the begining.
+    the beginning.
     """
     for pos, element in enumerate(elements):
         if not isinstance(element, Number):
