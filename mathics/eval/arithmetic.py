@@ -35,25 +35,9 @@ from mathics.core.systemsymbols import SymbolComplexInfinity, SymbolIndeterminat
 RationalMOneHalf = Rational(-1, 2)
 
 
+# This cache might not be used that much.
+@lru_cache()
 def call_mpmath(
-    mpmath_function: Callable, mpmath_args: tuple, precision: Optional[int] = None
-) -> Optional[BaseElement]:
-    """A wrapper around ``call_mpmath_with_precision()`` which is defined below
-    below.
-
-    The parameter ``precision`` specifies the number bit of precsion
-    of the result.
-
-    If the parameter ``precision`` is not specified, IEEE-754 "double
-    precision" or (about 53 bits) is used.
-    """
-    if precision is None:
-        precision = FP_MANTISA_BINARY_DIGITS
-    return call_mpmath_with_precision(mpmath_function, mpmath_args, precision)
-
-
-@lru_cache(maxsize=4096)
-def call_mpmath_with_precision(
     mpmath_function: Callable, mpmath_args: tuple, precision: int
 ) -> Optional[BaseElement]:
     """
@@ -138,7 +122,7 @@ def eval_mpmath_function(
         if None in float_args:
             return
 
-        return call_mpmath(mpmath_function, tuple(float_args))
+        return call_mpmath(mpmath_function, tuple(float_args), FP_MANTISA_BINARY_DIGITS)
     else:
         with mpmath.workprec(prec):
             # to_mpmath seems to require that the precision is set from outside
