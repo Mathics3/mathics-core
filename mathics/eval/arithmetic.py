@@ -6,6 +6,7 @@ depend on the evaluation context. Conversions to Sympy are
 used just as a last resource.
 """
 
+from functools import lru_cache
 from typing import Callable, List, Optional, Tuple
 
 import mpmath
@@ -34,22 +35,23 @@ from mathics.core.systemsymbols import SymbolComplexInfinity, SymbolIndeterminat
 RationalMOneHalf = Rational(-1, 2)
 
 
-# @lru_cache(maxsize=4096)
+# This cache might not be used that much.
+@lru_cache()
 def call_mpmath(
-    mpmath_function: Callable, mpmath_args: tuple, prec: Optional[int] = None
-):
+    mpmath_function: Callable, mpmath_args: tuple, precision: int
+) -> Optional[BaseElement]:
     """
-    calls the mpmath_function with mpmath_args parms
-    if prec=None, use floating point arithmetic.
-    Otherwise, work with prec bits of precision.
+    A wrapper that calls
+       mpmath_function(mpmath_args *mpmathargs)
+    setting precision to the parameter ``precision``.
+
+    The result is cached.
     """
-    if prec is None:
-        prec = FP_MANTISA_BINARY_DIGITS
-    with mpmath.workprec(prec):
+    with mpmath.workprec(precision):
         try:
             result_mp = mpmath_function(*mpmath_args)
-            if prec != FP_MANTISA_BINARY_DIGITS:
-                return from_mpmath(result_mp, prec)
+            if precision != FP_MANTISA_BINARY_DIGITS:
+                return from_mpmath(result_mp, precision)
             return from_mpmath(result_mp)
         except ValueError as exc:
             text = str(exc)
@@ -120,7 +122,7 @@ def eval_mpmath_function(
         if None in float_args:
             return
 
-        return call_mpmath(mpmath_function, tuple(float_args))
+        return call_mpmath(mpmath_function, tuple(float_args), FP_MANTISA_BINARY_DIGITS)
     else:
         with mpmath.workprec(prec):
             # to_mpmath seems to require that the precision is set from outside
@@ -354,7 +356,7 @@ def segregate_numbers(
 # TODO: Annotate me
 def segregate_numbers_from_sorted_list(
     *elements: BaseElement,
-) -> Tuple[List[Number], List[BaseElement]]:
+) -> Tuple[List[BaseElement], List[BaseElement]]:
     """
     From a list of elements, produce two lists, one with the numeric items
     and the other with the remaining. Different from `segregate_numbers`,
