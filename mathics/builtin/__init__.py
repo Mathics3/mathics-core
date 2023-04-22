@@ -144,7 +144,20 @@ def name_is_builtin_symbol(module, name: str) -> Optional[type]:
         return None
 
     # Skip those builtins defined in or imported from another module.
-    if inspect.getmodule(module_object) is not module:
+
+    # rocky: I think this is a code smell. It doesn't feel like
+    # we should have to do this if things are organized and modularized
+    # well - builtins should have mostly top-level builtin function information,
+    # like doc definition, function attributes, rules, etc, and not
+    # lower-level things like Symbols, or helper funtions that would
+    # be imported. If the implementation of another builtins needs
+    # to call an eval method that would be found in mathics.eval;
+    # if a symbol is needed, that should be in mathics.core.systemsymbols.
+
+    # Pymathics modules, however, *should* import everything from __init__
+    if inspect.getmodule(
+        module_object
+    ) is not module and not module.__name__.startswith("pymathics."):
         return None
 
     # Skip objects in module mathics.builtin.base.
