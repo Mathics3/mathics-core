@@ -2128,7 +2128,8 @@ class Solve(Builtin):
     <url>:Equation solving:
     https://en.wikipedia.org/wiki/Equation_solving</url> (<url>
     :SymPy:
-    https://docs.sympy.org/latest/modules/solvers/solvers.html#module-sympy.solvers</url>, \
+    https://docs.sympy.org/latest/modules
+/solvers/solvers.html#module-sympy.solvers</url>, \
     <url>:WMA:
     https://reference.wolfram.com/language/ref/Solve.html</url>)
 
@@ -2137,7 +2138,8 @@ class Solve(Builtin):
       <dd>attempts to solve $equation$ for the variables $vars$.
 
       <dt>'Solve[$equation$, $vars$, $domain$]'
-      <dd>restricts variables to $domain$, which can be 'Complexes' or 'Reals' or 'Integers'.
+      <dd>restricts variables to $domain$, which can be 'Complexes' \
+         or 'Reals' or 'Integers'.
     </dl>
 
     >> Solve[x ^ 2 - 3 x == 4, x]
