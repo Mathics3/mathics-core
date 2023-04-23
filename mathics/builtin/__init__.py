@@ -147,14 +147,19 @@ def name_is_builtin_symbol(module, name: str) -> Optional[type]:
 
     # rocky: I think this is a code smell. It doesn't feel like
     # we should have to do this if things are organized and modularized
-    # well - builtins should have mostly top-level builtin function information,
-    # like doc definition, function attributes, rules, etc, and not
-    # lower-level things like Symbols, or helper funtions that would
-    # be imported. If the implementation of another builtins needs
-    # to call an eval method that would be found in mathics.eval;
-    # if a symbol is needed, that should be in mathics.core.systemsymbols.
+    # builtins and use less custom code.
+    # mmatera reports that we need this because of the interaction of
+    # * the custom Mathics3 loading/importing mechanism,
+    # * the builtin module hierarchy, e.g. mathics.builtin.arithmetic
+    #   nested under mathics.builtin, and
+    # * our custom doc/doctest and possibly custom checking system
 
-    # Pymathics modules, however, *should* import everything from __init__
+    # Mathics3 modules modules, however, right now import all builtin modules from
+    # __init__
+    # Note Mathics3 modules do not support buitin hierarchies, e.g.
+    # pymathics.graph.parametric is allowed but not pymathics.graph.parametric.xxx.
+    # This too has to do with the custom doc/doctest that is currently used.
+
     if inspect.getmodule(
         module_object
     ) is not module and not module.__name__.startswith("pymathics."):
