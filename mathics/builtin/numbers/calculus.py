@@ -1230,10 +1230,6 @@ class Limit(Builtin):
      = Infinity
     >> Limit[1/x, x->0, Direction->1]
      = -Infinity
-
-    #> Limit[x, x -> x0, Direction -> x]
-     : Value of Direction -> x should be -1 or 1.
-     = Limit[x, x -> x0, Direction -> x]
     """
 
     """
