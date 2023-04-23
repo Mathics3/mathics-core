@@ -1296,10 +1296,12 @@ class NIntegrate(Builtin):
 
     <dl>
        <dt>'NIntegrate[$expr$, $interval$]'
-       <dd>returns a numeric approximation to the definite integral of $expr$ with limits $interval$ and with a precision of $prec$ digits.
+       <dd>returns a numeric approximation to the definite integral of $expr$ with \
+           limits $interval$ and with a precision of $prec$ digits.
 
         <dt>'NIntegrate[$expr$, $interval1$, $interval2$, ...]'
-        <dd>returns a numeric approximation to the multiple integral of $expr$ with limits $interval1$, $interval2$ and with a precision of $prec$ digits.
+        <dd>returns a numeric approximation to the multiple integral of $expr$ with \
+            limits $interval1$, $interval2$ and with a precision of $prec$ digits.
     </dl>
 
     >> NIntegrate[Exp[-x],{x,0,Infinity},Tolerance->1*^-6, Method->"Internal"]

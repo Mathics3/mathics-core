@@ -1,1 +1,3 @@
-# -*- coding: utf-8 -*-
+"""
+Test of builtin functions in mathics.builtin.arithmetic
+"""
