@@ -265,7 +265,7 @@ class BuiltinRule(BaseRule):
         # In order to store a method of a Builtin class,
         # the "function" key is removed, and instead, a tuple
         # ("class_name", "method_name") is stored in the key
-        # `"function_"`. 
+        # `"function_"`.
         # Then, `__setstate__` can reconstruct the "function"
         # value from these names.
         if hasattr(self.function, "__self__"):
