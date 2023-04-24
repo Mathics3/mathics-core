@@ -367,7 +367,11 @@ Please contribute to Mathics!""",
     if args.show_statistics:
         atexit.register(show_lru_cache_statistics)
 
-    definitions = Definitions(add_builtin=True, extension_modules=extension_modules)
+    definitions = Definitions(
+        add_builtin=True,
+        extension_modules=extension_modules,
+        builtin_filename=get_srcdir() + "/builtins.pkl",
+    )
     definitions.set_line_no(0)
 
     shell = TerminalShell(

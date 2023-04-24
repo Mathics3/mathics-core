@@ -32,6 +32,11 @@ from mathics.timing import show_lru_cache_statistics
 builtins = builtins_dict()
 
 
+def get_srcdir():
+    filename = osp.normcase(osp.dirname(osp.abspath(__file__)))
+    return osp.realpath(filename)
+
+
 class TestOutput(Output):
     def max_stored_size(self, settings):
         return None
@@ -478,7 +483,10 @@ def main():
     global definitions
     global logfile
     global check_partial_elapsed_time
-    definitions = Definitions(add_builtin=True)
+
+    definitions = Definitions(
+        add_builtin=True, builtin_filename=get_srcdir() + "/builtins.pkl"
+    )
 
     parser = ArgumentParser(description="Mathics test suite.", add_help=False)
     parser.add_argument(
