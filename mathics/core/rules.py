@@ -259,31 +259,9 @@ class BuiltinRule(BaseRule):
 
     def __getstate__(self):
         odict = self.__dict__.copy()
-        # The attribute self.function stores the eval_ method
-        # associated to the rule, or an `UnavalableFunction` callable if
-        # the method requires a library that is not available.
-        # In order to store a method of a Builtin class,
-        # the "function" key is removed, and instead, a tuple
-        # ("class_name", "method_name") is stored in the key
-        # `"function_"`.
-        # Then, `__setstate__` can reconstruct the "function"
-        # value from these names.
-        if hasattr(self.function, "__self__"):
-            odict["function_"] = (
-                self.function.__self__.get_name(),
-                self.function.__name__,
-            )
-            del odict["function"]
         return odict
 
     def __setstate__(self, dict):
         from mathics.builtin import _builtins
 
         self.__dict__.update(dict)  # update attributes
-        # If "function_=(class_name, name)" is provided,
-        # then store the method, then store the method
-        # name of the builtin class class_name as the
-        # replacement function.
-        if "function_" in dict:
-            class_name, name = dict["function_"]
-            self.function = getattr(_builtins[class_name], name)
