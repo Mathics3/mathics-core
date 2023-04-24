@@ -1232,12 +1232,6 @@ class Limit(Builtin):
      = -Infinity
     """
 
-    """
-    The following test is currently causing PyPy to segfault...
-     #> Limit[(1 + cos[x]) / x, x -> 0]
-     = Limit[(1 + cos[x]) / x, x -> 0]
-    """
-
     attributes = A_LISTABLE | A_PROTECTED
 
     messages = {
