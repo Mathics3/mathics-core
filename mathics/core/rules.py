@@ -259,14 +259,25 @@ class BuiltinRule(BaseRule):
 
     def __getstate__(self):
         odict = self.__dict__.copy()
-        del odict["function"]
-        odict["function_"] = (self.function.__self__.get_name(), self.function.__name__)
+        # If function is a method of a builtin class
+        # store the name of the class and the name
+        # of the method instead of the callable.
+        if hasattr(self.function, "__self__"):
+            odict["function_"] = (
+                self.function.__self__.get_name(),
+                self.function.__name__,
+            )
+            del odict["function"]
         return odict
 
     def __setstate__(self, dict):
         from mathics.builtin import _builtins
 
         self.__dict__.update(dict)  # update attributes
-        class_name, name = dict["function_"]
-
-        self.function = getattr(_builtins[class_name], name)
+        # If "function_=(class_name, name)" is provided,
+        # then store the method, then store the method
+        # name of the builtin class class_name as the
+        # replacement function.
+        if "function_" in dict:
+            class_name, name = dict["function_"]
+            self.function = getattr(_builtins[class_name], name)

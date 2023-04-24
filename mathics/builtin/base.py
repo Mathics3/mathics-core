@@ -58,6 +58,51 @@ from mathics.eval.scoping import dynamic_scoping
 no_doc = True
 
 
+class DefaultOptionChecker:
+    """
+    Callable used to check options
+    """
+
+    def __init__(self, builtin, options, strict):
+        self.name = builtin.get_name()
+        self.strict = strict
+        self.options = options
+
+    def __call__(self, options_to_check, evaluation):
+        option_name = self.name
+        options = self.options
+        strict = self.strict
+
+        for key, value in options_to_check.items():
+            short_key = strip_context(key)
+            if not has_option(options, short_key, evaluation):
+                evaluation.message(
+                    option_name,
+                    "optx",
+                    Expression(SymbolRule, String(short_key), value),
+                    strip_context(option_name),
+                )
+                if strict:
+                    return False
+        return True
+
+
+class UnavailableFunction:
+    """
+    Callable used when the evaluation function is not available
+    """
+
+    def __init__(self, builtin):
+        self.name = builtin.get_name()
+
+    def __call__(self, **kwargs):
+        kwargs["evaluation"].message(
+            "General",
+            "pyimport",  # see inout.py
+            strip_context(self.name),
+        )
+
+
 def check_requires_list(requires: list) -> bool:
     """
     Check if module names in ``requires`` can be imported and return True if they can or False if not.
@@ -240,23 +285,10 @@ class Builtin:
         # in your Builtin's 'options', you can specify the exact behaviour
         # using one of the following values:
 
-        if option_syntax in ("Strict", "Warn", "System`Strict", "System`Warn"):
-
-            def check_options(options_to_check, evaluation):
-                option_name = self.get_name()
-                for key, value in options_to_check.items():
-                    short_key = strip_context(key)
-                    if not has_option(options, short_key, evaluation):
-                        evaluation.message(
-                            option_name,
-                            "optx",
-                            Expression(SymbolRule, String(short_key), value),
-                            strip_context(option_name),
-                        )
-                        if option_syntax in ("Strict", "System`Strict"):
-                            return False
-                return True
-
+        if option_syntax in ("Strict", "System`Strict"):
+            check_options = DefaultOptionChecker(self, options, True)
+        elif option_syntax in ("Warn", "System`Warn"):
+            check_options = DefaultOptionChecker(self, options, False)
         elif option_syntax in ("Ignore", "System`Ignore"):
             check_options = None
         else:
@@ -452,16 +484,8 @@ class Builtin:
         returns a default function that override the ``eval_`` methods
         of the class. Otherwise, returns ``None``.
         """
-
-        def eval_unavailable(**kwargs):  # will override apply method
-            kwargs["evaluation"].message(
-                "General",
-                "pyimport",  # see inout.py
-                strip_context(self.get_name()),
-            )
-
         requires = getattr(self, "requires", [])
-        return None if check_requires_list(requires) else eval_unavailable
+        return None if check_requires_list(requires) else UnavailableFunction(self)
 
     def get_option_string(self, *params):
         s = self.get_option(*params)

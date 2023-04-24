@@ -28,7 +28,8 @@ Bugs
 ----
 
 * Improved support for ``DirectedInfinity`` and ``Indeterminate``.
-
+* Now `Definitions` is compatible with `pickle`.
+  
 
 6.0.1
 -----
