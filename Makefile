@@ -109,6 +109,7 @@ clean: clean-cython clean-cache
 	for dir in mathics/doc ; do \
 	   ($(MAKE) -C "$$dir" clean); \
 	done; \
+	rm -f mathics/builtins.pkl;\
 	rm -f factorials || true; \
 	rm -f mathics/data/op-tables || true; \
 	rm -rf build || true
