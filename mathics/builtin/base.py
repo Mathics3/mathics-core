@@ -227,6 +227,11 @@ class Builtin:
     options: Dict[str, Any] = {}
     defaults = {}
 
+    def __getnewargs_ex__(self):
+        return tuple(), {
+            "expression": False,
+        }
+
     def __new__(cls, *args, **kwargs):
         # comment @mmatera:
         # The goal of this method is to allow to build expressions
