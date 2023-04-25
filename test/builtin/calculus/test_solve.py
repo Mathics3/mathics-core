@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-Unit tests from builtins ... calculus.py
+Unit tests for mathics.builtins.arithmetic.Solve
 """
 
-from .helper import check_evaluation, session
+from test.helper import check_evaluation, session
 
 
-def test_calculus():
+def test_solve():
     for str_expr, str_expected, message in (
         (
             "Solve[{(7+x)*ma == 167, (5+x)*mb == 167, (7+5)*(ma+mb) == 334}, {ma, mb, x}]",
