@@ -83,18 +83,23 @@ def autoload_files(
 
 
 class Definitions:
-    """
-    The state of one instance of the Mathics interpreter is stored in this object.
+    """The state of one instance of the Mathics3 interpreter is stored in this object.
 
-    The state is then stored as ``Definition`` object of the different symbols defined during the runtime.
+    The state is then stored as ``Definition`` object of the different
+    symbols defined during the runtime.
 
-    In the current implementation, the ``Definitions`` object stores ``Definition`` s in four dictionaries:
+    In the current implementation, the ``Definitions`` object stores
+    ``Definition`` s in four dictionaries:
 
     - builtins: stores the definitions of the ``Builtin`` symbols
-    - pymathics: stores the definitions of the ``Builtin`` symbols added from pymathics modules.
+    - pymathics: stores the definitions of the ``Builtin`` symbols added from pymathics
+      modules.
     - user: stores the definitions created during the runtime.
-    - definition_cache: keep definitions obtained by merging builtins, pymathics, and user definitions associated to the
-     same symbol.
+    - definition_cache: keep definitions obtained by merging builtins, pymathics, and
+      user definitions associated to the same symbol.
+
+    Note: we want Rules to be serializable so that we can dump and
+    restore Rules in order to make startup time faster.
     """
 
     def __init__(
@@ -160,20 +165,29 @@ class Definitions:
             autoload_files(self, ROOT_DIR, "autoload")
 
     def clear_cache(self, name=None):
-        # the definitions cache (self.definitions_cache) caches (incomplete and complete) names -> Definition(),
-        # e.g. "xy" -> d and "MyContext`xy" -> d. we need to clear this cache if a Definition() changes (which
-        # would happen if a Definition is combined from a builtin and a user definition and some content in the
-        # user definition is updated) or if the lookup rules change, and we could end up at a completely different
+        # The definitions cache (self.definitions_cache) caches
+        # (incomplete and complete) names -> Definition(), e.g. "xy"
+        # -> d and "MyContext`xy" -> d. we need to clear this cache if
+        # a Definition() changes (which would happen if a Definition
+        # is combined from a builtin and a user definition and some
+        # content in the user definition is updated) or if the lookup
+        # rules change, and we could end up at a completely different
         # Definition.
 
-        # the lookup cache (self.lookup_cache) caches what lookup_name() does. we only need to update this if some
-        # change happens that might change the result lookup_name() calculates. we do not need to change it if a
-        # Definition() changes.
+        # The lookup cache (self.lookup_cache) caches what
+        # lookup_name() does. we only need to update this if some
+        # change happens that might change the result lookup_name()
+        # calculates. we do not need to change it if a Definition()
+        # changes.
 
-        # self.proxy keeps track of all the names we cache. if we need to clear the caches for only one name, e.g.
-        # 'MySymbol', then we need to be able to look up all the entries that might be related to it, e.g. 'MySymbol',
-        # 'A`MySymbol', 'C`A`MySymbol', and so on. proxy identifies symbols using their stripped name and thus might
-        # give us symbols in other contexts that are actually not affected. still, this is a safe solution.
+        # self.proxy keeps track of all the names we cache. if we need
+        # to clear the caches for only one name, e.g.  'MySymbol',
+        # then we need to be able to look up all the entries that
+        # might be related to it, e.g. 'MySymbol', 'A`MySymbol',
+        # 'C`A`MySymbol', and so on. proxy identifies symbols using
+        # their stripped name and thus might give us symbols in other
+        # contexts that are actually not affected. still, this is a
+        # safe solution.
 
         if name is None:
             self.definitions_cache = {}

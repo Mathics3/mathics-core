@@ -1,4 +1,4 @@
-from test.helper import check_evaluation, evaluate_value
+from test.helper import check_evaluation
 
 import pytest
 
@@ -7,7 +7,7 @@ In WL, pattern matching and rule application is dependent on the evaluation cont
 This happens at two levels. On the one hand, patterns like `PatternTest[pat, test]`
 matches with `expr` depending both on the `pat` and the result of the evaluation of `test`.
 
-On the other hand, attributes like `Orderless` or `Flat` in the head of the pattern 
+On the other hand, attributes like `Orderless` or `Flat` in the head of the pattern
 also affects how patterns are applied to expressions. However, in WMA, the effect
 of these parameters are established in the point in which a rule is created, and not
 when it is applied.
@@ -28,20 +28,24 @@ Out[2]= True
 because it ignores that the attribute is clean at the time in which the rule is applied.
 
 
-In Mathics, on the other hand, attributes are taken into accout just at the moment of the replacement, 
-so the output of both expressions are the opposite.
+In Mathics, on the other hand, attributes are taken into accout just
+at the moment of the replacement, so the output of both expressions
+are the opposite.
 
 
-This set of tests are proposed to drive the behaviour of Rules in Mathics closer to the one in WMA.
-In particular, the way in which `Orderless` and `Flat` attributes affects evaluation are currently tested.
+This set of tests are proposed to drive the behaviour of Rules in
+Mathics closer to the one in WMA.  In particular, the way in which
+`Orderless` and `Flat` attributes affects evaluation are currently
+tested.
 
-For the case of `Flat`, there is still another issue in Mathics, since by not it is not taken into account
-at the pattern matching level. For example, in WMA,
+For the case of `Flat`, there is still another issue in Mathics, since
+by not it is not taken into account at the pattern matching level. For
+example, in WMA,
 
 ```
 In[3]:=SetAttributes[Q,{Flat}]; rule=Q[a,_Integer]->True; Q[a,1,b]/.rule
 Out[3]=Q[True, b]
-``` 
+```
 
 The xfail mark can be removed once these issues get fixed.
 """

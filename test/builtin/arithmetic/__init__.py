@@ -1,3 +1,1 @@
-"""
-Test of builtin functions in mathics.builtin.arithmetic
-"""
+"""Unit tests for test.builtin.arithmetic"""
