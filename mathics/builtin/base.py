@@ -60,10 +60,16 @@ no_doc = True
 
 class DefaultOptionChecker:
     """
-    Callable used to check options
+    Callable class that is used in checking that options are valid.
+
+    If initialized with ``strict`` set to True,
+    then a instantance calls will return True only if all
+    options listed in ``options_to_check`` are in the constructor's
+    list of options. In either case, when an option is not in the
+    constructor list, give an "optx" message.
     """
 
-    def __init__(self, builtin, options, strict):
+    def __init__(self, builtin, options, strict: bool):
         self.name = builtin.get_name()
         self.strict = strict
         self.options = options
@@ -89,7 +95,7 @@ class DefaultOptionChecker:
 
 class UnavailableFunction:
     """
-    Callable used when the evaluation function is not available
+    Callable class used when the evaluation function is not available.
     """
 
     def __init__(self, builtin):
@@ -98,14 +104,16 @@ class UnavailableFunction:
     def __call__(self, **kwargs):
         kwargs["evaluation"].message(
             "General",
-            "pyimport",  # see inout.py
+            "pyimport",  # see messages.py for error message definition
             strip_context(self.name),
         )
 
 
 def check_requires_list(requires: list) -> bool:
     """
-    Check if module names in ``requires`` can be imported and return True if they can or False if not.
+    Check if module names in ``requires`` can be imported and return
+    True if they can, or False if not.
+
     """
     for package in requires:
         lib_is_installed = True
@@ -149,8 +157,9 @@ mathics_to_python = {}  # here we have: name -> string
 
 class Builtin:
     """
-    A base class for a Built-in function symbols, like List, or variables, like $SystemID,
-    and Built-in Objects, like DateTimeObject.
+    A base class for a Built-in function symbols, like List, or
+    variables, like $SystemID, and Built-in Objects, like
+    DateTimeObject.
 
     Some of the class variables of the Builtin object are used to
     create a definition object for that built-in symbol.  In particular,
@@ -160,8 +169,9 @@ class Builtin:
     Function application pattern matching
     -------------------------------------
 
-    Method names of a builtin-class that start with the word ``eval`` are evaluation methods that
-    will get called when the docstring of that method matches the expression to be evaluated.
+    Method names of a builtin-class that start with the word ``eval``
+    are evaluation methods that will get called when the docstring of
+    that method matches the expression to be evaluated.
 
     For example:
 
@@ -171,7 +181,8 @@ class Builtin:
              return Expression(Symbol("G"), x*2)
     ```
 
-    adds a ``BuiltinRule`` to the symbol's definition object that implements ``F[x_]->G[x*2]``.
+    adds a ``BuiltinRule`` to the symbol's definition object that implements
+    ``F[x_]->G[x*2]``.
 
     As shown in the example above, leading argument names of the
     function are the arguments mentioned in the names given up to the
@@ -179,7 +190,8 @@ class Builtin:
     ``x``. The method must also have an evaluation parameter, and may
     have an optional `options` parameter.
 
-    If the ``eval*`` method returns ``None``, the replacement fails, and the expression keeps its original form.
+    If the ``eval*`` method returns ``None``, the replacement fails,
+    and the expression keeps its original form.
 
     For rules including ``OptionsPattern``
     ```
@@ -187,20 +199,27 @@ class Builtin:
              '''F[x_Real, OptionsPattern[]]'''
              ...
     ```
-    the options are stored as a dictionary in the last parameter. For example, if the rule is applied to ``F[x, Method->Automatic]``
-    the expression is replaced by the output of ``eval_with_options(x, evaluation, {"System`Method": Symbol("Automatic")})
 
-    The method ``contribute`` stores the definition of the  ``Builtin`` ` `Symbol`` into a set of ``Definitions``. For example,
+    the options are stored as a dictionary in the last parameter. For
+    example, if the rule is applied to ``F[x, Method->Automatic]`` the
+    expression is replaced by the output of ``eval_with_options(x,
+    evaluation, {"System`Method": Symbol("Automatic")})
+
+    The method ``contribute`` stores the definition of the ``Builtin``
+    ` `Symbol`` into a set of ``Definitions``. For example,
 
     ```
     definitions = Definitions(add_builtin=False)
     List(expression=False).contribute(definitions)
     ```
-    produces a ``Definitions`` object with just one definition, for the ``Symbol`` ``System`List``.
 
-    Notice that for creating a Builtin, we must pass to the constructor the option ``expression=False``. Otherwise,
-    an Expression object is created, with the ``Symbol`` associated to the definition as the ``Head``.
-    For example,
+    produces a ``Definitions`` object with just one definition, for
+    the ``Symbol`` ``System`List``.
+
+    Notice that for creating a Builtin, we must pass to the
+    constructor the option ``expression=False``. Otherwise, an
+    Expression object is created, with the ``Symbol`` associated to
+    the definition as the ``Head``.  For example,
 
     ```
     builtinlist = List(expression=False)
@@ -214,6 +233,7 @@ class Builtin:
     ```
     expr_list = ListExpression(Integer(1), Integer(2), Integer(3))
     ```
+
     """
 
     name: Optional[str] = None
@@ -285,10 +305,11 @@ class Builtin:
                 if option not in definitions.builtin:
                     definitions.builtin[option] = Definition(name=name)
 
-        # Check if the given options are actually supported by the Builtin.
-        # If not, we might issue an optx error and abort. Using '$OptionSyntax'
-        # in your Builtin's 'options', you can specify the exact behaviour
-        # using one of the following values:
+        # Check if the given options are actually supported by the
+        # Builtin.  If not, we might issue an "optx" error and
+        # abort. Using '$OptionSyntax' in your Builtin's 'options',
+        # you can specify the exact behaviour using one of the
+        # following values:
 
         if option_syntax in ("Strict", "System`Strict"):
             check_options = DefaultOptionChecker(self, options, True)
@@ -335,15 +356,18 @@ class Builtin:
                     new_rules.append(rule)
             rules = new_rules
 
-        def extract_forms(name, pattern):
-            # Handle a tuple of (forms, pattern) as well as a pattern
-            # on the left-hand side of a format rule. 'forms' can be
-            # an empty string (=> the rule applies to all forms), or a
-            # form name (like 'System`TraditionalForm'), or a sequence
-            # of form names.
+        def extract_forms(pattern):
+            """Handle a tuple of (forms, pattern) as well as a pattern
+            on the left-hand side of a format rule. 'forms' can be
+            an empty string (=> the rule applies to all forms), or a
+            form name (like 'System`TraditionalForm'), or a sequence
+            of form names.
+            """
+
             def contextify_form_name(f):
-                # Handle adding 'System`' to a form name, unless it's
-                # '' (meaning the rule applies to all forms).
+                """Handle adding 'System`' to a form name, unless it's
+                ' (meaning the rule applies to all forms).
+                """
                 return "" if f == "" else ensure_context(f)
 
             if isinstance(pattern, tuple):
@@ -358,7 +382,7 @@ class Builtin:
 
         formatvalues = {"": []}
         for pattern, function in self.get_functions("format_"):
-            forms, pattern = extract_forms(name, pattern)
+            forms, pattern = extract_forms(pattern)
             for form in forms:
                 if form not in formatvalues:
                     formatvalues[form] = []
@@ -366,7 +390,7 @@ class Builtin:
                     BuiltinRule(name, pattern, function, None, system=True)
                 )
         for pattern, replace in self.formats.items():
-            forms, pattern = extract_forms(name, pattern)
+            forms, pattern = extract_forms(pattern)
             for form in forms:
                 if form not in formatvalues:
                     formatvalues[form] = []
@@ -1036,7 +1060,7 @@ class CountableInteger:
     _integer: Union[str, int]
     _support_infinity = False
 
-    def __init__(self, value="Infinity", upper_limit=True):
+    def __init__(self, value: Union[int, str] = "Infinity", upper_limit=True):
         self._finite = value != "Infinity"
         if self._finite:
             assert isinstance(value, int) and value >= 0
