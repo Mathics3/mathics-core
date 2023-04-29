@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Unit tests for mathics.builtins.calculus.Solve
-
+Unit tests for mathics.builtins.arithmetic.Solve
 """
 
 from test.helper import check_evaluation, session
