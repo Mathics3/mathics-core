@@ -83,7 +83,7 @@ class ListExpression(Expression):
 
     def __str__(self) -> str:
         """str() representation of ListExpression. May be longer than repr()"""
-        return f"<ListExpression: {self._elements}>"
+        return "{" + ",".join(str(e) for e in self.elements) + "}"
 
     # @timeit
     def evaluate_elements(self, evaluation: Evaluation) -> Expression:
