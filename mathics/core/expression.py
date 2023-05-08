@@ -245,16 +245,16 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     def __repr__(self) -> str:
         return "<Expression: %s[%s]>" % (
-            self._head.__repr__(),
-            ", ".join([element.__repr__() for element in self._elements]),
+            repr(self.head),
+            ", ".join([repr(element) for element in self.elements]),
         )
 
         return "<Expression: %s>" % self
 
     def __str__(self) -> str:
         return "%s[%s]" % (
-            self._head.__str__(),
-            ", ".join([element.__str__() for element in self._elements]),
+            str(self.head),
+            ", ".join([str(element) for element in self.elements]),
         )
 
     def _as_sympy_function(self, **kwargs) -> sympy.Function:
