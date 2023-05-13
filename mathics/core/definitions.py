@@ -50,6 +50,7 @@ def autoload_files(
     """
     Load Mathics code from the autoload-folder files.
     """
+    return
     from mathics.core.evaluation import Evaluation
 
     for root, dirs, files in os.walk(osp_join(root_dir_path, autoload_dir)):

@@ -45,7 +45,7 @@ from mathics.version import __version__  # noqa used in loading to check consist
 # files with leading characters we don't want like __init__ with its leading underscore.
 __py_files__ = [
     osp.basename(f[0:-3])
-    for f in glob.glob(osp.join(osp.dirname(__file__), "[a-z]*.py"))
+    for f in glob.glob(osp.join(osp.dirname(__file__), "[imp]*.py"))
 ]
 
 
@@ -200,31 +200,31 @@ builtins_by_module = {}
 
 disable_file_module_names = [] if ENABLE_FILES_MODULE else ["files_io"]
 
-for subdir in (
-    "arithfns",
-    "assignments",
-    "atomic",
-    "binary",
-    "box",
-    "colors",
-    "distance",
-    "drawing",
-    "exp_structure",
-    "fileformats",
-    "files_io",
-    "forms",
-    "functional",
-    "image",
-    "intfns",
-    "list",
-    "matrices",
-    "numbers",
-    "quantum_mechanics",
-    "specialfns",
-    "statistics",
-    "string",
-    "testing_expressions",
-    "vectors",
+for subdir in tuple(
+    # "arithfns",
+    # "assignments",
+    # "atomic",
+    # "binary",
+    # "box",
+    # "colors",
+    # "distance",
+    # "drawing",
+    # "exp_structure",
+    # "fileformats",
+    # "files_io",
+    # "forms",
+    # "functional",
+    # "image",
+    # "intfns",
+    # "list",
+    # "matrices",
+    # "numbers",
+    # "quantum_mechanics",
+    # "specialfns",
+    # "statistics",
+    # "string",
+    # "testing_expressions",
+    # "vectors",
 ):
     import_name = f"{__name__}.{subdir}"
 
