@@ -8,7 +8,7 @@ import re
 import unicodedata
 from binascii import hexlify, unhexlify
 from heapq import heappop, heappush
-from typing import Any, List
+from typing import Any, List, Optional
 
 from mathics_scanner import TranslateError
 
@@ -187,9 +187,15 @@ def _pattern_search(name, string, patt, evaluation, options, matched):
         return _search(re_patts, py_s, flags, matched)
 
 
+# FIXME
+# For 3.11, global options in a regexp must appear
+# at the beginning and not inside a group.
+# To support this, we need split out into such global flags.
+# in particular re.IGNORECASE (?i), and re.ASCII (?u).
+# These then are added at result string at the end just before return.
 def to_regex(
     expr, evaluation, q=_regex_longest, groups=None, abbreviated_patterns=False
-):
+) -> Optional[str]:
     if expr is None:
         return None
 
