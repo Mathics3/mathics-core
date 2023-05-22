@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-from .helper import check_evaluation
+"""
+Second part of test_strings.py
+"""
+from test.helper import check_evaluation
 
 
 def test_string_matchq():
@@ -28,6 +31,7 @@ def test_digitq():
         check_evaluation(str_expr, str_expected)
 
 
+# FIXME: write a separate test for mathics.eval.strings
 def test_string_split():
     for str_expr, str_expected in (
         ('StringSplit["a bbb  cccc aa   d"]', "{a, bbb, cccc, aa, d}"),

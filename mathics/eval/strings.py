@@ -1,14 +1,31 @@
+"""
+String-related evaluation functions.
+"""
 import re
 import sys
 from binascii import hexlify
-from typing import Optional
+from typing import Optional, Tuple
 
 from mathics.core.atoms import String
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolBlank
+from mathics.core.systemsymbols import (
+    SymbolBlank,
+    SymbolDigitCharacter,
+    SymbolEndOfLine,
+    SymbolEndOfString,
+    SymbolHexadecimalCharacter,
+    SymbolLetterCharacter,
+    SymbolNumberString,
+    SymbolStartOfLine,
+    SymbolStartOfString,
+    SymbolWhitespace,
+    SymbolWhitespaceCharacter,
+    SymbolWordBoundary,
+    SymbolWordCharacter,
+)
 from mathics.eval.makeboxes import format_element
 
 _regex_longest = {
@@ -19,6 +36,22 @@ _regex_longest = {
 _regex_shortest = {
     "+": "+?",
     "*": "*?",
+}
+
+# Regular expressions for various symbols
+REGEXP_FOR_SYMBOLS = {
+    SymbolNumberString: r"[-|+]?(\d+(\.\d*)?|\.\d+)?",
+    SymbolWhitespace: r"\s+",
+    SymbolDigitCharacter: r"\d",
+    SymbolWhitespaceCharacter: r"\s",
+    SymbolWordCharacter: r"[^\W_]",
+    SymbolStartOfLine: r"^",
+    SymbolEndOfLine: r"$",
+    SymbolStartOfString: r"\A",
+    SymbolEndOfString: r"\Z",
+    SymbolWordBoundary: r"\b",
+    SymbolLetterCharacter: r"[^\W_0-9]",
+    SymbolHexadecimalCharacter: r"[0-9a-fA-F]",
 }
 
 
@@ -58,8 +91,46 @@ def to_regex(
     if groups is None:
         groups = {}
 
-    def recurse(x, quantifiers=q):
-        return to_regex(x, evaluation, q=quantifiers, groups=groups)
+    result, global_re_options = to_regex_internal(
+        expr, evaluation, q, groups, abbreviated_patterns, global_re_options=""
+    )
+    if result is None:
+        return None
+
+    # FIXME: we probably want global_re_options to be flag values
+    # which we then convert into a string. This is cleaner and
+    # it ensures we set a global re flag only once.
+    return global_re_options + result
+
+
+# FIXME: fix up to actually set global_re_option flags.
+def to_regex_internal(
+    expr: Expression,
+    evaluation: Evaluation,
+    q,
+    groups,
+    abbreviated_patterns,
+    global_re_options: str,
+) -> Tuple[Optional[str], str]:
+    """
+    Internal recursive routine to for to_regex_internal.
+    From to_regex,  values have been initialized.
+    (None, "") is returned if there is an error of some sort.
+    """
+
+    def recurse(x: Expression, quantifiers=q) -> Tuple[Optional[str], str]:
+        """
+        Shortend way to call to_regexp_internal -
+        on the expr and quantifiers change here.
+        """
+        return to_regex_internal(
+            expr=x,
+            evaluation=evaluation,
+            q=quantifiers,
+            groups=groups,
+            abbreviated_patterns=abbreviated_patterns,
+            global_re_options=global_re_options,
+        )
 
     if isinstance(expr, String):
         result = expr.get_string_value()
@@ -90,19 +161,19 @@ def to_regex(
             result = "".join(pieces)
         else:
             result = re.escape(result)
-        return result
+        return result, global_re_options
 
     if expr.has_form("RegularExpression", 1):
         regex = expr.elements[0].get_string_value()
         if regex is None:
-            return regex
+            return regex, global_re_options
         try:
             re.compile(regex)
             # Don't return the compiled regex because it may need to composed
             # further e.g. StringExpression["abc", RegularExpression[regex2]].
-            return regex
+            return regex, global_re_options
         except re.error:
-            return None  # invalid regex
+            return None, ""  # invalid regex
 
     if isinstance(expr, Symbol):
         return {
@@ -123,14 +194,17 @@ def to_regex(
     if expr.has_form("CharacterRange", 2):
         (start, stop) = (element.get_string_value() for element in expr.elements)
         if all(x is not None and len(x) == 1 for x in (start, stop)):
-            return "[{0}-{1}]".format(re.escape(start), re.escape(stop))
+            return (
+                "[{0}-{1}]".format(re.escape(start), re.escape(stop)),
+                global_re_options,
+            )
 
     if expr.has_form("Blank", 0):
-        return r"(.|\n)"
+        return r"(.|\n)", global_re_options
     if expr.has_form("BlankSequence", 0):
-        return r"(.|\n)" + q["+"]
+        return r"(.|\n)" + q["+"], global_re_options
     if expr.has_form("BlankNullSequence", 0):
-        return r"(.|\n)" + q["*"]
+        return r"(.|\n)" + q["*"], global_re_options
     if expr.has_form("Except", 1, 2):
         if len(expr.elements) == 1:
             # TODO: Check if this shouldn't be SymbolBlank
@@ -140,28 +214,35 @@ def to_regex(
             elements = [expr.elements[0], expr.elements[1]]
         elements = [recurse(element) for element in elements]
         if all(element is not None for element in elements):
-            return "(?!{0}){1}".format(*elements)
+            regexp = [element[0] for element in elements]
+            global_re_options += "".join(element[1] for element in elements)
+            return "(?!{0}){1}".format(*regexp), global_re_options
     if expr.has_form("Characters", 1):
         element = expr.elements[0].get_string_value()
         if element is not None:
-            return "[{0}]".format(re.escape(element))
+            return "[{0}]".format(re.escape(element)), global_re_options
     if expr.has_form("StringExpression", None):
         elements = [recurse(element) for element in expr.elements]
-        if None in elements:
-            return None
-        return "".join(elements)
+        if (None, "") in elements:
+            return None, ""
+        regexp_str = "".join(element[0] for element in elements)
+        global_re_options += "".join(element[1] for element in elements)
+        return regexp_str, global_re_options
     if expr.has_form("Repeated", 1):
-        element = recurse(expr.elements[0])
-        if element is not None:
-            return "({0})".format(element) + q["+"]
+        element, global_re_options = recurse(expr.elements[0])
+        if element is None:
+            return None, ""
+        return "({0})".format(element) + q["+"], global_re_options
     if expr.has_form("RepeatedNull", 1):
-        element = recurse(expr.elements[0])
+        element, global_re_options = recurse(expr.elements[0])
         if element is not None:
-            return "({0})".format(element) + q["*"]
+            return "({0})".format(element) + q["*"], global_re_options
     if expr.has_form("Alternatives", None):
         elements = [recurse(element) for element in expr.elements]
-        if all(element is not None for element in elements):
-            return "|".join(elements)
+        if all(element != (None, "") for element in elements):
+            regexp_str = "|".join(element[0] for element in elements)
+            global_re_options += "".join(element[1] for element in elements)
+            return regexp_str, global_re_options
     if expr.has_form("Shortest", 1):
         return recurse(expr.elements[0], quantifiers=_regex_shortest)
     if expr.has_form("Longest", 1):
@@ -176,9 +257,13 @@ def to_regex(
                 evaluation.message(
                     "StringExpression", "cond", expr.elements[0], expr, expr.elements[0]
                 )
-            return "(?P=%s)" % _encode_pname(name)
+            return "(?P=%s)" % _encode_pname(name), global_re_options
         else:
             groups[name] = expr.elements[1]
-            return "(?P<%s>%s)" % (_encode_pname(name), recurse(expr.elements[1]))
+            result_regexp, global_re_options = recurse(expr.elements[1])
+            return (
+                "(?P<%s>%s)" % (_encode_pname(name), result_regexp),
+                global_re_options,
+            )
 
-    return None
+    return None, ""
