@@ -40,16 +40,16 @@ _regex_shortest = {
 # Regular expressions for various symbols
 REGEXP_FOR_SYMBOLS = {
     SymbolNumberString: r"[-|+]?(\d+(\.\d*)?|\.\d+)?",
-    SymbolWhitespace: r"(?u)\s+",
+    SymbolWhitespace: r"\s+",
     SymbolDigitCharacter: r"\d",
-    SymbolWhitespaceCharacter: r"(?u)\s",
-    SymbolWordCharacter: r"(?u)[^\W_]",
+    SymbolWhitespaceCharacter: r"\s",
+    SymbolWordCharacter: r"[^\W_]",
     SymbolStartOfLine: r"^",
     SymbolEndOfLine: r"$",
     SymbolStartOfString: r"\A",
     SymbolEndOfString: r"\Z",
     SymbolWordBoundary: r"\b",
-    SymbolLetterCharacter: r"(?u)[^\W_0-9]",
+    SymbolLetterCharacter: r"[^\W_0-9]",
     SymbolHexadecimalCharacter: r"[0-9a-fA-F]",
 }
 
