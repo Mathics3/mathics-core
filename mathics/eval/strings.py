@@ -1,4 +1,5 @@
 import re
+import sys
 from binascii import hexlify
 from typing import Optional
 
@@ -106,16 +107,16 @@ def to_regex(
     if isinstance(expr, Symbol):
         return {
             "System`NumberString": r"[-|+]?(\d+(\.\d*)?|\.\d+)?",
-            "System`Whitespace": r"(?u)\s+",
+            "System`Whitespace": r"\s+",
             "System`DigitCharacter": r"\d",
-            "System`WhitespaceCharacter": r"(?u)\s",
-            "System`WordCharacter": r"(?u)[^\W_]",
+            "System`WhitespaceCharacter": r"\s",
+            "System`WordCharacter": r"[^\W_]",
             "System`StartOfLine": r"^",
             "System`EndOfLine": r"$",
             "System`StartOfString": r"\A",
             "System`EndOfString": r"\Z",
             "System`WordBoundary": r"\b",
-            "System`LetterCharacter": r"(?u)[^\W_0-9]",
+            "System`LetterCharacter": r"[^\W_0-9]",
             "System`HexadecimalCharacter": r"[0-9a-fA-F]",
         }.get(expr.get_name())
 
