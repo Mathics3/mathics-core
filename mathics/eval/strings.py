@@ -186,8 +186,9 @@ def to_regex_internal(
         else:
             elements = [expr.elements[0], expr.elements[1]]
         elements = [recurse(element) for element in elements]
+        assert len(elements) == 2
         if all(element is not None for element in elements):
-            return "(?!{0}){1}".format(*elements)
+            return f"(?!{elements[0]}){elements[1]}"
     if expr.has_form("Characters", 1):
         element = expr.elements[0].get_string_value()
         if element is not None:
