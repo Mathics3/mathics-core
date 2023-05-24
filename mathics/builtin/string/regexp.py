@@ -10,7 +10,8 @@ from mathics.builtin.base import Builtin
 # builtin.strings.atomic.to_regex seems to have the implementation.
 class RegularExpression(Builtin):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/RegularExpression.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/RegularExpression.html</url>
 
     <dl>
     <dt>'RegularExpression["regex"]'
