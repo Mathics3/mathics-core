@@ -3,7 +3,8 @@
 """
 Uniform Polyhedra
 
-Uniform polyhedra is the grouping of platonic solids, Archimedean solids, and regular star polyhedra.
+Uniform polyhedra is the grouping of platonic solids, Archimedean solids,\
+and regular star polyhedra.
 """
 
 # This tells documentation how to sort this module
@@ -11,49 +12,17 @@ Uniform polyhedra is the grouping of platonic solids, Archimedean solids, and re
 sort_order = "mathics.builtin.uniform-polyhedra"
 
 from mathics.builtin.base import Builtin
+from mathics.core.evaluation import Evaluation
 
 uniform_polyhedra_names = "tetrahedron, octahedron, dodecahedron, icosahedron"
 uniform_polyhedra_set = frozenset(uniform_polyhedra_names.split(", "))
 
 
-class UniformPolyhedron(Builtin):
-    """
-    <dl>
-      <dt>'UniformPolyhedron["name"]'
-      <dd>return a uniform polyhedron with the given name.
-      <dd>Names are "tetrahedron", "octahedron", "dodecahedron", or "icosahedron".
-    </dl>
-
-    >> Graphics3D[UniformPolyhedron["octahedron"]]
-     = -Graphics3D-
-
-    >> Graphics3D[UniformPolyhedron["dodecahedron"]]
-     = -Graphics3D-
-
-    >> Graphics3D[{"Brown", UniformPolyhedron["tetrahedron"]}]
-     = -Graphics3D-
-    """
-
-    summary_text = "platonic polyhedra by name"
-    messages = {
-        "argtype": f"Argument `1` is not one of: {uniform_polyhedra_names}",
-    }
-
-    rules = {
-        "UniformPolyhedron[name_String]": "UniformPolyhedron[name, {{0, 0, 0}}, 1]",
-    }
-
-    def apply(self, name, positions, edgelength, evaluation):
-        "UniformPolyhedron[name_String, positions_List, edgelength_?NumberQ]"
-
-        if name.to_python(string_quotes=False) not in uniform_polyhedra_set:
-            evaluation.error("UniformPolyhedron", "argtype", name)
-
-        return
-
-
 class Dodecahedron(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Dodecahedron.html</url>
+
     <dl>
       <dt>'Dodecahedron[]'
       <dd>a regular dodecahedron centered at the origin with unit edge length.
@@ -73,6 +42,9 @@ class Dodecahedron(Builtin):
 
 class Icosahedron(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Icosahedron.html</url>
+
     <dl>
       <dt>'Icosahedron[]'
       <dd>a regular Icosahedron centered at the origin with unit edge length.
@@ -82,16 +54,19 @@ class Icosahedron(Builtin):
      = -Graphics3D-
     """
 
-    summary_text = "an icosahedron"
     rules = {
         "Icosahedron[]": """UniformPolyhedron["icosahedron"]""",
         "Icosahedron[l_?NumberQ]": """UniformPolyhedron["icosahedron", {{0, 0, 0}}, l]""",
         "Icosahedron[positions_List, l_?NumberQ]": """UniformPolyhedron["icosahedron", positions, l]""",
     }
+    summary_text = "an icosahedron"
 
 
 class Octahedron(Builtin):
     """
+    <url>:WMA link
+    :https://reference.wolfram.com/language/ref/Octahedron.html</url>
+
     <dl>
       <dt>'Octahedron[]'
       <dd>a regular octahedron centered at the origin with unit edge length.
@@ -101,16 +76,19 @@ class Octahedron(Builtin):
      = -Graphics3D-
     """
 
-    summary_text = "an octahedron"
     rules = {
         "Octahedron[]": """UniformPolyhedron["octahedron"]""",
         "Octahedron[l_?NumberQ]": """UniformPolyhedron["octahedron", {{0, 0, 0}}, l]""",
         "Octahedron[positions_List, l_?NumberQ]": """UniformPolyhedron["octahedron", positions, l]""",
     }
+    summary_text = "an octahedron"
 
 
 class Tetrahedron(Builtin):
     """
+    <url>:WMA link
+    :https://reference.wolfram.com/language/ref/Tetrahedron.html</url>
+
     <dl>
       <dt>'Tetrahedron[]'
       <dd>a regular tetrahedron centered at the origin with unit edge length.
@@ -120,12 +98,51 @@ class Tetrahedron(Builtin):
      = -Graphics3D-
     """
 
-    summary_text = "a tetrahedron"
     rules = {
         "Tetrahedron[]": """UniformPolyhedron["tetrahedron"]""",
         "Tetrahedron[l_?NumberQ]": """UniformPolyhedron["tetrahedron", {{0, 0, 0}}, l]""",
         "Tetrahedron[positions_List, l_?NumberQ]": """UniformPolyhedron["tetrahedron", positions, l]""",
     }
+    summary_text = "a tetrahedron"
 
-    def apply_with_length(self, length, evaluation):
+    def eval_with_length(self, length, evaluation: Evaluation):
         "Tetrahedron[l_?Numeric]"
+
+
+class UniformPolyhedron(Builtin):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/UniformPolyhedron.html</url>
+
+    <dl>
+      <dt>'UniformPolyhedron["name"]'
+      <dd>return a uniform polyhedron with the given name.
+      <dd>Names are "tetrahedron", "octahedron", "dodecahedron", or "icosahedron".
+    </dl>
+
+    >> Graphics3D[UniformPolyhedron["octahedron"]]
+     = -Graphics3D-
+
+    >> Graphics3D[UniformPolyhedron["dodecahedron"]]
+     = -Graphics3D-
+
+    >> Graphics3D[{"Brown", UniformPolyhedron["tetrahedron"]}]
+     = -Graphics3D-
+    """
+
+    messages = {
+        "argtype": f"Argument `1` is not one of: {uniform_polyhedra_names}",
+    }
+
+    rules = {
+        "UniformPolyhedron[name_String]": "UniformPolyhedron[name, {{0, 0, 0}}, 1]",
+    }
+    summary_text = "platonic polyhedra by name"
+
+    def eval(self, name, positions, edgelength, evaluation: Evaluation):
+        "UniformPolyhedron[name_String, positions_List, edgelength_?NumberQ]"
+
+        if name.value not in uniform_polyhedra_set:
+            evaluation.error("UniformPolyhedron", "argtype", name)
+
+        return

@@ -5,31 +5,21 @@ String Patterns
 
 import re
 
-
 from mathics.builtin.atomic.strings import (
-    _StringFind,
     _evaluate_match,
-    _pattern_search,
     _parallel_match,
+    _pattern_search,
+    _StringFind,
     anchor_pattern,
     to_regex,
 )
-
 from mathics.builtin.base import BinaryOperator, Builtin
-
-from mathics.core.atoms import (
-    Integer1,
-    String,
-)
+from mathics.core.atoms import Integer1, String
 from mathics.core.attributes import A_FLAT, A_LISTABLE, A_ONE_IDENTITY, A_PROTECTED
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    Symbol,
-    SymbolFalse,
-    SymbolTrue,
-)
-
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 
 SymbolStringMatchQ = Symbol("StringMatchQ")
 SymbolStringExpression = Symbol("StringExpression")
@@ -37,6 +27,9 @@ SymbolStringExpression = Symbol("StringExpression")
 
 class DigitCharacter(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/DigitCharacter.html</url>
+
     <dl>
       <dt>'DigitCharacter'
       <dd>represents the digits 0-9.
@@ -61,8 +54,11 @@ class DigitCharacter(Builtin):
 
 class EndOfLine(Builtin):
     r"""
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/EndOfLine.html</url>
+
     <dl>
-    <dt>'EndOfString'
+      <dt>'EndOfLine'
       <dd>represents the end of a line in a string.
     </dl>
 
@@ -82,8 +78,11 @@ class EndOfLine(Builtin):
 
 class EndOfString(Builtin):
     r"""
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/EndOfString.html</url>
+
     <dl>
-    <dt>'EndOfString'
+      <dt>'EndOfString'
       <dd>represents the end of a string.
     </dl>
 
@@ -95,11 +94,15 @@ class EndOfString(Builtin):
      = aab
      . abc
     """
+
     summary_text = "end of the whole string"
 
 
 class LetterCharacter(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/LetterCharacter.html</url>
+
     <dl>
       <dt>'LetterCharacter'
       <dd>represents letters.
@@ -118,8 +121,11 @@ class LetterCharacter(Builtin):
 
 class StartOfLine(Builtin):
     r"""
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/StartOfLine.html</url>
+
     <dl>
-    <dt>'StartOfString'
+      <dt>'StartOfLine'
       <dd>represents the start of a line in a string.
     </dl>
 
@@ -134,13 +140,17 @@ class StartOfLine(Builtin):
      . , def
      . , hij}
     """
+
     summary_text = "start of a line"
 
 
 class StartOfString(Builtin):
     r"""
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/StartOfString.html</url>
+
     <dl>
-    <dt>'StartOfString'
+      <dt>'StartOfString'
       <dd>represents the start of a string.
     </dl>
 
@@ -157,21 +167,24 @@ class StartOfString(Builtin):
 
 class StringCases(_StringFind):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/StringCases.html</url>
+
     <dl>
       <dt>'StringCases["$string$", $pattern$]'
-      <dd>gives all occurences of $pattern$ in $string$.
+      <dd>gives all occurrences of $pattern$ in $string$.
 
       <dt>'StringReplace["$string$", $pattern$ -> $form$]'
-      <dd>gives all instances of $form$ that stem from occurences of $pattern$ in $string$.
+      <dd>gives all instances of $form$ that stem from occurrences of $pattern$ in $string$.
 
       <dt>'StringCases["$string$", {$pattern1$, $pattern2$, ...}]'
-      <dd>gives all occurences of $pattern1$, $pattern2$, ....
+      <dd>gives all occurrences of $pattern1$, $pattern2$, ....
 
       <dt>'StringReplace["$string$", $pattern$, $n$]'
-      <dd>gives only the first $n$ occurences.
+      <dd>gives only the first $n$ occurrences.
 
       <dt>'StringReplace[{"$string1$", "$string2$", ...}, $pattern$]'
-      <dd>gives occurences in $string1$, $string2$, ...
+      <dd>gives occurrences in $string1$, $string2$, ...
     </dl>
 
     >> StringCases["axbaxxb", "a" ~~ x_ ~~ "b"]
@@ -193,7 +206,7 @@ class StringCases(_StringFind):
      = {abc}
 
     #> StringCases["abc-abc xyz-uvw", Shortest[x : WordCharacter .. ~~ "-" ~~ x : LetterCharacter] -> x]
-     : Ignored restriction given for x in x : LetterCharacter as it does not match previous occurences of x.
+     : Ignored restriction given for x in x : LetterCharacter as it does not match previous occurrences of x.
      = {abc}
 
     >> StringCases["abba", {"a" -> 10, "b" -> 20}, 2]
@@ -211,7 +224,7 @@ class StringCases(_StringFind):
     }
     summary_text = "occurrences of string patterns in a string"
 
-    def _find(self, py_stri, py_rules, py_n, flags, evaluation):
+    def _find(self, py_stri, py_rules, py_n, flags, evaluation: Evaluation):
         def cases():
             for match, form in _parallel_match(py_stri, py_rules, flags, py_n):
                 if form is None:
@@ -221,7 +234,7 @@ class StringCases(_StringFind):
 
         return ListExpression(*list(cases()))
 
-    def apply(self, string, rule, n, evaluation, options):
+    def eval(self, string, rule, n, evaluation: Evaluation, options: dict):
         "%(name)s[string_, rule_, OptionsPattern[%(name)s], n_:System`Private`Null]"
         # this pattern is a slight hack to get around missing Shortest/Longest.
         return self._apply(string, rule, n, evaluation, options, True)
@@ -229,6 +242,8 @@ class StringCases(_StringFind):
 
 class StringExpression(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringExpression.html</url>
+
     <dl>
     <dt>'StringExpression[s_1, s_2, ...]'
       <dd>represents a sequence of strings and symbolic string objects $s_i$.
@@ -250,11 +265,11 @@ class StringExpression(BinaryOperator):
 
     messages = {
         "invld": "Element `1` is not a valid string or pattern element in `2`.",
-        "cond": "Ignored restriction given for `1` in `2` as it does not match previous occurences of `1`.",
+        "cond": "Ignored restriction given for `1` in `2` as it does not match previous occurrences of `1`.",
     }
     summary_text = "an arbitrary string expression"
 
-    def apply(self, args, evaluation):
+    def eval(self, args, evaluation: Evaluation):
         "StringExpression[args__String]"
         args = args.get_sequence()
         args = [arg.get_string_value() for arg in args]
@@ -265,15 +280,23 @@ class StringExpression(BinaryOperator):
 
 class StringFreeQ(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/StringFreeQ.html</url>
+
     <dl>
-    <dt>'StringFreeQ["$string$", $patt$]'
-        <dd>returns True if no substring in $string$ matches the string expression $patt$, and returns False otherwise.
-    <dt>'StringFreeQ[{"s1", "s2", ...}, patt]'
-        <dd>returns the list of results for each element of string list.
-    <dt>'StringFreeQ["string", {p1, p2, ...}]'
-        <dd>returns True if no substring matches any of the $pi$.
-    <dt>'StringFreeQ[patt]'
-        <dd>represents an operator form of StringFreeQ that can be applied to an expression.
+      <dt>'StringFreeQ["$string$", $patt$]'
+      <dd>returns True if no substring in $string$ matches the string \
+      expression $patt$, and returns False otherwise.
+
+      <dt>'StringFreeQ[{"s1", "s2", ...}, patt]'
+      <dd>returns the list of results for each element of string list.
+
+      <dt>'StringFreeQ["string", {p1, p2, ...}]'
+      <dd>returns True if no substring matches any of the $pi$.
+
+      <dt>'StringFreeQ[patt]'
+      <dd>represents an operator form of StringFreeQ that can be applied \
+        to an expression.
     </dl>
 
     >> StringFreeQ["mathics", "m" ~~ __ ~~ "s"]
@@ -354,7 +377,7 @@ class StringFreeQ(Builtin):
 
     summary_text = "test whether a string is free of substrings matching a pattern"
 
-    def apply(self, string, patt, evaluation, options):
+    def eval(self, string, patt, evaluation: Evaluation, options: dict):
         "StringFreeQ[string_, patt_, OptionsPattern[%(name)s]]"
         return _pattern_search(
             self.__class__.__name__, string, patt, evaluation, options, False
@@ -363,10 +386,14 @@ class StringFreeQ(Builtin):
 
 class StringMatchQ(Builtin):
     r"""
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/StringMatchQ.html</url>
+
     <dl>
-    <dt>'StringMatchQ["string", $patern$]'
-    <dd> checks  is "string" matches $pattern$
+      <dt>'StringMatchQ["string", $pattern$]'
+      <dd> checks  is "string" matches $pattern$
     </dl>
+
     >> StringMatchQ["abc", "abc"]
      = True
 
@@ -435,25 +462,27 @@ class StringMatchQ(Builtin):
     }
     summary_text = "test whether a string matches a pattern"
 
-    def apply(self, string, patt, evaluation, options):
+    def eval(self, string, patt, evaluation: Evaluation, options: dict):
         "StringMatchQ[string_, patt_, OptionsPattern[%(name)s]]"
         py_string = string.get_string_value()
         if py_string is None:
-            return evaluation.message(
+            evaluation.message(
                 "StringMatchQ",
                 "strse",
                 Integer1,
                 Expression(SymbolStringMatchQ, string, patt),
             )
+            return
 
         re_patt = to_regex(patt, evaluation, abbreviated_patterns=True)
         if re_patt is None:
-            return evaluation.message(
+            evaluation.message(
                 "StringExpression",
                 "invld",
                 patt,
                 Expression(SymbolStringExpression, patt),
             )
+            return
 
         re_patt = anchor_pattern(re_patt)
 
@@ -469,6 +498,9 @@ class StringMatchQ(Builtin):
 
 class WhitespaceCharacter(Builtin):
     r"""
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/WhitespaceCharacter.html</url>
+
     <dl>
       <dt>'WhitespaceCharacter'
       <dd>represents a single whitespace character.
@@ -486,12 +518,16 @@ class WhitespaceCharacter(Builtin):
     >> StringMatchQ[" \n", Whitespace]
      = True
     """
+
     summary_text = "space, newline, tab, or other whitespace character"
 
 
 # strings.to_regex() seems to have the implementation here.
 class WordBoundary(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/WordBoundary.html</url>
+
     <dl>
       <dt>'WordBoundary'
       <dd>represents the boundary between words.
@@ -506,6 +542,9 @@ class WordBoundary(Builtin):
 
 class WordCharacter(Builtin):
     r"""
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/WordCharacter.html</url>
+
     <dl>
       <dt>'WordCharacter'
       <dd>represents a single letter or digit character.

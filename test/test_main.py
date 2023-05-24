@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-import subprocess
-
 import os.path as osp
 import re
-import pytest
+import subprocess
 import sys
+
+import pytest
 
 
 def get_testdir():

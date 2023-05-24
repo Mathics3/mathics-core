@@ -5,24 +5,22 @@ import argparse
 import atexit
 import locale
 import os
+import os.path as osp
 import re
 import subprocess
 import sys
 
-import os.path as osp
-
-from mathics import settings
-from mathics import version_string, license_string, __version__
+from mathics import __version__, license_string, settings, version_string
 from mathics.builtin.trace import TraceBuiltins, traced_do_replace
 from mathics.core.atoms import String
-from mathics.core.definitions import autoload_files, Definitions, Symbol
+from mathics.core.definitions import Definitions, Symbol, autoload_files
 from mathics.core.evaluation import Evaluation, Output
 from mathics.core.expression import Expression
 from mathics.core.parser import MathicsFileLineFeeder, MathicsLineFeeder
 from mathics.core.read import channel_to_stream
 from mathics.core.rules import BuiltinRule
-from mathics.core.symbols import strip_context, SymbolNull
 from mathics.core.streams import stream_manager
+from mathics.core.symbols import SymbolNull, strip_context
 from mathics.timing import show_lru_cache_statistics
 
 
@@ -126,17 +124,23 @@ class TerminalShell(MathicsLineFeeder):
         else:
             return "{1}In[{2}{0}{3}]:= {4}".format(next_line_number, *self.incolors)
 
-    def get_out_prompt(self):
+    def get_out_prompt(self, form=None):
         line_number = self.get_last_line_number()
+        if form:
+            return "{2}Out[{3}{0}{4}]//{1}= {5}".format(
+                line_number, form, *self.outcolors
+            )
         return "{1}Out[{2}{0}{3}]= {4}".format(line_number, *self.outcolors)
 
-    def to_output(self, text):
+    def to_output(self, text, form=None):
         line_number = self.get_last_line_number()
         newline = "\n" + " " * len("Out[{0}]= ".format(line_number))
+        if form:
+            newline += (len(form) + 2) * " "
         return newline.join(text.splitlines())
 
-    def out_callback(self, out):
-        print(self.to_output(str(out)))
+    def out_callback(self, out, fmt=None):
+        print(self.to_output(str(out), fmt))
 
     def read_line(self, prompt):
         if self.using_readline:
@@ -148,6 +152,7 @@ class TerminalShell(MathicsLineFeeder):
             # FIXME decide what to do here
             return
 
+        form = result.form
         last_eval = result.last_eval
 
         eval_type = None
@@ -164,8 +169,8 @@ class TerminalShell(MathicsLineFeeder):
         if eval_type == "System`Graph":
             out_str = "-Graph-"
 
-        output = self.to_output(out_str)
-        mess = self.get_out_prompt() if not no_out_prompt else ""
+        output = self.to_output(out_str, form)
+        mess = self.get_out_prompt(form) if not no_out_prompt else ""
         print(mess + output + "\n")
 
     def rl_read_line(self, prompt):
@@ -340,7 +345,7 @@ Please contribute to Mathics!""",
     )
     args, script_args = argparser.parse_known_args()
 
-    quit_command = "CTRL-BREAK" if sys.platform == "win32" else "CONTROL-D"
+    quit_command = "CTRL-BREAK" if sys.platform in ("win32", "nt") else "CONTROL-D"
 
     extension_modules = []
     if args.pyextensions:

@@ -4,9 +4,12 @@ Checks that builtin functions do not get redefined.
 In the past when reorganizing builtin functions we sometimes
 had missing or duplicate build-in functions definitions.
 """
-import pytest
 import os
-from mathics.builtin import modules, is_builtin, Builtin
+
+import pytest
+
+from mathics.builtin import modules, name_is_builtin_symbol
+from mathics.builtin.base import Builtin
 
 
 @pytest.mark.skipif(
@@ -18,15 +21,8 @@ def test_check_duplicated():
     for module in modules:
         vars = dir(module)
         for name in vars:
-            var = getattr(module, name)
-            if (
-                hasattr(var, "__module__")
-                and var.__module__.startswith("mathics.builtin.")
-                and var.__module__ != "mathics.builtin.base"
-                and is_builtin(var)
-                and not name.startswith("_")
-                and var.__module__ == module.__name__
-            ):  # nopep8
+            var = name_is_builtin_symbol(module, name)
+            if var:
                 instance = var(expression=False)
                 if isinstance(instance, Builtin):
                     # This set the default context for symbols in mathics.builtins
@@ -38,13 +34,13 @@ def test_check_duplicated():
                         builtins_by_name.get(name, None) is None
                         ), f"{name} defined in {module} already defined in {builtins_by_name[name]}."
                     """
-                    if builtins_by_name.get(name, None) is not None:
-                        print(
-                            f"\n{name} defined in {module} already defined in {builtins_by_name[name]}."
-                        )
-                        msg = (
-                            msg
-                            + f"\n{name} defined in {module} already defined in {builtins_by_name[name]}."
-                        )
+                    # if builtins_by_name.get(name, None) is not None:
+                    #     print(
+                    #         f"\n{name} defined in {module} already defined in {builtins_by_name[name]}."
+                    #     )
+                    #     msg = (
+                    #         msg
+                    #         + f"\n{name} defined in {module} already defined in {builtins_by_name[name]}."
+                    #     )
                     builtins_by_name[name] = module
     assert msg == "", msg

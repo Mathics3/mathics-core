@@ -3,15 +3,14 @@
 """
 File Stream Operations
 """
-from io import open as io_open
 import os
-import requests
+import os.path as osp
 import sys
 import tempfile
-
+from io import open as io_open
 from typing import Optional, Tuple
 
-import os.path as osp
+import requests
 
 from mathics.settings import ROOT_DIR
 
@@ -43,9 +42,10 @@ def urlsave_tmp(url, location=None, **kwargs):
             with open(location, "wb") as fp:
                 fp.write(r.content)
                 result = fp.name
+            return result
         except Exception:
-            result = None
-    return result
+            return None
+    return None
 
 
 def path_search(filename: str) -> Tuple[str, bool]:

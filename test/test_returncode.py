@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-import subprocess
-
 import os.path as osp
+import subprocess
 
 
 def get_testdir():

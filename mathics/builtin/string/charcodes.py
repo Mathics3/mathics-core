@@ -5,22 +5,17 @@ Character Codes
 
 import sys
 
-
 from mathics.builtin.atomic.strings import to_python_encoding
 from mathics.builtin.base import Builtin
-
-from mathics.core.atoms import (
-    Integer,
-    Integer1,
-    String,
-)
+from mathics.core.atoms import Integer, Integer1, String
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 
-SymbolFromCharacterCode = Symbol("FromCharacterCode")
-SymbolToCharacterCode = Symbol("ToCharacterCode")
+SymbolFromCharacterCode = Symbol("System`FromCharacterCode")
+SymbolToCharacterCode = Symbol("System`ToCharacterCode")
 
 
 def pack_bytes(codes):
@@ -33,6 +28,10 @@ def unpack_bytes(codes):
 
 class ToCharacterCode(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ToCharacterCode.html</url>
+
     <dl>
     <dt>'ToCharacterCode["$string$"]'
       <dd>converts the string to a list of character codes (Unicode
@@ -85,7 +84,7 @@ class ToCharacterCode(Builtin):
     }
     summary_text = "convert a string to a list of character codes"
 
-    def _encode(self, string, encoding, evaluation):
+    def _encode(self, string, encoding, evaluation: Evaluation):
         exp = Expression(SymbolToCharacterCode, string)
 
         if string.has_form("List", None):
@@ -122,13 +121,13 @@ class ToCharacterCode(Builtin):
         elif isinstance(string, str):
             return convert(string)
 
-    def apply_default(self, string, evaluation):
+    def eval_default(self, string, evaluation: Evaluation):
         "ToCharacterCode[string_]"
         return self._encode(string, "Unicode", evaluation)
 
-    def apply(self, string, encoding, evaluation):
+    def eval(self, string, encoding: String, evaluation: Evaluation):
         "ToCharacterCode[string_, encoding_String]"
-        return self._encode(string, encoding.get_string_value(), evaluation)
+        return self._encode(string, encoding.value, evaluation)
 
 
 class _InvalidCodepointError(ValueError):
@@ -137,13 +136,19 @@ class _InvalidCodepointError(ValueError):
 
 class FromCharacterCode(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/FromCharacterCode.html</url>
+
     <dl>
-    <dt>'FromCharacterCode[$n$]'
-        <dd>returns the character corresponding to Unicode codepoint $n$.
-    <dt>'FromCharacterCode[{$n1$, $n2$, ...}]'
-        <dd>returns a string with characters corresponding to $n_i$.
-    <dt>'FromCharacterCode[{{$n11$, $n12$, ...}, {$n21$, $n22$, ...}, ...}]'
-        <dd>returns a list of strings.
+      <dt>'FromCharacterCode[$n$]'
+      <dd>returns the character corresponding to Unicode codepoint $n$.
+
+      <dt>'FromCharacterCode[{$n1$, $n2$, ...}]'
+      <dd>returns a string with characters corresponding to $n_i$.
+
+      <dt>'FromCharacterCode[{{$n11$, $n12$, ...}, {$n21$, $n22$, ...}, ...}]'
+      <dd>returns a list of strings.
     </dl>
 
     >> FromCharacterCode[100]
@@ -212,7 +217,7 @@ class FromCharacterCode(Builtin):
     }
     summary_text = "convert from a list of character codes to a string"
 
-    def _decode(self, n, encoding, evaluation):
+    def _decode(self, n, encoding: str, evaluation: Evaluation):
         exp = Expression(SymbolFromCharacterCode, n)
 
         py_encoding = to_python_encoding(encoding)
@@ -260,9 +265,8 @@ class FromCharacterCode(Builtin):
             else:
                 pyn = n.get_int_value()
                 if not (isinstance(pyn, int) and pyn > 0 and pyn < sys.maxsize):
-                    return evaluation.message(
-                        "FromCharacterCode", "intnm", exp, Integer1
-                    )
+                    evaluation.message("FromCharacterCode", "intnm", exp, Integer1)
+                    return
                 return String(convert_codepoint_list([n]))
         except _InvalidCodepointError:
             return
@@ -272,10 +276,10 @@ class FromCharacterCode(Builtin):
 
         assert False, "can't get here"
 
-    def apply_default(self, n, evaluation):
+    def eval_default(self, n, evaluation: Evaluation):
         "FromCharacterCode[n_]"
         return self._decode(n, "Unicode", evaluation)
 
-    def apply(self, n, encoding, evaluation):
+    def eval(self, n, encoding: String, evaluation: Evaluation):
         "FromCharacterCode[n_, encoding_String]"
-        return self._decode(n, encoding.get_string_value(), evaluation)
+        return self._decode(n, encoding.value, evaluation)

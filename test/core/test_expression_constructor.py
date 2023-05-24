@@ -1,7 +1,7 @@
-from mathics.core.convert.expression import to_expression
-from mathics.core.expression import Expression, ElementsProperties
-from mathics.core.symbols import SymbolPlus
 from mathics.core.atoms import Integer, Integer1
+from mathics.core.convert.expression import to_expression
+from mathics.core.expression import ElementsProperties, Expression
+from mathics.core.symbols import SymbolPlus
 
 
 def test_expression_constructor():

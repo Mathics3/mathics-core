@@ -4,10 +4,9 @@ Clearing Assignments
 """
 
 
-from mathics.builtin.base import (
-    Builtin,
-    PostfixOperator,
-)
+from mathics.builtin.base import Builtin, PostfixOperator
+from mathics.core.assignment import is_protected
+from mathics.core.atoms import String
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
@@ -18,27 +17,27 @@ from mathics.core.attributes import (
     A_READ_PROTECTED,
 )
 from mathics.core.expression import Expression
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    SymbolNull,
-    system_symbols,
-)
-
+from mathics.core.symbols import Atom, Symbol, SymbolNull, symbol_set
 from mathics.core.systemsymbols import (
     SymbolContext,
     SymbolContextPath,
+    SymbolDownValues,
     SymbolFailed,
+    SymbolMessages,
+    SymbolNValues,
     SymbolOptions,
+    SymbolOwnValues,
+    SymbolSubValues,
+    SymbolUpValues,
 )
-
-from mathics.core.atoms import String
-
-from mathics.builtin.assignments.internals import is_protected
 
 
 class Clear(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Clear.html</url>
+
     <dl>
       <dt>'Clear[$symb1$, $symb2$, ...]'
       <dd>clears all values of the given symbols. The arguments can also be given as strings containing symbol names.
@@ -77,7 +76,6 @@ class Clear(Builtin):
     allow_locked = True
     attributes = A_HOLD_ALL | A_PROTECTED
     messages = {
-        "ssym": "`1` is not a symbol or a string.",
         "spsym": "Special symbol `1` cannot be cleared.",
     }
     summary_text = "clear all values associated with the LHS or symbol"
@@ -90,7 +88,7 @@ class Clear(Builtin):
         definition.formatvalues = {}
         definition.nvalues = []
 
-    def apply(self, symbols, evaluation):
+    def eval(self, symbols, evaluation):
         "%(name)s[symbols___]"
         if isinstance(symbols, Symbol):
             symbols = [symbols]
@@ -135,6 +133,10 @@ class Clear(Builtin):
 
 class ClearAll(Clear):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ClearAll.html</url>
+
     <dl>
       <dt>'ClearAll[$symb1$, $symb2$, ...]'
       <dd>clears all values, attributes, messages and options associated with the given symbols.
@@ -167,12 +169,50 @@ class ClearAll(Clear):
         definition.defaultvalues = []
 
 
+class Remove(Builtin):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Remove.html</url>
+
+    <dl>
+      <dt>'Remove[$x$]'
+      <dd>removes the definition associated to $x$.
+    </dl>
+    >> a := 2
+    >> Names["Global`a"]
+     = {a}
+    >> Remove[a]
+    >> Names["Global`a"]
+     = {}
+    """
+
+    attributes = A_HOLD_ALL | A_LOCKED | A_PROTECTED
+
+    precedence = 670
+    summary_text = "remove the definition of a symbol"
+
+    def eval(self, symb, evaluation):
+        """Remove[symb_]"""
+        if isinstance(symb, Symbol):
+            evaluation.definitions.reset_user_definition(symb.name)
+        elif isinstance(symb, String):
+            evaluation.definitions.reset_user_definition(symb.value)
+        else:
+            evaluation.message(self.get_name(), "ssym", symb)
+        return SymbolNull
+
+
 class Unset(PostfixOperator):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Unset.html</url>
+
     <dl>
-    <dt>'Unset[$x$]'
-    <dt>'$x$=.'
-        <dd>removes any value belonging to $x$.
+      <dt>'Unset[$x$]'
+      <dt>'$x$=.'
+      <dd>removes any value belonging to $x$.
     </dl>
     >> a = 2
      = 2
@@ -246,7 +286,7 @@ class Unset(PostfixOperator):
     precedence = 670
     summary_text = "unset a value of the LHS"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "Unset[expr_]"
 
         head = expr.get_head()
@@ -275,12 +315,12 @@ class Unset(PostfixOperator):
         return SymbolNull
 
 
-SYSTEM_SYMBOL_VALUES = system_symbols(
-    "OwnValues",
-    "DownValues",
-    "SubValues",
-    "UpValues",
-    "NValues",
-    "Options",
-    "Messages",
+SYSTEM_SYMBOL_VALUES = symbol_set(
+    SymbolDownValues,
+    SymbolMessages,
+    SymbolNValues,
+    SymbolOptions,
+    SymbolOwnValues,
+    SymbolSubValues,
+    SymbolUpValues,
 )

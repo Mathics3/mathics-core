@@ -1,38 +1,88 @@
 # -*- coding: utf-8 -*-
 
 """
-Options and Default Arguments
+Options Management
+
+A number of functions have various options which control the behavior or \
+the default behavior that function. Default options can be queried or set.
+
+<url>
+:WMA link:
+https://reference.wolfram.com/language/guide/OptionsManagement.html</url>
 """
 
-
-from mathics.builtin.base import Builtin, Test, get_option
-from mathics.builtin.drawing.image import Image
-
+from mathics.builtin.base import Builtin, Predefined, Test, get_option
+from mathics.builtin.image.base import Image
 from mathics.core.atoms import String
-from mathics.core.expression import (
-    Expression,
-    SymbolDefault,
-    get_default_value,
-)
+from mathics.core.evaluation import Evaluation
+from mathics.core.expression import Expression, SymbolDefault, get_default_value
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    Symbol,
-    SymbolList,
-    ensure_context,
-    strip_context,
-)
+from mathics.core.symbols import Symbol, SymbolList, ensure_context, strip_context
 from mathics.core.systemsymbols import SymbolRule, SymbolRuleDelayed
+from mathics.eval.patterns import Matcher
+
+
+class All(Predefined):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/All.html</url>
+
+    <dl>
+      <dt>'All'
+      <dd>is an option value for a number of functions indicating to include everything.
+    </dl>
+
+
+    In list functions, it indicates all levels of the list.
+
+    For example, in <url>
+    :Part:
+    /doc/reference-of-built-in-symbols/list-functions/elements-of-lists/part</url>, \
+    'All', extracts into a first column vector the first element of each of the list elements:
+
+    >> {{1, 3}, {5, 7}}[[All, 1]]
+     = {1, 5}
+
+    While in <url>
+    :Take:
+    /doc/reference-of-built-in-symbols/list-functions/elements-of-lists/part</url>, \
+    'All' extracts as a column matrix the first element as a list for each of the list elements:
+
+    >> Take[{{1, 3}, {5, 7}}, All, {1}]
+     = {{1}, {5}}
+
+    In <url>
+    :Plot:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/plotting-data/plot</url>, \
+    setting the <url>
+    :Mesh:
+    /doc/reference-of-built-in-symbols/drawing-options-and-option-values/mesh</url> \
+    option to 'All' will show the specific plot points:
+
+    >> Plot[x^2, {x, -1, 1}, MaxRecursion->5, Mesh->All]
+     = -Graphics-
+
+    """
+
+    summary_text = "option value that specify using everything"
 
 
 class Default(Builtin):
     """
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/Default.html</url>
+
     <dl>
-    <dt>'Default[$f$]'
-        <dd>gives the default value for an omitted parameter of $f$.
-    <dt>'Default[$f$, $k$]'
-        <dd>gives the default value for a parameter on the $k$th position.
-    <dt>'Default[$f$, $k$, $n$]'
-        <dd>gives the default value for the $k$th parameter out of $n$.
+      <dt>'Default[$f$]'
+      <dd>gives the default value for an omitted parameter of $f$.
+
+      <dt>'Default[$f$, $k$]'
+      <dd>gives the default value for a parameter on the $k$th position.
+
+      <dt>'Default[$f$, $k$, $n$]'
+      <dd>gives the default value for the $k$th parameter out of $n$.
     </dl>
 
     Assign values to 'Default' to specify default values.
@@ -56,7 +106,7 @@ class Default(Builtin):
 
     summary_text = "predefined default arguments for a function"
 
-    def apply(self, f, i, evaluation):
+    def eval(self, f, i, evaluation):
         "Default[f_, i___]"
 
         i = i.get_sequence()
@@ -66,11 +116,11 @@ class Default(Builtin):
         i = [index.get_int_value() for index in i]
         for index in i:
             if index is None or index < 1:
-                evaluation.message(SymbolDefault, "intp")
+                evaluation.message(SymbolDefault.name, "intp")
                 return
         name = f.get_name()
         if not name:
-            evaluation.message(SymbolDefault, "sym", f, 1)
+            evaluation.message(SymbolDefault.name, "sym", f, 1)
             return
         result = get_default_value(name, evaluation, *i)
         return result
@@ -78,11 +128,16 @@ class Default(Builtin):
 
 class FilterRules(Builtin):
     """
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/FilterRules.html</url>
+
     <dl>
-    <dt>'FilterRules[$rules$, $pattern$]'
-        <dd>gives those $rules$ that have a left side that matches $pattern$.
-    <dt>'FilterRules[$rules$, {$pattern1$, $pattern2$, ...}]'
-        <dd>gives those $rules$ that have a left side that match at least one of $pattern1$, $pattern2$, ...
+      <dt>'FilterRules[$rules$, $pattern$]'
+      <dd>gives those $rules$ that have a left side that matches $pattern$.
+
+      <dt>'FilterRules[$rules$, {$pattern1$, $pattern2$, ...}]'
+      <dd>gives those $rules$ that have a left side that match at least one of $pattern1$, $pattern2$, ...
     </dl>
 
     >> FilterRules[{x -> 100, y -> 1000}, x]
@@ -99,9 +154,8 @@ class FilterRules(Builtin):
         "select rules such that the pattern matches some other given patterns"
     )
 
-    def apply(self, rules, pattern, evaluation):
+    def eval(self, rules, pattern, evaluation):
         "FilterRules[rules_List, pattern_]"
-        from mathics.builtin.patterns import Matcher
 
         match = Matcher(pattern).match
 
@@ -113,12 +167,40 @@ class FilterRules(Builtin):
         return ListExpression(*list(matched()))
 
 
+class None_(Predefined):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/None.html</url>
+
+    <dl>
+      <dt>'None'
+      <dd>is a setting value for many options.
+    </dl>
+
+    Plot3D shows the mesh grid between computed points by default. This the <url>
+    :Mesh:
+    /doc/reference-of-built-in-symbols/drawing-option-and-values/mesh</url> option.
+
+    However, you hide the mesh by setting the 'Mesh' option value to 'None':
+
+    >> Plot3D[{x^2 + y^2, -x^2 - y^2}, {x, -2, 2}, {y, -2, 2}, BoxRatios-> Automatic, Mesh->None]
+     = -Graphics3D-
+    """
+
+    name = "None"
+    summary_text = "option value that disables the option"
+
+
+# Has this been removed from WL? I cannot find a WMA link.
 class NotOptionQ(Test):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/NotOptionQ.html</url>
+
     <dl>
-    <dt>'NotOptionQ[$expr$]'
-        <dd>returns 'True' if $expr$ does not have the form of a valid
-        option specification.
+      <dt>'NotOptionQ[$expr$]'
+      <dd>returns 'True' if $expr$ does not have the form of a valid \
+          option specification.
     </dl>
 
     >> NotOptionQ[x]
@@ -134,7 +216,7 @@ class NotOptionQ(Test):
 
     summary_text = "test whether an expression does not match the form of a valid option specification"
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         if hasattr(expr, "flatten_with_respect_to_head"):
             expr = expr.flatten_with_respect_to_head(SymbolList)
         if not expr.has_form("List", None):
@@ -146,12 +228,17 @@ class NotOptionQ(Test):
         )
 
 
+# Has this been removed from WL? I cannot find a WMA link.
 class OptionQ(Test):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/OptionQ.html</url>
+
     <dl>
-    <dt>'OptionQ[$expr$]'
-        <dd>returns 'True' if $expr$ has the form of a valid option
-        specification.
+      <dt>'OptionQ[$expr$]'
+      <dd>returns 'True' if $expr$ has the form of a valid option \
+         specification.
     </dl>
 
     Examples of option specifications:
@@ -164,7 +251,7 @@ class OptionQ(Test):
     >> OptionQ[{a :> True}]
      = True
 
-    Options lists are flattened when are applyied, so
+    Options lists are flattened when are applied, so
     >> OptionQ[{a -> True, {b->1, "c"->2}}]
      = True
     >> OptionQ[{a -> True, {b->1, c}}]
@@ -182,7 +269,7 @@ class OptionQ(Test):
         "test whether an expression matches the form of a valid option specification"
     )
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         if hasattr(expr, "flatten_with_respect_to_head"):
             expr = expr.flatten_with_respect_to_head(SymbolList)
         if not expr.has_form("List", None):
@@ -196,9 +283,13 @@ class OptionQ(Test):
 
 class Options(Builtin):
     """
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/Options.html</url>
+
     <dl>
-    <dt>'Options[$f$]'
-        <dd>gives a list of optional arguments to $f$ and their
+      <dt>'Options[$f$]'
+      <dd>gives a list of optional arguments to $f$ and their \
         default values.
     </dl>
 
@@ -257,7 +348,7 @@ class Options(Builtin):
 
     summary_text = "the list of optional arguments and their default values"
 
-    def apply(self, f, evaluation):
+    def eval(self, f, evaluation):
         "Options[f_]"
 
         name = f.get_name()
@@ -280,17 +371,22 @@ class Options(Builtin):
 
 class OptionValue(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/OptionValue.html</url>
+
     <dl>
-    <dt>'OptionValue[$name$]'
-        <dd>gives the value of the option $name$ as specified in a
-        call to a function with 'OptionsPattern'.
-    <dt>'OptionValue[$f$, $name$]'
-        <dd>recover the value of the option $name$ associated to the symbol $f$.
-    <dt>'OptionValue[$f$, $optvals$, $name$]'
-        <dd>recover the value of the option $name$ associated to the symbol $f$,
-            extracting the values from $optvals$ if available.
-    <dt>'OptionValue[..., $list$]'
-        <dd>recover the value of the options in $list$ .
+      <dt>'OptionValue[$name$]'
+      <dd>gives the value of the option $name$ as specified in a call to a function with 'OptionsPattern'.
+
+      <dt>'OptionValue[$f$, $name$]'
+      <dd>recover the value of the option $name$ associated to the symbol $f$.
+
+      <dt>'OptionValue[$f$, $optvals$, $name$]'
+      <dd>recover the value of the option $name$ associated to the symbol $f$, extracting the values from $optvals$ if available.
+
+      <dt>'OptionValue[..., $list$]'
+      <dd>recover the value of the options in $list$ .
     </dl>
 
     >> f[a->3] /. f[OptionsPattern[{}]] -> {OptionValue[a]}
@@ -321,7 +417,7 @@ class OptionValue(Builtin):
     }
     summary_text = "retrieve values of options while executing a function"
 
-    def apply_1(self, optname, evaluation):
+    def eval(self, optname, evaluation):
         "OptionValue[optname_]"
         if evaluation.options is None:
             return
@@ -346,11 +442,11 @@ class OptionValue(Builtin):
             return Symbol(name)
         return val
 
-    def apply_2(self, f, optname, evaluation):
+    def eval_with_f(self, f, optname, evaluation):
         "OptionValue[f_, optname_]"
-        return self.apply_3(f, None, optname, evaluation)
+        return self.eval_with_f_and_optvals(f, None, optname, evaluation)
 
-    def apply_3(self, f, optvals, optname, evaluation):
+    def eval_with_f_and_optvals(self, f, optvals, optname, evaluation):
         "OptionValue[f_, optvals_, optname_]"
         if type(optname) is String:
             name = optname.to_python()[1:-1]
@@ -400,6 +496,59 @@ class OptionValue(Builtin):
             evaluation.message("OptionValue", "optnf", optname)
             return Symbol(name)
         return val
+
+
+class SetOptions(Builtin):
+    """
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/SetOptions.html</url>
+
+    <dl>
+      <dt>'SetOptions[$s$, name1 -> value1, name2 -> value2, ...]'
+      <dd>sets the specified default options for a symbol $s$. \
+      The entire set of options for $s$ is returned.
+    </dl>
+
+    One way to find the default options for a symbol is to use \
+    'SetOptions' passing no association pairs:
+
+    >> SetOptions[Plot]
+     = ...
+    """
+
+    summary_text = "set up default option values for a function"
+
+    def eval(self, symbol: Symbol, options: Expression, evaluation: Evaluation):
+        "SetOptions[symbol_Symbol, options___]"
+
+        # Get the existing options for parameter ``symbol``.
+        options_dict = evaluation.definitions.get_options(symbol.name)
+
+        # Update symbol's options for each of the options passed
+        # in ``_options``.
+        if not hasattr(options, "elements"):
+            evaluation.message("SetOptions", "rep", options)
+            return None
+
+        # For a single association, ``options`` is Symbol, replacement
+        # For multiple associations, ``options`` is a list of Rules.
+        options_pairs = iter(options.elements)
+        for element in options_pairs:
+            if isinstance(element, Symbol):
+                option_symbol = element
+                option_value = next(options_pairs)
+            elif element.head is SymbolRule:
+                option_symbol, option_value = element.elements
+            else:
+                evaluation.message("SetOptions", "rep", element)
+                return None
+            options_dict[option_symbol.name] = option_value
+
+        # Create and return a List with all of the options including
+        # the new updated ones.
+        options_list = options_to_rules(options_dict)
+        return ListExpression(*options_list)
 
 
 def options_to_rules(options, filter=None):
