@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 """
-helper functions for arithmetic evaluation, which do not
-depend on the evaluation context. Conversions to Sympy are
+arithmetic-related evaluation functions.
+
+Many of these do do depend on the evaluation context. Conversions to Sympy are
 used just as a last resource.
 """
 

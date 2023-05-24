@@ -8,6 +8,10 @@ from test.helper import check_evaluation, session
 
 def test_solve():
     for str_expr, str_expected, message in (
+        # Clean the definitions, because
+        # a previous definition of `a` makes
+        # the test to fail.
+        (None, None, None),
         (
             "Solve[{(7+x)*ma == 167, (5+x)*mb == 167, (7+5)*(ma+mb) == 334}, {ma, mb, x}]",
             "{{ma -> 1169 / 12 - 167 Sqrt[37] / 12, mb -> -835 / 12 + 167 Sqrt[37] / 12, x -> Sqrt[37]}, {ma -> 1169 / 12 + 167 Sqrt[37] / 12, mb -> -835 / 12 - 167 Sqrt[37] / 12, x -> -Sqrt[37]}}",

@@ -8,7 +8,6 @@ or namespace, and can have a variety of type of values and attributes.
 
 import re
 
-from mathics.builtin.atomic.strings import to_regex
 from mathics.builtin.base import Builtin, PrefixOperator, Test
 from mathics.core.assignment import get_symbol_values
 from mathics.core.atoms import String
@@ -47,6 +46,7 @@ from mathics.core.systemsymbols import (
     SymbolRule,
     SymbolSet,
 )
+from mathics.eval.strings import to_regex
 
 
 def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):
