@@ -176,20 +176,23 @@ def to_regex_internal(
             return None, ""  # invalid regex
 
     if isinstance(expr, Symbol):
-        return {
-            "System`NumberString": r"[-|+]?(\d+(\.\d*)?|\.\d+)?",
-            "System`Whitespace": r"\s+",
-            "System`DigitCharacter": r"\d",
-            "System`WhitespaceCharacter": r"\s",
-            "System`WordCharacter": r"[^\W_]",
-            "System`StartOfLine": r"^",
-            "System`EndOfLine": r"$",
-            "System`StartOfString": r"\A",
-            "System`EndOfString": r"\Z",
-            "System`WordBoundary": r"\b",
-            "System`LetterCharacter": r"[^\W_0-9]",
-            "System`HexadecimalCharacter": r"[0-9a-fA-F]",
-        }.get(expr.get_name())
+        return (
+            {
+                "System`NumberString": r"[-|+]?(\d+(\.\d*)?|\.\d+)?",
+                "System`Whitespace": r"\s+",
+                "System`DigitCharacter": r"\d",
+                "System`WhitespaceCharacter": r"\s",
+                "System`WordCharacter": r"[^\W_]",
+                "System`StartOfLine": r"^",
+                "System`EndOfLine": r"$",
+                "System`StartOfString": r"\A",
+                "System`EndOfString": r"\Z",
+                "System`WordBoundary": r"\b",
+                "System`LetterCharacter": r"[^\W_0-9]",
+                "System`HexadecimalCharacter": r"[0-9a-fA-F]",
+            }.get(expr.get_name()),
+            global_re_options,
+        )
 
     if expr.has_form("CharacterRange", 2):
         (start, stop) = (element.get_string_value() for element in expr.elements)
