@@ -10,10 +10,14 @@ import re
 import subprocess
 import sys
 
-from mathics import __version__, license_string, settings, version_string
+import os.path as osp
+
+from mathics import settings
+from mathics import version_string, license_string, __version__
+from mathics.builtin.system_init import autoload_files
 from mathics.builtin.trace import TraceBuiltins, traced_do_replace
 from mathics.core.atoms import String
-from mathics.core.definitions import Definitions, Symbol, autoload_files
+from mathics.core.definitions import Definitions, Symbol
 from mathics.core.evaluation import Evaluation, Output
 from mathics.core.expression import Expression
 from mathics.core.parser import MathicsFileLineFeeder, MathicsLineFeeder

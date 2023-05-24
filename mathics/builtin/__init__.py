@@ -26,7 +26,7 @@ import inspect
 import os.path as osp
 import pkgutil
 import re
-from typing import List, Optional
+from typing import Dict, List, Optional, Type
 
 from mathics.builtin.base import (
     Builtin,
@@ -48,8 +48,18 @@ __py_files__ = [
     for f in glob.glob(osp.join(osp.dirname(__file__), "[a-z]*.py"))
 ]
 
+# system_builtins_dict maps a full builtin name, e.g. "System`EulerPhi" to a Builtin class
+system_builtins_dict: Dict[str, Type[Builtin]] = {}
 
-def add_builtins(new_builtins):
+# builtins_by_module maps a full module name, e.g. "mathics.builtin.evaluation" to a
+# list of Builtin classes.
+builtins_by_module: Dict[str, List[Type[Builtin]]] = {}
+
+
+def add_builtins(new_builtins: list):
+    """
+    Updates system_builtins_dict to insert new_builtins.
+    """
     for var_name, builtin in new_builtins:
         name = builtin.get_name()
         if hasattr(builtin, "python_equivalent"):
@@ -65,7 +75,7 @@ def add_builtins(new_builtins):
             builtins_precedence[Symbol(name)] = builtin.precedence
         if isinstance(builtin, PatternObject):
             pattern_objects[name] = builtin.__class__
-    _builtins.update(dict(new_builtins))
+    system_builtins_dict.update(dict(new_builtins))
 
 
 def builtins_dict():
@@ -74,26 +84,6 @@ def builtins_dict():
         for modname, builtins in builtins_by_module.items()
         for builtin in builtins
     }
-
-
-def contribute(definitions):
-    # let MakeBoxes contribute first
-    _builtins["System`MakeBoxes"].contribute(definitions)
-    for name, item in _builtins.items():
-        if name != "System`MakeBoxes":
-            item.contribute(definitions)
-
-    from mathics.core.definitions import Definition
-    from mathics.core.expression import ensure_context
-    from mathics.core.parser import all_operator_names
-
-    # All builtins are loaded. Create dummy builtin definitions for
-    # any remaining operators that don't have them. This allows
-    # operators like \[Cup] to behave correctly.
-    for operator in all_operator_names:
-        if not definitions.have_definition(ensure_context(operator)):
-            op = ensure_context(operator)
-            definitions.builtin[op] = Definition(name=op)
 
 
 def import_builtins(module_names: List[str], submodule_name=None) -> None:
@@ -196,7 +186,6 @@ modules = []
 import_builtins(module_names)
 
 _builtins_list = []
-builtins_by_module = {}
 
 disable_file_module_names = [] if ENABLE_FILES_MODULE else ["files_io"]
 
@@ -255,13 +244,10 @@ for module in modules:
                 _builtins_list.append((instance.get_name(), instance))
                 builtins_by_module[module.__name__].append(instance)
 
-mathics_to_sympy = {}  # here we have: name -> sympy object
+mathics_to_sympy: Dict[str, Type[Builtin]] = {}  # here we have: name -> sympy object
 sympy_to_mathics = {}
 
 new_builtins = _builtins_list
-
-# FIXME: some magic is going on here..
-_builtins = {}
 
 add_builtins(new_builtins)
 
