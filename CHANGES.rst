@@ -28,8 +28,14 @@ Bugs
 ----
 
 * Improved support for ``DirectedInfinity`` and ``Indeterminate``.
-* Now `Definitions` is compatible with `pickle`.
-  
+* ``Definitions`` is compatible with ``pickle``.
+
+
+Package updates
++++++++++++++++
+
+#. Python 3.11 is now supported
+
 
 6.0.1
 -----
