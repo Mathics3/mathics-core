@@ -932,7 +932,8 @@ class ToExpression(Builtin):
     >> ToExpression["2 3", InputForm]
      = 6
 
-    Note that newlines are like semicolons, not blanks. So so the return value is the second-line value.
+    Note that newlines are like semicolons, not blanks. So so the return value is the \
+    second-line value.
     >> ToExpression["2\[NewLine]3"]
      = 3
 
@@ -1100,7 +1101,8 @@ class Transliterate(Builtin):
 
     ASCII translateration examples:
     <ul>
-      <li><url>:Russian language: https://en.wikipedia.org/wiki/Russian_language#Transliteration</url>
+      <li><url>:Russian language:
+          https://en.wikipedia.org/wiki/Russian_language#Transliteration</url>
       <li><url>:Hiragana: https://en.wikipedia.org/wiki/Hiragana#Table_of_hiragana</url>
     </ul>
     """
