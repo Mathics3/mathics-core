@@ -24,9 +24,9 @@ class RegularExpression(Builtin):
      = RegularExpression[[abc]]
 
     ## Mathematica doesn't seem to verify the correctness of regex
-    #> StringSplit["ab23c", RegularExpression["[0-9]++"]]
-     : Element RegularExpression[[0-9]++] is not a valid string or pattern element in RegularExpression[[0-9]++].
-     = StringSplit[ab23c, RegularExpression[[0-9]++]]
+    #> StringSplit["ab23c", RegularExpression["[0-9]++)"]]
+     : Element RegularExpression[[0-9]++)] is not a valid string or pattern element in RegularExpression[[0-9]++)].
+     = StringSplit[ab23c, RegularExpression[[0-9]++)]]
 
     #> StringSplit["ab23c", RegularExpression[2]]
      : Element RegularExpression[2] is not a valid string or pattern element in RegularExpression[2].
