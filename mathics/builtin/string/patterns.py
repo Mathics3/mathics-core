@@ -474,7 +474,9 @@ class StringMatchQ(Builtin):
             )
             return
 
-        re_patt = to_regex(patt, evaluation, abbreviated_patterns=True)
+        re_patt = to_regex(
+            patt, show_message=evaluation.message, abbreviated_patterns=True
+        )
         if re_patt is None:
             evaluation.message(
                 "StringExpression",

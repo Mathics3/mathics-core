@@ -26,6 +26,7 @@ import inspect
 import os.path as osp
 import pkgutil
 import re
+from sys import stderr
 from typing import List, Optional
 
 from mathics.builtin.base import (
@@ -35,6 +36,8 @@ from mathics.builtin.base import (
     SympyObject,
     mathics_to_python,
 )
+from mathics.core.convert.python import from_python
+from mathics.core.element import ensure_context
 from mathics.core.pattern import pattern_objects
 from mathics.core.symbols import Symbol
 from mathics.eval.makeboxes import builtins_precedence
@@ -184,6 +187,26 @@ def name_is_builtin_symbol(module, name: str) -> Optional[type]:
     if module_object in getattr(module, "DOES_NOT_ADD_BUILTIN_DEFINITION", []):
         return None
     return module_object
+
+
+def print_message(symbol_name: str, tag, *msgs, channel=stderr) -> "Message":
+    """
+    Print to the standard output a message using the default Builtin messages.
+    """
+    builtins = builtins_dict()
+    full_symbol_name = ensure_context(symbol_name)
+    builtin = builtins.get(full_symbol_name, None)
+    text = builtin.messages.get(tag) if builtin else None
+
+    if text is None:
+        text = builtins["System`General"].messages.get(tag)
+
+    if text is None:
+        text = "Message %s::%s not found." % (symbol_name, tag)
+
+    for i, arg in enumerate((from_python(arg) for arg in msgs)):
+        text = text.replace(f"`{i+1}`", str(arg))
+    print(text, file=channel)
 
 
 # FIXME: redo using importlib since that is probably less fragile.
