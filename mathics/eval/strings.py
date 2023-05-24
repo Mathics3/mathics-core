@@ -111,7 +111,7 @@ def to_regex_internal(
     def recurse(x: Expression, quantifiers=q) -> Tuple[Optional[str], str]:
         """
         Shortend way to call to_regexp_internal -
-        on the expr and quantifiers change here.
+        only the expr and quantifiers change here.
         """
         return to_regex_internal(
             expr=x,
