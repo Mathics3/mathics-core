@@ -6,6 +6,7 @@ from mathics.core.element import BaseElement
 from mathics.core.expression import Expression, convert_expression_elements
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList
+from mathics.eval.numerify import numerify
 
 
 def make_expression(head, *elements, **kwargs) -> Expression:
@@ -65,7 +66,7 @@ def to_expression_with_specialization(
 
 def to_mathics_list(
     *elements: Any, elements_conversion_fn: Callable = from_python, is_literal=False
-) -> Expression:
+) -> ListExpression:
     """
     This is an expression constructor for list that can be used when the elements are not Mathics
     objects. For example:
@@ -94,7 +95,7 @@ def to_numeric_args(mathics_args: Type[BaseElement], evaluation) -> list:
     return (
         tuple(mathics_args.value)
         if mathics_args.is_literal
-        else mathics_args.numerify(evaluation).get_sequence()
+        else numerify(mathics_args, evaluation).get_sequence()
     )
 
 
@@ -109,7 +110,7 @@ def to_numeric_sympy_args(mathics_args: Type[BaseElement], evaluation) -> list:
     if mathics_args.is_literal:
         sympy_args = [mathics_args.value]
     else:
-        args = mathics_args.numerify(evaluation).get_sequence()
+        args = numerify(mathics_args, evaluation).get_sequence()
         sympy_args = [a.to_sympy() for a in args]
 
     return sympy_args

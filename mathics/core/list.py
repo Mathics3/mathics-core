@@ -19,7 +19,7 @@ class ListExpression(Expression):
         - *elements - optional: the remaining elements
 
     Keyword Arguments:
-        - element_properties -- properties of the collection of elements
+        - elements_properties -- properties of the collection of elements
         - literal_values -- if this is not None, then it is a tuple of Python values
     """
 
@@ -83,7 +83,7 @@ class ListExpression(Expression):
 
     def __str__(self) -> str:
         """str() representation of ListExpression. May be longer than repr()"""
-        return f"<ListExpression: {self._elements}>"
+        return "{" + ",".join(str(e) for e in self.elements) + "}"
 
     # @timeit
     def evaluate_elements(self, evaluation: Evaluation) -> Expression:

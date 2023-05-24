@@ -2,9 +2,11 @@
 """
 Applying Functions to Lists
 
-Many computations can be conveniently specified in terms of applying functions in parallel to many elements in a list.
+Many computations can be conveniently specified in terms of applying functions \
+in parallel to many elements in a list.
 
-Many mathematical functions are automatically taken to be "listable", so that they are always applied to every element in a list.
+Many mathematical functions are automatically taken to be "listable", so that \
+they are always applied to every element in a list.
 """
 
 # This tells documentation how to sort this module
@@ -12,12 +14,11 @@ sort_order = "mathics.builtin.applying-functions-to-lists"
 
 from typing import Iterable
 
-from mathics.builtin.base import (
-    Builtin,
-    BinaryOperator,
-)
+from mathics.builtin.base import BinaryOperator, Builtin
+from mathics.builtin.list.constructing import List
 from mathics.core.atoms import Integer
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import (
     InvalidLevelspecError,
     MessageException,
@@ -25,22 +26,9 @@ from mathics.core.exceptions import (
 )
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    SymbolNull,
-    SymbolTrue,
-)
-
-from mathics.core.systemsymbols import SymbolRule
-
-from mathics.builtin.lists import (
-    python_levelspec,
-    walk_levels,
-    List,
-)
-
-SymbolMapThread = Symbol("MapThread")
+from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
+from mathics.core.systemsymbols import SymbolMapThread, SymbolRule
+from mathics.eval.parts import python_levelspec, walk_levels
 
 
 class Apply(BinaryOperator):
@@ -93,12 +81,12 @@ class Apply(BinaryOperator):
         "Heads": "False",
     }
 
-    def apply_invalidlevel(self, f, expr, ls, evaluation, options={}):
+    def eval_invalidlevel(self, f, expr, ls, evaluation, options={}):
         "Apply[f_, expr_, ls_, OptionsPattern[Apply]]"
 
         evaluation.message("Apply", "level", ls)
 
-    def apply(self, f, expr, ls, evaluation, options={}):
+    def eval(self, f, expr, ls, evaluation, options={}):
         """Apply[f_, expr_, Optional[Pattern[ls, _?LevelQ], {0}],
         OptionsPattern[Apply]]"""
 
@@ -157,12 +145,12 @@ class Map(BinaryOperator):
         "Heads": "False",
     }
 
-    def apply_invalidlevel(self, f, expr, ls, evaluation, options={}):
+    def eval_invalidlevel(self, f, expr, ls, evaluation, options={}):
         "Map[f_, expr_, ls_, OptionsPattern[Map]]"
 
         evaluation.message("Map", "level", ls)
 
-    def apply_level(self, f, expr, ls, evaluation, options={}):
+    def eval_level(self, f, expr, ls, evaluation, options={}):
         """Map[f_, expr_, Optional[Pattern[ls, _?LevelQ], {1}],
         OptionsPattern[Map]]"""
 
@@ -224,7 +212,7 @@ class MapAt(Builtin):
         "MapAt[f_, pos_][expr_]": "MapAt[f, expr, pos]",
     }
 
-    def apply(self, f, expr, args, evaluation, options={}):
+    def eval(self, f, expr, args, evaluation, options={}):
         "MapAt[f_, expr_, args_]"
 
         m = len(expr.elements)
@@ -307,12 +295,12 @@ class MapIndexed(Builtin):
         "Heads": "False",
     }
 
-    def apply_invalidlevel(self, f, expr, ls, evaluation, options={}):
+    def eval_invalidlevel(self, f, expr, ls, evaluation, options={}):
         "MapIndexed[f_, expr_, ls_, OptionsPattern[MapIndexed]]"
 
         evaluation.message("MapIndexed", "level", ls)
 
-    def apply_level(self, f, expr, ls, evaluation, options={}):
+    def eval_level(self, f, expr, ls, evaluation, options={}):
         """MapIndexed[f_, expr_, Optional[Pattern[ls, _?LevelQ], {1}],
         OptionsPattern[MapIndexed]]"""
 
@@ -385,12 +373,12 @@ class MapThread(Builtin):
         "list": "List expected at position `2` in `1`.",
     }
 
-    def apply(self, f, expr, evaluation):
+    def eval(self, f, expr, evaluation):
         "MapThread[f_, expr_]"
 
-        return self.apply_n(f, expr, None, evaluation)
+        return self.eval_n(f, expr, None, evaluation)
 
-    def apply_n(self, f, expr, n, evaluation):
+    def eval_n(self, f, expr, n, evaluation):
         "MapThread[f_, expr_, n_]"
 
         if n is None:
@@ -401,12 +389,14 @@ class MapThread(Builtin):
             n = n.get_int_value()
 
         if n is None or n < 0:
-            return evaluation.message("MapThread", "intnm", full_expr, 3)
+            evaluation.message("MapThread", "intnm", full_expr, 3)
+            return
 
         if expr.has_form("List", 0):
             return ListExpression()
         if not expr.has_form("List", None):
-            return evaluation.message("MapThread", "list", 2, full_expr)
+            evaluation.message("MapThread", "list", 2, full_expr)
+            return
 
         heads = expr.elements
 
@@ -482,12 +472,12 @@ class Scan(Builtin):
         "Scan[f_][expr_]": "Scan[f, expr]",
     }
 
-    def apply_invalidlevel(self, f, expr, ls, evaluation, options={}):
+    def eval_invalidlevel(self, f, expr, ls, evaluation, options={}):
         "Scan[f_, expr_, ls_, OptionsPattern[Map]]"
 
-        return evaluation.message("Map", "level", ls)
+        evaluation.message("Map", "level", ls)
 
-    def apply_level(self, f, expr, ls, evaluation, options={}):
+    def eval_level(self, f, expr, ls, evaluation, options={}):
         """Scan[f_, expr_, Optional[Pattern[ls, _?LevelQ], {1}],
         OptionsPattern[Map]]"""
 
@@ -539,7 +529,7 @@ class Thread(Builtin):
 
     summary_text = '"thread" a function across lists that appear in its arguments'
 
-    def apply(self, f, args, h, evaluation):
+    def eval(self, f, args, h, evaluation: Evaluation):
         "Thread[f_[args___], h_]"
 
         args = args.get_sequence()

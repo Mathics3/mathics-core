@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
+import sys
+import time
 from test.helper import check_evaluation, evaluate
 
 import pytest
-import sys
-
-import time
 
 
 @pytest.mark.skipif(

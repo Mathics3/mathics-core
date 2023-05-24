@@ -7,7 +7,6 @@ Unit tests from builtins/colors/colors.py
 import unittest
 from random import random
 
-
 import mathics.builtin.colors.color_internals as colors
 from mathics.builtin.numpy_utils import array, stacked, vectorize
 from mathics.core.atoms import String
@@ -16,7 +15,6 @@ from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.systemsymbols import SymbolColorConvert
-
 
 _color_tests = [
     [
@@ -321,7 +319,7 @@ class ColorTest(unittest.TestCase):
     def testImageConversions(self):
         # test that f([x, y, ...]) = [f(x), f(y), ...] for rectangular image arrays.
 
-        for name, convert in colors.conversions.items():
+        for name, convert in colors.CONVERSIONS.items():
             if name.find("CMYK") < 0:
                 self._checkImageConversion(
                     4, lambda p: vectorize(p, 1, lambda q: stacked(convert, q))

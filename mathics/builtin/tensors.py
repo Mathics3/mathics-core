@@ -3,31 +3,30 @@
 """
 Tensors
 
-A <url>:tensor: https://en.wikipedia.org/wiki/Tensor</url> is an algebraic object that describes a (multilinear) relationship between sets of algebraic objects related to a vector space. Objects that tensors may map between include vectors and scalars, and even other tensors.
+A <url>:tensor: https://en.wikipedia.org/wiki/Tensor</url> is an algebraic \
+object that describes a (multilinear) relationship between sets of algebraic \
+objects related to a vector space. Objects that tensors may map between \
+include vectors and scalars, and even other tensors.
 
-There are many types of tensors, including scalars and vectors (which are the simplest tensors), dual vectors, multilinear maps between vector spaces, and even some operations such as the dot product. Tensors are defined independent of any basis, although they are often referred to by their components in a basis related to a particular coordinate system.
+There are many types of tensors, including scalars and vectors (which are \
+the simplest tensors), dual vectors, multilinear maps between vector spaces, \
+and even some operations such as the dot product. Tensors are defined \
+independent of any basis, although they are often referred to by their \
+components in a basis related to a particular coordinate system.
 
-Mathics represents tensors of vectors and matrices as lists; tensors of any rank can be handled.
+Mathics3 represents tensors of vectors and matrices as lists; tensors \
+of any rank can be handled.
 """
 
 
-from mathics.algorithm.parts import get_part
-from mathics.builtin.base import Builtin, BinaryOperator
-
-from mathics.core.atoms import (
-    Integer,
-    String,
-)
+from mathics.builtin.base import BinaryOperator, Builtin
+from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.rules import Pattern
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    SymbolFalse,
-    SymbolTrue,
-)
+from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
+from mathics.eval.parts import get_part
 
 
 def get_default_distance(p):
@@ -83,9 +82,13 @@ def get_dimensions(expr, head=None):
 
 class ArrayDepth(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/ArrayDepth.html</url>
+
     <dl>
       <dt>'ArrayDepth[$a$]'
-      <dd>returns the depth of the non-ragged array $a$, defined as 'Length[Dimensions[$a$]]'.
+      <dd>returns the depth of the non-ragged array $a$, defined as \
+      'Length[Dimensions[$a$]]'.
     </dl>
 
     >> ArrayDepth[{{a,b},{c,d}}]
@@ -101,75 +104,10 @@ class ArrayDepth(Builtin):
     summary_text = "the rank of a tensor"
 
 
-class ArrayQ(Builtin):
-    """
-    <dl>
-      <dt>'ArrayQ[$expr$]'
-      <dd>tests whether $expr$ is a full array.
-
-      <dt>'ArrayQ[$expr$, $pattern$]'
-      <dd>also tests whether the array depth of $expr$ matches $pattern$.
-
-      <dt>'ArrayQ[$expr$, $pattern$, $test$]'
-      <dd>furthermore tests whether $test$ yields 'True' for all elements of $expr$.
-        'ArrayQ[$expr$]' is equivalent to 'ArrayQ[$expr$, _, True&]'.
-    </dl>
-
-    >> ArrayQ[a]
-     = False
-    >> ArrayQ[{a}]
-     = True
-    >> ArrayQ[{{{a}},{{b,c}}}]
-     = False
-    >> ArrayQ[{{a, b}, {c, d}}, 2, SymbolQ]
-     = True
-    """
-
-    rules = {
-        "ArrayQ[expr_]": "ArrayQ[expr, _, True&]",
-        "ArrayQ[expr_, pattern_]": "ArrayQ[expr, pattern, True&]",
-    }
-
-    summary_text = "test whether an object is a tensor of a given rank"
-
-    def apply(self, expr, pattern, test, evaluation):
-        "ArrayQ[expr_, pattern_, test_]"
-
-        pattern = Pattern.create(pattern)
-
-        dims = [len(expr.get_elements())]  # to ensure an atom is not an array
-
-        def check(level, expr):
-            if not expr.has_form("List", None):
-                test_expr = Expression(test, expr)
-                if test_expr.evaluate(evaluation) != SymbolTrue:
-                    return False
-                level_dim = None
-            else:
-                level_dim = len(expr.elements)
-
-            if len(dims) > level:
-                if dims[level] != level_dim:
-                    return False
-            else:
-                dims.append(level_dim)
-            if level_dim is not None:
-                for element in expr.elements:
-                    if not check(level + 1, element):
-                        return False
-            return True
-
-        if not check(0, expr):
-            return SymbolFalse
-
-        depth = len(dims) - 1  # None doesn't count
-        if not pattern.does_match(Integer(depth), evaluation):
-            return SymbolFalse
-        return SymbolTrue
-
-
 class Dimensions(Builtin):
     """
+    <url>:WMA: https://reference.wolfram.com/language/ref/Dimensions.html</url>
+
     <dl>
     <dt>'Dimensions[$expr$]'
         <dd>returns a list of the dimensions of the expression $expr$.
@@ -199,7 +137,7 @@ class Dimensions(Builtin):
 
     summary_text = "the dimensions of a tensor"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation):
         "Dimensions[expr_]"
 
         return ListExpression(*[Integer(dim) for dim in get_dimensions(expr)])
@@ -207,6 +145,9 @@ class Dimensions(Builtin):
 
 class Dot(BinaryOperator):
     """
+    <url>:Dot product:https://en.wikipedia.org/wiki/Dot_product</url> \
+    (<url>:WMA link: https://reference.wolfram.com/language/ref/Dot.html</url>)
+
     <dl>
       <dt>'Dot[$x$, $y$]'
       <dt>'$x$ . $y$'
@@ -239,6 +180,8 @@ class Dot(BinaryOperator):
 
 class Inner(Builtin):
     """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/Inner.html</url>
+
     <dl>
     <dt>'Inner[$f$, $x$, $y$, $g$]'
         <dd>computes a generalised inner product of $x$ and $y$, using
@@ -283,7 +226,7 @@ class Inner(Builtin):
 
     summary_text = "generalized inner product"
 
-    def apply(self, f, list1, list2, g, evaluation):
+    def eval(self, f, list1, list2, g, evaluation: Evaluation):
         "Inner[f_, list1_, list2_, g_]"
 
         m = get_dimensions(list1)
@@ -330,6 +273,9 @@ class Inner(Builtin):
 
 class Outer(Builtin):
     """
+    <url>:Outer product:https://en.wikipedia.org/wiki/Outer_product</url> \
+    (<url>:WMA link: https://reference.wolfram.com/language/ref/Outer.html</url>)
+
     <dl>
       <dt>'Outer[$f$, $x$, $y$]'
       <dd>computes a generalised outer product of $x$ and $y$, using the function $f$ in place of multiplication.
@@ -364,7 +310,7 @@ class Outer(Builtin):
 
     summary_text = "generalized outer product"
 
-    def apply(self, f, lists, evaluation):
+    def eval(self, f, lists, evaluation: Evaluation):
         "Outer[f_, lists__]"
 
         lists = lists.get_sequence()
@@ -397,6 +343,8 @@ class Outer(Builtin):
 
 class RotationTransform(Builtin):
     """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/RotationTransform.html</url>
+
     <dl>
       <dt>'RotationTransform[$phi$]'
       <dd>gives a rotation by $phi$.
@@ -415,6 +363,8 @@ class RotationTransform(Builtin):
 
 class ScalingTransform(Builtin):
     """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ScalingTransform.html</url>
+
     <dl>
       <dt>'ScalingTransform[$v$]'
       <dd>gives a scaling transform of $v$. $v$ may be a scalar or a vector.
@@ -433,6 +383,8 @@ class ScalingTransform(Builtin):
 
 class ShearingTransform(Builtin):
     """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ShearingTransform.html</url>
+
     <dl>
     <dt>'ShearingTransform[$phi$, {1, 0}, {0, 1}]'
         <dd>gives a horizontal shear by the angle $phi$.
@@ -453,6 +405,8 @@ class ShearingTransform(Builtin):
 
 class TransformationFunction(Builtin):
     """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/TransformationFunction.html</url>
+
     <dl>
       <dt>'TransformationFunction[$m$]'
       <dd>represents a transformation.
@@ -474,25 +428,40 @@ class TransformationFunction(Builtin):
 
 class TranslationTransform(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/TranslationTransform.html</url>
+
     <dl>
       <dt>'TranslationTransform[$v$]'
-      <dd>gives the translation by the vector $v$.
+      <dd>gives a 'TransformationFunction' that translates points by vector $v$.
     </dl>
 
-    >> TranslationTransform[{1, 2}]
-     = TransformationFunction[{{1, 0, 1}, {0, 1, 2}, {0, 0, 1}}]
+    >> t = TranslationTransform[{x0, y0}]
+     = TransformationFunction[{{1, 0, x0}, {0, 1, y0}, {0, 0, 1}}]
+
+    >> t[{x, y}]
+     = {x + x0, y + y0}
+
+    From <url>
+    :Creating a Sierpinsky gasket with the missing triangles filled in:
+    "https://mathematica.stackexchange.com/questions/7360/creating-a-sierpinski-gasket-with-the-missing-triangles-filled-in/7361#7361</url>:
+    >> Show[Graphics[Table[Polygon[TranslationTransform[{Sqrt[3] (i - j/2), 3 j/2}] /@ {{Sqrt[3]/2, -1/2}, {0, 1}, {-Sqrt[3]/2, -1/2}}], {i, 7}, {j, i}]]]
+     = -Graphics-
     """
 
     rules = {
         "TranslationTransform[v_]": "TransformationFunction[IdentityMatrix[Length[v] + 1] + "
         "(Join[ConstantArray[0, Length[v]], {#}]& /@ Join[v, {0}])]",
     }
-    summary_text = "symbolic representation of translation"
+    summary_text = "create a vector translation function"
 
 
 class Transpose(Builtin):
     """
-    <url>:Transpose: https://en.wikipedia.org/wiki/Transpose</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Transpose.html</url>)
+    <url>
+    :Transpose: https://en.wikipedia.org/wiki/Transpose</url> (<url>
+    :WMA: https://reference.wolfram.com/language/ref/Transpose.html</url>)
 
     <dl>
       <dt>'Tranpose[$m$]'
@@ -526,7 +495,7 @@ class Transpose(Builtin):
 
     summary_text = "transpose to rearrange indices in any way"
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "Transpose[m_?MatrixQ]"
 
         result = []
@@ -537,26 +506,3 @@ class Transpose(Builtin):
                 else:
                     result[col_index].append(item)
         return ListExpression(*[ListExpression(*row) for row in result])
-
-
-# Should be in Elements of Vectors, but we don't have this since other operations
-# are subsumed by Elements of Lists.
-class VectorQ(Builtin):
-    """
-    <dl>
-      <dt>'VectorQ[$v$]'
-      <dd>returns 'True' if $v$ is a list of elements which are not themselves lists.
-
-      <dt>'VectorQ[$v$, $f$]'
-      <dd>returns 'True' if $v$ is a vector and '$f$[$x$]' returns 'True' for each element $x$ of $v$.
-    </dl>
-
-    >> VectorQ[{a, b, c}]
-     = True
-    """
-
-    rules = {
-        "VectorQ[expr_]": "ArrayQ[expr, 1]",
-        "VectorQ[expr_, test_]": "ArrayQ[expr, 1, test]",
-    }
-    summary_text = "test whether an object is a vector"

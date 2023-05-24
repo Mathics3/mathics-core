@@ -5,6 +5,7 @@ import argparse
 import atexit
 import locale
 import os
+import os.path as osp
 import re
 import subprocess
 import sys
@@ -22,8 +23,8 @@ from mathics.core.expression import Expression
 from mathics.core.parser import MathicsFileLineFeeder, MathicsLineFeeder
 from mathics.core.read import channel_to_stream
 from mathics.core.rules import BuiltinRule
-from mathics.core.symbols import strip_context, SymbolNull
 from mathics.core.streams import stream_manager
+from mathics.core.symbols import SymbolNull, strip_context
 from mathics.timing import show_lru_cache_statistics
 
 
@@ -348,7 +349,7 @@ Please contribute to Mathics!""",
     )
     args, script_args = argparser.parse_known_args()
 
-    quit_command = "CTRL-BREAK" if sys.platform == "win32" else "CONTROL-D"
+    quit_command = "CTRL-BREAK" if sys.platform in ("win32", "nt") else "CONTROL-D"
 
     extension_modules = []
     if args.pyextensions:

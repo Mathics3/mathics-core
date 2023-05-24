@@ -1,28 +1,24 @@
 """
 Color Directives
 
-There are many different way to specify color; we support all of the color formats below and will convert between the different color formats.
+There are many different way to specify color, and we support many of these.
+
+We can convert between the different color formats.
 """
 
 from math import atan2, cos, exp, pi, radians, sin, sqrt
 
-
 from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_internals import convert_color
 from mathics.builtin.drawing.graphics_internals import _GraphicsDirective, get_class
-from mathics.core.atoms import (
-    Integer,
-    Real,
-    MachineReal,
-    String,
-)
+from mathics.core.atoms import Integer, MachineReal, Real, String
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.element import ImmutableValueMixin
 from mathics.core.exceptions import BoxExpressionError
-from mathics.core.expression import Expression
+from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import machine_epsilon
+from mathics.core.number import MACHINE_EPSILON
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolApply
 
@@ -31,7 +27,7 @@ SymbolOpacity = Symbol("Opacity")
 
 def _cie2000_distance(lab1, lab2):
     # reference: https://en.wikipedia.org/wiki/Color_difference#CIEDE2000
-    e = machine_epsilon
+    e = MACHINE_EPSILON
     kL = kC = kH = 1  # common values
 
     L1, L2 = lab1[0], lab2[0]
@@ -89,14 +85,14 @@ def _cie2000_distance(lab1, lab2):
     )
 
 
-def _CMC_distance(lab1, lab2, l, c):
+def _CMC_distance(lab1, lab2, ll, c):
     # reference https://en.wikipedia.org/wiki/Color_difference#CMC_l:c_.281984.29
     L1, L2 = lab1[0], lab2[0]
     a1, a2 = lab1[1], lab2[1]
     b1, b2 = lab1[2], lab2[2]
 
     dL, da, db = L2 - L1, a2 - a1, b2 - b1
-    e = machine_epsilon
+    e = MACHINE_EPSILON
 
     C1 = sqrt(a1**2 + b1**2)
     C2 = sqrt(a2**2 + b2**2)
@@ -114,7 +110,7 @@ def _CMC_distance(lab1, lab2, l, c):
     SL = 0.511 if L1 < 16 else (0.040975 * L1) / (1 + 0.01765 * L1)
     SC = (0.0638 * C1) / (1 + 0.0131 * C1) + 0.638
     SH = SC * (F * T + 1 - F)
-    return sqrt((dL / (l * SL)) ** 2 + (dC / (c * SC)) ** 2 + dH2 / SH**2)
+    return sqrt((dL / (ll * SL)) ** 2 + (dC / (c * SC)) ** 2 + dH2 / SH**2)
 
 
 def _component_distance(a, b, i):
@@ -123,6 +119,24 @@ def _component_distance(a, b, i):
 
 def _euclidean_distance(a, b):
     return sqrt(sum((x1 - x2) * (x1 - x2) for x1, x2 in zip(a, b)))
+
+
+def color_to_expression(components, colorspace):
+    if colorspace == "Grayscale":
+        converted_color_name = "GrayLevel"
+    elif colorspace == "HSB":
+        converted_color_name = "Hue"
+    else:
+        converted_color_name = colorspace + "Color"
+
+    return to_expression(converted_color_name, *components)
+
+
+def expression_to_color(color):
+    try:
+        return _ColorObject.create(color)
+    except ColorError:
+        return None
 
 
 class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
@@ -209,6 +223,10 @@ class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
 
 class CMYKColor(_ColorObject):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/CMYKColor.html</url>
+
     <dl>
       <dt>'CMYKColor[$c$, $m$, $y$, $k$]'
       <dd>represents a color with the specified cyan, magenta,
@@ -222,10 +240,13 @@ class CMYKColor(_ColorObject):
     color_space = "CMYK"
     components_sizes = [3, 4, 5]
     default_components = [0, 0, 0, 0, 1]
+    summary_text = "specify a CMYK color"
 
 
 class ColorDistance(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ColorDistance.html</url>
+
     <dl>
       <dt>'ColorDistance[$c1$, $c2$]'
       <dd>returns a measure of color distance between the colors $c1$ and $c2$.
@@ -260,7 +281,6 @@ class ColorDistance(Builtin):
 
     """
 
-    summary_text = "distance between two colors"
     options = {"DistanceFunction": "Automatic"}
 
     requires = ("numpy",)
@@ -270,6 +290,8 @@ class ColorDistance(Builtin):
         "invarg": "`1` and `2` should be two colors or a color and a lists of colors or "
         + "two lists of colors of the same length.",
     }
+
+    summary_text = "get distance between two colors"
 
     # If numpy is not installed, 100 * c1.to_color_space returns
     # a list of 100 x 3 elements, instead of doing elementwise multiplication
@@ -308,7 +330,7 @@ class ColorDistance(Builtin):
         / 100,
     }
 
-    def apply(self, c1, c2, evaluation, options):
+    def eval(self, c1, c2, evaluation: Evaluation, options: dict):
         "ColorDistance[c1_, c2_, OptionsPattern[ColorDistance]]"
 
         distance_function = options.get("System`DistanceFunction")
@@ -433,6 +455,10 @@ class ColorError(BoxExpressionError):
 
 class GrayLevel(_ColorObject):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/GrayLevel.html</url>
+
     <dl>
       <dt>'GrayLevel[$g$]'
       <dd>represents a shade of gray specified by $g$, ranging from
@@ -446,9 +472,15 @@ class GrayLevel(_ColorObject):
     components_sizes = [1, 2]
     default_components = [0, 1]
 
+    summary_text = "specify a Grayscale color"
+
 
 class Hue(_ColorObject):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Hue.html</url>
+
     <dl>
       <dt>'Hue[$h$, $s$, $l$, $a$]'
       <dd>represents the color with hue $h$, saturation $s$, lightness $l$ and opacity $a$.
@@ -474,13 +506,15 @@ class Hue(_ColorObject):
     components_sizes = [1, 2, 3, 4]
     default_components = [0, 1, 1, 1]
 
+    summary_text = "specify a color with hue, saturation lightness, and opacity"
+
     def hsl_to_rgba(self) -> tuple:
-        h, s, l = self.components[:3]
-        if l < 0.5:
-            q = l * (1 + s)
+        h, s, li = self.components[:3]
+        if li < 0.5:
+            q = li * (1 + s)
         else:
-            q = l + s - l * s
-        p = 2 * l - q
+            q = li + s - li * s
+        p = 2 * li - q
 
         rgb = (h + 1 / 3, h, h - 1 / 3)
 
@@ -507,6 +541,10 @@ class Hue(_ColorObject):
 
 class LABColor(_ColorObject):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/LABColor.html</url>
+
     <dl>
       <dt>'LABColor[$l$, $a$, $b$]'
       <dd>represents a color with the specified lightness, red/green and yellow/blue
@@ -518,9 +556,15 @@ class LABColor(_ColorObject):
     components_sizes = [3, 4]
     default_components = [0, 0, 0, 1]
 
+    summary_text = "specify a LAB color"
+
 
 class LCHColor(_ColorObject):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/LCHColor.html</url>
+
     <dl>
       <dt>'LCHColor[$l$, $c$, $h$]'
       <dd>represents a color with the specified lightness, chroma and hue
@@ -532,9 +576,13 @@ class LCHColor(_ColorObject):
     components_sizes = [3, 4]
     default_components = [0, 0, 0, 1]
 
+    summary_text = "specify a LHC color"
+
 
 class LUVColor(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LUVColor.html</url>
+
     <dl>
       <dt>'LCHColor[$l$, $u$, $v$]'
       <dd>represents a color with the specified components in the CIE 1976 L*u*v* (CIELUV) color space.
@@ -545,9 +593,15 @@ class LUVColor(_ColorObject):
     components_sizes = [3, 4]
     default_components = [0, 0, 0, 1]
 
+    summary_text = "specify a LUV color"
+
 
 class Opacity(_GraphicsDirective):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Opacity.html</url>
+
     <dl>
       <dt>'Opacity[$level$]'
       <dd> is a graphics directive that sets the opacity to $level$.
@@ -571,7 +625,7 @@ class Opacity(_GraphicsDirective):
         try:
             if 0.0 <= self.opacity <= 1.0:
                 return self.opacity
-        except:
+        except Exception:
             pass
         return None
 
@@ -579,9 +633,15 @@ class Opacity(_GraphicsDirective):
     def create_as_style(klass, graphics, item):
         return klass(item)
 
+    summary_text = "specify a Opacity level"
+
 
 class RGBColor(_ColorObject):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RGBColor.html</url>
+
     <dl>
       <dt>'RGBColor[$r$, $g$, $b$]'
       <dd>represents a color with the specified red, green and blue
@@ -605,9 +665,15 @@ class RGBColor(_ColorObject):
     def to_rgba(self):
         return self.components
 
+    summary_text = "specify an RGB color"
+
 
 class XYZColor(_ColorObject):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/XYZColor.html</url>
+
     <dl>
       <dt>'XYZColor[$x$, $y$, $z$]'
       <dd>represents a color with the specified components in the CIE 1931 XYZ color space.
@@ -618,20 +684,4 @@ class XYZColor(_ColorObject):
     components_sizes = [3, 4]
     default_components = [0, 0, 0, 1]
 
-
-def expression_to_color(color):
-    try:
-        return _ColorObject.create(color)
-    except ColorError:
-        return None
-
-
-def color_to_expression(components, colorspace):
-    if colorspace == "Grayscale":
-        converted_color_name = "GrayLevel"
-    elif colorspace == "HSB":
-        converted_color_name = "Hue"
-    else:
-        converted_color_name = colorspace + "Color"
-
-    return to_expression(converted_color_name, *components)
+    summary_text = "specify an XYZ color"

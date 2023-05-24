@@ -1,22 +1,18 @@
 # -*- coding: utf-8 -*-
 
-from queue import Queue
-import time
-
-
 import os
 import sys
+import time
+from queue import Queue
 from threading import Thread, stack_size as set_thread_stack_size
-
-from typing import Tuple
+from typing import List, Optional, Tuple, Union
 
 from mathics_scanner import TranslateError
 
 from mathics import settings
-
 from mathics.core.atoms import Integer, String
 from mathics.core.convert.python import from_python
-from mathics.core.element import KeyComparable, ensure_context
+from mathics.core.element import BaseElement, KeyComparable, ensure_context
 from mathics.core.interrupt import (
     AbortInterrupt,
     BreakInterrupt,
@@ -25,12 +21,7 @@ from mathics.core.interrupt import (
     TimeoutInterrupt,
     WLThrowInterrupt,
 )
-
-from mathics.core.symbols import (
-    Symbol,
-    SymbolNull,
-)
-
+from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import (
     SymbolAborted,
     SymbolBreak,
@@ -85,12 +76,12 @@ MAX_RECURSION_DEPTH = max(
 
 
 def python_recursion_depth(n) -> int:
-    # convert Mathics recursion depth to Python recursion depth. this estimates how many Python calls
-    # we need at worst to process one Mathics recursion.
+    # convert Mathics3 recursion depth to Python recursion depth. this estimates how many Python calls
+    # we need at worst to process one Mathics3 recursion.
     return 200 + 30 * n
 
 
-def python_stack_size(n) -> int:  # n is a Mathics recursion depth
+def python_stack_size(n) -> int:  # n is a Mathics3 recursion depth
     # python_stack_frame_size is the (maximum) number of bytes Python needs for one call on the stack.
     python_stack_frame_size = 512  # value estimated experimentally
     return python_recursion_depth(n) * python_stack_frame_size
@@ -128,12 +119,12 @@ def run_with_timeout_and_stack(request, timeout, evaluation):
     # for a detailed discussion of this.
     #
     # To reduce this problem, we make use of specific properties of
-    # the Mathics evaluator: if we set "evaluation.timeout", the
+    # the Mathics3 evaluator: if we set "evaluation.timeout", the
     # next call to "Expression.evaluate" in the thread will finish it
     # immediately.
     #
     # However this still will not terminate long-running processes
-    # in Sympy or or libraries called by Mathics that might hang or run
+    # in Sympy or or libraries called by Mathics3 that might hang or run
     # for a long time.
     thread.join(timeout)
     if thread.is_alive():
@@ -151,7 +142,7 @@ def run_with_timeout_and_stack(request, timeout, evaluation):
         raise result[0].with_traceback(result[1], result[2])
 
 
-class Out(KeyComparable):
+class _Out(KeyComparable):
     def __init__(self) -> None:
         self.is_message = False
         self.is_print = False
@@ -159,80 +150,6 @@ class Out(KeyComparable):
 
     def get_sort_key(self) -> Tuple[bool, bool, str]:
         return (self.is_message, self.is_print, self.text)
-
-
-class Message(Out):
-    def __init__(self, symbol, tag, text: str) -> None:
-        super(Message, self).__init__()
-        self.is_message = True
-        self.symbol = symbol
-        self.tag = tag
-        self.text = text
-
-    def __str__(self) -> str:
-        return "{}::{}: {}".format(self.symbol, self.tag, self.text)
-
-    def __eq__(self, other) -> bool:
-        return self.is_message == other.is_message and self.text == other.text
-
-    def get_data(self):
-        return {
-            "message": True,
-            "symbol": self.symbol,
-            "tag": self.tag,
-            "prefix": "%s::%s" % (self.symbol, self.tag),
-            "text": self.text,
-        }
-
-
-class Print(Out):
-    def __init__(self, text) -> None:
-        super(Print, self).__init__()
-        self.is_print = True
-        self.text = text
-
-    def __str__(self) -> str:
-        return self.text
-
-    def __eq__(self, other) -> bool:
-        return self.is_message == other.is_message and self.text == other.text
-
-    def get_data(self):
-        return {
-            "message": False,
-            "text": self.text,
-        }
-
-
-class Result:
-    def __init__(self, out, result, line_no, last_eval=None, form=None) -> None:
-        self.out = out
-        self.result = result
-        self.line_no = line_no
-        self.last_eval = last_eval
-        self.form = form
-
-    def get_data(self):
-        return {
-            "out": [out.get_data() for out in self.out],
-            "result": self.result,
-            "line": self.line_no,
-            "form": self.form,
-        }
-
-
-class Output:
-    def max_stored_size(self, settings) -> int:
-        return settings.MAX_STORED_SIZE
-
-    def out(self, out):
-        pass
-
-    def clear(self, wait):
-        raise NotImplementedError
-
-    def display(self, data, metadata):
-        raise NotImplementedError
 
 
 class Evaluation:
@@ -278,10 +195,21 @@ class Evaluation:
             return self.evaluate(expr, timeout)
 
     def parse_feeder(self, feeder):
-        return self.parse_feeder_returning_code(feeder)[0]
+        return self.parse_feeder_returning_code_and_messages(feeder)[0]
 
-    def parse_feeder_returning_code(self, feeder):
-        "Parse a single expression from feeder and print the messages."
+    def parse_feeder_returning_code(self, feeder) -> tuple:
+        """
+        Parse a single expression from feeder, print the messages it produces and
+        return the result and the source code for this.
+        """
+        return self.parse_feeder_returning_code_and_messages(feeder)[:2]
+
+    def parse_feeder_returning_code_and_messages(self, feeder) -> tuple:
+        """
+        Parse a single expression from feeder, print the messages it produces and
+        return the result, the source code for this and evaluated
+        messages created in evaluation.
+        """
         from mathics.core.parser.util import parse_returning_code
 
         try:
@@ -291,12 +219,12 @@ class Evaluation:
             self.stopped = False
             source_code = ""
             result = None
-        feeder.send_messages(self)
-        return result, source_code
+        messages = feeder.send_messages(self)
+        return result, source_code, messages
 
     def evaluate(self, query, timeout=None, format=None):
-        """Evaluate a Mathics expression and return the
-        result of evaluation.
+        """
+        Evaluate a Mathics3 expression and return the result of evaluation.
 
         On return self.exc_result will contain status of various
         exception type of result like $Aborted, Overflow, Break, or Continue.
@@ -451,7 +379,17 @@ class Evaluation:
     def stop(self) -> None:
         self.stopped = True
 
-    def format_output(self, expr, format=None):
+    def format_output(
+        self, expr: BaseElement, format: Optional[str] = None
+    ) -> Union[BaseElement, str]:
+        """
+        This function takes an expression `expr` and
+        a format `format`. If `format` is None, then returns `expr`. Otherwise,
+        produce an str with the proper format.
+
+        Notice that this function can be overwritten by the front-ends, so it should not be
+        used in Builtin classes where it is expected a front-end independent result.
+        """
         from mathics.eval.makeboxes import format_element
 
         if format is None:
@@ -460,7 +398,7 @@ class Evaluation:
         if isinstance(format, dict):
             return dict((k, self.format_output(expr, f)) for k, f in format.items())
 
-        from mathics.core.expression import Expression, BoxError
+        from mathics.core.expression import BoxError, Expression
 
         if format == "text":
             result = format_element(expr, self, SymbolOutputForm)
@@ -479,7 +417,7 @@ class Evaluation:
             raise ValueError
 
         try:
-            # With the new implementation, if result is not a ``BoxConstruct``
+            # With the new implementation, if result is not a ``BoxExpression``
             # then we should raise a BoxError here.
             boxes = result.boxes_to_text(evaluation=self)
         except BoxError:
@@ -508,7 +446,12 @@ class Evaluation:
             return []
         return value.elements
 
-    def message(self, symbol_name: str, tag, *args) -> None:
+    def message(self, symbol_name: str, tag, *msgs) -> "Message":
+        """
+        Format message given its components, ``symbol``, ``tag``
+
+
+        """
         from mathics.core.expression import Expression
 
         # Allow evaluation.message('MyBuiltin', ...) (assume
@@ -528,7 +471,7 @@ class Evaluation:
         symbol_shortname = self.definitions.shorten_name(symbol)
 
         if settings.DEBUG_PRINT:
-            print("MESSAGE: %s::%s (%s)" % (symbol_shortname, tag, args))
+            print("MESSAGE: %s::%s (%s)" % (symbol_shortname, tag, msgs))
 
         text = self.definitions.get_value(symbol, "System`Messages", pattern, self)
         if text is None:
@@ -541,12 +484,14 @@ class Evaluation:
             text = String("Message %s::%s not found." % (symbol_shortname, tag))
 
         text = self.format_output(
-            Expression(SymbolStringForm, text, *(from_python(arg) for arg in args)),
+            Expression(SymbolStringForm, text, *(from_python(arg) for arg in msgs)),
             "text",
         )
 
-        self.out.append(Message(symbol_shortname, tag, text))
+        message = Message(symbol_shortname, tag, text)
+        self.out.append(message)
         self.output.out(self.out[-1])
+        return message
 
     def print_out(self, text) -> None:
         from mathics.core.convert.python import from_python
@@ -563,12 +508,12 @@ class Evaluation:
         if settings.DEBUG_PRINT:
             print("OUT: " + text)
 
-    def error(self, symbol, tag, *args) -> None:
+    def error(self, symbol, tag, *msgs) -> None:
         # Temporarily reset the recursion limit, to allow the message being
         # formatted
         self.recursion_depth, depth = 0, self.recursion_depth
         try:
-            self.message(symbol, tag, *args)
+            self.message(symbol, tag, *msgs)
         finally:
             self.recursion_depth = depth
         raise AbortInterrupt
@@ -629,3 +574,116 @@ class Evaluation:
         for listener in listeners:
             if listener(*args, **kwargs):
                 break
+
+
+# TODO: rethink what we want/need here
+class Message(_Out):
+    def __init__(self, symbol: Union[Symbol, str], tag: str, text: str) -> None:
+        """
+        A Mathics3 message of some sort. symbol_or_string can either be a symbol or a
+        string.
+
+        Symbol: classifies which predefined or variable this comes from? If there is none
+                use a string.
+        tag: a short slug string that indicates the kind of message
+
+        In Django we need to use a string for symbol, since we need something that is JSON serializable
+        and a Mathics3 Symbol is not like this.
+        """
+        super(Message, self).__init__()
+        self.is_message = True  # Why do we need this?
+        self.symbol = symbol
+        self.tag = tag
+        self.text = text
+
+    def __str__(self) -> str:
+        return f"{self.symbol}::{self.tag}: {self.text}"
+
+    def __eq__(self, other) -> bool:
+        return self.is_message == other.is_message and self.text == other.text
+
+    def get_data(self):
+        return {
+            "message": True,
+            "symbol": self.symbol,
+            "tag": self.tag,
+            "prefix": "%s::%s" % (self.symbol, self.tag),
+            "text": self.text,
+        }
+
+
+class Print(_Out):
+    def __init__(self, text) -> None:
+        super(Print, self).__init__()
+        self.is_print = True
+        self.text = text
+
+    def __str__(self) -> str:
+        return self.text
+
+    def __eq__(self, other) -> bool:
+        return self.is_message == other.is_message and self.text == other.text
+
+    def get_data(self):
+        return {
+            "message": False,
+            "text": self.text,
+        }
+
+
+class Output:
+    def max_stored_size(self, settings) -> int:
+        return settings.MAX_STORED_SIZE
+
+    def out(self, out):
+        pass
+
+    def clear(self, wait):
+        raise NotImplementedError
+
+    def display(self, data, metadata):
+        raise NotImplementedError
+
+
+OutputLines = List[str]
+
+
+class Result:
+    """
+    A structure containing the result of an evaluation.
+
+    In particular, there are the following fields:
+
+    result: the actual result produced.
+    out: a list of additional output strings. These are warning or error messages. See "form"
+         for exactly what they are.
+    form: is the *format* of the result which tags the kind of result .
+          Think of this as something like a mime/type. Some formats:
+
+      * SyntaxErrors
+      * SVG images
+      * PNG images
+      * text
+      * MathML
+      * None - defaults to text
+
+    In the future "form" will be renamed "format" or something like this.
+    """
+
+    def __init__(
+        self, out: OutputLines, result, line_no: int, last_eval=None, form=None
+    ) -> None:
+        self.out = out
+        self.result = result
+        self.line_no = line_no
+        self.last_eval = last_eval
+        self.form = form
+
+    # FIXME: consider using a named tuple
+    def get_data(self) -> dict:
+        return {
+            "out": [out.get_data() for out in self.out],
+            "result": self.result,
+            "line": self.line_no,
+            "form": self.form,
+        }

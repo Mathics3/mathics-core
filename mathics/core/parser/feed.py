@@ -8,10 +8,12 @@ from mathics_scanner import (
 
 
 class MathicsLineFeeder(LineFeeder):
-    def send_messages(self, evaluation):
+    def send_messages(self, evaluation) -> list:
+        evaluated_messages = []
         for message in self.messages:
-            evaluation.message(*message)
+            evaluated_messages.append(evaluation.message(*message))
         self.messages = []
+        return evaluated_messages
 
 
 class MathicsSingleLineFeeder(SingleLineFeeder, MathicsLineFeeder):

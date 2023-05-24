@@ -1,13 +1,15 @@
 # cython: language_level=3
 # -*- coding: utf-8 -*-
 
-# Note: docstring is flowed in documentation. Line breaks in the docstring will appear in the
-# printed output, so be carful not to add then mid-sentence.
+# Note: docstring is flowed in documentation. Line breaks in the
+# docstring will appear in the printed output, so be careful not to
+# add them mid-sentence. Line breaks like \ this work though.
 
 """
 Numerical Functions
 
-Support for approximate real numbers and exact real numbers represented in algebraic or symbolic form.
+Support for approximate real numbers and exact real numbers represented \
+in algebraic or symbolic form.
 """
 
 import sympy
@@ -16,10 +18,11 @@ from mathics.builtin.base import Builtin
 from mathics.core.atoms import Complex, Integer, Integer0, Rational, Real
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.convert.sympy import from_sympy
-from mathics.eval.nevaluator import eval_nvalues
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.number import machine_epsilon
+from mathics.core.number import MACHINE_EPSILON
 from mathics.core.symbols import SymbolDivide, SymbolMachinePrecision, SymbolTimes
+from mathics.eval.nevaluator import eval_NValues
 
 
 def chop(expr, delta=10.0 ** (-10.0)):
@@ -44,6 +47,8 @@ def chop(expr, delta=10.0 ** (-10.0)):
 
 class Chop(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Chop.html</url>
+
     <dl>
       <dt>'Chop[$expr$]'
       <dd>replaces floating point numbers close to 0 by 0.
@@ -72,18 +77,22 @@ class Chop(Builtin):
 
     summary_text = "set sufficiently small numbers or imaginary parts to zero"
 
-    def apply(self, expr, delta, evaluation):
+    def eval(self, expr, delta, evaluation: Evaluation):
         "Chop[expr_, delta_:(10^-10)]"
 
         delta = delta.round_to_float(evaluation)
         if delta is None or delta < 0:
-            return evaluation.message("Chop", "tolnn")
+            evaluation.message("Chop", "tolnn")
+            return
 
         return chop(expr, delta=delta)
 
 
 class N(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/N.html</url>
+
     <dl>
     <dt>'N[$expr$, $prec$]'
         <dd>evaluates $expr$ numerically with a precision of $prec$ digits.
@@ -164,8 +173,8 @@ class N(Builtin):
     >> % // Precision
      = 20.
 
-    N can also accept an option "Method". This establishes what is the prefered underlying method to
-    compute numerical values:
+    N can also accept an option "Method". This establishes what is the \
+    prefrered underlying method to compute numerical values:
     >> N[F[Pi], 30, Method->"numpy"]
      = F[3.14159265358979300000000000000]
     >> N[F[Pi], 30, Method->"sympy"]
@@ -206,7 +215,7 @@ class N(Builtin):
 
     summary_text = "numerical evaluation to specified precision and accuracy"
 
-    def apply_with_prec(self, expr, prec, evaluation, options=None):
+    def eval_with_prec(self, expr, prec, evaluation, options=None):
         "N[expr_, prec_, OptionsPattern[%(name)s]]"
 
         # If options are passed, set the preference in evaluation, and call again
@@ -229,25 +238,29 @@ class N(Builtin):
             if preference:
                 preference_queue.append(preference)
                 try:
-                    result = self.apply_with_prec(expr, prec, evaluation)
+                    result = self.eval_with_prec(expr, prec, evaluation)
                 except Exception:
                     result = None
                 preference_queue.pop()
                 return result
 
-        return eval_nvalues(expr, prec, evaluation)
+        return eval_NValues(expr, prec, evaluation)
 
-    def apply_N(self, expr, evaluation):
+    def eval_N(self, expr, evaluation: Evaluation):
         """N[expr_]"""
         # TODO: Specialize for atoms
-        return eval_nvalues(expr, SymbolMachinePrecision, evaluation)
+        return eval_NValues(expr, SymbolMachinePrecision, evaluation)
 
 
 class Rationalize(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Rationalize.html</url>
+
     <dl>
       <dt>'Rationalize[$x$]'
-      <dd>converts a real number $x$ to a nearby rational number with small denominator.
+      <dd>converts a real number $x$ to a nearby rational number with \
+          small denominator.
 
       <dt>'Rationalize[$x$, $dx$]'
       <dd>finds the rational number lies within $dx$ of $x$.
@@ -256,7 +269,8 @@ class Rationalize(Builtin):
     >> Rationalize[2.2]
     = 11 / 5
 
-    For negative $x$, '-Rationalize[-$x$] == Rationalize[$x$]' which gives symmetric results:
+    For negative $x$, '-Rationalize[-$x$] == Rationalize[$x$]' which \
+    gives symmetric results:
     >> Rationalize[-11.5, 1]
     = -11
 
@@ -292,7 +306,7 @@ class Rationalize(Builtin):
 
     summary_text = "find a rational approximation"
 
-    def apply(self, x, evaluation):
+    def eval(self, x, evaluation: Evaluation):
         "Rationalize[x_]"
 
         py_x = x.to_sympy()
@@ -320,7 +334,7 @@ class Rationalize(Builtin):
             tol = c / q**2
             if abs(i - x) <= tol:
                 return i
-            if tol < machine_epsilon:
+            if tol < MACHINE_EPSILON:
                 break
         return x
 
@@ -332,10 +346,10 @@ class Rationalize(Builtin):
         )
         for i in it:
             p, q = i.as_numer_denom()
-            if abs(x - i) < machine_epsilon:
+            if abs(x - i) < MACHINE_EPSILON:
                 return i
 
-    def apply_dx(self, x, dx, evaluation):
+    def eval_dx(self, x, dx, evaluation: Evaluation):
         "Rationalize[x_, dx_]"
         py_x = x.to_sympy()
         if py_x is None:
@@ -347,7 +361,8 @@ class Rationalize(Builtin):
             or (not py_dx.is_real)
             or py_dx.is_negative
         ):
-            return evaluation.message("Rationalize", "tolnn", dx)
+            evaluation.message("Rationalize", "tolnn", dx)
+            return
         elif py_dx == 0:
             return from_sympy(self.find_exact(py_x))
 
@@ -407,6 +422,8 @@ class RealValuedNumericQ(Builtin):
 
 class Round(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Round.html</url>
+
     <dl>
       <dt>'Round[$expr$]'
       <dd>rounds $expr$ to the nearest integer.
@@ -462,7 +479,7 @@ class Round(Builtin):
 
     summary_text = "find closest integer or multiple of"
 
-    def apply(self, expr, k, evaluation):
+    def eval(self, expr, k, evaluation: Evaluation):
         "Round[expr_?NumericQ, k_?NumericQ]"
 
         n = Expression(SymbolDivide, expr, k).round_to_float(

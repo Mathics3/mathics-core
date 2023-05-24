@@ -1,26 +1,26 @@
 # FIXME: split these forms up further.
-# MathML and TeXForm feel more closely related since they go with specific kinds of interpreters:
-# LaTeX and MathML
+# MathML and TeXForm feel more closely related since they go with
+# specific kinds of interpreters: LaTeX and MathML
 
-# SympyForm and PythonForm feel related since are our own hacky thing (and mostly broken for now)
+# SympyForm and PythonForm feel related since are our own hacky thing
+# (and mostly broken for now)
 
-# NumberForm, TableForm, and MatrixForm seem closely related since they seem to be relevant
-# for particular kinds of structures rather than applicable to all kinds of expressions.
+# NumberForm, TableForm, and MatrixForm seem closely related since
+# they seem to be relevant for particular kinds of structures rather
+# than applicable to all kinds of expressions.
 
 """
 Forms which appear in '$OutputForms'.
 """
 import re
-
+from math import ceil
 from typing import Optional
 
 from mathics.builtin.base import Builtin
 from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
-from mathics.builtin.comparison import expr_min
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.builtin.makeboxes import MakeBoxes, number_form
 from mathics.builtin.tensors import get_dimensions
-
 from mathics.core.atoms import (
     Integer,
     MachineReal,
@@ -29,25 +29,23 @@ from mathics.core.atoms import (
     String,
     StringFromPython,
 )
-
-from mathics.core.expression import Expression, BoxError
+from mathics.core.evaluation import Evaluation
+from mathics.core.expression import BoxError, Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import (
+    LOG2_10,
+    RECONSTRUCT_MACHINE_PRECISION_DIGITS,
     convert_base,
     dps,
-    machine_precision,
-    reconstruct_digits,
 )
-
 from mathics.core.symbols import (
     Symbol,
+    SymbolFalse,
     SymbolFullForm,
     SymbolList,
-    SymbolFalse,
     SymbolNull,
     SymbolTrue,
 )
-
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolInfinity,
@@ -59,8 +57,8 @@ from mathics.core.systemsymbols import (
     SymbolSubscriptBox,
     SymbolSuperscriptBox,
 )
-
-from mathics.eval.makeboxes import format_element
+from mathics.eval.makeboxes import StringLParen, StringRParen, format_element
+from mathics.eval.testing_expressions import expr_min
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
@@ -116,7 +114,7 @@ class BaseForm(Builtin):
         "basf": "Requested base `1` must be between 2 and 36.",
     }
 
-    def apply_makeboxes(self, expr, n, f, evaluation):
+    def eval_makeboxes(self, expr, n, f, evaluation: Evaluation):
         """MakeBoxes[BaseForm[expr_, n_],
         f:StandardForm|TraditionalForm|OutputForm]"""
 
@@ -127,10 +125,10 @@ class BaseForm(Builtin):
 
         if isinstance(expr, PrecisionReal):
             x = expr.to_sympy()
-            p = reconstruct_digits(expr.get_precision())
+            p = int(ceil(expr.get_precision() / LOG2_10) + 1)
         elif isinstance(expr, MachineReal):
             x = expr.value
-            p = reconstruct_digits(machine_precision)
+            p = RECONSTRUCT_MACHINE_PRECISION_DIGITS
         elif isinstance(expr, Integer):
             x = expr.value
             p = 0
@@ -140,7 +138,8 @@ class BaseForm(Builtin):
         try:
             val = convert_base(x, base, p)
         except ValueError:
-            return evaluation.message("BaseForm", "basf", n)
+            evaluation.message("BaseForm", "basf", n)
+            return
 
         if f is SymbolOutputForm:
             return to_boxes(String("%s_%d" % (val, base)), evaluation)
@@ -283,7 +282,7 @@ class _NumberForm(Builtin):
         "sigz": "In addition to the number of digits requested, one or more zeros will appear as placeholders.",
     }
 
-    def check_options(self, options, evaluation):
+    def check_options(self, options: dict, evaluation: Evaluation):
         """
         Checks options are valid and converts them to python.
         """
@@ -297,7 +296,7 @@ class _NumberForm(Builtin):
             result[option_name] = value
         return result
 
-    def check_DigitBlock(self, value, evaluation):
+    def check_DigitBlock(self, value, evaluation: Evaluation):
         py_value = value.get_int_value()
         if value.sameQ(SymbolInfinity):
             return [0, 0]
@@ -321,9 +320,9 @@ class _NumberForm(Builtin):
             result = [nleft, nright]
             if None not in result:
                 return result
-        return evaluation.message(self.get_name(), "dblk", value)
+        evaluation.message(self.get_name(), "dblk", value)
 
-    def check_ExponentFunction(self, value, evaluation):
+    def check_ExponentFunction(self, value, evaluation: Evaluation):
         if value.sameQ(SymbolAutomatic):
             return self.default_ExponentFunction
 
@@ -332,7 +331,7 @@ class _NumberForm(Builtin):
 
         return exp_function
 
-    def check_NumberFormat(self, value, evaluation):
+    def check_NumberFormat(self, value, evaluation: Evaluation):
         if value.sameQ(SymbolAutomatic):
             return self.default_NumberFormat
 
@@ -341,45 +340,46 @@ class _NumberForm(Builtin):
 
         return num_function
 
-    def check_NumberMultiplier(self, value, evaluation):
+    def check_NumberMultiplier(self, value, evaluation: Evaluation):
         result = value.get_string_value()
         if result is None:
             evaluation.message(self.get_name(), "npt", "NumberMultiplier", value)
         return result
 
-    def check_NumberPoint(self, value, evaluation):
+    def check_NumberPoint(self, value, evaluation: Evaluation):
         result = value.get_string_value()
         if result is None:
             evaluation.message(self.get_name(), "npt", "NumberPoint", value)
         return result
 
-    def check_ExponentStep(self, value, evaluation):
+    def check_ExponentStep(self, value, evaluation: Evaluation):
         result = value.get_int_value()
         if result is None or result <= 0:
-            return evaluation.message(self.get_name(), "estep", "ExponentStep", value)
+            evaluation.message(self.get_name(), "estep", "ExponentStep", value)
+            return
         return result
 
-    def check_SignPadding(self, value, evaluation):
+    def check_SignPadding(self, value, evaluation: Evaluation):
         if value.sameQ(SymbolTrue):
             return True
         elif value.sameQ(SymbolFalse):
             return False
-        return evaluation.message(self.get_name(), "opttf", value)
+        evaluation.message(self.get_name(), "opttf", value)
 
-    def _check_List2str(self, value, msg, evaluation):
+    def _check_List2str(self, value, msg, evaluation: Evaluation):
         if value.has_form("List", 2):
             result = [element.get_string_value() for element in value.elements]
             if None not in result:
                 return result
-        return evaluation.message(self.get_name(), msg, value)
+        evaluation.message(self.get_name(), msg, value)
 
-    def check_NumberSigns(self, value, evaluation):
+    def check_NumberSigns(self, value, evaluation: Evaluation):
         return self._check_List2str(value, "nsgn", evaluation)
 
-    def check_NumberPadding(self, value, evaluation):
+    def check_NumberPadding(self, value, evaluation: Evaluation):
         return self._check_List2str(value, "npad", evaluation)
 
-    def check_NumberSeparator(self, value, evaluation):
+    def check_NumberSeparator(self, value, evaluation: Evaluation):
         py_str = value.get_string_value()
         if py_str is not None:
             return [py_str, py_str]
@@ -645,7 +645,7 @@ class NumberForm(_NumberForm):
         else:
             return man
 
-    def apply_list_n(self, expr, n, evaluation, options) -> Expression:
+    def eval_list_n(self, expr, n, evaluation, options) -> Expression:
         "NumberForm[expr_List, n_, OptionsPattern[NumberForm]]"
         options = [
             Expression(SymbolRuleDelayed, Symbol(key), value)
@@ -658,7 +658,7 @@ class NumberForm(_NumberForm):
             ]
         )
 
-    def apply_list_nf(self, expr, n, f, evaluation, options) -> Expression:
+    def eval_list_nf(self, expr, n, f, evaluation, options) -> Expression:
         "NumberForm[expr_List, {n_, f_}, OptionsPattern[NumberForm]]"
         options = [
             Expression(SymbolRuleDelayed, Symbol(key), value)
@@ -671,7 +671,7 @@ class NumberForm(_NumberForm):
             ],
         )
 
-    def apply_makeboxes(self, expr, form, evaluation, options={}):
+    def eval_makeboxes(self, expr, form, evaluation, options={}):
         """MakeBoxes[NumberForm[expr_, OptionsPattern[NumberForm]],
         form:StandardForm|TraditionalForm|OutputForm]"""
 
@@ -696,7 +696,7 @@ class NumberForm(_NumberForm):
             return number_form(expr, py_n, None, evaluation, py_options)
         return Expression(SymbolMakeBoxes, expr, form)
 
-    def apply_makeboxes_n(self, expr, n, form, evaluation, options={}):
+    def eval_makeboxes_n(self, expr, n, form, evaluation, options={}):
         """MakeBoxes[NumberForm[expr_, n_?NotOptionQ, OptionsPattern[NumberForm]],
         form:StandardForm|TraditionalForm|OutputForm]"""
 
@@ -716,7 +716,7 @@ class NumberForm(_NumberForm):
             return number_form(expr, py_n, None, evaluation, py_options)
         return Expression(SymbolMakeBoxes, expr, form)
 
-    def apply_makeboxes_nf(self, expr, n, f, form, evaluation, options={}):
+    def eval_makeboxes_nf(self, expr, n, f, form, evaluation, options={}):
         """MakeBoxes[NumberForm[expr_, {n_, f_}, OptionsPattern[NumberForm]],
         form:StandardForm|TraditionalForm|OutputForm]"""
 
@@ -754,8 +754,12 @@ class OutputForm(FormBaseClass):
      = f'[x]
     >> OutputForm[Derivative[1, 0][f][x]]
      = Derivative[1, 0][f][x]
-    >> OutputForm["A string"]
-     = A string
+
+    'OutputForm' is used by default:
+    >> OutputForm[{"A string", a + b}]
+     = {A string, a + b}
+    >> {"A string", a + b}
+     = {A string, a + b}
     >> OutputForm[Graphics[Rectangle[]]]
      = -Graphics-
     """
@@ -850,11 +854,8 @@ class StandardForm(FormBaseClass):
     </dl>
 
     >> StandardForm[a + b * c]
-     = a + b c
+     = a+b c
     >> StandardForm["A string"]
-     = A string
-    'StandardForm' is used by default:
-    >> "A string"
      = A string
     >> f'[x]
      = f'[x]
@@ -1068,12 +1069,12 @@ class MatrixForm(TableForm):
     in_printforms = False
     summary_text = "format as a matrix"
 
-    def eval_makeboxes_matrix(self, table, f, evaluation, options):
+    def eval_makeboxes_matrix(self, table, form, evaluation, options):
         """MakeBoxes[%(name)s[table_, OptionsPattern[%(name)s]],
-        f:StandardForm|TraditionalForm]"""
+        form:StandardForm|TraditionalForm]"""
 
-        result = super(MatrixForm, self).eval_makeboxes(table, f, evaluation, options)
+        result = super(MatrixForm, self).eval_makeboxes(
+            table, form, evaluation, options
+        )
         if result.get_head_name() == "System`GridBox":
-            return RowBox(String("("), result, String(")"))
-
-        return result
+            return RowBox(StringLParen, result, StringRParen)

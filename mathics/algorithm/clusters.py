@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 
-import random
-from itertools import chain, islice
 import bisect
 import math
+import random
+from itertools import chain, islice
 
 from mpmath import fsum
 

@@ -4,10 +4,9 @@ Clearing Assignments
 """
 
 
-from mathics.builtin.base import (
-    Builtin,
-    PostfixOperator,
-)
+from mathics.builtin.base import Builtin, PostfixOperator
+from mathics.core.assignment import is_protected
+from mathics.core.atoms import String
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
@@ -18,13 +17,7 @@ from mathics.core.attributes import (
     A_READ_PROTECTED,
 )
 from mathics.core.expression import Expression
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    SymbolNull,
-    symbol_set,
-)
-
+from mathics.core.symbols import Atom, Symbol, SymbolNull, symbol_set
 from mathics.core.systemsymbols import (
     SymbolContext,
     SymbolContextPath,
@@ -37,9 +30,6 @@ from mathics.core.systemsymbols import (
     SymbolSubValues,
     SymbolUpValues,
 )
-
-from mathics.core.assignment import is_protected
-from mathics.core.atoms import String
 
 
 class Clear(Builtin):
@@ -98,7 +88,7 @@ class Clear(Builtin):
         definition.formatvalues = {}
         definition.nvalues = []
 
-    def apply(self, symbols, evaluation):
+    def eval(self, symbols, evaluation):
         "%(name)s[symbols___]"
         if isinstance(symbols, Symbol):
             symbols = [symbols]
@@ -296,7 +286,7 @@ class Unset(PostfixOperator):
     precedence = 670
     summary_text = "unset a value of the LHS"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "Unset[expr_]"
 
         head = expr.get_head()

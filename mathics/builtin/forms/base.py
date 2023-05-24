@@ -1,5 +1,4 @@
 import mathics.core.definitions as definitions
-
 from mathics.builtin.base import Builtin
 from mathics.core.symbols import Symbol
 

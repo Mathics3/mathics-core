@@ -2,22 +2,22 @@
 
 """
 XML
+
+Basic implementation for an XML importer.
 """
 
 
-from mathics.builtin.base import Builtin
+import re
+from io import BytesIO
+
+from mathics.builtin.base import Builtin, MessageException
 from mathics.builtin.files_io.files import MathicsOpen
 from mathics.core.atoms import String
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
-from mathics.core.expression import Expression
+from mathics.core.expression import Evaluation, Expression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolFailed
-
-from mathics.builtin.base import MessageException
-
-from io import BytesIO
-import re
 
 # use lxml, if available, as it has some additional features such as parsing XML
 # versions, comments and cdata. fallback on python builtin xml parser otherwise.
@@ -211,7 +211,7 @@ def parse_xml_file(filename):
     return root
 
 
-def parse_xml(parse, text, evaluation):
+def parse_xml(parse, text, evaluation: Evaluation):
     try:
         return parse(text.get_string_value())
     except ParseError as e:
@@ -227,9 +227,14 @@ def parse_xml(parse, text, evaluation):
 
 class XMLObject(Builtin):
     """
+
+    <url>:
+    WMA link:
+    https://reference.wolfram.com/language/ref/XMLObject.html</url>
+
     <dl>
-    <dt>'XMLObject["type"]'
-    <dd> represents the head of an XML object in symbolic XML.
+      <dt>'XMLObject["type"]'
+      <dd> represents the head of an XML object in symbolic XML.
     </dl>
     """
 
@@ -238,6 +243,8 @@ class XMLObject(Builtin):
 
 class XMLElement(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/XMLElement.html</url>
+
     <dl>
     <dt>'XMLElement[$tag$, {$attr_1$, $val_1$, ...}, {$data$, ...}]'
     <dd>   represents an element in symbolic XML.
@@ -254,7 +261,7 @@ class _Get(Builtin):
         "prserr": "``.",
     }
 
-    def apply(self, text, evaluation):
+    def eval(self, text, evaluation: Evaluation):
         """%(name)s[text_String]"""
         root = parse_xml(self._parse, text, evaluation)
         if isinstance(root, Symbol):  # $Failed?
@@ -265,9 +272,11 @@ class _Get(Builtin):
 
 class XMLGet(_Get):
     """
+    ## <url>:native internal:</url>
+
     <dl>
-    <dt>'XMLGet[...]'
-    <dd> Internal. Document me.
+      <dt>'XMLGet[...]'
+      <dd> Internal. Document me.
     </dl>
     """
 
@@ -279,6 +288,8 @@ class XMLGet(_Get):
 
 class XMLGetString(_Get):
     """
+    ## <url>:native internal:</url>
+
     <dl>
     <dt>'XML`Parser`XMLGetString["string"]'
     <dd>parses "string" as XML code, and returns an XMLObject.
@@ -302,10 +313,15 @@ class XMLGetString(_Get):
 
 class PlaintextImport(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/PlaintextImport.html</url>
+
     <dl>
-    <dt>'XML`PlaintextImport["string"]'
-    <dd>parses "string" as XML code, and returns it as plain text.
+      <dt>'XML`PlaintextImport["string"]'
+      <dd>parses "string" as XML code, and returns it as plain text.
     </dl>
+
     >> StringReplace[StringTake[Import["ExampleData/InventionNo1.xml", "Plaintext"],31],FromCharacterCode[10]->"/"]
      = MuseScore 1.2/2012-09-12/5.7/40
     """
@@ -313,7 +329,7 @@ class PlaintextImport(Builtin):
     summary_text = "import plain text from xml"
     context = "XML`"
 
-    def apply(self, text, evaluation):
+    def eval(self, text, evaluation: Evaluation):
         """%(name)s[text_String]"""
         root = parse_xml(parse_xml_file, text, evaluation)
         if isinstance(root, Symbol):  # $Failed?
@@ -331,10 +347,13 @@ class PlaintextImport(Builtin):
 
 class TagsImport(Builtin):
     """
+    ## <url>:native internal:</url>
+
     <dl>
-    <dt>'XML`TagsImport["string"]'
-    <dd>parses "string" as XML code, and returns a list with the tags found.
+      <dt>'XML`TagsImport["string"]'
+      <dd>parses "string" as XML code, and returns a list with the tags found.
     </dl>
+
     >> Take[Import["ExampleData/InventionNo1.xml", "Tags"], 10]
      = {accidental, alter, arpeggiate, articulations, attributes, backup, bar-style, barline, beam, beat-type}
     """
@@ -354,7 +373,7 @@ class TagsImport(Builtin):
         gather(root)
         return to_mathics_list(*[String(tag) for tag in sorted(list(tags))])
 
-    def apply(self, text, evaluation):
+    def eval(self, text, evaluation: Evaluation):
         """%(name)s[text_String]"""
         root = parse_xml(parse_xml_file, text, evaluation)
         if isinstance(root, Symbol):  # $Failed?
@@ -364,9 +383,11 @@ class TagsImport(Builtin):
 
 class XMLObjectImport(Builtin):
     """
+    ## <url>:native internal:</url>
+
     <dl>
-    <dt>'XML`XMLObjectImport["string"]'
-    <dd>parses "string" as XML code, and returns a list of XMLObjects found.
+      <dt>'XML`XMLObjectImport["string"]'
+      <dd>parses "string" as XML code, and returns a list of XMLObjects found.
     </dl>
 
     >> Part[Import["ExampleData/InventionNo1.xml", "XMLObject"], 2, 3, 1]
@@ -379,7 +400,7 @@ class XMLObjectImport(Builtin):
     summary_text = "import elements from xml"
     context = "XML`"
 
-    def apply(self, text, evaluation):
+    def eval(self, text, evaluation: Evaluation):
         """%(name)s[text_String]"""
         xml = to_expression("XML`Parser`XMLGet", text).evaluate(evaluation)
         return to_mathics_list(to_expression("Rule", "XMLObject", xml))

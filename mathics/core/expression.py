@@ -1,15 +1,15 @@
 # cython: language_level=3
 # -*- coding: utf-8 -*-
 
-import sympy
 import math
 import time
-
-from typing import Any, Callable, Iterable, List, Optional, Tuple, Type
-from itertools import chain
 from bisect import bisect_left
+from itertools import chain
+from typing import Any, Callable, Iterable, List, Optional, Tuple, Type
 
-from mathics.core.atoms import Integer, Number, String
+import sympy
+
+from mathics.core.atoms import Integer, String
 
 # FIXME: adjust mathics.core.attributes to uppercase attribute names
 from mathics.core.attributes import (
@@ -25,12 +25,11 @@ from mathics.core.attributes import (
     A_SEQUENCE_HOLD,
     attribute_string_to_number,
 )
-from mathics.core.convert.sympy import sympy_symbol_prefix, SympyExpression
 from mathics.core.convert.python import from_python
+from mathics.core.convert.sympy import SympyExpression, sympy_symbol_prefix
 from mathics.core.element import ElementsProperties, EvalMixin, ensure_context
 from mathics.core.evaluation import Evaluation
 from mathics.core.interrupt import ReturnInterrupt
-from mathics.core.number import dps
 from mathics.core.structure import LinkedStructure
 from mathics.core.symbols import (
     Atom,
@@ -55,6 +54,7 @@ from mathics.core.systemsymbols import (
     SymbolDirectedInfinity,
     SymbolFunction,
     SymbolMinus,
+    SymbolOverflow,
     SymbolPattern,
     SymbolPower,
     SymbolSequence,
@@ -234,6 +234,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         self._sequences = None
         self._cache = None
 
+        # self.copy creates this
+        self.original: Optional[Expression] = None
+
     def __getnewargs__(self):
         return (self._head, self._elements)
 
@@ -241,12 +244,17 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return hash(("Expression", self._head) + tuple(self._elements))
 
     def __repr__(self) -> str:
+        return "<Expression: %s[%s]>" % (
+            repr(self.head),
+            ", ".join([repr(element) for element in self.elements]),
+        )
+
         return "<Expression: %s>" % self
 
     def __str__(self) -> str:
         return "%s[%s]" % (
-            self._head,
-            ", ".join([element.__str__() for element in self._elements]),
+            str(self.head),
+            ", ".join([str(element) for element in self.elements]),
         )
 
     def _as_sympy_function(self, **kwargs) -> sympy.Function:
@@ -455,9 +463,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         """
         Apply transformation rules and expression evaluation to ``evaluation`` via
         ``rewrite_apply_eval_step()`` until that method tells us to stop,
-        or unti we hit an $IterationLimit or TimeConstrained limit.
+        or until we hit an $IterationLimit or TimeConstrained limit.
 
-        Evaluation is a recusive:``rewrite_apply_eval_step()`` may call us.
+        Evaluation is recursive:``rewrite_apply_eval_step()`` may call us.
         """
         if evaluation.timeout:
             return
@@ -681,9 +689,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # print("Use of get_elements is deprecated. Use elements instead.")
         return self._elements
 
-    # Compatibily with old code. Deprecated, but remove after a little bit
-    get_leaves = get_elements
-
     def get_head(self):
         return self._head
 
@@ -866,7 +871,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                         exps[name] = exps.get(name, 0) + 1
             elif self.has_form("Power", 2):
                 var = self._elements[0].get_name()
-                exp = self._elements[1].round_to_float()
+                # TODO: Check if this is the expected behaviour.
+                # round_to_float is an attribute of Expression,
+                # but not for Atoms.
+                try:
+                    exp = self._elements[1].round_to_float()
+                except AttributeError:
+                    exp = None
                 if var and exp is not None:
                     exps[var] = exps.get(var, 0) + exp
             if exps:
@@ -1264,7 +1275,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     yield rule
 
         for rule in rules():
-            result = rule.apply(new, evaluation, fully=False)
+            try:
+                result = rule.apply(new, evaluation, fully=False)
+            except OverflowError:
+                evaluation.message("General", "ovfl")
+                return Expression(SymbolOverflow), False
             if result is not None:
                 if not isinstance(result, EvalMixin):
                     return result, False
@@ -1329,13 +1344,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             return False
         if self is other:
             return True
-        if not self._head.sameQ(other.get_head()):
+        if not self._head.sameQ(other._head):
             return False
-        if len(self._elements) != len(other.get_elements()):
+        if len(self._elements) != len(other._elements):
             return False
         return all(
             (id(element) == id(oelement) or element.sameQ(oelement))
-            for element, oelement in zip(self._elements, other.get_elements())
+            for element, oelement in zip(self._elements, other._elements)
         )
 
     def sequences(self):
@@ -1717,55 +1732,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             return self._head in symbols_arithmetic_operations and all(
                 element.is_numeric() for element in self._elements
             )
-
-    def numerify(self, evaluation) -> "BaseElement":
-        """
-        Produces a new expression equivalent to the original,
-        s.t. inexact numeric elements are reduced to Real numbers with
-        the same precision.
-        This is used in arithmetic evaluations (like `Plus`, `Times`, and `Power` )
-        and in iterators.
-        """
-        _prec = None
-        for element in self._elements:
-            if element.is_inexact():
-                element_prec = element.get_precision()
-                if _prec is None or element_prec < _prec:
-                    _prec = element_prec
-        if _prec is not None:
-            new_elements = self.get_mutable_elements()
-            for index in range(len(new_elements)):
-                element = new_elements[index]
-                # Don't "numerify" numbers: they should be numerified
-                # automatically by the processing function,
-                # and we don't want to lose exactness in e.g. 1.0+I.
-                # Also, for compatibility with WMA, numerify just the elements
-                # s.t. ``NumericQ[element]==True``
-                if not isinstance(element, Number) and element.is_numeric(evaluation):
-                    n_expr = Expression(SymbolN, element, Integer(dps(_prec)))
-                    n_result = (
-                        n_expr.evaluate(evaluation)
-                        if isinstance(n_expr, EvalMixin)
-                        else n_expr
-                    )
-                    if isinstance(n_result, Number):
-                        new_elements[index] = n_result
-                        continue
-                    # If Nvalues are not available, just tries to do
-                    # a regular evaluation
-                    n_result = (
-                        element.evaluate(evaluation)
-                        if isinstance(element, EvalMixin)
-                        else element
-                    )
-                    if isinstance(n_result, Number):
-                        new_elements[index] = n_result
-            result = Expression(self._head)
-            result.elements = new_elements
-            return result
-
-        else:
-            return self
 
     def user_hash(self, update):
         update(("%s>%d>" % (self.get_head_name(), len(self._elements))).encode("utf8"))

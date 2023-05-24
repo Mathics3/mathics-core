@@ -17,27 +17,24 @@ import re
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
+    FractionBox,
     GridBox,
     RowBox,
+    SqrtBox,
     StyleBox,
     SubscriptBox,
-    SuperscriptBox,
     SubsuperscriptBox,
-    SqrtBox,
-    FractionBox,
+    SuperscriptBox,
 )
 from mathics.builtin.colors.color_directives import RGBColor
-
 from mathics.core.atoms import String
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
-    lookup_method as lookup_conversion_method,
     add_conversion_fn,
+    lookup_method as lookup_conversion_method,
 )
 from mathics.core.symbols import SymbolTrue
-
 from mathics.format.asy_fns import asy_color, asy_create_pens, asy_number
-
 
 # mathics_scanner does not generates this table in a way that we can load it here.
 # When it get fixed, we can use that table instead of this one:
@@ -126,7 +123,6 @@ def string(self, **options) -> str:
         # is required, to so get the standard WMA behaviour,
         # this option is set to False:
         # show_string_characters = False
-
         if show_string_characters:
             return render(r"\text{``%s''}", text[1:-1], in_text=True)
         else:
@@ -167,6 +163,7 @@ def gridbox(self, elements=None, **box_options) -> str:
         elements = self._elements
     evaluation = box_options.get("evaluation")
     items, options = self.get_array(elements, evaluation)
+
     new_box_options = box_options.copy()
     new_box_options["inside_list"] = True
     column_alignments = options["System`ColumnAlignments"].get_name()
@@ -179,12 +176,21 @@ def gridbox(self, elements=None, **box_options) -> str:
     except KeyError:
         # invalid column alignment
         raise BoxConstructError
-    column_count = 0
+    column_count = 1
     for row in items:
-        column_count = max(column_count, len(row))
+        if isinstance(row, tuple):
+            column_count = max(column_count, len(row))
+
     result = r"\begin{array}{%s} " % (column_alignments * column_count)
     for index, row in enumerate(items):
-        result += " & ".join(boxes_to_tex(item, **new_box_options) for item in row)
+        if isinstance(row, tuple):
+            result += " & ".join(boxes_to_tex(item, **new_box_options) for item in row)
+        else:
+            result += r"\multicolumn{%s}{%s}{%s}" % (
+                str(column_count),
+                column_alignments,
+                boxes_to_tex(row, **new_box_options),
+            )
         if index != len(items) - 1:
             result += "\\\\ "
     result += r"\end{array}"

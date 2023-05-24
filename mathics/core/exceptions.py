@@ -9,6 +9,10 @@ class BoxExpressionError(Exception):
 BoxConstructError = BoxExpressionError
 
 
+class IllegalStepSpecification(Exception):
+    pass
+
+
 class InvalidLevelspecError(Exception):
     pass
 
