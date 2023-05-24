@@ -12,11 +12,9 @@ import shutil
 import tempfile
 import time
 
-from mathics.builtin.atomic.strings import to_regex
 from mathics.builtin.base import Builtin, MessageException, Predefined
 from mathics.builtin.exp_structure.size_and_sig import Hash
-from mathics.builtin.files_io.files import INITIAL_DIR  # noqa is used via global
-from mathics.builtin.files_io.files import DIRECTORY_STACK, MathicsOpen
+from mathics.builtin.files_io.files import DIRECTORY_STACK, INITIAL_DIR, MathicsOpen
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.attributes import (
     A_LISTABLE,
@@ -27,6 +25,7 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
+from mathics.core.convert.regex import to_regex
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.streams import (
@@ -122,7 +121,6 @@ class BaseDirectory_(Predefined):
     summary_text = "path to the configuration directory"
 
     def evaluate(self, evaluation):
-        global ROOT_DIR
         return String(ROOT_DIR)
 
 
@@ -1093,7 +1091,8 @@ class FileNameJoin(Builtin):
       <dd>joins the $dir_i$ together into one path.
 
       <dt>'FileNameJoin[..., OperatingSystem->"os"]'
-      <dd>yields a file name in the format for the specified operating system. Possible choices are "Windows", "MacOSX", and "Unix".
+      <dd>yields a file name in the format for the specified operating system. \
+          Possible choices are "Windows", "MacOSX", and "Unix".
     </dl>
 
     >> FileNameJoin[{"dir1", "dir2", "dir3"}]
@@ -1509,10 +1508,12 @@ class FindList(Builtin):
       <dd>returns a list of all lines in $file$ that contain $text$.
 
       <dt>'FindList[$file$, {$text1$, $text2$, ...}]'
-      <dd>returns a list of all lines in $file$ that contain any of the specified string.
+      <dd>returns a list of all lines in $file$ that contain any of the specified \
+          string.
 
       <dt>'FindList[{$file1$, $file2$, ...}, ...]'
-      <dd>returns a list of all lines in any of the $filei$ that contain the specified strings.
+      <dd>returns a list of all lines in any of the $filei$ that contain the specified \
+          strings.
     </dl>
 
     >> stream = FindList["ExampleData/EinsteinSzilLetter.txt", "uranium"];
@@ -1629,13 +1630,13 @@ class HomeDirectory(Predefined):
     summary_text = "user home directory"
 
     def evaluate(self, evaluation):
-        global HOME_DIR
         return String(HOME_DIR)
 
 
 class InitialDirectory(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$InitialDirectory.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/$InitialDirectory.html</url>
 
     <dl>
       <dt>'$InitialDirectory'
@@ -1649,14 +1650,14 @@ class InitialDirectory(Predefined):
     name = "$InitialDirectory"
     summary_text = "initial directory when Mathics was started"
 
-    def evaluate(self, evaluation):
-        global INITIAL_DIR
+    def evaluate(self, evaluation: Evaluation):
         return String(INITIAL_DIR)
 
 
 class InstallationDirectory(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/InstallationDirectory.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/InstallationDirectory.html</url>
 
     <dl>
       <dt>'$InstallationDirectory'
@@ -2388,7 +2389,3 @@ class URLSave(Builtin):
         if result is None:
             return SymbolFailed
         return String(result)
-
-
-# To placate import
-ROOT_DIR, HOME_DIR

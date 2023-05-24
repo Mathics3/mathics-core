@@ -243,12 +243,17 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return hash(("Expression", self._head) + tuple(self._elements))
 
     def __repr__(self) -> str:
+        return "<Expression: %s[%s]>" % (
+            repr(self.head),
+            ", ".join([repr(element) for element in self.elements]),
+        )
+
         return "<Expression: %s>" % self
 
     def __str__(self) -> str:
         return "%s[%s]" % (
-            self._head,
-            ", ".join([element.__str__() for element in self._elements]),
+            str(self.head),
+            ", ".join([str(element) for element in self.elements]),
         )
 
     def _as_sympy_function(self, **kwargs) -> sympy.Function:

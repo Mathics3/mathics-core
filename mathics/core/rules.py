@@ -37,6 +37,8 @@ class BaseRule(KeyComparable):
 
     Important subclasses: BuiltinRule and Rule.
 
+    Note: we want Rules to be serializable so that we can dump and
+    restore Rules in order to make startup time faster.
     """
 
     def __init__(
@@ -127,8 +129,7 @@ class BaseRule(KeyComparable):
 
 
 class Rule(BaseRule):
-    """
-    There are two kinds of Rules.  This kind of Rule transforms an
+    """There are two kinds of Rules.  This kind of Rule transforms an
     Expression into another Expression based on the pattern and a
     replacement term and doesn't involve function application.
 
@@ -143,6 +144,10 @@ class Rule(BaseRule):
     ``F[x_]`` is a pattern and ``x^2`` is the replacement term. When
     applied to the expression ``G[F[1.], F[a]]`` the result is
     ``G[1.^2, a^2]``
+
+
+    Note: we want Rules to be serializable so that we can dump and
+    restore Rules in order to make startup time faster.
     """
 
     def __init__(
@@ -161,17 +166,23 @@ class Rule(BaseRule):
         new = self.replace.replace_vars(vars)
         new.options = options
 
-        # if options is a non-empty dict, we need to ensure reevaluation of the whole expression, since 'new' will
-        # usually contain one or more matching OptionValue[symbol_] patterns that need to get replaced with the
-        # options' values. this is achieved through Expression.evaluate(), which then triggers OptionValue.apply,
-        # which in turn consults evaluation.options to return an option value.
+        # If options is a non-empty dict, we need to ensure
+        # reevaluation of the whole expression, since 'new' will
+        # usually contain one or more matching OptionValue[symbol_]
+        # patterns that need to get replaced with the options'
+        # values. This is achieved through Expression.evaluate(),
+        # which then triggers OptionValue.apply, which in turn
+        # consults evaluation.options to return an option value.
 
-        # in order to get there, we copy 'new' using copy(reevaluate=True), as this will ensure that the whole thing
-        # will get reevaluated.
+        # In order to get there, we copy 'new' using
+        # copy(reevaluate=True), as this will ensure that the whole
+        # thing will get reevaluated.
 
-        # if the expression contains OptionValue[] patterns, but options is empty here, we don't need to act, as the
-        # expression won't change in that case. the Expression.options would be None anyway, so OptionValue.apply
-        # would just return the unchanged expression (which is what we have already).
+        # If the expression contains OptionValue[] patterns, but
+        # options is empty here, we don't need to act, as the
+        # expression won't change in that case. the Expression.options
+        # would be None anyway, so OptionValue.apply would just return
+        # the unchanged expression (which is what we have already).
 
         if options:
             new = new.copy(reevaluate=True)
@@ -200,7 +211,8 @@ class BuiltinRule(BaseRule):
 
     The pattern ``items___`` matches a list of Expressions.
 
-    When applied to the expression ``F[a+a]`` the method ``mathics.builtin.arithfns.basic.Plus.apply`` is called
+    When applied to the expression ``F[a+a]`` the method
+    ``mathics.builtin.arithfns.basic.Plus.apply`` is called
     binding the parameter  ``items`` to the value ``Sequence[a,a]``.
 
     The return value of this function is ``Times[2, a]`` (or more compactly: ``2*a``).
@@ -215,9 +227,11 @@ class BuiltinRule(BaseRule):
 
     when applied to the expression ``SetAttributes[F,  NumericFunction]``
 
-    sets the attribute ``NumericFunction`` in the  definition of the symbol ``F`` and returns Null (``SymbolNull`)`.
+    sets the attribute ``NumericFunction`` in the  definition of the symbol ``F`` and
+    returns Null (``SymbolNull`)`.
 
-    This will cause `Expression.evalate() to perform an additional ``rewrite_apply_eval()`` step.
+    This will cause `Expression.evalate() to perform an additional
+    ``rewrite_apply_eval()`` step.
     """
 
     def __init__(
@@ -225,7 +239,7 @@ class BuiltinRule(BaseRule):
         name: str,
         pattern: Expression,
         function: Callable,
-        check_options: Callable,
+        check_options: Optional[Callable],
         system: bool = False,
         evaluation: Optional[Evaluation] = None,
     ) -> None:
@@ -259,14 +273,7 @@ class BuiltinRule(BaseRule):
 
     def __getstate__(self):
         odict = self.__dict__.copy()
-        del odict["function"]
-        odict["function_"] = (self.function.__self__.get_name(), self.function.__name__)
         return odict
 
     def __setstate__(self, dict):
-        from mathics.builtin import _builtins
-
         self.__dict__.update(dict)  # update attributes
-        class_name, name = dict["function_"]
-
-        self.function = getattr(_builtins[class_name], name)

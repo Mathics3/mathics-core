@@ -8,7 +8,6 @@ or namespace, and can have a variety of type of values and attributes.
 
 import re
 
-from mathics.builtin.atomic.strings import to_regex
 from mathics.builtin.base import Builtin, PrefixOperator, Test
 from mathics.core.assignment import get_symbol_values
 from mathics.core.atoms import String
@@ -22,6 +21,7 @@ from mathics.core.attributes import (
     attributes_bitset_to_list,
 )
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.regex import to_regex
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression

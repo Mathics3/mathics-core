@@ -146,7 +146,25 @@ def name_is_builtin_symbol(module, name: str) -> Optional[type]:
         return None
 
     # Skip those builtins defined in or imported from another module.
-    if inspect.getmodule(module_object) is not module:
+
+    # rocky: I think this is a code smell. It doesn't feel like
+    # we should have to do this if things are organized and modularized
+    # builtins and use less custom code.
+    # mmatera reports that we need this because of the interaction of
+    # * the custom Mathics3 loading/importing mechanism,
+    # * the builtin module hierarchy, e.g. mathics.builtin.arithmetic
+    #   nested under mathics.builtin, and
+    # * our custom doc/doctest and possibly custom checking system
+
+    # Mathics3 modules modules, however, right now import all builtin modules from
+    # __init__
+    # Note Mathics3 modules do not support buitin hierarchies, e.g.
+    # pymathics.graph.parametric is allowed but not pymathics.graph.parametric.xxx.
+    # This too has to do with the custom doc/doctest that is currently used.
+
+    if inspect.getmodule(
+        module_object
+    ) is not module and not module.__name__.startswith("pymathics."):
         return None
 
     # Skip objects in module mathics.builtin.base.
