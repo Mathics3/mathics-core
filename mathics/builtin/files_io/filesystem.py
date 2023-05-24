@@ -25,6 +25,7 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
+from mathics.core.convert.regex import to_regex
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.streams import (
@@ -51,7 +52,6 @@ from mathics.core.systemsymbols import (
     SymbolPackages,
 )
 from mathics.eval.nevaluator import eval_N
-from mathics.eval.strings import to_regex
 
 SYS_ROOT_DIR = "/" if os.name == "posix" else "\\"
 TMP_DIR = tempfile.gettempdir()

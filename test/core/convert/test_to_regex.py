@@ -2,7 +2,7 @@ from test.helper import check_evaluation, evaluate, session
 
 import pytest
 
-from mathics.eval.strings import to_regex
+from mathics.core.convert.regex import to_regex
 
 
 @pytest.mark.parametrize(

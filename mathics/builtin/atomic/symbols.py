@@ -21,6 +21,7 @@ from mathics.core.attributes import (
     attributes_bitset_to_list,
 )
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.regex import to_regex
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -46,7 +47,6 @@ from mathics.core.systemsymbols import (
     SymbolRule,
     SymbolSet,
 )
-from mathics.eval.strings import to_regex
 
 
 def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):

@@ -17,6 +17,7 @@ from mathics.core.atoms import Integer, Integer0, Integer1, String
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_bool
+from mathics.core.convert.regex import to_regex
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import MATHICS3_INFINITY
@@ -24,7 +25,7 @@ from mathics.core.list import ListExpression
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolFailed, SymbolInputForm, SymbolOutputForm
-from mathics.eval.strings import eval_ToString, to_regex
+from mathics.eval.strings import eval_ToString
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
 SymbolToExpression = Symbol("ToExpression")
