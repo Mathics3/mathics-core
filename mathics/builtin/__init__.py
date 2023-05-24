@@ -189,9 +189,11 @@ def name_is_builtin_symbol(module, name: str) -> Optional[type]:
     return module_object
 
 
-def print_message(symbol_name: str, tag, *msgs, channel=stderr) -> "Message":
+def print_message(symbol_name: str, tag: str, *msgs, channel=stderr):
     """
-    Print to the standard output a message using the default Builtin messages.
+    Print to the standard error a message using the default Builtin messages.
+    Using this instead `evaluation.message` instead of `evaluation.message`
+    when an `Evaluation` object is not available.
     """
     builtins = builtins_dict()
     full_symbol_name = ensure_context(symbol_name)
