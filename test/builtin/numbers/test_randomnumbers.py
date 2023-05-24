@@ -3,8 +3,9 @@
 Unit tests for mathics.builtins.numbers.randomnumbers
 """
 
-import pytest
 from test.helper import check_evaluation
+
+import pytest
 
 
 @pytest.mark.parametrize(

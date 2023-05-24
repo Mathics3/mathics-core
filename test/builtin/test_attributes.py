@@ -4,9 +4,9 @@ Unit tests from mathics.builtin.attributes.
 """
 
 import os
-import pytest
-
 from test.helper import check_evaluation
+
+import pytest
 
 DEBUGRULESPAT = int(os.environ.get("DEBUGRULESPAT", "0")) == 1
 
@@ -121,7 +121,7 @@ def test_one_identity(str_expr, str_expected, msg):
     ],
 )
 @skip_or_fail
-def test_one_identity_stil_failing(str_expr, str_expected, msg):
+def test_one_identity_still_failing(str_expr, str_expected, msg):
     check_evaluation(
         str_expr,
         str_expected,
@@ -203,4 +203,26 @@ def test_one_identity_stil_failing(str_expr, str_expected, msg):
         to_string_expected=True,
         hold_expected=True,
         failure_message=msg,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "arg_count"),
+    [
+        ("SetAttributes[F]", 1),
+        ("SetAttributes[]", 0),
+        ("SetAttributes[F, F, F]", 3),
+    ],
+)
+def test_Attributes_wrong_args(str_expr, arg_count):
+    check_evaluation(
+        str_expr=str_expr,
+        str_expected=str_expr,
+        failure_message=f"Arg count mismatch test with {arg_count} args",
+        hold_expected=True,
+        to_string_expr=True,
+        to_string_expected=True,
+        expected_messages=(
+            f"SetAttributes called with {arg_count} arguments; 2 arguments are expected.",
+        ),
     )

@@ -1,37 +1,45 @@
 # -*- coding: utf-8 -*-
 """
-Mathics Built-in Functions and Variables.
+Mathics Builtin Functions and  Variables.
 
-Mathics has over a thousand Built-in Functions and variables, all of which are defined here.
+Mathics has over a thousand Built-in functions and variables, all of
+which are defined here.
+
+Note that there are other modules to collect specific aspects a
+Builtin, such as ``mathics.eval`` for evaluation specifics, or
+``mathics.format`` for rendering details, or ``mathics.compile`` for
+compilation details.
+
+What remains here is then mostly the top-level definition of a Mathics
+Builtin, and attributes that have not been segregated elsewhere such
+as has been done for one of the other modules listed above.
+
+A Mathics Builtin is implemented one of a particular kind of Python
+class.  Within these classes class variables give properties of the
+builtin class such as the Builtin's Attributes, its Information text,
+among other things.
 """
 
-from typing import Optional
 import glob
 import importlib
 import inspect
+import os.path as osp
 import pkgutil
 import re
-import os.path as osp
+from typing import List, Optional
 
 from mathics.builtin.base import (
     Builtin,
-    SympyObject,
     Operator,
     PatternObject,
+    SympyObject,
+    mathics_to_python,
 )
-
 from mathics.core.pattern import pattern_objects
-
+from mathics.core.symbols import Symbol
+from mathics.eval.makeboxes import builtins_precedence
 from mathics.settings import ENABLE_FILES_MODULE
 from mathics.version import __version__  # noqa used in loading to check consistency.
-
-from typing import List
-
-# Set this to True to print all the builtins that do not have
-# a summary_text. In the future, we can set this to True
-# and raise an error if a new builtin is added without
-# this property or if it does not fulfill some other conditions.
-RUN_SANITY_TEST = False
 
 # Get a list of files in this directory. We'll exclude from the start
 # files with leading characters we don't want like __init__ with its leading underscore.
@@ -54,7 +62,7 @@ def add_builtins(new_builtins):
                 # print("XXX1", sympy_name)
                 sympy_to_mathics[sympy_name] = builtin
         if isinstance(builtin, Operator):
-            builtins_precedence[name] = builtin.precedence
+            builtins_precedence[Symbol(name)] = builtin.precedence
         if isinstance(builtin, PatternObject):
             pattern_objects[name] = builtin.__class__
     _builtins.update(dict(new_builtins))
@@ -75,9 +83,9 @@ def contribute(definitions):
         if name != "System`MakeBoxes":
             item.contribute(definitions)
 
+    from mathics.core.definitions import Definition
     from mathics.core.expression import ensure_context
     from mathics.core.parser import all_operator_names
-    from mathics.core.definitions import Definition
 
     # All builtins are loaded. Create dummy builtin definitions for
     # any remaining operators that don't have them. This allows
@@ -86,23 +94,6 @@ def contribute(definitions):
         if not definitions.have_definition(ensure_context(operator)):
             op = ensure_context(operator)
             definitions.builtin[op] = Definition(name=op)
-
-
-def get_module_doc(module):
-    doc = module.__doc__
-    if doc is not None:
-        doc = doc.strip()
-    if doc:
-        title = doc.splitlines()[0]
-        text = "\n".join(doc.splitlines()[1:])
-    else:
-        title = module.__name__
-        for prefix in ("mathics.builtin.", "mathics.optional."):
-            if title.startswith(prefix):
-                title = title[len(prefix) :]
-        title = title.capitalize()
-        text = ""
-    return title, text
 
 
 def import_builtins(module_names: List[str], submodule_name=None) -> None:
@@ -152,12 +143,26 @@ def name_is_builtin_symbol(module, name: str) -> Optional[type]:
     if not inspect.isclass(module_object):
         return None
 
-    # FIXME: tests involving module_object.__module__ are fragile and
-    # Python implementation specific. Figure out how to do this
-    # via the inspect module which is not implementation specific.
-
     # Skip those builtins defined in or imported from another module.
-    if module_object.__module__ != module.__name__:
+
+    # rocky: I think this is a code smell. It doesn't feel like
+    # we should have to do this if things are organized and modularized
+    # builtins and use less custom code.
+    # mmatera reports that we need this because of the interaction of
+    # * the custom Mathics3 loading/importing mechanism,
+    # * the builtin module hierarchy, e.g. mathics.builtin.arithmetic
+    #   nested under mathics.builtin, and
+    # * our custom doc/doctest and possibly custom checking system
+
+    # Mathics3 modules modules, however, right now import all builtin modules from
+    # __init__
+    # Note Mathics3 modules do not support buitin hierarchies, e.g.
+    # pymathics.graph.parametric is allowed but not pymathics.graph.parametric.xxx.
+    # This too has to do with the custom doc/doctest that is currently used.
+
+    if inspect.getmodule(
+        module_object
+    ) is not module and not module.__name__.startswith("pymathics."):
         return None
 
     # Skip objects in module mathics.builtin.base.
@@ -165,7 +170,10 @@ def name_is_builtin_symbol(module, name: str) -> Optional[type]:
         return None
 
     # Skip those builtins that are not submodules of mathics.builtin.
-    if not module_object.__module__.startswith("mathics.builtin."):
+    if not (
+        module_object.__module__.startswith("mathics.builtin.")
+        or module_object.__module__.startswith("pymathics.")
+    ):
         return None
 
     # If it is not a subclass of Builtin, skip it.
@@ -178,36 +186,19 @@ def name_is_builtin_symbol(module, name: str) -> Optional[type]:
     return module_object
 
 
-def sanity_check(cls, module):
-    if not RUN_SANITY_TEST:
-        return True
-
-    if not hasattr(cls, "summary_text"):
-        print(
-            "In ",
-            module.__name__,
-            cls.__name__,
-            " does not have a summary_text.",
-        )
-        return False
-    return True
-
-
 # FIXME: redo using importlib since that is probably less fragile.
-exclude_files = set(("codetables", "base"))
+exclude_files = {"codetables", "base"}
 module_names = [
-    f for f in __py_files__ if re.match("^[a-z0-9]+$", f) if f not in exclude_files
+    f for f in __py_files__ if re.match(r"^[a-z\d]+$", f) if f not in exclude_files
 ]
 
 modules = []
 import_builtins(module_names)
 
-_builtins = []
+_builtins_list = []
 builtins_by_module = {}
 
-disable_file_module_names = (
-    [] if ENABLE_FILES_MODULE else ["files_io.files", "files_io.importexport"]
-)
+disable_file_module_names = [] if ENABLE_FILES_MODULE else ["files_io"]
 
 for subdir in (
     "arithfns",
@@ -218,10 +209,12 @@ for subdir in (
     "colors",
     "distance",
     "drawing",
+    "exp_structure",
     "fileformats",
     "files_io",
     "forms",
     "functional",
+    "image",
     "intfns",
     "list",
     "matrices",
@@ -230,11 +223,12 @@ for subdir in (
     "specialfns",
     "statistics",
     "string",
+    "testing_expressions",
     "vectors",
 ):
     import_name = f"{__name__}.{subdir}"
 
-    if import_name in disable_file_module_names:
+    if subdir in disable_file_module_names:
         continue
 
     builtin_module = importlib.import_module(import_name)
@@ -258,20 +252,13 @@ for module in modules:
                 # This set the default context for symbols in mathics.builtins
                 if not type(instance).context:
                     type(instance).context = "System`"
-                assert sanity_check(
-                    builtin_class, module
-                ), f"In {module.__name__} Builtin <<{builtin_class.__name__}>> did not pass the sanity check."
-
-                _builtins.append((instance.get_name(), instance))
+                _builtins_list.append((instance.get_name(), instance))
                 builtins_by_module[module.__name__].append(instance)
 
 mathics_to_sympy = {}  # here we have: name -> sympy object
-mathics_to_python = {}  # here we have: name -> string
 sympy_to_mathics = {}
 
-builtins_precedence = {}
-
-new_builtins = _builtins
+new_builtins = _builtins_list
 
 # FIXME: some magic is going on here..
 _builtins = {}

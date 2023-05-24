@@ -11,29 +11,24 @@ sort_order = "mathics.builtin.mathematical-constants"
 
 
 import math
+
 import mpmath
 import numpy
 import sympy
 
-
 from mathics.builtin.base import Builtin, Predefined, SympyObject
-
-from mathics.core.atoms import (
-    MachineReal,
-    PrecisionReal,
+from mathics.core.atoms import MachineReal, PrecisionReal
+from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.evaluation import Evaluation
+from mathics.core.number import (
+    MACHINE_DIGITS,
+    MAX_MACHINE_NUMBER,
+    MIN_MACHINE_NUMBER,
+    PrecisionValueError,
+    get_precision,
+    prec,
 )
-from mathics.core.attributes import (
-    A_CONSTANT,
-    A_PROTECTED,
-    A_READ_PROTECTED,
-)
-
-from mathics.core.number import get_precision, PrecisionValueError, machine_precision
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    strip_context,
-)
+from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolIndeterminate
 
 
@@ -48,8 +43,11 @@ def mp_constant(fn: str, d=None) -> mpmath.mpf:
         # ask for a certain number of digits, but the
         # accuracy will be less than that. Figure out
         # what's up and compensate somehow.
-        mpmath.mp.dps = int_d = int(d * 3.321928)
-        return getattr(mpmath, fn)(prec=int_d)
+
+        int_d = prec(d)
+        with mpmath.workprec(int_d):
+            result = str(getattr(mpmath, fn)(prec=int_d))
+            return result
 
 
 def mp_convert_constant(obj, **kwargs):
@@ -84,7 +82,7 @@ class _Constant_Common(Predefined):
     nargs = {0}
     options = {"Method": "Automatic"}
 
-    def apply_N(self, precision, evaluation):
+    def eval_N(self, precision, evaluation):
         "N[%(name)s, precision_?NumericQ]"
         return self.get_constant(precision, evaluation)
 
@@ -93,7 +91,6 @@ class _Constant_Common(Predefined):
 
     def get_constant(self, precision, evaluation):
         # first, determine the precision
-        machine_d = int(0.30103 * machine_precision)
         d = None
         if precision:
             try:
@@ -102,7 +99,7 @@ class _Constant_Common(Predefined):
                 pass
 
         if d is None:
-            d = machine_d
+            d = MACHINE_DIGITS
 
         # If preference not especified, determine it
         # from the precision.
@@ -115,7 +112,7 @@ class _Constant_Common(Predefined):
                 break
 
         if preference is None:
-            if d <= machine_d:
+            if d <= MACHINE_DIGITS:
                 preference = "numpy"
             else:
                 preference = "mpmath"
@@ -136,7 +133,7 @@ class _Constant_Common(Predefined):
                 preference = ""
         if preference == "numpy":
             value = numpy_constant(self.numpy_name)
-            if d == machine_d:
+            if d == MACHINE_DIGITS:
                 return MachineReal(value)
         if preference == "sympy":
             value = sympy_constant(self.sympy_name, d + 2)
@@ -208,7 +205,12 @@ class _SympyConstant(_Constant_Common, SympyObject):
 
 class Catalan(_MPMathConstant, _SympyConstant):
     """
-    <url>:Catalan's constant: https://en.wikipedia.org/wiki/Catalan%27s_constant</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.Catalan</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Catalan.html</url>)
+    <url>
+    :Catalan's constant:
+    https://en.wikipedia.org/wiki/Catalan%27s_constant</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.Catalan</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/Catalan.html</url>)
 
     <dl>
       <dt>'Catalan'
@@ -230,7 +232,18 @@ class Catalan(_MPMathConstant, _SympyConstant):
 
 class ComplexInfinity(_SympyConstant):
     """
-    <url>:Complex Infinity: https://en.wikipedia.org/wiki/Infinity#Complex_analysis</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/core.html?highlight=zoo#complexinfinity</url>, <url>:WMA: https://reference.wolfram.com/language/ref/ComplexInfinity.html</url>)
+    <url>
+    :Complex Infinity:
+    https://en.wikipedia.org/wiki/Infinity#Complex_analysis</url> \
+    is an infinite number in the complex plane whose complex argument \
+    is unknown or undefined. (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/core.html?highlight=zoo#complexinfinity</url>, <url>
+    :MathWorld:
+    https://mathworld.wolfram.com/ComplexInfinity.html</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/ComplexInfinity.html</url>)
+
     <dl>
       <dt>'ComplexInfinity'
       <dd>represents an infinite complex quantity of undetermined direction.
@@ -262,7 +275,11 @@ class ComplexInfinity(_SympyConstant):
 
 class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
-    <url>:Degree (angle): https://en.wikipedia.org/wiki/Degree_(angle)</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Degree.html</url>)
+    <url>
+    :Degree (angle):
+    https://en.wikipedia.org/wiki/Degree_(angle)</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Degree.html</url>)
 
     <dl>
       <dt>'Degree'
@@ -301,7 +318,7 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
             # return mpmath.degree
             return numpy.pi / 180
 
-    def apply_N(self, precision, evaluation):
+    def eval_N(self, precision, evaluation):
         "N[Degree, precision_]"
         try:
             if precision:
@@ -325,7 +342,13 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
 
 class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
-    <url>:Euler's number: https://en.wikipedia.org/wiki/E_(mathematical_constant)</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/core.html#exp1</url>, <url>:WMA: https://reference.wolfram.com/language/ref/E.html</url>)
+    <url>
+    :Euler's number:
+    https://en.wikipedia.org/wiki/E_(mathematical_constant)</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/core.html#exp1</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/E.html</url>)
 
     <dl>
       <dt>'E'
@@ -346,18 +369,22 @@ class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
     numpy_name = "e"
     sympy_name = "E"
 
-    def apply_N(self, precision, evaluation):
+    def eval_N(self, precision, evaluation):
         "N[E, precision_]"
         return self.get_constant(precision, evaluation)
 
 
 class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
-    <url>:Euler's constant: https://en.wikipedia.org/wiki/Euler%27s_constant</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.EulerGamma</url>, <url>:WMA: https://reference.wolfram.com/language/ref/EulerGamma.html</url>)
+    <url>
+    :Euler's constant:
+    https://en.wikipedia.org/wiki/Euler%27s_constant</url> (<url>
+    :SymPy: https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.EulerGamma</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/EulerGamma.html</url>)
 
     <dl>
       <dt>'EulerGamma'
-      <dd>is Euler's constant \u03b3 with numerial value \u2243 0.577216.
+      <dd>is Euler's constant \u03b3 with numerical value \u2243 0.577216.
     </dl>
 
     >> EulerGamma // N
@@ -375,7 +402,13 @@ class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
 
 class Glaisher(_MPMathConstant):
     """
-    <url>:Glaisher–Kinkelin constant: https://en.wikipedia.org/wiki/Glaisher%E2%80%93Kinkelin_constant</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/constants.html#glaisher-s-constant-glaisher</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Glaisher.html</url>)
+    <url>
+    :Glaisher–Kinkelin constant:
+    https://en.wikipedia.org/wiki/Glaisher%E2%80%93Kinkelin_constant</url> (<url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/constants.html#glaisher-s-constant-glaisher</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Glaisher.html</url>)
     <dl>
       <dt>'Glaisher'
       <dd>is Glaisher's constant, with numerical value \u2243 1.28243.
@@ -394,7 +427,13 @@ class Glaisher(_MPMathConstant):
 
 class GoldenRatio(_MPMathConstant, _SympyConstant):
     """
-    <url>:Golden ratio: https://en.wikipedia.org/wiki/Golden_ratio</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/constants.html#golden-ratio-phi</url>, <url>:WMA: https://reference.wolfram.com/language/ref/GoldenRatio.html</url>)
+    <url>
+    :Golden ratio:
+    https://en.wikipedia.org/wiki/Golden_ratio</url> (<url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/constants.html#golden-ratio-phi</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/GoldenRatio.html</url>)
 
     <dl>
       <dt>'GoldenRatio'
@@ -414,7 +453,13 @@ class GoldenRatio(_MPMathConstant, _SympyConstant):
 
 class Indeterminate(_SympyConstant):
     """
-    <url>:Indeterminate form: https://en.wikipedia.org/wiki/Indeterminate_form</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.NaN</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Indeterminate.html</url>)
+    <url>
+    :Indeterminate form:
+    https://en.wikipedia.org/wiki/Indeterminate_form</url> (<url>
+    :SymPy: https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.NaN</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Indeterminate.html</url>)
+
     <dl>
       <dt>'Indeterminate'
       <dd>represents an indeterminate result.
@@ -431,14 +476,20 @@ class Indeterminate(_SympyConstant):
     summary_text = "indeterminate value"
     sympy_name = "nan"
 
-    def apply_N(self, precision, evaluation, options={}):
+    def eval_N(self, precision, evaluation, options={}):
         "N[%(name)s, precision_?NumericQ, OptionsPattern[%(name)s]]"
         return SymbolIndeterminate
 
 
 class Infinity(_SympyConstant):
     """
-    <url>:Infinity: https://en.wikipedia.org/wiki/Infinity</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.Infinity</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Infinity.html</url>)
+    <url>:
+    Infinity:
+    https://en.wikipedia.org/wiki/Infinity</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.Infinity</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Infinity.html</url>)
 
     <dl>
       <dt>'Infinity'
@@ -478,7 +529,14 @@ class Infinity(_SympyConstant):
 
 class Khinchin(_MPMathConstant):
     """
-    <url>:Khinchin's constant: https://en.wikipedia.org/wiki/Khinchin%27s_constant</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/constants.html#mpmath.mp.khinchin</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Khinchin.html</url>)
+    <url>
+    :Khinchin's constant:
+    https://en.wikipedia.org/wiki/Khinchin%27s_constant</url> (<url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/constants.html#mpmath.mp.khinchin</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Khinchin.html</url>)
+
     <dl>
       <dt>'Khinchin'
       <dd>is Khinchin's constant, with numerical value \u2243 2.68545.
@@ -497,7 +555,14 @@ class Khinchin(_MPMathConstant):
 
 class Overflow(Builtin):
     """
-    Overflow (<url>:WMA: https://reference.wolfram.com/language/ref/Overflow.html</url>)
+    Numeric Overflow (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Overflow.html
+    </url>)
+
+    See also <url>
+    :Integer Overflow:
+    <https://en.wikipedia.org/wiki/Integer_overflow></url>.
 
     <dl>
       <dt>'Overflow[]'
@@ -520,14 +585,75 @@ class Overflow(Builtin):
     summary_text = "overflow in numeric evaluation"
 
 
+class MaxMachineNumber(Predefined):
+    """
+    Largest normalizable machine number (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/$MaxMachineNumber.html
+    </url>)
+
+    <dl>
+      <dt>'$MaxMachineNumber'
+      <dd>Represents the largest positive number that can be represented \
+          as a normalized machine number in the system.
+    </dl>
+
+    The product of '$MaxMachineNumber' and  '$MinMachineNumber' is a constant:
+    >> $MaxMachineNumber * $MinMachineNumber
+     = 4.
+
+    """
+
+    name = "$MaxMachineNumber"
+    summary_text = "largest normalized positive machine number"
+
+    def evaluate(self, evaluation: Evaluation) -> MachineReal:
+        return MachineReal(MAX_MACHINE_NUMBER)
+
+
+class MinMachineNumber(Predefined):
+    """
+    Smallest normalizable machine number (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/$MinMachineNumber.html
+    </url>)
+
+    <dl>
+      <dt>'$MinMachineNumber'
+      <dd>Represents the smallest positive number that can be represented \
+          as a normalized machine number in the system.
+    </dl>
+
+    'MachinePrecision' minus the 'Log' base 10 of this number is the\
+    'Accuracy' of 0`:
+    >> MachinePrecision -Log[10., $MinMachineNumber]==Accuracy[0`]
+     = True
+
+    """
+
+    name = "$MinMachineNumber"
+    summary_text = "smallest normalized positive machine number"
+
+    def evaluate(self, evaluation: Evaluation) -> MachineReal:
+        return MachineReal(MIN_MACHINE_NUMBER)
+
+
 class Pi(_MPMathConstant, _SympyConstant):
     """
-    <url>:Pi, \u03c0: https://en.wikipedia.org/wiki/Pi</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.Pi</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Pi.html</url>)
+    <url>
+    :Pi, \u03c0: https://en.wikipedia.org/wiki/Pi</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.Pi</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Pi.html</url>)
 
     <dl>
       <dt>'Pi'
       <dd>is the constant \u03c0.
     </dl>
+
+    >> Pi
+     = Pi
 
     >> N[Pi]
      = 3.14159
@@ -557,7 +683,9 @@ class Pi(_MPMathConstant, _SympyConstant):
 
 class Undefined(Builtin):
     """
-    Undefined symbol/value (<url>:WMA: https://reference.wolfram.com/language/ref/Undefined.html</url>)
+    Undefined symbol/value (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Undefined.html</url>)
 
     <dl>
       <dt>'Undefined'
@@ -576,7 +704,9 @@ class Undefined(Builtin):
 
 class Underflow(Builtin):
     """
-    <url>:Arithmetic underflow: https://en.wikipedia.org/wiki/Arithmetic_underflow</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Underflow.html</url>)
+    <url>:Arithmetic underflow:
+    https://en.wikipedia.org/wiki/Arithmetic_underflow</url> (<url>
+    :WMA: https://reference.wolfram.com/language/ref/Underflow.html</url>)
 
     <dl>
       <dt>'Overflow[]'

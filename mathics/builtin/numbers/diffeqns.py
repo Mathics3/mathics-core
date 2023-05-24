@@ -5,8 +5,10 @@ Differential Equations
 """
 
 import sympy
+
 from mathics.builtin.base import Builtin
 from mathics.core.convert.sympy import from_sympy
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol
@@ -15,6 +17,8 @@ from mathics.core.systemsymbols import SymbolFunction, SymbolRule
 
 class DSolve(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DSolve.html</url>
+
     <dl>
     <dt>'DSolve[$eq$, $y$[$x$], $x$]'
         <dd>solves a differential equation for the function $y$[$x$].
@@ -108,7 +112,7 @@ class DSolve(Builtin):
     }
     summary_text = "Differential equation analytical solver."
 
-    def apply(self, eqn, y, x, evaluation):
+    def eval(self, eqn, y, x, evaluation: Evaluation):
         "DSolve[eqn_, y_, x_]"
 
         if eqn.has_form("List", None):
@@ -126,7 +130,8 @@ class DSolve(Builtin):
         elif x.has_form("List", 1, None):
             syms = sorted(x.elements)
         else:
-            return evaluation.message("DSolve", "dsvar", x)
+            evaluation.message("DSolve", "dsvar", x)
+            return
 
         # Fixes pathalogical DSolve[y''[x] == y[x], y, x]
         try:
@@ -211,6 +216,8 @@ class DSolve(Builtin):
 
 class C(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/C.html</url>
+
     <dl>
       <dt>'C'[$n$]
       <dd>represents the $n$th constant in a solution to a differential equation.

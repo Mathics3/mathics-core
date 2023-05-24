@@ -33,34 +33,34 @@ import platform
 import re
 import sys
 
-from setuptools import setup, Extension
+from setuptools import Extension, setup
 
-is_PyPy = platform.python_implementation() == "PyPy"
+is_PyPy = platform.python_implementation() == "PyPy" or hasattr(
+    sys, "pypy_version_info"
+)
 
-INSTALL_REQUIRES = ["Mathics-Scanner >= 1.3.0.dev0"]
+INSTALL_REQUIRES = [
+    "Mathics-Scanner >= 1.3.0",
+]
 
 # Ensure user has the correct Python version
 # Address specific package dependencies based on Python version
-if sys.version_info < (3, 6):
+if sys.version_info < (3, 7):
     print("Mathics does not support Python %d.%d" % sys.version_info[:2])
     sys.exit(-1)
-elif sys.version_info[:2] == (3, 6):
-    INSTALL_REQUIRES += [
-        "recordclass",
-        "numpy<1.24",
-        "llvmlite<0.37",
-        "sympy>=1.8,<1.9",
-    ]
-    if is_PyPy:
-        print("Mathics does not support PyPy Python 3.6" % sys.version_info[:2])
-        sys.exit(-1)
-elif sys.version_info[:2] == (3, 7):
-    INSTALL_REQUIRES += ["numpy<1.22", "llvmlite", "sympy>=1.8, < 1.11"]
-else:
-    INSTALL_REQUIRES += ["numpy", "llvmlite", "sympy>=1.8, < 1.11"]
 
-if not is_PyPy:
-    INSTALL_REQUIRES += ["recordclass"]
+INSTALL_REQUIRES += [
+    "numpy<=1.24",
+    "llvmlite",
+    "sympy>=1.8, < 1.12",
+    # Pillow 9.1.0 supports BigTIFF with big-endian byte order.
+    # ExampleData image hedy.tif is in this format.
+    # Pillow 9.2 handles sunflowers.jpg
+    "pillow >= 9.2",
+]
+
+# if not is_PyPy:
+#     INSTALL_REQUIRES += ["recordclass"]
 
 
 def get_srcdir():
@@ -106,7 +106,6 @@ else:
         print("Running Cython over code base")
         EXTENSIONS_DICT = {
             "core": (
-                "evaluators",
                 "expression",
                 "symbols",
                 "number",
@@ -114,6 +113,7 @@ else:
                 "pattern",
             ),
             "builtin": ["arithmetic", "patterns", "graphics"],
+            "eval": ("nevaluator", "makeboxes", "test"),
         }
         EXTENSIONS = [
             Extension(
@@ -143,6 +143,7 @@ INSTALL_REQUIRES += [
     "pint",
     "python-dateutil",
     "requests",
+    "setuptools",
 ]
 
 print(f'Installation requires "{", ".join(INSTALL_REQUIRES)}')
@@ -161,6 +162,7 @@ setup(
     packages=[
         "mathics",
         "mathics.algorithm",
+        "mathics.compile",
         "mathics.core",
         "mathics.core.convert",
         "mathics.core.parser",
@@ -171,13 +173,14 @@ setup(
         "mathics.builtin.binary",
         "mathics.builtin.box",
         "mathics.builtin.colors",
-        "mathics.builtin.compile",
         "mathics.builtin.distance",
+        "mathics.builtin.exp_structure",
         "mathics.builtin.drawing",
         "mathics.builtin.fileformats",
         "mathics.builtin.files_io",
         "mathics.builtin.forms",
         "mathics.builtin.functional",
+        "mathics.builtin.image",
         "mathics.builtin.intfns",
         "mathics.builtin.list",
         "mathics.builtin.matrices",
@@ -190,7 +193,9 @@ setup(
         "mathics.builtin.specialfns",
         "mathics.builtin.statistics",
         "mathics.builtin.string",
+        "mathics.builtin.testing_expressions",
         "mathics.builtin.vectors",
+        "mathics.eval",
         "mathics.doc",
         "mathics.format",
     ],

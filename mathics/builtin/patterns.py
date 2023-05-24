@@ -1,37 +1,38 @@
 # -*- coding: utf-8 -*-
-
 """
 Rules and Patterns
 
-The concept of transformation rules for arbitrary symbolic patterns is key in Mathics.
+The concept of transformation rules for arbitrary symbolic patterns is key \
+in \\Mathics.
 
-Also, functions can get applied or transformed depending on whether or not functions arguments match.
+Also, functions can get applied or transformed depending on whether or not \
+functions arguments match.
 
 Some examples:
->> a + b + c /. a + b -> t
- = c + t
->> a + 2 + b + c + x * y /. n_Integer + s__Symbol + rest_ -> {n, s, rest}
- = {2, a, b + c + x y}
->> f[a, b, c, d] /. f[first_, rest___] -> {first, {rest}}
- = {a, {b, c, d}}
+    >> a + b + c /. a + b -> t
+     = c + t
+    >> a + 2 + b + c + x * y /. n_Integer + s__Symbol + rest_ -> {n, s, rest}
+     = {2, a, b + c + x y}
+    >> f[a, b, c, d] /. f[first_, rest___] -> {first, {rest}}
+     = {a, {b, c, d}}
 
 Tests and Conditions:
->> f[4] /. f[x_?(# > 0&)] -> x ^ 2
- = 16
->> f[4] /. f[x_] /; x > 0 -> x ^ 2
- = 16
+    >> f[4] /. f[x_?(# > 0&)] -> x ^ 2
+     = 16
+    >> f[4] /. f[x_] /; x > 0 -> x ^ 2
+     = 16
 
 Elements in the beginning of a pattern rather match fewer elements:
->> f[a, b, c, d] /. f[start__, end__] -> {{start}, {end}}
- = {{a}, {b, c, d}}
+    >> f[a, b, c, d] /. f[start__, end__] -> {{start}, {end}}
+     = {{a}, {b, c, d}}
 
 Optional arguments using 'Optional':
->> f[a] /. f[x_, y_:3] -> {x, y}
- = {a, 3}
+    >> f[a] /. f[x_, y_:3] -> {x, y}
+     = {a, 3}
 
 Options using 'OptionsPattern' and 'OptionValue':
->> f[y, a->3] /. f[x_, OptionsPattern[{a->2, b->5}]] -> {x, OptionValue[a], OptionValue[b]}
- = {y, 3, 5}
+    >> f[y, a->3] /. f[x_, OptionsPattern[{a->2, b->5}]] -> {x, OptionValue[a], OptionValue[b]}
+     = {y, 3, 5}
 
 The attributes 'Flat', 'Orderless', and 'OneIdentity' affect pattern matching.
 """
@@ -39,25 +40,17 @@ The attributes 'Flat', 'Orderless', and 'OneIdentity' affect pattern matching.
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.rules-and-patterns"
 
-from mathics.algorithm.parts import python_levelspec
+from typing import Callable, List, Optional as OptionalType, Tuple, Union
 
 from mathics.builtin.base import (
-    Builtin,
-    BinaryOperator,
-    PostfixOperator,
     AtomBuiltin,
-    PatternObject,
+    BinaryOperator,
+    Builtin,
     PatternError,
+    PatternObject,
+    PostfixOperator,
 )
-from mathics.builtin.lists import InvalidLevelspecError
-
-from mathics.core.atoms import (
-    String,
-    Number,
-    Integer,
-    Rational,
-    Real,
-)
+from mathics.core.atoms import Integer, Number, Rational, Real, String
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
@@ -65,25 +58,23 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_SEQUENCE_HOLD,
 )
-from mathics.core.element import EvalMixin
+from mathics.core.element import BaseElement, EvalMixin
+from mathics.core.evaluation import Evaluation
+from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Expression, SymbolVerbatim
 from mathics.core.list import ListExpression
 from mathics.core.pattern import Pattern, StopGenerator
 from mathics.core.rules import Rule
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    SymbolFalse,
-    SymbolList,
-    SymbolTrue,
-)
-from mathics.core.systemsymbols import SymbolBlank, SymbolDispatch
-
-SymbolDefault = Symbol("Default")
+from mathics.core.symbols import Atom, Symbol, SymbolList, SymbolTrue
+from mathics.core.systemsymbols import SymbolBlank, SymbolDefault, SymbolDispatch
+from mathics.eval.parts import python_levelspec
 
 
 class Rule_(BinaryOperator):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Rule_.html</url>
+
     <dl>
       <dt>'Rule[$x$, $y$]'
       <dt>'$x$ -> $y$'
@@ -115,6 +106,8 @@ class Rule_(BinaryOperator):
 
 class RuleDelayed(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RuleDelayed.html</url>
+
     <dl>
       <dt>'RuleDelayed[$x$, $y$]'
       <dt>'$x$ :> $y$'
@@ -133,7 +126,23 @@ class RuleDelayed(BinaryOperator):
     summary_text = "a rule that keeps the replacement unevaluated"
 
 
-def create_rules(rules_expr, expr, name, evaluation, extra_args=[]):
+# TODO: disentangle me
+def create_rules(
+    rules_expr: BaseElement,
+    expr: Expression,
+    name: str,
+    evaluation: Evaluation,
+    extra_args: List = [],
+) -> Tuple[Union[List[Rule], BaseElement], bool]:
+    """
+    This function implements  `Replace`, `ReplaceAll`, `ReplaceRepeated` and `ReplaceList` eval methods.
+    `name` controls which of these methods is implemented. These methods applies the rule / list of rules
+    `rules_expr` over the expression `expr`, using the evaluation context `evaluation`.
+
+    The result is a tuple of two elements. If the second element is `True`, then the first element is the result of the method.
+    If `False`, the first element of the tuple is a list of rules.
+
+    """
     if isinstance(rules_expr, Dispatch):
         return rules_expr.rules, False
     elif rules_expr.has_form("Dispatch", None):
@@ -192,6 +201,11 @@ def create_rules(rules_expr, expr, name, evaluation, extra_args=[]):
 
 class Replace(Builtin):
     """
+
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Replace.html</url>
+
     <dl>
       <dt>'Replace[$expr$, $x$ -> $y$]'
       <dd>yields the result of replacing $expr$ with $y$ if it
@@ -251,7 +265,7 @@ class Replace(Builtin):
     rules = {"Replace[rules_][expr_]": "Replace[expr, rules]"}
     summary_text = "apply a replacement rule"
 
-    def apply_levelspec(self, expr, rules, ls, evaluation, options):
+    def eval_levelspec(self, expr, rules, ls, evaluation, options):
         "Replace[expr_, rules_, Optional[Pattern[ls, _?LevelQ], {0}], OptionsPattern[Replace]]"
         try:
             rules, ret = create_rules(rules, expr, "Replace", evaluation)
@@ -276,6 +290,10 @@ class Replace(Builtin):
 
 class ReplaceAll(BinaryOperator):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ReplaceAll.html</url>
+
     <dl>
       <dt>'ReplaceAll[$expr$, $x$ -> $y$]'
       <dt>'$expr$ /. $x$ -> $y$'
@@ -330,7 +348,7 @@ class ReplaceAll(BinaryOperator):
     rules = {"ReplaceAll[rules_][expr_]": "ReplaceAll[expr, rules]"}
     summary_text = "apply a replacement rule on each subexpression"
 
-    def apply(self, expr, rules, evaluation):
+    def eval(self, expr, rules, evaluation: Evaluation):
         "ReplaceAll[expr_, rules_]"
         try:
             rules, ret = create_rules(rules, expr, "ReplaceAll", evaluation)
@@ -344,6 +362,11 @@ class ReplaceAll(BinaryOperator):
 
 class ReplaceRepeated(BinaryOperator):
     """
+
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ReplaceRepeated.html</url>
+
     <dl>
       <dt>'ReplaceRepeated[$expr$, $x$ -> $y$]'
       <dt>'$expr$ //. $x$ -> $y$'
@@ -387,7 +410,13 @@ class ReplaceRepeated(BinaryOperator):
     }
     summary_text = "iteratively replace until the expression does not change anymore"
 
-    def apply_list(self, expr, rules, evaluation, options):
+    def eval_list(
+        self,
+        expr: BaseElement,
+        rules: BaseElement,
+        evaluation: Evaluation,
+        options: dict,
+    ) -> OptionalType[BaseElement]:
         "ReplaceRepeated[expr_, rules_, OptionsPattern[ReplaceRepeated]]"
         try:
             rules, ret = create_rules(rules, expr, "ReplaceRepeated", evaluation)
@@ -422,6 +451,10 @@ class ReplaceRepeated(BinaryOperator):
 
 class ReplaceList(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ReplaceList.html</url>
+
     <dl>
       <dt>'ReplaceList[$expr$, $rules$]'
       <dd>returns a list of all possible results of applying $rules$
@@ -458,7 +491,9 @@ class ReplaceList(Builtin):
     }
     summary_text = "list of possible replacement results"
 
-    def apply(self, expr, rules, max, evaluation):
+    def eval(
+        self, expr: BaseElement, rules: BaseElement, max: Number, evaluation: Evaluation
+    ) -> OptionalType[BaseElement]:
         "ReplaceList[expr_, rules_, max_:Infinity]"
 
         if max.get_name() == "System`Infinity":
@@ -489,6 +524,11 @@ class ReplaceList(Builtin):
 
 class PatternTest(BinaryOperator, PatternObject):
     """
+
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/PatternTest.html</url>
+
     <dl>
       <dt>'PatternTest[$pattern$, $test$]'
       <dt>'$pattern$ ? $test$'
@@ -510,8 +550,10 @@ class PatternTest(BinaryOperator, PatternObject):
     precedence = 680
     summary_text = "match to a pattern conditioned to a test result"
 
-    def init(self, expr):
-        super(PatternTest, self).init(expr)
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
+        super(PatternTest, self).init(expr, evaluation=evaluation)
         # This class has an important effect in the general performance,
         # since all the rules that requires specify the type of patterns
         # call it. Then, for simple checks like `NumberQ` or `NumericQ`
@@ -534,7 +576,7 @@ class PatternTest(BinaryOperator, PatternObject):
             "System`NonNegative": self.match_nonnegative,
         }
 
-        self.pattern = Pattern.create(expr.elements[0])
+        self.pattern = Pattern.create(expr.elements[0], evaluation=evaluation)
         self.test = expr.elements[1]
         testname = self.test.get_name()
         self.test_name = testname
@@ -644,7 +686,7 @@ class PatternTest(BinaryOperator, PatternObject):
 
         self.pattern.match(yield_match, expression, vars, evaluation)
 
-    def quick_pattern_test(self, candidate, test, evaluation):
+    def quick_pattern_test(self, candidate, test, evaluation: Evaluation):
         if test == "System`NegativePowerQ":
             return (
                 candidate.has_form("Power", 2)
@@ -702,6 +744,10 @@ class PatternTest(BinaryOperator, PatternObject):
 
 class Alternatives(BinaryOperator, PatternObject):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Alternatives.html</url>
+
     <dl>
       <dt>'Alternatives[$p1$, $p2$, ..., $p_i$]'
       <dt>'$p1$ | $p2$ | ... | $p_i$'
@@ -726,9 +772,13 @@ class Alternatives(BinaryOperator, PatternObject):
     precedence = 160
     summary_text = "match to any of several patterns"
 
-    def init(self, expr):
-        super(Alternatives, self).init(expr)
-        self.alternatives = [Pattern.create(element) for element in expr.elements]
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
+        super(Alternatives, self).init(expr, evaluation=evaluation)
+        self.alternatives = [
+            Pattern.create(element, evaluation=evaluation) for element in expr.elements
+        ]
 
     def match(self, yield_func, expression, vars, evaluation, **kwargs):
         for alternative in self.alternatives:
@@ -757,9 +807,15 @@ class _StopGeneratorExcept(StopGenerator):
 
 class Except(PatternObject):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Except.html</url>
+
     <dl>
       <dt>'Except[$c$]'
-      <dd>represents a pattern object that matches any expression except those matching $c$.
+      <dd>represents a pattern object that matches any expression except \
+          those matching $c$.
+
       <dt>'Except[$c$, $p$]'
       <dd>represents a pattern object that matches $p$ but not $c$.
     </dl>
@@ -781,13 +837,15 @@ class Except(PatternObject):
     arg_counts = [1, 2]
     summary_text = "match to expressions that do not match with a pattern"
 
-    def init(self, expr):
-        super(Except, self).init(expr)
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
+        super(Except, self).init(expr, evaluation=evaluation)
         self.c = Pattern.create(expr.elements[0])
         if len(expr.elements) == 2:
-            self.p = Pattern.create(expr.elements[1])
+            self.p = Pattern.create(expr.elements[1], evaluation=evaluation)
         else:
-            self.p = Pattern.create(Expression(SymbolBlank))
+            self.p = Pattern.create(Expression(SymbolBlank), evaluation=evaluation)
 
     def match(self, yield_func, expression, vars, evaluation, **kwargs):
         def except_yield_func(vars, rest):
@@ -801,67 +859,12 @@ class Except(PatternObject):
             self.p.match(yield_func, expression, vars, evaluation)
 
 
-class _StopGeneratorMatchQ(StopGenerator):
-    pass
-
-
-class Matcher:
-    def __init__(self, form):
-        if isinstance(form, Pattern):
-            self.form = form
-        else:
-            self.form = Pattern.create(form)
-
-    def match(self, expr, evaluation):
-        def yield_func(vars, rest):
-            raise _StopGeneratorMatchQ(True)
-
-        try:
-            self.form.match(yield_func, expr, {}, evaluation)
-        except _StopGeneratorMatchQ:
-            return True
-        return False
-
-
-def match(expr, form, evaluation):
-    return Matcher(form).match(expr, evaluation)
-
-
-class MatchQ(Builtin):
-    """
-    <dl>
-      <dt>'MatchQ[$expr$, $form$]'
-      <dd>tests whether $expr$ matches $form$.
-    </dl>
-
-    >> MatchQ[123, _Integer]
-     = True
-    >> MatchQ[123, _Real]
-     = False
-    >> MatchQ[_Integer][123]
-     = True
-    >> MatchQ[3, Pattern[3]]
-     : First element in pattern Pattern[3] is not a valid pattern name.
-     = False
-    """
-
-    rules = {"MatchQ[form_][expr_]": "MatchQ[expr, form]"}
-    summary_text = "test whether an expression matches a pattern"
-
-    def apply(self, expr, form, evaluation):
-        "MatchQ[expr_, form_]"
-
-        try:
-            if match(expr, form, evaluation):
-                return SymbolTrue
-            return SymbolFalse
-        except PatternError as e:
-            evaluation.message(e.name, e.tag, *(e.args))
-            return SymbolFalse
-
-
 class Verbatim(PatternObject):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Verbatim.html</url>
+
     <dl>
       <dt>'Verbatim[$expr$]'
       <dd>prevents pattern constructs in $expr$ from taking effect,
@@ -882,8 +885,10 @@ class Verbatim(PatternObject):
     arg_counts = [1, 2]
     summary_text = "take the pattern elements as literals"
 
-    def init(self, expr):
-        super(Verbatim, self).init(expr)
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
+        super(Verbatim, self).init(expr, evaluation=evaluation)
         self.content = expr.elements[0]
 
     def match(self, yield_func, expression, vars, evaluation, **kwargs):
@@ -893,6 +898,9 @@ class Verbatim(PatternObject):
 
 class HoldPattern(PatternObject):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/HoldPattern.html</url>
+
     <dl>
       <dt>'HoldPattern[$expr$]'
       <dd>is equivalent to $expr$ for pattern matching, but
@@ -913,9 +921,11 @@ class HoldPattern(PatternObject):
     attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "took the expression as a literal pattern"
 
-    def init(self, expr):
-        super(HoldPattern, self).init(expr)
-        self.pattern = Pattern.create(expr.elements[0])
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
+        super(HoldPattern, self).init(expr, evaluation=evaluation)
+        self.pattern = Pattern.create(expr.elements[0], evaluation=evaluation)
 
     def match(self, yield_func, expression, vars, evaluation, **kwargs):
         # for new_vars, rest in self.pattern.match(
@@ -926,6 +936,8 @@ class HoldPattern(PatternObject):
 
 class Pattern_(PatternObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Pattern.html</url>
+
     <dl>
       <dt>'Pattern[$symb$, $patt$]'
       <dt>'$symb$ : $patt$'
@@ -975,7 +987,6 @@ class Pattern_(PatternObject):
         "nodef": (
             "No default setting found for `1` in " "position `2` when length is `3`."
         ),
-        "argr": "Pattern called with 1 argument; 2 arguments are expected.",
     }
 
     rules = {
@@ -991,15 +1002,17 @@ class Pattern_(PatternObject):
     }
     summary_text = "a named pattern"
 
-    def init(self, expr):
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
         if len(expr.elements) != 2:
             self.error("patvar", expr)
         varname = expr.elements[0].get_name()
         if varname is None or varname == "":
             self.error("patvar", expr)
-        super(Pattern_, self).init(expr)
+        super(Pattern_, self).init(expr, evaluation=evaluation)
         self.varname = varname
-        self.pattern = Pattern.create(expr.elements[1])
+        self.pattern = Pattern.create(expr.elements[1], evaluation=evaluation)
 
     def __repr__(self):
         return "<Pattern: %s>" % repr(self.pattern)
@@ -1044,6 +1057,9 @@ class Pattern_(PatternObject):
 
 class Optional(BinaryOperator, PatternObject):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Optional.html</url>
+
     <dl>
       <dt>'Optional[$patt$, $default$]'
       <dt>'$patt$ : $default$'
@@ -1102,9 +1118,11 @@ class Optional(BinaryOperator, PatternObject):
     precedence = 140
     summary_text = "an optional argument with a default value"
 
-    def init(self, expr):
-        super(Optional, self).init(expr)
-        self.pattern = Pattern.create(expr.elements[0])
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
+        super(Optional, self).init(expr, evaluation=evaluation)
+        self.pattern = Pattern.create(expr.elements[0], evaluation=evaluation)
         if len(expr.elements) == 2:
             self.default = expr.elements[1]
         else:
@@ -1147,7 +1165,12 @@ class Optional(BinaryOperator, PatternObject):
         return (0, 1)
 
 
-def get_default_value(name, evaluation, k=None, n=None):
+def get_default_value(
+    name: str,
+    evaluation: Evaluation,
+    k: OptionalType[int] = None,
+    n: OptionalType[int] = None,
+):
     pos = []
     if k is not None:
         pos.append(k)
@@ -1171,8 +1194,10 @@ def get_default_value(name, evaluation, k=None, n=None):
 class _Blank(PatternObject):
     arg_counts = [0, 1]
 
-    def init(self, expr):
-        super(_Blank, self).init(expr)
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
+        super(_Blank, self).init(expr, evaluation=evaluation)
         if expr.elements:
             self.head = expr.elements[0]
         else:
@@ -1184,6 +1209,8 @@ class _Blank(PatternObject):
 
 class Blank(_Blank):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Blank.html</url>
+
     <dl>
       <dt>'Blank[]'
       <dt>'_'
@@ -1219,7 +1246,14 @@ class Blank(_Blank):
     }
     summary_text = "match to any single expression"
 
-    def match(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match(
+        self,
+        yield_func: Callable,
+        expression: Expression,
+        vars: dict,
+        evaluation: Evaluation,
+        **kwargs
+    ):
         if not expression.has_form("Sequence", 0):
             if self.head is not None:
                 if expression.get_head().sameQ(self.head):
@@ -1230,6 +1264,8 @@ class Blank(_Blank):
 
 class BlankSequence(_Blank):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BlankSequence.html</url>
+
     <dl>
       <dt>'BlankSequence[]'
       <dt>'__'
@@ -1273,7 +1309,14 @@ class BlankSequence(_Blank):
     }
     summary_text = "match to a non-empty sequence of elements"
 
-    def match(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match(
+        self,
+        yield_func: Callable,
+        expression: Expression,
+        vars: dict,
+        evaluation: Evaluation,
+        **kwargs
+    ):
         elements = expression.get_sequence()
         if not elements:
             return
@@ -1294,6 +1337,8 @@ class BlankSequence(_Blank):
 
 class BlankNullSequence(_Blank):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BlankNullSequence.html</url>
+
     <dl>
       <dt>'BlankNullSequence[]'
       <dt>'___'
@@ -1328,7 +1373,14 @@ class BlankNullSequence(_Blank):
     }
     summary_text = "match to a sequence of zero or more elements"
 
-    def match(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match(
+        self,
+        yield_func: Callable,
+        expression: Expression,
+        vars: dict,
+        evaluation: Evaluation,
+        **kwargs
+    ):
         elements = expression.get_sequence()
         if self.head:
             ok = True
@@ -1347,6 +1399,8 @@ class BlankNullSequence(_Blank):
 
 class Repeated(PostfixOperator, PatternObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Repeated.html</url>
+
     <dl>
       <dt>'Repeated[$pattern$]'
       <dd>matches one or more occurrences of $pattern$.
@@ -1382,11 +1436,15 @@ class Repeated(PostfixOperator, PatternObject):
 
     operator = ".."
     precedence = 170
-    summary_text = "match to one or more occurences of a pattern"
+    summary_text = "match to one or more occurrences of a pattern"
 
-    def init(self, expr, min=1):
-        self.pattern = Pattern.create(expr.elements[0])
-
+    def init(
+        self,
+        expr: Expression,
+        min: int = 1,
+        evaluation: OptionalType[Evaluation] = None,
+    ):
+        self.pattern = Pattern.create(expr.elements[0], evaluation=evaluation)
         self.max = None
         self.min = min
         if len(expr.elements) == 2:
@@ -1433,6 +1491,8 @@ class Repeated(PostfixOperator, PatternObject):
 
 class RepeatedNull(Repeated):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RepeatedNull.html</url>
+
     <dl>
       <dt>'RepeatedNull[$pattern$]'
       <dd>matches zero or more occurrences of $pattern$.
@@ -1454,14 +1514,18 @@ class RepeatedNull(Repeated):
 
     operator = "..."
     precedence = 170
-    summary_text = "match to zero or more occurences of a pattern"
+    summary_text = "match to zero or more occurrences of a pattern"
 
-    def init(self, expr):
-        super(RepeatedNull, self).init(expr, min=0)
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
+        super(RepeatedNull, self).init(expr, min=0, evaluation=evaluation)
 
 
 class Shortest(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Shortest.html</url>
+
     <dl>
       <dt>'Shortest[$pat$]'
       <dd>is a pattern object that matches the shortest sequence consistent with the pattern $p$.
@@ -1479,9 +1543,14 @@ class Shortest(Builtin):
 
 class Longest(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Longest.html</url>
+
     <dl>
       <dt>'Longest[$pat$]'
-      <dd>is a pattern object that matches the longest sequence consistent with the pattern $p$.
+      <dd>is a pattern object that matches the longest sequence consistent \
+      with the pattern $p$.
     </dl>
     >> StringCases["aabaaab", Longest["a" ~~ __ ~~ "b"]]
      = {aabaaab}
@@ -1495,6 +1564,10 @@ class Longest(Builtin):
 
 class Condition(BinaryOperator, PatternObject):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Condition.html</url>
+
     <dl>
       <dt>'Condition[$pattern$, $expr$]'
       <dt>'$pattern$ /; $expr$'
@@ -1524,17 +1597,26 @@ class Condition(BinaryOperator, PatternObject):
     precedence = 130
     summary_text = "conditional definition"
 
-    def init(self, expr):
-        super(Condition, self).init(expr)
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
+        super(Condition, self).init(expr, evaluation=evaluation)
         self.test = expr.elements[1]
         # if (expr.elements[0].get_head_name() == "System`Condition" and
         #    len(expr.elements[0].elements) == 2):
         #    self.test = Expression(SymbolAnd, self.test, expr.elements[0].elements[1])
         #    self.pattern = Pattern.create(expr.elements[0].elements[0])
         # else:
-        self.pattern = Pattern.create(expr.elements[0])
+        self.pattern = Pattern.create(expr.elements[0], evaluation=evaluation)
 
-    def match(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match(
+        self,
+        yield_func: Callable,
+        expression: Expression,
+        vars: dict,
+        evaluation: Evaluation,
+        **kwargs
+    ):
         # for new_vars, rest in self.pattern.match(expression, vars,
         # evaluation):
         def yield_match(new_vars, rest):
@@ -1548,16 +1630,21 @@ class Condition(BinaryOperator, PatternObject):
 
 class OptionsPattern(PatternObject):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/OptionsPattern.html</url>
+
     <dl>
       <dt>'OptionsPattern[$f$]'
-      <dd>is a pattern that stands for a sequence of options given
-        to a function, with default values taken from 'Options[$f$]'.
+      <dd>is a pattern that stands for a sequence of options given \
+        to a function, with default values taken from 'Options[$f$]'. \
         The options can be of the form '$opt$->$value$' or
         '$opt$:>$value$', and might be in arbitrarily nested lists.
+
       <dt>'OptionsPattern[{$opt1$->$value1$, ...}]'
       <dd>takes explicit default values from the given list. The
-        list may also contain symbols $f$, for which 'Options[$f$]' is
-        taken into account; it may be arbitrarily nested.
+        list may also contain symbols $f$, for which 'Options[$f$]' is \
+        taken into account; it may be arbitrarily nested. \
         'OptionsPattern[{}]' does not use any default values.
     </dl>
 
@@ -1604,8 +1691,10 @@ class OptionsPattern(PatternObject):
     arg_counts = [0, 1]
     summary_text = "a sequence of optional named arguments"
 
-    def init(self, expr):
-        super(OptionsPattern, self).init(expr)
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
+        super(OptionsPattern, self).init(expr, evaluation=evaluation)
         try:
             self.defaults = expr.elements[0]
         except IndexError:
@@ -1613,7 +1702,14 @@ class OptionsPattern(PatternObject):
             # function. Set to not None in self.match
             self.defaults = None
 
-    def match(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match(
+        self,
+        yield_func: Callable,
+        expression: Expression,
+        vars: dict,
+        evaluation: Evaluation,
+        **kwargs
+    ):
         if self.defaults is None:
             self.defaults = kwargs.get("head")
             if self.defaults is None:
@@ -1645,13 +1741,18 @@ class OptionsPattern(PatternObject):
             new_vars["_option_" + name] = value
         yield_func(new_vars, None)
 
-    def get_match_count(self, vars={}):
+    def get_match_count(self, vars: dict = {}):
         return (0, None)
 
     def get_match_candidates(
-        self, elements, expression, attributes, evaluation, vars={}
+        self,
+        elements: Tuple[BaseElement],
+        expression: Expression,
+        attributes: int,
+        evaluation: Evaluation,
+        vars: dict = {},
     ):
-        def _match(element):
+        def _match(element: Expression):
             return element.has_form(("Rule", "RuleDelayed"), 2) or element.has_form(
                 "List", None
             )
@@ -1659,33 +1760,10 @@ class OptionsPattern(PatternObject):
         return [element for element in elements if _match(element)]
 
 
-class _StopGeneratorBaseElementIsFree(StopGenerator):
-    pass
-
-
-def item_is_free(item, form, evaluation):
-    # for vars, rest in form.match(self, {}, evaluation, fully=False):
-    def yield_match(vars, rest):
-        raise _StopGeneratorBaseElementIsFree(False)
-        # return False
-
-    try:
-        form.match(yield_match, item, {}, evaluation, fully=False)
-    except _StopGeneratorBaseElementIsFree as exc:
-        return exc.value
-
-    if isinstance(item, Atom):
-        return True
-    else:
-        return item_is_free(item.head, form, evaluation) and all(
-            item_is_free(element, form, evaluation) for element in item.elements
-        )
-
-
 class Dispatch(Atom):
     class_head_name = "System`Dispatch"
 
-    def __init__(self, rulelist, evaluation):
+    def __init__(self, rulelist: Expression, evaluation: Evaluation) -> None:
         self.src = ListExpression(*rulelist)
         self.rules = [Rule(rule.elements[0], rule.elements[1]) for rule in rulelist]
         self._elements = None
@@ -1700,9 +1778,9 @@ class Dispatch(Atom):
     def __repr__(self):
         return "dispatch"
 
-    def atom_to_boxes(self, f, evaluation):
+    def atom_to_boxes(self, f: Symbol, evaluation: Evaluation):
         from mathics.builtin.box.layout import RowBox
-        from mathics.core.formatter import format_element
+        from mathics.eval.makeboxes import format_element
 
         box_element = format_element(self.src, evaluation, f)
         return RowBox(String("Dispatch"), String("["), box_element, String("]"))
@@ -1710,11 +1788,15 @@ class Dispatch(Atom):
 
 class DispatchAtom(AtomBuiltin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/DispatchAtom.html</url>
+
     <dl>
       <dt>'Dispatch[$rulelist$]'
-      <dd>Introduced for compatibility. Currently, it just return $rulelist$.
-            In the future, it should return an optimized DispatchRules atom,
-            containing an optimized set of rules.
+      <dd>Introduced for compatibility. Currently, it just return $rulelist$. \
+          In the future, it should return an optimized DispatchRules atom, \
+          containing an optimized set of rules.
     </dl>
     >> rules = {{a_,b_}->a^b, {1,2}->3., F[x_]->x^2};
     >> F[2] /. rules
@@ -1734,7 +1816,9 @@ class DispatchAtom(AtomBuiltin):
     def __repr__(self):
         return "dispatchatom"
 
-    def apply_create(self, rules, evaluation):
+    def eval_create(
+        self, rules: ListExpression, evaluation: Evaluation
+    ) -> OptionalType[BaseElement]:
         """Dispatch[rules_List]"""
         # TODO:
         # The next step would be to enlarge this method, in order to
@@ -1756,7 +1840,7 @@ class DispatchAtom(AtomBuiltin):
 
         all_list = all(rule.has_form("List", None) for rule in rules)
         if all_list:
-            elements = [self.apply_create(rule, evaluation) for rule in rules]
+            elements = [self.eval_create(rule, evaluation) for rule in rules]
             return ListExpression(*elements)
         flatten_list = []
         for rule in rules:
@@ -1778,7 +1862,7 @@ class DispatchAtom(AtomBuiltin):
         except Exception:
             return
 
-    def apply_normal(self, dispatch, evaluation):
+    def eval_normal(self, dispatch: Dispatch, evaluation: Evaluation) -> ListExpression:
         """Normal[dispatch_Dispatch]"""
         if isinstance(dispatch, Dispatch):
             return dispatch.src

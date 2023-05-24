@@ -4,9 +4,12 @@ Checks that builtin functions do not get redefined.
 In the past when reorganizing builtin functions we sometimes
 had missing or duplicate build-in functions definitions.
 """
-import pytest
 import os
-from mathics.builtin import name_is_builtin_symbol, modules, Builtin
+
+import pytest
+
+from mathics.builtin import modules, name_is_builtin_symbol
+from mathics.builtin.base import Builtin
 
 
 @pytest.mark.skipif(
@@ -31,13 +34,13 @@ def test_check_duplicated():
                         builtins_by_name.get(name, None) is None
                         ), f"{name} defined in {module} already defined in {builtins_by_name[name]}."
                     """
-                    if builtins_by_name.get(name, None) is not None:
-                        print(
-                            f"\n{name} defined in {module} already defined in {builtins_by_name[name]}."
-                        )
-                        msg = (
-                            msg
-                            + f"\n{name} defined in {module} already defined in {builtins_by_name[name]}."
-                        )
+                    # if builtins_by_name.get(name, None) is not None:
+                    #     print(
+                    #         f"\n{name} defined in {module} already defined in {builtins_by_name[name]}."
+                    #     )
+                    #     msg = (
+                    #         msg
+                    #         + f"\n{name} defined in {module} already defined in {builtins_by_name[name]}."
+                    #     )
                     builtins_by_name[name] = module
     assert msg == "", msg

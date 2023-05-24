@@ -191,6 +191,10 @@ import sys
 if sys.version_info < (2, 6, 0):
     raise NotImplementedError("%s requires Python 2.6 or newer" % ("asizeof",))
 
+import types as Types
+import warnings
+import weakref as Weakref
+
 # all imports listed explicitly to help PyChecker
 from inspect import (
     isbuiltin,
@@ -205,9 +209,6 @@ from inspect import (
 from math import log
 from os import curdir, linesep
 from struct import calcsize  # type/class Struct only in Python 2.5+
-import types as Types
-import warnings
-import weakref as Weakref
 
 __all__ = [
     "adict",

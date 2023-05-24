@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
-from mathics.builtin import name_is_builtin_symbol, modules, Builtin
 import sys
 
+from mathics.builtin import Builtin, modules, name_is_builtin_symbol
 
-def generate_avaliable_builtins_names():
+
+def generate_available_builtins_names():
     msg = ""
     builtins_by_name = {}
     for module in modules:
@@ -37,7 +38,7 @@ def generate_avaliable_builtins_names():
 
 
 def build_builtin_manifest():
-    builtins_by_name = generate_avaliable_builtins_names()
+    builtins_by_name = generate_available_builtins_names()
     with open("SYMBOLS_MANIFEST.txt", "w") as f_out:
         for key in sorted(key for key in builtins_by_name):
             f_out.write(key + "\n")
@@ -45,7 +46,7 @@ def build_builtin_manifest():
 
 def check_manifest():
     status_OK = True
-    builtins_by_name = generate_avaliable_builtins_names()
+    builtins_by_name = generate_available_builtins_names()
     with open("SYMBOLS_MANIFEST.txt", "r") as f_in:
         manifest_symbols = {name[:-1]: "OK" for name in f_in.readlines()}
     # Check that all the Symbols in the manifest are available

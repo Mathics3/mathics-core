@@ -4,22 +4,100 @@ Forms of Assignment
 """
 
 
-from mathics.builtin.assignments.internals import _SetOperator
 from mathics.builtin.base import BinaryOperator, Builtin
+from mathics.core.assignment import (
+    ASSIGNMENT_FUNCTION_MAP,
+    AssignmentException,
+    assign_store_rules_by_tag,
+    normalize_lhs,
+)
+from mathics.core.atoms import String
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
     A_PROTECTED,
     A_SEQUENCE_HOLD,
 )
-from mathics.core.definitions import PyMathicsLoadException
-from mathics.core.evaluators import eval_load_module
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
+from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
+
+
+class _SetOperator:
+    """
+
+    This is the base class for assignment Builtin operators.
+
+    Special cases are determined by the head of the expression. Then
+    they are processed by specific routines, which are poke from
+    the ``ASSIGNMENT_FUNCTION_MAP`` dict.
+    """
+
+    # FIXME:
+    # Assigment is determined by the LHS.
+    # Are there a larger patterns or natural groupings that we are missing?
+    # For example, it might be that it
+    # we can key off of some attributes or other properties of the
+    # LHS of a builtin, instead of listing all of the builtins in that class
+    # (which may miss some).
+    # Below, we key on a string, but Symbol is more correct.
+
+    def assign(self, lhs, rhs, evaluation, tags=None, upset=False):
+        lhs, lookup_name = normalize_lhs(lhs, evaluation)
+        try:
+            # Using a builtin name, find which assignment procedure to perform,
+            # and then call that function.
+            assignment_func = ASSIGNMENT_FUNCTION_MAP.get(lookup_name, None)
+            if assignment_func:
+                return assignment_func(self, lhs, rhs, evaluation, tags, upset)
+
+            return assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
+        except AssignmentException:
+
+            return False
+
+
+# Placing this here is a bit weird, but it is not clear where else is better suited for this right now.
+class LoadModule(Builtin):
+    """
+    ## <url>:mathics native for pymathics:</url>
+
+    <dl>
+      <dt>'LoadModule[$module$]'
+      <dd>'Load Mathics definitions from the python module $module$
+    </dl>
+    >> LoadModule["nomodule"]
+     : Python import errors with: No module named 'nomodule'.
+     = $Failed
+    >> LoadModule["sys"]
+     : Python module "sys" is not a Mathics3 module.
+     = $Failed
+    """
+
+    name = "LoadModule"
+    messages = {
+        "loaderror": """Python import errors with: `1`.""",
+        "notmathicslib": """Python module "`1`" is not a Mathics3 module.""",
+    }
+    summary_text = "load a pymathics module"
+
+    def eval(self, module, evaluation):
+        "LoadModule[module_String]"
+        try:
+            eval_LoadModule(module.value, evaluation.definitions)
+        except PyMathicsLoadException:
+            evaluation.message(self.name, "notmathicslib", module)
+            return SymbolFailed
+        except Exception as e:
+            evaluation.message(self.get_name(), "loaderror", String(str(e)))
+            return SymbolFailed
+        return module
 
 
 class Set(BinaryOperator, _SetOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Set.html</url>
+
     <dl>
       <dt>'Set[$expr$, $value$]'
 
@@ -97,7 +175,7 @@ class Set(BinaryOperator, _SetOperator):
 
     summary_text = "assign a value"
 
-    def apply(self, lhs, rhs, evaluation):
+    def eval(self, lhs, rhs, evaluation):
         "lhs_ = rhs_"
 
         self.assign(lhs, rhs, evaluation)
@@ -106,6 +184,9 @@ class Set(BinaryOperator, _SetOperator):
 
 class SetDelayed(Set):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/SetDelayed.html</url>
+
     <dl>
       <dt>'SetDelayed[$expr$, $value$]'
 
@@ -173,7 +254,7 @@ class SetDelayed(Set):
 
     summary_text = "test a delayed value; used in defining functions"
 
-    def apply(self, lhs, rhs, evaluation):
+    def eval(self, lhs, rhs, evaluation):
         "lhs_ := rhs_"
 
         if self.assign(lhs, rhs, evaluation):
@@ -184,11 +265,14 @@ class SetDelayed(Set):
 
 class TagSet(Builtin, _SetOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TagSet.html</url>
+
     <dl>
       <dt>'TagSet[$f$, $expr$, $value$]'
 
       <dt>'$f$ /: $expr$ = $value$'
-      <dd>assigns $value$ to $expr$, associating the corresponding assignment with the symbol $f$.
+      <dd>assigns $value$ to $expr$, associating the corresponding assignment \
+          with the symbol $f$.
     </dl>
 
     Create an upvalue without using 'UpSet':
@@ -216,7 +300,7 @@ class TagSet(Builtin, _SetOperator):
     }
     summary_text = "assign a value to an expression, associating the corresponding assignment with the a symbol"
 
-    def apply(self, f, lhs, rhs, evaluation):
+    def eval(self, f, lhs, rhs, evaluation):
         "f_ /: lhs_ = rhs_"
 
         name = f.get_name()
@@ -231,6 +315,9 @@ class TagSet(Builtin, _SetOperator):
 
 class TagSetDelayed(TagSet):
     """
+    <url>:WMA link:
+         https://reference.wolfram.com/language/ref/TagSetDelayed.html</url>
+
     <dl>
       <dt>'TagSetDelayed[$f$, $expr$, $value$]'
 
@@ -242,7 +329,7 @@ class TagSetDelayed(TagSet):
     attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD
     summary_text = "assign a delayed value to an expression, associating the corresponding assignment with the a symbol"
 
-    def apply(self, f, lhs, rhs, evaluation):
+    def eval(self, f, lhs, rhs, evaluation):
         "f_ /: lhs_ := rhs_"
 
         name = f.get_name()
@@ -256,36 +343,92 @@ class TagSetDelayed(TagSet):
             return SymbolFailed
 
 
-# Placing this here is a bit weird, but it is not clear where else is better suited for this right now.
-class LoadModule(Builtin):
+class UpSet(BinaryOperator, _SetOperator):
     """
+    <url>:WMA link:
+         https://reference.wolfram.com/language/ref/UpSet.html</url>
+
     <dl>
-      <dt>'LoadModule[$module$]'
-      <dd>'Load Mathics definitions from the python module $module$
+      <dt>$f$[$x$] ^= $expression$
+      <dd>evaluates $expression$ and assigns it to the value of $f$[$x$], associating the value with $x$.
     </dl>
-    >> LoadModule["nomodule"]
-     : Python module nomodule does not exist.
-     = $Failed
-    >> LoadModule["sys"]
-     : Python module sys is not a pymathics module.
+
+    'UpSet' creates an upvalue:
+    >> a[b] ^= 3;
+    >> DownValues[a]
+     = {}
+    >> UpValues[b]
+     = {HoldPattern[a[b]] :> 3}
+
+    >> a ^= 3
+     : Nonatomic expression expected.
+     = 3
+
+    You can use 'UpSet' to specify special values like format values.
+    However, these values will not be saved in 'UpValues':
+    >> Format[r] ^= "custom";
+    >> r
+     = custom
+    >> UpValues[r]
+     = {}
+
+    #> f[g, a + b, h] ^= 2
+     : Tag Plus in f[g, a + b, h] is Protected.
+     = 2
+    #> UpValues[h]
+     = {HoldPattern[f[g, a + b, h]] :> 2}
+    """
+
+    attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
+    grouping = "Right"
+    operator = "^="
+    precedence = 40
+
+    summary_text = (
+        "set value and associate the assignment with symbols that occur at level one"
+    )
+
+    def eval(self, lhs, rhs, evaluation):
+        "lhs_ ^= rhs_"
+
+        self.assign(lhs, rhs, evaluation, upset=True)
+        return rhs
+
+
+class UpSetDelayed(UpSet):
+    """
+    <url>:WMA link:
+         https://reference.wolfram.com/language/ref/UpSetDelayed.html</url>
+
+    <dl>
+       <dt>'UpSetDelayed[$expression$, $value$]'
+
+       <dt>'$expression$ ^:= $value$'
+       <dd>assigns $expression$ to the value of $f$[$x$] (without evaluating $expression$), associating the value with $x$.
+    </dl>
+
+    >> a[b] ^:= x
+    >> x = 2;
+    >> a[b]
+     = 2
+    >> UpValues[b]
+     = {HoldPattern[a[b]] :> x}
+
+    #> f[g, a + b, h] ^:= 2
+     : Tag Plus in f[g, a + b, h] is Protected.
+    #> f[a+b] ^:= 2
+     : Tag Plus in f[a + b] is Protected.
      = $Failed
     """
 
-    name = "LoadModule"
-    messages = {
-        "notfound": "Python module `1` does not exist.",
-        "notmathicslib": "Python module `1` is not a pymathics module.",
-    }
-    summary_text = "load a pymathics module"
+    attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD
+    operator = "^:="
+    summary_text = "set a delayed value and associate the assignment with symbols that occur at level one"
 
-    def apply(self, module, evaluation):
-        "LoadModule[module_String]"
-        try:
-            eval_load_module(module.value, evaluation)
-        except PyMathicsLoadException:
-            evaluation.message(self.name, "notmathicslib", module)
+    def eval(self, lhs, rhs, evaluation):
+        "lhs_ ^:= rhs_"
+
+        if self.assign(lhs, rhs, evaluation, upset=True):
+            return SymbolNull
+        else:
             return SymbolFailed
-        except ImportError:
-            evaluation.message(self.get_name(), "notfound", module)
-            return SymbolFailed
-        return module

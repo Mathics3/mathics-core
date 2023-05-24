@@ -4,14 +4,20 @@ Location Statistics
 
 from mathics.algorithm.introselect import introselect
 from mathics.builtin.base import Builtin
-from mathics.builtin.lists import _Rectangular, _NotRectangularException
+from mathics.builtin.statistics.base import NotRectangularException, Rectangular
 from mathics.core.atoms import Integer2
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolDivide, SymbolPlus
+from mathics.core.symbols import SymbolDivide, SymbolPlus
+from mathics.core.systemsymbols import SymbolMedian
 
 
 class Mean(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Mean.html</url>
+
     <dl>
     <dt>'Mean[$list$]'
       <dd>returns the statistical mean of $list$.
@@ -33,11 +39,12 @@ class Mean(Builtin):
     }
 
 
-SymbolMedian = Symbol("Median")
-
-
-class Median(_Rectangular):
+class Median(Rectangular):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Median.html</url>
+
     <dl>
       <dt>'Median[$list$]'
       <dd>returns the median of $list$.
@@ -58,14 +65,14 @@ class Median(_Rectangular):
     messages = {"rectn": "Expected a rectangular array of numbers at position 1 in ``."}
     summary_text = "central value of a dataset"
 
-    def apply(self, data, evaluation):
+    def eval(self, data, evaluation: Evaluation):
         "Median[data_List]"
         if not data.elements:
             return
         if all(element.get_head_name() == "System`List" for element in data.elements):
             try:
                 return self.rect(data)
-            except _NotRectangularException:
+            except NotRectangularException:
                 evaluation.message("Median", "rectn", Expression(SymbolMedian, data))
         elif all(element.is_numeric(evaluation) for element in data.elements):
             v = data.get_mutable_elements()  # copy needed for introselect

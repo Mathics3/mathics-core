@@ -1,13 +1,11 @@
 """
-Numerial Data
+Numerical Data
 """
 
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer1, Integer2
-from mathics.core.expression import Expression
-
+from mathics.core.expression import Evaluation, Expression
 from mathics.core.symbols import (
-    Symbol,
     SymbolAbs,
     SymbolDivide,
     SymbolPlus,
@@ -23,7 +21,7 @@ from mathics.core.systemsymbols import (
 )
 
 
-def _norm_calc(head, u, v, evaluation):
+def _norm_calc(head, u, v, evaluation: Evaluation):
     expr = Expression(head, u, v)
     old_quiet_all = evaluation.quiet_all
     try:
@@ -40,6 +38,12 @@ def _norm_calc(head, u, v, evaluation):
 
 class BrayCurtisDistance(Builtin):
     """
+    <url>
+    :Bray-Curtis Dissimilarity:
+    https://en.wikipedia.org/wiki/Bray%E2%80%93Curtis_dissimilarity</url> \
+    (<url>:WMA:
+    https://reference.wolfram.com/language/ref/BrayCurtisDistance.html</url>)
+
     <dl>
       <dt>'BrayCurtisDistance[$u$, $v$]'
        <dd>returns the Bray-Curtis distance between $u$ and $v$.
@@ -55,7 +59,7 @@ class BrayCurtisDistance(Builtin):
 
     summary_text = "Bray-Curtis distance"
 
-    def apply(self, u, v, evaluation):
+    def eval(self, u, v, evaluation: Evaluation):
         "BrayCurtisDistance[u_, v_]"
         t = _norm_calc(SymbolSubtract, u, v, evaluation)
         if t is not None:
@@ -70,6 +74,13 @@ class BrayCurtisDistance(Builtin):
 
 class CanberraDistance(Builtin):
     """
+    <url>
+    :Canberra distance:
+    https://en.wikipedia.org/wiki/Canberra_distance</url> \
+    (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/CanberraDistance.html</url>)
+
     <dl>
       <dt>'CanberraDistance[$u$, $v$]'
        <dd>returns the canberra distance between $u$ and $v$, which is a weighted version of the Manhattan distance.
@@ -84,7 +95,7 @@ class CanberraDistance(Builtin):
 
     summary_text = "Canberra distance"
 
-    def apply(self, u, v, evaluation):
+    def eval(self, u, v, evaluation: Evaluation):
         "CanberraDistance[u_, v_]"
         t = _norm_calc(SymbolSubtract, u, v, evaluation)
         if t is not None:
@@ -102,6 +113,11 @@ class CanberraDistance(Builtin):
 
 class ChessboardDistance(Builtin):
     """
+    <url>:Chebyshev distance:https://en.wikipedia.org/wiki/Chebyshev_distance</url> \
+    (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/ChessboardDistance.html</url>)
+
     <dl>
       <dt>'ChessboardDistance[$u$, $v$]'
       <dd>returns the chessboard distance (also known as Chebyshev distance) between $u$ and $v$, which is the number of moves a king on a chessboard needs to get from square $u$ to square $v$.
@@ -116,7 +132,7 @@ class ChessboardDistance(Builtin):
 
     summary_text = "chessboard distance"
 
-    def apply(self, u, v, evaluation):
+    def eval(self, u, v, evaluation: Evaluation):
         "ChessboardDistance[u_, v_]"
         t = _norm_calc(SymbolSubtract, u, v, evaluation)
         if t is not None:
@@ -125,6 +141,12 @@ class ChessboardDistance(Builtin):
 
 class CosineDistance(Builtin):
     r"""
+    <url>
+    :Cosine similarity:
+    https://en.wikipedia.org/wiki/Cosine_similarity</url> \
+    (<url>:WMA:
+    https://reference.wolfram.com/language/ref/CosineDistance.html</url>)
+
     <dl>
       <dt>'CosineDistance[$u$, $v$]'
       <dd>returns the cosine distance between $u$ and $v$.
@@ -142,7 +164,7 @@ class CosineDistance(Builtin):
 
     summary_text = "cosine distance"
 
-    def apply(self, u, v, evaluation):
+    def eval(self, u, v, evaluation: Evaluation):
         "CosineDistance[u_, v_]"
         dot = _norm_calc(SymbolDot, u, v, evaluation)
         if dot is not None:
@@ -163,6 +185,13 @@ class CosineDistance(Builtin):
 
 class EuclideanDistance(Builtin):
     """
+    <url>
+    :Euclidean similarity:
+    https://en.wikipedia.org/wiki/Euclidean_distance</url> \
+    (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/EuclideanDistance.html</url>)
+
     <dl>
       <dt>'EuclideanDistance[$u$, $v$]'
       <dd>returns the euclidean distance between $u$ and $v$.
@@ -180,7 +209,7 @@ class EuclideanDistance(Builtin):
 
     summary_text = "euclidean distance"
 
-    def apply(self, u, v, evaluation):
+    def eval(self, u, v, evaluation: Evaluation):
         "EuclideanDistance[u_, v_]"
         t = _norm_calc(SymbolSubtract, u, v, evaluation)
         if t is not None:
@@ -189,6 +218,13 @@ class EuclideanDistance(Builtin):
 
 class ManhattanDistance(Builtin):
     """
+    <url>
+    :Manhattan distance:
+    https://en.wikipedia.org/wiki/Taxicab_geometry</url> \
+    (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/ManhattanDistance.html</url>)
+
     <dl>
       <dt>'ManhattanDistance[$u$, $v$]'
       <dd>returns the Manhattan distance between $u$ and $v$, which is the number of horizontal or vertical moves in the gridlike Manhattan city layout to get from $u$ to $v$.
@@ -203,7 +239,7 @@ class ManhattanDistance(Builtin):
 
     summary_text = "Manhattan distance"
 
-    def apply(self, u, v, evaluation):
+    def eval(self, u, v, evaluation: Evaluation):
         "ManhattanDistance[u_, v_]"
         t = _norm_calc(SymbolSubtract, u, v, evaluation)
         if t is not None:
@@ -212,6 +248,10 @@ class ManhattanDistance(Builtin):
 
 class SquaredEuclideanDistance(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/SquaredEuclideanDistance.html</url>
+
     <dl>
       <dt>'SquaredEuclideanDistance[$u$, $v$]'
       <dd>returns squared the euclidean distance between $u$ and $v$.
@@ -226,7 +266,7 @@ class SquaredEuclideanDistance(Builtin):
 
     summary_text = "square of the euclidean distance"
 
-    def apply(self, u, v, evaluation):
+    def eval(self, u, v, evaluation: Evaluation):
         "SquaredEuclideanDistance[u_, v_]"
         t = _norm_calc(SymbolSubtract, u, v, evaluation)
         if t is not None:

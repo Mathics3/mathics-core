@@ -6,25 +6,26 @@ Linear algebra
 
 import mpmath
 import sympy
-from sympy import re, im
-
+from sympy import im, re
 
 from mathics.builtin.base import Builtin
-from mathics.core.atoms import Integer, Integer0, Real
-from mathics.core.expression import Expression
+from mathics.core.atoms import Integer, Integer0
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.matrix import matrix_data
 from mathics.core.convert.mpmath import from_mpmath, to_mpmath_matrix
 from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
+from mathics.core.evaluation import Evaluation
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    Symbol,
-    SymbolList,
-)
+from mathics.core.symbols import SymbolList
 
 
 class DesignMatrix(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/DesignMatrix.html</url>
+
     <dl>
       <dt>'DesignMatrix[$m$, $f$, $x$]'
       <dd>returns the design matrix for a linear model $f$ in the variables $x$.
@@ -47,6 +48,9 @@ class DesignMatrix(Builtin):
 
 class Det(Builtin):
     """
+    <url>:Matrix Determinant: https://en.wikipedia.org/wiki/Determinant</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/Det.html</url>)
+
     <dl>
       <dt>'Det[$m$]'
       <dd>computes the determinant of the matrix $m$.
@@ -62,21 +66,27 @@ class Det(Builtin):
 
     summary_text = "determinant of a matrix"
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "Det[m_]"
 
         matrix = to_sympy_matrix(m)
         if matrix is None or matrix.cols != matrix.rows or matrix.cols == 0:
-            return evaluation.message("Det", "matsq", m)
+            evaluation.message("Det", "matsq", m)
+            return
         det = matrix.det()
         return from_sympy(det)
 
 
 class Eigensystem(Builtin):
     """
+    <url>
+    :Matrix Eigenvalues:
+    https://en.wikipedia.org/wiki/Eigenvalues_and_eigenvectors</url> (<url>:WMA:
+    https://reference.wolfram.com/language/ref/Eigensystem.html</url>)
+
     <dl>
-    <dt>'Eigensystem[$m$]'
-        <dd>returns the list '{Eigenvalues[$m$], Eigenvectors[$m$]}'.
+      <dt>'Eigensystem[$m$]'
+      <dd>returns the list '{Eigenvalues[$m$], Eigenvectors[$m$]}'.
     </dl>
 
     >> Eigensystem[{{1, 1, 0}, {1, 0, 1}, {0, 1, 1}}]
@@ -89,6 +99,10 @@ class Eigensystem(Builtin):
 
 class Eigenvalues(Builtin):
     """
+    <url>:Matrix Eigenvalues: https://en.wikipedia.org/wiki/Eigenvalues_and_eigenvectors</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/Eigenvalues.html</url>)
+
+
     <dl>
       <dt>'Eigenvalues[$m$]'
       <dd>computes the eigenvalues of the matrix $m$.
@@ -127,7 +141,7 @@ class Eigenvalues(Builtin):
     def mp_eig(mp_matrix) -> Expression:
         try:
             _, ER = mpmath.eig(mp_matrix)
-        except:
+        except Exception:
             return None
 
         eigenvalues = ER.tolist()
@@ -140,7 +154,7 @@ class Eigenvalues(Builtin):
 
     options = {"Method": "sympy"}
 
-    def apply(self, m, evaluation, options={}) -> Expression:
+    def eval(self, m, evaluation, options={}) -> Expression:
         "Eigenvalues[m_, OptionsPattern[Eigenvalues]]"
 
         method = self.get_option(options, "Method", evaluation)
@@ -151,10 +165,12 @@ class Eigenvalues(Builtin):
 
         sympy_matrix = to_sympy_matrix(m)
         if sympy_matrix is None:
-            return evaluation.message("Eigenvalues", "matrix", m, 1)
+            evaluation.message("Eigenvalues", "matrix", m, 1)
+            return
 
         if sympy_matrix.cols != sympy_matrix.rows or sympy_matrix.cols == 0:
-            return evaluation.message("Eigenvalues", "matsq", m)
+            evaluation.message("Eigenvalues", "matsq", m)
+            return
 
         eigenvalues = list(sympy_matrix.eigenvals().items())
         if all(v.is_complex for (v, _) in eigenvalues):
@@ -184,6 +200,9 @@ class Eigenvalues(Builtin):
 
 class Eigenvectors(Builtin):
     """
+    <url>:Matrix Eigenvalues: https://en.wikipedia.org/wiki/Eigenvalues_and_eigenvectors</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/Eigenvectors.html</url>)
+
     <dl>
     <dt>'Eigenvectors[$m$]'
         <dd>computes the eigenvectors of the matrix $m$.
@@ -215,17 +234,19 @@ class Eigenvectors(Builtin):
     summary_text = "list of matrix eigenvectors"
     # TODO: Normalise the eigenvectors
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "Eigenvectors[m_]"
 
         matrix = to_sympy_matrix(m)
         if matrix is None or matrix.cols != matrix.rows or matrix.cols == 0:
-            return evaluation.message("Eigenvectors", "matsq", m)
+            evaluation.message("Eigenvectors", "matsq", m)
+            return
         # sympy raises an error for some matrices that Mathematica can compute.
         try:
             eigenvects = matrix.eigenvects(simplify=True)
         except NotImplementedError:
-            return evaluation.message("Eigenvectors", "eigenvecnotimplemented", m)
+            evaluation.message("Eigenvectors", "eigenvecnotimplemented", m)
+            return
 
         # Try to sort the eigenvectors by their corresponding eigenvalues
         if all(v.is_complex for (v, _, _) in eigenvects):
@@ -258,6 +279,8 @@ class Eigenvectors(Builtin):
 
 class FittedModel(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FittedModel.html</url>
+
     <dl>
     <dd>'FittedModel[...]'
     <dt> Result of a linear fit
@@ -278,6 +301,8 @@ class FittedModel(Builtin):
 
 class Inverse(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Inverse.html</url>
+
     <dl>
     <dt>'Inverse[$m$]'
         <dd>computes the inverse of the matrix $m$.
@@ -297,7 +322,7 @@ class Inverse(Builtin):
     }
     summary_text = "inverse matrix"
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "Inverse[m_List]"
         rows = m.elements
         nrows = len(rows)
@@ -315,13 +340,16 @@ class Inverse(Builtin):
         matrix = to_sympy_matrix(m)
         det = matrix.det()
         if det == 0:
-            return evaluation.message("Inverse", "sing", m)
+            evaluation.message("Inverse", "sing", m)
+            return
         inv = matrix.adjugate() / det
         return from_sympy(inv)
 
 
 class LeastSquares(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LeastSquares.html</url>
+
     <dl>
     <dt>'LeastSquares[$m$, $b$]'
         <dd>computes the least squares solution to $m$ $x$ = $b$, finding
@@ -357,27 +385,32 @@ class LeastSquares(Builtin):
     }
     summary_text = "least square solver for linear problems"
 
-    def apply(self, m, b, evaluation):
+    def eval(self, m, b, evaluation: Evaluation):
         "LeastSquares[m_, b_]"
 
         matrix = to_sympy_matrix(m)
         if matrix is None:
-            return evaluation.message("LeastSquares", "matrix", m, 1)
+            evaluation.message("LeastSquares", "matrix", m, 1)
+            return
 
         b_vector = to_sympy_matrix(b)
         if b_vector is None:
-            return evaluation.message("LeastSquares", "matrix", b, 2)
+            evaluation.message("LeastSquares", "matrix", b, 2)
+            return
 
         try:
             solution = matrix.solve_least_squares(b_vector)  # default method = Cholesky
         except NotImplementedError:
-            return evaluation.message("LeastSquares", "underdetermined")
+            evaluation.message("LeastSquares", "underdetermined")
+            return
 
         return from_sympy(solution)
 
 
 class LinearModelFit(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LinearModelFit.html</url>
+
     <dl>
     <dt>'LinearModelFit[$m$, $f$, $x$]'
         <dd>fits a linear model $f$ in the variables $x$ to the dataset $m$.
@@ -457,6 +490,8 @@ class LinearModelFit(Builtin):
 
 class LinearSolve(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LinearSolve.html</url>
+
     <dl>
     <dt>'LinearSolve[$matrix$, $right$]'
         <dd>solves the linear equation system '$matrix$ . $x$ = $right$'
@@ -494,25 +529,29 @@ class LinearSolve(Builtin):
     }
     summary_text = "solves linear systems in matrix form"
 
-    def apply(self, m, b, evaluation):
+    def eval(self, m, b, evaluation: Evaluation):
         "LinearSolve[m_, b_]"
 
         matrix = matrix_data(m)
         if matrix is None:
-            return evaluation.message("LinearSolve", "matrix", m, 1)
+            evaluation.message("LinearSolve", "matrix", m, 1)
+            return
         if not b.has_form("List", None):
             return
         if len(b.elements) != len(matrix):
-            return evaluation.message("LinearSolve", "lslc")
+            evaluation.message("LinearSolve", "lslc")
+            return
 
         for element in b.elements:
             if element.has_form("List", None):
-                return evaluation.message("LinearSolve", "matrix", b, 2)
+                evaluation.message("LinearSolve", "matrix", b, 2)
+                return
 
         system = [mm + [v.to_sympy()] for mm, v in zip(matrix, b.elements)]
         system = to_sympy_matrix(system)
         if system is None:
-            return evaluation.message("LinearSolve", "matrix", b, 2)
+            evaluation.message("LinearSolve", "matrix", b, 2)
+            return
         syms = [sympy.Dummy("LinearSolve_var%d" % k) for k in range(system.cols - 1)]
         sol = sympy.solve_linear_system(system, *syms)
         if sol:
@@ -525,11 +564,14 @@ class LinearSolve(Builtin):
             ]
             return from_sympy(sol)
         else:
-            return evaluation.message("LinearSolve", "nosol")
+            evaluation.message("LinearSolve", "nosol")
+            return
 
 
 class MatrixExp(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MatrixExp.html</url>
+
     <dl>
     <dt>'MatrixExp[$m$]'
         <dd>computes the exponential of the matrix $m$.
@@ -557,21 +599,25 @@ class MatrixExp(Builtin):
     # TODO fix precision
     summary_text = "matrix exponentiation"
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "MatrixExp[m_]"
         sympy_m = to_sympy_matrix(m)
         if sympy_m is None:
-            return evaluation.message("MatrixExp", "matrix", m, 1)
+            evaluation.message("MatrixExp", "matrix", m, 1)
+            return
 
         try:
             res = sympy_m.exp()
         except NotImplementedError:
-            return evaluation.message("MatrixExp", "matrixexpnotimplemented", m)
+            evaluation.message("MatrixExp", "matrixexpnotimplemented", m)
+            return
         return from_sympy(res)
 
 
 class MatrixPower(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MatrixPower.html</url>
+
     <dl>
     <dt>'MatrixPower[$m$, $n$]'
         <dd>computes the $n$th power of a matrix $m$.
@@ -598,11 +644,12 @@ class MatrixPower(Builtin):
     }
     summary_text = "power of a matrix"
 
-    def apply(self, m, power, evaluation):
+    def eval(self, m, power, evaluation: Evaluation):
         "MatrixPower[m_, power_]"
         sympy_m = to_sympy_matrix(m)
         if sympy_m is None:
-            return evaluation.message("MatrixPower", "matrix", m, 1)
+            evaluation.message("MatrixPower", "matrix", m, 1)
+            return
 
         sympy_power = power.to_sympy()
         if sympy_power is None:
@@ -611,14 +658,18 @@ class MatrixPower(Builtin):
         try:
             res = sympy_m**sympy_power
         except NotImplementedError:
-            return evaluation.message("MatrixPower", "matrixpowernotimplemented", m)
+            evaluation.message("MatrixPower", "matrixpowernotimplemented", m)
+            return
         except ValueError:
-            return evaluation.message("MatrixPower", "matrixpowernotinvertible", m)
+            evaluation.message("MatrixPower", "matrixpowernotinvertible", m)
+            return
         return from_sympy(res)
 
 
 class MatrixRank(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MatrixRank.html</url>
+
     <dl>
     <dt>'MatrixRank[$matrix$]'
         <dd>returns the rank of $matrix$.
@@ -641,18 +692,22 @@ class MatrixRank(Builtin):
     }
     summary_text = "rank of a matrix"
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "MatrixRank[m_]"
 
         matrix = to_sympy_matrix(m)
         if matrix is None:
-            return evaluation.message("MatrixRank", "matrix", m, 1)
+            evaluation.message("MatrixRank", "matrix", m, 1)
+            return
         rank = len(matrix.rref()[1])
         return Integer(rank)
 
 
 class NullSpace(Builtin):
     """
+    <url>:Kernel (null space):https://en.wikipedia.org/wiki/Kernel_(linear_algebra)</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/NullSpace.html</url>)
+
     <dl>
     <dt>'NullSpace[$matrix$]'
         <dd>returns a list of vectors that span the nullspace of $matrix$.
@@ -677,12 +732,13 @@ class NullSpace(Builtin):
     }
     summary_text = "generators for the null space of a matrix"
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "NullSpace[m_]"
 
         matrix = to_sympy_matrix(m)
         if matrix is None:
-            return evaluation.message("NullSpace", "matrix", m, 1)
+            evaluation.message("NullSpace", "matrix", m, 1)
+            return
 
         nullspace = matrix.nullspace()
         # convert n x 1 matrices to vectors
@@ -692,6 +748,8 @@ class NullSpace(Builtin):
 
 class PseudoInverse(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PseudoInverse.html</url>
+
     <dl>
     <dt>'PseudoInverse[$m$]'
         <dd>computes the Moore-Penrose pseudoinverse of the matrix $m$.
@@ -717,18 +775,22 @@ class PseudoInverse(Builtin):
     }
     summary_text = "Moore-Penrose pseudoinverse"
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "PseudoInverse[m_]"
 
         matrix = to_sympy_matrix(m)
         if matrix is None:
-            return evaluation.message("PseudoInverse", "matrix", m, 1)
+            evaluation.message("PseudoInverse", "matrix", m, 1)
+            return
         pinv = matrix.pinv()
         return from_sympy(pinv)
 
 
 class QRDecomposition(Builtin):
     """
+    <url>:QR Decomposition:https://en.wikipedia.org/wiki/QR_decomposition</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/QRDecomposition.html</url>)
+
     <dl>
     <dt>'QRDecomposition[$m$]'
         <dd>computes the QR decomposition of the matrix $m$.
@@ -748,22 +810,26 @@ class QRDecomposition(Builtin):
     }
     summary_text = "qr decomposition"
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "QRDecomposition[m_]"
 
         matrix = to_sympy_matrix(m)
         if matrix is None:
-            return evaluation.message("QRDecomposition", "matrix", m, 1)
+            evaluation.message("QRDecomposition", "matrix", m, 1)
+            return
         try:
             Q, R = matrix.QRdecomposition()
         except sympy.matrices.MatrixError:
-            return evaluation.message("QRDecomposition", "sympy")
+            evaluation.message("QRDecomposition", "sympy")
+            return
         Q = Q.transpose()
         return ListExpression(*[from_sympy(Q), from_sympy(R)])
 
 
 class RowReduce(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RowReduce.html</url>
+
     <dl>
     <dt>'RowReduce[$matrix$]'
         <dd>returns the reduced row-echelon form of $matrix$.
@@ -789,18 +855,22 @@ class RowReduce(Builtin):
     }
     summary_text = "matrix reduced row-echelon form"
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "RowReduce[m_]"
 
         matrix = to_sympy_matrix(m)
         if matrix is None:
-            return evaluation.message("RowReduce", "matrix", m, 1)
+            evaluation.message("RowReduce", "matrix", m, 1)
+            return
         reduced = matrix.rref()[0]
         return from_sympy(reduced)
 
 
 class SingularValueDecomposition(Builtin):
     """
+    <url>:Singular Value Decomposition:https://en.wikipedia.org/wiki/Singular_value_decomposition</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/SingularValueDecomposition.html</url>)
+
     <dl>
       <dt>'SingularValueDecomposition[$m$]'
       <dd>calculates the singular value decomposition for the matrix $m$.
@@ -837,12 +907,13 @@ class SingularValueDecomposition(Builtin):
     }
     summary_text = "singular value decomposition"
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "SingularValueDecomposition[m_]"
 
         matrix = to_mpmath_matrix(m)
         if matrix is None:
-            return evaluation.message("SingularValueDecomposition", "matrix", m, 1)
+            evaluation.message("SingularValueDecomposition", "matrix", m, 1)
+            return
 
         if not any(
             element.is_inexact() for row in m.elements for element in row.elements
@@ -860,6 +931,9 @@ class SingularValueDecomposition(Builtin):
 
 class Tr(Builtin):
     """
+    <url>:Matrix trace:https://en.wikipedia.org/wiki/Trace_(linear_algebra)</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/Tr.html</url>)
+
     <dl>
       <dt>'Tr[$m$]'
       <dd>computes the trace of the matrix $m$.
@@ -878,11 +952,12 @@ class Tr(Builtin):
 
     # TODO: generalize to vectors and higher-rank tensors, and allow function arguments for application
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "Tr[m_]"
 
         matrix = to_sympy_matrix(m)
         if matrix is None or matrix.cols != matrix.rows or matrix.cols == 0:
-            return evaluation.message("Tr", "matsq", m)
+            evaluation.message("Tr", "matsq", m)
+            return
         tr = matrix.trace()
         return from_sympy(tr)

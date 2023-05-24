@@ -1,27 +1,29 @@
 """
 Order Statistics
 
-In statistics, an <url>:order statistic: https://en.wikipedia.org/wiki/Order_statistic</url> gives the $k$-th smmallest value.
+In statistics, an <url>:order statistic:
+https://en.wikipedia.org/wiki/Order_statistic</url> gives \
+the $k$-th smallest value.
 
-Together with <url>:rank statistics: https://en.wikipedia.org/wiki/Ranking</url> these are fundamental tools in non-parametric statistics and inference.
+Together with <url>:rank statistics:
+https://en.wikipedia.org/wiki/Ranking</url> these are \
+fundamental tools in non-parametric statistics and inference.
 
-Important special cases of order statistics are finding minimum and maximum value of a sample and sample quantiles.
+Important special cases of order statistics are finding \
+minimum and maximum value of a sample and sample quantiles.
 """
 
-from mpmath import floor as mpfloor, ceil as mpceil
+from mpmath import ceil as mpceil, floor as mpfloor
 
 from mathics.algorithm.introselect import introselect
 from mathics.builtin.base import Builtin
-from mathics.builtin.lists import _RankedTakeLargest, _RankedTakeSmallest
+from mathics.builtin.list.math import _RankedTakeLargest, _RankedTakeSmallest
 from mathics.core.atoms import Atom, Integer, Symbol, SymbolTrue
-from mathics.core.expression import Expression
+from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    SymbolFloor,
-    SymbolPlus,
-    SymbolTimes,
-)
+from mathics.core.symbols import SymbolFloor, SymbolPlus, SymbolTimes
 from mathics.core.systemsymbols import SymbolSubtract
+from mathics.eval.numerify import numerify
 
 SymbolRankedMax = Symbol("RankedMax")
 SymbolRankedMin = Symbol("RankedMin")
@@ -29,8 +31,16 @@ SymbolRankedMin = Symbol("RankedMin")
 
 class Quantile(Builtin):
     """
-    <url>:Quantile: https://en.wikipedia.org/wiki/Quantile</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Quantile.html</url>)
-    In statistics and probability, quantiles are cut points dividing the range of a probability distribution into continuous intervals with equal probabilities, or dividing the observations in a sample in the same way.
+
+    <url>
+    :Quantile:
+    https://en.wikipedia.org/wiki/Quantile</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Quantile.html</url>)
+
+    In statistics and probability, quantiles are cut points dividing the \
+    range of a probability distribution into continuous intervals with \
+    equal probabilities, or dividing the observations in a sample in the same way.
 
     Quantile is also known as value at risk (VaR) or fractile.
     <dl>
@@ -44,7 +54,9 @@ class Quantile(Builtin):
 
       If $x$ is an integer, the result is '$s$[[$x$]]', where $s$='Sort[list,Less]'.
 
-      Otherwise, the result is 's[[Floor[x]]]+(s[[Ceiling[x]]]-s[[Floor[x]]])(c+dFractionalPart[x])', with the indices taken to be 1 or n if they are out of range.
+      Otherwise, the result is \
+      's[[Floor[x]]]+(s[[Ceiling[x]]]-s[[Floor[x]]])(c+dFractionalPart[x])', \
+      with the indices taken to be 1 or n if they are out of range.
 
       The default choice of parameters is '{{0,0},{1,0}}'.
     </dl>
@@ -77,7 +89,7 @@ class Quantile(Builtin):
     }
     summary_text = "cut points dividing the range of a probability distribution into continuous intervals"
 
-    def apply(self, data, qs, a, b, c, d, evaluation):
+    def eval(self, data, qs, a, b, c, d, evaluation: Evaluation):
         """Quantile[data_List, qs_List, {{a_, b_}, {c_, d_}}]"""
 
         n = len(data.elements)
@@ -86,7 +98,7 @@ class Quantile(Builtin):
         def ranked(i):
             return introselect(partially_sorted, min(max(0, i - 1), n - 1))
 
-        numeric_qs = qs.evaluate(evaluation).numerify(evaluation)
+        numeric_qs = numerify(qs.evaluate(evaluation), evaluation)
         results = []
 
         for q in numeric_qs.elements:
@@ -98,7 +110,7 @@ class Quantile(Builtin):
 
             x = (Integer(n) + b) * q + a
 
-            numeric_x = x.evaluate(evaluation).numerify(evaluation)
+            numeric_x = numerify(x.evaluate(evaluation), evaluation)
 
             if isinstance(numeric_x, Integer):
                 results.append(ranked(numeric_x.value))
@@ -143,6 +155,10 @@ class Quantile(Builtin):
 
 class Quartiles(Builtin):
     """
+    <url>:Quartile:
+    https://en.wikipedia.org/wiki/Quartile</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Quartiles.html</url>)
     <dl>
       <dt>'Quartiles[$list$]'
       <dd>returns the 1/4, 1/2, and 3/4 quantiles of $list$.
@@ -160,6 +176,8 @@ class Quartiles(Builtin):
 
 class RankedMax(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RankedMax.html</url>
+
     <dl>
       <dt>'RankedMax[$list$, $n$]'
       <dd>returns the $n$th largest element of $list$ (with $n$ = 1 yielding the largest element,
@@ -176,7 +194,7 @@ class RankedMax(Builtin):
     }
     summary_text = "the n-th largest item"
 
-    def apply(self, element, n: Integer, evaluation):
+    def eval(self, element, n: Integer, evaluation: Evaluation):
         "RankedMax[element_List, n_Integer]"
         py_n = n.value
         if py_n < 1:
@@ -193,9 +211,14 @@ class RankedMax(Builtin):
 
 class RankedMin(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/RankedMin.html</url>
+
     <dl>
       <dt>'RankedMin[$list$, $n$]'
-      <dd>returns the $n$th smallest element of $list$ (with $n$ = 1 yielding the smallest element, $n$ = 2 yielding the second smallest element, and so on).
+      <dd>returns the $n$th smallest element of $list$ (with \
+          $n$ = 1 yielding the smallest element, $n$ = 2 yielding \
+          the second smallest element, and so on).
     </dl>
 
     >> RankedMin[{482, 17, 181, -12}, 2]
@@ -208,7 +231,7 @@ class RankedMin(Builtin):
     }
     summary_text = "the n-th smallest item"
 
-    def apply(self, element, n: Integer, evaluation):
+    def eval(self, element, n: Integer, evaluation: Evaluation):
         "RankedMin[element_List, n_Integer]"
         py_n = n.value
         if py_n < 1:
@@ -223,9 +246,12 @@ class RankedMin(Builtin):
 
 class Sort(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Sort.html</url>
+
     <dl>
       <dt>'Sort[$list$]'
-      <dd>sorts $list$ (or the elements of any other expression) according to canonical ordering.
+      <dd>sorts $list$ (or the elements of any other expression) according \
+          to canonical ordering.
 
       <dt>'Sort[$list$, $p$]'
       <dd>sorts using $p$ to determine the order of two elements.
@@ -253,7 +279,7 @@ class Sort(Builtin):
 
     summary_text = "sort lexicographically or with any comparison function"
 
-    def apply(self, list, evaluation):
+    def eval(self, list, evaluation: Evaluation):
         "Sort[list_]"
 
         if isinstance(list, Atom):
@@ -262,7 +288,7 @@ class Sort(Builtin):
             new_elements = sorted(list.elements)
             return list.restructure(list.head, new_elements, evaluation)
 
-    def apply_predicate(self, list, p, evaluation):
+    def eval_predicate(self, list, p, evaluation: Evaluation):
         "Sort[list_, p_]"
 
         if isinstance(list, Atom):
@@ -287,6 +313,10 @@ class Sort(Builtin):
 
 class TakeLargest(_RankedTakeLargest):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/TakeLargest.html</url>
+
     <dl>
       <dt>'TakeLargest[$list$, $f$, $n$]'
       <dd>returns the a sorted list of the $n$ largest items in $list$.
@@ -307,15 +337,17 @@ class TakeLargest(_RankedTakeLargest):
 
     summary_text = "sublist of n largest elements"
 
-    def apply(self, element, n, evaluation, options):
+    def eval(self, element, n, evaluation, options):
         "TakeLargest[element_List, n_, OptionsPattern[TakeLargest]]"
         return self._compute(element, n, evaluation, options)
 
 
 class TakeSmallest(_RankedTakeSmallest):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TakeSmallest.html</url>
+
     <dl>
-      <dt>'TakeSmallest[$list$, $f$, $n$]'
+      <dt>'TakeSmallest[$list$, $n$]'
       <dd>returns the a sorted list of the $n$ smallest items in $list$.
     </dl>
 
@@ -327,7 +359,7 @@ class TakeSmallest(_RankedTakeSmallest):
 
     summary_text = "sublist of n smallest elements"
 
-    def apply(self, element, n, evaluation, options):
+    def eval(self, element, n, evaluation, options):
         "TakeSmallest[element_List, n_, OptionsPattern[TakeSmallest]]"
         return self._compute(element, n, evaluation, options)
 
