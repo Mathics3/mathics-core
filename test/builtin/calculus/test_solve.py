@@ -9,7 +9,7 @@ from test.helper import check_evaluation, session
 def test_solve():
     for str_expr, str_expected, message in (
         # Clean the definitions, because
-        # a previos definition of `a` makes
+        # a previous definition of `a` makes
         # the test to fail.
         (None, None, None),
         (
