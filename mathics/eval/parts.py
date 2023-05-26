@@ -6,7 +6,7 @@ Evaluation methods for accessing and manipulating elements in nested lists / exp
 
 from typing import List
 
-from mathics.core.atoms import Integer, Integer1
+from mathics.core.atoms import Integer
 from mathics.core.convert.expression import make_expression
 from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.exceptions import (
@@ -20,11 +20,7 @@ from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.subexpression import SubExpression
 from mathics.core.symbols import Atom, Symbol, SymbolList
-from mathics.core.systemsymbols import (
-    SymbolDirectedInfinity,
-    SymbolInfinity,
-    SymbolNothing,
-)
+from mathics.core.systemsymbols import SymbolInfinity, SymbolNothing
 from mathics.eval.patterns import Matcher
 
 
