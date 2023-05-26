@@ -446,6 +446,9 @@ def test_nonnegative_arithmetic_expr(expr: BaseElement) -> bool:
     Check if the expression is an arithmetic expression
     representing a nonnegative number
     """
+    if not test_arithmetic_expr(expr):
+        return False
+
     if test_zero_arithmetic_expr(expr) or test_positive_arithmetic_expr(expr):
         return True
 
@@ -455,6 +458,9 @@ def test_nonpositive_arithetic_expr(expr: BaseElement) -> bool:
     Check if the expression is an arithmetic expression
     representing a nonnegative number
     """
+    if not test_arithmetic_expr(expr):
+        return False
+
     if test_zero_arithmetic_expr(expr) or test_negative_arithmetic_expr(expr):
         return True
     return False
@@ -473,6 +479,7 @@ def test_positive_arithmetic_expr(expr: BaseElement) -> bool:
         return False
 
     head, elements = expr.get_head(), expr.elements
+    print("check specifics", expr)
     if head is SymbolPlus:
         positive_nonpositive_terms = {True: [], False: []}
         for term in elements:
@@ -517,7 +524,9 @@ def test_positive_arithmetic_expr(expr: BaseElement) -> bool:
             return test_arithmetic_expr(base)
         return test_arithmetic_expr(exponent) and test_positive_arithmetic_expr(base)
     if expr.has_form("Exp", 1):
-        return test_arithmetic_expr(exponent, only_real=True)
+        return test_arithmetic_expr(expr.elements[0], only_real=True)
+    if expr.has_form("Sqrt", 1):
+        return test_positive_arithmetic_expr(expr.elements[0])
     if head is SymbolLog:
         if len(elements) > 2:
             return False
@@ -526,8 +535,11 @@ def test_positive_arithmetic_expr(expr: BaseElement) -> bool:
                 return False
         arg = elements[-1]
         return test_positive_arithmetic_expr(eval_add_numbers(arg, IntegerM1))
-    if head.has_form("Abs", 1):
-        return True
+    if expr.has_form("Abs", 1):
+        arg = elements[0]
+        return test_arithmetic_expr(
+            arg, only_real=False
+        ) and not test_zero_arithmetic_expr(arg)
     if head.has_form("DirectedInfinity", 1):
         return test_positive_arithmetic_expr(elements[0])
 
