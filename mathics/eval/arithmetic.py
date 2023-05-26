@@ -920,6 +920,7 @@ def test_positive_arithmetic_expr(expr: BaseElement) -> bool:
         return False
 
     head, elements = expr.get_head(), expr.elements
+
     if head is SymbolPlus:
         positive_nonpositive_terms = {True: [], False: []}
         for term in elements:
