@@ -9,25 +9,19 @@ Numeric, Arithmetic, or Symbolic constants like Pi, E, or Infinity.
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.mathematical-constants"
 
-
 import math
+from typing import Optional
 
 import mpmath
 import numpy
 import sympy
 
 from mathics.builtin.base import Builtin, Predefined, SympyObject
-from mathics.core.atoms import MachineReal, PrecisionReal
+from mathics.core.atoms import NUMERICAL_CONSTANTS, MachineReal, PrecisionReal
 from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
-from mathics.core.number import (
-    MACHINE_DIGITS,
-    MAX_MACHINE_NUMBER,
-    MIN_MACHINE_NUMBER,
-    PrecisionValueError,
-    get_precision,
-    prec,
-)
+from mathics.core.number import MACHINE_DIGITS, PrecisionValueError, get_precision, prec
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolIndeterminate
 
@@ -89,28 +83,33 @@ class _Constant_Common(Predefined):
     def is_constant(self) -> bool:
         return True
 
-    def get_constant(self, precision, evaluation):
+    def get_constant(
+        self,
+        precision: Optional[BaseElement] = None,
+        evaluation: Optional[Evaluation] = None,
+    ):
         # first, determine the precision
         d = None
-        if precision:
-            try:
-                d = get_precision(precision, evaluation)
-            except PrecisionValueError:
-                pass
+        preference = None
+        if evaluation:
+            if precision:
+                try:
+                    d = get_precision(precision, evaluation)
+                except PrecisionValueError:
+                    pass
+
+            preflist = evaluation._preferred_n_method.copy()
+            while preflist:
+                pref_method = preflist.pop()
+                if pref_method in ("numpy", "mpmath", "sympy"):
+                    preference = pref_method
+                    break
 
         if d is None:
             d = MACHINE_DIGITS
 
         # If preference not especified, determine it
         # from the precision.
-        preference = None
-        preflist = evaluation._preferred_n_method.copy()
-        while preflist:
-            pref_method = preflist.pop()
-            if pref_method in ("numpy", "mpmath", "sympy"):
-                preference = pref_method
-                break
-
         if preference is None:
             if d <= MACHINE_DIGITS:
                 preference = "numpy"
@@ -131,10 +130,16 @@ class _Constant_Common(Predefined):
                 preference = "mpmath"
             else:
                 preference = ""
+
         if preference == "numpy":
-            value = numpy_constant(self.numpy_name)
             if d == MACHINE_DIGITS:
-                return MachineReal(value)
+                try:
+                    return NUMERICAL_CONSTANTS[self.symbol]
+                except KeyError:
+                    value = MachineReal(numpy_constant(self.numpy_name))
+                    NUMERICAL_CONSTANTS[self.symbol] = value
+                    return value
+            value = numpy_constant(self.numpy_name)
         if preference == "sympy":
             value = sympy_constant(self.sympy_name, d + 2)
         if preference == "mpmath":
@@ -177,13 +182,16 @@ class _NumpyConstant(_Constant_Common):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.numpy_name is None:
-            self.numpy_name = strip_context(self.get_name()).lower()
+            self.numpy_name = strip_context(self.symbol.name).lower()
         self.mathics_to_numpy[self.__class__.__name__] = self.numpy_name
+        try:
+            value_float = numpy_constant(self.numpy_name)
+        except AttributeError:
+            value_float = self.to_numpy(self.symbol)
+        NUMERICAL_CONSTANTS[self.symbol] = MachineReal(value_float)
 
     def to_numpy(self, args):
-        if self.numpy_name is None or len(args) != 0:
-            return None
-        return self.get_constant()
+        return NUMERICAL_CONSTANTS[self.symbol]
 
 
 class _SympyConstant(_Constant_Common, SympyObject):
@@ -608,7 +616,7 @@ class MaxMachineNumber(Predefined):
     summary_text = "largest normalized positive machine number"
 
     def evaluate(self, evaluation: Evaluation) -> MachineReal:
-        return MachineReal(MAX_MACHINE_NUMBER)
+        return NUMERICAL_CONSTANTS[self.symbol]
 
 
 class MinMachineNumber(Predefined):
@@ -635,10 +643,11 @@ class MinMachineNumber(Predefined):
     summary_text = "smallest normalized positive machine number"
 
     def evaluate(self, evaluation: Evaluation) -> MachineReal:
-        return MachineReal(MIN_MACHINE_NUMBER)
+        return NUMERICAL_CONSTANTS[self.symbol]
 
 
 class Pi(_MPMathConstant, _SympyConstant):
+    # class Pi(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
     <url>
     :Pi, \u03c0: https://en.wikipedia.org/wiki/Pi</url> (<url>
@@ -740,3 +749,10 @@ class Underflow(Builtin):
         "Underflow[] * x_Real": "0.",
     }
     summary_text = "underflow in numeric evaluation"
+
+
+# Constants that are not numpy constants,
+for cls in (Catalan, Degree, Glaisher, GoldenRatio, Khinchin, Pi):
+    instance = cls(expression=False)
+    val = instance.get_constant()
+    NUMERICAL_CONSTANTS[instance.symbol] = MachineReal(val.value)

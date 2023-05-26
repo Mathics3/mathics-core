@@ -14,12 +14,14 @@ import mpmath
 import sympy
 
 from mathics.core.atoms import (
+    NUMERICAL_CONSTANTS,
     Complex,
     Integer,
     Integer0,
     Integer1,
     Integer2,
     IntegerM1,
+    MachineReal,
     Number,
     Rational,
     RationalOneHalf,
@@ -29,28 +31,21 @@ from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement, ElementsProperties
 from mathics.core.expression import Expression
-from mathics.core.number import FP_MANTISA_BINARY_DIGITS, SpecialValueError, min_prec
+from mathics.core.number import (
+    FP_MANTISA_BINARY_DIGITS,
+    MAX_MACHINE_NUMBER,
+    MIN_MACHINE_NUMBER,
+    SpecialValueError,
+    min_prec,
+)
 from mathics.core.rules import Rule
 from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolPower, SymbolTimes
 from mathics.core.systemsymbols import (
     SymbolComplexInfinity,
-    SymbolE,
-    SymbolEulerGamma,
     SymbolI,
     SymbolIndeterminate,
-    SymbolKhinchin,
     SymbolLog,
-    SymbolPi,
 )
-
-# FIXME: replace by numpy constants:
-NUMERICAL_CONSTANTS = {
-    SymbolE: 2.718281828,
-    SymbolEulerGamma: 0.5772156649,
-    SymbolKhinchin: 2.685452001,
-    SymbolPi: 3.141592654,
-}
-
 
 RationalMOneHalf = Rational(-1, 2)
 RealOne = Real(1.0)
@@ -406,7 +401,7 @@ def test_arithmetic_expr(expr: BaseElement, only_real: bool = True) -> bool:
         return True
     if expr in NUMERICAL_CONSTANTS:
         return True
-    if isinstance(expr, Complex):
+    if isinstance(expr, Complex) or expr is SymbolI:
         return not only_real
     if isinstance(expr, Symbol):
         return False
@@ -431,9 +426,6 @@ def test_arithmetic_expr(expr: BaseElement, only_real: bool = True) -> bool:
             if isinstance(exponent, Integer):
                 return test_arithmetic_expr(base)
         return all(test_arithmetic_expr(item, only_real) for item in elements)
-    if not only_real:
-        if expr is SymbolI or isinstance(expr, Complex):
-            return True
     return False
 
 
@@ -525,7 +517,7 @@ def test_positive_arithmetic_expr(expr: BaseElement) -> bool:
             return test_arithmetic_expr(base)
         return test_arithmetic_expr(exponent) and test_positive_arithmetic_expr(base)
     if expr.has_form("Exp", 1):
-        return test_arithmetic_expr(exponent)
+        return test_arithmetic_expr(exponent, only_real=True)
     if head is SymbolLog:
         if len(elements) > 2:
             return False
@@ -573,9 +565,10 @@ def test_zero_arithmetic_expr(expr: BaseElement, numeric: bool = False) -> bool:
             return True
     if expr.has_form("Power", 2):
         base, exp = expr.elements
-        return test_zero_arithmetic_expr(base, numeric) and test_arithmetic_expr(
-            exp, numeric
-        )
+        if test_zero_arithmetic_expr(base, numeric):
+            return test_nonnegative_arithmetic_expr(exp)
+        if base.has_form("DirectedInfinity", None):
+            return test_positive_arithmetic_expr(exp)
     if expr.has_form("Plus", None):
         result = eval_add_numbers(*expr.elements)
         if numeric:
@@ -600,5 +593,6 @@ def to_inexact_value(expr: BaseElement) -> BaseElement:
 
     if isinstance(expr, Expression):
         for const, value in NUMERICAL_CONSTANTS.items():
-            expr, success = expr.do_apply_rule(Rule(const, Real(value)))
+            expr, success = expr.do_apply_rule(Rule(const, value))
+
     return eval_multiply_numbers(RealOne, expr)
