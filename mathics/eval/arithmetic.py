@@ -23,6 +23,7 @@ from mathics.core.atoms import (
     Integer1,
     Integer2,
     IntegerM1,
+    MachineReal,
     Number,
     Rational,
     RationalOneHalf,
@@ -1016,7 +1017,6 @@ def test_zero_arithmetic_expr(expr: BaseElement, numeric: bool = False) -> bool:
             return True
     if expr.has_form("Power", 2):
         base, exp = expr.elements
-
         if test_zero_arithmetic_expr(base, numeric):
             return test_nonnegative_arithmetic_expr(exp)
         if base.has_form("DirectedInfinity", None):
