@@ -629,16 +629,10 @@ class DirectedInfinity(SympyFunction):
     rules = {
         "DirectedInfinity[args___] ^ -1": "0",
         # Special arguments:
+        "DirectedInfinity[DirectedInfinity[args___]]": "DirectedInfinity[args]",
         "DirectedInfinity[Indeterminate]": "Indeterminate",
         "DirectedInfinity[Alternatives[0, 0.]]": "DirectedInfinity[]",
         # Plus
-        "DirectedInfinity[DirectedInfinity[args___]]": "DirectedInfinity[args]",
-        # "DirectedInfinity[a_?NumericQ] /; N[Abs[a]] != 1": "DirectedInfinity[a / Abs[a]]",
-        # "DirectedInfinity[a_] * DirectedInfinity[b_]": "DirectedInfinity[a*b]",
-        # "DirectedInfinity[] * DirectedInfinity[args___]": "DirectedInfinity[]",
-        # Rules already implemented in Times.eval
-        #        "z_?NumberQ * DirectedInfinity[]": "DirectedInfinity[]",
-        #        "z_?NumberQ * DirectedInfinity[a_]": "DirectedInfinity[z * a]",
         "DirectedInfinity[a_] + DirectedInfinity[b_] /; b == -a": (
             "Message[Infinity::indet,"
             "  Unevaluated[DirectedInfinity[a] + DirectedInfinity[b]]];"
@@ -650,27 +644,23 @@ class DirectedInfinity(SympyFunction):
             "Indeterminate"
         ),
         "DirectedInfinity[args___] + _?NumberQ": "DirectedInfinity[args]",
-        "DirectedInfinity[Alternatives[0, 0.]]": "DirectedInfinity[]",
-        "DirectedInfinity[0.]": (
-            "Message[Infinity::indet,"
-            "  Unevaluated[DirectedInfinity[0.]]];"
-            "Indeterminate"
-        ),
+        # Times. See if can be reinstalled in eval_Times
         "Alternatives[0, 0.] DirectedInfinity[z___]": (
             "Message[Infinity::indet,"
             "  Unevaluated[0 DirectedInfinity[z]]];"
             "Indeterminate"
         ),
+        "a_?NumericQ * DirectedInfinity[b_]": "DirectedInfinity[a * b]",
         "a_ DirectedInfinity[]": "DirectedInfinity[]",
         "DirectedInfinity[a_] * DirectedInfinity[b_]": "DirectedInfinity[a * b]",
-        "a_?NumericQ * DirectedInfinity[b_]": "DirectedInfinity[a * b]",
     }
 
     formats = {
         "DirectedInfinity[1]": "HoldForm[Infinity]",
-        "DirectedInfinity[-1]": "PrecedenceForm[-HoldForm[Infinity], 390]",
+        "DirectedInfinity[-1]": "HoldForm[-Infinity]",
         "DirectedInfinity[]": "HoldForm[ComplexInfinity]",
-        "DirectedInfinity[z_]": "PrecedenceForm[z HoldForm[Infinity], 390]",
+        "DirectedInfinity[DirectedInfinity[z_]]": "DirectedInfinity[z]",
+        "DirectedInfinity[z_?NumericQ]": "HoldForm[z Infinity]",
     }
 
     def eval_complex_infinity(self, evaluation: Evaluation):
