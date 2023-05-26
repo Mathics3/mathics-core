@@ -646,8 +646,7 @@ class MinMachineNumber(Predefined):
         return NUMERICAL_CONSTANTS[self.symbol]
 
 
-class Pi(_MPMathConstant, _SympyConstant):
-    # class Pi(_MPMathConstant, _NumpyConstant, _SympyConstant):
+class Pi(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
     <url>
     :Pi, \u03c0: https://en.wikipedia.org/wiki/Pi</url> (<url>
@@ -752,7 +751,7 @@ class Underflow(Builtin):
 
 
 # Constants that are not numpy constants,
-for cls in (Catalan, Degree, Glaisher, GoldenRatio, Khinchin, Pi):
+for cls in (Catalan, Degree, Glaisher, GoldenRatio, Khinchin):
     instance = cls(expression=False)
     val = instance.get_constant()
     NUMERICAL_CONSTANTS[instance.symbol] = MachineReal(val.value)
