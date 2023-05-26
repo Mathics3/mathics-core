@@ -13,6 +13,8 @@ from mathics.core.element import BoxElementMixin, ImmutableValueMixin
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
     MACHINE_PRECISION_VALUE,
+    MAX_MACHINE_NUMBER,
+    MIN_MACHINE_NUMBER,
     dps,
     min_prec,
     prec,
@@ -945,6 +947,14 @@ RationalOneHalf = Rational(1, 2)
 RationalMinusOneHalf = Rational(-1, 2)
 MATHICS3_COMPLEX_I = Complex(Integer0, Integer1)
 MATHICS3_COMPLEX_I_NEG = Complex(Integer0, IntegerM1)
+
+# Numerical constants
+# These constants are populated by the `Predefined`
+# classes. See `mathics.builtin.numbers.constants`
+NUMERICAL_CONSTANTS = {
+    Symbol("System`$MaxMachineNumber"): MachineReal(MAX_MACHINE_NUMBER),
+    Symbol("System`$MinMachineNumber"): MachineReal(MIN_MACHINE_NUMBER),
+}
 
 
 class String(Atom, BoxElementMixin):

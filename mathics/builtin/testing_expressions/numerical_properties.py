@@ -13,6 +13,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import BooleanType, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolExpandAll, SymbolSimplify
+from mathics.eval.arithmetic import test_zero_arithmetic_expr
 from mathics.eval.nevaluator import eval_N
 
 
@@ -459,6 +460,10 @@ class PossibleZeroQ(SympyFunction):
     def eval(self, expr, evaluation):
         "%(name)s[expr_]"
         from sympy.matrices.utilities import _iszero
+
+        # This handles most of the arithmetic cases
+        if test_zero_arithmetic_expr(expr):
+            return SymbolTrue
 
         sympy_expr = expr.to_sympy()
         result = _iszero(sympy_expr)
