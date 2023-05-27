@@ -13,6 +13,7 @@ def cmp(a, b) -> int:
 
 
 def do_cmp(x1, x2) -> Optional[int]:
+
     # don't attempt to compare complex numbers
     for x in (x1, x2):
         # TODO: Send message General::nord

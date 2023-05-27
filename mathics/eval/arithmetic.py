@@ -23,7 +23,6 @@ from mathics.core.atoms import (
     Integer1,
     Integer2,
     IntegerM1,
-    MachineReal,
     Number,
     Rational,
     RationalOneHalf,
