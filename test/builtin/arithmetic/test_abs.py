@@ -42,8 +42,7 @@ def test_abs(str_expr, str_expected, msg):
         ("Sign[2+3 I]", "(2 + 3 I)/(13^(1/2))", None),
         ("Sign[2.+3 I]", "0.5547 + 0.83205 I", None),
         ("Sign[4^(2 Pi)]", "1", None),
-        # FIXME: add rules to handle this kind of case
-        # ("Sign[I^(2 Pi)]", "I^(2 Pi)", None),
+        ("Sign[I^(2 Pi)]", "I^(2 Pi)", None),
         # ("Sign[4^(2 Pi I)]", "1", None),
     ],
 )

@@ -14,12 +14,14 @@ import mpmath
 import sympy
 
 from mathics.core.atoms import (
+    NUMERICAL_CONSTANTS,
     Complex,
     Integer,
     Integer0,
     Integer1,
     Integer2,
     IntegerM1,
+    MachineReal,
     Number,
     Rational,
     RationalOneHalf,
@@ -29,11 +31,24 @@ from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement, ElementsProperties
 from mathics.core.expression import Expression
-from mathics.core.number import FP_MANTISA_BINARY_DIGITS, SpecialValueError, min_prec
-from mathics.core.symbols import Symbol, SymbolPlus, SymbolPower, SymbolTimes
-from mathics.core.systemsymbols import SymbolComplexInfinity, SymbolIndeterminate
+from mathics.core.number import (
+    FP_MANTISA_BINARY_DIGITS,
+    MAX_MACHINE_NUMBER,
+    MIN_MACHINE_NUMBER,
+    SpecialValueError,
+    min_prec,
+)
+from mathics.core.rules import Rule
+from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolPower, SymbolTimes
+from mathics.core.systemsymbols import (
+    SymbolComplexInfinity,
+    SymbolI,
+    SymbolIndeterminate,
+    SymbolLog,
+)
 
 RationalMOneHalf = Rational(-1, 2)
+RealOne = Real(1.0)
 
 
 # This cache might not be used that much.
@@ -374,3 +389,222 @@ def segregate_numbers_from_sorted_list(
         if not isinstance(element, Number):
             return list(elements[:pos]), list(elements[pos:])
     return list(elements), []
+
+
+def test_arithmetic_expr(expr: BaseElement, only_real: bool = True) -> bool:
+    """
+    Check if an expression `expr` is an arithmetic expression
+    composed only by numbers and arithmetic operations.
+    If only_real is set to True, then `I` is not considered a number.
+    """
+    if isinstance(expr, (Integer, Rational, Real)):
+        return True
+    if expr in NUMERICAL_CONSTANTS:
+        return True
+    if isinstance(expr, Complex) or expr is SymbolI:
+        return not only_real
+    if isinstance(expr, Symbol):
+        return False
+
+    head, elements = expr.head, expr.elements
+
+    if head in (SymbolPlus, SymbolTimes):
+        return all(test_arithmetic_expr(term, only_real) for term in elements)
+    if expr.has_form("Exp", 1):
+        return test_arithmetic_expr(elements[0], only_real)
+    if head is SymbolLog:
+        if len(elements) > 2:
+            return False
+        if len(elements) == 2:
+            base = elements[0]
+            if not test_positive_arithmetic_expr(base):
+                return False
+        return test_arithmetic_expr(elements[-1], only_real)
+    if expr.has_form("Power", 2):
+        base, exponent = elements
+        if only_real:
+            if isinstance(exponent, Integer):
+                return test_arithmetic_expr(base)
+        return all(test_arithmetic_expr(item, only_real) for item in elements)
+    return False
+
+
+def test_negative_arithmetic_expr(expr: BaseElement) -> bool:
+    """
+    Check if the expression is an arithmetic expression
+    representing a negative value.
+    """
+    if isinstance(expr, (Integer, Rational, Real)):
+        return expr.value < 0
+
+    expr = eval_multiply_numbers(IntegerM1, expr)
+    return test_positive_arithmetic_expr(expr)
+
+
+def test_nonnegative_arithmetic_expr(expr: BaseElement) -> bool:
+    """
+    Check if the expression is an arithmetic expression
+    representing a nonnegative number
+    """
+    if not test_arithmetic_expr(expr):
+        return False
+
+    if test_zero_arithmetic_expr(expr) or test_positive_arithmetic_expr(expr):
+        return True
+
+
+def test_nonpositive_arithetic_expr(expr: BaseElement) -> bool:
+    """
+    Check if the expression is an arithmetic expression
+    representing a nonnegative number
+    """
+    if not test_arithmetic_expr(expr):
+        return False
+
+    if test_zero_arithmetic_expr(expr) or test_negative_arithmetic_expr(expr):
+        return True
+    return False
+
+
+def test_positive_arithmetic_expr(expr: BaseElement) -> bool:
+    """
+    Check if the expression is an arithmetic expression
+    representing a positive value.
+    """
+    if isinstance(expr, (Integer, Rational, Real)):
+        return expr.value > 0
+    if expr in NUMERICAL_CONSTANTS:
+        return True
+    if isinstance(expr, Atom):
+        return False
+
+    head, elements = expr.get_head(), expr.elements
+
+    if head is SymbolPlus:
+        positive_nonpositive_terms = {True: [], False: []}
+        for term in elements:
+            positive_nonpositive_terms[test_positive_arithmetic_expr(term)].append(term)
+
+        if len(positive_nonpositive_terms[False]) == 0:
+            return True
+        if len(positive_nonpositive_terms[True]) == 0:
+            return False
+
+        pos, neg = (
+            eval_add_numbers(*items) for items in positive_nonpositive_terms.values()
+        )
+        if neg.is_zero:
+            return True
+        if not test_arithmetic_expr(neg):
+            return False
+
+        total = eval_add_numbers(pos, neg)
+        # Check positivity of the evaluated expression
+        if isinstance(total, (Integer, Rational, Real)):
+            return total.value > 0
+        if isinstance(total, Complex):
+            return False
+        if total.sameQ(expr):
+            return False
+        return test_positive_arithmetic_expr(total)
+
+    if head is SymbolTimes:
+        nonpositive_factors = tuple(
+            (item for item in elements if not test_positive_arithmetic_expr(item))
+        )
+        if len(nonpositive_factors) == 0:
+            return True
+        evaluated_expr = eval_multiply_numbers(*nonpositive_factors)
+        if evaluated_expr.sameQ(expr):
+            return False
+        return test_positive_arithmetic_expr(evaluated_expr)
+    if expr.has_form("Power", 2):
+        base, exponent = elements
+        if isinstance(exponent, Integer) and exponent.value % 2 == 0:
+            return test_arithmetic_expr(base)
+        return test_arithmetic_expr(exponent) and test_positive_arithmetic_expr(base)
+    if expr.has_form("Exp", 1):
+        return test_arithmetic_expr(expr.elements[0], only_real=True)
+    if expr.has_form("Sqrt", 1):
+        return test_positive_arithmetic_expr(expr.elements[0])
+    if head is SymbolLog:
+        if len(elements) > 2:
+            return False
+        if len(elements) == 2:
+            if not test_positive_arithmetic_expr(elements[0]):
+                return False
+        arg = elements[-1]
+        return test_positive_arithmetic_expr(eval_add_numbers(arg, IntegerM1))
+    if expr.has_form("Abs", 1):
+        arg = elements[0]
+        return test_arithmetic_expr(
+            arg, only_real=False
+        ) and not test_zero_arithmetic_expr(arg)
+    if head.has_form("DirectedInfinity", 1):
+        return test_positive_arithmetic_expr(elements[0])
+
+    return False
+
+
+def test_zero_arithmetic_expr(expr: BaseElement, numeric: bool = False) -> bool:
+    """
+    return True if expr evaluates to a number compatible
+    with 0
+    """
+
+    def is_numeric_zero(z: Number):
+        if isinstance(z, Complex):
+            if abs(z.real.value) + abs(z.imag.value) < 2.0e-10:
+                return True
+        if isinstance(z, Number):
+            if abs(z.value) < 1e-10:
+                return True
+        return False
+
+    if expr.is_zero:
+        return True
+    if numeric:
+        if is_numeric_zero(expr):
+            return True
+        expr = to_inexact_value(expr)
+    if expr.has_form("Times", None):
+        if any(
+            test_zero_arithmetic_expr(element, numeric=numeric)
+            for element in expr.elements
+        ) and not any(
+            element.has_form("DirectedInfinity", None) for element in expr.elements
+        ):
+            return True
+    if expr.has_form("Power", 2):
+        base, exp = expr.elements
+        if test_zero_arithmetic_expr(base, numeric):
+            return test_nonnegative_arithmetic_expr(exp)
+        if base.has_form("DirectedInfinity", None):
+            return test_positive_arithmetic_expr(exp)
+    if expr.has_form("Plus", None):
+        result = eval_add_numbers(*expr.elements)
+        if numeric:
+            if isinstance(result, complex):
+                if abs(result.real.value) + abs(result.imag.value) < 2.0e-10:
+                    return True
+            if isinstance(result, Number):
+                if abs(result.value) < 1e-10:
+                    return True
+        return result.is_zero
+    return False
+
+
+def to_inexact_value(expr: BaseElement) -> BaseElement:
+    """
+    Converts an expression into an inexact expression.
+    Replaces numerical constants by their numerical approximation,
+    and then multiplies the expression by Real(1.)
+    """
+    if expr.is_inexact():
+        return expr
+
+    if isinstance(expr, Expression):
+        for const, value in NUMERICAL_CONSTANTS.items():
+            expr, success = expr.do_apply_rule(Rule(const, value))
+
+    return eval_multiply_numbers(RealOne, expr)
