@@ -5,6 +5,7 @@ import importlib
 import re
 from functools import lru_cache, total_ordering
 from itertools import chain
+from sys import stderr
 from typing import Any, Callable, Dict, Iterable, List, Optional, Union, cast
 
 import sympy
@@ -24,6 +25,7 @@ from mathics.core.convert.op import ascii_operator_to_symbol
 from mathics.core.convert.python import from_bool
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import Definition
+from mathics.core.element import ensure_context
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression, SymbolDefault
@@ -150,6 +152,28 @@ def get_option(options, name, evaluation, pop=False, evaluate=True):
 
 def has_option(options, name, evaluation):
     return get_option(options, name, evaluation, evaluate=False) is not None
+
+
+def print_message(symbol_name: str, tag: str, *msgs, channel=stderr):
+    """
+    Print to the standard error a message using the default Builtin messages.
+    Using this instead `evaluation.message` instead of `evaluation.message`
+    when an `Evaluation` object is not available.
+    """
+    builtins = builtins_dict()
+    full_symbol_name = ensure_context(symbol_name)
+    builtin = builtins.get(full_symbol_name, None)
+    text = builtin.messages.get(tag) if builtin else None
+
+    if text is None:
+        text = builtins["System`General"].messages.get(tag)
+
+    if text is None:
+        text = "Message %s::%s not found." % (symbol_name, tag)
+
+    for i, arg in enumerate((from_python(arg) for arg in msgs)):
+        text = text.replace(f"`{i+1}`", str(arg))
+    print(text, file=channel)
 
 
 mathics_to_python = {}  # here we have: name -> string
