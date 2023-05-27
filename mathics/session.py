@@ -100,3 +100,9 @@ class MathicsSession:
         if form is None:
             form = self.form
         return res.do_format(self.evaluation, form)
+
+    def parse(self, str_expression):
+        """
+        Just parse the expression
+        """
+        return parse(self.definitions, MathicsSingleLineFeeder(str_expression))

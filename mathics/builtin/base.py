@@ -799,10 +799,14 @@ class Operator(Builtin):
 
 
 class Predefined(Builtin):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.symbol = Symbol(self.get_name())
+
     def get_functions(self, prefix="eval", is_pymodule=False) -> List[Callable]:
         functions = list(super().get_functions(prefix))
         if prefix == "eval" and hasattr(self, "evaluate"):
-            functions.append((Symbol(self.get_name()), self.evaluate))
+            functions.append((self.symbol, self.evaluate))
         return functions
 
 
