@@ -19,10 +19,10 @@ from mathics.core.atoms import (
     String,
 )
 from mathics.core.attributes import A_HOLD_ALL, A_NO_ATTRIBUTES, A_PROTECTED
-from mathics.core.convert.expression import to_expression, to_numeric_sympy_args
+from mathics.core.convert.expression import to_expression
 from mathics.core.convert.op import ascii_operator_to_symbol
 from mathics.core.convert.python import from_bool
-from mathics.core.convert.sympy import from_sympy
+from mathics.core.convert.sympy import from_sympy, to_numeric_sympy_args
 from mathics.core.definitions import Definition
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import MessageException

@@ -449,6 +449,12 @@ def save_doctest_data(output_data: Dict[tuple, dict]):
         should_be_readable=False, create_parent=True
     )
     print(f"Writing internal document data to {doctest_latex_data_path}")
+    i = 0
+    for key in output_data:
+        i = i + 1
+        print(key, output_data[key])
+        if i > 9:
+            break
     with open(doctest_latex_data_path, "wb") as output_file:
         pickle.dump(output_data, output_file, 4)
 
