@@ -26,7 +26,6 @@ from mathics.core.attributes import (
     attribute_string_to_number,
 )
 from mathics.core.convert.python import from_python
-from mathics.core.convert.sympy import SympyExpression, sympy_symbol_prefix
 from mathics.core.element import ElementsProperties, EvalMixin, ensure_context
 from mathics.core.evaluation import Evaluation
 from mathics.core.interrupt import ReturnInterrupt
@@ -258,6 +257,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         )
 
     def _as_sympy_function(self, **kwargs) -> sympy.Function:
+        from mathics.core.convert.sympy import sympy_symbol_prefix
+
         sym_args = [element.to_sympy(**kwargs) for element in self._elements]
 
         if None in sym_args:
@@ -1461,32 +1462,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return self
 
     def to_sympy(self, **kwargs):
-        from mathics.builtin import mathics_to_sympy
+        from mathics.core.convert.sympy import expression_to_sympy
 
-        if "convert_all_global_functions" in kwargs:
-            if len(self.elements) > 0 and kwargs["convert_all_global_functions"]:
-                if self.get_head_name().startswith("Global`"):
-                    return self._as_sympy_function(**kwargs)
-
-        if "converted_functions" in kwargs:
-            functions = kwargs["converted_functions"]
-            if len(self._elements) > 0 and self.get_head_name() in functions:
-                sym_args = [element.to_sympy() for element in self._elements]
-                if None in sym_args:
-                    return None
-                func = sympy.Function(str(sympy_symbol_prefix + self.get_head_name()))(
-                    *sym_args
-                )
-                return func
-
-        lookup_name = self.get_lookup_name()
-        builtin = mathics_to_sympy.get(lookup_name)
-        if builtin is not None:
-            sympy_expr = builtin.to_sympy(self, **kwargs)
-            if sympy_expr is not None:
-                return sympy_expr
-
-        return SympyExpression(self)
+        return expression_to_sympy(self, **kwargs)
 
     def process_style_box(self, options):
         if self.has_form("StyleBox", 1, None):

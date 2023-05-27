@@ -18,6 +18,7 @@ from mathics.builtin.base import (
     IterationFunction,
     Predefined,
     SympyFunction,
+    SympyObject,
     Test,
 )
 from mathics.builtin.inference import evaluate_predicate, get_assumptions_list
@@ -788,7 +789,7 @@ Rationals, Algebraics, Reals, Complexes, or Booleans.
         return Element(Expression(elems.head, *unknown), domain)
 
 
-class I_(Predefined):
+class I_(Predefined, SympyObject):
     """
     <url>:Imaginary unit:https://en.wikipedia.org/wiki/Imaginary_unit</url> \
     (<url>:WMA:https://reference.wolfram.com/language/ref/I.html</url>)
@@ -805,8 +806,16 @@ class I_(Predefined):
     """
 
     name = "I"
+    sympy_name = "I"
+    sympy_obj = sympy.I
     summary_text = "imaginary unit"
     python_equivalent = 1j
+
+    def is_constant(self) -> bool:
+        return True
+
+    def to_sympy(self, symb, **kwargs):
+        return self.sympy_obj
 
     def evaluate(self, evaluation: Evaluation):
         return Complex(Integer0, Integer1)

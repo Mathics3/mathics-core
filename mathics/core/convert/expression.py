@@ -99,23 +99,6 @@ def to_numeric_args(mathics_args: Type[BaseElement], evaluation) -> list:
     )
 
 
-def to_numeric_sympy_args(mathics_args: Type[BaseElement], evaluation) -> list:
-    """
-    Convert Mathics arguments, such as the arguments in an evaluation
-    method a Python list that is sutiable for feeding as arguments
-    into SymPy.
-
-    We make use of fast conversions for literals.
-    """
-    if mathics_args.is_literal:
-        sympy_args = [mathics_args.value]
-    else:
-        args = numerify(mathics_args, evaluation).get_sequence()
-        sympy_args = [a.to_sympy() for a in args]
-
-    return sympy_args
-
-
 expression_constructor_map = {
     SymbolList: lambda head, *args, **kwargs: ListExpression(*args, **kwargs)
 }

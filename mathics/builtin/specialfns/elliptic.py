@@ -15,8 +15,7 @@ import sympy
 from mathics.builtin.base import SympyFunction
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
-from mathics.core.convert.expression import to_numeric_sympy_args
-from mathics.core.convert.sympy import from_sympy
+from mathics.core.convert.sympy import from_sympy, to_numeric_sympy_args
 from mathics.eval.numerify import numerify
 
 
