@@ -11,6 +11,7 @@ import re
 import shutil
 import tempfile
 import time
+from typing import List
 
 from mathics.builtin.base import Builtin, MessageException, Predefined
 from mathics.builtin.exp_structure.size_and_sig import Hash
@@ -62,7 +63,8 @@ SymbolAbsoluteTime = Symbol("AbsoluteTime")
 
 class AbsoluteFileName(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/AbsoluteFileName.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/AbsoluteFileName.html</url>
 
     <dl>
       <dt>'AbsoluteFileName["$name$"]'
@@ -93,7 +95,7 @@ class AbsoluteFileName(Builtin):
             return
         py_name = py_name[1:-1]
 
-        result, is_temporary_file = path_search(py_name)
+        result, _ = path_search(py_name)
 
         if result is None:
             evaluation.message(
@@ -106,7 +108,8 @@ class AbsoluteFileName(Builtin):
 
 class BaseDirectory_(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$BaseDirectory.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/$BaseDirectory.html</url>
 
     <dl>
       <dt>'$BaseDirectory'
@@ -120,13 +123,14 @@ class BaseDirectory_(Predefined):
     name = "$BaseDirectory"
     summary_text = "path to the configuration directory"
 
-    def evaluate(self, evaluation):
+    def evaluate(self, evaluation: Evaluation):
         return String(ROOT_DIR)
 
 
 class CopyDirectory(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/CopyDirectory.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/CopyDirectory.html</url>
 
     <dl>
       <dt>'CopyDirectory["$dir1$", "$dir2$"]'
@@ -176,7 +180,8 @@ class CopyDirectory(Builtin):
 
 class CopyFile(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/CopyFile.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/CopyFile.html</url>
 
     <dl>
       <dt>'CopyFile["$file1$", "$file2$"]'
@@ -214,7 +219,7 @@ class CopyFile(Builtin):
         py_source = py_source[1:-1]
         py_dest = py_dest[1:-1]
 
-        py_source, is_temporary_file = path_search(py_source)
+        py_source, _ = path_search(py_source)
 
         if py_source is None:
             evaluation.message("CopyFile", "filex", source)
@@ -237,7 +242,8 @@ class CopyFile(Builtin):
 
 class CreateDirectory(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/CreateDirectory.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/CreateDirectory.html</url>
 
     <dl>
       <dt>'CreateDirectory["$dir$"]'
@@ -301,7 +307,8 @@ class CreateDirectory(Builtin):
 
 class CreateFile(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/CreateFile.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/CreateFile.html</url>
 
     <dl>
       <dt>'CreateFile["filename"]'
@@ -322,7 +329,7 @@ class CreateFile(Builtin):
     }
     summary_text = "create a file"
 
-    def eval(self, filename, evaluation, **options):
+    def eval(self, filename, evaluation: Evaluation, **options):
         "CreateFile[filename_String, OptionsPattern[CreateFile]]"
         try:
             # TODO: Implement options
@@ -339,7 +346,8 @@ class CreateFile(Builtin):
 
 class CreateTemporary(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/CreateTemporary.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/CreateTemporary.html</url>
 
     <dl>
       <dt>'CreateTemporary[]'
@@ -349,7 +357,7 @@ class CreateTemporary(Builtin):
 
     summary_text = "create a temporary file"
 
-    def eval_0(self, evaluation):
+    def eval_0(self, evaluation: Evaluation):
         "CreateTemporary[]"
         try:
             res = create_temporary_file()
@@ -360,7 +368,8 @@ class CreateTemporary(Builtin):
 
 class DeleteDirectory(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/DeleteDirectory.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/DeleteDirectory.html</url>
 
     <dl>
       <dt>'DeleteDirectory["$dir$"]'
@@ -424,7 +433,8 @@ class DeleteDirectory(Builtin):
 
 class DeleteFile(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/DeleteFile.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/DeleteFile.html</url>
 
     <dl>
       <dt>'Delete["$file$"]'
@@ -491,7 +501,8 @@ class DeleteFile(Builtin):
 
 class Directory(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Directory.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Directory.html</url>
 
     <dl>
       <dt>'Directory[]'
@@ -504,7 +515,7 @@ class Directory(Builtin):
 
     summary_text = "current working directory"
 
-    def eval(self, evaluation):
+    def eval(self, evaluation: Evaluation):
         "Directory[]"
         result = os.getcwd()
         return String(result)
@@ -642,7 +653,7 @@ class DirectoryQ(Builtin):
             return
         path = path[1:-1]
 
-        path, is_temporary_file = path_search(path)
+        path, _ = path_search(path)
 
         if path is not None and osp.isdir(path):
             return SymbolTrue
@@ -834,7 +845,7 @@ class FileDate(Builtin):
 
     def eval(self, path, timetype, evaluation):
         "FileDate[path_, timetype_]"
-        py_path, is_temparary_file = path_search(path.to_python()[1:-1])
+        py_path, _ = path_search(path.to_python()[1:-1])
 
         if py_path is None:
             if timetype is None:
@@ -919,7 +930,8 @@ class FileExistsQ(Builtin):
 
 class FileExtension(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/FileExtension.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/FileExtension.html</url>
 
     <dl>
       <dt>'FileExtension["$file$"]'
@@ -953,7 +965,8 @@ class FileExtension(Builtin):
 
 class FileHash(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/FileHash.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/FileHash.html</url>
 
     <dl>
       <dt>'FileHash[$file$]'
@@ -961,7 +974,8 @@ class FileHash(Builtin):
 
       <dt>'FileHash[$file$, $type$]'
       <dd>returns an integer hash of the specified $type$ for the given $file$.
-      <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", "SHA256", "SHA384", and "SHA512".
+      <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", "SHA256", \
+          "SHA384", and "SHA512".
 
       <dt>'FileHash[$file$, $type$, $format$]'
       <dd>gives a hash code in the specified format.
@@ -1163,7 +1177,8 @@ class FileType(Builtin):
 
     <dl>
       <dt>'FileType["$file$"]'
-      <dd>gives the type of a file, a string. This is typically 'File', 'Directory' or 'None'.
+      <dd>gives the type of a file, a string. This is typically 'File', 'Directory' \
+          or 'None'.
     </dl>
 
     >> FileType["ExampleData/sunflowers.jpg"]
@@ -1255,18 +1270,25 @@ class FileNames(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FileNames.html</url>
 
     <dl>
-    <dt>'FileNames[]'
-        <dd>Returns a list with the filenames in the current working folder.
-    <dt>'FileNames[$form$]'
-        <dd>Returns a list with the filenames in the current working folder that matches with $form$.
-    <dt>'FileNames[{$form_1$, $form_2$, ...}]'
-        <dd>Returns a list with the filenames in the current working folder that matches with one of $form_1$, $form_2$, ....
-    <dt>'FileNames[{$form_1$, $form_2$, ...},{$dir_1$, $dir_2$, ...}]'
-        <dd>Looks into the directories $dir_1$, $dir_2$, ....
-    <dt>'FileNames[{$form_1$, $form_2$, ...},{$dir_1$, $dir_2$, ...}]'
-        <dd>Looks into the directories $dir_1$, $dir_2$, ....
-    <dt>'FileNames[{$forms$, $dirs$, $n$]'
-        <dd>Look for files up to the level $n$.
+      <dt>'FileNames[]'
+      <dd>Returns a list with the filenames in the current working folder.
+
+      <dt>'FileNames[$form$]'
+      <dd>Returns a list with the filenames in the current working folder that \
+          matches with $form$.
+
+      <dt>'FileNames[{$form_1$, $form_2$, ...}]'
+      <dd>Returns a list with the filenames in the current working folder that \
+          matches with one of $form_1$, $form_2$, ....
+
+      <dt>'FileNames[{$form_1$, $form_2$, ...},{$dir_1$, $dir_2$, ...}]'
+      <dd>Looks into the directories $dir_1$, $dir_2$, ....
+
+      <dt>'FileNames[{$form_1$, $form_2$, ...},{$dir_1$, $dir_2$, ...}]'
+      <dd>Looks into the directories $dir_1$, $dir_2$, ....
+
+      <dt>'FileNames[{$forms$, $dirs$, $n$]'
+      <dd>Look for files up to the level $n$.
     </dl>
 
     >> SetDirectory[$InstallationDirectory <> "/autoload"];
@@ -1291,108 +1313,117 @@ class FileNames(Builtin):
     }
     summary_text = "list file names in the current directory"
 
-    def eval_0(self, evaluation, **options):
+    def eval(self, evaluation, **options):
         """FileNames[OptionsPattern[FileNames]]"""
-        return self.eval_3(
+        return self.eval_with_forms_dirs_and_level(
             String("*"), String(os.getcwd()), None, evaluation, **options
         )
 
-    def eval_1(self, forms, evaluation, **options):
+    def eval_with_forms(self, forms, evaluation, **options):
         """FileNames[forms_, OptionsPattern[FileNames]]"""
-        return self.eval_3(forms, String(os.getcwd()), None, evaluation, **options)
+        from trepan.api import debug
 
-    def eval_2(self, forms, paths, evaluation, **options):
-        """FileNames[forms_, paths_, OptionsPattern[FileNames]]"""
-        return self.eval_3(forms, paths, None, evaluation, **options)
+        debug()
+        return self.eval_with_forms_dirs_and_level(
+            forms, String(os.getcwd()), None, evaluation, **options
+        )
 
-    def eval_3(self, forms, paths, n, evaluation, **options):
-        """FileNames[forms_, paths_, n_, OptionsPattern[FileNames]]"""
+    def eval_with_forms_and_dirs(self, forms, dirs, evaluation, **options):
+        """FileNames[forms_, dirs_, OptionsPattern[FileNames]]"""
+        return self.eval_with_forms_dirs_and_level(
+            forms, dirs, None, evaluation, **options
+        )
+
+    def eval_with_forms_dirs_and_level(self, forms, dirs, n, evaluation, **options):
+        """FileNames[forms_, dirs_, n_, OptionsPattern[FileNames]]"""
         filenames = set()
-        # Building a list of forms
+        # Build a list of forms.
         if forms.get_head_name() == "System`List":
-            str_forms = []
+            form_list = []
             for p in forms._elements:
                 if self.fmtmaps.get(p, None):
-                    str_forms.append(self.fmtmaps[p])
+                    form_list.append(self.fmtmaps[p])
                 else:
-                    str_forms.append(p)
+                    form_list.append(p)
         else:
-            str_forms = [
+            form_list = [
                 self.fmtmaps[forms] if self.fmtmaps.get(forms, None) else forms
             ]
-        # Building a list of directories
-        if paths.get_head_name() == "System`String":
-            str_paths = [paths.value]
-        elif paths.get_head_name() == "System`List":
-            str_paths = []
-            for p in paths._elements:
-                if p.get_head_name() == "System`String":
-                    str_paths.append(p.value)
+        # Build a list of directories.
+        if isinstance(dirs, String):
+            py_dirs = [dirs.value]
+        elif dirs.get_head_name() == "System`List":
+            py_dirs = []
+            for p in dirs._elements:
+                if isinstance(p, String):
+                    py_dirs.append(p.value)
                 else:
-                    evaluation.message("FileNames", "nodirstr", paths)
+                    evaluation.message("FileNames", "nodirstr", dirs)
                     return
         else:
-            evaluation.message("FileNames", "nodirstr", paths)
+            evaluation.message("FileNames", "nodirstr", dirs)
             return
 
         if n is not None:
-            if n.get_head_name() == "System`Integer":
-                n = n.get_int_value()
+            if isinstance(n, Integer):
+                level = n.value
+            # We can't test against SymbolDirectedInfinity,
+            # because Infinity a compound expression.
             elif n.get_head_name() == "System`DirectedInfinity":
-                n = None
+                level = None
             else:
                 evaluation.message("FileNames", "badn", n)
                 return
         else:
-            n = 1
+            level = 1
 
         # list the files
-        if options.get("System`IgnoreCase", None) is SymbolTrue:
-            patterns = [
-                re.compile(
-                    "^"
-                    + to_regex(
-                        p, abbreviated_patterns=True, show_message=evaluation.messages
-                    ),
-                    re.IGNORECASE,
-                )
-                + "$"
-                for p in str_forms
-            ]
-        else:
-            patterns = [
-                re.compile(
-                    "^"
-                    + to_regex(
-                        p,
-                        evaluation,
-                        abbreviated_patterns=True,
-                        show_message=evaluation.message,
-                    )
-                    + "$"
-                )
-                for p in str_forms
-            ]
 
-        for path in str_paths:
-            if not osp.isdir(path):
+        def re_compile_form_list(form_list: list, re_flags: int) -> List[re.Pattern]:
+            """
+            re.compile each Expression in ``form_list``. Compile using
+            re_flags which is either re.NO_FLAGS or re.IGNORECASE.
+            Return a list of the compiled patterns when the string in
+            form_list is that are valid string expressions.
+
+            Invalid string expressions are removed removed from the list.
+            """
+            patterns = []
+            for p in form_list:
+                opt_pat_str = to_regex(
+                    p, abbreviated_patterns=True, show_message=evaluation.message
+                )
+
+                if opt_pat_str is None:
+                    continue
+                pat_str = f"^{opt_pat_str}$"
+                patterns.append(re.compile(pat_str, re_flags))
+            return patterns
+
+        re_flags = (
+            re.IGNORECASE if options.get("System`IgnoreCase", None) is SymbolTrue else 0
+        )
+        patterns = re_compile_form_list(form_list, re_flags)
+
+        for py_dir in py_dirs:
+            if not osp.isdir(py_dir):
                 continue
-            if n == 1:
-                for fn in os.listdir(path):
-                    fullname = osp.join(path, fn)
+            if level == 1:
+                for fn in os.listdir(py_dir):
+                    fullname = osp.join(py_dir, fn)
                     for pattern in patterns:
                         if pattern.match(fn):
                             filenames.add(fullname)
                             break
             else:
-                pathlen = len(path)
-                for root, dirs, files in os.walk(path):
+                pathlen = len(py_dir)
+                for root, child_dirs, child_files in os.walk(py_dir):
                     # FIXME: This is an ugly and inefficient way
                     # to avoid looking deeper than the level n, but I do not realize
                     # how to do this better without a lot of code...
-                    if n is not None and len(root[pathlen:].split(osp.sep)) > n:
+                    if level is not None and len(root[pathlen:].split(osp.sep)) > level:
                         continue
-                    for fn in files + dirs:
+                    for fn in child_files + child_dirs:
                         for pattern in patterns:
                             if pattern.match(fn):
                                 filenames.add(osp.join(root, fn))
@@ -1403,7 +1434,8 @@ class FileNames(Builtin):
 
 class FileNameSplit(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/FileNameSplit.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/FileNameSplit.html</url>
 
     <dl>
       <dt>'FileNameSplit["$filenames$"]'
