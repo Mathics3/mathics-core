@@ -52,9 +52,9 @@ from mathics.core.systemsymbols import (
     SymbolNone,
     SymbolPackages,
 )
+from mathics.eval.directories import SYS_ROOT_DIR
 from mathics.eval.nevaluator import eval_N
 
-SYS_ROOT_DIR = "/" if os.name == "posix" else "\\"
 TMP_DIR = tempfile.gettempdir()
 
 
@@ -240,71 +240,6 @@ class CopyFile(Builtin):
         return dest
 
 
-class CreateDirectory(Builtin):
-    """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/CreateDirectory.html</url>
-
-    <dl>
-      <dt>'CreateDirectory["$dir$"]'
-      <dd>creates a directory called $dir$.
-
-      <dt>'CreateDirectory[]'
-      <dd>creates a temporary directory.
-    </dl>
-
-    >> dir = CreateDirectory[]
-     = ...
-    #> DirectoryQ[dir]
-     = True
-    #> DeleteDirectory[dir]
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED
-
-    options = {
-        "CreateIntermediateDirectories": "True",
-    }
-
-    messages = {
-        "fstr": (
-            "File specification `1` is not a string of " "one or more characters."
-        ),
-        "nffil": "File not found during `1`.",
-        "filex": "`1` already exists.",
-    }
-    summary_text = "create a directory"
-
-    def eval(self, dirname, evaluation: Evaluation, options: dict):
-        "CreateDirectory[dirname_, OptionsPattern[CreateDirectory]]"
-
-        expr = to_expression("CreateDirectory", dirname)
-        py_dirname = dirname.to_python()
-
-        if not (isinstance(py_dirname, str) and py_dirname[0] == py_dirname[-1] == '"'):
-            evaluation.message("CreateDirectory", "fstr", dirname)
-            return
-
-        py_dirname = py_dirname[1:-1]
-
-        if osp.isdir(py_dirname):
-            evaluation.message("CreateDirectory", "filex", osp.abspath(py_dirname))
-            return
-
-        os.mkdir(py_dirname)
-
-        if not osp.isdir(py_dirname):
-            evaluation.message("CreateDirectory", "nffil", expr)
-            return
-
-        return String(osp.abspath(py_dirname))
-
-    def eval_empty(self, evaluation: Evaluation, options: dict):
-        "CreateDirectory[OptionsPattern[CreateDirectory]]"
-        dirname = tempfile.mkdtemp(prefix="m", dir=TMP_DIR)
-        return String(dirname)
-
-
 class CreateFile(Builtin):
     """
     <url>:WMA link:
@@ -364,71 +299,6 @@ class CreateTemporary(Builtin):
         except Exception:
             return SymbolFailed
         return String(res)
-
-
-class DeleteDirectory(Builtin):
-    """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/DeleteDirectory.html</url>
-
-    <dl>
-      <dt>'DeleteDirectory["$dir$"]'
-      <dd>deletes a directory called $dir$.
-    </dl>
-
-    >> dir = CreateDirectory[]
-     = ...
-    >> DeleteDirectory[dir]
-    >> DirectoryQ[dir]
-     = False
-    #> Quiet[DeleteDirectory[dir]]
-     = $Failed
-    """
-
-    messages = {
-        "strs": (
-            "String or non-empty list of strings expected at " "position 1 in `1`."
-        ),
-        "nodir": "Directory `1` not found.",
-        "dirne": "Directory `1` not empty.",
-        "optx": "Unknown option `1` in `2`",
-        "idcts": "DeleteContents expects either True or False.",  # MMA Bug
-    }
-    options = {
-        "DeleteContents": "False",
-    }
-    summary_text = "delete a directory"
-
-    def eval(self, dirname, evaluation: Evaluation, options: dict):
-        "DeleteDirectory[dirname_, OptionsPattern[DeleteDirectory]]"
-
-        expr = to_expression("DeleteDirectory", dirname)
-        py_dirname = dirname.to_python()
-
-        delete_contents = options["System`DeleteContents"].to_python()
-        if delete_contents not in [True, False]:
-            evaluation.message("DeleteDirectory", "idcts")
-            return
-
-        if not (isinstance(py_dirname, str) and py_dirname[0] == py_dirname[-1] == '"'):
-            evaluation.message("DeleteDirectory", "strs", expr)
-            return
-
-        py_dirname = py_dirname[1:-1]
-
-        if not osp.isdir(py_dirname):
-            evaluation.message("DeleteDirectory", "nodir", dirname)
-            return SymbolFailed
-
-        if delete_contents:
-            shutil.rmtree(py_dirname)
-        else:
-            if os.listdir(py_dirname) != []:
-                evaluation.message("DeleteDirectory", "dirne", dirname)
-                return SymbolFailed
-            os.rmdir(py_dirname)
-
-        return SymbolNull
 
 
 class DeleteFile(Builtin):
@@ -614,50 +484,6 @@ class DirectoryStack(Builtin):
         "DirectoryStack[]"
         global DIRECTORY_STACK
         return from_python(DIRECTORY_STACK)
-
-
-class DirectoryQ(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/DirectoryQ.html</url>
-
-    <dl>
-      <dt>'DirectoryQ["$name$"]'
-      <dd>returns 'True' if the directory called $name$ exists and 'False' otherwise.
-    </dl>
-
-    >> DirectoryQ["ExampleData/"]
-     = True
-    >> DirectoryQ["ExampleData/MythicalSubdir/"]
-     = False
-
-    #> DirectoryQ["ExampleData"]
-     = True
-
-    #> DirectoryQ["ExampleData/MythicalSubdir/NestedDir/"]
-     = False
-    """
-
-    messages = {
-        "fstr": (
-            "File specification `1` is not a string of " "one or more characters."
-        ),
-    }
-    summary_text = "test whether a path exists and is a directory"
-
-    def eval(self, pathname, evaluation):
-        "DirectoryQ[pathname_]"
-        path = pathname.to_python()
-
-        if not (isinstance(path, str) and path[0] == path[-1] == '"'):
-            evaluation.message("DirectoryQ", "fstr", pathname)
-            return
-        path = path[1:-1]
-
-        path, _ = path_search(path)
-
-        if path is not None and osp.isdir(path):
-            return SymbolTrue
-        return SymbolFalse
 
 
 class ExpandFileName(Builtin):
@@ -1064,111 +890,6 @@ class FileInformation(Builtin):
     summary_text = "information about a file"
 
 
-class FileNameDepth(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/FileNameDepth.html</url>
-
-    <dl>
-      <dt>'FileNameDepth["$name$"]'
-      <dd>gives the number of path parts in the given filename.
-    </dl>
-
-    >> FileNameDepth["a/b/c"]
-     = 3
-
-    >> FileNameDepth["a/b/c/"]
-     = 3
-
-    #> FileNameDepth[x]
-     = FileNameDepth[x]
-
-    #> FileNameDepth[$RootDirectory]
-     = 0
-    """
-
-    options = {
-        "OperatingSystem": "$OperatingSystem",
-    }
-
-    rules = {
-        "FileNameDepth[name_String]": "Length[FileNameSplit[name]]",
-    }
-    summary_text = "number of parts in a path"
-
-
-class FileNameJoin(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/FileNameJoin.html</url>
-
-    <dl>
-      <dt>'FileNameJoin[{"$dir_1$", "$dir_2$", ...}]'
-      <dd>joins the $dir_i$ together into one path.
-
-      <dt>'FileNameJoin[..., OperatingSystem->"os"]'
-      <dd>yields a file name in the format for the specified operating system. \
-          Possible choices are "Windows", "MacOSX", and "Unix".
-    </dl>
-
-    >> FileNameJoin[{"dir1", "dir2", "dir3"}]
-     = ...
-
-    >> FileNameJoin[{"dir1", "dir2", "dir3"}, OperatingSystem -> "Unix"]
-     = dir1/dir2/dir3
-
-    >> FileNameJoin[{"dir1", "dir2", "dir3"}, OperatingSystem -> "Windows"]
-     = dir1\\dir2\\dir3
-    """
-
-    messages = {
-        "ostype": (
-            "The value of option OperatingSystem -> `1` "
-            'must be one of "MacOSX", "Windows", or "Unix".'
-        ),
-    }
-    options = {
-        "OperatingSystem": "$OperatingSystem",
-    }
-    summary_text = "join parts into a path"
-
-    def eval(self, pathlist, evaluation: Evaluation, options: dict):
-        "FileNameJoin[pathlist_List, OptionsPattern[FileNameJoin]]"
-
-        py_pathlist = pathlist.to_python()
-        if not all(isinstance(p, str) and p[0] == p[-1] == '"' for p in py_pathlist):
-            return
-        py_pathlist = [p[1:-1] for p in py_pathlist]
-
-        operating_system = (
-            options["System`OperatingSystem"].evaluate(evaluation).get_string_value()
-        )
-
-        if operating_system not in ["MacOSX", "Windows", "Unix"]:
-            evaluation.message(
-                "FileNameSplit", "ostype", options["System`OperatingSystem"]
-            )
-            if os.name == "posix":
-                operating_system = "Unix"
-            elif os.name == "nt":
-                operating_system = "Windows"
-            elif os.name == "os2":
-                operating_system = "MacOSX"
-            else:
-                return
-
-        if operating_system in ("Unix", "MacOSX"):
-            import posixpath
-
-            result = posixpath.join(*py_pathlist)
-        elif operating_system in ("Windows",):
-            import ntpath
-
-            result = ntpath.join(*py_pathlist)
-        else:
-            result = osp.join(*py_pathlist)
-
-        return String(result)
-
-
 class FileType(Builtin):
     """
     <url>
@@ -1427,69 +1148,6 @@ class FileNames(Builtin):
                                 break
 
         return to_mathics_list(*sorted(filenames), elements_conversion_fn=String)
-
-
-class FileNameSplit(Builtin):
-    """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/FileNameSplit.html</url>
-
-    <dl>
-      <dt>'FileNameSplit["$filenames$"]'
-      <dd>splits a $filename$ into a list of parts.
-    </dl>
-
-    >> FileNameSplit["example/path/file.txt"]
-     = {example, path, file.txt}
-
-    #> FileNameSplit["example/path", OperatingSystem -> x]
-     : The value of option OperatingSystem -> x must be one of "MacOSX", "Windows", or "Unix".
-     = {example, path}
-    """
-
-    messages = {
-        "ostype": (
-            "The value of option OperatingSystem -> `1` "
-            'must be one of "MacOSX", "Windows", or "Unix".'
-        ),
-    }
-    options = {
-        "OperatingSystem": "$OperatingSystem",
-    }
-
-    summary_text = "split the file name in a list of parts"
-
-    def eval(self, filename, evaluation: Evaluation, options: dict):
-        "FileNameSplit[filename_String, OptionsPattern[FileNameSplit]]"
-
-        path = filename.to_python()[1:-1]
-
-        operating_system = (
-            options["System`OperatingSystem"].evaluate(evaluation).to_python()
-        )
-
-        if operating_system not in ['"MacOSX"', '"Windows"', '"Unix"']:
-            evaluation.message(
-                "FileNameSplit", "ostype", options["System`OperatingSystem"]
-            )
-            if os.name == "posix":
-                operating_system = "Unix"
-            elif os.name == "nt":
-                operating_system = "Windows"
-            elif os.name == "os2":
-                operating_system = "MacOSX"
-            else:
-                return
-
-        # TODO Implement OperatingSystem Option
-
-        result = []
-        while path not in ["", SYS_ROOT_DIR]:
-            path, ext = osp.split(path)
-            if ext != "":
-                result.insert(0, ext)
-
-        return from_python(result)
 
 
 class FileNameTake(Builtin):
@@ -1882,45 +1540,6 @@ class OperatingSystem(Predefined):
             return String("Unknown")
 
 
-class ParentDirectory(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ParentDirectory.html</url>
-
-    <dl>
-      <dt>'ParentDirectory[]'
-      <dd>returns the parent of the current working directory.
-
-      <dt>'ParentDirectory["$dir$"]'
-      <dd>returns the parent $dir$.
-    </dl>
-
-    >> ParentDirectory[]
-     = ...
-    """
-
-    messages = {
-        "fstr": (
-            "File specification `1` is not a string of " "one or more characters."
-        ),
-    }
-    rules = {
-        "ParentDirectory[]": "ParentDirectory[Directory[]]",
-    }
-    summary_text = "parent directory of the current working directory"
-
-    def eval(self, path, evaluation):
-        "ParentDirectory[path_]"
-
-        if not isinstance(path, String):
-            evaluation.message("ParentDirectory", "fstr", path)
-            return
-
-        pypath = path.to_python()[1:-1]
-
-        result = osp.abspath(osp.join(pypath, osp.pardir))
-        return String(result)
-
-
 class Path(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Path.html</url>
@@ -1962,56 +1581,6 @@ class PathnameSeparator(Predefined):
 
     def evaluate(self, evaluation):
         return String(os.sep)
-
-
-class RenameDirectory(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/RenameDirectory.html</url>
-
-    <dl>
-      <dt>'RenameDirectory["$dir1$", "$dir2$"]'
-      <dd>renames directory $dir1$ to $dir2$.
-    </dl>
-    """
-
-    messages = {
-        "fstr": (
-            "File specification `1` is not a string of " "one or more characters."
-        ),
-        "filex": "Cannot overwrite existing file `1`.",
-        "nodir": "Directory `1` not found.",
-    }
-    summary_text = "change the name of a directory"
-
-    def eval(self, dirs, evaluation):
-        "RenameDirectory[dirs__]"
-
-        seq = dirs.get_sequence()
-        if len(seq) != 2:
-            evaluation.message("RenameDirectory", "argr", "RenameDirectory", 2)
-            return
-        (dir1, dir2) = (s.to_python() for s in seq)
-
-        if not (isinstance(dir1, str) and dir1[0] == dir1[-1] == '"'):
-            evaluation.message("RenameDirectory", "fstr", seq[0])
-            return
-        dir1 = dir1[1:-1]
-
-        if not (isinstance(dir2, str) and dir2[0] == dir2[-1] == '"'):
-            evaluation.message("RenameDirectory", "fstr", seq[1])
-            return
-        dir2 = dir2[1:-1]
-
-        if not osp.isdir(dir1):
-            evaluation.message("RenameDirectory", "nodir", seq[0])
-            return SymbolFailed
-        if osp.isdir(dir2):
-            evaluation.message("RenameDirectory", "filex", seq[1])
-            return SymbolFailed
-
-        shutil.move(dir1, dir2)
-
-        return String(osp.abspath(dir2))
 
 
 class RenameFile(Builtin):
@@ -2122,7 +1691,6 @@ class RootDirectory(Predefined):
     summary_text = "system root directory"
 
     def evaluate(self, evaluation):
-        global SYS_ROOT_DIR
         return String(SYS_ROOT_DIR)
 
 

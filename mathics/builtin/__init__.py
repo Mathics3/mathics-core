@@ -209,6 +209,7 @@ for subdir in (
     "binary",
     "box",
     "colors",
+    "directories",
     "distance",
     "drawing",
     "exp_structure",
