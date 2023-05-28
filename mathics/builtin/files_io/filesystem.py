@@ -10,20 +10,12 @@ import pathlib
 import re
 import shutil
 import tempfile
-import time
 from typing import List
 
 from mathics.builtin.base import Builtin, MessageException, Predefined
-from mathics.builtin.exp_structure.size_and_sig import Hash
 from mathics.builtin.files_io.files import DIRECTORY_STACK, INITIAL_DIR, MathicsOpen
-from mathics.core.atoms import Integer, Real, String
-from mathics.core.attributes import (
-    A_LISTABLE,
-    A_LOCKED,
-    A_NO_ATTRIBUTES,
-    A_PROTECTED,
-    A_READ_PROTECTED,
-)
+from mathics.core.atoms import Integer, String
+from mathics.core.attributes import A_LISTABLE, A_LOCKED, A_NO_ATTRIBUTES, A_PROTECTED
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.convert.regex import to_regex
@@ -49,11 +41,9 @@ from mathics.core.systemsymbols import (
     SymbolGet,
     SymbolMemberQ,
     SymbolNeeds,
-    SymbolNone,
     SymbolPackages,
 )
 from mathics.eval.directories import SYS_ROOT_DIR
-from mathics.eval.nevaluator import eval_N
 
 TMP_DIR = tempfile.gettempdir()
 
@@ -613,110 +603,6 @@ class FileByteCount(Builtin):
         return Integer(count)
 
 
-class FileDate(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/FileDate.html</url>
-
-    <dl>
-      <dt>'FileDate[$file$, $types$]'
-      <dd>returns the time and date at which the file was last modified.
-    </dl>
-
-    >> FileDate["ExampleData/sunflowers.jpg"]
-     = ...
-
-    >> FileDate["ExampleData/sunflowers.jpg", "Access"]
-     = ...
-
-    >> FileDate["ExampleData/sunflowers.jpg", "Creation"]
-     = ...
-
-    >> FileDate["ExampleData/sunflowers.jpg", "Change"]
-     = ...
-
-    >> FileDate["ExampleData/sunflowers.jpg", "Modification"]
-     = ...
-
-    >>  FileDate["ExampleData/sunflowers.jpg", "Rules"]
-     = ...
-
-    #>  FileDate["MathicsNonExistantExample"]
-     : File not found during FileDate[MathicsNonExistantExample].
-     = FileDate[MathicsNonExistantExample]
-    #>  FileDate["MathicsNonExistantExample", "Modification"]
-     : File not found during FileDate[MathicsNonExistantExample, Modification].
-     = FileDate[MathicsNonExistantExample, Modification]
-
-    #> FileDate["ExampleData/sunflowers.jpg", "Fail"]
-     : Date type Fail should be "Access", "Modification", "Creation" (Windows only), "Change" (Macintosh and Unix only), or "Rules".
-     = FileDate[ExampleData/sunflowers.jpg, Fail]
-    """
-
-    messages = {
-        "nffil": "File not found during `1`.",
-        "datetype": (
-            'Date type Fail should be "Access", "Modification", '
-            '"Creation" (Windows only), '
-            '"Change" (Macintosh and Unix only), or "Rules".'
-        ),
-    }
-
-    rules = {
-        'FileDate[filepath_String, "Rules"]': """{"Access" -> FileDate[filepath, "Access"],
-            "Creation" -> FileDate[filepath, "Creation"],
-            "Change" -> FileDate[filepath, "Change"],
-            "Modification" -> FileDate[filepath, "Modification"]}""",
-    }
-    summary_text = "date and time of the last change in a file"
-
-    def eval(self, path, timetype, evaluation):
-        "FileDate[path_, timetype_]"
-        py_path, _ = path_search(path.to_python()[1:-1])
-
-        if py_path is None:
-            if timetype is None:
-                evaluation.message("FileDate", "nffil", to_expression("FileDate", path))
-            else:
-                evaluation.message(
-                    "FileDate", "nffil", to_expression("FileDate", path, timetype)
-                )
-            return
-
-        if timetype is None:
-            time_type = "Modification"
-        else:
-            time_type = timetype.to_python()[1:-1]
-
-        if time_type == "Access":
-            result = osp.getatime(py_path)
-        elif time_type == "Creation":
-            if os.name == "posix":
-                return to_expression("Missing", "NotApplicable")
-            result = osp.getctime(py_path)
-        elif time_type == "Change":
-            if os.name != "posix":
-                return to_expression("Missing", "NotApplicable")
-            result = osp.getctime(py_path)
-        elif time_type == "Modification":
-            result = osp.getmtime(py_path)
-        else:
-            evaluation.message("FileDate", "datetype")
-            return
-
-        # Offset for system epoch
-        epochtime_expr = Expression(
-            SymbolAbsoluteTime, String(time.strftime("%Y-%m-%d %H:%M", time.gmtime(0)))
-        )
-        epochtime = eval_N(epochtime_expr, evaluation).to_python()
-        result += epochtime
-
-        return to_expression("DateList", Real(result))
-
-    def eval_default(self, path, evaluation):
-        "FileDate[path_]"
-        return self.eval(path, None, evaluation)
-
-
 class FileExistsQ(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/FileExistsQ.html</url>
@@ -789,83 +675,6 @@ class FileExtension(Builtin):
         return String(filename_ext)
 
 
-class FileHash(Builtin):
-    """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/FileHash.html</url>
-
-    <dl>
-      <dt>'FileHash[$file$]'
-      <dd>returns an integer hash for the given $file$.
-
-      <dt>'FileHash[$file$, $type$]'
-      <dd>returns an integer hash of the specified $type$ for the given $file$.
-      <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", "SHA256", \
-          "SHA384", and "SHA512".
-
-      <dt>'FileHash[$file$, $type$, $format$]'
-      <dd>gives a hash code in the specified format.
-    </dl>
-
-    >> FileHash["ExampleData/sunflowers.jpg"]
-     = 109937059621979839952736809235486742106
-
-    >> FileHash["ExampleData/sunflowers.jpg", "MD5"]
-     = 109937059621979839952736809235486742106
-
-    >> FileHash["ExampleData/sunflowers.jpg", "Adler32"]
-     = 1607049478
-
-    >> FileHash["ExampleData/sunflowers.jpg", "SHA256"]
-     = 111619807552579450300684600241129773909359865098672286468229443390003894913065
-
-    #> FileHash["ExampleData/sunflowers.jpg", "CRC32"]
-     = 933095683
-    #> FileHash["ExampleData/sunflowers.jpg", "SHA"]
-     = 851696818771101405642332645949480848295550938123
-    #> FileHash["ExampleData/sunflowers.jpg", "SHA224"]
-     = 8723805623766373862936267623913366865806344065103917676078120867011
-    #> FileHash["ExampleData/sunflowers.jpg", "SHA384"]
-     = 28288410602533803613059815846847184383722061845493818218404754864571944356226472174056863474016709057507799332611860
-    #> FileHash["ExampleData/sunflowers.jpg", "SHA512"]
-     = 10111462070211820348006107532340854103555369343736736045463376555356986226454343186097958657445421102793096729074874292511750542388324853755795387877480102
-
-    #> FileHash["ExampleData/sunflowers.jpg", xyzsymbol]
-     = FileHash[ExampleData/sunflowers.jpg, xyzsymbol]
-    #> FileHash["ExampleData/sunflowers.jpg", "xyzstr"]
-     = FileHash[ExampleData/sunflowers.jpg, xyzstr, Integer]
-    #> FileHash[xyzsymbol]
-     = FileHash[xyzsymbol]
-    """
-
-    attributes = A_PROTECTED | A_READ_PROTECTED
-    rules = {
-        "FileHash[filename_String]": 'FileHash[filename, "MD5", "Integer"]',
-        "FileHash[filename_String, hashtype_String]": 'FileHash[filename, hashtype, "Integer"]',
-    }
-    summary_text = "compute a hash from the content of a file"
-
-    def eval(self, filename, hashtype, format, evaluation):
-        "FileHash[filename_String, hashtype_String, format_String]"
-        py_filename = filename.get_string_value()
-
-        try:
-            with MathicsOpen(py_filename, "rb") as f:
-                dump = f.read()
-        except IOError:
-            evaluation.message("General", "noopen", filename)
-            return
-        except MessageException as e:
-            e.message(evaluation)
-            return
-
-        return Hash.compute(
-            lambda update: update(dump),
-            hashtype.get_string_value(),
-            format.get_string_value(),
-        )
-
-
 class FileInformation(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/FileInformation.html</url>
@@ -888,55 +697,6 @@ class FileInformation(Builtin):
         "FileInformation[name_String]": "If[FileExistsQ[name], {File -> ExpandFileName[name], FileType -> FileType[name], ByteCount -> FileByteCount[name], Date -> AbsoluteTime[FileDate[name]]}, {}]",
     }
     summary_text = "information about a file"
-
-
-class FileType(Builtin):
-    """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/FileType.html</url>
-
-    <dl>
-      <dt>'FileType["$file$"]'
-      <dd>gives the type of a file, a string. This is typically 'File', 'Directory' \
-          or 'None'.
-    </dl>
-
-    >> FileType["ExampleData/sunflowers.jpg"]
-     = File
-    >> FileType["ExampleData"]
-     = Directory
-    >> FileType["ExampleData/nonexistent"]
-     = None
-
-    #> FileType[x]
-     : File specification x is not a string of one or more characters.
-     = FileType[x]
-    """
-
-    messages = {
-        "fstr": (
-            "File specification `1` is not a string of " "one or more characters."
-        ),
-    }
-    summary_text = "type of a file"
-
-    def eval(self, filename, evaluation):
-        "FileType[filename_]"
-        if not isinstance(filename, String):
-            evaluation.message("FileType", "fstr", filename)
-            return
-        path = filename.to_python()[1:-1]
-
-        path, is_temporary_file = path_search(path)
-
-        if path is None:
-            return SymbolNone
-
-        if osp.isfile(path):
-            return Symbol("File")
-        else:
-            return Symbol("Directory")
 
 
 class FindFile(Builtin):
@@ -1194,120 +954,6 @@ class FileNameTake(Builtin):
         else:
             subparts = parts[n_int:]
         return String(str(pathlib.PurePath(*subparts)))
-
-
-class FindList(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/FindList.html</url>
-
-    <dl>
-      <dt>'FindList[$file$, $text$]'
-      <dd>returns a list of all lines in $file$ that contain $text$.
-
-      <dt>'FindList[$file$, {$text1$, $text2$, ...}]'
-      <dd>returns a list of all lines in $file$ that contain any of the specified \
-          string.
-
-      <dt>'FindList[{$file1$, $file2$, ...}, ...]'
-      <dd>returns a list of all lines in any of the $filei$ that contain the specified \
-          strings.
-    </dl>
-
-    >> stream = FindList["ExampleData/EinsteinSzilLetter.txt", "uranium"];
-    #> Length[stream]
-     = 7
-
-    >> FindList["ExampleData/EinsteinSzilLetter.txt", "uranium", 1]
-     = {in manuscript, leads me to expect that the element uranium may be turned into}
-
-    #> FindList["ExampleData/EinsteinSzilLetter.txt", "project"]
-     = {}
-
-    #> FindList["ExampleData/EinsteinSzilLetter.txt", "uranium", 0]
-     = $Failed
-    """
-
-    messages = {
-        "strs": "String or non-empty list of strings expected at position `1` in `2`.",
-        "intnm": "Non-negative machine-sized integer expected at position `1` in `2`.",
-    }
-
-    options = {
-        "AnchoredSearch": "False",
-        "IgnoreCase": "False",
-        "RecordSeparators": '{"\r\n", "\n", "\r"}',
-        "WordSearch": "False",
-        "WordSeparators": '{" ", "\t"}',
-    }
-    summary_text = "list lines in a file that contains a text"
-
-    # TODO: Extra options AnchoredSearch, IgnoreCase RecordSeparators,
-    # WordSearch, WordSeparators this is probably best done with a regex
-
-    def eval_without_n(self, filename, text, evaluation: Evaluation, options: dict):
-        "FindList[filename_, text_, OptionsPattern[FindList]]"
-        return self.eval(filename, text, None, evaluation, options)
-
-    def eval(self, filename, text, n, evaluation: Evaluation, options: dict):
-        "FindList[filename_, text_, n_, OptionsPattern[FindList]]"
-        py_text = text.to_python()
-        py_name = filename.to_python()
-        if n is None:
-            py_n = None
-            expr = to_expression("FindList", filename, text)
-        else:
-            py_n = n.to_python()
-            expr = to_expression("FindList", filename, text, n)
-
-        if not isinstance(py_text, list):
-            py_text = [py_text]
-
-        if not isinstance(py_name, list):
-            py_name = [py_name]
-
-        if not all(isinstance(t, str) and t[0] == t[-1] == '"' for t in py_name):
-            evaluation.message("FindList", "strs", "1", expr)
-            return SymbolFailed
-
-        if not all(isinstance(t, str) and t[0] == t[-1] == '"' for t in py_text):
-            evaluation.message("FindList", "strs", "2", expr)
-            return SymbolFailed
-
-        if not ((isinstance(py_n, int) and py_n >= 0) or py_n is None):
-            evaluation.message("FindList", "intnm", "3", expr)
-            return SymbolFailed
-
-        if py_n == 0:
-            return SymbolFailed
-
-        py_text = [t[1:-1] for t in py_text]
-        py_name = [t[1:-1] for t in py_name]
-
-        results = []
-        for path in py_name:
-            try:
-                with MathicsOpen(path, "r") as f:
-                    lines = f.readlines()
-            except IOError:
-                evaluation.message("General", "noopen", path)
-                return
-            except MessageException as e:
-                e.message(evaluation)
-                return
-
-            result = []
-            for line in lines:
-                for t in py_text:
-                    if line.find(t) != -1:
-                        result.append(line[:-1])
-            results.append(result)
-
-        results = [r for result in results for r in result]
-
-        if isinstance(py_n, int):
-            results = results[: min(py_n, len(results))]
-
-        return from_python(results)
 
 
 class HomeDirectory(Predefined):
@@ -1742,151 +1388,6 @@ class SetDirectory(Builtin):
 
         DIRECTORY_STACK.append(os.getcwd())
         return String(os.getcwd())
-
-
-class SetFileDate(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/SetFileDate.html</url>
-
-    <dl>
-    <dt>'SetFileDate["$file$"]'
-      <dd>set the file access and modification dates of $file$ to the current date.
-    <dt>'SetFileDate["$file$", $date$]'
-      <dd>set the file access and modification dates of $file$ to the specified date list.
-    <dt>'SetFileDate["$file$", $date$, "$type$"]'
-      <dd>set the file date of $file$ to the specified date list.
-      The "$type$" can be one of "$Access$", "$Creation$", "$Modification$", or 'All'.
-    </dl>
-
-    Create a temporary file (for example purposes)
-    >> tmpfilename = $TemporaryDirectory <> "/tmp0";
-    >> Close[OpenWrite[tmpfilename]];
-
-    >> SetFileDate[tmpfilename, {2002, 1, 1, 0, 0, 0.}, "Access"];
-
-    >> FileDate[tmpfilename, "Access"]
-     = {2002, 1, 1, 0, 0, 0.}
-
-    #> SetFileDate[tmpfilename, {2002, 1, 1, 0, 0, 0.}];
-    #> FileDate[tmpfilename, "Access"]
-     = {2002, 1, 1, 0, 0, 0.}
-
-    #> SetFileDate[tmpfilename]
-    #> FileDate[tmpfilename, "Access"]
-     = {...}
-
-    #> DeleteFile[tmpfilename]
-
-    #> SetFileDate["MathicsNonExample"]
-     : File not found during SetFileDate[MathicsNonExample].
-     = $Failed
-    """
-
-    messages = {
-        "fstr": (
-            "File specification `1` is not a string of one or " "more characters."
-        ),
-        "nffil": "File not found during `1`.",
-        "fdate": (
-            "Date specification should be either the number of seconds "
-            "since January 1, 1900 or a {y, m, d, h, m, s} list."
-        ),
-        "datetype": (
-            'Date type a should be "Access", "Modification", '
-            '"Creation" (Windows only), or All.'
-        ),
-        "nocreationunix": (
-            "The Creation date of a file cannot be set on " "Macintosh or Unix."
-        ),
-    }
-    summary_text = "set the access/modification time of a file in the filesystem"
-
-    def eval(self, filename, datelist, attribute, evaluation):
-        "SetFileDate[filename_, datelist_, attribute_]"
-
-        py_filename = filename.to_python()
-
-        if datelist is None:
-            py_datelist = to_expression("DateList").evaluate(evaluation).to_python()
-            expr = to_expression("SetFileDate", filename)
-        else:
-            py_datelist = datelist.to_python()
-
-        if attribute is None:
-            py_attr = "All"
-            if datelist is not None:
-                expr = to_expression("SetFileDate", filename, datelist)
-        else:
-            py_attr = attribute.to_python()
-            expr = to_expression("SetFileDate", filename, datelist, attribute)
-
-        # Check filename
-        if not (
-            isinstance(py_filename, str) and py_filename[0] == py_filename[-1] == '"'
-        ):
-            evaluation.message("SetFileDate", "fstr", filename)
-            return
-        py_filename, is_temporary_file = path_search(py_filename[1:-1])
-
-        if py_filename is None:
-            evaluation.message("SetFileDate", "nffil", expr)
-            return SymbolFailed
-
-        # Check datelist
-        if not (
-            isinstance(py_datelist, list)
-            and len(py_datelist) == 6
-            and all(isinstance(d, int) for d in py_datelist[:-1])
-            and isinstance(py_datelist[-1], float)
-        ):
-            evaluation.message("SetFileDate", "fdate", expr)
-
-        # Check attribute
-        if py_attr not in ['"Access"', '"Creation"', '"Modification"', "All"]:
-            evaluation.message("SetFileDate", "datetype")
-            return
-
-        epochtime = (
-            to_expression(
-                "AbsoluteTime", time.strftime("%Y-%m-%d %H:%M", time.gmtime(0))
-            )
-            .evaluate(evaluation)
-            .to_python()
-        )
-
-        stattime = to_expression("AbsoluteTime", from_python(py_datelist))
-        stattime = eval_N(stattime, evaluation).to_python()
-
-        stattime -= epochtime
-
-        try:
-            os.stat(py_filename)
-            if py_attr == '"Access"':
-                os.utime(py_filename, (stattime, osp.getatime(py_filename)))
-            if py_attr == '"Creation"':
-                if os.name == "posix":
-                    evaluation.message("SetFileDate", "nocreationunix")
-                    return SymbolFailed
-                else:
-                    # TODO: Note: This is windows only
-                    return SymbolFailed
-            if py_attr == '"Modification"':
-                os.utime(py_filename, (osp.getatime(py_filename), stattime))
-            if py_attr == "All":
-                os.utime(py_filename, (stattime, stattime))
-        except OSError:
-            # evaluation.message(...)
-            return SymbolFailed
-
-        return SymbolNull
-
-    def eval_with_filename(self, filename, evaluation: Evaluation):
-        "SetFileDate[filename_]"
-        return self.eval(filename, None, None, evaluation)
-
-    def eval_with_filename_date(self, filename, datelist, evaluation: Evaluation):
-        "SetFileDate[filename_, datelist_]"
-        return self.eval(filename, datelist, None, evaluation)
 
 
 class TemporaryDirectory(Predefined):

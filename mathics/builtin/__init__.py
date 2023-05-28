@@ -215,6 +215,7 @@ for subdir in (
     "exp_structure",
     "fileformats",
     "files_io",
+    "file_operations",
     "forms",
     "functional",
     "image",
