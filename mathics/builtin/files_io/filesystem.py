@@ -357,7 +357,7 @@ class CreateTemporary(Builtin):
 
     summary_text = "create a temporary file"
 
-    def eval_0(self, evaluation: Evaluation):
+    def eval(self, evaluation: Evaluation):
         "CreateTemporary[]"
         try:
             res = create_temporary_file()
@@ -481,7 +481,7 @@ class DeleteFile(Builtin):
                 return
 
             path = path[1:-1]
-            path, is_temporary_file = path_search(path)
+            path, _ = path_search(path)
 
             if path is None:
                 evaluation.message(
@@ -1321,9 +1321,6 @@ class FileNames(Builtin):
 
     def eval_with_forms(self, forms, evaluation, **options):
         """FileNames[forms_, OptionsPattern[FileNames]]"""
-        from trepan.api import debug
-
-        debug()
         return self.eval_with_forms_dirs_and_level(
             forms, String(os.getcwd()), None, evaluation, **options
         )
@@ -1384,7 +1381,7 @@ class FileNames(Builtin):
             re.compile each Expression in ``form_list``. Compile using
             re_flags which is either re.NO_FLAGS or re.IGNORECASE.
             Return a list of the compiled patterns when the string in
-            form_list is that are valid string expressions.
+            form_list that are valid string expressions.
 
             Invalid string expressions are removed removed from the list.
             """
@@ -2315,18 +2312,19 @@ class SetFileDate(Builtin):
 
         return SymbolNull
 
-    def eval_1arg(self, filename, evaluation):
+    def eval_with_filename(self, filename, evaluation: Evaluation):
         "SetFileDate[filename_]"
         return self.eval(filename, None, None, evaluation)
 
-    def eval_2arg(self, filename, datelist, evaluation):
+    def eval_with_filename_date(self, filename, datelist, evaluation: Evaluation):
         "SetFileDate[filename_, datelist_]"
         return self.eval(filename, datelist, None, evaluation)
 
 
 class TemporaryDirectory(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$TemporaryDirectory.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/$TemporaryDirectory.html</url>
 
     <dl>
     <dt>'$TemporaryDirectory'
@@ -2375,7 +2373,8 @@ class ToFileName(Builtin):
 
 class UserBaseDirectory(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/UserBaseDirectory.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/UserBaseDirectory.html</url>
 
     <dl>
     <dt>'$UserBaseDirectory'
