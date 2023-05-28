@@ -629,7 +629,7 @@ class Names(Builtin):
         "Names[pattern_]"
         headname = pattern.get_head_name()
         if headname == "System`StringExpression":
-            pattern = re.compile(to_regex(pattern, evaluation))
+            pattern = re.compile(to_regex(pattern, show_message=evaluation.messages))
         else:
             pattern = pattern.get_string_value()
 

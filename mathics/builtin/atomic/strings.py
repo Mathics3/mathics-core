@@ -133,7 +133,7 @@ def _pattern_search(name, string, patt, evaluation, options, matched):
         patts = [patt]
     re_patts = []
     for p in patts:
-        py_p = to_regex(p, evaluation)
+        py_p = to_regex(p, show_message=evaluation.message)
         if py_p is None:
             evaluation.message("StringExpression", "invld", p, patt)
             return
@@ -618,7 +618,7 @@ class _StringFind(Builtin):
         # convert rule
         def convert_rule(r):
             if r.has_form("Rule", None) and len(r.elements) == 2:
-                py_s = to_regex(r.elements[0], evaluation)
+                py_s = to_regex(r.elements[0], show_message=evaluation.message)
                 if py_s is None:
                     evaluation.message(
                         "StringExpression", "invld", r.elements[0], r.elements[0]
@@ -627,7 +627,7 @@ class _StringFind(Builtin):
                 py_sp = r.elements[1]
                 return py_s, py_sp
             elif cases:
-                py_s = to_regex(r, evaluation)
+                py_s = to_regex(r, show_message=evaluation.message)
                 if py_s is None:
                     evaluation.message("StringExpression", "invld", r, r)
                     return

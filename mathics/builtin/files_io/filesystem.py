@@ -1350,7 +1350,10 @@ class FileNames(Builtin):
         if options.get("System`IgnoreCase", None) is SymbolTrue:
             patterns = [
                 re.compile(
-                    "^" + to_regex(p, evaluation, abbreviated_patterns=True),
+                    "^"
+                    + to_regex(
+                        p, abbreviated_patterns=True, show_message=evaluation.messages
+                    ),
                     re.IGNORECASE,
                 )
                 + "$"
@@ -1359,7 +1362,14 @@ class FileNames(Builtin):
         else:
             patterns = [
                 re.compile(
-                    "^" + to_regex(p, evaluation, abbreviated_patterns=True) + "$"
+                    "^"
+                    + to_regex(
+                        p,
+                        evaluation,
+                        abbreviated_patterns=True,
+                        show_message=evaluation.message,
+                    )
+                    + "$"
                 )
                 for p in str_forms
             ]

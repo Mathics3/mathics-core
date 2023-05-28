@@ -193,11 +193,11 @@ class Norm(Builtin):
 
     def eval(self, m, evaluation):
         "Norm[m_]"
-        return eval_Norm(m, evaluation)
+        return eval_Norm(m, evaluation.message)
 
     def eval_with_p(self, m, p, evaluation):
         "Norm[m_, p_]"
-        return eval_Norm_p(m, p, evaluation)
+        return eval_Norm_p(m, p, evaluation.message)
 
 
 # TODO: Div
