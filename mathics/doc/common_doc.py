@@ -474,12 +474,6 @@ class Documentation:
                 builtin_part, title, self.doc_fn(text, title, None)
             )
             builtins = builtins_by_module.get(module.__name__)
-            if not builtins:
-                continue
-            sections = [
-                builtin for builtin in builtins if not skip_doc(builtin.__class__)
-            ]
-
             if module.__file__.endswith("__init__.py"):
                 # We have a Guide Section.
                 name = get_doc_name_from_module(module)
@@ -538,6 +532,11 @@ class Documentation:
                             in_guide=True,
                         )
             else:
+                if not builtins:
+                    continue
+                sections = [
+                    builtin for builtin in builtins if not skip_doc(builtin.__class__)
+                ]
                 self.doc_sections(sections, modules_seen, chapter)
             builtin_part.chapters.append(chapter)
         self.parts.append(builtin_part)
