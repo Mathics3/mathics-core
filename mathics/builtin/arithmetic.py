@@ -77,7 +77,13 @@ from mathics.core.systemsymbols import (
     SymbolTable,
     SymbolUndefined,
 )
-from mathics.eval.arithmetic import eval_Abs, eval_mpmath_function, eval_Sign
+from mathics.eval.arithmetic import (
+    eval_Abs,
+    eval_mpmath_function,
+    eval_negate_number,
+    eval_RealSign,
+    eval_Sign,
+)
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 
@@ -1207,6 +1213,44 @@ class Real_(Builtin):
     name = "Real"
 
 
+class RealAbs(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RealAbs.html</url>
+
+    <dl>
+      <dt>'RealAbs[$x$]'
+      <dd>returns the absolute value of a real number $x$.
+    </dl>
+    'RealAbs' is also known as modulus. It is evaluated if $x$ can be compared \
+    with $0$.
+
+    >> RealAbs[-3.]
+     = 3.
+    'RealAbs[$z$]' is left unevaluated for complex $z$:
+    >> RealAbs[2. + 3. I]
+     = RealAbs[2. + 3. I]
+    >> D[RealAbs[x ^ 2], x]
+     = 2 x ^ 3 / RealAbs[x ^ 2]
+    """
+
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    rules = {
+        "D[RealAbs[x_],x_]": "x/RealAbs[x]",
+        "Integrate[RealAbs[x_],x_]": "1/2 x RealAbs[x]",
+        "Integrate[RealAbs[u_],{u_,a_,b_}]": "1/2 b RealAbs[b]-1/2 a RealAbs[a]",
+    }
+    summary_text = "real absolute value"
+
+    def eval(self, x: BaseElement, evaluation: Evaluation):
+        """RealAbs[x_]"""
+        real_sign = eval_RealSign(x)
+        if real_sign is IntegerM1:
+            return eval_negate_number(x)
+        if real_sign is None:
+            return
+        return x
+
+
 class RealNumberQ(Test):
     """
     ## Not found in WMA
@@ -1235,6 +1279,42 @@ class RealNumberQ(Test):
 
     def test(self, expr) -> bool:
         return isinstance(expr, (Integer, Rational, Real))
+
+
+class RealSign(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RealAbs.html</url>
+
+    <dl>
+      <dt>'RealSign[$x$]'
+      <dd>returns $-1$, $0$ or $1$ depending on whether $x$ is negative,
+    zero or positive.
+    </dl>
+    'RealSign' is also known as $sgn$ or $signum$ function.
+
+    >> RealSign[-3.]
+     = -1
+    'RealSign[$z$]' is left unevaluated for complex $z$:
+    >> RealSign[2. + 3. I]
+     = RealSign[2. + 3. I]
+
+    >> D[RealSign[x^2],x]
+     = 2 x Piecewise[{{0, x ^ 2 != 0}}, Indeterminate]
+    >> Integrate[RealSign[u],{u,0,x}]
+     = RealAbs[x]
+    """
+
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    rules = {
+        "D[RealSign[x_],x_]": "Piecewise[{{0, x!=0}}, Indeterminate]",
+        "Integrate[RealSign[x_],x_]": "RealAbs[x]",
+        "Integrate[RealSign[u_],{u_, a_, b_}]": "RealAbs[b]-RealSign[a]",
+    }
+    summary_text = "real sign"
+
+    def eval(self, x: Number, evaluation: Evaluation) -> Optional[Integer]:
+        """RealSign[x_]"""
+        return eval_RealSign(x)
 
 
 class Sign(SympyFunction):
