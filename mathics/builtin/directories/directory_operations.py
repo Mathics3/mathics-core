@@ -8,13 +8,13 @@ import shutil
 import tempfile
 
 from mathics.builtin.base import Builtin
-from mathics.builtin.files_io.filesystem import TMP_DIR
 from mathics.core.atoms import String
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
 from mathics.core.convert.expression import to_expression
 from mathics.core.evaluation import Evaluation
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
+from mathics.eval.directories import TMP_DIR
 
 
 class CreateDirectory(Builtin):

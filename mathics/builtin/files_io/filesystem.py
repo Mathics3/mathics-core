@@ -9,26 +9,18 @@ import os.path as osp
 import pathlib
 import re
 import shutil
-import tempfile
 from typing import List
 
 from mathics.builtin.base import Builtin, MessageException, Predefined
-from mathics.builtin.files_io.files import DIRECTORY_STACK, INITIAL_DIR, MathicsOpen
+from mathics.builtin.files_io.files import MathicsOpen
 from mathics.core.atoms import Integer, String
-from mathics.core.attributes import A_LISTABLE, A_LOCKED, A_NO_ATTRIBUTES, A_PROTECTED
+from mathics.core.attributes import A_LISTABLE, A_LOCKED, A_PROTECTED
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.convert.regex import to_regex
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.streams import (
-    HOME_DIR,
-    PATH_VAR,
-    ROOT_DIR,
-    create_temporary_file,
-    path_search,
-    urlsave_tmp,
-)
+from mathics.core.streams import create_temporary_file, path_search, urlsave_tmp
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
@@ -43,10 +35,7 @@ from mathics.core.systemsymbols import (
     SymbolNeeds,
     SymbolPackages,
 )
-from mathics.eval.directories import SYS_ROOT_DIR
-
-TMP_DIR = tempfile.gettempdir()
-
+from mathics.eval.directories import DIRECTORY_STACK
 
 SymbolAbsoluteTime = Symbol("AbsoluteTime")
 
@@ -94,27 +83,6 @@ class AbsoluteFileName(Builtin):
             return SymbolFailed
 
         return String(osp.abspath(result))
-
-
-class BaseDirectory_(Predefined):
-    """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/$BaseDirectory.html</url>
-
-    <dl>
-      <dt>'$BaseDirectory'
-      <dd>returns the folder where user configurations are stored.
-    </dl>
-
-    >> $BaseDirectory
-     = ...
-    """
-
-    name = "$BaseDirectory"
-    summary_text = "path to the configuration directory"
-
-    def evaluate(self, evaluation: Evaluation):
-        return String(ROOT_DIR)
 
 
 class CopyDirectory(Builtin):
@@ -511,7 +479,9 @@ class ExpandFileName(Builtin):
 
 class File(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/File.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/File.html</url>
 
     <dl>
       <dt>'File["$file$"]'
@@ -524,7 +494,9 @@ class File(Builtin):
 
 class FileBaseName(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/FileBaseName.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/FileBaseName.html</url>
 
     <dl>
       <dt>'FileBaseName["$file$"]'
@@ -956,69 +928,6 @@ class FileNameTake(Builtin):
         return String(str(pathlib.PurePath(*subparts)))
 
 
-class HomeDirectory(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/HomeDirectory.html</url>
-
-    <dl>
-      <dt>'$HomeDirectory'
-      <dd>returns the users HOME directory.
-    </dl>
-
-    >> $HomeDirectory
-     = ...
-    """
-
-    name = "$HomeDirectory"
-    summary_text = "user home directory"
-
-    def evaluate(self, evaluation):
-        return String(HOME_DIR)
-
-
-class InitialDirectory(Predefined):
-    """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/$InitialDirectory.html</url>
-
-    <dl>
-      <dt>'$InitialDirectory'
-      <dd>returns the directory from which \\Mathics was started.
-    </dl>
-
-    >> $InitialDirectory
-     = ...
-    """
-
-    name = "$InitialDirectory"
-    summary_text = "initial directory when Mathics was started"
-
-    def evaluate(self, evaluation: Evaluation):
-        return String(INITIAL_DIR)
-
-
-class InstallationDirectory(Predefined):
-    """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/InstallationDirectory.html</url>
-
-    <dl>
-      <dt>'$InstallationDirectory'
-      <dd>returns the top-level directory in which \\Mathics was installed.
-    </dl>
-    >> $InstallationDirectory
-     = ...
-    """
-
-    attributes = A_NO_ATTRIBUTES
-    name = "$InstallationDirectory"
-    summary_text = "Mathics installation directory"
-
-    def evaluate(self, evaluation):
-        global ROOT_DIR
-        return String(ROOT_DIR)
-
-
 class Needs(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Needs.html</url>
@@ -1160,10 +1069,11 @@ class Needs(Builtin):
 
 class OperatingSystem(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/OperatingSystem.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/OperatingSystem.html</url>
 
     <dl>
-    <dt>'$OperatingSystem'
+      <dt>'$OperatingSystem'
       <dd>gives the type of operating system running Mathics.
     </dl>
 
@@ -1184,27 +1094,6 @@ class OperatingSystem(Predefined):
             return String("MacOSX")
         else:
             return String("Unknown")
-
-
-class Path(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Path.html</url>
-
-    <dl>
-      <dt>'$Path'
-      <dd>returns the list of directories to search when looking for a file.
-    </dl>
-
-    >> $Path
-     = ...
-    """
-
-    attributes = A_NO_ATTRIBUTES
-    name = "$Path"
-    summary_text = "list directories where files are searched"
-
-    def evaluate(self, evaluation):
-        return to_mathics_list(*PATH_VAR, elements_conversion_fn=String)
 
 
 class PathnameSeparator(Predefined):
@@ -1231,7 +1120,8 @@ class PathnameSeparator(Predefined):
 
 class RenameFile(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/RenameFile.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/RenameFile.html</url>
 
     <dl>
     <dt>'RenameFile["$file1$", "$file2$"]'
@@ -1292,7 +1182,8 @@ class RenameFile(Builtin):
 
 class ResetDirectory(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ResetDirectory.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/ResetDirectory.html</url>
 
     <dl>
     <dt>'ResetDirectory[]'
@@ -1320,29 +1211,10 @@ class ResetDirectory(Builtin):
         return String(tmp)
 
 
-class RootDirectory(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$RootDirectory.html</url>
-
-    <dl>
-    <dt>'$RootDirectory'
-      <dd>returns the system root directory.
-    </dl>
-
-    >> $RootDirectory
-     = ...
-    """
-
-    name = "$RootDirectory"
-    summary_text = "system root directory"
-
-    def evaluate(self, evaluation):
-        return String(SYS_ROOT_DIR)
-
-
 class SetDirectory(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/SetDirectory.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/SetDirectory.html</url>
 
     <dl>
     <dt>'SetDirectory[$dir$]'
@@ -1390,30 +1262,10 @@ class SetDirectory(Builtin):
         return String(os.getcwd())
 
 
-class TemporaryDirectory(Predefined):
-    """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/$TemporaryDirectory.html</url>
-
-    <dl>
-    <dt>'$TemporaryDirectory'
-      <dd>returns the directory used for temporary files.
-    </dl>
-
-    >> $TemporaryDirectory
-     = ...
-    """
-
-    name = "$TemporaryDirectory"
-    summary_text = "path to the temporary directory"
-
-    def evaluate(self, evaluation):
-        return String(TMP_DIR)
-
-
 class ToFileName(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ToFileName.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/ToFileName.html</url>
 
     <dl>
     <dt>'ToFileName[{"$dir_1$", "$dir_2$", ...}]'
@@ -1440,31 +1292,10 @@ class ToFileName(Builtin):
     summary_text = "build a path from a list of directory names and a filename"
 
 
-class UserBaseDirectory(Predefined):
-    """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/UserBaseDirectory.html</url>
-
-    <dl>
-    <dt>'$UserBaseDirectory'
-      <dd>returns the folder where user configurations are stored.
-    </dl>
-
-    >> $UserBaseDirectory
-     = ...
-    """
-
-    name = "$UserBaseDirectory"
-    summary_text = "directory where user configurations are stored"
-
-    def evaluate(self, evaluation):
-        global HOME_DIR
-        return String(HOME_DIR + os.sep + ".mathics")
-
-
 class URLSave(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/URLSave.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/URLSave.html</url>
 
     <dl>
       <dt>'URLSave["url"]'
