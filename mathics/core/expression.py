@@ -748,6 +748,28 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 option_values[name] = option.elements[1]
         return option_values
 
+    def get_rules_list(self) -> list:
+        """
+        If the expression is of the form {pat1->expr1,... {pat_2,expr2},...}
+        return a (python) list of rules.
+        """
+        from mathics.core.rules import Rule
+        from mathics.core.symbols import SymbolList
+
+        list_expr = self.flatten_with_respect_to_head(SymbolList)
+        list = []
+        if list_expr.has_form("List", None):
+            list.extend(list_expr.elements)
+        else:
+            list.append(list_expr)
+        rules = []
+        for item in list:
+            if not item.has_form(("Rule", "RuleDelayed"), 2):
+                return None
+            rule = Rule(item.elements[0], item.elements[1])
+            rules.append(rule)
+        return rules
+
     # FIXME: return type should be a specific kind of Tuple, not a tuple.
     def get_sort_key(self, pattern_sort=False) -> tuple:
 
