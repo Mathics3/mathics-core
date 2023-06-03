@@ -1416,23 +1416,39 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         String     -> '"..."'
         Function   -> python function
         numbers    -> Python number
+
         If kwarg n_evaluation is given, apply N first to the expression.
         """
         from mathics.builtin.base import mathics_to_python
 
-        n_evaluation = kwargs.get("n_evaluation", None)
-        assert n_evaluation is None
-
         head = self._head
         if head is SymbolFunction:
-
             from mathics.core.convert.function import expression_to_callable_and_args
 
-            vars, expr_fn = self.elements
-            return expression_to_callable_and_args(expr_fn, vars, n_evaluation)
+            n_evaluation = kwargs.get("n_evaluation", None)
+            if n_evaluation:
+                vars, expr_fn = self.elements
+                return expression_to_callable_and_args(expr_fn, vars, n_evaluation)
 
+        # After some discussion, it seems that this parameter
+        # is not useful anymore. Let's consider to remove it
+        # in future versions.
+        n_evaluation = kwargs.get("n_evaluation", None)
+        # assert n_evaluation is None
         if n_evaluation is not None:
-            value = Expression(SymbolN, self).evaluate(n_evaluation)
+            from mathics.core.evaluators import eval_N
+
+            # Eventually, we want to remove this parameter.
+            #
+            # import warnings
+            # warnings.warn(
+            #    (
+            #        "use of expr.to_python(n_evaluation) is deprecated."
+            #        "Use instead eval_N(expr, evaluation).to_python()"
+            #    ),
+            #    DeprecationWarning,
+            # )
+            value = eval_N(self, n_evaluation)
             return value.to_python()
 
         if head is SymbolDirectedInfinity and len(self._elements) == 1:

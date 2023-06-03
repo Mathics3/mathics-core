@@ -599,14 +599,15 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         # This was introduced before `mathics.eval.nevaluator.eval_N`
         # provided a simple way to convert an expression into a number.
         # Now it makes this routine harder to describe.
+        # Consider remove this in future versions.
         n_evaluation = kwargs.get("n_evaluation")
         if n_evaluation is not None:
-            import warnings
+            # import warnings
 
-            warnings.warn(
-                "use instead ``eval_N(obj, evaluation).to_python()``",
-                DeprecationWarning,
-            )
+            # warnings.warn(
+            #    "use instead ``eval_N(obj, evaluation).to_python()``",
+            #    DeprecationWarning,
+            # )
 
             from mathics.eval.nevaluator import eval_N
 
