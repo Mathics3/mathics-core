@@ -148,7 +148,7 @@ class KeyComparable:
     # FIXME: return type should be a specific kind of Tuple, not a list.
     # FIXME: Describe sensible, and easy to follow rules by which one
     #        can create the kind of tuple for some new kind of element.
-    def get_sort_key(self) -> list:
+    def get_sort_key(self, pattern_sort: bool) -> tuple:
         """
         This returns a tuple in a way that
         it can be used to compare in expressions.

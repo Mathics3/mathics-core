@@ -716,12 +716,13 @@ class SymbolConstant(Symbol):
 BooleanType = SymbolConstant
 
 
-def symbol_set(*symbols: Tuple[Symbol]) -> FrozenSet[Symbol]:
+def symbol_set(*symbols: Symbol) -> FrozenSet[Symbol]:
     """
     Return a frozenset of symbols from a Symbol arguments.
     We will use this in testing membership, so an immutable object is fine.
 
-    In 2021, we benchmarked frozenset versus list, tuple, and set and frozenset was the fastest.
+    In 2021, we benchmarked frozenset versus list, tuple, and set and
+    frozenset was the fastest.
     """
     return frozenset(symbols)
 
