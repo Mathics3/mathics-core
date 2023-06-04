@@ -271,6 +271,13 @@ class BaseElement(KeyComparable):
         return A_NO_ATTRIBUTES
 
     def get_head_name(self):
+        """
+        All elements have a "Head" whether or not the element is compount.
+        The Head of an Atom is its type. The Head of an S-expression is
+        its function name.
+
+        Each class must define its own get_head_name.
+        """
         raise NotImplementedError
 
     # FIXME: this behavior of defining a specific default implementation
