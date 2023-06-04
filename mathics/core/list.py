@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Module containing ListExpression
+"""
 
 import reprlib
 from typing import Optional, Tuple
@@ -11,9 +14,9 @@ from mathics.core.symbols import EvalMixin, Symbol, SymbolList
 
 class ListExpression(Expression):
     """
-    A Mathics List-Expression.
+    A Mathics3 List-Expression.
 
-    A Mathics List is a specialization of Expression where the head is SymbolList.
+    A Mathics3 List is a specialization of Expression where the head is SymbolList.
 
     positional Arguments:
         - *elements - optional: the remaining elements
