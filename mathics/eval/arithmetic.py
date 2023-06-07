@@ -21,7 +21,6 @@ from mathics.core.atoms import (
     Integer1,
     Integer2,
     IntegerM1,
-    MachineReal,
     Number,
     Rational,
     RationalOneHalf,
@@ -31,13 +30,7 @@ from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement, ElementsProperties
 from mathics.core.expression import Expression
-from mathics.core.number import (
-    FP_MANTISA_BINARY_DIGITS,
-    MAX_MACHINE_NUMBER,
-    MIN_MACHINE_NUMBER,
-    SpecialValueError,
-    min_prec,
-)
+from mathics.core.number import FP_MANTISA_BINARY_DIGITS, SpecialValueError, min_prec
 from mathics.core.rules import Rule
 from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolPower, SymbolTimes
 from mathics.core.systemsymbols import (
@@ -605,6 +598,6 @@ def to_inexact_value(expr: BaseElement) -> BaseElement:
 
     if isinstance(expr, Expression):
         for const, value in NUMERICAL_CONSTANTS.items():
-            expr, success = expr.do_apply_rule(Rule(const, value))
+            expr, _ = expr.do_apply_rule(Rule(const, value))
 
     return eval_multiply_numbers(RealOne, expr)

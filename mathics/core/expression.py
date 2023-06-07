@@ -10,8 +10,6 @@ from typing import Any, Callable, Iterable, List, Optional, Tuple, Type
 import sympy
 
 from mathics.core.atoms import Integer, String
-
-# FIXME: adjust mathics.core.attributes to uppercase attribute names
 from mathics.core.attributes import (
     A_FLAT,
     A_HOLD_ALL,
@@ -49,12 +47,18 @@ from mathics.core.systemsymbols import (
     SymbolAborted,
     SymbolAlternatives,
     SymbolBlank,
+    SymbolBlankNullSequence,
+    SymbolBlankSequence,
     SymbolCondition,
+    SymbolDefault,
     SymbolDirectedInfinity,
     SymbolFunction,
     SymbolMinus,
+    SymbolOptional,
+    SymbolOptionsPattern,
     SymbolOverflow,
     SymbolPattern,
+    SymbolPatternTest,
     SymbolPower,
     SymbolSequence,
     SymbolSin,
@@ -66,14 +70,7 @@ from mathics.core.systemsymbols import (
 
 # from mathics.timing import timeit
 
-SymbolBlankSequence = Symbol("System`BlankSequence")
-SymbolBlankNullSequence = Symbol("System`BlankNullSequence")
-SymbolCompiledFunction = Symbol("System`CompiledFunction")
-SymbolDefault = Symbol("System`Default")
 SymbolEvaluate = Symbol("System`Evaluate")
-SymbolOptional = Symbol("Optional")
-SymbolOptionsPattern = Symbol("OptionsPattern")
-SymbolPatternTest = Symbol("PatternTest")
 SymbolSlotSequence = Symbol("SlotSequence")
 SymbolVerbatim = Symbol("Verbatim")
 
@@ -183,9 +180,9 @@ class ExpressionCache:
 
 class Expression(BaseElement, NumericOperators, EvalMixin):
     """
-    A Mathics M-Expression.
+    A Mathics3 M-Expression.
 
-    A Mathics M-Expression is a list where the head is a function designator.
+    A Mathics3 M-Expression is a list where the head is a function designator.
     (In the more common S-Expression the head is an a Symbol. In Mathics this can be
     an expression that acts as a function.
 
@@ -248,15 +245,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             ", ".join([repr(element) for element in self.elements]),
         )
 
-        return "<Expression: %s>" % self
-
     def __str__(self) -> str:
         return "%s[%s]" % (
             str(self.head),
             ", ".join([str(element) for element in self.elements]),
         )
 
-    def _as_sympy_function(self, **kwargs) -> sympy.Function:
+    def _as_sympy_function(self, **kwargs) -> Optional[sympy.Function]:
         from mathics.core.convert.sympy import sympy_symbol_prefix
 
         sym_args = [element.to_sympy(**kwargs) for element in self._elements]
@@ -748,7 +743,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 option_values[name] = option.elements[1]
         return option_values
 
-    def get_rules_list(self) -> list:
+    # This should only be used in ListExpression. Consider
+    # moving it to mathics.core.list after going over
+    # test/builtin/atomic/test_assignment.py and
+    # ensuring we never use Expression(SymbolList, ...)
+    # for ListExpression.
+    def get_rules_list(self) -> Optional[list]:
         """
         If the expression is of the form {pat1->expr1,... {pat_2,expr2},...}
         return a (python) list of rules.
@@ -1067,8 +1067,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         See also https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overview/evaluation.html#detailed-rewrite-apply-eval-process
         """
 
-        # Step 1 : evaluate the Head and get its Attributes. These attributes, used later, include
-        # HoldFirst / HoldAll / HoldRest / HoldAllComplete.
+        # Step 1 : evaluate the Head and get its Attributes. These attributes,
+        # used later, include: HoldFirst / HoldAll / HoldRest / HoldAllComplete.
 
         # Note: self._head can be not just a symbol, but some arbitrary expression.
         # This is what makes expressions in Mathics be M-expressions rather than
@@ -1163,11 +1163,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 new._build_elements_properties()
             elements = new._elements
 
-        # comment @mmatera: I think this is wrong now, because alters singletons... (see PR #58)
-        # The idea is to mark which elements was marked as "Unevaluated"
-        # Also, this consumes time for long lists, and is useful just for a very unfrequent
-        # expressions, involving `Unevaluated` elements.
-        # Notice also that this behaviour is broken when the argument of "Unevaluated" is a symbol (see comment and tests in test/test_unevaluate.py)
+        # comment @mmatera: I think this is wrong now, because alters
+        # singletons... (see PR #58) The idea is to mark which elements was
+        # marked as "Unevaluated" Also, this consumes time for long lists, and
+        # is useful just for a very unfrequent expressions, involving
+        # `Unevaluated` elements.  Notice also that this behaviour is broken
+        # when the argument of "Unevaluated" is a symbol (see comment and tests
+        # in test/test_unevaluate.py)
 
         for element in elements:
             element.unevaluated = False
@@ -1247,32 +1249,41 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 else:
                     return threaded, True
 
-        # Step 6: Now,the next step is to look at the rules associated to
-        # 1. the upvalues of each element
-        # 2. the downvalues / subvalues associated to the lookup_name
-        # if the lookup values matches or not the head.
-        # For example for an expression F[a, 1, b,a]
+        # Step 6:
+        # Look at the rules associated with:
+        #   1. the upvalues of each element
+        #   2. the downvalues / subvalues associated with the lookup_name
+        #      when the lookup values matches or is not the head.
         #
-        # first look for upvalue rules associated to a.
-        # If it finds it, try to apply the corresponding rule.
-        #    If it success, (the result is not None)
-        #      returns  result, reevaluate. reevaluate is True if the result is a different expression, and is EvalMixin.
-        #    If the rule fails, continues with the next element.
+        # For example, consider expression: F[a, 1, b, a]
         #
-        # The next element is a number, so do not have upvalues. Then tries with upvalues from b.
-        # If it does not have  success, tries look at the next element. but the next element is again a. So, it skip it.
-        # Then, as new.head_name() == new.get_lookup_name(),  (because F is a symbol) tryies with the
-        # downvalues rules. If instead of "F[a, 1, a, c]" we had  "Q[s][a,1,a,c]",
-        # the routine would look for the subvalues of `Q`.
+        # First look for upvalue rules associated with "a".
+        #   If a rule is found, try to apply the corresponding rule.
+        #      If that succeeds, (the result is not None) then
+        #      return the result. It will be reevaluated when "reevaluate" is True and
+        #      the result changes from the input, and is an EvalMixin type.
         #
-        # For `Plus` and `Times`, WMA behaves slightly different when deals with numbers. For example,
+        # If the rule fails, continue with the next element.
+        #
+        # The next element, "1", is a number; it does not have upvalues. So skip
+        # that and looking at upvalues of "b".
+        # If rule matching does not succeed for "b", then look at the next element,
+        # "a". However element "a" has been already seen. So, skip it.
+        # Finally, because "F" is a symbol,
+        # new.head_name() == new.get_lookup_name(); look at downvalue rules.
+
+        # If instead of "F[a, 1, a, c]" we had  "Q[s][a, 1, a, c]",
+        # the routine would look for the subvalues of "Q".
+        #
+        # For "Plus" and "Times", WMA behaves slightly different for numbers.
+        # For example consider:
         # ```
         # Unprotect[Plus];
         # Plus[2,3]:=fish;
         # Plus[2,3]
         # ```
-        # in mathics results in  `fish`, but in WL results in  `5`. This special behaviour suggests
-        # that WMA process in a different way certain symbols.
+        # In Mathics3, the result in  "fish", but WL gives "5".
+        # This shows that WMA evaluates certain symbols differently.
 
         def rules():
             rules_names = set()
@@ -1312,7 +1323,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 else:
                     return result, True
 
-        # Step 7: If we are here, is because we didn't find any rule that matches with the expression.
+        # Step 7: If we are here, is because we didn't find any rule that
+        # matches the expression.
 
         dirty_elements = None
 
@@ -1327,12 +1339,14 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             new = Expression(head)
             new.elements = dirty_elements
 
-        # Step 8: Update the cache. Return the new compound Expression and indicate that no further evaluation is needed.
+        # Step 8: Update the cache. Return the new compound Expression and
+        #        indicate that no further evaluation is needed.
         new._timestamp_cache(evaluation)
         return new, False
 
     #  Now, let's see how much take each step for certain typical expressions:
-    #  (assuming that "F" and "a1", ... "a100" are undefined symbols, and n0->0, n1->1,..., n99->99)
+    #  (assuming that "F" and "a1", ... "a100" are undefined symbols, and
+    #  n0->0, n1->1,..., n99->99)
     #
     #  Expr1: to_expression("F", 1)                       (trivial evaluation to a short expression)
     #  Expr2: to_expression("F", 0, 1, 2, .... 99)        (trivial evaluation to a long expression, with just numbers)
@@ -1573,7 +1587,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             )
             new_applied[0] = new_applied[0] or applied
             if not applied and options["heads"]:
-                # heads in Replace are treated at the level of the arguments, i.e. level + 1
+                # heads in Replace are treated at the level of the arguments,
+                # i.e. level + 1
                 head, applied = expr._head.do_apply_rules(
                     rules, evaluation, level + 1, options
                 )
@@ -1585,10 +1600,14 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         self, vars, options=None, in_scoping=True, in_function=True
     ) -> "Expression":
         """
-        Replace the symbols in the expression by the expressions given in the vars dictionary.
-        in_scoping: if `False`, avoid to replace those symbols that are declared internal to the scope.
-        in_function: if `True`, and the Expression is of the form Function[{args},body], changes the names of the args
-        to avoid replacing them.
+        Replace the symbols in the expression by the expressions given
+        in the vars dictionary.
+
+        in_scoping: if `False`, do not replace those symbols that are
+                    declared internal to the scope.
+
+        in_function: if `True`, and the Expression is of the form Function[{args},body],
+                     change the names of the args instead of replacing them.
         """
         from mathics.builtin.scoping import get_scoping_vars
         from mathics.core.list import ListExpression
@@ -1847,11 +1866,13 @@ def structure(head, origins, evaluation, structure_cache=None):
 
 
 def atom_list_constructor(evaluation, head, *atom_names):
-    # if we encounter an Expression that consists wholly of atoms and those atoms (and the
-    # expression's head) have no rules associated with them, we can speed up evaluation.
+    # If we encounter an Expression that consists wholly of atoms and those
+    # atoms (and the expression's head) have no rules associated with them, we
+    # can speed up evaluation.
 
-    # note that you may use a constructor constructed via atom_list_constructor() only as
-    # long as the evaluation's Definitions are guaranteed to not change.
+    # Note that you may use a constructor constructed via
+    # atom_list_constructor() only as long as the evaluation's Definitions are
+    # guaranteed to not change.
 
     if not _is_neutral_head(head, None, evaluation) or any(
         not atom for atom in atom_names
@@ -1900,7 +1921,8 @@ def convert_expression_elements(
 
     """
 
-    # All of the properties start out optimistic (True) and are reset when that proves wrong.
+    # All of the properties start out optimistic (True) and are reset when that
+    # proves wrong.
     elements_properties = ElementsProperties(True, True, True)
 
     is_literal = True

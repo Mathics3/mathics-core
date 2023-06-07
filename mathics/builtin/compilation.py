@@ -7,9 +7,6 @@ When LLVM and Python libraries are available, compilation \
 produces LLVM code.
 """
 
-# This tells documentation how to sort this module
-sort_order = "mathics.builtin.code-compilation"
-
 import ctypes
 from types import FunctionType
 
@@ -27,8 +24,12 @@ from mathics.core.convert.function import (
 from mathics.core.convert.python import from_python
 from mathics.core.element import ImmutableValueMixin
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression, SymbolCompiledFunction
+from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
+from mathics.core.systemsymbols import SymbolCompiledFunction
+
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.code-compilation"
 
 
 class Compile(Builtin):

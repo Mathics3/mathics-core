@@ -148,7 +148,7 @@ class KeyComparable:
     # FIXME: return type should be a specific kind of Tuple, not a list.
     # FIXME: Describe sensible, and easy to follow rules by which one
     #        can create the kind of tuple for some new kind of element.
-    def get_sort_key(self) -> list:
+    def get_sort_key(self, pattern_sort: bool) -> tuple:
         """
         This returns a tuple in a way that
         it can be used to compare in expressions.
@@ -271,6 +271,13 @@ class BaseElement(KeyComparable):
         return A_NO_ATTRIBUTES
 
     def get_head_name(self):
+        """
+        All elements have a "Head" whether or not the element is compount.
+        The Head of an Atom is its type. The Head of an S-expression is
+        its function name.
+
+        Each class must define its own get_head_name.
+        """
         raise NotImplementedError
 
     # FIXME: this behavior of defining a specific default implementation
