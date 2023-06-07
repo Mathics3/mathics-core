@@ -58,7 +58,7 @@ def print_and_log(*args):
 
 
 def compare(result, wanted) -> bool:
-    if result == wanted:
+    if wanted == "..." or result == wanted:
         return True
 
     if result is None or wanted is None:
@@ -67,8 +67,10 @@ def compare(result, wanted) -> bool:
     wanted = wanted.splitlines()
     if result == [] and wanted == ["#<--#"]:
         return True
+
     if len(result) != len(wanted):
         return False
+
     for r, w in zip(result, wanted):
         wanted_re = re.escape(w.strip())
         wanted_re = wanted_re.replace("\\.\\.\\.", ".*?")
