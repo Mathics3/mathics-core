@@ -46,6 +46,10 @@ class PythonCProfileEvaluation(Builtin):
                 result = expr.evaluate(evaluation)
                 stats = pstats.Stats(pr, stream=textstream)
             stats.strip_dirs().sort_stats(-1).print_stats()
+            # TODO: convert the string (or the statistics)
+            # into something like a WL Table, by splitting the
+            # rows and the columns. By now, just a string
+            # is returned.
             profile_result = from_python(textstream.getvalue())
         else:
             result = expr.evaluate(evaluation)
