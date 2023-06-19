@@ -275,6 +275,7 @@ class ComplexExpand(SympyFunction):
     sympy_name = "expand"
 
     def eval(self, expr, evaluation: Evaluation):
+        "ComplexExpand[expr_]"
         return eval_ComplexExpand(expr, ListExpression())
 
     def eval_with_complex_vars(self, expr, vars, evaluation: Evaluation):
