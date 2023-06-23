@@ -9,16 +9,14 @@ import numpy
 import PIL
 
 from mathics.builtin.base import Builtin, String
-from mathics.builtin.image.base import Image, _SkimageBuiltin
+from mathics.builtin.image.base import Image, skimage_requires
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolNull
-from mathics.core.systemsymbols import SymbolRule
+from mathics.core.systemsymbols import SymbolFailed, SymbolRule
 from mathics.eval.image import extract_exif
-
-_skimage_requires = ("skimage", "scipy", "matplotlib", "networkx")
 
 # The following classes are used to allow inclusion of
 # Builtin Functions only when certain Python packages
@@ -46,7 +44,8 @@ class ImageExport(Builtin):
             expr.pil().save(path.value)
             return SymbolNull
         else:
-            return evaluation.message("ImageExport", "noimage")
+            evaluation.message("ImageExport", "noimage")
+            return
 
 
 class ImageImport(Builtin):
@@ -65,15 +64,28 @@ class ImageImport(Builtin):
      = -Image-
     >> Import["ExampleData/moon.tif"]
      = -Image-
-    >> Import["ExampleData/lena.tif"]
+    >> Import["ExampleData/hedy.tif"]
      = -Image-
     """
+
+    messages = {
+        "infer": "Cannot infer format of file `1`.",
+        "imgmisc": "PIL error: `1`.",
+    }
 
     no_doc = True
 
     def eval(self, path: String, evaluation: Evaluation):
         """ImageImport[path_String]"""
-        pillow = PIL.Image.open(path.value)
+        try:
+            pillow = PIL.Image.open(path.value)
+        except PIL.UnidentifiedImageError:
+            evaluation.message("ImageImport", "infer", path)
+            return SymbolFailed
+        except Exception as e:
+            evaluation.message("ImageImport", "imgmisc", str(e))
+            return SymbolFailed
+
         pixels = numpy.asarray(pillow)
         is_rgb = len(pixels.shape) >= 3 and pixels.shape[2] >= 3
         options_from_exif = extract_exif(pillow, evaluation)
@@ -95,11 +107,13 @@ class RandomImage(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/RandomImage.html</url>
 
     <dl>
-    <dt>'RandomImage[$max$]'
+      <dt>'RandomImage[$max$]'
       <dd>creates an image of random pixels with values 0 to $max$.
-    <dt>'RandomImage[{$min$, $max$}]'
+
+      <dt>'RandomImage[{$min$, $max$}]'
       <dd>creates an image of random pixels with values $min$ to $max$.
-    <dt>'RandomImage[..., $size$]'
+
+      <dt>'RandomImage[..., $size$]'
       <dd>creates an image of the given $size$.
     </dl>
 
@@ -145,7 +159,8 @@ class RandomImage(Builtin):
             cs = color_space.get_string_value()
         size = [w.value, h.value]
         if size[0] <= 0 or size[1] <= 0:
-            return evaluation.message("RandomImage", "bddim", from_python(size))
+            evaluation.message("RandomImage", "bddim", from_python(size))
+            return
         minrange, maxrange = minval.round_to_float(), maxval.round_to_float()
 
         if cs == "Grayscale":
@@ -158,13 +173,13 @@ class RandomImage(Builtin):
                 + minrange
             )
         else:
-            return evaluation.message("RandomImage", "imgcstype", color_space)
+            evaluation.message("RandomImage", "imgcstype", color_space)
+            return
         return Image(data, cs)
 
 
-class EdgeDetect(_SkimageBuiltin):
+class EdgeDetect(Builtin):
     """
-
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/EdgeDetect.html</url>
@@ -174,16 +189,18 @@ class EdgeDetect(_SkimageBuiltin):
       <dd>returns an image showing the edges in $image$.
     </dl>
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> EdgeDetect[lena]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> EdgeDetect[hedy]
      = -Image-
-    >> EdgeDetect[lena, 5]
+    >> EdgeDetect[hedy, 5]
      = -Image-
-    >> EdgeDetect[lena, 4, 0.5]
+    >> EdgeDetect[hedy, 4, 0.5]
      = -Image-
     """
 
     summary_text = "detect edges in an image using Canny and other methods"
+    requires = skimage_requires
+
     rules = {
         "EdgeDetect[i_Image]": "EdgeDetect[i, 2, 0.2]",
         "EdgeDetect[i_Image, r_?RealNumberQ]": "EdgeDetect[i, r, 0.2]",
@@ -213,9 +230,17 @@ class TextRecognize(Builtin):
     https://reference.wolfram.com/language/ref/TextRecognize.html</url>
 
     <dl>
-      <dt>'TextRecognize[{$image$}]'
-      <dd>Recognizes text in $image$ and returns it as string.
+      <dt>'TextRecognize[$image$]'
+      <dd>Recognizes text in $image$ and returns it as a 'String'.
     </dl>
+
+    >> textimage = Import["ExampleData/TextRecognize.png"]
+     = -Image-
+
+    >> TextRecognize[textimage]
+     = TextRecognize[ image]
+     .
+     . Recognizes text in image and returns it as a String.
     """
 
     messages = {
@@ -226,7 +251,7 @@ class TextRecognize(Builtin):
 
     options = {"Language": '"English"'}
 
-    requires = "pyocr"
+    requires = ("pyocr",)
 
     summary_text = "recognize text in an image"
 

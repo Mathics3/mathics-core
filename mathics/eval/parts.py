@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
 """
-Algorithms to access and manipulate elements in nested lists / expressions
+Evaluation methods for accessing and manipulating elements in nested lists / expressions
 """
 
 from typing import List
 
-from mathics.core.atoms import Integer, Integer1
+from mathics.core.atoms import Integer
 from mathics.core.convert.expression import make_expression
 from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.exceptions import (
@@ -16,16 +16,16 @@ from mathics.core.exceptions import (
     PartRangeError,
 )
 from mathics.core.expression import Expression
+from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.subexpression import SubExpression
 from mathics.core.symbols import Atom, Symbol, SymbolList
-from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolInfinity
-
-SymbolNothing = Symbol("Nothing")
+from mathics.core.systemsymbols import SymbolInfinity, SymbolNothing
+from mathics.eval.patterns import Matcher
 
 
 def get_part(expression: BaseElement, indices: List[int]) -> BaseElement:
-    """Extract part of ``expression`` specified by ``indicies`` and
+    """Extract part of ``expression`` specified by ``indices`` and
     return that.
     """
 
@@ -274,7 +274,7 @@ def _list_parts(exprs, selectors, evaluation):
                 yield unwrap(picked)
 
 
-def _parts(expr, selectors, evaluation):
+def parts(expr, selectors, evaluation) -> list:
     """
     Select from the `Expression` expr those elements indicated by
     the `selectors`.
@@ -313,7 +313,7 @@ def walk_parts(list_of_list, indices, evaluation, assign_rhs=None):
         return result
     else:
         try:
-            result = _parts(walk_list, _part_selectors(indices), evaluation)
+            result = parts(walk_list, _part_selectors(indices), evaluation)
         except MessageException as e:
             e.message(evaluation)
             return False
@@ -391,7 +391,7 @@ def python_levelspec(levelspec):
     def value_to_level(expr):
         value = expr.get_int_value()
         if value is None:
-            if expr == Expression(SymbolDirectedInfinity, Integer1):
+            if expr.sameQ(MATHICS3_INFINITY):
                 return None
             else:
                 raise InvalidLevelspecError
@@ -549,13 +549,16 @@ def deletecases_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
     """
     This function walks the expression `expr` and deleting occurrencies of `pattern`
 
-    If levelspec specifies a number, only those positions with  `levelspec` "coordinates" are return. By default, it just return occurences in the first level.
+    If levelspec specifies a number, only those positions with
+    `levelspec` "coordinates" are return. By default, it just return
+    occurrences in the first level.
 
-    If a tuple (nmin, nmax) is provided, it just return those occurences with a number of "coordinates" between nmin and nmax.
-    n indicates the number of occurrences to return. By default, it returns all the occurences.
+    If a tuple (nmin, nmax) is provided, it just return those
+    occurrences with a number of "coordinates" between nmin and nmax.
+    n indicates the number of occurrences to return. By default, it
+    returns all the occurrences.
     """
     nothing = SymbolNothing
-    from mathics.builtin.patterns import Matcher
 
     match = Matcher(pattern)
     match = match.match
@@ -617,12 +620,16 @@ def deletecases_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
 def find_matching_indices_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
     """
     This function walks the expression `expr` looking for a pattern `pattern`
-    and returns the positions of each occurence.
+    and returns the positions of each occurrence.
 
-    If levelspec specifies a number, only those positions with  `levelspec` "coordinates" are return. By default, it just return occurences in the first level.
+    If levelspec specifies a number, only those positions with
+    `levelspec` "coordinates" are return. By default, it just return
+    occurrences in the first level.
 
-    If a tuple (nmin, nmax) is provided, it just return those occurences with a number of "coordinates" between nmin and nmax.
-    n indicates the number of occurrences to return. By default, it returns all the occurences.
+    If a tuple (nmin, nmax) is provided, it just return those
+    occurrences with a number of "coordinates" between nmin and nmax.
+    n indicates the number of occurrences to return. By default, it
+    returns all the occurrences.
     """
     from mathics.builtin.patterns import Matcher
 

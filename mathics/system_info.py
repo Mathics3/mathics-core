@@ -6,7 +6,8 @@ import sys
 
 import mathics.builtin.atomic.numbers as numeric
 import mathics.builtin.datentime as datentime
-import mathics.builtin.files_io.filesystem as filesystem
+import mathics.builtin.directories.system_directories as system_directories
+import mathics.builtin.directories.user_directories as user_directories
 import mathics.builtin.system as msystem
 from mathics.core.evaluation import Evaluation
 
@@ -37,19 +38,19 @@ def mathics_system_info(defs):
 
     evaluation = Evaluation(defs, output=None)
     return {
-        "$BaseDirectory": eval(filesystem.BaseDirectory_),
-        "$HomeDirectory": eval(filesystem.HomeDirectory),
-        "$InstallationDirectory": eval(filesystem.InstallationDirectory),
+        "$BaseDirectory": eval(system_directories.BaseDirectory_),
+        "$HomeDirectory": eval(user_directories.HomeDirectory),
+        "$InstallationDirectory": eval(system_directories.InstallationDirectory),
         "$Machine": sys.platform,
         "$MachineName": platform.uname().node,
         "$ProcessID": os.getppid(),
         "$ProcessorType": platform.machine(),
         "$PythonImplementation": python_implementation(),
-        "$RootDirectory": eval(filesystem.RootDirectory),
+        "$RootDirectory": eval(system_directories.RootDirectory),
         "$SystemID": sys.platform,
         "$SystemMemory": eval(msystem.SystemMemory),
         "$SystemTimeZone": eval(datentime.SystemTimeZone),
-        "$TemporaryDirectory": eval(filesystem.TemporaryDirectory),
+        "$TemporaryDirectory": eval(system_directories.TemporaryDirectory),
         "$UserName": eval(msystem.UserName),
         "MachinePrecision": eval(numeric.MachinePrecision_),
         "MemoryAvailable[]": eval(msystem.MemoryAvailable, needs_head=False),

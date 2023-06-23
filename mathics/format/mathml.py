@@ -131,6 +131,8 @@ def gridbox(self, elements=None, **box_options) -> str:
         elements = self._elements
     evaluation = box_options.get("evaluation")
     items, options = self.get_array(elements, evaluation)
+    num_fields = max(len(item) if isinstance(item, tuple) else 1 for item in items)
+
     attrs = {}
     column_alignments = options["System`ColumnAlignments"].get_name()
     try:
@@ -148,10 +150,11 @@ def gridbox(self, elements=None, **box_options) -> str:
     new_box_options["inside_list"] = True
     for row in items:
         result += "<mtr>"
-        for item in row:
-            result += (
-                f"<mtd {joined_attrs}>{boxes_to_mathml(item, **new_box_options)}</mtd>"
-            )
+        if isinstance(row, tuple):
+            for item in row:
+                result += f"<mtd {joined_attrs}>{boxes_to_mathml(item, **new_box_options)}</mtd>"
+        else:
+            result += f"<mtd {joined_attrs} columnspan={num_fields}>{boxes_to_mathml(row, **new_box_options)}</mtd>"
         result += "</mtr>\n"
     result += "</mtable>"
     # print(f"gridbox: {result}")

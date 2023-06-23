@@ -7,9 +7,12 @@ import PIL
 
 from mathics.builtin.base import Builtin
 from mathics.builtin.image.base import Image
-from mathics.core.atoms import Integer
+from mathics.core.atoms import Integer, is_integer_rational_or_real
 from mathics.core.evaluation import Evaluation
 from mathics.eval.image import convolve, matrix_to_numpy, pixels_as_float
+
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.image.image-filters"
 
 
 class _PillowImageFilter(Builtin):
@@ -32,18 +35,38 @@ class GaussianFilter(Builtin):
       <dd>blurs $image$ using a Gaussian blur filter of radius $r$.
     </dl>
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> GaussianFilter[lena, 2.5]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> GaussianFilter[hedy, 2.5]
      = -Image-
     """
 
     summary_text = "apply a gaussian filter to an image"
-    messages = {"only3": "GaussianFilter only supports up to three channels."}
+    messages = {
+        "arg1": (
+            "The first argument `1` is not an image."
+            "or a non-empty list of non-complex numbers"
+        ),
+        "bdrad": (
+            "The radius specification `1` must be a non-complex number "
+            "or a non-empty list of non-complex numbers"
+        ),
+        "only3": "GaussianFilter only supports up to three channels.",
+    }
 
-    def eval_radius(self, image, radius, evaluation: Evaluation):
-        "GaussianFilter[image_Image, radius_?RealNumberQ]"
+    def eval(self, image, radius, evaluation: Evaluation):
+        "GaussianFilter[image_Image, radius_]"
+
+        if not isinstance(image, Image):
+            evaluation.message(self.get_name(), "arg1", image)
+            return
+
+        if not is_integer_rational_or_real(radius):
+            evaluation.message(self.get_name(), "bdrad", radius)
+            return
+
         if len(image.pixels.shape) > 2 and image.pixels.shape[2] > 3:
-            return evaluation.message("GaussianFilter", "only3")
+            evaluation.message("GaussianFilter", "only3")
+            return
         else:
             f = PIL.ImageFilter.GaussianBlur(radius.round_to_float())
             return image.filter(lambda im: im.filter(f))
@@ -60,12 +83,12 @@ class ImageConvolve(Builtin):
       <dd>Computes the convolution of $image$ using $kernel$.
     </dl>
 
-    >> img = Import["ExampleData/lena.tif"];
-    >> ImageConvolve[img, DiamondMatrix[5] / 61]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> ImageConvolve[hedy, DiamondMatrix[5] / 61]
      = -Image-
-    >> ImageConvolve[img, DiskMatrix[5] / 97]
+    >> ImageConvolve[hedy, DiskMatrix[5] / 97]
      = -Image-
-    >> ImageConvolve[img, BoxMatrix[5] / 121]
+    >> ImageConvolve[hedy, BoxMatrix[5] / 121]
      = -Image-
     """
 
@@ -95,8 +118,8 @@ class MaxFilter(_PillowImageFilter):
           picks the largest value in the filter's area.
     </dl>
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> MaxFilter[lena, 5]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> MaxFilter[hedy, 5]
      = -Image-
     """
 
@@ -119,8 +142,8 @@ class MedianFilter(_PillowImageFilter):
           picks the median value in the filter's area.
     </dl>
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> MedianFilter[lena, 5]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> MedianFilter[hedy, 5]
      = -Image-
     """
 
@@ -143,8 +166,8 @@ class MinFilter(_PillowImageFilter):
           picks the smallest value in the filter's area.
     </dl>
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> MinFilter[lena, 5]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> MinFilter[hedy, 5]
      = -Image-
     """
 

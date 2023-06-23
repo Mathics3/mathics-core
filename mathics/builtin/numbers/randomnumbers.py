@@ -8,9 +8,13 @@ Random numbers are generated using the Mersenne Twister.
 
 import binascii
 import hashlib
+import os
 import pickle
+import time
 from functools import reduce
 from operator import mul as operator_mul
+
+import numpy
 
 from mathics.builtin.base import Builtin
 from mathics.builtin.numpy_utils import instantiate_elements, stack
@@ -25,48 +29,24 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.nevaluator import eval_N
 
-try:
-    import numpy
+# mathics.builtin.__init__.py module scanning logic gets confused
+# if we assign numpy.random.get_state to a variable here. so we
+# use defs to safely wrap the offending objects.
 
-    _numpy = True
-except ImportError:  # no numpy?
-    _numpy = False
-    import random
 
-if _numpy:
-    import os
-    import time
+def random_get_state():
+    return numpy.random.get_state()
 
-    # mathics.builtin.__init__.py module scanning logic gets confused
-    # if we assign numpy.random.get_state to a variable here. so we
-    # use defs to safely wrap the offending objects.
 
-    def random_get_state():
-        return numpy.random.get_state()
+def random_set_state(state):
+    return numpy.random.set_state(state)
 
-    def random_set_state(state):
-        return numpy.random.set_state(state)
 
-    def random_seed(x=None):
-        if x is None:  # numpy does not know how to seed itself randomly
-            x = int(time.time() * 1000) ^ hash(os.urandom(16))
-        # for numpy, seed must be convertible to 32 bit unsigned integer
-        numpy.random.seed(abs(x) & 0xFFFFFFFF)
-
-else:
-    random_get_state = random.getstate
-    random_set_state = random.setstate
-    random_seed = random.seed
-
-    def _create_array(size, f):
-        # creates an array of the shape 'size' with each element being
-        # generated through a call to 'f' (which gives a random number
-        # in our case).
-
-        if size is None or len(size) == 0:
-            return f()
-        else:
-            return [_create_array(size[1:], f) for _ in range(size[0])]
+def random_seed(x=None):
+    if x is None:  # numpy does not know how to seed itself randomly
+        x = int(time.time() * 1000) ^ hash(os.urandom(16))
+    # for numpy, seed must be convertible to 32 bit unsigned integer
+    numpy.random.seed(abs(x) & 0xFFFFFFFF)
 
 
 def get_random_state():
@@ -108,21 +88,7 @@ class _RandomEnvBase:
         random_seed(x)
 
 
-class NoNumPyRandomEnv(_RandomEnvBase):
-    def randint(self, a, b, size=None):
-        return _create_array(size, lambda: random.randint(a, b))
-
-    def randreal(self, a, b, size=None):
-        return _create_array(size, lambda: random.uniform(a, b))
-
-    def randchoice(self, n, size, replace, p):
-        if replace:
-            return random.choices([i for i in range(n)], weights=p, k=size)
-        else:
-            return random.sample([i for i in range(n)], size)
-
-
-class NumPyRandomEnv(_RandomEnvBase):
+class RandomEnv(_RandomEnvBase):
     def randint(self, a, b, size=None):
         # return numpy.random.random_integers(a, b, size)
         return numpy.random.randint(a, b + 1, size)
@@ -133,49 +99,6 @@ class NumPyRandomEnv(_RandomEnvBase):
 
     def randchoice(self, n, size, replace, p):
         return numpy.random.choice(n, size=size, replace=replace, p=p)
-
-
-if _numpy:
-    RandomEnv = NumPyRandomEnv
-else:
-    RandomEnv = NoNumPyRandomEnv
-
-
-class RandomState(Builtin):
-    """
-    <url>:WMA: https://reference.wolfram.com/language/ref/RandomState.html</url>
-    <dl>
-      <dt>'$RandomState'
-      <dd>is a long number representing the internal state of the \
-          pseudo-random number generator.
-    </dl>
-
-    >> Mod[$RandomState, 10^100]
-     = ...
-    >> IntegerLength[$RandomState]
-     = ...
-
-    So far, it is not possible to assign values to '$RandomState'.
-    >> $RandomState = 42
-     : It is not possible to change the random state.
-     = 42
-    Not even to its own value:
-    >> $RandomState = $RandomState;
-     : It is not possible to change the random state.
-    """
-
-    name = "$RandomState"
-    messages = {
-        "rndst": "It is not possible to change the random state.",
-        # "`1` is not a valid random state.",
-    }
-    summary_text = "internal state of the (pseudo)random number generator"
-
-    def eval(self, evaluation):
-        "$RandomState"
-
-        with RandomEnv(evaluation):
-            return Integer(get_random_state())
 
 
 class _RandomBase(Builtin):
@@ -201,22 +124,29 @@ class _RandomBase(Builtin):
             not all(isinstance(i, int) and i >= 0 for i in py_size)
         ):
             expr = Expression(Symbol(self.get_name()), domain, size)
-            return evaluation.message(self.get_name(), "array", size, expr), None
+            evaluation.message(self.get_name(), "array", size, expr), None
+            return
 
         return False, py_size
 
 
 class _RandomSelection(_RandomBase):
-    # implementation note: weights are clipped to numpy floats. this might be different from MMA
-    # where weights might be handled with full dynamic precision support through the whole computation.
-    # we try to limit the error by normalizing weights with full precision, and then clipping to float.
-    # since weights are probabilities into a finite set, this should not make a difference.
+    # Implementation note: weights are clipped to numpy floats. this
+    # might be different from MMA where weights might be handled with
+    # full dynamic precision support through the whole computation.
+    # we try to limit the error by normalizing weights with full
+    # precision, and then clipping to float.  since weights are
+    # probabilities into a finite set, this should not make a
+    # difference.
 
     messages = {
-        "wghtv": "The weights on the left-hand side of `1` has to be a list of non-negative numbers "
-        + "with the same length as the list of items on the right-hand side.",
-        "lrwl": "`1` has to be a list of items or a rule of the form weights -> choices.",
-        "smplen": "RandomSample cannot choose `1` samples, as this are more samples than there are in `2`. "
+        "wghtv": "The weights on the left-hand side of `1` has to be a list of "
+        "non-negative numbers with the same length as the list of items "
+        "on the right-hand side.",
+        "lrwl": "`1` has to be a list of items or a rule of the form "
+        "weights -> choices.",
+        "smplen": "RandomSample cannot choose `1` samples, as this are more samples "
+        "than there are in `2`. "
         + "Use RandomChoice to choose items from a set with replacing.",
     }
 
@@ -230,19 +160,22 @@ class _RandomSelection(_RandomBase):
             if domain.elements[1].get_head_name() != "System`List" or len(
                 py_weights
             ) != len(elements):
-                return evaluation.message(self.get_name(), "wghtv", domain)
+                evaluation.message(self.get_name(), "wghtv", domain)
+                return
         elif domain.get_head_name() == "System`List":  # only elements
             py_weights = None
             elements = domain.elements
         else:
-            return evaluation.message(self.get_name(), "lrwl", domain)
+            evaluation.message(self.get_name(), "lrwl", domain)
+            return
         err, py_size = self._size_to_python(domain, size, evaluation)
         if py_size is None:
             return err
         if not self._replace:  # i.e. RandomSample?
             n_chosen = reduce(operator_mul, py_size, 1)
             if len(elements) < n_chosen:
-                return evaluation.message("smplen", size, domain), None
+                evaluation.message("smplen", size, domain), None
+                return
         with RandomEnv(evaluation) as rand:
             return instantiate_elements(
                 rand.randchoice(
@@ -267,33 +200,41 @@ class _RandomSelection(_RandomBase):
             if norm_weights is None or not all(
                 w.is_numeric(evaluation) for w in norm_weights.elements
             ):
-                return evaluation.message(self.get_name(), "wghtv", weights), None
+                evaluation.message(self.get_name(), "wghtv", weights), None
+                return
             weights = norm_weights
 
         py_weights = eval_N(weights, evaluation).to_python() if is_proper_spec else None
         if (py_weights is None) or (
             not all(isinstance(w, (int, float)) and w >= 0 for w in py_weights)
         ):
-            return evaluation.message(self.get_name(), "wghtv", weights), None
+            evaluation.message(self.get_name(), "wghtv", weights), None
+            return
 
         return False, py_weights
 
 
+# FIXME: This class should be removed and put in a Mathematica V.5 compatibility package
 class Random(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/Random.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Random.html</url>
     <dl>
       <dt>'Random[]'
       <dd>gives a uniformly distributed pseudorandom Real number in the range 0 to 1.
 
       <dt>'Random[$type$, $range$]'
-      <dd>gives a uniformly distributed pseudorandom number of the type $type$, in the specified interval $range$. Possible types are 'Integer', 'Real' or 'Complex'.
+      <dd>gives a uniformly distributed pseudorandom number of the type \
+          $type$, in the specified interval $range$. Possible types are \
+          'Integer', 'Real' or 'Complex'.
     </dl>
     Legacy function. Superseded by RandomReal, RandomInteger and RandomComplex.
 
     """
 
     rules = {
+        "Random[]": "RandomReal[0, 1]",
         "Random[Integer]": "RandomInteger[]",
         "Random[Integer,  zmax_Integer]": "RandomInteger[zmax]",
         "Random[Integer, {zmin_Integer, zmax_Integer}]": "RandomInteger[{zmin, zmax}]",
@@ -308,18 +249,81 @@ class Random(Builtin):
     summary_text = "pick a random number"
 
 
+class RandomChoice(_RandomSelection):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RandomChoice.html</url>
+
+    <dl>
+
+      <dt>'RandomChoice[$items$]'
+      <dd>randomly picks one item from $items$.
+
+      <dt>'RandomChoice[$items$, $n$]'
+      <dd>randomly picks $n$ items from $items$. Each pick in the $n$ picks happens \
+          from the given set of $items$, so each item can be picked any number of times.
+
+      <dt>'RandomChoice[$items$, {$n1$, $n2$, ...}]'
+      <dd>randomly picks items from $items$ and arranges the picked items in the \
+          nested list structure described by {$n1$, $n2$, ...}.
+
+      <dt>'RandomChoice[$weights$ -> $items$, $n$]'
+      <dd>randomly picks $n$ items from $items$ and uses the corresponding numeric \
+          values in $weights$ to determine how probable it is for each item in $items$ \
+          to get picked (in the long run, items with higher weights will get picked \
+          more often than ones with lower weight).
+
+      <dt>'RandomChoice[$weights$ -> $items$]'
+      <dd>randomly picks one items from $items$ using weights $weights$.
+
+      <dt>'RandomChoice[$weights$ -> $items$, {$n1$, $n2$, ...}]'
+      <dd>randomly picks a structured list of items from $items$ using weights \
+          $weights$.
+    </dl>
+
+    Note: 'SeedRandom' is used below so we get repeatable "random" numbers that we \
+    can test.
+
+    >> SeedRandom[42]
+    >> RandomChoice[{a, b, c}]
+     = {c}
+    >> SeedRandom[42] (* Set for repeatable randomness *)
+    >> RandomChoice[{a, b, c}, 20]
+     = {c, a, c, c, a, a, c, b, c, c, c, c, a, c, b, a, b, b, b, b}
+    >> SeedRandom[42]
+    >> RandomChoice[{"a", {1, 2}, x, {}}, 10]
+     = {x, {}, a, x, x, {}, a, a, x, {1, 2}}
+    >> SeedRandom[42]
+    >> RandomChoice[{a, b, c}, {5, 2}]
+     = {{c, a}, {c, c}, {a, a}, {c, b}, {c, c}}
+    >> SeedRandom[42]
+    >> RandomChoice[{1, 100, 5} -> {a, b, c}, 20]
+     = {b, b, b, b, b, b, b, b, b, b, b, c, b, b, b, b, b, b, b, b}
+    """
+
+    _replace = True
+    summary_text = "pick items randomly from a given list"
+
+
 class RandomComplex(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/RandomComplex.html</url>)
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RandomComplex.html</url>
+
     <dl>
       <dt>'RandomComplex[{$z_min$, $z_max$}]'
-      <dd>yields a pseudorandom complex number in the rectangle with complex corners $z_min$ and $z_max$.
+      <dd>yields a pseudorandom complex number in the rectangle with complex corners \
+          $z_min$ and $z_max$.
 
       <dt>'RandomComplex[$z_max$]'
-      <dd>yields a pseudorandom complex number in the rectangle with corners at the origin and at $z_max$.
+      <dd>yields a pseudorandom complex number in the rectangle with corners at the \
+          origin and at $z_max$.
 
       <dt>'RandomComplex[]'
-      <dd>yields a pseudorandom complex number with real and imaginary parts from 0 to 1.
+      <dd>yields a pseudorandom complex number with real and imaginary parts from 0 \
+          to 1.
 
       <dt>'RandomComplex[$range$, $n$]'
       <dd>gives a list of $n$ pseudorandom complex numbers.
@@ -397,9 +401,8 @@ class RandomComplex(Builtin):
             self.to_complex(zmax, evaluation),
         )
         if min_value is None or max_value is None:
-            return evaluation.message(
-                "RandomComplex", "unifr", ListExpression(zmin, zmax)
-            )
+            evaluation.message("RandomComplex", "unifr", ListExpression(zmin, zmax))
+            return
 
         with RandomEnv(evaluation) as rand:
             real = Real(rand.randreal(min_value.real, max_value.real))
@@ -415,16 +418,16 @@ class RandomComplex(Builtin):
             self.to_complex(zmax, evaluation),
         )
         if min_value is None or max_value is None:
-            return evaluation.message(
-                "RandomComplex", "unifr", ListExpression(zmin, zmax)
-            )
+            evaluation.message("RandomComplex", "unifr", ListExpression(zmin, zmax))
+            return
 
         py_ns = ns.to_python()
         if not isinstance(py_ns, list):
             py_ns = [py_ns]
 
         if not all([isinstance(i, int) and i >= 0 for i in py_ns]):
-            return evaluation.message("RandomComplex", "array", ns, expr)
+            evaluation.message("RandomComplex", "array", ns, expr)
+            return
 
         with RandomEnv(evaluation) as rand:
             real = rand.randreal(min_value.real, max_value.real, py_ns)
@@ -436,7 +439,9 @@ class RandomComplex(Builtin):
 
 class RandomInteger(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/RandomInteger.html</url>)
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RandomInteger.html</url>
     <dl>
       <dt>'RandomInteger[{$min$, $max$}]'
       <dd>yields a pseudorandom integer in the range from $min$ to \
@@ -494,9 +499,8 @@ class RandomInteger(Builtin):
         "RandomInteger[{rmin_, rmax_}]"
 
         if not isinstance(rmin, Integer) or not isinstance(rmax, Integer):
-            return evaluation.message(
-                "RandomInteger", "unifr", ListExpression(rmin, rmax)
-            )
+            evaluation.message("RandomInteger", "unifr", ListExpression(rmin, rmax))
+            return
         rmin, rmax = rmin.value, rmax.value
         with RandomEnv(evaluation) as rand:
             return Integer(rand.randint(rmin, rmax))
@@ -504,9 +508,8 @@ class RandomInteger(Builtin):
     def eval_list(self, rmin, rmax, ns, evaluation):
         "RandomInteger[{rmin_, rmax_}, ns_List]"
         if not isinstance(rmin, Integer) or not isinstance(rmax, Integer):
-            return evaluation.message(
-                "RandomInteger", "unifr", ListExpression(rmin, rmax)
-            )
+            evaluation.message("RandomInteger", "unifr", ListExpression(rmin, rmax))
+            return
         rmin, rmax = rmin.value, rmax.value
         result = ns.to_python()
 
@@ -516,7 +519,10 @@ class RandomInteger(Builtin):
 
 class RandomReal(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/RandomReal.html</url>)
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RandomReal.html</url>
+
     <dl>
       <dt>'RandomReal[{$min$, $max$}]'
       <dd>yields a pseudorandom real number in the range from $min$ to $max$.
@@ -579,7 +585,8 @@ class RandomReal(Builtin):
         if not (
             isinstance(xmin, (Real, Integer)) and isinstance(xmax, (Real, Integer))
         ):
-            return evaluation.message("RandomReal", "unifr", ListExpression(xmin, xmax))
+            evaluation.message("RandomReal", "unifr", ListExpression(xmin, xmax))
+            return
 
         min_value, max_value = xmin.to_python(), xmax.to_python()
 
@@ -592,14 +599,16 @@ class RandomReal(Builtin):
         if not (
             isinstance(xmin, (Real, Integer)) and isinstance(xmax, (Real, Integer))
         ):
-            return evaluation.message("RandomReal", "unifr", ListExpression(xmin, xmax))
+            evaluation.message("RandomReal", "unifr", ListExpression(xmin, xmax))
+            return
 
         min_value, max_value = xmin.to_python(), xmax.to_python()
         result = ns.to_python()
 
         if not all([isinstance(i, int) and i >= 0 for i in result]):
             expr = Expression(SymbolRandomReal, ListExpression(xmin, xmax), ns)
-            return evaluation.message("RandomReal", "array", expr, ns)
+            evaluation.message("RandomReal", "array", expr, ns)
+            return
 
         assert all([isinstance(i, int) for i in result])
 
@@ -609,9 +618,49 @@ class RandomReal(Builtin):
             )
 
 
+class RandomState(Builtin):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/RandomState.html</url>
+    <dl>
+      <dt>'$RandomState'
+      <dd>is a long number representing the internal state of the \
+          pseudo-random number generator.
+    </dl>
+
+    >> Mod[$RandomState, 10^100]
+     = ...
+    >> IntegerLength[$RandomState]
+     = ...
+
+    So far, it is not possible to assign values to '$RandomState'.
+    >> $RandomState = 42
+     : It is not possible to change the random state.
+     = 42
+    Not even to its own value:
+    >> $RandomState = $RandomState;
+     : It is not possible to change the random state.
+    """
+
+    name = "$RandomState"
+    messages = {
+        "rndst": "It is not possible to change the random state.",
+        # "`1` is not a valid random state.",
+    }
+    summary_text = "internal state of the (pseudo)random number generator"
+
+    def eval(self, evaluation):
+        "$RandomState"
+
+        with RandomEnv(evaluation):
+            return Integer(get_random_state())
+
+
 class SeedRandom(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/SeedRandom.html</url>)
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/SeedRandom.html</url>
     <dl>
       <dt>'SeedRandom[$n$]'
       <dd>resets the pseudorandom generator with seed $n$.
@@ -665,7 +714,8 @@ class SeedRandom(Builtin):
                 hashlib.md5(x.get_string_value().encode("utf8")).hexdigest(), 16
             )
         else:
-            return evaluation.message("SeedRandom", "seed", x)
+            evaluation.message("SeedRandom", "seed", x)
+            return
         with RandomEnv(evaluation) as rand:
             rand.seed(value)
         return SymbolNull
@@ -678,94 +728,39 @@ class SeedRandom(Builtin):
         return SymbolNull
 
 
-# If numpy is not in the system, the following classes are going to be redefined as None. flake8 complains about this.
-# What should happen here is that, or the classes be defined just if numpy is there, or to use a fallback native
-# implementation.
-
-
-class RandomChoice(_RandomSelection):
-    """
-    <url>:WMA: https://reference.wolfram.com/language/ref/RandomChoice.html</url>
-
-    <dl>
-
-      <dt>'RandomChoice[$items$]'
-      <dd>randomly picks one item from $items$.
-
-      <dt>'RandomChoice[$items$, $n$]'
-      <dd>randomly picks $n$ items from $items$. Each pick in the $n$ picks happens from the \
-        given set of $items$, so each item can be picked any number of times.
-
-      <dt>'RandomChoice[$items$, {$n1$, $n2$, ...}]'
-      <dd>randomly picks items from $items$ and arranges the picked items in the nested list \
-        structure described by {$n1$, $n2$, ...}.
-
-      <dt>'RandomChoice[$weights$ -> $items$, $n$]'
-      <dd>randomly picks $n$ items from $items$ and uses the corresponding numeric values in \
-        $weights$ to determine how probable it is for each item in $items$ to get picked (in the \
-        long run, items with higher weights will get picked more often than ones with lower weight).
-
-      <dt>'RandomChoice[$weights$ -> $items$]'
-      <dd>randomly picks one items from $items$ using weights $weights$.
-
-      <dt>'RandomChoice[$weights$ -> $items$, {$n1$, $n2$, ...}]'
-      <dd>randomly picks a structured list of items from $items$ using weights $weights$.
-    </dl>
-
-    Note: 'SeedRandom' is used below so we get repeatable "random" numbers that we can test.
-
-    >> SeedRandom[42]
-    >> RandomChoice[{a, b, c}]
-     = {c}
-    >> SeedRandom[42] (* Set for repeatable randomness *)
-    >> RandomChoice[{a, b, c}, 20]
-     = {c, a, c, c, a, a, c, b, c, c, c, c, a, c, b, a, b, b, b, b}
-    >> SeedRandom[42]
-    >> RandomChoice[{"a", {1, 2}, x, {}}, 10]
-     = {x, {}, a, x, x, {}, a, a, x, {1, 2}}
-    >> SeedRandom[42]
-    >> RandomChoice[{a, b, c}, {5, 2}]
-     = {{c, a}, {c, c}, {a, a}, {c, b}, {c, c}}
-    >> SeedRandom[42]
-    >> RandomChoice[{1, 100, 5} -> {a, b, c}, 20]
-     = {b, b, b, b, b, b, b, b, b, b, b, c, b, b, b, b, b, b, b, b}
-    """
-
-    _replace = True
-    summary_text = "pick items randomly from a given list"
-
-
 class RandomSample(_RandomSelection):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/RandomSample.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/RandomSample.html</url>
 
     <dl>
       <dt>'RandomSample[$items$]'
       <dd>randomly picks one item from $items$.
 
       <dt>'RandomSample[$items$, $n$]'
-      <dd>randomly picks $n$ items from $items$. Each pick in the $n$ picks happens after the \
-          previous items picked have been removed from $items$, so each item can be picked at most \
-         once.
+      <dd>randomly picks $n$ items from $items$. Each pick in the $n$ picks happens \
+          after the previous items picked have been removed from $items$, so each item \
+          can be picked at most once.
 
       <dt>'RandomSample[$items$, {$n1$, $n2$, ...}]'
-      <dd>randomly picks items from $items$ and arranges the picked items in the nested list \
-          structure described by {$n1$, $n2$, ...}. \
+      <dd>randomly picks items from $items$ and arranges the picked items in the \
+          nested list structure described by {$n1$, $n2$, ...}. \
           Each item gets picked at most once.
 
       <dt>'RandomSample[$weights$ -> $items$, $n$]'
-      <dd>randomly picks $n$ items from $items$ and uses the corresponding numeric values in \
-          $weights$ to determine how probable it is for each item in $items$ to get picked (in the \
-          long run, items with higher weights will get picked more often than ones with lower weight). \
-          Each item gets picked at most once.
+      <dd>randomly picks $n$ items from $items$ and uses the corresponding numeric \
+          values in $weights$ to determine how probable it is for each item in $items$ \
+          to get picked (in the long run, items with higher weights will get \
+          picked more often than ones with lower weight). Each item gets picked at\
+          most once.
 
       <dt>'RandomSample[$weights$ -> $items$]'
       <dd>randomly picks one items from $items$ using weights $weights$. \
           Each item gets picked at most once.
 
       <dt>'RandomSample[$weights$ -> $items$, {$n1$, $n2$, ...}]'
-      <dd>randomly picks a structured list of items from $items$ using weights $weights$. Each \
-          item gets picked at most once.
+      <dd>randomly picks a structured list of items from $items$ using weights $weights$.
+          Each item gets picked at most once.
     </dl>
 
     >> SeedRandom[42]
@@ -800,9 +795,3 @@ class RandomSample(_RandomSelection):
 
     _replace = False
     summary_text = "pick a sample at random from a list"
-
-
-if not _numpy:  # hide symbols from non-numpy envs
-    _RandomSelection = None
-    RandomChoice = None  # noqa
-    RandomSample = None  # noqa

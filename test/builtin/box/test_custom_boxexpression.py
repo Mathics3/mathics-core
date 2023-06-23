@@ -4,6 +4,7 @@ from mathics.builtin.base import Predefined
 from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.graphics import GRAPHICS_OPTIONS
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 
@@ -28,7 +29,7 @@ class CustomBoxExpression(BoxExpression):
     def boxes_to_tex(self, elements=None, **options):
         if not elements:
             elements = self.elements
-        return "CustomBoxExpression<<" + int(self.elements) + ">>"
+        return "CustomBoxExpression<<" + str(int(self.elements)) + ">>"
 
 
 class CustomAtom(Predefined):
@@ -41,7 +42,7 @@ class CustomAtom(Predefined):
         "N[System`CustomAtom]": "37",
     }
 
-    def apply_to_boxes(self, evaluation):
+    def eval_to_boxes(self, evaluation):
         "System`MakeBoxes[System`CustomAtom, StandardForm|TraditionalForm|OutputForm|InputForm]"
         return CustomBoxExpression(evaluation=evaluation)
 
@@ -60,7 +61,7 @@ class CustomGraphicsBox(BoxExpression):
     def to_expression(self):
         return Expression(SymbolCustomGraphicsBox, *self.elements)
 
-    def apply_box(self, expr, evaluation, options):
+    def eval_box(self, expr, evaluation: Evaluation, options: dict):
         """System`MakeBoxes[System`Graphics[System`expr_, System`OptionsPattern[System`Graphics]],
         System`StandardForm|System`TraditionalForm|System`OutputForm]"""
         instance = CustomGraphicsBox(*(expr.elements), evaluation=evaluation)
@@ -112,5 +113,5 @@ def test_custom_graphicsbox_constructor():
     formatted = session.format_result().boxes_to_mathml()
     assert (
         formatted
-        == "--custom graphics--: I should plot (<Expression: System`Circle[<ListExpression: (<Integer: 0>, <Integer: 0>)>, 1]>,) items"
+        == "--custom graphics--: I should plot (<Expression: <Symbol: System`Circle>[<ListExpression: (<Integer: 0>, <Integer: 0>)>, <Integer: 1>]>,) items"
     )

@@ -3,11 +3,9 @@
 
 Code compilation allows Mathics functions to be run faster.
 
-When LLVM and Python libraries are available, compilation produces LLVM code.
+When LLVM and Python libraries are available, compilation \
+produces LLVM code.
 """
-
-# This tells documentation how to sort this module
-sort_order = "mathics.builtin.code-compilation"
 
 import ctypes
 from types import FunctionType
@@ -25,8 +23,13 @@ from mathics.core.convert.function import (
 )
 from mathics.core.convert.python import from_python
 from mathics.core.element import ImmutableValueMixin
-from mathics.core.expression import Expression, SymbolCompiledFunction
+from mathics.core.evaluation import Evaluation
+from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
+from mathics.core.systemsymbols import SymbolCompiledFunction
+
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.code-compilation"
 
 
 class Compile(Builtin):
@@ -98,11 +101,12 @@ class Compile(Builtin):
     requires = ("llvmlite",)
     summary_text = "compile an expression"
 
-    def apply(self, vars, expr, evaluation):
+    def eval(self, vars, expr, evaluation: Evaluation):
         "Compile[vars_, expr_]"
 
         if not vars.has_form("List", None):
-            return evaluation.message("Compile", "invars")
+            evaluation.message("Compile", "invars")
+            return
 
         try:
             cfunc, args = expression_to_callable_and_args(
@@ -174,7 +178,7 @@ class CompiledCode(Atom, ImmutableValueMixin):
     def __hash__(self):
         return hash(("CompiledCode", ctypes.addressof(self.cfunc)))  # XXX hack
 
-    def atom_to_boxes(self, f, evaluation):
+    def atom_to_boxes(self, f, evaluation: Evaluation):
         return CompiledCodeBox(String(self.__str__()), evaluation=evaluation)
 
 
@@ -199,7 +203,7 @@ class CompiledFunction(Builtin):
     messages = {"argerr": "Invalid argument `1` should be Integer, Real or boolean."}
     summary_text = "A CompiledFunction object."
 
-    def apply(self, argnames, expr, code, args, evaluation):
+    def eval(self, argnames, expr, code, args, evaluation: Evaluation):
         "CompiledFunction[argnames_, expr_, code_CompiledCode][args__]"
 
         argseq = args.get_sequence()
@@ -220,5 +224,6 @@ class CompiledFunction(Builtin):
         try:
             result = code.cfunc(*py_args)
         except (TypeError, ctypes.ArgumentError):
-            return evaluation.message("CompiledFunction", "argerr", args)
+            evaluation.message("CompiledFunction", "argerr", args)
+            return
         return from_python(result)

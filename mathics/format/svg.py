@@ -250,10 +250,24 @@ def filled_curve_box(self, **options):
 add_conversion_fn(FilledCurveBox, filled_curve_box)
 
 
-def graphics_box(self, leaves=None, **options) -> str:
+def graphics_box(self, elements=None, **options: dict) -> str:
+    """
+    Top-level SVG routine takes ``elements`` and ``options`` and turns
+    this into a SVG string, including the <svg>..</svg> tag.
 
-    if not leaves:
-        leaves = self._elements
+    ``elements`` could be a ``GraphicsElements`` object,
+    a tuple or a list.
+
+    Options is a dictionary of Graphics options dictionary. Intersting Graphics options keys:
+
+    ``data``: a tuple bounding box information as well as a copy of ``elements``. If given
+    this supercedes the information in the ``elements`` parameter.
+
+    ``evaluation``:  an ``Evaluation`` object that can be used when further evaluation is needed.
+    """
+
+    if not elements:
+        elements = self._elements
 
     data = options.get("data", None)
     if data:
@@ -269,7 +283,9 @@ def graphics_box(self, leaves=None, **options) -> str:
             height,
         ) = data
     else:
-        elements, calc_dimensions = self._prepare_elements(leaves, options, neg_y=True)
+        elements, calc_dimensions = self._prepare_elements(
+            elements, options, neg_y=True
+        )
         (
             xmin,
             xmax,
@@ -293,28 +309,21 @@ def graphics_box(self, leaves=None, **options) -> str:
     self.boxheight = options.get("height", self.boxheight)
 
     if self.background_color is not None:
+        # FIXME: tests don't seem to cover this secton of code.
         # Wrap svg_elements in a rectangle
-        svg_body = '<rect x="%f" y="%f" width="%f" height="%f" style="fill:%s"/>%s' % (
-            xmin,
-            ymin,
-            self.boxwidth,
-            self.boxheight,
-            self.background_color.to_css()[0],
-            svg_body,
-        )
+        svg_body = f"""
+            <rect
+                 x="{xmin:f}" y="{ymin:f}"
+                 width="{self.boxwidth:f}"
+                 height="{self.boxheight:f}"
+                 style="fill:{self.background_color.to_css()[0]}
+            {svg_body}
+           />"""
 
     if options.get("noheader", False):
         return svg_body
-    svg_main = f"""<svg width="{self.boxwidth}px" height="{self.boxheight}px" xmlns:svg="http://www.w3.org/2000/svg"
-                xmlns="http://www.w3.org/2000/svg"
-                version="1.1"
-                viewBox="%s">
-                %s
-</svg>
-""" % (
-        " ".join("%f" % t for t in (xmin, ymin, self.boxwidth, self.boxheight)),
-        svg_body,
-    )
+
+    svg_main = wrap_svg_body(self.boxwidth, self.boxheight, xmin, ymin, svg_body)
     # print("svg_main", svg_main)
     return svg_main  # , width, height
 
@@ -534,3 +543,24 @@ def _roundbox(self):
 
 
 add_conversion_fn(_RoundBox)
+
+
+def wrap_svg_body(
+    box_width: float, box_height: float, x_min: float, y_min: float, svg_body: str
+) -> str:
+    """
+    Wraps ``svg`` into an SVG tag <svg> ... </svg>
+    ``box_width`` and ``box_height`` are pixel units. These together with
+    x_min, and y_min also form the viewBox attribute.
+
+    The wrapped SVG text is returned as a string.
+    """
+    svg_str = f"""
+<svg width="{box_width}px" height="{box_height}px" xmlns:svg="http://www.w3.org/2000/svg"
+            xmlns="http://www.w3.org/2000/svg"
+            version="1.1"
+            viewBox="{x_min:f} {y_min:f} {box_width:f}, {box_height:f}">
+    {svg_body}
+</svg>
+"""
+    return svg_str

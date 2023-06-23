@@ -7,9 +7,9 @@ formatting rules.
 
 
 import typing
-from typing import Any
+from typing import Any, Dict, Type
 
-from mathics.core.atoms import Complex, Integer, Rational, String, SymbolI
+from mathics.core.atoms import Complex, Integer, Rational, Real, String, SymbolI
 from mathics.core.convert.expression import to_expression_with_specialization
 from mathics.core.definitions import OutputForms
 from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
@@ -38,8 +38,26 @@ from mathics.core.systemsymbols import (
     SymbolMinus,
     SymbolOutputForm,
     SymbolRational,
+    SymbolRowBox,
     SymbolStandardForm,
 )
+
+# An operator precedence value that will ensure that whatever operator
+# this is attached to does not have parenthesis surrounding it.
+# Operator precedence values are integers; If if an operator
+# "op" is greater than the surrounding precedence, then "op"
+# will be surrounded by parenthesis, e.g. ... (...op...) ...
+# In named-characters.yml of mathics-scanner we start at 0.
+# However, negative values would also work.
+NEVER_ADD_PARENTHESIS = 0
+
+# These Strings are used in Boxing output
+StringElipsis = String("...")
+StringLParen = String("(")
+StringRParen = String(")")
+StringRepeated = String("..")
+
+builtins_precedence: Dict[Symbol, int] = {}
 
 element_formatters = {}
 
@@ -51,18 +69,36 @@ def _boxed_string(string: str, **options):
     return StyleBox(String(string), **options)
 
 
-def eval_makeboxes(self, expr, evaluation, f=SymbolStandardForm):
+def eval_fullform_makeboxes(
+    self, expr, evaluation: Evaluation, form=SymbolStandardForm
+) -> Expression:
     """
-    This function takes the definitions prodived by the evaluation
+    This function takes the definitions provided by the evaluation
     object, and produces a boxed form for expr.
+
+    Basically: MakeBoxes[expr // FullForm]
     """
     # This is going to be reimplemented.
-    return Expression(SymbolMakeBoxes, expr, f).evaluate(evaluation)
+    expr = Expression(SymbolFullForm, expr)
+    return Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
+
+
+def eval_makeboxes(
+    self, expr, evaluation: Evaluation, form=SymbolStandardForm
+) -> Expression:
+    """
+    This function takes the definitions provided by the evaluation
+    object, and produces a boxed fullform for expr.
+
+    Basically: MakeBoxes[expr // form]
+    """
+    # This is going to be reimplemented.
+    return Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
 
 
 def format_element(
     element: BaseElement, evaluation: Evaluation, form: Symbol, **kwargs
-) -> BaseElement:
+) -> Type[BaseElement]:
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
@@ -82,14 +118,14 @@ def format_element(
 
 def do_format(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> BaseElement:
+) -> Type[BaseElement]:
     do_format_method = element_formatters.get(type(element), do_format_element)
     return do_format_method(element, evaluation, form)
 
 
 def do_format_element(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> BaseElement:
+) -> Type[BaseElement]:
     """
     Applies formats associated to the expression and removes
     superfluous enclosing formats.
@@ -106,7 +142,7 @@ def do_format_element(
         # removes the format from the expression.
         if head in OutputForms and len(expr.elements) == 1:
             expr = elements[0]
-            if not (form is SymbolOutputForm and head is SymbolStandardForm):
+            if not form.sameQ(head):
                 form = head
                 include_form = True
 
@@ -124,7 +160,7 @@ def do_format_element(
                     Expression(
                         SymbolPostfix,
                         ListExpression(elements[0]),
-                        String(".."),
+                        StringRepeated,
                         Integer(170),
                     ),
                 )
@@ -137,7 +173,7 @@ def do_format_element(
                     Expression(
                         SymbolPostfix,
                         Expression(SymbolList, elements[0]),
-                        String("..."),
+                        StringElipsis,
                         Integer(170),
                     ),
                 )
@@ -207,7 +243,7 @@ def do_format_element(
 
 def do_format_rational(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> BaseElement:
+) -> Type[BaseElement]:
     if form is SymbolFullForm:
         return do_format_expression(
             Expression(
@@ -232,7 +268,7 @@ def do_format_rational(
 
 def do_format_complex(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> BaseElement:
+) -> Type[BaseElement]:
     if form is SymbolFullForm:
         return do_format_expression(
             Expression(
@@ -260,7 +296,7 @@ def do_format_complex(
 
 def do_format_expression(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> BaseElement:
+) -> Type[BaseElement]:
     # # not sure how much useful is this format_cache
     # if element._format_cache is None:
     #    element._format_cache = {}
@@ -277,6 +313,41 @@ def do_format_expression(
     expr = do_format_element(element, evaluation, form)
     # element._format_cache[form] = (evaluation.definitions.now, expr)
     return expr
+
+
+def parenthesize(
+    precedence: int, element: Type[BaseElement], element_boxes, when_equal: bool
+) -> Type[Expression]:
+    """
+    "Determines if ``element_boxes`` needs to be surrounded with parenthesis.
+    This is done based on ``precedence`` and the computed preceence of
+    ``element``.  The adjusted ListExpression is returned.
+
+    If when_equal is True, parentheses will be added if the two
+    precedence values are equal.
+    """
+    while element.has_form("HoldForm", 1):
+        element = element.elements[0]
+
+    if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
+        element_prec = element.elements[2].value
+    elif element.has_form("PrecedenceForm", 2):
+        element_prec = element.elements[1].value
+    # If "element" is a negative number, we need to parenthesize the number. (Fixes #332)
+    elif isinstance(element, (Integer, Real)) and element.value < 0:
+        # Force parenthesis by adjusting the surrounding context's precedence value,
+        # We can't change the precedence for the number since it, doesn't
+        # have a precedence value.
+        element_prec = precedence
+    else:
+        element_prec = builtins_precedence.get(element.get_head())
+    if precedence is not None and element_prec is not None:
+        if precedence > element_prec or (precedence == element_prec and when_equal):
+            return Expression(
+                SymbolRowBox,
+                ListExpression(StringLParen, element_boxes, StringRParen),
+            )
+    return element_boxes
 
 
 element_formatters[Rational] = do_format_rational

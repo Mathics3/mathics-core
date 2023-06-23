@@ -163,6 +163,7 @@ def gridbox(self, elements=None, **box_options) -> str:
         elements = self._elements
     evaluation = box_options.get("evaluation")
     items, options = self.get_array(elements, evaluation)
+
     new_box_options = box_options.copy()
     new_box_options["inside_list"] = True
     column_alignments = options["System`ColumnAlignments"].get_name()
@@ -175,12 +176,21 @@ def gridbox(self, elements=None, **box_options) -> str:
     except KeyError:
         # invalid column alignment
         raise BoxConstructError
-    column_count = 0
+    column_count = 1
     for row in items:
-        column_count = max(column_count, len(row))
+        if isinstance(row, tuple):
+            column_count = max(column_count, len(row))
+
     result = r"\begin{array}{%s} " % (column_alignments * column_count)
     for index, row in enumerate(items):
-        result += " & ".join(boxes_to_tex(item, **new_box_options) for item in row)
+        if isinstance(row, tuple):
+            result += " & ".join(boxes_to_tex(item, **new_box_options) for item in row)
+        else:
+            result += r"\multicolumn{%s}{%s}{%s}" % (
+                str(column_count),
+                column_alignments,
+                boxes_to_tex(row, **new_box_options),
+            )
         if index != len(items) - 1:
             result += "\\\\ "
     result += r"\end{array}"

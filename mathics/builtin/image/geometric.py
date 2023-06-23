@@ -86,7 +86,8 @@ class ImageResize(Builtin):
             width = s
         w = get_image_size_spec(old_w, width)
         if w is None:
-            return evaluation.message("ImageResize", "imgrssz", s)
+            evaluation.message("ImageResize", "imgrssz", s)
+            return
         if s.has_form("List", 1):
             height = width
         else:
@@ -110,9 +111,8 @@ class ImageResize(Builtin):
         w = get_image_size_spec(old_w, width)
         h = get_image_size_spec(old_h, height)
         if h is None or w is None:
-            return evaluation.message(
-                "ImageResize", "imgrssz", to_mathics_list(width, height)
-            )
+            evaluation.message("ImageResize", "imgrssz", to_mathics_list(width, height))
+            return
 
         # handle Automatic
         old_aspect_ratio = old_w / old_h
@@ -208,9 +208,10 @@ class ImageReflect(Builtin):
         }.get(tuple(specs), None)
 
         if method is None:
-            return evaluation.message(
+            evaluation.message(
                 "ImageReflect", "bdrfl2", Expression(SymbolRule, orig, dest)
             )
+            return
 
         return Image(method(image.pixels), image.color_space)
 
@@ -265,7 +266,8 @@ class ImageRotate(Builtin):
         )
 
         if py_angle is None:
-            return evaluation.message("ImageRotate", "imgang", angle)
+            evaluation.message("ImageRotate", "imgang", angle)
+            return
 
         def rotate(im):
             return im.rotate(

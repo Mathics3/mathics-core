@@ -36,6 +36,8 @@ from mathics.builtin.base import (
     mathics_to_python,
 )
 from mathics.core.pattern import pattern_objects
+from mathics.core.symbols import Symbol
+from mathics.eval.makeboxes import builtins_precedence
 from mathics.settings import ENABLE_FILES_MODULE
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
@@ -48,6 +50,8 @@ __py_files__ = [
 
 
 def add_builtins(new_builtins):
+    from mathics.core.convert.sympy import mathics_to_sympy, sympy_to_mathics
+
     for var_name, builtin in new_builtins:
         name = builtin.get_name()
         if hasattr(builtin, "python_equivalent"):
@@ -60,7 +64,7 @@ def add_builtins(new_builtins):
                 # print("XXX1", sympy_name)
                 sympy_to_mathics[sympy_name] = builtin
         if isinstance(builtin, Operator):
-            builtins_precedence[name] = builtin.precedence
+            builtins_precedence[Symbol(name)] = builtin.precedence
         if isinstance(builtin, PatternObject):
             pattern_objects[name] = builtin.__class__
     _builtins.update(dict(new_builtins))
@@ -141,12 +145,26 @@ def name_is_builtin_symbol(module, name: str) -> Optional[type]:
     if not inspect.isclass(module_object):
         return None
 
-    # FIXME: tests involving module_object.__module__ are fragile and
-    # Python implementation specific. Figure out how to do this
-    # via the inspect module which is not implementation specific.
-
     # Skip those builtins defined in or imported from another module.
-    if module_object.__module__ != module.__name__:
+
+    # rocky: I think this is a code smell. It doesn't feel like
+    # we should have to do this if things are organized and modularized
+    # builtins and use less custom code.
+    # mmatera reports that we need this because of the interaction of
+    # * the custom Mathics3 loading/importing mechanism,
+    # * the builtin module hierarchy, e.g. mathics.builtin.arithmetic
+    #   nested under mathics.builtin, and
+    # * our custom doc/doctest and possibly custom checking system
+
+    # Mathics3 modules modules, however, right now import all builtin modules from
+    # __init__
+    # Note Mathics3 modules do not support buitin hierarchies, e.g.
+    # pymathics.graph.parametric is allowed but not pymathics.graph.parametric.xxx.
+    # This too has to do with the custom doc/doctest that is currently used.
+
+    if inspect.getmodule(
+        module_object
+    ) is not module and not module.__name__.startswith("pymathics."):
         return None
 
     # Skip objects in module mathics.builtin.base.
@@ -154,7 +172,10 @@ def name_is_builtin_symbol(module, name: str) -> Optional[type]:
         return None
 
     # Skip those builtins that are not submodules of mathics.builtin.
-    if not module_object.__module__.startswith("mathics.builtin."):
+    if not (
+        module_object.__module__.startswith("mathics.builtin.")
+        or module_object.__module__.startswith("pymathics.")
+    ):
         return None
 
     # If it is not a subclass of Builtin, skip it.
@@ -188,10 +209,13 @@ for subdir in (
     "binary",
     "box",
     "colors",
+    "directories",
     "distance",
     "drawing",
+    "exp_structure",
     "fileformats",
     "files_io",
+    "file_operations",
     "forms",
     "functional",
     "image",
@@ -203,6 +227,7 @@ for subdir in (
     "specialfns",
     "statistics",
     "string",
+    "testing_expressions",
     "vectors",
 ):
     import_name = f"{__name__}.{subdir}"
@@ -234,10 +259,6 @@ for module in modules:
                 _builtins_list.append((instance.get_name(), instance))
                 builtins_by_module[module.__name__].append(instance)
 
-mathics_to_sympy = {}  # here we have: name -> sympy object
-sympy_to_mathics = {}
-
-builtins_precedence = {}
 
 new_builtins = _builtins_list
 

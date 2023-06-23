@@ -12,7 +12,11 @@ from mathics.builtin.base import Builtin
 
 class CentralMoment(Builtin):
     """
-    <url>:Central moment: https://en.wikipedia.org/wiki/Central_moment</url> (<url>:WMA: https://reference.wolfram.com/language/ref/CentralMoment.html</url>)
+    <url>
+    :Central moment:
+    https://en.wikipedia.org/wiki/Central_moment</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/CentralMoment.html</url>)
 
     <dl>
       <dt>'CentralMoment[$list$, $r$]'
@@ -43,7 +47,7 @@ class CentralMoment(Builtin):
 #     summary_text = "moment of distributions and data"
 #     sympy_name = "Moment"
 
-#     def apply_sample_r(self, sample, r, evaluation):
+#     def eval_sample_r(self, sample, r, evaluation: Evaluation):
 #         "%(name)s[sample_List, r_]"
 #         sympy_sample = sample.to_sympy()
 #         sympy_r = r.to_sympy()

@@ -4,8 +4,9 @@
 helper functions for images
 """
 
+import functools
 from operator import itemgetter
-from typing import List, Optional
+from typing import List, Optional, Tuple, Union
 
 import numpy
 import PIL
@@ -164,6 +165,51 @@ def get_image_size_spec(old_size, new_size) -> Optional[float]:
     return None
 
 
+def image_pixels(matrix):
+    try:
+        pixels = numpy.array(matrix, dtype="float64")
+    except ValueError:  # irregular array, e.g. {{0, 1}, {0, 1, 1}}
+        return None
+    shape = pixels.shape
+    if len(shape) == 2 or (len(shape) == 3 and shape[2] in (1, 3, 4)):
+        return pixels
+    else:
+        return None
+
+
+def linearize_numpy_array(a: numpy.array) -> Tuple[numpy.array, int]:
+    """
+    Transforms a numpy array numpy array and return the array and the number
+    of dimensions in the array
+
+    A binary search is used.
+    """
+
+    orig_shape = a.shape
+    a = a.reshape((functools.reduce(lambda x, y: x * y, a.shape),))  # 1 dimension
+
+    u = numpy.unique(a)
+    n = len(u)
+
+    lower = numpy.ndarray(a.shape, dtype=int)
+    lower.fill(0)
+    upper = numpy.ndarray(a.shape, dtype=int)
+    upper.fill(n - 1)
+
+    h = numpy.sort(u)
+    q = n  # worst case partition size
+
+    while q > 2:
+        m = numpy.right_shift(lower + upper, 1)
+        f = a <= h[m]
+        # (lower, m) vs (m + 1, upper)
+        lower = numpy.where(f, lower, m + 1)
+        upper = numpy.where(f, m, upper)
+        q = (q + 1) // 2
+
+    return numpy.where(a == h[lower], lower, upper).reshape(orig_shape), n
+
+
 def matrix_to_numpy(a):
     def matrix():
         for y in a.elements:
@@ -185,7 +231,7 @@ def numpy_to_matrix(pixels):
         return pixels.tolist()
 
 
-def pixels_as_float(pixels):
+def pixels_as_float(pixels) -> Union[numpy.float64, numpy.float32]:
     dtype = pixels.dtype
     if dtype in (numpy.float32, numpy.float64):
         return pixels
@@ -199,7 +245,7 @@ def pixels_as_float(pixels):
         raise NotImplementedError
 
 
-def pixels_as_ubyte(pixels):
+def pixels_as_ubyte(pixels) -> numpy.uint8:
     dtype = pixels.dtype
     if dtype in (numpy.float32, numpy.float64):
         pixels = numpy.maximum(numpy.minimum(pixels, 1.0), 0.0)
@@ -238,13 +284,15 @@ def resize_width_height(
     from mathics.builtin.image.base import Image
 
     if resampling_name not in resampling_names2PIL.keys():
-        return evaluation.message("ImageResize", "imgrsm", resampling_name)
+        evaluation.message("ImageResize", "imgrsm", resampling_name)
+        return
     resample = resampling_names2PIL[resampling_name]
 
     # perform the resize
     if hasattr(image, "pillow"):
         if resampling_name not in resampling_names2PIL.keys():
-            return evaluation.message("ImageResize", "imgrsm", resampling_name)
+            evaluation.message("ImageResize", "imgrsm", resampling_name)
+            return
         pillow = image.pillow.resize(size=(width, height), resample=resample)
         pixels = numpy.asarray(pillow)
         return Image(pixels, image.color_space, pillow=pillow)
@@ -273,7 +321,8 @@ def resize_width_height(
     #         s = sx
     #     if err > 1.5:
     #         # TODO overcome this limitation
-    #         return evaluation.message("ImageResize", "gaussaspect")
+    #         evaluation.message("ImageResize", "gaussaspect")
+    #         return
     #     elif s > 1:
     #         pixels = transform.pyramid_expand(
     #             image.pixels, upscale=s, multichannel=multichannel

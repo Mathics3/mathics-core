@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-
-
+"""
+Logical Combinations
+"""
 from mathics.builtin.base import BinaryOperator, Builtin, Predefined, PrefixOperator
-from mathics.builtin.lists import InvalidLevelspecError, python_levelspec, walk_levels
 from mathics.core.attributes import (
     A_FLAT,
     A_HOLD_ALL,
@@ -11,6 +11,8 @@ from mathics.core.attributes import (
     A_ORDERLESS,
     A_PROTECTED,
 )
+from mathics.core.evaluation import Evaluation
+from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import (
@@ -21,6 +23,7 @@ from mathics.core.systemsymbols import (
     SymbolOr,
     SymbolXor,
 )
+from mathics.eval.parts import python_levelspec, walk_levels
 
 
 class _ShortCircuit(Exception):
@@ -40,7 +43,7 @@ class _ManyTrue(Builtin):
     def _no_short_circuit(self):
         raise NotImplementedError
 
-    def apply(self, expr, test, level, evaluation):
+    def eval(self, expr, test, level, evaluation: Evaluation):
         "%(name)s[expr_, test_, level_]"
 
         try:
@@ -65,7 +68,8 @@ class _ManyTrue(Builtin):
 
 class And(BinaryOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/And.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/And.html</url>
 
     <dl>
       <dt>'And[$expr1$, $expr2$, ...]'
@@ -94,7 +98,7 @@ class And(BinaryOperator):
     #        "And[pred1___, a_, pred2___, a_, pred3___]": "And[pred1, a, pred2, pred3]",
     #    }
 
-    def apply(self, args, evaluation):
+    def eval(self, args, evaluation: Evaluation):
         "And[args___]"
 
         args = args.get_sequence()
@@ -116,7 +120,9 @@ class And(BinaryOperator):
 
 class AnyTrue(_ManyTrue):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/AnyTrue.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/AnyTrue.html</url>
 
     <dl>
       <dt>'AnyTrue[{$expr1$, $expr2$, ...}, $test$]'
@@ -204,7 +210,7 @@ class Equivalent(BinaryOperator):
     If all expressions do not evaluate to 'True' or 'False', 'Equivalent' \
     returns a result in symbolic form:
     >> Equivalent[a, b, c]
-     = a \u29E6 b \u29E6 c
+     = a \\[Equivalent] b \\[Equivalent] c
      Otherwise, 'Equivalent' returns a result in DNF
     >> Equivalent[a, b, True, c]
      = a && b && c
@@ -219,7 +225,7 @@ class Equivalent(BinaryOperator):
     precedence = 205
     summary_text = "logic equivalence"
 
-    def apply(self, args, evaluation):
+    def eval(self, args, evaluation: Evaluation):
         "Equivalent[args___]"
 
         args = args.get_sequence()
@@ -244,7 +250,9 @@ class Equivalent(BinaryOperator):
 
 class False_(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/False.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/False.html</url>
 
     <dl>
       <dt>'False'
@@ -278,7 +286,7 @@ class Implies(BinaryOperator):
     If an expression does not evaluate to 'True' or 'False', 'Implies'
     returns a result in symbolic form:
     >> Implies[a, Implies[b, Implies[True, c]]]
-     = a \u21D2 b \u21D2 c
+     = a Implies b Implies c
     """
 
     operator = "\u21D2"
@@ -286,7 +294,7 @@ class Implies(BinaryOperator):
     grouping = "Right"
     summary_text = "logic implication"
 
-    def apply(self, x, y, evaluation):
+    def eval(self, x, y, evaluation: Evaluation):
         "Implies[x_, y_]"
 
         result0 = x.evaluate(evaluation)
@@ -300,15 +308,21 @@ class Implies(BinaryOperator):
 
 class NoneTrue(_ManyTrue):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/NoneTrue.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/NoneTrue.html</url>
 
     <dl>
-    <dt>'NoneTrue[{$expr1$, $expr2$, ...}, $test$]'
-        <dd>returns True if no application of $test$ to $expr1$, $expr2$, ... evaluates to True.
-    <dt>'NoneTrue[$list$, $test$, $level$]'
-        <dd>returns True if no application of $test$ to items of $list$ at $level$ evaluates to True.
-    <dt>'NoneTrue[$test$]'
-        <dd>gives an operator that may be applied to expressions.
+      <dt>'NoneTrue[{$expr1$, $expr2$, ...}, $test$]'
+      <dd>returns True if no application of $test$ to $expr1$, $expr2$, ... \
+          evaluates to True.
+
+      <dt>'NoneTrue[$list$, $test$, $level$]'
+      <dd>returns True if no application of $test$ to items of $list$ at \
+          $level$ evaluates to True.
+
+      <dt>'NoneTrue[$test$]'
+      <dd>gives an operator that may be applied to expressions.
     </dl>
 
     >> NoneTrue[{1, 3, 5}, EvenQ]
@@ -362,7 +376,7 @@ class Or(BinaryOperator):
     #        "Or[a_, a_]": "a",
     #        "Or[pred1___, a_, pred2___, a_, pred3___]": "Or[pred1, a, pred2, pred3]",
     #    }
-    def apply(self, args, evaluation):
+    def eval(self, args, evaluation: Evaluation):
         "Or[args___]"
 
         args = args.get_sequence()
@@ -384,12 +398,14 @@ class Or(BinaryOperator):
 
 class Nand(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Nand.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Nand.html</url>
 
     <dl>
-    <dt>'Nand[$expr1$, $expr2$, ...]'
-    <dt>$expr1$ \u22BC $expr2$ \u22BC ...
-        <dd> Implements the logical NAND function.  The same as 'Not[And['$expr1$, $expr2$, ...']]'
+      <dt>'Nand[$expr1$, $expr2$, ...]'
+
+      <dt>$expr1$ \u22BC $expr2$ \u22BC ...
+      <dd> Implements the logical NAND function.  The same as 'Not[And['$expr1$, $expr2$, ...']]'
     </dl>
     >> Nand[True, False]
      = True
@@ -407,9 +423,10 @@ class Nor(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Nor.html</url>
 
     <dl>
-    <dt>'Nor[$expr1$, $expr2$, ...]'
-    <dt>$expr1$ \u22BD $expr2$ \u22BD ...
-        <dd>Implements the logical NOR function.  The same as 'Not[Or['$expr1$, $expr2$, ...']]'
+      <dt>'Nor[$expr1$, $expr2$, ...]'
+
+      <dt>$expr1$ \u22BD $expr2$ \u22BD ...
+      <dd>Implements the logical NOR function.  The same as 'Not[Or['$expr1$, $expr2$, ...']]'
     </dl>
     >> Nor[True, False]
      = False
@@ -487,7 +504,7 @@ class Xor(BinaryOperator):
     If an expression does not evaluate to 'True' or 'False', 'Xor'
     returns a result in symbolic form:
     >> Xor[a, False, b]
-     = a \u22BB b
+     = a \\[Xor] b
     #> Xor[]
      = False
     #> Xor[a]
@@ -497,7 +514,7 @@ class Xor(BinaryOperator):
     #> Xor[True]
      = True
     #> Xor[a, b]
-     = a \u22BB b
+     = a \\[Xor] b
     """
 
     attributes = A_FLAT | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
@@ -505,7 +522,7 @@ class Xor(BinaryOperator):
     precedence = 215
     summary_text = "logic (exclusive) disjunction"
 
-    def apply(self, args, evaluation):
+    def eval(self, args, evaluation: Evaluation):
         "Xor[args___]"
 
         args = args.get_sequence()

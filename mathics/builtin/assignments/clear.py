@@ -88,7 +88,7 @@ class Clear(Builtin):
         definition.formatvalues = {}
         definition.nvalues = []
 
-    def apply(self, symbols, evaluation):
+    def eval(self, symbols, evaluation):
         "%(name)s[symbols___]"
         if isinstance(symbols, Symbol):
             symbols = [symbols]
@@ -286,7 +286,7 @@ class Unset(PostfixOperator):
     precedence = 670
     summary_text = "unset a value of the LHS"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "Unset[expr_]"
 
         head = expr.get_head()

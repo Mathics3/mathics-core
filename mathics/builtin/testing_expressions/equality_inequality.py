@@ -1,15 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Testing Expressions
-
-There are a number of functions for testing Expressions.
-
-Functions that "ask a question" have names that end in "Q". \
-They return 'True' for an explicit answer, and 'False' otherwise.
+Equality and Inequality
 """
-
-# This tells documentation how to sort this module
-sort_order = "mathics.builtin.testing-expressions"
 
 from typing import Any, Optional
 
@@ -17,19 +9,9 @@ import sympy
 
 from mathics.builtin.base import BinaryOperator, Builtin, SympyFunction
 from mathics.builtin.numbers.constants import mp_convert_constant
-from mathics.core.atoms import (
-    COMPARE_PREC,
-    Complex,
-    Integer,
-    Integer0,
-    Integer1,
-    IntegerM1,
-    Number,
-    String,
-)
+from mathics.core.atoms import COMPARE_PREC, Integer, Integer1, Number, String
 from mathics.core.attributes import (
     A_FLAT,
-    A_LISTABLE,
     A_NUMERIC_FUNCTION,
     A_ONE_IDENTITY,
     A_ORDERLESS,
@@ -37,19 +19,26 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.expression import to_expression, to_numeric_args
 from mathics.core.expression import Expression
+from mathics.core.expression_predefined import (
+    MATHICS3_COMPLEX_INFINITY,
+    MATHICS3_INFINITY,
+    MATHICS3_NEG_INFINITY,
+)
 from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAnd,
-    SymbolComplexInfinity,
     SymbolDirectedInfinity,
+    SymbolExactNumberQ,
     SymbolInequality,
     SymbolInfinity,
+    SymbolMaxExtraPrecision,
     SymbolMaxPrecision,
     SymbolSign,
 )
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
+from mathics.eval.testing_expressions import do_cmp, do_cplx_equal, is_number
 
 operators = {
     "System`Less": (-1,),
@@ -59,108 +48,6 @@ operators = {
     "System`Greater": (1,),
     "System`Unequal": (-1, 1),
 }
-
-SymbolExactNumberQ = Symbol("ExactNumberQ")
-SymbolMaxExtraPrecision = Symbol("$MaxExtraPrecision")
-
-
-def cmp(a, b) -> int:
-    "Returns 0 if a == b, -1 if a < b and 1 if a > b"
-    return (a > b) - (a < b)
-
-
-def do_cmp(x1, x2) -> Optional[int]:
-
-    # don't attempt to compare complex numbers
-    for x in (x1, x2):
-        # TODO: Send message General::nord
-        if isinstance(x, Complex) or (
-            x.has_form("DirectedInfinity", 1) and isinstance(x.elements[0], Complex)
-        ):
-            return None
-
-    s1 = x1.to_sympy()
-    s2 = x2.to_sympy()
-
-    # Use internal comparisons only for Real which is uses
-    # WL's interpretation of equal (which allows for slop
-    # in the least significant digit of precision), and use
-    # use sympy for everything else
-    if s1.is_Float and s2.is_Float:
-        if x1 == x2:
-            return 0
-        if x1 < x2:
-            return -1
-        return 1
-
-    # we don't want to compare anything that
-    # cannot be represented as a numeric value
-    if s1.is_number and s2.is_number:
-        if s1 == s2:
-            return 0
-        if s1 < s2:
-            return -1
-        return 1
-
-    return None
-
-
-def do_cplx_equal(x, y) -> Optional[int]:
-    if isinstance(y, Complex):
-        x, y = y, x
-    if isinstance(x, Complex):
-        if isinstance(y, Complex):
-            c = do_cmp(x.real, y.real)
-            if c is None:
-                return
-            if c != 0:
-                return False
-            c = do_cmp(x.imag, y.imag)
-            if c is None:
-                return
-            if c != 0:
-                return False
-            else:
-                return True
-        else:
-            c = do_cmp(x.imag, Integer0)
-            if c is None:
-                return
-            if c != 0:
-                return False
-            c = do_cmp(x.real, y.real)
-            if c is None:
-                return
-            if c != 0:
-                return False
-            else:
-                return True
-    c = do_cmp(x, y)
-    if c is None:
-        return None
-    return c == 0
-
-
-def expr_max(elements):
-    result = Expression(SymbolDirectedInfinity, IntegerM1)
-    for element in elements:
-        c = do_cmp(element, result)
-        if c > 0:
-            result = element
-    return result
-
-
-def expr_min(elements):
-    result = Expression(SymbolDirectedInfinity, Integer1)
-    for element in elements:
-        c = do_cmp(element, result)
-        if c < 0:
-            result = element
-    return result
-
-
-def is_number(sympy_value) -> bool:
-    return hasattr(sympy_value, "is_number") or isinstance(sympy_value, sympy.Float)
 
 
 class _InequalityOperator(BinaryOperator):
@@ -227,6 +114,8 @@ class _EqualityOperator(_InequalityOperator):
                 yield (args[i], args[j])
 
     def expr_equal(self, lhs, rhs, max_extra_prec=None) -> Optional[bool]:
+        if rhs is lhs:
+            return True
         if isinstance(rhs, Expression):
             lhs, rhs = rhs, lhs
         if not isinstance(lhs, Expression):
@@ -246,34 +135,23 @@ class _EqualityOperator(_InequalityOperator):
         return True
 
     def infty_equal(self, lhs, rhs, max_extra_prec=None) -> Optional[bool]:
-        if rhs.get_head().sameQ(SymbolDirectedInfinity):
-            lhs, rhs = rhs, lhs
-        if not lhs.get_head().sameQ(SymbolDirectedInfinity):
+        if (
+            lhs.get_head() is not SymbolDirectedInfinity
+            or rhs.get_head() is not SymbolDirectedInfinity
+        ):
             return None
-        if rhs.sameQ(SymbolInfinity) or rhs.sameQ(SymbolComplexInfinity):
-            if len(lhs.elements) == 0:
-                return True
-            else:
-                return self.equal2(
-                    to_expression(SymbolSign, lhs.elements[0]), Integer1, max_extra_prec
-                )
-        if rhs.is_numeric():
-            return False
-        elif isinstance(rhs, Atom):
+        lhs_elements, rhs_elements = lhs.elements, rhs.elements
+
+        if len(lhs_elements) != len(rhs_elements):
             return None
-        if rhs.get_head().sameQ(lhs.get_head()):
-            dir1 = dir2 = Integer1
-            if len(lhs.elements) == 1:
-                dir1 = lhs.elements[0]
-            if len(rhs.elements) == 1:
-                dir2 = rhs.elements[0]
-            if self.equal2(dir1, dir2, max_extra_prec):
-                return True
-            # Now, compare the signs:
-            dir1_sign = Expression(SymbolSign, dir1)
-            dir2_sign = Expression(SymbolSign, dir2)
-            return self.equal2(dir1_sign, dir2_sign, max_extra_prec)
-        return
+        # Both are complex infinity?
+        if len(lhs_elements) == 0:
+            return True
+        if len(lhs_elements) == 1:
+            # Check directions: Notice that they are already normalized...
+            return self.equal2(lhs_elements[0], rhs_elements[0], max_extra_prec)
+        # DirectedInfinity with more than two elements cannot be compared here...
+        return None
 
     def sympy_equal(self, lhs, rhs, max_extra_prec=None) -> Optional[bool]:
         try:
@@ -317,12 +195,12 @@ class _EqualityOperator(_InequalityOperator):
         """
         Two-argument Equal[]
         """
+        if lhs is rhs or lhs.sameQ(rhs):
+            return True
         if hasattr(lhs, "equal2"):
             result = lhs.equal2(rhs)
             if result is not None:
                 return result
-        elif lhs.sameQ(rhs):
-            return True
         # TODO: Check $Assumptions
         # Still we didn't have a result. Try with the following
         # tests
@@ -411,7 +289,7 @@ class _MinMax(Builtin):
                     results.append(element)
 
         if not results:
-            return Expression(SymbolDirectedInfinity, Integer(-self.sense))
+            return MATHICS3_INFINITY if self.sense < 0 else MATHICS3_NEG_INFINITY
         if len(results) == 1:
             return results.pop()
         if len(results) < len(items):
@@ -560,7 +438,7 @@ class Equal(_EqualityOperator, _SympyComparison):
     >> a = b; a == b
      = True
 
-    Comparision to mismatched types is False:
+    Comparison to mismatched types is False:
 
     >> Equal[11, "11"]
      = False
@@ -571,8 +449,8 @@ class Equal(_EqualityOperator, _SympyComparison):
     >> {1, 2} == {1, 2, 3}
      = False
 
-    For chains of equalities, the comparison is done amongs all the pairs. The evaluation is successful
-    only if the equality is satisfied over all the pairs:
+    For chains of equalities, the comparison is done amongst all the pairs. \
+    The evaluation is successful only if the equality is satisfied over all the pairs:
 
     >> g[1] == g[1] == g[1]
      = True
@@ -726,7 +604,7 @@ class Less(_ComparisonOperator, _SympyComparison):
     >> 2/18 < 1/5 < Pi/10
      = True
 
-    Using less on an undfined symbol value:
+    Using less on an undefined symbol value:
     >> 1 < 3 < x < 2
      = 1 < 3 < x < 2
     """
@@ -836,114 +714,6 @@ class Min(_MinMax):
     summary_text = "the minimum value"
 
 
-class Negative(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Negative.html</url>
-
-    <dl>
-      <dt>'Negative[$x$]'
-      <dd>returns 'True' if $x$ is a negative real number.
-    </dl>
-    >> Negative[0]
-     = False
-    >> Negative[-3]
-     = True
-    >> Negative[10/7]
-     = False
-    >> Negative[1+2I]
-     = False
-    >> Negative[a + b]
-     = Negative[a + b]
-    #> Negative[-E]
-     = True
-    #> Negative[Sin[{11, 14}]]
-     = {True, False}
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED
-
-    rules = {
-        "Negative[x_?NumericQ]": "If[x < 0, True, False, False]",
-    }
-    summary_text = "test whether an expression is a negative number"
-
-
-class NonNegative(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/NonNegative.html</url>
-
-    <dl>
-      <dt>'NonNegative[$x$]'
-      <dd>returns 'True' if $x$ is a positive real number or zero.
-    </dl>
-
-    >> {Positive[0], NonNegative[0]}
-     = {False, True}
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED
-
-    rules = {
-        "NonNegative[x_?NumericQ]": "If[x >= 0, True, False, False]",
-    }
-    summary_text = "test whether an expression is a non-negative number"
-
-
-class NonPositive(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/NonPositive.html</url>
-
-    <dl>
-      <dt>'NonPositive[$x$]'
-      <dd>returns 'True' if $x$ is a negative real number or zero.
-    </dl>
-
-    >> {Negative[0], NonPositive[0]}
-     = {False, True}
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED
-
-    rules = {
-        "NonPositive[x_?NumericQ]": "If[x <= 0, True, False, False]",
-    }
-    summary_text = "test whether an expression is a non-positive number"
-
-
-class Positive(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Positive.html</url>
-
-    <dl>
-      <dt>'Positive[$x$]'
-      <dd>returns 'True' if $x$ is a positive real number.
-    </dl>
-
-    >> Positive[1]
-     = True
-
-    'Positive' returns 'False' if $x$ is zero or a complex number:
-    >> Positive[0]
-     = False
-    >> Positive[1 + 2 I]
-     = False
-
-    #> Positive[Pi]
-     = True
-    #> Positive[x]
-     = Positive[x]
-    #> Positive[Sin[{11, 14}]]
-     = {False, True}
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED
-
-    rules = {
-        "Positive[x_?NumericQ]": "If[x > 0, True, False, False]",
-    }
-    summary_text = "test whether an expression is a positive number"
-
-
 class SameQ(_ComparisonOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/SameQ.html</url>
@@ -951,13 +721,15 @@ class SameQ(_ComparisonOperator):
     <dl>
       <dt>'SameQ[$x$, $y$]'
       <dt>'$x$ === $y$'
-      <dd>returns 'True' if $x$ and $y$ are structurally identical.
-      Commutative properties apply, so if $x$ === $y$ then $y$ === $x$.
+      <dd>returns 'True' if $x$ and $y$ are structurally identical. \
+          Commutative properties apply, so if $x$ === $y$ then $y$ === $x$.
 
     </dl>
 
     <ul>
-      <li>'SameQ' requires exact correspondence between expressions, expet that it still considers 'Real' numbers equal if they differ in their last binary digit.
+      <li>'SameQ' requires exact correspondence between expressions, expect that \
+           it still considers 'Real' numbers equal if they differ in their last \
+           binary digit.
       <li>$e1$ === $e2$ === $e3$ gives 'True' if all the $ei$'s are identical.
       <li>'SameQ[]' and 'SameQ[$expr$]' always yield 'True'.
     </ul>
@@ -971,7 +743,8 @@ class SameQ(_ComparisonOperator):
     >> SameQ[a] === SameQ[] === True
      = True
 
-    Unlike 'Equal', 'SameQ' only yields 'True' if $x$ and $y$ have the same type:
+    Unlike 'Equal', 'SameQ' only yields 'True' if $x$ and $y$ have the same \
+    type:
     >> {1==1., 1===1.}
      = {True, False}
 
@@ -1034,21 +807,24 @@ class TrueQ(Builtin):
 
 class Unequal(_EqualityOperator, _SympyComparison):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Unequal.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Unequal.html</url>
 
     <dl>
       <dt>'Unequal[$x$, $y$]' or $x$ != $y$ or $x$ \u2260 $y$
-      <dd>is 'False' if $x$ and $y$ are known to be equal, or 'True' if $x$ and $y$ are known to be unequal.
+      <dd>is 'False' if $x$ and $y$ are known to be equal, or 'True' if $x$ \
+          and $y$ are known to be unequal.
 
         Commutative properties apply so if $x$ != $y$ then $y$ != $x$.
 
-        For any expression $x$ and $y$, Unequal[$x$, $y$] == Not[Equal[$x$, $y$]].
+        For any expression $x$ and $y$, 'Unequal[$x$, $y$]' == 'Not[Equal[$x$, $y$]]'.
     </dl>
 
     >> 1 != 1.
      = False
 
-    Comparsion can be chained:
+    Comparisons can be chained:
     >> 1 != 2 != 3
      = True
 
@@ -1059,7 +835,7 @@ class Unequal(_EqualityOperator, _SympyComparison):
     >> Unequal["11", "11"]
      = False
 
-    Comparision to mismatched types is True:
+    Comparison to mismatched types is True:
     >> Unequal[11, "11"]
      = True
 

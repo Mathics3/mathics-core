@@ -360,7 +360,9 @@ class SokalSneathDissimilarity(_BooleanDissimilarity):
 
 class Subsets(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Subsets.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Subsets.html</url>
 
     <dl>
       <dt>'Subsets[$list$]'
@@ -506,18 +508,18 @@ class Subsets(Builtin):
     def eval_list(self, list, evaluation):
         "Subsets[list_]"
 
-        return (
+        if isinstance(list, Atom):
             evaluation.message("Subsets", "normal", Expression(SymbolSubsets, list))
-            if isinstance(list, Atom)
-            else self.eval_list_n(list, Integer(len(list.elements)), evaluation)
-        )
+        else:
+            return self.eval_list_n(list, Integer(len(list.elements)), evaluation)
 
     def eval_list_n(self, list, n, evaluation):
         "Subsets[list_, n_]"
 
         expr = Expression(SymbolSubsets, list, n)
         if isinstance(list, Atom):
-            return evaluation.message("Subsets", "normal", expr)
+            evaluation.message("Subsets", "normal", expr)
+            return
         else:
             head_t = list.head
             # Note: "n" does not have to be an Integer.
@@ -525,7 +527,8 @@ class Subsets(Builtin):
             if n_value == 0:
                 return ListExpression(ListExpression())
             if n_value is None or n_value < 0:
-                return evaluation.message("Subsets", "nninfseq", expr)
+                evaluation.message("Subsets", "nninfseq", expr)
+                return
 
             nested_list = [
                 Expression(head_t, *c)
@@ -541,7 +544,8 @@ class Subsets(Builtin):
         expr = Expression(SymbolSubsets, list, n)
 
         if isinstance(list, Atom):
-            return evaluation.message("Subsets", "normal", expr)
+            evaluation.message("Subsets", "normal", expr)
+            return
         else:
             head_t = list.head
             if n.get_name() == "System`All" or n.has_form("DirectedInfinity", 1):
@@ -550,12 +554,14 @@ class Subsets(Builtin):
             n_len = len(n.elements)
 
             if n_len == 0:
-                return evaluation.message("Subsets", "nninfseq", expr)
+                evaluation.message("Subsets", "nninfseq", expr)
+                return
 
             elif n_len == 1:
                 elem1 = n.elements[0].get_int_value()
                 if elem1 is None or elem1 < 0:
-                    return evaluation.message("Subsets", "nninfseq", expr)
+                    evaluation.message("Subsets", "nninfseq", expr)
+                    return
                 min_n = elem1
                 max_n = min_n + 1
                 step_n = 1
@@ -568,7 +574,8 @@ class Subsets(Builtin):
                     else len(list.elements) + 1
                 )
                 if elem1 is None or elem2 is None or elem1 < 0 or elem2 < 0:
-                    return evaluation.message("Subsets", "nninfseq", expr)
+                    evaluation.message("Subsets", "nninfseq", expr)
+                    return
                 min_n = elem1
                 max_n = elem2 + 1
                 step_n = 1
@@ -588,7 +595,8 @@ class Subsets(Builtin):
                     or elem1 < 0
                     or elem2 < 0
                 ):
-                    return evaluation.message("Subsets", "nninfseq", expr)
+                    evaluation.message("Subsets", "nninfseq", expr)
+                    return
                 step_n = elem3
                 if step_n > 0:
                     min_n = elem1
@@ -597,9 +605,11 @@ class Subsets(Builtin):
                     min_n = elem1
                     max_n = elem2 - 1
                 else:
-                    return evaluation.message("Subsets", "nninfseq", expr)
+                    evaluation.message("Subsets", "nninfseq", expr)
+                    return
             else:
-                return evaluation.message("Subsets", "nninfseq", expr)
+                evaluation.message("Subsets", "nninfseq", expr)
+                return
 
             nested_list = [
                 Expression(head_t, *c)
@@ -612,7 +622,7 @@ class Subsets(Builtin):
     def eval_atom_pattern(self, list, n, spec, evaluation):
         "Subsets[list_?AtomQ, Pattern[n,_List|All|DirectedInfinity[1]], spec_]"
 
-        return evaluation.message(
+        evaluation.message(
             "Subsets", "normal", Expression(SymbolSubsets, list, n, spec)
         )
 
