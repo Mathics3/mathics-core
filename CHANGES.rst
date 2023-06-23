@@ -140,6 +140,7 @@ Internals
 
 #. ``boxes_to_`` methods are now optional for ``BoxElement`` subclasses. Most of the code is now moved to the ``mathics.format`` submodule, and implemented in a more scalable way.
 #. ``from_mpmath`` conversion supports a new parameter ``acc`` to set the accuracy of the number.
+#. Improving modularity in evaluating  expressions of the form ``*Set*[...]``.
 #. ``mathics.builtin.inout`` was split in several modules (``inout``, ``messages``, ``layout``, ``makeboxes``) in order to improve the documentation.
 #. ``mathics.eval`` was create to have code that might be put in an instruction interpreter. The opcodes-like functions start ``eval_``, other functions are helper functions for those.
 #. Operator name to Unicode or ASCII comes from Mathics scanner character tables.
@@ -158,6 +159,7 @@ Bugs
 # Reading certain GIFs now work again
 #. ``Random[]`` works now.
 #. ``RandomSample`` with one list argument now returns a random ordering of the list items. Previously it would return just one item.
+#. Improving compatibility in ``*Set*[...]`` expressions., For general cases, the LHS is evaluated before setting its value. For LHS also of the form ``*Set*[...]``, the LHS is keep unevaluated.
 #. Origin placement corrected on ``ListPlot`` and ``LinePlot``.
 #. Fix long-standing bugs in Image handling
 #. Some scikit image routines line ``EdgeDetect`` were getting omitted due to overly stringent PyPI requirements

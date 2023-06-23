@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import pytest
+
 from .helper import check_evaluation, evaluate
 
 
@@ -69,7 +71,7 @@ def test_condition():
     evaluate(
         """
         (* Define a function that can "throw an exception": *)
-
+        ClearAll[f];
          f[x_] := ppp[x]/; x>0
         """
     )
