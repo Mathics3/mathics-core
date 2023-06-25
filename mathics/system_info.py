@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+"""
+Mathics3 System Information that front-ends can use to show as
+configuration information.
+
+Some of these we get from mathics.settings and are configurable
+via Environment Variables.
+"""
 
 import os
 import platform
@@ -10,8 +17,10 @@ import mathics.builtin.directories.system_directories as system_directories
 import mathics.builtin.directories.user_directories as user_directories
 import mathics.builtin.system as msystem
 from mathics.core.evaluation import Evaluation
+from mathics.settings import MAX_STR_DIGITS, SYSTEM_CHARACTER_ENCODING, TIME_12HOUR
 
 
+# Largest number of digits Python allows in a string.
 def python_implementation() -> str:
     """
     Returns the Python implementation, e.g Pyston, PyPy, CPython...
@@ -53,5 +62,8 @@ def mathics_system_info(defs):
         "$TemporaryDirectory": eval(system_directories.TemporaryDirectory),
         "$UserName": eval(msystem.UserName),
         "MachinePrecision": eval(numeric.MachinePrecision_),
+        "MaximumDigitsInString": MAX_STR_DIGITS,
         "MemoryAvailable[]": eval(msystem.MemoryAvailable, needs_head=False),
+        "SystemCharacterEncoding": SYSTEM_CHARACTER_ENCODING,
+        "Time12Hour": TIME_12HOUR,
     }
