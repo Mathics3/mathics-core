@@ -3,7 +3,7 @@
 """
 Low-level Profiling
 
-Low-level (Python) profile from inside the Mathics interpreter
+Low-level (Python) profile from inside the Mathics3 interpreter
 
 """
 
@@ -12,7 +12,7 @@ import pstats
 import sys
 from io import StringIO
 
-from mathics.builtin import Builtin
+from mathics.builtin.base import Builtin
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
