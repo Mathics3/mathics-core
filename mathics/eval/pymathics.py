@@ -9,7 +9,7 @@ import sys
 from mathics.builtin import builtins_by_module
 from mathics.builtin.base import Builtin
 from mathics.core.definitions import Definitions
-from mathics.eval.builtin import name_is_builtin_symbol
+from mathics.core.load_builtin import name_is_builtin_symbol
 
 # The below set and dictionary are used in document generation
 # for Pymathics modules.

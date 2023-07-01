@@ -25,9 +25,9 @@ from mathics import settings, version_string
 from mathics.builtin import builtins_by_module
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
+from mathics.core.load_builtin import builtins_dict
 from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.doc.common_doc import MathicsMainDocumentation
-from mathics.eval.builtin import builtins_dict
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 from mathics.timing import show_lru_cache_statistics
 

@@ -15,9 +15,9 @@ from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.expression import Expression
+from mathics.core.load_builtin import definition_contribute
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolGet
-from mathics.eval.builtin import definition_contribute
 
 type_compiled_pattern = type(re.compile("a.a"))
 

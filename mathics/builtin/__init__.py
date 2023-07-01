@@ -23,7 +23,11 @@ import pkgutil
 import re
 
 from mathics.builtin.base import Builtin
-from mathics.eval.builtin import add_builtins, import_builtins, name_is_builtin_symbol
+from mathics.core.load_builtin import (
+    add_builtins,
+    import_builtins,
+    name_is_builtin_symbol,
+)
 from mathics.settings import ENABLE_FILES_MODULE
 
 # Get a list of files in this directory. We'll exclude from the start
