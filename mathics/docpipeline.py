@@ -5,7 +5,8 @@
 Does 2 things which can either be done independently or
 as a pipeline:
 
-1. Extracts tests and runs them from static mdoc files and docstrings from Mathics built-in functions
+1. Extracts tests and runs them from static mdoc files and docstrings from Mathics
+   built-in functions
 2. Creates/updates internal documentation data
 """
 
@@ -21,19 +22,20 @@ from typing import Dict
 import mathics
 import mathics.settings
 from mathics import settings, version_string
-from mathics.builtin import builtins_dict
+from mathics.builtin import builtins_by_module
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
+from mathics.core.load_builtin import builtins_dict
 from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.doc.common_doc import MathicsMainDocumentation
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 from mathics.timing import show_lru_cache_statistics
 
-builtins = builtins_dict()
+builtins = builtins_dict(builtins_by_module)
 
 
 class TestOutput(Output):
-    def max_stored_size(self, settings):
+    def max_stored_size(self, _):
         return None
 
 

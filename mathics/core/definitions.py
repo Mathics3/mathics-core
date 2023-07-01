@@ -15,6 +15,7 @@ from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.expression import Expression
+from mathics.core.load_builtin import definition_contribute
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolGet
 
@@ -137,7 +138,7 @@ class Definitions:
         self.timing_trace_evaluation = False
 
         if add_builtin:
-            from mathics.builtin import contribute, modules
+            from mathics.builtin import modules
             from mathics.settings import ROOT_DIR
 
             loaded = False
@@ -149,7 +150,7 @@ class Definitions:
                     self.builtin = pickle.load(builtin_file)
                     loaded = True
             if not loaded:
-                contribute(self)
+                definition_contribute(self)
                 for module in extension_modules:
                     try:
                         load_pymathics_module(self, module)
