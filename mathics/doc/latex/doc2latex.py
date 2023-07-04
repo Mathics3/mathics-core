@@ -1,7 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Reads in Pickle'd file and write LaTeX file containing the entire User Manual
+"""Writes a LaTeX file containing the entire User Manual.
+
+The information for this comes from:
+
+* the docstrings from loading in Mathics3 core (mathics)
+
+* the docstrings from loading Mathics3 modules that have been specified
+  on the command line
+
+* doctest tests and test result that have been stored in a Python
+  Pickle file, from a privious docpipeline.py run.  Ideally the
+  Mathics3 Modules given to docpipeline.py are the same as
+  given on the command line for this program
 """
 
 import os
@@ -10,6 +21,7 @@ import pickle
 import subprocess
 import sys
 from argparse import ArgumentParser
+from typing import Dict, Optional
 
 from mpmath import __version__ as mpmathVersion
 from numpy import __version__ as NumPyVersion
@@ -17,30 +29,56 @@ from sympy import __version__ as SymPyVersion
 
 import mathics
 from mathics import __version__, settings, version_string
+from mathics.core.definitions import Definitions
 from mathics.doc.latex_doc import LaTeXMathicsDocumentation
+from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 
 # Global variables
 logfile = None
 
-DOC_LATEX_DATA_PCL = settings.DOC_LATEX_DATA_PCL
+# Input doctest PCL FILE. This contains just the
+# tests and test results.
+#
+# This information is stitched in with information comes from
+# docstrings that are loaded from load Mathics builtins and external modules.
+
+DOCTEST_LATEX_DATA_PCL = settings.DOCTEST_LATEX_DATA_PCL
+
+# Output location information
 DOC_LATEX_DIR = os.environ.get("DOC_LATEX_DIR", settings.DOC_LATEX_DIR)
 DOC_LATEX_FILE = os.environ.get("DOC_LATEX_FILE", settings.DOC_LATEX_FILE)
 
 
-def extract_doc_from_source(quiet=False):
+def read_doctest_data(quiet=False) -> Optional[Dict[tuple, dict]]:
     """
-    Write internal (pickled) TeX doc mdoc files and example data in docstrings.
+    Read doctest information from PCL file and return this.
+    This is a wrapper around laod_doctest_data().
     """
     if not quiet:
-        print(f"Extracting internal doc data for {version_string}")
+        print(f"Extracting internal doctest data for {version_string}")
     try:
-        return load_doc_data(settings.get_doc_latex_data_path(should_be_readable=True))
+        return load_doctest_data(
+            settings.get_doctest_latex_data_path(should_be_readable=True)
+        )
     except KeyboardInterrupt:
         print("\nAborted.\n")
         return
 
 
-def load_doc_data(data_path, quiet=False):
+def load_doctest_data(data_path, quiet=False) -> Dict[tuple, dict]:
+    """
+    Read doctest information from PCL file and return this.
+
+    The return value is a dictionary of test results. The key is a tuple
+    of:
+    * Part name,
+    * Chapter name,
+    * [Guide Section name],
+    * Section name,
+    * Subsection name,
+    * test number
+    and the value is a dictionary of a Result.getdata() dictionary.
+    """
     if not quiet:
         print(f"Loading LaTeX internal data from {data_path}")
     with open_ensure_dir(data_path, "rb") as doc_data_fp:
@@ -145,6 +183,15 @@ def main():
         "You can list multiple chapters by adding a comma (and no space) in between chapter names.",
     )
     parser.add_argument(
+        "--load-module",
+        "-l",
+        dest="pymathics",
+        metavar="MATHIC3-MODULES",
+        help="load Mathics3 module MATHICS3-MODULES. "
+        "You can list multiple Mathics3 Modules by adding a comma (and no space) in between "
+        "module names.",
+    )
+    parser.add_argument(
         "--parts",
         "-p",
         dest="parts",
@@ -160,9 +207,25 @@ def main():
         help="Don't show formatting progress tests",
     )
     args = parser.parse_args()
-    doc_data = extract_doc_from_source(quiet=args.quiet)
+
+    # LoadModule Mathics3 modules to pull in modules, and
+    # their docstrings
+    if args.pymathics:
+        definitions = Definitions(add_builtin=True)
+        for module_name in args.pymathics.split(","):
+            try:
+                eval_LoadModule(module_name, definitions)
+            except PyMathicsLoadException:
+                print(f"Python module {module_name} is not a Mathics3 module.")
+
+            except Exception as e:
+                print(f"Python import errors with: {e}.")
+            else:
+                print(f"Mathics3 Module {module_name} loaded")
+
+    doctest_data = read_doctest_data(quiet=args.quiet)
     write_latex(
-        doc_data,
+        doctest_data,
         quiet=args.quiet,
         filter_parts=args.parts,
         filter_chapters=args.chapters,

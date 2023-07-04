@@ -4,8 +4,6 @@
 import time
 from typing import Any, FrozenSet, List, Optional, Tuple
 
-import sympy
-
 from mathics.core.element import (
     BaseElement,
     EvalMixin,
@@ -18,7 +16,6 @@ from mathics.core.element import (
 
 sympy_symbol_prefix = "_Mathics_User_"
 sympy_slot_prefix = "_Mathics_Slot_"
-
 
 # FIXME: This is repeated below
 class NumericOperators:
@@ -625,19 +622,9 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         return self.name
 
     def to_sympy(self, **kwargs):
-        from mathics.builtin import mathics_to_sympy
+        from mathics.core.convert.sympy import symbol_to_sympy
 
-        if self.sympy_dummy is not None:
-            return self.sympy_dummy
-
-        builtin = mathics_to_sympy.get(self.name)
-        if (
-            builtin is None
-            or not builtin.sympy_name
-            or not builtin.is_constant()  # nopep8
-        ):
-            return sympy.Symbol(sympy_symbol_prefix + self.name)
-        return builtin.to_sympy(self, **kwargs)
+        return symbol_to_sympy(self, **kwargs)
 
 
 class SymbolConstant(Symbol):
@@ -724,12 +711,18 @@ class SymbolConstant(Symbol):
         return self._value
 
 
-def symbol_set(*symbols: Tuple[Symbol]) -> FrozenSet[Symbol]:
+# A BooleanType is a special form of SymbolConstant where the value
+# of the constant is either SymbolTrue or SymbolFalse.
+BooleanType = SymbolConstant
+
+
+def symbol_set(*symbols: Symbol) -> FrozenSet[Symbol]:
     """
     Return a frozenset of symbols from a Symbol arguments.
     We will use this in testing membership, so an immutable object is fine.
 
-    In 2021, we benchmarked frozenset versus list, tuple, and set and frozenset was the fastest.
+    In 2021, we benchmarked frozenset versus list, tuple, and set and
+    frozenset was the fastest.
     """
     return frozenset(symbols)
 

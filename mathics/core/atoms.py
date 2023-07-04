@@ -13,6 +13,8 @@ from mathics.core.element import BoxElementMixin, ImmutableValueMixin
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
     MACHINE_PRECISION_VALUE,
+    MAX_MACHINE_NUMBER,
+    MIN_MACHINE_NUMBER,
     dps,
     min_prec,
     prec,
@@ -161,7 +163,6 @@ class Integer(Number):
     # clearing the cache and the object store which might be useful in implementing
     # Builtin Share[].
     def __new__(cls, value) -> "Integer":
-
         n = int(value)
         self = cls._integers.get(value)
         if self is None:
@@ -249,13 +250,18 @@ class Integer(Number):
     def to_python(self, *args, **kwargs):
         return self.value
 
-    def round(self, d=None) -> Union["MachineReal", "PrecisionReal"]:
+    def round(self, d: Optional[int] = None) -> Union["MachineReal", "PrecisionReal"]:
+        """
+        Produce a Real approximation of ``self`` with decimal precision ``d``.
+        If ``d`` is  ``None``, and self.value fits in a float,
+        returns a ``MachineReal`` number.
+        Is the low-level equivalent to ``N[self, d]``.
+        """
         if d is None:
             d = self.value.bit_length()
             if d <= FP_MANTISA_BINARY_DIGITS:
                 return MachineReal(float(self.value))
             else:
-                # FP_MANTISA_BINARY_DIGITS / log_2(10) + 1
                 d = MACHINE_PRECISION_VALUE
         return PrecisionReal(sympy.Float(self.value, d))
 
@@ -441,7 +447,10 @@ class MachineReal(Real):
     def is_zero(self) -> bool:
         return self.value == 0.0
 
-    def round(self, d=None) -> "MachineReal":
+    def round(self, d: Optional[int] = None) -> "MachineReal":
+        """
+        Produce a Real approximation of ``self`` with decimal precision ``d``.
+        """
         return self
 
     def sameQ(self, other) -> bool:
@@ -540,12 +549,11 @@ class PrecisionReal(Real):
             self, dps(self.get_precision()), None, None, _number_form_options
         )
 
-    def round(self, d=None) -> Union[MachineReal, "PrecisionReal"]:
+    def round(self, d: Optional[int] = None) -> Union[MachineReal, "PrecisionReal"]:
         if d is None:
             return MachineReal(float(self.value))
-        else:
-            d = min(dps(self.get_precision()), d)
-            return PrecisionReal(self.value.n(d))
+        _prec = min(prec(d), self.value._prec)
+        return PrecisionReal(sympy.Float(self.value, precision=_prec))
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ for PrecisionReal"""
@@ -704,7 +712,6 @@ class Complex(Number):
         value = (real, imag)
         self = cls._complex_numbers.get(value)
         if self is None:
-
             self = super().__new__(cls)
             self.real = real
             self.imag = imag
@@ -855,7 +862,6 @@ class Rational(Number):
     # clearing the cache and the object store which might be useful in implementing
     # Builtin Share[].
     def __new__(cls, numerator, denominator=1) -> "Rational":
-
         value = sympy.Rational(numerator, denominator)
         key = (cls, value)
         self = cls._rationals.get(key)
@@ -938,6 +944,17 @@ class Rational(Number):
 
 
 RationalOneHalf = Rational(1, 2)
+RationalMinusOneHalf = Rational(-1, 2)
+MATHICS3_COMPLEX_I = Complex(Integer0, Integer1)
+MATHICS3_COMPLEX_I_NEG = Complex(Integer0, IntegerM1)
+
+# Numerical constants
+# These constants are populated by the `Predefined`
+# classes. See `mathics.builtin.numbers.constants`
+NUMERICAL_CONSTANTS = {
+    Symbol("System`$MaxMachineNumber"): MachineReal(MAX_MACHINE_NUMBER),
+    Symbol("System`$MinMachineNumber"): MachineReal(MIN_MACHINE_NUMBER),
+}
 
 
 class String(Atom, BoxElementMixin):
@@ -1027,3 +1044,10 @@ class StringFromPython(String):
         if math.inf == value:
             self.value = "math.inf"
         return self
+
+
+def is_integer_rational_or_real(expr) -> bool:
+    """
+    Return True  is expr is either an Integer, Rational, or Real.
+    """
+    return isinstance(expr, (Integer, Rational, Real))

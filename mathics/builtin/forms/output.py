@@ -33,7 +33,6 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import (
-    FP_MANTISA_BINARY_DIGITS,
     LOG2_10,
     RECONSTRUCT_MACHINE_PRECISION_DIGITS,
     convert_base,
@@ -755,8 +754,12 @@ class OutputForm(FormBaseClass):
      = f'[x]
     >> OutputForm[Derivative[1, 0][f][x]]
      = Derivative[1, 0][f][x]
-    >> OutputForm["A string"]
-     = A string
+
+    'OutputForm' is used by default:
+    >> OutputForm[{"A string", a + b}]
+     = {A string, a + b}
+    >> {"A string", a + b}
+     = {A string, a + b}
     >> OutputForm[Graphics[Rectangle[]]]
      = -Graphics-
     """
@@ -851,11 +854,8 @@ class StandardForm(FormBaseClass):
     </dl>
 
     >> StandardForm[a + b * c]
-     = a + b c
+     = a+b c
     >> StandardForm["A string"]
-     = A string
-    'StandardForm' is used by default:
-    >> "A string"
      = A string
     >> f'[x]
      = f'[x]

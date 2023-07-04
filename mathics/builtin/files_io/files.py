@@ -6,7 +6,6 @@ File and Stream Operations
 """
 
 import io
-import os
 import os.path as osp
 import tempfile
 from io import BytesIO
@@ -40,21 +39,18 @@ from mathics.core.read import (
     read_name_and_stream_from_channel,
 )
 from mathics.core.streams import path_search, stream_manager
-from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
+from mathics.core.symbols import Symbol, SymbolFullForm, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolHold,
+    SymbolInputForm,
     SymbolOutputForm,
     SymbolReal,
 )
+from mathics.eval.directories import TMP_DIR
 from mathics.eval.makeboxes import do_format, format_element
 
-INITIAL_DIR = os.getcwd()
-DIRECTORY_STACK = [INITIAL_DIR]
-
 INPUT_VAR = ""
-
-TMP_DIR = tempfile.gettempdir()
 
 SymbolInputStream = Symbol("InputStream")
 SymbolOutputStream = Symbol("OutputStream")
@@ -694,10 +690,18 @@ class Put(BinaryOperator):
             evaluation.message("Put", "openx", to_expression("OutputSteam", name, n))
             return
 
-        text = [
-            evaluation.format_output(to_expression("InputForm", expr))
-            for expr in exprs.get_sequence()
-        ]
+        # In Mathics-server, evaluation.format_output is modified.
+        # Let's avoid to use it if we want a front-end independent result.
+        # Eventually, we are going to replace this by a `MakeBoxes` call.
+        def do_format_output(expr, evaluation):
+            try:
+                boxed_expr = format_element(expr, evaluation, SymbolInputForm)
+            except BoxError:
+                boxed_expr = format_element(expr, evaluation, SymbolFullForm)
+
+            return boxed_expr.boxes_to_text()
+
+        text = [do_format_output(expr, evaluation) for expr in exprs.get_sequence()]
         text = "\n".join(text) + "\n"
         text.encode("utf-8")
 

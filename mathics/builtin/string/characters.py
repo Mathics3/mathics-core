@@ -177,7 +177,7 @@ class LowerCaseQ(Test):
 
     summary_text = "test wether all the characters are lower-case letters"
 
-    def test(self, s):
+    def test(self, s) -> bool:
         return isinstance(s, String) and all(c.islower() for c in s.get_string_value())
 
 
@@ -240,7 +240,7 @@ class UpperCaseQ(Test):
      = True
     """
 
-    summary_text = "test wether all the characters are upper-case letters"
+    summary_text = "test whether all the characters are upper-case letters"
 
-    def test(self, s):
+    def test(self, s) -> bool:
         return isinstance(s, String) and all(c.isupper() for c in s.get_string_value())

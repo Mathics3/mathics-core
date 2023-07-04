@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Conversions between Python and Mathics
+Conversions between Python and Mathics3
 """
 
 from typing import Any
@@ -9,7 +9,7 @@ from mathics.core.atoms import Complex, Integer, Rational, Real, String
 from mathics.core.number import get_type
 from mathics.core.symbols import (
     BaseElement,
-    Symbol,
+    BooleanType,
     SymbolFalse,
     SymbolNull,
     SymbolTrue,
@@ -17,9 +17,9 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import SymbolByteArray, SymbolRule
 
 
-def from_bool(arg: bool) -> Symbol:
+def from_bool(arg: bool) -> BooleanType:
     """
-    Conversion from a bool to something Mathics can use.
+    Conversion from a bool to something Mathics3 can use.
     """
     return SymbolTrue if arg else SymbolFalse
 

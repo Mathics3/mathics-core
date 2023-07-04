@@ -144,7 +144,7 @@ def get_module_doc(module: ModuleType) -> tuple:
     return title, text
 
 
-def get_results_by_test(test_expr: str, full_test_key: list, doc_data: dict) -> list:
+def get_results_by_test(test_expr: str, full_test_key: list, doc_data: dict) -> dict:
     """
     Sometimes test numbering is off, either due to bugs or changes since the
     data was read.
@@ -348,7 +348,7 @@ def gather_tests(
 
 
 class Documentation:
-    def __init__(self, part: str, title: str, doc=None):
+    def __init__(self, part, title: str, doc=None):
         self.doc = doc
         self.guide_sections = []
         self.part = part
@@ -473,11 +473,7 @@ class Documentation:
             chapter = self.doc_chapter_fn(
                 builtin_part, title, self.doc_fn(text, title, None)
             )
-            builtins = builtins_by_module[module.__name__]
-            sections = [
-                builtin for builtin in builtins if not skip_doc(builtin.__class__)
-            ]
-
+            builtins = builtins_by_module.get(module.__name__)
             if module.__file__.endswith("__init__.py"):
                 # We have a Guide Section.
                 name = get_doc_name_from_module(module)
@@ -499,10 +495,6 @@ class Documentation:
 
                 # Add sections in the guide section...
                 for submodule in sorted_submodule(submodules):
-                    # FIXME add an additional mechanism in the module
-                    # to allow a docstring and indicate it is not to go in the
-                    # user manual
-
                     if skip_module_doc(submodule, modules_seen):
                         continue
                     elif IS_PYPY and submodule.__name__ == "builtins":
@@ -540,6 +532,11 @@ class Documentation:
                             in_guide=True,
                         )
             else:
+                if not builtins:
+                    continue
+                sections = [
+                    builtin for builtin in builtins if not skip_doc(builtin.__class__)
+                ]
                 self.doc_sections(sections, modules_seen, chapter)
             builtin_part.chapters.append(chapter)
         self.parts.append(builtin_part)
@@ -560,9 +557,9 @@ class Documentation:
                 )
                 modules_seen.add(instance)
 
-    def gather_doc_data(self):
+    def gather_doctest_data(self):
         """
-        Extract documentation data from various static XML-like doc files, Mathics3 Built-in functions
+        Extract doctest data from various static XML-like doc files, Mathics3 Built-in functions
         (inside mathics.builtin), and external Mathics3 Modules.
 
         The extracted structure is stored in ``self``.
@@ -1037,17 +1034,21 @@ class MathicsMainDocumentation(Documentation):
         self.doc_part_fn = DocPart
         self.doc_section_fn = DocSection
         self.doc_subsection_fn = DocSubsection
-        self.latex_pcl_path = settings.DOC_LATEX_DATA_PCL
+        self.doctest_latex_pcl_path = settings.DOCTEST_LATEX_DATA_PCL
         self.parts = []
         self.parts_by_slug = {}
         self.pymathics_doc_loaded = False
-        self.doc_data_file = settings.get_doc_latex_data_path(should_be_readable=True)
+        self.doc_data_file = settings.get_doctest_latex_data_path(
+            should_be_readable=True
+        )
         self.title = "Overview"
 
 
 class XMLDoc:
     """A class to hold our internal XML-like format data.
-    The `latex()` method can turn this into LaTeX.
+    Specialized classes like LaTeXDoc or and DjangoDoc provide methods for
+    getting formatted output. For LaTeXDoc ``latex()`` is added while for
+    DjangoDoc ``html()`` is added
 
     Mathics core also uses this in getting usage strings (`??`).
     """

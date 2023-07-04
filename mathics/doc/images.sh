@@ -9,8 +9,8 @@ mydir=$(dirname $bs)
 cd $mydir
 mydir=$(pwd)
 
-if [[ -n $DOC_LATEX_DATA_PCL ]]; then
-    LATEX_DIR=$(basename $DOC_LATEX_DATA_PCL)
+if [[ -n $DOCTEST_LATEX_DATA_PCL ]]; then
+    LATEX_DIR=$(basename $DOCTEST_LATEX_DATA_PCL)
 else
     LATEX_DIR=${mydir}/latex
 fi

@@ -85,7 +85,7 @@ def _cie2000_distance(lab1, lab2):
     )
 
 
-def _CMC_distance(lab1, lab2, l, c):
+def _CMC_distance(lab1, lab2, ll, c):
     # reference https://en.wikipedia.org/wiki/Color_difference#CMC_l:c_.281984.29
     L1, L2 = lab1[0], lab2[0]
     a1, a2 = lab1[1], lab2[1]
@@ -110,7 +110,7 @@ def _CMC_distance(lab1, lab2, l, c):
     SL = 0.511 if L1 < 16 else (0.040975 * L1) / (1 + 0.01765 * L1)
     SC = (0.0638 * C1) / (1 + 0.0131 * C1) + 0.638
     SH = SC * (F * T + 1 - F)
-    return sqrt((dL / (l * SL)) ** 2 + (dC / (c * SC)) ** 2 + dH2 / SH**2)
+    return sqrt((dL / (ll * SL)) ** 2 + (dC / (c * SC)) ** 2 + dH2 / SH**2)
 
 
 def _component_distance(a, b, i):
@@ -509,12 +509,12 @@ class Hue(_ColorObject):
     summary_text = "specify a color with hue, saturation lightness, and opacity"
 
     def hsl_to_rgba(self) -> tuple:
-        h, s, l = self.components[:3]
-        if l < 0.5:
-            q = l * (1 + s)
+        h, s, li = self.components[:3]
+        if li < 0.5:
+            q = li * (1 + s)
         else:
-            q = l + s - l * s
-        p = 2 * l - q
+            q = li + s - li * s
+        p = 2 * li - q
 
         rgb = (h + 1 / 3, h, h - 1 / 3)
 
@@ -625,7 +625,7 @@ class Opacity(_GraphicsDirective):
         try:
             if 0.0 <= self.opacity <= 1.0:
                 return self.opacity
-        except:
+        except Exception:
             pass
         return None
 

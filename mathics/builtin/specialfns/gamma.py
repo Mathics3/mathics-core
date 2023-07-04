@@ -6,52 +6,44 @@ import sys
 import mpmath
 import sympy
 
-from mathics.builtin.arithmetic import (
-    _MPMathFunction,
-    _MPMathMultiFunction,
-    call_mpmath,
-)
+from mathics.builtin.arithmetic import _MPMathFunction, _MPMathMultiFunction
 from mathics.builtin.base import PostfixOperator, SympyFunction
-from mathics.core.atoms import Integer, Integer0, Integer1, Number
+from mathics.core.atoms import Integer, Integer0, Number
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.expression import Expression
-from mathics.core.number import dps, min_prec
+from mathics.core.number import FP_MANTISA_BINARY_DIGITS, dps, min_prec
 from mathics.core.symbols import Symbol, SymbolSequence
-from mathics.core.systemsymbols import (
-    SymbolAutomatic,
-    SymbolComplexInfinity,
-    SymbolDirectedInfinity,
-    SymbolGamma,
-    SymbolIndeterminate,
-)
+from mathics.core.systemsymbols import SymbolAutomatic, SymbolGamma
+from mathics.eval.arithmetic import call_mpmath
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 
 
 class Beta(_MPMathMultiFunction):
     """
-    <url>
-    :Euler beta function:
-    https://en.wikipedia.org/wiki/Beta_function</url> (<url>:SymPy:
-    https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.beta_functions.beta</url>, <url>
-    :WMA:
-    https://reference.wolfram.com/language/ref/Beta.html</url>)
+        <url>
+        :Euler beta function:
+        https://en.wikipedia.org/wiki/Beta_function</url> (<url>:SymPy:
+        https://docs.sympy.org/latest/modules/functions/
+    special.html#sympy.functions.special.beta_functions.beta</url>, <url>
+        :WMA:
+        https://reference.wolfram.com/language/ref/Beta.html</url>)
 
-    <dl>
-      <dt>'Beta[$a$, $b$]'
-      <dd>is the Euler's Beta function.
-      <dt>'Beta[$z$, $a$, $b$]'
-      <dd>gives the incomplete Beta function.
-    </dl>
-    The Beta function satisfies the property
-    Beta[x, y] = Integrate[t^(x-1)(1-t)^(y-1),{t,0,1}] = Gamma[a] Gamma[b] / Gamma[a + b]
-    >> Beta[2, 3]
-     = 1 / 12
-    >> 12* Beta[1., 2, 3]
-     = 1.
+        <dl>
+          <dt>'Beta[$a$, $b$]'
+          <dd>is the Euler's Beta function.
+          <dt>'Beta[$z$, $a$, $b$]'
+          <dd>gives the incomplete Beta function.
+        </dl>
+        The Beta function satisfies the property
+        Beta[x, y] = Integrate[t^(x-1)(1-t)^(y-1),{t,0,1}] = Gamma[a] Gamma[b] / Gamma[a + b]
+        >> Beta[2, 3]
+         = 1 / 12
+        >> 12* Beta[1., 2, 3]
+         = 1.
     """
 
     summary_text = "Euler's Beta function"
@@ -111,18 +103,9 @@ class Beta(_MPMathMultiFunction):
             if None in float_args:
                 return
 
-            result = call_mpmath(mpmath_function, tuple(float_args))
-            if isinstance(result, (mpmath.mpc, mpmath.mpf)):
-                if mpmath.isinf(result) and isinstance(result, mpmath.mpc):
-                    result = SymbolComplexInfinity
-                elif mpmath.isinf(result) and result > 0:
-                    result = Expression(SymbolDirectedInfinity, Integer1)
-                elif mpmath.isinf(result) and result < 0:
-                    result = Expression(SymbolDirectedInfinity, Integer(-1))
-                elif mpmath.isnan(result):
-                    result = SymbolIndeterminate
-                else:
-                    result = from_mpmath(result)
+            result = call_mpmath(
+                mpmath_function, tuple(float_args), FP_MANTISA_BINARY_DIGITS
+            )
         else:
             prec = min_prec(*args)
             d = dps(prec)
@@ -131,9 +114,7 @@ class Beta(_MPMathMultiFunction):
                 mpmath_args = [x.to_mpmath() for x in args]
                 if None in mpmath_args:
                     return
-                result = call_mpmath(mpmath_function, tuple(mpmath_args))
-                if isinstance(result, (mpmath.mpc, mpmath.mpf)):
-                    result = from_mpmath(result, precision=prec)
+                result = call_mpmath(mpmath_function, tuple(mpmath_args), prec)
         return result
 
 

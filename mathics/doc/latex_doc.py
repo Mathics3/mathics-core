@@ -233,6 +233,19 @@ def escape_latex(text):
     def repl_hypertext(match) -> str:
         tag = match.group("tag")
         content = match.group("content")
+        #
+        # Sometimes it happens that the URL does not
+        # fit in 80 characters. Then, to avoid that
+        # flake8 complains, and also to have a
+        # nice and readable ASCII representation,
+        # we would like to split the URL in several,
+        # lines, having indentation spaces.
+        #
+        # The following line removes these extra
+        # characters, which would spoil the URL,
+        # producing a single line, space-free string.
+        #
+        content = content.replace(" ", "").replace("\n", "")
         if tag == "em":
             return r"\emph{%s}" % content
         elif tag == "url":
@@ -539,7 +552,7 @@ class LaTeXDocTest(DocTest):
         The key for doc_data is the part/chapter/section{/subsection} test number
         and the value contains Result object data turned into a dictionary.
 
-        In partuclar, each test in the test sequence includes the, input test,
+        In particular, each test in the test sequence includes the, input test,
         the result produced and any additional error output.
         The LaTeX-formatted string fragment is returned.
         """
@@ -660,17 +673,19 @@ class LaTeXMathicsDocumentation(Documentation):
         self.doc_chapter_fn = LaTeXDocChapter
         self.doc_dir = settings.DOC_DIR
         self.doc_fn = LaTeXDoc
-        self.doc_data_file = settings.get_doc_latex_data_path(should_be_readable=True)
+        self.doc_data_file = settings.get_doctest_latex_data_path(
+            should_be_readable=True
+        )
         self.doc_guide_section_fn = LaTeXDocGuideSection
         self.doc_part_fn = LaTeXDocPart
         self.doc_section_fn = LaTeXDocSection
         self.doc_subsection_fn = LaTeXDocSubsection
-        self.latex_pcl_path = settings.DOC_LATEX_DATA_PCL
+        self.doctest_latex_pcl_path = settings.DOCTEST_LATEX_DATA_PCL
         self.parts = []
         self.parts_by_slug = {}
         self.title = "Overview"
 
-        self.gather_doc_data()
+        self.gather_doctest_data()
 
     def latex(
         self,
@@ -917,6 +932,7 @@ class LaTeXDocSubsection:
         operator=None,
         installed=True,
         in_guide=False,
+        summary_text="",
     ):
         """
         Information that goes into a subsection object. This can be a written text, or

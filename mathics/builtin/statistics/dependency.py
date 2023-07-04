@@ -146,19 +146,21 @@ class StandardDeviation(Rectangular):
     }
     summary_text = "standard deviation of a dataset"
 
-    def eval(self, l, evaluation: Evaluation):
-        "StandardDeviation[l_List]"
-        if len(l.elements) <= 1:
-            evaluation.message("StandardDeviation", "shlen", l)
-        elif all(element.get_head_name() == "System`List" for element in l.elements):
+    def eval(self, li, evaluation: Evaluation):
+        "StandardDeviation[li_List]"
+        if len(li.elements) <= 1:
+            evaluation.message("StandardDeviation", "shlen", li)
+        elif all(element.get_head_name() == "System`List" for element in li.elements):
             try:
-                return self.rect(l)
+                return self.rect(li)
             except NotRectangularException:
                 evaluation.message(
-                    "StandardDeviation", "rectt", Expression(SymbolStandardDeviation, l)
+                    "StandardDeviation",
+                    "rectt",
+                    Expression(SymbolStandardDeviation, li),
                 )
         else:
-            return Expression(SymbolSqrt, Expression(SymbolVariance, l))
+            return Expression(SymbolSqrt, Expression(SymbolVariance, li))
 
 
 class Variance(Rectangular):
@@ -200,21 +202,21 @@ class Variance(Rectangular):
     # for the general formulation of real and complex variance below, see for example
     # https://en.wikipedia.org/wiki/Variance#Generalizations
 
-    def eval(self, l, evaluation: Evaluation):
-        "Variance[l_List]"
-        if len(l.elements) <= 1:
-            evaluation.message("Variance", "shlen", l)
-        elif all(element.get_head_name() == "System`List" for element in l.elements):
+    def eval(self, li, evaluation: Evaluation):
+        "Variance[li_List]"
+        if len(li.elements) <= 1:
+            evaluation.message("Variance", "shlen", li)
+        elif all(element.get_head_name() == "System`List" for element in li.elements):
             try:
-                return self.rect(l)
+                return self.rect(li)
             except NotRectangularException:
-                evaluation.message("Variance", "rectt", Expression(SymbolVariance, l))
+                evaluation.message("Variance", "rectt", Expression(SymbolVariance, li))
         else:
-            d = Expression(SymbolSubtract, l, Expression(SymbolMean, l))
+            d = Expression(SymbolSubtract, li, Expression(SymbolMean, li))
             return Expression(
                 SymbolDivide,
                 Expression(SymbolDot, d, Expression(SymbolConjugate, d)),
-                Integer(len(l.elements) - 1),
+                Integer(len(li.elements) - 1),
             )
 
 

@@ -10,6 +10,9 @@ PIP ?= pip3
 BASH ?= bash
 RM  ?= rm
 
+# Variable indicating Mathics3 Modules you have available on your system, in latex2doc option format
+MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
+
 .PHONY: \
    all \
    build \
@@ -26,7 +29,7 @@ RM  ?= rm
    dist \
    doc \
    doctest \
-   doc-data \
+   doctest-data \
    djangotest \
    gstest \
    latexdoc \
@@ -120,9 +123,10 @@ gstest:
 	(cd examples/symbolic_logic/gries_schneider && $(PYTHON) test_gs.py)
 
 
-#: Create data that is used to in Django docs and to build LaTeX PDF
-doc-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/documentation/images/*
-	MATHICS_CHARACTER_ENCODING="ASCII" $(PYTHON) mathics/docpipeline.py --output --keep-going
+#: Create doctest test data and test results that is used to build LaTeX PDF
+# For LaTeX docs we assume Unicode
+doctest-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/documentation/images/*
+	MATHICS_CHARACTER_ENCODING="UTF-8" $(PYTHON) mathics/docpipeline.py --output --keep-going $(MATHICS3_MODULE_OPTION)
 
 #: Run tests that appear in docstring in the code.
 doctest:
