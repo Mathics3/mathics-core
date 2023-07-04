@@ -11,6 +11,7 @@ from mathics.core.assignment import (
     assign_store_rules_by_tag,
     normalize_lhs,
 )
+from mathics.core.atoms import String
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
@@ -66,7 +67,7 @@ class LoadModule(Builtin):
       <dd>'Load Mathics definitions from the python module $module$
     </dl>
     >> LoadModule["nomodule"]
-     : Problem importing Python module: nomodule.
+     : Python import errors with: No module named 'nomodule'.
      = $Failed
     >> LoadModule["sys"]
      : Python module "sys" is not a Mathics3 module.
@@ -75,7 +76,7 @@ class LoadModule(Builtin):
 
     name = "LoadModule"
     messages = {
-        "notfound": """Problem importing Python module: `1`.""",
+        "loaderror": """Python import errors with: `1`.""",
         "notmathicslib": """Python module "`1`" is not a Mathics3 module.""",
     }
     summary_text = "load a pymathics module"
@@ -87,8 +88,8 @@ class LoadModule(Builtin):
         except PyMathicsLoadException:
             evaluation.message(self.name, "notmathicslib", module)
             return SymbolFailed
-        except ImportError:
-            evaluation.message(self.get_name(), "notfound", module)
+        except Exception as e:
+            evaluation.message(self.get_name(), "loaderror", String(str(e)))
             return SymbolFailed
         return module
 

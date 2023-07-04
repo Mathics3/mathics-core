@@ -283,9 +283,9 @@ def luv_to_xyz(cie_l, cie_u, cie_v, *rest):
     return (x, y, z) + rest
 
 
-def lch_to_lab(l, c, h, *rest):
+def lch_to_lab(ll, c, h, *rest):
     h *= 2 * pi  # MMA specific
-    return (l, c * cos(h), c * sin(h)) + rest
+    return (ll, c * cos(h), c * sin(h)) + rest
 
 
 @conditional
@@ -296,15 +296,15 @@ def _wrap_lch_h(h, pi2):
         return h
 
 
-def lab_to_lch(l, a, b, *rest):
+def lab_to_lch(ll, a, b, *rest):
     h = _wrap_lch_h(arctan2(b, a), 2.0 * pi)
     h /= 2.0 * pi  # MMA specific
-    return (l, sqrt(a * a + b * b), h) + rest
+    return (ll, sqrt(a * a + b * b), h) + rest
 
 
-def lab_to_xyz(l, a, b, *rest):
+def lab_to_xyz(ll, a, b, *rest):
     # see http://www.easyrgb.com/index.php?X=MATH&H=08#text8
-    f_y = (l * 100.0 + 16.0) / 116.0
+    f_y = (ll * 100.0 + 16.0) / 116.0
     x, y, z = a / 5.0 + f_y, f_y, f_y - b / 2.0
     x, y, z = map(_scale_lab_to_xyz, (x, y, z))
 

@@ -213,7 +213,6 @@ System`Coefficient
 System`CoefficientArrays
 System`CoefficientList
 System`Collect
-System`ColorCombine
 System`ColorConvert
 System`ColorData
 System`ColorDataFunction
@@ -338,6 +337,7 @@ System`EditDistance
 System`Eigensystem
 System`Eigenvalues
 System`Eigenvectors
+System`Element
 System`ElementData
 System`EllipticE
 System`EllipticF
@@ -770,6 +770,7 @@ System`PowerMod
 System`PreDecrement
 System`PreIncrement
 System`Precedence
+System`PrecedenceForm
 System`Precision
 System`Prefix
 System`Prepend

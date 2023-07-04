@@ -29,7 +29,7 @@ class CustomBoxExpression(BoxExpression):
     def boxes_to_tex(self, elements=None, **options):
         if not elements:
             elements = self.elements
-        return "CustomBoxExpression<<" + int(self.elements) + ">>"
+        return "CustomBoxExpression<<" + str(int(self.elements)) + ">>"
 
 
 class CustomAtom(Predefined):
@@ -113,5 +113,5 @@ def test_custom_graphicsbox_constructor():
     formatted = session.format_result().boxes_to_mathml()
     assert (
         formatted
-        == "--custom graphics--: I should plot (<Expression: System`Circle[<ListExpression: (<Integer: 0>, <Integer: 0>)>, 1]>,) items"
+        == "--custom graphics--: I should plot (<Expression: <Symbol: System`Circle>[<ListExpression: (<Integer: 0>, <Integer: 0>)>, <Integer: 1>]>,) items"
     )

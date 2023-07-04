@@ -7,7 +7,7 @@ import PIL
 
 from mathics.builtin.base import Builtin
 from mathics.builtin.image.base import Image
-from mathics.core.atoms import Integer
+from mathics.core.atoms import Integer, is_integer_rational_or_real
 from mathics.core.evaluation import Evaluation
 from mathics.eval.image import convolve, matrix_to_numpy, pixels_as_float
 
@@ -41,10 +41,29 @@ class GaussianFilter(Builtin):
     """
 
     summary_text = "apply a gaussian filter to an image"
-    messages = {"only3": "GaussianFilter only supports up to three channels."}
+    messages = {
+        "arg1": (
+            "The first argument `1` is not an image."
+            "or a non-empty list of non-complex numbers"
+        ),
+        "bdrad": (
+            "The radius specification `1` must be a non-complex number "
+            "or a non-empty list of non-complex numbers"
+        ),
+        "only3": "GaussianFilter only supports up to three channels.",
+    }
 
-    def eval_radius(self, image, radius, evaluation: Evaluation):
-        "GaussianFilter[image_Image, radius_?RealNumberQ]"
+    def eval(self, image, radius, evaluation: Evaluation):
+        "GaussianFilter[image_Image, radius_]"
+
+        if not isinstance(image, Image):
+            evaluation.message(self.get_name(), "arg1", image)
+            return
+
+        if not is_integer_rational_or_real(radius):
+            evaluation.message(self.get_name(), "bdrad", radius)
+            return
+
         if len(image.pixels.shape) > 2 and image.pixels.shape[2] > 3:
             evaluation.message("GaussianFilter", "only3")
             return

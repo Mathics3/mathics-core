@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-
 import base64
 import bisect
 import os
 import pickle
 import re
 from collections import defaultdict
+from os.path import join as osp_join
 from typing import List, Optional
 
 from mathics_scanner.tokeniser import full_names_pattern
@@ -15,6 +15,7 @@ from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.expression import Expression
+from mathics.core.load_builtin import definition_contribute
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolGet
 
@@ -47,12 +48,19 @@ def valuesname(name) -> str:
 def autoload_files(
     defs, root_dir_path: str, autoload_dir: str, block_global_definitions: bool = True
 ):
+    """
+    Load Mathics code from the autoload-folder files.
+    """
     from mathics.core.evaluation import Evaluation
 
-    # Load symbols from the autoload folder
-    for root, dirs, files in os.walk(os.path.join(root_dir_path, autoload_dir)):
-        for path in [os.path.join(root, f) for f in files if f.endswith(".m")]:
+    for root, dirs, files in os.walk(osp_join(root_dir_path, autoload_dir)):
+        for path in [osp_join(root, f) for f in files if f.endswith(".m")]:
+            # Autoload definitions should be go in the System context
+            # by default, rather than the Global context.
+            defs.set_current_context("System`")
             Expression(SymbolGet, String(path)).evaluate(Evaluation(defs))
+            # Restore default context to Global
+            defs.set_current_context("Global`")
 
     if block_global_definitions:
         # Move any user definitions created by autoloaded files to
@@ -67,20 +75,32 @@ def autoload_files(
             if name.startswith("Global`"):
                 raise ValueError("autoload defined %s." % name)
 
+    # Move the user definitions to builtin:
+    for symbol_name in defs.user:
+        defs.builtin[symbol_name] = defs.get_definition(symbol_name)
+
+    defs.user = {}
+    defs.clear_cache()
+
 
 class Definitions:
-    """
-    The state of one instance of the Mathics interpreter is stored in this object.
+    """The state of one instance of the Mathics3 interpreter is stored in this object.
 
-    The state is then stored as ``Definition`` object of the different symbols defined during the runtime.
+    The state is then stored as ``Definition`` object of the different
+    symbols defined during the runtime.
 
-    In the current implementation, the ``Definitions`` object stores ``Definition`` s in four dictionaries:
+    In the current implementation, the ``Definitions`` object stores
+    ``Definition`` s in four dictionaries:
 
     - builtins: stores the definitions of the ``Builtin`` symbols
-    - pymathics: stores the definitions of the ``Builtin`` symbols added from pymathics modules.
+    - pymathics: stores the definitions of the ``Builtin`` symbols added from pymathics
+      modules.
     - user: stores the definitions created during the runtime.
-    - definition_cache: keep definitions obtained by merging builtins, pymathics, and user definitions associated to the
-     same symbol.
+    - definition_cache: keep definitions obtained by merging builtins, pymathics, and
+      user definitions associated to the same symbol.
+
+    Note: we want Rules to be serializable so that we can dump and
+    restore Rules in order to make startup time faster.
     """
 
     def __init__(
@@ -118,7 +138,7 @@ class Definitions:
         self.timing_trace_evaluation = False
 
         if add_builtin:
-            from mathics.builtin import contribute, modules
+            from mathics.builtin import modules
             from mathics.settings import ROOT_DIR
 
             loaded = False
@@ -130,7 +150,7 @@ class Definitions:
                     self.builtin = pickle.load(builtin_file)
                     loaded = True
             if not loaded:
-                contribute(self)
+                definition_contribute(self)
                 for module in extension_modules:
                     try:
                         load_pymathics_module(self, module)
@@ -145,37 +165,30 @@ class Definitions:
 
             autoload_files(self, ROOT_DIR, "autoload")
 
-            # Move any user definitions created by autoloaded files to
-            # builtins, and clear out the user definitions list. This
-            # means that any autoloaded definitions become shared
-            # between users and no longer disappear after a Quit[].
-            #
-            # Autoloads that accidentally define a name in Global`
-            # could cause confusion, so check for this.
-            #
-            for name in self.user:
-                if name.startswith("Global`"):
-                    raise ValueError("autoload defined %s." % name)
-
-            self.builtin.update(self.user)
-            self.user = {}
-            self.clear_cache()
-
     def clear_cache(self, name=None):
-        # the definitions cache (self.definitions_cache) caches (incomplete and complete) names -> Definition(),
-        # e.g. "xy" -> d and "MyContext`xy" -> d. we need to clear this cache if a Definition() changes (which
-        # would happen if a Definition is combined from a builtin and a user definition and some content in the
-        # user definition is updated) or if the lookup rules change, and we could end up at a completely different
+        # The definitions cache (self.definitions_cache) caches
+        # (incomplete and complete) names -> Definition(), e.g. "xy"
+        # -> d and "MyContext`xy" -> d. we need to clear this cache if
+        # a Definition() changes (which would happen if a Definition
+        # is combined from a builtin and a user definition and some
+        # content in the user definition is updated) or if the lookup
+        # rules change, and we could end up at a completely different
         # Definition.
 
-        # the lookup cache (self.lookup_cache) caches what lookup_name() does. we only need to update this if some
-        # change happens that might change the result lookup_name() calculates. we do not need to change it if a
-        # Definition() changes.
+        # The lookup cache (self.lookup_cache) caches what
+        # lookup_name() does. we only need to update this if some
+        # change happens that might change the result lookup_name()
+        # calculates. we do not need to change it if a Definition()
+        # changes.
 
-        # self.proxy keeps track of all the names we cache. if we need to clear the caches for only one name, e.g.
-        # 'MySymbol', then we need to be able to look up all the entries that might be related to it, e.g. 'MySymbol',
-        # 'A`MySymbol', 'C`A`MySymbol', and so on. proxy identifies symbols using their stripped name and thus might
-        # give us symbols in other contexts that are actually not affected. still, this is a safe solution.
+        # self.proxy keeps track of all the names we cache. if we need
+        # to clear the caches for only one name, e.g.  'MySymbol',
+        # then we need to be able to look up all the entries that
+        # might be related to it, e.g. 'MySymbol', 'A`MySymbol',
+        # 'C`A`MySymbol', and so on. proxy identifies symbols using
+        # their stripped name and thus might give us symbols in other
+        # contexts that are actually not affected. still, this is a
+        # safe solution.
 
         if name is None:
             self.definitions_cache = {}

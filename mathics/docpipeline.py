@@ -5,7 +5,8 @@
 Does 2 things which can either be done independently or
 as a pipeline:
 
-1. Extracts tests and runs them from static mdoc files and docstrings from Mathics built-in functions
+1. Extracts tests and runs them from static mdoc files and docstrings from Mathics
+   built-in functions
 2. Creates/updates internal documentation data
 """
 
@@ -16,23 +17,25 @@ import re
 import sys
 from argparse import ArgumentParser
 from datetime import datetime
+from typing import Dict
 
 import mathics
 import mathics.settings
 from mathics import settings, version_string
-from mathics.builtin import builtins_dict
+from mathics.builtin import builtins_by_module
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
+from mathics.core.load_builtin import builtins_dict
 from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.doc.common_doc import MathicsMainDocumentation
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 from mathics.timing import show_lru_cache_statistics
 
-builtins = builtins_dict()
+builtins = builtins_dict(builtins_by_module)
 
 
 class TestOutput(Output):
-    def max_stored_size(self, settings):
+    def max_stored_size(self, _):
         return None
 
 
@@ -57,7 +60,7 @@ def print_and_log(*args):
 
 
 def compare(result, wanted) -> bool:
-    if result == wanted:
+    if wanted == "..." or result == wanted:
         return True
 
     if result is None or wanted is None:
@@ -66,8 +69,10 @@ def compare(result, wanted) -> bool:
     wanted = wanted.splitlines()
     if result == [] and wanted == ["#<--#"]:
         return True
+
     if len(result) != len(wanted):
         return False
+
     for r, w in zip(result, wanted):
         wanted_re = re.escape(w.strip())
         wanted_re = wanted_re.replace("\\.\\.\\.", ".*?")
@@ -80,7 +85,9 @@ def compare(result, wanted) -> bool:
 stars = "*" * 10
 
 
-def test_case(test, tests, index=0, subindex=0, quiet=False, section=None) -> bool:
+def test_case(
+    test, tests, index=0, subindex=0, quiet=False, section=None, format="text"
+) -> bool:
     global check_partial_elapsed_time
     test, wanted_out, wanted = test.test, test.outs, test.result
 
@@ -102,7 +109,9 @@ def test_case(test, tests, index=0, subindex=0, quiet=False, section=None) -> bo
         print(f"{index:4d} ({subindex:2d}): TEST {test}".encode("utf-8"))
 
     feeder = MathicsSingleLineFeeder(test, "<test>")
-    evaluation = Evaluation(definitions, catch_interrupt=False, output=TestOutput())
+    evaluation = Evaluation(
+        definitions, catch_interrupt=False, output=TestOutput(), format=format
+    )
     try:
         time_parsing = datetime.now()
         query = evaluation.parse_feeder(feeder)
@@ -204,7 +213,7 @@ def test_tests(
 
 
 # FIXME: move this to common routine
-def create_output(tests, doc_data, format="latex"):
+def create_output(tests, doctest_data, format="latex"):
     definitions.reset_user_definitions()
     for test in tests.tests:
         if test.private:
@@ -220,8 +229,11 @@ def create_output(tests, doc_data, format="latex"):
         if result is None:
             result = []
         else:
-            result = [result.get_data()]
-        doc_data[key] = {
+            result_data = result.get_data()
+            result_data["form"] = format
+            result = [result_data]
+
+        doctest_data[key] = {
             "query": test.test,
             "results": result,
         }
@@ -234,12 +246,13 @@ def test_chapters(
     generate_output=False,
     reload=False,
     want_sorting=False,
+    keep_going=False,
 ):
     failed = 0
     index = 0
     chapter_names = ", ".join(chapters)
     print(f"Testing chapter(s): {chapter_names}")
-    output_data = load_doc_data() if reload else {}
+    output_data = load_doctest_data() if reload else {}
     prev_key = []
     for tests in documentation.get_tests():
         if tests.chapter in chapters:
@@ -263,7 +276,8 @@ def test_chapters(
     if index == 0:
         print_and_log(f"No chapters found named {chapter_names}.")
     elif failed > 0:
-        print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
+        if not (keep_going and format == "latex"):
+            print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
     else:
         print_and_log("All tests passed.")
 
@@ -275,14 +289,16 @@ def test_sections(
     generate_output=False,
     reload=False,
     want_sorting=False,
+    keep_going=False,
 ):
     failed = 0
     index = 0
     section_names = ", ".join(sections)
     print(f"Testing section(s): {section_names}")
     sections |= {"$" + s for s in sections}
-    output_data = load_doc_data() if reload else {}
+    output_data = load_doctest_data() if reload else {}
     prev_key = []
+    format = "latex" if generate_output else "text"
     for tests in documentation.get_tests():
         if tests.section in sections:
             for test in tests.tests:
@@ -294,22 +310,23 @@ def test_sections(
                 if test.ignore:
                     continue
                 index += 1
-                if not test_case(test, tests, index, quiet=quiet):
+                if not test_case(test, tests, index, quiet=quiet, format=format):
                     failed += 1
                     if stop_on_failure:
                         break
-            if generate_output and failed == 0:
-                create_output(tests, output_data)
+            if generate_output and (failed == 0 or keep_going):
+                create_output(tests, output_data, format=format)
 
     print()
     if index == 0:
         print_and_log(f"No sections found named {section_names}.")
     elif failed > 0:
-        print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
+        if not (keep_going and format == "latex"):
+            print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
     else:
         print_and_log("All tests passed.")
-    if generate_output and (failed == 0):
-        save_doc_data(output_data)
+    if generate_output and (failed == 0 or keep_going):
+        save_doctest_data(output_data)
 
 
 def open_ensure_dir(f, *args, **kwargs):
@@ -339,7 +356,7 @@ def test_all(
     if generate_output:
         if texdatafolder is None:
             texdatafolder = osp.dirname(
-                settings.get_doc_latex_data_path(
+                settings.get_doctest_latex_data_path(
                     should_be_readable=False, create_parent=True
                 )
             )
@@ -393,7 +410,7 @@ def test_all(
             print_and_log("  - %s in %s / %s" % (section, part, chapter))
 
     if generate_output and (failed == 0 or doc_even_if_error):
-        save_doc_data(output_data)
+        save_doctest_data(output_data)
         return True
 
     if failed == 0:
@@ -403,32 +420,60 @@ def test_all(
         return sys.exit(1)  # Travis-CI knows the tests have failed
 
 
-def load_doc_data():
-    doc_latex_data_path = settings.get_doc_latex_data_path(should_be_readable=True)
-    print(f"Loading internal document data from {doc_latex_data_path}")
-    with open_ensure_dir(doc_latex_data_path, "rb") as doc_data_file:
-        return pickle.load(doc_data_file)
+def load_doctest_data() -> Dict[tuple, dict]:
+    """
+    Load doctest tests and test results from Python PCL file.
+
+    See ``save_doctest_data()`` for the format of the loaded PCL data
+    (a dict).
+    """
+    doctest_latex_data_path = settings.get_doctest_latex_data_path(
+        should_be_readable=True
+    )
+    print(f"Loading internal doctest data from {doctest_latex_data_path}")
+    with open_ensure_dir(doctest_latex_data_path, "rb") as doctest_data_file:
+        return pickle.load(doctest_data_file)
 
 
-def save_doc_data(output_data):
-    doc_latex_data_path = settings.get_doc_latex_data_path(
+def save_doctest_data(output_data: Dict[tuple, dict]):
+    """
+    Save doctest tests and test results to a Python PCL file.
+
+    ``output_data`` is a dictionary of test results. The key is a tuple
+    of:
+    * Part name,
+    * Chapter name,
+    * [Guide Section name],
+    * Section name,
+    * Subsection name,
+    * test number
+    and the value is a dictionary of a Result.getdata() dictionary.
+    """
+    doctest_latex_data_path = settings.get_doctest_latex_data_path(
         should_be_readable=False, create_parent=True
     )
-    print(f"Writing internal document data to {doc_latex_data_path}")
-    with open(doc_latex_data_path, "wb") as output_file:
+    print(f"Writing internal document data to {doctest_latex_data_path}")
+    i = 0
+    for key in output_data:
+        i = i + 1
+        print(key, output_data[key])
+        if i > 9:
+            break
+    with open(doctest_latex_data_path, "wb") as output_file:
         pickle.dump(output_data, output_file, 4)
 
 
-def extract_doc_from_source(quiet=False, reload=False):
+def write_doctest_data(quiet=False, reload=False):
     """
-    Write internal (pickled) doc files and example data in docstrings.
+    Get doctest information, which involves running the tests to obtain
+    test results and write out both the tests and the test results.
     """
     if not quiet:
         print(f"Extracting internal doc data for {version_string}")
         print("This may take a while...")
 
     try:
-        output_data = load_doc_data() if reload else {}
+        output_data = load_doctest_data() if reload else {}
         for tests in documentation.get_tests():
             create_output(tests, output_data)
     except KeyboardInterrupt:
@@ -436,7 +481,7 @@ def extract_doc_from_source(quiet=False, reload=False):
         return
 
     print("done.\n")
-    save_doc_data(output_data)
+    save_doctest_data(output_data)
 
 
 def main():
@@ -592,12 +637,12 @@ def main():
             except PyMathicsLoadException:
                 print(f"Python module {module_name} is not a Mathics3 module.")
 
-            except ImportError:
-                print(f"Python module {module_name} does not exist")
+            except Exception as e:
+                print(f"Python import errors with: {e}.")
             else:
                 print(f"Mathics3 Module {module_name} loaded")
 
-    documentation.gather_doc_data()
+    documentation.gather_doctest_data()
 
     if args.sections:
         sections = set(args.sections.split(","))
@@ -607,6 +652,7 @@ def main():
             stop_on_failure=args.stop_on_failure,
             generate_output=args.output,
             reload=args.reload,
+            keep_going=args.keep_going,
         )
     elif args.chapters:
         chapters = set(args.chapters.split(","))
@@ -616,7 +662,7 @@ def main():
         )
     else:
         if args.doc_only:
-            extract_doc_from_source(
+            write_doctest_data(
                 quiet=args.quiet,
                 reload=args.reload,
             )

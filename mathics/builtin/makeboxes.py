@@ -400,12 +400,12 @@ class MakeBoxes(Builtin):
             result.append(to_boxes(String(right), evaluation))
             return RowBox(*result)
 
-    def eval_outerprecedenceform(self, expr, precedence, evaluation):
+    def eval_outerprecedenceform(self, expr, precedence, form, evaluation):
         """MakeBoxes[PrecedenceForm[expr_, precedence_],
-        StandardForm|TraditionalForm|OutputForm|InputForm]"""
+        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
         py_precedence = precedence.get_int_value()
-        boxes = MakeBoxes(expr)
+        boxes = MakeBoxes(expr, form)
         return parenthesize(py_precedence, expr, boxes, True)
 
     def eval_postprefix(self, p, expr, h, precedence, form, evaluation):

@@ -12,7 +12,6 @@ In particular we provide:
 import os.path as osp
 from typing import Optional
 
-import mathics.settings
 from mathics.core.definitions import Definitions, autoload_files
 from mathics.core.evaluation import Evaluation
 from mathics.core.parser import MathicsSingleLineFeeder, parse
@@ -35,7 +34,9 @@ def load_default_settings_files(
 
 
 def get_settings_value(definitions: Definitions, setting_name: str):
-    """Get a Mathics Settings` value with name "setting_name" from definitions. If setting_name is not defined return None"""
+    """Get a Mathics Settings` value with name "setting_name" from
+    definitions. If setting_name is not defined return None.
+    """
     settings_value = definitions.get_ownvalue(setting_name)
     if settings_value is None:
         return None
@@ -60,8 +61,15 @@ class MathicsSession:
         add_builtin=True,
         catch_interrupt=False,
         form="InputForm",
-        character_encoding=Optional[str],
+        character_encoding: Optional[str] = None,
     ):
+        # FIXME: This import is needed because
+        # the first time we call self.reset,
+        # the formats must be already loaded.
+        # The need of importing this module here seems
+        # to be related to an issue in the modularity design.
+        import mathics.format
+
         if character_encoding is not None:
             mathics.settings.SYSTEM_CHARACTER_ENCODING = character_encoding
         self.form = form
@@ -93,3 +101,9 @@ class MathicsSession:
         if form is None:
             form = self.form
         return res.do_format(self.evaluation, form)
+
+    def parse(self, str_expression):
+        """
+        Just parse the expression
+        """
+        return parse(self.definitions, MathicsSingleLineFeeder(str_expression))

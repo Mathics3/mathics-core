@@ -11,7 +11,6 @@ from typing import Any, Dict, Type
 
 from mathics.core.atoms import Complex, Integer, Rational, Real, String, SymbolI
 from mathics.core.convert.expression import to_expression_with_specialization
-from mathics.core.definitions import OutputForms
 from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -36,7 +35,6 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolComplex,
     SymbolMinus,
-    SymbolOutputForm,
     SymbolRational,
     SymbolRowBox,
     SymbolStandardForm,
@@ -131,6 +129,8 @@ def do_format_element(
     superfluous enclosing formats.
     """
 
+    from mathics.core.definitions import OutputForms
+
     evaluation.inc_recursion_depth()
     try:
         expr = element
@@ -142,7 +142,7 @@ def do_format_element(
         # removes the format from the expression.
         if head in OutputForms and len(expr.elements) == 1:
             expr = elements[0]
-            if not (form is SymbolOutputForm and head is SymbolStandardForm):
+            if not form.sameQ(head):
                 form = head
                 include_form = True
 

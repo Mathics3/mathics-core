@@ -14,7 +14,6 @@ we can use 'Row'.
 
 from mathics.builtin.base import BinaryOperator, Builtin, Operator
 from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
-from mathics.builtin.lists import list_boxes
 from mathics.builtin.makeboxes import MakeBoxes
 from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Real, String
@@ -22,6 +21,7 @@ from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolMakeBoxes
+from mathics.eval.lists import list_boxes
 from mathics.eval.makeboxes import format_element
 
 SymbolSubscriptBox = Symbol("System`SubscriptBox")
@@ -286,6 +286,19 @@ class Precedence(Builtin):
             else:
                 precedence = 670
         return Real(precedence)
+
+
+class PrecedenceForm(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PrecedenceForm.html</url>
+
+    <dl>
+      <dt>'PrecedenceForm'[$expr$, $prec$]
+      <dd> format $expr$ parenthesized as it would be if it contained an operator of precedence $prec$.
+    </dl>
+    """
+
+    summary_text = "parenthesize with a precedence"
 
 
 class Prefix(BinaryOperator):

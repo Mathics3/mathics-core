@@ -22,15 +22,8 @@ from functools import lru_cache
 import mpmath
 import sympy
 
-from mathics.builtin.base import Builtin, Predefined, Test
-from mathics.core.atoms import (
-    Integer,
-    Integer0,
-    Integer10,
-    MachineReal,
-    Number,
-    Rational,
-)
+from mathics.builtin.base import Builtin, Predefined
+from mathics.core.atoms import Integer, Integer0, Integer10, MachineReal, Rational
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
@@ -160,7 +153,7 @@ class Accuracy(Builtin):
       <dd>examines the number of significant digits of $expr$ after the \
       decimal point in the number x.
     </dl>
-    <i>Notice that the result could be slighly different than the obtained\
+    <i>Notice that the result could be slightly different than the obtained \
     in WMA, due to differencs in the internal representation of the real numbers.</i>
 
     Accuracy of a real number is estimated from its value and its precision:
@@ -179,7 +172,7 @@ class Accuracy(Builtin):
 
     For Complex numbers, the accuracy is estimated as (minus) the base-10 log
     of the square root of the squares of the errors on the real and complex parts:
-    >> z=Complex[3.00``2, 4..00``2];
+    >> z=Complex[3.00``2, 4.00``2];
     >> Accuracy[z] == -Log[10, Sqrt[10^(-2 Accuracy[Re[z]]) + 10^(-2 Accuracy[Im[z]])]]
      = True
 
@@ -207,7 +200,8 @@ class Accuracy(Builtin):
 
     See also <url>
     :'Precision':
-    /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/precision/</url>.
+    /doc/reference-of-built-in-symbols/atomic-elements-of-expressions
+/representation-of-numbers/precision/</url>.
     """
 
     summary_text = "find the accuracy of a number"
@@ -218,37 +212,6 @@ class Accuracy(Builtin):
         if acc is None:
             return SymbolInfinity
         return MachineReal(acc)
-
-
-class ExactNumberQ(Test):
-    """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/ExactNumberQ.html</url>
-
-    <dl>
-      <dt>'ExactNumberQ[$expr$]'
-      <dd>returns 'True' if $expr$ is an exact number, and 'False' otherwise.
-    </dl>
-
-    >> ExactNumberQ[10]
-     = True
-    >> ExactNumberQ[4.0]
-     = False
-    >> ExactNumberQ[n]
-     = False
-
-    'ExactNumberQ' can be applied to complex numbers:
-    >> ExactNumberQ[1 + I]
-     = True
-    >> ExactNumberQ[1 + 1. I]
-     = False
-    """
-
-    summary_text = "test if an expression is an exact real or complex number"
-
-    def test(self, expr):
-        return isinstance(expr, Number) and not expr.is_inexact()
 
 
 class IntegerExponent(Builtin):
@@ -408,34 +371,6 @@ class IntegerLength(Builtin):
             else:
                 j = k
         return Integer(j)
-
-
-class InexactNumberQ(Test):
-    """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/InexactNumberQ.html</url>
-
-    <dl>
-      <dt>'InexactNumberQ[$expr$]'
-      <dd>returns 'True' if $expr$ is not an exact number, and 'False' otherwise.
-    </dl>
-
-    >> InexactNumberQ[a]
-     = False
-    >> InexactNumberQ[3.0]
-     = True
-    >> InexactNumberQ[2/3]
-     = False
-
-    'InexactNumberQ' can be applied to complex numbers:
-    >> InexactNumberQ[4.0+I]
-     = True
-    """
-
-    summary_text = "the negation of ExactNumberQ"
-
-    def test(self, expr):
-        return isinstance(expr, Number) and expr.is_inexact()
 
 
 class RealDigits(Builtin):
@@ -917,7 +852,7 @@ class Precision(Builtin):
       <dt>'Precision[$expr$]'
       <dd>examines the number of significant digits of $expr$.
     </dl>
-    <i>Notice that the result could be slighly different than the obtained\
+    <i>Note that the result could be slightly different than the obtained \
     in WMA, due to differencs in the internal representation of the real numbers.</i>
 
     The precision of an exact number, e.g. an Integer, is 'Infinity':

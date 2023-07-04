@@ -1230,16 +1230,6 @@ class Limit(Builtin):
      = Infinity
     >> Limit[1/x, x->0, Direction->1]
      = -Infinity
-
-    #> Limit[x, x -> x0, Direction -> x]
-     : Value of Direction -> x should be -1 or 1.
-     = Limit[x, x -> x0, Direction -> x]
-    """
-
-    """
-    The following test is currently causing PyPy to segfault...
-     #> Limit[(1 + cos[x]) / x, x -> 0]
-     = Limit[(1 + cos[x]) / x, x -> 0]
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -1296,10 +1286,12 @@ class NIntegrate(Builtin):
 
     <dl>
        <dt>'NIntegrate[$expr$, $interval$]'
-       <dd>returns a numeric approximation to the definite integral of $expr$ with limits $interval$ and with a precision of $prec$ digits.
+       <dd>returns a numeric approximation to the definite integral of $expr$ with \
+           limits $interval$ and with a precision of $prec$ digits.
 
         <dt>'NIntegrate[$expr$, $interval1$, $interval2$, ...]'
-        <dd>returns a numeric approximation to the multiple integral of $expr$ with limits $interval1$, $interval2$ and with a precision of $prec$ digits.
+        <dd>returns a numeric approximation to the multiple integral of $expr$ with \
+            limits $interval1$, $interval2$ and with a precision of $prec$ digits.
     </dl>
 
     >> NIntegrate[Exp[-x],{x,0,Infinity},Tolerance->1*^-6, Method->"Internal"]
@@ -2130,7 +2122,8 @@ class Solve(Builtin):
     <url>:Equation solving:
     https://en.wikipedia.org/wiki/Equation_solving</url> (<url>
     :SymPy:
-    https://docs.sympy.org/latest/modules/solvers/solvers.html#module-sympy.solvers</url>, \
+    https://docs.sympy.org/latest/modules
+/solvers/solvers.html#module-sympy.solvers</url>, \
     <url>:WMA:
     https://reference.wolfram.com/language/ref/Solve.html</url>)
 
@@ -2139,7 +2132,8 @@ class Solve(Builtin):
       <dd>attempts to solve $equation$ for the variables $vars$.
 
       <dt>'Solve[$equation$, $vars$, $domain$]'
-      <dd>restricts variables to $domain$, which can be 'Complexes' or 'Reals' or 'Integers'.
+      <dd>restricts variables to $domain$, which can be 'Complexes' \
+         or 'Reals' or 'Integers'.
     </dl>
 
     >> Solve[x ^ 2 - 3 x == 4, x]

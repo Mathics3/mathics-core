@@ -135,7 +135,7 @@ class Function(PostfixOperator):
             vars = dict(list(zip(var_names, args[: len(vars)])))
             try:
                 return body.replace_vars(vars)
-            except:
+            except Exception:
                 return
 
     # Not sure if DRY is possible here...
@@ -153,7 +153,7 @@ class Function(PostfixOperator):
             vars = dict(list(zip((var.get_name() for var in vars), args[: len(vars)])))
             try:
                 return body.replace_vars(vars)
-            except:
+            except Exception:
                 return
 
 

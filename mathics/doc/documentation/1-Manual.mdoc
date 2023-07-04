@@ -36,30 +36,36 @@ Performance of \Mathics is not, right now, practical in large-scale projects and
 
 <section title="What does \Mathics offer?">
 
-Some of the features of \Mathics are:
+Some of the features of \Mathics tries to be compatible with Wolfram-Language kernel within the confines of the Python ecosystem.
+
+Given this, it is a powerful functional programming language, driven by pattern matching and rule application.
+
+Primitive types include rationals, complex numbers, and arbitrary-precision numbers. Other primitive types such as images or graphs, or NLP come from the various Python libraries that \Mathics uses.
+
+Outside of the "core" \Mathics kernel (which has a only primitive command-line interface), in separate github projects, as add-ons, there is:
+
 <ul>
-  <li>a powerful functional programming language,
-  <li>a system driven by pattern matching and rules application,
-  <li>rationals, complex numbers, and arbitrary-precision arithmetic,
-  <li>lots of list and structure manipulation routines,
-  <li>an interactive graphical user interface right in the Web browser using MathML (apart from a command line interface),
-  <li>creation of graphics (e.g. plots) and display in the browser using SVG for 2D graphics and three.js for 3D graphics,
-  <li>export of results to \LaTeX (using Asymptote for graphics),
-  <li>an easy way of defining new functions in Python and which hooks into Python libraries
-  <li>an integrated documentation and testing system.
+  <li>a Django-based web server
+  <li>a command-line interface using either prompt-toolkit, or GNU Readline
+  <li>a <url>:Mathics3 module for Graphs:https://pypi.org/project/pymathics-graph/</url> (via <url>:NetworkX:https://networkx.org/</url>),
+  <li>a <url>:Mathics3 module for NLP:https://pypi.org/project/pymathics-natlang/</url> (via <url>:nltk:https://www.nltk.org/</url>, <url>:spacy:https://spacy.io/</url>, and others)
+  <li>a <url>:A docker container:https://hub.docker.com/r/mathicsorg/mathics</url> which bundles all of the above
 </ul>
 
 </section>
 
 <section title="History">
-The first alpha versions of \Mathics were done in 2011 by Jan Pöschko. He worked on it for a couple of years to about v0.5 which had 386 built-in symbols. Currently there are over a 1,000.
+The first alpha versions of \Mathics were done in 2011 by Jan Pöschko. He worked on it for a couple of years to about the v0.5 release in 2012. By then, it had 386 built-in symbols. Currently there are over a 1,000 and even more when \Mathics modules are included.
 
-After that, Angus Griffith took over primary leadership and rewrote the parser to pretty much the stage it is in now. He and later Ben Jones worked on it from 2013 to about 2017 to the v1.0 release. Towards the end of this period, Bernhard Liebl worked on this mostly focused on graphics.
+After that, Angus Griffith took over primary leadership and rewrote the parser to pretty much the stage it is in now. He and later Ben Jones worked on it from 2013 to about 2017 to the v1.0 release. Towards the end of this period, Bernhard Liebl worked on this, mostly focused on graphics.
 
 A <url>:docker image of the v.9 release: https://hub.docker.com/r/arkadi/mathics</url> can be found on dockerhub.
 
-The project was largely abandoned in its Python 2.7 state around 2017. Subsequently it was picked up by the current developers. A list of authors and contributors can be found in the
-<url>:<con>AUTHORS.txt</con>: https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url> file.
+Around 2017, the project was largely abandoned in its largely Python 2.7 state, with support for Python 3.2-3.5 via six.
+
+Subsequently, around mid 2020, it was picked up by the current developers. A list of authors and contributors can be found in the <url>
+:<con>AUTHORS.txt</con>:
+https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url> file.
 </section>
 
 <section title="What is missing?">
@@ -70,7 +76,7 @@ While we always could use help, such as in Python programming, improving Documen
 <ul>
 <li>Ensure this document is complete and accurate. We could use help to ensure all of the Builtin functions described properly and fully, and that they have link to corresponding Wiki, Sympy, WMA and/or mpath links.
 Make sure the builtin summaries and examples clear and useful.</li>
-<li>We could use help in LaTeX styling, and going over this document to remove overful boxes and things of that nature. We could also use help and our use of Asymptote. The are some graphics primitives such as for polyhedra that haven't been implemented. Similar graphics options are sometimes missing in Aymptote that we have available in other graphics backends.</li>
+<li>We could use help in LaTeX styling, and going over this document to remove overful boxes and things of that nature. We could also use help and our use of Asymptote. The are some graphics primitives such as for polyhedra that haven't been implemented. Similar graphics options are sometimes missing in Asymptote that we have available in other graphics backends.</li>
 
 <li>add another graphics backend: it could be a javascript library like jsfiddle</li>
 

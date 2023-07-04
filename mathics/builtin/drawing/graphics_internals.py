@@ -6,12 +6,11 @@
 
 from mathics.builtin.base import BuiltinElement
 from mathics.builtin.box.expression import BoxExpression
+from mathics.core.exceptions import BoxExpressionError
+from mathics.core.symbols import Symbol, system_symbols_dict
 
 # Signals to Mathics doc processing not to include this module in its documentation.
 no_doc = True
-
-from mathics.core.exceptions import BoxExpressionError
-from mathics.core.symbols import Symbol, system_symbols_dict
 
 
 class _GraphicsDirective(BuiltinElement):

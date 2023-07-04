@@ -54,8 +54,8 @@ class All(Predefined):
 
     In <url>
     :Plot:
-    /doc/reference-of-built-in-symbols/graphics-and-drawing/plotting-data/plot</url> \
-    </url>, setting the <url>
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/plotting-data/plot</url>, \
+    setting the <url>
     :Mesh:
     /doc/reference-of-built-in-symbols/drawing-options-and-option-values/mesh</url> \
     option to 'All' will show the specific plot points:
@@ -180,7 +180,7 @@ class None_(Predefined):
     :Mesh:
     /doc/reference-of-built-in-symbols/drawing-option-and-values/mesh</url> option.
 
-    However, you hide the mesh by setting thes 'Mesh' option value to 'None':
+    However, you hide the mesh by setting the 'Mesh' option value to 'None':
 
     >> Plot3D[{x^2 + y^2, -x^2 - y^2}, {x, -2, 2}, {y, -2, 2}, BoxRatios-> Automatic, Mesh->None]
      = -Graphics3D-
@@ -216,7 +216,7 @@ class NotOptionQ(Test):
 
     summary_text = "test whether an expression does not match the form of a valid option specification"
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         if hasattr(expr, "flatten_with_respect_to_head"):
             expr = expr.flatten_with_respect_to_head(SymbolList)
         if not expr.has_form("List", None):
@@ -269,7 +269,7 @@ class OptionQ(Test):
         "test whether an expression matches the form of a valid option specification"
     )
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         if hasattr(expr, "flatten_with_respect_to_head"):
             expr = expr.flatten_with_respect_to_head(SymbolList)
         if not expr.has_form("List", None):

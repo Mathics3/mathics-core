@@ -24,12 +24,12 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression, string_list
+from mathics.core.expression import BoxError, Expression, string_list
+from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
-from mathics.core.symbols import SymbolFalse, SymbolList, SymbolTrue
+from mathics.core.symbols import SymbolFalse, SymbolFullForm, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAll,
-    SymbolDirectedInfinity,
     SymbolOutputForm,
     SymbolStringInsert,
     SymbolStringJoin,
@@ -280,13 +280,25 @@ class StringInsert(Builtin):
                 add_string = String(add)
                 lpos_element = Integer(lpos[0]) if len(lpos) == 1 else from_python(lpos)
                 evaluation.message("StringInsert", "ins", Integer(pos), str_string)
-                return evaluation.format_output(
+
+                # In Mathics-server, evaluation.format_output is modified.
+                # Let's avoid to use it if we want a front-end independent result.
+                # Eventually, we are going to replace this by a `MakeBoxes` call.
+                def do_format_output(expr, evaluation):
+                    try:
+                        boxed_expr = format_element(expr, evaluation, SymbolOutputForm)
+                    except BoxError:
+                        boxed_expr = format_element(expr, evaluation, SymbolFullForm)
+                    return boxed_expr.boxes_to_text()
+
+                return do_format_output(
                     Expression(
                         SymbolStringInsert,
                         str_string,
                         add_string,
                         lpos_element,
-                    )
+                    ),
+                    evaluation,
                 )
 
         # Create new list of position which are rearranged
@@ -509,7 +521,7 @@ class StringPosition(Builtin):
         return self.eval_n(
             string,
             patt,
-            Expression(SymbolDirectedInfinity, Integer1),
+            MATHICS3_INFINITY,
             evaluation,
             options,
         )
@@ -546,10 +558,10 @@ class StringPosition(Builtin):
             patts = [patt]
         re_patts = []
         for p in patts:
-            py_p = to_regex(p, evaluation)
+            py_p = to_regex(p, show_message=evaluation.message)
             if py_p is None:
                 evaluation.message("StringExpression", "invld", p, patt)
-                returna
+                return
             re_patts.append(py_p)
         compiled_patts = [re.compile(re_patt) for re_patt in re_patts]
 
@@ -960,7 +972,7 @@ class StringSplit(Builtin):
             patts = [patt]
         re_patts = []
         for p in patts:
-            py_p = to_regex(p, evaluation)
+            py_p = to_regex(p, show_message=evaluation.message)
             if py_p is None:
                 evaluation.message("StringExpression", "invld", p, patt)
                 return
@@ -1130,7 +1142,7 @@ class StringTrim(Builtin):
         if not text:
             return s
 
-        py_patt = to_regex(patt, evaluation)
+        py_patt = to_regex(patt, show_message=evaluation.message)
         if py_patt is None:
             evaluation.message("StringExpression", "invld", patt, expression)
             return

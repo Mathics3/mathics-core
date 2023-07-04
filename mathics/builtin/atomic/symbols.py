@@ -8,7 +8,6 @@ or namespace, and can have a variety of type of values and attributes.
 
 import re
 
-from mathics.builtin.atomic.strings import to_regex
 from mathics.builtin.base import Builtin, PrefixOperator, Test
 from mathics.core.assignment import get_symbol_values
 from mathics.core.atoms import String
@@ -22,6 +21,7 @@ from mathics.core.attributes import (
     attributes_bitset_to_list,
 )
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.regex import to_regex
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -42,6 +42,7 @@ from mathics.core.systemsymbols import (
     SymbolGrid,
     SymbolInfix,
     SymbolInputForm,
+    SymbolLeft,
     SymbolOptions,
     SymbolRule,
     SymbolSet,
@@ -348,7 +349,7 @@ class Definition(Builtin):
                 return Expression(
                     SymbolGrid,
                     ListExpression(*(ListExpression(line) for line in lines)),
-                    Expression(SymbolRule, Symbol("ColumnAlignments"), Symbol("Left")),
+                    Expression(SymbolRule, Symbol("ColumnAlignments"), SymbolLeft),
                 )
             else:
                 for line in lines:
@@ -482,7 +483,7 @@ class Information(PrefixOperator):
                 infoshow = Expression(
                     SymbolGrid,
                     ListExpression(*(to_mathics_list(line) for line in lines)),
-                    Expression(SymbolRule, Symbol("ColumnAlignments"), Symbol("Left")),
+                    Expression(SymbolRule, Symbol("ColumnAlignments"), SymbolLeft),
                 )
                 evaluation.print_out(infoshow)
         else:
@@ -628,7 +629,7 @@ class Names(Builtin):
         "Names[pattern_]"
         headname = pattern.get_head_name()
         if headname == "System`StringExpression":
-            pattern = re.compile(to_regex(pattern, evaluation))
+            pattern = re.compile(to_regex(pattern, show_message=evaluation.messages))
         else:
             pattern = pattern.get_string_value()
 
@@ -767,7 +768,7 @@ class SymbolQ(Test):
 
     summary_text = "test whether is a symbol"
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         return isinstance(expr, Symbol)
 
 

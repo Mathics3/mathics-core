@@ -12,7 +12,7 @@ computational steps to be carried out. Any given procedure might be called \
 at any point during a program's execution, including by other procedures \
 or itself.
 
-Procedural functions are integrated into \Mathics symbolic programming \
+Procedural functions are integrated into \\Mathics symbolic programming \
 environment.
 """
 
@@ -24,6 +24,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.interrupt import (
     AbortInterrupt,
@@ -55,7 +56,7 @@ class Abort(Builtin):
 
     summary_text = "generate an abort"
 
-    def eval(self, evaluation):
+    def eval(self, evaluation: Evaluation):
         "Abort[]"
 
         raise AbortInterrupt
@@ -81,7 +82,7 @@ class Break(Builtin):
 
     summary_text = "exit a 'For', 'While', or 'Do' loop"
 
-    def eval(self, evaluation):
+    def eval(self, evaluation: Evaluation):
         "Break[]"
 
         raise BreakInterrupt
@@ -93,10 +94,12 @@ class Catch(Builtin):
 
     <dl>
       <dt>'Catch[$expr$]'
-      <dd> returns the argument of the first 'Throw' generated in the evaluation of $expr$.
+      <dd> returns the argument of the first 'Throw' generated in the evaluation of
+           $expr$.
 
       <dt>'Catch[$expr$, $form$]'
-      <dd> returns value from the first 'Throw[$value$, $tag$]' for which $form$ matches $tag$.
+      <dd> returns value from the first 'Throw[$value$, $tag$]' for which $form$ matches
+           $tag$.
 
       <dt>'Catch[$expr$, $form$, $f$]'
       <dd> returns $f$[$value$, $tag$].
@@ -149,7 +152,8 @@ class Catch(Builtin):
 
 class CompoundExpression(BinaryOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/CompoundExpression.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/CompoundExpression.html</url>
 
     <dl>
       <dt>'CompoundExpression[$e1$, $e2$, ...]'
@@ -212,8 +216,9 @@ class CompoundExpression(BinaryOperator):
             prev_result = result
             result = expr.evaluate(evaluation)
 
-            # `expr1; expr2;` returns `Null` but assigns `expr2` to `Out[n]`.
-            # even stranger `CompoundExpression[expr1, Null, Null]` assigns `expr1` to `Out[n]`.
+            # `expr1; expr2;` returns `Null` but assigns `expr2` to
+            # `Out[n]`.  even stranger `CompoundExpression[expr1,
+            # Null, Null]` assigns `expr1` to `Out[n]`.
             if result is SymbolNull and prev_result != SymbolNull:
                 evaluation.predetermined_out = prev_result
 
@@ -257,7 +262,8 @@ class Do(IterationFunction):
       <dd>evaluates $expr$ $max$ times.
 
       <dt>'Do[$expr$, {$i$, $max$}]'
-      <dd>evaluates $expr$ $max$ times, substituting $i$ in $expr$ with values from 1 to $max$.
+      <dd>evaluates $expr$ $max$ times, substituting $i$ in $expr$ with values from 1 to
+          $max$.
 
       <dt>'Do[$expr$, {$i$, $min$, $max$}]'
       <dd>starts with '$i$ = $max$'.
@@ -269,7 +275,8 @@ class Do(IterationFunction):
       <dd>uses values $i1$, $i2$, ... for $i$.
 
       <dt>'Do[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]'
-      <dd>evaluates $expr$ for each $j$ from $jmin$ to $jmax$, for each $i$ from $imin$ to $imax$, etc.
+      <dd>evaluates $expr$ for each $j$ from $jmin$ to $jmax$, for each $i$ from $imin$
+          to $imax$, etc.
     </dl>
     >> Do[Print[i], {i, 2, 4}]
      | 2
@@ -306,7 +313,8 @@ class For(Builtin):
 
     <dl>
       <dt>'For[$start$, $test$, $incr$, $body$]'
-      <dd>evaluates $start$, and then iteratively $body$ and $incr$ as long as $test$ evaluates to 'True'.
+      <dd>evaluates $start$, and then iteratively $body$ and $incr$ as long as $test$
+          evaluates to 'True'.
 
       <dt>'For[$start$, $test$, $incr$]'
       <dd>evaluates only $incr$ and no $body$.
@@ -363,7 +371,8 @@ class If(Builtin):
 
     <dl>
       <dt>'If[$cond$, $pos$, $neg$]'
-      <dd>returns $pos$ if $cond$ evaluates to 'True', and $neg$ if it evaluates to 'False'.
+      <dd>returns $pos$ if $cond$ evaluates to 'True', and $neg$ if it evaluates to
+          'False'.
 
       <dt>'If[$cond$, $pos$, $neg$, $other$]'
       <dd>returns $other$ if $cond$ evaluates to neither 'True' nor 'False'.
@@ -380,12 +389,14 @@ class If(Builtin):
     >> If[False, a] //FullForm
      = Null
 
-    You might use comments (inside '(*' and '*)') to make the branches of 'If' more readable:
+    You might use comments (inside '(*' and '*)') to make the branches of 'If'
+    more readable:
     >> If[a, (*then*) b, (*else*) c];
     """
 
     summary_text = "if-then-else conditional expression"
-    # this is the WR summary: "test if a condition is true, false, or of unknown truth value"
+    # This is the WR summary: "test if a condition is true, false, or
+    # of unknown truth value"
     attributes = A_HOLD_REST | A_PROTECTED
     summary_text = "test if a condition is true, false, or of unknown truth value"
 
@@ -431,7 +442,7 @@ class Interrupt(Builtin):
 
     summary_text = "interrupt evaluation and return '$Aborted'"
 
-    def eval(self, evaluation):
+    def eval(self, evaluation: Evaluation):
         "Interrupt[]"
 
         raise AbortInterrupt
@@ -481,7 +492,7 @@ class Return(Builtin):
 
     summary_text = "return from a function"
 
-    def eval(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation):
         "Return[expr_]"
 
         raise ReturnInterrupt(expr)
@@ -683,10 +694,10 @@ class Throw(Builtin):
 
     summary_text = "throw an expression to be caught by a surrounding 'Catch'"
 
-    def eval1(self, value, evaluation):
+    def eval(self, value, evaluation: Evaluation):
         "Throw[value_]"
         raise WLThrowInterrupt(value)
 
-    def eval_with_tag(self, value, tag, evaluation):
+    def eval_with_tag(self, value, tag, evaluation: Evaluation):
         "Throw[value_, tag_]"
         raise WLThrowInterrupt(value, tag)

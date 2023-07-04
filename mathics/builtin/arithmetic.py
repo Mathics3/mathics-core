@@ -7,13 +7,8 @@ Mathematical Functions
 Basic arithmetic functions, including complex number arithmetic.
 """
 
-from mathics.eval.numerify import numerify
-
-# This tells documentation how to sort this module
-sort_order = "mathics.builtin.mathematical-functions"
-
-
 from functools import lru_cache
+from typing import Optional
 
 import mpmath
 import sympy
@@ -23,11 +18,14 @@ from mathics.builtin.base import (
     IterationFunction,
     Predefined,
     SympyFunction,
+    SympyObject,
     Test,
 )
 from mathics.builtin.inference import evaluate_predicate, get_assumptions_list
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
+    MATHICS3_COMPLEX_I,
+    MATHICS3_COMPLEX_I_NEG,
     Complex,
     Integer,
     Integer0,
@@ -47,52 +45,52 @@ from mathics.core.attributes import (
     A_PROTECTED,
 )
 from mathics.core.convert.expression import to_expression
-from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
-from mathics.core.element import ElementsProperties
+from mathics.core.element import BaseElement
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.expression_predefined import (
+    MATHICS3_COMPLEX_INFINITY,
+    MATHICS3_I_INFINITY,
+    MATHICS3_I_NEG_INFINITY,
+    MATHICS3_INFINITY,
+    MATHICS3_NEG_INFINITY,
+    PredefinedExpression,
+)
 from mathics.core.list import ListExpression
-from mathics.core.number import SpecialValueError, dps, min_prec
+from mathics.core.number import dps, min_prec
 from mathics.core.symbols import (
     Atom,
     Symbol,
-    SymbolAbs,
     SymbolFalse,
     SymbolList,
     SymbolPlus,
-    SymbolPower,
     SymbolTimes,
     SymbolTrue,
 )
 from mathics.core.systemsymbols import (
     SymbolAnd,
-    SymbolComplexInfinity,
     SymbolDirectedInfinity,
-    SymbolIndeterminate,
     SymbolInfix,
-    SymbolOverflow,
     SymbolPiecewise,
     SymbolPossibleZeroQ,
     SymbolTable,
     SymbolUndefined,
 )
+from mathics.eval.arithmetic import eval_Abs, eval_mpmath_function, eval_Sign
 from mathics.eval.nevaluator import eval_N
+from mathics.eval.numerify import numerify
+
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.mathematical-functions"
 
 
-@lru_cache(maxsize=4096)
-def call_mpmath(mpmath_function, mpmath_args):
-    try:
-        return mpmath_function(*mpmath_args)
-    except ValueError as exc:
-        text = str(exc)
-        if text == "gamma function pole":
-            return SymbolComplexInfinity
-        else:
-            raise
-    except ZeroDivisionError:
-        return
-    except SpecialValueError as exc:
-        return Symbol(exc.name)
+map_direction_infinity = {
+    Integer1: MATHICS3_INFINITY,
+    IntegerM1: MATHICS3_NEG_INFINITY,
+    MATHICS3_COMPLEX_I: MATHICS3_I_INFINITY,
+    MATHICS3_COMPLEX_I_NEG: MATHICS3_I_NEG_INFINITY,
+}
 
 
 class _MPMathFunction(SympyFunction):
@@ -117,12 +115,10 @@ class _MPMathFunction(SympyFunction):
             return None
         return getattr(mpmath, self.mpmath_name)
 
-    def eval(self, z, evaluation):
+    def eval(self, z, evaluation: Evaluation):
         "%(name)s[z__]"
 
         args = numerify(z, evaluation).get_sequence()
-        mpmath_function = self.get_mpmath_function(tuple(args))
-        result = None
 
         # if no arguments are inexact attempt to use sympy
         if all(not x.is_inexact() for x in args):
@@ -131,55 +127,22 @@ class _MPMathFunction(SympyFunction):
             result = from_sympy(result)
             # evaluate elements to convert e.g. Plus[2, I] -> Complex[2, 1]
             return result.evaluate_elements(evaluation)
-        elif mpmath_function is None:
-            return
 
         if not all(isinstance(arg, Number) for arg in args):
             return
 
+        mpmath_function = self.get_mpmath_function(tuple(args))
+        if mpmath_function is None:
+            return
+
         if any(arg.is_machine_precision() for arg in args):
-            # if any argument has machine precision then the entire calculation
-            # is done with machine precision.
-            float_args = [
-                arg.round().get_float_value(permit_complex=True) for arg in args
-            ]
-            if None in float_args:
-                return
-
-            result = call_mpmath(mpmath_function, tuple(float_args))
-
-            if isinstance(result, (mpmath.mpc, mpmath.mpf)):
-                if mpmath.isinf(result) and isinstance(result, mpmath.mpc):
-                    result = SymbolComplexInfinity
-                elif mpmath.isinf(result) and result > 0:
-                    result = Expression(SymbolDirectedInfinity, Integer1)
-                elif mpmath.isinf(result) and result < 0:
-                    result = Expression(SymbolDirectedInfinity, IntegerM1)
-                elif mpmath.isnan(result):
-                    result = SymbolIndeterminate
-                else:
-                    # FIXME: replace try/except as a context manager
-                    # like "with evaluation.from_mpmath()...
-                    # which can be instrumented for
-                    # or mpmath tracing and benchmarking on demand.
-                    # Then use it on other places where mpmath appears.
-                    try:
-                        result = from_mpmath(result)
-                    except OverflowError:
-                        evaluation.message("General", "ovfl")
-                        result = Expression(SymbolOverflow)
+            prec = None
         else:
             prec = min_prec(*args)
             d = dps(prec)
-            args = [eval_N(arg, evaluation, Integer(d)) for arg in args]
-            with mpmath.workprec(prec):
-                mpmath_args = [x.to_mpmath() for x in args]
-                if None in mpmath_args:
-                    return
-                result = call_mpmath(mpmath_function, tuple(mpmath_args))
-                if isinstance(result, (mpmath.mpc, mpmath.mpf)):
-                    result = from_mpmath(result, precision=prec)
-        return result
+            args = [arg.round(d) for arg in args]
+
+        return eval_mpmath_function(mpmath_function, *args, prec=prec)
 
 
 class _MPMathMultiFunction(_MPMathFunction):
@@ -225,34 +188,35 @@ def create_infix(items, operator, prec, grouping):
 
 class Abs(_MPMathFunction):
     """
-    <url>
-    :Absolute value:
-    https://en.wikipedia.org/wiki/Absolute_value</url> (<url>
-    :SymPy:
-    https://docs.sympy.org/latest/modules/functions/elementary.html#sympy.functions.elementary.complexes.Abs</url>, <url>
-    :WMA: https://reference.wolfram.com/language/ref/Abs</url>)
+        <url>
+        :Absolute value:
+        https://en.wikipedia.org/wiki/Absolute_value</url> (<url>
+        :SymPy:
+        https://docs.sympy.org/latest/modules/functions/
+    elementary.html#sympy.functions.elementary.complexes.Abs</url>, <url>
+        :WMA: https://reference.wolfram.com/language/ref/Abs</url>)
 
-    <dl>
-      <dt>'Abs[$x$]'
-      <dd>returns the absolute value of $x$.
-    </dl>
+        <dl>
+          <dt>'Abs[$x$]'
+          <dd>returns the absolute value of $x$.
+        </dl>
 
-    >> Abs[-3]
-     = 3
+        >> Abs[-3]
+         = 3
 
-    >> Plot[Abs[x], {x, -4, 4}]
-     = -Graphics-
+        >> Plot[Abs[x], {x, -4, 4}]
+         = -Graphics-
 
-    'Abs' returns the magnitude of complex numbers:
-    >> Abs[3 + I]
-     = Sqrt[10]
-    >> Abs[3.0 + I]
-     = 3.16228
+        'Abs' returns the magnitude of complex numbers:
+        >> Abs[3 + I]
+         = Sqrt[10]
+        >> Abs[3.0 + I]
+         = 3.16228
 
-    All of the below evaluate to Infinity:
+        All of the below evaluate to Infinity:
 
-    >> Abs[Infinity] == Abs[I Infinity] == Abs[ComplexInfinity]
-     = True
+        >> Abs[Infinity] == Abs[I Infinity] == Abs[ComplexInfinity]
+         = True
     """
 
     mpmath_name = "fabs"  # mpmath actually uses python abs(x) / x.__abs__()
@@ -261,6 +225,13 @@ class Abs(_MPMathFunction):
     }
     summary_text = "absolute value of a number"
     sympy_name = "Abs"
+
+    def eval(self, x, evaluation: Evaluation):
+        "Abs[x_]"
+        result = eval_Abs(x)
+        if result is not None:
+            return result
+        return super(Abs, self).eval(x, evaluation)
 
 
 class Arg(_MPMathFunction):
@@ -318,7 +289,7 @@ class Arg(_MPMathFunction):
     sympy_name = "arg"
 
     def eval(self, z, evaluation, options={}):
-        "%(name)s[z_, OptionsPattern[%(name)s]]"
+        "Arg[z_, OptionsPattern[Arg]]"
         if Expression(SymbolPossibleZeroQ, z).evaluate(evaluation) is SymbolTrue:
             return Integer0
         preference = self.get_option(options, "Method", evaluation).get_string_value()
@@ -356,7 +327,7 @@ class Assuming(Builtin):
     summary_text = "set assumptions during the evaluation"
     attributes = A_HOLD_REST | A_PROTECTED
 
-    def eval_assuming(self, assumptions, expr, evaluation):
+    def eval_assuming(self, assumptions, expr, evaluation: Evaluation):
         "Assuming[assumptions_, expr_]"
         assumptions = assumptions.evaluate(evaluation)
         if assumptions is SymbolTrue:
@@ -412,11 +383,11 @@ class Boole(Builtin):
      = Boole[a == 7]
     """
 
-    summary_text = "translate 'True' to 1, and 'False' to 0"
     attributes = A_LISTABLE | A_PROTECTED
+    summary_text = "translate 'True' to 1, and 'False' to 0"
 
-    def eval(self, expr, evaluation):
-        "%(name)s[expr_]"
+    def eval(self, expr, evaluation: Evaluation):
+        "Boole[expr_]"
         if expr is SymbolTrue:
             return Integer1
         elif expr is SymbolFalse:
@@ -486,8 +457,8 @@ class Complex_(Builtin):
     summary_text = "head for complex numbers"
     name = "Complex"
 
-    def eval(self, r, i, evaluation):
-        "%(name)s[r_?NumberQ, i_?NumberQ]"
+    def eval(self, r, i, evaluation: Evaluation):
+        "Complex[r_?NumberQ, i_?NumberQ]"
 
         if isinstance(r, Complex) or isinstance(i, Complex):
             sym_form = r.to_sympy() + sympy.I * i.to_sympy()
@@ -498,11 +469,13 @@ class Complex_(Builtin):
 
 class ConditionalExpression(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ConditionalExpression.html</url>
+    <url>:WMA link:https://reference.wolfram.com/
+language/ref/ConditionalExpression.html</url>
 
     <dl>
       <dt>'ConditionalExpression[$expr$, $cond$]'
-      <dd>returns $expr$ if $cond$ evaluates to $True$, $Undefined$ if $cond$ evaluates to $False$.
+      <dd>returns $expr$ if $cond$ evaluates to $True$, $Undefined$ if $cond$ \
+          evaluates to $False$.
     </dl>
 
     >> ConditionalExpression[x^2, True]
@@ -539,7 +512,7 @@ class ConditionalExpression(Builtin):
         "expr1_ ^ ConditionalExpression[expr2_, cond_]": "ConditionalExpression[expr1^expr2, cond]",
     }
 
-    def eval_generic(self, expr, cond, evaluation):
+    def eval_generic(self, expr, cond, evaluation: Evaluation):
         "ConditionalExpression[expr_, cond_]"
         # What we need here is a way to evaluate
         # cond as a predicate, using assumptions.
@@ -644,8 +617,7 @@ class DirectedInfinity(SympyFunction):
      = Indeterminate
 
     >> DirectedInfinity[0]
-     : Indeterminate expression 0 Infinity encountered.
-     = Indeterminate
+     = ComplexInfinity
 
     #> DirectedInfinity[1+I]+DirectedInfinity[2+I]
      = (2 / 5 + I / 5) Sqrt[5] Infinity + (1 / 2 + I / 2) Sqrt[2] Infinity
@@ -656,15 +628,12 @@ class DirectedInfinity(SympyFunction):
 
     summary_text = "infinite quantity with a defined direction in the complex plane"
     rules = {
-        "DirectedInfinity[Indeterminate]": "Indeterminate",
         "DirectedInfinity[args___] ^ -1": "0",
-        "0 * DirectedInfinity[args___]": "Message[Infinity::indet, Unevaluated[0 DirectedInfinity[args]]]; Indeterminate",
-        # "DirectedInfinity[a_?NumericQ] /; N[Abs[a]] != 1": "DirectedInfinity[a / Abs[a]]",
-        # "DirectedInfinity[a_] * DirectedInfinity[b_]": "DirectedInfinity[a*b]",
-        # "DirectedInfinity[] * DirectedInfinity[args___]": "DirectedInfinity[]",
-        # Rules already implemented in Times.eval
-        #        "z_?NumberQ * DirectedInfinity[]": "DirectedInfinity[]",
-        #        "z_?NumberQ * DirectedInfinity[a_]": "DirectedInfinity[z * a]",
+        # Special arguments:
+        "DirectedInfinity[DirectedInfinity[args___]]": "DirectedInfinity[args]",
+        "DirectedInfinity[Indeterminate]": "Indeterminate",
+        "DirectedInfinity[Alternatives[0, 0.]]": "DirectedInfinity[]",
+        # Plus
         "DirectedInfinity[a_] + DirectedInfinity[b_] /; b == -a": (
             "Message[Infinity::indet,"
             "  Unevaluated[DirectedInfinity[a] + DirectedInfinity[b]]];"
@@ -676,17 +645,15 @@ class DirectedInfinity(SympyFunction):
             "Indeterminate"
         ),
         "DirectedInfinity[args___] + _?NumberQ": "DirectedInfinity[args]",
-        "DirectedInfinity[0]": (
+        # Times. See if can be reinstalled in eval_Times
+        "Alternatives[0, 0.] DirectedInfinity[z___]": (
             "Message[Infinity::indet,"
-            "  Unevaluated[DirectedInfinity[0]]];"
+            "  Unevaluated[0 DirectedInfinity[z]]];"
             "Indeterminate"
         ),
-        "DirectedInfinity[0.]": (
-            "Message[Infinity::indet,"
-            "  Unevaluated[DirectedInfinity[0.]]];"
-            "Indeterminate"
-        ),
-        "DirectedInfinity[DirectedInfinity[x___]]": "DirectedInfinity[x]",
+        "a_?NumericQ * DirectedInfinity[b_]": "DirectedInfinity[a * b]",
+        "a_ DirectedInfinity[]": "DirectedInfinity[]",
+        "DirectedInfinity[a_] * DirectedInfinity[b_]": "DirectedInfinity[a * b]",
     }
 
     formats = {
@@ -697,18 +664,46 @@ class DirectedInfinity(SympyFunction):
         "DirectedInfinity[z_?NumericQ]": "HoldForm[z Infinity]",
     }
 
-    def eval(self, z, evaluation):
-        """DirectedInfinity[z_]"""
-        if z in (Integer1, IntegerM1):
+    def eval_complex_infinity(self, evaluation: Evaluation):
+        """DirectedInfinity[]"""
+        return MATHICS3_COMPLEX_INFINITY
+
+    def eval_directed_infinity(self, direction, evaluation: Evaluation):
+        """DirectedInfinity[direction_]"""
+        result = map_direction_infinity.get(direction, None)
+        if result:
+            return result
+
+        if direction.is_zero:
+            return MATHICS3_COMPLEX_INFINITY
+
+        normalized_direction = eval_Sign(direction)
+        # TODO: improve eval_Sign, to avoid the need of the
+        # following block:
+        #   ############################################
+        if normalized_direction is None:
+            ndir = eval_N(direction, evaluation)
+            if isinstance(ndir, (Integer, Rational, Real)):
+                if abs(ndir.value) == 1.0:
+                    normalized_direction = direction
+                else:
+                    normalized_direction = direction / Abs(direction)
+            elif isinstance(ndir, Complex):
+                re, im = ndir.value
+                if abs(re.value**2 + im.value**2 - 1.0) < 1.0e-9:
+                    normalized_direction = direction
+                else:
+                    normalized_direction = direction / Abs(direction)
+            else:
+                return None
+        #  ##############################################
+
+        if normalized_direction is None:
             return None
-        if isinstance(z, Number) or isinstance(eval_N(z, evaluation), Number):
-            direction = (z / Expression(SymbolAbs, z)).evaluate(evaluation)
-            return Expression(
-                SymbolDirectedInfinity,
-                direction,
-                elements_properties=ElementsProperties(True, True, True),
-            )
-        return None
+        return PredefinedExpression(
+            SymbolDirectedInfinity,
+            normalized_direction.evaluate(evaluation),
+        )
 
     def to_sympy(self, expr, **kwargs):
         if len(expr.elements) == 1:
@@ -723,7 +718,78 @@ class DirectedInfinity(SympyFunction):
             return sympy.zoo
 
 
-class I(Predefined):
+class Element(Builtin):
+    """
+    <url>:Element of:https://en.wikipedia.org/wiki/Element_(mathematics)</url> \
+    (<url>:WMA:https://reference.wolfram.com/language/ref/Element.html</url>)
+
+    <dl>
+      <dt>'Element[$expr$, $domain$]'
+      <dd>returns $True$ if $expr$ is an element of $domain$
+      <dt>'Element[$expr_1$|$expr_2$|..., $domain$]'
+      <dd>returns $True$ if all the $expr_i$ belongs to $domain$, and \
+    $False$ if one of the items doesn't.
+    </dl>
+
+
+    Check if $3$ and $a$ are both integers. If $a$ is not defined, then \
+'Element' reduces the condition:
+    >> Element[3 | a, Integers]
+     = Element[a, Integers]
+
+    Notice that standard domain names ('Primes', 'Integers', 'Rationals', \
+'Algebraics', 'Reals', 'Complexes', and 'Booleans')\
+    are in plural form. If a singular form is used, a warning is shown:
+
+    >> Element[a, Real]
+     : The second argument Real of Element should be one of: Primes, Integers, \
+Rationals, Algebraics, Reals, Complexes, or Booleans.
+     = Element[a, Real]
+
+    """
+
+    messages = {
+        "bset": (
+            "The second argument `1` of Element should be one of: "
+            "Primes, Integers, Rationals, Algebraics, "
+            "Reals, Complexes, or Booleans."
+        ),
+    }
+
+    summary_text = "check whether belongs the domain"
+
+    def eval_wrong_domain(
+        self, elem: BaseElement, domain: BaseElement, evaluation: Evaluation
+    ):
+        (
+            "Element[elem_, domain:(Alternatives["
+            "Algebraic, Bool, Integer, Prime, Rational, Real, Complex])]"
+        )
+        evaluation.message("Element", "bset", domain)
+        return None
+
+    def eval_Element_alternatives(
+        self, elems: BaseElement, domain: BaseElement, evaluation: Evaluation
+    ) -> Optional[Expression]:
+        """Element[elems_Alternatives, domain_]"""
+        items = elems.elements
+        unknown = []
+        for item in items:
+            item_belongs = Element(item, domain).evaluate(evaluation)
+            if item_belongs is SymbolTrue:
+                continue
+            if item_belongs is SymbolFalse:
+                return SymbolFalse
+            unknown.append(item)
+        if len(unknown) == len(items):
+            return None
+        if len(unknown) == 0:
+            return SymbolTrue
+        # If some of the items remain unkown, return a reduced expression
+        return Element(Expression(elems.head, *unknown), domain)
+
+
+class I_(Predefined, SympyObject):
     """
     <url>:Imaginary unit:https://en.wikipedia.org/wiki/Imaginary_unit</url> \
     (<url>:WMA:https://reference.wolfram.com/language/ref/I.html</url>)
@@ -739,10 +805,19 @@ class I(Predefined):
      = 10
     """
 
+    name = "I"
+    sympy_name = "I"
+    sympy_obj = sympy.I
     summary_text = "imaginary unit"
     python_equivalent = 1j
 
-    def evaluate(self, evaluation):
+    def is_constant(self) -> bool:
+        return True
+
+    def to_sympy(self, symb, **kwargs):
+        return self.sympy_obj
+
+    def evaluate(self, evaluation: Evaluation):
         return Complex(Integer0, Integer1)
 
 
@@ -770,17 +845,17 @@ class Im(SympyFunction):
     summary_text = "imaginary part"
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
-    def eval_complex(self, number, evaluation):
+    def eval_complex(self, number, evaluation: Evaluation):
         "Im[number_Complex]"
+        if isinstance(number, Complex):
+            return number.imag
 
-        return number.imag
-
-    def eval_number(self, number, evaluation):
+    def eval_number(self, number, evaluation: Evaluation):
         "Im[number_?NumberQ]"
 
         return Integer0
 
-    def eval(self, number, evaluation):
+    def eval(self, number, evaluation: Evaluation):
         "Im[number_]"
 
         return from_sympy(sympy.im(number.to_sympy().expand(complex=True)))
@@ -848,7 +923,7 @@ class Piecewise(SympyFunction):
 
     attributes = A_HOLD_ALL | A_PROTECTED
 
-    def eval(self, items, evaluation):
+    def eval(self, items, evaluation: Evaluation):
         "%(name)s[items__]"
         result = self.to_sympy(
             Expression(SymbolPiecewise, *items.get_sequence()), evaluation=evaluation
@@ -1007,8 +1082,8 @@ class Rational_(Builtin):
     summary_text = "head for rational numbers"
     name = "Rational"
 
-    def eval(self, n: Integer, m: Integer, evaluation):
-        "%(name)s[n_Integer, m_Integer]"
+    def eval(self, n: Integer, m: Integer, evaluation: Evaluation):
+        "Rational[n_Integer, m_Integer]"
 
         if m.value == 1:
             return n
@@ -1041,19 +1116,18 @@ class Re(SympyFunction):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     sympy_name = "re"
 
-    def eval_complex(self, number, evaluation):
+    def eval_complex(self, number, evaluation: Evaluation):
         "Re[number_Complex]"
+        if isinstance(number, Complex):
+            return number.real
 
-        return number.real
-
-    def eval_number(self, number, evaluation):
+    def eval_number(self, number, evaluation: Evaluation):
         "Re[number_?NumberQ]"
 
         return number
 
-    def eval(self, number, evaluation):
+    def eval(self, number, evaluation: Evaluation):
         "Re[number_]"
-
         return from_sympy(sympy.re(number.to_sympy().expand(complex=True)))
 
 
@@ -1155,9 +1229,11 @@ class RealNumberQ(Test):
      = True
     """
 
+    attributes = A_NO_ATTRIBUTES
+
     summary_text = "test whether an expression is a real number"
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         return isinstance(expr, (Integer, Rational, Real))
 
 
@@ -1201,22 +1277,24 @@ class Sign(SympyFunction):
         "argx": "Sign called with `1` arguments; 1 argument is expected.",
     }
 
-    def eval(self, x, evaluation):
+    rules = {
+        "Sign[Power[a_, b_]]": "Power[Sign[a], b]",
+    }
+
+    def eval(self, x, evaluation: Evaluation):
         "%(name)s[x_]"
-        # Sympy and mpmath do not give the desired form of complex number
-        if isinstance(x, Complex):
-            return Expression(
-                SymbolTimes,
-                x,
-                Expression(SymbolPower, Expression(SymbolAbs, x), IntegerM1),
-            )
+        result = eval_Sign(x)
+        if result is not None:
+            return result
+        # return None
 
         sympy_x = x.to_sympy()
         if sympy_x is None:
             return None
-        return super().eval(x, evaluation)
+        # Unhandled cases. Use sympy
+        return super(Sign, self).eval(x, evaluation)
 
-    def eval_error(self, x, seqs, evaluation):
+    def eval_error(self, x, seqs, evaluation: Evaluation):
         "Sign[x_, seqs__]"
         evaluation.message("Sign", "argx", Integer(len(seqs.get_sequence()) + 1))
 
@@ -1236,7 +1314,8 @@ class Sum(IterationFunction, SympyFunction):
       <dd>$i$ ranges from $imin$ to $imax$ in steps of $di$.
 
       <dt>'Sum[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]'
-      <dd>evaluates $expr$ as a multiple sum, with {$i$, ...}, {$j$, ...}, ... being in outermost-to-innermost order.
+      <dd>evaluates $expr$ as a multiple sum, with {$i$, ...}, {$j$, ...}, ... being \
+          in outermost-to-innermost order.
     </dl>
 
 
@@ -1322,7 +1401,7 @@ class Sum(IterationFunction, SympyFunction):
     def get_result(self, items):
         return Expression(SymbolPlus, *items)
 
-    def to_sympy(self, expr, **kwargs) -> SympyExpression:
+    def to_sympy(self, expr, **kwargs) -> Optional[SympyExpression]:
         """
         Perform summation via sympy.summation
         """
