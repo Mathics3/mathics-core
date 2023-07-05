@@ -23,3 +23,14 @@ def test_gudermannian():
         ("Gudermannian[z]", "2 ArcTan[Tanh[z / 2]]"),
     ):
         check_evaluation(str_expr, str_expected)
+
+
+def test_complexexpand():
+    for str_expr, str_expected in (
+        ("ComplexExpand[Sin[x + I y]]", "Cosh[y]*Sin[x] + I*Cos[x]*Sinh[y]"),
+        (
+            "ComplexExpand[3^(I x)]",
+            "3 ^ (-Im[x]) Re[3 ^ (I Re[x])] + I Im[3 ^ (I Re[x])] 3 ^ (-Im[x])",
+        ),
+    ):
+        check_evaluation(str_expr, str_expected)
