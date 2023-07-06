@@ -104,6 +104,7 @@ New Builtins
 #. ``$PythonImplementation``
 #. ``Accuracy``
 #. ``ClebschGordan``
+#. ``ComplexExpand`` (@yzrun)
 #. ``Curl`` (2-D and 3-D vector forms only)
 #. ``DiscretePlot``
 #. ``Kurtosis``

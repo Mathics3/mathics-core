@@ -8,7 +8,10 @@ from mathics.core.convert.sympy import from_sympy
 
 def eval_ComplexExpand(expr, vars):
     sympy_expr = expr.to_sympy()
-    sympy_vars = {v.to_sympy() for v in vars.elements}
+    if hasattr(vars, "elements"):
+        sympy_vars = {v.to_sympy() for v in vars.elements}
+    else:
+        sympy_vars = {vars.to_sympy()}
     # All vars are assumed to be real
     replaces = [
         (fs, SympySymbol(fs.name, real=True))
