@@ -8,7 +8,7 @@ FindRoot[], FindMinimum[], NFindMaximum[] tests
 
 
 """
-from test.helper import check_evaluation, evaluate
+from test.helper import check_evaluation
 from typing import Optional
 
 import pytest
@@ -127,7 +127,8 @@ def test_integrate(str_expr: str, str_expected: str, assert_fail_message):
             "D[{y, -x}[2], {x, y}]",
             "D[{y, -x}[2], {x, y}]",
             [
-                "Multiple derivative specifier {x, y} does not have the form {variable, n}, where n is a non-negative machine integer."
+                "Multiple derivative specifier {x, y} does not have the form {variable,"
+                " n}, where n is a non-negative machine integer."
             ],
         ),
     ],  # Issue #502
