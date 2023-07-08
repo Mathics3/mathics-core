@@ -16,81 +16,40 @@ builtin class such as the Builtin's Attributes, its Information text,
 among other things.
 """
 
-import glob
-import importlib
+import os
 import os.path as osp
-import pkgutil
-import re
 
 from mathics.builtin.base import Builtin
 from mathics.core.load_builtin import (
     add_builtins,
+    get_module_filenames,
+    import_builtin_subdirectories,
     import_builtins,
     name_is_builtin_symbol,
 )
 from mathics.settings import ENABLE_FILES_MODULE
 
-# Get a list of files in this directory. We'll exclude from the start
-# files with leading characters we don't want like __init__ with its leading underscore.
-__py_files__ = [
-    osp.basename(f[0:-3])
-    for f in glob.glob(osp.join(osp.dirname(__file__), "[a-z]*.py"))
-]
+builtin_path = osp.dirname(__file__)
 
-# FIXME: redo using importlib since that is probably less fragile.
+# Get filenames in this directory of Python modules that contain the
+# builtin functions that we need to load and process.
 exclude_files = {"codetables", "base"}
-module_names = [
-    f for f in __py_files__ if re.match(r"^[a-z\d]+$", f) if f not in exclude_files
-]
+module_names = [f for f in get_module_filenames(builtin_path) if f not in exclude_files]
 
 modules = []
-import_builtins(modules, module_names)
+import_builtins(module_names, modules)
 
-_builtins_list = []
 builtins_by_module = {}
 
+# The files_io module handles local file access, reading and writing..
+# In some sandboxed settings, such as running Mathics from as a remote
+# server, we disallow local file access.
 disable_file_module_names = [] if ENABLE_FILES_MODULE else ["files_io"]
 
-for subdir in (
-    "arithfns",
-    "assignments",
-    "atomic",
-    "binary",
-    "box",
-    "colors",
-    "directories",
-    "distance",
-    "drawing",
-    "exp_structure",
-    "fileformats",
-    "files_io",
-    "file_operations",
-    "forms",
-    "functional",
-    "image",
-    "intfns",
-    "list",
-    "matrices",
-    "numbers",
-    "quantum_mechanics",
-    "specialfns",
-    "statistics",
-    "string",
-    "testing_expressions",
-    "vectors",
-):
-    import_name = f"{__name__}.{subdir}"
+subdirectories = next(os.walk(builtin_path))[1]
+import_builtin_subdirectories(subdirectories, disable_file_module_names, modules)
 
-    if subdir in disable_file_module_names:
-        continue
-
-    builtin_module = importlib.import_module(import_name)
-    submodule_names = [
-        modname for _, modname, _ in pkgutil.iter_modules(builtin_module.__path__)
-    ]
-    # print("XXX3", submodule_names)
-    import_builtins(modules, submodule_names, subdir)
-
+_builtins_list = []
 for module in modules:
     builtins_by_module[module.__name__] = []
     module_vars = dir(module)

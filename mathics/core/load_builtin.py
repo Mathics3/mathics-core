@@ -9,13 +9,17 @@ as has been done for one of the other modules listed above.
 
 import importlib
 import inspect
-from typing import Optional
+import os.path as osp
+import pkgutil
+from glob import glob
+from typing import Generator, List, Optional
 
 from mathics.core.pattern import pattern_objects
 from mathics.core.symbols import Symbol
 from mathics.eval.makeboxes import builtins_precedence
 
 _builtins = {}
+
 
 # The fact that are importing inside here, suggests add_builtins
 # should get moved elsewhere.
@@ -74,36 +78,83 @@ def definition_contribute(definitions):
             definitions.builtin[op] = Definition(name=op)
 
 
+def get_module_filenames(builtin_path: str) -> Generator:
+    """Return a generator for a filenames that could be Mathics
+    (builtin) module names.  The Python module names have simple
+    alphabetic names. We do not want to include
+    things like __init__ or __pycache__ which
+    cannot be a file containing Mathics3 module that
+    needs to be considered.
+    """
+    return (osp.basename(f[0:-3]) for f in glob(osp.join(builtin_path, "[a-z]*.py")))
+
+
+def import_builtin_module(module_name: str, import_name: str, modules: list):
+    try:
+        module = importlib.import_module(import_name)
+    except Exception as e:
+        print(e)
+        print(f"    Not able to load {module_name} . Check your installation.")
+        return None
+
+    if module:
+        modules.append(module)
+
+
 # TODO: When we drop Python 3.7,
 # module_names can be a List[Literal]
-def import_builtins(modules: list, module_names: list, submodule_name=None) -> None:
+def import_builtins(module_names: list, modules: list, parent_name=None) -> None:
     """
     Imports the list of Mathics3 Built-in modules so that inside
-    Mathics3 Builtin Functions, like Plus[], List[] are defined.
+    Mathics3, the Builtin Functions, like Plus[], List[] are defined.
+
+    If ``parent_name`` is given we are importing a modules under
+    some parent module.
+
+    Imported modules are added to ``modules``
     """
 
-    def import_module(module_name: str, import_name: str):
-        try:
-            module = importlib.import_module(import_name)
-        except Exception as e:
-            print(e)
-            print(f"    Not able to load {module_name}. Check your installation.")
-            print(f"    mathics.builtin loads from {__file__[:-11]}")
-            return None
-
-        if module:
-            modules.append(module)
-
-    if submodule_name:
-        import_module(submodule_name, f"mathics.builtin.{submodule_name}")
+    if parent_name:
+        # We need to import the parent module before any modules
+        # underneath it.
+        import_builtin_module(parent_name, f"mathics.builtin.{parent_name}", modules)
 
     for module_name in module_names:
         import_name = (
-            f"mathics.builtin.{submodule_name}.{module_name}"
-            if submodule_name
+            f"mathics.builtin.{parent_name}.{module_name}"
+            if parent_name
             else f"mathics.builtin.{module_name}"
         )
-        import_module(module_name, import_name)
+        import_builtin_module(module_name, import_name, modules)
+
+
+def import_builtin_subdirectories(
+    subdirectories: List[str], disable_file_module_names: List[str], modules
+):
+    """
+    imports and processes builtins in the Python modules named in ``subdirectories``.
+    This must be under the ``mathics.builtin`` module.
+
+    ``disable_file_module_names`` is a list of modules to ignore.
+     ``modules`` stores imported information that we gather.
+    """
+
+    for subdir in subdirectories:
+        # Don't process __pycache__ and things like that.
+        if subdir.startswith("_"):
+            continue
+
+        import_name = f"mathics.builtin.{subdir}"
+
+        if subdir in disable_file_module_names:
+            continue
+
+        builtin_module = importlib.import_module(import_name)
+        submodule_names = [
+            modname for _, modname, _ in pkgutil.iter_modules(builtin_module.__path__)
+        ]
+        # print("XXX3", submodule_names)
+        import_builtins(submodule_names, modules, subdir)
 
 
 def name_is_builtin_symbol(module, name: str) -> Optional[type]:
