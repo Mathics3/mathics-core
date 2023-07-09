@@ -8,6 +8,8 @@ or namespace, and can have a variety of type of values and attributes.
 
 import re
 
+from mathics_scanner import is_symbol_name
+
 from mathics.builtin.base import Builtin, PrefixOperator, Test
 from mathics.core.assignment import get_symbol_values
 from mathics.core.atoms import String
@@ -714,8 +716,6 @@ class Symbol_(Builtin):
 
     def eval(self, string, evaluation):
         "Symbol[string_String]"
-
-        from mathics.core.parser import is_symbol_name
 
         text = string.value
         if is_symbol_name(text):
