@@ -8,6 +8,7 @@ import sympy
 
 from mathics.builtin.base import Builtin
 from mathics.core.convert.sympy import from_sympy
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol
@@ -111,7 +112,7 @@ class DSolve(Builtin):
     }
     summary_text = "Differential equation analytical solver."
 
-    def apply(self, eqn, y, x, evaluation):
+    def eval(self, eqn, y, x, evaluation: Evaluation):
         "DSolve[eqn_, y_, x_]"
 
         if eqn.has_form("List", None):
@@ -129,7 +130,8 @@ class DSolve(Builtin):
         elif x.has_form("List", 1, None):
             syms = sorted(x.elements)
         else:
-            return evaluation.message("DSolve", "dsvar", x)
+            evaluation.message("DSolve", "dsvar", x)
+            return
 
         # Fixes pathalogical DSolve[y''[x] == y[x], y, x]
         try:

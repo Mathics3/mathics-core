@@ -343,6 +343,14 @@ class Graphics(Builtin):
 
 
 class _Polyline(_GraphicsElementBox):
+    """
+    A structure containing a list of line segments
+    stored in ``self.lines`` created from
+    a list of points.
+
+    Lines are formed by pairs of consecutive point.
+    """
+
     def do_init(self, graphics, points):
         if not points.has_form("List", None):
             raise BoxExpressionError
@@ -356,6 +364,10 @@ class _Polyline(_GraphicsElementBox):
         ):
             elements = points.elements
             self.multi_parts = True
+        elif len(points.elements) == 0:
+            # Ensure there are no line segments if there are no points.
+            self.lines = []
+            return
         else:
             elements = [ListExpression(*points.elements)]
             self.multi_parts = False
@@ -370,13 +382,18 @@ class _Polyline(_GraphicsElementBox):
         ]
 
     def extent(self) -> list:
-        l = self.style.get_line_width(face_element=False)
+        lw = self.style.get_line_width(face_element=False)
         result = []
         for line in self.lines:
             for c in line:
                 x, y = c.pos()
                 result.extend(
-                    [(x - l, y - l), (x - l, y + l), (x + l, y - l), (x + l, y + l)]
+                    [
+                        (x - lw, y - lw),
+                        (x - lw, y + lw),
+                        (x + lw, y - lw),
+                        (x + lw, y + lw),
+                    ]
                 )
         return result
 
@@ -640,7 +657,7 @@ class Arrow(Builtin):
     >> Graphics[{Circle[], Arrow[{{2, 1}, {0, 0}}, 1]}]
     = -Graphics-
 
-    Arrows can also be drawn in 3D by giving poing in three dimensions:
+    Arrows can also be drawn in 3D by giving point in three dimensions:
 
     >> Graphics3D[Arrow[{{1, 1, -1}, {2, 2, 0}, {3, 3, -1}, {4, 4, 0}}]]
      = -Graphics3D-
@@ -1144,8 +1161,8 @@ class GraphicsElements(_GraphicsElements):
         if self.pixel_width is None:
             return (0, 0)
         else:
-            l = 96.0 / 72
-            return (d[0] * l, (-1 if self.neg_y else 1) * d[1] * l)
+            lw = 96.0 / 72
+            return (d[0] * lw, (-1 if self.neg_y else 1) * d[1] * lw)
 
     def translate_relative(self, x):
         if self.pixel_width is None:
@@ -1290,11 +1307,14 @@ class EdgeForm(Builtin):
 
 class FaceForm(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/FaceForm.html</url>
+    <url>:WMA link
+    :https://reference.wolfram.com/language/ref/FaceForm.html</url>
 
     <dl>
       <dt> 'FaceForm[$g$]'
-      <dd> is a graphics directive that specifies that faces of filled graphics objects are to be drawn using the graphics directive or list of directives $ g$.
+      <dd> is a graphics directive that specifies that faces of filled graphics\
+           objects are to be drawn using the graphics directive or list of \
+           directives $g$.
     </dl>
     """
 
@@ -1303,7 +1323,9 @@ class FaceForm(Builtin):
 
 class FontColor(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/FontColor.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/FontColor.html</url>
 
     <dl>
       <dt>'FontColor'
@@ -1316,7 +1338,8 @@ class FontColor(Builtin):
 
 class Inset(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Inset.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Inset.html</url>
 
     <dl>
       <dt>'Text[$obj$]'
@@ -1326,9 +1349,10 @@ class Inset(Builtin):
       <dd>represents an object $obj$ inset in a graphic at position $pos$.
 
       <dt>'Text[$obj$, $pos$, $$]'
-      <dd>represents an object $obj$ inset in a graphic at position $pos$, ina way that the position $opos$ of $obj$ coincides with $pos$ in             the enclosing graphic.
+      <dd>represents an object $obj$ inset in a graphic at position $pos$, \
+          in away that the position $opos$ of $obj$ coincides with $pos$ \
+          in the enclosing graphic.
     </dl>
-
     """
 
     summary_text = "arbitrary objects in 2D or 3D inset into a larger graphic"
@@ -1382,7 +1406,7 @@ class Rectangle(Builtin):
       <dd>represents a unit square with bottom-left corner at {$xmin$, $ymin$}.
 
       <dt>'Rectangle[{$xmin$, $ymin$}, {$xmax$, $ymax$}]
-      <dd>is a rectange extending from {$xmin$, $ymin$} to {$xmax$, $ymax$}.
+      <dd>is a rectangle extending from {$xmin$, $ymin$} to {$xmax$, $ymax$}.
     </dl>
 
     >> Graphics[Rectangle[]]

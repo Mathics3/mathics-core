@@ -1,7 +1,7 @@
 Welcome to Mathics Core!
 ========================
 
-|Pypi Installs| |Latest Version| |Supported Python Versions| |SlackStatus|_
+|Pypi Installs| |Latest Version| |Supported Python Versions|
 
 |Packaging status|
 
@@ -60,8 +60,6 @@ License
 
 Mathics is released under the GNU General Public License Version 3 (GPL3).
 
-.. |SlackStatus| image:: https://mathics-slackin.herokuapp.com/badge.svg
-.. _SlackStatus: https://mathics-slackin.herokuapp.com/
 .. |Travis| image:: https://secure.travis-ci.org/Mathics3/mathics-core.svg?branch=master
 .. _Travis: https://travis-ci.org/Mathics3/mathics-core
 .. _PyPI: https://pypi.org/project/Mathics/

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import sys
 
 from mathics.builtin.base import check_requires_list
 from mathics.core.util import IS_PYPY

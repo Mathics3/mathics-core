@@ -9,19 +9,8 @@ patterns of criteria.
 
 from itertools import chain
 
-from mathics.algorithm.parts import (
-    _drop_span_selector,
-    _parts,
-    _take_span_selector,
-    deletecases_with_levelspec,
-    python_levelspec,
-    set_part,
-    walk_levels,
-    walk_parts,
-)
 from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.builtin.box.layout import RowBox
-from mathics.builtin.lists import list_boxes
 from mathics.core.atoms import Integer, Integer0, Integer1, String
 from mathics.core.attributes import (
     A_HOLD_FIRST,
@@ -32,7 +21,13 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
-from mathics.core.exceptions import InvalidLevelspecError, MessageException, PartError
+from mathics.core.exceptions import (
+    InvalidLevelspecError,
+    MessageException,
+    PartDepthError,
+    PartError,
+    PartRangeError,
+)
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import Rule
@@ -42,11 +37,24 @@ from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolFailed,
     SymbolInfinity,
+    SymbolKey,
     SymbolMakeBoxes,
     SymbolMissing,
     SymbolSequence,
     SymbolSet,
 )
+from mathics.eval.lists import delete_one, delete_rec, list_boxes
+from mathics.eval.parts import (
+    _drop_span_selector,
+    _take_span_selector,
+    deletecases_with_levelspec,
+    parts,
+    python_levelspec,
+    set_part,
+    walk_levels,
+    walk_parts,
+)
+from mathics.eval.patterns import Matcher
 
 SymbolAppendTo = Symbol("System`AppendTo")
 SymbolDeleteCases = Symbol("System`DeleteCases")
@@ -87,7 +95,8 @@ class Append(Builtin):
         "Append[expr_, item_]"
 
         if isinstance(expr, Atom):
-            return evaluation.message("Append", "normal")
+            evaluation.message("Append", "normal")
+            return
 
         return expr.restructure(
             expr.head,
@@ -140,7 +149,8 @@ class AppendTo(Builtin):
         "AppendTo[s_, element_]"
         resolved_s = s.evaluate(evaluation)
         if s == resolved_s:
-            return evaluation.message("AppendTo", "rvalue", s)
+            evaluation.message("AppendTo", "rvalue", s)
+            return
 
         if not isinstance(resolved_s, Atom):
             result = Expression(
@@ -148,9 +158,7 @@ class AppendTo(Builtin):
             )
             return result.evaluate(evaluation)
 
-        return evaluation.message(
-            "AppendTo", "normal", Expression(SymbolAppendTo, s, element)
-        )
+        evaluation.message("AppendTo", "normal", Expression(SymbolAppendTo, s, element))
 
 
 class Cases(Builtin):
@@ -219,21 +227,21 @@ class Cases(Builtin):
         if isinstance(items, Atom):
             return ListExpression()
 
-        from mathics.builtin.patterns import Matcher
-
         if ls.has_form("Rule", 2):
             if ls.elements[0].get_name() == "System`Heads":
                 heads = ls.elements[1] is SymbolTrue
                 ls = ListExpression(Integer1)
             else:
-                return evaluation.message("Position", "level", ls)
+                evaluation.message("Position", "level", ls)
+                return
         else:
             heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
 
         try:
             start, stop = python_levelspec(ls)
         except InvalidLevelspecError:
-            return evaluation.message("Position", "level", ls)
+            evaluation.message("Position", "level", ls)
+            return
 
         results = []
 
@@ -288,6 +296,165 @@ class Count(Builtin):
     summary_text = "count the number of occurrences of a pattern"
 
 
+class Delete(Builtin):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Delete.html</url>
+
+    <dl>
+      <dt>'Delete[$expr$, $i$]'
+      <dd>deletes the element at position $i$ in $expr$. The position is counted from the end if $i$ is negative.
+      <dt>'Delete[$expr$, {$m$, $n$, ...}]'
+      <dd>deletes the element at position {$m$, $n$, ...}.
+      <dt>'Delete[$expr$, {{$m1$, $n1$, ...}, {$m2$, $n2$, ...}, ...}]'
+      <dd>deletes the elements at several positions.
+    </dl>
+
+    Delete the element at position 3:
+    >> Delete[{a, b, c, d}, 3]
+     = {a, b, d}
+
+    Delete at position 2 from the end:
+    >> Delete[{a, b, c, d}, -2]
+     = {a, b, d}
+
+    Delete at positions 1 and 3:
+    >> Delete[{a, b, c, d}, {{1}, {3}}]
+     = {b, d}
+
+    Delete in a 2D array:
+    >> Delete[{{a, b}, {c, d}}, {2, 1}]
+     = {{a, b}, {d}}
+
+    Deleting the head of a whole expression gives a Sequence object:
+    >> Delete[{a, b, c}, 0]
+     = Sequence[a, b, c]
+
+    Delete in an expression with any head:
+    >> Delete[f[a, b, c, d], 3]
+     = f[a, b, d]
+
+    Delete a head to splice in its arguments:
+    >> Delete[f[a, b, u + v, c], {3, 0}]
+     = f[a, b, u, v, c]
+
+    >> Delete[{a, b, c}, 0]
+     = Sequence[a, b, c]
+
+    #> Delete[1 + x ^ (a + b + c), {2, 2, 3}]
+     = 1 + x ^ (a + b)
+
+    #> Delete[f[a, g[b, c], d], {{2}, {2, 1}}]
+     = f[a, d]
+
+    #> Delete[f[a, g[b, c], d], m + n]
+     : The expression m + n cannot be used as a part specification. Use Key[m + n] instead.
+     = Delete[f[a, g[b, c], d], m + n]
+
+    Delete without the position:
+    >> Delete[{a, b, c, d}]
+     : Delete called with 1 argument; 2 arguments are expected.
+     = Delete[{a, b, c, d}]
+
+    Delete with many arguments:
+    >> Delete[{a, b, c, d}, 1, 2]
+     : Delete called with 3 arguments; 2 arguments are expected.
+     = Delete[{a, b, c, d}, 1, 2]
+
+    Delete the element out of range:
+    >> Delete[{a, b, c, d}, 5]
+     : Part {5} of {a, b, c, d} does not exist.
+     = Delete[{a, b, c, d}, 5]
+
+    #> Delete[{a, b, c, d}, {1, 2}]
+     : Part 2 of {a, b, c, d} does not exist.
+     = Delete[{a, b, c, d}, {1, 2}]
+
+    Delete the position not integer:
+    >> Delete[{a, b, c, d}, {1, n}]
+     : Position specification n in {a, b, c, d} is not a machine-sized integer or a list of machine-sized integers.
+     = Delete[{a, b, c, d}, {1, n}]
+
+    #> Delete[{a, b, c, d}, {{1}, n}]
+     : Position specification {n, {1}} in {a, b, c, d} is not a machine-sized integer or a list of machine-sized integers.
+     = Delete[{a, b, c, d}, {{1}, n}]
+
+    #> Delete[{a, b, c, d}, {{1}, {n}}]
+     : Position specification n in {a, b, c, d} is not a machine-sized integer or a list of machine-sized integers.
+     = Delete[{a, b, c, d}, {{1}, {n}}]
+    """
+
+    messages = {
+        # FIXME: This message doesn't exist in more modern WMA, and
+        # Delete *can* take more than 2 arguments.
+        "argr": "Delete called with 1 argument; 2 arguments are expected.",
+        "argt": "Delete called with `1` arguments; 2 arguments are expected.",
+        "psl": "Position specification `1` in `2` is not a machine-sized integer or a list of machine-sized integers.",
+        "pkspec": "The expression `1` cannot be used as a part specification. Use `2` instead.",
+    }
+    summary_text = "delete elements from a list at given positions"
+
+    def eval_one(self, expr, position: Integer, evaluation):
+        "Delete[expr_, position_Integer]"
+        pos = position.value
+        try:
+            return delete_one(expr, pos)
+        except PartRangeError:
+            evaluation.message("Part", "partw", ListExpression(position), expr)
+
+    def eval(self, expr, positions, evaluation):
+        "Delete[expr_, positions___]"
+        positions = positions.get_sequence()
+        if len(positions) > 1:
+            evaluation.message("Delete", "argt", Integer(len(positions) + 1))
+            return
+        elif len(positions) == 0:
+            evaluation.message("Delete", "argr")
+            return
+
+        positions = positions[0]
+        if not positions.has_form("List", None):
+            evaluation.message(
+                "Delete", "pkspec", positions, Expression(SymbolKey, positions)
+            )
+            return
+
+        # Create new python list of the positions and sort it
+        positions = (
+            [t for t in positions.elements]
+            if positions.elements[0].has_form("List", None)
+            else [positions]
+        )
+        positions.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
+        newexpr = expr
+        for position in positions:
+            pos = [p.get_int_value() for p in position.get_elements()]
+            if None in pos:
+                evaluation.message(
+                    "Delete", "psl", position.elements[pos.index(None)], expr
+                )
+                return
+            if len(pos) == 0:
+                evaluation.message("Delete", "psl", ListExpression(*positions), expr)
+                return
+            try:
+                newexpr = delete_rec(newexpr, pos)
+            except PartDepthError as exc:
+                evaluation.message("Part", "partw", Integer(exc.index), expr)
+                return
+            except PartError:
+                evaluation.message("Part", "partw", ListExpression(*pos), expr)
+                return
+        return newexpr
+
+
+# TODO: seems to want to produces a fancy box for failure.
+#    rules = {'Failure /: MakeBoxes[Failure[tag_, assoc_Association], StandardForm]' :
+# 		'With[{msg = assoc["MessageTemplate"], msgParam = assoc["MessageParameters"], type = assoc["Type"]}, ToBoxes @ Interpretation["Failure" @ Panel @ Grid[{{Style["\[WarningSign]", "Message", FontSize -> 35], Style["Message:", FontColor->GrayLevel[0.5]], ToString[StringForm[msg, Sequence @@ msgParam], StandardForm]}, {SpanFromAbove, Style["Tag:", FontColor->GrayLevel[0.5]], ToString[tag, StandardForm]},{SpanFromAbove,Style["Type:", FontColor->GrayLevel[0.5]],ToString[type, StandardForm]}},Alignment -> {Left, Top}], Failure[tag, assoc]] /; msg =!= Missing["KeyAbsent", "MessageTemplate"] && msgParam =!= Missing["KeyAbsent", "MessageParameters"] && msgParam =!= Missing["KeyAbsent", "Type"]]',
+#     }
+
+
 class DeleteCases(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/DeleteCases.html</url>
@@ -329,7 +496,7 @@ class DeleteCases(Builtin):
         # If levelspec is specified to a non-trivial value,
         # we need to proceed with this complicate procedure
         # involving 1) decode what is the levelspec means
-        # 2) find all the occurences
+        # 2) find all the occurrences
         # 3) Set all the occurences to ```System`Nothing```
 
         levelspec = python_levelspec(levelspec)
@@ -355,7 +522,6 @@ class DeleteCases(Builtin):
         if levelspec[0] != 1 or levelspec[1] != 1:
             return deletecases_with_levelspec(items, pattern, evaluation, levelspec, n)
         # A more efficient way to proceed if levelspec == 1
-        from mathics.builtin.patterns import Matcher
 
         match = Matcher(pattern).match
         if n == -1:
@@ -432,12 +598,13 @@ class Drop(Builtin):
         seqs = seqs.get_sequence()
 
         if isinstance(items, Atom):
-            return evaluation.message(
+            evaluation.message(
                 "Drop", "normal", 1, Expression(SymbolDrop, items, *seqs)
             )
+            return
 
         try:
-            return _parts(items, [_drop_span_selector(seq) for seq in seqs], evaluation)
+            return parts(items, [_drop_span_selector(seq) for seq in seqs], evaluation)
         except MessageException as e:
             e.message(evaluation)
 
@@ -685,7 +852,8 @@ class FirstPosition(Builtin):
         if level.has_form("List", None):
             len_list = len(level.elements)
             if len_list > 2 or not is_interger_list(level):
-                return evaluation.message("FirstPosition", "level", level)
+                evaluation.message("FirstPosition", "level", level)
+                return
             elif len_list == 0:
                 min_Level = max_Level = None
             elif len_list == 1:
@@ -697,7 +865,8 @@ class FirstPosition(Builtin):
             min_Level = 0
             max_Level = level.get_int_value()
         else:
-            return evaluation.message("FirstPosition", "level", level)
+            evaluation.message("FirstPosition", "level", level)
+            return
 
         return self.eval(
             expr,
@@ -707,6 +876,43 @@ class FirstPosition(Builtin):
             minLevel=min_Level,
             maxLevel=max_Level,
         )
+
+
+# From backports in CellsToTeX. This functions provides compatibility to WMA 10.
+#  TODO:
+#  * Add doctests
+#  * Translate to python the more complex rules
+#  * Complete the support.
+
+
+class Insert(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Insert.html</url>
+
+    <dl>
+      <dt>'Insert[$list$, $elem$, $n$]'
+      <dd>inserts $elem$ at position $n$ in $list$. When $n$ is negative, \
+          the position is counted from the end.
+    </dl>
+
+    >> Insert[{a,b,c,d,e}, x, 3]
+     = {a, b, x, c, d, e}
+
+    >> Insert[{a,b,c,d,e}, x, -2]
+     = {a, b, c, d, x, e}
+    """
+
+    summary_text = "insert an element at a given position"
+
+    def eval(self, expr, elem, n: Integer, evaluation):
+        "Insert[expr_List, elem_, n_Integer]"
+
+        py_n = n.value
+        new_list = list(expr.get_elements())
+
+        position = py_n - 1 if py_n > 0 else py_n + 1
+        new_list.insert(position, elem)
+        return expr.restructure(expr.head, new_list, evaluation, deps=(expr, elem))
 
 
 class Last(Builtin):
@@ -791,35 +997,11 @@ class Length(Builtin):
             return Integer(len(expr.elements))
 
 
-class MemberQ(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/MemberQ.html</url>
-
-    <dl>
-      <dt>'MemberQ[$list$, $pattern$]'
-      <dd>returns 'True' if $pattern$ matches any element of $list$, or 'False' otherwise.
-    </dl>
-
-    >> MemberQ[{a, b, c}, b]
-     = True
-    >> MemberQ[{a, b, c}, d]
-     = False
-    >> MemberQ[{"a", b, f[x]}, _?NumericQ]
-     = False
-    >> MemberQ[_List][{{}}]
-     = True
-    """
-
-    rules = {
-        "MemberQ[list_, pattern_]": ("Length[Select[list, MatchQ[#, pattern]&]] > 0"),
-        "MemberQ[pattern_][expr_]": "MemberQ[expr, pattern]",
-    }
-    summary_text = "test whether an element is a member of a list"
-
-
 class Most(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Most.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Most.html</url>
 
     <dl>
       <dt>'Most[$expr$]'
@@ -1073,7 +1255,6 @@ class Pick(Builtin):
 
     def eval_pattern(self, items, sel, pattern, evaluation):
         "Pick[items_, sel_, pattern_]"
-        from mathics.builtin.patterns import Matcher
 
         match = Matcher(pattern).match
         return self._do(items, sel, lambda s: match(s, evaluation), evaluation)
@@ -1094,15 +1275,18 @@ class Position(Builtin):
     >> Position[{1, 2, 2, 1, 2, 3, 2}, 2]
      = {{2}, {3}, {5}, {7}}
 
-    Find positions upto 3 levels deep
+    Find positions upto 3 levels deep:
+
     >> Position[{1 + Sin[x], x, (Tan[x] - y)^2}, x, 3]
      = {{1, 2, 1}, {2}}
 
-    Find all powers of x
+    Find all powers of x:
+
     >> Position[{1 + x^2, x y ^ 2,  4 y,  x ^ z}, x^_]
      = {{1, 2}, {4}}
 
-    Use Position as an operator
+    Use Position as an operator:
+
     >> Position[_Integer][{1.5, 2, 2.5}]
      = {{2}}
     """
@@ -1117,7 +1301,8 @@ class Position(Builtin):
     def eval_invalidlevel(self, patt, expr, ls, evaluation, options={}):
         "Position[expr_, patt_, ls_, OptionsPattern[Position]]"
 
-        return evaluation.message("Position", "level", ls)
+        evaluation.message("Position", "level", ls)
+        return
 
     def eval_level(self, expr, patt, ls, evaluation, options={}):
         """Position[expr_, patt_, Optional[Pattern[ls, _?LevelQ], {0, DirectedInfinity[1]}],
@@ -1126,9 +1311,8 @@ class Position(Builtin):
         try:
             start, stop = python_levelspec(ls)
         except InvalidLevelspecError:
-            return evaluation.message("Position", "level", ls)
-
-        from mathics.builtin.patterns import Matcher
+            evaluation.message("Position", "level", ls)
+            return
 
         match = Matcher(patt).match
         result = []
@@ -1145,7 +1329,9 @@ class Position(Builtin):
 
 class Prepend(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Prepend.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Prepend.html</url>
 
     <dl>
       <dt>'Prepend[$expr$, $item$]'
@@ -1179,7 +1365,8 @@ class Prepend(Builtin):
         "Prepend[expr_, item_]"
 
         if isinstance(expr, Atom):
-            return evaluation.message("Prepend", "normal")
+            evaluation.message("Prepend", "normal")
+            return
 
         return expr.restructure(
             expr.head,
@@ -1243,7 +1430,8 @@ class PrependTo(Builtin):
         "PrependTo[s_, item_]"
         resolved_s = s.evaluate(evaluation)
         if s == resolved_s:
-            return evaluation.message("PrependTo", "rvalue", s)
+            evaluation.message("PrependTo", "rvalue", s)
+            return
 
         if not isinstance(resolved_s, Atom):
             result = Expression(
@@ -1251,9 +1439,7 @@ class PrependTo(Builtin):
             )
             return result.evaluate(evaluation)
 
-        return evaluation.message(
-            "PrependTo", "normal", Expression(SymbolPrependTo, s, item)
-        )
+        evaluation.message("PrependTo", "normal", Expression(SymbolPrependTo, s, item))
 
 
 class ReplacePart(Builtin):
@@ -1548,12 +1734,13 @@ class Take(Builtin):
         seqs = seqs.get_sequence()
 
         if isinstance(items, Atom):
-            return evaluation.message(
+            evaluation.message(
                 "Take", "normal", 1, Expression(SymbolTake, items, *seqs)
             )
+            return
 
         try:
-            return _parts(items, [_take_span_selector(seq) for seq in seqs], evaluation)
+            return parts(items, [_take_span_selector(seq) for seq in seqs], evaluation)
         except MessageException as e:
             e.message(evaluation)
 

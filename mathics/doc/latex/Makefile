@@ -1,4 +1,4 @@
-.PHONY: all clean doc doc-data latex texdoc
+.PHONY: all clean doc doc-data latex pdf texdoc
 
 PYTHON ?= python
 XETEX ?= xelatex
@@ -6,22 +6,26 @@ LATEXMK ?= latexmk
 BASH ?= /bin/bash
 #-quiet
 
-DOC_TEX_DATA_PCL ?= $(HOME)/.local/var/mathics/doc_tex_data.pcl
+# Location of Python Pickle file containg doctest tests and test results formatted for LaTeX
+DOCTEST_LATEX_DATA_PCL ?= $(HOME)/.local/var/mathics/doctest_latex_data.pcl
+
+# Variable indicating Mathics3 Modules you have available on your system, in latex2doc option format
+MATHICS3_MODULE_OPTION ?= # --load-module pymathics.graph,pymathics.natlang
 
 #: Default target: Make everything
 all doc texdoc: mathics.pdf
 
 #: Create internal Document Data from .mdoc and Python builtin module docstrings
-doc-data $(DOC_TEX_DATA_PCL):
-	(cd ../.. && MATHICS_CHARACTER_ENCODING="ASCII" $(PYTHON) docpipeline.py --output --keep-going --want-sorting)
+doc-data $(DOCTEST_LATEX_DATA_PCL):
+	(cd ../.. && MATHICS_CHARACTER_ENCODING="UTF-8" $(PYTHON) docpipeline.py --output --keep-going --want-sorting $(MATHICS3_MODULE_OPTION))
 
 #: Build mathics PDF
-mathics.pdf: mathics.tex documentation.tex logo-text-nodrop.pdf logo-heptatom.pdf version-info.tex $(DOC_TEX_DATA_PCL)
+mathics.pdf: mathics.tex documentation.tex logo-text-nodrop.pdf logo-heptatom.pdf version-info.tex $(DOCTEST_LATEX_DATA_PCL)
 	$(LATEXMK) --verbose -f -pdf -pdflatex="$(XETEX) -halt-on-error" mathics
 
 #: File containing version information
 version-info.tex: doc2latex.py
-	$(PYTHON) doc2latex.py && $(BASH) ./sed-hack.sh
+	$(PYTHON) doc2latex.py $(MATHICS3_MODULE_OPTION )&& $(BASH) ./sed-hack.sh
 
 #: Build test PDF
 mathics-test.pdf: mathics-test.tex testing.tex
@@ -32,12 +36,12 @@ mathics-test.pdf: mathics-test.tex testing.tex
 logo-heptatom.pdf logo-text-nodrop.pdf:
 	(cd .. && $(BASH) ./images.sh)
 
-#: The build of the documentation which is derived from docstrings in the Python code
-documentation.tex: $(DOC_TEX_DATA_PCL)
-	$(PYTHON) ./doc2latex.py
+#: The build of the documentation which is derived from docstrings in the Python code and doctest data
+documentation.tex: $(DOCTEST_LATEX_DATA_PCL)
+	$(PYTHON) ./doc2latex.py $(MATHICS3_MODULE_OPTION) && $(BASH) ./sed-hack.sh
 
 #: Same as mathics.pdf
-latex: mathics.pdf
+pdf latex: mathics.pdf
 
 #: Remove all auto-generated files
 clean:
@@ -46,6 +50,6 @@ clean:
 	rm -f mathics.fdb_latexmk mathics.ilg mathics.ind mathics.maf mathics.pre || true
 	rm -f mathics_*.* || true
 	rm -f mathics-test.asy mathics-test.aux mathics-test.idx mathics-test.log mathics-test.mtc mathicsest.mtc* mathics-test.out mathics-test.toc || true
-	rm -f documentation.tex $(DOC_TEX_DATA_PCL) || true
+	rm -f documentation.tex $(DOCTEST_LATEX_DATA_PCL) || true
 	rm -f mathics.pdf mathics.dvi test-mathics.pdf test-mathics.dvi || true
 	rm -f mathics-test.pdf mathics-test.dvi version-info.tex || true

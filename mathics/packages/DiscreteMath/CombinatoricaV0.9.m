@@ -14,9 +14,10 @@ by Steven S. Skiena, Addison-Wesley Publishing Co., Advanced Book Program,
 350 Bridge Parkway, Redwood City CA 94065.  ISBN 0-201-50943-1.
 For ordering information, call 1-800-447-2226.
 
-These programs can be obtained on Macintosh and MS-DOS disks by sending
-$15.00 to Discrete Mathematics Disk, Wolfram Research Inc.,
-PO Box 6059, Champaign, IL 61826-9905. (217)-398-0700.
+These (and related) programs are available by anonymous ftp.cs.sunysb.edu
+in the pub/Combinatorica directory.  They can also be obtained on
+Macintosh and MS-DOS disks by sending $15.00 to Discrete Mathematics Disk,
+Wolfram Research Inc., PO Box 6059, Champaign, IL 61826-9905. (217)-398-0700.
 
 Any comments, bug reports, or requests to get on the Combinatorica
 mailing list should be forwarded to:
@@ -32,13 +33,13 @@ mailing list should be forwarded to:
 *)
 (* :Context: DiscreteMath`Combinatorica`
 *)
-(* :Package Version: .9	(2/29/92 Beta Release)
-*)
+(* :Package Version: .91	(3/23/95 Beta Release)
+ *)
 
 (**** Note: some very small changes have been made to make this
-to work with Mathics 1.1.1 ****)
+to work with Mathics3 ****)
 
-(* :Copyright: Copyright 1990, 1991, 1992 by Steven S. Skiena
+(* :Copyright: Copyright 1990--1995  by Steven S. Skiena
 
 This package may be copied in its entirety for nonprofit purposes only.
 Sale, other than for the direct cost of the media, is prohibited.  This
@@ -54,6 +55,7 @@ distributors and dealers shall in no event be liable for any indirect,
 incidental, or consequential damages.
 *)
 (* :History:
+        Version .9 by Steven S. Skiena, February 1992.
 	Version .8 by Steven S. Skiena, July 1991.
 	Version .7 by Steven S. Skiena, January 1991.
 	Version .6 by Steven S. Skiena, June 1990.
@@ -77,13 +79,10 @@ incidental, or consequential damages.
 			and Graph Theory with Mathematica",
 			Addison-Wesley Publishing Co.
 *)
-(* :Mathematica Version: 0.9.0 for Mathics
- This is Mathematica Version 0.9 adapted for Mathics.
+(* :Mathematica Version: 2.3
 *)
 
-BeginPackage["DiscreteMath`CombinatoricaV0.9`"]
-Unprotect[All]
-Unprotect[Subsets]
+BeginPackage["DiscreteMath`CombinatoricaV0.91`"]
 
 Graph::usage = "Graph[g,v] is the header for a graph object where g is an adjacency matrix and v is a list of vertices."
 
@@ -137,7 +136,7 @@ ChangeVertices::usage = "ChangeVertices[g,v] constructs a graph with the adjacen
 
 ChromaticNumber::usage = "ChromaticNumber[g] computes the chromatic number of the graph, the fewest number of colors necessary to color the graph."
 
-ChromaticPolynomial::usage = "ChromaticPolynomial[g,z] returns the chromatic polynomial P(z) of graph g, which counts the number of ways to color g with exactly z colors."
+ChromaticPolynomial::usage = "ChromaticPolynomial[g,z] returns the chromatic polynomial P(z) of graph g, which counts the number of ways to color g with at most z colors."
 
 CirculantGraph::usage = "CirculantGraph[n,l] constructs a circulant graph on n vertices, meaning the ith vertex is adjacent to the (i+j)th and (i-j)th vertex, for each j in list l."
 
@@ -599,6 +598,8 @@ Permute[l_List,p_List] := Map[ (Permute[l,#])&, p] /; (Apply[And, Map[Permutatio
 
 (* Section 1.1.1 Lexicographically Ordered Permutions, Pages 3-4 *)
 
+LexicographicPermutations[{}] := {{}}
+
 LexicographicPermutations[{l_}] := {{l}}
 
 LexicographicPermutations[{a_,b_}] := {{a,b},{b,a}}
@@ -626,30 +627,16 @@ RankPermutation[{1}] = 0
 RankPermutation[p_?PermutationQ] := (p[[1]]-1) (Length[Rest[p]]!) +
 	RankPermutation[ Map[(If[#>p[[1]], #-1, #])&, Rest[p]] ]
 
-(* UP, and UnrankPermutation come from the V2.1 code.
-   There is some problem in the v0.9 code and rather than try to fix that
-   we use the newer version
- *)
-UP[r_Integer, n_Integer] :=
-        Module[{r1 = r, q = n!, i},
-               Table[r1 = Mod[r1, q];
-                     q = q/(n - i + 1);
-                     Quotient[r1, q] + 1,
-                     {i, n}
-               ]
-        ]
-UnrankPermutation[r_Integer, {}] := {}
-UnrankPermutation[r_Integer, l_List] :=
-        Module[{s = l, k, t, p = UP[Mod[r, Length[l]!], Length[l]], i},
-               Table[k = s[[t = p[[i]] ]];
-                     s = Delete[s, t];
-                     k,
-                     {i, Length[ p ]}
-               ]
-        ]
-UnrankPermutation[r_Integer, n_Integer?Positive] :=
-        UnrankPermutation[r, Range[n]]
-NthPermutation[r_Integer, l_List] := UnrankPermutation[r, l]
+NthPermutation[n1_Integer,l_List] :=
+	Block[{k, n=n1, s=l, i},
+		Table[
+			n = Mod[n,(i+1)!];
+			k = s [[Quotient[n,i!]+1]];
+			s = Complement[s,{k}];
+			k,
+			{i,Length[l]-1,0,-1}
+		]
+	]
 
 NextPermutation[p_?PermutationQ] :=
 	NthPermutation[ RankPermutation[p]+1, Sort[p] ]
@@ -658,7 +645,7 @@ NextPermutation[p_?PermutationQ] :=
 
 (*** FIXME:
   ListPlot[ RandomPermutation1[30]]
-shows that RandomPermutaion1 isn't good. Therefore we use RandomPermutation2
+shows that RandomPermutaiton1 isn't good. Therefore we use RandomPermutation2
 for RandomPermutation.
  ****)
 
@@ -675,6 +662,7 @@ RandomPermutation2[n_Integer?Positive] :=
 		p
 	]
 
+(* rocky: RandomPermutation1 not random, so use RandomPermutation2 *)
 RandomPermutation[n_Integer?Positive] := RandomPermutation2[n]
 
 (* Section 1.1.4 Permutation from Transpostions, Page 11 *)
@@ -722,6 +710,8 @@ Backtrack[space_List,partialQ_,solutionQ_,flag_:One] :=
 
 Solution[space_List,index_List,count_Integer] :=
 	Module[{i}, Table[space[[ i,index[[i]] ]], {i,count}] ]
+
+DistinctPermutations[s_List] := Permutations[s] /; (Length[s] == 1)
 
 DistinctPermutations[s_List] :=
 	Module[{freq,alph=Union[s],n=Length[s]},
@@ -797,7 +787,7 @@ SquareMatrixQ[r_] := MatrixQ[r] && (Length[r] == Length[r[[1]]])
 ReflexiveQ[r_?SquareMatrixQ] :=
 	Module[{i}, Apply[And, Table[(r[[i,i]]!=0),{i,Length[r]}] ] ]
 
-TransitiveQ[r_?SquareMatrixQ] := TransitiveQ[ Graph[v,RandomVertices[Length[r]]] ]
+TransitiveQ[r_?SquareMatrixQ] := TransitiveQ[ Graph[r,RandomVertices[Length[r]]] ]
 TransitiveQ[r_Graph] := IdenticalQ[r,TransitiveClosure[r]]
 
 SymmetricQ[r_?SquareMatrixQ] := (r === Transpose[r])
@@ -904,7 +894,8 @@ ToInversionVector[p_?PermutationQ] :=
 
   (* 1.3.1 Inversion Vectors, Page 27 *)
 FromInversionVector[vec_List] :=
-  Block[{n=Length[vec]+1,i,p={n}},
+	Module[{n=Length[vec]+1,i,p},
+		p={n};
 		Do [
 			p = Insert[p, i, vec[[i]]+1],
 			{i,n-1,1,-1}
@@ -1040,8 +1031,7 @@ GrayCode[l_List,prev_List] :=
 		Join[ prev, Map[(Append[#,First[l]])&,Reverse[prev]] ]
 	]
 
-(* We have a builtin that does this.
-GrayCode doesn't work?
+(* rocky hacked: is already in Mathics3
 Subsets[l_List] := GrayCode[l]
 Subsets[n_Integer] := GrayCode[Range[n]]
 *)
@@ -1095,7 +1085,7 @@ RandomKSubset[set_List,k_Integer] :=
 				]
 			]
 		]]
-	]
+	] /; (k <= Length[set])
 
 PartitionQ[p_List] := (Min[p]>0) && Apply[And, Map[IntegerQ,p]]
 
@@ -1133,13 +1123,15 @@ FerrersDiagram[p1_List] :=
 		Show[
 			Graphics[
 				Join[
-					{PointSize[ Min[0.04,1/(2 Max[p])] ]},
+					{PointSize[ Min[0.05,1/(2 Max[p])] ]},
 					Table[Point[{i,j}], {j,n}, {i,p[[j]]}]
 				],
 				{AspectRatio -> 1, PlotRange -> All}
 			]
 		]
 	]
+
+TransposePartition[{}] := {}
 
 TransposePartition[p_List] :=
 	Module[{s=Select[p,(#>0)&], i, row, r},
@@ -1176,32 +1168,23 @@ NumberOfPartitions1[n_Integer] := NumberOfPartitions1[n] =
 		]
 	]
 
-RandomPartition[n_Integer?Positive] :=
-	Module[{mult = Table[0,{n}],j,d,m = n},
-		While[ m != 0,
-			{j,d} = NextPartitionElement[m];
-			m -= j d;
-			mult[[d]] += j;
-		];
-		Flatten[Map[(Table[#,{mult[[#]]}])&,Reverse[Range[n]]]]
-	]
+(* from Paul Chase *)
 
-NextPartitionElement[n_Integer] :=
-	Module[{d=0,j,m,z=RandomInteger[] n PartitionsP[n],done=False,flag},
-		While[!done,
-			d++; m = n; j = 0; flag = False;
-			While[ !flag,
-				j++; m -=d;
-				If[ m > 0,
-					z -= d PartitionsP[m];
-					If[ z <= 0, flag=done=True],
-					flag = True;
-					If[m==0, z -=d; If[z <= 0, done = True]]
-				];
-			];
-		];
-		{j,d}
-	]
+RandomPartition[n_Integer?Positive] :=
+  Module[{mult = Table[0, {n}], j, d, r=n, z},
+    While[ (r > 0),
+      d = 1;  j = 0;
+      z = Random[] r PartitionsP[r];
+      While [z >= 0,
+         j++;
+         If [r-j*d < 0, {j=1; d++;}];
+         z -= j*PartitionsP[r-j*d];
+      ];
+      r -= j d;
+      mult[[j]] += d;
+    ];
+    Reverse[Flatten[Table[Table[j, {mult[[j]]}], {j, Length[mult]}]]]
+  ]
 
 NumberOfCompositions[n_,k_] := Binomial[ n+k-1, n ]
 
@@ -1250,10 +1233,11 @@ TransposeTableau[tb_List] :=
 
 ShapeOfTableau[t_List] := Map[Length,t]
 
+(* Section 2.3.1 Insertion and Deletion, Page 64 *)
 InsertIntoTableau[e_Integer,{}] := { {e} }
 
 InsertIntoTableau[e_Integer, t1_?TableauQ] :=
-	Module[{item=e,row=0,col,t=t1},
+	Block[{item=e,row=0,col,t=t1},
 		While [row < Length[t],
 			row++;
 			If [Last[t[[row]]] <= item,
@@ -2693,25 +2677,67 @@ TransitiveReduction[g_Graph] :=
 		Graph[reduction,Vertices[g]]
 	]
 
-HasseDiagram[g_Graph] :=
-	Module[{r,rank,m,stages,freq=Table[0,{V[g]}]},
-		r = TransitiveReduction[ RemoveSelfLoops[g] ];
-		rank = RankGraph[
-				MakeUndirected[r],
-				Select[Range[V[g]],(InDegree[r,#]==0)&]
-		];
-		m = Max[rank];
-		rank = MapAt[(m)&,rank,Position[OutDegree[r],0]];
-		stages = Distribution[ rank ];
-		Graph[
-			Edges[r],
-			Table[
-				m = ++ freq[[ rank[[i]] ]];
-				{(m-1) + (1-stages[[rank[[i]] ]])/2, rank[[i]]},
-				{i,V[g]}
+(*thanks Christoph Strnadl*)
+
+HasseDiagram[g_,fak_:1] :=
+	Module[{r, rank, m, stages, freq=Table[0,{V[g]}],
+             adjm, first},
+		r = TransitiveReduction[ RemoveSelfLoops[g]  ];
+            adjm = ToAdjacencyLists[r];
+            rank = Table[ 0,{ V[g]} ];
+            first = Select[ Range[ V[g]], InDegree[r,#]==0& ];
+            rank = MakeLevel[ first, 1, adjm, rank];
+            first = Max[rank];
+            stages = Distribution[ rank ];
+            Graph[
+		Edges[r],
+		Table[
+			m = ++ freq[[ rank[[i]] ]];
+			{ ((m-1) + (1-stages[[rank[[i]] ]])/2) fak^(first-rank[[i]]),
+                          rank[[i]] },
+				{i, V[g]}
 			]
 		]
-	] /; AcyclicQ[RemoveSelfLoops[g],Directed]
+	] /; AcyclicQ[ RemoveSelfLoops[g],Directed ]
+
+(*
+ * SetLevel[{p1,p2,...},lvl,rank] sets the positions p1, p2,.. of
+ * list rank to the level lvl, if the old entry at that position
+ * is less than level.
+ *)
+SetLevel[l_List,lvl_,rank_List] :=
+    Module[ {r=rank},
+            If[ r[[#]] < lvl, r[[#]] = lvl ] & /@ l;
+            r
+    ]
+
+(*
+ * MakeLevel[l,level,adjm,rank] constructs recursively the ranks of
+ * each vertex according to the adjacency matrix adjm of the graph.
+ * rank is the current ranking, level the new level to assign and
+ * l = {v1,v2,..} the list of vertices to be set to level.
+ *)
+MakeLevel[{},_,_,rank_] := rank
+
+MakeLevel[l_List,lvl_,adjm_List,r_List] :=
+  Module[ {rank=r, v, lst=l },
+          rank = SetLevel[lst,lvl,rank];  (* make this level ready *)
+          While[ lst != {},
+                 v = First[lst];
+                 rank = MakeLevel[adjm[[v]], lvl+1,adjm,rank];
+                 lst = Rest[lst];
+          ];
+          rank
+  ]
+
+(*
+ * HasseDiagram[g] renders a graph corresponding to the HasseDiagram of
+ * the partial order induced by the directed graph g.
+ * HasseDiagram[g,fac] renders the HasseDiagram in which each vertex'
+ * position is stretched by factor fac. In each stage that factor
+ * is taken to the power of the distance to the 1 element.
+ *)
+
 
 TopologicalSort[g_Graph] :=
 	Module[{g1 = RemoveSelfLoops[g],e,indeg,zeros,v},
@@ -3179,38 +3205,6 @@ Lock1Q[a_List,b_List] :=
 		aj = Min[ Select[a, (# > bk)&] ];
 		(aj < Max[b])
 	]
-
-KSetPartitions::usage = "KSetPartitions[set, k] returns the list of set partitions of set with k blocks. KSetPartitions[n, k] returns the list of set partitions of {1, 2, ..., n} with k blocks. If all set partitions of a set are needed, use the function SetPartitions."
-KSetPartitions[{}, 0] := {{}}
-KSetPartitions[s_List, 0] := {}
-KSetPartitions[s_List, k_Integer] := {} /; (k > Length[s])
-KSetPartitions[s_List, k_Integer] := {Map[{#} &, s]} /; (k === Length[s])
-KSetPartitions[s_List, k_Integer] :=
-       Block[{$RecursionLimit = Infinity},
-             Join[Map[Prepend[#, {First[s]}] &, KSetPartitions[Rest[s], k - 1]],
-                  Flatten[
-                     Map[Table[Prepend[Delete[#, j], Prepend[#[[j]], s[[1]]]],
-                              {j, Length[#]}
-                         ]&,
-                         KSetPartitions[Rest[s], k]
-                     ], 1
-                  ]
-             ]
-       ] /; (k > 0) && (k < Length[s])
-
-KSetPartitions[0, 0] := {{}}
-KSetPartitions[0, k_Integer?Positive] := {}
-KSetPartitions[n_Integer?Positive, 0] := {}
-KSetPartitions[n_Integer?Positive, k_Integer?Positive] := KSetPartitions[Range[n], k]
-
-SetPartitions::usage = "SetPartitions[set] returns the list of set partitions of set. SetPartitions[n] returns the list of set partitions of {1, 2, ..., n}. If all set partitions with a fixed number of subsets are needed use KSetPartitions."
-
-SetPartitions[{}] := {{}}
-SetPartitions[s_List] := Flatten[Table[KSetPartitions[s, i], {i, Length[s]}], 1]
-
-SetPartitions[0] := {{}}
-SetPartitions[n_Integer?Positive] := SetPartitions[Range[n]]
-
 
 End[]
 

@@ -26,7 +26,11 @@ from mathics.core.attributes import (
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.element import ImmutableValueMixin
-from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack
+from mathics.core.evaluation import (
+    Evaluation,
+    TimeoutInterrupt,
+    run_with_timeout_and_stack,
+)
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolNull
@@ -625,7 +629,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
         " an object representing a date of any granularity (year, hour, instant, ...)"
     )
 
-    def eval_any(self, args, evaluation, options):
+    def eval_any(self, args, evaluation: Evaluation, options: dict):
         "DateObject[args_, OptionsPattern[]]"
         datelist = None
         tz = None
@@ -1038,10 +1042,10 @@ class EasterSunday(Builtin):  # Calendar`EasterSunday
         h = (19 * a + b - d - g + 15) % 30
         i = c // 4
         k = c % 4
-        l = (32 + 2 * e + 2 * i - h - k) % 7
-        m = (a + 11 * h + 22 * l) // 451
-        month = (h + l - 7 * m + 114) // 31
-        day = ((h + l - 7 * m + 114) % 31) + 1
+        le = (32 + 2 * e + 2 * i - h - k) % 7
+        m = (a + 11 * h + 22 * le) // 451
+        month = (h + le - 7 * m + 114) // 31
+        day = ((h + le - 7 * m + 114) % 31) + 1
 
         return ListExpression(year, Integer(month), Integer(day))
 
@@ -1185,7 +1189,7 @@ if sys.platform != "win32" and not hasattr(sys, "pyston_version_info"):
             except TimeoutInterrupt:
                 evaluation.timeout_queue.pop()
                 return failexpr.evaluate(evaluation)
-            except:
+            except Exception:
                 evaluation.timeout_queue.pop()
                 raise
             evaluation.timeout_queue.pop()

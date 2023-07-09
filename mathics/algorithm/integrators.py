@@ -5,7 +5,7 @@ import numpy as np
 from mathics.core.atoms import Integer, Integer0, Number
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import machine_epsilon
+from mathics.core.number import MACHINE_EPSILON
 from mathics.core.symbols import Symbol, SymbolPlus, SymbolSequence, SymbolTimes
 from mathics.core.systemsymbols import (
     SymbolBlank,
@@ -118,12 +118,12 @@ def _internal_adaptative_simpsons_rule(f, a, b, **opts):
 
     fa, fb = ensure_evaluation(f, a), ensure_evaluation(f, b)
     if fa is None:
-        x = 10.0 * machine_epsilon if a == 0 else a * (1.0 + 10.0 * machine_epsilon)
+        x = 10.0 * MACHINE_EPSILON if a == 0 else a * (1.0 + 10.0 * MACHINE_EPSILON)
         fa = ensure_evaluation(f, x)
         if fa is None:
             raise Exception(f"Function undefined around {a}. Cannot integrate")
     if fb is None:
-        x = -10.0 * machine_epsilon if b == 0 else b * (1.0 - 10.0 * machine_epsilon)
+        x = -10.0 * MACHINE_EPSILON if b == 0 else b * (1.0 - 10.0 * MACHINE_EPSILON)
         fb = ensure_evaluation(f, x)
         if fb is None:
             raise Exception(f"Function undefined around {b}. Cannot integrate")
@@ -162,7 +162,7 @@ def _fubini(func, ranges, **opts):
         return val
 
 
-def apply_D_to_Integral(func, domain, var, evaluation, options, head):
+def eval_D_to_Integral(func, domain, var, evaluation, options, head):
     """Implements D[%(name)s[func_, domain__, OptionsPattern[%(name)s]], var_Symbol]"""
     if head is SymbolNIntegrate:
         options = tuple(

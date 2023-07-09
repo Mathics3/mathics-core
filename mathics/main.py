@@ -1,8 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+Simpler Command-line interface to Mathics3.
+
+See also mathicsscript for a more sophisticated, and full
+featured CLI, which uses in more add-on Python packages and modules
+to assist in command-line behavior.
+"""
 
 import argparse
 import atexit
+import cProfile
 import locale
 import os
 import os.path as osp
@@ -44,7 +52,8 @@ def show_echo(query, evaluation):
             stream = stream_manager.lookup_stream(strm.elements[1].value)
             if stream is None or stream.io is None or stream.io.closed:
                 continue
-        stream.io.write(query + "\n")
+        if stream is not None:
+            stream.io.write(query + "\n")
 
 
 class TerminalShell(MathicsLineFeeder):
@@ -305,10 +314,21 @@ Please contribute to Mathics!""",
         "multiple times)",
     )
 
+    # Python 3.7 does not support cProfile as a context manager
+    if sys.version_info >= (3, 8):
+        argparser.add_argument(
+            "--cprofile",
+            help="run cProfile on --execute argument",
+            action="store_true",
+        )
+
     argparser.add_argument(
         "--colors",
         nargs="?",
-        help="interactive shell colors. Use value 'NoColor' or 'None' to disable ANSI color decoration",
+        help=(
+            "interactive shell colors. Use value 'NoColor' or 'None' to disable "
+            "ANSI color decoration"
+        ),
     )
 
     argparser.add_argument(
@@ -390,7 +410,7 @@ Please contribute to Mathics!""",
                 if query is None:
                     continue
                 evaluation.evaluate(query, timeout=settings.TIMEOUT)
-        except (KeyboardInterrupt):
+        except KeyboardInterrupt:
             print("\nKeyboardInterrupt")
 
         definitions.set_line_no(0)
@@ -408,7 +428,7 @@ Please contribute to Mathics!""",
                 if query is None:
                     continue
                 evaluation.evaluate(query, timeout=settings.TIMEOUT)
-        except (KeyboardInterrupt):
+        except KeyboardInterrupt:
             print("\nKeyboardInterrupt")
 
         if args.persist:
@@ -417,9 +437,19 @@ Please contribute to Mathics!""",
             return exit_rc
 
     if args.execute:
-        for expr in args.execute:
+
+        def run_it():
             evaluation = Evaluation(shell.definitions, output=TerminalOutput(shell))
-            result = evaluation.parse_evaluate(expr, timeout=settings.TIMEOUT)
+            return evaluation.parse_evaluate(expr, timeout=settings.TIMEOUT), evaluation
+
+        for expr in args.execute:
+            if sys.version_info >= (3, 8) and args.cprofile:
+                with cProfile.Profile() as pr:
+                    result, evaluation = run_it()
+                    pr.print_stats()
+            else:
+                result, evaluation = run_it()
+
             shell.print_result(
                 result, no_out_prompt=True, strict_wl_output=args.strict_wl_output
             )
@@ -457,7 +487,7 @@ Please contribute to Mathics!""",
             result = evaluation.evaluate(query, timeout=settings.TIMEOUT)
             if result is not None:
                 shell.print_result(result, strict_wl_output=args.strict_wl_output)
-        except (KeyboardInterrupt):
+        except KeyboardInterrupt:
             print("\nKeyboardInterrupt")
         except EOFError:
             print("\n\nGoodbye!\n")

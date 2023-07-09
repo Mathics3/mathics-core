@@ -319,7 +319,7 @@ class ColorTest(unittest.TestCase):
     def testImageConversions(self):
         # test that f([x, y, ...]) = [f(x), f(y), ...] for rectangular image arrays.
 
-        for name, convert in colors.conversions.items():
+        for name, convert in colors.CONVERSIONS.items():
             if name.find("CMYK") < 0:
                 self._checkImageConversion(
                     4, lambda p: vectorize(p, 1, lambda q: stacked(convert, q))

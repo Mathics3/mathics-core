@@ -10,7 +10,6 @@ from mathics import __file__ as mathics_initfile_path
 from mathics.builtin import name_is_builtin_symbol
 from mathics.builtin.base import Builtin
 from mathics.doc.common_doc import skip_doc
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 # Get file system path name for mathics.builtin
 mathics_path = osp.dirname(mathics_initfile_path)
@@ -185,6 +184,8 @@ def test_summary_text_available(module_name):
     """
     grammar_OK = True
     module = modules[module_name]
+    if hasattr(module, "no_doc") and module.no_doc is True:
+        return
     vars = dir(module)
     for name in vars:
         var = name_is_builtin_symbol(module, name)

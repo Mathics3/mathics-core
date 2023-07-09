@@ -16,6 +16,7 @@ from mathics.builtin.atomic.strings import (
 from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.core.atoms import Integer1, String
 from mathics.core.attributes import A_FLAT, A_LISTABLE, A_ONE_IDENTITY, A_PROTECTED
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
@@ -171,19 +172,19 @@ class StringCases(_StringFind):
 
     <dl>
       <dt>'StringCases["$string$", $pattern$]'
-      <dd>gives all occurences of $pattern$ in $string$.
+      <dd>gives all occurrences of $pattern$ in $string$.
 
       <dt>'StringReplace["$string$", $pattern$ -> $form$]'
-      <dd>gives all instances of $form$ that stem from occurences of $pattern$ in $string$.
+      <dd>gives all instances of $form$ that stem from occurrences of $pattern$ in $string$.
 
       <dt>'StringCases["$string$", {$pattern1$, $pattern2$, ...}]'
-      <dd>gives all occurences of $pattern1$, $pattern2$, ....
+      <dd>gives all occurrences of $pattern1$, $pattern2$, ....
 
       <dt>'StringReplace["$string$", $pattern$, $n$]'
-      <dd>gives only the first $n$ occurences.
+      <dd>gives only the first $n$ occurrences.
 
       <dt>'StringReplace[{"$string1$", "$string2$", ...}, $pattern$]'
-      <dd>gives occurences in $string1$, $string2$, ...
+      <dd>gives occurrences in $string1$, $string2$, ...
     </dl>
 
     >> StringCases["axbaxxb", "a" ~~ x_ ~~ "b"]
@@ -205,7 +206,7 @@ class StringCases(_StringFind):
      = {abc}
 
     #> StringCases["abc-abc xyz-uvw", Shortest[x : WordCharacter .. ~~ "-" ~~ x : LetterCharacter] -> x]
-     : Ignored restriction given for x in x : LetterCharacter as it does not match previous occurences of x.
+     : Ignored restriction given for x in x : LetterCharacter as it does not match previous occurrences of x.
      = {abc}
 
     >> StringCases["abba", {"a" -> 10, "b" -> 20}, 2]
@@ -223,7 +224,7 @@ class StringCases(_StringFind):
     }
     summary_text = "occurrences of string patterns in a string"
 
-    def _find(self, py_stri, py_rules, py_n, flags, evaluation):
+    def _find(self, py_stri, py_rules, py_n, flags, evaluation: Evaluation):
         def cases():
             for match, form in _parallel_match(py_stri, py_rules, flags, py_n):
                 if form is None:
@@ -233,7 +234,7 @@ class StringCases(_StringFind):
 
         return ListExpression(*list(cases()))
 
-    def apply(self, string, rule, n, evaluation, options):
+    def eval(self, string, rule, n, evaluation: Evaluation, options: dict):
         "%(name)s[string_, rule_, OptionsPattern[%(name)s], n_:System`Private`Null]"
         # this pattern is a slight hack to get around missing Shortest/Longest.
         return self._apply(string, rule, n, evaluation, options, True)
@@ -264,11 +265,11 @@ class StringExpression(BinaryOperator):
 
     messages = {
         "invld": "Element `1` is not a valid string or pattern element in `2`.",
-        "cond": "Ignored restriction given for `1` in `2` as it does not match previous occurences of `1`.",
+        "cond": "Ignored restriction given for `1` in `2` as it does not match previous occurrences of `1`.",
     }
     summary_text = "an arbitrary string expression"
 
-    def apply(self, args, evaluation):
+    def eval(self, args, evaluation: Evaluation):
         "StringExpression[args__String]"
         args = args.get_sequence()
         args = [arg.get_string_value() for arg in args]
@@ -376,7 +377,7 @@ class StringFreeQ(Builtin):
 
     summary_text = "test whether a string is free of substrings matching a pattern"
 
-    def apply(self, string, patt, evaluation, options):
+    def eval(self, string, patt, evaluation: Evaluation, options: dict):
         "StringFreeQ[string_, patt_, OptionsPattern[%(name)s]]"
         return _pattern_search(
             self.__class__.__name__, string, patt, evaluation, options, False
@@ -389,7 +390,7 @@ class StringMatchQ(Builtin):
     https://reference.wolfram.com/language/ref/StringMatchQ.html</url>
 
     <dl>
-      <dt>'StringMatchQ["string", $patern$]'
+      <dt>'StringMatchQ["string", $pattern$]'
       <dd> checks  is "string" matches $pattern$
     </dl>
 
@@ -461,25 +462,29 @@ class StringMatchQ(Builtin):
     }
     summary_text = "test whether a string matches a pattern"
 
-    def apply(self, string, patt, evaluation, options):
+    def eval(self, string, patt, evaluation: Evaluation, options: dict):
         "StringMatchQ[string_, patt_, OptionsPattern[%(name)s]]"
         py_string = string.get_string_value()
         if py_string is None:
-            return evaluation.message(
+            evaluation.message(
                 "StringMatchQ",
                 "strse",
                 Integer1,
                 Expression(SymbolStringMatchQ, string, patt),
             )
+            return
 
-        re_patt = to_regex(patt, evaluation, abbreviated_patterns=True)
+        re_patt = to_regex(
+            patt, show_message=evaluation.message, abbreviated_patterns=True
+        )
         if re_patt is None:
-            return evaluation.message(
+            evaluation.message(
                 "StringExpression",
                 "invld",
                 patt,
                 Expression(SymbolStringExpression, patt),
             )
+            return
 
         re_patt = anchor_pattern(re_patt)
 

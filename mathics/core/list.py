@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Module containing ListExpression
+"""
 
 import reprlib
 from typing import Optional, Tuple
@@ -11,15 +14,15 @@ from mathics.core.symbols import EvalMixin, Symbol, SymbolList
 
 class ListExpression(Expression):
     """
-    A Mathics List-Expression.
+    A Mathics3 List-Expression.
 
-    A Mathics List is a specialization of Expression where the head is SymbolList.
+    A Mathics3 List is a specialization of Expression where the head is SymbolList.
 
     positional Arguments:
         - *elements - optional: the remaining elements
 
     Keyword Arguments:
-        - element_properties -- properties of the collection of elements
+        - elements_properties -- properties of the collection of elements
         - literal_values -- if this is not None, then it is a tuple of Python values
     """
 
@@ -83,7 +86,7 @@ class ListExpression(Expression):
 
     def __str__(self) -> str:
         """str() representation of ListExpression. May be longer than repr()"""
-        return f"<ListExpression: {self._elements}>"
+        return "{" + ",".join(str(e) for e in self.elements) + "}"
 
     # @timeit
     def evaluate_elements(self, evaluation: Evaluation) -> Expression:

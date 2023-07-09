@@ -10,7 +10,7 @@ import sympy
 
 from mathics.core.atoms import Integer, MachineReal, PrecisionReal, Rational, String
 from mathics.core.convert.expression import to_expression, to_mathics_list
-from mathics.core.number import machine_precision, reconstruct_digits
+from mathics.core.number import RECONSTRUCT_MACHINE_PRECISION_DIGITS
 from mathics.core.parser.ast import (
     Filename as AST_Filename,
     Number as AST_Number,
@@ -83,14 +83,16 @@ class GenericConverter:
             if suffix is None:
                 # MachineReal/PrecisionReal is determined by number of digits
                 # in the mantissa
-                d = len(man) - 2  # one less for decimal point
-                if d < reconstruct_digits(machine_precision):
+                # if the number of digits is less than 17, then MachineReal is used.
+                # If more digits are provided, then PrecisionReal is used.
+                digits = len(man) - 2
+                if digits < RECONSTRUCT_MACHINE_PRECISION_DIGITS:
                     return "MachineReal", sign * float(s)
                 else:
                     return (
                         "PrecisionReal",
                         ("DecimalString", str("-" + s if sign == -1 else s)),
-                        d,
+                        digits,
                     )
             elif suffix == "":
                 return "MachineReal", sign * float(s)
@@ -118,10 +120,15 @@ class GenericConverter:
                 # so ``` 0`3 === 0 ``` and  ``` 0.`3 === 0.`4 ```
                 if node.value == "0":
                     return "Integer", 0
+
+                s_float = float(s)
+                prec = float(suffix)
+                if s_float == 0.0:
+                    return "MachineReal", sign * s_float
                 return (
                     "PrecisionReal",
                     ("DecimalString", str("-" + s if sign == -1 else s)),
-                    float(suffix),
+                    prec,
                 )
 
         # Put into standard form mantissa * base ^ n
@@ -149,7 +156,7 @@ class GenericConverter:
                 prec10 = acc10
             else:
                 prec10 = acc10 + log10(abs(x))
-            if prec10 < reconstruct_digits(machine_precision):
+            if prec10 < RECONSTRUCT_MACHINE_PRECISION_DIGITS:
                 prec10 = None
         elif suffix == "":
             prec10 = None
