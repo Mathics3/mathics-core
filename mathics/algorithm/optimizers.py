@@ -202,8 +202,8 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
         return x0, False
     if not isinstance(f1, Number):
         return x0, False
-    f0 = f0.to_python(n_evaluation=True)
-    f1 = f1.to_python(n_evaluation=True)
+    f0 = eval_N(f0, evaluation).to_python()
+    f1 = eval_N(f1, evaluation).to_python()
     count = 0
     while count < maxit:
         if f0 == f1:
@@ -224,7 +224,7 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
             )
             if not isinstance(f1, Number):
                 return x0, False
-            f1 = f1.to_python(n_evaluation=True)
+            f1 = eval_N(f1, evaluation).to_python()
             continue
 
         inv_deltaf = from_python(1.0 / (f1 - f0))
