@@ -7,8 +7,8 @@ import pkgutil
 import pytest
 
 from mathics import __file__ as mathics_initfile_path
-from mathics.builtin import name_is_builtin_symbol
 from mathics.builtin.base import Builtin
+from mathics.core.load_builtin import name_is_builtin_symbol
 from mathics.doc.common_doc import skip_doc
 
 # Get file system path name for mathics.builtin

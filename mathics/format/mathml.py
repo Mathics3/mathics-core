@@ -8,6 +8,8 @@ MathML formatting is usually initiated in Mathics via MathMLForm[].
 import base64
 import html
 
+from mathics_scanner import is_symbol_name
+
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
@@ -27,7 +29,7 @@ from mathics.core.formatter import (
     add_conversion_fn,
     lookup_method as lookup_conversion_method,
 )
-from mathics.core.parser import is_symbol_name
+from mathics.core.load_builtin import display_operators_set as operators
 from mathics.core.symbols import SymbolTrue
 
 
@@ -59,8 +61,6 @@ extra_operators = {
 
 
 def string(self, **options) -> str:
-    from mathics.builtin import display_operators_set as operators
-
     text = self.value
 
     number_as_text = options.get("number_as_text", None)

@@ -3,19 +3,23 @@
 Code around loading Mathics3 Builtin Functions and Variables.
 
 This code loads the top-level definition of a Mathics3
-Builtin, and attributes that have not been segregated elsewhere such
-as has been done for one of the other modules listed above.
+Builtin.
 """
 
 import importlib
 import inspect
-from typing import Optional
+import os.path as osp
+import pkgutil
+from glob import glob
+from typing import List, Optional
 
 from mathics.core.pattern import pattern_objects
 from mathics.core.symbols import Symbol
 from mathics.eval.makeboxes import builtins_precedence
 
 _builtins = {}
+builtins_by_module = {}
+display_operators_set = set()
 
 # The fact that are importing inside here, suggests add_builtins
 # should get moved elsewhere.
@@ -46,6 +50,31 @@ def add_builtins(new_builtins):
     _builtins.update(dict(new_builtins))
 
 
+def add_builtins_from_builtin_modules(modules):
+    # This can be put at the top after mathics.builtin.__init__
+    # cleanup is done.
+    from mathics.builtin.base import Builtin
+
+    builtins_list = []
+    for module in modules:
+        builtins_by_module[module.__name__] = []
+        module_vars = dir(module)
+
+        for name in module_vars:
+            builtin_class = name_is_builtin_symbol(module, name)
+            if builtin_class is not None:
+                instance = builtin_class(expression=False)
+
+                if isinstance(instance, Builtin):
+                    # This set the default context for symbols in mathics.builtins
+                    if not type(instance).context:
+                        type(instance).context = "System`"
+                    builtins_list.append((instance.get_name(), instance))
+                    builtins_by_module[module.__name__].append(instance)
+    add_builtins(builtins_list)
+    return builtins_by_module
+
+
 def builtins_dict(builtins_by_module):
     return {
         builtin.get_name(): builtin
@@ -74,9 +103,18 @@ def definition_contribute(definitions):
             definitions.builtin[op] = Definition(name=op)
 
 
+def get_module_names(builtin_path: str, exclude_files: set) -> list:
+    py_files = [
+        osp.basename(f[0:-3]) for f in glob(osp.join(builtin_path, "[a-z]*.py"))
+    ]
+    return [f for f in py_files if f not in exclude_files]
+
+
 # TODO: When we drop Python 3.7,
 # module_names can be a List[Literal]
-def import_builtins(modules: list, module_names: list, submodule_name=None) -> None:
+def import_builtins(
+    module_names: List[str], modules: list, submodule_name: Optional[str] = None
+):
     """
     Imports the list of Mathics3 Built-in modules so that inside
     Mathics3 Builtin Functions, like Plus[], List[] are defined.
@@ -104,6 +142,36 @@ def import_builtins(modules: list, module_names: list, submodule_name=None) -> N
             else f"mathics.builtin.{module_name}"
         )
         import_module(module_name, import_name)
+
+
+def import_builtin_subdirectories(
+    subdirectories: List[str], disable_file_module_names: set, modules
+):
+    """
+    Runs import_builtisn on the each subdirectory in ``subdirectories`` that inside
+    Mathics3 Builtin Functions which are inside mathics.builtins.xxx are defined.
+    """
+    for subdir in subdirectories:
+        if subdir in disable_file_module_names:
+            continue
+
+        import_name = f"mathics.builtin.{subdir}"
+
+        builtin_module = importlib.import_module(import_name)
+        submodule_names = [
+            modname for _, modname, _ in pkgutil.iter_modules(builtin_module.__path__)
+        ]
+        # print("XXX3", submodule_names)
+        import_builtins(submodule_names, modules, subdir)
+
+
+def initialize_display_operators_set():
+    for _, builtins in builtins_by_module.items():
+        for builtin in builtins:
+            # name = builtin.get_name()
+            operator = builtin.get_operator_display()
+            if operator is not None:
+                display_operators_set.add(operator)
 
 
 def name_is_builtin_symbol(module, name: str) -> Optional[type]:
