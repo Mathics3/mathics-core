@@ -8,8 +8,9 @@ import os
 
 import pytest
 
-from mathics.builtin import modules, name_is_builtin_symbol
+from mathics.builtin import modules
 from mathics.builtin.base import Builtin
+from mathics.core.load_builtin import name_is_builtin_symbol
 
 
 @pytest.mark.skipif(

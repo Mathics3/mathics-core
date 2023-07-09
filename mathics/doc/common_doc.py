@@ -34,6 +34,7 @@ from typing import Callable
 from mathics import builtin, settings
 from mathics.builtin.base import check_requires_list
 from mathics.core.evaluation import Message, Print
+from mathics.core.load_builtin import builtins_by_module as global_builtins_by_module
 from mathics.core.util import IS_PYPY
 from mathics.doc.utils import slugify
 from mathics.eval.pymathics import pymathics_builtins_by_module, pymathics_modules
@@ -621,7 +622,7 @@ class Documentation:
             (
                 "Reference of Built-in Symbols",
                 builtin.modules,
-                builtin.builtins_by_module,
+                global_builtins_by_module,
                 True,
             )
         ]:

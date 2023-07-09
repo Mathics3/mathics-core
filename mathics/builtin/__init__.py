@@ -16,106 +16,37 @@ builtin class such as the Builtin's Attributes, its Information text,
 among other things.
 """
 
-import glob
-import importlib
+import os
 import os.path as osp
-import pkgutil
-import re
 
-from mathics.builtin.base import Builtin
 from mathics.core.load_builtin import (
-    add_builtins,
+    add_builtins_from_builtin_modules,
+    get_module_names,
+    import_builtin_subdirectories,
     import_builtins,
-    name_is_builtin_symbol,
+    initialize_display_operators_set,
 )
 from mathics.settings import ENABLE_FILES_MODULE
 
-# Get a list of files in this directory. We'll exclude from the start
-# files with leading characters we don't want like __init__ with its leading underscore.
-__py_files__ = [
-    osp.basename(f[0:-3])
-    for f in glob.glob(osp.join(osp.dirname(__file__), "[a-z]*.py"))
-]
+# Get import modules in this directory of Python modules that contain
+# Mathics3 Builtin class definitions.
 
-# FIXME: redo using importlib since that is probably less fragile.
+builtin_path = osp.dirname(__file__)
 exclude_files = {"codetables", "base"}
-module_names = [
-    f for f in __py_files__ if re.match(r"^[a-z\d]+$", f) if f not in exclude_files
-]
-
+module_names = get_module_names(builtin_path, exclude_files)
 modules = []
-import_builtins(modules, module_names)
+import_builtins(module_names, modules)
 
-_builtins_list = []
-builtins_by_module = {}
+# Get import modules in subdirectories of this directory of Python
+# modules that contain Mathics3 Builtin class definitions.
 
-disable_file_module_names = [] if ENABLE_FILES_MODULE else ["files_io"]
+# The files_io module handles local file access, reading and writing..
+# In some sandboxed settings, such as running Mathics from as a remote
+# server, we disallow local file access.
+disable_file_module_names = set() if ENABLE_FILES_MODULE else {"files_io"}
 
-for subdir in (
-    "arithfns",
-    "assignments",
-    "atomic",
-    "binary",
-    "box",
-    "colors",
-    "directories",
-    "distance",
-    "drawing",
-    "exp_structure",
-    "fileformats",
-    "files_io",
-    "file_operations",
-    "forms",
-    "functional",
-    "image",
-    "intfns",
-    "list",
-    "matrices",
-    "numbers",
-    "quantum_mechanics",
-    "specialfns",
-    "statistics",
-    "string",
-    "testing_expressions",
-    "vectors",
-):
-    import_name = f"{__name__}.{subdir}"
+subdirectories = next(os.walk(builtin_path))[1]
+import_builtin_subdirectories(subdirectories, disable_file_module_names, modules)
 
-    if subdir in disable_file_module_names:
-        continue
-
-    builtin_module = importlib.import_module(import_name)
-    submodule_names = [
-        modname for _, modname, _ in pkgutil.iter_modules(builtin_module.__path__)
-    ]
-    # print("XXX3", submodule_names)
-    import_builtins(modules, submodule_names, subdir)
-
-for module in modules:
-    builtins_by_module[module.__name__] = []
-    module_vars = dir(module)
-
-    for name in module_vars:
-        builtin_class = name_is_builtin_symbol(module, name)
-        if builtin_class is not None:
-            instance = builtin_class(expression=False)
-
-            if isinstance(instance, Builtin):
-                # This set the default context for symbols in mathics.builtins
-                if not type(instance).context:
-                    type(instance).context = "System`"
-                _builtins_list.append((instance.get_name(), instance))
-                builtins_by_module[module.__name__].append(instance)
-
-
-new_builtins = _builtins_list
-
-add_builtins(new_builtins)
-
-display_operators_set = set()
-for modname, builtins in builtins_by_module.items():
-    for builtin in builtins:
-        # name = builtin.get_name()
-        operator = builtin.get_operator_display()
-        if operator is not None:
-            display_operators_set.add(operator)
+add_builtins_from_builtin_modules(modules)
+initialize_display_operators_set()

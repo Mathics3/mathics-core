@@ -22,10 +22,9 @@ from typing import Dict
 import mathics
 import mathics.settings
 from mathics import settings, version_string
-from mathics.builtin import builtins_by_module
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
-from mathics.core.load_builtin import builtins_dict
+from mathics.core.load_builtin import builtins_by_module, builtins_dict
 from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.doc.common_doc import MathicsMainDocumentation
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
