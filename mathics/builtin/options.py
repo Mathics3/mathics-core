@@ -169,21 +169,21 @@ class FilterRules(Builtin):
 
 class None_(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/None.html</url>
+        <url>:WMA link:https://reference.wolfram.com/language/ref/None.html</url>
 
-    <dl>
-      <dt>'None'
-      <dd>is a setting value for many options.
-    </dl>
+        <dl>
+          <dt>'None'
+          <dd>is a setting value for many options.
+        </dl>
 
-    Plot3D shows the mesh grid between computed points by default. This the <url>
-    :Mesh:
-    /doc/reference-of-built-in-symbols/drawing-option-and-values/mesh</url> option.
+        Plot3D shows the mesh grid between computed points by default. This the <url>
+        :Mesh:
+    /doc/reference-of-built-in-symbols/drawing-options-and-option-values/mesh</url> option.
 
-    However, you hide the mesh by setting the 'Mesh' option value to 'None':
+        However, you hide the mesh by setting the 'Mesh' option value to 'None':
 
-    >> Plot3D[{x^2 + y^2, -x^2 - y^2}, {x, -2, 2}, {y, -2, 2}, BoxRatios-> Automatic, Mesh->None]
-     = -Graphics3D-
+        >> Plot3D[{x^2 + y^2, -x^2 - y^2}, {x, -2, 2}, {y, -2, 2}, BoxRatios-> Automatic, Mesh->None]
+         = -Graphics3D-
     """
 
     name = "None"

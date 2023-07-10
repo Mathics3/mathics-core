@@ -1539,7 +1539,7 @@ class DiscretePlot(_Plot):
      = -Graphics-
 
     Compare with <url>:'Plot':
-    /doc/reference-of-built-in-symbols/graphics-drawing-and-images/plotting-data/plot/</url>.
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/plotting-data/plot/</url>.
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
@@ -1969,13 +1969,13 @@ class ListPlot(_ListPlot):
      = -Graphics-
 
     Compare with <url>:'Plot':
-    /doc/reference-of-built-in-symbols/graphics-drawing-and-images/plotting-data/plot/</url>.
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/plotting-data/plot/</url>.
 
     >> ListPlot[Table[n ^ 2, {n, 30}], Filling->Axis]
      = -Graphics-
 
     Compare with <url>:'Plot':
-    /doc/reference-of-built-in-symbols/graphics-drawing-and-images/plotting-data/plot</url>.
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/plotting-data/plot</url>.
     """
 
     options = Graphics.options.copy()

@@ -456,6 +456,7 @@ class Documentation:
 
         builtin_part = self.doc_part_fn(self, title, is_reference=start)
         modules_seen = set([])
+        submodule_names_seen = set([])
 
         want_sorting = True
         if want_sorting:
@@ -504,6 +505,8 @@ class Documentation:
                         continue
 
                     submodule_name = get_doc_name_from_module(submodule)
+                    if submodule_name in submodule_names_seen:
+                        continue
                     section = self.add_section(
                         chapter,
                         submodule_name,
@@ -513,6 +516,7 @@ class Documentation:
                         in_guide=True,
                     )
                     modules_seen.add(submodule)
+                    submodule_names_seen.add(submodule_name)
                     guide_section.subsections.append(section)
 
                     builtins = builtins_by_module.get(submodule.__name__, [])
@@ -521,13 +525,17 @@ class Documentation:
                         if hasattr(instance, "no_doc") and instance.no_doc:
                             continue
 
-                        modules_seen.add(instance)
                         name = instance.get_name(short=True)
+                        if name in submodule_names_seen:
+                            continue
+
+                        submodule_names_seen.add(name)
+                        modules_seen.add(instance)
 
                         self.add_subsection(
                             chapter,
                             section,
-                            instance.get_name(short=True),
+                            name,
                             instance,
                             instance.get_operator(),
                             in_guide=True,
