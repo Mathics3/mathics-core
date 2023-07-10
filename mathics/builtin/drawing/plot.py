@@ -2560,15 +2560,24 @@ class Plot3D(_Plot3D):
     <url>:WMA link: https://reference.wolfram.com/language/ref/Plot3D.html</url>
     <dl>
       <dt>'Plot3D[$f$, {$x$, $xmin$, $xmax$}, {$y$, $ymin$, $ymax$}]'
-      <dd>creates a three-dimensional plot of $f$ with $x$ ranging from $xmin$ to $xmax$ and $y$ ranging from $ymin$ to $ymax$.
+      <dd>creates a three-dimensional plot of $f$ with $x$ ranging from $xmin$ to \
+          $xmax$ and $y$ ranging from $ymin$ to $ymax$.
 
     </dl>
 
-    Plot3D has the same options as Graphics3D, in particular:
+    Plot3D has the same options as <url>:Graphics3D:
+/doc/reference-of-built-in-symbols/graphics-and-drawing/three-dimensional-graphics/graphics3d</url>,\
+    in particular:
     <ul>
-    <li>Mesh
-    <li>PlotPoints
-    <li>MaxRecursion
+    <li><url>
+    :Mesh:
+    /doc/reference-of-built-in-symbols/drawing-options-and-option-values/mesh</url>
+    <li><url>
+    :PlotPoints:
+    /doc/reference-of-built-in-symbols/drawing-options-and-option-values/plotpoints</url>
+    <li><url>
+    :MaxRecursion:
+    /doc/reference-of-built-in-symbols/drawing-options-and-option-values/maxrecursion</url>
     </ul>
 
 

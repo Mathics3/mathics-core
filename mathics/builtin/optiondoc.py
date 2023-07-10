@@ -200,7 +200,8 @@ class MaxRecursion(Builtin):
 
     <dl>
       <dt>'MaxRecursion'
-      <dd>is an option for functions like NIntegrate and Plot that specifies how many recursive subdivisions can be made.
+      <dd>is an option for functions like NIntegrate and Plot that specifies how many \
+          recursive subdivisions can be made.
     </dl>
 
     >> NIntegrate[Exp[-10^8 x^2], {x, -1, 1}, Method->"Internal", MaxRecursion -> 3]
@@ -209,7 +210,10 @@ class MaxRecursion(Builtin):
      =  0.00972222
     """
 
-    summary_text = "function option specifying the maximum number of recursive subdivisions the function can perform"
+    summary_text = (
+        "function option specifying the maximum number of recursive "
+        "subdivisions the function can perform"
+    )
 
 
 class Mesh(Builtin):
@@ -218,7 +222,8 @@ class Mesh(Builtin):
 
     <dl>
        <dt>'Mesh'
-      <dd>is a charting option, such as for 'Plot', 'BarChart', 'PieChart', etc. that specifies the mesh to be drawn. The default is 'Mesh->None'.
+      <dd>is a charting option, such as for 'Plot', 'BarChart', 'PieChart', etc. that \
+          specifies the mesh to be drawn. The default is 'Mesh->None'.
      </dl>
 
     >> Plot[Sin[Cos[x^2]],{x,-4,4},Mesh->All]
