@@ -123,7 +123,7 @@ test_result_map = {}
 
 
 def _replace_all(text, pairs):
-    for (i, j) in pairs:
+    for i, j in pairs:
         text = text.replace(i, j)
     return text
 
@@ -367,6 +367,7 @@ class Documentation:
         operator,
         is_guide: bool = False,
         in_guide: bool = False,
+        summary_text="",
     ):
         """
         Adds a DocSection or DocGuideSection
@@ -397,6 +398,7 @@ class Documentation:
                 operator=operator,
                 installed=installed,
                 in_guide=in_guide,
+                summary_text=summary_text,
             )
             chapter.sections.append(section)
 
@@ -556,6 +558,9 @@ class Documentation:
                 not hasattr(instance, "no_doc") or not instance.no_doc
             ):
                 name = instance.get_name(short=True)
+                summary_text = (
+                    instance.summary_text if hasattr(instance, "summary_text") else ""
+                )
                 self.add_section(
                     chapter,
                     name,
@@ -563,6 +568,7 @@ class Documentation:
                     instance.get_operator(),
                     is_guide=False,
                     in_guide=False,
+                    summary_text=summary_text,
                 )
                 modules_seen.add(instance)
 
@@ -779,7 +785,6 @@ class DocSection:
         in_guide=False,
         summary_text="",
     ):
-
         self.chapter = chapter
         self.in_guide = in_guide
         self.installed = installed
