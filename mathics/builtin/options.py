@@ -39,7 +39,8 @@ class All(Predefined):
     For example, in <url>
     :Part:
     /doc/reference-of-built-in-symbols/list-functions/elements-of-lists/part</url>, \
-    'All', extracts into a first column vector the first element of each of the list elements:
+    'All', extracts into a first column vector the first element of each of the \
+    list elements:
 
     >> {{1, 3}, {5, 7}}[[All, 1]]
      = {1, 5}
@@ -47,7 +48,8 @@ class All(Predefined):
     While in <url>
     :Take:
     /doc/reference-of-built-in-symbols/list-functions/elements-of-lists/part</url>, \
-    'All' extracts as a column matrix the first element as a list for each of the list elements:
+    'All' extracts as a column matrix the first element as a list for each of the list \
+    elements:
 
     >> Take[{{1, 3}, {5, 7}}, All, {1}]
      = {{1}, {5}}
@@ -169,21 +171,21 @@ class FilterRules(Builtin):
 
 class None_(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/None.html</url>
+        <url>:WMA link:https://reference.wolfram.com/language/ref/None.html</url>
 
-    <dl>
-      <dt>'None'
-      <dd>is a setting value for many options.
-    </dl>
+        <dl>
+          <dt>'None'
+          <dd>is a setting value for many options.
+        </dl>
 
-    Plot3D shows the mesh grid between computed points by default. This the <url>
-    :Mesh:
-    /doc/reference-of-built-in-symbols/drawing-option-and-values/mesh</url> option.
+        Plot3D shows the mesh grid between computed points by default. This the <url>
+        :Mesh:
+    /doc/reference-of-built-in-symbols/drawing-options-and-option-values/mesh</url> option.
 
-    However, you hide the mesh by setting the 'Mesh' option value to 'None':
+        However, you hide the mesh by setting the 'Mesh' option value to 'None':
 
-    >> Plot3D[{x^2 + y^2, -x^2 - y^2}, {x, -2, 2}, {y, -2, 2}, BoxRatios-> Automatic, Mesh->None]
-     = -Graphics3D-
+        >> Plot3D[{x^2 + y^2, -x^2 - y^2}, {x, -2, 2}, {y, -2, 2}, BoxRatios-> Automatic, Mesh->None]
+         = -Graphics3D-
     """
 
     name = "None"

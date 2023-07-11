@@ -420,7 +420,7 @@ class Style(Builtin):
     </dl>
     """
 
-    summary_text = "wrapper specifying styles and style options to apply"
+    summary_text = "wrapper for styles and style options to apply"
     options = {"ImageSizeMultipliers": "Automatic"}
 
     rules = {

@@ -238,7 +238,6 @@ class Builtin:
 
     name: Optional[str] = None
     context: str = ""
-    abstract: bool = False
     attributes: int = A_PROTECTED
     is_numeric: bool = False
     rules: Dict[str, Any] = {}

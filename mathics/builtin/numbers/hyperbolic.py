@@ -262,7 +262,7 @@ class ComplexExpand(SympyFunction):
           <dt>'ComplexExpand[$expr$]'
           <dd>expands $expr$ assuming that all variables are real.
 
-          <dt>'ComplexExpand[$expr$,{$x1$,$x2$, ...}]
+          <dt>'ComplexExpand[$expr$,{$x1$,$x2$, ...}]'
           <dd>expands $expr$ assuming that variables matching any of the $xi$ are complex.
         </dl>
 

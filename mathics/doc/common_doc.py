@@ -123,7 +123,7 @@ test_result_map = {}
 
 
 def _replace_all(text, pairs):
-    for (i, j) in pairs:
+    for i, j in pairs:
         text = text.replace(i, j)
     return text
 
@@ -367,6 +367,7 @@ class Documentation:
         operator,
         is_guide: bool = False,
         in_guide: bool = False,
+        summary_text="",
     ):
         """
         Adds a DocSection or DocGuideSection
@@ -397,6 +398,7 @@ class Documentation:
                 operator=operator,
                 installed=installed,
                 in_guide=in_guide,
+                summary_text=summary_text,
             )
             chapter.sections.append(section)
 
@@ -456,6 +458,7 @@ class Documentation:
 
         builtin_part = self.doc_part_fn(self, title, is_reference=start)
         modules_seen = set([])
+        submodule_names_seen = set([])
 
         want_sorting = True
         if want_sorting:
@@ -504,6 +507,8 @@ class Documentation:
                         continue
 
                     submodule_name = get_doc_name_from_module(submodule)
+                    if submodule_name in submodule_names_seen:
+                        continue
                     section = self.add_section(
                         chapter,
                         submodule_name,
@@ -513,6 +518,7 @@ class Documentation:
                         in_guide=True,
                     )
                     modules_seen.add(submodule)
+                    submodule_names_seen.add(submodule_name)
                     guide_section.subsections.append(section)
 
                     builtins = builtins_by_module.get(submodule.__name__, [])
@@ -521,13 +527,17 @@ class Documentation:
                         if hasattr(instance, "no_doc") and instance.no_doc:
                             continue
 
-                        modules_seen.add(instance)
                         name = instance.get_name(short=True)
+                        if name in submodule_names_seen:
+                            continue
+
+                        submodule_names_seen.add(name)
+                        modules_seen.add(instance)
 
                         self.add_subsection(
                             chapter,
                             section,
-                            instance.get_name(short=True),
+                            name,
                             instance,
                             instance.get_operator(),
                             in_guide=True,
@@ -548,6 +558,9 @@ class Documentation:
                 not hasattr(instance, "no_doc") or not instance.no_doc
             ):
                 name = instance.get_name(short=True)
+                summary_text = (
+                    instance.summary_text if hasattr(instance, "summary_text") else ""
+                )
                 self.add_section(
                     chapter,
                     name,
@@ -555,6 +568,7 @@ class Documentation:
                     instance.get_operator(),
                     is_guide=False,
                     in_guide=False,
+                    summary_text=summary_text,
                 )
                 modules_seen.add(instance)
 
@@ -771,7 +785,6 @@ class DocSection:
         in_guide=False,
         summary_text="",
     ):
-
         self.chapter = chapter
         self.in_guide = in_guide
         self.installed = installed

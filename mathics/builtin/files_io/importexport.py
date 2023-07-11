@@ -10,16 +10,12 @@ contains a list of file formats that are supported by <url>
 :Export:
 /doc/reference-of-built-in-symbols/importing-and-exporting/export</url>, \
 while <url>
-:$InputFormats:
-/doc/reference-of-built-in-symbols/importing-and-exporting/$inputformats</url> \
+:$ImportFormats:
+/doc/reference-of-built-in-symbols/importing-and-exporting/$importformats</url> \
 does the corresponding thing for <url>
 :Import:
 /doc/reference-of-built-in-symbols/importing-and-exporting/import</url>.
 """
-
-# This tells documentation how to sort this module
-# Here we are also hiding "file_io" since this can erroneously appear at the top level.
-sort_order = "mathics.builtin.importing-and-exporting"
 
 import base64
 import mimetypes
@@ -46,6 +42,10 @@ from mathics.core.systemsymbols import (
     SymbolRule,
     SymbolToString,
 )
+
+# This tells documentation how to sort this module
+# Here we are also hiding "file_io" since this can erroneously appear at the top level.
+sort_order = "mathics.builtin.importing-and-exporting"
 
 mimetypes.add_type("application/vnd.wolfram.mathematica.package", ".m")
 
@@ -947,46 +947,6 @@ def _importer_exporter_options(
     return stream_options, custom_options
 
 
-class ImportFormats(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$ImportFormats.html</url>
-
-    <dl>
-    <dt>'$ImportFormats'
-        <dd>returns a list of file formats supported by Import.
-    </dl>
-
-    >> $ImportFormats
-     = {...CSV,...JSON,...Text...}
-    """
-
-    name = "$ImportFormats"
-    summary_text = "list supported import formats"
-
-    def evaluate(self, evaluation: Evaluation):
-        return to_mathics_list(*sorted(IMPORTERS.keys()), elements_conversion_fn=String)
-
-
-class ExportFormats(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$ExportFormats.html</url>
-
-    <dl>
-      <dt>'$ExportFormats'
-      <dd>returns a list of file formats supported by Export.
-    </dl>
-
-    >> $ExportFormats
-     = {...CSV,...SVG,...Text...}
-    """
-
-    name = "$ExportFormats"
-    summary_text = "list supported export formats"
-
-    def evaluate(self, evaluation: Evaluation):
-        return to_mathics_list(*sorted(EXPORTERS.keys()), elements_conversion_fn=String)
-
-
 class ConverterDumpsExtensionMappings(Predefined):
     """
     ## <url>:internal native symbol:</url>
@@ -1035,6 +995,46 @@ class ConverterDumpsFormatMappings(Predefined):
 
     def evaluate(self, evaluation: Evaluation):
         return from_python(FORMATMAPPINGS)
+
+
+class ExportFormats(Predefined):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$ExportFormats.html</url>
+
+    <dl>
+      <dt>'$ExportFormats'
+      <dd>returns a list of file formats supported by Export.
+    </dl>
+
+    >> $ExportFormats
+     = {...CSV,...SVG,...Text...}
+    """
+
+    name = "$ExportFormats"
+    summary_text = "list supported export formats"
+
+    def evaluate(self, evaluation: Evaluation):
+        return to_mathics_list(*sorted(EXPORTERS.keys()), elements_conversion_fn=String)
+
+
+class ImportFormats(Predefined):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$ImportFormats.html</url>
+
+    <dl>
+      <dt>'$ImportFormats'
+      <dd>returns a list of file formats supported by Import.
+    </dl>
+
+    >> $ImportFormats
+     = {...CSV,...JSON,...Text...}
+    """
+
+    name = "$ImportFormats"
+    summary_text = "list supported import formats"
+
+    def evaluate(self, evaluation: Evaluation):
+        return to_mathics_list(*sorted(IMPORTERS.keys()), elements_conversion_fn=String)
 
 
 class RegisterImport(Builtin):
@@ -1183,7 +1183,8 @@ class RegisterExport(Builtin):
 
     <dl>
       <dt>'RegisterExport["$format$", $func$]'
-      <dd>register '$func$' as the default function used when exporting from a file of type '"$format$"'.
+      <dd>register '$func$' as the default function used when exporting from a file of \
+          type '"$format$"'.
     </dl>
 
     Simple text exporter
@@ -1198,7 +1199,7 @@ class RegisterExport(Builtin):
 
     #> DeleteFile["sample.txt"]
 
-    Very basic encrypted text exporter
+    Very basic encrypted text exporter:
     >> ExampleExporter2[filename_, data_, opts___] := Module[{strm = OpenWrite[filename], char}, (* TODO: Check data *) char = FromCharacterCode[Mod[ToCharacterCode[data] - 84, 26] + 97]; WriteString[strm, char]; Close[strm]]
 
     >> ImportExport`RegisterExport["ExampleFormat2", ExampleExporter2]
