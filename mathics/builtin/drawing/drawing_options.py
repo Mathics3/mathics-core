@@ -18,7 +18,7 @@ option values are described here.
 from mathics.builtin.base import Builtin
 
 # This tells documentation how to sort this module
-sort_order = "mathics.builtin.drawing-options-and-option-values"
+sort_order = "mathics.builtin.graphing-and-drawing.drawing-options-and-option-values"
 
 
 class Automatic(Builtin):
