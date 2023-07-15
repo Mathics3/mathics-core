@@ -5,9 +5,6 @@
 Drawing Graphics
 """
 
-# This following line tells documentation how to sort this module
-sort_order = "mathics.builtin.drawing-graphics"
-
 from math import sqrt
 
 from mathics.builtin.base import Builtin
@@ -51,6 +48,9 @@ from mathics.core.systemsymbols import (
     SymbolRule,
 )
 from mathics.eval.nevaluator import eval_N
+
+# This following line tells documentation how to sort this module
+sort_order = "mathics.builtin.drawing-graphics"
 
 GRAPHICS_OPTIONS = {
     "AspectRatio": "Automatic",
@@ -431,7 +431,7 @@ class AbsoluteThickness(_Thickness):
      = -Graphics-
     """
 
-    summary_text = "graphics directive be specifying absolute line thickness"
+    summary_text = "graphics directive for the absolute line thickness"
 
     def get_thickness(self):
         return self.graphics.translate_absolute((self.value, 0))[0]
@@ -485,7 +485,7 @@ class PointSize(_Size):
     = {-Graphics3D-, -Graphics3D-, -Graphics3D-}
     """
 
-    summary_text = "graphics directive specifying relative sizes of points"
+    summary_text = "graphics directive for relative sizes of points"
 
     def get_absolute_size(self):
         if self.graphics.view_width is None:
@@ -592,7 +592,8 @@ class Polygon(Builtin):
 
     Notice that there is a line connecting from the last point to the first one.
 
-    A point is an element of the polygon if a ray from the point in any direction in the plane crosses the boundary line segments an odd number of times.
+    A point is an element of the polygon if a ray from the point in any direction in \
+    the plane crosses the boundary line segments an odd number of times.
     >> Graphics[Polygon[{{150,0},{121,90},{198,35},{102,35},{179,90}}]]
     = -Graphics-
 
@@ -600,7 +601,7 @@ class Polygon(Builtin):
     = -Graphics3D-
     """
 
-    summary_text = "a polygon in 2D or 3D"
+    summary_text = "graphics primitive for a polygon in 2D or 3D"
 
 
 class RegularPolygon(Builtin):
@@ -628,7 +629,7 @@ class RegularPolygon(Builtin):
     = -Graphics-
     """
 
-    summary_text = "a regular polygon in 2D"
+    summary_text = "graphics primitve for a regular polygon in 2D"
 
 
 class Arrow(Builtin):
@@ -645,10 +646,12 @@ class Arrow(Builtin):
       <dd>represents a line with arrow that keeps a distance of $s$ from $p1$ and $p2$.
 
       <dt>'Arrow[{$point_1$, $point_2$}, {$s1$, $s2$}]'
-      <dd>represents a line with arrow that keeps a distance of $s1$ from $p1$ and a distance of $s2$ from $p2$.
+      <dd>represents a line with arrow that keeps a distance of $s1$ from $p1$ and a \
+          distance of $s2$ from $p2$.
 
       <dt>'Arrow[{$point_1$, $point_2$}, {$s1$, $s2$}]'
-      <dd>represents a line with arrow that keeps a distance of $s1$ from $p1$ and a distance of $s2$ from $p2$.
+      <dd>represents a line with arrow that keeps a distance of $s1$ from $p1$ and a \
+          distance of $s2$ from $p2$.
     </dl>
 
     >> Graphics[Arrow[{{0,0}, {1,1}}]]
@@ -668,7 +671,7 @@ class Arrow(Builtin):
      = {-Graphics-, -Graphics-, -Graphics-, -Graphics-, -Graphics-}
     """
 
-    summary_text = "graphics primitive to specify arbitrary graphical arrows"
+    summary_text = "graphics primitive for arbitrary graphical arrows"
 
 
 class Arrowheads(_GraphicsDirective):
@@ -680,19 +683,24 @@ class Arrowheads(_GraphicsDirective):
 
     <dl>
       <dt>'Arrowheads[$s$]'
-      <dd>specifies that Arrow[] draws one arrow of size $s$ (relative to width of image, defaults to 0.04).
+      <dd>specifies that Arrow[] draws one arrow of size $s$ (relative to width of \
+          image, defaults to 0.04).
 
       <dt>'Arrowheads[{$spec1$, $spec2$, ..., $specn$}]'
-      <dd>specifies that Arrow[] draws n arrows as defined by $spec1$, $spec2$, ... $specn$.
+      <dd>specifies that Arrow[] draws n arrows as defined by $spec1$, $spec2$, \
+          ... $specn$.
 
       <dt>'Arrowheads[{{$s$}}]'
       <dd>specifies that one arrow of size $s$ should be drawn.
 
       <dt>'Arrowheads[{{$s$, $pos$}}]'
-      <dd>specifies that one arrow of size $s$ should be drawn at position $pos$ (for the arrow to be on the line, $pos$ has to be between 0, i.e. the start for the line, and 1, i.e. the end of the line).
+      <dd>specifies that one arrow of size $s$ should be drawn at position $pos$ (for \
+          the arrow to be on the line, $pos$ has to be between 0, i.e. the start for \
+          the line, and 1, i.e. the end of the line).
 
       <dt>'Arrowheads[{{$s$, $pos$, $g$}}]'
-      <dd>specifies that one arrow of size $s$ should be drawn at position $pos$ using Graphics $g$.
+      <dd>specifies that one arrow of size $s$ should be drawn at position $pos$ \
+          using Graphics $g$.
     </dl>
 
     Arrows on both ends can be achieved using negative sizes:
@@ -711,9 +719,7 @@ class Arrowheads(_GraphicsDirective):
 
     default_size = 0.04
 
-    summary_text = (
-        "graphics directive specifying the form and placement of an arrowhead"
-    )
+    summary_text = "graphics directive for the form and placement of an arrowhead"
 
     symbolic_sizes = {
         "System`Tiny": 3,
@@ -1232,7 +1238,7 @@ class Circle(Builtin):
     """
 
     rules = {"Circle[]": "Circle[{0, 0}]"}
-    summary_text = "empty circle, ellipse, or arc graphics primitive"
+    summary_text = "graphics primitive for an empty circle, ellipse, or arc"
 
 
 class Disk(Builtin):
@@ -1493,7 +1499,7 @@ class Thickness(_Thickness):
      = -Graphics-
     """
 
-    summary_text = "graphics directive to specify line thicknesses"
+    summary_text = "graphics directive for line thicknesses"
 
     def get_thickness(self):
         return self.graphics.translate_relative(self.value)

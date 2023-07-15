@@ -15,11 +15,14 @@ exact values and simplification rules are not implemented yet.
 from typing import Optional
 
 from mathics.builtin.arithmetic import _MPMathFunction
-from mathics.builtin.base import Builtin
+from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.atoms import IntegerM1
 from mathics.core.convert.sympy import SympyExpression
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolPower
+from mathics.eval.hyperbolic import eval_ComplexExpand
 
 SymbolArcCosh = Symbol("ArcCosh")
 SymbolArcSinh = Symbol("ArcSinh")
@@ -246,9 +249,71 @@ class ArcTanh(_MPMathFunction):
     sympy_name = "atanh"
 
 
+class ComplexExpand(SympyFunction):
+    """
+        (<url>
+        :SymPy:
+        https://docs.sympy.org/latest/
+    modules/core.html#sympy.core.expr.Expr.expand</url>, <url>:WMA:
+        https://reference.wolfram.com/language/ref/ComplexExpand.html
+        </url>)
+
+        <dl>
+          <dt>'ComplexExpand[$expr$]'
+          <dd>expands $expr$ assuming that all variables are real.
+
+          <dt>'ComplexExpand[$expr$,{$x1$,$x2$, ...}]'
+          <dd>expands $expr$ assuming that variables matching any of the $xi$ are complex.
+        </dl>
+
+        Note: we get equivalent, but different results from WMA:
+
+        >> ComplexExpand[3^(I x)]
+         = 3 ^ (-Im[x]) Re[3 ^ (I Re[x])] + I Im[3 ^ (I Re[x])] 3 ^ (-Im[x])
+
+        Assume that both $x$ and $y$ and are real:
+        >> ComplexExpand[Sin[x + I y]]
+         = Cosh[y] Sin[x] + I Cos[x] Sinh[y]
+
+        Take $x$ to be complex:
+
+        >> ComplexExpand[Sin[x], x]
+         = Cosh[Im[x]] Sin[Re[x]] + I Cos[Re[x]] Sinh[Im[x]]
+
+        Polynomials:
+        >> ComplexExpand[Re[z^5 - 2 z^3 - z + 1], z]
+         = 1 + Re[z] ^ 5 - 2 Re[z] ^ 3 - Re[z] - 10 Im[z] ^ 2 Re[z] ^ 3 + 5 Im[z] ^ 4 Re[z] + 6 Im[z] ^ 2 Re[z]
+
+        Trigonometric and hyperbolic functions
+        >> ComplexExpand[Cos[x + I y] + Tanh[z], {z}]
+         = Cos[x] Cosh[y] - I Sin[x] Sinh[y] + Cosh[Re[z]] Sinh[Re[z]] / (Cos[Im[z]] ^ 2 + Sinh[Re[z]] ^ 2) + I Cos[Im[z]] Sin[Im[z]] / (Cos[Im[z]] ^ 2 + Sinh[Re[z]] ^ 2)
+
+        Exponential and logarithmic functions:
+        >> ComplexExpand[Abs[2^z Log[2 z]], z]
+         = Abs[I Arg[Re[z] + I Im[z]] + Log[4 Im[z] ^ 2 + 4 Re[z] ^ 2] / 2] 2 ^ Re[z]
+
+        Specify that variable $z$ is taken to be complex:
+        >> ComplexExpand[Re[2 z^3 - z + 1], z]
+         = 1 - Re[z] + 2 Re[z] ^ 3 - 6 Im[z] ^ 2 Re[z]
+    """
+
+    summary_text = "expand a complex expression of real variables"
+    sympy_name = "expand"
+
+    def eval(self, expr, evaluation: Evaluation):
+        "ComplexExpand[expr_]"
+        return eval_ComplexExpand(expr, ListExpression())
+
+    def eval_with_complex_vars(self, expr, vars, evaluation: Evaluation):
+        "ComplexExpand[expr_, vars__]"
+        return eval_ComplexExpand(expr, vars)
+
+
 class Cosh(_MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Cosh.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Cosh.html</url>
 
     <dl>
       <dt>'Cosh[$z$]'

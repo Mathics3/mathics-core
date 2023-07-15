@@ -12,7 +12,6 @@ In particular we provide:
 import os.path as osp
 from typing import Optional
 
-import mathics.settings
 from mathics.core.definitions import Definitions, autoload_files
 from mathics.core.evaluation import Evaluation
 from mathics.core.parser import MathicsSingleLineFeeder, parse
@@ -35,7 +34,9 @@ def load_default_settings_files(
 
 
 def get_settings_value(definitions: Definitions, setting_name: str):
-    """Get a Mathics Settings` value with name "setting_name" from definitions. If setting_name is not defined return None"""
+    """Get a Mathics Settings` value with name "setting_name" from
+    definitions. If setting_name is not defined return None.
+    """
     settings_value = definitions.get_ownvalue(setting_name)
     if settings_value is None:
         return None

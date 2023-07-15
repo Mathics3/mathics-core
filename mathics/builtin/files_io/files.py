@@ -6,7 +6,6 @@ File and Stream Operations
 """
 
 import io
-import os
 import os.path as osp
 import tempfile
 from io import BytesIO
@@ -48,14 +47,10 @@ from mathics.core.systemsymbols import (
     SymbolOutputForm,
     SymbolReal,
 )
+from mathics.eval.directories import TMP_DIR
 from mathics.eval.makeboxes import do_format, format_element
 
-INITIAL_DIR = os.getcwd()
-DIRECTORY_STACK = [INITIAL_DIR]
-
 INPUT_VAR = ""
-
-TMP_DIR = tempfile.gettempdir()
 
 SymbolInputStream = Symbol("InputStream")
 SymbolOutputStream = Symbol("OutputStream")

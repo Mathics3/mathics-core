@@ -72,9 +72,14 @@ def get_precision(
     value: BaseElement, evaluation, show_messages: bool = True
 ) -> Optional[float]:
     """
-    Returns the ``float`` in the interval     [``$MinPrecision``, ``$MaxPrecision``] closest to ``value``.
-    If ``value`` does not belongs to that interval, and ``show_messages`` is True, a Message warning is shown.
+    Returns the ``float`` in the interval [``$MinPrecision``, ``$MaxPrecision``] closest
+    to ``value``.
+
+    If ``value`` does not belongs to that interval, and
+    ``show_messages`` is True, a Message warning is shown.
+
     If ``value`` fails to be evaluated as a number, returns None.
+
     """
     if value is SymbolMachinePrecision:
         return None

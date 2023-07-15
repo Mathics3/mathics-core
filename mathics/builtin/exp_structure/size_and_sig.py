@@ -50,7 +50,7 @@ class ByteCount(Builtin):
     The results may heavily depend on the Python implementation in use.
     """
 
-    summary_text = "amount of memory used by expr, in bytes"
+    summary_text = "get the amount of memory used by expr, in bytes"
 
     def eval(self, expression, evaluation: Evaluation):
         "ByteCount[expression_]"
@@ -71,7 +71,8 @@ class Hash(Builtin):
 
       <dt>'Hash[$expr$, $type$]'
       <dd>returns an integer hash of the specified $type$ for the given $expr$.
-      <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", "SHA256", "SHA384", and "SHA512".
+      <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", \
+          "SHA256", "SHA384", and "SHA512".
 
       <dt>'Hash[$expr$, $type$, $format$]'
       <dd>Returns the hash in the specified format.
@@ -180,7 +181,7 @@ class LeafCount(Builtin):
     messages = {
         "argx": "LeafCount called with `1` arguments; 1 argument is expected.",
     }
-    summary_text = "the total number of atomic subexpressions"
+    summary_text = "get the total number of atomic subexpressions"
 
     def eval(self, expr, evaluation: Evaluation):
         "LeafCount[expr___]"

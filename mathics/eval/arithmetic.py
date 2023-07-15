@@ -1045,6 +1045,6 @@ def to_inexact_value(expr: BaseElement) -> BaseElement:
 
     if isinstance(expr, Expression):
         for const, value in NUMERICAL_CONSTANTS.items():
-            expr, success = expr.do_apply_rule(Rule(const, value))
+            expr, _ = expr.do_apply_rule(Rule(const, value))
 
     return eval_multiply_numbers(RealOne, expr)

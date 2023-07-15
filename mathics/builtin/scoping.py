@@ -3,6 +3,7 @@
 Scoping Constructs
 """
 
+from mathics_scanner import is_symbol_name
 
 from mathics.builtin.base import Builtin, Predefined
 from mathics.core.assignment import get_symbol_list
@@ -617,8 +618,6 @@ class Unique(Predefined):
 
     def eval_symbol(self, vars, attributes, evaluation: Evaluation):
         "Unique[vars_, attributes___]"
-
-        from mathics.core.parser import is_symbol_name
 
         attributes = attributes.get_sequence()
         if len(attributes) > 1:

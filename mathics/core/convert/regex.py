@@ -3,10 +3,9 @@ Convert expressions to Python regular expressions
 """
 import re
 from binascii import hexlify
-from typing import Optional, Tuple
+from typing import Callable, Optional, Tuple
 
 from mathics.core.atoms import String
-from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
@@ -60,10 +59,10 @@ def _encode_pname(name):
 
 def to_regex(
     expr: Expression,
-    evaluation: Evaluation,
     q=_regex_longest,
     groups=None,
     abbreviated_patterns=False,
+    show_message: Optional[Callable] = None,
 ) -> Optional[str]:
     """
     Convert an expression into a Python regular expression and return that.
@@ -75,7 +74,7 @@ def to_regex(
     if groups is None:
         groups = {}
 
-    result = to_regex_internal(expr, evaluation, q, groups, abbreviated_patterns)
+    result = to_regex_internal(expr, q, groups, abbreviated_patterns, show_message)
     if result is None:
         return None
 
@@ -86,10 +85,10 @@ def to_regex(
 # re global flag like ?u or ?i.
 def to_regex_internal(
     expr: Expression,
-    evaluation: Evaluation,
     q,
     groups,
     abbreviated_patterns,
+    show_message: Optional[Callable] = None,
 ) -> Optional[str]:
     """
     Internal recursive routine to for to_regex_internal.
@@ -104,10 +103,10 @@ def to_regex_internal(
         """
         return to_regex_internal(
             expr=x,
-            evaluation=evaluation,
             q=quantifiers,
             groups=groups,
             abbreviated_patterns=abbreviated_patterns,
+            show_message=show_message,
         )
 
     if isinstance(expr, String):
@@ -213,8 +212,8 @@ def to_regex_internal(
         if patt is not None:
             if expr.elements[1].has_form("Blank", 0):
                 pass  # ok, no warnings
-            elif not expr.elements[1].sameQ(patt):
-                evaluation.message(
+            elif not expr.elements[1].sameQ(patt) and show_message:
+                show_message(
                     "StringExpression", "cond", expr.elements[0], expr, expr.elements[0]
                 )
             return "(?P=%s)" % _encode_pname(name)

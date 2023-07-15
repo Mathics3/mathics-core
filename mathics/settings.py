@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+Mathics3 global system settings.
+
+Some of the values can be adjusted via Environment Variables.
+"""
 import os
 import os.path as osp
 import sys
@@ -15,13 +20,29 @@ def get_srcdir():
 DEBUG = True
 
 DEBUG_PRINT = False
+
+# Maximum recursion depth is safe for all Python environments
+# without setting a custom thread stack size.
+DEFAULT_MAX_RECURSION_DEPTH = 512
+
+# Maximum number of digits allows in a string representation of a string number.
+# We picked this to be able to handle 1989 ^ 1989.
+DEFAULT_MAX_STR_DIGITS = 7000
+str_digits: str = os.environ.get("MATHICS_MAX_STR_DIGITS", str(DEFAULT_MAX_STR_DIGITS))
+MAX_STR_DIGITS = (
+    int(DEFAULT_MAX_STR_DIGITS) if str_digits.isnumeric() else DEFAULT_MAX_STR_DIGITS
+)
+
+# Let Python know what value of MAX_STR_DIGITS to use.
+if hasattr(sys, "set_int_max_str_digits"):
+    # pyston 2.3.5
+    sys.set_int_max_str_digits(MAX_STR_DIGITS)
+else:
+    MAX_STR_DIGITS = -1
+
 # Either None (no timeout) or a positive integer.
 # Unix only
 TIMEOUT = None
-
-# specifies a maximum recursion depth is safe for all Python environments
-# without setting a custom thread stack size.
-DEFAULT_MAX_RECURSION_DEPTH = 512
 
 # max pickle.dumps() size for storing results in DB
 # historically 10000 was used on public mathics servers
@@ -86,8 +107,10 @@ def get_doctest_latex_data_path(should_be_readable=False, create_parent=False) -
     """Returns a string path where we can find Python Pickle doctest data for LaTeX
     processing.
 
-    If `should_be_readable` is True, the we will check to see whether this file is
-    readable (which also means it exists). If not, we'll return the `DOCTEST_SYSTEM_DATA_PATH`.
+    If `should_be_readable` is True, the we will check to see whether
+    this file is readable (which also means it exists). If not, we'll
+    return the `DOCTEST_SYSTEM_DATA_PATH`.
+
     """
     doc_user_latex_data_pcl = Path(DOCTEST_LATEX_DATA_PCL)
     base_config_dir = doc_user_latex_data_pcl.parent

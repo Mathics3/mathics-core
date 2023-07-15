@@ -226,6 +226,7 @@ System`CompiledCodeBox
 System`CompiledFunction
 System`Complement
 System`Complex
+System`ComplexExpand
 System`ComplexInfinity
 System`Complexes
 System`CompositeQ

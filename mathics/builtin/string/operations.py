@@ -558,7 +558,7 @@ class StringPosition(Builtin):
             patts = [patt]
         re_patts = []
         for p in patts:
-            py_p = to_regex(p, evaluation)
+            py_p = to_regex(p, show_message=evaluation.message)
             if py_p is None:
                 evaluation.message("StringExpression", "invld", p, patt)
                 return
@@ -972,7 +972,7 @@ class StringSplit(Builtin):
             patts = [patt]
         re_patts = []
         for p in patts:
-            py_p = to_regex(p, evaluation)
+            py_p = to_regex(p, show_message=evaluation.message)
             if py_p is None:
                 evaluation.message("StringExpression", "invld", p, patt)
                 return
@@ -1142,7 +1142,7 @@ class StringTrim(Builtin):
         if not text:
             return s
 
-        py_patt = to_regex(patt, evaluation)
+        py_patt = to_regex(patt, show_message=evaluation.message)
         if py_patt is None:
             evaluation.message("StringExpression", "invld", patt, expression)
             return

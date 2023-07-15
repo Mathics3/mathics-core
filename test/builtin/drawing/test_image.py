@@ -9,6 +9,7 @@ from test.helper import evaluate
 
 import pytest
 
+from mathics.builtin.base import check_requires_list
 from mathics.core.symbols import SymbolNull
 
 # Note we test with tif, jpg, and gif. Add others?
@@ -50,10 +51,10 @@ image_tests = [
 ]
 
 
-# @pytest.mark.skipif(
-#     not check_requires_list(["skimage"]),
-#     reason="scikit-image (AKA skimage) is needed for working with Images",
-# )
+@pytest.mark.skipif(
+    not check_requires_list(["skimage"]),
+    reason="Test doesn't work in a when scikit-image is not installed",
+)
 @pytest.mark.skipif(
     os.getenv("SANDBOX", False),
     reason="Test doesn't work in a sandboxed environment with access to local files",

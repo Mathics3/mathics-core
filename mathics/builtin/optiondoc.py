@@ -3,12 +3,10 @@
 """
 Drawing Options and Option Values
 
-The various common Plot and Graphics options, along with the meaning of specific option values are described here.
+The various common Plot and Graphics options, along with the meaning of specific \
+option values are described here.
 
 """
-
-# This tells documentation how to sort this module
-sort_order = "mathics.builtin.drawing-options-and-option-values"
 
 # Until we have a better documentation system in place, we define classes for
 # options. They are Builtins, even though they largely aren't.
@@ -18,6 +16,9 @@ sort_order = "mathics.builtin.drawing-options-and-option-values"
 
 
 from mathics.builtin.base import Builtin
+
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.drawing-options-and-option-values"
 
 
 class Automatic(Builtin):
@@ -99,14 +100,15 @@ class ChartLabels(Builtin):
 
     <dl>
       <dt>'ChartLabels'
-      <dd>is a charting option that specifies what labels should be used for chart elements.
+      <dd>is a charting option that specifies what labels should be used for chart \
+          elements.
     </dl>
 
     >> PieChart[{30, 20, 10}, ChartLabels -> {Dogs, Cats, Fish}]
      = -Graphics-
     """
 
-    summary_text = "charting option specifying whether to label chart"
+    summary_text = "charting option for whether to label chart"
 
 
 class ChartLegends(Builtin):
@@ -115,11 +117,12 @@ class ChartLegends(Builtin):
 
     <dl>
       <dt>'ChartLegends'
-      <dd>is an option for charting functions that specifies the legends to be used for chart elements.
+      <dd>is an option for charting functions that specifies the legends to be used \
+          for chart elements.
     </dl>
     """
 
-    summary_text = "chart option giving legends to a chart"
+    summary_text = "chart option for giving legends to a chart"
 
 
 class Filling(Builtin):
@@ -173,7 +176,7 @@ class ImageSize(Builtin):
      = -Graphics-
     """
 
-    summary_text = "image option specifying the size of the final picture"
+    summary_text = "image option for the size of the final picture"
 
 
 class Joined(Builtin):
@@ -200,7 +203,8 @@ class MaxRecursion(Builtin):
 
     <dl>
       <dt>'MaxRecursion'
-      <dd>is an option for functions like NIntegrate and Plot that specifies how many recursive subdivisions can be made.
+      <dd>is an option for functions like NIntegrate and Plot that specifies how many \
+          recursive subdivisions can be made.
     </dl>
 
     >> NIntegrate[Exp[-10^8 x^2], {x, -1, 1}, Method->"Internal", MaxRecursion -> 3]
@@ -209,7 +213,10 @@ class MaxRecursion(Builtin):
      =  0.00972222
     """
 
-    summary_text = "function option specifying the maximum number of recursive subdivisions the function can perform"
+    summary_text = (
+        "function option for the maximum number of recursive "
+        "subdivisions the function can perform"
+    )
 
 
 class Mesh(Builtin):
@@ -218,7 +225,8 @@ class Mesh(Builtin):
 
     <dl>
        <dt>'Mesh'
-      <dd>is a charting option, such as for 'Plot', 'BarChart', 'PieChart', etc. that specifies the mesh to be drawn. The default is 'Mesh->None'.
+      <dd>is a charting option, such as for 'Plot', 'BarChart', 'PieChart', etc. that \
+          specifies the mesh to be drawn. The default is 'Mesh->None'.
      </dl>
 
     >> Plot[Sin[Cos[x^2]],{x,-4,4},Mesh->All]
@@ -293,7 +301,8 @@ class TicksStyle(Builtin):
 
     <dl>
       <dt>'TicksStyle'
-      <dd>is an option for graphics functions which specifies how ticks should be rendered.
+      <dd>is an option for graphics functions which specifies how ticks should be \
+          rendered.
     </dl>
 
     <ul>
@@ -306,7 +315,7 @@ class TicksStyle(Builtin):
      = -Graphics-
     """
 
-    summary_text = "graph option specifying the format of tick marks on axes"
+    summary_text = "graph option for the format of tick marks on axes"
 
 
 class Top(Builtin):

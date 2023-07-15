@@ -28,7 +28,10 @@ def test_system_info():
             "$TemporaryDirectory",
             "$UserName",
             "MachinePrecision",
+            "MaximumDigitsInString",
             "MemoryAvailable[]",
+            "SystemCharacterEncoding",
+            "Time12Hour",
         ]
     )
     assert set(info.keys()) == expected_keys
