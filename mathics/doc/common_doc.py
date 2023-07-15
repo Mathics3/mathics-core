@@ -31,10 +31,13 @@ from os import getenv, listdir
 from types import ModuleType
 from typing import Callable
 
-from mathics import builtin, settings
+from mathics import settings
 from mathics.builtin.base import check_requires_list
 from mathics.core.evaluation import Message, Print
-from mathics.core.load_builtin import builtins_by_module as global_builtins_by_module
+from mathics.core.load_builtin import (
+    builtins_by_module as global_builtins_by_module,
+    modules as mathics3_builtin_modules,
+)
 from mathics.core.util import IS_PYPY
 from mathics.doc.utils import slugify
 from mathics.eval.pymathics import pymathics_builtins_by_module, pymathics_modules
@@ -635,7 +638,7 @@ class Documentation:
         for title, modules, builtins_by_module, start in [
             (
                 "Reference of Built-in Symbols",
-                builtin.modules,
+                mathics3_builtin_modules,
                 global_builtins_by_module,
                 True,
             )

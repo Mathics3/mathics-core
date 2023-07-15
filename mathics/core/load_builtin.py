@@ -8,6 +8,7 @@ Builtin.
 
 import importlib
 import inspect
+import os
 import os.path as osp
 import pkgutil
 from glob import glob
@@ -16,6 +17,11 @@ from typing import List, Optional
 from mathics.core.pattern import pattern_objects
 from mathics.core.symbols import Symbol
 from mathics.eval.makeboxes import builtins_precedence
+from mathics.settings import ENABLE_FILES_MODULE
+
+# List of Mathics3 Builtin modules.
+# This is initialized via below import_builtins modules
+modules = []
 
 _builtins = {}
 builtins_by_module = {}
@@ -108,6 +114,36 @@ def get_module_names(builtin_path: str, exclude_files: set) -> list:
         osp.basename(f[0:-3]) for f in glob(osp.join(builtin_path, "[a-z]*.py"))
     ]
     return [f for f in py_files if f not in exclude_files]
+
+
+def import_and_load_builtins():
+    """
+    Imports Builtin modules in mathics.builtin and add rules, and definitions from that.
+    """
+    builtin_path = osp.join(
+        osp.dirname(
+            __file__,
+        ),
+        "..",
+        "builtin",
+    )
+    exclude_files = {"codetables", "base"}
+    module_names = get_module_names(builtin_path, exclude_files)
+    import_builtins(module_names, modules)
+
+    # Get import modules in subdirectories of this directory of Python
+    # modules that contain Mathics3 Builtin class definitions.
+
+    # The files_io module handles local file access, reading and writing..
+    # In some sandboxed settings, such as running Mathics from as a remote
+    # server, we disallow local file access.
+    disable_file_module_names = set() if ENABLE_FILES_MODULE else {"files_io"}
+
+    subdirectories = next(os.walk(builtin_path))[1]
+    import_builtin_subdirectories(subdirectories, disable_file_module_names, modules)
+
+    add_builtins_from_builtin_modules(modules)
+    initialize_display_operators_set()
 
 
 # TODO: When we drop Python 3.7,

@@ -8,9 +8,8 @@ import os
 
 import pytest
 
-from mathics.builtin import modules
 from mathics.builtin.base import Builtin
-from mathics.core.load_builtin import name_is_builtin_symbol
+from mathics.core.load_builtin import modules, name_is_builtin_symbol
 
 
 @pytest.mark.skipif(
@@ -33,15 +32,18 @@ def test_check_duplicated():
                     """
                     assert (
                         builtins_by_name.get(name, None) is None
-                        ), f"{name} defined in {module} already defined in {builtins_by_name[name]}."
+                        ), f"{name} defined in {module} already defined in "
+                           f{builtins_by_name[name]}."
                     """
                     # if builtins_by_name.get(name, None) is not None:
                     #     print(
-                    #         f"\n{name} defined in {module} already defined in {builtins_by_name[name]}."
+                    #         (f"\n{name} defined in {module} already defined in
+                    #          f{builtins_by_name[name]}.")
                     #     )
                     #     msg = (
                     #         msg
-                    #         + f"\n{name} defined in {module} already defined in {builtins_by_name[name]}."
+                    #         + (f"\n{name} defined in {module} already defined in "
+                    #           {builtins_by_name[name]}.")
                     #     )
                     builtins_by_name[name] = module
     assert msg == "", msg
