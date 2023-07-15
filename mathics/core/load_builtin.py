@@ -12,6 +12,7 @@ import os
 import os.path as osp
 import pkgutil
 from glob import glob
+from types import ModuleType
 from typing import List, Optional
 
 from mathics.core.pattern import pattern_objects
@@ -19,13 +20,16 @@ from mathics.core.symbols import Symbol
 from mathics.eval.makeboxes import builtins_precedence
 from mathics.settings import ENABLE_FILES_MODULE
 
-# List of Mathics3 Builtin modules.
-# This is initialized via below import_builtins modules
-modules = []
+# List of Python modules contain Mathics3 Builtins.
+# This list used outside to gather documentation,
+# and test module consistency. It is
+# is initialized via below import_builtins modules
+mathics3_builtins_modules: List[ModuleType] = []
 
 _builtins = {}
 builtins_by_module = {}
 display_operators_set = set()
+
 
 # The fact that are importing inside here, suggests add_builtins
 # should get moved elsewhere.
@@ -56,7 +60,7 @@ def add_builtins(new_builtins):
     _builtins.update(dict(new_builtins))
 
 
-def add_builtins_from_builtin_modules(modules):
+def add_builtins_from_builtin_modules(modules: List[ModuleType]):
     # This can be put at the top after mathics.builtin.__init__
     # cleanup is done.
     from mathics.builtin.base import Builtin
@@ -129,7 +133,7 @@ def import_and_load_builtins():
     )
     exclude_files = {"codetables", "base"}
     module_names = get_module_names(builtin_path, exclude_files)
-    import_builtins(module_names, modules)
+    import_builtins(module_names, mathics3_builtins_modules)
 
     # Get import modules in subdirectories of this directory of Python
     # modules that contain Mathics3 Builtin class definitions.
@@ -140,16 +144,20 @@ def import_and_load_builtins():
     disable_file_module_names = set() if ENABLE_FILES_MODULE else {"files_io"}
 
     subdirectories = next(os.walk(builtin_path))[1]
-    import_builtin_subdirectories(subdirectories, disable_file_module_names, modules)
+    import_builtin_subdirectories(
+        subdirectories, disable_file_module_names, mathics3_builtins_modules
+    )
 
-    add_builtins_from_builtin_modules(modules)
+    add_builtins_from_builtin_modules(mathics3_builtins_modules)
     initialize_display_operators_set()
 
 
 # TODO: When we drop Python 3.7,
 # module_names can be a List[Literal]
 def import_builtins(
-    module_names: List[str], modules: list, submodule_name: Optional[str] = None
+    module_names: List[str],
+    modules: List[ModuleType],
+    submodule_name: Optional[str] = None,
 ):
     """
     Imports the list of Mathics3 Built-in modules so that inside
@@ -210,7 +218,7 @@ def initialize_display_operators_set():
                 display_operators_set.add(operator)
 
 
-def name_is_builtin_symbol(module, name: str) -> Optional[type]:
+def name_is_builtin_symbol(module: ModuleType, name: str) -> Optional[type]:
     """
     Checks if ``name`` should be added to definitions, and return
     its associated Builtin class.

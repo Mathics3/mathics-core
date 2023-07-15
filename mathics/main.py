@@ -32,6 +32,10 @@ from mathics.core.streams import stream_manager
 from mathics.core.symbols import SymbolNull, strip_context
 from mathics.timing import show_lru_cache_statistics
 
+# from mathics.timing import TimeitContextManager
+# with TimeitContextManager("import_and_load_builtins()"):
+#     import_and_load_builtins()
+
 import_and_load_builtins()
 
 

@@ -36,7 +36,7 @@ from mathics.builtin.base import check_requires_list
 from mathics.core.evaluation import Message, Print
 from mathics.core.load_builtin import (
     builtins_by_module as global_builtins_by_module,
-    modules as mathics3_builtin_modules,
+    mathics3_builtins_modules,
 )
 from mathics.core.util import IS_PYPY
 from mathics.doc.utils import slugify
@@ -114,7 +114,8 @@ SUBSECTION_END_RE = re.compile("</subsection>")
 SUBSECTION_RE = re.compile('(?s)<subsection title="(.*?)">')
 
 TESTCASE_RE = re.compile(
-    r"""(?mx)^  # re.MULTILINE (multi-line match) and re.VERBOSE (readable regular expressions
+    r"""(?mx)^  # re.MULTILINE (multi-line match)
+                # and re.VERBOSE (readable regular expressions
         ((?:.|\n)*?)
         ^\s+([>#SX])>[ ](.*)  # test-code indicator
         ((?:\n\s*(?:[:|=.][ ]|\.).*)*)  # test-code results"""
@@ -123,12 +124,6 @@ TESTCASE_OUT_RE = re.compile(r"^\s*([:|=])(.*)$")
 
 # Used for getting test results by test expresson and chapter/section information.
 test_result_map = {}
-
-
-def _replace_all(text, pairs):
-    for i, j in pairs:
-        text = text.replace(i, j)
-    return text
 
 
 def get_module_doc(module: ModuleType) -> tuple:
@@ -638,7 +633,7 @@ class Documentation:
         for title, modules, builtins_by_module, start in [
             (
                 "Reference of Built-in Symbols",
-                mathics3_builtin_modules,
+                mathics3_builtins_modules,
                 global_builtins_by_module,
                 True,
             )

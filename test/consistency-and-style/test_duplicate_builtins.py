@@ -9,7 +9,7 @@ import os
 import pytest
 
 from mathics.builtin.base import Builtin
-from mathics.core.load_builtin import modules, name_is_builtin_symbol
+from mathics.core.load_builtin import mathics3_builtins_modules, name_is_builtin_symbol
 
 
 @pytest.mark.skipif(
@@ -18,7 +18,7 @@ from mathics.core.load_builtin import modules, name_is_builtin_symbol
 def test_check_duplicated():
     msg = ""
     builtins_by_name = {}
-    for module in modules:
+    for module in mathics3_builtins_modules:
         vars = dir(module)
         for name in vars:
             var = name_is_builtin_symbol(module, name)
