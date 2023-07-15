@@ -2,7 +2,14 @@
 
 import sys
 
-from mathics.builtin import Builtin, modules, name_is_builtin_symbol
+from mathics.builtin.base import Builtin
+from mathics.core.load_builtin import (
+    import_and_load_builtins,
+    modules,
+    name_is_builtin_symbol,
+)
+
+import_and_load_builtins()
 
 
 def generate_available_builtins_names():

@@ -35,7 +35,6 @@ from mathics.doc.common_doc import (
     DocText,
     Documentation,
     XMLDoc,
-    _replace_all,
     gather_tests,
     get_results_by_test,
     post_sub,
@@ -104,7 +103,7 @@ def escape_latex(text):
 
     text, post_substitutions = pre_sub(PYTHON_RE, text, repl_python)
 
-    text = _replace_all(
+    text = replace_all(
         text,
         [
             ("\\", "\\\\"),
@@ -120,7 +119,7 @@ def escape_latex(text):
     def repl(match):
         text = match.group(1)
         if text:
-            text = _replace_all(text, [("\\'", "'"), ("^", "\\^")])
+            text = replace_all(text, [("\\'", "'"), ("^", "\\^")])
             escape_char = get_latex_escape_char(text)
             text = LATEX_RE.sub(
                 lambda m: "%s%s\\codevar{\\textit{%s}}%s\\lstinline%s"
@@ -163,7 +162,7 @@ def escape_latex(text):
     text = LIST_RE.sub(repl_list, text)
 
     # FIXME: get this from MathicsScanner
-    text = _replace_all(
+    text = replace_all(
         text,
         [
             ("$", r"\$"),
@@ -313,7 +312,7 @@ def escape_latex(text):
 def escape_latex_output(text) -> str:
     """Escape Mathics output"""
 
-    text = _replace_all(
+    text = replace_all(
         text,
         [
             ("\\", "\\\\"),
@@ -446,6 +445,12 @@ def post_process_latex(result):
         return result
 
     return OUTSIDE_ASY_RE.sub(repl_nonasy, result)
+
+
+def replace_all(text, pairs):
+    for i, j in pairs:
+        text = text.replace(i, j)
+    return text
 
 
 def strip_system_prefix(name):
