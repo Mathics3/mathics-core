@@ -30,6 +30,7 @@ from sympy import __version__ as SymPyVersion
 import mathics
 from mathics import __version__, settings, version_string
 from mathics.core.definitions import Definitions
+from mathics.core.load_builtin import import_and_load_builtins
 from mathics.doc.latex_doc import LaTeXMathicsDocumentation
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 
@@ -172,7 +173,8 @@ def main():
         dest="chapters",
         metavar="CHAPTER",
         help="only test CHAPTER(s). "
-        "You can list multiple chapters by adding a comma (and no space) in between chapter names.",
+        "You can list multiple chapters by adding a comma (and no space) in between "
+        "chapter names.",
     )
     parser.add_argument(
         "--sections",
@@ -180,7 +182,8 @@ def main():
         dest="sections",
         metavar="SECTION",
         help="only test SECTION(s). "
-        "You can list multiple chapters by adding a comma (and no space) in between chapter names.",
+        "You can list multiple chapters by adding a comma (and no space) in between "
+        "chapter names.",
     )
     parser.add_argument(
         "--load-module",
@@ -210,6 +213,9 @@ def main():
 
     # LoadModule Mathics3 modules to pull in modules, and
     # their docstrings
+
+    import_and_load_builtins()
+
     if args.pymathics:
         definitions = Definitions(add_builtin=True)
         for module_name in args.pymathics.split(","):

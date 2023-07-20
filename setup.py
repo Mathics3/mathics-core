@@ -52,7 +52,7 @@ if sys.version_info < (3, 7):
 INSTALL_REQUIRES += [
     "numpy<=1.24",
     "llvmlite",
-    "sympy>=1.8, < 1.12",
+    "sympy>=1.8",
     # Pillow 9.1.0 supports BigTIFF with big-endian byte order.
     # ExampleData image hedy.tif is in this format.
     # Pillow 9.2 handles sunflowers.jpg
