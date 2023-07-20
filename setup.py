@@ -57,7 +57,7 @@ elif sys.version_info[:2] == (3, 6):
         "numpy",
         "llvmlite<0.37",
         "pillow >= 8.4.0",
-        "sympy>=1.8,<1.12",
+        "sympy>=1.8",
     ]
     if is_PyPy:
         print("Mathics does not support PyPy Python 3.6" % sys.version_info[:2])
