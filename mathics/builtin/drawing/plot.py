@@ -1100,6 +1100,7 @@ class BarChart(_Chart):
         <dt>'BarChart[{$b1$, $b2$ ...}]'
         <dd>makes a bar chart with lengths $b1$, $b2$, ....
     </dl>
+
     Drawing options include -
     Charting:
     <ul>
@@ -2563,23 +2564,10 @@ class Plot3D(_Plot3D):
       <dd>creates a three-dimensional plot of $f$ with $x$ ranging from $xmin$ to \
           $xmax$ and $y$ ranging from $ymin$ to $ymax$.
 
+          See <url>:Drawing Option and Option Values:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    </url> for a list of Plot options.
     </dl>
-
-    Plot3D has the same options as <url>:Graphics3D:
-/doc/reference-of-built-in-symbols/graphics-and-drawing/three-dimensional-graphics/graphics3d</url>,\
-    in particular:
-    <ul>
-    <li><url>
-    :Mesh:
-    /doc/reference-of-built-in-symbols/drawing-options-and-option-values/mesh</url>
-    <li><url>
-    :PlotPoints:
-    /doc/reference-of-built-in-symbols/drawing-options-and-option-values/plotpoints</url>
-    <li><url>
-    :MaxRecursion:
-    /doc/reference-of-built-in-symbols/drawing-options-and-option-values/maxrecursion</url>
-    </ul>
-
 
     >> Plot3D[x ^ 2 + 1 / y, {x, -1, 1}, {y, 1, 4}]
      = -Graphics3D-

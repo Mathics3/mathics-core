@@ -15,9 +15,10 @@ from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.expression import Expression
-from mathics.core.load_builtin import definition_contribute
+from mathics.core.load_builtin import definition_contribute, mathics3_builtins_modules
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolGet
+from mathics.settings import ROOT_DIR
 
 type_compiled_pattern = type(re.compile("a.a"))
 
@@ -138,12 +139,12 @@ class Definitions:
         self.timing_trace_evaluation = False
 
         if add_builtin:
-            from mathics.builtin import modules
-            from mathics.settings import ROOT_DIR
-
             loaded = False
             if builtin_filename is not None:
-                builtin_dates = [get_file_time(module.__file__) for module in modules]
+                builtin_dates = [
+                    get_file_time(module.__file__)
+                    for module in mathics3_builtins_modules
+                ]
                 builtin_time = max(builtin_dates)
                 if get_file_time(builtin_filename) > builtin_time:
                     builtin_file = open(builtin_filename, "rb")
@@ -770,7 +771,6 @@ class Definition:
         builtin=None,
         is_numeric=False,
     ) -> None:
-
         super(Definition, self).__init__()
         self.name = name
 

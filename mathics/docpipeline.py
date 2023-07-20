@@ -24,7 +24,11 @@ import mathics.settings
 from mathics import settings, version_string
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
-from mathics.core.load_builtin import builtins_by_module, builtins_dict
+from mathics.core.load_builtin import (
+    builtins_by_module,
+    builtins_dict,
+    import_and_load_builtins,
+)
 from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.doc.common_doc import MathicsMainDocumentation
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
@@ -177,7 +181,6 @@ def test_tests(
     max_tests=MAX_TESTS,
     excludes=[],
 ):
-
     # For consistency set the character encoding ASCII which is
     # the lowest common denominator available on all systems.
     mathics.settings.SYSTEM_CHARACTER_ENCODING = "ASCII"
@@ -487,6 +490,8 @@ def main():
     global definitions
     global logfile
     global check_partial_elapsed_time
+
+    import_and_load_builtins()
     definitions = Definitions(add_builtin=True)
 
     parser = ArgumentParser(description="Mathics test suite.", add_help=False)

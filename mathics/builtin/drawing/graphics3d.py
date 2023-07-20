@@ -69,8 +69,8 @@ class Graphics3D(Graphics):
           <dt>'Graphics3D[$primitives$, $options$]'
           <dd>represents a three-dimensional graphic.
 
-          See also the <url>:Drawing Option and Option Values:
-    /doc/reference-of-built-in-symbols/drawing-options-and-option-values
+          See <url>:Drawing Option and Option Values:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
     </url> for a list of Plot options.
         </dl>
 

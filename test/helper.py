@@ -2,7 +2,10 @@
 import time
 from typing import Optional
 
+from mathics.core.load_builtin import import_and_load_builtins
 from mathics.session import MathicsSession
+
+import_and_load_builtins()
 
 # Set up a Mathics session with definitions.
 # For consistency set the character encoding ASCII which is
