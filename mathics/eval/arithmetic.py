@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 """
-arithmetic-related evaluation functions.
+helper functions for arithmetic evaluation, which do not
+depends on the evaluation context. Conversions to Sympy are
+used just as a last resource.
 
 Many of these do do depend on the evaluation context. Conversions to Sympy are
 used just as a last resource.
@@ -319,48 +321,27 @@ def eval_Sign(expr: BaseElement) -> Optional[BaseElement]:
     sign = eval_RealSign(expr)
     return sign or eval_complex_sign(expr)
 
-    if expr.has_form("Power", 2):
-        base, exp = expr.elements
-        if exp.is_zero:
-            return Integer1
-        if isinstance(exp, (Integer, Real, Rational)):
-            sign = eval_Sign(base) or Expression(SymbolSign, base)
-            return Expression(SymbolPower, sign, exp)
-        if isinstance(exp, Complex):
-            sign = eval_Sign(base) or Expression(SymbolSign, base)
-            return Expression(SymbolPower, sign, exp.real)
-        if test_arithmetic_expr(exp):
-            sign = eval_Sign(base) or Expression(SymbolSign, base)
-            return Expression(SymbolPower, sign, exp)
-        return None
-    if expr.get_head() is SymbolTimes:
-        abs_value = eval_Abs(eval_multiply_numbers(*expr.elements))
-        if abs_value is Integer1:
-            return expr
-        if abs_value is None:
-            return None
-        criteria = eval_add_numbers(abs_value, IntegerM1)
-        if test_zero_arithmetic_expr(criteria, numeric=True):
-            return expr
-        return None
-    if expr.get_head() is SymbolPlus:
-        abs_value = eval_Abs(eval_add_numbers(*expr.elements))
-        if abs_value is Integer1:
-            return expr
-        if abs_value is None:
-            return None
-        criteria = eval_add_numbers(abs_value, IntegerM1)
-        if test_zero_arithmetic_expr(criteria, numeric=True):
-            return expr
-        return None
 
-    if test_arithmetic_expr(expr):
-        if test_zero_arithmetic_expr(expr):
-            return Integer0
-        if test_positive_arithmetic_expr(expr):
-            return Integer1
-        if test_negative_arithmetic_expr(expr):
-            return IntegerM1
+def eval_Sign_number(n: Number) -> Number:
+    """
+    Evals the absolute value of a number.
+    """
+    if n.is_zero:
+        return Integer0
+    if isinstance(n, (Integer, Rational, Real)):
+        return Integer1 if n.value > 0 else IntegerM1
+    if isinstance(n, Complex):
+        abs_sq = eval_add_numbers(
+            *(eval_multiply_numbers(x, x) for x in (n.real, n.imag))
+        )
+        criteria = eval_add_numbers(abs_sq, IntegerM1)
+        if test_zero_arithmetic_expr(criteria):
+            return n
+        if n.is_inexact():
+            return eval_multiply_numbers(n, eval_Power_number(abs_sq, RealM0p5))
+        if test_zero_arithmetic_expr(criteria, numeric=True):
+            return n
+        return eval_multiply_numbers(n, eval_Power_number(abs_sq, RationalMOneHalf))
 
 
 def eval_mpmath_function(
@@ -388,6 +369,31 @@ def eval_mpmath_function(
             if None in mpmath_args:
                 return
             return call_mpmath(mpmath_function, tuple(mpmath_args), prec)
+
+
+def eval_Exponential(exp: BaseElement) -> BaseElement:
+    """
+    Eval E^exp
+    """
+    # If both base and exponent are exact quantities,
+    # use sympy.
+
+    if not exp.is_inexact():
+        exp_sp = exp.to_sympy()
+        if exp_sp is None:
+            return None
+        return from_sympy(sympy.Exp(exp_sp))
+
+    prec = exp.get_precision()
+    if prec is not None:
+        if exp.is_machine_precision():
+            number = mpmath.exp(exp.to_mpmath())
+            result = from_mpmath(number)
+            return result
+        else:
+            with mpmath.workprec(prec):
+                number = mpmath.exp(exp.to_mpmath())
+                return from_mpmath(number, prec)
 
 
 def eval_Plus(*items: BaseElement) -> BaseElement:
@@ -456,6 +462,301 @@ def eval_Plus(*items: BaseElement) -> BaseElement:
         *elements,
         elements_properties=ElementsProperties(False, False, True),
     )
+
+    elements.sort()
+    return Expression(
+        SymbolPlus,
+        *elements,
+        elements_properties=ElementsProperties(False, False, True),
+    )
+
+
+def eval_Power_number(base: Number, exp: Number) -> Optional[Number]:
+    """
+    Eval base^exp for `base` and `exp` two numbers. If the expression
+    remains the same, return None.
+    """
+    # If both base and exponent are exact quantities,
+    # use sympy.
+    # If base or exp are inexact quantities, use
+    # the inexact routine.
+    if base.is_inexact() or exp.is_inexact():
+        return eval_Power_inexact(base, exp)
+
+    # Trivial special cases
+    if exp is Integer1:
+        return base
+    if exp is Integer0:
+        return Integer1
+    if base is Integer1:
+        return Integer1
+
+    def eval_Power_sympy() -> Optional[Number]:
+        """
+        Tries to compute x^p using sympy rules.
+        If the answer is again x^p, return None.
+        """
+        # This function is called just if useful native rules
+        # are available.
+        result = from_sympy(sympy.Pow(base.to_sympy(), exp.to_sympy()))
+        if result.has_form("Power", 2):
+            # If the expression didn´t change, return None
+            if result.elements[0].sameQ(base):
+                return None
+        return result
+
+    # Rational exponent
+    if isinstance(exp, Rational):
+        exp_p, exp_q = exp.value.as_numer_denom()
+        if abs(exp_p) > exp_q:
+            exp_int, exp_num = divmod(exp_p, exp_q)
+            exp_rem = Rational(exp_num, exp_q)
+            factor_1 = eval_Power_number(base, Integer(exp_int))
+            factor_2 = eval_Power_number(base, exp_rem) or Expression(
+                SymbolPower, base, exp_rem
+            )
+            if factor_1 is Integer1:
+                return factor_2
+            return Expression(SymbolTimes, factor_1, factor_2)
+
+    # Integer base
+    if isinstance(base, Integer):
+        base_value = base.value
+        if base_value == -1:
+            if isinstance(exp, Rational):
+                if exp.sameQ(RationalOneHalf):
+                    return SymbolI
+                return None
+            return eval_Power_sympy()
+        elif base_value < 0:
+            neg_base = eval_negate_number(base)
+            candidate = eval_Power_number(neg_base, exp)
+            if candidate is None:
+                return None
+            sign_factor = eval_Power_number(IntegerM1, exp)
+            if candidate is Integer1:
+                return sign_factor
+            return Expression(SymbolTimes, candidate, sign_factor)
+
+    # Rational base
+    if isinstance(base, Rational):
+        # If the exponent is an Integer or Rational negative value
+        # restate as a positive power
+        if (
+            isinstance(exp, Integer)
+            and exp.value < 0
+            or isinstance(exp, Rational)
+            and exp.value.p < 0
+        ):
+            base, exp = eval_inverse_number(base), eval_negate_number(exp)
+            return eval_Power_number(base, exp) or Expression(SymbolPower, base, exp)
+
+        p, q = (Integer(u) for u in base.value.as_numer_denom())
+        p_eval, q_eval = (eval_Power_number(u, exp) for u in (p, q))
+        # If neither p^exp or q^exp produced a new result,
+        # leave it alone
+        if q_eval is None and p_eval is None:
+            return None
+        # if q^exp == 1: return p_eval
+        # (should not happen)
+        if q_eval is Integer1:
+            return p_eval
+        if isinstance(q_eval, Integer):
+            if isinstance(p_eval, Integer):
+                return Rational(p_eval.value, q_eval.value)
+
+        if p_eval is None:
+            p_eval = Expression(SymbolPower, p, exp)
+
+        if q_eval is None:
+            q_eval = Expression(SymbolPower, q, exp)
+        return Expression(
+            SymbolTimes, p_eval, Expression(SymbolPower, q_eval, IntegerM1)
+        )
+    # Pure imaginary base case
+    elif isinstance(base, Complex) and base.real.is_zero:
+        base = base.imag
+        if base.value < 0:
+            base = eval_negate_number(base)
+            phase = Expression(
+                SymbolPower,
+                IntegerM1,
+                eval_multiply_numbers(IntegerM1, RationalOneHalf, exp),
+            )
+        else:
+            phase = Expression(
+                SymbolPower, IntegerM1, eval_multiply_numbers(RationalOneHalf, exp)
+            )
+        real_factor = eval_Power_number(base, exp)
+
+        if real_factor is None:
+            return None
+        return Expression(SymbolTimes, real_factor, phase)
+
+    # Generic case
+    return eval_Power_sympy()
+
+
+def eval_Power_inexact(base: Number, exp: Number) -> BaseElement:
+    """
+    Eval base^exp for `base` and `exp` inexact numbers
+    """
+    # If both base and exponent are exact quantities,
+    # use sympy.
+    prec = min_prec(base, exp)
+    if prec is not None:
+        is_machine_precision = base.is_machine_precision() or exp.is_machine_precision()
+        if is_machine_precision:
+            number = mpmath.power(base.to_mpmath(), exp.to_mpmath())
+            return from_mpmath(number)
+        else:
+            with mpmath.workprec(prec):
+                number = mpmath.power(base.to_mpmath(), exp.to_mpmath())
+                return from_mpmath(number, prec)
+
+
+def eval_Power_number(base: Number, exp: Number) -> Optional[Number]:
+    """
+    Eval base^exp for `base` and `exp` two numbers. If the expression
+    remains the same, return None.
+    """
+    # If both base and exponent are exact quantities,
+    # use sympy.
+    # If base or exp are inexact quantities, use
+    # the inexact routine.
+    if base.is_inexact() or exp.is_inexact():
+        return eval_Power_inexact(base, exp)
+
+    # Trivial special cases
+    if exp is Integer1:
+        return base
+    if exp is Integer0:
+        return Integer1
+    if base is Integer1:
+        return Integer1
+
+    def eval_Power_sympy() -> Optional[Number]:
+        """
+        Tries to compute x^p using sympy rules.
+        If the answer is again x^p, return None.
+        """
+        # This function is called just if useful native rules
+        # are available.
+        result = from_sympy(sympy.Pow(base.to_sympy(), exp.to_sympy()))
+        if result.has_form("Power", 2):
+            # If the expression didn´t change, return None
+            if result.elements[0].sameQ(base):
+                return None
+        return result
+
+    # Rational exponent
+    if isinstance(exp, Rational):
+        exp_p, exp_q = exp.value.as_numer_denom()
+        if abs(exp_p) > exp_q:
+            exp_int, exp_num = divmod(exp_p, exp_q)
+            exp_rem = Rational(exp_num, exp_q)
+            factor_1 = eval_Power_number(base, Integer(exp_int))
+            factor_2 = eval_Power_number(base, exp_rem) or Expression(
+                SymbolPower, base, exp_rem
+            )
+            if factor_1 is Integer1:
+                return factor_2
+            return Expression(SymbolTimes, factor_1, factor_2)
+
+    # Integer base
+    if isinstance(base, Integer):
+        base_value = base.value
+        if base_value == -1:
+            if isinstance(exp, Rational):
+                if exp.sameQ(RationalOneHalf):
+                    return SymbolI
+                return None
+            return eval_Power_sympy()
+        elif base_value < 0:
+            neg_base = eval_negate_number(base)
+            candidate = eval_Power_number(neg_base, exp)
+            if candidate is None:
+                return None
+            sign_factor = eval_Power_number(IntegerM1, exp)
+            if candidate is Integer1:
+                return sign_factor
+            return Expression(SymbolTimes, candidate, sign_factor)
+
+    # Rational base
+    if isinstance(base, Rational):
+        # If the exponent is an Integer or Rational negative value
+        # restate as a positive power
+        if (
+            isinstance(exp, Integer)
+            and exp.value < 0
+            or isinstance(exp, Rational)
+            and exp.value.p < 0
+        ):
+            base, exp = eval_inverse_number(base), eval_negate_number(exp)
+            return eval_Power_number(base, exp) or Expression(SymbolPower, base, exp)
+
+        p, q = (Integer(u) for u in base.value.as_numer_denom())
+        p_eval, q_eval = (eval_Power_number(u, exp) for u in (p, q))
+        # If neither p^exp or q^exp produced a new result,
+        # leave it alone
+        if q_eval is None and p_eval is None:
+            return None
+        # if q^exp == 1: return p_eval
+        # (should not happen)
+        if q_eval is Integer1:
+            return p_eval
+        if isinstance(q_eval, Integer):
+            if isinstance(p_eval, Integer):
+                return Rational(p_eval.value, q_eval.value)
+
+        if p_eval is None:
+            p_eval = Expression(SymbolPower, p, exp)
+
+        if q_eval is None:
+            q_eval = Expression(SymbolPower, q, exp)
+        return Expression(
+            SymbolTimes, p_eval, Expression(SymbolPower, q_eval, IntegerM1)
+        )
+    # Pure imaginary base case
+    elif isinstance(base, Complex) and base.real.is_zero:
+        base = base.imag
+        if base.value < 0:
+            base = eval_negate_number(base)
+            phase = Expression(
+                SymbolPower,
+                IntegerM1,
+                eval_multiply_numbers(IntegerM1, RationalOneHalf, exp),
+            )
+        else:
+            phase = Expression(
+                SymbolPower, IntegerM1, eval_multiply_numbers(RationalOneHalf, exp)
+            )
+        real_factor = eval_Power_number(base, exp)
+
+        if real_factor is None:
+            return None
+        return Expression(SymbolTimes, real_factor, phase)
+
+    # Generic case
+    return eval_Power_sympy()
+
+
+def eval_Power_inexact(base: Number, exp: Number) -> BaseElement:
+    """
+    Eval base^exp for `base` and `exp` inexact numbers
+    """
+    # If both base and exponent are exact quantities,
+    # use sympy.
+    prec = min_prec(base, exp)
+    if prec is not None:
+        is_machine_precision = base.is_machine_precision() or exp.is_machine_precision()
+        if is_machine_precision:
+            number = mpmath.power(base.to_mpmath(), exp.to_mpmath())
+            return from_mpmath(number)
+        else:
+            with mpmath.workprec(prec):
+                number = mpmath.power(base.to_mpmath(), exp.to_mpmath())
+                return from_mpmath(number, prec)
 
 
 def eval_Power_number(base: Number, exp: Number) -> Optional[Number]:
@@ -688,9 +989,112 @@ def eval_Times(*items: BaseElement) -> BaseElement:
     )
 
 
+# Here I used the convention of calling eval_* to functions that can produce a new expression, or None
+# if the result can not be evaluated, or is trivial. For example, if we call eval_Power_number(Integer2, RationalOneHalf)
+# it returns ``None`` instead of ``Expression(SymbolPower, Integer2, RationalOneHalf)``.
+# The reason is that these functions are written to be part of replacement rules, to be applied during the evaluation process.
+# In that process, a rule is considered applied if produces an expression that is different from the original one, or
+# if the replacement function returns (Python's) ``None``.
+#
+# For example, when the expression ``Power[4, 1/2]`` is evaluated, a (Builtin) rule  ``Power[base_, exp_]->eval_repl_rule(base, expr)``
+# is applied. If the rule matches, `repl_rule` is called with arguments ``(4, 1/2)`` and produces `2`. As `Integer2.sameQ(Power[4, 1/2])`
+# is False, then no new rules for `Power` are checked, and a new round of evaluation is atempted.
+#
+# On the other hand, if ``Power[3, 1/2]``, ``repl_rule`` can do two possible things: one is return ``Power[3, 1/2]``. If it does,
+# the rule is considered applied. Then, the evaluation method checks if `Power[3, 1/2].sameQ(Power[3, 1/2])`. In this case it is true,
+# and then the expression is kept as it is.
+# The other possibility is to return  (Python's) `None`. In that case, the evaluator considers that the rule failed to be applied,
+# and look for another rule associated to ``Power``. To return ``None`` produces then a faster evaluation, since no ``sameQ`` call is needed,
+# and do not prevent that other rules are attempted.
+#
+# The bad part of using ``None`` as a return is that I would expect that ``eval`` produces always a valid Expression, so if at some point of
+# the code I call ``eval_Power_number(Integer3, RationalOneHalf)`` I get ``Expression(SymbolPower, Integer3, RationalOneHalf)``.
+#
+# From my point of view, it would make more sense to use the following convention:
+#  * if the method has signature ``eval_method(...)->BaseElement:`` then use the prefix ``eval_``
+#  * if the method has the siguature ``apply_method(...)->Optional[BaseElement]`` use the prefix ``apply_`` or maybe ``repl_``.
+#
+# In any case, let's keep the current convention.
+#
+#
+
+
+def associate_powers(expr: BaseElement, power: BaseElement = Integer1) -> BaseElement:
+    """
+    base^a^b^c^...^power -> base^(a*b*c*...power)
+    provided one of the following cases
+    * `a`, `b`, ... `power` are all integer numbers
+    * `a`, `b`,... are Rational/Real number with absolute value <=1,
+      and the other powers are not integer numbers.
+    * `a` is not a Rational/Real number, and b, c, ... power are all
+      integer numbers.
+    """
+    powers = []
+    base = expr
+    if power is not Integer1:
+        powers.append(power)
+
+    while base.has_form("Power", 2):
+        previous_base, outer_power = base, power
+        base, power = base.elements
+        if len(powers) == 0:
+            if power is not Integer1:
+                powers.append(power)
+            continue
+        if power is IntegerM1:
+            powers.append(power)
+            continue
+        if isinstance(power, (Rational, Real)):
+            if abs(power.value) < 1:
+                powers.append(power)
+                continue
+        # power is not rational/real and outer_power is integer,
+        elif isinstance(outer_power, Integer):
+            if power is not Integer1:
+                powers.append(power)
+            if isinstance(power, Integer):
+                continue
+            else:
+                break
+        # in any other case, use the previous base and
+        # exit the loop
+        base = previous_base
+        break
+
+    if len(powers) == 0:
+        return base
+    elif len(powers) == 1:
+        return Expression(SymbolPower, base, powers[0])
+    result = Expression(SymbolPower, base, Expression(SymbolTimes, *powers))
+    return result
+
+
+def distribute_factor(expr: BaseElement, factor: BaseElement) -> BaseElement:
+    """
+    q * (a + b  + c) -> (q a  + q b + q c)
+    """
+    if not expr.has_form("Plus", None):
+        return expr
+    terms = (Expression(SymbolTimes, factor, term) for term in expr.elements)
+    return Expression(SymbolPlus, *terms)
+
+
+def distribute_powers(expr: BaseElement) -> BaseElement:
+    """
+    (a b c)^p -> (a^p b^p c^p)
+    """
+    if not expr.has_form("Power", 2):
+        return expr
+    base, exp = expr.elements
+    if not base.has_form("Times", None):
+        return expr
+    factors = (Expression(SymbolPower, factor, exp) for factor in base.elements)
+    return Expression(SymbolTimes, *factors)
+
+
 def eval_add_numbers(
-    *numbers: Number,
-) -> BaseElement:
+    *numbers: List[Number],
+) -> Number:
     """
     Add the elements in ``numbers``.
     """
@@ -714,6 +1118,16 @@ def eval_add_numbers(
             return from_mpmath(number, precision=prec)
     else:
         return from_sympy(sum(item.to_sympy() for item in numbers))
+
+
+def eval_complex_conjugate(z: Number) -> Number:
+    """
+    Evaluates the complex conjugate of z.
+    """
+    if isinstance(z, Complex):
+        re, im = z.real, z.imag
+        return Complex(re, eval_negate_number(im))
+    return z
 
 
 def eval_inverse_number(n: Number) -> Number:
@@ -772,6 +1186,24 @@ def eval_negate_number(n: Number) -> Number:
         return Rational(-n_num, n_den)
     # Otherwise, multiply by -1:
     return eval_multiply_numbers(IntegerM1, n)
+
+
+def flat_arithmetic_operators(expr: Expression) -> Expression:
+    """
+    operation[a_number, b, operation[c_number, d], e]-> operation[a, c, b, c, d, e]
+    """
+    # items is a dict with two keys: True and False.
+    # In True we store numeric items, and in False the symbolic ones.
+    items = {True: [], False: []}
+    head = expr.get_head()
+    for element in expr.elements:
+        # If the element is also head[elements],
+        # take its elements, and append to the main expression.
+        if element.get_head() is head:
+            for item in flat_arithmetic_operators(element).elements:
+                item[isinstance(item, Number)].append(item)
+        item[isinstance(item, Number)].append(item)
+    return Expression(head, *items[True], *items[False])
 
 
 def segregate_numbers(
