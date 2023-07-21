@@ -235,6 +235,19 @@ class RowBox(BoxExpression):
         result = RowBox(*items)
         return result
 
+    @property
+    def elements(self):
+        if self._elements is None:
+            items = tuple(
+                item.to_expression() if isinstance(item, BoxElementMixin) else item
+                for item in self.items
+            )
+            self._elements = ListExpression(*items)
+        return self._elements
+
+    def get_head(self):
+        return SymbolRowBox
+
     def init(self, *items, **kwargs):
         # TODO: check that each element is an string or a BoxElementMixin
         self.box_options = {}
@@ -276,13 +289,8 @@ class RowBox(BoxExpression):
         a sequence and finally, a ``RowBox`` is built. Then, riffle needs an expression as an argument. To get it,
         in the apply method, this function must be called.
         """
-        if self._elements is None:
-            self._elements = tuple(
-                item.to_expression() if isinstance(item, BoxElementMixin) else item
-                for item in self.items
-            )
 
-        return Expression(SymbolRowBox, ListExpression(*self._elements))
+        return Expression(SymbolRowBox, self.elements)
 
 
 class ShowStringCharacters(Builtin):
