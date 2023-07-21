@@ -9,7 +9,7 @@ New Builtins
 
 
 * `Elements`
-
+* `RealAbs` and `RealSign`
 
 Compatibility
 -------------
@@ -24,7 +24,7 @@ Internals
 * ``eval_abs`` and ``eval_sign`` extracted from ``Abs`` and ``Sign`` and added to ``mathics.eval.arithmetic``.
 * Maximum number of digits allowed in a string set to 7000 and can be adjusted using environment variable
   ``MATHICS_MAX_STR_DIGITS`` on Python versions that don't adjust automatically (like pyston).
-
+* Real number comparisons implemented is based now in the internal implementation of `RealSign`.
 
 Bugs
 ----

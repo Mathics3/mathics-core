@@ -824,8 +824,10 @@ System`Read
 System`ReadList
 System`ReadProtected
 System`Real
+System`RealAbs
 System`RealDigits
 System`RealNumberQ
+System`RealSign
 System`Reals
 System`Reap
 System`Record

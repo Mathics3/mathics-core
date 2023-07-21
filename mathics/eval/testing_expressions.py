@@ -7,11 +7,6 @@ from mathics.core.expression import Expression
 from mathics.core.systemsymbols import SymbolDirectedInfinity
 
 
-def cmp(a, b) -> int:
-    "Returns 0 if a == b, -1 if a < b and 1 if a > b"
-    return (a > b) - (a < b)
-
-
 def do_cmp(x1, x2) -> Optional[int]:
 
     # don't attempt to compare complex numbers

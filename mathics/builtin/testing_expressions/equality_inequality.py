@@ -69,8 +69,7 @@ class _InequalityOperator(BinaryOperator):
             n_items = []
             for item in items:
                 if not isinstance(item, Number):
-                    # TODO: use $MaxExtraPrecision insterad of hard-coded 50
-                    item = eval_N(item, evaluation, SymbolMaxPrecision)
+                    item = eval_N(item, evaluation, SymbolMaxExtraPrecision)
                 n_items.append(item)
             items = n_items
         else:

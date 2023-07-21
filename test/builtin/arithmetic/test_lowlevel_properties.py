@@ -56,7 +56,7 @@ def test_positivity(str_expr, expected, msg):
         ("1", False, None),
         ("Pi", False, None),
         ("a", False, None),
-        ("a-a", True, None),
+        ("a-a", False, "the low-level check does not try to evaluate the input"),
         ("3-3.", True, None),
         ("2-Sqrt[4]", True, None),
         ("-Pi", False, None),
@@ -73,9 +73,9 @@ def test_positivity(str_expr, expected, msg):
         ("Log[3]", False, None),
         ("Log[I]", False, None),
         ("Abs[a]", False, None),
-        ("Abs[0]", False, None),
+        ("Abs[0]", True, None),
         ("Abs[1+3 I]", False, None),
-        # ("Sin[Pi]", False, None),
+        ("Sin[Pi]", False, None),
     ],
 )
 def test_zero(str_expr, expected, msg):
