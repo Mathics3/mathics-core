@@ -829,7 +829,9 @@ class I_(Predefined, SympyObject):
 
 class Im(SympyFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Im.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Im.html</url>
 
     <dl>
       <dt>'Im[$z$]'
@@ -1215,7 +1217,12 @@ class Real_(Builtin):
 
 class RealAbs(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/RealAbs.html</url>
+    <url>
+        :Abs (Real):
+        https://en.wikipedia.org/wiki/Absolute_value</url> (<url>
+        :WMA link:
+        https://reference.wolfram.com/language/ref/RealAbs.html
+        </url>)
 
     <dl>
       <dt>'RealAbs[$x$]'
@@ -1283,8 +1290,12 @@ class RealNumberQ(Test):
 
 class RealSign(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/RealAbs.html</url>
-
+    <url>
+        :Signum:
+        https://en.wikipedia.org/wiki/Sign_function</url> (<url>
+        :WMA link:
+        https://reference.wolfram.com/language/ref/RealSign.html
+        </url>)
     <dl>
       <dt>'RealSign[$x$]'
       <dd>returns $-1$, $0$ or $1$ depending on whether $x$ is negative,
@@ -1319,7 +1330,12 @@ class RealSign(Builtin):
 
 class Sign(SympyFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Sign.html</url>
+    <url>
+        :Sign:
+        https://en.wikipedia.org/wiki/Sign_function</url> (<url>
+        :WMA link:
+        https://reference.wolfram.com/language/ref/Sign.html
+        </url>)
 
     <dl>
       <dt>'Sign[$x$]'

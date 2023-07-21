@@ -6,13 +6,6 @@ from mathics.core.atoms import Complex, Integer0, Integer1, IntegerM1
 from mathics.core.expression import Expression
 from mathics.core.systemsymbols import SymbolDirectedInfinity
 
-# TODO: Remove me. The following function is not used anywhere
-"""
-def cmp(a, b) -> int:
-    "Returns 0 if a == b, -1 if a < b and 1 if a > b"
-    return (a > b) - (a < b)
-"""
-
 
 def do_cmp(x1, x2) -> Optional[int]:
 
