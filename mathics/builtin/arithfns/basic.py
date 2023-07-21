@@ -7,6 +7,9 @@ on a calculator.
 
 """
 
+
+import sympy
+
 from mathics.builtin.arithmetic import create_infix
 from mathics.builtin.base import (
     BinaryOperator,
@@ -45,7 +48,6 @@ from mathics.core.symbols import (
     Symbol,
     SymbolDivide,
     SymbolHoldForm,
-    SymbolNull,
     SymbolPower,
     SymbolTimes,
 )
@@ -56,10 +58,17 @@ from mathics.core.systemsymbols import (
     SymbolInfix,
     SymbolLeft,
     SymbolMinus,
+    SymbolOverflow,
     SymbolPattern,
-    SymbolSequence,
 )
-from mathics.eval.arithmetic import eval_Plus, eval_Times
+from mathics.eval.arithmetic import (
+    associate_powers,
+    eval_Exponential,
+    eval_Plus,
+    eval_Power_inexact,
+    eval_Power_number,
+    eval_Times,
+)
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 
@@ -535,15 +544,15 @@ class Power(BinaryOperator, MPMathFunction):
     # Remember to up sympy doc link when this is corrected
     sympy_name = "Pow"
 
+    def eval_exp(self, x, evaluation):
+        "Power[E, x]"
+        return eval_Exponential(x)
+
     def eval_check(self, x, y, evaluation):
         "Power[x_, y_]"
-
-        # Power uses MPMathFunction but does some error checking first
-        if isinstance(x, Number) and x.is_zero:
-            if isinstance(y, Number):
-                y_err = y
-            else:
-                y_err = eval_N(y, evaluation)
+        # if x is zero
+        if x.is_zero:
+            y_err = y if isinstance(y, Number) else eval_N(y, evaluation)
             if isinstance(y_err, Number):
                 py_y = y_err.round_to_float(permit_complex=True).real
                 if py_y > 0:
@@ -557,17 +566,47 @@ class Power(BinaryOperator, MPMathFunction):
                     evaluation.message(
                         "Power", "infy", Expression(SymbolPower, x, y_err)
                     )
-                    return SymbolComplexInfinity
-        if isinstance(x, Complex) and x.real.is_zero:
-            yhalf = Expression(SymbolTimes, y, RationalOneHalf)
-            factor = self.eval(Expression(SymbolSequence, x.imag, y), evaluation)
-            return Expression(
-                SymbolTimes, factor, Expression(SymbolPower, IntegerM1, yhalf)
-            )
+                return SymbolComplexInfinity
 
-        result = self.eval(Expression(SymbolSequence, x, y), evaluation)
-        if result is None or result != SymbolNull:
-            return result
+        # If x and y are inexact numbers, use the numerical function
+
+        if x.is_inexact() and y.is_inexact():
+            try:
+                return eval_Power_inexact(x, y)
+            except OverflowError:
+                evaluation.message("General", "ovfl")
+                return Expression(SymbolOverflow)
+
+        # Tries to associate powers a^b^c-> a^(b*c)
+        assoc = associate_powers(x, y)
+        if not assoc.has_form("Power", 2):
+            return assoc
+
+        assoc = numerify(assoc, evaluation)
+        x, y = assoc.elements
+        # If x and y are numbers
+        if isinstance(x, Number) and isinstance(y, Number):
+            try:
+                return eval_Power_number(x, y)
+            except OverflowError:
+                evaluation.message("General", "ovfl")
+                return Expression(SymbolOverflow)
+
+        # if x or y are inexact, leave the expression
+        # as it is:
+        if x.is_inexact() or y.is_inexact():
+            return assoc
+
+        # Finally, try to convert to sympy
+        base_sp, exp_sp = x.to_sympy(), y.to_sympy()
+        if base_sp is None or exp_sp is None:
+            # If base or exp can not be converted to sympy,
+            # returns the result of applying the associative
+            # rule.
+            return assoc
+
+        result = from_sympy(sympy.Pow(base_sp, exp_sp))
+        return result.evaluate_elements(evaluation)
 
 
 class Sqrt(SympyFunction):
