@@ -319,49 +319,6 @@ def eval_Sign(expr: BaseElement) -> Optional[BaseElement]:
     sign = eval_RealSign(expr)
     return sign or eval_complex_sign(expr)
 
-    if expr.has_form("Power", 2):
-        base, exp = expr.elements
-        if exp.is_zero:
-            return Integer1
-        if isinstance(exp, (Integer, Real, Rational)):
-            sign = eval_Sign(base) or Expression(SymbolSign, base)
-            return Expression(SymbolPower, sign, exp)
-        if isinstance(exp, Complex):
-            sign = eval_Sign(base) or Expression(SymbolSign, base)
-            return Expression(SymbolPower, sign, exp.real)
-        if test_arithmetic_expr(exp):
-            sign = eval_Sign(base) or Expression(SymbolSign, base)
-            return Expression(SymbolPower, sign, exp)
-        return None
-    if expr.get_head() is SymbolTimes:
-        abs_value = eval_Abs(eval_multiply_numbers(*expr.elements))
-        if abs_value is Integer1:
-            return expr
-        if abs_value is None:
-            return None
-        criteria = eval_add_numbers(abs_value, IntegerM1)
-        if test_zero_arithmetic_expr(criteria, numeric=True):
-            return expr
-        return None
-    if expr.get_head() is SymbolPlus:
-        abs_value = eval_Abs(eval_add_numbers(*expr.elements))
-        if abs_value is Integer1:
-            return expr
-        if abs_value is None:
-            return None
-        criteria = eval_add_numbers(abs_value, IntegerM1)
-        if test_zero_arithmetic_expr(criteria, numeric=True):
-            return expr
-        return None
-
-    if test_arithmetic_expr(expr):
-        if test_zero_arithmetic_expr(expr):
-            return Integer0
-        if test_positive_arithmetic_expr(expr):
-            return Integer1
-        if test_negative_arithmetic_expr(expr):
-            return IntegerM1
-
 
 def eval_mpmath_function(
     mpmath_function: Callable, *args: Number, prec: Optional[int] = None

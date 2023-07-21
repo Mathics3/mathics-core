@@ -1291,7 +1291,7 @@ class RealNumberQ(Test):
 class RealSign(Builtin):
     """
     <url>
-        :Signum:
+        :Sign function:
         https://en.wikipedia.org/wiki/Sign_function</url> (<url>
         :WMA link:
         https://reference.wolfram.com/language/ref/RealSign.html
