@@ -9,6 +9,7 @@ from mathics.builtin.base import Builtin, SympyFunction, Test
 from mathics.core.atoms import Integer, Integer0, Number
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.convert.python import from_bool, from_python
+from mathics.core.convert.sympy import to_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import BooleanType, SymbolFalse, SymbolTrue
@@ -465,12 +466,12 @@ class PossibleZeroQ(SympyFunction):
         if test_zero_arithmetic_expr(expr):
             return SymbolTrue
 
-        sympy_expr = expr.to_sympy()
+        sympy_expr = to_sympy(expr)
         result = _iszero(sympy_expr)
         if result is None:
             # try expanding the expression
             exprexp = Expression(SymbolExpandAll, expr).evaluate(evaluation)
-            exprexp = exprexp.to_sympy()
+            exprexp = to_sympy(exprexp)
             result = _iszero(exprexp)
         if result is None:
             # Can't get exact answer, so try approximate equal

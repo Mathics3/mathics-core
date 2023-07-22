@@ -52,7 +52,12 @@ from mathics.core.attributes import (
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.function import expression_to_callable_and_args
 from mathics.core.convert.python import from_python
-from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
+from mathics.core.convert.sympy import (
+    SympyExpression,
+    from_sympy,
+    sympy_symbol_prefix,
+    to_sympy,
+)
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -499,7 +504,7 @@ class Derivative(PostfixOperator, SympyFunction):
         if len(exprs[0].elements) != len(exprs[2].elements):
             return
 
-        sym_args = [element.to_sympy() for element in exprs[0].elements]
+        sym_args = [to_sympy(element) for element in exprs[0].elements]
         if None in sym_args:
             return
 
@@ -557,9 +562,9 @@ class DiscreteLimit(Builtin):
     def eval(self, f, n, n0, evaluation: Evaluation, options: dict = {}):
         "DiscreteLimit[f_, n_->n0_, OptionsPattern[DiscreteLimit]]"
 
-        f = f.to_sympy(convert_all_global_functions=True)
-        n = n.to_sympy()
-        n0 = n0.to_sympy()
+        f = to_sympy(f, convert_all_global_functions=True)
+        n = to_sympy(n)
+        n0 = to_sympy(n0)
 
         if n0 != sympy.oo:
             return
@@ -1073,7 +1078,7 @@ class Integrate(SympyFunction):
 
     def eval(self, f, xs, evaluation: Evaluation, options: dict):
         "Integrate[f_, xs__, OptionsPattern[]]"
-        f_sympy = f.to_sympy()
+        f_sympy = to_sympy(f)
         if f_sympy.is_infinite:
             return Expression(SymbolIntegrate, Integer1, xs).evaluate(evaluation) * f
         if f_sympy is None or isinstance(f_sympy, SympyExpression):
@@ -1090,8 +1095,8 @@ class Integrate(SympyFunction):
                     prec_new = min(prec_a, prec_b)
                     if prec is None or prec_new < prec:
                         prec = prec_new
-                a = a.to_sympy()
-                b = b.to_sympy()
+                a = to_sympy(a)
+                b = to_sympy(b)
                 if a is None or b is None:
                     return
             else:
@@ -1099,7 +1104,7 @@ class Integrate(SympyFunction):
             if not x.get_name():
                 evaluation.message("Integrate", "ilim")
                 return
-            x = x.to_sympy()
+            x = to_sympy(x)
             if x is None:
                 return
             if a is None or b is None:
@@ -1246,9 +1251,9 @@ class Limit(Builtin):
     def eval(self, expr, x, x0, evaluation: Evaluation, options={}):
         "Limit[expr_, x_->x0_, OptionsPattern[Limit]]"
 
-        expr = expr.to_sympy()
-        x = x.to_sympy()
-        x0 = x0.to_sympy()
+        expr = to_sympy(expr)
+        x = to_sympy(x)
+        x0 = to_sympy(x0)
 
         if expr is None or x is None or x0 is None:
             return
@@ -1642,14 +1647,14 @@ class Root(SympyFunction):
 
             body = f.elements[0]
             poly = body.replace_slots([f, Symbol("_1")], evaluation)
-            idx = i.to_sympy() - 1
+            idx = to_sympy(i) - 1
 
             # Check for negative indeces (they are not allowed in Mathematica)
             if idx < 0:
                 evaluation.message("Root", "iidx", i)
                 return
 
-            r = sympy.CRootOf(poly.to_sympy(), idx)
+            r = sympy.CRootOf(to_sympy(poly), idx)
         except sympy.PolynomialError:
             evaluation.message("Root", "nuni", f)
             return
@@ -1673,7 +1678,7 @@ class Root(SympyFunction):
                 return None
 
             body = f.elements[0].replace_slots([f, Symbol("_1")], None)
-            poly = body.to_sympy(**kwargs)
+            poly = to_sympy(body, **kwargs)
 
             i = expr.elements[1].get_int_value(**kwargs) - 1
 
@@ -2259,8 +2264,8 @@ class Solve(Builtin):
                 return
             else:
                 left, right = eq.elements
-                left = left.to_sympy()
-                right = right.to_sympy()
+                left = to_sympy(left)
+                right = to_sympy(right)
                 if left is None or right is None:
                     return
                 eq = left - right
@@ -2270,7 +2275,7 @@ class Solve(Builtin):
                 numer, denom = eq.as_numer_denom()
                 sympy_denoms.append(denom)
 
-        vars_sympy = [var.to_sympy() for var in vars]
+        vars_sympy = [to_sympy(var) for var in vars]
         if None in vars_sympy:
             return
 

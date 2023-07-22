@@ -29,6 +29,7 @@ from mathics.core.atoms import (
     String,
     StringFromPython,
 )
+from mathics.core.convert.sympy import to_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
 from mathics.core.list import ListExpression
@@ -124,7 +125,7 @@ class BaseForm(Builtin):
             return None
 
         if isinstance(expr, PrecisionReal):
-            x = expr.to_sympy()
+            x = to_sympy(expr)
             p = int(ceil(expr.get_precision() / LOG2_10) + 1)
         elif isinstance(expr, MachineReal):
             x = expr.value
@@ -796,7 +797,7 @@ class PythonForm(FormBaseClass):
 
         def build_python_form(expr):
             if isinstance(expr, Symbol):
-                return expr.to_sympy()
+                return to_sympy(expr)
             return expr.to_python()
 
         try:
@@ -832,7 +833,7 @@ class SympyForm(FormBaseClass):
         "MakeBoxes[expr_, SympyForm]"
 
         try:
-            sympy_equivalent = expr.to_sympy()
+            sympy_equivalent = to_sympy(expr)
         except Exception:
             return
         return StringFromPython(sympy_equivalent)

@@ -45,7 +45,12 @@ from mathics.core.attributes import (
     A_PROTECTED,
 )
 from mathics.core.convert.expression import to_expression
-from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
+from mathics.core.convert.sympy import (
+    SympyExpression,
+    from_sympy,
+    sympy_symbol_prefix,
+    to_sympy,
+)
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -128,7 +133,7 @@ class _MPMathFunction(SympyFunction):
 
         # if no arguments are inexact attempt to use sympy
         if all(not x.is_inexact() for x in args):
-            result = to_expression(self.get_name(), *args).to_sympy()
+            result = to_sympy(to_expression(self.get_name(), *args))
             result = self.prepare_mathics(result)
             result = from_sympy(result)
             # evaluate elements to convert e.g. Plus[2, I] -> Complex[2, 1]
@@ -467,7 +472,7 @@ class Complex_(Builtin):
         "Complex[r_?NumberQ, i_?NumberQ]"
 
         if isinstance(r, Complex) or isinstance(i, Complex):
-            sym_form = r.to_sympy() + sympy.I * i.to_sympy()
+            sym_form = to_sympy(r) + sympy.I * to_sympy(i)
             r, i = sym_form.simplify().as_real_imag()
             r, i = from_sympy(r), from_sympy(i)
         return Complex(r, i)
@@ -548,12 +553,12 @@ language/ref/ConditionalExpression.html</url>
             elif cond is SymbolFalse:
                 sympy_cond = False
         if sympy_cond is None:
-            sympy_cond = cond.to_sympy(**kwargs)
+            sympy_cond = to_sympy(cond, **kwargs)
             if not (sympy_cond.is_Relational or sympy_cond.is_Boolean):
                 return
 
         sympy_cases = (
-            (expr.to_sympy(**kwargs), sympy_cond),
+            (to_sympy(expr, **kwargs), sympy_cond),
             (sympy.Symbol(sympy_symbol_prefix + "System`Undefined"), True),
         )
         return sympy.Piecewise(*sympy_cases)
@@ -719,7 +724,7 @@ class DirectedInfinity(SympyFunction):
             elif dir == -1:
                 return -sympy.oo
             else:
-                return sympy.Mul((expr.elements[0].to_sympy()), sympy.zoo)
+                return sympy.Mul((to_sympy(expr.elements[0])), sympy.zoo)
         else:
             return sympy.zoo
 
@@ -866,7 +871,7 @@ class Im(SympyFunction):
     def eval(self, number, evaluation: Evaluation):
         "Im[number_]"
 
-        return from_sympy(sympy.im(number.to_sympy().expand(complex=True)))
+        return from_sympy(sympy.im(to_sympy(number).expand(complex=True)))
 
 
 class Integer_(Builtin):
@@ -965,16 +970,16 @@ class Piecewise(SympyFunction):
                 elif cond is SymbolFalse:
                     sympy_cond = False
             if sympy_cond is None:
-                sympy_cond = cond.to_sympy(**kwargs)
+                sympy_cond = to_sympy(cond, **kwargs)
                 if not (sympy_cond.is_Relational or sympy_cond.is_Boolean):
                     return
 
-            sympy_cases.append((then.to_sympy(**kwargs), sympy_cond))
+            sympy_cases.append((to_sympy(then, **kwargs), sympy_cond))
 
         if len(elements) == 2:  # default case
-            sympy_cases.append((elements[1].to_sympy(**kwargs), True))
+            sympy_cases.append((to_sympy(elements[1], **kwargs), True))
         else:
-            sympy_cases.append((Integer0.to_sympy(**kwargs), True))
+            sympy_cases.append((to_sympy(Integer0, **kwargs), True))
 
         return sympy.Piecewise(*sympy_cases)
 
@@ -1056,10 +1061,10 @@ class Product(IterationFunction, SympyFunction):
             try:
                 e_kwargs = kwargs.copy()
                 e_kwargs["convert_all_global_functions"] = True
-                e = expr.elements[0].to_sympy(**e_kwargs)
-                i = index.elements[0].to_sympy(**kwargs)
-                start = index.elements[1].to_sympy(**kwargs)
-                stop = index.elements[2].to_sympy(**kwargs)
+                e = to_sympy(expr.elements[0], **e_kwargs)
+                i = to_sympy(index.elements[0], **kwargs)
+                start = to_sympy(index.elements[1], **kwargs)
+                stop = to_sympy(index.elements[2], **kwargs)
 
                 return sympy.product(e, (i, start, stop))
             except ZeroDivisionError:
@@ -1136,7 +1141,7 @@ class Re(SympyFunction):
 
     def eval(self, number, evaluation: Evaluation):
         "Re[number_]"
-        return from_sympy(sympy.re(number.to_sympy().expand(complex=True)))
+        return from_sympy(sympy.re(to_sympy(number).expand(complex=True)))
 
 
 class Real_(Builtin):
@@ -1384,7 +1389,7 @@ class Sign(SympyFunction):
             return result
         # return None
 
-        sympy_x = x.to_sympy()
+        sympy_x = to_sympy(x)
         if sympy_x is None:
             return None
         # Unhandled cases. Use sympy
@@ -1505,7 +1510,7 @@ class Sum(IterationFunction, SympyFunction):
             index = expr.elements[1]
             arg_kwargs = kwargs.copy()
             arg_kwargs["convert_all_global_functions"] = True
-            f_sympy = expr.elements[0].to_sympy(**arg_kwargs)
+            f_sympy = to_sympy(expr.elements[0], **arg_kwargs)
             if f_sympy is None:
                 return
 
@@ -1513,7 +1518,7 @@ class Sum(IterationFunction, SympyFunction):
 
             # Handle summation parameters: variable, min, max
             var_min_max = index.elements[:3]
-            bounds = [expr.to_sympy(**kwargs) for expr in var_min_max]
+            bounds = [to_sympy(expr, **kwargs) for expr in var_min_max]
 
             if evaluation:
                 # Min and max might be Mathics expressions. If so, evaluate them.
@@ -1521,7 +1526,7 @@ class Sum(IterationFunction, SympyFunction):
                     min_max_expr = var_min_max[i]
                     if not isinstance(expr, Symbol):
                         min_max_expr_eval = min_max_expr.evaluate(evaluation)
-                        value = min_max_expr_eval.to_sympy(**kwargs)
+                        value = to_sympy(min_max_expr_eval, **kwargs)
                         bounds[i] = value
 
             # FIXME: The below tests on SympyExpression, but really the
@@ -1546,7 +1551,7 @@ class Sum(IterationFunction, SympyFunction):
                     )
                     ret = self.get_result(values.elements).evaluate(evaluation)
                     # Make sure to convert the result back to sympy.
-                    return ret.to_sympy()
+                    return to_sympy(ret)
 
             if None not in bounds:
                 return sympy.summation(f_sympy, bounds)

@@ -31,7 +31,7 @@ from mathics.core.attributes import (
     A_READ_PROTECTED,
 )
 from mathics.core.convert.expression import to_expression
-from mathics.core.convert.sympy import from_sympy
+from mathics.core.convert.sympy import from_sympy, to_sympy
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
@@ -347,16 +347,16 @@ class Plus(BinaryOperator, SympyFunction):
                 else:
                     return Expression(SymbolTimes, IntegerM1, *item.elements)
             elif isinstance(item, Number):
-                return from_sympy(-item.to_sympy())
+                return from_sympy(to_sympy(-item))
             else:
                 return Expression(SymbolTimes, IntegerM1, item)
 
         def is_negative(value) -> bool:
             if isinstance(value, Complex):
-                real, imag = value.to_sympy().as_real_imag()
+                real, imag = to_sympy(value).as_real_imag()
                 if real <= 0 and imag <= 0:
                     return True
-            elif isinstance(value, Number) and value.to_sympy() < 0:
+            elif isinstance(value, Number) and to_sympy(value) < 0:
                 return True
             return False
 
@@ -786,7 +786,7 @@ class Times(BinaryOperator, SympyFunction):
             if (
                 item.has_form("Power", 2)
                 and isinstance(item.elements[1], (Integer, Rational, Real))
-                and item.elements[1].to_sympy() < 0
+                and to_sympy(item.elements[1]) < 0
             ):  # nopep8
 
                 negative.append(inverse(item))

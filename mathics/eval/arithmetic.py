@@ -27,7 +27,7 @@ from mathics.core.atoms import (
     Real,
 )
 from mathics.core.convert.mpmath import from_mpmath
-from mathics.core.convert.sympy import from_sympy
+from mathics.core.convert.sympy import from_sympy, to_sympy
 from mathics.core.element import BaseElement, ElementsProperties
 from mathics.core.expression import Expression
 from mathics.core.number import FP_MANTISA_BINARY_DIGITS, SpecialValueError, min_prec
@@ -152,7 +152,7 @@ def eval_Exp(exp: BaseElement) -> BaseElement:
     # use sympy.
 
     if not exp.is_inexact():
-        exp_sp = exp.to_sympy()
+        exp_sp = to_sympy(exp)
         if exp_sp is None:
             return None
         return from_sympy(sympy.Exp(exp_sp))
@@ -377,7 +377,7 @@ def eval_Plus(*items: BaseElement) -> BaseElement:
         if item.has_form("Times", None):
             for element in item.elements:
                 if isinstance(element, Number):
-                    count = element.to_sympy()
+                    count = to_sympy(element)
                     rest = item.get_mutable_elements()
                     rest.remove(element)
                     if len(rest) == 1:
@@ -442,7 +442,7 @@ def eval_Power_number(base: Number, exp: Number) -> Optional[Number]:
         """
         # This function is called just if useful native rules
         # are available.
-        result = from_sympy(sympy.Pow(base.to_sympy(), exp.to_sympy()))
+        result = from_sympy(sympy.Pow(to_sympy(base), to_sympy(exp)))
         if result.has_form("Power", 2):
             # If the expression didn´t change, return None
             if result.elements[0].sameQ(base):
@@ -670,7 +670,7 @@ def eval_add_numbers(
             number = mpmath.fsum(terms)
             return from_mpmath(number, precision=prec)
     else:
-        return from_sympy(sum(item.to_sympy() for item in numbers))
+        return from_sympy(sum(to_sympy(item) for item in numbers))
 
 
 def eval_inverse_number(n: Number) -> Number:
@@ -715,7 +715,7 @@ def eval_multiply_numbers(*numbers: Number) -> Number:
             number = mpmath.fprod(factors)
             return from_mpmath(number, prec)
     else:
-        return from_sympy(sympy.Mul(*(item.to_sympy() for item in numbers)))
+        return from_sympy(sympy.Mul(*(to_sympy(item) for item in numbers)))
 
 
 def eval_negate_number(n: Number) -> Number:

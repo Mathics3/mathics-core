@@ -13,7 +13,7 @@ from mathics.core.atoms import Integer, Integer0
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.matrix import matrix_data
 from mathics.core.convert.mpmath import from_mpmath, to_mpmath_matrix
-from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
+from mathics.core.convert.sympy import from_sympy, to_sympy, to_sympy_matrix
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -547,7 +547,7 @@ class LinearSolve(Builtin):
                 evaluation.message("LinearSolve", "matrix", b, 2)
                 return
 
-        system = [mm + [v.to_sympy()] for mm, v in zip(matrix, b.elements)]
+        system = [mm + [to_sympy(v)] for mm, v in zip(matrix, b.elements)]
         system = to_sympy_matrix(system)
         if system is None:
             evaluation.message("LinearSolve", "matrix", b, 2)
@@ -651,7 +651,7 @@ class MatrixPower(Builtin):
             evaluation.message("MatrixPower", "matrix", m, 1)
             return
 
-        sympy_power = power.to_sympy()
+        sympy_power = to_sympy(power)
         if sympy_power is None:
             return
 

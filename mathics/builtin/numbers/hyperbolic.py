@@ -17,7 +17,7 @@ from typing import Optional
 from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.atoms import IntegerM1
-from mathics.core.convert.sympy import SympyExpression
+from mathics.core.convert.sympy import SympyExpression, to_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -148,9 +148,11 @@ class ArcCsch(_MPMathFunction):
 
     def to_sympy(self, expr, **kwargs) -> Optional[SympyExpression]:
         if len(expr.elements) == 1:
-            return Expression(
-                SymbolArcSinh, Expression(SymbolPower, expr.elements[0], IntegerM1)
-            ).to_sympy()
+            return to_sympy(
+                Expression(
+                    SymbolArcSinh, Expression(SymbolPower, expr.elements[0], IntegerM1)
+                )
+            )
 
 
 class ArcSech(_MPMathFunction):
@@ -184,9 +186,11 @@ class ArcSech(_MPMathFunction):
 
     def to_sympy(self, expr, **kwargs) -> Optional[SympyExpression]:
         if len(expr.elements) == 1:
-            return Expression(
-                SymbolArcCosh, Expression(SymbolPower, expr.elements[0], IntegerM1)
-            ).to_sympy()
+            return to_sympy(
+                Expression(
+                    SymbolArcCosh, Expression(SymbolPower, expr.elements[0], IntegerM1)
+                )
+            )
 
 
 class ArcSinh(_MPMathFunction):
@@ -462,9 +466,11 @@ class Sech(_MPMathFunction):
 
     def to_sympy(self, expr, **kwargs) -> Optional[SympyExpression]:
         if len(expr.elements) == 1:
-            return Expression(
-                SymbolPower, Expression(SymbolCosh, expr.elements[0]), IntegerM1
-            ).to_sympy()
+            return to_sympy(
+                Expression(
+                    SymbolPower, Expression(SymbolCosh, expr.elements[0]), IntegerM1
+                )
+            )
 
 
 class Sinh(_MPMathFunction):

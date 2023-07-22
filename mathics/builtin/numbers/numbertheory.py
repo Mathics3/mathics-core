@@ -18,7 +18,7 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_bool, from_python
-from mathics.core.convert.sympy import SympyPrime, from_sympy
+from mathics.core.convert.sympy import SympyPrime, from_sympy, to_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -71,7 +71,7 @@ class ContinuedFraction(SympyFunction):
     def eval_with_n(self, x, n: Integer, evaluation: Evaluation):
         "%(name)s[x_, n_Integer]"
         py_n = n.value
-        sympy_x = x.to_sympy()
+        sympy_x = to_sympy(x)
         it = sympy.continued_fraction_iterator(sympy_x)
         return from_sympy([next(it) for _ in range(py_n)])
 
@@ -243,7 +243,7 @@ class FactorInteger(Builtin):
 
 
 def _fractional_part(self, n, expr, evaluation: Evaluation):
-    n_sympy = n.to_sympy()
+    n_sympy = to_sympy(n)
     if n_sympy.is_constant():
         if n_sympy >= 0:
             positive_integer_part = (
@@ -426,7 +426,7 @@ class MantissaExponent(Builtin):
 
     def eval(self, n, evaluation: Evaluation):
         "MantissaExponent[n_]"
-        n_sympy = n.to_sympy()
+        n_sympy = to_sympy(n)
         expr = Expression(SymbolMantissaExponent, n)
 
         if isinstance(n.to_python(), complex):
@@ -447,7 +447,7 @@ class MantissaExponent(Builtin):
     def eval_with_b(self, n, b, evaluation: Evaluation):
         "MantissaExponent[n_, b_]"
         # Handle Input with special cases such as PI and E
-        n_sympy, b_sympy = n.to_sympy(), b.to_sympy()
+        n_sympy, b_sympy = to_sympy(n), to_sympy(b)
 
         expr = Expression(SymbolMantissaExponent, n, b)
 
@@ -608,11 +608,11 @@ class Prime(SympyFunction):
 
     def eval(self, n, evaluation: Evaluation):
         "Prime[n_]"
-        return from_sympy(SympyPrime(n.to_sympy()))
+        return from_sympy(SympyPrime(to_sympy(n)))
 
     def to_sympy(self, expr, **kwargs):
         if expr.has_form("Prime", 1):
-            return SympyPrime(expr.elements[0].to_sympy(**kwargs))
+            return SympyPrime(to_sympy(expr.elements[0], **kwargs))
 
 
 class PrimePi(SympyFunction):

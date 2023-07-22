@@ -4,7 +4,7 @@ import mpmath
 import sympy
 
 from mathics.core.atoms import Complex, MachineReal, PrecisionReal
-from mathics.core.convert.sympy import from_sympy
+from mathics.core.convert.sympy import from_sympy, to_sympy
 from mathics.core.element import BaseElement
 from mathics.core.expression import Expression
 from mathics.core.number import MACHINE_PRECISION_VALUE, ZERO_MACHINE_ACCURACY, dps
@@ -115,7 +115,7 @@ def cancel(expr):
         return Expression(SymbolPlus, *[cancel(element) for element in expr.elements])
     else:
         try:
-            result = expr.to_sympy()
+            result = to_sympy(expr)
             if result is None:
                 return None
 

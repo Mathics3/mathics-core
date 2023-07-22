@@ -12,7 +12,7 @@ from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.atoms import Integer, Integer0, String
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.convert.expression import to_mathics_list
-from mathics.core.convert.sympy import from_sympy
+from mathics.core.convert.sympy import from_sympy, to_sympy
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolPlus, SymbolTimes
@@ -110,7 +110,7 @@ class Ceiling(SympyFunction):
 
     def eval(self, x, evaluation):
         "Ceiling[x_]"
-        x = x.to_sympy()
+        x = to_sympy(x)
         if x is None:
             return
         return from_sympy(sympy.ceiling(x))
@@ -216,7 +216,7 @@ class Floor(SympyFunction):
 
     def eval_real(self, x, evaluation):
         "Floor[x_]"
-        x = x.to_sympy()
+        x = to_sympy(x)
         if x is not None:
             return from_sympy(sympy.floor(x))
 

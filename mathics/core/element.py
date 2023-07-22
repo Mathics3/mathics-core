@@ -425,9 +425,6 @@ class BaseElement(KeyComparable):
     def to_mpmath(self):
         raise NotImplementedError
 
-    def to_sympy(self, **kwargs):
-        raise NotImplementedError
-
 
 class EvalMixin:
     """

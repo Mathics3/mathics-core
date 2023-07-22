@@ -18,6 +18,7 @@ from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer, Integer0, IntegerM1, Real
 from mathics.core.convert.python import from_python
+from mathics.core.convert.sympy import to_sympy
 from mathics.core.exceptions import IllegalStepSpecification
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -442,9 +443,11 @@ class ArcCsc(_MPMathFunction):
 
     def to_sympy(self, expr, **kwargs):
         if len(expr.elements) == 1:
-            return Expression(
-                SymbolArcSin, Expression(SymbolPower, expr.elements[0], Integer(-1))
-            ).to_sympy()
+            return to_sympy(
+                Expression(
+                    SymbolArcSin, Expression(SymbolPower, expr.elements[0], Integer(-1))
+                )
+            )
 
 
 class ArcSec(_MPMathFunction):
@@ -484,9 +487,11 @@ class ArcSec(_MPMathFunction):
 
     def to_sympy(self, expr, **kwargs):
         if len(expr.elements) == 1:
-            return Expression(
-                SymbolArcCos, Expression(SymbolPower, expr.elements[0], IntegerM1)
-            ).to_sympy()
+            return to_sympy(
+                Expression(
+                    SymbolArcCos, Expression(SymbolPower, expr.elements[0], IntegerM1)
+                )
+            )
 
 
 class ArcSin(_MPMathFunction):
@@ -697,9 +702,11 @@ class Csc(_MPMathFunction):
 
     def to_sympy(self, expr, **kwargs):
         if len(expr.elements) == 1:
-            return Expression(
-                SymbolPower, Expression(SymbolSin, expr.elements[0]), Integer(-1)
-            ).to_sympy()
+            return to_sympy(
+                Expression(
+                    SymbolPower, Expression(SymbolSin, expr.elements[0]), Integer(-1)
+                )
+            )
 
 
 class Haversine(_MPMathFunction):
@@ -783,9 +790,11 @@ class Sec(_MPMathFunction):
 
     def to_sympy(self, expr, **kwargs):
         if len(expr.elements) == 1:
-            return Expression(
-                SymbolPower, Expression(SymbolCos, expr.elements[0]), Integer(-1)
-            ).to_sympy()
+            return to_sympy(
+                Expression(
+                    SymbolPower, Expression(SymbolCos, expr.elements[0]), Integer(-1)
+                )
+            )
 
 
 class Sin(_MPMathFunction):

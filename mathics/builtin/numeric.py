@@ -17,7 +17,7 @@ import sympy
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import Complex, Integer, Integer0, Rational, Real
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
-from mathics.core.convert.sympy import from_sympy
+from mathics.core.convert.sympy import from_sympy, to_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.number import MACHINE_EPSILON
@@ -309,7 +309,7 @@ class Rationalize(Builtin):
     def eval(self, x, evaluation: Evaluation):
         "Rationalize[x_]"
 
-        py_x = x.to_sympy()
+        py_x = to_sympy(x)
         if py_x is None or (not py_x.is_number) or (not py_x.is_real):
             return x
 
@@ -351,10 +351,10 @@ class Rationalize(Builtin):
 
     def eval_dx(self, x, dx, evaluation: Evaluation):
         "Rationalize[x_, dx_]"
-        py_x = x.to_sympy()
+        py_x = to_sympy(x)
         if py_x is None:
             return x
-        py_dx = dx.to_sympy()
+        py_dx = to_sympy(dx)
         if (
             py_dx is None
             or (not py_dx.is_number)
