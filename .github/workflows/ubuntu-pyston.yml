@@ -1,0 +1,57 @@
+name: Mathics3 (ubuntu full with Pyston)
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        pyston-version: [2.3.4]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Pyston ${{ matrix.pyston-version }}
+      run: |
+        wget https://github.com/pyston/pyston/releases/download/pyston_2.3.4/pyston_2.3.4_20.04_amd64.deb
+        sudo apt-get install tk8.6-blt2.5 libffi7
+        sudo dpkg -i pyston_2.3.4_20.04_amd64.deb
+    - name: Install dependencies
+      run: |
+        sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-11 llvm-11-dev libopenblas0 tesseract-ocr
+        sudo pyston -m pip install --upgrade pip
+        sudo LLVM_CONFIG=/usr/lib/llvm-11/bin/llvm-config  pyston -m pip install llvmlite
+        # Download wheels for heavy packages from mathics-omnibus
+        wget https://github.com/Mathics3/mathics-omnibus/raw/mathics-6.x/docker/src/numpy-1.24.0-pyston38-pyston_23_x86_64_linux_gnu-linux_x86_64.whl
+        wget https://github.com/Mathics3/mathics-omnibus/raw/mathics-6.x/docker/src/Pillow-9.2.0-pyston38-pyston_23_x86_64_linux_gnu-linux_x86_64.whl
+        wget https://github.com/Mathics3/mathics-omnibus/raw/mathics-6.x/docker/src/lxml-4.9.2-pyston38-pyston_23_x86_64_linux_gnu-linux_x86_64.whl
+        wget https://github.com/Mathics3/mathics-omnibus/raw/mathics-6.x/docker/src/wordcloud-1.8.2.2-pyston38-pyston_23_x86_64_linux_gnu-linux_x86_64.whl
+        wget https://github.com/Mathics3/mathics-omnibus/raw/mathics-6.x/docker/src/PyYAML-6.0-pyston38-pyston_23_x86_64_linux_gnu-linux_x86_64.whl
+        wget https://github.com/Mathics3/mathics-omnibus/raw/mathics-6.x/docker/src/pyocr-0.8.3-py3-none-any.whl
+        wget https://github.com/Mathics3/mathics-omnibus/raw/mathics-6.x/docker/src/scikit_image-0.19.3-pyston38-pyston_23_x86_64_linux_gnu-linux_x86_64.whl
+        wget https://github.com/Mathics3/mathics-omnibus/raw/mathics-6.x/docker/src/matplotlib-3.5.2-pyston38-pyston_23_x86_64_linux_gnu-linux_x86_64.whl
+        wget https://github.com/Mathics3/mathics-omnibus/raw/mathics-6.x/docker/src/PyWavelets-1.3.0-pyston38-pyston_23_x86_64_linux_gnu-linux_x86_64.whl
+        # Scipy wheel does not work....
+        wget www2.fisica.unlp.edu.ar/~matera/scipy-1.7.3-pyston38-pyston_23_x86_64_linux_gnu-linux_x86_64.whl
+        wget https://github.com/Mathics3/mathics-omnibus/raw/mathics-6.x/docker/src/pyzmq-23.2.0-pyston38-pyston_23_x86_64_linux_gnu-linux_x86_64.whl
+        pip install numpy-1.24.0-pyston38-pyston_23_x86_64_linux_gnu-linux_x86_64.whl
+        pip install scipy-1.7.3-pyston38-pyston_23_x86_64_linux_gnu-linux_x86_64.whl
+        pip install PyWavelets-1.3.0-pyston38-pyston_23_x86_64_linux_gnu-linux_x86_64.whl
+        pip install Pillow-9.2.0-pyston38-pyston_23_x86_64_linux_gnu-linux_x86_64.whl
+        pip install matplotlib-3.5.2-pyston38-pyston_23_x86_64_linux_gnu-linux_x86_64.whl
+        pip install lxml-4.9.2-pyston38-pyston_23_x86_64_linux_gnu-linux_x86_64.whl
+        pip install wordcloud-1.8.2.2-pyston38-pyston_23_x86_64_linux_gnu-linux_x86_64.whl
+        pip install PyYAML-6.0-pyston38-pyston_23_x86_64_linux_gnu-linux_x86_64.whl
+        pip install pyocr-0.8.3-py3-none-any.whl
+        pip install scikit_image-0.19.3-pyston38-pyston_23_x86_64_linux_gnu-linux_x86_64.whl
+        pip install pyzmq-23.2.0-pyston38-pyston_23_x86_64_linux_gnu-linux_x86_64.whl
+    - name: Install Mathics with full dependencies
+      run: |
+        python -m pip install Mathics-Scanner
+        make develop-full
+    - name: Test Mathics
+      run: |
+        make -j3 PYTHON=pyston doctest
