@@ -7,7 +7,7 @@ Differential Equations
 import sympy
 
 from mathics.builtin.base import Builtin
-from mathics.core.convert.sympy import from_sympy, to_sympy
+from mathics.core.convert.sympy import from_sympy, to_sympy_with_kwargs
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -153,8 +153,8 @@ class DSolve(Builtin):
         f_name = func.get_head_name()
 
         conversion_args = {"converted_functions": set([f_name])}
-        sym_func = to_sympy(func, **conversion_args)
-        sym_eq = to_sympy(eqn, **conversion_args)
+        sym_func = to_sympy_with_kwargs(func, **conversion_args)
+        sym_eq = to_sympy_with_kwargs(eqn, **conversion_args)
 
         # XXX when sympy adds support for higher-order PDE we will have to
         # change this to a tuple of solvefuns

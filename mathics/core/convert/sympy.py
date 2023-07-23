@@ -4,7 +4,7 @@
 Converts expressions from SymPy to Mathics expressions.
 Conversion to SymPy is handled directly in BaseElement descendants.
 """
-
+from functools import lru_cache
 from typing import Optional, Type, Union
 
 import sympy
@@ -118,16 +118,33 @@ def is_Cn_expr(name) -> bool:
     return False
 
 
-def to_sympy(expr, **kwargs):
+def eval_sympy(expr):
+    sp = to_sympy(expr)
+    return None if sp is None else from_sympy(sp)
+
+
+@lru_cache()
+def to_sympy(expr):
+    #    print("to_sympy", expr)
+    if hasattr(expr, "to_sympy"):
+        return expr.to_sympy()
+    if isinstance(expr, Symbol):
+        return symbol_to_sympy(expr)
+    if isinstance(expr, Expression):
+        return expression_to_sympy(expr)
+
+
+def to_sympy_with_kwargs(expr, **kwargs):
+    #    print("to_sympy_with_kwargs", expr)
     if hasattr(expr, "to_sympy"):
         return expr.to_sympy(**kwargs)
     if isinstance(expr, Symbol):
-        return symbol_to_sympy(expr, **kwargs)
+        return symbol_to_sympy_with_kwargs(expr, **kwargs)
     if isinstance(expr, Expression):
-        return expression_to_sympy(expr, **kwargs)
+        return expression_to_sympy_with_kwargs(expr, **kwargs)
 
 
-def to_sympy_matrix(data, **kwargs) -> Optional[sympy.MutableDenseMatrix]:
+def to_sympy_matrix(data) -> Optional[sympy.MutableDenseMatrix]:
     """Convert a Mathics matrix to one that can be used by Sympy.
     None is returned if we can't convert to a Sympy matrix.
     """
@@ -223,13 +240,30 @@ class SympyPrime(sympy.Function):
                 pass
 
 
-def expression_to_sympy(expr: Expression, **kwargs):
+def expression_to_sympy(expr: Expression):
     """
     Convert `expr` to its sympy form.
     """
+    lookup_name = expr.get_lookup_name()
+    builtin = mathics_to_sympy.get(lookup_name)
+    if builtin is not None:
+        sympy_expr = builtin.to_sympy(expr)
+        if sympy_expr is not None:
+            return sympy_expr
+    return SympyExpression(expr)
+
+
+def expression_to_sympy_with_kwargs(expr: Expression, **kwargs):
+    """
+    Convert `expr` to its sympy form.
+    """
+    if len(kwargs) == 0:
+        return expression_to_sympy(expr)
 
     def as_sympy_function(expr, **kwargs) -> Optional[sympy.Function]:
-        sym_args = [to_sympy(element, **kwargs) for element in expr._elements]
+        sym_args = [
+            to_sympy_with_kwargs(element, **kwargs) for element in expr._elements
+        ]
 
         if None in sym_args:
             return None
@@ -262,7 +296,7 @@ def expression_to_sympy(expr: Expression, **kwargs):
     return SympyExpression(expr)
 
 
-def symbol_to_sympy(symbol: Symbol, **kwargs) -> Sympy_Symbol:
+def symbol_to_sympy(symbol: Symbol) -> Sympy_Symbol:
     """
     Convert `symbol` to its sympy form.
     """
@@ -271,8 +305,26 @@ def symbol_to_sympy(symbol: Symbol, **kwargs) -> Sympy_Symbol:
     if result is not None:
         return result
 
-    if symbol.sympy_dummy is not None:
-        return symbol.sympy_dummy
+    builtin = mathics_to_sympy.get(symbol.name)
+    if builtin is None or not builtin.sympy_name or not builtin.is_constant():  # nopep8
+        return Sympy_Symbol(sympy_symbol_prefix + symbol.name)
+    return builtin.to_sympy(symbol)
+
+
+def symbol_to_sympy_with_kwargs(symbol: Symbol, **kwargs) -> Sympy_Symbol:
+    """
+    Convert `symbol` to its sympy form.
+    """
+    if len(kwargs) == 0:
+        return symbol_to_sympy(symbol)
+
+    result = mathics_to_sympy_singleton.get(symbol, None)
+    if result is not None:
+        return result
+
+    if symbol.name in kwargs.get("dummies", {}):
+        print("vale por un dummy")
+        return None
 
     builtin = mathics_to_sympy.get(symbol.name)
     if builtin is None or not builtin.sympy_name or not builtin.is_constant():  # nopep8

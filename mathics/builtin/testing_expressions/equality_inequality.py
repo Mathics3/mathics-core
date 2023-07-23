@@ -18,7 +18,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
 )
 from mathics.core.convert.expression import to_expression, to_numeric_args
-from mathics.core.convert.sympy import to_sympy
+from mathics.core.convert.sympy import to_sympy, to_sympy_with_kwargs
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import (
     MATHICS3_COMPLEX_INFINITY,
@@ -155,8 +155,8 @@ class _EqualityOperator(_InequalityOperator):
 
     def sympy_equal(self, lhs, rhs, max_extra_prec=None) -> Optional[bool]:
         try:
-            lhs_sympy = to_sympy(lhs, evaluate=True, prec=COMPARE_PREC)
-            rhs_sympy = to_sympy(rhs, evaluate=True, prec=COMPARE_PREC)
+            lhs_sympy = to_sympy_with_kwargs(lhs, evaluate=True, prec=COMPARE_PREC)
+            rhs_sympy = to_sympy_with_kwargs(rhs, evaluate=True, prec=COMPARE_PREC)
         except NotImplementedError:
             return None
 
