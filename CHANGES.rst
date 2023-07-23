@@ -3,6 +3,16 @@
 CHANGES
 =======
 
+Change testing to facilitate openSUSE Tumbleweed distribution which uses Sympy 1.12. See `Issue #881 <https://github.com/Mathics3/mathics-core/issues/881>`_.
+
+6.0.2
+-----
+
+Package update
+..............
+
+#. SymPy 1.12 accepted
+
 6.0.1
 -----
 
