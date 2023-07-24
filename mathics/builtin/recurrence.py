@@ -15,7 +15,7 @@ import sympy
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import IntegerM1
 from mathics.core.attributes import A_CONSTANT
-from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix
+from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix, to_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -119,7 +119,7 @@ class RSolve(Builtin):
                     and ri.is_numeric(evaluation)
                 ):
 
-                    r_sympy = ri.to_sympy()
+                    r_sympy = to_sympy(ri)
                     if r_sympy is None:
                         raise ValueError
                     conditions[le.elements[0].to_python()] = r_sympy
@@ -138,7 +138,7 @@ class RSolve(Builtin):
             SymbolPlus, left, Expression(SymbolTimes, IntegerM1, right)
         ).evaluate(evaluation)
 
-        sym_eq = relation.to_sympy(converted_functions={func.get_head_name()})
+        sym_eq = to_sympy(relation, converted_functions={func.get_head_name()})
         if sym_eq is None:
             return
         sym_n = sympy.core.symbols(str(sympy_symbol_prefix + n.name))

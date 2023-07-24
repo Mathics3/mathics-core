@@ -19,7 +19,7 @@ from mathics.core.atoms import (
     Real,
     String,
 )
-from mathics.core.convert.sympy import from_sympy, sympy_singleton_to_mathics
+from mathics.core.convert.sympy import from_sympy, sympy_singleton_to_mathics, to_sympy
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import (
     MATHICS3_COMPLEX_INFINITY,
@@ -78,7 +78,7 @@ def test_from_to_sympy_invariant(expr):
     """
     Check if the conversion back and forward is consistent.
     """
-    result_sympy = expr.to_sympy()
+    result_sympy = to_sympy(expr)
     back_to_mathics = from_sympy(result_sympy)
     print([expr, result_sympy, back_to_mathics])
     assert expr.sameQ(back_to_mathics)
@@ -122,9 +122,9 @@ def test_from_to_sympy_change(expr, result, msg):
     """
     print([expr, result])
     if msg:
-        assert result.sameQ(from_sympy(expr.to_sympy())), msg
+        assert result.sameQ(from_sympy(to_sympy(expr))), msg
     else:
-        assert result.sameQ(from_sympy(expr.to_sympy()))
+        assert result.sameQ(from_sympy(to_sympy(expr)))
 
 
 def test_convert_sympy_singletons():
@@ -139,6 +139,6 @@ def test_convert_sympy_singletons():
             print("  ->  ", res)
             assert from_sympy(key).sameQ(val)
 
-            res = val.to_sympy()
+            res = to_sympy(val)
             print(res, "  <-  ")
             assert res is key

@@ -621,11 +621,6 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         # dictionaries.
         return self.name
 
-    def to_sympy(self, **kwargs):
-        from mathics.core.convert.sympy import symbol_to_sympy
-
-        return symbol_to_sympy(self, **kwargs)
-
 
 class SymbolConstant(Symbol):
     """

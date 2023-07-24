@@ -118,6 +118,15 @@ def is_Cn_expr(name) -> bool:
     return False
 
 
+def to_sympy(expr, **kwargs):
+    if hasattr(expr, "to_sympy"):
+        return expr.to_sympy(**kwargs)
+    if isinstance(expr, Symbol):
+        return symbol_to_sympy(expr, **kwargs)
+    if isinstance(expr, Expression):
+        return expression_to_sympy(expr, **kwargs)
+
+
 def to_sympy_matrix(data, **kwargs) -> Optional[sympy.MutableDenseMatrix]:
     """Convert a Mathics matrix to one that can be used by Sympy.
     None is returned if we can't convert to a Sympy matrix.
@@ -144,8 +153,8 @@ class SympyExpression(BasicSympy):
         elif len(exprs) == 1 and isinstance(exprs[0], Expression):
             # called with Mathics argument
             expr = exprs[0]
-            sympy_head = expr.head.to_sympy()
-            sympy_elements = [element.to_sympy() for element in expr.elements]
+            sympy_head = to_sympy(expr.head)
+            sympy_elements = [to_sympy(element) for element in expr.elements]
             if sympy_head is None or None in sympy_elements:
                 return None
             obj = BasicSympy.__new__(cls, sympy_head, *sympy_elements)
@@ -219,15 +228,24 @@ def expression_to_sympy(expr: Expression, **kwargs):
     Convert `expr` to its sympy form.
     """
 
+    def as_sympy_function(expr, **kwargs) -> Optional[sympy.Function]:
+        sym_args = [to_sympy(element, **kwargs) for element in expr._elements]
+
+        if None in sym_args:
+            return None
+
+        f = sympy.Function(str(sympy_symbol_prefix + expr.get_head_name()))
+        return f(*sym_args)
+
     if "convert_all_global_functions" in kwargs:
         if len(expr.elements) > 0 and kwargs["convert_all_global_functions"]:
             if expr.get_head_name().startswith("Global`"):
-                return expr._as_sympy_function(**kwargs)
+                return as_sympy_function(expr, **kwargs)
 
     if "converted_functions" in kwargs:
         functions = kwargs["converted_functions"]
         if len(expr._elements) > 0 and expr.get_head_name() in functions:
-            sym_args = [element.to_sympy() for element in expr._elements]
+            sym_args = [to_sympy(element) for element in expr._elements]
             if None in sym_args:
                 return None
             func = sympy.Function(str(sympy_symbol_prefix + expr.get_head_name()))(
@@ -276,7 +294,7 @@ def to_numeric_sympy_args(mathics_args: Type[BaseElement], evaluation) -> list:
         sympy_args = [mathics_args.value]
     else:
         args = numerify(mathics_args, evaluation).get_sequence()
-        sympy_args = [a.to_sympy() for a in args]
+        sympy_args = [to_sympy(a) for a in args]
 
     return sympy_args
 

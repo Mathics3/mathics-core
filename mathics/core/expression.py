@@ -251,17 +251,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             ", ".join([str(element) for element in self.elements]),
         )
 
-    def _as_sympy_function(self, **kwargs) -> Optional[sympy.Function]:
-        from mathics.core.convert.sympy import sympy_symbol_prefix
-
-        sym_args = [element.to_sympy(**kwargs) for element in self._elements]
-
-        if None in sym_args:
-            return None
-
-        f = sympy.Function(str(sympy_symbol_prefix + self.get_head_name()))
-        return f(*sym_args)
-
     # Note: this function is called a *lot* so it needs to be fast.
     def _build_elements_properties(self):
         """
@@ -1496,11 +1485,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # Notice that in this case, `to_python` returns a Mathics Expression object,
         # instead of a builtin native object.
         return self
-
-    def to_sympy(self, **kwargs):
-        from mathics.core.convert.sympy import expression_to_sympy
-
-        return expression_to_sympy(self, **kwargs)
 
     def process_style_box(self, options):
         if self.has_form("StyleBox", 1, None):

@@ -22,7 +22,7 @@ from mathics.builtin.base import Builtin
 from mathics.core.atoms import IntegerM1
 from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.python import from_python
-from mathics.core.convert.sympy import from_sympy
+from mathics.core.convert.sympy import from_sympy, to_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -60,7 +60,7 @@ class Maximize(Builtin):
     def eval(self, f, vars, evaluation: Evaluation):
         "Maximize[f_?NotListQ, vars_]"
 
-        dual_f = f.to_sympy() * (-1)
+        dual_f = to_sympy(f) * (-1)
 
         dual_solutions = (
             Expression(SymbolMinimize, from_sympy(dual_f), vars)
@@ -79,7 +79,7 @@ class Maximize(Builtin):
         "Maximize[f_List, vars_]"
 
         constraints = [function for function in f.elements]
-        constraints[0] = from_sympy(constraints[0].to_sympy() * IntegerM1)
+        constraints[0] = from_sympy(to_sympy(constraints[0]) * IntegerM1)
 
         dual_solutions = (
             Expression(SymbolMinimize, constraints, vars).evaluate(evaluation).elements
@@ -121,8 +121,8 @@ class Minimize(Builtin):
     def eval_onevariable(self, f, x, evaluation: Evaluation):
         "Minimize[f_?NotListQ, x_?NotListQ]"
 
-        sympy_x = x.to_sympy()
-        sympy_f = f.to_sympy()
+        sympy_x = to_sympy(x)
+        sympy_f = to_sympy(f)
 
         derivative = sympy.diff(sympy_f, sympy_x)
         second_derivative = sympy.diff(derivative, sympy_x)
@@ -165,8 +165,8 @@ class Minimize(Builtin):
                 evaluation.message("Minimize", "ivar", vars_or)
                 return
 
-        vars_sympy = [var.to_sympy() for var in vars]
-        sympy_f = f.to_sympy()
+        vars_sympy = [to_sympy(var) for var in vars]
+        sympy_f = to_sympy(f)
 
         jacobian = [sympy.diff(sympy_f, x) for x in vars_sympy]
         hessian = sympy.Matrix(
@@ -242,9 +242,9 @@ class Minimize(Builtin):
                 evaluation.message("Minimize", "ivar", vars_or)
                 return
 
-        vars_sympy = [var.to_sympy() for var in vars]
+        vars_sympy = [to_sympy(var) for var in vars]
         constraints = [function for function in f.elements]
-        objective_function = constraints[0].to_sympy()
+        objective_function = to_sympy(constraints[0])
 
         constraints = constraints[1:]
 
@@ -258,8 +258,8 @@ class Minimize(Builtin):
             left, right = constraint.elements
             head_name = constraint.get_head_name()
 
-            left = left.to_sympy()
-            right = right.to_sympy()
+            left = to_sympy(left)
+            right = to_sympy(right)
 
             if head_name == "System`LessEqual" or head_name == "System`Less":
                 eq = left - right

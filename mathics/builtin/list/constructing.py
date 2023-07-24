@@ -15,7 +15,7 @@ from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import Integer, is_integer_rational_or_real
 from mathics.core.attributes import A_HOLD_FIRST, A_LISTABLE, A_LOCKED, A_PROTECTED
 from mathics.core.convert.expression import to_expression
-from mathics.core.convert.sympy import from_sympy
+from mathics.core.convert.sympy import from_sympy, to_sympy
 from mathics.core.element import ElementsProperties
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, structure
@@ -263,9 +263,9 @@ class Range(Builtin):
                 *result, elements_properties=range_list_elements_properties
             )
 
-        imin = imin.to_sympy()
-        imax = imax.to_sympy()
-        di = di.to_sympy()
+        imin = to_sympy(imin)
+        imax = to_sympy(imax)
+        di = to_sympy(di)
         index = imin
         result = []
         while index <= imax:

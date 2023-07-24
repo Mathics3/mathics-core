@@ -12,7 +12,7 @@ from mathics.core.atoms import Integer, Integer0, Number
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.python import from_python
-from mathics.core.convert.sympy import from_sympy
+from mathics.core.convert.sympy import from_sympy, to_sympy
 from mathics.core.expression import Expression
 from mathics.core.number import FP_MANTISA_BINARY_DIGITS, dps, min_prec
 from mathics.core.symbols import Symbol, SymbolSequence
@@ -229,7 +229,7 @@ class Factorial2(PostfixOperator, _MPMathFunction):
             convert_from_fn = from_mpmath
             fact2_fn = getattr(mpmath, self.mpmath_name)
         elif preference == "sympy":
-            number_arg = number.to_sympy()
+            number_arg = to_sympy(number)
             convert_from_fn = from_sympy
             fact2_fn = getattr(sympy, self.sympy_name)
         else:

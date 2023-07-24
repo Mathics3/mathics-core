@@ -17,7 +17,7 @@ from mathics.core.atoms import (
     String,
 )
 from mathics.core.convert.python import from_python
-from mathics.core.convert.sympy import from_sympy
+from mathics.core.convert.sympy import from_sympy, to_sympy
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolPlus
@@ -32,7 +32,7 @@ from mathics.core.systemsymbols import (
 
 class SympyConvert(unittest.TestCase):
     def compare_to_sympy(self, mathics_expr, sympy_expr, **kwargs):
-        mathics_expr.to_sympy(**kwargs) == sympy_expr
+        to_sympy(mathics_expr, **kwargs) == sympy_expr
 
     def compare_to_mathics(self, mathics_expr, sympy_expr, **kwargs):
         mathics_expr == from_sympy(sympy_expr, **kwargs)
@@ -76,7 +76,7 @@ class SympyConvert(unittest.TestCase):
         )
 
     def testString(self):
-        String("abc").to_sympy() is None
+        to_sympy(String("abc")) is None
 
     def testAdd(self):
         self.compare(

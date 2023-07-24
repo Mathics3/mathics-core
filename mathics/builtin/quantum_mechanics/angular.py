@@ -22,7 +22,7 @@ from mathics.core.attributes import (  # A_LISTABLE,; A_NUMERIC_FUNCTION,
     A_READ_PROTECTED,
 )
 from mathics.core.convert.python import from_python
-from mathics.core.convert.sympy import from_sympy
+from mathics.core.convert.sympy import from_sympy, to_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
@@ -78,7 +78,7 @@ class ClebschGordan(SympyFunction):
         for pair in (j1m1, j2m2, jm):
             if len(pair.elements) != 2:
                 return
-            sympy_jms += [p.to_sympy() for p in pair.elements]
+            sympy_jms += [to_sympy(p) for p in pair.elements]
         return from_sympy(CG(*sympy_jms).doit())
 
 
@@ -204,7 +204,7 @@ class SixJSymbol(SympyFunction):
                         "SixJSymbol", "6jsymbol_symbol", i, triple, element
                     )
                     return
-                py_element = element.to_sympy()
+                py_element = to_sympy(element)
                 sympy_js.append(py_element)
 
         try:
@@ -288,7 +288,7 @@ class ThreeJSymbol(SympyFunction):
                 if isinstance(element, Symbol):
                     evaluation.message("ThreeJSymbol", "threejsymbol", i, pair, element)
                     return
-                py_element = element.to_sympy()
+                py_element = to_sympy(element)
                 # SymPy wants all of the j's together first and then all of the m's together
                 # rather than pairs if (j, m).
                 sympy_js[j * 3 + i] = py_element

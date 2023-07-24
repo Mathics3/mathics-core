@@ -1,7 +1,7 @@
 from typing import Callable, Optional
 
 from mathics.core.atoms import Integer, Real, String
-from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
+from mathics.core.convert.sympy import from_sympy, to_sympy, to_sympy_matrix
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
@@ -29,13 +29,13 @@ def eval_Norm_p(
     Norm[m, p] evaluation function - the p-norm of matrix m.
     """
     if isinstance(p, Symbol):
-        sympy_p = p.to_sympy()
+        sympy_p = to_sympy(p)
     elif isinstance(p, String):
         sympy_p = p.value
         if sympy_p == "Frobenius":
             sympy_p = "fro"
     elif isinstance(p, (Real, Integer)) and p.to_python() >= 1:
-        sympy_p = p.to_sympy()
+        sympy_p = to_sympy(p)
     else:
         if show_message:
             show_message("Norm", "ptype", p)

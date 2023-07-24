@@ -25,7 +25,7 @@ from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import Integer, Integer0, Integer1, Number, RationalOneHalf
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
 from mathics.core.convert.python import from_bool
-from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix
+from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix, to_sympy
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -295,12 +295,12 @@ def find_all_vars(expr):
             variables.add(e)
         elif e.has_form(("Plus", "Times"), None):
             for lv in e.elements:
-                lv_sympy = lv.to_sympy()
+                lv_sympy = to_sympy(lv)
                 if lv_sympy is not None:
                     find_vars(lv, lv_sympy)
         elif e.has_form("Power", 2):
             (a, b) = e.elements  # a^b
-            a_sympy, b_sympy = a.to_sympy(), b.to_sympy()
+            a_sympy, b_sympy = to_sympy(a), to_sympy(b)
             if a_sympy is None or b_sympy is None:
                 return
             if not (a_sympy.is_constant()) and b_sympy.is_rational:
@@ -310,7 +310,7 @@ def find_all_vars(expr):
 
     exprs = expr.elements if expr.has_form("List", None) else [expr]
     for e in exprs:
-        e_sympy = e.to_sympy()
+        e_sympy = to_sympy(e)
         if e_sympy is not None:
             find_vars(e, e_sympy)
 
@@ -321,8 +321,8 @@ def get_exponents_sorted(expr, var) -> list:
     """
     Return a sorted list of exponents of var in expr
     """
-    f = expr.to_sympy()
-    x = var.to_sympy()
+    f = to_sympy(expr)
+    x = to_sympy(var)
     if f is None or x is None:
         return [Integer0]
 
@@ -393,8 +393,8 @@ class Apart(Builtin):
     def eval(self, expr, var, evaluation):
         "Apart[expr_, var_Symbol]"
 
-        expr_sympy = expr.to_sympy()
-        var_sympy = var.to_sympy()
+        expr_sympy = to_sympy(expr)
+        var_sympy = to_sympy(var)
         if expr_sympy is None or var_sympy is None:
             return None
 
@@ -444,9 +444,9 @@ def _coefficient(name, expr, form, n, evaluation):
         evaluation.message(name, "ivar", form)
         return
 
-    sympy_exprs = expr.to_sympy().as_ordered_terms()
-    sympy_var = form.to_sympy()
-    sympy_n = n.to_sympy()
+    sympy_exprs = to_sympy(expr).as_ordered_terms()
+    sympy_var = to_sympy(form)
+    sympy_n = to_sympy(n)
 
     def combine_exprs(exprs):
         result = 0
@@ -962,8 +962,8 @@ class CoefficientList(Builtin):
         elif form.has_form("List", 0):
             return expr
 
-        sympy_expr = expr.to_sympy()
-        sympy_vars = [v.to_sympy() for v in vars]
+        sympy_expr = to_sympy(expr)
+        sympy_vars = [to_sympy(v) for v in vars]
 
         if not sympy_expr.is_polynomial(*[x for x in sympy_vars]):
             evaluation.message("CoefficientList", "poly", expr)
@@ -1090,7 +1090,7 @@ class Denominator(Builtin):
     def eval(self, expr, evaluation):
         "Denominator[expr_]"
 
-        sympy_expr = expr.to_sympy()
+        sympy_expr = to_sympy(expr)
         if sympy_expr is None:
             return None
         numer, denom = sympy_expr.as_numer_denom()
@@ -1434,7 +1434,7 @@ class Factor(Builtin):
     def eval(self, expr, evaluation):
         "Factor[expr_]"
 
-        expr_sympy = expr.to_sympy()
+        expr_sympy = to_sympy(expr)
         if expr_sympy is None:
             return None
 
@@ -1500,15 +1500,15 @@ class FactorTermsList(Builtin):
                 evaluation.message("CoefficientList", "ivar", x)
                 return
 
-        sympy_expr = expr.to_sympy()
+        sympy_expr = to_sympy(expr)
         if sympy_expr is None:
             return ListExpression(Integer1, expr)
         sympy_expr = sympy.together(sympy_expr)
 
         sympy_vars = [
-            x.to_sympy()
+            to_sympy(x)
             for x in vars.elements
-            if isinstance(x, Symbol) and sympy_expr.is_polynomial(x.to_sympy())
+            if isinstance(x, Symbol) and sympy_expr.is_polynomial(to_sympy(x))
         ]
 
         result = []
@@ -1700,7 +1700,7 @@ class Simplify(Builtin):
         # At this point, we used all the tools available in Mathics.
         # If the expression has a sympy form, try to use it.
         # Now, convert the expression to sympy
-        sympy_expr = expr.to_sympy()
+        sympy_expr = to_sympy(expr)
         # If the expression cannot be handled by Sympy, just return it.
         if sympy_expr is None:
             return expr
@@ -1811,7 +1811,7 @@ class MinimalPolynomial(Builtin):
             evaluation.message("MinimalPolynomial", "nalg", s)
             return
 
-        sympy_s, sympy_x = s.to_sympy(), x.to_sympy()
+        sympy_s, sympy_x = to_sympy(s), to_sympy(x)
         if sympy_s is None or sympy_x is None:
             return None
         sympy_result = sympy.minimal_polynomial(sympy_s, polys=True)(sympy_x)
@@ -1842,7 +1842,7 @@ class Numerator(Builtin):
     def eval(self, expr, evaluation):
         "Numerator[expr_]"
 
-        sympy_expr = expr.to_sympy()
+        sympy_expr = to_sympy(expr)
         if sympy_expr is None:
             return None
         numer, denom = sympy_expr.as_numer_denom()
@@ -1933,11 +1933,11 @@ class PolynomialQ(Builtin):
             if len(var.elements) == 0:
                 evaluation.message("PolynomialQ", "novar")
                 return
-            sympy_var = [x.to_sympy() for x in var.elements]
+            sympy_var = [to_sympy(x) for x in var.elements]
         else:
-            sympy_var = [var.to_sympy()]
+            sympy_var = [to_sympy(var)]
 
-        sympy_expr = expr.to_sympy()
+        sympy_expr = to_sympy(expr)
         sympy_result = sympy_expr.is_polynomial(*[x for x in sympy_var])
         return from_bool(sympy_result)
 
@@ -2005,7 +2005,7 @@ class Together(Builtin):
     def eval(self, expr, evaluation):
         "Together[expr_]"
 
-        expr_sympy = expr.to_sympy()
+        expr_sympy = to_sympy(expr)
         if expr_sympy is None:
             return None
         result = sympy.together(expr_sympy)

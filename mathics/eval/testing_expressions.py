@@ -3,6 +3,7 @@ from typing import Optional
 import sympy
 
 from mathics.core.atoms import Complex, Integer0, Integer1, IntegerM1
+from mathics.core.convert.sympy import to_sympy
 from mathics.core.expression import Expression
 from mathics.core.systemsymbols import SymbolDirectedInfinity
 
@@ -17,8 +18,8 @@ def do_cmp(x1, x2) -> Optional[int]:
         ):
             return None
 
-    s1 = x1.to_sympy()
-    s2 = x2.to_sympy()
+    s1 = to_sympy(x1)
+    s2 = to_sympy(x2)
 
     # Use internal comparisons only for Real which is uses
     # WL's interpretation of equal (which allows for slop
