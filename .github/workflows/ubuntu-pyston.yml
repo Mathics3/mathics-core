@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        pyston-version: [2.3.4]
+        pyston-version: [2.3.5]
     steps:
     - uses: actions/checkout@v3
     - name: Set up Pyston ${{ matrix.pyston-version }}
@@ -50,8 +50,8 @@ jobs:
         pip install pyzmq-23.2.0-pyston38-pyston_23_x86_64_linux_gnu-linux_x86_64.whl
     - name: Install Mathics with full dependencies
       run: |
-        python -m pip install Mathics-Scanner
-        make develop-full
-    - name: Test Mathics
+        pyston -m pip install Mathics-Scanner
+        PYTHON=pyston make develop-full
+    - name: Test Mathics3
       run: |
         make -j3 PYTHON=pyston doctest
