@@ -384,6 +384,7 @@ class Plus(BinaryOperator, SympyFunction):
     def eval(self, items, evaluation):
         "Plus[items___]"
         items_tuple = numerify(items, evaluation).get_sequence()
+
         return eval_Plus(*items_tuple)
 
 
@@ -838,5 +839,6 @@ class Times(BinaryOperator, SympyFunction):
 
     def eval(self, items, evaluation):
         "Times[items___]"
-        items = numerify(items, evaluation).get_sequence()
-        return eval_Times(*items)
+        items_tuple = numerify(items, evaluation).get_sequence()
+
+        return eval_Times(*items_tuple)

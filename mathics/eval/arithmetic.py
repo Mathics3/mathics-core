@@ -49,6 +49,8 @@ RealM0p5 = Real(-0.5)
 RealOne = Real(1.0)
 
 
+use_sympy_for_arithmetic = False
+
 # This cache might not be used that much.
 @lru_cache()
 def call_mpmath(
@@ -347,7 +349,15 @@ def eval_mpmath_function(
             return call_mpmath(mpmath_function, tuple(mpmath_args), prec)
 
 
-def eval_Plus(*items: BaseElement) -> BaseElement:
+def eval_Plus_sympy(*items: BaseElement) -> BaseElement:
+    items_tuple = tuple(to_sympy(it) for it in items)
+    if any(it is None for it in items_tuple):
+        return
+    res = sympy.Add(*items_tuple)
+    return from_sympy(res) if res is not None else None
+
+
+def eval_Plus_native(*items: BaseElement) -> BaseElement:
     "evaluate Plus for general elements"
     numbers, items_tuple = segregate_numbers_from_sorted_list(*items)
     elements = []
@@ -559,7 +569,15 @@ def eval_Power_inexact(base: Number, exp: Number) -> BaseElement:
                 return from_mpmath(number, prec)
 
 
-def eval_Times(*items: BaseElement) -> BaseElement:
+def eval_Times_sympy(*items: BaseElement) -> BaseElement:
+    items_tuple = tuple(to_sympy(it) for it in items)
+    if any(it is None for it in items_tuple):
+        return
+    res = sympy.Mul(*items_tuple)
+    return from_sympy(res) if res is not None else None
+
+
+def eval_Times_native(*items: BaseElement) -> BaseElement:
     elements = []
     numbers = []
     # find numbers and simplify Times -> Power
@@ -898,3 +916,11 @@ def to_inexact_value(expr: BaseElement) -> BaseElement:
         except Exception:
             pass
     return None
+
+
+if use_sympy_for_arithmetic:
+    eval_Plus = eval_Plus_sympy
+    eval_Times = eval_Times_sympy
+else:
+    eval_Plus = eval_Plus_native
+    eval_Times = eval_Times_native

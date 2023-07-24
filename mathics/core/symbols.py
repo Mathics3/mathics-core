@@ -360,7 +360,6 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
     name: str
     hash: str
-    sympy_dummy: Any
 
     # Dictionary of Symbols defined so far.
     # We use this for object uniqueness.
@@ -410,7 +409,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         return self is other
 
     def __getnewargs__(self):
-        return (self.name, self.sympy_dummy)
+        return tuple([self.name])
 
     def __hash__(self) -> int:
         """
@@ -661,6 +660,9 @@ class SymbolConstant(Symbol):
             # event that different objects have the same Python value
             self.hash = hash((cls, name))
         return self
+
+    def __getnewargs__(self):
+        return tuple([self.name, self._value])
 
     @property
     def is_literal(self) -> bool:
