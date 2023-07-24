@@ -123,7 +123,6 @@ def eval_sympy(expr):
     return None if sp is None else from_sympy(sp)
 
 
-# @lru_cache(maxsize=None)
 def to_sympy(expr):
     #    print("  to_sympy", expr)
     if hasattr(expr, "to_sympy"):
@@ -266,6 +265,7 @@ class SympyPrime(sympy.Function):
                 pass
 
 
+@lru_cache(maxsize=512)
 def expression_to_sympy(expr: Expression):
     """
     Convert `expr` to its sympy form.
@@ -437,7 +437,8 @@ def from_sympy_matrix(
         return to_mathics_list(*expr.tolist(), elements_conversion_fn=from_sympy)
 
 
-def from_sympy_expr(expr) -> BaseElement:
+@lru_cache(maxsize=512)
+def from_sympy_expression(expr) -> BaseElement:
     """
     converts a SymPy object to a Mathics element.
     """
@@ -645,4 +646,4 @@ def from_sympy(expr) -> BaseElement:
     except (KeyError, TypeError):
         pass
 
-    return sympy_conversion_by_type.get(type(expr), from_sympy_expr)(expr)
+    return sympy_conversion_by_type.get(type(expr), from_sympy_expression)(expr)

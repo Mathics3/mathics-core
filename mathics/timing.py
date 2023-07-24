@@ -70,6 +70,7 @@ def show_lru_cache_statistics():
     from mathics.builtin.base import run_sympy
     from mathics.core.atoms import Integer, Rational
     from mathics.core.convert.mpmath import from_mpmath
+    from mathics.core.convert.sympy import expression_to_sympy, from_sympy_expression
     from mathics.eval.arithmetic import call_mpmath
 
     print(f"Integer             {len(Integer._integers)}")
@@ -78,4 +79,6 @@ def show_lru_cache_statistics():
     print(f"log_n_b             {log_n_b.cache_info()}")
     print(f"from_mpmath         {from_mpmath.cache_info()}")
     print(f"get_mpmath_function {_MPMathFunction.get_mpmath_function.cache_info()}")
+    print(f"expression_to_sympy            {expression_to_sympy.cache_info()}")
+    print(f"from_sympy_expression          {from_sympy_expression.cache_info()}")
     print(f"run_sympy           {run_sympy.cache_info()}")

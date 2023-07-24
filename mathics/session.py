@@ -14,7 +14,10 @@ from typing import Optional
 
 from mathics.core.definitions import Definitions, autoload_files
 from mathics.core.evaluation import Evaluation
+from mathics.core.load_builtin import import_and_load_builtins
 from mathics.core.parser import MathicsSingleLineFeeder, parse
+
+import_and_load_builtins()
 
 
 def load_default_settings_files(

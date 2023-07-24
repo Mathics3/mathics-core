@@ -176,7 +176,12 @@ class CompiledCode(Atom, ImmutableValueMixin):
         raise NotImplementedError
 
     def __hash__(self):
-        return hash(("CompiledCode", ctypes.addressof(self.cfunc)))  # XXX hack
+        try:
+            address = ctypes.addressof(self.cfunc)
+        except TypeError:
+            address = id(self.cfunc)
+
+        return hash(("CompiledCode", address))  # XXX hack
 
     def atom_to_boxes(self, f, evaluation: Evaluation):
         return CompiledCodeBox(String(self.__str__()), evaluation=evaluation)
