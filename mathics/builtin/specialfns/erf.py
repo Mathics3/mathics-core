@@ -5,17 +5,18 @@ Error Function and Related Functions
 """
 
 
-from mathics.builtin.arithmetic import _MPMathFunction, _MPMathMultiFunction
+from mathics.builtin.base import MPMathFunction, MPMathMultiFunction
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 
 
-class Erf(_MPMathMultiFunction):
+class Erf(MPMathMultiFunction):
     """
     <url>
     :Error function:
     https://en.wikipedia.org/wiki/Error_function</url> (<url>
     :SymPy:
-    https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.error_functions.erf</url>, <url>
+    https://docs.sympy.org/latest/modules/functions
+    /special.html#sympy.functions.special.error_functions.erf</url>, <url>
     :WMA: https://reference.wolfram.com/language/ref/Erf.html</url>)
 
     <dl>
@@ -55,12 +56,13 @@ class Erf(_MPMathMultiFunction):
     }
 
 
-class Erfc(_MPMathFunction):
+class Erfc(MPMathFunction):
     """
     <url>
     :Complementary Error function:
     https://en.wikipedia.org/wiki/Error_function</url> (<url>
-    :SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.error_functions.erfc</url>, <url>
+    :SymPy: https://docs.sympy.org/latest/modules/functions
+    /special.html#sympy.functions.special.error_functions.erfc</url>, <url>
     :WMA:
     https://reference.wolfram.com/language/ref/Erfc.html</url>)
 
@@ -86,13 +88,14 @@ class Erfc(_MPMathFunction):
     }
 
 
-class FresnelC(_MPMathFunction):
+class FresnelC(MPMathFunction):
     """
     <url>
     :Fresnel integral:
     https://en.wikipedia.org/wiki/Fresnel_integral</url> (<url>
     :mpmath:
-    https://mpmath.org/doc/current/functions/expintegrals.html?highlight=fresnelc#mpmath.fresnelc</url>, <url>
+    https://mpmath.org/doc/current/functions/expintegrals.html?mpmath.fresnelc</url>,\
+    <url>
     :WMA:
     https://reference.wolfram.com/language/ref/FresnelC.html</url>)
     <dl>
@@ -115,13 +118,14 @@ class FresnelC(_MPMathFunction):
     mpmath_name = "fresnelc"
 
 
-class FresnelS(_MPMathFunction):
+class FresnelS(MPMathFunction):
     """
     <url>
     :Fresnel integral:
     https://en.wikipedia.org/wiki/Fresnel_integral</url> (<url>
     :mpmath:
-    https://mpmath.org/doc/current/functions/expintegrals.html#mpmath.fresnels</url>, <url>
+    https://mpmath.org/doc/current/functions/expintegrals.html#mpmath.fresnels</url>,\
+    <url>
     :WMA:
     https://reference.wolfram.com/language/ref/FresnelS.html</url>)
 
@@ -145,13 +149,13 @@ class FresnelS(_MPMathFunction):
     mpmath_name = "fresnels"
 
 
-class InverseErf(_MPMathFunction):
+class InverseErf(MPMathFunction):
     """
      <url>
      :Inverse error function:
      https://en.wikipedia.org/wiki/Error_function#Inverse_functions</url> (<url>
      :SymPy:
-     https://docs.sympy.org/latest/modules/functions/special.html?highlight=erfinv#sympy.functions.special.error_functions.erfinv</url>, <url>
+     https://docs.sympy.org/latest/modules/functions/special.html?sympy.functions.special.error_functions.erfinv</url>, <url>
      :WMA:
      https://reference.wolfram.com/language/ref/InverseErf.html</url>)
 
@@ -192,13 +196,16 @@ class InverseErf(_MPMathFunction):
                 raise
 
 
-class InverseErfc(_MPMathFunction):
+class InverseErfc(MPMathFunction):
     """
     <url>
     :Complementary error function:
-    https://en.wikipedia.org/wiki/Error_function#Complementary_error_function</url> (<url>
+    https://en.wikipedia.org/wiki/Error_function#Complementary_error_function</url>\
+    (<url>
     :SymPy:
-    https://docs.sympy.org/latest/modules/functions/special.html?highlight=erfinv#sympy.functions.special.error_functions.erfcinv</url>, <url>
+    https://docs.sympy.org/latest/modules/functions
+    /special.html?sympy.functions.special.error_functions.erfcinv</url>,\
+    <url>
     :WMA:
     https://reference.wolfram.com/language/ref/InverseErfc.html</url>)
     <dl>

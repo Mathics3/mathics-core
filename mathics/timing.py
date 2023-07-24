@@ -65,9 +65,8 @@ def show_lru_cache_statistics():
     """
     Print statistics from LRU caches (@lru_cache of functools)
     """
-    from mathics.builtin.arithmetic import _MPMathFunction
     from mathics.builtin.atomic.numbers import log_n_b
-    from mathics.builtin.base import run_sympy
+    from mathics.builtin.base import MPMathFunction, run_sympy
     from mathics.core.atoms import Integer, Rational
     from mathics.core.convert.mpmath import from_mpmath
     from mathics.eval.arithmetic import call_mpmath
@@ -77,6 +76,6 @@ def show_lru_cache_statistics():
     print(f"call_mpmath         {call_mpmath.cache_info()}")
     print(f"log_n_b             {log_n_b.cache_info()}")
     print(f"from_mpmath         {from_mpmath.cache_info()}")
-    print(f"get_mpmath_function {_MPMathFunction.get_mpmath_function.cache_info()}")
+    print(f"get_mpmath_function {MPMathFunction.get_mpmath_function.cache_info()}")
 
     print(f"run_sympy           {run_sympy.cache_info()}")

@@ -1,8 +1,8 @@
-from mathics.builtin.arithmetic import _MPMathFunction
+from mathics.builtin.base import MPMathFunction
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
 
 
-class BernoulliB(_MPMathFunction):
+class BernoulliB(MPMathFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/BernoulliB.html</url>
 

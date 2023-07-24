@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 
 """
 Mathematical Functions
@@ -7,21 +6,21 @@ Mathematical Functions
 Basic arithmetic functions, including complex number arithmetic.
 """
 
-from functools import lru_cache
 from typing import Optional
 
-import mpmath
 import sympy
 
 from mathics.builtin.base import (
     Builtin,
     IterationFunction,
+    MPMathFunction,
     Predefined,
     SympyFunction,
     SympyObject,
     Test,
 )
-from mathics.builtin.inference import evaluate_predicate, get_assumptions_list
+from mathics.builtin.inference import get_assumptions_list
+from mathics.builtin.numeric import Abs
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
     MATHICS3_COMPLEX_I,
@@ -31,20 +30,17 @@ from mathics.core.atoms import (
     Integer0,
     Integer1,
     IntegerM1,
-    Number,
     Rational,
     Real,
     String,
 )
 from mathics.core.attributes import (
-    A_HOLD_ALL,
     A_HOLD_REST,
     A_LISTABLE,
     A_NO_ATTRIBUTES,
     A_NUMERIC_FUNCTION,
     A_PROTECTED,
 )
-from mathics.core.convert.expression import to_expression
 from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
@@ -58,7 +54,6 @@ from mathics.core.expression_predefined import (
     PredefinedExpression,
 )
 from mathics.core.list import ListExpression
-from mathics.core.number import dps, min_prec
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -72,20 +67,12 @@ from mathics.core.systemsymbols import (
     SymbolAnd,
     SymbolDirectedInfinity,
     SymbolInfix,
-    SymbolPiecewise,
     SymbolPossibleZeroQ,
     SymbolTable,
     SymbolUndefined,
 )
-from mathics.eval.arithmetic import (
-    eval_Abs,
-    eval_mpmath_function,
-    eval_negate_number,
-    eval_RealSign,
-    eval_Sign,
-)
+from mathics.eval.arithmetic import eval_Sign
 from mathics.eval.nevaluator import eval_N
-from mathics.eval.numerify import numerify
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.mathematical-functions"
@@ -97,86 +84,6 @@ map_direction_infinity = {
     MATHICS3_COMPLEX_I: MATHICS3_I_INFINITY,
     MATHICS3_COMPLEX_I_NEG: MATHICS3_I_NEG_INFINITY,
 }
-
-
-class _MPMathFunction(SympyFunction):
-
-    # These below attributes are the default attributes:
-    #
-    # * functions take lists as an argument
-    # * functions take numeric values only
-    # * functions can't be changed
-    #
-    # However hey are not correct for some derived classes, like
-    # InverseErf or InverseErfc.
-    # So those classes should expclicitly set/override this.
-    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
-
-    mpmath_name = None
-    nargs = {1}
-
-    @lru_cache(maxsize=1024)
-    def get_mpmath_function(self, args):
-        if self.mpmath_name is None or len(args) not in self.nargs:
-            return None
-        return getattr(mpmath, self.mpmath_name)
-
-    def eval(self, z, evaluation: Evaluation):
-        "%(name)s[z__]"
-
-        args = numerify(z, evaluation).get_sequence()
-
-        # if no arguments are inexact attempt to use sympy
-        if all(not x.is_inexact() for x in args):
-            result = to_expression(self.get_name(), *args).to_sympy()
-            result = self.prepare_mathics(result)
-            result = from_sympy(result)
-            # evaluate elements to convert e.g. Plus[2, I] -> Complex[2, 1]
-            return result.evaluate_elements(evaluation)
-
-        if not all(isinstance(arg, Number) for arg in args):
-            return
-
-        mpmath_function = self.get_mpmath_function(tuple(args))
-        if mpmath_function is None:
-            return
-
-        if any(arg.is_machine_precision() for arg in args):
-            prec = None
-        else:
-            prec = min_prec(*args)
-            d = dps(prec)
-            args = [arg.round(d) for arg in args]
-
-        return eval_mpmath_function(mpmath_function, *args, prec=prec)
-
-
-class _MPMathMultiFunction(_MPMathFunction):
-
-    sympy_names = None
-    mpmath_names = None
-
-    def get_sympy_names(self):
-        if self.sympy_names is None:
-            return [self.sympy_name]
-        return self.sympy_names.values()
-
-    def get_function(self, module, names, fallback_name, elements):
-        try:
-            name = fallback_name
-            if names is not None:
-                name = names[len(elements)]
-            if name is None:
-                return None
-            return getattr(module, name)
-        except KeyError:
-            return None
-
-    def get_sympy_function(self, elements):
-        return self.get_function(sympy, self.sympy_names, self.sympy_name, elements)
-
-    def get_mpmath_function(self, elements):
-        return self.get_function(mpmath, self.mpmath_names, self.mpmath_name, elements)
 
 
 def create_infix(items, operator, prec, grouping):
@@ -192,55 +99,7 @@ def create_infix(items, operator, prec, grouping):
         )
 
 
-class Abs(_MPMathFunction):
-    """
-        <url>
-        :Absolute value:
-        https://en.wikipedia.org/wiki/Absolute_value</url> (<url>
-        :SymPy:
-        https://docs.sympy.org/latest/modules/functions/
-    elementary.html#sympy.functions.elementary.complexes.Abs</url>, <url>
-        :WMA: https://reference.wolfram.com/language/ref/Abs</url>)
-
-        <dl>
-          <dt>'Abs[$x$]'
-          <dd>returns the absolute value of $x$.
-        </dl>
-
-        >> Abs[-3]
-         = 3
-
-        >> Plot[Abs[x], {x, -4, 4}]
-         = -Graphics-
-
-        'Abs' returns the magnitude of complex numbers:
-        >> Abs[3 + I]
-         = Sqrt[10]
-        >> Abs[3.0 + I]
-         = 3.16228
-
-        All of the below evaluate to Infinity:
-
-        >> Abs[Infinity] == Abs[I Infinity] == Abs[ComplexInfinity]
-         = True
-    """
-
-    mpmath_name = "fabs"  # mpmath actually uses python abs(x) / x.__abs__()
-    rules = {
-        "Abs[Undefined]": "Undefined",
-    }
-    summary_text = "absolute value of a number"
-    sympy_name = "Abs"
-
-    def eval(self, x, evaluation: Evaluation):
-        "Abs[x_]"
-        result = eval_Abs(x)
-        if result is not None:
-            return result
-        return super(Abs, self).eval(x, evaluation)
-
-
-class Arg(_MPMathFunction):
+class Arg(MPMathFunction):
     """
     <url>:Argument (complex analysis):
     https://en.wikipedia.org/wiki/Argument_(complex_analysis)</url> (<url>
@@ -255,7 +114,8 @@ class Arg(_MPMathFunction):
          <li>'Arg'[$z$] is left unevaluated if $z$ is not a numeric quantity.
          <li>'Arg'[$z$] gives the phase angle of $z$ in radians.
          <li>The result from 'Arg'[$z$] is always between -Pi and +Pi.
-         <li>'Arg'[$z$] has a branch cut discontinuity in the complex $z$ plane running from -Infinity to 0.
+         <li>'Arg'[$z$] has a branch cut discontinuity in the complex $z$ plane running \
+             from -Infinity to 0.
          <li>'Arg'[0] is 0.
     </ul>
 
@@ -302,7 +162,7 @@ class Arg(_MPMathFunction):
         if preference is None or preference == "Automatic":
             return super(Arg, self).eval(z, evaluation)
         elif preference == "mpmath":
-            return _MPMathFunction.eval(self, z, evaluation)
+            return MPMathFunction.eval(self, z, evaluation)
         elif preference == "sympy":
             return SympyFunction.eval(self, z, evaluation)
         # TODO: add NumpyFunction
@@ -559,7 +419,7 @@ language/ref/ConditionalExpression.html</url>
         return sympy.Piecewise(*sympy_cases)
 
 
-class Conjugate(_MPMathFunction):
+class Conjugate(MPMathFunction):
     """
     <url>:Complex Conjugate:
     https://en.wikipedia.org/wiki/Complex_conjugate</url> \
@@ -890,101 +750,6 @@ class Integer_(Builtin):
     name = "Integer"
 
 
-class Piecewise(SympyFunction):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Piecewise.html</url>
-
-    <dl>
-      <dt>'Piecewise[{{expr1, cond1}, ...}]'
-      <dd>represents a piecewise function.
-
-      <dt>'Piecewise[{{expr1, cond1}, ...}, expr]'
-      <dd>represents a piecewise function with default 'expr'.
-    </dl>
-
-    Heaviside function
-    >> Piecewise[{{0, x <= 0}}, 1]
-     = Piecewise[{{0, x <= 0}}, 1]
-
-    ## D[%, x]
-    ## Piecewise({{0, Or[x < 0, x > 0]}}, Indeterminate).
-
-    >> Integrate[Piecewise[{{1, x <= 0}, {-1, x > 0}}], x]
-     = Piecewise[{{x, x <= 0}}, -x]
-
-    >> Integrate[Piecewise[{{1, x <= 0}, {-1, x > 0}}], {x, -1, 2}]
-     = -1
-
-    Piecewise defaults to 0 if no other case is matching.
-    >> Piecewise[{{1, False}}]
-     = 0
-
-    >> Plot[Piecewise[{{Log[x], x > 0}, {x*-0.5, x < 0}}], {x, -1, 1}]
-     = -Graphics-
-
-    >> Piecewise[{{0 ^ 0, False}}, -1]
-     = -1
-    """
-
-    summary_text = "an arbitrary piecewise function"
-    sympy_name = "Piecewise"
-
-    attributes = A_HOLD_ALL | A_PROTECTED
-
-    def eval(self, items, evaluation: Evaluation):
-        "%(name)s[items__]"
-        result = self.to_sympy(
-            Expression(SymbolPiecewise, *items.get_sequence()), evaluation=evaluation
-        )
-        if result is None:
-            return
-        if not isinstance(result, sympy.Piecewise):
-            result = from_sympy(result)
-            return result
-
-    def to_sympy(self, expr, **kwargs):
-        elements = expr.elements
-        evaluation = kwargs.get("evaluation", None)
-        if len(elements) not in (1, 2):
-            return
-
-        sympy_cases = []
-        for case in elements[0].elements:
-            if case.get_head_name() != "System`List":
-                return
-            if len(case.elements) != 2:
-                return
-            then, cond = case.elements
-            if evaluation:
-                cond = evaluate_predicate(cond, evaluation)
-
-            sympy_cond = None
-            if isinstance(cond, Symbol):
-                if cond is SymbolTrue:
-                    sympy_cond = True
-                elif cond is SymbolFalse:
-                    sympy_cond = False
-            if sympy_cond is None:
-                sympy_cond = cond.to_sympy(**kwargs)
-                if not (sympy_cond.is_Relational or sympy_cond.is_Boolean):
-                    return
-
-            sympy_cases.append((then.to_sympy(**kwargs), sympy_cond))
-
-        if len(elements) == 2:  # default case
-            sympy_cases.append((elements[1].to_sympy(**kwargs), True))
-        else:
-            sympy_cases.append((Integer0.to_sympy(**kwargs), True))
-
-        return sympy.Piecewise(*sympy_cases)
-
-    def from_sympy(self, sympy_name, args):
-        # Hack to get around weird sympy.Piecewise 'otherwise' behaviour
-        if str(args[-1].elements[1]).startswith("System`_True__Dummy_"):
-            args[-1].elements[1] = SymbolTrue
-        return Expression(self.get_name(), args)
-
-
 class Product(IterationFunction, SympyFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Product.html</url>
@@ -1215,49 +980,6 @@ class Real_(Builtin):
     name = "Real"
 
 
-class RealAbs(Builtin):
-    """
-    <url>
-        :Abs (Real):
-        https://en.wikipedia.org/wiki/Absolute_value</url> (<url>
-        :WMA link:
-        https://reference.wolfram.com/language/ref/RealAbs.html
-        </url>)
-
-    <dl>
-      <dt>'RealAbs[$x$]'
-      <dd>returns the absolute value of a real number $x$.
-    </dl>
-    'RealAbs' is also known as modulus. It is evaluated if $x$ can be compared \
-    with $0$.
-
-    >> RealAbs[-3.]
-     = 3.
-    'RealAbs[$z$]' is left unevaluated for complex $z$:
-    >> RealAbs[2. + 3. I]
-     = RealAbs[2. + 3. I]
-    >> D[RealAbs[x ^ 2], x]
-     = 2 x ^ 3 / RealAbs[x ^ 2]
-    """
-
-    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
-    rules = {
-        "D[RealAbs[x_],x_]": "x/RealAbs[x]",
-        "Integrate[RealAbs[x_],x_]": "1/2 x RealAbs[x]",
-        "Integrate[RealAbs[u_],{u_,a_,b_}]": "1/2 b RealAbs[b]-1/2 a RealAbs[a]",
-    }
-    summary_text = "real absolute value"
-
-    def eval(self, x: BaseElement, evaluation: Evaluation):
-        """RealAbs[x_]"""
-        real_sign = eval_RealSign(x)
-        if real_sign is IntegerM1:
-            return eval_negate_number(x)
-        if real_sign is None:
-            return
-        return x
-
-
 class RealNumberQ(Test):
     """
     ## Not found in WMA
@@ -1286,113 +1008,6 @@ class RealNumberQ(Test):
 
     def test(self, expr) -> bool:
         return isinstance(expr, (Integer, Rational, Real))
-
-
-class RealSign(Builtin):
-    """
-    <url>
-        :Sign function:
-        https://en.wikipedia.org/wiki/Sign_function</url> (<url>
-        :WMA link:
-        https://reference.wolfram.com/language/ref/RealSign.html
-        </url>)
-    <dl>
-      <dt>'RealSign[$x$]'
-      <dd>returns $-1$, $0$ or $1$ depending on whether $x$ is negative,
-    zero or positive.
-    </dl>
-    'RealSign' is also known as $sgn$ or $signum$ function.
-
-    >> RealSign[-3.]
-     = -1
-    'RealSign[$z$]' is left unevaluated for complex $z$:
-    >> RealSign[2. + 3. I]
-     = RealSign[2. + 3. I]
-
-    >> D[RealSign[x^2],x]
-     = 2 x Piecewise[{{0, x ^ 2 != 0}}, Indeterminate]
-    >> Integrate[RealSign[u],{u,0,x}]
-     = RealAbs[x]
-    """
-
-    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
-    rules = {
-        "D[RealSign[x_],x_]": "Piecewise[{{0, x!=0}}, Indeterminate]",
-        "Integrate[RealSign[x_],x_]": "RealAbs[x]",
-        "Integrate[RealSign[u_],{u_, a_, b_}]": "RealAbs[b]-RealSign[a]",
-    }
-    summary_text = "real sign"
-
-    def eval(self, x: Number, evaluation: Evaluation) -> Optional[Integer]:
-        """RealSign[x_]"""
-        return eval_RealSign(x)
-
-
-class Sign(SympyFunction):
-    """
-    <url>
-        :Sign:
-        https://en.wikipedia.org/wiki/Sign_function</url> (<url>
-        :WMA link:
-        https://reference.wolfram.com/language/ref/Sign.html
-        </url>)
-
-    <dl>
-      <dt>'Sign[$x$]'
-      <dd>return -1, 0, or 1 depending on whether $x$ is negative, zero, or positive.
-    </dl>
-
-    >> Sign[19]
-     = 1
-    >> Sign[-6]
-     = -1
-    >> Sign[0]
-     = 0
-    >> Sign[{-5, -10, 15, 20, 0}]
-     = {-1, -1, 1, 1, 0}
-    #> Sign[{1, 2.3, 4/5, {-6.7, 0}, {8/9, -10}}]
-     = {1, 1, 1, {-1, 0}, {1, -1}}
-    >> Sign[3 - 4*I]
-     = 3 / 5 - 4 I / 5
-    #> Sign[1 - 4*I] == (1/17 - 4 I/17) Sqrt[17]
-     = True
-    #> Sign[4, 5, 6]
-     : Sign called with 3 arguments; 1 argument is expected.
-     = Sign[4, 5, 6]
-    #> Sign["20"]
-     = Sign[20]
-    """
-
-    summary_text = "complex sign of a number"
-    sympy_name = "sign"
-    # mpmath_name = 'sign'
-
-    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
-
-    messages = {
-        "argx": "Sign called with `1` arguments; 1 argument is expected.",
-    }
-
-    rules = {
-        "Sign[Power[a_, b_]]": "Power[Sign[a], b]",
-    }
-
-    def eval(self, x, evaluation: Evaluation):
-        "%(name)s[x_]"
-        result = eval_Sign(x)
-        if result is not None:
-            return result
-        # return None
-
-        sympy_x = x.to_sympy()
-        if sympy_x is None:
-            return None
-        # Unhandled cases. Use sympy
-        return super(Sign, self).eval(x, evaluation)
-
-    def eval_error(self, x, seqs, evaluation: Evaluation):
-        "Sign[x_, seqs__]"
-        evaluation.message("Sign", "argx", Integer(len(seqs.get_sequence()) + 1))
 
 
 class Sum(IterationFunction, SympyFunction):

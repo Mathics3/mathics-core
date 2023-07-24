@@ -4,8 +4,7 @@ Bessel and Related Functions
 
 import mpmath
 
-from mathics.builtin.arithmetic import _MPMathFunction
-from mathics.builtin.base import Builtin
+from mathics.builtin.base import Builtin, MPMathFunction
 from mathics.core.atoms import Integer
 from mathics.core.attributes import (
     A_LISTABLE,
@@ -24,14 +23,14 @@ from mathics.core.number import (
 )
 
 
-class _Bessel(_MPMathFunction):
+class _Bessel(MPMathFunction):
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
 
     nargs = {2}
 
 
-class AiryAi(_MPMathFunction):
+class AiryAi(MPMathFunction):
     """
     <url>:Airy function of the first kind:
     https://en.wikipedia.org/wiki/Airy_function</url> (<url>
@@ -65,7 +64,7 @@ class AiryAi(_MPMathFunction):
     sympy_name = "airyai"
 
 
-class AiryAiPrime(_MPMathFunction):
+class AiryAiPrime(MPMathFunction):
     """
     Derivative of Airy function (<url>
     :Sympy:
@@ -160,7 +159,7 @@ class AiryAiZero(Builtin):
             return from_mpmath(result, precision=p)
 
 
-class AiryBi(_MPMathFunction):
+class AiryBi(MPMathFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/AiryBi.html</url>
 
@@ -193,7 +192,7 @@ class AiryBi(_MPMathFunction):
     sympy_name = "airybi"
 
 
-class AiryBiPrime(_MPMathFunction):
+class AiryBiPrime(MPMathFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/AiryBiPrime.html</url>
 

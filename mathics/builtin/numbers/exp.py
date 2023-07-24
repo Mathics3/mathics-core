@@ -3,7 +3,8 @@
 """
 Exponential Functions
 
-Numerical values and derivatives can be computed; however, most special exact values and simplification rules are not implemented yet.
+Numerical values and derivatives can be computed; however, most special exact values \
+and simplification rules are not implemented yet.
 """
 
 import math
@@ -13,8 +14,7 @@ from itertools import chain
 
 import mpmath
 
-from mathics.builtin.arithmetic import _MPMathFunction
-from mathics.builtin.base import Builtin
+from mathics.builtin.base import Builtin, MPMathFunction
 from mathics.core.atoms import Real
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.convert.python import from_python
@@ -157,7 +157,7 @@ class Fold:
                     init = y
 
 
-class Exp(_MPMathFunction):
+class Exp(MPMathFunction):
     """
 
     <url>:WMA link:https://reference.wolfram.com/language/ref/Exp.html</url>
@@ -191,7 +191,7 @@ class Exp(_MPMathFunction):
         return Expression(SymbolPower, SymbolE, elements[0])
 
 
-class Log(_MPMathFunction):
+class Log(MPMathFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Log.html</url>
 

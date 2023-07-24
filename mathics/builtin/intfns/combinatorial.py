@@ -14,8 +14,7 @@ biology to computer science, etc.
 
 from itertools import combinations
 
-from mathics.builtin.arithmetic import _MPMathFunction
-from mathics.builtin.base import Builtin, SympyFunction
+from mathics.builtin.base import Builtin, MPMathFunction, SympyFunction
 from mathics.core.atoms import Integer
 from mathics.core.attributes import (
     A_LISTABLE,
@@ -86,7 +85,7 @@ class _NoBoolVector(Exception):
     pass
 
 
-class Binomial(_MPMathFunction):
+class Binomial(MPMathFunction):
     """
 
     <url>
