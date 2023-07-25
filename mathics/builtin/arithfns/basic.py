@@ -31,7 +31,7 @@ from mathics.core.attributes import (
     A_READ_PROTECTED,
 )
 from mathics.core.convert.expression import to_expression
-from mathics.core.convert.sympy import from_sympy, to_sympy
+from mathics.core.convert.sympy import eval_sympy, from_sympy, to_sympy
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
@@ -347,7 +347,7 @@ class Plus(BinaryOperator, SympyFunction):
                 else:
                     return Expression(SymbolTimes, IntegerM1, *item.elements)
             elif isinstance(item, Number):
-                return from_sympy(to_sympy(-item))
+                return eval_sympy(-item)
             else:
                 return Expression(SymbolTimes, IntegerM1, item)
 
@@ -384,6 +384,7 @@ class Plus(BinaryOperator, SympyFunction):
     def eval(self, items, evaluation):
         "Plus[items___]"
         items_tuple = numerify(items, evaluation).get_sequence()
+
         return eval_Plus(*items_tuple)
 
 
@@ -838,5 +839,6 @@ class Times(BinaryOperator, SympyFunction):
 
     def eval(self, items, evaluation):
         "Times[items___]"
-        items = numerify(items, evaluation).get_sequence()
-        return eval_Times(*items)
+        items_tuple = numerify(items, evaluation).get_sequence()
+
+        return eval_Times(*items_tuple)

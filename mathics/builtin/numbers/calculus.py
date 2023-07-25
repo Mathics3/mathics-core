@@ -57,6 +57,7 @@ from mathics.core.convert.sympy import (
     from_sympy,
     sympy_symbol_prefix,
     to_sympy,
+    to_sympy_with_kwargs,
 )
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -562,7 +563,7 @@ class DiscreteLimit(Builtin):
     def eval(self, f, n, n0, evaluation: Evaluation, options: dict = {}):
         "DiscreteLimit[f_, n_->n0_, OptionsPattern[DiscreteLimit]]"
 
-        f = to_sympy(f, convert_all_global_functions=True)
+        f = to_sympy_with_kwargs(f, convert_all_global_functions=True)
         n = to_sympy(n)
         n0 = to_sympy(n0)
 

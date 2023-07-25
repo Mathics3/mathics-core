@@ -15,7 +15,12 @@ import sympy
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import IntegerM1
 from mathics.core.attributes import A_CONSTANT
-from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix, to_sympy
+from mathics.core.convert.sympy import (
+    from_sympy,
+    sympy_symbol_prefix,
+    to_sympy,
+    to_sympy_with_kwargs,
+)
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -138,7 +143,9 @@ class RSolve(Builtin):
             SymbolPlus, left, Expression(SymbolTimes, IntegerM1, right)
         ).evaluate(evaluation)
 
-        sym_eq = to_sympy(relation, converted_functions={func.get_head_name()})
+        sym_eq = to_sympy_with_kwargs(
+            relation, converted_functions={func.get_head_name()}
+        )
         if sym_eq is None:
             return
         sym_n = sympy.core.symbols(str(sympy_symbol_prefix + n.name))

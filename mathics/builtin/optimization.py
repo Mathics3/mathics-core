@@ -22,7 +22,7 @@ from mathics.builtin.base import Builtin
 from mathics.core.atoms import IntegerM1
 from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.python import from_python
-from mathics.core.convert.sympy import from_sympy, to_sympy
+from mathics.core.convert.sympy import eval_sympy, from_sympy, to_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -79,7 +79,7 @@ class Maximize(Builtin):
         "Maximize[f_List, vars_]"
 
         constraints = [function for function in f.elements]
-        constraints[0] = from_sympy(to_sympy(constraints[0]) * IntegerM1)
+        constraints[0] = eval_sympy(constraints[0] * IntegerM1)
 
         dual_solutions = (
             Expression(SymbolMinimize, constraints, vars).evaluate(evaluation).elements

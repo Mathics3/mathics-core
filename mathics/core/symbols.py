@@ -360,7 +360,6 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
     name: str
     hash: str
-    sympy_dummy: Any
 
     # Dictionary of Symbols defined so far.
     # We use this for object uniqueness.
@@ -372,7 +371,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
     # __new__ instead of __init__ is used here because we want
     # to return the same object for a given "name" value.
-    def __new__(cls, name: str, sympy_dummy=None):
+    def __new__(cls, name: str):
         """
         Allocate an object ensuring that for a given ``name`` and ``cls`` we get back the same object,
         id(object) is the same and its object.__hash__() is the same.
@@ -402,18 +401,6 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             # For example, this can happen with String constants.
 
             self.hash = hash((cls, name))
-
-            # TODO: revise how we convert sympy.Dummy
-            # symbols.
-            #
-            # In some cases, SymPy returns a sympy.Dummy
-            # object. It is converted to Mathics as a
-            # Symbol. However, we probably should have
-            # a different class for this kind of symbols.
-            # Also, sympy_dummy should be stored as the
-            # value attribute.
-            self.sympy_dummy = sympy_dummy
-
             self._short_name = strip_context(name)
 
         return self
@@ -422,7 +409,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         return self is other
 
     def __getnewargs__(self):
-        return (self.name, self.sympy_dummy)
+        return tuple([self.name])
 
     def __hash__(self) -> int:
         """
@@ -673,6 +660,9 @@ class SymbolConstant(Symbol):
             # event that different objects have the same Python value
             self.hash = hash((cls, name))
         return self
+
+    def __getnewargs__(self):
+        return tuple([self.name, self._value])
 
     @property
     def is_literal(self) -> bool:

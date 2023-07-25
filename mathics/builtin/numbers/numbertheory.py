@@ -18,7 +18,12 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_bool, from_python
-from mathics.core.convert.sympy import SympyPrime, from_sympy, to_sympy
+from mathics.core.convert.sympy import (
+    SympyPrime,
+    from_sympy,
+    to_sympy,
+    to_sympy_with_kwargs,
+)
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -612,7 +617,7 @@ class Prime(SympyFunction):
 
     def to_sympy(self, expr, **kwargs):
         if expr.has_form("Prime", 1):
-            return SympyPrime(to_sympy(expr.elements[0], **kwargs))
+            return SympyPrime(to_sympy_with_kwargs(expr.elements[0], **kwargs))
 
 
 class PrimePi(SympyFunction):

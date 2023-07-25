@@ -50,6 +50,7 @@ from mathics.core.convert.sympy import (
     from_sympy,
     sympy_symbol_prefix,
     to_sympy,
+    to_sympy_with_kwargs,
 )
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
@@ -970,16 +971,16 @@ class Piecewise(SympyFunction):
                 elif cond is SymbolFalse:
                     sympy_cond = False
             if sympy_cond is None:
-                sympy_cond = to_sympy(cond, **kwargs)
+                sympy_cond = to_sympy_with_kwargs(cond, **kwargs)
                 if not (sympy_cond.is_Relational or sympy_cond.is_Boolean):
                     return
 
-            sympy_cases.append((to_sympy(then, **kwargs), sympy_cond))
+            sympy_cases.append((to_sympy_with_kwargs(then, **kwargs), sympy_cond))
 
         if len(elements) == 2:  # default case
-            sympy_cases.append((to_sympy(elements[1], **kwargs), True))
+            sympy_cases.append((to_sympy_with_kwargs(elements[1], **kwargs), True))
         else:
-            sympy_cases.append((to_sympy(Integer0, **kwargs), True))
+            sympy_cases.append((to_sympy_with_kwargs(Integer0, **kwargs), True))
 
         return sympy.Piecewise(*sympy_cases)
 
@@ -1061,10 +1062,10 @@ class Product(IterationFunction, SympyFunction):
             try:
                 e_kwargs = kwargs.copy()
                 e_kwargs["convert_all_global_functions"] = True
-                e = to_sympy(expr.elements[0], **e_kwargs)
-                i = to_sympy(index.elements[0], **kwargs)
-                start = to_sympy(index.elements[1], **kwargs)
-                stop = to_sympy(index.elements[2], **kwargs)
+                e = to_sympy_with_kwargs(expr.elements[0], **e_kwargs)
+                i = to_sympy_with_kwargs(index.elements[0], **kwargs)
+                start = to_sympy_with_kwargs(index.elements[1], **kwargs)
+                stop = to_sympy_with_kwargs(index.elements[2], **kwargs)
 
                 return sympy.product(e, (i, start, stop))
             except ZeroDivisionError:
@@ -1510,7 +1511,7 @@ class Sum(IterationFunction, SympyFunction):
             index = expr.elements[1]
             arg_kwargs = kwargs.copy()
             arg_kwargs["convert_all_global_functions"] = True
-            f_sympy = to_sympy(expr.elements[0], **arg_kwargs)
+            f_sympy = to_sympy_with_kwargs(expr.elements[0], **arg_kwargs)
             if f_sympy is None:
                 return
 
@@ -1518,7 +1519,7 @@ class Sum(IterationFunction, SympyFunction):
 
             # Handle summation parameters: variable, min, max
             var_min_max = index.elements[:3]
-            bounds = [to_sympy(expr, **kwargs) for expr in var_min_max]
+            bounds = [to_sympy_with_kwargs(expr, **kwargs) for expr in var_min_max]
 
             if evaluation:
                 # Min and max might be Mathics expressions. If so, evaluate them.
@@ -1526,7 +1527,7 @@ class Sum(IterationFunction, SympyFunction):
                     min_max_expr = var_min_max[i]
                     if not isinstance(expr, Symbol):
                         min_max_expr_eval = min_max_expr.evaluate(evaluation)
-                        value = to_sympy(min_max_expr_eval, **kwargs)
+                        value = to_sympy_with_kwargs(min_max_expr_eval, **kwargs)
                         bounds[i] = value
 
             # FIXME: The below tests on SympyExpression, but really the
