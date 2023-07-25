@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 """
-arithmetic-related evaluation functions.
+helper functions for arithmetic evaluation, which do not
+depends on the evaluation context. Conversions to Sympy are
+used just as a last resource.
 
 Many of these do do depend on the evaluation context. Conversions to Sympy are
 used just as a last resource.
@@ -320,6 +322,28 @@ def eval_Sign(expr: BaseElement) -> Optional[BaseElement]:
     return sign or eval_complex_sign(expr)
 
 
+def eval_Sign_number(n: Number) -> Number:
+    """
+    Evals the absolute value of a number.
+    """
+    if n.is_zero:
+        return Integer0
+    if isinstance(n, (Integer, Rational, Real)):
+        return Integer1 if n.value > 0 else IntegerM1
+    if isinstance(n, Complex):
+        abs_sq = eval_add_numbers(
+            *(eval_multiply_numbers(x, x) for x in (n.real, n.imag))
+        )
+        criteria = eval_add_numbers(abs_sq, IntegerM1)
+        if test_zero_arithmetic_expr(criteria):
+            return n
+        if n.is_inexact():
+            return eval_multiply_numbers(n, eval_Power_number(abs_sq, RealM0p5))
+        if test_zero_arithmetic_expr(criteria, numeric=True):
+            return n
+        return eval_multiply_numbers(n, eval_Power_number(abs_sq, RationalMOneHalf))
+
+
 def eval_mpmath_function(
     mpmath_function: Callable, *args: Number, prec: Optional[int] = None
 ) -> Optional[Number]:
@@ -345,6 +369,31 @@ def eval_mpmath_function(
             if None in mpmath_args:
                 return
             return call_mpmath(mpmath_function, tuple(mpmath_args), prec)
+
+
+def eval_Exponential(exp: BaseElement) -> BaseElement:
+    """
+    Eval E^exp
+    """
+    # If both base and exponent are exact quantities,
+    # use sympy.
+
+    if not exp.is_inexact():
+        exp_sp = exp.to_sympy()
+        if exp_sp is None:
+            return None
+        return from_sympy(sympy.Exp(exp_sp))
+
+    prec = exp.get_precision()
+    if prec is not None:
+        if exp.is_machine_precision():
+            number = mpmath.exp(exp.to_mpmath())
+            result = from_mpmath(number)
+            return result
+        else:
+            with mpmath.workprec(prec):
+                number = mpmath.exp(exp.to_mpmath())
+                return from_mpmath(number, prec)
 
 
 def eval_Plus(*items: BaseElement) -> BaseElement:
@@ -645,8 +694,58 @@ def eval_Times(*items: BaseElement) -> BaseElement:
     )
 
 
+def associate_powers(expr: BaseElement, power: BaseElement = Integer1) -> BaseElement:
+    """
+    base^a^b^c^...^power -> base^(a*b*c*...power)
+    provided one of the following cases
+    * `a`, `b`, ... `power` are all integer numbers
+    * `a`, `b`,... are Rational/Real number with absolute value <=1,
+      and the other powers are not integer numbers.
+    * `a` is not a Rational/Real number, and b, c, ... power are all
+      integer numbers.
+    """
+    powers = []
+    base = expr
+    if power is not Integer1:
+        powers.append(power)
+
+    while base.has_form("Power", 2):
+        previous_base, outer_power = base, power
+        base, power = base.elements
+        if len(powers) == 0:
+            if power is not Integer1:
+                powers.append(power)
+            continue
+        if power is IntegerM1:
+            powers.append(power)
+            continue
+        if isinstance(power, (Rational, Real)):
+            if abs(power.value) < 1:
+                powers.append(power)
+                continue
+        # power is not rational/real and outer_power is integer,
+        elif isinstance(outer_power, Integer):
+            if power is not Integer1:
+                powers.append(power)
+            if isinstance(power, Integer):
+                continue
+            else:
+                break
+        # in any other case, use the previous base and
+        # exit the loop
+        base = previous_base
+        break
+
+    if len(powers) == 0:
+        return base
+    elif len(powers) == 1:
+        return Expression(SymbolPower, base, powers[0])
+    result = Expression(SymbolPower, base, Expression(SymbolTimes, *powers))
+    return result
+
+
 def eval_add_numbers(
-    *numbers: Number,
+    *numbers: List[Number],
 ) -> BaseElement:
     """
     Add the elements in ``numbers``.
@@ -693,7 +792,7 @@ def eval_inverse_number(n: Number) -> Number:
     return eval_Power_number(n, IntegerM1)
 
 
-def eval_multiply_numbers(*numbers: Number) -> Number:
+def eval_multiply_numbers(*numbers: Number) -> BaseElement:
     """
     Multiply the elements in ``numbers``.
     """
