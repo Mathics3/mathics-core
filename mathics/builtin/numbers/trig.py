@@ -14,8 +14,7 @@ from itertools import chain
 
 import mpmath
 
-from mathics.builtin.arithmetic import _MPMathFunction
-from mathics.builtin.base import Builtin
+from mathics.builtin.base import Builtin, MPMathFunction
 from mathics.core.atoms import Integer, Integer0, IntegerM1, Real
 from mathics.core.convert.python import from_python
 from mathics.core.exceptions import IllegalStepSpecification
@@ -334,7 +333,7 @@ class AnglePathFold(Fold):
             yield x, y, phi
 
 
-class ArcCos(_MPMathFunction):
+class ArcCos(MPMathFunction):
     """
     Inverse cosine, <url>
     :arccosine:
@@ -371,7 +370,7 @@ class ArcCos(_MPMathFunction):
     sympy_name = "acos"
 
 
-class ArcCot(_MPMathFunction):
+class ArcCot(MPMathFunction):
     """
     Inverse cotangent, <url>
     :arccotangent:
@@ -406,7 +405,7 @@ class ArcCot(_MPMathFunction):
     sympy_name = "acot"
 
 
-class ArcCsc(_MPMathFunction):
+class ArcCsc(MPMathFunction):
     """
     Inverse cosecant, <url>
     :arccosecant:
@@ -447,7 +446,7 @@ class ArcCsc(_MPMathFunction):
             ).to_sympy()
 
 
-class ArcSec(_MPMathFunction):
+class ArcSec(MPMathFunction):
     """
     Inverse secant, <url>
     :arcsecant:
@@ -489,7 +488,7 @@ class ArcSec(_MPMathFunction):
             ).to_sympy()
 
 
-class ArcSin(_MPMathFunction):
+class ArcSin(MPMathFunction):
     """
     Inverse sine, <url>
     :arcsine:
@@ -525,7 +524,7 @@ class ArcSin(_MPMathFunction):
     sympy_name = "asin"
 
 
-class ArcTan(_MPMathFunction):
+class ArcTan(MPMathFunction):
     """
     Inverse tangent, <url>
     :arctangent:
@@ -585,7 +584,7 @@ class ArcTan(_MPMathFunction):
     sympy_name = "atan"
 
 
-class Cos(_MPMathFunction):
+class Cos(MPMathFunction):
     """
     <url>
     :Cosine:
@@ -624,7 +623,7 @@ class Cos(_MPMathFunction):
     sympy_name = "cos"
 
 
-class Cot(_MPMathFunction):
+class Cot(MPMathFunction):
     """
     <url>
     :Cotangent:
@@ -659,7 +658,7 @@ class Cot(_MPMathFunction):
     sympy_name = "cot"
 
 
-class Csc(_MPMathFunction):
+class Csc(MPMathFunction):
     """
     <url>
     :Cosecant:
@@ -702,7 +701,7 @@ class Csc(_MPMathFunction):
             ).to_sympy()
 
 
-class Haversine(_MPMathFunction):
+class Haversine(MPMathFunction):
     """
     <url>
     :WMA link:
@@ -724,7 +723,7 @@ class Haversine(_MPMathFunction):
     summary_text = "Haversine function"
 
 
-class InverseHaversine(_MPMathFunction):
+class InverseHaversine(MPMathFunction):
     """
     <url>
     :WMA link:
@@ -746,7 +745,7 @@ class InverseHaversine(_MPMathFunction):
     summary_text = "inverse Haversine function"
 
 
-class Sec(_MPMathFunction):
+class Sec(MPMathFunction):
     """
     <url>
     :Secant:
@@ -788,7 +787,7 @@ class Sec(_MPMathFunction):
             ).to_sympy()
 
 
-class Sin(_MPMathFunction):
+class Sin(MPMathFunction):
     """
     <url>
     :Sine:
@@ -835,7 +834,7 @@ class Sin(_MPMathFunction):
     sympy_name = "sin"
 
 
-class Tan(_MPMathFunction):
+class Tan(MPMathFunction):
     """
     <url>
     :Tangent:

@@ -14,8 +14,7 @@ exact values and simplification rules are not implemented yet.
 
 from typing import Optional
 
-from mathics.builtin.arithmetic import _MPMathFunction
-from mathics.builtin.base import Builtin, SympyFunction
+from mathics.builtin.base import Builtin, MPMathFunction, SympyFunction
 from mathics.core.atoms import IntegerM1
 from mathics.core.convert.sympy import SympyExpression
 from mathics.core.evaluation import Evaluation
@@ -30,7 +29,7 @@ SymbolCosh = Symbol("Cosh")
 SymbolSinh = Symbol("Sinh")
 
 
-class ArcCosh(_MPMathFunction):
+class ArcCosh(MPMathFunction):
     """
     <url>
     :Inverse hyperbolic cosine:
@@ -70,7 +69,7 @@ class ArcCosh(_MPMathFunction):
     sympy_name = "acosh"
 
 
-class ArcCoth(_MPMathFunction):
+class ArcCoth(MPMathFunction):
     """
     <url>
     :Inverse hyperbolic cotangent:
@@ -111,7 +110,7 @@ class ArcCoth(_MPMathFunction):
     }
 
 
-class ArcCsch(_MPMathFunction):
+class ArcCsch(MPMathFunction):
     """
     <url>
     :Inverse hyperbolic cosecant:
@@ -153,7 +152,7 @@ class ArcCsch(_MPMathFunction):
             ).to_sympy()
 
 
-class ArcSech(_MPMathFunction):
+class ArcSech(MPMathFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/ArcSech.html</url>
 
@@ -189,7 +188,7 @@ class ArcSech(_MPMathFunction):
             ).to_sympy()
 
 
-class ArcSinh(_MPMathFunction):
+class ArcSinh(MPMathFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/ArcSinh.html</url>
 
@@ -216,7 +215,7 @@ class ArcSinh(_MPMathFunction):
     }
 
 
-class ArcTanh(_MPMathFunction):
+class ArcTanh(MPMathFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/ArcTanh.html</url>
 
@@ -309,7 +308,7 @@ class ComplexExpand(SympyFunction):
         return eval_ComplexExpand(expr, vars)
 
 
-class Cosh(_MPMathFunction):
+class Cosh(MPMathFunction):
     """
     <url>
     :WMA link:
@@ -334,7 +333,7 @@ class Cosh(_MPMathFunction):
     summary_text = "hyperbolic cosine function"
 
 
-class Coth(_MPMathFunction):
+class Coth(MPMathFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Coth.html</url>
 
@@ -438,7 +437,7 @@ class InverseGudermannian(Builtin):
     summary_text = "inverse Gudermannian function gd^-1(z)"
 
 
-class Sech(_MPMathFunction):
+class Sech(MPMathFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Sech.html</url>
 
@@ -467,7 +466,7 @@ class Sech(_MPMathFunction):
             ).to_sympy()
 
 
-class Sinh(_MPMathFunction):
+class Sinh(MPMathFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Sinh.html</url>
 
@@ -489,7 +488,7 @@ class Sinh(_MPMathFunction):
     }
 
 
-class Tanh(_MPMathFunction):
+class Tanh(MPMathFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Tanh.html</url>
 

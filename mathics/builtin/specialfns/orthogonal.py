@@ -3,11 +3,11 @@ Orthogonal Polynomials
 """
 
 
-from mathics.builtin.arithmetic import _MPMathFunction
+from mathics.builtin.base import MPMathFunction
 from mathics.core.atoms import Integer0
 
 
-class ChebyshevT(_MPMathFunction):
+class ChebyshevT(MPMathFunction):
     """
     <url>:Chebyshev polynomial of the first kind: https://en.wikipedia.org/wiki/Chebyshev_polynomials</url> (<url>:Sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.polynomials.chebyshevt</url>, <url>:WMA: https://reference.wolfram.com/language/ref/ChebyshevT.html</url>)
 
@@ -29,7 +29,7 @@ class ChebyshevT(_MPMathFunction):
     sympy_name = "chebyshevt"
 
 
-class ChebyshevU(_MPMathFunction):
+class ChebyshevU(MPMathFunction):
     """
     <url>:Chebyshev polynomial of the second kind: https://en.wikipedia.org/wiki/Chebyshev_polynomials</url> (<url>:Sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.polynomials.chebyshevu</url>, <url>:WMA: https://reference.wolfram.com/language/ref/ChebyshevU.html</url>)
 
@@ -52,7 +52,7 @@ class ChebyshevU(_MPMathFunction):
     sympy_name = "chebyshevu"
 
 
-class GegenbauerC(_MPMathFunction):
+class GegenbauerC(MPMathFunction):
     """
     <url>:Gegenbauer polynomials: https://en.wikipedia.org/wiki/Gegenbauer_polynomials</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.polynomials.gegenbauer</url>, <url>:WMA: https://reference.wolfram.com/language/ref/GegenbauerC.html</url>)
 
@@ -76,7 +76,7 @@ class GegenbauerC(_MPMathFunction):
     sympy_name = "gegenbauer"
 
 
-class HermiteH(_MPMathFunction):
+class HermiteH(MPMathFunction):
     """
     <url>:Hermite polynomial: https://en.wikipedia.org/wiki/Hermite_polynomials</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.polynomials.hermite</url>, <url>:WMA: https://reference.wolfram.com/language/ref/HermiteH.html</url>)
     <dl>
@@ -100,7 +100,7 @@ class HermiteH(_MPMathFunction):
     summary_text = "Hermite's polynomials"
 
 
-class JacobiP(_MPMathFunction):
+class JacobiP(MPMathFunction):
     """
     <url>:Jacobi polynomials: https://en.wikipedia.org/wiki/Jacobi_polynomials</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.polynomials.jacobi</url>, <url>:WMA: https://reference.wolfram.com/language/ref/JacobiP.html</url>)
 
@@ -122,7 +122,7 @@ class JacobiP(_MPMathFunction):
     summary_text = "Jacobi's polynomials"
 
 
-class LaguerreL(_MPMathFunction):
+class LaguerreL(MPMathFunction):
     """
     <url>:Laguerre polynomials: https://en.wikipedia.org/wiki/Laguerre_polynomials</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.polynomials.leguarre_poly</url>, <url>:WMA: https://reference.wolfram.com/language/ref/LeguerreL.html</url>)
 
@@ -159,7 +159,7 @@ class LaguerreL(_MPMathFunction):
         return leaves
 
 
-class LegendreP(_MPMathFunction):
+class LegendreP(MPMathFunction):
     """
     <url>:Lengendre polynomials: https://en.wikipedia.org/wiki/Legendre_polynomials</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.polynomials.legendre</url>, <url>:WMA: https://reference.wolfram.com/language/ref/LegendreP</url>)
     <dl>
@@ -210,7 +210,7 @@ class LegendreP(_MPMathFunction):
         return elements
 
 
-class LegendreQ(_MPMathFunction):
+class LegendreQ(MPMathFunction):
     """
     <url>:Legendre functions of the second kind: https://mathworld.wolfram.com/LegendreFunctionoftheSecondKind.html</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/orthogonal.html#mpmath.legenq</url>, <url>:WMA: https://reference.wolfram.com/language/ref/LegendreQ</url>)
     <dl>
@@ -255,7 +255,7 @@ class LegendreQ(_MPMathFunction):
         return elements
 
 
-class SphericalHarmonicY(_MPMathFunction):
+class SphericalHarmonicY(MPMathFunction):
     """
     <url>:Spherical Harmonic https://mathworld.wolfram.com/SphericalHarmonic.html</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/orthogonal.html#mpmath.sperharm</url>, <url>:WMA: https://reference.wolfram.com/language/ref/SphericalHarmonicY.html</url>)
     <dl>
@@ -290,7 +290,7 @@ class SphericalHarmonicY(_MPMathFunction):
 
 # TODO: Zernike polynomials not yet implemented in mpmath nor sympy
 #
-# class ZernikeR(_MPMathFunction):
+# class ZernikeR(MPMathFunction):
 #    """
 #     <ulr>:Zermike polynomials: https://en.wikipedia.org/wiki/Zernike_polynomials</url>.
 

@@ -4,9 +4,9 @@ import pytest
 
 from mathics.eval.nevaluator import eval_N, eval_NValues
 from mathics.eval.numerify import numerify as eval_numerify
-from mathics.session import MathicsSession
 
-session = MathicsSession()
+from .helper import session
+
 evaluation = session.evaluation
 
 

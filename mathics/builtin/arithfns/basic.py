@@ -2,12 +2,19 @@
 """
 Basic Arithmetic
 
-The functions here are the basic arithmetic operations that you might find on a calculator.
+The functions here are the basic arithmetic operations that you might find \
+on a calculator.
 
 """
 
-from mathics.builtin.arithmetic import _MPMathFunction, create_infix
-from mathics.builtin.base import BinaryOperator, Builtin, PrefixOperator, SympyFunction
+from mathics.builtin.arithmetic import create_infix
+from mathics.builtin.base import (
+    BinaryOperator,
+    Builtin,
+    MPMathFunction,
+    PrefixOperator,
+    SympyFunction,
+)
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -387,7 +394,7 @@ class Plus(BinaryOperator, SympyFunction):
         return eval_Plus(*items_tuple)
 
 
-class Power(BinaryOperator, _MPMathFunction):
+class Power(BinaryOperator, MPMathFunction):
     """
     <url>
     :Exponentiation:
@@ -531,7 +538,7 @@ class Power(BinaryOperator, _MPMathFunction):
     def eval_check(self, x, y, evaluation):
         "Power[x_, y_]"
 
-        # Power uses _MPMathFunction but does some error checking first
+        # Power uses MPMathFunction but does some error checking first
         if isinstance(x, Number) and x.is_zero:
             if isinstance(y, Number):
                 y_err = y
@@ -788,7 +795,6 @@ class Times(BinaryOperator, SympyFunction):
                 and isinstance(item.elements[1], (Integer, Rational, Real))
                 and item.elements[1].to_sympy() < 0
             ):  # nopep8
-
                 negative.append(inverse(item))
             elif isinstance(item, Rational):
                 numerator = item.numerator()

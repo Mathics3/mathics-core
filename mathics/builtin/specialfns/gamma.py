@@ -6,8 +6,12 @@ import sys
 import mpmath
 import sympy
 
-from mathics.builtin.arithmetic import _MPMathFunction, _MPMathMultiFunction
-from mathics.builtin.base import PostfixOperator, SympyFunction
+from mathics.builtin.base import (
+    MPMathFunction,
+    MPMathMultiFunction,
+    PostfixOperator,
+    SympyFunction,
+)
 from mathics.core.atoms import Integer, Integer0, Number
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.convert.mpmath import from_mpmath
@@ -22,7 +26,7 @@ from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 
 
-class Beta(_MPMathMultiFunction):
+class Beta(MPMathMultiFunction):
     """
         <url>
         :Euler beta function:
@@ -118,7 +122,7 @@ class Beta(_MPMathMultiFunction):
         return result
 
 
-class Factorial(PostfixOperator, _MPMathFunction):
+class Factorial(PostfixOperator, MPMathFunction):
     """
     <url>:Factorial:
     https://en.wikipedia.org/wiki/Factorial</url> (<url>
@@ -163,7 +167,7 @@ class Factorial(PostfixOperator, _MPMathFunction):
     summary_text = "factorial"
 
 
-class Factorial2(PostfixOperator, _MPMathFunction):
+class Factorial2(PostfixOperator, MPMathFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Factorial2.html</url>
 
@@ -172,7 +176,8 @@ class Factorial2(PostfixOperator, _MPMathFunction):
       <dt>'$n$!!'
       <dd>computes the double factorial of $n$.
     </dl>
-    The double factorial or semifactorial of a number $n$, is the product of all the integers from 1 up to n that have the same parity (odd or even) as $n$.
+    The double factorial or semifactorial of a number $n$, is the product of all the \
+    integers from 1 up to n that have the same parity (odd or even) as $n$.
 
     >> 5!!
      = 15.
@@ -248,11 +253,12 @@ class Factorial2(PostfixOperator, _MPMathFunction):
         return convert_from_fn(result)
 
 
-class Gamma(_MPMathMultiFunction):
+class Gamma(MPMathMultiFunction):
     """
     <url>:Gamma function:
     https://en.wikipedia.org/wiki/Gamma_function</url> (<url>
-    :SymPy:https://docs.sympy.org/latest/modules/functions/special.html#module-sympy.functions.special.gamma_functions</url>, <url>
+    :SymPy:https://docs.sympy.org/latest/modules/functions
+    /special.html#module-sympy.functions.special.gamma_functions</url>, <url>
     :mpmath:
     https://mpmath.org/doc/current/functions/gamma.html#gamma</url>, <url>
     :WMA:https://reference.wolfram.com/language/ref/Gamma.html</url>)
@@ -345,7 +351,7 @@ class Gamma(_MPMathMultiFunction):
             return Expression(Symbol(self.get_name()), *elements)
 
 
-class LogGamma(_MPMathMultiFunction):
+class LogGamma(MPMathMultiFunction):
     """
     <url>:log-gamma function:
     https://en.wikipedia.org/wiki/Gamma_function#The_log-gamma_function</url> (<url>
@@ -448,7 +454,7 @@ class Pochhammer(SympyFunction):
     sympy_name = "RisingFactorial"
 
 
-class PolyGamma(_MPMathMultiFunction):
+class PolyGamma(MPMathMultiFunction):
     r"""
     <url>:Polygamma function:
     https://en.wikipedia.org/wiki/Polygamma_function</url> (<url>
@@ -495,7 +501,8 @@ class StieltjesGamma(SympyFunction):
     <url>:Stieltjes constants:
     https://en.wikipedia.org/wiki/Stieltjes_constants</url> (<url>
     :SymPy:
-    https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.zeta_functions.stieltjes</url>, <url>
+    https://docs.sympy.org/latest/modules/functions
+    /special.html#sympy.functions.special.zeta_functions.stieltjes</url>, <url>
     :WMA:
     https://reference.wolfram.com/language/ref/StieltjesGamma.html</url>)
 

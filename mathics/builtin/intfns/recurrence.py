@@ -11,8 +11,7 @@ as a function of the preceding terms.
 
 from sympy.functions.combinatorial.numbers import stirling
 
-from mathics.builtin.arithmetic import _MPMathFunction
-from mathics.builtin.base import Builtin
+from mathics.builtin.base import Builtin, MPMathFunction
 from mathics.core.atoms import Integer
 from mathics.core.attributes import (
     A_LISTABLE,
@@ -23,7 +22,7 @@ from mathics.core.attributes import (
 from mathics.core.evaluation import Evaluation
 
 
-class Fibonacci(_MPMathFunction):
+class Fibonacci(MPMathFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Fibonacci.html</url>
 
@@ -49,7 +48,7 @@ class Fibonacci(_MPMathFunction):
     summary_text = "Fibonacci's numbers"
 
 
-class HarmonicNumber(_MPMathFunction):
+class HarmonicNumber(MPMathFunction):
     """
     <url>:Harmonic Number:https://en.wikipedia.org/wiki/Harmonic_number</url> \(
     <url>:WMA link:https://reference.wolfram.com/language/ref/HarmonicNumber.html</url>)

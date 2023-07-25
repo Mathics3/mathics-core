@@ -5,10 +5,10 @@ Exponential Integral and Special Functions
 """
 
 
-from mathics.builtin.arithmetic import _MPMathFunction
+from mathics.builtin.base import MPMathFunction
 
 
-class ExpIntegralE(_MPMathFunction):
+class ExpIntegralE(MPMathFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/ExpIntegralE.html</url>
 
@@ -27,7 +27,7 @@ class ExpIntegralE(_MPMathFunction):
     mpmath_name = "expint"
 
 
-class ExpIntegralEi(_MPMathFunction):
+class ExpIntegralEi(MPMathFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/ExpIntegralEi.html</url>
 
@@ -45,7 +45,7 @@ class ExpIntegralEi(_MPMathFunction):
     mpmath_name = "ei"
 
 
-class ProductLog(_MPMathFunction):
+class ProductLog(MPMathFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/ProductLog.html</url>
 
@@ -83,7 +83,7 @@ class ProductLog(_MPMathFunction):
 
 # TODO: Zernike polynomials not yet implemented in mpmath nor sympy
 #
-# class ZernikeR(_MPMathFunction):
+# class ZernikeR(MPMathFunction):
 #    """
 #    <dl>
 #    <dt>'ZernikeR[$n$, $m$,  $r$]'
