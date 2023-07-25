@@ -395,6 +395,10 @@ def from_sympy_add(expr):
         except ValueError:
             # The exception happens if one of the components is infinity
             pass
+
+    terms = sorted([from_sympy(arg) for arg in expr.args])
+    # TODO: Plug code the to reinforce the WL canonical form
+
     return ExpressionWithToSympy(
         SymbolPlus, *sorted([from_sympy(arg) for arg in expr.args]), sympy_expr=expr
     )
@@ -501,9 +505,11 @@ def from_sympy_mul(expr):
         except ValueError:
             # The exception happens if one of the components is infinity
             pass
-    return ExpressionWithToSympy(
-        SymbolTimes, *sorted([from_sympy(arg) for arg in expr.args]), sympy_expr=expr
-    )
+
+    factors = sorted([from_sympy(arg) for arg in expr.args])
+    # TODO: Plug code here to reinforce the WL canonical form.
+
+    return ExpressionWithToSympy(SymbolTimes, *factors, sympy_expr=expr)
 
 
 def from_sympy_piecewise(expr):
@@ -622,7 +628,7 @@ sympy_conversion_by_type = {
     ),
     sympy.Tuple: lambda expr: to_mathics_list(*expr, elements_conversion_fn=from_sympy),
     sympy.Unequality: lambda expr: to_expression(
-        SymbolUnEqual, *expr.args, elements_conversion_fn=from_sympy
+        SymbolUnequal, *expr.args, elements_conversion_fn=from_sympy
     ),
     sympy.core.add.Add: from_sympy_add,
     sympy.core.mul.Mul: from_sympy_mul,

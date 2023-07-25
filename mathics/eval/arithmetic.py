@@ -51,6 +51,7 @@ RealOne = Real(1.0)
 
 use_sympy_for_arithmetic = False
 
+
 # This cache might not be used that much.
 @lru_cache()
 def call_mpmath(
