@@ -50,7 +50,7 @@ if sys.version_info < (3, 7):
     sys.exit(-1)
 
 INSTALL_REQUIRES += [
-    "numpy<1.25",
+    "numpy<=1.25",
     "llvmlite",
     "sympy>=1.8",
     # Pillow 9.1.0 supports BigTIFF with big-endian byte order.
