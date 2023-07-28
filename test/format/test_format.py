@@ -411,13 +411,13 @@ all_test = {
             "System`StandardForm": "<msup><mi>a</mi> <mfrac><mi>b</mi> <mi>c</mi></mfrac></msup>",
             "System`TraditionalForm": "<msup><mi>a</mi> <mfrac><mi>b</mi> <mi>c</mi></mfrac></msup>",
             "System`InputForm": "<mrow><mi>a</mi> <mo>^</mo> <mrow><mo>(</mo> <mrow><mi>b</mi> <mtext>&nbsp;/&nbsp;</mtext> <mi>c</mi></mrow> <mo>)</mo></mrow></mrow>",
-            "System`OutputForm": "<mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mi>b</mi> <mtext>&nbsp;/&nbsp;</mtext> <mi>c</mi></mrow> <mo>)</mo></mrow></mrow>",
+            "System`OutputForm": r"<mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mrow><mo>(</mo> <mfrac><mi>b</mi> <mi>c</mi></mfrac> <mo>)</mo></mrow></mrow>",
         },
         "latex": {
             "System`StandardForm": "a^{\\frac{b}{c}}",
             "System`TraditionalForm": "a^{\\frac{b}{c}}",
             "System`InputForm": "a{}^{\\wedge}\\left(b\\text{ / }c\\right)",
-            "System`OutputForm": "a\\text{ ${}^{\\wedge}$ }\\left(b\\text{ / }c\\right)",
+            "System`OutputForm": "a\\text{ ${}^{\\wedge}$ }\\left(\\frac{b}{c}\\right)",
         },
     },
     "1/(1+1/(1+1/a))": {
@@ -442,7 +442,12 @@ all_test = {
                 "Fragile!",
             ),
             "System`OutputForm": (
-                "<mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow>",
+                (
+                    r"<mfrac><mn>1</mn> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> "
+                    r"<mfrac><mn>1</mn> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> "
+                    r"<mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow>"
+                    r"</mfrac>"
+                ),
                 "Fragile!",
             ),
         },
@@ -450,7 +455,7 @@ all_test = {
             "System`StandardForm": "\\frac{1}{1+\\frac{1}{1+\\frac{1}{a}}}",
             "System`TraditionalForm": "\\frac{1}{1+\\frac{1}{1+\\frac{1}{a}}}",
             "System`InputForm": "1\\text{ / }\\left(1\\text{ + }1\\text{ / }\\left(1\\text{ + }1\\text{ / }a\\right)\\right)",
-            "System`OutputForm": "1\\text{ / }\\left(1\\text{ + }1\\text{ / }\\left(1\\text{ + }1\\text{ / }a\\right)\\right)",
+            "System`OutputForm": r"\frac{1}{1\text{ + }\frac{1}{1\text{ + }\frac{1}{a}}}",
         },
     },
     "Sqrt[1/(1+1/(1+1/a))]": {
@@ -475,7 +480,11 @@ all_test = {
                 "Fragile!",
             ),
             "System`OutputForm": (
-                "<mrow><mi>Sqrt</mi> <mo>[</mo> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow> <mo>]</mo></mrow>",
+                (
+                    r"<mrow><mi>Sqrt</mi> <mo>[</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> "
+                    r"<mfrac><mn>1</mn> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mfrac><mn>1</mn> <mi>a</mi>"
+                    r"</mfrac></mrow></mfrac></mrow></mfrac> <mo>]</mo></mrow>"
+                ),
                 "Fragile!",
             ),
         },
@@ -483,7 +492,7 @@ all_test = {
             "System`StandardForm": "\\sqrt{\\frac{1}{1+\\frac{1}{1+\\frac{1}{a}}}}",
             "System`TraditionalForm": "\\sqrt{\\frac{1}{1+\\frac{1}{1+\\frac{1}{a}}}}",
             "System`InputForm": "\\text{Sqrt}\\left[1\\text{ / }\\left(1\\text{ + }1\\text{ / }\\left(1\\text{ + }1\\text{ / }a\\right)\\right)\\right]",
-            "System`OutputForm": "\\text{Sqrt}\\left[1\\text{ / }\\left(1\\text{ + }1\\text{ / }\\left(1\\text{ + }1\\text{ / }a\\right)\\right)\\right]",
+            "System`OutputForm": r"\text{Sqrt}\left[\frac{1}{1\text{ + }\frac{1}{1\text{ + }\frac{1}{a}}}\right]",
         },
     },
     # Grids, arrays and matrices

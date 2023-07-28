@@ -107,7 +107,7 @@ class PauliMatrix(SympyFunction):
      = True
 
     >> MatrixExp[I \[Phi]/2 PauliMatrix[3]]
-     = {{E ^ (I / 2 ϕ), 0}, {0, E ^ ((-I / 2) ϕ)}}
+     = {{E ^ (I / 2 ϕ), 0}, {0, E ^ (-I / 2 ϕ)}}
 
     >> % /. \[Phi] -> 2 Pi
      = {{-1, 0}, {0, -1}}

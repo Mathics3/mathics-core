@@ -6,7 +6,6 @@ The functions here are the basic arithmetic operations that you might find \
 on a calculator.
 
 """
-
 from mathics.builtin.arithmetic import create_infix
 from mathics.builtin.base import (
     BinaryOperator,
@@ -52,14 +51,29 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolBlank,
     SymbolComplexInfinity,
+    SymbolFractionBox,
+    SymbolI,
     SymbolIndeterminate,
     SymbolInfix,
+    SymbolInputForm,
     SymbolLeft,
+    SymbolMakeBoxes,
     SymbolMinus,
+    SymbolOutputForm,
     SymbolPattern,
+    SymbolPrecedenceForm,
+    SymbolRowBox,
     SymbolSequence,
+    SymbolStandardForm,
+    SymbolTraditionalForm,
 )
 from mathics.eval.arithmetic import eval_Plus, eval_Times
+from mathics.eval.makeboxes import (
+    builtins_precedence,
+    do_format_complex,
+    eval_makeboxes,
+    parenthesize,
+)
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 
@@ -178,7 +192,7 @@ class Divide(BinaryOperator):
     default_formats = False
 
     formats = {
-        (("InputForm", "OutputForm"), "Divide[x_, y_]"): (
+        ("InputForm", "Divide[x_, y_]"): (
             'Infix[{HoldForm[x], HoldForm[y]}, "/", 400, Left]'
         ),
     }
@@ -189,12 +203,47 @@ class Divide(BinaryOperator):
 
     rules = {
         "Divide[x_, y_]": "Times[x, Power[y, -1]]",
-        "MakeBoxes[Divide[x_, y_], f:StandardForm|TraditionalForm]": (
-            "FractionBox[MakeBoxes[x, f], MakeBoxes[y, f]]"
-        ),
+        #        "MakeBoxes[Divide[x_, y_], f:StandardForm|TraditionalForm]": (
+        #            "FractionBox[MakeBoxes[x, f], MakeBoxes[y, f]]"
+        #        ),
     }
-
     summary_text = "divide"
+
+    # The reason why we need these MakeBoxes methods instead of rules
+    # is that we have still several incompatibilities with WMA.
+    # In particular, OutputForm should produce a "2D" text representation,
+    # similar to the pretty print of sympy. So, for example,
+    # OutputForm[Divide[a+b,c+d]]  -> FractionBox[a+b, c+d]
+    # shoud produce something like
+    #
+    #     a + b
+    #    -------
+    #     c + d
+    # which does not require parenthesis in the numerator and the denominator.
+    #
+    # On the other hand, with our current implementation, FractionBox[a+b, c+d]
+    # produces
+    #  a + b / c + d
+    #
+    # For this reason, we need to add parenthesis to this expression.
+    # Then, when we translate it to some representation admitting the 2D representation
+    # like LaTeX or MathML, the parenthesis are removed.
+
+    def eval_makeboxes_input_output_form(self, x, y, form, evaluation):
+        """MakeBoxes[Divide[x_, y_], form:OutputForm]"""
+        # This adds the parenthesis when they are needed, for the case
+        # of 1D text output.
+        num = parenthesize(400, x, eval_makeboxes(x, evaluation, form), False)
+        den = parenthesize(400, y, eval_makeboxes(y, evaluation, form), True)
+        return Expression(SymbolFractionBox, num, den)
+
+    def eval_makeboxes_standardform(self, x, y, form, evaluation):
+        """MakeBoxes[Divide[x_, y_], form:(StandardForm|TraditionalForm)]"""
+        # This adds the parenthesis when they are needed, for the case
+        # of 1D text output.
+        num = parenthesize(400, x, eval_makeboxes(x, evaluation, form), False)
+        den = parenthesize(400, y, eval_makeboxes(y, evaluation, form), True)
+        return Expression(SymbolFractionBox, num, den)
 
 
 class Minus(PrefixOperator):
@@ -223,16 +272,7 @@ class Minus(PrefixOperator):
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
-
-    formats = {
-        "Minus[x_]": 'Prefix[{HoldForm[x]}, "-", 480]',
-        # don't put e.g. -2/3 in parentheses
-        "Minus[expr_Divide]": 'Prefix[{HoldForm[expr]}, "-", 399]',
-        "Minus[Infix[expr_, op_, 400, grouping_]]": (
-            'Prefix[{Infix[expr, op, 400, grouping]}, "-", 399]'
-        ),
-    }
-
+    default_formats = False
     operator = "-"
     precedence = 480
 
@@ -245,6 +285,13 @@ class Minus(PrefixOperator):
     def eval_int(self, x: Integer, evaluation):
         "Minus[x_Integer]"
         return Integer(-x.value)
+
+    def eval_makeboxes(self, x, form, evaluation):
+        """MakeBoxes[Minus[x_], form:(InputForm|OutputForm|StandardForm|TraditionalForm)]"""
+        # This adds the parenthesis when they are needed, for the case
+        # of 1D text output.
+        factor = parenthesize(400, x, eval_makeboxes(x, evaluation, form), False)
+        return Expression(SymbolRowBox, ListExpression(String(self.operator), factor))
 
 
 class Plus(BinaryOperator, SympyFunction):
@@ -337,56 +384,78 @@ class Plus(BinaryOperator, SympyFunction):
     # Remember to up sympy doc link when this is corrected
     sympy_name = "Add"
 
-    def format_plus(self, items, evaluation):
-        "Plus[items__]"
+    def eval_makeboxes_plus(self, items, form, evaluation):
+        "MakeBoxes[Plus[items__], form:(InputForm|OutputForm|StandardForm|TraditionalForm)]"
+        if form in (SymbolInputForm, SymbolOutputForm):
+            ops = [String(" + "), String(" - ")]
+        else:
+            ops = [String("+"), String("-")]
+        return self.do_eval_makeboxes_plus_ops(
+            items.get_sequence(), form, evaluation, ops
+        )
 
-        def negate(item):  # -> Expression (see FIXME below)
-            if item.has_form("Times", 1, None):
-                if isinstance(item.elements[0], Number):
-                    neg = -item.elements[0]
-                    if neg.sameQ(Integer1):
-                        if len(item.elements) == 1:
-                            return neg
-                        else:
-                            return Expression(SymbolTimes, *item.elements[1:])
-                    else:
-                        return Expression(SymbolTimes, neg, *item.elements[1:])
-                else:
-                    return Expression(SymbolTimes, IntegerM1, *item.elements)
-            elif isinstance(item, Number):
-                return from_sympy(-item.to_sympy())
-            else:
-                return Expression(SymbolTimes, IntegerM1, item)
+    def do_eval_makeboxes_plus_ops(
+        self, terms, form, evaluation, ops=[String("+"), String("-")]
+    ):
+        term = terms[0]
+        formatted_term = eval_makeboxes(term, evaluation, form)
+        # formatted_term = parenthesize(310, term, formatted_term, True)
+        formatted_terms = [formatted_term]
 
-        def is_negative(value) -> bool:
-            if isinstance(value, Complex):
-                real, imag = value.to_sympy().as_real_imag()
-                if real <= 0 and imag <= 0:
+        def is_negative(t):
+            if isinstance(t, Complex):
+                re_symp, im_sympy = t.to_sympy().as_real_imag()
+                if re_sympy == 0:
+                    if im_sympy < 0:
+                        return True
+                if re_sympy < 0:
                     return True
-            elif isinstance(value, Number) and value.to_sympy() < 0:
-                return True
+            if isinstance(t, Number):
+                return t.value < 0
+            if t.has_form("Minus", 1):
+                return not is_negative(t.elements[0])
+            if t.has_form("Times", 2, None):
+                return is_negative(t.elements[0])
+            if t.has_form("HoldForm", 1):
+                return is_negative(t.elements[0])
+            if t.has_form("Divide", 2):
+                return is_negative(t.elements[0])
             return False
 
-        elements = items.get_sequence()
-        values = [to_expression(SymbolHoldForm, element) for element in elements[:1]]
-        ops = []
-        for element in elements[1:]:
-            if (
-                element.has_form("Times", 1, None) and is_negative(element.elements[0])
-            ) or is_negative(element):
-                element = negate(element)
-                op = "-"
-            else:
-                op = "+"
-            values.append(Expression(SymbolHoldForm, element))
-            ops.append(String(op))
-        return Expression(
-            SymbolInfix,
-            ListExpression(*values),
-            ListExpression(*ops),
-            Integer310,
-            SymbolLeft,
-        )
+        def negate(t):
+            if isinstance(t, Number):
+                return from_sympy(-t.to_sympy())
+            if t.has_form("Times", 2, None):
+                factors = t.elements
+                return Expression(SymbolTimes, negate(factors[0]), *factors[1:])
+            if t.has_form("Minus", 1):
+                return t.elements[0]
+            if t.has_form("HoldForm", 1):
+                return negate(t.elements[0])
+            if t.has_form("Divide", 2):
+                num, den = t.elements
+                return Expression(SymbolDivide, negate(num), den)
+            return Expression(Minus, t)
+
+        for term in terms[1:]:
+            minus = 0
+            while True:
+                if term.has_form("HoldForm", 1):
+                    term = term.elements[0]
+                    continue
+                if term.has_form("Minus", 1):
+                    term = term.elements[0]
+                    minus += 1
+                    continue
+                if is_negative(term):
+                    minus += 1
+                    term = negate(term)
+                break
+            formatted_terms.append(ops[minus % 2])
+            formatted_term = eval_makeboxes(term, evaluation, form)
+            formatted_term = parenthesize(310, term, formatted_term, True)
+            formatted_terms.append(formatted_term)
+        return Expression(SymbolRowBox, ListExpression(*formatted_terms))
 
     def eval(self, items, evaluation):
         "Plus[items___]"
@@ -771,8 +840,49 @@ class Times(BinaryOperator, SympyFunction):
 
     summary_text = "mutiply"
 
-    def format_times(self, items, evaluation, op="\u2062"):
-        "Times[items__]"
+    def do_eval_makeboxes_times(self, factors, form, evaluation, op=String("\u2062")):
+        op_str = String(op)
+        factor = factors[0]
+        formatted_factor = eval_makeboxes(factor, evaluation, form)
+        formatted_factor = parenthesize(400, factor, formatted_factor, False)
+        elements = [formatted_factor]
+        factors = factors[1:]
+
+        for factor in factors:
+            elements.append(op)
+            formatted_factor = eval_makeboxes(factor, evaluation, form)
+            formatted_factor = parenthesize(400, factor, formatted_factor, False)
+            elements.append(formatted_factor)
+
+        return Expression(SymbolRowBox, ListExpression(*elements))
+
+    def do_format_times(self, items, evaluation, form):
+        # format_times canonicalizes the form of a product in two ways:
+        # * removes (-1) from the first element of a product, replacing it
+        #   by "Minus[Times[rest]]"
+        # * collect all Rational, Divide and negative power factors,
+        # and reformat the expression as Divide[numerator, denominator]
+        # with numerator and denominator free of these class of factors.
+
+        factors = items.get_sequence()
+
+        if factors[0] is IntegerM1:
+            rest = factors[1:]
+            if len(rest) > 1:
+                result = Expression(
+                    SymbolHoldForm,
+                    Expression(SymbolMinus, Expression(SymbolTimes, *rest)),
+                )
+            else:
+                result = Expression(SymbolHoldForm, Expression(SymbolMinus, rest[0]))
+            return result
+        if factors[0].has_form("Minus", 1):
+            factors[0] = factors[0].elements[0]
+            result = Expression(
+                SymbolHoldForm,
+                Expression(SymbolMinus, Expression(SymbolTimes, *factors)),
+            )
+            return result
 
         def inverse(item):
             if item.has_form("Power", 2) and isinstance(  # noqa
@@ -786,16 +896,24 @@ class Times(BinaryOperator, SympyFunction):
             else:
                 return item
 
-        items = items.get_sequence()
+        # Segretate negative powers
         positive = []
         negative = []
-        for item in items:
+        changed = False
+        for item in factors:
             if (
                 item.has_form("Power", 2)
                 and isinstance(item.elements[1], (Integer, Rational, Real))
                 and item.elements[1].to_sympy() < 0
             ):  # nopep8
                 negative.append(inverse(item))
+            elif isinstance(item, Complex):
+                positive.append(do_format_complex(item, evaluation, SymbolOutputForm))
+            elif item.has_form("Divide", 2):
+                numerator, denominator = item.elements()
+                if numerator is not Integer1:
+                    positive.append(numerator)
+                negative.append(denominator)
             elif isinstance(item, Rational):
                 numerator = item.numerator()
                 if not numerator.sameQ(Integer1):
@@ -803,46 +921,80 @@ class Times(BinaryOperator, SympyFunction):
                 negative.append(item.denominator())
             else:
                 positive.append(item)
-        if positive and positive[0].get_int_value() == -1:
-            del positive[0]
-            minus = True
-        else:
-            minus = False
-        positive = [Expression(SymbolHoldForm, item) for item in positive]
-        negative = [Expression(SymbolHoldForm, item) for item in negative]
-        if positive:
-            positive = create_infix(positive, op, 400, "None")
-        else:
-            positive = Integer1
+
+        # positive = [Expression(SymbolHoldForm, item) for item in positive]
+        # negative = [Expression(SymbolHoldForm, item) for item in negative]
         if negative:
-            negative = create_infix(negative, op, 400, "None")
-            result = Expression(
-                SymbolDivide,
-                Expression(SymbolHoldForm, positive),
-                Expression(SymbolHoldForm, negative),
+            den = (
+                negative[0]
+                if len(negative) == 1
+                else Expression(SymbolTimes, *negative)
             )
-        else:
-            result = positive
-        if minus:
-            result = Expression(
-                SymbolMinus, result
-            )  # Expression('PrecedenceForm', result, 481))
-        result = Expression(SymbolHoldForm, result)
-        return result
+            change_sign = False
+            if positive:
+                if len(positive) == 1:
+                    num = positive[0]
+                else:
+                    first_factor = positive[0]
+                    change_sign = (
+                        isinstance(first_factor, (Integer, Real))
+                        and first_factor.value < 0
+                    )
+                    if change_sign:
+                        # negate first factor
+                        first_factor = -first_factor.to_sympy()
+                        if first_factor == 1:
+                            positive = positive[1:]
+                        else:
+                            positive[0] = from_sympy(first_factor)
+                    num = (
+                        Expression(SymbolTimes, *positive)
+                        if len(positive) > 1
+                        else positive[0]
+                    )
+            else:
+                num = Integer1
+            result = Expression(SymbolHoldForm, Expression(SymbolDivide, num, den))
+            if change_sign:
+                result = Expression(SymbolMinus, result)
+            return result
+        # This happends if there are pure imaginary factors
+        if changed or len(positive) != len(factors):
+            result = Expression(SymbolHoldForm, Expression(SymbolTimes, *positive))
+            return result
 
-    def format_inputform(self, items, evaluation):
-        "InputForm: Times[items__]"
-        return self.format_times(items, evaluation, op="*")
-
-    def format_standardform(self, items, evaluation):
-        "StandardForm: Times[items__]"
-        return self.format_times(items, evaluation, op=" ")
-
-    def format_outputform(self, items, evaluation):
-        "OutputForm: Times[items__]"
-        return self.format_times(items, evaluation, op=" ")
+        return None
 
     def eval(self, items, evaluation):
         "Times[items___]"
         items = numerify(items, evaluation).get_sequence()
         return eval_Times(*items)
+
+    def eval_makeboxes_times(self, items, form, evaluation):
+        "MakeBoxes[Times[items__], form:(InputForm|OutputForm|StandardForm|TraditionalForm)]"
+        factors = items.get_sequence()
+        if len(factors) < 2:
+            # Times[] and Times[...] are not evaluated here...
+            return None
+        if form is SymbolInputForm:
+            op = String("*")
+        else:
+            op = String(" ")
+        result = self.do_eval_makeboxes_times(factors, form, evaluation, op)
+        return result
+
+    def format_times_input(self, items, evaluation):
+        "InputForm: Times[items__]"
+        return self.do_format_times(items, evaluation, SymbolInputForm)
+
+    def format_times_output(self, items, evaluation):
+        "OutputForm: Times[items__]"
+        return self.do_format_times(items, evaluation, SymbolOutputForm)
+
+    def format_times_standardform(self, items, evaluation):
+        "StandardForm: Times[items__]"
+        return self.do_format_times(items, evaluation, SymbolStandardForm)
+
+    def format_times_traditionalform(self, items, evaluation):
+        "TraditionalForm: Times[items__]"
+        return self.do_format_times(items, evaluation, SymbolStandardForm)

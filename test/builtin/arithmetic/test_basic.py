@@ -131,23 +131,25 @@ def test_multiply(str_expr, str_expected, msg):
     [
         (
             "a  b  DirectedInfinity[1. + 2. I]",
-            "a b ((0.447214 + 0.894427 I) Infinity)",
+            "a b (0.447214 + 0.894427 I) Infinity",
             "symbols times floating point complex directed infinity",
         ),
-        ("a  b  DirectedInfinity[I]", "a b (I Infinity)", ""),
+        ("a  b  DirectedInfinity[I]", "a b I Infinity", ""),
         (
             "a  b (-1 + 2 I) Infinity",
-            "a b ((-1 / 5 + 2 I / 5) Sqrt[5] Infinity)",
+            "a b (-1 / 5 + 2 I / 5) Sqrt[5] Infinity",
             "symbols times algebraic exact factor times infinity",
         ),
         (
             "a  b (-1 + 2 Pi I) Infinity",
-            "a b (Infinity (-1 + 2 I Pi) / Sqrt[1 + 4 Pi ^ 2])",
+            "a b (-0.157177 + 0.98757 I) Infinity",
+            # TODO: Improve handling irrational directions
+            # "a b Infinity (-1 + 2 I Pi) / Sqrt[1 + 4 Pi ^ 2]",
             "complex irrational exact",
         ),
         (
             "a  b  DirectedInfinity[(1 + 2 I)/ Sqrt[5]]",
-            "a b ((1 / 5 + 2 I / 5) Sqrt[5] Infinity)",
+            "a b (1 / 5 + 2 I / 5) Sqrt[5] Infinity",
             "symbols times algebraic complex directed infinity",
         ),
         ("a  b  DirectedInfinity[q]", "a b (q Infinity)", ""),

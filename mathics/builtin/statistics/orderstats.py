@@ -263,7 +263,7 @@ class Sort(Builtin):
     Sort uses 'OrderedQ' to determine ordering by default.
     You can sort patterns according to their precedence using 'PatternsOrderedQ':
     >> Sort[{items___, item_, OptionsPattern[], item_symbol, item_?test}, PatternsOrderedQ]
-     = {item_symbol, item_ ? test, item_, items___, OptionsPattern[]}
+     = {item_symbol, (item_) ? test, item_, items___, OptionsPattern[]}
 
     When sorting patterns, values of atoms do not matter:
     >> Sort[{a, b/;t}, PatternsOrderedQ]

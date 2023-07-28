@@ -1714,7 +1714,7 @@ class Series(Builtin):
     >> Clear[s];
     We can also expand over multiple variables
     >> Series[Exp[x-y], {x, 0, 2}, {y, 0, 2}]
-     = (1 - y + 1 / 2 y ^ 2 + O[y] ^ 3) + (1 - y + 1 / 2 y ^ 2 + O[y] ^ 3) x + (1 / 2 + (-1 / 2) y + 1 / 4 y ^ 2 + O[y] ^ 3) x ^ 2 + O[x] ^ 3
+     = 1 - y + 1 / 2 y ^ 2 + O[y] ^ 3 + (1 - y + 1 / 2 y ^ 2 + O[y] ^ 3) x + (1 / 2 - 1 / 2 y + 1 / 4 y ^ 2 + O[y] ^ 3) x ^ 2 + O[x] ^ 3
 
     """
 
@@ -2097,7 +2097,7 @@ class SeriesData(Builtin):
             Expression(SymbolPlus, *expansion),
             Expression(SymbolPower, Expression(SymbolO, variable), powers[-1]),
         )
-        return Expression(SymbolInfix, expansion, String("+"), Integer(300), SymbolLeft)
+        return Expression(SymbolInfix, expansion, String("+"), Integer(299), SymbolLeft)
 
     def eval_makeboxes(
         self,

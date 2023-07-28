@@ -524,7 +524,8 @@ class DirectedInfinity(SympyFunction):
 
     formats = {
         "DirectedInfinity[1]": "HoldForm[Infinity]",
-        "DirectedInfinity[-1]": "HoldForm[-Infinity]",
+        "DirectedInfinity[-1]": "HoldForm[Minus[Infinity]]",
+        "DirectedInfinity[-I]": "HoldForm[Minus[Infinity] I]",
         "DirectedInfinity[]": "HoldForm[ComplexInfinity]",
         "DirectedInfinity[DirectedInfinity[z_]]": "DirectedInfinity[z]",
         "DirectedInfinity[z_?NumericQ]": "HoldForm[z Infinity]",
