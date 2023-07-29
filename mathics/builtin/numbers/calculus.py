@@ -1713,6 +1713,8 @@ class Series(Builtin):
      = 17
     >> Clear[s];
     We can also expand over multiple variables
+    ## TODO: In WMA, the first term is also sorounded by parenthesis. This is
+    ## to fix in another round, after complete the refactor of Infix.
     >> Series[Exp[x-y], {x, 0, 2}, {y, 0, 2}]
      = 1 - y + 1 / 2 y ^ 2 + O[y] ^ 3 + (1 - y + 1 / 2 y ^ 2 + O[y] ^ 3) x + (1 / 2 - 1 / 2 y + 1 / 4 y ^ 2 + O[y] ^ 3) x ^ 2 + O[x] ^ 3
 
