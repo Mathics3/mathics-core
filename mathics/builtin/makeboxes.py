@@ -39,17 +39,11 @@ def int_to_s_exp(expr, n):
     return s, exp, nonnegative
 
 
-# FIXME: op should be a string, so remove the Union.
-def make_boxes_infix(
-    elements, op: Union[String, list], precedence: int, grouping, form: Symbol
-):
+def make_boxes_infix(elements, op: String, precedence: int, grouping, form: Symbol):
     result = []
     for index, element in enumerate(elements):
         if index > 0:
-            if isinstance(op, list):
-                result.append(op[index - 1])
-            else:
-                result.append(op)
+            result.append(op)
         parenthesized = False
         if grouping == "System`NonAssociative":
             parenthesized = True
@@ -476,31 +470,19 @@ class MakeBoxes(Builtin):
 
         elements = expr.elements
         if len(elements) > 1:
-            if operator.has_form("List", len(elements) - 1):
-                operator = [format_operator(op) for op in operator.elements]
-                return make_boxes_infix(
-                    elements, operator, py_precedence, grouping, form
+            encoding_rule = evaluation.definitions.get_ownvalue("$CharacterEncoding")
+            encoding = "UTF8" if encoding_rule is None else encoding_rule.replace.value
+            op_str = (
+                operator.value if isinstance(operator, String) else operator.short_name
+            )
+            if encoding == "ASCII":
+                operator = format_operator(
+                    String(operator_to_ascii.get(op_str, op_str))
                 )
             else:
-                encoding_rule = evaluation.definitions.get_ownvalue(
-                    "$CharacterEncoding"
+                operator = format_operator(
+                    String(operator_to_unicode.get(op_str, op_str))
                 )
-                encoding = (
-                    "UTF8" if encoding_rule is None else encoding_rule.replace.value
-                )
-                op_str = (
-                    operator.value
-                    if isinstance(operator, String)
-                    else operator.short_name
-                )
-                if encoding == "ASCII":
-                    operator = format_operator(
-                        String(operator_to_ascii.get(op_str, op_str))
-                    )
-                else:
-                    operator = format_operator(
-                        String(operator_to_unicode.get(op_str, op_str))
-                    )
 
             return make_boxes_infix(elements, operator, py_precedence, grouping, form)
 

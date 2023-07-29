@@ -175,9 +175,6 @@ class Infix(Builtin):
     >> g[a, b] * c
      = c (a # b)
 
-    >> Infix[{a, b, c}, {"+", "-"}]
-     = a + b - c
-
     #> Format[r[items___]] := Infix[If[Length[{items}] > 1, {items}, {ab}], "~"]
     #> r[1, 2, 3]
      = 1 ~ 2 ~ 3
