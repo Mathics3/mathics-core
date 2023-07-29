@@ -175,6 +175,16 @@ class Infix(Builtin):
     >> g[a, b] * c
      = c (a # b)
 
+
+    Notice that $assoc$ controls when an element is going to be embraced by parenthesis, according to \
+    the position in an outer 'Infix' expression. For example, 
+
+    >> Infix[{a, Infix[{b,c},"#",300, Left]}, "@", 300, Right]
+     = a @ (b # c)
+    
+    because the inner 'Infix' is tagger as 'Left' associative, disregarding the associativity of \
+    the outer 'Infix' expression.
+
     #> Format[r[items___]] := Infix[If[Length[{items}] > 1, {items}, {ab}], "~"]
     #> r[1, 2, 3]
      = 1 ~ 2 ~ 3
