@@ -5,8 +5,11 @@ Unit tests from mathics.builtin.patterns.
 
 from test.helper import check_evaluation
 
+# Clear all the variables
+
 
 def test_blank():
+    check_evaluation(None, None, None)
     for str_expr, str_expected, message in (
         (
             "g[i] /. _[i] :> a",
@@ -18,6 +21,7 @@ def test_blank():
 
 
 def test_replace_all():
+    check_evaluation(None, None, None)
     for str_expr, str_expected, message in (
         (
             "a == d b + d c /. a_ x_ + a_ y_ -> a (x + y)",

@@ -130,6 +130,12 @@ def test_multiply(str_expr, str_expected, msg):
     ),
     [
         (
+            "DirectedInfinity[1+I]+DirectedInfinity[2+I]",
+            "(2 / 5 + I / 5) Sqrt[5] Infinity + (1 / 2 + I / 2) Sqrt[2] Infinity",
+            None,
+        ),
+        ("DirectedInfinity[Sqrt[3]]", "Infinity", None),
+        (
             "a  b  DirectedInfinity[1. + 2. I]",
             "a b ((0.447214 + 0.894427 I) Infinity)",
             "symbols times floating point complex directed infinity",
@@ -224,4 +230,103 @@ def test_directed_infinity_precedence(str_expr, str_expected, msg):
     ],
 )
 def test_power(str_expr, str_expected, msg):
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    (
+        "str_expr",
+        "str_expected",
+        "msg",
+    ),
+    [
+        (None, None, None),
+        # Private tests from mathics.arithmetic.Complex
+        ("Complex[1, Complex[0, 1]]", "0", "Iterated Complex (1 , I)"),
+        ("Complex[1, Complex[1, 0]]", "1 + I", "Iterated Complex  (1, 1) "),
+        ("Complex[1, Complex[1, 1]]", "I", "Iterated Complex, (1, 1 + I)"),
+        ("Complex[0., 0.]", "0. + 0. I", "build complex 0.+0. I"),
+        ("Complex[10, 0.]", "10. + 0. I", "build complex"),
+        ("Complex[10, 0]", "10", "build complex"),
+        ("1 + 0. I", "1. + 0. I", None),
+        # Mathics produces "0."
+        # For some weird reason, the following tests
+        # pass if we run this unit test alone, but not
+        # if we run it together all the tests
+        ("0. + 0. I//FullForm", "Complex[0., 0.]", "WMA compatibility"),
+        ("0. I//FullForm", "Complex[0., 0.]", None),
+        ("1. + 0. I//FullForm", "Complex[1., 0.]", None),
+        ("0. + 1. I//FullForm", "Complex[0., 1.]", None),
+        ("1. + 0. I//OutputForm", "1. + 0. I", "Formatted"),
+        ("0. + 1. I//OutputForm", "0. + 1. I", "Formatting 1. I"),
+        ("-2/3-I//FullForm", "Complex[Rational[-2, 3], -1]", "Adding a rational"),
+    ],
+)
+def test_complex(str_expr, str_expected, msg):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        failure_message=msg,
+        to_string_expected=True,
+        # to_string_expr=True,
+        hold_expected=True,
+    )
+
+
+@pytest.mark.parametrize(
+    (
+        "str_expr",
+        "str_expected",
+        "msg",
+    ),
+    [
+        (None, None, None),
+        ("{Conjugate[Pi], Conjugate[E]}", "{Pi, E}", "Issue #272"),
+        ("-2/3", "-2 / 3", "Rational"),
+        ("-2/3//Head", "Rational", "Rational"),
+        (
+            "(-1 + a^n) Sum[a^(k n), {k, 0, m-1}] // Simplify",
+            "-1 + (a ^ n) ^ m",
+            "according to WMA. Now it fails",
+        ),
+        (
+            "Sum[i / Log[i], {i, 1, Infinity}]",
+            "Sum[i / Log[i], {i, 1, Infinity}]",
+            "Issue #302",
+        ),
+        (
+            "Sum[Cos[Pi i], {i, 1, Infinity}]",
+            "Sum[Cos[i Pi], {i, 1, Infinity}]",
+            "Issue #302",
+        ),
+        (
+            "Sum[x^k*Sum[y^l,{l,0,4}],{k,0,4}]",
+            "1 + x (1 + y + y ^ 2 + y ^ 3 + y ^ 4) + x ^ 2 (1 + y + y ^ 2 + y ^ 3 + y ^ 4) + x ^ 3 (1 + y + y ^ 2 + y ^ 3 + y ^ 4) + x ^ 4 (1 + y + y ^ 2 + y ^ 3 + y ^ 4) + y + y ^ 2 + y ^ 3 + y ^ 4",
+            "Iterated sum",
+        ),
+    ],
+)
+def test_miscelanea_private_tests(str_expr, str_expected, msg):
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    (
+        "str_expr",
+        "str_expected",
+        "msg",
+    ),
+    [
+        (
+            "Product[1 + 1 / i ^ 2, {i, Infinity}]",
+            "1 / ((-I)! I!)",
+            (
+                "Used to be a bug in sympy, but now it is solved exactly!\n"
+                "Again a bug in sympy - regressions between 0.7.3 and 0.7.6 (and 0.7.7?)"
+            ),
+        ),
+    ],
+)
+@pytest.mark.xfail
+def test_miscelanea_private_tests_xfail(str_expr, str_expected, msg):
     check_evaluation(str_expr, str_expected, failure_message=msg)
