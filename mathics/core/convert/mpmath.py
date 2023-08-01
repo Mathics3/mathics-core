@@ -57,7 +57,7 @@ def from_mpmath(
         return PrecisionReal(sympy.Float(str(value), precision=precision - 1))
     elif isinstance(value, mpmath.mpc):
         # if value.imag == 0.0:
-        #    return from_mpmath(value.real, precision=precision)
+        #   return from_mpmath(value.real, precision=precision)
         val_re, val_im = value.real, value.imag
         if mpmath.isinf(val_re):
             if mpmath.isinf(val_im):
