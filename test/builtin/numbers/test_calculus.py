@@ -90,42 +90,6 @@ tests_for_integrate = [
 
 
 @pytest.mark.parametrize(
-    (
-        "str_expr",
-        "str_expected",
-        "msg",
-    ),
-    [
-        (None, None, None),
-        # Private tests from mathics.arithmetic.Complex
-        ("Complex[1, Complex[0, 1]]", "0", "Iterated Complex (1 , I)"),
-        ("Complex[1, Complex[1, 0]]", "1 + I", "Iterated Complex  (1, 1) "),
-        ("Complex[1, Complex[1, 1]]", "I", "Iterated Complex, (1, 1 + I)"),
-        ("Complex[0., 0.]", "0. + 0. I", "build complex 0.+0. I"),
-        ("Complex[10, 0.]", "10. + 0. I", "build complex"),
-        ("Complex[10, 0]", "10", "build complex"),
-        ("1 + 0. I", "1.", None),
-        ("0. + 0. I//FullForm", "Complex[0., 0.]", "WMA compatibility"),
-        ("0. I//FullForm", "Complex[0., 0.]", None),
-        ("1. + 0. I//FullForm", "1.", None),
-        ("0. + 1. I//FullForm", "Complex[0., 1.]", None),
-        ("1. + 0. I//OutputForm", "1.", "Formatted"),
-        ("0. + 1. I//OutputForm", "0. + 1. I", "Formatting 1. I"),
-        ("-2/3-I//FullForm", "Complex[Rational[-2, 3], -1]", "Adding a rational"),
-    ],
-)
-def test_do_complex(str_expr, str_expected, msg):
-    check_evaluation(
-        str_expr,
-        str_expected,
-        failure_message=msg,
-        to_string_expected=True,
-        # to_string_expr=True,
-        hold_expected=True,
-    )
-
-
-@pytest.mark.parametrize(
     "str_expr, str_expected, assert_fail_message, expected_messages",
     tests_for_findminimum,
 )
