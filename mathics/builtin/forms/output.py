@@ -1060,9 +1060,9 @@ class MatrixForm(TableForm):
 
     ## Issue #182
     #> {{2*a, 0},{0,0}}//MatrixForm
-     = 2 ⁢ a   0
+     = 2 a   0
      .
-     . 0       0
+     . 0     0
     """
 
     in_outputforms = True

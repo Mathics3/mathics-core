@@ -47,9 +47,9 @@ def fractionbox(self, **options) -> str:
     num_text = boxes_to_text(self.num, **options)
     den_text = boxes_to_text(self.den, **options)
     if isinstance(self.num, RowBox):
-        num_text = f"({num_text})"
+        num_text = f"{num_text}"
     if isinstance(self.den, RowBox):
-        den_text = f"({den_text})"
+        den_text = f"{den_text}"
 
     return " / ".join([num_text, den_text])
 

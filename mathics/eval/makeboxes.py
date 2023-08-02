@@ -81,9 +81,7 @@ def eval_fullform_makeboxes(
     return Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
 
 
-def eval_makeboxes(
-    self, expr, evaluation: Evaluation, form=SymbolStandardForm
-) -> Expression:
+def eval_makeboxes(expr, evaluation: Evaluation, form=SymbolStandardForm) -> Expression:
     """
     This function takes the definitions provided by the evaluation
     object, and produces a boxed fullform for expr.
@@ -334,13 +332,21 @@ def parenthesize(
     elif element.has_form("PrecedenceForm", 2):
         element_prec = element.elements[1].value
     # If "element" is a negative number, we need to parenthesize the number. (Fixes #332)
-    elif isinstance(element, (Integer, Real)) and element.value < 0:
-        # Force parenthesis by adjusting the surrounding context's precedence value,
-        # We can't change the precedence for the number since it, doesn't
-        # have a precedence value.
-        element_prec = precedence
+    elif isinstance(element, (Integer, Real)):
+        if element.value < 0:
+            # Force parenthesis by adjusting the surrounding context's precedence value,
+            # We can't change the precedence for the number since it, doesn't
+            # have a precedence value.
+            element_prec = 480
+        else:
+            element_prec = 999
+            when_equal = False
+    elif isinstance(element, Symbol):
+        precedence = precedence
+        element_prec = 999
+        when_equal = False
     else:
-        element_prec = builtins_precedence.get(element.get_head())
+        element_prec = builtins_precedence.get(element.get_head(), 670)
     if precedence is not None and element_prec is not None:
         if precedence > element_prec or (precedence == element_prec and when_equal):
             return Expression(

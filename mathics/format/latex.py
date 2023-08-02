@@ -146,9 +146,31 @@ def fractionbox(self, **options) -> str:
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
+
+    # This removes the auxiliar parentheses in
+    # numerator and denominator if they are not
+    # needed. See comment in `mathics.builtin.arithfns.basic.Divide`
+
+    def remove_trivial_parentheses(x):
+        if not isinstance(x, RowBox):
+            return x
+        elements = x.elements
+        if len(elements) != 3:
+            return x
+        left, center, right = elements
+        if not (isinstance(left, String) and isinstance(right, String)):
+            return x
+        open_p, close_p = elements[0].value, elements[-1].value
+        if open_p == "(" and close_p == ")":
+            return center
+        return x
+
+    num = remove_trivial_parentheses(self.num)
+    den = remove_trivial_parentheses(self.den)
+
     return "\\frac{%s}{%s}" % (
-        lookup_conversion_method(self.num, "latex")(self.num, **options),
-        lookup_conversion_method(self.den, "latex")(self.den, **options),
+        lookup_conversion_method(num, "latex")(num, **options),
+        lookup_conversion_method(den, "latex")(den, **options),
     )
 
 

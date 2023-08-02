@@ -500,7 +500,7 @@ class Superscript(Builtin):
 
     summary_text = "format an expression with a superscript"
     rules = {
-        "MakeBoxes[Superscript[x_, y_], f:StandardForm|TraditionalForm]": (
+        "MakeBoxes[Superscript[x_, y_], f:OutputForm|StandardForm|TraditionalForm]": (
             "SuperscriptBox[MakeBoxes[x, f], MakeBoxes[y, f]]"
         )
     }
