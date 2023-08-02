@@ -18,21 +18,7 @@ from mathics.core.expression_predefined import (
 from mathics.core.systemsymbols import SymbolIndeterminate
 
 
-# Another issue with the lru_cache: for mpmath, mpmath.mpc(0.,0.) and
-# mpmath.mpf(0.) produces the same hash. As a result, depending on
-# what is called first, the output of this function is different.
-#
-# note mmatera: When I start to pass the private doctests
-# to pytests, I realize that WMA evaluates `0. I`  to `Complex[0.,0.]`
-# instead of  `0.`. To fix this incompatibility, I removed from
-# `from_sympy` the lines that convert `mpc(0.,0.)` to `mpf(0.0)`,
-# and then this issue becomes evident.
-#
-# As we decide by now that performance comes after ensuring the compatibility
-# and clarity of the code, I propose here to conserve the right tests,
-# and commented out the cache and the lines that convert mpc(0,0) to MachineReal(0).
-#
-# @lru_cache(maxsize=1024)
+@lru_cache(maxsize=1024, typed=True)
 def from_mpmath(
     value: Union[mpmath.mpf, mpmath.mpc],
     precision: Optional[int] = None,
