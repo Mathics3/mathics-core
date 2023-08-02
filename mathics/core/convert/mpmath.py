@@ -42,6 +42,13 @@ def from_mpmath(
         # HACK: use str here to prevent loss of precision
         return PrecisionReal(sympy.Float(str(value), precision=precision - 1))
     elif isinstance(value, mpmath.mpc):
+        # Comment mmatera:
+        # In Python, and mpmath, `0.j` and `0.` equivalent, in the sense
+        # that are considered equal numbers, and have the same associated
+        # hash.
+        # In WMA, this is not the case. To produce recover the
+        # Python's behavior, uncomment the following lines:
+        #
         # if value.imag == 0.0:
         #   return from_mpmath(value.real, precision=precision)
         val_re, val_im = value.real, value.imag
