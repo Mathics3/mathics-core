@@ -355,6 +355,11 @@ def test_set_and_clear_to_fix(str_expr, str_expected, msg):
             "This clears A and B, but not $ContextPath",
             ("Special symbol $ContextPath cannot be cleared.",),
         ),
+        # `This test was in mathics.builtin.arithmetic.Sum`. It is clear that it does not
+        # belongs there. On the other hand, this is something to check at the level of the interpreter,
+        # and is not related with Sum, or Set.
+        # ("a=Sum[x^k*Sum[y^l,{l,0,4}],{k,0,4}]]", "None" , "syntax error",
+        # ('"a=Sum[x^k*Sum[y^l,{l,0,4}],{k,0,4}]" cannot be followed by "]" (line 1 of "<test>").',))
     ],
 )
 def test_set_and_clear_messages(str_expr, str_expected, message, out_msgs):

@@ -266,6 +266,9 @@ def test_accuracy(str_expr, str_expected):
         ('{{a, 2, 3.2`},{2.1``3, 3.2``5, "a"}}', "3."),
         ("{1, 0.}", "MachinePrecision"),
         ("{1, 0.``5}", "0."),
+        ("Re[0.5+2.3 I]", "MachinePrecision"),
+        ("Re[1+2.3 I]", "MachinePrecision"),
+        ("Im[0.5+2.3 I]", "MachinePrecision"),
     ],
 )
 def test_precision(str_expr, str_expected):
