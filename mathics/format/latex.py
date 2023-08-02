@@ -256,7 +256,7 @@ def superscriptbox(self, **options):
         base = self.tex_block(tex1, True)
         superidx_to_tex = lookup_conversion_method(self.superindex, "latex")
         superindx = self.tex_block(superidx_to_tex(self.superindex, **options), True)
-        if isinstance(self.superindex, (String, StyleBox)):
+        if len(superindx) == 1 and isinstance(self.superindex, (String, StyleBox)):
             return "%s^%s" % (
                 base,
                 superindx,

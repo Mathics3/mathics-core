@@ -647,3 +647,24 @@ def test_cmp_compare_numbers(str_expr, str_expected, message):
         to_string_expr=True,
         to_string_expected=True,
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "message"),
+    [
+        (
+            "{a, b} = {2^10000, 2^10000 + 1}; {a == b, a < b, a <= b}",
+            "{False, True, True}",
+            "Test large Integer comparison bug",
+        ),
+        #        (None, None, None),
+    ],
+)
+def test_misc_private_tests(str_expr, str_expected, message):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        failure_message=message,
+        to_string_expr=True,
+        to_string_expected=True,
+    )

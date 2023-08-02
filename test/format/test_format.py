@@ -1,5 +1,5 @@
-# from .helper import session
 import os
+from test.helper import check_evaluation
 
 from mathics.core.symbols import Symbol
 from mathics.session import MathicsSession
@@ -128,6 +128,123 @@ all_test = {
             "System`TraditionalForm": "-4.3",
             "System`InputForm": "-4.3",
             "System`OutputForm": "-4.3",
+        },
+    },
+    "1. 10^6": {
+        "msg": "very large real number (>10^6)",
+        "text": {
+            "System`InputForm": r"1.000000*^6",
+            "System`OutputForm": "1.×10^6",
+        },
+        "latex": {
+            "System`InputForm": r"1.000000\text{*${}^{\wedge}$}6",
+            "System`OutputForm": r"1.\times 10^6",
+        },
+        "mathml": {},
+    },
+    "1. 10^5": {
+        "msg": "large real number (<10^6)",
+        "text": {
+            "System`InputForm": r"100000.",
+            "System`OutputForm": "100000.",
+        },
+        "latex": {
+            "System`InputForm": r"100000.",
+            "System`OutputForm": "100000.",
+        },
+        "mathml": {},
+    },
+    "-1. 10^6": {
+        "msg": "large negative real number (>10^6)",
+        "text": {
+            "System`InputForm": r"-1.000000*^6",
+            "System`OutputForm": "-1.×10^6",
+        },
+        "latex": {
+            "System`InputForm": r"-1.000000\text{*${}^{\wedge}$}6",
+            "System`OutputForm": r"-1.\times 10^6",
+        },
+        "mathml": {},
+    },
+    "-1. 10^5": {
+        "msg": "large negative real number (<10^6)",
+        "text": {
+            "System`InputForm": r"-100000.",
+            "System`OutputForm": "-100000.",
+        },
+        "latex": {
+            "System`InputForm": r"-100000.",
+            "System`OutputForm": "-100000.",
+        },
+        "mathml": {},
+    },
+    "1. 10^-6": {
+        "msg": "very small real number (<10^-6)",
+        "text": {
+            "System`InputForm": r"1.*^-6",
+            "System`OutputForm": "1.×10^-6",
+        },
+        "latex": {
+            "System`InputForm": r"1.\text{*${}^{\wedge}$}-6",
+            "System`OutputForm": r"1.\times 10^{-6}",
+        },
+        "mathml": {},
+    },
+    "1. 10^-5": {
+        "msg": "small real number (<10^-5)",
+        "text": {
+            "System`InputForm": r"0.00001",
+            "System`OutputForm": "0.00001",
+        },
+        "latex": {
+            "System`InputForm": r"0.00001",
+            "System`OutputForm": "0.00001",
+        },
+        "mathml": {},
+    },
+    "-1. 10^-6": {
+        "msg": "very small negative real number (<10^-6)",
+        "text": {
+            "System`InputForm": r"-1.*^-6",
+            "System`OutputForm": "-1.×10^-6",
+        },
+        "latex": {
+            "System`InputForm": r"-1.\text{*${}^{\wedge}$}-6",
+            "System`OutputForm": r"-1.\times 10^{-6}",
+        },
+        "mathml": {},
+    },
+    "-1. 10^-5": {
+        "msg": "small negative real number (>10^-5)",
+        "text": {
+            "System`InputForm": r"-0.00001",
+            "System`OutputForm": "-0.00001",
+        },
+        "latex": {
+            "System`InputForm": r"-0.00001",
+            "System`OutputForm": "-0.00001",
+        },
+        "mathml": {},
+    },
+    "Complex[1.09*^12,3.]": {
+        "msg": "Complex number",
+        "text": {
+            "System`StandardForm": "1.09*^12+3. I",
+            "System`TraditionalForm": "1.09×10^12+3.⁢I",
+            "System`InputForm": "1.090000000000*^12 + 3.*I",
+            "System`OutputForm": "1.09×10^12 + 3. I",
+        },
+        "mathml": {
+            "System`StandardForm": r"<mrow><mrow><mn>1.09</mn> <mtext>*^</mtext> <mn>12</mn></mrow> <mo>+</mo> <mrow><mn>3.</mn> <mo>&nbsp;</mo> <mi>I</mi></mrow></mrow>",
+            "System`TraditionalForm": r'<mrow><mrow><mn>1.09</mn> <mo>×</mo> <msup><mn>10</mn> <mn>12</mn></msup></mrow> <mo>+</mo> <mrow><mn>3.</mn> <mo form="prefix" lspace="0" rspace="0.2em">⁢</mo> <mi>I</mi></mrow></mrow>',
+            "System`InputForm": r"<mrow><mrow><mtext>1.090000000000</mtext> <mtext>*^</mtext> <mtext>12</mtext></mrow> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>3.</mtext> <mtext>*</mtext> <mi>I</mi></mrow></mrow>",
+            "System`OutputForm": r"<mrow><mrow><mn>1.09</mn> <mo>×</mo> <msup><mn>10</mn> <mn>12</mn></msup></mrow> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>3.</mn> <mo>&nbsp;</mo> <mi>I</mi></mrow></mrow>",
+        },
+        "latex": {
+            "System`StandardForm": r"1.09\text{*${}^{\wedge}$}12+3. I",
+            "System`TraditionalForm": r"1.09\times 10^{12}+3. I",
+            "System`InputForm": r"1.090000000000\text{*${}^{\wedge}$}12\text{ + }3.*I",
+            "System`OutputForm": r"1.09\times 10^{12}\text{ + }3. I",
         },
     },
     '"Hola!"': {
@@ -801,3 +918,29 @@ def test_makeboxes_mathml(str_expr, str_expected, form, msg):
     else:
         strresult = format_result.boxes_to_mathml(evaluation=session.evaluation)
         assert strresult == str_expected
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        (
+            "OutputForm[Complex[2.0 ^ 40, 3]]",
+            "1.09951×10^12 + 3. I",
+            "OutputForm Complex",
+        ),
+        (
+            "InputForm[Complex[2.0 ^ 40, 3]]",
+            "1.099511627776*^12 + 3.*I",
+            "InputForm Complex",
+        ),
+    ],
+)
+def test_format_private_doctests(str_expr, str_expected, msg):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=msg,
+    )
