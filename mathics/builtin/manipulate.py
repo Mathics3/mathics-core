@@ -88,8 +88,8 @@ Interactive Manipulation
 #         "System`Private`ManipulateParameter[{{s_Symbol, d_}, r__}]": "System`Private`ManipulateParameter[{Symbol -> s, Default -> d, Label -> s}, {r}]",
 #         "System`Private`ManipulateParameter[{{s_Symbol, d_, l_}, r__}]": "System`Private`ManipulateParameter[{Symbol -> s, Default -> d, Label -> l}, {r}]",
 #         # detect different kinds of widgets. on the use of the duplicate key "Default ->", see _WidgetInstantiator.add()
-#         "System`Private`ManipulateParameter[var_, {min_?RealNumberQ, max_?RealNumberQ}]": 'Join[{Type -> "Continuous", Minimum -> min, Maximum -> max, Default -> min}, var]',
-#         "System`Private`ManipulateParameter[var_, {min_?RealNumberQ, max_?RealNumberQ, step_?RealNumberQ}]": 'Join[{Type -> "Discrete", Minimum -> min, Maximum -> max, Step -> step, Default -> min}, var]',
+#         "System`Private`ManipulateParameter[var_, {min_?RealValuedNumberQ, max_?RealValuedNumberQ}]": 'Join[{Type -> "Continuous", Minimum -> min, Maximum -> max, Default -> min}, var]',
+#         "System`Private`ManipulateParameter[var_, {min_?RealValuedNumberQ, max_?RealValuedNumberQ, step_?RealValuedNumberQ}]": 'Join[{Type -> "Discrete", Minimum -> min, Maximum -> max, Step -> step, Default -> min}, var]',
 #         "System`Private`ManipulateParameter[var_, {opt_List}] /; Length[opt] > 0": 'Join[{Type -> "Options", Options -> opt, Default -> Part[opt, 1]}, var]',
 #     }
 

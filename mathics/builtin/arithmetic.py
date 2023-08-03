@@ -856,26 +856,29 @@ class Real_(Builtin):
     name = "Real"
 
 
-class RealNumberQ(Test):
+class RealValuedNumberQ(Test):
     """
-    ## Not found in WMA
-    ## <url>:WMA link:https://reference.wolfram.com/language/ref/RealNumberQ.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RealValuedNumberQ.html</url>
 
     <dl>
-      <dt>'RealNumberQ[$expr$]'
+      <dt>'RealValuedNumberQ[$expr$]'
       <dd>returns 'True' if $expr$ is an explicit number with no imaginary component.
     </dl>
 
-    >> RealNumberQ[10]
+    >> RealValuedNumberQ[10]
      = True
-    >> RealNumberQ[4.0]
+    >> RealValuedNumberQ[4.0]
      = True
-    >> RealNumberQ[1+I]
+    >> RealValuedNumberQ[1+I]
      = False
-    >> RealNumberQ[0 * I]
+    >> RealValuedNumberQ[0 * I]
      = True
-    >> RealNumberQ[0.0 * I]
+    >> RealValuedNumberQ[0.0 * I]
      = False
+
+    "Underflow[]" and "Overflow[]" are considered Real valued numbers:
+    >> {RealValuedNumberQ[Underflow[]], RealValuedNumberQ[Overflow[]]}
+     = {True, True}
     """
 
     attributes = A_NO_ATTRIBUTES
@@ -883,7 +886,11 @@ class RealNumberQ(Test):
     summary_text = "test whether an expression is a real number"
 
     def test(self, expr) -> bool:
-        return isinstance(expr, (Integer, Rational, Real))
+        return (
+            isinstance(expr, (Integer, Rational, Real))
+            or expr.has_form("Underflow", 0)
+            or expr.has_form("Overflow", 0)
+        )
 
 
 class Sum(IterationFunction, SympyFunction):

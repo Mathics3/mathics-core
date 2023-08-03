@@ -725,7 +725,7 @@ class Round(Builtin):
 
     rules = {
         "Round[expr_?NumericQ]": "Round[Re[expr], 1] + I * Round[Im[expr], 1]",
-        "Round[expr_Complex, k_?RealNumberQ]": (
+        "Round[expr_Complex, k_?RealValuedNumberQ]": (
             "Round[Re[expr], k] + I * Round[Im[expr], k]"
         ),
     }

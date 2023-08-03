@@ -10,6 +10,8 @@ New Builtins
 
 * `Elements`
 * `RealAbs` and `RealSign`
+* `RealValuedNumberQ`
+
 
 Compatibility
 -------------

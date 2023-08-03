@@ -575,7 +575,7 @@ class ArcTan(MPMathFunction):
         "ArcTan[Undefined]": "Undefined",
         "ArcTan[Undefined, x_]": "Undefined",
         "ArcTan[y_, Undefined]": "Undefined",
-        "ArcTan[x_?RealNumberQ, y_?RealNumberQ]": """If[x == 0, If[y == 0, 0, If[y > 0, Pi/2, -Pi/2]], If[x > 0,
+        "ArcTan[x_?RealValuedNumberQ, y_?RealValuedNumberQ]": """If[x == 0, If[y == 0, 0, If[y > 0, Pi/2, -Pi/2]], If[x > 0,
             ArcTan[y/x], If[y >= 0, ArcTan[y/x] + Pi, ArcTan[y/x] - Pi]]]""",
         "Derivative[1][ArcTan]": "1/(1+#^2)&",
     }
