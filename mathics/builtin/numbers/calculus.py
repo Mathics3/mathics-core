@@ -2216,7 +2216,7 @@ class Solve(Builtin):
     rules = {
         "Solve[eqs_, vars_, Complexes]": "Solve[eqs, vars]",
         "Solve[eqs_, vars_, Reals]": (
-            "Cases[Solve[eqs, vars], {Rule[x_,y_?RealNumberQ]}]"
+            "Cases[Solve[eqs, vars], {Rule[x_,y_?RealValuedNumberQ]}]"
         ),
         "Solve[eqs_, vars_, Integers]": (
             "Cases[Solve[eqs, vars], {Rule[x_,y_Integer]}]"

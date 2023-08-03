@@ -48,7 +48,7 @@ class PixelValue(Builtin):
     summary_text = "get pixel value of image at a given position"
 
     def eval(self, image: Image, x, y, evaluation: Evaluation):
-        "PixelValue[image_Image, {x_?RealNumberQ, y_?RealNumberQ}]"
+        "PixelValue[image_Image, {x_?RealValuedNumberQ, y_?RealValuedNumberQ}]"
         x = int(x.round_to_float())
         y = int(y.round_to_float())
         height = image.pixels.shape[0]
@@ -86,13 +86,13 @@ class PixelValuePositions(Builtin):
     """
 
     rules = {
-        "PixelValuePositions[image_Image, val_?RealNumberQ]": "PixelValuePositions[image, val, 0]"
+        "PixelValuePositions[image_Image, val_?RealValuedNumberQ]": "PixelValuePositions[image, val, 0]"
     }
 
     summary_text = "list the position of pixels with a given value"
 
     def eval(self, image: Image, val, d, evaluation: Evaluation):
-        "PixelValuePositions[image_Image, val_?RealNumberQ, d_?RealNumberQ]"
+        "PixelValuePositions[image_Image, val_?RealValuedNumberQ, d_?RealValuedNumberQ]"
         val = val.round_to_float()
         d = d.round_to_float()
 
