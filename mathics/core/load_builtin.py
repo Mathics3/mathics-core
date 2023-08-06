@@ -13,8 +13,9 @@ import os.path as osp
 import pkgutil
 from glob import glob
 from types import ModuleType
-from typing import List, Optional
+from typing import Dict, List, Optional, Set
 
+from mathics.core.convert.sympy import mathics_to_sympy, sympy_to_mathics
 from mathics.core.pattern import pattern_objects
 from mathics.core.symbols import Symbol
 from mathics.eval.makeboxes import builtins_precedence
@@ -27,11 +28,55 @@ from mathics.settings import ENABLE_FILES_MODULE
 mathics3_builtins_modules: List[ModuleType] = []
 
 _builtins = {}
-builtins_by_module = {}
-display_operators_set = set()
+
+# builtins_by_module gives a way of mapping a Python module name
+# e.g. 'mathics.builtin.arithmetic' to the list of Builtin class instances
+# that appear inside that module, e.g. for key 'mathics.builtin.arithmetic' we
+# have:
+# [<mathics.builtin.arithmetic.Arg object>, <mathics.builtin.arithmetic.Assuming object, ...]
+#
+builtins_by_module: Dict[str, list] = {}
+
+# Set operators strings, unary, binary, or ternary.
+# For example  "!, "!!", ^, "+", "-", ">=", "===", "<<", etc.
+display_operators_set: Set[str] = set()
 
 
-# The fact that are importing inside here, suggests add_builtins
+def add_builtins_from_builtin_module(module: ModuleType, builtins_list: list):
+    """
+    Process a modules which contains Builtin classes so that the
+    class is imported in the Python sense but also that we
+    have information added to module variable ``builtins_by_module``.
+
+    """
+    from mathics.core.builtin import Builtin
+
+    builtins_by_module[module.__name__] = []
+    module_vars = dir(module)
+
+    for name in module_vars:
+        builtin_class = name_is_builtin_symbol(module, name)
+        if builtin_class is not None:
+            instance = builtin_class(expression=False)
+
+            if isinstance(instance, Builtin):
+                # This set the default context for symbols in mathics.builtins
+                if not type(instance).context:
+                    type(instance).context = "System`"
+                builtins_list.append((instance.get_name(), instance))
+                builtins_by_module[module.__name__].append(instance)
+                update_display_operators_set(instance)
+
+
+def add_builtins_from_builtin_modules(modules: List[ModuleType]):
+    builtins_list = []
+    for module in modules:
+        add_builtins_from_builtin_module(module, builtins_list)
+    add_builtins(builtins_list)
+    return builtins_by_module
+
+
+# The fact that we are importing inside here, suggests add_builtins
 # should get moved elsewhere.
 def add_builtins(new_builtins):
     from mathics.core.builtin import (
@@ -40,7 +85,6 @@ def add_builtins(new_builtins):
         SympyObject,
         mathics_to_python,
     )
-    from mathics.core.convert.sympy import mathics_to_sympy, sympy_to_mathics
 
     for _, builtin in new_builtins:
         name = builtin.get_name()
@@ -54,35 +98,11 @@ def add_builtins(new_builtins):
                 # print("XXX1", sympy_name)
                 sympy_to_mathics[sympy_name] = builtin
         if isinstance(builtin, Operator):
+            assert builtin.precedence is not None
             builtins_precedence[Symbol(name)] = builtin.precedence
         if isinstance(builtin, PatternObject):
             pattern_objects[name] = builtin.__class__
     _builtins.update(dict(new_builtins))
-
-
-def add_builtins_from_builtin_modules(modules: List[ModuleType]):
-    # This can be put at the top after mathics.builtin.__init__
-    # cleanup is done.
-    from mathics.core.builtin import Builtin
-
-    builtins_list = []
-    for module in modules:
-        builtins_by_module[module.__name__] = []
-        module_vars = dir(module)
-
-        for name in module_vars:
-            builtin_class = name_is_builtin_symbol(module, name)
-            if builtin_class is not None:
-                instance = builtin_class(expression=False)
-
-                if isinstance(instance, Builtin):
-                    # This set the default context for symbols in mathics.builtins
-                    if not type(instance).context:
-                        type(instance).context = "System`"
-                    builtins_list.append((instance.get_name(), instance))
-                    builtins_by_module[module.__name__].append(instance)
-    add_builtins(builtins_list)
-    return builtins_by_module
 
 
 def builtins_dict(builtins_by_module):
@@ -143,13 +163,32 @@ def import_and_load_builtins():
     # server, we disallow local file access.
     disable_file_module_names = set() if ENABLE_FILES_MODULE else {"files_io"}
 
-    subdirectories = next(os.walk(builtin_path))[1]
+    subdirectory_list = next(os.walk(builtin_path))[1]
+    subdirectories = set(subdirectory_list) - set("__pycache__")
     import_builtin_subdirectories(
         subdirectories, disable_file_module_names, mathics3_builtins_modules
     )
 
     add_builtins_from_builtin_modules(mathics3_builtins_modules)
-    initialize_display_operators_set()
+
+
+def import_builtin_module(import_name: str, modules: List[ModuleType]):
+    """
+    Imports ``the list of Mathics3 Built-in modules so that inside
+    Mathics3 Builtin Functions, like Plus[], List[] are defined.
+
+    List ``module_names`` is updated.
+    """
+    try:
+        module = importlib.import_module(import_name)
+    except Exception as e:
+        print(e)
+        print(f"    Not able to load {import_name}. Check your installation.")
+        print(f"    mathics.builtin loads from {__file__[:-11]}")
+        return None
+
+    if module:
+        modules.append(module)
 
 
 # TODO: When we drop Python 3.7,
@@ -162,22 +201,12 @@ def import_builtins(
     """
     Imports the list of Mathics3 Built-in modules so that inside
     Mathics3 Builtin Functions, like Plus[], List[] are defined.
+
+    List ``module_names`` is updated.
     """
 
-    def import_module(module_name: str, import_name: str):
-        try:
-            module = importlib.import_module(import_name)
-        except Exception as e:
-            print(e)
-            print(f"    Not able to load {module_name}. Check your installation.")
-            print(f"    mathics.builtin loads from {__file__[:-11]}")
-            return None
-
-        if module:
-            modules.append(module)
-
     if submodule_name:
-        import_module(submodule_name, f"mathics.builtin.{submodule_name}")
+        import_builtin_module(f"mathics.builtin.{submodule_name}", modules)
 
     for module_name in module_names:
         import_name = (
@@ -185,11 +214,11 @@ def import_builtins(
             if submodule_name
             else f"mathics.builtin.{module_name}"
         )
-        import_module(module_name, import_name)
+        import_builtin_module(import_name, modules)
 
 
 def import_builtin_subdirectories(
-    subdirectories: List[str], disable_file_module_names: set, modules
+    subdirectories: Set[str], disable_file_module_names: set, modules
 ):
     """
     Runs import_builtisn on the each subdirectory in ``subdirectories`` that inside
@@ -207,15 +236,6 @@ def import_builtin_subdirectories(
         ]
         # print("XXX3", submodule_names)
         import_builtins(submodule_names, modules, subdir)
-
-
-def initialize_display_operators_set():
-    for _, builtins in builtins_by_module.items():
-        for builtin in builtins:
-            # name = builtin.get_name()
-            operator = builtin.get_operator_display()
-            if operator is not None:
-                display_operators_set.add(operator)
 
 
 def name_is_builtin_symbol(module: ModuleType, name: str) -> Optional[type]:
@@ -277,3 +297,13 @@ def name_is_builtin_symbol(module: ModuleType, name: str) -> Optional[type]:
     if module_object in getattr(module, "DOES_NOT_ADD_BUILTIN_DEFINITION", []):
         return None
     return module_object
+
+
+def update_display_operators_set(builtin_instance):
+    """
+    If builtin_instance is an operator of some kind, add that
+    to the set of opererator strings ``display_operators_set``.
+    """
+    operator = builtin_instance.get_operator_display()
+    if operator is not None:
+        display_operators_set.add(operator)
