@@ -5,7 +5,6 @@ Units and Quantities
 
 from pint import UnitRegistry
 
-from mathics.builtin.base import Builtin, Test
 from mathics.core.atoms import Integer, Integer1, Number, Real, String
 from mathics.core.attributes import (
     A_HOLD_REST,
@@ -13,6 +12,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import Builtin, Test
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation

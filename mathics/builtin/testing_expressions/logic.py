@@ -2,7 +2,6 @@
 """
 Logical Combinations
 """
-from mathics.builtin.base import BinaryOperator, Builtin, Predefined, PrefixOperator
 from mathics.core.attributes import (
     A_FLAT,
     A_HOLD_ALL,
@@ -11,6 +10,7 @@ from mathics.core.attributes import (
     A_ORDERLESS,
     A_PROTECTED,
 )
+from mathics.core.builtin import BinaryOperator, Builtin, Predefined, PrefixOperator
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Expression

@@ -14,8 +14,8 @@ exact values and simplification rules are not implemented yet.
 
 from typing import Optional
 
-from mathics.builtin.base import Builtin, MPMathFunction, SympyFunction
 from mathics.core.atoms import IntegerM1
+from mathics.core.builtin import Builtin, MPMathFunction, SympyFunction
 from mathics.core.convert.sympy import SympyExpression
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression

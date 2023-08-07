@@ -13,16 +13,16 @@ from io import BytesIO
 from mathics_scanner import TranslateError
 
 import mathics
-from mathics.builtin.base import (
+from mathics.core import read
+from mathics.core.atoms import Integer, String, SymbolString
+from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import (
     BinaryOperator,
     Builtin,
     MessageException,
     Predefined,
     PrefixOperator,
 )
-from mathics.core import read
-from mathics.core.atoms import Integer, String, SymbolString
-from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation

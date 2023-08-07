@@ -5,8 +5,8 @@ Iteratively Applying Functions
 Functional iteration is an elegant way to represent repeated operations that is used a lot.
 """
 
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer1
+from mathics.core.builtin import Builtin
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression

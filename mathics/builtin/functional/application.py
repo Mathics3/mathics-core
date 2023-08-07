@@ -10,8 +10,8 @@ sort_order = "mathics.builtin.function-application"
 
 from itertools import chain
 
-from mathics.builtin.base import Builtin, PostfixOperator
 from mathics.core.attributes import A_HOLD_ALL, A_N_HOLD_ALL, A_PROTECTED
+from mathics.core.builtin import Builtin, PostfixOperator
 from mathics.core.convert.sympy import SymbolFunction
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression

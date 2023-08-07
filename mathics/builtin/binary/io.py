@@ -10,8 +10,8 @@ from itertools import chain
 import mpmath
 import sympy
 
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import Complex, Integer, MachineReal, Real, String
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.expression import Expression

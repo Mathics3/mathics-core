@@ -9,7 +9,6 @@ from typing import List
 import sympy
 from sympy import Q, ask
 
-from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.atoms import Integer
 from mathics.core.attributes import (
     A_FLAT,
@@ -20,6 +19,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import Builtin, SympyFunction
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_bool
 from mathics.core.evaluation import Evaluation

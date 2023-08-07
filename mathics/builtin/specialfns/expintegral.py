@@ -5,7 +5,7 @@ Exponential Integral and Special Functions
 """
 
 
-from mathics.builtin.base import MPMathFunction
+from mathics.core.builtin import MPMathFunction
 
 
 class ExpIntegralE(MPMathFunction):

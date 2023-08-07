@@ -2,8 +2,8 @@
 Numerical Data
 """
 
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer1, Integer2
+from mathics.core.builtin import Builtin
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.symbols import (
     SymbolAbs,

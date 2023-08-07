@@ -4,7 +4,6 @@ Clearing Assignments
 """
 
 
-from mathics.builtin.base import Builtin, PostfixOperator
 from mathics.core.assignment import is_protected
 from mathics.core.atoms import String
 from mathics.core.attributes import (
@@ -16,6 +15,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import Builtin, PostfixOperator
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol, SymbolNull, symbol_set
 from mathics.core.systemsymbols import (

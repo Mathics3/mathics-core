@@ -9,11 +9,11 @@ Functions for manipulating colors and color images.
 import itertools
 from math import floor
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_directives import ColorError, RGBColor, _ColorObject
 from mathics.builtin.colors.color_internals import convert_color
 from mathics.builtin.image.base import Image
 from mathics.core.atoms import Integer, MachineReal, Rational, Real, String
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression

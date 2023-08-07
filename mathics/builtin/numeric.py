@@ -15,7 +15,6 @@ from typing import Optional
 
 import sympy
 
-from mathics.builtin.base import Builtin, MPMathFunction, SympyFunction
 from mathics.builtin.inference import evaluate_predicate
 from mathics.core.atoms import (
     Complex,
@@ -32,6 +31,7 @@ from mathics.core.attributes import (
     A_NUMERIC_FUNCTION,
     A_PROTECTED,
 )
+from mathics.core.builtin import Builtin, MPMathFunction, SympyFunction
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation

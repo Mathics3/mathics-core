@@ -5,8 +5,8 @@ Error Function and Related Functions
 """
 
 
-from mathics.builtin.base import MPMathFunction, MPMathMultiFunction
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
+from mathics.core.builtin import MPMathFunction, MPMathMultiFunction
 
 
 class Erf(MPMathMultiFunction):

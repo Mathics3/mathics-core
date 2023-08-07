@@ -9,7 +9,6 @@ patterns of criteria.
 
 from itertools import chain
 
-from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import Integer, Integer0, Integer1, String
 from mathics.core.attributes import (
@@ -19,6 +18,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import BinaryOperator, Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.exceptions import (

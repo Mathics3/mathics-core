@@ -13,8 +13,8 @@ import subprocess
 import sys
 
 from mathics import version_string
-from mathics.builtin.base import Builtin, Predefined
 from mathics.core.atoms import Integer, Integer0, IntegerM1, Real, String
+from mathics.core.builtin import Builtin, Predefined
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression

@@ -7,7 +7,6 @@ from typing import Any, Optional
 
 import sympy
 
-from mathics.builtin.base import BinaryOperator, Builtin, SympyFunction
 from mathics.builtin.numbers.constants import mp_convert_constant
 from mathics.core.atoms import COMPARE_PREC, Integer, Integer1, Number, String
 from mathics.core.attributes import (
@@ -17,6 +16,7 @@ from mathics.core.attributes import (
     A_ORDERLESS,
     A_PROTECTED,
 )
+from mathics.core.builtin import BinaryOperator, Builtin, SympyFunction
 from mathics.core.convert.expression import to_expression, to_numeric_args
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import (

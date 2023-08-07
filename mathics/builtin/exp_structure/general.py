@@ -3,8 +3,8 @@
 General Structural Expression Functions
 """
 
-from mathics.builtin.base import BinaryOperator, Builtin, Predefined
 from mathics.core.atoms import Integer, Integer0, Integer1, Rational
+from mathics.core.builtin import BinaryOperator, Builtin, Predefined
 from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression

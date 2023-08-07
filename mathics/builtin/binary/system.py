@@ -5,8 +5,8 @@ System-related binary handling
 
 import sys
 
-from mathics.builtin.base import Predefined
 from mathics.core.atoms import Integer, Integer1, IntegerM1
+from mathics.core.builtin import Predefined
 
 
 class ByteOrdering(Predefined):

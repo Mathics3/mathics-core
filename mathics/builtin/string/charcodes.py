@@ -6,8 +6,8 @@ Character Codes
 import sys
 
 from mathics.builtin.atomic.strings import to_python_encoding
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer, Integer1, String
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression

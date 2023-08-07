@@ -21,8 +21,8 @@ can immediately be given as symbolic operators.
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.functional-composition"
 
-from mathics.builtin.base import Builtin
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
+from mathics.core.builtin import Builtin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 

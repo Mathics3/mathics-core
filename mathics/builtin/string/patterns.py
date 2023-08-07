@@ -13,9 +13,9 @@ from mathics.builtin.atomic.strings import (
     anchor_pattern,
     to_regex,
 )
-from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.core.atoms import Integer1, String
 from mathics.core.attributes import A_FLAT, A_LISTABLE, A_ONE_IDENTITY, A_PROTECTED
+from mathics.core.builtin import BinaryOperator, Builtin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression

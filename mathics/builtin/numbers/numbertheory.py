@@ -7,7 +7,6 @@ Number theoretic functions
 import mpmath
 import sympy
 
-from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.atoms import Integer, Integer0, Integer10, Rational, Real
 from mathics.core.attributes import (
     A_LISTABLE,
@@ -16,6 +15,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import Builtin, SympyFunction
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_bool, from_python
 from mathics.core.convert.sympy import SympyPrime, from_sympy

@@ -12,8 +12,8 @@ import numpy
 import PIL
 import PIL.Image
 
-from mathics.builtin.base import String
 from mathics.core.atoms import Rational
+from mathics.core.builtin import String
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression

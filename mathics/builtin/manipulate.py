@@ -8,7 +8,7 @@ Interactive Manipulation
 
 
 # from mathics import settings
-# from mathics.builtin.base import Builtin
+# from mathics.core.builtin import Builtin
 # from mathics.core.atoms import Integer, String
 # from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 # from mathics.core.convert.python import from_python

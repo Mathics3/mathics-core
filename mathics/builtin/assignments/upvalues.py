@@ -9,9 +9,9 @@ See <url>
 https://reference.wolfram.com/language/tutorial/TransformationRulesAndDefinitions.html#6972</url>.
 """
 
-from mathics.builtin.base import Builtin
 from mathics.core.assignment import get_symbol_values
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
+from mathics.core.builtin import Builtin
 
 
 # In Mathematica 5, this appears under "Types of Values".

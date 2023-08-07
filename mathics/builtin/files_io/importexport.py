@@ -25,10 +25,10 @@ import urllib.request as request
 from itertools import chain
 from urllib.error import HTTPError, URLError
 
-from mathics.builtin.base import Builtin, Integer, Predefined, String, get_option
 from mathics.builtin.pymimesniffer import magic
 from mathics.core.atoms import ByteArrayAtom
 from mathics.core.attributes import A_NO_ATTRIBUTES, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin, Integer, Predefined, String, get_option
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation

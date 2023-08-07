@@ -3,8 +3,8 @@ Orthogonal Polynomials
 """
 
 
-from mathics.builtin.base import MPMathFunction
 from mathics.core.atoms import Integer0
+from mathics.core.builtin import MPMathFunction
 
 
 class ChebyshevT(MPMathFunction):

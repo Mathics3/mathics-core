@@ -12,9 +12,9 @@ sort_order = "mathics.builtin.solving-recurrence-equations"
 
 import sympy
 
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import IntegerM1
 from mathics.core.attributes import A_CONSTANT
+from mathics.core.builtin import Builtin
 from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression

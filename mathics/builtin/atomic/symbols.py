@@ -10,7 +10,6 @@ import re
 
 from mathics_scanner import is_symbol_name
 
-from mathics.builtin.base import Builtin, PrefixOperator, Test
 from mathics.core.assignment import get_symbol_values
 from mathics.core.atoms import String
 from mathics.core.attributes import (
@@ -22,6 +21,7 @@ from mathics.core.attributes import (
     A_SEQUENCE_HOLD,
     attributes_bitset_to_list,
 )
+from mathics.core.builtin import Builtin, PrefixOperator, Test
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.regex import to_regex
 from mathics.core.evaluation import Evaluation

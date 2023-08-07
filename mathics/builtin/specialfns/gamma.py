@@ -6,14 +6,14 @@ import sys
 import mpmath
 import sympy
 
-from mathics.builtin.base import (
+from mathics.core.atoms import Integer, Integer0, Number
+from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
+from mathics.core.builtin import (
     MPMathFunction,
     MPMathMultiFunction,
     PostfixOperator,
     SympyFunction,
 )
-from mathics.core.atoms import Integer, Integer0, Number
-from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy

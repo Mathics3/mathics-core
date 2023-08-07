@@ -3,8 +3,8 @@ Form variables
 
 """
 
-from mathics.builtin.base import Predefined
 from mathics.core.attributes import A_LOCKED, A_PROTECTED
+from mathics.core.builtin import Predefined
 from mathics.core.list import ListExpression
 
 

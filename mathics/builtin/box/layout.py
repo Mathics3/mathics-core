@@ -8,11 +8,11 @@ At the other end, the top level, we have a Notebook which is just a \
 collection of Expressions usually contained in boxes.
 """
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Atom, String
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin
 from mathics.core.element import BoxElementMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import BoxConstructError

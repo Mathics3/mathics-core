@@ -8,9 +8,9 @@ import string
 
 import sympy
 
-from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.atoms import Integer, Integer0, String
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
+from mathics.core.builtin import Builtin, SympyFunction
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.expression import Expression

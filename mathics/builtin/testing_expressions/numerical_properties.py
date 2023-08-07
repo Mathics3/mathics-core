@@ -5,9 +5,9 @@ from itertools import combinations
 
 import sympy
 
-from mathics.builtin.base import Builtin, SympyFunction, Test
 from mathics.core.atoms import Integer, Integer0, Number
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
+from mathics.core.builtin import Builtin, SympyFunction, Test
 from mathics.core.convert.python import from_bool, from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression

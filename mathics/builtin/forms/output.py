@@ -16,7 +16,6 @@ import re
 from math import ceil
 from typing import Optional
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.builtin.makeboxes import MakeBoxes, number_form
@@ -29,6 +28,7 @@ from mathics.core.atoms import (
     String,
     StringFromPython,
 )
+from mathics.core.builtin import Builtin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
 from mathics.core.list import ListExpression

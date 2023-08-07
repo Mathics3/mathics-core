@@ -2,8 +2,8 @@
 Morphological Image Processing
 """
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.image.base import Image, skimage_requires
+from mathics.core.builtin import Builtin
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.eval.image import matrix_to_numpy, pixels_as_float, pixels_as_ubyte

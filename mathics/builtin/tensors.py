@@ -19,9 +19,9 @@ of any rank can be handled.
 """
 
 
-from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
+from mathics.core.builtin import BinaryOperator, Builtin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression

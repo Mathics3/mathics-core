@@ -5,7 +5,6 @@
 Functions for working with 3D graphics.
 """
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_directives import RGBColor
 from mathics.builtin.graphics import (
     CoordinatesError,
@@ -14,6 +13,7 @@ from mathics.builtin.graphics import (
     _GraphicsElements,
 )
 from mathics.core.atoms import Integer, Rational, Real
+from mathics.core.builtin import Builtin
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.symbols import SymbolN
 from mathics.eval.nevaluator import eval_N

@@ -34,7 +34,7 @@ display_operators_set = set()
 # The fact that are importing inside here, suggests add_builtins
 # should get moved elsewhere.
 def add_builtins(new_builtins):
-    from mathics.builtin.base import (
+    from mathics.core.builtin import (
         Operator,
         PatternObject,
         SympyObject,
@@ -63,7 +63,7 @@ def add_builtins(new_builtins):
 def add_builtins_from_builtin_modules(modules: List[ModuleType]):
     # This can be put at the top after mathics.builtin.__init__
     # cleanup is done.
-    from mathics.builtin.base import Builtin
+    from mathics.core.builtin import Builtin
 
     builtins_list = []
     for module in modules:
@@ -256,8 +256,8 @@ def name_is_builtin_symbol(module: ModuleType, name: str) -> Optional[type]:
     ) is not module and not module.__name__.startswith("pymathics."):
         return None
 
-    # Skip objects in module mathics.builtin.base.
-    if module_object.__module__ == "mathics.builtin.base":
+    # Skip objects in module mathics.core.builtin.
+    if module_object.__module__ == "mathics.core.builtin":
         return None
 
     # Skip those builtins that are not submodules of mathics.builtin.
@@ -267,7 +267,7 @@ def name_is_builtin_symbol(module: ModuleType, name: str) -> Optional[type]:
     ):
         return None
 
-    from mathics.builtin.base import Builtin
+    from mathics.core.builtin import Builtin
 
     # If it is not a subclass of Builtin, skip it.
     if not issubclass(module_object, Builtin):

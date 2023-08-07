@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+"""
+Class definitions used in mathics.builtin modules that define the
+base Mathics3's classes: Predefined, Builtin, Test, Operator (and from that
+UnaryOperator, BinaryOperator, PrefixOperator, PostfixOperator, etc.),
+SympyFunction, MPMathFunction, etc.
+"""
 
 import importlib
 import re
@@ -60,9 +66,6 @@ from mathics.eval.arithmetic import eval_mpmath_function
 from mathics.eval.numbers import cancel
 from mathics.eval.numerify import numerify
 from mathics.eval.scoping import dynamic_scoping
-
-# Signals to Mathics doc processing not to include this module in its documentation.
-no_doc = True
 
 
 class Builtin:
@@ -791,7 +794,7 @@ class IterationFunction(Builtin):
     def eval_max(self, expr, imax, evaluation):
         "%(name)s[expr_, {imax_}]"
 
-        # Even though `imax` should be an integeral value, its type does not
+        # Even though `imax` should be an integral value, its type does not
         # have to be an Integer.
 
         result = []
