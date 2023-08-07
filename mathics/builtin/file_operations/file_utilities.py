@@ -2,8 +2,8 @@
 File Utilities
 """
 
-from mathics.builtin.base import Builtin, MessageException
 from mathics.builtin.files_io.files import MathicsOpen
+from mathics.core.builtin import Builtin, MessageException
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation

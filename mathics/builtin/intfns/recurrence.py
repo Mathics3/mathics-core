@@ -11,7 +11,6 @@ as a function of the preceding terms.
 
 from sympy.functions.combinatorial.numbers import stirling
 
-from mathics.builtin.base import Builtin, MPMathFunction
 from mathics.core.atoms import Integer
 from mathics.core.attributes import (
     A_LISTABLE,
@@ -19,6 +18,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import Builtin, MPMathFunction
 from mathics.core.evaluation import Evaluation
 
 

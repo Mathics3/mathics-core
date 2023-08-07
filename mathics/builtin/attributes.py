@@ -17,7 +17,6 @@ However in contrast to \Mathematica, you can set any symbol as an attribute.
 sort_order = "mathics.builtin.definition-attributes"
 
 
-from mathics.builtin.base import Builtin, Predefined
 from mathics.core.assignment import get_symbol_list
 from mathics.core.atoms import String
 from mathics.core.attributes import (
@@ -29,6 +28,7 @@ from mathics.core.attributes import (
     attribute_string_to_number,
     attributes_bitset_to_list,
 )
+from mathics.core.builtin import Builtin, Predefined
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolNull

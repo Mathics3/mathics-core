@@ -16,8 +16,8 @@ Infix operators combined with assignment end in 'By', 'From', or 'To'.
 """
 
 
-from mathics.builtin.base import BinaryOperator, PostfixOperator, PrefixOperator
 from mathics.core.attributes import A_HOLD_FIRST, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import BinaryOperator, PostfixOperator, PrefixOperator
 
 
 class AddTo(BinaryOperator):

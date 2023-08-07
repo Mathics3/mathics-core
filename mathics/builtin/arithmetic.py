@@ -10,15 +10,6 @@ from typing import Optional
 
 import sympy
 
-from mathics.builtin.base import (
-    Builtin,
-    IterationFunction,
-    MPMathFunction,
-    Predefined,
-    SympyFunction,
-    SympyObject,
-    Test,
-)
 from mathics.builtin.inference import get_assumptions_list
 from mathics.builtin.numeric import Abs
 from mathics.builtin.scoping import dynamic_scoping
@@ -40,6 +31,15 @@ from mathics.core.attributes import (
     A_NO_ATTRIBUTES,
     A_NUMERIC_FUNCTION,
     A_PROTECTED,
+)
+from mathics.core.builtin import (
+    Builtin,
+    IterationFunction,
+    MPMathFunction,
+    Predefined,
+    SympyFunction,
+    SympyObject,
+    Test,
 )
 from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
 from mathics.core.element import BaseElement

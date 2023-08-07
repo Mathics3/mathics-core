@@ -10,10 +10,10 @@ produces LLVM code.
 import ctypes
 from types import FunctionType
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.box.compilation import CompiledCodeBox
 from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.function import (
     CompileDuplicateArgName,

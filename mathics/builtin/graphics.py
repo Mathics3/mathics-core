@@ -7,7 +7,6 @@ Drawing Graphics
 
 from math import sqrt
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_directives import (
     CMYKColor,
     GrayLevel,
@@ -29,6 +28,7 @@ from mathics.builtin.drawing.graphics_internals import (
 from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Integer, Rational, Real
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.exceptions import BoxExpressionError
 from mathics.core.expression import Expression

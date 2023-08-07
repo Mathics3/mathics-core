@@ -23,8 +23,8 @@ Similarly, if you assign a function to global variable '$Pre', it will be applie
 input, the second step listed above.
 """
 
-from mathics.builtin.base import Builtin
 from mathics.core.attributes import A_LISTABLE, A_NO_ATTRIBUTES, A_PROTECTED
+from mathics.core.builtin import Builtin
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.the-main-loop"

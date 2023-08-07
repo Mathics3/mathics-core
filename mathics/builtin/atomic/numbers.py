@@ -22,9 +22,9 @@ from functools import lru_cache
 import mpmath
 import sympy
 
-from mathics.builtin.base import Builtin, Predefined
 from mathics.core.atoms import Integer, Integer0, Integer10, MachineReal, Rational
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
+from mathics.core.builtin import Builtin, Predefined
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression

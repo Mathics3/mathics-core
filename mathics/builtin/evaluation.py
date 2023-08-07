@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 
-from mathics.builtin.base import Builtin, Predefined
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
+from mathics.core.builtin import Builtin, Predefined
 from mathics.core.evaluation import (
     MAX_RECURSION_DEPTH,
     Evaluation,

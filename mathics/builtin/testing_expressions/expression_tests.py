@@ -1,7 +1,7 @@
 """
 Expression Tests
 """
-from mathics.builtin.base import Builtin, PatternError, Test
+from mathics.core.builtin import Builtin, PatternError, Test
 from mathics.core.evaluation import Evaluation
 from mathics.core.symbols import SymbolFalse, SymbolTrue
 from mathics.eval.patterns import match

@@ -8,8 +8,8 @@ Miscellaneous image-related functions
 import numpy
 import PIL
 
-from mathics.builtin.base import Builtin, String
 from mathics.builtin.image.base import Image, skimage_requires
+from mathics.core.builtin import Builtin, String
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression

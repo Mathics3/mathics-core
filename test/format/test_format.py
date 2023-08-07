@@ -6,7 +6,7 @@ from mathics.session import MathicsSession
 
 session = MathicsSession()
 
-# from mathics.builtin.base import BoxConstruct, Predefined
+# from mathics.core.builtin import BoxConstruct, Predefined
 
 
 import pytest

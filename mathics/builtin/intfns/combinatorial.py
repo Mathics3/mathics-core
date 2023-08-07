@@ -14,7 +14,6 @@ biology to computer science, etc.
 
 from itertools import combinations
 
-from mathics.builtin.base import Builtin, MPMathFunction, SympyFunction
 from mathics.core.atoms import Integer
 from mathics.core.attributes import (
     A_LISTABLE,
@@ -23,6 +22,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import Builtin, MPMathFunction, SympyFunction
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (

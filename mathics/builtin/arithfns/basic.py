@@ -8,13 +8,6 @@ on a calculator.
 """
 
 from mathics.builtin.arithmetic import create_infix
-from mathics.builtin.base import (
-    BinaryOperator,
-    Builtin,
-    MPMathFunction,
-    PrefixOperator,
-    SympyFunction,
-)
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -36,6 +29,13 @@ from mathics.core.attributes import (
     A_ORDERLESS,
     A_PROTECTED,
     A_READ_PROTECTED,
+)
+from mathics.core.builtin import (
+    BinaryOperator,
+    Builtin,
+    MPMathFunction,
+    PrefixOperator,
+    SympyFunction,
 )
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.sympy import from_sympy

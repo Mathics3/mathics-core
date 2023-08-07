@@ -16,9 +16,9 @@ import mpmath
 import numpy
 import sympy
 
-from mathics.builtin.base import Builtin, Predefined, SympyObject
 from mathics.core.atoms import NUMERICAL_CONSTANTS, MachineReal, PrecisionReal
 from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin, Predefined, SympyObject
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.number import MACHINE_DIGITS, PrecisionValueError, get_precision, prec

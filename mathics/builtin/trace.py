@@ -22,8 +22,8 @@ from io import StringIO
 from time import time
 from typing import Callable
 
-from mathics.builtin.base import Builtin
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
+from mathics.core.builtin import Builtin
 from mathics.core.convert.python import from_bool, from_python
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation

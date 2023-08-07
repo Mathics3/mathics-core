@@ -17,13 +17,13 @@ environment.
 """
 
 
-from mathics.builtin.base import BinaryOperator, Builtin, IterationFunction
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_REST,
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import BinaryOperator, Builtin, IterationFunction
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.interrupt import (

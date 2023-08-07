@@ -4,9 +4,9 @@ Characters in Strings
 """
 
 
-from mathics.builtin.base import Builtin, Test
 from mathics.core.atoms import String
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin, Test
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression

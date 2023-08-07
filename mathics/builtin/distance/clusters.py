@@ -13,9 +13,9 @@ from mathics.algorithm.clusters import (
     kmeans,
     optimize,
 )
-from mathics.builtin.base import Builtin
 from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import FP_MANTISA_BINARY_DIGITS, Integer, Real, String, min_prec
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression

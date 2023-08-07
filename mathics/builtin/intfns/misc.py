@@ -1,5 +1,5 @@
-from mathics.builtin.base import MPMathFunction
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
+from mathics.core.builtin import MPMathFunction
 
 
 class BernoulliB(MPMathFunction):

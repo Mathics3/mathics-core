@@ -468,7 +468,7 @@ def eval_assign_list(self, lhs, rhs, evaluation, tags, upset):
 def eval_assign_makeboxes(self, lhs, rhs, evaluation, tags, upset):
     # FIXME: the below is a big hack.
     # Currently MakeBoxes boxing is implemented as a bunch of rules.
-    # See mathics.builtin.base contribute().
+    # See mathics.core.builtin contribute().
     # I think we want to change this so it works like normal SetDelayed
     # That is:
     #   MakeBoxes[CubeRoot, StandardForm] := RadicalBox[3, StandardForm]

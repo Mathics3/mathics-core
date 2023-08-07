@@ -1454,7 +1454,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         numbers    -> Python number
         If kwarg n_evaluation is given, apply N first to the expression.
         """
-        from mathics.builtin.base import mathics_to_python
+        from mathics.core.builtin import mathics_to_python
 
         n_evaluation = kwargs.get("n_evaluation", None)
         assert n_evaluation is None

@@ -42,14 +42,6 @@ sort_order = "mathics.builtin.rules-and-patterns"
 
 from typing import Callable, List, Optional as OptionalType, Tuple, Union
 
-from mathics.builtin.base import (
-    AtomBuiltin,
-    BinaryOperator,
-    Builtin,
-    PatternError,
-    PatternObject,
-    PostfixOperator,
-)
 from mathics.core.atoms import Integer, Number, Rational, Real, String
 from mathics.core.attributes import (
     A_HOLD_ALL,
@@ -57,6 +49,14 @@ from mathics.core.attributes import (
     A_HOLD_REST,
     A_PROTECTED,
     A_SEQUENCE_HOLD,
+)
+from mathics.core.builtin import (
+    AtomBuiltin,
+    BinaryOperator,
+    Builtin,
+    PatternError,
+    PatternObject,
+    PostfixOperator,
 )
 from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import Evaluation
@@ -700,7 +700,7 @@ class PatternTest(BinaryOperator, PatternObject):
                 and candidate.elements[1].value < 0
             )
         else:
-            from mathics.builtin.base import Test
+            from mathics.core.builtin import Test
 
             builtin = None
             builtin = evaluation.definitions.get_definition(test)

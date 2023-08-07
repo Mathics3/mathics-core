@@ -2,8 +2,8 @@
 List-Oriented Tests
 """
 
-from mathics.builtin.base import Builtin, Test
 from mathics.core.atoms import Integer, Integer1, Integer2
+from mathics.core.builtin import Builtin, Test
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Expression

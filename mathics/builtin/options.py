@@ -11,9 +11,9 @@ the default behavior that function. Default options can be queried or set.
 https://reference.wolfram.com/language/guide/OptionsManagement.html</url>
 """
 
-from mathics.builtin.base import Builtin, Predefined, Test, get_option
 from mathics.builtin.image.base import Image
 from mathics.core.atoms import String
+from mathics.core.builtin import Builtin, Predefined, Test, get_option
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, SymbolDefault, get_default_value
 from mathics.core.list import ListExpression

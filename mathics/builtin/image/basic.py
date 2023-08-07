@@ -5,7 +5,6 @@ Basic Image Processing
 import numpy
 import PIL
 
-from mathics.builtin.base import Builtin, String
 from mathics.builtin.image.base import Image, image_common_messages
 from mathics.core.atoms import (
     Integer,
@@ -14,6 +13,7 @@ from mathics.core.atoms import (
     MachineReal,
     is_integer_rational_or_real,
 )
+from mathics.core.builtin import Builtin, String
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression

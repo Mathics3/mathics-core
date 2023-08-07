@@ -13,7 +13,6 @@ from mathics.builtin.atomic.strings import (
     mathics_split,
     to_regex,
 )
-from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.core.atoms import Integer, Integer1, String
 from mathics.core.attributes import (
     A_FLAT,
@@ -22,6 +21,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import BinaryOperator, Builtin
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression, string_list

@@ -14,8 +14,8 @@ from itertools import chain
 
 import mpmath
 
-from mathics.builtin.base import Builtin, MPMathFunction
 from mathics.core.atoms import Integer, Integer0, IntegerM1, Real
+from mathics.core.builtin import Builtin, MPMathFunction
 from mathics.core.convert.python import from_python
 from mathics.core.exceptions import IllegalStepSpecification
 from mathics.core.expression import Expression

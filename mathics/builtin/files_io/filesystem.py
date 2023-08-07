@@ -11,10 +11,10 @@ import re
 import shutil
 from typing import List
 
-from mathics.builtin.base import Builtin, MessageException, Predefined
 from mathics.builtin.files_io.files import MathicsOpen
 from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_LISTABLE, A_LOCKED, A_PROTECTED
+from mathics.core.builtin import Builtin, MessageException, Predefined
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.convert.regex import to_regex

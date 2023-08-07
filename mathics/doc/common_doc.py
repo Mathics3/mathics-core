@@ -32,7 +32,7 @@ from types import ModuleType
 from typing import Callable
 
 from mathics import settings
-from mathics.builtin.base import check_requires_list
+from mathics.core.builtin import check_requires_list
 from mathics.core.evaluation import Message, Print
 from mathics.core.load_builtin import (
     builtins_by_module as global_builtins_by_module,

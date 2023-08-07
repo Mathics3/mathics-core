@@ -4,8 +4,8 @@
 import base64
 import zlib
 
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import String
+from mathics.core.builtin import Builtin
 from mathics.core.evaluation import Evaluation
 
 

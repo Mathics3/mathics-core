@@ -16,9 +16,9 @@ minimum and maximum value of a sample and sample quantiles.
 from mpmath import ceil as mpceil, floor as mpfloor
 
 from mathics.algorithm.introselect import introselect
-from mathics.builtin.base import Builtin
 from mathics.builtin.list.math import _RankedTakeLargest, _RankedTakeSmallest
 from mathics.core.atoms import Atom, Integer, Symbol, SymbolTrue
+from mathics.core.builtin import Builtin
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolFloor, SymbolPlus, SymbolTimes

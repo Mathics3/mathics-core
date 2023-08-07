@@ -6,7 +6,7 @@ Zeta Functions and Polylogarithms
 
 import mpmath
 
-from mathics.builtin.base import MPMathFunction
+from mathics.core.builtin import MPMathFunction
 from mathics.core.convert.mpmath import from_mpmath
 
 

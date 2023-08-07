@@ -3,9 +3,9 @@ Pixel Operations
 """
 import numpy
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.image.base import Image
 from mathics.core.atoms import Integer, MachineReal
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression

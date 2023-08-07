@@ -8,8 +8,8 @@ import mpmath
 import sympy
 from sympy import im, re
 
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer, Integer0
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.matrix import matrix_data
 from mathics.core.convert.mpmath import from_mpmath, to_mpmath_matrix

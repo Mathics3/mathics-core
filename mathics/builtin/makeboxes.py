@@ -7,10 +7,10 @@ from typing import Union
 
 import mpmath
 
-from mathics.builtin.base import Builtin, Predefined
 from mathics.builtin.box.layout import RowBox, to_boxes
 from mathics.core.atoms import Integer, Integer1, Real, String
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_READ_PROTECTED
+from mathics.core.builtin import Builtin, Predefined
 from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
 from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.evaluation import Evaluation

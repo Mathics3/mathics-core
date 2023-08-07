@@ -6,9 +6,9 @@ from collections import defaultdict
 
 import numpy
 
-from mathics.builtin.base import Builtin, String
 from mathics.builtin.image.base import Image
 from mathics.core.atoms import Integer, Rational, Real
+from mathics.core.builtin import Builtin, String
 from mathics.core.evaluation import Evaluation
 from mathics.core.symbols import Symbol
 from mathics.eval.image import pixels_as_float

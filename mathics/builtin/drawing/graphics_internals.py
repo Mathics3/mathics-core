@@ -4,8 +4,8 @@
 # Also no docstring which may confuse the doc system
 
 
-from mathics.builtin.base import BuiltinElement
 from mathics.builtin.box.expression import BoxExpression
+from mathics.core.builtin import BuiltinElement
 from mathics.core.exceptions import BoxExpressionError
 from mathics.core.symbols import Symbol, system_symbols_dict
 

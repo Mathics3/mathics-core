@@ -16,7 +16,6 @@ from datetime import datetime, timedelta
 
 import dateutil.parser
 
-from mathics.builtin.base import Builtin, Predefined
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.attributes import (
     A_HOLD_ALL,
@@ -24,6 +23,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import Builtin, Predefined
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.element import ImmutableValueMixin

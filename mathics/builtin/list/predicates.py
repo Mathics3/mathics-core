@@ -2,9 +2,9 @@
 Predicates on Lists
 """
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.options import options_to_rules
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue

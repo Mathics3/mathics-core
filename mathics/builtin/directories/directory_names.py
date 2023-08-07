@@ -5,8 +5,8 @@ Directory Names
 import os
 import os.path as osp
 
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import String
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation

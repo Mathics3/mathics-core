@@ -6,11 +6,11 @@ import os
 import os.path as osp
 import time
 
-from mathics.builtin.base import Builtin, MessageException
 from mathics.builtin.exp_structure.size_and_sig import Hash
 from mathics.builtin.files_io.files import MathicsOpen
 from mathics.core.atoms import Real, String
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin, MessageException
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
