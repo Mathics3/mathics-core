@@ -413,3 +413,40 @@ def test_process_assign_other():
                 "Cannot set $ModuleNumber to -1; value must be a positive integer."
             ],
         )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msgs", "failure_msg"),
+    [
+        (None, None, None, None),
+        # From Clear
+        ("x = 2;OwnValues[x]=.;x", "x", None, "Erase Ownvalues"),
+        ("f[a][b] = 3; SubValues[f] =.;f[a][b]", "f[a][b]", None, "Erase Subvalues"),
+        ("PrimeQ[p] ^= True; PrimeQ[p]", "True", None, "Subvalues"),
+        ("UpValues[p]=.; PrimeQ[p]", "False", None, "Erase Subvalues"),
+        ("a + b ^= 5; a =.; a + b", "5", None, None),
+        ("{UpValues[a], UpValues[b]} =.; a+b", "a+b", None, None),
+        (
+            "Unset[Messages[1]]",
+            "$Failed",
+            [
+                "First argument in Messages[1] is not a symbol or a string naming a symbol."
+            ],
+            "Unset Message",
+        ),
+        # From assignent
+        (
+            "f[g, a + b, h] ^= 2",
+            "2",
+            ("Tag Plus in f[g, a + b, h] is Protected.",),
+            "Upset to protected symbols fails",
+        ),
+        ("UpValues[h]", "{HoldPattern[f[g, a + b, h]] :> 2}", None, None),
+        (" g[a+b] ^:= 2", "$Failed", ("Tag Plus in g[a + b] is Protected.",), None),
+        (" g[a+b]", "g[a + b]", None, None),
+    ],
+)
+def test_private_doctests(str_expr, str_expected, msgs, failure_msg):
+    check_evaluation(
+        str_expr, str_expected, expected_messages=msgs, failure_message=failure_msg
+    )

@@ -193,19 +193,6 @@ class ImagePartition(Builtin):
 
     >> ImagePartition[hedy, {512, 128}]
      = {{-Image-}, {-Image-}, {-Image-}, {-Image-}, {-Image-}, {-Image-}}
-
-    #> ImagePartition[hedy, 257]
-     = {{-Image-, -Image-}, {-Image-, -Image-}, {-Image-, -Image-}}
-    #> ImagePartition[hedy, 646]
-     = {{-Image-}}
-    #> ImagePartition[hedy, 647]
-     = {}
-    #> ImagePartition[hedy, {256, 300}]
-     = {{-Image-, -Image-}, {-Image-, -Image-}}
-
-    #> ImagePartition[hedy, {0, 300}]
-     : {0, 300} is not a valid size specification for image partitions.
-     = ImagePartition[-Image-, {0, 300}]
     """
 
     messages = {"arg2": "`1` is not a valid size specification for image partitions."}

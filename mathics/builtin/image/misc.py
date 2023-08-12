@@ -119,18 +119,6 @@ class RandomImage(Builtin):
 
     >> RandomImage[1, {100, 100}]
      = -Image-
-
-    #> RandomImage[0.5]
-     = -Image-
-    #> RandomImage[{0.1, 0.9}]
-     = -Image-
-    #> RandomImage[0.9, {400, 600}]
-     = -Image-
-    #> RandomImage[{0.1, 0.5}, {400, 600}]
-     = -Image-
-
-    #> RandomImage[{0.1, 0.5}, {400, 600}, ColorSpace -> "RGB"]
-     = -Image-
     """
 
     options = {"ColorSpace": "Automatic"}

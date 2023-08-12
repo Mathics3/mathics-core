@@ -93,10 +93,6 @@ class ImageData(Builtin):
 
     >> ImageData[Image[{{0, 1}, {1, 0}, {1, 1}}], "Bit"]
      = {{0, 1}, {1, 0}, {1, 1}}
-
-    #> ImageData[img, "Bytf"]
-     : Unsupported pixel format "Bytf".
-     = ImageData[-Image-, Bytf]
     """
 
     messages = {"pixelfmt": 'Unsupported pixel format "``".'}
