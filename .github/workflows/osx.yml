@@ -24,9 +24,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install OS dependencies
       run: |
-        brew install llvm@11
+        brew install llvm tesseract
         python -m pip install --upgrade pip
-        LLVM_CONFIG=/usr/local/Cellar/llvm@11/11.1.0/bin/llvm-config pip install llvmlite
     - name: Install Mathics3 with full Python dependencies
       run: |
         # We can comment out after next Mathics-Scanner release
