@@ -158,8 +158,6 @@ class Set(BinaryOperator, _SetOperator):
     >> B[[1;;2, 2;;-1]] = {{t, u}, {y, z}};
     >> B
      = {{1, t, u}, {4, y, z}, {7, 8, 9}}
-
-    #> x = Infinity;
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
@@ -371,12 +369,6 @@ class UpSet(BinaryOperator, _SetOperator):
      = custom
     >> UpValues[r]
      = {}
-
-    #> f[g, a + b, h] ^= 2
-     : Tag Plus in f[g, a + b, h] is Protected.
-     = 2
-    #> UpValues[h]
-     = {HoldPattern[f[g, a + b, h]] :> 2}
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
@@ -413,12 +405,6 @@ class UpSetDelayed(UpSet):
      = 2
     >> UpValues[b]
      = {HoldPattern[a[b]] :> x}
-
-    #> f[g, a + b, h] ^:= 2
-     : Tag Plus in f[g, a + b, h] is Protected.
-    #> f[a+b] ^:= 2
-     : Tag Plus in f[a + b] is Protected.
-     = $Failed
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD

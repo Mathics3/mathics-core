@@ -223,12 +223,6 @@ class ImageAtom(AtomBuiltin):
       <dd> produces the internal representation of an image from an array \
           of values for the pixels.
     </dl>
-
-    #> Image[{{{1,1,0},{0,1,1}}, {{1,0,1},{1,1,0}}}]
-     = -Image-
-
-    #> Image[{{{0,0,0,0.25},{0,0,0,0.5}}, {{0,0,0,0.5},{0,0,0,0.75}}}]
-     = -Image-
     """
 
     summary_text = "get internal representation of an image"

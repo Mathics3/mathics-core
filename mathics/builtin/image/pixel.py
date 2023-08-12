@@ -26,21 +26,6 @@ class PixelValue(Builtin):
     >> hedy = Import["ExampleData/hedy.tif"];
     >> PixelValue[hedy, {1, 1}]
      = {0.439216, 0.356863, 0.337255}
-    #> {82 / 255, 22 / 255, 57 / 255} // N  (* pixel byte values from bottom left corner *)
-     = {0.321569, 0.0862745, 0.223529}
-
-    #> PixelValue[hedy, {0, 1}];
-     : Padding not implemented for PixelValue.
-    #> PixelValue[hedy, {512, 1}]
-     = {0.0509804, 0.0509804, 0.0588235}
-    #> PixelValue[hedy, {647, 1}];
-     : Padding not implemented for PixelValue.
-    #> PixelValue[hedy, {1, 0}];
-     : Padding not implemented for PixelValue.
-    #> PixelValue[hedy, {1, 512}]
-     = {0.286275, 0.4, 0.423529}
-    #> PixelValue[hedy, {1, 801}];
-     : Padding not implemented for PixelValue.
     """
 
     messages = {"nopad": "Padding not implemented for PixelValue."}

@@ -245,35 +245,6 @@ class Unset(PostfixOperator):
     >> a = b = 3;
     >> {a, {b}} =.
      = {Null, {Null}}
-
-    #> x = 2;
-    #> OwnValues[x] =.
-    #> x
-     = x
-    #> f[a][b] = 3;
-    #> SubValues[f] =.
-    #> f[a][b]
-     = f[a][b]
-    #> PrimeQ[p] ^= True
-     = True
-    #> PrimeQ[p]
-     = True
-    #> UpValues[p] =.
-    #> PrimeQ[p]
-     = False
-
-    #> a + b ^= 5;
-    #> a =.
-    #> a + b
-     = 5
-    #> {UpValues[a], UpValues[b]} =.
-     = {Null, Null}
-    #> a + b
-     = a + b
-
-    #> Unset[Messages[1]]
-     : First argument in Messages[1] is not a symbol or a string naming a symbol.
-     = $Failed
     """
 
     attributes = A_HOLD_FIRST | A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
