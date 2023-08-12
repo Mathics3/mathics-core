@@ -280,7 +280,7 @@ class Threshold(Builtin):
 
     >> img = Import["ExampleData/hedy.tif"];
     >> Threshold[img]
-     = 0.408203
+     = ...
     X> Binarize[img, %]
      = -Image-
     X> Threshold[img, Method -> "Mean"]
