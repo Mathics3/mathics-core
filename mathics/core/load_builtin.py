@@ -27,6 +27,7 @@ from mathics.settings import ENABLE_FILES_MODULE
 # is initialized via below import_builtins modules
 mathics3_builtins_modules: List[ModuleType] = []
 
+# Used in definition_contribute
 _builtins = {}
 
 # builtins_by_module gives a way of mapping a Python module name
@@ -115,7 +116,7 @@ def get_module_names(builtin_path: str, exclude_files: set) -> list:
     return [f for f in py_files if f not in exclude_files]
 
 
-def import_and_load_builtins():
+def import_and_load_builtins(exclude_files: Optional[Set[str]] = None):
     """
     Imports Builtin modules in mathics.builtin and add rules, and definitions from that.
     """
@@ -126,7 +127,10 @@ def import_and_load_builtins():
         "..",
         "builtin",
     )
-    exclude_files = {"codetables"}
+
+    if exclude_files is None:
+        exclude_files = {"codetables"}
+
     module_names = get_module_names(builtin_path, exclude_files)
     import_builtins(module_names, mathics3_builtins_modules)
 
@@ -139,7 +143,7 @@ def import_and_load_builtins():
     disable_file_module_names = set() if ENABLE_FILES_MODULE else {"files_io"}
 
     subdirectory_list = next(os.walk(builtin_path))[1]
-    subdirectories = set(subdirectory_list) - set("__pycache__")
+    subdirectories = set(subdirectory_list) - (set("__pycache__") | exclude_files)
     import_builtin_subdirectories(
         subdirectories, disable_file_module_names, mathics3_builtins_modules
     )
