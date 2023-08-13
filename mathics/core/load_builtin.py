@@ -33,7 +33,8 @@ _builtins = {}
 # e.g. 'mathics.builtin.arithmetic' to the list of Builtin class instances
 # that appear inside that module, e.g. for key 'mathics.builtin.arithmetic' we
 # have:
-# [<mathics.builtin.arithmetic.Arg object>, <mathics.builtin.arithmetic.Assuming object, ...]
+# [<mathics.builtin.arithmetic.Arg object>, <mathics.builtin.arithmetic.Assuming object,
+# ...]
 #
 builtins_by_module: Dict[str, list] = {}
 
@@ -42,12 +43,13 @@ builtins_by_module: Dict[str, list] = {}
 display_operators_set: Set[str] = set()
 
 
-def add_builtins_from_builtin_module(module: ModuleType, builtins_list: list):
+def add_builtins_from_builtin_module(module: ModuleType):
     """
-    Process a modules which contains Builtin classes so that the
-    class is imported in the Python sense but also that we
-    have information added to module variable ``builtins_by_module``.
-
+    Process a module which contains Builtin classes so that the
+    class is imported in the Python sense, but also that we
+    have information added to internal tables, like operator
+    precedence or the mapping of Mathics3 builtin names to sympy equivalents. Also add
+    ``module`` to variable ``builtins_by_module``.
     """
     from mathics.core.builtin import Builtin
 
@@ -63,46 +65,19 @@ def add_builtins_from_builtin_module(module: ModuleType, builtins_list: list):
                 # This set the default context for symbols in mathics.builtins
                 if not type(instance).context:
                     type(instance).context = "System`"
-                builtins_list.append((instance.get_name(), instance))
                 builtins_by_module[module.__name__].append(instance)
-                update_display_operators_set(instance)
+                update_builtin_properties(instance)
 
 
-def add_builtins_from_builtin_modules(modules: List[ModuleType]):
-    builtins_list = []
+def add_builtins_from_builtin_modules(modules: List[ModuleType]) -> Dict[str, list]:
+    """
+    Process modules listed in ``modules` which contain Builtin classes so that
+    for each module the classes contained in them are is imported in the Python sense,
+    but also that we have information added to module variable ``builtins_by_module``.
+    """
     for module in modules:
-        add_builtins_from_builtin_module(module, builtins_list)
-    add_builtins(builtins_list)
+        add_builtins_from_builtin_module(module)
     return builtins_by_module
-
-
-# The fact that we are importing inside here, suggests add_builtins
-# should get moved elsewhere.
-def add_builtins(new_builtins):
-    from mathics.core.builtin import (
-        Operator,
-        PatternObject,
-        SympyObject,
-        mathics_to_python,
-    )
-
-    for _, builtin in new_builtins:
-        name = builtin.get_name()
-        if hasattr(builtin, "python_equivalent"):
-            # print("XXX0", builtin.python_equivalent)
-            mathics_to_python[name] = builtin.python_equivalent
-
-        if isinstance(builtin, SympyObject):
-            mathics_to_sympy[name] = builtin
-            for sympy_name in builtin.get_sympy_names():
-                # print("XXX1", sympy_name)
-                sympy_to_mathics[sympy_name] = builtin
-        if isinstance(builtin, Operator):
-            assert builtin.precedence is not None
-            builtins_precedence[Symbol(name)] = builtin.precedence
-        if isinstance(builtin, PatternObject):
-            pattern_objects[name] = builtin.__class__
-    _builtins.update(dict(new_builtins))
 
 
 def builtins_dict(builtins_by_module):
@@ -151,7 +126,7 @@ def import_and_load_builtins():
         "..",
         "builtin",
     )
-    exclude_files = {"codetables", "base"}
+    exclude_files = {"codetables"}
     module_names = get_module_names(builtin_path, exclude_files)
     import_builtins(module_names, mathics3_builtins_modules)
 
@@ -172,7 +147,9 @@ def import_and_load_builtins():
     add_builtins_from_builtin_modules(mathics3_builtins_modules)
 
 
-def import_builtin_module(import_name: str, modules: List[ModuleType]):
+def import_builtin_module(
+    import_name: str, modules: List[ModuleType]
+) -> Optional[ModuleType]:
     """
     Imports ``the list of Mathics3 Built-in modules so that inside
     Mathics3 Builtin Functions, like Plus[], List[] are defined.
@@ -189,6 +166,7 @@ def import_builtin_module(import_name: str, modules: List[ModuleType]):
 
     if module:
         modules.append(module)
+    return module
 
 
 # TODO: When we drop Python 3.7,
@@ -218,7 +196,7 @@ def import_builtins(
 
 
 def import_builtin_subdirectories(
-    subdirectories: Set[str], disable_file_module_names: set, modules
+    subdirectories: Set[str], disable_file_module_names: set, modules: List[ModuleType]
 ):
     """
     Runs import_builtisn on the each subdirectory in ``subdirectories`` that inside
@@ -299,11 +277,48 @@ def name_is_builtin_symbol(module: ModuleType, name: str) -> Optional[type]:
     return module_object
 
 
-def update_display_operators_set(builtin_instance):
+def update_builtin_properties(builtin_instance):
     """
+    Update, where appropriate, various internal builtin tables:
+    * mathics_to_python[name],
+    * mathics_to_sympy[name],
+    * builtins_precedence[name]
+    * pattern_object[name]
+
+    Information to store comes from ``builtin``.
+
     If builtin_instance is an operator of some kind, add that
     to the set of opererator strings ``display_operators_set``.
+
+    Finally add {name: builtin} to global _builtins
     """
+    # The fact that we are importing inside here, suggests
+    # this function might get moved elsewhere.
+    from mathics.core.builtin import (
+        Operator,
+        PatternObject,
+        SympyObject,
+        mathics_to_python,
+    )
+
+    name = builtin_instance.get_name()
+    if hasattr(builtin_instance, "python_equivalent"):
+        # print("XXX0", builtin_instance.python_equivalent)
+        mathics_to_python[name] = builtin_instance.python_equivalent
+
+    if isinstance(builtin_instance, SympyObject):
+        mathics_to_sympy[name] = builtin_instance
+        for sympy_name in builtin_instance.get_sympy_names():
+            # print("XXX1", sympy_name)
+            sympy_to_mathics[sympy_name] = builtin_instance
+    if isinstance(builtin_instance, Operator):
+        assert builtin_instance.precedence is not None
+        builtins_precedence[Symbol(name)] = builtin_instance.precedence
+    if isinstance(builtin_instance, PatternObject):
+        pattern_objects[name] = builtin_instance.__class__
+
     operator = builtin_instance.get_operator_display()
     if operator is not None:
         display_operators_set.add(operator)
+
+    _builtins.update({name: builtin_instance})
