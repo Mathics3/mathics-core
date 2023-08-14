@@ -32,21 +32,8 @@ class ContainsOnly(Builtin):
     >> ContainsOnly[{}, {a, b, c}]
      = True
 
-    #> ContainsOnly[1, {1, 2, 3}]
-     : List or association expected instead of 1.
-     = ContainsOnly[1, {1, 2, 3}]
-
-    #> ContainsOnly[{1, 2, 3}, 4]
-     : List or association expected instead of 4.
-     = ContainsOnly[{1, 2, 3}, 4]
-
     Use Equal as the comparison function to have numerical tolerance:
     >> ContainsOnly[{a, 1.0}, {1, a, b}, {SameTest -> Equal}]
-     = True
-
-    #> ContainsOnly[{c, a}, {a, b, c}, IgnoreCase -> True]
-     : Unknown option IgnoreCase -> True in ContainsOnly.
-     : Unknown option IgnoreCase in .
      = True
     """
 
