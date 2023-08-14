@@ -55,6 +55,7 @@ class PrecedenceTests(ParserTests):
         self.check("- a / - b", "Times[-1, a, Power[Times[-1, b], -1]]")
         self.check("a + b!", "Plus[a, Factorial[b]]")
         self.check("!a!", "Not[Factorial[a]]")
+        self.check("a ;; b ;; c;; d", "(a;;b;;c) (1;;d)")
         self.check("+ + a", "Plus[a]")  # only one plus
 
 

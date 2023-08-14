@@ -42,6 +42,48 @@ MATHML_STRICT = (
 
 
 all_test = {
+    "<|a -> x, b -> y, c -> <|d -> t|>|>": {
+        "msg": "Association",
+        "text": {
+            "System`StandardForm": "<|a->x,b->y,c-><|d->t|>|>",
+            "System`TraditionalForm": "<|a->x,b->y,c-><|d->t|>|>",
+            "System`InputForm": "<|a -> x, b -> y, c -> <|d -> t|>|>",
+            "System`OutputForm": "<|a -> x, b -> y, c -> <|d -> t|>|>",
+        },
+        "latex": {
+            "System`StandardForm": r"\text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t\text{$\vert$>}\text{$\vert$>}",
+            "System`TraditionalForm": r"\text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t\text{$\vert$>}\text{$\vert$>}",
+            "System`InputForm": r"\text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{ -> }t\text{$\vert$>}\text{$\vert$>}",
+            "System`OutputForm": r"\text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{ -> }t\text{$\vert$>}\text{$\vert$>}",
+        },
+        "mathml": {
+            "System`StandardForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn> <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow> <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi> <mn>-&gt;</mn> <mi>t</mi></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+            "System`TraditionalForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn> <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow> <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi> <mn>-&gt;</mn> <mi>t</mi></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+            "System`InputForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>t</mi></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+            "System`OutputForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>t</mi></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+        },
+    },
+    "Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]]": {
+        "msg": "Nested Association",
+        "text": {
+            "System`StandardForm": "<|a->x,b->y,c-><|d->t,e->u|>|>",
+            "System`TraditionalForm": "<|a->x,b->y,c-><|d->t,e->u|>|>",
+            "System`InputForm": "<|a -> x, b -> y, c -> <|d -> t, e -> u|>|>",
+            "System`OutputForm": "<|a -> x, b -> y, c -> <|d -> t, e -> u|>|>",
+        },
+        "latex": {
+            "System`StandardForm": r"\text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t,e->u\text{$\vert$>}\text{$\vert$>}",
+            "System`TraditionalForm": r"\text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t,e->u\text{$\vert$>}\text{$\vert$>}",
+            "System`InputForm": r"\text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{ -> }t, e\text{ -> }u\text{$\vert$>}\text{$\vert$>}",
+            "System`OutputForm": r"\text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{ -> }t, e\text{ -> }u\text{$\vert$>}\text{$\vert$>}",
+        },
+        "mathml": {
+            "System`StandardForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn> <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow> <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi> <mn>-&gt;</mn> <mi>t</mi></mrow> <mo>,</mo> <mrow><mi>e</mi> <mn>-&gt;</mn> <mi>u</mi></mrow></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+            "System`TraditionalForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn> <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow> <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi> <mn>-&gt;</mn> <mi>t</mi></mrow> <mo>,</mo> <mrow><mi>e</mi> <mn>-&gt;</mn> <mi>u</mi></mrow></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+            "System`InputForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>t</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>e</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>u</mi></mrow></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+            "System`OutputForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>t</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>e</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>u</mi></mrow></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+        },
+    },
     # Checking basic formats for atoms
     "-4": {
         "msg": "An Integer",
@@ -762,7 +804,7 @@ def load_tests(key):
         # been adjusted, then skip it.
         #
         if expected_fmt is None:
-            assert is_fragile(base_msg)
+            assert is_fragile(base_msg), [expr, key, base_msg]
             continue
 
         for form in expected_fmt:
