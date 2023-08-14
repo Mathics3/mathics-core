@@ -20,12 +20,6 @@ class ByteOrdering(Predefined):
       that specifies what ordering of bytes should be assumed for your \
       computer system..
     </dl>
-
-    X> ByteOrdering
-     = 1
-
-    #> ByteOrdering == -1 || ByteOrdering == 1
-     = True
     """
 
     name = "ByteOrdering"
@@ -40,12 +34,6 @@ class ByteOrdering_(Predefined):
           <dt>'$ByteOrdering'
           <dd>returns the native ordering of bytes in binary data on your computer system.
         </dl>
-
-        X> $ByteOrdering
-         = 1
-
-        #> $ByteOrdering == -1 || $ByteOrdering == 1
-         = True
     """
 
     name = "$ByteOrdering"

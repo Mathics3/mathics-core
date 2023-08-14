@@ -12,7 +12,7 @@ import pytest
         ("BaseForm[0.0, 2]", None, "0.0_2", None),
         ("BaseForm[N[Pi, 30], 16]", None, "3.243f6a8885a308d313198a2e_16", None),
         ("InputForm[2 x ^ 2 + 4z!]", None, "2*x^2 + 4*z!", None),
-        ('InputForm["\$"]', None, r'"\\$"', None),
+        (r'InputForm["\$"]', None, r'"\\$"', None),
         ## Undocumented edge cases
         ("NumberForm[Pi, 20]", None, "Pi", None),
         ("NumberForm[2/3, 10]", None, "2 / 3", None),
