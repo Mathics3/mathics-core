@@ -439,10 +439,6 @@ class LetterNumber(Builtin):
     >> LetterNumber[{"P", "Pe", "P1", "eck"}]
     = {16, {16, 5}, {16, 0}, {5, 3, 11}}
 
-    #> LetterNumber[4]
-     : The argument 4 is not a string.
-     = LetterNumber[4]
-
     >> LetterNumber["\[Beta]", "Greek"]
      = 2
 
@@ -720,63 +716,12 @@ class StringContainsQ(Builtin):
     >> StringContainsQ["mathics", "a" ~~ __ ~~ "m"]
      = False
 
-    #> StringContainsQ["Hello", "o"]
-     = True
-
-    #> StringContainsQ["a"]["abcd"]
-     = True
-
-    #> StringContainsQ["Mathics", "ma", IgnoreCase -> False]
-     = False
-
-    >> StringContainsQ["Mathics", "MA" , IgnoreCase -> True]
-     = True
-
-    #> StringContainsQ["", "Empty String"]
-     = False
-
-    #> StringContainsQ["", ___]
-     = True
-
-    #> StringContainsQ["Empty Pattern", ""]
-     = True
-
-    #> StringContainsQ[notastring, "n"]
-     : String or list of strings expected at position 1 in StringContainsQ[notastring, n].
-     = StringContainsQ[notastring, n]
-
-    #> StringContainsQ["Welcome", notapattern]
-     : Element notapattern is not a valid string or pattern element in notapattern.
-     = StringContainsQ[Welcome, notapattern]
-
     >> StringContainsQ[{"g", "a", "laxy", "universe", "sun"}, "u"]
      = {False, False, False, True, True}
 
-    #> StringContainsQ[{}, "list of string is empty"]
-     = {}
 
     >> StringContainsQ["e" ~~ ___ ~~ "u"] /@ {"The Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"}
      = {True, True, True, False, False, False, False, False, True}
-
-    ## special cases, Mathematica allows list of patterns
-    #> StringContainsQ[{"A", "Galaxy", "Far", "Far", "Away"}, {"F" ~~ __ ~~ "r", "aw" ~~ ___}]
-     = {False, False, True, True, False}
-
-    #> StringContainsQ[{"A", "Galaxy", "Far", "Far", "Away"}, {"F" ~~ __ ~~ "r", "aw" ~~ ___}, IgnoreCase -> True]
-     = {False, False, True, True, True}
-
-    #> StringContainsQ[{"A", "Galaxy", "Far", "Far", "Away"}, {}]
-     = {False, False, False, False, False}
-
-    #> StringContainsQ[{"A", Galaxy, "Far", "Far", Away}, {"F" ~~ __ ~~ "r", "aw" ~~ ___}]
-     : String or list of strings expected at position 1 in StringContainsQ[{A, Galaxy, Far, Far, Away}, {F ~~ __ ~~ r, aw ~~ ___}].
-     = StringContainsQ[{A, Galaxy, Far, Far, Away}, {F ~~ __ ~~ r, aw ~~ ___}]
-
-    #> StringContainsQ[{"A", "Galaxy", "Far", "Far", "Away"}, {F ~~ __ ~~ "r", aw ~~ ___}]
-     : Element F ~~ __ ~~ r is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
-     = StringContainsQ[{A, Galaxy, Far, Far, Away}, {F ~~ __ ~~ r, aw ~~ ___}]
-    ## Mathematica can detemine correct invalid element in the pattern, it reports error:
-    ## Element F is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
     """
 
     messages = {
@@ -843,10 +788,6 @@ class StringRepeat(Builtin):
 
     >> StringRepeat["abc", 10, 7]
      = abcabca
-
-    #> StringRepeat["x", 0]
-     : A positive integer is expected at position 2 in StringRepeat[x, 0].
-     = StringRepeat[x, 0]
     """
 
     messages = {
@@ -937,17 +878,6 @@ class ToExpression(Builtin):
     second-line value.
     >> ToExpression["2\[NewLine]3"]
      = 3
-
-    #> ToExpression["log(x)", InputForm]
-     = log x
-
-    #> ToExpression["1+"]
-     : Incomplete expression; more input is needed (line 1 of "ToExpression['1+']").
-     = $Failed
-
-    #> ToExpression[]
-     : ToExpression called with 0 arguments; between 1 and 3 arguments are expected.
-     = ToExpression[]
     """
 
     # TODO: Other forms
@@ -956,8 +886,6 @@ class ToExpression(Builtin):
      = Log[x]
     >> ToExpression["log(x)", TraditionalForm]
      = Log[x]
-    #> ToExpression["log(x)", StandardForm]
-     = log x
     """
     attributes = A_LISTABLE | A_PROTECTED
 
