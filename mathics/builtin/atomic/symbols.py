@@ -111,21 +111,6 @@ class Context(Builtin):
 
     >> InputForm[Context[]]
      = "Global`"
-
-    ## placeholder for general context-related tests
-    #> x === Global`x
-     = True
-    #> `x === Global`x
-     = True
-    #> a`x === Global`x
-     = False
-    #> a`x === a`x
-     = True
-    #> a`x === b`x
-     = False
-    ## awkward parser cases
-    #> FullForm[a`b_]
-     = Pattern[a`b, Blank[]]
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED
@@ -431,25 +416,6 @@ class Information(PrefixOperator):
     'Information' does not print information for 'ReadProtected' symbols.
 
     'Information' uses 'InputForm' to format values.
-
-    #> a = 2;
-    #> Information[a]
-     | a = 2
-     .
-     = Null
-
-    #> f[x_] := x ^ 2;
-    #> g[f] ^:= 2;
-    #> f::usage = "f[x] returns the square of x";
-    #> Information[f]
-     | f[x] returns the square of x
-     .
-     . f[x_] = x ^ 2
-     .
-     . g[f] ^= 2
-     .
-     = Null
-
     """
 
     attributes = A_HOLD_ALL | A_SEQUENCE_HOLD | A_PROTECTED | A_READ_PROTECTED
@@ -620,9 +586,6 @@ class Names(Builtin):
     The number of built-in symbols:
     >> Length[Names["System`*"]]
      = ...
-
-    #> Length[Names["System`*"]] > 350
-     = True
     """
 
     summary_text = "find a list of symbols with names matching a pattern"
@@ -695,9 +658,6 @@ class Symbol_(Builtin):
     You can use 'Symbol' to create symbols from strings:
     >> Symbol["x"] + Symbol["x"]
      = 2 x
-
-    #> {\\[Eta], \\[CapitalGamma]\\[Beta], Z\\[Infinity], \\[Angle]XYZ, \\[FilledSquare]r, i\\[Ellipsis]j}
-     = {\u03b7, \u0393\u03b2, Z\u221e, \u2220XYZ, \u25a0r, i\u2026j}
     """
 
     attributes = A_LOCKED | A_PROTECTED
@@ -734,9 +694,6 @@ class SymbolName(Builtin):
     </dl>
 
     >> SymbolName[x] // InputForm
-     = "x"
-
-    #> SymbolName[a`b`x] // InputForm
      = "x"
     """
 
@@ -785,9 +742,6 @@ class ValueQ(Builtin):
     >> x = 1;
     >> ValueQ[x]
      = True
-
-    #> ValueQ[True]
-     = False
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED

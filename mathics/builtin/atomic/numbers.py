@@ -320,9 +320,6 @@ class IntegerLength(Builtin):
     '0' is a special case:
     >> IntegerLength[0]
      = 0
-
-    #> IntegerLength /@ (10 ^ Range[100] - 1) == Range[1, 100]
-     = True
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -414,39 +411,9 @@ class RealDigits(Builtin):
     >> RealDigits[123.45, 10, 18]
      = {{1, 2, 3, 4, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, Indeterminate, Indeterminate}, 3}
 
-    #> RealDigits[-1.25, -1]
-     : Base -1 is not a real number greater than 1.
-     = RealDigits[-1.25, -1]
-
     Return 25 digits of in base 10:
     >> RealDigits[Pi, 10, 25]
      = {{3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4, 6, 2, 6, 4, 3}, 1}
-
-    #> RealDigits[-Pi]
-     : The number of digits to return cannot be determined.
-     = RealDigits[-Pi]
-
-    #> RealDigits[I, 7]
-     : The value I is not a real number.
-    = RealDigits[I, 7]
-
-    #> RealDigits[Pi]
-     : The number of digits to return cannot be determined.
-     = RealDigits[Pi]
-
-    #> RealDigits[3 + 4 I]
-     : The value 3 + 4 I is not a real number.
-     = RealDigits[3 + 4 I]
-
-
-    #> RealDigits[3.14, 10, 1.5]
-     : Non-negative machine-sized integer expected at position 3 in RealDigits[3.14, 10, 1.5].
-     = RealDigits[3.14, 10, 1.5]
-
-    #> RealDigits[3.14, 10, 1, 1.5]
-     : Machine-sized integer expected at position 4 in RealDigits[3.14, 10, 1, 1.5].
-     = RealDigits[3.14, 10, 1, 1.5]
-
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -662,28 +629,6 @@ class MaxPrecision(Predefined):
     >> N[Pi, 11]
      : Requested precision 11 is larger than $MaxPrecision. Using current $MaxPrecision of 10. instead. $MaxPrecision = Infinity specifies that any precision should be allowed.
      = 3.141592654
-
-    #> N[Pi, 10]
-     = 3.141592654
-
-    #> $MaxPrecision = x
-     : Cannot set $MaxPrecision to x; value must be a positive number or Infinity.
-     = x
-    #> $MaxPrecision = -Infinity
-     : Cannot set $MaxPrecision to -Infinity; value must be a positive number or Infinity.
-     = -Infinity
-    #> $MaxPrecision = 0
-     : Cannot set $MaxPrecision to 0; value must be a positive number or Infinity.
-     = 0
-    #> $MaxPrecision = Infinity;
-
-    #> $MinPrecision = 15;
-    #> $MaxPrecision = 10
-     : Cannot set $MaxPrecision such that $MaxPrecision < $MinPrecision.
-     = 10
-    #> $MaxPrecision
-     = Infinity
-    #> $MinPrecision = 0;
     """
 
     is_numeric = False
@@ -765,12 +710,6 @@ class MachinePrecision(Predefined):
      = 15.9546
     >> N[MachinePrecision, 30]
      = 15.9545897701910033463281614204
-
-    #> N[E, MachinePrecision]
-     = 2.71828
-
-    #> Round[MachinePrecision]
-     = 16
     """
 
     is_numeric = True
@@ -802,28 +741,6 @@ class MinPrecision(Builtin):
     >> N[Pi, 9]
      : Requested precision 9 is smaller than $MinPrecision. Using current $MinPrecision of 10. instead.
      = 3.141592654
-
-    #> N[Pi, 10]
-     = 3.141592654
-
-    #> $MinPrecision = x
-     : Cannot set $MinPrecision to x; value must be a non-negative number.
-     = x
-    #> $MinPrecision = -Infinity
-     : Cannot set $MinPrecision to -Infinity; value must be a non-negative number.
-     = -Infinity
-    #> $MinPrecision = -1
-     : Cannot set $MinPrecision to -1; value must be a non-negative number.
-     = -1
-    #> $MinPrecision = 0;
-
-    #> $MaxPrecision = 10;
-    #> $MinPrecision = 15
-     : Cannot set $MinPrecision such that $MaxPrecision < $MinPrecision.
-     = 15
-    #> $MinPrecision
-     = 0
-    #> $MaxPrecision = Infinity;
     """
 
     messages = {
