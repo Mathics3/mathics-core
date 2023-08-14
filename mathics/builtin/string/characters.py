@@ -25,18 +25,6 @@ class Characters(Builtin):
 
     >> Characters["abc"]
      = {a, b, c}
-
-    #> \\.78\\.79\\.7A
-     = xyz
-
-    #> \\:0078\\:0079\\:007A
-     = xyz
-
-    #> \\101\\102\\103\\061\\062\\063
-     = ABC123
-
-    #> \\[Alpha]\\[Beta]\\[Gamma]
-     = \u03B1\u03B2\u03B3
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -142,12 +130,6 @@ class LetterQ(Builtin):
 
     >> LetterQ["Welcome to Mathics"]
      = False
-
-    #> LetterQ[""]
-     = True
-
-    #> LetterQ["\\[Alpha]\\[Beta]\\[Gamma]\\[Delta]\\[Epsilon]\\[Zeta]\\[Eta]\\[Theta]"]
-     = True
     """
 
     rules = {

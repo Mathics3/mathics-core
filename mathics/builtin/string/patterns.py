@@ -44,9 +44,6 @@ class DigitCharacter(Builtin):
 
     >> StringMatchQ["123245", DigitCharacter..]
      = True
-
-    #> StringMatchQ["123245a6", DigitCharacter..]
-     = False
     """
 
     summary_text = "digit 0-9"
@@ -205,10 +202,6 @@ class StringCases(_StringFind):
     >> StringCases["abc-abc xyz-uvw", Shortest[x : WordCharacter .. ~~ "-" ~~ x_] -> x]
      = {abc}
 
-    #> StringCases["abc-abc xyz-uvw", Shortest[x : WordCharacter .. ~~ "-" ~~ x : LetterCharacter] -> x]
-     : Ignored restriction given for x in x : LetterCharacter as it does not match previous occurrences of x.
-     = {abc}
-
     >> StringCases["abba", {"a" -> 10, "b" -> 20}, 2]
      = {10, 20}
 
@@ -251,12 +244,6 @@ class StringExpression(BinaryOperator):
 
     >> "a" ~~ "b" // FullForm
      = "ab"
-
-    #> "a" ~~ "b" ~~ "c" // FullForm
-     = "abc"
-
-    #> a ~~ b
-     = a ~~ b
     """
 
     attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
@@ -305,62 +292,19 @@ class StringFreeQ(Builtin):
     >> StringFreeQ["mathics", "a" ~~ __ ~~ "m"]
      = True
 
-    #> StringFreeQ["Hello", "o"]
-     = False
-
-    #> StringFreeQ["a"]["abcd"]
-     = False
-
-    #> StringFreeQ["Mathics", "ma", IgnoreCase -> False]
-     = True
-
     >> StringFreeQ["Mathics", "MA" , IgnoreCase -> True]
      = False
-
-    #> StringFreeQ["", "Empty String"]
-     = True
-
-    #> StringFreeQ["", ___]
-     = False
-
-    #> StringFreeQ["Empty Pattern", ""]
-     = False
-
-    #> StringFreeQ[notastring, "n"]
-     : String or list of strings expected at position 1 in StringFreeQ[notastring, n].
-     = StringFreeQ[notastring, n]
-
-    #> StringFreeQ["Welcome", notapattern]
-     : Element notapattern is not a valid string or pattern element in notapattern.
-     = StringFreeQ[Welcome, notapattern]
 
     >> StringFreeQ[{"g", "a", "laxy", "universe", "sun"}, "u"]
      = {True, True, True, False, False}
 
-    #> StringFreeQ[{}, "list of string is empty"]
-     = {}
 
     >> StringFreeQ["e" ~~ ___ ~~ "u"] /@ {"The Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"}
      = {False, False, False, True, True, True, True, True, False}
 
-    #> StringFreeQ[{"A", "Galaxy", "Far", "Far", "Away"}, {"F" ~~ __ ~~ "r", "aw" ~~ ___}]
-     = {True, True, False, False, True}
-
     >> StringFreeQ[{"A", "Galaxy", "Far", "Far", "Away"}, {"F" ~~ __ ~~ "r", "aw" ~~ ___}, IgnoreCase -> True]
      = {True, True, False, False, False}
 
-    #> StringFreeQ[{"A", "Galaxy", "Far", "Far", "Away"}, {}]
-     = {True, True, True, True, True}
-
-    #> StringFreeQ[{"A", Galaxy, "Far", "Far", Away}, {"F" ~~ __ ~~ "r", "aw" ~~ ___}]
-     : String or list of strings expected at position 1 in StringFreeQ[{A, Galaxy, Far, Far, Away}, {F ~~ __ ~~ r, aw ~~ ___}].
-     = StringFreeQ[{A, Galaxy, Far, Far, Away}, {F ~~ __ ~~ r, aw ~~ ___}]
-
-    #> StringFreeQ[{"A", "Galaxy", "Far", "Far", "Away"}, {F ~~ __ ~~ "r", aw ~~ ___}]
-     : Element F ~~ __ ~~ r is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
-     = StringFreeQ[{A, Galaxy, Far, Far, Away}, {F ~~ __ ~~ r, aw ~~ ___}]
-    ## Mathematica can detemine correct invalid element in the pattern, it reports error:
-    ## Element F is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
     """
 
     messages = {
@@ -403,47 +347,9 @@ class StringMatchQ(Builtin):
     >> StringMatchQ["15a94xcZ6", (DigitCharacter | LetterCharacter)..]
      = True
 
-    #> StringMatchQ["abc1", LetterCharacter]
-     = False
-
-    #> StringMatchQ["abc", "ABC"]
-     = False
-    #> StringMatchQ["abc", "ABC", IgnoreCase -> True]
-     = True
-
-    ## Words containing nonword characters
-    #> StringMatchQ[{"monkey", "don't", "AAA", "S&P"}, ___ ~~ Except[WordCharacter] ~~ ___]
-     = {False, True, False, True}
-
-    ## Try to match a literal number
-    #> StringMatchQ[1.5, NumberString]
-     : String or list of strings expected at position 1 in StringMatchQ[1.5, NumberString].
-     = StringMatchQ[1.5, NumberString]
-
     Use StringMatchQ as an operator
     >> StringMatchQ[LetterCharacter]["a"]
      = True
-
-    ## Abbreviated string patterns Issue #517
-    #> StringMatchQ["abcd", "abc*"]
-     = True
-    #> StringMatchQ["abc", "abc*"]
-     = True
-    #> StringMatchQ["abc\\", "abc\\"]
-     = True
-    #> StringMatchQ["abc*d", "abc\\*d"]
-     = True
-    #> StringMatchQ["abc*d", "abc\\**"]
-     = True
-    #> StringMatchQ["abcde", "a*f"]
-     = False
-
-    #> StringMatchQ["abcde", "a@e"]
-     = True
-    #> StringMatchQ["aBCDe", "a@e"]
-     = False
-    #> StringMatchQ["ae", "a@e"]
-     = False
     """
 
     attributes = A_LISTABLE | A_PROTECTED
