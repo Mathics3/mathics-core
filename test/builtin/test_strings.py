@@ -530,7 +530,6 @@ def test_private_doctests_patterns(str_expr, msgs, str_expected, fail_msg):
             "FromCharacterCode[{{97, 98, x}, {100, 101, x}}]",
             None,
         ),
-        
         # These tests are commented out due to the bug reported in issue #906
         # Octal and hexadecimal notation works alone, but fails
         # as a part of another expression. For example,
@@ -561,14 +560,20 @@ def test_private_doctests_characters(str_expr, msgs, str_expected, fail_msg):
         expected_messages=msgs,
     )
 
+
 # These tests are separated due to the bug reported in issue #906
+
 
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "fail_msg"),
     [
         (r"\.78\.79\.7A", "xyz", "variable name using hexadecimal characters"),
         (r"\:0078\:0079\:007A", "xyz", "variable name using hexadecimal characters"),
-        (r"\101\102\103\061\062\063", "ABC123", "variable name using hexadecimal characters"),
+        (
+            r"\101\102\103\061\062\063",
+            "ABC123",
+            "variable name using hexadecimal characters",
+        ),
     ],
 )
 def test_private_doctests_characters(str_expr, str_expected, fail_msg):

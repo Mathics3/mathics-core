@@ -977,3 +977,32 @@ def test_format_private_doctests(str_expr, str_expected, msg):
         hold_expected=True,
         failure_message=msg,
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
+        (
+            (
+                'Format[r[items___]] := Infix[If[Length[{items}] > 1, {items}, {ab}], "~"];'
+                "r[1, 2, 3]"
+            ),
+            None,
+            "1 ~ 2 ~ 3",
+            None,
+        ),
+        ("r[1]", None, "ab", None),
+        (None, None, None, None),
+    ],
+)
+def test_private_doctests_layout(str_expr, msgs, str_expected, fail_msg):
+    """ """
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )
