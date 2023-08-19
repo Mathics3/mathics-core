@@ -204,7 +204,7 @@ class Close(Builtin):
     Closing a file doesn't delete it from the filesystem
     >> DeleteFile[file];
 
-    >> Clear[file]
+    #> Clear[file]
     """
 
     summary_text = "close a stream"
@@ -502,6 +502,8 @@ class OpenRead(_OpenAction):
 
     >> OpenRead["ExampleData/EinsteinSzilLetter.txt", CharacterEncoding->"UTF8"]
      = InputStream[...]
+
+    The stream must be closed after using it to release the resource:
     >> Close[%];
 
     S> Close[OpenRead["https://raw.githubusercontent.com/Mathics3/mathics-core/master/README.rst"]];
@@ -783,7 +785,7 @@ class Read(Builtin):
      = abc123
     >> Read[stream, String]
      = EndOfFile
-    >> Close[stream];
+    #> Close[stream];
 
     ## Reading Words
     >> stream = StringToStream["abc 123"];
@@ -793,7 +795,7 @@ class Read(Builtin):
      = 123
     >> Read[stream, Word]
      = EndOfFile
-    >> Close[stream];
+    #> Close[stream];
     ## Number
     >> stream = StringToStream["123, 4"];
     >> Read[stream, Number]
@@ -802,7 +804,7 @@ class Read(Builtin):
      = 4
     >> Read[stream, Number]
      = EndOfFile
-    >> Close[stream];
+    #> Close[stream];
 
 
     ## HoldExpression:
@@ -815,7 +817,7 @@ class Read(Builtin):
 
     >> Read[stream, Expression]
      = 5
-    >> Close[stream];
+    #> Close[stream];
 
     Reading a comment however will return the empty list:
     >> stream = StringToStream["(* ::Package:: *)"];
@@ -823,7 +825,7 @@ class Read(Builtin):
     >> Read[stream, Hold[Expression]]
      = {}
 
-    >> Close[stream];
+    #> Close[stream];
 
     ## Multiple types
     >> stream = StringToStream["123 abc"];
@@ -831,7 +833,7 @@ class Read(Builtin):
      = {123, abc}
     >> Read[stream, {Number, Word}]
      = EndOfFile
-    >> Close[stream];
+    #> Close[stream];
 
     Multiple lines:
     >> stream = StringToStream["\\"Tengo una\\nvaca lechera.\\""]; Read[stream]
@@ -1105,7 +1107,7 @@ class ReadList(Read):
      = {abc123}
     >> InputForm[%]
      = {"abc123"}
-    >> Close[stream];
+    #> Close[stream];
     """
 
     # TODO
@@ -1343,7 +1345,7 @@ class Skip(Read):
     >> Skip[stream, Word]
     >> Read[stream, Word]
      = c
-    >> Close[stream];
+    #> Close[stream];
 
     >> stream = StringToStream["a b c d"];
     >> Read[stream, Word]
@@ -1353,7 +1355,7 @@ class Skip(Read):
      = d
     >> Skip[stream, Word]
      = EndOfFile
-    >> Close[stream];
+    #> Close[stream];
     """
 
     messages = {
@@ -1416,7 +1418,7 @@ class Find(Read):
      = in manuscript, leads me to expect that the element uranium may be turned into
     >> Find[stream, "uranium"]
      = become possible to set up a nuclear chain reaction in a large mass of uranium,
-    >> Close[stream]
+    #> Close[stream]
      = ...
 
     >> stream = OpenRead["ExampleData/EinsteinSzilLetter.txt", CharacterEncoding->"UTF8"];
@@ -1424,7 +1426,7 @@ class Find(Read):
      = a new and important source of energy in the immediate future. Certain aspects
     >> Find[stream, {"energy", "power"} ]
      = by which vast amounts of power and large quantities of new radium-like
-    >> Close[stream]
+    #> Close[stream]
      = ...
     """
 
@@ -1510,6 +1512,7 @@ class StringToStream(Builtin):
     >> strm = StringToStream["abc 123"]
      = InputStream[String, ...]
 
+    The stream must be closed after using it, to release the resource:
     >> Close[strm];
     """
 
@@ -1610,6 +1613,7 @@ class Write(Builtin):
      = ...
     >> Write[stream, 10 x + 15 y ^ 2]
     >> Write[stream, 3 Sin[z]]
+    The stream must be closed in order to use the file again:
     >> Close[stream];
     >> stream = OpenRead[%];
     >> ReadList[stream]
