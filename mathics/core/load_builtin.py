@@ -116,10 +116,19 @@ def get_module_names(builtin_path: str, exclude_files: set) -> list:
     return [f for f in py_files if f not in exclude_files]
 
 
-def import_and_load_builtins(exclude_files: Optional[Set[str]] = None):
+def import_and_load_builtins(exclude_files: Optional[Set[str]] = None, clean_all=False):
     """
     Imports Builtin modules in mathics.builtin and add rules, and definitions from that.
     """
+
+    # If clean_all, clean the _builtin and builtins_by_module to start
+    # with a fresh instance of this module.
+    # TODO: check if we need to clean the other dicts and lists.
+    if clean_all:
+        global mathics3_builtins_modules, _builtins
+        _builtins = {}
+        mathics3_builtins_modules = []
+
     builtin_path = osp.join(
         osp.dirname(
             __file__,

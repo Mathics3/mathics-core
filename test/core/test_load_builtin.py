@@ -1,6 +1,7 @@
 import importlib
 
 from mathics.core.load_builtin import (
+    _builtins,
     add_builtins_from_builtin_module,
     import_and_load_builtins,
 )
@@ -17,7 +18,8 @@ def test_add_builtins_from_builtin_module():
     # now have the function defined.
 
     # First, load in many modules except quantum_mechanics.
-    import_and_load_builtins(exclude_files={"quantum_mechanics"})
+    _builtins = {}
+    import_and_load_builtins(exclude_files={"quantum_mechanics"}, clean_all=True)
 
     # Create a session, evaluate an expression using a missing Builtin function
     # and see that it is not defined...
