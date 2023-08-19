@@ -177,12 +177,6 @@ class Infix(Builtin):
 
     >> Infix[{a, b, c}, {"+", "-"}]
      = a + b - c
-
-    #> Format[r[items___]] := Infix[If[Length[{items}] > 1, {items}, {ab}], "~"]
-    #> r[1, 2, 3]
-     = 1 ~ 2 ~ 3
-    #> r[1]
-     = ab
     """
 
     messages = {

@@ -88,7 +88,7 @@ class EvenQ(Test):
     """
 
     attributes = A_LISTABLE | A_PROTECTED
-    summary_text = "test whether one number is divisible by the other"
+    summary_text = "test whether elements are even numbers"
 
     def test(self, n) -> bool:
         value = n.get_int_value()
