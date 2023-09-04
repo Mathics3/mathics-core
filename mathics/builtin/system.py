@@ -174,8 +174,6 @@ class Packages(Predefined):
 
     X> $Packages
     = {ImportExport`,XML`,Internal`,System`,Global`}
-    #> MemberQ[$Packages, "System`"]
-    = True
     """
 
     summary_text = "list the packages loaded in the current session"
@@ -197,8 +195,6 @@ class ParentProcessID(Predefined):
     >> $ParentProcessID
      = ...
 
-    #> Head[$ParentProcessID] == Integer
-     = True
     """
     summary_text = "id of the process that invoked Mathics"
     name = "$ParentProcessID"
@@ -218,9 +214,6 @@ class ProcessID(Predefined):
 
     >> $ProcessID
      = ...
-
-    #> Head[$ProcessID] == Integer
-     = True
     """
     summary_text = "id of the Mathics process"
     name = "$ProcessID"
@@ -348,9 +341,6 @@ class SystemWordLength(Predefined):
     </dl>
     X> $SystemWordLength
     = 64
-
-    #> Head[$SystemWordLength] == Integer
-     = True
     """
     summary_text = "word length of computer system"
     name = "$SystemWordLength"

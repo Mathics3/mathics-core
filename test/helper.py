@@ -28,7 +28,7 @@ def evaluate(str_expr: str):
 
 def check_evaluation(
     str_expr: str,
-    str_expected: str,
+    str_expected: Optional[str] = None,
     failure_message: str = "",
     hold_expected: bool = False,
     to_string_expr: bool = True,
@@ -41,7 +41,8 @@ def check_evaluation(
     its results
 
     Compares the expressions represented by ``str_expr`` and  ``str_expected`` by
-    evaluating the first, and optionally, the second.
+    evaluating the first, and optionally, the second. If ommited, `str_expected`
+    is assumed to be `"Null"`.
 
     to_string_expr: If ``True`` (default value) the result of the evaluation is
                     converted into a Python string. Otherwise, the expression is kept
@@ -72,6 +73,8 @@ def check_evaluation(
     if str_expr is None:
         reset_session()
         return
+    if str_expected is None:
+        str_expected = "Null"
 
     if to_string_expr:
         str_expr = f"ToString[{str_expr}]"
