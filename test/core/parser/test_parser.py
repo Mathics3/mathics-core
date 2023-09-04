@@ -172,6 +172,8 @@ class AtomTests(ParserTests):
 
 class GeneralTests(ParserTests):
     def testCompound(self):
+        self.invalid_error("FullForm[Hold[; a]]")
+        self.invalid_error("FullForm[Hold[; a ;]]")
         self.check(
             "a ; {b}",
             Node("CompoundExpression", Symbol("a"), Node("List", Symbol("b"))),
