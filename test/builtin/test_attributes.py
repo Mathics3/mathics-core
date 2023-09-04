@@ -4,7 +4,7 @@ Unit tests from mathics.builtin.attributes.
 """
 
 import os
-from test.helper import check_evaluation
+from test.helper import check_evaluation, session
 
 import pytest
 
@@ -226,3 +226,84 @@ def test_Attributes_wrong_args(str_expr, arg_count):
             f"SetAttributes called with {arg_count} arguments; 2 arguments are expected.",
         ),
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
+        ("CleanAll[u];CleanAll[v];", None, None, None),
+        ("SetAttributes[{u, v}, Flat];u[x_] := {x};u[]", None, "u[]", None),
+        ("u[a]", None, "{a}", None),
+        ("v[x_] := x;v[]", None, "v[]", None),
+        ("v[a]", None, "a", None),
+        (
+            "v[a, b]",
+            None,
+            "v[a, b]",
+            "in Mathematica: Iteration limit of 4096 exceeded.",
+        ),
+        ("CleanAll[u];CleanAll[v];", None, None, None),
+    ],
+)
+def test_private_doctests_attributes(str_expr, msgs, str_expected, fail_msg):
+    """ """
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
+        ("CleanAll[u];CleanAll[v];", None, None, None),
+        (
+            "SetAttributes[{u, v}, Flat];u[x_] := {x};u[a, b]",
+            ("Iteration limit of 1000 exceeded.",),
+            "$Aborted",
+            None,
+        ),
+        ("u[a, b, c]", ("Iteration limit of 1000 exceeded.",), "$Aborted", None),
+        (
+            "v[x_] := x;v[a,b,c]",
+            ("Iteration limit of 1000 exceeded.",),
+            "$Aborted",
+            "in Mathematica: Iteration limit of 4096 exceeded.",
+        ),
+        ("CleanAll[u];CleanAll[v];", None, None, None),
+    ],
+)
+def test_private_doctests_attributes_with_exceptions(
+    str_expr, msgs, str_expected, fail_msg
+):
+    """These tests check the behavior of $RecursionLimit and $IterationLimit"""
+
+    # Here we do not use the session object to check the messages
+    # produced by the exceptions. If $RecursionLimit / $IterationLimit
+    # are reached during the evaluation using a MathicsSession object,
+    # an exception is raised. On the other hand, using the `Evaluation.evaluate`
+    # method, the exception is handled.
+    #
+    # TODO: Maybe it makes sense to clone this exception handling in
+    # the check_evaluation function.
+    #
+    def eval_expr(expr_str):
+        query = session.evaluation.parse(expr_str)
+        res = session.evaluation.evaluate(query)
+        session.evaluation.stopped = False
+        return res
+
+    res = eval_expr(str_expr)
+    if msgs is None:
+        assert len(res.out) == 0
+    else:
+        assert len(res.out) == len(msgs)
+        for li1, li2 in zip(res.out, msgs):
+            assert li1.text == li2
+
+    assert res.result == str_expected

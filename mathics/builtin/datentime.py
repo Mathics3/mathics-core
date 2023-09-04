@@ -375,10 +375,6 @@ class AbsoluteTime(_DateFormat):
 
     >> AbsoluteTime[{"6-6-91", {"Day", "Month", "YearShort"}}]
      = 2885155200
-
-    ## Mathematica Bug - Mathics gets it right
-    #> AbsoluteTime[1000]
-     = 1000
     """
 
     summary_text = "get absolute time in seconds"
@@ -834,10 +830,6 @@ class DateList(_DateFormat):
      : The interpretation of 1/10/1991 is ambiguous.
      = {1991, 1, 10, 0, 0, 0.}
 
-    #> DateList["7/8/9"]
-     : The interpretation of 7/8/9 is ambiguous.
-     = {2009, 7, 8, 0, 0, 0.}
-
     >> DateList[{"31/10/91", {"Day", "Month", "YearShort"}}]
      = {1991, 10, 31, 0, 0, 0.}
 
@@ -912,22 +904,6 @@ class DateString(_DateFormat):
     Non-integer values are accepted too:
     >> DateString[{1991, 6, 6.5}]
      = Thu 6 Jun 1991 12:00:00
-
-    ## Check Leading 0
-    #> DateString[{1979, 3, 14}, {"DayName", "  ", "MonthShort", "-", "YearShort"}]
-     =  Wednesday  3-79
-
-    #> DateString[{"DayName", "  ", "Month", "/", "YearShort"}]
-     = ...
-
-    ## Assumed separators
-    #> DateString[{"06/06/1991", {"Month", "Day", "Year"}}]
-     = Thu 6 Jun 1991 00:00:00
-
-    ## Specified separators
-    #> DateString[{"06/06/1991", {"Month", "/", "Day", "/", "Year"}}]
-     = Thu 6 Jun 1991 00:00:00
-
     """
 
     attributes = A_READ_PROTECTED | A_PROTECTED

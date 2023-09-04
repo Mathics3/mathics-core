@@ -327,9 +327,6 @@ class ReplaceAll(BinaryOperator):
     >> ReplaceAll[{a -> 1}][{a, b}]
      = {1, b}
 
-    #> a + b /. x_ + y_ -> {x, y}
-     = {a, b}
-
     ReplaceAll replaces the shallowest levels first:
     >> ReplaceAll[x[1], {x[1] -> y, 1 -> 2}]
      = y
@@ -761,9 +758,6 @@ class Alternatives(BinaryOperator, PatternObject):
     Alternatives can also be used for string expressions
     >> StringReplace["0123 3210", "1" | "2" -> "X"]
      = 0XX3 3XX0
-
-    #> StringReplace["h1d9a f483", DigitCharacter | WhitespaceCharacter -> ""]
-     = hdaf
     """
 
     arg_counts = None
@@ -829,9 +823,6 @@ class Except(PatternObject):
     Except can also be used for string expressions:
     >> StringReplace["Hello world!", Except[LetterCharacter] -> ""]
      = Helloworld
-
-    #> StringReplace["abc DEF 123!", Except[LetterCharacter, WordCharacter] -> "0"]
-     = abc DEF 000!
     """
 
     arg_counts = [1, 2]
@@ -1091,15 +1082,6 @@ class Optional(BinaryOperator, PatternObject):
     >> Default[h, k_] := k
     >> h[a] /. h[x_, y_.] -> {x, y}
      = {a, 2}
-
-    #> a:b:c
-     = a : b : c
-    #> FullForm[a:b:c]
-     = Optional[Pattern[a, b], c]
-    #> (a:b):c
-     = a : b : c
-    #> a:(b:c)
-     = a : (b : c)
     """
 
     arg_counts = [1, 2]
@@ -1235,9 +1217,6 @@ class Blank(_Blank):
     'Blank' only matches a single expression:
     >> MatchQ[f[1, 2], f[_]]
      = False
-
-    #> StringReplace["hello world!", _ -> "x"]
-     = xxxxxxxxxxxx
     """
 
     rules = {
@@ -1293,14 +1272,6 @@ class BlankSequence(_Blank):
     'Sequence' object:
     >> f[1, 2, 3] /. f[x__] -> x
      = Sequence[1, 2, 3]
-
-    #> f[a, b, c, d] /. f[x__, c, y__] -> {{x},{y}}
-     = {{a, b}, {d}}
-    #> a + b + c + d /. Plus[x__, c] -> {x}
-     = {a, b, d}
-
-    #> StringReplace[{"ab", "abc", "abcd"}, "b" ~~ __ -> "x"]
-     = {ab, ax, ax}
     """
 
     rules = {
@@ -1350,21 +1321,6 @@ class BlankNullSequence(_Blank):
     empty sequence:
     >> MatchQ[f[], f[___]]
      = True
-
-    ## This test hits infinite recursion
-    ##
-    ##The value captured by a named 'BlankNullSequence' pattern is a
-    ##'Sequence' object, which can have no elements:
-    ##>> f[] /. f[x___] -> x
-    ## = Sequence[]
-
-    #> ___symbol
-     = ___symbol
-    #> ___symbol //FullForm
-     = BlankNullSequence[symbol]
-
-    #> StringReplace[{"ab", "abc", "abcd"}, "b" ~~ ___ -> "x"]
-     = {ax, ax, ax}
     """
 
     rules = {
@@ -1414,16 +1370,6 @@ class Repeated(PostfixOperator, PatternObject):
      = {{}, a, {a, b}, a, {a, a, a, a}}
     >> f[x, 0, 0, 0] /. f[x, s:0..] -> s
      = Sequence[0, 0, 0]
-
-    #> 1.. // FullForm
-     = Repeated[1]
-    #> 8^^1.. // FullForm   (* Mathematica gets this wrong *)
-     = Repeated[1]
-
-    #> StringReplace["010110110001010", "01".. -> "a"]
-     = a1a100a0
-    #> StringMatchQ[#, "a" ~~ ("b"..) ~~ "a"] &/@ {"aa", "aba", "abba"}
-     = {False, True, True}
     """
 
     arg_counts = [1, 2]
@@ -1502,14 +1448,6 @@ class RepeatedNull(Repeated):
      = RepeatedNull[Pattern[a, BlankNullSequence[Integer]]]
     >> f[x] /. f[x, 0...] -> t
      = t
-
-    #> 1... // FullForm
-     = RepeatedNull[1]
-    #> 8^^1... // FullForm   (* Mathematica gets this wrong *)
-     = RepeatedNull[1]
-
-    #> StringMatchQ[#, "a" ~~ ("b"...) ~~ "a"] &/@ {"aa", "aba", "abba"}
-     = {True, True, True}
     """
 
     operator = "..."
@@ -1666,26 +1604,6 @@ class OptionsPattern(PatternObject):
     Options might be given in nested lists:
     >> f[x, {{{n->4}}}]
      = x ^ 4
-
-    #> {opt -> b} /. OptionsPattern[{}] -> t
-     = t
-
-    #> Clear[f]
-    #> Options[f] = {Power -> 2};
-    #> f[x_, OptionsPattern[f]] := x ^ OptionValue[Power]
-    #> f[10]
-     = 100
-    #> f[10, Power -> 3]
-     = 1000
-    #> Clear[f]
-
-    #> Options[f] = {Power -> 2};
-    #> f[x_, OptionsPattern[]] := x ^ OptionValue[Power]
-    #> f[10]
-     = 100
-    #> f[10, Power -> 3]
-     = 1000
-    #> Clear[f]
     """
 
     arg_counts = [0, 1]
