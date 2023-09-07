@@ -25,6 +25,57 @@ ureg = UnitRegistry()
 Q_ = ureg.Quantity
 
 
+def add_quantities(
+    mag_1: float, u_1: str, mag_2: float, u_2: str, evaluation=None
+) -> Expression:
+    """Try to add two quantities"""
+    cmp = compare_units(u_1, u_2)
+    if cmp is None:
+        return None
+    if cmp == 1:
+        conv = convert_units(Integer1, u_1, u_2, evaluation).elements[0]
+        if conv is not Integer1:
+            mag_1 = conv * mag_1
+        u_1 = u_2
+    elif cmp == -1:
+        conv = convert_units(Integer1, u_2, u_1, evaluation).elements[0]
+        if conv is not Integer1:
+            mag_2 = conv * mag_2
+    mag = mag_1 + mag_2
+    if evaluation:
+        mag = mag.evaluate(evaluation)
+    return Expression(SymbolQuantity, mag, String(u_1))
+
+
+def compare_units(u_1, u_2) -> Optional[int]:
+    """
+    Compare two units.
+    if both units are equal, return 0.
+    If u1>u2 returns 1
+    If u1<u2 returns -1
+    if the units can not be compared return None
+    """
+    u_1 = normalize_unit_name(u_1)
+    u_2 = normalize_unit_name(u_2)
+
+    if u_1 == u_2:
+        return 0
+
+    # Can not compare two non-multiplicative quantities
+    if not (is_multiplicative(u_1) and is_multiplicative(u_2)):
+        return None
+
+    try:
+        conversion_factor = Q_(1, u_1).to(u_2).magnitude
+    except DimensionalityError:
+        return None
+
+    if conversion_factor == 1:
+        return 0
+
+    return 1 if conversion_factor > 1 else -1
+
+
 def is_multiplicative(unit: str) -> bool:
     """
     Check if a quantity is multiplicative. For example,
@@ -58,7 +109,7 @@ def convert_units(
     a Mathics Expression. Here we pick out that multiplier and
     convert it from a Python numeric to a Mathics numeric.
     """
-
+    assert isinstance(magnitude, Number)
     src_unit = normalize_unit_name(src_unit)
     if tgt_unit:
         tgt_unit = normalize_unit_name(tgt_unit)
@@ -156,5 +207,20 @@ def validate_unit(unit: str) -> bool:
     try:
         ureg.get_name(unit)
     except UndefinedUnitError:
+        print(unit, " is not a valid unit")
         return False
     return True
+
+
+def validate_unit_expression(unit: Expression) -> bool:
+    """Test if `unit` is a valid unit"""
+    if isinstance(unit, String):
+        return validate_unit(unit.value)
+    if unit.has_form("Power", 2):
+        base, exp = unit.elements
+        if not isinstance(exp, Integer):
+            return False
+        return validate_unit_expression(base)
+    if unit.has_form("Times", None):
+        return all(validate_unit_expression(factor) for factor in unit.elements)
+    return False

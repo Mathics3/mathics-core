@@ -4,7 +4,7 @@ Units and Quantities
 """
 from typing import Optional
 
-from mathics.core.atoms import Integer1, Number, String
+from mathics.core.atoms import Integer, Integer1, Number, String
 from mathics.core.attributes import (
     A_HOLD_REST,
     A_N_HOLD_REST,
@@ -17,8 +17,15 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolQuantity, SymbolRowBox, SymbolTimes
+from mathics.core.systemsymbols import (
+    SymbolPower,
+    SymbolQuantity,
+    SymbolRowBox,
+    SymbolTimes,
+)
+from mathics.eval.makeboxes import eval_makeboxes
 from mathics.eval.quantities import (
+    add_quantities,
     convert_units,
     normalize_unit_name_with_magnitude,
     validate_unit,
@@ -86,32 +93,83 @@ class Quantity(Builtin):
 
     >> QuantityQ[Quantity[2, Second]]
      = False
+
+    Quantities can be multiplied and raised to integer powers:
+    >> Quantity[3, "centimeter"] / Quantity[2, "second"]^2
+     = 3 / 4 centimeter / second ^ 2
+
+    ## TODO: Allow to simplify producs:
+    ## >> Quantity[3, "centimeter"] Quantity[2, "meter"]
+    ##  = 600 centimeter ^ 2
+
+    Quantities of the same kind can be added:
+    >> Quantity[6, "meter"] + Quantity[3, "centimeter"]
+     = 603 centimeter
+
+
+    Quantities of different kind can not:
+    >> Quantity[6, "meter"] + Quantity[3, "second"]
+     : second and meter are incompatible units.
+     = 3 second + 6 meter
+
+    ## TODO: Implement quantities with composed units:
+    ## >> UnitConvert[Quantity[2, "Ampere" * "Second"], "Coulomb"]
+    ## = Quantity[2, Coulomb]
     """
 
     attributes = A_HOLD_REST | A_N_HOLD_REST | A_PROTECTED | A_READ_PROTECTED
 
     messages = {
         "unkunit": "Unable to interpret unit specification `1`.",
+        "compat": "`1` and `2` are incompatible units.",
+    }
+    rules = {
+        "Quantity[m1_, u1_]*Quantity[m2_, u2_]": "Quantity[m1*m2, u1*u2]",
+        "Quantity[m_, u_]*a_": "Quantity[a*m, u]",
+        "Power[Quantity[m_, u_], p_]": "Quantity[m^p, u^p]",
     }
     summary_text = "represents a quantity with units"
 
-    def eval_makeboxes(self, mag, unit, f, evaluation: Evaluation):
-        """MakeBoxes[Quantity[mag_, unit_String],
-        f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
-        if not isinstance(unit, String):
+    def eval_plus(self, q1, u1, q2, u2, evaluation):
+        """Plus[Quantity[q1_, u1_], Quantity[q2_,u2_]]"""
+
+        # TODO: Support producs and powers of units
+        if not (isinstance(u1, String) and isinstance(u2, String)):
+            return None
+        result = add_quantities(q1, u1.value, q2, u2.value, evaluation)
+        if result is None:
+            evaluation.message("Quantity", "compat", u1, u2)
+        return result
+
+    def format_quantity(self, mag, unit, evaluation: Evaluation):
+        "Quantity[mag_, unit_]"
+        SymbolRow = Symbol("System`Row")
+
+        def format_units(units):
+            if isinstance(units, String):
+                q_unit = units.value
+                if validate_unit(q_unit):
+                    result = String(q_unit.replace("_", " "))
+                    return result
+                return None
+            if units.has_form("Power", 2):
+                base, exp = units.elements
+                if not isinstance(exp, Integer):
+                    return None
+                result = Expression(SymbolPower, format_units(base), exp)
+                return result
+            if units.has_form("Times", None):
+                result = Expression(
+                    SymbolTimes, *(format_units(factor) for factor in units.elements)
+                )
+                return result
             return None
 
-        q_unit = unit.value
-        if q_unit and validate_unit(q_unit):
-            return Expression(
-                SymbolRowBox,
-                ListExpression(mag, String(" "), String(q_unit.replace("_", " "))),
-            )
+        unit = format_units(unit)
+        if unit is None:
+            return None
 
-        return Expression(
-            SymbolRowBox,
-            to_mathics_list(SymbolQuantity, "[", mag, ", ", String(q_unit), "]"),
-        )
+        return Expression(SymbolRow, ListExpression(mag, String(" "), unit))
 
     def eval_list(self, mag, unit, evaluation: Evaluation):
         "Quantity[mag_List, unit_]"
