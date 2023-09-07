@@ -68,7 +68,7 @@ import pytest
         (
             'UnitConvert[Quantity[{3, 10}, "centimeter"]]',
             None,
-            '{Quantity[0.03, "meter"], Quantity[0.1, "meter"]}',
+            '{Quantity[3/100, "meter"], Quantity[1/10, "meter"]}',
             None,
         ),
         (
@@ -80,13 +80,49 @@ import pytest
         (
             'UnitConvert[Quantity[{300, 152}, "centimeter"], Quantity[10, "meter"]]',
             None,
-            '{Quantity[3, "meter"], Quantity[1.52, "meter"]}',
+            '{Quantity[3, "meter"], Quantity[38/25, "meter"]}',
+            None,
+        ),
+        (
+            'UnitConvert[Quantity[{300, 152}, "km"], Quantity[10, "cm"]]',
+            None,
+            '{Quantity[30000000, "centimeter"], Quantity[15200000, "centimeter"]}',
             None,
         ),
         (
             'UnitConvert[Quantity[{3, 1}, "meter"], "inch"]',
             None,
             '{Quantity[118.11, "inch"], Quantity[39.3701, "inch"]}',
+            None,
+        ),
+        (
+            'UnitConvert[Quantity[20, "celsius"]]',
+            None,
+            '"293.15 kelvin"',
+            None,
+        ),
+        (
+            'UnitConvert[Quantity[300, "fahrenheit"]]',
+            None,
+            '"422.039 kelvin"',
+            None,
+        ),
+        (
+            'UnitConvert[Quantity[451, "fahrenheit"], "celsius"]',
+            None,
+            '"232.778 degree Celsius"',
+            None,
+        ),
+        (
+            'UnitConvert[Quantity[20, "celsius"], "kelvin"]',
+            None,
+            '"293.15 kelvin"',
+            None,
+        ),
+        (
+            'UnitConvert[Quantity[273, "kelvin"], "celsius"]',
+            None,
+            '"-0.15 degree Celsius"',
             None,
         ),
     ],
