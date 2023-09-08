@@ -16,12 +16,19 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolPower, SymbolQuantity, SymbolTimes
+from mathics.core.systemsymbols import (
+    SymbolPower,
+    SymbolQuantity,
+    SymbolRow,
+    SymbolTimes,
+)
 from mathics.eval.quantities import (
     add_quantities,
     convert_units,
-    normalize_unit_name_with_magnitude,
-    validate_unit,
+    normalize_unit_expression,
+    normalize_unit_expression_with_magnitude,
+    validate_pint_unit,
+    validate_unit_expression,
 )
 
 # This tells documentation how to sort this module
@@ -44,12 +51,15 @@ class KnownUnitQ(Test):
 
     >> KnownUnitQ["Foo"]
      = False
+
+    >> KnownUnitQ["meter"^2/"second"]
+     = True
     """
 
     summary_text = "tests whether its argument is a canonical unit."
 
     def test(self, expr) -> bool:
-        return validate_unit(expr.get_string_value())
+        return validate_unit_expression(expr)
 
 
 class Quantity(Builtin):
@@ -85,6 +95,7 @@ class Quantity(Builtin):
     the expression is not interpreted as a Quantity object:
 
     >> QuantityQ[Quantity[2, Second]]
+     : Unable to interpret unit specification Second.
      = False
 
     Quantities can be multiplied and raised to integer powers:
@@ -116,6 +127,7 @@ class Quantity(Builtin):
         "unkunit": "Unable to interpret unit specification `1`.",
         "compat": "`1` and `2` are incompatible units.",
     }
+    # TODO: Support fractional powers of units
     rules = {
         "Quantity[m1_, u1_]*Quantity[m2_, u2_]": "Quantity[m1*m2, u1*u2]",
         "Quantity[m_, u_]*a_": "Quantity[a*m, u]",
@@ -125,23 +137,18 @@ class Quantity(Builtin):
 
     def eval_plus(self, q1, u1, q2, u2, evaluation):
         """Plus[Quantity[q1_, u1_], Quantity[q2_,u2_]]"""
-
-        # TODO: Support producs and powers of units
-        if not (isinstance(u1, String) and isinstance(u2, String)):
-            return None
-        result = add_quantities(q1, u1.value, q2, u2.value, evaluation)
+        result = add_quantities(q1, u1, q2, u2, evaluation)
         if result is None:
             evaluation.message("Quantity", "compat", u1, u2)
         return result
 
     def format_quantity(self, mag, unit, evaluation: Evaluation):
         "Quantity[mag_, unit_]"
-        SymbolRow = Symbol("System`Row")
 
         def format_units(units):
             if isinstance(units, String):
                 q_unit = units.value
-                if validate_unit(q_unit):
+                if validate_pint_unit(q_unit):
                     result = String(q_unit.replace("_", " "))
                     return result
                 return None
@@ -175,28 +182,42 @@ class Quantity(Builtin):
         self, mag, unit, evaluation: Evaluation
     ) -> Optional[Expression]:
         "Quantity[mag_, unit_]"
-        if isinstance(unit, String):
-            unit_str = unit.value
-            if not validate_unit(unit_str):
-                evaluation.message("Quantity", "unkunit", unit)
-                return None
 
-            normalized_units = normalize_unit_name_with_magnitude(unit_str, mag)
-            # If the units are already normalized, return None
-            if normalized_units == unit.value:
-                return None
-            return Expression(SymbolQuantity, mag, String(normalized_units))
         unit = unit.evaluate(evaluation)
+
         if isinstance(unit, Number):
             return Expression(SymbolTimes, mag, unit).evaluate(evaluation)
-        return None
+
+        if unit.has_form("Quantity", 2):
+            if not validate_unit_expression(unit):
+                return None
+            unit = unit.elements[1]
+
+        try:
+            normalized_unit = normalize_unit_expression_with_magnitude(unit, mag)
+        except ValueError:
+            evaluation.message("Quantity", "unkunit", unit)
+            return None
+
+        if unit.sameQ(normalized_unit):
+            return None
+
+        return Expression(SymbolQuantity, mag, normalized_unit)
 
     def eval_unit(self, unit, evaluation: Evaluation):
         "Quantity[unit_]"
-        if not isinstance(unit, String):
+        unit = unit.evaluate(evaluation)
+        if isinstance(unit, Number):
+            return unit
+        if unit.has_form("Quantity", 2):
+            return unit
+        try:
+            unit = normalize_unit_expression(unit)
+        except ValueError:
             evaluation.message("Quantity", "unkunit", unit)
             return None
-        return self.eval_magnitude_and_unit(Integer1, unit, evaluation)
+        # TODO: add element property "fully_evaluated
+        return Expression(SymbolQuantity, Integer1, unit)
 
 
 class QuantityMagnitude(Builtin):
@@ -245,7 +266,7 @@ class QuantityMagnitude(Builtin):
 
     def eval_quantity(self, mag, unit, evaluation: Evaluation):
         "QuantityMagnitude[Quantity[mag_, unit_]]"
-        return mag if validate_unit(unit.get_string_value()) else None
+        return mag if validate_unit_expression(unit) else None
 
     def eval_quantity_unit(self, quantity, targetUnit, evaluation: Evaluation):
         "QuantityMagnitude[quantity_Quantity, targetUnit_]"
@@ -259,8 +280,6 @@ class QuantityMagnitude(Builtin):
             )
         if targetUnit.has_form("Quantity", 2):
             targetUnit = targetUnit.elements[1]
-        if not isinstance(targetUnit, String):
-            return None
 
         try:
             magnitude, unit = quantity.elements
@@ -269,8 +288,8 @@ class QuantityMagnitude(Builtin):
         try:
             converted_quantity = convert_units(
                 magnitude,
-                unit.get_string_value(),
-                targetUnit.get_string_value(),
+                unit,
+                targetUnit,
                 evaluation,
             )
             return converted_quantity.elements[0]
@@ -309,10 +328,7 @@ class QuantityQ(Test):
         if not isinstance(magnitude, Number):
             return False
 
-        unit_str = unit.get_string_value()
-        if unit_str is None or not validate_unit(unit_str):
-            return False
-        return True
+        return validate_unit_expression(unit)
 
 
 class QuantityUnit(Builtin):
@@ -340,7 +356,7 @@ class QuantityUnit(Builtin):
 
     def eval_quantity(self, mag, unit, evaluation: Evaluation):
         "QuantityUnit[Quantity[mag_, unit_]]"
-        return unit if validate_unit(unit.get_string_value()) else None
+        return unit if validate_unit_expression(unit) else None
 
     def eval_list(self, expr, evaluation: Evaluation):
         "QuantityUnit[expr_List]"
@@ -411,14 +427,12 @@ class UnitConvert(Builtin):
             return None
 
         mag, unit = expr.elements
-        if not isinstance(unit, String):
-            return None
 
         try:
             return convert_units(
                 mag,
-                unit.get_string_value(),
-                toUnit.get_string_value(),
+                unit,
+                toUnit,
                 evaluation,
             )
         except ValueError:
@@ -432,11 +446,9 @@ class UnitConvert(Builtin):
         )
 
     def eval_quantity_to_base_unit(self, mag, unit, evaluation: Evaluation):
-        "UnitConvert[Quantity[mag_, unit_String]]"
-
-        if not isinstance(unit, String):
-            return None
+        "UnitConvert[Quantity[mag_, unit_]]"
+        print("convert", mag, unit, "to basic units")
         try:
-            return convert_units(mag, unit.get_string_value(), evaluation=evaluation)
+            return convert_units(mag, unit, evaluation=evaluation)
         except ValueError:
             return None

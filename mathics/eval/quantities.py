@@ -11,6 +11,7 @@ from mathics.core.atoms import (
     Integer,
     Integer0,
     Integer1,
+    IntegerM1,
     Number,
     Rational,
     Real,
@@ -19,14 +20,14 @@ from mathics.core.atoms import (
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.systemsymbols import SymbolQuantity
+from mathics.core.systemsymbols import SymbolPower, SymbolQuantity, SymbolTimes
 
 ureg = UnitRegistry()
 Q_ = ureg.Quantity
 
 
 def add_quantities(
-    mag_1: float, u_1: str, mag_2: float, u_2: str, evaluation=None
+    mag_1: float, u_1: BaseElement, mag_2: float, u_2: BaseElement, evaluation=None
 ) -> Expression:
     """Try to add two quantities"""
     cmp = compare_units(u_1, u_2)
@@ -44,10 +45,10 @@ def add_quantities(
     mag = mag_1 + mag_2
     if evaluation:
         mag = mag.evaluate(evaluation)
-    return Expression(SymbolQuantity, mag, String(u_1))
+    return Expression(SymbolQuantity, mag, u_1)
 
 
-def compare_units(u_1, u_2) -> Optional[int]:
+def compare_units(u_1: BaseElement, u_2: BaseElement) -> Optional[int]:
     """
     Compare two units.
     if both units are equal, return 0.
@@ -55,18 +56,18 @@ def compare_units(u_1, u_2) -> Optional[int]:
     If u1<u2 returns -1
     if the units can not be compared return None
     """
-    u_1 = normalize_unit_name(u_1)
-    u_2 = normalize_unit_name(u_2)
+    u_1_str = expression_to_pint_string(u_1)
+    u_2_str = expression_to_pint_string(u_2)
 
-    if u_1 == u_2:
+    if u_1_str == u_2_str:
         return 0
 
     # Can not compare two non-multiplicative quantities
-    if not (is_multiplicative(u_1) and is_multiplicative(u_2)):
+    if not (is_multiplicative(u_1_str) and is_multiplicative(u_2_str)):
         return None
 
     try:
-        conversion_factor = Q_(1, u_1).to(u_2).magnitude
+        conversion_factor = Q_(1, u_1_str).to(u_2_str).magnitude
     except DimensionalityError:
         return None
 
@@ -76,30 +77,10 @@ def compare_units(u_1, u_2) -> Optional[int]:
     return 1 if conversion_factor > 1 else -1
 
 
-def is_multiplicative(unit: str) -> bool:
-    """
-    Check if a quantity is multiplicative. For example,
-    centimeters are "multiplicative" because is a multiple
-    of its basis unit "meter"
-    On the other hand, "celsius" is not: the magnitude in Celsius
-    is the magnitude in Kelvin plus an offset.
-    """
-    # unit = normalize_unit_name(unit)
-    try:
-        return ureg._units[unit].converter.is_multiplicative
-    except UndefinedUnitError:
-        unit = ureg.get_name(unit)
-
-    try:
-        return ureg._units[unit].converter.is_multiplicative
-    except UndefinedUnitError as exc:
-        raise ValueError("Unit is not a registered unit") from exc
-
-
 def convert_units(
     magnitude: BaseElement,
-    src_unit: str,
-    tgt_unit: Optional[str] = None,
+    src: BaseElement,
+    tgt: Optional[BaseElement] = None,
     evaluation: Optional[Evaluation] = None,
 ) -> Expression:
     """
@@ -110,9 +91,12 @@ def convert_units(
     convert it from a Python numeric to a Mathics numeric.
     """
     assert isinstance(magnitude, Number)
-    src_unit = normalize_unit_name(src_unit)
-    if tgt_unit:
-        tgt_unit = normalize_unit_name(tgt_unit)
+    assert isinstance(src, BaseElement)
+    assert tgt is None or isinstance(tgt, BaseElement)
+    src_unit: str = expression_to_pint_string(src)
+
+    if tgt is not None:
+        tgt_unit: Optional[str] = expression_to_pint_string(tgt)
         try:
             converted_quantity = Q_(1, src_unit).to(tgt_unit)
         except (UndefinedUnitError, DimensionalityError) as exc:
@@ -139,43 +123,130 @@ def convert_units(
     # If evaluation is provided, try to simplify
     if evaluation is not None:
         magnitude = magnitude.evaluate(evaluation)
-    return Expression(SymbolQuantity, magnitude, String(tgt_unit))
+    return Expression(SymbolQuantity, magnitude, pint_str_to_expression(tgt_unit))
+
+
+def expression_to_pint_string(expr: BaseElement) -> str:
+    """
+    Convert a unit expression to a string
+    compatible with pint
+    """
+    if isinstance(expr, String):
+        result = expr.value
+    elif expr.has_form("Times", None):
+        result = "*".join(expression_to_pint_string(factor) for factor in expr.elements)
+    elif expr.has_form("Power", 2):
+        base, power = expr.elements
+        if not isinstance(power, Integer):
+            raise ValueError("invalid unit expression")
+        result = f" (({expression_to_pint_string(base)})**{power.value}) "
+    else:
+        raise ValueError("invalid unit expression")
+    return normalize_unit_name(result)
+
+
+def is_multiplicative(unit: str) -> bool:
+    """
+    Check if a quantity is multiplicative. For example,
+    centimeters are "multiplicative" because is a multiple
+    of its basis unit "meter"
+    On the other hand, "celsius" is not: the magnitude in Celsius
+    is the magnitude in Kelvin plus an offset.
+    """
+    # unit = normalize_unit_name(unit)
+    try:
+        return ureg._units[unit].converter.is_multiplicative
+    except (UndefinedUnitError, KeyError):
+        try:
+            unit = ureg.get_name(unit)
+        except UndefinedUnitError:
+            # if not found, assume it is
+            return True
+    try:
+        return ureg._units[unit].converter.is_multiplicative
+    except (UndefinedUnitError, KeyError):
+        # if not found, assume it is
+        return True
+
+
+def normalize_unit_expression(unit: BaseElement) -> str:
+    """Normalize the expression representing a unit"""
+    unit_str = expression_to_pint_string(unit)
+    return pint_str_to_expression(unit_str)
+
+
+def normalize_unit_expression_with_magnitude(
+    unit: BaseElement, magnitude: BaseElement
+) -> str:
+    """
+    Normalize the expression representing a unit,
+    taking into account the numeric value
+    """
+    unit_str = expression_to_pint_string(unit)
+
+    m = magnitude.value if isinstance(magnitude, Number) else 2.0
+    unit_str = normalize_unit_name_with_magnitude(unit_str, m)
+    return pint_str_to_expression(unit_str)
 
 
 def normalize_unit_name(unit: str) -> str:
     """The normalized name of a unit"""
-    try:
-        return ureg.get_name(unit)
-    except UndefinedUnitError:
-        unit = unit.replace(" ", "_")
-
-    try:
-        return ureg.get_name(unit)
-    except UndefinedUnitError:
-        unit = unit.lower()
-
-    try:
-        return ureg.get_name(unit)
-    except (UndefinedUnitError) as exc:
-        raise ValueError("undefined units") from exc
+    return normalize_unit_name_with_magnitude(unit, 1)
 
 
 def normalize_unit_name_with_magnitude(unit: str, magnitude) -> str:
     """The normalized name of a unit"""
+    unit = unit.strip()
     try:
-        return Q_(magnitude, unit).units
+        return str(Q_(magnitude, unit).units)
     except UndefinedUnitError:
         unit = unit.replace(" ", "_")
+        unit.replace("_*", " *")
+        unit.replace("*_", "* ")
+        unit.replace("/_", "/ ")
+        unit.replace("_/", " /")
+        unit.replace("_(", " (")
+        unit.replace(")_", ") ")
 
     try:
-        return Q_(magnitude, unit).units
+        return str(Q_(magnitude, unit).units)
     except UndefinedUnitError:
         unit = unit.lower()
 
     try:
-        return Q_(magnitude, unit).units
+        return str(Q_(magnitude, unit).units)
     except (UndefinedUnitError) as exc:
         raise ValueError("undefined units") from exc
+
+
+def pint_str_to_expression(unit: str) -> BaseElement:
+    """
+    Produce a Mathics Expression from a pint unit expression
+    """
+    assert isinstance(unit, str)
+    unit = normalize_unit_name(unit)
+
+    factors = unit.split(" / ")
+    factor = factors[0]
+    divisors = factors[1:]
+    factors = factor.split(" * ")
+
+    def process_factor(factor):
+        base_and_power = factor.split(" ** ")
+        if len(base_and_power) == 1:
+            return String(normalize_unit_name(factor))
+        base, power = base_and_power
+        power_mathics = Integer(int(power))
+        base_mathics = String(normalize_unit_name(base))
+        return Expression(SymbolPower, base_mathics, power_mathics)
+
+    factors_mathics = [process_factor(factor) for factor in factors] + [
+        Expression(SymbolPower, process_factor(factor), IntegerM1)
+        for factor in divisors
+    ]
+    if len(factors_mathics) == 1:
+        return factors_mathics[0]
+    return Expression(SymbolTimes, *factors_mathics)
 
 
 def round_if_possible(x_float: float) -> Number:
@@ -195,7 +266,7 @@ def round_if_possible(x_float: float) -> Number:
     return Real(x_float)
 
 
-def validate_unit(unit: str) -> bool:
+def validate_pint_unit(unit: str) -> bool:
     """Test if `unit` is a valid unit"""
     try:
         ureg.get_name(unit)
@@ -207,15 +278,14 @@ def validate_unit(unit: str) -> bool:
     try:
         ureg.get_name(unit)
     except UndefinedUnitError:
-        print(unit, " is not a valid unit")
         return False
     return True
 
 
-def validate_unit_expression(unit: Expression) -> bool:
+def validate_unit_expression(unit: BaseElement) -> bool:
     """Test if `unit` is a valid unit"""
     if isinstance(unit, String):
-        return validate_unit(unit.value)
+        return validate_pint_unit(unit.value)
     if unit.has_form("Power", 2):
         base, exp = unit.elements
         if not isinstance(exp, Integer):

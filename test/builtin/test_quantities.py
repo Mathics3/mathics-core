@@ -138,3 +138,43 @@ def test_private_doctests_numeric(str_expr, msgs, str_expected, fail_msg):
         failure_message=fail_msg,
         expected_messages=msgs,
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [
+        ('a=.; 3*Quantity[a, "meter"^2]', "3 a meter ^ 2"),
+        ('a Quantity[1/a, "Meter"^2]', "1 meter ^ 2"),
+        ('Quantity[3, "Meter"^2]', "3 meter ^ 2"),
+        (
+            'Quantity[2, "Meter"]^2',
+            "4 meter ^ 2",
+        ),
+        ('Quantity[5, "Meter"]^2-Quantity[3, "Meter"]^2', "16 meter ^ 2"),
+        (
+            'Quantity[2, "kg"] * Quantity[9.8, "Meter/Second^2"]',
+            "19.6 kilogram meter / second ^ 2",
+        ),
+        (
+            'UnitConvert[Quantity[2, "Ampere*Second"], "microcoulomb"]',
+            "2000000 microcoulomb",
+        ),
+        (
+            'UnitConvert[Quantity[2., "Ampere*microSecond"], "microcoulomb"]',
+            "2. microcoulomb",
+        ),
+        # TODO Non integer powers:
+        #        ('Quantity[4., "watt"]^(1/2)','2 square root watts'),
+        #        ('Quantity[4., "watt"]^(1/3)','2^(2/3) cube root watts'),
+        #        ('Quantity[4., "watt"]^(.24)','1.39474 watts to the 0.24'),
+    ],
+)
+def test_quantity_operations(str_expr, str_expected):
+    """test operations involving quantities"""
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+    )
