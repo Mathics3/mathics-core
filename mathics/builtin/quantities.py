@@ -12,18 +12,11 @@ from mathics.core.attributes import (
     A_READ_PROTECTED,
 )
 from mathics.core.builtin import Builtin, Test
-from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import (
-    SymbolPower,
-    SymbolQuantity,
-    SymbolRowBox,
-    SymbolTimes,
-)
-from mathics.eval.makeboxes import eval_makeboxes
+from mathics.core.systemsymbols import SymbolPower, SymbolQuantity, SymbolTimes
 from mathics.eval.quantities import (
     add_quantities,
     convert_units,
@@ -171,14 +164,16 @@ class Quantity(Builtin):
 
         return Expression(SymbolRow, ListExpression(mag, String(" "), unit))
 
-    def eval_list(self, mag, unit, evaluation: Evaluation):
+    def eval_list_of_magnitudes_unit(self, mag, unit, evaluation: Evaluation):
         "Quantity[mag_List, unit_]"
         head = Symbol(self.get_name())
         return ListExpression(
             *(Expression(head, m, unit).evaluate(evaluation) for m in mag.elements)
         )
 
-    def eval_n(self, mag, unit, evaluation: Evaluation) -> Optional[Expression]:
+    def eval_magnitude_and_unit(
+        self, mag, unit, evaluation: Evaluation
+    ) -> Optional[Expression]:
         "Quantity[mag_, unit_]"
         if isinstance(unit, String):
             unit_str = unit.value
@@ -196,12 +191,12 @@ class Quantity(Builtin):
             return Expression(SymbolTimes, mag, unit).evaluate(evaluation)
         return None
 
-    def eval(self, unit, evaluation: Evaluation):
+    def eval_unit(self, unit, evaluation: Evaluation):
         "Quantity[unit_]"
         if not isinstance(unit, String):
             evaluation.message("Quantity", "unkunit", unit)
             return None
-        return self.eval_n(Integer1, unit, evaluation)
+        return self.eval_magnitude_and_unit(Integer1, unit, evaluation)
 
 
 class QuantityMagnitude(Builtin):
@@ -230,7 +225,7 @@ class QuantityMagnitude(Builtin):
 
     summary_text = "get magnitude associated with a quantity."
 
-    def eval_list_1(self, expr, evaluation: Evaluation):
+    def eval_list(self, expr, evaluation: Evaluation):
         "QuantityMagnitude[expr_List]"
         return ListExpression(
             *(
@@ -239,7 +234,7 @@ class QuantityMagnitude(Builtin):
             )
         )
 
-    def eval_list_2(self, expr, unit, evaluation: Evaluation):
+    def eval_list_with_unit(self, expr, unit, evaluation: Evaluation):
         "QuantityMagnitude[expr_List, unit_]"
         return ListExpression(
             *(
@@ -385,7 +380,7 @@ class UnitConvert(Builtin):
     }
     summary_text = "convert between units."
 
-    def eval_2_list(self, expr, toUnit, evaluation: Evaluation):
+    def eval_expr_several_units(self, expr, toUnit, evaluation: Evaluation):
         "UnitConvert[expr_, toUnit_List]"
         return ListExpression(
             *(
@@ -394,14 +389,14 @@ class UnitConvert(Builtin):
             )
         )
 
-    def eval_2_quantity(self, expr, toUnit, evaluation: Evaluation):
+    def eval_quantity_to_unit_from_quantity(self, expr, toUnit, evaluation: Evaluation):
         "UnitConvert[expr_, toUnit_Quantity]"
         if not toUnit.has_form("Quantity", 2):
             return None
         toUnit = toUnit.elements[1]
         return Expression(Symbol(self.get_name()), expr, toUnit).evaluate(evaluation)
 
-    def eval_2(self, expr, toUnit, evaluation: Evaluation):
+    def eval_quantity_to_unit(self, expr, toUnit, evaluation: Evaluation):
         "UnitConvert[expr_, toUnit_]"
         if expr.has_form("List", None):
             return ListExpression(
@@ -429,14 +424,14 @@ class UnitConvert(Builtin):
         except ValueError:
             return None
 
-    def eval_base_unit_list(self, expr, evaluation: Evaluation):
+    def eval_list_to_base_unit(self, expr, evaluation: Evaluation):
         "UnitConvert[expr_List]"
         head = Symbol(self.get_name())
         return ListExpression(
             *(Expression(head, item).evaluate(evaluation) for item in expr.elements)
         )
 
-    def eval_base_unit(self, mag, unit, evaluation: Evaluation):
+    def eval_quantity_to_base_unit(self, mag, unit, evaluation: Evaluation):
         "UnitConvert[Quantity[mag_, unit_String]]"
 
         if not isinstance(unit, String):
