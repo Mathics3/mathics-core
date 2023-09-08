@@ -81,9 +81,7 @@ def eval_fullform_makeboxes(
     return Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
 
 
-def eval_makeboxes(
-    self, expr, evaluation: Evaluation, form=SymbolStandardForm
-) -> Expression:
+def eval_makeboxes(expr, evaluation: Evaluation, form=SymbolStandardForm) -> Expression:
     """
     This function takes the definitions provided by the evaluation
     object, and produces a boxed fullform for expr.
