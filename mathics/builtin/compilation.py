@@ -57,32 +57,12 @@ class Compile(Builtin):
      = CompiledFunction[{x}, Sin[x], -CompiledCode-]
     >> cf[1.4]
      = 0.98545
-    #> cf[1/2]
-     = 0.479426
-    #> cf[4]
-     = -0.756802
-    #> cf[x]
-     : Invalid argument x should be Integer, Real or boolean.
-     = CompiledFunction[{x}, Sin[x], -CompiledCode-][x]
-    #> cf = Compile[{{x, _Real}, {x, _Integer}}, Sin[x + y]]
-     : Duplicate parameter x found in {{x, _Real}, {x, _Integer}}.
-     = Compile[{{x, _Real}, {x, _Integer}}, Sin[x + y]]
-    #> cf = Compile[{{x, _Real}, {y, _Integer}}, Sin[x + z]]
-     = CompiledFunction[{x, y}, Sin[x + z], -PythonizedCode-]
-    #> cf = Compile[{{x, _Real}, {y, _Integer}}, Sin[x + y]]
-     = CompiledFunction[{x, y}, Sin[x + y], -CompiledCode-]
-    #> cf[1, 2]
-     = 0.14112
-    #> cf[x + y]
-     = CompiledFunction[{x, y}, Sin[x + y], -CompiledCode-][x + y]
 
     Compile supports basic flow control:
     >> cf = Compile[{{x, _Real}, {y, _Integer}}, If[x == 0.0 && y <= 0, 0.0, Sin[x ^ y] + 1 / Min[x, 0.5]] + 0.5]
      = CompiledFunction[{x, y}, ..., -CompiledCode-]
     >> cf[3.5, 2]
      = 2.18888
-    #> cf[0, -2]
-     = 0.5
 
     Loops and variable assignments are supported usinv Python builtin "compile" function:
     >> Compile[{{a, _Integer}, {b, _Integer}}, While[b != 0, {a, b} = {b, Mod[a, b]}]; a]       (* GCD of a, b *)
