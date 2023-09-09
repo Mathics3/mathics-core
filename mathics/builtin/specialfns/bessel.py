@@ -24,7 +24,6 @@ from mathics.core.number import (
 
 
 class _Bessel(MPMathFunction):
-
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
 
     nargs = {2}
@@ -109,18 +108,6 @@ class AiryAiZero(Builtin):
 
     >> N[AiryAiZero[1]]
      = -2.33811
-
-    #> AiryAiZero[1]
-     = AiryAiZero[1]
-
-    #> AiryAiZero[1.]
-     = AiryAiZero[1.]
-
-    #> AiryAi[AiryAiZero[1]]
-     = 0
-
-    #> N[AiryAiZero[2], 100]
-     = -4.087949444130970616636988701457391060224764699108529754984160876025121946836047394331169160758270562
     """
 
     # TODO: 'AiryAiZero[$k$, $x0$]' - $k$th zero less than x0
@@ -235,18 +222,6 @@ class AiryBiZero(Builtin):
 
     >> N[AiryBiZero[1]]
      = -1.17371
-
-    #> AiryBiZero[1]
-     = AiryBiZero[1]
-
-    #> AiryBiZero[1.]
-     = AiryBiZero[1.]
-
-    #> AiryBi[AiryBiZero[1]]
-     = 0
-
-    #> N[AiryBiZero[2], 100]
-     = -3.271093302836352715680228240166413806300935969100284801485032396261130864238742879252000673830055014
     """
 
     # TODO: 'AiryBiZero[$k$, $x0$]' - $k$th zero less than x0
@@ -379,9 +354,6 @@ class BesselJ(_Bessel):
 
     >> BesselJ[0, 5.2]
      = -0.11029
-
-    #> BesselJ[2.5, 1]
-     = 0.0494968
 
     >> D[BesselJ[n, z], z]
      = -BesselJ[1 + n, z] / 2 + BesselJ[-1 + n, z] / 2

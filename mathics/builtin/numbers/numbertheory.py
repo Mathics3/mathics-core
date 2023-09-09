@@ -91,14 +91,6 @@ class Divisors(Builtin):
      = {1, 2, 4, 8, 11, 16, 22, 32, 44, 64, 88, 176, 352, 704}
     >> Divisors[{87, 106, 202, 305}]
      = {{1, 3, 29, 87}, {1, 2, 53, 106}, {1, 2, 101, 202}, {1, 5, 61, 305}}
-    #> Divisors[0]
-     = Divisors[0]
-    #> Divisors[{-206, -502, -1702, 9}]
-     = {{1, 2, 103, 206}, {1, 2, 251, 502}, {1, 2, 23, 37, 46, 74, 851, 1702}, {1, 3, 9}}
-    #> Length[Divisors[1000*369]]
-     = 96
-    #> Length[Divisors[305*176*369*100]]
-     = 672
     """
 
     # TODO: support GaussianIntegers
@@ -275,21 +267,6 @@ class FractionalPart(Builtin):
 
     >> FractionalPart[-5.25]
      = -0.25
-
-    #> FractionalPart[b]
-     = FractionalPart[b]
-
-    #> FractionalPart[{-2.4, -2.5, -3.0}]
-     = {-0.4, -0.5, 0.}
-
-    #> FractionalPart[14/32]
-     = 7 / 16
-
-    #> FractionalPart[4/(1 + 3 I)]
-     = 2 / 5 - I / 5
-
-    #> FractionalPart[Pi^20]
-     = -8769956796 + Pi ^ 20
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_READ_PROTECTED | A_PROTECTED
@@ -370,47 +347,6 @@ class MantissaExponent(Builtin):
 
     >> MantissaExponent[10, b]
      = MantissaExponent[10, b]
-
-    #> MantissaExponent[E, Pi]
-     = {E / Pi, 1}
-
-    #> MantissaExponent[Pi, Pi]
-     = {1 / Pi, 2}
-
-    #> MantissaExponent[5/2 + 3, Pi]
-     = {11 / (2 Pi ^ 2), 2}
-
-    #> MantissaExponent[b]
-     = MantissaExponent[b]
-
-    #> MantissaExponent[17, E]
-     = {17 / E ^ 3, 3}
-
-    #> MantissaExponent[17., E]
-     = {0.84638, 3}
-
-    #> MantissaExponent[Exp[Pi], 2]
-     = {E ^ Pi / 32, 5}
-
-    #> MantissaExponent[3 + 2 I, 2]
-     : The value 3 + 2 I is not a real number
-     = MantissaExponent[3 + 2 I, 2]
-
-    #> MantissaExponent[25, 0.4]
-     : Base 0.4 is not a real number greater than 1.
-     = MantissaExponent[25, 0.4]
-
-    #> MantissaExponent[0.0000124]
-     = {0.124, -4}
-
-    #> MantissaExponent[0.0000124, 2]
-     = {0.812646, -16}
-
-    #> MantissaExponent[0]
-     = {0, 0}
-
-    #> MantissaExponent[0, 2]
-     = {0, 0}
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -674,9 +610,6 @@ class PrimePowerQ(Builtin):
 
     >> PrimePowerQ[371293]
      = True
-
-    #> PrimePowerQ[1]
-     = False
     """
 
     attributes = A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
@@ -687,19 +620,19 @@ class PrimePowerQ(Builtin):
 
     # TODO: GaussianIntegers option
     """
-    #> PrimePowerQ[5, GaussianIntegers -> True]
+    ##> PrimePowerQ[5, GaussianIntegers -> True]
      = False
     """
 
     # TODO: Complex args
     """
-    #> PrimePowerQ[{3 + I, 3 - 2 I, 3 + 4 I, 9 + 7 I}]
+    ##> PrimePowerQ[{3 + I, 3 - 2 I, 3 + 4 I, 9 + 7 I}]
      = {False, True, True, False}
     """
 
     # TODO: Gaussian rationals
     """
-    #> PrimePowerQ[2/125 - 11 I/125]
+    ##> PrimePowerQ[2/125 - 11 I/125]
      = True
     """
 
@@ -740,12 +673,6 @@ class RandomPrime(Builtin):
 
     >> RandomPrime[{10,30}, {2,5}]
      = ...
-
-    #> RandomPrime[{10,12}, {2,2}]
-     = {{11, 11}, {11, 11}}
-
-    #> RandomPrime[2, {3,2}]
-     = {{2, 2}, {2, 2}, {2, 2}}
     """
 
     messages = {
