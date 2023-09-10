@@ -2248,6 +2248,7 @@ class Solve(Builtin):
             eq_list = eqs.elements
         else:
             eq_list = [eqs]
+        sympy_conditions = []
         sympy_eqs = []
         sympy_denoms = []
         for eq in eq_list:
@@ -2256,8 +2257,7 @@ class Solve(Builtin):
             elif eq is SymbolFalse:
                 return ListExpression()
             elif not eq.has_form("Equal", 2):
-                evaluation.message("Solve", "eqf", eqs)
-                return
+                sympy_conditions.append(eq.to_sympy())
             else:
                 left, right = eq.elements
                 left = left.to_sympy()
@@ -2270,6 +2270,10 @@ class Solve(Builtin):
                 sympy_eqs.append(eq)
                 numer, denom = eq.as_numer_denom()
                 sympy_denoms.append(denom)
+
+        if not sympy_eqs:
+            evaluation.message("Solve", "eqf", eqs)
+            return
 
         vars_sympy = [var.to_sympy() for var in vars]
         if None in vars_sympy:
@@ -2335,6 +2339,10 @@ class Solve(Builtin):
             for sol in result:
                 results.extend(transform_solution(sol))
             result = results
+            # filter with conditions before further translation
+            conditions = sympy.And(*sympy_conditions)
+            result = [sol for sol in result if conditions.subs(sol)]
+
             if any(
                 sol and any(var not in sol for var in all_vars_sympy) for sol in result
             ):
