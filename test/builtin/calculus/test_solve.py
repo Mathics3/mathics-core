@@ -42,6 +42,16 @@ def test_solve():
             "{x->1.51213}",
             "Issue #1235",
         ),
+        (
+            "Solve[{x^2==4 && x < 0},{x}]",
+            "{x->-2}",
+            "",
+        ),
+        (
+            "Solve[{x^2==4 && x < 0 && x > -4},{x}]",
+            "{x->-2}",
+            "",
+        ),
     ):
         session.evaluate("Clear[h]; Clear[g]; Clear[f];")
         check_evaluation(str_expr, str_expected, message)
