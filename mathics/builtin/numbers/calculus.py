@@ -10,7 +10,7 @@ arithmetic operations.
 """
 
 from itertools import product
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 import sympy
@@ -2251,7 +2251,7 @@ class Solve(Builtin):
             return
         all_var_tuples = list(zip(vars, vars_sympy))
 
-        def cut_var_dimension(expressions: Expression | list[Expression]):
+        def cut_var_dimension(expressions: Union[Expression, list[Expression]]):
             '''delete unused variables to avoid SymPy's PolynomialError
             : Not a zero-dimensional system in e.g. Solve[x^2==1&&z^2==-1,{x,y,z}]'''
             if not isinstance(expressions, list):
@@ -2266,7 +2266,7 @@ class Solve(Builtin):
                         subset_vars_sympy.add(var_sympy)
             return subset_vars, subset_vars_sympy
 
-        def solve_sympy(equations: Expression | list[Expression]):
+        def solve_sympy(equations: Union[Expression, list[Expression]]):
             if not isinstance(equations, list):
                 equations = [equations]
             equations_sympy = []
@@ -2287,10 +2287,11 @@ class Solve(Builtin):
                     equation_sympy = left - right
                     equation_sympy = sympy.together(equation_sympy)
                     equation_sympy = sympy.cancel(equation_sympy)
+                    equations_sympy.append(equation_sympy)
                     numer, denom = equation_sympy.as_numer_denom()
                     denoms_sympy.append(denom)
             try:
-                results = sympy.solve(equations_sympy, subset_vars_sympy, dict=True)  # no transform needed with dict=True
+                results = sympy.solve(equations_sympy, subset_vars_sympy, dict=True)  # no transform_dict needed with dict=True
                 # Filter out results for which denominator is 0
                 # (SymPy should actually do that itself, but it doesn't!)
                 results = [
@@ -2314,21 +2315,21 @@ class Solve(Builtin):
             but including the translation from Mathics to sympy
 
             returns:
-                solutions: a list of sympy solution dictionaries
+                solutions: a list of sympy solution dictionarys
                 conditions: a sympy condition object
 
             note:
                 for And and List, should always return either (solutions, None) or ([], conditions)
-                for Or, all combinations are possible. if Or is root, should be handled outside'''
+                for Or, all combinations are possible. if Or is root, this should be handled outside'''
             head = expression.get_head_name()
-            if head in ("System`And", "System`List"):
+            if head in ('System`And', 'System`List'):
                 solutions = []
                 equations: list[Expression] = []
                 inequations = []
                 for child in expression.elements:
                     if child.has_form("Equal", 2):
                         equations.append(child)
-                    elif child.get_head_name() in ("System`And", "System`Or"):
+                    elif child.get_head_name() in ('System`And', 'System`Or'):
                         sub_solution, sub_condition = solve_recur(child)
                         solutions.extend(sub_solution)
                         if sub_condition is not None:
@@ -2339,14 +2340,14 @@ class Solve(Builtin):
                 conditions = sympy.And(*inequations)
                 result = [sol for sol in solutions if conditions.subs(sol)]
                 return result, None if solutions else conditions
-            else:  # should be System`Or then
-                assert head == "System`Or"
+            else:  # assume should be System`Or
+                assert head == 'System`Or'
                 solutions = []
                 conditions = []
                 for child in expression.elements:
                     if child.has_form("Equal", 2):
                         solutions.extend(solve_sympy(child))
-                    elif child.get_head_name() in ("System`And", "System`Or"):  # List wouldn't be in here
+                    elif child.get_head_name() in ('System`And', 'System`Or'):  # I don't believe List would be in here
                         sub_solution, sub_condition = solve_recur(child)
                         solutions.extend(sub_solution)
                         if sub_condition is not None:
@@ -2360,16 +2361,19 @@ class Solve(Builtin):
 
         if eqs.get_head_name() in ("System`List", "System`And", "System`Or"):
             solutions, conditions = solve_recur(eqs)
-            # non True conditions are only accepted in subtrees, not root
+            # non True conditions are only accepted in subtrees only, not root
             if conditions is not None:
                 evaluation.message("Solve", "fulldim")
-                return ListExpression(ListExpression())
         else:
             if eqs.has_form("Equal", 2):
                 solutions = solve_sympy(eqs)
             else:
                 evaluation.message("Solve", "fulldim")
                 return ListExpression(ListExpression())
+
+        if solutions is None:
+            evaluation.message("Solve", "ivars")
+            return ListExpression(ListExpression())
 
         if any(
             sol and any(var not in sol for var in vars_sympy) for sol in solutions
@@ -2381,7 +2385,7 @@ class Solve(Builtin):
                 ListExpression(
                     *(
                         Expression(SymbolRule, var, from_sympy(sol[var_sympy]))
-                        for var, var_sympy in zip(vars, all_var_tuples)
+                        for var, var_sympy in all_var_tuples
                         if var_sympy in sol
                     ),
                 )
