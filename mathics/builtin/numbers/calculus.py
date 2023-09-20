@@ -10,7 +10,7 @@ arithmetic operations.
 """
 
 from itertools import product
-from typing import Optional, Union
+from typing import Optional
 
 import numpy as np
 import sympy
@@ -59,16 +59,19 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolAnd,
     SymbolAutomatic,
+    SymbolComplex,
     SymbolConditionalExpression,
     SymbolD,
     SymbolDerivative,
     SymbolInfinity,
     SymbolInfix,
+    SymbolInteger,
     SymbolIntegrate,
     SymbolLeft,
     SymbolLog,
     SymbolNIntegrate,
     SymbolO,
+    SymbolReal,
     SymbolRule,
     SymbolSequence,
     SymbolSeries,
@@ -76,6 +79,7 @@ from mathics.core.systemsymbols import (
     SymbolSimplify,
     SymbolUndefined,
 )
+from mathics.eval.calculus import solve_sympy
 from mathics.eval.makeboxes import format_element
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numbers.calculus.integrators import (
@@ -2210,105 +2214,38 @@ class Solve(Builtin):
     messages = {
         "eqf": "`1` is not a well-formed equation.",
         "svars": 'Equations may not give solutions for all "solve" variables.',
+        "fulldim": "The solution set contains a full-dimensional component; use Reduce for complete solution information.",
     }
 
-    # FIXME: the problem with removing the domain parameter from the outside
-    # is that the we can't make use of this information inside
-    # the evaluation method where it is may be needed.
     rules = {
-        "Solve[eqs_, vars_, Complexes]": "Solve[eqs, vars]",
-        "Solve[eqs_, vars_, Reals]": (
-            "Cases[Solve[eqs, vars], {Rule[x_,y_?RealValuedNumberQ]}]"
-        ),
-        "Solve[eqs_, vars_, Integers]": (
-            "Cases[Solve[eqs, vars], {Rule[x_,y_Integer]}]"
-        ),
+        "Solve[eqs_, vars_]": "Solve[eqs, vars, Complexes]"
     }
     summary_text = "find generic solutions for variables"
 
-    def eval(self, eqs, vars, evaluation: Evaluation):
-        "Solve[eqs_, vars_]"
+    def eval(self, eqs, vars, domain, evaluation: Evaluation):
+        "Solve[eqs_, vars_, domain_]"
 
-        vars_original = vars
-        head_name = vars.get_head_name()
+        variables = vars
+        head_name = variables.get_head_name()
         if head_name == "System`List":
-            vars = vars.elements
+            variables = variables.elements
         else:
-            vars = [vars]
-        for var in vars:
+            variables = [variables]
+        for var in variables:
             if (
                 (isinstance(var, Atom) and not isinstance(var, Symbol)) or
                 head_name in ("System`Plus", "System`Times", "System`Power") or  # noqa
                 A_CONSTANT & var.get_attributes(evaluation.definitions)
             ):
 
-                evaluation.message("Solve", "ivar", vars_original)
+                evaluation.message("Solve", "ivar", vars)
                 return
 
-        vars_sympy = [var.to_sympy() for var in vars]
-        if None in vars_sympy:
+        sympy_variables = [var.to_sympy() for var in variables]
+        if None in sympy_variables:
             evaluation.message("Solve", "ivar")
             return
-        all_var_tuples = list(zip(vars, vars_sympy))
-
-        def cut_var_dimension(expressions: Union[Expression, list[Expression]]):
-            '''delete unused variables to avoid SymPy's PolynomialError
-            : Not a zero-dimensional system in e.g. Solve[x^2==1&&z^2==-1,{x,y,z}]'''
-            if not isinstance(expressions, list):
-                expressions = [expressions]
-            subset_vars = set()
-            subset_vars_sympy = set()
-            for var, var_sympy in all_var_tuples:
-                pattern = Pattern.create(var)
-                for equation in expressions:
-                    if not equation.is_free(pattern, evaluation):
-                        subset_vars.add(var)
-                        subset_vars_sympy.add(var_sympy)
-            return subset_vars, subset_vars_sympy
-
-        def solve_sympy(equations: Union[Expression, list[Expression]]):
-            if not isinstance(equations, list):
-                equations = [equations]
-            equations_sympy = []
-            denoms_sympy = []
-            subset_vars, subset_vars_sympy = cut_var_dimension(equations)
-            for equation in equations:
-                if equation is SymbolTrue:
-                    continue
-                elif equation is SymbolFalse:
-                    return []
-                elements = equation.elements
-                for left, right in [(elements[index], elements[index + 1]) for index in range(len(elements) - 1)]:
-                    # ↑ to deal with things like a==b==c==d
-                    left = left.to_sympy()
-                    right = right.to_sympy()
-                    if left is None or right is None:
-                        return []
-                    equation_sympy = left - right
-                    equation_sympy = sympy.together(equation_sympy)
-                    equation_sympy = sympy.cancel(equation_sympy)
-                    equations_sympy.append(equation_sympy)
-                    numer, denom = equation_sympy.as_numer_denom()
-                    denoms_sympy.append(denom)
-            try:
-                results = sympy.solve(equations_sympy, subset_vars_sympy, dict=True)  # no transform_dict needed with dict=True
-                # Filter out results for which denominator is 0
-                # (SymPy should actually do that itself, but it doesn't!)
-                results = [
-                    sol
-                    for sol in results
-                    if all(sympy.simplify(denom.subs(sol)) != 0 for denom in denoms_sympy)
-                ]
-                return results
-            except sympy.PolynomialError:
-                # raised for e.g. Solve[x^2==1&&z^2==-1,{x,y,z}] when not deleting
-                # unused variables beforehand
-                return []
-            except NotImplementedError:
-                return []
-            except TypeError as exc:
-                if str(exc).startswith("expected Symbol, Function or Derivative"):
-                    evaluation.message("Solve", "ivar", vars_original)
+        variable_tuples = list(zip(variables, sympy_variables))
 
         def solve_recur(expression: Expression):
             '''solve And, Or and List within the scope of sympy,
@@ -2336,7 +2273,7 @@ class Solve(Builtin):
                             inequations.append(sub_condition)
                     else:
                         inequations.append(child.to_sympy())
-                solutions.extend(solve_sympy(equations))
+                solutions.extend(solve_sympy(evaluation, equations, variables, domain))
                 conditions = sympy.And(*inequations)
                 result = [sol for sol in solutions if conditions.subs(sol)]
                 return result, None if solutions else conditions
@@ -2346,7 +2283,7 @@ class Solve(Builtin):
                 conditions = []
                 for child in expression.elements:
                     if child.has_form("Equal", 2):
-                        solutions.extend(solve_sympy(child))
+                        solutions.extend(solve_sympy(evaluation, child, variables, domain))
                     elif child.get_head_name() in ('System`And', 'System`Or'):  # I don't believe List would be in here
                         sub_solution, sub_condition = solve_recur(child)
                         solutions.extend(sub_solution)
@@ -2365,8 +2302,8 @@ class Solve(Builtin):
             if conditions is not None:
                 evaluation.message("Solve", "fulldim")
         else:
-            if eqs.has_form("Equal", 2):
-                solutions = solve_sympy(eqs)
+            if eqs.get_head_name() == "System`Equal":
+                solutions = solve_sympy(evaluation, eqs, variables, domain)
             else:
                 evaluation.message("Solve", "fulldim")
                 return ListExpression(ListExpression())
@@ -2376,7 +2313,7 @@ class Solve(Builtin):
             return ListExpression(ListExpression())
 
         if any(
-            sol and any(var not in sol for var in vars_sympy) for sol in solutions
+            sol and any(var not in sol for var in sympy_variables) for sol in solutions
         ):
             evaluation.message("Solve", "svars")
 
@@ -2385,7 +2322,7 @@ class Solve(Builtin):
                 ListExpression(
                     *(
                         Expression(SymbolRule, var, from_sympy(sol[var_sympy]))
-                        for var, var_sympy in all_var_tuples
+                        for var, var_sympy in variable_tuples
                         if var_sympy in sol
                     ),
                 )
