@@ -63,7 +63,7 @@ from mathics.core.systemsymbols import (
     SymbolSequence,
 )
 from mathics.eval.arithmetic import eval_mpmath_function
-from mathics.eval.numbers import cancel
+from mathics.eval.numbers.numbers import cancel
 from mathics.eval.numerify import numerify
 from mathics.eval.scoping import dynamic_scoping
 
