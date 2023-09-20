@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-
+"""
+Implementation of builtin function integrators.
+"""
 import numpy as np
 
 from mathics.core.atoms import Integer, Integer0, Number

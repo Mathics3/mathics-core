@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-
+"""
+Implementation of builtin optimizers.
+"""
 from typing import Optional
 
 from mathics.builtin.scoping import dynamic_scoping
