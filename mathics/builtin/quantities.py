@@ -447,7 +447,6 @@ class UnitConvert(Builtin):
 
     def eval_quantity_to_base_unit(self, mag, unit, evaluation: Evaluation):
         "UnitConvert[Quantity[mag_, unit_]]"
-        print("convert", mag, unit, "to basic units")
         try:
             return convert_units(mag, unit, evaluation=evaluation)
         except ValueError:
