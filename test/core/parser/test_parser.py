@@ -75,6 +75,7 @@ class AssocTests(ParserTests):
 
     def test_nonassoc(self):
         self.invalid_error("a ? b ? c")
+        self.invalid_error("a ~ b + c")
 
     def test_Function(self):
         self.check("a==b&", "Function[Equal[a, b]]")
@@ -119,6 +120,13 @@ class AtomTests(ParserTests):
         self.check("- 1", "-1")
         self.check("- - 1", "Times[-1, -1]")
         self.check("x=.01", "x = .01")
+        self.scan_error(r"\:000G")
+        self.scan_error(r"\:000")
+        self.scan_error(r"\009")
+        self.scan_error(r"\00")
+        self.scan_error(r"\.0G")
+        self.scan_error(r"\.0")
+        self.scan_error(r"\.0G")
 
     def testNumberBase(self):
         self.check_number("8^^23")
@@ -156,6 +164,7 @@ class AtomTests(ParserTests):
         self.check(r'"a\"b\\c"', String(r"a\"b\\c"))
         self.incomplete_error(r'"\"')
         self.invalid_error(r'\""')
+        self.invalid_error(r"abc \[fake]")
 
     def testAccuracy(self):
         self.scan_error("1.5``")
@@ -834,6 +843,16 @@ class IncompleteTests(ParserTests):
         self.incomplete_error("f[x")  # bktmcp
         self.incomplete_error("{x")  # bktmcp
         self.incomplete_error("f[[x")  # bktmcp
+
+    def testBracketMismatch(self):
+        self.invalid_error("(x]")  # sntxf
+        self.invalid_error("(x,)")  # sntxf
+        self.invalid_error("{x]")  # sntxf
+        self.invalid_error("f{x)")  # sntxf
+        self.invalid_error("a[[x)]")  # sntxf
+
+        self.invalid_error("x /: y , z")  # sntxf
+        self.invalid_error("a :: 1")  # sntxf
 
     def testBracketIncompleteInvalid(self):
         self.invalid_error("(x,")

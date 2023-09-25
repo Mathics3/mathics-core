@@ -17,7 +17,6 @@ from typing import Optional, Tuple, Union
 
 import sympy
 
-from mathics.algorithm.simplify import default_complexity_function
 from mathics.builtin.inference import evaluate_predicate
 from mathics.builtin.options import options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
@@ -64,7 +63,8 @@ from mathics.core.systemsymbols import (
     SymbolTable,
     SymbolTanh,
 )
-from mathics.eval.numbers import cancel, sympy_factor
+from mathics.eval.numbers.algebra.simplify import default_complexity_function
+from mathics.eval.numbers.numbers import cancel, sympy_factor
 from mathics.eval.parts import walk_parts
 from mathics.eval.patterns import match
 

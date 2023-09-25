@@ -15,18 +15,6 @@ from typing import Optional
 import numpy as np
 import sympy
 
-from mathics.algorithm.integrators import (
-    _fubini,
-    _internal_adaptative_simpsons_rule,
-    decompose_domain,
-    eval_D_to_Integral,
-)
-from mathics.algorithm.series import (
-    build_series,
-    series_derivative,
-    series_plus_series,
-    series_times_series,
-)
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
     Atom,
@@ -90,6 +78,18 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.makeboxes import format_element
 from mathics.eval.nevaluator import eval_N
+from mathics.eval.numbers.calculus.integrators import (
+    _fubini,
+    _internal_adaptative_simpsons_rule,
+    decompose_domain,
+    eval_D_to_Integral,
+)
+from mathics.eval.numbers.calculus.series import (
+    build_series,
+    series_derivative,
+    series_plus_series,
+    series_times_series,
+)
 
 # These should be used in lower-level formatting
 SymbolDifferentialD = Symbol("System`DifferentialD")
@@ -720,7 +720,9 @@ class FindMaximum(_BaseFinder):
     messages = _BaseFinder.messages.copy()
     summary_text = "local maximum optimization"
     try:
-        from mathics.algorithm.optimizers import native_local_optimizer_methods
+        from mathics.eval.numbers.calculus.optimizers import (
+            native_local_optimizer_methods,
+        )
 
         methods.update(native_local_optimizer_methods)
     except Exception:
@@ -769,7 +771,7 @@ class FindMinimum(_BaseFinder):
     messages = _BaseFinder.messages.copy()
     summary_text = "local minimum optimization"
     try:
-        from mathics.algorithm.optimizers import (
+        from mathics.eval.numbers.calculus.optimizers import (
             native_local_optimizer_methods,
             native_optimizer_messages,
         )
@@ -851,7 +853,7 @@ class FindRoot(_BaseFinder):
     )
 
     try:
-        from mathics.algorithm.optimizers import (
+        from mathics.eval.numbers.calculus.optimizers import (
             native_findroot_messages,
             native_findroot_methods,
         )
@@ -1289,7 +1291,7 @@ class NIntegrate(Builtin):
 
     try:
         # builtin integrators
-        from mathics.algorithm.integrators import (
+        from mathics.eval.numbers.calculus.integrators import (
             integrator_messages,
             integrator_methods,
         )
