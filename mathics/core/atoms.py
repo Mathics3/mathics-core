@@ -774,9 +774,9 @@ class Complex(Number):
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""
         return (
-            isinstance(other, Complex)
-            and self.real == other.real
-            and self.imag == other.imag
+            isinstance(other, Complex) and
+            self.real == other.real and
+            self.imag == other.imag
         )
 
     def round(self, d=None) -> "Complex":

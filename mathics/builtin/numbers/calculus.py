@@ -59,16 +59,19 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolAnd,
     SymbolAutomatic,
+    SymbolComplex,
     SymbolConditionalExpression,
     SymbolD,
     SymbolDerivative,
     SymbolInfinity,
     SymbolInfix,
+    SymbolInteger,
     SymbolIntegrate,
     SymbolLeft,
     SymbolLog,
     SymbolNIntegrate,
     SymbolO,
+    SymbolReal,
     SymbolRule,
     SymbolSequence,
     SymbolSeries,
@@ -76,6 +79,7 @@ from mathics.core.systemsymbols import (
     SymbolSimplify,
     SymbolUndefined,
 )
+from mathics.eval.calculus import solve_sympy
 from mathics.eval.makeboxes import format_element
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numbers.calculus.integrators import (
@@ -330,9 +334,9 @@ class D(SympyFunction):
                         Expression(
                             SymbolDerivative,
                             *(
-                                [Integer0] * (index)
-                                + [Integer1]
-                                + [Integer0] * (len(f.elements) - index - 1)
+                                [Integer0] * (index) +
+                                [Integer1] +
+                                [Integer0] * (len(f.elements) - index - 1)
                             ),
                         ),
                         f.head,
@@ -664,8 +668,8 @@ class _BaseFinder(Builtin):
 
         # Determine the "jacobian"s
         if (
-            method in ("Newton", "Automatic")
-            and options["System`Jacobian"] is SymbolAutomatic
+            method in ("Newton", "Automatic") and
+            options["System`Jacobian"] is SymbolAutomatic
         ):
 
             def diff(evaluation):
@@ -1323,16 +1327,16 @@ class NIntegrate(Builtin):
     messages = {
         "bdmtd": "The Method option should be a built-in method name.",
         "inumr": (
-            "The integrand `1` has evaluated to non-numerical "
-            + "values for all sampling points in the region "
-            + "with boundaries `2`"
+            "The integrand `1` has evaluated to non-numerical " +
+            "values for all sampling points in the region " +
+            "with boundaries `2`"
         ),
         "nlim": "`1` = `2` is not a valid limit of integration.",
         "ilim": "Invalid integration variable or limit(s) in `1`.",
         "mtdfail": (
-            "The specified method failed to return a "
-            + "number. Falling back into the internal "
-            + "evaluator."
+            "The specified method failed to return a " +
+            "number. Falling back into the internal " +
+            "evaluator."
         ),
         "cmpint": ("Integration over a complex domain is not " + "implemented yet"),
     }
@@ -1375,10 +1379,10 @@ class NIntegrate(Builtin):
 
     messages.update(
         {
-            "bdmtd": "The Method option should be a "
-            + "built-in method name in {`"
-            + "`, `".join(list(methods))
-            + "`}. Using `Automatic`"
+            "bdmtd": "The Method option should be a " +
+            "built-in method name in {`" +
+            "`, `".join(list(methods)) +
+            "`}. Using `Automatic`"
         }
     )
 
@@ -1398,7 +1402,7 @@ class NIntegrate(Builtin):
         elif isinstance(method, Symbol):
             method = method.get_name()
             # strip context
-            method = method[method.rindex("`") + 1 :]
+            method = method[method.rindex("`") + 1:]
         else:
             evaluation.message("NIntegrate", "bdmtd", method)
             return
@@ -2210,165 +2214,121 @@ class Solve(Builtin):
     messages = {
         "eqf": "`1` is not a well-formed equation.",
         "svars": 'Equations may not give solutions for all "solve" variables.',
+        "fulldim": "The solution set contains a full-dimensional component; use Reduce for complete solution information.",
     }
 
-    # FIXME: the problem with removing the domain parameter from the outside
-    # is that the we can't make use of this information inside
-    # the evaluation method where it is may be needed.
     rules = {
-        "Solve[eqs_, vars_, Complexes]": "Solve[eqs, vars]",
-        "Solve[eqs_, vars_, Reals]": (
-            "Cases[Solve[eqs, vars], {Rule[x_,y_?RealValuedNumberQ]}]"
-        ),
-        "Solve[eqs_, vars_, Integers]": (
-            "Cases[Solve[eqs, vars], {Rule[x_,y_Integer]}]"
-        ),
+        "Solve[eqs_, vars_]": "Solve[eqs, vars, Complexes]"
     }
     summary_text = "find generic solutions for variables"
 
-    def eval(self, eqs, vars, evaluation: Evaluation):
-        "Solve[eqs_, vars_]"
+    def eval(self, eqs, vars, domain, evaluation: Evaluation):
+        "Solve[eqs_, vars_, domain_]"
 
-        vars_original = vars
-        head_name = vars.get_head_name()
+        variables = vars
+        head_name = variables.get_head_name()
         if head_name == "System`List":
-            vars = vars.elements
+            variables = variables.elements
         else:
-            vars = [vars]
-        for var in vars:
+            variables = [variables]
+        for var in variables:
             if (
-                (isinstance(var, Atom) and not isinstance(var, Symbol))
-                or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
-                or A_CONSTANT & var.get_attributes(evaluation.definitions)
+                (isinstance(var, Atom) and not isinstance(var, Symbol)) or
+                head_name in ("System`Plus", "System`Times", "System`Power") or  # noqa
+                A_CONSTANT & var.get_attributes(evaluation.definitions)
             ):
 
-                evaluation.message("Solve", "ivar", vars_original)
+                evaluation.message("Solve", "ivar", vars)
                 return
-        if eqs.get_head_name() in ("System`List", "System`And"):
-            eq_list = eqs.elements
-        else:
-            eq_list = [eqs]
-        sympy_eqs = []
-        sympy_denoms = []
-        for eq in eq_list:
-            if eq is SymbolTrue:
-                pass
-            elif eq is SymbolFalse:
-                return ListExpression()
-            elif not eq.has_form("Equal", 2):
-                evaluation.message("Solve", "eqf", eqs)
-                return
-            else:
-                left, right = eq.elements
-                left = left.to_sympy()
-                right = right.to_sympy()
-                if left is None or right is None:
-                    return
-                eq = left - right
-                eq = sympy.together(eq)
-                eq = sympy.cancel(eq)
-                sympy_eqs.append(eq)
-                numer, denom = eq.as_numer_denom()
-                sympy_denoms.append(denom)
 
-        vars_sympy = [var.to_sympy() for var in vars]
-        if None in vars_sympy:
+        sympy_variables = [var.to_sympy() for var in variables]
+        if None in sympy_variables:
+            evaluation.message("Solve", "ivar")
             return
+        variable_tuples = list(zip(variables, sympy_variables))
 
-        # delete unused variables to avoid SymPy's
-        # PolynomialError: Not a zero-dimensional system
-        # in e.g. Solve[x^2==1&&z^2==-1,{x,y,z}]
-        all_vars = vars[:]
-        all_vars_sympy = vars_sympy[:]
-        vars = []
-        vars_sympy = []
-        for var, var_sympy in zip(all_vars, all_vars_sympy):
-            pattern = Pattern.create(var)
-            if not eqs.is_free(pattern, evaluation):
-                vars.append(var)
-                vars_sympy.append(var_sympy)
+        def solve_recur(expression: Expression):
+            '''solve And, Or and List within the scope of sympy,
+            but including the translation from Mathics to sympy
 
-        def transform_dict(sols):
-            if not sols:
-                yield sols
-            for var, sol in sols.items():
-                rest = sols.copy()
-                del rest[var]
-                rest = transform_dict(rest)
-                if not isinstance(sol, (tuple, list)):
-                    sol = [sol]
-                if not sol:
-                    for r in rest:
-                        yield r
-                else:
-                    for r in rest:
-                        for item in sol:
-                            new_sols = r.copy()
-                            new_sols[var] = item
-                            yield new_sols
-                break
+            returns:
+                solutions: a list of sympy solution dictionarys
+                conditions: a sympy condition object
 
-        def transform_solution(sol):
-            if not isinstance(sol, dict):
-                if not isinstance(sol, (list, tuple)):
-                    sol = [sol]
-                sol = dict(list(zip(vars_sympy, sol)))
-            return transform_dict(sol)
+            note:
+                for And and List, should always return either (solutions, None) or ([], conditions)
+                for Or, all combinations are possible. if Or is root, this should be handled outside'''
+            head = expression.get_head_name()
+            if head in ('System`And', 'System`List'):
+                solutions = []
+                equations: list[Expression] = []
+                inequations = []
+                for child in expression.elements:
+                    if child.has_form("Equal", 2):
+                        equations.append(child)
+                    elif child.get_head_name() in ('System`And', 'System`Or'):
+                        sub_solution, sub_condition = solve_recur(child)
+                        solutions.extend(sub_solution)
+                        if sub_condition is not None:
+                            inequations.append(sub_condition)
+                    else:
+                        inequations.append(child.to_sympy())
+                solutions.extend(solve_sympy(evaluation, equations, variables, domain))
+                conditions = sympy.And(*inequations)
+                result = [sol for sol in solutions if conditions.subs(sol)]
+                return result, None if solutions else conditions
+            else:  # assume should be System`Or
+                assert head == 'System`Or'
+                solutions = []
+                conditions = []
+                for child in expression.elements:
+                    if child.has_form("Equal", 2):
+                        solutions.extend(solve_sympy(evaluation, child, variables, domain))
+                    elif child.get_head_name() in ('System`And', 'System`Or'):  # I don't believe List would be in here
+                        sub_solution, sub_condition = solve_recur(child)
+                        solutions.extend(sub_solution)
+                        if sub_condition is not None:
+                            conditions.append(sub_condition)
+                    else:
+                        # SymbolTrue and SymbolFalse are allowed here since it's subtree context
+                        # FIXME: None is not allowed, not sure what to do here
+                        conditions.append(child.to_sympy())
+                conditions = sympy.Or(*conditions)
+                return solutions, conditions
 
-        if not sympy_eqs:
-            sympy_eqs = True
-        elif len(sympy_eqs) == 1:
-            sympy_eqs = sympy_eqs[0]
-
-        try:
-            if isinstance(sympy_eqs, bool):
-                result = sympy_eqs
+        if eqs.get_head_name() in ("System`List", "System`And", "System`Or"):
+            solutions, conditions = solve_recur(eqs)
+            # non True conditions are only accepted in subtrees only, not root
+            if conditions is not None:
+                evaluation.message("Solve", "fulldim")
+        else:
+            if eqs.get_head_name() == "System`Equal":
+                solutions = solve_sympy(evaluation, eqs, variables, domain)
             else:
-                result = sympy.solve(sympy_eqs, vars_sympy)
-            if not isinstance(result, list):
-                result = [result]
-            if isinstance(result, list) and len(result) == 1 and result[0] is True:
+                evaluation.message("Solve", "fulldim")
                 return ListExpression(ListExpression())
-            if result == [None]:
-                return ListExpression()
-            results = []
-            for sol in result:
-                results.extend(transform_solution(sol))
-            result = results
-            if any(
-                sol and any(var not in sol for var in all_vars_sympy) for sol in result
-            ):
-                evaluation.message("Solve", "svars")
 
-            # Filter out results for which denominator is 0
-            # (SymPy should actually do that itself, but it doesn't!)
-            result = [
-                sol
-                for sol in result
-                if all(sympy.simplify(denom.subs(sol)) != 0 for denom in sympy_denoms)
-            ]
+        if solutions is None:
+            evaluation.message("Solve", "ivars")
+            return ListExpression(ListExpression())
 
-            return ListExpression(
-                *(
-                    ListExpression(
-                        *(
-                            Expression(SymbolRule, var, from_sympy(sol[var_sympy]))
-                            for var, var_sympy in zip(vars, vars_sympy)
-                            if var_sympy in sol
-                        ),
-                    )
-                    for sol in result
-                ),
-            )
-        except sympy.PolynomialError:
-            # raised for e.g. Solve[x^2==1&&z^2==-1,{x,y,z}] when not deleting
-            # unused variables beforehand
-            pass
-        except NotImplementedError:
-            pass
-        except TypeError as exc:
-            if str(exc).startswith("expected Symbol, Function or Derivative"):
-                evaluation.message("Solve", "ivar", vars_original)
+        if any(
+            sol and any(var not in sol for var in sympy_variables) for sol in solutions
+        ):
+            evaluation.message("Solve", "svars")
+
+        return ListExpression(
+            *(
+                ListExpression(
+                    *(
+                        Expression(SymbolRule, var, from_sympy(sol[var_sympy]))
+                        for var, var_sympy in variable_tuples
+                        if var_sympy in sol
+                    ),
+                )
+                for sol in solutions
+            ),
+        )
 
 
 # Auxiliary routines. Maybe should be moved to another module.

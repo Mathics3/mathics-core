@@ -42,6 +42,36 @@ def test_solve():
             "{x->1.51213}",
             "Issue #1235",
         ),
+        (
+            "Solve[Abs[-2/3*(lambda + 2) + 8/3 + 4] == 4, lambda,Reals]",
+            "{{lambda -> 2}, {lambda -> 14}}",
+            "abs()",
+        ),
+        (
+            "Solve[q^3 == (20-12)/(4-3), q,Reals]",
+            "{{q -> 2}}",
+            "domain check",
+        ),
+        (
+            "Solve[x + Pi/3 == 2k*Pi + Pi/6 || x + Pi/3 == 2k*Pi + 5Pi/6, x,Reals]",
+            "{{x -> -Pi / 6 + 2 k Pi}, {x -> Pi / 2 + 2 k Pi}}",
+            "logics involved",
+        ),
+        (
+            "Solve[m - 1 == 0 && -(m + 1) != 0, m,Reals]",
+            "{{m -> 1}}",
+            "logics and constraints",
+        ),
+        (
+            "Solve[(lambda + 1)/6 == 1/(mu - 1) == lambda/4, {lambda, mu},Reals]",
+            "{{lambda -> 2, mu -> 3}}",
+            "chained equations",
+        ),
+        (
+            "Solve[2*x0*Log[x0] + x0 - 2*a*x0 == -1 && x0^2*Log[x0] - a*x0^2 + b == b - x0, {x0, a, b},Reals]",
+            "{{x0 -> 1, a -> 1}}",
+            "excess variable b",
+        ),
     ):
         session.evaluate("Clear[h]; Clear[g]; Clear[f];")
         check_evaluation(str_expr, str_expected, message)
