@@ -306,11 +306,6 @@ class Options(Builtin):
     >> f[x, n -> 3]
      = x ^ 3
 
-    #> f[x_, OptionsPattern[f]] := x ^ OptionValue["m"];
-    #> Options[f] = {"m" -> 7};
-    #> f[x]
-     = x ^ 7
-
     Delayed option rules are evaluated just when the corresponding 'OptionValue' is called:
     >> f[a :> Print["value"]] /. f[OptionsPattern[{}]] :> (OptionValue[a]; Print["between"]; OptionValue[a]);
      | value
@@ -334,18 +329,6 @@ class Options(Builtin):
     >> Options[a + b] = {a -> b}
      : Argument a + b at position 1 is expected to be a symbol.
      = {a -> b}
-
-    #> f /: Options[f] = {a -> b}
-     = {a -> b}
-    #> Options[f]
-     = {a :> b}
-    #> f /: Options[g] := {a -> b}
-     : Rule for Options can only be attached to g.
-     = $Failed
-
-    #> Options[f] = a /; True
-     : a /; True is not a valid list of option rules.
-     = a /; True
     """
 
     summary_text = "the list of optional arguments and their default values"
