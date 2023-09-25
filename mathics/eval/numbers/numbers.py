@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+Implementation of numbers handling functions.
+"""
+
 from typing import Optional
 
 import mpmath

@@ -203,29 +203,6 @@ class Flat(Predefined):
     'Flat' is taken into account in pattern matching:
     >> f[a, b, c] /. f[a, b] -> d
      = f[d, c]
-
-    #> SetAttributes[{u, v}, Flat]
-    #> u[x_] := {x}
-    #> u[]
-     = u[]
-    #> u[a]
-     = {a}
-    #> u[a, b]
-     : Iteration limit of 1000 exceeded.
-     = $Aborted
-    #> u[a, b, c]
-     : Iteration limit of 1000 exceeded.
-     = $Aborted
-    #> v[x_] := x
-    #> v[]
-     = v[]
-    #> v[a]
-     = a
-    #> v[a, b] (* in Mathematica: Iteration limit of 4096 exceeded. *)
-     = v[a, b]
-    #> v[a, b, c] (* in Mathematica: Iteration limit of 4096 exceeded. *)
-     : Iteration limit of 1000 exceeded.
-     = $Aborted
     """
 
     summary_text = "attribute for associative symbols"

@@ -216,15 +216,6 @@ class Context_(Predefined):
 
     >> $Context
     = Global`
-
-    #> InputForm[$Context]
-    = "Global`"
-
-    ## Test general context behaviour
-    #> Plus === Global`Plus
-     = False
-    #> `Plus === Global`Plus
-     = True
     """
 
     messages = {"cxset": "`1` is not a valid context name ending in `."}
@@ -548,9 +539,6 @@ class Unique(Predefined):
     Create a unique symbol whose name begins with x:
     >> Unique["x"]
     = x...
-
-    #> Unique[{}]
-    = {}
 
     ## FIXME: include the rest of these in test/builtin/test-unique.py
     ## Each use of Unique[symbol] increments $ModuleNumber:

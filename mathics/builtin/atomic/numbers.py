@@ -45,7 +45,7 @@ from mathics.core.systemsymbols import (
     SymbolRound,
 )
 from mathics.eval.nevaluator import eval_N
-from mathics.eval.numbers import eval_Accuracy, eval_Precision
+from mathics.eval.numbers.numbers import eval_Accuracy, eval_Precision
 
 SymbolIntegerDigits = Symbol("IntegerDigits")
 SymbolIntegerExponent = Symbol("IntegerExponent")
