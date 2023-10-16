@@ -58,13 +58,6 @@ class Function(PostfixOperator):
     >> g[#] & [h[#]] & [5]
      = g[h[5]]
 
-    #> g[x_,y_] := x+y
-    #> g[Sequence@@Slot/@Range[2]]&[1,2]
-     = #1 + #2
-    #> Evaluate[g[Sequence@@Slot/@Range[2]]]&[1,2]
-     = 3
-
-
     In the evaluation process, the attributes associated with an Expression are \
     determined by its Head.  If the Head is also a non-atomic Expression, in general,\
     no Attribute is assumed. In particular, it is what happens when the head \
@@ -180,12 +173,6 @@ class Slot(Builtin):
     Recursive pure functions can be written using '#0':
     >> If[#1<=1, 1, #1 #0[#1-1]]& [10]
      = 3628800
-
-    #> # // InputForm
-     = #1
-
-    #> #0 // InputForm
-     = #0
     """
 
     attributes = A_N_HOLD_ALL | A_PROTECTED
@@ -216,9 +203,6 @@ class SlotSequence(Builtin):
 
     >> FullForm[##]
      = SlotSequence[1]
-
-    #> ## // InputForm
-     = ##1
     """
 
     attributes = A_N_HOLD_ALL | A_PROTECTED
