@@ -82,6 +82,7 @@ def test_private_doctests_evaluation(str_expr, msgs, str_expected, fail_msg):
     # TODO: Maybe it makes sense to clone this exception handling in
     # the check_evaluation function.
     #
+
     if str_expr is None:
         reset_session()
         return
