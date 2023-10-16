@@ -4,7 +4,7 @@ Unit tests from mathics.builtin.evaluation.
 """
 
 
-from test.helper import check_evaluation, session
+from test.helper import check_evaluation, reset_session, session
 
 import pytest
 
@@ -12,7 +12,13 @@ import pytest
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
-        ("ClearAll[a];$RecursionLimit = 20", None, "20", None),
+        (
+            None,
+            None,
+            None,
+            None,
+        ),
+        ("$RecursionLimit = 20", None, "20", None),
         ("a = a + a", ("Recursion depth of 20 exceeded.",), "$Aborted", None),
         ("$RecursionLimit = 200", None, "200", None),
         (
@@ -76,6 +82,10 @@ def test_private_doctests_evaluation(str_expr, msgs, str_expected, fail_msg):
     # TODO: Maybe it makes sense to clone this exception handling in
     # the check_evaluation function.
     #
+    if str_expr is None:
+        reset_session()
+        return
+
     def eval_expr(expr_str):
         query = session.evaluation.parse(expr_str)
         res = session.evaluation.evaluate(query)
