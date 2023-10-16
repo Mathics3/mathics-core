@@ -364,10 +364,6 @@ class Operate(Builtin):
     With $n$=0, 'Operate' acts like 'Apply':
     >> Operate[p, f[a][b][c], 0]
      = p[f[a][b][c]]
-
-    #> Operate[p, f, -1]
-     : Non-negative integer expected at position 3 in Operate[p, f, -1].
-     = Operate[p, f, -1]
     """
 
     summary_text = "apply a function to the head of an expression"
