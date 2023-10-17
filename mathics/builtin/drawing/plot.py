@@ -2383,21 +2383,6 @@ class Plot(_Plot):
     A constant function:
     >> Plot[3, {x, 0, 1}]
      = -Graphics-
-
-    #> Plot[1 / x, {x, -1, 1}]
-     = -Graphics-
-    #> Plot[x, {y, 0, 2}]
-     = -Graphics-
-
-    #> Plot[{f[x],-49x/12+433/108},{x,-6,6}, PlotRange->{-10,10}, AspectRatio->{1}]
-     = -Graphics-
-
-    #> Plot[Sin[t],  {t, 0, 2 Pi}, PlotPoints -> 1]
-     : Value of option PlotPoints -> 1 is not an integer >= 2.
-     = Plot[Sin[t], {t, 0, 2 Pi}, PlotPoints -> 1]
-
-    #> Plot[x*y, {x, -1, 1}]
-     = -Graphics-
     """
 
     summary_text = "plot curves of one or more functions"
@@ -2583,37 +2568,8 @@ class Plot3D(_Plot3D):
 
     >> Plot3D[Log[x + y^2], {x, -1, 1}, {y, -1, 1}]
      = -Graphics3D-
-
-    #> Plot3D[z, {x, 1, 20}, {y, 1, 10}]
-     = -Graphics3D-
-
-    ## MaxRecursion Option
-    #> Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> 0]
-     = -Graphics3D-
-    #> Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> 15]
-     = -Graphics3D-
-    #> Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> 16]
-     : MaxRecursion must be a non-negative integer; the recursion value is limited to 15. Using MaxRecursion -> 15.
-     = -Graphics3D-
-    #> Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> -1]
-     : MaxRecursion must be a non-negative integer; the recursion value is limited to 15. Using MaxRecursion -> 0.
-     = -Graphics3D-
-    #> Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> a]
-     : MaxRecursion must be a non-negative integer; the recursion value is limited to 15. Using MaxRecursion -> 0.
-     = -Graphics3D-
-    #> Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> Infinity]
-     : MaxRecursion must be a non-negative integer; the recursion value is limited to 15. Using MaxRecursion -> 15.
-     = -Graphics3D-
-
-    #> Plot3D[x ^ 2 + 1 / y, {x, -1, 1}, {y, 1, z}]
-     : Limiting value z in {y, 1, z} is not a machine-size real number.
-     = Plot3D[x ^ 2 + 1 / y, {x, -1, 1}, {y, 1, z}]
     """
 
-    # FIXME: This test passes but the result is 511 lines long !
-    """
-    #> Plot3D[x + 2y, {x, -2, 2}, {y, -2, 2}] // TeXForm
-    """
     attributes = A_HOLD_ALL | A_PROTECTED
 
     options = Graphics.options.copy()
