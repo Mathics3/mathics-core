@@ -86,12 +86,20 @@ class MathicsSession:
         self.last_result = None
 
     def evaluate(self, str_expression, timeout=None, form=None):
+        """Parse str_expression and evaluate using the `evaluate` method of the Expression"""
         self.evaluation.out.clear()
         expr = parse(self.definitions, MathicsSingleLineFeeder(str_expression))
         if form is None:
             form = self.form
         self.last_result = expr.evaluate(self.evaluation)
         return self.last_result
+
+    def evaluate_as_in_cli(self, str_expression, timeout=None, form=None):
+        """This method parse and evaluate the expression using the session.evaluation.evaluate method"""
+        query = self.evaluation.parse(str_expression)
+        res = self.evaluation.evaluate(query)
+        self.evaluation.stopped = False
+        return res
 
     def format_result(self, str_expression=None, timeout=None, form=None):
         if str_expression:

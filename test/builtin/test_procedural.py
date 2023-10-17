@@ -3,7 +3,7 @@
 Unit tests from mathics.builtin.procedural.
 """
 
-from test.helper import check_evaluation, session
+from test.helper import check_evaluation, check_evaluation_as_in_cli, session
 
 import pytest
 
@@ -111,6 +111,19 @@ def test_private_doctests_procedural(str_expr, msgs, str_expected, fail_msg):
 
 def test_history_compound_expression():
     """Test the effect in the history from the evaluation of a CompoundExpression"""
+    check_evaluation_as_in_cli("Clear[x];Clear[y]")
+    check_evaluation_as_in_cli("CompoundExpression[x, y, Null]")
+    check_evaluation_as_in_cli("ToString[%]", "y")
+    check_evaluation_as_in_cli(
+        "CompoundExpression[CompoundExpression[y, x, Null], Null]"
+    )
+    check_evaluation_as_in_cli("ToString[%]", "x")
+    check_evaluation_as_in_cli("CompoundExpression[x, y, Null, Null]")
+    check_evaluation_as_in_cli("ToString[%]", "y")
+    check_evaluation_as_in_cli("CompoundExpression[]")
+    check_evaluation_as_in_cli("ToString[%]", "Null")
+    check_evaluation_as_in_cli("Clear[x];Clear[y];")
+    return
 
     def eval_expr(expr_str):
         query = session.evaluation.parse(expr_str)
@@ -119,7 +132,7 @@ def test_history_compound_expression():
     eval_expr("Clear[x];Clear[y]")
     eval_expr("CompoundExpression[x, y, Null]")
     assert eval_expr("ToString[%]").result == "y"
-    eval_expr("CompoundExpression[CompoundExpression[y, x, Null], Null]")
+    eval_expr("CompoundExpression[CompoundExpression[y, x, Null], Null])")
     assert eval_expr("ToString[%]").result == "x"
     eval_expr("CompoundExpression[x, y, Null, Null]")
     assert eval_expr("ToString[%]").result == "y"

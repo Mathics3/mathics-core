@@ -5,7 +5,7 @@ Unit tests for mathics.builtin.functional
 
 import sys
 import time
-from test.helper import check_evaluation, evaluate, session
+from test.helper import check_evaluation, check_evaluation_as_in_cli, evaluate, session
 
 import pytest
 
@@ -95,22 +95,7 @@ import pytest
 )
 def test_private_doctests_apply_fns_to_lists(str_expr, msgs, str_expected, fail_msg):
     """functional.apply_fns_to_lists"""
-
-    def eval_expr(expr_str):
-        query = session.evaluation.parse(expr_str)
-        res = session.evaluation.evaluate(query)
-        session.evaluation.stopped = False
-        return res
-
-    res = eval_expr(str_expr)
-    if msgs is None:
-        assert len(res.out) == 0
-    else:
-        assert len(res.out) == len(msgs)
-        for li1, li2 in zip(res.out, msgs):
-            assert li1.text == li2
-
-    assert res.result == str_expected
+    check_evaluation_as_in_cli(str_expr, str_expected, fail_msg, msgs)
 
 
 @pytest.mark.parametrize(
