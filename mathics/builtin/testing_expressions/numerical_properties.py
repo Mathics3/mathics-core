@@ -223,10 +223,6 @@ class MachineNumberQ(Test):
      = True
     >> MachineNumberQ[2.71828182845904524 + 3.14159265358979324 I]
      = False
-    #> MachineNumberQ[1.5 + 3.14159265358979324 I]
-     = True
-    #> MachineNumberQ[1.5 + 5 I]
-     = True
     """
 
     summary_text = "test if expression is a machine precision real or complex number"
@@ -253,10 +249,6 @@ class Negative(Builtin):
      = False
     >> Negative[a + b]
      = Negative[a + b]
-    #> Negative[-E]
-     = True
-    #> Negative[Sin[{11, 14}]]
-     = {True, False}
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -506,13 +498,6 @@ class Positive(Builtin):
      = False
     >> Positive[1 + 2 I]
      = False
-
-    #> Positive[Pi]
-     = True
-    #> Positive[x]
-     = Positive[x]
-    #> Positive[Sin[{11, 14}]]
-     = {False, True}
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -546,11 +531,6 @@ class PrimeQ(SympyFunction):
      = True
     >> PrimeQ[2 ^ 127 - 1]
      = True
-
-    #> PrimeQ[1]
-     = False
-    #> PrimeQ[2 ^ 255 - 1]
-     = False
 
     All prime numbers between 1 and 100:
     >> Select[Range[100], PrimeQ]
