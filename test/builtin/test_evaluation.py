@@ -12,7 +12,13 @@ import pytest
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
-        ("ClearAll[a];$RecursionLimit = 20", None, "20", None),
+        (
+            None,
+            None,
+            None,
+            None,
+        ),
+        ("$RecursionLimit = 20", None, "20", None),
         ("a = a + a", ("Recursion depth of 20 exceeded.",), "$Aborted", None),
         ("$RecursionLimit = 200", None, "200", None),
         (
