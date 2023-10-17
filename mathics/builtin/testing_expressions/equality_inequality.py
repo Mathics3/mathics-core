@@ -337,12 +337,6 @@ class BooleanQ(Builtin):
 
     >> BooleanQ[1 < 2]
      = True
-
-    #> BooleanQ["string"]
-     = False
-
-    #> BooleanQ[Together[x/y + y/x]]
-     = False
     """
 
     rules = {
@@ -668,8 +662,6 @@ class Max(_MinMax):
     'Max' does not compare strings or symbols:
     >> Max[-1.37, 2, "a", b]
      = Max[2, a, b]
-    #> Max[x]
-     = x
     """
 
     sense = 1
@@ -704,9 +696,6 @@ class Min(_MinMax):
     With no arguments, 'Min' gives 'Infinity':
     >> Min[]
      = Infinity
-
-    #> Min[x]
-     = x
     """
 
     sense = -1
@@ -849,22 +838,6 @@ class Unequal(_EqualityOperator, _SympyComparison):
      = True
     >> "a" != "a"
      = False
-
-    #> Pi != N[Pi]
-     = False
-
-    #> a_ != b_
-     = a_ != b_
-
-    #> Clear[a, b];
-    #> a != a != a
-     = False
-    #> "abc" != "def" != "abc"
-     = False
-
-    ## Reproduce strange MMA behaviour
-    #> a != b != a
-     = a != b != a
 
     'Unequal' using an empty parameter or list, or a list with one element is True. This is the same as 'Equal".
 

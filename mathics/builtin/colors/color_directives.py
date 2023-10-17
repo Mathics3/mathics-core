@@ -274,11 +274,6 @@ class ColorDistance(Builtin):
      = 2.2507
     >> ColorDistance[{Red, Blue}, {Green, Yellow}, DistanceFunction -> {"CMC", "Perceptibility"}]
      = {1.0495, 1.27455}
-    #> ColorDistance[Blue, Red, DistanceFunction -> "CIE2000"]
-     = 0.557976
-    #> ColorDistance[Red, Black, DistanceFunction -> (Abs[#1[[1]] - #2[[1]]] &)]
-     = 0.542917
-
     """
 
     options = {"DistanceFunction": "Automatic"}

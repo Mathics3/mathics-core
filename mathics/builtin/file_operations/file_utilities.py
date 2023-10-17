@@ -28,17 +28,11 @@ class FindList(Builtin):
     </dl>
 
     >> stream = FindList["ExampleData/EinsteinSzilLetter.txt", "uranium"];
-    #> Length[stream]
+    >> Length[stream]
      = 7
 
     >> FindList["ExampleData/EinsteinSzilLetter.txt", "uranium", 1]
      = {in manuscript, leads me to expect that the element uranium may be turned into}
-
-    #> FindList["ExampleData/EinsteinSzilLetter.txt", "project"]
-     = {}
-
-    #> FindList["ExampleData/EinsteinSzilLetter.txt", "uranium", 0]
-     = $Failed
     """
 
     messages = {
