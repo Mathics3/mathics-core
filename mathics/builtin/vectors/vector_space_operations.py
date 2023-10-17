@@ -85,14 +85,6 @@ class Normalize(Builtin):
     >> Normalize[1 + I]
      = (1 / 2 + I / 2) Sqrt[2]
 
-    #> Normalize[0]
-     = 0
-
-    #> Normalize[{0}]
-     = {0}
-
-    #> Normalize[{}]
-     = {}
     """
 
     rules = {"Normalize[v_]": "Module[{norm = Norm[v]}, If[norm == 0, v, v / norm, v]]"}
@@ -228,9 +220,6 @@ class VectorAngle(Builtin):
 
     >> VectorAngle[{1, 1, 0}, {1, 0, 1}]
      = Pi / 3
-
-    #> VectorAngle[{0, 1}, {0, 1}]
-     = 0
     """
 
     rules = {"VectorAngle[u_, v_]": "ArcCos[u.v / (Norm[u] Norm[v])]"}

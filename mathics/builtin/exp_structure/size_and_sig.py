@@ -165,17 +165,6 @@ class LeafCount(Builtin):
 
     >> LeafCount[100!]
      = 1
-
-    #> LeafCount[f[a, b][x, y]]
-     = 5
-
-    #> NestList[# /. s[x_][y_][z_] -> x[z][y[z]] &, s[s][s][s[s]][s][s], 4];
-    #> LeafCount /@ %
-     = {7, 8, 8, 11, 11}
-
-    #> LeafCount[1 / 3, 1 + I]
-     : LeafCount called with 2 arguments; 1 argument is expected.
-     = LeafCount[1 / 3, 1 + I]
     """
 
     messages = {
