@@ -272,9 +272,6 @@ class Sort(Builtin):
      = {2 + c_, 1 + b__}
     >> Sort[{x_ + n_*y_, x_ + y_}, PatternsOrderedQ]
      = {x_ + n_ y_, x_ + y_}
-
-    #> Sort[{x_, y_}, PatternsOrderedQ]
-     = {x_, y_}
     """
 
     summary_text = "sort lexicographically or with any comparison function"
