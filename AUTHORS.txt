@@ -36,6 +36,7 @@ Additional contributions were made by:
 - Pablo Emilio Escobar Gaviria @GarkGarcia
 - Rocky Bernstein @rocky
 - Tiago Cavalcante Trindade @TiagoCavalcante
+- Li Xiang @Li-Xiang-Ideal
 
 Thanks to the authors of all projects that are used in Mathics:
 - Django
