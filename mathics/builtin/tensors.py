@@ -19,6 +19,9 @@ of any rank can be handled.
 """
 
 
+from sympy.combinatorics import Permutation
+from sympy.utilities.iterables import permutations
+
 from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
 from mathics.core.builtin import BinaryOperator, Builtin
@@ -29,8 +32,6 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolRule, SymbolSparseArray
 from mathics.eval.parts import get_part
-from sympy.combinatorics import Permutation
-from sympy.utilities.iterables import permutations
 
 
 def get_default_distance(p):
