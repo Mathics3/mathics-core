@@ -490,3 +490,43 @@ class Transpose(Builtin):
                 else:
                     result[col_index].append(item)
         return ListExpression(*[ListExpression(*row) for row in result])
+
+
+class LeviCivitaTensor(Builtin):
+    """
+    <url>:Levi-Civita tensor:https://en.wikipedia.org/wiki/Levi-Civita_symbol</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/LeviCivitaTensor.html</url>)
+
+    <dl>
+      <dt>'LeviCivitaTensor[$d$]'
+      <dd>gives the $d$-dimensional Levi-Civita totally antisymmetric tensor.
+    </dl>
+
+    >> LeviCivitaTensor[3]
+     = SparseArray[Automatic, {3, 3, 3}, 0, {{1, 2, 3} → 1, {1, 3, 2} → -1, {2, 1, 3} → -1, {2, 3, 1} → 1, {3, 1, 2} → 1, {3, 2, 1} → -1}]
+
+    >> LeviCivitaTensor[3, List]
+     = {{{0, 0, 0}, {0, 0, 1}, {0, -1, 0}}, {{0, 0, -1}, {0, 0, 0}, {1, 0, 0}}, {{0, 1, 0}, {-1, 0, 0}, {0, 0, 0}}}
+    """
+
+    rules = {
+        "LeviCivitaTensor[d_Integer]/; Greater[d, 0]": "LeviCivitaTensor[d, SparseArray]",
+        "LeviCivitaTensor[d_Integer, List] /; Greater[d, 0]": "LeviCivitaTensor[d, SparseArray] // Normal",
+    }
+
+    summary_text = "give the Levi-Civita tensor with a given dimension"
+
+    def eval(self, d, type, evaluation: Evaluation):
+        "LeviCivitaTensor[d_Integer, type_]"
+
+        from mathics.core.systemsymbols import SymbolSparseArray, SymbolRule
+        from mathics.core.convert.python import from_python
+        from sympy.utilities.iterables import permutations
+        from sympy.combinatorics import Permutation
+
+        if isinstance(d, Integer) and type == SymbolSparseArray:
+            d = d.get_int_value()
+            perms = list(permutations([i for i in range(1, d + 1)]))
+            rules = [Expression(SymbolRule, from_python(p), from_python(Permutation.from_sequence(p).signature())) for p in perms]
+            return Expression(SymbolSparseArray, from_python(rules), from_python([d] * d))
+ 
