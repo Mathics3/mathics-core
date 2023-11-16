@@ -9,6 +9,7 @@ New Builtins
 
 
 * `Elements`
+* `LeviCivitaTensor`
 * `RealAbs` and `RealSign`
 * `RealValuedNumberQ`
 
