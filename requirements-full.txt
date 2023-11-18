@@ -3,6 +3,5 @@ ipywidgets  # For Manipulate
 lxml  # for HTML parsing used in builtin/fileformats/html
 psutil # SystemMemory and MemoryAvailable
 pyocr # Used for TextRecognize
-scikit-image >= 0.17 # FindMinimum can use this; used by Image as well
 unidecode # Used in Transliterate
 wordcloud # Used in builtin/image.py by WordCloud()
