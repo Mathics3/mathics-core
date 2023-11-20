@@ -3,7 +3,7 @@
 CHANGES
 =======
 
-6.0.3
+6.0.3 and 6.0.4
 -----
 
 Correct type annotation in ``mathics.session.MathicsSession`` See `Issue #934 <https://github.com/Mathics3/mathics-core/issues/934>`_.
