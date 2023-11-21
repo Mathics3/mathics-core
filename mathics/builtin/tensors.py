@@ -526,7 +526,7 @@ class LeviCivitaTensor(Builtin):
 
         if isinstance(d, Integer) and type == SymbolSparseArray:
             d = d.get_int_value()
-            perms = list(permutations([i for i in range(1, d + 1)]))
+            perms = list(permutations(list(range(1, d + 1))))
             rules = [
                 Expression(
                     SymbolRule,
