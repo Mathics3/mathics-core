@@ -455,7 +455,7 @@ class Transpose(Builtin):
     :WMA: https://reference.wolfram.com/language/ref/Transpose.html</url>)
 
     <dl>
-      <dt>'Tranpose[$m$]'
+      <dt>'Transpose[$m$]'
       <dd>transposes rows and columns in the matrix $m$.
     </dl>
 
