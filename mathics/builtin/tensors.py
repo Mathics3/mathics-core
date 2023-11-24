@@ -339,11 +339,7 @@ class Outer(Builtin):
             if isinstance(item, tuple):  # (rules)
                 elements = []
                 for element in item:
-                    rec_temp = rec_sparse(element, rest_lists, current)
-                    if isinstance(rec_temp, tuple):
-                        elements.extend(rec_temp)
-                    else:
-                        elements.append(rec_temp)
+                    elements.extend(rec_sparse(element, rest_lists, current))
                 return tuple(elements)
             else:  # rule
                 _pos, _val = item.elements
@@ -354,12 +350,13 @@ class Outer(Builtin):
                         (current[0] + _pos.elements, current[1] * _val),
                     )
                 else:
-                    return Expression(
-                        SymbolRule,
-                        ListExpression(*(current[0] + _pos.elements)),
-                        current[1] * _val,
+                    return (
+                        Expression(
+                            SymbolRule,
+                            ListExpression(*(current[0] + _pos.elements)),
+                            current[1] * _val,
+                        ),
                     )
-
         if head.sameQ(SymbolSparseArray):
             dims = []
             val = Integer1
