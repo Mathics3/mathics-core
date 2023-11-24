@@ -496,6 +496,7 @@ class Transpose(Builtin):
                     result[col_index].append(item)
         return ListExpression(*[ListExpression(*row) for row in result])
 
+
 class ConjugateTranspose(Builtin):
     """
     <url>
@@ -515,9 +516,10 @@ class ConjugateTranspose(Builtin):
     """
 
     rules = {
-        "ConjugateTranspose[m_]": "Conjugate[Transpose[m]]"
+        "ConjugateTranspose[m_]": "Conjugate[Transpose[m]]",
     }
     summary_text = "give the conjugate transpose"
+
 
 class LeviCivitaTensor(Builtin):
     """
