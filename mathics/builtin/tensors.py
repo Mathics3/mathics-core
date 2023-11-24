@@ -18,11 +18,12 @@ Mathics3 represents tensors of vectors and matrices as lists; tensors \
 of any rank can be handled.
 """
 
+import itertools
 
 from sympy.combinatorics import Permutation
 from sympy.utilities.iterables import permutations
 
-from mathics.core.atoms import Integer, String
+from mathics.core.atoms import Integer, Integer0, Integer1, String
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
 from mathics.core.builtin import BinaryOperator, Builtin
 from mathics.core.convert.python import from_python
@@ -30,7 +31,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolRule, SymbolSparseArray
+from mathics.core.systemsymbols import SymbolAutomatic, SymbolRule, SymbolSparseArray
 from mathics.eval.parts import get_part
 
 
@@ -299,21 +300,25 @@ class Outer(Builtin):
      = {{0, 1, 0}, {1, 0, 1}, {0, ComplexInfinity, 0}}
     """
 
+    rules = {
+        "Outer[f_, a___, b_SparseArray, c___] /; UnsameQ[f, Times]": "Outer[f, a, b // Normal, c]",
+    }
+
     summary_text = "generalized outer product"
 
     def eval(self, f, lists, evaluation: Evaluation):
-        "Outer[f_, lists__]"
+        "Outer[f_, lists__] /; Or[SameQ[f, Times], Not[MemberQ[{lists}, _SparseArray]]]"
 
         lists = lists.get_sequence()
         head = None
-        for list in lists:
-            if isinstance(list, Atom):
+        for _list in lists:
+            if isinstance(_list, Atom):
                 evaluation.message("Outer", "normal")
                 return
             if head is None:
-                head = list.head
-            elif not list.head.sameQ(head):
-                evaluation.message("Outer", "heads", head, list.head)
+                head = _list.head
+            elif not _list.head.sameQ(head):
+                evaluation.message("Outer", "heads", head, _list.head)
                 return
 
         def rec(item, rest_lists, current):
@@ -329,7 +334,73 @@ class Outer(Builtin):
                     elements.append(rec(element, rest_lists, current))
                 return Expression(head, *elements)
 
-        return rec(lists[0], lists[1:], [])
+        def rec_sparse(item, rest_lists, current):
+            evaluation.check_stopped()
+            if isinstance(item, tuple):  # (rules)
+                elements = []
+                for element in item:
+                    rec_temp = rec_sparse(element, rest_lists, current)
+                    if isinstance(rec_temp, tuple):
+                        elements.extend(rec_temp)
+                    else:
+                        elements.append(rec_temp)
+                return tuple(elements)
+            else:  # rule
+                _pos, _val = item.elements
+                if rest_lists:
+                    return rec_sparse(
+                        rest_lists[0],
+                        rest_lists[1:],
+                        (current[0] + _pos.elements, current[1] * _val),
+                    )
+                else:
+                    return Expression(
+                        SymbolRule,
+                        ListExpression(*(current[0] + _pos.elements)),
+                        current[1] * _val,
+                    )
+
+        if head.sameQ(SymbolSparseArray):
+            dims = []
+            val = Integer1
+            data = []  # data = [(rules), ...]
+            for _list in lists:
+                dims.extend(_list.elements[1])
+                val *= _list.elements[2]
+                if _list.elements[2] == Integer0:  # _val==0
+                    data.append(_list.elements[3].elements)  # append (rules)
+                else:  # _val!=0, append (rules, other pos->_val)
+                    other_pos = []
+                    for pos in itertools.product(
+                        *(range(1, d.value + 1) for d in _list.elements[1])
+                    ):
+                        other_pos.append(
+                            ListExpression(*(Integer(i) for i in pos))
+                        )  # generate all pos
+                    rules_pos = set(
+                        rule.elements[0] for rule in _list.elements[3].elements
+                    )  # pos of existing rules
+                    other_pos = (
+                        set(other_pos) - rules_pos
+                    )  # remove pos of existing rules
+                    other_rules = []
+                    for pos in other_pos:
+                        other_rules.append(
+                            Expression(SymbolRule, pos, _list.elements[2])
+                        )  # generate other pos->_val
+                    data.append(
+                        _list.elements[3].elements + tuple(other_rules)
+                    )  # append (rules, other pos->_val)
+            dims = ListExpression(*dims)
+            return Expression(
+                SymbolSparseArray,
+                SymbolAutomatic,
+                dims,
+                val,
+                ListExpression(*rec_sparse(data[0], data[1:], ((), Integer1))),
+            )
+        else:
+            return rec(lists[0], lists[1:], [])
 
 
 class RotationTransform(Builtin):
@@ -455,7 +526,7 @@ class Transpose(Builtin):
     :WMA: https://reference.wolfram.com/language/ref/Transpose.html</url>)
 
     <dl>
-      <dt>'Transpose[$m$]'
+      <dt>'Tranpose[$m$]'
       <dd>transposes rows and columns in the matrix $m$.
     </dl>
 
@@ -497,6 +568,27 @@ class Transpose(Builtin):
         return ListExpression(*[ListExpression(*row) for row in result])
 
 
+class TensorProduct(Builtin):
+    """
+    <url>:Tensor product:https://en.wikipedia.org/wiki/Tensor_product</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/TensorProduct.html</url>)
+
+    <dl>
+      <dt>'IdentityMatrix[$n$]'
+      <dd>gives the identity matrix with $n$ rows and columns.
+    </dl>
+
+    >> IdentityMatrix[3]
+     = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}
+    """
+
+    rules = {
+        "IdentityMatrix[n_Integer]": "DiagonalMatrix[Table[1, {n}]]",
+    }
+
+    summary_text = "give the identity matrix with a given dimension"
+
+
 class LeviCivitaTensor(Builtin):
     """
     <url>:Levi-Civita tensor:https://en.wikipedia.org/wiki/Levi-Civita_symbol</url> \
@@ -526,7 +618,7 @@ class LeviCivitaTensor(Builtin):
 
         if isinstance(d, Integer) and type == SymbolSparseArray:
             d = d.get_int_value()
-            perms = list(permutations(list(range(1, d + 1))))
+            perms = list(permutations([i for i in range(1, d + 1)]))
             rules = [
                 Expression(
                     SymbolRule,
