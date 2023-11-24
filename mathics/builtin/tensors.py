@@ -526,7 +526,7 @@ class Transpose(Builtin):
     :WMA: https://reference.wolfram.com/language/ref/Transpose.html</url>)
 
     <dl>
-      <dt>'Tranpose[$m$]'
+      <dt>'Transpose[$m$]'
       <dd>transposes rows and columns in the matrix $m$.
     </dl>
 
@@ -568,27 +568,6 @@ class Transpose(Builtin):
         return ListExpression(*[ListExpression(*row) for row in result])
 
 
-class TensorProduct(Builtin):
-    """
-    <url>:Tensor product:https://en.wikipedia.org/wiki/Tensor_product</url> \
-    (<url>:WMA link:https://reference.wolfram.com/language/ref/TensorProduct.html</url>)
-
-    <dl>
-      <dt>'IdentityMatrix[$n$]'
-      <dd>gives the identity matrix with $n$ rows and columns.
-    </dl>
-
-    >> IdentityMatrix[3]
-     = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}
-    """
-
-    rules = {
-        "IdentityMatrix[n_Integer]": "DiagonalMatrix[Table[1, {n}]]",
-    }
-
-    summary_text = "give the identity matrix with a given dimension"
-
-
 class LeviCivitaTensor(Builtin):
     """
     <url>:Levi-Civita tensor:https://en.wikipedia.org/wiki/Levi-Civita_symbol</url> \
@@ -618,7 +597,7 @@ class LeviCivitaTensor(Builtin):
 
         if isinstance(d, Integer) and type == SymbolSparseArray:
             d = d.get_int_value()
-            perms = list(permutations([i for i in range(1, d + 1)]))
+            perms = list(permutations(list(range(1, d + 1))))
             rules = [
                 Expression(
                     SymbolRule,
