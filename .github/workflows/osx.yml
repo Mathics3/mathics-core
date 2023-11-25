@@ -9,8 +9,8 @@ on:
 jobs:
   build:
     env:
-      LDFLAGS: "-L/usr/local/opt/llvm@17/lib"
-      CPPFLAGS: "-I/usr/local/opt/llvm@17/include"
+      LDFLAGS: "-L/usr/local/opt/llvm@14/lib"
+      CPPFLAGS: "-I/usr/local/opt/llvm@14/include"
     runs-on: macos-latest
     strategy:
       matrix:
@@ -24,7 +24,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install OS dependencies
       run: |
-        brew install llvm@17 tesseract
+        brew install llvm@14 tesseract
         python -m pip install --upgrade pip
     - name: Install Mathics3 with full Python dependencies
       run: |
