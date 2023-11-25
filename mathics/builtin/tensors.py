@@ -497,6 +497,30 @@ class Transpose(Builtin):
         return ListExpression(*[ListExpression(*row) for row in result])
 
 
+class ConjugateTranspose(Builtin):
+    """
+    <url>
+    :Conjugate transpose: https://en.wikipedia.org/wiki/Conjugate_transpose</url> (<url>
+    :WMA: https://reference.wolfram.com/language/ref/ConjugateTranspose.html</url>)
+
+    <dl>
+      <dt>'ConjugateTranspose[$m$]'
+      <dd>gives the conjugate transpose of $m$.
+    </dl>
+
+    >> ConjugateTranspose[{{0, I}, {0, 0}}]
+     = {{0, 0}, {-I, 0}}
+
+    >> ConjugateTranspose[{{1, 2 I, 3}, {3 + 4 I, 5, I}}]
+     = {{1, 3 - 4 I}, {-2 I, 5}, {3, -I}}
+    """
+
+    rules = {
+        "ConjugateTranspose[m_]": "Conjugate[Transpose[m]]",
+    }
+    summary_text = "give the conjugate transpose"
+
+
 class LeviCivitaTensor(Builtin):
     """
     <url>:Levi-Civita tensor:https://en.wikipedia.org/wiki/Levi-Civita_symbol</url> \
