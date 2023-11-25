@@ -37,7 +37,7 @@ Additional contributions were made by:
 - Rocky Bernstein @rocky
 - Tiago Cavalcante Trindade @TiagoCavalcante
 - Li Xiang @Li-Xiang-Ideal
-- Kevin Cao Zou @kejcao
+- Kevin Cao @kejcao
 
 Thanks to the authors of all projects that are used in Mathics:
 - Django
