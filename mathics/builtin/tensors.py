@@ -419,6 +419,7 @@ class Outer(Builtin):
             ListExpression(*rec_sparse(data[0], data[1:], ((), Integer1))),
         )
 
+
 class RotationTransform(Builtin):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/RotationTransform.html</url>
