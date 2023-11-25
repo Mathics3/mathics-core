@@ -357,47 +357,39 @@ class Outer(Builtin):
                             current[1] * _val,
                         ),
                     )
-        if head.sameQ(SymbolSparseArray):
-            dims = []
-            val = Integer1
-            data = []  # data = [(rules), ...]
-            for _list in lists:
-                dims.extend(_list.elements[1])
-                val *= _list.elements[2]
-                if _list.elements[2] == Integer0:  # _val==0
-                    data.append(_list.elements[3].elements)  # append (rules)
-                else:  # _val!=0, append (rules, other pos->_val)
-                    other_pos = []
-                    for pos in itertools.product(
-                        *(range(1, d.value + 1) for d in _list.elements[1])
-                    ):
-                        other_pos.append(
-                            ListExpression(*(Integer(i) for i in pos))
-                        )  # generate all pos
-                    rules_pos = set(
-                        rule.elements[0] for rule in _list.elements[3].elements
-                    )  # pos of existing rules
-                    other_pos = (
-                        set(other_pos) - rules_pos
-                    )  # remove pos of existing rules
-                    other_rules = []
-                    for pos in other_pos:
-                        other_rules.append(
-                            Expression(SymbolRule, pos, _list.elements[2])
-                        )  # generate other pos->_val
-                    data.append(
-                        _list.elements[3].elements + tuple(other_rules)
-                    )  # append (rules, other pos->_val)
-            dims = ListExpression(*dims)
-            return Expression(
-                SymbolSparseArray,
-                SymbolAutomatic,
-                dims,
-                val,
-                ListExpression(*rec_sparse(data[0], data[1:], ((), Integer1))),
-            )
-        else:
+
+        # head != SparseArray
+        if not head.sameQ(SymbolSparseArray):
             return rec(lists[0], lists[1:], [])
+
+        # head == SparseArray
+        dims = []
+        val = Integer1
+        data = []  # data = [(rules), ...]
+        for _list in lists:
+            _dims, _val, _rules = _list.elements[1:]
+            dims.extend(_dims)
+            val *= _val
+            if _val == Integer0:  # _val==0, append (_rules)
+                data.append(_rules.elements)
+            else:  # _val!=0, append (_rules, other pos->_val)
+                other_pos = []
+                for pos in itertools.product(*(range(1, d.value + 1) for d in _dims)):
+                    other_pos.append(ListExpression(*(Integer(i) for i in pos)))
+                rules_pos = set(rule.elements[0] for rule in _rules.elements)
+                other_pos = set(other_pos) - rules_pos
+                other_rules = []
+                for pos in other_pos:
+                    other_rules.append(Expression(SymbolRule, pos, _val))
+                data.append(_list.elements[3].elements + tuple(other_rules))
+        dims = ListExpression(*dims)
+        return Expression(
+            SymbolSparseArray,
+            SymbolAutomatic,
+            dims,
+            val,
+            ListExpression(*rec_sparse(data[0], data[1:], ((), Integer1))),
+        )
 
 
 class RotationTransform(Builtin):
