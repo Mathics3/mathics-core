@@ -9,6 +9,7 @@ New Builtins
 
 
 * ``Elements``
+* ``ConjugateTranspose``
 * ``LeviCivitaTensor``
 * ``RealAbs`` and ``RealSign``
 * ``RealValuedNumberQ``
