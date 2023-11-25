@@ -4,6 +4,7 @@
 import base64
 import math
 import re
+import sys
 from typing import Optional, Type, Union
 
 import mpmath
@@ -28,6 +29,9 @@ from mathics.core.symbols import (
     symbol_set,
 )
 from mathics.core.systemsymbols import SymbolFullForm, SymbolInfinity, SymbolInputForm
+
+# Disable integer to string conversion length limit.
+sys.set_int_max_str_digits(0)
 
 # Imperical number that seems to work.
 # We have to be able to match mpmath values with sympy values
