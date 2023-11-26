@@ -291,10 +291,21 @@ class Outer(Builtin):
     Outer product of two matrices:
     >> Outer[Times, {{a, b}, {c, d}}, {{1, 2}, {3, 4}}]
      = {{{{a, 2 a}, {3 a, 4 a}}, {{b, 2 b}, {3 b, 4 b}}}, {{{c, 2 c}, {3 c, 4 c}}, {{d, 2 d}, {3 d, 4 d}}}}
+    
+    Outer product of two sparse arrays:
+    >> Outer[Times, SparseArray[{{1, 2} -> a, {2, 1} -> b}], SparseArray[{{1, 2} -> c, {2, 1} -> d}]]
+     = SparseArray[Automatic, {2, 2, 2, 2}, 0, {{1, 2, 1, 2} -> a c, {1, 2, 2, 1} -> a d, {2, 1, 1, 2} -> b c, {2, 1, 2, 1} -> b d}]
 
     'Outer' of multiple lists:
     >> Outer[f, {a, b}, {x, y, z}, {1, 2}]
      = {{{f[a, x, 1], f[a, x, 2]}, {f[a, y, 1], f[a, y, 2]}, {f[a, z, 1], f[a, z, 2]}}, {{f[b, x, 1], f[b, x, 2]}, {f[b, y, 1], f[b, y, 2]}, {f[b, z, 1], f[b, z, 2]}}}
+    
+    'Outer' treats input sparse arrays as lists if f=!=Times, or if the input is a mixture of sparse arrays and lists:
+    >> Outer[f, SparseArray[{{1, 2} -> a, {2, 1} -> b}], SparseArray[{{1, 2} -> c, {2, 1} -> d}]]
+     = {{{{f[0, 0], f[0, c]}, {f[0, d], f[0, 0]}}, {{f[a, 0], f[a, c]}, {f[a, d], f[a, 0]}}}, {{{f[b, 0], f[b, c]}, {f[b, d], f[b, 0]}}, {{f[0, 0], f[0, c]}, {f[0, d], f[0, 0]}}}}
+    
+    >> Outer[Times, SparseArray[{{1, 2} -> a, {2, 1} -> b}], {c, d}]
+     = {{{0, 0}, {a c, a d}}, {{b c, b d}, {0, 0}}}
 
     Arrays can be ragged:
     >> Outer[Times, {{1, 2}}, {{a, b}, {c, d, e}}]
