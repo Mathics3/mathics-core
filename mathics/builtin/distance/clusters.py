@@ -35,6 +35,7 @@ from mathics.eval.distance import (
 )
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.parts import walk_levels
+from mathics.eval.tensors import get_default_distance
 
 
 class _LazyDistances(LazyDistances):
@@ -139,8 +140,6 @@ class _Cluster(Builtin):
             options, "DistanceFunction", evaluation
         )
         if distance_function_string == "Automatic":
-            from mathics.eval.tensors import get_default_distance
-
             distance_function = get_default_distance(dist_p)
             if distance_function is None:
                 name_of_builtin = strip_context(self.get_name())
@@ -462,8 +461,6 @@ class Nearest(Builtin):
             options, "DistanceFunction", evaluation
         )
         if distance_function_string == "Automatic":
-            from mathics.eval.tensors import get_default_distance
-
             distance_function = get_default_distance(dist_p)
             if distance_function is None:
                 evaluation.message(
