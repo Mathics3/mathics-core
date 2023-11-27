@@ -333,13 +333,13 @@ class Outer(Builtin):
         head = None
         sparse_to_list = f != SymbolTimes
         contain_sparse = False
-        comtain_list = False
+        contain_list = False
         for _list in lists:
             if _list.head.sameQ(SymbolSparseArray):
                 contain_sparse = True
             if _list.head.sameQ(SymbolList):
-                comtain_list = True
-            sparse_to_list = sparse_to_list or (contain_sparse and comtain_list)
+                contain_list = True
+            sparse_to_list = sparse_to_list or (contain_sparse and contain_list)
             if sparse_to_list:
                 break
         if sparse_to_list:
