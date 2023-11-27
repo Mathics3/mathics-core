@@ -139,7 +139,7 @@ class _Cluster(Builtin):
             options, "DistanceFunction", evaluation
         )
         if distance_function_string == "Automatic":
-            from mathics.builtin.tensors import get_default_distance
+            from mathics.eval.tensors import get_default_distance
 
             distance_function = get_default_distance(dist_p)
             if distance_function is None:
@@ -462,7 +462,7 @@ class Nearest(Builtin):
             options, "DistanceFunction", evaluation
         )
         if distance_function_string == "Automatic":
-            from mathics.builtin.tensors import get_default_distance
+            from mathics.eval.tensors import get_default_distance
 
             distance_function = get_default_distance(dist_p)
             if distance_function is None:
