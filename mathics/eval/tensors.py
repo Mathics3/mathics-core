@@ -116,7 +116,7 @@ def unpack_outer(item, rest_lists, current, level: int, const_etc: tuple):
         apply_head,  # e.g. lambda elements: Expression(head, *elements)
         apply_f,  # e.g. lambda current: Expression(f, *current)
         join_elem,  # join current lowest level elements (i.e. current) with a new one
-        if_nested,  # Ture for result as nested list, False for result as flattened list
+        if_nested,  # True for result as nested list, False for result as flattened list
         evaluation,  # evaluation: Evaluation
     )
     ```
@@ -127,7 +127,7 @@ def unpack_outer(item, rest_lists, current, level: int, const_etc: tuple):
         apply_head,  # e.g. lambda elements: Expression(head, *elements)
         apply_f,  # e.g. lambda current: Expression(f, *current)
         join_elem,  # join current lowest level elements (i.e. current) with a new one
-        if_nested,  # Ture for result as nested list ({{a,b},{c,d}}), False for result as flattened list ({a,b,c,d}})
+        if_nested,  # True for result as nested list ({{a,b},{c,d}}), False for result as flattened list ({a,b,c,d}})
         evaluation,  # evaluation: Evaluation
     ) = const_etc
 
