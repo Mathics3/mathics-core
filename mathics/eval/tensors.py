@@ -1,5 +1,3 @@
-import itertools
-
 from sympy.combinatorics import Permutation
 from sympy.utilities.iterables import permutations
 
@@ -74,6 +72,85 @@ def get_dimensions(expr, head=None):
                     sub = []
                     break
         return [len(expr.elements)] + sub
+
+
+def to_std_sparse_array(sparse_array, evaluation: Evaluation):
+    if sparse_array.elements[2] == Integer0:
+        return sparse_array
+    else:
+        return Expression(
+            SymbolSparseArray, Expression(SymbolNormal, sparse_array)
+        ).evaluate(evaluation)
+
+
+def unpack_outer(item, rest_lists, current, level: int, const_etc: tuple):
+    """
+    Recursively unpacks lists to evaluate outer product.
+    ------------------------------------
+
+    Unlike direct products, outer (tensor) products require traversing the
+    lowest level of each list, hence we recursively unpacking lists until
+    the lowest level is reached.
+
+    Parameters:
+
+    ``item``: the current item to be unpacked (if not at lowest level), or joined
+    to current (if at lowest level)
+
+    ``rest_lists``: the rest of lists to be unpacked
+
+    ``current``: the current lowest level elements
+
+    ``level``: the current level (unused yet, will be used in
+    ``Outer[f_, lists__, n_]`` in the future)
+
+    ``const_etc``: a tuple of functions used in unpacking, remains constant
+    throughout the recursion.
+
+    Format of ``const_etc``:
+
+    ```
+    (
+        cond_next_list,  # return True/False to unpack the next list/this list at next level
+        get_elements,  # get elements of list, tuple, ListExpression, etc.
+        apply_head,  # e.g. lambda elements: Expression(head, *elements)
+        apply_f,  # e.g. lambda current: Expression(f, *current)
+        join_elem,  # join current lowest level elements (i.e. current) with a new one
+        if_nested,  # Ture for result as nested list, False for result as flattened list
+        evaluation,  # evaluation: Evaluation
+    )
+    ```
+    """
+    (
+        cond_next_list,  # return True when the next list should be unpacked
+        get_elements,  # get elements of list, tuple, ListExpression, etc.
+        apply_head,  # e.g. lambda elements: Expression(head, *elements)
+        apply_f,  # e.g. lambda current: Expression(f, *current)
+        join_elem,  # join current lowest level elements (i.e. current) with a new one
+        if_nested,  # Ture for result as nested list ({{a,b},{c,d}}), False for result as flattened list ({a,b,c,d}})
+        evaluation,  # evaluation: Evaluation
+    ) = const_etc
+
+    evaluation.check_stopped()
+    if cond_next_list(item, level):  # unpack next list
+        if rest_lists:
+            return unpack_outer(
+                rest_lists[0], rest_lists[1:], join_elem(current, item), 1, const_etc
+            )
+        else:
+            return apply_f(join_elem(current, item))
+    else:  # unpack this list at next level
+        elements = []
+        for element in get_elements(item):
+            if if_nested:
+                elements.append(
+                    unpack_outer(element, rest_lists, current, level + 1, const_etc)
+                )
+            else:
+                elements.extend(
+                    unpack_outer(element, rest_lists, current, level + 1, const_etc)
+                )
+        return apply_head(elements)
 
 
 def eval_Inner(f, list1, list2, g, evaluation: Evaluation):
@@ -156,74 +233,51 @@ def eval_Outer(f, lists, evaluation: Evaluation):
     if sparse_to_list:
         lists = new_lists
 
-    def rec(item, rest_lists, current):
-        evaluation.check_stopped()
-        if isinstance(item, Atom) or not item.head.sameQ(head):
-            if rest_lists:
-                return rec(rest_lists[0], rest_lists[1:], current + [item])
-            else:
-                return Expression(f, *(current + [item]))
-        else:
-            elements = []
-            for element in item.elements:
-                elements.append(rec(element, rest_lists, current))
-            return Expression(head, *elements)
-
-    def rec_sparse(item, rest_lists, current):
-        evaluation.check_stopped()
-        if isinstance(item, tuple):  # (rules)
-            elements = []
-            for element in item:
-                elements.extend(rec_sparse(element, rest_lists, current))
-            return tuple(elements)
-        else:  # rule
-            _pos, _val = item.elements
-            if rest_lists:
-                return rec_sparse(
-                    rest_lists[0],
-                    rest_lists[1:],
-                    (current[0] + _pos.elements, current[1] * _val),
-                )
-            else:
-                return (
-                    Expression(
-                        SymbolRule,
-                        ListExpression(*(current[0] + _pos.elements)),
-                        current[1] * _val,
-                    ),
-                )
-
     # head != SparseArray
     if not head.sameQ(SymbolSparseArray):
-        return rec(lists[0], lists[1:], [])
+        etc = (
+            (lambda item, level: isinstance(item, Atom) or not item.head.sameQ(head)),
+            (lambda item: item.elements),  # get_elements
+            (lambda elements: Expression(head, *elements)),  # apply_head
+            (lambda current: Expression(f, *current)),  # apply_f
+            (lambda current, item: current + (item,)),  # join_elem
+            True,  # if_nested
+            evaluation,
+        )
+        return unpack_outer(lists[0], lists[1:], (), 1, etc)
 
     # head == SparseArray
     dims = []
     val = Integer1
-    data = []  # data = [(rules), ...]
     for _list in lists:
-        _dims, _val, _rules = _list.elements[1:]
+        _dims, _val = _list.elements[1:3]
         dims.extend(_dims)
         val *= _val
-        if _val == Integer0:  # _val==0, append (_rules)
-            data.append(_rules.elements)
-        else:  # _val!=0, append (_rules, other pos->_val)
-            other_pos = []
-            for pos in itertools.product(*(range(1, d.value + 1) for d in _dims)):
-                other_pos.append(ListExpression(*(Integer(i) for i in pos)))
-            rules_pos = set(rule.elements[0] for rule in _rules.elements)
-            other_pos = set(other_pos) - rules_pos
-            other_rules = []
-            for pos in other_pos:
-                other_rules.append(Expression(SymbolRule, pos, _val))
-            data.append(_rules.elements + tuple(other_rules))
     dims = ListExpression(*dims)
+    etc = (
+        (lambda item, level: not item.head.sameQ(SymbolSparseArray)),
+        (lambda item: to_std_sparse_array(item, evaluation).elements[3].elements),
+        (lambda elements: elements),  # apply_head
+        (
+            lambda current: (
+                Expression(SymbolRule, ListExpression(*current[0]), current[1]),
+            )
+        ),  # apply_f
+        (
+            lambda current, item: (
+                current[0] + item.elements[0].elements,
+                current[1] * item.elements[1],
+            )
+        ),  # join_elem
+        False,  # if_nested
+        evaluation,
+    )
     return Expression(
         SymbolSparseArray,
         SymbolAutomatic,
         dims,
         val,
-        ListExpression(*rec_sparse(data[0], data[1:], ((), Integer1))),
+        ListExpression(*unpack_outer(lists[0], lists[1:], ((), Integer1), 1, etc)),
     )
 
 
