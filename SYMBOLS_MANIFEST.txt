@@ -574,6 +574,7 @@ System`LessEqual
 System`LetterCharacter
 System`LetterNumber
 System`LetterQ
+System`LeviCivitaTensor
 System`Level
 System`LevelQ
 System`LightBlue

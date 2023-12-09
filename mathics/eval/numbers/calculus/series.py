@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+"""
+Implementation of Series handling functions.
+"""
 from mathics.core.atoms import Integer, Integer0, Rational
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.expression import Expression

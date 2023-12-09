@@ -8,9 +8,11 @@ New Builtins
 ++++++++++++
 
 
-* `Elements`
-* `RealAbs` and `RealSign`
-* `RealValuedNumberQ`
+* ``Elements``
+* ``ConjugateTranspose``
+* ``LeviCivitaTensor``
+* ``RealAbs`` and ``RealSign``
+* ``RealValuedNumberQ``
 
 
 Compatibility
@@ -33,7 +35,7 @@ Bugs
 
 * Improved support for ``DirectedInfinity`` and ``Indeterminate``.
 * ``Definitions`` is compatible with ``pickle``.
-
+* Inproved support for `Quantity` expressions, including conversions, formatting and arithmetic operations.
 
 Package updates
 +++++++++++++++

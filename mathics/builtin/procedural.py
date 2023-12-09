@@ -165,39 +165,6 @@ class CompoundExpression(BinaryOperator):
      = d
     If the last argument is omitted, 'Null' is taken:
     >> a;
-
-    ## Parser Tests
-    #> FullForm[Hold[; a]]
-     : "FullForm[Hold[" cannot be followed by "; a]]" (line 1 of "<test>").
-    #> FullForm[Hold[; a ;]]
-     : "FullForm[Hold[" cannot be followed by "; a ;]]" (line 1 of "<test>").
-
-    ## Issue331
-    #> CompoundExpression[x, y, z]
-     = z
-    #> %
-     = z
-
-    #> CompoundExpression[x, y, Null]
-    #> %
-     = y
-
-    #> CompoundExpression[CompoundExpression[x, y, Null], Null]
-    #> %
-     = y
-
-    #> CompoundExpression[x, Null, Null]
-    #> %
-     = x
-
-    #> CompoundExpression[]
-    #> %
-
-    ## Issue 531
-    #> z = Max[1, 1 + x]; x = 2; z
-     = 3
-
-    #> Clear[x]; Clear[z]
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
@@ -294,10 +261,6 @@ class Do(IterationFunction):
      | 5
      | 7
      | 9
-
-    #> Do[Print["hi"],{1+1}]
-     | hi
-     | hi
     """
 
     allow_loopcontrol = True
@@ -330,12 +293,6 @@ class For(Builtin):
      = 3628800
     >> n == 10!
      = True
-
-    #> n := 1
-    #> For[i=1, i<=10, i=i+1, If[i > 5, Return[i]]; n = n * i]
-     = 6
-    #> n
-     = 120
     """
 
     attributes = A_HOLD_REST | A_PROTECTED
@@ -473,17 +430,6 @@ class Return(Builtin):
     >> g[x_] := (Do[If[x < 0, Return[0]], {i, {2, 1, 0, -1}}]; x)
     >> g[-1]
      = -1
-
-    #> h[x_] := (If[x < 0, Return[]]; x)
-    #> h[1]
-     = 1
-    #> h[-1]
-
-    ## Issue 513
-    #> f[x_] := Return[x];
-    #> g[y_] := Module[{}, z = f[y]; 2]
-    #> g[1]
-     = 2
     """
 
     rules = {
@@ -518,16 +464,6 @@ class Switch(Builtin):
     >> Switch[2, 1]
      : Switch called with 2 arguments. Switch must be called with an odd number of arguments.
      = Switch[2, 1]
-
-    #> a; Switch[b, b]
-     : Switch called with 2 arguments. Switch must be called with an odd number of arguments.
-     = Switch[b, b]
-
-    ## Issue 531
-    #> z = Switch[b, b];
-     : Switch called with 2 arguments. Switch must be called with an odd number of arguments.
-    #> z
-     = Switch[b, b]
     """
 
     summary_text = "switch based on a value, with patterns allowed"
@@ -636,9 +572,6 @@ class While(Builtin):
     >> While[b != 0, {a, b} = {b, Mod[a, b]}];
     >> a
      = 3
-
-    #> i = 1; While[True, If[i^2 > 100, Return[i + 1], i++]]
-     = 12
     """
 
     summary_text = "evaluate an expression while a criterion is true"

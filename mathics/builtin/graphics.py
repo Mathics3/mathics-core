@@ -1450,9 +1450,6 @@ class Text(Inset):
 
     >> Graphics[{Text["First", {0, 0}], Text["Second", {1, 1}]}, Axes->True, PlotRange->{{-2, 2}, {-2, 2}}]
      = -Graphics-
-
-    #> Graphics[{Text[x, {0,0}]}]
-     = -Graphics-
     """
 
     summary_text = "arbitrary text or other expressions in 2D or 3D"

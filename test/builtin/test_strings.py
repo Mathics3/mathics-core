@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Unit tests from mathics.builtin.string.
+"""
 
 from test.helper import check_evaluation, session
 

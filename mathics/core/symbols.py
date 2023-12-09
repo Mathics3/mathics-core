@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import time
-from typing import Any, FrozenSet, List, Optional, Tuple
+from typing import Any, FrozenSet, List, Optional
 
 from mathics.core.element import (
     BaseElement,
@@ -16,6 +16,7 @@ from mathics.core.element import (
 
 sympy_symbol_prefix = "_Mathics_User_"
 sympy_slot_prefix = "_Mathics_Slot_"
+
 
 # FIXME: This is repeated below
 class NumericOperators:
@@ -199,7 +200,8 @@ class Atom(BaseElement):
     Atom is not a directly-mentioned WL entity, although conceptually
     it very much seems to exist.
 
-    The other kinds expression element is a Builtin, e.g. `ByteArray``, `CompiledCode`` or ``Image``.
+    The other kinds expression element is a Builtin, e.g. `ByteArray``, `CompiledCode``
+    or ``Image``.
     """
 
     _head_name = ""
@@ -251,8 +253,8 @@ class Atom(BaseElement):
     def get_atoms(self, include_heads=True) -> List["Atom"]:
         return [self]
 
-    # We seem to need this because the caller doesn't distinguish something with elements
-    # from a single atom.
+    # We seem to need this because the caller doesn't distinguish
+    # something with elements from a single atom.
     def get_elements(self):
         return []
 
@@ -262,14 +264,18 @@ class Atom(BaseElement):
     def get_head_name(self) -> "str":
         return self.class_head_name  # System`" + self.__class__.__name__
 
-    #    def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
+    #    def get_option_values(self, evaluation, allow_symbols=False,
+    #                          stop_on_error=True):
     #        """
     #        Build a dictionary of options from an expression.
-    #        For example Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)
-    #        will return a list of options associated to the definition of the symbol "Integrate".
+    #        For example Symbol("Integrate").get_option_values(evaluation,
+    #                           allow_symbols=True)
+    #        will return a list of options associated to the definition of the symbol
+    #        "Integrate".
     #        If self is not an expression,
     #        """
-    #        print("get_option_values is trivial for ", (self, stop_on_error, allow_symbols ))
+    #        print("get_option_values is trivial for ", (self, stop_on_error,
+    #              allow_symbols ))
     #        1/0
     #        return None if stop_on_error else {}
 
@@ -661,7 +667,6 @@ class SymbolConstant(Symbol):
     # We use __new__ here to unsure that two Integer's that have the same value
     # return the same object.
     def __new__(cls, name, value):
-
         name = ensure_context(name)
         self = cls._symbol_constants.get(name)
         if self is None:
