@@ -75,6 +75,8 @@ def get_dimensions(expr, head=None):
 
 
 def to_std_sparse_array(sparse_array, evaluation: Evaluation):
+    "Get a SparseArray equivalent to input with default value 0."
+
     if sparse_array.elements[2] == Integer0:
         return sparse_array
     else:
@@ -116,7 +118,7 @@ def unpack_outer(item, rest_lists, current, level: int, const_etc: tuple):
         apply_head,  # e.g. lambda elements: Expression(head, *elements)
         apply_f,  # e.g. lambda current: Expression(f, *current)
         join_elem,  # join current lowest level elements (i.e. current) with a new one
-        if_nested,  # True for result as nested list, False for result as flattened list
+        if_flattened,  # True for result as flattened list, False for result as nested list
         evaluation,  # evaluation: Evaluation
     )
     ```
@@ -127,7 +129,7 @@ def unpack_outer(item, rest_lists, current, level: int, const_etc: tuple):
         apply_head,  # e.g. lambda elements: Expression(head, *elements)
         apply_f,  # e.g. lambda current: Expression(f, *current)
         join_elem,  # join current lowest level elements (i.e. current) with a new one
-        if_nested,  # True for result as nested list ({{a,b},{c,d}}), False for result as flattened list ({a,b,c,d}})
+        if_flatten,  # True for result as flattened list ({a,b,c,d}), False for result as nested list ({{a,b},{c,d}})
         evaluation,  # evaluation: Evaluation
     ) = const_etc
 
@@ -142,15 +144,9 @@ def unpack_outer(item, rest_lists, current, level: int, const_etc: tuple):
                 return apply_f(join_elem(current, item))
         else:  # unpack this list at next level
             elements = []
+            action = elements.extend if if_flatten else elements.append
             for element in get_elements(item):
-                if if_nested:
-                    elements.append(
-                        _unpack_outer(element, rest_lists, current, level + 1)
-                    )
-                else:
-                    elements.extend(
-                        _unpack_outer(element, rest_lists, current, level + 1)
-                    )
+                action(_unpack_outer(element, rest_lists, current, level + 1))
             return apply_head(elements)
 
     return _unpack_outer(item, rest_lists, current, level)
@@ -248,7 +244,7 @@ def eval_Outer(f, lists, evaluation: Evaluation):
             (lambda elements: Expression(head, *elements)),  # apply_head
             (lambda current: Expression(f, *current)),  # apply_f
             (lambda current, item: current + (item,)),  # join_elem
-            True,  # if_nested
+            False,  # if_flatten
             evaluation,
         )
         return unpack_outer(lists[0], lists[1:], (), 1, etc)
@@ -274,7 +270,7 @@ def eval_Outer(f, lists, evaluation: Evaluation):
         (lambda elements: elements),  # apply_head
         sparse_apply_Rule,  # apply_f
         sparse_join_elem,  # join_elem
-        False,  # if_nested
+        True,  # if_flatten
         evaluation,
     )
     return Expression(
