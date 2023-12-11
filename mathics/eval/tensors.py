@@ -1,10 +1,12 @@
+from typing import Union
+
 from sympy.combinatorics import Permutation
 from sympy.utilities.iterables import permutations
 
 from mathics.core.atoms import Integer, Integer0, Integer1, String
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
+from mathics.core.expression import BaseElement, Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Atom,
@@ -85,7 +87,9 @@ def to_std_sparse_array(sparse_array, evaluation: Evaluation):
         ).evaluate(evaluation)
 
 
-def unpack_outer(item, rest_lists, current, level: int, const_etc: tuple):
+def unpack_outer(
+    item, rest_lists, current, level: int, const_etc: tuple
+) -> Union[list, BaseElement]:
     """
     Recursively unpacks lists to evaluate outer product.
     ------------------------------------
@@ -133,7 +137,9 @@ def unpack_outer(item, rest_lists, current, level: int, const_etc: tuple):
         evaluation,  # evaluation: Evaluation
     ) = const_etc
 
-    def _unpack_outer(item, rest_lists, current, level: int):
+    def _unpack_outer(
+        item, rest_lists, current, level: int
+    ) -> Union[list, BaseElement]:
         evaluation.check_stopped()
         if cond_next_list(item, level):  # unpack next list
             if rest_lists:
@@ -145,6 +151,7 @@ def unpack_outer(item, rest_lists, current, level: int, const_etc: tuple):
         else:  # unpack this list at next level
             elements = []
             action = elements.extend if if_flatten else elements.append
+            # elements.extend flattens the result as list instead of as ListExpression
             for element in get_elements(item):
                 action(_unpack_outer(element, rest_lists, current, level + 1))
             return apply_head(elements)
