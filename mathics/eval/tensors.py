@@ -131,26 +131,29 @@ def unpack_outer(item, rest_lists, current, level: int, const_etc: tuple):
         evaluation,  # evaluation: Evaluation
     ) = const_etc
 
-    evaluation.check_stopped()
-    if cond_next_list(item, level):  # unpack next list
-        if rest_lists:
-            return unpack_outer(
-                rest_lists[0], rest_lists[1:], join_elem(current, item), 1, const_etc
-            )
-        else:
-            return apply_f(join_elem(current, item))
-    else:  # unpack this list at next level
-        elements = []
-        for element in get_elements(item):
-            if if_nested:
-                elements.append(
-                    unpack_outer(element, rest_lists, current, level + 1, const_etc)
+    def _unpack_outer(item, rest_lists, current, level: int):
+        evaluation.check_stopped()
+        if cond_next_list(item, level):  # unpack next list
+            if rest_lists:
+                return _unpack_outer(
+                    rest_lists[0], rest_lists[1:], join_elem(current, item), 1
                 )
             else:
-                elements.extend(
-                    unpack_outer(element, rest_lists, current, level + 1, const_etc)
-                )
-        return apply_head(elements)
+                return apply_f(join_elem(current, item))
+        else:  # unpack this list at next level
+            elements = []
+            for element in get_elements(item):
+                if if_nested:
+                    elements.append(
+                        _unpack_outer(element, rest_lists, current, level + 1)
+                    )
+                else:
+                    elements.extend(
+                        _unpack_outer(element, rest_lists, current, level + 1)
+                    )
+            return apply_head(elements)
+
+    return _unpack_outer(item, rest_lists, current, level)
 
 
 def eval_Inner(f, list1, list2, g, evaluation: Evaluation):
