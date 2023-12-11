@@ -1,10 +1,12 @@
+from typing import Union
+
 from sympy.combinatorics import Permutation
 from sympy.utilities.iterables import permutations
 
 from mathics.core.atoms import Integer, Integer0, Integer1, String
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
+from mathics.core.expression import BaseElement, Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Atom,
@@ -75,6 +77,8 @@ def get_dimensions(expr, head=None):
 
 
 def to_std_sparse_array(sparse_array, evaluation: Evaluation):
+    "Get a SparseArray equivalent to input with default value 0."
+
     if sparse_array.elements[2] == Integer0:
         return sparse_array
     else:
@@ -83,7 +87,9 @@ def to_std_sparse_array(sparse_array, evaluation: Evaluation):
         ).evaluate(evaluation)
 
 
-def unpack_outer(item, rest_lists, current, level: int, const_etc: tuple):
+def unpack_outer(
+    item, rest_lists, current, level: int, const_etc: tuple
+) -> Union[list, BaseElement]:
     """
     Recursively unpacks lists to evaluate outer product.
     ------------------------------------
@@ -116,7 +122,7 @@ def unpack_outer(item, rest_lists, current, level: int, const_etc: tuple):
         apply_head,  # e.g. lambda elements: Expression(head, *elements)
         apply_f,  # e.g. lambda current: Expression(f, *current)
         join_elem,  # join current lowest level elements (i.e. current) with a new one
-        if_nested,  # True for result as nested list, False for result as flattened list
+        if_flattened,  # True for result as flattened list, False for result as nested list
         evaluation,  # evaluation: Evaluation
     )
     ```
@@ -127,11 +133,13 @@ def unpack_outer(item, rest_lists, current, level: int, const_etc: tuple):
         apply_head,  # e.g. lambda elements: Expression(head, *elements)
         apply_f,  # e.g. lambda current: Expression(f, *current)
         join_elem,  # join current lowest level elements (i.e. current) with a new one
-        if_nested,  # True for result as nested list ({{a,b},{c,d}}), False for result as flattened list ({a,b,c,d}})
+        if_flatten,  # True for result as flattened list ({a,b,c,d}), False for result as nested list ({{a,b},{c,d}})
         evaluation,  # evaluation: Evaluation
     ) = const_etc
 
-    def _unpack_outer(item, rest_lists, current, level: int):
+    def _unpack_outer(
+        item, rest_lists, current, level: int
+    ) -> Union[list, BaseElement]:
         evaluation.check_stopped()
         if cond_next_list(item, level):  # unpack next list
             if rest_lists:
@@ -142,15 +150,10 @@ def unpack_outer(item, rest_lists, current, level: int, const_etc: tuple):
                 return apply_f(join_elem(current, item))
         else:  # unpack this list at next level
             elements = []
+            action = elements.extend if if_flatten else elements.append
+            # elements.extend flattens the result as list instead of as ListExpression
             for element in get_elements(item):
-                if if_nested:
-                    elements.append(
-                        _unpack_outer(element, rest_lists, current, level + 1)
-                    )
-                else:
-                    elements.extend(
-                        _unpack_outer(element, rest_lists, current, level + 1)
-                    )
+                action(_unpack_outer(element, rest_lists, current, level + 1))
             return apply_head(elements)
 
     return _unpack_outer(item, rest_lists, current, level)
@@ -239,7 +242,7 @@ def eval_Outer(f, lists, evaluation: Evaluation):
     # head != SparseArray
     if not head.sameQ(SymbolSparseArray):
 
-        def cond_next_list(item, level):
+        def cond_next_list(item, level) -> bool:
             return isinstance(item, Atom) or not item.head.sameQ(head)
 
         etc = (
@@ -248,7 +251,7 @@ def eval_Outer(f, lists, evaluation: Evaluation):
             (lambda elements: Expression(head, *elements)),  # apply_head
             (lambda current: Expression(f, *current)),  # apply_f
             (lambda current, item: current + (item,)),  # join_elem
-            True,  # if_nested
+            False,  # if_flatten
             evaluation,
         )
         return unpack_outer(lists[0], lists[1:], (), 1, etc)
@@ -262,10 +265,10 @@ def eval_Outer(f, lists, evaluation: Evaluation):
         val *= _val
     dims = ListExpression(*dims)
 
-    def sparse_apply_Rule(current):
+    def sparse_apply_Rule(current) -> tuple:
         return (Expression(SymbolRule, ListExpression(*current[0]), current[1]),)
 
-    def sparse_join_elem(current, item):
+    def sparse_join_elem(current, item) -> tuple:
         return (current[0] + item.elements[0].elements, current[1] * item.elements[1])
 
     etc = (
@@ -274,7 +277,7 @@ def eval_Outer(f, lists, evaluation: Evaluation):
         (lambda elements: elements),  # apply_head
         sparse_apply_Rule,  # apply_f
         sparse_join_elem,  # join_elem
-        False,  # if_nested
+        True,  # if_flatten
         evaluation,
     )
     return Expression(
