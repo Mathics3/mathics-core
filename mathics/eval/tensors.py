@@ -131,26 +131,29 @@ def unpack_outer(item, rest_lists, current, level: int, const_etc: tuple):
         evaluation,  # evaluation: Evaluation
     ) = const_etc
 
-    evaluation.check_stopped()
-    if cond_next_list(item, level):  # unpack next list
-        if rest_lists:
-            return unpack_outer(
-                rest_lists[0], rest_lists[1:], join_elem(current, item), 1, const_etc
-            )
-        else:
-            return apply_f(join_elem(current, item))
-    else:  # unpack this list at next level
-        elements = []
-        for element in get_elements(item):
-            if if_nested:
-                elements.append(
-                    unpack_outer(element, rest_lists, current, level + 1, const_etc)
+    def _unpack_outer(item, rest_lists, current, level: int):
+        evaluation.check_stopped()
+        if cond_next_list(item, level):  # unpack next list
+            if rest_lists:
+                return _unpack_outer(
+                    rest_lists[0], rest_lists[1:], join_elem(current, item), 1
                 )
             else:
-                elements.extend(
-                    unpack_outer(element, rest_lists, current, level + 1, const_etc)
-                )
-        return apply_head(elements)
+                return apply_f(join_elem(current, item))
+        else:  # unpack this list at next level
+            elements = []
+            for element in get_elements(item):
+                if if_nested:
+                    elements.append(
+                        _unpack_outer(element, rest_lists, current, level + 1)
+                    )
+                else:
+                    elements.extend(
+                        _unpack_outer(element, rest_lists, current, level + 1)
+                    )
+            return apply_head(elements)
+
+    return _unpack_outer(item, rest_lists, current, level)
 
 
 def eval_Inner(f, list1, list2, g, evaluation: Evaluation):
@@ -235,8 +238,12 @@ def eval_Outer(f, lists, evaluation: Evaluation):
 
     # head != SparseArray
     if not head.sameQ(SymbolSparseArray):
+
+        def cond_next_list(item, level):
+            return isinstance(item, Atom) or not item.head.sameQ(head)
+
         etc = (
-            (lambda item, level: isinstance(item, Atom) or not item.head.sameQ(head)),
+            cond_next_list,
             (lambda item: item.elements),  # get_elements
             (lambda elements: Expression(head, *elements)),  # apply_head
             (lambda current: Expression(f, *current)),  # apply_f
@@ -254,21 +261,19 @@ def eval_Outer(f, lists, evaluation: Evaluation):
         dims.extend(_dims)
         val *= _val
     dims = ListExpression(*dims)
+
+    def sparse_apply_Rule(current):
+        return (Expression(SymbolRule, ListExpression(*current[0]), current[1]),)
+
+    def sparse_join_elem(current, item):
+        return (current[0] + item.elements[0].elements, current[1] * item.elements[1])
+
     etc = (
-        (lambda item, level: not item.head.sameQ(SymbolSparseArray)),
+        (lambda item, level: not item.head.sameQ(SymbolSparseArray)),  # cond_next_list
         (lambda item: to_std_sparse_array(item, evaluation).elements[3].elements),
         (lambda elements: elements),  # apply_head
-        (
-            lambda current: (
-                Expression(SymbolRule, ListExpression(*current[0]), current[1]),
-            )
-        ),  # apply_f
-        (
-            lambda current, item: (
-                current[0] + item.elements[0].elements,
-                current[1] * item.elements[1],
-            )
-        ),  # join_elem
+        sparse_apply_Rule,  # apply_f
+        sparse_join_elem,  # join_elem
         False,  # if_nested
         evaluation,
     )
