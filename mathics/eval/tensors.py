@@ -207,6 +207,10 @@ def eval_Inner(f, list1, list2, g, evaluation: Evaluation):
 def eval_Outer(f, lists, evaluation: Evaluation):
     "Evaluates recursively the outer product of lists"
 
+    if isinstance(lists, Atom):
+        evaluation.message("Outer", "normal")
+        return
+
     # If f=!=Times, or lists contain both SparseArray and List, then convert all SparseArrays to Lists
     lists = lists.get_sequence()
     head = None
@@ -265,6 +269,9 @@ def eval_Outer(f, lists, evaluation: Evaluation):
         val *= _val
     dims = ListExpression(*dims)
 
+    def sparse_cond_next_list(item, level) -> bool:
+        return isinstance(item, Atom) or not item.head.sameQ(head)
+
     def sparse_apply_Rule(current) -> tuple:
         return (Expression(SymbolRule, ListExpression(*current[0]), current[1]),)
 
@@ -272,7 +279,7 @@ def eval_Outer(f, lists, evaluation: Evaluation):
         return (current[0] + item.elements[0].elements, current[1] * item.elements[1])
 
     etc = (
-        (lambda item, level: not item.head.sameQ(SymbolSparseArray)),  # cond_next_list
+        sparse_cond_next_list,
         (lambda item: to_std_sparse_array(item, evaluation).elements[3].elements),
         (lambda elements: elements),  # apply_head
         sparse_apply_Rule,  # apply_f
