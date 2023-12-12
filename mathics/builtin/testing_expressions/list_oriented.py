@@ -11,6 +11,7 @@ from mathics.core.rules import Pattern
 from mathics.core.symbols import Atom, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolSubsetQ
 from mathics.eval.parts import python_levelspec
+from mathics.eval.testing_expressions import check_ArrayQ
 
 
 class ArrayQ(Builtin):
@@ -55,27 +56,7 @@ class ArrayQ(Builtin):
 
         dims = [len(expr.get_elements())]  # to ensure an atom is not an array
 
-        def check(level, expr):
-            if not expr.has_form("List", None):
-                test_expr = Expression(test, expr)
-                if test_expr.evaluate(evaluation) != SymbolTrue:
-                    return False
-                level_dim = None
-            else:
-                level_dim = len(expr.elements)
-
-            if len(dims) > level:
-                if dims[level] != level_dim:
-                    return False
-            else:
-                dims.append(level_dim)
-            if level_dim is not None:
-                for element in expr.elements:
-                    if not check(level + 1, element):
-                        return False
-            return True
-
-        if not check(0, expr):
+        if not check_ArrayQ(0, expr, dims, test, evaluation):
             return SymbolFalse
 
         depth = len(dims) - 1  # None doesn't count

@@ -4,11 +4,11 @@ import sympy
 
 from mathics.core.atoms import Complex, Integer0, Integer1, IntegerM1
 from mathics.core.expression import Expression
+from mathics.core.symbols import SymbolTrue
 from mathics.core.systemsymbols import SymbolDirectedInfinity
 
 
 def do_cmp(x1, x2) -> Optional[int]:
-
     # don't attempt to compare complex numbers
     for x in (x1, x2):
         # TODO: Send message General::nord
@@ -99,3 +99,27 @@ def expr_min(elements):
 
 def is_number(sympy_value) -> bool:
     return hasattr(sympy_value, "is_number") or isinstance(sympy_value, sympy.Float)
+
+
+def check_ArrayQ(level, expr, dims, test, evaluation):
+    def check(level, expr):
+        if not expr.has_form("List", None):
+            test_expr = Expression(test, expr)
+            if test_expr.evaluate(evaluation) != SymbolTrue:
+                return False
+            level_dim = None
+        else:
+            level_dim = len(expr.elements)
+
+        if len(dims) > level:
+            if dims[level] != level_dim:
+                return False
+        else:
+            dims.append(level_dim)
+        if level_dim is not None:
+            for element in expr.elements:
+                if not check(level + 1, element):
+                    return False
+        return True
+
+    return check(level, expr)

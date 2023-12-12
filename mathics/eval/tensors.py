@@ -242,7 +242,7 @@ def eval_Outer(f, lists, evaluation: Evaluation):
     # head != SparseArray
     if not head.sameQ(SymbolSparseArray):
 
-        def cond_next_list(item, level):
+        def cond_next_list(item, level) -> bool:
             return isinstance(item, Atom) or not item.head.sameQ(head)
 
         etc = (
@@ -265,10 +265,10 @@ def eval_Outer(f, lists, evaluation: Evaluation):
         val *= _val
     dims = ListExpression(*dims)
 
-    def sparse_apply_Rule(current):
+    def sparse_apply_Rule(current) -> tuple:
         return (Expression(SymbolRule, ListExpression(*current[0]), current[1]),)
 
-    def sparse_join_elem(current, item):
+    def sparse_join_elem(current, item) -> tuple:
         return (current[0] + item.elements[0].elements, current[1] * item.elements[1])
 
     etc = (
