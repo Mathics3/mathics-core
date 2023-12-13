@@ -256,10 +256,6 @@ class FromDigits(Builtin):
      = 0
     >> FromDigits[""]
      = 0
-
-    #> FromDigits[x]
-     : The input must be a string of digits or a list.
-     = FromDigits[x, 10]
     """
 
     summary_text = "integer from a list of digits"

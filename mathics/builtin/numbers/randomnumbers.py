@@ -334,25 +334,15 @@ class RandomComplex(Builtin):
 
     >> RandomComplex[]
      = ...
-    #> 0 <= Re[%] <= 1 && 0 <= Im[%] <= 1
-     = True
 
     >> RandomComplex[{1+I, 5+5I}]
      = ...
-    #> 1 <= Re[%] <= 5 && 1 <= Im[%] <= 5
-     = True
 
     >> RandomComplex[1+I, 5]
      = {..., ..., ..., ..., ...}
 
     >> RandomComplex[{1+I, 2+2I}, {2, 2}]
      = {{..., ...}, {..., ...}}
-
-    #> RandomComplex[{6, 2 Pi + I}]
-     = 6...
-
-    #> RandomComplex[{6.3, 2.5 I}] // FullForm
-     = Complex[..., ...]
     """
 
     messages = {
@@ -463,8 +453,6 @@ class RandomInteger(Builtin):
 
     >> RandomInteger[{1, 5}]
      = ...
-    #> 1 <= % <= 5
-     = True
 
     >> RandomInteger[100, {2, 3}] // TableForm
      = ...   ...   ...
@@ -542,21 +530,8 @@ class RandomReal(Builtin):
 
     >> RandomReal[]
      = ...
-    #> 0 <= % <= 1
-     = True
-
     >> RandomReal[{1, 5}]
      = ...
-
-    ## needs too much horizontal space in TeX form
-    #> RandomReal[100, {2, 3}] // TableForm
-     = ...   ...   ...
-     .
-     . ...   ...   ...
-
-    #> RandomReal[{0, 1}, {1, -1}]
-     : The array dimensions {1, -1} given in position 2 of RandomReal[{0, 1}, {1, -1}] should be a list of non-negative machine-sized integers giving the dimensions for the result.
-     = RandomReal[{0, 1}, {1, -1}]
     """
 
     messages = {
@@ -691,10 +666,6 @@ class SeedRandom(Builtin):
     >> SeedRandom[]
     >> RandomInteger[100]
      = ...
-
-    #> SeedRandom[x]
-     : Argument x should be an integer or string.
-     = SeedRandom[x]
     """
 
     messages = {

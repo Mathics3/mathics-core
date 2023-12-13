@@ -14,7 +14,7 @@ import pytest
     # by SymPy.
     [
         (
-            "BesselI[1/2,z]",
+            "z=.;BesselI[1/2,z]",
             "Sqrt[2] Sinh[z] / (Sqrt[z] Sqrt[Pi])",
             "BesselI 1/2 rule",
         ),
