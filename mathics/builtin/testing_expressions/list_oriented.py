@@ -8,9 +8,9 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolSubsetQ #, SymbolSparseArray
+from mathics.core.systemsymbols import SymbolSubsetQ  # , SymbolSparseArray
 from mathics.eval.parts import python_levelspec
-from mathics.eval.testing_expressions import check_ArrayQ #, check_SparseArrayQ
+from mathics.eval.testing_expressions import check_ArrayQ  # , check_SparseArrayQ
 
 
 class ArrayQ(Builtin):
