@@ -257,21 +257,6 @@ class N(Builtin):
      = F[3.14159265358979300000000000000]
     >> N[F[Pi], 30, Method->"sympy"]
      = F[3.14159265358979323846264338328]
-    #> p=N[Pi,100]
-     = 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068
-    #> ToString[p]
-     = 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068
-
-    #> N[1.012345678901234567890123, 20]
-     = 1.0123456789012345679
-
-    #> N[I, 30]
-     = 1.00000000000000000000000000000 I
-
-    #> N[1.012345678901234567890123, 50]
-     = 1.01234567890123456789012
-    #> % // Precision
-     = 24.
     """
 
     options = {"Method": "Automatic"}
@@ -454,18 +439,6 @@ class Rationalize(Builtin):
     Find the exact rational representation of 'N[Pi]'
     >> Rationalize[N[Pi], 0]
      = 245850922 / 78256779
-
-    #> Rationalize[N[Pi] + 0.8 I, x]
-     : Tolerance specification x must be a non-negative number.
-     = Rationalize[3.14159 + 0.8 I, x]
-
-    #> Rationalize[N[Pi] + 0.8 I, -1]
-     : Tolerance specification -1 must be a non-negative number.
-     = Rationalize[3.14159 + 0.8 I, -1]
-
-    #> Rationalize[x, y]
-     : Tolerance specification y must be a non-negative number.
-     = Rationalize[x, y]
     """
 
     messages = {
@@ -769,17 +742,11 @@ class Sign(SympyFunction):
      = 0
     >> Sign[{-5, -10, 15, 20, 0}]
      = {-1, -1, 1, 1, 0}
-    #> Sign[{1, 2.3, 4/5, {-6.7, 0}, {8/9, -10}}]
-     = {1, 1, 1, {-1, 0}, {1, -1}}
+
+    For a complex number, 'Sign' returns the phase of the number:
     >> Sign[3 - 4*I]
      = 3 / 5 - 4 I / 5
-    #> Sign[1 - 4*I] == (1/17 - 4 I/17) Sqrt[17]
-     = True
-    #> Sign[4, 5, 6]
-     : Sign called with 3 arguments; 1 argument is expected.
-     = Sign[4, 5, 6]
-    #> Sign["20"]
-     = Sign[20]
+
     """
 
     summary_text = "complex sign of a number"
