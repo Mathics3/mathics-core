@@ -137,6 +137,8 @@ def unpack_outer(
         evaluation,  # evaluation: Evaluation
     ) = const_etc
 
+    _apply_f = (lambda current: (apply_f(current),)) if if_flatten else apply_f
+
     def _unpack_outer(
         item, rest_lists, current, level: int
     ) -> Union[list, BaseElement]:
@@ -147,7 +149,7 @@ def unpack_outer(
                     rest_lists[0], rest_lists[1:], join_elem(current, item), 1
                 )
             else:
-                return apply_f(join_elem(current, item))
+                return _apply_f(join_elem(current, item))
         else:  # unpack this list at next level
             elements = []
             action = elements.extend if if_flatten else elements.append
@@ -273,7 +275,7 @@ def eval_Outer(f, lists, evaluation: Evaluation):
         return isinstance(item, Atom) or not item.head.sameQ(head)
 
     def sparse_apply_Rule(current) -> tuple:
-        return (Expression(SymbolRule, ListExpression(*current[0]), current[1]),)
+        return Expression(SymbolRule, ListExpression(*current[0]), current[1])
 
     def sparse_join_elem(current, item) -> tuple:
         return (current[0] + item.elements[0].elements, current[1] * item.elements[1])
