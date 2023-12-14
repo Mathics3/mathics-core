@@ -162,3 +162,5 @@ def check_SparseArrayQ(expr, pattern, test, evaluation: Evaluation):
             return SymbolFalse
 
     return SymbolTrue
+
+# something strange happened to my Git. Try to figure out what it was. This has nothing to do with the code above.
