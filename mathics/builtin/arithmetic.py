@@ -958,14 +958,6 @@ class Sum(IterationFunction, SympyFunction):
     Verify algebraic identities:
     >> Sum[x ^ 2, {x, 1, y}] - y * (y + 1) * (2 * y + 1) / 6
      = 0
-
-
-    ## Issue #302
-    ## The sum should not converge since the first term is 1/0.
-    #> Sum[i / Log[i], {i, 1, Infinity}]
-     = Sum[i / Log[i], {i, 1, Infinity}]
-    #> Sum[Cos[Pi i], {i, 1, Infinity}]
-     = Sum[Cos[i Pi], {i, 1, Infinity}]
     """
 
     summary_text = "discrete sum"

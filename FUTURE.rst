@@ -2,9 +2,11 @@
 
 .. contents::
 
-The following 2023 road map that appears the 6.0.0 hasn't gone through enough discussion. This provisional.
-Check the github repository for updates.
 
+2024 Roadmap
+============
+
+To be decided...
 
 2023 Roadmap
 ============

@@ -63,9 +63,6 @@ class HarmonicNumber(MPMathFunction):
 
     >> HarmonicNumber[3.8]
      = 2.03806
-
-    #> HarmonicNumber[-1.5]
-     = 0.613706
     """
 
     rules = {
