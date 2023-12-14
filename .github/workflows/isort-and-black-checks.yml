@@ -4,13 +4,7 @@
 # https://github.com/cclauss/autoblack
 
 name: isort and black check
-
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: '**'
-    
+on: [pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
