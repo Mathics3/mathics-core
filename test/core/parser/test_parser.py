@@ -291,6 +291,8 @@ class GeneralTests(ParserTests):
         self.check("f'", "Derivative[1][f]")
         self.check("f''", "Derivative[2][f]")
         self.check("f' '", "Derivative[2][f]")
+        self.check("f '' ''", "Derivative[4][f]")
+        self.check("Derivative[x][4] '", "Derivative[1][Derivative[x][4]]")
 
     def testPlus(self):
         self.check("+1", Node("Plus", Number("1")))

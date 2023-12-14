@@ -172,24 +172,6 @@ class D(SympyFunction):
     Hesse matrix:
     >> D[Sin[x] * Cos[y], {{x,y}, 2}]
      = {{-Cos[y] Sin[x], -Cos[x] Sin[y]}, {-Cos[x] Sin[y], -Cos[y] Sin[x]}}
-
-    #> D[2/3 Cos[x] - 1/3 x Cos[x] Sin[x] ^ 2,x]//Expand
-     = -2 x Cos[x] ^ 2 Sin[x] / 3 + x Sin[x] ^ 3 / 3 - 2 Sin[x] / 3 - Cos[x] Sin[x] ^ 2 / 3
-
-    #> D[f[#1], {#1,2}]
-     = f''[#1]
-    #> D[(#1&)[t],{t,4}]
-     = 0
-
-    #> Attributes[f] ={HoldAll}; Apart[f''[x + x]]
-     = f''[2 x]
-
-    #> Attributes[f] = {}; Apart[f''[x + x]]
-     = f''[2 x]
-
-    ## Issue #375
-    #> D[{#^2}, #]
-     = {2 #1}
     """
 
     # TODO
@@ -416,16 +398,6 @@ class Derivative(PostfixOperator, SympyFunction):
      = Derivative[2, 1][h]
     >> Derivative[2, 0, 1, 0][h[g]]
      = Derivative[2, 0, 1, 0][h[g]]
-
-    ## Parser Tests
-    #> Hold[f''] // FullForm
-     = Hold[Derivative[2][f]]
-    #> Hold[f ' '] // FullForm
-     = Hold[Derivative[2][f]]
-    #> Hold[f '' ''] // FullForm
-     = Hold[Derivative[4][f]]
-    #> Hold[Derivative[x][4] '] // FullForm
-     = Hold[Derivative[1][Derivative[x][4]]]
     """
 
     attributes = A_N_HOLD_ALL
@@ -866,12 +838,8 @@ class FindRoot(_BaseFinder):
      = FindRoot[Sin[x] - x, {x, 0}]
 
 
-    #> FindRoot[2.5==x,{x,0}]
-     = {x -> 2.5}
-
     >> FindRoot[x^2 - 2, {x, 1,3}, Method->"Secant"]
      = {x -> 1.41421}
-
     """
 
     rules = {
@@ -972,20 +940,6 @@ class Integrate(SympyFunction):
     >> Integrate[f[x], {x, a, b}] // TeXForm
      = \int_a^b f\left[x\right] \, dx
 
-    #> DownValues[Integrate]
-     = {}
-    #> Definition[Integrate]
-     = Attributes[Integrate] = {Protected, ReadProtected}
-     .
-     . Options[Integrate] = {Assumptions -> $Assumptions, GenerateConditions -> Automatic, PrincipalValue -> False}
-    #> Integrate[Hold[x + x], {x, a, b}]
-     = Integrate[Hold[x + x], {x, a, b}]
-    #> Integrate[sin[x], x]
-     = Integrate[sin[x], x]
-
-    #> Integrate[x ^ 3.5 + x, x]
-     = x ^ 2 / 2 + 0.222222 x ^ 4.5
-
     Sometimes there is a loss of precision during integration.
     You can check the precision of your result with the following sequence
     of commands.
@@ -993,20 +947,6 @@ class Integrate(SympyFunction):
      = 4.
      >> % // Precision
      = MachinePrecision
-
-    #> Integrate[1/(x^5+1), x]
-     = RootSum[1 + 5 #1 + 25 #1 ^ 2 + 125 #1 ^ 3 + 625 #1 ^ 4&, Log[x + 5 #1] #1&] + Log[1 + x] / 5
-
-    #> Integrate[ArcTan(x), x]
-     = x ^ 2 ArcTan / 2
-    #> Integrate[E[x], x]
-     = Integrate[E[x], x]
-
-    #> Integrate[Exp[-(x/2)^2],{x,-Infinity,+Infinity}]
-     = 2 Sqrt[Pi]
-
-    #> Integrate[Exp[-1/(x^2)], x]
-     = x E ^ (-1 / x ^ 2) + Sqrt[Pi] Erf[1 / x]
 
     >> Integrate[ArcSin[x / 3], x]
      = x ArcSin[x / 3] + Sqrt[9 - x ^ 2]

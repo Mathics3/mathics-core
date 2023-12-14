@@ -155,8 +155,6 @@ class Factorial(PostfixOperator, MPMathFunction):
     >> !a! //FullForm
      = Not[Factorial[a]]
 
-    #> 0!
-     = 1
     """
 
     attributes = A_NUMERIC_FUNCTION | A_PROTECTED
@@ -301,22 +299,6 @@ class Gamma(MPMathMultiFunction):
     Both 'Gamma' and 'Factorial' functions are continuous:
     >> Plot[{Gamma[x], x!}, {x, 0, 4}]
      = -Graphics-
-
-    ## Issue 203
-    #> N[Gamma[24/10], 100]
-     = 1.242169344504305404913070252268300492431517240992022966055507541481863694148882652446155342679460339
-    #> N[N[Gamma[24/10],100]/N[Gamma[14/10],100],100]
-     = 1.400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-    #> % // Precision
-     = 100.
-
-    #> Gamma[1.*^20]
-     : Overflow occurred in computation.
-     = Overflow[]
-
-    ## Needs mpmath support for lowergamma
-    #> Gamma[1., 2.]
-     = Gamma[1., 2.]
     """
 
     mpmath_names = {

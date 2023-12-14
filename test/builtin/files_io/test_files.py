@@ -80,6 +80,262 @@ def test_close():
     ), f"temporary filename {temp_filename} should not appear"
 
 
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
+        ('Close["abc"]', ("abc is not open.",), "Close[abc]", None),
+        (
+            "exp = Sin[1]; FilePrint[exp]",
+            ("File specification Sin[1] is not a string of one or more characters.",),
+            "FilePrint[Sin[1]]",
+            None,
+        ),
+        (
+            'FilePrint["somenonexistentpath_h47sdmk^&h4"]',
+            ("Cannot open somenonexistentpath_h47sdmk^&h4.",),
+            "FilePrint[somenonexistentpath_h47sdmk^&h4]",
+            None,
+        ),
+        (
+            'FilePrint[""]',
+            ("File specification  is not a string of one or more characters.",),
+            "FilePrint[]",
+            None,
+        ),
+        (
+            'Get["SomeTypoPackage`"]',
+            ("Cannot open SomeTypoPackage`.",),
+            "$Failed",
+            None,
+        ),
+        ## Parser Tests
+        (
+            "Hold[<< ~/some_example/dir/] // FullForm",
+            None,
+            'Hold[Get["~/some_example/dir/"]]',
+            None,
+        ),
+        (
+            r"Hold[<<`/.\-_:$*~?] // FullForm",
+            None,
+            r'Hold[Get["`/.\\\\-_:$*~?"]]',
+            None,
+        ),
+        (
+            "OpenRead[]",
+            ("OpenRead called with 0 arguments; 1 argument is expected.",),
+            "OpenRead[]",
+            None,
+        ),
+        (
+            "OpenRead[y]",
+            ("File specification y is not a string of one or more characters.",),
+            "OpenRead[y]",
+            None,
+        ),
+        (
+            'OpenRead[""]',
+            ("File specification  is not a string of one or more characters.",),
+            "OpenRead[]",
+            None,
+        ),
+        (
+            'OpenRead["MathicsNonExampleFile"]',
+            ("Cannot open MathicsNonExampleFile.",),
+            "OpenRead[MathicsNonExampleFile]",
+            None,
+        ),
+        (
+            'fd=OpenRead["ExampleData/EinsteinSzilLetter.txt", BinaryFormat -> True, CharacterEncoding->"UTF8"]//Head',
+            None,
+            "InputStream",
+            None,
+        ),
+        (
+            "Close[fd]; fd=.;fd=OpenWrite[BinaryFormat -> True]//Head",
+            None,
+            "OutputStream",
+            None,
+        ),
+        (
+            'DeleteFile[Close[fd]];fd=.;appendFile = OpenAppend["MathicsNonExampleFile"]//{#1[[0]],#1[[1]]}&',
+            None,
+            "{OutputStream, MathicsNonExampleFile}",
+            None,
+        ),
+        (
+            "Close[appendFile]",
+            None,
+            "Close[{OutputStream, MathicsNonExampleFile}]",
+            None,
+        ),
+        ('DeleteFile["MathicsNonExampleFile"]', None, "Null", None),
+        ## writing to dir
+        ("x >>> /var/", ("Cannot open /var/.",), "x >>> /var/", None),
+        ## writing to read only file
+        (
+            "x >>> /proc/uptime",
+            ("Cannot open /proc/uptime.",),
+            "x >>> /proc/uptime",
+            None,
+        ),
+        ## Malformed InputString
+        (
+            "Read[InputStream[String], {Word, Number}]",
+            None,
+            "Read[InputStream[String], {Word, Number}]",
+            None,
+        ),
+        ## Correctly formed InputString but not open
+        (
+            "Read[InputStream[String, -1], {Word, Number}]",
+            ("InputStream[String, -1] is not open.",),
+            "Read[InputStream[String, -1], {Word, Number}]",
+            None,
+        ),
+        ('stream = StringToStream[""];Read[stream, Word]', None, "EndOfFile", None),
+        ("Read[stream, Word]", None, "EndOfFile", None),
+        ("Close[stream];", None, "Null", None),
+        (
+            'stream = StringToStream["123xyz 321"]; Read[stream, Number]',
+            None,
+            "123",
+            None,
+        ),
+        ("Quiet[Read[stream, Number]]", None, "$Failed", None),
+        ## Real
+        ('stream = StringToStream["123, 4abc"];Read[stream, Real]', None, "123.", None),
+        ("Read[stream, Real]", None, "4.", None),
+        ("Quiet[Read[stream, Number]]", None, "$Failed", None),
+        ("Close[stream];", None, "Null", None),
+        (
+            'stream = StringToStream["1.523E-19"]; Read[stream, Real]',
+            None,
+            "1.523×10^-19",
+            None,
+        ),
+        ("Close[stream];", None, "Null", None),
+        (
+            'stream = StringToStream["-1.523e19"]; Read[stream, Real]',
+            None,
+            "-1.523×10^19",
+            None,
+        ),
+        ("Close[stream];", None, "Null", None),
+        (
+            'stream = StringToStream["3*^10"]; Read[stream, Real]',
+            None,
+            "3.×10^10",
+            None,
+        ),
+        ("Close[stream];", None, "Null", None),
+        (
+            'stream = StringToStream["3.*^10"]; Read[stream, Real]',
+            None,
+            "3.×10^10",
+            None,
+        ),
+        ("Close[stream];", None, "Null", None),
+        ## Expression
+        (
+            'stream = StringToStream["x + y Sin[z]"]; Read[stream, Expression]',
+            None,
+            "x + y Sin[z]",
+            None,
+        ),
+        ("Close[stream];", None, "Null", None),
+        ## ('stream = Quiet[StringToStream["Sin[1 123"]; Read[stream, Expression]]', None,'$Failed', None),
+        (
+            'stream = StringToStream["123 abc"]; Quiet[Read[stream, {Word, Number}]]',
+            None,
+            "$Failed",
+            None,
+        ),
+        ("Close[stream];", None, "Null", None),
+        (
+            'stream = StringToStream["123 123"];  Read[stream, {Real, Number}]',
+            None,
+            "{123., 123}",
+            None,
+        ),
+        ("Close[stream];", None, "Null", None),
+        (
+            "Quiet[Read[stream, {Real}]]//{#1[[0]],#1[[1]][[0]],#1[[1]][[1]],#1[[2]]}&",
+            None,
+            "{Read, InputStream, String, {Real}}",
+            None,
+        ),
+        (
+            r'stream = StringToStream["\"abc123\""];ReadList[stream, "Invalid"]//{#1[[0]],#1[[2]]}&',
+            ("Invalid is not a valid format specification.",),
+            "{ReadList, Invalid}",
+            None,
+        ),
+        ("Close[stream];", None, "Null", None),
+        (
+            'ReadList[StringToStream["a 1 b 2"], {Word, Number}, 1]',
+            None,
+            "{{a, 1}}",
+            None,
+        ),
+        ('stream = StringToStream["Mathics is cool!"];', None, "Null", None),
+        ("SetStreamPosition[stream, -5]", ("Invalid I/O Seek.",), "0", None),
+        (
+            '(strm = StringToStream["abc 123"])//{#1[[0]],#1[[1]]}&',
+            None,
+            "{InputStream, String}",
+            None,
+        ),
+        ("Read[strm, Word]", None, "abc", None),
+        ("Read[strm, Number]", None, "123", None),
+        ("Close[strm]", None, "String", None),
+        ("(low=OpenWrite[])//Head", None, "OutputStream", None),
+        (
+            "Streams[low[[1]]]//{#1[[0]],#1[[1]][[0]]}&",
+            None,
+            "{List, OutputStream}",
+            None,
+        ),
+        ('Streams["some_nonexistent_name"]', None, "{}", None),
+        (
+            "stream = OpenWrite[]; WriteString[stream, 100, 1 + x + y, Sin[x  + y]]",
+            None,
+            "Null",
+            None,
+        ),
+        ("(pathname = Close[stream])//Head", None, "String", None),
+        ("FilePrint[pathname]", ("1001 + x + ySin[x + y]",), "Null", None),
+        ("DeleteFile[pathname];", None, "Null", None),
+        (
+            "stream = OpenWrite[];WriteString[stream];(pathname = Close[stream])//Head",
+            None,
+            "String",
+            None,
+        ),
+        ("FilePrint[pathname]", None, "Null", None),
+        (
+            "WriteString[pathname, abc];(laststrm=Streams[pathname][[1]])//Head",
+            None,
+            "OutputStream",
+            None,
+        ),
+        ("Close[laststrm];FilePrint[pathname]", ("abc",), "Null", None),
+        ("DeleteFile[pathname];Clear[pathname];", None, "Null", None),
+    ],
+)
+def test_private_doctests_files(str_expr, msgs, str_expected, fail_msg):
+    """ """
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )
+
+
 # I do not know what this is it supposed to test with this...
 # def test_Inputget_and_put():
 #    stream = Expression('Plus', Symbol('x'), Integer(2))
