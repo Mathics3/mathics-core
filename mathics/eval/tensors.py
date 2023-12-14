@@ -98,8 +98,8 @@ def construct_outer(lists, current, const_etc: tuple) -> Union[list, BaseElement
 
     Parameters:
 
-    ``item``: the current item to be unpacked (if not at lowest level), or joined
-    to current (if at lowest level)
+    ``item``: the current item to be unpacked (if not at lowest level),
+    or joined to current (if at lowest level)
 
     ``rest_lists``: the rest of lists to be unpacked
 
@@ -124,6 +124,10 @@ def construct_outer(lists, current, const_etc: tuple) -> Union[list, BaseElement
         evaluation,  # evaluation: Evaluation
     )
     ```
+
+    For those unfamiliar with ``construct_outer``, ``ConstructOuterTest``
+    in ``test/eval/test_tensors.py`` provides a detailed introduction and
+    several good examples.
     """
     (
         cond_next_list,  # return True when the next list should be unpacked
@@ -146,7 +150,7 @@ def construct_outer(lists, current, const_etc: tuple) -> Union[list, BaseElement
             if rest_lists:
                 return _unpack_outer(
                     rest_lists[0], rest_lists[1:], join_elem(current, item), 1
-                )
+                )  # unpacking of a list always start from level 1
             else:
                 return _apply_f(join_elem(current, item))
         else:  # unpack this list at next level

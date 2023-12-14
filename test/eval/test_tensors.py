@@ -64,6 +64,7 @@ class ConstructOuterTest(unittest.TestCase):
             evaluation,
         )
 
+        # Here initial current is empty, but in some cases we expect non-empty ones like ((), Integer1)
         assert construct_outer([list1, list2, list3], [], etc_1) == expected_result_1
         assert construct_outer([list1, list2, list3], (), etc_2) == expected_result_1
 
@@ -109,6 +110,10 @@ class ConstructOuterTest(unittest.TestCase):
         list6 = ListExpression(Integer(6), Integer(7), Integer(8))
 
         expected_result_3 = Expression(
+            Symbol("System`Outer"), SymbolList, list4, list5, list6
+        ).evaluate(evaluation)
+
+        expected_result_4 = Expression(
             Symbol("System`Tuples"), ListExpression(list4, list5, list6)
         ).evaluate(evaluation)
 
@@ -118,6 +123,16 @@ class ConstructOuterTest(unittest.TestCase):
         etc_4 = (
             cond_next_list,
             (lambda item: item.elements),
+            (lambda elements: ListExpression(*elements)),  # apply_head
+            (lambda current: ListExpression(*current)),  # apply_f
+            (lambda current, item: current + (item,)),
+            False,
+            evaluation,
+        )
+
+        etc_5 = (
+            cond_next_list,
+            (lambda item: item.elements),
             (lambda elements: elements),  # apply_head
             (lambda current: ListExpression(*current)),  # apply_f
             (lambda current, item: current + (item,)),
@@ -125,9 +140,10 @@ class ConstructOuterTest(unittest.TestCase):
             evaluation,
         )
 
+        assert construct_outer([list4, list5, list6], (), etc_4) == expected_result_3
         assert (
-            ListExpression(*construct_outer([list4, list5, list6], (), etc_4))
-            == expected_result_3
+            ListExpression(*construct_outer([list4, list5, list6], (), etc_5))
+            == expected_result_4
         )
 
 
