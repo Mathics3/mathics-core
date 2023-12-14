@@ -10,20 +10,20 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolList, SymbolPlus, SymbolTimes
-from mathics.eval.tensors import unpack_outer
+from mathics.eval.tensors import construct_outer
 
 definitions = Definitions(add_builtin=True)
 evaluation = Evaluation(definitions, catch_interrupt=False)
 
 
-class UnpackOuterTest(unittest.TestCase):
+class ConstructOuterTest(unittest.TestCase):
     """
-    Test unpack_outer, and introduce some of its potential applications.
+    Test construct_outer, and introduce some of its potential applications.
     """
 
     def testCartesianProduct(self):
         """
-        Cartesian Product (Tuples) can be implemented by unpack_outer.
+        Cartesian Product (Tuples) can be implemented by construct_outer.
         """
         list1 = [1, 2, 3]
         list2 = [4, 5]
@@ -56,7 +56,7 @@ class UnpackOuterTest(unittest.TestCase):
             # list1~list3 all have depth 1, so level > 1 equals to not isinstance(item, list)
             (lambda item: item),
             (lambda elements: elements),
-            # internal level structure used in unpack_outer is exactly list, so list equals to identity
+            # internal level structure used in construct_outer is exactly list, so list equals to identity
             (lambda current: current),
             # now join_elem is in form of tuple, so we no longer need to convert it to tuple
             (lambda current, item: current + (item,)),
@@ -64,8 +64,8 @@ class UnpackOuterTest(unittest.TestCase):
             evaluation,
         )
 
-        assert unpack_outer(list1, [list2, list3], [], 1, etc_1) == expected_result_1
-        assert unpack_outer(list1, [list2, list3], (), 1, etc_2) == expected_result_1
+        assert construct_outer([list1, list2, list3], [], etc_1) == expected_result_1
+        assert construct_outer([list1, list2, list3], (), etc_2) == expected_result_1
 
         # Now let's try something different
 
@@ -100,7 +100,7 @@ class UnpackOuterTest(unittest.TestCase):
             evaluation,
         )
 
-        assert unpack_outer(list1, [list2, list3], [], 1, etc_3) == expected_result_2
+        assert construct_outer([list1, list2, list3], [], etc_3) == expected_result_2
 
         # M-Expression
 
@@ -126,7 +126,7 @@ class UnpackOuterTest(unittest.TestCase):
         )
 
         assert (
-            ListExpression(*unpack_outer(list4, [list5, list6], (), 1, etc_4))
+            ListExpression(*construct_outer([list4, list5, list6], (), etc_4))
             == expected_result_3
         )
 

@@ -87,11 +87,9 @@ def to_std_sparse_array(sparse_array, evaluation: Evaluation):
         ).evaluate(evaluation)
 
 
-def unpack_outer(
-    item, rest_lists, current, level: int, const_etc: tuple
-) -> Union[list, BaseElement]:
+def construct_outer(lists, current, const_etc: tuple) -> Union[list, BaseElement]:
     """
-    Recursively unpacks lists to evaluate outer product.
+    Recursively unpacks lists to construct outer product.
     ------------------------------------
 
     Unlike direct products, outer (tensor) products require traversing the
@@ -139,6 +137,7 @@ def unpack_outer(
 
     _apply_f = (lambda current: (apply_f(current),)) if if_flatten else apply_f
 
+    # Recursive step of unpacking
     def _unpack_outer(
         item, rest_lists, current, level: int
     ) -> Union[list, BaseElement]:
@@ -158,7 +157,7 @@ def unpack_outer(
                 action(_unpack_outer(element, rest_lists, current, level + 1))
             return apply_head(elements)
 
-    return _unpack_outer(item, rest_lists, current, level)
+    return _unpack_outer(lists[0], lists[1:], current, 1)
 
 
 def eval_Inner(f, list1, list2, g, evaluation: Evaluation):
@@ -260,7 +259,7 @@ def eval_Outer(f, lists, evaluation: Evaluation):
             False,  # if_flatten
             evaluation,
         )
-        return unpack_outer(lists[0], lists[1:], (), 1, etc)
+        return construct_outer(lists, (), etc)
 
     # head == SparseArray
     dims = []
@@ -294,7 +293,7 @@ def eval_Outer(f, lists, evaluation: Evaluation):
         SymbolAutomatic,
         dims,
         val,
-        ListExpression(*unpack_outer(lists[0], lists[1:], ((), Integer1), 1, etc)),
+        ListExpression(*construct_outer(lists, ((), Integer1), etc)),
     )
 
 
