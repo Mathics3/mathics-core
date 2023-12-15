@@ -14,6 +14,7 @@ import sys
 
 from mathics import version_string
 from mathics.core.atoms import Integer, Integer0, IntegerM1, Real, String
+from mathics.core.attributes import A_CONSTANT
 from mathics.core.builtin import Builtin, Predefined
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.expression import Expression
@@ -27,6 +28,55 @@ except ImportError:
     have_psutil = False
 else:
     have_psutil = True
+
+
+class MaxLengthIntStringConversion(Predefined):
+    """
+    <dl>
+      <dt>'$MaxLengthIntStringConversion'
+      <dd>A system constant that fixes the largest size of the String resulting from converting
+          an Integer into a String.
+    </dl>
+
+    >> originalvalue = $MaxLengthIntStringConversion
+     = ...
+    >> 50! //ToString
+     = 30414093201713378043612608166064768844377641568960512000000000000
+    >> $MaxLengthIntStringConversion = 10; 50! //ToString
+     = ...
+    Restore the value to the default.
+    >> $MaxLengthIntStringConversion = originalvalue;
+
+    """
+
+    attributes = A_CONSTANT
+    messages = {"inv": "`1` is not a non-negative integer value."}
+    name = "$MaxLengthIntStringConversion"
+    usage = "the maximum length for which an integer is converted to a String"
+
+    def evaluate(self, evaluation) -> Integer:
+        try:
+            return Integer(sys.get_int_max_str_digits())
+        except AttributeError:
+            return Integer0
+
+    def eval_set(self, expr, evaluation):
+        """Set[$MaxLengthIntStringConversion, expr_]"""
+        if isinstance(expr, Integer):
+            try:
+                sys.set_int_max_str_digits(expr.value)
+                return self.evaluate(evaluation)
+            except AttributeError:
+                return Integer0
+            except ValueError:
+                pass
+
+        evaluation.message("$MaxLengthIntStringConversion", "inv", expr)
+        return self.evaluate(evaluation)
+
+    def eval_setdelayed(self, expr, evaluation):
+        """SetDelayed[$MaxLengthIntStringConversion, expr_]"""
+        return self.eval_set(expr)
 
 
 class CommandLine(Predefined):

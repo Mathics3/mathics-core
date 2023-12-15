@@ -67,6 +67,27 @@ def _boxed_string(string: str, **options):
     return StyleBox(String(string), **options)
 
 
+def int_to_string_shorter_repr(value: Integer, form: Symbol, max_digits=640):
+    """Convert value to a String, restricted to max_digits characters.
+
+    if value has a n digits decimal representation,
+      value = d_1 *10^{n-1} d_2 * 10^{n-2} + d_3 10^{n-3} + ..... +   d_{n-2}*100 +d_{n-1}*10 + d_{n}
+    is represented as the string
+
+    "d_1d_2d_3...d_{k}<<n-2k>>d_{n-k-1}...d_{n-2}d_{n-1}d_{n}"
+
+    where n-2k digits are replaced by a placeholder.
+    """
+    # Estimate the number of decimal digits
+    num_digits = int(value.bit_length() * 0.3)
+    len_num_digits = len(str(num_digits))
+    len_parts = (max_digits - len_num_digits - 8) // 2
+    msd = str(value // 10 ** (num_digits - len_parts))
+    lsd = str(abs(value) % 10**len_parts)
+    value_str = f"{msd} <<{num_digits - len(lsd)-len(msd)}>> {lsd}"
+    return String(value_str)
+
+
 def eval_fullform_makeboxes(
     self, expr, evaluation: Evaluation, form=SymbolStandardForm
 ) -> Expression:
