@@ -8,9 +8,11 @@ New Builtins
 ++++++++++++
 
 
-* `Elements`
-* `RealAbs` and `RealSign`
-* `RealValuedNumberQ`
+* ``Elements``
+* ``ConjugateTranspose``
+* ``LeviCivitaTensor``
+* ``RealAbs`` and ``RealSign``
+* ``RealValuedNumberQ``
 
 
 Compatibility
