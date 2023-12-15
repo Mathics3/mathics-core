@@ -32,6 +32,7 @@ else:
 
 class MaxLengthIntStringConversion(Predefined):
     """
+    <url>:Python 3.11:https://docs.python.org/3.11/library/stdtypes.html#int-max-str-digits</url>
     <dl>
       <dt>'$MaxLengthIntStringConversion'
       <dd>A system constant that fixes the largest size of the String resulting from converting
