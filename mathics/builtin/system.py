@@ -40,19 +40,28 @@ class MaxLengthIntStringConversion(Predefined):
 
     >> originalvalue = $MaxLengthIntStringConversion
      = ...
-    >> 50! //ToString
-     = 30414093201713378043612608166064768844377641568960512000000000000
-    >> $MaxLengthIntStringConversion = 10; 50! //ToString
+    >> 500! //ToString//StringLength
      = ...
+    >> $MaxLengthIntStringConversion = 0; 500! //ToString//StringLength
+     = 1135
+    >> $MaxLengthIntStringConversion = 650; 500! //ToString
+     = ...
+
+    Python 3.11 does not accept values different to 0 or >640:
+    >> $MaxLengthIntStringConversion = 10
+     : 10 is not 0 or an Integer value >640.
+     = ...
+
+
     Restore the value to the default.
     >> $MaxLengthIntStringConversion = originalvalue;
 
     """
 
     attributes = A_CONSTANT
-    messages = {"inv": "`1` is not a non-negative integer value."}
+    messages = {"inv": "`1` is not 0 or an Integer value >640."}
     name = "$MaxLengthIntStringConversion"
-    usage = "the maximum length for which an integer is converted to a String"
+    summary_text = "the maximum length for which an integer is converted to a String"
 
     def evaluate(self, evaluation) -> Integer:
         try:
@@ -67,6 +76,8 @@ class MaxLengthIntStringConversion(Predefined):
                 sys.set_int_max_str_digits(expr.value)
                 return self.evaluate(evaluation)
             except AttributeError:
+                if expr.value != 0 and expr.value < 640:
+                    evaluation.message("$MaxLengthIntStringConversion", "inv", expr)
                 return Integer0
             except ValueError:
                 pass
