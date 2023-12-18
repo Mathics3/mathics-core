@@ -50,8 +50,8 @@ class MaxLengthIntStringConversion(Predefined):
     decimal.
 
     Python, in version 3.11 and up, puts a default limit on the size of \
-    the number of digits it will allow when conversting a big-num
-    integer intto a string.
+    the number of digits it will allow when conversting a big-num integer into \
+    a string.
 
     Show the default value of '$MaxLengthIntStringConversion':
     >> $MaxLengthIntStringConversion
@@ -62,11 +62,12 @@ class MaxLengthIntStringConversion(Predefined):
      = 640
 
     >> 500! //ToString//StringLength
-     = 65
+     = ...
 
     >> $MaxLengthIntStringConversion = 0; 500! //ToString//StringLength
      = 1135
 
+    The below has an effect only on Python 3.11 and later:
     >> $MaxLengthIntStringConversion = 650; 500! //ToString
      = ...
 
@@ -74,7 +75,6 @@ class MaxLengthIntStringConversion(Predefined):
     >> $MaxLengthIntStringConversion = 10
      : 10 is not 0 or an Integer value greater than 640.
      = ...
-
     """
 
     attributes = A_CONSTANT
