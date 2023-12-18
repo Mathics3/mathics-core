@@ -37,12 +37,12 @@ class MaxLengthIntStringConversion(Predefined):
     <dl>
       <dt>'$MaxLengthIntStringConversion'
       <dd>A system constant that fixes the largest size of the string that can \
-          result when converting an 'Integer' value into a 'String'. When the
-          'String' is too large, then the middle of the integer contains
+          result when converting an 'Integer' value into a 'String'. When the \
+          'String' is too large, then the middle of the integer contains \
           an indication of the number of digits elided.
 
-          If to 0, at your peril there is no bound. Aside from 0, \
-          640 is the smallest value allowed.
+          If $MaxLengthIntStringConversion' is set to 0, there is no \
+          bound. Aside from 0, 640 is the smallest value allowed.
     </dl>
 
     Although Mathics3 can represent integers of arbitrary size, when it formats \
@@ -58,7 +58,7 @@ class MaxLengthIntStringConversion(Predefined):
      = 7000
 
     Set '$MaxLenghtIntStringConversion' to the smallest value allowed:
-    $MaxLengthIntStringConversion = 640
+    >> $MaxLengthIntStringConversion = 640
      = 640
 
     >> 500! //ToString//StringLength
