@@ -212,7 +212,7 @@ class Range(Builtin):
       <dd>returns a list of integers from 1 to $n$.
 
       <dt>'Range[$a$, $b$]'
-      <dd>returns a list of integers from $a$ to $b$.
+      <dd>returns a list of (Integer, Rational, Real) numbers from $a$ to $b$.
 
       <dt>'Range[$a$, $b$, $di$]'
       <dd>returns a list of integers from $a$ to $b$ using step $di$.
