@@ -221,6 +221,9 @@ class Range(Builtin):
     >> Range[-3, 2]
      = {-3, -2, -1, 0, 1, 2}
 
+    >> Range[5, 1, -2]
+     = {5, 3, 1}
+
     >> Range[1.0, 2.3]
      = {1., 2.}
 
@@ -258,7 +261,8 @@ class Range(Builtin):
             and isinstance(imax, Integer)
             and isinstance(di, Integer)
         ):
-            result = [Integer(i) for i in range(imin.value, imax.value + 1, di.value)]
+            pm = 1 if di.value >= 0 else -1
+            result = [Integer(i) for i in range(imin.value, imax.value + pm, di.value)]
             return ListExpression(
                 *result, elements_properties=range_list_elements_properties
             )
@@ -266,9 +270,13 @@ class Range(Builtin):
         imin = imin.to_sympy()
         imax = imax.to_sympy()
         di = di.to_sympy()
+
+        def compare_type(a, b):
+            return a <= b if di >= 0 else a >= b
+
         index = imin
         result = []
-        while index <= imax:
+        while compare_type(index, imax):
             evaluation.check_stopped()
             result.append(from_sympy(index))
             index += di
