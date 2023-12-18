@@ -32,30 +32,59 @@ else:
 
 class MaxLengthIntStringConversion(Predefined):
     """
-    <url>:Python 3.11:https://docs.python.org/3.11/library/stdtypes.html#int-max-str-digits</url>
+    <url>:Python 3.11 Integer string conversion length limitation:
+    https://docs.python.org/3.11/library/stdtypes.html#int-max-str-digits</url>
     <dl>
       <dt>'$MaxLengthIntStringConversion'
-      <dd>A system constant that fixes the largest size of the String resulting from converting
-          an Integer into a String.
+      <dd>A system constant that fixes the largest size of the 'String' obtained
+    from the conversion of an 'Integer' number.
     </dl>
 
     >> originalvalue = $MaxLengthIntStringConversion
      = ...
+
+    Let's consider the number $37$, a two digits 'Integer'. The length of the
+    'String' resulting from its conversion is
+    >> 37 //ToString//StringLength
+     = 2
+    coinciding with the number of digits.
+
+    For extremely long numbers, the conversion can block the system. To avoid it,
+    conversion of very large 'Integer' to 'String' for large numbers results in an
+    abbreviated representation of the form $d_1d_2... << ommitted >> ... d_{n-1}d_n$.
+
+    For example, let's consider now $500!$, a $1135$ digits number.
     >> 500! //ToString//StringLength
      = ...
+
+    Depending on the default value of '$MaxLengthIntStringConversion', the result
+    is not 1135: this is because the number is abbreviated.
+    To get the full representation of the number, '$MaxLengthIntStringConversion'
+    must be set to '0':
+
     >> $MaxLengthIntStringConversion = 0; 500! //ToString//StringLength
      = 1135
-    >> $MaxLengthIntStringConversion = 650; 500! //ToString
+
+    Notice that for Python versions <3.11, '$MaxLengthIntStringConversion'
+    is always set to $0$, meaning that 'Integer' numbers are always converted
+    to its full explicit form.
+
+    By setting a smaller value, the resulting 'String' representation
+    is even shorter:
+    >> $MaxLengthIntStringConversion = 650; 500! //ToString//StringLength
      = ...
 
-    Python 3.11 does not accept values different to 0 or >640:
+    Notice also that internally, the arithmetic is not affected by this constant:
+    >> a=500!; b=(500! + 10^60); b-a
+     = 1000000000000000000000000000000000000000000000000000000000000
+
+    Python 3.11 does not accept values different to 0 or 'Integer' $>640$:
     >> $MaxLengthIntStringConversion = 10
      : 10 is not 0 or an Integer value >640.
      = ...
 
-
     Restore the value to the default.
-    >> $MaxLengthIntStringConversion = originalvalue;
+    >> $MaxLengthIntStringConversion = originalvalue;a=.;b=.;
 
     """
 
