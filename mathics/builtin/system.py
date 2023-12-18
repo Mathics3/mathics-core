@@ -36,13 +36,17 @@ class MaxLengthIntStringConversion(Predefined):
     https://docs.python.org/3.11/library/stdtypes.html#int-max-str-digits</url>
     <dl>
       <dt>'$MaxLengthIntStringConversion'
-      <dd>A system constant that fixes the largest size of the string that can \
-          result when converting an 'Integer' value into a 'String'. When the \
-          'String' is too large, then the middle of the integer contains \
+      <dd>A positive system integer that fixes the largest size of the string that \
+          can appear when converting an 'Integer' value into a 'String'. When the \
+          string value is too large, then the middle of the integer contains \
           an indication of the number of digits elided.
 
-          If $MaxLengthIntStringConversion' is set to 0, there is no \
+          If '$MaxLengthIntStringConversion' is set to 0, there is no \
           bound. Aside from 0, 640 is the smallest value allowed.
+
+          The initial value can be set via environment variable \
+          'DEFAULT_MAX_STR_DIGITS', and if that is not set, \
+          the default value is 7000.
     </dl>
 
     Although Mathics3 can represent integers of arbitrary size, when it formats \
@@ -71,7 +75,7 @@ class MaxLengthIntStringConversion(Predefined):
     >> $MaxLengthIntStringConversion = 650; 500! //ToString
      = ...
 
-    Other than 0, Python 3.11 does not accept a value less than 640:
+    Other than 0, Python 3.11 does not accept an 'Integer' value less than 640:
     >> $MaxLengthIntStringConversion = 10
      : 10 is not 0 or an Integer value greater than 640.
      = ...
