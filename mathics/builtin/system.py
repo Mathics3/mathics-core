@@ -14,6 +14,7 @@ import sys
 
 from mathics import version_string
 from mathics.core.atoms import Integer, Integer0, IntegerM1, Real, String
+from mathics.core.attributes import A_CONSTANT
 from mathics.core.builtin import Builtin, Predefined
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.expression import Expression
@@ -29,18 +30,100 @@ else:
     have_psutil = True
 
 
+class MaxLengthIntStringConversion(Predefined):
+    """
+    <url>:Python 3.11 Integer string conversion length limitation:
+    https://docs.python.org/3.11/library/stdtypes.html#int-max-str-digits</url>
+    <dl>
+      <dt>'$MaxLengthIntStringConversion'
+      <dd>A system constant that fixes the largest size of the string that can \
+          result when converting an 'Integer' value into a 'String'. When the \
+          'String' is too large, then the middle of the integer contains \
+          an indication of the number of digits elided.
+
+          If $MaxLengthIntStringConversion' is set to 0, there is no \
+          bound. Aside from 0, 640 is the smallest value allowed.
+    </dl>
+
+    Although Mathics3 can represent integers of arbitrary size, when it formats \
+    the value for display, there can be nonlinear behavior in converting the number to \
+    decimal.
+
+    Python, in version 3.11 and up, puts a default limit on the size of \
+    the number of digits it will allow when conversting a big-num integer into \
+    a string.
+
+    Show the default value of '$MaxLengthIntStringConversion':
+    >> $MaxLengthIntStringConversion
+     = 7000
+
+    Set '$MaxLenghtIntStringConversion' to the smallest value allowed:
+    >> $MaxLengthIntStringConversion = 640
+     = 640
+
+    >> 500! //ToString//StringLength
+     = ...
+
+    >> $MaxLengthIntStringConversion = 0; 500! //ToString//StringLength
+     = 1135
+
+    The below has an effect only on Python 3.11 and later:
+    >> $MaxLengthIntStringConversion = 650; 500! //ToString
+     = ...
+
+    Other than 0, Python 3.11 does not accept a value less than 640:
+    >> $MaxLengthIntStringConversion = 10
+     : 10 is not 0 or an Integer value greater than 640.
+     = ...
+    """
+
+    attributes = A_CONSTANT
+    messages = {"inv": "`1` is not 0 or an Integer value greater than 640."}
+    name = "$MaxLengthIntStringConversion"
+    summary_text = "the maximum length for which an integer is converted to a String"
+
+    def evaluate(self, evaluation) -> Integer:
+        try:
+            return Integer(sys.get_int_max_str_digits())
+        except AttributeError:
+            return Integer0
+
+    def eval_set(self, expr, evaluation):
+        """Set[$MaxLengthIntStringConversion, expr_]"""
+        if isinstance(expr, Integer):
+            try:
+                sys.set_int_max_str_digits(expr.value)
+                return self.evaluate(evaluation)
+            except AttributeError:
+                if expr.value != 0 and expr.value < 640:
+                    evaluation.message("$MaxLengthIntStringConversion", "inv", expr)
+                return Integer0
+            except ValueError:
+                pass
+
+        evaluation.message("$MaxLengthIntStringConversion", "inv", expr)
+        return self.evaluate(evaluation)
+
+    def eval_setdelayed(self, expr, evaluation):
+        """SetDelayed[$MaxLengthIntStringConversion, expr_]"""
+        return self.eval_set(expr)
+
+
 class CommandLine(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/$CommandLine.html</url>
     <dl>
     <dt>'$CommandLine'
-      <dd>is a list of strings passed on the command line to launch the Mathics session.
+      <dd>is a list of strings passed on the command line to launch the Mathics3 session.
     </dl>
     >> $CommandLine
      = {...}
     """
 
-    summary_text = "the command line arguments passed when the current Mathics session was launched"
+    summary_text = (
+        "the command line arguments passed when the current Mathics3 "
+        "session was launched"
+    )
     name = "$CommandLine"
 
     def evaluate(self, evaluation) -> Expression:
@@ -113,7 +196,8 @@ class Machine(Predefined):
 
     <dl>
     <dt>'$Machine'
-        <dd>returns a string describing the type of computer system on which the Mathics is being run.
+        <dd>returns a string describing the type of computer system on which the \
+            Mathics3 is being run.
     </dl>
     X> $Machine
      = linux
@@ -132,7 +216,8 @@ class MachineName(Predefined):
 
     <dl>
       <dt>'$MachineName'
-      <dd>is a string that gives the assigned name of the computer on which Mathics is being run, if such a name is defined.
+      <dd>is a string that gives the assigned name of the computer on which Mathics3 \
+          is being run, if such a name is defined.
     </dl>
     X> $MachineName
      = buster
@@ -169,7 +254,8 @@ class Packages(Predefined):
 
     <dl>
       <dt>'$Packages'
-      <dd>returns a list of the contexts corresponding to all packages which have been loaded into Mathics.
+      <dd>returns a list of the contexts corresponding to all packages which have \
+          been loaded into Mathics.
     </dl>
 
     X> $Packages
@@ -189,7 +275,8 @@ class ParentProcessID(Predefined):
 
     <dl>
       <dt>'$ParentProcesID'
-      <dd>gives the ID assigned to the process which invokes the \Mathics by the operating system under which it is run.
+      <dd>gives the ID assigned to the process which invokes Mathics3 by the operating \
+          system under which it is run.
     </dl>
 
     >> $ParentProcessID
@@ -209,7 +296,8 @@ class ProcessID(Predefined):
 
     <dl>
       <dt>'$ProcessID'
-      <dd>gives the ID assigned to the \Mathics process by the operating system under which it is run.
+      <dd>gives the ID assigned to the Mathics3 process by the operating system under \
+          which it is run.
     </dl>
 
     >> $ProcessID
@@ -223,23 +311,25 @@ class ProcessID(Predefined):
 
 
 class ProcessorType(Predefined):
-    r"""
+    """
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/ProcessorType.html</url>
 
     <dl>
       <dt>'$ProcessorType'
-      <dd>gives a string giving the architecture of the processor on which the \Mathics is being run.
+      <dd>gives a string giving the architecture of the processor on which \
+          Mathics3 is being run.
     </dl>
 
     >> $ProcessorType
     = ...
     """
+
     name = "$ProcessorType"
 
     summary_text = (
-        "name of the architecture of the processor over which Mathics is running"
+        "name of the architecture of the processor over which Mathics3 is running"
     )
 
     def evaluate(self, evaluation):
@@ -252,14 +342,14 @@ class PythonImplementation(Predefined):
 
     <dl>
     <dt>'$PythonImplementation'
-        <dd>gives a string indication the Python implementation used to run \Mathics.
+        <dd>gives a string indication the Python implementation used to run Mathics3.
     </dl>
     >> $PythonImplementation
     = ...
     """
     name = "$PythonImplementation"
 
-    summary_text = "name of the Python implementation running Mathics"
+    summary_text = "name of the Python implementation running Mathics3"
 
     def evaluate(self, evaluation):
         from mathics.system_info import python_implementation
@@ -299,7 +389,8 @@ class Run(Builtin):
 
     <dl>
       <dt>'Run[$command$]'
-      <dd>runs command as an external operating system command, returning the exit code obtained.
+      <dd>runs command as an external operating system command, returning the exit \
+         code returned from running the system command.
     </dl>
     X> Run["date"]
      = ...
@@ -337,7 +428,8 @@ class SystemWordLength(Predefined):
 
     <dl>
       <dt>'$SystemWordLength'
-      <dd>gives the effective number of bits in raw machine words on the computer system where \Mathics is running.
+      <dd>gives the effective number of bits in raw machine words on the computer \
+          system where Mathics3 is running.
     </dl>
     X> $SystemWordLength
     = 64
@@ -568,9 +660,14 @@ class Share(Builtin):
 
     <dl>
       <dt>'Share[]'
-      <dd>release memory forcing Python to do garbage collection. If Python package is 'psutil' installed is the amount of released memoryis returned. Otherwise returns $0$. This function differs from WMA which tries to reduce the amount of memory required to store definitions, by reducing duplicated definitions.
+      <dd>release memory forcing Python to do garbage collection. If Python package \
+          'psutil' installed is the amount of released memoryis returned. Otherwise \
+          returns $0$. This function differs from WMA which tries to reduce the amount \
+          of memory required to store definitions, by reducing duplicated definitions.
       <dt>'Share[Symbol]'
-      <dd>Does the same thing as 'Share[]'; Note: this function differs from WMA which tries to reduce the amount of memory required to store definitions associated to $Symbol$.
+      <dd>Does the same thing as 'Share[]'; Note: this function differs from WMA which \
+          tries to reduce the amount of memory required to store definitions associated \
+          to $Symbol$.
 
     </dl>
 

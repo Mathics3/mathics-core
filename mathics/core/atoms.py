@@ -240,9 +240,21 @@ class Integer(Number):
     def make_boxes(self, form) -> "String":
         from mathics.eval.makeboxes import _boxed_string
 
-        if form in ("System`InputForm", "System`FullForm"):
-            return _boxed_string(str(self.value), number_as_text=True)
-        return String(str(self._value))
+        try:
+            if form in ("System`InputForm", "System`FullForm"):
+                return _boxed_string(str(self.value), number_as_text=True)
+
+            return String(str(self._value))
+        except ValueError:
+            # In Python 3.11, the size of the string
+            # obtained from an integer is limited, and for longer
+            # numbers, this exception is raised.
+            # The idea is to represent the number by its
+            # more significative digits, the lowest significative digits,
+            # and a placeholder saying the number of ommited digits.
+            from mathics.eval.makeboxes import int_to_string_shorter_repr
+
+            return int_to_string_shorter_repr(self._value, form)
 
     def to_sympy(self, **kwargs):
         return sympy.Integer(self._value)
