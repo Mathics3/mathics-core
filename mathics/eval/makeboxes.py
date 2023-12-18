@@ -67,11 +67,15 @@ def _boxed_string(string: str, **options):
     return StyleBox(String(string), **options)
 
 
+# 640 = sys.int_info.str_digits_check_threshold.
+# Someday when 3.11 is the minumum version of Python supported,
+# we can replace the magic value 640 below with sys.int.str_digits_check_threshold.
 def int_to_string_shorter_repr(value: Integer, form: Symbol, max_digits=640):
     """Convert value to a String, restricted to max_digits characters.
 
-    if value has a n digits decimal representation,
-      value = d_1 *10^{n-1} d_2 * 10^{n-2} + d_3 10^{n-3} + ..... +   d_{n-2}*100 +d_{n-1}*10 + d_{n}
+    if value has an n-digit decimal representation,
+      value = d_1 *10^{n-1} d_2 * 10^{n-2} + d_3 10^{n-3} + ..... +
+              d_{n-2}*100 +d_{n-1}*10 + d_{n}
     is represented as the string
 
     "d_1d_2d_3...d_{k}<<n-2k>>d_{n-k-1}...d_{n-2}d_{n-1}d_{n}"

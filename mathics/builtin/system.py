@@ -36,60 +36,49 @@ class MaxLengthIntStringConversion(Predefined):
     https://docs.python.org/3.11/library/stdtypes.html#int-max-str-digits</url>
     <dl>
       <dt>'$MaxLengthIntStringConversion'
-      <dd>A system constant that fixes the largest size of the 'String' obtained
-    from the conversion of an 'Integer' number.
+      <dd>A system constant that fixes the largest size of the string that can \
+          result when converting an 'Integer' value into a 'String'. When the \
+          'String' is too large, then the middle of the integer contains \
+          an indication of the number of digits elided.
+
+          If $MaxLengthIntStringConversion' is set to 0, there is no \
+          bound. Aside from 0, 640 is the smallest value allowed.
     </dl>
 
-    >> originalvalue = $MaxLengthIntStringConversion
-     = ...
+    Although Mathics3 can represent integers of arbitrary size, when it formats \
+    the value for display, there can be nonlinear behavior in converting the number to \
+    decimal.
 
-    Let's consider the number $37$, a two digits 'Integer'. The length of the
-    'String' resulting from its conversion is
-    >> 37 //ToString//StringLength
-     = 2
-    coinciding with the number of digits.
+    Python, in version 3.11 and up, puts a default limit on the size of \
+    the number of digits it will allow when conversting a big-num integer into \
+    a string.
 
-    For extremely long numbers, the conversion can block the system. To avoid it,
-    conversion of very large 'Integer' to 'String' for large numbers results in an
-    abbreviated representation of the form $d_1d_2... << ommitted >> ... d_{n-1}d_n$.
+    Show the default value of '$MaxLengthIntStringConversion':
+    >> $MaxLengthIntStringConversion
+     = 7000
 
-    For example, let's consider now $500!$, a $1135$ digits number.
+    Set '$MaxLenghtIntStringConversion' to the smallest value allowed:
+    >> $MaxLengthIntStringConversion = 640
+     = 640
+
     >> 500! //ToString//StringLength
      = ...
-
-    Depending on the default value of '$MaxLengthIntStringConversion', the result
-    is not 1135: this is because the number is abbreviated.
-    To get the full representation of the number, '$MaxLengthIntStringConversion'
-    must be set to '0':
 
     >> $MaxLengthIntStringConversion = 0; 500! //ToString//StringLength
      = 1135
 
-    Notice that for Python versions <3.11, '$MaxLengthIntStringConversion'
-    is always set to $0$, meaning that 'Integer' numbers are always converted
-    to its full explicit form.
-
-    By setting a smaller value, the resulting 'String' representation
-    is even shorter:
-    >> $MaxLengthIntStringConversion = 650; 500! //ToString//StringLength
+    The below has an effect only on Python 3.11 and later:
+    >> $MaxLengthIntStringConversion = 650; 500! //ToString
      = ...
 
-    Notice also that internally, the arithmetic is not affected by this constant:
-    >> a=500!; b=(500! + 10^60); b-a
-     = 1000000000000000000000000000000000000000000000000000000000000
-
-    Python 3.11 does not accept values different to 0 or 'Integer' $>640$:
+    Other than 0, Python 3.11 does not accept a value less than 640:
     >> $MaxLengthIntStringConversion = 10
-     : 10 is not 0 or an Integer value >640.
+     : 10 is not 0 or an Integer value greater than 640.
      = ...
-
-    Restore the value to the default.
-    >> $MaxLengthIntStringConversion = originalvalue;a=.;b=.;
-
     """
 
     attributes = A_CONSTANT
-    messages = {"inv": "`1` is not 0 or an Integer value >640."}
+    messages = {"inv": "`1` is not 0 or an Integer value greater than 640."}
     name = "$MaxLengthIntStringConversion"
     summary_text = "the maximum length for which an integer is converted to a String"
 
@@ -125,13 +114,16 @@ class CommandLine(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/$CommandLine.html</url>
     <dl>
     <dt>'$CommandLine'
-      <dd>is a list of strings passed on the command line to launch the Mathics session.
+      <dd>is a list of strings passed on the command line to launch the Mathics3 session.
     </dl>
     >> $CommandLine
      = {...}
     """
 
-    summary_text = "the command line arguments passed when the current Mathics session was launched"
+    summary_text = (
+        "the command line arguments passed when the current Mathics3 "
+        "session was launched"
+    )
     name = "$CommandLine"
 
     def evaluate(self, evaluation) -> Expression:
@@ -204,7 +196,8 @@ class Machine(Predefined):
 
     <dl>
     <dt>'$Machine'
-        <dd>returns a string describing the type of computer system on which the Mathics is being run.
+        <dd>returns a string describing the type of computer system on which the \
+            Mathics3 is being run.
     </dl>
     X> $Machine
      = linux
@@ -223,7 +216,8 @@ class MachineName(Predefined):
 
     <dl>
       <dt>'$MachineName'
-      <dd>is a string that gives the assigned name of the computer on which Mathics is being run, if such a name is defined.
+      <dd>is a string that gives the assigned name of the computer on which Mathics3 \
+          is being run, if such a name is defined.
     </dl>
     X> $MachineName
      = buster
@@ -260,7 +254,8 @@ class Packages(Predefined):
 
     <dl>
       <dt>'$Packages'
-      <dd>returns a list of the contexts corresponding to all packages which have been loaded into Mathics.
+      <dd>returns a list of the contexts corresponding to all packages which have \
+          been loaded into Mathics.
     </dl>
 
     X> $Packages
@@ -280,7 +275,8 @@ class ParentProcessID(Predefined):
 
     <dl>
       <dt>'$ParentProcesID'
-      <dd>gives the ID assigned to the process which invokes the \Mathics by the operating system under which it is run.
+      <dd>gives the ID assigned to the process which invokes Mathics3 by the operating \
+          system under which it is run.
     </dl>
 
     >> $ParentProcessID
@@ -300,7 +296,8 @@ class ProcessID(Predefined):
 
     <dl>
       <dt>'$ProcessID'
-      <dd>gives the ID assigned to the \Mathics process by the operating system under which it is run.
+      <dd>gives the ID assigned to the Mathics3 process by the operating system under \
+          which it is run.
     </dl>
 
     >> $ProcessID
@@ -314,23 +311,25 @@ class ProcessID(Predefined):
 
 
 class ProcessorType(Predefined):
-    r"""
+    """
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/ProcessorType.html</url>
 
     <dl>
       <dt>'$ProcessorType'
-      <dd>gives a string giving the architecture of the processor on which the \Mathics is being run.
+      <dd>gives a string giving the architecture of the processor on which \
+          Mathics3 is being run.
     </dl>
 
     >> $ProcessorType
     = ...
     """
+
     name = "$ProcessorType"
 
     summary_text = (
-        "name of the architecture of the processor over which Mathics is running"
+        "name of the architecture of the processor over which Mathics3 is running"
     )
 
     def evaluate(self, evaluation):
@@ -343,14 +342,14 @@ class PythonImplementation(Predefined):
 
     <dl>
     <dt>'$PythonImplementation'
-        <dd>gives a string indication the Python implementation used to run \Mathics.
+        <dd>gives a string indication the Python implementation used to run Mathics3.
     </dl>
     >> $PythonImplementation
     = ...
     """
     name = "$PythonImplementation"
 
-    summary_text = "name of the Python implementation running Mathics"
+    summary_text = "name of the Python implementation running Mathics3"
 
     def evaluate(self, evaluation):
         from mathics.system_info import python_implementation
@@ -390,7 +389,8 @@ class Run(Builtin):
 
     <dl>
       <dt>'Run[$command$]'
-      <dd>runs command as an external operating system command, returning the exit code obtained.
+      <dd>runs command as an external operating system command, returning the exit \
+         code returned from running the system command.
     </dl>
     X> Run["date"]
      = ...
@@ -428,7 +428,8 @@ class SystemWordLength(Predefined):
 
     <dl>
       <dt>'$SystemWordLength'
-      <dd>gives the effective number of bits in raw machine words on the computer system where \Mathics is running.
+      <dd>gives the effective number of bits in raw machine words on the computer \
+          system where Mathics3 is running.
     </dl>
     X> $SystemWordLength
     = 64
@@ -659,9 +660,14 @@ class Share(Builtin):
 
     <dl>
       <dt>'Share[]'
-      <dd>release memory forcing Python to do garbage collection. If Python package is 'psutil' installed is the amount of released memoryis returned. Otherwise returns $0$. This function differs from WMA which tries to reduce the amount of memory required to store definitions, by reducing duplicated definitions.
+      <dd>release memory forcing Python to do garbage collection. If Python package \
+          'psutil' installed is the amount of released memoryis returned. Otherwise \
+          returns $0$. This function differs from WMA which tries to reduce the amount \
+          of memory required to store definitions, by reducing duplicated definitions.
       <dt>'Share[Symbol]'
-      <dd>Does the same thing as 'Share[]'; Note: this function differs from WMA which tries to reduce the amount of memory required to store definitions associated to $Symbol$.
+      <dd>Does the same thing as 'Share[]'; Note: this function differs from WMA which \
+          tries to reduce the amount of memory required to store definitions associated \
+          to $Symbol$.
 
     </dl>
 
