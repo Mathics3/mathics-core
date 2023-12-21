@@ -7,7 +7,7 @@ CHANGES
 New Builtins
 ++++++++++++
 
-
+* ``$MaxLengthIntStringConversion``
 * ``Elements``
 * ``ConjugateTranspose``
 * ``LeviCivitaTensor``
@@ -29,6 +29,8 @@ Internals
 * Maximum number of digits allowed in a string set to 7000 and can be adjusted using environment variable
   ``MATHICS_MAX_STR_DIGITS`` on Python versions that don't adjust automatically (like pyston).
 * Real number comparisons implemented is based now in the internal implementation of `RealSign`.
+* For Python 3.11, the variable ``$MaxLengthIntStringConversion`` controls the maximum size of
+  the literal conversion between large integers and Strings.
 
 Bugs
 ----
