@@ -159,9 +159,9 @@ def repl_pattern_by_symbol(expr):
 
     changed = False
     new_elements = []
-    for element in elements:
-        element = repl_pattern_by_symbol(element)
-        if not (element is element):
+    for _element in elements:
+        element = repl_pattern_by_symbol(_element)
+        if element != _element:
             changed = True
         new_elements.append(element)
     if changed:
