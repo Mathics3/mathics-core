@@ -486,7 +486,7 @@ class Switch(Builtin):
             evaluation.message("Switch", "argct", "Switch", len(rules) + 1)
             return
         for pattern, value in zip(rules[::2], rules[1::2]):
-            if match(expr, pattern, evaluation):
+            if match(expr, pattern.evaluate(evaluation), evaluation):
                 return value.evaluate(evaluation)
         # return unevaluated Switch when no pattern matches
 
