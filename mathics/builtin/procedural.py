@@ -464,6 +464,15 @@ class Switch(Builtin):
     >> Switch[2, 1]
      : Switch called with 2 arguments. Switch must be called with an odd number of arguments.
      = Switch[2, 1]
+
+
+    Notice that 'Switch' evaluates each pattern before it against \
+    $expr$, stopping after the first match:
+    >> a:=(Print["a->p"];p); b:=(Print["b->q"];q);
+    >> Switch[p,a,1,b,2]
+     | a->p
+     = 1
+    >> a=.; b=.;
     """
 
     summary_text = "switch based on a value, with patterns allowed"
@@ -486,6 +495,9 @@ class Switch(Builtin):
             evaluation.message("Switch", "argct", "Switch", len(rules) + 1)
             return
         for pattern, value in zip(rules[::2], rules[1::2]):
+            # The match is done against the result of the evaluation
+            # of `pattern`. HoldRest allows to evaluate the patterns
+            # just until a match is found.
             if match(expr, pattern.evaluate(evaluation), evaluation):
                 return value.evaluate(evaluation)
         # return unevaluated Switch when no pattern matches
