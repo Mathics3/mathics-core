@@ -470,7 +470,7 @@ class Switch(Builtin):
     $expr$, stopping after the first match:
     >> a:=(Print["a->p"];p); b:=(Print["b->q"];q);
     >> Switch[p,a,1,b,2]
-     |a->p
+     | a->p
      = 1
     >> a=.; b=.;
     """
@@ -495,6 +495,9 @@ class Switch(Builtin):
             evaluation.message("Switch", "argct", "Switch", len(rules) + 1)
             return
         for pattern, value in zip(rules[::2], rules[1::2]):
+            # The match is done against the result of the evaluation
+            # of `pattern`. HoldRest allows to evaluate the patterns
+            # just until a match is found.
             if match(expr, pattern.evaluate(evaluation), evaluation):
                 return value.evaluate(evaluation)
         # return unevaluated Switch when no pattern matches
