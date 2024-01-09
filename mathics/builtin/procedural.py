@@ -464,6 +464,15 @@ class Switch(Builtin):
     >> Switch[2, 1]
      : Switch called with 2 arguments. Switch must be called with an odd number of arguments.
      = Switch[2, 1]
+
+
+    Notice that 'Switch' evaluates each pattern before it against \
+    $expr$, stopping after the first match:
+    >> a:=(Print["a->p"];p); b:=(Print["b->q"];q);
+    >> Switch[p,a,1,b,2]
+     |a->p
+     = 1
+    >> a=.; b=.;
     """
 
     summary_text = "switch based on a value, with patterns allowed"
