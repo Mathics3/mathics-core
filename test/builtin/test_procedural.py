@@ -89,6 +89,12 @@ def test_nestwhile(str_expr, str_expected):
         ("res=CompoundExpression[]", None, "Null", None),
         ("res", None, "Null", None),
         (
+            "{MatchQ[Infinity,Infinity],Switch[Infinity,Infinity,True,_,False]}",
+            None,
+            "{True, True}",
+            "Issue #956",
+        ),
+        (
             "Clear[f];Clear[g];Clear[h];Clear[i];Clear[n];Clear[res];Clear[z]; ",
             None,
             "Null",
