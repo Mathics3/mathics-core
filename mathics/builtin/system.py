@@ -4,8 +4,6 @@
 Global System Information
 """
 
-sort_order = "mathics.builtin.global-system-information"
-
 import gc
 import os
 import platform
@@ -29,6 +27,8 @@ except ImportError:
 else:
     have_psutil = True
 
+sort_order = "mathics.builtin.global-system-information"
+
 
 class MaxLengthIntStringConversion(Predefined):
     """
@@ -39,41 +39,50 @@ class MaxLengthIntStringConversion(Predefined):
       <dd>A positive system integer that fixes the largest size of the string that \
           can appear when converting an 'Integer' value into a 'String'. When the \
           string value is too large, then the middle of the integer contains \
-          an indication of the number of digits elided.
+          an indication of the number of digits elided inside << >>.
 
           If '$MaxLengthIntStringConversion' is set to 0, there is no \
           bound. Aside from 0, 640 is the smallest value allowed.
 
           The initial value can be set via environment variable \
-          'DEFAULT_MAX_STR_DIGITS', and if that is not set, \
+          'DEFAULT_MAX_STR_DIGITS'. If that is not set, \
           the default value is 7000.
     </dl>
 
     Although Mathics3 can represent integers of arbitrary size, when it formats \
-    the value for display, there can be nonlinear behavior in converting the number to \
-    decimal.
+    the value for display, there can be nonlinear behavior in printing the decimal string \
+    or converting it to a 'String'.
 
     Python, in version 3.11 and up, puts a default limit on the size of \
-    the number of digits it will allow when conversting a big-num integer into \
+    the number of digits allows when converting a large integer into \
     a string.
 
     Show the default value of '$MaxLengthIntStringConversion':
     >> $MaxLengthIntStringConversion
      = 7000
 
-    Set '$MaxLenghtIntStringConversion' to the smallest value allowed:
-    >> $MaxLengthIntStringConversion = 640
-     = 640
-
+    500! is a 1135-digit number:
     >> 500! //ToString//StringLength
      = ...
 
-    >> $MaxLengthIntStringConversion = 0; 500! //ToString//StringLength
-     = 1135
+    We first set '$MaxLengthIntStringConversion' to the smallest value allowed, \
+    so that we can see the trunction of digits in the middle:
+    >> $MaxLengthIntStringConversion = 640
+     = 640
 
-    The below has an effect only on Python 3.11 and later:
-    >> $MaxLengthIntStringConversion = 650; 500! //ToString
+    Note that setting '$MaxLengthIntStringConversion' has an effect only on Python 3.11 and later.
+
+    Now when we print the string value of 500! the middle digits are removed:
+
+    >> 500!
      = ...
+
+    To see this easier, manipulate the result as 'String':
+
+    >> bigFactorial = ToString[500!]; StringTake[bigFactorial, {310, 330}]
+     = ...
+
+    The <<501>> indicates that 501 digits have been omitted in the string conversion.
 
     Other than 0, Python 3.11 does not accept an 'Integer' value less than 640:
     >> $MaxLengthIntStringConversion = 10
