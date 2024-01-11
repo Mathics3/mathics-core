@@ -72,10 +72,11 @@ class MaxLengthIntStringConversion(Predefined):
     ## Therefore output testing below is generic.
      = ...
 
-    Note that setting '$MaxLengthIntStringConversion' has an effect only on Python 3.11 and later.
+    Note that setting '$MaxLengthIntStringConversion' has an effect only on Python 3.11 and later;
+    Pyston 2.x however ignores this.
 
-    Now when we print the string value of 500! the middle digits are removed:
-
+    Now when we print the string value of 500! and Pyston 2.x is not used, \
+    the middle digits are removed:
     >> 500!
      = ...
 
@@ -86,7 +87,7 @@ class MaxLengthIntStringConversion(Predefined):
 
     The <<501>> indicates that 501 digits have been omitted in the string conversion.
 
-    Other than 0, Python 3.11 does not accept an 'Integer' value less than 640:
+    Other than 0, an 'Integer' value less than 640 is not accepted:
     >> $MaxLengthIntStringConversion = 10
      : 10 is not 0 or an Integer value greater than 640.
      = ...
