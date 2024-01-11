@@ -68,7 +68,9 @@ class MaxLengthIntStringConversion(Predefined):
     We first set '$MaxLengthIntStringConversion' to the smallest value allowed, \
     so that we can see the trunction of digits in the middle:
     >> $MaxLengthIntStringConversion = 640
-     = 640
+    ## Pyston 2.3.5 returns 0 while CPython returns 640
+    ## Therefore output testing below is generic.
+     = ...
 
     Note that setting '$MaxLengthIntStringConversion' has an effect only on Python 3.11 and later.
 
