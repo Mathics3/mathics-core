@@ -7,7 +7,7 @@ CHANGES
 New Builtins
 ++++++++++++
 
-
+* ``$MaxLengthIntStringConversion``
 * ``Elements``
 * ``ConjugateTranspose``
 * ``LeviCivitaTensor``
@@ -19,7 +19,8 @@ Compatibility
 -------------
 
 * ``*Plot`` does not show messages during the evaluation.
-
+* ``Range[]`` now handles a negative ``di`` PR #951
+* Improved support for ``DirectedInfinity`` and ``Indeterminate``.
 
 
 Internals
@@ -28,14 +29,21 @@ Internals
 * ``eval_abs`` and ``eval_sign`` extracted from ``Abs`` and ``Sign`` and added to ``mathics.eval.arithmetic``.
 * Maximum number of digits allowed in a string set to 7000 and can be adjusted using environment variable
   ``MATHICS_MAX_STR_DIGITS`` on Python versions that don't adjust automatically (like pyston).
-* Real number comparisons implemented is based now in the internal implementation of `RealSign`.
+* Real number comparisons implemented is based now in the internal implementation of ``RealSign``.
+* For Python 3.11, the variable ``$MaxLengthIntStringConversion`` controls the maximum size of
+  the literal conversion between large integers and Strings.
+* Older style non-appearing and non-pedagogical doctests have been converted to pytest
+* Built-in code is directed explicitly rather than implicitly. This facilitates the ability to lazy load
+  builtins or "autoload" them a la GNU Emacs autoload.
 
 Bugs
 ----
 
-* Improved support for ``DirectedInfinity`` and ``Indeterminate``.
 * ``Definitions`` is compatible with ``pickle``.
-* Inproved support for `Quantity` expressions, including conversions, formatting and arithmetic operations.
+* Improved support for ``Quantity`` expressions, including conversions, formatting and arithmetic operations.
+* ``Switch[]`` involving ``Infinity`` Issue #956
+* ``Outer[]`` on ``SparseArray`` Issue #939
+* ``ArrayQ[]`` detects ``SparseArray`` PR #947
 
 Package updates
 +++++++++++++++

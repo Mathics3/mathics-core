@@ -550,21 +550,6 @@ class ArcTan(MPMathFunction):
 
     >> ArcTan[1, 1]
      = Pi / 4
-    #> ArcTan[-1, 1]
-     = 3 Pi / 4
-    #> ArcTan[1, -1]
-     = -Pi / 4
-    #> ArcTan[-1, -1]
-     = -3 Pi / 4
-
-    #> ArcTan[1, 0]
-     = 0
-    #> ArcTan[-1, 0]
-     = Pi
-    #> ArcTan[0, 1]
-     = Pi / 2
-    #> ArcTan[0, -1]
-     = -Pi / 2
     """
 
     mpmath_name = "atan"
@@ -603,9 +588,6 @@ class Cos(MPMathFunction):
 
     >> Cos[3 Pi]
      = -1
-
-    #> Cos[1.5 Pi]
-     = -1.83697×10^-16
     """
 
     mpmath_name = "cos"
@@ -815,9 +797,6 @@ class Sin(MPMathFunction):
 
     >> Plot[Sin[x], {x, -Pi, Pi}]
      = -Graphics-
-
-    #> N[Sin[1], 40]
-     = 0.8414709848078965066525023216302989996226
     """
 
     mpmath_name = "sin"
@@ -855,9 +834,6 @@ class Tan(MPMathFunction):
      = 0
     >> Tan[Pi / 2]
      = ComplexInfinity
-
-    #> Tan[0.5 Pi]
-     = 1.63312×10^16
     """
 
     mpmath_name = "tan"

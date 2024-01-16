@@ -298,16 +298,6 @@ class Quotient(Builtin):
 
     >> Quotient[23, 7]
      = 3
-
-    #> Quotient[13, 0]
-     : Infinite expression Quotient[13, 0] encountered.
-     = ComplexInfinity
-    #> Quotient[-17, 7]
-     = -3
-    #> Quotient[-17, -4]
-     = 4
-    #> Quotient[19, -4]
-     = -5
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
@@ -338,24 +328,6 @@ class QuotientRemainder(Builtin):
 
     >> QuotientRemainder[23, 7]
      = {3, 2}
-
-    #> QuotientRemainder[13, 0]
-     : The argument 0 in QuotientRemainder[13, 0] should be nonzero.
-     = QuotientRemainder[13, 0]
-    #> QuotientRemainder[-17, 7]
-     = {-3, 4}
-    #> QuotientRemainder[-17, -4]
-     = {4, -1}
-    #> QuotientRemainder[19, -4]
-     = {-5, -1}
-    #> QuotientRemainder[a, 0]
-     = QuotientRemainder[a, 0]
-    #> QuotientRemainder[a, b]
-     = QuotientRemainder[a, b]
-    #> QuotientRemainder[5.2,2.5]
-     = {2, 0.2}
-    #> QuotientRemainder[5, 2.]
-     = {2, 1.}
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED

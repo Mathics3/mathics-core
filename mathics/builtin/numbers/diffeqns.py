@@ -42,48 +42,6 @@ class DSolve(Builtin):
 
     >> DSolve[D[y[x, t], t] + 2 D[y[x, t], x] == 0, y[x, t], {x, t}]
      = {{y[x, t] -> C[1][x - 2 t]}}
-
-    ## FIXME: sympy solves this as `Function[{x}, C[1] + Integrate[ArcSin[f[2 x]], x]]`
-    ## #> Attributes[f] = {HoldAll};
-    ## #> DSolve[f[x + x] == Sin[f'[x]], f, x]
-    ##  : To avoid possible ambiguity, the arguments of the dependent variable in f[x + x] == Sin[f'[x]] should literally match the independent variables.
-    ##  = DSolve[f[x + x] == Sin[f'[x]], f, x]
-
-    ## #> Attributes[f] = {};
-    ## #> DSolve[f[x + x] == Sin[f'[x]], f, x]
-    ##  : To avoid possible ambiguity, the arguments of the dependent variable in f[2 x] == Sin[f'[x]] should literally match the independent variables.
-    ##  = DSolve[f[2 x] == Sin[f'[x]], f, x]
-
-    #> DSolve[f'[x] == f[x], f, x] // FullForm
-     = {{Rule[f, Function[{x}, Times[C[1], Power[E, x]]]]}}
-
-    #> DSolve[f'[x] == f[x], f, x] /. {C[1] -> 1}
-     = {{f -> (Function[{x}, 1 E ^ x])}}
-
-    #> DSolve[f'[x] == f[x], f, x] /. {C -> D}
-     = {{f -> (Function[{x}, D[1] E ^ x])}}
-
-    #> DSolve[f'[x] == f[x], f, x] /. {C[1] -> C[0]}
-     = {{f -> (Function[{x}, C[0] E ^ x])}}
-
-    #> DSolve[f[x] == 0, f, {}]
-     : {} cannot be used as a variable.
-     = DSolve[f[x] == 0, f, {}]
-
-    ## Order of arguments shoudn't matter
-    #> DSolve[D[f[x, y], x] == D[f[x, y], y], f, {x, y}]
-     = {{f -> (Function[{x, y}, C[1][-x - y]])}}
-    #> DSolve[D[f[x, y], x] == D[f[x, y], y], f[x, y], {x, y}]
-     = {{f[x, y] -> C[1][-x - y]}}
-    #> DSolve[D[f[x, y], x] == D[f[x, y], y], f[x, y], {y, x}]
-     = {{f[x, y] -> C[1][-x - y]}}
-    """
-
-    # XXX sympy #11669 test
-    """
-    #> DSolve[\\[Gamma]'[x] == 0, \\[Gamma], x]
-     : Hit sympy bug #11669.
-     = ...
     """
 
     # TODO: GeneratedParameters option
