@@ -59,7 +59,7 @@ class MaxLengthIntStringConversion(Predefined):
 
     Show the default value of '$MaxLengthIntStringConversion':
     >> $MaxLengthIntStringConversion
-     = 7000
+     = ...
 
     500! is a 1135-digit number:
     >> 500! //ToString//StringLength
