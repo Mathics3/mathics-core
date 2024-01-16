@@ -4,7 +4,7 @@ Unit tests from mathics.builtin.evaluation.
 """
 
 
-from test.helper import check_evaluation, reset_session, session
+from test.helper import check_evaluation_as_in_cli, session
 
 import pytest
 
@@ -72,33 +72,4 @@ import pytest
 )
 def test_private_doctests_evaluation(str_expr, msgs, str_expected, fail_msg):
     """These tests check the behavior of $RecursionLimit and $IterationLimit"""
-
-    # Here we do not use the session object to check the messages
-    # produced by the exceptions. If $RecursionLimit / $IterationLimit
-    # are reached during the evaluation using a MathicsSession object,
-    # an exception is raised. On the other hand, using the `Evaluation.evaluate`
-    # method, the exception is handled.
-    #
-    # TODO: Maybe it makes sense to clone this exception handling in
-    # the check_evaluation function.
-    #
-
-    if str_expr is None:
-        reset_session()
-        return
-
-    def eval_expr(expr_str):
-        query = session.evaluation.parse(expr_str)
-        res = session.evaluation.evaluate(query)
-        session.evaluation.stopped = False
-        return res
-
-    res = eval_expr(str_expr)
-    if msgs is None:
-        assert len(res.out) == 0
-    else:
-        assert len(res.out) == len(msgs)
-        for li1, li2 in zip(res.out, msgs):
-            assert li1.text == li2
-
-    assert res.result == str_expected
+    check_evaluation_as_in_cli(str_expr, str_expected, fail_msg, msgs)

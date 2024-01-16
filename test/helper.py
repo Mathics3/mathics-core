@@ -27,7 +27,7 @@ def evaluate(str_expr: str):
 
 
 def check_evaluation(
-    str_expr: str,
+    str_expr: Optional[str],
     str_expected: Optional[str] = None,
     failure_message: str = "",
     hold_expected: bool = False,
@@ -122,3 +122,30 @@ def check_evaluation(
                 print(" and ")
                 print(f"expected=<<{msg}>>")
                 assert False, " do not match."
+
+
+def check_evaluation_as_in_cli(
+    str_expr: Optional[str] = None,
+    str_expected: Optional[str] = None,
+    failure_message: str = "",
+    expected_messages: Optional[tuple] = None,
+):
+    """
+    Use this method when special Symbols like Return, %, %%,
+    $IterationLimit, $RecursionLimit, etc. are used in the tests.
+    """
+    if str_expr is None:
+        reset_session()
+        return
+
+    res = session.evaluate_as_in_cli(str_expr)
+    if expected_messages is None:
+        assert len(res.out) == 0
+    else:
+        assert len(res.out) == len(expected_messages)
+        for li1, li2 in zip(res.out, expected_messages):
+            assert li1.text == li2
+
+    if failure_message:
+        assert res.result == str_expected, failure_message
+    assert res.result == str_expected
