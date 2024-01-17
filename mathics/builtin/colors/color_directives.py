@@ -156,6 +156,9 @@ class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
     components_sizes = []
     default_components = []
 
+    def __repr__(self):
+        return f"Color object of type {type(self)} with components:{ self.components}"
+
     def init(self, item=None, components=None):
         super(_ColorObject, self).init(None, item)
         if item is not None:
