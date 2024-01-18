@@ -5,10 +5,12 @@
 Drawing Graphics
 """
 
+import logging
 from math import sqrt
 
 from mathics.builtin.colors.color_directives import (
     CMYKColor,
+    ColorError,
     GrayLevel,
     Hue,
     LABColor,
@@ -68,6 +70,10 @@ GRAPHICS_OPTIONS = {
 
 # fraction of point relative canvas width
 DEFAULT_POINT_FACTOR = 0.005
+
+
+ERROR_BOX_FACE_COLOR = RGBColor(components=[1, 0, 0, 0.25])
+ERROR_BOX_EDGE_COLOR = RGBColor(components=[1, 0, 0, 1.0])
 
 
 class CoordinatesError(BoxExpressionError):
@@ -1088,8 +1094,76 @@ class _GraphicsElements:
                     raise BoxExpressionError
             return new_style
 
+        failed = []
+
+        def build_error_box1(style):
+            error_style = style.klass(
+                style.graphics,
+                edge=ERROR_BOX_EDGE_COLOR,
+                face=ERROR_BOX_FACE_COLOR,
+            )
+            if isinstance(self, GraphicsElements):
+                error_primitive_head = Symbol("PolygonBox")
+                error_primitive_expression = Expression(
+                    error_primitive_head,
+                    from_python([(-1, -1), (1, -1), (1, 1), (-1, 1), (-1, -1)]),
+                )
+            else:
+                error_primitive_head = Symbol("Polygon3DBox")
+                error_primitive_expression = Expression(
+                    error_primitive_head,
+                    from_python(
+                        [
+                            (-1, 0, -1),
+                            (1, 0, -1),
+                            (1, 0.01, 1),
+                            (-1, 0.01, 1),
+                            (-1, 0, -1),
+                        ]
+                    ),
+                )
+            error_box = get_class(error_primitive_head)(
+                self, style=error_style, item=error_primitive_expression
+            )
+            error_box.face_color = ERROR_BOX_FACE_COLOR
+            error_box.edge_color = ERROR_BOX_EDGE_COLOR
+            return error_box
+
+        def build_error_box2(style):
+            error_style = style.klass(
+                style.graphics,
+                edge=ERROR_BOX_EDGE_COLOR,
+                face=ERROR_BOX_FACE_COLOR,
+            )
+            if isinstance(self, GraphicsElements):
+                error_primitive_head = Symbol("RectangleBox")
+                error_primitive_expression = Expression(
+                    error_primitive_head,
+                    from_python([-1, -1]),
+                )
+            else:
+                error_primitive_head = Symbol("Cuboid3DBox")
+                error_primitive_expression = Expression(
+                    error_primitive_head,
+                    from_python(
+                        [
+                            (
+                                -1,
+                                -1,
+                                -1,
+                            ),
+                            (1, 1, 1),
+                        ]
+                    ),
+                )
+            error_box = get_class(error_primitive_head)(
+                self, style=style, item=error_primitive_expression
+            )
+            error_box.face_color = ERROR_BOX_FACE_COLOR
+            error_box.edge_color = ERROR_BOX_EDGE_COLOR
+            return error_box
+
         def convert(content, style):
-            failed = []
             if content.has_form("List", None):
                 items = content.elements
             else:
@@ -1100,10 +1174,13 @@ class _GraphicsElements:
                     continue
                 head = item.get_head()
                 if head in style_and_form_heads:
-                    style.append(item)
+                    try:
+                        style.append(item)
+                    except ColorError:
+                        failed.append(head)
                 elif head is Symbol("System`StyleBox"):
                     if len(item.elements) < 1:
-                        raise BoxExpressionError
+                        failed.append(item.head)
                     for element in convert(
                         item.elements[0], stylebox_style(style, item.elements[1:])
                     ):
@@ -1112,65 +1189,40 @@ class _GraphicsElements:
                     element_class = get_class(head)
                     if element_class is None:
                         failed.append(head)
-                        yield None
+                        continue
                     options = get_options(head.name[:-3])
                     if options:
                         data, options = _data_and_options(item.elements, options)
                         new_item = Expression(head, *data)
-                        element = element_class(self, style, new_item, options)
+                        try:
+                            element = element_class(self, style, new_item, options)
+                        except (BoxExpressionError, CoordinatesError):
+                            failed.append(head)
+                            continue
                     else:
-                        element = element_class(self, style, item)
+                        try:
+                            element = element_class(self, style, item)
+                        except (BoxExpressionError, CoordinatesError):
+                            failed.append(head)
+                            continue
                     yield element
                 elif head is SymbolList:
                     for element in convert(item, style):
                         yield element
                 else:
                     failed.append(head)
+                    continue
 
-                if failed:
-                    messages = "\n".join(
-                        [
-                            f"str(h) is not a valid primitive or directive."
-                            for h in failed
-                        ]
-                    )
-                    style = style.klass(
-                        style.graphics,
-                        edge=RGBColor(components=(1, 0, 0)),
-                        face=RGBColor(components=(1, 0, 0, 0.25)),
-                    )
-                    if isinstance(self, GraphicsElements):
-                        error_primitive_head = Symbol("PolygonBox")
-                        error_primitive_expression = Expression(
-                            error_primitive_head,
-                            from_python([(-1, -1), (1, -1), (1, 1), (-1, 1), (-1, -1)]),
-                        )
-                    else:
-                        error_primitive_head = Symbol("Polygon3DBox")
-                        error_primitive_expression = Expression(
-                            error_primitive_head,
-                            from_python(
-                                [
-                                    (-1, 0, -1),
-                                    (1, 0, -1),
-                                    (1, 0.01, 1),
-                                    (-1, 0.01, 1),
-                                    (-1, 0, -1),
-                                ]
-                            ),
-                        )
-                    error_box = get_class(error_primitive_head)(
-                        self, style=style, item=error_primitive_expression
-                    )
-                    error_box.face_color = RGBColor(components=(1, 0, 0, 0.25))
-                    error_box.edge_color = RGBColor(components=(1, 0, 0))
-                    yield error_box
-
-                    # print("I am a ", type(self))
-                    # raise BoxExpressionError(messages)
+            if failed:
+                yield build_error_box2(style)
+                # raise BoxExpressionError(messages)
 
         self.elements = list(convert(content, self.style_class(self)))
-        print("elements:", tuple(e for e in self.elements))
+        if failed:
+            messages = "\n".join(
+                [f"{str(h)} is not a valid primitive or directive." for h in failed]
+            )
+            logging.warn(messages)
 
     def create_style(self, expr):
         style = self.style_class(self)
