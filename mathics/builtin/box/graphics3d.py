@@ -25,7 +25,7 @@ from mathics.core.formatter import lookup_method
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.eval.nevaluator import eval_N
 
-# Docs are not yet ready for prime time. Maybe after release 6.0.0.
+# Docs are not yet ready for prime time. Maybe after release 7.0.0.
 no_doc = True
 
 
