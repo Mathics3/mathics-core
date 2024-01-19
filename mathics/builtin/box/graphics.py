@@ -491,6 +491,11 @@ class GraphicsBox(BoxExpression):
         if evaluation is None:
             evaluation = self.evaluation
         elements = GraphicsElements(elements[0], evaluation, neg_y)
+        if hasattr(elements, "background_color"):
+            self.background_color = elements.background_color
+        if hasattr(elements, "tooltip_text"):
+            self.tooltip_text = elements.tooltip_text
+
         axes = []  # to be filled further down
 
         def calc_dimensions(final_pass=True):

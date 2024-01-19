@@ -72,7 +72,7 @@ GRAPHICS_OPTIONS = {
 DEFAULT_POINT_FACTOR = 0.005
 
 
-ERROR_BOX_FACE_COLOR = RGBColor(components=[1, 0, 0, 0.25])
+ERROR_BOX_FACE_COLOR = RGBColor(components=[1, 0.3, 0.3, 0.25])
 ERROR_BOX_EDGE_COLOR = RGBColor(components=[1, 0, 0, 1.0])
 
 
@@ -1213,15 +1213,17 @@ class _GraphicsElements:
                     failed.append(head)
                     continue
 
-            if failed:
-                yield build_error_box2(style)
-                # raise BoxExpressionError(messages)
+            # if failed:
+            #    yield build_error_box2(style)
+            #    raise BoxExpressionError(messages)
 
         self.elements = list(convert(content, self.style_class(self)))
         if failed:
             messages = "\n".join(
                 [f"{str(h)} is not a valid primitive or directive." for h in failed]
             )
+            self.tooltip_text = messages
+            self.background_color = ERROR_BOX_FACE_COLOR
             logging.warn(messages)
 
     def create_style(self, expr):

@@ -308,17 +308,19 @@ def graphics_box(self, elements=None, **options: dict) -> str:
     self.boxwidth = options.get("width", self.boxwidth)
     self.boxheight = options.get("height", self.boxheight)
 
+    tooltip_text = self.tooltip_text if hasattr(self, "tooltip_text") else ""
     if self.background_color is not None:
         # FIXME: tests don't seem to cover this secton of code.
         # Wrap svg_elements in a rectangle
         svg_body = f"""
+        <rect x="{xmin:f}" y="{ymin:f}" width="{self.boxwidth:f}" height="{self.boxheight:f}" style="fill: {self.background_color}"></rect>
             <rect
                  x="{xmin:f}" y="{ymin:f}"
                  width="{self.boxwidth:f}"
                  height="{self.boxheight:f}"
-                 style="fill:{self.background_color.to_css()[0]}
+                 style="fill:{self.background_color.to_css()[0]}"><title>{tooltip_text}</title></rect>
             {svg_body}
-           />"""
+           """
 
     if options.get("noheader", False):
         return svg_body
