@@ -28,11 +28,10 @@ from mathics.builtin.drawing.graphics_internals import (
     get_class,
 )
 from mathics.builtin.options import options_to_rules
-from mathics.core.atoms import Integer, Integer0, Integer1, Rational, Real
+from mathics.core.atoms import Integer, Rational, Real
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_expression, to_mathics_list
-from mathics.core.convert.python import from_python
 from mathics.core.exceptions import BoxExpressionError
 from mathics.core.expression import Expression
 from mathics.core.formatter import lookup_method
