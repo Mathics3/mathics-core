@@ -551,13 +551,21 @@ def graphics3dbox(self, elements=None, **options) -> str:
                 boundbox_asy += "draw(({0}), {1});\n".format(path, pen)
 
     (height, width) = (400, 400)  # TODO: Proper size
+
+    # Background color
+    if self.background_color:
+        bg_color, opacity = asy_color(self.background_color)
+        background_directive = "background=" + bg_color + ", "
+    else:
+        background_directive = ""
+
     tex = r"""
 \begin{{asy}}
 import three;
 import solids;
 size({0}cm, {1}cm);
 currentprojection=perspective({2[0]},{2[1]},{2[2]});
-currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
+currentlight=light(rgb(0.5,0.5,1), {5}specular=red, (2,0,2), (2,2,2), (0,2,2));
 {3}
 {4}
 \end{{asy}}
@@ -568,6 +576,7 @@ currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
         [vp * max([xmax - xmin, ymax - ymin, zmax - zmin]) for vp in self.viewpoint],
         asy,
         boundbox_asy,
+        background_directive,
     )
     return tex
 

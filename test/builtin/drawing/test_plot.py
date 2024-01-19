@@ -29,6 +29,17 @@ import pytest
         ),
         ("Plot[x*y, {x, -1, 1}]", None, "-Graphics-", None),
         ("Plot3D[z, {x, 1, 20}, {y, 1, 10}]", None, "-Graphics3D-", None),
+        (
+            "Graphics[{Disk[]}, Background->RGBColor[1,.1,.1]]//TeXForm//ToString",
+            None,
+            (
+                '\n\\begin{asy}\nusepackage("amsmath");\nsize(5.8333cm, 5.8333cm);\n'
+                "filldraw(box((0,0), (350,350)), rgb(1, 0.1, 0.1));\n"
+                "filldraw(ellipse((175,175),175,175), rgb(0, 0, 0), nullpen);\n"
+                "clip(box((0,0), (350,350)));\n\\end{asy}\n"
+            ),
+            "Background 2D",
+        ),
         ## MaxRecursion Option
         (
             "Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> 0]",
@@ -85,6 +96,34 @@ import pytest
             None,
             "\n\\begin{asy}\nimport three;\nimport solids;\nsize(6.6667cm, 6.6667cm);",
             None,
+        ),
+        (
+            "Graphics3D[{Sphere[]}, Background->RGBColor[1,.1,.1]]//TeXForm//ToString",
+            None,
+            (
+                "\n\\begin{asy}\n"
+                "import three;\n"
+                "import solids;\n"
+                "size(6.6667cm, 6.6667cm);\n"
+                "currentprojection=perspective(2.6,-4.8,4.0);\n"
+                "currentlight=light(rgb(0.5,0.5,1), background=rgb(1, 0.1, 0.1), specular=red, (2,0,2), (2,2,2), (0,2,2));\n"
+                "// Sphere3DBox\n"
+                "draw(surface(sphere((0, 0, 0), 1)), rgb(1,1,1)+opacity(1));\n"
+                "draw(((-1,-1,-1)--(1,-1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));\n"
+                "draw(((-1,1,-1)--(1,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));\n"
+                "draw(((-1,-1,1)--(1,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));\n"
+                "draw(((-1,1,1)--(1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));\n"
+                "draw(((-1,-1,-1)--(-1,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));\n"
+                "draw(((1,-1,-1)--(1,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));\n"
+                "draw(((-1,-1,1)--(-1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));\n"
+                "draw(((1,-1,1)--(1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));\n"
+                "draw(((-1,-1,-1)--(-1,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));\n"
+                "draw(((1,-1,-1)--(1,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));\n"
+                "draw(((-1,1,-1)--(-1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));\n"
+                "draw(((1,1,-1)--(1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));\n"
+                "\\end{asy}\n"
+            ),
+            "Background 3D",
         ),
         (
             "Graphics3D[Point[Table[{Sin[t], Cos[t], 0}, {t, 0, 2. Pi, Pi / 15.}]]] // TeXForm//ToString",
