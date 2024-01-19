@@ -20,9 +20,7 @@ from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import MACHINE_EPSILON
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolApply
-
-SymbolOpacity = Symbol("Opacity")
+from mathics.core.systemsymbols import SymbolApply, SymbolOpacity
 
 
 def _cie2000_distance(lab1, lab2):
@@ -223,13 +221,14 @@ class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
 
 class CMYKColor(_ColorObject):
     """
-    <url>
+    <url>:CYMYK color model:
+    https://en.wikipedia.org/wiki/CMYK_color_model</url> (<url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/CMYKColor.html</url>
+    https://reference.wolfram.com/language/ref/CMYKColor.html</url>)
 
     <dl>
       <dt>'CMYKColor[$c$, $m$, $y$, $k$]'
-      <dd>represents a color with the specified cyan, magenta,
+      <dd>represents a color with the specified cyan, magenta, \
         yellow and black components.
     </dl>
 
@@ -245,7 +244,10 @@ class CMYKColor(_ColorObject):
 
 class ColorDistance(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ColorDistance.html</url>
+    <url>:Color difference:
+    https://en.wikipedia.org/wiki/Color_difference</url> (<url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ColorDistance.html</url>)
 
     <dl>
       <dt>'ColorDistance[$c1$, $c2$]'
@@ -259,9 +261,12 @@ class ColorDistance(Builtin):
     distance. Available options are:
 
     <ul>
-      <li>CIE76: Euclidean distance in the LABColor space
-      <li>CIE94: Euclidean distance in the LCHColor space
-      <li>CIE2000 or CIEDE2000: CIE94 distance with corrections
+      <li><url>:CIE76:
+      https://en.wikipedia.org/wiki/Color_difference#CIE76</url>: Euclidean distance in the LABColor space
+      <li><url>:CIE94:
+      https://en.wikipedia.org/wiki/Color_difference#CIE94</url>: Euclidean distance in the LCHColor space
+      <li>CIE2000 or <url>:CIEDE2000:
+      https://en.wikipedia.org/wiki/Color_difference#CIEDE2000</url>: CIE94 distance with corrections
       <li>CMC: Color Measurement Committee metric (1984)
       <li>DeltaL: difference in the L component of LCHColor
       <li>DeltaC: difference in the C component of LCHColor
@@ -580,7 +585,8 @@ class LUVColor(_ColorObject):
 
     <dl>
       <dt>'LCHColor[$l$, $u$, $v$]'
-      <dd>represents a color with the specified components in the CIE 1976 L*u*v* (CIELUV) color space.
+      <dd>represents a color with the specified components in the CIE 1976 L*u*v* \
+          (CIELUV) color space.
     </dl>
     """
 
@@ -593,14 +599,17 @@ class LUVColor(_ColorObject):
 
 class Opacity(_GraphicsDirective):
     """
-    <url>
+    <url>:Alpha compositing:
+    https://en.wikipedia.org/wiki/Alpha_compositing</url> (<url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/Opacity.html</url>
+    https://reference.wolfram.com/language/ref/Opacity.html</url>)
 
     <dl>
       <dt>'Opacity[$level$]'
-      <dd> is a graphics directive that sets the opacity to $level$.
+      <dd> is a graphics directive that sets the opacity to $level$; $level$ is a \
+           value between 0 and 1.
     </dl>
+
     >> Graphics[{Blue, Disk[{.5, 1}, 1], Opacity[.4], Red, Disk[], Opacity[.2], Green, Disk[{-.5, 1}, 1]}]
      = -Graphics-
     >> Graphics3D[{Blue, Sphere[], Opacity[.4], Red, Cuboid[]}]
@@ -633,24 +642,45 @@ class Opacity(_GraphicsDirective):
 
 class RGBColor(_ColorObject):
     """
-    <url>
+    <url>:RGB color model:
+    https://en.wikipedia.org/wiki/RGB_color_model</url> (<url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/RGBColor.html</url>
+    https://reference.wolfram.com/language/ref/RGBColor.html</url>)
 
     <dl>
       <dt>'RGBColor[$r$, $g$, $b$]'
-      <dd>represents a color with the specified red, green and blue
-        components.
+      <dd>represents a color with the specified red, green and blue \
+        components. These values should be a number between 0 and 1. \
+        Unless specified using the form below or using <url>
+        :Opacity:
+      /doc/reference-of-built-in-symbols/colors/color-directives/opacity</url>,\
+        default opacity is 1, a solid opaque color.
+
+      <dt>'RGBColor[$r$, $g$, $b$, $a$]'
+      <dd>Same as above but an opacity value is specified. $a$ must have \
+          value between 0 and 1. \
+          'RGBColor[$r$,$g$,$b$,$a$]' is equivalent to '{RGBColor[$r$,$g$,$b$],Opacity[$a$]}.'
     </dl>
+
+
+    A swatch of color green:
+    >> RGBColor[0, 1, 0]
+     = RGBColor[0, 1, 0]
+
+    Let's show what goes on in the process of boxing the above to make this display:
+
+    >> RGBColor[0, 1, 0] // ToBoxes
+     = StyleBox[GraphicsBox[...], ...]
+
+    A swatch of color green which is 1/8 opaque:
+    >> RGBColor[0, 1, 0, 0.125]
+     = RGBColor[0, 1, 0, 0.125]
+
+    A series of small disks of the primary colors:
 
     >> Graphics[MapIndexed[{RGBColor @@ #1, Disk[2*#2 ~Join~ {0}]} &, IdentityMatrix[3]], ImageSize->Small]
      = -Graphics-
 
-    >> RGBColor[0, 1, 0]
-     = RGBColor[0, 1, 0]
-
-    >> RGBColor[0, 1, 0] // ToBoxes
-     = StyleBox[GraphicsBox[...], ...]
     """
 
     color_space = "RGB"
@@ -660,6 +690,7 @@ class RGBColor(_ColorObject):
     def to_rgba(self):
         return self.components
 
+    rules = {"RGBColor[r, g, b, a]": "{RGBColor[r, g, b], Opacity[a]}"}
     summary_text = "specify an RGB color"
 
 
