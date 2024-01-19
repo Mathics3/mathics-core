@@ -26,11 +26,10 @@ from mathics.builtin.drawing.graphics_internals import (
     get_class,
 )
 from mathics.builtin.options import options_to_rules
-from mathics.core.atoms import Integer, Integer0, Integer1, Rational, Real
+from mathics.core.atoms import Integer, Rational, Real
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_expression, to_mathics_list
-from mathics.core.convert.python import from_python
 from mathics.core.exceptions import BoxExpressionError
 from mathics.core.expression import Expression
 from mathics.core.formatter import lookup_method
@@ -1089,7 +1088,6 @@ class _GraphicsElements:
             return new_style
 
         def convert(content, style):
-            failed = []
             if content.has_form("List", None):
                 items = content.elements
             else:
@@ -1110,9 +1108,6 @@ class _GraphicsElements:
                         yield element
                 elif head.name[-3:] == "Box":  # and head[:-3] in element_heads:
                     element_class = get_class(head)
-                    if element_class is None:
-                        failed.append(head)
-                        yield None
                     options = get_options(head.name[:-3])
                     if options:
                         data, options = _data_and_options(item.elements, options)
@@ -1125,52 +1120,9 @@ class _GraphicsElements:
                     for element in convert(item, style):
                         yield element
                 else:
-                    failed.append(head)
-
-                if failed:
-                    messages = "\n".join(
-                        [
-                            f"str(h) is not a valid primitive or directive."
-                            for h in failed
-                        ]
-                    )
-                    style = style.klass(
-                        style.graphics,
-                        edge=RGBColor(components=(1, 0, 0)),
-                        face=RGBColor(components=(1, 0, 0, 0.25)),
-                    )
-                    if isinstance(self, GraphicsElements):
-                        error_primitive_head = Symbol("PolygonBox")
-                        error_primitive_expression = Expression(
-                            error_primitive_head,
-                            from_python([(-1, -1), (1, -1), (1, 1), (-1, 1), (-1, -1)]),
-                        )
-                    else:
-                        error_primitive_head = Symbol("Polygon3DBox")
-                        error_primitive_expression = Expression(
-                            error_primitive_head,
-                            from_python(
-                                [
-                                    (-1, 0, -1),
-                                    (1, 0, -1),
-                                    (1, 0.01, 1),
-                                    (-1, 0.01, 1),
-                                    (-1, 0, -1),
-                                ]
-                            ),
-                        )
-                    error_box = get_class(error_primitive_head)(
-                        self, style=style, item=error_primitive_expression
-                    )
-                    error_box.face_color = RGBColor(components=(1, 0, 0, 0.25))
-                    error_box.edge_color = RGBColor(components=(1, 0, 0))
-                    yield error_box
-
-                    # print("I am a ", type(self))
-                    # raise BoxExpressionError(messages)
+                    raise BoxExpressionError
 
         self.elements = list(convert(content, self.style_class(self)))
-        print("elements:", tuple(e for e in self.elements))
 
     def create_style(self, expr):
         style = self.style_class(self)
