@@ -21,7 +21,9 @@ Compatibility
 * ``*Plot`` does not show messages during the evaluation.
 * ``Range[]`` now handles a negative ``di`` PR #951
 * Improved support for ``DirectedInfinity`` and ``Indeterminate``.
-
+* ``Graphics`` and ``Graphics3D`` including wrong primitives and directives
+  are shown with a pink background. In the Mathics-Django interface, a tooltip
+  error message is also shown.
 
 Internals
 ---
@@ -41,6 +43,7 @@ Bugs
 
 * ``Definitions`` is compatible with ``pickle``.
 * Improved support for ``Quantity`` expressions, including conversions, formatting and arithmetic operations.
+* ``Background`` option for ``Graphics`` and ``Graphics3D`` is operative again.
 * ``Switch[]`` involving ``Infinity`` Issue #956
 * ``Outer[]`` on ``SparseArray`` Issue #939
 * ``ArrayQ[]`` detects ``SparseArray`` PR #947

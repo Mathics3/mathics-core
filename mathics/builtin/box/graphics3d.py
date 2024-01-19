@@ -4,6 +4,7 @@ Boxing Symbols for 3D Graphics
 """
 
 import json
+import logging
 import numbers
 
 from mathics.builtin.box.graphics import (
@@ -13,7 +14,12 @@ from mathics.builtin.box.graphics import (
     PointBox,
     PolygonBox,
 )
-from mathics.builtin.colors.color_directives import Opacity, RGBColor, _ColorObject
+from mathics.builtin.colors.color_directives import (
+    ColorError,
+    Opacity,
+    RGBColor,
+    _ColorObject,
+)
 from mathics.builtin.drawing.graphics3d import Coords3D, Graphics3DElements, Style3D
 from mathics.builtin.drawing.graphics_internals import (
     GLOBALS3D,
@@ -52,7 +58,11 @@ class Graphics3DBox(GraphicsBox):
         ):
             self.background_color = None
         else:
-            self.background_color = _ColorObject.create(background)
+            try:
+                self.background_color = _ColorObject.create(background)
+            except ColorError:
+                logging.warning(f"{str(background)} is not a valid color spec.")
+                self.background_color = None
 
         evaluation = options["evaluation"]
 
@@ -228,6 +238,11 @@ class Graphics3DBox(GraphicsBox):
             raise BoxExpressionError
 
         elements = Graphics3DElements(elements[0], evaluation)
+        # If one of the primitives or directives fails to be
+        # converted into a box expression, then the background color
+        # is set to pink, overwritting the options.
+        if hasattr(elements, "background_color"):
+            self.background_color = elements.background_color
 
         def calc_dimensions(final_pass=True):
             if "System`Automatic" in plot_range:
@@ -357,6 +372,16 @@ class Graphics3DBox(GraphicsBox):
             boxscale,
         ) = self._prepare_elements(elements, options)
 
+        # TODO: Handle alpha channel
+        background = (
+            self.background_color.to_css()[:-1]
+            if self.background_color is not None
+            else "rgbcolor(100%,100%,100%)"
+        )
+        tooltip_text = (
+            elements.tooltip_text if hasattr(elements, "tooltip_text") else ""
+        )
+
         js_ticks_style = [s.to_js() for s in ticks_style]
 
         elements._apply_boxscaling(boxscale)
@@ -371,6 +396,8 @@ class Graphics3DBox(GraphicsBox):
         json_repr = json.dumps(
             {
                 "elements": format_fn(elements, **options),
+                "background_color": background,
+                "tooltip_text": tooltip_text,
                 "axes": {
                     "hasaxes": axes,
                     "ticks": ticks,
