@@ -268,6 +268,10 @@ class Graphics(Builtin):
     >> Graphics[Rectangle[]] // ToBoxes // Head
      = GraphicsBox
 
+    The 'Background' option allows to set the color of the background:
+    >> Graphics[{Green, Disk[]}, Background->RGBColor[.6, .7, 1.]]
+     = -Graphics-
+
     In 'TeXForm', 'Graphics' produces Asymptote figures:
     >> Graphics[Circle[]] // TeXForm
      = #<--#
