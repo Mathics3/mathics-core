@@ -471,7 +471,7 @@ class Evaluation:
         symbol_shortname = self.definitions.shorten_name(symbol)
 
         if settings.DEBUG_PRINT:
-            print("MESSAGE: %s::%s (%s)" % (symbol_shortname, tag, msgs))
+            print(f"MESSAGE: {symbol_shortname}::{tag} ({msgs})")
 
         text = self.definitions.get_value(symbol, "System`Messages", pattern, self)
         if text is None:
@@ -481,7 +481,7 @@ class Evaluation:
             )
 
         if text is None:
-            text = String("Message %s::%s not found." % (symbol_shortname, tag))
+            text = String(f"Message {symbol_shortname}::{tag} not found.")
 
         text = self.format_output(
             Expression(SymbolStringForm, text, *(from_python(arg) for arg in msgs)),
@@ -587,8 +587,9 @@ class Message(_Out):
                 use a string.
         tag: a short slug string that indicates the kind of message
 
-        In Django we need to use a string for symbol, since we need something that is JSON serializable
-        and a Mathics3 Symbol is not like this.
+        In Django we need to use a string for symbol, since we need
+        something that is JSON serializable and a Mathics3 Symbol is not
+        like this.
         """
         super(Message, self).__init__()
         self.is_message = True  # Why do we need this?
@@ -607,7 +608,7 @@ class Message(_Out):
             "message": True,
             "symbol": self.symbol,
             "tag": self.tag,
-            "prefix": "%s::%s" % (self.symbol, self.tag),
+            "prefix": f"{self.symbol}::{self.tag}",
             "text": self.text,
         }
 
