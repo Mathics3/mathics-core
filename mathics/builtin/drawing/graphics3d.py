@@ -78,8 +78,8 @@ class Graphics3D(Graphics):
          = -Graphics3D-
 
         The 'Background' option allows to set the color of the background:
-        >> Graphics3D[Sphere[], Background->RGBColor[.6, .7, 1.]]:
-         = -Graphics-
+        >> Graphics3D[Sphere[], Background->RGBColor[.6, .7, 1.]]
+         = -Graphics3D-
 
         In 'TeXForm', 'Graphics3D' creates Asymptote figures:
         >> Graphics3D[Sphere[]] // TeXForm
