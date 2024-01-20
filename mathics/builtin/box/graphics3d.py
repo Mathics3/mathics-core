@@ -372,12 +372,14 @@ class Graphics3DBox(GraphicsBox):
             boxscale,
         ) = self._prepare_elements(elements, options)
 
-        # TODO: Handle alpha channel
-        background = (
-            self.background_color.to_css()[:-1]
-            if self.background_color is not None
-            else "rgbcolor(100%,100%,100%)"
-        )
+        background = "rgba(100%,100%,100%,100%)"
+        if self.background_color:
+            components = self.background_color.to_rgba()
+            if len(components) == 3:
+                background = "rgb(" + ", ".join(f"{100*c}%" for c in components) + ")"
+            else:
+                background = "rgba(" + ", ".join(f"{100*c}%" for c in components) + ")"
+
         tooltip_text = (
             elements.tooltip_text if hasattr(elements, "tooltip_text") else ""
         )

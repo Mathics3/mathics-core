@@ -474,7 +474,10 @@ class GraphicsBox(BoxExpression):
         ):
             self.background_color = None
         else:
-            self.background_color = _ColorObject.create(background)
+            try:
+                self.background_color = _ColorObject.create(background)
+            except ColorError:
+                self.background_color = None
 
         base_width, base_height, size_multiplier, size_aspect = self._get_image_size(
             options, self.graphics_options, max_width

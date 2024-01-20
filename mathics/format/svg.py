@@ -312,13 +312,21 @@ def graphics_box(self, elements=None, **options: dict) -> str:
     if self.background_color is not None:
         # FIXME: tests don't seem to cover this secton of code.
         # Wrap svg_elements in a rectangle
+
+        background = "rgba(100%,100%,100%,100%)"
+        if self.background_color:
+            components = self.background_color.to_rgba()
+            if len(components) == 3:
+                background = "rgb(" + ", ".join(f"{100*c}%" for c in components) + ")"
+            else:
+                background = "rgba(" + ", ".join(f"{100*c}%" for c in components) + ")"
+
         svg_body = f"""
-        <rect x="{xmin:f}" y="{ymin:f}" width="{self.boxwidth:f}" height="{self.boxheight:f}" style="fill: {self.background_color}"></rect>
             <rect
                  x="{xmin:f}" y="{ymin:f}"
                  width="{self.boxwidth:f}"
                  height="{self.boxheight:f}"
-                 style="fill:{self.background_color.to_css()[0]}"><title>{tooltip_text}</title></rect>
+                 style="fill:{background}"><title>{tooltip_text}</title></rect>
             {svg_body}
            """
 

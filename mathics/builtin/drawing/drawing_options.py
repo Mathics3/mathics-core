@@ -78,6 +78,32 @@ class Axis(Builtin):
     summary_text = "graph option value to fill plot from curve to the axis"
 
 
+class Background(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Background.html</url>
+
+    <dl>
+      <dt>'Background'
+      <dd>is an option that specifies the color of the background.
+    </dl>
+
+    The specification must be a 'Color' or 'Automatic':
+
+    >> Graphics3D[{Arrow[{{0,0,0},{1,0,1},{0,-1,0},{1,1,1}}]}, Background -> Red]
+     = -Graphics3D-
+
+    Other values for this option are neglected. For example, this prevent to
+    combine a color with an opacity. To get that effect, the color must
+    be specified with an alpha channel:
+
+    >> Graphics[{Disk[]}, Background -> RGBColor[0,0,1,.2]]
+     = -Graphics-
+
+    """
+
+    summary_text = "graphic option for the color of the background"
+
+
 class Bottom(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Bottom.html</url>
