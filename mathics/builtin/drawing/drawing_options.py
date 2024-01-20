@@ -87,16 +87,16 @@ class Background(Builtin):
       <dd>is an option that specifies the color of the background.
     </dl>
 
-    The specification must be a 'Color' or 'Automatic':
+    The specification must be a Color specification or 'Automatic':
 
     >> Graphics3D[{Arrow[{{0,0,0},{1,0,1},{0,-1,0},{1,1,1}}]}, Background -> Red]
      = -Graphics3D-
 
-    Other values for this option are neglected. For example, this prevent to
-    combine a color with an opacity. To get that effect, the color must
-    be specified with an alpha channel:
+    Notice that opacity cannot be specified by passing a 'List' containing 'Opacity' \
+    together with a color specification like '{Red, Opacity[.1]}'. Use a color \
+    directive with an alpha channel instead:
 
-    >> Graphics[{Disk[]}, Background -> RGBColor[0,0,1,.2]]
+    >> Plot[{Sin[x], Cos[x], x / 3}, {x, -Pi, Pi}, Background -> RGBColor[0.5, .5, .5, 0.1]]
      = -Graphics-
 
     """
