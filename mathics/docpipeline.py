@@ -349,20 +349,15 @@ def test_all(
     stop_on_failure=False,
     start_at=0,
     count=MAX_TESTS,
-    texdatafolder=None,
     doc_even_if_error=False,
     excludes=[],
 ):
     if not quiet:
         print(f"Testing {version_string}")
 
-    if generate_output:
-        if texdatafolder is None:
-            texdatafolder = osp.dirname(
-                settings.get_doctest_latex_data_path(
-                    should_be_readable=False, create_parent=True
-                )
-            )
+    if documentation is None:
+        return
+
     try:
         index = 0
         total = failed = skipped = 0
