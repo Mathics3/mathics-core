@@ -354,6 +354,8 @@ def graphicsbox(self, elements=None, **options) -> str:
 
     if self.background_color is not None:
         color, opacity = asy_color(self.background_color)
+        if opacity is not None:
+            color = color + f"+opacity({opacity})"
         asy_background = "filldraw(%s, %s);" % (asy_box, color)
     else:
         asy_background = ""
