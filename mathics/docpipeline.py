@@ -251,7 +251,6 @@ def test_chapters(
     stop_on_failure=False,
     generate_output=False,
     reload=False,
-    want_sorting=False,
     keep_going=False,
 ):
     failed = 0
@@ -294,7 +293,6 @@ def test_sections(
     stop_on_failure=False,
     generate_output=False,
     reload=False,
-    want_sorting=False,
     keep_going=False,
 ):
     failed = 0
@@ -351,27 +349,21 @@ def test_all(
     stop_on_failure=False,
     start_at=0,
     count=MAX_TESTS,
-    texdatafolder=None,
     doc_even_if_error=False,
     excludes=[],
-    want_sorting=False,
 ):
     if not quiet:
         print(f"Testing {version_string}")
 
-    if generate_output:
-        if texdatafolder is None:
-            texdatafolder = osp.dirname(
-                settings.get_doctest_latex_data_path(
-                    should_be_readable=False, create_parent=True
-                )
-            )
+    if documentation is None:
+        return
+
     try:
         index = 0
         total = failed = skipped = 0
         failed_symbols = set()
         output_data = {}
-        for tests in documentation.get_tests(want_sorting=want_sorting):
+        for tests in documentation.get_tests():
             sub_total, sub_failed, sub_skipped, symbols, index = test_tests(
                 tests,
                 index,
@@ -608,21 +600,6 @@ def main():
         action="store_true",
         help="print cache statistics",
     )
-    # FIXME: historically was weird interacting going on with
-    # mathics when tests in sorted order. Possibly a
-    # mpmath precsion reset bug.
-    # We see a noticeable 2 minute delay in processing.
-    # WHile the problem is in Mathics itself rather than
-    # sorting, until we get this fixed, use
-    # sort as an option only. For normal testing we don't
-    # want it for speed. But for document building which is
-    # rarely done, we do want sorting of the sections and chapters.
-    parser.add_argument(
-        "--want-sorting",
-        dest="want_sorting",
-        action="store_true",
-        help="Sort chapters and sections",
-    )
     global logfile
 
     args = parser.parse_args()
@@ -635,7 +612,7 @@ def main():
         logfile = open(args.logfilename, "wt")
 
     global documentation
-    documentation = MathicsMainDocumentation(want_sorting=args.want_sorting)
+    documentation = MathicsMainDocumentation()
 
     # LoadModule Mathics3 modules
     if args.pymathics:
@@ -686,7 +663,6 @@ def main():
                 count=args.count,
                 doc_even_if_error=args.keep_going,
                 excludes=excludes,
-                want_sorting=args.want_sorting,
             )
             end_time = datetime.now()
             print("Tests took ", end_time - start_time)

@@ -16,7 +16,6 @@ from mathics.core.load_builtin import builtins_by_module, name_is_builtin_symbol
 pymathics_modules = set()
 pymathics_builtins_by_module = {}
 
-
 class PyMathicsLoadException(Exception):
     def __init__(self, module):
         self.name = module + " is not a valid pymathics module"
