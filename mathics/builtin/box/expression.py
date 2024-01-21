@@ -198,8 +198,6 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         evaluation = options.get("evaluation", None)
         if evaluation:
             default = evaluation.definitions.get_options(self.get_name()).copy()
-            options = ListExpression(*elements).get_option_values(evaluation)
-            default.update(options)
         else:
             from mathics.core.parser import parse_builtin_rule
 
@@ -207,6 +205,9 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
             for option, value in self.options.items():
                 option = ensure_context(option)
                 default[option] = parse_builtin_rule(value)
+
+        options = ListExpression(*elements).get_option_values(evaluation)
+        default.update(options)
         return default
 
 
