@@ -690,7 +690,6 @@ class RGBColor(_ColorObject):
     def to_rgba(self):
         return self.components
 
-    # rules = {"RGBColor[r, g, b, a]": "{RGBColor[r, g, b], Opacity[a]}"}
     summary_text = "specify an RGB color"
 
 

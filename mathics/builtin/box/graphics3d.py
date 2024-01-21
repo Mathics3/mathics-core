@@ -372,7 +372,7 @@ class Graphics3DBox(GraphicsBox):
             boxscale,
         ) = self._prepare_elements(elements, options)
 
-        background = "rgba(100%,100%,100%,100%)"
+        background = "rgba(100.0%, 100.0%, 100.0%, 100.0%)"
         if self.background_color:
             components = self.background_color.to_rgba()
             if len(components) == 3:
