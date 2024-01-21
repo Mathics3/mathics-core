@@ -1,15 +1,13 @@
 import os
-from test.helper import check_evaluation
+from test.helper import check_evaluation, session
+
+import pytest
 
 from mathics.core.symbols import Symbol
 from mathics.session import MathicsSession
 
-session = MathicsSession()
-
 # from mathics.core.builtin import BoxConstruct, Predefined
 
-
-import pytest
 
 #
 #  Aim of the tests:
