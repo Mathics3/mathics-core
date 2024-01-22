@@ -417,24 +417,40 @@ class Derivative(PostfixOperator, SympyFunction):
         "Derivative[0...][f_]": "f",
         "Derivative[n__Integer][Derivative[m__Integer][f_]] /; Length[{m}] "
         "== Length[{n}]": "Derivative[Sequence @@ ({n} + {m})][f]",
-        # This would require at least some comments...
+        # The following rule tries to evaluate a derivative of a pure function by applying it to a list
+        # of symbolic elements and use the rules in `D`.
+        # The rule just applies if f is not a locked symbol, and it does not have a previous definition
+        # for its `Derivative`.
+        # The main drawback of this implementation is that it requires to compute two times the derivative,
+        # just because the way in which the evaluation loop works, and the lack of a working `Unevaluated`
+        # symbol. In our current implementation, the a better way to implement this would be through a builtin
+        # rule (i.e., an eval_ method).
         """Derivative[n__Integer][f_Symbol] /; Module[{t=Sequence@@Slot/@Range[Length[{n}]], result, nothing, ft=f[t]},
-            If[Head[ft] === f
+            If[
+            (*If the head of ft is f, and it does not have a previos defintion of derivative, and the context is `System,
+              the rule fails:
+            *)
+            Head[ft] === f
             && FreeQ[Join[UpValues[f], DownValues[f], SubValues[f]], Derivative|D]
             && Context[f] != "System`",
                 False,
-                (* else *)
+                (* else, evaluate ft, set the order n derivative of f to "nothing" and try to evaluate it *)
                 ft = f[t];
                 Block[{f},
                     Unprotect[f];
-                    (*Derivative[1][f] ^= nothing;*)
                     Derivative[n][f] ^= nothing;
                     Derivative[n][nothing] ^= nothing;
                     result = D[ft, Sequence@@Table[{Slot[i], {n}[[i]]}, {i, Length[{n}]}]];
                 ];
+                (*The rule applies if `nothing` disappeared in the result*)
                 FreeQ[result, nothing]
             ]
-            ]""": """Module[{t=Sequence@@Slot/@Range[Length[{n}]], result, nothing, ft},
+            ]""": """
+                (*
+                 Provided the assumptions, the derivative of F[#1,#2,...] is evaluated,
+                 and returned a an anonymous function.
+                *)
+                Module[{t=Sequence@@Slot/@Range[Length[{n}]], result, nothing, ft},
                 ft = f[t];
                 Block[{f},
                     Unprotect[f];
@@ -454,6 +470,16 @@ class Derivative(PostfixOperator, SympyFunction):
 
     def __init__(self, *args, **kwargs):
         super(Derivative, self).__init__(*args, **kwargs)
+
+    def eval_locked_symbols(self, n, **kwargs):
+        """Derivative[n__Integer][Alternatives[List, True, False]]"""
+        # Prevents the evaluation for List, True and False
+        # as function names. See
+        # https://github.com/Mathics3/mathics-core/issues/971#issuecomment-1902814462
+        # in issue #971
+        # An alternative would be to reformulate the long rule.
+        # TODO: Add other locked symbols producing the same error.
+        return
 
     def to_sympy(self, expr, **kwargs):
         inner = expr
