@@ -131,7 +131,6 @@ TESTCASE_OUT_RE = re.compile(r"^\s*([:|=])(.*)$")
 # Used for getting test results by test expresson and chapter/section information.
 test_result_map = {}
 
-
 # Debug flags.
 
 # Set to True if want to follow the process
