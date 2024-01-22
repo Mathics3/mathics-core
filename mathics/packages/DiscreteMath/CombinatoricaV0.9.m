@@ -204,7 +204,7 @@ EdgeConnectivity::usage = "EdgeConnectivity[g] computes the minimum number of ed
 
 Edges::usage = "Edges[g] returns the adjacency matrix of graph g."
 
-Element::usage = "Element[a,l] returns the lth element of nested list a, where l is a list of indices"
+Element::usage = "In Combinatorica, Element[a,l] returns the lth element of nested list a, where l is a list of indices"<>"\n also, in WMA,\n"<> Element::usage
 
 EmptyGraph::usage = "EmptyGraph[n] generates an empty graph on n vertices."
 
@@ -2600,7 +2600,13 @@ TravelingSalesman[g_Graph] :=
 
 CostOfPath[Graph[g_,_],p_List] := Apply[Plus, Map[(Element[g,#])&,Partition[p,2,1]] ]
 
-Element[a_List,{index___}] := a[[ index ]]
+(*Element is a Builtin symbol with other meaning in WMA. To make this
+work in Combinatorica, let's just add this rule that does not collides
+against the standard behaviour:*)
+Unprotect[Element];
+Element[a_List,{index___}] := a[[ index ]];
+Protect[Element];
+(**)
 
 TriangleInequalityQ[e_?SquareMatrixQ] :=
 	Module[{i,j,k,n=Length[e],flag=True},
