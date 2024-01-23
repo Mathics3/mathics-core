@@ -79,7 +79,7 @@ incidental, or consequential damages.
 			and Graph Theory with Mathematica",
 			Addison-Wesley Publishing Co.
 *)
-(* :Mathematica Version: 2.3
+(* :Mathematica Version: 2.3, Mathics3 version 7.0.0
 *)
 
 BeginPackage["DiscreteMath`CombinatoricaV0.91`"]
@@ -2601,8 +2601,8 @@ TravelingSalesman[g_Graph] :=
 CostOfPath[Graph[g_,_],p_List] := Apply[Plus, Map[(Element[g,#])&,Partition[p,2,1]] ]
 
 (*Element is a Builtin symbol with other meaning in WMA. To make this
-work in Combinatorica, let's just add this rule that does not collides
-against the standard behaviour:*)
+work in Combinatorica, let's just add this rule that does not collide
+with the standard behaviour:*)
 Unprotect[Element];
 Element[a_List,{index___}] := a[[ index ]];
 Protect[Element];
