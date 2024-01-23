@@ -417,6 +417,7 @@ class Derivative(PostfixOperator, SympyFunction):
         "Derivative[0...][f_]": "f",
         "Derivative[n__Integer][Derivative[m__Integer][f_]] /; Length[{m}] "
         "== Length[{n}]": "Derivative[Sequence @@ ({n} + {m})][f]",
+        "Derivative[n__Integer][Alternatives[_Integer|_Rational|_Real|_Complex]]": "0 &",
         # The following rule tries to evaluate a derivative of a pure function by applying it to a list
         # of symbolic elements and use the rules in `D`.
         # The rule just applies if f is not a locked symbol, and it does not have a previous definition
@@ -437,9 +438,20 @@ class Derivative(PostfixOperator, SympyFunction):
                 (* else, evaluate ft, set the order n derivative of f to "nothing" and try to evaluate it *)
                 ft = f[t];
                 Block[{f},
-                    Unprotect[f];
-                    Derivative[n][f] ^= nothing;
-                    Derivative[n][nothing] ^= nothing;
+                    (*
+                      The idea of the test is to set `Derivative[n][f]` to `nothing`. Then, the derivative is
+                      evaluated. If it is not possible to find an explicit expression for the derivative,
+                      then their occurencies are replaced by `nothing`. Therefore, if the resulting expression
+                      if free of `nothing`, then we can use the result. Otherwise, the rule does not work. 
+
+                      Differently from `True` and  `False`, `List` does not produce an infinite recurrence,
+                      but since is a protected symbol, the following test produces error messages.
+                      Let's put this inside Quiet to avoid the warnings.
+                     *)
+                    Quiet[Unprotect[f];
+                     Derivative[n][f] ^= nothing;
+                     Derivative[n][nothing] ^= nothing;
+                    ];
                     result = D[ft, Sequence@@Table[{Slot[i], {n}[[i]]}, {i, Length[{n}]}]];
                 ];
                 (*The rule applies if `nothing` disappeared in the result*)
@@ -453,9 +465,11 @@ class Derivative(PostfixOperator, SympyFunction):
                 Module[{t=Sequence@@Slot/@Range[Length[{n}]], result, nothing, ft},
                 ft = f[t];
                 Block[{f},
-                    Unprotect[f];
-                    Derivative[n][f] ^= nothing;
-                    Derivative[n][nothing] ^= nothing;
+                    Quiet[
+                       Unprotect[f];
+                       Derivative[n][f] ^= nothing;
+                       Derivative[n][nothing] ^= nothing;
+                    ];
                     result = D[ft, Sequence@@Table[{Slot[i], {n}[[i]]}, {i, Length[{n}]}]];
                 ];
                 Function @@ {result}
@@ -472,7 +486,7 @@ class Derivative(PostfixOperator, SympyFunction):
         super(Derivative, self).__init__(*args, **kwargs)
 
     def eval_locked_symbols(self, n, **kwargs):
-        """Derivative[n__Integer][Alternatives[List, True, False]]"""
+        """Derivative[n__Integer][Alternatives[True|False]]"""
         # Prevents the evaluation for List, True and False
         # as function names. See
         # https://github.com/Mathics3/mathics-core/issues/971#issuecomment-1902814462
