@@ -486,7 +486,7 @@ class Derivative(PostfixOperator, SympyFunction):
         super(Derivative, self).__init__(*args, **kwargs)
 
     def eval_locked_symbols(self, n, **kwargs):
-        """Derivative[n__Integer][Alternatives[True|False|Symbol|TooBig|$Aborted|Removed|Locked]]"""
+        """Derivative[n__Integer][Alternatives[True|False|Symbol|TooBig|$Aborted|Removed|Locked|$PrintLiteral|$Off]]"""
         # Prevents the evaluation for True, False, and other Locked symbols
         # as function names. This produces a recursion error in the evaluation rule for Derivative.
         # See
