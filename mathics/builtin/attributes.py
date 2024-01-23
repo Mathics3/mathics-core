@@ -349,6 +349,7 @@ class Locked(Predefined):
      = 3
     """
 
+    attributes = A_PROTECTED | A_LOCKED
     summary_text = "keep all attributes locked (settable but not clearable)"
 
 
