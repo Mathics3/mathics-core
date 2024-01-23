@@ -20,7 +20,11 @@ def do_cmp(x1, x2) -> Optional[int]:
             return None
 
     s1 = x1.to_sympy()
+    if s1 is None:
+        return None
     s2 = x2.to_sympy()
+    if s2 is None:
+        return None
 
     # Use internal comparisons only for Real which is uses
     # WL's interpretation of equal (which allows for slop
