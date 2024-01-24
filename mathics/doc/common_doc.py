@@ -386,7 +386,7 @@ class DocTest:
       `|`  Prints output.
     """
 
-    def __init__(self, index: int, testcase: List[str], key_prefix=None):
+    def __init__(self, index: int, testcase: List[str], key_prefix: Optional[tuple]=None):
         def strip_sentinal(line: str):
             """Remove END_LINE_SENTINAL from the end of a line if it appears.
 
