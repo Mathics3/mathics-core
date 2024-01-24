@@ -353,6 +353,8 @@ def gather_tests(
 
 class DocTest:
     """
+    Class to hold a single doctest.
+
     DocTest formatting rules:
 
     * `>>` Marks test case; it will also appear as part of
@@ -1349,6 +1351,14 @@ class XMLDoc:
 
 
 class DocText:
+    """
+    Class to hold some (non-test) text.
+
+    Some of the kinds of tags you may find here are showin in global ALLOWED_TAGS.
+    Some text may be marked with surrounding "$" or "'".
+
+    The code here how does not make use of any of the tagging.
+    """
     def __init__(self, text):
         self.text = text
 

@@ -296,7 +296,7 @@ def test_chapters(
     generate_output=False,
     reload=False,
     keep_going=False,
-):
+) -> int:
     """
     Runs a group of related tests for the set specified in ``chapters``.
 
@@ -307,10 +307,10 @@ def test_chapters(
     """
     if documentation is None:
         print_and_log("documentation is not initialized.")
-        return
+        return 0
 
     failed = 0
-    index = 0
+    total = index = 0
     chapter_names = ", ".join(include_chapters)
     print(f"Testing chapter(s): {chapter_names}")
 
@@ -324,11 +324,11 @@ def test_chapters(
 
     if documentation is None:
         print_and_log("documentation is not initialized.")
-        return
+        return total
 
     if definitions is None:
         print_and_log("definitions are not initialized.")
-        return
+        return total
 
     # Start with a clean variables state from whatever came before.
     # In the test suite however, we may set new variables.
@@ -364,6 +364,7 @@ def test_chapters(
                         continue
 
                     index += 1
+                    total += 1
                     if not test_case(
                         test,
                         index,
@@ -393,11 +394,15 @@ def test_chapters(
     print()
     if index == 0:
         print_and_log(f"No chapters found named {chapter_names}.")
+        if "MATHICS_DEBUG_TEST_CREATE" not in os.environ:
+            print("Set environment MATHICS_DEBUG_TEST_CREATE to see "
+                  "chapter names.")
     elif failed > 0:
         if not (keep_going and format == "latex"):
             print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
     else:
         print_and_log("All tests passed.")
+    return total
 
 
 def test_sections(
@@ -407,7 +412,7 @@ def test_sections(
     generate_output=False,
     reload=False,
     keep_going=False,
-):
+) -> int:
     """Runs a group of related tests for the set specified in ``sections``.
 
     If ``quiet`` is True, the progress and results of the tests are shown.
@@ -417,12 +422,14 @@ def test_sections(
     fails. If ``keep_going`` is True and there is a failure, the next
     section is continued after failure occurs.
     """
+
+    total = index = failed = 0
+    failed = 0
+
     if documentation is None:
         print_and_log("documentation is not initialized.")
-        return
+        return total
 
-    failed = 0
-    index = 0
     section_names = ", ".join(include_sections)
     print(f"Testing section(s): {section_names}")
 
@@ -442,11 +449,11 @@ def test_sections(
 
     if documentation is None:
         print_and_log("documentation is not initialized.")
-        return
+        return total
 
     if definitions is None:
         print_and_log("definitions are not initialized.")
-        return
+        return total
 
     # Start with a clean variables state from whatever came before.
     # In the test suite however, we may set new variables.
@@ -480,6 +487,7 @@ def test_sections(
                     if test.ignore:
                         continue
                     index += 1
+                    total += 1
                     if not test_case(
                         test,
                         index,
@@ -509,6 +517,9 @@ def test_sections(
     print()
     if index == 0:
         print_and_log(f"No sections found named {section_names}.")
+        if "MATHICS_DEBUG_TEST_CREATE" not in os.environ:
+            print("Set environment MATHICS_DEBUG_TEST_CREATE to see "
+                  "section names.")
     elif failed > 0:
         if not (keep_going and format == "latex"):
             print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
@@ -516,6 +527,7 @@ def test_sections(
         print_and_log("All tests passed.")
     if generate_output and (failed == 0 or keep_going):
         save_doctest_data(output_data)
+    return total
 
 
 def open_ensure_dir(f, *args, **kwargs):
@@ -578,13 +590,13 @@ def test_all(
         print(sep)
     if count == MAX_TESTS:
         print_and_log(
-            "%d Tests for %d built-in symbols, %d passed, %d failed, %d skipped."
-            % (total, builtin_total, total - failed - skipped, failed, skipped)
+            f"{total} Tests for {builtin_total} built-in symbols, {total-failed} "
+            f"passed, {failed} failed, {skipped} skipped."
         )
     else:
         print_and_log(
-            "%d Tests, %d passed, %d failed, %d skipped."
-            % (total, total - failed, failed, skipped)
+            f"{total} Tests, {total - failed} passed, {failed} failed, {skipped} "
+            "skipped."
         )
     if failed_symbols:
         if stop_on_failure:
@@ -815,10 +827,15 @@ def main():
 
     documentation.gather_doctest_data()
 
+    start_time = None
+    total = 0
+
+
     if args.sections:
         sections = set(args.sections.split(","))
 
-        test_sections(
+        start_time = datetime.now()
+        total = test_sections(
             sections,
             stop_on_failure=args.stop_on_failure,
             generate_output=args.output,
@@ -826,9 +843,11 @@ def main():
             keep_going=args.keep_going,
         )
     elif args.chapters:
+
+        start_time = datetime.now()
         chapters = set(args.chapters.split(","))
 
-        test_chapters(
+        total = test_chapters(
             chapters, stop_on_failure=args.stop_on_failure, reload=args.reload
         )
     else:
@@ -850,8 +869,13 @@ def main():
                 doc_even_if_error=args.keep_going,
                 excludes=excludes,
             )
-            end_time = datetime.now()
-            print("Tests took ", end_time - start_time)
+            pass
+        pass
+
+    if total > 0 and start_time is not None:
+        end_time = datetime.now()
+        print("Tests took ", end_time - start_time)
+
     if logfile:
         logfile.close()
     if args.show_statistics:
