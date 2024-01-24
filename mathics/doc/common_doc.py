@@ -137,10 +137,10 @@ test_result_map = {}
 # The first phase is building the documentation data structure
 # based on docstrings:
 
-DEBUG_DOC_BUILD: bool = "MATHICS_DEBUG_DOC_BUILD" in environ
+MATHICS_DEBUG_DOC_BUILD: bool = "MATHICS_DEBUG_DOC_BUILD" in environ
 
 # After building the doc structure, we extract test cases.
-DEBUG_TEST_CREATE: bool = "MATHICS_DEBUG_TEST_CREATE" in environ
+MATHICS_DEBUG_TEST_CREATE: bool = "MATHICS_DEBUG_TEST_CREATE" in environ
 
 
 def get_module_doc(module: ModuleType) -> Tuple[str, str]:
@@ -474,7 +474,7 @@ class DocChapter:
         self.sections = []
         self.sections_by_slug = {}
         part.chapters_by_slug[self.slug] = self
-        if DEBUG_DOC_BUILD:
+        if MATHICS_DEBUG_DOC_BUILD:
             print("  DEBUG Creating Chapter", title)
 
     def __str__(self) -> str:
@@ -638,7 +638,7 @@ class DocPart:
         self.is_appendix = False
         self.slug = slugify(title)
         doc.parts_by_slug[self.slug] = self
-        if DEBUG_DOC_BUILD:
+        if MATHICS_DEBUG_DOC_BUILD:
             print("DEBUG Creating Part", title)
 
     def __str__(self) -> str:
@@ -703,15 +703,12 @@ class DocSection:
                 "{} documentation".format(title)
             )
 
-        # if in_guide:
-        #     from trepan.api import debug; debug()
-
         # Needs to come after self.chapter is initialized since
         # XMLDoc uses self.chapter.
         self.xml_doc = XMLDoc(text, title, self)
 
         chapter.sections_by_slug[self.slug] = self
-        if DEBUG_DOC_BUILD:
+        if MATHICS_DEBUG_DOC_BUILD:
             print("      DEBUG Creating Section", title)
 
     # Add __eq__ and __lt__ so we can sort Sections.
@@ -734,14 +731,47 @@ class DocSection:
             for section in self.subsections:
                 if not section.installed:
                     continue
-                if not hasattr(section, "subsections"):
-                    continue
+                if len(section.subsections) == 0 and len(section.items) > 0:
+                    new_items = []
+                    index = 1
+                    for doctest in section.items:
+                        if isinstance(doctest, DocTests):
+                            doctest.index = index
+                            doctest.chapter = self.chapter.title
+                            doctest.part = self.chapter.part.title
+                            doctest.section = self.title
+                            doctest.key = (
+                                doctest.part,
+                                doctest.chapter,
+                                doctest.section,
+                                index,
+                            )
+                            index += 1
+                            new_items.append(doctest)
+
+                            if len(new_items) > 0:
+                                self.tests = Tests(
+                                    doctest.part, doctest.chapter, doctest.section, new_items
+                                )
+                                yield self.tests
+                    return
+
                 for subsection in section.subsections:
                     # FIXME we are omitting the section title here...
                     if not subsection.installed:
                         continue
                     for doctests in subsection.items:
                         yield doctests.get_tests()
+                        pass
+                    pass
+
+            if len(self.items) > 0:
+                self.tests = Tests(
+                    doctest.part, doctest.chapter, doctest.section, self.items
+                )
+                yield self.tests
+            pass
+
 
         elif self.tests is None:
             # Section that is not under a Guide Section.
@@ -763,6 +793,8 @@ class DocSection:
                     )
                     index += 1
                     self.items.append(doctest)
+                    pass
+                pass
 
             if len(self.items) > 0:
                 self.tests = Tests(
@@ -1078,20 +1110,21 @@ class Documentation:
         """
         for part in self.parts:
             part_name = part.title
-            if DEBUG_TEST_CREATE:
+            if MATHICS_DEBUG_TEST_CREATE:
                 print(f"DEBUG Gathering tests for Part {part_name}")
             for chapter in sorted_chapters(part.chapters):
                 chapter_name = chapter.title
-                if DEBUG_TEST_CREATE:
+                if MATHICS_DEBUG_TEST_CREATE:
                     print(f"DEBUG Gathering tests for   Chapter {chapter.title}")
                 for section in chapter.all_sections:
                     if section.installed:
-                        if DEBUG_TEST_CREATE:
+
+                        is_guide = "Guide " if isinstance(section, DocGuideSection) else ""
+                        if MATHICS_DEBUG_TEST_CREATE:
                             print(
-                                f"DEBUG Gathering tests for     Section {section.title}"
+                                f"DEBUG Gathering tests for     {is_guide}Section {section.title}"
                             )
-                            # if section.title == "Basic Arithmetic":
-                            #     from trepan.api import debug; debug()
+
                         if isinstance(section, DocGuideSection):
                             for docsection in section.subsections:
                                 for docsubsection in docsection.subsections:
@@ -1203,7 +1236,7 @@ class DocGuideSection(DocSection):
                 "Missing opening or closing <dl> tag in "
                 "{} documentation".format(title)
             )
-        if DEBUG_DOC_BUILD:
+        if MATHICS_DEBUG_DOC_BUILD:
             print("    DEBUG Creating Guide Section", title)
         chapter.sections_by_slug[self.slug] = self
 
@@ -1257,8 +1290,11 @@ class DocSubsection:
         if section:
             chapter = section.chapter
             part = chapter.part
-            # Note: we elide section.title
-            key_prefix = (part.title, chapter.title, title)
+            if section.title != chapter.title:
+                key_prefix = (part.title, chapter.title, section.title, title)
+            else:
+                key_prefix = (part.title, chapter.title, title)
+
         else:
             key_prefix = None
 
@@ -1275,8 +1311,8 @@ class DocSubsection:
                 "{} documentation".format(title)
             )
         self.section.subsections_by_slug[self.slug] = self
-        if DEBUG_DOC_BUILD:
-            print("      DEBUG Creating Subsection", title)
+        if MATHICS_DEBUG_DOC_BUILD:
+            print("          DEBUG Creating Subsection", title)
 
     def __str__(self):
         return f"=== {self.title} ===\n{self.doc}"
