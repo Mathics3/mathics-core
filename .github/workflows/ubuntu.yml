@@ -24,6 +24,9 @@ jobs:
     - name: Install Mathics3 with full dependencies
       run: |
         python -m pip install --upgrade pip
+	# Python 3.12 seems to require this
+	python -m pip install --upgrade setuptools
+	python -m pip install --upgrade distutils
         # We can comment out after next Mathics-Scanner release
         # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
         python -m pip install Mathics-Scanner
