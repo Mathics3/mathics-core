@@ -664,7 +664,7 @@ Pure functions are very handy when functions are used only locally, e.g., when c
   >> # ^ 2 & /@ Range[5]
   = {1, 4, 9, 16, 25}
 
-Sort according to the second part of a list:
+Sort using the second element of a list as a key:
   >> Sort[{{x, 10}, {y, 2}, {z, 5}}, #1[[2]] < #2[[2]] &]
   = {{y, 2}, {z, 5}, {x, 10}}
 
@@ -1068,7 +1068,7 @@ Three-dimensional plots are supported as well:
 
 <chapter title="Further Tutorial Examples">
 
-<section title="Curve sketching">
+<section title="Curve Sketching">
 Let\'s sketch the function
   >> f[x_] := 4 x / (x ^ 2 + 3 x + 5)
 
