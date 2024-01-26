@@ -98,7 +98,7 @@ def test_case(
     subindex=0,
     quiet=False,
     section="",
-    format="text",
+    format_output="text",
     chapter="",
     part="",
 ) -> bool:
@@ -127,7 +127,7 @@ def test_case(
 
     feeder = MathicsSingleLineFeeder(test, "<test>")
     evaluation = Evaluation(
-        definitions, catch_interrupt=False, output=TestOutput(), format=format
+        definitions, catch_interrupt=False, output=TestOutput(), format=format_output
     )
     try:
         time_parsing = datetime.now()
@@ -259,7 +259,7 @@ def test_tests(
 
 
 # FIXME: move this to common routine
-def create_output(tests, doctest_data, format="latex"):
+def create_output(tests, doctest_data, format_output="latex"):
     if definitions is None:
         print_and_log("definitions not initialized.")
         return
@@ -270,7 +270,7 @@ def create_output(tests, doctest_data, format="latex"):
             continue
         key = test.key
         evaluation = Evaluation(
-            definitions, format=format, catch_interrupt=True, output=TestOutput()
+            definitions, format_output=format_output, catch_interrupt=True, output=TestOutput()
         )
         try:
             result = evaluation.parse_evaluate(test.test)
@@ -280,7 +280,7 @@ def create_output(tests, doctest_data, format="latex"):
             result = []
         else:
             result_data = result.get_data()
-            result_data["form"] = format
+            result_data["form"] = format_output
             result = [result_data]
 
         doctest_data[key] = {
@@ -296,7 +296,7 @@ def test_section_in_chapter_or_guide_section(
     quiet,
     stop_on_failure,
     prev_key: list,
-    format,
+    format_output,
 ) -> Tuple[int, int, list]:
     """
     Runs a tests for section ``section`` under a chapter or guide section.
@@ -310,7 +310,6 @@ def test_section_in_chapter_or_guide_section(
     fails.
     """
     section_name_for_print = "??"
-    index = 0
     for test in section.tests:
         # Get key dropping off test index number
         key = list(test.key)[1:-1]
@@ -335,7 +334,7 @@ def test_section_in_chapter_or_guide_section(
                     section=section_name_for_print,
                     chapter=doctest.chapter,
                     part=doctest.part,
-                    format=format,
+                    format_output=format_output,
                 ):
                     failed += 1
                     if stop_on_failure:
@@ -348,12 +347,13 @@ def test_section_in_chapter_or_guide_section(
             total += 1
             if not test_case(
                 test,
+                total,
                 index,
                 quiet=quiet,
                 section=section_name_for_print,
                 chapter=test.chapter,
                 part=test.part,
-                format=format,
+                format_output=format_output,
             ):
                 failed += 1
                 if stop_on_failure:
@@ -412,13 +412,17 @@ def test_chapters(
     last_chapter_name = None
     chapter_name = "??"
 
-    for tests in documentation.get_tests():
-        # Some Guide sections can return a single DocTests.
-        test_collection = [tests] if isinstance(tests, Tests) else tests
+    for chapter in documentation.chapters:
+        chapter_name = chapter.title
 
-        for section in test_collection:
-            chapter_name = section.chapter
-            if chapter_name in include_chapters:
+        if chapter_name not in include_chapters:
+            continue
+
+        for tests in chapter.get_tests():
+            # Some Guide sections can return a single DocTests.
+            test_collection = [tests] if isinstance(tests, Tests) else tests
+
+            for section in test_collection:
                 index, total, prev_key = test_section_in_chapter_or_guide_section(
                     section, total, failed, quiet, stop_on_failure, prev_key, format
                 )
@@ -427,22 +431,22 @@ def test_chapters(
                     pass
                 pass
 
-        if last_chapter_name != chapter_name:
-            if seen_chapters == include_chapters:
-                break
-            if chapter_name in include_chapters:
-                seen_chapters.add(chapter_name)
-            last_chapter_name = chapter_name
-        pass
+            if last_chapter_name != chapter_name:
+                if seen_chapters == include_chapters:
+                    break
+                if chapter_name in include_chapters:
+                    seen_chapters.add(chapter_name)
+                last_chapter_name = chapter_name
+            pass
 
     print()
     if index == 0:
         print_and_log(f"No chapters found named {chapter_names}.")
         if "MATHICS_DEBUG_TEST_CREATE" not in os.environ:
-            print("Set environment MATHICS_DEBUG_TEST_CREATE to see " "chapter names.")
+            print("Set environment MATHICS_DEBUG_TEST_CREATE to see chapter names.")
     elif failed > 0:
         if not (keep_going and format == "latex"):
-            print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
+            print_and_log(f"{failed} test%s failed." % "s" if failed != 1 else "")
     else:
         print_and_log("All tests passed.")
     return total

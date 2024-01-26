@@ -369,7 +369,7 @@ class DocTest:
       `|`  Prints output.
     """
 
-    def __init__(self, index, testcase, key_prefix=None):
+    def __init__(self, index, testcase, key_prefix: tuple):
         def strip_sentinal(line):
             """Remove END_LINE_SENTINAL from the end of a line if it appears.
 
@@ -387,12 +387,12 @@ class DocTest:
             # seems *also* what we want to do.
             return line.strip()
 
-        self.chapter = "Unknown chapter"
+        self.part = key_prefix[0]
+        self.chapter = key_prefix[1]
+        self.section = key_prefix[2]
         self.index = index
         self.outs = []
-        self.part = "Unknown part"
         self.result = None
-        self.section = "Unknown section"
 
         # Private test cases are executed, but NOT shown as part of the docs
         self.private = testcase[0] == "#"
@@ -503,7 +503,7 @@ class DocChapter:
             # We have a Guide Section.
             name = get_doc_name_from_module(module)
             guide_section = self.doc.add_section(
-                self.doc, name, module, operator=None, is_guide=True
+                self, name, module, operator=None, is_guide=True
             )
             self.guide_sections.append(guide_section)
             submodules = [
@@ -583,6 +583,19 @@ class DocChapter:
         """
         for section in self.all_sections:
             if section.installed:
+
+                if section.in_guide:
+                    # Sections inside a Guide Section should have been
+                    # processed when the Guide section was processed which
+                    # should happen first.
+                    continue
+
+                if MATHICS_DEBUG_TEST_CREATE:
+                    if isinstance(section, DocGuideSection):
+                        print(f"DEBUG Gathering tests for   Guide Section {section.title}")
+                    else:
+                        print(f"DEBUG Gathering tests for      Section {section.title}")
+
                 if isinstance(section, DocGuideSection):
                     for docsection in section.subsections:
                         for docsubsection in docsection.subsections:
@@ -827,12 +840,13 @@ class Documentation:
         self.doc_class = XMLDoc
         self.doc_dir = settings.DOC_DIR
         self.chapter_class = DocChapter
+        self.chapters: List[DocChapter] = []
         self.guide_section_class = DocGuideSection
-        self.part_class = DocPart
         self.section_class = DocSection
         self.subsection_class = DocSubsection
-        self.guide_sections = []
-        self.parts = []
+        self.guide_sections: List[DocGuideSection] = []
+        self.part_class = DocPart
+        self.parts: list[DocPart] = []
         self.parts_by_slug = {}
         self.sections = []
         self.sections_by_slug = {}
@@ -958,6 +972,7 @@ class Documentation:
 
             title, _ = get_module_doc(module)
             chapter = self.chapter_class(builtin_part, title, self)
+            self.chapters.append(chapter)
             chapter.doc_chapter(
                 module,
                 builtin_part,
@@ -1012,6 +1027,7 @@ class Documentation:
                 chapters = CHAPTER_RE.findall(text)
                 for title, text in chapters:
                     chapter = self.chapter_class(part, title, self)
+                    self.chapters.append(chapter)
                     text += '<section title=""></section>'
                     sections = SECTION_RE.findall(text)
                     for _, title, text in sections:
