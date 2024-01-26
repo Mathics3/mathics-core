@@ -1044,186 +1044,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         s = structure(head, deps, evaluation, structure_cache=structure_cache)
         return s(list(elements))
 
-    def rewrite_apply_eval_step(self, evaluation) -> Tuple["Expression", bool]:
-        """Perform a single rewrite/apply/eval step of the bigger
-        Expression.evaluate() process.
-
-        We return the Expression as well as a Boolean which indicates
-        whether the caller `evaluate()` should consider reevaluating
-        the expression.
-
-        Note that this is a recursive process: we may call something
-        that may call our parent: evaluate() which calls us again.
-
-        Also note that this step is time consuming, complicated, and involved.
-
-        Therefore, subclasses of the BaseEvaluation class may decide
-        to specialize this code so that it is simpler and faster. In
-        particular, a specialization for a particular kind of object
-        like a particular kind of Atom, may decide it does not need to
-        do the rule rewriting step. Or that it knows that after
-        performing this step no further transformation is needed.
-
-        See also https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overview/evaluation.html#detailed-rewrite-apply-eval-process
+    def apply_associated_rules(self, new, elements, attributes, evaluation):
         """
-
-        # Step 1 : evaluate the Head and get its Attributes. These attributes,
-        # used later, include: HoldFirst / HoldAll / HoldRest / HoldAllComplete.
-
-        # Note: self._head can be not just a symbol, but some arbitrary expression.
-        # This is what makes expressions in Mathics be M-expressions rather than
-        # S-expressions.
-        head = self._head.evaluate(evaluation)
-
-        attributes = head.get_attributes(evaluation.definitions)
-
-        if self.elements_properties is None:
-            self._build_elements_properties()
-
-        # @timeit
-        def eval_elements():
-            nonlocal recompute_properties
-
-            # @timeit
-            def eval_range(indices):
-                nonlocal recompute_properties
-                recompute_properties = False
-                for index in indices:
-                    element = elements[index]
-                    if not element.has_form("Unevaluated", 1):
-                        if isinstance(element, EvalMixin):
-                            new_value = element.evaluate(evaluation)
-                            # We need id() because != by itself is too permissive
-                            if id(element) != id(new_value):
-                                recompute_properties = True
-                                elements[index] = new_value
-
-            # @timeit
-            def rest_range(indices):
-                nonlocal recompute_properties
-                if not A_HOLD_ALL_COMPLETE & attributes:
-                    if self._does_not_contain_symbol("System`Evaluate"):
-                        return
-                    for index in indices:
-                        element = elements[index]
-                        if element.has_form("Evaluate", 1):
-                            if isinstance(element, EvalMixin):
-                                new_value = element.evaluate(evaluation)
-                                # We need id() because != by itself is too permissive
-                                if id(new_value) != id(element):
-                                    elements[index] = new_value
-                                    recompute_properties = True
-
-            if (A_HOLD_ALL | A_HOLD_ALL_COMPLETE) & attributes:
-                # eval_range(range(0, 0))
-                rest_range(range(len(elements)))
-            elif A_HOLD_FIRST & attributes:
-                rest_range(range(0, min(1, len(elements))))
-                eval_range(range(1, len(elements)))
-            elif A_HOLD_REST & attributes:
-                eval_range(range(0, min(1, len(elements))))
-                rest_range(range(1, len(elements)))
-            else:
-                eval_range(range(len(elements)))
-                # rest_range(range(0, 0))
-
-        # Step 2: Build a new expression. If it can be avoided, we take care not
-        # to:
-        # * evaluate elements,
-        # * run to_python() on them in Expression construction, or
-        # * convert Expression elements from a tuple to a list and back
-        recompute_properties = False
-        if self.elements_properties.elements_fully_evaluated:
-            elements = self._elements
-        else:
-            elements = self.get_mutable_elements()
-            # FIXME: see if we can preserve elements properties in eval_elements()
-            eval_elements()
-
-        if recompute_properties:
-            new = Expression(head, *elements, elements_properties=None)
-            new._build_elements_properties()
-        else:
-            new = Expression(
-                head, *elements, elements_properties=self.elements_properties
-            )
-
-        # Step 3: Now, process the attributes of head
-        # If there are sequence, flatten them if the attributes allow it.
-        if (
-            not new.elements_properties.is_flat
-            and not (A_SEQUENCE_HOLD | A_HOLD_ALL_COMPLETE) & attributes
-        ):
-            # This step is applied to most of the expressions
-            # and could be heavy for expressions with many elements (like long lists)
-            # however, most of the times, expressions does not have `Sequence` expressions
-            # inside. Now this is handled by caching the sequences.
-            new = new.flatten_sequence(evaluation)
-            if new.elements_properties is None:
-                new._build_elements_properties()
-            elements = new._elements
-
-        # comment @mmatera: I think this is wrong now, because alters
-        # singletons... (see PR #58) The idea is to mark which elements was
-        # marked as "Unevaluated" Also, this consumes time for long lists, and
-        # is useful just for a very unfrequent expressions, involving
-        # `Unevaluated` elements.  Notice also that this behaviour is broken
-        # when the argument of "Unevaluated" is a symbol (see comment and tests
-        # in test/test_unevaluate.py)
-
-        for element in elements:
-            element.unevaluated = False
-
-        # If HoldAllComplete Attribute (flag ``A_HOLD_ALL_COMPLETE``) is not set,
-        # and the expression has elements of the form  `Unevaluated[element]`
-        # change them to `element` and set a flag `unevaluated=True`
-        # If the evaluation fails, use this flag to restore back the initial form
-        # Unevaluated[element]
-
-        # comment @mmatera:
-        # what we need here is some way to track which elements are marked as
-        # Unevaluated, that propagates by flatten, and at the end,
-        # to recover a list of positions that (eventually)
-        # must be marked again as Unevaluated.
-
-        if not A_HOLD_ALL_COMPLETE & attributes:
-            dirty_elements = None
-
-            for index, element in enumerate(elements):
-                if element.has_form("Unevaluated", 1):
-                    if dirty_elements is None:
-                        dirty_elements = list(elements)
-                    dirty_elements[index] = element._elements[0]
-                    dirty_elements[index].unevaluated = True
-
-            if dirty_elements:
-                new = Expression(head, *dirty_elements)
-                elements = dirty_elements
-                new._build_elements_properties()
-
-        # If the Attribute ``Flat`` (flag ``A_FLAT``) is set, calls
-        # flatten with a callback that set elements as unevaluated
-        # too.
-        def flatten_callback(new_elements, old):
-            for element in new_elements:
-                element.unevaluated = old.unevaluated
-
-        if A_FLAT & attributes:
-            new = new.flatten_with_respect_to_head(new._head, callback=flatten_callback)
-            if new.elements_properties is None:
-                new._build_elements_properties()
-
-        # If the attribute ``Orderless`` is set, sort the elements, according to the
-        # element's ``get_sort_key()`` method.
-        # Sorting can be time consuming which is why we note this in ``elements_properties``.
-        # Checking for sortedness takes O(n) while sorting take O(n log n).
-        if not new.elements_properties.is_ordered and (A_ORDERLESS & attributes):
-            new.sort()
-
-        # Step 4:  Rebuild the ExpressionCache, which tracks which symbols
-        # where involved, the Sequence`s present, and the last time they have changed.
-
-        new._timestamp_cache(evaluation)
+        Look for the associated upvalues, downvalues and subvalues rules to `new`,
+        and apply them to the expression until one of them matches. Then apply it.
+        Depending on the result of the application, returns the resulting value and
+        a flag that indicates if the evaluation loop should continue.
+        """
 
         # Step 5: Must we need to thread-rewrite the expression?
         #
@@ -1240,6 +1067,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # Right now, we do not make use of Python thread or hardware
         # threading.  Still, we need to perform this rewrite to
         # maintain correct semantic behavior.
+
         if A_LISTABLE & attributes:
             done, threaded = new.thread(evaluation)
             if done:
@@ -1322,10 +1150,115 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     return new, False
                 else:
                     return result, True
+        return None, False
 
-        # Step 7: If we are here, is because we didn't find any rule that
-        # matches the expression.
+    def eval_elements(self, head, attributes, evaluation):
+        # @timeit
+        def inner_eval_elements():
+            nonlocal recompute_properties
 
+            # @timeit
+            def eval_range(indices):
+                nonlocal recompute_properties
+                recompute_properties = False
+                for index in indices:
+                    element = elements[index]
+                    if not element.has_form("Unevaluated", 1):
+                        if isinstance(element, EvalMixin):
+                            new_value = element.evaluate(evaluation)
+                            # We need id() because != by itself is too permissive
+                            if id(element) != id(new_value):
+                                recompute_properties = True
+                                elements[index] = new_value
+
+            # @timeit
+            def rest_range(indices):
+                nonlocal recompute_properties
+                if not A_HOLD_ALL_COMPLETE & attributes:
+                    if self._does_not_contain_symbol("System`Evaluate"):
+                        return
+                    for index in indices:
+                        element = elements[index]
+                        if element.has_form("Evaluate", 1):
+                            if isinstance(element, EvalMixin):
+                                new_value = element.evaluate(evaluation)
+                                # We need id() because != by itself is too permissive
+                                if id(new_value) != id(element):
+                                    elements[index] = new_value
+                                    recompute_properties = True
+
+            if (A_HOLD_ALL | A_HOLD_ALL_COMPLETE) & attributes:
+                # eval_range(range(0, 0))
+                rest_range(range(len(elements)))
+            elif A_HOLD_FIRST & attributes:
+                rest_range(range(0, min(1, len(elements))))
+                eval_range(range(1, len(elements)))
+            elif A_HOLD_REST & attributes:
+                eval_range(range(0, min(1, len(elements))))
+                rest_range(range(1, len(elements)))
+            else:
+                eval_range(range(len(elements)))
+                # rest_range(range(0, 0))
+
+        recompute_properties = False
+        if self.elements_properties.elements_fully_evaluated:
+            elements = self._elements
+        else:
+            elements = self.get_mutable_elements()
+            # FIXME: see if we can preserve elements properties in inner_eval_elements()
+            inner_eval_elements()
+
+        if recompute_properties:
+            new = Expression(head, *elements, elements_properties=None)
+            new._build_elements_properties()
+        else:
+            new = Expression(
+                head, *elements, elements_properties=self.elements_properties
+            )
+        return new, elements
+
+    def pre_process_unevaluated_elements(self, new, head, elements, attributes):
+        # comment @mmatera: I think this is wrong now, because alters
+        # singletons... (see PR #58) The idea is to mark which elements was
+        # marked as "Unevaluated" Also, this consumes time for long lists, and
+        # is useful just for a very unfrequent expressions, involving
+        # `Unevaluated` elements.  Notice also that this behaviour is broken
+        # when the argument of "Unevaluated" is a symbol (see comment and tests
+        # in test/test_unevaluate.py)
+
+        for element in elements:
+            element.unevaluated = False
+
+        # If HoldAllComplete Attribute (flag ``A_HOLD_ALL_COMPLETE``) is not set,
+        # and the expression has elements of the form  `Unevaluated[element]`
+        # change them to `element` and set a flag `unevaluated=True`
+        # If the evaluation fails, use this flag to restore back the initial form
+        # Unevaluated[element]
+
+        # comment @mmatera:
+        # what we need here is some way to track which elements are marked as
+        # Unevaluated, that propagates by flatten, and at the end,
+        # to recover a list of positions that (eventually)
+        # must be marked again as Unevaluated.
+
+        if not A_HOLD_ALL_COMPLETE & attributes:
+            dirty_elements = None
+
+            for index, element in enumerate(elements):
+                if element.has_form("Unevaluated", 1):
+                    if dirty_elements is None:
+                        dirty_elements = list(elements)
+                    dirty_elements[index] = element._elements[0]
+                    dirty_elements[index].unevaluated = True
+
+            if dirty_elements:
+                new = Expression(head, *dirty_elements)
+                elements = dirty_elements
+                new._build_elements_properties()
+
+        return new
+
+    def post_process_dirty_elements(self, new, head, evaluation):
         dirty_elements = None
 
         # Expression did not change, re-apply Unevaluated
@@ -1339,9 +1272,110 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             new = Expression(head)
             new.elements = dirty_elements
 
-        # Step 8: Update the cache. Return the new compound Expression and
-        #        indicate that no further evaluation is needed.
         new._timestamp_cache(evaluation)
+        return new
+
+    def rewrite_apply_eval_step(self, evaluation) -> Tuple["Expression", bool]:
+        """Perform a single rewrite/apply/eval step of the bigger
+        Expression.evaluate() process.
+
+        We return the Expression as well as a Boolean which indicates
+        whether the caller `evaluate()` should consider reevaluating
+        the expression.
+
+        Note that this is a recursive process: we may call something
+        that may call our parent: evaluate() which calls us again.
+
+        Also note that this step is time consuming, complicated, and involved.
+
+        Therefore, subclasses of the BaseEvaluation class may decide
+        to specialize this code so that it is simpler and faster. In
+        particular, a specialization for a particular kind of object
+        like a particular kind of Atom, may decide it does not need to
+        do the rule rewriting step. Or that it knows that after
+        performing this step no further transformation is needed.
+
+        See also https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overview/evaluation.html#detailed-rewrite-apply-eval-process
+        """
+
+        # Step 1 : evaluate the Head and get its Attributes. These attributes,
+        # used later, include: HoldFirst / HoldAll / HoldRest / HoldAllComplete.
+
+        # Note: self._head can be not just a symbol, but some arbitrary expression.
+        # This is what makes expressions in Mathics be M-expressions rather than
+        # S-expressions.
+        head = self._head.evaluate(evaluation)
+
+        attributes = head.get_attributes(evaluation.definitions)
+
+        if self.elements_properties is None:
+            self._build_elements_properties()
+
+        # Step 2: Build a new expression. If it can be avoided, we take care not
+        # to:
+        # * evaluate elements,
+        # * run to_python() on them in Expression construction, or
+        # * convert Expression elements from a tuple to a list and back
+
+        new, elements = self.eval_elements(head, attributes, evaluation)
+
+        # Step 3: Now, process the attributes of head
+        # If there are sequence, flatten them if the attributes allow it.
+        if (
+            not new.elements_properties.is_flat
+            and not (A_SEQUENCE_HOLD | A_HOLD_ALL_COMPLETE) & attributes
+        ):
+            # This step is applied to most of the expressions
+            # and could be heavy for expressions with many elements (like long lists)
+            # however, most of the times, expressions does not have `Sequence` expressions
+            # inside. Now this is handled by caching the sequences.
+            new = new.flatten_sequence(evaluation)
+            if new.elements_properties is None:
+                new._build_elements_properties()
+            elements = new._elements
+
+        new = self.pre_process_unevaluated_elements(new, head, elements, attributes)
+
+        # If the Attribute ``Flat`` (flag ``A_FLAT``) is set, calls
+        # flatten with a callback that set elements as unevaluated
+        # too.
+        def flatten_callback(new_elements, old):
+            for element in new_elements:
+                element.unevaluated = old.unevaluated
+
+        if A_FLAT & attributes:
+            new = new.flatten_with_respect_to_head(new._head, callback=flatten_callback)
+            if new.elements_properties is None:
+                new._build_elements_properties()
+
+        # If the attribute ``Orderless`` is set, sort the elements, according to the
+        # element's ``get_sort_key()`` method.
+        # Sorting can be time consuming which is why we note this in ``elements_properties``.
+        # Checking for sortedness takes O(n) while sorting take O(n log n).
+        if not new.elements_properties.is_ordered and (A_ORDERLESS & attributes):
+            new.sort()
+
+        # Step 4:  Rebuild the ExpressionCache, which tracks which symbols
+        # where involved, the Sequence`s present, and the last time they have changed.
+
+        new._timestamp_cache(evaluation)
+
+        # Steps 5 and 6:
+        # First look if the function is "Listable" and act in consequence. Then,
+        # look at the rules associated with:
+        #   1. the upvalues of each element
+        #   2. the downvalues / subvalues associated with the lookup_name
+        #      when the lookup values matches or is not the head.
+        result, iterate = self.apply_associated_rules(
+            new, elements, attributes, evaluation
+        )
+        if result is not None:
+            return result, iterate
+
+        # Step 7: If we are here, is because we didn't find any rule that
+        # matches the expression.
+        new = self.post_process_dirty_elements(new, head, evaluation)
+
         return new, False
 
     #  Now, let's see how much take each step for certain typical expressions:
