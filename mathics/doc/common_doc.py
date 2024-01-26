@@ -455,7 +455,7 @@ class Tests:
         chapter_name: str,
         section_name: str,
         doctests: List[DocTest],
-        subsection_name: Optional[str] = None
+        subsection_name: Optional[str] = None,
     ):
         self.part = part_name
         self.chapter = chapter_name
@@ -584,7 +584,6 @@ class DocChapter:
 
         for section in self.all_sections:
             if section.installed:
-
                 if section.in_guide:
                     # Sections inside a Guide Section should have been
                     # processed when the Guide section was processed which
@@ -593,7 +592,9 @@ class DocChapter:
 
                 if MATHICS_DEBUG_TEST_CREATE:
                     if isinstance(section, DocGuideSection):
-                        print(f"DEBUG Gathering tests for   Guide Section {section.title}")
+                        print(
+                            f"DEBUG Gathering tests for   Guide Section {section.title}"
+                        )
                     else:
                         print(f"DEBUG Gathering tests for      Section {section.title}")
 
@@ -766,7 +767,10 @@ class DocSection:
 
                             if len(new_items) > 0:
                                 self.tests = Tests(
-                                    doctest.part, doctest.chapter, doctest.section, new_items
+                                    doctest.part,
+                                    doctest.chapter,
+                                    doctest.section,
+                                    new_items,
                                 )
                                 yield self.tests
                     return
@@ -786,7 +790,6 @@ class DocSection:
                 )
                 yield self.tests
             pass
-
 
         elif self.tests is None:
             # Section that is not under a Guide Section.
@@ -1117,107 +1120,6 @@ class Documentation:
 
         return None
 
-    def get_tests(self) -> Iterator[Tests]:
-        """
-        Generator which returns a group of Mathics3 Doctest-type tests
-        for a given subsection (in Guide Sections) or section (for non-Guide
-        sections).
-
-        It is assumed that everything has been "gathered" or parsed and
-        extracted from all modules previously.
-        """
-        for part in self.parts:
-            part_name = part.title
-            if MATHICS_DEBUG_TEST_CREATE:
-                print(f"DEBUG Gathering tests for Part {part_name}")
-            for chapter in sorted_chapters(part.chapters):
-                chapter_name = chapter.title
-                if MATHICS_DEBUG_TEST_CREATE:
-                    print(f"DEBUG Gathering tests for   Chapter {chapter.title}")
-                for section in chapter.all_sections:
-                    if section.installed:
-
-                        is_guide = "Guide " if isinstance(section, DocGuideSection) else ""
-                        if MATHICS_DEBUG_TEST_CREATE:
-                            print(
-                                f"DEBUG Gathering tests for     {is_guide}Section {section.title}"
-                            )
-
-                        if isinstance(section, DocGuideSection):
-                            for docsection in section.subsections:
-                                for docsubsection in docsection.subsections:
-                                    if not docsubsection.installed:
-                                        continue
-                                    index = 1
-                                    section_name = section.title
-                                    subsection_name = docsubsection.title
-                                    for item in docsubsection.items:
-                                        if isinstance(item, DocTest):
-                                            for doctest in item.tests:
-                                                doctest.index = index
-                                                doctest.chapter = chapter_name
-                                                doctest.part = part_name
-                                                doctest.section = section_name
-                                                doctest.subsection = subsection_name
-                                                # FIXME: DRY with below.
-                                                # For tests inside Guide Sections,
-                                                # the guide section name is the same
-                                                # as the seciton name. So omit it from
-                                                # the key.
-                                                doctest.key = (
-                                                    part_name,
-                                                    chapter_name,
-                                                    subsection_name,
-                                                    index,
-                                                )
-                                                index += 1
-                                            yield Tests(
-                                                part_name,
-                                                chapter_name,
-                                                section_name,
-                                                doctests = item.tests,
-                                                subsection_name = subsection_name,
-                                            )
-                                        elif isinstance(item, DocTests):
-                                            for doctest in item.tests:
-                                                if isinstance(doctest, DocTest):
-                                                    doctest.index = index
-                                                    doctest.chapter = chapter_name
-                                                    doctest.part = part_name
-                                                    doctest.section = section_name
-                                                    doctest.subsection = subsection_name
-                                                    # For tests inside Guide Sections,
-                                                    # the guide section name is the same
-                                                    # as the seciton name. So omit it from
-                                                    # the key.
-                                                    doctest.key = (
-                                                        part_name,
-                                                        chapter_name,
-                                                        subsection_name,
-                                                        index,
-                                                    )
-                                                    index += 1
-                                                    pass
-                                                pass
-                                            yield Tests(
-                                                part_name,
-                                                chapter_name,
-                                                section_name,
-                                                doctests = item.tests,
-                                                subsection_name = subsection_name
-                                            )
-                                        pass
-                                    pass
-                                pass
-                            pass
-                        else:
-                            yield section.get_tests()
-                        pass
-                    pass
-                pass
-            pass
-        return
-
 
 class DocGuideSection(DocSection):
     """An object for a Documented Guide Section.
@@ -1413,6 +1315,7 @@ class DocText:
 
     The code here how does not make use of any of the tagging.
     """
+
     def __init__(self, text):
         self.text = text
 
