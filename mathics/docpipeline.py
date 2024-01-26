@@ -52,6 +52,7 @@ class TestOutput(Output):
 
 # FIXME: After 3.8 is the minimum Python we can turn "str" into a Literal
 SEP: str = "-" * 70 + "\n"
+STARS: str = "*" * 10
 
 DEFINITIONS = None
 DOCUMENTATION = None
@@ -60,17 +61,6 @@ LOGFILE = None
 
 
 MAX_TESTS = 100000  # Number than the total number of tests
-
-
-def print_and_log(*args):
-    """
-    Print a message and also log it to global LOGFILE.
-    """
-    msg_lines = [a.decode("utf-8") if isinstance(a, bytes) else a for a in args]
-    string = "".join(msg_lines)
-    print(string)
-    if LOGFILE is not None:
-        LOGFILE.write(string)
 
 
 def compare(result: Optional[str], wanted: Optional[str]) -> bool:
@@ -100,7 +90,15 @@ def compare(result: Optional[str], wanted: Optional[str]) -> bool:
     return True
 
 
-stars = "*" * 10
+def print_and_log(*args):
+    """
+    Print a message and also log it to global LOGFILE.
+    """
+    msg_lines = [a.decode("utf-8") if isinstance(a, bytes) else a for a in args]
+    string = "".join(msg_lines)
+    print(string)
+    if LOGFILE is not None:
+        LOGFILE.write(string)
 
 
 def test_case(
@@ -113,6 +111,12 @@ def test_case(
     chapter="",
     part="",
 ) -> bool:
+    """
+    Run a single test cases ``test``. Return True if test succeeds and False if it
+    fails. ``index``gives the global test number count, while ``subindex`` counts
+    from the beginning of the section or subsection.
+    """
+
     global CHECK_PARTIAL_ELAPSED_TIME
     test, wanted_out, wanted = test.test, test.outs, test.result
 
@@ -131,9 +135,9 @@ def test_case(
         if section:
             # Guide sections have section names that are the same as chapter names
             if section.startswith(chapter):
-                print(f"{stars} {section} {stars}")
+                print(f"{STARS} {section} {STARS}")
             else:
-                print(f"{stars} {chapter} / {section} {stars}")
+                print(f"{STARS} {chapter} / {section} {STARS}")
         print(f"{index:4d} ({subindex:2d}): TEST {test}")
 
     feeder = MathicsSingleLineFeeder(test, "<test>")
@@ -269,7 +273,6 @@ def test_tests(
     return total, failed, skipped, failed_symbols, index
 
 
-# FIXME: move this to common routine
 def create_output(tests, doctest_data, format_output="latex"):
     if DEFINITIONS is None:
         print_and_log("Definitions are not initialized.")
@@ -298,6 +301,39 @@ def create_output(tests, doctest_data, format_output="latex"):
             "query": test.test,
             "results": result,
         }
+
+
+def show_test_summary(
+    index: int,
+    failed: int,
+    entity_name: str,
+    entities_searched: str,
+    keep_going: bool,
+    format_output: str,
+    generate_output: bool,
+    output_data,
+):
+    """
+    Print and log test summary results.
+
+    If ``generate_output`` is True, we will also generate output data
+    to ``output_data``.
+    """
+
+    print()
+    if index == 0:
+        print_and_log(f"No {entity_name} found with a name in: {entities_searched}.")
+        if "MATHICS_DEBUG_TEST_CREATE" not in os.environ:
+            print(f"Set environment MATHICS_DEBUG_TEST_CREATE to see {entity_name}.")
+    elif failed > 0:
+        if not (keep_going and format_output == "latex"):
+            print_and_log(f"{failed} test%s failed." % "s" if failed != 1 else "")
+    else:
+        print_and_log("All tests passed.")
+
+    if generate_output and (failed == 0 or keep_going):
+        save_doctest_data(output_data)
+    return
 
 
 def test_section_in_chapter_or_guide_section(
@@ -376,6 +412,41 @@ def test_section_in_chapter_or_guide_section(
     return index, total, prev_key
 
 
+# When 3.8 is base, the below can be a Literal type.
+INVALID_TEST_GROUP_SETUP = (None, None, None)
+
+
+def test_group_setup(
+    include_set: set, entity_name: str, reload: bool, generate_output: bool
+) -> tuple:
+    """
+    Common things that need to be done before running a group of tests.
+    """
+
+    if DOCUMENTATION is None:
+        print_and_log("Documentation is not initialized.")
+        return INVALID_TEST_GROUP_SETUP
+
+    include_names = ", ".join(include_set)
+    print(f"Testing {entity_name}(s): {include_names}")
+
+    output_data = load_doctest_data() if reload else {}
+    format_output = "latex" if generate_output else "text"
+
+    # For consistency set the character encoding ASCII which is
+    # the lowest common denominator available on all systems.
+    mathics.settings.SYSTEM_CHARACTER_ENCODING = "ASCII"
+
+    if DEFINITIONS is None:
+        print_and_log("Definitions are not initialized.")
+        return INVALID_TEST_GROUP_SETUP
+
+    # Start with a clean variables state from whatever came before.
+    # In the test suite however, we may set new variables.
+    DEFINITIONS.reset_user_definitions()
+    return output_data, format_output, include_names
+
+
 def test_chapters(
     include_chapters: set,
     quiet=False,
@@ -394,29 +465,13 @@ def test_chapters(
     """
     failed = index = total = 0
 
-    if DOCUMENTATION is None:
-        print_and_log("Documentation is not initialized.")
+    output_data, format_output, chapter_names = test_group_setup(
+        include_chapters, "chapters", reload, generate_output
+    )
+    if (output_data, format_output, chapter_names) == INVALID_TEST_GROUP_SETUP:
         return total
 
-    chapter_names = ", ".join(include_chapters)
-    print(f"Testing chapter(s): {chapter_names}")
-
-    output_data = load_doctest_data() if reload else {}
     prev_key = []
-    format = "latex" if generate_output else "text"
-
-    # For consistency set the character encoding ASCII which is
-    # the lowest common denominator available on all systems.
-    mathics.settings.SYSTEM_CHARACTER_ENCODING = "ASCII"
-
-    if DEFINITIONS is None:
-        print_and_log("Definitons are not initialized.")
-        return total
-
-    # Start with a clean variables state from whatever came before.
-    # In the test suite however, we may set new variables.
-    DEFINITIONS.reset_user_definitions()
-
     seen_chapters = set()
     last_chapter_name = None
 
@@ -453,16 +508,16 @@ def test_chapters(
                 last_chapter_name = chapter_name
             pass
 
-    print()
-    if index == 0:
-        print_and_log(f"No chapters found named {chapter_names}.")
-        if "MATHICS_DEBUG_TEST_CREATE" not in os.environ:
-            print("Set environment MATHICS_DEBUG_TEST_CREATE to see chapter names.")
-    elif failed > 0:
-        if not (keep_going and format == "latex"):
-            print_and_log(f"{failed} test%s failed." % "s" if failed != 1 else "")
-    else:
-        print_and_log("All tests passed.")
+    show_test_summary(
+        index,
+        failed,
+        "chapters",
+        chapter_names,
+        keep_going,
+        format_output,
+        generate_output,
+        output_data,
+    )
     return total
 
 
@@ -485,35 +540,13 @@ def test_sections(
     """
 
     total = index = failed = 0
-
-    if DOCUMENTATION is None:
-        print_and_log("Documentation is not initialized.")
-        return total
-
-    section_names = ", ".join(include_sections)
-    print(f"Testing section(s): {section_names}")
-
-    # If we uncomment below, we will also need to
-    # adjust the seen_sections == include_sections test
-    # below.
-
-    # include_sections |= {"$" + s for s in include_sections}
-
-    output_data = load_doctest_data() if reload else {}
     prev_key = []
-    format_output = "latex" if generate_output else "text"
 
-    # For consistency set the character encoding ASCII which is
-    # the lowest common denominator available on all systems.
-    mathics.settings.SYSTEM_CHARACTER_ENCODING = "ASCII"
-
-    if DEFINITIONS is None:
-        print_and_log("Definitions are not initialized.")
+    output_data, format_output, section_names = test_group_setup(
+        include_sections, "section", reload, generate_output
+    )
+    if (output_data, format_output, section_names) == INVALID_TEST_GROUP_SETUP:
         return total
-
-    # Start with a clean variables state from whatever came before.
-    # In the test suite however, we may set new variables.
-    DEFINITIONS.reset_user_definitions()
 
     seen_sections = set()
     seen_last_section = False
@@ -625,18 +658,16 @@ def test_sections(
             break
         pass
 
-    print()
-    if index == 0:
-        print_and_log(f"No sections found named {section_names}.")
-        if "MATHICS_DEBUG_TEST_CREATE" not in os.environ:
-            print("Set environment MATHICS_DEBUG_TEST_CREATE to see " "section names.")
-    elif failed > 0:
-        if not (keep_going and format_output == "latex"):
-            print_and_log("f{failed} test%s failed." % "s" if failed != 1 else "")
-    else:
-        print_and_log("All tests passed.")
-    if generate_output and (failed == 0 or keep_going):
-        save_doctest_data(output_data)
+    show_test_summary(
+        index,
+        failed,
+        "sections",
+        section_names,
+        keep_going,
+        format_output,
+        generate_output,
+        output_data,
+    )
     return total
 
 
