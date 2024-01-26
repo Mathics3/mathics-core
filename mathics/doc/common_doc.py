@@ -581,6 +581,7 @@ class DocChapter:
         It is assumed that everything has been "gathered" or parsed and
         extracted from all modules previously.
         """
+
         for section in self.all_sections:
             if section.installed:
 
@@ -618,8 +619,9 @@ class DocChapter:
                                 yield Tests(
                                     section.chapter.part.title,
                                     section.chapter.title,
-                                    docsubsection.title,
+                                    docsection.title,
                                     doctest_list,
+                                    docsubsection.title,
                                 )
                 else:
                     # Section that is not under a Guide Section.

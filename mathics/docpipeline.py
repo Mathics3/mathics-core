@@ -329,6 +329,7 @@ def test_section_in_chapter_or_guide_section(
                 total += 1
                 if not test_case(
                     doctest,
+                    total,
                     index,
                     quiet=quiet,
                     section=section_name_for_print,
@@ -380,11 +381,12 @@ def test_chapters(
     If ``stop_on_failure`` is true then the remaining tests in a section are skipped when a test
     fails.
     """
+    failed = index = total = 0
+
     if documentation is None:
         print_and_log("documentation is not initialized.")
         return 0
 
-    failed = index = total = 0
     chapter_names = ", ".join(include_chapters)
     print(f"Testing chapter(s): {chapter_names}")
 
@@ -471,7 +473,6 @@ def test_sections(
     """
 
     total = index = failed = 0
-    failed = 0
 
     if documentation is None:
         print_and_log("documentation is not initialized.")
@@ -507,69 +508,86 @@ def test_sections(
     definitions.reset_user_definitions()
 
     seen_sections = set()
+    seen_last_section = False
     last_section_name = None
     section_name_for_finish = None
-    for tests in documentation.get_tests():
-        # Some Guide sections can return a single DocTests.
-        test_collection = [tests] if isinstance(tests, Tests) else tests
 
-        for section in test_collection:
-            section_name_for_finish = section_name = section.section
-            section_name_for_print = "??"
-            if section_name in include_sections:
+    for chapter in documentation.chapters:
 
-                # FIXME:
-                # Run test_section_in_chapter_or_guide_section() if
-                # test is of type DocTests or section is a Guide section.
+        for tests in chapter.get_tests():
+            # Some Guide sections can return a single DocTests.
+            test_collection = [tests] if isinstance(tests, Tests) else tests
 
-                for test in section.tests:
-                    # Get key dropping off test index number
-                    key = list(test.key)[1:-1]
-                    if prev_key != key:
-                        prev_key = key
-                        section_name_for_print = " / ".join(key)
-                        if quiet:
-                            print(f"Testing section: {section_name_for_print}")
-                        index = 0
-                    else:
-                        # Null out section name, so that on the next iteration we do not print a section header.
-                        section_name_for_print = ""
+            for section in test_collection:
+                section_name_for_finish = section_name = section.section
+                section_name_for_print = "??"
+                if section_name in include_sections:
 
-                    if isinstance(test, DocTests):
-                        for doctest in test.tests:
-                            index += 1
-                            total += 1
-                            if not test_case(
-                                doctest,
-                                index,
-                                quiet=quiet,
-                                section=section_name_for_print,
-                                chapter=doctest.chapter,
-                                part=doctest.part,
-                                format=format,
-                            ):
-                                failed += 1
-                                if stop_on_failure:
-                                    break
-
-                    elif test.ignore:
-                        continue
+                    if isinstance(section, DocGuideSection):
+                        index, total, prev_key = test_section_in_chapter_or_guide_section(
+                            section, total, failed, quiet, stop_on_failure, prev_key, format_output
+                        )
+                        if generate_output and failed == 0:
+                            create_output(tests, output_data)
+                            pass
+                        pass
 
                     else:
-                        index += 1
-                        total += 1
-                        if not test_case(
-                            test,
-                            index,
-                            quiet=quiet,
-                            section=section_name_for_print,
-                            chapter=test.chapter,
-                            part=test.part,
-                            format=format,
-                        ):
-                            failed += 1
-                            if stop_on_failure:
-                                break
+                        for test in section.tests:
+                            # Get key dropping off test index number
+                            key = list(test.key)[1:-1]
+                            if prev_key != key:
+                                prev_key = key
+                                section_name_for_print = " / ".join(key)
+                                if quiet:
+                                    print(f"Testing section: {section_name_for_print}")
+                                index = 0
+                            else:
+                                # Null out section name, so that on the next iteration we do not print a section header.
+                                section_name_for_print = ""
+
+                            if isinstance(test, DocTests):
+                                for doctest in test.tests:
+                                    index += 1
+                                    total += 1
+                                    if not test_case(
+                                        doctest,
+                                        total,
+                                        index,
+                                        quiet=quiet,
+                                        section=section_name_for_print,
+                                        chapter=doctest.chapter,
+                                        part=doctest.part,
+                                        format_output=format_output,
+                                    ):
+                                        failed += 1
+                                        if stop_on_failure:
+                                            break
+
+                            elif test.ignore:
+                                continue
+
+                            else:
+                                index += 1
+                                total += 1
+                                if not test_case(
+                                    test,
+                                    total,
+                                    index,
+                                    quiet=quiet,
+                                    section=section_name_for_print,
+                                    chapter=test.chapter,
+                                    part=test.part,
+                                    format_output=format_output,
+                                ):
+                                    failed += 1
+                                    if stop_on_failure:
+                                        break
+                                    pass
+                                pass
+
+                        if generate_output and (failed == 0 or keep_going):
+                            create_output(tests, output_data, format_output=format_output)
                             pass
                         pass
 
@@ -577,13 +595,17 @@ def test_sections(
                     create_output(tests, output_data, format=format)
                     pass
                 pass
+            if last_section_name != section_name_for_finish:
+                if seen_sections == include_sections:
+                    seen_last_section = True
+                    break
+                if section_name_for_finish in include_sections:
+                    seen_sections.add(section_name_for_finish)
+                last_section_name = section_name_for_finish
             pass
-        if last_section_name != section_name_for_finish:
-            if seen_sections == include_sections:
-                break
-            if section_name_for_finish in include_sections:
-                seen_sections.add(section_name_for_finish)
-            last_section_name = section_name_for_finish
+
+        if seen_last_section:
+            break
         pass
 
     print()
@@ -592,8 +614,8 @@ def test_sections(
         if "MATHICS_DEBUG_TEST_CREATE" not in os.environ:
             print("Set environment MATHICS_DEBUG_TEST_CREATE to see " "section names.")
     elif failed > 0:
-        if not (keep_going and format == "latex"):
-            print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
+        if not (keep_going and format_output == "latex"):
+            print_and_log("f{failed} test%s failed." % "s" if failed != 1 else "")
     else:
         print_and_log("All tests passed.")
     if generate_output and (failed == 0 or keep_going):
