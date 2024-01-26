@@ -186,10 +186,10 @@ def get_results_by_test(test_expr: str, full_test_key: list, doc_data: dict) -> 
             test_section = list(key)[:-1]
             new_test_key = tuple(test_section)
             next_result = test_result_map.get(new_test_key, None)
-            if next_result:
-                next_result.append(result)
-            else:
+            if next_result is None:
                 next_result = [result]
+            else:
+                next_result.append(result)
             test_result_map[new_test_key] = next_result
 
     results = test_result_map.get(search_key, None)
