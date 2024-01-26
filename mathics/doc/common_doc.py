@@ -460,10 +460,23 @@ class DocTest:
 
 # Tests has to appear before Documentation which uses it.
 class Tests:
-    # FIXME: add optional guide section
-    def __init__(self, part: str, chapter: str, section: str, doctests):
-        self.part, self.chapter = part, chapter
-        self.section, self.tests = section, doctests
+    """
+    A group of tests in the same section or subsection.
+    """
+
+    def __init__(
+        self,
+        part_name: str,
+        chapter_name: str,
+        section_name: str,
+        doctests: List[DocTest],
+        subsection_name: Optional[str] = None,
+    ):
+        self.part = part_name
+        self.chapter = chapter_name
+        self.section = section_name
+        self.subsection = subsection_name
+        self.tests = doctests
 
 
 # DocChapter has to appear before MathicsMainDocumentation which uses it.
