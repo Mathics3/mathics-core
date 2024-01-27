@@ -25,6 +25,7 @@ from mathics import settings, version_string
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
 from mathics.core.load_builtin import (
+    _builtins,
     builtins_by_module,
     builtins_dict,
     import_and_load_builtins,
@@ -38,9 +39,6 @@ from mathics.doc.common_doc import (
 )
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 from mathics.timing import show_lru_cache_statistics
-
-builtins = builtins_dict(builtins_by_module)
-
 
 class TestOutput(Output):
     def max_stored_size(self, _):
@@ -134,7 +132,7 @@ def test_case(
 
     if not quiet:
         if section_for_print:
-            print(f"{STARS} {chapter_name} / {section_name} {STARS}")
+            print(f"{STARS} {section_for_print} {STARS}")
         print(f"{index:4d} ({subindex:2d}): TEST {test}")
 
     feeder = MathicsSingleLineFeeder(test, "<test>")
@@ -290,10 +288,12 @@ def test_section_in_chapter_or_guide_section(
             prev_key = key
             section_name_for_print = " / ".join(key)
             if quiet:
+                # We don't print with stars inside in test_case(), so print here.
                 print(f"Testing section: {section_name_for_print}")
             index = 0
         else:
-            # Null out section name, so that on the next iteration we do not print a section header.
+            # Null out section name, so that on the next iteration we do not print a section header
+            # in test_case().
             section_name_for_print = ""
 
         if isinstance(test, DocTests):
@@ -415,12 +415,25 @@ def test_tests(
     count_exceeded = False
 
     for chapter in DOCUMENTATION.chapters:
+
+        # FIXME Guide sections are getting added twice somehow.
+        # This is a workaround to skip testing the duplicate.
+        seen_sections = set()
+
         for tests in chapter.get_tests():
 
             # Some Guide sections can return a single DocTests.
             test_collection = [tests] if isinstance(tests, Tests) else tests
 
             for section in test_collection:
+
+                section_key = (section.part, section.chapter, section.section, section.subsection)
+                # See FIXME above.
+                if section_key in seen_sections:
+                    continue
+
+                seen_sections.add(section_key)
+
                 DEFINITIONS.reset_user_definitions()
                 section_name = section.section
                 if section_name not in excludes:
@@ -586,11 +599,24 @@ def test_chapters(
         if chapter_name not in include_chapters:
             continue
 
+        # FIXME Guide sections are getting added twice somehow.
+        # This is a workaround to skip testing the duplicate.
+        seen_sections = set()
+
         for tests in chapter.get_tests():
             # Some Guide sections can return a single DocTests.
+
             test_collection = [tests] if isinstance(tests, Tests) else tests
 
             for section in test_collection:
+
+                section_key = (section.part, section.chapter, section.section, section.subsection)
+                # See FIXME above.
+                if section_key in seen_sections:
+                    continue
+
+                seen_sections.add(section_key)
+
                 DEFINITIONS.reset_user_definitions()
                 index, total, failed, prev_key = test_section_in_chapter_or_guide_section(
                     section,
@@ -821,7 +847,7 @@ def test_all(
         failed += sub_failed
         skipped += sub_skipped
         failed_symbols.update(symbols)
-        builtin_total = len(builtins)
+        builtin_total = len(_builtins)
     except KeyboardInterrupt:
         print("\nAborted.\n")
         return

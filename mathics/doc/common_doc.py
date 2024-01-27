@@ -411,6 +411,7 @@ class DocTest:
         self.key = None
         if key_prefix:
             self.key = tuple(key_prefix + (index,))
+
         outs = testcase[2].splitlines()
         for line in outs:
             line = strip_sentinal(line)
