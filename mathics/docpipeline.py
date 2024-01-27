@@ -63,9 +63,9 @@ LOGFILE = None
 MAX_TESTS = 100000  # Number than the total number of tests
 
 
-def compare(result: Optional[str], wanted: Optional[str]) -> bool:
+def doctest_compare(result: Optional[str], wanted: Optional[str]) -> bool:
     """
-    Performs a test comparison between ``result`` and ``wanted`` and returns
+    Performs a doctest comparison between ``result`` and ``wanted`` and returns
     True if the test should be considered a success.
     """
     if wanted in ("...", result):
@@ -81,11 +81,11 @@ def compare(result: Optional[str], wanted: Optional[str]) -> bool:
     if len(result) != len(wanted):
         return False
 
-    for r, w in zip(result, wanted):
-        wanted_re = re.escape(w.strip())
+    for res, want in zip(result, wanted):
+        wanted_re = re.escape(want.strip())
         wanted_re = wanted_re.replace("\\.\\.\\.", ".*?")
         wanted_re = f"^{wanted_re}$"
-        if not re.match(wanted_re, r.strip()):
+        if not re.match(wanted_re, res.strip()):
             return False
     return True
 
@@ -102,14 +102,15 @@ def print_and_log(*args):
 
 
 def test_case(
-    test,
-    index=0,
-    subindex=0,
-    quiet=False,
-    section="",
+    test: str,
+    index: int = 0,
+    subindex: int = 0,
+    quiet: bool = False,
+    section_name: str = "",
+    section_for_print="",
     format_output="text",
-    chapter="",
-    part="",
+    chapter_name: str = "",
+    part: str = "",
 ) -> bool:
     """
     Run a single test cases ``test``. Return True if test succeeds and False if it
@@ -122,7 +123,7 @@ def test_case(
 
     def fail(why):
         print_and_log(
-            f"""{SEP}Test failed: {section} in {part} / {chapter}
+            f"""{SEP}Test failed: in {part} / {chapter_name} / {section_name}
 {part}
 {why}
 """.encode(
@@ -132,12 +133,8 @@ def test_case(
         return False
 
     if not quiet:
-        if section:
-            # Guide sections have section names that are the same as chapter names
-            if section.startswith(chapter):
-                print(f"{STARS} {section} {STARS}")
-            else:
-                print(f"{STARS} {chapter} / {section} {STARS}")
+        if section_for_print:
+            print(f"{STARS} {chapter_name} / {section_name} {STARS}")
         print(f"{index:4d} ({subindex:2d}): TEST {test}")
 
     feeder = MathicsSingleLineFeeder(test, "<test>")
@@ -166,12 +163,12 @@ def test_case(
         return False
 
     time_comparing = datetime.now()
-    comparison_result = compare(result, wanted)
+    comparison_result = doctest_compare(result, wanted)
 
     if CHECK_PARTIAL_ELAPSED_TIME:
         print("   comparison took ", datetime.now() - time_comparing)
     if not comparison_result:
-        print("result =!=wanted")
+        print("result != wanted")
         fail_msg = f"Result: {result}\nWanted: {wanted}"
         if out:
             fail_msg += "\nAdditional output:\n"
@@ -255,8 +252,8 @@ def show_test_summary(
             print(f"Set environment MATHICS_DEBUG_TEST_CREATE to see {entity_name}.")
     elif failed > 0:
         print(SEP)
-        if not (keep_going and format_output == "latex"):
-            print_and_log(f"{failed} test%s failed." % "s" if failed != 1 else "")
+        if format_output != "latex":
+            print_and_log(f"""{failed} test{'s' if failed != 1 else ''} failed.""")
     else:
         print_and_log("All tests passed.")
 
@@ -273,7 +270,7 @@ def test_section_in_chapter_or_guide_section(
     stop_on_failure,
     prev_key: list,
     format_output,
-) -> Tuple[int, int, list]:
+) -> Tuple[int, int, int, list]:
     """
     Runs a tests for section ``section`` under a chapter or guide section.
     Note that both of these contain a collection of section tests underneath.
@@ -308,8 +305,9 @@ def test_section_in_chapter_or_guide_section(
                     total,
                     index,
                     quiet=quiet,
-                    section=section_name_for_print,
-                    chapter=doctest.chapter,
+                    section_name=section.title,
+                    section_for_print=section_name_for_print,
+                    chapter_name=doctest.chapter,
                     part=doctest.part,
                     format_output=format_output,
                 ):
@@ -327,8 +325,9 @@ def test_section_in_chapter_or_guide_section(
                 total,
                 index,
                 quiet=quiet,
-                section=section_name_for_print,
-                chapter=test.chapter,
+                section_name=section.section,
+                section_for_print=section_name_for_print,
+                chapter_name=test.chapter,
                 part=test.part,
                 format_output=format_output,
             ):
@@ -338,7 +337,7 @@ def test_section_in_chapter_or_guide_section(
                 pass
             pass
         pass
-    return index, total, prev_key
+    return index, total, failed, prev_key
 
 
 # When 3.8 is base, the below can be a Literal type.
@@ -349,7 +348,7 @@ def validate_group_setup(
     include_set: set, entity_name: Optional[str], reload: bool, generate_output: bool
 ) -> tuple:
     """
-    Common things that need to be done before running a group of tests.
+    Common things that need to be done before running a group of doctests.
     """
 
     if DOCUMENTATION is None:
@@ -422,12 +421,14 @@ def test_tests(
             test_collection = [tests] if isinstance(tests, Tests) else tests
 
             for section in test_collection:
+                DEFINITIONS.reset_user_definitions()
                 section_name = section.section
                 if section_name not in excludes:
                     if isinstance(section, DocGuideSection):
                         (
                             index,
                             total,
+                            failed,
                             prev_key,
                         ) = test_section_in_chapter_or_guide_section(
                             section,
@@ -476,8 +477,9 @@ def test_tests(
                                         total,
                                         index,
                                         quiet=quiet,
-                                        section=section_name_for_print,
-                                        chapter=doctest.chapter,
+                                        section_name=test.section,
+                                        section_for_print=section_name_for_print,
+                                        chapter_name=doctest.chapter,
                                         part=doctest.part,
                                         format_output=format_output,
                                     ):
@@ -505,8 +507,9 @@ def test_tests(
                                     total,
                                     index,
                                     quiet=quiet,
-                                    section=section_name_for_print,
-                                    chapter=test.chapter,
+                                    section_name=test.section,
+                                    section_for_print=section_name_for_print,
+                                    chapter_name=test.chapter,
                                     part=test.part,
                                     format_output=format_output,
                                 ):
@@ -588,7 +591,8 @@ def test_chapters(
             test_collection = [tests] if isinstance(tests, Tests) else tests
 
             for section in test_collection:
-                index, total, prev_key = test_section_in_chapter_or_guide_section(
+                DEFINITIONS.reset_user_definitions()
+                index, total, failed, prev_key = test_section_in_chapter_or_guide_section(
                     section,
                     total,
                     failed,
@@ -690,7 +694,7 @@ def test_sections(
                             if prev_key != key:
                                 prev_key = key
                                 section_name_for_print = " / ".join(key)
-                                if quiet:
+                                if not quiet:
                                     print(f"Testing section: {section_name_for_print}")
                                 index = 0
                             else:
@@ -706,8 +710,8 @@ def test_sections(
                                         total,
                                         index,
                                         quiet=quiet,
-                                        section=section_name_for_print,
-                                        chapter=doctest.chapter,
+                                        section_name=section_name_for_print,
+                                        chapter_name=doctest.chapter,
                                         part=doctest.part,
                                         format_output=format_output,
                                     ):
@@ -726,8 +730,8 @@ def test_sections(
                                     total,
                                     index,
                                     quiet=quiet,
-                                    section=section_name_for_print,
-                                    chapter=test.chapter,
+                                    section_name=section_name_for_print,
+                                    chapter_name=test.chapter,
                                     part=test.part,
                                     format_output=format_output,
                                 ):
