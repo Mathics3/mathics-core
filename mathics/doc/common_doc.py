@@ -425,6 +425,7 @@ class DocTest:
         self.key = None
         if key_prefix:
             self.key = tuple(key_prefix + (index,))
+
         outs = testcase[2].splitlines()
         for line in outs:
             line = strip_sentinal(line)
@@ -459,6 +460,7 @@ class DocTest:
 
 
 # Tests has to appear before Documentation which uses it.
+# FIXME: Turn into a NamedTuple? Or combine with another class?
 class Tests:
     """
     A group of tests in the same section or subsection.
