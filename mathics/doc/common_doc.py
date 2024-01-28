@@ -1098,7 +1098,7 @@ class Documentation:
 
         global mathics3_module_part
         mathics3_module_part = self.doc_part(
-            "Mathics3 Module", pymathics_modules, pymathics_builtins_by_module, True
+            "Mathics3 Modules", pymathics_modules, pymathics_builtins_by_module, True
         )
 
         # Now extract Appendix information. This include License text.  This is
@@ -1154,7 +1154,7 @@ class DocGuideSection(DocSection):
         installed: bool = True,
     ):
         self.chapter = chapter
-        self.xml_doc = XMLDoc(text, title, None)
+        self.xml_doc = XMLDoc(text, title, self)
         self.in_guide = False
         self.installed = installed
         self.section = submodule
@@ -1317,16 +1317,13 @@ class XMLDoc:
     Mathics core also uses this in getting usage strings (`??`).
     """
 
-    def __init__(self, doc_str: str, title: str, section: Optional[DocSection],
+    def __init__(self, doc_str: str, title: str, section: [DocSection],
                  doctests_class=DocTests, doctest_class=DocTest, doctext_class=DocText):
         self.title = title
-        if section is not None:
-            chapter = section.chapter
-            part = chapter.part
-            # Note: we elide section.title
-            key_prefix = (part.title, chapter.title, title)
-        else:
-            key_prefix = None
+        chapter = section.chapter
+        part = chapter.part
+        # Note: we elide section.title
+        key_prefix = (part.title, chapter.title, title)
 
         self.rawdoc = doc_str
         self.items = gather_tests(self.rawdoc, doctests_class, doctest_class, doctext_class, key_prefix)
