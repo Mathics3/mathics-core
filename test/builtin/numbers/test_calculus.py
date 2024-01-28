@@ -278,6 +278,14 @@ def test_private_doctests_optimization(str_expr, msgs, str_expected, fail_msg):
             "x E ^ (-1 / x ^ 2) + Sqrt[Pi] Erf[1 / x]",
             None,
         ),
+        ("True'", None, "True'", None),
+        ("False'", None, "False'", None),
+        ("List'", None, "{1}&", None),
+        ("1'", None, "0&", None),
+        ("-1.4'", None, "-(0&)", None),
+        ("(2/3)'", None, "0&", None),
+        ("I'", None, "0&", None),
+        ("Derivative[0,0,1][List]", None, "{0, 0, 1}&", None),
     ],
 )
 def test_private_doctests_calculus(str_expr, msgs, str_expected, fail_msg):
