@@ -1,11 +1,10 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import re
 import unicodedata
 
 
-def slugify(value):
+def slugify(value: str) -> str:
     """
     Converts to lowercase, removes non-word characters apart from '$',
     and converts spaces to hyphens. Also strips leading and trailing

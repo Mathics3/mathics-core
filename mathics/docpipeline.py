@@ -17,7 +17,7 @@ import re
 import sys
 from argparse import ArgumentParser
 from datetime import datetime
-from typing import Dict
+from typing import Dict, Optional
 
 import mathics
 import mathics.settings
@@ -62,8 +62,12 @@ def print_and_log(*args):
         logfile.write(string)
 
 
-def compare(result, wanted) -> bool:
-    if wanted == "..." or result == wanted:
+def compare(result: Optional[str], wanted: Optional[str]) -> bool:
+    """
+    Performs test comparision betewen ``result`` and ``wanted`` and returns
+    True if the test should be considered a success.
+    """
+    if wanted in ("...", result):
         return True
 
     if result is None or wanted is None:
@@ -79,7 +83,7 @@ def compare(result, wanted) -> bool:
     for r, w in zip(result, wanted):
         wanted_re = re.escape(w.strip())
         wanted_re = wanted_re.replace("\\.\\.\\.", ".*?")
-        wanted_re = "^%s$" % wanted_re
+        wanted_re = f"^{wanted_re}$"
         if not re.match(wanted_re, r.strip()):
             return False
     return True
