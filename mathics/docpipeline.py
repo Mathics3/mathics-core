@@ -17,7 +17,7 @@ import re
 import sys
 from argparse import ArgumentParser
 from datetime import datetime
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Set, Tuple
 
 import mathics
 import mathics.settings
@@ -379,7 +379,7 @@ def test_tests(
     stop_on_failure: bool = False,
     start_at: int = 0,
     max_tests: int = MAX_TESTS,
-    excludes: set[str] = set(),
+    excludes: Set[str] = set(),
     generate_output: bool = False,
     reload: bool = False,
     keep_going: bool = False,
