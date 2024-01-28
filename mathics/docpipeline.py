@@ -24,12 +24,7 @@ import mathics.settings
 from mathics import settings, version_string
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
-from mathics.core.load_builtin import (
-    _builtins,
-    builtins_by_module,
-    builtins_dict,
-    import_and_load_builtins,
-)
+from mathics.core.load_builtin import _builtins, import_and_load_builtins
 from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.doc.common_doc import (
     DocGuideSection,
@@ -822,7 +817,7 @@ def test_all(
     count=MAX_TESTS,
     doc_even_if_error=False,
     excludes: set = set(),
-):
+) -> int:
     if not quiet:
         print(f"Testing {version_string}")
 
@@ -850,7 +845,7 @@ def test_all(
         builtin_total = len(_builtins)
     except KeyboardInterrupt:
         print("\nAborted.\n")
-        return
+        return total
 
     if failed > 0:
         print(SEP)
@@ -873,13 +868,14 @@ def test_all(
 
     if generate_output and (failed == 0 or doc_even_if_error):
         save_doctest_data(output_data)
-        return True
+        return total
 
     if failed == 0:
         print("\nOK")
     else:
         print("\nFAILED")
-        return sys.exit(1)  # Travis-CI knows the tests have failed
+        sys.exit(1)  # Travis-CI knows the tests have failed
+    return total
 
 
 def load_doctest_data() -> Dict[tuple, dict]:
@@ -1124,7 +1120,7 @@ def main():
             excludes = set(args.exclude.split(","))
             start_at = args.skip + 1
             start_time = datetime.now()
-            test_all(
+            total = test_all(
                 quiet=args.quiet,
                 generate_output=args.output,
                 stop_on_failure=args.stop_on_failure,
@@ -1138,7 +1134,7 @@ def main():
 
     if total > 0 and start_time is not None:
         end_time = datetime.now()
-        print("Tests took ", end_time - start_time)
+        print("Test evalation took ", end_time - start_time)
 
     if LOGFILE:
         LOGFILE.close()

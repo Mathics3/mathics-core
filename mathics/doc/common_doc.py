@@ -207,7 +207,7 @@ def get_results_by_test(test_expr: str, full_test_key: list, doc_data: dict) -> 
     return result
 
 
-def get_submodule_names(object) -> list:
+def get_submodule_names(obj) -> list:
     """Many builtins are organized into modules which, from a documentation
     standpoint, are like Mathematica Online Guide Docs.
 
@@ -235,8 +235,8 @@ def get_submodule_names(object) -> list:
     Functions.
     """
     modpkgs = []
-    if hasattr(object, "__path__"):
-        for importer, modname, ispkg in pkgutil.iter_modules(object.__path__):
+    if hasattr(obj, "__path__"):
+        for importer, modname, ispkg in pkgutil.iter_modules(obj.__path__):
             modpkgs.append(modname)
         modpkgs.sort()
     return modpkgs
@@ -445,6 +445,7 @@ class DocTest:
         return self.test
 
 
+# FIXME: Turn into a NamedTuple?
 class Tests:
     """
     A group of tests in the same section or subsection.
@@ -466,6 +467,9 @@ class Tests:
 
 
 class DocChapter:
+    """An object for a Documented Chapter.
+    A Chapter is part of a Part[dChapter. It can contain (Guide or plain) Sections.
+    """
     def __init__(self, part, title, doc):
         self.doc = doc
         self.guide_sections = []
@@ -612,7 +616,7 @@ class DocChapter:
                             doctest_list = []
                             index = 1
                             for doctests in docsubsection.items:
-                                doctest_list += list(doctests.get_tests())
+                                doctest_list += list(doctests.tests)
                                 for test in doctest_list:
                                     test.index = index
                                     index += 1
@@ -665,16 +669,28 @@ class DocPart:
 
 
 class DocTests:
+    """
+    Object to hold a sequence of related DocTest objects for a section or
+    subsection.
+    Access ``tests`` to get these.
+    """
     def __init__(self):
         self._tests = []
         self.text = ""
 
     @property
-    def tests(self):
+    def tests(self) -> list:
+        """
+        Retrieves test items of this DocTests object.
+        """
         return self._tests
 
     # Deprecate
     def get_tests(self):
+        """
+        Older form of ``.tests`` attribute. Don't use.
+        """
+        print("Warning: get_tests is deprecated")
         return self._tests
 
     def is_private(self) -> bool:
@@ -1260,6 +1276,38 @@ class MathicsMainDocumentation(Documentation):
         )
 
 
+class DocText:
+    """
+    Class to hold some (non-test) text.
+
+    Some of the kinds of tags you may find here are showin in global ALLOWED_TAGS.
+    Some text may be marked with surrounding "$" or "'".
+
+    The code here however does not make use of any of the tagging.
+    """
+
+    def __init__(self, text):
+        self.text = text
+        self._tests = []
+
+    def __str__(self) -> str:
+        return self.text
+
+    @property
+    def tests(self) -> list:
+        """
+        Retrieves test items of this DocText object.
+        For this kind of object, there are never any tsets.
+        """
+        return self._tests
+
+    def is_private(self) -> bool:
+        return False
+
+    def test_indices(self) -> list:
+        return []
+
+
 class XMLDoc:
     """A class to hold our internal XML-like format data for test sections or subsections.
     Specialized classes like LaTeXDoc or and DjangoDoc provide methods for
@@ -1269,7 +1317,8 @@ class XMLDoc:
     Mathics core also uses this in getting usage strings (`??`).
     """
 
-    def __init__(self, doc_str: str, title: str, section: Optional[DocSection]):
+    def __init__(self, doc_str: str, title: str, section: Optional[DocSection],
+                 doctests_class=DocTests, doctest_class=DocTest, doctext_class=DocText):
         self.title = title
         if section is not None:
             chapter = section.chapter
@@ -1280,7 +1329,7 @@ class XMLDoc:
             key_prefix = None
 
         self.rawdoc = doc_str
-        self.items = gather_tests(self.rawdoc, DocTests, DocTest, DocText, key_prefix)
+        self.items = gather_tests(self.rawdoc, doctests_class, doctest_class, doctext_class, key_prefix)
 
     def __str__(self) -> str:
         return "\n".join(str(item) for item in self.items)
@@ -1303,31 +1352,5 @@ class XMLDoc:
     def get_tests(self) -> list:
         tests = []
         for item in self.items:
-            tests.extend(item.get_tests())
+            tests.extend(item.tests)
         return tests
-
-
-class DocText:
-    """
-    Class to hold some (non-test) text.
-
-    Some of the kinds of tags you may find here are showin in global ALLOWED_TAGS.
-    Some text may be marked with surrounding "$" or "'".
-
-    The code here how does not make use of any of the tagging.
-    """
-
-    def __init__(self, text):
-        self.text = text
-
-    def __str__(self) -> str:
-        return self.text
-
-    def get_tests(self) -> list:
-        return []
-
-    def is_private(self) -> bool:
-        return False
-
-    def test_indices(self) -> list:
-        return []

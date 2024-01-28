@@ -5,6 +5,7 @@ FIXME: Ditch this and hook into sphinx.
 
 import re
 from os import getenv
+from typing import Optional
 
 from mathics import settings
 from mathics.core.evaluation import Message, Print
@@ -594,6 +595,11 @@ class LaTeXDocTest(DocTest):
 
 
 class LaTeXDocumentation(Documentation):
+    """
+    This module is used for creating a LaTeX document for the homegrown Mathics3 documentation
+    system
+    """
+
     def __str__(self):
         return "\n\n\n".join(str(part) for part in self.parts)
 
@@ -646,23 +652,13 @@ class LaTeXDoc(XMLDoc):
     Mathics core also uses this in getting usage strings (`??`).
     """
 
-    def __init__(self, doc, title, section):
-        self.title = title
-        if section:
-            chapter = section.chapter
-            part = chapter.part
-            # Note: we elide section.title
-            key_prefix = (part.title, chapter.title, title)
-        else:
-            key_prefix = None
+    def __init__(self, doc_str: str, title: str, section: Optional[DocSection]):
+        super().__init__(doc_str, title, section, LaTeXDocTests, LaTeXDocTest, LaTeXDocText)
 
-        self.rawdoc = doc
-        self.items = gather_tests(
-            self.rawdoc, LaTeXDocTests, LaTeXDocTest, LaTeXDocText, key_prefix
-        )
-        return
-
-    def latex(self, doc_data: dict):
+    def latex(self, doc_data: dict) -> str:
+        """
+        Return a LaTeX string representation for this object.
+        """
         if len(self.items) == 0:
             if hasattr(self, "rawdoc") and len(self.rawdoc) != 0:
                 # We have text but no tests
@@ -674,7 +670,7 @@ class LaTeXDoc(XMLDoc):
 
 
 class LaTeXMathicsDocumentation(Documentation):
-    def __init__(self, want_sorting=False):
+    def __init__(self):
         self.doc_chapter_fn = LaTeXDocChapter
         self.doc_dir = settings.DOC_DIR
         self.doc_fn = LaTeXDoc
@@ -1033,5 +1029,10 @@ class LaTeXDocTests(DocTests):
 
 
 class LaTeXDocText(DocText):
-    def latex(self, doc_data):
+    """
+    Class to hold some (non-test) LaTeX text.
+    """
+
+    def latex(self) -> str:
+        """Escape the text as LaTeX and return that string."""
         return escape_latex(self.text)
