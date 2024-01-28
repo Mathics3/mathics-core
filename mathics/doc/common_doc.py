@@ -157,7 +157,7 @@ def get_module_doc(module: ModuleType) -> Tuple[str, str]:
         title = doc.splitlines()[0]
         text = "\n".join(doc.splitlines()[1:])
     else:
-        # FIXME: Extend me for Pymathics modules.
+        # FIXME: Extend me for Mathics3 modules.
         title = module.__name__
         for prefix in ("mathics.builtin.", "mathics.optional."):
             if title.startswith(prefix):
@@ -1216,7 +1216,7 @@ class MathicsMainDocumentation(Documentation):
 
     def gather_doctest_data(self):
         """
-        Populates the documenta
+        Populates the documentatation.
         (deprecated)
         """
         logging.warn(
@@ -1320,6 +1320,9 @@ class DocText:
         return self.text
 
     def get_tests(self) -> list:
+        """
+        Return tests in a DocText item - there never are any.
+        """
         return []
 
     def is_private(self) -> bool:
@@ -1403,7 +1406,6 @@ class DocumentationEntry:
         for item in self.items:
             tests.extend(item.get_tests())
         return tests
-
 
 # Backward compatibility
 

@@ -276,7 +276,6 @@ def escape_latex(text):
         content = content.replace(r"\$", "$")
         if tag == "con":
             return "\\console{%s}" % content
-
         return "\\begin{lstlisting}\n%s\n\\end{lstlisting}" % content
 
     text = CONSOLE_RE.sub(repl_console, text)
