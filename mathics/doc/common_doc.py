@@ -447,9 +447,17 @@ class DocTest:
 
 
 # FIXME: Turn into a NamedTuple?
+
+# Looking at https://github.com/mathics/Mathics/blob/eba5c22990fae01cd2579d13bbeabcfdb5221426/mathics/doc/doc.py
+#
+# The class Test was used to yield tests from the Documentation.get_tests() function,
+# while DocTests was used as items in the Doc object (now DocText). It is possible that Tests should subclass DocTests.
+#
+#
+#
 class Tests:
     """
-    A group of tests in the same section or subsection.
+    A group of tests in the same section or subsection of the Documentation.
     """
 
     def __init__(
