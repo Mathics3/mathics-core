@@ -653,7 +653,9 @@ class LaTeXDoc(XMLDoc):
     """
 
     def __init__(self, doc_str: str, title: str, section: Optional[DocSection]):
-        super().__init__(doc_str, title, section, LaTeXDocTests, LaTeXDocTest, LaTeXDocText)
+        super().__init__(
+            doc_str, title, section, LaTeXDocTests, LaTeXDocTest, LaTeXDocText
+        )
 
     def latex(self, doc_data: dict) -> str:
         """
@@ -664,6 +666,7 @@ class LaTeXDoc(XMLDoc):
                 # We have text but no tests
                 return escape_latex(self.rawdoc)
 
+        print([type(i) for i in self.items])
         return "\n".join(
             item.latex(doc_data) for item in self.items if not item.is_private()
         )
@@ -671,21 +674,34 @@ class LaTeXDoc(XMLDoc):
 
 class LaTeXMathicsDocumentation(Documentation):
     def __init__(self):
-        self.doc_chapter_fn = LaTeXDocChapter
-        self.doc_dir = settings.DOC_DIR
-        self.doc_fn = LaTeXDoc
+        super().__init__()
+
         self.doc_data_file = settings.get_doctest_latex_data_path(
             should_be_readable=True
         )
-        self.doc_guide_section_fn = LaTeXDocGuideSection
-        self.doc_part_fn = LaTeXDocPart
-        self.doc_section_fn = LaTeXDocSection
-        self.doc_subsection_fn = LaTeXDocSubsection
-        self.doctest_latex_pcl_path = settings.DOCTEST_LATEX_DATA_PCL
-        self.parts = []
-        self.parts_by_slug = {}
-        self.title = "Overview"
+        self.doc_class = LaTeXDoc
+        self.guide_section_class = LaTeXDocGuideSection
+        self.part_class = LaTeXDocPart
+        self.chapter_class = LaTeXDocChapter
+        self.section_class = LaTeXDocSection
+        self.subsection_class = LaTeXDocSubsection
 
+        # self.doc_fn = LaTeXDoc
+        # self.doc_guide_section_fn = LaTeXDocGuideSection
+        # self.doc_part_fn = LaTeXDocPart
+        # self.doc_chapter_fn = LaTeXDocChapter
+        # self.doc_section_fn = LaTeXDocSection
+        # self.doc_subsection_fn = LaTeXDocSubsection
+
+        # Already defined in `Documentation`
+        # self.doc_dir = settings.DOC_DIR
+        # self.parts = []
+        # self.parts_by_slug = {}
+        # self.title = "Overview"
+
+        # File with the results of the tests.
+        self.doctest_latex_pcl_path = settings.DOCTEST_LATEX_DATA_PCL
+        # Load the doctests data
         self.gather_doctest_data()
 
     def latex(
@@ -701,6 +717,7 @@ class LaTeXMathicsDocumentation(Documentation):
         `output` is not used here but passed along to the bottom-most
         level in getting expected test results.
         """
+        print("LaTeXDocumentation", doc_data)
         parts = []
         appendix = False
         for part in self.parts:
@@ -755,8 +772,10 @@ class LaTeXDocChapter(DocChapter):
         level in getting expected test results.
         """
         if not quiet:
-            print(f"Formatting Chapter {self.title}")
-        intro = self.doc.latex(doc_data).strip()
+            print(f"Formatting LaTeX Chapter {self.title}")
+            print(self.doc)
+            print(doc_data)
+        intro = ""  # self.doc.latex(doc_data).strip()
         if intro:
             short = "short" if len(intro) < 300 else ""
             intro = "\\begin{chapterintro%s}\n%s\n\n\\end{chapterintro%s}" % (
@@ -764,6 +783,10 @@ class LaTeXDocChapter(DocChapter):
                 intro,
                 short,
             )
+        if not quiet:
+            print(f"intro {intro}")
+            print(self.sections)
+
         chapter_sections = [
             ("\n\n\\chapter{%(title)s}\n\\chapterstart\n\n%(intro)s")
             % {"title": escape_latex(self.title), "intro": intro},
@@ -820,6 +843,7 @@ class LaTeXDocSection(DocSection):
         if not quiet:
             # The leading spaces help show chapter level.
             print(f"  Formatting Section {self.title}")
+            print("docdata", doc_data)
         title = escape_latex(self.title)
         if self.operator:
             title += " (\\code{%s})" % escape_latex_code(self.operator)
@@ -854,7 +878,7 @@ class LaTeXDocGuideSection(DocSection):
         self, chapter: str, title: str, text: str, submodule, installed: bool = True
     ):
         self.chapter = chapter
-        self.doc = LaTeXDoc(text, title, None)
+        self.doc = LaTeXDoc(text, title, self)
         self.in_guide = False
         self.installed = installed
         self.section = submodule
@@ -1033,6 +1057,6 @@ class LaTeXDocText(DocText):
     Class to hold some (non-test) LaTeX text.
     """
 
-    def latex(self) -> str:
+    def latex(self, doc_data) -> str:
         """Escape the text as LaTeX and return that string."""
         return escape_latex(self.text)
