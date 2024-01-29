@@ -30,6 +30,7 @@ In the shorter, we might we move code for extracting printing to a separate pack
 """
 
 import importlib
+import logging
 import os.path as osp
 import pkgutil
 import re
@@ -199,7 +200,7 @@ def get_results_by_test(test_expr: str, full_test_key: list, doc_data: dict) -> 
             if result_candidate["query"] == test_expr:
                 if result:
                     # Already found something
-                    print(f"Warning, multiple results appear under {search_key}.")
+                    logging.warning(f"multiple results appear under {search_key}.")
                     return {}
                 else:
                     result = result_candidate
@@ -470,6 +471,7 @@ class DocChapter:
     """An object for a Documented Chapter.
     A Chapter is part of a Part[dChapter. It can contain (Guide or plain) Sections.
     """
+
     def __init__(self, part, title, doc):
         self.doc = doc
         self.guide_sections = []
@@ -674,6 +676,7 @@ class DocTests:
     subsection.
     Access ``tests`` to get these.
     """
+
     def __init__(self):
         self._tests = []
         self.text = ""
@@ -690,7 +693,7 @@ class DocTests:
         """
         Older form of ``.tests`` attribute. Don't use.
         """
-        print("Warning: get_tests is deprecated")
+        logging.warn("get_tests is deprecated")
         return self._tests
 
     def is_private(self) -> bool:
@@ -769,27 +772,30 @@ class DocSection:
                     index = 1
                     for doctest in section.items:
                         if isinstance(doctest, DocTests):
-                            doctest.index = index
-                            doctest.chapter = self.chapter.title
-                            doctest.part = self.chapter.part.title
-                            doctest.section = self.title
-                            doctest.key = (
-                                doctest.part,
-                                doctest.chapter,
-                                doctest.section,
+                            # Why monkey patch DocTests?
+                            # These attributes corresponds to a `Tests`
+                            # object.
+                            doctest_index = index
+                            doctest_chapter = self.chapter.title
+                            doctest_part = self.chapter.part.title
+                            doctest_section = self.title
+                            doctest_key = (
+                                doctest_part,
+                                doctest_chapter,
+                                doctest_section,
                                 index,
                             )
                             index += 1
                             new_items.append(doctest)
-
                             if len(new_items) > 0:
                                 self.tests = Tests(
-                                    doctest.part,
-                                    doctest.chapter,
-                                    doctest.section,
+                                    doctest_part,
+                                    doctest_chapter,
+                                    doctest_section,
                                     new_items,
                                 )
                                 yield self.tests
+                                1 / 0
                     return
 
                 for subsection in section.subsections:
@@ -1317,8 +1323,15 @@ class XMLDoc:
     Mathics core also uses this in getting usage strings (`??`).
     """
 
-    def __init__(self, doc_str: str, title: str, section: [DocSection],
-                 doctests_class=DocTests, doctest_class=DocTest, doctext_class=DocText):
+    def __init__(
+        self,
+        doc_str: str,
+        title: str,
+        section: [DocSection],
+        doctests_class=DocTests,
+        doctest_class=DocTest,
+        doctext_class=DocText,
+    ):
         self.title = title
         chapter = section.chapter
         part = chapter.part
@@ -1326,7 +1339,9 @@ class XMLDoc:
         key_prefix = (part.title, chapter.title, title)
 
         self.rawdoc = doc_str
-        self.items = gather_tests(self.rawdoc, doctests_class, doctest_class, doctext_class, key_prefix)
+        self.items = gather_tests(
+            self.rawdoc, doctests_class, doctest_class, doctext_class, key_prefix
+        )
 
     def __str__(self) -> str:
         return "\n".join(str(item) for item in self.items)

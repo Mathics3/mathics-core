@@ -17,7 +17,7 @@ import re
 import sys
 from argparse import ArgumentParser
 from datetime import datetime
-from typing import Dict, Optional, Set, Tuple
+from typing import Dict, Optional, Set, Tuple, Union
 
 import mathics
 import mathics.settings
@@ -34,6 +34,7 @@ from mathics.doc.common_doc import (
 )
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 from mathics.timing import show_lru_cache_statistics
+
 
 class TestOutput(Output):
     def max_stored_size(self, _):
@@ -114,6 +115,10 @@ def test_case(
     global CHECK_PARTIAL_ELAPSED_TIME
     test, wanted_out, wanted = test.test, test.outs, test.result
 
+    # All the doctests reference results are in text format, so this parameter
+    # format_output does not make sense in this function.
+    format_output = "text"
+
     def fail(why):
         print_and_log(
             f"""{SEP}Test failed: in {part} / {chapter_name} / {section_name}
@@ -191,13 +196,29 @@ def test_case(
     return True
 
 
-def create_output(tests, doctest_data, format_output="latex"):
+def create_output(
+    tests: Union[list, Tests], doctest_data: dict, format_output: str = "latex"
+):
+    """
+    Populates `doctest_data` with the tests and the results of its evaluation
+    in latex format.
+    """
+    # Check
+    assert isinstance(
+        tests,
+        (
+            list,
+            Tests,
+        ),
+    )
     if DEFINITIONS is None:
         print_and_log("Definitions are not initialized.")
         return
 
     DEFINITIONS.reset_user_definitions()
-    for test in tests.tests:
+    if isinstance(tests, Tests):
+        tests = tests.tests
+    for test in tests:
         if test.private:
             continue
         key = test.key
@@ -304,7 +325,10 @@ def test_section_in_chapter_or_guide_section(
                     section_for_print=section_name_for_print,
                     chapter_name=doctest.chapter,
                     part=doctest.part,
-                    format_output=format_output,
+                    # in the doctests, the reference output
+                    # is always in  "text" form,
+                    format_output="text"
+                    # format_output=format_output,
                 ):
                     failed += 1
                     if stop_on_failure:
@@ -401,7 +425,10 @@ def test_tests(
     failed_symbols = set()
 
     output_data, format_output, names = validate_group_setup(
-        set(), None, reload, generate_output,
+        set(),
+        None,
+        reload,
+        generate_output,
     )
     if (output_data, format_output, names) == INVALID_TEST_GROUP_SETUP:
         return total, failed, skipped, failed_symbols, index
@@ -418,11 +445,27 @@ def test_tests(
         for tests in chapter.get_tests():
 
             # Some Guide sections can return a single DocTests.
+
+            # FIXME: decide the return tyoe of chapter.get_tests()
             test_collection = [tests] if isinstance(tests, Tests) else tests
+            # In the meantime, if tests is a generator, convert it into a list.
+            if not isinstance(
+                test_collection,
+                (
+                    list,
+                    Tests,
+                ),
+            ):
+                tests = [t for t in tests]
 
             for section in test_collection:
 
-                section_key = (section.part, section.chapter, section.section, section.subsection)
+                section_key = (
+                    section.part,
+                    section.chapter,
+                    section.section,
+                    section.subsection,
+                )
                 # See FIXME above.
                 if section_key in seen_sections:
                     continue
@@ -605,7 +648,12 @@ def test_chapters(
 
             for section in test_collection:
 
-                section_key = (section.part, section.chapter, section.section, section.subsection)
+                section_key = (
+                    section.part,
+                    section.chapter,
+                    section.section,
+                    section.subsection,
+                )
                 # See FIXME above.
                 if section_key in seen_sections:
                     continue
@@ -613,7 +661,12 @@ def test_chapters(
                 seen_sections.add(section_key)
 
                 DEFINITIONS.reset_user_definitions()
-                index, total, failed, prev_key = test_section_in_chapter_or_guide_section(
+                (
+                    index,
+                    total,
+                    failed,
+                    prev_key,
+                ) = test_section_in_chapter_or_guide_section(
                     section,
                     total,
                     failed,
@@ -836,7 +889,7 @@ def test_all(
             generate_output=generate_output,
             reload=False,
             keep_going=not stop_on_failure,
-            )
+        )
 
         total += sub_total
         failed += sub_failed
