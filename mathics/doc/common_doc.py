@@ -862,6 +862,27 @@ mathics3_module_part: Optional[DocPart] = None
 
 
 class Documentation:
+    """
+    `Documentation` describes an object containing the whole documentation system.
+
+    Documentation
+        |
+        +--------0> Parts
+                      |
+                      +-----0> Chapters
+                                 |
+                                 +-----0>Sections
+                                           |
+                                           +------0> SubSections
+
+    (with 0>) meaning "agregation".
+    Each element contains a title, a collection of elements of the following class
+    in the hierarchy. Parts, Chapters, Sections and SubSections contains a doc_xml
+    attribute describing the content to be presented after the title, and before
+    the elements of the subsequent terms in the hierarchy.
+
+    """
+
     def __init__(self):
         self.doc_class = XMLDoc
         self.doc_dir = settings.DOC_DIR
@@ -1313,7 +1334,17 @@ class DocText:
 
 
 class XMLDoc:
-    """A class to hold our internal XML-like format data for test sections or subsections.
+    """
+    Describes the contain of an entry in the documentation system, as a
+    sequence (list) of items of the clase  `DocText` and `DocTests`.
+    `DocText` items contains an internal XML-like formatted text. `DocTests` entries
+    contain one or more `DocTest` element.
+
+    Each level of the Documentation hierarchy contains an XMLDoc, describing the
+    content after the title and before the elements of the next level. For example,
+    in `DocChapter`, `DocChapter.doc_xml` contains the text comming after the title
+    of the chapter, and before the sections in `DocChapter.sections`.
+
     Specialized classes like LaTeXDoc or and DjangoDoc provide methods for
     getting formatted output. For LaTeXDoc ``latex()`` is added while for
     DjangoDoc ``html()`` is added

@@ -1,3 +1,8 @@
+"""
+Pytests for the documentation system. Basic functions and classes.
+"""
+
+from mathics.core.evaluation import Message, Print
 from mathics.doc.common_doc import DocTest, DocTests, DocText, Tests, gather_tests
 
 DOCTEST_ENTRY = """
@@ -36,18 +41,7 @@ DOCTEST_ENTRY = """
 def test_gather_tests():
     """Check the behavioir of gather_tests"""
 
-    base_expected_types = [
-        DocText,
-        DocTests,
-        DocText,
-        DocTests,
-        DocText,
-        DocTests,
-        DocText,
-        DocTests,
-        DocText,
-        DocTests,
-    ]
+    base_expected_types = [DocText, DocTests] * 5
     cases = [
         (
             DOCTEST_ENTRY[133:],
@@ -86,7 +80,7 @@ def test_gather_tests():
 
 
 def test_create_doctest():
-    """DocTest"""
+    """initializing DocTest"""
 
     key = (
         "Part title",
@@ -100,8 +94,58 @@ def test_create_doctest():
                 "private": False,
                 "ignore": False,
                 "result": "4",
+                "outs": [],
+                "key": key + (1,),
             },
-        }
+        },
+        {
+            "test": ["#", "2+2", "\n    = 4"],
+            "properties": {
+                "private": True,
+                "ignore": False,
+                "result": "4",
+                "outs": [],
+                "key": key + (1,),
+            },
+        },
+        {
+            "test": ["S", "2+2", "\n    = 4"],
+            "properties": {
+                "private": False,
+                "ignore": False,
+                "result": "4",
+                "outs": [],
+                "key": key + (1,),
+            },
+        },
+        {
+            "test": ["X", 'Print["Hola"]', "| Hola"],
+            "properties": {
+                "private": False,
+                "ignore": True,
+                "result": None,
+                "outs": [Print("Hola")],
+                "key": key + (1,),
+            },
+        },
+        {
+            "test": [
+                ">",
+                "1 / 0",
+                "\n : Infinite expression 1 / 0 encountered.\n ComplexInfinity",
+            ],
+            "properties": {
+                "private": False,
+                "ignore": False,
+                "result": None,
+                "outs": [
+                    Message(
+                        symbol="", text="Infinite expression 1 / 0 encountered.", tag=""
+                    )
+                ],
+                "key": key + (1,),
+            },
+        },
     ]
     for index, test_case in enumerate(test_cases):
         doctest = DocTest(1, test_case["test"], key)
