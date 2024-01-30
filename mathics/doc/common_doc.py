@@ -803,7 +803,6 @@ class DocSection:
                                     new_items,
                                 )
                                 yield self.tests
-                                1 / 0
                     return
 
                 for subsection in section.subsections:
