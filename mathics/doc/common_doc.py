@@ -345,9 +345,11 @@ def gather_tests(
             if tests is None:
                 tests = test_collection_constructor()
             tests.tests.append(test)
-        if tests is not None:
-            items.append(tests)
-            tests = None
+
+    # After the loop finishes, add the last bunch of tests
+    if tests is not None:
+        items.append(tests)
+        tests = None
     return items
 
 
@@ -369,8 +371,8 @@ class DocTest:
       `|`  Prints output.
     """
 
-    def __init__(self, index, testcase, key_prefix: tuple):
-        def strip_sentinal(line):
+    def __init__(self, index: int, testcase: List[str], key_prefix: tuple):
+        def strip_sentinal(line: str):
             """Remove END_LINE_SENTINAL from the end of a line if it appears.
 
             Some editors like to strip blanks at the end of a line.
@@ -470,6 +472,7 @@ class DocChapter:
     """An object for a Documented Chapter.
     A Chapter is part of a Part[dChapter. It can contain (Guide or plain) Sections.
     """
+
     def __init__(self, part, title, doc):
         self.doc = doc
         self.guide_sections = []
@@ -674,6 +677,7 @@ class DocTests:
     subsection.
     Access ``tests`` to get these.
     """
+
     def __init__(self):
         self._tests = []
         self.text = ""
@@ -1317,8 +1321,15 @@ class XMLDoc:
     Mathics core also uses this in getting usage strings (`??`).
     """
 
-    def __init__(self, doc_str: str, title: str, section: [DocSection],
-                 doctests_class=DocTests, doctest_class=DocTest, doctext_class=DocText):
+    def __init__(
+        self,
+        doc_str: str,
+        title: str,
+        section: [DocSection],
+        doctests_class=DocTests,
+        doctest_class=DocTest,
+        doctext_class=DocText,
+    ):
         self.title = title
         chapter = section.chapter
         part = chapter.part
@@ -1326,7 +1337,9 @@ class XMLDoc:
         key_prefix = (part.title, chapter.title, title)
 
         self.rawdoc = doc_str
-        self.items = gather_tests(self.rawdoc, doctests_class, doctest_class, doctext_class, key_prefix)
+        self.items = gather_tests(
+            self.rawdoc, doctests_class, doctest_class, doctext_class, key_prefix
+        )
 
     def __str__(self) -> str:
         return "\n".join(str(item) for item in self.items)
