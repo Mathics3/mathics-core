@@ -35,7 +35,7 @@ import pkgutil
 import re
 from os import environ, getenv, listdir
 from types import ModuleType
-from typing import Callable, Iterator, List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from mathics import settings
 from mathics.core.builtin import check_requires_list
@@ -174,7 +174,7 @@ def get_results_by_test(test_expr: str, full_test_key: list, doc_data: dict) -> 
     data was read.
 
     Here, we compensate for this by looking up the test by its chapter and section name
-    portion stored in `full_test_key` along with the and the test expresion data
+    portion stored in `full_test_key` along with the and the test expression data
     stored in `test_expr`.
 
     This new key is looked up in `test_result_map` its value is returned.
@@ -221,7 +221,7 @@ def get_submodule_names(obj) -> list:
     standpoint, are like Mathematica Online Guide Docs.
 
     "List Functions", "Colors", or "Distance and Similarity Measures"
-    are some examples Guide Documents group group various Bultin Functions,
+    are some examples Guide Documents group group various Builtin Functions,
     under submodules relate to that general classification.
 
     Here, we want to return a list of the Python modules under a "Guide Doc"
@@ -229,7 +229,7 @@ def get_submodule_names(obj) -> list:
 
     As an example of a "Guide Doc" and its submodules, consider the
     module named mathics.builtin.colors. It collects code and documentation pertaining
-    to the builtin functions that would be found in the Guide documenation for "Colors".
+    to the builtin functions that would be found in the Guide documentation for "Colors".
 
     The `mathics.builtin.colors` module has a submodule
     `mathics.builtin.colors.named_colors`.
@@ -322,7 +322,7 @@ def parse_docstring_to_DocumentationEntry_items(
     key_part=None,
 ) -> list:
     """
-    This parses string `doc` (using regular expresssions) into Python objects.
+    This parses string `doc` (using regular expressions) into Python objects.
     test_collection_fn() is the class construtorto call to create an object for the
     test collection. Each test is created via test_case_fn().
     Text within the test is stored via text_constructor.
@@ -483,6 +483,7 @@ class DocTests:
         return [test.index for test in self.tests]
 
 
+# Tests has to appear before Documentation which uses it.
 class Tests:
     # FIXME: add optional guide section
     def __init__(self, part: str, chapter: str, section: str, doctests):
@@ -490,11 +491,7 @@ class Tests:
         self.section, self.tests = section, doctests
 
 
-# Note mmatera: I am confuse about this change of order in which the classes
-# appear. I would expect to follow the hierarchy,
-# or at least a typographical order...
-
-
+# DocChapter has to appear before MathicsMainDocumentation which uses it.
 class DocChapter:
     """An object for a Documented Chapter.
     A Chapter is part of a Part[dChapter. It can contain (Guide or plain) Sections.
@@ -609,12 +606,20 @@ class Documentation:
                       +-----0> Chapters
                                  |
                                  +-----0>Sections
+                                 |         |
+                                 |         +------0> SubSections
+                                 |
+                                 +---->0>GuideSections
                                            |
-                                           +------0> SubSections
-    (with 0>) meaning "agregation".
+                                           +-----0>Sections
+                                                     |
+                                                     +------0> SubSections
+
+    (with 0>) meaning "aggregation".
+
     Each element contains a title, a collection of elements of the following class
-    in the hierarchy. Parts, Chapters, Sections and SubSections contains a doc_xml
-    attribute describing the content to be presented after the title, and before
+    in the hierarchy. Parts, Chapters, Guide Sections, Sections and SubSections contains a doc_xml
+    attribute describing the content to be shown after the title, and before
     the elements of the subsequent terms in the hierarchy.
     """
 
@@ -1225,7 +1230,7 @@ class DocumentationEntry:
     contain one or more `DocTest` element.
     Each level of the Documentation hierarchy contains an XMLDoc, describing the
     content after the title and before the elements of the next level. For example,
-    in `DocChapter`, `DocChapter.doc_xml` contains the text comming after the title
+    in `DocChapter`, `DocChapter.doc_xml` contains the text coming after the title
     of the chapter, and before the sections in `DocChapter.sections`.
     Specialized classes like LaTeXDoc or and DjangoDoc provide methods for
     getting formatted output. For LaTeXDoc ``latex()`` is added while for
