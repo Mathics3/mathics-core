@@ -8,6 +8,7 @@ Builtin.
 
 import importlib
 import inspect
+import logging
 import os
 import os.path as osp
 import pkgutil
@@ -144,6 +145,12 @@ def import_and_load_builtins():
     """
     Imports Builtin modules in mathics.builtin and add rules, and definitions from that.
     """
+    # TODO: Check if this is the expected behavior, or it the structures
+    # must be cleaned.
+    if len(mathics3_builtins_modules) > 0:
+        logging.warning("``import_and_load_builtins`` should be called just once...")
+        return
+
     builtin_path = osp.join(
         osp.dirname(
             __file__,

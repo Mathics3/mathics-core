@@ -1,15 +1,24 @@
 """
 Pytests for the documentation system. Basic functions and classes.
 """
+import os.path as osp
 
 from mathics.core.evaluation import Message, Print
+from mathics.core.load_builtin import import_and_load_builtins
 from mathics.doc.common_doc import (
+    DocChapter,
+    DocPart,
+    DocSection,
     DocTest,
     DocTests,
     DocText,
+    Documentation,
+    DocumentationEntry,
+    MathicsMainDocumentation,
     Tests,
     parse_docstring_to_DocumentationEntry_items,
 )
+from mathics.settings import DOC_DIR
 
 DOCTEST_ENTRY = """
     <dl>
@@ -157,3 +166,53 @@ def test_create_doctest():
         doctest = DocTest(1, test_case["test"], key)
         for property_key, value in test_case["properties"].items():
             assert getattr(doctest, property_key) == value
+
+
+def test_load_documentation():
+    documentation = Documentation()
+    fn = osp.join(DOC_DIR, "1-Manual.mdoc")
+    documentation.load_part_from_file(fn, "Main part", False)
+    part = documentation.get_part("main-part")
+    assert isinstance(part, DocPart)
+    third_chapter = part.chapters[2]
+    assert isinstance(third_chapter, DocChapter)
+    first_section = third_chapter.sections[0]
+    assert isinstance(first_section, DocSection)
+    doc_in_section = first_section.doc
+    assert isinstance(doc_in_section, DocumentationEntry)
+    assert all(
+        isinstance(
+            item,
+            (
+                DocText,
+                DocTests,
+            ),
+        )
+        for item in doc_in_section.items
+    )
+    tests = doc_in_section.get_tests()
+    assert isinstance(tests, list)
+    assert isinstance(tests[0], DocTest)
+
+
+def test_load_mathics_documentation():
+    import_and_load_builtins()
+    documentation = MathicsMainDocumentation()
+    documentation.load_documentation_sources()
+
+    # Check that there are not repeated elements.
+    visited_parts = set([])
+    for part in documentation.parts:
+        assert part.title not in visited_parts
+        visited_chapters = set([])
+        for chapter in part.chapters:
+            assert chapter.title not in visited_chapters
+            visited_chapters.add(chapter.title)
+            visited_sections = set([])
+            for section in chapter.all_sections:
+                assert section.title not in visited_sections
+                visited_sections.add(section.title)
+                visited_subsections = set([])
+                for subsection in section.subsections:
+                    assert subsection.title not in visited_subsections
+                    visited_subsections.add(subsection.title)

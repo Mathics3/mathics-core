@@ -446,8 +446,9 @@ class PythonCProfileEvaluation(Builtin):
       <dd>profile $expr$ with the Python's cProfiler.
     </dl>
 
-    >> PythonCProfileEvaluation[a + b + 1]
-     = ...
+    ## This produces an error in the LaTeX documentation.
+    ## >> PythonCProfileEvaluation[a + b + 1]
+    ##  = ...
     """
 
     attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED
