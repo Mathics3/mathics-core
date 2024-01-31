@@ -1234,7 +1234,11 @@ class DocumentationEntry:
 
     """
 
-    def __init__(self, doc: str, title: str, section: Optional[DocSection] = None):
+    docTest_collection_class = DocTests
+    docTest_class = DocTest
+    docText_class = DocText
+
+    def __init__(self, doc_str: str, title: str, section: Optional[DocSection] = None):
         self.title = title
         if section:
             chapter = section.chapter
@@ -1244,9 +1248,13 @@ class DocumentationEntry:
         else:
             key_prefix = None
 
-        self.rawdoc = doc
+        self.rawdoc = doc_str
         self.items = parse_docstring_to_DocumentationEntry_items(
-            self.rawdoc, DocTests, DocTest, DocText, key_prefix
+            self.rawdoc,
+            self.docTest_collection_class,
+            self.docTest_class,
+            self.docText_class,
+            key_prefix,
         )
 
     def __str__(self) -> str:

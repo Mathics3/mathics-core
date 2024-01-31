@@ -463,6 +463,9 @@ def strip_system_prefix(name):
     return name
 
 
+# The following three classes must be before LaTeXDocumentationEntry
+
+
 class LaTeXDocTest(DocTest):
     """
     DocTest formatting rules:
@@ -594,6 +597,31 @@ class LaTeXDocTest(DocTest):
         return text
 
 
+class LaTeXDocTests(DocTests):
+    def latex(self, doc_data: dict) -> str:
+        if len(self.tests) == 0:
+            return "\n"
+
+        testLatexStrings = [
+            test.latex(doc_data) for test in self.tests if not test.private
+        ]
+        testLatexStrings = [t for t in testLatexStrings if len(t) > 1]
+        if len(testLatexStrings) == 0:
+            return "\n"
+
+        return "\\begin{tests}%%\n%s%%\n\\end{tests}" % ("%\n".join(testLatexStrings))
+
+
+class LaTeXDocText(DocText):
+    """
+    Class to hold some (non-test) LaTeX text.
+    """
+
+    def latex(self, doc_data) -> str:
+        """Escape the text as LaTeX and return that string."""
+        return escape_latex(self.text)
+
+
 class LaTeXDocumentation(Documentation):
     """
     This module is used for creating a LaTeX document for the homegrown Mathics3 documentation
@@ -652,21 +680,12 @@ class LaTeXDocumentationEntry(DocumentationEntry):
     Mathics core also uses this in getting usage strings (`??`).
     """
 
-    def __init__(self, str_doc: str, title: str, section: Optional[DocSection]):
-        self.title = title
-        if section:
-            chapter = section.chapter
-            part = chapter.part
-            # Note: we elide section.title
-            key_prefix = (part.title, chapter.title, title)
-        else:
-            key_prefix = None
+    docTest_collection_class = LaTeXDocTests
+    docTest_class = LaTeXDocTest
+    docText_class = LaTeXDocText
 
-        self.rawdoc = str_doc
-        self.items = parse_docstring_to_DocumentationEntry_items(
-            self.rawdoc, LaTeXDocTests, LaTeXDocTest, LaTeXDocText, key_prefix
-        )
-        return
+    def __init__(self, doc_str: str, title: str, section: Optional[DocSection]):
+        super().__init__(doc_str, title, section)
 
     def latex(self, doc_data: dict) -> str:
         """
@@ -1026,28 +1045,3 @@ class LaTeXDocSubsection:
             ),
         }
         return section_string
-
-
-class LaTeXDocTests(DocTests):
-    def latex(self, doc_data: dict) -> str:
-        if len(self.tests) == 0:
-            return "\n"
-
-        testLatexStrings = [
-            test.latex(doc_data) for test in self.tests if not test.private
-        ]
-        testLatexStrings = [t for t in testLatexStrings if len(t) > 1]
-        if len(testLatexStrings) == 0:
-            return "\n"
-
-        return "\\begin{tests}%%\n%s%%\n\\end{tests}" % ("%\n".join(testLatexStrings))
-
-
-class LaTeXDocText(DocText):
-    """
-    Class to hold some (non-test) LaTeX text.
-    """
-
-    def latex(self, doc_data) -> str:
-        """Escape the text as LaTeX and return that string."""
-        return escape_latex(self.text)
