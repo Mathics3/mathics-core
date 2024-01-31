@@ -652,7 +652,9 @@ class LaTeXDocumentationEntry(DocumentationEntry):
     """
 
     def __init__(self, doc_str: str, title: str, section: Optional[DocSection]):
-        super().__init__(doc_str, title, section, LaTeXDocTests, LaTeXDocTest, LaTeXDocText)
+        super().__init__(
+            doc_str, title, section, LaTeXDocTests, LaTeXDocTest, LaTeXDocText
+        )
 
     def latex(self, doc_data: dict) -> str:
         """

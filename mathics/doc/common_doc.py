@@ -652,6 +652,7 @@ class DocChapter:
             pass
         return
 
+
 def sorted_chapters(chapters: List[DocChapter]) -> List[DocChapter]:
     """Return chapters sorted by title"""
     return sorted(chapters, key=lambda chapter: chapter.title)
@@ -760,6 +761,7 @@ class DocTests:
     subsection.
     Access ``tests`` to get these.
     """
+
     def __init__(self):
         self._tests = []
         self.text = ""
@@ -1373,8 +1375,7 @@ class DocSubsection:
 
         if text.count("<dl>") != text.count("</dl>"):
             raise ValueError(
-                "Missing opening or closing <dl> tag in "
-                f"{title} documentation"
+                "Missing opening or closing <dl> tag in " f"{title} documentation"
             )
         self.section.subsections_by_slug[self.slug] = self
         if MATHICS_DEBUG_DOC_BUILD:
@@ -1500,8 +1501,15 @@ class DocumentationEntry:
     Mathics core also uses this in getting usage strings (`??`).
     """
 
-    def __init__(self, doc_str: str, title: str, section: [DocSection],
-                 doctests_class=DocTests, doctest_class=DocTest, doctext_class=DocText):
+    def __init__(
+        self,
+        doc_str: str,
+        title: str,
+        section: [DocSection],
+        doctests_class=DocTests,
+        doctest_class=DocTest,
+        doctext_class=DocText,
+    ):
         self.title = title
         chapter = section.chapter
         part = chapter.part
@@ -1539,6 +1547,7 @@ class DocumentationEntry:
             if not isinstance(item, DocText):
                 self.tests.extend(item.tests)
         return self.tests
+
 
 # Backward compatibility
 
