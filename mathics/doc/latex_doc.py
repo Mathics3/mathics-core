@@ -668,7 +668,7 @@ class LaTeXDocumentationEntry(DocumentationEntry):
         )
         return
 
-    def latex(self, doc_data: dict):
+    def latex(self, doc_data: dict) -> str:
         """
         Return a LaTeX string representation for this object.
         """
@@ -904,7 +904,7 @@ class LaTeXDocGuideSection(DocSection):
                 for doctests in subsection.items:
                     yield doctests.get_tests()
 
-    def latex(self, doc_data: dict, quiet=False):
+    def latex(self, doc_data: dict, quiet=False) -> str:
         """Render this Guide Section object as LaTeX string and return that.
 
         `output` is not used here but passed along to the bottom-most
@@ -989,7 +989,7 @@ class LaTeXDocSubsection:
             )
         self.section.subsections_by_slug[self.slug] = self
 
-    def latex(self, doc_data: dict, quiet=False, chapters=None):
+    def latex(self, doc_data: dict, quiet=False, chapters=None) -> str:
         """Render this Subsection object as LaTeX string and return that.
 
         `output` is not used here but passed along to the bottom-most
@@ -1029,7 +1029,7 @@ class LaTeXDocSubsection:
 
 
 class LaTeXDocTests(DocTests):
-    def latex(self, doc_data: dict):
+    def latex(self, doc_data: dict) -> str:
         if len(self.tests) == 0:
             return "\n"
 
@@ -1044,5 +1044,10 @@ class LaTeXDocTests(DocTests):
 
 
 class LaTeXDocText(DocText):
-    def latex(self, doc_data):
+    """
+    Class to hold some (non-test) LaTeX text.
+    """
+
+    def latex(self, doc_data) -> str:
+        """Escape the text as LaTeX and return that string."""
         return escape_latex(self.text)
