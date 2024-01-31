@@ -20,7 +20,6 @@ from datetime import datetime
 from typing import Dict, Optional, Set, Tuple
 
 import mathics
-import mathics.settings
 from mathics import settings, version_string
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
@@ -34,6 +33,7 @@ from mathics.doc.common_doc import (
 )
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 from mathics.timing import show_lru_cache_statistics
+
 
 class TestOutput(Output):
     def max_stored_size(self, _):
@@ -361,7 +361,7 @@ def validate_group_setup(
 
     # For consistency set the character encoding ASCII which is
     # the lowest common denominator available on all systems.
-    mathics.settings.SYSTEM_CHARACTER_ENCODING = "ASCII"
+    settings.SYSTEM_CHARACTER_ENCODING = "ASCII"
 
     if DEFINITIONS is None:
         print_and_log("Definitions are not initialized.")
@@ -401,7 +401,10 @@ def test_tests(
     failed_symbols = set()
 
     output_data, format_output, names = validate_group_setup(
-        set(), None, reload, generate_output,
+        set(),
+        None,
+        reload,
+        generate_output,
     )
     if (output_data, format_output, names) == INVALID_TEST_GROUP_SETUP:
         return total, failed, skipped, failed_symbols, index
@@ -410,19 +413,21 @@ def test_tests(
     count_exceeded = False
 
     for chapter in DOCUMENTATION.chapters:
-
         # FIXME Guide sections are getting added twice somehow.
         # This is a workaround to skip testing the duplicate.
         seen_sections = set()
 
         for tests in chapter.get_tests():
-
             # Some Guide sections can return a single DocTests.
             test_collection = [tests] if isinstance(tests, Tests) else tests
 
             for section in test_collection:
-
-                section_key = (section.part, section.chapter, section.section, section.subsection)
+                section_key = (
+                    section.part,
+                    section.chapter,
+                    section.section,
+                    section.subsection,
+                )
                 # See FIXME above.
                 if section_key in seen_sections:
                     continue
@@ -604,8 +609,12 @@ def test_chapters(
             test_collection = [tests] if isinstance(tests, Tests) else tests
 
             for section in test_collection:
-
-                section_key = (section.part, section.chapter, section.section, section.subsection)
+                section_key = (
+                    section.part,
+                    section.chapter,
+                    section.section,
+                    section.subsection,
+                )
                 # See FIXME above.
                 if section_key in seen_sections:
                     continue
@@ -613,7 +622,12 @@ def test_chapters(
                 seen_sections.add(section_key)
 
                 DEFINITIONS.reset_user_definitions()
-                index, total, failed, prev_key = test_section_in_chapter_or_guide_section(
+                (
+                    index,
+                    total,
+                    failed,
+                    prev_key,
+                ) = test_section_in_chapter_or_guide_section(
                     section,
                     total,
                     failed,
@@ -682,7 +696,6 @@ def test_sections(
 
     for chapter in DOCUMENTATION.chapters:
         for tests in chapter.get_tests():
-
             # Some Guide sections can return a single DocTests.
             test_collection = [tests] if isinstance(tests, Tests) else tests
 
@@ -836,7 +849,7 @@ def test_all(
             generate_output=generate_output,
             reload=False,
             keep_going=not stop_on_failure,
-            )
+        )
 
         total += sub_total
         failed += sub_failed

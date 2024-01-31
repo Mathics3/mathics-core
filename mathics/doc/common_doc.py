@@ -134,8 +134,6 @@ test_result_map = {}
 
 # Debug flags.
 
-# Debug flags.
-
 # Set to True if want to follow the process
 # The first phase is building the documentation data structure
 # based on docstrings:
@@ -160,7 +158,6 @@ def get_module_doc(module: ModuleType) -> Tuple[str, str]:
         title = doc.splitlines()[0]
         text = "\n".join(doc.splitlines()[1:])
     else:
-        # FIXME: Extend me for Pymathics modules.
         title = module.__name__
         for prefix in ("mathics.builtin.", "mathics.optional."):
             if title.startswith(prefix):
@@ -465,36 +462,25 @@ class DocTest:
         return self.test
 
 
-class DocTests:
-    """
-    A bunch of consecutive `DocTest` listed inside a Builtin docstring.
-
-
-    """
-
-    def __init__(self):
-        self.tests = []
-        self.text = ""
-
-    def get_tests(self) -> list:
-        return self.tests
-
-    def is_private(self):
-        return all(test.private for test in self.tests)
-
-    def __str__(self) -> str:
-        return "\n".join(str(test) for test in self.tests)
-
-    def test_indices(self):
-        return [test.index for test in self.tests]
-
-
 # Tests has to appear before Documentation which uses it.
 class Tests:
-    # FIXME: add optional guide section
-    def __init__(self, part: str, chapter: str, section: str, doctests):
-        self.part, self.chapter = part, chapter
-        self.section, self.tests = section, doctests
+    """
+    A group of tests in the same section or subsection.
+    """
+
+    def __init__(
+        self,
+        part_name: str,
+        chapter_name: str,
+        section_name: str,
+        doctests: List[DocTest],
+        subsection_name: Optional[str] = None,
+    ):
+        self.part = part_name
+        self.chapter = chapter_name
+        self.section = section_name
+        self.subsection = subsection_name
+        self.tests = doctests
 
 
 # DocChapter has to appear before MathicsMainDocumentation which uses it.
@@ -504,132 +490,6 @@ class DocChapter:
     """
 
     def __init__(self, part, title, doc=None):
-        self.doc = doc
-        self.guide_sections = []
-        self.part = part
-        self.title = title
-        self.slug = slugify(title)
-        self.sections = []
-        self.sections_by_slug = {}
-        part.chapters_by_slug[self.slug] = self
-        if MATHICS_DEBUG_DOC_BUILD:
-            print("  DEBUG Creating Chapter", title)
-
-    def __str__(self) -> str:
-        sections = "\n".join(section.title for section in self.sections)
-        return f"= {self.part.title}: {self.title} =\n\n{sections}"
-
-    @property
-    def all_sections(self):
-        return sorted(self.sections + self.guide_sections)
-
-
-def sorted_chapters(chapters: list) -> list:
-    """Return chapters sorted by title"""
-    return sorted(chapters, key=lambda chapter: chapter.title)
-
-
-class DocPart:
-    """
-    Represents one of the main parts of the document. Parts
-    can be loaded from a mdoc file, generated automatically from
-    the docstrings of Builtin objects under `mathics.builtin`.
-    """
-
-    def __init__(self, doc, title, is_reference=False):
-        self.doc = doc
-        self.title = title
-        self.slug = slugify(title)
-        self.chapters = []
-        self.chapters_by_slug = {}
-        self.is_reference = is_reference
-        self.is_appendix = False
-        doc.parts_by_slug[self.slug] = self
-
-    def __str__(self) -> str:
-        return "%s\n\n%s" % (
-            self.title,
-            "\n".join(str(chapter) for chapter in sorted_chapters(self.chapters)),
-        )
-
-
-class DocSection:
-    """An object for a Documented Section.
-    A Section is part of a Chapter. It can contain subsections.
-    """
-
-    def __init__(
-        self,
-        chapter,
-        title: str,
-        text: str,
-        operator,
-        installed=True,
-        in_guide=False,
-        summary_text="",
-    ):
-        self.chapter = chapter
-        self.in_guide = in_guide
-        self.installed = installed
-        self.items = []  # tests in section when this is under a guide section
-        self.operator = operator
-        self.slug = slugify(title)
-        self.subsections = []
-        self.subsections_by_slug = {}
-        self.summary_text = summary_text
-        self.title = title
-
-        if text.count("<dl>") != text.count("</dl>"):
-            raise ValueError(
-                "Missing opening or closing <dl> tag in "
-                "{} documentation".format(title)
-            )
-
-        # Needs to come after self.chapter is initialized since
-        # DocumentationEntry uses self.chapter.
-        self.doc = DocumentationEntry(text, title, self)
-
-        chapter.sections_by_slug[self.slug] = self
-
-    # Add __eq__ and __lt__ so we can sort Sections.
-    def __eq__(self, other) -> bool:
-        return self.title == other.title
-
-    def __lt__(self, other) -> bool:
-        return self.title < other.title
-
-    def __str__(self) -> str:
-        return f"== {self.title} ==\n{self.doc}"
-
-
-class Documentation:
-    """
-    `Documentation` describes an object containing the whole documentation system.
-    Documentation
-        |
-        +--------0> Parts
-                      |
-                      +-----0> Chapters
-                                 |
-                                 +-----0>Sections
-                                 |         |
-                                 |         +------0> SubSections
-                                 |
-                                 +---->0>GuideSections
-                                           |
-                                           +-----0>Sections
-                                                     |
-                                                     +------0> SubSections
-
-    (with 0>) meaning "aggregation".
-
-    Each element contains a title, a collection of elements of the following class
-    in the hierarchy. Parts, Chapters, Guide Sections, Sections and SubSections contains a doc_xml
-    attribute describing the content to be shown after the title, and before
-    the elements of the subsequent terms in the hierarchy.
-    """
-
-    def __init__(self, part, title: str, doc=None):
         self.doc = doc
         self.guide_sections = []
         self.part = part
@@ -765,20 +625,15 @@ class Documentation:
                 if isinstance(section, DocGuideSection):
                     for docsection in section.subsections:
                         for docsubsection in docsection.subsections:
-                            # FIXME: Something is weird here where tests for subsection items
-                            # appear not as a collection but individually and need to be
-                            # iterated below. Probably some other code is faulty and
-                            # when fixed the below loop and collection into doctest_list[]
-                            # will be removed.
                             if not docsubsection.installed:
                                 continue
                             doctest_list = []
                             index = 1
-                            for doctests in docsubsection.items:
-                                doctest_list += list(doctests.tests)
-                                for test in doctest_list:
-                                    test.index = index
-                                    index += 1
+                            # FIXME: this should have been done somewhere else.
+                            for doctest in docsubsection.get_tests():
+                                doctest.index = index
+                                index += 1
+                                doctest_list.append(doctest)
 
                             if doctest_list:
                                 yield Tests(
@@ -797,10 +652,82 @@ class Documentation:
             pass
         return
 
-
 def sorted_chapters(chapters: List[DocChapter]) -> List[DocChapter]:
     """Return chapters sorted by title"""
     return sorted(chapters, key=lambda chapter: chapter.title)
+
+
+class DocPart:
+    """
+    Represents one of the main parts of the document. Parts
+    can be loaded from a mdoc file, generated automatically from
+    the docstrings of Builtin objects under `mathics.builtin`.
+    """
+
+    def __init__(self, doc, title, is_reference=False):
+        self.doc = doc
+        self.title = title
+        self.slug = slugify(title)
+        self.chapters = []
+        self.chapters_by_slug = {}
+        self.is_reference = is_reference
+        self.is_appendix = False
+        doc.parts_by_slug[self.slug] = self
+
+    def __str__(self) -> str:
+        return "%s\n\n%s" % (
+            self.title,
+            "\n".join(str(chapter) for chapter in sorted_chapters(self.chapters)),
+        )
+
+
+class DocSection:
+    """An object for a Documented Section.
+    A Section is part of a Chapter. It can contain subsections.
+    """
+
+    def __init__(
+        self,
+        chapter,
+        title: str,
+        text: str,
+        operator,
+        installed=True,
+        in_guide=False,
+        summary_text="",
+    ):
+        self.chapter = chapter
+        self.in_guide = in_guide
+        self.installed = installed
+        self.items = []  # tests in section when this is under a guide section
+        self.operator = operator
+        self.slug = slugify(title)
+        self.subsections = []
+        self.subsections_by_slug = {}
+        self.summary_text = summary_text
+        self.title = title
+
+        if text.count("<dl>") != text.count("</dl>"):
+            raise ValueError(
+                "Missing opening or closing <dl> tag in "
+                "{} documentation".format(title)
+            )
+
+        # Needs to come after self.chapter is initialized since
+        # DocumentationEntry uses self.chapter.
+        self.doc = DocumentationEntry(text, title, self)
+
+        chapter.sections_by_slug[self.slug] = self
+
+    # Add __eq__ and __lt__ so we can sort Sections.
+    def __eq__(self, other) -> bool:
+        return self.title == other.title
+
+    def __lt__(self, other) -> bool:
+        return self.title < other.title
+
+    def __str__(self) -> str:
+        return f"== {self.title} ==\n{self.doc}"
 
 
 class DocPart:
@@ -897,7 +824,7 @@ class DocSection:
 
         # Needs to come after self.chapter is initialized since
         # XMLDoc uses self.chapter.
-        self.xml_doc = XMLDoc(text, title, self)
+        self.xml_doc = DocumentationEntry(text, title, self)
 
         chapter.sections_by_slug[self.slug] = self
         if MATHICS_DEBUG_DOC_BUILD:
@@ -1017,8 +944,34 @@ mathics3_module_part: Optional[DocPart] = None
 
 
 class Documentation:
+    """
+    `Documentation` describes an object containing the whole documentation system.
+    Documentation
+        |
+        +--------0> Parts
+                      |
+                      +-----0> Chapters
+                                 |
+                                 +-----0>Sections
+                                 |         |
+                                 |         +------0> SubSections
+                                 |
+                                 +---->0>GuideSections
+                                           |
+                                           +-----0>Sections
+                                                     |
+                                                     +------0> SubSections
+
+    (with 0>) meaning "aggregation".
+
+    Each element contains a title, a collection of elements of the following class
+    in the hierarchy. Parts, Chapters, Guide Sections, Sections and SubSections contains a doc_xml
+    attribute describing the content to be shown after the title, and before
+    the elements of the subsequent terms in the hierarchy.
+    """
+
     def __init__(self):
-        self.doc_class = XMLDoc
+        self.doc_class = DocumentationEntry
         self.doc_dir = settings.DOC_DIR
         self.chapter_class = DocChapter
         self.chapters: List[DocChapter] = []
@@ -1032,6 +985,10 @@ class Documentation:
         self.sections = []
         self.sections_by_slug = {}
         self.title = "Overview"
+
+    def __str__(self) -> str:
+        sections = "\n".join(section.title for section in self.sections)
+        return f"= {self.part.title}: {self.title} =\n\n{sections}"
 
     def add_section(
         self,
@@ -1186,7 +1143,7 @@ class Documentation:
 
     def gather_doctest_data(self):
         """
-        Populates the documenta
+        Populates the documentatation.
         (deprecated)
         """
         logging.warn(
@@ -1306,56 +1263,6 @@ class Documentation:
 
         return None
 
-    def get_tests(self:
-        for part in self.parts:
-            if want_sorting:
-                chapter_collection_fn = lambda x: sorted_chapters(x)
-            else:
-                chapter_collection_fn = lambda x: x
-            for chapter in chapter_collection_fn(part.chapters):
-                tests = chapter.doc.get_tests()
-                if tests:
-                    yield Tests(part.title, chapter.title, "", tests)
-                for section in chapter.all_sections:
-                    if section.installed:
-                        if isinstance(section, DocGuideSection):
-                            for docsection in section.subsections:
-                                for docsubsection in docsection.subsections:
-                                    # FIXME: Something is weird here where tests for subsection items
-                                    # appear not as a collection but individually and need to be
-                                    # iterated below. Probably some other code is faulty and
-                                    # when fixed the below loop and collection into doctest_list[]
-                                    # will be removed.
-                                    if not docsubsection.installed:
-                                        continue
-                                    doctest_list = []
-                                    index = 1
-                                    for doctests in docsubsection.items:
-                                        doctest_list += list(doctests.get_tests())
-                                        for test in doctest_list:
-                                            test.index = index
-                                            index += 1
-
-                                    if doctest_list:
-                                        yield Tests(
-                                            section.chapter.part.title,
-                                            section.chapter.title,
-                                            docsubsection.title,
-                                            doctest_list,
-                                        )
-                        else:
-                            tests = section.doc.get_tests()
-                            if tests:
-                                yield Tests(
-                                    part.title, chapter.title, section.title, tests
-                                )
-                                pass
-                            pass
-                        pass
-                    pass
-                pass
-            pass
-        return
 
 class DocGuideSection(DocSection):
     """An object for a Documented Guide Section.
@@ -1373,7 +1280,7 @@ class DocGuideSection(DocSection):
         installed: bool = True,
     ):
         self.chapter = chapter
-        self.doc = DocumentationEntry(text, title, None)
+        self.xml_doc = DocumentationEntry(text, title, self)
         self.in_guide = False
         self.installed = installed
         self.section = submodule
@@ -1441,6 +1348,7 @@ class DocSubsection:
         self.section = section
         self.slug = slugify(title)
         self.subsections = []
+        self.tests = []
         self.title = title
 
         if section:
@@ -1466,7 +1374,7 @@ class DocSubsection:
         if text.count("<dl>") != text.count("</dl>"):
             raise ValueError(
                 "Missing opening or closing <dl> tag in "
-                "{} documentation".format(title)
+                f"{title} documentation"
             )
         self.section.subsections_by_slug[self.slug] = self
         if MATHICS_DEBUG_DOC_BUILD:
@@ -1474,6 +1382,14 @@ class DocSubsection:
 
     def __str__(self) -> str:
         return f"=== {self.title} ===\n{self.doc}"
+
+    def get_tests(self) -> list:
+        if len(self.tests) > 0:
+            return self.tests
+        for item in self.items:
+            if not isinstance(item, DocText):
+                self.tests.extend(item.tests)
+        return self.tests
 
 
 # FIXME: think about - do we need this? Or can we use DjangoMathicsDocumentation and
@@ -1489,13 +1405,7 @@ class MathicsMainDocumentation(Documentation):
     """
 
     def __init__(self):
-        self.doc_chapter_fn = DocChapter
-        self.doc_dir = settings.DOC_DIR
-        self.doc_fn = DocumentationEntry
-        self.doc_guide_section_fn = DocGuideSection
-        self.doc_part_fn = DocPart
-        self.doc_section_fn = DocSection
-        self.doc_subsection_fn = DocSubsection
+        super().__init__()
         self.doctest_latex_pcl_path = settings.DOCTEST_LATEX_DATA_PCL
         self.pymathics_doc_loaded = False
         self.doc_data_file = settings.get_doctest_latex_data_path(
@@ -1507,7 +1417,7 @@ class DocText:
     """
     Class to hold some (non-test) text.
 
-    Some of the kinds of tags you may find here are showin in global ALLOWED_TAGS.
+    Some of the kinds of tags you may find here are showing in global ALLOWED_TAGS.
     Some text may be marked with surrounding "$" or "'".
 
     The code here however does not make use of any of the tagging.
@@ -1553,12 +1463,18 @@ class DocText:
         return self.text
 
     def get_tests(self) -> list:
+        """
+        Return tests in a DocText item - there never are any.
+        """
         return []
 
     def is_private(self):
         return False
 
-    def test_indices(self):
+    def test_indices(self) -> list:
+        """
+        Return test indecies in a DocText item - there never are any.
+        """
         return []
 
 
@@ -1576,12 +1492,12 @@ class DocumentationEntry:
     content after the title and before the elements of the next level. For example,
     in `DocChapter`, `DocChapter.doc_xml` contains the text coming after the title
     of the chapter, and before the sections in `DocChapter.sections`.
->>>>>>> master
+
     Specialized classes like LaTeXDoc or and DjangoDoc provide methods for
     getting formatted output. For LaTeXDoc ``latex()`` is added while for
     DjangoDoc ``html()`` is added
-    Mathics core also uses this in getting usage strings (`??`).
 
+    Mathics core also uses this in getting usage strings (`??`).
     """
 
     def __init__(self, doc_str: str, title: str, section: [DocSection],
@@ -1592,10 +1508,11 @@ class DocumentationEntry:
         # Note: we elide section.title
         key_prefix = (part.title, chapter.title, title)
 
-        self.rawdoc = doc
+        self.rawdoc = doc_str
         self.items = parse_docstring_to_DocumentationEntry_items(
-            self.rawdoc, DocTests, DocTest, DocText, key_prefix
+            self.rawdoc, doctests_class, doctest_class, doctext_class, key_prefix
         )
+        self.tests = []
 
     def __str__(self) -> str:
         return "\n".join(str(item) for item in self.items)
@@ -1616,11 +1533,12 @@ class DocumentationEntry:
         return item
 
     def get_tests(self) -> list:
-        tests = []
+        if len(self.tests) > 0:
+            return self.tests
         for item in self.items:
-            tests.extend(item.tests)
-        return tests
-
+            if not isinstance(item, DocText):
+                self.tests.extend(item.tests)
+        return self.tests
 
 # Backward compatibility
 
