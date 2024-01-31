@@ -5,6 +5,7 @@ FIXME: Ditch this and hook into sphinx.
 
 import re
 from os import getenv
+from typing import Optional
 
 from mathics import settings
 from mathics.core.evaluation import Message, Print
@@ -34,9 +35,9 @@ from mathics.doc.common_doc import (
     DocTests,
     DocText,
     Documentation,
-    XMLDoc,
-    gather_tests,
+    DocumentationEntry,
     get_results_by_test,
+    parse_docstring_to_DocumentationEntry_items,
     post_sub,
     pre_sub,
     sorted_chapters,
@@ -594,6 +595,11 @@ class LaTeXDocTest(DocTest):
 
 
 class LaTeXDocumentation(Documentation):
+    """
+    This module is used for creating a LaTeX document for the homegrown Mathics3 documentation
+    system
+    """
+
     def __str__(self):
         return "\n\n\n".join(str(part) for part in self.parts)
 
@@ -639,14 +645,14 @@ class LaTeXDocumentation(Documentation):
         return result
 
 
-class LaTeXDoc(XMLDoc):
-    """A class to hold our internal XML-like format data.
+class LaTeXDocumentationEntry(DocumentationEntry):
+    """A class to hold our internal markdown-like format data.
     The `latex()` method can turn this into LaTeX.
 
     Mathics core also uses this in getting usage strings (`??`).
     """
 
-    def __init__(self, doc, title, section):
+    def __init__(self, str_doc: str, title: str, section: Optional[DocSection]):
         self.title = title
         if section:
             chapter = section.chapter
@@ -656,13 +662,16 @@ class LaTeXDoc(XMLDoc):
         else:
             key_prefix = None
 
-        self.rawdoc = doc
-        self.items = gather_tests(
+        self.rawdoc = str_doc
+        self.items = parse_docstring_to_DocumentationEntry_items(
             self.rawdoc, LaTeXDocTests, LaTeXDocTest, LaTeXDocText, key_prefix
         )
         return
 
     def latex(self, doc_data: dict):
+        """
+        Return a LaTeX string representation for this object.
+        """
         if len(self.items) == 0:
             if hasattr(self, "rawdoc") and len(self.rawdoc) != 0:
                 # We have text but no tests
@@ -677,7 +686,7 @@ class LaTeXMathicsDocumentation(Documentation):
     def __init__(self, want_sorting=False):
         self.doc_chapter_fn = LaTeXDocChapter
         self.doc_dir = settings.DOC_DIR
-        self.doc_fn = LaTeXDoc
+        self.doc_fn = LaTeXDocumentationEntry
         self.doc_data_file = settings.get_doctest_latex_data_path(
             should_be_readable=True
         )
@@ -690,7 +699,7 @@ class LaTeXMathicsDocumentation(Documentation):
         self.parts_by_slug = {}
         self.title = "Overview"
 
-        self.gather_doctest_data()
+        self.load_documentation_sources()
 
     def latex(
         self,
@@ -774,7 +783,7 @@ class LaTeXDocChapter(DocChapter):
             "\\chaptersections\n",
             "\n\n".join(
                 section.latex(doc_data, quiet)
-                for section in sorted(self.sections)
+                for section in sorted(self.all_sections)
                 if not filter_sections or section.title in filter_sections
             ),
             "\n\\chapterend\n",
@@ -810,8 +819,8 @@ class LaTeXDocSection(DocSection):
             )
 
         # Needs to come after self.chapter is initialized since
-        # XMLDoc uses self.chapter.
-        self.doc = LaTeXDoc(text, title, self)
+        # DocumentationEntry uses self.chapter.
+        self.doc = LaTeXDocumentationEntry(text, title, self)
 
         chapter.sections_by_slug[self.slug] = self
 
@@ -858,7 +867,7 @@ class LaTeXDocGuideSection(DocSection):
         self, chapter: str, title: str, text: str, submodule, installed: bool = True
     ):
         self.chapter = chapter
-        self.doc = LaTeXDoc(text, title, None)
+        self.doc = LaTeXDocumentationEntry(text, title, None)
         self.in_guide = False
         self.installed = installed
         self.section = submodule
@@ -953,7 +962,7 @@ class LaTeXDocSubsection:
         the "section" name for the class Read (the subsection) inside it.
         """
 
-        self.doc = LaTeXDoc(text, title, section)
+        self.doc = LaTeXDocumentationEntry(text, title, section)
         self.chapter = chapter
         self.in_guide = in_guide
         self.installed = installed
@@ -967,7 +976,9 @@ class LaTeXDocSubsection:
         if in_guide:
             # Tests haven't been picked out yet from the doc string yet.
             # Gather them here.
-            self.items = gather_tests(text, LaTeXDocTests, LaTeXDocTest, LaTeXDocText)
+            self.items = parse_docstring_to_DocumentationEntry_items(
+                text, LaTeXDocTests, LaTeXDocTest, LaTeXDocText
+            )
         else:
             self.items = []
 

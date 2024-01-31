@@ -650,7 +650,7 @@ def main():
             else:
                 print(f"Mathics3 Module {module_name} loaded")
 
-    documentation.gather_doctest_data()
+    documentation.load_documentation_sources()
 
     if args.sections:
         sections = set(args.sections.split(","))
