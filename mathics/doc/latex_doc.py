@@ -35,9 +35,9 @@ from mathics.doc.common_doc import (
     DocTests,
     DocText,
     Documentation,
-    XMLDoc,
-    gather_tests,
+    DocumentationEntry,
     get_results_by_test,
+    parse_docstring_to_DocumentationEntry_items,
     post_sub,
     pre_sub,
     sorted_chapters,
@@ -645,8 +645,8 @@ class LaTeXDocumentation(Documentation):
         return result
 
 
-class LaTeXDoc(XMLDoc):
-    """A class to hold our internal XML-like format data.
+class LaTeXDocumentationEntry(DocumentationEntry):
+    """A class to hold our internal markdown-like format data.
     The `latex()` method can turn this into LaTeX.
 
     Mathics core also uses this in getting usage strings (`??`).
@@ -673,7 +673,7 @@ class LaTeXMathicsDocumentation(Documentation):
     def __init__(self):
         self.doc_chapter_fn = LaTeXDocChapter
         self.doc_dir = settings.DOC_DIR
-        self.doc_fn = LaTeXDoc
+        self.doc_fn = LaTeXDocumentationEntry
         self.doc_data_file = settings.get_doctest_latex_data_path(
             should_be_readable=True
         )
@@ -686,7 +686,7 @@ class LaTeXMathicsDocumentation(Documentation):
         self.parts_by_slug = {}
         self.title = "Overview"
 
-        self.gather_doctest_data()
+        self.load_documentation_sources()
 
     def latex(
         self,
@@ -770,7 +770,7 @@ class LaTeXDocChapter(DocChapter):
             "\\chaptersections\n",
             "\n\n".join(
                 section.latex(doc_data, quiet)
-                for section in sorted(self.sections)
+                for section in sorted(self.all_sections)
                 if not filter_sections or section.title in filter_sections
             ),
             "\n\\chapterend\n",
@@ -806,8 +806,8 @@ class LaTeXDocSection(DocSection):
             )
 
         # Needs to come after self.chapter is initialized since
-        # XMLDoc uses self.chapter.
-        self.doc = LaTeXDoc(text, title, self)
+        # DocumentationEntry uses self.chapter.
+        self.doc = LaTeXDocumentationEntry(text, title, self)
 
         chapter.sections_by_slug[self.slug] = self
 
@@ -854,7 +854,7 @@ class LaTeXDocGuideSection(DocSection):
         self, chapter: str, title: str, text: str, submodule, installed: bool = True
     ):
         self.chapter = chapter
-        self.doc = LaTeXDoc(text, title, None)
+        self.doc = LaTeXDocumentationEntry(text, title, None)
         self.in_guide = False
         self.installed = installed
         self.section = submodule
@@ -891,7 +891,7 @@ class LaTeXDocGuideSection(DocSection):
                 for doctests in subsection.items:
                     yield doctests.get_tests()
 
-    def latex(self, doc_data: dict, quiet=False):
+    def latex(self, doc_data: dict, quiet=False) -> str:
         """Render this Guide Section object as LaTeX string and return that.
 
         `output` is not used here but passed along to the bottom-most
@@ -949,7 +949,7 @@ class LaTeXDocSubsection:
         the "section" name for the class Read (the subsection) inside it.
         """
 
-        self.doc = LaTeXDoc(text, title, section)
+        self.doc = LaTeXDocumentationEntry(text, title, section)
         self.chapter = chapter
         self.in_guide = in_guide
         self.installed = installed
@@ -963,7 +963,9 @@ class LaTeXDocSubsection:
         if in_guide:
             # Tests haven't been picked out yet from the doc string yet.
             # Gather them here.
-            self.items = gather_tests(text, LaTeXDocTests, LaTeXDocTest, LaTeXDocText)
+            self.items = parse_docstring_to_DocumentationEntry_items(
+                text, LaTeXDocTests, LaTeXDocTest, LaTeXDocText
+            )
         else:
             self.items = []
 
@@ -974,7 +976,7 @@ class LaTeXDocSubsection:
             )
         self.section.subsections_by_slug[self.slug] = self
 
-    def latex(self, doc_data: dict, quiet=False, chapters=None):
+    def latex(self, doc_data: dict, quiet=False, chapters=None) -> str:
         """Render this Subsection object as LaTeX string and return that.
 
         `output` is not used here but passed along to the bottom-most
@@ -1014,7 +1016,7 @@ class LaTeXDocSubsection:
 
 
 class LaTeXDocTests(DocTests):
-    def latex(self, doc_data: dict):
+    def latex(self, doc_data: dict) -> str:
         if len(self.tests) == 0:
             return "\n"
 
