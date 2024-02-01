@@ -281,7 +281,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 self.elements_properties.elements_fully_evaluated = False
 
             if isinstance(element, Expression):
-
                 # "self" can't be flat.
                 self.elements_properties.is_flat = False
 
@@ -772,7 +771,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     # FIXME: return type should be a specific kind of Tuple, not a tuple.
     def get_sort_key(self, pattern_sort=False) -> tuple:
-
         if pattern_sort:
             """
             Pattern sort key structure:
@@ -1461,7 +1459,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         head = self._head
         if head is SymbolFunction:
-
             from mathics.core.convert.function import expression_to_callable_and_args
 
             vars, expr_fn = self.elements
@@ -1618,7 +1615,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 in ("System`Module", "System`Block", "System`With")
                 and len(self._elements) > 0
             ):  # nopep8
-
                 scoping_vars = set(
                     name for name, new_def in get_scoping_vars(self._elements[0])
                 )

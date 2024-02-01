@@ -85,7 +85,6 @@ class Input_(Predefined):
 
 
 class _OpenAction(Builtin):
-
     # BinaryFormat: 'False',
     # CharacterEncoding :> Automatic,
     # DOSTextFormat :> True,

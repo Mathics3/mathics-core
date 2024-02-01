@@ -157,7 +157,6 @@ def write_latex(
 
 
 def main():
-
     global logfile
 
     parser = ArgumentParser(description="Mathics test suite.", add_help=False)

@@ -215,7 +215,7 @@ def normalize_unit_name_with_magnitude(unit: str, magnitude) -> str:
 
     try:
         return str(Q_(magnitude, unit).units)
-    except (UndefinedUnitError) as exc:
+    except UndefinedUnitError as exc:
         raise ValueError("undefined units") from exc
 
 

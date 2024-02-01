@@ -125,7 +125,6 @@ class Image(Atom):
         return self.color_convert("Grayscale")
 
     def pil(self):
-
         if hasattr(self, "pillow") and self.pillow is not None:
             return self.pillow
 
