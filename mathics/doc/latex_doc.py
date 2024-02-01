@@ -37,6 +37,7 @@ from mathics.doc.common_doc import (
     DocText,
     Documentation,
     DocumentationEntry,
+    MathicsMainDocumentation,
     get_results_by_test,
     parse_docstring_to_DocumentationEntry_items,
     post_sub,
@@ -649,18 +650,21 @@ class LaTeXDocumentation(Documentation):
         return result
 
 
-class LaTeXMathicsDocumentation(Documentation):
+class LaTeXMathicsDocumentation(MathicsMainDocumentation):
     def __init__(self, want_sorting=False):
         self.chapter_class = LaTeXDocChapter
-        self.doc_dir = settings.DOC_DIR
         self.doc_class = LaTeXDocumentationEntry
-        self.doc_data_file = settings.get_doctest_latex_data_path(
-            should_be_readable=True
-        )
         self.guide_section_class = LaTeXDocGuideSection
         self.part_class = LaTeXDocPart
         self.section_class = LaTeXDocSection
         self.subsection_class = LaTeXDocSubsection
+        super().__init__(want_sorting)
+        return
+        self.doc_dir = settings.DOC_DIR
+        self.doc_data_file = settings.get_doctest_latex_data_path(
+            should_be_readable=True
+        )
+
         self.doctest_latex_pcl_path = settings.DOCTEST_LATEX_DATA_PCL
         self.parts = []
         self.parts_by_slug = {}

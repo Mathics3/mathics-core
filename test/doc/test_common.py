@@ -1,15 +1,23 @@
 """
 Pytests for the documentation system. Basic functions and classes.
 """
+import os.path as osp
 
 from mathics.core.evaluation import Message, Print
 from mathics.doc.common_doc import (
+    DocChapter,
+    DocPart,
+    DocSection,
     DocTest,
     DocTests,
     DocText,
+    Documentation,
+    DocumentationEntry,
+    MathicsMainDocumentation,
     Tests,
     parse_docstring_to_DocumentationEntry_items,
 )
+from mathics.settings import DOC_DIR
 
 DOCTEST_ENTRY = """
     <dl>
@@ -160,6 +168,27 @@ def test_create_doctest():
 
 
 def test_load_documentation():
-    documentation = MathicsMainDocumentation
-    documentation.load_documentation_sources()
-    assert documentation.parts
+    documentation = Documentation()
+    fn = osp.join(DOC_DIR, "1-Manual.mdoc")
+    documentation.load_part_from_file(fn, "Main part", False)
+    part = documentation.get_part("main-part")
+    assert isinstance(part, DocPart)
+    third_chapter = part.chapters[2]
+    assert isinstance(third_chapter, DocChapter)
+    first_section = third_chapter.sections[0]
+    assert isinstance(first_section, DocSection)
+    doc_in_section = first_section.doc
+    assert isinstance(doc_in_section, DocumentationEntry)
+    assert all(
+        isinstance(
+            item,
+            (
+                DocText,
+                DocTests,
+            ),
+        )
+        for item in doc_in_section.items
+    )
+    tests = doc_in_section.get_tests()
+    assert isinstance(tests, list)
+    assert isinstance(tests[0], DocTest)
