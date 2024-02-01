@@ -157,3 +157,9 @@ def test_create_doctest():
         doctest = DocTest(1, test_case["test"], key)
         for property_key, value in test_case["properties"].items():
             assert getattr(doctest, property_key) == value
+
+
+def test_load_documentation():
+    documentation = MathicsMainDocumentation
+    documentation.load_documentation_sources()
+    assert documentation.parts

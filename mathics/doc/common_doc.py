@@ -35,7 +35,7 @@ import pkgutil
 import re
 from os import environ, getenv, listdir
 from types import ModuleType
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, Iterator, List, Optional, Tuple
 
 from mathics import settings
 from mathics.core.builtin import check_requires_list
@@ -530,20 +530,23 @@ class DocPart:
     the docstrings of Builtin objects under `mathics.builtin`.
     """
 
+    chapter_class = DocChapter
+
     def __init__(self, doc, title, is_reference=False):
         self.doc = doc
         self.title = title
-        self.slug = slugify(title)
         self.chapters = []
         self.chapters_by_slug = {}
         self.is_reference = is_reference
         self.is_appendix = False
+        self.slug = slugify(title)
         doc.parts_by_slug[self.slug] = self
+        if MATHICS_DEBUG_DOC_BUILD:
+            print("DEBUG Creating Part", title)
 
     def __str__(self) -> str:
-        return "%s\n\n%s" % (
-            self.title,
-            "\n".join(str(chapter) for chapter in sorted_chapters(self.chapters)),
+        return f"{self.title}\n\n" + "\n".join(
+            str(chapter) for chapter in sorted_chapters(self.chapters)
         )
 
 
@@ -571,6 +574,7 @@ class DocSection:
         self.subsections = []
         self.subsections_by_slug = {}
         self.summary_text = summary_text
+        self.tests = None  # tests in section when not under a guide section
         self.title = title
 
         if text.count("<dl>") != text.count("</dl>"):
@@ -584,6 +588,8 @@ class DocSection:
         self.doc = DocumentationEntry(text, title, self)
 
         chapter.sections_by_slug[self.slug] = self
+        if MATHICS_DEBUG_DOC_BUILD:
+            print("      DEBUG Creating Section", title)
 
     # Add __eq__ and __lt__ so we can sort Sections.
     def __eq__(self, other) -> bool:
@@ -593,7 +599,7 @@ class DocSection:
         return self.title < other.title
 
     def __str__(self) -> str:
-        return f"== {self.title} ==\n{self.doc}"
+        return f"== {self.title} ==\n{self.chapter}"
 
 
 class Documentation:
@@ -656,7 +662,7 @@ class Documentation:
         if not section_object.__doc__:
             return
         if is_guide:
-            section = self.doc_guide_section_fn(
+            section = self.guide_section_class(
                 chapter,
                 section_name,
                 section_object.__doc__,
@@ -665,7 +671,7 @@ class Documentation:
             )
             chapter.guide_sections.append(section)
         else:
-            section = self.doc_section_fn(
+            section = self.section_class(
                 chapter,
                 section_name,
                 section_object.__doc__,
@@ -712,7 +718,7 @@ class Documentation:
         summary_text = (
             instance.summary_text if hasattr(instance, "summary_text") else ""
         )
-        subsection = self.doc_subsection_fn(
+        subsection = self.subsection_class(
             chapter,
             section,
             subsection_name,
@@ -730,7 +736,7 @@ class Documentation:
         possibly Pymathics modules
         """
 
-        builtin_part = self.doc_part_fn(self, title, is_reference=start)
+        builtin_part = self.part_class(self, title, is_reference=start)
         modules_seen = set([])
         submodule_names_seen = set([])
 
@@ -748,8 +754,8 @@ class Documentation:
             if skip_module_doc(module, modules_seen):
                 continue
             title, text = get_module_doc(module)
-            chapter = self.doc_chapter_fn(
-                builtin_part, title, self.doc_fn(text, title, None)
+            chapter = self.chapter_class(
+                builtin_part, title, self.doc_class(text, title, None)
             )
             builtins = builtins_by_module.get(module.__name__)
             if module.__file__.endswith("__init__.py"):
@@ -874,23 +880,23 @@ class Documentation:
             part_title = file[2:]
             if part_title.endswith(".mdoc"):
                 part_title = part_title[: -len(".mdoc")]
-                part = self.doc_part_fn(self, part_title)
+                part = self.part_class(self, part_title)
                 text = open(osp.join(self.doc_dir, file), "rb").read().decode("utf8")
                 text = filter_comments(text)
                 chapters = CHAPTER_RE.findall(text)
                 for title, text in chapters:
-                    chapter = self.doc_chapter_fn(part, title)
+                    chapter = self.chapter_class(part, title)
                     text += '<section title=""></section>'
                     sections = SECTION_RE.findall(text)
                     for pre_text, title, text in sections:
                         if title:
-                            section = self.doc_section_fn(
+                            section = self.section_class(
                                 chapter, title, text, operator=None, installed=True
                             )
                             chapter.sections.append(section)
                             subsections = SUBSECTION_RE.findall(text)
                             for subsection_title in subsections:
-                                subsection = self.doc_subsection_fn(
+                                subsection = self.subsection_class(
                                     chapter,
                                     section,
                                     subsection_title,
@@ -902,7 +908,7 @@ class Documentation:
                         else:
                             section = None
                         if not chapter.doc:
-                            chapter.doc = self.doc_fn(pre_text, title, section)
+                            chapter.doc = self.doc_class(pre_text, title, section)
                         pass
 
                     part.chapters.append(chapter)
@@ -1068,7 +1074,8 @@ class DocGuideSection(DocSection):
                 "Missing opening or closing <dl> tag in "
                 "{} documentation".format(title)
             )
-        # print("YYY Adding section", title)
+        if MATHICS_DEBUG_DOC_BUILD:
+            print("    DEBUG Creating Guide Section", title)
         chapter.sections_by_slug[self.slug] = self
 
     def get_tests(self):
@@ -1116,7 +1123,6 @@ class DocSubsection:
         mathics/builtin/colors/__init__.py . In mathics/builtin/colors/named-colors.py we have
         the "section" name for the class Read (the subsection) inside it.
         """
-
         title_summary_text = re.split(" -- ", title)
         n = len(title_summary_text)
         self.title = title_summary_text[0] if n > 0 else ""
@@ -1156,6 +1162,8 @@ class DocSubsection:
                 "{} documentation".format(title)
             )
         self.section.subsections_by_slug[self.slug] = self
+        if MATHICS_DEBUG_DOC_BUILD:
+            print("          DEBUG Creating Subsection", title)
 
     def __str__(self) -> str:
         return f"=== {self.title} ===\n{self.doc}"
@@ -1174,13 +1182,13 @@ class MathicsMainDocumentation(Documentation):
     """
 
     def __init__(self, want_sorting=False):
-        self.doc_chapter_fn = DocChapter
+        self.chapter_class = DocChapter
         self.doc_dir = settings.DOC_DIR
-        self.doc_fn = DocumentationEntry
-        self.doc_guide_section_fn = DocGuideSection
-        self.doc_part_fn = DocPart
-        self.doc_section_fn = DocSection
-        self.doc_subsection_fn = DocSubsection
+        self.doc_class = DocumentationEntry
+        self.guide_section_class = DocGuideSection
+        self.part_class = DocPart
+        self.section_class = DocSection
+        self.subsection_class = DocSubsection
         self.doctest_latex_pcl_path = settings.DOCTEST_LATEX_DATA_PCL
         self.parts = []
         self.parts_by_slug = {}
@@ -1265,7 +1273,7 @@ class DocumentationEntry:
     def __str__(self) -> str:
         return "\n".join(str(item) for item in self.items)
 
-    def text(self, detail_level) -> str:
+    def text(self) -> str:
         # used for introspection
         # TODO parse XML and pretty print
         # HACK

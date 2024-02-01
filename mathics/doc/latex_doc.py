@@ -31,6 +31,7 @@ from mathics.doc.common_doc import (
     DocChapter,
     DocPart,
     DocSection,
+    DocSubsection,
     DocTest,
     DocTests,
     DocText,
@@ -273,8 +274,8 @@ def escape_latex(text):
         content = content.replace(r"\$", "$")
         if tag == "con":
             return "\\console{%s}" % content
-        else:
-            return "\\begin{lstlisting}\n%s\n\\end{lstlisting}" % content
+
+        return "\\begin{lstlisting}\n%s\n\\end{lstlisting}" % content
 
     text = CONSOLE_RE.sub(repl_console, text)
 
@@ -597,31 +598,6 @@ class LaTeXDocTest(DocTest):
         return text
 
 
-class LaTeXDocTests(DocTests):
-    def latex(self, doc_data: dict) -> str:
-        if len(self.tests) == 0:
-            return "\n"
-
-        testLatexStrings = [
-            test.latex(doc_data) for test in self.tests if not test.private
-        ]
-        testLatexStrings = [t for t in testLatexStrings if len(t) > 1]
-        if len(testLatexStrings) == 0:
-            return "\n"
-
-        return "\\begin{tests}%%\n%s%%\n\\end{tests}" % ("%\n".join(testLatexStrings))
-
-
-class LaTeXDocText(DocText):
-    """
-    Class to hold some (non-test) LaTeX text.
-    """
-
-    def latex(self, doc_data) -> str:
-        """Escape the text as LaTeX and return that string."""
-        return escape_latex(self.text)
-
-
 class LaTeXDocumentation(Documentation):
     """
     This module is used for creating a LaTeX document for the homegrown Mathics3 documentation
@@ -673,46 +649,18 @@ class LaTeXDocumentation(Documentation):
         return result
 
 
-class LaTeXDocumentationEntry(DocumentationEntry):
-    """A class to hold our internal markdown-like format data.
-    The `latex()` method can turn this into LaTeX.
-
-    Mathics core also uses this in getting usage strings (`??`).
-    """
-
-    docTest_collection_class = LaTeXDocTests
-    docTest_class = LaTeXDocTest
-    docText_class = LaTeXDocText
-
-    def __init__(self, doc_str: str, title: str, section: Optional[DocSection]):
-        super().__init__(doc_str, title, section)
-
-    def latex(self, doc_data: dict) -> str:
-        """
-        Return a LaTeX string representation for this object.
-        """
-        if len(self.items) == 0:
-            if hasattr(self, "rawdoc") and len(self.rawdoc) != 0:
-                # We have text but no tests
-                return escape_latex(self.rawdoc)
-
-        return "\n".join(
-            item.latex(doc_data) for item in self.items if not item.is_private()
-        )
-
-
 class LaTeXMathicsDocumentation(Documentation):
     def __init__(self, want_sorting=False):
-        self.doc_chapter_fn = LaTeXDocChapter
+        self.chapter_class = LaTeXDocChapter
         self.doc_dir = settings.DOC_DIR
-        self.doc_fn = LaTeXDocumentationEntry
+        self.doc_class = LaTeXDocumentationEntry
         self.doc_data_file = settings.get_doctest_latex_data_path(
             should_be_readable=True
         )
-        self.doc_guide_section_fn = LaTeXDocGuideSection
-        self.doc_part_fn = LaTeXDocPart
-        self.doc_section_fn = LaTeXDocSection
-        self.doc_subsection_fn = LaTeXDocSubsection
+        self.guide_section_class = LaTeXDocGuideSection
+        self.part_class = LaTeXDocPart
+        self.section_class = LaTeXDocSection
+        self.subsection_class = LaTeXDocSubsection
         self.doctest_latex_pcl_path = settings.DOCTEST_LATEX_DATA_PCL
         self.parts = []
         self.parts_by_slug = {}
@@ -754,31 +702,6 @@ class LaTeXMathicsDocumentation(Documentation):
         return result
 
 
-class LaTeXDocPart(DocPart):
-    def latex(
-        self, doc_data: dict, quiet=False, filter_chapters=None, filter_sections=None
-    ) -> str:
-        """Render this Part object as LaTeX string and return that.
-
-        `output` is not used here but passed along to the bottom-most
-        level in getting expected test results.
-        """
-        if self.is_reference:
-            chapter_fn = sorted_chapters
-        else:
-            chapter_fn = lambda x: x
-        result = "\n\n\\part{%s}\n\n" % escape_latex(self.title) + (
-            "\n\n".join(
-                chapter.latex(doc_data, quiet, filter_sections=filter_sections)
-                for chapter in chapter_fn(self.chapters)
-                if not filter_chapters or chapter.title in filter_chapters
-            )
-        )
-        if self.is_reference:
-            result = "\n\n\\referencestart" + result
-        return result
-
-
 class LaTeXDocChapter(DocChapter):
     def latex(self, doc_data: dict, quiet=False, filter_sections=None) -> str:
         """Render this Chapter object as LaTeX string and return that.
@@ -810,6 +733,35 @@ class LaTeXDocChapter(DocChapter):
         return "".join(chapter_sections)
 
 
+class LaTeXDocPart(DocPart):
+    def __init__(self, doc: "Documentation", title: str, is_reference: bool = False):
+        self.chapter_class = LaTeXDocChapter
+        super().__init__(doc, title, is_reference)
+
+    def latex(
+        self, doc_data: dict, quiet=False, filter_chapters=None, filter_sections=None
+    ) -> str:
+        """Render this Part object as LaTeX string and return that.
+
+        `output` is not used here but passed along to the bottom-most
+        level in getting expected test results.
+        """
+        if self.is_reference:
+            chapter_fn = sorted_chapters
+        else:
+            chapter_fn = lambda x: x
+        result = "\n\n\\part{%s}\n\n" % escape_latex(self.title) + (
+            "\n\n".join(
+                chapter.latex(doc_data, quiet, filter_sections=filter_sections)
+                for chapter in chapter_fn(self.chapters)
+                if not filter_chapters or chapter.title in filter_chapters
+            )
+        )
+        if self.is_reference:
+            result = "\n\n\\referencestart" + result
+        return result
+
+
 class LaTeXDocSection(DocSection):
     def __init__(
         self,
@@ -821,6 +773,7 @@ class LaTeXDocSection(DocSection):
         in_guide=False,
         summary_text="",
     ):
+
         self.chapter = chapter
         self.in_guide = in_guide
         self.installed = installed
@@ -883,30 +836,17 @@ class LaTeXDocGuideSection(DocSection):
     """
 
     def __init__(
-        self, chapter: str, title: str, text: str, submodule, installed: bool = True
+        self,
+        chapter: LaTeXDocChapter,
+        title: str,
+        text: str,
+        submodule,
+        installed: bool = True,
     ):
-        self.chapter = chapter
-        self.doc = LaTeXDocumentationEntry(text, title, None)
-        self.in_guide = False
-        self.installed = installed
-        self.section = submodule
-        self.slug = slugify(title)
-        self.subsections = []
-        self.subsections_by_slug = {}
+        super().__init__(chapter, title, text, submodule, installed)
+        self.doc = LaTeXDocumentationEntry(text, title, self)
+        # Is this necesary?
         self.title = title
-
-        # FIXME: Sections never are operators. Subsections can have
-        # operators though.  Fix up the view and searching code not to
-        # look for the operator field of a section.
-        self.operator = False
-
-        if text.count("<dl>") != text.count("</dl>"):
-            raise ValueError(
-                "Missing opening or closing <dl> tag in "
-                "{} documentation".format(title)
-            )
-        # print("YYY Adding section", title)
-        chapter.sections_by_slug[self.slug] = self
 
     def get_tests(self):
         # FIXME: The below is a little weird for Guide Sections.
@@ -951,7 +891,7 @@ class LaTeXDocGuideSection(DocSection):
         return "".join(guide_sections)
 
 
-class LaTeXDocSubsection:
+class LaTeXDocSubsection(DocSubsection):
     """An object for a Documented Subsection.
     A Subsection is part of a Section.
     """
@@ -980,17 +920,10 @@ class LaTeXDocSubsection:
         mathics/builtin/colors/__init__.py . In mathics/builtin/colors/named-colors.py we have
         the "section" name for the class Read (the subsection) inside it.
         """
-
+        super().__init__(
+            chapter, section, title, text, operator, installed, in_guide, summary_text
+        )
         self.doc = LaTeXDocumentationEntry(text, title, section)
-        self.chapter = chapter
-        self.in_guide = in_guide
-        self.installed = installed
-        self.operator = operator
-
-        self.section = section
-        self.slug = slugify(title)
-        self.subsections = []
-        self.title = title
 
         if in_guide:
             # Tests haven't been picked out yet from the doc string yet.
@@ -1045,3 +978,56 @@ class LaTeXDocSubsection:
             ),
         }
         return section_string
+
+
+class LaTeXDocTests(DocTests):
+    def latex(self, doc_data: dict) -> str:
+        if len(self.tests) == 0:
+            return "\n"
+
+        testLatexStrings = [
+            test.latex(doc_data) for test in self.tests if not test.private
+        ]
+        testLatexStrings = [t for t in testLatexStrings if len(t) > 1]
+        if len(testLatexStrings) == 0:
+            return "\n"
+
+        return "\\begin{tests}%%\n%s%%\n\\end{tests}" % ("%\n".join(testLatexStrings))
+
+
+class LaTeXDocText(DocText):
+    """
+    Class to hold some (non-test) LaTeX text.
+    """
+
+    def latex(self, doc_data: dict) -> str:
+        """Escape the text as LaTeX and return that string."""
+        return escape_latex(self.text)
+
+
+class LaTeXDocumentationEntry(DocumentationEntry):
+    """A class to hold our internal markdown-like format data.
+    The `latex()` method can turn this into LaTeX.
+
+    Mathics core also uses this in getting usage strings (`??`).
+    """
+
+    docTest_collection_class = LaTeXDocTests
+    docTest_class = LaTeXDocTest
+    docText_class = LaTeXDocText
+
+    def __init__(self, doc_str: str, title: str, section: Optional[DocSection]):
+        super().__init__(doc_str, title, section)
+
+    def latex(self, doc_data: dict) -> str:
+        """
+        Return a LaTeX string representation for this object.
+        """
+        if len(self.items) == 0:
+            if hasattr(self, "rawdoc") and len(self.rawdoc) != 0:
+                # We have text but no tests
+                return escape_latex(self.rawdoc)
+
+        return "\n".join(
+            item.latex(doc_data) for item in self.items if not item.is_private()
+        )
