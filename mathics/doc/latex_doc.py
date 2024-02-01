@@ -862,7 +862,6 @@ class LaTeXDocGuideSection(DocSection):
     ):
         super().__init__(chapter, title, text, submodule, installed)
         self.doc = LaTeXDocumentationEntry(text, title, self)
-        self.title = title
 
     def get_tests(self):
         # FIXME: The below is a little weird for Guide Sections.
@@ -937,7 +936,7 @@ class LaTeXDocSubsection(DocSubsection):
         the "section" name for the class Read (the subsection) inside it.
         """
         super().__init__(
-            chapter, section, text, operator, installed, in_guide, summary_text
+            chapter, section, title, text, operator, installed, in_guide, summary_text
         )
 
         self.doc = LaTeXDocumentationEntry(text, title, section)
@@ -1017,6 +1016,6 @@ class LaTeXDocText(DocText):
     Class to hold some (non-test) LaTeX text.
     """
 
-    def latex(self) -> str:
+    def latex(self, doc_data: dict) -> str:
         """Escape the text as LaTeX and return that string."""
         return escape_latex(self.text)
