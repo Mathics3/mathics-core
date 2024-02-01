@@ -671,9 +671,12 @@ class DocPart:
         self.slug = slugify(title)
         self.chapters = []
         self.chapters_by_slug = {}
+        self.chapter_class = DocChapter
         self.is_reference = is_reference
         self.is_appendix = False
         doc.parts_by_slug[self.slug] = self
+        if MATHICS_DEBUG_DOC_BUILD:
+            print("DEBUG Creating Part", title)
 
     def __str__(self) -> str:
         return "%s\n\n%s" % (
@@ -729,30 +732,6 @@ class DocSection:
 
     def __str__(self) -> str:
         return f"== {self.title} ==\n{self.doc}"
-
-
-class DocPart:
-    """
-    Class to gather Part data and its sub-parts (chapters) and format that.
-    """
-
-    def __init__(self, doc, title, is_reference=False):
-        self.doc = doc
-        self.title = title
-        self.chapters = []
-        self.chapters_by_slug = {}
-        self.chapter_class = DocChapter
-        self.is_reference = is_reference
-        self.is_appendix = False
-        self.slug = slugify(title)
-        doc.parts_by_slug[self.slug] = self
-        if MATHICS_DEBUG_DOC_BUILD:
-            print("DEBUG Creating Part", title)
-
-    def __str__(self) -> str:
-        return f"{self.title}\n\n" + "\n".join(
-            str(chapter) for chapter in sorted_chapters(self.chapters)
-        )
 
 
 class DocTests:
@@ -973,19 +952,19 @@ class Documentation:
     """
 
     def __init__(self):
-        self.doc_class = DocumentationEntry
-        self.doc_dir = settings.DOC_DIR
         self.chapter_class = DocChapter
         self.chapters: List[DocChapter] = []
+        self.doc_class = DocumentationEntry
+        self.doc_dir = settings.DOC_DIR
         self.guide_section_class = DocGuideSection
-        self.section_class = DocSection
-        self.subsection_class = DocSubsection
         self.guide_sections: List[DocGuideSection] = []
         self.part_class = DocPart
         self.parts: list[DocPart] = []
         self.parts_by_slug = {}
+        self.section_class = DocSection
         self.sections = []
         self.sections_by_slug = {}
+        self.subsection_class = DocSubsection
         self.title = "Overview"
 
     def __str__(self) -> str:
