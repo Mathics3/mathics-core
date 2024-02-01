@@ -116,7 +116,7 @@ def check_evaluation(
         assert (
             expected_len == got_len
         ), f"expected {expected_len}; got {got_len}. Messages: {outs}"
-        for (out, msg) in zip(outs, msgs):
+        for out, msg in zip(outs, msgs):
             if out != msg:
                 print(f"out:<<{out}>>")
                 print(" and ")

@@ -209,7 +209,6 @@ class JaccardDissimilarity(_BooleanDissimilarity):
     summary_text = "Jaccard dissimilarity"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
-
         return Expression(
             SymbolDivide, Integer(c_tf + c_ft), Integer(c_tt + c_ft + c_tf)
         )

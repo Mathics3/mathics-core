@@ -253,7 +253,6 @@ class _EqualityOperator(_InequalityOperator):
 
 
 class _MinMax(Builtin):
-
     attributes = (
         A_FLAT | A_NUMERIC_FUNCTION | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
     )

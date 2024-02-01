@@ -92,7 +92,6 @@ def extract_exif(image, evaluation: Evaluation) -> Optional[Expression]:
     Return None if there is no Exif information.
     """
     if hasattr(image, "getexif"):
-
         # PIL seems to have a bug in getting v2_tags,
         # specifically tag offsets because
         # it expects image.fp to exist and for us it

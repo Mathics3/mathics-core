@@ -1240,7 +1240,6 @@ class GraphicsElements(_GraphicsElements):
     def set_size(
         self, xmin, ymin, extent_width, extent_height, pixel_width, pixel_height
     ):
-
         self.xmin, self.ymin = xmin, ymin
         self.extent_width, self.extent_height = extent_width, extent_height
         self.pixel_width, self.pixel_height = pixel_width, pixel_height

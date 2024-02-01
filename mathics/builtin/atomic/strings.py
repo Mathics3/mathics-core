@@ -575,7 +575,6 @@ class RemoveDiacritics(Builtin):
 
 
 class _StringFind(Builtin):
-
     options = {
         "IgnoreCase": "False",
         "MetaCharacters": "None",
@@ -929,7 +928,6 @@ class ToExpression(Builtin):
         # Apply the different forms
         if form is SymbolInputForm:
             if isinstance(inp, String):
-
                 # TODO: turn the below up into a function and call that.
                 s = inp.value
                 short_s = s[:15] + "..." if len(s) > 16 else s

@@ -32,7 +32,6 @@ def reset_and_load_package():
 
 
 def test_permutations_1_1():
-
     for str_expr, str_expected, message in (
         (
             "Permute[{a, b, c, d}, Range[4]]",
@@ -126,7 +125,6 @@ def test_permutations_1_1():
 
 
 def test_permutations_groups_1_2():
-
     for str_expr, str_expected, message in (
         (
             "MultiplicationTable[Permutations[Range[3]], Permute ]",
@@ -298,7 +296,6 @@ def test_permutations_groups_1_2():
 
 
 def test_inversions_and_inversion_vectors_1_3():
-
     for str_expr, str_expected, message in (
         (
             "p = {5,9,1,8,2,6,4,7,3}; ToInversionVector[p]",
@@ -360,7 +357,6 @@ def test_inversions_and_inversion_vectors_1_3():
 
 
 def test_special_classes_of_permutations_1_4():
-
     # We include this earlier since the above in fact rely on KSubsets
     for str_expr, str_expected, message in (
         (
@@ -414,7 +410,6 @@ def test_special_classes_of_permutations_1_4():
 
 
 def test_combinations_1_5():
-
     # We include this earlier since the above in fact rely on KSubsets
     for str_expr, str_expected, message in (
         (
@@ -492,7 +487,6 @@ def test_combinations_1_5():
 
 
 def test_2_1_to_2_3():
-
     for str_expr, str_expected, message in (
         (
             # 2.1.1 uses Partitions which is broken
@@ -533,7 +527,6 @@ def test_2_1_to_2_3():
 
 
 def test_combinatorica_rest():
-
     for str_expr, str_expected, message in (
         (
             "Permute[{A, B, C, D}, Permutations[Range[3]]]",

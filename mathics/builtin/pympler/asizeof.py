@@ -3068,7 +3068,6 @@ def refs(obj, **opts):
 
 
 if __name__ == "__main__":
-
     if "-v" in sys.argv:
         import platform
 

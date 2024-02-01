@@ -103,7 +103,6 @@ def convert_repeating_decimal(numerator, denominator, base):
 
 
 def convert_float_base(x, base, precision=10):
-
     length_of_int = 0 if x == 0 else int(mpmath.log(x, base))
     # iexps = list(range(length_of_int, -1, -1))
 
