@@ -2222,7 +2222,6 @@ class Solve(Builtin):
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
                 or A_CONSTANT & var.get_attributes(evaluation.definitions)
             ):
-
                 evaluation.message("Solve", "ivar", vars_original)
                 return
         if eqs.get_head_name() in ("System`List", "System`And"):

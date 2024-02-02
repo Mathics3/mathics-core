@@ -1066,7 +1066,6 @@ class Denominator(Builtin):
 
 
 class _Expand(Builtin):
-
     options = {
         "Trig": "False",
         "Modulus": "0",

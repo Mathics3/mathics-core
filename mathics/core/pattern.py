@@ -200,7 +200,6 @@ class Pattern:
         vars: Optional[dict] = None,
         fully: bool = True,
     ) -> bool:
-
         """
         returns True if `expression` matches self.
         """
@@ -709,7 +708,6 @@ class ExpressionPattern(Pattern):
         fully: bool = True,
         depth: int = 1,
     ):
-
         if rest_expression is None:
             rest_expression = ([], [])
 
