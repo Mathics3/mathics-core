@@ -503,6 +503,55 @@ class DocChapter:
     def all_sections(self):
         return sorted(self.sections + self.guide_sections)
 
+    def get_tests(self) -> Iterator[Tests]:
+        print("   Get tests from Chapter", self.title)
+        tests_list = self.doc.get_tests()
+        if tests_list:
+            yield Tests(self.part.title, self.title, "", tests_list)
+        for section in self.all_sections:
+            print("     Get tests from Section", section.title)
+            if not section.installed:
+                continue
+            if isinstance(section, DocGuideSection):
+                print("      (GuideSection)")
+                for docsection in section.subsections:
+                    print("         ~ looking into section", docsection.title)
+                    for docsubsection in docsection.subsections:
+                        # FIXME: Something is weird here where tests for subsection items
+                        # appear not as a collection but individually and need to be
+                        # iterated below. Probably some other code is faulty and
+                        # when fixed the below loop and collection into doctest_list[]
+                        # will be removed.
+                        if not docsubsection.installed:
+                            continue
+
+                        print(
+                            "         ~~ Get tests from subsection", docsubsection.title
+                        )
+                        doctest_list = []
+                        index = 1
+                        for doctests in docsubsection.items:
+                            doctest_list += list(doctests.get_tests())
+                            for test in doctest_list:
+                                test.index = index
+                                index += 1
+                        print(
+                            "          * ",
+                            "\n          * ".join([str(t) for t in doctest_list]),
+                        )
+                        if doctest_list:
+                            yield Tests(
+                                section.chapter.part.title,
+                                section.chapter.title,
+                                docsubsection.title,
+                                doctest_list,
+                            )
+            else:
+                tests = section.doc.get_tests()
+                print("        *", "\n        * ".join([str(t) for t in tests]))
+                if tests:
+                    yield Tests(self.part.title, self.title, section.title, tests)
+
 
 def sorted_chapters(chapters: List[DocChapter]) -> List[DocChapter]:
     """Return chapters sorted by title"""
@@ -534,6 +583,18 @@ class DocPart:
         return f"    Part    {self.title}\n\n" + "\n\n".join(
             str(chapter) for chapter in sorted_chapters(self.chapters)
         )
+
+    def get_tests(self, want_sorting=False) -> Iterator[Tests]:
+        if want_sorting:
+            chapter_collection_fn = lambda x: sorted_chapters(x)
+        else:
+            chapter_collection_fn = lambda x: x
+
+        for chapter in chapter_collection_fn(self.chapters):
+            for tests in chapter.get_tests():
+                assert isinstance(tests, Tests)
+                yield tests
+        return
 
 
 class DocSection:
@@ -694,56 +755,11 @@ class Documentation:
 
         return None
 
-    def get_tests(self, want_sorting=False):
+    def get_tests(self, want_sorting=False) -> Iterator[Tests]:
         for part in self.parts:
-            if want_sorting:
-                chapter_collection_fn = lambda x: sorted_chapters(x)
-            else:
-                chapter_collection_fn = lambda x: x
-            for chapter in chapter_collection_fn(part.chapters):
-                tests = chapter.doc.get_tests()
-                if tests:
-                    yield Tests(part.title, chapter.title, "", tests)
-                for section in chapter.all_sections:
-                    if section.installed:
-                        if isinstance(section, DocGuideSection):
-                            for docsection in section.subsections:
-                                for docsubsection in docsection.subsections:
-                                    # FIXME: Something is weird here where tests for subsection items
-                                    # appear not as a collection but individually and need to be
-                                    # iterated below. Probably some other code is faulty and
-                                    # when fixed the below loop and collection into doctest_list[]
-                                    # will be removed.
-                                    if not docsubsection.installed:
-                                        continue
-                                    doctest_list = []
-                                    index = 1
-                                    for doctests in docsubsection.items:
-                                        doctest_list += list(doctests.get_tests())
-                                        for test in doctest_list:
-                                            test.index = index
-                                            index += 1
-
-                                    if doctest_list:
-                                        yield Tests(
-                                            section.chapter.part.title,
-                                            section.chapter.title,
-                                            docsubsection.title,
-                                            doctest_list,
-                                        )
-                        else:
-                            tests = section.doc.get_tests()
-                            if tests:
-                                yield Tests(
-                                    part.title, chapter.title, section.title, tests
-                                )
-                                pass
-                            pass
-                        pass
-                    pass
-                pass
-            pass
-        return
+            for tests in part.get_tests(want_sorting):
+                assert isinstance(tests, Tests)
+                yield tests
 
     def load_part_from_file(self, filename, title, is_appendix=False):
         """Load a markdown file as a part of the documentation"""
@@ -1052,6 +1068,8 @@ class MathicsMainDocumentation(Documentation):
         """
 
         builtin_part = self.part_class(self, title, is_reference=start)
+
+        # modules_seen and submodules_names_seen are used
         modules_seen = set([])
         submodule_names_seen = set([])
 
@@ -1117,6 +1135,7 @@ class MathicsMainDocumentation(Documentation):
                     assert module not in modules_seen
 
                     if skip_module_doc(submodule, modules_seen):
+                        print("skip", submodule.__name__)
                         continue
                     elif IS_PYPY and submodule.__name__ == "builtins":
                         # PyPy seems to add this module on its own,
@@ -1125,6 +1144,7 @@ class MathicsMainDocumentation(Documentation):
 
                     submodule_name = get_doc_name_from_module(submodule)
                     assert submodule_name not in submodule_names_seen
+                    print("           adding section", submodule_name)
                     section = self.add_section(
                         chapter,
                         submodule_name,
@@ -1277,6 +1297,8 @@ class MathicsMainDocumentation(Documentation):
         for tests in self.get_tests():
             for test in tests.tests:
                 test.key = (tests.part, tests.chapter, tests.section, test.index)
+
+        print(self)
 
         return
 
