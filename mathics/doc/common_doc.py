@@ -305,13 +305,21 @@ def skip_doc(cls) -> bool:
 
 
 def skip_module_doc(module, modules_seen) -> bool:
-    return (
+    skip = (
         module.__doc__ is None
         or module in modules_seen
         or module.__name__.split(".")[0] not in ("mathics", "pymathics")
         or hasattr(module, "no_doc")
         and module.no_doc
     )
+    # Uncomment to debug
+    # if skip:
+    #    print("skip", module.__name__, "because", {"doc not available":module.__doc__ is None,
+    #           "seen": module in modules_seen,
+    #           "outside": module.__name__.split(".")[0] not in ("mathics", "pymathics"),
+    #           "no_doc attribute": hasattr(module, "no_doc") and module.no_doc
+    #           })
+    return skip
 
 
 def parse_docstring_to_DocumentationEntry_items(
@@ -493,9 +501,10 @@ class DocChapter:
         sections_descr = ""
         for section in self.all_sections:
             sec_class = "@>" if isinstance(section, DocGuideSection) else "@ "
-            sections_descr += f"     {sec_class} " + section.title + "\n"
-            for subsection in section.subsections:
-                sections_descr += "         * " + subsection.title + "\n"
+            sections_descr += sec_class + str(section)[3:] + "\n"
+            # sections_descr += f"     {sec_class} " + section.title + "\n"
+            # for subsection in section.subsections:
+            #    sections_descr += "         * " + subsection.title + "\n"
 
         return f"   = {self.part.title}: {self.title} =\n\n{sections_descr}"
 
@@ -504,18 +513,14 @@ class DocChapter:
         return sorted(self.sections + self.guide_sections)
 
     def get_tests(self) -> Iterator[Tests]:
-        print("   Get tests from Chapter", self.title)
         tests_list = self.doc.get_tests()
         if tests_list:
             yield Tests(self.part.title, self.title, "", tests_list)
         for section in self.all_sections:
-            print("     Get tests from Section", section.title)
             if not section.installed:
                 continue
             if isinstance(section, DocGuideSection):
-                print("      (GuideSection)")
                 for docsection in section.subsections:
-                    print("         ~ looking into section", docsection.title)
                     for docsubsection in docsection.subsections:
                         # FIXME: Something is weird here where tests for subsection items
                         # appear not as a collection but individually and need to be
@@ -525,9 +530,6 @@ class DocChapter:
                         if not docsubsection.installed:
                             continue
 
-                        print(
-                            "         ~~ Get tests from subsection", docsubsection.title
-                        )
                         doctest_list = []
                         index = 1
                         for doctests in docsubsection.items:
@@ -535,10 +537,7 @@ class DocChapter:
                             for test in doctest_list:
                                 test.index = index
                                 index += 1
-                        print(
-                            "          * ",
-                            "\n          * ".join([str(t) for t in doctest_list]),
-                        )
+
                         if doctest_list:
                             yield Tests(
                                 section.chapter.part.title,
@@ -548,7 +547,6 @@ class DocChapter:
                             )
             else:
                 tests = section.doc.get_tests()
-                print("        *", "\n        * ".join([str(t) for t in tests]))
                 if tests:
                     yield Tests(self.part.title, self.title, section.title, tests)
 
@@ -850,6 +848,14 @@ class DocGuideSection(DocSection):
                 for doctests in subsection.items:
                     yield doctests.get_tests()
 
+    def __str__(self) -> str:
+        title = f"Guide {self.title}"
+        parts = [title, len(title) * "~", "", str(self.doc)]
+        for section in self.subsections:
+            parts.extend([str(section), ""])
+
+        return "\n".join(parts)
+
 
 class DocSubsection:
     """An object for a Documented Subsection.
@@ -1098,14 +1104,13 @@ class MathicsMainDocumentation(Documentation):
         else:
             module_collection_fn = lambda x: x
 
-        modules = filter_toplevel_modules(modules)
+        # modules = filter_toplevel_modules(modules)
         for module in module_collection_fn(modules):
-            assert module not in modules_seen
+            ##> assert module not in modules_seen
 
             if skip_module_doc(module, modules_seen):
                 continue
             title, text = get_module_doc(module)
-            print(" processing Chapter", title)
             chapter = self.chapter_class(
                 builtin_part, title, self.doc_class(text, title, None)
             )
@@ -1113,7 +1118,6 @@ class MathicsMainDocumentation(Documentation):
             if module.__file__.endswith("__init__.py"):
                 # We have a Guide Section.
                 name = get_doc_name_from_module(module)
-                print("     processing guidesection ", name)
                 guide_section = self.add_section(
                     chapter, name, module, operator=None, is_guide=True
                 )
@@ -1122,7 +1126,6 @@ class MathicsMainDocumentation(Documentation):
                     for value in module.__dict__.values()
                     if isinstance(value, ModuleType)
                 ]
-                print("      with submodules", [s.__name__ for s in submodules])
                 sorted_submodule = lambda x: sorted(
                     submodules,
                     key=lambda submodule: submodule.sort_order
@@ -1132,10 +1135,9 @@ class MathicsMainDocumentation(Documentation):
 
                 # Add sections in the guide section...
                 for submodule in sorted_submodule(submodules):
-                    assert module not in modules_seen
+                    ##> assert module not in modules_seen
 
                     if skip_module_doc(submodule, modules_seen):
-                        print("skip", submodule.__name__)
                         continue
                     elif IS_PYPY and submodule.__name__ == "builtins":
                         # PyPy seems to add this module on its own,
@@ -1144,7 +1146,6 @@ class MathicsMainDocumentation(Documentation):
 
                     submodule_name = get_doc_name_from_module(submodule)
                     assert submodule_name not in submodule_names_seen
-                    print("           adding section", submodule_name)
                     section = self.add_section(
                         chapter,
                         submodule_name,
@@ -1297,9 +1298,7 @@ class MathicsMainDocumentation(Documentation):
         for tests in self.get_tests():
             for test in tests.tests:
                 test.key = (tests.part, tests.chapter, tests.section, test.index)
-
-        print(self)
-
+        # exit()
         return
 
 
@@ -1382,7 +1381,13 @@ class DocumentationEntry:
             self.docText_class = DocText
 
     def __str__(self) -> str:
-        return "\n\n".join(str(item) for item in self.items)
+        def process(it):
+            if isinstance(it, DocText):
+                return str(it)
+            # DocTests
+            return "\n".join(f"  >> {test}" for test in it.tests)
+
+        return "\n\n".join(process(item) for item in self.items)
 
     def text(self) -> str:
         # used for introspection

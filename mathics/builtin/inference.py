@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+Inference Functions
+"""
 
+no_doc = "no doc"
 
 from mathics.core.expression import Expression
 from mathics.core.parser import parse_builtin_rule
