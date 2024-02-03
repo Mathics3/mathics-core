@@ -1055,6 +1055,20 @@ class MathicsMainDocumentation(Documentation):
         modules_seen = set([])
         submodule_names_seen = set([])
 
+        def filter_toplevel_modules(module_list):
+            """
+            Keep just the modules at the top level
+            """
+            if len(module_list) == 0:
+                return module_list
+
+            modules_and_levels = sorted(
+                ((module.__name__.count("."), module) for module in module_list),
+                key=lambda x: x[0],
+            )
+            top_level = modules_and_levels[0][0]
+            return (entry[1] for entry in modules_and_levels if entry[0] == top_level)
+
         want_sorting = True
         if want_sorting:
             module_collection_fn = lambda x: sorted(
@@ -1065,10 +1079,15 @@ class MathicsMainDocumentation(Documentation):
             )
         else:
             module_collection_fn = lambda x: x
+
+        modules = filter_toplevel_modules(modules)
         for module in module_collection_fn(modules):
+            assert module not in modules_seen
+
             if skip_module_doc(module, modules_seen):
                 continue
             title, text = get_module_doc(module)
+            print(" processing Chapter", title)
             chapter = self.chapter_class(
                 builtin_part, title, self.doc_class(text, title, None)
             )
@@ -1076,6 +1095,7 @@ class MathicsMainDocumentation(Documentation):
             if module.__file__.endswith("__init__.py"):
                 # We have a Guide Section.
                 name = get_doc_name_from_module(module)
+                print("     processing guidesection ", name)
                 guide_section = self.add_section(
                     chapter, name, module, operator=None, is_guide=True
                 )
@@ -1084,7 +1104,7 @@ class MathicsMainDocumentation(Documentation):
                     for value in module.__dict__.values()
                     if isinstance(value, ModuleType)
                 ]
-
+                print("      with submodules", [s.__name__ for s in submodules])
                 sorted_submodule = lambda x: sorted(
                     submodules,
                     key=lambda submodule: submodule.sort_order
@@ -1094,6 +1114,8 @@ class MathicsMainDocumentation(Documentation):
 
                 # Add sections in the guide section...
                 for submodule in sorted_submodule(submodules):
+                    assert module not in modules_seen
+
                     if skip_module_doc(submodule, modules_seen):
                         continue
                     elif IS_PYPY and submodule.__name__ == "builtins":
@@ -1102,8 +1124,7 @@ class MathicsMainDocumentation(Documentation):
                         continue
 
                     submodule_name = get_doc_name_from_module(submodule)
-                    if submodule_name in submodule_names_seen:
-                        continue
+                    assert submodule_name not in submodule_names_seen
                     section = self.add_section(
                         chapter,
                         submodule_name,
@@ -1123,8 +1144,12 @@ class MathicsMainDocumentation(Documentation):
                             continue
 
                         name = instance.get_name(short=True)
-                        if name in submodule_names_seen:
-                            continue
+                        # assert name not in submodule_names_seen, f"{name} already seen"
+                        # It is possible that Symbols with the same name (but different context)
+                        # appears in different submodules. For example,
+                        # HTML`PlaintextImport appears in fileformats/htmlformat.py, and
+                        # XML`PlaintextImport appears in fileformats/xmlformat.py. Both must be
+                        # in principle loaded.
 
                         submodule_names_seen.add(name)
                         modules_seen.add(instance)
@@ -1252,6 +1277,7 @@ class MathicsMainDocumentation(Documentation):
         for tests in self.get_tests():
             for test in tests.tests:
                 test.key = (tests.part, tests.chapter, tests.section, test.index)
+
         return
 
 
