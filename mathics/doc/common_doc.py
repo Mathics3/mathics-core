@@ -1104,7 +1104,7 @@ class MathicsMainDocumentation(Documentation):
         else:
             module_collection_fn = lambda x: x
 
-        # modules = filter_toplevel_modules(modules)
+        modules = filter_toplevel_modules(modules)
         for module in module_collection_fn(modules):
             ##> assert module not in modules_seen
 
