@@ -304,10 +304,10 @@ def skip_doc(cls) -> bool:
     return cls.__name__.endswith("Box") or (hasattr(cls, "no_doc") and cls.no_doc)
 
 
-def skip_module_doc(module, modules_seen) -> bool:
+def skip_module_doc(module, must_be_skipped) -> bool:
     return (
         module.__doc__ is None
-        or module in modules_seen
+        or module in must_be_skipped
         or module.__name__.split(".")[0] not in ("mathics", "pymathics")
         or hasattr(module, "no_doc")
         and module.no_doc
@@ -1127,6 +1127,10 @@ class MathicsMainDocumentation(Documentation):
                         continue
 
                     submodule_name = get_doc_name_from_module(submodule)
+                    # This has the side effect that Symbols with the same
+                    # short name but in different contexts be skipped.
+                    # This happens with ``PlaintextImport`` that appears in
+                    # the HTML and XML contexts.
                     if submodule_name in submodule_names_seen:
                         continue
                     section = self.add_section(
