@@ -1065,6 +1065,31 @@ class MathicsMainDocumentation(Documentation):
             )
         else:
             module_collection_fn = lambda x: x
+
+        def filter_toplevel_modules(module_list):
+            """
+            Keep just the modules at the top level
+            """
+            if len(module_list) == 0:
+                return module_list
+
+            modules_and_levels = sorted(
+                ((module.__name__.count("."), module) for module in module_list),
+                key=lambda x: x[0],
+            )
+            top_level = modules_and_levels[0][0]
+            return (entry[1] for entry in modules_and_levels if entry[0] == top_level)
+
+        #  This ensures that the chapters are built
+        #  from the top-level modules. Without this,
+        #  if this happens is just by chance, or by
+        #  an obscure combination between the sorting
+        #  of the modules and the way in which visited
+        #  modules are skipped.
+        #
+        #  However, if I activate this, some tests are lost.
+        #
+        # modules = filter_toplevel_modules(modules)
         for module in module_collection_fn(modules):
             if skip_module_doc(module, modules_seen):
                 continue
