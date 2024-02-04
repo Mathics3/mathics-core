@@ -1053,7 +1053,6 @@ class MathicsMainDocumentation(Documentation):
 
         builtin_part = self.part_class(self, title, is_reference=start)
         modules_seen = set([])
-        submodule_names_seen = set([])
 
         want_sorting = True
         if want_sorting:
@@ -1065,6 +1064,28 @@ class MathicsMainDocumentation(Documentation):
             )
         else:
             module_collection_fn = lambda x: x
+
+        def filter_toplevel_modules(module_list):
+            """
+            Keep just the modules at the top level
+            """
+            if len(module_list) == 0:
+                return module_list
+
+            modules_and_levels = sorted(
+                ((module.__name__.count("."), module) for module in module_list),
+                key=lambda x: x[0],
+            )
+            top_level = modules_and_levels[0][0]
+            return (entry[1] for entry in modules_and_levels if entry[0] == top_level)
+
+        # The loop to load chapters must be run over the top-level modules. Otherwise,
+        # modules like ``mathics.builtin.functional.apply_fns_to_lists`` are loaded
+        # as chapters and sections of a GuideSection, producing duplicated tests.
+        #
+        # Also, this provides a more deterministic way to walk the module hierarchy,
+        # which can be decomposed in the way proposed in #984.
+        modules = filter_toplevel_modules(modules)
         for module in module_collection_fn(modules):
             if skip_module_doc(module, modules_seen):
                 continue
@@ -1075,6 +1096,10 @@ class MathicsMainDocumentation(Documentation):
             builtins = builtins_by_module.get(module.__name__)
             if module.__file__.endswith("__init__.py"):
                 # We have a Guide Section.
+
+                # This is used to check if a symbol is not duplicated inside
+                # a guide.
+                submodule_names_seen = set([])
                 name = get_doc_name_from_module(module)
                 guide_section = self.add_section(
                     chapter, name, module, operator=None, is_guide=True
