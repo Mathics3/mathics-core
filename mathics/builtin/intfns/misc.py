@@ -1,10 +1,3 @@
-# -*- coding: utf-8 -*-
-
-"""
-Miscelanea of Integer Functions 
-"""
-
-
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
 from mathics.core.builtin import MPMathFunction
 
@@ -26,13 +19,8 @@ class BernoulliB(MPMathFunction):
 
     First five Bernoulli numbers:
 
-    ## This test is desactivated because it fails in the CI:
-    ## >> Table[BernoulliB[k], {k, 0, 5}]
-    ## = {1, -1 / 2, 1 / 6, 0, -1 / 30, 0}
-
-    ## For some reason, in the CI the previous test produces
-    ## the output:
-    ## {1, 1 / 2, 1 / 6, 0, -1 / 30, 0}
+    >> Table[BernoulliB[k], {k, 0, 5}]
+     = {1, -1 / 2, 1 / 6, 0, -1 / 30, 0}
 
     First five Bernoulli polynomials:
 
