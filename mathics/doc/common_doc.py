@@ -1052,8 +1052,13 @@ class MathicsMainDocumentation(Documentation):
         """
 
         builtin_part = self.part_class(self, title, is_reference=start)
+
+        # This is used to ensure that we pass just once over each module.
+        # The algorithm we use to walk all the modules without repetitions
+        # relies on this, which in my opinion is hard to test and susceptible
+        # to errors. I guess we include it as a temporal fixing to handle
+        # packages inside ``mathics.builtin``.
         modules_seen = set([])
-        submodule_names_seen = set([])
 
         want_sorting = True
         if want_sorting:
@@ -1100,6 +1105,10 @@ class MathicsMainDocumentation(Documentation):
             builtins = builtins_by_module.get(module.__name__)
             if module.__file__.endswith("__init__.py"):
                 # We have a Guide Section.
+
+                # This is used to check if a symbol is not duplicated inside
+                # a guide.
+                submodule_names_seen = set([])
                 name = get_doc_name_from_module(module)
                 guide_section = self.add_section(
                     chapter, name, module, operator=None, is_guide=True
