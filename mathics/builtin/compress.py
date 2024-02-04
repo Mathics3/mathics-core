@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-
+"""
+Compress functions
+"""
 
 import base64
 import zlib
