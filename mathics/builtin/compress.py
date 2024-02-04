@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Compress functions
+Compress Functions
 """
 
 import base64
