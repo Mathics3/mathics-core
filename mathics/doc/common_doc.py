@@ -1071,9 +1071,12 @@ class MathicsMainDocumentation(Documentation):
         else:
             module_collection_fn = lambda x: x
 
+        # For some weird reason, it seems that this produces an
+        # overflow error in test.builitin.directories.
+        '''
         def filter_toplevel_modules(module_list):
             """
-            Keep just the modules at the top level
+            Keep just the modules at the top level.
             """
             if len(module_list) == 0:
                 return module_list
@@ -1084,7 +1087,7 @@ class MathicsMainDocumentation(Documentation):
             )
             top_level = modules_and_levels[0][0]
             return (entry[1] for entry in modules_and_levels if entry[0] == top_level)
-
+        '''
         #  This ensures that the chapters are built
         #  from the top-level modules. Without this,
         #  if this happens is just by chance, or by
