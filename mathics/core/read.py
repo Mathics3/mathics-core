@@ -316,3 +316,8 @@ def read_from_stream(stream, word_separators, msgfn, accepted=None):
                 break
 
             word += tmp
+
+
+def set_inputfile(filename):
+    global INPUTFILE_VAR
+    INPUTFILE_VAR = filename
