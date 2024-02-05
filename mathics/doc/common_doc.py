@@ -304,10 +304,10 @@ def skip_doc(cls) -> bool:
     return cls.__name__.endswith("Box") or (hasattr(cls, "no_doc") and cls.no_doc)
 
 
-def skip_module_doc(module, modules_seen) -> bool:
+def skip_module_doc(module, must_be_skipped) -> bool:
     return (
         module.__doc__ is None
-        or module in modules_seen
+        or module in must_be_skipped
         or module.__name__.split(".")[0] not in ("mathics", "pymathics")
         or hasattr(module, "no_doc")
         and module.no_doc
@@ -1135,6 +1135,12 @@ class MathicsMainDocumentation(Documentation):
         """
 
         builtin_part = self.part_class(self, title, is_reference=start)
+
+        # This is used to ensure that we pass just once over each module.
+        # The algorithm we use to walk all the modules without repetitions
+        # relies on this, which in my opinion is hard to test and susceptible
+        # to errors. I guess we include it as a temporal fixing to handle
+        # packages inside ``mathics.builtin``.
         modules_seen = set([])
 
         want_sorting = True
@@ -1154,7 +1160,7 @@ class MathicsMainDocumentation(Documentation):
             """
             if len(module_list) == 0:
                 return module_list
-
+              
             modules_and_levels = sorted(
                 ((module.__name__.count("."), module) for module in module_list),
                 key=lambda x: x[0],
@@ -1168,6 +1174,7 @@ class MathicsMainDocumentation(Documentation):
         #
         # Also, this provides a more deterministic way to walk the module hierarchy,
         # which can be decomposed in the way proposed in #984.
+        
         modules = filter_toplevel_modules(modules)
         for module in module_collection_fn(modules):
             if skip_module_doc(module, modules_seen):
