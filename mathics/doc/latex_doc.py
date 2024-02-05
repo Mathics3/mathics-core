@@ -722,9 +722,9 @@ class LaTeXDocChapter(DocChapter):
 
 
 class LaTeXDocPart(DocPart):
-    def __init__(self, doc: "Documentation", title: str, is_reference: bool = False):
-        self.chapter_class = LaTeXDocChapter
+    def __init__(self, doc, title: str, is_reference=False):
         super().__init__(doc, title, is_reference)
+        self.chapter_class = LaTeXDocChapter
 
     def latex(
         self, doc_data: dict, quiet=False, filter_chapters=None, filter_sections=None
@@ -734,14 +734,10 @@ class LaTeXDocPart(DocPart):
         `output` is not used here but passed along to the bottom-most
         level in getting expected test results.
         """
-        if self.is_reference:
-            chapter_fn = sorted_chapters
-        else:
-            chapter_fn = lambda x: x
         result = "\n\n\\part{%s}\n\n" % escape_latex(self.title) + (
             "\n\n".join(
                 chapter.latex(doc_data, quiet, filter_sections=filter_sections)
-                for chapter in chapter_fn(self.chapters)
+                for chapter in sorted_chapters(self.chapters)
                 if not filter_chapters or chapter.title in filter_chapters
             )
         )
@@ -908,6 +904,7 @@ class LaTeXDocSubsection(DocSubsection):
         super().__init__(
             chapter, section, title, text, operator, installed, in_guide, summary_text
         )
+
         self.doc = LaTeXDocumentationEntry(text, title, section)
 
         if in_guide:

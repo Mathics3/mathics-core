@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# FIXME: combine with same thing in Mathics core
+# FIXME: combine with same thing in Django
 """
 Does 2 things which can either be done independently or
 as a pipeline:
@@ -17,24 +17,22 @@ import re
 import sys
 from argparse import ArgumentParser
 from datetime import datetime
-from typing import Dict, Optional
+from typing import Dict, Optional, Set, Tuple
 
 import mathics
-import mathics.settings
 from mathics import settings, version_string
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
-from mathics.core.load_builtin import (
-    builtins_by_module,
-    builtins_dict,
-    import_and_load_builtins,
-)
+from mathics.core.load_builtin import _builtins, import_and_load_builtins
 from mathics.core.parser import MathicsSingleLineFeeder
-from mathics.doc.common_doc import MathicsMainDocumentation
+from mathics.doc.common_doc import (
+    DocGuideSection,
+    DocTests,
+    MathicsMainDocumentation,
+    Tests,
+)
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 from mathics.timing import show_lru_cache_statistics
-
-builtins = builtins_dict(builtins_by_module)
 
 
 class TestOutput(Output):
@@ -42,29 +40,25 @@ class TestOutput(Output):
         return None
 
 
-sep = "-" * 70 + "\n"
-
 # Global variables
-definitions = None
-documentation = None
-check_partial_elapsed_time = False
-logfile = None
+
+
+# FIXME: After 3.8 is the minimum Python we can turn "str" into a Literal
+SEP: str = "-" * 70 + "\n"
+STARS: str = "*" * 10
+
+DEFINITIONS = None
+DOCUMENTATION = None
+CHECK_PARTIAL_ELAPSED_TIME = False
+LOGFILE = None
 
 
 MAX_TESTS = 100000  # Number than the total number of tests
 
 
-def print_and_log(*args):
-    a = [a.decode("utf-8") if isinstance(a, bytes) else a for a in args]
-    string = "".join(a)
-    print(string)
-    if logfile:
-        logfile.write(string)
-
-
-def compare(result: Optional[str], wanted: Optional[str]) -> bool:
+def doctest_compare(result: Optional[str], wanted: Optional[str]) -> bool:
     """
-    Performs test comparision betewen ``result`` and ``wanted`` and returns
+    Performs a doctest comparison between ``result`` and ``wanted`` and returns
     True if the test should be considered a success.
     """
     if wanted in ("...", result):
@@ -80,28 +74,50 @@ def compare(result: Optional[str], wanted: Optional[str]) -> bool:
     if len(result) != len(wanted):
         return False
 
-    for r, w in zip(result, wanted):
-        wanted_re = re.escape(w.strip())
+    for res, want in zip(result, wanted):
+        wanted_re = re.escape(want.strip())
         wanted_re = wanted_re.replace("\\.\\.\\.", ".*?")
         wanted_re = f"^{wanted_re}$"
-        if not re.match(wanted_re, r.strip()):
+        if not re.match(wanted_re, res.strip()):
             return False
     return True
 
 
-stars = "*" * 10
+def print_and_log(*args):
+    """
+    Print a message and also log it to global LOGFILE.
+    """
+    msg_lines = [a.decode("utf-8") if isinstance(a, bytes) else a for a in args]
+    string = "".join(msg_lines)
+    print(string)
+    if LOGFILE is not None:
+        LOGFILE.write(string)
 
 
 def test_case(
-    test, tests, index=0, subindex=0, quiet=False, section=None, format="text"
+    test: str,
+    index: int = 0,
+    subindex: int = 0,
+    quiet: bool = False,
+    section_name: str = "",
+    section_for_print="",
+    chapter_name: str = "",
+    part: str = "",
 ) -> bool:
-    global check_partial_elapsed_time
+    """
+    Run a single test cases ``test``. Return True if test succeeds and False if it
+    fails. ``index``gives the global test number count, while ``subindex`` counts
+    from the beginning of the section or subsection.
+    """
+
+    global CHECK_PARTIAL_ELAPSED_TIME
     test, wanted_out, wanted = test.test, test.outs, test.result
 
+    format_output = "text"
+
     def fail(why):
-        part, chapter, section = tests.part, tests.chapter, tests.section
         print_and_log(
-            f"""{sep}Test failed: {section} in {part} / {chapter}
+            f"""{SEP}Test failed: in {part} / {chapter_name} / {section_name}
 {part}
 {why}
 """.encode(
@@ -111,18 +127,18 @@ def test_case(
         return False
 
     if not quiet:
-        if section:
-            print(f"{stars} {tests.chapter} / {section} {stars}".encode("utf-8"))
-        print(f"{index:4d} ({subindex:2d}): TEST {test}".encode("utf-8"))
+        if section_for_print:
+            print(f"{STARS} {section_for_print} {STARS}")
+        print(f"{index:4d} ({subindex:2d}): TEST {test}")
 
     feeder = MathicsSingleLineFeeder(test, "<test>")
     evaluation = Evaluation(
-        definitions, catch_interrupt=False, output=TestOutput(), format=format
+        DEFINITIONS, catch_interrupt=False, output=TestOutput(), format="text"
     )
     try:
         time_parsing = datetime.now()
         query = evaluation.parse_feeder(feeder)
-        if check_partial_elapsed_time:
+        if CHECK_PARTIAL_ELAPSED_TIME:
             print("   parsing took", datetime.now() - time_parsing)
         if query is None:
             # parsed expression is None
@@ -130,24 +146,24 @@ def test_case(
             out = evaluation.out
         else:
             result = evaluation.evaluate(query)
-            if check_partial_elapsed_time:
+            if CHECK_PARTIAL_ELAPSED_TIME:
                 print("   evaluation took", datetime.now() - time_parsing)
             out = result.out
             result = result.result
     except Exception as exc:
-        fail("Exception %s" % exc)
+        fail(f"Exception {exc}")
         info = sys.exc_info()
         sys.excepthook(*info)
         return False
 
     time_comparing = datetime.now()
-    comparison_result = compare(result, wanted)
+    comparison_result = doctest_compare(result, wanted)
 
-    if check_partial_elapsed_time:
+    if CHECK_PARTIAL_ELAPSED_TIME:
         print("   comparison took ", datetime.now() - time_comparing)
     if not comparison_result:
-        print("result =!=wanted")
-        fail_msg = "Result: %s\nWanted: %s" % (result, wanted)
+        print("result != wanted")
+        fail_msg = f"Result: {result}\nWanted: {wanted}"
         if out:
             fail_msg += "\nAdditional output:\n"
             fail_msg += "\n".join(str(o) for o in out)
@@ -158,7 +174,7 @@ def test_case(
         # If we have ... don't check
         pass
     elif len(out) != len(wanted_out):
-        # Mismatched number of output lines and we don't have "..."
+        # Mismatched number of output lines, and we don't have "..."
         output_ok = False
     else:
         # Need to check all output line by line
@@ -166,7 +182,7 @@ def test_case(
             if not got == wanted and wanted.text != "...":
                 output_ok = False
                 break
-    if check_partial_elapsed_time:
+    if CHECK_PARTIAL_ELAPSED_TIME:
         print("   comparing messages took ", datetime.now() - time_comparing)
     if not output_ok:
         return fail(
@@ -176,67 +192,30 @@ def test_case(
     return True
 
 
-def test_tests(
-    tests,
-    index,
-    quiet=False,
-    stop_on_failure=False,
-    start_at=0,
-    max_tests=MAX_TESTS,
-    excludes=[],
-):
-    # For consistency set the character encoding ASCII which is
-    # the lowest common denominator available on all systems.
-    mathics.settings.SYSTEM_CHARACTER_ENCODING = "ASCII"
+def create_output(tests, doctest_data, format_output="latex"):
+    if DEFINITIONS is None:
+        print_and_log("Definitions are not initialized.")
+        return
 
-    definitions.reset_user_definitions()
-    total = failed = skipped = 0
-    failed_symbols = set()
-    section = tests.section
-    if section in excludes:
-        return total, failed, len(tests.tests), failed_symbols, index
-    count = 0
-    for subindex, test in enumerate(tests.tests):
-        index += 1
-        if test.ignore:
-            continue
-        if index < start_at:
-            skipped += 1
-            continue
-        elif count >= max_tests:
-            break
-
-        total += 1
-        count += 1
-        if not test_case(test, tests, index, subindex + 1, quiet, section):
-            failed += 1
-            failed_symbols.add((tests.part, tests.chapter, tests.section))
-            if stop_on_failure:
-                break
-
-        section = None
-    return total, failed, skipped, failed_symbols, index
-
-
-# FIXME: move this to common routine
-def create_output(tests, doctest_data, format="latex"):
-    definitions.reset_user_definitions()
-    for test in tests.tests:
+    DEFINITIONS.reset_user_definitions()
+    if isinstance(tests, Tests):
+        tests = (test for test in tests.tests)
+    for test in tests:
         if test.private:
             continue
         key = test.key
         evaluation = Evaluation(
-            definitions, format=format, catch_interrupt=True, output=TestOutput()
+            DEFINITIONS, format=format_output, catch_interrupt=True, output=TestOutput()
         )
         try:
             result = evaluation.parse_evaluate(test.test)
-        except:  # noqa
+        except Exception:  # noqa
             result = None
         if result is None:
             result = []
         else:
             result_data = result.get_data()
-            result_data["form"] = format
+            result_data["form"] = format_output
             result = [result_data]
 
         doctest_data[key] = {
@@ -245,94 +224,594 @@ def create_output(tests, doctest_data, format="latex"):
         }
 
 
+def show_test_summary(
+    index: int,
+    failed: int,
+    entity_name: str,
+    entities_searched: str,
+    keep_going: bool,
+    format_output: str,
+    generate_output: bool,
+    output_data,
+):
+    """
+    Print and log test summary results.
+
+    If ``generate_output`` is True, we will also generate output data
+    to ``output_data``.
+    """
+
+    print()
+    if index == 0:
+        print_and_log(f"No {entity_name} found with a name in: {entities_searched}.")
+        if "MATHICS_DEBUG_TEST_CREATE" not in os.environ:
+            print(f"Set environment MATHICS_DEBUG_TEST_CREATE to see {entity_name}.")
+    elif failed > 0:
+        print(SEP)
+        if format_output != "latex":
+            print_and_log(f"""{failed} test{'s' if failed != 1 else ''} failed.""")
+    else:
+        print_and_log("All tests passed.")
+
+    if generate_output and (failed == 0 or keep_going):
+        save_doctest_data(output_data)
+    return
+
+
+def test_section_in_chapter_or_guide_section(
+    section,
+    total: int,
+    failed: int,
+    quiet,
+    stop_on_failure,
+    prev_key: list,
+    format_output,
+) -> Tuple[int, int, int, list]:
+    """
+    Runs a tests for section ``section`` under a chapter or guide section.
+    Note that both of these contain a collection of section tests underneath.
+
+    ``total`` and ``failed`` give running tallies on the number of tests run and
+    the number of tests respectively.
+
+    If ``quiet`` is True, the progress and results of the tests are shown.
+    If ``stop_on_failure`` is true then the remaining tests in a section are skipped when a test
+    fails.
+    """
+    index = 0
+    for test in section.tests:
+        # Get key dropping off test index number
+        key = list(test.key)[1:-1]
+        if prev_key != key:
+            prev_key = key
+            section_name_for_print = " / ".join(key)
+            if quiet:
+                # We don't print with stars inside in test_case(), so print here.
+                print(f"Testing section: {section_name_for_print}")
+            index = 0
+        else:
+            # Null out section name, so that on the next iteration we do not print a section header
+            # in test_case().
+            section_name_for_print = ""
+
+        if isinstance(test, DocTests):
+            for doctest in test.tests:
+                index += 1
+                total += 1
+                if not test_case(
+                    doctest,
+                    total,
+                    index,
+                    quiet=quiet,
+                    section_name=section.title,
+                    section_for_print=section_name_for_print,
+                    chapter_name=doctest.chapter,
+                    part=doctest.part,
+                    format_output=format_output,
+                ):
+                    failed += 1
+                    if stop_on_failure:
+                        break
+        elif test.ignore:
+            continue
+
+        else:
+            index += 1
+            total += 1
+            if not test_case(
+                test,
+                total,
+                index,
+                quiet=quiet,
+                section_name=section.section,
+                section_for_print=section_name_for_print,
+                chapter_name=test.chapter,
+                part=test.part,
+                format_output=format_output,
+            ):
+                failed += 1
+                if stop_on_failure:
+                    break
+                pass
+            pass
+        pass
+    return index, total, failed, prev_key
+
+
+# When 3.8 is base, the below can be a Literal type.
+INVALID_TEST_GROUP_SETUP = (None, None, None)
+
+
+def validate_group_setup(
+    include_set: set, entity_name: Optional[str], reload: bool, generate_output: bool
+) -> tuple:
+    """
+    Common things that need to be done before running a group of doctests.
+    """
+
+    if DOCUMENTATION is None:
+        print_and_log("Documentation is not initialized.")
+        return INVALID_TEST_GROUP_SETUP
+
+    if entity_name is not None:
+        include_names = ", ".join(include_set)
+        print(f"Testing {entity_name}(s): {include_names}")
+    else:
+        include_names = None
+
+    output_data = load_doctest_data() if reload else {}
+    format_output = "latex" if generate_output else "text"
+
+    # For consistency set the character encoding ASCII which is
+    # the lowest common denominator available on all systems.
+    settings.SYSTEM_CHARACTER_ENCODING = "ASCII"
+
+    if DEFINITIONS is None:
+        print_and_log("Definitions are not initialized.")
+        return INVALID_TEST_GROUP_SETUP
+
+    # Start with a clean variables state from whatever came before.
+    # In the test suite however, we may set new variables.
+    DEFINITIONS.reset_user_definitions()
+    return output_data, format_output, include_names
+
+
+def test_tests(
+    index: int,
+    quiet: bool = False,
+    stop_on_failure: bool = False,
+    start_at: int = 0,
+    max_tests: int = MAX_TESTS,
+    excludes: Set[str] = set(),
+    generate_output: bool = False,
+    reload: bool = False,
+    keep_going: bool = False,
+) -> Tuple[int, int, int, set, int]:
+    """
+    Runs a group of related tests, ``Tests`` provided that the section is not listed in ``excludes`` and
+    the global test count given in ``index`` is not before ``start_at``.
+
+    Tests are from a section or subsection (when the section is a guide section),
+
+    If ``quiet`` is True, the progress and results of the tests are shown.
+
+    ``index`` has the current count. We will stop on the first failure if ``stop_on_failure`` is true.
+
+    """
+
+    total = index = failed = skipped = 0
+    prev_key = []
+    failed_symbols = set()
+
+    output_data, format_output, names = validate_group_setup(
+        set(),
+        None,
+        reload,
+        generate_output,
+    )
+    if (output_data, format_output, names) == INVALID_TEST_GROUP_SETUP:
+        return total, failed, skipped, failed_symbols, index
+
+    count = 0
+    count_exceeded = False
+
+    for chapter in DOCUMENTATION.chapters:
+        # FIXME Guide sections are getting added twice somehow.
+        # This is a workaround to skip testing the duplicate.
+        seen_sections = set()
+
+        for tests in chapter.get_tests():
+            # Some Guide sections can return a single DocTests.
+            test_collection = [tests] if isinstance(tests, Tests) else tests
+
+            for section in test_collection:
+                section_key = (
+                    section.part,
+                    section.chapter,
+                    section.section,
+                    section.subsection,
+                )
+                # See FIXME above.
+                if section_key in seen_sections:
+                    continue
+
+                seen_sections.add(section_key)
+
+                DEFINITIONS.reset_user_definitions()
+                section_name = section.section
+                if section_name not in excludes:
+                    if isinstance(section, DocGuideSection):
+                        (
+                            index,
+                            total,
+                            failed,
+                            prev_key,
+                        ) = test_section_in_chapter_or_guide_section(
+                            section,
+                            total,
+                            failed,
+                            quiet,
+                            stop_on_failure,
+                            prev_key,
+                            format_output,
+                        )
+                        if generate_output and failed == 0:
+                            create_output(tests, output_data)
+                            pass
+                        pass
+
+                    else:
+                        for test in section.tests:
+                            # Get key dropping off test index number
+                            key = list(test.key)[1:-1]
+                            if prev_key != key:
+                                prev_key = key
+                                section_name_for_print = " / ".join(key)
+                                if quiet:
+                                    print(f"Testing section: {section_name_for_print}")
+                                index = 0
+                            else:
+                                # Null out section name, so that on the next iteration we do not print a section header.
+                                section_name_for_print = ""
+
+                            if isinstance(test, DocTests):
+                                for doctest in test.tests:
+                                    index += 1
+
+                                    if index < start_at:
+                                        skipped += 1
+                                        continue
+
+                                    total += 1
+
+                                    if count >= max_tests:
+                                        break
+                                    count += 1
+
+                                    if not test_case(
+                                        doctest,
+                                        total,
+                                        index,
+                                        quiet=quiet,
+                                        section_name=test.section,
+                                        section_for_print=section_name_for_print,
+                                        chapter_name=doctest.chapter,
+                                        part=doctest.part,
+                                        format_output=format_output,
+                                    ):
+                                        failed += 1
+                                        if stop_on_failure:
+                                            break
+
+                            elif test.ignore:
+                                continue
+
+                            else:
+                                index += 1
+
+                                if index < start_at:
+                                    skipped += 1
+                                    continue
+
+                                total += 1
+                                if count >= max_tests:
+                                    break
+                                count += 1
+
+                                if not test_case(
+                                    test,
+                                    total,
+                                    index,
+                                    quiet=quiet,
+                                    section_name=test.section,
+                                    section_for_print=section_name_for_print,
+                                    chapter_name=test.chapter,
+                                    part=test.part,
+                                ):
+                                    failed += 1
+                                    if stop_on_failure:
+                                        break
+                                    pass
+                                pass
+
+                        if generate_output and (failed == 0 or keep_going):
+                            create_output(
+                                tests, output_data, format_output=format_output
+                            )
+                            pass
+                        pass
+                    pass
+                pass
+            pass
+        if count_exceeded:
+            break
+        pass
+
+    print()
+    if index == 0:
+        print_and_log("No tests found.")
+        if "MATHICS_DEBUG_TEST_CREATE" not in os.environ:
+            print("Set environment MATHICS_DEBUG_TEST_CREATE to see structure.")
+    elif failed > 0:
+        print(SEP)
+        if not (keep_going and format_output == "latex"):
+            print_and_log(f"{failed} test%s failed." % "s" if failed != 1 else "")
+    else:
+        print_and_log(
+            f"{total} Tests, {total - failed} passed, {failed} failed, {skipped} "
+            "skipped."
+        )
+
+    if generate_output and (failed == 0 or keep_going):
+        save_doctest_data(output_data)
+    return total, failed, skipped, failed_symbols, index
+
+
 def test_chapters(
-    chapters: set,
+    include_chapters: set,
     quiet=False,
     stop_on_failure=False,
     generate_output=False,
     reload=False,
-    want_sorting=False,
     keep_going=False,
-):
-    failed = 0
-    index = 0
-    chapter_names = ", ".join(chapters)
-    print(f"Testing chapter(s): {chapter_names}")
-    output_data = load_doctest_data() if reload else {}
-    prev_key = []
-    for tests in documentation.get_tests():
-        if tests.chapter in chapters:
-            for test in tests.tests:
-                key = list(test.key)[1:-1]
-                if prev_key != key:
-                    prev_key = key
-                    print(f'Testing section: {" / ".join(key)}')
-                    index = 0
-                if test.ignore:
-                    continue
-                index += 1
-                if not test_case(test, tests, index, quiet=quiet):
-                    failed += 1
-                    if stop_on_failure:
-                        break
-            if generate_output and failed == 0:
-                create_output(tests, output_data)
+) -> int:
+    """
+    Runs a group of related tests for the set specified in ``chapters``.
 
-    print()
-    if index == 0:
-        print_and_log(f"No chapters found named {chapter_names}.")
-    elif failed > 0:
-        if not (keep_going and format == "latex"):
-            print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
-    else:
-        print_and_log("All tests passed.")
+    If ``quiet`` is True, the progress and results of the tests are shown.
+
+    If ``stop_on_failure`` is true then the remaining tests in a section are skipped when a test
+    fails.
+    """
+    failed = index = total = 0
+
+    output_data, format_output, chapter_names = validate_group_setup(
+        include_chapters, "chapters", reload, generate_output
+    )
+    if (output_data, format_output, chapter_names) == INVALID_TEST_GROUP_SETUP:
+        return total
+
+    prev_key = []
+    seen_chapters = set()
+    last_chapter_name = None
+
+    for chapter in DOCUMENTATION.chapters:
+        chapter_name = chapter.title
+
+        if chapter_name not in include_chapters:
+            continue
+
+        # FIXME Guide sections are getting added twice somehow.
+        # This is a workaround to skip testing the duplicate.
+        seen_sections = set()
+
+        for tests in chapter.get_tests():
+            # Some Guide sections can return a single DocTests.
+
+            test_collection = [tests] if isinstance(tests, Tests) else tests
+
+            for section in test_collection:
+                section_key = (
+                    section.part,
+                    section.chapter,
+                    section.section,
+                    section.subsection,
+                )
+                # See FIXME above.
+                if section_key in seen_sections:
+                    continue
+
+                seen_sections.add(section_key)
+
+                DEFINITIONS.reset_user_definitions()
+                (
+                    index,
+                    total,
+                    failed,
+                    prev_key,
+                ) = test_section_in_chapter_or_guide_section(
+                    section,
+                    total,
+                    failed,
+                    quiet,
+                    stop_on_failure,
+                    prev_key,
+                    format_output,
+                )
+                if generate_output and failed == 0:
+                    create_output(tests, output_data)
+                    pass
+                pass
+
+            if last_chapter_name != chapter_name:
+                if seen_chapters == include_chapters:
+                    break
+                if chapter_name in include_chapters:
+                    seen_chapters.add(chapter_name)
+                last_chapter_name = chapter_name
+            pass
+
+    show_test_summary(
+        index,
+        failed,
+        "chapters",
+        chapter_names,
+        keep_going,
+        format_output,
+        generate_output,
+        output_data,
+    )
+    return total
 
 
 def test_sections(
-    sections: set,
+    include_sections: set,
     quiet=False,
     stop_on_failure=False,
     generate_output=False,
     reload=False,
-    want_sorting=False,
     keep_going=False,
-):
-    failed = 0
-    index = 0
-    section_names = ", ".join(sections)
-    print(f"Testing section(s): {section_names}")
-    sections |= {"$" + s for s in sections}
-    output_data = load_doctest_data() if reload else {}
-    prev_key = []
-    format = "latex" if generate_output else "text"
-    for tests in documentation.get_tests():
-        if tests.section in sections:
-            for test in tests.tests:
-                key = list(test.key)[1:-1]
-                if prev_key != key:
-                    prev_key = key
-                    print(f'Testing section: {" / ".join(key)}')
-                    index = 0
-                if test.ignore:
-                    continue
-                index += 1
-                if not test_case(test, tests, index, quiet=quiet, format=format):
-                    failed += 1
-                    if stop_on_failure:
-                        break
-            if generate_output and (failed == 0 or keep_going):
-                create_output(tests, output_data, format=format)
+) -> int:
+    """Runs a group of related tests for the set specified in ``sections``.
 
-    print()
-    if index == 0:
-        print_and_log(f"No sections found named {section_names}.")
-    elif failed > 0:
-        if not (keep_going and format == "latex"):
-            print_and_log("%d test%s failed." % (failed, "s" if failed != 1 else ""))
-    else:
-        print_and_log("All tests passed.")
-    if generate_output and (failed == 0 or keep_going):
-        save_doctest_data(output_data)
+    If ``quiet`` is True, the progress and results of the tests are shown.
+
+    ``index`` has the current count. If ``stop_on_failure`` is true
+    then the remaining tests in a section are skipped when a test
+    fails. If ``keep_going`` is True and there is a failure, the next
+    section is continued after failure occurs.
+    """
+
+    total = index = failed = 0
+    prev_key = []
+
+    output_data, format_output, section_names = validate_group_setup(
+        include_sections, "section", reload, generate_output
+    )
+    if (output_data, format_output, section_names) == INVALID_TEST_GROUP_SETUP:
+        return total
+
+    seen_sections = set()
+    seen_last_section = False
+    last_section_name = None
+    section_name_for_finish = None
+
+    for chapter in DOCUMENTATION.chapters:
+        for tests in chapter.get_tests():
+            # Some Guide sections can return a single DocTests.
+            test_collection = [tests] if isinstance(tests, Tests) else tests
+
+            for section in test_collection:
+                section_name_for_finish = section_name = section.section
+                if section_name in include_sections:
+                    if isinstance(section, DocGuideSection):
+                        (
+                            index,
+                            total,
+                            prev_key,
+                        ) = test_section_in_chapter_or_guide_section(
+                            section,
+                            total,
+                            failed,
+                            quiet,
+                            stop_on_failure,
+                            prev_key,
+                            format_output,
+                        )
+                        if generate_output and failed == 0:
+                            create_output(tests, output_data)
+                            pass
+                        pass
+
+                    else:
+                        for test in section.tests:
+                            # Get key dropping off test index number
+                            key = list(test.key)[1:-1]
+                            if prev_key != key:
+                                prev_key = key
+                                section_name_for_print = " / ".join(key)
+                                if not quiet:
+                                    print(f"Testing section: {section_name_for_print}")
+                                index = 0
+                            else:
+                                # Null out section name, so that on the next iteration we do not print a section header.
+                                section_name_for_print = ""
+
+                            if isinstance(test, DocTests):
+                                for doctest in test.tests:
+                                    index += 1
+                                    total += 1
+                                    if not test_case(
+                                        doctest,
+                                        total,
+                                        index,
+                                        quiet=quiet,
+                                        section_name=section_name_for_print,
+                                        chapter_name=doctest.chapter,
+                                        part=doctest.part,
+                                        format_output=format_output,
+                                    ):
+                                        failed += 1
+                                        if stop_on_failure:
+                                            break
+
+                            elif test.ignore:
+                                continue
+
+                            else:
+                                index += 1
+                                total += 1
+                                if not test_case(
+                                    test,
+                                    total,
+                                    index,
+                                    quiet=quiet,
+                                    section_name=section_name_for_print,
+                                    chapter_name=test.chapter,
+                                    part=test.part,
+                                    format_output=format_output,
+                                ):
+                                    failed += 1
+                                    if stop_on_failure:
+                                        break
+                                    pass
+                                pass
+
+                        if generate_output and (failed == 0 or keep_going):
+                            create_output(
+                                tests, output_data, format_output=format_output
+                            )
+                            pass
+                        pass
+
+                if generate_output and (failed == 0 or keep_going):
+                    create_output(tests, output_data, format=format)
+                    pass
+                pass
+            if last_section_name != section_name_for_finish:
+                if seen_sections == include_sections:
+                    seen_last_section = True
+                    break
+                if section_name_for_finish in include_sections:
+                    seen_sections.add(section_name_for_finish)
+                last_section_name = section_name_for_finish
+            pass
+
+        if seen_last_section:
+            break
+        pass
+
+    show_test_summary(
+        index,
+        failed,
+        "sections",
+        section_names,
+        keep_going,
+        format_output,
+        generate_output,
+        output_data,
+    )
+    return total
 
 
 def open_ensure_dir(f, *args, **kwargs):
@@ -351,79 +830,67 @@ def test_all(
     stop_on_failure=False,
     start_at=0,
     count=MAX_TESTS,
-    texdatafolder=None,
     doc_even_if_error=False,
-    excludes=[],
-    want_sorting=False,
-):
+    excludes: set = set(),
+) -> int:
     if not quiet:
         print(f"Testing {version_string}")
 
-    if generate_output:
-        if texdatafolder is None:
-            texdatafolder = osp.dirname(
-                settings.get_doctest_latex_data_path(
-                    should_be_readable=False, create_parent=True
-                )
-            )
     try:
         index = 0
         total = failed = skipped = 0
         failed_symbols = set()
         output_data = {}
-        for tests in documentation.get_tests(want_sorting=want_sorting):
-            sub_total, sub_failed, sub_skipped, symbols, index = test_tests(
-                tests,
-                index,
-                quiet=quiet,
-                stop_on_failure=stop_on_failure,
-                start_at=start_at,
-                max_tests=count,
-                excludes=excludes,
-            )
-            if generate_output:
-                create_output(tests, output_data)
-            total += sub_total
-            failed += sub_failed
-            skipped += sub_skipped
-            failed_symbols.update(symbols)
-            if sub_failed and stop_on_failure:
-                break
-            if total >= count:
-                break
-        builtin_total = len(builtins)
+        sub_total, sub_failed, sub_skipped, symbols, index = test_tests(
+            index,
+            quiet=quiet,
+            stop_on_failure=stop_on_failure,
+            start_at=start_at,
+            max_tests=count,
+            excludes=excludes,
+            generate_output=generate_output,
+            reload=False,
+            keep_going=not stop_on_failure,
+        )
+
+        total += sub_total
+        failed += sub_failed
+        skipped += sub_skipped
+        failed_symbols.update(symbols)
+        builtin_total = len(_builtins)
     except KeyboardInterrupt:
         print("\nAborted.\n")
-        return
+        return total
 
     if failed > 0:
-        print(sep)
+        print(SEP)
     if count == MAX_TESTS:
         print_and_log(
-            "%d Tests for %d built-in symbols, %d passed, %d failed, %d skipped."
-            % (total, builtin_total, total - failed - skipped, failed, skipped)
+            f"{total} Tests for {builtin_total} built-in symbols, {total-failed} "
+            f"passed, {failed} failed, {skipped} skipped."
         )
     else:
         print_and_log(
-            "%d Tests, %d passed, %d failed, %d skipped."
-            % (total, total - failed, failed, skipped)
+            f"{total} Tests, {total - failed} passed, {failed} failed, {skipped} "
+            "skipped."
         )
     if failed_symbols:
         if stop_on_failure:
             print_and_log("(not all tests are accounted for due to --stop-on-failure)")
         print_and_log("Failed:")
         for part, chapter, section in sorted(failed_symbols):
-            print_and_log("  - %s in %s / %s" % (section, part, chapter))
+            print_and_log(f"  - {section} in {part} / {chapter}")
 
     if generate_output and (failed == 0 or doc_even_if_error):
         save_doctest_data(output_data)
-        return True
+        return total
 
     if failed == 0:
         print("\nOK")
     else:
         print("\nFAILED")
-        return sys.exit(1)  # Travis-CI knows the tests have failed
+        sys.exit(1)  # Travis-CI knows the tests have failed
+    return total
 
 
 def load_doctest_data() -> Dict[tuple, dict]:
@@ -480,7 +947,7 @@ def write_doctest_data(quiet=False, reload=False):
 
     try:
         output_data = load_doctest_data() if reload else {}
-        for tests in documentation.get_tests():
+        for tests in DOCUMENTATION.get_tests():
             create_output(tests, output_data)
     except KeyboardInterrupt:
         print("\nAborted.\n")
@@ -491,12 +958,12 @@ def write_doctest_data(quiet=False, reload=False):
 
 
 def main():
-    global definitions
-    global logfile
-    global check_partial_elapsed_time
+    global DEFINITIONS
+    global LOGFILE
+    global CHECK_PARTIAL_ELAPSED_TIME
 
     import_and_load_builtins()
-    definitions = Definitions(add_builtin=True)
+    DEFINITIONS = Definitions(add_builtin=True)
 
     parser = ArgumentParser(description="Mathics test suite.", add_help=False)
     parser.add_argument(
@@ -527,7 +994,7 @@ def main():
         default="",
         dest="exclude",
         metavar="SECTION",
-        help="excude SECTION(s). "
+        help="exclude SECTION(s). "
         "You can list multiple sections by adding a comma (and no space) in between section names.",
     )
     parser.add_argument(
@@ -608,40 +1075,25 @@ def main():
         action="store_true",
         help="print cache statistics",
     )
-    # FIXME: historically was weird interacting going on with
-    # mathics when tests in sorted order. Possibly a
-    # mpmath precsion reset bug.
-    # We see a noticeable 2 minute delay in processing.
-    # WHile the problem is in Mathics itself rather than
-    # sorting, until we get this fixed, use
-    # sort as an option only. For normal testing we don't
-    # want it for speed. But for document building which is
-    # rarely done, we do want sorting of the sections and chapters.
-    parser.add_argument(
-        "--want-sorting",
-        dest="want_sorting",
-        action="store_true",
-        help="Sort chapters and sections",
-    )
-    global logfile
+    global LOGFILE
 
     args = parser.parse_args()
 
     if args.elapsed_times:
-        check_partial_elapsed_time = True
+        CHECK_PARTIAL_ELAPSED_TIME = True
     # If a test for a specific section is called
     # just test it
     if args.logfilename:
-        logfile = open(args.logfilename, "wt")
+        LOGFILE = open(args.logfilename, "wt")
 
-    global documentation
-    documentation = MathicsMainDocumentation(want_sorting=args.want_sorting)
+    global DOCUMENTATION
+    DOCUMENTATION = MathicsMainDocumentation()
 
     # LoadModule Mathics3 modules
     if args.pymathics:
         for module_name in args.pymathics.split(","):
             try:
-                eval_LoadModule(module_name, definitions)
+                eval_LoadModule(module_name, DEFINITIONS)
             except PyMathicsLoadException:
                 print(f"Python module {module_name} is not a Mathics3 module.")
 
@@ -650,12 +1102,16 @@ def main():
             else:
                 print(f"Mathics3 Module {module_name} loaded")
 
-    documentation.load_documentation_sources()
+    DOCUMENTATION.gather_doctest_data()
+
+    start_time = None
+    total = 0
 
     if args.sections:
         sections = set(args.sections.split(","))
 
-        test_sections(
+        start_time = datetime.now()
+        total = test_sections(
             sections,
             stop_on_failure=args.stop_on_failure,
             generate_output=args.output,
@@ -663,9 +1119,10 @@ def main():
             keep_going=args.keep_going,
         )
     elif args.chapters:
+        start_time = datetime.now()
         chapters = set(args.chapters.split(","))
 
-        test_chapters(
+        total = test_chapters(
             chapters, stop_on_failure=args.stop_on_failure, reload=args.reload
         )
     else:
@@ -678,7 +1135,7 @@ def main():
             excludes = set(args.exclude.split(","))
             start_at = args.skip + 1
             start_time = datetime.now()
-            test_all(
+            total = test_all(
                 quiet=args.quiet,
                 generate_output=args.output,
                 stop_on_failure=args.stop_on_failure,
@@ -686,12 +1143,16 @@ def main():
                 count=args.count,
                 doc_even_if_error=args.keep_going,
                 excludes=excludes,
-                want_sorting=args.want_sorting,
             )
-            end_time = datetime.now()
-            print("Tests took ", end_time - start_time)
-    if logfile:
-        logfile.close()
+            pass
+        pass
+
+    if total > 0 and start_time is not None:
+        end_time = datetime.now()
+        print("Test evalation took ", end_time - start_time)
+
+    if LOGFILE:
+        LOGFILE.close()
     if args.show_statistics:
         show_lru_cache_statistics()
 
