@@ -1874,6 +1874,7 @@ class DocumentationEntry:
 
     def __init__(self, doc_str: str, title: str, section: Optional[DocSection] = None):
         self._set_classes()
+        self.title = title
         if section:
             chapter = section.chapter
             part = chapter.part
