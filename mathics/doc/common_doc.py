@@ -304,10 +304,10 @@ def skip_doc(cls) -> bool:
     return cls.__name__.endswith("Box") or (hasattr(cls, "no_doc") and cls.no_doc)
 
 
-def skip_module_doc(module, modules_seen) -> bool:
+def skip_module_doc(module, must_be_skipped) -> bool:
     return (
         module.__doc__ is None
-        or module in modules_seen
+        or module in must_be_skipped
         or module.__name__.split(".")[0] not in ("mathics", "pymathics")
         or hasattr(module, "no_doc")
         and module.no_doc
@@ -1052,8 +1052,13 @@ class MathicsMainDocumentation(Documentation):
         """
 
         builtin_part = self.part_class(self, title, is_reference=start)
+
+        # This is used to ensure that we pass just once over each module.
+        # The algorithm we use to walk all the modules without repetitions
+        # relies on this, which in my opinion is hard to test and susceptible
+        # to errors. I guess we include it as a temporal fixing to handle
+        # packages inside ``mathics.builtin``.
         modules_seen = set([])
-        submodule_names_seen = set([])
 
         want_sorting = True
         if want_sorting:
@@ -1065,6 +1070,34 @@ class MathicsMainDocumentation(Documentation):
             )
         else:
             module_collection_fn = lambda x: x
+
+        # For some weird reason, it seems that this produces an
+        # overflow error in test.builitin.directories.
+        '''
+        def filter_toplevel_modules(module_list):
+            """
+            Keep just the modules at the top level.
+            """
+            if len(module_list) == 0:
+                return module_list
+
+            modules_and_levels = sorted(
+                ((module.__name__.count("."), module) for module in module_list),
+                key=lambda x: x[0],
+            )
+            top_level = modules_and_levels[0][0]
+            return (entry[1] for entry in modules_and_levels if entry[0] == top_level)
+        '''
+        #  This ensures that the chapters are built
+        #  from the top-level modules. Without this,
+        #  if this happens is just by chance, or by
+        #  an obscure combination between the sorting
+        #  of the modules and the way in which visited
+        #  modules are skipped.
+        #
+        #  However, if I activate this, some tests are lost.
+        #
+        # modules = filter_toplevel_modules(modules)
         for module in module_collection_fn(modules):
             if skip_module_doc(module, modules_seen):
                 continue
@@ -1075,6 +1108,10 @@ class MathicsMainDocumentation(Documentation):
             builtins = builtins_by_module.get(module.__name__)
             if module.__file__.endswith("__init__.py"):
                 # We have a Guide Section.
+
+                # This is used to check if a symbol is not duplicated inside
+                # a guide.
+                submodule_names_seen = set([])
                 name = get_doc_name_from_module(module)
                 guide_section = self.add_section(
                     chapter, name, module, operator=None, is_guide=True
@@ -1102,6 +1139,10 @@ class MathicsMainDocumentation(Documentation):
                         continue
 
                     submodule_name = get_doc_name_from_module(submodule)
+                    # This has the side effect that Symbols with the same
+                    # short name but in different contexts be skipped.
+                    # This happens with ``PlaintextImport`` that appears in
+                    # the HTML and XML contexts.
                     if submodule_name in submodule_names_seen:
                         continue
                     section = self.add_section(
