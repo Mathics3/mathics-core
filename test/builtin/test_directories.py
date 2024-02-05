@@ -52,7 +52,7 @@ import pytest
     ],
 )
 def test_private_doctests_directory_names(str_expr, msgs, str_expected, fail_msg):
-    """exp_structure.size_and_sig"""
+    """private doctests in builtin.directories"""
     check_evaluation(
         str_expr,
         str_expected,

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Functions and Constants that controls the Evaluation
-"""
+
 
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
