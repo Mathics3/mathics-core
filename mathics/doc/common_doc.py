@@ -841,7 +841,7 @@ class DocSection:
 
         # Needs to come after self.chapter is initialized since
         # XMLDoc uses self.chapter.
-        self.xml_doc = DocumentationEntry(text, title, self)
+        self.doc = DocumentationEntry(text, title, self)
 
         chapter.sections_by_slug[self.slug] = self
         if MATHICS_DEBUG_DOC_BUILD:
@@ -917,7 +917,7 @@ class DocSection:
             # DRY with above
             assert len(self.items) == 0
             index = 1
-            for doctest in self.xml_doc.get_tests():
+            for doctest in self.doc.get_tests():
                 if isinstance(doctest, DocTest):
                     doctest.index = index
                     doctest.chapter = self.chapter.title
@@ -1674,7 +1674,7 @@ class DocGuideSection(DocSection):
         installed: bool = True,
     ):
         self.chapter = chapter
-        self.xml_doc = DocumentationEntry(text, title, self)
+        self.doc = DocumentationEntry(text, title, self)
         self.in_guide = False
         self.installed = installed
         self.section = submodule
