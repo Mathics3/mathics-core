@@ -1160,7 +1160,7 @@ class MathicsMainDocumentation(Documentation):
             """
             if len(module_list) == 0:
                 return module_list
-              
+
             modules_and_levels = sorted(
                 ((module.__name__.count("."), module) for module in module_list),
                 key=lambda x: x[0],
@@ -1174,7 +1174,7 @@ class MathicsMainDocumentation(Documentation):
         #
         # Also, this provides a more deterministic way to walk the module hierarchy,
         # which can be decomposed in the way proposed in #984.
-        
+
         modules = filter_toplevel_modules(modules)
         for module in module_collection_fn(modules):
             if skip_module_doc(module, modules_seen):
