@@ -26,11 +26,10 @@ class BernoulliB(MPMathFunction):
 
     First five Bernoulli numbers:
 
-    ## This test is desactivated because it fails in the CI:
     >> Table[BernoulliB[k], {k, 0, 5}]
      = ...
 
-    ## This must be
+    ## This must be (according to WMA)
     ## = {1, -1 / 2, 1 / 6, 0, -1 / 30, 0}
     ## but for some reason, in the CI the previous test produces
     ## the output:
