@@ -4,7 +4,7 @@ A module and library that assists in organizing document data
 located in static files and docstrings from
 Mathics3 Builtin Modules. Builtin Modules are written in Python and
 reside either in the Mathics3 core (mathics.builtin) or are packaged outside,
-e.g. pymathics.natlang.
+in Mathics3 Modules e.g. pymathics.natlang.
 
 This data is stored in a way that facilitates:
 * organizing information to produce a LaTeX file
@@ -35,7 +35,7 @@ import pkgutil
 import re
 from os import environ, getenv, listdir
 from types import ModuleType
-from typing import Callable, Iterator, List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from mathics import settings
 from mathics.core.builtin import check_requires_list
@@ -694,13 +694,9 @@ class Documentation:
 
         return None
 
-    def get_tests(self, want_sorting=False):
+    def get_tests(self):
         for part in self.parts:
-            if want_sorting:
-                chapter_collection_fn = lambda x: sorted_chapters(x)
-            else:
-                chapter_collection_fn = lambda x: x
-            for chapter in chapter_collection_fn(part.chapters):
+            for chapter in sorted_chapters(part.chapters):
                 tests = chapter.doc.get_tests()
                 if tests:
                     yield Tests(part.title, chapter.title, "", tests)
@@ -1046,6 +1042,10 @@ class MathicsMainDocumentation(Documentation):
         section.subsections.append(subsection)
 
     def doc_chapter(self, module, part, builtins_by_module) -> Optional[DocChapter]:
+        """
+        Build documentation structure for a "Chapter" - reference section which
+        might be a Mathics Module.
+        """
         modules_seen = set([])
 
         title, text = get_module_doc(module)
@@ -1130,8 +1130,8 @@ class MathicsMainDocumentation(Documentation):
 
     def doc_part(self, title, modules, builtins_by_module, start):
         """
-        Produce documentation for a "Part" - reference section or
-        possibly Pymathics modules
+        Build documentation structure for a "Part" - Reference
+        section or colleciton of Mathics3 Modules.
         """
 
         builtin_part = self.part_class(self, title, is_reference=start)
@@ -1143,20 +1143,17 @@ class MathicsMainDocumentation(Documentation):
         # packages inside ``mathics.builtin``.
         modules_seen = set([])
 
-        want_sorting = True
-        if want_sorting:
-            module_collection_fn = lambda x: sorted(
+        def module_collection_fn(_) -> list:
+            return sorted(
                 modules,
                 key=lambda module: module.sort_order
                 if hasattr(module, "sort_order")
                 else module.__name__,
             )
-        else:
-            module_collection_fn = lambda x: x
 
         def filter_toplevel_modules(module_list):
             """
-            Keep just the modules at the top level
+            Keep just the modules at the top level.
             """
             if len(module_list) == 0:
                 return module_list
