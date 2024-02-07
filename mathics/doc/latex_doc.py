@@ -7,7 +7,6 @@ import re
 from os import getenv
 from typing import Optional
 
-from mathics import settings
 from mathics.core.evaluation import Message, Print
 from mathics.doc.common_doc import (
     CONSOLE_RE,
