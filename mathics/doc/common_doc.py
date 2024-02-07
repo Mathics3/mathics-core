@@ -4,7 +4,7 @@ A module and library that assists in organizing document data
 located in static files and docstrings from
 Mathics3 Builtin Modules. Builtin Modules are written in Python and
 reside either in the Mathics3 core (mathics.builtin) or are packaged outside,
-e.g. pymathics.natlang.
+in Mathics3 Modules e.g. pymathics.natlang.
 
 This data is stored in a way that facilitates:
 * organizing information to produce a LaTeX file
@@ -35,7 +35,7 @@ import pkgutil
 import re
 from os import environ, getenv, listdir
 from types import ModuleType
-from typing import Callable, Iterator, List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from mathics import settings
 from mathics.core.builtin import check_requires_list
@@ -694,13 +694,9 @@ class Documentation:
 
         return None
 
-    def get_tests(self, want_sorting=False):
+    def get_tests(self):
         for part in self.parts:
-            if want_sorting:
-                chapter_collection_fn = lambda x: sorted_chapters(x)
-            else:
-                chapter_collection_fn = lambda x: x
-            for chapter in chapter_collection_fn(part.chapters):
+            for chapter in sorted_chapters(part.chapters):
                 tests = chapter.doc.get_tests()
                 if tests:
                     yield Tests(part.title, chapter.title, "", tests)
@@ -1045,10 +1041,97 @@ class MathicsMainDocumentation(Documentation):
         )
         section.subsections.append(subsection)
 
+    def doc_chapter(self, module, part, builtins_by_module) -> Optional[DocChapter]:
+        """
+        Build documentation structure for a "Chapter" - reference section which
+        might be a Mathics Module.
+        """
+        modules_seen = set([])
+
+        title, text = get_module_doc(module)
+        chapter = self.chapter_class(part, title, self.doc_class(text, title, None))
+        builtins = builtins_by_module.get(module.__name__)
+        if module.__file__.endswith("__init__.py"):
+            # We have a Guide Section.
+
+            # This is used to check if a symbol is not duplicated inside
+            # a guide.
+            submodule_names_seen = set([])
+            name = get_doc_name_from_module(module)
+            guide_section = self.add_section(
+                chapter, name, module, operator=None, is_guide=True
+            )
+            submodules = [
+                value
+                for value in module.__dict__.values()
+                if isinstance(value, ModuleType)
+            ]
+
+            sorted_submodule = lambda x: sorted(
+                submodules,
+                key=lambda submodule: submodule.sort_order
+                if hasattr(submodule, "sort_order")
+                else submodule.__name__,
+            )
+
+            # Add sections in the guide section...
+            for submodule in sorted_submodule(submodules):
+                if skip_module_doc(submodule, modules_seen):
+                    continue
+                elif IS_PYPY and submodule.__name__ == "builtins":
+                    # PyPy seems to add this module on its own,
+                    # but it is not something that can be importable
+                    continue
+
+                submodule_name = get_doc_name_from_module(submodule)
+                if submodule_name in submodule_names_seen:
+                    continue
+                section = self.add_section(
+                    chapter,
+                    submodule_name,
+                    submodule,
+                    operator=None,
+                    is_guide=False,
+                    in_guide=True,
+                )
+                modules_seen.add(submodule)
+                submodule_names_seen.add(submodule_name)
+                guide_section.subsections.append(section)
+
+                builtins = builtins_by_module.get(submodule.__name__, [])
+                subsections = [builtin for builtin in builtins]
+                for instance in subsections:
+                    if hasattr(instance, "no_doc") and instance.no_doc:
+                        continue
+
+                    name = instance.get_name(short=True)
+                    if name in submodule_names_seen:
+                        continue
+
+                    submodule_names_seen.add(name)
+                    modules_seen.add(instance)
+
+                    self.add_subsection(
+                        chapter,
+                        section,
+                        name,
+                        instance,
+                        instance.get_operator(),
+                        in_guide=True,
+                    )
+        else:
+            if not builtins:
+                return None
+            sections = [
+                builtin for builtin in builtins if not skip_doc(builtin.__class__)
+            ]
+            self.doc_sections(sections, modules_seen, chapter)
+        return chapter
+
     def doc_part(self, title, modules, builtins_by_module, start):
         """
-        Produce documentation for a "Part" - reference section or
-        possibly Pymathics modules
+        Build documentation structure for a "Part" - Reference
+        section or collection of Mathics3 Modules.
         """
 
         builtin_part = self.part_class(self, title, is_reference=start)
@@ -1060,20 +1143,6 @@ class MathicsMainDocumentation(Documentation):
         # packages inside ``mathics.builtin``.
         modules_seen = set([])
 
-        want_sorting = True
-        if want_sorting:
-            module_collection_fn = lambda x: sorted(
-                modules,
-                key=lambda module: module.sort_order
-                if hasattr(module, "sort_order")
-                else module.__name__,
-            )
-        else:
-            module_collection_fn = lambda x: x
-
-        # For some weird reason, it seems that this produces an
-        # overflow error in test.builitin.directories.
-        '''
         def filter_toplevel_modules(module_list):
             """
             Keep just the modules at the top level.
@@ -1087,105 +1156,28 @@ class MathicsMainDocumentation(Documentation):
             )
             top_level = modules_and_levels[0][0]
             return (entry[1] for entry in modules_and_levels if entry[0] == top_level)
-        '''
-        #  This ensures that the chapters are built
-        #  from the top-level modules. Without this,
-        #  if this happens is just by chance, or by
-        #  an obscure combination between the sorting
-        #  of the modules and the way in which visited
-        #  modules are skipped.
+
+        # The loop to load chapters must be run over the top-level modules. Otherwise,
+        # modules like ``mathics.builtin.functional.apply_fns_to_lists`` are loaded
+        # as chapters and sections of a GuideSection, producing duplicated tests.
         #
-        #  However, if I activate this, some tests are lost.
-        #
-        # modules = filter_toplevel_modules(modules)
-        for module in module_collection_fn(modules):
+        # Also, this provides a more deterministic way to walk the module hierarchy,
+        # which can be decomposed in the way proposed in #984.
+
+        modules = filter_toplevel_modules(modules)
+        for module in sorted(
+            modules,
+            key=lambda module: module.sort_order
+            if hasattr(module, "sort_order")
+            else module.__name__,
+        ):
             if skip_module_doc(module, modules_seen):
                 continue
-            title, text = get_module_doc(module)
-            chapter = self.chapter_class(
-                builtin_part, title, self.doc_class(text, title, None)
-            )
-            builtins = builtins_by_module.get(module.__name__)
-            if module.__file__.endswith("__init__.py"):
-                # We have a Guide Section.
-
-                # This is used to check if a symbol is not duplicated inside
-                # a guide.
-                submodule_names_seen = set([])
-                name = get_doc_name_from_module(module)
-                guide_section = self.add_section(
-                    chapter, name, module, operator=None, is_guide=True
-                )
-                submodules = [
-                    value
-                    for value in module.__dict__.values()
-                    if isinstance(value, ModuleType)
-                ]
-
-                sorted_submodule = lambda x: sorted(
-                    submodules,
-                    key=lambda submodule: submodule.sort_order
-                    if hasattr(submodule, "sort_order")
-                    else submodule.__name__,
-                )
-
-                # Add sections in the guide section...
-                for submodule in sorted_submodule(submodules):
-                    if skip_module_doc(submodule, modules_seen):
-                        continue
-                    elif IS_PYPY and submodule.__name__ == "builtins":
-                        # PyPy seems to add this module on its own,
-                        # but it is not something that can be importable
-                        continue
-
-                    submodule_name = get_doc_name_from_module(submodule)
-                    # This has the side effect that Symbols with the same
-                    # short name but in different contexts be skipped.
-                    # This happens with ``PlaintextImport`` that appears in
-                    # the HTML and XML contexts.
-                    if submodule_name in submodule_names_seen:
-                        continue
-                    section = self.add_section(
-                        chapter,
-                        submodule_name,
-                        submodule,
-                        operator=None,
-                        is_guide=False,
-                        in_guide=True,
-                    )
-                    modules_seen.add(submodule)
-                    submodule_names_seen.add(submodule_name)
-                    guide_section.subsections.append(section)
-
-                    builtins = builtins_by_module.get(submodule.__name__, [])
-                    subsections = [builtin for builtin in builtins]
-                    for instance in subsections:
-                        if hasattr(instance, "no_doc") and instance.no_doc:
-                            continue
-
-                        name = instance.get_name(short=True)
-                        if name in submodule_names_seen:
-                            continue
-
-                        submodule_names_seen.add(name)
-                        modules_seen.add(instance)
-
-                        self.add_subsection(
-                            chapter,
-                            section,
-                            name,
-                            instance,
-                            instance.get_operator(),
-                            in_guide=True,
-                        )
-            else:
-                if not builtins:
-                    continue
-                sections = [
-                    builtin for builtin in builtins if not skip_doc(builtin.__class__)
-                ]
-                self.doc_sections(sections, modules_seen, chapter)
+            chapter = self.doc_chapter(module, builtin_part, builtins_by_module)
+            if chapter is None:
+                continue
             builtin_part.chapters.append(chapter)
+
         self.parts.append(builtin_part)
 
     def doc_sections(self, sections, modules_seen, chapter):
