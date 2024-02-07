@@ -1131,7 +1131,7 @@ class MathicsMainDocumentation(Documentation):
     def doc_part(self, title, modules, builtins_by_module, start):
         """
         Build documentation structure for a "Part" - Reference
-        section or colleciton of Mathics3 Modules.
+        section or collection of Mathics3 Modules.
         """
 
         builtin_part = self.part_class(self, title, is_reference=start)
@@ -1142,14 +1142,6 @@ class MathicsMainDocumentation(Documentation):
         # to errors. I guess we include it as a temporal fixing to handle
         # packages inside ``mathics.builtin``.
         modules_seen = set([])
-
-        def module_collection_fn(_) -> list:
-            return sorted(
-                modules,
-                key=lambda module: module.sort_order
-                if hasattr(module, "sort_order")
-                else module.__name__,
-            )
 
         def filter_toplevel_modules(module_list):
             """
@@ -1173,7 +1165,12 @@ class MathicsMainDocumentation(Documentation):
         # which can be decomposed in the way proposed in #984.
 
         modules = filter_toplevel_modules(modules)
-        for module in module_collection_fn(modules):
+        for module in sorted(
+            modules,
+            key=lambda module: module.sort_order
+            if hasattr(module, "sort_order")
+            else module.__name__,
+        ):
             if skip_module_doc(module, modules_seen):
                 continue
             chapter = self.doc_chapter(module, builtin_part, builtins_by_module)
