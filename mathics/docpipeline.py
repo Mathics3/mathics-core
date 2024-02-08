@@ -107,7 +107,6 @@ def test_case(
     quiet: bool = False,
     section_name: str = "",
     section_for_print="",
-    output_format="text",
     chapter_name: str = "",
     part: str = "",
 ) -> bool:
@@ -115,6 +114,8 @@ def test_case(
     Run a single test cases ``test``. Return True if test succeeds and False if it
     fails. ``index``gives the global test number count, while ``subindex`` counts
     from the beginning of the section or subsection.
+
+    The test results are assumed to be foramtted to ASCII text.
     """
 
     global CHECK_PARTIAL_ELAPSED_TIME
@@ -138,7 +139,7 @@ def test_case(
 
     feeder = MathicsSingleLineFeeder(test_str, filename="<test>")
     evaluation = Evaluation(
-        DEFINITIONS, catch_interrupt=False, output=TestOutput(), format=output_format
+        DEFINITIONS, catch_interrupt=False, output=TestOutput(), format="text"
     )
     try:
         time_parsing = datetime.now()
@@ -234,7 +235,6 @@ def show_test_summary(
     entity_name: str,
     entities_searched: str,
     keep_going: bool,
-    output_format: str,
     generate_output: bool,
     output_data,
 ):
@@ -252,7 +252,7 @@ def show_test_summary(
             print(f"Set environment MATHICS_DEBUG_TEST_CREATE to see {entity_name}.")
     elif failed > 0:
         print(SEP)
-        if output_format != "latex":
+        if not generate_output:
             print_and_log(f"""{failed} test{'s' if failed != 1 else ''} failed.""")
     else:
         print_and_log("All tests passed.")
@@ -269,7 +269,6 @@ def test_section_in_chapter(
     quiet,
     stop_on_failure,
     prev_key: list,
-    output_format,
     include_sections: Optional[Set[str]] = None,
     start_at: int = 0,
     skipped: int = 0,
@@ -336,7 +335,6 @@ def test_section_in_chapter(
                             section_for_print=section_name_for_print,
                             chapter_name=chapter_name,
                             part=part_name,
-                            output_format=output_format,
                         ):
                             failed += 1
                             if stop_on_failure:
@@ -361,7 +359,6 @@ def test_section_in_chapter(
                         section_for_print=section_name_for_print,
                         chapter_name=chapter_name,
                         part=part_name,
-                        output_format=output_format,
                     ):
                         failed += 1
                         if stop_on_failure:
@@ -409,7 +406,6 @@ def test_section_in_chapter(
                         section_for_print=section_name_for_print,
                         chapter_name=chapter.title,
                         part=part_name,
-                        output_format=output_format,
                     ):
                         failed += 1
                         if stop_on_failure:
@@ -422,11 +418,13 @@ def test_section_in_chapter(
 
 
 # When 3.8 is base, the below can be a Literal type.
-INVALID_TEST_GROUP_SETUP = (None, None, None)
+INVALID_TEST_GROUP_SETUP = (None, None)
 
 
 def validate_group_setup(
-    include_set: set, entity_name: Optional[str], reload: bool, generate_output: bool
+    include_set: set,
+    entity_name: Optional[str],
+    reload: bool,
 ) -> tuple:
     """
     Common things that need to be done before running a group of doctests.
@@ -443,7 +441,6 @@ def validate_group_setup(
         include_names = None
 
     output_data = load_doctest_data() if reload else {}
-    output_format = "latex" if generate_output else "text"
 
     # For consistency set the character encoding ASCII which is
     # the lowest common denominator available on all systems.
@@ -456,7 +453,7 @@ def validate_group_setup(
     # Start with a clean variables state from whatever came before.
     # In the test suite however, we may set new variables.
     DEFINITIONS.reset_user_definitions()
-    return output_data, output_format, include_names
+    return output_data, include_names
 
 
 def test_tests(
@@ -486,13 +483,12 @@ def test_tests(
     prev_key = []
     failed_symbols = set()
 
-    output_data, output_format, names = validate_group_setup(
+    output_data, names = validate_group_setup(
         set(),
         None,
         reload,
-        generate_output,
     )
-    if (output_data, output_format, names) == INVALID_TEST_GROUP_SETUP:
+    if (output_data, names) == INVALID_TEST_GROUP_SETUP:
         return total, failed, skipped, failed_symbols, index
 
     for part in DOCUMENTATION.parts:
@@ -515,7 +511,6 @@ def test_tests(
                     quiet,
                     stop_on_failure,
                     prev_key,
-                    output_format="text",
                     start_at=start_at,
                     max_tests=max_tests,
                 )
@@ -530,7 +525,6 @@ def test_tests(
         "chapters",
         names,
         keep_going,
-        output_format,
         generate_output,
         output_data,
     )
@@ -560,10 +554,10 @@ def test_chapters(
     """
     failed = total = 0
 
-    output_data, output_format, chapter_names = validate_group_setup(
-        include_chapters, "chapters", reload, generate_output
+    output_data, chapter_names = validate_group_setup(
+        include_chapters, "chapters", reload
     )
-    if (output_data, output_format, chapter_names) == INVALID_TEST_GROUP_SETUP:
+    if (output_data, chapter_names) == INVALID_TEST_GROUP_SETUP:
         return total
 
     prev_key = []
@@ -588,7 +582,6 @@ def test_chapters(
                     quiet,
                     stop_on_failure,
                     prev_key,
-                    output_format,
                     start_at=start_at,
                     max_tests=max_tests,
                 )
@@ -609,7 +602,6 @@ def test_chapters(
         "chapters",
         chapter_names,
         keep_going,
-        output_format,
         generate_output,
         output_data,
     )
@@ -637,10 +629,10 @@ def test_sections(
     total = failed = 0
     prev_key = []
 
-    output_data, output_format, section_names = validate_group_setup(
-        include_sections, "section", reload, generate_output
+    output_data, section_names = validate_group_setup(
+        include_sections, "section", reload
     )
-    if (output_data, output_format, section_names) == INVALID_TEST_GROUP_SETUP:
+    if (output_data, section_names) == INVALID_TEST_GROUP_SETUP:
         return total
 
     seen_sections = set()
@@ -663,7 +655,6 @@ def test_sections(
                     failed=failed,
                     stop_on_failure=stop_on_failure,
                     prev_key=prev_key,
-                    output_format=output_format,
                     include_sections=include_sections,
                 )
 
@@ -690,7 +681,6 @@ def test_sections(
         "sections",
         section_names,
         keep_going,
-        output_format,
         generate_output,
         output_data,
     )
