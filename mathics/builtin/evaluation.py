@@ -327,9 +327,6 @@ class Quit(Builtin):
 
     """
 
-    rules = {
-        "Exit[n___]": "Quit[n]",
-    }
     summary_text = "terminate the session"
 
     def eval(self, evaluation: Evaluation, n):
@@ -338,3 +335,26 @@ class Quit(Builtin):
         if isinstance(n, Integer):
             exitcode = n.get_int_value()
         raise SystemExit(exitcode)
+
+
+class Exit(Quit):
+        """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Quit.html</url>
+
+    <dl>
+      <dt>'Quit'[]
+      <dd> Terminates the Mathics session.
+
+      <dt>'Quit[$n$]'
+      <dd> Terminates the mathics session with exit code $n$.
+    </dl>
+
+    <dl>
+      <dt>'Exit'[]
+      <dd> Terminates the Mathics session.
+
+      <dt>'Exit[$n$]'
+      <dd> Terminates the mathics session with exit code $n$.
+    </dl>
+
+    """
