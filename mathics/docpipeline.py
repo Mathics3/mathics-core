@@ -32,6 +32,7 @@ from mathics.doc.common_doc import (
     DocTests,
     MathicsMainDocumentation,
 )
+from mathics.doc.utils import load_doctest_data, print_and_log
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 from mathics.timing import show_lru_cache_statistics
 
@@ -89,17 +90,6 @@ def doctest_compare(result: Optional[str], wanted: Optional[str]) -> bool:
     return True
 
 
-def print_and_log(*args):
-    """
-    Print a message and also log it to global LOGFILE.
-    """
-    msg_lines = [a.decode("utf-8") if isinstance(a, bytes) else a for a in args]
-    string = "".join(msg_lines)
-    print(string)
-    if LOGFILE is not None:
-        LOGFILE.write(string)
-
-
 def test_case(
     test: DocTest,
     index: int = 0,
@@ -123,12 +113,13 @@ def test_case(
 
     def fail(why):
         print_and_log(
+            LOGFILE,
             f"""{SEP}Test failed: in {part} / {chapter_name} / {section_name}
 {part}
 {why}
 """.encode(
                 "utf-8"
-            )
+            ),
         )
         return False
 
@@ -201,7 +192,7 @@ def test_case(
 
 def create_output(tests, doctest_data, output_format="latex"):
     if DEFINITIONS is None:
-        print_and_log("Definitions are not initialized.")
+        print_and_log(LOGFILE, "Definitions are not initialized.")
         return
 
     DEFINITIONS.reset_user_definitions()
@@ -247,15 +238,19 @@ def show_test_summary(
 
     print()
     if total == 0:
-        print_and_log(f"No {entity_name} found with a name in: {entities_searched}.")
+        print_and_log(
+            LOGFILE, f"No {entity_name} found with a name in: {entities_searched}."
+        )
         if "MATHICS_DEBUG_TEST_CREATE" not in os.environ:
             print(f"Set environment MATHICS_DEBUG_TEST_CREATE to see {entity_name}.")
     elif failed > 0:
         print(SEP)
         if not generate_output:
-            print_and_log(f"""{failed} test{'s' if failed != 1 else ''} failed.""")
+            print_and_log(
+                LOGFILE, f"""{failed} test{'s' if failed != 1 else ''} failed."""
+            )
     else:
-        print_and_log("All tests passed.")
+        print_and_log(LOGFILE, "All tests passed.")
 
     if generate_output and (failed == 0 or keep_going):
         save_doctest_data(output_data)
@@ -431,7 +426,7 @@ def validate_group_setup(
     """
 
     if DOCUMENTATION is None:
-        print_and_log("Documentation is not initialized.")
+        print_and_log(LOGFILE, "Documentation is not initialized.")
         return INVALID_TEST_GROUP_SETUP
 
     if entity_name is not None:
@@ -440,14 +435,20 @@ def validate_group_setup(
     else:
         include_names = None
 
-    output_data = load_doctest_data() if reload else {}
+    if reload:
+        doctest_latex_data_path = settings.get_doctest_latex_data_path(
+            should_be_readable=True
+        )
+        output_data = load_doctest_data(doctest_latex_data_path)
+    else:
+        output_data = {}
 
     # For consistency set the character encoding ASCII which is
     # the lowest common denominator available on all systems.
     settings.SYSTEM_CHARACTER_ENCODING = "ASCII"
 
     if DEFINITIONS is None:
-        print_and_log("Definitions are not initialized.")
+        print_and_log(LOGFILE, "Definitions are not initialized.")
         return INVALID_TEST_GROUP_SETUP
 
     # Start with a clean variables state from whatever came before.
@@ -687,16 +688,6 @@ def test_sections(
     return total
 
 
-def open_ensure_dir(f, *args, **kwargs):
-    try:
-        return open(f, *args, **kwargs)
-    except (IOError, OSError):
-        d = osp.dirname(f)
-        if d and not osp.exists(d):
-            os.makedirs(d)
-        return open(f, *args, **kwargs)
-
-
 def test_all(
     quiet=False,
     generate_output=True,
@@ -748,20 +739,24 @@ def test_all(
         print(SEP)
     if max_tests == MAX_TESTS:
         print_and_log(
+            LOGFILE,
             f"{total} Tests for {builtin_total} built-in symbols, {total-failed} "
-            f"passed, {failed} failed, {skipped} skipped."
+            f"passed, {failed} failed, {skipped} skipped.",
         )
     else:
         print_and_log(
+            LOGFILE,
             f"{total} Tests, {total - failed} passed, {failed} failed, {skipped} "
-            "skipped."
+            "skipped.",
         )
     if failed_symbols:
         if stop_on_failure:
-            print_and_log("(not all tests are accounted for due to --stop-on-failure)")
-        print_and_log("Failed:")
+            print_and_log(
+                LOGFILE, "(not all tests are accounted for due to --stop-on-failure)"
+            )
+        print_and_log(LOGFILE, "Failed:")
         for part, chapter, section in sorted(failed_symbols):
-            print_and_log(f"  - {section} in {part} / {chapter}")
+            print_and_log(LOGFILE, f"  - {section} in {part} / {chapter}")
 
     if generate_output and (failed == 0 or doc_even_if_error):
         save_doctest_data(output_data)
@@ -773,21 +768,6 @@ def test_all(
         print("\nFAILED")
         sys.exit(1)  # Travis-CI knows the tests have failed
     return total
-
-
-def load_doctest_data() -> Dict[tuple, dict]:
-    """
-    Load doctest tests and test results from Python PCL file.
-
-    See ``save_doctest_data()`` for the format of the loaded PCL data
-    (a dict).
-    """
-    doctest_latex_data_path = settings.get_doctest_latex_data_path(
-        should_be_readable=True
-    )
-    print(f"Loading internal doctest data from {doctest_latex_data_path}")
-    with open_ensure_dir(doctest_latex_data_path, "rb") as doctest_data_file:
-        return pickle.load(doctest_data_file)
 
 
 def save_doctest_data(output_data: Dict[tuple, dict]):
