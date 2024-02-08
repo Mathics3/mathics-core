@@ -423,6 +423,7 @@ Please contribute to Mathics!""",
         definitions.set_line_no(0)
 
     if args.FILE is not None:
+        definitions.set_inputfile(args.FILE.name)
         feeder = MathicsFileLineFeeder(args.FILE)
         try:
             while not feeder.empty():

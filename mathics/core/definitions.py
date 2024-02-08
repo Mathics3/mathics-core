@@ -121,6 +121,7 @@ class Definitions:
             "System`",
             "Global`",
         )
+        self.inputfile = ""
 
         # Importing "mathics.format" populates the Symbol of the
         # PrintForms and OutputForms sets.
@@ -243,6 +244,9 @@ class Definitions:
     def get_context_path(self):
         return self.context_path
 
+    def get_inputfile(self):
+        return self.inputfile if hasattr(self, "inputfile") else ""
+
     def set_current_context(self, context) -> None:
         assert isinstance(context, str)
         self.set_ownvalue("System`$Context", String(context))
@@ -258,6 +262,9 @@ class Definitions:
         )
         self.context_path = context_path
         self.clear_cache()
+
+    def set_inputfile(self, dir) -> None:
+        self.inputfile = dir
 
     def get_builtin_names(self):
         return set(self.builtin)

@@ -13,7 +13,6 @@ from io import BytesIO
 from mathics_scanner import TranslateError
 
 import mathics
-from mathics.core import read
 from mathics.core.atoms import Integer, String, SymbolString
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import (
@@ -465,7 +464,7 @@ class InputFileName_(Predefined):
     name = "$InputFileName"
 
     def evaluate(self, evaluation):
-        return String(read.INPUTFILE_VAR)
+        return String(evaluation.definitions.get_inputfile())
 
 
 class InputStream(Builtin):
