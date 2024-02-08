@@ -633,6 +633,17 @@ def sorted_chapters(chapters: List[DocChapter]) -> List[DocChapter]:
     return sorted(chapters, key=lambda chapter: chapter.title)
 
 
+def sorted_modules(modules) -> list:
+    """Return modules sorted by the ``sort_order`` attribute if that
+    exists, or the module's name if not."""
+    return sorted(
+        modules,
+        key=lambda module: module.sort_order
+        if hasattr(module, "sort_order")
+        else module.__name__,
+    )
+
+
 class DocPart:
     """
     Represents one of the main parts of the document. Parts
@@ -1102,15 +1113,8 @@ class MathicsMainDocumentation(Documentation):
                 if isinstance(value, ModuleType)
             ]
 
-            sorted_submodule = lambda x: sorted(
-                submodules,
-                key=lambda submodule: submodule.sort_order
-                if hasattr(submodule, "sort_order")
-                else submodule.__name__,
-            )
-
             # Add sections in the guide section...
-            for submodule in sorted_submodule(submodules):
+            for submodule in sorted_modules(submodules):
                 if skip_module_doc(submodule, modules_seen):
                     continue
                 elif IS_PYPY and submodule.__name__ == "builtins":
@@ -1200,12 +1204,7 @@ class MathicsMainDocumentation(Documentation):
         # which can be decomposed in the way proposed in #984.
 
         modules = filter_toplevel_modules(modules)
-        for module in sorted(
-            modules,
-            key=lambda module: module.sort_order
-            if hasattr(module, "sort_order")
-            else module.__name__,
-        ):
+        for module in sorted_modules(modules):
             if skip_module_doc(module, modules_seen):
                 continue
             chapter = self.doc_chapter(module, builtin_part, builtins_by_module)
