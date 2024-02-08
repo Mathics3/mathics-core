@@ -35,7 +35,7 @@ import pkgutil
 import re
 from os import environ, getenv, listdir
 from types import ModuleType
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, Iterator, List, Optional, Tuple
 
 from mathics import settings
 from mathics.core.builtin import check_requires_list
@@ -551,6 +551,8 @@ class DocChapter:
         self.slug = slugify(title)
         self.sections = []
         self.sections_by_slug = {}
+        self.sort_order = None
+
         part.chapters_by_slug[self.slug] = self
 
         if MATHICS_DEBUG_DOC_BUILD:
@@ -614,6 +616,7 @@ class DocGuideSection(DocSection):
             print("    DEBUG Creating Guide Section", title)
         chapter.sections_by_slug[self.slug] = self
 
+    # FIXME: turn into a @property tests?
     def get_tests(self):
         # FIXME: The below is a little weird for Guide Sections.
         # Figure out how to make this clearer.
@@ -635,7 +638,7 @@ def sorted_chapters(chapters: List[DocChapter]) -> List[DocChapter]:
     return sorted(
         chapters,
         key=lambda chapter: str(chapter.sort_order)
-        if hasattr(chapter, "sort_order")
+        if chapter.sort_order is not None
         else chapter.title,
     )
 
@@ -680,7 +683,7 @@ class DocPart:
 
 class DocTests:
     """
-    A bunch of consecutive `DocTest` listed inside a Builtin docstring.
+    A bunch of consecutive ``DocTest`` objects extracted from a Builtin docstring.
     """
 
     def __init__(self):
@@ -688,6 +691,9 @@ class DocTests:
         self.text = ""
 
     def get_tests(self) -> list:
+        """
+        Returns lists test objects.
+        """
         return self.tests
 
     def is_private(self) -> bool:
@@ -784,7 +790,11 @@ class Documentation:
 
         return None
 
-    def get_tests(self):
+    # FIXME: turn into a @property tests?
+    def get_tests(self) -> Iterator:
+        """
+        Returns a generator to extracts lists test objects.
+        """
         for part in self.parts:
             for chapter in sorted_chapters(part.chapters):
                 if MATHICS_DEBUG_TEST_CREATE:
@@ -1381,11 +1391,11 @@ class DocumentationEntry:
 
     Describes the contain of an entry in the documentation system, as a
     sequence (list) of items of the clase  `DocText` and `DocTests`.
-    `DocText` items contains an internal XML-like formatted text. `DocTests` entries
+    ``DocText`` items contains an internal XML-like formatted text. ``DocTests`` entries
     contain one or more `DocTest` element.
     Each level of the Documentation hierarchy contains an XMLDoc, describing the
     content after the title and before the elements of the next level. For example,
-    in `DocChapter`, `DocChapter.doc` contains the text coming after the title
+    in ``DocChapter``, ``DocChapter.doc`` contains the text coming after the title
     of the chapter, and before the sections in `DocChapter.sections`.
     Specialized classes like LaTeXDoc or and DjangoDoc provide methods for
     getting formatted output. For LaTeXDoc ``latex()`` is added while for

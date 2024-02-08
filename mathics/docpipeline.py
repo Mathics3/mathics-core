@@ -204,7 +204,7 @@ def create_output(tests, doctest_data, output_format="latex"):
         return
 
     DEFINITIONS.reset_user_definitions()
-    for test in tests.tests:
+    for test in tests:
         if test.private:
             continue
         key = test.key
@@ -515,14 +515,13 @@ def test_tests(
                     quiet,
                     stop_on_failure,
                     prev_key,
-                    output_format,
+                    output_format="text",
                     start_at=start_at,
                     max_tests=max_tests,
                 )
-                # FIXME - reinstate
-                # if generate_output and failed == 0:
-                #     create_output(tests, output_data)
-                #     pass
+                if generate_output and failed == 0:
+                    create_output(section.doc.get_tests(), output_data)
+                    pass
             pass
 
     show_test_summary(
@@ -594,7 +593,7 @@ def test_chapters(
                     max_tests=max_tests,
                 )
                 if generate_output and failed == 0:
-                    create_output(section.get_tests(), output_data)
+                    create_output(section.doc.get_tests(), output_data)
                     pass
                 pass
 
@@ -668,10 +667,9 @@ def test_sections(
                     include_sections=include_sections,
                 )
 
-                # if generate_output and (failed == 0 or keep_going):
-                #     create_output(tests, output_data, format=format)
-                #     pass
-                # pass
+                if generate_output and failed == 0:
+                    create_output(section.doc.get_tests(), output_data)
+                    pass
 
                 if last_section_name != section_name_for_finish:
                     if seen_sections == include_sections:
