@@ -15,7 +15,6 @@ from mathics.doc.common_doc import (
     Documentation,
     DocumentationEntry,
     MathicsMainDocumentation,
-    Tests,
     parse_docstring_to_DocumentationEntry_items,
 )
 from mathics.settings import DOC_DIR
