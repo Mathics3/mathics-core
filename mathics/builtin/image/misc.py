@@ -226,7 +226,7 @@ class TextRecognize(Builtin):
      = -Image-
 
     >> TextRecognize[textimage]
-     = TextRecognize[ image]
+     = TextRecognize[-Image-]
      .
      . Recognizes text in image and returns it as a String.
     """
