@@ -542,7 +542,8 @@ class DocChapter:
     A Chapter is part of a Part[dChapter. It can contain (Guide or plain) Sections.
     """
 
-    def __init__(self, part, title, doc=None):
+    def __init__(self, part, title, doc=None, chapter_order: Optional[int] = None):
+        self.chapter_order = chapter_order
         self.doc = doc
         self.guide_sections = []
         self.part = part
@@ -551,6 +552,7 @@ class DocChapter:
         self.sections = []
         self.sections_by_slug = {}
         part.chapters_by_slug[self.slug] = self
+
         if MATHICS_DEBUG_DOC_BUILD:
             print("  DEBUG Creating Chapter", title)
 
@@ -630,7 +632,12 @@ class DocGuideSection(DocSection):
 
 def sorted_chapters(chapters: List[DocChapter]) -> List[DocChapter]:
     """Return chapters sorted by title"""
-    return sorted(chapters, key=lambda chapter: chapter.title)
+    return sorted(
+        chapters,
+        key=lambda chapter: str(chapter.sort_order)
+        if hasattr(chapter, "sort_order")
+        else chapter.title,
+    )
 
 
 def sorted_modules(modules) -> list:
@@ -782,6 +789,7 @@ class Documentation:
             for chapter in sorted_chapters(part.chapters):
                 if MATHICS_DEBUG_TEST_CREATE:
                     print(f"DEBUG Gathering tests for Chapter {chapter.title}")
+
                 tests = chapter.doc.get_tests()
                 if tests:
                     yield Tests(part.title, chapter.title, "", tests)
@@ -837,17 +845,20 @@ class Documentation:
             pass
         return
 
-    def load_part_from_file(self, filename, title, is_appendix=False):
+    def load_part_from_file(
+        self, filename, title, chapter_order: int, is_appendix=False
+    ) -> int:
         """Load a markdown file as a part of the documentation"""
         part = self.part_class(self, title)
         text = open(filename, "rb").read().decode("utf8")
         text = filter_comments(text)
         chapters = CHAPTER_RE.findall(text)
         for title, text in chapters:
-            chapter = self.chapter_class(part, title)
+            chapter = self.chapter_class(part, title, chapter_order=chapter_order)
+            chapter_order += 1
             text += '<section title=""></section>'
-            sections = SECTION_RE.findall(text)
-            for pre_text, title, text in sections:
+            section_texts = SECTION_RE.findall(text)
+            for pre_text, title, text in section_texts:
                 if title:
                     section = self.section_class(
                         chapter, title, text, operator=None, installed=True
@@ -869,12 +880,14 @@ class Documentation:
                 if not chapter.doc:
                     chapter.doc = self.doc_class(pre_text, title, section)
                 pass
+
             part.chapters.append(chapter)
         if is_appendix:
             part.is_appendix = True
             self.appendix.append(part)
         else:
             self.parts.append(part)
+        return chapter_order
 
 
 class DocSubsection:
@@ -1011,13 +1024,17 @@ class MathicsMainDocumentation(Documentation):
         object to the chapter, a DocChapter object.
         "section_object" is either a Python module or a Class object instance.
         """
-        installed = check_requires_list(getattr(section_object, "requires", []))
-
-        # FIXME add an additional mechanism in the module
-        # to allow a docstring and indicate it is not to go in the
-        # user manual
+        if section_object is not None:
+            installed = check_requires_list(getattr(section_object, "requires", []))
+            # FIXME add an additional mechanism in the module
+            # to allow a docstring and indicate it is not to go in the
+            # user manual
         if not section_object.__doc__:
             return
+
+        else:
+            installed = True
+
         if is_guide:
             section = self.guide_section_class(
                 chapter,
@@ -1260,6 +1277,7 @@ class MathicsMainDocumentation(Documentation):
         files = listdir(self.doc_dir)
         files.sort()
 
+        chapter_order = 0
         for file in files:
             part_title = file[2:]
             if part_title.endswith(".mdoc"):
@@ -1267,8 +1285,11 @@ class MathicsMainDocumentation(Documentation):
                 # If the filename start with a number, then is a main part. Otherwise
                 # is an appendix.
                 is_appendix = not file[0].isdigit()
-                self.load_part_from_file(
-                    osp.join(self.doc_dir, file), part_title, is_appendix
+                chapter_order = self.load_part_from_file(
+                    osp.join(self.doc_dir, file),
+                    part_title,
+                    chapter_order,
+                    is_appendix,
                 )
 
         # Next extract data that has been loaded into Mathics3 when it runs.
