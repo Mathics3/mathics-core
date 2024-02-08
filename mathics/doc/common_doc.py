@@ -856,7 +856,7 @@ class Documentation:
         return
 
     def load_part_from_file(
-        self, filename, title, chapter_order: int, is_appendix=False
+        self, filename: str, title: str, chapter_order: int, is_appendix: bool = False
     ) -> int:
         """Load a markdown file as a part of the documentation"""
         part = self.part_class(self, title)
