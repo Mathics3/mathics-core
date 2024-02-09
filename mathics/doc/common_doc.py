@@ -142,6 +142,9 @@ MATHICS_DEBUG_DOC_BUILD: bool = "MATHICS_DEBUG_DOC_BUILD" in environ
 # After building the doc structure, we extract test cases.
 MATHICS_DEBUG_TEST_CREATE: bool = "MATHICS_DEBUG_TEST_CREATE" in environ
 
+# Name of the Mathics3 Module part of the document.
+MATHICS3_MODULES_TITLE = "Mathics3 Modules"
+
 
 def get_module_doc(module: ModuleType) -> Tuple[str, str]:
     """
@@ -1146,23 +1149,17 @@ class Documentation:
         ]:
             self.doc_part(title, modules, builtins_by_module, start)
 
-        # Now extract external Mathics3 Modules that have been loaded via
-        # LoadModule, or eval_LoadModule.
+        # Next extract external Mathics3 Modules that have been loaded via
+        # LoadModule, or eval_LoadModule.  This is Part 3 of the documentation.
 
-        # This is Part 3 of the documentation.
+        self.doc_part(
+            MATHICS3_MODULES_TITLE,
+            pymathics_modules,
+            pymathics_builtins_by_module,
+            True,
+        )
 
-        for title, modules, builtins_by_module, start in [
-            (
-                "Mathics3 Modules",
-                pymathics_modules,
-                pymathics_builtins_by_module,
-                True,
-            )
-        ]:
-            self.doc_part(title, modules, builtins_by_module, start)
-
-        # Now extract Appendix information. This include License text
-
+        # Finally, extract Appendix information. This include License text
         # This is the final Part of the documentation.
 
         for part in self.appendix:
