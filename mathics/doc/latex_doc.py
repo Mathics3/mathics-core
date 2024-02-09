@@ -634,8 +634,8 @@ class LaTeXMathicsDocumentation(MathicsMainDocumentation):
     produce a the documentation in LaTeX format.
     """
 
-    def __init__(self, want_sorting=False):
-        super().__init__(want_sorting)
+    def __init__(self):
+        super().__init__()
         self.load_documentation_sources()
 
     def _set_classes(self):
