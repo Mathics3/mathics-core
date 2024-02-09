@@ -224,11 +224,9 @@ class TextRecognize(Builtin):
 
     >> textimage = Import["ExampleData/TextRecognize.png"]
      = -Image-
-
     >> TextRecognize[textimage]
-     = TextRecognize[-Image-]
-     .
-     . Recognizes text in image and returns it as a String.
+     = ...
+     : ...
     """
 
     messages = {
