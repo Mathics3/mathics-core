@@ -273,14 +273,12 @@ class TagSet(Builtin, _SetOperator):
     </dl>
 
     Create an upvalue without using 'UpSet':
-    >> square /: area[square] = s^2
-     = s ^ 2
-
+    >> square /: area[square[s_]] := s^2
     >> DownValues[square]
      = {}
 
     >> UpValues[square]
-     = {HoldPattern[area[square]] :> s ^ 2}
+     = {HoldPattern[area[square[s_]]] :> s ^ 2}
 
     The symbol $f$ must appear as the ultimate head of $lhs$ or as the head of an element in $lhs$:
     >> x /: f[g[x]] = 3;
