@@ -815,7 +815,8 @@ class Definition:
         self.defaultvalues = defaultvalues
         self.builtin = builtin
         for rule in rules:
-            self.add_rule(rule)
+            if not self.add_rule(rule):
+                print(f"{rule.pattern.expr} could not be associated to {self.name}")
 
     def get_values_list(self, pos):
         assert pos.isalpha()
