@@ -1,13 +1,12 @@
 """
 This code is the LaTeX-specific part of the homegrown sphinx documentation.
-FIXME: Ditch this and hook into sphinx.
+FIXME: Ditch home-grown and lame parsing and hook into sphinx.
 """
 
 import re
 from os import getenv
 from typing import Optional
 
-from mathics import settings
 from mathics.core.evaluation import Message, Print
 from mathics.doc.common_doc import (
     CONSOLE_RE,
@@ -276,7 +275,6 @@ def escape_latex(text):
         content = content.replace(r"\$", "$")
         if tag == "con":
             return "\\console{%s}" % content
-
         return "\\begin{lstlisting}\n%s\n\\end{lstlisting}" % content
 
     text = CONSOLE_RE.sub(repl_console, text)
@@ -636,8 +634,8 @@ class LaTeXMathicsDocumentation(MathicsMainDocumentation):
     produce a the documentation in LaTeX format.
     """
 
-    def __init__(self, want_sorting=False):
-        super().__init__(want_sorting)
+    def __init__(self):
+        super().__init__()
         self.load_documentation_sources()
 
     def _set_classes(self):
@@ -657,21 +655,26 @@ class LaTeXMathicsDocumentation(MathicsMainDocumentation):
         self,
         doc_data: dict,
         quiet=False,
-        filter_parts=None,
-        filter_chapters=None,
-        filter_sections=None,
+        filter_parts: Optional[str] = None,
+        filter_chapters: Optional[str] = None,
+        filter_sections: Optional[str] = None,
     ) -> str:
         """Render self as a LaTeX string and return that.
 
         `output` is not used here but passed along to the bottom-most
         level in getting expected test results.
         """
+        seen_parts = set()
+        parts_set = None
+        if filter_parts is not None:
+            parts_set = set(filter_parts.split(","))
         parts = []
         appendix = False
         for part in self.parts:
             if filter_parts:
                 if part.title not in filter_parts:
                     continue
+            seen_parts.add(part.title)
             text = part.latex(
                 doc_data,
                 quiet,
@@ -682,16 +685,21 @@ class LaTeXMathicsDocumentation(MathicsMainDocumentation):
                 appendix = True
                 text = "\n\\appendix\n" + text
             parts.append(text)
+            if parts_set == seen_parts:
+                break
+
         result = "\n\n".join(parts)
         result = post_process_latex(result)
         return result
 
 
 class LaTeXDocChapter(DocChapter):
-    def latex(self, doc_data: dict, quiet=False, filter_sections=None) -> str:
+    def latex(
+        self, doc_data: dict, quiet=False, filter_sections: Optional[str] = None
+    ) -> str:
         """Render this Chapter object as LaTeX string and return that.
 
-        `output` is not used here but passed along to the bottom-most
+        ``output`` is not used here but passed along to the bottom-most
         level in getting expected test results.
         """
         if not quiet:
