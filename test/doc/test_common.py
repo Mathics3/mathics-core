@@ -46,9 +46,8 @@ DOCTEST_ENTRY = """
      = 4
     A private doctest with a message
     #> 1/0
-     :
-     = ComplexInfinity
-
+     : Infinite expression 1 / 0 encountered.
+     = ComplexInfinity\
 """
 
 
@@ -84,10 +83,8 @@ def test_gather_parse_docstring_to_DocumentationEntry_items():
             ),
         )
         assert isinstance(result, list)
-
-        # @mmatera this test is failing, why?
-        # assert len(list_expected_types) == len(result)
-
+        # These check that the gathered elements are the expected:
+        assert len(list_expected_types) == len(result)
         assert all([isinstance(t, cls) for t, cls in zip(result, list_expected_types)])
 
     tests = [t for t in result if isinstance(t, DocTests)]
