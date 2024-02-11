@@ -586,7 +586,15 @@ class DocSection:
         if self.installed:
             for test in self.doc.get_tests():
                 yield test
-    
+    @property
+    def parent(self):
+        return self.chapter
+
+    @parent.setter
+    def parent(self, value):
+        raise TypeError("parent is a read-only property")
+
+
 
 # DocChapter has to appear before DocGuideSection which uses it.
 class DocChapter:
@@ -1358,6 +1366,14 @@ class DocSubsection:
         if self.installed:
             for test in self.doc.get_tests():
                 yield test
+
+    @property
+    def parent(self):
+        return self.section
+
+    @parent.setter
+    def parent(self, value):
+        raise TypeError("parent is a read-only property")
 
 
 class MathicsMainDocumentation(Documentation):
