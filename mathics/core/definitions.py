@@ -722,25 +722,122 @@ class Definitions:
 
 
 def get_tag_position(pattern, name) -> Optional[str]:
+    """
+    Determine the position of a pattern in
+    the definition of the symbol ``name``
+    """
+    blanks = (
+        "System`Blank",
+        "System`BlankSequence",
+        "System`BlankNullSequence",
+    )
+
+    def strip_pattern_name_and_condition(pat):
+        """
+        In ``Pattern[name_, pattern_]`` and
+        ``Condition[pattern_, cond_]``
+        the tag is determined by pat.
+        This function strips it to ensure that
+        ``pat`` does not have that form.
+        """
+        if pat.get_head_name() == "System`Condition":
+            if len(pat.elements) > 1:
+                return strip_pattern_name_and_condition(pat.elements[0])
+        if pat.get_head_name() == "System`Pattern":
+            if len(pat.elements) == 2:
+                return strip_pattern_name_and_condition(pat.elements[1])
+        return pat
+
+    def check_is_subvalue(pattern_sv, name_sv):
+        """Determines if ``pattern`` is a subvalue of ``name``"""
+        if name_sv == pattern_sv.get_lookup_name():
+            return True
+
+        # Try again after strip Pattern and Condition wrappers:
+        head = strip_pattern_name_and_condition(pattern_sv.get_head())
+        head_name = head.get_lookup_name()
+        if name_sv == head_name:
+            return True
+        # The head is of the form ``_SymbolName|__SymbolName|___SymbolName``
+        # If name matches with SymbolName, then is a subvalue:
+        if head_name in blanks:
+            if isinstance(head, Symbol):
+                return False
+            sub_elements = head.elements
+            if len(sub_elements) == 1:
+                head_name = head.elements[0].get_name()
+                if head_name == name_sv:
+                    return True
+        return False
+
+    # If pattern is a Symbol, and coincides with
+    # name, it is an ownvalue:
+
     if pattern.get_name() == name:
         return "own"
-    elif isinstance(pattern, Atom):
+    # If pattern is an ``Atom``, does not have
+    # a position
+    if isinstance(pattern, Atom):
         return None
-    else:
-        head_name = pattern.get_head_name()
-        if head_name == name:
-            return "down"
-        elif head_name == "System`N" and len(pattern.elements) == 2:
+
+    # The pattern is an Expression.
+    head_name = pattern.get_head_name()
+    # If the name is the head name, is a downvalue:
+    if head_name == name:
+        return "down"
+
+    # Handle special cases
+    if head_name == "System`N":
+        if len(pattern.elements) == 2:
             return "n"
-        elif head_name == "System`Condition" and len(pattern.elements) > 0:
-            return get_tag_position(pattern.elements[0], name)
-        elif pattern.get_lookup_name() == name:
-            return "sub"
-        else:
-            for element in pattern.elements:
-                if element.get_lookup_name() == name:
+
+    # The pattern has the form `_SymbolName | __SymbolName | ___SymbolName`
+    # Then it only can be a downvalue
+    if head_name in blanks:
+        elements = pattern.elements
+        if len(elements) == 1:
+            head_name = elements[0].get_name()
+            return "down" if head_name == name else None
+
+    # TODO: Consider process format_values
+
+    if head_name != "":
+        # Check
+        strip_pattern = strip_pattern_name_and_condition(pattern)
+        if strip_pattern is not pattern:
+            return get_tag_position(strip_pattern, name)
+
+    # Check if ``pattern`` is a subvalue:
+
+    # The head is not a symbol. pattern is a subvalue?
+    if check_is_subvalue(pattern, name):
+        return "sub"
+
+    # If we are here, pattern is not an Ownvalue, DownValue, SubValue or NValue
+    # Let's check the elements for UpValues
+    for element in pattern.elements:
+        lookup_name = element.get_lookup_name()
+        if lookup_name == name:
+            return "up"
+
+        # Strip Pattern and Condition wrappers and check again
+        if lookup_name in (
+            "System`Condition",
+            "System`Pattern",
+        ):
+            element = strip_pattern_name_and_condition(element)
+            lookup_name = element.get_lookup_name()
+            if lookup_name == name:
+                return "up"
+        # Check if one of the elements is not a "Blank"
+
+        if element.get_head_name() in blanks:
+            sub_elements = element.elements
+            if len(sub_elements) == 1:
+                if sub_elements[0].get_name() == name:
                     return "up"
-        return None
+    # ``pattern`` does not have a tag position in the Definition
+    return None
 
 
 def insert_rule(values, rule) -> None:
