@@ -325,10 +325,25 @@ def parse_docstring_to_DocumentationEntry_items(
 ) -> list:
     """
     This parses string `doc` (using regular expressions) into Python objects.
-    test_collection_fn() is the class construtorto call to create an object for the
-    test collection. Each test is created via test_case_fn().
+    The function returns a list of ``DocText`` and ``DocTests`` objects which
+    are contained in a ``DocumentationElement``.
+
+    test_collection_constructor() is the class constructor call to create an object for the test collection.
+    Each test is created via test_case_constructor().
     Text within the test is stored via text_constructor.
     """
+    # This function is used to populate a ``DocumentEntry`` element, that
+    # in principle is not associated to any container (``DocChapter``/``DocSection``/``DocSubsection``)
+    # of the documentation system.
+    #
+    # The ``key_part`` parameter was used to set the ``key`` of the ``DocTest`` elements. This attribute
+    # should be set just after the  ``DocumentationEntry`` (to which the tests belongs) is associated
+    # to a container, by calling  ``container.set_parent_path``.
+    # However, the parameter is still used in MathicsDjango, so let's keep it and discard its value.
+    #
+    if key_part:
+        logging.warning("``key_part`` is deprecated. Its value is discarded.")
+
     # Remove commented lines.
     doc = filter_comments(doc).strip(r"\s")
 
@@ -358,7 +373,7 @@ def parse_docstring_to_DocumentationEntry_items(
             items.append(text_constructor(text))
             tests = None
         if index < len(testcases) - 1:
-            test = test_case_constructor(index, testcase, key_part)
+            test = test_case_constructor(index, testcase, None)
             if tests is None:
                 tests = test_collection_constructor()
             tests.tests.append(test)
@@ -426,10 +441,7 @@ class DocTest:
             self.ignore = False
 
         self.test = strip_sentinal(testcase[1])
-
-        self.key = None
-        if key_prefix:
-            self.key = tuple(key_prefix + (index,))
+        self._key = key_prefix + (index,) if key_prefix else None
 
         outs = testcase[2].splitlines()
         for line in outs:
@@ -463,6 +475,16 @@ class DocTest:
     def __str__(self) -> str:
         return self.test
 
+    @property
+    def key(self):
+        return self._key if hasattr(self, "_key") else None
+
+    @key.setter
+    def key(self, value):
+        assert self.key is None
+        self._key = value
+        return self._key
+
 
 # Tests has to appear before Documentation which uses it.
 # FIXME: Turn into a NamedTuple? Or combine with another class?
@@ -484,6 +506,17 @@ class Tests:
         self.section = section_name
         self.subsection = subsection_name
         self.tests = doctests
+        self._key = None
+
+    @property
+    def key(self):
+        return self._key
+
+    @key.setter
+    def key(self, value):
+        assert self._key is None
+        self._key = value
+        return self._key
 
 
 # DocSection has to appear before DocGuideSection which uses it.
@@ -522,7 +555,10 @@ class DocSection:
 
         # Needs to come after self.chapter is initialized since
         # DocumentationEntry uses self.chapter.
-        self.doc = DocumentationEntry(text, title, self)
+        # Notice that we need the documentation object, to have access
+        # to the suitable subclass of DocumentationElement.
+        documentation = self.chapter.part.doc
+        self.doc = documentation.doc_class(text, title, None).set_parent_path(self)
 
         chapter.sections_by_slug[self.slug] = self
         if MATHICS_DEBUG_DOC_BUILD:
@@ -537,6 +573,14 @@ class DocSection:
 
     def __str__(self) -> str:
         return f"    == {self.title} ==\n{self.doc}"
+
+    @property
+    def parent(self):
+        return self.chapter
+
+    @parent.setter
+    def parent(self, value):
+        raise TypeError("parent is a read-only property")
 
 
 # DocChapter has to appear before DocGuideSection which uses it.
@@ -555,6 +599,8 @@ class DocChapter:
         self.sections = []
         self.sections_by_slug = {}
         self.sort_order = None
+        if doc:
+            self.doc.set_parent_path(self)
 
         part.chapters_by_slug[self.slug] = self
 
@@ -579,6 +625,14 @@ class DocChapter:
     def all_sections(self):
         return sorted(self.sections + self.guide_sections)
 
+    @property
+    def parent(self):
+        return self.part
+
+    @parent.setter
+    def parent(self, value):
+        raise TypeError("parent is a read-only property")
+
 
 class DocGuideSection(DocSection):
     """An object for a Documented Guide Section.
@@ -595,8 +649,11 @@ class DocGuideSection(DocSection):
         submodule,
         installed: bool = True,
     ):
+        # Notice that we need the documentation object, to have access
+        # to the suitable subclass of DocumentationElement.
+        documentation = chapter.part.doc
         self.chapter = chapter
-        self.doc = DocumentationEntry(text, title, None)
+        self.doc = documentation.doc_class(text, title, None)
         self.in_guide = False
         self.installed = installed
         self.section = submodule
@@ -604,6 +661,8 @@ class DocGuideSection(DocSection):
         self.subsections = []
         self.subsections_by_slug = {}
         self.title = title
+
+        self.doc.set_parent_path(self)
 
         # FIXME: Sections never are operators. Subsections can have
         # operators though.  Fix up the view and searching code not to
@@ -1165,14 +1224,6 @@ class Documentation:
         for part in self.appendix:
             self.parts.append(part)
 
-        # Via the wanderings above, collect all tests that have been
-        # seen.
-        #
-        # Each test is accessble by its part + chapter + section and test number
-        # in that section.
-        for tests in self.get_tests():
-            for test in tests.tests:
-                test.key = (tests.part, tests.chapter, tests.section, test.index)
         return
 
     def load_part_from_file(
@@ -1247,14 +1298,17 @@ class DocSubsection:
 
         For example the Chapter "Colors" is a module so the docstring text for it is in
         mathics/builtin/colors/__init__.py . In mathics/builtin/colors/named-colors.py we have
-        the "section" name for the class Read (the subsection) inside it.
+        the "section" name for the class Red (the subsection) inside it.
         """
         title_summary_text = re.split(" -- ", title)
         n = len(title_summary_text)
+        # We need the documentation object, to have access
+        # to the suitable subclass of DocumentationElement.
+        documentation = chapter.part.doc
+
         self.title = title_summary_text[0] if n > 0 else ""
         self.summary_text = title_summary_text[1] if n > 1 else summary_text
-
-        self.doc = DocumentationEntry(text, title, section)
+        self.doc = documentation.doc_class(text, title, None)
         self.chapter = chapter
         self.in_guide = in_guide
         self.installed = installed
@@ -1264,21 +1318,21 @@ class DocSubsection:
         self.slug = slugify(title)
         self.subsections = []
         self.title = title
+        self.doc.set_parent_path(self)
 
-        if section:
-            chapter = section.chapter
-            part = chapter.part
-            # Note: we elide section.title
-            key_prefix = (part.title, chapter.title, title)
-        else:
-            key_prefix = None
-
+        # This smells wrong: Here a DocSection (a level in the documentation system)
+        # is mixed with a DocumentationEntry. `items` is an attribute of the
+        # `DocumentationEntry`, not of a Part / Chapter/ Section.
+        # The content of a subsection should be stored in self.doc,
+        # and the tests should set the rute (key) through self.doc.set_parent_doc
         if in_guide:
             # Tests haven't been picked out yet from the doc string yet.
             # Gather them here.
-            self.items = parse_docstring_to_DocumentationEntry_items(
-                text, DocTests, DocTest, DocText, key_prefix
-            )
+            self.items = self.doc.items
+
+            for item in self.items:
+                for test in item.get_tests():
+                    assert test.key is not None
         else:
             self.items = []
 
@@ -1288,11 +1342,20 @@ class DocSubsection:
                 "{} documentation".format(title)
             )
         self.section.subsections_by_slug[self.slug] = self
+
         if MATHICS_DEBUG_DOC_BUILD:
             print("          DEBUG Creating Subsection", title)
 
     def __str__(self) -> str:
         return f"=== {self.title} ===\n{self.doc}"
+
+    @property
+    def parent(self):
+        return self.section
+
+    @parent.setter
+    def parent(self, value):
+        raise TypeError("parent is a read-only property")
 
 
 class MathicsMainDocumentation(Documentation):
@@ -1404,6 +1467,7 @@ class DocumentationEntry:
     def __init__(self, doc_str: str, title: str, section: Optional[DocSection] = None):
         self._set_classes()
         self.title = title
+        self.path = None
         if section:
             chapter = section.chapter
             part = chapter.part
@@ -1418,7 +1482,7 @@ class DocumentationEntry:
             self.docTest_collection_class,
             self.docTest_class,
             self.docText_class,
-            key_prefix,
+            None,
         )
 
     def _set_classes(self):
@@ -1454,6 +1518,32 @@ class DocumentationEntry:
         for item in self.items:
             tests.extend(item.get_tests())
         return tests
+
+    def set_parent_path(self, parent):
+        """Set the parent path"""
+        self.path = None
+        path = []
+        while hasattr(parent, "parent"):
+            path = [parent.title] + path
+            parent = parent.parent
+
+        if hasattr(parent, "title"):
+            path = [parent.title] + path
+
+        if path:
+            self.path = path
+            # Set the key on each test
+            for test in self.get_tests():
+                assert test.key is None
+                # For backward compatibility, we need
+                # to reduce this to three fields.
+                # TODO: remove me and ensure that this
+                # works here and in Mathics Django
+                if len(path) > 3:
+                    path = path[:2] + [path[-1]]
+                test.key = tuple(path) + (test.index,)
+
+        return self
 
 
 # Backward compatibility

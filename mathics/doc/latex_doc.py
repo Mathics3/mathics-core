@@ -481,72 +481,7 @@ class LaTeXDocTest(DocTest):
     """
 
     def __init__(self, index, testcase, key_prefix=None):
-        def strip_sentinal(line):
-            """Remove END_LINE_SENTINAL from the end of a line if it appears.
-
-            Some editors like to strip blanks at the end of a line.
-            Since the line ends in END_LINE_SENTINAL which isn't blank,
-            any blanks that appear before will be preserved.
-
-            Some tests require some lines to be blank or entry because
-            Mathics output can be that way
-            """
-            if line.endswith(END_LINE_SENTINAL):
-                line = line[: -len(END_LINE_SENTINAL)]
-
-            # Also remove any remaining trailing blanks since that
-            # seems *also* what we want to do.
-            return line.strip()
-
-        self.index = index
-        self.result = None
-        self.outs = []
-
-        # Private test cases are executed, but NOT shown as part of the docs
-        self.private = testcase[0] == "#"
-
-        # Ignored test cases are NOT executed, but shown as part of the docs
-        # Sandboxed test cases are NOT executed if environment SANDBOX is set
-        if testcase[0] == "X" or (testcase[0] == "S" and getenv("SANDBOX", False)):
-            self.ignore = True
-            # substitute '>' again so we get the correct formatting
-            testcase[0] = ">"
-        else:
-            self.ignore = False
-
-        self.test = strip_sentinal(testcase[1])
-
-        self.key = None
-        if key_prefix:
-            self.key = tuple(key_prefix + (index,))
-        outs = testcase[2].splitlines()
-        for line in outs:
-            line = strip_sentinal(line)
-            if line:
-                if line.startswith("."):
-                    text = line[1:]
-                    if text.startswith(" "):
-                        text = text[1:]
-                    text = "\n" + text
-                    if self.result is not None:
-                        self.result += text
-                    elif self.outs:
-                        self.outs[-1].text += text
-                    continue
-
-                match = TESTCASE_OUT_RE.match(line)
-                if not match:
-                    continue
-                symbol, text = match.group(1), match.group(2)
-                text = text.strip()
-                if symbol == "=":
-                    self.result = text
-                elif symbol == ":":
-                    out = Message("", "", text)
-                    self.outs.append(out)
-                elif symbol == "|":
-                    out = Print(text)
-                    self.outs.append(out)
+        super().__init__(index, testcase, key_prefix)
 
     def __str__(self):
         return self.test
@@ -769,27 +704,9 @@ class LaTeXDocSection(DocSection):
         in_guide=False,
         summary_text="",
     ):
-        self.chapter = chapter
-        self.in_guide = in_guide
-        self.installed = installed
-        self.operator = operator
-        self.slug = slugify(title)
-        self.subsections = []
-        self.subsections_by_slug = {}
-        self.summary_text = summary_text
-        self.title = title
-
-        if text.count("<dl>") != text.count("</dl>"):
-            raise ValueError(
-                "Missing opening or closing <dl> tag in "
-                "{} documentation".format(title)
-            )
-
-        # Needs to come after self.chapter is initialized since
-        # DocumentationEntry uses self.chapter.
-        self.doc = LaTeXDocumentationEntry(text, title, self)
-
-        chapter.sections_by_slug[self.slug] = self
+        super().__init__(
+            chapter, title, text, operator, installed, in_guide, summary_text
+        )
 
     def latex(self, doc_data: dict, quiet=False) -> str:
         """Render this Section object as LaTeX string and return that.
@@ -839,7 +756,6 @@ class LaTeXDocGuideSection(DocGuideSection):
         installed: bool = True,
     ):
         super().__init__(chapter, title, text, submodule, installed)
-        self.doc = LaTeXDocumentationEntry(text, title, self)
 
     def get_tests(self):
         # FIXME: The below is a little weird for Guide Sections.
@@ -916,23 +832,6 @@ class LaTeXDocSubsection(DocSubsection):
         super().__init__(
             chapter, section, title, text, operator, installed, in_guide, summary_text
         )
-        self.doc = LaTeXDocumentationEntry(text, title, section)
-
-        if in_guide:
-            # Tests haven't been picked out yet from the doc string yet.
-            # Gather them here.
-            self.items = parse_docstring_to_DocumentationEntry_items(
-                text, LaTeXDocTests, LaTeXDocTest, LaTeXDocText
-            )
-        else:
-            self.items = []
-
-        if text.count("<dl>") != text.count("</dl>"):
-            raise ValueError(
-                "Missing opening or closing <dl> tag in "
-                "{} documentation".format(title)
-            )
-        self.section.subsections_by_slug[self.slug] = self
 
     def latex(self, doc_data: dict, quiet=False, chapters=None) -> str:
         """Render this Subsection object as LaTeX string and return that.

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# FIXME: combine with same thing in Django
+# FIXME: combine with same thing in Mathics Django
 """
 Does 2 things which can either be done independently or
 as a pipeline:
@@ -43,11 +43,6 @@ class TestOutput(Output):
 
 
 # Global variables
-definitions = None
-documentation = None
-check_partial_elapsed_time = False
-logfile = None
-
 
 # FIXME: After 3.8 is the minimum Python we can turn "str" into a Literal
 SEP: str = "-" * 70 + "\n"
@@ -57,7 +52,6 @@ DEFINITIONS = None
 DOCUMENTATION = None
 CHECK_PARTIAL_ELAPSED_TIME = False
 LOGFILE = None
-
 
 MAX_TESTS = 100000  # A number greater than the total number of tests.
 
@@ -72,7 +66,6 @@ def doctest_compare(result: Optional[str], wanted: Optional[str]) -> bool:
 
     if result is None or wanted is None:
         return False
-
     result_list = result.splitlines()
     wanted_list = wanted.splitlines()
     if result_list == [] and wanted_list == ["#<--#"]:
@@ -107,7 +100,8 @@ def test_case(
 
     The test results are assumed to be foramtted to ASCII text.
     """
-
+    assert isinstance(index, int)
+    assert isinstance(subindex, int)
     global CHECK_PARTIAL_ELAPSED_TIME
     test_str, wanted_out, wanted = test.test, test.outs, test.result
 
@@ -158,7 +152,6 @@ def test_case(
 
     if CHECK_PARTIAL_ELAPSED_TIME:
         print("   comparison took ", datetime.now() - time_comparing)
-
     if not comparison_result:
         print("result != wanted")
         fail_msg = f"Result: {result}\nWanted: {wanted}"
@@ -191,11 +184,16 @@ def test_case(
 
 
 def create_output(tests, doctest_data, output_format="latex"):
+    """
+    Populate ``doctest_data`` with the results of the
+    ``tests`` in the format ``output_format``
+    """
     if DEFINITIONS is None:
         print_and_log(LOGFILE, "Definitions are not initialized.")
         return
 
     DEFINITIONS.reset_user_definitions()
+
     for test in tests:
         if test.private:
             continue
@@ -257,6 +255,10 @@ def show_test_summary(
     return
 
 
+#
+#  TODO: Split and simplify this section
+#
+#
 def test_section_in_chapter(
     section: Union[DocSection, DocGuideSection],
     total: int,
@@ -480,9 +482,14 @@ def test_tests(
 
     """
 
-    total = index = failed = skipped = 0
+    total = failed = skipped = 0
     prev_key = []
     failed_symbols = set()
+
+    # For consistency set the character encoding ASCII which is
+    # the lowest common denominator available on all systems.
+    settings.SYSTEM_CHARACTER_ENCODING = "ASCII"
+    DEFINITIONS.reset_user_definitions()
 
     output_data, names = validate_group_setup(
         set(),
@@ -532,6 +539,88 @@ def test_tests(
 
     if generate_output and (failed == 0 or keep_going):
         save_doctest_data(output_data)
+
+    return total, failed, skipped, failed_symbols, index
+
+
+def test_tests_old(
+    tests,
+    index: int,
+    quiet: bool = False,
+    stop_on_failure: bool = False,
+    start_at: int = 0,
+    max_tests: int = MAX_TESTS,
+    excludes: Set[str] = set(),
+    generate_output: bool = False,
+    reload: bool = False,
+    keep_going: bool = False,
+) -> Tuple[int, int, int, set, int]:
+    """
+    Runs a group of related tests, ``Tests`` provided that the section is not listed in ``excludes`` and
+    the global test count given in ``index`` is not before ``start_at``.
+
+    Tests are from a section or subsection (when the section is a guide section),
+
+    If ``quiet`` is True, the progress and results of the tests are shown.
+
+    ``index`` has the current count. We will stop on the first failure if ``stop_on_failure`` is true.
+
+    """
+
+    total = failed = skipped = 0
+    prev_key = []
+    failed_symbols = set()
+
+    # For consistency set the character encoding ASCII which is
+    # the lowest common denominator available on all systems.
+    settings.SYSTEM_CHARACTER_ENCODING = "ASCII"
+    DEFINITIONS.reset_user_definitions()
+
+    output_data, names = validate_group_setup(
+        set(),
+        None,
+        reload,
+    )
+    if (output_data, names) == INVALID_TEST_GROUP_SETUP:
+        return total, failed, skipped, failed_symbols, index
+
+    section = tests.section
+    if section in excludes:
+        return total, failed, len(tests.tests), failed_symbols, index
+    count = 0
+    print(STARS, tests.chapter, "/", section, STARS)
+    for subindex, test in enumerate(tests.tests):
+        index += 1
+        if test.ignore:
+            continue
+        if index < start_at:
+            skipped += 1
+            continue
+        elif count >= max_tests:
+            break
+
+        total += 1
+        count += 1
+        if not test_case(test, index, subindex + 1, quiet, section):
+            failed += 1
+            failed_symbols.add((tests.part, tests.chapter, tests.section))
+            if stop_on_failure:
+                break
+
+        section = None
+
+    # show_test_summary(
+    #    total,
+    #    failed,
+    #    "chapters",
+    #    names,
+    #    keep_going,
+    #    generate_output,
+    #    output_data,
+    # )
+
+    # if generate_output and (failed == 0 or keep_going):
+    #    save_doctest_data(output_data)
     return total, failed, skipped, failed_symbols, index
 
 
@@ -554,6 +643,7 @@ def test_chapters(
     fails.
     """
     failed = total = 0
+    index = 0
 
     output_data, chapter_names = validate_group_setup(
         include_chapters, "chapters", reload
@@ -590,11 +680,10 @@ def test_chapters(
                     create_output(section.doc.get_tests(), output_data)
                     pass
                 pass
-
+            # Shortcut: if we already pass through all the
+            # include_chapters, break the loop
             if seen_chapters == include_chapters:
                 break
-            if chapter_name in include_chapters:
-                seen_chapters.add(chapter_name)
             pass
 
     show_test_summary(
@@ -671,7 +760,6 @@ def test_sections(
                         seen_sections.add(section_name_for_finish)
                     last_section_name = section_name_for_finish
                 pass
-
                 if seen_last_section:
                     break
                 pass
@@ -688,7 +776,7 @@ def test_sections(
     return total
 
 
-def test_all(
+def test_all_new(
     quiet=False,
     generate_output=True,
     stop_on_failure=False,
@@ -770,6 +858,91 @@ def test_all(
     return total
 
 
+def test_all(
+    quiet: bool = False,
+    generate_output: bool = True,
+    stop_on_failure: bool = False,
+    start_at: int = 0,
+    max_tests: int = MAX_TESTS,
+    texdatafolder=None,
+    doc_even_if_error: bool = False,
+    excludes: Set[str] = set(),
+) -> int:
+    if not quiet:
+        print(f"Testing {version_string}")
+
+    if generate_output:
+        if texdatafolder is None:
+            texdatafolder = osp.dirname(
+                settings.get_doctest_latex_data_path(
+                    should_be_readable=False, create_parent=True
+                )
+            )
+    total = failed = skipped = 0
+    try:
+        index = 0
+        failed_symbols = set()
+        output_data = {}
+        for tests in DOCUMENTATION.get_tests():
+            sub_total, sub_failed, sub_skipped, symbols, index = test_tests_old(
+                tests,
+                index,
+                quiet=quiet,
+                stop_on_failure=stop_on_failure,
+                start_at=start_at,
+                max_tests=max_tests,
+                excludes=excludes,
+            )
+            if generate_output:
+                create_output(tests.tests, output_data)
+            total += sub_total
+            failed += sub_failed
+            skipped += sub_skipped
+            failed_symbols.update(symbols)
+            if sub_failed and stop_on_failure:
+                break
+            if total >= max_tests:
+                break
+        builtin_total = len(_builtins)
+    except KeyboardInterrupt:
+        print("\nAborted.\n")
+        return total
+
+    if failed > 0:
+        print(SEP)
+    if max_tests == MAX_TESTS:
+        print_and_log(
+            LOGFILE,
+            f"{total} Tests for {builtin_total} built-in symbols, {total-failed} "
+            f"passed, {failed} failed, {skipped} skipped.",
+        )
+    else:
+        print_and_log(
+            LOGFILE,
+            f"{total} Tests, {total - failed} passed, {failed} failed, {skipped} "
+            "skipped.",
+        )
+    if failed_symbols:
+        if stop_on_failure:
+            print_and_log(
+                LOGFILE, "(not all tests are accounted for due to --stop-on-failure)"
+            )
+        print_and_log(LOGFILE, "Failed:")
+        for part, chapter, section in sorted(failed_symbols):
+            print_and_log(LOGFILE, f"  - {section} in {part} / {chapter}")
+
+    if generate_output and (failed == 0 or doc_even_if_error):
+        save_doctest_data(output_data)
+        return total
+
+    if failed == 0:
+        print("\nOK")
+    else:
+        print("\nFAILED")
+        sys.exit(1)  # Travis-CI knows the tests have failed
+    return total
+
+
 def save_doctest_data(output_data: Dict[tuple, dict]):
     """
     Save doctest tests and test results to a Python PCL file.
@@ -810,7 +983,7 @@ def write_doctest_data(quiet=False, reload=False):
     try:
         output_data = load_doctest_data() if reload else {}
         for tests in DOCUMENTATION.get_tests():
-            create_output(tests, output_data)
+            create_output(tests.tests, output_data)
     except KeyboardInterrupt:
         print("\nAborted.\n")
         return
@@ -972,7 +1145,6 @@ def main():
     if args.sections:
         include_sections = set(args.sections.split(","))
 
-        start_time = datetime.now()
         total = test_sections(
             include_sections,
             stop_on_failure=args.stop_on_failure,
