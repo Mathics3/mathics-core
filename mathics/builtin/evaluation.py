@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+"""Evaluation Control
+
+
+Mathics3 takes an expression that it is given, and evaluates it. Built \
+into the evaluation are primitives that allow finer control over the \
+process of evaluation in cases where it is needed.
+"""
+
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
 from mathics.core.builtin import Builtin, Predefined
