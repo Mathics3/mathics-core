@@ -17,7 +17,7 @@ all doc texdoc: mathics.pdf
 
 #: Create internal Document Data from .mdoc and Python builtin module docstrings
 doc-data $(DOCTEST_LATEX_DATA_PCL):
-	(cd ../.. && MATHICS_CHARACTER_ENCODING="UTF-8" $(PYTHON) docpipeline.py --output --keep-going --want-sorting $(MATHICS3_MODULE_OPTION))
+	(cd ../.. && MATHICS_CHARACTER_ENCODING="UTF-8" $(PYTHON) docpipeline.py --output --keep-going $(MATHICS3_MODULE_OPTION))
 
 #: Build mathics PDF
 mathics.pdf: mathics.tex documentation.tex logo-text-nodrop.pdf logo-heptatom.pdf version-info.tex $(DOCTEST_LATEX_DATA_PCL)

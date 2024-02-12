@@ -1,4 +1,4 @@
-name: Mathics3  (Windows) 
+name: Mathics3 (Windows)
 
 on:
   push:
@@ -27,7 +27,7 @@ jobs:
         # so we will be safe here. Another possibility would be check and install
         # conditionally.
         choco install --force llvm
-        choco install tesseract
+        # choco install tesseract
         set LLVM_DIR="C:\Program Files\LLVM"
     - name: Install Mathics3 with Python dependencies
       run: |

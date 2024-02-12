@@ -1,14 +1,7 @@
-# -*- coding: utf-8 -*-
-
-
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
 from mathics.core.builtin import Builtin, Predefined
-from mathics.core.evaluation import (
-    MAX_RECURSION_DEPTH,
-    Evaluation,
-    set_python_recursion_limit,
-)
+from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 
 
 class RecursionLimit(Predefined):
@@ -303,38 +296,3 @@ class Sequence(Builtin):
     summary_text = (
         "a sequence of arguments that will automatically be spliced into any function"
     )
-
-
-class Quit(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Quit.html</url>
-
-    <dl>
-      <dt>'Quit'[]
-      <dd> Terminates the Mathics session.
-
-      <dt>'Quit[$n$]'
-      <dd> Terminates the mathics session with exit code $n$.
-    </dl>
-
-    <dl>
-      <dt>'Exit'[]
-      <dd> Terminates the Mathics session.
-
-      <dt>'Exit[$n$]'
-      <dd> Terminates the mathics session with exit code $n$.
-    </dl>
-
-    """
-
-    rules = {
-        "Exit[n___]": "Quit[n]",
-    }
-    summary_text = "terminate the session"
-
-    def eval(self, evaluation: Evaluation, n):
-        "%(name)s[n___]"
-        exitcode = 0
-        if isinstance(n, Integer):
-            exitcode = n.get_int_value()
-        raise SystemExit(exitcode)
