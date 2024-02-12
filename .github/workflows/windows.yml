@@ -1,4 +1,4 @@
-name: Mathics3 (Windows)
+name: Mathics3  (Windows) 
 
 on:
   push:
