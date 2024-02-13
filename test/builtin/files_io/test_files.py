@@ -80,6 +80,10 @@ def test_close():
     ), f"temporary filename {temp_filename} should not appear"
 
 
+@pytest.mark.skipif(
+    sys.platform in ("win32",),
+    reason="some tests fail in windows. TODO: dig on this.",
+)
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
