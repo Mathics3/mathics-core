@@ -48,7 +48,7 @@ jobs:
         pip install -e .[dev]
         set PYTEST_WORKERS="-n1"
         # Until we can't figure out what's up with TextRecognize:
-        make pytest-windows
+        make pytest
         make gstest
         make doctest o="--exclude TextRecognize"
         # make check
