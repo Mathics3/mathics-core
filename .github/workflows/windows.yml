@@ -53,7 +53,7 @@ jobs:
         pytest test/builtin
         pytest test/format
         pytest test/core
-	pytest test/test_*.py
+        pytest test/test_*.py
         make gstest
         make doctest o="--exclude TextRecognize"
         # make check
