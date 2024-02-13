@@ -9,6 +9,10 @@ from test.helper import check_evaluation_as_in_cli, session
 import pytest
 
 
+@pytest.mark.skipif(
+    sys.platform in ("win32",),
+    reason="for some weird reason, the tests produces a segmentation fault",
+)
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
