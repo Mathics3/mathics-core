@@ -2,8 +2,7 @@
 """
 Unit tests from mathics.builtin.evaluation.
 """
-
-
+import sys
 from test.helper import check_evaluation_as_in_cli, session
 
 import pytest
