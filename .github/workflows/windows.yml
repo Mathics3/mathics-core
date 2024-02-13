@@ -48,10 +48,11 @@ jobs:
         pip install -e .[dev]
         set PYTEST_WORKERS="-n1"
         # Until we can't figure out what's up with TextRecognize:
-        MATHICS_CHARACTER_ENCODING="ASCII" pytest test/eval
-        MATHICS_CHARACTER_ENCODING="ASCII" pytest test/builtin
-        MATHICS_CHARACTER_ENCODING="ASCII" pytest test/format
-        MATHICS_CHARACTER_ENCODING="ASCII" pytest test/core
+	set MATHICS_CHARACTER_ENCODING="ASCII" 
+        pytest test/eval
+        pytest test/builtin
+        pytest test/format
+        pytest test/core
         make gstest
         make doctest o="--exclude TextRecognize"
         # make check
