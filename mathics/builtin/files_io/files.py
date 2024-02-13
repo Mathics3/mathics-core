@@ -61,6 +61,11 @@ SymbolPath = Symbol("$Path")
 # ## it can be moved somewhere else.
 
 
+def set_input_var(input_string):
+    global INPUT_VAR
+    INPUT_VAR = input_string
+
+
 class Input_(Predefined):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Input_.html</url>
@@ -387,54 +392,75 @@ class Get(PrefixOperator):
     def eval(self, path, evaluation: Evaluation, options: dict):
         "Get[path_String, OptionsPattern[Get]]"
 
-        def check_options(options):
-            # Options
-            # TODO Proper error messages
+        def eval_inner(self, path, evaluation: Evaluation, options: dict):
+            def check_options(options):
+                # Options
+                # TODO Proper error messages
 
-            result = {}
-            trace_get = evaluation.parse("Settings`$TraceGet")
-            if (
-                options["System`Trace"].to_python()
-                or trace_get.evaluate(evaluation) is SymbolTrue
-            ):
-                import builtins
+                result = {}
+                trace_get = evaluation.parse("Settings`$TraceGet")
+                if (
+                    options["System`Trace"].to_python()
+                    or trace_get.evaluate(evaluation) is SymbolTrue
+                ):
+                    import builtins
 
-                result["TraceFn"] = builtins.print
-            else:
-                result["TraceFn"] = None
+                    result["TraceFn"] = builtins.print
+                else:
+                    result["TraceFn"] = None
 
+                return result
+
+            py_options = check_options(options)
+            trace_fn = py_options["TraceFn"]
+            result = None
+            pypath = path.get_string_value()
+            definitions = evaluation.definitions
+            mathics.core.streams.PATH_VAR = SymbolPath.evaluate(evaluation).to_python(
+                string_quotes=False
+            )
+            try:
+                if trace_fn:
+                    trace_fn(pypath)
+                with MathicsOpen(pypath, "r") as f:
+                    feeder = MathicsFileLineFeeder(f, trace_fn)
+                    while not feeder.empty():
+                        try:
+                            query = parse(definitions, feeder)
+                        except TranslateError:
+                            return SymbolNull
+                        finally:
+                            feeder.send_messages(evaluation)
+                        if query is None:  # blank line / comment
+                            continue
+                        result = query.evaluate(evaluation)
+            except IOError:
+                evaluation.message("General", "noopen", path)
+                return SymbolFailed
+            except MessageException as e:
+                e.message(evaluation)
+                return SymbolFailed
             return result
 
-        py_options = check_options(options)
-        trace_fn = py_options["TraceFn"]
-        result = None
-        pypath = path.get_string_value()
+        # wrap actual evaluation to handle setting $Input
+        # and $InputFileName
+        global INPUT_VAR
         definitions = evaluation.definitions
-        mathics.core.streams.PATH_VAR = SymbolPath.evaluate(evaluation).to_python(
-            string_quotes=False
-        )
+        # store input paths of calling context
+        outer_input_var = INPUT_VAR
+        outer_inputfile = definitions.get_inputfile()
+        # set new input paths
+        pypath = path.get_string_value()
+        INPUT_VAR = pypath
+        definitions.set_inputfile(pypath)
+
+        # perform the actual evaluation
         try:
-            if trace_fn:
-                trace_fn(pypath)
-            with MathicsOpen(pypath, "r") as f:
-                feeder = MathicsFileLineFeeder(f, trace_fn)
-                while not feeder.empty():
-                    try:
-                        query = parse(definitions, feeder)
-                    except TranslateError:
-                        return SymbolNull
-                    finally:
-                        feeder.send_messages(evaluation)
-                    if query is None:  # blank line / comment
-                        continue
-                    result = query.evaluate(evaluation)
-        except IOError:
-            evaluation.message("General", "noopen", path)
-            return SymbolFailed
-        except MessageException as e:
-            e.message(evaluation)
-            return SymbolFailed
-        return result
+            return eval_inner(self, path, evaluation, options)
+        finally:
+            # always restore input paths of calling context
+            INPUT_VAR = outer_input_var
+            definitions.set_inputfile(outer_inputfile)
 
     def eval_default(self, filename, evaluation):
         "Get[filename_]"

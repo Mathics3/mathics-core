@@ -264,7 +264,7 @@ class Definitions:
         self.clear_cache()
 
     def set_inputfile(self, dir) -> None:
-        self.inputfile = dir
+        self.inputfile = os.path.abspath(dir)
 
     def get_builtin_names(self):
         return set(self.builtin)

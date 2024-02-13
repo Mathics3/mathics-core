@@ -19,6 +19,7 @@ import subprocess
 import sys
 
 from mathics import __version__, license_string, settings, version_string
+from mathics.builtin.files_io.files import set_input_var
 from mathics.builtin.trace import TraceBuiltins, traced_do_replace
 from mathics.core.atoms import String
 from mathics.core.definitions import Definitions, Symbol, autoload_files
@@ -423,6 +424,7 @@ Please contribute to Mathics!""",
         definitions.set_line_no(0)
 
     if args.FILE is not None:
+        set_input_var(args.FILE.name)
         definitions.set_inputfile(args.FILE.name)
         feeder = MathicsFileLineFeeder(args.FILE)
         try:
