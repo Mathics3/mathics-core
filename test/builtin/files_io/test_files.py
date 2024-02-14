@@ -37,6 +37,16 @@ def test_get_and_put():
     check_evaluation(f"DeleteFile[{temp_filename}]", "Null")
 
 
+def test_get():
+    # Check that $InputFileName sets filename inside Get[]unction with Get[]
+    script_path = osp.normpath(
+        osp.join(
+            osp.dirname(osp.abspath(__file__)), "..", "..", "data", "inputfile-bug.m"
+        )
+    )
+    check_evaluation(f'Get["{script_path}"]', script_path, hold_expected=True)
+
+
 @pytest.mark.skipif(
     sys.platform in ("win32",), reason="$Path does not work on Windows?"
 )

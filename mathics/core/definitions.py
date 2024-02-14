@@ -244,7 +244,7 @@ class Definitions:
     def get_context_path(self):
         return self.context_path
 
-    def get_inputfile(self):
+    def get_inputfile(self) -> str:
         return self.inputfile if hasattr(self, "inputfile") else ""
 
     def set_current_context(self, context) -> None:
@@ -263,7 +263,7 @@ class Definitions:
         self.context_path = context_path
         self.clear_cache()
 
-    def set_inputfile(self, dir) -> None:
+    def set_inputfile(self, dir: str) -> None:
         self.inputfile = os.path.abspath(dir)
 
     def get_builtin_names(self):

@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 
 """
 File and Stream Operations
 """
 
+import builtins
 import io
 import os.path as osp
 import tempfile
 from io import BytesIO
 
-from mathics_scanner import TranslateError
-
-import mathics
-import mathics.eval.files_io.files as eval_files
 from mathics.core.atoms import Integer, String, SymbolString
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import (
@@ -27,7 +23,6 @@ from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
-from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.read import (
     READ_TYPES,
     MathicsOpen,
@@ -48,9 +43,8 @@ from mathics.core.systemsymbols import (
     SymbolReal,
 )
 from mathics.eval.directories import TMP_DIR
+from mathics.eval.files_io.files import INPUT_VAR, eval_Get
 from mathics.eval.makeboxes import do_format, format_element
-
-INPUT_VAR = ""
 
 SymbolInputStream = Symbol("InputStream")
 SymbolOutputStream = Symbol("OutputStream")
@@ -59,11 +53,6 @@ SymbolOutputStream = Symbol("OutputStream")
 
 # ## FIXME: All of this is related to Read[]
 # ## it can be moved somewhere else.
-
-
-def set_input_var(input_string):
-    global INPUT_VAR
-    INPUT_VAR = input_string
 
 
 class Input_(Predefined):
@@ -83,8 +72,7 @@ class Input_(Predefined):
     name = "$Input"
     summary_text = "the name of the current input stream"
 
-    def evaluate(self, evaluation):
-        global INPUT_VAR
+    def evaluate(self, evaluation: Evaluation) -> String:
         return String(INPUT_VAR)
 
 
@@ -389,30 +377,21 @@ class Get(PrefixOperator):
     precedence = 720
     summary_text = "read in a file and evaluate commands in it"
 
-    def eval(self, path, evaluation: Evaluation, options: dict):
+    def eval(self, path: String, evaluation: Evaluation, options: dict):
         "Get[path_String, OptionsPattern[Get]]"
 
-        # wrap actual evaluation to handle setting $Input
-        # and $InputFileName
-        global INPUT_VAR
-        definitions = evaluation.definitions
-        # store input paths of calling context
-        outer_input_var = INPUT_VAR
-        outer_inputfile = definitions.get_inputfile()
-        # set new input paths
-        pypath = path.get_string_value()
-        INPUT_VAR = pypath
-        definitions.set_inputfile(pypath)
+        trace_fn = None
+        trace_get = evaluation.parse("Settings`$TraceGet")
+        if (
+            options["System`Trace"].to_python()
+            or trace_get.evaluate(evaluation) is SymbolTrue
+        ):
+            trace_fn = builtins.print
 
         # perform the actual evaluation
-        try:
-            return eval_files.eval_Get_inner(self, path, evaluation, options)
-        finally:
-            # always restore input paths of calling context
-            INPUT_VAR = outer_input_var
-            definitions.set_inputfile(outer_inputfile)
+        return eval_Get(path.value, evaluation, trace_fn)
 
-    def eval_default(self, filename, evaluation):
+    def eval_default(self, filename, evaluation: Evaluation):
         "Get[filename_]"
         expr = to_expression("Get", filename)
         evaluation.message("General", "stream", filename)

@@ -19,7 +19,6 @@ import subprocess
 import sys
 
 from mathics import __version__, license_string, settings, version_string
-from mathics.builtin.files_io.files import set_input_var
 from mathics.builtin.trace import TraceBuiltins, traced_do_replace
 from mathics.core.atoms import String
 from mathics.core.definitions import Definitions, Symbol, autoload_files
@@ -31,6 +30,7 @@ from mathics.core.read import channel_to_stream
 from mathics.core.rules import BuiltinRule
 from mathics.core.streams import stream_manager
 from mathics.core.symbols import SymbolNull, strip_context
+from mathics.eval.files_io.files import set_input_var
 from mathics.timing import show_lru_cache_statistics
 
 # from mathics.timing import TimeitContextManager

@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
-
 """
 files-related evaluation functions
 """
 
-import os.path as osp
+from typing import Callable, Optional
 
 from mathics_scanner import TranslateError
 
@@ -14,50 +12,48 @@ from mathics.core.builtin import MessageException
 from mathics.core.evaluation import Evaluation
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.read import MathicsOpen
-from mathics.core.symbols import Symbol, SymbolFullForm, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolFailed,
-    SymbolHold,
-    SymbolInputForm,
-    SymbolOutputForm,
-    SymbolReal,
-)
+from mathics.core.symbols import SymbolNull
+from mathics.core.systemsymbols import SymbolFailed, SymbolPath
 
-SymbolPath = Symbol("$Path")
+# Python representation of $InputFileName
+INPUT_VAR: str = ""
 
 
-# Reads a file and evaluates each expression, returning only the last one.
-def eval_Get_inner(self, path, evaluation: Evaluation, options: dict):
-    def check_options(options):
-        # Options
-        # TODO Proper error messages
+def set_input_var(input_string: str):
+    """
+    Allow INPUT_VAR to get set, e.g. from main program.
+    """
+    global INPUT_VAR
+    INPUT_VAR = input_string
 
-        result = {}
-        trace_get = evaluation.parse("Settings`$TraceGet")
-        if (
-            options["System`Trace"].to_python()
-            or trace_get.evaluate(evaluation) is SymbolTrue
-        ):
-            import builtins
 
-            result["TraceFn"] = builtins.print
-        else:
-            result["TraceFn"] = None
+def eval_Get(path: str, evaluation: Evaluation, trace_fn: Optional[Callable]):
+    """
+    Reads a file and evaluates each expression, returning only the last one.
+    """
 
-        return result
-
-    py_options = check_options(options)
-    trace_fn = py_options["TraceFn"]
     result = None
-    pypath = path.get_string_value()
     definitions = evaluation.definitions
+
+    # Wrap actual evaluation to handle setting $Input
+    # and $InputFileName
+    # store input paths of calling context
+
+    global INPUT_VAR
+    outer_input_var = INPUT_VAR
+    outer_inputfile = definitions.get_inputfile()
+
+    # set new input paths
+    INPUT_VAR = path
+    definitions.set_inputfile(INPUT_VAR)
+
     mathics.core.streams.PATH_VAR = SymbolPath.evaluate(evaluation).to_python(
         string_quotes=False
     )
+    if trace_fn is not None:
+        trace_fn(path)
     try:
-        if trace_fn:
-            trace_fn(pypath)
-        with MathicsOpen(pypath, "r") as f:
+        with MathicsOpen(path, "r") as f:
             feeder = MathicsFileLineFeeder(f, trace_fn)
             while not feeder.empty():
                 try:
@@ -75,4 +71,8 @@ def eval_Get_inner(self, path, evaluation: Evaluation, options: dict):
     except MessageException as e:
         e.message(evaluation)
         return SymbolFailed
+    finally:
+        # Always restore input paths of calling context.
+        INPUT_VAR = outer_input_var
+        definitions.set_inputfile(outer_inputfile)
     return result
