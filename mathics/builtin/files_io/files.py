@@ -10,6 +10,7 @@ import os.path as osp
 import tempfile
 from io import BytesIO
 
+import mathics.eval.files_io.files
 from mathics.core.atoms import Integer, String, SymbolString
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import (
@@ -39,15 +40,14 @@ from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolHold,
     SymbolInputForm,
+    SymbolInputStream,
     SymbolOutputForm,
+    SymbolOutputStream,
     SymbolReal,
 )
 from mathics.eval.directories import TMP_DIR
-from mathics.eval.files_io.files import INPUT_VAR, eval_Get
+from mathics.eval.files_io.files import eval_Get
 from mathics.eval.makeboxes import do_format, format_element
-
-SymbolInputStream = Symbol("InputStream")
-SymbolOutputStream = Symbol("OutputStream")
 
 # TODO: Improve docs for these Read[] arguments.
 
@@ -57,7 +57,7 @@ SymbolOutputStream = Symbol("OutputStream")
 
 class Input_(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Input_.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$Input.html</url>
 
     <dl>
       <dt>'$Input'
@@ -73,7 +73,7 @@ class Input_(Predefined):
     summary_text = "the name of the current input stream"
 
     def evaluate(self, evaluation: Evaluation) -> String:
-        return String(INPUT_VAR)
+        return String(mathics.eval.files_io.files.INPUT_VAR)
 
 
 class _OpenAction(Builtin):
@@ -97,6 +97,8 @@ class _OpenAction(Builtin):
             "File specification `1` is not a string of " "one or more characters."
         ),
     }
+
+    mode = "r"  # A default; this is changed in subclassing.
 
     def eval_empty(self, evaluation: Evaluation, options: dict):
         "%(name)s[OptionsPattern[]]"
@@ -203,9 +205,10 @@ class Close(Builtin):
         "closex": "`1`.",
     }
 
-    def eval(self, channel, evaluation):
+    def eval(self, channel, evaluation: Evaluation):
         "Close[channel_]"
 
+        n = name = None
         if channel.has_form(("InputStream", "OutputStream"), 2):
             [name, n] = channel.elements
             py_n = n.get_int_value()
@@ -289,7 +292,7 @@ class FilePrint(Builtin):
         ):
             evaluation.message("FilePrint", "fstr", path)
             return
-        pypath, is_temporary_file = path_search(pypath[1:-1])
+        pypath, _ = path_search(pypath[1:-1])
 
         # Options
         record_separators = options["System`RecordSeparators"].to_python()
