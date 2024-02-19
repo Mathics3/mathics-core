@@ -37,12 +37,25 @@ def test_get_and_put():
     check_evaluation(f"DeleteFile[{temp_filename}]", "Null")
 
 
+def test_get_input():
+    # Check that $InputFileName and $Input are set inside running a Get[].
+    script_path = osp.normpath(
+        osp.join(osp.dirname(__file__), "..", "..", "data", "inputfile-bug.m")
+    )
+    check_evaluation(f'Get["{script_path}"]', script_path, hold_expected=True)
+
+    script_path = osp.normpath(
+        osp.join(osp.dirname(__file__), "..", "..", "data", "input-bug.m")
+    )
+    check_evaluation(f'Get["{script_path}"]', script_path, hold_expected=True)
+
+
 @pytest.mark.skipif(
     sys.platform in ("win32",), reason="$Path does not work on Windows?"
 )
 def test_get_path_search():
     # Check that AppendTo[$Path] works in conjunction with Get[]
-    dirname = osp.join(osp.dirname(osp.abspath(__file__)), "..", "..", "data")
+    dirname = osp.normpath(osp.join(osp.dirname(__file__), "..", "..", "data"))
     evaled = evaluate(f"""AppendTo[$Path, "{dirname}"]""")
     assert evaled.has_form("List", 1, None)
     check_evaluation('Get["fortytwo.m"]', "42")
