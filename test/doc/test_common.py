@@ -15,7 +15,6 @@ from mathics.doc.common_doc import (
     Documentation,
     DocumentationEntry,
     MathicsMainDocumentation,
-    Tests,
     parse_docstring_to_DocumentationEntry_items,
 )
 from mathics.settings import DOC_DIR
@@ -46,15 +45,14 @@ DOCTEST_ENTRY = """
     #> 2+2
      = 4
     A private doctest with a message
-    #> 1/0 
-     : 
-     = ComplexInfinity
-
+    #> 1/0
+     : Infinite expression 1 / 0 encountered.
+     = ComplexInfinity\
 """
 
 
-def test_gather_tests():
-    """Check the behavioir of gather_tests"""
+def test_gather_parse_docstring_to_DocumentationEntry_items():
+    """Check the behavior of parse_docstring_to_DocumentationEntry_items"""
 
     base_expected_types = [DocText, DocTests] * 5
     cases = [
@@ -72,9 +70,9 @@ def test_gather_tests():
         ),
     ]
 
-    for case, list_expected_types in cases:
+    for test_case, list_expected_types in cases:
         result = parse_docstring_to_DocumentationEntry_items(
-            case,
+            test_case,
             DocTests,
             DocTest,
             DocText,
@@ -85,6 +83,7 @@ def test_gather_tests():
             ),
         )
         assert isinstance(result, list)
+        # These check that the gathered elements are the expected:
         assert len(list_expected_types) == len(result)
         assert all([isinstance(t, cls) for t, cls in zip(result, list_expected_types)])
 
