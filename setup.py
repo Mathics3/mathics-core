@@ -39,6 +39,7 @@ is_PyPy = platform.python_implementation() == "PyPy" or hasattr(
     sys, "pypy_version_info"
 )
 
+
 def get_srcdir():
     filename = osp.normcase(osp.dirname(osp.abspath(__file__)))
     return osp.realpath(filename)
