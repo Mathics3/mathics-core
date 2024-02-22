@@ -300,6 +300,8 @@ class ParentDirectory(Builtin):
 
     def eval(self, path, evaluation):
         "ParentDirectory[path_]"
+        if sys.platform in ("win32",):
+            print("eval ParentDirectory")
 
         if not isinstance(path, String):
             evaluation.message("ParentDirectory", "fstr", path)
@@ -308,6 +310,10 @@ class ParentDirectory(Builtin):
         pypath = path.to_python()[1:-1]
 
         result = osp.abspath(osp.join(pypath, osp.pardir))
+
+        if sys.platform in ("win32",):
+            print("->", result)
+
         return String(result)
 
 
