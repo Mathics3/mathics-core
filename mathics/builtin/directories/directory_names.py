@@ -4,6 +4,7 @@ Directory Names
 
 import os
 import os.path as osp
+import sys
 
 from mathics.core.atoms import String
 from mathics.core.builtin import Builtin
