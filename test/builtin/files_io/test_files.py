@@ -37,6 +37,9 @@ def test_get_and_put():
     check_evaluation(f"DeleteFile[{temp_filename}]", "Null")
 
 
+@pytest.mark.skipif(
+    sys.platform in ("win32",), reason="POSIX pathname tests do not work on Windows"
+)
 def test_get_input():
     # Check that $InputFileName and $Input are set inside running a Get[].
     script_path = osp.normpath(
