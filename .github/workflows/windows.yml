@@ -49,5 +49,5 @@ jobs:
         set PYTEST_WORKERS="-n1"
         # Until we can't figure out what's up with TextRecognize:
         # make pytest gstest
-        make doctest o="-k --exclude TextRecognize"
+        python mathics/docpipeline.py -k --exclude TextRecognize
         # make check
