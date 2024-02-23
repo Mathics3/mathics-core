@@ -285,8 +285,8 @@ class ParentDirectory(Builtin):
       <dd>returns the parent $dir$.
     </dl>
 
-    >> ParentDirectory[]
-     = ...
+    ## >> ParentDirectory[]
+    ## = ...
     """
 
     messages = {
