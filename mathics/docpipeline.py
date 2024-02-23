@@ -1018,7 +1018,7 @@ def main():
             )
             pass
         pass
-
+    print("test finished")
     if total > 0 and start_time is not None:
         end_time = datetime.now()
         print("Test evalation took ", end_time - start_time)
