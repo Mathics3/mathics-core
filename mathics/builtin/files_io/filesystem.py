@@ -342,7 +342,9 @@ class Directory(Builtin):
 
     def eval(self, evaluation: Evaluation):
         "Directory[]"
+        print("callingdirectory")
         result = os.getcwd()
+        print("   ->", result)
         return String(result)
 
 
