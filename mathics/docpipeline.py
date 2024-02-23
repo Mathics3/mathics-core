@@ -148,7 +148,7 @@ def test_case(
             out = result.out
             result = result.result
     except Exception as exc:
-        fail(f"Exception of type {type(exc)} {sys.exc_info()[2]}")
+        fail(f"Exception of type {type(exc)}")
         info = sys.exc_info()
         sys.excepthook(*info)
         return False
