@@ -137,7 +137,7 @@ def test_case(
         time_parsing = datetime.now()
         print("  parse")
         query = evaluation.parse_feeder(feeder)
-        print("->", query)
+        #        print("->", query)
         if CHECK_PARTIAL_ELAPSED_TIME:
             print("   parsing took", datetime.now() - time_parsing)
         if query is None:
