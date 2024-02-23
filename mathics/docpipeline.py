@@ -128,16 +128,13 @@ def test_case(
             print(f"{STARS} {section_for_print} {STARS}")
         print(f"{index:4d} ({subindex:2d}): TEST {test_str}")
 
-    print("testing", test_str)
     feeder = MathicsSingleLineFeeder(test_str, filename="<test>")
     evaluation = Evaluation(
         DEFINITIONS, catch_interrupt=False, output=TestOutput(), format="text"
     )
     try:
         time_parsing = datetime.now()
-        print("  parse")
         query = evaluation.parse_feeder(feeder)
-        #        print("->", query)
         if CHECK_PARTIAL_ELAPSED_TIME:
             print("   parsing took", datetime.now() - time_parsing)
         if query is None:
@@ -146,13 +143,12 @@ def test_case(
             out = evaluation.out
         else:
             result = evaluation.evaluate(query)
-            print("      result:", result)
             if CHECK_PARTIAL_ELAPSED_TIME:
                 print("   evaluation took", datetime.now() - time_parsing)
             out = result.out
             result = result.result
     except Exception as exc:
-        fail(f"Exception {type(exec)} {exc}")
+        fail(f"Exception of type {type(exc)} {sys.exc_info()[2]}")
         info = sys.exc_info()
         sys.excepthook(*info)
         return False
@@ -1018,7 +1014,7 @@ def main():
             )
             pass
         pass
-    print("test finished")
+
     if total > 0 and start_time is not None:
         end_time = datetime.now()
         print("Test evalation took ", end_time - start_time)
