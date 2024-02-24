@@ -27,6 +27,7 @@ To get a full list of avaiable commands, read the output of:
 
 """
 
+import logging
 import os
 import os.path as osp
 import platform
@@ -34,6 +35,9 @@ import re
 import sys
 
 from setuptools import Extension, setup
+
+log = logging.getLogger(__name__)
+
 
 is_PyPy = platform.python_implementation() == "PyPy" or hasattr(
     sys, "pypy_version_info"
@@ -61,7 +65,7 @@ except ImportError:
     pass
 else:
     if os.environ.get("USE_CYTHON", False):
-        print("Running Cython over code base")
+        log.info("Running Cython over code base")
         EXTENSIONS_DICT = {
             "core": (
                 "expression",
