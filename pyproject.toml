@@ -74,5 +74,73 @@ cython = [
 [project.scripts]
 mathics = "mathics.main:main"
 
+[tool.setuptools]
+include-package-data = false
+packages = [
+    "mathics",
+    "mathics.algorithm",
+    "mathics.compile",
+    "mathics.core",
+    "mathics.core.convert",
+    "mathics.core.parser",
+    "mathics.builtin",
+    "mathics.builtin.arithfns",
+    "mathics.builtin.assignments",
+    "mathics.builtin.atomic",
+    "mathics.builtin.binary",
+    "mathics.builtin.box",
+    "mathics.builtin.colors",
+    "mathics.builtin.distance",
+    "mathics.builtin.exp_structure",
+    "mathics.builtin.drawing",
+    "mathics.builtin.fileformats",
+    "mathics.builtin.files_io",
+    "mathics.builtin.forms",
+    "mathics.builtin.functional",
+    "mathics.builtin.image",
+    "mathics.builtin.intfns",
+    "mathics.builtin.list",
+    "mathics.builtin.matrices",
+    "mathics.builtin.numbers",
+    "mathics.builtin.numpy_utils",
+    "mathics.builtin.pymimesniffer",
+    "mathics.builtin.pympler",
+    "mathics.builtin.quantum_mechanics",
+    "mathics.builtin.scipy_utils",
+    "mathics.builtin.specialfns",
+    "mathics.builtin.statistics",
+    "mathics.builtin.string",
+    "mathics.builtin.testing_expressions",
+    "mathics.builtin.vectors",
+    "mathics.eval",
+    "mathics.doc",
+    "mathics.format",
+]
+
+[tool.setuptools.package-data]
+"mathics" = [
+    "data/*.csv",
+    "data/*.json",
+    "data/*.yml",
+    "data/*.yaml",
+    "data/*.pcl",
+    "data/ExampleData/*",
+    "doc/xml/data",
+    "doc/tex/data",
+    "autoload/*.m",
+    "autoload-cli/*.m",
+    "autoload/formats/*/Import.m",
+    "autoload/formats/*/Export.m",
+    "packages/*/*.m",
+    "packages/*/Kernel/init.m",
+]
+"mathics.doc" = [
+    "documentation/*.mdoc",
+    "xml/data",
+]
+"mathics.builtin.pymimesniffer" = [
+    "mimetypes.xml",
+]
+
 [tool.setuptools.dynamic]
 version = {attr = "mathics.version.__version__"}
