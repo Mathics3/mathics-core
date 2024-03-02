@@ -1119,7 +1119,7 @@ class Optional(BinaryOperator, PatternObject):
         head=None,
         element_index=None,
         element_count=None,
-        **kwargs
+        **kwargs,
     ):
         if expression.has_form("Sequence", 0):
             if self.default is None:
@@ -1231,7 +1231,7 @@ class Blank(_Blank):
         expression: Expression,
         vars: dict,
         evaluation: Evaluation,
-        **kwargs
+        **kwargs,
     ):
         if not expression.has_form("Sequence", 0):
             if self.head is not None:
@@ -1286,7 +1286,7 @@ class BlankSequence(_Blank):
         expression: Expression,
         vars: dict,
         evaluation: Evaluation,
-        **kwargs
+        **kwargs,
     ):
         elements = expression.get_sequence()
         if not elements:
@@ -1335,7 +1335,7 @@ class BlankNullSequence(_Blank):
         expression: Expression,
         vars: dict,
         evaluation: Evaluation,
-        **kwargs
+        **kwargs,
     ):
         elements = expression.get_sequence()
         if self.head:
@@ -1553,7 +1553,7 @@ class Condition(BinaryOperator, PatternObject):
         expression: Expression,
         vars: dict,
         evaluation: Evaluation,
-        **kwargs
+        **kwargs,
     ):
         # for new_vars, rest in self.pattern.match(expression, vars,
         # evaluation):
@@ -1626,7 +1626,7 @@ class OptionsPattern(PatternObject):
         expression: Expression,
         vars: dict,
         evaluation: Evaluation,
-        **kwargs
+        **kwargs,
     ):
         if self.defaults is None:
             self.defaults = kwargs.get("head")

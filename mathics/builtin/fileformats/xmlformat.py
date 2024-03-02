@@ -143,7 +143,7 @@ def xml_object(root):
     return Expression(
         to_expression("XMLObject", String("Document")),
         to_mathics_list(*declaration),
-        *node_to_xml_element(root)
+        *node_to_xml_element(root),
     )
 
 

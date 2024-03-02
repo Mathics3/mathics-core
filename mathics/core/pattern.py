@@ -783,7 +783,7 @@ class ExpressionPattern(Pattern):
                     candidates,
                     included=element_candidates,
                     less_first=less_first,
-                    *set_lengths
+                    *set_lengths,
                 )
         else:
             # a generator that yields partitions of
@@ -794,7 +794,7 @@ class ExpressionPattern(Pattern):
                 flexible_start=first and not fully,
                 included=element_candidates,
                 less_first=less_first,
-                *set_lengths
+                *set_lengths,
             )
         if rest_elements:
             next_element = rest_elements[0]
