@@ -2,10 +2,14 @@
 import base64
 import bisect
 import os
+import os.path as osp
 import pickle
 import re
+import sys
+
 from collections import defaultdict
 from os.path import join as osp_join
+from pathlib import PureWindowsPath
 from typing import List, Optional
 
 from mathics_scanner.tokeniser import full_names_pattern
@@ -264,7 +268,9 @@ class Definitions:
         self.clear_cache()
 
     def set_inputfile(self, dir: str) -> None:
-        self.inputfile = os.path.abspath(dir)
+        self.inputfile = osp.normpath(osp.abspath(dir))
+        if sys.platform == "win32":
+            self.inputfile = PureWindowsPath(self.inputfile).as_posix()
 
     def get_builtin_names(self):
         return set(self.builtin)

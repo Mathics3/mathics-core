@@ -3,6 +3,7 @@
 Unit tests from builtins/files_io/files.py
 """
 import os.path as osp
+from pathlib import PureWindowsPath
 import sys
 from test.helper import check_evaluation, evaluate
 
@@ -42,11 +43,16 @@ def test_get_input():
     script_path = osp.normpath(
         osp.join(osp.dirname(__file__), "..", "..", "data", "inputfile-bug.m")
     )
+    if sys.platform == "win32":
+        script_path = PureWindowsPath(script_path).as_posix()
+
     check_evaluation(f'Get["{script_path}"]', script_path, hold_expected=True)
 
     script_path = osp.normpath(
         osp.join(osp.dirname(__file__), "..", "..", "data", "input-bug.m")
     )
+    if sys.platform == "win32":
+        script_path = PureWindowsPath(script_path).as_posix()
     check_evaluation(f'Get["{script_path}"]', script_path, hold_expected=True)
 
 
