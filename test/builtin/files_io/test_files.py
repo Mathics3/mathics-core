@@ -3,8 +3,8 @@
 Unit tests from builtins/files_io/files.py
 """
 import os.path as osp
-from pathlib import PureWindowsPath
 import sys
+from pathlib import PureWindowsPath
 from test.helper import check_evaluation, evaluate
 
 import pytest

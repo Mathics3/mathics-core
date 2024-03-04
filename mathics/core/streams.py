@@ -8,6 +8,7 @@ import os.path as osp
 import sys
 import tempfile
 from io import open as io_open
+from pathlib import PureWindowsPath
 from typing import Optional, Tuple
 
 import requests
@@ -81,6 +82,8 @@ def path_search(filename: str) -> Tuple[str, bool]:
         else:
             for p in PATH_VAR + [""]:
                 path = osp.join(p, filename)
+                if sys.platform == "win32":
+                    path = PureWindowsPath(path).as_posix()
                 if osp.exists(path):
                     result = path
                     break
