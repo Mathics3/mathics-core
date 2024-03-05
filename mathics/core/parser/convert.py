@@ -3,7 +3,9 @@
 Conversion from AST node to Mathic BaseElement objects
 """
 
+from pathlib import PureWindowsPath
 from math import log10
+from sys import platform
 from typing import Tuple
 
 import sympy
@@ -36,7 +38,7 @@ class GenericConverter:
             return "Expression", head, children
 
     @staticmethod
-    def string_escape(s):
+    def string_escape(s: str) -> str:
         return s.encode("raw_unicode_escape").decode("unicode_escape")
 
     def convert_Symbol(self, node: AST_Symbol) -> Tuple[str, str]:
@@ -54,8 +56,11 @@ class GenericConverter:
         if s.startswith('"'):
             assert s.endswith('"')
             s = s[1:-1]
+
+        if platform == "win32":
+            s = PureWindowsPath(s).as_posix()
+
         s = self.string_escape(s)
-        s = s.replace("\\", "\\\\")
         return "String", s
 
     def convert_Number(self, node: AST_Number) -> tuple:

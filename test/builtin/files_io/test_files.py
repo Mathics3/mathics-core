@@ -5,6 +5,7 @@ Unit tests from builtins/files_io/files.py
 import os.path as osp
 import sys
 from pathlib import PureWindowsPath
+from sys import platform
 from test.helper import check_evaluation, evaluate
 
 import pytest
@@ -27,11 +28,10 @@ def test_unprotected():
         check_evaluation(str_expr, str_expected, message)
 
 
-@pytest.mark.skipif(
-    sys.platform in ("win32",), reason="POSIX pathname tests do not work on Windows"
-)
 def test_get_and_put():
     temp_filename = evaluate('$TemporaryDirectory<>"/testfile"').to_python()
+    if platform == "win32":
+        temp_filename = PureWindowsPath(temp_filename).as_posix()
     temp_filename_strip = temp_filename[1:-1]
     check_evaluation(f"40! >> {temp_filename_strip}", "Null")
     check_evaluation(f"<< {temp_filename_strip}", "40!")
