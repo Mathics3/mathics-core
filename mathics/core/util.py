@@ -1,22 +1,17 @@
 # -*- coding: utf-8 -*-
+"""
+Miscellaneous mathics.core utility functions.
+"""
 
-import re
-import sys
 from itertools import chain
+from platform import python_implementation
 
-# Remove "try"  below and adjust return type after Python 3.6 support is dropped.
-try:
-    from re import Pattern
-except ImportError:
-    Pattern = re._pattern_type
-
-
-IS_PYPY = "__pypy__" in sys.builtin_module_names
+IS_PYPY = python_implementation() == "PyPy"
 
 # FIXME: These functions are used pattern.py
 
 
-def permutations(items, without_duplicates=True):
+def permutations(items):
     if not items:
         yield []
     # already_taken = set()
