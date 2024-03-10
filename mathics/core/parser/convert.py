@@ -58,7 +58,11 @@ class GenericConverter:
 
         s = self.string_escape(canonic_filename(s))
         s = self.string_escape(s)
-        s = s.replace("\\", "\\\\")
+
+        # Do we need this? If we do this before non-escaped characters,
+        # like \-, then Python gives a warning.
+        # s = s.replace("\\", "\\\\")
+
         return "String", s
 
     def convert_Number(self, node: AST_Number) -> tuple:

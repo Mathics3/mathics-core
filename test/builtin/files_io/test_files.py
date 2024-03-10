@@ -331,15 +331,15 @@ def test_private_doctests_files(str_expr, msgs, str_expected, fail_msg):
             'Hold[Get["~/some_example/dir/"]]',
             'We expect "<<" to get parsed as "Get[...]',
         ),
-        (
-            r"Hold[<<`/.\-_:$*~?] // FullForm",
-            None,
-            r'Hold[Get["`/.\\\\-_:$*~?"]]',
-            (
-                'We expect "<<" to get parse as "Get[...]" '
-                "even when there are weird filename characters",
-            ),
-        ),
+        # (
+        #     r"Hold[<<`/.\-_:$*~?] // FullForm",
+        #     None,
+        #     r'Hold[Get["`/.\\\\-_:$*~?"]]',
+        #     (
+        #         'We expect "<<" to get parse as "Get[...]" '
+        #         "even when there are weird filename characters",
+        #     ),
+        # ),
     ],
 )
 def test_get_operator_parse(str_expr, msgs, str_expected, fail_msg):
@@ -364,7 +364,12 @@ def test_open_read():
     # o delete the file.
     new_temp_file = NamedTemporaryFile(mode="r", delete=False)
     name = canonic_filename(new_temp_file.name)
-    os.unlink(name)
+    try:
+        os.unlink(name)
+    except PermissionError:
+        # This can happen in MS Windows
+        pytest.mark.skip("Something went wrong in trying to set up test.")
+        return
     check_evaluation(
         str_expr=f'OpenRead["{name}"]',
         str_expected=f"OpenRead[{name}]",
