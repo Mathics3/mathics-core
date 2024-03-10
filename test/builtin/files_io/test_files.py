@@ -329,8 +329,17 @@ def test_private_doctests_files(str_expr, msgs, str_expected, fail_msg):
             "Hold[<< ~/some_example/dir/] // FullForm",
             None,
             'Hold[Get["~/some_example/dir/"]]',
+            'We expect "<<" to get converted to "Get[...]',
+        ),
+        (
+            r"Hold[<<`/.\-_:$*~?] // FullForm",
             None,
-        )
+            r'Hold[Get["`/.\\\\-_:$*~?"]]',
+            (
+                'We expect "<<" to get converted to "Get[...]" '
+                "even when there are weird filename characters",
+            ),
+        ),
     ],
 )
 def test_get_operator_parse(str_expr, msgs, str_expected, fail_msg):
@@ -365,10 +374,6 @@ def test_open_read():
 
 # rocky: I don't understand what these are supposed to test.
 # (
-#     r"Hold[<<`/.\-_:$*~?] // FullForm",
-#     None,
-#     r'Hold[Get["`/.\\\\-_:$*~?"]]',
-#     None,
 # ),
 
 # (
