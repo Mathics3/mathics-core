@@ -85,6 +85,9 @@ install:
 #: Run the most extensive set of tests
 check: pytest gstest doctest
 
+#: Run the most extensive set of tests
+check-for-Windows: pytest-for-windows gstest doctest
+
 #: Build and check manifest of Builtins
 check-builtin-manifest:
 	$(PYTHON) admin-tools/build_and_check_manifest.py
@@ -114,7 +117,7 @@ clean: clean-cython clean-cache
 	rm -f mathics/data/op-tables || true; \
 	rm -rf build || true
 
-#: Run py.test tests. Use environment variable "PYTEST_OPIIONS" for pytest options
+#: Run pytest tests. Use environment variable "PYTEST_OPIIONS" for pytest options
 pytest:
 	MATHICS_CHARACTER_ENCODING="ASCII" $(PYTHON) -m pytest $(PYTEST_OPTIONS) $(PYTEST_WORKERS) test
 

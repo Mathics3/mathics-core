@@ -46,14 +46,6 @@ jobs:
       run: |
         pip install pyocr # from full
         pip install -e .[dev]
-        python -m pytest test/autoload
-        python -m pytest test/builtin
-        python -m pytest test/consistency-and-style
-        python -m pytest test/core
-        python -m pytest test/doc
-        python -m pytest test/eval
-        python -m pytest test/format
-        pytest -m pytest test/package
-        pytest -m pytest test/test_*.py
+        make pytest gstest
         make doctest
         # make check
