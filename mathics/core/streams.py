@@ -8,11 +8,11 @@ import os.path as osp
 import sys
 import tempfile
 from io import open as io_open
-from pathlib import PureWindowsPath
 from typing import Optional, Tuple
 
 import requests
 
+from mathics.core.util import canonic_filename
 from mathics.settings import ROOT_DIR
 
 HOME_DIR = osp.expanduser("~")
@@ -81,9 +81,7 @@ def path_search(filename: str) -> Tuple[str, bool]:
             is_temporary_file = True
         else:
             for p in PATH_VAR + [""]:
-                path = osp.join(p, filename)
-                if sys.platform == "win32":
-                    path = PureWindowsPath(path).as_posix()
+                path = canonic_filename(osp.join(p, filename))
                 if osp.exists(path):
                     result = path
                     break

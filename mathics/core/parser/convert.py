@@ -3,9 +3,7 @@
 Conversion from AST node to Mathic BaseElement objects
 """
 
-from pathlib import PureWindowsPath
 from math import log10
-from sys import platform
 from typing import Tuple
 
 import sympy
@@ -20,6 +18,7 @@ from mathics.core.parser.ast import (
     Symbol as AST_Symbol,
 )
 from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.util import canonic_filename
 
 
 class GenericConverter:
@@ -57,10 +56,7 @@ class GenericConverter:
             assert s.endswith('"')
             s = s[1:-1]
 
-        if platform == "win32":
-            s = PureWindowsPath(s).as_posix()
-
-        s = self.string_escape(s)
+        s = self.string_escape(canonic_filename(s))
         return "String", s
 
     def convert_Number(self, node: AST_Number) -> tuple:

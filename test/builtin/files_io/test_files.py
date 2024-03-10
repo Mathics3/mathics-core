@@ -4,11 +4,11 @@ Unit tests from builtins/files_io/files.py
 """
 import os.path as osp
 import sys
-from pathlib import PureWindowsPath
-from sys import platform
 from test.helper import check_evaluation, evaluate
 
 import pytest
+
+from mathics.core.parser.convert import canonic_filename
 
 
 def test_compress():
@@ -29,9 +29,9 @@ def test_unprotected():
 
 
 def test_get_and_put():
-    temp_filename = evaluate('$TemporaryDirectory<>"/testfile"').to_python()
-    if platform == "win32":
-        temp_filename = PureWindowsPath(temp_filename).as_posix()
+    temp_filename = canonic_filename(
+        evaluate('$TemporaryDirectory<>"/testfile"').to_python()
+    )
     temp_filename_strip = temp_filename[1:-1]
     check_evaluation(f"40! >> {temp_filename_strip}", "Null")
     check_evaluation(f"<< {temp_filename_strip}", "40!")
@@ -40,19 +40,17 @@ def test_get_and_put():
 
 def test_get_input():
     # Check that $InputFileName and $Input are set inside running a Get[].
-    script_path = osp.normpath(
-        osp.join(osp.dirname(__file__), "..", "..", "data", "inputfile-bug.m")
+    script_path = canonic_filename(
+        osp.normpath(
+            osp.join(osp.dirname(__file__), "..", "..", "data", "inputfile-bug.m")
+        )
     )
-    if sys.platform == "win32":
-        script_path = PureWindowsPath(script_path).as_posix()
 
     check_evaluation(f'Get["{script_path}"]', script_path, hold_expected=True)
 
-    script_path = osp.normpath(
-        osp.join(osp.dirname(__file__), "..", "..", "data", "input-bug.m")
+    script_path = canonic_filename(
+        osp.normpath(osp.join(osp.dirname(__file__), "..", "..", "data", "input-bug.m"))
     )
-    if sys.platform == "win32":
-        script_path = PureWindowsPath(script_path).as_posix()
     check_evaluation(f'Get["{script_path}"]', script_path, hold_expected=True)
 
 

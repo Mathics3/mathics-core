@@ -3,8 +3,6 @@
 File related evaluation functions.
 """
 
-from pathlib import PureWindowsPath
-from sys import platform
 from typing import Callable, Optional
 
 from mathics_scanner import TranslateError
@@ -16,6 +14,7 @@ from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.read import MathicsOpen
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed, SymbolPath
+from mathics.core.util import canonic_filename
 
 # Python representation of $InputFileName.  On Windows platforms, we
 # canonicalize this to its Posix equvivalent name.
@@ -27,9 +26,7 @@ def set_input_var(input_string: str):
     Allow INPUT_VAR to get set, e.g. from main program.
     """
     global INPUT_VAR
-    if platform == "win32":
-        input_string = PureWindowsPath(input_string).as_posix()
-    INPUT_VAR = input_string
+    INPUT_VAR = canonic_filename(input_string)
 
 
 def eval_Get(path: str, evaluation: Evaluation, trace_fn: Optional[Callable]):
@@ -37,8 +34,7 @@ def eval_Get(path: str, evaluation: Evaluation, trace_fn: Optional[Callable]):
     Reads a file and evaluates each expression, returning only the last one.
     """
 
-    if platform == "win32":
-        path = PureWindowsPath(path).as_posix()
+    path = canonic_filename(path)
     result = None
     definitions = evaluation.definitions
 

@@ -5,11 +5,8 @@ import os
 import os.path as osp
 import pickle
 import re
-import sys
-
 from collections import defaultdict
 from os.path import join as osp_join
-from pathlib import PureWindowsPath
 from typing import List, Optional
 
 from mathics_scanner.tokeniser import full_names_pattern
@@ -22,6 +19,7 @@ from mathics.core.expression import Expression
 from mathics.core.load_builtin import definition_contribute, mathics3_builtins_modules
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolGet
+from mathics.core.util import canonic_filename
 from mathics.settings import ROOT_DIR
 
 type_compiled_pattern = type(re.compile("a.a"))
@@ -269,8 +267,7 @@ class Definitions:
 
     def set_inputfile(self, dir: str) -> None:
         self.inputfile = osp.normpath(osp.abspath(dir))
-        if sys.platform == "win32":
-            self.inputfile = PureWindowsPath(self.inputfile).as_posix()
+        self.inputfile = canonic_filename(self.inputfile)
 
     def get_builtin_names(self):
         return set(self.builtin)
