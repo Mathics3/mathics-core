@@ -18,6 +18,10 @@ from mathics.core.util import canonic_filename
 
 # Python representation of $InputFileName.  On Windows platforms, we
 # canonicalize this to its Posix equvivalent name.
+# FIXME: Remove this as a module-level variable and instead
+#        define it in a session definitions object.
+#        With this, multiple sessions will have separate
+#        $InputFilename
 INPUT_VAR: str = ""
 
 
