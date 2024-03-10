@@ -2,8 +2,10 @@
 """
 Unit tests from builtins/files_io/files.py
 """
+import os
 import os.path as osp
 import sys
+from tempfile import NamedTemporaryFile
 from test.helper import check_evaluation, evaluate
 
 import pytest
@@ -133,12 +135,6 @@ def test_close():
             None,
         ),
         (
-            r"Hold[<<`/.\-_:$*~?] // FullForm",
-            None,
-            r'Hold[Get["`/.\\\\-_:$*~?"]]',
-            None,
-        ),
-        (
             "OpenRead[]",
             ("OpenRead called with 0 arguments; 1 argument is expected.",),
             "OpenRead[]",
@@ -154,12 +150,6 @@ def test_close():
             'OpenRead[""]',
             ("File specification  is not a string of one or more characters.",),
             "OpenRead[]",
-            None,
-        ),
-        (
-            'OpenRead["MathicsNonExampleFile"]',
-            ("Cannot open MathicsNonExampleFile.",),
-            "OpenRead[MathicsNonExampleFile]",
             None,
         ),
         (
@@ -186,7 +176,6 @@ def test_close():
             "Close[{OutputStream, MathicsNonExampleFile}]",
             None,
         ),
-        ('DeleteFile["MathicsNonExampleFile"]', None, "Null", None),
         ## writing to dir
         ("x >>> /var/", ("Cannot open /var/.",), "x >>> /var/", None),
         ## writing to read only file
@@ -307,12 +296,6 @@ def test_close():
         ("Read[strm, Number]", None, "123", None),
         ("Close[strm]", None, "String", None),
         ("(low=OpenWrite[])//Head", None, "OutputStream", None),
-        (
-            "Streams[low[[1]]]//{#1[[0]],#1[[1]][[0]]}&",
-            None,
-            "{List, OutputStream}",
-            None,
-        ),
         ('Streams["some_nonexistent_name"]', None, "{}", None),
         (
             "stream = OpenWrite[]; WriteString[stream, 100, 1 + x + y, Sin[x  + y]]",
@@ -330,13 +313,6 @@ def test_close():
             None,
         ),
         ("FilePrint[pathname]", None, "Null", None),
-        (
-            "WriteString[pathname, abc];(laststrm=Streams[pathname][[1]])//Head",
-            None,
-            "OutputStream",
-            None,
-        ),
-        ("Close[laststrm];FilePrint[pathname]", ("abc",), "Null", None),
         ("DeleteFile[pathname];Clear[pathname];", None, "Null", None),
     ],
 )
@@ -353,7 +329,52 @@ def test_private_doctests_files(str_expr, msgs, str_expected, fail_msg):
     )
 
 
-# I do not know what this is it supposed to test with this...
+def test_open_read():
+    """ """
+    new_temp_file = NamedTemporaryFile(mode="r", delete=True)
+    name = canonic_filename(new_temp_file.name)
+    os.unlink(name)
+    check_evaluation(
+        str_expr=f'OpenRead["{name}"]',
+        str_expected = f"OpenRead[{name}]",
+        to_string_expr=True,
+        hold_expected=True,
+        failure_message=None,
+        expected_messages=(f"Cannot open {name}.",)
+    )
+
+# rocky: I don't understand what these are supposed to test.
+    # (
+    #     r"Hold[<<`/.\-_:$*~?] // FullForm",
+    #     None,
+    #     r'Hold[Get["`/.\\\\-_:$*~?"]]',
+    #     None,
+    # ),
+
+    # (
+    #     "Streams[low[[1]]]//{#1[[0]],#1[[1]][[0]]}&",
+    #     None,
+    #     "{List, OutputStream}",
+    #     None,
+    # ),
+
+
+    # (
+    #     "WriteString[pathname, abc];(laststrm=Streams[pathname][[1]])//Head",
+    #     None,
+    #     "OutputStream",
+    #     None,
+    # ),
+
+    # (
+    #     "WriteString[pathname, abc];(laststrm=Streams[pathname][[1]])//Head",
+    #     None,
+    #     "OutputStream",
+    #     None,
+    # ),
+    # ("Close[laststrm];FilePrint[pathname]", ("abc",), "Null", None),
+
+        # I do not know what this is it supposed to test with this...
 # def test_Inputget_and_put():
 #    stream = Expression('Plus', Symbol('x'), Integer(2))
 

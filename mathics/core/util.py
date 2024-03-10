@@ -20,7 +20,9 @@ def canonic_filename(path: str) -> str:
     """
     if sys.platform.startswith("win"):
         # win32 or win64..
-        path = PureWindowsPath(path).as_posix()
+        # PureWindowsPath.as_posix() strips trailing "/" .
+        dir_suffix = "/" if path.endswith("/") else ""
+        path = PureWindowsPath(path).as_posix() + dir_suffix
     # Should we use "os.path.normpath() here?
     return path
 
