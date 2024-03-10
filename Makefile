@@ -9,6 +9,7 @@ PYTHON ?= python3
 PIP ?= pip3
 BASH ?= bash
 RM  ?= rm
+PYTEST_OPTIONS ?=
 
 # Variable indicating Mathics3 Modules you have available on your system, in latex2doc option format
 MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
@@ -90,7 +91,7 @@ check-builtin-manifest:
 
 #: Run pytest consistency and style checks
 check-consistency-and-style:
-	MATHICS_LINT=t $(PYTHON) -m pytest test/consistency-and-style
+	MATHICS_LINT=t $(PYTHON) -m pytest $(PYTEST_OPTIONS) test/consistency-and-style
 
 check-full: check-builtin-manifest check-builtin-manifest check
 
@@ -113,9 +114,9 @@ clean: clean-cython clean-cache
 	rm -f mathics/data/op-tables || true; \
 	rm -rf build || true
 
-#: Run py.test tests. Use environment variable "o" for pytest options
+#: Run py.test tests. Use environment variable "PYTEST_OPIIONS" for pytest options
 pytest:
-	MATHICS_CHARACTER_ENCODING="ASCII" $(PYTHON) -m pytest $(PYTEST_WORKERS) test $o
+	MATHICS_CHARACTER_ENCODING="ASCII" $(PYTHON) -m pytest $(PYTEST_OPTIONS) $(PYTEST_WORKERS) test
 
 
 #: Run a more extensive pattern-matching test
