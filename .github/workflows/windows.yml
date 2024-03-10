@@ -46,8 +46,15 @@ jobs:
       run: |
         pip install pyocr # from full
         pip install -e .[dev]
-        set PYTEST_WORKERS="-n1"
+        python -m pytest autoload
+        python -m pytest builtin
+        python -m pytest consistency-and-style
+        python -m pytest core
+        python -m pytest doc
+        python -m pytest eval
+        python -m pytest format
+	pytest -m pytest package
+	pytest -m pytest test_*.py
         # Until we can't figure out what's up with TextRecognize:
-        make pytest gstest
         make doctest o="--exclude TextRecognize"
         # make check
