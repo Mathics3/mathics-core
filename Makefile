@@ -74,7 +74,7 @@ develop-full-cython: mathics/data/op-tables.json
 	$(PIP) install -e .[dev,full,cython]
 
 
-#: Make distirbution: wheels, eggs, tarball
+#: Make distribution: wheels, eggs, tarball
 dist:
 	./admin-tools/make-dist.sh
 
@@ -117,7 +117,7 @@ clean: clean-cython clean-cache
 	rm -f mathics/data/op-tables || true; \
 	rm -rf build || true
 
-#: Run pytest tests. Use environment variable "PYTEST_OPIIONS" for pytest options
+#: Run pytest tests. Use environment variable "PYTEST_OPTIONS" for pytest options
 pytest:
 	MATHICS_CHARACTER_ENCODING="ASCII" $(PYTHON) -m pytest $(PYTEST_OPTIONS) $(PYTEST_WORKERS) test
 
