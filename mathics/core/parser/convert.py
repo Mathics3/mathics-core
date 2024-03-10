@@ -57,6 +57,8 @@ class GenericConverter:
             s = s[1:-1]
 
         s = self.string_escape(canonic_filename(s))
+        s = self.string_escape(s)
+        s = s.replace("\\", "\\\\")
         return "String", s
 
     def convert_Number(self, node: AST_Number) -> tuple:
