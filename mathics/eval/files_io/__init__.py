@@ -1,3 +1,3 @@
 """
-evaluation methods in support of Input/Output, Files, and Filesystem
+Evaluation methods in support of Input/Output, Files, and the Filesystem.
 """

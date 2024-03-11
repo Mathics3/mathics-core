@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-files-related evaluation functions
+File related evaluation functions.
 """
 
 from typing import Callable, Optional
@@ -14,8 +14,14 @@ from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.read import MathicsOpen
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed, SymbolPath
+from mathics.core.util import canonic_filename
 
-# Python representation of $InputFileName
+# Python representation of $InputFileName.  On Windows platforms, we
+# canonicalize this to its Posix equvivalent name.
+# FIXME: Remove this as a module-level variable and instead
+#        define it in a session definitions object.
+#        With this, multiple sessions will have separate
+#        $InputFilename
 INPUT_VAR: str = ""
 
 
@@ -24,7 +30,7 @@ def set_input_var(input_string: str):
     Allow INPUT_VAR to get set, e.g. from main program.
     """
     global INPUT_VAR
-    INPUT_VAR = input_string
+    INPUT_VAR = canonic_filename(input_string)
 
 
 def eval_Get(path: str, evaluation: Evaluation, trace_fn: Optional[Callable]):
@@ -32,6 +38,7 @@ def eval_Get(path: str, evaluation: Evaluation, trace_fn: Optional[Callable]):
     Reads a file and evaluates each expression, returning only the last one.
     """
 
+    path = canonic_filename(path)
     result = None
     definitions = evaluation.definitions
 

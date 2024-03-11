@@ -3,10 +3,29 @@
 Miscellaneous mathics.core utility functions.
 """
 
+import sys
 from itertools import chain
+from pathlib import PureWindowsPath
 from platform import python_implementation
 
 IS_PYPY = python_implementation() == "PyPy"
+
+
+def canonic_filename(path: str) -> str:
+    """
+    Canonicalize path. On Microsoft Windows, use PureWidnowsPath() to
+    turn backslash "\" to "/". On other platforms we currently, do
+    nothing, but we might in the future canonicalize the filename
+    further, e.g. via os.path.normpath().
+    """
+    if sys.platform.startswith("win"):
+        # win32 or win64..
+        # PureWindowsPath.as_posix() strips trailing "/" .
+        dir_suffix = "/" if path.endswith("/") else ""
+        path = PureWindowsPath(path).as_posix() + dir_suffix
+    # Should we use "os.path.normpath() here?
+    return path
+
 
 # FIXME: These functions are used pattern.py
 
