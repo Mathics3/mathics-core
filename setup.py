@@ -31,7 +31,6 @@ import logging
 import os
 import os.path as osp
 import platform
-import re
 import sys
 
 from setuptools import Extension, setup

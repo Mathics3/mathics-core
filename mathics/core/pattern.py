@@ -434,7 +434,7 @@ class ExpressionPattern(Pattern):
                 self.match_element(
                     yield_func,
                     next_element,
-                    next_elements,
+                    tuple(next_elements),
                     ([], expression.elements),
                     pre_vars,
                     expression,
@@ -642,7 +642,7 @@ class ExpressionPattern(Pattern):
             # for setting in per_name(groups.items(), vars):
             # def yield_name(setting):
             #    yield_func(setting)
-            per_name(yield_choice, list(groups.items()), vars)
+            per_name(yield_choice, tuple(groups.items()), vars)
         else:
             yield_choice(vars)
 
@@ -861,7 +861,7 @@ class ExpressionPattern(Pattern):
 
             self.get_wrappings(
                 yield_wrapping,
-                items,
+                tuple(items),
                 match_count[1],
                 expression,
                 attributes,
