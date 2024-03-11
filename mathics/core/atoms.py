@@ -428,7 +428,7 @@ class MachineReal(Real):
     def do_copy(self) -> "MachineReal":
         return MachineReal(self._value)
 
-    def get_precision(self) -> float:
+    def get_precision(self) -> int:
         """Returns the default specification for precision in N and other numerical functions."""
         return FP_MANTISA_BINARY_DIGITS
 
