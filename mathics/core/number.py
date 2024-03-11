@@ -136,7 +136,7 @@ def prec(dps) -> int:
     return max(1, int(round((int(dps) + 1) * LOG2_10)))
 
 
-def min_prec(*args: BaseElement) -> Optional[float]:
+def min_prec(*args: BaseElement) -> Optional[int]:
     """
     Returns the precision of the expression with the minimum precision.
     If all the expressions are exact or non numeric, return None.
