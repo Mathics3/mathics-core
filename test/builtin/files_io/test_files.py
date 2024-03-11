@@ -288,7 +288,6 @@ def test_close():
         ("Read[strm, Word]", None, "abc", None),
         ("Read[strm, Number]", None, "123", None),
         ("Close[strm]", None, "String", None),
-        ("(low=OpenWrite[])//Head", None, "OutputStream", None),
         ('Streams["some_nonexistent_name"]', None, "{}", None),
         (
             "stream = OpenWrite[]; WriteString[stream, 100, 1 + x + y, Sin[x  + y]]",
@@ -361,7 +360,7 @@ def test_open_read():
     """
     Check OpenRead[] on a non-existent file name"""
     # Below, we set "delete=False" because `os.unlink()` is used
-    # o delete the file.
+    # to delete the file.
     new_temp_file = NamedTemporaryFile(mode="r", delete=False)
     name = canonic_filename(new_temp_file.name)
     try:
@@ -380,17 +379,43 @@ def test_open_read():
     )
 
 
+def test_streams():
+    """
+    Test Streams[] and Streams[name]
+    """
+    # Save original Streams[] count. Then add a new OutputStream,
+    # See that this is indeed a new OutputStream, and that
+    # See that Streams[] count is now one larger.
+    # See that we can find new stream by name in Streams[]
+    # Finally Close new stream.
+    orig_streams_count = evaluate("Length[Streams[]]").to_python()
+    check_evaluation(
+        str_expr="(newStream = OpenWrite[]) // Head",
+        str_expected="OutputStream",
+        failure_message="Expecting Head[] of a new OpenWrite stream to be an 'OutputStream'",
+    )
+    new_streams_count = evaluate("Length[Streams[]]").to_python()
+    assert (
+        orig_streams_count + 1 == new_streams_count
+    ), "should have added one more stream listed"
+    check_evaluation(
+        str_expr="Length[Streams[newStream]] == 1",
+        str_expected="True",
+        to_string_expr=False,
+        to_string_expected=False,
+        failure_message="Expecting to find new stream in list of existing streams",
+    )
+    check_evaluation(
+        str_expr="Streams[newStream][[1]] == newStream",
+        str_expected="True",
+        to_string_expr=False,
+        to_string_expected=False,
+        failure_message="Expecting stream found in list to be the one we just added",
+    )
+    evaluate("Close[newStream]")
+
+
 # rocky: I don't understand what these are supposed to test.
-# (
-# ),
-
-# (
-#     "Streams[low[[1]]]//{#1[[0]],#1[[1]][[0]]}&",
-#     None,
-#     "{List, OutputStream}",
-#     None,
-# ),
-
 
 # (
 #     "WriteString[pathname, abc];(laststrm=Streams[pathname][[1]])//Head",
