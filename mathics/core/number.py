@@ -70,7 +70,7 @@ def _get_float_inf(value, evaluation) -> Optional[float]:
 
 def get_precision(
     value: BaseElement, evaluation, show_messages: bool = True
-) -> Optional[float]:
+) -> Optional[int]:
     """
     Returns the ``float`` in the interval [``$MinPrecision``, ``$MaxPrecision``] closest
     to ``value``.

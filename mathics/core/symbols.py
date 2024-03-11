@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import time
-from typing import Any, FrozenSet, List, Optional
+from typing import Any, FrozenSet, List, Optional, Union
 
 from mathics.core.element import (
     BaseElement,
@@ -830,7 +830,11 @@ class NumericOperators:
     def __pow__(self, other) -> BaseElement:
         return self.create_expression(SymbolPower, self, other)
 
-    def round_to_float(self, evaluation=None, permit_complex=False) -> Optional[float]:
+    # FIXME: The name "round_to_float" is misleading when
+    # permit_complex is True.
+    def round_to_float(
+        self, evaluation=None, permit_complex=False
+    ) -> Optional[Union[complex | float]]:
         """
         Round to a Python float. Return None if rounding is not possible.
         This can happen if self or evaluation is NaN.
