@@ -446,16 +446,6 @@ class EvalMixin:
         """
         return False
 
-    def rewrite_apply_eval_step(self, evaluation) -> Tuple["BaseElement", bool]:
-        """
-        Performs a since rewrite/apply/eval step used in
-        evaluation.
-
-        Here we specialize evaluation so that any results returned
-        do not need further evaluation.
-        """
-        return self.evaluate(evaluation), False
-
     def sameQ(self, other) -> bool:
         """Mathics SameQ
         Each class should decide what is right here.
