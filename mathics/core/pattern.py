@@ -261,7 +261,7 @@ class Pattern:
         evaluation: Evaluation,
         vars: dict = {},
     ):
-        return []
+        return tuple()
 
     def get_match_candidates_count(
         self,
@@ -715,7 +715,7 @@ class ExpressionPattern(Pattern):
 
         match_count = element.get_match_count(vars)
         element_candidates = element.get_match_candidates(
-            rest_expression[1],  # element.candidates,
+            tuple(rest_expression[1]),  # element.candidates,
             expression,
             attributes,
             evaluation,
