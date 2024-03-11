@@ -160,7 +160,7 @@ class DSolve(Builtin):
                             Expression(
                                 SymbolFunction,
                                 function_form,
-                                *from_sympy(soln).elements[1:]
+                                *from_sympy(soln).elements[1:],
                             ),
                         ),
                     )

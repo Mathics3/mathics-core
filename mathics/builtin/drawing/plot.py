@@ -654,7 +654,7 @@ class _Plot3D(Builtin):
             functions,
             xexpr_limits,
             yexpr_limits,
-            *options_to_rules(options)
+            *options_to_rules(options),
         )
 
         functions = self.get_functions_param(functions)
@@ -1501,7 +1501,7 @@ class DensityPlot(_Plot3D):
         return Expression(
             SymbolGraphics,
             ListExpression(*graphics),
-            *options_to_rules(options, Graphics.options)
+            *options_to_rules(options, Graphics.options),
         )
 
 
@@ -1936,7 +1936,7 @@ class Histogram(Builtin):
         return Expression(
             SymbolGraphics,
             ListExpression(*graphics),
-            *options_to_rules(options, Graphics.options)
+            *options_to_rules(options, Graphics.options),
         )
 
 
@@ -2622,5 +2622,5 @@ class Plot3D(_Plot3D):
         return Expression(
             SymbolGraphics3D,
             ListExpression(*graphics),
-            *options_to_rules(options, Graphics3D.options)
+            *options_to_rules(options, Graphics3D.options),
         )

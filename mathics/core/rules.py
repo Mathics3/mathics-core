@@ -81,7 +81,7 @@ class BaseRule(KeyComparable):
             if rest[0] or rest[1]:
                 result = Expression(
                     expression.get_head(),
-                    *list(chain(rest[0], [new_expression], rest[1]))
+                    *list(chain(rest[0], [new_expression], rest[1])),
                 )
             else:
                 result = new_expression

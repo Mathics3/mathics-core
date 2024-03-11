@@ -2,6 +2,7 @@
 import base64
 import bisect
 import os
+import os.path as osp
 import pickle
 import re
 from collections import defaultdict
@@ -18,6 +19,7 @@ from mathics.core.expression import Expression
 from mathics.core.load_builtin import definition_contribute, mathics3_builtins_modules
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolGet
+from mathics.core.util import canonic_filename
 from mathics.settings import ROOT_DIR
 
 type_compiled_pattern = type(re.compile("a.a"))
@@ -264,7 +266,8 @@ class Definitions:
         self.clear_cache()
 
     def set_inputfile(self, dir: str) -> None:
-        self.inputfile = os.path.abspath(dir)
+        self.inputfile = osp.normpath(osp.abspath(dir))
+        self.inputfile = canonic_filename(self.inputfile)
 
     def get_builtin_names(self):
         return set(self.builtin)
