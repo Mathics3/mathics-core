@@ -4,7 +4,7 @@
 import string
 from math import ceil, log
 from sys import float_info
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import mpmath
 import sympy
@@ -70,7 +70,7 @@ def _get_float_inf(value, evaluation) -> Optional[float]:
 
 def get_precision(
     value: BaseElement, evaluation, show_messages: bool = True
-) -> Optional[int]:
+) -> Optional[Union[int, float]]:
     """
     Returns the ``float`` in the interval [``$MinPrecision``, ``$MaxPrecision``] closest
     to ``value``.
