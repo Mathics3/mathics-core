@@ -1030,7 +1030,7 @@ class Pattern_(PatternObject):
                 yield_func(vars, None)
 
     def get_match_candidates(
-        self, elements, expression, attributes, evaluation, vars={}
+        self, elements: tuple, expression, attributes, evaluation, vars={}
     ):
         existing = vars.get(self.varname, None)
         if existing is None:

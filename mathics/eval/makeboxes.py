@@ -7,7 +7,7 @@ formatting rules.
 
 
 import typing
-from typing import Any, Dict, Type
+from typing import Any, Dict, Optional, Type
 
 from mathics.core.atoms import Complex, Integer, Rational, Real, String, SymbolI
 from mathics.core.convert.expression import to_expression_with_specialization
@@ -392,7 +392,10 @@ def do_format_expression(
 
 
 def parenthesize(
-    precedence: int, element: Type[BaseElement], element_boxes, when_equal: bool
+    precedence: Optional[int],
+    element: Type[BaseElement],
+    element_boxes,
+    when_equal: bool,
 ) -> Type[Expression]:
     """
     "Determines if ``element_boxes`` needs to be surrounded with parenthesis.

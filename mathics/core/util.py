@@ -40,7 +40,7 @@ def permutations(items):
         item = items[index]
         # if item not in already_taken:
         for sub in permutations(items[:index] + items[index + 1 :]):
-            yield [item] + sub
+            yield [item] + list(sub)
             # already_taken.add(item)
 
 
