@@ -220,7 +220,7 @@ def unroll_patterns(lhs, rhs, evaluation) -> Tuple[BaseElement, BaseElement]:
         # like
         # rhs = Expression(Symbol("System`Replace"), Rule(*rulerepl))
         # TODO: check if this is the correct behavior.
-        rhs, status = rhs.do_apply_rules([Rule(*rulerepl)], evaluation)
+        rhs, _ = rhs.do_apply_rules([Rule(*rulerepl)], evaluation)
         name = lhs.get_head_name()
     elif name == "System`HoldPattern":
         lhs = lhs_elements[0]

@@ -307,7 +307,7 @@ class BaseElement(KeyComparable):
     def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
         pass
 
-    def get_precision(self) -> Optional[float]:
+    def get_precision(self) -> Optional[int]:
         """Returns the default specification for precision in N and other
         numerical functions.  It is expected to be redefined in those
         classes that provide inexact arithmetic like PrecisionReal.

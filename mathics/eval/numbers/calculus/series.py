@@ -400,7 +400,7 @@ def build_series(f, x, x0, n, evaluation):
                 *[
                     build_series(element, x, x0, Integer(n), evaluation)
                     for element in f.elements
-                ]
+                ],
             )
         data.append(newcoeff)
     data = ListExpression(*data).evaluate(evaluation)
