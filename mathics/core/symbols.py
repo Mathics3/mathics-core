@@ -837,7 +837,7 @@ class NumericOperators:
     # permit_complex is True.
     def round_to_float(
         self, evaluation=None, permit_complex=False
-    ) -> Optional[Union[complex | float]]:
+    ) -> Optional[Union[complex, float]]:
         """
         Round to a Python float. Return None if rounding is not possible.
         This can happen if self or evaluation is NaN.
