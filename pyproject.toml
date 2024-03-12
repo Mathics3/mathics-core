@@ -68,7 +68,7 @@ full = [
     "wordcloud >= 1.9.3",
 ]
 cython = [
-    "cython < 3.0.0",
+    "cython",
 ]
 
 [project.scripts]
