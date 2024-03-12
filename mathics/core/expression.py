@@ -5,7 +5,7 @@ import math
 import time
 from bisect import bisect_left
 from itertools import chain
-from typing import Any, Callable, Iterable, List, Optional, Tuple, Type
+from typing import Any, Callable, Iterable, List, Optional, Tuple, Type, Union
 
 import sympy
 
@@ -1356,7 +1356,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     #  Expr8: to_expression("Plus", n1,..., n1)           (nontrivial evaluation to a long expression, with just undefined symbols)
     #
 
-    def round_to_float(self, evaluation=None, permit_complex=False) -> Optional[float]:
+    def round_to_float(
+        self, evaluation=None, permit_complex=False
+    ) -> Optional[Union[float, complex]]:
         """
         Round to a Python float. Return None if rounding is not possible.
         This can happen if self or evaluation is NaN.
