@@ -666,6 +666,9 @@ class SymbolConstant(Symbol):
 
     # We use __new__ here to unsure that two Integer's that have the same value
     # return the same object.
+
+    _value = None
+
     def __new__(cls, name, value):
         name = ensure_context(name)
         self = cls._symbol_constants.get(name)
