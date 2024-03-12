@@ -49,7 +49,7 @@ def check_evaluation(
                     as an Expression object.
                     If this argument is set to ``None``, the session is reset.
 
-    failure_message: message shown in case of failure
+    failure_message: message shown in case of failure. Use "" for no failure message.
     hold_expected:   If ``False`` (default value) the ``str_expected`` is evaluated.
                      Otherwise, the expression is considered literally.
 

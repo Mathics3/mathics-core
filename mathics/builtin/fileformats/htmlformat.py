@@ -80,7 +80,7 @@ def xml_object(tree):
     return Expression(
         Expression(SymbolXMLObject, String("Document")),
         to_mathics_list(*declaration),
-        *node_to_xml_element(tree.getroot())
+        *node_to_xml_element(tree.getroot()),
     )
 
 

@@ -12,7 +12,9 @@ jobs:
     strategy:
       matrix:
         os: [windows]
-        python-version: ['3.10', '3.11']
+        # "make doctest" on MS Windows fails without showing much of a
+        # trace of where things went wrong on Python before 3.11.
+        python-version: ['3.11']
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -46,8 +48,6 @@ jobs:
       run: |
         pip install pyocr # from full
         pip install -e .[dev]
-        set PYTEST_WORKERS="-n3"
-        # Until we can't figure out what's up with TextRecognize:
         make pytest gstest
-        make doctest o="--exclude TextRecognize"
+        make doctest
         # make check

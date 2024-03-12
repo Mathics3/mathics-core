@@ -11,6 +11,8 @@ from pathlib import Path
 
 import pkg_resources
 
+from mathics.core.util import canonic_filename
+
 
 def get_srcdir():
     filename = osp.normcase(osp.dirname(osp.abspath(__file__)))
@@ -50,7 +52,7 @@ MAX_STORED_SIZE = 10000
 
 ROOT_DIR = pkg_resources.resource_filename("mathics", "")
 if sys.platform.startswith("win"):
-    DATA_DIR = osp.join(os.environ["APPDATA"], "Python", "Mathics")
+    DATA_DIR = canonic_filename(osp.join(os.environ["APPDATA"], "Python", "Mathics"))
 else:
     DATA_DIR = osp.join(
         os.environ.get("APPDATA", osp.expanduser("~/.local/var/mathics/"))

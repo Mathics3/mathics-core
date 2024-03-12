@@ -2390,7 +2390,7 @@ class Asizer:
                 self._ranked,
                 s,
                 _SI(s),
-                **print3options
+                **print3options,
             )
             id2x = dict((r.id, i) for i, r in enumerate(self._ranks))
             for r in self._ranks[:n]:
@@ -2428,7 +2428,7 @@ class Asizer:
                 _plural(len(t)),
                 s,
                 self._incl,
-                **print3options
+                **print3options,
             )
             r = len(t)
             for v, k in sorted(t, reverse=True):
@@ -2498,7 +2498,7 @@ class Asizer:
                         _SI(z),
                         self._incl,
                         self._repr(o),
-                        **print3options
+                        **print3options,
                     )
             else:
                 if objs:
@@ -2531,7 +2531,7 @@ class Asizer:
             self._total,
             _SI(self._total),
             self._incl,
-            **print3options
+            **print3options,
         )
         if self._mask:
             self._printf("%*d byte aligned", w, self._mask + 1, **print3options)
@@ -2581,7 +2581,7 @@ class Asizer:
                     len(t),
                     k,
                     _plural(len(t)),
-                    **print3options
+                    **print3options,
                 )
                 for a, v in sorted(t):
                     self._printf("%*s %s:  %s", w, "", a, v, **print3options)
@@ -2612,7 +2612,7 @@ class Asizer:
         limit=100,
         stats=0,
         stream=None,
-        **extra
+        **extra,
     ):
         """Reset sizing options, state, etc. to defaults.
 

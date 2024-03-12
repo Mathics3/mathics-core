@@ -359,7 +359,7 @@ def evaluate_predicate(pred, evaluation):
     if pred.has_form(("List", "Sequence"), None):
         return Expression(
             pred._head,
-            *[evaluate_predicate(subp, evaluation) for subp in pred.elements]
+            *[evaluate_predicate(subp, evaluation) for subp in pred.elements],
         )
 
     debug_logical_expr("reducing ", pred, evaluation)
