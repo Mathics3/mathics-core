@@ -1825,7 +1825,7 @@ class Export(Builtin):
                 exporter_symbol,
                 filename,
                 expr,
-                *list(chain(stream_options, custom_options))
+                *list(chain(stream_options, custom_options)),
             )
             res = exporter_function.evaluate(evaluation)
         elif function_channels == ListExpression(String("Streams")):
@@ -1840,7 +1840,7 @@ class Export(Builtin):
                 exporter_symbol,
                 stream,
                 expr,
-                *list(chain(stream_options, custom_options))
+                *list(chain(stream_options, custom_options)),
             )
             res = exporter_function.evaluate(evaluation)
             Expression(SymbolClose, stream).evaluate(evaluation)
@@ -1967,7 +1967,7 @@ class ExportString(Builtin):
                 exporter_symbol,
                 filename,
                 expr,
-                *list(chain(stream_options, custom_options))
+                *list(chain(stream_options, custom_options)),
             )
             exportres = exporter_function.evaluate(evaluation)
             if exportres != SymbolNull:
@@ -2013,7 +2013,7 @@ class ExportString(Builtin):
                 exporter_symbol,
                 outstream,
                 expr,
-                *list(chain(stream_options, custom_options))
+                *list(chain(stream_options, custom_options)),
             )
             res = exporter_function.evaluate(evaluation)
             if res is SymbolNull:

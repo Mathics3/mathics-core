@@ -139,7 +139,7 @@ class SympyConvert(unittest.TestCase):
         self.compare(
             Expression(SymbolD, marg2, Symbol("Global`x")),
             sympy.Derivative(sarg2, sympy.Symbol("_Mathics_User_Global`x")),
-            **kwargs
+            **kwargs,
         )
 
     def testExpression(self):

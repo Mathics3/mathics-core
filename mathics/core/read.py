@@ -11,10 +11,11 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.streams import Stream, path_search, stream_manager
 from mathics.core.symbols import Symbol
-
-SymbolInputStream = Symbol("InputStream")
-SymbolOutputStream = Symbol("OutputStream")
-SymbolEndOfFile = Symbol("EndOfFile")
+from mathics.core.systemsymbols import (
+    SymbolEndOfFile,
+    SymbolInputStream,
+    SymbolOutputStream,
+)
 
 READ_TYPES = [
     Symbol(k)
