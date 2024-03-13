@@ -302,7 +302,7 @@ def test_section_in_chapter(
                 continue
 
             DEFINITIONS.reset_user_definitions()
-            for test in subsection.doc.get_tests():
+            for test in subsection.get_tests():
                 # Get key dropping off test index number
                 key = list(test.key)[1:-1]
                 if prev_key != key:
@@ -365,7 +365,7 @@ def test_section_in_chapter(
     else:
         if include_subsections is None or section.title in include_subsections:
             DEFINITIONS.reset_user_definitions()
-            for test in section.doc.get_tests():
+            for test in section.get_tests():
                 # Get key dropping off test index number
                 key = list(test.key)[1:-1]
                 if prev_key != key:
