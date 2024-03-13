@@ -203,11 +203,11 @@ class InterpretationBox(BoxExpression):
     summary_text = "box associated to an input expression"
 
     def eval_to_expression(boxexpr, form, evaluation):
-        """ToExpression[boxexpr_IntepretationBox, form___]"""
+        """ToExpression[boxexpr_InterpretationBox, form___]"""
         return boxexpr.elements[1]
 
     def eval_display(boxexpr, evaluation):
-        """DisplayForm[boxexpr_IntepretationBox]"""
+        """DisplayForm[boxexpr_InterpretationBox]"""
         return boxexpr.elements[0]
 
 

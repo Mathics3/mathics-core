@@ -186,6 +186,11 @@ def test_case(
 
 
 def create_output(tests, doctest_data, output_format="latex"):
+    """
+    Populate ``doctest_data`` with the results of the
+    ``tests`` in the format ``output_format``
+    """
+
     if DEFINITIONS is None:
         print_and_log(LOGFILE, "Definitions are not initialized.")
         return
