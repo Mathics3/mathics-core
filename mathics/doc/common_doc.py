@@ -531,9 +531,9 @@ class DocSection:
         title: str,
         text: str,
         operator,
-        installed=True,
-        in_guide=False,
-        summary_text="",
+        installed: bool = True,
+        in_guide: bool = False,
+        summary_text: str = "",
     ):
         self.chapter = chapter
         self.in_guide = in_guide
@@ -581,6 +581,12 @@ class DocSection:
     @parent.setter
     def parent(self, value):
         raise TypeError("parent is a read-only property")
+
+    def get_tests(self):
+        """yield tests"""
+        if self.installed:
+            for test in self.doc.get_tests():
+                yield test
 
 
 # DocChapter has to appear before DocGuideSection which uses it.
@@ -840,7 +846,8 @@ class Documentation:
         "section_object" is either a Python module or a Class object instance.
         """
         if section_object is not None:
-            installed = check_requires_list(getattr(section_object, "requires", []))
+            required_libs = getattr(section_object, "requires", [])
+            installed = check_requires_list(required_libs) if required_libs else True
             # FIXME add an additional mechanism in the module
             # to allow a docstring and indicate it is not to go in the
             # user manual
@@ -882,22 +889,12 @@ class Documentation:
         operator=None,
         in_guide=False,
     ):
-        installed = check_requires_list(getattr(instance, "requires", []))
-
-        # FIXME add an additional mechanism in the module
-        # to allow a docstring and indicate it is not to go in the
-        # user manual
-
         """
         Append a subsection for ``instance`` into ``section.subsections``
         """
-        installed = True
-        for package in getattr(instance, "requires", []):
-            try:
-                importlib.import_module(package)
-            except ImportError:
-                installed = False
-                break
+
+        required_libs = getattr(instance, "requires", [])
+        installed = check_requires_list(required_libs) if required_libs else True
 
         # FIXME add an additional mechanism in the module
         # to allow a docstring and indicate it is not to go in the
@@ -1356,6 +1353,13 @@ class DocSubsection:
     @parent.setter
     def parent(self, value):
         raise TypeError("parent is a read-only property")
+
+    def get_tests(self):
+        """yield tests"""
+        if self.installed:
+            for test in self.doc.get_tests():
+                yield test
+
 
 
 class MathicsMainDocumentation(Documentation):
