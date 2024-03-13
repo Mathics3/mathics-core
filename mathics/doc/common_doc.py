@@ -21,7 +21,6 @@ information it reports.
 As with reading in data, final assembly to a LaTeX file or running
 documentation tests is done elsewhere.
 
-
 FIXME: This code should be replaced by Sphinx and autodoc.
 Things are such a mess, that it is too difficult to contemplate this right now. Also there
 higher-priority flaws that are more more pressing.
@@ -1345,12 +1344,6 @@ class DocSubsection:
     def __str__(self) -> str:
         return f"=== {self.title} ===\n{self.doc}"
 
-    def get_tests(self):
-        """yield tests"""
-        if self.installed:
-            for test in self.doc.get_tests():
-                yield test
-
     @property
     def parent(self):
         return self.section
@@ -1358,6 +1351,13 @@ class DocSubsection:
     @parent.setter
     def parent(self, value):
         raise TypeError("parent is a read-only property")
+
+    def get_tests(self):
+        """yield tests"""
+        if self.installed:
+            for test in self.doc.get_tests():
+                yield test
+
 
 
 class MathicsMainDocumentation(Documentation):
