@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# FIXME: combine with same thing in Django
+# FIXME: combine with same thing in Mathics Django
 """
 Does 2 things which can either be done independently or
 as a pipeline:
@@ -43,11 +43,6 @@ class TestOutput(Output):
 
 
 # Global variables
-definitions = None
-documentation = None
-check_partial_elapsed_time = False
-logfile = None
-
 
 # FIXME: After 3.8 is the minimum Python we can turn "str" into a Literal
 SEP: str = "-" * 70 + "\n"
