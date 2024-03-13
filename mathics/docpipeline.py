@@ -776,89 +776,7 @@ def test_sections(
     return total
 
 
-def test_all_new(
-    quiet=False,
-    generate_output=True,
-    stop_on_failure=False,
-    start_at=0,
-    max_tests: int = MAX_TESTS,
-    texdatafolder=None,
-    doc_even_if_error=False,
-    excludes: set = set(),
-) -> int:
-    if not quiet:
-        print(f"Testing {version_string}")
-
-    if generate_output:
-        if texdatafolder is None:
-            texdatafolder = osp.dirname(
-                settings.get_doctest_latex_data_path(
-                    should_be_readable=False, create_parent=True
-                )
-            )
-
-    total = failed = skipped = 0
-    try:
-        index = 0
-        failed_symbols = set()
-        output_data = {}
-        sub_total, sub_failed, sub_skipped, symbols, index = test_tests(
-            index,
-            quiet=quiet,
-            stop_on_failure=stop_on_failure,
-            start_at=start_at,
-            max_tests=max_tests,
-            excludes=excludes,
-            generate_output=generate_output,
-            reload=False,
-            keep_going=not stop_on_failure,
-        )
-
-        total += sub_total
-        failed += sub_failed
-        skipped += sub_skipped
-        failed_symbols.update(symbols)
-        builtin_total = len(_builtins)
-    except KeyboardInterrupt:
-        print("\nAborted.\n")
-        return total
-
-    if failed > 0:
-        print(SEP)
-    if max_tests == MAX_TESTS:
-        print_and_log(
-            LOGFILE,
-            f"{total} Tests for {builtin_total} built-in symbols, {total-failed} "
-            f"passed, {failed} failed, {skipped} skipped.",
-        )
-    else:
-        print_and_log(
-            LOGFILE,
-            f"{total} Tests, {total - failed} passed, {failed} failed, {skipped} "
-            "skipped.",
-        )
-    if failed_symbols:
-        if stop_on_failure:
-            print_and_log(
-                LOGFILE, "(not all tests are accounted for due to --stop-on-failure)"
-            )
-        print_and_log(LOGFILE, "Failed:")
-        for part, chapter, section in sorted(failed_symbols):
-            print_and_log(LOGFILE, f"  - {section} in {part} / {chapter}")
-
-    if generate_output and (failed == 0 or doc_even_if_error):
-        save_doctest_data(output_data)
-        return total
-
-    if failed == 0:
-        print("\nOK")
-    else:
-        print("\nFAILED")
-        sys.exit(1)  # Travis-CI knows the tests have failed
-    return total
-
-
-def test_all(
+def test_all_old(
     quiet: bool = False,
     generate_output: bool = True,
     stop_on_failure: bool = False,
@@ -903,6 +821,88 @@ def test_all(
                 break
             if total >= max_tests:
                 break
+        builtin_total = len(_builtins)
+    except KeyboardInterrupt:
+        print("\nAborted.\n")
+        return total
+
+    if failed > 0:
+        print(SEP)
+    if max_tests == MAX_TESTS:
+        print_and_log(
+            LOGFILE,
+            f"{total} Tests for {builtin_total} built-in symbols, {total-failed} "
+            f"passed, {failed} failed, {skipped} skipped.",
+        )
+    else:
+        print_and_log(
+            LOGFILE,
+            f"{total} Tests, {total - failed} passed, {failed} failed, {skipped} "
+            "skipped.",
+        )
+    if failed_symbols:
+        if stop_on_failure:
+            print_and_log(
+                LOGFILE, "(not all tests are accounted for due to --stop-on-failure)"
+            )
+        print_and_log(LOGFILE, "Failed:")
+        for part, chapter, section in sorted(failed_symbols):
+            print_and_log(LOGFILE, f"  - {section} in {part} / {chapter}")
+
+    if generate_output and (failed == 0 or doc_even_if_error):
+        save_doctest_data(output_data)
+        return total
+
+    if failed == 0:
+        print("\nOK")
+    else:
+        print("\nFAILED")
+        sys.exit(1)  # Travis-CI knows the tests have failed
+    return total
+
+
+def test_all(
+    quiet=False,
+    generate_output=True,
+    stop_on_failure=False,
+    start_at=0,
+    max_tests: int = MAX_TESTS,
+    texdatafolder=None,
+    doc_even_if_error=False,
+    excludes: set = set(),
+) -> int:
+    if not quiet:
+        print(f"Testing {version_string}")
+
+    if generate_output:
+        if texdatafolder is None:
+            texdatafolder = osp.dirname(
+                settings.get_doctest_latex_data_path(
+                    should_be_readable=False, create_parent=True
+                )
+            )
+
+    total = failed = skipped = 0
+    try:
+        index = 0
+        failed_symbols = set()
+        output_data = {}
+        sub_total, sub_failed, sub_skipped, symbols, index = test_tests(
+            index,
+            quiet=quiet,
+            stop_on_failure=stop_on_failure,
+            start_at=start_at,
+            max_tests=max_tests,
+            excludes=excludes,
+            generate_output=generate_output,
+            reload=False,
+            keep_going=not stop_on_failure,
+        )
+
+        total += sub_total
+        failed += sub_failed
+        skipped += sub_skipped
+        failed_symbols.update(symbols)
         builtin_total = len(_builtins)
     except KeyboardInterrupt:
         print("\nAborted.\n")
