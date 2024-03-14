@@ -17,7 +17,7 @@ from mathics.doc.common_doc import (
     MathicsMainDocumentation,
     sorted_chapters,
 )
-from mathics.doc.doctests import (
+from mathics.doc.doc_entries import (
     CONSOLE_RE,
     DL_ITEM_RE,
     DL_RE,
