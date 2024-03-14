@@ -230,6 +230,7 @@ class DocSection:
         if self.installed:
             for test in self.doc.get_tests():
                 yield test
+
     @property
     def parent(self):
         return self.chapter
