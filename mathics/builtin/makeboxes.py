@@ -18,13 +18,22 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol
-from mathics.core.systemsymbols import SymbolInputForm, SymbolOutputForm, SymbolRowBox
+from mathics.core.systemsymbols import (
+    SymbolInputForm,
+    SymbolLeft,
+    SymbolNone,
+    SymbolOutputForm,
+    SymbolRight,
+    SymbolRowBox,
+)
 from mathics.eval.makeboxes import (
     NEVER_ADD_PARENTHESIS,
     _boxed_string,
     format_element,
     parenthesize,
 )
+
+SymbolNonAssociative = Symbol("System`NonAssociative")
 
 
 def int_to_s_exp(expr, n):
@@ -39,24 +48,26 @@ def int_to_s_exp(expr, n):
     return s, exp, nonnegative
 
 
-# FIXME: op should be a string, so remove the Union.
-def make_boxes_infix(
-    elements, op: Union[String, list], precedence: int, grouping, form: Symbol
-):
+def make_boxes_infix(elements, op: String, precedence: int, form: Symbol):
     result = []
+    last_indx = len(elements) - 1
     for index, element in enumerate(elements):
-        if index > 0:
-            if isinstance(op, list):
-                result.append(op[index - 1])
-            else:
-                result.append(op)
+        grouping = SymbolNone
+        if element.has_form("Infix", 4):
+            grouping = element.elements[-1]
+
+            # if grouping  not in (SymbolNone, SymbolLeft,SymbolRight,SymbolNonAssociative):
+            #      send message
+
         parenthesized = False
-        if grouping == "System`NonAssociative":
-            parenthesized = True
-        elif grouping == "System`Left" and index > 0:
-            parenthesized = True
-        elif grouping == "System`Right" and index == 0:
-            parenthesized = True
+        if index == 0:
+            parenthesized = grouping in (SymbolRight, SymbolNonAssociative)
+        elif index == last_indx:
+            result.append(op)
+            parenthesized = grouping in (SymbolLeft, SymbolNonAssociative)
+        else:
+            result.append(op)
+            parenthesized = grouping is (SymbolLeft, SymbolRight, SymbolNonAssociative)
 
         element_boxes = MakeBoxes(element, form)
         element = parenthesize(precedence, element, element_boxes, parenthesized)
@@ -468,7 +479,6 @@ class MakeBoxes(Builtin):
         py_precedence = (
             precedence.value if hasattr(precedence, "value") else NEVER_ADD_PARENTHESIS
         )
-        grouping = grouping.get_name()
 
         if isinstance(expr, Atom):
             evaluation.message("Infix", "normal", Integer1)
@@ -476,33 +486,21 @@ class MakeBoxes(Builtin):
 
         elements = expr.elements
         if len(elements) > 1:
-            if operator.has_form("List", len(elements) - 1):
-                operator = [format_operator(op) for op in operator.elements]
-                return make_boxes_infix(
-                    elements, operator, py_precedence, grouping, form
+            encoding_rule = evaluation.definitions.get_ownvalue("$CharacterEncoding")
+            encoding = "UTF8" if encoding_rule is None else encoding_rule.replace.value
+            op_str = (
+                operator.value if isinstance(operator, String) else operator.short_name
+            )
+            if encoding == "ASCII":
+                operator = format_operator(
+                    String(operator_to_ascii.get(op_str, op_str))
                 )
             else:
-                encoding_rule = evaluation.definitions.get_ownvalue(
-                    "$CharacterEncoding"
+                operator = format_operator(
+                    String(operator_to_unicode.get(op_str, op_str))
                 )
-                encoding = (
-                    "UTF8" if encoding_rule is None else encoding_rule.replace.value
-                )
-                op_str = (
-                    operator.value
-                    if isinstance(operator, String)
-                    else operator.short_name
-                )
-                if encoding == "ASCII":
-                    operator = format_operator(
-                        String(operator_to_ascii.get(op_str, op_str))
-                    )
-                else:
-                    operator = format_operator(
-                        String(operator_to_unicode.get(op_str, op_str))
-                    )
 
-            return make_boxes_infix(elements, operator, py_precedence, grouping, form)
+            return make_boxes_infix(elements, operator, py_precedence, form)
 
         elif len(elements) == 1:
             return MakeBoxes(elements[0], form)
