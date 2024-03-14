@@ -6,17 +6,6 @@ FIXME: Ditch home-grown and lame parsing and hook into sphinx.
 import re
 from typing import Optional
 
-from mathics.doc.common_doc import (
-    SUBSECTION_RE,
-    DocChapter,
-    DocGuideSection,
-    DocPart,
-    DocSection,
-    DocSubsection,
-    Documentation,
-    MathicsMainDocumentation,
-    sorted_chapters,
-)
 from mathics.doc.doc_entries import (
     CONSOLE_RE,
     DL_ITEM_RE,
@@ -32,7 +21,6 @@ from mathics.doc.doc_entries import (
     QUOTATIONS_RE,
     REF_RE,
     SPECIAL_COMMANDS,
-    SUBSECTION_END_RE,
     DocTest,
     DocTests,
     DocText,
@@ -40,6 +28,18 @@ from mathics.doc.doc_entries import (
     get_results_by_test,
     post_sub,
     pre_sub,
+)
+from mathics.doc.structure import (
+    SUBSECTION_END_RE,
+    SUBSECTION_RE,
+    DocChapter,
+    DocGuideSection,
+    DocPart,
+    DocSection,
+    DocSubsection,
+    Documentation,
+    MathicsMainDocumentation,
+    sorted_chapters,
 )
 
 # We keep track of the number of \begin{asy}'s we see so that
