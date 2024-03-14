@@ -21,7 +21,6 @@ information it reports.
 As with reading in data, final assembly to a LaTeX file or running
 documentation tests is done elsewhere.
 
-
 FIXME: This code should be replaced by Sphinx and autodoc.
 Things are such a mess, that it is too difficult to contemplate this right now. Also there
 higher-priority flaws that are more more pressing.
@@ -1359,7 +1358,6 @@ class DocSubsection:
         if self.installed:
             for test in self.doc.get_tests():
                 yield test
-
 
 
 class MathicsMainDocumentation(Documentation):
