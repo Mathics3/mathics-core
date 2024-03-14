@@ -25,13 +25,8 @@ from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
 from mathics.core.load_builtin import _builtins, import_and_load_builtins
 from mathics.core.parser import MathicsSingleLineFeeder
-from mathics.doc.common_doc import (
-    DocGuideSection,
-    DocSection,
-    DocTest,
-    DocTests,
-    MathicsMainDocumentation,
-)
+from mathics.doc.common_doc import DocGuideSection, DocSection, MathicsMainDocumentation
+from mathics.doc.doctests import DocTest, DocTests
 from mathics.doc.utils import load_doctest_data, print_and_log
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 from mathics.timing import show_lru_cache_statistics

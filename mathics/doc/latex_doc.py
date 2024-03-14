@@ -4,15 +4,23 @@ FIXME: Ditch home-grown and lame parsing and hook into sphinx.
 """
 
 import re
-from os import getenv
 from typing import Optional
 
-from mathics.core.evaluation import Message, Print
 from mathics.doc.common_doc import (
+    SUBSECTION_RE,
+    DocChapter,
+    DocGuideSection,
+    DocPart,
+    DocSection,
+    DocSubsection,
+    Documentation,
+    MathicsMainDocumentation,
+    sorted_chapters,
+)
+from mathics.doc.doctests import (
     CONSOLE_RE,
     DL_ITEM_RE,
     DL_RE,
-    END_LINE_SENTINAL,
     HYPERTEXT_RE,
     IMG_PNG_RE,
     IMG_RE,
@@ -25,26 +33,14 @@ from mathics.doc.common_doc import (
     REF_RE,
     SPECIAL_COMMANDS,
     SUBSECTION_END_RE,
-    SUBSECTION_RE,
-    TESTCASE_OUT_RE,
-    DocChapter,
-    DocGuideSection,
-    DocPart,
-    DocSection,
-    DocSubsection,
     DocTest,
     DocTests,
     DocText,
-    Documentation,
     DocumentationEntry,
-    MathicsMainDocumentation,
     get_results_by_test,
-    parse_docstring_to_DocumentationEntry_items,
     post_sub,
     pre_sub,
-    sorted_chapters,
 )
-from mathics.doc.utils import slugify
 
 # We keep track of the number of \begin{asy}'s we see so that
 # we can assocation asymptote file numbers with where they are
