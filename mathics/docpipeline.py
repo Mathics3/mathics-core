@@ -211,6 +211,37 @@ def create_output(tests, doctest_data, output_format="latex"):
         }
 
 
+def load_pymathics_modules(module_names: set):
+    """
+    Load pymathics modules
+
+    PARAMETERS
+    ==========
+
+    module_names: set
+         a set of modules to be loaded.
+
+    Return
+    ======
+    loaded_modules : set
+        the set of successfully loaded modules.
+    """
+    loaded_modules = []
+    for module_name in module_names:
+        try:
+            eval_LoadModule(module_name, DEFINITIONS)
+        except PyMathicsLoadException:
+            print(f"Python module {module_name} is not a Mathics3 module.")
+
+        except Exception as e:
+            print(f"Python import errors with: {e}.")
+        else:
+            print(f"Mathics3 Module {module_name} loaded")
+            loaded_modules.append(module_name)
+
+    return set(loaded_modules)
+
+
 def show_test_summary(
     total: int,
     failed: int,
@@ -289,121 +320,65 @@ def test_section_in_chapter(
     part_name = chapter.part.title
     index = 0
     if len(section.subsections) > 0:
-        for subsection in section.subsections:
-            if (
-                include_subsections is not None
-                and subsection.title not in include_subsections
-            ):
-                continue
-
-            DEFINITIONS.reset_user_definitions()
-            for test in subsection.get_tests():
-                # Get key dropping off test index number
-                key = list(test.key)[1:-1]
-                if prev_key != key:
-                    prev_key = key
-                    section_name_for_print = " / ".join(key)
-                    if quiet:
-                        # We don't print with stars inside in test_case(), so print here.
-                        print(f"Testing section: {section_name_for_print}")
-                    index = 0
-                else:
-                    # Null out section name, so that on the next iteration we do not print a section header
-                    # in test_case().
-                    section_name_for_print = ""
-
-                if isinstance(test, DocTests):
-                    for doctest in test.tests:
-                        index += 1
-                        total += 1
-                        if not test_case(
-                            doctest,
-                            total,
-                            index,
-                            quiet=quiet,
-                            section_name=section_name,
-                            section_for_print=section_name_for_print,
-                            chapter_name=chapter_name,
-                            part=part_name,
-                        ):
-                            failed += 1
-                            if stop_on_failure:
-                                break
-                elif test.ignore:
-                    continue
-
-                else:
-                    index += 1
-
-                    if index < start_at:
-                        skipped += 1
-                        continue
-
-                    total += 1
-                    if not test_case(
-                        test,
-                        total,
-                        index,
-                        quiet=quiet,
-                        section_name=section_name,
-                        section_for_print=section_name_for_print,
-                        chapter_name=chapter_name,
-                        part=part_name,
-                    ):
-                        failed += 1
-                        if stop_on_failure:
-                            break
-                        pass
-                    pass
-                pass
-            pass
+        subsections = section.subsections
     else:
-        if include_subsections is None or section.title in include_subsections:
-            DEFINITIONS.reset_user_definitions()
-            for test in section.get_tests():
-                # Get key dropping off test index number
-                key = list(test.key)[1:-1]
-                if prev_key != key:
-                    prev_key = key
-                    section_name_for_print = " / ".join(key)
-                    if quiet:
-                        print(f"Testing section: {section_name_for_print}")
-                    index = 0
-                else:
-                    # Null out section name, so that on the next iteration we do not print a section header.
-                    section_name_for_print = ""
+        subsections = [section]
 
-                if test.ignore:
+    if chapter.doc:
+        subsections = [chapter.doc] + subsections
+
+    for subsection in subsections:
+        if (
+            include_subsections is not None
+            and subsection.title not in include_subsections
+        ):
+            continue
+
+        DEFINITIONS.reset_user_definitions()
+        for test in subsection.get_tests():
+            # Get key dropping off test index number
+            key = list(test.key)[1:-1]
+            if prev_key != key:
+                prev_key = key
+                section_name_for_print = " / ".join(key)
+                if quiet:
+                    # We don't print with stars inside in test_case(), so print here.
+                    print(f"Testing section: {section_name_for_print}")
+                index = 0
+            else:
+                # Null out section name, so that on the next iteration we do not print a section header
+                # in test_case().
+                section_name_for_print = ""
+
+            tests = test.tests if isinstance(test, DocTests) else [test]
+
+            for doctest in tests:
+                if doctest.ignore:
                     continue
 
-                else:
-                    index += 1
+                index += 1
+                total += 1
+                if index < start_at:
+                    skipped += 1
+                    continue
 
-                    if index < start_at:
-                        skipped += 1
-                        continue
-
-                    total += 1
-                    if total >= max_tests:
+                if not test_case(
+                    doctest,
+                    total,
+                    index,
+                    quiet=quiet,
+                    section_name=section_name,
+                    section_for_print=section_name_for_print,
+                    chapter_name=chapter_name,
+                    part=part_name,
+                ):
+                    failed += 1
+                    if stop_on_failure:
                         break
+            # If failed, do not continue with the other subsections.
+            if failed and stop_on_failure:
+                break
 
-                    if not test_case(
-                        test,
-                        total,
-                        index,
-                        quiet=quiet,
-                        section_name=section.title,
-                        section_for_print=section_name_for_print,
-                        chapter_name=chapter.title,
-                        part=part_name,
-                    ):
-                        failed += 1
-                        if stop_on_failure:
-                            break
-                        pass
-                    pass
-
-                pass
     return total, failed, prev_key
 
 
@@ -515,10 +490,15 @@ def test_tests(
                     start_at=start_at,
                     max_tests=max_tests,
                 )
-                if generate_output and failed == 0:
-                    create_output(section.doc.get_tests(), output_data)
-                    pass
-            pass
+                if failed and stop_on_failure:
+                    break
+                else:
+                    if generate_output:
+                        create_output(section.doc.get_tests(), output_data)
+            if failed and stop_on_failure:
+                break
+        if failed and stop_on_failure:
+            break
 
     show_test_summary(
         total,
@@ -951,16 +931,8 @@ def main():
 
     # LoadModule Mathics3 modules
     if args.pymathics:
-        for module_name in args.pymathics.split(","):
-            try:
-                eval_LoadModule(module_name, DEFINITIONS)
-            except PyMathicsLoadException:
-                print(f"Python module {module_name} is not a Mathics3 module.")
-
-            except Exception as e:
-                print(f"Python import errors with: {e}.")
-            else:
-                print(f"Mathics3 Module {module_name} loaded")
+        required_modules = set(args.pymathics.split(","))
+        load_pymathics_modules(required_modules)
 
     DOCUMENTATION.load_documentation_sources()
 
