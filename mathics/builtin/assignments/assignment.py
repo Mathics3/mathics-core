@@ -53,7 +53,6 @@ class _SetOperator:
 
             return assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
         except AssignmentException:
-
             return False
 
 

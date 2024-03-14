@@ -1411,7 +1411,6 @@ class Import(Builtin):
 
         for el in elements:
             if not isinstance(el, String):
-
                 evaluation.message("Import", "noelem", el)
                 evaluation.predetermined_out = current_predetermined_out
                 return SymbolFailed

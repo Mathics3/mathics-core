@@ -31,13 +31,14 @@ from mathics.doc.common_doc import (
     DocChapter,
     DocPart,
     DocSection,
+    DocSubsection,
     DocTest,
     DocTests,
     DocText,
     Documentation,
-    XMLDoc,
-    gather_tests,
+    DocumentationEntry,
     get_results_by_test,
+    parse_docstring_to_DocumentationEntry_items,
     post_sub,
     pre_sub,
     sorted_chapters,
@@ -273,8 +274,7 @@ def escape_latex(text):
         content = content.replace(r"\$", "$")
         if tag == "con":
             return "\\console{%s}" % content
-        else:
-            return "\\begin{lstlisting}\n%s\n\\end{lstlisting}" % content
+        return "\\begin{lstlisting}\n%s\n\\end{lstlisting}" % content
 
     text = CONSOLE_RE.sub(repl_console, text)
 
@@ -645,8 +645,8 @@ class LaTeXDocumentation(Documentation):
         return result
 
 
-class LaTeXDoc(XMLDoc):
-    """A class to hold our internal XML-like format data.
+class LaTeXDocumentationEntry(DocumentationEntry):
+    """A class to hold our internal markdown-like format data.
     The `latex()` method can turn this into LaTeX.
 
     Mathics core also uses this in getting usage strings (`??`).
@@ -674,35 +674,23 @@ class LaTeXDoc(XMLDoc):
 
 class LaTeXMathicsDocumentation(Documentation):
     def __init__(self):
-        super().__init__()
-
+        self.chapter_class = LaTeXDocChapter
+        self.doc_dir = settings.DOC_DIR
+        self.doc_class = LaTeXDocumentationEntry
         self.doc_data_file = settings.get_doctest_latex_data_path(
             should_be_readable=True
         )
-        self.doc_class = LaTeXDoc
         self.guide_section_class = LaTeXDocGuideSection
         self.part_class = LaTeXDocPart
-        self.chapter_class = LaTeXDocChapter
         self.section_class = LaTeXDocSection
         self.subsection_class = LaTeXDocSubsection
-
-        # self.doc_fn = LaTeXDoc
-        # self.doc_guide_section_fn = LaTeXDocGuideSection
-        # self.doc_part_fn = LaTeXDocPart
-        # self.doc_chapter_fn = LaTeXDocChapter
-        # self.doc_section_fn = LaTeXDocSection
-        # self.doc_subsection_fn = LaTeXDocSubsection
-
-        # Already defined in `Documentation`
-        # self.doc_dir = settings.DOC_DIR
-        # self.parts = []
-        # self.parts_by_slug = {}
-        # self.title = "Overview"
-
-        # File with the results of the tests.
         self.doctest_latex_pcl_path = settings.DOCTEST_LATEX_DATA_PCL
-        # Load the doctests data
-        self.gather_doctest_data()
+        self.parts = []
+        self.parts_by_slug = {}
+        self.title = "Overview"
+
+        self.load_documentation_sources()
+
 
     def latex(
         self,
@@ -739,31 +727,6 @@ class LaTeXMathicsDocumentation(Documentation):
         return result
 
 
-class LaTeXDocPart(DocPart):
-    def latex(
-        self, doc_data: dict, quiet=False, filter_chapters=None, filter_sections=None
-    ) -> str:
-        """Render this Part object as LaTeX string and return that.
-
-        `output` is not used here but passed along to the bottom-most
-        level in getting expected test results.
-        """
-        if self.is_reference:
-            chapter_fn = sorted_chapters
-        else:
-            chapter_fn = lambda x: x
-        result = "\n\n\\part{%s}\n\n" % escape_latex(self.title) + (
-            "\n\n".join(
-                chapter.latex(doc_data, quiet, filter_sections=filter_sections)
-                for chapter in chapter_fn(self.chapters)
-                if not filter_chapters or chapter.title in filter_chapters
-            )
-        )
-        if self.is_reference:
-            result = "\n\n\\referencestart" + result
-        return result
-
-
 class LaTeXDocChapter(DocChapter):
     def latex(self, doc_data: dict, quiet=False, filter_sections=None) -> str:
         """Render this Chapter object as LaTeX string and return that.
@@ -793,12 +756,37 @@ class LaTeXDocChapter(DocChapter):
             "\\chaptersections\n",
             "\n\n".join(
                 section.latex(doc_data, quiet)
-                for section in sorted(self.sections)
+                for section in sorted(self.all_sections)
                 if not filter_sections or section.title in filter_sections
             ),
             "\n\\chapterend\n",
         ]
         return "".join(chapter_sections)
+
+
+class LaTeXDocPart(DocPart):
+    def __init__(self, doc, title: str, is_reference=False):
+        super().__init__(doc, title, is_reference)
+        self.chapter_class = LaTeXDocChapter
+
+    def latex(
+        self, doc_data: dict, quiet=False, filter_chapters=None, filter_sections=None
+    ) -> str:
+        """Render this Part object as LaTeX string and return that.
+
+        `output` is not used here but passed along to the bottom-most
+        level in getting expected test results.
+        """
+        result = "\n\n\\part{%s}\n\n" % escape_latex(self.title) + (
+            "\n\n".join(
+                chapter.latex(doc_data, quiet, filter_sections=filter_sections)
+                for chapter in sorted_chapters(self.chapters)
+                if not filter_chapters or chapter.title in filter_chapters
+            )
+        )
+        if self.is_reference:
+            result = "\n\n\\referencestart" + result
+        return result
 
 
 class LaTeXDocSection(DocSection):
@@ -829,8 +817,8 @@ class LaTeXDocSection(DocSection):
             )
 
         # Needs to come after self.chapter is initialized since
-        # XMLDoc uses self.chapter.
-        self.doc = LaTeXDoc(text, title, self)
+        # DocumentationEntry uses self.chapter.
+        self.doc = LaTeXDocumentationEntry(text, title, self)
 
         chapter.sections_by_slug[self.slug] = self
 
@@ -875,30 +863,16 @@ class LaTeXDocGuideSection(DocSection):
     """
 
     def __init__(
-        self, chapter: str, title: str, text: str, submodule, installed: bool = True
+        self,
+        chapter: LaTeXDocChapter,
+        title: str,
+        text: str,
+        submodule,
+        installed: bool = True,
     ):
-        self.chapter = chapter
-        self.doc = LaTeXDoc(text, title, self)
-        self.in_guide = False
-        self.installed = installed
-        self.section = submodule
-        self.slug = slugify(title)
-        self.subsections = []
-        self.subsections_by_slug = {}
-        self.title = title
+        super().__init__(chapter, title, text, submodule, installed)
+        self.doc = LaTeXDocumentationEntry(text, title, self)
 
-        # FIXME: Sections never are operators. Subsections can have
-        # operators though.  Fix up the view and searching code not to
-        # look for the operator field of a section.
-        self.operator = False
-
-        if text.count("<dl>") != text.count("</dl>"):
-            raise ValueError(
-                "Missing opening or closing <dl> tag in "
-                "{} documentation".format(title)
-            )
-        # print("YYY Adding section", title)
-        chapter.sections_by_slug[self.slug] = self
 
     def get_tests(self):
         # FIXME: The below is a little weird for Guide Sections.
@@ -915,7 +889,7 @@ class LaTeXDocGuideSection(DocSection):
                 for doctests in subsection.items:
                     yield doctests.get_tests()
 
-    def latex(self, doc_data: dict, quiet=False):
+    def latex(self, doc_data: dict, quiet=False) -> str:
         """Render this Guide Section object as LaTeX string and return that.
 
         `output` is not used here but passed along to the bottom-most
@@ -943,7 +917,7 @@ class LaTeXDocGuideSection(DocSection):
         return "".join(guide_sections)
 
 
-class LaTeXDocSubsection:
+class LaTeXDocSubsection(DocSubsection):
     """An object for a Documented Subsection.
     A Subsection is part of a Section.
     """
@@ -972,22 +946,18 @@ class LaTeXDocSubsection:
         mathics/builtin/colors/__init__.py . In mathics/builtin/colors/named-colors.py we have
         the "section" name for the class Read (the subsection) inside it.
         """
+        super().__init__(
+            chapter, section, title, text, operator, installed, in_guide, summary_text
+        )
 
-        self.doc = LaTeXDoc(text, title, section)
-        self.chapter = chapter
-        self.in_guide = in_guide
-        self.installed = installed
-        self.operator = operator
-
-        self.section = section
-        self.slug = slugify(title)
-        self.subsections = []
-        self.title = title
+        self.doc = LaTeXDocumentationEntry(text, title, section)
 
         if in_guide:
             # Tests haven't been picked out yet from the doc string yet.
             # Gather them here.
-            self.items = gather_tests(text, LaTeXDocTests, LaTeXDocTest, LaTeXDocText)
+            self.items = parse_docstring_to_DocumentationEntry_items(
+                text, LaTeXDocTests, LaTeXDocTest, LaTeXDocText
+            )
         else:
             self.items = []
 
@@ -998,7 +968,7 @@ class LaTeXDocSubsection:
             )
         self.section.subsections_by_slug[self.slug] = self
 
-    def latex(self, doc_data: dict, quiet=False, chapters=None):
+    def latex(self, doc_data: dict, quiet=False, chapters=None) -> str:
         """Render this Subsection object as LaTeX string and return that.
 
         `output` is not used here but passed along to the bottom-most
@@ -1038,7 +1008,7 @@ class LaTeXDocSubsection:
 
 
 class LaTeXDocTests(DocTests):
-    def latex(self, doc_data: dict):
+    def latex(self, doc_data: dict) -> str:
         if len(self.tests) == 0:
             return "\n"
 
@@ -1057,6 +1027,6 @@ class LaTeXDocText(DocText):
     Class to hold some (non-test) LaTeX text.
     """
 
-    def latex(self, doc_data) -> str:
+    def latex(self, doc_data: dict) -> str:
         """Escape the text as LaTeX and return that string."""
         return escape_latex(self.text)

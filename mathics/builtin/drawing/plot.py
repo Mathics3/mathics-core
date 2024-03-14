@@ -383,7 +383,6 @@ class _PalettableGradient(_GradientColorScheme):
 
 
 class _Plot(Builtin):
-
     attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
 
     expect_list = False
@@ -565,7 +564,6 @@ class _Plot(Builtin):
     def process_function_and_options(
         self, functions, x, start, stop, evaluation: Evaluation, options: dict
     ) -> tuple:
-
         if isinstance(functions, Symbol) and functions.name is not x.get_name():
             rules = evaluation.definitions.get_ownvalues(functions.name)
             for rule in rules:
