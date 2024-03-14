@@ -697,7 +697,6 @@ class _BaseFinder(Builtin):
     def eval_with_x_tuple(self, f, xtuple, evaluation: Evaluation, options: dict):
         "%(name)s[f_, xtuple_, OptionsPattern[]]"
         f_val = f.evaluate(evaluation)
-
         if f_val.has_form("Equal", 2):
             f = Expression(SymbolPlus, f_val.elements[0], f_val.elements[1])
 

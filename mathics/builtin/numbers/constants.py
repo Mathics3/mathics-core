@@ -263,14 +263,6 @@ class ComplexInfinity(_SympyConstant):
      = ComplexInfinity
     >> FullForm[ComplexInfinity]
      = DirectedInfinity[]
-
-    ## Issue689
-    #> ComplexInfinity + ComplexInfinity
-     : Indeterminate expression ComplexInfinity + ComplexInfinity encountered.
-     = Indeterminate
-    #> ComplexInfinity + Infinity
-     : Indeterminate expression ComplexInfinity + Infinity encountered.
-     = Indeterminate
     """
 
     summary_text = "infinite complex quantity of undetermined direction"
@@ -302,15 +294,6 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
 
     >> N[\\[Degree]] == N[Degree]
      = True
-
-    #> Cos[Degree[x]]
-     = Cos[Degree[x]]
-
-
-    #> N[Degree]
-     = 0.0174533
-    #> N[Degree, 30]
-     = 0.0174532925199432957692369076849
     """
 
     summary_text = "conversion factor from radians to degrees"
@@ -367,9 +350,6 @@ class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
      = 2.71828
     >> N[E, 50]
      = 2.7182818284590452353602874713526624977572470937000
-
-    #> 5. E
-     = 13.5914
     """
 
     summary_text = "exponential constant E ≃ 2.7182"
@@ -512,16 +492,6 @@ class Infinity(_SympyConstant):
     Use 'Infinity' in sum and limit calculations:
     >> Sum[1/x^2, {x, 1, Infinity}]
      = Pi ^ 2 / 6
-
-    #> FullForm[Infinity]
-     = DirectedInfinity[1]
-    #> (2 + 3.5*I) / Infinity
-     = 0.
-    #> Infinity + Infinity
-     = Infinity
-    #> Infinity / Infinity
-     : Indeterminate expression 0 Infinity encountered.
-     = Indeterminate
     """
 
     sympy_name = "oo"

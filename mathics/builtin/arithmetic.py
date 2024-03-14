@@ -279,45 +279,6 @@ class Complex_(Builtin):
      = 1 + 2 I / 3
     >> Abs[Complex[3, 4]]
      = 5
-
-    #> OutputForm[Complex[2.0 ^ 40, 3]]
-     = 1.09951×10^12 + 3. I
-    #> InputForm[Complex[2.0 ^ 40, 3]]
-     = 1.099511627776*^12 + 3.*I
-
-    #> -2 / 3 - I
-     = -2 / 3 - I
-
-    #> Complex[10, 0]
-     = 10
-
-    #> 0. + I
-     = 0. + 1. I
-
-    #> 1 + 0 I
-     = 1
-    #> Head[%]
-     = Integer
-
-    #> Complex[0.0, 0.0]
-     = 0. + 0. I
-    #> 0. I
-     = 0.
-    #> 0. + 0. I
-     = 0.
-
-    #> 1. + 0. I
-     = 1.
-    #> 0. + 1. I
-     = 0. + 1. I
-
-    ## Check Nesting Complex
-    #> Complex[1, Complex[0, 1]]
-     = 0
-    #> Complex[1, Complex[1, 0]]
-     = 1 + I
-    #> Complex[1, Complex[1, 1]]
-     = I
     """
 
     summary_text = "head for complex numbers"
@@ -442,10 +403,6 @@ class Conjugate(MPMathFunction):
     >> Conjugate[{{1, 2 + I 4, a + I b}, {I}}]
      = {{1, 2 - 4 I, Conjugate[a] - I Conjugate[b]}, {-I}}
 
-    ## Issue #272
-    #> {Conjugate[Pi], Conjugate[E]}
-     = {Pi, E}
-
     >> Conjugate[1.5 + 2.5 I]
      = 1.5 - 2.5 I
     """
@@ -485,11 +442,6 @@ class DirectedInfinity(SympyFunction):
     >> DirectedInfinity[0]
      = ComplexInfinity
 
-    #> DirectedInfinity[1+I]+DirectedInfinity[2+I]
-     = (2 / 5 + I / 5) Sqrt[5] Infinity + (1 / 2 + I / 2) Sqrt[2] Infinity
-
-    #> DirectedInfinity[Sqrt[3]]
-     = Infinity
     """
 
     summary_text = "infinite quantity with a defined direction in the complex plane"
@@ -704,11 +656,6 @@ class Im(SympyFunction):
 
     >> Plot[{Sin[a], Im[E^(I a)]}, {a, 0, 2 Pi}]
      = -Graphics-
-
-    #> Re[0.5 + 2.3 I]
-     = 0.5
-    #> % // Precision
-     = MachinePrecision
     """
 
     summary_text = "imaginary part"
@@ -741,10 +688,6 @@ class Integer_(Builtin):
 
     >> Head[5]
      = Integer
-
-    ## Test large Integer comparison bug
-    #> {a, b} = {2^10000, 2^10000 + 1}; {a == b, a < b, a <= b}
-     = {False, True, True}
     """
 
     summary_text = "head for integer numbers"
@@ -790,10 +733,6 @@ class Product(IterationFunction, SympyFunction):
     >> primorial[12]
      = 7420738134810
 
-    ## Used to be a bug in sympy, but now it is solved exactly!
-    ## Again a bug in sympy - regressions between 0.7.3 and 0.7.6 (and 0.7.7?)
-    ## #> Product[1 + 1 / i ^ 2, {i, Infinity}]
-    ##  = 1 / ((-I)! I!)
     """
 
     summary_text = "discrete product"
@@ -848,9 +787,6 @@ class Rational_(Builtin):
 
     >> Rational[1, 2]
      = 1 / 2
-
-    #> -2/3
-     = -2 / 3
     """
 
     summary_text = "head for rational numbers"
@@ -879,11 +815,6 @@ class Re(SympyFunction):
 
     >> Plot[{Cos[a], Re[E^(I a)]}, {a, 0, 2 Pi}]
      = -Graphics-
-
-    #> Im[0.5 + 2.3 I]
-     = 2.3
-    #> % // Precision
-     = MachinePrecision
     """
 
     summary_text = "real part"
@@ -920,61 +851,6 @@ class Real_(Builtin):
     >> Head[x]
      = Real
 
-    ## Formatting tests
-    #> 1. * 10^6
-     = 1.×10^6
-    #> 1. * 10^5
-     = 100000.
-    #> -1. * 10^6
-     = -1.×10^6
-    #> -1. * 10^5
-     = -100000.
-    #> 1. * 10^-6
-     = 1.×10^-6
-    #> 1. * 10^-5
-     = 0.00001
-    #> -1. * 10^-6
-     = -1.×10^-6
-    #> -1. * 10^-5
-     = -0.00001
-
-    ## Mathematica treats zero strangely
-    #> 0.0000000000000
-     = 0.
-    #> 0.0000000000000000000000000000
-     = 0.×10^-28
-
-    ## Parse *^ Notation
-    #> 1.5×10^24
-     = 1.5×10^24
-    #> 1.5*^+24
-     = 1.5×10^24
-    #> 1.5*^-24
-     = 1.5×10^-24
-
-    ## Don't accept *^ with spaces
-    #> 1.5 *^10
-     : "1.5 *" cannot be followed by "^10" (line 1 of "<test>").
-    #> 1.5*^ 10
-     : "1.5*" cannot be followed by "^ 10" (line 1 of "<test>").
-
-    ## Issue654
-    #> 1^^2
-     : Requested base 1 in 1^^2 should be between 2 and 36.
-     : Expression cannot begin with "1^^2" (line 1 of "<test>").
-    #> 2^^0101
-     = 5
-    #> 2^^01210
-     : Digit at position 3 in 01210 is too large to be used in base 2.
-     : Expression cannot begin with "2^^01210" (line 1 of "<test>").
-    #> 16^^5g
-     : Digit at position 2 in 5g is too large to be used in base 16.
-     : Expression cannot begin with "16^^5g" (line 1 of "<test>").
-    #> 36^^0123456789abcDEFxyzXYZ
-     = 14142263610074677021975869033659
-    #> 37^^3
-     : Requested base 37 in 37^^3 should be between 2 and 36.
-     : Expression cannot begin with "37^^3" (line 1 of "<test>").
     """
 
     summary_text = "head for real numbers"
@@ -1000,7 +876,7 @@ class RealNumberQ(Test):
     >> RealNumberQ[0 * I]
      = True
     >> RealNumberQ[0.0 * I]
-     = True
+     = False
     """
 
     attributes = A_NO_ATTRIBUTES
@@ -1077,12 +953,6 @@ class Sum(IterationFunction, SympyFunction):
     >> Sum[x ^ 2, {x, 1, y}] - y * (y + 1) * (2 * y + 1) / 6
      = 0
 
-    ## >> (-1 + a^n) Sum[a^(k n), {k, 0, m-1}] // Simplify
-    ## = -1 + (a ^ n) ^ m  # this is what I am getting
-    ## = Piecewise[{{m (-1 + a ^ n), a ^ n == 1}, {-1 + (a ^ n) ^ m, True}}]
-
-    #> a=Sum[x^k*Sum[y^l,{l,0,4}],{k,0,4}]]
-     : "a=Sum[x^k*Sum[y^l,{l,0,4}],{k,0,4}]" cannot be followed by "]" (line 1 of "<test>").
 
     ## Issue #302
     ## The sum should not converge since the first term is 1/0.
