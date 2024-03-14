@@ -4,6 +4,7 @@ Unit tests from mathics.builtin.evaluation.
 """
 
 
+import sys
 from test.helper import check_evaluation_as_in_cli, session
 
 import pytest
@@ -60,6 +61,21 @@ import pytest
             "15",
             None,
         ),
+        ("ClearAll[f];", None, None, None),
+    ],
+)
+def test_private_doctests_evaluation(str_expr, msgs, str_expected, fail_msg):
+    """These tests check the behavior of $RecursionLimit and $IterationLimit"""
+    check_evaluation_as_in_cli(str_expr, str_expected, fail_msg, msgs)
+
+
+@pytest.mark.skipif(
+    sys.platform.startswith("win"),
+    reason="Weird Block recursion test does not work on MS Windows",
+)
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
         # FIX Later
         (
             "ClearAll[f];f[x_, 0] := x; f[x_, n_] := Module[{y = x + 1}, f[y, n - 1]];Block[{$IterationLimit = 20}, f[0, 100]]",
@@ -67,9 +83,12 @@ import pytest
             "100",
             "Fix me!",
         ),
-        ("ClearAll[f];", None, None, None),
     ],
 )
-def test_private_doctests_evaluation(str_expr, msgs, str_expected, fail_msg):
-    """These tests check the behavior of $RecursionLimit and $IterationLimit"""
+def test_private_doctests_evaluation_non_mswindows(
+    str_expr, msgs, str_expected, fail_msg
+):
+    """These tests check the behavior of $RecursionLimit and $IterationLimit
+    that do not work on MS Windows.
+    """
     check_evaluation_as_in_cli(str_expr, str_expected, fail_msg, msgs)

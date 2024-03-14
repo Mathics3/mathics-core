@@ -10,7 +10,7 @@ import importlib
 import re
 from functools import lru_cache, total_ordering
 from itertools import chain
-from typing import Any, Callable, Dict, Iterable, List, Optional, Union, cast
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union, cast
 
 import mpmath
 import sympy
@@ -1122,8 +1122,8 @@ class PatternObject(BuiltinElement, Pattern):
         return self.get_name()
 
     def get_match_candidates(
-        self, elements, expression, attributes, evaluation, vars={}
-    ):
+        self, elements: Tuple[BaseElement], expression, attributes, evaluation, vars={}
+    ) -> Tuple[BaseElement]:
         return elements
 
     def get_match_count(self, vars={}):

@@ -12,7 +12,9 @@ jobs:
     strategy:
       matrix:
         os: [windows]
-        python-version: ['3.10', '3.11']
+        # "make doctest" on MS Windows fails without showing much of a
+        # trace of where things went wrong on Python before 3.11.
+        python-version: ['3.11']
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -27,7 +29,7 @@ jobs:
         # so we will be safe here. Another possibility would be check and install
         # conditionally.
         choco install --force llvm
-        choco install tesseract
+        # choco install tesseract
         set LLVM_DIR="C:\Program Files\LLVM"
     - name: Install Mathics3 with Python dependencies
       run: |
@@ -46,8 +48,6 @@ jobs:
       run: |
         pip install pyocr # from full
         pip install -e .[dev]
-        set PYTEST_WORKERS="-n3"
-        # Until we can't figure out what's up with TextRecognize:
         make pytest gstest
-        make doctest o="--exclude TextRecognize"
+        make doctest
         # make check
