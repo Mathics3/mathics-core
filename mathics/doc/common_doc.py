@@ -43,7 +43,7 @@ from mathics.core.load_builtin import (
     mathics3_builtins_modules,
 )
 from mathics.core.util import IS_PYPY
-from mathics.doc.doctests import (
+from mathics.doc.doc_entries import (
     DocumentationEntry,
     Tests,
     filter_comments,
