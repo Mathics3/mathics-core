@@ -212,7 +212,6 @@ class Cases(Builtin):
         results = []
 
         if pattern.has_form("Rule", 2) or pattern.has_form("RuleDelayed", 2):
-
             match = Matcher(pattern.elements[0]).match
             rule = Rule(pattern.elements[0], pattern.elements[1])
 

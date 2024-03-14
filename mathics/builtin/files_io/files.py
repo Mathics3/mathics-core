@@ -1,19 +1,16 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 
 """
 File and Stream Operations
 """
 
+import builtins
 import io
 import os.path as osp
 import tempfile
 from io import BytesIO
 
-from mathics_scanner import TranslateError
-
-import mathics
-from mathics.core import read
+import mathics.eval.files_io.files
 from mathics.core.atoms import Integer, String, SymbolString
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import (
@@ -27,7 +24,6 @@ from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
-from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.read import (
     READ_TYPES,
     MathicsOpen,
@@ -44,17 +40,14 @@ from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolHold,
     SymbolInputForm,
+    SymbolInputStream,
     SymbolOutputForm,
+    SymbolOutputStream,
     SymbolReal,
 )
 from mathics.eval.directories import TMP_DIR
+from mathics.eval.files_io.files import eval_Get
 from mathics.eval.makeboxes import do_format, format_element
-
-INPUT_VAR = ""
-
-SymbolInputStream = Symbol("InputStream")
-SymbolOutputStream = Symbol("OutputStream")
-SymbolPath = Symbol("$Path")
 
 # TODO: Improve docs for these Read[] arguments.
 
@@ -64,7 +57,7 @@ SymbolPath = Symbol("$Path")
 
 class Input_(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Input_.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$Input.html</url>
 
     <dl>
       <dt>'$Input'
@@ -79,13 +72,11 @@ class Input_(Predefined):
     name = "$Input"
     summary_text = "the name of the current input stream"
 
-    def evaluate(self, evaluation):
-        global INPUT_VAR
-        return String(INPUT_VAR)
+    def evaluate(self, evaluation: Evaluation) -> String:
+        return String(mathics.eval.files_io.files.INPUT_VAR)
 
 
 class _OpenAction(Builtin):
-
     # BinaryFormat: 'False',
     # CharacterEncoding :> Automatic,
     # DOSTextFormat :> True,
@@ -106,6 +97,8 @@ class _OpenAction(Builtin):
             "File specification `1` is not a string of " "one or more characters."
         ),
     }
+
+    mode = "r"  # A default; this is changed in subclassing.
 
     def eval_empty(self, evaluation: Evaluation, options: dict):
         "%(name)s[OptionsPattern[]]"
@@ -212,9 +205,10 @@ class Close(Builtin):
         "closex": "`1`.",
     }
 
-    def eval(self, channel, evaluation):
+    def eval(self, channel, evaluation: Evaluation):
         "Close[channel_]"
 
+        n = name = None
         if channel.has_form(("InputStream", "OutputStream"), 2):
             [name, n] = channel.elements
             py_n = n.get_int_value()
@@ -298,7 +292,7 @@ class FilePrint(Builtin):
         ):
             evaluation.message("FilePrint", "fstr", path)
             return
-        pypath, is_temporary_file = path_search(pypath[1:-1])
+        pypath, _ = path_search(pypath[1:-1])
 
         # Options
         record_separators = options["System`RecordSeparators"].to_python()
@@ -386,59 +380,21 @@ class Get(PrefixOperator):
     precedence = 720
     summary_text = "read in a file and evaluate commands in it"
 
-    def eval(self, path, evaluation: Evaluation, options: dict):
+    def eval(self, path: String, evaluation: Evaluation, options: dict):
         "Get[path_String, OptionsPattern[Get]]"
 
-        def check_options(options):
-            # Options
-            # TODO Proper error messages
+        trace_fn = None
+        trace_get = evaluation.parse("Settings`$TraceGet")
+        if (
+            options["System`Trace"].to_python()
+            or trace_get.evaluate(evaluation) is SymbolTrue
+        ):
+            trace_fn = builtins.print
 
-            result = {}
-            trace_get = evaluation.parse("Settings`$TraceGet")
-            if (
-                options["System`Trace"].to_python()
-                or trace_get.evaluate(evaluation) is SymbolTrue
-            ):
-                import builtins
+        # perform the actual evaluation
+        return eval_Get(path.value, evaluation, trace_fn)
 
-                result["TraceFn"] = builtins.print
-            else:
-                result["TraceFn"] = None
-
-            return result
-
-        py_options = check_options(options)
-        trace_fn = py_options["TraceFn"]
-        result = None
-        pypath = path.get_string_value()
-        definitions = evaluation.definitions
-        mathics.core.streams.PATH_VAR = SymbolPath.evaluate(evaluation).to_python(
-            string_quotes=False
-        )
-        try:
-            if trace_fn:
-                trace_fn(pypath)
-            with MathicsOpen(pypath, "r") as f:
-                feeder = MathicsFileLineFeeder(f, trace_fn)
-                while not feeder.empty():
-                    try:
-                        query = parse(definitions, feeder)
-                    except TranslateError:
-                        return SymbolNull
-                    finally:
-                        feeder.send_messages(evaluation)
-                    if query is None:  # blank line / comment
-                        continue
-                    result = query.evaluate(evaluation)
-        except IOError:
-            evaluation.message("General", "noopen", path)
-            return SymbolFailed
-        except MessageException as e:
-            e.message(evaluation)
-            return SymbolFailed
-        return result
-
-    def eval_default(self, filename, evaluation):
+    def eval_default(self, filename, evaluation: Evaluation):
         "Get[filename_]"
         expr = to_expression("Get", filename)
         evaluation.message("General", "stream", filename)
@@ -466,7 +422,7 @@ class InputFileName_(Predefined):
     name = "$InputFileName"
 
     def evaluate(self, evaluation):
-        return String(read.INPUTFILE_VAR)
+        return String(evaluation.definitions.get_inputfile())
 
 
 class InputStream(Builtin):

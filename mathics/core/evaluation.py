@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+from abc import ABC
 from queue import Queue
 from threading import Thread, stack_size as set_thread_stack_size
 from typing import List, Optional, Tuple, Union
@@ -632,9 +633,17 @@ class Print(_Out):
         }
 
 
-class Output:
-    def max_stored_size(self, settings) -> int:
-        return settings.MAX_STORED_SIZE
+class Output(ABC):
+    """
+    Base class for Mathics ouput history.
+    This needs to be subclassed.
+    """
+
+    def max_stored_size(self, output_settings) -> int:
+        """
+        Return the largeet number of history items allowed.
+        """
+        return output_settings.MAX_STORED_SIZE
 
     def out(self, out):
         pass

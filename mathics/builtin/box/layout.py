@@ -226,7 +226,7 @@ class RowBox(BoxExpression):
     summary_text = "horizontal arrange of boxes"
 
     def __repr__(self):
-        return "RowBox[List[" + self.items.__repr__() + "]]"
+        return "RowBox[List[" + self.elements.__repr__() + "]]"
 
     def eval_list(self, boxes, evaluation):
         """RowBox[boxes_List]"""

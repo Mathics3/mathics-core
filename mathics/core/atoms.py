@@ -428,7 +428,7 @@ class MachineReal(Real):
     def do_copy(self) -> "MachineReal":
         return MachineReal(self._value)
 
-    def get_precision(self) -> float:
+    def get_precision(self) -> int:
         """Returns the default specification for precision in N and other numerical functions."""
         return FP_MANTISA_BINARY_DIGITS
 
@@ -545,9 +545,9 @@ class PrecisionReal(Real):
     def do_copy(self) -> "PrecisionReal":
         return PrecisionReal(self.value)
 
-    def get_precision(self) -> float:
+    def get_precision(self) -> int:
         """Returns the default specification for precision (in binary digits) in N and other numerical functions."""
-        return self.value._prec + 1.0
+        return self.value._prec + 1
 
     @property
     def is_zero(self) -> bool:
@@ -801,6 +801,7 @@ class Complex(Number):
             return True
         return False
 
+    # FIXME: funny name get_float_value returns complex?
     def get_float_value(self, permit_complex=False) -> Optional[complex]:
         if permit_complex:
             real = self.real.get_float_value()
@@ -810,7 +811,7 @@ class Complex(Number):
         else:
             return None
 
-    def get_precision(self) -> Optional[float]:
+    def get_precision(self) -> Optional[int]:
         """Returns the default specification for precision in N and other numerical functions.
         When `None` is be returned no precision is has been defined and this object's value is
         exact.

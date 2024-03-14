@@ -118,7 +118,6 @@ class RSolve(Builtin):
                     and isinstance(le.elements[0].to_python(), int)
                     and ri.is_numeric(evaluation)
                 ):
-
                     r_sympy = ri.to_sympy()
                     if r_sympy is None:
                         raise ValueError

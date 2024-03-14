@@ -845,7 +845,7 @@ class CoefficientArrays(_CoefficientHandler):
                             SymbolTable,
                             Integer(0),
                             ListExpression(Integer(dim1)),
-                            *its2
+                            *its2,
                         )
                     else:
                         newtable = Expression(SymbolTable, Integer(0), *its2)
@@ -952,7 +952,7 @@ class CoefficientList(Builtin):
                             self.__class__.__name__, expr, form, Integer(n), evaluation
                         )
                         for n in range(dimensions[0] + 1)
-                    ]
+                    ],
                 )
             elif form.has_form("List", 1):
                 form = form.elements[0]
@@ -963,7 +963,7 @@ class CoefficientList(Builtin):
                             self.__class__.__name__, expr, form, Integer(n), evaluation
                         )
                         for n in range(dimensions[0] + 1)
-                    ]
+                    ],
                 )
             else:
 
@@ -1066,7 +1066,6 @@ class Denominator(Builtin):
 
 
 class _Expand(Builtin):
-
     options = {
         "Trig": "False",
         "Modulus": "0",
