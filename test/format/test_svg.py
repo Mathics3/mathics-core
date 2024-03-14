@@ -132,7 +132,6 @@ def test_svg_arrowbox():
 
 
 def test_svg_background():
-
     # If not specified, the background is empty
     expression = Expression(
         GraphicsSymbol,
@@ -170,7 +169,6 @@ def test_svg_background():
 
 
 def test_svg_bezier_curve():
-
     expression = Expression(
         GraphicsSymbol,
         Expression(

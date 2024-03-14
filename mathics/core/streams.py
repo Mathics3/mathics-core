@@ -12,6 +12,7 @@ from typing import Optional, Tuple
 
 import requests
 
+from mathics.core.util import canonic_filename
 from mathics.settings import ROOT_DIR
 
 HOME_DIR = osp.expanduser("~")
@@ -80,7 +81,7 @@ def path_search(filename: str) -> Tuple[str, bool]:
             is_temporary_file = True
         else:
             for p in PATH_VAR + [""]:
-                path = osp.join(p, filename)
+                path = canonic_filename(osp.join(p, filename))
                 if osp.exists(path):
                     result = path
                     break

@@ -7,7 +7,7 @@ import typing
 from typing import Any
 
 from mathics.core.atoms import String
-from mathics.core.attributes import A_HOLD_ALL, A_HOLD_FIRST, A_PROTECTED
+from mathics.core.attributes import A_HOLD_ALL, A_HOLD_FIRST, A_LOCKED, A_PROTECTED
 from mathics.core.builtin import BinaryOperator, Builtin, Predefined
 from mathics.core.evaluation import Evaluation, Message as EvaluationMessage
 from mathics.core.expression import Expression
@@ -26,6 +26,7 @@ class Aborted(Predefined):
     </dl>
     """
 
+    attributes = A_LOCKED | A_PROTECTED
     summary_text = "return value for aborted evaluations"
     name = "$Aborted"
 

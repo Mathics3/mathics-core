@@ -120,7 +120,6 @@ class Minimize(Builtin):
         for candidate in candidates:
             value = second_derivative.subs(candidate)
             if value.is_real and value > 0:
-
                 if candidate is not list:
                     candidate = candidate
 
@@ -148,7 +147,6 @@ class Minimize(Builtin):
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
                 or A_CONSTANT & var.get_attributes(evaluation.definitions)
             ):
-
                 evaluation.message("Minimize", "ivar", vars_or)
                 return
 
@@ -226,7 +224,6 @@ class Minimize(Builtin):
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
                 or A_CONSTANT & var.get_attributes(evaluation.definitions)
             ):
-
                 evaluation.message("Minimize", "ivar", vars_or)
                 return
 

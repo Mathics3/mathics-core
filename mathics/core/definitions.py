@@ -2,6 +2,7 @@
 import base64
 import bisect
 import os
+import os.path as osp
 import pickle
 import re
 from collections import defaultdict
@@ -18,6 +19,7 @@ from mathics.core.expression import Expression
 from mathics.core.load_builtin import definition_contribute, mathics3_builtins_modules
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolGet
+from mathics.core.util import canonic_filename
 from mathics.settings import ROOT_DIR
 
 type_compiled_pattern = type(re.compile("a.a"))
@@ -121,6 +123,7 @@ class Definitions:
             "System`",
             "Global`",
         )
+        self.inputfile = ""
 
         # Importing "mathics.format" populates the Symbol of the
         # PrintForms and OutputForms sets.
@@ -243,6 +246,9 @@ class Definitions:
     def get_context_path(self):
         return self.context_path
 
+    def get_inputfile(self) -> str:
+        return self.inputfile if hasattr(self, "inputfile") else ""
+
     def set_current_context(self, context) -> None:
         assert isinstance(context, str)
         self.set_ownvalue("System`$Context", String(context))
@@ -258,6 +264,10 @@ class Definitions:
         )
         self.context_path = context_path
         self.clear_cache()
+
+    def set_inputfile(self, dir: str) -> None:
+        self.inputfile = osp.normpath(osp.abspath(dir))
+        self.inputfile = canonic_filename(self.inputfile)
 
     def get_builtin_names(self):
         return set(self.builtin)

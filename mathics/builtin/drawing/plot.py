@@ -383,7 +383,6 @@ class _PalettableGradient(_GradientColorScheme):
 
 
 class _Plot(Builtin):
-
     attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
 
     expect_list = False
@@ -565,7 +564,6 @@ class _Plot(Builtin):
     def process_function_and_options(
         self, functions, x, start, stop, evaluation: Evaluation, options: dict
     ) -> tuple:
-
         if isinstance(functions, Symbol) and functions.name is not x.get_name():
             rules = evaluation.definitions.get_ownvalues(functions.name)
             for rule in rules:
@@ -656,7 +654,7 @@ class _Plot3D(Builtin):
             functions,
             xexpr_limits,
             yexpr_limits,
-            *options_to_rules(options)
+            *options_to_rules(options),
         )
 
         functions = self.get_functions_param(functions)
@@ -1503,7 +1501,7 @@ class DensityPlot(_Plot3D):
         return Expression(
             SymbolGraphics,
             ListExpression(*graphics),
-            *options_to_rules(options, Graphics.options)
+            *options_to_rules(options, Graphics.options),
         )
 
 
@@ -1938,7 +1936,7 @@ class Histogram(Builtin):
         return Expression(
             SymbolGraphics,
             ListExpression(*graphics),
-            *options_to_rules(options, Graphics.options)
+            *options_to_rules(options, Graphics.options),
         )
 
 
@@ -2624,5 +2622,5 @@ class Plot3D(_Plot3D):
         return Expression(
             SymbolGraphics3D,
             ListExpression(*graphics),
-            *options_to_rules(options, Graphics3D.options)
+            *options_to_rules(options, Graphics3D.options),
         )

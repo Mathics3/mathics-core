@@ -200,7 +200,6 @@ class Pattern:
         vars: Optional[dict] = None,
         fully: bool = True,
     ) -> bool:
-
         """
         returns True if `expression` matches self.
         """
@@ -262,7 +261,7 @@ class Pattern:
         evaluation: Evaluation,
         vars: dict = {},
     ):
-        return []
+        return tuple()
 
     def get_match_candidates_count(
         self,
@@ -435,7 +434,7 @@ class ExpressionPattern(Pattern):
                 self.match_element(
                     yield_func,
                     next_element,
-                    next_elements,
+                    tuple(next_elements),
                     ([], expression.elements),
                     pre_vars,
                     expression,
@@ -643,7 +642,7 @@ class ExpressionPattern(Pattern):
             # for setting in per_name(groups.items(), vars):
             # def yield_name(setting):
             #    yield_func(setting)
-            per_name(yield_choice, list(groups.items()), vars)
+            per_name(yield_choice, tuple(groups.items()), vars)
         else:
             yield_choice(vars)
 
@@ -709,7 +708,6 @@ class ExpressionPattern(Pattern):
         fully: bool = True,
         depth: int = 1,
     ):
-
         if rest_expression is None:
             rest_expression = ([], [])
 
@@ -717,7 +715,7 @@ class ExpressionPattern(Pattern):
 
         match_count = element.get_match_count(vars)
         element_candidates = element.get_match_candidates(
-            rest_expression[1],  # element.candidates,
+            tuple(rest_expression[1]),  # element.candidates,
             expression,
             attributes,
             evaluation,
@@ -785,7 +783,7 @@ class ExpressionPattern(Pattern):
                     candidates,
                     included=element_candidates,
                     less_first=less_first,
-                    *set_lengths
+                    *set_lengths,
                 )
         else:
             # a generator that yields partitions of
@@ -796,7 +794,7 @@ class ExpressionPattern(Pattern):
                 flexible_start=first and not fully,
                 included=element_candidates,
                 less_first=less_first,
-                *set_lengths
+                *set_lengths,
             )
         if rest_elements:
             next_element = rest_elements[0]
@@ -863,7 +861,7 @@ class ExpressionPattern(Pattern):
 
             self.get_wrappings(
                 yield_wrapping,
-                items,
+                tuple(items),
                 match_count[1],
                 expression,
                 attributes,

@@ -1,35 +1,41 @@
 # -*- coding: utf-8 -*-
-"""A module and library that assists in organizing document data
-previously obtained from static files and Python module/class doc
-strings. This data is stored in a way that facilitates:
+"""
+A module and library that assists in organizing document data
+located in static files and docstrings from
+Mathics3 Builtin Modules. Builtin Modules are written in Python and
+reside either in the Mathics3 core (mathics.builtin) or are packaged outside,
+in Mathics3 Modules e.g. pymathics.natlang.
 
+This data is stored in a way that facilitates:
 * organizing information to produce a LaTeX file
 * running documentation tests
 * producing HTML-based documentation
 
-The command-line utility `docpipeline.py`, which loads the data from
+The command-line utility ``docpipeline.py``, loads the data from
 Python modules and static files, accesses the functions here.
-
-Mathics-core routines also use this to get usage strings of Mathics
-Built-in functions.
 
 Mathics Django also uses this library for its HTML-based documentation.
 
-As with reading in data, final assembly to a LateX file or running
+The Mathics3 builtin function ``Information[]`` also uses to provide the
+information it reports.
+As with reading in data, final assembly to a LaTeX file or running
 documentation tests is done elsewhere.
 
-FIXME: Code should be moved for both to a separate package.
 
-More importantly, this code should be replaced by Sphinx and autodoc.
-Things are such a mess, that it is too difficult to contemplate this right now.
+FIXME: This code should be replaced by Sphinx and autodoc.
+Things are such a mess, that it is too difficult to contemplate this right now. Also there
+higher-priority flaws that are more more pressing.
+In the shorter, we might we move code for extracting printing to a separate package.
 """
+
 import importlib
+import logging
 import os.path as osp
 import pkgutil
 import re
-from os import getenv, listdir
+from os import environ, getenv, listdir
 from types import ModuleType
-from typing import Callable
+from typing import Callable, Iterator, List, Optional, Tuple
 
 from mathics import settings
 from mathics.core.builtin import check_requires_list
@@ -125,8 +131,28 @@ TESTCASE_OUT_RE = re.compile(r"^\s*([:|=])(.*)$")
 # Used for getting test results by test expresson and chapter/section information.
 test_result_map = {}
 
+# Debug flags.
 
-def get_module_doc(module: ModuleType) -> tuple:
+# Set to True if want to follow the process
+# The first phase is building the documentation data structure
+# based on docstrings:
+
+MATHICS_DEBUG_DOC_BUILD: bool = "MATHICS_DEBUG_DOC_BUILD" in environ
+
+# After building the doc structure, we extract test cases.
+MATHICS_DEBUG_TEST_CREATE: bool = "MATHICS_DEBUG_TEST_CREATE" in environ
+
+# Name of the Mathics3 Module part of the document.
+MATHICS3_MODULES_TITLE = "Mathics3 Modules"
+
+
+def get_module_doc(module: ModuleType) -> Tuple[str, str]:
+    """
+    Determine the title and text associated to the documentation
+    of a module.
+    If the module has a module docstring, extract the information
+    from it. If not, pick the title from the name of the module.
+    """
     doc = module.__doc__
     if doc is not None:
         doc = doc.strip()
@@ -134,6 +160,7 @@ def get_module_doc(module: ModuleType) -> tuple:
         title = doc.splitlines()[0]
         text = "\n".join(doc.splitlines()[1:])
     else:
+        # FIXME: Extend me for Mathics3 modules.
         title = module.__name__
         for prefix in ("mathics.builtin.", "mathics.optional."):
             if title.startswith(prefix):
@@ -149,7 +176,7 @@ def get_results_by_test(test_expr: str, full_test_key: list, doc_data: dict) -> 
     data was read.
 
     Here, we compensate for this by looking up the test by its chapter and section name
-    portion stored in `full_test_key` along with the and the test expresion data
+    portion stored in `full_test_key` along with the and the test expression data
     stored in `test_expr`.
 
     This new key is looked up in `test_result_map` its value is returned.
@@ -169,10 +196,11 @@ def get_results_by_test(test_expr: str, full_test_key: list, doc_data: dict) -> 
             test_section = list(key)[:-1]
             new_test_key = tuple(test_section)
             next_result = test_result_map.get(new_test_key, None)
-            if next_result:
-                next_result.append(result)
-            else:
+            if next_result is None:
                 next_result = [result]
+            else:
+                next_result.append(result)
+
             test_result_map[new_test_key] = next_result
 
     results = test_result_map.get(search_key, None)
@@ -190,12 +218,12 @@ def get_results_by_test(test_expr: str, full_test_key: list, doc_data: dict) -> 
     return result
 
 
-def get_submodule_names(object) -> list:
+def get_submodule_names(obj) -> list:
     """Many builtins are organized into modules which, from a documentation
     standpoint, are like Mathematica Online Guide Docs.
 
     "List Functions", "Colors", or "Distance and Similarity Measures"
-    are some examples Guide Documents group group various Bultin Functions,
+    are some examples Guide Documents group group various Builtin Functions,
     under submodules relate to that general classification.
 
     Here, we want to return a list of the Python modules under a "Guide Doc"
@@ -203,7 +231,7 @@ def get_submodule_names(object) -> list:
 
     As an example of a "Guide Doc" and its submodules, consider the
     module named mathics.builtin.colors. It collects code and documentation pertaining
-    to the builtin functions that would be found in the Guide documenation for "Colors".
+    to the builtin functions that would be found in the Guide documentation for "Colors".
 
     The `mathics.builtin.colors` module has a submodule
     `mathics.builtin.colors.named_colors`.
@@ -218,8 +246,8 @@ def get_submodule_names(object) -> list:
     Functions.
     """
     modpkgs = []
-    if hasattr(object, "__path__"):
-        for importer, modname, ispkg in pkgutil.iter_modules(object.__path__):
+    if hasattr(obj, "__path__"):
+        for importer, modname, ispkg in pkgutil.iter_modules(obj.__path__):
             modpkgs.append(modname)
         modpkgs.sort()
     return modpkgs
@@ -233,7 +261,13 @@ def filter_comments(doc: str) -> str:
     )
 
 
-def get_doc_name_from_module(module):
+def get_doc_name_from_module(module) -> str:
+    """
+    Get the title associated to the module.
+    If the module has a docstring, pick the name from
+    its first line (the title). Otherwise, use the
+    name of the module.
+    """
     name = "???"
     if module.__doc__:
         lines = module.__doc__.strip()
@@ -272,29 +306,17 @@ def skip_doc(cls) -> bool:
     return cls.__name__.endswith("Box") or (hasattr(cls, "no_doc") and cls.no_doc)
 
 
-class Tests:
-    # FIXME: add optional guide section
-    def __init__(self, part: str, chapter: str, section: str, doctests):
-        self.part, self.chapter = part, chapter
-        self.section, self.tests = section, doctests
-
-
-def skip_module_doc(module, modules_seen) -> bool:
+def skip_module_doc(module, must_be_skipped) -> bool:
     return (
         module.__doc__ is None
-        or module in modules_seen
+        or module in must_be_skipped
         or module.__name__.split(".")[0] not in ("mathics", "pymathics")
         or hasattr(module, "no_doc")
         and module.no_doc
     )
 
 
-def sorted_chapters(chapters: list) -> list:
-    """Return chapters sorted by title"""
-    return sorted(chapters, key=lambda chapter: chapter.title)
-
-
-def gather_tests(
+def parse_docstring_to_DocumentationEntry_items(
     doc: str,
     test_collection_constructor: Callable,
     test_case_constructor: Callable,
@@ -302,7 +324,7 @@ def gather_tests(
     key_part=None,
 ) -> list:
     """
-    This parses string `doc` (using regular expresssions) into Python objects.
+    This parses string `doc` (using regular expressions) into Python objects.
     test_collection_fn() is the class construtorto call to create an object for the
     test collection. Each test is created via test_case_fn().
     Text within the test is stored via text_constructor.
@@ -340,22 +362,414 @@ def gather_tests(
             if tests is None:
                 tests = test_collection_constructor()
             tests.tests.append(test)
-        if tests is not None:
-            items.append(tests)
-            tests = None
+
+    # If the last block in the loop was not a Text block, append the
+    # last set of tests.
+    if tests is not None:
+        items.append(tests)
+        tests = None
     return items
 
 
-class Documentation:
-    def __init__(self, part, title: str, doc=None):
+class DocTest:
+    """
+    Class to hold a single doctest.
+
+    DocTest formatting rules:
+
+    * `>>` Marks test case; it will also appear as part of
+           the documentation.
+    * `#>` Marks test private or one that does not appear as part of
+           the documentation.
+    * `X>` Shows the example in the docs, but disables testing the example.
+    * `S>` Shows the example in the docs, but disables testing if environment
+           variable SANDBOX is set.
+    * `=`  Compares the result text.
+    * `:`  Compares an (error) message.
+      `|`  Prints output.
+    """
+
+    def __init__(
+        self, index: int, testcase: List[str], key_prefix: Optional[tuple] = None
+    ):
+        def strip_sentinal(line: str):
+            """Remove END_LINE_SENTINAL from the end of a line if it appears.
+
+            Some editors like to strip blanks at the end of a line.
+            Since the line ends in END_LINE_SENTINAL which isn't blank,
+            any blanks that appear before will be preserved.
+
+            Some tests require some lines to be blank or entry because
+            Mathics3 output can be that way
+            """
+            if line.endswith(END_LINE_SENTINAL):
+                line = line[: -len(END_LINE_SENTINAL)]
+
+            # Also remove any remaining trailing blanks since that
+            # seems *also* what we want to do.
+            return line.strip()
+
+        self.index = index
+        self.outs = []
+        self.result = None
+
+        # Private test cases are executed, but NOT shown as part of the docs
+        self.private = testcase[0] == "#"
+
+        # Ignored test cases are NOT executed, but shown as part of the docs
+        # Sandboxed test cases are NOT executed if environment SANDBOX is set
+        if testcase[0] == "X" or (testcase[0] == "S" and getenv("SANDBOX", False)):
+            self.ignore = True
+            # substitute '>' again so we get the correct formatting
+            testcase[0] = ">"
+        else:
+            self.ignore = False
+
+        self.test = strip_sentinal(testcase[1])
+
+        self.key = None
+        if key_prefix:
+            self.key = tuple(key_prefix + (index,))
+
+        outs = testcase[2].splitlines()
+        for line in outs:
+            line = strip_sentinal(line)
+            if line:
+                if line.startswith("."):
+                    text = line[1:]
+                    if text.startswith(" "):
+                        text = text[1:]
+                    text = "\n" + text
+                    if self.result is not None:
+                        self.result += text
+                    elif self.outs:
+                        self.outs[-1].text += text
+                    continue
+
+                match = TESTCASE_OUT_RE.match(line)
+                if not match:
+                    continue
+                symbol, text = match.group(1), match.group(2)
+                text = text.strip()
+                if symbol == "=":
+                    self.result = text
+                elif symbol == ":":
+                    out = Message("", "", text)
+                    self.outs.append(out)
+                elif symbol == "|":
+                    out = Print(text)
+                    self.outs.append(out)
+
+    def __str__(self) -> str:
+        return self.test
+
+
+# Tests has to appear before Documentation which uses it.
+# FIXME: Turn into a NamedTuple? Or combine with another class?
+class Tests:
+    """
+    A group of tests in the same section or subsection.
+    """
+
+    def __init__(
+        self,
+        part_name: str,
+        chapter_name: str,
+        section_name: str,
+        doctests: List[DocTest],
+        subsection_name: Optional[str] = None,
+    ):
+        self.part = part_name
+        self.chapter = chapter_name
+        self.section = section_name
+        self.subsection = subsection_name
+        self.tests = doctests
+
+
+# DocSection has to appear before DocGuideSection which uses it.
+class DocSection:
+    """An object for a Documented Section.
+    A Section is part of a Chapter. It can contain subsections.
+    """
+
+    def __init__(
+        self,
+        chapter,
+        title: str,
+        text: str,
+        operator,
+        installed: bool = True,
+        in_guide: bool = False,
+        summary_text: str = "",
+    ):
+        self.chapter = chapter
+        self.in_guide = in_guide
+        self.installed = installed
+        self.items = []  # tests in section when this is under a guide section
+        self.operator = operator
+        self.slug = slugify(title)
+        self.subsections = []
+        self.subsections_by_slug = {}
+        self.summary_text = summary_text
+        self.tests = None  # tests in section when not under a guide section
+        self.title = title
+
+        if text.count("<dl>") != text.count("</dl>"):
+            raise ValueError(
+                "Missing opening or closing <dl> tag in "
+                "{} documentation".format(title)
+            )
+
+        # Needs to come after self.chapter is initialized since
+        # DocumentationEntry uses self.chapter.
+        self.doc = DocumentationEntry(text, title, self)
+
+        chapter.sections_by_slug[self.slug] = self
+        if MATHICS_DEBUG_DOC_BUILD:
+            print("      DEBUG Creating Section", title)
+
+    # Add __eq__ and __lt__ so we can sort Sections.
+    def __eq__(self, other) -> bool:
+        return self.title == other.title
+
+    def __lt__(self, other) -> bool:
+        return self.title < other.title
+
+    def __str__(self) -> str:
+        return f"    == {self.title} ==\n{self.doc}"
+
+    def get_tests(self):
+        """yield tests"""
+        if self.installed:
+            for test in self.doc.get_tests():
+                yield test
+
+
+# DocChapter has to appear before DocGuideSection which uses it.
+class DocChapter:
+    """An object for a Documented Chapter.
+    A Chapter is part of a Part[dChapter. It can contain (Guide or plain) Sections.
+    """
+
+    def __init__(self, part, title, doc=None, chapter_order: Optional[int] = None):
+        self.chapter_order = chapter_order
         self.doc = doc
         self.guide_sections = []
         self.part = part
+        self.title = title
+        self.slug = slugify(title)
         self.sections = []
         self.sections_by_slug = {}
-        self.slug = slugify(title)
-        self.title = title
+        self.sort_order = None
+
         part.chapters_by_slug[self.slug] = self
+
+        if MATHICS_DEBUG_DOC_BUILD:
+            print("  DEBUG Creating Chapter", title)
+
+    def __str__(self) -> str:
+        """
+        A DocChapter is represented as the index of its sections
+        and subsections.
+        """
+        sections_descr = ""
+        for section in self.all_sections:
+            sec_class = "@>" if isinstance(section, DocGuideSection) else "@ "
+            sections_descr += f"     {sec_class} " + section.title + "\n"
+            for subsection in section.subsections:
+                sections_descr += "         * " + subsection.title + "\n"
+
+        return f"   = {self.part.title}: {self.title} =\n\n{sections_descr}"
+
+    @property
+    def all_sections(self):
+        return sorted(self.sections + self.guide_sections)
+
+
+class DocGuideSection(DocSection):
+    """An object for a Documented Guide Section.
+    A Guide Section is part of a Chapter. "Colors" or "Special Functions"
+    are examples of Guide Sections, and each contains a number of Sections.
+    like NamedColors or Orthogonal Polynomials.
+    """
+
+    def __init__(
+        self,
+        chapter: DocChapter,
+        title: str,
+        text: str,
+        submodule,
+        installed: bool = True,
+    ):
+        self.chapter = chapter
+        self.doc = DocumentationEntry(text, title, None)
+        self.in_guide = False
+        self.installed = installed
+        self.section = submodule
+        self.slug = slugify(title)
+        self.subsections = []
+        self.subsections_by_slug = {}
+        self.title = title
+
+        # FIXME: Sections never are operators. Subsections can have
+        # operators though.  Fix up the view and searching code not to
+        # look for the operator field of a section.
+        self.operator = False
+
+        if text.count("<dl>") != text.count("</dl>"):
+            raise ValueError(
+                "Missing opening or closing <dl> tag in "
+                "{} documentation".format(title)
+            )
+        if MATHICS_DEBUG_DOC_BUILD:
+            print("    DEBUG Creating Guide Section", title)
+        chapter.sections_by_slug[self.slug] = self
+
+    # FIXME: turn into a @property tests?
+    def get_tests(self):
+        # FIXME: The below is a little weird for Guide Sections.
+        # Figure out how to make this clearer.
+        # A guide section's subsection are Sections without the Guide.
+        # it is *their* subsections where we generally find tests.
+        for section in self.subsections:
+            if not section.installed:
+                continue
+            for subsection in section.subsections:
+                # FIXME we are omitting the section title here...
+                if not subsection.installed:
+                    continue
+                for doctests in subsection.items:
+                    yield doctests.get_tests()
+
+
+def sorted_chapters(chapters: List[DocChapter]) -> List[DocChapter]:
+    """Return chapters sorted by title"""
+    return sorted(
+        chapters,
+        key=lambda chapter: str(chapter.sort_order)
+        if chapter.sort_order is not None
+        else chapter.title,
+    )
+
+
+def sorted_modules(modules) -> list:
+    """Return modules sorted by the ``sort_order`` attribute if that
+    exists, or the module's name if not."""
+    return sorted(
+        modules,
+        key=lambda module: module.sort_order
+        if hasattr(module, "sort_order")
+        else module.__name__,
+    )
+
+
+class DocPart:
+    """
+    Represents one of the main parts of the document. Parts
+    can be loaded from a mdoc file, generated automatically from
+    the docstrings of Builtin objects under `mathics.builtin`.
+    """
+
+    chapter_class = DocChapter
+
+    def __init__(self, doc, title, is_reference=False):
+        self.doc = doc
+        self.title = title
+        self.chapters = []
+        self.chapters_by_slug = {}
+        self.is_reference = is_reference
+        self.is_appendix = False
+        self.slug = slugify(title)
+        doc.parts_by_slug[self.slug] = self
+        if MATHICS_DEBUG_DOC_BUILD:
+            print("DEBUG Creating Part", title)
+
+    def __str__(self) -> str:
+        return f"    Part    {self.title}\n\n" + "\n\n".join(
+            str(chapter) for chapter in sorted_chapters(self.chapters)
+        )
+
+
+class DocTests:
+    """
+    A bunch of consecutive ``DocTest`` objects extracted from a Builtin docstring.
+    """
+
+    def __init__(self):
+        self.tests = []
+        self.text = ""
+
+    def get_tests(self) -> list:
+        """
+        Returns lists test objects.
+        """
+        return self.tests
+
+    def is_private(self) -> bool:
+        return all(test.private for test in self.tests)
+
+    def __str__(self) -> str:
+        return "\n".join(str(test) for test in self.tests)
+
+    def test_indices(self) -> List[int]:
+        return [test.index for test in self.tests]
+
+
+class Documentation:
+    """
+    `Documentation` describes an object containing the whole documentation system.
+    Documentation
+        |
+        +--------0> Parts
+                      |
+                      +-----0> Chapters
+                                 |
+                                 +-----0>Sections
+                                 |         |
+                                 |         +------0> SubSections
+                                 |
+                                 +---->0>GuideSections
+                                           |
+                                           +-----0>Sections
+                                                     |
+                                                     +------0> SubSections
+
+    (with 0>) meaning "aggregation".
+
+    Each element contains a title, a collection of elements of the following class
+    in the hierarchy. Parts, Chapters, Guide Sections, Sections and SubSections contains a doc
+    attribute describing the content to be shown after the title, and before
+    the elements of the subsequent terms in the hierarchy.
+    """
+
+    def __init__(self):
+        # This is a way to load the default classes
+        # without defining these attributes as class
+        # attributes.
+        self._set_classes()
+        self.parts = []
+        self.appendix = []
+        self.parts_by_slug = {}
+        self.title = "Title"
+
+    def _set_classes(self):
+        """
+        Set the classes of the subelements. Must be overloaded
+        by the subclasses.
+        """
+        if not hasattr(self, "part_class"):
+            self.chapter_class = DocChapter
+            self.doc_class = DocumentationEntry
+            self.guide_section_class = DocGuideSection
+            self.part_class = DocPart
+            self.section_class = DocSection
+            self.subsection_class = DocSubsection
+
+    def __str__(self):
+        result = self.title + "\n" + len(self.title) * "~" + "\n"
+        return (
+            result + "\n\n".join([str(part) for part in self.parts]) + "\n" + 60 * "-"
+        )
 
     def add_section(
         self,
@@ -372,15 +786,20 @@ class Documentation:
         object to the chapter, a DocChapter object.
         "section_object" is either a Python module or a Class object instance.
         """
-        installed = check_requires_list(getattr(section_object, "requires", []))
-
-        # FIXME add an additional mechanism in the module
-        # to allow a docstring and indicate it is not to go in the
-        # user manual
+        if section_object is not None:
+            required_libs = getattr(section_object, "requires", [])
+            installed = check_requires_list(required_libs) if required_libs else True
+            # FIXME add an additional mechanism in the module
+            # to allow a docstring and indicate it is not to go in the
+            # user manual
         if not section_object.__doc__:
             return
+
+        else:
+            installed = True
+
         if is_guide:
-            section = self.doc_guide_section_fn(
+            section = self.guide_section_class(
                 chapter,
                 section_name,
                 section_object.__doc__,
@@ -389,7 +808,7 @@ class Documentation:
             )
             chapter.guide_sections.append(section)
         else:
-            section = self.doc_section_fn(
+            section = self.section_class(
                 chapter,
                 section_name,
                 section_object.__doc__,
@@ -411,22 +830,12 @@ class Documentation:
         operator=None,
         in_guide=False,
     ):
-        installed = check_requires_list(getattr(instance, "requires", []))
-
-        # FIXME add an additional mechanism in the module
-        # to allow a docstring and indicate it is not to go in the
-        # user manual
-
         """
         Append a subsection for ``instance`` into ``section.subsections``
         """
-        installed = True
-        for package in getattr(instance, "requires", []):
-            try:
-                importlib.import_module(package)
-            except ImportError:
-                installed = False
-                break
+
+        required_libs = getattr(instance, "requires", [])
+        installed = check_requires_list(required_libs) if required_libs else True
 
         # FIXME add an additional mechanism in the module
         # to allow a docstring and indicate it is not to go in the
@@ -436,7 +845,7 @@ class Documentation:
         summary_text = (
             instance.summary_text if hasattr(instance, "summary_text") else ""
         )
-        subsection = self.doc_subsection_fn(
+        subsection = self.subsection_class(
             chapter,
             section,
             subsection_name,
@@ -450,105 +859,130 @@ class Documentation:
 
     def doc_part(self, title, modules, builtins_by_module, start):
         """
-        Produce documentation for a "Part" - reference section or
-        possibly Pymathics modules
+        Build documentation structure for a "Part" - Reference
+        section or collection of Mathics3 Modules.
         """
 
-        builtin_part = self.doc_part_fn(self, title, is_reference=start)
-        modules_seen = set([])
-        submodule_names_seen = set([])
+        builtin_part = self.part_class(self, title, is_reference=start)
 
-        want_sorting = True
-        if want_sorting:
-            module_collection_fn = lambda x: sorted(
-                modules,
-                key=lambda module: module.sort_order
-                if hasattr(module, "sort_order")
-                else module.__name__,
+        # This is used to ensure that we pass just once over each module.
+        # The algorithm we use to walk all the modules without repetitions
+        # relies on this, which in my opinion is hard to test and susceptible
+        # to errors. I guess we include it as a temporal fixing to handle
+        # packages inside ``mathics.builtin``.
+        modules_seen = set([])
+
+        def filter_toplevel_modules(module_list):
+            """
+            Keep just the modules at the top level.
+            """
+            if len(module_list) == 0:
+                return module_list
+
+            modules_and_levels = sorted(
+                ((module.__name__.count("."), module) for module in module_list),
+                key=lambda x: x[0],
             )
-        else:
-            module_collection_fn = lambda x: x
-        for module in module_collection_fn(modules):
+            top_level = modules_and_levels[0][0]
+            return (entry[1] for entry in modules_and_levels if entry[0] == top_level)
+
+        # The loop to load chapters must be run over the top-level modules. Otherwise,
+        # modules like ``mathics.builtin.functional.apply_fns_to_lists`` are loaded
+        # as chapters and sections of a GuideSection, producing duplicated tests.
+        #
+        # Also, this provides a more deterministic way to walk the module hierarchy,
+        # which can be decomposed in the way proposed in #984.
+
+        modules = filter_toplevel_modules(modules)
+        for module in sorted_modules(modules):
             if skip_module_doc(module, modules_seen):
                 continue
-            title, text = get_module_doc(module)
-            chapter = self.doc_chapter_fn(
-                builtin_part, title, self.doc_fn(text, title, None)
+            chapter = self.doc_chapter(module, builtin_part, builtins_by_module)
+            if chapter is None:
+                continue
+            builtin_part.chapters.append(chapter)
+
+        self.parts.append(builtin_part)
+
+    def doc_chapter(self, module, part, builtins_by_module) -> Optional[DocChapter]:
+        """
+        Build documentation structure for a "Chapter" - reference section which
+        might be a Mathics Module.
+        """
+        modules_seen = set([])
+
+        title, text = get_module_doc(module)
+        chapter = self.chapter_class(part, title, self.doc_class(text, title, None))
+        builtins = builtins_by_module.get(module.__name__)
+        if module.__file__.endswith("__init__.py"):
+            # We have a Guide Section.
+
+            # This is used to check if a symbol is not duplicated inside
+            # a guide.
+            submodule_names_seen = set([])
+            name = get_doc_name_from_module(module)
+            guide_section = self.add_section(
+                chapter, name, module, operator=None, is_guide=True
             )
-            builtins = builtins_by_module.get(module.__name__)
-            if module.__file__.endswith("__init__.py"):
-                # We have a Guide Section.
-                name = get_doc_name_from_module(module)
-                guide_section = self.add_section(
-                    chapter, name, module, operator=None, is_guide=True
+            submodules = [
+                value
+                for value in module.__dict__.values()
+                if isinstance(value, ModuleType)
+            ]
+
+            # Add sections in the guide section...
+            for submodule in sorted_modules(submodules):
+                if skip_module_doc(submodule, modules_seen):
+                    continue
+                elif IS_PYPY and submodule.__name__ == "builtins":
+                    # PyPy seems to add this module on its own,
+                    # but it is not something that can be importable
+                    continue
+
+                submodule_name = get_doc_name_from_module(submodule)
+                if submodule_name in submodule_names_seen:
+                    continue
+                section = self.add_section(
+                    chapter,
+                    submodule_name,
+                    submodule,
+                    operator=None,
+                    is_guide=False,
+                    in_guide=True,
                 )
-                submodules = [
-                    value
-                    for value in module.__dict__.values()
-                    if isinstance(value, ModuleType)
-                ]
+                modules_seen.add(submodule)
+                submodule_names_seen.add(submodule_name)
+                guide_section.subsections.append(section)
 
-                sorted_submodule = lambda x: sorted(
-                    submodules,
-                    key=lambda submodule: submodule.sort_order
-                    if hasattr(submodule, "sort_order")
-                    else submodule.__name__,
-                )
-
-                # Add sections in the guide section...
-                for submodule in sorted_submodule(submodules):
-                    if skip_module_doc(submodule, modules_seen):
-                        continue
-                    elif IS_PYPY and submodule.__name__ == "builtins":
-                        # PyPy seems to add this module on its own,
-                        # but it is not something that can be importable
+                builtins = builtins_by_module.get(submodule.__name__, [])
+                subsections = [builtin for builtin in builtins]
+                for instance in subsections:
+                    if hasattr(instance, "no_doc") and instance.no_doc:
                         continue
 
-                    submodule_name = get_doc_name_from_module(submodule)
-                    if submodule_name in submodule_names_seen:
+                    name = instance.get_name(short=True)
+                    if name in submodule_names_seen:
                         continue
-                    section = self.add_section(
+
+                    submodule_names_seen.add(name)
+                    modules_seen.add(instance)
+
+                    self.add_subsection(
                         chapter,
-                        submodule_name,
-                        submodule,
-                        operator=None,
-                        is_guide=False,
+                        section,
+                        name,
+                        instance,
+                        instance.get_operator(),
                         in_guide=True,
                     )
-                    modules_seen.add(submodule)
-                    submodule_names_seen.add(submodule_name)
-                    guide_section.subsections.append(section)
-
-                    builtins = builtins_by_module.get(submodule.__name__, [])
-                    subsections = [builtin for builtin in builtins]
-                    for instance in subsections:
-                        if hasattr(instance, "no_doc") and instance.no_doc:
-                            continue
-
-                        name = instance.get_name(short=True)
-                        if name in submodule_names_seen:
-                            continue
-
-                        submodule_names_seen.add(name)
-                        modules_seen.add(instance)
-
-                        self.add_subsection(
-                            chapter,
-                            section,
-                            name,
-                            instance,
-                            instance.get_operator(),
-                            in_guide=True,
-                        )
-            else:
-                if not builtins:
-                    continue
-                sections = [
-                    builtin for builtin in builtins if not skip_doc(builtin.__class__)
-                ]
-                self.doc_sections(sections, modules_seen, chapter)
-            builtin_part.chapters.append(chapter)
-        self.parts.append(builtin_part)
+        else:
+            if not builtins:
+                return None
+            sections = [
+                builtin for builtin in builtins if not skip_doc(builtin.__class__)
+            ]
+            self.doc_sections(sections, modules_seen, chapter)
+        return chapter
 
     def doc_sections(self, sections, modules_seen, chapter):
         for instance in sections:
@@ -569,108 +1003,6 @@ class Documentation:
                     summary_text=summary_text,
                 )
                 modules_seen.add(instance)
-
-    def gather_doctest_data(self):
-        """
-        Extract doctest data from various static XML-like doc files, Mathics3 Built-in functions
-        (inside mathics.builtin), and external Mathics3 Modules.
-
-        The extracted structure is stored in ``self``.
-        """
-
-        # First gather data from static XML-like files. This constitutes "Part 1" of the
-        # documentation.
-        files = listdir(self.doc_dir)
-        files.sort()
-        appendix = []
-
-        for file in files:
-            part_title = file[2:]
-            if part_title.endswith(".mdoc"):
-                part_title = part_title[: -len(".mdoc")]
-                part = self.doc_part_fn(self, part_title)
-                text = open(osp.join(self.doc_dir, file), "rb").read().decode("utf8")
-                text = filter_comments(text)
-                chapters = CHAPTER_RE.findall(text)
-                for title, text in chapters:
-                    chapter = self.doc_chapter_fn(part, title)
-                    text += '<section title=""></section>'
-                    sections = SECTION_RE.findall(text)
-                    for pre_text, title, text in sections:
-                        if title:
-                            section = self.doc_section_fn(
-                                chapter, title, text, operator=None, installed=True
-                            )
-                            chapter.sections.append(section)
-                            subsections = SUBSECTION_RE.findall(text)
-                            for subsection_title in subsections:
-                                subsection = self.doc_subsection_fn(
-                                    chapter,
-                                    section,
-                                    subsection_title,
-                                    text,
-                                )
-                                section.subsections.append(subsection)
-                                pass
-                            pass
-                        else:
-                            section = None
-                        if not chapter.doc:
-                            chapter.doc = self.doc_fn(pre_text, title, section)
-                        pass
-
-                    part.chapters.append(chapter)
-                if file[0].isdigit():
-                    self.parts.append(part)
-                else:
-                    part.is_appendix = True
-                    appendix.append(part)
-
-        # Next extract data that has been loaded into Mathics3 when it runs.
-        # This is information from  `mathics.builtin`.
-        # This is Part 2 of the documentation.
-
-        for title, modules, builtins_by_module, start in [
-            (
-                "Reference of Built-in Symbols",
-                mathics3_builtins_modules,
-                global_builtins_by_module,
-                True,
-            )
-        ]:
-            self.doc_part(title, modules, builtins_by_module, start)
-
-        # Now extract external Mathics3 Modules that have been loaded via
-        # LoadModule, or eval_LoadModule.
-
-        # This is Part 3 of the documentation.
-
-        for title, modules, builtins_by_module, start in [
-            (
-                "Mathics3 Modules",
-                pymathics_modules,
-                pymathics_builtins_by_module,
-                True,
-            )
-        ]:
-            self.doc_part(title, modules, builtins_by_module, start)
-
-        # Now extract Appendix information. This include License text
-
-        # This is the final Part of the documentation.
-
-        for part in appendix:
-            self.parts.append(part)
-
-        # Via the wanderings above, collect all tests that have been
-        # seen.
-        #
-        # Each test is accessble by its part + chapter + section and test number
-        # in that section.
-        for tests in self.get_tests():
-            for test in tests.tests:
-                test.key = (tests.part, tests.chapter, tests.section, test.index)
-        return
 
     def get_part(self, part_slug):
         return self.parts_by_slug.get(part_slug)
@@ -700,18 +1032,32 @@ class Documentation:
 
         return None
 
-    def get_tests(self, want_sorting=False):
+    # FIXME: turn into a @property tests?
+    def get_tests(self) -> Iterator:
+        """
+        Returns a generator to extracts lists test objects.
+        """
         for part in self.parts:
-            if want_sorting:
-                chapter_collection_fn = lambda x: sorted_chapters(x)
-            else:
-                chapter_collection_fn = lambda x: x
-            for chapter in chapter_collection_fn(part.chapters):
+            for chapter in sorted_chapters(part.chapters):
+                if MATHICS_DEBUG_TEST_CREATE:
+                    print(f"DEBUG Gathering tests for Chapter {chapter.title}")
+
                 tests = chapter.doc.get_tests()
                 if tests:
                     yield Tests(part.title, chapter.title, "", tests)
+
                 for section in chapter.all_sections:
                     if section.installed:
+                        if MATHICS_DEBUG_TEST_CREATE:
+                            if isinstance(section, DocGuideSection):
+                                print(
+                                    f"DEBUG Gathering tests for   Guide Section {section.title}"
+                                )
+                            else:
+                                print(
+                                    f"DEBUG Gathering tests for      Section {section.title}"
+                                )
+
                         if isinstance(section, DocGuideSection):
                             for docsection in section.subsections:
                                 for docsubsection in docsection.subsections:
@@ -751,119 +1097,124 @@ class Documentation:
             pass
         return
 
+    def load_documentation_sources(self):
+        """
+        Extract doctest data from various static XML-like doc files, Mathics3 Built-in functions
+        (inside mathics.builtin), and external Mathics3 Modules.
 
-class DocChapter:
-    def __init__(self, part, title, doc=None):
-        self.doc = doc
-        self.guide_sections = []
-        self.part = part
-        self.title = title
-        self.slug = slugify(title)
-        self.sections = []
-        self.sections_by_slug = {}
-        part.chapters_by_slug[self.slug] = self
+        The extracted structure is stored in ``self``.
+        """
+        assert (
+            len(self.parts) == 0
+        ), "The documentation must be empty to call this function."
 
-    def __str__(self):
-        sections = "\n".join(str(section) for section in self.sections)
-        return f"= {self.title} =\n\n{sections}"
+        # First gather data from static XML-like files. This constitutes "Part 1" of the
+        # documentation.
+        files = listdir(self.doc_dir)
+        files.sort()
 
-    @property
-    def all_sections(self):
-        return sorted(self.sections + self.guide_sections)
+        chapter_order = 0
+        for file in files:
+            part_title = file[2:]
+            if part_title.endswith(".mdoc"):
+                part_title = part_title[: -len(".mdoc")]
+                # If the filename start with a number, then is a main part. Otherwise
+                # is an appendix.
+                is_appendix = not file[0].isdigit()
+                chapter_order = self.load_part_from_file(
+                    osp.join(self.doc_dir, file),
+                    part_title,
+                    chapter_order,
+                    is_appendix,
+                )
 
+        # Next extract data that has been loaded into Mathics3 when it runs.
+        # This is information from  `mathics.builtin`.
+        # This is Part 2 of the documentation.
 
-class DocSection:
-    def __init__(
-        self,
-        chapter,
-        title: str,
-        text: str,
-        operator,
-        installed=True,
-        in_guide=False,
-        summary_text="",
-    ):
-        self.chapter = chapter
-        self.in_guide = in_guide
-        self.installed = installed
-        self.items = []  # tests in section when this is under a guide section
-        self.operator = operator
-        self.slug = slugify(title)
-        self.subsections = []
-        self.subsections_by_slug = {}
-        self.summary_text = summary_text
-        self.title = title
+        # Notice that in order to generate the documentation
+        # from the builtin classes, it is needed to call first to
+        #    import_and_load_builtins()
 
-        if text.count("<dl>") != text.count("</dl>"):
-            raise ValueError(
-                "Missing opening or closing <dl> tag in "
-                "{} documentation".format(title)
+        for title, modules, builtins_by_module, start in [
+            (
+                "Reference of Built-in Symbols",
+                mathics3_builtins_modules,
+                global_builtins_by_module,
+                True,
             )
+        ]:
+            self.doc_part(title, modules, builtins_by_module, start)
 
-        # Needs to come after self.chapter is initialized since
-        # XMLDoc uses self.chapter.
-        self.doc = XMLDoc(text, title, self)
+        # Next extract external Mathics3 Modules that have been loaded via
+        # LoadModule, or eval_LoadModule.  This is Part 3 of the documentation.
 
-        chapter.sections_by_slug[self.slug] = self
+        self.doc_part(
+            MATHICS3_MODULES_TITLE,
+            pymathics_modules,
+            pymathics_builtins_by_module,
+            True,
+        )
 
-    # Add __eq__ and __lt__ so we can sort Sections.
-    def __eq__(self, other):
-        return self.title == other.title
+        # Finally, extract Appendix information. This include License text
+        # This is the final Part of the documentation.
 
-    def __lt__(self, other):
-        return self.title < other.title
+        for part in self.appendix:
+            self.parts.append(part)
 
-    def __str__(self):
-        return f"== {self.title} ==\n{self.doc}"
+        # Via the wanderings above, collect all tests that have been
+        # seen.
+        #
+        # Each test is accessble by its part + chapter + section and test number
+        # in that section.
+        for tests in self.get_tests():
+            for test in tests.tests:
+                test.key = (tests.part, tests.chapter, tests.section, test.index)
+        return
 
+    def load_part_from_file(
+        self, filename: str, title: str, chapter_order: int, is_appendix: bool = False
+    ) -> int:
+        """Load a markdown file as a part of the documentation"""
+        part = self.part_class(self, title)
+        text = open(filename, "rb").read().decode("utf8")
+        text = filter_comments(text)
+        chapters = CHAPTER_RE.findall(text)
+        for title, text in chapters:
+            chapter = self.chapter_class(part, title, chapter_order=chapter_order)
+            chapter_order += 1
+            text += '<section title=""></section>'
+            section_texts = SECTION_RE.findall(text)
+            for pre_text, title, text in section_texts:
+                if title:
+                    section = self.section_class(
+                        chapter, title, text, operator=None, installed=True
+                    )
+                    chapter.sections.append(section)
+                    subsections = SUBSECTION_RE.findall(text)
+                    for subsection_title in subsections:
+                        subsection = self.subsection_class(
+                            chapter,
+                            section,
+                            subsection_title,
+                            text,
+                        )
+                        section.subsections.append(subsection)
+                        pass
+                    pass
+                else:
+                    section = None
+                if not chapter.doc:
+                    chapter.doc = self.doc_class(pre_text, title, section)
+                pass
 
-class DocGuideSection(DocSection):
-    """An object for a Documented Guide Section.
-    A Guide Section is part of a Chapter. "Colors" or "Special Functions"
-    are examples of Guide Sections, and each contains a number of Sections.
-    like NamedColors or Orthogonal Polynomials.
-    """
-
-    def __init__(
-        self, chapter: str, title: str, text: str, submodule, installed: bool = True
-    ):
-        self.chapter = chapter
-        self.doc = XMLDoc(text, title, None)
-        self.in_guide = False
-        self.installed = installed
-        self.section = submodule
-        self.slug = slugify(title)
-        self.subsections = []
-        self.subsections_by_slug = {}
-        self.title = title
-
-        # FIXME: Sections never are operators. Subsections can have
-        # operators though.  Fix up the view and searching code not to
-        # look for the operator field of a section.
-        self.operator = False
-
-        if text.count("<dl>") != text.count("</dl>"):
-            raise ValueError(
-                "Missing opening or closing <dl> tag in "
-                "{} documentation".format(title)
-            )
-        # print("YYY Adding section", title)
-        chapter.sections_by_slug[self.slug] = self
-
-    def get_tests(self):
-        # FIXME: The below is a little weird for Guide Sections.
-        # Figure out how to make this clearer.
-        # A guide section's subsection are Sections without the Guide.
-        # it is *their* subsections where we generally find tests.
-        for section in self.subsections:
-            if not section.installed:
-                continue
-            for subsection in section.subsections:
-                # FIXME we are omitting the section title here...
-                if not subsection.installed:
-                    continue
-                for doctests in subsection.items:
-                    yield doctests.get_tests()
+            part.chapters.append(chapter)
+        if is_appendix:
+            part.is_appendix = True
+            self.appendix.append(part)
+        else:
+            self.parts.append(part)
+        return chapter_order
 
 
 class DocSubsection:
@@ -895,13 +1246,12 @@ class DocSubsection:
         mathics/builtin/colors/__init__.py . In mathics/builtin/colors/named-colors.py we have
         the "section" name for the class Read (the subsection) inside it.
         """
-
         title_summary_text = re.split(" -- ", title)
         n = len(title_summary_text)
         self.title = title_summary_text[0] if n > 0 else ""
         self.summary_text = title_summary_text[1] if n > 1 else summary_text
 
-        self.doc = XMLDoc(text, title, section)
+        self.doc = DocumentationEntry(text, title, section)
         self.chapter = chapter
         self.in_guide = in_guide
         self.installed = installed
@@ -923,7 +1273,9 @@ class DocSubsection:
         if in_guide:
             # Tests haven't been picked out yet from the doc string yet.
             # Gather them here.
-            self.items = gather_tests(text, DocTests, DocTest, DocText, key_prefix)
+            self.items = parse_docstring_to_DocumentationEntry_items(
+                text, DocTests, DocTest, DocText, key_prefix
+            )
         else:
             self.items = []
 
@@ -933,139 +1285,127 @@ class DocSubsection:
                 "{} documentation".format(title)
             )
         self.section.subsections_by_slug[self.slug] = self
+        if MATHICS_DEBUG_DOC_BUILD:
+            print("          DEBUG Creating Subsection", title)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"=== {self.title} ===\n{self.doc}"
 
-
-class DocTest:
-    """
-    DocTest formatting rules:
-
-    * `>>` Marks test case; it will also appear as part of
-           the documentation.
-    * `#>` Marks test private or one that does not appear as part of
-           the documentation.
-    * `X>` Shows the example in the docs, but disables testing the example.
-    * `S>` Shows the example in the docs, but disables testing if environment
-           variable SANDBOX is set.
-    * `=`  Compares the result text.
-    * `:`  Compares an (error) message.
-      `|`  Prints output.
-    """
-
-    def __init__(self, index, testcase, key_prefix=None):
-        def strip_sentinal(line):
-            """Remove END_LINE_SENTINAL from the end of a line if it appears.
-
-            Some editors like to strip blanks at the end of a line.
-            Since the line ends in END_LINE_SENTINAL which isn't blank,
-            any blanks that appear before will be preserved.
-
-            Some tests require some lines to be blank or entry because
-            Mathics3 output can be that way
-            """
-            if line.endswith(END_LINE_SENTINAL):
-                line = line[: -len(END_LINE_SENTINAL)]
-
-            # Also remove any remaining trailing blanks since that
-            # seems *also* what we want to do.
-            return line.strip()
-
-        self.index = index
-        self.result = None
-        self.outs = []
-
-        # Private test cases are executed, but NOT shown as part of the docs
-        self.private = testcase[0] == "#"
-
-        # Ignored test cases are NOT executed, but shown as part of the docs
-        # Sandboxed test cases are NOT executed if environment SANDBOX is set
-        if testcase[0] == "X" or (testcase[0] == "S" and getenv("SANDBOX", False)):
-            self.ignore = True
-            # substitute '>' again so we get the correct formatting
-            testcase[0] = ">"
-        else:
-            self.ignore = False
-
-        self.test = strip_sentinal(testcase[1])
-
-        self.key = None
-        if key_prefix:
-            self.key = tuple(key_prefix + (index,))
-        outs = testcase[2].splitlines()
-        for line in outs:
-            line = strip_sentinal(line)
-            if line:
-                if line.startswith("."):
-                    text = line[1:]
-                    if text.startswith(" "):
-                        text = text[1:]
-                    text = "\n" + text
-                    if self.result is not None:
-                        self.result += text
-                    elif self.outs:
-                        self.outs[-1].text += text
-                    continue
-
-                match = TESTCASE_OUT_RE.match(line)
-                if not match:
-                    continue
-                symbol, text = match.group(1), match.group(2)
-                text = text.strip()
-                if symbol == "=":
-                    self.result = text
-                elif symbol == ":":
-                    out = Message("", "", text)
-                    self.outs.append(out)
-                elif symbol == "|":
-                    out = Print(text)
-                    self.outs.append(out)
-
-    def __str__(self):
-        return self.test
+    def get_tests(self):
+        """yield tests"""
+        if self.installed:
+            for test in self.doc.get_tests():
+                yield test
 
 
-# FIXME: think about - do we need this? Or can we use DjangoMathicsDocumentation and
-# LatTeXMathicsDocumentation only?
 class MathicsMainDocumentation(Documentation):
     """
-    This module is used for creating test data and saving it to a Python Pickle file
-    and running tests that appear in the documentation (doctests).
+    MathicsMainDocumentation specializes ``Documentation`` by providing the attributes
+    and methods needed to generate the documentation from the Mathics library.
+
+    The parts of the documentation are loaded from the Markdown files contained
+    in the path specified by ``self.doc_dir``. Files with names starting in numbers
+    are considered parts of the main text, while those that starts with other characters
+    are considered as appendix parts.
+
+    In addition to the parts loaded from markdown files, a ``Reference of Builtin-Symbols`` part
+    and a part for the loaded Pymathics modules are automatically generated.
+
+    In the ``Reference of Built-in Symbols`` tom-level modules and files in ``mathics.builtin``
+    are associated to Chapters. For single file submodules (like ``mathics.builtin.procedure``)
+    The chapter contains a Section for each Symbol in the module. For sub-packages
+    (like ``mathics.builtin.arithmetic``) sections are given by the sub-module files,
+    and the symbols in these sub-packages defines the Subsections. ``__init__.py`` in
+    subpackages are associated to GuideSections.
+
+    In a similar way, in the ``Pymathics`` part, each ``pymathics`` module defines a Chapter,
+    files in the module defines Sections, and Symbols defines Subsections.
+
+
+    ``MathicsMainDocumentation`` is also used for creating test data and saving it to a
+    Python Pickle file and running tests that appear in the documentation (doctests).
 
     There are other classes DjangoMathicsDocumentation and LaTeXMathicsDocumentation
     that format the data accumulated here. In fact I think those can sort of serve
     instead of this.
+
     """
 
-    def __init__(self, want_sorting=False):
-        self.doc_chapter_fn = DocChapter
+    def __init__(self):
+        super().__init__()
+
         self.doc_dir = settings.DOC_DIR
-        self.doc_fn = XMLDoc
-        self.doc_guide_section_fn = DocGuideSection
-        self.doc_part_fn = DocPart
-        self.doc_section_fn = DocSection
-        self.doc_subsection_fn = DocSubsection
         self.doctest_latex_pcl_path = settings.DOCTEST_LATEX_DATA_PCL
-        self.parts = []
-        self.parts_by_slug = {}
         self.pymathics_doc_loaded = False
         self.doc_data_file = settings.get_doctest_latex_data_path(
             should_be_readable=True
         )
-        self.title = "Overview"
+        self.title = "Mathics Main Documentation"
+
+    def gather_doctest_data(self):
+        """
+        Populates the documentatation.
+        (deprecated)
+        """
+        logging.warn(
+            "gather_doctest_data is deprecated. Use load_documentation_sources"
+        )
+        return self.load_documentation_sources()
 
 
-class XMLDoc:
-    """A class to hold our internal XML-like format data.
+class DocText:
+    """
+    Class to hold some (non-test) text.
+
+    Some of the kinds of tags you may find here are showin in global ALLOWED_TAGS.
+    Some text may be marked with surrounding "$" or "'".
+
+    The code here however does not make use of any of the tagging.
+
+    """
+
+    def __init__(self, text):
+        self.text = text
+
+    def __str__(self) -> str:
+        return self.text
+
+    def get_tests(self) -> list:
+        """
+        Return tests in a DocText item - there never are any.
+        """
+        return []
+
+    def is_private(self) -> bool:
+        return False
+
+    def test_indices(self) -> List[int]:
+        return []
+
+
+# Former XMLDoc
+class DocumentationEntry:
+    """
+    A class to hold the content of a documentation entry,
+    in our internal markdown-like format data.
+
+    Describes the contain of an entry in the documentation system, as a
+    sequence (list) of items of the clase  `DocText` and `DocTests`.
+    ``DocText`` items contains an internal XML-like formatted text. ``DocTests`` entries
+    contain one or more `DocTest` element.
+    Each level of the Documentation hierarchy contains an XMLDoc, describing the
+    content after the title and before the elements of the next level. For example,
+    in ``DocChapter``, ``DocChapter.doc`` contains the text coming after the title
+    of the chapter, and before the sections in `DocChapter.sections`.
     Specialized classes like LaTeXDoc or and DjangoDoc provide methods for
     getting formatted output. For LaTeXDoc ``latex()`` is added while for
     DjangoDoc ``html()`` is added
-
     Mathics core also uses this in getting usage strings (`??`).
+
     """
 
-    def __init__(self, doc, title, section=None):
+    def __init__(self, doc_str: str, title: str, section: Optional[DocSection] = None):
+        self._set_classes()
         self.title = title
         if section:
             chapter = section.chapter
@@ -1075,13 +1415,29 @@ class XMLDoc:
         else:
             key_prefix = None
 
-        self.rawdoc = doc
-        self.items = gather_tests(self.rawdoc, DocTests, DocTest, DocText, key_prefix)
+        self.rawdoc = doc_str
+        self.items = parse_docstring_to_DocumentationEntry_items(
+            self.rawdoc,
+            self.docTest_collection_class,
+            self.docTest_class,
+            self.docText_class,
+            key_prefix,
+        )
 
-    def __str__(self):
-        return "\n".join(str(item) for item in self.items)
+    def _set_classes(self):
+        """
+        Tells to the initializator the classes to be used to build the items.
+        This must be overloaded by the daughter classes.
+        """
+        if not hasattr(self, "docTest_collection_class"):
+            self.docTest_collection_class = DocTests
+            self.docTest_class = DocTest
+            self.docText_class = DocText
 
-    def text(self, detail_level):
+    def __str__(self) -> str:
+        return "\n\n".join(str(item) for item in self.items)
+
+    def text(self) -> str:
         # used for introspection
         # TODO parse XML and pretty print
         # HACK
@@ -1096,61 +1452,14 @@ class XMLDoc:
         item = "\n".join(line for line in item.split("\n") if not line.isspace())
         return item
 
-    def get_tests(self):
+    def get_tests(self) -> list:
         tests = []
         for item in self.items:
             tests.extend(item.get_tests())
         return tests
 
 
-class DocPart:
-    def __init__(self, doc, title, is_reference=False):
-        self.doc = doc
-        self.title = title
-        self.slug = slugify(title)
-        self.chapters = []
-        self.chapters_by_slug = {}
-        self.is_reference = is_reference
-        self.is_appendix = False
-        doc.parts_by_slug[self.slug] = self
+# Backward compatibility
 
-    def __str__(self):
-        return "%s\n\n%s" % (
-            self.title,
-            "\n".join(str(chapter) for chapter in sorted_chapters(self.chapters)),
-        )
-
-
-class DocText:
-    def __init__(self, text):
-        self.text = text
-
-    def __str__(self):
-        return self.text
-
-    def get_tests(self):
-        return []
-
-    def is_private(self):
-        return False
-
-    def test_indices(self):
-        return []
-
-
-class DocTests:
-    def __init__(self):
-        self.tests = []
-        self.text = ""
-
-    def get_tests(self):
-        return self.tests
-
-    def is_private(self):
-        return all(test.private for test in self.tests)
-
-    def __str__(self):
-        return "\n".join(str(test) for test in self.tests)
-
-    def test_indices(self):
-        return [test.index for test in self.tests]
+gather_tests = parse_docstring_to_DocumentationEntry_items
+XMLDOC = DocumentationEntry
