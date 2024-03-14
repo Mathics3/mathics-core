@@ -47,7 +47,8 @@ Bugs
 * ``Switch[]`` involving ``Infinity`` Issue #956
 * ``Outer[]`` on ``SparseArray`` Issue #939
 * ``ArrayQ[]`` detects ``SparseArray`` PR #947
-
+* Numeric comparisons against expressions involving ``String``s (Issue #797).
+  
 Package updates
 +++++++++++++++
 
