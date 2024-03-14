@@ -27,7 +27,7 @@ from mathics.core.load_builtin import _builtins, import_and_load_builtins
 from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.doc.common_doc import DocGuideSection, DocSection, MathicsMainDocumentation
 from mathics.doc.doc_entries import DocTest, DocTests
-from mathics.doc.utils import load_doctest_data, print_and_log
+from mathics.doc.utils import load_doctest_data, print_and_log, slugify
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 from mathics.timing import show_lru_cache_statistics
 
@@ -563,13 +563,12 @@ def test_chapters(
         )
         return total
 
-    for part in DOCUMENTATION.parts:
-        for chapter in part.chapters:
-            chapter_name = chapter.title
-            if chapter_name not in include_chapters:
+    for chapter_name in include_chapters:
+        chapter_slug = slugify(chapter_name)
+        for part in DOCUMENTATION.parts:
+            chapter = part.chapters_by_slug.get(chapter_slug, None)
+            if chapter is None:
                 continue
-            seen_chapters.add(chapter_name)
-
             for section in chapter.all_sections:
                 (
                     total,
@@ -590,10 +589,6 @@ def test_chapters(
                     create_output(section.doc.get_tests(), output_data)
                     pass
                 pass
-            # Shortcut: if we already pass through all the
-            # include_chapters, break the loop
-            if seen_chapters == include_chapters:
-                return show_and_return()
 
     return show_and_return()
 
