@@ -91,9 +91,7 @@ class _Cluster(Builtin):
         method_string, method = self.get_option_string(options, "Method", evaluation)
         if method_string not in ("Optimize", "Agglomerate", "KMeans"):
             evaluation.message(
-                self.get_name(),
-                "bdmtd",
-                Expression(SymbolRule, "Method", method),
+                self.get_name(), "bdmtd", Expression(SymbolRule, "Method", method)
             )
             return
 
@@ -134,9 +132,7 @@ class _Cluster(Builtin):
             py_seed = seed.get_int_value()
         else:
             evaluation.message(
-                self.get_name(),
-                "rseed",
-                Expression(SymbolRule, "RandomSeed", seed),
+                self.get_name(), "rseed", Expression(SymbolRule, "RandomSeed", seed)
             )
             return
 
@@ -168,11 +164,7 @@ class _Cluster(Builtin):
                 clusters = self._agglomerate(mode, repr_p, dist_p, py_k, df, evaluation)
             elif method_string == "Optimize":
                 clusters = optimize(
-                    repr_p,
-                    py_k,
-                    _LazyDistances(df, dist_p, evaluation),
-                    mode,
-                    py_seed,
+                    repr_p, py_k, _LazyDistances(df, dist_p, evaluation), mode, py_seed
                 )
             elif method_string == "KMeans":
                 clusters = self._kmeans(mode, repr_p, dist_p, py_k, py_seed, evaluation)
@@ -199,17 +191,11 @@ class _Cluster(Builtin):
     def _agglomerate(self, mode, repr_p, dist_p, py_k, df, evaluation):
         if mode == "clusters":
             clusters = agglomerate(
-                repr_p,
-                py_k,
-                _PrecomputedDistances(df, dist_p, evaluation),
-                mode,
+                repr_p, py_k, _PrecomputedDistances(df, dist_p, evaluation), mode
             )
         elif mode == "components":
             clusters = agglomerate(
-                repr_p,
-                py_k,
-                _PrecomputedDistances(df, dist_p, evaluation),
-                mode,
+                repr_p, py_k, _PrecomputedDistances(df, dist_p, evaluation), mode
             )
 
         return clusters
@@ -437,13 +423,7 @@ class Nearest(Builtin):
     summary_text = "the nearest element from a list"
 
     def eval(
-        self,
-        items,
-        pivot,
-        limit,
-        expression,
-        evaluation: Evaluation,
-        options: dict,
+        self, items, pivot, limit, expression, evaluation: Evaluation, options: dict
     ):
         "Nearest[items_, pivot_, limit_, OptionsPattern[%(name)s]]"
 
