@@ -67,8 +67,7 @@ class BrayCurtisDistance(Builtin):
                 SymbolDivide,
                 Expression(SymbolTotal, Expression(SymbolAbs, t)),
                 Expression(
-                    SymbolTotal,
-                    Expression(SymbolAbs, Expression(SymbolPlus, u, v)),
+                    SymbolTotal, Expression(SymbolAbs, Expression(SymbolPlus, u, v))
                 ),
             )
 
@@ -106,9 +105,7 @@ class CanberraDistance(Builtin):
                     SymbolDivide,
                     Expression(SymbolAbs, t),
                     Expression(
-                        SymbolPlus,
-                        Expression(SymbolAbs, u),
-                        Expression(SymbolAbs, v),
+                        SymbolPlus, Expression(SymbolAbs, u), Expression(SymbolAbs, v)
                     ),
                 ),
             )
@@ -155,8 +152,7 @@ class CosineDistance(Builtin):
       <dd>returns the cosine distance between $u$ and $v$.
     </dl>
 
-    The cosine distance is given by $1 - u \cdot v/(Norm[u] Norm[v])=$ \
-    $2\sin(\phi/2)^2$ with $\phi$
+    The cosine distance is given by $1 - u\cdot v/(Norm[u] Norm[v])=2\sin(\phi/2)^2$ with $\phi$
     the angle between both vectors.
 
     >> N[CosineDistance[{7, 9}, {71, 89}]]
