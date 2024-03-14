@@ -26,6 +26,8 @@ jobs:
       run: |
         brew install llvm@14 tesseract
         python -m pip install --upgrade pip
+        pip install --upgrade setuptools
+        pip install --upgrade distribute         
     - name: Install Mathics3 with full Python dependencies
       run: |
         # We can comment out after next Mathics-Scanner release
