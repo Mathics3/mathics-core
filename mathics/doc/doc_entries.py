@@ -84,7 +84,6 @@ SPECIAL_COMMANDS = {
     "Wolfram": (r"<em>Wolfram</em>", r"\emph{Wolfram}"),
     "skip": (r"<br /><br />", r"\bigskip"),
 }
-SUBSECTION_END_RE = re.compile("</subsection>")
 
 
 TESTCASE_RE = re.compile(

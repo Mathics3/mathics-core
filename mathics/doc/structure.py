@@ -32,7 +32,7 @@ from mathics.eval.pymathics import pymathics_builtins_by_module, pymathics_modul
 CHAPTER_RE = re.compile('(?s)<chapter title="(.*?)">(.*?)</chapter>')
 SECTION_RE = re.compile('(?s)(.*?)<section title="(.*?)">(.*?)</section>')
 SUBSECTION_RE = re.compile('(?s)<subsection title="(.*?)">')
-
+SUBSECTION_END_RE = re.compile("</subsection>")
 
 # Debug flags.
 
