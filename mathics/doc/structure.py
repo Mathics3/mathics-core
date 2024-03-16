@@ -17,9 +17,9 @@ from mathics.core.load_builtin import (
     builtins_by_module as global_builtins_by_module,
     mathics3_builtins_modules,
 )
-from mathics.core.util import IS_PYPY
 from mathics.doc.doc_entries import DocumentationEntry, Tests, filter_comments
 from mathics.doc.gather import (
+    doc_chapter,
     gather_docs_from_files,
     gather_reference_part,
     get_doc_name_from_module,
@@ -88,7 +88,7 @@ class DocSection:
         # DocumentationEntry uses self.chapter.
         # Notice that we need the documentation object, to have access
         # to the suitable subclass of DocumentationElement.
-        documentation = self.chapter.part.doc
+        documentation = self.chapter.part.documentation
         self.doc = documentation.doc_class(text, title, None).set_parent_path(self)
 
         chapter.sections_by_slug[self.slug] = self
@@ -232,15 +232,15 @@ class DocPart:
 
     chapter_class = DocChapter
 
-    def __init__(self, doc, title, is_reference=False):
-        self.doc = doc
+    def __init__(self, documentation, title, is_reference=False):
+        self.documentation = documentation
         self.title = title
         self.chapters = []
         self.chapters_by_slug = {}
         self.is_reference = is_reference
         self.is_appendix = False
         self.slug = slugify(title)
-        doc.parts_by_slug[self.slug] = self
+        documentation.parts_by_slug[self.slug] = self
         if MATHICS_DEBUG_DOC_BUILD:
             print("DEBUG Creating Part", title)
 
@@ -416,80 +416,7 @@ class Documentation:
         Build documentation structure for a "Chapter" - reference section which
         might be a Mathics Module.
         """
-        modules_seen = set([])
-
-        title, text = get_module_doc(module)
-        chapter = self.chapter_class(part, title, self.doc_class(text, title, None))
-        builtins = builtins_by_module.get(module.__name__)
-        if module.__file__.endswith("__init__.py"):
-            # We have a Guide Section.
-
-            # This is used to check if a symbol is not duplicated inside
-            # a guide.
-            submodule_names_seen = set([])
-            name = get_doc_name_from_module(module)
-            guide_section = self.add_section(
-                chapter, name, module, operator=None, is_guide=True
-            )
-            submodules = [
-                value
-                for value in module.__dict__.values()
-                if isinstance(value, ModuleType)
-            ]
-
-            # Add sections in the guide section...
-            for submodule in sorted_modules(submodules):
-                if skip_module_doc(submodule, modules_seen):
-                    continue
-                elif IS_PYPY and submodule.__name__ == "builtins":
-                    # PyPy seems to add this module on its own,
-                    # but it is not something that can be importable
-                    continue
-
-                submodule_name = get_doc_name_from_module(submodule)
-                if submodule_name in submodule_names_seen:
-                    continue
-                section = self.add_section(
-                    chapter,
-                    submodule_name,
-                    submodule,
-                    operator=None,
-                    is_guide=False,
-                    in_guide=True,
-                )
-                modules_seen.add(submodule)
-                submodule_names_seen.add(submodule_name)
-                guide_section.subsections.append(section)
-
-                builtins = builtins_by_module.get(submodule.__name__, [])
-                subsections = list(builtins)
-                for instance in subsections:
-                    if hasattr(instance, "no_doc") and instance.no_doc:
-                        continue
-
-                    name = instance.get_name(short=True)
-                    if name in submodule_names_seen:
-                        continue
-
-                    submodule_names_seen.add(name)
-                    modules_seen.add(instance)
-
-                    self.add_subsection(
-                        chapter,
-                        section,
-                        name,
-                        instance,
-                        instance.get_operator(),
-                        in_guide=True,
-                    )
-        else:
-            if not builtins:
-                return None
-            sections = [
-                builtin for builtin in builtins if not skip_doc(builtin.__class__)
-            ]
-            self.doc_sections(sections, modules_seen, chapter)
-        return chapter
+        return doc_chapter(part, module, builtins_by_module)
 
     def doc_sections(self, sections, modules_seen, chapter):
         """
@@ -738,7 +665,7 @@ class DocSubsection:
         n = len(title_summary_text)
         # We need the documentation object, to have access
         # to the suitable subclass of DocumentationElement.
-        documentation = chapter.part.doc
+        documentation = chapter.part.documentation
 
         self.title = title_summary_text[0] if n > 0 else ""
         self.summary_text = title_summary_text[1] if n > 1 else summary_text
