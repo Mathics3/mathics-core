@@ -6,9 +6,8 @@ This module contains the classes representing the Mathics documentation structur
 
 """
 import logging
-import os.path as osp
 import re
-from os import environ, listdir
+from os import environ
 from types import ModuleType
 from typing import Iterator, List, Optional
 
@@ -18,9 +17,11 @@ from mathics.core.load_builtin import (
     builtins_by_module as global_builtins_by_module,
     mathics3_builtins_modules,
 )
-from mathics.core.util import IS_PYPY
 from mathics.doc.doc_entries import DocumentationEntry, Tests, filter_comments
 from mathics.doc.gather import (
+    doc_chapter,
+    gather_docs_from_files,
+    gather_reference_part,
     get_doc_name_from_module,
     get_module_doc,
     skip_doc,
@@ -32,7 +33,7 @@ from mathics.eval.pymathics import pymathics_builtins_by_module, pymathics_modul
 CHAPTER_RE = re.compile('(?s)<chapter title="(.*?)">(.*?)</chapter>')
 SECTION_RE = re.compile('(?s)(.*?)<section title="(.*?)">(.*?)</section>')
 SUBSECTION_RE = re.compile('(?s)<subsection title="(.*?)">')
-
+SUBSECTION_END_RE = re.compile("</subsection>")
 
 # Debug flags.
 
@@ -87,7 +88,7 @@ class DocSection:
         # DocumentationEntry uses self.chapter.
         # Notice that we need the documentation object, to have access
         # to the suitable subclass of DocumentationElement.
-        documentation = self.chapter.part.doc
+        documentation = self.chapter.part.documentation
         self.doc = documentation.doc_class(text, title, None).set_parent_path(self)
 
         chapter.sections_by_slug[self.slug] = self
@@ -231,15 +232,15 @@ class DocPart:
 
     chapter_class = DocChapter
 
-    def __init__(self, doc, title, is_reference=False):
-        self.doc = doc
+    def __init__(self, documentation, title, is_reference=False):
+        self.documentation = documentation
         self.title = title
         self.chapters = []
         self.chapters_by_slug = {}
         self.is_reference = is_reference
         self.is_appendix = False
         self.slug = slugify(title)
-        doc.parts_by_slug[self.slug] = self
+        documentation.parts_by_slug[self.slug] = self
         if MATHICS_DEBUG_DOC_BUILD:
             print("DEBUG Creating Part", title)
 
@@ -408,44 +409,6 @@ class Documentation:
         """
 
         builtin_part = self.part_class(self, title, is_reference=start)
-
-        # This is used to ensure that we pass just once over each module.
-        # The algorithm we use to walk all the modules without repetitions
-        # relies on this, which in my opinion is hard to test and susceptible
-        # to errors. I guess we include it as a temporal fixing to handle
-        # packages inside ``mathics.builtin``.
-        modules_seen = set([])
-
-        def filter_toplevel_modules(module_list):
-            """
-            Keep just the modules at the top level.
-            """
-            if len(module_list) == 0:
-                return module_list
-
-            modules_and_levels = sorted(
-                ((module.__name__.count("."), module) for module in module_list),
-                key=lambda x: x[0],
-            )
-            top_level = modules_and_levels[0][0]
-            return (entry[1] for entry in modules_and_levels if entry[0] == top_level)
-
-        # The loop to load chapters must be run over the top-level modules. Otherwise,
-        # modules like ``mathics.builtin.functional.apply_fns_to_lists`` are loaded
-        # as chapters and sections of a GuideSection, producing duplicated tests.
-        #
-        # Also, this provides a more deterministic way to walk the module hierarchy,
-        # which can be decomposed in the way proposed in #984.
-
-        modules = filter_toplevel_modules(modules)
-        for module in sorted_modules(modules):
-            if skip_module_doc(module, modules_seen):
-                continue
-            chapter = self.doc_chapter(module, builtin_part, builtins_by_module)
-            if chapter is None:
-                continue
-            builtin_part.chapters.append(chapter)
-
         self.parts.append(builtin_part)
 
     def doc_chapter(self, module, part, builtins_by_module) -> Optional[DocChapter]:
@@ -453,80 +416,7 @@ class Documentation:
         Build documentation structure for a "Chapter" - reference section which
         might be a Mathics Module.
         """
-        modules_seen = set([])
-
-        title, text = get_module_doc(module)
-        chapter = self.chapter_class(part, title, self.doc_class(text, title, None))
-        builtins = builtins_by_module.get(module.__name__)
-        if module.__file__.endswith("__init__.py"):
-            # We have a Guide Section.
-
-            # This is used to check if a symbol is not duplicated inside
-            # a guide.
-            submodule_names_seen = set([])
-            name = get_doc_name_from_module(module)
-            guide_section = self.add_section(
-                chapter, name, module, operator=None, is_guide=True
-            )
-            submodules = [
-                value
-                for value in module.__dict__.values()
-                if isinstance(value, ModuleType)
-            ]
-
-            # Add sections in the guide section...
-            for submodule in sorted_modules(submodules):
-                if skip_module_doc(submodule, modules_seen):
-                    continue
-                elif IS_PYPY and submodule.__name__ == "builtins":
-                    # PyPy seems to add this module on its own,
-                    # but it is not something that can be importable
-                    continue
-
-                submodule_name = get_doc_name_from_module(submodule)
-                if submodule_name in submodule_names_seen:
-                    continue
-                section = self.add_section(
-                    chapter,
-                    submodule_name,
-                    submodule,
-                    operator=None,
-                    is_guide=False,
-                    in_guide=True,
-                )
-                modules_seen.add(submodule)
-                submodule_names_seen.add(submodule_name)
-                guide_section.subsections.append(section)
-
-                builtins = builtins_by_module.get(submodule.__name__, [])
-                subsections = list(builtins)
-                for instance in subsections:
-                    if hasattr(instance, "no_doc") and instance.no_doc:
-                        continue
-
-                    name = instance.get_name(short=True)
-                    if name in submodule_names_seen:
-                        continue
-
-                    submodule_names_seen.add(name)
-                    modules_seen.add(instance)
-
-                    self.add_subsection(
-                        chapter,
-                        section,
-                        name,
-                        instance,
-                        instance.get_operator(),
-                        in_guide=True,
-                    )
-        else:
-            if not builtins:
-                return None
-            sections = [
-                builtin for builtin in builtins if not skip_doc(builtin.__class__)
-            ]
-            self.doc_sections(sections, modules_seen, chapter)
-        return chapter
+        return doc_chapter(part, module, builtins_by_module)
 
     def doc_sections(self, sections, modules_seen, chapter):
         """
@@ -660,26 +550,7 @@ class Documentation:
             len(self.parts) == 0
         ), "The documentation must be empty to call this function."
 
-        # First gather data from static XML-like files. This constitutes "Part 1" of the
-        # documentation.
-        files = listdir(self.doc_dir)
-        files.sort()
-
-        chapter_order = 0
-        for file in files:
-            part_title = file[2:]
-            if part_title.endswith(".mdoc"):
-                part_title = part_title[: -len(".mdoc")]
-                # If the filename start with a number, then is a main part. Otherwise
-                # is an appendix.
-                is_appendix = not file[0].isdigit()
-                chapter_order = self.load_part_from_file(
-                    osp.join(self.doc_dir, file),
-                    part_title,
-                    chapter_order,
-                    is_appendix,
-                )
-
+        gather_docs_from_files(self, self.doc_dir)
         # Next extract data that has been loaded into Mathics3 when it runs.
         # This is information from  `mathics.builtin`.
         # This is Part 2 of the documentation.
@@ -694,19 +565,17 @@ class Documentation:
                 mathics3_builtins_modules,
                 global_builtins_by_module,
                 True,
-            )
+            ),
+            (
+                MATHICS3_MODULES_TITLE,
+                pymathics_modules,
+                pymathics_builtins_by_module,
+                True,
+            ),
         ]:
-            self.doc_part(title, modules, builtins_by_module, start)
-
-        # Next extract external Mathics3 Modules that have been loaded via
-        # LoadModule, or eval_LoadModule.  This is Part 3 of the documentation.
-
-        self.doc_part(
-            MATHICS3_MODULES_TITLE,
-            pymathics_modules,
-            pymathics_builtins_by_module,
-            True,
-        )
+            self.parts.append(
+                gather_reference_part(self, title, modules, builtins_by_module)
+            )
 
         # Finally, extract Appendix information. This include License text
         # This is the final Part of the documentation.
@@ -796,7 +665,7 @@ class DocSubsection:
         n = len(title_summary_text)
         # We need the documentation object, to have access
         # to the suitable subclass of DocumentationElement.
-        documentation = chapter.part.doc
+        documentation = chapter.part.documentation
 
         self.title = title_summary_text[0] if n > 0 else ""
         self.summary_text = title_summary_text[1] if n > 1 else summary_text
