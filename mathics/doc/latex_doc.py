@@ -21,7 +21,6 @@ from mathics.doc.doc_entries import (
     QUOTATIONS_RE,
     REF_RE,
     SPECIAL_COMMANDS,
-    SUBSECTION_END_RE,
     DocTest,
     DocTests,
     DocText,
@@ -31,6 +30,7 @@ from mathics.doc.doc_entries import (
     pre_sub,
 )
 from mathics.doc.structure import (
+    SUBSECTION_END_RE,
     SUBSECTION_RE,
     DocChapter,
     DocGuideSection,
