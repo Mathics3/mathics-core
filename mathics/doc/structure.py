@@ -158,7 +158,7 @@ class DocChapter:
     @property
     def all_sections(self):
         "guides and normal sections"
-        return sorted(self.guide_sections + self.sections)
+        return sorted(self.guide_sections) + sorted(self.sections)
 
     @property
     def parent(self):
