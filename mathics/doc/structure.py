@@ -17,11 +17,6 @@ from mathics.core.load_builtin import (
     mathics3_builtins_modules,
 )
 from mathics.doc.doc_entries import DocumentationEntry, Tests, filter_comments
-
-# from mathics.doc.gather import (
-#    gather_docs_from_files,
-#    gather_reference_part,
-# )
 from mathics.doc.utils import slugify
 from mathics.eval.pymathics import pymathics_builtins_by_module, pymathics_modules
 

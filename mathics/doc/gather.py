@@ -188,7 +188,6 @@ def gather_guides_and_sections(chapter, module, builtins_by_module):
     docpath = f"/doc/{chapter.part.slug}/{chapter.slug}/"
 
     for sub_module in submodules(module):
-        print(sub_module.__file__)
         if skip_module_doc(sub_module):
             continue
 
