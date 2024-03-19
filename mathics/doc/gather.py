@@ -2,18 +2,27 @@
 """
 Gather module information
 
-Functions used to build the reference sections from module information. 
+Functions used to build the reference sections from module information.
 
 """
 
-
+import importlib
 import os.path as osp
 import pkgutil
 from os import listdir
 from types import ModuleType
-from typing import Tuple
+from typing import Tuple, Union
 
+from mathics.core.builtin import Builtin, check_requires_list
 from mathics.core.util import IS_PYPY
+from mathics.doc.doc_entries import DocumentationEntry
+from mathics.doc.structure import DocChapter, DocGuideSection, DocSection
+
+
+def check_installed(src: Union[ModuleType, Builtin]) -> bool:
+    """Check if the required libraries"""
+    required_libs = getattr(src, "requires", [])
+    return check_requires_list(required_libs) if required_libs else True
 
 
 def filter_toplevel_modules(module_list):
@@ -64,104 +73,157 @@ def gather_reference_part(documentation, title, modules, builtins_by_module):
     part_class = documentation.part_class
     reference_part = part_class(documentation, title, True)
     modules = filter_toplevel_modules(modules)
-    modules_seen = set([])
     for module in sorted_modules(modules):
-        if skip_module_doc(module, modules_seen):
+        if skip_module_doc(module):
             continue
-        chapter = documentation.doc_chapter(module, reference_part, builtins_by_module)
+        chapter = doc_chapter(module, reference_part, builtins_by_module)
         if chapter is None:
             continue
-        reference_part.chapters.append(chapter)
+        # reference_part.chapters.append(chapter)
     return reference_part
 
 
-def doc_chapter(part, module, builtins_by_module):
+def doc_chapter(module, part, builtins_by_module):
     """
     Build documentation structure for a "Chapter" - reference section which
     might be a Mathics Module.
     """
     # TODO: reformulate me in a way that symbols are always translated to
     # sections, and guide sections do not contain subsections.
-
-    documentation = part.documentation
-    chapter_class = documentation.chapter_class
-    doc_class = documentation.doc_class
-
-    modules_seen = set([])
+    documentation = part.documentation if part else None
+    chapter_class = documentation.chapter_class if documentation else DocChapter
+    doc_class = documentation.doc_class if documentation else DocumentationEntry
     title, text = get_module_doc(module)
     chapter = chapter_class(part, title, doc_class(text, title, None))
-    builtins = builtins_by_module.get(module.__name__)
+    part.chapters.append(chapter)
 
+    symbol_sections = gather_sections(chapter, module, builtins_by_module)
+    assert len(chapter.sections) == 0
+    chapter.sections.extend(symbol_sections)
+    visited = set(sec.title for sec in symbol_sections)
+    # If the module is a package, add the guides and symbols from the submodules
     if module.__file__.endswith("__init__.py"):
-        # We have a Guide Section.
-
-        # This is used to check if a symbol is not duplicated inside
-        # a guide.
-        submodule_names_seen = set([])
-        name = get_doc_name_from_module(module)
-        guide_section = documentation.add_section(
-            chapter, name, module, operator=None, is_guide=True
+        guide_sections, symbol_sections = gather_guides_and_sections(
+            chapter, module, builtins_by_module
         )
-        submodules = [
-            value for value in module.__dict__.values() if isinstance(value, ModuleType)
-        ]
+        chapter.guide_sections.extend(guide_sections)
 
-        # Add sections in the guide section...
-        for submodule in sorted_modules(submodules):
-            if skip_module_doc(submodule, modules_seen):
-                continue
-            elif IS_PYPY and submodule.__name__ == "builtins":
-                # PyPy seems to add this module on its own,
-                # but it is not something that can be importable
-                continue
-
-            submodule_name = get_doc_name_from_module(submodule)
-            if submodule_name in submodule_names_seen:
-                continue
-            section = documentation.add_section(
-                chapter,
-                submodule_name,
-                submodule,
-                operator=None,
-                is_guide=False,
-                in_guide=True,
-            )
-            modules_seen.add(submodule)
-            submodule_names_seen.add(submodule_name)
-            guide_section.subsections.append(section)
-
-            builtins = builtins_by_module.get(submodule.__name__, [])
-            subsections = list(builtins)
-            for instance in subsections:
-                if hasattr(instance, "no_doc") and instance.no_doc:
-                    continue
-
-                name = instance.get_name(short=True)
-                if name in submodule_names_seen:
-                    continue
-
-                submodule_names_seen.add(name)
-                modules_seen.add(instance)
-
-                documentation.add_subsection(
-                    chapter,
-                    section,
-                    name,
-                    instance,
-                    instance.get_operator(),
-                    in_guide=True,
-                )
-    else:
-        if not builtins:
-            return None
-        sections = [builtin for builtin in builtins if not skip_doc(builtin.__class__)]
-        documentation.doc_sections(sections, modules_seen, chapter)
+        for sec in symbol_sections:
+            if sec.title in visited:
+                print(sec.title, "already visited. Skipped.")
+            else:
+                visited.add(sec.title)
+                chapter.sections.append(sec)
     return chapter
 
 
-def new_gather_sections(chapter, module, builtins_by_module) -> list:
+def gather_sections(chapter, module, builtins_by_module) -> list:
     """Build a list of DocSections from a "top-level" module"""
-    pass
+    symbol_sections = []
+    if skip_module_doc(module):
+        return []
+
+    part = chapter.part if chapter else None
+    documentation = part.documentation if part else None
+    section_class = documentation.section_class if documentation else DocSection
+
+    # TODO: Check the reason why for the module
+    # `mathics.builtin.numbers.constants`
+    # `builtins_by_module` has two copies of `Khinchin`.
+    # By now,  we avoid the repetition by
+    # converting the entries into `set`s.
+    #
+    visited = set()
+    for symbol_instance in builtins_by_module[module.__name__]:
+        if skip_doc(symbol_instance, module):
+            continue
+        default_contexts = ("System`", "Pymathics`")
+        title = symbol_instance.get_name(
+            short=(symbol_instance.context in default_contexts)
+        )
+        if title in visited:
+            continue
+        visited.add(title)
+        text = symbol_instance.__doc__
+        operator = symbol_instance.get_operator()
+        installed = check_installed(symbol_instance)
+        summary_text = symbol_instance.summary_text
+        section = section_class(
+            chapter,
+            title,
+            text,
+            operator,
+            installed,
+            summary_text=summary_text,
+        )
+        assert (
+            section not in symbol_sections
+        ), f"{section.title} already in {module.__name__}"
+        symbol_sections.append(section)
+
+    return symbol_sections
+
+
+def gather_guides_and_sections(chapter, module, builtins_by_module):
+    """
+    Look at the submodules in module, and produce the guide sections
+    and sections.
+    """
+    guide_sections = []
+    symbol_sections = []
+    if skip_module_doc(module):
+        return guide_sections, symbol_sections
+
+    if not module.__file__.endswith("__init__.py"):
+        return guide_sections, symbol_sections
+
+    # Determine the class for sections and guide sections
+    part = chapter.part if chapter else None
+    documentation = part.documentation if part else None
+    guide_class = (
+        documentation.guide_section_class if documentation else DocGuideSection
+    )
+
+    # Loop over submodules
+    docpath = f"/doc/{chapter.part.slug}/{chapter.slug}/"
+
+    for sub_module in submodules(module):
+        print(sub_module.__file__)
+        if skip_module_doc(sub_module):
+            continue
+
+        submodule_symbol_sections = gather_sections(
+            chapter, sub_module, builtins_by_module
+        )
+        symbol_sections.extend(submodule_symbol_sections)
+
+        title, text = get_module_doc(sub_module)
+        installed = check_installed(sub_module)
+
+        if submodule_symbol_sections:
+            text = text + "\n\n<ul>\n"
+            for sym_sec in submodule_symbol_sections:
+                # TODO: improve the format
+                summary_text = sym_sec.summary_text
+                text = text + (
+                    f"<li><url>:{sym_sec.title}:{docpath}{sym_sec.slug}</url>"
+                    f": {summary_text}"
+                    "</li>\n"
+                )
+            text = text + "\n\n</ul>"
+
+        guide_section = guide_class(chapter, title, text, sub_module, installed)
+        guide_sections.append(guide_section)
+
+        # TODO, handle recursively the submodules.
+        # Here there I see two options:
+        #  if sub_module.__file__.endswith("__init__.py"):
+        #      (deeper_guide_sections,
+        #       deeper_symbol_sections) = gather_guides_and_sections(chapter,
+        #                                       sub_module, builtins_by_module)
+        #      symbol_sections.extend(deeper_symbol_sections)
+        #      guide_sections.extend(deeper_guide_sections)
+    return guide_sections, symbol_sections
 
 
 def get_module_doc(module: ModuleType) -> Tuple[str, str]:
@@ -216,7 +278,7 @@ def get_submodule_names(obj) -> list:
     """
     modpkgs = []
     if hasattr(obj, "__path__"):
-        for importer, modname, ispkg in pkgutil.iter_modules(obj.__path__):
+        for _, modname, __ in pkgutil.iter_modules(obj.__path__):
             modpkgs.append(modname)
         modpkgs.sort()
     return modpkgs
@@ -239,13 +301,27 @@ def get_doc_name_from_module(module) -> str:
     return name
 
 
-def skip_doc(cls) -> bool:
-    """Returns True if we should skip cls in docstring extraction."""
-    return cls.__name__.endswith("Box") or (hasattr(cls, "no_doc") and cls.no_doc)
+def skip_doc(instance, module="") -> bool:
+    """Returns True if we should skip the docstring extraction."""
+    if not isinstance(module, str):
+        module = module.__name__ if module else ""
+
+    if type(instance).__name__.endswith("Box"):
+        return True
+    if hasattr(instance, "no_doc") and instance.no_doc:
+        return True
+
+    # Just include the builtins defined in the module.
+    if module:
+        if module != instance.__class__.__module__:
+            return True
+    return False
 
 
-def skip_module_doc(module, must_be_skipped) -> bool:
+def skip_module_doc(module, must_be_skipped=frozenset()) -> bool:
     """True if the module should not be included in the documentation"""
+    if IS_PYPY and module.__name__ == "builtins":
+        return True
     return (
         module.__doc__ is None
         or module in must_be_skipped
@@ -264,3 +340,14 @@ def sorted_modules(modules) -> list:
         if hasattr(module, "sort_order")
         else module.__name__,
     )
+
+
+def submodules(package):
+    """Generator of the submodules in a package"""
+    package_folder = package.__file__[: -len("__init__.py")]
+    for _, module_name, __ in pkgutil.iter_modules([package_folder]):
+        try:
+            module = importlib.import_module(package.__name__ + "." + module_name)
+        except Exception:
+            continue
+        yield module
