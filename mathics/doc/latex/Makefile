@@ -20,7 +20,7 @@ doc-data $(DOCTEST_LATEX_DATA_PCL):
 	(cd ../.. && MATHICS_CHARACTER_ENCODING="UTF-8" $(PYTHON) docpipeline.py --output --keep-going $(MATHICS3_MODULE_OPTION))
 
 #: Build mathics PDF
-mathics.pdf: mathics.tex documentation.tex logo-text-nodrop.pdf logo-heptatom.pdf version-info.tex $(DOCTEST_LATEX_DATA_PCL)
+mathics.pdf: mathics.tex mathics.md documentation.tex logo-text-nodrop.pdf logo-heptatom.pdf version-info.tex $(DOCTEST_LATEX_DATA_PCL)
 	$(LATEXMK) --verbose -f -pdf -pdflatex="$(XETEX) -halt-on-error" mathics
 
 #: File containing version information
@@ -40,8 +40,22 @@ logo-heptatom.pdf logo-text-nodrop.pdf:
 documentation.tex: $(DOCTEST_LATEX_DATA_PCL)
 	$(PYTHON) ./doc2latex.py $(MATHICS3_MODULE_OPTION) && $(BASH) ./sed-hack.sh
 
+
+#: The build of the documentation which is derived from docstrings in the Python code and doctest data
+mathics.md: $(DOCTEST_LATEX_DATA_PCL)
+	$(PYTHON) ./doc2markdown.py $(MATHICS3_MODULE_OPTION)
+
 #: Same as mathics.pdf
 pdf latex: mathics.pdf
+
+
+mathics-pandoc.tex: mathics.md
+	pandoc --top-level-division=part --toc -s -o mathics-pandoc.tex mathics.md
+
+
+pandoc: mathics-pandoc.tex
+	pdflatex mathics-pandoc.tex
+
 
 #: Remove all auto-generated files
 clean:
@@ -51,5 +65,8 @@ clean:
 	rm -f mathics_*.* || true
 	rm -f mathics-test.asy mathics-test.aux mathics-test.idx mathics-test.log mathics-test.mtc mathicsest.mtc* mathics-test.out mathics-test.toc || true
 	rm -f documentation.tex $(DOCTEST_LATEX_DATA_PCL) || true
+	rm -f mathics.md || true
 	rm -f mathics.pdf mathics.dvi test-mathics.pdf test-mathics.dvi || true
 	rm -f mathics-test.pdf mathics-test.dvi version-info.tex || true
+	rm -f images/result-???.png ||true
+	rm -f images/result-???.asy ||true

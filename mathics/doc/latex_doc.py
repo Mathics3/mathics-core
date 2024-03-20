@@ -17,6 +17,8 @@ from mathics.doc.doc_entries import (
     LIST_ITEM_RE,
     LIST_RE,
     MATHICS_RE,
+    MD_IMG_RE,
+    MD_REF_RE,
     PYTHON_RE,
     QUOTATIONS_RE,
     REF_RE,
@@ -197,6 +199,21 @@ def escape_latex(text):
 
     text = LATEX_CHAR_RE.sub(repl_char, text)
 
+    def repl_img_md(match):
+        src = match.group("src")
+        title = match.group("title")
+        return r"""\begin{figure*}[htp]
+\centering
+\includegraphics[width=\textwidth]{images/%(src)s}
+\caption{%(title)s}
+\label{%(title)s}
+\end{figure*}""" % {
+            "src": src,
+            "title": title,
+        }
+
+    text = MD_IMG_RE.sub(repl_img_md, text)
+
     def repl_img(match):
         src = match.group("src")
         title = match.group("title")
@@ -227,6 +244,20 @@ def escape_latex(text):
 
     def repl_quotation(match):
         return r"``%s''" % match.group(1)
+
+    text = QUOTATIONS_RE.sub(repl_quotation, text)
+
+    def repl_md_ref_re(match) -> str:
+        label = match.group("label")
+        url = match.group("url")
+        if url.startswith("/doc/"):
+            slug = "/".join(url.split("/")[2:]).rstrip("/")
+            return "%s \\ref{%s}" % (text, latex_label_safe(slug))
+        else:
+            return r"\href{%s}{%s}" % (url, text)
+        return r"\href{%s}{%s}" % (url, text)
+
+    text = MD_REF_RE.sub(repl_md_ref_re, text)
 
     def repl_hypertext(match) -> str:
         tag = match.group("tag")
@@ -263,7 +294,6 @@ def escape_latex(text):
                     return "\\href{%s}{%s}" % (content, text)
                 return "\\href{%s}{%s}" % (content, text)
 
-    text = QUOTATIONS_RE.sub(repl_quotation, text)
     text = HYPERTEXT_RE.sub(repl_hypertext, text)
 
     def repl_console(match):

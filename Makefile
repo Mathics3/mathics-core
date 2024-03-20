@@ -136,6 +136,11 @@ doctest-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/
 doctest:
 	MATHICS_CHARACTER_ENCODING="ASCII" SANDBOX=$(SANDBOX) $(PYTHON) mathics/docpipeline.py $o
 
+
+#: Write the markdown documentation
+markdowndoc:
+	(cd mathics/doc/latex && $(MAKE) mathics.md)
+
 #: Make Mathics PDF manual via Asymptote and LaTeX
 latexdoc texdoc doc:
 	(cd mathics/doc/latex && $(MAKE) doc)

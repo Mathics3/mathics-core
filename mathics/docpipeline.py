@@ -769,6 +769,8 @@ def save_doctest_data(output_data: Dict[tuple, dict]):
     * test number
     and the value is a dictionary of a Result.getdata() dictionary.
     """
+    if len(output_data) == 0:
+        return
     doctest_latex_data_path = settings.get_doctest_latex_data_path(
         should_be_readable=False, create_parent=True
     )

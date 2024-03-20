@@ -1,9 +1,8 @@
 """
 Documentation entries and doctests
 
-This module contains the objects representing the entries in the documentation 
-system, and the functions used to parse docstrings into these objects. 
-
+This module contains the objects representing the entries in the documentation
+system, and the functions used to parse docstrings into these objects.
 
 """
 
@@ -62,6 +61,9 @@ IMG_PNG_RE = re.compile(
 IMG_RE = re.compile(
     r'<img src="(?P<src>.*?)" title="(?P<title>.*?)" label="(?P<label>.*?)">'
 )
+
+MD_IMG_RE = re.compile(r"!\[(?P<title>.*?)\]\((?P<src>.*?)\)")
+
 # Preserve space before and after in-line code variables.
 LATEX_RE = re.compile(r"(\s?)\$(\w+?)\$(\s?)")
 
@@ -72,6 +74,7 @@ MATHICS_RE = re.compile(r"(?<!\\)\'(.*?)(?<!\\)\'")
 PYTHON_RE = re.compile(r"(?s)<python>(.*?)</python>")
 QUOTATIONS_RE = re.compile(r"\"([\w\s,]*?)\"")
 REF_RE = re.compile(r'<ref label="(?P<label>.*?)">')
+MD_REF_RE = re.compile(r"\[(?P<label>.*?)\]\((?P<url>.*?)\)")
 SPECIAL_COMMANDS = {
     "LaTeX": (r"<em>LaTeX</em>", r"\LaTeX{}"),
     "Mathematica": (
@@ -150,6 +153,52 @@ def filter_comments(doc: str) -> str:
     return "\n".join(
         line for line in doc.splitlines() if not line.lstrip().startswith("##")
     )
+
+
+def normalize_markdown(text) -> str:
+    """Reduce html tags to regular markdown notation"""
+
+    def repl_hyper(match) -> str:
+        tag = match.group("tag")
+        content = match.group("content")
+        if tag == "em":
+            return r" *{%s}* " % content
+        if tag == "url":
+            # content is an url. Discard spaces and line breaks
+            content = content.replace(" ", "").replace("\n", "")
+            text = match.group("text")
+            if content.find("/doc/") == 0:
+                path = content.split("/")[2:]
+                content = "#" + "/".join(path).rstrip("/")
+                if text is None:
+                    len_path = len(path)
+                    if len(path) == 1:
+                        text = "chapter " + path[0]
+                    if len(path) == 2:
+                        text = "section " + path[1] + " of " + text
+                    if len(path) == 3:
+                        text = "subsection " + path[2] + ", " + text
+            # content is a true URL,
+            elif text is None:
+                text = content
+            return f" [{text}]({content}) "
+
+    text = HYPERTEXT_RE.sub(repl_hyper, text)
+
+    def repl_img(match):
+        src = match.group("src")
+        title = match.group("title")
+        label = match.group("label")
+        return f" ![{title}](images/{src}) " " {#" f"{label}" "} "
+
+    text = IMG_RE.sub(repl_img, text)
+
+    def repl_imgpng(match):
+        src = match.group("src")
+        return f" ![{src}](images/{src}) "
+
+    text = IMG_PNG_RE.sub(repl_imgpng, text)
+    return text
 
 
 POST_SUBSTITUTION_TAG = "_POST_SUBSTITUTION%d_"
@@ -446,7 +495,7 @@ class DocumentationEntry:
             key_prefix = None
 
         self.key_prefix = key_prefix
-        self.rawdoc = doc_str
+        self.rawdoc = normalize_markdown(doc_str)
         self.items = parse_docstring_to_DocumentationEntry_items(
             self.rawdoc,
             self.docTest_collection_class,

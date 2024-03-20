@@ -364,7 +364,6 @@ class Documentation:
         """
         Append a subsection for ``instance`` into ``section.subsections``
         """
-
         required_libs = getattr(instance, "requires", [])
         installed = check_requires_list(required_libs) if required_libs else True
 
