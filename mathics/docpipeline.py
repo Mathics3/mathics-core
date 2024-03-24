@@ -519,7 +519,6 @@ def test_tests(
 
     return show_and_return()
 
-
 def test_chapters(
     include_chapters: set,
     quiet=False,
