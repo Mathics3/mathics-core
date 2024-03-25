@@ -773,6 +773,9 @@ def save_doctest_data(output_data: Dict[tuple, dict]):
         should_be_readable=False, create_parent=True
     )
     print(f"Writing internal document data to {doctest_latex_data_path}")
+    if len(output_data) == 0:
+        print("output data is empty")
+        return
     i = 0
     for key in output_data:
         i = i + 1
