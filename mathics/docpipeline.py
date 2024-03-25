@@ -27,7 +27,7 @@ from mathics.core.load_builtin import _builtins, import_and_load_builtins
 from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.doc.common_doc import DocGuideSection, DocSection, MathicsMainDocumentation
 from mathics.doc.doc_entries import DocTest, DocTests
-from mathics.doc.utils import load_doctest_data, print_and_log
+from mathics.doc.utils import load_doctest_data, print_and_log, slugify
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 from mathics.timing import show_lru_cache_statistics
 
@@ -294,7 +294,7 @@ def test_section_in_chapter(
     start_at: int = 0,
     skipped: int = 0,
     max_tests: int = MAX_TESTS,
-) -> Tuple[int, int, list]:
+) -> Tuple[int, int, list, set]:
     """
     Runs a tests for section ``section`` under a chapter or guide section.
     Note that both of these contain a collection of section tests underneath.
@@ -306,6 +306,7 @@ def test_section_in_chapter(
     If ``stop_on_failure`` is true then the remaining tests in a section are skipped when a test
     fails.
     """
+    failed_sections = set()
     section_name = section.title
 
     # Start out assuming all subsections will be tested
@@ -373,13 +374,17 @@ def test_section_in_chapter(
                     part=part_name,
                 ):
                     failed += 1
+                    failed_sections.add(
+                        (
+                            part_name,
+                            chapter_name,
+                            key[-1],
+                        )
+                    )
                     if stop_on_failure:
-                        break
-            # If failed, do not continue with the other subsections.
-            if failed and stop_on_failure:
-                break
+                        return total, failed, prev_key, failed_sections
 
-    return total, failed, prev_key
+    return total, failed, prev_key, failed_sections
 
 
 # When 3.8 is base, the below can be a Literal type.
@@ -467,6 +472,24 @@ def test_tests(
     if (output_data, names) == INVALID_TEST_GROUP_SETUP:
         return total, failed, skipped, failed_symbols, index
 
+    def show_and_return():
+        """Show the resume and build the tuple to return"""
+        show_test_summary(
+            total,
+            failed,
+            "chapters",
+            names,
+            keep_going,
+            generate_output,
+            output_data,
+        )
+
+        if generate_output and (failed == 0 or keep_going):
+            save_doctest_data(output_data)
+
+        return total, failed, skipped, failed_symbols, index
+
+    # Loop over the whole documentation.
     for part in DOCUMENTATION.parts:
         for chapter in part.chapters:
             for section in chapter.all_sections:
@@ -475,12 +498,8 @@ def test_tests(
                     continue
 
                 if total >= max_tests:
-                    break
-                (
-                    total,
-                    failed,
-                    prev_key,
-                ) = test_section_in_chapter(
+                    return show_and_return()
+                (total, failed, prev_key, new_failed_symbols) = test_section_in_chapter(
                     section,
                     total,
                     failed,
@@ -490,30 +509,15 @@ def test_tests(
                     start_at=start_at,
                     max_tests=max_tests,
                 )
-                if failed and stop_on_failure:
-                    break
+                if failed:
+                    failed_symbols.update(new_failed_symbols)
+                    if stop_on_failure:
+                        return show_and_return()
                 else:
                     if generate_output:
                         create_output(section.doc.get_tests(), output_data)
-            if failed and stop_on_failure:
-                break
-        if failed and stop_on_failure:
-            break
 
-    show_test_summary(
-        total,
-        failed,
-        "chapters",
-        names,
-        keep_going,
-        generate_output,
-        output_data,
-    )
-
-    if generate_output and (failed == 0 or keep_going):
-        save_doctest_data(output_data)
-
-    return total, failed, skipped, failed_symbols, index
+    return show_and_return()
 
 
 def test_chapters(
@@ -535,6 +539,7 @@ def test_chapters(
     fails.
     """
     failed = total = 0
+    failed_symbols = set()
 
     output_data, chapter_names = validate_group_setup(
         include_chapters, "chapters", reload
@@ -545,18 +550,31 @@ def test_chapters(
     prev_key = []
     seen_chapters = set()
 
-    for part in DOCUMENTATION.parts:
-        for chapter in part.chapters:
-            chapter_name = chapter.title
-            if chapter_name not in include_chapters:
-                continue
-            seen_chapters.add(chapter_name)
+    def show_and_return():
+        """Show the resume and return"""
+        show_test_summary(
+            total,
+            failed,
+            "chapters",
+            chapter_names,
+            keep_going,
+            generate_output,
+            output_data,
+        )
+        return total
 
+    for chapter_name in include_chapters:
+        chapter_slug = slugify(chapter_name)
+        for part in DOCUMENTATION.parts:
+            chapter = part.chapters_by_slug.get(chapter_slug, None)
+            if chapter is None:
+                continue
             for section in chapter.all_sections:
                 (
                     total,
                     failed,
                     prev_key,
+                    failed_symbols,
                 ) = test_section_in_chapter(
                     section,
                     total,
@@ -571,21 +589,8 @@ def test_chapters(
                     create_output(section.doc.get_tests(), output_data)
                     pass
                 pass
-            # Shortcut: if we already pass through all the
-            # include_chapters, break the loop
-            if seen_chapters == include_chapters:
-                break
 
-    show_test_summary(
-        total,
-        failed,
-        "chapters",
-        chapter_names,
-        keep_going,
-        generate_output,
-        output_data,
-    )
-    return total
+    return show_and_return()
 
 
 def test_sections(
@@ -621,6 +626,18 @@ def test_sections(
     section_name_for_finish = None
     prev_key = []
 
+    def show_and_return():
+        show_test_summary(
+            total,
+            failed,
+            "sections",
+            section_names,
+            keep_going,
+            generate_output,
+            output_data,
+        )
+        return total
+
     for part in DOCUMENTATION.parts:
         for chapter in part.chapters:
             for section in chapter.all_sections:
@@ -628,6 +645,7 @@ def test_sections(
                     total,
                     failed,
                     prev_key,
+                    failed_symbols,
                 ) = test_section_in_chapter(
                     section=section,
                     total=total,
@@ -640,7 +658,6 @@ def test_sections(
 
                 if generate_output and failed == 0:
                     create_output(section.doc.get_tests(), output_data)
-                    pass
 
                 if last_section_name != section_name_for_finish:
                     if seen_sections == include_sections:
@@ -649,21 +666,11 @@ def test_sections(
                     if section_name_for_finish in include_sections:
                         seen_sections.add(section_name_for_finish)
                     last_section_name = section_name_for_finish
-                pass
-                if seen_last_section:
-                    break
-                pass
 
-    show_test_summary(
-        total,
-        failed,
-        "sections",
-        section_names,
-        keep_going,
-        generate_output,
-        output_data,
-    )
-    return total
+                if seen_last_section:
+                    return show_and_return()
+
+    return show_and_return()
 
 
 def test_all(
