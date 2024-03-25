@@ -256,6 +256,8 @@ def escape_latex(text):
                 # in this manual, so use "\ref" rather than "\href'.
                 if content.find("/doc/") == 0:
                     slug = "/".join(content.split("/")[2:]).rstrip("/")
+                    return "%s \\ref{%s}" % (text, latex_label_safe(slug))
+                    slug = "/".join(content.split("/")[2:]).rstrip("/")
                     return "%s of section~\\ref{%s}" % (text, latex_label_safe(slug))
                 else:
                     return "\\href{%s}{%s}" % (content, text)
@@ -647,6 +649,16 @@ class LaTeXDocChapter(DocChapter):
             ("\n\n\\chapter{%(title)s}\n\\chapterstart\n\n%(intro)s")
             % {"title": escape_latex(self.title), "intro": intro},
             "\\chaptersections\n",
+            # ####################
+            "\n\n".join(
+                section.latex(doc_data, quiet)
+                # Here we should use self.all_sections, but for some reason
+                # guidesections are not properly loaded, duplicating
+                # the load of subsections.
+                for section in sorted(self.guide_sections)
+                if not filter_sections or section.title in filter_sections
+            ),
+            # ###################
             "\n\n".join(
                 section.latex(doc_data, quiet)
                 # Here we should use self.all_sections, but for some reason
@@ -788,7 +800,7 @@ class LaTeXDocGuideSection(DocGuideSection):
         guide_sections = [
             (
                 "\n\n\\section{%(title)s}\n\\sectionstart\n\n%(intro)s"
-                "\\addcontentsline{toc}{section}{%(title)s}"
+                # "\\addcontentsline{toc}{section}{%(title)s}"
             )
             % {"title": escape_latex(self.title), "intro": intro},
             "\n\n".join(section.latex(doc_data) for section in self.subsections),

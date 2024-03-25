@@ -102,10 +102,11 @@ def test_chapter():
     chapter = part.chapters_by_slug["testing-expressions"]
     print(chapter.sections_by_slug.keys())
     section = chapter.sections_by_slug["numerical-properties"]
-    latex_section_head = section.latex({})[:63].strip()
-    assert (
-        latex_section_head
-        == "\section*{Numerical Properties}{\index{Numerical Properties}}"
+    latex_section_head = section.latex({})[:73].strip()
+    assert latex_section_head == (
+        "\\section{Numerical Properties}\n"
+        "\\sectionstart\n\n"
+        "\\begin{guidesectionintro}"
     )
     print(60 * "@")
     latex_chapter = chapter.latex({}, quiet=False)
