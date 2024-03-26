@@ -293,7 +293,6 @@ def parse_docstring_to_DocumentationEntry_items(
     # Convert markdown syntax to XML native syntax.
     # TODO: See if it wouldn't be better to go in the opposite way:
     # convert the native syntax to a common-markdown compliant syntax.
-    doc = markdown_to_native(doc)
 
     # pre-substitute Python code because it might contain tests
     doc, post_substitutions = pre_sub(
@@ -471,7 +470,7 @@ class DocText:
     """
 
     def __init__(self, text):
-        self.text = text
+        self.text = markdown_to_native(text)
 
     def __str__(self) -> str:
         return self.text
