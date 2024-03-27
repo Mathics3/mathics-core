@@ -13,6 +13,7 @@ from os import getenv
 from typing import Callable, List, Optional
 
 from mathics.core.evaluation import Message, Print
+from mathics.doc.rst_parser import normalize_indent, rst_to_native
 
 # Used for getting test results by test expresson and chapter/section information.
 test_result_map = {}
@@ -69,6 +70,17 @@ LIST_ITEM_RE = re.compile(r"(?s)<li>(.*?)(?:</li>|(?=<li>)|$)")
 LIST_RE = re.compile(r"(?s)<(?P<tag>ul|ol)>(?P<content>.*?)</(?P=tag)>")
 MATHICS_RE = re.compile(r"(?<!\\)\'(.*?)(?<!\\)\'")
 
+
+MD_IMG_RE = re.compile(r"!\[(?P<title>.*?)\]\((?P<src>.*?)\)")
+MD_IMG_LABEL_RE = re.compile(r"!\[(?P<title>.*?)\]\((?P<src>.*?)\)\{\#(?P<label>.*?)\}")
+MD_PYTHON_RE = re.compile(
+    r"``\s*[pP]ython\n(?P<pythoncode>.*?)``", re.DOTALL | re.MULTILINE
+)
+MD_REF_RE = re.compile(r"\[(?P<label>.*?)\]\((?P<url>.*?)\)")
+MD_URL_RE = re.compile(r"\<(?P<prot>http|https|ftp|mail?)\:\/\/(?P<url>.*?)\>")
+
+MD_TAG_RE = re.compile(r"[{]\#(?P<label>.*?)[}]")
+
 PYTHON_RE = re.compile(r"(?s)<python>(.*?)</python>")
 QUOTATIONS_RE = re.compile(r"\"([\w\s,]*?)\"")
 REF_RE = re.compile(r'<ref label="(?P<label>.*?)">')
@@ -94,6 +106,72 @@ TESTCASE_RE = re.compile(
         ((?:\n\s*(?:[:|=.][ ]|\.).*)*)  # test-code results"""
 )
 TESTCASE_OUT_RE = re.compile(r"^\s*([:|=])(.*)$")
+
+
+# TODO: Check if it wouldn't be better to go in the opposite direction,
+# to have a ReStructured markdown compliant syntax everywhere.
+def markdown_to_native(text):
+    """
+    This function converts common markdown syntax into
+    the Mathics XML native documentation syntax.
+    """
+    text, post_substitutions = pre_sub(
+        MD_PYTHON_RE, text, lambda m: "<python>%s</python>" % m.group(1)
+    )
+
+    # First, convert some RsT syntax into the native
+    # format.
+    text = rst_to_native(text)
+
+    def repl_figs_with_label(match):
+        caption = match.group(1)
+        src = match.group(2)
+        label = match.group(3)
+        return (
+            r"<imgpng src="
+            f"'{src}'"
+            " title="
+            f"'{caption}'"
+            " label="
+            f"'{label}'"
+            ">"
+        )
+
+    text = MD_IMG_LABEL_RE.sub(repl_figs_with_label, text)
+
+    def repl_figs(match):
+        caption = match.group(1)
+        src = match.group(2)
+        return r"<imgpng src=" f"'{src}'" " title=" f"'{caption}'" ">"
+
+    text = MD_IMG_RE.sub(repl_figs, text)
+
+    def repl_ref(match):
+        label = match.group(1)
+        reference = match.group(2)
+        return f"<url>:{label}:{reference}</url>"
+
+    text = MD_REF_RE.sub(repl_ref, text)
+
+    def repl_url(match):
+        prot = match.group(1)
+        reference = match.group(2)
+        return f"<url>{prot}://{reference}</url>"
+
+    text = MD_URL_RE.sub(repl_url, text)
+
+    def repl_labels(match):
+        label = match.group(1)
+        return r" \label{" f"{label}" "} "
+
+    text = MD_TAG_RE.sub(repl_labels, text)
+
+    def repl_python_code(match):
+        pass
+
+    text = MD_PYTHON_RE.sub(repl_python_code, text)
+
+    return post_sub(text, post_substitutions)
 
 
 def get_results_by_test(test_expr: str, full_test_key: list, doc_data: dict) -> dict:
@@ -212,9 +290,15 @@ def parse_docstring_to_DocumentationEntry_items(
 
     # Remove commented lines.
     doc = filter_comments(doc).strip(r"\s")
+    # Normalize the indent level.
+    text = normalize_indent(doc)
 
     # Remove leading <dl>...</dl>
     # doc = DL_RE.sub("", doc)
+
+    # Convert markdown syntax to XML native syntax.
+    # TODO: See if it wouldn't be better to go in the opposite way:
+    # convert the native syntax to a common-markdown compliant syntax.
 
     # pre-substitute Python code because it might contain tests
     doc, post_substitutions = pre_sub(
@@ -392,7 +476,7 @@ class DocText:
     """
 
     def __init__(self, text):
-        self.text = text
+        self.text = markdown_to_native(text)
 
     def __str__(self) -> str:
         return self.text
