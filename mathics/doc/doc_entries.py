@@ -13,6 +13,7 @@ from os import getenv
 from typing import Callable, List, Optional
 
 from mathics.core.evaluation import Message, Print
+from mathics.doc.rst_parser import normalize_indent, rst_to_native
 
 # Used for getting test results by test expresson and chapter/section information.
 test_result_map = {}
@@ -80,7 +81,6 @@ MD_URL_RE = re.compile(r"\<(?P<prot>http|https|ftp|mail?)\:\/\/(?P<url>.*?)\>")
 
 MD_TAG_RE = re.compile(r"[{]\#(?P<label>.*?)[}]")
 
-
 PYTHON_RE = re.compile(r"(?s)<python>(.*?)</python>")
 QUOTATIONS_RE = re.compile(r"\"([\w\s,]*?)\"")
 REF_RE = re.compile(r'<ref label="(?P<label>.*?)">')
@@ -118,6 +118,10 @@ def markdown_to_native(text):
     text, post_substitutions = pre_sub(
         MD_PYTHON_RE, text, lambda m: "<python>%s</python>" % m.group(1)
     )
+
+    # First, convert some RsT syntax into the native
+    # format.
+    text = rst_to_native(text)
 
     def repl_figs_with_label(match):
         caption = match.group(1)
@@ -286,6 +290,8 @@ def parse_docstring_to_DocumentationEntry_items(
 
     # Remove commented lines.
     doc = filter_comments(doc).strip(r"\s")
+    # Normalize the indent level.
+    text = normalize_indent(doc)
 
     # Remove leading <dl>...</dl>
     # doc = DL_RE.sub("", doc)
