@@ -1,6 +1,13 @@
 """
 Minimal parser for ReStructuredText
 
+This module provides a compatibility support for RsT syntax
+in the Mathics documentation system.
+
+We cannot use an standard library like docutils or sphinx since
+by now, the documentation is written in a Mathics-specific syntax,
+and for a while, both syntaxes will have to coexist.
+
 """
 
 import re
