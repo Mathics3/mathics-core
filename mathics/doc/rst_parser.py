@@ -57,7 +57,6 @@ def normalize_indent(text: str, omit_first_line: bool = True) -> str:
             block_indent_level = 0
 
         # Now, remove the extra indent.
-        print("block indent level", block_indent_level)
         if block_indent_level:
             if omit_first_line:
                 return (
@@ -76,7 +75,6 @@ def normalize_indent(text: str, omit_first_line: bool = True) -> str:
 def process_image_block(head: str, block: str) -> str:
     """ """
     src = head.split("::")[1]
-    print("head:", head, "block", block)
     lines = block.splitlines()
     keys = f" src='{src}'"
     for line in lines:

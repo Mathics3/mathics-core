@@ -65,5 +65,4 @@ def test_rst_parser():
     """
     for text, expected in RST_EXAMPLES:
         result = rst_to_native(normalize_indent(text))
-        print("-----\n", result, "\n-------------")
         assert normalize_indent(expected) == result
