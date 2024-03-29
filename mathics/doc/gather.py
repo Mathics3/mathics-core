@@ -16,7 +16,7 @@ from typing import Tuple, Union
 from mathics.core.builtin import Builtin, check_requires_list
 from mathics.core.util import IS_PYPY
 from mathics.doc.doc_entries import DocumentationEntry
-from mathics.doc.structure import DocChapter, DocGuideSection, DocSection
+from mathics.doc.structure import DocChapter, DocGuideSection, DocSection, DocSubsection
 
 
 def check_installed(src: Union[ModuleType, Builtin]) -> bool:
@@ -97,10 +97,9 @@ def doc_chapter(module, part, builtins_by_module):
     chapter = chapter_class(part, title, doc_class(text, title, None))
     part.chapters.append(chapter)
 
-    symbol_sections = gather_sections(chapter, module, builtins_by_module)
     assert len(chapter.sections) == 0
-    chapter.sections.extend(symbol_sections)
-    visited = set(sec.title for sec in symbol_sections)
+
+    #    visited = set(sec.title for sec in symbol_sections)
     # If the module is a package, add the guides and symbols from the submodules
     if module.__file__.endswith("__init__.py"):
         guide_sections, symbol_sections = gather_guides_and_sections(
@@ -114,10 +113,14 @@ def doc_chapter(module, part, builtins_by_module):
             else:
                 visited.add(sec.title)
                 chapter.sections.append(sec)
+    else:
+        symbol_sections = gather_sections(chapter, module, builtins_by_module)
+        chapter.sections.extend(symbol_sections)
+
     return chapter
 
 
-def gather_sections(chapter, module, builtins_by_module) -> list:
+def gather_sections(chapter, module, builtins_by_module, section_class=None) -> list:
     """Build a list of DocSections from a "top-level" module"""
     symbol_sections = []
     if skip_module_doc(module):
@@ -125,7 +128,8 @@ def gather_sections(chapter, module, builtins_by_module) -> list:
 
     part = chapter.part if chapter else None
     documentation = part.documentation if part else None
-    section_class = documentation.section_class if documentation else DocSection
+    if section_class is None:
+        section_class = documentation.section_class if documentation else DocSection
 
     # TODO: Check the reason why for the module
     # `mathics.builtin.numbers.constants`
@@ -164,6 +168,29 @@ def gather_sections(chapter, module, builtins_by_module) -> list:
     return symbol_sections
 
 
+def gather_subsections(chapter, section, module, builtins_by_module) -> list:
+    """Build a list of DocSubsections from a "top-level" module"""
+
+    part = chapter.part if chapter else None
+    documentation = part.documentation if part else None
+    section_class = documentation.subsection_class if documentation else DocSubsection
+
+    def section_function(
+        chapter,
+        title,
+        text,
+        operator=None,
+        installed=True,
+        in_guide=False,
+        summary_text="",
+    ):
+        return section_class(
+            chapter, section, title, text, operator, installed, in_guide, summary_text
+        )
+
+    return gather_sections(chapter, module, builtins_by_module, section_function)
+
+
 def gather_guides_and_sections(chapter, module, builtins_by_module):
     """
     Look at the submodules in module, and produce the guide sections
@@ -191,27 +218,22 @@ def gather_guides_and_sections(chapter, module, builtins_by_module):
         if skip_module_doc(sub_module):
             continue
 
-        submodule_symbol_sections = gather_sections(
-            chapter, sub_module, builtins_by_module
-        )
-        symbol_sections.extend(submodule_symbol_sections)
-
         title, text = get_module_doc(sub_module)
         installed = check_installed(sub_module)
 
-        if submodule_symbol_sections:
-            text = text + "\n\n<ul>\n"
-            for sym_sec in submodule_symbol_sections:
-                # TODO: improve the format
-                summary_text = sym_sec.summary_text
-                text = text + (
-                    f"<li><url>:{sym_sec.title}:{docpath}{sym_sec.slug}</url>"
-                    f": {summary_text}"
-                    "</li>\n"
-                )
-            text = text + "\n\n</ul>"
+        guide_section = guide_class(
+            chapter=chapter,
+            title=title,
+            text=text,
+            submodule=sub_module,
+            installed=installed,
+        )
 
-        guide_section = guide_class(chapter, title, text, sub_module, installed)
+        submodule_symbol_sections = gather_subsections(
+            chapter, guide_section, sub_module, builtins_by_module
+        )
+
+        guide_section.subsections.extend(submodule_symbol_sections)
         guide_sections.append(guide_section)
 
         # TODO, handle recursively the submodules.
@@ -222,7 +244,7 @@ def gather_guides_and_sections(chapter, module, builtins_by_module):
         #                                       sub_module, builtins_by_module)
         #      symbol_sections.extend(deeper_symbol_sections)
         #      guide_sections.extend(deeper_guide_sections)
-    return guide_sections, symbol_sections
+    return guide_sections, []
 
 
 def get_module_doc(module: ModuleType) -> Tuple[str, str]:

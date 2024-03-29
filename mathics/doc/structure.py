@@ -187,28 +187,6 @@ class DocGuideSection(DocSection):
         if MATHICS_DEBUG_DOC_BUILD:
             print("    DEBUG Creating Guide Section", title)
 
-    # FIXME: turn into a @property tests?
-    def get_tests(self):
-        """
-        Tests included in a Guide.
-        """
-        # FIXME: The below is a little weird for Guide Sections.
-        # Figure out how to make this clearer.
-        # A guide section's subsection are Sections without the Guide.
-        # it is *their* subsections where we generally find tests.
-        #
-        # Currently, this is not called in docpipeline or in making
-        # the LaTeX documentation.
-        for section in self.subsections:
-            if not section.installed:
-                continue
-            for subsection in section.subsections:
-                # FIXME we are omitting the section title here...
-                if not subsection.installed:
-                    continue
-                for doctests in subsection.items:
-                    yield doctests.get_tests()
-
 
 class DocPart:
     """
@@ -252,9 +230,7 @@ class Documentation:
                                  |
                                  +---->0>GuideSections
                                            |
-                                           +-----0>Sections
-                                                     |
-                                                     +------0> SubSections
+                                           +------0> SubSections
 
     (with 0>) meaning "aggregation".
 
@@ -443,12 +419,10 @@ class Documentation:
                     print(f"DEBUG Gathering tests for Chapter {chapter.title}")
 
                 tests = chapter.doc.get_tests()
-                print("tests from chapter", chapter.title)
                 if tests:
                     yield Tests(part.title, chapter.title, "", tests)
 
                 for section in chapter.all_sections:
-                    print("   tests from section", section.title)
                     if section.installed:
                         if MATHICS_DEBUG_TEST_CREATE:
                             if isinstance(section, DocGuideSection):
