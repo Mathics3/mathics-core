@@ -737,7 +737,7 @@ class LaTeXDocSection(DocSection):
         sections = "\n\n".join(section.latex(doc_data) for section in self.subsections)
         slug = f"{self.chapter.part.slug}/{self.chapter.slug}/{self.slug}"
         section_string = (
-            "\n\n\\section{%s}{%s}\n" % (title, index)
+            "\n\n\\section*{%s}{%s}\n" % (title, index)
             + "\n\\label{%s}" % latex_label_safe(slug)
             + "\n\\sectionstart\n\n"
             + f"{content}"
