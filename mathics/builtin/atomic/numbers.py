@@ -152,6 +152,7 @@ class Accuracy(Builtin):
       <dd>examines the number of significant digits of $expr$ after the \
       decimal point in the number x.
     </dl>
+
     <i>Notice that the result could be slightly different than the obtained \
     in WMA, due to differencs in the internal representation of the real numbers.</i>
 
