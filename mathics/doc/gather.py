@@ -205,7 +205,7 @@ def gather_guides_and_sections(chapter, module, builtins_by_module):
                 # TODO: improve the format
                 summary_text = sym_sec.summary_text
                 text = text + (
-                    f"<li><url>:{sym_sec.title}:{docpath}{sym_sec.slug}</url>"
+                    f"<li><url>:'{sym_sec.title}':{docpath}{sym_sec.slug}</url>"
                     f": {summary_text}"
                     "</li>\n"
                 )

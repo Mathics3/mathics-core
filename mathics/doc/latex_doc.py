@@ -251,7 +251,7 @@ def escape_latex(text):
             text = match.group("text")
             if content.find("/doc/") == 0:
                 slug = "/".join(content.split("/")[2:]).rstrip("/")
-                return "%s in page \\pageref{%s}" % (text, latex_label_safe(slug))
+                return "%s (page \\pageref{%s})" % (text, latex_label_safe(slug))
             tag = "url"
         if tag == "url":
             text = match.group("text")
