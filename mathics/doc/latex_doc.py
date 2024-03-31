@@ -746,7 +746,7 @@ class LaTeXDocSection(DocSection):
             + "\n\\label{%s}" % latex_label_safe(slug)
             + "\n\\sectionstart\n\n"
             + f"{content}"
-            # + ("\\addcontentsline{toc}{section}{%s}" % title)
+            + ("\\addcontentsline{toc}{section}{%s}" % title)
             + sections
             + "\\sectionend"
         )
