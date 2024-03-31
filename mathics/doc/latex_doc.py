@@ -67,6 +67,7 @@ LATEX_TESTOUT_RE = re.compile(
 )
 
 LATEX_TESTOUT_DELIM_RE = re.compile(r", ")
+URL_PAGEREF_RE = re.compile(r"<url>[:](?P<label>.*?)[:]/doc/(?P<ref>.*?)</url>")
 
 # The goal of the following pattern is to enclose the numbers included in
 # expressions produced by tests between ```\allowbreak{}```. The pattern matches
@@ -246,7 +247,13 @@ def escape_latex(text):
         content = content.replace(" ", "").replace("\n", "")
         if tag == "em":
             return r"\emph{%s}" % content
-        elif tag == "url":
+        elif tag == "pageref":
+            text = match.group("text")
+            if content.find("/doc/") == 0:
+                slug = "/".join(content.split("/")[2:]).rstrip("/")
+                return "%s in page \\pageref{%s}" % (text, latex_label_safe(slug))
+            tag = "url"
+        if tag == "url":
             text = match.group("text")
             if text is None:
                 return "\\url{%s}" % content
@@ -257,8 +264,6 @@ def escape_latex(text):
                 if content.find("/doc/") == 0:
                     slug = "/".join(content.split("/")[2:]).rstrip("/")
                     return "%s \\ref{%s}" % (text, latex_label_safe(slug))
-                    slug = "/".join(content.split("/")[2:]).rstrip("/")
-                    return "%s of section~\\ref{%s}" % (text, latex_label_safe(slug))
                 else:
                     return "\\href{%s}{%s}" % (content, text)
                 return "\\href{%s}{%s}" % (content, text)
@@ -763,6 +768,13 @@ class LaTeXDocGuideSection(DocGuideSection):
         submodule,
         installed: bool = True,
     ):
+        def repl_pageref(match):
+            label = match.group(1)
+            ref = match.group(2)
+            slug = latex_label_safe("/".join(ref.split("/")[1:]).rstrip("/"))
+            return f"<pageref>:{label}:/doc/{ref}</pageref>"
+
+        text = URL_PAGEREF_RE.sub(repl_pageref, text)
         super().__init__(chapter, title, text, submodule, installed)
 
     def get_tests(self):

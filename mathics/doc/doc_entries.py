@@ -54,7 +54,7 @@ DL_ITEM_RE = re.compile(
 )
 DL_RE = re.compile(r"(?s)<dl>(.*?)</dl>")
 HYPERTEXT_RE = re.compile(
-    r"(?s)<(?P<tag>em|url)>(\s*:(?P<text>.*?):\s*)?(?P<content>.*?)</(?P=tag)>"
+    r"(?s)<(?P<tag>em|url|pageref)>(\s*:(?P<text>.*?):\s*)?(?P<content>.*?)</(?P=tag)>"
 )
 IMG_PNG_RE = re.compile(
     r'<imgpng src="(?P<src>.*?)" title="(?P<title>.*?)" label="(?P<label>.*?)">'

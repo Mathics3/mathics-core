@@ -90,7 +90,7 @@ def test_load_latex_documentation():
     ).strip() == "Let's sketch the function\n\\begin{tests}"
     assert (
         first_section.latex(doc_data)[:30]
-    ).strip() == "\\section{Curve Sketching}{}"
+    ).strip() == "\\section*{Curve Sketching}{}"
     assert (
         third_chapter.latex(doc_data)[:38]
     ).strip() == "\\chapter{Further Tutorial Examples}"
