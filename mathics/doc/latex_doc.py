@@ -295,7 +295,7 @@ def escape_latex(text):
     # text = LATEX_BETWEEN_ASY_RE.sub(repl_asy, text)
 
     def repl_subsection(match):
-        return "\n\\subsection*{%s}\n" % match.group(1)
+        return "\n\\subsection{%s}\n" % match.group(1)
 
     text = SUBSECTION_RE.sub(repl_subsection, text)
     text = SUBSECTION_END_RE.sub("", text)
@@ -863,10 +863,10 @@ class LaTeXDocSubsection(DocSubsection):
         slug = f"{self.chapter.part.slug}/{self.chapter.slug}/{self.section.slug}/{self.slug}"
 
         section_string = (
-            "\n\n\\subsection*{%(title)s}%(index)s\n"
+            "\n\n\\subsection{%(title)s}%(index)s\n"
             + "\n\\label{%s}" % latex_label_safe(slug)
             + "\n\\subsectionstart\n\n%(content)s"
-            "\\addcontentsline{toc}{subsection}{%(title)s}"
+            #  "\\addcontentsline{toc}{subsection}{%(title)s}"
             "%(sections)s"
             "\\subsectionend"
         ) % {
