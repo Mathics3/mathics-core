@@ -98,7 +98,7 @@ class MathicsSession:
         """This method parse and evaluate the expression using the session.evaluation.evaluate method"""
         query = self.evaluation.parse(str_expression)
         if query is not None:
-            res = self.evaluation.evaluate(query)
+            res = self.evaluation.evaluate(query, timeout=timeout, format=form)
         else:
             res = Result(
                 self.evaluation.out,

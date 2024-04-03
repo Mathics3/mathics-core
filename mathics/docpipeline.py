@@ -21,10 +21,8 @@ from typing import Callable, Dict, Optional, Set, Union
 
 import mathics
 from mathics import settings, version_string
-from mathics.core.definitions import Definitions
-from mathics.core.evaluation import Evaluation, Output
+from mathics.core.evaluation import Output
 from mathics.core.load_builtin import _builtins, import_and_load_builtins
-from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.doc.common_doc import DocGuideSection, DocSection, MathicsMainDocumentation
 from mathics.doc.doc_entries import DocTest, DocTests
 from mathics.doc.utils import load_doctest_data, print_and_log, slugify
@@ -251,7 +249,7 @@ def test_case(
     return True
 
 
-def create_output(test_pipeline, tests, doctest_data, output_format="latex"):
+def create_output(test_pipeline, tests, output_format="latex"):
     """
     Populate ``doctest_data`` with the results of the
     ``tests`` in the format ``output_format``
@@ -260,20 +258,16 @@ def create_output(test_pipeline, tests, doctest_data, output_format="latex"):
         test_pipeline.print_and_log("Definitions are not initialized.")
         return
 
+    doctest_data = test_pipeline.output_data
     test_pipeline.reset_user_definitions()
+    session = test_pipeline.session
 
     for test in tests:
         if test.private:
             continue
         key = test.key
-        evaluation = Evaluation(
-            test_pipeline.session.definitions,
-            format=output_format,
-            catch_interrupt=True,
-            output=TestOutput(),
-        )
         try:
-            result = evaluation.parse_evaluate(test.test)
+            result = session.evaluate_as_in_cli(test.test, form=output_format)
         except Exception:  # noqa
             result = None
         if result is None:
@@ -530,7 +524,6 @@ def test_tests(
                                 test_pipeline,
                                 exclude_sections=excludes,
                             ),
-                            test_pipeline.output_data,
                         )
     show_test_summary(
         test_pipeline,
@@ -576,7 +569,6 @@ def test_chapters(
                     create_output(
                         test_pipeline,
                         section.doc.get_tests(),
-                        test_pipeline.output_data,
                     )
 
     show_test_summary(
@@ -630,7 +622,6 @@ def test_sections(
                     create_output(
                         test_pipeline,
                         section.doc.get_tests(),
-                        test_pipeline.output_data,
                     )
 
                 if last_section_name != section_name_for_finish:
@@ -748,7 +739,6 @@ def write_doctest_data(test_pipeline: DocTestPipeline):
     test results and write out both the tests and the test results.
     """
     test_parameters = test_pipeline.parameters
-    test_status = test_pipeline.status
     if not test_parameters.quiet:
         print(f"Extracting internal doc data for {version_string}")
         print("This may take a while...")
@@ -765,7 +755,6 @@ def write_doctest_data(test_pipeline: DocTestPipeline):
             create_output(
                 test_pipeline,
                 tests,
-                test_pipeline.output_data,
             )
     except KeyboardInterrupt:
         print("\nAborted.\n")
