@@ -891,13 +891,12 @@ def build_arg_parser():
         action="store_true",
         help="print cache statistics",
     )
-    return parser
+    return parser.parse_args()
 
 
 def main():
     """main"""
-    parser = build_arg_parser()
-    args = parser.parse_args()
+    args = build_arg_parser()
     test_pipeline = DocTestPipeline(args)
     test_status = test_pipeline.status
 
