@@ -102,11 +102,11 @@ def test_chapter():
     chapter = part.chapters_by_slug["testing-expressions"]
     print(chapter.sections_by_slug.keys())
     section = chapter.sections_by_slug["numerical-properties"]
-    latex_section_head = section.latex({})[:90].strip()
+    latex_section_head = section.latex({})[:89].strip()
     assert latex_section_head == (
         "\\section{Numerical Properties}\n"
         "\\sectionstart\n\n\n\n"
-        "\\subsection*{CoprimeQ}\index{CoprimeQ}"
+        "\\subsection{CoprimeQ}\index{CoprimeQ}"
     )
     print(60 * "@")
     latex_chapter = chapter.latex({}, quiet=False)
