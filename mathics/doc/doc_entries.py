@@ -84,7 +84,6 @@ SPECIAL_COMMANDS = {
     "Wolfram": (r"<em>Wolfram</em>", r"\emph{Wolfram}"),
     "skip": (r"<br /><br />", r"\bigskip"),
 }
-SUBSECTION_END_RE = re.compile("</subsection>")
 
 
 TESTCASE_RE = re.compile(
@@ -137,7 +136,9 @@ def get_results_by_test(test_expr: str, full_test_key: list, doc_data: dict) -> 
             if result_candidate["query"] == test_expr:
                 if result:
                     # Already found something
-                    print(f"Warning, multiple results appear under {search_key}.")
+                    logging.warning(
+                        f"Warning, multiple results appear under {search_key}."
+                    )
                     return {}
 
                 result = result_candidate

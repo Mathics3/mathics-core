@@ -625,8 +625,9 @@ class RealValuedNumberQ(Builtin):
     # No docstring since this is internal and it will mess up documentation.
     # FIXME: Perhaps in future we will have a more explicite way to indicate not
     # to add something to the docs.
+    no_doc = True
     context = "Internal`"
-
+    summary_text = "test whether an expression is a real number"
     rules = {
         "Internal`RealValuedNumberQ[x_Real]": "True",
         "Internal`RealValuedNumberQ[x_Integer]": "True",
@@ -639,6 +640,7 @@ class RealValuedNumericQ(Builtin):
     # No docstring since this is internal and it will mess up documentation.
     # FIXME: Perhaps in future we will have a more explicite way to indicate not
     # to add something to the docs.
+    no_doc = True
     context = "Internal`"
 
     rules = {

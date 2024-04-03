@@ -90,7 +90,7 @@ def test_load_latex_documentation():
     ).strip() == "Let's sketch the function\n\\begin{tests}"
     assert (
         first_section.latex(doc_data)[:30]
-    ).strip() == "\\section*{Curve Sketching}{}"
+    ).strip() == "\\section{Curve Sketching}{}"
     assert (
         third_chapter.latex(doc_data)[:38]
     ).strip() == "\\chapter{Further Tutorial Examples}"
@@ -102,11 +102,15 @@ def test_chapter():
     chapter = part.chapters_by_slug["testing-expressions"]
     print(chapter.sections_by_slug.keys())
     section = chapter.sections_by_slug["numerical-properties"]
-    latex_section_head = section.latex({})[:63].strip()
-    assert (
-        latex_section_head
-        == "\section*{Numerical Properties}{\index{Numerical Properties}}"
+    expected_latex_section_head = (
+        "\\section{Numerical Properties}\n"
+        "\\label{reference-of-built-in-symbols/testing-expressions/numerical-properties}\n"
+        "\\sectionstart\n\n\n\n"
+        "\\subsection{CoprimeQ}\index{CoprimeQ}"
     )
+    latex_section_head = section.latex({}).strip()[: len(expected_latex_section_head)]
+
+    assert latex_section_head == expected_latex_section_head
     print(60 * "@")
     latex_chapter = chapter.latex({}, quiet=False)
 
