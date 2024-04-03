@@ -433,7 +433,6 @@ class Documentation:
                                 print(
                                     f"DEBUG Gathering tests for      Section {section.title}"
                                 )
-
                         tests = section.doc.get_tests()
                         if tests:
                             yield Tests(
