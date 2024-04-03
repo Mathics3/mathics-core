@@ -102,9 +102,10 @@ def test_chapter():
     chapter = part.chapters_by_slug["testing-expressions"]
     print(chapter.sections_by_slug.keys())
     section = chapter.sections_by_slug["numerical-properties"]
-    latex_section_head = section.latex({})[:89].strip()
+    latex_section_head = section.latex({})[:166].strip()
     assert latex_section_head == (
         "\\section{Numerical Properties}\n"
+        "\\label{reference-of-built-in-symbols/testing-expressions/numerical-properties}\n"
         "\\sectionstart\n\n\n\n"
         "\\subsection{CoprimeQ}\index{CoprimeQ}"
     )
