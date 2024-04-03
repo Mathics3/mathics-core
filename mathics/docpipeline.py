@@ -29,6 +29,7 @@ from mathics.doc.common_doc import DocGuideSection, DocSection, MathicsMainDocum
 from mathics.doc.doc_entries import DocTest, DocTests
 from mathics.doc.utils import load_doctest_data, print_and_log, slugify
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
+from mathics.session import MathicsSession
 from mathics.timing import show_lru_cache_statistics
 
 # Global variables
@@ -68,13 +69,13 @@ class DocTestPipeline:
     """
 
     def __init__(self, args):
-        self.definitions = Definitions(add_builtin=True)
+        self.session = MathicsSession()
         self.output_data = {}
 
         # LoadModule Mathics3 modules
         if args.pymathics:
             required_modules = set(args.pymathics.split(","))
-            load_pymathics_modules(required_modules, self.definitions)
+            load_pymathics_modules(required_modules, self.session.definitions)
 
         self.builtin_total = len(_builtins)
         self.documentation = MathicsMainDocumentation()
@@ -93,7 +94,7 @@ class DocTestPipeline:
 
     def reset_user_definitions(self):
         """Reset the user definitions"""
-        return self.definitions.reset_user_definitions()
+        return self.session.definitions.reset_user_definitions()
 
     def print_and_log(self, message):
         """Print and log a message in the logfile"""
@@ -134,7 +135,7 @@ class DocTestPipeline:
         # the lowest common denominator available on all systems.
         settings.SYSTEM_CHARACTER_ENCODING = "ASCII"
 
-        if self.definitions is None:
+        if self.session.definitions is None:
             self.print_and_log("Definitions are not initialized.")
             return INVALID_TEST_GROUP_SETUP
 
@@ -210,30 +211,12 @@ def test_case(
 
     The test results are assumed to be foramtted to ASCII text.
     """
-    test_str = test.test
     test_parameters = test_pipeline.parameters
-    feeder = MathicsSingleLineFeeder(test_str, filename="<test>")
-    evaluation = Evaluation(
-        test_pipeline.definitions,
-        catch_interrupt=False,
-        output=TestOutput(),
-        format="text",
-    )
     try:
         time_start = datetime.now()
-        query = evaluation.parse_feeder(feeder)
-        if test_parameters.check_partial_elapsed_time:
-            print("   parsing took", datetime.now() - time_start)
-        if query is None:
-            # parsed expression is None
-            result = None
-            out = evaluation.out
-        else:
-            result = evaluation.evaluate(query)
-            if test_parameters.check_partial_elapsed_time:
-                print("   evaluation took", datetime.now() - time_start)
-            out = result.out
-            result = result.result
+        result = test_pipeline.session.evaluate_as_in_cli(test.test)
+        out = result.out
+        result = result.result
     except Exception as exc:
         fail(f"Exception {exc}")
         info = sys.exc_info()
@@ -273,7 +256,7 @@ def create_output(test_pipeline, tests, doctest_data, output_format="latex"):
     Populate ``doctest_data`` with the results of the
     ``tests`` in the format ``output_format``
     """
-    if test_pipeline.definitions is None:
+    if test_pipeline.session.definitions is None:
         test_pipeline.print_and_log("Definitions are not initialized.")
         return
 
@@ -284,7 +267,7 @@ def create_output(test_pipeline, tests, doctest_data, output_format="latex"):
             continue
         key = test.key
         evaluation = Evaluation(
-            test_pipeline.definitions,
+            test_pipeline.session.definitions,
             format=output_format,
             catch_interrupt=True,
             output=TestOutput(),
@@ -362,14 +345,14 @@ def show_test_summary(
     elif failed > 0:
         print(SEP)
         if not test_parameters.generate_output:
-            test_parameters.print_and_log(
+            test_pipeline.print_and_log(
                 f"""{failed} test{'s' if failed != 1 else ''} failed.""",
             )
     else:
         test_pipeline.print_and_log("All tests passed.")
 
     if test_parameters.generate_output and (failed == 0 or test_parameters.keep_going):
-        save_doctest_data(test_status.output_data)
+        save_doctest_data(test_pipeline.output_data)
 
 
 def section_tests_iterator(
@@ -458,7 +441,7 @@ def test_section_in_chapter(
             continue
 
         def fail_message(why):
-            test_parameters.print_and_log(
+            test_pipeline.print_and_log(
                 (f"""{SEP}Test failed: in {section_name_for_print}\n""" f"""{why}"""),
             )
             return False
@@ -506,7 +489,6 @@ def test_tests(
     output_data, names = test_pipeline.validate_group_setup(
         set(),
         None,
-        test_pipeline,
     )
     if (output_data, names) == INVALID_TEST_GROUP_SETUP:
         return
@@ -548,7 +530,7 @@ def test_tests(
                                 test_pipeline,
                                 exclude_sections=excludes,
                             ),
-                            test_status.output_data,
+                            test_pipeline.output_data,
                         )
     show_test_summary(
         test_pipeline,
@@ -573,7 +555,7 @@ def test_chapters(
     test_parameters = test_pipeline.parameters
 
     output_data, chapter_names = test_pipeline.validate_group_setup(
-        include_chapters, "chapters", test_pipeline
+        include_chapters, "chapters"
     )
     if (output_data, chapter_names) == INVALID_TEST_GROUP_SETUP:
         return
@@ -594,7 +576,7 @@ def test_chapters(
                     create_output(
                         test_pipeline,
                         section.doc.get_tests(),
-                        test_status.output_data,
+                        test_pipeline.output_data,
                     )
 
     show_test_summary(
@@ -624,7 +606,7 @@ def test_sections(
     test_parameters = test_pipeline.parameters
 
     output_data, section_names = test_pipeline.validate_group_setup(
-        include_sections, "section", test_pipeline
+        include_sections, "section"
     )
     if (output_data, section_names) == INVALID_TEST_GROUP_SETUP:
         return
@@ -648,7 +630,7 @@ def test_sections(
                     create_output(
                         test_pipeline,
                         section.doc.get_tests(),
-                        test_status.output_data,
+                        test_pipeline.output_data,
                     )
 
                 if last_section_name != section_name_for_finish:
@@ -686,19 +668,17 @@ def show_report(test_pipeline):
         )
     if test_status.failed_sections:
         if not test_pipeline.parameters.keep_going:
-            test_pipeline.parameters.print_and_log(
+            test_pipeline.print_and_log(
                 "(not all tests are accounted for due to --)",
             )
-        test_pipeline.parameters.print_and_log("Failed:")
+        test_pipeline.print_and_log("Failed:")
         for part, chapter, section in sorted(test_status.failed_sections):
-            test_pipeline.parameters.print_and_log(
-                f"  - {section} in {part} / {chapter}"
-            )
+            test_pipeline.print_and_log(f"  - {section} in {part} / {chapter}")
 
     if test_parameters.generate_output and (
         test_status.failed == 0 or test_parameters.doc_even_if_error
     ):
-        save_doctest_data(test_status.output_data)
+        save_doctest_data(test_pipeline.output_data)
         return
 
 
@@ -778,14 +758,14 @@ def write_doctest_data(test_pipeline: DocTestPipeline):
     )
 
     try:
-        test_status.output_data = (
+        test_pipeline.output_data = (
             load_doctest_data(doctest_latex_data_path) if test_parameters.reload else {}
         )
         for tests in test_pipeline.documentation.get_tests():
             create_output(
                 test_pipeline,
                 tests,
-                test_status.output_data,
+                test_pipeline.output_data,
             )
     except KeyboardInterrupt:
         print("\nAborted.\n")
@@ -793,7 +773,7 @@ def write_doctest_data(test_pipeline: DocTestPipeline):
 
     print("done.\n")
 
-    save_doctest_data(test_status.output_data)
+    save_doctest_data(test_pipeline.output_data)
 
 
 def build_arg_parser():
@@ -840,17 +820,6 @@ def build_arg_parser():
         metavar="LOGFILENAME",
         help="stores the output in [logfilename]. ",
     )
-    parser.add_argument(
-        "--python-module",
-        "-l",
-        dest="module",
-        metavar="MATHIC3-MODULES",
-        help="load symbols from a module."
-        "You can list multiple Python modules containing Mathics builtins "
-        "by adding a comma (and no space) in between "
-        "module names.",
-    )
-
     parser.add_argument(
         "--load-module",
         "-l",

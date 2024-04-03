@@ -13,7 +13,7 @@ import os.path as osp
 from typing import Optional
 
 from mathics.core.definitions import Definitions, autoload_files
-from mathics.core.evaluation import Evaluation
+from mathics.core.evaluation import Evaluation, Result
 from mathics.core.parser import MathicsSingleLineFeeder, parse
 
 
@@ -97,7 +97,17 @@ class MathicsSession:
     def evaluate_as_in_cli(self, str_expression, timeout=None, form=None):
         """This method parse and evaluate the expression using the session.evaluation.evaluate method"""
         query = self.evaluation.parse(str_expression)
-        res = self.evaluation.evaluate(query)
+        if query is not None:
+            res = self.evaluation.evaluate(query)
+        else:
+            res = Result(
+                self.evaluation.out,
+                None,
+                self.evaluation.definitions.get_line_no(),
+                None,
+                form,
+            )
+            self.evaluation.out = []
         self.evaluation.stopped = False
         return res
 
