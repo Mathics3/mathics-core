@@ -295,7 +295,7 @@ def escape_latex(text):
     # text = LATEX_BETWEEN_ASY_RE.sub(repl_asy, text)
 
     def repl_subsection(match):
-        return "\n\\subsection*{%s}\n" % match.group(1)
+        return "\n\\subsection{%s}\n" % match.group(1)
 
     text = SUBSECTION_RE.sub(repl_subsection, text)
     text = SUBSECTION_END_RE.sub("", text)
@@ -645,6 +645,12 @@ class LaTeXDocChapter(DocChapter):
                 intro,
                 short,
             )
+
+        if self.part.is_reference:
+            sort_section_function = sorted
+        else:
+            sort_section_function = lambda x: x
+
         chapter_sections = [
             ("\n\n\\chapter{%(title)s}\n\\chapterstart\n\n%(intro)s")
             % {"title": escape_latex(self.title), "intro": intro},
@@ -664,7 +670,7 @@ class LaTeXDocChapter(DocChapter):
                 # Here we should use self.all_sections, but for some reason
                 # guidesections are not properly loaded, duplicating
                 # the load of subsections.
-                for section in sorted(self.sections)
+                for section in sort_section_function(self.sections)
                 if not filter_sections or section.title in filter_sections
             ),
             "\n\\chapterend\n",
@@ -790,6 +796,7 @@ class LaTeXDocGuideSection(DocGuideSection):
             # The leading spaces help show chapter level.
             print(f"  Formatting Guide Section {self.title}")
         intro = self.doc.latex(doc_data).strip()
+        slug = f"{self.chapter.part.slug}/{self.chapter.slug}/{self.slug}"
         if intro:
             short = "short" if len(intro) < 300 else ""
             intro = "\\begin{guidesectionintro%s}\n%s\n\n\\end{guidesectionintro%s}" % (
@@ -799,10 +806,14 @@ class LaTeXDocGuideSection(DocGuideSection):
             )
         guide_sections = [
             (
-                "\n\n\\section{%(title)s}\n\\sectionstart\n\n%(intro)s"
+                "\n\n\\section{%(title)s}\n\\label{%(label)s}\n\\sectionstart\n\n%(intro)s"
                 # "\\addcontentsline{toc}{section}{%(title)s}"
             )
-            % {"title": escape_latex(self.title), "intro": intro},
+            % {
+                "title": escape_latex(self.title),
+                "label": latex_label_safe(slug),
+                "intro": intro,
+            },
             "\n\n".join(section.latex(doc_data) for section in self.subsections),
         ]
         return "".join(guide_sections)
@@ -863,10 +874,10 @@ class LaTeXDocSubsection(DocSubsection):
         slug = f"{self.chapter.part.slug}/{self.chapter.slug}/{self.section.slug}/{self.slug}"
 
         section_string = (
-            "\n\n\\subsection*{%(title)s}%(index)s\n"
+            "\n\n\\subsection{%(title)s}%(index)s\n"
             + "\n\\label{%s}" % latex_label_safe(slug)
             + "\n\\subsectionstart\n\n%(content)s"
-            "\\addcontentsline{toc}{subsection}{%(title)s}"
+            #  "\\addcontentsline{toc}{subsection}{%(title)s}"
             "%(sections)s"
             "\\subsectionend"
         ) % {
