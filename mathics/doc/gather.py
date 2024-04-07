@@ -14,6 +14,7 @@ from types import ModuleType
 from typing import Tuple, Union
 
 from mathics.core.builtin import Builtin, check_requires_list
+from mathics.core.load_builtin import get_submodule_names, submodules
 from mathics.core.util import IS_PYPY
 from mathics.doc.doc_entries import DocumentationEntry
 from mathics.doc.structure import DocChapter, DocGuideSection, DocSection, DocSubsection
@@ -138,7 +139,7 @@ def gather_sections(chapter, module, builtins_by_module, section_class=None) -> 
     # converting the entries into `set`s.
     #
     visited = set()
-    for symbol_instance in builtins_by_module[module.__name__]:
+    for symbol_instance in builtins_by_module.get(module.__name__,[]):
         if skip_doc(symbol_instance, module):
             continue
         default_contexts = ("System`", "Pymathics`")
@@ -270,41 +271,6 @@ def get_module_doc(module: ModuleType) -> Tuple[str, str]:
     return title, text
 
 
-def get_submodule_names(obj) -> list:
-    """Many builtins are organized into modules which, from a documentation
-    standpoint, are like Mathematica Online Guide Docs.
-
-    "List Functions", "Colors", or "Distance and Similarity Measures"
-    are some examples Guide Documents group group various Builtin Functions,
-    under submodules relate to that general classification.
-
-    Here, we want to return a list of the Python modules under a "Guide Doc"
-    module.
-
-    As an example of a "Guide Doc" and its submodules, consider the
-    module named mathics.builtin.colors. It collects code and documentation pertaining
-    to the builtin functions that would be found in the Guide documentation for "Colors".
-
-    The `mathics.builtin.colors` module has a submodule
-    `mathics.builtin.colors.named_colors`.
-
-    The builtin functions defined in `named_colors` then are those found in the
-    "Named Colors" group of the "Colors" Guide Doc.
-
-    So in this example then, in the list the modules returned for
-    Python module `mathics.builtin.colors` would be the
-    `mathics.builtin.colors.named_colors` module which contains the
-    definition and docs for the "Named Colors" Mathics Bultin
-    Functions.
-    """
-    modpkgs = []
-    if hasattr(obj, "__path__"):
-        for _, modname, __ in pkgutil.iter_modules(obj.__path__):
-            modpkgs.append(modname)
-        modpkgs.sort()
-    return modpkgs
-
-
 def get_doc_name_from_module(module) -> str:
     """
     Get the title associated to the module.
@@ -363,12 +329,3 @@ def sorted_modules(modules) -> list:
     )
 
 
-def submodules(package):
-    """Generator of the submodules in a package"""
-    package_folder = package.__file__[: -len("__init__.py")]
-    for _, module_name, __ in pkgutil.iter_modules([package_folder]):
-        try:
-            module = importlib.import_module(package.__name__ + "." + module_name)
-        except Exception:
-            continue
-        yield module
