@@ -139,7 +139,7 @@ def gather_sections(chapter, module, builtins_by_module, section_class=None) -> 
     # converting the entries into `set`s.
     #
     visited = set()
-    for symbol_instance in builtins_by_module.get(module.__name__,[]):
+    for symbol_instance in builtins_by_module.get(module.__name__, []):
         if skip_doc(symbol_instance, module):
             continue
         default_contexts = ("System`", "Pymathics`")
@@ -327,5 +327,3 @@ def sorted_modules(modules) -> list:
         if hasattr(module, "sort_order")
         else module.__name__,
     )
-
-

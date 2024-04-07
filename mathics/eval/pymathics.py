@@ -73,7 +73,7 @@ def load_pymathics_module(definitions, module_name: str):
                 if not var.context:
                     var.context = "Pymathics`"
                 symbol_name = instance.get_name()
-                builtins_by_module.setdefault(submodule_name,[]).append(instance)
+                builtins_by_module.setdefault(submodule_name, []).append(instance)
                 newsymbols[symbol_name] = instance
 
     for name in newsymbols:
