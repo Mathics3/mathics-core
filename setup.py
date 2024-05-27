@@ -34,6 +34,7 @@ import platform
 import sys
 
 from setuptools import Extension, setup
+from setuptools.command.build_py import build_py as setuptools_build_py
 
 log = logging.getLogger(__name__)
 
@@ -95,6 +96,24 @@ else:
         #     for module in modules
         # )
         CMDCLASS = {"build_ext": build_ext}
+
+
+class build_py(setuptools_build_py):
+    def run(self):
+        os.system(
+            "mathics-generate-json-table"
+            " --field=ascii-operator-to-symbol"
+            " --field=ascii-operator-to-unicode"
+            " --field=ascii-operator-to-wl-unicode"
+            " --field=operator-to-ascii"
+            " --field=operator-to-unicode"
+            " -o mathics/data/op-tables.json"
+        )
+        self.distribution.package_data["mathics"].append("data/op-tables.json")
+        setuptools_build_py.run(self)
+
+
+CMDCLASS["build_py"] = build_py
 
 
 setup(
