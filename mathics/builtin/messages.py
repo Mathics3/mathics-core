@@ -566,16 +566,16 @@ class Syntax(Builtin):
     </dl>
 
     >> 1 +
-     : Incomplete expression; more input is needed (line 1 of "<test>").
+     : Incomplete expression; more input is needed (line 1 of "").
 
     >> Sin[1)
-     : "Sin[1" cannot be followed by ")" (line 1 of "<test>").
+     : "Sin[1" cannot be followed by ")" (line 1 of "").
 
     >> ^ 2
-     : Expression cannot begin with "^ 2" (line 1 of "<test>").
+     : Expression cannot begin with "^ 2" (line 1 of "").
 
     >> 1.5``
-     : "1.5`" cannot be followed by "`" (line 1 of "<test>").
+     : "1.5`" cannot be followed by "`" (line 1 of "").
     """
 
     # Extension: MMA does not provide lineno and filename in its error messages
