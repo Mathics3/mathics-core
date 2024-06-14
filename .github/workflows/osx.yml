@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         os: [macOS]
-        python-version: ['3.9', '3.10']
+        python-version: ['3.9', '3.10', '3.12']
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -26,6 +26,8 @@ jobs:
       run: |
         brew install llvm@14 tesseract
         python -m pip install --upgrade pip
+        pip install --upgrade setuptools
+        pip install --upgrade distribute         
     - name: Install Mathics3 with full Python dependencies
       run: |
         # We can comment out after next Mathics-Scanner release
