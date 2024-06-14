@@ -121,6 +121,7 @@ New Builtins
 #. ``ClebschGordan``
 #. ``ComplexExpand`` (@yzrun)
 #. ``Curl`` (2-D and 3-D vector forms only)
+#. ``DisplayForm``
 #. ``DiscretePlot``
 #. ``Kurtosis``
 #. ``ListLogPlot``
@@ -205,10 +206,9 @@ Enhancements
 #. Better handling of comparisons with finite precision numbers.
 #. Improved implementation for  ``Precision``.
 #. Infix operators, like ``->`` render with their Unicode symbol when ``$CharacterEncoding`` is not "ASCII".
+#. Basic implementation of ``DisplayForm``
 #. ``Grid`` compatibility with WMA was improved.  Now it supports non-uniform list of lists and lists with general elements.
 #. Support for BigEndian Big TIFF
-
-
 
 5.0.2
 -----
