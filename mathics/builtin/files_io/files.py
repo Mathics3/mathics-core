@@ -1033,7 +1033,7 @@ class Read(Builtin):
         return from_python(result)
 
     def eval_nostream(self, arg1, arg2, evaluation):
-        "Read[arg1_, arg2_]"
+        "%(name)s[arg1_, arg2_]"
         evaluation.message("General", "stream", arg1)
         return
 
@@ -1385,6 +1385,8 @@ class Find(Read):
     #> Close[stream]
      = ...
     """
+
+    rules = {}
 
     options = {
         "AnchoredSearch": "False",
