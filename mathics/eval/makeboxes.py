@@ -15,6 +15,7 @@ from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.parser.parser import NEVER_ADD_PARENTHESIS
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -39,15 +40,6 @@ from mathics.core.systemsymbols import (
     SymbolRowBox,
     SymbolStandardForm,
 )
-
-# An operator precedence value that will ensure that whatever operator
-# this is attached to does not have parenthesis surrounding it.
-# Operator precedence values are integers; If if an operator
-# "op" is greater than the surrounding precedence, then "op"
-# will be surrounded by parenthesis, e.g. ... (...op...) ...
-# In named-characters.yml of mathics-scanner we start at 0.
-# However, negative values would also work.
-NEVER_ADD_PARENTHESIS = 0
 
 # These Strings are used in Boxing output
 StringElipsis = String("...")
