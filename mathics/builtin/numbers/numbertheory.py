@@ -476,7 +476,8 @@ class NextPrime(Builtin):
         result = n.to_python()
         for i in range(-py_k):
             try:
-                result = sympy.ntheory.prevprime(result)
+                # from sympy 1.13, the previous prime to 2 fails...
+                result = -2 if result == 2 else sympy.ntheory.prevprime(result)
             except ValueError:
                 # No earlier primes
                 return Integer(-1 * sympy.ntheory.nextprime(0, py_k - i))

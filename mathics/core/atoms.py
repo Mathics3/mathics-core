@@ -551,7 +551,8 @@ class PrecisionReal(Real):
 
     @property
     def is_zero(self) -> bool:
-        return self.value == 0.0
+        # self.value == 0 does not work for sympy >=1.13
+        return self.value == -self.value
 
     def make_boxes(self, form):
         from mathics.builtin.makeboxes import number_form

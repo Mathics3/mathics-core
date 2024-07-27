@@ -88,7 +88,6 @@ def real_to_s_exp(expr, n):
                 value = expr.to_mpmath()
                 s = mpmath.nstr(value, n)
 
-        print("value type is", type(value), "s=", s)
         # sign prefix
         if s[0] == "-":
             assert value < 0
@@ -97,9 +96,8 @@ def real_to_s_exp(expr, n):
         else:
             assert value >= 0
             nonnegative = 1
-
         # exponent (exp is actual, pexp is printed)
-        if "e" in s or "E" in s:
+        if "e" in s:
             s, exp = s.split("e")
             exp = int(exp)
             if len(s) > 1 and s[1] == ".":

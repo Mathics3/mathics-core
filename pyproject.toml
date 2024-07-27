@@ -24,7 +24,7 @@ dependencies = [
     "python-dateutil",
     "requests",
     "setuptools",
-    "sympy>=1.8",
+    "sympy==1.11",
 ]
 requires-python = ">=3.7"
 readme = "README.rst"

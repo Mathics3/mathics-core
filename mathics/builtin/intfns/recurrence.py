@@ -50,8 +50,8 @@ class Fibonacci(MPMathFunction):
 
 class HarmonicNumber(MPMathFunction):
     """
-    <url>:Harmonic Number:https://en.wikipedia.org/wiki/Harmonic_number</url> \(
-    <url>:WMA link:https://reference.wolfram.com/language/ref/HarmonicNumber.html</url>)
+    <url>:Harmonic Number:https://en.wikipedia.org/wiki/Harmonic_number</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/HarmonicNumber.html</url>)
 
     <dl>
       <dt>'HarmonicNumber[n]'
