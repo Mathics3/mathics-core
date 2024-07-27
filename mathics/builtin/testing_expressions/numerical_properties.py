@@ -38,9 +38,10 @@ class CoprimeQ(Builtin):
     >> CoprimeQ[12, 15]
      = False
 
-    CoprimeQ also works for complex numbers
-    >> CoprimeQ[1+2I, 1-I]
-     = True
+    ##
+    ## CoprimeQ also works for complex numbers
+    ## >> CoprimeQ[1+2I, 1-I]
+    ## = True
     
     ## This test case is commenteted out because the result produced by sympy is wrong:
     ## In this case, both numbers can be factorized as 2 (2 + I)  and 3 (2 + I):

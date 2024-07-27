@@ -479,7 +479,7 @@ class MachineReal(Real):
             value = self.to_sympy()
             # If sympy fixes the issue, this comparison would be
             # enough
-            if value == other_value:
+            if (value - other_value).is_zero:
                 return True
             # this handles the issue...
             diff = abs(value - other_value)
@@ -552,7 +552,7 @@ class PrecisionReal(Real):
     @property
     def is_zero(self) -> bool:
         # self.value == 0 does not work for sympy >=1.13
-        return self.value == -self.value
+        return self.value.is_zero
 
     def make_boxes(self, form):
         from mathics.builtin.makeboxes import number_form
@@ -579,7 +579,7 @@ class PrecisionReal(Real):
         value = self.value
         # If sympy would handle properly
         # the precision, this wold be enough
-        if value == other_value:
+        if (value - other_value).is_zero:
             return True
         # in the meantime, let's use this comparison.
         value = self.value
