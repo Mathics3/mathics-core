@@ -581,13 +581,13 @@ class PrimePi(SympyFunction):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     mpmath_name = "primepi"
     summary_text = "amount of prime numbers less than or equal"
-    sympy_name = "ntheory.primepi"
+    sympy_name = "primepi"
 
     # TODO: Traditional Form
 
     def eval(self, n, evaluation: Evaluation):
         "PrimePi[n_?NumericQ]"
-        result = sympy.ntheory.primepi(eval_N(n, evaluation).to_python())
+        result = sympy.primepi(eval_N(n, evaluation).to_python())
         return Integer(result)
 
 
