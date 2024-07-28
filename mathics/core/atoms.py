@@ -732,7 +732,7 @@ class Complex(Number):
             self._value = value
 
             # Cache object so we don't allocate again.
-            self._complex_numbers[value] = self
+            # self._complex_numbers[value] = self
 
             # Set a value for self.__hash__() once so that every time
             # it is used this is fast. Note that in contrast to the
