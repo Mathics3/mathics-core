@@ -719,10 +719,17 @@ class Complex(Number):
 
         if isinstance(real, MachineReal) and not isinstance(imag, MachineReal):
             imag = imag.round()
-        if isinstance(imag, MachineReal) and not isinstance(real, MachineReal):
+            prec = FP_MANTISA_BINARY_DIGITS
+        elif isinstance(imag, MachineReal) and not isinstance(real, MachineReal):
             real = real.round()
+            prec = FP_MANTISA_BINARY_DIGITS
+        else:
+            prec = min(
+                (u for u in (x.get_precision() for x in (real, imag)) if u is not None),
+                default=None,
+            )
 
-        value = (real, imag)
+        value = (real, imag, prec)
         self = cls._complex_numbers.get(value)
         if self is None:
             self = super().__new__(cls)
@@ -732,7 +739,7 @@ class Complex(Number):
             self._value = value
 
             # Cache object so we don't allocate again.
-            # self._complex_numbers[value] = self
+            self._complex_numbers[value] = self
 
             # Set a value for self.__hash__() once so that every time
             # it is used this is fast. Note that in contrast to the
