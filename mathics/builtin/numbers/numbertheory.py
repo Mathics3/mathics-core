@@ -3,9 +3,9 @@
 """
 Number theoretic functions
 """
-
 import mpmath
 import sympy
+from packaging.version import Version
 
 from mathics.core.atoms import Integer, Integer0, Integer10, Rational, Real
 from mathics.core.attributes import (
@@ -501,7 +501,11 @@ class PartitionsP(SympyFunction):
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_ORDERLESS | A_PROTECTED
     summary_text = "number of unrestricted partitions"
-    sympy_name = "npartitions"
+    # The name of this function changed in Sympy version 1.13.0.
+    # This supports backward compatibility.
+    sympy_name = (
+        "npartitions" if Version(sympy.__version__) < Version("1.13.0") else "partition"
+    )
 
     def eval(self, n, evaluation: Evaluation):
         "PartitionsP[n_Integer]"
