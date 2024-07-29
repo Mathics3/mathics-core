@@ -3,9 +3,9 @@
 """
 Number theoretic functions
 """
-
 import mpmath
 import sympy
+from packaging.version import Version
 
 from mathics.core.atoms import Integer, Integer0, Integer10, Rational, Real
 from mathics.core.attributes import (
@@ -476,7 +476,8 @@ class NextPrime(Builtin):
         result = n.to_python()
         for i in range(-py_k):
             try:
-                result = sympy.ntheory.prevprime(result)
+                # from sympy 1.13, the previous prime to 2 fails...
+                result = -2 if result == 2 else sympy.ntheory.prevprime(result)
             except ValueError:
                 # No earlier primes
                 return Integer(-1 * sympy.ntheory.nextprime(0, py_k - i))
@@ -500,7 +501,11 @@ class PartitionsP(SympyFunction):
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_ORDERLESS | A_PROTECTED
     summary_text = "number of unrestricted partitions"
-    sympy_name = "npartitions"
+    # The name of this function changed in Sympy version 1.13.0.
+    # This supports backward compatibility.
+    sympy_name = (
+        "npartitions" if Version(sympy.__version__) < Version("1.13.0") else "partition"
+    )
 
     def eval(self, n, evaluation: Evaluation):
         "PartitionsP[n_Integer]"
@@ -580,13 +585,13 @@ class PrimePi(SympyFunction):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     mpmath_name = "primepi"
     summary_text = "amount of prime numbers less than or equal"
-    sympy_name = "ntheory.primepi"
+    sympy_name = "primepi"
 
     # TODO: Traditional Form
 
     def eval(self, n, evaluation: Evaluation):
         "PrimePi[n_?NumericQ]"
-        result = sympy.ntheory.primepi(eval_N(n, evaluation).to_python())
+        result = sympy.primepi(eval_N(n, evaluation).to_python())
         return Integer(result)
 
 

@@ -96,7 +96,6 @@ def real_to_s_exp(expr, n):
         else:
             assert value >= 0
             nonnegative = 1
-
         # exponent (exp is actual, pexp is printed)
         if "e" in s:
             s, exp = s.split("e")
