@@ -10,7 +10,7 @@
 # than applicable to all kinds of expressions.
 
 """
-Forms which appear in '$OutputForms'.
+Form Functions
 """
 import re
 from math import ceil

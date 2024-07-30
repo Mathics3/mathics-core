@@ -145,7 +145,9 @@ def number_form(
     options: dict,
 ) -> String:
     """
-    Converts a Real or Integer value to a String. FIXME: the return should be a Numberform.
+    Converts a Real or Integer value to a String.  FIXME: the
+    return type is currently a String here, but it in WMA I think the
+    corresponding code would return a NumberForm type.
 
     ``digits`` is the number of digits of precision and
     ``digits_after_decimal_point`` is the number of digits after the
