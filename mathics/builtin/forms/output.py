@@ -18,7 +18,7 @@ from typing import Optional
 
 from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
 from mathics.builtin.forms.base import FormBaseClass
-from mathics.builtin.makeboxes import MakeBoxes, number_form
+from mathics.builtin.makeboxes import MakeBoxes, NumberForm_to_String
 from mathics.builtin.tensors import get_dimensions
 from mathics.core.atoms import (
     Integer,
@@ -481,7 +481,7 @@ class NumberForm(_NumberForm):
 
         if py_n is not None:
             py_options["_Form"] = form.get_name()
-            return number_form(expr, py_n, None, evaluation, py_options)
+            return NumberForm_to_String(expr, py_n, None, evaluation, py_options)
         return Expression(SymbolMakeBoxes, expr, form)
 
     def eval_makeboxes_n(self, expr, n, form, evaluation, options={}):
@@ -501,7 +501,7 @@ class NumberForm(_NumberForm):
 
         if isinstance(expr, (Integer, Real)):
             py_options["_Form"] = form.get_name()
-            return number_form(expr, py_n, None, evaluation, py_options)
+            return NumberForm_to_String(expr, py_n, None, evaluation, py_options)
         return Expression(SymbolMakeBoxes, expr, form)
 
     def eval_makeboxes_nf(self, expr, n, f, form, evaluation, options={}):
@@ -523,7 +523,7 @@ class NumberForm(_NumberForm):
 
         if isinstance(expr, (Integer, Real)):
             py_options["_Form"] = form.get_name()
-            return number_form(expr, py_n, py_f, evaluation, py_options)
+            return NumberForm_to_String(expr, py_n, py_f, evaluation, py_options)
         return Expression(SymbolMakeBoxes, expr, form)
 
 

@@ -446,14 +446,14 @@ class MachineReal(Real):
         return True
 
     def make_boxes(self, form):
-        from mathics.builtin.makeboxes import number_form
+        from mathics.builtin.makeboxes import NumberForm_to_String
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat
         if form in ("System`InputForm", "System`FullForm"):
             n = None
         else:
             n = 6
-        return number_form(self, n, None, None, _number_form_options)
+        return NumberForm_to_String(self, n, None, None, _number_form_options)
 
     @property
     def is_zero(self) -> bool:
@@ -555,10 +555,10 @@ class PrecisionReal(Real):
         return self.value.is_zero
 
     def make_boxes(self, form):
-        from mathics.builtin.makeboxes import number_form
+        from mathics.builtin.makeboxes import NumberForm_to_String
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat
-        return number_form(
+        return NumberForm_to_String(
             self, dps(self.get_precision()), None, None, _number_form_options
         )
 

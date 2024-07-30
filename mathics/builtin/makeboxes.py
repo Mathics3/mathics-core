@@ -111,7 +111,7 @@ def real_to_tuple_info(real: Real, digits: Optional[int]) -> Tuple[str, int, boo
         else:
             assert value >= 0
             is_nonnegative = True
-        # Set exponent. ``exponent`` is actual, ``pexp`` of ``number_form()`` is printed.
+        # Set exponent. ``exponent`` is actual, ``pexp`` of ``NumberForm_to_string()`` is printed.
         if "e" in s:
             s, exponent = s.split("e")
             exponent = int(exponent)
@@ -136,8 +136,9 @@ def real_to_tuple_info(real: Real, digits: Optional[int]) -> Tuple[str, int, boo
     return s, exponent, is_nonnegative
 
 
-# FIXME the return type should be a NumberForm, not a String.
-def number_form(
+# FIXME: the return type should be a NumberForm, not a String.
+# when this is fixed, rename the function.
+def NumberForm_to_String(
     value: Union[Real, Integer],
     digits: Optional[int],
     digits_after_decimal_point: Optional[int],
@@ -145,9 +146,7 @@ def number_form(
     options: dict,
 ) -> String:
     """
-    Converts a Real or Integer value to a String.  FIXME: the
-    return type is currently a String here, but it in WMA I think the
-    corresponding code would return a NumberForm type.
+    Converts a Real or Integer value to a String.
 
     ``digits`` is the number of digits of precision and
     ``digits_after_decimal_point`` is the number of digits after the
