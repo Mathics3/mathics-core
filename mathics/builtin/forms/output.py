@@ -376,6 +376,10 @@ class _NumberForm(Builtin):
 
 class NumberForm(_NumberForm):
     """
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/NumberForm.html</url>
+
     <dl>
       <dt>'NumberForm[$expr$, $n$]'
       <dd>prints a real number $expr$ with $n$-digits of precision.
@@ -387,8 +391,12 @@ class NumberForm(_NumberForm):
     >> NumberForm[N[Pi], 10]
      = 3.141592654
 
-    >> NumberForm[N[Pi], {10, 5}]
+    >> NumberForm[N[Pi], {10, 6}]
+     = 3.141593
+
+    >> NumberForm[N[Pi]]
      = 3.14159
+
     """
 
     options = {
