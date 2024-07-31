@@ -578,7 +578,7 @@ class Syntax(Builtin):
      : "1.5`" cannot be followed by "`" (line 1 of "").
     """
 
-    # Extension: MMA does not provide lineno and filename in its error messages
+    # Extension: WMA does not provide lineno and filename in its error messages
     messages = {
         "snthex": r"4 hexadecimal digits are required after \: to construct a 16-bit character (line `4` of `5`).",
         "sntoct1": r"3 octal digits are required after \ to construct an 8-bit character (line `4` of `5`).",
