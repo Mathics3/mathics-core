@@ -635,7 +635,7 @@ class Print(_Out):
 
 class Output(ABC):
     """
-    Base class for Mathics ouput history.
+    Base class for Mathics output history.
     This needs to be subclassed.
     """
 

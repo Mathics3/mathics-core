@@ -2,7 +2,7 @@
 """
 UpValue-related assignments
 
-An <i>UpValue<i> is a definition associated with a symbols that does not appear directly its head.
+An <i>UpValue</i> is a definition associated with a symbols that does not appear directly its head.
 
 See <url>
 :Associating Definitions with Different Symbols:
