@@ -379,7 +379,8 @@ class DocTest:
         return True
 
     def compare_out(self, outs: tuple = tuple()) -> bool:
-        """Compare outs of the test with the expeted outs"""
+        """Compare messages and warnings produced during the evaluation of 
+           the test with the expected messages and warnings."""
         # Check out
         wanted_outs = self.outs
         if len(wanted_outs) == 1 and wanted_outs[0].text == "...":
@@ -427,7 +428,7 @@ class DocTests:
         return self.tests
 
     def is_private(self) -> bool:
-        """the tests are private, so are not included in the documentaiton"""
+        """Returns True if this test is "private" not supposed to be visible as example documentation."""
         return all(test.private for test in self.tests)
 
     def __str__(self) -> str:
@@ -462,7 +463,8 @@ class DocText:
         return []
 
     def is_private(self) -> bool:
-        """the test is private"""
+        """the test is private, meaning that it will not be included in the
+        documentation, but tested in the doctest cycle."""
         return False
 
     def test_indices(self) -> List[int]:
