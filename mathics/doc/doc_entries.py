@@ -379,8 +379,8 @@ class DocTest:
         return True
 
     def compare_out(self, outs: tuple = tuple()) -> bool:
-        """Compare messages and warnings produced during the evaluation of 
-           the test with the expected messages and warnings."""
+        """Compare messages and warnings produced during the evaluation of
+        the test with the expected messages and warnings."""
         # Check out
         wanted_outs = self.outs
         if len(wanted_outs) == 1 and wanted_outs[0].text == "...":
