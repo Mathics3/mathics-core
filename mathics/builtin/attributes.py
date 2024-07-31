@@ -7,10 +7,10 @@ While a definition like 'cube[$x_$] = $x$^3' gives a way to specify \
 specify general properties of functions and symbols. This is \
 independent of the parameters they take and the values they produce.
 
-The builtin-attributes having a predefined meaning in \Mathics which \
+The builtin-attributes having a predefined meaning in \\Mathics which \
 are described below.
 
-However in contrast to \Mathematica, you can set any symbol as an attribute.
+However in contrast to \\Mathematica, you can set any symbol as an attribute.
 """
 
 # This tells documentation how to sort this module

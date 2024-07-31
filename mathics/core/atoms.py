@@ -446,14 +446,14 @@ class MachineReal(Real):
         return True
 
     def make_boxes(self, form):
-        from mathics.builtin.makeboxes import number_form
+        from mathics.builtin.makeboxes import NumberForm_to_String
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat
         if form in ("System`InputForm", "System`FullForm"):
             n = None
         else:
             n = 6
-        return number_form(self, n, None, None, _number_form_options)
+        return NumberForm_to_String(self, n, None, None, _number_form_options)
 
     @property
     def is_zero(self) -> bool:
@@ -479,7 +479,7 @@ class MachineReal(Real):
             value = self.to_sympy()
             # If sympy fixes the issue, this comparison would be
             # enough
-            if value == other_value:
+            if (value - other_value).is_zero:
                 return True
             # this handles the issue...
             diff = abs(value - other_value)
@@ -551,13 +551,14 @@ class PrecisionReal(Real):
 
     @property
     def is_zero(self) -> bool:
-        return self.value == 0.0
+        # self.value == 0 does not work for sympy >=1.13
+        return self.value.is_zero
 
     def make_boxes(self, form):
-        from mathics.builtin.makeboxes import number_form
+        from mathics.builtin.makeboxes import NumberForm_to_String
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat
-        return number_form(
+        return NumberForm_to_String(
             self, dps(self.get_precision()), None, None, _number_form_options
         )
 
@@ -578,7 +579,7 @@ class PrecisionReal(Real):
         value = self.value
         # If sympy would handle properly
         # the precision, this wold be enough
-        if value == other_value:
+        if (value - other_value).is_zero:
             return True
         # in the meantime, let's use this comparison.
         value = self.value
@@ -718,10 +719,17 @@ class Complex(Number):
 
         if isinstance(real, MachineReal) and not isinstance(imag, MachineReal):
             imag = imag.round()
-        if isinstance(imag, MachineReal) and not isinstance(real, MachineReal):
+            prec = FP_MANTISA_BINARY_DIGITS
+        elif isinstance(imag, MachineReal) and not isinstance(real, MachineReal):
             real = real.round()
+            prec = FP_MANTISA_BINARY_DIGITS
+        else:
+            prec = min(
+                (u for u in (x.get_precision() for x in (real, imag)) if u is not None),
+                default=None,
+            )
 
-        value = (real, imag)
+        value = (real, imag, prec)
         self = cls._complex_numbers.get(value)
         if self is None:
             self = super().__new__(cls)
