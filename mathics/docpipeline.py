@@ -40,7 +40,7 @@ MAX_TESTS = 100000  # A number greater than the total number of tests.
 INVALID_TEST_GROUP_SETUP = (None, None)
 
 TestParameters = namedtuple(
-    "TestParamters",
+    "TestParameters",
     [
         "check_partial_elapsed_time",
         "generate_output",
@@ -212,7 +212,7 @@ def test_case(
     test_parameters = test_pipeline.parameters
     try:
         time_start = datetime.now()
-        result = test_pipeline.session.evaluate_as_in_cli(test.test)
+        result = test_pipeline.session.evaluate_as_in_cli(test.test, src_name="<test>")
         out = result.out
         result = result.result
     except Exception as exc:
@@ -676,7 +676,7 @@ def show_report(test_pipeline):
 def test_all(
     test_pipeline: DocTestPipeline,
     excludes: Optional[Set[str]] = None,
-) -> int:
+):
     """
     Run all the tests in the documentation.
     """
@@ -919,7 +919,7 @@ def main():
             test_all(test_pipeline, excludes=excludes)
 
     if test_status.total > 0 and start_time is not None:
-        print("Test evalation took ", datetime.now() - start_time)
+        print("Test evaluation took ", datetime.now() - start_time)
 
     if test_pipeline.logfile:
         test_pipeline.logfile.close()
