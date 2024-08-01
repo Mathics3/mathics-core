@@ -294,7 +294,7 @@ def get_submodule_names(obj) -> list:
     So in this example then, in the list the modules returned for
     Python module `mathics.builtin.colors` would be the
     `mathics.builtin.colors.named_colors` module which contains the
-    definition and docs for the "Named Colors" Mathics Bultin
+    definition and docs for the "Named Colors" Mathics Builtin
     Functions.
     """
     modpkgs = []
