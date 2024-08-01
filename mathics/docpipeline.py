@@ -28,6 +28,7 @@ from mathics.doc.doc_entries import DocTest, DocTests
 from mathics.doc.utils import load_doctest_data, print_and_log, slugify
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 from mathics.session import MathicsSession
+from mathics.settings import get_doctest_latex_data_path
 from mathics.timing import show_lru_cache_statistics
 
 # Global variables
@@ -125,7 +126,7 @@ class DocTestPipeline:
             include_names = None
 
         if test_parameters.reload:
-            doctest_latex_data_path = settings.get_doctest_latex_data_path(
+            doctest_latex_data_path = get_doctest_latex_data_path(
                 should_be_readable=True
             )
             self.output_data = load_doctest_data(doctest_latex_data_path)
@@ -896,9 +897,7 @@ def main():
     """main"""
     args = build_arg_parser()
     data_path = (
-        settings.get_doctest_latex_data_path(
-            should_be_readable=False, create_parent=True
-        )
+        get_doctest_latex_data_path(should_be_readable=False, create_parent=True)
         if args.output
         else None
     )
