@@ -79,7 +79,14 @@ class MathicsSession:
         """
         reset the definitions and the evaluation objects.
         """
-        self.definitions = Definitions(add_builtin)
+        try:
+            self.definitions = Definitions(add_builtin)
+        except KeyError:
+            from mathics.core.load_builtin import import_and_load_builtins
+
+            import_and_load_builtins()
+            self.definitions = Definitions(add_builtin)
+
         self.evaluation = Evaluation(
             definitions=self.definitions, catch_interrupt=catch_interrupt
         )
