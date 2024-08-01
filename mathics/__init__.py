@@ -14,7 +14,7 @@ from mathics.version import __version__
 # version_info contains a list of Python packages
 # and the versions infsalled or "Not installed"
 # if the package is not installed and "No version information"
-# if we can't get version infomation.
+# if we can't get version information.
 version_info: Dict[str, str] = {
     "mathics": __version__,
     "mpmath": mpmath.__version__,

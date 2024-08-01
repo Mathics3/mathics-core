@@ -21,7 +21,7 @@ In addition, there are some other commands:
 
     python setup.py clean -> will clean all trash (*.pyc and stuff)
 
-To get a full list of avaiable commands, read the output of:
+To get a full list of available commands, read the output of:
 
     python setup.py --help-commands
 

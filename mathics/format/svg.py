@@ -199,7 +199,7 @@ def density_plot_box(self, **options):
     # since it is a cute idea, it is worthy of comment space...  Put
     # two triangles together to get a parallelogram. Compute the
     # midpoint color in the enter and along all four sides. Then use
-    # two overlayed rectangular gradients each at opacity 0.5
+    # two overlaid rectangular gradients each at opacity 0.5
     # to go from the center to each of the (square) sides.
 
     svg_data = ["<--DensityPlot-->"]
@@ -258,10 +258,10 @@ def graphics_box(self, elements=None, **options: dict) -> str:
     ``elements`` could be a ``GraphicsElements`` object,
     a tuple or a list.
 
-    Options is a dictionary of Graphics options dictionary. Intersting Graphics options keys:
+    Options is a dictionary of Graphics options dictionary. Interesting Graphics options keys:
 
     ``data``: a tuple bounding box information as well as a copy of ``elements``. If given
-    this supercedes the information in the ``elements`` parameter.
+    this supersedes the information in the ``elements`` parameter.
 
     ``evaluation``:  an ``Evaluation`` object that can be used when further evaluation is needed.
     """
@@ -310,7 +310,7 @@ def graphics_box(self, elements=None, **options: dict) -> str:
 
     tooltip_text = self.tooltip_text if hasattr(self, "tooltip_text") else ""
     if self.background_color is not None:
-        # FIXME: tests don't seem to cover this secton of code.
+        # FIXME: tests don't seem to cover this section of code.
         # Wrap svg_elements in a rectangle
 
         background = "rgba(100%,100%,100%,100%)"

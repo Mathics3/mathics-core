@@ -355,7 +355,7 @@ Please contribute to Mathics!""",
 
     argparser.add_argument(
         "--strict-wl-output",
-        help="Most WL-output compatible (at the expense of useability).",
+        help="Most WL-output compatible (at the expense of usability).",
         action="store_true",
     )
 

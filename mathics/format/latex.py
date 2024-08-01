@@ -408,7 +408,7 @@ def graphics3dbox(self, elements=None, **options) -> str:
 
     # TODO: Intelligently place the axes on the longest non-middle edge.
     # See algorithm used by web graphics in mathics/web/media/graphics.js
-    # for details of this. (Projection to sceen etc).
+    # for details of this. (Projection to screen etc).
 
     # Choose axes placement (boundbox edge vertices)
     axes_indices = []
