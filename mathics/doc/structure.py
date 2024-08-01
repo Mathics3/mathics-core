@@ -591,7 +591,7 @@ class DocSubsection:
         # is mixed with a DocumentationEntry. `items` is an attribute of the
         # `DocumentationEntry`, not of a Part / Chapter/ Section.
         # The content of a subsection should be stored in self.doc,
-        # and the tests should set the rute (key) through self.doc.set_parent_doc
+        # and the tests should set the route (key) through self.doc.set_parent_doc
         if in_guide:
             # Tests haven't been picked out yet from the doc string yet.
             # Gather them here.
