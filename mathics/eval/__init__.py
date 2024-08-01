@@ -5,7 +5,7 @@ Routines here are core operations or functions that implement
 evaluation. If there were an instruction interpreter, these functions
 that start "eval_" would be the interpreter instructions.
 
-These operatations then should include the most commonly-used Builtin-functions like
+These operations then should include the most commonly-used Builtin-functions like
 ``N[]`` and routines in support of performing those evaluation operations/instructions.
 
 Performance of the operations here can be important for overall interpreter performance.

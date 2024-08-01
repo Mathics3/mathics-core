@@ -41,7 +41,7 @@ def check_evaluation(
     its results
 
     Compares the expressions represented by ``str_expr`` and  ``str_expected`` by
-    evaluating the first, and optionally, the second. If ommited, `str_expected`
+    evaluating the first, and optionally, the second. If omitted, `str_expected`
     is assumed to be `"Null"`.
 
     to_string_expr: If ``True`` (default value) the result of the evaluation is

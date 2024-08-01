@@ -28,7 +28,7 @@ Out[2]= True
 because it ignores that the attribute is clean at the time in which the rule is applied.
 
 
-In Mathics, on the other hand, attributes are taken into accout just
+In Mathics, on the other hand, attributes are taken into account just
 at the moment of the replacement, so the output of both expressions
 are the opposite.
 

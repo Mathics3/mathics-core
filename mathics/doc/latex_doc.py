@@ -43,7 +43,7 @@ from mathics.doc.structure import (
 )
 
 # We keep track of the number of \begin{asy}'s we see so that
-# we can assocation asymptote file numbers with where they are
+# we can association asymptote file numbers with where they are
 # in the document
 next_asy_number = 1
 
@@ -131,7 +131,7 @@ def escape_latex(text):
                 text = text[:-1] + r"\ "
             return "\\code{\\lstinline%s%s%s}" % (escape_char, text, escape_char)
         else:
-            # treat double '' literaly
+            # treat double '' literally
             return "''"
 
     text = MATHICS_RE.sub(repl, text)
@@ -423,7 +423,7 @@ def post_process_latex(result):
         return "\\begin{%s}%s\\end{%s}" % (tag, content, tag)
 
     def repl_inline_end(match):
-        """Prevent linebreaks between inline code and sentence delimeters"""
+        """Prevent linebreaks between inline code and sentence delimiters"""
 
         code = match.group("all")
         if code[-2] == "}":

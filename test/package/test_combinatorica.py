@@ -322,7 +322,7 @@ def test_inversions_and_inversion_vectors_1_3():
         (
             "Inversions[Reverse[Range[8]]]",
             "Binomial[8, 2]",
-            "# permutions is [0 .. Binomial(n 2)]; largest is reverse 1.3.2, Page 29",
+            "# permutations is [0 .. Binomial(n 2)]; largest is reverse 1.3.2, Page 29",
         ),
         (
             "Union [ Map[Inversions, Permutations[Range[4]]] ]",
