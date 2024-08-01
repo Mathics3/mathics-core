@@ -31,7 +31,7 @@ def from_bool(arg: bool) -> BooleanType:
 # Expression class which tried to handle anything given it using
 # conversions.
 # Also, through vague or lazy coding this cause a lot of
-# unecessary conversions.
+# unnecessary conversions.
 
 # We may be out of those days, but we should still
 # be mindful that this routine can be the source
@@ -43,7 +43,7 @@ def from_python(arg: Any) -> BaseElement:
     """Converts a Python expression into a Mathics expression.
 
     TODO: I think there are number of subtleties to be explained here.
-    In particular, the expression might beeen the result of evaluation
+    In particular, the expression might been the result of evaluation
     a sympy expression which contains sympy symbols.
 
     If the end result is to go back into Mathics for further
@@ -62,7 +62,7 @@ def from_python(arg: Any) -> BaseElement:
     number_type = get_type(arg)
 
     # We should investigate whether this could be sped up
-    # using a disctionary lookup on type.
+    # using a dictionary lookup on type.
     if arg is None:
         return SymbolNull
     if isinstance(arg, bool):

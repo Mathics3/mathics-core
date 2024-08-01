@@ -157,10 +157,10 @@ def check_well_formatted_docstring(docstr: str, instance: Builtin, module_name: 
     ), f"missing <dd> field {instance.get_name()} from {module_name}"
     assert (
         docstr.count("</dt>") == 0
-    ), f"unnecesary </dt> {instance.get_name()} from {module_name}"
+    ), f"unnecessary </dt> {instance.get_name()} from {module_name}"
     assert (
         docstr.count("</dd>") == 0
-    ), f"unnecesary </dd> field {instance.get_name()} from {module_name}"
+    ), f"unnecessary </dd> field {instance.get_name()} from {module_name}"
 
     assert (
         docstr.count("<url>") > 0

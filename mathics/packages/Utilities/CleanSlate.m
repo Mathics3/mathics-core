@@ -202,7 +202,7 @@ CleanSlate::notcntxt = "A context you have given is either misspelled, \
 incorrectly specified, or is not on $ContextPath.";
 
 CleanSlate::nopurge = "The context `1` cannot be purged, because it was \
-present when the CleanSlate package was initally read in.";
+present when the CleanSlate package was initially read in.";
 
 CleanSlate::noself = "CleanSlate cannot purge its own context.";
 
