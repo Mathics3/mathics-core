@@ -303,7 +303,7 @@ all_test = {
         },
         # Notice that differetly from "text", where InputForm
         # preserves the quotes in strings, MathTeXForm just
-        # sorrounds the string in a ``\text{...}`` command,
+        # surrounds the string in a ``\text{...}`` command,
         # in the same way that all the other forms. This choice
         # follows the behavior in WMA.
         "latex": {

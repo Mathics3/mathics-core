@@ -271,6 +271,41 @@ def get_module_doc(module: ModuleType) -> Tuple[str, str]:
     return title, text
 
 
+def get_submodule_names(obj) -> list:
+    """Many builtins are organized into modules which, from a documentation
+    standpoint, are like Mathematica Online Guide Docs.
+
+    "List Functions", "Colors", or "Distance and Similarity Measures"
+    are some examples Guide Documents group group various Builtin Functions,
+    under submodules relate to that general classification.
+
+    Here, we want to return a list of the Python modules under a "Guide Doc"
+    module.
+
+    As an example of a "Guide Doc" and its submodules, consider the
+    module named mathics.builtin.colors. It collects code and documentation pertaining
+    to the builtin functions that would be found in the Guide documentation for "Colors".
+
+    The `mathics.builtin.colors` module has a submodule
+    `mathics.builtin.colors.named_colors`.
+
+    The builtin functions defined in `named_colors` then are those found in the
+    "Named Colors" group of the "Colors" Guide Doc.
+
+    So in this example then, in the list the modules returned for
+    Python module `mathics.builtin.colors` would be the
+    `mathics.builtin.colors.named_colors` module which contains the
+    definition and docs for the "Named Colors" Mathics Builtin
+    Functions.
+    """
+    modpkgs = []
+    if hasattr(obj, "__path__"):
+        for _, modname, __ in pkgutil.iter_modules(obj.__path__):
+            modpkgs.append(modname)
+        modpkgs.sort()
+    return modpkgs
+
+
 def get_doc_name_from_module(module) -> str:
     """
     Get the title associated to the module.

@@ -5,8 +5,8 @@ common_doc
 
 This module is kept for backward compatibility.
 
-The module was splitted into
-* mathics.doc.doc_entries: classes contaning the documentation entries and doctests.
+The module was split into
+* mathics.doc.doc_entries: classes containing the documentation entries and doctests.
 * mathics.doc.structure: the classes describing the elements in the documentation organization
 * mathics.doc.gather: functions to gather information from modules to build the
   documentation reference.

@@ -63,19 +63,26 @@ from mathics.eval.testing_expressions import expr_min
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
 
-class BaseForm(Builtin):
+class BaseForm(FormBaseClass):
     """
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/BaseForm.html</url>
+
     <dl>
       <dt>'BaseForm[$expr$, $n$]'
       <dd>prints numbers in $expr$ in base $n$.
     </dl>
 
+    A binary integer:
     >> BaseForm[33, 2]
      = 100001_2
 
+    A hexidecimal number:
     >> BaseForm[234, 16]
      = ea_16
 
+    A binary real number:
     >> BaseForm[12.3, 2]
      = 1100.01001100110011001_2
 
@@ -97,6 +104,8 @@ class BaseForm(Builtin):
      = BaseForm[12, 100]
     """
 
+    in_outputforms = True
+    in_printforms = False
     summary_text = "print with all numbers given in a base"
     messages = {
         "intpm": (

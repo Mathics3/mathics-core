@@ -29,8 +29,9 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import SymbolFullForm, SymbolInfinity, SymbolInputForm
 
-# Imperical number that seems to work.
-# We have to be able to match mpmath values with sympy values
+# The below value is an empirical number for comparison precedence
+# that seems to work.  We have to be able to match mpmath values with
+# sympy values
 COMPARE_PREC = 50
 
 SymbolI = Symbol("I")
@@ -85,17 +86,22 @@ class Number(Atom, ImmutableValueMixin, NumericOperators):
         return True
 
     def is_numeric(self, evaluation=None) -> bool:
+        # Anything that is in a number class is Numeric, so return True.
         return True
 
-    def to_mpmath(self):
+    def to_mpmath(self, precision: Optional[int] = None) -> mpmath.ctx_mp_python.mpf:
         """
-        Convert self._value to an mnpath number.
+        Convert self._value to an mpmath number with precision ``precision``
+        If ``precision`` is None, use mpmath's default precision.
 
-        This is the default implementation for Number.
+        A mpmath number is the default implementation for Number.
         There are kinds of numbers, like Rational, or Complex, that
         need to work differently than this default, and they will
         change the implementation accordingly.
         """
+        if precision is not None:
+            with mpmath.workprec(precision):
+                return mpmath.mpf(self._value)
         return mpmath.mpf(self._value)
 
     @property
@@ -250,8 +256,8 @@ class Integer(Number):
             # obtained from an integer is limited, and for longer
             # numbers, this exception is raised.
             # The idea is to represent the number by its
-            # more significative digits, the lowest significative digits,
-            # and a placeholder saying the number of ommited digits.
+            # more significant digits, the lowest significant digits,
+            # and a placeholder saying the number of omitted digits.
             from mathics.eval.makeboxes import int_to_string_shorter_repr
 
             return int_to_string_shorter_repr(self._value, form)
@@ -467,7 +473,7 @@ class MachineReal(Real):
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ for MachineReal.
-        If the other comparision value is a MachineReal, the values
+        If the other comparison value is a MachineReal, the values
         have to be equal.  If the other value is a PrecisionReal though, then
         the two values have to be within 1/2 ** (precision) of
         other-value's precision.  For any other type, sameQ is False.
