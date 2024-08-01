@@ -14,7 +14,7 @@ from typing import Callable, List, Optional
 
 from mathics.core.evaluation import Message, Print
 
-# Used for getting test results by test expresson and chapter/section information.
+# Used for getting test results by test expression and chapter/section information.
 test_result_map = {}
 
 
@@ -158,7 +158,7 @@ POST_SUBSTITUTION_TAG = "_POST_SUBSTITUTION%d_"
 
 
 def pre_sub(regexp, text: str, repl_func):
-    """apply substitions previous to parse the text"""
+    """apply substitutions previous to parse the text"""
     post_substitutions = []
 
     def repl_pre(match):
@@ -173,7 +173,7 @@ def pre_sub(regexp, text: str, repl_func):
 
 
 def post_sub(text: str, post_substitutions) -> str:
-    """apply substitions after parsing the doctests."""
+    """apply substitutions after parsing the doctests."""
     for index, sub in enumerate(post_substitutions):
         text = text.replace(POST_SUBSTITUTION_TAG % index, sub)
     return text
@@ -443,7 +443,7 @@ class DocText:
     """
     Class to hold some (non-test) text.
 
-    Some of the kinds of tags you may find here are showin in global ALLOWED_TAGS.
+    Some of the kinds of tags you may find here are showing in global ALLOWED_TAGS.
     Some text may be marked with surrounding "$" or "'".
 
     The code here however does not make use of any of the tagging.

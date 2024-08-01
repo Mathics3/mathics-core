@@ -207,7 +207,7 @@ def test_case(
     fails. ``index``gives the global test number count, while ``subindex`` counts
     from the beginning of the section or subsection.
 
-    The test results are assumed to be foramtted to ASCII text.
+    The test results are assumed to be formatted to ASCII text.
     """
     test_parameters = test_pipeline.parameters
     try:
