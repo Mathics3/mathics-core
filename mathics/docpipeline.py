@@ -322,7 +322,7 @@ def show_test_summary(
     """
     Print and log test summary results.
 
-    If ``generate_output`` is True, we will also generate output data
+    If ``data_path`` is not ``None``, we will also generate output data
     to ``output_data``.
     """
     test_parameters: TestParameters = test_pipeline.parameters
@@ -565,7 +565,7 @@ def test_chapters(
                     section,
                     exclude_sections=exclude_sections,
                 )
-                if test_parameters.generate_output and test_status.failed == 0:
+                if test_parameters.data_path is not None and test_status.failed == 0:
                     create_output(
                         test_pipeline,
                         section.doc.get_tests(),
@@ -618,7 +618,7 @@ def test_sections(
                     exclude_sections=exclude_subsections,
                 )
 
-                if test_parameters.generate_output and test_status.failed == 0:
+                if test_parameters.data_path is not None and test_status.failed == 0:
                     create_output(
                         test_pipeline,
                         section.doc.get_tests(),
