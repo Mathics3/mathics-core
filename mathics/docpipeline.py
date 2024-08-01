@@ -584,7 +584,7 @@ def test_sections(
     test_pipeline: DocTestPipeline,
     include_sections: set,
     exclude_subsections: set,
-) -> int:
+):
     """Runs a group of related tests for the set specified in ``sections``.
 
     If ``quiet`` is True, the progress and results of the tests are shown.
