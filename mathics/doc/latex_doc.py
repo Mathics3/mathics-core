@@ -529,7 +529,7 @@ class LaTeXDocTest(DocTest):
 
 
 class LaTeXDocumentationEntry(DocumentationEntry):
-    """A class to hold our internal markdown-like format data.
+    """A class to hold our custom XML-like format.
     The `latex()` method can turn this into LaTeX.
 
     Mathics core also uses this in getting usage strings (`??`).
