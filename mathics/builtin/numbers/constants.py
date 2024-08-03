@@ -246,7 +246,7 @@ class ComplexInfinity(_SympyConstant):
     is an infinite number in the complex plane whose complex argument \
     is unknown or undefined. (<url>
     :SymPy:
-    https://docs.sympy.org/latest/modules/core.html?highlight=zoo#complexinfinity</url>, <url>
+    https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.ComplexInfinity</url>, <url>
     :MathWorld:
     https://mathworld.wolfram.com/ComplexInfinity.html</url>, <url>
     :WMA:
@@ -257,10 +257,19 @@ class ComplexInfinity(_SympyConstant):
       <dd>represents an infinite complex quantity of undetermined direction.
     </dl>
 
+    ComplexInfinity can appear as the result of a computation such as dividing by zero:
+    >> 1 / 0
+     : Infinite expression 1 / 0 encountered.
+     = ComplexInfinity
+
+    But it can be used as an explicit value in an expression:
     >> 1 / ComplexInfinity
      = 0
+
     >> ComplexInfinity * Infinity
      = ComplexInfinity
+
+    ComplexInfinity though is a special case of DirectedInfinity:
     >> FullForm[ComplexInfinity]
      = DirectedInfinity[]
     """

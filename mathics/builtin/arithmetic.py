@@ -384,7 +384,7 @@ class Conjugate(MPMathFunction):
     """
     <url>:Complex Conjugate:
     https://en.wikipedia.org/wiki/Complex_conjugate</url> \
-    (<url>:WMA:https://reference.wolfram.com/language/ref/Conjugate.html</url>)
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Conjugate.html</url>
 
     <dl>
       <dt>'Conjugate[$z$]'
@@ -539,7 +539,7 @@ class DirectedInfinity(SympyFunction):
 class Element(Builtin):
     """
     <url>:Element of:https://en.wikipedia.org/wiki/Element_(mathematics)</url> \
-    (<url>:WMA:https://reference.wolfram.com/language/ref/Element.html</url>)
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Element.html</url>
 
     <dl>
       <dt>'Element[$expr$, $domain$]'
