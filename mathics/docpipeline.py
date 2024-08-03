@@ -28,6 +28,7 @@ from mathics.doc.doc_entries import DocTest, DocTests
 from mathics.doc.utils import load_doctest_data, print_and_log, slugify
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 from mathics.session import MathicsSession
+from mathics.settings import get_doctest_latex_data_path
 from mathics.timing import show_lru_cache_statistics
 
 # Global variables
@@ -43,10 +44,11 @@ TestParameters = namedtuple(
     "TestParameters",
     [
         "check_partial_elapsed_time",
-        "generate_output",
+        "data_path",
         "keep_going",
         "max_tests",
         "quiet",
+        "output_format",
         "reload",
         "start_at",
     ],
@@ -66,7 +68,7 @@ class DocTestPipeline:
     the doctests and generate the data for the documentation.
     """
 
-    def __init__(self, args):
+    def __init__(self, args, output_format="latex", data_path: Optional[str] = None):
         self.session = MathicsSession()
         self.output_data = {}
 
@@ -79,16 +81,18 @@ class DocTestPipeline:
         self.documentation = MathicsMainDocumentation()
         self.documentation.load_documentation_sources()
         self.logfile = open(args.logfilename, "wt") if args.logfilename else None
+
         self.parameters = TestParameters(
             check_partial_elapsed_time=args.elapsed_times,
-            generate_output=args.output,
+            data_path=data_path,
             keep_going=args.keep_going and not args.stop_on_failure,
             max_tests=args.count + args.skip,
             quiet=args.quiet,
+            output_format=output_format,
             reload=args.reload and not (args.chapters or args.sections),
             start_at=args.skip + 1,
         )
-        self.status = TestStatus(self.parameters.generate_output, self.parameters.quiet)
+        self.status = TestStatus(data_path, self.parameters.quiet)
 
     def reset_user_definitions(self):
         """Reset the user definitions"""
@@ -122,7 +126,7 @@ class DocTestPipeline:
             include_names = None
 
         if test_parameters.reload:
-            doctest_latex_data_path = settings.get_doctest_latex_data_path(
+            doctest_latex_data_path = get_doctest_latex_data_path(
                 should_be_readable=True
             )
             self.output_data = load_doctest_data(doctest_latex_data_path)
@@ -148,8 +152,8 @@ class TestStatus:
     Status parameters of the tests
     """
 
-    def __init__(self, generate_output=False, quiet=False):
-        self.texdatafolder = self.find_texdata_folder() if generate_output else None
+    def __init__(self, data_path: Optional[str] = None, quiet=False):
+        self.texdatafolder = osp.dirname(data_path) if data_path is not None else None
         self.total = 0
         self.failed = 0
         self.skipped = 0
@@ -159,11 +163,7 @@ class TestStatus:
 
     def find_texdata_folder(self):
         """Generate a folder for texdata"""
-        return osp.dirname(
-            settings.get_doctest_latex_data_path(
-                should_be_readable=False, create_parent=True
-            )
-        )
+        return self.textdatafolder
 
     def mark_as_failed(self, key):
         """Mark a key as failed"""
@@ -249,11 +249,12 @@ def test_case(
     return True
 
 
-def create_output(test_pipeline, tests, output_format="latex"):
+def create_output(test_pipeline, tests):
     """
     Populate ``doctest_data`` with the results of the
     ``tests`` in the format ``output_format``
     """
+    output_format = test_pipeline.parameters.output_format
     if test_pipeline.session.definitions is None:
         test_pipeline.print_and_log("Definitions are not initialized.")
         return
@@ -322,7 +323,7 @@ def show_test_summary(
     """
     Print and log test summary results.
 
-    If ``generate_output`` is True, we will also generate output data
+    If ``data_path`` is not ``None``, we will also generate output data
     to ``output_data``.
     """
     test_parameters: TestParameters = test_pipeline.parameters
@@ -338,15 +339,15 @@ def show_test_summary(
             print(f"Set environment MATHICS_DEBUG_TEST_CREATE to see {entity_name}.")
     elif failed > 0:
         print(SEP)
-        if not test_parameters.generate_output:
+        if test_parameters.data_path is None:
             test_pipeline.print_and_log(
                 f"""{failed} test{'s' if failed != 1 else ''} failed.""",
             )
     else:
         test_pipeline.print_and_log("All tests passed.")
 
-    if test_parameters.generate_output and (failed == 0 or test_parameters.keep_going):
-        save_doctest_data(test_pipeline.output_data)
+    if test_parameters.data_path and (failed == 0 or test_parameters.keep_going):
+        save_doctest_data(test_pipeline)
 
 
 def section_tests_iterator(
@@ -516,7 +517,7 @@ def test_tests(
                         )
                         return
                 else:
-                    if test_parameters.generate_output:
+                    if test_parameters.data_path:
                         create_output(
                             test_pipeline,
                             section_tests_iterator(
@@ -565,7 +566,7 @@ def test_chapters(
                     section,
                     exclude_sections=exclude_sections,
                 )
-                if test_parameters.generate_output and test_status.failed == 0:
+                if test_parameters.data_path is not None and test_status.failed == 0:
                     create_output(
                         test_pipeline,
                         section.doc.get_tests(),
@@ -618,7 +619,7 @@ def test_sections(
                     exclude_sections=exclude_subsections,
                 )
 
-                if test_parameters.generate_output and test_status.failed == 0:
+                if test_parameters.data_path is not None and test_status.failed == 0:
                     create_output(
                         test_pipeline,
                         section.doc.get_tests(),
@@ -666,10 +667,10 @@ def show_report(test_pipeline):
         for part, chapter, section in sorted(test_status.failed_sections):
             test_pipeline.print_and_log(f"  - {section} in {part} / {chapter}")
 
-    if test_parameters.generate_output and (
+    if test_parameters.data_path is not None and (
         test_status.failed == 0 or test_parameters.doc_even_if_error
     ):
-        save_doctest_data(test_pipeline.output_data)
+        save_doctest_data(test_pipeline)
         return
 
 
@@ -700,7 +701,7 @@ def test_all(
     show_report(test_pipeline)
 
 
-def save_doctest_data(output_data: Dict[tuple, dict]):
+def save_doctest_data(doctest_pipeline: DocTestPipeline):
     """
     Save doctest tests and test results to a Python PCL file.
 
@@ -714,14 +715,14 @@ def save_doctest_data(output_data: Dict[tuple, dict]):
     * test number
     and the value is a dictionary of a Result.getdata() dictionary.
     """
+    output_data: Dict[tuple, dict] = doctest_pipeline.output_data
+
     if len(output_data) == 0:
         print("output data is empty")
         return
     print("saving", len(output_data), "entries")
     print(output_data.keys())
-    doctest_latex_data_path = settings.get_doctest_latex_data_path(
-        should_be_readable=False, create_parent=True
-    )
+    doctest_latex_data_path = doctest_pipeline.parameters.data_path
     print(f"Writing internal document data to {doctest_latex_data_path}")
     i = 0
     for key in output_data:
@@ -733,27 +734,25 @@ def save_doctest_data(output_data: Dict[tuple, dict]):
         pickle.dump(output_data, output_file, 4)
 
 
-def write_doctest_data(test_pipeline: DocTestPipeline):
+def write_doctest_data(doctest_pipeline: DocTestPipeline):
     """
     Get doctest information, which involves running the tests to obtain
     test results and write out both the tests and the test results.
     """
-    test_parameters = test_pipeline.parameters
+    test_parameters = doctest_pipeline.parameters
     if not test_parameters.quiet:
         print(f"Extracting internal doc data for {version_string}")
         print("This may take a while...")
 
-    doctest_latex_data_path = settings.get_doctest_latex_data_path(
-        should_be_readable=False, create_parent=True
-    )
-
     try:
-        test_pipeline.output_data = (
-            load_doctest_data(doctest_latex_data_path) if test_parameters.reload else {}
+        doctest_pipeline.output_data = (
+            load_doctest_data(test_parameters.data_path)
+            if test_parameters.reload
+            else {}
         )
-        for tests in test_pipeline.documentation.get_tests():
+        for tests in doctest_pipeline.documentation.get_tests():
             create_output(
-                test_pipeline,
+                doctest_pipeline,
                 tests,
             )
     except KeyboardInterrupt:
@@ -762,7 +761,7 @@ def write_doctest_data(test_pipeline: DocTestPipeline):
 
     print("done.\n")
 
-    save_doctest_data(test_pipeline.output_data)
+    save_doctest_data(doctest_pipeline)
 
 
 def build_arg_parser():
@@ -897,7 +896,13 @@ def build_arg_parser():
 def main():
     """main"""
     args = build_arg_parser()
-    test_pipeline = DocTestPipeline(args)
+    data_path = (
+        get_doctest_latex_data_path(should_be_readable=False, create_parent=True)
+        if args.output
+        else None
+    )
+
+    test_pipeline = DocTestPipeline(args, output_format="latex", data_path=data_path)
     test_status = test_pipeline.status
 
     if args.sections:

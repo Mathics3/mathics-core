@@ -1,8 +1,8 @@
 """
 Documentation entries and doctests
 
-This module contains the objects representing the entries in the documentation 
-system, and the functions used to parse docstrings into these objects. 
+This module contains the objects representing the entries in the documentation
+system, and the functions used to parse docstrings into these objects.
 
 
 """
@@ -476,7 +476,7 @@ class DocText:
 class DocumentationEntry:
     """
     A class to hold the content of a documentation entry,
-    in our internal markdown-like format data.
+    in our custom XML-like format.
 
     Describes the contain of an entry in the documentation system, as a
     sequence (list) of items of the clase  `DocText` and `DocTests`.
