@@ -6,12 +6,12 @@ Vector Space Operations
 
 from sympy.physics.quantum import TensorProduct
 
-from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.atoms import Complex, Integer, Integer0, Integer1, Real
 from mathics.core.attributes import (  # A_LISTABLE,; A_NUMERIC_FUNCTION,
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import Builtin, SympyFunction
 from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -85,14 +85,6 @@ class Normalize(Builtin):
     >> Normalize[1 + I]
      = (1 / 2 + I / 2) Sqrt[2]
 
-    #> Normalize[0]
-     = 0
-
-    #> Normalize[{0}]
-     = {0}
-
-    #> Normalize[{}]
-     = {}
     """
 
     rules = {"Normalize[v_]": "Module[{norm = Norm[v]}, If[norm == 0, v, v / norm, v]]"}
@@ -228,9 +220,6 @@ class VectorAngle(Builtin):
 
     >> VectorAngle[{1, 1, 0}, {1, 0, 1}]
      = Pi / 3
-
-    #> VectorAngle[{0, 1}, {0, 1}]
-     = 0
     """
 
     rules = {"VectorAngle[u_, v_]": "ArcCos[u.v / (Norm[u] Norm[v])]"}

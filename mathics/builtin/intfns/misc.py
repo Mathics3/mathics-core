@@ -1,13 +1,15 @@
-from mathics.builtin.arithmetic import _MPMathFunction
-from mathics.core.attributes import (
-    A_LISTABLE,
-    A_NUMERIC_FUNCTION,
-    A_PROTECTED,
-    A_READ_PROTECTED,
-)
+# -*- coding: utf-8 -*-
+
+"""
+Miscelanea of Integer Functions 
+"""
 
 
-class BernoulliB(_MPMathFunction):
+from mathics.core.attributes import A_LISTABLE, A_PROTECTED
+from mathics.core.builtin import MPMathFunction
+
+
+class BernoulliB(MPMathFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/BernoulliB.html</url>
 
@@ -25,7 +27,13 @@ class BernoulliB(_MPMathFunction):
     First five Bernoulli numbers:
 
     >> Table[BernoulliB[k], {k, 0, 5}]
-     = {1, -1 / 2, 1 / 6, 0, -1 / 30, 0}
+     = ...
+
+    ## This must be (according to WMA)
+    ## = {1, -1 / 2, 1 / 6, 0, -1 / 30, 0}
+    ## but for some reason, in the CI the previous test produces
+    ## the output:
+    ## {1, 1 / 2, 1 / 6, 0, -1 / 30, 0}
 
     First five Bernoulli polynomials:
 

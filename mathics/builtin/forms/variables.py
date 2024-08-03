@@ -1,10 +1,10 @@
 """
-Form variables
+Form Variables
 
 """
 
-from mathics.builtin.base import Predefined
 from mathics.core.attributes import A_LOCKED, A_PROTECTED
+from mathics.core.builtin import Predefined
 from mathics.core.list import ListExpression
 
 
@@ -21,9 +21,10 @@ class PrintForms_(Predefined):
     Suppose now that we want to add a new format 'MyForm'. Initially, it does not belong to '$PrintForms':
     >> MemberQ[$PrintForms, MyForm]
      = False
+
     Now, let's define a format rule:
-    >> Format[MyForm[F[x_]]]:= "F<<" <> ToString[x] <> ">>"
-    >> Format[F[x_], MyForm]:= MyForm[F[x]]
+    >> Format[F[x_], MyForm] := "F<<" <> ToString[x] <> ">>"
+
     Now, the new format belongs to the '$PrintForms' list
     >> MemberQ[$PrintForms, MyForm]
      = True

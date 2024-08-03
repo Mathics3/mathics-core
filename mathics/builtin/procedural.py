@@ -3,23 +3,28 @@
 """
 Procedural Programming
 
-Procedural programming is a programming paradigm, derived from imperative programming, based on the concept of the procedure call. This term is sometimes compared and contrasted with Functional Programming.
+Procedural programming is a programming paradigm, derived from imperative \
+programming, based on the concept of the procedure call. This term is \
+sometimes compared and contrasted with Functional Programming.
 
-Procedures (a type of routine or subroutine) simply contain a series of computational steps to be carried out. Any given procedure might be called at any point during a program's execution, including by other procedures or itself.
+Procedures (a type of routine or subroutine) simply contain a series of \
+computational steps to be carried out. Any given procedure might be called \
+at any point during a program's execution, including by other procedures \
+or itself.
 
-Procedural functions are integrated into Mathics symbolic programming environment.
+Procedural functions are integrated into \\Mathics symbolic programming \
+environment.
 """
 
 
-from mathics.builtin.base import BinaryOperator, Builtin
-from mathics.builtin.lists import _IterationFunction
-from mathics.builtin.patterns import match
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_REST,
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import BinaryOperator, Builtin, IterationFunction
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.interrupt import (
     AbortInterrupt,
@@ -30,13 +35,15 @@ from mathics.core.interrupt import (
 )
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import SymbolMatchQ
+from mathics.eval.patterns import match
 
 SymbolWhich = Symbol("Which")
 
 
 class Abort(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Abort.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Abort.html</url>
 
     <dl>
       <dt>'Abort[]'
@@ -49,7 +56,7 @@ class Abort(Builtin):
 
     summary_text = "generate an abort"
 
-    def apply(self, evaluation):
+    def eval(self, evaluation: Evaluation):
         "Abort[]"
 
         raise AbortInterrupt
@@ -75,7 +82,7 @@ class Break(Builtin):
 
     summary_text = "exit a 'For', 'While', or 'Do' loop"
 
-    def apply(self, evaluation):
+    def eval(self, evaluation: Evaluation):
         "Break[]"
 
         raise BreakInterrupt
@@ -87,10 +94,12 @@ class Catch(Builtin):
 
     <dl>
       <dt>'Catch[$expr$]'
-      <dd> returns the argument of the first 'Throw' generated in the evaluation of $expr$.
+      <dd> returns the argument of the first 'Throw' generated in the evaluation of
+           $expr$.
 
       <dt>'Catch[$expr$, $form$]'
-      <dd> returns value from the first 'Throw[$value$, $tag$]' for which $form$ matches $tag$.
+      <dd> returns value from the first 'Throw[$value$, $tag$]' for which $form$ matches
+           $tag$.
 
       <dt>'Catch[$expr$, $form$, $f$]'
       <dd> returns $f$[$value$, $tag$].
@@ -116,7 +125,7 @@ class Catch(Builtin):
 
     summary_text = "handle an exception raised by a 'Throw'"
 
-    def apply_expr(self, expr, evaluation):
+    def eval_expr(self, expr, evaluation):
         "Catch[expr_]"
         try:
             ret = expr.evaluate(evaluation)
@@ -124,7 +133,7 @@ class Catch(Builtin):
             return e.value
         return ret
 
-    def apply_with_form_and_fn(self, expr, form, f, evaluation):
+    def eval_with_form_and_fn(self, expr, form, f, evaluation):
         "Catch[expr_, form_, f__:Identity]"
         try:
             ret = expr.evaluate(evaluation)
@@ -143,7 +152,8 @@ class Catch(Builtin):
 
 class CompoundExpression(BinaryOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/CompoundExpression.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/CompoundExpression.html</url>
 
     <dl>
       <dt>'CompoundExpression[$e1$, $e2$, ...]'
@@ -155,39 +165,6 @@ class CompoundExpression(BinaryOperator):
      = d
     If the last argument is omitted, 'Null' is taken:
     >> a;
-
-    ## Parser Tests
-    #> FullForm[Hold[; a]]
-     : "FullForm[Hold[" cannot be followed by "; a]]" (line 1 of "<test>").
-    #> FullForm[Hold[; a ;]]
-     : "FullForm[Hold[" cannot be followed by "; a ;]]" (line 1 of "<test>").
-
-    ## Issue331
-    #> CompoundExpression[x, y, z]
-     = z
-    #> %
-     = z
-
-    #> CompoundExpression[x, y, Null]
-    #> %
-     = y
-
-    #> CompoundExpression[CompoundExpression[x, y, Null], Null]
-    #> %
-     = y
-
-    #> CompoundExpression[x, Null, Null]
-    #> %
-     = x
-
-    #> CompoundExpression[]
-    #> %
-
-    ## Issue 531
-    #> z = Max[1, 1 + x]; x = 2; z
-     = 3
-
-    #> Clear[x]; Clear[z]
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
@@ -196,7 +173,7 @@ class CompoundExpression(BinaryOperator):
 
     summary_text = "execute expressions in sequence"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "CompoundExpression[expr___]"
 
         items = expr.get_sequence()
@@ -206,8 +183,9 @@ class CompoundExpression(BinaryOperator):
             prev_result = result
             result = expr.evaluate(evaluation)
 
-            # `expr1; expr2;` returns `Null` but assigns `expr2` to `Out[n]`.
-            # even stranger `CompoundExpression[expr1, Null, Null]` assigns `expr1` to `Out[n]`.
+            # `expr1; expr2;` returns `Null` but assigns `expr2` to
+            # `Out[n]`.  even stranger `CompoundExpression[expr1,
+            # Null, Null]` assigns `expr1` to `Out[n]`.
             if result is SymbolNull and prev_result != SymbolNull:
                 evaluation.predetermined_out = prev_result
 
@@ -236,13 +214,13 @@ class Continue(Builtin):
 
     summary_text = "continue with the next iteration in a 'For', 'While' or 'Do' loop"
 
-    def apply(self, evaluation):
+    def eval(self, evaluation):
         "Continue[]"
 
         raise ContinueInterrupt
 
 
-class Do(_IterationFunction):
+class Do(IterationFunction):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Do.html</url>
 
@@ -251,7 +229,8 @@ class Do(_IterationFunction):
       <dd>evaluates $expr$ $max$ times.
 
       <dt>'Do[$expr$, {$i$, $max$}]'
-      <dd>evaluates $expr$ $max$ times, substituting $i$ in $expr$ with values from 1 to $max$.
+      <dd>evaluates $expr$ $max$ times, substituting $i$ in $expr$ with values from 1 to
+          $max$.
 
       <dt>'Do[$expr$, {$i$, $min$, $max$}]'
       <dd>starts with '$i$ = $max$'.
@@ -263,7 +242,8 @@ class Do(_IterationFunction):
       <dd>uses values $i1$, $i2$, ... for $i$.
 
       <dt>'Do[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]'
-      <dd>evaluates $expr$ for each $j$ from $jmin$ to $jmax$, for each $i$ from $imin$ to $imax$, etc.
+      <dd>evaluates $expr$ for each $j$ from $jmin$ to $jmax$, for each $i$ from $imin$
+          to $imax$, etc.
     </dl>
     >> Do[Print[i], {i, 2, 4}]
      | 2
@@ -281,10 +261,6 @@ class Do(_IterationFunction):
      | 5
      | 7
      | 9
-
-    #> Do[Print["hi"],{1+1}]
-     | hi
-     | hi
     """
 
     allow_loopcontrol = True
@@ -300,7 +276,8 @@ class For(Builtin):
 
     <dl>
       <dt>'For[$start$, $test$, $incr$, $body$]'
-      <dd>evaluates $start$, and then iteratively $body$ and $incr$ as long as $test$ evaluates to 'True'.
+      <dd>evaluates $start$, and then iteratively $body$ and $incr$ as long as $test$
+          evaluates to 'True'.
 
       <dt>'For[$start$, $test$, $incr$]'
       <dd>evaluates only $incr$ and no $body$.
@@ -316,12 +293,6 @@ class For(Builtin):
      = 3628800
     >> n == 10!
      = True
-
-    #> n := 1
-    #> For[i=1, i<=10, i=i+1, If[i > 5, Return[i]]; n = n * i]
-     = 6
-    #> n
-     = 120
     """
 
     attributes = A_HOLD_REST | A_PROTECTED
@@ -330,7 +301,7 @@ class For(Builtin):
     }
     summary_text = "a 'For' loop"
 
-    def apply(self, start, test, incr, body, evaluation):
+    def eval(self, start, test, incr, body, evaluation):
         "For[start_, test_, incr_, body_]"
         while test.evaluate(evaluation) is SymbolTrue:
             evaluation.check_stopped()
@@ -357,7 +328,8 @@ class If(Builtin):
 
     <dl>
       <dt>'If[$cond$, $pos$, $neg$]'
-      <dd>returns $pos$ if $cond$ evaluates to 'True', and $neg$ if it evaluates to 'False'.
+      <dd>returns $pos$ if $cond$ evaluates to 'True', and $neg$ if it evaluates to
+          'False'.
 
       <dt>'If[$cond$, $pos$, $neg$, $other$]'
       <dd>returns $other$ if $cond$ evaluates to neither 'True' nor 'False'.
@@ -374,16 +346,18 @@ class If(Builtin):
     >> If[False, a] //FullForm
      = Null
 
-    You might use comments (inside '(*' and '*)') to make the branches of 'If' more readable:
+    You might use comments (inside '(*' and '*)') to make the branches of 'If'
+    more readable:
     >> If[a, (*then*) b, (*else*) c];
     """
 
     summary_text = "if-then-else conditional expression"
-    # this is the WR summary: "test if a condition is true, false, or of unknown truth value"
+    # This is the WR summary: "test if a condition is true, false, or
+    # of unknown truth value"
     attributes = A_HOLD_REST | A_PROTECTED
     summary_text = "test if a condition is true, false, or of unknown truth value"
 
-    def apply_2(self, condition, t, evaluation):
+    def eval(self, condition, t, evaluation):
         "If[condition_, t_]"
 
         if condition is SymbolTrue:
@@ -391,7 +365,7 @@ class If(Builtin):
         elif condition is SymbolFalse:
             return SymbolNull
 
-    def apply_3(self, condition, t, f, evaluation):
+    def eval_with_false(self, condition, t, f, evaluation):
         "If[condition_, t_, f_]"
 
         if condition is SymbolTrue:
@@ -399,7 +373,7 @@ class If(Builtin):
         elif condition is SymbolFalse:
             return f.evaluate(evaluation)
 
-    def apply_4(self, condition, t, f, u, evaluation):
+    def eval_with_false_and_other(self, condition, t, f, u, evaluation):
         "If[condition_, t_, f_, u_]"
 
         if condition is SymbolTrue:
@@ -425,7 +399,7 @@ class Interrupt(Builtin):
 
     summary_text = "interrupt evaluation and return '$Aborted'"
 
-    def apply(self, evaluation):
+    def eval(self, evaluation: Evaluation):
         "Interrupt[]"
 
         raise AbortInterrupt
@@ -433,7 +407,8 @@ class Interrupt(Builtin):
 
 class Return(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Return.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Return.html</url>
 
     <dl>
       <dt>'Return[$expr$]'
@@ -455,17 +430,6 @@ class Return(Builtin):
     >> g[x_] := (Do[If[x < 0, Return[0]], {i, {2, 1, 0, -1}}]; x)
     >> g[-1]
      = -1
-
-    #> h[x_] := (If[x < 0, Return[]]; x)
-    #> h[1]
-     = 1
-    #> h[-1]
-
-    ## Issue 513
-    #> f[x_] := Return[x];
-    #> g[y_] := Module[{}, z = f[y]; 2]
-    #> g[1]
-     = 2
     """
 
     rules = {
@@ -474,7 +438,7 @@ class Return(Builtin):
 
     summary_text = "return from a function"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation):
         "Return[expr_]"
 
         raise ReturnInterrupt(expr)
@@ -482,11 +446,13 @@ class Return(Builtin):
 
 class Switch(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Switch.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Switch.html</url>
 
     <dl>
       <dt>'Switch[$expr$, $pattern1$, $value1$, $pattern2$, $value2$, ...]'
-      <dd>yields the first $value$ for which $expr$ matches the corresponding $pattern$.
+      <dd>yields the first $value$ for which $expr$ matches the corresponding \
+          $pattern$.
     </dl>
 
     >> Switch[2, 1, x, 2, y, 3, z]
@@ -499,15 +465,14 @@ class Switch(Builtin):
      : Switch called with 2 arguments. Switch must be called with an odd number of arguments.
      = Switch[2, 1]
 
-    #> a; Switch[b, b]
-     : Switch called with 2 arguments. Switch must be called with an odd number of arguments.
-     = Switch[b, b]
 
-    ## Issue 531
-    #> z = Switch[b, b];
-     : Switch called with 2 arguments. Switch must be called with an odd number of arguments.
-    #> z
-     = Switch[b, b]
+    Notice that 'Switch' evaluates each pattern before it against \
+    $expr$, stopping after the first match:
+    >> a:=(Print["a->p"];p); b:=(Print["b->q"];q);
+    >> Switch[p,a,1,b,2]
+     | a->p
+     = 1
+    >> a=.; b=.;
     """
 
     summary_text = "switch based on a value, with patterns allowed"
@@ -522,7 +487,7 @@ class Switch(Builtin):
 
     summary_text = "switch based on a value, with patterns allowed"
 
-    def apply(self, expr, rules, evaluation):
+    def eval(self, expr, rules, evaluation):
         "Switch[expr_, rules___]"
 
         rules = rules.get_sequence()
@@ -530,18 +495,24 @@ class Switch(Builtin):
             evaluation.message("Switch", "argct", "Switch", len(rules) + 1)
             return
         for pattern, value in zip(rules[::2], rules[1::2]):
-            if match(expr, pattern, evaluation):
+            # The match is done against the result of the evaluation
+            # of `pattern`. HoldRest allows to evaluate the patterns
+            # just until a match is found.
+            if match(expr, pattern.evaluate(evaluation), evaluation):
                 return value.evaluate(evaluation)
         # return unevaluated Switch when no pattern matches
 
 
 class Which(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Which.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Which.html</url>
 
     <dl>
       <dt>'Which[$cond1$, $expr1$, $cond2$, $expr2$, ...]'
-      <dd>yields $expr1$ if $cond1$ evaluates to 'True', $expr2$ if $cond2$ evaluates to 'True', etc.
+      <dd>yields $expr1$ if $cond1$ evaluates to 'True', $expr2$ if $cond2$ \
+          evaluates to 'True', etc.
     </dl>
 
     >> n = 5;
@@ -571,7 +542,7 @@ class Which(Builtin):
     attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "test which of a sequence of conditions are true"
 
-    def apply(self, items, evaluation):
+    def eval(self, items, evaluation):
         "Which[items___]"
 
         items = items.get_sequence()
@@ -597,7 +568,8 @@ class Which(Builtin):
 
 class While(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/While.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/While.html</url>
 
     <dl>
       <dt>'While[$test$, $body$]'
@@ -612,9 +584,6 @@ class While(Builtin):
     >> While[b != 0, {a, b} = {b, Mod[a, b]}];
     >> a
      = 3
-
-    #> i = 1; While[True, If[i^2 > 100, Return[i + 1], i++]]
-     = 12
     """
 
     summary_text = "evaluate an expression while a criterion is true"
@@ -623,7 +592,7 @@ class While(Builtin):
         "While[test_]": "While[test, Null]",
     }
 
-    def apply(self, test, body, evaluation):
+    def eval(self, test, body, evaluation):
         "While[test_, body_]"
 
         while test.evaluate(evaluation) is SymbolTrue:
@@ -641,11 +610,13 @@ class While(Builtin):
 
 class Throw(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Throw.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Throw.html</url>
 
     <dl>
       <dt>'Throw[`value`]'
-      <dd> stops evaluation and returns `value` as the value of the nearest enclosing 'Catch'.
+      <dd> stops evaluation and returns `value` as the value of the nearest \
+           enclosing 'Catch'.
 
       <dt>'Catch[`value`, `tag`]'
       <dd> is caught only by `Catch[expr,form]`, where tag matches form.
@@ -668,10 +639,10 @@ class Throw(Builtin):
 
     summary_text = "throw an expression to be caught by a surrounding 'Catch'"
 
-    def apply1(self, value, evaluation):
+    def eval(self, value, evaluation: Evaluation):
         "Throw[value_]"
         raise WLThrowInterrupt(value)
 
-    def apply_with_tag(self, value, tag, evaluation):
+    def eval_with_tag(self, value, tag, evaluation: Evaluation):
         "Throw[value_, tag_]"
         raise WLThrowInterrupt(value, tag)

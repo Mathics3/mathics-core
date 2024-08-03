@@ -411,7 +411,11 @@ def inset_box(self, **options) -> str:
     x, y = self.pos.pos()
     opacity_value = self.opacity.opacity if self.opacity else None
     content = self.content.boxes_to_tex(evaluation=self.graphics.evaluation)
-    pen = asy_create_pens(edge_color=self.color, edge_opacity=opacity_value)
+    # FIXME: don't hard code text_style_opts, but allow these to be adjustable.
+    font_size = 3
+    pen = asy_create_pens(
+        edge_color=self.color, edge_opacity=opacity_value, fontsize=font_size
+    )
     asy = """// InsetBox
 label("$%s$", (%s,%s), (%s,%s), %s);\n""" % (
         content,
@@ -499,7 +503,6 @@ add_conversion_fn(Point3DBox)
 
 
 def pointbox(self: PointBox, **options) -> str:
-
     point_size, _ = self.style.get_style(PointSize, face_element=False)
     if point_size is None:
         point_size = PointSize(self.graphics, value=DEFAULT_POINT_FACTOR)
@@ -703,7 +706,6 @@ add_conversion_fn(Sphere3DBox)
 
 def tube_3d_box(self: Tube3DBox, **options) -> str:
     if not (hasattr(self.graphics, "tube_import_added") and self.tube_import_added):
-
         self.graphics.tube_import_added = True
         asy_head = "import tube;\n\n"
     else:

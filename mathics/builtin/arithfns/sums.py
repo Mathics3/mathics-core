@@ -6,7 +6,7 @@ These functions perform a simple arithmetic computation over a list.
 """
 
 
-from mathics.builtin.base import Builtin
+from mathics.core.builtin import Builtin
 
 
 class Accumulate(Builtin):

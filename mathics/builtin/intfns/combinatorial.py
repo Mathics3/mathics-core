@@ -14,8 +14,6 @@ biology to computer science, etc.
 
 from itertools import combinations
 
-from mathics.builtin.arithmetic import _MPMathFunction
-from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.atoms import Integer
 from mathics.core.attributes import (
     A_LISTABLE,
@@ -24,6 +22,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import Builtin, MPMathFunction, SympyFunction
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
@@ -86,7 +85,7 @@ class _NoBoolVector(Exception):
     pass
 
 
-class Binomial(_MPMathFunction):
+class Binomial(MPMathFunction):
     """
 
     <url>
@@ -114,10 +113,6 @@ class Binomial(_MPMathFunction):
      = 0
     >> Binomial[-10.5, -3.5]
      = 0.
-
-    ## TODO should be ComplexInfinity but mpmath returns +inf
-    #> Binomial[-10, -3.5]
-     = Infinity
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
@@ -214,7 +209,6 @@ class JaccardDissimilarity(_BooleanDissimilarity):
     summary_text = "Jaccard dissimilarity"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
-
         return Expression(
             SymbolDivide, Integer(c_tf + c_ft), Integer(c_tt + c_ft + c_tf)
         )
@@ -360,7 +354,9 @@ class SokalSneathDissimilarity(_BooleanDissimilarity):
 
 class Subsets(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Subsets.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Subsets.html</url>
 
     <dl>
       <dt>'Subsets[$list$]'
@@ -410,90 +406,10 @@ class Subsets(Builtin):
     The odd-numbered subsets of {a,b,c,d} in reverse order:
     >> Subsets[{a, b, c, d}, All, {15, 1, -2}]
      = {{b, c, d}, {a, b, d}, {c, d}, {b, c}, {a, c}, {d}, {b}, {}}
-
-    #> Subsets[{}]
-     = {{}}
-
-    #> Subsets[]
-     = Subsets[]
-
-    #> Subsets[{a, b, c}, 2.5]
-     : Position 2 of Subsets[{a, b, c}, 2.5] must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer
-     = Subsets[{a, b, c}, 2.5]
-
-    #> Subsets[{a, b, c}, -1]
-     : Position 2 of Subsets[{a, b, c}, -1] must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer
-     = Subsets[{a, b, c}, -1]
-
-    #> Subsets[{a, b, c}, {3, 4, 5, 6}]
-     : Position 2 of Subsets[{a, b, c}, {3, 4, 5, 6}] must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer
-     = Subsets[{a, b, c}, {3, 4, 5, 6}]
-
-    #> Subsets[{a, b, c}, {-1, 2}]
-     : Position 2 of Subsets[{a, b, c}, {-1, 2}] must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer
-     = Subsets[{a, b, c}, {-1, 2}]
-
-    #> Subsets[{a, b, c}, All]
-     = {{}, {a}, {b}, {c}, {a, b}, {a, c}, {b, c}, {a, b, c}}
-
-    #> Subsets[{a, b, c}, Infinity]
-     = {{}, {a}, {b}, {c}, {a, b}, {a, c}, {b, c}, {a, b, c}}
-
-    #> Subsets[{a, b, c}, ALL]
-     : Position 2 of Subsets[{a, b, c}, ALL] must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer
-     = Subsets[{a, b, c}, ALL]
-
-    #> Subsets[{a, b, c}, {a}]
-     : Position 2 of Subsets[{a, b, c}, {a}] must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer
-     = Subsets[{a, b, c}, {a}]
-
-    #> Subsets[{a, b, c}, {}]
-     : Position 2 of Subsets[{a, b, c}, {}] must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer
-     = Subsets[{a, b, c}, {}]
-
-    #> Subsets[{a, b}, 0]
-     = {{}}
-
-    #> Subsets[{1, 2}, x]
-     : Position 2 of Subsets[{1, 2}, x] must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer
-     = Subsets[{1, 2}, x]
-
-    #> Subsets[x]
-     : Nonatomic expression expected at position 1 in Subsets[x].
-     = Subsets[x]
-
-    #> Subsets[x, {1, 2}]
-     : Nonatomic expression expected at position 1 in Subsets[x, {1, 2}].
-     = Subsets[x, {1, 2}]
-
-    #> Subsets[x, {1, 2, 3}, {1, 3}]
-     : Nonatomic expression expected at position 1 in Subsets[x, {1, 2, 3}, {1, 3}].
-     = Subsets[x, {1, 2, 3}, {1, 3}]
-
-    #> Subsets[a + b + c]
-     = {0, a, b, c, a + b, a + c, b + c, a + b + c}
-
-    #> Subsets[f[a, b, c]]
-     = {f[], f[a], f[b], f[c], f[a, b], f[a, c], f[b, c], f[a, b, c]}
-
-    #> Subsets[a + b + c, {1, 3, 2}]
-     = {a, b, c, a + b + c}
-
-    #> Subsets[a* b * c, All, {6}]
-     = {a c}
-
-    #> Subsets[{a, b, c}, {1, Infinity}]
-     = {{a}, {b}, {c}, {a, b}, {a, c}, {b, c}, {a, b, c}}
-
-    #> Subsets[{a, b, c}, {1, Infinity, 2}]
-     = {{a}, {b}, {c}, {a, b, c}}
-
-    #> Subsets[{a, b, c}, {3, Infinity, -1}]
-     = {}
     """
 
     messages = {
-        "nninfseq": "Position 2 of `1` must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer",
+        "nninfseq": "Position 2 of `1` must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer.",
         "normal": "Nonatomic expression expected at position 1 in `1`.",
     }
 
@@ -506,18 +422,18 @@ class Subsets(Builtin):
     def eval_list(self, list, evaluation):
         "Subsets[list_]"
 
-        return (
+        if isinstance(list, Atom):
             evaluation.message("Subsets", "normal", Expression(SymbolSubsets, list))
-            if isinstance(list, Atom)
-            else self.eval_list_n(list, Integer(len(list.elements)), evaluation)
-        )
+        else:
+            return self.eval_list_n(list, Integer(len(list.elements)), evaluation)
 
     def eval_list_n(self, list, n, evaluation):
         "Subsets[list_, n_]"
 
         expr = Expression(SymbolSubsets, list, n)
         if isinstance(list, Atom):
-            return evaluation.message("Subsets", "normal", expr)
+            evaluation.message("Subsets", "normal", expr)
+            return
         else:
             head_t = list.head
             # Note: "n" does not have to be an Integer.
@@ -525,7 +441,8 @@ class Subsets(Builtin):
             if n_value == 0:
                 return ListExpression(ListExpression())
             if n_value is None or n_value < 0:
-                return evaluation.message("Subsets", "nninfseq", expr)
+                evaluation.message("Subsets", "nninfseq", expr)
+                return
 
             nested_list = [
                 Expression(head_t, *c)
@@ -541,7 +458,8 @@ class Subsets(Builtin):
         expr = Expression(SymbolSubsets, list, n)
 
         if isinstance(list, Atom):
-            return evaluation.message("Subsets", "normal", expr)
+            evaluation.message("Subsets", "normal", expr)
+            return
         else:
             head_t = list.head
             if n.get_name() == "System`All" or n.has_form("DirectedInfinity", 1):
@@ -550,12 +468,14 @@ class Subsets(Builtin):
             n_len = len(n.elements)
 
             if n_len == 0:
-                return evaluation.message("Subsets", "nninfseq", expr)
+                evaluation.message("Subsets", "nninfseq", expr)
+                return
 
             elif n_len == 1:
                 elem1 = n.elements[0].get_int_value()
                 if elem1 is None or elem1 < 0:
-                    return evaluation.message("Subsets", "nninfseq", expr)
+                    evaluation.message("Subsets", "nninfseq", expr)
+                    return
                 min_n = elem1
                 max_n = min_n + 1
                 step_n = 1
@@ -568,7 +488,8 @@ class Subsets(Builtin):
                     else len(list.elements) + 1
                 )
                 if elem1 is None or elem2 is None or elem1 < 0 or elem2 < 0:
-                    return evaluation.message("Subsets", "nninfseq", expr)
+                    evaluation.message("Subsets", "nninfseq", expr)
+                    return
                 min_n = elem1
                 max_n = elem2 + 1
                 step_n = 1
@@ -588,7 +509,8 @@ class Subsets(Builtin):
                     or elem1 < 0
                     or elem2 < 0
                 ):
-                    return evaluation.message("Subsets", "nninfseq", expr)
+                    evaluation.message("Subsets", "nninfseq", expr)
+                    return
                 step_n = elem3
                 if step_n > 0:
                     min_n = elem1
@@ -597,9 +519,11 @@ class Subsets(Builtin):
                     min_n = elem1
                     max_n = elem2 - 1
                 else:
-                    return evaluation.message("Subsets", "nninfseq", expr)
+                    evaluation.message("Subsets", "nninfseq", expr)
+                    return
             else:
-                return evaluation.message("Subsets", "nninfseq", expr)
+                evaluation.message("Subsets", "nninfseq", expr)
+                return
 
             nested_list = [
                 Expression(head_t, *c)
@@ -612,7 +536,7 @@ class Subsets(Builtin):
     def eval_atom_pattern(self, list, n, spec, evaluation):
         "Subsets[list_?AtomQ, Pattern[n,_List|All|DirectedInfinity[1]], spec_]"
 
-        return evaluation.message(
+        evaluation.message(
             "Subsets", "normal", Expression(SymbolSubsets, list, n, spec)
         )
 

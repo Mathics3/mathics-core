@@ -3,8 +3,99 @@
 CHANGES
 =======
 
-5.0.3dev0
----------
+
+New Builtins
+++++++++++++
+
+* ``$MaxLengthIntStringConversion``
+* ``Elements``
+* ``ConjugateTranspose``
+* ``LeviCivitaTensor``
+* ``RealAbs`` and ``RealSign``
+* ``RealValuedNumberQ``
+
+
+Compatibility
+-------------
+
+* ``*Plot`` does not show messages during the evaluation.
+* ``Range[]`` now handles a negative ``di`` PR #951
+* Improved support for ``DirectedInfinity`` and ``Indeterminate``.
+* ``Graphics`` and ``Graphics3D`` including wrong primitives and directives
+  are shown with a pink background. In the Mathics-Django interface, a tooltip
+  error message is also shown.
+
+Internals
+---
+
+* ``eval_abs`` and ``eval_sign`` extracted from ``Abs`` and ``Sign`` and added to ``mathics.eval.arithmetic``.
+* Maximum number of digits allowed in a string set to 7000 and can be adjusted using environment variable
+  ``MATHICS_MAX_STR_DIGITS`` on Python versions that don't adjust automatically (like pyston).
+* Real number comparisons implemented is based now in the internal implementation of ``RealSign``.
+* For Python 3.11, the variable ``$MaxLengthIntStringConversion`` controls the maximum size of
+  the literal conversion between large integers and Strings.
+* Older style non-appearing and non-pedagogical doctests have been converted to pytest
+* Built-in code is directed explicitly rather than implicitly. This facilitates the ability to lazy load
+  builtins or "autoload" them a la GNU Emacs autoload.
+
+Bugs
+----
+
+* ``Definitions`` is compatible with ``pickle``.
+* Improved support for ``Quantity`` expressions, including conversions, formatting and arithmetic operations.
+* ``Background`` option for ``Graphics`` and ``Graphics3D`` is operative again.
+* ``Switch[]`` involving ``Infinity`` Issue #956
+* ``Outer[]`` on ``SparseArray`` Issue #939
+* ``ArrayQ[]`` detects ``SparseArray`` PR #947
+* Numeric comparisons against expressions involving ``String``s (Issue #797).
+  
+Package updates
++++++++++++++++
+
+#. Python 3.11 is now supported
+
+
+6.0.1
+-----
+
+Release to get Pillow 9.2 dependency added for Python 3.7+
+
+Some Pattern-matching code gone over to add type annotations and to start
+documenting its behavior and characteristics. Function
+attributes are now examined and stored at the time of Pattern-object creation
+rather than at evaluation time. This better matches WMA behavior which pulls
+out attribute this even earlier than this.  These changes speed up
+doctest running time by about 7% under Pyston.
+
+Combinatorica version upgraded from 0.9 (circa 1992) to 0.91 (circa 1995) which closer matches the published book.
+
+Random builtin documentation gone over to conform to current documentation style.
+
+6.0.0
+-----
+
+A fair bit of code refactoring has gone on so that we might be able to
+scale the code, get it to be more performant, and more in line with
+other interpreters. There is Greater use of Symbols as opposed to strings.
+
+The builtin Functions have been organized into grouping akin to what is found in WMA.
+This is not just for documentation purposes, but it better modularizes the code and keep
+the modules smaller while suggesting where functions below as we scale.
+
+Image Routines have been gone over and fixed. Basically we use Pillow
+imaging routines and as opposed to home-grown image code.
+
+A number of Built-in functions that were implemented were not accessible for various reasons.
+
+Mathics3 Modules are better integrated into the documentation.
+Existing Mathics3 modules ``pymathics.graph`` and ``pymathics.natlang`` have
+had a major overhaul, although more is needed. And will continue after the 6.0.0 release
+
+We have gradually been rolling in more Python type annotations and
+current Python practices such as using ``isort``, ``black`` and ``flake8``.
+
+Evaluation methods of built-in functions start ``eval_`` not ``apply_``.
+
 
 API
 +++
@@ -29,11 +120,15 @@ New Builtins
 #. ``$PythonImplementation``
 #. ``Accuracy``
 #. ``ClebschGordan``
+#. ``ComplexExpand`` (@yzrun)
 #. ``Curl`` (2-D and 3-D vector forms only)
 #. ``DiscretePlot``
 #. ``Kurtosis``
 #. ``ListLogPlot``
 #. ``LogPlot``
+#. ``$MaxMachineNumber``
+#. ``$MinMachineNumber``
+#. ``NumberLinePlot``
 #. ``PauliMatrix``
 #. ``Remove``
 #. ``SetOptions``
@@ -45,36 +140,64 @@ New Builtins
 Documentation
 +++++++++++++
 
-#. "Functional Programming" section split out.
-#. "Exponential Functional" split out from "Trigonometry Functions"
-#. A new section on "Accuracy and Precision" was included in the manual.
-#. "Forms of Input and Output" is its own section
 #. All Builtins have links to WMA pages.
-#. More url links to Wiki pages added; more internal cross links added.
-#. Image has been split off from Graphics and Drawing. There are now subsections for Image
+#. "Accuracy and Precision" section added to the Tutorial portion.
+#. "Attribute Definitions" section reinstated.
+#. "Expression Structure" split out as a guide section (was "Structure of Expressions").
+#. "Exponential Functional" split out from "Trigonometry Functions"
+#. "Functional Programming" section split out.
+#. "Image Manipulation" has been split off from Graphics and Drawing and turned into a guide section.
+#. Image examples now appear in the LaTeX and therefore the PDF doc
+#. "Logic and Boolean Algebra" section reinstated.
+#. "Forms of Input and Output" is its own guide section.
+#. More URL links to Wiki pages added; more internal cross links added.
+#. "Units and Quantities" section reinstated.
+#. The Mathics3 Modules are now included in LaTeX and therefore the PDF doc.
 
 Internals
 +++++++++
 
 #. ``boxes_to_`` methods are now optional for ``BoxElement`` subclasses. Most of the code is now moved to the ``mathics.format`` submodule, and implemented in a more scalable way.
-#. ``mathics.builtin.inout`` was splitted in several modules (``inout``, ``messages``, ``layout``, ``makeboxes``) in order to improve the documentation.
 #. ``from_mpmath`` conversion supports a new parameter ``acc`` to set the accuracy of the number.
-#. Operator name to unicode or ASCII comes from Mathics scanner character tables.
-#. Builtin instance methods that start ``apply`` are considered rule matching and function application; the use of the name ``apply``is deprecated, when ``eval`` is intended.
+#. ``mathics.builtin.inout`` was split in several modules (``inout``, ``messages``, ``layout``, ``makeboxes``) in order to improve the documentation.
+#. ``mathics.eval`` was create to have code that might be put in an instruction interpreter. The opcodes-like functions start ``eval_``, other functions are helper functions for those.
+#. Operator name to Unicode or ASCII comes from Mathics scanner character tables.
+#. Builtin instance methods that start ``eval`` are considered rule matching and function application; the use of the name ``apply``is deprecated, when ``eval`` is intended.
 #. Modularize and improve the way in which ``Builtin`` classes are selected to have an associated ``Definition``.
 #. ``_SetOperator.assign_elementary`` was renamed as ``_SetOperator.assign``. All the special cases are not handled by the ``_SetOperator.special_cases`` dict.
 #. ``isort`` run over all Python files. More type annotations and docstrings on functions added.
 #. caching on immutable atoms like, ``String``, ``Integer``, ``Real``, etc. was improved; the ``__hash__()`` function was sped up. There is a small speedup overall from this at the expense of increased memory.
-
+#. more type annotations added to functions, especially builtin functions
+#. Numerical constants used along the code was renamed using caps, according to the Python's convention.
 
 Bugs
 ++++
 
 # ``0`` with a given precision (like in ```0`3```) is now parsed as ``0``, an integer number.
+# Reading certain GIFs now work again
+#. ``Random[]`` works now.
 #. ``RandomSample`` with one list argument now returns a random ordering of the list items. Previously it would return just one item.
 #. Origin placement corrected on ``ListPlot`` and ``LinePlot``.
 #. Fix long-standing bugs in Image handling
+#. Some scikit image routines line ``EdgeDetect`` were getting omitted due to overly stringent PyPI requirements
+#. Units and Quantities were sometimes failing. Also they were omitted from documentation.
+#. Better handling of ``Infinite`` quantities.
+#. Improved ``Precision`` and ``Accuracy``compatibility with WMA. In particular, ``Precision[0.]`` and ``Accuracy[0.]``
+#. Accuracy in numbers using the notation ``` n.nnn``acc ```  now is properly handled.
+#. numeric precision in mpmath was not reset after operations that changed these. This cause huges slowdowns after an operation that set the mpmath precision high. This was the source of several-minute slowdowns in testing.
+#. GIF87a (```MadTeaParty.gif`` or ExampleData) image loading fixed
+#. Replace non-free Leena image with a a freely distributable image. Issue #728
 
+
+PyPI Package requirements
++++++++++++++++++++++++++
+
+Mathics3 aims at a more richer set of functionality.
+
+Therefore NumPy and Pillow (9.10 or later) are required Python
+packages where they had been optional before.  In truth, probably
+running Mathics without one or both probably did not work well if it
+worked at all; we had not been testing setups that did not have NumPy.
 
 Enhancements
 ++++++++++++
@@ -83,11 +206,21 @@ Enhancements
 #. Better handling of comparisons with finite precision numbers.
 #. Improved implementation for  ``Precision``.
 #. Infix operators, like ``->`` render with their Unicode symbol when ``$CharacterEncoding`` is not "ASCII".
+#. ``Grid`` compatibility with WMA was improved.  Now it supports non-uniform list of lists and lists with general elements.
+#. Support for BigEndian Big TIFF
+
+
 
 5.0.2
 -----
 
 Get in `requirements-cython.txt`` into tarball. Issue #483
+
+New Symbols
++++++++++++
+
+#. ``Undefined``
+
 
 
 5.0.1
@@ -110,7 +243,7 @@ New Builtin
 Documentation
 +++++++++++++
 
-Hyperbolic functions were split off form trigonometry and exponential functions. More url links were added.
+Hyperbolic functions were split off form trigonometry and exponential functions. More URL links were added.
 
 Bugs
 ++++
@@ -929,7 +1062,7 @@ New features (50+ builtins)
 #. ``SubsetQ`` and ``Delete[]`` #688, #784,
 #. ``Subsets`` #685
 #. ``SystemTimeZone`` and correct ``TimeZone`` #924
-#. ``System\`Byteordering`` and ``System\`Environemnt`` #859
+#. ``System\`Byteordering`` and ``System\`Environment`` #859
 #. ``$UseSansSerif`` #908
 #. ``randchoice`` option for ``NoNumPyRandomEnv`` #820
 #. Support for ``MATHICS_MAX_RECURSION_DEPTH``
@@ -1006,8 +1139,8 @@ Backward incompatibilities
 
 -----
 
-1.0
---
+1.0 (October 2016)
+------------------
 
 New features
 ++++++++++++
@@ -1162,15 +1295,15 @@ Performance improvements
 
 -----
 
-0.9
----
+0.9 (March 2016)
+----------------
 
 New features
 ++++++++++++
 
 #. Improve syntax error messages #329
 #. ``SVD``, ``LeastSquares``, ``PseudoInverse`` #258, #321
-#. Python 3 support #317
+#. Python 2.7, 3.2-3.5 via six support #317
 #. Improvements to ``Riffle`` #313
 #. Tweaks to ``PolarPlot`` #305
 #. ``StringTake`` #285
@@ -1206,8 +1339,8 @@ Bug fixes
 
 -----------
 
-0.8
----
+0.8 (late May 2015)
+-------------------
 
 New features
 +++++++++++++
@@ -1230,8 +1363,8 @@ Bug fixes
 
 -----------
 
-0.7
----
+0.7 (Dec 2014)
+--------------
 
 New features
 ++++++++++++
@@ -1263,8 +1396,8 @@ Bugs fixed
 
 --------------
 
-0.6
----
+0.6 (late October 2013)
+------------------------
 
 New features
 ++++++++++++
@@ -1279,7 +1412,7 @@ New features
 #. ``PolarPlot``
 #. IPython style (coloured) input
 #. ``VectorAnalysis`` Package
-#. More special functions (Bessel functions and othogonal polynomials)
+#. More special functions (Bessel functions and orthogonal polynomials)
 #. More NumberTheory functions
 #. ``Import``, ``Export``, ``Get``, ``Needs`` and other IO related functions
 #. PyPy compatibility
@@ -1299,8 +1432,8 @@ Bugs fixed
 
 -------
 
-0.5
----
+0.5 (August 2012)
+-----------------
 
 #. Compatibility with Sage 5, SymPy 0.7, Cython 0.15, Django 1.2
 #. 3D graphics and plots using WebGL in the browser and Asymptote in TeX output

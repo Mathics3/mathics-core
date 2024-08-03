@@ -4,22 +4,23 @@ Forms of Assignment
 """
 
 
-from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.core.assignment import (
     ASSIGNMENT_FUNCTION_MAP,
     AssignmentException,
     assign_store_rules_by_tag,
     normalize_lhs,
 )
+from mathics.core.atoms import String
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
     A_PROTECTED,
     A_SEQUENCE_HOLD,
 )
-from mathics.core.pymathics import PyMathicsLoadException, eval_load_module
+from mathics.core.builtin import BinaryOperator, Builtin
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
+from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 
 
 class _SetOperator:
@@ -52,7 +53,6 @@ class _SetOperator:
 
             return assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
         except AssignmentException:
-
             return False
 
 
@@ -66,29 +66,29 @@ class LoadModule(Builtin):
       <dd>'Load Mathics definitions from the python module $module$
     </dl>
     >> LoadModule["nomodule"]
-     : Python module nomodule does not exist.
+     : Python import errors with: No module named 'nomodule'.
      = $Failed
     >> LoadModule["sys"]
-     : Python module sys is not a pymathics module.
+     : Python module "sys" is not a Mathics3 module.
      = $Failed
     """
 
     name = "LoadModule"
     messages = {
-        "notfound": "Python module `1` does not exist.",
-        "notmathicslib": "Python module `1` is not a pymathics module.",
+        "loaderror": """Python import errors with: `1`.""",
+        "notmathicslib": """Python module "`1`" is not a Mathics3 module.""",
     }
     summary_text = "load a pymathics module"
 
     def eval(self, module, evaluation):
         "LoadModule[module_String]"
         try:
-            eval_load_module(module.value, evaluation)
+            eval_LoadModule(module.value, evaluation.definitions)
         except PyMathicsLoadException:
             evaluation.message(self.name, "notmathicslib", module)
             return SymbolFailed
-        except ImportError:
-            evaluation.message(self.get_name(), "notfound", module)
+        except Exception as e:
+            evaluation.message(self.get_name(), "loaderror", String(str(e)))
             return SymbolFailed
         return module
 
@@ -157,8 +157,6 @@ class Set(BinaryOperator, _SetOperator):
     >> B[[1;;2, 2;;-1]] = {{t, u}, {y, z}};
     >> B
      = {{1, t, u}, {4, y, z}, {7, 8, 9}}
-
-    #> x = Infinity;
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
@@ -275,14 +273,12 @@ class TagSet(Builtin, _SetOperator):
     </dl>
 
     Create an upvalue without using 'UpSet':
-    >> x /: f[x] = 2
-     = 2
-    >> f[x]
-     = 2
-    >> DownValues[f]
+    >> square /: area[square[s_]] := s^2
+    >> DownValues[square]
      = {}
-    >> UpValues[x]
-     = {HoldPattern[f[x]] :> 2}
+
+    >> UpValues[square]
+     = {HoldPattern[area[square[s_]]] :> s ^ 2}
 
     The symbol $f$ must appear as the ultimate head of $lhs$ or as the head of an element in $lhs$:
     >> x /: f[g[x]] = 3;
@@ -370,12 +366,6 @@ class UpSet(BinaryOperator, _SetOperator):
      = custom
     >> UpValues[r]
      = {}
-
-    #> f[g, a + b, h] ^= 2
-     : Tag Plus in f[g, a + b, h] is Protected.
-     = 2
-    #> UpValues[h]
-     = {HoldPattern[f[g, a + b, h]] :> 2}
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
@@ -412,12 +402,6 @@ class UpSetDelayed(UpSet):
      = 2
     >> UpValues[b]
      = {HoldPattern[a[b]] :> x}
-
-    #> f[g, a + b, h] ^:= 2
-     : Tag Plus in f[g, a + b, h] is Protected.
-    #> f[a+b] ^:= 2
-     : Tag Plus in f[a + b] is Protected.
-     = $Failed
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD

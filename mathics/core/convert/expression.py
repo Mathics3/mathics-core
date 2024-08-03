@@ -21,7 +21,7 @@ def make_expression(head, *elements, **kwargs) -> Expression:
 def to_expression(
     head: Union[str, Symbol],
     *elements: Any,
-    elements_conversion_fn: Callable = from_python
+    elements_conversion_fn: Callable = from_python,
 ) -> Expression:
     """
     This is an expression constructor that can be used when the Head and elements are not Mathics
@@ -45,14 +45,14 @@ def to_expression(
         head,
         *elements_tuple,
         elements_properties=elements_properties,
-        literal_values=literal_values
+        literal_values=literal_values,
     )
 
 
 def to_expression_with_specialization(
     head: Union[str, Symbol],
     *elements: Any,
-    elements_conversion_fn: Callable = from_python
+    elements_conversion_fn: Callable = from_python,
 ) -> Union[ListExpression, Expression]:
     """
     This expression constructor will figure out what the right kind of
@@ -66,7 +66,7 @@ def to_expression_with_specialization(
 
 def to_mathics_list(
     *elements: Any, elements_conversion_fn: Callable = from_python, is_literal=False
-) -> Expression:
+) -> ListExpression:
     """
     This is an expression constructor for list that can be used when the elements are not Mathics
     objects. For example:
@@ -97,23 +97,6 @@ def to_numeric_args(mathics_args: Type[BaseElement], evaluation) -> list:
         if mathics_args.is_literal
         else numerify(mathics_args, evaluation).get_sequence()
     )
-
-
-def to_numeric_sympy_args(mathics_args: Type[BaseElement], evaluation) -> list:
-    """
-    Convert Mathics arguments, such as the arguments in an evaluation
-    method a Python list that is sutiable for feeding as arguments
-    into SymPy.
-
-    We make use of fast conversions for literals.
-    """
-    if mathics_args.is_literal:
-        sympy_args = [mathics_args.value]
-    else:
-        args = numerify(mathics_args, evaluation).get_sequence()
-        sympy_args = [a.to_sympy() for a in args]
-
-    return sympy_args
 
 
 expression_constructor_map = {

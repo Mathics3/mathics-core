@@ -5,12 +5,13 @@ Iteratively Applying Functions
 Functional iteration is an elegant way to represent repeated operations that is used a lot.
 """
 
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer1
+from mathics.core.builtin import Builtin
 from mathics.core.convert.python import from_python
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.symbols import Symbol, SymbolTrue
-from mathics.core.systemsymbols import SymbolDirectedInfinity
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.iteratively-applying-functions"
@@ -31,14 +32,6 @@ class FixedPoint(Builtin):
 
     >> FixedPoint[#+1 &, 1, 20]
      = 21
-
-    #> FixedPoint[f, x, 0]
-     = x
-    #> FixedPoint[f, x, -1]
-     : Non-negative integer expected.
-     = FixedPoint[f, x, -1]
-    #> FixedPoint[Cos, 1.0, Infinity]
-     = 0.739085
     """
 
     options = {
@@ -48,9 +41,9 @@ class FixedPoint(Builtin):
 
     summary_text = "nest until a fixed point is reached returning the last expression"
 
-    def apply(self, f, expr, n, evaluation, options):
+    def eval(self, f, expr, n, evaluation: Evaluation, options: dict):
         "FixedPoint[f_, expr_, n_:DirectedInfinity[1], OptionsPattern[FixedPoint]]"
-        if n == Expression(SymbolDirectedInfinity, Integer1):
+        if n.sameQ(MATHICS3_INFINITY):
             count = None
         else:
             count = n.get_int_value()
@@ -115,22 +108,14 @@ class FixedPointList(Builtin):
      = {14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1, 1}
     >> ListLinePlot[list]
      = -Graphics-
-
-    #> FixedPointList[f, x, 0]
-     = {x}
-    #> FixedPointList[f, x, -1]
-     : Non-negative integer expected.
-     = FixedPointList[f, x, -1]
-    #> Last[FixedPointList[Cos, 1.0, Infinity]]
-     = 0.739085
     """
 
     summary_text = "nest until a fixed point is reached return a list "
 
-    def apply(self, f, expr, n, evaluation):
+    def eval(self, f, expr, n, evaluation: Evaluation):
         "FixedPointList[f_, expr_, n_:DirectedInfinity[1]]"
 
-        if n == Expression(SymbolDirectedInfinity, Integer1):
+        if n.sameQ(MATHICS3_INFINITY):
             count = None
         else:
             count = n.get_int_value()
@@ -218,7 +203,7 @@ class Nest(Builtin):
 
     summary_text = "give the result of nesting a function"
 
-    def apply(self, f, expr, n, evaluation):
+    def eval(self, f, expr, n, evaluation):
         "Nest[f_, expr_, n_Integer]"
 
         n = n.get_int_value()
@@ -234,7 +219,8 @@ class NestList(Builtin):
     """
     <dl>
       <dt>'NestList[$f$, $expr$, $n$]'
-      <dd>starting with $expr$, iteratively applies $f$ $n$ times and returns a list of all intermediate results.
+      <dd>starting with $expr$, iteratively applies $f$ $n$ times and \
+          returns a list of all intermediate results.
     </dl>
 
     >> NestList[f, x, 3]
@@ -252,7 +238,7 @@ class NestList(Builtin):
 
     summary_text = "successively nest a function"
 
-    def apply(self, f, expr, n, evaluation):
+    def eval(self, f, expr, n, evaluation):
         "NestList[f_, expr_, n_Integer]"
 
         n = n.get_int_value()
@@ -273,7 +259,8 @@ class NestWhile(Builtin):
     """
     <dl>
       <dt>'NestWhile[$f$, $expr$, $test$]'
-      <dd>applies a function $f$ repeatedly on an expression $expr$, until applying $test$ on the result no longer yields 'True'.
+      <dd>applies a function $f$ repeatedly on an expression $expr$, until \
+          applying $test$ on the result no longer yields 'True'.
 
       <dt>'NestWhile[$f$, $expr$, $test$, $m$]'
       <dd>supplies the last $m$ results to $test$ (default value: 1).
@@ -310,7 +297,7 @@ class NestWhile(Builtin):
         "NestWhile[f_, expr_, test_]": "NestWhile[f, expr, test, 1]",
     }
 
-    def apply(self, f, expr, test, m, evaluation):
+    def eval(self, f, expr, test, m, evaluation: Evaluation):
         "NestWhile[f_, expr_, test_, Pattern[m,_Integer|All]]"
 
         results = [expr]

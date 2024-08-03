@@ -9,6 +9,11 @@ PYTHON ?= python3
 PIP ?= pip3
 BASH ?= bash
 RM  ?= rm
+PYTEST_OPTIONS ?=
+DOCTEST_OPTIONS ?=
+
+# Variable indicating Mathics3 Modules you have available on your system, in latex2doc option format
+MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
 
 .PHONY: \
    all \
@@ -26,7 +31,7 @@ RM  ?= rm
    dist \
    doc \
    doctest \
-   doc-data \
+   doctest-data \
    djangotest \
    gstest \
    latexdoc \
@@ -70,7 +75,7 @@ develop-full-cython: mathics/data/op-tables.json
 	$(PIP) install -e .[dev,full,cython]
 
 
-#: Make distirbution: wheels, eggs, tarball
+#: Make distribution: wheels, eggs, tarball
 dist:
 	./admin-tools/make-dist.sh
 
@@ -81,13 +86,16 @@ install:
 #: Run the most extensive set of tests
 check: pytest gstest doctest
 
+#: Run the most extensive set of tests
+check-for-Windows: pytest-for-windows gstest doctest
+
 #: Build and check manifest of Builtins
 check-builtin-manifest:
 	$(PYTHON) admin-tools/build_and_check_manifest.py
 
 #: Run pytest consistency and style checks
 check-consistency-and-style:
-	MATHICS_LINT=t $(PYTHON) -m pytest test/consistency-and-style
+	MATHICS_LINT=t $(PYTHON) -m pytest $(PYTEST_OPTIONS) test/consistency-and-style
 
 check-full: check-builtin-manifest check-builtin-manifest check
 
@@ -110,9 +118,9 @@ clean: clean-cython clean-cache
 	rm -f mathics/data/op-tables || true; \
 	rm -rf build || true
 
-#: Run py.test tests. Use environment variable "o" for pytest options
+#: Run pytest tests. Use environment variable "PYTEST_OPTIONS" for pytest options
 pytest:
-	MATHICS_CHARACTER_ENCODING="ASCII" $(PYTHON) -m pytest $(PYTEST_WORKERS) test $o
+	MATHICS_CHARACTER_ENCODING="ASCII" $(PYTHON) -m pytest $(PYTEST_OPTIONS) $(PYTEST_WORKERS) test
 
 
 #: Run a more extensive pattern-matching test
@@ -120,13 +128,14 @@ gstest:
 	(cd examples/symbolic_logic/gries_schneider && $(PYTHON) test_gs.py)
 
 
-#: Create data that is used to in Django docs and to build LaTeX PDF
-doc-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/documentation/images/*
-	MATHICS_CHARACTER_ENCODING="ASCII" $(PYTHON) mathics/docpipeline.py --output --keep-going
+#: Create doctest test data and test results that is used to build LaTeX PDF
+# For LaTeX docs we assume Unicode
+doctest-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/documentation/images/*
+	MATHICS_CHARACTER_ENCODING="UTF-8" $(PYTHON) mathics/docpipeline.py --output --keep-going $(MATHICS3_MODULE_OPTION)
 
-#: Run tests that appear in docstring in the code.
+#: Run tests that appear in docstring in the code. Use environment variable "DOCTEST_OPTIONS" for doctest options
 doctest:
-	MATHICS_CHARACTER_ENCODING="ASCII" SANDBOX=$(SANDBOX) $(PYTHON) mathics/docpipeline.py $o
+	MATHICS_CHARACTER_ENCODING="ASCII" SANDBOX=$(SANDBOX) $(PYTHON) mathics/docpipeline.py $(DOCTEST_OPTIONS)
 
 #: Make Mathics PDF manual via Asymptote and LaTeX
 latexdoc texdoc doc:

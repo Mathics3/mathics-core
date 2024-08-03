@@ -8,6 +8,8 @@ MathML formatting is usually initiated in Mathics via MathMLForm[].
 import base64
 import html
 
+from mathics_scanner import is_symbol_name
+
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
@@ -27,7 +29,7 @@ from mathics.core.formatter import (
     add_conversion_fn,
     lookup_method as lookup_conversion_method,
 )
-from mathics.core.parser import is_symbol_name
+from mathics.core.load_builtin import display_operators_set as operators
 from mathics.core.symbols import SymbolTrue
 
 
@@ -59,8 +61,6 @@ extra_operators = {
 
 
 def string(self, **options) -> str:
-    from mathics.builtin import display_operators_set as operators
-
     text = self.value
 
     number_as_text = options.get("number_as_text", None)
@@ -131,6 +131,8 @@ def gridbox(self, elements=None, **box_options) -> str:
         elements = self._elements
     evaluation = box_options.get("evaluation")
     items, options = self.get_array(elements, evaluation)
+    num_fields = max(len(item) if isinstance(item, tuple) else 1 for item in items)
+
     attrs = {}
     column_alignments = options["System`ColumnAlignments"].get_name()
     try:
@@ -148,10 +150,11 @@ def gridbox(self, elements=None, **box_options) -> str:
     new_box_options["inside_list"] = True
     for row in items:
         result += "<mtr>"
-        for item in row:
-            result += (
-                f"<mtd {joined_attrs}>{boxes_to_mathml(item, **new_box_options)}</mtd>"
-            )
+        if isinstance(row, tuple):
+            for item in row:
+                result += f"<mtd {joined_attrs}>{boxes_to_mathml(item, **new_box_options)}</mtd>"
+        else:
+            result += f"<mtd {joined_attrs} columnspan={num_fields}>{boxes_to_mathml(row, **new_box_options)}</mtd>"
         result += "</mtr>\n"
     result += "</mtable>"
     # print(f"gridbox: {result}")

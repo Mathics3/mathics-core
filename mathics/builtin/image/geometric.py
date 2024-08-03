@@ -10,8 +10,8 @@ import PIL.ImageEnhance
 import PIL.ImageFilter
 import PIL.ImageOps
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.image.base import Image
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -86,7 +86,8 @@ class ImageResize(Builtin):
             width = s
         w = get_image_size_spec(old_w, width)
         if w is None:
-            return evaluation.message("ImageResize", "imgrssz", s)
+            evaluation.message("ImageResize", "imgrssz", s)
+            return
         if s.has_form("List", 1):
             height = width
         else:
@@ -110,9 +111,8 @@ class ImageResize(Builtin):
         w = get_image_size_spec(old_w, width)
         h = get_image_size_spec(old_h, height)
         if h is None or w is None:
-            return evaluation.message(
-                "ImageResize", "imgrssz", to_mathics_list(width, height)
-            )
+            evaluation.message("ImageResize", "imgrssz", to_mathics_list(width, height))
+            return
 
         # handle Automatic
         old_aspect_ratio = old_w / old_h
@@ -156,21 +156,6 @@ class ImageReflect(Builtin):
      = -Image-
     >> ImageReflect[ein, Left -> Top]
      = -Image-
-
-    #> ein == ImageReflect[ein, Left -> Left] == ImageReflect[ein, Right -> Right] == ImageReflect[ein, Top -> Top] == ImageReflect[ein, Bottom -> Bottom]
-     = True
-    #> ImageReflect[ein, Left -> Right] == ImageReflect[ein, Right -> Left] == ImageReflect[ein, Left] == ImageReflect[ein, Right]
-     = True
-    #> ImageReflect[ein, Bottom -> Top] == ImageReflect[ein, Top -> Bottom] == ImageReflect[ein, Top] == ImageReflect[ein, Bottom]
-     = True
-    #> ImageReflect[ein, Left -> Top] == ImageReflect[ein, Right -> Bottom]     (* Transpose *)
-     = True
-    #> ImageReflect[ein, Left -> Bottom] == ImageReflect[ein, Right -> Top]     (* Anti-Transpose *)
-     = True
-
-    #> ImageReflect[ein, x -> Top]
-     : x -> Top is not a valid 2D reflection specification.
-     = ImageReflect[-Image-, x -> Top]
     """
 
     summary_text = "reflect an image"
@@ -208,9 +193,10 @@ class ImageReflect(Builtin):
         }.get(tuple(specs), None)
 
         if method is None:
-            return evaluation.message(
+            evaluation.message(
                 "ImageReflect", "bdrfl2", Expression(SymbolRule, orig, dest)
             )
+            return
 
         return Image(method(image.pixels), image.color_space)
 
@@ -238,10 +224,6 @@ class ImageRotate(Builtin):
 
     >> ImageRotate[ein, Pi / 4]
      = -Image-
-
-    #> ImageRotate[ein, ein]
-     : Angle -Image- should be a real number, one of Top, Bottom, Left, Right, or a rule from one to another.
-     = ImageRotate[-Image-, -Image-]
     """
 
     messages = {
@@ -265,7 +247,8 @@ class ImageRotate(Builtin):
         )
 
         if py_angle is None:
-            return evaluation.message("ImageRotate", "imgang", angle)
+            evaluation.message("ImageRotate", "imgang", angle)
+            return
 
         def rotate(im):
             return im.rotate(

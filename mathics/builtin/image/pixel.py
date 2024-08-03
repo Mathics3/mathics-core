@@ -3,8 +3,9 @@ Pixel Operations
 """
 import numpy
 
-from mathics.builtin.base import Builtin
+from mathics.builtin.image.base import Image
 from mathics.core.atoms import Integer, MachineReal
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
@@ -22,38 +23,24 @@ class PixelValue(Builtin):
       <dd>gives the value of the pixel at position {$x$, $y$} in $image$.
     </dl>
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> PixelValue[lena, {1, 1}]
-     = {0.321569, 0.0862745, 0.223529}
-    #> {82 / 255, 22 / 255, 57 / 255} // N  (* pixel byte values from bottom left corner *)
-     = {0.321569, 0.0862745, 0.223529}
-
-    #> PixelValue[lena, {0, 1}];
-     : Padding not implemented for PixelValue.
-    #> PixelValue[lena, {512, 1}]
-     = {0.72549, 0.290196, 0.317647}
-    #> PixelValue[lena, {513, 1}];
-     : Padding not implemented for PixelValue.
-    #> PixelValue[lena, {1, 0}];
-     : Padding not implemented for PixelValue.
-    #> PixelValue[lena, {1, 512}]
-     = {0.886275, 0.537255, 0.490196}
-    #> PixelValue[lena, {1, 513}];
-     : Padding not implemented for PixelValue.
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> PixelValue[hedy, {1, 1}]
+     = {0.439216, 0.356863, 0.337255}
     """
 
     messages = {"nopad": "Padding not implemented for PixelValue."}
 
     summary_text = "get pixel value of image at a given position"
 
-    def eval(self, image, x, y, evaluation: Evaluation):
-        "PixelValue[image_Image, {x_?RealNumberQ, y_?RealNumberQ}]"
+    def eval(self, image: Image, x, y, evaluation: Evaluation):
+        "PixelValue[image_Image, {x_?RealValuedNumberQ, y_?RealValuedNumberQ}]"
         x = int(x.round_to_float())
         y = int(y.round_to_float())
         height = image.pixels.shape[0]
         width = image.pixels.shape[1]
         if not (1 <= x <= width and 1 <= y <= height):
-            return evaluation.message("PixelValue", "nopad")
+            evaluation.message("PixelValue", "nopad")
+            return
         pixel = pixels_as_float(image.pixels)[height - y, x - 1]
         if isinstance(pixel, (numpy.ndarray, numpy.generic, list)):
             return ListExpression(*[MachineReal(float(x)) for x in list(pixel)])
@@ -76,21 +63,21 @@ class PixelValuePositions(Builtin):
     >> PixelValuePositions[Image[{{0.2, 0.4}, {0.9, 0.6}, {0.3, 0.8}}], 0.5, 0.15]
      = {{2, 2}, {2, 3}}
 
-    >> img = Import["ExampleData/lena.tif"];
-    >> PixelValuePositions[img, 3 / 255, 0.5 / 255]
-     = {{180, 192, 2}, {181, 192, 2}, {181, 193, 2}, {188, 204, 2}, {265, 314, 2}, {364, 77, 2}, {365, 72, 2}, {365, 73, 2}, {365, 77, 2}, {366, 70, 2}, {367, 65, 2}}
-    >> PixelValue[img, {180, 192}]
-     = {0.25098, 0.0117647, 0.215686}
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> PixelValuePositions[hedy, 1, 0][[1]]
+     = {101, 491, 1}
+    >> PixelValue[hedy, {180, 192}]
+     = {0.00784314, 0.00784314, 0.0156863}
     """
 
     rules = {
-        "PixelValuePositions[image_Image, val_?RealNumberQ]": "PixelValuePositions[image, val, 0]"
+        "PixelValuePositions[image_Image, val_?RealValuedNumberQ]": "PixelValuePositions[image, val, 0]"
     }
 
     summary_text = "list the position of pixels with a given value"
 
-    def eval(self, image, val, d, evaluation: Evaluation):
-        "PixelValuePositions[image_Image, val_?RealNumberQ, d_?RealNumberQ]"
+    def eval(self, image: Image, val, d, evaluation: Evaluation):
+        "PixelValuePositions[image_Image, val_?RealValuedNumberQ, d_?RealValuedNumberQ]"
         val = val.round_to_float()
         d = d.round_to_float()
 

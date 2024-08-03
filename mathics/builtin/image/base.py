@@ -1,53 +1,29 @@
-import base64
-from copy import deepcopy
-from io import BytesIO
+"""
+Base classes for Image Manipulation
+"""
 from typing import Tuple
 
-from mathics.builtin.base import AtomBuiltin, String
+import numpy
+import PIL.Image
+
 from mathics.builtin.box.image import ImageBox
 from mathics.builtin.colors.color_internals import convert_color
-from mathics.core.atoms import Atom, Integer
+from mathics.core.atoms import Atom
+from mathics.core.builtin import AtomBuiltin, String
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.systemsymbols import SymbolImage, SymbolRule
-from mathics.eval.image import pixels_as_float, pixels_as_ubyte
+from mathics.eval.image import image_pixels, pixels_as_float, pixels_as_ubyte
 
-_skimage_requires = ("skimage", "scipy", "matplotlib", "networkx")
+skimage_requires = ("skimage",)
 
+# No user docs here.
+no_doc = True
 
-try:
-    import warnings
-
-    import numpy
-    import PIL
-    import PIL.Image
-    import PIL.ImageEnhance
-    import PIL.ImageFilter
-    import PIL.ImageOps
-
-except ImportError:
-    pass
-
-
-def _image_pixels(matrix):
-    try:
-        pixels = numpy.array(matrix, dtype="float64")
-    except ValueError:  # irregular array, e.g. {{0, 1}, {0, 1, 1}}
-        return None
-    shape = pixels.shape
-    if len(shape) == 2 or (len(shape) == 3 and shape[2] in (1, 3, 4)):
-        return pixels
-    else:
-        return None
-
-
-class _SkimageBuiltin:
-    """
-    Image Builtins that require scikit-image.
-    """
-
-    requires = _skimage_requires
+image_common_messages = {
+    "imginv": "Expecting an image instead of `1`.",
+}
 
 
 class Image(Atom):
@@ -91,51 +67,7 @@ class Image(Atom):
         """
         Converts our internal Image object into a PNG base64-encoded.
         """
-        pixels = pixels_as_ubyte(self.color_convert("RGB", True).pixels)
-        shape = pixels.shape
-
-        width = shape[1]
-        height = shape[0]
-        scaled_width = width
-        scaled_height = height
-
-        # If the image was created from PIL, use that rather than
-        # reconstruct it from pixels which we can get wrong.
-        # In particular getting color-mapping info right can be
-        # tricky.
-        if hasattr(self, "pillow"):
-            pillow = deepcopy(self.pillow)
-        else:
-            pixels_format = "RGBA" if len(shape) >= 3 and shape[2] == 4 else "RGB"
-            pillow = PIL.Image.fromarray(pixels, pixels_format)
-
-        # if the image is very small, scale it up using nearest neighbour.
-        min_size = 128
-        if width < min_size and height < min_size:
-            scale = min_size / max(width, height)
-            scaled_width = int(scale * width)
-            scaled_height = int(scale * height)
-            pillow = pillow.resize(
-                (scaled_height, scaled_width), resample=PIL.Image.NEAREST
-            )
-
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-
-            stream = BytesIO()
-            pillow.save(stream, format="png")
-            stream.seek(0)
-            contents = stream.read()
-            stream.close()
-
-        encoded = base64.b64encode(contents)
-        encoded = b"data:image/png;base64," + encoded
-
-        return ImageBox(
-            String(encoded.decode("utf-8")),
-            Integer(scaled_width),
-            Integer(scaled_height),
-        )
+        return ImageBox(self)
 
     # __hash__ is defined so that we can store Number-derived objects
     # in a set or dictionary.
@@ -193,7 +125,6 @@ class Image(Atom):
         return self.color_convert("Grayscale")
 
     def pil(self):
-
         if hasattr(self, "pillow") and self.pillow is not None:
             return self.pillow
 
@@ -291,19 +222,13 @@ class ImageAtom(AtomBuiltin):
       <dd> produces the internal representation of an image from an array \
           of values for the pixels.
     </dl>
-
-    #> Image[{{{1,1,0},{0,1,1}}, {{1,0,1},{1,1,0}}}]
-     = -Image-
-
-    #> Image[{{{0,0,0,0.25},{0,0,0,0.5}}, {{0,0,0,0.5},{0,0,0,0.75}}}]
-     = -Image-
     """
 
     summary_text = "get internal representation of an image"
 
     def eval_create(self, array, evaluation: Evaluation):
         "Image[array_]"
-        pixels = _image_pixels(array.to_python())
+        pixels = image_pixels(array.to_python())
         if pixels is not None:
             shape = pixels.shape
             is_rgb = len(shape) == 3 and shape[2] in (3, 4)
