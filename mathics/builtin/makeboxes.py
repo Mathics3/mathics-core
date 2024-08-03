@@ -390,6 +390,10 @@ class MakeBoxes(Builtin):
         """MakeBoxes[expr_,
         f:TraditionalForm|StandardForm|OutputForm|InputForm|FullForm]"""
         if isinstance(expr, BoxElementMixin):
+            # If we are inside a DisplayForm block,
+            # BoxElementMixin are not processed.
+            if evaluation.in_display_form:
+                return expr
             expr = expr.to_expression()
         if isinstance(expr, Atom):
             return expr.atom_to_boxes(f, evaluation)
