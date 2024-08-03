@@ -1134,7 +1134,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # Step 1 : evaluate the Head and get its Attributes. These attributes, used later, include
         # HoldFirst / HoldAll / HoldRest / HoldAllComplete.
 
-
         # Note: self._head can be not just a symbol, but some arbitrary expression.
         # This is what makes expressions in Mathics be M-expressions rather than
         # S-expressions.
