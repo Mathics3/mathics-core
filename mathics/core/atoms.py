@@ -29,8 +29,9 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import SymbolFullForm, SymbolInfinity, SymbolInputForm
 
-# Imperical number that seems to work.
-# We have to be able to match mpmath values with sympy values
+# The below value is an empirical number for comparison precedence
+# that seems to work.  We have to be able to match mpmath values with
+# sympy values
 COMPARE_PREC = 50
 
 SymbolI = Symbol("I")
@@ -85,17 +86,22 @@ class Number(Atom, ImmutableValueMixin, NumericOperators):
         return True
 
     def is_numeric(self, evaluation=None) -> bool:
+        # Anything that is in a number class is Numeric, so return True.
         return True
 
-    def to_mpmath(self):
+    def to_mpmath(self, precision: Optional[int] = None) -> mpmath.ctx_mp_python.mpf:
         """
-        Convert self._value to an mnpath number.
+        Convert self._value to an mpmath number with precision ``precision``
+        If ``precision`` is None, use mpmath's default precision.
 
-        This is the default implementation for Number.
+        A mpmath number is the default implementation for Number.
         There are kinds of numbers, like Rational, or Complex, that
         need to work differently than this default, and they will
         change the implementation accordingly.
         """
+        if precision is not None:
+            with mpmath.workprec(precision):
+                return mpmath.mpf(self._value)
         return mpmath.mpf(self._value)
 
     @property
@@ -240,9 +246,21 @@ class Integer(Number):
     def make_boxes(self, form) -> "String":
         from mathics.eval.makeboxes import _boxed_string
 
-        if form in ("System`InputForm", "System`FullForm"):
-            return _boxed_string(str(self.value), number_as_text=True)
-        return String(str(self._value))
+        try:
+            if form in ("System`InputForm", "System`FullForm"):
+                return _boxed_string(str(self.value), number_as_text=True)
+
+            return String(str(self._value))
+        except ValueError:
+            # In Python 3.11, the size of the string
+            # obtained from an integer is limited, and for longer
+            # numbers, this exception is raised.
+            # The idea is to represent the number by its
+            # more significant digits, the lowest significant digits,
+            # and a placeholder saying the number of omitted digits.
+            from mathics.eval.makeboxes import int_to_string_shorter_repr
+
+            return int_to_string_shorter_repr(self._value, form)
 
     def to_sympy(self, **kwargs):
         return sympy.Integer(self._value)
@@ -416,7 +434,7 @@ class MachineReal(Real):
     def do_copy(self) -> "MachineReal":
         return MachineReal(self._value)
 
-    def get_precision(self) -> float:
+    def get_precision(self) -> int:
         """Returns the default specification for precision in N and other numerical functions."""
         return FP_MANTISA_BINARY_DIGITS
 
@@ -434,14 +452,14 @@ class MachineReal(Real):
         return True
 
     def make_boxes(self, form):
-        from mathics.builtin.makeboxes import number_form
+        from mathics.builtin.makeboxes import NumberForm_to_String
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat
         if form in ("System`InputForm", "System`FullForm"):
             n = None
         else:
             n = 6
-        return number_form(self, n, None, None, _number_form_options)
+        return NumberForm_to_String(self, n, None, None, _number_form_options)
 
     @property
     def is_zero(self) -> bool:
@@ -455,7 +473,7 @@ class MachineReal(Real):
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ for MachineReal.
-        If the other comparision value is a MachineReal, the values
+        If the other comparison value is a MachineReal, the values
         have to be equal.  If the other value is a PrecisionReal though, then
         the two values have to be within 1/2 ** (precision) of
         other-value's precision.  For any other type, sameQ is False.
@@ -467,7 +485,7 @@ class MachineReal(Real):
             value = self.to_sympy()
             # If sympy fixes the issue, this comparison would be
             # enough
-            if value == other_value:
+            if (value - other_value).is_zero:
                 return True
             # this handles the issue...
             diff = abs(value - other_value)
@@ -533,19 +551,20 @@ class PrecisionReal(Real):
     def do_copy(self) -> "PrecisionReal":
         return PrecisionReal(self.value)
 
-    def get_precision(self) -> float:
+    def get_precision(self) -> int:
         """Returns the default specification for precision (in binary digits) in N and other numerical functions."""
-        return self.value._prec + 1.0
+        return self.value._prec + 1
 
     @property
     def is_zero(self) -> bool:
-        return self.value == 0.0
+        # self.value == 0 does not work for sympy >=1.13
+        return self.value.is_zero
 
     def make_boxes(self, form):
-        from mathics.builtin.makeboxes import number_form
+        from mathics.builtin.makeboxes import NumberForm_to_String
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat
-        return number_form(
+        return NumberForm_to_String(
             self, dps(self.get_precision()), None, None, _number_form_options
         )
 
@@ -566,7 +585,7 @@ class PrecisionReal(Real):
         value = self.value
         # If sympy would handle properly
         # the precision, this wold be enough
-        if value == other_value:
+        if (value - other_value).is_zero:
             return True
         # in the meantime, let's use this comparison.
         value = self.value
@@ -706,10 +725,17 @@ class Complex(Number):
 
         if isinstance(real, MachineReal) and not isinstance(imag, MachineReal):
             imag = imag.round()
-        if isinstance(imag, MachineReal) and not isinstance(real, MachineReal):
+            prec = FP_MANTISA_BINARY_DIGITS
+        elif isinstance(imag, MachineReal) and not isinstance(real, MachineReal):
             real = real.round()
+            prec = FP_MANTISA_BINARY_DIGITS
+        else:
+            prec = min(
+                (u for u in (x.get_precision() for x in (real, imag)) if u is not None),
+                default=None,
+            )
 
-        value = (real, imag)
+        value = (real, imag, prec)
         self = cls._complex_numbers.get(value)
         if self is None:
             self = super().__new__(cls)
@@ -789,6 +815,7 @@ class Complex(Number):
             return True
         return False
 
+    # FIXME: funny name get_float_value returns complex?
     def get_float_value(self, permit_complex=False) -> Optional[complex]:
         if permit_complex:
             real = self.real.get_float_value()
@@ -798,7 +825,7 @@ class Complex(Number):
         else:
             return None
 
-    def get_precision(self) -> Optional[float]:
+    def get_precision(self) -> Optional[int]:
         """Returns the default specification for precision in N and other numerical functions.
         When `None` is be returned no precision is has been defined and this object's value is
         exact.

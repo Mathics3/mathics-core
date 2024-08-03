@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+Inference Functions
+"""
 
+no_doc = "no doc"
 
 from mathics.core.expression import Expression
 from mathics.core.parser import parse_builtin_rule
@@ -355,7 +359,7 @@ def evaluate_predicate(pred, evaluation):
     if pred.has_form(("List", "Sequence"), None):
         return Expression(
             pred._head,
-            *[evaluate_predicate(subp, evaluation) for subp in pred.elements]
+            *[evaluate_predicate(subp, evaluation) for subp in pred.elements],
         )
 
     debug_logical_expr("reducing ", pred, evaluation)

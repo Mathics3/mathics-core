@@ -1,15 +1,13 @@
-# from .helper import session
 import os
+from test.helper import check_evaluation, session
+
+import pytest
 
 from mathics.core.symbols import Symbol
 from mathics.session import MathicsSession
 
-session = MathicsSession()
+# from mathics.core.builtin import BoxConstruct, Predefined
 
-# from mathics.builtin.base import BoxConstruct, Predefined
-
-
-import pytest
 
 #
 #  Aim of the tests:
@@ -42,6 +40,48 @@ MATHML_STRICT = (
 
 
 all_test = {
+    "<|a -> x, b -> y, c -> <|d -> t|>|>": {
+        "msg": "Association",
+        "text": {
+            "System`StandardForm": "<|a->x,b->y,c-><|d->t|>|>",
+            "System`TraditionalForm": "<|a->x,b->y,c-><|d->t|>|>",
+            "System`InputForm": "<|a -> x, b -> y, c -> <|d -> t|>|>",
+            "System`OutputForm": "<|a -> x, b -> y, c -> <|d -> t|>|>",
+        },
+        "latex": {
+            "System`StandardForm": r"\text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t\text{$\vert$>}\text{$\vert$>}",
+            "System`TraditionalForm": r"\text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t\text{$\vert$>}\text{$\vert$>}",
+            "System`InputForm": r"\text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{ -> }t\text{$\vert$>}\text{$\vert$>}",
+            "System`OutputForm": r"\text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{ -> }t\text{$\vert$>}\text{$\vert$>}",
+        },
+        "mathml": {
+            "System`StandardForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn> <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow> <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi> <mn>-&gt;</mn> <mi>t</mi></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+            "System`TraditionalForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn> <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow> <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi> <mn>-&gt;</mn> <mi>t</mi></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+            "System`InputForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>t</mi></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+            "System`OutputForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>t</mi></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+        },
+    },
+    "Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]]": {
+        "msg": "Nested Association",
+        "text": {
+            "System`StandardForm": "<|a->x,b->y,c-><|d->t,e->u|>|>",
+            "System`TraditionalForm": "<|a->x,b->y,c-><|d->t,e->u|>|>",
+            "System`InputForm": "<|a -> x, b -> y, c -> <|d -> t, e -> u|>|>",
+            "System`OutputForm": "<|a -> x, b -> y, c -> <|d -> t, e -> u|>|>",
+        },
+        "latex": {
+            "System`StandardForm": r"\text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t,e->u\text{$\vert$>}\text{$\vert$>}",
+            "System`TraditionalForm": r"\text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t,e->u\text{$\vert$>}\text{$\vert$>}",
+            "System`InputForm": r"\text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{ -> }t, e\text{ -> }u\text{$\vert$>}\text{$\vert$>}",
+            "System`OutputForm": r"\text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{ -> }t, e\text{ -> }u\text{$\vert$>}\text{$\vert$>}",
+        },
+        "mathml": {
+            "System`StandardForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn> <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow> <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi> <mn>-&gt;</mn> <mi>t</mi></mrow> <mo>,</mo> <mrow><mi>e</mi> <mn>-&gt;</mn> <mi>u</mi></mrow></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+            "System`TraditionalForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn> <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow> <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi> <mn>-&gt;</mn> <mi>t</mi></mrow> <mo>,</mo> <mrow><mi>e</mi> <mn>-&gt;</mn> <mi>u</mi></mrow></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+            "System`InputForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>t</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>e</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>u</mi></mrow></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+            "System`OutputForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>t</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>e</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>u</mi></mrow></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+        },
+    },
     # Checking basic formats for atoms
     "-4": {
         "msg": "An Integer",
@@ -130,6 +170,123 @@ all_test = {
             "System`OutputForm": "-4.3",
         },
     },
+    "1. 10^6": {
+        "msg": "very large real number (>10^6)",
+        "text": {
+            "System`InputForm": r"1.000000*^6",
+            "System`OutputForm": "1.×10^6",
+        },
+        "latex": {
+            "System`InputForm": r"1.000000\text{*${}^{\wedge}$}6",
+            "System`OutputForm": r"1.\times 10^6",
+        },
+        "mathml": {},
+    },
+    "1. 10^5": {
+        "msg": "large real number (<10^6)",
+        "text": {
+            "System`InputForm": r"100000.",
+            "System`OutputForm": "100000.",
+        },
+        "latex": {
+            "System`InputForm": r"100000.",
+            "System`OutputForm": "100000.",
+        },
+        "mathml": {},
+    },
+    "-1. 10^6": {
+        "msg": "large negative real number (>10^6)",
+        "text": {
+            "System`InputForm": r"-1.000000*^6",
+            "System`OutputForm": "-1.×10^6",
+        },
+        "latex": {
+            "System`InputForm": r"-1.000000\text{*${}^{\wedge}$}6",
+            "System`OutputForm": r"-1.\times 10^6",
+        },
+        "mathml": {},
+    },
+    "-1. 10^5": {
+        "msg": "large negative real number (<10^6)",
+        "text": {
+            "System`InputForm": r"-100000.",
+            "System`OutputForm": "-100000.",
+        },
+        "latex": {
+            "System`InputForm": r"-100000.",
+            "System`OutputForm": "-100000.",
+        },
+        "mathml": {},
+    },
+    "1. 10^-6": {
+        "msg": "very small real number (<10^-6)",
+        "text": {
+            "System`InputForm": r"1.*^-6",
+            "System`OutputForm": "1.×10^-6",
+        },
+        "latex": {
+            "System`InputForm": r"1.\text{*${}^{\wedge}$}-6",
+            "System`OutputForm": r"1.\times 10^{-6}",
+        },
+        "mathml": {},
+    },
+    "1. 10^-5": {
+        "msg": "small real number (<10^-5)",
+        "text": {
+            "System`InputForm": r"0.00001",
+            "System`OutputForm": "0.00001",
+        },
+        "latex": {
+            "System`InputForm": r"0.00001",
+            "System`OutputForm": "0.00001",
+        },
+        "mathml": {},
+    },
+    "-1. 10^-6": {
+        "msg": "very small negative real number (<10^-6)",
+        "text": {
+            "System`InputForm": r"-1.*^-6",
+            "System`OutputForm": "-1.×10^-6",
+        },
+        "latex": {
+            "System`InputForm": r"-1.\text{*${}^{\wedge}$}-6",
+            "System`OutputForm": r"-1.\times 10^{-6}",
+        },
+        "mathml": {},
+    },
+    "-1. 10^-5": {
+        "msg": "small negative real number (>10^-5)",
+        "text": {
+            "System`InputForm": r"-0.00001",
+            "System`OutputForm": "-0.00001",
+        },
+        "latex": {
+            "System`InputForm": r"-0.00001",
+            "System`OutputForm": "-0.00001",
+        },
+        "mathml": {},
+    },
+    "Complex[1.09*^12,3.]": {
+        "msg": "Complex number",
+        "text": {
+            "System`StandardForm": "1.09*^12+3. I",
+            "System`TraditionalForm": "1.09×10^12+3.⁢I",
+            "System`InputForm": "1.090000000000*^12 + 3.*I",
+            "System`OutputForm": "1.09×10^12 + 3. I",
+        },
+        "mathml": {
+            "System`StandardForm": r"<mrow><mrow><mn>1.09</mn> <mtext>*^</mtext> <mn>12</mn></mrow> <mo>+</mo> <mrow><mn>3.</mn> <mo>&nbsp;</mo> <mi>I</mi></mrow></mrow>",
+            "System`TraditionalForm": r'<mrow><mrow><mn>1.09</mn> <mo>×</mo> <msup><mn>10</mn> <mn>12</mn></msup></mrow> <mo>+</mo> <mrow><mn>3.</mn> <mo form="prefix" lspace="0" rspace="0.2em">⁢</mo> <mi>I</mi></mrow></mrow>',
+            "System`InputForm": r"<mrow><mrow><mtext>1.090000000000</mtext> <mtext>*^</mtext> <mtext>12</mtext></mrow> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>3.</mtext> <mtext>*</mtext> <mi>I</mi></mrow></mrow>",
+            "System`OutputForm": r"<mrow><mrow><mn>1.09</mn> <mo>×</mo> <msup><mn>10</mn> <mn>12</mn></msup></mrow> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>3.</mn> <mo>&nbsp;</mo> <mi>I</mi></mrow></mrow>",
+        },
+        "latex": {
+            "System`StandardForm": r"1.09\text{*${}^{\wedge}$}12+3. I",
+            "System`TraditionalForm": r"1.09\times 10^{12}+3. I",
+            "System`InputForm": r"1.090000000000\text{*${}^{\wedge}$}12\text{ + }3.*I",
+            "System`OutputForm": r"1.09\times 10^{12}\text{ + }3. I",
+        },
+    },
     '"Hola!"': {
         "msg": "A String",
         "text": {
@@ -146,7 +303,7 @@ all_test = {
         },
         # Notice that differetly from "text", where InputForm
         # preserves the quotes in strings, MathTeXForm just
-        # sorrounds the string in a ``\text{...}`` command,
+        # surrounds the string in a ``\text{...}`` command,
         # in the same way that all the other forms. This choice
         # follows the behavior in WMA.
         "latex": {
@@ -664,7 +821,7 @@ def load_tests(key):
         # been adjusted, then skip it.
         #
         if expected_fmt is None:
-            assert is_fragile(base_msg)
+            assert is_fragile(base_msg), [expr, key, base_msg]
             continue
 
         for form in expected_fmt:
@@ -811,3 +968,58 @@ def test_makeboxes_mathml(str_expr, str_expected, form, msg):
     else:
         strresult = format_result.boxes_to_mathml(evaluation=session.evaluation)
         assert strresult == str_expected
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        (
+            "OutputForm[Complex[2.0 ^ 40, 3]]",
+            "1.09951×10^12 + 3. I",
+            "OutputForm Complex",
+        ),
+        (
+            "InputForm[Complex[2.0 ^ 40, 3]]",
+            "1.099511627776*^12 + 3.*I",
+            "InputForm Complex",
+        ),
+    ],
+)
+def test_format_private_doctests(str_expr, str_expected, msg):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=msg,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
+        (
+            (
+                'Format[r[items___]] := Infix[If[Length[{items}] > 1, {items}, {ab}], "~"];'
+                "r[1, 2, 3]"
+            ),
+            None,
+            "1 ~ 2 ~ 3",
+            None,
+        ),
+        ("r[1]", None, "ab", None),
+        (None, None, None, None),
+    ],
+)
+def test_private_doctests_layout(str_expr, msgs, str_expected, fail_msg):
+    """ """
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )

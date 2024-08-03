@@ -7,7 +7,6 @@ from typing import Any, Optional
 
 import sympy
 
-from mathics.builtin.base import BinaryOperator, Builtin, SympyFunction
 from mathics.builtin.numbers.constants import mp_convert_constant
 from mathics.core.atoms import COMPARE_PREC, Integer, Integer1, Number, String
 from mathics.core.attributes import (
@@ -17,6 +16,7 @@ from mathics.core.attributes import (
     A_ORDERLESS,
     A_PROTECTED,
 )
+from mathics.core.builtin import BinaryOperator, Builtin, SympyFunction
 from mathics.core.convert.expression import to_expression, to_numeric_args
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import (
@@ -253,7 +253,6 @@ class _EqualityOperator(_InequalityOperator):
 
 
 class _MinMax(Builtin):
-
     attributes = (
         A_FLAT | A_NUMERIC_FUNCTION | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
     )
@@ -337,12 +336,6 @@ class BooleanQ(Builtin):
 
     >> BooleanQ[1 < 2]
      = True
-
-    #> BooleanQ["string"]
-     = False
-
-    #> BooleanQ[Together[x/y + y/x]]
-     = False
     """
 
     rules = {
@@ -668,8 +661,6 @@ class Max(_MinMax):
     'Max' does not compare strings or symbols:
     >> Max[-1.37, 2, "a", b]
      = Max[2, a, b]
-    #> Max[x]
-     = x
     """
 
     sense = 1
@@ -704,9 +695,6 @@ class Min(_MinMax):
     With no arguments, 'Min' gives 'Infinity':
     >> Min[]
      = Infinity
-
-    #> Min[x]
-     = x
     """
 
     sense = -1
@@ -849,22 +837,6 @@ class Unequal(_EqualityOperator, _SympyComparison):
      = True
     >> "a" != "a"
      = False
-
-    #> Pi != N[Pi]
-     = False
-
-    #> a_ != b_
-     = a_ != b_
-
-    #> Clear[a, b];
-    #> a != a != a
-     = False
-    #> "abc" != "def" != "abc"
-     = False
-
-    ## Reproduce strange MMA behaviour
-    #> a != b != a
-     = a != b != a
 
     'Unequal' using an empty parameter or list, or a list with one element is True. This is the same as 'Equal".
 

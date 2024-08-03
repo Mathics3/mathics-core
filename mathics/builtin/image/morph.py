@@ -2,8 +2,8 @@
 Morphological Image Processing
 """
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.image.base import Image, skimage_requires
+from mathics.core.builtin import Builtin
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.eval.image import matrix_to_numpy, pixels_as_float, pixels_as_ubyte
@@ -20,7 +20,7 @@ class _MorphologyFilter(Builtin):
     }
 
     requires = skimage_requires
-    rules = {"%(name)s[i_Image, r_?RealNumberQ]": "%(name)s[i, BoxMatrix[r]]"}
+    rules = {"%(name)s[i_Image, r_?RealValuedNumberQ]": "%(name)s[i, BoxMatrix[r]]"}
 
     def eval(self, image, k, evaluation: Evaluation):
         "%(name)s[image_Image, k_?MatrixQ]"
@@ -114,7 +114,7 @@ class MorphologicalComponents(Builtin):
     rules = {"MorphologicalComponents[i_Image]": "MorphologicalComponents[i, 0]"}
 
     def eval(self, image, t, evaluation: Evaluation):
-        "MorphologicalComponents[image_Image, t_?RealNumberQ]"
+        "MorphologicalComponents[image_Image, t_?RealValuedNumberQ]"
         pixels = pixels_as_ubyte(
             pixels_as_float(image.grayscale().pixels) > t.round_to_float()
         )

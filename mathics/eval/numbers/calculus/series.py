@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+"""
+Implementation of Series handling functions.
+"""
 from mathics.core.atoms import Integer, Integer0, Rational
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.expression import Expression
@@ -77,7 +81,7 @@ def same_monomial(expr, x, x0):
 #             coeffs_powers = []
 #             coeffs_x = []
 #             for element in elements:
-#                 if x.sameQ(elemnt):
+#                 if x.sameQ(element):
 #                     coeffs_x.append(x)
 #                 elif isinstance(element, Atom):
 #                     coeffs_free.append(element)
@@ -396,7 +400,7 @@ def build_series(f, x, x0, n, evaluation):
                 *[
                     build_series(element, x, x0, Integer(n), evaluation)
                     for element in f.elements
-                ]
+                ],
             )
         data.append(newcoeff)
     data = ListExpression(*data).evaluate(evaluation)

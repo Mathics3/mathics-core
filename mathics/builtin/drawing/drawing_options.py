@@ -15,7 +15,7 @@ option values are described here.
 # builtins.
 
 
-from mathics.builtin.base import Builtin
+from mathics.core.builtin import Builtin
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.graphing-and-drawing.drawing-options-and-option-values"
@@ -76,6 +76,32 @@ class Axis(Builtin):
     """
 
     summary_text = "graph option value to fill plot from curve to the axis"
+
+
+class Background(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Background.html</url>
+
+    <dl>
+      <dt>'Background'
+      <dd>is an option that specifies the color of the background.
+    </dl>
+
+    The specification must be a Color specification or 'Automatic':
+
+    >> Graphics3D[{Arrow[{{0,0,0},{1,0,1},{0,-1,0},{1,1,1}}]}, Background -> Red]
+     = -Graphics3D-
+
+    Notice that opacity cannot be specified by passing a 'List' containing 'Opacity' \
+    together with a color specification like '{Red, Opacity[.1]}'. Use a color \
+    directive with an alpha channel instead:
+
+    >> Plot[{Sin[x], Cos[x], x / 3}, {x, -Pi, Pi}, Background -> RGBColor[0.5, .5, .5, 0.1]]
+     = -Graphics-
+
+    """
+
+    summary_text = "graphic option for the color of the background"
 
 
 class Bottom(Builtin):

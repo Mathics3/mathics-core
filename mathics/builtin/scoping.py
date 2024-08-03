@@ -5,10 +5,10 @@ Scoping Constructs
 
 from mathics_scanner import is_symbol_name
 
-from mathics.builtin.base import Builtin, Predefined
 from mathics.core.assignment import get_symbol_list
 from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, attribute_string_to_number
+from mathics.core.builtin import Builtin, Predefined
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, fully_qualified_symbol_name
@@ -216,15 +216,6 @@ class Context_(Predefined):
 
     >> $Context
     = Global`
-
-    #> InputForm[$Context]
-    = "Global`"
-
-    ## Test general context behaviour
-    #> Plus === Global`Plus
-     = False
-    #> `Plus === Global`Plus
-     = True
     """
 
     messages = {"cxset": "`1` is not a valid context name ending in `."}
@@ -548,9 +539,6 @@ class Unique(Predefined):
     Create a unique symbol whose name begins with x:
     >> Unique["x"]
     = x...
-
-    #> Unique[{}]
-    = {}
 
     ## FIXME: include the rest of these in test/builtin/test-unique.py
     ## Each use of Unique[symbol] increments $ModuleNumber:

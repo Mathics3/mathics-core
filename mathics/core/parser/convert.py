@@ -18,6 +18,7 @@ from mathics.core.parser.ast import (
     Symbol as AST_Symbol,
 )
 from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.util import canonic_filename
 
 
 class GenericConverter:
@@ -36,7 +37,7 @@ class GenericConverter:
             return "Expression", head, children
 
     @staticmethod
-    def string_escape(s):
+    def string_escape(s: str) -> str:
         return s.encode("raw_unicode_escape").decode("unicode_escape")
 
     def convert_Symbol(self, node: AST_Symbol) -> Tuple[str, str]:
@@ -54,8 +55,14 @@ class GenericConverter:
         if s.startswith('"'):
             assert s.endswith('"')
             s = s[1:-1]
+
+        s = self.string_escape(canonic_filename(s))
         s = self.string_escape(s)
-        s = s.replace("\\", "\\\\")
+
+        # Do we need this? If we do this before non-escaped characters,
+        # like \-, then Python gives a warning.
+        # s = s.replace("\\", "\\\\")
+
         return "String", s
 
     def convert_Number(self, node: AST_Number) -> tuple:

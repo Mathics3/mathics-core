@@ -21,7 +21,7 @@ def make_expression(head, *elements, **kwargs) -> Expression:
 def to_expression(
     head: Union[str, Symbol],
     *elements: Any,
-    elements_conversion_fn: Callable = from_python
+    elements_conversion_fn: Callable = from_python,
 ) -> Expression:
     """
     This is an expression constructor that can be used when the Head and elements are not Mathics
@@ -45,14 +45,14 @@ def to_expression(
         head,
         *elements_tuple,
         elements_properties=elements_properties,
-        literal_values=literal_values
+        literal_values=literal_values,
     )
 
 
 def to_expression_with_specialization(
     head: Union[str, Symbol],
     *elements: Any,
-    elements_conversion_fn: Callable = from_python
+    elements_conversion_fn: Callable = from_python,
 ) -> Union[ListExpression, Expression]:
     """
     This expression constructor will figure out what the right kind of

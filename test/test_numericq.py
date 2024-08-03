@@ -110,7 +110,7 @@ def test_atomic_numericq(str_expr, str_expected):
             """F[1,l->2]""",
             "False",
         ),
-        # NumericQ returs True for expressions that
+        # NumericQ returns True for expressions that
         # cannot be evaluated to a number:
         ("1/(Sin[1]^2+Cos[1]^2-1)", "True"),
         ("Simplify[1/(Sin[1]^2+Cos[1]^2-1)]", "False"),

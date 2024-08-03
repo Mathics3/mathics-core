@@ -2,15 +2,15 @@
 List-Oriented Tests
 """
 
-from mathics.builtin.base import Builtin, Test
 from mathics.core.atoms import Integer, Integer1, Integer2
+from mathics.core.builtin import Builtin, Test
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Expression
-from mathics.core.rules import Pattern
 from mathics.core.symbols import Atom, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolSubsetQ
+from mathics.core.systemsymbols import SymbolSubsetQ  # , SymbolSparseArray
 from mathics.eval.parts import python_levelspec
+from mathics.eval.testing_expressions import check_ArrayQ  # , check_SparseArrayQ
 
 
 class ArrayQ(Builtin):
@@ -51,37 +51,10 @@ class ArrayQ(Builtin):
     def eval(self, expr, pattern, test, evaluation: Evaluation):
         "ArrayQ[expr_, pattern_, test_]"
 
-        pattern = Pattern.create(pattern)
+        # if not isinstance(expr, Atom) and expr.head.sameQ(SymbolSparseArray):
+        #    return check_SparseArrayQ(expr, pattern, test, evaluation)
 
-        dims = [len(expr.get_elements())]  # to ensure an atom is not an array
-
-        def check(level, expr):
-            if not expr.has_form("List", None):
-                test_expr = Expression(test, expr)
-                if test_expr.evaluate(evaluation) != SymbolTrue:
-                    return False
-                level_dim = None
-            else:
-                level_dim = len(expr.elements)
-
-            if len(dims) > level:
-                if dims[level] != level_dim:
-                    return False
-            else:
-                dims.append(level_dim)
-            if level_dim is not None:
-                for element in expr.elements:
-                    if not check(level + 1, element):
-                        return False
-            return True
-
-        if not check(0, expr):
-            return SymbolFalse
-
-        depth = len(dims) - 1  # None doesn't count
-        if not pattern.does_match(Integer(depth), evaluation):
-            return SymbolFalse
-        return SymbolTrue
+        return check_ArrayQ(expr, pattern, test, evaluation)
 
 
 class DisjointQ(Test):
@@ -297,31 +270,6 @@ class SubsetQ(Builtin):
 
     Every list is a subset of itself:
     >> SubsetQ[{1, 2, 3}, {1, 2, 3}]
-     = True
-
-    #> SubsetQ[{1, 2, 3}, {0, 1}]
-     = False
-
-    #> SubsetQ[{1, 2, 3}, {1, 2, 3, 4}]
-     = False
-
-    #> SubsetQ[{1, 2, 3}]
-     : SubsetQ called with 1 argument; 2 arguments are expected.
-     = SubsetQ[{1, 2, 3}]
-
-    #> SubsetQ[{1, 2, 3}, {1, 2}, {3}]
-     : SubsetQ called with 3 arguments; 2 arguments are expected.
-     = SubsetQ[{1, 2, 3}, {1, 2}, {3}]
-
-    #> SubsetQ[a + b + c, {1}]
-     : Heads Plus and List at positions 1 and 2 are expected to be the same.
-     = SubsetQ[a + b + c, {1}]
-
-    #> SubsetQ[{1, 2, 3}, n]
-     : Nonatomic expression expected at position 2 in SubsetQ[{1, 2, 3}, n].
-     = SubsetQ[{1, 2, 3}, n]
-
-    #> SubsetQ[f[a, b, c], f[a]]
      = True
     """
 

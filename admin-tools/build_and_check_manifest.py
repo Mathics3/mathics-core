@@ -2,7 +2,7 @@
 
 import sys
 
-from mathics.builtin.base import Builtin
+from mathics.core.builtin import Builtin
 from mathics.core.load_builtin import (
     import_and_load_builtins,
     modules,

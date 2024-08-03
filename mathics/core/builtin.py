@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
+"""
+Class definitions used in mathics.builtin modules that define the
+base Mathics3's classes: Predefined, Builtin, Test, Operator (and from that
+UnaryOperator, BinaryOperator, PrefixOperator, PostfixOperator, etc.),
+SympyFunction, MPMathFunction, etc.
+"""
 
 import importlib
 import re
 from functools import lru_cache, total_ordering
 from itertools import chain
-from typing import Any, Callable, Dict, Iterable, List, Optional, Union, cast
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union, cast
 
+import mpmath
 import sympy
 
 from mathics.core.atoms import (
@@ -18,7 +24,13 @@ from mathics.core.atoms import (
     PrecisionReal,
     String,
 )
-from mathics.core.attributes import A_HOLD_ALL, A_NO_ATTRIBUTES, A_PROTECTED
+from mathics.core.attributes import (
+    A_HOLD_ALL,
+    A_LISTABLE,
+    A_NO_ATTRIBUTES,
+    A_NUMERIC_FUNCTION,
+    A_PROTECTED,
+)
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.op import ascii_operator_to_symbol
 from mathics.core.convert.python import from_bool
@@ -29,7 +41,7 @@ from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression, SymbolDefault
 from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
 from mathics.core.list import ListExpression
-from mathics.core.number import PrecisionValueError, get_precision
+from mathics.core.number import PrecisionValueError, dps, get_precision, min_prec
 from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
 from mathics.core.rules import BuiltinRule, Pattern, Rule
 from mathics.core.symbols import (
@@ -50,109 +62,10 @@ from mathics.core.systemsymbols import (
     SymbolRule,
     SymbolSequence,
 )
-from mathics.eval.numbers import cancel
+from mathics.eval.arithmetic import eval_mpmath_function
+from mathics.eval.numbers.numbers import cancel
 from mathics.eval.numerify import numerify
 from mathics.eval.scoping import dynamic_scoping
-
-# Signals to Mathics doc processing not to include this module in its documentation.
-no_doc = True
-
-
-class DefaultOptionChecker:
-    """
-    Callable class that is used in checking that options are valid.
-
-    If initialized with ``strict`` set to True,
-    then a instantance calls will return True only if all
-    options listed in ``options_to_check`` are in the constructor's
-    list of options. In either case, when an option is not in the
-    constructor list, give an "optx" message.
-    """
-
-    def __init__(self, builtin, options, strict: bool):
-        self.name = builtin.get_name()
-        self.strict = strict
-        self.options = options
-
-    def __call__(self, options_to_check, evaluation):
-        option_name = self.name
-        options = self.options
-        strict = self.strict
-
-        for key, value in options_to_check.items():
-            short_key = strip_context(key)
-            if not has_option(options, short_key, evaluation):
-                evaluation.message(
-                    option_name,
-                    "optx",
-                    Expression(SymbolRule, String(short_key), value),
-                    strip_context(option_name),
-                )
-                if strict:
-                    return False
-        return True
-
-
-class UnavailableFunction:
-    """
-    Callable class used when the evaluation function is not available.
-    """
-
-    def __init__(self, builtin):
-        self.name = builtin.get_name()
-
-    def __call__(self, **kwargs):
-        kwargs["evaluation"].message(
-            "General",
-            "pyimport",  # see messages.py for error message definition
-            strip_context(self.name),
-        )
-
-
-def check_requires_list(requires: list) -> bool:
-    """
-    Check if module names in ``requires`` can be imported and return
-    True if they can, or False if not.
-
-    """
-    for package in requires:
-        lib_is_installed = True
-        try:
-            lib_is_installed = importlib.util.find_spec(package) is not None
-        except ImportError:
-            # print("XXX requires import error", requires)
-            lib_is_installed = False
-        if not lib_is_installed:
-            # print("XXX requires not found error", requires)
-            return False
-    return True
-
-
-def get_option(options, name, evaluation, pop=False, evaluate=True):
-    # we do not care whether an option X is given as System`X,
-    # Global`X, or with any prefix from $ContextPath for that
-    # matter. Also, the quoted string form "X" is ok. all these
-    # variants name the same option. this matches Wolfram Language
-    # behaviour.
-    name = strip_context(name)
-    contexts = (s + "%s" for s in evaluation.definitions.get_context_path())
-
-    for variant in chain(contexts, ('"%s"',)):
-        resolved_name = variant % name
-        if pop:
-            value = options.pop(resolved_name, None)
-        else:
-            value = options.get(resolved_name)
-        if value is not None:
-            return value.evaluate(evaluation) if evaluate else value
-    return None
-
-
-def has_option(options, name, evaluation):
-    return get_option(options, name, evaluation, evaluate=False) is not None
-
-
-mathics_to_python = {}  # here we have: name -> string
 
 
 class Builtin:
@@ -565,6 +478,260 @@ class BuiltinElement(Builtin, BaseElement):
         return hash((self.get_name(), id(self)))
 
 
+# This has to come before SympyFunction
+class SympyObject(Builtin):
+    sympy_name: Optional[str] = None
+
+    mathics_to_sympy = {}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.sympy_name is None:
+            self.sympy_name = strip_context(self.get_name()).lower()
+        self.mathics_to_sympy[self.__class__.__name__] = self.sympy_name
+
+    def is_constant(self) -> bool:
+        return False
+
+    def get_sympy_names(self) -> List[str]:
+        if self.sympy_name:
+            return [self.sympy_name]
+        return []
+
+
+# This has to come before MPMathFunction
+class SympyFunction(SympyObject):
+    def eval(self, z, evaluation):
+        # Note: we omit a docstring here, so as not to confuse
+        # function signature collector ``contribute``.
+
+        # Generic eval method that uses the class sympy_name.
+        # to call the corresponding sympy function. Arguments are
+        # converted to python and the result is converted from sympy
+        #
+        # "%(name)s[z__]"
+        sympy_args = to_numeric_sympy_args(z, evaluation)
+        sympy_fn = getattr(sympy, self.sympy_name)
+        try:
+            return from_sympy(run_sympy(sympy_fn, *sympy_args))
+        except Exception:
+            return
+
+    def get_constant(self, precision, evaluation, have_mpmath=False):
+        try:
+            d = get_precision(precision, evaluation)
+        except PrecisionValueError:
+            return
+
+        sympy_fn = self.to_sympy()
+        if d is None:
+            result = self.get_mpmath_function() if have_mpmath else sympy_fn()
+            return MachineReal(result)
+        else:
+            return PrecisionReal(sympy_fn.n(d))
+
+    def get_sympy_function(self, elements=None):
+        if self.sympy_name:
+            return getattr(sympy, self.sympy_name)
+        return None
+
+    def prepare_sympy(self, elements: Iterable) -> Iterable:
+        return elements
+
+    def to_sympy(self, expr, **kwargs):
+        try:
+            if self.sympy_name:
+                elements = self.prepare_sympy(expr.elements)
+                sympy_args = [element.to_sympy(**kwargs) for element in elements]
+                if None in sympy_args:
+                    return None
+                sympy_function = self.get_sympy_function(elements)
+                return sympy_function(*sympy_args)
+        except TypeError:
+            pass
+
+    def from_sympy(self, sympy_name, elements):
+        return to_expression(self.get_name(), *elements)
+
+    def prepare_mathics(self, sympy_expr):
+        return sympy_expr
+
+
+class MPMathFunction(SympyFunction):
+    # These below attributes are the default attributes:
+    #
+    # * functions take lists as an argument
+    # * functions take numeric values only
+    # * functions can't be changed
+    #
+    # However hey are not correct for some derived classes, like
+    # InverseErf or InverseErfc.
+    # So those classes should expclicitly set/override this.
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+
+    mpmath_name = None
+    nargs = {1}
+
+    @lru_cache(maxsize=1024)
+    def get_mpmath_function(self, args):
+        if self.mpmath_name is None or len(args) not in self.nargs:
+            return None
+        return getattr(mpmath, self.mpmath_name)
+
+    def eval(self, z, evaluation: Evaluation):
+        "%(name)s[z__]"
+
+        args = numerify(z, evaluation).get_sequence()
+
+        # if no arguments are inexact attempt to use sympy
+        if all(not x.is_inexact() for x in args):
+            result = to_expression(self.get_name(), *args).to_sympy()
+            result = self.prepare_mathics(result)
+            result = from_sympy(result)
+            # evaluate elements to convert e.g. Plus[2, I] -> Complex[2, 1]
+            return result.evaluate_elements(evaluation)
+
+        if not all(isinstance(arg, Number) for arg in args):
+            return
+
+        mpmath_function = self.get_mpmath_function(tuple(args))
+        if mpmath_function is None:
+            return
+
+        if any(arg.is_machine_precision() for arg in args):
+            prec = None
+        else:
+            prec = min_prec(*args)
+            d = dps(prec)
+            args = [arg.round(d) for arg in args]
+
+        return eval_mpmath_function(mpmath_function, *args, prec=prec)
+
+
+class MPMathMultiFunction(MPMathFunction):
+    sympy_names = None
+    mpmath_names = None
+
+    def get_sympy_names(self):
+        if self.sympy_names is None:
+            return [self.sympy_name]
+        return self.sympy_names.values()
+
+    def get_function(self, module, names, fallback_name, elements):
+        try:
+            name = fallback_name
+            if names is not None:
+                name = names[len(elements)]
+            if name is None:
+                return None
+            return getattr(module, name)
+        except KeyError:
+            return None
+
+    def get_sympy_function(self, elements):
+        return self.get_function(sympy, self.sympy_names, self.sympy_name, elements)
+
+    def get_mpmath_function(self, elements):
+        return self.get_function(mpmath, self.mpmath_names, self.mpmath_name, elements)
+
+
+class DefaultOptionChecker:
+    """
+    Callable class that is used in checking that options are valid.
+
+    If initialized with ``strict`` set to True,
+    then a instantance calls will return True only if all
+    options listed in ``options_to_check`` are in the constructor's
+    list of options. In either case, when an option is not in the
+    constructor list, give an "optx" message.
+    """
+
+    def __init__(self, builtin, options, strict: bool):
+        self.name = builtin.get_name()
+        self.strict = strict
+        self.options = options
+
+    def __call__(self, options_to_check, evaluation):
+        option_name = self.name
+        options = self.options
+        strict = self.strict
+
+        for key, value in options_to_check.items():
+            short_key = strip_context(key)
+            if not has_option(options, short_key, evaluation):
+                evaluation.message(
+                    option_name,
+                    "optx",
+                    Expression(SymbolRule, String(short_key), value),
+                    strip_context(option_name),
+                )
+                if strict:
+                    return False
+        return True
+
+
+class UnavailableFunction:
+    """
+    Callable class used when the evaluation function is not available.
+    """
+
+    def __init__(self, builtin):
+        self.name = builtin.get_name()
+
+    def __call__(self, **kwargs):
+        kwargs["evaluation"].message(
+            "General",
+            "pyimport",  # see messages.py for error message definition
+            strip_context(self.name),
+        )
+
+
+def check_requires_list(requires: list) -> bool:
+    """
+    Check if module names in ``requires`` can be imported and return
+    True if they can, or False if not.
+
+    """
+    for package in requires:
+        lib_is_installed = True
+        try:
+            lib_is_installed = importlib.util.find_spec(package) is not None
+        except ImportError:
+            # print("XXX requires import error", requires)
+            lib_is_installed = False
+        if not lib_is_installed:
+            # print("XXX requires not found error", requires)
+            return False
+    return True
+
+
+def get_option(options, name, evaluation, pop=False, evaluate=True):
+    # we do not care whether an option X is given as System`X,
+    # Global`X, or with any prefix from $ContextPath for that
+    # matter. Also, the quoted string form "X" is ok. all these
+    # variants name the same option. this matches Wolfram Language
+    # behaviour.
+    name = strip_context(name)
+    contexts = (s + "%s" for s in evaluation.definitions.get_context_path())
+
+    for variant in chain(contexts, ('"%s"',)):
+        resolved_name = variant % name
+        if pop:
+            value = options.pop(resolved_name, None)
+        else:
+            value = options.get(resolved_name)
+        if value is not None:
+            return value.evaluate(evaluation) if evaluate else value
+    return None
+
+
+def has_option(options, name, evaluation):
+    return get_option(options, name, evaluation, evaluate=False) is not None
+
+
+mathics_to_python = {}  # here we have: name -> string
+
+
 class AtomBuiltin(Builtin):
     """
     This class is used to define Atoms other than those ones in core, but also
@@ -627,7 +794,7 @@ class IterationFunction(Builtin):
     def eval_max(self, expr, imax, evaluation):
         "%(name)s[expr_, {imax_}]"
 
-        # Even though `imax` should be an integeral value, its type does not
+        # Even though `imax` should be an integral value, its type does not
         # have to be an Integer.
 
         result = []
@@ -809,26 +976,6 @@ class Predefined(Builtin):
         return functions
 
 
-class SympyObject(Builtin):
-    sympy_name: Optional[str] = None
-
-    mathics_to_sympy = {}
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.sympy_name is None:
-            self.sympy_name = strip_context(self.get_name()).lower()
-        self.mathics_to_sympy[self.__class__.__name__] = self.sympy_name
-
-    def is_constant(self) -> bool:
-        return False
-
-    def get_sympy_names(self) -> List[str]:
-        if self.sympy_name:
-            return [self.sympy_name]
-        return []
-
-
 class UnaryOperator(Operator):
     def __init__(self, format_function, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -922,63 +1069,6 @@ def run_sympy(sympy_fn: Callable, *sympy_args) -> Any:
     return sympy_fn(*sympy_args)
 
 
-class SympyFunction(SympyObject):
-    def eval(self, z, evaluation):
-        # Note: we omit a docstring here, so as not to confuse
-        # function signature collector ``contribute``.
-
-        # Generic eval method that uses the class sympy_name.
-        # to call the corresponding sympy function. Arguments are
-        # converted to python and the result is converted from sympy
-        #
-        # "%(name)s[z__]"
-        sympy_args = to_numeric_sympy_args(z, evaluation)
-        sympy_fn = getattr(sympy, self.sympy_name)
-        try:
-            return from_sympy(run_sympy(sympy_fn, *sympy_args))
-        except Exception:
-            return
-
-    def get_constant(self, precision, evaluation, have_mpmath=False):
-        try:
-            d = get_precision(precision, evaluation)
-        except PrecisionValueError:
-            return
-
-        sympy_fn = self.to_sympy()
-        if d is None:
-            result = self.get_mpmath_function() if have_mpmath else sympy_fn()
-            return MachineReal(result)
-        else:
-            return PrecisionReal(sympy_fn.n(d))
-
-    def get_sympy_function(self, elements=None):
-        if self.sympy_name:
-            return getattr(sympy, self.sympy_name)
-        return None
-
-    def prepare_sympy(self, elements: Iterable) -> Iterable:
-        return elements
-
-    def to_sympy(self, expr, **kwargs):
-        try:
-            if self.sympy_name:
-                elements = self.prepare_sympy(expr.elements)
-                sympy_args = [element.to_sympy(**kwargs) for element in elements]
-                if None in sympy_args:
-                    return None
-                sympy_function = self.get_sympy_function(elements)
-                return sympy_function(*sympy_args)
-        except TypeError:
-            pass
-
-    def from_sympy(self, sympy_name, elements):
-        return to_expression(self.get_name(), *elements)
-
-    def prepare_mathics(self, sympy_expr):
-        return sympy_expr
-
-
 class PatternError(Exception):
     def __init__(self, name, tag, *args):
         super().__init__()
@@ -1032,8 +1122,8 @@ class PatternObject(BuiltinElement, Pattern):
         return self.get_name()
 
     def get_match_candidates(
-        self, elements, expression, attributes, evaluation, vars={}
-    ):
+        self, elements: Tuple[BaseElement], expression, attributes, evaluation, vars={}
+    ) -> Tuple[BaseElement]:
         return elements
 
     def get_match_count(self, vars={}):

@@ -78,6 +78,14 @@ import pytest
         ("g[a]<g[a]", "g[a] < g[a]", "not comparable expressions (like in WMA)"),
         ("g[1]<g[1]", "g[1] < g[1]", "not comparable expressions (like in WMA)"),
         #
+        ('Wo["x"]>3', "Wo[x] > 3", "isue #797"),
+        ('Wo["x"]<3', "Wo[x] < 3", "isue #797"),
+        ('Wo["x"]==3', "Wo[x] == 3", "isue #797"),
+        ('3>Wo["x"]', "3 > Wo[x]", "isue #797"),
+        ('3<Wo["x"]', "3 < Wo[x]", "isue #797"),
+        ('3==Wo["x"]', "3 == Wo[x]", "isue #797"),
+        ('Wo[f["x"],2]>0', "Wo[f[x], 2] > 0", "isue #797"),
+        #
         # chained compare
         ("a != a != b", "False", "Strange MMA behavior"),
         ("a != b != a", "a != b != a", "incomparable values should be unchanged"),
@@ -640,6 +648,27 @@ def test_cmp2_no_pass(str_lhs, str_rhs, str_expected):
     ],
 )
 def test_cmp_compare_numbers(str_expr, str_expected, message):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        failure_message=message,
+        to_string_expr=True,
+        to_string_expected=True,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "message"),
+    [
+        (
+            "{a, b} = {2^10000, 2^10000 + 1}; {a == b, a < b, a <= b}",
+            "{False, True, True}",
+            "Test large Integer comparison bug",
+        ),
+        #        (None, None, None),
+    ],
+)
+def test_misc_private_tests(str_expr, str_expected, message):
     check_evaluation(
         str_expr,
         str_expected,

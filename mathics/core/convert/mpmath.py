@@ -18,7 +18,7 @@ from mathics.core.expression_predefined import (
 from mathics.core.systemsymbols import SymbolIndeterminate
 
 
-@lru_cache(maxsize=1024)
+@lru_cache(maxsize=1024, typed=True)
 def from_mpmath(
     value: Union[mpmath.mpf, mpmath.mpc],
     precision: Optional[int] = None,
@@ -42,8 +42,15 @@ def from_mpmath(
         # HACK: use str here to prevent loss of precision
         return PrecisionReal(sympy.Float(str(value), precision=precision - 1))
     elif isinstance(value, mpmath.mpc):
-        if value.imag == 0.0:
-            return from_mpmath(value.real, precision=precision)
+        # Comment mmatera:
+        # In Python, and mpmath, `0.j` and `0.` are equivalent, in the sense
+        # that are considered equal numbers, and have the same associated
+        # hash.
+        # In WMA, this is not the case. To produce the
+        # Python's behavior, uncomment the following lines:
+        #
+        # if value.imag == 0.0:
+        #   return from_mpmath(value.real, precision=precision)
         val_re, val_im = value.real, value.imag
         if mpmath.isinf(val_re):
             if mpmath.isinf(val_im):

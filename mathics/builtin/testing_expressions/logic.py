@@ -2,7 +2,6 @@
 """
 Logical Combinations
 """
-from mathics.builtin.base import BinaryOperator, Builtin, Predefined, PrefixOperator
 from mathics.core.attributes import (
     A_FLAT,
     A_HOLD_ALL,
@@ -11,6 +10,7 @@ from mathics.core.attributes import (
     A_ORDERLESS,
     A_PROTECTED,
 )
+from mathics.core.builtin import BinaryOperator, Builtin, Predefined, PrefixOperator
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Expression
@@ -142,9 +142,6 @@ class AnyTrue(_ManyTrue):
 
     >> AnyTrue[{1, 4, 5}, EvenQ]
      = True
-
-    #> AnyTrue[{}, EvenQ]
-     = False
     """
 
     summary_text = "some of the elements are True"
@@ -175,9 +172,6 @@ class AllTrue(_ManyTrue):
 
     >> AllTrue[{2, 4, 7}, EvenQ]
      = False
-
-    #> AllTrue[{}, EvenQ]
-     = True
     """
 
     summary_text = "all the elements are True"
@@ -214,10 +208,6 @@ class Equivalent(BinaryOperator):
      Otherwise, 'Equivalent' returns a result in DNF
     >> Equivalent[a, b, True, c]
      = a && b && c
-    #> Equivalent[]
-     = True
-    #> Equivalent[a]
-     = True
     """
 
     attributes = A_ORDERLESS | A_PROTECTED
@@ -330,9 +320,6 @@ class NoneTrue(_ManyTrue):
 
     >> NoneTrue[{1, 4, 5}, EvenQ]
      = False
-
-    #> NoneTrue[{}, EvenQ]
-     = True
     """
 
     summary_text = "all the elements are False"
@@ -504,16 +491,6 @@ class Xor(BinaryOperator):
     If an expression does not evaluate to 'True' or 'False', 'Xor'
     returns a result in symbolic form:
     >> Xor[a, False, b]
-     = a \\[Xor] b
-    #> Xor[]
-     = False
-    #> Xor[a]
-     = a
-    #> Xor[False]
-     = False
-    #> Xor[True]
-     = True
-    #> Xor[a, b]
      = a \\[Xor] b
     """
 

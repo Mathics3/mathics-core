@@ -10,10 +10,10 @@ See also Constructing Vectors.
 
 from itertools import permutations
 
-from mathics.builtin.base import Builtin, IterationFunction, Pattern
 from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import Integer, is_integer_rational_or_real
 from mathics.core.attributes import A_HOLD_FIRST, A_LISTABLE, A_LOCKED, A_PROTECTED
+from mathics.core.builtin import Builtin, IterationFunction, Pattern
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import ElementsProperties
@@ -212,7 +212,13 @@ class Range(Builtin):
       <dd>returns a list of integers from 1 to $n$.
 
       <dt>'Range[$a$, $b$]'
-      <dd>returns a list of integers from $a$ to $b$.
+      <dd>returns a list of (Integer, Rational, Real) numbers from $a$ to $b$.
+
+      <dt>'Range[$a$, $b$, $di$]'
+      <dd>returns a list of numbers from $a$ to $b$ using step $di$.
+        More specifically, 'Range' starts from $a$ and successively adds \
+        increments of $di$ until the result is greater (if $di$ > 0) or \
+        less (if $di$ < 0) than $b$.
     </dl>
 
     >> Range[5]
@@ -220,6 +226,9 @@ class Range(Builtin):
 
     >> Range[-3, 2]
      = {-3, -2, -1, 0, 1, 2}
+
+    >> Range[5, 1, -2]
+     = {5, 3, 1}
 
     >> Range[1.0, 2.3]
      = {1., 2.}
@@ -258,7 +267,8 @@ class Range(Builtin):
             and isinstance(imax, Integer)
             and isinstance(di, Integer)
         ):
-            result = [Integer(i) for i in range(imin.value, imax.value + 1, di.value)]
+            pm = 1 if di.value >= 0 else -1
+            result = [Integer(i) for i in range(imin.value, imax.value + pm, di.value)]
             return ListExpression(
                 *result, elements_properties=range_list_elements_properties
             )
@@ -266,9 +276,13 @@ class Range(Builtin):
         imin = imin.to_sympy()
         imax = imax.to_sympy()
         di = di.to_sympy()
+
+        def compare_type(a, b):
+            return a <= b if di >= 0 else a >= b
+
         index = imin
         result = []
-        while index <= imax:
+        while compare_type(index, imax):
             evaluation.check_stopped()
             result.append(from_sympy(index))
             index += di

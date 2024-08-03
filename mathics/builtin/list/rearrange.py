@@ -10,9 +10,9 @@ from collections import defaultdict
 from itertools import chain
 from typing import Callable
 
-from mathics.builtin.base import Builtin, MessageException
 from mathics.core.atoms import Integer, Integer0
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
+from mathics.core.builtin import Builtin, MessageException
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, structure
 from mathics.core.expression_predefined import MATHICS3_INFINITY
@@ -542,17 +542,6 @@ class Complement(_SetOperation):
      = f[w, y]
     >> Complement[{c, b, a}]
      = {a, b, c}
-
-    #> Complement[a, b]
-     : Non-atomic expression expected at position 1 in Complement[a, b].
-     = Complement[a, b]
-    #> Complement[f[a], g[b]]
-     : Heads f and g at positions 1 and 2 are expected to be the same.
-     = Complement[f[a], g[b]]
-    #> Complement[{a, b, c}, {a, c}, SameTest->(True&)]
-     = {}
-    #> Complement[{a, b, c}, {a, c}, SameTest->(False&)]
-     = {a, b, c}
     """
 
     summary_text = "find the complement with respect to a universal set"
@@ -586,12 +575,6 @@ class DeleteDuplicates(_GatherOperation):
 
     >> DeleteDuplicates[{3,2,1,2,3,4}, Less]
      = {3, 2, 1}
-
-    #> DeleteDuplicates[{3,2,1,2,3,4}, Greater]
-     = {3, 3, 4}
-
-    #> DeleteDuplicates[{}]
-     = {}
     """
 
     summary_text = "delete duplicate elements in a list"
@@ -658,38 +641,6 @@ class Flatten(Builtin):
     Flatten also works in irregularly shaped arrays
     >> Flatten[{{1, 2, 3}, {4}, {6, 7}, {8, 9, 10}}, {{2}, {1}}]
      = {{1, 4, 6, 8}, {2, 7, 9}, {3, 10}}
-
-    #> Flatten[{{1, 2}, {3, 4}}, {{-1, 2}}]
-     : Levels to be flattened together in {{-1, 2}} should be lists of positive integers.
-     = Flatten[{{1, 2}, {3, 4}}, {{-1, 2}}, List]
-
-    #> Flatten[{a, b}, {{1}, {2}}]
-     : Level 2 specified in {{1}, {2}} exceeds the levels, 1, which can be flattened together in {a, b}.
-     = Flatten[{a, b}, {{1}, {2}}, List]
-
-    ## Check `n` completion
-    #> m = {{{1, 2}, {3}}, {{4}, {5, 6}}};
-    #> Flatten[m, {{2}, {1}, {3}, {4}}]
-     : Level 4 specified in {{2}, {1}, {3}, {4}} exceeds the levels, 3, which can be flattened together in {{{1, 2}, {3}}, {{4}, {5, 6}}}.
-     = Flatten[{{{1, 2}, {3}}, {{4}, {5, 6}}}, {{2}, {1}, {3}, {4}}, List]
-
-    ## Test from issue #251
-    #> m = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-    #> Flatten[m, {3}]
-     : Level 3 specified in {3} exceeds the levels, 2, which can be flattened together in {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}.
-     = Flatten[{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, {3}, List]
-
-    ## Reproduce strange head behaviour
-    #> Flatten[{{1}, 2}, {1, 2}]
-     : Level 2 specified in {1, 2} exceeds the levels, 1, which can be flattened together in {{1}, 2}.
-     = Flatten[{{1}, 2}, {1, 2}, List]
-    #> Flatten[a[b[1, 2], b[3]], {1, 2}, b]     (* MMA BUG: {{1, 2}} not {1, 2}  *)
-     : Level 1 specified in {1, 2} exceeds the levels, 0, which can be flattened together in a[b[1, 2], b[3]].
-     = Flatten[a[b[1, 2], b[3]], {1, 2}, b]
-
-    #> Flatten[{{1, 2}, {3, {4}}}, {{1, 2, 3}}]
-     : Level 3 specified in {{1, 2, 3}} exceeds the levels, 2, which can be flattened together in {{1, 2}, {3, {4}}}.
-     = Flatten[{{1, 2}, {3, {4}}}, {{1, 2, 3}}, List]
     """
 
     messages = {
@@ -899,16 +850,6 @@ class Join(Builtin):
     >> Join[a + b, c * d]
      : Heads Plus and Times are expected to be the same.
      = Join[a + b, c d]
-
-    #> Join[x, y]
-     = Join[x, y]
-    #> Join[x + y, z]
-     = Join[x + y, z]
-    #> Join[x + y, y z, a]
-     : Heads Plus and Times are expected to be the same.
-     = Join[x + y, y z, a]
-    #> Join[x, y + z, y z]
-     = Join[x, y + z, y z]
     """
 
     attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
@@ -1032,9 +973,6 @@ class Partition(Builtin):
 
     >> Partition[{a, b, c, d, e, f}, 3, 1]
      = {{a, b, c}, {b, c, d}, {c, d, e}, {d, e, f}}
-
-    #> Partition[{a, b, c, d, e}, 2]
-     = {{a, b}, {c, d}}
     """
 
     # TODO: Nested list length specifications
@@ -1206,20 +1144,6 @@ class Riffle(Builtin):
      = {a, x, b, y, c, z}
     >> Riffle[{a, b, c, d, e, f}, {x, y, z}]
      = {a, x, b, y, c, z, d, x, e, y, f}
-
-    #> Riffle[{1, 2, 3, 4}, {x, y, z, t}]
-     = {1, x, 2, y, 3, z, 4, t}
-    #> Riffle[{1, 2}, {1, 2, 3}]
-     = {1, 1, 2}
-    #> Riffle[{1, 2}, {1, 2}]
-     = {1, 1, 2, 2}
-
-    #> Riffle[{a,b,c}, {}]
-     = {a, {}, b, {}, c}
-    #> Riffle[{}, {}]
-     = {}
-    #> Riffle[{}, {a,b}]
-     = {}
     """
 
     summary_text = "intersperse additional elements"
@@ -1313,9 +1237,6 @@ class Split(Builtin):
     >> Split[{x, x, x, y, x, y, y, z}]
      = {{x, x, x}, {y}, {x}, {y, y}, {z}}
 
-    #> Split[{x, x, x, y, x, y, y, z}, x]
-     = {{x}, {x}, {x}, {y}, {x}, {y}, {y}, {z}}
-
     Split into increasing or decreasing runs of elements
     >> Split[{1, 5, 6, 3, 6, 1, 6, 3, 4, 5, 4}, Less]
      = {{1, 5, 6}, {3, 6}, {1, 6}, {3, 4, 5}, {4}}
@@ -1326,14 +1247,6 @@ class Split(Builtin):
     Split based on first element
     >> Split[{x -> a, x -> y, 2 -> a, z -> c, z -> a}, First[#1] === First[#2] &]
      = {{x -> a, x -> y}, {2 -> a}, {z -> c, z -> a}}
-
-    #> Split[{}]
-     = {}
-
-    #> A[x__] := 321 /; Length[{x}] == 5;
-    #> Split[A[x, x, x, y, x, y, y, z]]
-     = 321
-    #> ClearAll[A];
     """
 
     rules = {
@@ -1387,9 +1300,6 @@ class SplitBy(Builtin):
 
     >> SplitBy[{1, 2, 1, 1.2}, {Round, Identity}]
      = {{{1}}, {{2}}, {{1}, {1.2}}}
-
-    #> SplitBy[Tuples[{1, 2}, 3], First]
-     = {{{1, 1, 1}, {1, 1, 2}, {1, 2, 1}, {1, 2, 2}}, {{2, 1, 1}, {2, 1, 2}, {2, 2, 1}, {2, 2, 2}}}
     """
 
     messages = {
@@ -1494,9 +1404,6 @@ class Union(_SetOperation):
 
     >> Union[{1, 2, 3}, {2, 3, 4}, SameTest->Less]
      = {1, 2, 2, 3, 4}
-
-    #> Union[{1, -1, 2}, {-2, 3}, SameTest -> (Abs[#1] == Abs[#2] &)]
-     = {-2, 1, 3}
     """
 
     summary_text = "enumerate all distinct elements in a list"
@@ -1533,9 +1440,6 @@ class Intersection(_SetOperation):
 
     >> Intersection[{1, 2, 3}, {2, 3, 4}, SameTest->Less]
      = {3}
-
-    #> Intersection[{1, -1, -2, 2, -3}, {1, -2, 2, 3}, SameTest -> (Abs[#1] == Abs[#2] &)]
-     = {-3, -2, 1}
     """
 
     summary_text = "enumerate common elements"

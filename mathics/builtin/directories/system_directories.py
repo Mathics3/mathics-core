@@ -2,9 +2,9 @@
 System File Directories
 """
 
-from mathics.builtin.base import Predefined
 from mathics.core.atoms import String
 from mathics.core.attributes import A_NO_ATTRIBUTES
+from mathics.core.builtin import Predefined
 from mathics.core.evaluation import Evaluation
 from mathics.core.streams import ROOT_DIR
 from mathics.eval.directories import INITIAL_DIR, SYS_ROOT_DIR, TMP_DIR

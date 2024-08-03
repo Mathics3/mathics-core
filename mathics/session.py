@@ -13,7 +13,7 @@ import os.path as osp
 from typing import Optional
 
 from mathics.core.definitions import Definitions, autoload_files
-from mathics.core.evaluation import Evaluation
+from mathics.core.evaluation import Evaluation, Result
 from mathics.core.parser import MathicsSingleLineFeeder, parse
 
 
@@ -79,19 +79,44 @@ class MathicsSession:
         """
         reset the definitions and the evaluation objects.
         """
-        self.definitions = Definitions(add_builtin)
+        try:
+            self.definitions = Definitions(add_builtin)
+        except KeyError:
+            from mathics.core.load_builtin import import_and_load_builtins
+
+            import_and_load_builtins()
+            self.definitions = Definitions(add_builtin)
+
         self.evaluation = Evaluation(
             definitions=self.definitions, catch_interrupt=catch_interrupt
         )
         self.last_result = None
 
     def evaluate(self, str_expression, timeout=None, form=None):
+        """Parse str_expression and evaluate using the `evaluate` method of the Expression"""
         self.evaluation.out.clear()
         expr = parse(self.definitions, MathicsSingleLineFeeder(str_expression))
         if form is None:
             form = self.form
         self.last_result = expr.evaluate(self.evaluation)
         return self.last_result
+
+    def evaluate_as_in_cli(self, str_expression, timeout=None, form=None, src_name=""):
+        """This method parse and evaluate the expression using the session.evaluation.evaluate method"""
+        query = self.evaluation.parse(str_expression, src_name)
+        if query is not None:
+            res = self.evaluation.evaluate(query, timeout=timeout, format=form)
+        else:
+            res = Result(
+                self.evaluation.out,
+                None,
+                self.evaluation.definitions.get_line_no(),
+                None,
+                form,
+            )
+            self.evaluation.out = []
+        self.evaluation.stopped = False
+        return res
 
     def format_result(self, str_expression=None, timeout=None, form=None):
         if str_expression:
@@ -102,8 +127,10 @@ class MathicsSession:
             form = self.form
         return res.do_format(self.evaluation, form)
 
-    def parse(self, str_expression):
+    def parse(self, str_expression, src_name=""):
         """
         Just parse the expression
         """
-        return parse(self.definitions, MathicsSingleLineFeeder(str_expression))
+        return parse(
+            self.definitions, MathicsSingleLineFeeder(str_expression, src_name)
+        )

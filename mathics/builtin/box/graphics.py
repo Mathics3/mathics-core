@@ -474,7 +474,10 @@ class GraphicsBox(BoxExpression):
         ):
             self.background_color = None
         else:
-            self.background_color = _ColorObject.create(background)
+            try:
+                self.background_color = _ColorObject.create(background)
+            except ColorError:
+                self.background_color = None
 
         base_width, base_height, size_multiplier, size_aspect = self._get_image_size(
             options, self.graphics_options, max_width
@@ -491,6 +494,11 @@ class GraphicsBox(BoxExpression):
         if evaluation is None:
             evaluation = self.evaluation
         elements = GraphicsElements(elements[0], evaluation, neg_y)
+        if hasattr(elements, "background_color"):
+            self.background_color = elements.background_color
+        if hasattr(elements, "tooltip_text"):
+            self.tooltip_text = elements.tooltip_text
+
         axes = []  # to be filled further down
 
         def calc_dimensions(final_pass=True):
@@ -697,7 +705,6 @@ class GraphicsBox(BoxExpression):
         return svg_body
 
     def create_axes(self, elements, graphics_options, xmin, xmax, ymin, ymax) -> tuple:
-
         # Note that Asymptote has special commands for drawing axes, like "xaxis"
         # "yaxis", "xtick" "labelx", "labely". Entend our language
         # here and use those in render-like routines.

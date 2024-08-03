@@ -6,11 +6,11 @@ Zeta Functions and Polylogarithms
 
 import mpmath
 
-from mathics.builtin.arithmetic import _MPMathFunction
+from mathics.core.builtin import MPMathFunction
 from mathics.core.convert.mpmath import from_mpmath
 
 
-class LerchPhi(_MPMathFunction):
+class LerchPhi(MPMathFunction):
     """
     <url>
     :WMA link:
@@ -45,7 +45,7 @@ class LerchPhi(_MPMathFunction):
             # return sympy.expand_func(sympy.lerchphi(py_z, py_s, py_a))
 
 
-class Zeta(_MPMathFunction):
+class Zeta(MPMathFunction):
     """
     <url>
     :WMA link:

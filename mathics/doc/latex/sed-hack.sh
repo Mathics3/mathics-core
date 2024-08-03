@@ -48,3 +48,11 @@ sed -i -e "s/°/\\\\degree{}/g" documentation.tex
 # from Properties in a Section heading.
 # TODO: figure out how to fix that bug.
 sed -i -e "s/Propertie\\\\/Properties\\\\/g" documentation.tex
+
+# TODO: find the right LaTeX representation for these characters
+sed -i -e 's/ç/\\c{c}/g' documentation.tex
+sed -i -e 's/ñ/\\~n/g' documentation.tex
+sed -i -e 's/ê/\\^e/g' documentation.tex
+sed -i -e 's/≖/=||=/g' documentation.tex
+sed -i -e 's/⇒/==>/g' documentation.tex
+sed -i -e "s/é/\\\'e/g" documentation.tex

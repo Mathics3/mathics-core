@@ -5,8 +5,8 @@ Directory Names
 import os
 import os.path as osp
 
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import String
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
@@ -30,23 +30,6 @@ class DirectoryName(Builtin):
 
     >> DirectoryName["a/b/c", 2]
      = a
-
-    #> DirectoryName["a/b/c", 3] // InputForm
-     = ""
-    #> DirectoryName[""] // InputForm
-     = ""
-
-    #> DirectoryName["a/b/c", x]
-     : Positive machine-sized integer expected at position 2 in DirectoryName[a/b/c, x].
-     = DirectoryName[a/b/c, x]
-
-    #> DirectoryName["a/b/c", -1]
-     : Positive machine-sized integer expected at position 2 in DirectoryName[a/b/c, -1].
-     = DirectoryName[a/b/c, -1]
-
-    #> DirectoryName[x]
-     : String expected at position 1 in DirectoryName[x].
-     = DirectoryName[x]
     """
 
     messages = {
@@ -104,12 +87,6 @@ class DirectoryQ(Builtin):
      = True
     >> DirectoryQ["ExampleData/MythicalSubdir/"]
      = False
-
-    #> DirectoryQ["ExampleData"]
-     = True
-
-    #> DirectoryQ["ExampleData/MythicalSubdir/NestedDir/"]
-     = False
     """
 
     messages = {
@@ -150,12 +127,6 @@ class FileNameDepth(Builtin):
 
     >> FileNameDepth["a/b/c/"]
      = 3
-
-    #> FileNameDepth[x]
-     = FileNameDepth[x]
-
-    #> FileNameDepth[$RootDirectory]
-     = 0
     """
 
     options = {
@@ -254,10 +225,6 @@ class FileNameSplit(Builtin):
 
     >> FileNameSplit["example/path/file.txt"]
      = {example, path, file.txt}
-
-    #> FileNameSplit["example/path", OperatingSystem -> x]
-     : The value of option OperatingSystem -> x must be one of "MacOSX", "Windows", or "Unix".
-     = {example, path}
     """
 
     messages = {
