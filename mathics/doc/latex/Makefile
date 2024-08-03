@@ -38,7 +38,7 @@ logo-heptatom.pdf logo-text-nodrop.pdf:
 
 #: The build of the documentation which is derived from docstrings in the Python code and doctest data
 documentation.tex: $(DOCTEST_LATEX_DATA_PCL) 1-Manual.mdoc
-  $(PYTHON) ./doc2latex.py $(MATHICS3_MODULE_OPTION) && $(BASH) ./sed-hack.sh
+	$(PYTHON) ./doc2latex.py $(MATHICS3_MODULE_OPTION) && $(BASH) ./sed-hack.sh
 
 #: Same as mathics.pdf
 pdf latex: mathics.pdf

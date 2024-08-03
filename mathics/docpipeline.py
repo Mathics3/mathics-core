@@ -332,7 +332,7 @@ def show_test_summary(
     failed = test_status.failed
     print()
     if test_status.total == 0:
-        test_parameters.print_and_log(
+        test_pipeline.print_and_log(
             f"No {entity_name} found with a name in: {entities_searched}.",
         )
         if "MATHICS_DEBUG_TEST_CREATE" not in os.environ:
@@ -345,7 +345,6 @@ def show_test_summary(
             )
     else:
         test_pipeline.print_and_log("All tests passed.")
-
 
     if test_parameters.data_path and (failed == 0 or test_parameters.keep_going):
         save_doctest_data(test_pipeline)
@@ -369,6 +368,7 @@ def section_tests_iterator(
         subsections = [chapter.doc] + subsections
     if section.subsections:
         subsections = subsections + section.subsections
+
     for subsection in subsections:
         if (
             include_subsections is not None
@@ -744,10 +744,6 @@ def write_doctest_data(doctest_pipeline: DocTestPipeline):
         print(f"Extracting internal doc data for {version_string}")
         print("This may take a while...")
 
-    doctest_latex_data_path = settings.get_doctest_latex_data_path(
-        should_be_readable=False, create_parent=True
-    )
-
     try:
         doctest_pipeline.output_data = (
             load_doctest_data(test_parameters.data_path)
@@ -895,6 +891,7 @@ def build_arg_parser():
         help="print cache statistics",
     )
     return parser.parse_args()
+
 
 def main():
     """main"""
