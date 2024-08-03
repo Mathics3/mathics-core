@@ -1,24 +1,25 @@
 #!/usr/bin/env python
 
-from mathics.builtin import modules, sanity_check, is_builtin, Builtin
 import sys
 
+from mathics.core.builtin import Builtin
+from mathics.core.load_builtin import (
+    import_and_load_builtins,
+    modules,
+    name_is_builtin_symbol,
+)
 
-def generate_avaliable_builtins_names():
+import_and_load_builtins()
+
+
+def generate_available_builtins_names():
     msg = ""
     builtins_by_name = {}
     for module in modules:
         vars = dir(module)
         for name in vars:
-            var = getattr(module, name)
-            if (
-                hasattr(var, "__module__")
-                and var.__module__.startswith("mathics.builtin.")
-                and var.__module__ != "mathics.builtin.base"
-                and is_builtin(var)
-                and not name.startswith("_")
-                and var.__module__ == module.__name__
-            ):  # nopep8
+            var = name_is_builtin_symbol(module, name)
+            if var is not None:
                 instance = var(expression=False)
                 if isinstance(instance, Builtin):
                     # This set the default context for symbols in mathics.builtins
@@ -44,7 +45,7 @@ def generate_avaliable_builtins_names():
 
 
 def build_builtin_manifest():
-    builtins_by_name = generate_avaliable_builtins_names()
+    builtins_by_name = generate_available_builtins_names()
     with open("SYMBOLS_MANIFEST.txt", "w") as f_out:
         for key in sorted(key for key in builtins_by_name):
             f_out.write(key + "\n")
@@ -52,7 +53,7 @@ def build_builtin_manifest():
 
 def check_manifest():
     status_OK = True
-    builtins_by_name = generate_avaliable_builtins_names()
+    builtins_by_name = generate_available_builtins_names()
     with open("SYMBOLS_MANIFEST.txt", "r") as f_in:
         manifest_symbols = {name[:-1]: "OK" for name in f_in.readlines()}
     # Check that all the Symbols in the manifest are available

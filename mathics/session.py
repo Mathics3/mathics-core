@@ -10,10 +10,11 @@ In particular we provide:
 """
 
 import os.path as osp
-from mathics.core.definitions import autoload_files
-from mathics.core.parser import parse, MathicsSingleLineFeeder
-from mathics.core.definitions import Definitions
-from mathics.core.evaluation import Evaluation
+from typing import Optional
+
+from mathics.core.definitions import Definitions, autoload_files
+from mathics.core.evaluation import Evaluation, Result
+from mathics.core.parser import MathicsSingleLineFeeder, parse
 
 
 def load_default_settings_files(
@@ -33,7 +34,9 @@ def load_default_settings_files(
 
 
 def get_settings_value(definitions: Definitions, setting_name: str):
-    """Get a Mathics Settings` value with name "setting_name" from definitions. If setting_name is not defined return None"""
+    """Get a Mathics Settings` value with name "setting_name" from
+    definitions. If setting_name is not defined return None.
+    """
     settings_value = definitions.get_ownvalue(setting_name)
     if settings_value is None:
         return None
@@ -53,7 +56,22 @@ class MathicsSession:
     it and evaluating it in the context of the current session.
     """
 
-    def __init__(self, add_builtin=True, catch_interrupt=False, form="InputForm"):
+    def __init__(
+        self,
+        add_builtin=True,
+        catch_interrupt=False,
+        form="InputForm",
+        character_encoding: Optional[str] = None,
+    ):
+        # FIXME: This import is needed because
+        # the first time we call self.reset,
+        # the formats must be already loaded.
+        # The need of importing this module here seems
+        # to be related to an issue in the modularity design.
+        import mathics.format
+
+        if character_encoding is not None:
+            mathics.settings.SYSTEM_CHARACTER_ENCODING = character_encoding
         self.form = form
         self.reset(add_builtin, catch_interrupt)
 
@@ -61,19 +79,44 @@ class MathicsSession:
         """
         reset the definitions and the evaluation objects.
         """
-        self.definitions = Definitions(add_builtin)
+        try:
+            self.definitions = Definitions(add_builtin)
+        except KeyError:
+            from mathics.core.load_builtin import import_and_load_builtins
+
+            import_and_load_builtins()
+            self.definitions = Definitions(add_builtin)
+
         self.evaluation = Evaluation(
             definitions=self.definitions, catch_interrupt=catch_interrupt
         )
         self.last_result = None
 
     def evaluate(self, str_expression, timeout=None, form=None):
+        """Parse str_expression and evaluate using the `evaluate` method of the Expression"""
         self.evaluation.out.clear()
         expr = parse(self.definitions, MathicsSingleLineFeeder(str_expression))
         if form is None:
             form = self.form
         self.last_result = expr.evaluate(self.evaluation)
         return self.last_result
+
+    def evaluate_as_in_cli(self, str_expression, timeout=None, form=None, src_name=""):
+        """This method parse and evaluate the expression using the session.evaluation.evaluate method"""
+        query = self.evaluation.parse(str_expression, src_name)
+        if query is not None:
+            res = self.evaluation.evaluate(query, timeout=timeout, format=form)
+        else:
+            res = Result(
+                self.evaluation.out,
+                None,
+                self.evaluation.definitions.get_line_no(),
+                None,
+                form,
+            )
+            self.evaluation.out = []
+        self.evaluation.stopped = False
+        return res
 
     def format_result(self, str_expression=None, timeout=None, form=None):
         if str_expression:
@@ -83,3 +126,11 @@ class MathicsSession:
         if form is None:
             form = self.form
         return res.do_format(self.evaluation, form)
+
+    def parse(self, str_expression, src_name=""):
+        """
+        Just parse the expression
+        """
+        return parse(
+            self.definitions, MathicsSingleLineFeeder(str_expression, src_name)
+        )

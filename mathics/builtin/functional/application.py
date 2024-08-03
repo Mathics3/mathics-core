@@ -10,16 +10,11 @@ sort_order = "mathics.builtin.function-application"
 
 from itertools import chain
 
-
-from mathics.builtin.base import Builtin, PostfixOperator
-from mathics.core.expression import Expression
-
-from mathics.core.attributes import (
-    hold_all as A_HOLD_ALL,
-    n_hold_all as A_N_HOLD_ALL,
-    protected as A_PROTECTED,
-)
+from mathics.core.attributes import A_HOLD_ALL, A_N_HOLD_ALL, A_PROTECTED
+from mathics.core.builtin import Builtin, PostfixOperator
 from mathics.core.convert.sympy import SymbolFunction
+from mathics.core.evaluation import Evaluation
+from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 
 
@@ -63,11 +58,31 @@ class Function(PostfixOperator):
     >> g[#] & [h[#]] & [5]
      = g[h[5]]
 
-    #> g[x_,y_] := x+y
-    #> g[Sequence@@Slot/@Range[2]]&[1,2]
-     = #1 + #2
-    #> Evaluate[g[Sequence@@Slot/@Range[2]]]&[1,2]
-     = 3
+    In the evaluation process, the attributes associated with an Expression are \
+    determined by its Head.  If the Head is also a non-atomic Expression, in general,\
+    no Attribute is assumed. In particular, it is what happens when the head \
+    of the expression has the form:
+
+    ``Function[$body$]``
+    or:
+    ``Function[$vars$, $body$]``
+
+    >> h := Function[{x}, Hold[1+x]]
+    >> h[1 + 1]
+     = Hold[1 + 2]
+
+    Notice that $Hold$ in the body prevents the evaluation of $1+x$, but not \
+    the evaluation of $1+1$. To avoid that evaluation, of its arguments, the Head \
+    should have the attribute 'HoldAll'. This behavior can be obtained by using the \
+    three arguments form version of this expression:
+
+    >> h:= Function[{x}, Hold[1+x], HoldAll]
+    >> h[1+1]
+     = Hold[1 + (1 + 1)]
+
+    In this case, the attribute 'HoldAll' is assumed, \
+    preventing the evaluation of the argument $1+1$ before passing it \
+    to the function body.
     """
 
     operator = "&"
@@ -82,13 +97,13 @@ class Function(PostfixOperator):
     }
     summary_text = "define an anonymous (pure) function"
 
-    def apply_slots(self, body, args, evaluation):
+    def eval_slots(self, body, args, evaluation: Evaluation):
         "Function[body_][args___]"
 
         args = list(chain([Expression(SymbolFunction, body)], args.get_sequence()))
         return body.replace_slots(args, evaluation)
 
-    def apply_named(self, vars, body, args, evaluation):
+    def eval_named(self, vars, body, args, evaluation: Evaluation):
         "Function[vars_, body_][args___]"
 
         if vars.has_form("List", None):
@@ -113,11 +128,11 @@ class Function(PostfixOperator):
             vars = dict(list(zip(var_names, args[: len(vars)])))
             try:
                 return body.replace_vars(vars)
-            except:
+            except Exception:
                 return
 
     # Not sure if DRY is possible here...
-    def apply_named_attr(self, vars, body, attr, args, evaluation):
+    def eval_named_attr(self, vars, body, attr, args, evaluation: Evaluation):
         "Function[vars_, body_, attr_][args___]"
         if vars.has_form("List", None):
             vars = vars.elements
@@ -131,19 +146,21 @@ class Function(PostfixOperator):
             vars = dict(list(zip((var.get_name() for var in vars), args[: len(vars)])))
             try:
                 return body.replace_vars(vars)
-            except:
+            except Exception:
                 return
 
 
 class Slot(Builtin):
     """
     <dl>
-    <dt>'#$n$'
-        <dd>represents the $n$th argument to a pure function.
-        <dt>'#'
-        <dd>is short-hand for '#1'.
-        <dt>'#0'
-        <dd>represents the pure function itself.
+      <dt>'#$n$'
+      <dd>represents the $n$th argument to a pure function.
+
+      <dt>'#'
+      <dd>is short-hand for '#1'.
+
+      <dt>'#0'
+      <dd>represents the pure function itself.
     </dl>
 
     X> #
@@ -156,12 +173,6 @@ class Slot(Builtin):
     Recursive pure functions can be written using '#0':
     >> If[#1<=1, 1, #1 #0[#1-1]]& [10]
      = 3628800
-
-    #> # // InputForm
-     = #1
-
-    #> #0 // InputForm
-     = #0
     """
 
     attributes = A_N_HOLD_ALL | A_PROTECTED
@@ -178,10 +189,11 @@ class Slot(Builtin):
 class SlotSequence(Builtin):
     """
     <dl>
-    <dt>'##'
-        <dd>is the sequence of arguments supplied to a pure function.
-    <dt>'##$n$'
-        <dd>starts with the $n$th argument.
+      <dt>'##'
+      <dd>is the sequence of arguments supplied to a pure function.
+
+      <dt>'##$n$'
+      <dd>starts with the $n$th argument.
     </dl>
 
     >> Plus[##]& [1, 2, 3]
@@ -191,9 +203,6 @@ class SlotSequence(Builtin):
 
     >> FullForm[##]
      = SlotSequence[1]
-
-    #> ## // InputForm
-     = ##1
     """
 
     attributes = A_N_HOLD_ALL | A_PROTECTED

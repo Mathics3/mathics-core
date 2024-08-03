@@ -3,23 +3,23 @@
 """
 Number theoretic functions
 """
-
 import mpmath
 import sympy
+from packaging.version import Version
 
-from mathics.builtin.base import Builtin, SympyFunction
-from mathics.core.atoms import Integer, Integer0, Integer10, Rational
+from mathics.core.atoms import Integer, Integer0, Integer10, Rational, Real
 from mathics.core.attributes import (
-    listable as A_LISTABLE,
-    numeric_function as A_NUMERIC_FUNCTION,
-    orderless as A_ORDERLESS,
-    protected as A_PROTECTED,
-    read_protected as A_READ_PROTECTED,
+    A_LISTABLE,
+    A_NUMERIC_FUNCTION,
+    A_ORDERLESS,
+    A_PROTECTED,
+    A_READ_PROTECTED,
 )
+from mathics.core.builtin import Builtin, SympyFunction
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_bool, from_python
 from mathics.core.convert.sympy import SympyPrime, from_sympy
-from mathics.core.evaluators import eval_N
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolDivide, SymbolFalse
@@ -30,6 +30,7 @@ from mathics.core.systemsymbols import (
     SymbolIm,
     SymbolRe,
 )
+from mathics.eval.nevaluator import eval_N
 
 SymbolFractionalPart = Symbol("System`FractionalPart")
 SymbolMantissaExponent = Symbol("System`MantissaExponent")
@@ -37,7 +38,10 @@ SymbolMantissaExponent = Symbol("System`MantissaExponent")
 
 class ContinuedFraction(SympyFunction):
     """
-    <url>:Continued fraction: https://en.wikipedia.org/wiki/Continued_fraction</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/ntheory.html#module-sympy.ntheory.continued_fraction</url>, <url>:WMA: https://reference.wolfram.com/language/ref/ContinuedFraction.html</url>)
+    <url>:Continued fraction:
+    https://en.wikipedia.org/wiki/Continued_fraction</url> (<url>
+    :SymPy: https://docs.sympy.org/latest/modules/ntheory.html#module-sympy.ntheory.continued_fraction</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/ContinuedFraction.html</url>)
     <dl>
       <dt>'ContinuedFraction[$x$, $n$]'
       <dd>generate the first $n$ terms in the continued fraction representation of $x$.
@@ -60,13 +64,13 @@ class ContinuedFraction(SympyFunction):
     summary_text = "continued fraction expansion"
     sympy_name = "continued_fraction"
 
-    def apply_1(self, x, evaluation):
+    def eval(self, x, evaluation: Evaluation):
         "%(name)s[x_]"
-        return super().apply(x, evaluation)
+        return super().eval(x, evaluation)
 
-    def apply_2(self, x, n, evaluation):
+    def eval_with_n(self, x, n: Integer, evaluation: Evaluation):
         "%(name)s[x_, n_Integer]"
-        py_n = n.to_python()
+        py_n = n.value
         sympy_x = x.to_sympy()
         it = sympy.continued_fraction_iterator(sympy_x)
         return from_sympy([next(it) for _ in range(py_n)])
@@ -74,6 +78,8 @@ class ContinuedFraction(SympyFunction):
 
 class Divisors(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Divisors.html</url>
+
     <dl>
     <dt>'Divisors[$n$]'
         <dd>returns a list of the integers that divide $n$.
@@ -85,14 +91,6 @@ class Divisors(Builtin):
      = {1, 2, 4, 8, 11, 16, 22, 32, 44, 64, 88, 176, 352, 704}
     >> Divisors[{87, 106, 202, 305}]
      = {{1, 3, 29, 87}, {1, 2, 53, 106}, {1, 2, 101, 202}, {1, 5, 61, 305}}
-    #> Divisors[0]
-     = Divisors[0]
-    #> Divisors[{-206, -502, -1702, 9}]
-     = {{1, 2, 103, 206}, {1, 2, 251, 502}, {1, 2, 23, 37, 46, 74, 851, 1702}, {1, 3, 9}}
-    #> Length[Divisors[1000*369]]
-     = 96
-    #> Length[Divisors[305*176*369*100]]
-     = 672
     """
 
     # TODO: support GaussianIntegers
@@ -100,7 +98,7 @@ class Divisors(Builtin):
     attributes = A_LISTABLE | A_PROTECTED
     summary_text = "integer divisors"
 
-    def apply(self, n, evaluation):
+    def eval(self, n: Integer, evaluation: Evaluation):
         "Divisors[n_Integer]"
         if n == Integer0:
             return None
@@ -129,7 +127,7 @@ class Divisors(Builtin):
 #
 #    attributes = A_LISTABLE | A_PROTECTED
 #
-#    def apply(self, ns, evaluation):
+#    def eval(self, ns, evaluation: Evaluation):
 #        'ExtendedGCD[ns___Integer]'
 #
 #        ns = ns.get_sequence()
@@ -182,13 +180,15 @@ class EulerPhi(SympyFunction):
     summary_text = "Euler totient function"
     sympy_name = "totient"
 
-    def apply(self, n, evaluation):
+    def eval(self, n: Integer, evaluation: Evaluation):
         "EulerPhi[n_Integer]"
-        return super().apply(abs(n), evaluation)
+        return super().eval(abs(n), evaluation)
 
 
 class FactorInteger(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FactorInteger.html</url>
+
     <dl>
       <dt>'FactorInteger[$n$]'
       <dd>returns the factorization of $n$ as a list of factors and exponents.
@@ -210,7 +210,7 @@ class FactorInteger(Builtin):
     # TODO: GausianIntegers option
     # e.g. FactorInteger[5, GaussianIntegers -> True]
 
-    def apply(self, n, evaluation):
+    def eval(self, n, evaluation: Evaluation):
         "FactorInteger[n_]"
 
         if isinstance(n, Integer):
@@ -231,10 +231,10 @@ class FactorInteger(Builtin):
                 *(to_mathics_list(factor, exp) for factor, exp in factors)
             )
         else:
-            return evaluation.message("FactorInteger", "exact", n)
+            evaluation.message("FactorInteger", "exact", n)
 
 
-def _fractional_part(self, n, expr, evaluation):
+def _fractional_part(self, n, expr, evaluation: Evaluation):
     n_sympy = n.to_sympy()
     if n_sympy.is_constant():
         if n_sympy >= 0:
@@ -255,6 +255,8 @@ def _fractional_part(self, n, expr, evaluation):
 
 class FractionalPart(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FractionalPart.html</url>
+
     <dl>
     <dt>'FractionalPart[$n$]'
         <dd>finds the fractional part of $n$.
@@ -265,32 +267,17 @@ class FractionalPart(Builtin):
 
     >> FractionalPart[-5.25]
      = -0.25
-
-    #> FractionalPart[b]
-     = FractionalPart[b]
-
-    #> FractionalPart[{-2.4, -2.5, -3.0}]
-     = {-0.4, -0.5, 0.}
-
-    #> FractionalPart[14/32]
-     = 7 / 16
-
-    #> FractionalPart[4/(1 + 3 I)]
-     = 2 / 5 - I / 5
-
-    #> FractionalPart[Pi^20]
-     = -8769956796 + Pi ^ 20
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_READ_PROTECTED | A_PROTECTED
     summary_text = "fractional part of a number"
 
-    def apply(self, n, evaluation):
+    def eval(self, n, evaluation: Evaluation):
         "FractionalPart[n_]"
         expr = Expression(SymbolFractionalPart, n)
         return _fractional_part(self.__class__.__name__, n, expr, evaluation)
 
-    def apply_2(self, n, evaluation):
+    def eval_complex_n(self, n, evaluation: Evaluation):
         "FractionalPart[n_Complex]"
         expr = Expression(SymbolFractionalPart, n)
         n_real = Expression(SymbolRe, n).evaluate(evaluation)
@@ -307,6 +294,10 @@ class FractionalPart(Builtin):
 
 class FromContinuedFraction(SympyFunction):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/FromContinuedFraction.html</url>
+
     <dl>
       <dt>'FromContinuedFraction[$list$]'
       <dd>reconstructs a number from the list of its continued fraction terms.
@@ -324,7 +315,7 @@ class FromContinuedFraction(SympyFunction):
     summary_text = "reconstructs a number from its continued fraction representation"
     sympy_name = "continued_fraction_reduce"
 
-    def apply_1(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation):
         "%(name)s[expr_List]"
         nums = expr.to_python()
         if all(isinstance(i, int) for i in nums):
@@ -333,11 +324,16 @@ class FromContinuedFraction(SympyFunction):
 
 class MantissaExponent(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/MantissaExponent.html</url>
+
     <dl>
-    <dt>'MantissaExponent[$n$]'
-        <dd>finds a list containing the mantissa and exponent of a given number $n$.
-    <dt>'MantissaExponent[$n$, $b$]'
-        <dd>finds the base b mantissa and exponent of $n$.
+      <dt>'MantissaExponent[$n$]'
+      <dd>finds a list containing the mantissa and exponent of a given number $n$.
+
+      <dt>'MantissaExponent[$n$, $b$]'
+      <dd>finds the base b mantissa and exponent of $n$.
     </dl>
 
     >> MantissaExponent[2.5*10^20]
@@ -351,47 +347,6 @@ class MantissaExponent(Builtin):
 
     >> MantissaExponent[10, b]
      = MantissaExponent[10, b]
-
-    #> MantissaExponent[E, Pi]
-     = {E / Pi, 1}
-
-    #> MantissaExponent[Pi, Pi]
-     = {1 / Pi, 2}
-
-    #> MantissaExponent[5/2 + 3, Pi]
-     = {11 / (2 Pi ^ 2), 2}
-
-    #> MantissaExponent[b]
-     = MantissaExponent[b]
-
-    #> MantissaExponent[17, E]
-     = {17 / E ^ 3, 3}
-
-    #> MantissaExponent[17., E]
-     = {0.84638, 3}
-
-    #> MantissaExponent[Exp[Pi], 2]
-     = {E ^ Pi / 32, 5}
-
-    #> MantissaExponent[3 + 2 I, 2]
-     : The value 3 + 2 I is not a real number
-     = MantissaExponent[3 + 2 I, 2]
-
-    #> MantissaExponent[25, 0.4]
-     : Base 0.4 is not a real number greater than 1.
-     = MantissaExponent[25, 0.4]
-
-    #> MantissaExponent[0.0000124]
-     = {0.124, -4}
-
-    #> MantissaExponent[0.0000124, 2]
-     = {0.812646, -16}
-
-    #> MantissaExponent[0]
-     = {0, 0}
-
-    #> MantissaExponent[0, 2]
-     = {0, 0}
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -405,7 +360,27 @@ class MantissaExponent(Builtin):
     }
     summary_text = "decomposes numbers as mantissa and exponent"
 
-    def apply(self, n, b, evaluation):
+    def eval(self, n, evaluation: Evaluation):
+        "MantissaExponent[n_]"
+        n_sympy = n.to_sympy()
+        expr = Expression(SymbolMantissaExponent, n)
+
+        if isinstance(n.to_python(), complex):
+            evaluation.message("MantissaExponent", "realx", n)
+            return expr
+        # Handle Input with special cases such as PI and E
+        if n_sympy.is_constant():
+            temp_n = eval_N(n, evaluation)
+            py_n = temp_n.to_python()
+        else:
+            return expr
+
+        base_exp = int(mpmath.log10(py_n))
+        exp = Integer((base_exp + 1) if base_exp >= 0 else base_exp)
+
+        return ListExpression(Expression(SymbolDivide, n, Integer10**exp), exp)
+
+    def eval_with_b(self, n, b, evaluation: Evaluation):
         "MantissaExponent[n_, b_]"
         # Handle Input with special cases such as PI and E
         n_sympy, b_sympy = n.to_sympy(), b.to_sympy()
@@ -437,29 +412,11 @@ class MantissaExponent(Builtin):
         exp = Integer((base_exp + 1) if base_exp >= 0 else base_exp)
         return ListExpression(Expression(SymbolDivide, n, b**exp), exp)
 
-    def apply_2(self, n, evaluation):
-        "MantissaExponent[n_]"
-        n_sympy = n.to_sympy()
-        expr = Expression(SymbolMantissaExponent, n)
-
-        if isinstance(n.to_python(), complex):
-            evaluation.message("MantissaExponent", "realx", n)
-            return expr
-        # Handle Input with special cases such as PI and E
-        if n_sympy.is_constant():
-            temp_n = eval_N(n, evaluation)
-            py_n = temp_n.to_python()
-        else:
-            return expr
-
-        base_exp = int(mpmath.log10(py_n))
-        exp = Integer((base_exp + 1) if base_exp >= 0 else base_exp)
-
-        return ListExpression(Expression(SymbolDivide, n, Integer10**exp), exp)
-
 
 class NextPrime(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/NextPrime.html</url>
+
     <dl>
       <dt>'NextPrime[$n$]'
       <dd>gives the next prime after $n$.
@@ -492,10 +449,25 @@ class NextPrime(Builtin):
     }
     summary_text = "closest, smallest prime number"
 
-    def apply(self, n, k, evaluation):
+    def eval(self, n, k: Integer, evaluation: Evaluation):
         "NextPrime[n_?NumberQ, k_Integer]"
-        py_k = k.to_python(n_evaluation=evaluation)
-        py_n = n.to_python(n_evaluation=evaluation)
+
+        def to_int_value(x):
+            if isinstance(x, Integer):
+                return x.value
+            x = eval_N(x, evaluation)
+            if isinstance(x, Integer):
+                return x.value
+            elif isinstance(x, Real):
+                return round(x.value)
+            else:
+                return None
+
+        py_k = to_int_value(k)
+        if py_k is None:
+            return None
+
+        py_n = n.value
 
         if py_k >= 0:
             return Integer(sympy.ntheory.nextprime(py_n, py_k))
@@ -504,7 +476,8 @@ class NextPrime(Builtin):
         result = n.to_python()
         for i in range(-py_k):
             try:
-                result = sympy.ntheory.prevprime(result)
+                # from sympy 1.13, the previous prime to 2 fails...
+                result = -2 if result == 2 else sympy.ntheory.prevprime(result)
             except ValueError:
                 # No earlier primes
                 return Integer(-1 * sympy.ntheory.nextprime(0, py_k - i))
@@ -514,6 +487,9 @@ class NextPrime(Builtin):
 
 class PartitionsP(SympyFunction):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/PartitionsP.html</url>
+
     <dl>
       <dt>'PartitionsP[$n$]'
       <dd>return the number $p$($n$) of unrestricted partitions of the integer $n$.
@@ -525,15 +501,22 @@ class PartitionsP(SympyFunction):
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_ORDERLESS | A_PROTECTED
     summary_text = "number of unrestricted partitions"
-    sympy_name = "npartitions"
+    # The name of this function changed in Sympy version 1.13.0.
+    # This supports backward compatibility.
+    sympy_name = (
+        "npartitions" if Version(sympy.__version__) < Version("1.13.0") else "partition"
+    )
 
-    def apply(self, n, evaluation):
+    def eval(self, n, evaluation: Evaluation):
         "PartitionsP[n_Integer]"
-        return super().apply(n, evaluation)
+        return super().eval(n, evaluation)
 
 
 class Prime(SympyFunction):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Prime.html</url>
+
     <dl>
       <dt>'Prime[$n$]'
       <dt>'Prime'[{$n0$, $n1$, ...}]
@@ -564,7 +547,7 @@ class Prime(SympyFunction):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     summary_text = "n-esim prime number"
 
-    def apply(self, n, evaluation):
+    def eval(self, n, evaluation: Evaluation):
         "Prime[n_]"
         return from_sympy(SympyPrime(n.to_sympy()))
 
@@ -575,6 +558,8 @@ class Prime(SympyFunction):
 
 class PrimePi(SympyFunction):
     """
+    <url>:Prime numbers:https://reference.wolfram.com/language/ref/PrimePi.html</url>
+
     <dl>
     <dt>'PrimePi[$x$]'
         <dd>gives the number of primes less than or equal to $x$.
@@ -600,18 +585,20 @@ class PrimePi(SympyFunction):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     mpmath_name = "primepi"
     summary_text = "amount of prime numbers less than or equal"
-    sympy_name = "ntheory.primepi"
+    sympy_name = "primepi"
 
     # TODO: Traditional Form
 
-    def apply(self, n, evaluation):
+    def eval(self, n, evaluation: Evaluation):
         "PrimePi[n_?NumericQ]"
-        result = sympy.ntheory.primepi(n.to_python(n_evaluation=evaluation))
+        result = sympy.primepi(eval_N(n, evaluation).to_python())
         return Integer(result)
 
 
 class PrimePowerQ(Builtin):
     """
+    <url>:Prime numbers:https://reference.wolfram.com/language/ref/PrimePowerQ.html</url>
+
     <dl>
     <dt>'PrimePowerQ[$n$]'
         <dd>returns 'True' if $n$ is a power of a prime number.
@@ -628,9 +615,6 @@ class PrimePowerQ(Builtin):
 
     >> PrimePowerQ[371293]
      = True
-
-    #> PrimePowerQ[1]
-     = False
     """
 
     attributes = A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
@@ -641,23 +625,23 @@ class PrimePowerQ(Builtin):
 
     # TODO: GaussianIntegers option
     """
-    #> PrimePowerQ[5, GaussianIntegers -> True]
+    ##> PrimePowerQ[5, GaussianIntegers -> True]
      = False
     """
 
     # TODO: Complex args
     """
-    #> PrimePowerQ[{3 + I, 3 - 2 I, 3 + 4 I, 9 + 7 I}]
+    ##> PrimePowerQ[{3 + I, 3 - 2 I, 3 + 4 I, 9 + 7 I}]
      = {False, True, True, False}
     """
 
     # TODO: Gaussian rationals
     """
-    #> PrimePowerQ[2/125 - 11 I/125]
+    ##> PrimePowerQ[2/125 - 11 I/125]
      = True
     """
 
-    def apply(self, n, evaluation):
+    def eval(self, n, evaluation: Evaluation):
         "PrimePowerQ[n_]"
         n = n.get_int_value()
         if n is None:
@@ -669,6 +653,8 @@ class PrimePowerQ(Builtin):
 
 class RandomPrime(Builtin):
     """
+    <url>:Prime numbers:https://reference.wolfram.com/language/ref/RandomPrime.html</url>
+
     <dl>
       <dt>'RandomPrime[{$imin$, $imax}]'
       <dd>gives a random prime between $imin$ and $imax$.
@@ -692,12 +678,6 @@ class RandomPrime(Builtin):
 
     >> RandomPrime[{10,30}, {2,5}]
      = ...
-
-    #> RandomPrime[{10,12}, {2,2}]
-     = {{11, 11}, {11, 11}}
-
-    #> RandomPrime[2, {3,2}]
-     = {{2, 2}, {2, 2}, {2, 2}}
     """
 
     messages = {
@@ -728,7 +708,7 @@ class RandomPrime(Builtin):
 
     # TODO: Use random state as in other randomised methods within mathics
 
-    def apply(self, interval, n, evaluation):
+    def eval(self, interval, n, evaluation: Evaluation):
         "RandomPrime[interval_List, n_]"
 
         if not isinstance(n, Integer):

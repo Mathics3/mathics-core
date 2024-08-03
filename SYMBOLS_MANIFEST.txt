@@ -40,10 +40,13 @@ System`$Machine
 System`$MachineEpsilon
 System`$MachineName
 System`$MachinePrecision
+System`$MaxMachineNumber
 System`$MaxPrecision
+System`$MinMachineNumber
 System`$MinPrecision
 System`$ModuleNumber
 System`$OperatingSystem
+System`$OutputForms
 System`$Packages
 System`$ParentProcessID
 System`$Path
@@ -52,8 +55,10 @@ System`$Post
 System`$Pre
 System`$PrePrint
 System`$PreRead
+System`$PrintForms
 System`$ProcessID
 System`$ProcessorType
+System`$PythonImplementation
 System`$RandomState
 System`$RecursionLimit
 System`$RootDirectory
@@ -79,6 +84,7 @@ System`AbsoluteThickness
 System`AbsoluteTime
 System`AbsoluteTiming
 System`Accumulate
+System`Accuracy
 System`AddTo
 System`AiryAi
 System`AiryAiPrime
@@ -207,7 +213,6 @@ System`Coefficient
 System`CoefficientArrays
 System`CoefficientList
 System`Collect
-System`ColorCombine
 System`ColorConvert
 System`ColorData
 System`ColorDataFunction
@@ -221,6 +226,7 @@ System`CompiledCodeBox
 System`CompiledFunction
 System`Complement
 System`Complex
+System`ComplexExpand
 System`ComplexInfinity
 System`Complexes
 System`CompositeQ
@@ -241,9 +247,8 @@ System`Continue
 System`ContinuedFraction
 System`Convert`B64Dump`B64Decode
 System`Convert`B64Dump`B64Encode
-System`Convert`CommonDump`RemoveLinearSyntax
-System`ConvertersDump`$extensionMappings
-System`ConvertersDump`$formatMappings
+System`ConvertersDump`$ExtensionMappings
+System`ConvertersDump`$FormatMappings
 System`CoprimeQ
 System`CopyDirectory
 System`CopyFile
@@ -263,6 +268,7 @@ System`Csc
 System`CubeRoot
 System`Cuboid
 System`Cuboid3DBox
+System`Curl
 System`Cyan
 System`Cylinder
 System`Cylinder3DBox
@@ -307,6 +313,7 @@ System`DirectoryName
 System`DirectoryQ
 System`DirectoryStack
 System`DiscreteLimit
+System`DiscretePlot
 System`DisjointQ
 System`Disk
 System`DiskBox
@@ -330,6 +337,7 @@ System`EditDistance
 System`Eigensystem
 System`Eigenvalues
 System`Eigenvectors
+System`Element
 System`ElementData
 System`EllipticE
 System`EllipticF
@@ -458,7 +466,7 @@ System`Hash
 System`Haversine
 System`Head
 System`HermiteH
-System`HexidecimalCharacter
+System`HexadecimalCharacter
 System`Histogram
 System`Hold
 System`HoldAll
@@ -546,6 +554,7 @@ System`Keys
 System`Khinchin
 System`KnownUnitQ
 System`KroneckerProduct
+System`Kurtosis
 System`LABColor
 System`LCHColor
 System`LCM
@@ -565,6 +574,7 @@ System`LessEqual
 System`LetterCharacter
 System`LetterNumber
 System`LetterQ
+System`LeviCivitaTensor
 System`Level
 System`LevelQ
 System`LightBlue
@@ -587,6 +597,7 @@ System`LinearModelFit
 System`LinearSolve
 System`List
 System`ListLinePlot
+System`ListLogPlot
 System`ListPlot
 System`ListQ
 System`Listable
@@ -596,6 +607,7 @@ System`Log
 System`Log10
 System`Log2
 System`LogGamma
+System`LogPlot
 System`LogisticSigmoid
 System`Longest
 System`Lookup
@@ -605,7 +617,6 @@ System`MachinePrecision
 System`Magenta
 System`MakeBoxes
 System`ManhattanDistance
-System`Manipulate
 System`MantissaExponent
 System`Map
 System`MapAt
@@ -679,6 +690,7 @@ System`Null
 System`NullSpace
 System`Number
 System`NumberForm
+System`NumberLinePlot
 System`NumberQ
 System`NumberString
 System`Numerator
@@ -730,7 +742,6 @@ System`Pi
 System`Pick
 System`PieChart
 System`Piecewise
-System`PillowImageFilter
 System`Pink
 System`PixelValue
 System`PixelValuePositions
@@ -760,6 +771,7 @@ System`PowerMod
 System`PreDecrement
 System`PreIncrement
 System`Precedence
+System`PrecedenceForm
 System`Precision
 System`Prefix
 System`Prepend
@@ -772,7 +784,6 @@ System`Print
 System`PrintTrace
 System`Private`$ContextPathStack
 System`Private`$ContextStack
-System`Private`ManipulateParameter
 System`Product
 System`ProductLog
 System`Projection
@@ -814,18 +825,22 @@ System`Read
 System`ReadList
 System`ReadProtected
 System`Real
+System`RealAbs
 System`RealDigits
 System`RealNumberQ
+System`RealSign
 System`Reals
 System`Reap
 System`Record
 System`Rectangle
 System`RectangleBox
+System`Rectangular
 System`Red
 System`RegularExpression
 System`RegularPolygon
 System`RegularPolygonBox
 System`ReleaseHold
+System`Remove
 System`RemoveDiacritics
 System`RenameDirectory
 System`RenameFile
@@ -872,18 +887,21 @@ System`SetAttributes
 System`SetDelayed
 System`SetDirectory
 System`SetFileDate
+System`SetOptions
 System`SetStreamPosition
 System`Share
 System`Sharpen
 System`ShearingTransform
 System`Shortest
 System`Show
+System`ShowStringCharacters
 System`Sign
 System`Simplify
 System`Sin
 System`SingularValueDecomposition
 System`Sinh
 System`SixJSymbol
+System`Skewness
 System`Skip
 System`Slot
 System`SlotSequence

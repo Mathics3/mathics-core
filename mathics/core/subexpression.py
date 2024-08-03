@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 
+from mathics.core.atoms import Integer
+from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol
-from mathics.core.atoms import Integer
-from mathics.builtin.base import MessageException
 
 """
 This module provides some infrastructure to deal with SubExpressions.
@@ -289,7 +289,7 @@ class SubExpression:
     def to_expression(self):
         return Expression(
             self._headp.to_expression(),
-            *(element.to_expression() for element in self._elementsp)
+            *(element.to_expression() for element in self._elementsp),
         )
 
     def replace(self, new):

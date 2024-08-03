@@ -1,26 +1,25 @@
-from typing import Any
-from mathics.core.number import get_type
+# -*- coding: utf-8 -*-
+"""
+Conversions between Python and Mathics3
+"""
 
-from mathics.core.atoms import (
-    Complex,
-    Integer,
-    Real,
-    Rational,
-    String,
-)
+from typing import Any
+
+from mathics.core.atoms import Complex, Integer, Rational, Real, String
+from mathics.core.number import get_type
 from mathics.core.symbols import (
     BaseElement,
-    Symbol,
+    BooleanType,
     SymbolFalse,
     SymbolNull,
     SymbolTrue,
 )
-from mathics.core.systemsymbols import SymbolRule, SymbolByteArray
+from mathics.core.systemsymbols import SymbolByteArray, SymbolRule
 
 
-def from_bool(arg: bool) -> Symbol:
+def from_bool(arg: bool) -> BooleanType:
     """
-    Conversion from a bool to something Mathics can use.
+    Conversion from a bool to something Mathics3 can use.
     """
     return SymbolTrue if arg else SymbolFalse
 
@@ -32,7 +31,7 @@ def from_bool(arg: bool) -> Symbol:
 # Expression class which tried to handle anything given it using
 # conversions.
 # Also, through vague or lazy coding this cause a lot of
-# unecessary conversions.
+# unnecessary conversions.
 
 # We may be out of those days, but we should still
 # be mindful that this routine can be the source
@@ -44,7 +43,7 @@ def from_python(arg: Any) -> BaseElement:
     """Converts a Python expression into a Mathics expression.
 
     TODO: I think there are number of subtleties to be explained here.
-    In particular, the expression might beeen the result of evaluation
+    In particular, the expression might been the result of evaluation
     a sympy expression which contains sympy symbols.
 
     If the end result is to go back into Mathics for further
@@ -63,7 +62,7 @@ def from_python(arg: Any) -> BaseElement:
     number_type = get_type(arg)
 
     # We should investigate whether this could be sped up
-    # using a disctionary lookup on type.
+    # using a dictionary lookup on type.
     if arg is None:
         return SymbolNull
     if isinstance(arg, bool):

@@ -1,1 +1,1 @@
-# -*- coding: utf-8 -*-
+"""Unit tests for test.builtin.arithmetic"""

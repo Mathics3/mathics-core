@@ -10,7 +10,7 @@ import mpmath
 import pytest
 
 from mathics.builtin.compilation import CompiledCode
-from mathics.builtin.compile import has_llvmlite
+from mathics.compile import has_llvmlite
 from mathics.core.atoms import (
     Integer,
     Integer1,
@@ -32,7 +32,7 @@ from mathics.core.systemsymbols import (
 )
 
 if has_llvmlite:
-    from mathics.builtin.compile import (
+    from mathics.compile import (
         CompileArg,
         CompileError,
         _compile,
@@ -50,7 +50,6 @@ def test_compile_code():
         ("BesselJ[0,x]", 0.0, 1.0),
         ("Exp[BesselJ[0,x]-1.]", 0.0, 1.0),
     ]:
-
         expr = session.evaluate("Compile[{x}, " + str_expr + " ]")
         assert expr.get_head_name() == "System`CompiledFunction"
         assert len(expr.elements) == 3

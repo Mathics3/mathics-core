@@ -1,90 +1,61 @@
 # -*- coding: utf-8 -*-
-
-
 """
-Low level Format definitions 
+Low-level Format definitions
 """
+
+from typing import Optional, Tuple, Union
 
 import mpmath
 
-
-from mathics.builtin.base import Builtin, Predefined
-from mathics.builtin.box.layout import _boxed_string, RowBox, to_boxes
-from mathics.core.atoms import (
-    Integer,
-    Integer1,
-    Real,
-    PrecisionReal,
-    MachineReal,
-    String,
-)
-
-from mathics.core.attributes import (
-    hold_all_complete as A_HOLD_ALL_COMPLETE,
-    read_protected as A_READ_PROTECTED,
-)
-from mathics.core.element import BoxElementMixin
+from mathics.builtin.box.layout import RowBox, to_boxes
+from mathics.core.atoms import Integer, Integer1, Real, String
+from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_READ_PROTECTED
+from mathics.core.builtin import Builtin, Predefined
+from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
+from mathics.core.element import BaseElement, BoxElementMixin
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
-from mathics.core.number import (
-    dps,
-    convert_base,
-    machine_precision,
-    reconstruct_digits,
-)
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    SymbolFalse,
-    SymbolNull,
-    SymbolTrue,
-)
-
-from mathics.core.systemsymbols import (
-    SymbolAutomatic,
-    SymbolInfinity,
-    SymbolMakeBoxes,
-    SymbolOutputForm,
-    SymbolRowBox,
-    SymbolRuleDelayed,
+from mathics.core.number import dps
+from mathics.core.symbols import Atom, Symbol
+from mathics.core.systemsymbols import SymbolInputForm, SymbolOutputForm, SymbolRowBox
+from mathics.eval.makeboxes import (
+    NEVER_ADD_PARENTHESIS,
+    _boxed_string,
+    format_element,
+    parenthesize,
 )
 
 
-SymbolNumberForm = Symbol("System`NumberForm")
-SymbolSuperscriptBox = Symbol("System`SuperscriptBox")
-SymbolSubscriptBox = Symbol("System`SubscriptBox")
-
-
-def parenthesize(precedence, element, element_boxes, when_equal):
-    from mathics.builtin import builtins_precedence
-
-    while element.has_form("HoldForm", 1):
-        element = element.elements[0]
-
-    if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
-        element_prec = element.elements[2].value
-    elif element.has_form("PrecedenceForm", 2):
-        element_prec = element.elements[1].value
-    # For negative values, ensure that the element_precedence is at least the precedence. (Fixes #332)
-    elif isinstance(element, (Integer, Real)) and element.value < 0:
-        element_prec = precedence
+def int_to_tuple_info(integer: Integer) -> Tuple[str, int, bool]:
+    """
+    Convert ``integer`` to a tuple representing that value. The tuple consists of:
+    * the string absolute value of ``integer``.
+    * the exponent, base 10, to be used, and
+    * True if the value is nonnegative or False otherwise.
+    """
+    value = integer.value
+    if value < 0:
+        is_nonnegative = False
+        value = -value
     else:
-        element_prec = builtins_precedence.get(element.get_head_name())
-    if precedence is not None and element_prec is not None:
-        if precedence > element_prec or (precedence == element_prec and when_equal):
-            return Expression(
-                SymbolRowBox,
-                ListExpression(String("("), element_boxes, String(")")),
-            )
-    return element_boxes
+        is_nonnegative = True
+    s = str(value)
+    exponent = len(s) - 1
+    return s, exponent, is_nonnegative
 
 
-def make_boxes_infix(elements, ops, precedence, grouping, form):
+# FIXME: op should be a string, so remove the Union.
+def make_boxes_infix(
+    elements, op: Union[String, list], precedence: int, grouping, form: Symbol
+):
     result = []
     for index, element in enumerate(elements):
         if index > 0:
-            result.append(ops[index - 1])
+            if isinstance(op, list):
+                result.append(op[index - 1])
+            else:
+                result.append(op)
         parenthesized = False
         if grouping == "System`NonAssociative":
             parenthesized = True
@@ -100,107 +71,120 @@ def make_boxes_infix(elements, ops, precedence, grouping, form):
     return Expression(SymbolRowBox, ListExpression(*result))
 
 
-def real_to_s_exp(expr, n):
-    if expr.is_zero:
+def real_to_tuple_info(real: Real, digits: Optional[int]) -> Tuple[str, int, bool]:
+    """
+    Convert ``real`` to a tuple representing that value. The tuple consists of:
+    * the string absolute value of ``integer`` with decimal point removed from the string;
+      the position of the decimal point is determined by the exponent below,
+    * the exponent, base 10, to be used, and
+    * True if the value is nonnegative or False otherwise.
+
+    If ``digits`` is None, we use the default precision.
+    """
+    if real.is_zero:
         s = "0"
-        if expr.is_machine_precision():
-            exp = 0
+        if real.is_machine_precision():
+            exponent = 0
         else:
-            p = expr.get_precision()
-            exp = -dps(p)
-        nonnegative = 1
+            p = real.get_precision()
+            exponent = -dps(p)
+        is_nonnegative = True
     else:
-        if n is None:
-            if expr.is_machine_precision():
-                value = expr.get_float_value()
+        if digits is None:
+            if real.is_machine_precision():
+                value = real.value
                 s = repr(value)
             else:
-                with mpmath.workprec(expr.get_precision()):
-                    value = expr.to_mpmath()
-                    s = mpmath.nstr(value, dps(expr.get_precision()) + 1)
+                with mpmath.workprec(real.get_precision()):
+                    value = real.to_mpmath()
+                    s = mpmath.nstr(value, dps(real.get_precision()) + 1)
         else:
-            with mpmath.workprec(expr.get_precision()):
-                value = expr.to_mpmath()
-                s = mpmath.nstr(value, n)
+            with mpmath.workprec(real.get_precision()):
+                value = real.to_mpmath()
+                s = mpmath.nstr(value, digits)
 
-        # sign prefix
+        # Set sign prefix.
         if s[0] == "-":
             assert value < 0
-            nonnegative = 0
+            is_nonnegative = False
             s = s[1:]
         else:
             assert value >= 0
-            nonnegative = 1
-
-        # exponent (exp is actual, pexp is printed)
+            is_nonnegative = True
+        # Set exponent. ``exponent`` is actual, ``pexp`` of ``NumberForm_to_string()`` is printed.
         if "e" in s:
-            s, exp = s.split("e")
-            exp = int(exp)
+            s, exponent = s.split("e")
+            exponent = int(exponent)
             if len(s) > 1 and s[1] == ".":
                 # str(float) doesn't always include '.' if 'e' is present.
                 s = s[0] + s[2:].rstrip("0")
         else:
-            exp = s.index(".") - 1
-            s = s[: exp + 1] + s[exp + 2 :].rstrip("0")
+            exponent = s.index(".") - 1
+            s = s[: exponent + 1] + s[exponent + 2 :].rstrip("0")
 
-            # consume leading '0's.
+            # Normalize exponent: remove leading '0's after the decimal point
+            # and adjust the exponent accordingly.
             i = 0
-            while s[i] == "0":
+            while i < len(s) and s[i] == "0":
                 i += 1
-                exp -= 1
+                exponent -= 1
             s = s[i:]
 
-        # add trailing zeros for precision reals
-        if n is not None and not expr.is_machine_precision() and len(s) < n:
-            s = s + "0" * (n - len(s))
-    return s, exp, nonnegative
+        # Add trailing zeros for precision reals.
+        if digits is not None and not real.is_machine_precision() and len(s) < digits:
+            s = s + "0" * (digits - len(s))
+    return s, exponent, is_nonnegative
 
 
-def int_to_s_exp(expr, n):
-    n = expr.get_int_value()
-    if n < 0:
-        nonnegative = 0
-        s = str(-n)
-    else:
-        nonnegative = 1
-        s = str(n)
-    exp = len(s) - 1
-    return s, exp, nonnegative
-
-
-def number_form(expr, n, f, evaluation, options):
+# FIXME: the return type should be a NumberForm, not a String.
+# when this is fixed, rename the function.
+def NumberForm_to_String(
+    value: Union[Real, Integer],
+    digits: Optional[int],
+    digits_after_decimal_point: Optional[int],
+    evaluation: Evaluation,
+    options: dict,
+) -> String:
     """
-    Converts a Real or Integer instance to Boxes.
+    Converts a Real or Integer value to a String.
 
-    n digits of precision with f (can be None) digits after the decimal point.
-    evaluation (can be None) is used for messages.
+    ``digits`` is the number of digits of precision and
+    ``digits_after_decimal_point`` is the number of digits after the
+    decimal point.  ``evaluation`` is used for messages.
 
-    The allowed options are python versions of the options permitted to
+    The allowed options are Python versions of the options permitted to
     NumberForm and must be supplied. See NumberForm or Real.make_boxes
     for correct option examples.
+
+    If ``digits`` is None, use the default precision.  If
+    ``digits_after_decimal_points`` is None, use all the digits we get
+    from the converted number, that is, otherwise the number may be
+    padded on the right-hand side with zeros.
     """
 
-    assert isinstance(n, int) and n > 0 or n is None
-    assert f is None or (isinstance(f, int) and f >= 0)
+    assert isinstance(digits, int) and digits > 0 or digits is None
+    assert digits_after_decimal_point is None or (
+        isinstance(digits_after_decimal_point, int) and digits_after_decimal_point >= 0
+    )
 
     is_int = False
-    if isinstance(expr, Integer):
-        assert n is not None
-        s, exp, nonnegative = int_to_s_exp(expr, n)
-        if f is None:
+    if isinstance(value, Integer):
+        assert digits is not None
+        s, exp, is_nonnegative = int_to_tuple_info(value)
+        if digits_after_decimal_point is None:
             is_int = True
-    elif isinstance(expr, Real):
-        if n is not None:
-            n = min(n, dps(expr.get_precision()) + 1)
-        s, exp, nonnegative = real_to_s_exp(expr, n)
-        if n is None:
-            n = len(s)
+    elif isinstance(value, Real):
+        if digits is not None:
+            digits = min(digits, dps(value.get_precision()) + 1)
+        s, exp, is_nonnegative = real_to_tuple_info(value, digits)
+        if digits is None:
+            digits = len(s)
     else:
         raise ValueError("Expected Real or Integer.")
 
-    assert isinstance(n, int) and n > 0
+    assert isinstance(digits, int) and digits > 0
 
-    sign_prefix = options["NumberSigns"][nonnegative]
+    sign_prefix = options["NumberSigns"][1 if is_nonnegative else 0]
 
     # round exponent to ExponentStep
     rexp = (exp // options["ExponentStep"]) * options["ExponentStep"]
@@ -245,14 +229,18 @@ def number_form(expr, n, f, evaluation, options):
         return number
 
     # pad with NumberPadding
-    if f is not None:
-        if len(right) < f:
+    if digits_after_decimal_point is not None:
+        if len(right) < digits_after_decimal_point:
             # pad right
-            right = right + (f - len(right)) * options["NumberPadding"][1]
-        elif len(right) > f:
+            right = (
+                right
+                + (digits_after_decimal_point - len(right))
+                * options["NumberPadding"][1]
+            )
+        elif len(right) > digits_after_decimal_point:
             # round right
             tmp = int(left + right)
-            tmp = _round(tmp, f - len(right))
+            tmp = _round(tmp, digits_after_decimal_point - len(right))
             tmp = str(tmp)
             left, right = tmp[: exp + 1], tmp[exp + 1 :]
 
@@ -274,8 +262,8 @@ def number_form(expr, n, f, evaluation, options):
     left_padding = 0
     max_sign_len = max(len(options["NumberSigns"][0]), len(options["NumberSigns"][1]))
     i = len(sign_prefix) + len(left) + len(right) - max_sign_len
-    if i < n:
-        left_padding = n - i
+    if i < digits:
+        left_padding = digits - i
     elif len(sign_prefix) < max_sign_len:
         left_padding = max_sign_len - len(sign_prefix)
     left_padding = left_padding * options["NumberPadding"][0]
@@ -309,15 +297,20 @@ def number_form(expr, n, f, evaluation, options):
 
 # TODO: Differently from the current implementation, MakeBoxes should only
 # accept as its format field the symbols in `$BoxForms`. This is something to
-# fix in a following step.
+# fix in a following step, changing the way in which Format and MakeBoxes work.
 
 
 class BoxForms_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$BoxForms.html</url>
+
     <dl>
       <dt>
       <dd>$BoxForms is the list of box formats.
     </dl>
+
+    >> $BoxForms
+     = ...
     """
 
     attributes = A_READ_PROTECTED
@@ -328,6 +321,8 @@ class BoxForms_(Predefined):
 
 class MakeBoxes(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MakeBoxes.html</url>
+
     <dl>
       <dt>'MakeBoxes[$expr$]'
       <dd>is a low-level formatting primitive that converts $expr$
@@ -371,91 +366,6 @@ class MakeBoxes(Builtin):
      = (a <> b)[x]
     """
 
-    # TODO: Convert operators to appropriate representations e.g. 'Plus' to '+'
-    """
-    >> \\(a + b\\)
-     = RowBox[{a, +, b}]
-
-    >> \\(TraditionalForm \\` a + b\\)
-     = FormBox[RowBox[{a, +, b}], TraditionalForm]
-
-    >> \\(x \\/ \\(y + z\\)\\)
-     =  FractionBox[x, RowBox[{y, +, z}]]
-    """
-
-    # TODO: Constructing boxes from Real
-    """
-    ## Test Real MakeBoxes
-    #> MakeBoxes[1.4]
-     = 1.4`
-    #> MakeBoxes[1.4`]
-     = 1.4`
-    #> MakeBoxes[1.5`20]
-     = 1.5`20.
-    #> MakeBoxes[1.4`20]
-     = 1.4`20.
-    #> MakeBoxes[1.5``20]
-     = 1.5`20.1760912591
-    #> MakeBoxes[-1.4]
-     = RowBox[{-, 1.4`}]
-    #> MakeBoxes[34.*^3]
-     = 34000.`
-
-    #> MakeBoxes[0`]
-     = 0.`
-    #> MakeBoxes[0`3]
-     = 0
-    #> MakeBoxes[0``30]
-     = 0.``30.
-    #> MakeBoxes[0.`]
-     = 0.`
-    #> MakeBoxes[0.`3]
-     = 0.`
-    #> MakeBoxes[0.``30]
-     = 0.``30.
-
-    #> MakeBoxes[14]
-     = 14
-    #> MakeBoxes[-14]
-     = RowBox[{-, 14}]
-    """
-
-    # TODO: Correct precedence
-    """
-    >> \\(x \\/ y + z\\)
-     = RowBox[{FractionBox[x, y], +, z}]
-    >> \\(x \\/ (y + z)\\)
-     = FractionBox[x, RowBox[{(, RowBox[{y, +, z}], )}]]
-
-    #> \\( \\@ a + b \\)
-     = RowBox[{SqrtBox[a], +, b}]
-    """
-
-    # FIXME: Don't insert spaces with brackets
-    """
-    #> \\(c (1 + x)\\)
-     = RowBox[{c, RowBox[{(, RowBox[{1, +, x}], )}]}]
-    """
-
-    # TODO: Required MakeExpression
-    """
-    #> \\!\\(x \\^ 2\\)
-     = x ^ 2
-    #> FullForm[%]
-     = Power[x, 2]
-    """
-
-    # TODO: Fix Infix operators
-    """
-    >> MakeBoxes[1 + 1]
-     = RowBox[{1, +, 1}]
-    """
-
-    # TODO: Parsing of special characters (like commas)
-    """
-    >> \\( a, b \\)
-     = RowBox[{a, ,, b}]
-    """
     attributes = A_HOLD_ALL_COMPLETE
 
     rules = {
@@ -476,7 +386,7 @@ class MakeBoxes(Builtin):
     }
     summary_text = "settable low-level translator from expression to display boxes"
 
-    def apply_general(self, expr, f, evaluation):
+    def eval_general(self, expr, f, evaluation):
         """MakeBoxes[expr_,
         f:TraditionalForm|StandardForm|OutputForm|InputForm|FullForm]"""
         if isinstance(expr, BoxElementMixin):
@@ -525,28 +435,28 @@ class MakeBoxes(Builtin):
             result.append(to_boxes(String(right), evaluation))
             return RowBox(*result)
 
-    def apply_outerprecedenceform(self, expr, prec, evaluation):
-        """MakeBoxes[OuterPrecedenceForm[expr_, prec_],
-        StandardForm|TraditionalForm|OutputForm|InputForm]"""
+    def eval_outerprecedenceform(self, expr, precedence, form, evaluation):
+        """MakeBoxes[PrecedenceForm[expr_, precedence_],
+        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
-        precedence = prec.get_int_value()
-        boxes = MakeBoxes(expr)
-        return parenthesize(precedence, expr, boxes, True)
+        py_precedence = precedence.get_int_value()
+        boxes = MakeBoxes(expr, form)
+        return parenthesize(py_precedence, expr, boxes, True)
 
-    def apply_postprefix(self, p, expr, h, prec, f, evaluation):
-        """MakeBoxes[(p:Prefix|Postfix)[expr_, h_, prec_:None],
-        f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+    def eval_postprefix(self, p, expr, h, precedence, form, evaluation):
+        """MakeBoxes[(p:Prefix|Postfix)[expr_, h_, precedence_:None],
+        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
         if not isinstance(h, String):
-            h = MakeBoxes(h, f)
+            h = MakeBoxes(h, form)
 
-        precedence = prec.get_int_value()
+        py_precedence = precedence.get_int_value()
 
         elements = expr.elements
         if len(elements) == 1:
             element = elements[0]
-            element_boxes = MakeBoxes(element, f)
-            element = parenthesize(precedence, element, element_boxes, True)
+            element_boxes = MakeBoxes(element, form)
+            element = parenthesize(py_precedence, element, element_boxes, True)
             if p.get_name() == "System`Postfix":
                 args = (element, h)
             else:
@@ -554,28 +464,45 @@ class MakeBoxes(Builtin):
 
             return Expression(SymbolRowBox, ListExpression(*args).evaluate(evaluation))
         else:
-            return MakeBoxes(expr, f).evaluate(evaluation)
+            return MakeBoxes(expr, form).evaluate(evaluation)
 
-    def apply_infix(self, expr, h, prec, grouping, f, evaluation):
-        """MakeBoxes[Infix[expr_, h_, prec_:None, grouping_:None],
-        f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+    def eval_infix(
+        self, expr, operator, precedence: Integer, grouping, form: Symbol, evaluation
+    ):
+        """MakeBoxes[Infix[expr_, operator_, precedence_:None, grouping_:None],
+        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
-        def get_op(op):
-            if not isinstance(op, String):
-                op = MakeBoxes(op, f)
-            else:
-                op_value = op.get_string_value()
-                if f.get_name() == "System`InputForm" and op_value in ["*", "^"]:
-                    pass
-                elif (
-                    f.get_name() in ("System`InputForm", "System`OutputForm")
-                    and not op_value.startswith(" ")
-                    and not op_value.endswith(" ")
-                ):
-                    op = String(" " + op_value + " ")
-            return op
+        ## FIXME: this should go into a some formatter.
+        def format_operator(operator) -> Union[String, BaseElement]:
+            """
+            Format infix operator `operator`. To do this outside parameter form is used.
+            Sometimes no changes are made and operator is returned unchanged.
 
-        precedence = prec.get_int_value()
+            This function probably should be rewritten be more scalable across other forms
+            and moved to a module that contiaing similar formatting routines.
+            """
+            if not isinstance(operator, String):
+                return MakeBoxes(operator, form)
+
+            op_str = operator.value
+
+            # FIXME: performing a check using the operator symbol representation feels a bit
+            # fragile. The operator name seems more straightforward and more robust.
+            if form == SymbolInputForm and op_str in ["*", "^", " "]:
+                return operator
+            elif (
+                form in (SymbolInputForm, SymbolOutputForm)
+                and not op_str.startswith(" ")
+                and not op_str.endswith(" ")
+            ):
+                # FIXME: Again, testing on specific forms is fragile and not scalable.
+                op = String(" " + op_str + " ")
+                return op
+            return operator
+
+        py_precedence = (
+            precedence.value if hasattr(precedence, "value") else NEVER_ADD_PARENTHESIS
+        )
         grouping = grouping.get_name()
 
         if isinstance(expr, Atom):
@@ -584,19 +511,46 @@ class MakeBoxes(Builtin):
 
         elements = expr.elements
         if len(elements) > 1:
-            if h.has_form("List", len(elements) - 1):
-                ops = [get_op(op) for op in h.elements]
+            if operator.has_form("List", len(elements) - 1):
+                operator = [format_operator(op) for op in operator.elements]
+                return make_boxes_infix(
+                    elements, operator, py_precedence, grouping, form
+                )
             else:
-                ops = [get_op(h)] * (len(elements) - 1)
-            return make_boxes_infix(elements, ops, precedence, grouping, f)
+                encoding_rule = evaluation.definitions.get_ownvalue(
+                    "$CharacterEncoding"
+                )
+                encoding = (
+                    "UTF8" if encoding_rule is None else encoding_rule.replace.value
+                )
+                op_str = (
+                    operator.value
+                    if isinstance(operator, String)
+                    else operator.short_name
+                )
+                if encoding == "ASCII":
+                    operator = format_operator(
+                        String(operator_to_ascii.get(op_str, op_str))
+                    )
+                else:
+                    operator = format_operator(
+                        String(operator_to_unicode.get(op_str, op_str))
+                    )
+
+            return make_boxes_infix(elements, operator, py_precedence, grouping, form)
+
         elif len(elements) == 1:
-            return MakeBoxes(elements[0], f)
+            return MakeBoxes(elements[0], form)
         else:
-            return MakeBoxes(expr, f)
+            return MakeBoxes(expr, form)
 
 
 class ToBoxes(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ToBoxes.html</url>
+
     <dl>
       <dt>'ToBoxes[$expr$]'
       <dd>evaluates $expr$ and converts the result to box form.
@@ -614,7 +568,7 @@ class ToBoxes(Builtin):
 
     summary_text = "produce the display boxes of an evaluated expression"
 
-    def apply(self, expr, form, evaluation):
+    def eval(self, expr, form, evaluation):
         "ToBoxes[expr_, form_:StandardForm]"
 
         form_name = form.get_name()
@@ -622,567 +576,3 @@ class ToBoxes(Builtin):
             evaluation.message("ToBoxes", "boxfmt", form)
         boxes = format_element(expr, evaluation, form)
         return boxes
-
-
-# ### The following classes maybe deserves another module...
-
-
-class _NumberForm(Builtin):
-    """
-    Base class for NumberForm, AccountingForm, EngineeringForm, and ScientificForm.
-    """
-
-    default_ExponentFunction = None
-    default_NumberFormat = None
-
-    messages = {
-        "npad": "Value for option NumberPadding -> `1` should be a string or a pair of strings.",
-        "dblk": "Value for option DigitBlock should be a positive integer, Infinity, or a pair of positive integers.",
-        "npt": "Value for option `1` -> `2` is expected to be a string.",
-        "nsgn": "Value for option NumberSigns -> `1` should be a pair of strings or two pairs of strings.",
-        "nspr": "Value for option NumberSeparator -> `1` should be a string or a pair of strings.",
-        "opttf": "Value of option `1` -> `2` should be True or False.",
-        "estep": "Value of option `1` -> `2` is not a positive integer.",
-        "iprf": "Formatting specification `1` should be a positive integer or a pair of positive integers.",  # NumberFormat only
-        "sigz": "In addition to the number of digits requested, one or more zeros will appear as placeholders.",
-    }
-
-    def check_options(self, options, evaluation):
-        """
-        Checks options are valid and converts them to python.
-        """
-        result = {}
-        for option_name in self.options:
-            method = getattr(self, "check_" + option_name)
-            arg = options["System`" + option_name]
-            value = method(arg, evaluation)
-            if value is None:
-                return None
-            result[option_name] = value
-        return result
-
-    def check_DigitBlock(self, value, evaluation):
-        py_value = value.get_int_value()
-        if value.sameQ(SymbolInfinity):
-            return [0, 0]
-        elif py_value is not None and py_value > 0:
-            return [py_value, py_value]
-        elif value.has_form("List", 2):
-            nleft, nright = value.elements
-            py_left, py_right = nleft.get_int_value(), nright.get_int_value()
-            if nleft.sameQ(SymbolInfinity):
-                nleft = 0
-            elif py_left is not None and py_left > 0:
-                nleft = py_left
-            else:
-                nleft = None
-            if nright.sameQ(SymbolInfinity):
-                nright = 0
-            elif py_right is not None and py_right > 0:
-                nright = py_right
-            else:
-                nright = None
-            result = [nleft, nright]
-            if None not in result:
-                return result
-        return evaluation.message(self.get_name(), "dblk", value)
-
-    def check_ExponentFunction(self, value, evaluation):
-        if value.sameQ(SymbolAutomatic):
-            return self.default_ExponentFunction
-
-        def exp_function(x):
-            return Expression(value, x).evaluate(evaluation)
-
-        return exp_function
-
-    def check_NumberFormat(self, value, evaluation):
-        if value.sameQ(SymbolAutomatic):
-            return self.default_NumberFormat
-
-        def num_function(man, base, exp, options):
-            return Expression(value, man, base, exp).evaluate(evaluation)
-
-        return num_function
-
-    def check_NumberMultiplier(self, value, evaluation):
-        result = value.get_string_value()
-        if result is None:
-            evaluation.message(self.get_name(), "npt", "NumberMultiplier", value)
-        return result
-
-    def check_NumberPoint(self, value, evaluation):
-        result = value.get_string_value()
-        if result is None:
-            evaluation.message(self.get_name(), "npt", "NumberPoint", value)
-        return result
-
-    def check_ExponentStep(self, value, evaluation):
-        result = value.get_int_value()
-        if result is None or result <= 0:
-            return evaluation.message(self.get_name(), "estep", "ExponentStep", value)
-        return result
-
-    def check_SignPadding(self, value, evaluation):
-        if value.sameQ(SymbolTrue):
-            return True
-        elif value.sameQ(SymbolFalse):
-            return False
-        return evaluation.message(self.get_name(), "opttf", value)
-
-    def _check_List2str(self, value, msg, evaluation):
-        if value.has_form("List", 2):
-            result = [element.get_string_value() for element in value.elements]
-            if None not in result:
-                return result
-        return evaluation.message(self.get_name(), msg, value)
-
-    def check_NumberSigns(self, value, evaluation):
-        return self._check_List2str(value, "nsgn", evaluation)
-
-    def check_NumberPadding(self, value, evaluation):
-        return self._check_List2str(value, "npad", evaluation)
-
-    def check_NumberSeparator(self, value, evaluation):
-        py_str = value.get_string_value()
-        if py_str is not None:
-            return [py_str, py_str]
-        return self._check_List2str(value, "nspr", evaluation)
-
-
-class NumberForm(_NumberForm):
-    """
-    <dl>
-      <dt>'NumberForm[$expr$, $n$]'
-      <dd>prints a real number $expr$ with $n$-digits of precision.
-
-      <dt>'NumberForm[$expr$, {$n$, $f$}]'
-      <dd>prints with $n$-digits and $f$ digits to the right of the decimal point.
-    </dl>
-
-    >> NumberForm[N[Pi], 10]
-     = 3.141592654
-
-    >> NumberForm[N[Pi], {10, 5}]
-     = 3.14159
-
-
-    ## Undocumented edge cases
-    #> NumberForm[Pi, 20]
-     = Pi
-    #> NumberForm[2/3, 10]
-     = 2 / 3
-
-    ## No n or f
-    #> NumberForm[N[Pi]]
-     = 3.14159
-    #> NumberForm[N[Pi, 20]]
-     = 3.1415926535897932385
-    #> NumberForm[14310983091809]
-     = 14310983091809
-
-    ## Zero case
-    #> z0 = 0.0;
-    #> z1 = 0.0000000000000000000000000000;
-    #> NumberForm[{z0, z1}, 10]
-     = {0., 0.×10^-28}
-    #> NumberForm[{z0, z1}, {10, 4}]
-     = {0.0000, 0.0000×10^-28}
-
-    ## Trailing zeros
-    #> NumberForm[1.0, 10]
-     = 1.
-    #> NumberForm[1.000000000000000000000000, 10]
-     = 1.000000000
-    #> NumberForm[1.0, {10, 8}]
-     = 1.00000000
-    #> NumberForm[N[Pi, 33], 33]
-     = 3.14159265358979323846264338327950
-
-    ## Correct rounding - see sympy/issues/11472
-    #> NumberForm[0.645658509, 6]
-     = 0.645659
-    #> NumberForm[N[1/7], 30]
-     = 0.1428571428571428
-
-    ## Integer case
-    #> NumberForm[{0, 2, -415, 83515161451}, 5]
-     = {0, 2, -415, 83515161451}
-    #> NumberForm[{2^123, 2^123.}, 4, ExponentFunction -> ((#1) &)]
-     = {10633823966279326983230456482242756608, 1.063×10^37}
-    #> NumberForm[{0, 10, -512}, {10, 3}]
-     = {0.000, 10.000, -512.000}
-
-    ## Check arguments
-    #> NumberForm[1.5, -4]
-     : Formatting specification -4 should be a positive integer or a pair of positive integers.
-     = 1.5
-    #> NumberForm[1.5, {1.5, 2}]
-     : Formatting specification {1.5, 2} should be a positive integer or a pair of positive integers.
-     = 1.5
-    #> NumberForm[1.5, {1, 2.5}]
-     : Formatting specification {1, 2.5} should be a positive integer or a pair of positive integers.
-     = 1.5
-
-    ## Right padding
-    #> NumberForm[153., 2]
-     : In addition to the number of digits requested, one or more zeros will appear as placeholders.
-     = 150.
-    #> NumberForm[0.00125, 1]
-     = 0.001
-    #> NumberForm[10^5 N[Pi], {5, 3}]
-     : In addition to the number of digits requested, one or more zeros will appear as placeholders.
-     = 314160.000
-    #> NumberForm[10^5 N[Pi], {6, 3}]
-     = 314159.000
-    #> NumberForm[10^5 N[Pi], {6, 10}]
-     = 314159.0000000000
-    #> NumberForm[1.0000000000000000000, 10, NumberPadding -> {"X", "Y"}]
-     = X1.000000000
-
-    ## Check options
-
-    ## DigitBlock
-    #> NumberForm[12345.123456789, 14, DigitBlock -> 3]
-     = 12,345.123 456 789
-    #> NumberForm[12345.12345678, 14, DigitBlock -> 3]
-     = 12,345.123 456 78
-    #> NumberForm[N[10^ 5 Pi], 15, DigitBlock -> {4, 2}]
-     = 31,4159.26 53 58 97 9
-    #> NumberForm[1.2345, 3, DigitBlock -> -4]
-     : Value for option DigitBlock should be a positive integer, Infinity, or a pair of positive integers.
-     = 1.2345
-    #> NumberForm[1.2345, 3, DigitBlock -> x]
-     : Value for option DigitBlock should be a positive integer, Infinity, or a pair of positive integers.
-     = 1.2345
-    #> NumberForm[1.2345, 3, DigitBlock -> {x, 3}]
-     : Value for option DigitBlock should be a positive integer, Infinity, or a pair of positive integers.
-     = 1.2345
-    #> NumberForm[1.2345, 3, DigitBlock -> {5, -3}]
-     : Value for option DigitBlock should be a positive integer, Infinity, or a pair of positive integers.
-     = 1.2345
-
-    ## ExponentFunction
-    #> NumberForm[12345.123456789, 14, ExponentFunction -> ((#) &)]
-     = 1.2345123456789×10^4
-    #> NumberForm[12345.123456789, 14, ExponentFunction -> (Null&)]
-     = 12345.123456789
-    #> y = N[Pi^Range[-20, 40, 15]];
-    #> NumberForm[y, 10, ExponentFunction -> (3 Quotient[#, 3] &)]
-     =  {114.0256472×10^-12, 3.267763643×10^-3, 93.64804748×10^3, 2.683779414×10^12, 76.91214221×10^18}
-    #> NumberForm[y, 10, ExponentFunction -> (Null &)]
-     : In addition to the number of digits requested, one or more zeros will appear as placeholders.
-     : In addition to the number of digits requested, one or more zeros will appear as placeholders.
-     = {0.0000000001140256472, 0.003267763643, 93648.04748, 2683779414000., 76912142210000000000.}
-
-    ## ExponentStep
-    #> NumberForm[10^8 N[Pi], 10, ExponentStep -> 3]
-     = 314.1592654×10^6
-    #> NumberForm[1.2345, 3, ExponentStep -> x]
-     : Value of option ExponentStep -> x is not a positive integer.
-     = 1.2345
-    #> NumberForm[1.2345, 3, ExponentStep -> 0]
-     : Value of option ExponentStep -> 0 is not a positive integer.
-     = 1.2345
-    #> NumberForm[y, 10, ExponentStep -> 6]
-     = {114.0256472×10^-12, 3267.763643×10^-6, 93648.04748, 2.683779414×10^12, 76.91214221×10^18}
-
-    ## NumberFormat
-    #> NumberForm[y, 10, NumberFormat -> (#1 &)]
-     = {1.140256472, 0.003267763643, 93648.04748, 2.683779414, 7.691214221}
-
-    ## NumberMultiplier
-    #> NumberForm[1.2345, 3, NumberMultiplier -> 0]
-     : Value for option NumberMultiplier -> 0 is expected to be a string.
-     = 1.2345
-    #> NumberForm[N[10^ 7 Pi], 15, NumberMultiplier -> "*"]
-     = 3.14159265358979*10^7
-
-    ## NumberPoint
-    #> NumberForm[1.2345, 5, NumberPoint -> ","]
-     = 1,2345
-    #> NumberForm[1.2345, 3, NumberPoint -> 0]
-     : Value for option NumberPoint -> 0 is expected to be a string.
-     = 1.2345
-
-    ## NumberPadding
-    #> NumberForm[1.41, {10, 5}]
-     = 1.41000
-    #> NumberForm[1.41, {10, 5}, NumberPadding -> {"", "X"}]
-     = 1.41XXX
-    #> NumberForm[1.41, {10, 5}, NumberPadding -> {"X", "Y"}]
-     = XXXXX1.41YYY
-    #> NumberForm[1.41, 10, NumberPadding -> {"X", "Y"}]
-     = XXXXXXXX1.41
-    #> NumberForm[1.2345, 3, NumberPadding -> 0]
-     :  Value for option NumberPadding -> 0 should be a string or a pair of strings.
-     = 1.2345
-    #> NumberForm[1.41, 10, NumberPadding -> {"X", "Y"}, NumberSigns -> {"-------------", ""}]
-     = XXXXXXXXXXXXXXXXXXXX1.41
-    #> NumberForm[{1., -1., 2.5, -2.5}, {4, 6}, NumberPadding->{"X", "Y"}]
-     = {X1.YYYYYY, -1.YYYYYY, X2.5YYYYY, -2.5YYYYY}
-
-    ## NumberSeparator
-    #> NumberForm[N[10^ 5 Pi], 15, DigitBlock -> 3, NumberSeparator -> " "]
-     = 314 159.265 358 979
-    #> NumberForm[N[10^ 5 Pi], 15, DigitBlock -> 3, NumberSeparator -> {" ", ","}]
-     = 314 159.265,358,979
-    #> NumberForm[N[10^ 5 Pi], 15, DigitBlock -> 3, NumberSeparator -> {",", " "}]
-     = 314,159.265 358 979
-    #> NumberForm[N[10^ 7 Pi], 15, DigitBlock -> 3, NumberSeparator -> {",", " "}]
-     = 3.141 592 653 589 79×10^7
-    #> NumberForm[1.2345, 3, NumberSeparator -> 0]
-     :  Value for option NumberSeparator -> 0 should be a string or a pair of strings.
-     = 1.2345
-
-    ## NumberSigns
-    #> NumberForm[1.2345, 5, NumberSigns -> {"-", "+"}]
-     = +1.2345
-    #> NumberForm[-1.2345, 5, NumberSigns -> {"- ", ""}]
-     = - 1.2345
-    #> NumberForm[1.2345, 3, NumberSigns -> 0]
-     : Value for option NumberSigns -> 0 should be a pair of strings or two pairs of strings.
-     = 1.2345
-
-    ## SignPadding
-    #> NumberForm[1.234, 6, SignPadding -> True, NumberPadding -> {"X", "Y"}]
-     = XXX1.234
-    #> NumberForm[-1.234, 6, SignPadding -> True, NumberPadding -> {"X", "Y"}]
-     = -XX1.234
-    #> NumberForm[-1.234, 6, SignPadding -> False, NumberPadding -> {"X", "Y"}]
-     = XX-1.234
-    #> NumberForm[-1.234, {6, 4}, SignPadding -> False, NumberPadding -> {"X", "Y"}]
-     = X-1.234Y
-
-    ## 1-arg, Option case
-    #> NumberForm[34, ExponentFunction->(Null&)]
-     = 34
-
-    ## zero padding integer x0.0 case
-    #> NumberForm[50.0, {5, 1}]
-     = 50.0
-    #> NumberForm[50, {5, 1}]
-     = 50.0
-
-    ## Rounding correctly
-    #> NumberForm[43.157, {10, 1}]
-     = 43.2
-    #> NumberForm[43.15752525, {10, 5}, NumberSeparator -> ",", DigitBlock -> 1]
-     = 4,3.1,5,7,5,3
-    #> NumberForm[80.96, {16, 1}]
-     = 81.0
-    #> NumberForm[142.25, {10, 1}]
-     = 142.3
-    """
-
-    options = {
-        "DigitBlock": "Infinity",
-        "ExponentFunction": "Automatic",
-        "ExponentStep": "1",
-        "NumberFormat": "Automatic",
-        "NumberMultiplier": '"×"',
-        "NumberPadding": '{"", "0"}',
-        "NumberPoint": '"."',
-        "NumberSeparator": '{",", " "}',
-        "NumberSigns": '{"-", ""}',
-        "SignPadding": "False",
-    }
-    summary_text = "print at most a number of digits of all approximate real numbers in the expression"
-
-    @staticmethod
-    def default_ExponentFunction(value):
-        n = value.get_int_value()
-        if -5 <= n <= 5:
-            return SymbolNull
-        else:
-            return value
-
-    @staticmethod
-    def default_NumberFormat(man, base, exp, options):
-        py_exp = exp.get_string_value()
-        if py_exp:
-            mul = String(options["NumberMultiplier"])
-            return Expression(
-                SymbolRowBox,
-                ListExpression(man, mul, Expression(SymbolSuperscriptBox, base, exp)),
-            )
-        else:
-            return man
-
-    def apply_list_n(self, expr, n, evaluation, options) -> Expression:
-        "NumberForm[expr_List, n_, OptionsPattern[NumberForm]]"
-        options = [
-            Expression(SymbolRuleDelayed, Symbol(key), value)
-            for key, value in options.items()
-        ]
-        return ListExpression(
-            *[
-                Expression(SymbolNumberForm, element, n, *options)
-                for element in expr.elements
-            ]
-        )
-
-    def apply_list_nf(self, expr, n, f, evaluation, options) -> Expression:
-        "NumberForm[expr_List, {n_, f_}, OptionsPattern[NumberForm]]"
-        options = [
-            Expression(SymbolRuleDelayed, Symbol(key), value)
-            for key, value in options.items()
-        ]
-        return ListExpression(
-            *[
-                Expression(SymbolNumberForm, element, ListExpression(n, f), *options)
-                for element in expr.elements
-            ],
-        )
-
-    def apply_makeboxes(self, expr, form, evaluation, options={}):
-        """MakeBoxes[NumberForm[expr_, OptionsPattern[NumberForm]],
-        form:StandardForm|TraditionalForm|OutputForm]"""
-
-        fallback = Expression(SymbolMakeBoxes, expr, form)
-
-        py_options = self.check_options(options, evaluation)
-        if py_options is None:
-            return fallback
-
-        if isinstance(expr, Integer):
-            py_n = len(str(abs(expr.get_int_value())))
-        elif isinstance(expr, Real):
-            if expr.is_machine_precision():
-                py_n = 6
-            else:
-                py_n = dps(expr.get_precision())
-        else:
-            py_n = None
-
-        if py_n is not None:
-            py_options["_Form"] = form.get_name()
-            return number_form(expr, py_n, None, evaluation, py_options)
-        return Expression(SymbolMakeBoxes, expr, form)
-
-    def apply_makeboxes_n(self, expr, n, form, evaluation, options={}):
-        """MakeBoxes[NumberForm[expr_, n_?NotOptionQ, OptionsPattern[NumberForm]],
-        form:StandardForm|TraditionalForm|OutputForm]"""
-
-        fallback = Expression(SymbolMakeBoxes, expr, form)
-
-        py_n = n.get_int_value()
-        if py_n is None or py_n <= 0:
-            evaluation.message("NumberForm", "iprf", n)
-            return fallback
-
-        py_options = self.check_options(options, evaluation)
-        if py_options is None:
-            return fallback
-
-        if isinstance(expr, (Integer, Real)):
-            py_options["_Form"] = form.get_name()
-            return number_form(expr, py_n, None, evaluation, py_options)
-        return Expression(SymbolMakeBoxes, expr, form)
-
-    def apply_makeboxes_nf(self, expr, n, f, form, evaluation, options={}):
-        """MakeBoxes[NumberForm[expr_, {n_, f_}, OptionsPattern[NumberForm]],
-        form:StandardForm|TraditionalForm|OutputForm]"""
-
-        fallback = Expression(SymbolMakeBoxes, expr, form)
-
-        nf = ListExpression(n, f)
-        py_n = n.get_int_value()
-        py_f = f.get_int_value()
-        if py_n is None or py_n <= 0 or py_f is None or py_f < 0:
-            evaluation.message("NumberForm", "iprf", nf)
-            return fallback
-
-        py_options = self.check_options(options, evaluation)
-        if py_options is None:
-            return fallback
-
-        if isinstance(expr, (Integer, Real)):
-            py_options["_Form"] = form.get_name()
-            return number_form(expr, py_n, py_f, evaluation, py_options)
-        return Expression(SymbolMakeBoxes, expr, form)
-
-
-class BaseForm(Builtin):
-    """
-    <dl>
-      <dt>'BaseForm[$expr$, $n$]'
-      <dd>prints numbers in $expr$ in base $n$.
-    </dl>
-
-    >> BaseForm[33, 2]
-     = 100001_2
-
-    >> BaseForm[234, 16]
-     = ea_16
-
-    >> BaseForm[12.3, 2]
-     = 1100.01001100110011001_2
-
-    >> BaseForm[-42, 16]
-     = -2a_16
-
-    >> BaseForm[x, 2]
-     = x
-
-    >> BaseForm[12, 3] // FullForm
-     = BaseForm[12, 3]
-
-    Bases must be between 2 and 36:
-    >> BaseForm[12, -3]
-     : Positive machine-sized integer expected at position 2 in BaseForm[12, -3].
-     = BaseForm[12, -3]
-    >> BaseForm[12, 100]
-     : Requested base 100 must be between 2 and 36.
-     = BaseForm[12, 100]
-
-    #> BaseForm[0, 2]
-     = 0_2
-    #> BaseForm[0.0, 2]
-     = 0.0_2
-
-    #> BaseForm[N[Pi, 30], 16]
-     = 3.243f6a8885a308d313198a2e_16
-    """
-
-    summary_text = "print with all numbers given in a base"
-    messages = {
-        "intpm": (
-            "Positive machine-sized integer expected at position 2 in "
-            "BaseForm[`1`, `2`]."
-        ),
-        "basf": "Requested base `1` must be between 2 and 36.",
-    }
-
-    def apply_makeboxes(self, expr, n, f, evaluation):
-        """MakeBoxes[BaseForm[expr_, n_],
-        f:StandardForm|TraditionalForm|OutputForm]"""
-
-        base = n.get_int_value()
-        if base <= 0:
-            evaluation.message("BaseForm", "intpm", expr, n)
-            return None
-
-        if isinstance(expr, PrecisionReal):
-            x = expr.to_sympy()
-            p = reconstruct_digits(expr.get_precision())
-        elif isinstance(expr, MachineReal):
-            x = expr.value
-            p = reconstruct_digits(machine_precision)
-        elif isinstance(expr, Integer):
-            x = expr.value
-            p = 0
-        else:
-            return to_boxes(Expression(SymbolMakeBoxes, expr, f), evaluation)
-
-        try:
-            val = convert_base(x, base, p)
-        except ValueError:
-            return evaluation.message("BaseForm", "basf", n)
-
-        if f is SymbolOutputForm:
-            return to_boxes(String("%s_%d" % (val, base)), evaluation)
-        else:
-            return to_boxes(
-                Expression(SymbolSubscriptBox, String(val), String(base)), evaluation
-            )

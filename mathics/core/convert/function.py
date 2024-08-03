@@ -1,22 +1,16 @@
 # -*- coding: utf-8 -*-
 
+from typing import Callable, Optional, Tuple
+
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, from_python
-from mathics.core.evaluators import eval_N
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolBlank,
-    SymbolInteger,
-    SymbolReal,
-)
-
-
-from typing import Optional, Callable, Tuple
-
+from mathics.core.systemsymbols import SymbolBlank, SymbolInteger, SymbolReal
+from mathics.eval.nevaluator import eval_N
 
 try:
-    from mathics.builtin.compile.types import int_type, real_type, bool_type
-    from mathics.builtin.compile import _compile, CompileArg, CompileError
+    from mathics.compile import CompileArg, CompileError, _compile
+    from mathics.compile.types import bool_type, int_type, real_type
 
     use_llvm = True
     # _Complex not implemented
@@ -74,7 +68,7 @@ def expression_to_callable(
                 vars = dict(list(zip([a.name for a in args], x_mathics)))
                 pyexpr = expr.replace_vars(vars)
                 pyexpr = eval_N(pyexpr, inner_evaluation)
-                res = pyexpr.to_python(n_evaluation=inner_evaluation)
+                res = pyexpr.to_python()
                 return res
 
             # TODO: check if we can use numba to compile this...

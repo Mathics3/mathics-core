@@ -5,11 +5,13 @@ Exponential Integral and Special Functions
 """
 
 
-from mathics.builtin.arithmetic import _MPMathFunction
+from mathics.core.builtin import MPMathFunction
 
 
-class ExpIntegralE(_MPMathFunction):
+class ExpIntegralE(MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ExpIntegralE.html</url>
+
     <dl>
     <dt>'ExpIntegralE[$n$, $z$]'
       <dd>returns the exponential integral function $E_n(z)$.
@@ -25,10 +27,12 @@ class ExpIntegralE(_MPMathFunction):
     mpmath_name = "expint"
 
 
-class ExpIntegralEi(_MPMathFunction):
+class ExpIntegralEi(MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ExpIntegralEi.html</url>
+
     <dl>
-    <dt>'ExpIntegralEi[$z$]'
+      <dt>'ExpIntegralEi[$z$]'
       <dd>returns the exponential integral function $Ei(z)$.
     </dl>
 
@@ -41,11 +45,13 @@ class ExpIntegralEi(_MPMathFunction):
     mpmath_name = "ei"
 
 
-class ProductLog(_MPMathFunction):
+class ProductLog(MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ProductLog.html</url>
+
     <dl>
-    <dt>'ProductLog[$z$]'
-        <dd>returns the value of the Lambert W function at $z$.
+      <dt>'ProductLog[$z$]'
+      <dd>returns the value of the Lambert W function at $z$.
     </dl>
 
     The defining equation:
@@ -77,7 +83,7 @@ class ProductLog(_MPMathFunction):
 
 # TODO: Zernike polynomials not yet implemented in mpmath nor sympy
 #
-# class ZernikeR(_MPMathFunction):
+# class ZernikeR(MPMathFunction):
 #    """
 #    <dl>
 #    <dt>'ZernikeR[$n$, $m$,  $r$]'

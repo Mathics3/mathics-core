@@ -1,35 +1,35 @@
 # -*- coding: utf-8 -*-
 """
-Format a Mathics object as mathml code
-"""
+Lower-level formatter of Mathics objects as MathML strings.
 
+MathML formatting is usually initiated in Mathics via MathMLForm[].
+"""
 
 import base64
 import html
 
+from mathics_scanner import is_symbol_name
 
-from mathics.builtin.exceptions import BoxConstructError
-from mathics.builtin.box.layout import (
-    GridBox,
-    RowBox,
-    SubscriptBox,
-    SuperscriptBox,
-    SubsuperscriptBox,
-    StyleBox,
-    SqrtBox,
-    FractionBox,
-)
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
-
-
+from mathics.builtin.box.layout import (
+    FractionBox,
+    GridBox,
+    RowBox,
+    SqrtBox,
+    StyleBox,
+    SubscriptBox,
+    SubsuperscriptBox,
+    SuperscriptBox,
+)
 from mathics.core.atoms import String
 from mathics.core.element import BoxElementMixin
+from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
-    lookup_method as lookup_conversion_method,
     add_conversion_fn,
+    lookup_method as lookup_conversion_method,
 )
-from mathics.core.parser import is_symbol_name
+from mathics.core.load_builtin import display_operators_set as operators
 from mathics.core.symbols import SymbolTrue
 
 
@@ -40,31 +40,27 @@ def encode_mathml(text: str) -> str:
     return text
 
 
-extra_operators = set(
-    (
-        ",",
-        "(",
-        ")",
-        "[",
-        "]",
-        "{",
-        "}",
-        "\u301a",
-        "\u301b",
-        "\u00d7",
-        "\u2032",
-        "\u2032\u2032",
-        " ",
-        "\u2062",
-        "\u222b",
-        "\u2146",
-    )
-)
+extra_operators = {
+    ",",
+    "(",
+    ")",
+    "[",
+    "]",
+    "{",
+    "}",
+    "\u301a",
+    "\u301b",
+    "\u00d7",
+    "\u2032",
+    "\u2032\u2032",
+    " ",
+    "\u2062",
+    "\u222b",
+    "\u2146",
+}
 
 
 def string(self, **options) -> str:
-    from mathics.builtin import display_operators_set as operators
-
     text = self.value
 
     number_as_text = options.get("number_as_text", None)
@@ -135,6 +131,8 @@ def gridbox(self, elements=None, **box_options) -> str:
         elements = self._elements
     evaluation = box_options.get("evaluation")
     items, options = self.get_array(elements, evaluation)
+    num_fields = max(len(item) if isinstance(item, tuple) else 1 for item in items)
+
     attrs = {}
     column_alignments = options["System`ColumnAlignments"].get_name()
     try:
@@ -152,10 +150,14 @@ def gridbox(self, elements=None, **box_options) -> str:
     new_box_options["inside_list"] = True
     for row in items:
         result += "<mtr>"
-        for item in row:
-            result += f"<mtd {joined_attrs}>{boxes_to_mathml(item.evaluate(evaluation), **new_box_options)}</mtd>"
+        if isinstance(row, tuple):
+            for item in row:
+                result += f"<mtd {joined_attrs}>{boxes_to_mathml(item, **new_box_options)}</mtd>"
+        else:
+            result += f"<mtd {joined_attrs} columnspan={num_fields}>{boxes_to_mathml(row, **new_box_options)}</mtd>"
         result += "</mtr>\n"
     result += "</mtable>"
+    # print(f"gridbox: {result}")
     return result
 
 
@@ -237,10 +239,10 @@ def rowbox(self, **options) -> str:
 
     is_list_row = False
     if (
-        len(self.items) == 3
-        and self.items[0].get_string_value() == "{"  # nopep8
+        len(self.items) >= 3
+        and self.items[0].get_string_value() == "{"
         and self.items[2].get_string_value() == "}"
-        and self.items[1].has_form("RowBox", 1)
+        and self.items[1].has_form("RowBox", 1, None)
     ):
         content = self.items[1].items
         if is_list_interior(content):
@@ -256,6 +258,9 @@ def rowbox(self, **options) -> str:
 
     for element in self.items:
         result.append(lookup_conversion_method(element, "mathml")(element, **options))
+
+    # print(f"mrow: {result}")
+
     return "<mrow>%s</mrow>" % " ".join(result)
 
 
@@ -278,7 +283,8 @@ def graphicsbox(self, elements=None, **options) -> str:
     svg_body = self.boxes_to_svg(elements, **options)
 
     # mglyph, which is what we have been using, is bad because MathML standard changed.
-    # metext does not work because the way in which we produce the svg images is also based on this outdated mglyph behaviour.
+    # metext does not work because the way in which we produce the svg images is also based on this outdated mglyph
+    # behaviour.
     # template = '<mtext width="%dpx" height="%dpx"><img width="%dpx" height="%dpx" src="data:image/svg+xml;base64,%s"/></mtext>'
     template = (
         '<mglyph width="%dpx" height="%dpx" src="data:image/svg+xml;base64,%s"/>'

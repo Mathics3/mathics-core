@@ -4,11 +4,13 @@ Binary Types
 """
 
 
-from mathics.builtin.base import Builtin
+from mathics.core.builtin import Builtin
 
 
 class Byte(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Byte.html</url>
+
     <dl>
       <dt>'Byte'
       <dd>is a data type for 'Read'.

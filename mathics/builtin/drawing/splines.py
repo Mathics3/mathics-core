@@ -9,9 +9,8 @@ A Spline is a mathematical function used for interpolation or smoothing. Splines
 # Here we are also hiding "drawing" since this can erroneously appear at the top level.
 sort_order = "mathics.builtin.splines"
 
-from mathics.builtin.base import Builtin
-
-from mathics.core.attributes import listable, numeric_function, protected
+from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
+from mathics.core.builtin import Builtin
 
 
 # For a more generic implementation in Python using scipy,
@@ -19,6 +18,7 @@ from mathics.core.attributes import listable, numeric_function, protected
 #  https://github.com/Tarheel-Formal-Methods/kaa
 class BernsteinBasis(Builtin):
     """
+
     <url>:Bernstein polynomial basis: https://en.wikipedia.org/wiki/Bernstein_polynomial</url> (<url>:SciPy: https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.BPoly.html</url> :WMA:
 
     A Bernstein is a polynomial that is a linear combination of Bernstein basis polynomials.
@@ -34,7 +34,7 @@ class BernsteinBasis(Builtin):
      = 0.25
     """
 
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     rules = {
         "BernsteinBasis[d_, n_, x_]": "Piecewise[{{Binomial[d, n] * x ^ n * (1 - x) ^ (d - n), 0 < x < 1}}, 0]"
     }
@@ -44,6 +44,7 @@ class BernsteinBasis(Builtin):
 
 class BezierFunction(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BezierFunction.html</url>
     <dl>
       <dt>'BezierFunction[{$pt_1$, $pt_2$, ...}]'
       <dd>returns a Bézier function for the curve defined by points $pt_i$.
@@ -74,6 +75,8 @@ class BezierFunction(Builtin):
 
 class BezierCurve(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BezierCurve.html</url>
+
      <dl>
        <dt>'BezierCurve[{$pt_1$, $pt_2$ ...}]'
        <dd>represents a Bézier curve with control points $p_i$.

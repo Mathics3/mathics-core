@@ -1,48 +1,71 @@
 # -*- coding: utf-8 -*-
+"""
+Module containing ListExpression
+"""
 
 import reprlib
 from typing import Optional, Tuple
 
 from mathics.core.element import ElementsProperties
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import EvalMixin, Symbol, SymbolList
 
 
 class ListExpression(Expression):
     """
-    A Mathics List-Expression.
+    A Mathics3 List-Expression.
 
-    A Mathics List is a specialization of Expression where the head is SymbolList.
+    A Mathics3 List is a specialization of Expression where the head is SymbolList.
 
     positional Arguments:
         - *elements - optional: the remaining elements
 
     Keyword Arguments:
-        - element_properties -- properties of the collection of elements
+        - elements_properties -- properties of the collection of elements
+        - literal_values -- if this is not None, then it is a tuple of Python values
     """
 
     def __init__(
         self,
         *elements,
         elements_properties: Optional[ElementsProperties] = None,
-        is_literal: Optional[bool] = False,
+        literal_values: Optional[tuple] = None,
     ):
         self.options = None
         self.pattern_sequence = False
         self._head = SymbolList
 
-        # For debugging
-        # from mathics.core.symbols import BaseElement
+        # For debugging:
+
+        # if literal_values is not None:
+        #     import inspect
+
+        #     curframe = inspect.currentframe()
+        #     call_frame = inspect.getouterframes(curframe, 2)
+        #     print("caller name:", call_frame[1][3])
+
+        # from mathics.core.element import BaseElement
         # for element in elements:
         #     if not isinstance(element, BaseElement):
         #          from trepan.api import debug; debug()
 
         self._elements = elements
-        # TODO: consider adding _is_literal as an elements property.
-        self._is_literal = (
-            is_literal if is_literal else all(e.is_literal for e in elements)
-        )
-        self.python_list = None
+        self.value = literal_values
+
+        # Check for literalness if it is not known
+        if literal_values is None:
+            self._is_literal = True
+            values = []
+            for element in elements:
+                if element.is_literal:
+                    values.append(element.value)
+                else:
+                    self._is_literal = False
+                    break
+            if self._is_literal:
+                self.value = tuple(values)
+
         self.elements_properties = elements_properties
 
         # FIXME: get rid of this junk
@@ -63,10 +86,14 @@ class ListExpression(Expression):
 
     def __str__(self) -> str:
         """str() representation of ListExpression. May be longer than repr()"""
-        return f"<ListExpression: {self._elements}>"
+        return "{" + ",".join(str(e) for e in self.elements) + "}"
 
     # @timeit
-    def evaluate_elements(self, evaluation):
+    def evaluate_elements(self, evaluation: Evaluation) -> Expression:
+        """
+        return a new expression with the same head, and the
+        evaluable elements evaluated.
+        """
         elements_changed = False
         # Make tuple self._elements mutable by turning it into a list.
         elements = list(self._elements)
@@ -79,16 +106,17 @@ class ListExpression(Expression):
                         elements_changed = True
                         elements[index] = new_value
 
-        if elements_changed:
-            # Save changed elements, making them immutable again.
-            self._elements = tuple(elements)
+        if not elements_changed:
+            return self
 
-            # TODO: we could have a specialized version of this
-            # that keeps self.python_list up to date when that is
-            # easy to do. That is left of some future time to
-            # decide whether doing this this is warranted.
-            self._build_elements_properties()
-            self.python_list = None
+        new_list = ListExpression(*elements)
+        # TODO: we could have a specialized version of this
+        # that keeps self.value up to date when that is
+        # easy to do. That is left of some future time to
+        # decide whether doing this this is warranted.
+        new_list._build_elements_properties()
+        new_list.value = None
+        return new_list
 
     @property
     def is_literal(self) -> bool:
@@ -123,7 +151,7 @@ class ListExpression(Expression):
             self._build_elements_properties()
         if not self.elements_properties.elements_fully_evaluated:
             new = self.shallow_copy()
-            new.evaluate_elements(evaluation)
+            new = new.evaluate_elements(evaluation)
             return new, False
         return self, False
 

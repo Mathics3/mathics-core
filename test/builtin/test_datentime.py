@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
+"""
+Unit tests from mathics.builtin.datetime.
+"""
+
+import sys
+import time
 from test.helper import check_evaluation, evaluate
 
 import pytest
-import sys
-
-import time
 
 
 @pytest.mark.skipif(
@@ -70,3 +73,52 @@ def test_datestring():
         ('DateString["2000-12-1", "Year"]', "2000"),
     ):
         check_evaluation(str_expr, str_expected, hold_expected=True)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
+        ("AbsoluteTime[1000]", None, "1000", "Mathematica Bug - Mathics gets it right"),
+        (
+            'DateList["7/8/9"]',
+            ("The interpretation of 7/8/9 is ambiguous.",),
+            "{2009, 7, 8, 0, 0, 0.}",
+            None,
+        ),
+        (
+            'DateString[{1979, 3, 14}, {"DayName", "  ", "MonthShort", "-", "YearShort"}]',
+            None,
+            "Wednesday  3-79",
+            "Check Leading 0",
+        ),
+        (
+            'DateString[{"DayName", "  ", "Month", "/", "YearShort"}]==DateString[Now[[1]], {"DayName", "  ", "Month", "/", "YearShort"}]',
+            None,
+            "True",
+            None,
+        ),
+        (
+            'DateString[{"06/06/1991", {"Month", "Day", "Year"}}]',
+            None,
+            "Thu 6 Jun 1991 00:00:00",
+            "Assumed separators",
+        ),
+        (
+            'DateString[{"06/06/1991", {"Month", "/", "Day", "/", "Year"}}]',
+            None,
+            "Thu 6 Jun 1991 00:00:00",
+            "Specified separators",
+        ),
+    ],
+)
+def test_private_doctests_datetime(str_expr, msgs, str_expected, fail_msg):
+    """ """
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )

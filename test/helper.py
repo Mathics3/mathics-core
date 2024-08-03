@@ -1,9 +1,16 @@
 # -*- coding: utf-8 -*-
 import time
-from mathics.session import MathicsSession
 from typing import Optional
 
-session = MathicsSession()
+from mathics.core.load_builtin import import_and_load_builtins
+from mathics.session import MathicsSession
+
+import_and_load_builtins()
+
+# Set up a Mathics session with definitions.
+# For consistency set the character encoding ASCII which is
+# the lowest common denominator available on all systems.
+session = MathicsSession(character_encoding="ASCII")
 
 
 def reset_session(add_builtin=True, catch_interrupt=False):
@@ -20,8 +27,8 @@ def evaluate(str_expr: str):
 
 
 def check_evaluation(
-    str_expr: str,
-    str_expected: str,
+    str_expr: Optional[str],
+    str_expected: Optional[str] = None,
     failure_message: str = "",
     hold_expected: bool = False,
     to_string_expr: bool = True,
@@ -33,32 +40,41 @@ def check_evaluation(
     Helper function to test Mathics expression against
     its results
 
-    Compares the expressions represented by ``str_expr`` and  ``str_expected`` by evaluating
-    the first, and optionally, the second.
+    Compares the expressions represented by ``str_expr`` and  ``str_expected`` by
+    evaluating the first, and optionally, the second. If omitted, `str_expected`
+    is assumed to be `"Null"`.
 
-    to_string_expr: If ``True`` (default value) the result of the evaluation is converted
-                    into a Python string. Otherwise, the expression is kept as an Expression
-                    object. If this argument is set to ``None``, the session is reset.
+    to_string_expr: If ``True`` (default value) the result of the evaluation is
+                    converted into a Python string. Otherwise, the expression is kept
+                    as an Expression object.
+                    If this argument is set to ``None``, the session is reset.
 
-    failure_message (str): message shown in case of failure
-    hold_expected (bool): If ``False`` (default value) the ``str_expected`` is evaluated. Otherwise,
-                          the expression is considered literally.
+    failure_message: message shown in case of failure. Use "" for no failure message.
+    hold_expected:   If ``False`` (default value) the ``str_expected`` is evaluated.
+                     Otherwise, the expression is considered literally.
 
     to_string_expected: If ``True`` (default value) the expected expression is
-                    evaluated and then converted to a Python string. result of the evaluation is converted
-                    into a Python string. If ``False``, the expected expression is kept as an Expression object.
+                        evaluated and then converted to a Python string. result of the
+                        evaluation is converted into a Python string.
+                        If ``False``, the expected expression is kept as an Expression
+                        object.
 
-    to_python_expected: If ``True``, and ``to_string_expected`` is ``False``, the result of evaluating ``str_expr``
-                    is compared against the result of the evaluation of ``str_expected``, converted into a
-                    Python object.
+    to_python_expected: If ``True``, and ``to_string_expected`` is ``False``, the result
+                        of evaluating ``str_expr``is compared against the result of the
+                        evaluation of ``str_expected``, converted into a
+                        Python object.
 
-    expected_messages ``Optional[tuple[str]]``: If a tuple of strings are passed into this parameter, messages and prints raised during
-                    the evaluation of ``str_expr`` are compared with the elements of the list. If ``None``, this comparison
-                    is ommited.
+    expected_messages: If a tuple of strings are passed into
+                       this parameter, messages and prints raised during
+                       the evaluation of ``str_expr`` are compared with the elements of
+                       the list. If ``None``, this comparison
+                       is omitted.
     """
     if str_expr is None:
         reset_session()
         return
+    if str_expected is None:
+        str_expected = "Null"
 
     if to_string_expr:
         str_expr = f"ToString[{str_expr}]"
@@ -97,10 +113,39 @@ def check_evaluation(
         msgs = list(expected_messages)
         expected_len = len(msgs)
         got_len = len(outs)
-        assert expected_len == got_len, f"expected {expected_len}; got {got_len}"
-        for (out, msg) in zip(outs, msgs):
+        assert (
+            expected_len == got_len
+        ), f"expected {expected_len}; got {got_len}. Messages: {outs}"
+        for out, msg in zip(outs, msgs):
             if out != msg:
                 print(f"out:<<{out}>>")
                 print(" and ")
                 print(f"expected=<<{msg}>>")
                 assert False, " do not match."
+
+
+def check_evaluation_as_in_cli(
+    str_expr: Optional[str] = None,
+    str_expected: Optional[str] = None,
+    failure_message: str = "",
+    expected_messages: Optional[tuple] = None,
+):
+    """
+    Use this method when special Symbols like Return, %, %%,
+    $IterationLimit, $RecursionLimit, etc. are used in the tests.
+    """
+    if str_expr is None:
+        reset_session()
+        return
+
+    res = session.evaluate_as_in_cli(str_expr)
+    if expected_messages is None:
+        assert len(res.out) == 0
+    else:
+        assert len(res.out) == len(expected_messages)
+        for li1, li2 in zip(res.out, expected_messages):
+            assert li1.text == li2
+
+    if failure_message:
+        assert res.result == str_expected, failure_message
+    assert res.result == str_expected

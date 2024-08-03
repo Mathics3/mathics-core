@@ -1,44 +1,37 @@
 # -*- coding: utf-8 -*-
 """
-Symbolic Handling
+Symbol Handling
 
-Symbolic data. Every symbol has a unique name, exists in a certain context or namespace, and can have a variety of type of values and attributes.
+Symbolic data. Every symbol has a unique name, exists in a certain context \
+or namespace, and can have a variety of type of values and attributes.
 """
 
 import re
 
-from mathics.builtin.assignments.internals import get_symbol_values
-from mathics.builtin.base import (
-    Builtin,
-    PrefixOperator,
-    Test,
-)
+from mathics_scanner import is_symbol_name
 
-from mathics.builtin.atomic.strings import to_regex
-
-from mathics.core.atoms import (
-    String,
-)
-
+from mathics.core.assignment import get_symbol_values
+from mathics.core.atoms import String
 from mathics.core.attributes import (
+    A_HOLD_ALL,
+    A_HOLD_FIRST,
+    A_LOCKED,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+    A_SEQUENCE_HOLD,
     attributes_bitset_to_list,
-    hold_all,
-    hold_first,
-    locked,
-    protected,
-    read_protected,
-    sequence_hold,
 )
-
-from mathics.core.expression import Expression
+from mathics.core.builtin import Builtin, PrefixOperator, Test
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.regex import to_regex
+from mathics.core.evaluation import Evaluation
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import Rule
-
 from mathics.core.symbols import (
     Symbol,
-    SymbolHoldForm,
     SymbolFalse,
+    SymbolHoldForm,
     SymbolNull,
     SymbolTrue,
     SymbolUpSet,
@@ -51,6 +44,7 @@ from mathics.core.systemsymbols import (
     SymbolGrid,
     SymbolInfix,
     SymbolInputForm,
+    SymbolLeft,
     SymbolOptions,
     SymbolRule,
     SymbolSet,
@@ -101,6 +95,8 @@ def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):
 
 class Context(Builtin):
     r"""
+    <url>:WMA link:
+       https://reference.wolfram.com/language/ref/Context.html</url>
     <dl>
       <dt>'Context[$symbol$]'
       <dd>yields the name of the context where $symbol$ is defined in.
@@ -116,30 +112,15 @@ class Context(Builtin):
 
     >> InputForm[Context[]]
      = "Global`"
-
-    ## placeholder for general context-related tests
-    #> x === Global`x
-     = True
-    #> `x === Global`x
-     = True
-    #> a`x === Global`x
-     = False
-    #> a`x === a`x
-     = True
-    #> a`x === b`x
-     = False
-    ## awkward parser cases
-    #> FullForm[a`b_]
-     = Pattern[a`b, Blank[]]
     """
 
-    attributes = hold_first | protected
+    attributes = A_HOLD_FIRST | A_PROTECTED
 
     rules = {"Context[]": "$Context"}
 
     summary_text = "give the name of the context of a symbol"
 
-    def apply(self, symbol, evaluation):
+    def eval(self, symbol, evaluation):
         "Context[symbol_]"
 
         name = symbol.get_name()
@@ -153,6 +134,8 @@ class Context(Builtin):
 
 class Definition(Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Definition.html</url>
     <dl>
       <dt>'Definition[$symbol$]'
       <dd>prints as the definitions given for $symbol$.
@@ -252,7 +235,7 @@ class Definition(Builtin):
      = Null
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     precedence = 670
     summary_text = "give values of a symbol in a form that can be stored in a package"
 
@@ -305,7 +288,7 @@ class Definition(Builtin):
                 )
             )
 
-        if definition is not None and not read_protected & attributes:
+        if definition is not None and not A_READ_PROTECTED & attributes:
             for rule in definition.ownvalues:
                 print_rule(rule)
             for rule in definition.downvalues:
@@ -350,19 +333,18 @@ class Definition(Builtin):
                     ),
                 )
             )
-        if grid:
-            if lines:
+        if lines:
+            if grid:
                 return Expression(
                     SymbolGrid,
                     ListExpression(*(ListExpression(line) for line in lines)),
-                    Expression(SymbolRule, Symbol("ColumnAlignments"), Symbol("Left")),
+                    Expression(SymbolRule, Symbol("ColumnAlignments"), SymbolLeft),
                 )
             else:
-                return SymbolNull
-        else:
-            for line in lines:
-                evaluation.print_out(Expression(SymbolInputForm, line))
-            return SymbolNull
+                for line in lines:
+                    evaluation.print_out(Expression(SymbolInputForm, line))
+
+        return SymbolNull
 
     def format_definition_input(self, symbol, evaluation):
         "InputForm: Definition[symbol_]"
@@ -372,21 +354,22 @@ class Definition(Builtin):
 # In Mathematica 5, this appears under "Types of Values".
 class DownValues(Builtin):
     """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/DownValues.html</url>
     <dl>
-    <dt>'DownValues[$symbol$]'
-        <dd>gives the list of downvalues associated with $symbol$.
+      <dt>'DownValues[$symbol$]'
+      <dd>gives the list of downvalues associated with $symbol$.
     </dl>
 
-    'DownValues' uses 'HoldPattern' and 'RuleDelayed' to protect the
-    downvalues from being evaluated. Moreover, it has attribute
+    'DownValues' uses 'HoldPattern' and 'RuleDelayed' to protect the \
+    downvalues from being evaluated, and it has attribute \
     'HoldAll' to get the specified symbol instead of its value.
 
     >> f[x_] := x ^ 2
     >> DownValues[f]
      = {HoldPattern[f[x_]] :> x ^ 2}
 
-    Mathics will sort the rules you assign to a symbol according to
-    their specificity. If it cannot decide which rule is more special,
+    Mathics will sort the rules you assign to a symbol according to \
+    their specificity. If it cannot decide which rule is more special, \
     the newer one will get higher precedence.
     >> f[x_Integer] := 2
     >> f[x_Real] := 3
@@ -399,12 +382,12 @@ class DownValues(Builtin):
     >> f[a]
      = a ^ 2
 
-    The default order of patterns can be computed using 'Sort' with
+    The default order of patterns can be computed using 'Sort' with \
     'PatternsOrderedQ':
     >> Sort[{x_, x_Integer}, PatternsOrderedQ]
      = {x_Integer, x_}
 
-    By assigning values to 'DownValues', you can override the default
+    By assigning values to 'DownValues', you can override the default \
     ordering:
     >> DownValues[g] := {g[x_] :> x ^ 2, g[x_Integer] :> x}
     >> g[2]
@@ -416,10 +399,10 @@ class DownValues(Builtin):
      = 5
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "give a list of transformation rules corresponding to all downvalues defined for a symbol"
 
-    def apply(self, symbol, evaluation):
+    def eval(self, symbol, evaluation):
         "DownValues[symbol_]"
 
         return get_symbol_values(symbol, "DownValues", "down", evaluation)
@@ -427,34 +410,18 @@ class DownValues(Builtin):
 
 class Information(PrefixOperator):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Information.html</url>
     <dl>
       <dt>'Information[$symbol$]'
       <dd>Prints information about a $symbol$
     </dl>
     'Information' does not print information for 'ReadProtected' symbols.
+
     'Information' uses 'InputForm' to format values.
-
-    #> a = 2;
-    #> Information[a]
-     | a = 2
-     .
-     = Null
-
-    #> f[x_] := x ^ 2;
-    #> g[f] ^:= 2;
-    #> f::usage = "f[x] returns the square of x";
-    #> Information[f]
-     | f[x] returns the square of x
-     .
-     . f[x_] = x ^ 2
-     .
-     . g[f] ^= 2
-     .
-     = Null
-
     """
 
-    attributes = hold_all | sequence_hold | protected | read_protected
+    attributes = A_HOLD_ALL | A_SEQUENCE_HOLD | A_PROTECTED | A_READ_PROTECTED
     messages = {"notfound": "Expression `1` is not a symbol"}
     operator = "??"
     options = {
@@ -487,7 +454,7 @@ class Information(PrefixOperator):
                 infoshow = Expression(
                     SymbolGrid,
                     ListExpression(*(to_mathics_list(line) for line in lines)),
-                    Expression(SymbolRule, Symbol("ColumnAlignments"), Symbol("Left")),
+                    Expression(SymbolRule, Symbol("ColumnAlignments"), SymbolLeft),
                 )
                 evaluation.print_out(infoshow)
         else:
@@ -542,7 +509,7 @@ class Information(PrefixOperator):
                 )
             )
 
-        if definition is not None and not read_protected & attributes:
+        if definition is not None and not A_READ_PROTECTED & attributes:
             for rule in definition.ownvalues:
                 print_rule(rule)
             for rule in definition.downvalues:
@@ -589,7 +556,7 @@ class Information(PrefixOperator):
             )
         return
 
-    def format_definition_input(self, symbol, evaluation, options):
+    def format_definition_input(self, symbol, evaluation: Evaluation, options: dict):
         "InputForm: Information[symbol_, OptionsPattern[Information]]"
         self.format_definition(symbol, evaluation, options, grid=False)
         ret = SymbolNull
@@ -598,6 +565,8 @@ class Information(PrefixOperator):
 
 class Names(Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Names.html</url>
     <dl>
       <dt>'Names["$pattern$"]'
       <dd>returns the list of names matching $pattern$.
@@ -608,7 +577,7 @@ class Names(Builtin):
 
     The wildcard '*' matches any character:
     >> Names["List*"]
-     = {List, ListLinePlot, ListPlot, ListQ, Listable}
+     = {List, ListLinePlot, ListLogPlot, ListPlot, ListQ, Listable}
 
     The wildcard '@' matches only lowercase characters:
     >> Names["List@"]
@@ -621,18 +590,15 @@ class Names(Builtin):
     The number of built-in symbols:
     >> Length[Names["System`*"]]
      = ...
-
-    #> Length[Names["System`*"]] > 350
-     = True
     """
 
     summary_text = "find a list of symbols with names matching a pattern"
 
-    def apply(self, pattern, evaluation):
+    def eval(self, pattern, evaluation):
         "Names[pattern_]"
         headname = pattern.get_head_name()
         if headname == "System`StringExpression":
-            pattern = re.compile(to_regex(pattern, evaluation))
+            pattern = re.compile(to_regex(pattern, show_message=evaluation.messages))
         else:
             pattern = pattern.get_string_value()
 
@@ -652,6 +618,8 @@ class Names(Builtin):
 # In Mathematica 5, this appears under "Types of Values".
 class OwnValues(Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/OwnValues.html</url>
     <dl>
       <dt>'OwnValues[$symbol$]'
       <dd>gives the list of ownvalue associated with $symbol$.
@@ -673,10 +641,10 @@ class OwnValues(Builtin):
      = 5
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "give the rule corresponding to any ownvalue defined for a symbol"
 
-    def apply(self, symbol, evaluation):
+    def eval(self, symbol, evaluation):
         "OwnValues[symbol_]"
 
         return get_symbol_values(symbol, "OwnValues", "own", evaluation)
@@ -684,9 +652,11 @@ class OwnValues(Builtin):
 
 class Symbol_(Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Symbol.html</url>
     <dl>
-    <dt>'Symbol'
-        <dd>is the head of symbols.
+      <dt>'Symbol'
+      <dd>is the head of symbols.
     </dl>
 
     >> Head[x]
@@ -694,12 +664,9 @@ class Symbol_(Builtin):
     You can use 'Symbol' to create symbols from strings:
     >> Symbol["x"] + Symbol["x"]
      = 2 x
-
-    #> {\\[Eta], \\[CapitalGamma]\\[Beta], Z\\[Infinity], \\[Angle]XYZ, \\[FilledSquare]r, i\\[Ellipsis]j}
-     = {\u03b7, \u0393\u03b2, Z\u221e, \u2220XYZ, \u25a0r, i\u2026j}
     """
 
-    attributes = locked | protected
+    attributes = A_LOCKED | A_PROTECTED
 
     messages = {
         "symname": (
@@ -713,12 +680,10 @@ class Symbol_(Builtin):
 
     summary_text = "the head of a symbol; create a symbol from a name"
 
-    def apply(self, string, evaluation):
+    def eval(self, string, evaluation):
         "Symbol[string_String]"
 
-        from mathics.core.parser import is_symbol_name
-
-        text = string.get_string_value()
+        text = string.value
         if is_symbol_name(text):
             return Symbol(evaluation.definitions.lookup_name(string.value))
         else:
@@ -727,22 +692,21 @@ class Symbol_(Builtin):
 
 class SymbolName(Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/SymbolName.html</url>
     <dl>
-    <dt>'SymbolName[$s$]'
-        <dd>returns the name of the symbol $s$ (without any leading
+      <dt>'SymbolName[$s$]'
+      <dd>returns the name of the symbol $s$ (without any leading \
         context name).
     </dl>
 
     >> SymbolName[x] // InputForm
      = "x"
-
-    #> SymbolName[a`b`x] // InputForm
-     = "x"
     """
 
     summary_text = "give the name of a symbol as a string"
 
-    def apply(self, symbol, evaluation):
+    def eval(self, symbol, evaluation):
         "SymbolName[symbol_Symbol]"
 
         # MMA docs say "SymbolName always give the short name,
@@ -752,9 +716,11 @@ class SymbolName(Builtin):
 
 class SymbolQ(Test):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/SymbolName.html</url>
     <dl>
-    <dt>'SymbolQ[$x$]'
-        <dd>is 'True' if $x$ is a symbol, or 'False' otherwise.
+      <dt>'SymbolQ[$x$]'
+      <dd>is 'True' if $x$ is a symbol, or 'False' otherwise.
     </dl>
 
     >> SymbolQ[a]
@@ -767,45 +733,17 @@ class SymbolQ(Test):
 
     summary_text = "test whether is a symbol"
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         return isinstance(expr, Symbol)
-
-
-# In Mathematica 5, this appears under "Types of Values".
-class UpValues(Builtin):
-    """
-    <dl>
-      <dt>'UpValues[$symbol$]'
-      <dd>gives the list of transformation rules corresponding to upvalues define with $symbol$.
-    </dl>
-
-    >> a + b ^= 2
-     = 2
-    >> UpValues[a]
-     = {HoldPattern[a + b] :> 2}
-    >> UpValues[b]
-     = {HoldPattern[a + b] :> 2}
-
-    You can assign values to 'UpValues':
-    >> UpValues[pi] := {Sin[pi] :> 0}
-    >> Sin[pi]
-     = 0
-    """
-
-    attributes = hold_all | protected
-    summary_text = "give a list of transformation rules corresponding to upvalues defined for a symbol"
-
-    def apply(self, symbol, evaluation):
-        "UpValues[symbol_]"
-
-        return get_symbol_values(symbol, "UpValues", "up", evaluation)
 
 
 class ValueQ(Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/ValueQ.html</url>
     <dl>
-    <dt>'ValueQ[$expr$]'
-        <dd>returns 'True' if and only if $expr$ is defined.
+      <dt>'ValueQ[$expr$]'
+      <dd>returns 'True' if and only if $expr$ is defined.
     </dl>
 
     >> ValueQ[x]
@@ -813,15 +751,12 @@ class ValueQ(Builtin):
     >> x = 1;
     >> ValueQ[x]
      = True
-
-    #> ValueQ[True]
-     = False
     """
 
-    attributes = hold_first | protected
+    attributes = A_HOLD_FIRST | A_PROTECTED
     summary_text = "test whether a symbol can be considered to have a value"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "ValueQ[expr_]"
         evaluated_expr = expr.evaluate(evaluation)
         if expr.sameQ(evaluated_expr):

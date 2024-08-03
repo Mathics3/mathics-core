@@ -3,20 +3,20 @@
 """
 Exponential Functions
 
-Numerical values and derivatives can be computed; however, most special exact values and simplification rules are not implemented yet.
+Numerical values and derivatives can be computed; however, most special exact values \
+and simplification rules are not implemented yet.
 """
 
 import math
-import mpmath
-
 from collections import namedtuple
 from contextlib import contextmanager
 from itertools import chain
 
-from mathics.builtin.arithmetic import _MPMathFunction
-from mathics.builtin.base import Builtin
+import mpmath
+
 from mathics.core.atoms import Real
-from mathics.core.attributes import listable, numeric_function, protected
+from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
+from mathics.core.builtin import Builtin, MPMathFunction
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolPower
@@ -157,8 +157,11 @@ class Fold:
                     init = y
 
 
-class Exp(_MPMathFunction):
+class Exp(MPMathFunction):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Exp.html</url>
+
     <dl>
       <dt>'Exp[$z$]'
       <dd>returns the exponential function of $z$.
@@ -173,9 +176,6 @@ class Exp(_MPMathFunction):
 
     >> Plot[Exp[x], {x, 0, 3}]
      = -Graphics-
-    #> Exp[1.*^20]
-     : Overflow occurred in computation.
-     = Overflow[]
     """
 
     rules = {
@@ -188,8 +188,10 @@ class Exp(_MPMathFunction):
         return Expression(SymbolPower, SymbolE, elements[0])
 
 
-class Log(_MPMathFunction):
+class Log(MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Log.html</url>
+
     <dl>
       <dt>'Log[$z$]'
       <dd>returns the natural logarithm of $z$.
@@ -201,21 +203,6 @@ class Log(_MPMathFunction):
      = Indeterminate
     >> Plot[Log[x], {x, 0, 5}]
      = -Graphics-
-
-    #> Log[1000] / Log[10] // Simplify
-     = 3
-
-    #> Log[1.4]
-     = 0.336472
-
-    #> Log[Exp[1.4]]
-     = 1.4
-
-    #> Log[-1.4]
-     = 0.336472 + 3.14159 I
-
-    #> N[Log[10], 30]
-     = 2.30258509299404568401799145468
     """
 
     summary_text = "logarithm function"
@@ -246,6 +233,8 @@ class Log(_MPMathFunction):
 
 class Log2(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Log2.html</url>
+
     <dl>
       <dt>'Log2[$z$]'
       <dd>returns the base-2 logarithm of $z$.
@@ -260,7 +249,7 @@ class Log2(Builtin):
     """
 
     summary_text = "base-2 logarithm function"
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     rules = {
         "Log2[x_]": "Log[2, x]",
@@ -269,6 +258,8 @@ class Log2(Builtin):
 
 class Log10(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Log10.html</url>
+
     <dl>
       <dt>'Log10[$z$]'
       <dd>returns the base-10 logarithm of $z$.
@@ -283,7 +274,7 @@ class Log10(Builtin):
     """
 
     summary_text = "base-10 logarithm function"
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     rules = {
         "Log10[x_]": "Log[10, x]",
@@ -292,6 +283,8 @@ class Log10(Builtin):
 
 class LogisticSigmoid(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LogisticSigmoid.html</url>
+
     <dl>
       <dt>'LogisticSigmoid[$z$]'
       <dd>returns the logistic sigmoid of $z$.
@@ -305,12 +298,9 @@ class LogisticSigmoid(Builtin):
 
     >> LogisticSigmoid[{-0.2, 0.1, 0.3}]
      = {0.450166, 0.524979, 0.574443}
-
-    #> LogisticSigmoid[I Pi]
-     = LogisticSigmoid[I Pi]
     """
 
     summary_text = "logistic function"
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     rules = {"LogisticSigmoid[z_?NumberQ]": "1 / (1 + Exp[-z])"}

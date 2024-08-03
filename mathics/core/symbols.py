@@ -1,10 +1,8 @@
 # cython: language_level=3
 # -*- coding: utf-8 -*-
 
-import sympy
 import time
-import typing
-from typing import Any, Optional
+from typing import Any, FrozenSet, List, Optional, Union
 
 from mathics.core.element import (
     BaseElement,
@@ -202,7 +200,8 @@ class Atom(BaseElement):
     Atom is not a directly-mentioned WL entity, although conceptually
     it very much seems to exist.
 
-    The other kinds expression element is a Builtin, e.g. `ByteArray``, `CompiledCode`` or ``Image``.
+    The other kinds expression element is a Builtin, e.g. `ByteArray``, `CompiledCode``
+    or ``Image``.
     """
 
     _head_name = ""
@@ -251,16 +250,13 @@ class Atom(BaseElement):
     def get_atom_name(self) -> str:
         return self.__class__.__name__
 
-    def get_atoms(self, include_heads=True) -> typing.List["Atom"]:
+    def get_atoms(self, include_heads=True) -> List["Atom"]:
         return [self]
 
-    # We seem to need this because the caller doesn't distinguish something with elements
-    # from a single atom.
+    # We seem to need this because the caller doesn't distinguish
+    # something with elements from a single atom.
     def get_elements(self):
         return []
-
-    # Compatibility with old code. Deprecated, but remove after a little bit.
-    get_leaves = get_elements
 
     def get_head(self) -> "Symbol":
         return Symbol(self.class_head_name)
@@ -268,14 +264,18 @@ class Atom(BaseElement):
     def get_head_name(self) -> "str":
         return self.class_head_name  # System`" + self.__class__.__name__
 
-    #    def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
+    #    def get_option_values(self, evaluation, allow_symbols=False,
+    #                          stop_on_error=True):
     #        """
     #        Build a dictionary of options from an expression.
-    #        For example Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)
-    #        will return a list of options associated to the definition of the symbol "Integrate".
+    #        For example Symbol("Integrate").get_option_values(evaluation,
+    #                           allow_symbols=True)
+    #        will return a list of options associated to the definition of the symbol
+    #        "Integrate".
     #        If self is not an expression,
     #        """
-    #        print("get_option_values is trivial for ", (self, stop_on_error, allow_symbols ))
+    #        print("get_option_values is trivial for ", (self, stop_on_error,
+    #              allow_symbols ))
     #        1/0
     #        return None if stop_on_error else {}
 
@@ -296,11 +296,11 @@ class Atom(BaseElement):
 
     @property
     def is_literal(self) -> bool:
-        """
-        True if the value can't change, i.e. a value is set and it does not
-        depend on definition bindings. That is why, in contrast to
-        `is_uncertain_final_definitions()` we don't need a `definitions`
-        parameter.
+        """True if the value can't change and has a Python representation,
+        i.e. a value is set and it does not depend on definition
+        bindings. That is why, in contrast to
+        `is_uncertain_final_definitions()` we don't need a
+        `definitions` parameter.
 
         Most Atoms, like Numbers and Strings, do not need evaluation
         or reevaluation. However some kinds of Atoms like Symbols do
@@ -309,7 +309,7 @@ class Atom(BaseElement):
         it might is literal in general.
 
         """
-        return True
+        return False
 
     def is_uncertain_final_definitions(self, definitions) -> bool:
         """
@@ -324,9 +324,6 @@ class Atom(BaseElement):
         """
         return False
 
-    def numerify(self, evaluation) -> "Atom":
-        return self
-
     def replace_vars(self, vars, options=None, in_scoping=True) -> "Atom":
         return self
 
@@ -335,51 +332,96 @@ class Atom(BaseElement):
 
 
 class Symbol(Atom, NumericOperators, EvalMixin):
-    """
-    Note: Symbol is right now used in a couple of ways which in the
-    future may be separated.
+    """A Symbol is a kind of Atom that acts as a symbolic variable.
 
-    A Symbol is a kind of Atom that acts as a symbolic variable or
-    symbolic constant.
+    All Symbols have a name that can be converted to string.
 
-    All Symbols have a name that can be converted to string form.
+    A Variable Symbol is a ``Symbol`` that is associated with a
+    ``Definition`` that has an ``OwnValue`` that determines its
+    evaluation value.
 
-    Inside a session, a Symbol can be associated with a ``Definition``
-    that determines its evaluation value.
+    A Function Symbol, like a Variable Symbol, is a ``Symbol`` that is
+    also associated with a ``Definition``. But it has a ``DownValue``
+    that is used in its evaluation.
 
-    We also have Symbols which are immutable or constant; here the
-    definitions are fixed. The predefined Symbols ``True``, ``False``,
-    and ``Null`` are like this.
+    A Function Symbol, like a Variable Symbol, is a ``Symbol`` that is
+    also associated with a ``Definition``. But it has a ``DownValue``
+    that is used in its evaluation.
 
-    Also there are situations where the Symbol acts like Python's
-    intern() built-in function or Lisp's Symbol without its modifyable
-    property list.  Here, the only attribute we care about is the name
-    which is unique across all mentions and uses, and therefore
-    needs it only to be stored as a single object in the system.
+    We also have Symbols which, in contrast to Variables Symbols, have
+    a constant value that cannot change. System`True and System`False
+    are like this.
+
+    These however are in class SymbolConstant. See that class for
+    more information.
+
+    Symbol acts like Python's intern() built-in function or Lisp's
+    Symbol without its modifyable property list.  Here, the only
+    attribute we care about is the value which is unique across all
+    mentions and uses, and therefore needs it only to be stored as a
+    single object in the system.
 
     Note that the mathics.core.parser.Symbol works exactly this way.
-
-    This aspect may or may not be true for the Symbolic Variable use case too.
     """
 
     name: str
+    hash: str
     sympy_dummy: Any
-    defined_symbols = {}
+
+    # Dictionary of Symbols defined so far.
+    # We use this for object uniqueness.
+    # The key is the Symbol object's string name, and the
+    # diectionary's value is the Mathics object for the Symbol.
+    _symbols = {}
+
     class_head_name = "System`Symbol"
 
     # __new__ instead of __init__ is used here because we want
     # to return the same object for a given "name" value.
-    def __new__(cls, name, sympy_dummy=None):
+    def __new__(cls, name: str, sympy_dummy=None):
         """
-        Allocate an object ensuring that for a given `name` we get back the same object.
+        Allocate an object ensuring that for a given ``name`` and ``cls`` we get back the same object,
+        id(object) is the same and its object.__hash__() is the same.
+
+        SymbolConstant's like System`True and System`False set
+        ``value`` to something other than ``None``.
+
         """
         name = ensure_context(name)
-        self = cls.defined_symbols.get(name, None)
+
+        # A lot of the below code is similar to
+        # the corresponding for numeric constants like Integer, Real.
+        self = cls._symbols.get(name)
+
         if self is None:
-            self = super(Symbol, cls).__new__(cls)
+            self = super().__new__(cls)
             self.name = name
+
+            # Cache object so we don't allocate again.
+            cls._symbols[name] = self
+
+            # Set a value for self.__hash__() once so that every time
+            # it is used this is fast. Note that in contrast to the
+            # cached object key, the hash key needs to be unique across *all*
+            # Python objects, so we include the class in the
+            # event that different objects have the same Python value.
+            # For example, this can happen with String constants.
+
+            self.hash = hash((cls, name))
+
+            # TODO: revise how we convert sympy.Dummy
+            # symbols.
+            #
+            # In some cases, SymPy returns a sympy.Dummy
+            # object. It is converted to Mathics as a
+            # Symbol. However, we probably should have
+            # a different class for this kind of symbols.
+            # Also, sympy_dummy should be stored as the
+            # value attribute.
             self.sympy_dummy = sympy_dummy
-            cls.defined_symbols[name] = self
+
+            self._short_name = strip_context(name)
+
         return self
 
     def __eq__(self, other) -> bool:
@@ -388,8 +430,11 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     def __getnewargs__(self):
         return (self.name, self.sympy_dummy)
 
-    def __hash__(self):
-        return hash(("Symbol", self.name))  # to distinguish from String
+    def __hash__(self) -> int:
+        """
+        We need self.__hash__() so that we can use Symbols as keys in dictionaries.
+        """
+        return self.hash
 
     def __ne__(self, other) -> bool:
         return self is not other
@@ -473,12 +518,13 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     @property
     def is_literal(self) -> bool:
         """
-        True if the value can't change, i.e. a value is set and it does not
-        depend on definition bindings. That is why, in contrast to
-        `is_uncertain_final_definitions()` we don't need a `definitions`
-        parameter.
+        In general, for Atoms its value can change and might not have a Python
+        representation. Symbol is an example of this.
 
-        Here, we have to be pessimistic and return False.
+        So Here, we have to be pessimistic and return False. A number of
+        subclasses, like Integer, Real, String, change the value returned
+        to True.
+
         """
         return False
 
@@ -528,9 +574,6 @@ class Symbol(Atom, NumericOperators, EvalMixin):
                 1,
             )
 
-    def user_hash(self, update) -> None:
-        update(b"System`Symbol>" + self.name.encode("utf8"))
-
     def replace_vars(self, vars, options={}, in_scoping=True):
         assert all(fully_qualified_symbol_name(v) for v in vars)
         var = vars.get(self.name, None)
@@ -543,51 +586,106 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         """Mathics SameQ"""
         return self is rhs
 
-    def to_python(self, *args, **kwargs):
+    @property
+    def short_name(self) -> str:
+        """The symbol name with its context stripped off"""
+        return self._short_name
+
+    def user_hash(self, update) -> None:
+        update(b"System`Symbol>" + self.name.encode("utf8"))
+
+    def to_python(self, *args, python_form: bool = False, **kwargs):
         if self is SymbolTrue:
             return True
         if self is SymbolFalse:
             return False
         if self is SymbolNull:
             return None
+
+        # This was introduced before `mathics.eval.nevaluator.eval_N`
+        # provided a simple way to convert an expression into a number.
+        # Now it makes this routine harder to describe.
         n_evaluation = kwargs.get("n_evaluation")
         if n_evaluation is not None:
-            value = self.create_expression(SymbolN, self).evaluate(n_evaluation)
-            return value.to_python()
+            import warnings
 
-        if kwargs.get("python_form", False):
-            return self.to_sympy(**kwargs)
-        else:
-            return self.name
+            warnings.warn(
+                "use instead ``eval_N(obj, evaluation).to_python()``",
+                DeprecationWarning,
+            )
+
+            from mathics.eval.nevaluator import eval_N
+
+            value = eval_N(self, n_evaluation)
+            if value is not self:
+                return value.to_python()
+
+        # For general symbols, the default behaviour is
+        # to return a 'str'. The reason seems to be
+        # that native (builtin) Python types
+        # are better for being used as keys in
+        # dictionaries.
+        return self.name
 
     def to_sympy(self, **kwargs):
-        from mathics.builtin import mathics_to_sympy
+        from mathics.core.convert.sympy import symbol_to_sympy
 
-        if self.sympy_dummy is not None:
-            return self.sympy_dummy
-
-        builtin = mathics_to_sympy.get(self.name)
-        if (
-            builtin is None
-            or not builtin.sympy_name
-            or not builtin.is_constant()  # nopep8
-        ):
-            return sympy.Symbol(sympy_symbol_prefix + self.name)
-        return builtin.to_sympy(self, **kwargs)
+        return symbol_to_sympy(self, **kwargs)
 
 
-class PredefinedSymbol(Symbol):
+class SymbolConstant(Symbol):
     """
-    A Predefined Symbol of the Mathics system.
+    A Symbol Constant is Symbol of the Mathics system whose value can't
+    be changed and has a corresponding Python representation.
 
-    A Symbol which is defined because it is used somewhere in the
-    Mathics system as a built-in name, Attribute, Property, Option,
-    or a Symbolic Constant.
+    Therefore, like an ``Integer`` constant such as ``Integer0``, we don't
+    need to go through ``Definitions`` to get its Python-equivalent value.
 
-    In contrast to Symbol where the name might not have been added to
-    a list of known Symbol names or where the name might get deleted,
-    this never occurs here.
+    For example for the ``SymbolConstant`` ``System`True``, has its
+    value set to the Python ``True`` value.
+
+    Note this is not the same thing as a Symbolic Constant like ``Pi``,
+    which doesn't have an (exact) Python equivalent representation.
+    Also, Pi *can* be Unprotected and changed, while True, cannot.
+
+    Also note that ``SymbolConstant`` differs from ``Symbol`` in that
+    Symbol has no value field (even when its value happens to be
+    representable in Python. Symbols need to go through Definitions
+    get a Symbol's current value, based on the current context and the
+    state of prior operations on that Symbol/Definition binding.
+
+    In sum, SymbolConstant is partly like Symbol, and partly like
+    Numeric constants.
     """
+
+    # Dictionary of SymbolConstants defined so far.
+    # We use this for object uniqueness.
+    # The key is the SymbolConstant's value, and the
+    # diectionary's value is the Mathics object representing that Python value.
+    _symbol_constants = {}
+
+    # We use __new__ here to unsure that two Integer's that have the same value
+    # return the same object.
+
+    _value = None
+
+    def __new__(cls, name, value):
+        name = ensure_context(name)
+        self = cls._symbol_constants.get(name)
+        if self is None:
+            self = super().__new__(cls, name)
+            self._value = value
+
+            # Cache object so we don't allocate again.
+            self._symbol_constants[name] = self
+
+            # Set a value for self.__hash__() once so that every time
+            # it is used this is fast. Note that in contrast to the
+            # cached object key, the hash key needs to be unique across all
+            # Python objects, so we include the class in the
+            # event that different objects have the same Python value
+            self.hash = hash((cls, name))
+        return self
 
     @property
     def is_literal(self) -> bool:
@@ -616,37 +714,33 @@ class PredefinedSymbol(Symbol):
         """
         return False
 
+    @property
+    def value(self):
+        return self._value
 
-# system_symbols('A', 'B', ...) -> [Symbol('System`A'), Symbol('System`B'), ...]
-def system_symbols(*symbols) -> typing.FrozenSet[Symbol]:
+
+# A BooleanType is a special form of SymbolConstant where the value
+# of the constant is either SymbolTrue or SymbolFalse.
+BooleanType = SymbolConstant
+
+
+def symbol_set(*symbols: Symbol) -> FrozenSet[Symbol]:
     """
-    Return a frozenset of symbols from a list of names (strings).
+    Return a frozenset of symbols from a Symbol arguments.
     We will use this in testing membership, so an immutable object is fine.
 
-    In 2021, we benchmarked frozenset versus list, tuple, and set and frozenset was the fastest.
+    In 2021, we benchmarked frozenset versus list, tuple, and set and
+    frozenset was the fastest.
     """
-    return frozenset(Symbol(s) for s in symbols)
-
-
-# The available formats.
-
-format_symbols = system_symbols(
-    "InputForm",
-    "OutputForm",
-    "StandardForm",
-    "FullForm",
-    "TraditionalForm",
-    "TeXForm",
-    "MathMLForm",
-)
+    return frozenset(symbols)
 
 
 # Symbols used in this module.
 
-# Note, below we are only setting PredefinedSymbol for Symbols which
+# Note, below we are only setting SymbolConstant for Symbols which
 # are both predefined and have the Locked attribute.
 
-# An experiment using PredefinedSymbol("Pi") in the Python code and
+# An experiment using SymbolConstant("Pi") in the Python code and
 # running:
 #    {Pi, Unprotect[Pi];Pi=4; Pi, Pi=.; Pi }
 # show that this does not change the output in any way.
@@ -656,9 +750,9 @@ format_symbols = system_symbols(
 # more of the below and in systemsymbols
 # PredefineSymbol.
 
-SymbolFalse = PredefinedSymbol("System`False")
-SymbolList = PredefinedSymbol("System`List")
-SymbolTrue = PredefinedSymbol("System`True")
+SymbolFalse = SymbolConstant("System`False", value=False)
+SymbolList = SymbolConstant("System`List", value=list)
+SymbolTrue = SymbolConstant("System`True", value=True)
 
 SymbolAbs = Symbol("Abs")
 SymbolDivide = Symbol("Divide")
@@ -739,7 +833,11 @@ class NumericOperators:
     def __pow__(self, other) -> BaseElement:
         return self.create_expression(SymbolPower, self, other)
 
-    def round_to_float(self, evaluation=None, permit_complex=False) -> Optional[float]:
+    # FIXME: The name "round_to_float" is misleading when
+    # permit_complex is True.
+    def round_to_float(
+        self, evaluation=None, permit_complex=False
+    ) -> Optional[Union[complex, float]]:
         """
         Round to a Python float. Return None if rounding is not possible.
         This can happen if self or evaluation is NaN.

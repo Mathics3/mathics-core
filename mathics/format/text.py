@@ -1,28 +1,24 @@
 # -*- coding: utf-8 -*-
 """
-Format a Mathics object as plain text 
+Lower-level formatter Mathics objects as plain text.
 """
 
 
-from mathics.builtin.exceptions import BoxConstructError
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
+    FractionBox,
     GridBox,
     RowBox,
+    SqrtBox,
     StyleBox,
     SubscriptBox,
-    SuperscriptBox,
     SubsuperscriptBox,
-    SqrtBox,
-    FractionBox,
+    SuperscriptBox,
 )
-
 from mathics.core.atoms import String
-from mathics.core.formatter import (
-    add_conversion_fn,
-    lookup_method,
-)
+from mathics.core.exceptions import BoxConstructError
+from mathics.core.formatter import add_conversion_fn, lookup_method
 from mathics.core.symbols import Atom, SymbolTrue
 
 
@@ -64,26 +60,43 @@ add_conversion_fn(FractionBox, fractionbox)
 def gridbox(self, elements=None, **box_options) -> str:
     if not elements:
         elements = self._elements
-    evaluation = box_options.get("evaluation")
+    evaluation = box_options.get("evaluation", None)
     items, options = self.get_array(elements, evaluation)
+
     result = ""
     if not items:
         return ""
-    widths = [0] * len(items[0])
+    try:
+        widths = [0] * max(1, max(len(row) for row in items if isinstance(row, tuple)))
+    except ValueError:
+        widths = [0]
+
     cells = [
         [
-            # TODO: check if this evaluation is necesary.
-            boxes_to_text(item.evaluate(evaluation), **box_options).splitlines()
+            # TODO: check if this evaluation is necessary.
+            boxes_to_text(item, **box_options).splitlines()
             for item in row
         ]
+        if isinstance(row, tuple)
+        else [boxes_to_text(row, **box_options).splitlines()]
         for row in items
     ]
-    for row in cells:
+
+    # compute widths
+    full_width = 0
+    for i, row in enumerate(cells):
         for index, cell in enumerate(row):
             if index >= len(widths):
                 raise BoxConstructError
-            for line in cell:
-                widths[index] = max(widths[index], len(line))
+            if not isinstance(items[i], tuple):
+                for line in cell:
+                    full_width = max(full_width, len(line))
+            else:
+                for line in cell:
+                    widths[index] = max(widths[index], len(line))
+
+    full_width = max(sum(widths), full_width)
+
     for row_index, row in enumerate(cells):
         if row_index > 0:
             result += "\n"
@@ -98,10 +111,12 @@ def gridbox(self, elements=None, **box_options) -> str:
                 else:
                     text = ""
                 line += text
-                if cell_index < len(row) - 1:
-                    line += " " * (widths[cell_index] - len(text))
-                    # if cell_index < len(row) - 1:
-                    line += "   "
+                if isinstance(items[row_index], tuple):
+                    if cell_index < len(row) - 1:
+                        line += " " * (widths[cell_index] - len(text))
+                        # if cell_index < len(row) - 1:
+                        line += "   "
+
             if line_exists:
                 result += line + "\n"
             else:

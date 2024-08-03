@@ -3,22 +3,19 @@ Functions to support Read[]
 """
 
 import io
-import os.path as osp
 
-from mathics.builtin.base import MessageException
 from mathics.builtin.atomic.strings import to_python_encoding
-from mathics.core.expression import Expression
 from mathics.core.atoms import Integer, String
+from mathics.core.exceptions import MessageException
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol
 from mathics.core.streams import Stream, path_search, stream_manager
-
-# FIXME: don't use a module-level path
-INPUTFILE_VAR = ""
-
-SymbolInputStream = Symbol("InputStream")
-SymbolOutputStream = Symbol("OutputStream")
-SymbolEndOfFile = Symbol("EndOfFile")
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import (
+    SymbolEndOfFile,
+    SymbolInputStream,
+    SymbolOutputStream,
+)
 
 READ_TYPES = [
     Symbol(k)
@@ -83,8 +80,6 @@ class MathicsOpen(Stream):
 
         # Open the file
         self.fp = io.open(path, self.mode, encoding=self.encoding)
-        global INPUTFILE_VAR
-        INPUTFILE_VAR = osp.abspath(path)
 
         # Add to our internal list of streams
         self.stream = stream_manager.add(
@@ -100,8 +95,6 @@ class MathicsOpen(Stream):
         return self.fp
 
     def __exit__(self, type, value, traceback):
-        global INPUTFILE_VAR
-        INPUTFILE_VAR = self.old_inputfile_var or ""
         self.fp.close()
         stream_manager.delete_stream(self.stream)
         super().__exit__(type, value, traceback)

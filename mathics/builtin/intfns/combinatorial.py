@@ -2,23 +2,27 @@
 """
 Combinatorial Functions
 
-<url>:Combinatorics: https://en.wikipedia.org/wiki/Combinatorics</url> is an area of mathematics primarily concerned with counting, both as a means and an end in obtaining results, and certain properties of finite structures.
+<url>:Combinatorics: https://en.wikipedia.org/wiki/Combinatorics</url> is an \
+area of mathematics primarily concerned with counting, both as a means and an \
+end in obtaining results, and certain properties of finite structures.
 
-It is closely related to many other areas of Mathematics and has many applications ranging from logic to statistical physics, from evolutionary biology to computer science, etc.
+It is closely related to many other areas of Mathematics and has many \
+applications ranging from logic to statistical physics, from evolutionary \
+biology to computer science, etc.
 """
 
 
-from mathics.builtin.arithmetic import _MPMathFunction
-from mathics.builtin.base import Builtin, SympyFunction
+from itertools import combinations
 
 from mathics.core.atoms import Integer
 from mathics.core.attributes import (
-    listable as A_LISTABLE,
-    numeric_function as A_NUMERIC_FUNCTION,
-    orderless as A_ORDERLESS,
-    protected as A_PROTECTED,
-    read_protected as A_READ_PROTECTED,
+    A_LISTABLE,
+    A_NUMERIC_FUNCTION,
+    A_ORDERLESS,
+    A_PROTECTED,
+    A_READ_PROTECTED,
 )
+from mathics.core.builtin import Builtin, MPMathFunction, SympyFunction
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
@@ -30,7 +34,6 @@ from mathics.core.symbols import (
     SymbolTimes,
     SymbolTrue,
 )
-from itertools import combinations
 
 SymbolBinomial = Symbol("Binomial")
 SymbolSubsets = Symbol("Subsets")
@@ -62,7 +65,7 @@ class _BooleanDissimilarity(Builtin):
         except _NoBoolVector:
             return None
 
-    def apply(self, u, v, evaluation):
+    def eval(self, u, v, evaluation):
         "%(name)s[u_List, v_List]"
         if len(u.elements) != len(v.elements):
             return
@@ -82,9 +85,16 @@ class _NoBoolVector(Exception):
     pass
 
 
-class Binomial(_MPMathFunction):
+class Binomial(MPMathFunction):
     """
-    <url>:Binomial Coefficient: https://en.wikipedia.org/wiki/Binomial_coefficient</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#binomial</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Binomial.html</url>)
+
+    <url>
+    :Binomial Coefficient:
+    https://en.wikipedia.org/wiki/Binomial_coefficient</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/combinatorial.html#binomial</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Binomial.html</url>)
 
     <dl>
       <dt>'Binomial[$n$, $k$]'
@@ -103,10 +113,6 @@ class Binomial(_MPMathFunction):
      = 0
     >> Binomial[-10.5, -3.5]
      = 0.
-
-    ## TODO should be ComplexInfinity but mpmath returns +inf
-    #> Binomial[-10, -3.5]
-     = Infinity
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
@@ -119,7 +125,14 @@ class Binomial(_MPMathFunction):
 
 class CatalanNumber(SympyFunction):
     """
-    <url>:Catalan Number: https://en.wikipedia.org/wiki/Catalan_number</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.catalan</url>, <url>:WMA: https://reference.wolfram.com/language/ref/CatalanNumber.html</url>)
+    <url>
+    :Catalan Number:
+    https://en.wikipedia.org/wiki/Catalan_number</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.catalan</url>, \
+    <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/CatalanNumber.html</url>)
 
     <dl>
       <dt>'CatalanNumber[$n$]'
@@ -138,19 +151,25 @@ class CatalanNumber(SympyFunction):
 
     # We (and sympy) do not handle fractions or other non-integers
     # right now.
-    def apply_integer(self, n: Integer, evaluation):
+    def eval_integer(self, n: Integer, evaluation):
         "CatalanNumber[n_Integer]"
-        return self.apply(n, evaluation)
+        return self.eval(n, evaluation)
 
 
 class DiceDissimilarity(_BooleanDissimilarity):
     r"""
-    <url>:Sørensen–Dice coefficient: https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient</url> (<url>:Sympy: https://docs.scipy.org/doc/scipy/search.html</url>, <url>:DiceDissimilarity: https://reference.wolfram.com/language/ref/DiceDissimilarity.html</url>)
+    <url>
+    :Sørensen–Dice coefficient:
+    https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient</url> (<url>
+    :Sympy:
+    https://docs.scipy.org/doc/scipy/search.html</url>, <url>
+    :DiceDissimilarity:
+    https://reference.wolfram.com/language/ref/DiceDissimilarity.html</url>)
     <dl>
       <dt>'DiceDissimilarity[$u$, $v$]'
-      <dd>returns the Dice dissimilarity between the two boolean 1-D lists $u$ and $v$,
-      which is defined as (c_tf + c_ft) / (2 * c_tt + c_ft + c_tf), where $n$ is len($u$) and c_ij is
-      the number of occurrences of $u$[k]=i and $v$[k]=j for $k$ < $n$.
+      <dd>returns the Dice dissimilarity between the two boolean 1-D lists $u$ and $v$.
+      This is defined as ($c_tf$ + $c_ft$) / (2 * $c_tt$ + $c_ft$ + c_tf).
+      $n$ is len($u$) and $c_ij$ is the number of occurrences of $u$[$k$]=$i$ and $v$[$k$]=$j$ for $k$ < $n$.
     </dl>
 
     >> DiceDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -167,10 +186,20 @@ class DiceDissimilarity(_BooleanDissimilarity):
 
 class JaccardDissimilarity(_BooleanDissimilarity):
     """
-    <url>:Jaccard index: https://en.wikipedia.org/wiki/Jaccard_index</url> (<url>:SciPy: https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.jaccard.html</url>, <url>:WMA: https://reference.wolfram.com/language/ref/JaccardDissimilarity.html</url>)
+    <url>
+    :Jaccard index:
+    https://en.wikipedia.org/wiki/Jaccard_index</url> (<url>
+    :SciPy:
+    https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.jaccard.html</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/JaccardDissimilarity.html</url>)
     <dl>
       <dt>'JaccardDissimilarity[$u$, $v$]'
-      <dd>returns the Jaccard-Needham dissimilarity between the two boolean 1-D lists $u$ and $v$, which is defined as (c_tf + c_ft) / (c_tt + c_ft + c_tf), where $n$ is len($u$) and c_ij is the number of occurrences of $u$[k]=i and $v$[k]=j for $k$ < $n$.
+      <dd>returns the Jaccard-Needham dissimilarity between the two boolean \
+          1-D lists $u$ and $v$, which is defined as \
+          ($c_tf$ + $c_ft$) / ($c_tt$ + $c_ft$ + $c_tf$), where $n$ is \
+          len($u$) and $c_ij$ is the number of occurrences of \
+          $u$[$k$]=$i$ and $v$[$k$]=$j$ for $k$ < $n$.
     </dl>
 
     >> JaccardDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -180,7 +209,6 @@ class JaccardDissimilarity(_BooleanDissimilarity):
     summary_text = "Jaccard dissimilarity"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
-
         return Expression(
             SymbolDivide, Integer(c_tf + c_ft), Integer(c_tt + c_ft + c_tf)
         )
@@ -188,9 +216,14 @@ class JaccardDissimilarity(_BooleanDissimilarity):
 
 class MatchingDissimilarity(_BooleanDissimilarity):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MatchingDissimilarity.html</url>
+
     <dl>
       <dt>'MatchingDissimilarity[$u$, $v$]'
-      <dd>returns the Matching dissimilarity between the two boolean 1-D lists $u$ and $v$, which is defined as (c_tf + c_ft) / $n$, where $n$ is len($u$) and c_ij is the number of occurrences of $u$[$k$]=$i$ and $v$[k]=$j$ for $k$ < $n$.
+      <dd>returns the Matching dissimilarity between the two boolean \
+      1-D lists $u$ and $v$, which is defined as ($c_tf$ + $c_ft$) / $n$, \
+      where $n$ is len($u$) and $c_ij$ is the number of occurrences of \
+      $u$[$k$]=$i$ and $v$[$k$]=$j$ for $k$ < $n$.
     </dl>
 
     >> MatchingDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -205,7 +238,10 @@ class MatchingDissimilarity(_BooleanDissimilarity):
 
 class Multinomial(Builtin):
     """
-    <url>:Multinomial distribution: https://en.wikipedia.org/wiki/Multinomial_distribution</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Multinomial.html</url>)
+    <url>
+    :Multinomial distribution:
+    https://en.wikipedia.org/wiki/Multinomial_distribution</url> (<url>\
+    :WMA: https://reference.wolfram.com/language/ref/Multinomial.html</url>)
     <dl>
       <dt>'Multinomial[$n1$, $n2$, ...]'
       <dd>gives the multinomial coefficient '($n1$+$n2$+...)!/($n1$!$n2$!...)'.
@@ -226,7 +262,7 @@ class Multinomial(Builtin):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_ORDERLESS | A_PROTECTED
     summary_text = "multinomial coefficients"
 
-    def apply(self, values, evaluation):
+    def eval(self, values, evaluation):
         "Multinomial[values___]"
 
         values = values.get_sequence()
@@ -242,11 +278,17 @@ class Multinomial(Builtin):
 
 class RogersTanimotoDissimilarity(_BooleanDissimilarity):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RogersTanimotoDissimilarity.html</url>
+
     <dl>
       <dt>'RogersTanimotoDissimilarity[$u$, $v$]'
-      <dd>returns the Rogers-Tanimoto dissimilarity between the two boolean 1-D lists $u$ and $v$,
-      which is defined as $R$ / (c_tt + c_ff + $R$) where $n$ is len($u$), c_ij is
-      the number of occurrences of $u$[$k$]=$i$ and $v$[$k]$=$j$ for $k$<n, and $R$ = 2 * (c_tf + c_ft).
+      <dd>returns the Rogers-Tanimoto dissimilarity between the two boolean \
+      1-D lists $u$ and $v$, which is defined as \
+      $R$ / (c_tt + c_ff + $R$) where $n$ is len($u$), c_ij is \
+      the number of occurrences of $u$[$k$]=$i$ and $v$[$k]$=$j$ for $k$<n, \
+      and $R$ = 2 * ($c_tf$ + $c_ft$).
     </dl>
 
     >> RogersTanimotoDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -262,11 +304,16 @@ class RogersTanimotoDissimilarity(_BooleanDissimilarity):
 
 class RussellRaoDissimilarity(_BooleanDissimilarity):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RusselRaoDissimilarity.html</url>
+
     <dl>
       <dt>'RussellRaoDissimilarity[$u$, $v$]'
-      <dd>returns the Russell-Rao dissimilarity between the two boolean 1-D lists $u$ and $v$,
-      which is defined as (n - c_tt) / c_tt where n is len($u$) and c_ij is
-      the number of occurrences of $u$[k]=i and $v$[k]=j for k<n.
+      <dd>returns the Russell-Rao dissimilarity between the two boolean \
+      1-D lists $u$ and $v$, which is defined as ($n$ - $c_tt$) / $c_tt$ \
+      where $n$ is len($u$) and $c_ij$ is \
+      the number of occurrences of $u$[k]=i and $v$[$k$]=$j$ for $k$ < $n$.
     </dl>
 
     >> RussellRaoDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -281,10 +328,17 @@ class RussellRaoDissimilarity(_BooleanDissimilarity):
 
 class SokalSneathDissimilarity(_BooleanDissimilarity):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/SokalSneathDissimilarity.html</url>
+
     <dl>
       <dt>'SokalSneathDissimilarity[$u$, $v$]'
-      <dd>returns the Sokal-Sneath dissimilarity between the two boolean 1-D lists $u$ and $v$,
-      which is defined as $R$ / (c_tt + $R$) where $n$ is len($u$), c_ij is the number of occurrences of $u$[$k$]=$i$ and $v$[k]=$j$ for $k$ < $n$, and R = 2 * (c_tf + c_ft).
+      <dd>returns the Sokal-Sneath dissimilarity between the two boolean \
+      1-D lists $u$ and $v$, which is defined as $R$ / (c_tt + $R$) where \
+      $n$ is len($u$), $c_ij$ is the number of occurrences of \
+      $u$[$k$]=$i$ and $v$[k]=$j$ for $k$ < $n$, \
+      and $R$ = 2 * ($c_tf$ + $c_ft$).
     </dl>
 
     >> SokalSneathDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -300,6 +354,10 @@ class SokalSneathDissimilarity(_BooleanDissimilarity):
 
 class Subsets(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Subsets.html</url>
+
     <dl>
       <dt>'Subsets[$list$]'
       <dd>finds a list of all possible subsets of $list$.
@@ -311,7 +369,8 @@ class Subsets(Builtin):
       <dd>finds a list of all possible subsets containing exactly $n$ elements.
 
       <dt>'Subsets[$list$, {$min$, $max$}]'
-      <dd>finds a list of all possible subsets containing between $min$ and $max$ elements.
+      <dd>finds a list of all possible subsets containing between $min$ and \
+          $max$ elements.
 
       <dt>'Subsets[$list$, $spec$, $n$]'
       <dd>finds a list of the first $n$ possible subsets.
@@ -347,90 +406,10 @@ class Subsets(Builtin):
     The odd-numbered subsets of {a,b,c,d} in reverse order:
     >> Subsets[{a, b, c, d}, All, {15, 1, -2}]
      = {{b, c, d}, {a, b, d}, {c, d}, {b, c}, {a, c}, {d}, {b}, {}}
-
-    #> Subsets[{}]
-     = {{}}
-
-    #> Subsets[]
-     = Subsets[]
-
-    #> Subsets[{a, b, c}, 2.5]
-     : Position 2 of Subsets[{a, b, c}, 2.5] must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer
-     = Subsets[{a, b, c}, 2.5]
-
-    #> Subsets[{a, b, c}, -1]
-     : Position 2 of Subsets[{a, b, c}, -1] must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer
-     = Subsets[{a, b, c}, -1]
-
-    #> Subsets[{a, b, c}, {3, 4, 5, 6}]
-     : Position 2 of Subsets[{a, b, c}, {3, 4, 5, 6}] must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer
-     = Subsets[{a, b, c}, {3, 4, 5, 6}]
-
-    #> Subsets[{a, b, c}, {-1, 2}]
-     : Position 2 of Subsets[{a, b, c}, {-1, 2}] must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer
-     = Subsets[{a, b, c}, {-1, 2}]
-
-    #> Subsets[{a, b, c}, All]
-     = {{}, {a}, {b}, {c}, {a, b}, {a, c}, {b, c}, {a, b, c}}
-
-    #> Subsets[{a, b, c}, Infinity]
-     = {{}, {a}, {b}, {c}, {a, b}, {a, c}, {b, c}, {a, b, c}}
-
-    #> Subsets[{a, b, c}, ALL]
-     : Position 2 of Subsets[{a, b, c}, ALL] must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer
-     = Subsets[{a, b, c}, ALL]
-
-    #> Subsets[{a, b, c}, {a}]
-     : Position 2 of Subsets[{a, b, c}, {a}] must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer
-     = Subsets[{a, b, c}, {a}]
-
-    #> Subsets[{a, b, c}, {}]
-     : Position 2 of Subsets[{a, b, c}, {}] must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer
-     = Subsets[{a, b, c}, {}]
-
-    #> Subsets[{a, b}, 0]
-     = {{}}
-
-    #> Subsets[{1, 2}, x]
-     : Position 2 of Subsets[{1, 2}, x] must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer
-     = Subsets[{1, 2}, x]
-
-    #> Subsets[x]
-     : Nonatomic expression expected at position 1 in Subsets[x].
-     = Subsets[x]
-
-    #> Subsets[x, {1, 2}]
-     : Nonatomic expression expected at position 1 in Subsets[x, {1, 2}].
-     = Subsets[x, {1, 2}]
-
-    #> Subsets[x, {1, 2, 3}, {1, 3}]
-     : Nonatomic expression expected at position 1 in Subsets[x, {1, 2, 3}, {1, 3}].
-     = Subsets[x, {1, 2, 3}, {1, 3}]
-
-    #> Subsets[a + b + c]
-     = {0, a, b, c, a + b, a + c, b + c, a + b + c}
-
-    #> Subsets[f[a, b, c]]
-     = {f[], f[a], f[b], f[c], f[a, b], f[a, c], f[b, c], f[a, b, c]}
-
-    #> Subsets[a + b + c, {1, 3, 2}]
-     = {a, b, c, a + b + c}
-
-    #> Subsets[a* b * c, All, {6}]
-     = {a c}
-
-    #> Subsets[{a, b, c}, {1, Infinity}]
-     = {{a}, {b}, {c}, {a, b}, {a, c}, {b, c}, {a, b, c}}
-
-    #> Subsets[{a, b, c}, {1, Infinity, 2}]
-     = {{a}, {b}, {c}, {a, b, c}}
-
-    #> Subsets[{a, b, c}, {3, Infinity, -1}]
-     = {}
     """
 
     messages = {
-        "nninfseq": "Position 2 of `1` must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer",
+        "nninfseq": "Position 2 of `1` must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer.",
         "normal": "Nonatomic expression expected at position 1 in `1`.",
     }
 
@@ -440,21 +419,21 @@ class Subsets(Builtin):
 
     summary_text = "list all the subsets"
 
-    def apply_list(self, list, evaluation):
+    def eval_list(self, list, evaluation):
         "Subsets[list_]"
 
-        return (
+        if isinstance(list, Atom):
             evaluation.message("Subsets", "normal", Expression(SymbolSubsets, list))
-            if isinstance(list, Atom)
-            else self.apply_list_n(list, Integer(len(list.elements)), evaluation)
-        )
+        else:
+            return self.eval_list_n(list, Integer(len(list.elements)), evaluation)
 
-    def apply_list_n(self, list, n, evaluation):
+    def eval_list_n(self, list, n, evaluation):
         "Subsets[list_, n_]"
 
         expr = Expression(SymbolSubsets, list, n)
         if isinstance(list, Atom):
-            return evaluation.message("Subsets", "normal", expr)
+            evaluation.message("Subsets", "normal", expr)
+            return
         else:
             head_t = list.head
             # Note: "n" does not have to be an Integer.
@@ -462,7 +441,8 @@ class Subsets(Builtin):
             if n_value == 0:
                 return ListExpression(ListExpression())
             if n_value is None or n_value < 0:
-                return evaluation.message("Subsets", "nninfseq", expr)
+                evaluation.message("Subsets", "nninfseq", expr)
+                return
 
             nested_list = [
                 Expression(head_t, *c)
@@ -472,27 +452,30 @@ class Subsets(Builtin):
 
             return ListExpression(*nested_list)
 
-    def apply_list_pattern(self, list, n, evaluation):
+    def eval_list_pattern(self, list, n, evaluation):
         "Subsets[list_, Pattern[n,_List|All|DirectedInfinity[1]]]"
 
         expr = Expression(SymbolSubsets, list, n)
 
         if isinstance(list, Atom):
-            return evaluation.message("Subsets", "normal", expr)
+            evaluation.message("Subsets", "normal", expr)
+            return
         else:
             head_t = list.head
             if n.get_name() == "System`All" or n.has_form("DirectedInfinity", 1):
-                return self.apply_list(list, evaluation)
+                return self.eval_list(list, evaluation)
 
             n_len = len(n.elements)
 
             if n_len == 0:
-                return evaluation.message("Subsets", "nninfseq", expr)
+                evaluation.message("Subsets", "nninfseq", expr)
+                return
 
             elif n_len == 1:
                 elem1 = n.elements[0].get_int_value()
                 if elem1 is None or elem1 < 0:
-                    return evaluation.message("Subsets", "nninfseq", expr)
+                    evaluation.message("Subsets", "nninfseq", expr)
+                    return
                 min_n = elem1
                 max_n = min_n + 1
                 step_n = 1
@@ -505,7 +488,8 @@ class Subsets(Builtin):
                     else len(list.elements) + 1
                 )
                 if elem1 is None or elem2 is None or elem1 < 0 or elem2 < 0:
-                    return evaluation.message("Subsets", "nninfseq", expr)
+                    evaluation.message("Subsets", "nninfseq", expr)
+                    return
                 min_n = elem1
                 max_n = elem2 + 1
                 step_n = 1
@@ -525,7 +509,8 @@ class Subsets(Builtin):
                     or elem1 < 0
                     or elem2 < 0
                 ):
-                    return evaluation.message("Subsets", "nninfseq", expr)
+                    evaluation.message("Subsets", "nninfseq", expr)
+                    return
                 step_n = elem3
                 if step_n > 0:
                     min_n = elem1
@@ -534,9 +519,11 @@ class Subsets(Builtin):
                     min_n = elem1
                     max_n = elem2 - 1
                 else:
-                    return evaluation.message("Subsets", "nninfseq", expr)
+                    evaluation.message("Subsets", "nninfseq", expr)
+                    return
             else:
-                return evaluation.message("Subsets", "nninfseq", expr)
+                evaluation.message("Subsets", "nninfseq", expr)
+                return
 
             nested_list = [
                 Expression(head_t, *c)
@@ -546,19 +533,25 @@ class Subsets(Builtin):
 
             return ListExpression(*nested_list)
 
-    def apply_atom_pattern(self, list, n, spec, evaluation):
+    def eval_atom_pattern(self, list, n, spec, evaluation):
         "Subsets[list_?AtomQ, Pattern[n,_List|All|DirectedInfinity[1]], spec_]"
 
-        return evaluation.message(
+        evaluation.message(
             "Subsets", "normal", Expression(SymbolSubsets, list, n, spec)
         )
 
 
 class YuleDissimilarity(_BooleanDissimilarity):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/YuleDissimilarity.html</url>
+
     <dl>
       <dt>'YuleDissimilarity[$u$, $v$]'
-      <dd>returns the Yule dissimilarity between the two boolean 1-D lists $u$ and $v$, which is defined as R / (c_tt * c_ff + R / 2) where n is len($u$), c_ij is the number of occurrences of $u$[k]=i and $v$[k]=j for $k$<$n$, and $R$ = 2 * c_tf * c_ft.
+      <dd>returns the Yule dissimilarity between the two boolean 1-D lists $u$ \
+          and $v$, which is defined as $R$ / ($c_tt$ * $c_ff$ + $R$ / 2) \
+          where $n$ is len($u$), $c_ij$ is the number of occurrences of \
+          $u$[$k$]=$i$ and $v$[$k$]=$j$ for $k$<$n$, \
+          and $R$ = 2 * $c_tf$ * $c_ft$.
     </dl>
 
     >> YuleDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]

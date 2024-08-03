@@ -3,28 +3,22 @@
 Conversion from AST node to Mathic BaseElement objects
 """
 
+from math import log10
 from typing import Tuple
 
-from math import log10
 import sympy
 
-from mathics.core.atoms import (
-    Integer,
-    MachineReal,
-    PrecisionReal,
-    Rational,
-    String,
-)
-
+from mathics.core.atoms import Integer, MachineReal, PrecisionReal, Rational, String
 from mathics.core.convert.expression import to_expression, to_mathics_list
-from mathics.core.number import machine_precision, reconstruct_digits
+from mathics.core.number import RECONSTRUCT_MACHINE_PRECISION_DIGITS
 from mathics.core.parser.ast import (
-    Symbol as AST_Symbol,
-    String as AST_String,
-    Number as AST_Number,
     Filename as AST_Filename,
+    Number as AST_Number,
+    String as AST_String,
+    Symbol as AST_Symbol,
 )
 from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.util import canonic_filename
 
 
 class GenericConverter:
@@ -43,7 +37,7 @@ class GenericConverter:
             return "Expression", head, children
 
     @staticmethod
-    def string_escape(s):
+    def string_escape(s: str) -> str:
         return s.encode("raw_unicode_escape").decode("unicode_escape")
 
     def convert_Symbol(self, node: AST_Symbol) -> Tuple[str, str]:
@@ -61,8 +55,14 @@ class GenericConverter:
         if s.startswith('"'):
             assert s.endswith('"')
             s = s[1:-1]
+
+        s = self.string_escape(canonic_filename(s))
         s = self.string_escape(s)
-        s = s.replace("\\", "\\\\")
+
+        # Do we need this? If we do this before non-escaped characters,
+        # like \-, then Python gives a warning.
+        # s = s.replace("\\", "\\\\")
+
         return "String", s
 
     def convert_Number(self, node: AST_Number) -> tuple:
@@ -90,34 +90,52 @@ class GenericConverter:
             if suffix is None:
                 # MachineReal/PrecisionReal is determined by number of digits
                 # in the mantissa
-                d = len(man) - 2  # one less for decimal point
-                if d < reconstruct_digits(machine_precision):
+                # if the number of digits is less than 17, then MachineReal is used.
+                # If more digits are provided, then PrecisionReal is used.
+                digits = len(man) - 2
+                if digits < RECONSTRUCT_MACHINE_PRECISION_DIGITS:
                     return "MachineReal", sign * float(s)
                 else:
                     return (
                         "PrecisionReal",
                         ("DecimalString", str("-" + s if sign == -1 else s)),
-                        d,
+                        digits,
                     )
             elif suffix == "":
                 return "MachineReal", sign * float(s)
             elif suffix.startswith("`"):
+                # A double Reversed Prime ("``") represents a fixed accuracy
+                # (absolute uncertainty).
                 acc = float(suffix[1:])
                 x = float(s)
+                # For 0, a finite absolute precision even if
+                # the number is an integer, it is stored as a
+                # PrecisionReal number.
                 if x == 0:
                     prec10 = acc
                 else:
-                    prec10 = acc + log10(x)
+                    prec10 = acc + log10(abs(x))
                 return (
                     "PrecisionReal",
                     ("DecimalString", str("-" + s if sign == -1 else s)),
                     prec10,
                 )
             else:
+                # A single Reversed Prime ("`") represents a fixed precision
+                # (relative uncertainty).
+                # For 0, a finite relative precision reduces to no uncertainty,
+                # so ``` 0`3 === 0 ``` and  ``` 0.`3 === 0.`4 ```
+                if node.value == "0":
+                    return "Integer", 0
+
+                s_float = float(s)
+                prec = float(suffix)
+                if s_float == 0.0:
+                    return "MachineReal", sign * s_float
                 return (
                     "PrecisionReal",
                     ("DecimalString", str("-" + s if sign == -1 else s)),
-                    float(suffix),
+                    prec,
                 )
 
         # Put into standard form mantissa * base ^ n
@@ -145,7 +163,7 @@ class GenericConverter:
                 prec10 = acc10
             else:
                 prec10 = acc10 + log10(abs(x))
-            if prec10 < reconstruct_digits(machine_precision):
+            if prec10 < RECONSTRUCT_MACHINE_PRECISION_DIGITS:
                 prec10 = None
         elif suffix == "":
             prec10 = None
