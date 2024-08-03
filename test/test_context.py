@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-from .helper import check_evaluation, reset_session
 import pytest
-
 from mathics_scanner.errors import IncompleteSyntaxError
 
+from .helper import check_evaluation, reset_session
 
 str_test_context_1 = """
 BeginPackage["FeynCalc`"];
@@ -84,7 +83,7 @@ def test_context1():
             "Start a context. Add it to the context path",
         ),
         (
-            """Minus::usage=" usage string setted in the package for Minus";""",
+            """Minus::usage=" usage string set in the package for Minus";""",
             None,
             None,
             "set the usage string for a protected symbol ->no error",
@@ -159,7 +158,7 @@ def test_context1():
             "try to set a value for a protected symbol ->error",
         ),
         (
-            """Plus::usage=" usage string setted in the package for Plus";""",
+            """Plus::usage=" usage string set in the package for Plus";""",
             None,
             None,
             "set the usage string for a protected symbol ->no error",
@@ -237,13 +236,13 @@ def test_context1():
         ("""apackage`B""", "6", None, "get B using its fully qualified name"),
         (
             """Plus::usage""",
-            ' " usage string setted in the package for Plus" ',
+            ' " usage string set in the package for Plus" ',
             None,
             "custom usage for Plus",
         ),
         (
             """Minus::usage""",
-            '" usage string setted in the package for Minus"',
+            '" usage string set in the package for Minus"',
             None,
             "custom usage for Minus",
         ),

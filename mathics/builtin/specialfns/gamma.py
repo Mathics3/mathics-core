@@ -2,56 +2,52 @@
 Gamma and Related Functions
 """
 import sys
-import sympy
-import mpmath
 
-from mathics.builtin.arithmetic import (
-    _MPMathFunction,
-    _MPMathMultiFunction,
-    call_mpmath,
-)
-from mathics.builtin.base import SympyFunction, PostfixOperator
-from mathics.core.atoms import (
-    Integer,
-    Integer0,
-    Integer1,
-    Number,
-)
-from mathics.core.attributes import (
-    A_LISTABLE,
-    A_NUMERIC_FUNCTION,
-    A_PROTECTED,
+import mpmath
+import sympy
+
+from mathics.core.atoms import Integer, Integer0, Number
+from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
+from mathics.core.builtin import (
+    MPMathFunction,
+    MPMathMultiFunction,
+    PostfixOperator,
+    SympyFunction,
 )
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.expression import Expression
-from mathics.eval.nevaluator import eval_N
-from mathics.core.number import min_prec, dps
+from mathics.core.number import FP_MANTISA_BINARY_DIGITS, dps, min_prec
 from mathics.core.symbols import Symbol, SymbolSequence
-from mathics.core.systemsymbols import (
-    SymbolAutomatic,
-    SymbolComplexInfinity,
-    SymbolDirectedInfinity,
-    SymbolGamma,
-    SymbolIndeterminate,
-)
+from mathics.core.systemsymbols import SymbolAutomatic, SymbolGamma
+from mathics.eval.arithmetic import call_mpmath
+from mathics.eval.nevaluator import eval_N
+from mathics.eval.numerify import numerify
 
 
-class Beta(_MPMathMultiFunction):
+class Beta(MPMathMultiFunction):
     """
-    <dl>
-      <dt>'Beta[$a$, $b$]'
-      <dd>is the Euler's Beta function.
-      <dt>'Beta[$z$, $a$, $b$]'
-      <dd>gives the incomplete Beta function.
-    </dl>
-    The Beta function satisfies the property
-    Beta[x, y] = Integrate[t^(x-1)(1-t)^(y-1),{t,0,1}] = Gamma[a] Gamma[b] / Gamma[a + b]
-    >> Beta[2, 3]
-     = 1 / 12
-    >> 12* Beta[1., 2, 3]
-     = 1.
+        <url>
+        :Euler beta function:
+        https://en.wikipedia.org/wiki/Beta_function</url> (<url>:SymPy:
+        https://docs.sympy.org/latest/modules/functions/
+    special.html#sympy.functions.special.beta_functions.beta</url>, <url>
+        :WMA:
+        https://reference.wolfram.com/language/ref/Beta.html</url>)
+
+        <dl>
+          <dt>'Beta[$a$, $b$]'
+          <dd>is the Euler's Beta function.
+          <dt>'Beta[$z$, $a$, $b$]'
+          <dd>gives the incomplete Beta function.
+        </dl>
+        The Beta function satisfies the property
+        Beta[x, y] = Integrate[t^(x-1)(1-t)^(y-1),{t,0,1}] = Gamma[a] Gamma[b] / Gamma[a + b]
+        >> Beta[2, 3]
+         = 1 / 12
+        >> 12* Beta[1., 2, 3]
+         = 1.
     """
 
     summary_text = "Euler's Beta function"
@@ -80,8 +76,8 @@ class Beta(_MPMathMultiFunction):
         else:
             return Expression(Symbol(self.get_name()), *elements)
 
-    # sympy does not handles Beta for integer arguments.
-    def apply_2(self, a, b, evaluation):
+    # SymPy does not handles Beta for integer arguments.
+    def eval(self, a, b, evaluation):
         """Beta[a_, b_]"""
         if not (a.is_numeric() and b.is_numeric()):
             return
@@ -90,7 +86,7 @@ class Beta(_MPMathMultiFunction):
         gamma_a_plus_b = Expression(SymbolGamma, a + b)
         return gamma_a * gamma_b / gamma_a_plus_b
 
-    def apply_3(self, z, a, b, evaluation):
+    def eval_with_z(self, z, a, b, evaluation):
         """Beta[z_, a_, b_]"""
         # Here I needed to do that because the order of the arguments in WL
         # is different from the order in mpmath. Most of the code is the same
@@ -98,11 +94,9 @@ class Beta(_MPMathMultiFunction):
         if not all(isinstance(q, Number) for q in (a, b, z)):
             return
 
-        args = (
-            Expression(SymbolSequence, a, b, Integer0, z)
-            .numerify(evaluation)
-            .get_sequence()
-        )
+        args = numerify(
+            Expression(SymbolSequence, a, b, Integer0, z), evaluation
+        ).get_sequence()
         mpmath_function = self.get_mpmath_function(tuple(args))
         if any(arg.is_machine_precision() for arg in args):
             # if any argument has machine precision then the entire calculation
@@ -113,18 +107,9 @@ class Beta(_MPMathMultiFunction):
             if None in float_args:
                 return
 
-            result = call_mpmath(mpmath_function, tuple(float_args))
-            if isinstance(result, (mpmath.mpc, mpmath.mpf)):
-                if mpmath.isinf(result) and isinstance(result, mpmath.mpc):
-                    result = SymbolComplexInfinity
-                elif mpmath.isinf(result) and result > 0:
-                    result = Expression(SymbolDirectedInfinity, Integer1)
-                elif mpmath.isinf(result) and result < 0:
-                    result = Expression(SymbolDirectedInfinity, Integer(-1))
-                elif mpmath.isnan(result):
-                    result = SymbolIndeterminate
-                else:
-                    result = from_mpmath(result)
+            result = call_mpmath(
+                mpmath_function, tuple(float_args), FP_MANTISA_BINARY_DIGITS
+            )
         else:
             prec = min_prec(*args)
             d = dps(prec)
@@ -133,14 +118,20 @@ class Beta(_MPMathMultiFunction):
                 mpmath_args = [x.to_mpmath() for x in args]
                 if None in mpmath_args:
                     return
-                result = call_mpmath(mpmath_function, tuple(mpmath_args))
-                if isinstance(result, (mpmath.mpc, mpmath.mpf)):
-                    result = from_mpmath(result, d)
+                result = call_mpmath(mpmath_function, tuple(mpmath_args), prec)
         return result
 
 
-class Factorial(PostfixOperator, _MPMathFunction):
+class Factorial(PostfixOperator, MPMathFunction):
     """
+    <url>:Factorial:
+    https://en.wikipedia.org/wiki/Factorial</url> (<url>
+    :SymPy:https://docs.sympy.org/latest/modules/functions/combinatorial.html#factorial</url>, <url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/gamma.html#mpmath.factorial</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Factorial.html</url>)
+
     <dl>
       <dt>'Factorial[$n$]'
       <dt>'$n$!'
@@ -164,8 +155,6 @@ class Factorial(PostfixOperator, _MPMathFunction):
     >> !a! //FullForm
      = Not[Factorial[a]]
 
-    #> 0!
-     = 1
     """
 
     attributes = A_NUMERIC_FUNCTION | A_PROTECTED
@@ -176,14 +165,17 @@ class Factorial(PostfixOperator, _MPMathFunction):
     summary_text = "factorial"
 
 
-class Factorial2(PostfixOperator, _MPMathFunction):
+class Factorial2(PostfixOperator, MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Factorial2.html</url>
+
     <dl>
       <dt>'Factorial2[$n$]'
       <dt>'$n$!!'
       <dd>computes the double factorial of $n$.
     </dl>
-    The double factorial or semifactorial of a number $n$, is the product of all the integers from 1 up to n that have the same parity (odd or even) as $n$.
+    The double factorial or semifactorial of a number $n$, is the product of all the \
+    integers from 1 up to n that have the same parity (odd or even) as $n$.
 
     >> 5!!
      = 15.
@@ -212,7 +204,7 @@ class Factorial2(PostfixOperator, _MPMathFunction):
     summary_text = "semi-factorial"
     options = {"Method": "Automatic"}
 
-    def apply(self, number, evaluation, options={}):
+    def eval(self, number, evaluation, options={}):
         "Factorial2[number_?NumberQ, OptionsPattern[%(name)s]]"
 
         try:
@@ -244,7 +236,8 @@ class Factorial2(PostfixOperator, _MPMathFunction):
             convert_from_fn = from_sympy
             fact2_fn = getattr(sympy, self.sympy_name)
         else:
-            return evaluation.message("Factorial2", "unknownp", preference)
+            evaluation.message("Factorial2", "unknownp", preference)
+            return
 
         try:
             result = fact2_fn(number_arg)
@@ -253,14 +246,25 @@ class Factorial2(PostfixOperator, _MPMathFunction):
             # Maybe an even negative number? Try generic routine
             if is_automatic and fact2_generic:
                 return from_python(fact2_generic(number_arg))
-            return evaluation.message(
-                "Factorial2", "ndf", preference, str(sys.exc_info()[1])
-            )
+            evaluation.message("Factorial2", "ndf", preference, str(sys.exc_info()[1]))
+            return
         return convert_from_fn(result)
 
 
-class Gamma(_MPMathMultiFunction):
+class Gamma(MPMathMultiFunction):
     """
+    <url>:Gamma function:
+    https://en.wikipedia.org/wiki/Gamma_function</url> (<url>
+    :SymPy:https://docs.sympy.org/latest/modules/functions
+    /special.html#module-sympy.functions.special.gamma_functions</url>, <url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/gamma.html#gamma</url>, <url>
+    :WMA:https://reference.wolfram.com/language/ref/Gamma.html</url>)
+
+    The gamma function is one commonly used extension of the factorial function \
+    applied to complex numbers, and is defined for all complex numbers except \
+    the non-positive integers.
+
     <dl>
       <dt>'Gamma[$z$]'
       <dd>is the gamma function on the complex number $z$.
@@ -295,22 +299,6 @@ class Gamma(_MPMathMultiFunction):
     Both 'Gamma' and 'Factorial' functions are continuous:
     >> Plot[{Gamma[x], x!}, {x, 0, 4}]
      = -Graphics-
-
-    ## Issue 203
-    #> N[Gamma[24/10], 100]
-     = 1.242169344504305404913070252268300492431517240992022966055507541481863694148882652446155342679460339
-    #> N[N[Gamma[24/10],100]/N[Gamma[14/10],100],100]
-     = 1.400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-    #> % // Precision
-     = 100.
-
-    #> Gamma[1.*^20]
-     : Overflow occurred in computation.
-     = Overflow[]
-
-    ## Needs mpmath support for lowergamma
-    #> Gamma[1., 2.]
-     = Gamma[1., 2.]
     """
 
     mpmath_names = {
@@ -345,10 +333,13 @@ class Gamma(_MPMathMultiFunction):
             return Expression(Symbol(self.get_name()), *elements)
 
 
-class LogGamma(_MPMathMultiFunction):
+class LogGamma(MPMathMultiFunction):
     """
-    In number theory the logarithm of the gamma function often appears. For positive real numbers, this can be evaluated as 'Log[Gamma[$z$]]'.
-
+    <url>:log-gamma function:
+    https://en.wikipedia.org/wiki/Gamma_function#The_log-gamma_function</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.gamma_functions.loggamma</url>, <url>
+    :WMA:https://reference.wolfram.com/language/ref/LogGamma.html</url>)
     <dl>
       <dt>'LogGamma[$z$]'
       <dd>is the logarithm of the gamma function on the complex number $z$.
@@ -390,20 +381,53 @@ class LogGamma(_MPMathMultiFunction):
 
 class Pochhammer(SympyFunction):
     """
-    The Pochhammer symbol or rising factorial often appears in series expansions for hypergeometric functions.
-    The Pochammer symbol has a definie value even when the gamma functions which appear in its definition are infinite.
+    <url>:Rising factorial:
+    https://en.wikipedia.org/wiki/Falling_and_rising_factorials</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/combinatorial.html#risingfactorial</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Pochhammer.html</url>)
+
+    The Pochhammer symbol or rising factorial often appears in series \
+    expansions for hypergeometric functions.
+
+    The Pochammer symbol has a definite value even when the gamma \
+    functions which appear in its definition are infinite.
     <dl>
       <dt>'Pochhammer[$a$, $n$]'
-      <dd>is the Pochhammer symbol (a)_n.
+      <dd>is the Pochhammer symbol $a_n$.
     </dl>
 
-    >> Pochhammer[4, 8]
-     = 6652800
+    Product of the first 3 numbers:
+    >> Pochhammer[1, 3]
+     = 6
+
+    'Pochhammer[1, $n$]' is \
+    the same as Pochhammer[2, $n$-1] since 1 is a multiplicative identity.
+
+    >> Pochhammer[1, 3] == Pochhammer[2, 2]
+     = True
+
+    Although sometimes 'Pochhammer[0, $n$]' is taken to be 1, in Mathics it is 0:
+    >> Pochhammer[0, n]
+     = 0
+
+    Pochhammer uses Gamma for non-Integer values of $n$:
+
+    >> Pochhammer[1, 3.001]
+     = 6.00754
+
+    >> Pochhammer[1, 3.001] == Pochhammer[2, 2.001]
+     = True
+
+    >> Pochhammer[1.001, 3] == 1.001 2.001 3.001
+      = True
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     rules = {
+        "Pochhammer[0, n_]": "0",  # Wikipedia says it should be 1 though.
         "Pochhammer[a_, n_]": "Gamma[a + n] / Gamma[a]",
         "Derivative[1,0][Pochhammer]": "(Pochhammer[#1, #2]*(-PolyGamma[0, #1] + PolyGamma[0, #1 + #2]))&",
         "Derivative[0,1][Pochhammer]": "(Pochhammer[#1, #2]*PolyGamma[0, #1 + #2])&",
@@ -412,8 +436,15 @@ class Pochhammer(SympyFunction):
     sympy_name = "RisingFactorial"
 
 
-class PolyGamma(_MPMathMultiFunction):
+class PolyGamma(MPMathMultiFunction):
     r"""
+    <url>:Polygamma function:
+    https://en.wikipedia.org/wiki/Polygamma_function</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.gamma_functions.polygamma</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/PolyGamma.html</url>)
+
     PolyGamma is a meromorphic function on the complex numbers and is defined as a derivative of the logarithm of the gamma function.
     <dl>
       <dt>PolyGamma[z]
@@ -429,6 +460,7 @@ class PolyGamma(_MPMathMultiFunction):
     >> PolyGamma[3, 5]
      = -22369 / 3456 + Pi ^ 4 / 15
     """
+
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     mpmath_names = {
@@ -447,11 +479,18 @@ class PolyGamma(_MPMathMultiFunction):
 
 
 class StieltjesGamma(SympyFunction):
-    r"""
-    PolyGamma is a meromorphic function on the complex numbers and is defined as a derivative of the logarithm of the gamma function.
+    """
+    <url>:Stieltjes constants:
+    https://en.wikipedia.org/wiki/Stieltjes_constants</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions
+    /special.html#sympy.functions.special.zeta_functions.stieltjes</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/StieltjesGamma.html</url>)
+
     <dl>
       <dt>'StieltjesGamma[$n$]'
-      <dd>returns the Stieljs contstant for $n$.
+      <dd>returns the Stieltjes constant for $n$.
 
       <dt>'StieltjesGamma[$n$, $a$]'
       <dd>gives the generalized Stieltjes constant of its parameters

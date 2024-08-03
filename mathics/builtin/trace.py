@@ -1,33 +1,39 @@
 # -*- coding: utf-8 -*-
-
 """
-Tracing Built-in Functions
+Tracing and Profiling
 
-Built-in Function Tracing provides one high-level way understand what is getting evaluated and where the time is spent in evaluation.
+The 'Trace' builtins provide a Mathics3-oriented trace of what is \
+getting evaluated and where the time is spent in evaluation.
 
-With this, it may be possible for both users and implementers to follow how Mathics arrives at its results, or guide how to speed up expression evaluation.
+With this, it may be possible for both users and implementers to follow \
+how Mathics3 arrives at its results, or guide how to speed up expression \
+evaluation.
+
+Python <url>:CProfile:https://docs.python.org/3/library/profile.html</url> \
+profiling is available via 'PythonCProfileEvaluation'.
 """
 
 
-from mathics.builtin.base import Builtin
-
-
-from mathics.core.attributes import (
-    A_HOLD_ALL,
-    A_PROTECTED,
-)
-from mathics.core.convert.python import from_bool
-from mathics.core.definitions import Definitions
-from mathics.core.evaluation import Evaluation
-from mathics.core.rules import BuiltinRule
-from mathics.core.symbols import strip_context, SymbolTrue, SymbolFalse, SymbolNull
-
-from time import time
+import cProfile
+import pstats
+import sys
 from collections import defaultdict
+from io import StringIO
+from time import time
 from typing import Callable
 
+from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
+from mathics.core.builtin import Builtin
+from mathics.core.convert.python import from_bool, from_python
+from mathics.core.definitions import Definitions
+from mathics.core.evaluation import Evaluation
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
+from mathics.core.rules import BuiltinRule
+from mathics.core.symbols import SymbolFalse, SymbolNull, SymbolTrue, strip_context
 
-def traced_do_replace(self, expression, vars, options, evaluation):
+
+def traced_do_replace(self, expression, vars, options: dict, evaluation: Evaluation):
     if options and self.check_options:
         if not self.check_options(options, evaluation):
             return None
@@ -61,6 +67,8 @@ class _TraceBase(Builtin):
 
 class ClearTrace(Builtin):
     """
+    ## <url>:trace native symbol:</url>
+
     <dl>
       <dt>'ClearTrace[]'
       <dd>Clear the statistics collected for Built-in Functions
@@ -81,7 +89,7 @@ class ClearTrace(Builtin):
 
     summary_text = "clear any statistics collected for Built-in functions"
 
-    def apply(self, evaluation):
+    def eval(self, evaluation: Evaluation):
         "%(name)s[]"
 
         TraceBuiltins.function_stats: "defaultdict" = defaultdict(
@@ -93,6 +101,8 @@ class ClearTrace(Builtin):
 
 class PrintTrace(_TraceBase):
     """
+    ## <url>:trace native symbol:</url>
+
     <dl>
       <dt>'PrintTrace[]'
       <dd>Print statistics collected for Built-in Functions
@@ -109,7 +119,8 @@ class PrintTrace(_TraceBase):
     Note that in a browser the information only appears in a console.
 
 
-    If '$TraceBuiltins' was never set to 'True', this will print an empty list.
+    Note: before '$TraceBuiltins' is set to 'True', 'PrintTrace[]' will print an empty
+    list.
     >> PrintTrace[]
 
     >> $TraceBuiltins = True
@@ -123,7 +134,7 @@ class PrintTrace(_TraceBase):
 
     summary_text = "print statistics collected for Built-in functions"
 
-    def apply(self, evaluation, options={}):
+    def eval(self, evaluation, options={}):
         "%(name)s[OptionsPattern[%(name)s]]"
 
         TraceBuiltins.dump_tracing_stats(
@@ -136,9 +147,13 @@ class PrintTrace(_TraceBase):
 
 class TraceBuiltins(_TraceBase):
     """
+    ## <url>:trace native symbol:</url>
+
     <dl>
       <dt>'TraceBuiltins[$expr$]'
-      <dd>Evaluate $expr$ and then print a list of the Built-in Functions called in evaluating $expr$ along with the number of times is each called, and combined elapsed time in milliseconds spent in each.
+      <dd>Evaluate $expr$ and then print a list of the Built-in Functions called \
+          in evaluating $expr$ along with the number of times is each called, \
+          and combined elapsed time in milliseconds spent in each.
     </dl>
 
     Sort Options:
@@ -153,7 +168,12 @@ class TraceBuiltins(_TraceBase):
     >> TraceBuiltins[Graphics3D[Tetrahedron[]]]
      = -Graphics3D-
 
-    By default, the output is sorted by the number of calls of the builtin from highest to lowest:
+    By default, the output is sorted by the name:
+    >> TraceBuiltins[Times[x, x]]
+     = x ^ 2
+
+    By default, the output is sorted by the number of calls of the builtin from \
+    highest to lowest:
     >> TraceBuiltins[Times[x, x], SortBy->"count"]
      = x ^ 2
 
@@ -184,17 +204,26 @@ class TraceBuiltins(_TraceBase):
             sort_by = "count"
             print()
 
+        def sort_by_count(tup: tuple):
+            return tup[1]["count"]
+
+        def sort_by_time(tup: tuple):
+            return tup[1]["elapsed_milliseconds"]
+
+        def sort_by_name(tup: tuple):
+            return tup[0]
+
         print("count     ms Builtin name")
 
         if sort_by == "count":
             inverse = True
-            sort_fn = lambda tup: tup[1]["count"]
+            sort_fn = sort_by_count
         elif sort_by == "time":
             inverse = True
-            sort_fn = lambda tup: tup[1]["elapsed_milliseconds"]
+            sort_fn = sort_by_time
         else:
             inverse = False
-            sort_fn = lambda tup: tup[0]
+            sort_fn = sort_by_name
 
         for name, statistic in sorted(
             TraceBuiltins.function_stats.items(),
@@ -224,7 +253,7 @@ class TraceBuiltins(_TraceBase):
         BuiltinRule.do_replace = TraceBuiltins.do_replace_copy
         evaluation.definitions = TraceBuiltins.definitions_copy
 
-    def apply(self, expr, evaluation, options={}):
+    def eval(self, expr, evaluation, options={}):
         "%(name)s[expr_, OptionsPattern[%(name)s]]"
 
         # Reset function_stats
@@ -248,14 +277,19 @@ class TraceBuiltins(_TraceBase):
 # the class name, but it is already taken by the builtin `TraceBuiltins`
 class TraceBuiltinsVariable(Builtin):
     """
+    ## <url>:trace native symbol:</url>
+
     <dl>
       <dt>'$TraceBuiltins'
       <dd>A Boolean Built-in variable when True collects function evaluation statistics.
     </dl>
 
-    Setting this variable True will enable statistics collection for Built-in functions that are evaluated.
-    In contrast to 'TraceBuiltins[]' statistics are accumulated and over several inputs, and are not shown after each input is evaluated.
-    By default this setting is False.
+    Setting this variable True will enable statistics collection for Built-in \
+    functions that are evaluated.
+    In contrast to 'TraceBuiltins[]' statistics are accumulated and over several \
+    inputs,and are not shown after each input is evaluated.
+
+    By default, this setting is False.
 
     >> $TraceBuiltins = True
      = True
@@ -264,7 +298,8 @@ class TraceBuiltinsVariable(Builtin):
     #> $TraceBuiltins = False
      = False
 
-    Tracing is enabled, so the expressions entered and evaluated will have statistics collected for the evaluations.
+    Tracing is enabled, so the expressions entered and evaluated will have statistics \
+    collected for the evaluations.
     >> x
      = x
 
@@ -288,12 +323,12 @@ class TraceBuiltinsVariable(Builtin):
 
     summary_text = "enable or disable Built-in function evaluation statistics"
 
-    def apply_get(self, evaluation):
+    def eval_get(self, evaluation: Evaluation):
         "%(name)s"
 
         return self.value
 
-    def apply_set(self, value, evaluation):
+    def eval_set(self, value, evaluation: Evaluation):
         "%(name)s = value_"
 
         if value is SymbolTrue:
@@ -310,6 +345,8 @@ class TraceBuiltinsVariable(Builtin):
 
 class TraceEvaluation(Builtin):
     """
+    ## <url>:trace native symbol:</url>
+
     <dl>
       <dt>'TraceEvaluation[$expr$]'
       <dd>Evaluate $expr$ and print each step of the evaluation.
@@ -330,7 +367,7 @@ class TraceEvaluation(Builtin):
     }
     summary_text = "trace the succesive evaluations"
 
-    def apply(self, expr, evaluation, options):
+    def eval(self, expr, evaluation: Evaluation, options: dict):
         "TraceEvaluation[expr_, OptionsPattern[]]"
         curr_trace_evaluation = evaluation.definitions.trace_evaluation
         curr_time_by_steps = evaluation.definitions.timing_trace_evaluation
@@ -346,6 +383,8 @@ class TraceEvaluation(Builtin):
 
 class TraceEvaluationVariable(Builtin):
     """
+    ## <url>:trace native symbol:</url>
+
     <dl>
       <dt>'$TraceEvaluation'
       <dd>A Boolean variable which when set True traces Expression evaluation calls and returns.
@@ -382,11 +421,11 @@ class TraceEvaluationVariable(Builtin):
 
     summary_text = "enable or disable displaying the steps to get the result"
 
-    def apply_get(self, evaluation):
+    def eval_get(self, evaluation: Evaluation):
         "%(name)s"
         return from_bool(evaluation.definitions.trace_evaluation)
 
-    def apply_set(self, value, evaluation):
+    def eval_set(self, value, evaluation: Evaluation):
         "%(name)s = value_"
         if value is SymbolTrue:
             evaluation.definitions.trace_evaluation = True
@@ -396,3 +435,39 @@ class TraceEvaluationVariable(Builtin):
             evaluation.message("$TraceEvaluation", "bool", value)
 
         return value
+
+
+class PythonCProfileEvaluation(Builtin):
+    """
+    <url>:Python:https://docs.python.org/3/library/profile.html</url>
+
+    <dl>
+      <dt>'PythonProfileEvaluation[$expr$]'
+      <dd>profile $expr$ with the Python's cProfiler.
+    </dl>
+
+    ## This produces an error in the LaTeX documentation.
+    ## >> PythonCProfileEvaluation[a + b + 1]
+    ##  = ...
+    """
+
+    attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED
+    summary_text = "profile the internal evaluation of an expression"
+
+    def eval(self, expr: Expression, evaluation: Evaluation):
+        "PythonCProfileEvaluation[expr_]"
+        profile_result = SymbolNull
+        textstream = StringIO()
+        if sys.version_info >= (3, 8):
+            with cProfile.Profile() as pr:
+                result = expr.evaluate(evaluation)
+                stats = pstats.Stats(pr, stream=textstream)
+            stats.strip_dirs().sort_stats(-1).print_stats()
+            # TODO: convert the string (or the statistics)
+            # into something like a WL Table, by splitting the
+            # rows and the columns. By now, just a string
+            # is returned.
+            profile_result = from_python(textstream.getvalue())
+        else:
+            result = expr.evaluate(evaluation)
+        return ListExpression(result, profile_result)

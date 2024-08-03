@@ -4,10 +4,8 @@ Clearing Assignments
 """
 
 
-from mathics.builtin.base import (
-    Builtin,
-    PostfixOperator,
-)
+from mathics.core.assignment import is_protected
+from mathics.core.atoms import String
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
@@ -17,14 +15,9 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import Builtin, PostfixOperator
 from mathics.core.expression import Expression
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    SymbolNull,
-    symbol_set,
-)
-
+from mathics.core.symbols import Atom, Symbol, SymbolNull, symbol_set
 from mathics.core.systemsymbols import (
     SymbolContext,
     SymbolContextPath,
@@ -37,9 +30,6 @@ from mathics.core.systemsymbols import (
     SymbolSubValues,
     SymbolUpValues,
 )
-
-from mathics.core.assignment import is_protected
-from mathics.core.atoms import String
 
 
 class Clear(Builtin):
@@ -98,7 +88,7 @@ class Clear(Builtin):
         definition.formatvalues = {}
         definition.nvalues = []
 
-    def apply(self, symbols, evaluation):
+    def eval(self, symbols, evaluation):
         "%(name)s[symbols___]"
         if isinstance(symbols, Symbol):
             symbols = [symbols]
@@ -255,35 +245,6 @@ class Unset(PostfixOperator):
     >> a = b = 3;
     >> {a, {b}} =.
      = {Null, {Null}}
-
-    #> x = 2;
-    #> OwnValues[x] =.
-    #> x
-     = x
-    #> f[a][b] = 3;
-    #> SubValues[f] =.
-    #> f[a][b]
-     = f[a][b]
-    #> PrimeQ[p] ^= True
-     = True
-    #> PrimeQ[p]
-     = True
-    #> UpValues[p] =.
-    #> PrimeQ[p]
-     = False
-
-    #> a + b ^= 5;
-    #> a =.
-    #> a + b
-     = 5
-    #> {UpValues[a], UpValues[b]} =.
-     = {Null, Null}
-    #> a + b
-     = a + b
-
-    #> Unset[Messages[1]]
-     : First argument in Messages[1] is not a symbol or a string naming a symbol.
-     = $Failed
     """
 
     attributes = A_HOLD_FIRST | A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
@@ -296,7 +257,7 @@ class Unset(PostfixOperator):
     precedence = 670
     summary_text = "unset a value of the LHS"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "Unset[expr_]"
 
         head = expr.get_head()

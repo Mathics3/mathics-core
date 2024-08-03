@@ -1,6 +1,6 @@
 % -*- latex -*-
 %
-% This is the top-level LaTeX file to build the Mathics Book (Tutorial + Reference)
+% This is the top-level LaTeX file to build the Mathics3 Book (Tutorial + Reference)
 % which is stored in mathic.pdf
 %
 % To build this:
@@ -23,6 +23,7 @@
 
 %\usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+\usepackage{gensymb} % For \degree. usepackage needs to be early.
 \usepackage{lmodern}
 \usepackage[english]{babel}
 \usepackage{makeidx}
@@ -37,7 +38,6 @@
 \usepackage{graphics}
 \usepackage{listings}
 \usepackage{paralist}
-\usepackage{textcomp}
 \usepackage{mathpazo}
 \usepackage[mathpazo]{flexisym}
 \usepackage{breqn}
@@ -47,7 +47,7 @@
 \usepackage[k-tight]{minitoc}
 \setlength{\mtcindent}{0pt}
 \mtcsetformat{minitoc}{tocrightmargin}{2.55em plus 1fil}
-\newcommand{\multicolumnmtc}{3}
+\newcommand{\multicolumnmtc}{2}
 \makeatletter
 \let\SV@mtc@verse\mtc@verse
 \let\SV@endmtc@verse\endmtc@verse
@@ -69,10 +69,13 @@
     \includegraphics[height=0.08125\linewidth]{logo-text-nodrop.pdf}
 \\[.5em]
   {\LARGE\color{subtitle}\textit{\textmd{A free, open-source alternative to Mathematica}}}
-  \par\textmd{\Large Mathics Core Version \MathicsCoreVersion}
+  \par\textmd{\Large Mathics3 Core Version \MathicsCoreVersion}
 }
-\author{The Mathics Team}
+\author{The Mathics3 Team}
 
+% Since we are using a XML input we have need to specify missed hyphenation
+% in LaTeX sich as here:
+\hyphenation{eco-system}
 
 % Fix unicode mappings for listings
 % http://tex.stackexchange.com/questions/39640/typesetting-utf8-listings-with-german-umlaute
@@ -133,19 +136,21 @@
 \newcommand{\chapterstart}{
 }
 \newcommand{\chaptersections}{
-	\minitoc
-	%\begin{multicols}{2}
+ \begin{sloppypar}
+   \minitoc
+ \end{sloppypar}
 }
 \newcommand{\chapterend}{
 	%\end{multicols}
 }
 
 \newcommand{\referencestart}{
-\setcounter{chapter}{0}
 %\def\thechapter{\Roman{chapter}}
 \renewcommand{\chaptersections}{
-	\minitoc
+ \begin{sloppypar}
+   \minitoc
 	%\begin{multicols*}{2}
+ \end{sloppypar}
 }
 \renewcommand{\chapterend}{
 	%\end{multicols*}
@@ -247,7 +252,7 @@
 \newcommand{\console}[1]{\hbadness=10000{\ttfamily #1}}
 
 \setlength{\parindent}{0mm}
-\setlength{\parskip}{1pt}
+\setlength{\parskip}{10pt}
 
 \setlength{\mathindent}{0em}
 
@@ -269,6 +274,7 @@
 \setcounter{tocdepth}{0}
 \tableofcontents
 
+
 \lstset{
 %  inputencoding=utf8,
   extendedchars=true,
@@ -282,10 +288,15 @@
 
 \input{documentation.tex}
 
+\part*{Appendices}
 \printindex
 \begin{colophon}
+% Add this into table of contents
+% The page reference may come out wrong and refer to the index.
+% If so, adjust by hand, or diff file.
+\addcontentsline{toc}{chapter}{Colophon}
 \begin{description}
-  \item[Mathics Core] \hfill \\ \MathicsCoreVersion
+  \item[Mathics3 Core] \hfill \\ \MathicsCoreVersion
   \item[Python] \hfill \\ \PythonVersion
   \item[mpmath] \hfill \\ \mpmathVersion
   \item[NumpyPy] \hfill \\ \NumPyVersion

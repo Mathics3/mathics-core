@@ -191,6 +191,10 @@ import sys
 if sys.version_info < (2, 6, 0):
     raise NotImplementedError("%s requires Python 2.6 or newer" % ("asizeof",))
 
+import types as Types
+import warnings
+import weakref as Weakref
+
 # all imports listed explicitly to help PyChecker
 from inspect import (
     isbuiltin,
@@ -205,9 +209,6 @@ from inspect import (
 from math import log
 from os import curdir, linesep
 from struct import calcsize  # type/class Struct only in Python 2.5+
-import types as Types
-import warnings
-import weakref as Weakref
 
 __all__ = [
     "adict",
@@ -2389,7 +2390,7 @@ class Asizer:
                 self._ranked,
                 s,
                 _SI(s),
-                **print3options
+                **print3options,
             )
             id2x = dict((r.id, i) for i, r in enumerate(self._ranks))
             for r in self._ranks[:n]:
@@ -2427,7 +2428,7 @@ class Asizer:
                 _plural(len(t)),
                 s,
                 self._incl,
-                **print3options
+                **print3options,
             )
             r = len(t)
             for v, k in sorted(t, reverse=True):
@@ -2497,7 +2498,7 @@ class Asizer:
                         _SI(z),
                         self._incl,
                         self._repr(o),
-                        **print3options
+                        **print3options,
                     )
             else:
                 if objs:
@@ -2530,7 +2531,7 @@ class Asizer:
             self._total,
             _SI(self._total),
             self._incl,
-            **print3options
+            **print3options,
         )
         if self._mask:
             self._printf("%*d byte aligned", w, self._mask + 1, **print3options)
@@ -2580,7 +2581,7 @@ class Asizer:
                     len(t),
                     k,
                     _plural(len(t)),
-                    **print3options
+                    **print3options,
                 )
                 for a, v in sorted(t):
                     self._printf("%*s %s:  %s", w, "", a, v, **print3options)
@@ -2611,7 +2612,7 @@ class Asizer:
         limit=100,
         stats=0,
         stream=None,
-        **extra
+        **extra,
     ):
         """Reset sizing options, state, etc. to defaults.
 
@@ -3067,7 +3068,6 @@ def refs(obj, **opts):
 
 
 if __name__ == "__main__":
-
     if "-v" in sys.argv:
         import platform
 

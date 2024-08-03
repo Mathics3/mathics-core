@@ -3,9 +3,10 @@
 Program to time mpmath pi vs sympy pi
 """
 
-from timeit import timeit
-import mpmath
 import math
+from timeit import timeit
+
+import mpmath
 import sympy
 
 PRECISION = 100

@@ -26,7 +26,7 @@ Unprotect[DotProduct, CrossProduct, ScalarTripleProduct,
 DotProduct::usage =
 "DotProduct[v1, v2] gives the dot product between v1 and v2 in three spatial
 dimensions. DotProduct[v1, v2, coordsys] gives the dot product of vectors v1
-and v2 in the specified coodrinate system, coordsys.";
+and v2 in the specified coordinate system, coordsys.";
 
 DotProduct[v1_?$IsVecQ, v2_?$IsVecQ, coordsys_:CoordinateSystem] :=
     Module[{c1, c2},
@@ -42,7 +42,7 @@ Attributes[DotProduct] = {ReadProtected, Protected};
 CrossProduct::usage =
 "CrossProduct[v1, v2] gives the cross product between v1 and v2 in three
 spatial dimensions. DotProduct[v1, v2, coordsys] gives the cross product of
-vectors v1 and v2 in the specified coodrinate system, coordsys.";
+vectors v1 and v2 in the specified coordinate system, coordsys.";
 
 CrossProduct[v1_?$IsVecQ, v2_?$IsVecQ, coordsys_:CoordinateSystem] :=
     Module[{c1, c2},
@@ -59,7 +59,7 @@ ScalarTripleProduct::usage =
 "ScalarTripleProduct[v1, v2, v3] gives the scalar triple product product
 between v1, v2 and v3 in three spatial dimensions.
 ScalarTripleProduct[v1, v2, v3, coordsys] gives the scalar triple product of
-vectors v1, v2 and v3 in the specified coodrinate system, coordsys.";
+vectors v1, v2 and v3 in the specified coordinate system, coordsys.";
 
 ScalarTripleProduct[v1_?$IsVecQ, v2_?$IsVecQ, v3_?$IsVecQ,
         coordsys_:CoordinateSystem] :=
@@ -116,7 +116,7 @@ Attributes[CoordinatesFromCartesian] = {ReadProtected, Protected};
   (* ============================ Coordinates ============================ *)
 
 Coordinates::usage =
-"Coordinates[] gives the default cordinate variables of the current coordinate
+"Coordinates[] gives the default coordinate variables of the current coordinate
 system. Coordinates[coordsys] gives the default coordinate variables of the
 specified coordinate system, coordsys.";
 
@@ -133,8 +133,8 @@ Attributes[Coordinates] = {ReadProtected, Protected};
   (* ============================= Parameters ============================ *)
 
 Parameters::usage =
-"Parameters[] gives the default paramater variables of the current coordinate
-system. Parameters[coordsys] gives the default paramater variables for the
+"Parameters[] gives the default parameter variables of the current coordinate
+system. Parameters[coordsys] gives the default parameter variables for the
 specified coordinate system, coordsys.";
 
 Parameters[] := Parameters[CoordinateSystem];

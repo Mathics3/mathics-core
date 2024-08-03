@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
+from mathics.core.builtin import Builtin
+
 from .helper import check_evaluation
-from mathics.builtin.base import Builtin
 
 
 class Builtin1(Builtin):

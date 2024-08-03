@@ -1,31 +1,34 @@
 # -*- coding: utf-8 -*-
 """
-Attributes of Definitions
+Definition Attributes
 
 While a definition like 'cube[$x_$] = $x$^3' gives a way to specify \
 <em>values</em> of a function, <em>attributes</em> allow a way to \
 specify general properties of functions and symbols. This is \
 independent of the parameters they take and the values they produce.
 
-The builtin-attributes having a predefined meaning in \Mathics which \
+The builtin-attributes having a predefined meaning in \\Mathics which \
 are described below.
 
-However in contrast to \Mathematica, you can set any symbol as an attribute.
+However in contrast to \\Mathematica, you can set any symbol as an attribute.
 """
 
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.definition-attributes"
 
-from mathics.builtin.base import Predefined, Builtin
+
 from mathics.core.assignment import get_symbol_list
 from mathics.core.atoms import String
 from mathics.core.attributes import (
-    attributes_bitset_to_list,
-    attribute_string_to_number,
     A_HOLD_ALL,
     A_HOLD_FIRST,
     A_LISTABLE,
     A_LOCKED,
     A_PROTECTED,
+    attribute_string_to_number,
+    attributes_bitset_to_list,
 )
+from mathics.core.builtin import Builtin, Predefined
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolNull
@@ -200,29 +203,6 @@ class Flat(Predefined):
     'Flat' is taken into account in pattern matching:
     >> f[a, b, c] /. f[a, b] -> d
      = f[d, c]
-
-    #> SetAttributes[{u, v}, Flat]
-    #> u[x_] := {x}
-    #> u[]
-     = u[]
-    #> u[a]
-     = {a}
-    #> u[a, b]
-     : Iteration limit of 1000 exceeded.
-     = $Aborted
-    #> u[a, b, c]
-     : Iteration limit of 1000 exceeded.
-     = $Aborted
-    #> v[x_] := x
-    #> v[]
-     = v[]
-    #> v[a]
-     = a
-    #> v[a, b] (* in Mathematica: Iteration limit of 4096 exceeded. *)
-     = v[a, b]
-    #> v[a, b, c] (* in Mathematica: Iteration limit of 4096 exceeded. *)
-     : Iteration limit of 1000 exceeded.
-     = $Aborted
     """
 
     summary_text = "attribute for associative symbols"
@@ -237,7 +217,7 @@ class HoldAll(Predefined):
     <dl>
       <dt>'HoldAll'
       <dd>is an attribute specifying that all arguments of a \
-        function should be left unevaluated.
+          function should be left unevaluated.
     </dl>
 
     >> Attributes[Function]
@@ -256,8 +236,8 @@ class HoldAllComplete(Predefined):
     <dl>
       <dt>'HoldAllComplete'
       <dd>is an attribute that includes the effects of 'HoldAll' and \
-        'SequenceHold', and also protects the function from being \
-        affected by the upvalues of any arguments.
+         'SequenceHold', and also protects the function from being \
+          affected by the upvalues of any arguments.
     </dl>
 
     'HoldAllComplete' even prevents upvalues from being used, and \
@@ -271,7 +251,8 @@ class HoldAllComplete(Predefined):
      = f[Sequence[a, b]]
     """
 
-    summary_text = "attribute for symbols that keep unevaluated all their elements, and discards upvalues"
+    summary_text = "attribute for symbols that keep unevaluated all \
+                    their elements, and discards upvalues"
 
 
 class HoldFirst(Predefined):
@@ -283,14 +264,15 @@ class HoldFirst(Predefined):
     <dl>
       <dt>'HoldFirst'
       <dd>is an attribute specifying that the first argument of a \
-        function should be left unevaluated.
+         function should be left unevaluated.
     </dl>
 
     >> Attributes[Set]
      = {HoldFirst, Protected, SequenceHold}
     """
 
-    summary_text = "attribute for symbols that keep unevaluated their first element"
+    summary_text = "attribute for symbols that keep unevaluated their \
+                    first element"
 
 
 class HoldRest(Predefined):
@@ -367,6 +349,7 @@ class Locked(Predefined):
      = 3
     """
 
+    attributes = A_PROTECTED | A_LOCKED
     summary_text = "keep all attributes locked (settable but not clearable)"
 
 
@@ -379,7 +362,7 @@ class NHoldAll(Predefined):
     <dl>
       <dt>'NHoldAll'
       <dd>is an attribute that protects all arguments of a \
-        function from numeric evaluation.
+         function from numeric evaluation.
     </dl>
 
     >> N[f[2, 3]]

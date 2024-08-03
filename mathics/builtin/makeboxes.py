@@ -1,85 +1,48 @@
 # -*- coding: utf-8 -*-
-
-
 """
-Low level Format definitions
+Low-level Format definitions
 """
 
-from typing import Union
+from typing import Optional, Tuple, Union
+
 import mpmath
 
-
-from mathics.builtin.base import Builtin, Predefined
 from mathics.builtin.box.layout import RowBox, to_boxes
-
-from mathics.core.convert.op import operator_to_unicode, operator_to_ascii
-from mathics.core.atoms import (
-    Integer,
-    Integer1,
-    Real,
-    String,
-)
-
-from mathics.core.attributes import (
-    A_HOLD_ALL_COMPLETE,
-    A_READ_PROTECTED,
-)
+from mathics.core.atoms import Integer, Integer1, Real, String
+from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_READ_PROTECTED
+from mathics.core.builtin import Builtin, Predefined
+from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
 from mathics.core.element import BaseElement, BoxElementMixin
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps
-
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-)
-
-from mathics.core.systemsymbols import (
-    SymbolInputForm,
-    SymbolOutputForm,
-    SymbolRowBox,
-)
-
+from mathics.core.symbols import Atom, Symbol
+from mathics.core.systemsymbols import SymbolInputForm, SymbolOutputForm, SymbolRowBox
 from mathics.eval.makeboxes import (
+    NEVER_ADD_PARENTHESIS,
     _boxed_string,
     format_element,
+    parenthesize,
 )
 
 
-def int_to_s_exp(expr, n):
-    n = expr.get_int_value()
-    if n < 0:
-        nonnegative = 0
-        s = str(-n)
+def int_to_tuple_info(integer: Integer) -> Tuple[str, int, bool]:
+    """
+    Convert ``integer`` to a tuple representing that value. The tuple consists of:
+    * the string absolute value of ``integer``.
+    * the exponent, base 10, to be used, and
+    * True if the value is nonnegative or False otherwise.
+    """
+    value = integer.value
+    if value < 0:
+        is_nonnegative = False
+        value = -value
     else:
-        nonnegative = 1
-        s = str(n)
-    exp = len(s) - 1
-    return s, exp, nonnegative
-
-
-def parenthesize(precedence, element, element_boxes, when_equal):
-    from mathics.builtin import builtins_precedence
-
-    while element.has_form("HoldForm", 1):
-        element = element.elements[0]
-
-    if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
-        element_prec = element.elements[2].value
-    elif element.has_form("PrecedenceForm", 2):
-        element_prec = element.elements[1].value
-    # For negative values, ensure that the element_precedence is at least the precedence. (Fixes #332)
-    elif isinstance(element, (Integer, Real)) and element.value < 0:
-        element_prec = precedence
-    else:
-        element_prec = builtins_precedence.get(element.get_head_name())
-    if precedence is not None and element_prec is not None:
-        if precedence > element_prec or (precedence == element_prec and when_equal):
-            return Expression(
-                SymbolRowBox,
-                ListExpression(String("("), element_boxes, String(")")),
-            )
-    return element_boxes
+        is_nonnegative = True
+    s = str(value)
+    exponent = len(s) - 1
+    return s, exponent, is_nonnegative
 
 
 # FIXME: op should be a string, so remove the Union.
@@ -108,95 +71,120 @@ def make_boxes_infix(
     return Expression(SymbolRowBox, ListExpression(*result))
 
 
-def real_to_s_exp(expr, n):
-    if expr.is_zero:
+def real_to_tuple_info(real: Real, digits: Optional[int]) -> Tuple[str, int, bool]:
+    """
+    Convert ``real`` to a tuple representing that value. The tuple consists of:
+    * the string absolute value of ``integer`` with decimal point removed from the string;
+      the position of the decimal point is determined by the exponent below,
+    * the exponent, base 10, to be used, and
+    * True if the value is nonnegative or False otherwise.
+
+    If ``digits`` is None, we use the default precision.
+    """
+    if real.is_zero:
         s = "0"
-        if expr.is_machine_precision():
-            exp = 0
+        if real.is_machine_precision():
+            exponent = 0
         else:
-            p = expr.get_precision()
-            exp = -dps(p)
-        nonnegative = 1
+            p = real.get_precision()
+            exponent = -dps(p)
+        is_nonnegative = True
     else:
-        if n is None:
-            if expr.is_machine_precision():
-                value = expr.get_float_value()
+        if digits is None:
+            if real.is_machine_precision():
+                value = real.value
                 s = repr(value)
             else:
-                with mpmath.workprec(expr.get_precision()):
-                    value = expr.to_mpmath()
-                    s = mpmath.nstr(value, dps(expr.get_precision()) + 1)
+                with mpmath.workprec(real.get_precision()):
+                    value = real.to_mpmath()
+                    s = mpmath.nstr(value, dps(real.get_precision()) + 1)
         else:
-            with mpmath.workprec(expr.get_precision()):
-                value = expr.to_mpmath()
-                s = mpmath.nstr(value, n)
+            with mpmath.workprec(real.get_precision()):
+                value = real.to_mpmath()
+                s = mpmath.nstr(value, digits)
 
-        # sign prefix
+        # Set sign prefix.
         if s[0] == "-":
             assert value < 0
-            nonnegative = 0
+            is_nonnegative = False
             s = s[1:]
         else:
             assert value >= 0
-            nonnegative = 1
-
-        # exponent (exp is actual, pexp is printed)
+            is_nonnegative = True
+        # Set exponent. ``exponent`` is actual, ``pexp`` of ``NumberForm_to_string()`` is printed.
         if "e" in s:
-            s, exp = s.split("e")
-            exp = int(exp)
+            s, exponent = s.split("e")
+            exponent = int(exponent)
             if len(s) > 1 and s[1] == ".":
                 # str(float) doesn't always include '.' if 'e' is present.
                 s = s[0] + s[2:].rstrip("0")
         else:
-            exp = s.index(".") - 1
-            s = s[: exp + 1] + s[exp + 2 :].rstrip("0")
+            exponent = s.index(".") - 1
+            s = s[: exponent + 1] + s[exponent + 2 :].rstrip("0")
 
-            # consume leading '0's.
+            # Normalize exponent: remove leading '0's after the decimal point
+            # and adjust the exponent accordingly.
             i = 0
-            while s[i] == "0":
+            while i < len(s) and s[i] == "0":
                 i += 1
-                exp -= 1
+                exponent -= 1
             s = s[i:]
 
-        # add trailing zeros for precision reals
-        if n is not None and not expr.is_machine_precision() and len(s) < n:
-            s = s + "0" * (n - len(s))
-    return s, exp, nonnegative
+        # Add trailing zeros for precision reals.
+        if digits is not None and not real.is_machine_precision() and len(s) < digits:
+            s = s + "0" * (digits - len(s))
+    return s, exponent, is_nonnegative
 
 
-def number_form(expr, n, f, evaluation, options):
+# FIXME: the return type should be a NumberForm, not a String.
+# when this is fixed, rename the function.
+def NumberForm_to_String(
+    value: Union[Real, Integer],
+    digits: Optional[int],
+    digits_after_decimal_point: Optional[int],
+    evaluation: Evaluation,
+    options: dict,
+) -> String:
     """
-    Converts a Real or Integer instance to Boxes.
+    Converts a Real or Integer value to a String.
 
-    n digits of precision with f (can be None) digits after the decimal point.
-    evaluation (can be None) is used for messages.
+    ``digits`` is the number of digits of precision and
+    ``digits_after_decimal_point`` is the number of digits after the
+    decimal point.  ``evaluation`` is used for messages.
 
-    The allowed options are python versions of the options permitted to
+    The allowed options are Python versions of the options permitted to
     NumberForm and must be supplied. See NumberForm or Real.make_boxes
     for correct option examples.
+
+    If ``digits`` is None, use the default precision.  If
+    ``digits_after_decimal_points`` is None, use all the digits we get
+    from the converted number, that is, otherwise the number may be
+    padded on the right-hand side with zeros.
     """
 
-    assert isinstance(n, int) and n > 0 or n is None
-    assert f is None or (isinstance(f, int) and f >= 0)
+    assert isinstance(digits, int) and digits > 0 or digits is None
+    assert digits_after_decimal_point is None or (
+        isinstance(digits_after_decimal_point, int) and digits_after_decimal_point >= 0
+    )
 
     is_int = False
-    if isinstance(expr, Integer):
-        assert n is not None
-        s, exp, nonnegative = int_to_s_exp(expr, n)
-        if f is None:
+    if isinstance(value, Integer):
+        assert digits is not None
+        s, exp, is_nonnegative = int_to_tuple_info(value)
+        if digits_after_decimal_point is None:
             is_int = True
-    elif isinstance(expr, Real):
-        if n is not None:
-            n = min(n, dps(expr.get_precision()) + 1)
-        s, exp, nonnegative = real_to_s_exp(expr, n)
-        if n is None:
-            n = len(s)
+    elif isinstance(value, Real):
+        if digits is not None:
+            digits = min(digits, dps(value.get_precision()) + 1)
+        s, exp, is_nonnegative = real_to_tuple_info(value, digits)
+        if digits is None:
+            digits = len(s)
     else:
         raise ValueError("Expected Real or Integer.")
 
-    assert isinstance(n, int) and n > 0
+    assert isinstance(digits, int) and digits > 0
 
-    sign_prefix = options["NumberSigns"][nonnegative]
+    sign_prefix = options["NumberSigns"][1 if is_nonnegative else 0]
 
     # round exponent to ExponentStep
     rexp = (exp // options["ExponentStep"]) * options["ExponentStep"]
@@ -241,14 +229,18 @@ def number_form(expr, n, f, evaluation, options):
         return number
 
     # pad with NumberPadding
-    if f is not None:
-        if len(right) < f:
+    if digits_after_decimal_point is not None:
+        if len(right) < digits_after_decimal_point:
             # pad right
-            right = right + (f - len(right)) * options["NumberPadding"][1]
-        elif len(right) > f:
+            right = (
+                right
+                + (digits_after_decimal_point - len(right))
+                * options["NumberPadding"][1]
+            )
+        elif len(right) > digits_after_decimal_point:
             # round right
             tmp = int(left + right)
-            tmp = _round(tmp, f - len(right))
+            tmp = _round(tmp, digits_after_decimal_point - len(right))
             tmp = str(tmp)
             left, right = tmp[: exp + 1], tmp[exp + 1 :]
 
@@ -270,8 +262,8 @@ def number_form(expr, n, f, evaluation, options):
     left_padding = 0
     max_sign_len = max(len(options["NumberSigns"][0]), len(options["NumberSigns"][1]))
     i = len(sign_prefix) + len(left) + len(right) - max_sign_len
-    if i < n:
-        left_padding = n - i
+    if i < digits:
+        left_padding = digits - i
     elif len(sign_prefix) < max_sign_len:
         left_padding = max_sign_len - len(sign_prefix)
     left_padding = left_padding * options["NumberPadding"][0]
@@ -310,6 +302,8 @@ def number_form(expr, n, f, evaluation, options):
 
 class BoxForms_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$BoxForms.html</url>
+
     <dl>
       <dt>
       <dd>$BoxForms is the list of box formats.
@@ -327,6 +321,8 @@ class BoxForms_(Predefined):
 
 class MakeBoxes(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MakeBoxes.html</url>
+
     <dl>
       <dt>'MakeBoxes[$expr$]'
       <dd>is a low-level formatting primitive that converts $expr$
@@ -439,28 +435,28 @@ class MakeBoxes(Builtin):
             result.append(to_boxes(String(right), evaluation))
             return RowBox(*result)
 
-    def eval_outerprecedenceform(self, expr, prec, evaluation):
-        """MakeBoxes[PrecedenceForm[expr_, prec_],
-        StandardForm|TraditionalForm|OutputForm|InputForm]"""
+    def eval_outerprecedenceform(self, expr, precedence, form, evaluation):
+        """MakeBoxes[PrecedenceForm[expr_, precedence_],
+        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
-        precedence = prec.get_int_value()
-        boxes = MakeBoxes(expr)
-        return parenthesize(precedence, expr, boxes, True)
+        py_precedence = precedence.get_int_value()
+        boxes = MakeBoxes(expr, form)
+        return parenthesize(py_precedence, expr, boxes, True)
 
-    def eval_postprefix(self, p, expr, h, prec, f, evaluation):
-        """MakeBoxes[(p:Prefix|Postfix)[expr_, h_, prec_:None],
-        f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+    def eval_postprefix(self, p, expr, h, precedence, form, evaluation):
+        """MakeBoxes[(p:Prefix|Postfix)[expr_, h_, precedence_:None],
+        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
         if not isinstance(h, String):
-            h = MakeBoxes(h, f)
+            h = MakeBoxes(h, form)
 
-        precedence = prec.get_int_value()
+        py_precedence = precedence.get_int_value()
 
         elements = expr.elements
         if len(elements) == 1:
             element = elements[0]
-            element_boxes = MakeBoxes(element, f)
-            element = parenthesize(precedence, element, element_boxes, True)
+            element_boxes = MakeBoxes(element, form)
+            element = parenthesize(py_precedence, element, element_boxes, True)
             if p.get_name() == "System`Postfix":
                 args = (element, h)
             else:
@@ -468,12 +464,12 @@ class MakeBoxes(Builtin):
 
             return Expression(SymbolRowBox, ListExpression(*args).evaluate(evaluation))
         else:
-            return MakeBoxes(expr, f).evaluate(evaluation)
+            return MakeBoxes(expr, form).evaluate(evaluation)
 
     def eval_infix(
-        self, expr, operator, prec: Integer, grouping, form: Symbol, evaluation
+        self, expr, operator, precedence: Integer, grouping, form: Symbol, evaluation
     ):
-        """MakeBoxes[Infix[expr_, operator_, prec_:None, grouping_:None],
+        """MakeBoxes[Infix[expr_, operator_, precedence_:None, grouping_:None],
         form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
         ## FIXME: this should go into a some formatter.
@@ -504,7 +500,9 @@ class MakeBoxes(Builtin):
                 return op
             return operator
 
-        precedence = prec.value
+        py_precedence = (
+            precedence.value if hasattr(precedence, "value") else NEVER_ADD_PARENTHESIS
+        )
         grouping = grouping.get_name()
 
         if isinstance(expr, Atom):
@@ -515,7 +513,9 @@ class MakeBoxes(Builtin):
         if len(elements) > 1:
             if operator.has_form("List", len(elements) - 1):
                 operator = [format_operator(op) for op in operator.elements]
-                return make_boxes_infix(elements, operator, precedence, grouping, form)
+                return make_boxes_infix(
+                    elements, operator, py_precedence, grouping, form
+                )
             else:
                 encoding_rule = evaluation.definitions.get_ownvalue(
                     "$CharacterEncoding"
@@ -537,7 +537,7 @@ class MakeBoxes(Builtin):
                         String(operator_to_unicode.get(op_str, op_str))
                     )
 
-            return make_boxes_infix(elements, operator, precedence, grouping, form)
+            return make_boxes_infix(elements, operator, py_precedence, grouping, form)
 
         elif len(elements) == 1:
             return MakeBoxes(elements[0], form)
@@ -547,6 +547,10 @@ class MakeBoxes(Builtin):
 
 class ToBoxes(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ToBoxes.html</url>
+
     <dl>
       <dt>'ToBoxes[$expr$]'
       <dd>evaluates $expr$ and converts the result to box form.

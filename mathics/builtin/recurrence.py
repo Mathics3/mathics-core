@@ -5,17 +5,18 @@ Solving Recurrence Equations
 """
 
 # This tells documentation how to sort this module
-# Here we are also hiding "moments" since this erroneously appears at the top level.
+# Here we are also hiding "moments" since this erroneously appears at the
+# top level.
 sort_order = "mathics.builtin.solving-recurrence-equations"
 
 
 import sympy
 
-from mathics.builtin.base import Builtin
-
 from mathics.core.atoms import IntegerM1
 from mathics.core.attributes import A_CONSTANT
-from mathics.core.convert.sympy import sympy_symbol_prefix, from_sympy
+from mathics.core.builtin import Builtin
+from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolTimes
@@ -24,6 +25,10 @@ from mathics.core.systemsymbols import SymbolFunction, SymbolRule
 
 class RSolve(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RSolve.html</url>
+
     <dl>
     <dt>'RSolve[$eqn$, $a$[$n$], $n$]'
         <dd>solves a recurrence equation for the function '$a$[$n$]'.
@@ -33,7 +38,7 @@ class RSolve(Builtin):
     >> RSolve[a[n] == a[n+1], a[n], n]
      = {{a[n] -> C[0]}}
 
-    No boundary conditions gives two general paramaters:
+    No boundary conditions gives two general parameters:
     >> RSolve[{a[n + 2] == a[n]}, a, n]
      = {{a -> (Function[{n}, C[0] + C[1] (-1) ^ n])}}
 
@@ -62,7 +67,7 @@ class RSolve(Builtin):
     }
     summary_text = "recurrence equations solver"
 
-    def apply(self, eqns, a, n, evaluation):
+    def eval(self, eqns, a, n, evaluation: Evaluation):
         "RSolve[eqns_, a_, n_]"
 
         # TODO: Do this with rules?
@@ -113,7 +118,6 @@ class RSolve(Builtin):
                     and isinstance(le.elements[0].to_python(), int)
                     and ri.is_numeric(evaluation)
                 ):
-
                     r_sympy = ri.to_sympy()
                     if r_sympy is None:
                         raise ValueError

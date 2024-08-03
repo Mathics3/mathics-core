@@ -3,6 +3,7 @@
 
 
 import unittest
+
 from mathics.core.atoms import (
     Integer,
     Integer1,
@@ -11,11 +12,10 @@ from mathics.core.atoms import (
     IntegerM1,
     Rational,
 )
+from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.definitions import Definitions
-from mathics.core.convert.expression import to_expression
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.convert.expression import to_mathics_list
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolAbs, SymbolPlus, SymbolTimes
 

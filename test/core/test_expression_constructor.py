@@ -1,7 +1,7 @@
-from mathics.core.convert.expression import to_expression
-from mathics.core.expression import Expression, ElementsProperties
-from mathics.core.symbols import SymbolPlus
 from mathics.core.atoms import Integer, Integer1
+from mathics.core.convert.expression import to_expression
+from mathics.core.expression import ElementsProperties, Expression
+from mathics.core.symbols import SymbolPlus
 
 
 def test_expression_constructor():
@@ -35,7 +35,7 @@ def test_expression_constructor():
     e4 = Expression(
         SymbolPlus,
         *integer_ones,
-        elements_properties=ElementsProperties(True, True, True)
+        elements_properties=ElementsProperties(True, True, True),
     )
     attribute_check(e4, "e4")
     assert e1 == e4

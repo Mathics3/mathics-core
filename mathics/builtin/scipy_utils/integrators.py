@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-import sys
-from mathics.builtin.base import check_requires_list
+
+from mathics.core.builtin import check_requires_list
 from mathics.core.util import IS_PYPY
 
 if IS_PYPY or not check_requires_list(["scipy", "numpy"]):
@@ -43,7 +43,7 @@ def _scipy_interface(integrator, options_map, mandatory=None, adapt_func=None):
 
 
 try:
-    from scipy.integrate import romberg, quad, nquad
+    from scipy.integrate import nquad, quad, romberg
 except Exception:
     scipy_nintegrate_methods = {}
 else:

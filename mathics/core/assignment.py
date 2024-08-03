@@ -3,10 +3,11 @@
 Support for Set and SetDelayed, and other assignment-like builtins
 """
 
+from functools import reduce
 from typing import Optional, Tuple
 
-from mathics.algorithm.parts import walk_parts
 from mathics.core.atoms import Atom, Integer
+from mathics.core.attributes import A_LOCKED, A_PROTECTED, attribute_string_to_number
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 from mathics.core.expression import Expression, SymbolDefault
@@ -16,8 +17,8 @@ from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
     SymbolList,
-    SymbolMinPrecision,
     SymbolMaxPrecision,
+    SymbolMinPrecision,
     SymbolN,
     SymbolTrue,
     valid_context_name,
@@ -33,11 +34,7 @@ from mathics.core.systemsymbols import (
     SymbolPattern,
     SymbolRuleDelayed,
 )
-
-
-from mathics.core.attributes import attribute_string_to_number, A_LOCKED, A_PROTECTED
-
-from functools import reduce
+from mathics.eval.parts import walk_parts
 
 
 class AssignmentException(Exception):
@@ -47,7 +44,7 @@ class AssignmentException(Exception):
         self.rhs = rhs
 
 
-def assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset=None):
+def assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset=False):
     """
     This is the default assignment. Stores a rule of the form lhs->rhs
     as a value associated to each symbol listed in tags.
@@ -162,9 +159,9 @@ def repl_pattern_by_symbol(expr):
 
     changed = False
     new_elements = []
-    for element in elements:
-        element = repl_pattern_by_symbol(element)
-        if not (element is element):
+    for _element in elements:
+        element = repl_pattern_by_symbol(_element)
+        if element is not _element:
             changed = True
         new_elements.append(element)
     if changed:
@@ -223,7 +220,7 @@ def unroll_patterns(lhs, rhs, evaluation) -> Tuple[BaseElement, BaseElement]:
         # like
         # rhs = Expression(Symbol("System`Replace"), Rule(*rulerepl))
         # TODO: check if this is the correct behavior.
-        rhs, status = rhs.do_apply_rules([Rule(*rulerepl)], evaluation)
+        rhs, _ = rhs.do_apply_rules([Rule(*rulerepl)], evaluation)
         name = lhs.get_head_name()
     elif name == "System`HoldPattern":
         lhs = lhs_elements[0]
@@ -471,7 +468,7 @@ def eval_assign_list(self, lhs, rhs, evaluation, tags, upset):
 def eval_assign_makeboxes(self, lhs, rhs, evaluation, tags, upset):
     # FIXME: the below is a big hack.
     # Currently MakeBoxes boxing is implemented as a bunch of rules.
-    # See mathics.builtin.base contribute().
+    # See mathics.core.builtin contribute().
     # I think we want to change this so it works like normal SetDelayed
     # That is:
     #   MakeBoxes[CubeRoot, StandardForm] := RadicalBox[3, StandardForm]
@@ -706,7 +703,6 @@ def eval_assign_recursion_limit(lhs, rhs, evaluation):
     if (
         not rhs_int_value or rhs_int_value < 20 or rhs_int_value > MAX_RECURSION_DEPTH
     ):  # nopep8
-
         evaluation.message("$RecursionLimit", "limset", rhs)
         raise AssignmentException(lhs, None)
     try:

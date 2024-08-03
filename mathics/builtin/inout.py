@@ -4,21 +4,12 @@ Input and Output
 
 import re
 
-
-from mathics.builtin.base import (
-    Builtin,
-    Predefined,
-)
-
 from mathics.core.attributes import A_NO_ATTRIBUTES
-
+from mathics.core.builtin import Builtin, Predefined
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    Symbol,
-    SymbolNull,
-)
-
+from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import SymbolRow
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
@@ -30,6 +21,8 @@ SymbolTableDepth = Symbol("TableDepth")
 
 class Echo_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Echo_.html</url>
+
     <dl>
       <dt>'$Echo'
       <dd>gives a list of files and pipes to which all input is echoed.
@@ -45,6 +38,10 @@ class Echo_(Predefined):
 
 class Print(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Print.html</url>
+
     <dl>
       <dt>'Print[$expr$, ...]'
       <dd>prints each $expr$ in string form.
@@ -62,7 +59,7 @@ class Print(Builtin):
 
     summary_text = "print strings and formatted text"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation):
         "Print[expr__]"
 
         expr = expr.get_sequence()

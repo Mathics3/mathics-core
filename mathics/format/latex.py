@@ -17,27 +17,24 @@ import re
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
+    FractionBox,
     GridBox,
     RowBox,
+    SqrtBox,
     StyleBox,
     SubscriptBox,
-    SuperscriptBox,
     SubsuperscriptBox,
-    SqrtBox,
-    FractionBox,
+    SuperscriptBox,
 )
 from mathics.builtin.colors.color_directives import RGBColor
-
 from mathics.core.atoms import String
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
-    lookup_method as lookup_conversion_method,
     add_conversion_fn,
+    lookup_method as lookup_conversion_method,
 )
 from mathics.core.symbols import SymbolTrue
-
 from mathics.format.asy_fns import asy_color, asy_create_pens, asy_number
-
 
 # mathics_scanner does not generates this table in a way that we can load it here.
 # When it get fixed, we can use that table instead of this one:
@@ -126,7 +123,6 @@ def string(self, **options) -> str:
         # is required, to so get the standard WMA behaviour,
         # this option is set to False:
         # show_string_characters = False
-
         if show_string_characters:
             return render(r"\text{``%s''}", text[1:-1], in_text=True)
         else:
@@ -167,6 +163,7 @@ def gridbox(self, elements=None, **box_options) -> str:
         elements = self._elements
     evaluation = box_options.get("evaluation")
     items, options = self.get_array(elements, evaluation)
+
     new_box_options = box_options.copy()
     new_box_options["inside_list"] = True
     column_alignments = options["System`ColumnAlignments"].get_name()
@@ -179,12 +176,21 @@ def gridbox(self, elements=None, **box_options) -> str:
     except KeyError:
         # invalid column alignment
         raise BoxConstructError
-    column_count = 0
+    column_count = 1
     for row in items:
-        column_count = max(column_count, len(row))
+        if isinstance(row, tuple):
+            column_count = max(column_count, len(row))
+
     result = r"\begin{array}{%s} " % (column_alignments * column_count)
     for index, row in enumerate(items):
-        result += " & ".join(boxes_to_tex(item, **new_box_options) for item in row)
+        if isinstance(row, tuple):
+            result += " & ".join(boxes_to_tex(item, **new_box_options) for item in row)
+        else:
+            result += r"\multicolumn{%s}{%s}{%s}" % (
+                str(column_count),
+                column_alignments,
+                boxes_to_tex(row, **new_box_options),
+            )
         if index != len(items) - 1:
             result += "\\\\ "
     result += r"\end{array}"
@@ -228,7 +234,7 @@ def superscriptbox(self, **options):
         base = self.tex_block(tex1, True)
         superidx_to_tex = lookup_conversion_method(self.superindex, "latex")
         superindx = self.tex_block(superidx_to_tex(self.superindex, **options), True)
-        if isinstance(self.superindex, (String, StyleBox)):
+        if len(superindx) == 1 and isinstance(self.superindex, (String, StyleBox)):
             return "%s^%s" % (
                 base,
                 superindx,
@@ -348,6 +354,8 @@ def graphicsbox(self, elements=None, **options) -> str:
 
     if self.background_color is not None:
         color, opacity = asy_color(self.background_color)
+        if opacity is not None:
+            color = color + f"+opacity({opacity})"
         asy_background = "filldraw(%s, %s);" % (asy_box, color)
     else:
         asy_background = ""
@@ -400,7 +408,7 @@ def graphics3dbox(self, elements=None, **options) -> str:
 
     # TODO: Intelligently place the axes on the longest non-middle edge.
     # See algorithm used by web graphics in mathics/web/media/graphics.js
-    # for details of this. (Projection to sceen etc).
+    # for details of this. (Projection to screen etc).
 
     # Choose axes placement (boundbox edge vertices)
     axes_indices = []
@@ -545,13 +553,21 @@ def graphics3dbox(self, elements=None, **options) -> str:
                 boundbox_asy += "draw(({0}), {1});\n".format(path, pen)
 
     (height, width) = (400, 400)  # TODO: Proper size
+
+    # Background color
+    if self.background_color:
+        bg_color, opacity = asy_color(self.background_color)
+        background_directive = "background=" + bg_color + ", "
+    else:
+        background_directive = ""
+
     tex = r"""
 \begin{{asy}}
 import three;
 import solids;
 size({0}cm, {1}cm);
 currentprojection=perspective({2[0]},{2[1]},{2[2]});
-currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
+currentlight=light(rgb(0.5,0.5,1), {5}specular=red, (2,0,2), (2,2,2), (0,2,2));
 {3}
 {4}
 \end{{asy}}
@@ -562,6 +578,7 @@ currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
         [vp * max([xmax - xmin, ymax - ymin, zmax - zmin]) for vp in self.viewpoint],
         asy,
         boundbox_asy,
+        background_directive,
     )
     return tex
 

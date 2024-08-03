@@ -3,16 +3,16 @@
 """
 File Stream Operations
 """
-from io import open as io_open
 import os
-import requests
+import os.path as osp
 import sys
 import tempfile
-
+from io import open as io_open
 from typing import Optional, Tuple
 
-import os.path as osp
+import requests
 
+from mathics.core.util import canonic_filename
 from mathics.settings import ROOT_DIR
 
 HOME_DIR = osp.expanduser("~")
@@ -81,7 +81,7 @@ def path_search(filename: str) -> Tuple[str, bool]:
             is_temporary_file = True
         else:
             for p in PATH_VAR + [""]:
-                path = osp.join(p, filename)
+                path = canonic_filename(osp.join(p, filename))
                 if osp.exists(path):
                     result = path
                     break

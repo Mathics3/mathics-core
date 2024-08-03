@@ -1,5 +1,6 @@
 /core-version.tex
-/doc_tex_data.pcl
+/doc_latex_data.pcl
+/documentation.log
 /documentation.tex
 /documentation.tex-before-sed
 /images/
@@ -10,6 +11,7 @@
 /mathics-*.dvi
 /mathics-*.eps
 /mathics-*.pdf
+/mathics-*.ps
 /mathics-*.tex
 /mathics-test.aux
 /mathics-test.dvi

@@ -8,11 +8,13 @@ Functions for constructing lists of various sizes and structure.
 See also Constructing Lists.
 """
 
-from mathics.builtin.base import Builtin
+from mathics.core.builtin import Builtin
 
 
 class AngleVector(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AngleVector.html</url>
+
     <dl>
       <dt>'AngleVector[$phi$]'
       <dd>returns the point at angle $phi$ on the unit circle.

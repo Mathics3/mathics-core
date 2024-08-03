@@ -16,7 +16,7 @@ based on its capabilities and back-end renders available to it.
 
 For example, in graphics we may be several different kinds of
 renderers, SVG, or Asymptote for a particular kind of graphics Box.
-The front-end nees to decides which format it better suited for it.
+The front-end needs to decides which format it better suited for it.
 The Box, however, is created via a particular high-level Form.
 
 As another example, front-end may decide to use MathJaX to render
@@ -24,10 +24,9 @@ TeXForm if the front-end supports this and the user so desires that.
 
 """
 
-import os.path as osp
 import glob
 import importlib
-
+import os.path as osp
 
 __py_files__ = [
     osp.basename(f[0:-3])
