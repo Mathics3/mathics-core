@@ -1,8 +1,10 @@
 import mathics.core.definitions as definitions
-from mathics.builtin.base import Builtin
+from mathics.core.builtin import Builtin
 from mathics.core.symbols import Symbol
 
 form_symbol_to_class = {}
+
+no_doc = "no doc"
 
 
 class FormBaseClass(Builtin):

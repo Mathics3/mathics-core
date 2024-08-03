@@ -3,8 +3,8 @@
 General Statistics
 """
 
-# from mathics.builtin.base import Builtin, SympyFunction
-from mathics.builtin.base import Builtin
+# from mathics.core.builtin import Builtin, SympyFunction
+from mathics.core.builtin import Builtin
 
 # import sympy.stats
 # from mathics.core.convert.sympy import from_sympy

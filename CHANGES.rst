@@ -7,30 +7,48 @@ CHANGES
 New Builtins
 ++++++++++++
 
-
-* `Elements`
+* ``$MaxLengthIntStringConversion``
+* ``Elements``
+* ``ConjugateTranspose``
+* ``LeviCivitaTensor``
+* ``RealAbs`` and ``RealSign``
+* ``RealValuedNumberQ``
 
 
 Compatibility
 -------------
 
 * ``*Plot`` does not show messages during the evaluation.
-
-
+* ``Range[]`` now handles a negative ``di`` PR #951
+* Improved support for ``DirectedInfinity`` and ``Indeterminate``.
+* ``Graphics`` and ``Graphics3D`` including wrong primitives and directives
+  are shown with a pink background. In the Mathics-Django interface, a tooltip
+  error message is also shown.
 
 Internals
 ---
 
 * ``eval_abs`` and ``eval_sign`` extracted from ``Abs`` and ``Sign`` and added to ``mathics.eval.arithmetic``.
-
+* Maximum number of digits allowed in a string set to 7000 and can be adjusted using environment variable
+  ``MATHICS_MAX_STR_DIGITS`` on Python versions that don't adjust automatically (like pyston).
+* Real number comparisons implemented is based now in the internal implementation of ``RealSign``.
+* For Python 3.11, the variable ``$MaxLengthIntStringConversion`` controls the maximum size of
+  the literal conversion between large integers and Strings.
+* Older style non-appearing and non-pedagogical doctests have been converted to pytest
+* Built-in code is directed explicitly rather than implicitly. This facilitates the ability to lazy load
+  builtins or "autoload" them a la GNU Emacs autoload.
 
 Bugs
 ----
 
-* Improved support for ``DirectedInfinity`` and ``Indeterminate``.
 * ``Definitions`` is compatible with ``pickle``.
-
-
+* Improved support for ``Quantity`` expressions, including conversions, formatting and arithmetic operations.
+* ``Background`` option for ``Graphics`` and ``Graphics3D`` is operative again.
+* ``Switch[]`` involving ``Infinity`` Issue #956
+* ``Outer[]`` on ``SparseArray`` Issue #939
+* ``ArrayQ[]`` detects ``SparseArray`` PR #947
+* Numeric comparisons against expressions involving ``String``s (Issue #797).
+  
 Package updates
 +++++++++++++++
 
@@ -102,6 +120,7 @@ New Builtins
 #. ``$PythonImplementation``
 #. ``Accuracy``
 #. ``ClebschGordan``
+#. ``ComplexExpand`` (@yzrun)
 #. ``Curl`` (2-D and 3-D vector forms only)
 #. ``DiscretePlot``
 #. ``Kurtosis``
@@ -128,7 +147,7 @@ Documentation
 #. "Exponential Functional" split out from "Trigonometry Functions"
 #. "Functional Programming" section split out.
 #. "Image Manipulation" has been split off from Graphics and Drawing and turned into a guide section.
-#. Image examples now appear in the LaTeX and therfore the PDF doc
+#. Image examples now appear in the LaTeX and therefore the PDF doc
 #. "Logic and Boolean Algebra" section reinstated.
 #. "Forms of Input and Output" is its own guide section.
 #. More URL links to Wiki pages added; more internal cross links added.
@@ -167,7 +186,7 @@ Bugs
 #. Better handling of ``Infinite`` quantities.
 #. Improved ``Precision`` and ``Accuracy``compatibility with WMA. In particular, ``Precision[0.]`` and ``Accuracy[0.]``
 #. Accuracy in numbers using the notation ``` n.nnn``acc ```  now is properly handled.
-#. numeric precision in mpmath was not reset after operations that changed these. This cause huges slowdowns after an operation that set the mpmath precison high. This was the source of several-minute slowdowns in testing.
+#. numeric precision in mpmath was not reset after operations that changed these. This cause huges slowdowns after an operation that set the mpmath precision high. This was the source of several-minute slowdowns in testing.
 #. GIF87a (```MadTeaParty.gif`` or ExampleData) image loading fixed
 #. Replace non-free Leena image with a a freely distributable image. Issue #728
 
@@ -1045,7 +1064,7 @@ New features (50+ builtins)
 #. ``SubsetQ`` and ``Delete[]`` #688, #784,
 #. ``Subsets`` #685
 #. ``SystemTimeZone`` and correct ``TimeZone`` #924
-#. ``System\`Byteordering`` and ``System\`Environemnt`` #859
+#. ``System\`Byteordering`` and ``System\`Environment`` #859
 #. ``$UseSansSerif`` #908
 #. ``randchoice`` option for ``NoNumPyRandomEnv`` #820
 #. Support for ``MATHICS_MAX_RECURSION_DEPTH``
@@ -1395,7 +1414,7 @@ New features
 #. ``PolarPlot``
 #. IPython style (coloured) input
 #. ``VectorAnalysis`` Package
-#. More special functions (Bessel functions and othogonal polynomials)
+#. More special functions (Bessel functions and orthogonal polynomials)
 #. More NumberTheory functions
 #. ``Import``, ``Export``, ``Get``, ``Needs`` and other IO related functions
 #. PyPy compatibility

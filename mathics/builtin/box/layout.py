@@ -7,14 +7,12 @@ The routines here assist in boxing at the bottom of the hierarchy. \
 At the other end, the top level, we have a Notebook which is just a \
 collection of Expressions usually contained in boxes.
 """
-# Docs are not yet ready for prime time. Maybe after release 6.0.0.
-no_doc = True
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Atom, String
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin
 from mathics.core.element import BoxElementMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import BoxConstructError
@@ -31,6 +29,9 @@ from mathics.core.systemsymbols import (
     SymbolSuperscriptBox,
 )
 from mathics.eval.makeboxes import eval_makeboxes
+
+# Docs are not yet ready for prime time. Maybe after release 6.0.0.
+no_doc = True
 
 
 def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
@@ -225,7 +226,7 @@ class RowBox(BoxExpression):
     summary_text = "horizontal arrange of boxes"
 
     def __repr__(self):
-        return "RowBox[List[" + self.items.__repr__() + "]]"
+        return "RowBox[List[" + self.elements.__repr__() + "]]"
 
     def eval_list(self, boxes, evaluation):
         """RowBox[boxes_List]"""

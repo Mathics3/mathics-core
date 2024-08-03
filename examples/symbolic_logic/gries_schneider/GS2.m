@@ -31,7 +31,7 @@
 
 << "../../test_driver.m"
 
-(* Chaper 2, Boolean Expressions, page 25
+(* Chapter 2, Boolean Expressions, page 25
 
    Section 2.1, Syntax and evaluation of Boolean expression, page 25
  ___           _                 ___                        _
@@ -110,7 +110,7 @@ __   __    _ _    _ _ _                         _
     there are 2 ** 4 == sixteen different binary functions.
 
     I start with inert "true" and "false" to avoid evaluation leaks, i.e., to
-    prevent mathics from reducing expessions that have active "True" and
+    prevent mathics from reducing expressions that have active "True" and
     "False".
 
 *************************************************************************** *)

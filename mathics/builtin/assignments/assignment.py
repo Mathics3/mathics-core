@@ -4,7 +4,6 @@ Forms of Assignment
 """
 
 
-from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.core.assignment import (
     ASSIGNMENT_FUNCTION_MAP,
     AssignmentException,
@@ -18,6 +17,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_SEQUENCE_HOLD,
 )
+from mathics.core.builtin import BinaryOperator, Builtin
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
 from mathics.eval.set import (
@@ -58,7 +58,6 @@ class _SetOperator:
 
             return assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
         except AssignmentException:
-
             return False
 
 
@@ -163,8 +162,6 @@ class Set(BinaryOperator, _SetOperator):
     >> B[[1;;2, 2;;-1]] = {{t, u}, {y, z}};
     >> B
      = {{1, t, u}, {4, y, z}, {7, 8, 9}}
-
-    #> x = Infinity;
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
@@ -281,14 +278,12 @@ class TagSet(Builtin, _SetOperator):
     </dl>
 
     Create an upvalue without using 'UpSet':
-    >> x /: f[x] = 2
-     = 2
-    >> f[x]
-     = 2
-    >> DownValues[f]
+    >> square /: area[square[s_]] := s^2
+    >> DownValues[square]
      = {}
-    >> UpValues[x]
-     = {HoldPattern[f[x]] :> 2}
+
+    >> UpValues[square]
+     = {HoldPattern[area[square[s_]]] :> s ^ 2}
 
     The symbol $f$ must appear as the ultimate head of $lhs$ or as the head of an element in $lhs$:
     >> x /: f[g[x]] = 3;
@@ -376,12 +371,6 @@ class UpSet(BinaryOperator, _SetOperator):
      = custom
     >> UpValues[r]
      = {}
-
-    #> f[g, a + b, h] ^= 2
-     : Tag Plus in f[g, a + b, h] is Protected.
-     = 2
-    #> UpValues[h]
-     = {HoldPattern[f[g, a + b, h]] :> 2}
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
@@ -418,12 +407,6 @@ class UpSetDelayed(UpSet):
      = 2
     >> UpValues[b]
      = {HoldPattern[a[b]] :> x}
-
-    #> f[g, a + b, h] ^:= 2
-     : Tag Plus in f[g, a + b, h] is Protected.
-    #> f[a+b] ^:= 2
-     : Tag Plus in f[a + b] is Protected.
-     = $Failed
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD

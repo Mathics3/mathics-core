@@ -3,8 +3,8 @@
 General Structural Expression Functions
 """
 
-from mathics.builtin.base import BinaryOperator, Builtin, Predefined
 from mathics.core.atoms import Integer, Integer0, Integer1, Rational
+from mathics.core.builtin import BinaryOperator, Builtin, Predefined
 from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
@@ -184,7 +184,7 @@ class Depth(Builtin):
      = 2
     """
 
-    summary_text = "the maximum number of indices to specify any part"
+    summary_text = "get maximum number of indices to specify any part"
 
     def eval(self, expr, evaluation: Evaluation):
         "Depth[expr_]"
@@ -295,7 +295,7 @@ class Level(Builtin):
     options = {
         "Heads": "False",
     }
-    summary_text = "parts specified by a given number of indices"
+    summary_text = "get parts specified by a given number of indices"
 
     def eval(self, expr, ls, evaluation, options={}):
         "Level[expr_, ls_, OptionsPattern[Level]]"
@@ -337,7 +337,7 @@ class Null(Predefined):
      = #<--#
     """
 
-    summary_text = "implicit result for expressions that does not yield a result"
+    summary_text = "implicit result for expressions that do not yield a result"
 
 
 class Operate(Builtin):
@@ -364,10 +364,6 @@ class Operate(Builtin):
     With $n$=0, 'Operate' acts like 'Apply':
     >> Operate[p, f[a][b][c], 0]
      = p[f[a][b][c]]
-
-    #> Operate[p, f, -1]
-     : Non-negative integer expected at position 3 in Operate[p, f, -1].
-     = Operate[p, f, -1]
     """
 
     summary_text = "apply a function to the head of an expression"
@@ -417,7 +413,7 @@ class Order(Builtin):
     <dl>
       <dt>'Order[$x$, $y$]'
       <dd>returns a number indicating the canonical ordering of $x$ and $y$. \
-         1 indicates that $x$ is before $y$, \-1 that $y$ is before $x$. \
+         1 indicates that $x$ is before $y$, and -1 that $y$ is before $x$. \
          0 indicates that there is no specific ordering. Uses the same order \
          as 'Sort'.
     </dl>
@@ -435,7 +431,7 @@ class Order(Builtin):
      = 0
     """
 
-    summary_text = "canonical ordering of expressions"
+    summary_text = "order expressions"
 
     def eval(self, x, y, evaluation: Evaluation):
         "Order[x_, y_]"

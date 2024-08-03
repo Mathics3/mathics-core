@@ -11,9 +11,9 @@ Types of Values
 """
 
 
-from mathics.builtin.base import Builtin
 from mathics.core.assignment import get_symbol_values
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
+from mathics.core.builtin import Builtin
 
 
 class DefaultValues(Builtin):

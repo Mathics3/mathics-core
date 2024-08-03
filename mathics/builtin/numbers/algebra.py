@@ -17,13 +17,12 @@ from typing import Optional, Tuple, Union
 
 import sympy
 
-from mathics.algorithm.simplify import default_complexity_function
-from mathics.builtin.base import Builtin
 from mathics.builtin.inference import evaluate_predicate
 from mathics.builtin.options import options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import Integer, Integer0, Integer1, Number, RationalOneHalf
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
+from mathics.core.builtin import Builtin
 from mathics.core.convert.python import from_bool
 from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix
 from mathics.core.element import BaseElement
@@ -64,7 +63,8 @@ from mathics.core.systemsymbols import (
     SymbolTable,
     SymbolTanh,
 )
-from mathics.eval.numbers import cancel, sympy_factor
+from mathics.eval.numbers.algebra.simplify import default_complexity_function
+from mathics.eval.numbers.numbers import cancel, sympy_factor
 from mathics.eval.parts import walk_parts
 from mathics.eval.patterns import match
 
@@ -373,12 +373,6 @@ class Apart(Builtin):
     But it does not touch other expressions:
     >> Sin[1 / (x ^ 2 - y ^ 2)] // Apart
      = Sin[1 / (x ^ 2 - y ^ 2)]
-
-    #> Attributes[f] = {HoldAll}; Apart[f[x + x]]
-     = f[x + x]
-
-    #> Attributes[f] = {}; Apart[f[x + x]]
-     = f[2 x]
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -504,25 +498,9 @@ class Coefficient(Builtin):
     >> Coefficient[a x^2 + b y^3 + c x + d y + 5, x, 0]
      = 5 + b y ^ 3 + d y
 
-    ## Errors:
-    #> Coefficient[x + y + 3]
-     : Coefficient called with 1 argument; 2 or 3 arguments are expected.
-     = Coefficient[3 + x + y]
-    #> Coefficient[x + y + 3, 5]
-     : 5 is not a valid variable.
-     = Coefficient[3 + x + y, 5]
-
-    ## This is known bug of Sympy 1.0, next Sympy version will fix it by this commit
-    ## https://github.com/sympy/sympy/commit/25bf64b64d4d9a2dc563022818d29d06bc740d47
-    ## #> Coefficient[x * y, z, 0]
-    ##  = x y
-    ##  ## Sympy 1.0 retuns 0
-
     ## ## TODO: Support Modulus
     ## >> Coefficient[(x + 2)^3 + (x + 3)^2, x, 0, Modulus -> 3]
     ##  = 2
-    ## #> Coefficient[(x + 2)^3 + (x + 3)^2, x, 0, {Modulus -> 3, Modulus -> 2, Modulus -> 10}]
-    ##  = {2, 1, 7}
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -867,7 +845,7 @@ class CoefficientArrays(_CoefficientHandler):
                             SymbolTable,
                             Integer(0),
                             ListExpression(Integer(dim1)),
-                            *its2
+                            *its2,
                         )
                     else:
                         newtable = Expression(SymbolTable, Integer(0), *its2)
@@ -910,21 +888,11 @@ class CoefficientList(Builtin):
      = {2 / (-3 + y), 1 / (-3 + y) + 1 / (-2 + y)}
     >> CoefficientList[(x + y)^3, z]
      = {(x + y) ^ 3}
-    #> CoefficientList[x + y, 5]
-     : 5 is not a valid variable.
-     = CoefficientList[x + y, 5]
-
     ## Form 2 CoefficientList[poly, {var1, var2, ...}]
     >> CoefficientList[a x^2 + b y^3 + c x + d y + 5, {x, y}]
      = {{5, d, 0, b}, {c, 0, 0, 0}, {a, 0, 0, 0}}
     >> CoefficientList[(x - 2 y + 3 z)^3, {x, y, z}]
      = {{{0, 0, 0, 27}, {0, 0, -54, 0}, {0, 36, 0, 0}, {-8, 0, 0, 0}}, {{0, 0, 27, 0}, {0, -36, 0, 0}, {12, 0, 0, 0}, {0, 0, 0, 0}}, {{0, 9, 0, 0}, {-6, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}, {{1, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}}
-    #> CoefficientList[(x - 2 y)^4, {x, 2}]
-     : 2 is not a valid variable.
-     = CoefficientList[(x - 2 y) ^ 4, {x, 2}]
-    #> CoefficientList[x / y, {x, y}]
-     : x / y is not a polynomial.
-     = CoefficientList[x / y, {x, y}]
     """
 
     messages = {
@@ -984,7 +952,7 @@ class CoefficientList(Builtin):
                             self.__class__.__name__, expr, form, Integer(n), evaluation
                         )
                         for n in range(dimensions[0] + 1)
-                    ]
+                    ],
                 )
             elif form.has_form("List", 1):
                 form = form.elements[0]
@@ -995,7 +963,7 @@ class CoefficientList(Builtin):
                             self.__class__.__name__, expr, form, Integer(n), evaluation
                         )
                         for n in range(dimensions[0] + 1)
-                    ]
+                    ],
                 )
             else:
 
@@ -1098,7 +1066,6 @@ class Denominator(Builtin):
 
 
 class _Expand(Builtin):
-
     options = {
         "Trig": "False",
         "Modulus": "0",
@@ -1182,22 +1149,6 @@ class Expand(_Expand):
 
     >> Expand[(1 + a)^12, Modulus -> 4]
      = 1 + 2 a ^ 2 + 3 a ^ 4 + 3 a ^ 8 + 2 a ^ 10 + a ^ 12
-
-    #> Expand[x, Modulus -> -1]  (* copy odd MMA behaviour *)
-     = 0
-    #> Expand[x, Modulus -> x]
-     : Value of option Modulus -> x should be an integer.
-     = Expand[x, Modulus -> x]
-
-    #> a(b(c+d)+e) // Expand
-     = a b c + a b d + a e
-
-    #> (y^2)^(1/2)/(2x+2y)//Expand
-     = Sqrt[y ^ 2] / (2 x + 2 y)
-
-
-    #> 2(3+2x)^2/(5+x^2+3x)^3 // Expand
-     = 24 x / (5 + 3 x + x ^ 2) ^ 3 + 8 x ^ 2 / (5 + 3 x + x ^ 2) ^ 3 + 18 / (5 + 3 x + x ^ 2) ^ 3
     """
 
     summary_text = "expand out products and powers"
@@ -1303,15 +1254,6 @@ class ExpandDenominator(_Expand):
 
     >> ExpandDenominator[(a + b) ^ 2 / ((c + d)^2 (e + f))]
      = (a + b) ^ 2 / (c ^ 2 e + c ^ 2 f + 2 c d e + 2 c d f + d ^ 2 e + d ^ 2 f)
-
-    ## Modulus option
-    #> ExpandDenominator[1 / (x + y)^3, Modulus -> 3]
-     = 1 / (x ^ 3 + y ^ 3)
-    #> ExpandDenominator[1 / (x + y)^6, Modulus -> 4]
-     = 1 / (x ^ 6 + 2 x ^ 5 y + 3 x ^ 4 y ^ 2 + 3 x ^ 2 y ^ 4 + 2 x y ^ 5 + y ^ 6)
-
-    #> ExpandDenominator[2(3+2x)^2/(5+x^2+3x)^3]
-     = 2 (3 + 2 x) ^ 2 / (125 + 225 x + 210 x ^ 2 + 117 x ^ 3 + 42 x ^ 4 + 9 x ^ 5 + x ^ 6)
     """
 
     summary_text = "expand just the denominator of a rational expression"
@@ -1354,11 +1296,6 @@ class Exponent(Builtin):
      = -Infinity
     >> Exponent[1, x]
      = 0
-
-    ## errors:
-    #> Exponent[x^2]
-     : Exponent called with 1 argument; 2 or 3 arguments are expected.
-     = Exponent[x ^ 2]
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -1422,10 +1359,6 @@ class Factor(Builtin):
     You can use Factor to find when a polynomial is zero:
     >> x^2 - x == 0 // Factor
      = x (-1 + x) == 0
-
-    ## Issue659
-    #> Factor[{x+x^2}]
-     = {x (1 + x)}
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -1467,9 +1400,6 @@ class FactorTermsList(Builtin):
      = {2, -1 + x ^ 2}
     >> FactorTermsList[x^2 - 2 x + 1]
      = {1, 1 - 2 x + x ^ 2}
-    #> FactorTermsList[2 x^2 - 2, x]
-     = {2, 1, -1 + x ^ 2}
-
     >> f = 3 (-1 + 2 x) (-1 + y) (1 - a)
      = 3 (-1 + 2 x) (-1 + y) (1 - a)
     >> FactorTermsList[f]
@@ -1775,17 +1705,6 @@ class MinimalPolynomial(Builtin):
      = -2 - 2 x ^ 2 + x ^ 4
     >> MinimalPolynomial[Sqrt[I + Sqrt[6]], x]
      = 49 - 10 x ^ 4 + x ^ 8
-
-    #> MinimalPolynomial[7a, x]
-     : 7 a is not an explicit algebraic number.
-     = MinimalPolynomial[7 a, x]
-    #> MinimalPolynomial[3x^3 + 2x^2 + y^2 + ab, x]
-     : ab + 2 x ^ 2 + 3 x ^ 3 + y ^ 2 is not an explicit algebraic number.
-     = MinimalPolynomial[ab + 2 x ^ 2 + 3 x ^ 3 + y ^ 2, x]
-
-    ## PurePoly
-    #> MinimalPolynomial[Sqrt[2 + Sqrt[3]]]
-     = 1 - 4 #1 ^ 2 + #1 ^ 4
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -1874,37 +1793,6 @@ class PolynomialQ(Builtin):
      = True
     >> PolynomialQ[x^2 + axy^2 - bSin[c], {a, b, c}]
      = False
-
-    #> PolynomialQ[x, x, y]
-     : PolynomialQ called with 3 arguments; 1 or 2 arguments are expected.
-     = PolynomialQ[x, x, y]
-
-    ## Always return True if argument is Null
-    #> PolynomialQ[x^3 - 2 x/y + 3xz,]
-     : Warning: comma encountered with no adjacent expression. The expression will be treated as Null (line 1 of "<test>").
-     = True
-    #> PolynomialQ[, {x, y, z}]
-     : Warning: comma encountered with no adjacent expression. The expression will be treated as Null (line 1 of "<test>").
-     = True
-    #> PolynomialQ[, ]
-     : Warning: comma encountered with no adjacent expression. The expression will be treated as Null (line 1 of "<test>").
-     : Warning: comma encountered with no adjacent expression. The expression will be treated as Null (line 1 of "<test>").
-     = True
-
-    ## TODO: MMA and Sympy handle these cases differently
-    ## #> PolynomialQ[x^(1/2) + 6xyz]
-    ##  : No variable is not supported in PolynomialQ.
-    ##  = True
-    ## #> PolynomialQ[x^(1/2) + 6xyz, {}]
-    ##  : No variable is not supported in PolynomialQ.
-    ##  = True
-
-    ## #> PolynomialQ[x^3 - 2 x/y + 3xz]
-    ##  : No variable is not supported in PolynomialQ.
-    ##  = False
-    ## #> PolynomialQ[x^3 - 2 x/y + 3xz, {}]
-    ##  : No variable is not supported in PolynomialQ.
-    ##  = False
     """
 
     messages = {
@@ -1994,9 +1882,6 @@ class Together(Builtin):
     But it does not touch other functions:
     >> Together[f[a / c + b / c]]
      = f[a / c + b / c]
-
-    #> f[x]/x+f[x]/x^2//Together
-     = f[x] (1 + x) / x ^ 2
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -2030,9 +1915,6 @@ class Variables(Builtin):
      = {a, b, c, x, y}
     >> Variables[x + Sin[y]]
      = {x, Sin[y]}
-    ## failing test case from MMA docs
-    #> Variables[E^x]
-     = {}
     """
     summary_text = "list of variables in a polynomial"
 

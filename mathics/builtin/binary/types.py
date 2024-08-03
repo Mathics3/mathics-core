@@ -4,7 +4,7 @@ Binary Types
 """
 
 
-from mathics.builtin.base import Builtin
+from mathics.core.builtin import Builtin
 
 
 class Byte(Builtin):

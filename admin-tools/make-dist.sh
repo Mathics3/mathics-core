@@ -25,7 +25,8 @@ for pyversion in $PYVERSIONS; do
 	exit $?
     fi
     rm -fr build
-    python setup.py bdist_egg
+    # PYPI no longer supports eggs
+    # python setup.py bdist_egg
     python setup.py bdist_wheel
 done
 

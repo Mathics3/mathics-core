@@ -11,9 +11,9 @@ the default behavior that function. Default options can be queried or set.
 https://reference.wolfram.com/language/guide/OptionsManagement.html</url>
 """
 
-from mathics.builtin.base import Builtin, Predefined, Test, get_option
 from mathics.builtin.image.base import Image
 from mathics.core.atoms import String
+from mathics.core.builtin import Builtin, Predefined, Test, get_option
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, SymbolDefault, get_default_value
 from mathics.core.list import ListExpression
@@ -39,7 +39,8 @@ class All(Predefined):
     For example, in <url>
     :Part:
     /doc/reference-of-built-in-symbols/list-functions/elements-of-lists/part</url>, \
-    'All', extracts into a first column vector the first element of each of the list elements:
+    'All', extracts into a first column vector the first element of each of the \
+    list elements:
 
     >> {{1, 3}, {5, 7}}[[All, 1]]
      = {1, 5}
@@ -47,7 +48,8 @@ class All(Predefined):
     While in <url>
     :Take:
     /doc/reference-of-built-in-symbols/list-functions/elements-of-lists/part</url>, \
-    'All' extracts as a column matrix the first element as a list for each of the list elements:
+    'All' extracts as a column matrix the first element as a list for each of the list \
+    elements:
 
     >> Take[{{1, 3}, {5, 7}}, All, {1}]
      = {{1}, {5}}
@@ -57,7 +59,7 @@ class All(Predefined):
     /doc/reference-of-built-in-symbols/graphics-and-drawing/plotting-data/plot</url>, \
     setting the <url>
     :Mesh:
-    /doc/reference-of-built-in-symbols/drawing-options-and-option-values/mesh</url> \
+/doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values/mesh</url> \
     option to 'All' will show the specific plot points:
 
     >> Plot[x^2, {x, -1, 1}, MaxRecursion->5, Mesh->All]
@@ -169,21 +171,21 @@ class FilterRules(Builtin):
 
 class None_(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/None.html</url>
+        <url>:WMA link:https://reference.wolfram.com/language/ref/None.html</url>
 
-    <dl>
-      <dt>'None'
-      <dd>is a setting value for many options.
-    </dl>
+        <dl>
+          <dt>'None'
+          <dd>is a setting value for many options.
+        </dl>
 
-    Plot3D shows the mesh grid between computed points by default. This the <url>
-    :Mesh:
-    /doc/reference-of-built-in-symbols/drawing-option-and-values/mesh</url> option.
+        Plot3D shows the mesh grid between computed points by default. This the <url>
+        :Mesh:
+/doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values/mesh</url> \
 
-    However, you hide the mesh by setting the 'Mesh' option value to 'None':
+        However, you hide the mesh by setting the 'Mesh' option value to 'None':
 
-    >> Plot3D[{x^2 + y^2, -x^2 - y^2}, {x, -2, 2}, {y, -2, 2}, BoxRatios-> Automatic, Mesh->None]
-     = -Graphics3D-
+        >> Plot3D[{x^2 + y^2, -x^2 - y^2}, {x, -2, 2}, {y, -2, 2}, BoxRatios-> Automatic, Mesh->None]
+         = -Graphics3D-
     """
 
     name = "None"
@@ -304,11 +306,6 @@ class Options(Builtin):
     >> f[x, n -> 3]
      = x ^ 3
 
-    #> f[x_, OptionsPattern[f]] := x ^ OptionValue["m"];
-    #> Options[f] = {"m" -> 7};
-    #> f[x]
-     = x ^ 7
-
     Delayed option rules are evaluated just when the corresponding 'OptionValue' is called:
     >> f[a :> Print["value"]] /. f[OptionsPattern[{}]] :> (OptionValue[a]; Print["between"]; OptionValue[a]);
      | value
@@ -332,18 +329,6 @@ class Options(Builtin):
     >> Options[a + b] = {a -> b}
      : Argument a + b at position 1 is expected to be a symbol.
      = {a -> b}
-
-    #> f /: Options[f] = {a -> b}
-     = {a -> b}
-    #> Options[f]
-     = {a :> b}
-    #> f /: Options[g] := {a -> b}
-     : Rule for Options can only be attached to g.
-     = $Failed
-
-    #> Options[f] = a /; True
-     : a /; True is not a valid list of option rules.
-     = a /; True
     """
 
     summary_text = "the list of optional arguments and their default values"

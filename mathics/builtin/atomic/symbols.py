@@ -8,7 +8,8 @@ or namespace, and can have a variety of type of values and attributes.
 
 import re
 
-from mathics.builtin.base import Builtin, PrefixOperator, Test
+from mathics_scanner import is_symbol_name
+
 from mathics.core.assignment import get_symbol_values
 from mathics.core.atoms import String
 from mathics.core.attributes import (
@@ -20,6 +21,7 @@ from mathics.core.attributes import (
     A_SEQUENCE_HOLD,
     attributes_bitset_to_list,
 )
+from mathics.core.builtin import Builtin, PrefixOperator, Test
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.regex import to_regex
 from mathics.core.evaluation import Evaluation
@@ -93,7 +95,8 @@ def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):
 
 class Context(Builtin):
     r"""
-    <url>:WMA: https://reference.wolfram.com/language/ref/Context.html</url>
+    <url>:WMA link:
+       https://reference.wolfram.com/language/ref/Context.html</url>
     <dl>
       <dt>'Context[$symbol$]'
       <dd>yields the name of the context where $symbol$ is defined in.
@@ -109,21 +112,6 @@ class Context(Builtin):
 
     >> InputForm[Context[]]
      = "Global`"
-
-    ## placeholder for general context-related tests
-    #> x === Global`x
-     = True
-    #> `x === Global`x
-     = True
-    #> a`x === Global`x
-     = False
-    #> a`x === a`x
-     = True
-    #> a`x === b`x
-     = False
-    ## awkward parser cases
-    #> FullForm[a`b_]
-     = Pattern[a`b, Blank[]]
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED
@@ -146,7 +134,8 @@ class Context(Builtin):
 
 class Definition(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/Definition.html</url>
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Definition.html</url>
     <dl>
       <dt>'Definition[$symbol$]'
       <dd>prints as the definitions given for $symbol$.
@@ -365,14 +354,14 @@ class Definition(Builtin):
 # In Mathematica 5, this appears under "Types of Values".
 class DownValues(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/DownValues.html</url>
+    <url>:WMA link: https://reference.wolfram.com/language/ref/DownValues.html</url>
     <dl>
       <dt>'DownValues[$symbol$]'
       <dd>gives the list of downvalues associated with $symbol$.
     </dl>
 
     'DownValues' uses 'HoldPattern' and 'RuleDelayed' to protect the \
-    downvalues from being evaluated. Moreover, it has attribute \
+    downvalues from being evaluated, and it has attribute \
     'HoldAll' to get the specified symbol instead of its value.
 
     >> f[x_] := x ^ 2
@@ -421,7 +410,8 @@ class DownValues(Builtin):
 
 class Information(PrefixOperator):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/Information.html</url>
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Information.html</url>
     <dl>
       <dt>'Information[$symbol$]'
       <dd>Prints information about a $symbol$
@@ -429,25 +419,6 @@ class Information(PrefixOperator):
     'Information' does not print information for 'ReadProtected' symbols.
 
     'Information' uses 'InputForm' to format values.
-
-    #> a = 2;
-    #> Information[a]
-     | a = 2
-     .
-     = Null
-
-    #> f[x_] := x ^ 2;
-    #> g[f] ^:= 2;
-    #> f::usage = "f[x] returns the square of x";
-    #> Information[f]
-     | f[x] returns the square of x
-     .
-     . f[x_] = x ^ 2
-     .
-     . g[f] ^= 2
-     .
-     = Null
-
     """
 
     attributes = A_HOLD_ALL | A_SEQUENCE_HOLD | A_PROTECTED | A_READ_PROTECTED
@@ -594,7 +565,8 @@ class Information(PrefixOperator):
 
 class Names(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/Names.html</url>
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Names.html</url>
     <dl>
       <dt>'Names["$pattern$"]'
       <dd>returns the list of names matching $pattern$.
@@ -618,9 +590,6 @@ class Names(Builtin):
     The number of built-in symbols:
     >> Length[Names["System`*"]]
      = ...
-
-    #> Length[Names["System`*"]] > 350
-     = True
     """
 
     summary_text = "find a list of symbols with names matching a pattern"
@@ -649,7 +618,8 @@ class Names(Builtin):
 # In Mathematica 5, this appears under "Types of Values".
 class OwnValues(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/OwnValues.html</url>
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/OwnValues.html</url>
     <dl>
       <dt>'OwnValues[$symbol$]'
       <dd>gives the list of ownvalue associated with $symbol$.
@@ -682,7 +652,8 @@ class OwnValues(Builtin):
 
 class Symbol_(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/Symbol.html</url>
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Symbol.html</url>
     <dl>
       <dt>'Symbol'
       <dd>is the head of symbols.
@@ -693,9 +664,6 @@ class Symbol_(Builtin):
     You can use 'Symbol' to create symbols from strings:
     >> Symbol["x"] + Symbol["x"]
      = 2 x
-
-    #> {\\[Eta], \\[CapitalGamma]\\[Beta], Z\\[Infinity], \\[Angle]XYZ, \\[FilledSquare]r, i\\[Ellipsis]j}
-     = {\u03b7, \u0393\u03b2, Z\u221e, \u2220XYZ, \u25a0r, i\u2026j}
     """
 
     attributes = A_LOCKED | A_PROTECTED
@@ -715,8 +683,6 @@ class Symbol_(Builtin):
     def eval(self, string, evaluation):
         "Symbol[string_String]"
 
-        from mathics.core.parser import is_symbol_name
-
         text = string.value
         if is_symbol_name(text):
             return Symbol(evaluation.definitions.lookup_name(string.value))
@@ -726,7 +692,8 @@ class Symbol_(Builtin):
 
 class SymbolName(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/SymbolName.html</url>
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/SymbolName.html</url>
     <dl>
       <dt>'SymbolName[$s$]'
       <dd>returns the name of the symbol $s$ (without any leading \
@@ -734,9 +701,6 @@ class SymbolName(Builtin):
     </dl>
 
     >> SymbolName[x] // InputForm
-     = "x"
-
-    #> SymbolName[a`b`x] // InputForm
      = "x"
     """
 
@@ -752,7 +716,8 @@ class SymbolName(Builtin):
 
 class SymbolQ(Test):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/SymbolName.html</url>
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/SymbolName.html</url>
     <dl>
       <dt>'SymbolQ[$x$]'
       <dd>is 'True' if $x$ is a symbol, or 'False' otherwise.
@@ -774,7 +739,8 @@ class SymbolQ(Test):
 
 class ValueQ(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/ValueQ.html</url>
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/ValueQ.html</url>
     <dl>
       <dt>'ValueQ[$expr$]'
       <dd>returns 'True' if and only if $expr$ is defined.
@@ -785,9 +751,6 @@ class ValueQ(Builtin):
     >> x = 1;
     >> ValueQ[x]
      = True
-
-    #> ValueQ[True]
-     = False
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED

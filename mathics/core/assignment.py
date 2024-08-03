@@ -43,6 +43,7 @@ class AssignmentException(Exception):
 
 
 # This also is going to be removed after #621
+
 def build_rulopc(optval):
     return Rule(
         Expression(
@@ -163,9 +164,9 @@ def repl_pattern_by_symbol(expr):
 
     changed = False
     new_elements = []
-    for element in elements:
-        element = repl_pattern_by_symbol(element)
-        if not (element is element):
+    for _element in elements:
+        element = repl_pattern_by_symbol(_element)
+        if element is not _element:
             changed = True
         new_elements.append(element)
     if changed:
@@ -206,7 +207,7 @@ def unroll_patterns(lhs, rhs, evaluation) -> Tuple[BaseElement, BaseElement]:
         # like
         # rhs = Expression(Symbol("System`Replace"), Rule(*rulerepl))
         # TODO: check if this is the correct behavior.
-        rhs, status = rhs.do_apply_rules([Rule(*rulerepl)], evaluation)
+        rhs, _ = rhs.do_apply_rules([Rule(*rulerepl)], evaluation)
         name = lhs.get_head_name()
     elif name == "System`HoldPattern":
         lhs = lhs_elements[0]

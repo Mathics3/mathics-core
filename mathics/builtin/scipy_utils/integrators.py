@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from mathics.builtin.base import check_requires_list
+from mathics.core.builtin import check_requires_list
 from mathics.core.util import IS_PYPY
 
 if IS_PYPY or not check_requires_list(["scipy", "numpy"]):

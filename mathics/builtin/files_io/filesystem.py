@@ -11,10 +11,10 @@ import re
 import shutil
 from typing import List
 
-from mathics.builtin.base import Builtin, MessageException, Predefined
 from mathics.builtin.files_io.files import MathicsOpen
 from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_LISTABLE, A_LOCKED, A_PROTECTED
+from mathics.core.builtin import Builtin, MessageException, Predefined
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.convert.regex import to_regex
@@ -53,9 +53,6 @@ class AbsoluteFileName(Builtin):
     >> AbsoluteFileName["ExampleData/sunflowers.jpg"]
      = ...
 
-    #> AbsoluteFileName["Some/NonExistant/Path.ext"]
-     : File not found during AbsoluteFileName[Some/NonExistant/Path.ext].
-     = $Failed
     """
 
     messages = {
@@ -363,23 +360,6 @@ class DirectoryName(Builtin):
 
     >> DirectoryName["a/b/c", 2]
      = a
-
-    #> DirectoryName["a/b/c", 3] // InputForm
-     = ""
-    #> DirectoryName[""] // InputForm
-     = ""
-
-    #> DirectoryName["a/b/c", x]
-     : Positive machine-sized integer expected at position 2 in DirectoryName[a/b/c, x].
-     = DirectoryName[a/b/c, x]
-
-    #> DirectoryName["a/b/c", -1]
-     : Positive machine-sized integer expected at position 2 in DirectoryName[a/b/c, -1].
-     = DirectoryName[a/b/c, -1]
-
-    #> DirectoryName[x]
-     : String expected at position 1 in DirectoryName[x].
-     = DirectoryName[x]
     """
 
     messages = {
@@ -508,12 +488,6 @@ class FileBaseName(Builtin):
 
     >> FileBaseName["file.tar.gz"]
      = file.tar
-
-    #> FileBaseName["file."]
-     = file
-
-    #> FileBaseName["file"]
-     = file
     """
 
     options = {
@@ -627,11 +601,6 @@ class FileExtension(Builtin):
 
     >> FileExtension["file.tar.gz"]
      = gz
-
-    #> FileExtension["file."]
-     = #<--#
-    #> FileExtension["file"]
-     = #<--#
     """
 
     options = {
@@ -660,9 +629,6 @@ class FileInformation(Builtin):
 
     >> FileInformation["ExampleData/sunflowers.jpg"]
      = {File -> ..., FileType -> File, ByteCount -> 142286, Date -> ...}
-
-    #> FileInformation["ExampleData/missing_file.jpg"]
-     = {}
     """
 
     rules = {
@@ -688,9 +654,6 @@ class FindFile(Builtin):
 
     >> FindFile["VectorAnalysis`VectorAnalysis`"]
      = ...
-
-    #> FindFile["SomeTypoPackage`"]
-     = $Failed
     """
 
     messages = {
@@ -938,97 +901,6 @@ class Needs(Builtin):
     </dl>
 
     >> Needs["VectorAnalysis`"]
-    #> Needs["VectorAnalysis`"]
-
-    #> Needs["SomeFakePackageOrTypo`"]
-     : Cannot open SomeFakePackageOrTypo`.
-     : Context SomeFakePackageOrTypo` was not created when Needs was evaluated.
-     = $Failed
-
-    #> Needs["VectorAnalysis"]
-     : Invalid context specified at position 1 in Needs[VectorAnalysis]. A context must consist of valid symbol names separated by and ending with `.
-     = Needs[VectorAnalysis]
-
-    ## --- VectorAnalysis ---
-
-    #> Needs["VectorAnalysis`"]
-
-    #> DotProduct[{1,2,3}, {4,5,6}]
-     = 32
-    #> DotProduct[{-1.4, 0.6, 0.2}, {0.1, 0.6, 1.7}]
-     = 0.56
-
-    #> CrossProduct[{1,2,3}, {4,5,6}]
-     = {-3, 6, -3}
-    #> CrossProduct[{-1.4, 0.6, 0.2}, {0.1, 0.6, 1.7}]
-     = {0.9, 2.4, -0.9}
-
-    #> ScalarTripleProduct[{-2,3,1},{0,4,0},{-1,3,3}]
-     = -20
-    #> ScalarTripleProduct[{-1.4,0.6,0.2}, {0.1,0.6,1.7}, {0.7,-1.5,-0.2}]
-     = -2.79
-
-    #> CoordinatesToCartesian[{2, Pi, 3}, Spherical]
-     = {0, 0, -2}
-    #> CoordinatesFromCartesian[%, Spherical]
-     = {2, Pi, 0}
-    #> CoordinatesToCartesian[{2, Pi, 3}, Cylindrical]
-     = {-2, 0, 3}
-    #> CoordinatesFromCartesian[%, Cylindrical]
-     = {2, Pi, 3}
-    ## Needs Sin/Cos exact value (PR #100) for these tests to pass
-    ## #> CoordinatesToCartesian[{2, Pi / 4, Pi / 3}, Spherical]
-    ##  = {Sqrt[2] / 2, Sqrt[6] / 2, Sqrt[2]}
-    ## #> CoordinatesFromCartesian[%, Spherical]
-    ##  = {2, Pi / 4, Pi / 3}
-    ## #> CoordinatesToCartesian[{2, Pi / 4, -1}, Cylindrical]
-    ##  = {Sqrt[2], Sqrt[2], -1}
-    ## #> CoordinatesFromCartesian[%, Cylindrical]
-    ##  = {2, Pi / 4, -1}
-    #> CoordinatesToCartesian[{0.27, 0.51, 0.92}, Cylindrical]
-     = {0.235641, 0.131808, 0.92}
-    #> CoordinatesToCartesian[{0.27, 0.51, 0.92}, Spherical]
-     = {0.0798519, 0.104867, 0.235641}
-
-    #> Coordinates[]
-     = {Xx, Yy, Zz}
-    #> Coordinates[Spherical]
-     = {Rr, Ttheta, Pphi}
-    #> SetCoordinates[Cylindrical]
-     = Cylindrical[Rr, Ttheta, Zz]
-    #> Coordinates[]
-     = {Rr, Ttheta, Zz}
-    #> CoordinateSystem
-     = Cylindrical
-    #> Parameters[]
-     = {}
-    #> CoordinateRanges[]
-    ## = {0 <= Rr < Infinity, -Pi < Ttheta <= Pi, -Infinity < Zz < Infinity}
-     = {0 <= Rr && Rr < Infinity, -Pi < Ttheta && Ttheta <= Pi, -Infinity < Zz < Infinity}
-    #> CoordinateRanges[Cartesian]
-     = {-Infinity < Xx < Infinity, -Infinity < Yy < Infinity, -Infinity < Zz < Infinity}
-    #> ScaleFactors[Cartesian]
-     = {1, 1, 1}
-    #> ScaleFactors[Spherical]
-     = {1, Rr, Rr Sin[Ttheta]}
-    #> ScaleFactors[Cylindrical]
-     = {1, Rr, 1}
-    #> ScaleFactors[{2, 1, 3}, Cylindrical]
-     = {1, 2, 1}
-    #> JacobianDeterminant[Cartesian]
-     = 1
-    #> JacobianDeterminant[Spherical]
-     = Rr ^ 2 Sin[Ttheta]
-    #> JacobianDeterminant[Cylindrical]
-     = Rr
-    #> JacobianDeterminant[{2, 1, 3}, Cylindrical]
-     = 2
-    #> JacobianMatrix[Cartesian]
-     = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}
-    #> JacobianMatrix[Spherical]
-     = {{Cos[Pphi] Sin[Ttheta], Rr Cos[Pphi] Cos[Ttheta], -Rr Sin[Pphi] Sin[Ttheta]}, {Sin[Pphi] Sin[Ttheta], Rr Cos[Ttheta] Sin[Pphi], Rr Cos[Pphi] Sin[Ttheta]}, {Cos[Ttheta], -Rr Sin[Ttheta], 0}}
-    #> JacobianMatrix[Cylindrical]
-     = {{Cos[Ttheta], -Rr Sin[Ttheta], 0}, {Sin[Ttheta], Rr Cos[Ttheta], 0}, {0, 0, 1}}
     """
 
     messages = {
@@ -1223,10 +1095,6 @@ class SetDirectory(Builtin):
 
     S> SetDirectory[]
     = ...
-
-    #> SetDirectory["MathicsNonExample"]
-     : Cannot set current directory to MathicsNonExample.
-     = $Failed
     """
 
     messages = {

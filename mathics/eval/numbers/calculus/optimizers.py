@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-
+"""
+Implementation of builtin optimizers.
+"""
 from typing import Optional
 
 from mathics.builtin.scoping import dynamic_scoping
@@ -202,8 +204,8 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
         return x0, False
     if not isinstance(f1, Number):
         return x0, False
-    f0 = f0.to_python(n_evaluation=True)
-    f1 = f1.to_python(n_evaluation=True)
+    f0 = eval_N(f0, evaluation).to_python()
+    f1 = eval_N(f1, evaluation).to_python()
     count = 0
     while count < maxit:
         if f0 == f1:
@@ -224,7 +226,7 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
             )
             if not isinstance(f1, Number):
                 return x0, False
-            f1 = f1.to_python(n_evaluation=True)
+            f1 = eval_N(f1, evaluation).to_python()
             continue
 
         inv_deltaf = from_python(1.0 / (f1 - f0))
@@ -389,9 +391,9 @@ def is_zero(
     eps_expr: BaseElement = Integer10 ** (-prec_goal) if prec_goal else Integer0
     if acc_goal:
         eps_expr = eps_expr + Integer10 ** (-acc_goal) / abs(val)
-    threeshold_expr = Expression(SymbolLog, eps_expr)
-    threeshold: Real = eval_N(threeshold_expr, evaluation)
-    return threeshold.to_python() > 0
+    threshold_expr = Expression(SymbolLog, eps_expr)
+    threshold: Real = eval_N(threshold_expr, evaluation)
+    return threshold.to_python() > 0
 
 
 def determine_epsilon(x0: Real, options: dict, evaluation: Evaluation) -> Real:

@@ -6,9 +6,9 @@ import importlib
 import inspect
 import sys
 
-from mathics.builtin import name_is_builtin_symbol
-from mathics.builtin.base import Builtin
+from mathics.core.builtin import Builtin
 from mathics.core.definitions import Definitions
+from mathics.core.load_builtin import builtins_by_module, name_is_builtin_symbol
 
 # The below set and dictionary are used in document generation
 # for Pymathics modules.
@@ -48,7 +48,6 @@ def load_pymathics_module(definitions, module_name: str):
     Loads Mathics builtin objects and their definitions
     from an external Python module in the pymathics module namespace.
     """
-    from mathics.builtin import Builtin, builtins_by_module, name_is_builtin_symbol
 
     if module_name in sys.modules:
         loaded_module = importlib.reload(sys.modules[module_name])

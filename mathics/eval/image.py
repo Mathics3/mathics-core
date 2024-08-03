@@ -12,8 +12,8 @@ import numpy
 import PIL
 import PIL.Image
 
-from mathics.builtin.base import String
 from mathics.core.atoms import Rational
+from mathics.core.builtin import String
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -92,7 +92,6 @@ def extract_exif(image, evaluation: Evaluation) -> Optional[Expression]:
     Return None if there is no Exif information.
     """
     if hasattr(image, "getexif"):
-
         # PIL seems to have a bug in getting v2_tags,
         # specifically tag offsets because
         # it expects image.fp to exist and for us it
@@ -115,7 +114,7 @@ def extract_exif(image, evaluation: Evaluation) -> Optional[Expression]:
 
             # EXIF has the following types: Short, Long, Rational, Ascii, Byte
             # (see http://www.exiv2.org/tags.html). we detect the type from the
-            # Python type Pillow gives us and do the appropiate MMA handling.
+            # Python type Pillow gives us and do the appropriate MMA handling.
 
             if isinstance(v, tuple) and len(v) == 2:  # Rational
                 value = Rational(v[0], v[1])
@@ -299,7 +298,7 @@ def resize_width_height(
 
     return image.filter(lambda im: im.resize((width, height), resample=resample))
 
-    # The Below code is hand-crapted Guassian resampling code, which is what
+    # The Below code is hand-crapted Gaussian resampling code, which is what
     # WMA does. For now, are going to punt on this, and we use PIL methods only.
 
     # Gaussian need sto unrounded values to compute scaling ratios.
@@ -331,7 +330,7 @@ def resize_width_height(
     #         kwargs = {"downscale": (1.0 / s)}
     #         # scikit_image in version 0.19 changes the resize parameter deprecating
     #         # "multichannel". scikit_image also doesn't support older Pythons like 3.6.15.
-    #         # If we drop suport for 3.6 we can probably remove
+    #         # If we drop support for 3.6 we can probably remove
     #         if skimage_version >= "0.19":
     #             # Not totally sure that we want channel_axis=1, but it makes the
     #             # test work. multichannel is deprecated in scikit-image-19.2

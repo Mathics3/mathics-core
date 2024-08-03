@@ -3,12 +3,11 @@ import os
 import os.path as osp
 import sys
 import tempfile
+from test.helper import check_evaluation, evaluate, session
 
 import pytest
 
 from mathics.builtin.atomic.strings import to_python_encoding
-
-from ...helper import session
 
 # def test_import():
 #     eaccent = "\xe9"
@@ -80,6 +79,185 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
             else:
                 assert data.startswith("<svg")
                 assert data.endswith("</svg>")
+
+
+"""
+
+        ## Compression
+        ## #> Export["abc.txt", 1+x, "ZIP"]    (* MMA Bug - Export::type *)
+        ##  : {ZIP} is not a valid set of export elements for the Text format.
+        ##  = $Failed
+        ## #> Export["abc.txt", 1+x, "BZIP"]   (* MMA Bug - General::stop *)
+        ##  : {BZIP} is not a valid set of export elements for the Text format.
+        ##  = $Failed
+        ## #> Export["abc.txt", 1+x, {"BZIP", "ZIP", "Text"}]
+        ##  = abc.txt
+        ## #> Export["abc.txt", 1+x, {"GZIP", "Text"}]
+        ##  = abc.txt
+        ## #> Export["abc.txt", 1+x, {"BZIP2", "Text"}]
+        ##  = abc.txt
+
+        ## Doesn't work on Microsoft Windows
+        ## S> FileFormat["ExampleData/benzene.xyz"]
+        ##  = XYZ
+
+"""
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
+        (r'Quiet[URLFetch["https://", {}]]', None, "$Failed", None),
+        # (r'Quiet[URLFetch["https://www.example.com", {}]]', None,
+        #  "...", None),
+        (
+            'Import["ExampleData/ExampleData.tx"]',
+            ("File not found during Import.",),
+            "$Failed",
+            None,
+        ),
+        (
+            "Import[x]",
+            ("First argument x is not a valid file, directory, or URL specification.",),
+            "$Failed",
+            None,
+        ),
+        ## CSV
+        (
+            'Import["ExampleData/numberdata.csv", "Elements"]',
+            None,
+            "{Data, Grid}",
+            None,
+        ),
+        (
+            'Import["ExampleData/numberdata.csv", "Data"]',
+            None,
+            "{{0.88, 0.60, 0.94}, {0.76, 0.19, 0.51}, {0.97, 0.04, 0.26}, {0.33, 0.74, 0.79}, {0.42, 0.64, 0.56}}",
+            None,
+        ),
+        (
+            'Import["ExampleData/numberdata.csv"]',
+            None,
+            "{{0.88, 0.60, 0.94}, {0.76, 0.19, 0.51}, {0.97, 0.04, 0.26}, {0.33, 0.74, 0.79}, {0.42, 0.64, 0.56}}",
+            None,
+        ),
+        (
+            'Import["ExampleData/numberdata.csv", "FieldSeparators" -> "."]',
+            None,
+            "{{0, 88,0, 60,0, 94}, {0, 76,0, 19,0, 51}, {0, 97,0, 04,0, 26}, {0, 33,0, 74,0, 79}, {0, 42,0, 64,0, 56}}",
+            None,
+        ),
+        (
+            'Import["ExampleData/Middlemarch.txt"];',
+            ("An invalid unicode sequence was encountered and ignored.",),
+            "Null",
+            None,
+        ),
+        ## XML
+        (
+            'MatchQ[Import["ExampleData/InventionNo1.xml", "Tags"],{__String}]',
+            None,
+            "True",
+            None,
+        ),
+        ("ImportString[x]", ("First argument x is not a string.",), "$Failed", None),
+        ## CSV
+        (
+            'datastring = "0.88, 0.60, 0.94\\n.076, 0.19, .51\\n0.97, 0.04, .26";ImportString[datastring, "Elements"]',
+            None,
+            "{Data, Lines, Plaintext, String, Words}",
+            None,
+        ),
+        ('ImportString[datastring, {"CSV","Elements"}]', None, "{Data, Grid}", None),
+        (
+            'ImportString[datastring, {"CSV", "Data"}]',
+            None,
+            "{{0.88,  0.60,  0.94}, {.076,  0.19,  .51}, {0.97,  0.04,  .26}}",
+            None,
+        ),
+        (
+            "ImportString[datastring]",
+            None,
+            "0.88, 0.60, 0.94\n.076, 0.19, .51\n0.97, 0.04, .26",
+            None,
+        ),
+        (
+            'ImportString[datastring, "CSV","FieldSeparators" -> "."]',
+            None,
+            "{{0, 88, 0, 60, 0, 94}, {076, 0, 19, , 51}, {0, 97, 0, 04, , 26}}",
+            None,
+        ),
+        ## Invalid Filename
+        (
+            'Export["abc.", 1+2]',
+            ("Cannot infer format of file abc..",),
+            "$Failed",
+            None,
+        ),
+        (
+            'Export[".ext", 1+2]',
+            ("Cannot infer format of file .ext.",),
+            "$Failed",
+            None,
+        ),
+        (
+            "Export[x, 1+2]",
+            ("First argument x is not a valid file specification.",),
+            "$Failed",
+            None,
+        ),
+        ## Explicit Format
+        (
+            'Export["abc.txt", 1+x, "JPF"]',
+            ("{JPF} is not a valid set of export elements for the Text format.",),
+            "$Failed",
+            None,
+        ),
+        (
+            'Export["abc.txt", 1+x, {"JPF"}]',
+            ("{JPF} is not a valid set of export elements for the Text format.",),
+            "$Failed",
+            None,
+        ),
+        ## Empty elems
+        ('Export["123.txt", 1+x, {}]', None, "123.txt", None),
+        (
+            'Export["123.jcp", 1+x, {}]',
+            ("Cannot infer format of file 123.jcp.",),
+            "$Failed",
+            None,
+        ),
+        ## FORMATS
+        ## ASCII text
+        ('FileFormat["ExampleData/BloodToilTearsSweat.txt"]', None, "Text", None),
+        ('FileFormat["ExampleData/MadTeaParty.gif"]', None, "GIF", None),
+        ('FileFormat["ExampleData/moon.tif"]', None, "TIFF", None),
+        ('FileFormat["ExampleData/numberdata.csv"]', None, "CSV", None),
+        ('FileFormat["ExampleData/EinsteinSzilLetter.txt"]', None, "Text", None),
+        ('FileFormat["ExampleData/BloodToilTearsSweat.txt"]', None, "Text", None),
+        ('FileFormat["ExampleData/colors.json"]', None, "JSON", None),
+        (
+            'FileFormat["ExampleData/some-typo.extension"]',
+            ("File not found during FileFormat[ExampleData/some-typo.extension].",),
+            "$Failed",
+            None,
+        ),
+        ('FileFormat["ExampleData/Testosterone.svg"]', None, "SVG", None),
+        ('FileFormat["ExampleData/colors.json"]', None, "JSON", None),
+        ('FileFormat["ExampleData/InventionNo1.xml"]', None, "XML", None),
+    ],
+)
+def test_private_doctests_importexport(str_expr, msgs, str_expected, fail_msg):
+    """ """
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )
 
 
 # TODO:
