@@ -30,6 +30,7 @@ from mathics.core.read import channel_to_stream
 from mathics.core.rules import BuiltinRule
 from mathics.core.streams import stream_manager
 from mathics.core.symbols import SymbolNull, strip_context
+from mathics.eval.files_io.files import set_input_var
 from mathics.timing import show_lru_cache_statistics
 
 # from mathics.timing import TimeitContextManager
@@ -354,7 +355,7 @@ Please contribute to Mathics!""",
 
     argparser.add_argument(
         "--strict-wl-output",
-        help="Most WL-output compatible (at the expense of useability).",
+        help="Most WL-output compatible (at the expense of usability).",
         action="store_true",
     )
 
@@ -423,6 +424,8 @@ Please contribute to Mathics!""",
         definitions.set_line_no(0)
 
     if args.FILE is not None:
+        set_input_var(args.FILE.name)
+        definitions.set_inputfile(args.FILE.name)
         feeder = MathicsFileLineFeeder(args.FILE)
         try:
             while not feeder.empty():

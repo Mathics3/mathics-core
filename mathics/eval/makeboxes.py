@@ -7,7 +7,7 @@ formatting rules.
 
 
 import typing
-from typing import Any, Dict, Type
+from typing import Any, Dict, Optional, Type
 
 from mathics.core.atoms import Complex, Integer, Rational, Real, String, SymbolI
 from mathics.core.convert.expression import to_expression_with_specialization
@@ -68,7 +68,7 @@ def _boxed_string(string: str, **options):
 
 
 # 640 = sys.int_info.str_digits_check_threshold.
-# Someday when 3.11 is the minumum version of Python supported,
+# Someday when 3.11 is the minimum version of Python supported,
 # we can replace the magic value 640 below with sys.int.str_digits_check_threshold.
 def int_to_string_shorter_repr(value: Integer, form: Symbol, max_digits=640):
     """Convert value to a String, restricted to max_digits characters.
@@ -94,7 +94,7 @@ def int_to_string_shorter_repr(value: Integer, form: Symbol, max_digits=640):
     # Estimate the number of decimal digits
     num_digits = int(value.bit_length() * 0.3)
 
-    # If the estimated number is bellow the threshold,
+    # If the estimated number is below the threshold,
     # return it as it is.
     if num_digits <= max_digits:
         if is_negative:
@@ -103,7 +103,7 @@ def int_to_string_shorter_repr(value: Integer, form: Symbol, max_digits=640):
 
     # estimate the size of the placeholder
     size_placeholder = len(str(num_digits)) + 6
-    # Estimate the number of avaliable decimal places
+    # Estimate the number of available decimal places
     avaliable_digits = max(max_digits - size_placeholder, 0)
     # how many most significative digits include
     len_msd = (avaliable_digits + 1) // 2
@@ -392,7 +392,10 @@ def do_format_expression(
 
 
 def parenthesize(
-    precedence: int, element: Type[BaseElement], element_boxes, when_equal: bool
+    precedence: Optional[int],
+    element: Type[BaseElement],
+    element_boxes,
+    when_equal: bool,
 ) -> Type[Expression]:
     """
     "Determines if ``element_boxes`` needs to be surrounded with parenthesis.

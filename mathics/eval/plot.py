@@ -248,7 +248,7 @@ def eval_ListPlot(
 
     is_axis_filling = is_discrete_plot
     if filling == "System`Axis":
-        # TODO: Handle arbitary axis intercepts
+        # TODO: Handle arbitrary axis intercepts
         filling = 0.0
         is_axis_filling = True
     elif filling == "System`Bottom":

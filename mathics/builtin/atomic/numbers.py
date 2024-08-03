@@ -103,7 +103,6 @@ def convert_repeating_decimal(numerator, denominator, base):
 
 
 def convert_float_base(x, base, precision=10):
-
     length_of_int = 0 if x == 0 else int(mpmath.log(x, base))
     # iexps = list(range(length_of_int, -1, -1))
 
@@ -153,6 +152,7 @@ class Accuracy(Builtin):
       <dd>examines the number of significant digits of $expr$ after the \
       decimal point in the number x.
     </dl>
+
     <i>Notice that the result could be slightly different than the obtained \
     in WMA, due to differencs in the internal representation of the real numbers.</i>
 
@@ -761,14 +761,15 @@ class Precision(Builtin):
     """
     <url>
     :Precision:
-    https://en.wikipedia.org/wiki/Accuracy_and_precision</url> (<url>
-    :WMA:
-    https://reference.wolfram.com/language/ref/Precision.html</url>)
+    https://en.wikipedia.org/wiki/Accuracy_and_precision</url> <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Precision.html</url>
 
     <dl>
       <dt>'Precision[$expr$]'
       <dd>examines the number of significant digits of $expr$.
     </dl>
+
     <i>Note that the result could be slightly different than the obtained \
     in WMA, due to differencs in the internal representation of the real numbers.</i>
 

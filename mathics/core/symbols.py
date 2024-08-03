@@ -651,6 +651,9 @@ class SymbolConstant(Symbol):
 
     # We use __new__ here to unsure that two Integer's that have the same value
     # return the same object.
+
+    _value = None
+
     def __new__(cls, name, value):
         name = ensure_context(name)
         self = cls._symbol_constants.get(name)
@@ -815,7 +818,11 @@ class NumericOperators:
     def __pow__(self, other) -> BaseElement:
         return self.create_expression(SymbolPower, self, other)
 
-    def round_to_float(self, evaluation=None, permit_complex=False) -> Optional[float]:
+    # FIXME: The name "round_to_float" is misleading when
+    # permit_complex is True.
+    def round_to_float(
+        self, evaluation=None, permit_complex=False
+    ) -> Optional[Union[complex, float]]:
         """
         Round to a Python float. Return None if rounding is not possible.
         This can happen if self or evaluation is NaN.

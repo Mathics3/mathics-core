@@ -3,18 +3,18 @@
 """
 Importing and Exporting
 
-Many kinds data formats can be read into \Mathics. Variable <url>
+Many kinds data formats can be read into \\Mathics. Variable <url>
 :$ExportFormats:
-/doc/reference-of-built-in-symbols/importing-and-exporting/$exportformats</url> \
+/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/$exportformats</url> \
 contains a list of file formats that are supported by <url>
 :Export:
-/doc/reference-of-built-in-symbols/importing-and-exporting/export</url>, \
+/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/export</url>, \
 while <url>
 :$ImportFormats:
-/doc/reference-of-built-in-symbols/importing-and-exporting/$importformats</url> \
+/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/$importformats</url> \
 does the corresponding thing for <url>
 :Import:
-/doc/reference-of-built-in-symbols/importing-and-exporting/import</url>.
+/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/import</url>.
 """
 
 import base64
@@ -1411,7 +1411,6 @@ class Import(Builtin):
 
         for el in elements:
             if not isinstance(el, String):
-
                 evaluation.message("Import", "noelem", el)
                 evaluation.predetermined_out = current_predetermined_out
                 return SymbolFailed
@@ -1826,7 +1825,7 @@ class Export(Builtin):
                 exporter_symbol,
                 filename,
                 expr,
-                *list(chain(stream_options, custom_options))
+                *list(chain(stream_options, custom_options)),
             )
             res = exporter_function.evaluate(evaluation)
         elif function_channels == ListExpression(String("Streams")):
@@ -1841,7 +1840,7 @@ class Export(Builtin):
                 exporter_symbol,
                 stream,
                 expr,
-                *list(chain(stream_options, custom_options))
+                *list(chain(stream_options, custom_options)),
             )
             res = exporter_function.evaluate(evaluation)
             Expression(SymbolClose, stream).evaluate(evaluation)
@@ -1968,7 +1967,7 @@ class ExportString(Builtin):
                 exporter_symbol,
                 filename,
                 expr,
-                *list(chain(stream_options, custom_options))
+                *list(chain(stream_options, custom_options)),
             )
             exportres = exporter_function.evaluate(evaluation)
             if exportres != SymbolNull:
@@ -2014,7 +2013,7 @@ class ExportString(Builtin):
                 exporter_symbol,
                 outstream,
                 expr,
-                *list(chain(stream_options, custom_options))
+                *list(chain(stream_options, custom_options)),
             )
             res = exporter_function.evaluate(evaluation)
             if res is SymbolNull:

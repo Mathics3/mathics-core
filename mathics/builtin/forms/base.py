@@ -4,6 +4,8 @@ from mathics.core.symbols import Symbol
 
 form_symbol_to_class = {}
 
+no_doc = "no doc"
+
 
 class FormBaseClass(Builtin):
     """

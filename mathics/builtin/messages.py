@@ -7,7 +7,7 @@ import typing
 from typing import Any
 
 from mathics.core.atoms import String
-from mathics.core.attributes import A_HOLD_ALL, A_HOLD_FIRST, A_PROTECTED
+from mathics.core.attributes import A_HOLD_ALL, A_HOLD_FIRST, A_LOCKED, A_PROTECTED
 from mathics.core.builtin import BinaryOperator, Builtin, Predefined
 from mathics.core.evaluation import Evaluation, Message as EvaluationMessage
 from mathics.core.expression import Expression
@@ -26,6 +26,7 @@ class Aborted(Predefined):
     </dl>
     """
 
+    attributes = A_LOCKED | A_PROTECTED
     summary_text = "return value for aborted evaluations"
     name = "$Aborted"
 
@@ -577,7 +578,7 @@ class Syntax(Builtin):
      : "1.5`" cannot be followed by "`" (line 1 of "<test>").
     """
 
-    # Extension: MMA does not provide lineno and filename in its error messages
+    # Extension: WMA does not provide lineno and filename in its error messages
     messages = {
         "snthex": r"4 hexadecimal digits are required after \: to construct a 16-bit character (line `4` of `5`).",
         "sntoct1": r"3 octal digits are required after \ to construct an 8-bit character (line `4` of `5`).",

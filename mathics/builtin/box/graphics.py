@@ -705,7 +705,6 @@ class GraphicsBox(BoxExpression):
         return svg_body
 
     def create_axes(self, elements, graphics_options, xmin, xmax, ymin, ymax) -> tuple:
-
         # Note that Asymptote has special commands for drawing axes, like "xaxis"
         # "yaxis", "xtick" "labelx", "labely". Entend our language
         # here and use those in render-like routines.

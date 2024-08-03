@@ -3,6 +3,7 @@
 import os
 import sys
 import time
+from abc import ABC
 from queue import Queue
 from threading import Thread, stack_size as set_thread_stack_size
 from typing import List, Optional, Tuple, Union
@@ -183,11 +184,11 @@ class Evaluation:
         # ``mathics.builtin.numeric.N``.
         self._preferred_n_method = []
 
-    def parse(self, query):
+    def parse(self, query, src_name: str = ""):
         "Parse a single expression and print the messages."
         from mathics.core.parser import MathicsSingleLineFeeder
 
-        return self.parse_feeder(MathicsSingleLineFeeder(query))
+        return self.parse_feeder(MathicsSingleLineFeeder(query, src_name))
 
     def parse_evaluate(self, query, timeout=None):
         expr = self.parse(query)
@@ -632,9 +633,17 @@ class Print(_Out):
         }
 
 
-class Output:
-    def max_stored_size(self, settings) -> int:
-        return settings.MAX_STORED_SIZE
+class Output(ABC):
+    """
+    Base class for Mathics output history.
+    This needs to be subclassed.
+    """
+
+    def max_stored_size(self, output_settings) -> int:
+        """
+        Return the largeet number of history items allowed.
+        """
+        return output_settings.MAX_STORED_SIZE
 
     def out(self, out):
         pass

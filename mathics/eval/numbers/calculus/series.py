@@ -81,7 +81,7 @@ def same_monomial(expr, x, x0):
 #             coeffs_powers = []
 #             coeffs_x = []
 #             for element in elements:
-#                 if x.sameQ(elemnt):
+#                 if x.sameQ(element):
 #                     coeffs_x.append(x)
 #                 elif isinstance(element, Atom):
 #                     coeffs_free.append(element)
@@ -400,7 +400,7 @@ def build_series(f, x, x0, n, evaluation):
                 *[
                     build_series(element, x, x0, Integer(n), evaluation)
                     for element in f.elements
-                ]
+                ],
             )
         data.append(newcoeff)
     data = ListExpression(*data).evaluate(evaluation)

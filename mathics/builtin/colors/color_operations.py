@@ -205,7 +205,7 @@ class ColorConvert(Builtin):
 class ColorNegate(Builtin):
     """
     Color Inversion (<url>
-    :WMA:
+    :WMA link:
     https://reference.wolfram.com/language/ref/ColorNegate.html</url>)
 
     <dl>
@@ -454,7 +454,7 @@ class DominantColors(Builtin):
                         yield to_expression(
                             Symbol(out_palette_head),
                             *prototype,
-                            elements_conversion_fn=MachineReal
+                            elements_conversion_fn=MachineReal,
                         )
 
         return to_mathics_list(*itertools.islice(result(), 0, at_most))
