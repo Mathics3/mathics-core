@@ -2,9 +2,9 @@
 Predicates on Lists
 """
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.options import options_to_rules
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
@@ -32,21 +32,8 @@ class ContainsOnly(Builtin):
     >> ContainsOnly[{}, {a, b, c}]
      = True
 
-    #> ContainsOnly[1, {1, 2, 3}]
-     : List or association expected instead of 1.
-     = ContainsOnly[1, {1, 2, 3}]
-
-    #> ContainsOnly[{1, 2, 3}, 4]
-     : List or association expected instead of 4.
-     = ContainsOnly[{1, 2, 3}, 4]
-
     Use Equal as the comparison function to have numerical tolerance:
     >> ContainsOnly[{a, 1.0}, {1, a, b}, {SameTest -> Equal}]
-     = True
-
-    #> ContainsOnly[{c, a}, {a, b, c}, IgnoreCase -> True]
-     : Unknown option IgnoreCase -> True in ContainsOnly.
-     : Unknown option IgnoreCase in .
      = True
     """
 

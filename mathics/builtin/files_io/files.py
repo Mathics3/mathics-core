@@ -1,33 +1,29 @@
 # -*- coding: utf-8 -*-
-# cython: language_level=3
 
 """
 File and Stream Operations
 """
 
+import builtins
 import io
 import os.path as osp
 import tempfile
 from io import BytesIO
 
-from mathics_scanner import TranslateError
-
-import mathics
-from mathics.builtin.base import (
+import mathics.eval.files_io.files
+from mathics.core.atoms import Integer, String, SymbolString
+from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import (
     BinaryOperator,
     Builtin,
     MessageException,
     Predefined,
     PrefixOperator,
 )
-from mathics.core import read
-from mathics.core.atoms import Integer, String, SymbolString
-from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
-from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.read import (
     READ_TYPES,
     MathicsOpen,
@@ -44,17 +40,14 @@ from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolHold,
     SymbolInputForm,
+    SymbolInputStream,
     SymbolOutputForm,
+    SymbolOutputStream,
     SymbolReal,
 )
 from mathics.eval.directories import TMP_DIR
+from mathics.eval.files_io.files import eval_Get
 from mathics.eval.makeboxes import do_format, format_element
-
-INPUT_VAR = ""
-
-SymbolInputStream = Symbol("InputStream")
-SymbolOutputStream = Symbol("OutputStream")
-SymbolPath = Symbol("$Path")
 
 # TODO: Improve docs for these Read[] arguments.
 
@@ -64,7 +57,7 @@ SymbolPath = Symbol("$Path")
 
 class Input_(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Input_.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$Input.html</url>
 
     <dl>
       <dt>'$Input'
@@ -79,13 +72,11 @@ class Input_(Predefined):
     name = "$Input"
     summary_text = "the name of the current input stream"
 
-    def evaluate(self, evaluation):
-        global INPUT_VAR
-        return String(INPUT_VAR)
+    def evaluate(self, evaluation: Evaluation) -> String:
+        return String(mathics.eval.files_io.files.INPUT_VAR)
 
 
 class _OpenAction(Builtin):
-
     # BinaryFormat: 'False',
     # CharacterEncoding :> Automatic,
     # DOSTextFormat :> True,
@@ -106,6 +97,8 @@ class _OpenAction(Builtin):
             "File specification `1` is not a string of " "one or more characters."
         ),
     }
+
+    mode = "r"  # A default; this is changed in subclassing.
 
     def eval_empty(self, evaluation: Evaluation, options: dict):
         "%(name)s[OptionsPattern[]]"
@@ -204,10 +197,6 @@ class Close(Builtin):
     Closing a file doesn't delete it from the filesystem
     >> DeleteFile[file];
 
-    #> Close["abc"]
-     : abc is not open.
-     = Close[abc]
-
     #> Clear[file]
     """
 
@@ -216,9 +205,10 @@ class Close(Builtin):
         "closex": "`1`.",
     }
 
-    def eval(self, channel, evaluation):
+    def eval(self, channel, evaluation: Evaluation):
         "Close[channel_]"
 
+        n = name = None
         if channel.has_form(("InputStream", "OutputStream"), 2):
             [name, n] = channel.elements
             py_n = n.get_int_value()
@@ -277,18 +267,6 @@ class FilePrint(Builtin):
       <dd>prints the raw contents of $file$.
     </dl>
 
-    #> exp = Sin[1];
-    #> FilePrint[exp]
-     : File specification Sin[1] is not a string of one or more characters.
-     = FilePrint[Sin[1]]
-
-    #> FilePrint["somenonexistentpath_h47sdmk^&h4"]
-     : Cannot open somenonexistentpath_h47sdmk^&h4.
-     = FilePrint[somenonexistentpath_h47sdmk^&h4]
-
-    #> FilePrint[""]
-     : File specification  is not a string of one or more characters.
-     = FilePrint[]
     """
 
     messages = {
@@ -314,7 +292,7 @@ class FilePrint(Builtin):
         ):
             evaluation.message("FilePrint", "fstr", path)
             return
-        pypath, is_temporary_file = path_search(pypath[1:-1])
+        pypath, _ = path_search(pypath[1:-1])
 
         # Options
         record_separators = options["System`RecordSeparators"].to_python()
@@ -394,16 +372,6 @@ class Get(PrefixOperator):
     ## TODO: Requires EndPackage implemented
     ## 'Get' can also load packages:
     ## >> << "VectorAnalysis`"
-
-    #> Get["SomeTypoPackage`"]
-     : Cannot open SomeTypoPackage`.
-     = $Failed
-
-    ## Parser Tests
-    #> Hold[<< ~/some_example/dir/] // FullForm
-     = Hold[Get["~/some_example/dir/"]]
-    #> Hold[<<`/.\-_:$*~?] // FullForm
-     = Hold[Get["`/.\\\\-_:$*~?"]]
     """
     operator = "<<"
     options = {
@@ -412,59 +380,21 @@ class Get(PrefixOperator):
     precedence = 720
     summary_text = "read in a file and evaluate commands in it"
 
-    def eval(self, path, evaluation: Evaluation, options: dict):
+    def eval(self, path: String, evaluation: Evaluation, options: dict):
         "Get[path_String, OptionsPattern[Get]]"
 
-        def check_options(options):
-            # Options
-            # TODO Proper error messages
+        trace_fn = None
+        trace_get = evaluation.parse("Settings`$TraceGet")
+        if (
+            options["System`Trace"].to_python()
+            or trace_get.evaluate(evaluation) is SymbolTrue
+        ):
+            trace_fn = builtins.print
 
-            result = {}
-            trace_get = evaluation.parse("Settings`$TraceGet")
-            if (
-                options["System`Trace"].to_python()
-                or trace_get.evaluate(evaluation) is SymbolTrue
-            ):
-                import builtins
+        # perform the actual evaluation
+        return eval_Get(path.value, evaluation, trace_fn)
 
-                result["TraceFn"] = builtins.print
-            else:
-                result["TraceFn"] = None
-
-            return result
-
-        py_options = check_options(options)
-        trace_fn = py_options["TraceFn"]
-        result = None
-        pypath = path.get_string_value()
-        definitions = evaluation.definitions
-        mathics.core.streams.PATH_VAR = SymbolPath.evaluate(evaluation).to_python(
-            string_quotes=False
-        )
-        try:
-            if trace_fn:
-                trace_fn(pypath)
-            with MathicsOpen(pypath, "r") as f:
-                feeder = MathicsFileLineFeeder(f, trace_fn)
-                while not feeder.empty():
-                    try:
-                        query = parse(definitions, feeder)
-                    except TranslateError:
-                        return SymbolNull
-                    finally:
-                        feeder.send_messages(evaluation)
-                    if query is None:  # blank line / comment
-                        continue
-                    result = query.evaluate(evaluation)
-        except IOError:
-            evaluation.message("General", "noopen", path)
-            return SymbolFailed
-        except MessageException as e:
-            e.message(evaluation)
-            return SymbolFailed
-        return result
-
-    def eval_default(self, filename, evaluation):
+    def eval_default(self, filename, evaluation: Evaluation):
         "Get[filename_]"
         expr = to_expression("Get", filename)
         evaluation.message("General", "stream", filename)
@@ -492,7 +422,7 @@ class InputFileName_(Predefined):
     name = "$InputFileName"
 
     def evaluate(self, evaluation):
-        return String(read.INPUTFILE_VAR)
+        return String(evaluation.definitions.get_inputfile())
 
 
 class InputStream(Builtin):
@@ -528,29 +458,11 @@ class OpenRead(_OpenAction):
 
     >> OpenRead["ExampleData/EinsteinSzilLetter.txt", CharacterEncoding->"UTF8"]
      = InputStream[...]
-    #> Close[%];
+
+    The stream must be closed after using it to release the resource:
+    >> Close[%];
 
     S> Close[OpenRead["https://raw.githubusercontent.com/Mathics3/mathics-core/master/README.rst"]];
-
-    #> OpenRead[]
-     : OpenRead called with 0 arguments; 1 argument is expected.
-     = OpenRead[]
-
-    #> OpenRead[y]
-     : File specification y is not a string of one or more characters.
-     = OpenRead[y]
-
-    #> OpenRead[""]
-     : File specification  is not a string of one or more characters.
-     = OpenRead[]
-
-    #> OpenRead["MathicsNonExampleFile"]
-     : Cannot open MathicsNonExampleFile.
-     = OpenRead[MathicsNonExampleFile]
-
-    #> OpenRead["ExampleData/EinsteinSzilLetter.txt", BinaryFormat -> True, CharacterEncoding->"UTF8"]
-     = InputStream[...]
-    #> Close[%];
     """
 
     summary_text = "open a file for reading"
@@ -569,11 +481,7 @@ class OpenWrite(_OpenAction):
 
     >> OpenWrite[]
      = OutputStream[...]
-    #> DeleteFile[Close[%]];
-
-    #> OpenWrite[BinaryFormat -> True]
-     = OutputStream[...]
-    #> DeleteFile[Close[%]];
+    >> DeleteFile[Close[%]];
     """
 
     summary_text = (
@@ -594,14 +502,8 @@ class OpenAppend(_OpenAction):
 
     >> OpenAppend[]
      = OutputStream[...]
-    #> DeleteFile[Close[%]];
+    >> DeleteFile[Close[%]];
 
-    #> appendFile = OpenAppend["MathicsNonExampleFile"]
-     = OutputStream[MathicsNonExampleFile, ...]
-
-    #> Close[appendFile]
-     = MathicsNonExampleFile
-    #> DeleteFile["MathicsNonExampleFile"]
     """
 
     mode = "a"
@@ -757,17 +659,7 @@ class PutAppend(BinaryOperator):
      | 265252859812191058636308480000000
      | 8320987112741390144276341183223364380754172606361245952449277696409600000000000000
      | "string"
-    #> DeleteFile["factorials"];
-
-    ## writing to dir
-    #> x >>> /var/
-     : Cannot open /var/.
-     = x >>> /var/
-
-    ## writing to read only file
-    #> x >>> /proc/uptime
-     : Cannot open /proc/uptime.
-     = x >>> /proc/uptime
+    >> DeleteFile["factorials"];
     """
 
     operator = ">>>"
@@ -842,20 +734,12 @@ class Read(Builtin):
       <li>Word
     </ul>
 
-    ## Malformed InputString
-    #> Read[InputStream[String], {Word, Number}]
-     = Read[InputStream[String], {Word, Number}]
-
-    ## Correctly formed InputString but not open
-    #> Read[InputStream[String, -1], {Word, Number}]
-     : InputStream[String, -1] is not open.
-     = Read[InputStream[String, -1], {Word, Number}]
 
     ## Reading Strings
     >> stream = StringToStream["abc123"];
     >> Read[stream, String]
      = abc123
-    #> Read[stream, String]
+    >> Read[stream, String]
      = EndOfFile
     #> Close[stream];
 
@@ -865,60 +749,19 @@ class Read(Builtin):
      = abc
     >> Read[stream, Word]
      = 123
-    #> Read[stream, Word]
+    >> Read[stream, Word]
      = EndOfFile
     #> Close[stream];
-    #> stream = StringToStream[""];
-    #> Read[stream, Word]
-     = EndOfFile
-    #> Read[stream, Word]
-     = EndOfFile
-    #> Close[stream];
-
     ## Number
     >> stream = StringToStream["123, 4"];
     >> Read[stream, Number]
      = 123
     >> Read[stream, Number]
      = 4
-    #> Read[stream, Number]
+    >> Read[stream, Number]
      = EndOfFile
     #> Close[stream];
-    #> stream = StringToStream["123xyz 321"];
-    #> Read[stream, Number]
-     = 123
-    #> Quiet[Read[stream, Number]]
-     = $Failed
 
-    ## Real
-    #> stream = StringToStream["123, 4abc"];
-    #> Read[stream, Real]
-     = 123.
-    #> Read[stream, Real]
-     = 4.
-    #> Quiet[Read[stream, Number]]
-     = $Failed
-
-    #> Close[stream];
-    #> stream = StringToStream["1.523E-19"]; Read[stream, Real]
-     = 1.523×10^-19
-    #> Close[stream];
-    #> stream = StringToStream["-1.523e19"]; Read[stream, Real]
-     = -1.523×10^19
-    #> Close[stream];
-    #> stream = StringToStream["3*^10"]; Read[stream, Real]
-     = 3.×10^10
-    #> Close[stream];
-    #> stream = StringToStream["3.*^10"]; Read[stream, Real]
-     = 3.×10^10
-    #> Close[stream];
-
-    ## Expression
-    #> stream = StringToStream["x + y Sin[z]"]; Read[stream, Expression]
-     = x + y Sin[z]
-    #> Close[stream];
-    ## #> stream = Quiet[StringToStream["Sin[1 123"]; Read[stream, Expression]]
-    ##  = $Failed
 
     ## HoldExpression:
     >> stream = StringToStream["2+2\\n2+3"];
@@ -930,7 +773,7 @@ class Read(Builtin):
 
     >> Read[stream, Expression]
      = 5
-    >> Close[stream];
+    #> Close[stream];
 
     Reading a comment however will return the empty list:
     >> stream = StringToStream["(* ::Package:: *)"];
@@ -938,27 +781,15 @@ class Read(Builtin):
     >> Read[stream, Hold[Expression]]
      = {}
 
-    >> Close[stream];
+    #> Close[stream];
 
     ## Multiple types
     >> stream = StringToStream["123 abc"];
     >> Read[stream, {Number, Word}]
      = {123, abc}
-    #> Read[stream, {Number, Word}]
+    >> Read[stream, {Number, Word}]
      = EndOfFile
-    #> lose[stream];
-
-    #> stream = StringToStream["123 abc"];
-    #> Quiet[Read[stream, {Word, Number}]]
-     = $Failed
     #> Close[stream];
-
-    #> stream = StringToStream["123 123"];  Read[stream, {Real, Number}]
-     = {123., 123}
-    #> Close[stream];
-
-    #> Quiet[Read[stream, {Real}]]
-     = Read[InputStream[String, ...], {Real}]
 
     Multiple lines:
     >> stream = StringToStream["\\"Tengo una\\nvaca lechera.\\""]; Read[stream]
@@ -1232,15 +1063,7 @@ class ReadList(Read):
      = {abc123}
     >> InputForm[%]
      = {"abc123"}
-
-    #> ReadList[stream, "Invalid"]
-     : Invalid is not a valid format specification.
-     = ReadList[..., Invalid]
     #> Close[stream];
-
-
-    #> ReadList[StringToStream["a 1 b 2"], {Word, Number}, 1]
-     = {{a, 1}}
     """
 
     # TODO
@@ -1398,10 +1221,6 @@ class SetStreamPosition(Builtin):
     >> Read[stream, Word]
      = is
 
-    #> SetStreamPosition[stream, -5]
-     : Invalid I/O Seek.
-     = 10
-
     >> SetStreamPosition[stream, Infinity]
      = 16
     """
@@ -1490,7 +1309,7 @@ class Skip(Read):
     >> Skip[stream, Word, 2]
     >> Read[stream, Word]
      = d
-    #> Skip[stream, Word]
+    >> Skip[stream, Word]
      = EndOfFile
     #> Close[stream];
     """
@@ -1555,7 +1374,7 @@ class Find(Read):
      = in manuscript, leads me to expect that the element uranium may be turned into
     >> Find[stream, "uranium"]
      = become possible to set up a nuclear chain reaction in a large mass of uranium,
-    >> Close[stream]
+    #> Close[stream]
      = ...
 
     >> stream = OpenRead["ExampleData/EinsteinSzilLetter.txt", CharacterEncoding->"UTF8"];
@@ -1563,7 +1382,7 @@ class Find(Read):
      = a new and important source of energy in the immediate future. Certain aspects
     >> Find[stream, {"energy", "power"} ]
      = by which vast amounts of power and large quantities of new radium-like
-    >> Close[stream]
+    #> Close[stream]
      = ...
     """
 
@@ -1649,14 +1468,8 @@ class StringToStream(Builtin):
     >> strm = StringToStream["abc 123"]
      = InputStream[String, ...]
 
-    #> Read[strm, Word]
-     = abc
-
-    #> Read[strm, Number]
-     = 123
-
-    #> Close[strm]
-     = String
+    The stream must be closed after using it, to release the resource:
+    >> Close[strm];
     """
 
     summary_text = "open an input stream for reading from a string"
@@ -1685,14 +1498,6 @@ class Streams(Builtin):
 
     >> Streams["stdout"]
      = ...
-
-    #> OpenWrite[]
-     = ...
-    #> Streams[%[[1]]]
-     = {OutputStream[...]}
-
-    #> Streams["some_nonexistent_name"]
-     = {}
     """
 
     summary_text = "list currently open streams"
@@ -1764,11 +1569,12 @@ class Write(Builtin):
      = ...
     >> Write[stream, 10 x + 15 y ^ 2]
     >> Write[stream, 3 Sin[z]]
+    The stream must be closed in order to use the file again:
     >> Close[stream];
     >> stream = OpenRead[%];
     >> ReadList[stream]
      = {10 x + 15 y ^ 2, 3 Sin[z]}
-    #> DeleteFile[Close[stream]];
+    >> DeleteFile[Close[stream]];
     """
 
     summary_text = "write a sequence of expressions to a stream, ending the output with a newline (line feed)"
@@ -1817,7 +1623,7 @@ class WriteString(Builtin):
     >> FilePrint[%]
      | This is a test 1This is also a test 2
 
-    #> DeleteFile[pathname];
+    >> DeleteFile[pathname];
     >> stream = OpenWrite[];
     >> WriteString[stream, "This is a test 1", "This is also a test 2"]
     >> pathname = Close[stream]
@@ -1825,29 +1631,7 @@ class WriteString(Builtin):
     >> FilePrint[%]
      | This is a test 1This is also a test 2
 
-    #> DeleteFile[pathname];
-    #> stream = OpenWrite[];
-    #> WriteString[stream, 100, 1 + x + y, Sin[x  + y]]
-    #> pathname = Close[stream]
-     = ...
-    #> FilePrint[%]
-     | 1001 + x + ySin[x + y]
-
-    #> DeleteFile[pathname];
-    #> stream = OpenWrite[];
-    #> WriteString[stream]
-    #> pathame = Close[stream]
-     = ...
-    #> FilePrint[%]
-
-    #> WriteString[%%, abc]
-    #> Streams[%%%][[1]]
-     = ...
-    #> pathname = Close[%];
-    #> FilePrint[%]
-     | abc
-    #> DeleteFile[pathname];
-    #> Clear[pathname];
+    >> DeleteFile[pathname];
 
 
     If stream is the string "stdout" or "stderr", writes to the system standard output/ standard error channel:

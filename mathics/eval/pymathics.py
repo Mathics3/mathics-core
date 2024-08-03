@@ -6,7 +6,7 @@ import importlib
 import inspect
 import sys
 
-from mathics.builtin.base import Builtin
+from mathics.core.builtin import Builtin
 from mathics.core.definitions import Definitions
 from mathics.core.load_builtin import builtins_by_module, name_is_builtin_symbol
 

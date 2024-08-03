@@ -6,7 +6,7 @@ M-Expression as its AST (Abstract Syntax Tree).
 
 There is a separate `README
 <https://github.com/Mathics3/mathics-core/blob/master/mathics/core/parser/README.md>`_
-for decribing how this works.
+for describing how this works.
 """
 
 

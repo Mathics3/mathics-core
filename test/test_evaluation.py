@@ -249,7 +249,7 @@ if sys.platform in ("linux",):
             )
 
         for i, (str_expr, message) in enumerate(test_input_and_name):
-            # This works but the $Precision is coming out UnsignedInt128 rather tha
+            # This works but the $Precision is coming out UnsignedInt128 rather than
             # UnsignedInt32
             # (
             #     'Eigenvalues[{{-8, 12, 4}, {12, -20, 0}, {4, 0, -2}}, Method->"mpmath"]',

@@ -7,17 +7,16 @@ While a definition like 'cube[$x_$] = $x$^3' gives a way to specify \
 specify general properties of functions and symbols. This is \
 independent of the parameters they take and the values they produce.
 
-The builtin-attributes having a predefined meaning in \Mathics which \
+The builtin-attributes having a predefined meaning in \\Mathics which \
 are described below.
 
-However in contrast to \Mathematica, you can set any symbol as an attribute.
+However in contrast to \\Mathematica, you can set any symbol as an attribute.
 """
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.definition-attributes"
 
 
-from mathics.builtin.base import Builtin, Predefined
 from mathics.core.assignment import get_symbol_list
 from mathics.core.atoms import String
 from mathics.core.attributes import (
@@ -29,6 +28,7 @@ from mathics.core.attributes import (
     attribute_string_to_number,
     attributes_bitset_to_list,
 )
+from mathics.core.builtin import Builtin, Predefined
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolNull
@@ -203,29 +203,6 @@ class Flat(Predefined):
     'Flat' is taken into account in pattern matching:
     >> f[a, b, c] /. f[a, b] -> d
      = f[d, c]
-
-    #> SetAttributes[{u, v}, Flat]
-    #> u[x_] := {x}
-    #> u[]
-     = u[]
-    #> u[a]
-     = {a}
-    #> u[a, b]
-     : Iteration limit of 1000 exceeded.
-     = $Aborted
-    #> u[a, b, c]
-     : Iteration limit of 1000 exceeded.
-     = $Aborted
-    #> v[x_] := x
-    #> v[]
-     = v[]
-    #> v[a]
-     = a
-    #> v[a, b] (* in Mathematica: Iteration limit of 4096 exceeded. *)
-     = v[a, b]
-    #> v[a, b, c] (* in Mathematica: Iteration limit of 4096 exceeded. *)
-     : Iteration limit of 1000 exceeded.
-     = $Aborted
     """
 
     summary_text = "attribute for associative symbols"
@@ -372,6 +349,7 @@ class Locked(Predefined):
      = 3
     """
 
+    attributes = A_PROTECTED | A_LOCKED
     summary_text = "keep all attributes locked (settable but not clearable)"
 
 

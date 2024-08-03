@@ -9,8 +9,8 @@ A Spline is a mathematical function used for interpolation or smoothing. Splines
 # Here we are also hiding "drawing" since this can erroneously appear at the top level.
 sort_order = "mathics.builtin.splines"
 
-from mathics.builtin.base import Builtin
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
+from mathics.core.builtin import Builtin
 
 
 # For a more generic implementation in Python using scipy,

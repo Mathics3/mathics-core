@@ -59,7 +59,7 @@ def get_part(expression: BaseElement, indices: List[int]) -> BaseElement:
 
 
 def set_part(expression, indices: List[int], new_atom: Atom) -> BaseElement:
-    """Replace all parts of ``expression`` specified by ``indicies`` with
+    """Replace all parts of ``expression`` specified by ``indices`` with
     ``new_atom`. Return the modified compound expression.
     """
 
@@ -435,7 +435,7 @@ def python_seq(start, stop, step, length):
     if start == 0 or stop == 0:
         return None
 
-    # wrap negative values to postive and convert from 1-based to 0-based
+    # wrap negative values to positive and convert from 1-based to 0-based
     if start < 0:
         start += length
     else:
@@ -547,7 +547,7 @@ def _drop_span_selector(seq):
 
 def deletecases_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
     """
-    This function walks the expression `expr` and deleting occurrencies of `pattern`
+    This function walks the expression `expr` and deleting occurrences of `pattern`
 
     If levelspec specifies a number, only those positions with
     `levelspec` "coordinates" are return. By default, it just return

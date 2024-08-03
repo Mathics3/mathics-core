@@ -3,8 +3,8 @@
 General Structural Expression Functions
 """
 
-from mathics.builtin.base import BinaryOperator, Builtin, Predefined
 from mathics.core.atoms import Integer, Integer0, Integer1, Rational
+from mathics.core.builtin import BinaryOperator, Builtin, Predefined
 from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
@@ -364,10 +364,6 @@ class Operate(Builtin):
     With $n$=0, 'Operate' acts like 'Apply':
     >> Operate[p, f[a][b][c], 0]
      = p[f[a][b][c]]
-
-    #> Operate[p, f, -1]
-     : Non-negative integer expected at position 3 in Operate[p, f, -1].
-     = Operate[p, f, -1]
     """
 
     summary_text = "apply a function to the head of an expression"

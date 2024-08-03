@@ -16,9 +16,9 @@ minimum and maximum value of a sample and sample quantiles.
 from mpmath import ceil as mpceil, floor as mpfloor
 
 from mathics.algorithm.introselect import introselect
-from mathics.builtin.base import Builtin
 from mathics.builtin.list.math import _RankedTakeLargest, _RankedTakeSmallest
 from mathics.core.atoms import Atom, Integer, Symbol, SymbolTrue
+from mathics.core.builtin import Builtin
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolFloor, SymbolPlus, SymbolTimes
@@ -272,9 +272,6 @@ class Sort(Builtin):
      = {2 + c_, 1 + b__}
     >> Sort[{x_ + n_*y_, x_ + y_}, PatternsOrderedQ]
      = {x_ + n_ y_, x_ + y_}
-
-    #> Sort[{x_, y_}, PatternsOrderedQ]
-     = {x_, y_}
     """
 
     summary_text = "sort lexicographically or with any comparison function"

@@ -27,8 +27,8 @@ def evaluate(str_expr: str):
 
 
 def check_evaluation(
-    str_expr: str,
-    str_expected: str,
+    str_expr: Optional[str],
+    str_expected: Optional[str] = None,
     failure_message: str = "",
     hold_expected: bool = False,
     to_string_expr: bool = True,
@@ -41,14 +41,15 @@ def check_evaluation(
     its results
 
     Compares the expressions represented by ``str_expr`` and  ``str_expected`` by
-    evaluating the first, and optionally, the second.
+    evaluating the first, and optionally, the second. If omitted, `str_expected`
+    is assumed to be `"Null"`.
 
     to_string_expr: If ``True`` (default value) the result of the evaluation is
                     converted into a Python string. Otherwise, the expression is kept
                     as an Expression object.
                     If this argument is set to ``None``, the session is reset.
 
-    failure_message: message shown in case of failure
+    failure_message: message shown in case of failure. Use "" for no failure message.
     hold_expected:   If ``False`` (default value) the ``str_expected`` is evaluated.
                      Otherwise, the expression is considered literally.
 
@@ -72,6 +73,8 @@ def check_evaluation(
     if str_expr is None:
         reset_session()
         return
+    if str_expected is None:
+        str_expected = "Null"
 
     if to_string_expr:
         str_expr = f"ToString[{str_expr}]"
@@ -113,9 +116,36 @@ def check_evaluation(
         assert (
             expected_len == got_len
         ), f"expected {expected_len}; got {got_len}. Messages: {outs}"
-        for (out, msg) in zip(outs, msgs):
+        for out, msg in zip(outs, msgs):
             if out != msg:
                 print(f"out:<<{out}>>")
                 print(" and ")
                 print(f"expected=<<{msg}>>")
                 assert False, " do not match."
+
+
+def check_evaluation_as_in_cli(
+    str_expr: Optional[str] = None,
+    str_expected: Optional[str] = None,
+    failure_message: str = "",
+    expected_messages: Optional[tuple] = None,
+):
+    """
+    Use this method when special Symbols like Return, %, %%,
+    $IterationLimit, $RecursionLimit, etc. are used in the tests.
+    """
+    if str_expr is None:
+        reset_session()
+        return
+
+    res = session.evaluate_as_in_cli(str_expr)
+    if expected_messages is None:
+        assert len(res.out) == 0
+    else:
+        assert len(res.out) == len(expected_messages)
+        for li1, li2 in zip(res.out, expected_messages):
+            assert li1.text == li2
+
+    if failure_message:
+        assert res.result == str_expected, failure_message
+    assert res.result == str_expected

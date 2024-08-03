@@ -11,6 +11,8 @@ from pathlib import Path
 
 import pkg_resources
 
+from mathics.core.util import canonic_filename
+
 
 def get_srcdir():
     filename = osp.normcase(osp.dirname(osp.abspath(__file__)))
@@ -50,7 +52,7 @@ MAX_STORED_SIZE = 10000
 
 ROOT_DIR = pkg_resources.resource_filename("mathics", "")
 if sys.platform.startswith("win"):
-    DATA_DIR = osp.join(os.environ["APPDATA"], "Python", "Mathics")
+    DATA_DIR = canonic_filename(osp.join(os.environ["APPDATA"], "Python", "Mathics"))
 else:
     DATA_DIR = osp.join(
         os.environ.get("APPDATA", osp.expanduser("~/.local/var/mathics/"))
@@ -58,11 +60,11 @@ else:
 
 # In contrast to ROOT_DIR, LOCAL_ROOT_DIR is used in building
 # LaTeX documentation. When Mathics is installed, we don't want LaTeX file documentation.tex
-# to get put in the installation directory, but instead we build documentaiton
+# to get put in the installation directory, but instead we build documentation
 # from checked-out source and that is where this should be put.
 LOCAL_ROOT_DIR = get_srcdir()
 
-# Location of doctests and test results formated for LaTeX.  This data
+# Location of doctests and test results formatted for LaTeX.  This data
 # is stoared as a Python Pickle format, but storing this in JSON if
 # possible would be preferable and faster
 

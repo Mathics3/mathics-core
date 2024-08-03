@@ -10,9 +10,9 @@ Basic implementation for an XML importer.
 import re
 from io import BytesIO
 
-from mathics.builtin.base import Builtin, MessageException
 from mathics.builtin.files_io.files import MathicsOpen
 from mathics.core.atoms import String
+from mathics.core.builtin import Builtin, MessageException
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Evaluation, Expression
@@ -143,7 +143,7 @@ def xml_object(root):
     return Expression(
         to_expression("XMLObject", String("Document")),
         to_mathics_list(*declaration),
-        *node_to_xml_element(root)
+        *node_to_xml_element(root),
     )
 
 

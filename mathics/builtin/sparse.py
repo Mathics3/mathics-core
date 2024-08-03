@@ -5,8 +5,8 @@ Sparse Array Functions
 """
 
 
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer, Integer0
+from mathics.core.builtin import Builtin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression

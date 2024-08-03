@@ -4,9 +4,9 @@ User File Directories
 
 import os
 
-from mathics.builtin.base import Predefined
 from mathics.core.atoms import String
 from mathics.core.attributes import A_NO_ATTRIBUTES
+from mathics.core.builtin import Predefined
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.streams import HOME_DIR, PATH_VAR

@@ -15,19 +15,6 @@ from typing import Optional
 import numpy as np
 import sympy
 
-from mathics.algorithm.integrators import (
-    _fubini,
-    _internal_adaptative_simpsons_rule,
-    decompose_domain,
-    eval_D_to_Integral,
-)
-from mathics.algorithm.series import (
-    build_series,
-    series_derivative,
-    series_plus_series,
-    series_times_series,
-)
-from mathics.builtin.base import Builtin, PostfixOperator, SympyFunction
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
     Atom,
@@ -49,6 +36,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import Builtin, PostfixOperator, SympyFunction
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.function import expression_to_callable_and_args
 from mathics.core.convert.python import from_python
@@ -90,6 +78,18 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.makeboxes import format_element
 from mathics.eval.nevaluator import eval_N
+from mathics.eval.numbers.calculus.integrators import (
+    _fubini,
+    _internal_adaptative_simpsons_rule,
+    decompose_domain,
+    eval_D_to_Integral,
+)
+from mathics.eval.numbers.calculus.series import (
+    build_series,
+    series_derivative,
+    series_plus_series,
+    series_times_series,
+)
 
 # These should be used in lower-level formatting
 SymbolDifferentialD = Symbol("System`DifferentialD")
@@ -172,24 +172,6 @@ class D(SympyFunction):
     Hesse matrix:
     >> D[Sin[x] * Cos[y], {{x,y}, 2}]
      = {{-Cos[y] Sin[x], -Cos[x] Sin[y]}, {-Cos[x] Sin[y], -Cos[y] Sin[x]}}
-
-    #> D[2/3 Cos[x] - 1/3 x Cos[x] Sin[x] ^ 2,x]//Expand
-     = -2 x Cos[x] ^ 2 Sin[x] / 3 + x Sin[x] ^ 3 / 3 - 2 Sin[x] / 3 - Cos[x] Sin[x] ^ 2 / 3
-
-    #> D[f[#1], {#1,2}]
-     = f''[#1]
-    #> D[(#1&)[t],{t,4}]
-     = 0
-
-    #> Attributes[f] ={HoldAll}; Apart[f''[x + x]]
-     = f''[2 x]
-
-    #> Attributes[f] = {}; Apart[f''[x + x]]
-     = f''[2 x]
-
-    ## Issue #375
-    #> D[{#^2}, #]
-     = {2 #1}
     """
 
     # TODO
@@ -416,16 +398,6 @@ class Derivative(PostfixOperator, SympyFunction):
      = Derivative[2, 1][h]
     >> Derivative[2, 0, 1, 0][h[g]]
      = Derivative[2, 0, 1, 0][h[g]]
-
-    ## Parser Tests
-    #> Hold[f''] // FullForm
-     = Hold[Derivative[2][f]]
-    #> Hold[f ' '] // FullForm
-     = Hold[Derivative[2][f]]
-    #> Hold[f '' ''] // FullForm
-     = Hold[Derivative[4][f]]
-    #> Hold[Derivative[x][4] '] // FullForm
-     = Hold[Derivative[1][Derivative[x][4]]]
     """
 
     attributes = A_N_HOLD_ALL
@@ -445,29 +417,59 @@ class Derivative(PostfixOperator, SympyFunction):
         "Derivative[0...][f_]": "f",
         "Derivative[n__Integer][Derivative[m__Integer][f_]] /; Length[{m}] "
         "== Length[{n}]": "Derivative[Sequence @@ ({n} + {m})][f]",
-        # This would require at least some comments...
+        "Derivative[n__Integer][Alternatives[_Integer|_Rational|_Real|_Complex]]": "0 &",
+        # The following rule tries to evaluate a derivative of a pure function by applying it to a list
+        # of symbolic elements and use the rules in `D`.
+        # The rule just applies if f is not a locked symbol, and it does not have a previous definition
+        # for its `Derivative`.
+        # The main drawback of this implementation is that it requires to compute two times the derivative,
+        # just because the way in which the evaluation loop works, and the lack of a working `Unevaluated`
+        # symbol. In our current implementation, the a better way to implement this would be through a builtin
+        # rule (i.e., an eval_ method).
         """Derivative[n__Integer][f_Symbol] /; Module[{t=Sequence@@Slot/@Range[Length[{n}]], result, nothing, ft=f[t]},
-            If[Head[ft] === f
+            If[
+            (*If the head of ft is f, and it does not have a previos defintion of derivative, and the context is `System,
+              the rule fails:
+            *)
+            Head[ft] === f
             && FreeQ[Join[UpValues[f], DownValues[f], SubValues[f]], Derivative|D]
             && Context[f] != "System`",
                 False,
-                (* else *)
+                (* else, evaluate ft, set the order n derivative of f to "nothing" and try to evaluate it *)
                 ft = f[t];
                 Block[{f},
-                    Unprotect[f];
-                    (*Derivative[1][f] ^= nothing;*)
-                    Derivative[n][f] ^= nothing;
-                    Derivative[n][nothing] ^= nothing;
+                    (*
+                      The idea of the test is to set `Derivative[n][f]` to `nothing`. Then, the derivative is
+                      evaluated. If it is not possible to find an explicit expression for the derivative,
+                      then their occurencies are replaced by `nothing`. Therefore, if the resulting expression
+                      if free of `nothing`, then we can use the result. Otherwise, the rule does not work. 
+
+                      Differently from `True` and  `False`, `List` does not produce an infinite recurrence,
+                      but since is a protected symbol, the following test produces error messages.
+                      Let's put this inside Quiet to avoid the warnings.
+                     *)
+                    Quiet[Unprotect[f];
+                     Derivative[n][f] ^= nothing;
+                     Derivative[n][nothing] ^= nothing;
+                    ];
                     result = D[ft, Sequence@@Table[{Slot[i], {n}[[i]]}, {i, Length[{n}]}]];
                 ];
+                (*The rule applies if `nothing` disappeared in the result*)
                 FreeQ[result, nothing]
             ]
-            ]""": """Module[{t=Sequence@@Slot/@Range[Length[{n}]], result, nothing, ft},
+            ]""": """
+                (*
+                 Provided the assumptions, the derivative of F[#1,#2,...] is evaluated,
+                 and returned a an anonymous function.
+                *)
+                Module[{t=Sequence@@Slot/@Range[Length[{n}]], result, nothing, ft},
                 ft = f[t];
                 Block[{f},
-                    Unprotect[f];
-                    Derivative[n][f] ^= nothing;
-                    Derivative[n][nothing] ^= nothing;
+                    Quiet[
+                       Unprotect[f];
+                       Derivative[n][f] ^= nothing;
+                       Derivative[n][nothing] ^= nothing;
+                    ];
                     result = D[ft, Sequence@@Table[{Slot[i], {n}[[i]]}, {i, Length[{n}]}]];
                 ];
                 Function @@ {result}
@@ -482,6 +484,17 @@ class Derivative(PostfixOperator, SympyFunction):
 
     def __init__(self, *args, **kwargs):
         super(Derivative, self).__init__(*args, **kwargs)
+
+    def eval_locked_symbols(self, n, **kwargs):
+        """Derivative[n__Integer][Alternatives[True|False|Symbol|TooBig|$Aborted|Removed|Locked|$PrintLiteral|$Off]]"""
+        # Prevents the evaluation for True, False, and other Locked symbols
+        # as function names. This produces a recursion error in the evaluation rule for Derivative.
+        # See
+        # https://github.com/Mathics3/mathics-core/issues/971#issuecomment-1902814462
+        # in issue #971
+        # An alternative would be to reformulate the long rule.
+        # TODO: Add other locked symbols producing the same error.
+        return
 
     def to_sympy(self, expr, **kwargs):
         inner = expr
@@ -697,7 +710,6 @@ class _BaseFinder(Builtin):
     def eval_with_x_tuple(self, f, xtuple, evaluation: Evaluation, options: dict):
         "%(name)s[f_, xtuple_, OptionsPattern[]]"
         f_val = f.evaluate(evaluation)
-
         if f_val.has_form("Equal", 2):
             f = Expression(SymbolPlus, f_val.elements[0], f_val.elements[1])
 
@@ -749,7 +761,9 @@ class FindMaximum(_BaseFinder):
     messages = _BaseFinder.messages.copy()
     summary_text = "local maximum optimization"
     try:
-        from mathics.algorithm.optimizers import native_local_optimizer_methods
+        from mathics.eval.numbers.calculus.optimizers import (
+            native_local_optimizer_methods,
+        )
 
         methods.update(native_local_optimizer_methods)
     except Exception:
@@ -798,7 +812,7 @@ class FindMinimum(_BaseFinder):
     messages = _BaseFinder.messages.copy()
     summary_text = "local minimum optimization"
     try:
-        from mathics.algorithm.optimizers import (
+        from mathics.eval.numbers.calculus.optimizers import (
             native_local_optimizer_methods,
             native_optimizer_messages,
         )
@@ -865,12 +879,8 @@ class FindRoot(_BaseFinder):
      = FindRoot[Sin[x] - x, {x, 0}]
 
 
-    #> FindRoot[2.5==x,{x,0}]
-     = {x -> 2.5}
-
     >> FindRoot[x^2 - 2, {x, 1,3}, Method->"Secant"]
      = {x -> 1.41421}
-
     """
 
     rules = {
@@ -884,7 +894,7 @@ class FindRoot(_BaseFinder):
     )
 
     try:
-        from mathics.algorithm.optimizers import (
+        from mathics.eval.numbers.calculus.optimizers import (
             native_findroot_messages,
             native_findroot_methods,
         )
@@ -971,20 +981,6 @@ class Integrate(SympyFunction):
     >> Integrate[f[x], {x, a, b}] // TeXForm
      = \int_a^b f\left[x\right] \, dx
 
-    #> DownValues[Integrate]
-     = {}
-    #> Definition[Integrate]
-     = Attributes[Integrate] = {Protected, ReadProtected}
-     .
-     . Options[Integrate] = {Assumptions -> $Assumptions, GenerateConditions -> Automatic, PrincipalValue -> False}
-    #> Integrate[Hold[x + x], {x, a, b}]
-     = Integrate[Hold[x + x], {x, a, b}]
-    #> Integrate[sin[x], x]
-     = Integrate[sin[x], x]
-
-    #> Integrate[x ^ 3.5 + x, x]
-     = x ^ 2 / 2 + 0.222222 x ^ 4.5
-
     Sometimes there is a loss of precision during integration.
     You can check the precision of your result with the following sequence
     of commands.
@@ -992,20 +988,6 @@ class Integrate(SympyFunction):
      = 4.
      >> % // Precision
      = MachinePrecision
-
-    #> Integrate[1/(x^5+1), x]
-     = RootSum[1 + 5 #1 + 25 #1 ^ 2 + 125 #1 ^ 3 + 625 #1 ^ 4&, Log[x + 5 #1] #1&] + Log[1 + x] / 5
-
-    #> Integrate[ArcTan(x), x]
-     = x ^ 2 ArcTan / 2
-    #> Integrate[E[x], x]
-     = Integrate[E[x], x]
-
-    #> Integrate[Exp[-(x/2)^2],{x,-Infinity,+Infinity}]
-     = 2 Sqrt[Pi]
-
-    #> Integrate[Exp[-1/(x^2)], x]
-     = x E ^ (-1 / x ^ 2) + Sqrt[Pi] Erf[1 / x]
 
     >> Integrate[ArcSin[x / 3], x]
      = x ArcSin[x / 3] + Sqrt[9 - x ^ 2]
@@ -1350,7 +1332,7 @@ class NIntegrate(Builtin):
 
     try:
         # builtin integrators
-        from mathics.algorithm.integrators import (
+        from mathics.eval.numbers.calculus.integrators import (
             integrator_messages,
             integrator_methods,
         )
@@ -2217,7 +2199,7 @@ class Solve(Builtin):
     rules = {
         "Solve[eqs_, vars_, Complexes]": "Solve[eqs, vars]",
         "Solve[eqs_, vars_, Reals]": (
-            "Cases[Solve[eqs, vars], {Rule[x_,y_?RealNumberQ]}]"
+            "Cases[Solve[eqs, vars], {Rule[x_,y_?RealValuedNumberQ]}]"
         ),
         "Solve[eqs_, vars_, Integers]": (
             "Cases[Solve[eqs, vars], {Rule[x_,y_Integer]}]"
@@ -2240,7 +2222,6 @@ class Solve(Builtin):
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
                 or A_CONSTANT & var.get_attributes(evaluation.definitions)
             ):
-
                 evaluation.message("Solve", "ivar", vars_original)
                 return
         if eqs.get_head_name() in ("System`List", "System`And"):
