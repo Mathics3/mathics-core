@@ -3,7 +3,7 @@ Math & Counting Operations on Lists
 """
 import heapq
 
-from mathics.builtin.base import Builtin, CountableInteger, NegativeIntegerException
+from mathics.core.builtin import Builtin, CountableInteger, NegativeIntegerException
 from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression

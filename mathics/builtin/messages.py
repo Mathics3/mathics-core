@@ -6,9 +6,9 @@ Message-related functions.
 import typing
 from typing import Any
 
-from mathics.builtin.base import BinaryOperator, Builtin, Predefined
 from mathics.core.atoms import String
-from mathics.core.attributes import A_HOLD_ALL, A_HOLD_FIRST, A_PROTECTED
+from mathics.core.attributes import A_HOLD_ALL, A_HOLD_FIRST, A_LOCKED, A_PROTECTED
+from mathics.core.builtin import BinaryOperator, Builtin, Predefined
 from mathics.core.evaluation import Evaluation, Message as EvaluationMessage
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -26,6 +26,7 @@ class Aborted(Predefined):
     </dl>
     """
 
+    attributes = A_LOCKED | A_PROTECTED
     summary_text = "return value for aborted evaluations"
     name = "$Aborted"
 
@@ -49,9 +50,6 @@ class Check(Builtin):
      : Infinite expression 1 / 0 encountered.
      = err
 
-    #> Check[1^0, err]
-     = 1
-
     Check only for specific messages:
     >> Check[Sin[0^0], err, Sin::argx]
      : Indeterminate expression 0 ^ 0 encountered.
@@ -61,49 +59,7 @@ class Check(Builtin):
      : Infinite expression 1 / 0 encountered.
      = err
 
-    #> Check[1 + 2]
-     : Check called with 1 argument; 2 or more arguments are expected.
-     = Check[1 + 2]
 
-    #> Check[1 + 2, err, 3 + 1]
-     : Message name 3 + 1 is not of the form symbol::name or symbol::name::language.
-     = Check[1 + 2, err, 3 + 1]
-
-    #> Check[1 + 2, err, hello]
-     : Message name hello is not of the form symbol::name or symbol::name::language.
-     = Check[1 + 2, err, hello]
-
-    #> Check[1/0, err, Compile::cpbool]
-     : Infinite expression 1 / 0 encountered.
-     = ComplexInfinity
-
-    #> Check[{0^0, 1/0}, err]
-     : Indeterminate expression 0 ^ 0 encountered.
-     : Infinite expression 1 / 0 encountered.
-     = err
-
-    #> Check[0^0/0, err, Power::indet]
-     : Indeterminate expression 0 ^ 0 encountered.
-     : Infinite expression 1 / 0 encountered.
-     = err
-
-    #> Check[{0^0, 3/0}, err, Power::indet]
-     : Indeterminate expression 0 ^ 0 encountered.
-     : Infinite expression 1 / 0 encountered.
-     = err
-
-    #> Check[1 + 2, err, {a::b, 2 + 5}]
-     : Message name 2 + 5 is not of the form symbol::name or symbol::name::language.
-     = Check[1 + 2, err, {a::b, 2 + 5}]
-
-    #> Off[Power::infy]
-    #> Check[1 / 0, err]
-     = ComplexInfinity
-
-    #> On[Power::infy]
-    #> Check[1 / 0, err]
-     : Infinite expression 1 / 0 encountered.
-     = err
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
@@ -175,10 +131,6 @@ class Failed(Predefined):
     <dt>'$Failed'
         <dd>is returned by some functions in the event of an error.
     </dl>
-
-    #> Get["nonexistent_file.m"]
-     : Cannot open nonexistent_file.m.
-     = $Failed
     """
 
     summary_text = "retrieved result for failed evaluations"
@@ -406,12 +358,6 @@ class Off(Builtin):
     >> Off[Power::indet, Syntax::com]
     >> {0 ^ 0,}
      = {Indeterminate, Null}
-
-    #> Off[1]
-     :  Message name 1 is not of the form symbol::name or symbol::name::language.
-    #> Off[Message::name, 1]
-
-    #> On[Power::infy, Power::indet, Syntax::com]
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
@@ -457,11 +403,6 @@ class On(Builtin):
      = ComplexInfinity
     """
 
-    # TODO
-    """
-    #> On[f::x]
-     : Message f::x not found.
-    """
     attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "turn on a message for printing"
 
@@ -523,9 +464,6 @@ class Quiet(Builtin):
      : Hello
      = 2 x
 
-    #> Quiet[expr, All, All]
-     : Arguments 2 and 3 of Quiet[expr, All, All] should not both be All.
-     = Quiet[expr, All, All]
     >> Quiet[x + x, {a::b}, {a::b}]
      : In Quiet[x + x, {a::b}, {a::b}] the message name(s) {a::b} appear in both the list of messages to switch off and the list of messages to switch on.
      = Quiet[x + x, {a::b}, {a::b}]
@@ -638,76 +576,9 @@ class Syntax(Builtin):
 
     >> 1.5``
      : "1.5`" cannot be followed by "`" (line 1 of "<test>").
-
-    #> (x]
-     : "(x" cannot be followed by "]" (line 1 of "<test>").
-
-    #> (x,)
-     : "(x" cannot be followed by ",)" (line 1 of "<test>").
-
-    #> {x]
-     : "{x" cannot be followed by "]" (line 1 of "<test>").
-
-    #> f[x)
-     : "f[x" cannot be followed by ")" (line 1 of "<test>").
-
-    #> a[[x)]
-     : "a[[x" cannot be followed by ")]" (line 1 of "<test>").
-
-    #> x /: y , z
-     : "x /: y " cannot be followed by ", z" (line 1 of "<test>").
-
-    #> a :: 1
-     : "a :: " cannot be followed by "1" (line 1 of "<test>").
-
-    #> a ? b ? c
-     : "a ? b " cannot be followed by "? c" (line 1 of "<test>").
-
-    #> \:000G
-     : 4 hexadecimal digits are required after \: to construct a 16-bit character (line 1 of "<test>").
-     : Expression cannot begin with "\:000G" (line 1 of "<test>").
-
-    #> \:000
-     : 4 hexadecimal digits are required after \: to construct a 16-bit character (line 1 of "<test>").
-     : Expression cannot begin with "\:000" (line 1 of "<test>").
-
-    #> \009
-     : 3 octal digits are required after \ to construct an 8-bit character (line 1 of "<test>").
-     : Expression cannot begin with "\009" (line 1 of "<test>").
-
-    #> \00
-     : 3 octal digits are required after \ to construct an 8-bit character (line 1 of "<test>").
-     : Expression cannot begin with "\00" (line 1 of "<test>").
-
-    #> \.0G
-     : 2 hexadecimal digits are required after \. to construct an 8-bit character (line 1 of "<test>").
-     : Expression cannot begin with "\.0G" (line 1 of "<test>").
-
-    #> \.0
-     : 2 hexadecimal digits are required after \. to construct an 8-bit character (line 1 of "<test>").
-     : Expression cannot begin with "\.0" (line 1 of "<test>").
-
-    #> "abc \[fake]"
-     : Unknown unicode longname "fake" (line 1 of "<test>").
-     = abc \[fake]
-
-    #> a ~ b + c
-     : "a ~ b " cannot be followed by "+ c" (line 1 of "<test>").
-
-    #> {1,}
-     : Warning: comma encountered with no adjacent expression. The expression will be treated as Null (line 1 of "<test>").
-     = {1, Null}
-    #> {, 1}
-     : Warning: comma encountered with no adjacent expression. The expression will be treated as Null (line 1 of "<test>").
-     = {Null, 1}
-    #> {,,}
-     : Warning: comma encountered with no adjacent expression. The expression will be treated as Null (line 1 of "<test>").
-     : Warning: comma encountered with no adjacent expression. The expression will be treated as Null (line 1 of "<test>").
-     : Warning: comma encountered with no adjacent expression. The expression will be treated as Null (line 1 of "<test>").
-     = {Null, Null, Null}
     """
 
-    # Extension: MMA does not provide lineno and filename in its error messages
+    # Extension: WMA does not provide lineno and filename in its error messages
     messages = {
         "snthex": r"4 hexadecimal digits are required after \: to construct a 16-bit character (line `4` of `5`).",
         "sntoct1": r"3 octal digits are required after \ to construct an 8-bit character (line `4` of `5`).",

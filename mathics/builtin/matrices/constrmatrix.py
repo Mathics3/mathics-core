@@ -6,8 +6,8 @@ Methods for constructing Matrices.
 """
 import math
 
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer0, Integer1, is_integer_rational_or_real
+from mathics.core.builtin import Builtin
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
 
@@ -101,7 +101,7 @@ class DiamondMatrix(Builtin):
     summary_text = "create a matrix with 1 in a diamond-shaped region, and 0 outside"
 
     def eval(self, r, evaluation: Evaluation):
-        "DiamondMatrix[r_?RealNumberQ]"
+        "DiamondMatrix[r_?RealValuedNumberQ]"
         py_r = abs(r.round_to_float())
         t = int(math.floor(0.5 + py_r))
 
@@ -138,7 +138,7 @@ class DiskMatrix(Builtin):
     summary_text = "create a matrix with 1 in a disk-shaped region, and 0 outside"
 
     def eval(self, r, evaluation: Evaluation):
-        "DiskMatrix[r_?RealNumberQ]"
+        "DiskMatrix[r_?RealValuedNumberQ]"
         py_r = abs(r.round_to_float())
         s = int(math.floor(0.5 + py_r))
 

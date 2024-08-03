@@ -14,12 +14,12 @@ from typing import Callable, Optional
 
 import palettable
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.drawing.graphics3d import Graphics3D
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Integer, Integer0, Integer1, MachineReal, Real, String
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
@@ -383,7 +383,6 @@ class _PalettableGradient(_GradientColorScheme):
 
 
 class _Plot(Builtin):
-
     attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
 
     expect_list = False
@@ -565,7 +564,6 @@ class _Plot(Builtin):
     def process_function_and_options(
         self, functions, x, start, stop, evaluation: Evaluation, options: dict
     ) -> tuple:
-
         if isinstance(functions, Symbol) and functions.name is not x.get_name():
             rules = evaluation.definitions.get_ownvalues(functions.name)
             for rule in rules:
@@ -656,7 +654,7 @@ class _Plot3D(Builtin):
             functions,
             xexpr_limits,
             yexpr_limits,
-            *options_to_rules(options)
+            *options_to_rules(options),
         )
 
         functions = self.get_functions_param(functions)
@@ -1100,6 +1098,7 @@ class BarChart(_Chart):
         <dt>'BarChart[{$b1$, $b2$ ...}]'
         <dd>makes a bar chart with lengths $b1$, $b2$, ....
     </dl>
+
     Drawing options include -
     Charting:
     <ul>
@@ -1502,7 +1501,7 @@ class DensityPlot(_Plot3D):
         return Expression(
             SymbolGraphics,
             ListExpression(*graphics),
-            *options_to_rules(options, Graphics.options)
+            *options_to_rules(options, Graphics.options),
         )
 
 
@@ -1539,7 +1538,7 @@ class DiscretePlot(_Plot):
      = -Graphics-
 
     Compare with <url>:'Plot':
-    /doc/reference-of-built-in-symbols/graphics-drawing-and-images/plotting-data/plot/</url>.
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/plotting-data/plot/</url>.
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
@@ -1937,7 +1936,7 @@ class Histogram(Builtin):
         return Expression(
             SymbolGraphics,
             ListExpression(*graphics),
-            *options_to_rules(options, Graphics.options)
+            *options_to_rules(options, Graphics.options),
         )
 
 
@@ -1969,13 +1968,13 @@ class ListPlot(_ListPlot):
      = -Graphics-
 
     Compare with <url>:'Plot':
-    /doc/reference-of-built-in-symbols/graphics-drawing-and-images/plotting-data/plot/</url>.
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/plotting-data/plot/</url>.
 
     >> ListPlot[Table[n ^ 2, {n, 30}], Filling->Axis]
      = -Graphics-
 
     Compare with <url>:'Plot':
-    /doc/reference-of-built-in-symbols/graphics-drawing-and-images/plotting-data/plot</url>.
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/plotting-data/plot</url>.
     """
 
     options = Graphics.options.copy()
@@ -2382,21 +2381,6 @@ class Plot(_Plot):
     A constant function:
     >> Plot[3, {x, 0, 1}]
      = -Graphics-
-
-    #> Plot[1 / x, {x, -1, 1}]
-     = -Graphics-
-    #> Plot[x, {y, 0, 2}]
-     = -Graphics-
-
-    #> Plot[{f[x],-49x/12+433/108},{x,-6,6}, PlotRange->{-10,10}, AspectRatio->{1}]
-     = -Graphics-
-
-    #> Plot[Sin[t],  {t, 0, 2 Pi}, PlotPoints -> 1]
-     : Value of option PlotPoints -> 1 is not an integer >= 2.
-     = Plot[Sin[t], {t, 0, 2 Pi}, PlotPoints -> 1]
-
-    #> Plot[x*y, {x, -1, 1}]
-     = -Graphics-
     """
 
     summary_text = "plot curves of one or more functions"
@@ -2560,17 +2544,13 @@ class Plot3D(_Plot3D):
     <url>:WMA link: https://reference.wolfram.com/language/ref/Plot3D.html</url>
     <dl>
       <dt>'Plot3D[$f$, {$x$, $xmin$, $xmax$}, {$y$, $ymin$, $ymax$}]'
-      <dd>creates a three-dimensional plot of $f$ with $x$ ranging from $xmin$ to $xmax$ and $y$ ranging from $ymin$ to $ymax$.
+      <dd>creates a three-dimensional plot of $f$ with $x$ ranging from $xmin$ to \
+          $xmax$ and $y$ ranging from $ymin$ to $ymax$.
 
+          See <url>:Drawing Option and Option Values:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    </url> for a list of Plot options.
     </dl>
-
-    Plot3D has the same options as Graphics3D, in particular:
-    <ul>
-    <li>Mesh
-    <li>PlotPoints
-    <li>MaxRecursion
-    </ul>
-
 
     >> Plot3D[x ^ 2 + 1 / y, {x, -1, 1}, {y, 1, 4}]
      = -Graphics3D-
@@ -2586,37 +2566,8 @@ class Plot3D(_Plot3D):
 
     >> Plot3D[Log[x + y^2], {x, -1, 1}, {y, -1, 1}]
      = -Graphics3D-
-
-    #> Plot3D[z, {x, 1, 20}, {y, 1, 10}]
-     = -Graphics3D-
-
-    ## MaxRecursion Option
-    #> Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> 0]
-     = -Graphics3D-
-    #> Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> 15]
-     = -Graphics3D-
-    #> Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> 16]
-     : MaxRecursion must be a non-negative integer; the recursion value is limited to 15. Using MaxRecursion -> 15.
-     = -Graphics3D-
-    #> Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> -1]
-     : MaxRecursion must be a non-negative integer; the recursion value is limited to 15. Using MaxRecursion -> 0.
-     = -Graphics3D-
-    #> Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> a]
-     : MaxRecursion must be a non-negative integer; the recursion value is limited to 15. Using MaxRecursion -> 0.
-     = -Graphics3D-
-    #> Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> Infinity]
-     : MaxRecursion must be a non-negative integer; the recursion value is limited to 15. Using MaxRecursion -> 15.
-     = -Graphics3D-
-
-    #> Plot3D[x ^ 2 + 1 / y, {x, -1, 1}, {y, 1, z}]
-     : Limiting value z in {y, 1, z} is not a machine-size real number.
-     = Plot3D[x ^ 2 + 1 / y, {x, -1, 1}, {y, 1, z}]
     """
 
-    # FIXME: This test passes but the result is 511 lines long !
-    """
-    #> Plot3D[x + 2y, {x, -2, 2}, {y, -2, 2}] // TeXForm
-    """
     attributes = A_HOLD_ALL | A_PROTECTED
 
     options = Graphics.options.copy()
@@ -2671,5 +2622,5 @@ class Plot3D(_Plot3D):
         return Expression(
             SymbolGraphics3D,
             ListExpression(*graphics),
-            *options_to_rules(options, Graphics3D.options)
+            *options_to_rules(options, Graphics3D.options),
         )

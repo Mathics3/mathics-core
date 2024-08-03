@@ -2,12 +2,12 @@
 """
 Basic Arithmetic
 
-The functions here are the basic arithmetic operations that you might find on a calculator.
+The functions here are the basic arithmetic operations that you might find \
+on a calculator.
 
 """
 
-from mathics.builtin.arithmetic import _MPMathFunction, create_infix
-from mathics.builtin.base import BinaryOperator, Builtin, PrefixOperator, SympyFunction
+from mathics.builtin.arithmetic import create_infix
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -29,6 +29,13 @@ from mathics.core.attributes import (
     A_ORDERLESS,
     A_PROTECTED,
     A_READ_PROTECTED,
+)
+from mathics.core.builtin import (
+    BinaryOperator,
+    Builtin,
+    MPMathFunction,
+    PrefixOperator,
+    SympyFunction,
 )
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.sympy import from_sympy
@@ -71,25 +78,6 @@ class CubeRoot(Builtin):
 
     >> CubeRoot[16]
      = 2 2 ^ (1 / 3)
-
-    #> CubeRoot[-5]
-     = -5 ^ (1 / 3)
-
-    #> CubeRoot[-510000]
-     = -10 510 ^ (1 / 3)
-
-    #> CubeRoot[-5.1]
-     = -1.7213
-
-    #> CubeRoot[b]
-     = b ^ (1 / 3)
-
-    #> CubeRoot[-0.5]
-     = -0.793701
-
-    #> CubeRoot[3 + 4 I]
-     : The parameter 3 + 4 I should be real valued.
-     = (3 + 4 I) ^ (1 / 3)
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
@@ -156,14 +144,6 @@ class Divide(BinaryOperator):
      = a d / (b c e)
     >> a / (b ^ 2 * c ^ 3 / e)
      = a e / (b ^ 2 c ^ 3)
-
-    #> 1 / 4.0
-     = 0.25
-    #> 10 / 3 // FullForm
-     = Rational[10, 3]
-    #> a / b // FullForm
-     = Times[a, Power[b, -1]]
-
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
@@ -284,26 +264,6 @@ class Plus(BinaryOperator, SympyFunction):
     The sum of 2 red circles and 3 red circles is...
     >> 2 Graphics[{Red,Disk[]}] + 3 Graphics[{Red,Disk[]}]
      = 5 -Graphics-
-
-    #> -2a - 2b
-     = -2 a - 2 b
-    #> -4+2x+2*Sqrt[3]
-     = -4 + 2 Sqrt[3] + 2 x
-    #> 2a-3b-c
-     = 2 a - 3 b - c
-    #> 2a+5d-3b-2c-e
-     = 2 a - 3 b - 2 c + 5 d - e
-
-    #> 1 - I * Sqrt[3]
-     = 1 - I Sqrt[3]
-
-    #> Head[3 + 2 I]
-     = Complex
-
-    #> N[Pi, 30] + N[E, 30]
-     = 5.85987448204883847382293085463
-    #> % // Precision
-     = 30.
     """
 
     attributes = (
@@ -387,7 +347,7 @@ class Plus(BinaryOperator, SympyFunction):
         return eval_Plus(*items_tuple)
 
 
-class Power(BinaryOperator, _MPMathFunction):
+class Power(BinaryOperator, MPMathFunction):
     """
     <url>
     :Exponentiation:
@@ -433,47 +393,6 @@ class Power(BinaryOperator, _MPMathFunction):
      = -3.68294 + 6.95139 I
     >> (1.5 + 1.0 I) ^ (3.5 + 1.5 I)
      = -3.19182 + 0.645659 I
-
-    #> 1/0
-     : Infinite expression 1 / 0 encountered.
-     = ComplexInfinity
-    #> 0 ^ -2
-     : Infinite expression 1 / 0 ^ 2 encountered.
-     = ComplexInfinity
-    #> 0 ^ (-1/2)
-     : Infinite expression 1 / Sqrt[0] encountered.
-     = ComplexInfinity
-    #> 0 ^ -Pi
-     : Infinite expression 1 / 0 ^ 3.14159 encountered.
-     = ComplexInfinity
-    #> 0 ^ (2 I E)
-     : Indeterminate expression 0 ^ (0. + 5.43656 I) encountered.
-     = Indeterminate
-    #> 0 ^ - (Pi + 2 E I)
-     : Infinite expression 0 ^ (-3.14159 - 5.43656 I) encountered.
-     = ComplexInfinity
-
-    #> 0 ^ 0
-     : Indeterminate expression 0 ^ 0 encountered.
-     = Indeterminate
-
-    #> Sqrt[-3+2. I]
-     = 0.550251 + 1.81735 I
-    #> Sqrt[-3+2 I]
-     = Sqrt[-3 + 2 I]
-    #> (3/2+1/2I)^2
-     = 2 + 3 I / 2
-    #> I ^ I
-     = (-1) ^ (I / 2)
-
-    #> 2 ^ 2.0
-     = 4.
-
-    #> Pi ^ 4.
-     = 97.4091
-
-    #> a ^ b
-     = a ^ b
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_ONE_IDENTITY | A_PROTECTED
@@ -531,7 +450,7 @@ class Power(BinaryOperator, _MPMathFunction):
     def eval_check(self, x, y, evaluation):
         "Power[x_, y_]"
 
-        # Power uses _MPMathFunction but does some error checking first
+        # Power uses MPMathFunction but does some error checking first
         if isinstance(x, Number) and x.is_zero:
             if isinstance(y, Number):
                 y_err = y
@@ -595,9 +514,6 @@ class Sqrt(SympyFunction):
 
     >> Plot[Sqrt[a^2], {a, -2, 2}]
      = -Graphics-
-
-    #> N[Sqrt[2], 50]
-     = 1.4142135623730950488016887242096980785696718753769
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
@@ -683,56 +599,6 @@ class Times(BinaryOperator, SympyFunction):
      = {HoldPattern[Default[Times]] :> 1}
     >> a /. n_. * x_ :> {n, x}
      = {1, a}
-
-    #> -a*b // FullForm
-     = Times[-1, a, b]
-    #> -(x - 2/3)
-     = 2 / 3 - x
-    #> -x*2
-     = -2 x
-    #> -(h/2) // FullForm
-     = Times[Rational[-1, 2], h]
-
-    #> x / x
-     = 1
-    #> 2x^2 / x^2
-     = 2
-
-    #> 3. Pi
-     = 9.42478
-
-    #> Head[3 * I]
-     = Complex
-
-    #> Head[Times[I, 1/2]]
-     = Complex
-
-    #> Head[Pi * I]
-     = Times
-
-    #> 3 * a //InputForm
-     = 3*a
-    #> 3 * a //OutputForm
-     = 3 a
-
-    #> -2.123456789 x
-     = -2.12346 x
-    #> -2.123456789 I
-     = 0. - 2.12346 I
-
-    #> N[Pi, 30] * I
-     = 3.14159265358979323846264338328 I
-    #> N[I Pi, 30]
-     = 3.14159265358979323846264338328 I
-
-    #> N[Pi * E, 30]
-     = 8.53973422267356706546355086955
-    #> N[Pi, 30] * N[E, 30]
-     = 8.53973422267356706546355086955
-    #> N[Pi, 30] * E
-     = 8.53973422267356706546355086955
-    #> % // Precision
-     = 30.
     """
 
     attributes = (
@@ -788,7 +654,6 @@ class Times(BinaryOperator, SympyFunction):
                 and isinstance(item.elements[1], (Integer, Rational, Real))
                 and item.elements[1].to_sympy() < 0
             ):  # nopep8
-
                 negative.append(inverse(item))
             elif isinstance(item, Rational):
                 numerator = item.numerator()

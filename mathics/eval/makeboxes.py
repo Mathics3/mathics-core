@@ -7,11 +7,10 @@ formatting rules.
 
 
 import typing
-from typing import Any, Dict, Type
+from typing import Any, Dict, Optional, Type
 
 from mathics.core.atoms import Complex, Integer, Rational, Real, String, SymbolI
 from mathics.core.convert.expression import to_expression_with_specialization
-from mathics.core.definitions import OutputForms
 from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -36,7 +35,6 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolComplex,
     SymbolMinus,
-    SymbolOutputForm,
     SymbolRational,
     SymbolRowBox,
     SymbolStandardForm,
@@ -69,6 +67,84 @@ def _boxed_string(string: str, **options):
     return StyleBox(String(string), **options)
 
 
+# 640 = sys.int_info.str_digits_check_threshold.
+# Someday when 3.11 is the minimum version of Python supported,
+# we can replace the magic value 640 below with sys.int.str_digits_check_threshold.
+def int_to_string_shorter_repr(value: Integer, form: Symbol, max_digits=640):
+    """Convert value to a String, restricted to max_digits characters.
+
+    if value has an n-digit decimal representation,
+      value = d_1 *10^{n-1} d_2 * 10^{n-2} + d_3 10^{n-3} + ..... +
+              d_{n-2}*100 +d_{n-1}*10 + d_{n}
+    is represented as the string
+
+    "d_1d_2d_3...d_{k}<<n-2k>>d_{n-k-1}...d_{n-2}d_{n-1}d_{n}"
+
+    where n-2k digits are replaced by a placeholder.
+    """
+    if max_digits == 0:
+        return String(str(value))
+
+    # Normalize to positive quantities
+    is_negative = value < 0
+    if is_negative:
+        value = -value
+        max_digits = max_digits - 1
+
+    # Estimate the number of decimal digits
+    num_digits = int(value.bit_length() * 0.3)
+
+    # If the estimated number is below the threshold,
+    # return it as it is.
+    if num_digits <= max_digits:
+        if is_negative:
+            return String("-" + str(value))
+        return String(str(value))
+
+    # estimate the size of the placeholder
+    size_placeholder = len(str(num_digits)) + 6
+    # Estimate the number of available decimal places
+    avaliable_digits = max(max_digits - size_placeholder, 0)
+    # how many most significative digits include
+    len_msd = (avaliable_digits + 1) // 2
+    # how many least significative digits to include:
+    len_lsd = avaliable_digits - len_msd
+    # Compute the msd.
+    msd = str(value // 10 ** (num_digits - len_msd))
+    if msd == "0":
+        msd = ""
+
+    # If msd has more digits than the expected, it means that
+    # num_digits was wrong.
+    extra_msd_digits = len(msd) - len_msd
+    if extra_msd_digits > 0:
+        # Remove the extra digit and fix the real
+        # number of digits.
+        msd = msd[:len_msd]
+        num_digits = num_digits + 1
+
+    lsd = ""
+    if len_lsd > 0:
+        lsd = str(value % 10 ** (len_lsd))
+        # complete decimal positions in the lsd:
+        lsd = (len_lsd - len(lsd)) * "0" + lsd
+
+    # Now, compute the true number of hiding
+    # decimal places, and built the placeholder
+    remaining = num_digits - len_lsd - len_msd
+    placeholder = f" <<{remaining}>> "
+    # Check if the shorten string is actually
+    # shorter than the full string representation:
+    if len(placeholder) < remaining:
+        value_str = f"{msd}{placeholder}{lsd}"
+    else:
+        value_str = str(value)
+
+    if is_negative:
+        value_str = "-" + value_str
+    return String(value_str)
+
+
 def eval_fullform_makeboxes(
     self, expr, evaluation: Evaluation, form=SymbolStandardForm
 ) -> Expression:
@@ -83,9 +159,7 @@ def eval_fullform_makeboxes(
     return Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
 
 
-def eval_makeboxes(
-    self, expr, evaluation: Evaluation, form=SymbolStandardForm
-) -> Expression:
+def eval_makeboxes(expr, evaluation: Evaluation, form=SymbolStandardForm) -> Expression:
     """
     This function takes the definitions provided by the evaluation
     object, and produces a boxed fullform for expr.
@@ -130,6 +204,8 @@ def do_format_element(
     Applies formats associated to the expression and removes
     superfluous enclosing formats.
     """
+
+    from mathics.core.definitions import OutputForms
 
     evaluation.inc_recursion_depth()
     try:
@@ -316,7 +392,10 @@ def do_format_expression(
 
 
 def parenthesize(
-    precedence: int, element: Type[BaseElement], element_boxes, when_equal: bool
+    precedence: Optional[int],
+    element: Type[BaseElement],
+    element_boxes,
+    when_equal: bool,
 ) -> Type[Expression]:
     """
     "Determines if ``element_boxes`` needs to be surrounded with parenthesis.

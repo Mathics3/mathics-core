@@ -8,7 +8,7 @@ Functions for constructing lists of various sizes and structure.
 See also Constructing Lists.
 """
 
-from mathics.builtin.base import Builtin
+from mathics.core.builtin import Builtin
 
 
 class AngleVector(Builtin):

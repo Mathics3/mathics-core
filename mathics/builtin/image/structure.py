@@ -3,9 +3,9 @@ Operations on Image Structure
 """
 import numpy
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.image.base import Image
 from mathics.core.atoms import Integer
+from mathics.core.builtin import Builtin
 from mathics.core.evaluation import Evaluation
 from mathics.eval.image import numpy_flip
 

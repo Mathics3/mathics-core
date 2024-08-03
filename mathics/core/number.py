@@ -4,7 +4,7 @@
 import string
 from math import ceil, log
 from sys import float_info
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import mpmath
 import sympy
@@ -68,11 +68,18 @@ def _get_float_inf(value, evaluation) -> Optional[float]:
     return value.round_to_float(evaluation)
 
 
-def get_precision(value, evaluation, show_messages=True) -> Optional[float]:
+def get_precision(
+    value: BaseElement, evaluation, show_messages: bool = True
+) -> Optional[Union[int, float]]:
     """
-    Returns the ``float`` in the interval     [``$MinPrecision``, ``$MaxPrecision``] closest to ``value``.
-    If ``value`` does not belongs to that interval, and ``show_messages`` is True, a Message warning is shown.
+    Returns the ``float`` in the interval [``$MinPrecision``, ``$MaxPrecision``] closest
+    to ``value``.
+
+    If ``value`` does not belongs to that interval, and
+    ``show_messages`` is True, a Message warning is shown.
+
     If ``value`` fails to be evaluated as a number, returns None.
+
     """
     if value is SymbolMachinePrecision:
         return None
@@ -129,7 +136,7 @@ def prec(dps) -> int:
     return max(1, int(round((int(dps) + 1) * LOG2_10)))
 
 
-def min_prec(*args: BaseElement) -> Optional[float]:
+def min_prec(*args: BaseElement) -> Optional[int]:
     """
     Returns the precision of the expression with the minimum precision.
     If all the expressions are exact or non numeric, return None.

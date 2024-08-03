@@ -50,7 +50,6 @@ def test_compile_code():
         ("BesselJ[0,x]", 0.0, 1.0),
         ("Exp[BesselJ[0,x]-1.]", 0.0, 1.0),
     ]:
-
         expr = session.evaluate("Compile[{x}, " + str_expr + " ]")
         assert expr.get_head_name() == "System`CompiledFunction"
         assert len(expr.elements) == 3

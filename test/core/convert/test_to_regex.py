@@ -17,9 +17,9 @@ from mathics.core.convert.regex import to_regex
 def test_to_regex(str_expr, str_expected, msg):
     expr = evaluate(str_expr)
     if msg:
-        assert to_regex(expr, session.evaluation) == str_expected, msg
+        assert to_regex(expr) == str_expected, msg
     else:
-        assert to_regex(expr, session.evaluation) == str_expected
+        assert to_regex(expr) == str_expected
 
 
 @pytest.mark.parametrize(

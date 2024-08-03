@@ -79,7 +79,7 @@ incidental, or consequential damages.
 			and Graph Theory with Mathematica",
 			Addison-Wesley Publishing Co.
 *)
-(* :Mathematica Version: 2.3
+(* :Mathematica Version: 2.3, Mathics3 version 7.0.0
 *)
 
 BeginPackage["DiscreteMath`CombinatoricaV0.91`"]
@@ -204,7 +204,7 @@ EdgeConnectivity::usage = "EdgeConnectivity[g] computes the minimum number of ed
 
 Edges::usage = "Edges[g] returns the adjacency matrix of graph g."
 
-Element::usage = "Element[a,l] returns the lth element of nested list a, where l is a list of indices"
+Element::usage = "In Combinatorica, Element[a,l] returns the lth element of nested list a, where l is a list of indices"<>"\n also, in WMA,\n"<> Element::usage
 
 EmptyGraph::usage = "EmptyGraph[n] generates an empty graph on n vertices."
 
@@ -596,7 +596,7 @@ PermutationQ[p_List] := (Sort[p] == Range[Length[p]])
 Permute[l_List,p_?PermutationQ] := l [[ p ]]
 Permute[l_List,p_List] := Map[ (Permute[l,#])&, p] /; (Apply[And, Map[PermutationQ, p]])
 
-(* Section 1.1.1 Lexicographically Ordered Permutions, Pages 3-4 *)
+(* Section 1.1.1 Lexicographically Ordered Permutations, Pages 3-4 *)
 
 LexicographicPermutations[{}] := {{}}
 
@@ -683,7 +683,7 @@ MinimumChangePermutations[l_List] :=
 		]
 	]
 
-(* Section 1.1.5 Backtracking and Distict Permutations, Page 12-13 *)
+(* Section 1.1.5 Backtracking and Distinct Permutations, Page 12-13 *)
 Backtrack[space_List,partialQ_,solutionQ_,flag_:One] :=
 	Module[{n=Length[space],all={},done,index,v=2,solution},
 		index=Prepend[ Table[0,{n-1}],1];
@@ -2600,7 +2600,13 @@ TravelingSalesman[g_Graph] :=
 
 CostOfPath[Graph[g_,_],p_List] := Apply[Plus, Map[(Element[g,#])&,Partition[p,2,1]] ]
 
-Element[a_List,{index___}] := a[[ index ]]
+(*Element is a Builtin symbol with other meaning in WMA. To make this
+work in Combinatorica, let's just add this rule that does not collide
+with the standard behaviour:*)
+Unprotect[Element];
+Element[a_List,{index___}] := a[[ index ]];
+Protect[Element];
+(**)
 
 TriangleInequalityQ[e_?SquareMatrixQ] :=
 	Module[{i,j,k,n=Length[e],flag=True},

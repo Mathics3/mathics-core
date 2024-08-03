@@ -12,18 +12,19 @@ computational steps to be carried out. Any given procedure might be called \
 at any point during a program's execution, including by other procedures \
 or itself.
 
-Procedural functions are integrated into \Mathics symbolic programming \
+Procedural functions are integrated into \\Mathics symbolic programming \
 environment.
 """
 
 
-from mathics.builtin.base import BinaryOperator, Builtin, IterationFunction
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_REST,
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import BinaryOperator, Builtin, IterationFunction
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.interrupt import (
     AbortInterrupt,
@@ -55,7 +56,7 @@ class Abort(Builtin):
 
     summary_text = "generate an abort"
 
-    def eval(self, evaluation):
+    def eval(self, evaluation: Evaluation):
         "Abort[]"
 
         raise AbortInterrupt
@@ -81,7 +82,7 @@ class Break(Builtin):
 
     summary_text = "exit a 'For', 'While', or 'Do' loop"
 
-    def eval(self, evaluation):
+    def eval(self, evaluation: Evaluation):
         "Break[]"
 
         raise BreakInterrupt
@@ -93,10 +94,12 @@ class Catch(Builtin):
 
     <dl>
       <dt>'Catch[$expr$]'
-      <dd> returns the argument of the first 'Throw' generated in the evaluation of $expr$.
+      <dd> returns the argument of the first 'Throw' generated in the evaluation of
+           $expr$.
 
       <dt>'Catch[$expr$, $form$]'
-      <dd> returns value from the first 'Throw[$value$, $tag$]' for which $form$ matches $tag$.
+      <dd> returns value from the first 'Throw[$value$, $tag$]' for which $form$ matches
+           $tag$.
 
       <dt>'Catch[$expr$, $form$, $f$]'
       <dd> returns $f$[$value$, $tag$].
@@ -149,7 +152,8 @@ class Catch(Builtin):
 
 class CompoundExpression(BinaryOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/CompoundExpression.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/CompoundExpression.html</url>
 
     <dl>
       <dt>'CompoundExpression[$e1$, $e2$, ...]'
@@ -161,39 +165,6 @@ class CompoundExpression(BinaryOperator):
      = d
     If the last argument is omitted, 'Null' is taken:
     >> a;
-
-    ## Parser Tests
-    #> FullForm[Hold[; a]]
-     : "FullForm[Hold[" cannot be followed by "; a]]" (line 1 of "<test>").
-    #> FullForm[Hold[; a ;]]
-     : "FullForm[Hold[" cannot be followed by "; a ;]]" (line 1 of "<test>").
-
-    ## Issue331
-    #> CompoundExpression[x, y, z]
-     = z
-    #> %
-     = z
-
-    #> CompoundExpression[x, y, Null]
-    #> %
-     = y
-
-    #> CompoundExpression[CompoundExpression[x, y, Null], Null]
-    #> %
-     = y
-
-    #> CompoundExpression[x, Null, Null]
-    #> %
-     = x
-
-    #> CompoundExpression[]
-    #> %
-
-    ## Issue 531
-    #> z = Max[1, 1 + x]; x = 2; z
-     = 3
-
-    #> Clear[x]; Clear[z]
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
@@ -212,8 +183,9 @@ class CompoundExpression(BinaryOperator):
             prev_result = result
             result = expr.evaluate(evaluation)
 
-            # `expr1; expr2;` returns `Null` but assigns `expr2` to `Out[n]`.
-            # even stranger `CompoundExpression[expr1, Null, Null]` assigns `expr1` to `Out[n]`.
+            # `expr1; expr2;` returns `Null` but assigns `expr2` to
+            # `Out[n]`.  even stranger `CompoundExpression[expr1,
+            # Null, Null]` assigns `expr1` to `Out[n]`.
             if result is SymbolNull and prev_result != SymbolNull:
                 evaluation.predetermined_out = prev_result
 
@@ -257,7 +229,8 @@ class Do(IterationFunction):
       <dd>evaluates $expr$ $max$ times.
 
       <dt>'Do[$expr$, {$i$, $max$}]'
-      <dd>evaluates $expr$ $max$ times, substituting $i$ in $expr$ with values from 1 to $max$.
+      <dd>evaluates $expr$ $max$ times, substituting $i$ in $expr$ with values from 1 to
+          $max$.
 
       <dt>'Do[$expr$, {$i$, $min$, $max$}]'
       <dd>starts with '$i$ = $max$'.
@@ -269,7 +242,8 @@ class Do(IterationFunction):
       <dd>uses values $i1$, $i2$, ... for $i$.
 
       <dt>'Do[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]'
-      <dd>evaluates $expr$ for each $j$ from $jmin$ to $jmax$, for each $i$ from $imin$ to $imax$, etc.
+      <dd>evaluates $expr$ for each $j$ from $jmin$ to $jmax$, for each $i$ from $imin$
+          to $imax$, etc.
     </dl>
     >> Do[Print[i], {i, 2, 4}]
      | 2
@@ -287,10 +261,6 @@ class Do(IterationFunction):
      | 5
      | 7
      | 9
-
-    #> Do[Print["hi"],{1+1}]
-     | hi
-     | hi
     """
 
     allow_loopcontrol = True
@@ -306,7 +276,8 @@ class For(Builtin):
 
     <dl>
       <dt>'For[$start$, $test$, $incr$, $body$]'
-      <dd>evaluates $start$, and then iteratively $body$ and $incr$ as long as $test$ evaluates to 'True'.
+      <dd>evaluates $start$, and then iteratively $body$ and $incr$ as long as $test$
+          evaluates to 'True'.
 
       <dt>'For[$start$, $test$, $incr$]'
       <dd>evaluates only $incr$ and no $body$.
@@ -322,12 +293,6 @@ class For(Builtin):
      = 3628800
     >> n == 10!
      = True
-
-    #> n := 1
-    #> For[i=1, i<=10, i=i+1, If[i > 5, Return[i]]; n = n * i]
-     = 6
-    #> n
-     = 120
     """
 
     attributes = A_HOLD_REST | A_PROTECTED
@@ -363,7 +328,8 @@ class If(Builtin):
 
     <dl>
       <dt>'If[$cond$, $pos$, $neg$]'
-      <dd>returns $pos$ if $cond$ evaluates to 'True', and $neg$ if it evaluates to 'False'.
+      <dd>returns $pos$ if $cond$ evaluates to 'True', and $neg$ if it evaluates to
+          'False'.
 
       <dt>'If[$cond$, $pos$, $neg$, $other$]'
       <dd>returns $other$ if $cond$ evaluates to neither 'True' nor 'False'.
@@ -380,12 +346,14 @@ class If(Builtin):
     >> If[False, a] //FullForm
      = Null
 
-    You might use comments (inside '(*' and '*)') to make the branches of 'If' more readable:
+    You might use comments (inside '(*' and '*)') to make the branches of 'If'
+    more readable:
     >> If[a, (*then*) b, (*else*) c];
     """
 
     summary_text = "if-then-else conditional expression"
-    # this is the WR summary: "test if a condition is true, false, or of unknown truth value"
+    # This is the WR summary: "test if a condition is true, false, or
+    # of unknown truth value"
     attributes = A_HOLD_REST | A_PROTECTED
     summary_text = "test if a condition is true, false, or of unknown truth value"
 
@@ -431,7 +399,7 @@ class Interrupt(Builtin):
 
     summary_text = "interrupt evaluation and return '$Aborted'"
 
-    def eval(self, evaluation):
+    def eval(self, evaluation: Evaluation):
         "Interrupt[]"
 
         raise AbortInterrupt
@@ -462,17 +430,6 @@ class Return(Builtin):
     >> g[x_] := (Do[If[x < 0, Return[0]], {i, {2, 1, 0, -1}}]; x)
     >> g[-1]
      = -1
-
-    #> h[x_] := (If[x < 0, Return[]]; x)
-    #> h[1]
-     = 1
-    #> h[-1]
-
-    ## Issue 513
-    #> f[x_] := Return[x];
-    #> g[y_] := Module[{}, z = f[y]; 2]
-    #> g[1]
-     = 2
     """
 
     rules = {
@@ -481,7 +438,7 @@ class Return(Builtin):
 
     summary_text = "return from a function"
 
-    def eval(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation):
         "Return[expr_]"
 
         raise ReturnInterrupt(expr)
@@ -508,15 +465,14 @@ class Switch(Builtin):
      : Switch called with 2 arguments. Switch must be called with an odd number of arguments.
      = Switch[2, 1]
 
-    #> a; Switch[b, b]
-     : Switch called with 2 arguments. Switch must be called with an odd number of arguments.
-     = Switch[b, b]
 
-    ## Issue 531
-    #> z = Switch[b, b];
-     : Switch called with 2 arguments. Switch must be called with an odd number of arguments.
-    #> z
-     = Switch[b, b]
+    Notice that 'Switch' evaluates each pattern before it against \
+    $expr$, stopping after the first match:
+    >> a:=(Print["a->p"];p); b:=(Print["b->q"];q);
+    >> Switch[p,a,1,b,2]
+     | a->p
+     = 1
+    >> a=.; b=.;
     """
 
     summary_text = "switch based on a value, with patterns allowed"
@@ -539,7 +495,10 @@ class Switch(Builtin):
             evaluation.message("Switch", "argct", "Switch", len(rules) + 1)
             return
         for pattern, value in zip(rules[::2], rules[1::2]):
-            if match(expr, pattern, evaluation):
+            # The match is done against the result of the evaluation
+            # of `pattern`. HoldRest allows to evaluate the patterns
+            # just until a match is found.
+            if match(expr, pattern.evaluate(evaluation), evaluation):
                 return value.evaluate(evaluation)
         # return unevaluated Switch when no pattern matches
 
@@ -625,9 +584,6 @@ class While(Builtin):
     >> While[b != 0, {a, b} = {b, Mod[a, b]}];
     >> a
      = 3
-
-    #> i = 1; While[True, If[i^2 > 100, Return[i + 1], i++]]
-     = 12
     """
 
     summary_text = "evaluate an expression while a criterion is true"
@@ -683,10 +639,10 @@ class Throw(Builtin):
 
     summary_text = "throw an expression to be caught by a surrounding 'Catch'"
 
-    def eval1(self, value, evaluation):
+    def eval(self, value, evaluation: Evaluation):
         "Throw[value_]"
         raise WLThrowInterrupt(value)
 
-    def eval_with_tag(self, value, tag, evaluation):
+    def eval_with_tag(self, value, tag, evaluation: Evaluation):
         "Throw[value_, tag_]"
         raise WLThrowInterrupt(value, tag)

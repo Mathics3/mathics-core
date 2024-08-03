@@ -5,14 +5,12 @@
 Drawing Graphics
 """
 
-# This following line tells documentation how to sort this module
-sort_order = "mathics.builtin.drawing-graphics"
-
+import logging
 from math import sqrt
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_directives import (
     CMYKColor,
+    ColorError,
     GrayLevel,
     Hue,
     LABColor,
@@ -32,6 +30,7 @@ from mathics.builtin.drawing.graphics_internals import (
 from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Integer, Rational, Real
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.exceptions import BoxExpressionError
 from mathics.core.expression import Expression
@@ -52,6 +51,9 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.nevaluator import eval_N
 
+# This following line tells documentation how to sort this module
+sort_order = "mathics.builtin.drawing-graphics"
+
 GRAPHICS_OPTIONS = {
     "AspectRatio": "Automatic",
     "Axes": "False",
@@ -67,6 +69,9 @@ GRAPHICS_OPTIONS = {
 
 # fraction of point relative canvas width
 DEFAULT_POINT_FACTOR = 0.005
+
+
+ERROR_BACKGROUND_COLOR = RGBColor(components=[1, 0.3, 0.3, 0.25])
 
 
 class CoordinatesError(BoxExpressionError):
@@ -262,6 +267,10 @@ class Graphics(Builtin):
     >> Graphics[Rectangle[]] // ToBoxes // Head
      = GraphicsBox
 
+    The 'Background' option allows to set the color of the background:
+    >> Graphics[{Green, Disk[]}, Background->RGBColor[.6, .7, 1.]]
+     = -Graphics-
+
     In 'TeXForm', 'Graphics' produces Asymptote figures:
     >> Graphics[Circle[]] // TeXForm
      = #<--#
@@ -431,7 +440,7 @@ class AbsoluteThickness(_Thickness):
      = -Graphics-
     """
 
-    summary_text = "graphics directive be specifying absolute line thickness"
+    summary_text = "graphics directive for the absolute line thickness"
 
     def get_thickness(self):
         return self.graphics.translate_absolute((self.value, 0))[0]
@@ -485,7 +494,7 @@ class PointSize(_Size):
     = {-Graphics3D-, -Graphics3D-, -Graphics3D-}
     """
 
-    summary_text = "graphics directive specifying relative sizes of points"
+    summary_text = "graphics directive for relative sizes of points"
 
     def get_absolute_size(self):
         if self.graphics.view_width is None:
@@ -592,7 +601,8 @@ class Polygon(Builtin):
 
     Notice that there is a line connecting from the last point to the first one.
 
-    A point is an element of the polygon if a ray from the point in any direction in the plane crosses the boundary line segments an odd number of times.
+    A point is an element of the polygon if a ray from the point in any direction in \
+    the plane crosses the boundary line segments an odd number of times.
     >> Graphics[Polygon[{{150,0},{121,90},{198,35},{102,35},{179,90}}]]
     = -Graphics-
 
@@ -600,7 +610,7 @@ class Polygon(Builtin):
     = -Graphics3D-
     """
 
-    summary_text = "a polygon in 2D or 3D"
+    summary_text = "graphics primitive for a polygon in 2D or 3D"
 
 
 class RegularPolygon(Builtin):
@@ -628,7 +638,7 @@ class RegularPolygon(Builtin):
     = -Graphics-
     """
 
-    summary_text = "a regular polygon in 2D"
+    summary_text = "graphics primitve for a regular polygon in 2D"
 
 
 class Arrow(Builtin):
@@ -645,10 +655,12 @@ class Arrow(Builtin):
       <dd>represents a line with arrow that keeps a distance of $s$ from $p1$ and $p2$.
 
       <dt>'Arrow[{$point_1$, $point_2$}, {$s1$, $s2$}]'
-      <dd>represents a line with arrow that keeps a distance of $s1$ from $p1$ and a distance of $s2$ from $p2$.
+      <dd>represents a line with arrow that keeps a distance of $s1$ from $p1$ and a \
+          distance of $s2$ from $p2$.
 
       <dt>'Arrow[{$point_1$, $point_2$}, {$s1$, $s2$}]'
-      <dd>represents a line with arrow that keeps a distance of $s1$ from $p1$ and a distance of $s2$ from $p2$.
+      <dd>represents a line with arrow that keeps a distance of $s1$ from $p1$ and a \
+          distance of $s2$ from $p2$.
     </dl>
 
     >> Graphics[Arrow[{{0,0}, {1,1}}]]
@@ -668,7 +680,7 @@ class Arrow(Builtin):
      = {-Graphics-, -Graphics-, -Graphics-, -Graphics-, -Graphics-}
     """
 
-    summary_text = "graphics primitive to specify arbitrary graphical arrows"
+    summary_text = "graphics primitive for arbitrary graphical arrows"
 
 
 class Arrowheads(_GraphicsDirective):
@@ -680,19 +692,24 @@ class Arrowheads(_GraphicsDirective):
 
     <dl>
       <dt>'Arrowheads[$s$]'
-      <dd>specifies that Arrow[] draws one arrow of size $s$ (relative to width of image, defaults to 0.04).
+      <dd>specifies that Arrow[] draws one arrow of size $s$ (relative to width of \
+          image, defaults to 0.04).
 
       <dt>'Arrowheads[{$spec1$, $spec2$, ..., $specn$}]'
-      <dd>specifies that Arrow[] draws n arrows as defined by $spec1$, $spec2$, ... $specn$.
+      <dd>specifies that Arrow[] draws n arrows as defined by $spec1$, $spec2$, \
+          ... $specn$.
 
       <dt>'Arrowheads[{{$s$}}]'
       <dd>specifies that one arrow of size $s$ should be drawn.
 
       <dt>'Arrowheads[{{$s$, $pos$}}]'
-      <dd>specifies that one arrow of size $s$ should be drawn at position $pos$ (for the arrow to be on the line, $pos$ has to be between 0, i.e. the start for the line, and 1, i.e. the end of the line).
+      <dd>specifies that one arrow of size $s$ should be drawn at position $pos$ (for \
+          the arrow to be on the line, $pos$ has to be between 0, i.e. the start for \
+          the line, and 1, i.e. the end of the line).
 
       <dt>'Arrowheads[{{$s$, $pos$, $g$}}]'
-      <dd>specifies that one arrow of size $s$ should be drawn at position $pos$ using Graphics $g$.
+      <dd>specifies that one arrow of size $s$ should be drawn at position $pos$ \
+          using Graphics $g$.
     </dl>
 
     Arrows on both ends can be achieved using negative sizes:
@@ -711,9 +728,7 @@ class Arrowheads(_GraphicsDirective):
 
     default_size = 0.04
 
-    summary_text = (
-        "graphics directive specifying the form and placement of an arrowhead"
-    )
+    summary_text = "graphics directive for the form and placement of an arrowhead"
 
     symbolic_sizes = {
         "System`Tiny": 3,
@@ -1081,6 +1096,8 @@ class _GraphicsElements:
                     raise BoxExpressionError
             return new_style
 
+        failed = []
+
         def convert(content, style):
             if content.has_form("List", None):
                 items = content.elements
@@ -1092,31 +1109,57 @@ class _GraphicsElements:
                     continue
                 head = item.get_head()
                 if head in style_and_form_heads:
-                    style.append(item)
+                    try:
+                        style.append(item)
+                    except ColorError:
+                        failed.append(head)
                 elif head is Symbol("System`StyleBox"):
                     if len(item.elements) < 1:
-                        raise BoxExpressionError
+                        failed.append(item.head)
                     for element in convert(
                         item.elements[0], stylebox_style(style, item.elements[1:])
                     ):
                         yield element
                 elif head.name[-3:] == "Box":  # and head[:-3] in element_heads:
                     element_class = get_class(head)
+                    if element_class is None:
+                        failed.append(head)
+                        continue
                     options = get_options(head.name[:-3])
                     if options:
                         data, options = _data_and_options(item.elements, options)
                         new_item = Expression(head, *data)
-                        element = element_class(self, style, new_item, options)
+                        try:
+                            element = element_class(self, style, new_item, options)
+                        except (BoxExpressionError, CoordinatesError):
+                            failed.append(head)
+                            continue
                     else:
-                        element = element_class(self, style, item)
+                        try:
+                            element = element_class(self, style, item)
+                        except (BoxExpressionError, CoordinatesError):
+                            failed.append(head)
+                            continue
                     yield element
                 elif head is SymbolList:
                     for element in convert(item, style):
                         yield element
                 else:
-                    raise BoxExpressionError
+                    failed.append(head)
+                    continue
+
+            # if failed:
+            #    yield build_error_box2(style)
+            #    raise BoxExpressionError(messages)
 
         self.elements = list(convert(content, self.style_class(self)))
+        if failed:
+            messages = "\n".join(
+                [f"{str(h)} is not a valid primitive or directive." for h in failed]
+            )
+            self.tooltip_text = messages
+            self.background_color = ERROR_BACKGROUND_COLOR
+            logging.warn(messages)
 
     def create_style(self, expr):
         style = self.style_class(self)
@@ -1197,7 +1240,6 @@ class GraphicsElements(_GraphicsElements):
     def set_size(
         self, xmin, ymin, extent_width, extent_height, pixel_width, pixel_height
     ):
-
         self.xmin, self.ymin = xmin, ymin
         self.extent_width, self.extent_height = extent_width, extent_height
         self.pixel_width, self.pixel_height = pixel_width, pixel_height
@@ -1232,7 +1274,7 @@ class Circle(Builtin):
     """
 
     rules = {"Circle[]": "Circle[{0, 0}]"}
-    summary_text = "empty circle, ellipse, or arc graphics primitive"
+    summary_text = "graphics primitive for an empty circle, ellipse, or arc"
 
 
 class Disk(Builtin):
@@ -1444,9 +1486,6 @@ class Text(Inset):
 
     >> Graphics[{Text["First", {0, 0}], Text["Second", {1, 1}]}, Axes->True, PlotRange->{{-2, 2}, {-2, 2}}]
      = -Graphics-
-
-    #> Graphics[{Text[x, {0,0}]}]
-     = -Graphics-
     """
 
     summary_text = "arbitrary text or other expressions in 2D or 3D"
@@ -1493,7 +1532,7 @@ class Thickness(_Thickness):
      = -Graphics-
     """
 
-    summary_text = "graphics directive to specify line thicknesses"
+    summary_text = "graphics directive for line thicknesses"
 
     def get_thickness(self):
         return self.graphics.translate_relative(self.value)

@@ -3,9 +3,9 @@ Location Statistics
 """
 
 from mathics.algorithm.introselect import introselect
-from mathics.builtin.base import Builtin
 from mathics.builtin.statistics.base import NotRectangularException, Rectangular
 from mathics.core.atoms import Integer2
+from mathics.core.builtin import Builtin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import SymbolDivide, SymbolPlus

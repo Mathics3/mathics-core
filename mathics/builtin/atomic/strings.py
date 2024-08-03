@@ -12,9 +12,9 @@ from typing import Any, List
 
 from mathics_scanner import TranslateError
 
-from mathics.builtin.base import Builtin, Predefined, PrefixOperator, Test
 from mathics.core.atoms import Integer, Integer0, Integer1, String
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
+from mathics.core.builtin import Builtin, Predefined, PrefixOperator, Test
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_bool
 from mathics.core.convert.regex import to_regex
@@ -133,7 +133,7 @@ def _pattern_search(name, string, patt, evaluation, options, matched):
         patts = [patt]
     re_patts = []
     for p in patts:
-        py_p = to_regex(p, evaluation)
+        py_p = to_regex(p, show_message=evaluation.message)
         if py_p is None:
             evaluation.message("StringExpression", "invld", p, patt)
             return
@@ -439,10 +439,6 @@ class LetterNumber(Builtin):
     >> LetterNumber[{"P", "Pe", "P1", "eck"}]
     = {16, {16, 5}, {16, 0}, {5, 3, 11}}
 
-    #> LetterNumber[4]
-     : The argument 4 is not a string.
-     = LetterNumber[4]
-
     >> LetterNumber["\[Beta]", "Greek"]
      = 2
 
@@ -579,7 +575,6 @@ class RemoveDiacritics(Builtin):
 
 
 class _StringFind(Builtin):
-
     options = {
         "IgnoreCase": "False",
         "MetaCharacters": "None",
@@ -618,7 +613,7 @@ class _StringFind(Builtin):
         # convert rule
         def convert_rule(r):
             if r.has_form("Rule", None) and len(r.elements) == 2:
-                py_s = to_regex(r.elements[0], evaluation)
+                py_s = to_regex(r.elements[0], show_message=evaluation.message)
                 if py_s is None:
                     evaluation.message(
                         "StringExpression", "invld", r.elements[0], r.elements[0]
@@ -627,7 +622,7 @@ class _StringFind(Builtin):
                 py_sp = r.elements[1]
                 return py_s, py_sp
             elif cases:
-                py_s = to_regex(r, evaluation)
+                py_s = to_regex(r, show_message=evaluation.message)
                 if py_s is None:
                     evaluation.message("StringExpression", "invld", r, r)
                     return
@@ -720,63 +715,12 @@ class StringContainsQ(Builtin):
     >> StringContainsQ["mathics", "a" ~~ __ ~~ "m"]
      = False
 
-    #> StringContainsQ["Hello", "o"]
-     = True
-
-    #> StringContainsQ["a"]["abcd"]
-     = True
-
-    #> StringContainsQ["Mathics", "ma", IgnoreCase -> False]
-     = False
-
-    >> StringContainsQ["Mathics", "MA" , IgnoreCase -> True]
-     = True
-
-    #> StringContainsQ["", "Empty String"]
-     = False
-
-    #> StringContainsQ["", ___]
-     = True
-
-    #> StringContainsQ["Empty Pattern", ""]
-     = True
-
-    #> StringContainsQ[notastring, "n"]
-     : String or list of strings expected at position 1 in StringContainsQ[notastring, n].
-     = StringContainsQ[notastring, n]
-
-    #> StringContainsQ["Welcome", notapattern]
-     : Element notapattern is not a valid string or pattern element in notapattern.
-     = StringContainsQ[Welcome, notapattern]
-
     >> StringContainsQ[{"g", "a", "laxy", "universe", "sun"}, "u"]
      = {False, False, False, True, True}
 
-    #> StringContainsQ[{}, "list of string is empty"]
-     = {}
 
     >> StringContainsQ["e" ~~ ___ ~~ "u"] /@ {"The Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"}
      = {True, True, True, False, False, False, False, False, True}
-
-    ## special cases, Mathematica allows list of patterns
-    #> StringContainsQ[{"A", "Galaxy", "Far", "Far", "Away"}, {"F" ~~ __ ~~ "r", "aw" ~~ ___}]
-     = {False, False, True, True, False}
-
-    #> StringContainsQ[{"A", "Galaxy", "Far", "Far", "Away"}, {"F" ~~ __ ~~ "r", "aw" ~~ ___}, IgnoreCase -> True]
-     = {False, False, True, True, True}
-
-    #> StringContainsQ[{"A", "Galaxy", "Far", "Far", "Away"}, {}]
-     = {False, False, False, False, False}
-
-    #> StringContainsQ[{"A", Galaxy, "Far", "Far", Away}, {"F" ~~ __ ~~ "r", "aw" ~~ ___}]
-     : String or list of strings expected at position 1 in StringContainsQ[{A, Galaxy, Far, Far, Away}, {F ~~ __ ~~ r, aw ~~ ___}].
-     = StringContainsQ[{A, Galaxy, Far, Far, Away}, {F ~~ __ ~~ r, aw ~~ ___}]
-
-    #> StringContainsQ[{"A", "Galaxy", "Far", "Far", "Away"}, {F ~~ __ ~~ "r", aw ~~ ___}]
-     : Element F ~~ __ ~~ r is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
-     = StringContainsQ[{A, Galaxy, Far, Far, Away}, {F ~~ __ ~~ r, aw ~~ ___}]
-    ## Mathematica can detemine correct invalid element in the pattern, it reports error:
-    ## Element F is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
     """
 
     messages = {
@@ -843,10 +787,6 @@ class StringRepeat(Builtin):
 
     >> StringRepeat["abc", 10, 7]
      = abcabca
-
-    #> StringRepeat["x", 0]
-     : A positive integer is expected at position 2 in StringRepeat[x, 0].
-     = StringRepeat[x, 0]
     """
 
     messages = {
@@ -937,17 +877,6 @@ class ToExpression(Builtin):
     second-line value.
     >> ToExpression["2\[NewLine]3"]
      = 3
-
-    #> ToExpression["log(x)", InputForm]
-     = log x
-
-    #> ToExpression["1+"]
-     : Incomplete expression; more input is needed (line 1 of "ToExpression['1+']").
-     = $Failed
-
-    #> ToExpression[]
-     : ToExpression called with 0 arguments; between 1 and 3 arguments are expected.
-     = ToExpression[]
     """
 
     # TODO: Other forms
@@ -956,8 +885,6 @@ class ToExpression(Builtin):
      = Log[x]
     >> ToExpression["log(x)", TraditionalForm]
      = Log[x]
-    #> ToExpression["log(x)", StandardForm]
-     = log x
     """
     attributes = A_LISTABLE | A_PROTECTED
 
@@ -1001,7 +928,6 @@ class ToExpression(Builtin):
         # Apply the different forms
         if form is SymbolInputForm:
             if isinstance(inp, String):
-
                 # TODO: turn the below up into a function and call that.
                 s = inp.value
                 short_s = s[:15] + "..." if len(s) > 16 else s

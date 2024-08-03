@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from mathics.builtin.base import check_requires_list
 from mathics.core.atoms import Number, Real
+from mathics.core.builtin import check_requires_list
 from mathics.core.convert.function import expression_to_callable_and_args
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression

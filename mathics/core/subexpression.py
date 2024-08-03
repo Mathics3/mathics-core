@@ -289,7 +289,7 @@ class SubExpression:
     def to_expression(self):
         return Expression(
             self._headp.to_expression(),
-            *(element.to_expression() for element in self._elementsp)
+            *(element.to_expression() for element in self._elementsp),
         )
 
     def replace(self, new):

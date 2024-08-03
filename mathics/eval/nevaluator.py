@@ -15,7 +15,6 @@ import sympy
 
 from mathics.core.atoms import Number
 from mathics.core.attributes import A_N_HOLD_ALL, A_N_HOLD_FIRST, A_N_HOLD_REST
-from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -50,6 +49,8 @@ def eval_NValues(
     stored in ``evaluation.definitions``.
     If ``prec`` can not be evaluated as a number, returns None, otherwise, returns an expression.
     """
+    from mathics.core.convert.sympy import from_sympy
+
     # The first step is to determine the precision goal
     try:
         # Here ``get_precision`` is called with ``show_messages``
@@ -89,7 +90,7 @@ def eval_NValues(
 
     # Here we look for the NValues associated to the
     # lookup_name of the expression.
-    # If a rule is found and successfuly applied,
+    # If a rule is found and successfully applied,
     # reevaluate the result and apply `eval_NValues` again.
     # This should be implemented as a loop instead of
     # recursively.

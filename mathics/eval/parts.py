@@ -6,7 +6,7 @@ Evaluation methods for accessing and manipulating elements in nested lists / exp
 
 from typing import List
 
-from mathics.core.atoms import Integer, Integer1
+from mathics.core.atoms import Integer
 from mathics.core.convert.expression import make_expression
 from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.exceptions import (
@@ -20,11 +20,7 @@ from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.subexpression import SubExpression
 from mathics.core.symbols import Atom, Symbol, SymbolList
-from mathics.core.systemsymbols import (
-    SymbolDirectedInfinity,
-    SymbolInfinity,
-    SymbolNothing,
-)
+from mathics.core.systemsymbols import SymbolInfinity, SymbolNothing
 from mathics.eval.patterns import Matcher
 
 
@@ -63,7 +59,7 @@ def get_part(expression: BaseElement, indices: List[int]) -> BaseElement:
 
 
 def set_part(expression, indices: List[int], new_atom: Atom) -> BaseElement:
-    """Replace all parts of ``expression`` specified by ``indicies`` with
+    """Replace all parts of ``expression`` specified by ``indices`` with
     ``new_atom`. Return the modified compound expression.
     """
 
@@ -439,7 +435,7 @@ def python_seq(start, stop, step, length):
     if start == 0 or stop == 0:
         return None
 
-    # wrap negative values to postive and convert from 1-based to 0-based
+    # wrap negative values to positive and convert from 1-based to 0-based
     if start < 0:
         start += length
     else:
@@ -551,7 +547,7 @@ def _drop_span_selector(seq):
 
 def deletecases_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
     """
-    This function walks the expression `expr` and deleting occurrencies of `pattern`
+    This function walks the expression `expr` and deleting occurrences of `pattern`
 
     If levelspec specifies a number, only those positions with
     `levelspec` "coordinates" are return. By default, it just return

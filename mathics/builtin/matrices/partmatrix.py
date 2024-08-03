@@ -7,7 +7,7 @@ Methods for manipulating Matrices.
 """
 
 
-from mathics.builtin.base import Builtin
+from mathics.core.builtin import Builtin
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
 

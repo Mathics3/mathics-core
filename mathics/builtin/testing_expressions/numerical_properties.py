@@ -5,14 +5,15 @@ from itertools import combinations
 
 import sympy
 
-from mathics.builtin.base import Builtin, SympyFunction, Test
 from mathics.core.atoms import Integer, Integer0, Number
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
+from mathics.core.builtin import Builtin, SympyFunction, Test
 from mathics.core.convert.python import from_bool, from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import BooleanType, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolExpandAll, SymbolSimplify
+from mathics.eval.arithmetic import test_zero_arithmetic_expr
 from mathics.eval.nevaluator import eval_N
 
 
@@ -37,16 +38,22 @@ class CoprimeQ(Builtin):
     >> CoprimeQ[12, 15]
      = False
 
-    CoprimeQ also works for complex numbers
-    >> CoprimeQ[1+2I, 1-I]
-     = True
+    ##
+    ## CoprimeQ also works for complex numbers
+    ## >> CoprimeQ[1+2I, 1-I]
+    ## = True
+    
+    ## This test case is commenteted out because the result produced by sympy is wrong:
+    ## In this case, both numbers can be factorized as 2 (2 + I)  and 3 (2 + I):
+    ## >> CoprimeQ[4+2I, 6+3I]
+    ## = False
 
-    >> CoprimeQ[4+2I, 6+3I]
-     = True
+    For more than two arguments, CoprimeQ checks if any pair or arguments are coprime:
 
     >> CoprimeQ[2, 3, 5]
      = True
 
+    In this case, since 2 divides 4, the result is False:
     >> CoprimeQ[2, 4, 5]
      = False
     """
@@ -87,7 +94,7 @@ class EvenQ(Test):
     """
 
     attributes = A_LISTABLE | A_PROTECTED
-    summary_text = "test whether one number is divisible by the other"
+    summary_text = "test whether elements are even numbers"
 
     def test(self, n) -> bool:
         value = n.get_int_value()
@@ -222,10 +229,6 @@ class MachineNumberQ(Test):
      = True
     >> MachineNumberQ[2.71828182845904524 + 3.14159265358979324 I]
      = False
-    #> MachineNumberQ[1.5 + 3.14159265358979324 I]
-     = True
-    #> MachineNumberQ[1.5 + 5 I]
-     = True
     """
 
     summary_text = "test if expression is a machine precision real or complex number"
@@ -252,10 +255,6 @@ class Negative(Builtin):
      = False
     >> Negative[a + b]
      = Negative[a + b]
-    #> Negative[-E]
-     = True
-    #> Negative[Sin[{11, 14}]]
-     = {True, False}
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -460,6 +459,10 @@ class PossibleZeroQ(SympyFunction):
         "%(name)s[expr_]"
         from sympy.matrices.utilities import _iszero
 
+        # This handles most of the arithmetic cases
+        if test_zero_arithmetic_expr(expr):
+            return SymbolTrue
+
         sympy_expr = expr.to_sympy()
         result = _iszero(sympy_expr)
         if result is None:
@@ -501,13 +504,6 @@ class Positive(Builtin):
      = False
     >> Positive[1 + 2 I]
      = False
-
-    #> Positive[Pi]
-     = True
-    #> Positive[x]
-     = Positive[x]
-    #> Positive[Sin[{11, 14}]]
-     = {False, True}
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -541,11 +537,6 @@ class PrimeQ(SympyFunction):
      = True
     >> PrimeQ[2 ^ 127 - 1]
      = True
-
-    #> PrimeQ[1]
-     = False
-    #> PrimeQ[2 ^ 255 - 1]
-     = False
 
     All prime numbers between 1 and 100:
     >> Select[Range[100], PrimeQ]

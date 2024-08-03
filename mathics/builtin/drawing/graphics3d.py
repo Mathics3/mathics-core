@@ -5,11 +5,6 @@
 Functions for working with 3D graphics.
 """
 
-# This tells documentation how to sort this module
-# Here we are also hiding "drawing" since this erroneously appears at the top level.
-sort_order = "mathics.builtin.three-dimensional-graphics"
-
-from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_directives import RGBColor
 from mathics.builtin.graphics import (
     CoordinatesError,
@@ -18,9 +13,14 @@ from mathics.builtin.graphics import (
     _GraphicsElements,
 )
 from mathics.core.atoms import Integer, Rational, Real
+from mathics.core.builtin import Builtin
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.symbols import SymbolN
 from mathics.eval.nevaluator import eval_N
+
+# This tells documentation how to sort this module
+# Here we are also hiding "drawing" since this erroneously appears at the top level.
+sort_order = "mathics.builtin.three-dimensional-graphics"
 
 
 def coords3D(value):
@@ -63,66 +63,48 @@ class Style3D(Style):
 
 class Graphics3D(Graphics):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Graphics3D.html</url>
+        <url>:WMA link:https://reference.wolfram.com/language/ref/Graphics3D.html</url>
 
-    <dl>
-      <dt>'Graphics3D[$primitives$, $options$]'
-      <dd>represents a three-dimensional graphic.
+        <dl>
+          <dt>'Graphics3D[$primitives$, $options$]'
+          <dd>represents a three-dimensional graphic.
 
-      <dd>See also the Section "Plotting" for a list of Plot options.
-    </dl>
+          See <url>:Drawing Option and Option Values:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    </url> for a list of Plot options.
+        </dl>
 
-    >> Graphics3D[Polygon[{{0,0,0}, {0,1,1}, {1,0,0}}]]
-     = -Graphics3D-
+        >> Graphics3D[Polygon[{{0,0,0}, {0,1,1}, {1,0,0}}]]
+         = -Graphics3D-
 
-    In 'TeXForm', 'Graphics3D' creates Asymptote figures:
-    >> Graphics3D[Sphere[]] // TeXForm
-     = #<--#
-     . \begin{asy}
-     . import three;
-     . import solids;
-     . size(6.6667cm, 6.6667cm);
-     . currentprojection=perspective(2.6,-4.8,4.0);
-     . currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
-     . // Sphere3DBox
-     . draw(surface(sphere((0, 0, 0), 1)), rgb(1,1,1)+opacity(1));
-     . draw(((-1,-1,-1)--(1,-1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-1,1,-1)--(1,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-1,-1,1)--(1,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-1,1,1)--(1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-1,-1,-1)--(-1,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((1,-1,-1)--(1,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-1,-1,1)--(-1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((1,-1,1)--(1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-1,-1,-1)--(-1,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((1,-1,-1)--(1,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-1,1,-1)--(-1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((1,1,-1)--(1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . \end{asy}
+        The 'Background' option allows to set the color of the background:
+        >> Graphics3D[Sphere[], Background->RGBColor[.6, .7, 1.]]
+         = -Graphics3D-
 
-    #> Graphics3D[Point[Table[{Sin[t], Cos[t], 0}, {t, 0, 2. Pi, Pi / 15.}]]] // TeXForm
-     = #<--#
-     . \begin{asy}
-     . import three;
-     . import solids;
-     . size(6.6667cm, 6.6667cm);
-     . currentprojection=perspective(2.6,-4.8,4.0);
-     . currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
-     . // Point3DBox
-     . path3 g=(0,1,0)--(0.20791,0.97815,0)--(0.40674,0.91355,0)--(0.58779,0.80902,0)--(0.74314,0.66913,0)--(0.86603,0.5,0)--(0.95106,0.30902,0)--(0.99452,0.10453,0)--(0.99452,-0.10453,0)--(0.95106,-0.30902,0)--(0.86603,-0.5,0)--(0.74314,-0.66913,0)--(0.58779,-0.80902,0)--(0.40674,-0.91355,0)--(0.20791,-0.97815,0)--(5.6655e-16,-1,0)--(-0.20791,-0.97815,0)--(-0.40674,-0.91355,0)--(-0.58779,-0.80902,0)--(-0.74314,-0.66913,0)--(-0.86603,-0.5,0)--(-0.95106,-0.30902,0)--(-0.99452,-0.10453,0)--(-0.99452,0.10453,0)--(-0.95106,0.30902,0)--(-0.86603,0.5,0)--(-0.74314,0.66913,0)--(-0.58779,0.80902,0)--(-0.40674,0.91355,0)--(-0.20791,0.97815,0)--(1.5314e-15,1,0)--cycle;dot(g, rgb(0, 0, 0));
-     . draw(((-0.99452,-1,-1)--(0.99452,-1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-0.99452,1,-1)--(0.99452,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-0.99452,-1,1)--(0.99452,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-0.99452,1,1)--(0.99452,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-0.99452,-1,-1)--(-0.99452,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((0.99452,-1,-1)--(0.99452,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-0.99452,-1,1)--(-0.99452,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((0.99452,-1,1)--(0.99452,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-0.99452,-1,-1)--(-0.99452,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((0.99452,-1,-1)--(0.99452,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-0.99452,1,-1)--(-0.99452,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((0.99452,1,-1)--(0.99452,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . \end{asy}
+        In 'TeXForm', 'Graphics3D' creates Asymptote figures:
+        >> Graphics3D[Sphere[]] // TeXForm
+         = #<--#
+         . \begin{asy}
+         . import three;
+         . import solids;
+         . size(6.6667cm, 6.6667cm);
+         . currentprojection=perspective(2.6,-4.8,4.0);
+         . currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
+         . // Sphere3DBox
+         . draw(surface(sphere((0, 0, 0), 1)), rgb(1,1,1)+opacity(1));
+         . draw(((-1,-1,-1)--(1,-1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((-1,1,-1)--(1,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((-1,-1,1)--(1,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((-1,1,1)--(1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((-1,-1,-1)--(-1,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((1,-1,-1)--(1,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((-1,-1,1)--(-1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((1,-1,1)--(1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((-1,-1,-1)--(-1,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((1,-1,-1)--(1,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((-1,1,-1)--(-1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((1,1,-1)--(1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . \end{asy}
     """
     summary_text = "a three-dimensional graphics image wrapper"
     options = Graphics.options.copy()
@@ -192,7 +174,8 @@ class Sphere(Builtin):
     <dt>'Sphere[{$x$, $y$, $z$}, $r$]'
         <dd>is a sphere of radius $r$ centered at the point {$x$, $y$, $z$}.
     <dt>'Sphere[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}, ... }, $r$]'
-        <dd>is a collection spheres of radius $r$ centered at the points {$x1$, $y2$, $z2$}, {$x2$, $y2$, $z2$}, ...
+        <dd>is a collection spheres of radius $r$ centered at the points \
+            {$x1$, $y2$, $z2$}, {$x2$, $y2$, $z2$}, ...
     </dl>
 
     >> Graphics3D[Sphere[{0, 0, 0}, 1]]
@@ -218,7 +201,8 @@ class Cone(Builtin):
       <dd>represents a cone of radius 1.
 
       <dt>'Cone[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}, $r$]'
-      <dd>is a cone of radius $r$ starting at ($x1$, $y1$, $z1$) and ending at ($x2$, $y2$, $z2$).
+      <dd>is a cone of radius $r$ starting at ($x1$, $y1$, $z1$) and ending at \
+          ($x2$, $y2$, $z2$).
 
       <dt>'Cone[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}, ... }, $r$]'
       <dd>is a collection cones of radius $r$.
@@ -319,7 +303,8 @@ class Cylinder(Builtin):
       <dd>represents a cylinder of radius 1.
 
       <dt>'Cylinder[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}, $r$]'
-      <dd>is a cylinder of radius $r$ starting at ($x1$, $y1$, $z1$) and ending at ($x2$, $y2$, $z2$).
+      <dd>is a cylinder of radius $r$ starting at ($x1$, $y1$, $z1$) and ending at \
+          ($x2$, $y2$, $z2$).
 
       <dt>'Cylinder[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}, ... }, $r$]'
       <dd>is a collection cylinders of radius $r$.

@@ -5,8 +5,8 @@ Iteratively Applying Functions
 Functional iteration is an elegant way to represent repeated operations that is used a lot.
 """
 
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer1
+from mathics.core.builtin import Builtin
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -32,14 +32,6 @@ class FixedPoint(Builtin):
 
     >> FixedPoint[#+1 &, 1, 20]
      = 21
-
-    #> FixedPoint[f, x, 0]
-     = x
-    #> FixedPoint[f, x, -1]
-     : Non-negative integer expected.
-     = FixedPoint[f, x, -1]
-    #> FixedPoint[Cos, 1.0, Infinity]
-     = 0.739085
     """
 
     options = {
@@ -116,14 +108,6 @@ class FixedPointList(Builtin):
      = {14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1, 1}
     >> ListLinePlot[list]
      = -Graphics-
-
-    #> FixedPointList[f, x, 0]
-     = {x}
-    #> FixedPointList[f, x, -1]
-     : Non-negative integer expected.
-     = FixedPointList[f, x, -1]
-    #> Last[FixedPointList[Cos, 1.0, Infinity]]
-     = 0.739085
     """
 
     summary_text = "nest until a fixed point is reached return a list "

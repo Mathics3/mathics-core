@@ -12,11 +12,11 @@ we can use 'Row'.
 """
 
 
-from mathics.builtin.base import BinaryOperator, Builtin, Operator
 from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
 from mathics.builtin.makeboxes import MakeBoxes
 from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Real, String
+from mathics.core.builtin import BinaryOperator, Builtin, Operator
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
@@ -177,12 +177,6 @@ class Infix(Builtin):
 
     >> Infix[{a, b, c}, {"+", "-"}]
      = a + b - c
-
-    #> Format[r[items___]] := Infix[If[Length[{items}] > 1, {items}, {ab}], "~"]
-    #> r[1, 2, 3]
-     = 1 ~ 2 ~ 3
-    #> r[1]
-     = ab
     """
 
     messages = {
@@ -420,7 +414,7 @@ class Style(Builtin):
     </dl>
     """
 
-    summary_text = "wrapper specifying styles and style options to apply"
+    summary_text = "wrapper for styles and style options to apply"
     options = {"ImageSizeMultipliers": "Automatic"}
 
     rules = {

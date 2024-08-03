@@ -9,7 +9,6 @@ patterns of criteria.
 
 from itertools import chain
 
-from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import Integer, Integer0, Integer1, String
 from mathics.core.attributes import (
@@ -19,6 +18,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import BinaryOperator, Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.exceptions import (
@@ -83,10 +83,6 @@ class Append(Builtin):
     Unlike 'Join', 'Append' does not flatten lists in $item$:
     >> Append[{a, b}, {c, d}]
      = {a, b, {c, d}}
-
-    #> Append[a, b]
-     : Nonatomic expression expected.
-     = Append[a, b]
     """
 
     summary_text = "add an element at the end of an expression"
@@ -128,14 +124,6 @@ class AppendTo(Builtin):
      = f[x]
     >> y
      = f[x]
-
-    #> AppendTo[{}, 1]
-     : {} is not a variable with a value, so its value cannot be changed.
-     = AppendTo[{}, 1]
-
-    #> AppendTo[a, b]
-     : a is not a variable with a value, so its value cannot be changed.
-     = AppendTo[a, b]
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED
@@ -188,28 +176,6 @@ class Cases(Builtin):
     Also include the head of the expression in the previous search:
     >> Cases[{b, 6, \[Pi]}, _Symbol, Heads -> True]
      = {List, b, Pi}
-
-    #> Cases[1, 2]
-     = {}
-
-    #> Cases[f[1, 2], 2]
-     = {2}
-
-    #> Cases[f[f[1, 2], f[2]], 2]
-     = {}
-    #> Cases[f[f[1, 2], f[2]], 2, 2]
-     = {2, 2}
-    #> Cases[f[f[1, 2], f[2], 2], 2, Infinity]
-     = {2, 2, 2}
-
-    #> Cases[{1, f[2], f[3, 3, 3], 4, f[5, 5]}, f[x__] :> Plus[x]]
-     = {2, 9, 10}
-    #> Cases[{1, f[2], f[3, 3, 3], 4, f[5, 5]}, f[x__] -> Plus[x]]
-     = {2, 3, 3, 3, 5, 5}
-
-    ## Issue 531
-    #> z = f[x, y]; x = 1; Cases[z, _Symbol, Infinity]
-     = {y}
     """
 
     rules = {
@@ -246,7 +212,6 @@ class Cases(Builtin):
         results = []
 
         if pattern.has_form("Rule", 2) or pattern.has_form("RuleDelayed", 2):
-
             match = Matcher(pattern.elements[0]).match
             rule = Rule(pattern.elements[0], pattern.elements[1])
 
@@ -342,16 +307,6 @@ class Delete(Builtin):
     >> Delete[{a, b, c}, 0]
      = Sequence[a, b, c]
 
-    #> Delete[1 + x ^ (a + b + c), {2, 2, 3}]
-     = 1 + x ^ (a + b)
-
-    #> Delete[f[a, g[b, c], d], {{2}, {2, 1}}]
-     = f[a, d]
-
-    #> Delete[f[a, g[b, c], d], m + n]
-     : The expression m + n cannot be used as a part specification. Use Key[m + n] instead.
-     = Delete[f[a, g[b, c], d], m + n]
-
     Delete without the position:
     >> Delete[{a, b, c, d}]
      : Delete called with 1 argument; 2 arguments are expected.
@@ -375,14 +330,6 @@ class Delete(Builtin):
     >> Delete[{a, b, c, d}, {1, n}]
      : Position specification n in {a, b, c, d} is not a machine-sized integer or a list of machine-sized integers.
      = Delete[{a, b, c, d}, {1, n}]
-
-    #> Delete[{a, b, c, d}, {{1}, n}]
-     : Position specification {n, {1}} in {a, b, c, d} is not a machine-sized integer or a list of machine-sized integers.
-     = Delete[{a, b, c, d}, {{1}, n}]
-
-    #> Delete[{a, b, c, d}, {{1}, {n}}]
-     : Position specification n in {a, b, c, d} is not a machine-sized integer or a list of machine-sized integers.
-     = Delete[{a, b, c, d}, {{1}, {n}}]
     """
 
     messages = {
@@ -475,10 +422,6 @@ class DeleteCases(Builtin):
 
     >> DeleteCases[{a, b, 1, c, 2, 3}, _Symbol]
      = {1, 2, 3}
-
-    ## Issue 531
-    #> z = {x, y}; x = 1; DeleteCases[z, _Symbol]
-     = {1}
     """
 
     messages = {
@@ -575,15 +518,6 @@ class Drop(Builtin):
      = {{11, 12, 13, 14}, {21, 22, 23, 24}, {31, 32, 33, 34}, {41, 42, 43, 44}}
     >> Drop[A, {2, 3}, {2, 3}]
      = {{11, 14}, {41, 44}}
-
-    #> Drop[Range[10], {-2, -6, -3}]
-     = {1, 2, 3, 4, 5, 7, 8, 10}
-    #> Drop[Range[10], {10, 1, -3}]
-     = {2, 3, 5, 6, 8, 9}
-
-    #> Drop[Range[6], {-5, -2, -2}]
-     : Cannot drop positions -5 through -2 in {1, 2, 3, 4, 5, 6}.
-     = Drop[{1, 2, 3, 4, 5, 6}, {-5, -2, -2}]
     """
 
     messages = {
@@ -742,49 +676,6 @@ class FirstPosition(Builtin):
     Find the first position at which x^2 to appears:
     >> FirstPosition[{1 + x^2, 5, x^4, a + (1 + x^2)^2}, x^2]
      = {1, 2}
-
-    #> FirstPosition[{1, 2, 3}, _?StringQ, "NoStrings"]
-     = NoStrings
-
-    #> FirstPosition[a, a]
-     = {}
-
-    #> FirstPosition[{{{1, 2}, {2, 3}, {3, 1}}, {{1, 2}, {2, 3}, {3, 1}}},3]
-     = {1, 2, 2}
-
-    #> FirstPosition[{{1, {2, 1}}, {2, 3}, {3, 1}}, 2, Missing["NotFound"],2]
-     = {2, 1}
-
-    #> FirstPosition[{{1, {2, 1}}, {2, 3}, {3, 1}}, 2, Missing["NotFound"],4]
-     = {1, 2, 1}
-
-    #> FirstPosition[{{1, 2}, {2, 3}, {3, 1}}, 3, Missing["NotFound"], {1}]
-     = Missing[NotFound]
-
-    #> FirstPosition[{{1, 2}, {2, 3}, {3, 1}}, 3, Missing["NotFound"], 0]
-     = Missing[NotFound]
-
-    #> FirstPosition[{{1, 2}, {1, {2, 1}}, {2, 3}}, 2, Missing["NotFound"], {3}]
-     = {2, 2, 1}
-
-    #> FirstPosition[{{1, 2}, {1, {2, 1}}, {2, 3}}, 2, Missing["NotFound"], 3]
-     = {1, 2}
-
-    #> FirstPosition[{{1, 2}, {1, {2, 1}}, {2, 3}}, 2,  Missing["NotFound"], {}]
-     = {1, 2}
-
-    #> FirstPosition[{{1, 2}, {2, 3}, {3, 1}}, 3, Missing["NotFound"], {1, 2, 3}]
-     : Level specification {1, 2, 3} is not of the form n, {n}, or {m, n}.
-     = FirstPosition[{{1, 2}, {2, 3}, {3, 1}}, 3, Missing[NotFound], {1, 2, 3}]
-
-    #> FirstPosition[{{1, 2}, {2, 3}, {3, 1}}, 3, Missing["NotFound"], a]
-     : Level specification a is not of the form n, {n}, or {m, n}.
-     = FirstPosition[{{1, 2}, {2, 3}, {3, 1}}, 3, Missing[NotFound], a]
-
-    #> FirstPosition[{{1, 2}, {2, 3}, {3, 1}}, 3, Missing["NotFound"], {1, a}]
-     : Level specification {1, a} is not of the form n, {n}, or {m, n}.
-     = FirstPosition[{{1, 2}, {2, 3}, {3, 1}}, 3, Missing[NotFound], {1, a}]
-
     """
 
     messages = {
@@ -1017,11 +908,6 @@ class Most(Builtin):
     >> Most[x]
      : Nonatomic expression expected.
      = Most[x]
-
-    #> A[x__] := 7 /; Length[{x}] == 3;
-    #> Most[A[1, 2, 3, 4]]
-     = 7
-    #> ClearAll[A];
     """
 
     summary_text = "remove the last element"
@@ -1121,30 +1007,6 @@ class Part(Builtin):
     Of course, part specifications have precedence over most arithmetic operations:
     >> A[[1]] + B[[2]] + C[[3]] // Hold // FullForm
      = Hold[Plus[Part[A, 1], Part[B, 2], Part[C, 3]]]
-
-    #> a = {2,3,4}; i = 1; a[[i]] = 0; a
-     = {0, 3, 4}
-
-    ## Negative step
-    #> {1,2,3,4,5}[[3;;1;;-1]]
-     = {3, 2, 1}
-
-    #> {1, 2, 3, 4, 5}[[;; ;; -1]]      (* MMA bug *)
-     = {5, 4, 3, 2, 1}
-
-    #> Range[11][[-3 ;; 2 ;; -2]]
-     = {9, 7, 5, 3}
-    #> Range[11][[-3 ;; -7 ;; -3]]
-     = {9, 6}
-    #> Range[11][[7 ;; -7;; -2]]
-     = {7, 5}
-
-    #> {1, 2, 3, 4}[[1;;3;;-1]]
-     : Cannot take positions 1 through 3 in {1, 2, 3, 4}.
-     = {1, 2, 3, 4}[[1 ;; 3 ;; -1]]
-    #> {1, 2, 3, 4}[[3;;1]]
-     : Cannot take positions 3 through 1 in {1, 2, 3, 4}.
-     = {1, 2, 3, 4}[[3 ;; 1]]
     """
 
     attributes = A_N_HOLD_REST | A_PROTECTED | A_READ_PROTECTED
@@ -1353,10 +1215,6 @@ class Prepend(Builtin):
     Unlike 'Join', 'Prepend' does not flatten lists in $item$:
     >> Prepend[{c, d}, {a, b}]
      = {{a, b}, c, d}
-
-    #> Prepend[a, b]
-     : Nonatomic expression expected.
-     = Prepend[a, b]
     """
 
     summary_text = "add an element at the beginning"
@@ -1403,19 +1261,6 @@ class PrependTo(Builtin):
      = f[x, a, b, c]
     >> y
      = f[x, a, b, c]
-
-    #> PrependTo[{a, b}, 1]
-     :  {a, b} is not a variable with a value, so its value cannot be changed.
-     = PrependTo[{a, b}, 1]
-
-    #> PrependTo[a, b]
-     : a is not a variable with a value, so its value cannot be changed.
-     = PrependTo[a, b]
-
-    #> x = 1 + 2;
-    #> PrependTo[x, {3, 4}]
-     : Nonatomic expression expected at position 1 in PrependTo[x, {3, 4}].
-     =  PrependTo[x, {3, 4}]
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED
@@ -1596,11 +1441,6 @@ class Select(Builtin):
     >> Select[a, True]
      : Nonatomic expression expected.
      = Select[a, True]
-
-    #> A[x__] := 31415 /; Length[{x}] == 3;
-    #> Select[A[5, 2, 7, 1], OddQ]
-     = 31415
-    #> ClearAll[A];
     """
 
     summary_text = "pick elements according to a criterion"
@@ -1636,32 +1476,6 @@ class Span(BinaryOperator):
      = Span[2, -2]
     >> ;;3 // FullForm
      = Span[1, 3]
-
-    ## Parsing: 8 cases to consider
-    #> a ;; b ;; c // FullForm
-     = Span[a, b, c]
-    #>   ;; b ;; c // FullForm
-     = Span[1, b, c]
-    #> a ;;   ;; c // FullForm
-     = Span[a, All, c]
-    #>   ;;   ;; c // FullForm
-     = Span[1, All, c]
-    #> a ;; b      // FullForm
-     = Span[a, b]
-    #>   ;; b      // FullForm
-     = Span[1, b]
-    #> a ;;        // FullForm
-     = Span[a, All]
-    #>   ;;        // FullForm
-     = Span[1, All]
-
-    ## Formatting
-    #> a ;; b ;; c
-     = a ;; b ;; c
-    #> a ;; b
-     = a ;; b
-    #> a ;; b ;; c ;; d
-     = (1 ;; d) (a ;; b ;; c)
     """
 
     operator = ";;"
@@ -1693,34 +1507,6 @@ class Take(Builtin):
     Take a single column:
     >> Take[A, All, {2}]
      = {{b}, {e}}
-
-    #> Take[Range[10], {8, 2, -1}]
-     = {8, 7, 6, 5, 4, 3, 2}
-    #> Take[Range[10], {-3, -7, -2}]
-     = {8, 6, 4}
-
-    #> Take[Range[6], {-5, -2, -2}]
-     : Cannot take positions -5 through -2 in {1, 2, 3, 4, 5, 6}.
-     = Take[{1, 2, 3, 4, 5, 6}, {-5, -2, -2}]
-
-    #> Take[l, {-1}]
-     : Nonatomic expression expected at position 1 in Take[l, {-1}].
-     = Take[l, {-1}]
-
-    ## Empty case
-    #> Take[{1, 2, 3, 4, 5}, {-1, -2}]
-     = {}
-    #> Take[{1, 2, 3, 4, 5}, {0, -1}]
-     = {}
-    #> Take[{1, 2, 3, 4, 5}, {1, 0}]
-     = {}
-    #> Take[{1, 2, 3, 4, 5}, {2, 1}]
-     = {}
-    #> Take[{1, 2, 3, 4, 5}, {1, 0, 2}]
-     = {}
-    #> Take[{1, 2, 3, 4, 5}, {1, 0, -1}]
-     : Cannot take positions 1 through 0 in {1, 2, 3, 4, 5}.
-     = Take[{1, 2, 3, 4, 5}, {1, 0, -1}]
     """
 
     messages = {

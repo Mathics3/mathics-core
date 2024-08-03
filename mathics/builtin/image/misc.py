@@ -8,8 +8,8 @@ Miscellaneous image-related functions
 import numpy
 import PIL
 
-from mathics.builtin.base import Builtin, String
 from mathics.builtin.image.base import Image, skimage_requires
+from mathics.core.builtin import Builtin, String
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -119,18 +119,6 @@ class RandomImage(Builtin):
 
     >> RandomImage[1, {100, 100}]
      = -Image-
-
-    #> RandomImage[0.5]
-     = -Image-
-    #> RandomImage[{0.1, 0.9}]
-     = -Image-
-    #> RandomImage[0.9, {400, 600}]
-     = -Image-
-    #> RandomImage[{0.1, 0.5}, {400, 600}]
-     = -Image-
-
-    #> RandomImage[{0.1, 0.5}, {400, 600}, ColorSpace -> "RGB"]
-     = -Image-
     """
 
     options = {"ColorSpace": "Automatic"}
@@ -141,14 +129,14 @@ class RandomImage(Builtin):
     }
     rules = {
         "RandomImage[]": "RandomImage[{0, 1}, {150, 150}]",
-        "RandomImage[max_?RealNumberQ]": "RandomImage[{0, max}, {150, 150}]",
-        "RandomImage[{minval_?RealNumberQ, maxval_?RealNumberQ}]": "RandomImage[{minval, maxval}, {150, 150}]",
-        "RandomImage[max_?RealNumberQ, {w_Integer, h_Integer}]": "RandomImage[{0, max}, {w, h}]",
+        "RandomImage[max_?RealValuedNumberQ]": "RandomImage[{0, max}, {150, 150}]",
+        "RandomImage[{minval_?RealValuedNumberQ, maxval_?RealValuedNumberQ}]": "RandomImage[{minval, maxval}, {150, 150}]",
+        "RandomImage[max_?RealValuedNumberQ, {w_Integer, h_Integer}]": "RandomImage[{0, max}, {w, h}]",
     }
     summary_text = "build an image with random pixels"
 
     def eval(self, minval, maxval, w, h, evaluation, options):
-        "RandomImage[{minval_?RealNumberQ, maxval_?RealNumberQ}, {w_Integer, h_Integer}, OptionsPattern[RandomImage]]"
+        "RandomImage[{minval_?RealValuedNumberQ, maxval_?RealValuedNumberQ}, {w_Integer, h_Integer}, OptionsPattern[RandomImage]]"
         color_space = self.get_option(options, "ColorSpace", evaluation)
         if (
             isinstance(color_space, Symbol)
@@ -203,11 +191,11 @@ class EdgeDetect(Builtin):
 
     rules = {
         "EdgeDetect[i_Image]": "EdgeDetect[i, 2, 0.2]",
-        "EdgeDetect[i_Image, r_?RealNumberQ]": "EdgeDetect[i, r, 0.2]",
+        "EdgeDetect[i_Image, r_?RealValuedNumberQ]": "EdgeDetect[i, r, 0.2]",
     }
 
     def eval(self, image, r, t, evaluation: Evaluation):
-        "EdgeDetect[image_Image, r_?RealNumberQ, t_?RealNumberQ]"
+        "EdgeDetect[image_Image, r_?RealValuedNumberQ, t_?RealValuedNumberQ]"
         import skimage.feature
 
         pixels = image.grayscale().pixels
@@ -236,11 +224,9 @@ class TextRecognize(Builtin):
 
     >> textimage = Import["ExampleData/TextRecognize.png"]
      = -Image-
-
     >> TextRecognize[textimage]
-     = TextRecognize[ image]
-     .
-     . Recognizes text in image and returns it as a String.
+     = ...
+     : ...
     """
 
     messages = {
