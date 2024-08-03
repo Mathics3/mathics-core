@@ -205,7 +205,7 @@ class ColorConvert(Builtin):
 class ColorNegate(Builtin):
     """
     Color Inversion (<url>
-    :WMA:
+    :WMA link:
     https://reference.wolfram.com/language/ref/ColorNegate.html</url>)
 
     <dl>

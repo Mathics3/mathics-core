@@ -17,7 +17,7 @@ from mathics.core.builtin import Builtin
 # In Mathematica 5, this appears under "Types of Values".
 class UpValues(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/UpValues.html</url>
+    <url>:WMA link: https://reference.wolfram.com/language/ref/UpValues.html</url>
     <dl>
       <dt>'UpValues[$symbol$]'
       <dd>gives the list of transformation rules corresponding to upvalues \
