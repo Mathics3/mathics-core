@@ -10,7 +10,7 @@
 # than applicable to all kinds of expressions.
 
 """
-Forms which appear in '$OutputForms'.
+Form Functions
 """
 import re
 from math import ceil
@@ -18,7 +18,7 @@ from typing import Optional
 
 from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
 from mathics.builtin.forms.base import FormBaseClass
-from mathics.builtin.makeboxes import MakeBoxes, number_form
+from mathics.builtin.makeboxes import MakeBoxes, NumberForm_to_String
 from mathics.builtin.tensors import get_dimensions
 from mathics.core.atoms import (
     Integer,
@@ -63,19 +63,26 @@ from mathics.eval.testing_expressions import expr_min
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
 
-class BaseForm(Builtin):
+class BaseForm(FormBaseClass):
     """
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/BaseForm.html</url>
+
     <dl>
       <dt>'BaseForm[$expr$, $n$]'
       <dd>prints numbers in $expr$ in base $n$.
     </dl>
 
+    A binary integer:
     >> BaseForm[33, 2]
      = 100001_2
 
+    A hexidecimal number:
     >> BaseForm[234, 16]
      = ea_16
 
+    A binary real number:
     >> BaseForm[12.3, 2]
      = 1100.01001100110011001_2
 
@@ -97,6 +104,8 @@ class BaseForm(Builtin):
      = BaseForm[12, 100]
     """
 
+    in_outputforms = True
+    in_printforms = False
     summary_text = "print with all numbers given in a base"
     messages = {
         "intpm": (
@@ -376,6 +385,10 @@ class _NumberForm(Builtin):
 
 class NumberForm(_NumberForm):
     """
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/NumberForm.html</url>
+
     <dl>
       <dt>'NumberForm[$expr$, $n$]'
       <dd>prints a real number $expr$ with $n$-digits of precision.
@@ -387,8 +400,12 @@ class NumberForm(_NumberForm):
     >> NumberForm[N[Pi], 10]
      = 3.141592654
 
-    >> NumberForm[N[Pi], {10, 5}]
+    >> NumberForm[N[Pi], {10, 6}]
+     = 3.141593
+
+    >> NumberForm[N[Pi]]
      = 3.14159
+
     """
 
     options = {
@@ -473,7 +490,7 @@ class NumberForm(_NumberForm):
 
         if py_n is not None:
             py_options["_Form"] = form.get_name()
-            return number_form(expr, py_n, None, evaluation, py_options)
+            return NumberForm_to_String(expr, py_n, None, evaluation, py_options)
         return Expression(SymbolMakeBoxes, expr, form)
 
     def eval_makeboxes_n(self, expr, n, form, evaluation, options={}):
@@ -493,7 +510,7 @@ class NumberForm(_NumberForm):
 
         if isinstance(expr, (Integer, Real)):
             py_options["_Form"] = form.get_name()
-            return number_form(expr, py_n, None, evaluation, py_options)
+            return NumberForm_to_String(expr, py_n, None, evaluation, py_options)
         return Expression(SymbolMakeBoxes, expr, form)
 
     def eval_makeboxes_nf(self, expr, n, f, form, evaluation, options={}):
@@ -515,7 +532,7 @@ class NumberForm(_NumberForm):
 
         if isinstance(expr, (Integer, Real)):
             py_options["_Form"] = form.get_name()
-            return number_form(expr, py_n, py_f, evaluation, py_options)
+            return NumberForm_to_String(expr, py_n, py_f, evaluation, py_options)
         return Expression(SymbolMakeBoxes, expr, form)
 
 

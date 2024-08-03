@@ -596,7 +596,7 @@ PermutationQ[p_List] := (Sort[p] == Range[Length[p]])
 Permute[l_List,p_?PermutationQ] := l [[ p ]]
 Permute[l_List,p_List] := Map[ (Permute[l,#])&, p] /; (Apply[And, Map[PermutationQ, p]])
 
-(* Section 1.1.1 Lexicographically Ordered Permutions, Pages 3-4 *)
+(* Section 1.1.1 Lexicographically Ordered Permutations, Pages 3-4 *)
 
 LexicographicPermutations[{}] := {{}}
 
@@ -683,7 +683,7 @@ MinimumChangePermutations[l_List] :=
 		]
 	]
 
-(* Section 1.1.5 Backtracking and Distict Permutations, Page 12-13 *)
+(* Section 1.1.5 Backtracking and Distinct Permutations, Page 12-13 *)
 Backtrack[space_List,partialQ_,solutionQ_,flag_:One] :=
 	Module[{n=Length[space],all={},done,index,v=2,solution},
 		index=Prepend[ Table[0,{n-1}],1];

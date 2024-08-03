@@ -2,7 +2,7 @@
 Checks that builtin functions do not get redefined.
 
 In the past when reorganizing builtin functions we sometimes
-had missing or duplicate build-in functions definitions.
+had missing or duplicate built-in functions definitions.
 """
 import os
 

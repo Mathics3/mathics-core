@@ -184,11 +184,11 @@ class Evaluation:
         # ``mathics.builtin.numeric.N``.
         self._preferred_n_method = []
 
-    def parse(self, query):
+    def parse(self, query, src_name: str = ""):
         "Parse a single expression and print the messages."
         from mathics.core.parser import MathicsSingleLineFeeder
 
-        return self.parse_feeder(MathicsSingleLineFeeder(query))
+        return self.parse_feeder(MathicsSingleLineFeeder(query, src_name))
 
     def parse_evaluate(self, query, timeout=None):
         expr = self.parse(query)
@@ -635,7 +635,7 @@ class Print(_Out):
 
 class Output(ABC):
     """
-    Base class for Mathics ouput history.
+    Base class for Mathics output history.
     This needs to be subclassed.
     """
 

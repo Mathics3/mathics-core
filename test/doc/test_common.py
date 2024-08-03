@@ -9,12 +9,14 @@ from mathics.doc.common_doc import (
     DocChapter,
     DocPart,
     DocSection,
+    Documentation,
+    MathicsMainDocumentation,
+)
+from mathics.doc.doc_entries import (
     DocTest,
     DocTests,
     DocText,
-    Documentation,
     DocumentationEntry,
-    MathicsMainDocumentation,
     parse_docstring_to_DocumentationEntry_items,
 )
 from mathics.settings import DOC_DIR
