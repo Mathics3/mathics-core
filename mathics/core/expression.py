@@ -955,7 +955,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         s = structure(head, deps, evaluation, structure_cache=structure_cache)
         return s(list(elements))
 
-    def round_to_float(self, evaluation=None, permit_complex=False) -> Optional[Union[float, complex]]:
+    def round_to_float(
+        self, evaluation=None, permit_complex=False
+    ) -> Optional[Union[float, complex]]:
         """
         Round to a Python float. Return None if rounding is not possible.
         This can happen if self or evaluation is NaN.
