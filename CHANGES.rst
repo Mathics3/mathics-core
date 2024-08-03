@@ -1,7 +1,7 @@
 	.. contents::
 
-# CHANGES
-
+CHANGES
+=======
 
 New Builtins
 ++++++++++++
