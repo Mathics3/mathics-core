@@ -90,7 +90,7 @@ def eval_NValues(
 
     # Here we look for the NValues associated to the
     # lookup_name of the expression.
-    # If a rule is found and successfuly applied,
+    # If a rule is found and successfully applied,
     # reevaluate the result and apply `eval_NValues` again.
     # This should be implemented as a loop instead of
     # recursively.

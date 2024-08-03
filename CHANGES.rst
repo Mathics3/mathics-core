@@ -47,7 +47,8 @@ Bugs
 * ``Switch[]`` involving ``Infinity`` Issue #956
 * ``Outer[]`` on ``SparseArray`` Issue #939
 * ``ArrayQ[]`` detects ``SparseArray`` PR #947
-
+* Numeric comparisons against expressions involving ``String``s (Issue #797).
+  
 Package updates
 +++++++++++++++
 
@@ -146,7 +147,7 @@ Documentation
 #. "Exponential Functional" split out from "Trigonometry Functions"
 #. "Functional Programming" section split out.
 #. "Image Manipulation" has been split off from Graphics and Drawing and turned into a guide section.
-#. Image examples now appear in the LaTeX and therfore the PDF doc
+#. Image examples now appear in the LaTeX and therefore the PDF doc
 #. "Logic and Boolean Algebra" section reinstated.
 #. "Forms of Input and Output" is its own guide section.
 #. More URL links to Wiki pages added; more internal cross links added.
@@ -183,7 +184,7 @@ Bugs
 #. Better handling of ``Infinite`` quantities.
 #. Improved ``Precision`` and ``Accuracy``compatibility with WMA. In particular, ``Precision[0.]`` and ``Accuracy[0.]``
 #. Accuracy in numbers using the notation ``` n.nnn``acc ```  now is properly handled.
-#. numeric precision in mpmath was not reset after operations that changed these. This cause huges slowdowns after an operation that set the mpmath precison high. This was the source of several-minute slowdowns in testing.
+#. numeric precision in mpmath was not reset after operations that changed these. This cause huges slowdowns after an operation that set the mpmath precision high. This was the source of several-minute slowdowns in testing.
 #. GIF87a (```MadTeaParty.gif`` or ExampleData) image loading fixed
 #. Replace non-free Leena image with a a freely distributable image. Issue #728
 
@@ -1061,7 +1062,7 @@ New features (50+ builtins)
 #. ``SubsetQ`` and ``Delete[]`` #688, #784,
 #. ``Subsets`` #685
 #. ``SystemTimeZone`` and correct ``TimeZone`` #924
-#. ``System\`Byteordering`` and ``System\`Environemnt`` #859
+#. ``System\`Byteordering`` and ``System\`Environment`` #859
 #. ``$UseSansSerif`` #908
 #. ``randchoice`` option for ``NoNumPyRandomEnv`` #820
 #. Support for ``MATHICS_MAX_RECURSION_DEPTH``
@@ -1411,7 +1412,7 @@ New features
 #. ``PolarPlot``
 #. IPython style (coloured) input
 #. ``VectorAnalysis`` Package
-#. More special functions (Bessel functions and othogonal polynomials)
+#. More special functions (Bessel functions and orthogonal polynomials)
 #. More NumberTheory functions
 #. ``Import``, ``Export``, ``Get``, ``Needs`` and other IO related functions
 #. PyPy compatibility

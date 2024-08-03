@@ -40,7 +40,7 @@ class ConstructOuterTest(unittest.TestCase):
             (lambda item, level: level > 1),
             # True to unpack the next list, False to unpack the current list at the next level
             (lambda item: item),
-            # get elements from Expression, for iteratable objects (tuple, list, etc.) it's just identity
+            # get elements from Expression, for iterable objects (tuple, list, etc.) it's just identity
             list,
             # apply_head: each level of result would be in form of apply_head(...)
             tuple,

@@ -2,7 +2,8 @@
 """
 Structural elements of Mathics Documentation
 
-This module contains the classes representing the Mathics documentation structure.
+This module contains the classes representing the Mathics documentation structure,
+and extended regular expressions used to parse it.
 
 """
 import logging
@@ -494,7 +495,8 @@ class Documentation:
         chapter_order: int,
         is_appendix: bool = False,
     ) -> int:
-        """Load a markdown file as a part of the documentation"""
+        """Load a document file (tagged XML-like in custom format) as
+        a part of the documentation"""
         part = self.part_class(self, part_title)
         with open(filename, "rb") as src_file:
             text = src_file.read().decode("utf8")
@@ -591,7 +593,7 @@ class DocSubsection:
         # is mixed with a DocumentationEntry. `items` is an attribute of the
         # `DocumentationEntry`, not of a Part / Chapter/ Section.
         # The content of a subsection should be stored in self.doc,
-        # and the tests should set the rute (key) through self.doc.set_parent_doc
+        # and the tests should set the route (key) through self.doc.set_parent_doc
         if in_guide:
             # Tests haven't been picked out yet from the doc string yet.
             # Gather them here.
@@ -633,8 +635,7 @@ class DocSubsection:
 
 
 class MathicsMainDocumentation(Documentation):
-    """
-    MathicsMainDocumentation specializes ``Documentation`` by providing the attributes
+    """MathicsMainDocumentation specializes ``Documentation`` by providing the attributes
     and methods needed to generate the documentation from the Mathics library.
 
     The parts of the documentation are loaded from the Markdown files contained
@@ -642,8 +643,9 @@ class MathicsMainDocumentation(Documentation):
     are considered parts of the main text, while those that starts with other characters
     are considered as appendix parts.
 
-    In addition to the parts loaded from markdown files, a ``Reference of Builtin-Symbols`` part
-    and a part for the loaded Pymathics modules are automatically generated.
+    In addition to the parts loaded from our custom-marked XML
+    document file, a ``Reference of Builtin-Symbols`` part and a part
+    for the loaded Pymathics modules are automatically generated.
 
     In the ``Reference of Built-in Symbols`` tom-level modules and files in ``mathics.builtin``
     are associated to Chapters. For single file submodules (like ``mathics.builtin.procedure``)
@@ -652,7 +654,7 @@ class MathicsMainDocumentation(Documentation):
     and the symbols in these sub-packages defines the Subsections. ``__init__.py`` in
     subpackages are associated to GuideSections.
 
-    In a similar way, in the ``Pymathics`` part, each ``pymathics`` module defines a Chapter,
+    In a similar way, in the ``Mathics3 Modules`` part, each ``Mathics3`` module defines a Chapter,
     files in the module defines Sections, and Symbols defines Subsections.
 
 

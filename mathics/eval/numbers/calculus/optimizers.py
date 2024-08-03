@@ -391,9 +391,9 @@ def is_zero(
     eps_expr: BaseElement = Integer10 ** (-prec_goal) if prec_goal else Integer0
     if acc_goal:
         eps_expr = eps_expr + Integer10 ** (-acc_goal) / abs(val)
-    threeshold_expr = Expression(SymbolLog, eps_expr)
-    threeshold: Real = eval_N(threeshold_expr, evaluation)
-    return threeshold.to_python() > 0
+    threshold_expr = Expression(SymbolLog, eps_expr)
+    threshold: Real = eval_N(threshold_expr, evaluation)
+    return threshold.to_python() > 0
 
 
 def determine_epsilon(x0: Real, options: dict, evaluation: Evaluation) -> Real:

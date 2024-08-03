@@ -3,7 +3,7 @@
 """
 Importing and Exporting
 
-Many kinds data formats can be read into \Mathics. Variable <url>
+Many kinds data formats can be read into \\Mathics. Variable <url>
 :$ExportFormats:
 /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/$exportformats</url> \
 contains a list of file formats that are supported by <url>

@@ -761,14 +761,15 @@ class Precision(Builtin):
     """
     <url>
     :Precision:
-    https://en.wikipedia.org/wiki/Accuracy_and_precision</url> (<url>
-    :WMA:
-    https://reference.wolfram.com/language/ref/Precision.html</url>)
+    https://en.wikipedia.org/wiki/Accuracy_and_precision</url> <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Precision.html</url>
 
     <dl>
       <dt>'Precision[$expr$]'
       <dd>examines the number of significant digits of $expr$.
     </dl>
+
     <i>Note that the result could be slightly different than the obtained \
     in WMA, due to differencs in the internal representation of the real numbers.</i>
 

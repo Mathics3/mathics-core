@@ -134,7 +134,7 @@ def test_Integer():
 def test_MachineReal():
     check_group(MachineReal(5), MachineReal(3.5), Integer(1.00001))
     # MachineReal0 should be predefined; `int` and float arguments are allowed
-    # `int` arguemnts are converted to float.
+    # `int` arguments are converted to float.
     check_object_uniqueness(
         MachineReal, [0.0], MachineReal0, MachineReal(0), MachineReal(0.0)
     )

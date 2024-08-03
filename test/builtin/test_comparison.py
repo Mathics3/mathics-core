@@ -78,6 +78,14 @@ import pytest
         ("g[a]<g[a]", "g[a] < g[a]", "not comparable expressions (like in WMA)"),
         ("g[1]<g[1]", "g[1] < g[1]", "not comparable expressions (like in WMA)"),
         #
+        ('Wo["x"]>3', "Wo[x] > 3", "isue #797"),
+        ('Wo["x"]<3', "Wo[x] < 3", "isue #797"),
+        ('Wo["x"]==3', "Wo[x] == 3", "isue #797"),
+        ('3>Wo["x"]', "3 > Wo[x]", "isue #797"),
+        ('3<Wo["x"]', "3 < Wo[x]", "isue #797"),
+        ('3==Wo["x"]', "3 == Wo[x]", "isue #797"),
+        ('Wo[f["x"],2]>0', "Wo[f[x], 2] > 0", "isue #797"),
+        #
         # chained compare
         ("a != a != b", "False", "Strange MMA behavior"),
         ("a != b != a", "a != b != a", "incomparable values should be unchanged"),

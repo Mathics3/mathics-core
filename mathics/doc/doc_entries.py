@@ -1,8 +1,8 @@
 """
 Documentation entries and doctests
 
-This module contains the objects representing the entries in the documentation 
-system, and the functions used to parse docstrings into these objects. 
+This module contains the objects representing the entries in the documentation
+system, and the functions used to parse docstrings into these objects.
 
 
 """
@@ -15,7 +15,7 @@ from typing import Callable, List, Optional
 from mathics.core.evaluation import Message, Print
 from mathics.doc.rst_parser import normalize_indent, rst_to_native
 
-# Used for getting test results by test expresson and chapter/section information.
+# Used for getting test results by test expression and chapter/section information.
 test_result_map = {}
 
 
@@ -236,7 +236,7 @@ POST_SUBSTITUTION_TAG = "_POST_SUBSTITUTION%d_"
 
 
 def pre_sub(regexp, text: str, repl_func):
-    """apply substitions previous to parse the text"""
+    """apply substitutions previous to parse the text"""
     post_substitutions = []
 
     def repl_pre(match):
@@ -251,7 +251,7 @@ def pre_sub(regexp, text: str, repl_func):
 
 
 def post_sub(text: str, post_substitutions) -> str:
-    """apply substitions after parsing the doctests."""
+    """apply substitutions after parsing the doctests."""
     for index, sub in enumerate(post_substitutions):
         text = text.replace(POST_SUBSTITUTION_TAG % index, sub)
     return text
@@ -430,12 +430,67 @@ class DocTest:
     def __str__(self) -> str:
         return self.test
 
+    def compare(self, result: Optional[str], out: Optional[tuple] = tuple()) -> bool:
+        """
+        Performs a doctest comparison between ``result`` and ``wanted`` and returns
+        True if the test should be considered a success.
+        """
+        return self.compare_result(result) and self.compare_out(out)
+
+    def compare_result(self, result: Optional[str]):
+        """Compare a result with the expected result"""
+        wanted = self.result
+        # Check result
+        if wanted in ("...", result):
+            return True
+
+        if result is None or wanted is None:
+            return False
+        result_list = result.splitlines()
+        wanted_list = wanted.splitlines()
+        if result_list == [] and wanted_list == ["#<--#"]:
+            return True
+
+        if len(result_list) != len(wanted_list):
+            return False
+
+        for res, want in zip(result_list, wanted_list):
+            wanted_re = re.escape(want.strip())
+            wanted_re = wanted_re.replace("\\.\\.\\.", ".*?")
+            wanted_re = f"^{wanted_re}$"
+            if not re.match(wanted_re, res.strip()):
+                return False
+        return True
+
+    def compare_out(self, outs: tuple = tuple()) -> bool:
+        """Compare messages and warnings produced during the evaluation of
+        the test with the expected messages and warnings."""
+        # Check out
+        wanted_outs = self.outs
+        if len(wanted_outs) == 1 and wanted_outs[0].text == "...":
+            # If we have ... don't check
+            return True
+        if len(outs) != len(wanted_outs):
+            # Mismatched number of output lines, and we don't have "..."
+            return False
+
+        # Need to check all output line by line
+        for got, wanted in zip(outs, wanted_outs):
+            if wanted.text == "...":
+                return True
+            if not got == wanted:
+                return False
+
+        return True
+
     @property
     def key(self):
+        """key identifier of the test"""
         return self._key if hasattr(self, "_key") else None
 
     @key.setter
     def key(self, value):
+        """setter for the key identifier of the test"""
         assert self.key is None
         self._key = value
         return self._key
@@ -457,12 +512,14 @@ class DocTests:
         return self.tests
 
     def is_private(self) -> bool:
+        """Returns True if this test is "private" not supposed to be visible as example documentation."""
         return all(test.private for test in self.tests)
 
     def __str__(self) -> str:
         return "\n".join(str(test) for test in self.tests)
 
     def test_indices(self) -> List[int]:
+        """indices of the tests"""
         return [test.index for test in self.tests]
 
 
@@ -470,7 +527,7 @@ class DocText:
     """
     Class to hold some (non-test) text.
 
-    Some of the kinds of tags you may find here are showin in global ALLOWED_TAGS.
+    Some of the kinds of tags you may find here are showing in global ALLOWED_TAGS.
     Some text may be marked with surrounding "$" or "'".
 
     The code here however does not make use of any of the tagging.
@@ -490,9 +547,12 @@ class DocText:
         return []
 
     def is_private(self) -> bool:
+        """the test is private, meaning that it will not be included in the
+        documentation, but tested in the doctest cycle."""
         return False
 
     def test_indices(self) -> List[int]:
+        """indices of the tests"""
         return []
 
 
@@ -500,7 +560,7 @@ class DocText:
 class DocumentationEntry:
     """
     A class to hold the content of a documentation entry,
-    in our internal markdown-like format data.
+    in our custom XML-like format.
 
     Describes the contain of an entry in the documentation system, as a
     sequence (list) of items of the clase  `DocText` and `DocTests`.
@@ -555,6 +615,7 @@ class DocumentationEntry:
         return "\n\n".join(str(item) for item in self.items)
 
     def text(self) -> str:
+        """text version of the documentation entry"""
         # used for introspection
         # TODO parse XML and pretty print
         # HACK
@@ -570,6 +631,7 @@ class DocumentationEntry:
         return item
 
     def get_tests(self) -> list:
+        """retrieve a list of tests in the documentation entry"""
         tests = []
         for item in self.items:
             tests.extend(item.get_tests())
@@ -624,6 +686,7 @@ class Tests:
 
     @property
     def key(self):
+        """key of the tests"""
         return self._key
 
     @key.setter
