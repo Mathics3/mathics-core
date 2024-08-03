@@ -10,6 +10,7 @@ PIP ?= pip3
 BASH ?= bash
 RM  ?= rm
 PYTEST_OPTIONS ?=
+DOCTEST_OPTIONS ?=
 
 # Variable indicating Mathics3 Modules you have available on your system, in latex2doc option format
 MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
@@ -132,9 +133,9 @@ gstest:
 doctest-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/documentation/images/*
 	MATHICS_CHARACTER_ENCODING="UTF-8" $(PYTHON) mathics/docpipeline.py --output --keep-going $(MATHICS3_MODULE_OPTION)
 
-#: Run tests that appear in docstring in the code.
+#: Run tests that appear in docstring in the code. Use environment variable "DOCTEST_OPTIONS" for doctest options
 doctest:
-	MATHICS_CHARACTER_ENCODING="ASCII" SANDBOX=$(SANDBOX) $(PYTHON) mathics/docpipeline.py $o
+	MATHICS_CHARACTER_ENCODING="ASCII" SANDBOX=$(SANDBOX) $(PYTHON) mathics/docpipeline.py $(DOCTEST_OPTIONS)
 
 #: Make Mathics PDF manual via Asymptote and LaTeX
 latexdoc texdoc doc:

@@ -38,16 +38,22 @@ class CoprimeQ(Builtin):
     >> CoprimeQ[12, 15]
      = False
 
-    CoprimeQ also works for complex numbers
-    >> CoprimeQ[1+2I, 1-I]
-     = True
+    ##
+    ## CoprimeQ also works for complex numbers
+    ## >> CoprimeQ[1+2I, 1-I]
+    ## = True
+    
+    ## This test case is commenteted out because the result produced by sympy is wrong:
+    ## In this case, both numbers can be factorized as 2 (2 + I)  and 3 (2 + I):
+    ## >> CoprimeQ[4+2I, 6+3I]
+    ## = False
 
-    >> CoprimeQ[4+2I, 6+3I]
-     = True
+    For more than two arguments, CoprimeQ checks if any pair or arguments are coprime:
 
     >> CoprimeQ[2, 3, 5]
      = True
 
+    In this case, since 2 divides 4, the result is False:
     >> CoprimeQ[2, 4, 5]
      = False
     """

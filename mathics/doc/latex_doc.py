@@ -4,15 +4,12 @@ FIXME: Ditch home-grown and lame parsing and hook into sphinx.
 """
 
 import re
-from os import getenv
 from typing import Optional
 
-from mathics.core.evaluation import Message, Print
-from mathics.doc.common_doc import (
+from mathics.doc.doc_entries import (
     CONSOLE_RE,
     DL_ITEM_RE,
     DL_RE,
-    END_LINE_SENTINAL,
     HYPERTEXT_RE,
     IMG_PNG_RE,
     IMG_RE,
@@ -24,30 +21,29 @@ from mathics.doc.common_doc import (
     QUOTATIONS_RE,
     REF_RE,
     SPECIAL_COMMANDS,
+    DocTest,
+    DocTests,
+    DocText,
+    DocumentationEntry,
+    get_results_by_test,
+    post_sub,
+    pre_sub,
+)
+from mathics.doc.structure import (
     SUBSECTION_END_RE,
     SUBSECTION_RE,
-    TESTCASE_OUT_RE,
     DocChapter,
     DocGuideSection,
     DocPart,
     DocSection,
     DocSubsection,
-    DocTest,
-    DocTests,
-    DocText,
     Documentation,
-    DocumentationEntry,
     MathicsMainDocumentation,
-    get_results_by_test,
-    parse_docstring_to_DocumentationEntry_items,
-    post_sub,
-    pre_sub,
     sorted_chapters,
 )
-from mathics.doc.utils import slugify
 
 # We keep track of the number of \begin{asy}'s we see so that
-# we can assocation asymptote file numbers with where they are
+# we can association asymptote file numbers with where they are
 # in the document
 next_asy_number = 1
 
@@ -135,7 +131,7 @@ def escape_latex(text):
                 text = text[:-1] + r"\ "
             return "\\code{\\lstinline%s%s%s}" % (escape_char, text, escape_char)
         else:
-            # treat double '' literaly
+            # treat double '' literally
             return "''"
 
     text = MATHICS_RE.sub(repl, text)
@@ -260,6 +256,8 @@ def escape_latex(text):
                 # in this manual, so use "\ref" rather than "\href'.
                 if content.find("/doc/") == 0:
                     slug = "/".join(content.split("/")[2:]).rstrip("/")
+                    return "%s \\ref{%s}" % (text, latex_label_safe(slug))
+                    slug = "/".join(content.split("/")[2:]).rstrip("/")
                     return "%s of section~\\ref{%s}" % (text, latex_label_safe(slug))
                 else:
                     return "\\href{%s}{%s}" % (content, text)
@@ -297,7 +295,7 @@ def escape_latex(text):
     # text = LATEX_BETWEEN_ASY_RE.sub(repl_asy, text)
 
     def repl_subsection(match):
-        return "\n\\subsection*{%s}\n" % match.group(1)
+        return "\n\\subsection{%s}\n" % match.group(1)
 
     text = SUBSECTION_RE.sub(repl_subsection, text)
     text = SUBSECTION_END_RE.sub("", text)
@@ -425,7 +423,7 @@ def post_process_latex(result):
         return "\\begin{%s}%s\\end{%s}" % (tag, content, tag)
 
     def repl_inline_end(match):
-        """Prevent linebreaks between inline code and sentence delimeters"""
+        """Prevent linebreaks between inline code and sentence delimiters"""
 
         code = match.group("all")
         if code[-2] == "}":
@@ -481,72 +479,7 @@ class LaTeXDocTest(DocTest):
     """
 
     def __init__(self, index, testcase, key_prefix=None):
-        def strip_sentinal(line):
-            """Remove END_LINE_SENTINAL from the end of a line if it appears.
-
-            Some editors like to strip blanks at the end of a line.
-            Since the line ends in END_LINE_SENTINAL which isn't blank,
-            any blanks that appear before will be preserved.
-
-            Some tests require some lines to be blank or entry because
-            Mathics output can be that way
-            """
-            if line.endswith(END_LINE_SENTINAL):
-                line = line[: -len(END_LINE_SENTINAL)]
-
-            # Also remove any remaining trailing blanks since that
-            # seems *also* what we want to do.
-            return line.strip()
-
-        self.index = index
-        self.result = None
-        self.outs = []
-
-        # Private test cases are executed, but NOT shown as part of the docs
-        self.private = testcase[0] == "#"
-
-        # Ignored test cases are NOT executed, but shown as part of the docs
-        # Sandboxed test cases are NOT executed if environment SANDBOX is set
-        if testcase[0] == "X" or (testcase[0] == "S" and getenv("SANDBOX", False)):
-            self.ignore = True
-            # substitute '>' again so we get the correct formatting
-            testcase[0] = ">"
-        else:
-            self.ignore = False
-
-        self.test = strip_sentinal(testcase[1])
-
-        self.key = None
-        if key_prefix:
-            self.key = tuple(key_prefix + (index,))
-        outs = testcase[2].splitlines()
-        for line in outs:
-            line = strip_sentinal(line)
-            if line:
-                if line.startswith("."):
-                    text = line[1:]
-                    if text.startswith(" "):
-                        text = text[1:]
-                    text = "\n" + text
-                    if self.result is not None:
-                        self.result += text
-                    elif self.outs:
-                        self.outs[-1].text += text
-                    continue
-
-                match = TESTCASE_OUT_RE.match(line)
-                if not match:
-                    continue
-                symbol, text = match.group(1), match.group(2)
-                text = text.strip()
-                if symbol == "=":
-                    self.result = text
-                elif symbol == ":":
-                    out = Message("", "", text)
-                    self.outs.append(out)
-                elif symbol == "|":
-                    out = Print(text)
-                    self.outs.append(out)
+        super().__init__(index, testcase, key_prefix)
 
     def __str__(self):
         return self.test
@@ -596,7 +529,7 @@ class LaTeXDocTest(DocTest):
 
 
 class LaTeXDocumentationEntry(DocumentationEntry):
-    """A class to hold our internal markdown-like format data.
+    """A class to hold our custom XML-like format.
     The `latex()` method can turn this into LaTeX.
 
     Mathics core also uses this in getting usage strings (`??`).
@@ -712,16 +645,32 @@ class LaTeXDocChapter(DocChapter):
                 intro,
                 short,
             )
+
+        if self.part.is_reference:
+            sort_section_function = sorted
+        else:
+            sort_section_function = lambda x: x
+
         chapter_sections = [
             ("\n\n\\chapter{%(title)s}\n\\chapterstart\n\n%(intro)s")
             % {"title": escape_latex(self.title), "intro": intro},
             "\\chaptersections\n",
+            # ####################
             "\n\n".join(
                 section.latex(doc_data, quiet)
                 # Here we should use self.all_sections, but for some reason
                 # guidesections are not properly loaded, duplicating
                 # the load of subsections.
-                for section in sorted(self.sections)
+                for section in sorted(self.guide_sections)
+                if not filter_sections or section.title in filter_sections
+            ),
+            # ###################
+            "\n\n".join(
+                section.latex(doc_data, quiet)
+                # Here we should use self.all_sections, but for some reason
+                # guidesections are not properly loaded, duplicating
+                # the load of subsections.
+                for section in sort_section_function(self.sections)
                 if not filter_sections or section.title in filter_sections
             ),
             "\n\\chapterend\n",
@@ -769,27 +718,9 @@ class LaTeXDocSection(DocSection):
         in_guide=False,
         summary_text="",
     ):
-        self.chapter = chapter
-        self.in_guide = in_guide
-        self.installed = installed
-        self.operator = operator
-        self.slug = slugify(title)
-        self.subsections = []
-        self.subsections_by_slug = {}
-        self.summary_text = summary_text
-        self.title = title
-
-        if text.count("<dl>") != text.count("</dl>"):
-            raise ValueError(
-                "Missing opening or closing <dl> tag in "
-                "{} documentation".format(title)
-            )
-
-        # Needs to come after self.chapter is initialized since
-        # DocumentationEntry uses self.chapter.
-        self.doc = LaTeXDocumentationEntry(text, title, self)
-
-        chapter.sections_by_slug[self.slug] = self
+        super().__init__(
+            chapter, title, text, operator, installed, in_guide, summary_text
+        )
 
     def latex(self, doc_data: dict, quiet=False) -> str:
         """Render this Section object as LaTeX string and return that.
@@ -812,11 +743,11 @@ class LaTeXDocSection(DocSection):
         sections = "\n\n".join(section.latex(doc_data) for section in self.subsections)
         slug = f"{self.chapter.part.slug}/{self.chapter.slug}/{self.slug}"
         section_string = (
-            "\n\n\\section*{%s}{%s}\n" % (title, index)
+            "\n\n\\section{%s}{%s}\n" % (title, index)
             + "\n\\label{%s}" % latex_label_safe(slug)
             + "\n\\sectionstart\n\n"
             + f"{content}"
-            + ("\\addcontentsline{toc}{section}{%s}" % title)
+            # + ("\\addcontentsline{toc}{section}{%s}" % title)
             + sections
             + "\\sectionend"
         )
@@ -839,7 +770,6 @@ class LaTeXDocGuideSection(DocGuideSection):
         installed: bool = True,
     ):
         super().__init__(chapter, title, text, submodule, installed)
-        self.doc = LaTeXDocumentationEntry(text, title, self)
 
     def get_tests(self):
         # FIXME: The below is a little weird for Guide Sections.
@@ -866,6 +796,7 @@ class LaTeXDocGuideSection(DocGuideSection):
             # The leading spaces help show chapter level.
             print(f"  Formatting Guide Section {self.title}")
         intro = self.doc.latex(doc_data).strip()
+        slug = f"{self.chapter.part.slug}/{self.chapter.slug}/{self.slug}"
         if intro:
             short = "short" if len(intro) < 300 else ""
             intro = "\\begin{guidesectionintro%s}\n%s\n\n\\end{guidesectionintro%s}" % (
@@ -875,10 +806,14 @@ class LaTeXDocGuideSection(DocGuideSection):
             )
         guide_sections = [
             (
-                "\n\n\\section{%(title)s}\n\\sectionstart\n\n%(intro)s"
-                "\\addcontentsline{toc}{section}{%(title)s}"
+                "\n\n\\section{%(title)s}\n\\label{%(label)s}\n\\sectionstart\n\n%(intro)s"
+                # "\\addcontentsline{toc}{section}{%(title)s}"
             )
-            % {"title": escape_latex(self.title), "intro": intro},
+            % {
+                "title": escape_latex(self.title),
+                "label": latex_label_safe(slug),
+                "intro": intro,
+            },
             "\n\n".join(section.latex(doc_data) for section in self.subsections),
         ]
         return "".join(guide_sections)
@@ -916,23 +851,6 @@ class LaTeXDocSubsection(DocSubsection):
         super().__init__(
             chapter, section, title, text, operator, installed, in_guide, summary_text
         )
-        self.doc = LaTeXDocumentationEntry(text, title, section)
-
-        if in_guide:
-            # Tests haven't been picked out yet from the doc string yet.
-            # Gather them here.
-            self.items = parse_docstring_to_DocumentationEntry_items(
-                text, LaTeXDocTests, LaTeXDocTest, LaTeXDocText
-            )
-        else:
-            self.items = []
-
-        if text.count("<dl>") != text.count("</dl>"):
-            raise ValueError(
-                "Missing opening or closing <dl> tag in "
-                "{} documentation".format(title)
-            )
-        self.section.subsections_by_slug[self.slug] = self
 
     def latex(self, doc_data: dict, quiet=False, chapters=None) -> str:
         """Render this Subsection object as LaTeX string and return that.
@@ -956,10 +874,10 @@ class LaTeXDocSubsection(DocSubsection):
         slug = f"{self.chapter.part.slug}/{self.chapter.slug}/{self.section.slug}/{self.slug}"
 
         section_string = (
-            "\n\n\\subsection*{%(title)s}%(index)s\n"
+            "\n\n\\subsection{%(title)s}%(index)s\n"
             + "\n\\label{%s}" % latex_label_safe(slug)
             + "\n\\subsectionstart\n\n%(content)s"
-            "\\addcontentsline{toc}{subsection}{%(title)s}"
+            #  "\\addcontentsline{toc}{subsection}{%(title)s}"
             "%(sections)s"
             "\\subsectionend"
         ) % {

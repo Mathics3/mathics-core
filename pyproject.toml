@@ -1,8 +1,11 @@
 [build-system]
 requires = [
-    "setuptools>=61.2",
-    "cython>=0.15.1; implementation_name!='pypy'"
+    "setuptools>=70.0.0", # CVE-2024-38335 recommends this
+    "cython>=0.15.1; implementation_name!='pypy'",
+    # For mathics-generate-json-table
+    "Mathics-Scanner >= 1.3.0",
 ]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "Mathics3"
@@ -21,9 +24,9 @@ dependencies = [
     "python-dateutil",
     "requests",
     "setuptools",
-    "sympy>=1.8",
+    "sympy>=1.11,<1.13",
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.8" # Sympy 1.11 is supported only down to 3.8
 readme = "README.rst"
 license = {text = "GPL"}
 keywords = ["Mathematica", "Wolfram", "Interpreter", "Shell", "Math", "CAS"]
@@ -35,7 +38,6 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -76,46 +78,9 @@ mathics = "mathics.main:main"
 
 [tool.setuptools]
 include-package-data = false
-packages = [
-    "mathics",
-    "mathics.algorithm",
-    "mathics.compile",
-    "mathics.core",
-    "mathics.core.convert",
-    "mathics.core.parser",
-    "mathics.builtin",
-    "mathics.builtin.arithfns",
-    "mathics.builtin.assignments",
-    "mathics.builtin.atomic",
-    "mathics.builtin.binary",
-    "mathics.builtin.box",
-    "mathics.builtin.colors",
-    "mathics.builtin.distance",
-    "mathics.builtin.exp_structure",
-    "mathics.builtin.drawing",
-    "mathics.builtin.fileformats",
-    "mathics.builtin.files_io",
-    "mathics.builtin.forms",
-    "mathics.builtin.functional",
-    "mathics.builtin.image",
-    "mathics.builtin.intfns",
-    "mathics.builtin.list",
-    "mathics.builtin.matrices",
-    "mathics.builtin.numbers",
-    "mathics.builtin.numpy_utils",
-    "mathics.builtin.pymimesniffer",
-    "mathics.builtin.pympler",
-    "mathics.builtin.quantum_mechanics",
-    "mathics.builtin.scipy_utils",
-    "mathics.builtin.specialfns",
-    "mathics.builtin.statistics",
-    "mathics.builtin.string",
-    "mathics.builtin.testing_expressions",
-    "mathics.builtin.vectors",
-    "mathics.eval",
-    "mathics.doc",
-    "mathics.format",
-]
+
+[tool.setuptools.packages.find]
+include = ["mathics*"]
 
 [tool.setuptools.package-data]
 "mathics" = [

@@ -339,12 +339,10 @@ def eval_mpmath_function(
 
         return call_mpmath(mpmath_function, tuple(float_args), FP_MANTISA_BINARY_DIGITS)
     else:
-        with mpmath.workprec(prec):
-            # to_mpmath seems to require that the precision is set from outside
-            mpmath_args = [x.to_mpmath() for x in args]
-            if None in mpmath_args:
-                return
-            return call_mpmath(mpmath_function, tuple(mpmath_args), prec)
+        mpmath_args = [x.to_mpmath(prec) for x in args]
+        if None in mpmath_args:
+            return
+        return call_mpmath(mpmath_function, tuple(mpmath_args), prec)
 
 
 def eval_Plus(*items: BaseElement) -> BaseElement:

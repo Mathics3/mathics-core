@@ -40,11 +40,13 @@ def do_cmp(x1, x2) -> Optional[int]:
     # we don't want to compare anything that
     # cannot be represented as a numeric value
     if s1.is_number and s2.is_number:
-        if s1 == s2:
+        delta = s1 - s2
+        if delta.is_zero:
             return 0
-        if s1 < s2:
+        if delta.is_extended_negative:
             return -1
-        return 1
+        if delta.is_extended_positive:
+            return 1
 
     return None
 
