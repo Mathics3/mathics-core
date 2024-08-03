@@ -24,7 +24,8 @@ from mathics.core.attributes import (
     attribute_string_to_number,
 )
 from mathics.core.convert.python import from_python
-from mathics.core.convert.sympy import SympyExpression, sympy_symbol_prefix
+
+# from mathics.core.convert.sympy import SympyExpression, sympy_symbol_prefix
 from mathics.core.element import (
     BaseElement,
     ElementsProperties,
@@ -36,7 +37,6 @@ from mathics.core.interrupt import ReturnInterrupt
 from mathics.core.structure import LinkedStructure
 from mathics.core.symbols import (
     Atom,
-    BaseElement,
     Monomial,
     NumericOperators,
     Symbol,
