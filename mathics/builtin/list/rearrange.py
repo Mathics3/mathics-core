@@ -963,7 +963,7 @@ class Partition(Builtin):
       <dt>'Partition[$list$, $n$]'
       <dd>partitions $list$ into sublists of length $n$.
 
-      <dt>'Parition[$list$, $n$, $d$]'
+      <dt>'Partition[$list$, $n$, $d$]'
       <dd>partitions $list$ into sublists of length $n$ which overlap $d$ \
           indices.
     </dl>
@@ -982,7 +982,7 @@ class Partition(Builtin):
     """
     summary_text = "partition a list into sublists of a given length"
     rules = {
-        "Parition[list_, n_, d_, k]": "Partition[list, n, d, {k, k}]",
+        "Partition[list_, n_, d_, k]": "Partition[list, n, d, {k, k}]",
     }
 
     def _partition(self, expr, n, d, evaluation: Evaluation):
