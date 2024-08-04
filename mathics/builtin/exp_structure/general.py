@@ -1,20 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-General Structural Expression Functions
+Structural Expression Functions
 """
 
-from mathics.core.atoms import Integer, Rational
+from mathics.core.atoms import Integer
 from mathics.core.builtin import BinaryOperator, Builtin, Predefined
 from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import Pattern
-from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
+from mathics.core.symbols import Atom, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolMap
 from mathics.eval.parts import python_levelspec, walk_levels
-
-SymbolOperate = Symbol("Operate")
-SymbolSortBy = Symbol("SortBy")
 
 
 class ApplyLevel(BinaryOperator):
@@ -43,116 +40,6 @@ class ApplyLevel(BinaryOperator):
     }
 
     summary_text = "apply a function to a list, at the top level"
-
-
-class BinarySearch(Builtin):
-    """
-    <url>
-    :Binary search algorithm:
-    https://en.wikipedia.org/wiki/Binary_search_algorithm</url> (<url>
-    :WMA:
-    https://reference.wolfram.com/language/ref/BinarySearch.html</url>)
-
-    <dl>
-      <dt>'CombinatoricaOld`BinarySearch[$l$, $k$]'
-      <dd>searches the list $l$, which has to be sorted, for key $k$ and \
-          returns its index in $l$.
-
-          If $k$ does not exist in $l$, 'BinarySearch' returns ($a$ + $b$) / 2, \
-          where $a$ and $b$ are the indices between which $k$ would have  \
-          to be inserted in order to maintain the sorting order in $l$.
-
-          Please note that $k$ and the elements in $l$ need to be comparable \
-          under a <url>
-          :strict total order:
-          https://en.wikipedia.org/wiki/Total_order</url>.
-
-      <dt>'CombinatoricaOld`BinarySearch[$l$, $k$, $f$]'
-      <dd>gives the index of $k$ in the elements of $l$ if $f$ is applied to the \
-          latter prior to comparison. Note that $f$ \
-          needs to yield a sorted sequence if applied to the elements of $l$.
-    </dl>
-
-    Number 100 is found at exactly in the fourth place of the given list:
-
-    >> CombinatoricaOld`BinarySearch[{3, 4, 10, 100, 123}, 100]
-     = 4
-
-     Number 7 is found in between the second and third place (3, and 9)\
-     of the given list. The numerical difference between 3 and 9 does \
-     not figure into the .5 part of 2.5:
-
-    >> CombinatoricaOld`BinarySearch[{2, 3, 9}, 7] // N
-     = 2.5
-
-    0.5 is what you get when the item comes before the given list:
-
-    >> CombinatoricaOld`BinarySearch[{-10, 5, 8, 10}, -100] // N
-     = 0.5
-
-    And here is what you see when the item comes at the end of the list:
-
-    >> CombinatoricaOld`BinarySearch[{-10, 5, 8, 10}, 20] // N
-     = 4.5
-
-    >> CombinatoricaOld`BinarySearch[{{a, 1}, {b, 7}}, 7, #[[2]]&]
-     = 2
-    """
-
-    context = "CombinatoricaOld`"
-
-    rules = {
-        "CombinatoricaOld`BinarySearch[li_List, k_] /; Length[li] > 0": "CombinatoricaOld`BinarySearch[li, k, Identity]"
-    }
-
-    summary_text = "search a sorted list for a key"
-
-    def eval(self, li, k, f, evaluation: Evaluation):
-        "CombinatoricaOld`BinarySearch[li_List, k_, f_] /; Length[li] > 0"
-
-        elements = li.elements
-
-        lower_index = 1
-        upper_index = len(elements)
-
-        if (
-            lower_index > upper_index
-        ):  # empty list li? Length[l] > 0 condition should guard us, but check anyway
-            return Symbol("$Aborted")
-
-        # "transform" is a handy wrapper for applying "f" or nothing
-        if f.get_name() == "System`Identity":
-
-            def transform(x):
-                return x
-
-        else:
-
-            def transform(x):
-                return Expression(f, x).evaluate(evaluation)
-
-        # loop invariants (true at any time in the following loop):
-        # (1) lower_index <= upper_index
-        # (2) k > elements[i] for all i < lower_index
-        # (3) k < elements[i] for all i > upper_index
-        while True:
-            pivot_index = (lower_index + upper_index) >> 1  # i.e. a + (b - a) // 2
-            # as lower_index <= upper_index, lower_index <= pivot_index <= upper_index
-            pivot = transform(elements[pivot_index - 1])  # 1-based to 0-based
-
-            # we assume a trichotomous relation: k < pivot, or k = pivot, or k > pivot
-            if k < pivot:
-                if pivot_index == lower_index:  # see invariant (2), to see that
-                    # k < elements[pivot_index] and k > elements[pivot_index - 1]
-                    return Rational((pivot_index - 1) + pivot_index, 2)
-                upper_index = pivot_index - 1
-            elif k == pivot:
-                return Integer(pivot_index)
-            else:  # k > pivot
-                if pivot_index == upper_index:  # see invariant (3), to see that
-                    # k > elements[pivot_index] and k < elements[pivot_index + 1]
-                    return Rational(pivot_index + (pivot_index + 1), 2)
-                lower_index = pivot_index + 1
 
 
 class Depth(Builtin):
@@ -340,72 +227,6 @@ class Null(Predefined):
     summary_text = "implicit result for expressions that do not yield a result"
 
 
-class Operate(Builtin):
-    """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/Operate.html</url>
-
-    <dl>
-      <dt>'Operate[$p$, $expr$]'
-      <dd>applies $p$ to the head of $expr$.
-
-      <dt>'Operate[$p$, $expr$, $n$]'
-      <dd>applies $p$ to the $n$th head of $expr$.
-    </dl>
-
-    >> Operate[p, f[a, b]]
-     = p[f][a, b]
-
-    The default value of $n$ is 1:
-    >> Operate[p, f[a, b], 1]
-     = p[f][a, b]
-
-    With $n$=0, 'Operate' acts like 'Apply':
-    >> Operate[p, f[a][b][c], 0]
-     = p[f[a][b][c]]
-    """
-
-    summary_text = "apply a function to the head of an expression"
-    messages = {
-        "intnn": "Non-negative integer expected at position `2` in `1`.",
-    }
-
-    def eval(self, p, expr, n, evaluation: Evaluation):
-        "Operate[p_, expr_, Optional[n_, 1]]"
-
-        head_depth = n.get_int_value()
-        if head_depth is None or head_depth < 0:
-            evaluation.message(
-                "Operate", "intnn", Expression(SymbolOperate, p, expr, n), 3
-            )
-            return
-
-        if head_depth == 0:
-            # Act like Apply
-            return Expression(p, expr)
-
-        if isinstance(expr, Atom):
-            return expr
-
-        expr = expr.copy()
-        e = expr
-
-        for i in range(1, head_depth):
-            e = e.head
-            if isinstance(e, Atom):
-                # n is higher than the depth of heads in expr: return
-                # expr unmodified.
-                return expr
-
-        # Otherwise, if we get here, e.head points to the head we need
-        # to apply p to. Python's reference semantics mean that this
-        # assignment modifies expr as well.
-        e.set_head(Expression(p, e.head))
-
-        return expr
-
-
 class SortBy(Builtin):
     """
     <url>
@@ -485,31 +306,3 @@ class SortBy(Builtin):
             new_indices = sorted(list(range(len(raw_keys))), key=Key)
             new_elements = [raw_keys[i] for i in new_indices]  # reorder elements
             return li.restructure(li.head, new_elements, evaluation)
-
-
-class Through(Builtin):
-    """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/Through.html</url>
-
-    <dl>
-      <dt>'Through[$p$[$f$][$x$]]'
-      <dd>gives $p$[$f$[$x$]].
-    </dl>
-
-    >> Through[f[g][x]]
-     = f[g[x]]
-    >> Through[p[f, g][x]]
-     = p[f[x], g[x]]
-    """
-
-    summary_text = "distribute operators that appears inside the head of expressions"
-
-    def eval(self, p, args, x, evaluation: Evaluation):
-        "Through[p_[args___][x___]]"
-
-        elements = []
-        for element in args.get_sequence():
-            elements.append(Expression(element, *x.get_sequence()))
-        return Expression(p, *elements)
