@@ -416,6 +416,7 @@ class Information(PrefixOperator):
       <dt>'Information[$symbol$]'
       <dd>Prints information about a $symbol$
     </dl>
+
     'Information' does not print information for 'ReadProtected' symbols.
 
     'Information' uses 'InputForm' to format values.

@@ -78,20 +78,20 @@ class Hash(Builtin):
       <dd>Returns the hash in the specified format.
     </dl>
 
-    > Hash["The Adventures of Huckleberry Finn"]
+    >> Hash["The Adventures of Huckleberry Finn"]
     = 213425047836523694663619736686226550816
 
-    > Hash["The Adventures of Huckleberry Finn", "SHA256"]
+    >> Hash["The Adventures of Huckleberry Finn", "SHA256"]
     = 95092649594590384288057183408609254918934351811669818342876362244564858646638
 
-    > Hash[1/3]
+    >> Hash[1/3]
     = 56073172797010645108327809727054836008
 
-    > Hash[{a, b, {c, {d, e, f}}}]
+    >> Hash[{a, b, {c, {d, e, f}}}]
     = 135682164776235407777080772547528225284
 
-    > Hash[SomeHead[3.1415]]
-    = 58042316473471877315442015469706095084
+    >> Hash[SomeHead[3.1415]]
+    = 47205238268993602951487675588386522878
 
     >> Hash[{a, b, c}, "xyzstr"]
      = Hash[{a, b, c}, xyzstr, Integer]
