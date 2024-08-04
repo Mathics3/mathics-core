@@ -217,3 +217,30 @@ def test_load_mathics_documentation():
                 for subsection in section.subsections:
                     assert subsection.title not in visited_subsections
                     visited_subsections.add(subsection.title)
+
+
+def test_doc_parser():
+    for input_str, output_str in (
+        ["![figure](figure.png)", "<imgpng src='figure.png' title='figure'>"],
+        [
+            "![figure](figure.png){#figure-label}",
+            "<imgpng src='figure.png' title='figure' label='figure-label'>",
+        ],
+        [
+            ("""\n`` python\ndef f(x):\n   g[i](x)\n""" """    return x + 2\n``\n"""),
+            """<python>def f(x):\n   g[i](x)\n    return x + 2\n</python>""",
+        ],
+        ["[url de destino](/doc/algo)", "<url>:url de destino:/doc/algo</url>"],
+    ):
+        result = parse_docstring_to_DocumentationEntry_items(
+            input_str,
+            DocTests,
+            DocTest,
+            DocText,
+            (
+                "part example",
+                "chapter example",
+                "section example",
+            ),
+        )[0].text
+        assert result == output_str
