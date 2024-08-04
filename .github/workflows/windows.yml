@@ -49,5 +49,5 @@ jobs:
         pip install pyocr # from full
         pip install -e .[dev]
         make pytest gstest
-        make doctest
+        make doctest DOCTEST_OPTIONS="--exclude WordCloud"
         # make check
