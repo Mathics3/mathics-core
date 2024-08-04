@@ -726,7 +726,7 @@ def save_doctest_data(doctest_pipeline: DocTestPipeline):
     if len(output_data) == 0:
         doctest_pipeline.print_and_log("output data is empty")
         return
-    doctest_pipeline.print_and_log("saving", len(output_data), "entries")
+    doctest_pipeline.print_and_log(f"saving {len(output_data)} entries")
     doctest_pipeline.print_and_log(output_data.keys())
     doctest_latex_data_path = doctest_pipeline.parameters.data_path
     doctest_pipeline.print_and_log(
@@ -735,7 +735,7 @@ def save_doctest_data(doctest_pipeline: DocTestPipeline):
     i = 0
     for key in output_data:
         i = i + 1
-        doctest_pipeline.print_and_log(key, output_data[key])
+        doctest_pipeline.print_and_log("{key}, {output_data[key]}")
         if i > 9:
             break
     with open(doctest_latex_data_path, "wb") as output_file:
