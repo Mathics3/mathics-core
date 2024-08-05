@@ -8,6 +8,7 @@ from test.helper import check_evaluation, evaluate, session
 import pytest
 
 from mathics.builtin.atomic.strings import to_python_encoding
+from mathics.core.systemsymbols import SymbolFailed
 
 # def test_import():
 #     eaccent = "\xe9"
@@ -221,12 +222,6 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
         ),
         ## Empty elems
         ('Export["123.txt", 1+x, {}]', None, "123.txt", None),
-        (
-            'Export["123.jcp", 1+x, {}]',
-            ("Cannot infer format of file 123.jcp.",),
-            "$Failed",
-            None,
-        ),
         ## FORMATS
         ## ASCII text
         ('FileFormat["ExampleData/BloodToilTearsSweat.txt"]', None, "Text", None),
@@ -258,6 +253,18 @@ def test_private_doctests_importexport(str_expr, msgs, str_expected, fail_msg):
         failure_message=fail_msg,
         expected_messages=msgs,
     )
+
+
+def test_inividually():
+    # Test Export where we cannot infer the export type from the file extension;
+    # here it is: ".jcp".
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".jcp") as tmp:
+        filename = osp.join(tmp.name, "123.jcp")
+        expr = f'Export["{filename}", 1+x,' + "{}]"
+        result = evaluate(expr)
+        outs = [out.text for out in session.evaluation.out]
+        assert result == SymbolFailed
+        assert outs == [f"Cannot infer format of file {filename}."]
 
 
 # TODO:
