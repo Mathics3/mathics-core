@@ -21,6 +21,16 @@
 
 \documentclass[index=totoc,fleqn,10pt,oneside,toc=flat]{scrbook}
 
+% The number is sections and subsections can get high, for example:
+%  26.2.16 PolarPlot
+%  ^^^^^^^
+% So we need the below to automatically calculate the width numbers can take
+% See:
+% https://tex.stackexchange.com/questions/694088/koma-book-class-listoftables-increase-the-space-between-the-number-and-title-of
+\DeclareTOCStyleEntry[dynnumwidth]{default}{chapter}
+\DeclareTOCStyleEntry[dynnumwidth]{default}{section}
+\DeclareTOCStyleEntry[dynnumwidth]{default}{subsection}
+
 %\usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{gensymb} % For \degree. usepackage needs to be early.
