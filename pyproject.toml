@@ -8,9 +8,6 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-authors = [
-	name = "Mathics3 Authors"
-]
 description = "A general-purpose computer algebra system."
 dependencies = [
     "Mathics-Scanner >= 1.3.0",
