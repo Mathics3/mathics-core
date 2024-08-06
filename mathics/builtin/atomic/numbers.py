@@ -771,7 +771,7 @@ class Precision(Builtin):
     </dl>
 
     <i>Note that the result could be slightly different than the obtained \
-    in WMA, due to differencs in the internal representation of the real numbers.</i>
+    in WMA, due to differences in the internal representation of the real numbers.</i>
 
     The precision of an exact number, e.g. an Integer, is 'Infinity':
 
@@ -792,25 +792,22 @@ class Precision(Builtin):
     >> Precision[0.5]
      = MachinePrecision
 
-    In compound expressions, the 'Precision' is fixed by the number with
+    In compound expressions, the 'Precision' is fixed by the number with \
     the lowest 'Precision':
     >> Precision[{{1, 1.`},{1.`5, 1.`10}}]
      = 5.
 
-    For non-zero Real values, it holds in general:
-
-    'Accuracy'[$z$] == 'Precision'[$z$] + 'Log'[$z$]
+    In general, 'Accuracy'[$z$] == 'Precision'[$z$] + 'Log'[$z$] \
+    for non-zero Real values:
 
     >> (Accuracy[z] == Precision[z] + Log[z])/.z-> 37.`
      = True
 
-    The case of `0.` values is special. Following WMA, in a Machine Real\
-    representation, the precision is set to 'MachinePrecision':
+    Following WMA, values in Machine Real representation starting with '0.' are values are special:
     >> Precision[0.]
      = MachinePrecision
 
-    On the other hand, for a Precision Real with fixed accuracy,\
-    the precision is evaluated to 0.:
+    On the other hand, for a Precision Real with fixed accuracy, the precision is evaluated to '0.':
     >> Precision[0.``3]
      = 0.
 

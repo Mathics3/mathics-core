@@ -355,8 +355,9 @@ class SokalSneathDissimilarity(_BooleanDissimilarity):
 class Subsets(Builtin):
     """
     <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/Subsets.html</url>
+    :Subset:
+    https://en.wikipedia.org/wiki/Subset</url> (<url>:WMA link:
+    https://reference.wolfram.com/language/ref/Subsets.html</url>)
 
     <dl>
       <dt>'Subsets[$list$]'
@@ -396,8 +397,8 @@ class Subsets(Builtin):
      = {{a, b, c}, {a, b, d}, {a, b, e}, {a, c, d}, {a, c, e}}
 
     All subsets with even length:
-    >> Subsets[{a, b, c, d, e}, {0, 5, 2}]
-     = {{}, {a, b}, {a, c}, {a, d}, {a, e}, {b, c}, {b, d}, {b, e}, {c, d}, {c, e}, {d, e}, {a, b, c, d}, {a, b, c, e}, {a, b, d, e}, {a, c, d, e}, {b, c, d, e}}
+    >> Subsets[{a, b, c, d}, {0, 4, 2}]
+     = {{}, {a, b}, {a, c}, {a, d}, {b, c}, {b, d}, {c, d}, {a, b, c, d}}
 
     The 25th subset:
     >> Subsets[Range[5], All, {25}]

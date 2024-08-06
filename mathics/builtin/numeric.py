@@ -185,6 +185,7 @@ class N(Builtin):
      = 0.14286
 
     You can manually assign numerical values to symbols.
+
     When you do not specify a precision, 'MachinePrecision' is taken.
     >> N[a] = 10.9
      = 10.9

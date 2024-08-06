@@ -272,6 +272,10 @@ class ComplexInfinity(_SympyConstant):
     ComplexInfinity though is a special case of DirectedInfinity:
     >> FullForm[ComplexInfinity]
      = DirectedInfinity[]
+
+    See also <url>
+    :'DirectedInfinity':
+    /doc/reference-of-built-in-symbols/mathematical-functions/directedinfinity/</url>.
     """
 
     summary_text = "infinite complex quantity of undetermined direction"
@@ -493,14 +497,31 @@ class Infinity(_SympyConstant):
       <dd>a symbol that represents an infinite real quantity.
     </dl>
 
+    'Infinity' sometimes appears as the result of a calculation:
+    >> Precision[1]
+     = Infinity
+
+    But 'Infinity' it often used as a value in expressions:
     >> 1 / Infinity
      = 0
+
     >> Infinity + 100
      = Infinity
 
-    Use 'Infinity' in sum and limit calculations:
+    'Infinity' often appears in sum and limit calculations:
     >> Sum[1/x^2, {x, 1, Infinity}]
      = Pi ^ 2 / 6
+
+    >> Limit[1/x, x->0]
+     = -Infinity
+
+    However, 'Infinity' a shorthand for 'DirectedInfinity[1]':
+    >> FullForm[Infinity]
+     = DirectedInfinity[1]
+
+    See also <url>
+    :'DirectedInfinity':
+    /doc/reference-of-built-in-symbols/mathematical-functions/directedinfinity/</url>.
     """
 
     sympy_name = "oo"
