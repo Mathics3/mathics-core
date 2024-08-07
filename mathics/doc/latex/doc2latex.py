@@ -27,7 +27,7 @@ from numpy import __version__ as NumPyVersion
 from sympy import __version__ as SymPyVersion
 
 import mathics
-from mathics import __version__, settings, version_string
+from mathics import __version__, settings, version_info, version_string
 from mathics.core.definitions import Definitions
 from mathics.core.load_builtin import import_and_load_builtins
 from mathics.doc.latex_doc import LaTeXMathicsDocumentation
@@ -89,6 +89,7 @@ def get_versions():
         ["GhostscriptVersion", ("gs", "--version"), "stdout"],
     ):
         versions[name] = try_cmd(cmd, field)
+    versions.update(version_info)
     return versions
 
 
