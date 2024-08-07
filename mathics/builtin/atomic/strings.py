@@ -347,7 +347,7 @@ class CharacterEncodings(Predefined):
       <dd>stores the list of available character encodings.
     </dl>
 
-    >> $CharacterEncodings
+    >> $CharacterEncodings[[;;9]]
      = ...
     """
 
