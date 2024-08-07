@@ -29,6 +29,7 @@ version_info: Dict[str, str] = {
 optional_software: Dict[str, str] = (
     "cython",
     "lxml",
+    "matplotlib",
     "networkx",
     "nltk",
     "psutil",
@@ -40,7 +41,11 @@ optional_software: Dict[str, str] = (
 for package in optional_software:
     try:
         mod = import_module(package)
-        package_version = mod.__dict__.get("__version__", "No version information")
+        package_version = (
+            mod.__version__
+            if hasattr(mod, "__version__")
+            else mod.__dict__.get("__version__", "No version information")
+        )
     except ImportError:
         package_version = "Not installed"
 
