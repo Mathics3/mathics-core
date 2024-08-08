@@ -389,6 +389,7 @@ class InterpretedBox(PrefixOperator):
       <dt>'InterpretedBox[$box$]'
       <dd>is the ad hoc fullform for \! $box$. just for internal use...
     </dl>
+
     >> \! \(2+2\)
      = 4
     """

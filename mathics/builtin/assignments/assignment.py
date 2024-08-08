@@ -65,6 +65,7 @@ class LoadModule(Builtin):
       <dt>'LoadModule[$module$]'
       <dd>'Load Mathics definitions from the python module $module$
     </dl>
+
     >> LoadModule["nomodule"]
      : Python import errors with: No module named 'nomodule'.
      = $Failed

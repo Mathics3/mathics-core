@@ -298,6 +298,7 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
       <dt>'Degree'
       <dd>is the number of radians in one degree. It has a numerical value of \u03c0 / 180.
     </dl>
+
     >> Cos[60 Degree]
      = 1 / 2
 

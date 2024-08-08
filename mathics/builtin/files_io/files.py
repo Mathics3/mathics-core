@@ -721,6 +721,7 @@ class Read(Builtin):
       <dd>reads the input stream for an Expression and puts it inside 'Hold'.
 
     </dl>
+
     $type$ is one of:
     <ul>
       <li>Byte

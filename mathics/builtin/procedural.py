@@ -49,6 +49,7 @@ class Abort(Builtin):
       <dt>'Abort[]'
       <dd>aborts an evaluation completely and returns '$Aborted'.
     </dl>
+
     >> Print["a"]; Abort[]; Print["b"]
      | a
      = $Aborted
@@ -70,6 +71,7 @@ class Break(Builtin):
       <dt>'Break[]'
       <dd>exits a 'For', 'While', or 'Do' loop.
     </dl>
+
     >> n = 0;
     >> While[True, If[n>10, Break[]]; n=n+1]
     >> n
@@ -245,6 +247,7 @@ class Do(IterationFunction):
       <dd>evaluates $expr$ for each $j$ from $jmin$ to $jmax$, for each $i$ from $imin$
           to $imax$, etc.
     </dl>
+
     >> Do[Print[i], {i, 2, 4}]
      | 2
      | 3
@@ -392,6 +395,7 @@ class Interrupt(Builtin):
       <dt>'Interrupt[]'
       <dd>Interrupt an evaluation and returns '$Aborted'.
     </dl>
+
     >> Print["a"]; Interrupt[]; Print["b"]
      | a
      = $Aborted

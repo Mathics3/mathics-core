@@ -15,6 +15,7 @@ class Byte(Builtin):
       <dt>'Byte'
       <dd>is a data type for 'Read'.
     </dl>
+
     """
 
     summary_text = "single byte of data, returned as an integer"

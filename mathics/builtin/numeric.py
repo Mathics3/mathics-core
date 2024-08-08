@@ -175,6 +175,7 @@ class N(Builtin):
     <dt>'N[$expr$, $prec$]'
         <dd>evaluates $expr$ numerically with a precision of $prec$ digits.
     </dl>
+
     >> N[Pi, 50]
      = 3.1415926535897932384626433832795028841971693993751
 
@@ -553,6 +554,7 @@ class RealAbs(Builtin):
       <dt>'RealAbs[$x$]'
       <dd>returns the absolute value of a real number $x$.
     </dl>
+
     'RealAbs' is also known as modulus. It is evaluated if $x$ can be compared \
     with $0$.
 
@@ -595,6 +597,7 @@ class RealSign(Builtin):
       <dd>returns -1, 0 or 1 depending on whether $x$ is negative,
       zero or positive.
     </dl>
+
     'RealSign' is also known as $sgn$ or $signum$ function.
 
     >> RealSign[-3.]

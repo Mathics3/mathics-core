@@ -42,6 +42,7 @@ class Beta(MPMathMultiFunction):
           <dt>'Beta[$z$, $a$, $b$]'
           <dd>gives the incomplete Beta function.
         </dl>
+
         The Beta function satisfies the property
         Beta[x, y] = Integrate[t^(x-1)(1-t)^(y-1),{t,0,1}] = Gamma[a] Gamma[b] / Gamma[a + b]
         >> Beta[2, 3]
@@ -174,6 +175,7 @@ class Factorial2(PostfixOperator, MPMathFunction):
       <dt>'$n$!!'
       <dd>computes the double factorial of $n$.
     </dl>
+
     The double factorial or semifactorial of a number $n$, is the product of all the \
     integers from 1 up to n that have the same parity (odd or even) as $n$.
 

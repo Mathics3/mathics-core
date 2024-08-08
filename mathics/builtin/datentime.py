@@ -589,6 +589,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
       <dt>'DateObject[...]'
       <dd> Returns an object codifiyng DateList....
     </dl>
+
     >> DateObject[{2020, 4, 15}]
      = [...]
     """

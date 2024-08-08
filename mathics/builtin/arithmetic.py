@@ -180,6 +180,7 @@ class Assuming(Builtin):
       <dt>'Assuming[$cond$, $expr$]'
       <dd>Evaluates $expr$ assuming the conditions $cond$.
     </dl>
+
     >> $Assumptions = { x > 0 }
      = {x > 0}
     >> Assuming[y>0, ConditionalExpression[y x^2, y>0]//Simplify]

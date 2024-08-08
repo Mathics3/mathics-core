@@ -1339,6 +1339,7 @@ class EdgeForm(Builtin):
       <dt> 'EdgeForm[$g$]'
       <dd> is a graphics directive that specifies that edges of filled graphics objects are to be drawn using the graphics directive or list of directives $g$.
     </dl>
+
     >> Graphics[{EdgeForm[{Thick, Green}], Disk[]}]
      = -Graphics-
 

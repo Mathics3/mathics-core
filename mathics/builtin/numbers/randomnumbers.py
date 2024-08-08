@@ -229,6 +229,7 @@ class Random(Builtin):
           $type$, in the specified interval $range$. Possible types are \
           'Integer', 'Real' or 'Complex'.
     </dl>
+
     Legacy function. Superseded by RandomReal, RandomInteger and RandomComplex.
 
     """
