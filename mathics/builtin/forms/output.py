@@ -78,7 +78,7 @@ class BaseForm(FormBaseClass):
     >> BaseForm[33, 2]
      = 100001_2
 
-    A hexidecimal number:
+    A hexadecimal number:
     >> BaseForm[234, 16]
      = ea_16
 

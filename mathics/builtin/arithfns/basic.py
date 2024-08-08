@@ -630,7 +630,7 @@ class Times(BinaryOperator, SympyFunction):
     # Remember to up sympy doc link when this is corrected
     sympy_name = "Mul"
 
-    summary_text = "mutiply"
+    summary_text = "multiply"
 
     def format_times(self, items, evaluation, op="\u2062"):
         "Times[items__]"

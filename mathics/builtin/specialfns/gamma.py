@@ -91,7 +91,7 @@ class Beta(MPMathMultiFunction):
         """Beta[z_, a_, b_]"""
         # Here I needed to do that because the order of the arguments in WL
         # is different from the order in mpmath. Most of the code is the same
-        # thatn in
+        # that in MPMathMultiFunction.eval
         if not all(isinstance(q, Number) for q in (a, b, z)):
             return
 

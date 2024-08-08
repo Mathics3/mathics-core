@@ -115,7 +115,7 @@ class Divisors(Builtin):
 #    >> ExtendedGCD[10, 15, 7]
 #     = {1, {-3, 3, -2}}
 #
-#    Compute the greated common divisor and check the result:
+#    Compute the greatest common divisor and check the result:
 #    >> numbers = {10, 20, 14};
 #    >> {gcd, factors} = ExtendedGCD[Sequence @@ numbers]
 #     = {2, {3, 0, -2}}
@@ -691,7 +691,7 @@ class RandomPrime(Builtin):
             "of two positive integers."
         ),
         "posint": (
-            "The paramater `1` describing the interval is expected to "
+            "The parameter `1` describing the interval is expected to "
             "be a positive integer."
         ),
     }

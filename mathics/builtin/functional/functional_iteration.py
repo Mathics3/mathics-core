@@ -185,7 +185,7 @@ class FoldList(Builtin):
         "FoldList[exp_, x_, head_]": "Module[{i = 1}, Head[head] @@ Prepend[Table[Fold[exp, x, Take[head, i]], {i, 1, Length[head]}], x]]",
         "FoldList[exp_, head_]": "If[Length[head] == 0, head, FoldList[exp, First[head], Rest[head]]]",
     }
-    summary_text = "list of the results of applying a binary operation interatively over elements of a list"
+    summary_text = "list of the results of applying a binary operation iteratively over elements of a list"
 
 
 class Nest(Builtin):

@@ -627,7 +627,7 @@ class RealSign(Builtin):
 
 class RealValuedNumberQ(Builtin):
     # No docstring since this is internal and it will mess up documentation.
-    # FIXME: Perhaps in future we will have a more explicite way to indicate not
+    # FIXME: Perhaps in future we will have a more explicit way to indicate not
     # to add something to the docs.
     no_doc = True
     context = "Internal`"
@@ -642,7 +642,7 @@ class RealValuedNumberQ(Builtin):
 
 class RealValuedNumericQ(Builtin):
     # No docstring since this is internal and it will mess up documentation.
-    # FIXME: Perhaps in future we will have a more explicite way to indicate not
+    # FIXME: Perhaps in future we will have a more explicit way to indicate not
     # to add something to the docs.
     no_doc = True
     context = "Internal`"

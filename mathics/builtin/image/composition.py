@@ -136,7 +136,7 @@ class ImageSubtract(_ImageArithmetic):
      = -Image-
     """
 
-    summary_text = "build an image substracting pixel values of another image "
+    summary_text = "build an image subtracting pixel values of another image "
 
 
 class WordCloud(Builtin):

@@ -334,7 +334,7 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
             return
 
         # FIXME: There are all sorts of interactions between in the trig functions,
-        # that are expected to work out right. Until we have convertion between
+        # that are expected to work out right. Until we have conversion between
         # mpmath and sympy worked out so that values can be made the to the same
         # precision and compared. we have to not use mpmath right now.
         # return self.get_constant(precision, evaluation, preference="mpmath")

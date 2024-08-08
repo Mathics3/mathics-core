@@ -43,7 +43,7 @@ class Graphics3DBox(GraphicsBox):
     </dl>
     """
 
-    summary_text = "symbol used boxing Graphics3D expresssions"
+    summary_text = "symbol used boxing Graphics3D expressions"
 
     def _prepare_elements(self, elements, options, max_width=None):
         if not elements:
@@ -240,7 +240,7 @@ class Graphics3DBox(GraphicsBox):
         elements = Graphics3DElements(elements[0], evaluation)
         # If one of the primitives or directives fails to be
         # converted into a box expression, then the background color
-        # is set to pink, overwritting the options.
+        # is set to pink, overwriting the options.
         if hasattr(elements, "background_color"):
             self.background_color = elements.background_color
 
@@ -556,7 +556,7 @@ class Cone3DBox(_GraphicsElementBox):
 
     def extent(self):
         result = []
-        # FIXME: the extent is roughly wrong. It is using the extent of a shpere at each coordinate.
+        # FIXME: the extent is roughly wrong. It is using the extent of a sphere at each coordinate.
         # Anyway, it is very difficult to calculate the extent of a cone.
         result.extend(
             [

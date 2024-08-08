@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 # This module follows Mathematica 5
-# conventions. In current Mathematica a number of these functiions
+# conventions. In current Mathematica a number of these functions
 # don't exist.  Some of the functions in Mathematica 5 appear now
 # under Information.
 
 # FIXME: put this inside a Pymathics module.
-# We alos should have compatibility modes for for earlier Mathemathica versions.
+# We should also have compatibility modes for for earlier Mathemathica versions.
 """
 Types of Values
 """

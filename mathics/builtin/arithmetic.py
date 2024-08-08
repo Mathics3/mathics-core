@@ -604,7 +604,7 @@ Rationals, Algebraics, Reals, Complexes, or Booleans.
             return None
         if len(unknown) == 0:
             return SymbolTrue
-        # If some of the items remain unkown, return a reduced expression
+        # If some of the items remain unknown, return a reduced expression
         return Element(Expression(elems.head, *unknown), domain)
 
 
@@ -1013,9 +1013,9 @@ class Sum(IterationFunction, SympyFunction):
             # test should be broader.
             if isinstance(f_sympy, sympy.core.basic.Basic):
                 # sympy.summation() won't be able to handle Mathics functions in
-                # in its first argument, the function paramameter.
+                # in its first argument, the function parameter.
                 # For example in Sum[Identity[x], {x, 3}], sympy.summation can't
-                # evaluate Indentity[x].
+                # evaluate Identity[x].
                 # In general we want to avoid using Sympy if we can.
                 # If we have integer bounds, we'll use Mathics's iterator Sum
                 # (which is Plus)

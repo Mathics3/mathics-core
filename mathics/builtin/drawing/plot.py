@@ -814,8 +814,8 @@ class _Plot3D(Builtin):
                     # 1   2        1   2
                     #
                     # Approaching the boundary of the well defined region is
-                    # important too. Use first stategy if 1 or 4 are undefined
-                    # and stategy 2 if either 2 or 3 are undefined.
+                    # important too. Use first strategy if 1 or 4 are undefined
+                    # and strategy 2 if either 2 or 3 are undefined.
                     #
                     (x1, x2, x3, x4) = (
                         xstart + value * (xstop - xstart)
@@ -1224,7 +1224,7 @@ class BarChart(_Chart):
             y_range[0] = -0.4  # room for labels at the bottom
 
         # FIXME: this can't be right...
-        # always specify -.1 as the minimum x plot range, as this will make the y axis apppear
+        # always specify -.1 as the minimum x plot range, as this will make the y axis appear
         # at origin (0,0); otherwise it will be shifted right; see GraphicsBox.axis_ticks().
         x_range[0] = -0.1
 
@@ -1629,7 +1629,7 @@ class DiscretePlot(_Plot):
         # list of all plotted points across all functions
         plot_groups = []
 
-        # List of graphics primitves that rendering will use to draw.
+        # List of graphics primitives that rendering will use to draw.
         # This includes the plot data, and overall graphics directives
         # like the Hue.
 
@@ -1883,7 +1883,7 @@ class Histogram(Builtin):
             x_range = list(get_plot_range(x_coords, x_coords, x_range))
             y_range = list(get_plot_range(y_coords, y_coords, y_range))
 
-            # always specify -.1 as the minimum x plot range, as this will make the y axis apppear
+            # always specify -.1 as the minimum x plot range, as this will make the y axis appear
             # at origin (0,0); otherwise it will be shifted right; see GraphicsBox.axis_ticks().
             x_range[0] = -0.1
 
@@ -1955,7 +1955,7 @@ class ListPlot(_ListPlot):
       <dd>plots several lists of points.
     </dl>
 
-    The frequecy of Primes:
+    The frequency of Primes:
     >> ListPlot[Prime[Range[30]]]
      = -Graphics-
 
