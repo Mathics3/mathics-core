@@ -66,7 +66,7 @@ class MaxLengthIntStringConversion(Predefined):
      = ...
 
     We first set '$MaxLengthIntStringConversion' to the smallest value allowed, \
-    so that we can see the trunction of digits in the middle:
+    so that we can see the truncation of digits in the middle:
     >> $MaxLengthIntStringConversion = 640
     ## Pyston 2.3.5 returns 0 while CPython returns 640
     ## Therefore output testing below is generic.
@@ -222,7 +222,7 @@ class Machine(Predefined):
      = linux
     """
 
-    summary_text = "the type of computer system over whith Mathics is running"
+    summary_text = "the type of computer system over with Mathics is running"
     name = "$Machine"
 
     def evaluate(self, evaluation) -> String:
@@ -243,7 +243,7 @@ class MachineName(Predefined):
      = buster
     """
 
-    summary_text = "the name of computer over whith Mathics is running"
+    summary_text = "the name of computer over with Mathics is running"
     name = "$MachineName"
 
     def evaluate(self, evaluation) -> String:
@@ -401,8 +401,8 @@ class ScriptCommandLine(Predefined):
             # not run in script mode
             return ListExpression()
         scriptname = "" if dash_index == 0 else sys.argv[dash_index - 1]
-        parms = [scriptname] + [s for s in sys.argv[dash_index + 1 :]]
-        return to_mathics_list(*parms, elements_conversion_fn=String)
+        params = [scriptname] + [s for s in sys.argv[dash_index + 1 :]]
+        return to_mathics_list(*params, elements_conversion_fn=String)
 
 
 class Run(Builtin):
@@ -706,7 +706,7 @@ class Share(Builtin):
         """Share[]"""
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then
-        # remplace them by references.
+        # replace them by references.
         # Return the amount of memory recovered.
         if have_psutil:
             totalmem = psutil.virtual_memory().available
@@ -720,7 +720,7 @@ class Share(Builtin):
         """Share[symbol_Symbol]"""
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then
-        # remplace them by references.
+        # replace them by references.
         # Return the amount of memory recovered.
         if have_psutil:
             totalmem = psutil.virtual_memory().available

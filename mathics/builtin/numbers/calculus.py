@@ -428,7 +428,7 @@ class Derivative(PostfixOperator, SympyFunction):
         # rule (i.e., an eval_ method).
         """Derivative[n__Integer][f_Symbol] /; Module[{t=Sequence@@Slot/@Range[Length[{n}]], result, nothing, ft=f[t]},
             If[
-            (*If the head of ft is f, and it does not have a previos defintion of derivative, and the context is `System,
+            (*If the head of ft is f, and it does not have a previous definition of derivative, and the context is `System,
               the rule fails:
             *)
             Head[ft] === f
@@ -647,7 +647,7 @@ class _BaseFinder(Builtin):
         # keeping x without evaluation (Like inside a "Block[{x},f])
         f = dynamic_scoping(lambda ev: f.evaluate(ev), {x_name: None}, evaluation)
         # If after evaluation, we get an "Equal" expression,
-        # convert it in a function by substracting both
+        # convert it in a function by subtracting both
         # members. Again, ensure the scope in the evaluation
         if f.get_head_name() == "System`Equal":
             f = Expression(
@@ -1297,7 +1297,7 @@ class NIntegrate(Builtin):
     # >> Table[ NIntegrate[x^(1./k-1.), {x,0,1.}, Tolerance->1*^-6], {k,1,7.}]
     # = {1., 2., 3., 4., 5., 6., 7.}
 
-    # Mutiple Integrals :
+    # Multiple Integrals :
     # >> NIntegrate[x * y,{x, 0, 1}, {y, 0, 1}]
     # = 0.25
 
@@ -1626,7 +1626,7 @@ class Root(SympyFunction):
             poly = body.replace_slots([f, Symbol("_1")], evaluation)
             idx = i.to_sympy() - 1
 
-            # Check for negative indeces (they are not allowed in Mathematica)
+            # Check for negative indices (they are not allowed in Mathematica)
             if idx < 0:
                 evaluation.message("Root", "iidx", i)
                 return
@@ -2248,7 +2248,7 @@ class Solve(Builtin):
                 eq = sympy.together(eq)
                 eq = sympy.cancel(eq)
                 sympy_eqs.append(eq)
-                numer, denom = eq.as_numer_denom()
+                _, denom = eq.as_numer_denom()
                 sympy_denoms.append(denom)
 
         vars_sympy = [var.to_sympy() for var in vars]
@@ -2375,6 +2375,6 @@ def is_zero(
     eps_expr: BaseElement = Integer10 ** (-prec_goal) if prec_goal else Integer0
     if acc_goal:
         eps_expr = eps_expr + Integer10 ** (-acc_goal) / abs(val)
-    threeshold_expr = Expression(SymbolLog, eps_expr)
-    threeshold: Real = eval_N(threeshold_expr, evaluation)
-    return threeshold.to_python() > 0
+    threshold_expr = Expression(SymbolLog, eps_expr)
+    threshold: Real = eval_N(threshold_expr, evaluation)
+    return threshold.to_python() > 0

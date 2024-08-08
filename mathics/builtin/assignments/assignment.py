@@ -34,7 +34,7 @@ class _SetOperator:
     """
 
     # FIXME:
-    # Assigment is determined by the LHS.
+    # Assignment is determined by the LHS.
     # Are there a larger patterns or natural groupings that we are missing?
     # For example, it might be that it
     # we can key off of some attributes or other properties of the

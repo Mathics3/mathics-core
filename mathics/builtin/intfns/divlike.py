@@ -350,7 +350,7 @@ class QuotientRemainder(Builtin):
                 )
                 return
             # Note: py_m % py_n can be a float or an int.
-            # Also note that we *want* the first arguemnt to be an Integer.
+            # Also note that we *want* the first argument to be an Integer.
             return to_mathics_list(Integer(py_m // py_n), py_m % py_n)
         else:
             return Expression(SymbolQuotientRemainder, m, n)

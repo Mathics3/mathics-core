@@ -1697,7 +1697,7 @@ class Export(Builtin):
     }
 
     # TODO: This hard-linked dictionary should be
-    # replaced by a definition accesible from inside
+    # replaced by a definition accessible from inside
     # WL
     _extdict = {
         "bmp": "BMP",
@@ -1738,7 +1738,7 @@ class Export(Builtin):
     def _infer_form(self, filename, evaluation: Evaluation):
         ext = Expression(SymbolFileExtension, filename).evaluate(evaluation)
         ext = ext.get_string_value().lower()
-        # TODO: This dictionary should be accesible from the WL API
+        # TODO: This dictionary should be accessible from the WL API
         # to allow defining specific converters
         return self._extdict.get(ext)
 
@@ -2093,7 +2093,7 @@ class FileFormat(Builtin):
                 result.append(mimetype_dict[key])
 
         # the following fixes an extremely annoying behaviour on some (not all)
-        # installations of Windows, where we end up classifying .csv files als XLS.
+        # installations of Windows, where we end up classifying .csv files as XLS.
         if len(result) == 1 and result[0] == "XLS" and path.lower().endswith(".csv"):
             return String("CSV")
 

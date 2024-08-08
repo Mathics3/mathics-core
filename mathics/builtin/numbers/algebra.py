@@ -470,7 +470,7 @@ class Coefficient(Builtin):
       <dd>return the coefficient of $form$^$n$ in $expr$.
     </dl>
 
-    ## Form 1: Coefficent[expr, form]
+    ## Form 1: Coefficient[expr, form]
     >> Coefficient[(x + y)^4, (x^2) * (y^2)]
      = 6
     >> Coefficient[a x^2 + b y^3 + c x + d y + 5, x]
@@ -484,7 +484,7 @@ class Coefficient(Builtin):
     >> Coefficient[x*Cos[x + 3] + 6*y, x]
      = Cos[3 + x]
 
-    ## Form 2: Coefficent[expr, form, n]
+    ## Form 2: Coefficient[expr, form, n]
     >> Coefficient[(x + 1)^3, x, 2]
      = 3
     >> Coefficient[a x^2 + b y^3 + c x + d y + 5, y, 3]
@@ -596,7 +596,7 @@ class _CoefficientHandler(Builtin):
 
         def split_coeff_pow(term) -> Tuple[Optional[list], Optional[list]]:
             """
-            This function factorizes term in a coefficent free
+            This function factorizes term in a coefficient free
             of powers of the target variables, and a factor with
             that powers.
             """

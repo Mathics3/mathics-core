@@ -453,7 +453,7 @@ class StringPosition(Builtin):
             evaluation.message("StringPosition", "overall")
             overlap = True
         else:
-            overlap = False  # unknown options are teated as False
+            overlap = False  # unknown options are treated as False
 
         # convert patterns
         if patt.has_form("List", None):

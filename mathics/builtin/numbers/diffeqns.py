@@ -74,8 +74,8 @@ class DSolve(Builtin):
         "DSolve[eqn_, y_, x_]"
 
         if eqn.has_form("List", None):
-            # TODO: Try and solve BVPs using Solve or something analagous OR
-            # add this functonality to sympy.
+            # TODO: Try and solve BVPs using Solve or something analogous OR
+            # add this functionality to sympy.
             evaluation.message("DSolve", "symsys")
             return
 
@@ -91,7 +91,7 @@ class DSolve(Builtin):
             evaluation.message("DSolve", "dsvar", x)
             return
 
-        # Fixes pathalogical DSolve[y''[x] == y[x], y, x]
+        # Fixes pathological DSolve[y''[x] == y[x], y, x]
         try:
             y.elements
             function_form = None

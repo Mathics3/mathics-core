@@ -267,7 +267,7 @@ class _DateFormat(Builtin):
             try:
                 dtime = datetime(prec_part[0], prec_part[1], 1)
             except ValueError:
-                # FIXME datetime is fairly easy to overlfow. 1 <= month <= 12
+                # FIXME datetime is fairly easy to overflow. 1 <= month <= 12
                 # and some bounds on year too.
                 evaluation.message(form_name, "arg", epochtime)
                 return
@@ -328,7 +328,7 @@ class _DateFormat(Builtin):
                     return
                 datelist = date.to_list()
 
-                # If year is ambiguious, assume the current year
+                # If year is ambiguous, assume the current year
                 if "Year" not in etime[1] and "YearShort" not in etime[1]:
                     datelist[0] = datetime.today().year
 
@@ -456,7 +456,7 @@ class DateDifference(Builtin):
      = {{9, Week}, {6, Day}}
     """
 
-    # FIXME: Since timedelta doesnt use large time units (years, months etc)
+    # FIXME: Since timedelta does not use large time units (years, months etc)
     # this method can be innacuarate. The example below gives fractional Days
     # (20.1666666667 not 20).
 
@@ -875,7 +875,7 @@ class DateString(_DateFormat):
       <dd>returns the time formatted according to $elems$.
 
       <dt>'DateString[{$e1$, $e2$, ...}]'
-      <dd>concatinates the time formatted according to elements $ei$.
+      <dd>concatenates the time formatted according to elements $ei$.
 
       <dt>'DateString[$time$]'
       <dd>returns the date string of an AbsoluteTime.
