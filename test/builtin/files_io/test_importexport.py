@@ -277,9 +277,9 @@ def test_inividually():
             None,
         ),
         (
-            r'System`Convert`B64Dump`Decode["4oirIGYg752MIHg="]',
+            r'System`Convert`B64Dump`B64Decode["4oirIGYg752MIHg="]',
             None,
-            r"4oirIGYg752MIHg=",
+            r"∫ f  x",
             None,
         ),
     ],
