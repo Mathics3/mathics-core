@@ -45,7 +45,7 @@ class RSolve(Builtin):
     Include one boundary condition:
     >> RSolve[{a[n + 2] == a[n], a[0] == 1}, a, n]
      = ...
-    ## Order of terms depends on intepreter:
+    ## Order of terms depends on interpreter:
     ## PyPy:    {{a -> (Function[{n}, 1 - C[1] + C[1] -1 ^ n])}}
     ## CPython: {{a -> (Function[{n}, 1 + C[1] -1 ^ n - C[1]])}
 
@@ -106,7 +106,7 @@ class RSolve(Builtin):
         if n not in func.elements:
             evaluation.message("DSolve", "deqx")
 
-        # Seperate relations from conditions
+        # Separate relations from conditions
         conditions = {}
 
         def is_relation(eqn):
@@ -153,7 +153,7 @@ class RSolve(Builtin):
 
         try:
             # Sympy raises error when given empty conditions. Fixed in
-            # upcomming sympy release.
+            # upcoming sympy release.
             if sym_conds != {}:
                 sym_result = sympy.rsolve(sym_eq, sym_func, sym_conds)
             else:

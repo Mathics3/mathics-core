@@ -19,7 +19,7 @@ CONTENTS
 This file describes typical magic number and file extensions of a variety of document formats.
 
 Below is a list of description elements. Each description element describes a way to identify a
-MIME type of a binary resource, based on magic number sequences and/or file extentions heuristics.
+MIME type of a binary resource, based on magic number sequences and/or file extensions heuristics.
 
 A description can refer to a parent description. This means that besides the requirements
 description, a resource should also match the requirements of the parent type (recursively)
@@ -52,7 +52,7 @@ Each description element has the following contents:
   or more magicNumber elements.
   
 * magicString: a character sequence that is indicative for the described MIME type. There can be zero
-  or more magicString elelements.
+  or more magicString elements.
 
 The magicNumber element has the byte sequence as text content. The encoding is specified in the 
 mandatory encoding attribute. Use "hex" as encoding type to indicate that the element content

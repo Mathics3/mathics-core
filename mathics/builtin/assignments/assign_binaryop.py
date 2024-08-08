@@ -45,7 +45,7 @@ class AddTo(BinaryOperator):
     rules = {
         "x_ += dx_": "x = x + dx",
     }
-    summary_text = "add a value and assignes that returning the new value"
+    summary_text = "add a value and assigns that returning the new value"
 
 
 class Decrement(PostfixOperator):

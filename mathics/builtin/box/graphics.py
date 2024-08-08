@@ -706,7 +706,7 @@ class GraphicsBox(BoxExpression):
 
     def create_axes(self, elements, graphics_options, xmin, xmax, ymin, ymax) -> tuple:
         # Note that Asymptote has special commands for drawing axes, like "xaxis"
-        # "yaxis", "xtick" "labelx", "labely". Entend our language
+        # "yaxis", "xtick" "labelx", "labely". Extend our language
         # here and use those in render-like routines.
 
         use_log_for_y_axis = graphics_options.get("System`LogPlot", False)
@@ -1076,7 +1076,7 @@ class PointBox(_Polyline):
     """
     <dl>
       <dt>'PointBox']
-      <dd>is the symbol used in boxing 'Point' expessions.
+      <dd>is the symbol used in boxing 'Point' expressions.
     </dl>
 
     Options include the edge color and the point radius for each of the points.

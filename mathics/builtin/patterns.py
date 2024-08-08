@@ -1745,7 +1745,7 @@ class DispatchAtom(AtomBuiltin):
         # check that all the elements in x are rules, eliminate redundancies
         # in the list, and sort the list in a way that increases efficiency.
         # A second step would be to implement an ``Atom`` class containing the
-        # compiled patters, and modify Replace and ReplaceAll to handle this
+        # compiled patterns, and modify Replace and ReplaceAll to handle this
         # kind of objects.
         #
         if isinstance(rules, Dispatch):

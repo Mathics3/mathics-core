@@ -640,7 +640,7 @@ class RegularPolygon(Builtin):
     = -Graphics-
     """
 
-    summary_text = "graphics primitve for a regular polygon in 2D"
+    summary_text = "graphics primitive for a regular polygon in 2D"
 
 
 class Arrow(Builtin):

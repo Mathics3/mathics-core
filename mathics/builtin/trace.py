@@ -42,15 +42,15 @@ def traced_do_replace(self, expression, vars, options: dict, evaluation: Evaluat
         vars_noctx["expression"] = expression
     builtin_name = self.function.__qualname__.split(".")[0]
     stat = TraceBuiltins.function_stats[builtin_name]
-    ts = time()
+    t_start = time()
 
     stat["count"] += 1
     if options:
         result = self.function(evaluation=evaluation, options=options, **vars_noctx)
     else:
         result = self.function(evaluation=evaluation, **vars_noctx)
-    te = time()
-    elapsed = (te - ts) * 1000
+    t_end = time()
+    elapsed = (t_end - t_start) * 1000
     stat["elapsed_milliseconds"] += elapsed
     return result
 
@@ -365,7 +365,7 @@ class TraceEvaluation(Builtin):
     options = {
         "System`ShowTimeBySteps": "False",
     }
-    summary_text = "trace the succesive evaluations"
+    summary_text = "trace the successive evaluations"
 
     def eval(self, expr, evaluation: Evaluation, options: dict):
         "TraceEvaluation[expr_, OptionsPattern[]]"
