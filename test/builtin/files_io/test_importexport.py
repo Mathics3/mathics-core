@@ -3,7 +3,7 @@ import os
 import os.path as osp
 import sys
 import tempfile
-from test.helper import check_evaluation, evaluate, session
+from test.helper import check_evaluation, check_evaluation_as_in_cli, evaluate, session
 
 import pytest
 
@@ -267,9 +267,23 @@ def test_inividually():
         assert outs == [f"Cannot infer format of file {filename}."]
 
 
-# TODO:
-# mmatera: please put in pytest conditionally
-# >> System`Convert`B64Dump`B64Encode["∫ f  x"]
-#  = 4oirIGYg752MIHg=
-# >> System`Convert`B64Dump`B64Decode[%]
-#  = ∫ f  x
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
+        (
+            r'System`Convert`B64Dump`B64Encode["∫ f  x"]',
+            None,
+            r"4oirIGYg752MIHg=",
+            None,
+        ),
+        (
+            r'System`Convert`B64Dump`Decode["4oirIGYg752MIHg="]',
+            None,
+            r"4oirIGYg752MIHg=",
+            None,
+        ),
+    ],
+)
+def test_b64encode(str_expr, msgs, str_expected, fail_msg):
+    """special case"""
+    check_evaluation_as_in_cli(str_expr, str_expected, fail_msg, msgs)
