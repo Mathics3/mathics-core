@@ -98,5 +98,6 @@ class Exit(Quit):
       <dt>'Exit[$n$]'
       <dd> Terminates the mathics session with exit code $n$.
     </dl>
+
     'Exit' is the same thing as 'Quit'.
     """

@@ -179,6 +179,7 @@ class Remove(Builtin):
       <dt>'Remove[$x$]'
       <dd>removes the definition associated to $x$.
     </dl>
+
     >> a := 2
     >> Names["Global`a"]
      = {a}
@@ -214,6 +215,7 @@ class Unset(PostfixOperator):
       <dt>'$x$=.'
       <dd>removes any value belonging to $x$.
     </dl>
+
     >> a = 2
      = 2
     >> a =.

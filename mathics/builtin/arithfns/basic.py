@@ -120,6 +120,7 @@ class Divide(BinaryOperator):
       <dt>'$a$ / $b$'
       <dd>represents the division of $a$ by $b$.
     </dl>
+
     >> 30 / 5
      = 6
     >> 1 / 8
@@ -579,6 +580,7 @@ class Times(BinaryOperator, SympyFunction):
       <dt>'$a$ $b$ ...'
       <dd>represents the product of the terms $a$, $b$, ...
     </dl>
+
     >> 10 * 2
      = 20
     >> 10 2

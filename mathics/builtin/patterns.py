@@ -1490,6 +1490,7 @@ class Longest(Builtin):
       <dd>is a pattern object that matches the longest sequence consistent \
       with the pattern $p$.
     </dl>
+
     >> StringCases["aabaaab", Longest["a" ~~ __ ~~ "b"]]
      = {aabaaab}
 
@@ -1716,6 +1717,7 @@ class DispatchAtom(AtomBuiltin):
           In the future, it should return an optimized DispatchRules atom, \
           containing an optimized set of rules.
     </dl>
+
     >> rules = {{a_,b_}->a^b, {1,2}->3., F[x_]->x^2};
     >> F[2] /. rules
      = 4

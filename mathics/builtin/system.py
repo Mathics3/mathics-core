@@ -132,6 +132,7 @@ class CommandLine(Predefined):
     <dt>'$CommandLine'
       <dd>is a list of strings passed on the command line to launch the Mathics3 session.
     </dl>
+
     >> $CommandLine
      = {...}
     """
@@ -154,6 +155,7 @@ class Environment(Builtin):
       <dt>'Environment[$var$]'
       <dd>gives the value of an operating system environment variable.
     </dl>
+
     X> Environment["HOME"]
      = ...
     """
@@ -215,6 +217,7 @@ class Machine(Predefined):
         <dd>returns a string describing the type of computer system on which the \
             Mathics3 is being run.
     </dl>
+
     X> $Machine
      = linux
     """
@@ -235,6 +238,7 @@ class MachineName(Predefined):
       <dd>is a string that gives the assigned name of the computer on which Mathics3 \
           is being run, if such a name is defined.
     </dl>
+
     X> $MachineName
      = buster
     """
@@ -360,6 +364,7 @@ class PythonImplementation(Predefined):
     <dt>'$PythonImplementation'
         <dd>gives a string indication the Python implementation used to run Mathics3.
     </dl>
+
     >> $PythonImplementation
     = ...
     """
@@ -381,6 +386,7 @@ class ScriptCommandLine(Predefined):
       <dt>'$ScriptCommandLine'
       <dd>is a list of string arguments when running the kernel is script mode.
     </dl>
+
     >> $ScriptCommandLine
      = {...}
     """
@@ -408,6 +414,7 @@ class Run(Builtin):
       <dd>runs command as an external operating system command, returning the exit \
          code returned from running the system command.
     </dl>
+
     X> Run["date"]
      = ...
     """
@@ -428,6 +435,7 @@ class SystemID(Predefined):
        <dt>'$SystemID'
        <dd>is a short string that identifies the type of computer system on which the \Mathics is being run.
     </dl>
+
     X> $SystemID
      = linux
     """
@@ -447,6 +455,7 @@ class SystemWordLength(Predefined):
       <dd>gives the effective number of bits in raw machine words on the computer \
           system where Mathics3 is running.
     </dl>
+
     X> $SystemWordLength
     = 64
     """

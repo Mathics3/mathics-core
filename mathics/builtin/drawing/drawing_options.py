@@ -146,6 +146,7 @@ class ChartLegends(Builtin):
       <dd>is an option for charting functions that specifies the legends to be used \
           for chart elements.
     </dl>
+
     """
 
     summary_text = "chart option for giving legends to a chart"
@@ -175,6 +176,7 @@ class Full(Builtin):
       <dt>'Full'
       <dd>is a possible value for the 'Mesh' and 'PlotRange' options.
     </dl>
+
     """
 
     summary_text = "graph option value for Mesh and PlotRange"
@@ -301,6 +303,7 @@ class PlotRange(Builtin):
       <dd>is a charting option, such as for 'Plot', 'BarChart', 'PieChart', \
           etc. that gives the range of coordinates to include in a plot.
     </dl>
+
     <ul>
       <li>All all points are included.
       <li>Automatic - outlying points are dropped.

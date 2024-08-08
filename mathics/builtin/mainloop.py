@@ -37,6 +37,7 @@ class HistoryLength(Builtin):
       <dt>'$HistoryLength'
       <dd>specifies the maximum number of 'In' and 'Out' entries.
     </dl>
+
     >> $HistoryLength
      = 100
     >> $HistoryLength = 1;
@@ -68,6 +69,7 @@ class In(Builtin):
       <dt>'In[$k$]'
         <dd>gives the $k$th line of input.
       </dl>
+
     >> x = 1
      = 1
     >> x = x + 1
@@ -207,6 +209,7 @@ class Line(Builtin):
       <dt>'$Line'
       <dd>holds the current input line number.
     </dl>
+
     >> $Line
      = 1
     >> $Line

@@ -1671,6 +1671,7 @@ class FullSimplify(Simplify):
       <dt>'FullSimplify[$expr$, $assump$]'
       <dd>simplifies $expr$ assuming $assump$ instead of $Assumptions$.
     </dl>
+
     TODO: implement the extension. By now, this does the same than Simplify...
 
     >> FullSimplify[2*Sin[x]^2 + 2*Cos[x]^2]

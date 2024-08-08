@@ -294,6 +294,7 @@ class XMLGetString(_Get):
     <dt>'XML`Parser`XMLGetString["string"]'
     <dd>parses "string" as XML code, and returns an XMLObject.
     </dl>
+
     >> Head[XML`Parser`XMLGetString["<a></a>"]]
      = XMLObject[Document]
 

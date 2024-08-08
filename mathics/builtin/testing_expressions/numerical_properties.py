@@ -245,6 +245,7 @@ class Negative(Builtin):
       <dt>'Negative[$x$]'
       <dd>returns 'True' if $x$ is a negative real number.
     </dl>
+
     >> Negative[0]
      = False
     >> Negative[-3]

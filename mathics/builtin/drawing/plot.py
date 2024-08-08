@@ -1347,6 +1347,7 @@ class ColorDataFunction(Builtin):
       <dt>'ColorDataFunction[range, ...]'
       <dd> is a function that represents a color scheme.
     </dl>
+
     """
 
     summary_text = "color scheme object"
