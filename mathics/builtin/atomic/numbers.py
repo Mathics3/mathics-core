@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Note: docstring is not flowed in documentation. To avoid line breaks
-# in docstrings apparing in the printed output, use \ before the line
+# in docstrings appearing in the printed output, use \ before the line
 # break.
 
 """
@@ -90,7 +90,6 @@ def convert_repeating_decimal(numerator, denominator, base):
             del tails[j]
             tails.insert(0, head[i])
             del head[i]
-            j = j - 1
 
     # truncate all leading 0's
     if all(elem == "0" for elem in head):
@@ -153,10 +152,10 @@ class Accuracy(Builtin):
       decimal point in the number x.
     </dl>
 
-    <i>Notice that the result could be slightly different than the obtained \
-    in WMA, due to differencs in the internal representation of the real numbers.</i>
+    <i>Notice that the result could be slightly different from the result obtained \
+    in WMA, due to differences in the internal representation of the real numbers.</i>
 
-    Accuracy of a real number is estimated from its value and its precision:
+    'Accuracy' of a real number is estimated from its value and its precision:
 
     >> Accuracy[3.1416`2]
      = 1.50298
@@ -207,7 +206,7 @@ class Accuracy(Builtin):
     summary_text = "find the accuracy of a number"
 
     def eval(self, z, evaluation):
-        "Accuracy[z_]"
+        """Accuracy[z_]"""
         acc = eval_Accuracy(z)
         if acc is None:
             return SymbolInfinity
@@ -248,7 +247,7 @@ class IntegerExponent(Builtin):
     summary_text = "number of trailing 0s in a given base"
 
     def eval_two_arg_integers(self, n: Integer, b: Integer, evaluation):
-        "IntegerExponent[n_Integer, b_Integer]"
+        """IntegerExponent[n_Integer, b_Integer]"""
 
         py_n, py_b = n.value, b.value
         py_n = abs(py_n)
@@ -335,7 +334,7 @@ class IntegerLength(Builtin):
     summary_text = "total number of digits in any base"
 
     def eval(self, n, b, evaluation):
-        "IntegerLength[n_, b_]"
+        """IntegerLength[n_, b_]"""
 
         n, b = n.get_int_value(), b.get_int_value()
         if n is None or b is None:
@@ -471,7 +470,7 @@ class RealDigits(Builtin):
             return self.eval_with_base(n, from_python(10), evaluation)
 
     def eval_with_base(self, n, b, evaluation, nr_elements=None, pos=None):
-        "%(name)s[n_?NumericQ, b_Integer]"
+        """%(name)s[n_?NumericQ, b_Integer]"""
 
         expr = Expression(SymbolRealDigits, n)
         rational_no = (
@@ -585,7 +584,7 @@ class RealDigits(Builtin):
         return ListExpression(list_expr, Integer(exp))
 
     def eval_with_base_and_length(self, n, b, length, evaluation, pos=None):
-        "%(name)s[n_?NumericQ, b_Integer, length_]"
+        """%(name)s[n_?NumericQ, b_Integer, length_]"""
         elements = []
         if pos is not None:
             elements.append(from_python(pos))
@@ -599,7 +598,7 @@ class RealDigits(Builtin):
         )
 
     def eval_with_base_length_and_precision(self, n, b, length, p, evaluation):
-        "%(name)s[n_?NumericQ, b_Integer, length_, p_]"
+        """%(name)s[n_?NumericQ, b_Integer, length_, p_]"""
         if not isinstance(p, Integer):
             evaluation.message(
                 "RealDigits", "intm", Expression(SymbolRealDigits, n, b, length, p)
@@ -773,7 +772,7 @@ class Precision(Builtin):
     <i>Note that the result could be slightly different than the obtained \
     in WMA, due to differences in the internal representation of the real numbers.</i>
 
-    The precision of an exact number, e.g. an Integer, is 'Infinity':
+    The precision of an exact number, e.g., an Integer, is 'Infinity':
 
     >> Precision[1]
      = Infinity
@@ -820,7 +819,7 @@ class Precision(Builtin):
     summary_text = "find the precision of a number"
 
     def eval(self, z, evaluation):
-        "Precision[z_]"
+        """Precision[z_]"""
         if isinstance(z, MachineReal):
             return SymbolMachinePrecision
 
