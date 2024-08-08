@@ -24,7 +24,12 @@ from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.symbols import Symbol, SymbolTrue
-from mathics.core.systemsymbols import SymbolFailed, SymbolInputForm, SymbolOutputForm
+from mathics.core.systemsymbols import (
+    SymbolFailed,
+    SymbolInputForm,
+    SymbolNone,
+    SymbolOutputForm,
+)
 from mathics.eval.strings import eval_ToString
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
@@ -322,18 +327,45 @@ class CharacterEncoding(Predefined):
     >> $CharacterEncoding
      = ...
 
+    By setting its value to one of the values in '$CharacterEncodings', \
+    operators are formatted differently. For example,
+
+    >> $CharacterEncoding = "ASCII"; a -> b
+     = ...
+    >> $CharacterEncoding = "UTF-8"; a -> b
+     = ...
+
+    Setting its value to 'None' restore the value to \
+    '$SystemCharacterEncoding':
+    >> $CharacterEncoding = None; 
+    >> $SystemCharacterEncoding == $CharacterEncoding
+     = True
+
     See also <url>
     :$SystemCharacterEncoding:
     /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/string-manipulation/$systemcharacterencoding/</url>.
     """
 
     name = "$CharacterEncoding"
+    messages = {
+        "charcode": "`1` is not a valid character encoding. Possible settings are the names given by $CharacterEncodings or None."
+    }
     value = f'"{SYSTEM_CHARACTER_ENCODING}"'
     rules = {
         "$CharacterEncoding": value,
     }
 
     summary_text = "default character encoding"
+
+    def eval_set(self, value, evaluation):
+        """Set[$CharacterEncoding, value_]"""
+        if value is SymbolNone:
+            value = String(SYSTEM_CHARACTER_ENCODING)
+        if isinstance(value, String) and value.value in _encodings.keys():
+            evaluation.definitions.set_ownvalue("System`$CharacterEncoding", value)
+        else:
+            evaluation.message("$CharacterEncoding", "charcode", value)
+        return value
 
 
 class CharacterEncodings(Predefined):
