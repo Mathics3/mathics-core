@@ -117,12 +117,15 @@
 \makeatletter\newenvironment{definitions}{
 
 	\vspace{0.5em}%
-	\begin{lrbox}{\@tempboxa}\begin{minipage}{0.95\columnwidth}%
-	\nobreak\vspace{0.3em}%
+	\begin{lrbox}{\@tempboxa}
+          \hspace*{1em}
+          \begin{minipage}{0.9\columnwidth}%
+	\nobreak\vspace{0.6em}%
 }{%
 	\nobreak%
-	\vspace{0.3em}%
-	\end{minipage}\end{lrbox}
+	\vspace{0.6em}%
+      \end{minipage}\hspace*{1em}
+       \end{lrbox}
 	\colorbox{definitions}{\usebox{\@tempboxa}}
 	\vspace{1em}%
 }\makeatother
