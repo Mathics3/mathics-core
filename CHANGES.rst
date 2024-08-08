@@ -24,6 +24,9 @@ Compatibility
 * ``Graphics`` and ``Graphics3D`` including wrong primitives and directives
   are shown with a pink background. In the Mathics-Django interface, a tooltip
   error message is also shown.
+* Improving support for ``$CharacterEncoding``. Now it is possible to change it
+  from inside the session.
+
 
 Internals
 ---
@@ -37,6 +40,7 @@ Internals
 * Older style non-appearing and non-pedagogical doctests have been converted to pytest
 * Built-in code is directed explicitly rather than implicitly. This facilitates the ability to lazy load
   builtins or "autoload" them a la GNU Emacs autoload.
+
 
 Bugs
 ----

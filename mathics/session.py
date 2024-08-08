@@ -103,6 +103,7 @@ class MathicsSession:
 
     def evaluate_as_in_cli(self, str_expression, timeout=None, form=None, src_name=""):
         """This method parse and evaluate the expression using the session.evaluation.evaluate method"""
+        self.evaluation.out = []
         query = self.evaluation.parse(str_expression, src_name)
         if query is not None:
             res = self.evaluation.evaluate(query, timeout=timeout, format=form)
