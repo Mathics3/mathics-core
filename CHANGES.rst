@@ -1,7 +1,15 @@
 	.. contents::
-
 CHANGES
 =======
+
+7.0.0
+-----
+
+Some work was done here in support of planned future improvements like
+lazy loading of builtin functions.  A bit of effort was also spent to
+modernize Python code and style, add more type annotations, remove
+spelling errors, and use newer versions of important software like
+SymPy and Python itself.
 
 
 New Builtins
@@ -9,11 +17,26 @@ New Builtins
 
 * ``$MaxLengthIntStringConversion``
 * ``Elements``
+* ``ComplexExpand`` (thanks to vitrun)
 * ``ConjugateTranspose``
 * ``LeviCivitaTensor``
 * ``RealAbs`` and ``RealSign``
 * ``RealValuedNumberQ``
 
+
+Documentation
++++++++++++++
+
+Many formatting issues with the PDF file have been addressed. In particular, the spacing of section numbers
+in chapter and section table of contents has been increased. The margin space around builtin definitions has a
+also been increased. Numerous spelling corrections to the document have been applied.
+
+The code to run doctests and produce LaTeX documentation has been
+revised and refactored to allow incremental builtin update, and to DRY the code.
+
+Section Head-Related Operations is a new section off of "Expression
+Structure". The title of the PDF has changed from Mathics to Mathics3
+and the introduction has been updated and revised.
 
 Compatibility
 -------------
@@ -40,6 +63,8 @@ Internals
 * Older style non-appearing and non-pedagogical doctests have been converted to pytest
 * Built-in code is directed explicitly rather than implicitly. This facilitates the ability to lazy load
   builtins or "autoload" them a la GNU Emacs autoload.
+* add mpmath lru cache
+* Some works was done to make it possible so that in the future we can speed up initial loading and reduce the initial memory footprint
 
 
 Bugs
@@ -48,16 +73,35 @@ Bugs
 * ``Definitions`` is compatible with ``pickle``.
 * Improved support for ``Quantity`` expressions, including conversions, formatting and arithmetic operations.
 * ``Background`` option for ``Graphics`` and ``Graphics3D`` is operative again.
-* ``Switch[]`` involving ``Infinity`` Issue #956
-* ``Outer[]`` on ``SparseArray`` Issue #939
+* Numeric comparisons against expressions involving ``String``s; Issue #797)
+* ``Switch[]`` involving ``Infinity``. Issue #956
+* ``Outer[]`` on ``SparseArray``. Issue #939
 * ``ArrayQ[]`` detects ``SparseArray`` PR #947
-* Numeric comparisons against expressions involving ``String``s (Issue #797).
-  
+* ``BoxExpressionError`` exceptions handled Issue. PR #970
+* ``Derivative`` evaluation of ``True``, ``False`` and ``List[]`` corrected. PR #971, #973
+* ``Combinatorica`` package fixes. PR #974
+* ``Exit[]`` not working. PR #998
+* ``BaseForm`` is now listed as in ``$OutputForms``
+
+API
++++
+
+We now require an explicit call to a new function
+``import_and_load_builtins()``. Previously loading was implicit and
+indeterminate as to when this occurred as it was based on import
+order. We need this so that we can support in the future lazy loading
+of builtin modules.
+
 Package updates
 +++++++++++++++
 
 #. Python 3.11 is now supported
+#. Sympy 1.12 is now supported
 
+6.0.2 to 6.0.4
+--------------
+
+Small fixes noticed by users and packagers, such as OpenSUSE Tumpleweed
 
 6.0.1
 -----
