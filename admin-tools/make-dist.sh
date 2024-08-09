@@ -20,15 +20,11 @@ cp -v ${HOME}/.local/var/mathics/doctest_latex_data.pcl mathics/data/
 
 echo $__version__
 
-for pyversion in $PYVERSIONS; do
-    if ! pyenv local $pyversion ; then
-	exit $?
-    fi
-    rm -fr build
-    # PYPI no longer supports eggs
-    # python setup.py bdist_egg
-    python setup.py bdist_wheel
-done
-
+pyversion=3.11
+if ! pyenv local $pyversion ; then
+    exit $?
+fi
+rm -fr build
+python setup.py bdist_wheel
 python ./setup.py sdist
 finish
