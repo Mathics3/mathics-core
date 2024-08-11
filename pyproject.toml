@@ -4,6 +4,7 @@ requires = [
     "cython>=0.15.1; implementation_name!='pypy'",
     # For mathics-generate-json-table
     "Mathics-Scanner >= 1.3.0",
+    "packaging",
 ]
 build-backend = "setuptools.build_meta"
 
