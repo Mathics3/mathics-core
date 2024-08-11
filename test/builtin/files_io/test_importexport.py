@@ -220,8 +220,6 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
             "$Failed",
             None,
         ),
-        ## Empty elems
-        ('Export["123.txt", 1+x, {}]', None, "123.txt", None),
         ## FORMATS
         ## ASCII text
         ('FileFormat["ExampleData/BloodToilTearsSweat.txt"]', None, "Text", None),
@@ -259,12 +257,20 @@ def test_inividually():
     # Test Export where we cannot infer the export type from the file extension;
     # here it is: ".jcp".
     with tempfile.NamedTemporaryFile(mode="w", suffix=".jcp") as tmp:
-        filename = osp.join(tmp.name, "123.jcp")
+        filename = tmp.name
         expr = f'Export["{filename}", 1+x,' + "{}]"
         result = evaluate(expr)
         outs = [out.text for out in session.evaluation.out]
         assert result == SymbolFailed
         assert outs == [f"Cannot infer format of file {filename}."]
+
+    # Check that exporting with an empty list of elements is okay.
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt") as tmp:
+        filename = tmp.name
+        expr = f'Export["{filename}", 1+x' + "{}]"
+        result = evaluate(expr)
+        outs = [out.text for out in session.evaluation.out]
+        assert outs == []
 
 
 @pytest.mark.parametrize(

@@ -161,10 +161,6 @@ class TestStatus:
         self.prev_key = []
         self.quiet = quiet
 
-    def find_texdata_folder(self):
-        """Generate a folder for texdata"""
-        return self.textdatafolder
-
     def mark_as_failed(self, key):
         """Mark a key as failed"""
         self.failed_sections.add(key)
@@ -200,7 +196,7 @@ class TestStatus:
 def test_case(
     test: DocTest,
     test_pipeline: DocTestPipeline,
-    fail: Optional[Callable] = lambda x: False,
+    fail: Callable,
 ) -> bool:
     """
     Run a single test cases ``test``. Return True if test succeeds and False if it
@@ -674,7 +670,7 @@ def show_report(test_pipeline):
             test_pipeline.print_and_log(f"  - {section} in {part} / {chapter}")
 
     if test_parameters.data_path is not None and (
-        test_status.failed == 0 or test_parameters.doc_even_if_error
+        test_status.failed == 0 or test_parameters.keep_going
     ):
         save_doctest_data(test_pipeline)
         return
@@ -735,7 +731,7 @@ def save_doctest_data(doctest_pipeline: DocTestPipeline):
     i = 0
     for key in output_data:
         i = i + 1
-        doctest_pipeline.print_and_log("{key}, {output_data[key]}")
+        doctest_pipeline.print_and_log(f"{key}, {output_data[key]}")
         if i > 9:
             break
     with open(doctest_latex_data_path, "wb") as output_file:
@@ -913,6 +909,7 @@ def main():
     test_pipeline = DocTestPipeline(args, output_format="latex", data_path=data_path)
     test_status = test_pipeline.status
 
+    start_time = None
     if args.sections:
         include_sections = set(args.sections.split(","))
         exclude_subsections = set(args.exclude.split(","))
