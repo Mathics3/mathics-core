@@ -674,7 +674,7 @@ def show_report(test_pipeline):
             test_pipeline.print_and_log(f"  - {section} in {part} / {chapter}")
 
     if test_parameters.data_path is not None and (
-        test_status.failed == 0 or test_parameters.doc_even_if_error
+        test_status.failed == 0 or test_parameters.keep_going
     ):
         save_doctest_data(test_pipeline)
         return
