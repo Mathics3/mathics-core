@@ -169,6 +169,12 @@ def test_close():
             "Close[{OutputStream, MathicsNonExampleFile}]",
             "",
         ),
+        (
+            "Delete[MathicsNonExampleFile]",
+            None,
+            "Delete[MathicsNonExampleFile]",
+            "",
+        ),
         ## writing to dir
         ("x >>> /var/", ("Cannot open /var/.",), "x >>> /var/", ""),
         ## writing to read only file
