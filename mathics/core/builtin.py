@@ -530,7 +530,7 @@ class SympyFunction(SympyObject):
         else:
             return PrecisionReal(sympy_fn.n(d))
 
-    def get_sympy_function(self, elements=None):
+    def get_sympy_function(self, elements=None) -> Optional[Callable]:
         if self.sympy_name:
             return getattr(sympy, self.sympy_name)
         return None
@@ -546,12 +546,13 @@ class SympyFunction(SympyObject):
                 if None in sympy_args:
                     return None
                 sympy_function = self.get_sympy_function(elements)
-                return sympy_function(*sympy_args)
+                if sympy_function is not None:
+                    return sympy_function(*sympy_args)
         except TypeError:
             pass
 
-    def from_sympy(self, sympy_name, elements):
-        return to_expression(self.get_name(), *elements)
+    def from_sympy(self, elements: list) -> Expression:
+        return Expression(Symbol(self.get_name()), *elements)
 
     def prepare_mathics(self, sympy_expr):
         return sympy_expr

@@ -1,7 +1,9 @@
 """
 Gamma and Related Functions
 """
+
 import sys
+from typing import Iterable
 
 import mpmath
 import sympy
@@ -326,8 +328,8 @@ class Gamma(MPMathMultiFunction):
     def get_sympy_names(self):
         return ["gamma", "uppergamma", "lowergamma"]
 
-    def from_sympy(self, sympy_name, elements):
-        if sympy_name == "lowergamma":
+    def from_sympy(self, elements: Iterable) -> Expression:
+        if self.sympy_name == "lowergamma":
             # lowergamma(z, x) -> Gamma[z, 0, x]
             z, x = elements
             return Expression(Symbol(self.get_name()), z, Integer0, x)
