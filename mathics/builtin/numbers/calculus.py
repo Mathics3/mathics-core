@@ -10,7 +10,7 @@ arithmetic operations.
 """
 
 from itertools import product
-from typing import Optional
+from typing import Iterable, Optional
 
 import numpy as np
 import sympy
@@ -442,7 +442,7 @@ class Derivative(PostfixOperator, SympyFunction):
                       The idea of the test is to set `Derivative[n][f]` to `nothing`. Then, the derivative is
                       evaluated. If it is not possible to find an explicit expression for the derivative,
                       then their occurencies are replaced by `nothing`. Therefore, if the resulting expression
-                      if free of `nothing`, then we can use the result. Otherwise, the rule does not work. 
+                      if free of `nothing`, then we can use the result. Otherwise, the rule does not work.
 
                       Differently from `True` and  `False`, `List` does not produce an infinite recurrence,
                       but since is a protected symbol, the following test produces error messages.
@@ -1042,7 +1042,7 @@ class Integrate(SympyFunction):
                 return [elements[0]] + x.elements
         return elements
 
-    def from_sympy(self, sympy_name, elements):
+    def from_sympy(self, elements: Iterable) -> Expression:
         args = []
         for element in elements[1:]:
             if element.has_form("List", 1):
