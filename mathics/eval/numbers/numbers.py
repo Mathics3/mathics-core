@@ -9,6 +9,7 @@ import mpmath
 import sympy
 
 from mathics.core.atoms import Complex, MachineReal, PrecisionReal
+from mathics.core.builtin import run_sympy
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
 from mathics.core.expression import Expression
@@ -138,8 +139,8 @@ def cancel(expr):
 
 def sympy_factor(expr_sympy):
     try:
-        result = sympy.together(expr_sympy)
-        result = sympy.factor(result)
+        result = run_sympy(sympy.together, expr_sympy)
+        result = run_sympy(sympy.factor, result)
     except sympy.PolynomialError:
         return expr_sympy
     return result

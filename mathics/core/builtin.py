@@ -1112,15 +1112,6 @@ class Test(Builtin):
         raise NotImplementedError
 
 
-@lru_cache()
-def run_sympy(sympy_fn: Callable, *sympy_args) -> Any:
-    """
-    Wrapper to run a SymPy function with a cache.
-    TODO: hook into SymPyTracing -> True
-    """
-    return sympy_fn(*sympy_args)
-
-
 class PatternError(Exception):
     def __init__(self, name, tag, *args):
         super().__init__()

@@ -23,7 +23,7 @@ from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import Integer, Integer0, Integer1, Number, RationalOneHalf
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
 from mathics.core.builtin import Builtin
-from mathics.core.convert.python import from_bool
+from mathics.core.convert.python import from_bool, run_sympy
 from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
@@ -399,7 +399,7 @@ class Apart(Builtin):
             return None
 
         try:
-            result = sympy.apart(expr_sympy, var_sympy)
+            result = run_sympy(sympy.apart, expr_sympy, var_sympy)
             result = from_sympy(result)
             return result
         except sympy.PolynomialError:
@@ -1439,7 +1439,7 @@ class FactorTermsList(Builtin):
         sympy_expr = expr.to_sympy()
         if sympy_expr is None:
             return ListExpression(Integer1, expr)
-        sympy_expr = sympy.together(sympy_expr)
+        sympy_expr = run_sympy(sympy.together, sympy_expr)
 
         sympy_vars = [
             x.to_sympy()
@@ -1452,7 +1452,7 @@ class FactorTermsList(Builtin):
         try:
             if denom == 1:
                 # Get numerical part
-                num_coeff, num_polys = sympy.factor_list(sympy.Poly(numer))
+                num_coeff, num_polys = run_sympy(sympy.factor_list, sympy.Poly(numer))
                 result.append(num_coeff)
 
                 # Get factors are independent of sub list of variables
@@ -1465,14 +1465,18 @@ class FactorTermsList(Builtin):
                     )
                 ):
                     for i in reversed(range(len(sympy_vars))):
-                        numer = sympy.factor(numer) / sympy.factor(num_coeff)
+                        numer = run_sympy(sympy.factor, numer) / run_sympy(
+                            sympy.factor, num_coeff
+                        )
                         num_coeff, num_polys = sympy.factor_list(
                             sympy.Poly(numer), *[x for x in sympy_vars[: (i + 1)]]
                         )
                         result.append(sympy.expand(num_coeff))
 
                 # Last factor
-                numer = sympy.factor(numer) / sympy.factor(num_coeff)
+                numer = run_sympy(sympy.factor, numer) / run_sympy(
+                    sympy.factor, num_coeff
+                )
                 result.append(sympy.expand(numer))
             else:
                 num_coeff, num_polys = sympy.factor_list(sympy.Poly(numer))
@@ -1581,17 +1585,17 @@ class Simplify(Builtin):
         )
 
     def eval_power_of_zero(self, b, evaluation):
-        "%(name)s[0^b_]"
+        "Simplify[0^b_]"
         if self.eval(Expression(SymbolLess, Integer0, b), evaluation) is SymbolTrue:
             return Integer0
         if self.eval(Expression(SymbolLess, b, Integer0), evaluation) is SymbolTrue:
             return MATHICS3_COMPLEX_INFINITY
         if self.eval(Expression(SymbolEqual, b, Integer0), evaluation) is SymbolTrue:
-            return Symbol(SymbolIndeterminate)
+            return SymbolIndeterminate
         return Expression(SymbolPower, Integer0, b)
 
     def eval(self, expr, evaluation, options={}):
-        "%(name)s[expr_, OptionsPattern[]]"
+        "Simplify[expr_, OptionsPattern[]]"
         # If System`Assumptions is in the options,
         # rebuild the expression without this option, and evaluate it
         # inside a scope with $Assumptions set accordingly.
@@ -1740,7 +1744,7 @@ class MinimalPolynomial(Builtin):
         sympy_s, sympy_x = s.to_sympy(), x.to_sympy()
         if sympy_s is None or sympy_x is None:
             return None
-        sympy_result = sympy.minimal_polynomial(sympy_s, polys=True)(sympy_x)
+        sympy_result = run_sympy(sympy.minimal_polynomial, sympy_s, polys=True)(sympy_x)
         return from_sympy(sympy_result)
 
 
@@ -1833,7 +1837,7 @@ class PolynomialQ(Builtin):
             sympy_var = [var.to_sympy()]
 
         sympy_expr = expr.to_sympy()
-        sympy_result = sympy_expr.is_polynomial(*[x for x in sympy_var])
+        sympy_result = run_sympy(sympy_expr.is_polynomial, *[x for x in sympy_var])
         return from_bool(sympy_result)
 
 
@@ -1897,10 +1901,10 @@ class Together(Builtin):
     def eval(self, expr, evaluation):
         "Together[expr_]"
 
-        expr_sympy = expr.to_sympy()
-        if expr_sympy is None:
+        sympy_expr = expr.to_sympy()
+        if sympy_expr is None:
             return None
-        result = sympy.together(expr_sympy)
+        result = run_sympy(sympy.together, sympy_expr)
         result = from_sympy(result)
         result = cancel(result)
         return result

@@ -4,7 +4,8 @@
 Converts expressions from SymPy to Mathics expressions.
 Conversion to SymPy is handled directly in BaseElement descendants.
 """
-from typing import Optional, Type, Union
+from functools import lru_cache
+from typing import Callable, Optional, Type, Union
 
 import sympy
 from sympy import Symbol as Sympy_Symbol, false as SympyFalse, true as SympyTrue
@@ -112,6 +113,18 @@ def is_Cn_expr(name) -> bool:
         return False
     number = name[1:]
     return number and number.isdigit()
+
+
+@lru_cache()
+def run_sympy(sympy_fn: Callable, *sympy_args) -> Any:
+    """
+    Wrapper to run a SymPy function with a cache.
+    TODO: hook into SymPyTracing -> True
+    """
+    print(f"Sympy: {sympy_fn}{sympy_args[:3]}")
+    result = sympy_fn(*sympy_args)
+    print(f"Sympy result: {result}")
+    return result
 
 
 def to_sympy_matrix(data, **kwargs) -> Optional[sympy.MutableDenseMatrix]:

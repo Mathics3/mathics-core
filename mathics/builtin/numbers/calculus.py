@@ -37,7 +37,7 @@ from mathics.core.attributes import (
     A_READ_PROTECTED,
 )
 from mathics.core.builtin import Builtin, PostfixOperator, SympyFunction
-from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.convert.expression import run_sympy, to_expression, to_mathics_list
 from mathics.core.convert.function import expression_to_callable_and_args
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
@@ -1088,7 +1088,7 @@ class Integrate(SympyFunction):
             else:
                 vars.append((x, a, b))
         try:
-            sympy_result = sympy.integrate(f_sympy, *vars)
+            sympy_result = run_sympy(sympy.integrate, f_sympy, *vars)
             pass
         except sympy.PolynomialError:
             return
@@ -1097,7 +1097,7 @@ class Integrate(SympyFunction):
             return
         except NotImplementedError:
             # e.g. NotImplementedError: Result depends on the sign of
-            # -sign(_Mathics_User_j)*sign(_Mathics_User_w)
+            # -sign(_m3u_j)*sign(_m3u_w)
             return
         if prec is not None and isinstance(sympy_result, sympy.Integral):
             # TODO MaxExtraPrecision -> maxn
