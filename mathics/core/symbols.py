@@ -14,8 +14,11 @@ from mathics.core.element import (
 # I put this constants here instead of inside `mathics.core.convert.sympy`
 # to avoid a circular reference. Maybe they should be in its own module.
 
-sympy_symbol_prefix = "_mu_"
-sympy_slot_prefix = "_ms_"
+# Prefix used for Sympy variables.
+# We wan t this to be short to keep variable names short.
+# In tracing values, long names make output messy.
+sympy_symbol_prefix = "_u_"
+sympy_slot_prefix = "_#_"
 
 
 # FIXME: This is repeated below

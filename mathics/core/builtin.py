@@ -18,6 +18,10 @@ import mpmath
 import pkg_resources
 import sympy
 
+# Note: it is important *not* use: from mathics.eval.tracing import run_sympy
+# but instead import the module and access below as tracing.run_sympy.
+# This allows us change where tracing.run_sympy points at runtime.
+import mathics.eval.tracing as tracing
 from mathics.core.atoms import (
     Integer,
     Integer0,
@@ -531,7 +535,7 @@ class SympyFunction(SympyObject):
         sympy_args = to_numeric_sympy_args(z, evaluation)
         sympy_fn = getattr(sympy, self.sympy_name)
         try:
-            return from_sympy(run_sympy(sympy_fn, *sympy_args))
+            return from_sympy(tracing.run_sympy(sympy_fn, *sympy_args))
         except Exception:
             return
 
@@ -565,7 +569,7 @@ class SympyFunction(SympyObject):
                     return None
                 sympy_function = self.get_sympy_function(elements)
                 if sympy_function is not None:
-                    return sympy_function(*sympy_args)
+                    return tracing.run_sympy(sympy_function, *sympy_args)
         except TypeError:
             pass
 

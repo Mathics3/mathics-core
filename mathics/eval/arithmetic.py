@@ -13,6 +13,10 @@ from typing import Callable, List, Optional, Tuple
 import mpmath
 import sympy
 
+# Note: it is important *not* use: from mathics.eval.tracing import run_sympy
+# but instead import the module and access below as tracing.run_sympy.
+# This allows us change where tracing.run_sympy points at runtime.
+import mathics.eval.tracing as tracing
 from mathics.core.atoms import (
     NUMERICAL_CONSTANTS,
     Complex,
@@ -63,7 +67,7 @@ def call_mpmath(
     """
     with mpmath.workprec(precision):
         try:
-            result_mp = mpmath_function(*mpmath_args)
+            result_mp = tracing.run_mpmath(mpmath_function, *mpmath_args)
             if precision != FP_MANTISA_BINARY_DIGITS:
                 return from_mpmath(result_mp, precision)
             return from_mpmath(result_mp)
