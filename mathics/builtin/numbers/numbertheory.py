@@ -508,7 +508,7 @@ class PartitionsP(SympyFunction):
     )
 
     def eval(self, n, evaluation: Evaluation):
-        "PartitionsP[n_Integer]"
+        """PartitionsP[n_Integer]"""
         return super().eval(n, evaluation)
 
 

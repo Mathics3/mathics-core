@@ -2,6 +2,17 @@
 CHANGES
 =======
 
+New Builtins
+++++++++++++
+
+* ``SetEnvironment``
+
+Compatibility
+-------------
+
+* ``GetEnvironment`` expanded to handle ``[]`` and ``{var1, var2,...}`` forms
+
+
 7.0.0
 -----
 

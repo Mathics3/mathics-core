@@ -8,9 +8,7 @@ from typing import Optional, Type, Union
 
 import sympy
 from sympy import Symbol as Sympy_Symbol, false as SympyFalse, true as SympyTrue
-
-# Import the singleton class
-from sympy.core.numbers import S
+from sympy.core.singleton import S
 
 from mathics.core.atoms import (
     MATHICS3_COMPLEX_I,

@@ -42,10 +42,10 @@ class SympyConvert(unittest.TestCase):
         self.compare_to_mathics(mathics_expr, sympy_expr)
 
     def testSymbol(self):
-        self.compare(Symbol("Global`x"), sympy.Symbol("_Mathics_User_Global`x"))
+        self.compare(Symbol("Global`x"), sympy.Symbol("_mg`x"))
         self.compare(
-            Symbol("_Mathics_User_x"),
-            sympy.Symbol("_Mathics_User_System`_Mathics_User_x"),
+            Symbol("_mu_x"),
+            sympy.Symbol("_mu`x"),
         )
 
     def testReal(self):
