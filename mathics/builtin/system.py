@@ -15,9 +15,15 @@ from mathics.core.atoms import Integer, Integer0, IntegerM1, Real, String
 from mathics.core.attributes import A_CONSTANT
 from mathics.core.builtin import Builtin, Predefined
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.systemsymbols import SymbolFailed, SymbolRule
+from mathics.core.systemsymbols import (
+    SymbolFailed,
+    SymbolNone,
+    SymbolRule,
+    SymbolSequence,
+)
 from mathics.version import __version__
 
 try:
@@ -98,7 +104,7 @@ class MaxLengthIntStringConversion(Predefined):
     name = "$MaxLengthIntStringConversion"
     summary_text = "the maximum length for which an integer is converted to a String"
 
-    def evaluate(self, evaluation) -> Integer:
+    def evaluate(self, evaluation: Evaluation) -> Integer:
         try:
             return Integer(sys.get_int_max_str_digits())
         except AttributeError:
@@ -120,7 +126,7 @@ class MaxLengthIntStringConversion(Predefined):
         evaluation.message("$MaxLengthIntStringConversion", "inv", expr)
         return self.evaluate(evaluation)
 
-    def eval_setdelayed(self, expr, evaluation):
+    def eval_setdelayed(self, expr, evaluation: Evaluation):
         """SetDelayed[$MaxLengthIntStringConversion, expr_]"""
         return self.eval_set(expr)
 
@@ -143,7 +149,7 @@ class CommandLine(Predefined):
     )
     name = "$CommandLine"
 
-    def evaluate(self, evaluation) -> Expression:
+    def evaluate(self, evaluation: Evaluation) -> Expression:
         return ListExpression(*(String(arg) for arg in sys.argv))
 
 
@@ -156,13 +162,19 @@ class Environment(Builtin):
       <dd>gives the value of an operating system environment variable.
     </dl>
 
-    X> Environment["HOME"]
+    S> Environment["HOME"]
      = ...
+
+    See also <url>
+    :'GetEnvironment':
+    /doc/reference-of-built-in-symbols/global-system-information/getenvironment/</url> and <url>
+    :'SetEnvironment':
+    /doc/reference-of-built-in-symbols/global-system-information/setenvironment/</url>.
     """
 
     summary_text = "list the system environment variables"
 
-    def eval(self, var, evaluation):
+    def eval(self, var, evaluation: Evaluation):
         "Environment[var_String]"
         env_var = var.get_string_value()
         if env_var not in os.environ:
@@ -176,36 +188,82 @@ class GetEnvironment(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/GetEnvironment.html</url>
 
     <dl>
-    <dt>'GetEnvironment["$var$"]'
-        <dd>gives the setting corresponding to the variable "var" in the operating system environment.
+      <dt>'GetEnvironment["$var$"]'
+      <dd>gives the setting corresponding to the variable "var" in the operating \
+      system environment.
+
+      <dt>'GetEnvironment[{"$var1$", "$var2$", ...}]'
+      <dd>gives a list rules for each of the environment variables listed.
+
+      <dt>'GetEnvironment[]'
+      <dd>gives a list rules for all environment variables.
     </dl>
 
-    X> GetEnvironment["HOME"]
+    On POSIX systems, the following gets the users HOME directory:
+    S> GetEnvironment["HOME"]
     = ...
+
+    We can get both the HOME directory and the user name in one go:
+    S> GetEnvironment[{"HOME", "USER"}]
+    = ...
+
+    Arguments however must be strings:
+    S> GetEnvironment[HOME]
+    : HOME is not ALL or a string or a list of strings.
+    = GetEnvironment[HOME]
+
+    See also <url>
+    :'Environment':
+    /doc/reference-of-built-in-symbols/global-system-information/environment/</url> and <url>
+    :'SetEnvironment':
+    /doc/reference-of-built-in-symbols/global-system-information/setenvironment/</url>.
     """
 
+    messages = {"name": "`1` is not ALL or a string or a list of strings."}
     summary_text = "retrieve the value of a system environment variable"
 
-    def eval(self, var, evaluation):
+    def eval(self, var, evaluation: Evaluation):
         "GetEnvironment[var___]"
         if isinstance(var, String):
-            env_var = var.get_string_value()
+            env_var = var.value
             tup = (
-                env_var,
-                "System`None"
-                if env_var not in os.environ
-                else String(os.environ[env_var]),
+                var,
+                (
+                    SymbolNone
+                    if env_var not in os.environ
+                    else String(os.environ[env_var])
+                ),
             )
 
             return Expression(SymbolRule, *tup)
 
-        env_vars = var.get_sequence()
-        if len(env_vars) == 0:
-            rules = [
-                Expression(SymbolRule, name, value)
-                for name, value in os.environ.items()
-            ]
-            return ListExpression(*rules)
+        if (
+            isinstance(var, ListExpression)
+            or hasattr(var, "head")
+            and var.head == SymbolSequence
+        ):
+            if len(var.elements) == 0:
+                rules = [
+                    Expression(SymbolRule, String(name), String(value))
+                    for name, value in os.environ.items()
+                ]
+                return ListExpression(*rules)
+            else:
+                rules = []
+                for env_var in var.elements:
+                    if not isinstance(env_var, String):
+                        evaluation.message("GetEnvironment", "name", var)
+                        return None
+                    rules.append(
+                        Expression(
+                            SymbolRule,
+                            env_var,
+                            String(os.environ.get(env_var.value, "")),
+                        )
+                    )
+                return ListExpression(*rules)
+        else:
+            evaluation.message("GetEnvironment", "name", var)
 
 
 class Machine(Predefined):
@@ -218,14 +276,14 @@ class Machine(Predefined):
             Mathics3 is being run.
     </dl>
 
-    X> $Machine
-     = linux
+    S> $Machine
+     = ...
     """
 
     summary_text = "the type of computer system over with Mathics is running"
     name = "$Machine"
 
-    def evaluate(self, evaluation) -> String:
+    def evaluate(self, evaluation: Evaluation) -> String:
         return String(sys.platform)
 
 
@@ -239,14 +297,14 @@ class MachineName(Predefined):
           is being run, if such a name is defined.
     </dl>
 
-    X> $MachineName
-     = buster
+    S> $MachineName
+     = ...
     """
 
     summary_text = "the name of computer over with Mathics is running"
     name = "$MachineName"
 
-    def evaluate(self, evaluation) -> String:
+    def evaluate(self, evaluation: Evaluation) -> String:
         return String(platform.uname().node)
 
 
@@ -262,9 +320,10 @@ class MathicsVersion(Predefined):
     >> MathicsVersion
     = ...
     """
+
     summary_text = "the version of the mathics core"
 
-    def evaluate(self, evaluation) -> String:
+    def evaluate(self, evaluation: Evaluation) -> String:
         return String(__version__)
 
 
@@ -278,8 +337,8 @@ class Packages(Predefined):
           been loaded into Mathics.
     </dl>
 
-    X> $Packages
-    = {ImportExport`,XML`,Internal`,System`,Global`}
+    S> $Packages
+    = {ImportExport`, XML`, Internal`, System`, Global`}
     """
 
     summary_text = "list the packages loaded in the current session"
@@ -303,10 +362,11 @@ class ParentProcessID(Predefined):
      = ...
 
     """
+
     summary_text = "id of the process that invoked Mathics"
     name = "$ParentProcessID"
 
-    def evaluate(self, evaluation) -> Integer:
+    def evaluate(self, evaluation: Evaluation) -> Integer:
         return Integer(os.getppid())
 
 
@@ -323,10 +383,11 @@ class ProcessID(Predefined):
     >> $ProcessID
      = ...
     """
+
     summary_text = "id of the Mathics process"
     name = "$ProcessID"
 
-    def evaluate(self, evaluation) -> Integer:
+    def evaluate(self, evaluation: Evaluation) -> Integer:
         return Integer(os.getpid())
 
 
@@ -368,11 +429,12 @@ class PythonImplementation(Predefined):
     >> $PythonImplementation
     = ...
     """
+
     name = "$PythonImplementation"
 
     summary_text = "name of the Python implementation running Mathics3"
 
-    def evaluate(self, evaluation):
+    def evaluate(self, evaluation: Evaluation):
         from mathics.system_info import python_implementation
 
         return String(python_implementation())
@@ -394,7 +456,7 @@ class ScriptCommandLine(Predefined):
     summary_text = "list of command line arguments"
     name = "$ScriptCommandLine"
 
-    def evaluate(self, evaluation):
+    def evaluate(self, evaluation: Evaluation):
         try:
             dash_index = sys.argv.index("--")
         except ValueError:
@@ -403,6 +465,82 @@ class ScriptCommandLine(Predefined):
         scriptname = "" if dash_index == 0 else sys.argv[dash_index - 1]
         params = [scriptname] + [s for s in sys.argv[dash_index + 1 :]]
         return to_mathics_list(*params, elements_conversion_fn=String)
+
+
+class SetEnvironment(Builtin):
+    """
+     <url>:WMA link:https://reference.wolfram.com/language/ref/SetEnvironment.html</url>
+
+     <dl>
+       <dt>'SetEnvironment["$var$" -> $value"]'
+       <dd>sets the value of an operating system environment variable.
+
+       <dt>'SetEnvironment[{"$var$" -> $value", ...}]'
+       <dd>sets more than one environment variable.
+     </dl>
+
+     Set a single environment variable:
+     S> SetEnvironment["FOO" -> "bar"]
+      = SetEnvironment[FOO -> bar]
+
+     See that the environment variable has changed:
+     S> GetEnvironment["FOO"]
+      = FOO -> bar
+
+     Set two environment variables:
+     S> SetEnvironment[{"FOO" -> "baz", "A" -> "B"}]
+      = SetEnvironment[{FOO -> baz, A -> B}]
+
+     See that the environment variable has changed:
+     S> GetEnvironment["FOO"]
+      = FOO -> baz
+
+     Environment values must be strings:
+
+     S> SetEnvironment["FOO" -> 5]
+      : 5 must be a string or None.
+      = SetEnvironment[FOO -> 5]
+
+     S> GetEnvironment["FOO"]
+      = FOO -> baz
+
+    If the environment name is not a string, the evaluation fails without a message.
+
+     S> SetEnvironment[FOO -> "bar"]
+      = SetEnvironment[FOO -> bar]
+
+     S> GetEnvironment["FOO"]
+      = FOO -> baz
+
+     See also <url>
+     :'Environment':
+     /doc/reference-of-built-in-symbols/global-system-information/environment/</url> and <url>
+     :'GeEnvironment':
+     /doc/reference-of-built-in-symbols/global-system-information/getenvironment/</url>.
+    """
+
+    messages = {"value": "`1` must be a string or None."}
+    summary_text = "set system environment variable(s)"
+
+    def eval(self, rule, evaluation):
+        "SetEnvironment[rule_]"
+        env_var_name, env_var_value = rule.elements
+        if not (env_var_value is SymbolNone or isinstance(env_var_value, String)):
+            evaluation.message("SetEnvironment", "value", env_var_value)
+            return None
+
+        if isinstance(env_var_name, String):
+            # WMA does not give an error message if env_var_name is not a String - weird.
+            os.environ[env_var_name.value] = (
+                None if None is SymbolNone else env_var_value.value
+            )
+        return None
+
+    def eval_list(self, rules: Expression, evaluation: Evaluation):
+        "SetEnvironment[{rules__}]"
+        for rule in rules.elements:
+            self.eval(rule, evaluation)
+        return None
 
 
 class Run(Builtin):
@@ -421,7 +559,7 @@ class Run(Builtin):
 
     summary_text = "run a system command"
 
-    def eval(self, command, evaluation):
+    def eval(self, command, evaluation: Evaluation):
         "Run[command_String]"
         command_str = command.to_python()
         return Integer(subprocess.call(command_str, shell=True))
@@ -439,10 +577,11 @@ class SystemID(Predefined):
     X> $SystemID
      = linux
     """
+
     summary_text = "id for the type of computer system"
     name = "$SystemID"
 
-    def evaluate(self, evaluation) -> String:
+    def evaluate(self, evaluation: Evaluation) -> String:
         return String(sys.platform)
 
 
@@ -459,10 +598,11 @@ class SystemWordLength(Predefined):
     X> $SystemWordLength
     = 64
     """
+
     summary_text = "word length of computer system"
     name = "$SystemWordLength"
 
-    def evaluate(self, evaluation) -> Integer:
+    def evaluate(self, evaluation: Evaluation) -> Integer:
         # https://docs.python.org/3/library/platform.html#module-platform
         # says it is more reliable to get bits using sys.maxsize
         # than platform.architecture()[0]
@@ -485,10 +625,11 @@ class UserName(Predefined):
     X> $UserName
      = ...
     """
+
     summary_text = "login name of the user that invoked the current session"
     name = "$UserName"
 
-    def evaluate(self, evaluation) -> String:
+    def evaluate(self, evaluation: Evaluation) -> String:
         try:
             user = os.getlogin()
         except Exception:
@@ -530,11 +671,12 @@ class VersionNumber(Predefined):
     >> $VersionNumber
     = ...
     """
+
     summary_text = "the version number of the current Mathics core"
     name = "$VersionNumber"
     value = 10.0
 
-    def evaluate(self, evaluation) -> Real:
+    def evaluate(self, evaluation: Evaluation) -> Real:
         # Make this be whatever the latest Mathematica release is,
         # assuming we are trying to be compatible with this.
         return Real(self.value)
@@ -558,7 +700,7 @@ if have_psutil:
         summary_text = "the total amount of physical memory in the system"
         name = "$SystemMemory"
 
-        def evaluate(self, evaluation) -> Integer:
+        def evaluate(self, evaluation: Evaluation) -> Integer:
             totalmem = psutil.virtual_memory().total
             return Integer(totalmem)
 
@@ -581,7 +723,7 @@ if have_psutil:
 
         summary_text = "the available amount of physical memory in the system"
 
-        def eval(self, evaluation) -> Integer:
+        def eval(self, evaluation: Evaluation) -> Integer:
             """MemoryAvailable[]"""
             totalmem = psutil.virtual_memory().available
             return Integer(totalmem)
@@ -605,7 +747,7 @@ else:
         summary_text = "the total amount of physical memory in the system"
         name = "$SystemMemory"
 
-        def evaluate(self, evaluation) -> Integer:
+        def evaluate(self, evaluation: Evaluation) -> Integer:
             return IntegerM1
 
     class MemoryAvailable(Builtin):
@@ -624,9 +766,9 @@ else:
 
         summary_text = "the available amount of physical memory in the system"
 
-        def eval(self, evaluation) -> Integer:
+        def eval(self, evaluation: Evaluation) -> Integer:
             """MemoryAvailable[]"""
-            return Integer(-1)
+            return IntegerM1
 
 
 class MemoryInUse(Builtin):
@@ -702,7 +844,7 @@ class Share(Builtin):
 
     summary_text = "force Python garbage collection"
 
-    def eval(self, evaluation) -> Integer:
+    def eval(self, evaluation: Evaluation) -> Integer:
         """Share[]"""
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then
@@ -716,7 +858,7 @@ class Share(Builtin):
             gc.collect()
             return Integer0
 
-    def eval_with_symbol(self, symbol, evaluation) -> Integer:
+    def eval_with_symbol(self, symbol, evaluation: Evaluation) -> Integer:
         """Share[symbol_Symbol]"""
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then
