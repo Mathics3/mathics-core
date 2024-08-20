@@ -20,9 +20,10 @@ from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (  # , sympy_slot_prefix
+from mathics.core.symbols import (
     Symbol,
     SymbolPlus,
+    sympy_slot_prefix,
     sympy_symbol_prefix,
 )
 from mathics.core.systemsymbols import (
@@ -173,16 +174,19 @@ class SympyConvert(unittest.TestCase):
             ),
         )
 
-
-#    sympy_slot_prefix is never used, because Slot[n_] are not
-#    properly translated...
-#    def testSlots(self):
-#        sympy_symbol = sympy.Symbol("x")
-#        sympy_lambda_expr = sympy.Lambda(sympy_symbol, sympy_symbol + 1)
-#        self.compare(
-#            Expression(SymbolFunction, Expression(SymbolPlus, Integer1, Expression(SymbolSlot, Integer1))),
-#            sympy_lambda_expr
-#        )
+    def testSlots(self):
+        """check the conversion of slots in anonymous functions."""
+        sympy_symbol = sympy.Symbol("x")
+        sympy_lambda_expr = sympy.Lambda(sympy_symbol, sympy_symbol + 1)
+        # compare_to_sympy does not pass because Slot[1] are translated as
+        # functions
+        self.compare_to_mathics(
+            Expression(
+                SymbolFunction,
+                Expression(SymbolPlus, Integer1, Expression(SymbolSlot, Integer1)),
+            ),
+            sympy_lambda_expr,
+        )
 
 
 class PythonConvert(unittest.TestCase):
