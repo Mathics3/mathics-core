@@ -5,7 +5,7 @@ mydir=$(dirname $bs)
 PYTHON=${PYTHON:-python}
 
 cd $mydir/../mathics/data
-mathics-generate-json-table \
+mathics3-generate-json-table \
     --field=ascii-operator-to-symbol \
     --field=ascii-operator-to-unicode \
     --field=ascii-operator-to-wl-unicode \
