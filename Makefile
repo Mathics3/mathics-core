@@ -61,7 +61,7 @@ build:
 # because pip install doesn't handle
 # INSTALL_REQUIRES properly
 #: Set up to run from the source tree
-develop:  mathics/data/op-tables.json
+develop:  mathics/data/op-tables.json mathics/data/operators.json
 	$(PIP) install -e .[dev]
 
 # See note above on ./setup.py
@@ -71,7 +71,7 @@ develop-full:  mathics/data/op-tables.json
 
 # See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies and Cython
-develop-full-cython: mathics/data/op-tables.json
+develop-full-cython: mathics/data/op-tables.json mathics/data/operators.json
 	$(PIP) install -e .[dev,full,cython]
 
 
@@ -144,6 +144,10 @@ latexdoc texdoc doc:
 #: Build JSON ASCII to unicode opcode tables
 mathics/data/op-tables.json:
 	$(BASH) ./admin-tools/make-op-tables.sh
+
+#: Build JSON ASCII to operator tables
+mathics/data/operators.json:
+	$(BASH) ./admin-tools/make-operator-tables.sh
 
 #: Remove ChangeLog
 rmChangeLog:
