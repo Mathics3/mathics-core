@@ -55,7 +55,7 @@ RealOne = Real(1.0)
 
 # This cache might not be used that much.
 @lru_cache()
-def call_mpmath(
+def run_mpmath(
     mpmath_function: Callable, mpmath_args: tuple, precision: int
 ) -> Optional[BaseElement]:
     """
@@ -341,12 +341,12 @@ def eval_mpmath_function(
         if None in float_args:
             return
 
-        return call_mpmath(mpmath_function, tuple(float_args), FP_MANTISA_BINARY_DIGITS)
+        return run_mpmath(mpmath_function, tuple(float_args), FP_MANTISA_BINARY_DIGITS)
     else:
         mpmath_args = [x.to_mpmath(prec) for x in args]
         if None in mpmath_args:
             return
-        return call_mpmath(mpmath_function, tuple(mpmath_args), prec)
+        return run_mpmath(mpmath_function, tuple(mpmath_args), prec)
 
 
 def eval_Plus(*items: BaseElement) -> BaseElement:
