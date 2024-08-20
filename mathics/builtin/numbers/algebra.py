@@ -231,9 +231,11 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                 elements = sub_expr.elements
                 if target_pat:
                     elements = [
-                        element
-                        if element.is_free(target_pat, evaluation)
-                        else _expand(element)
+                        (
+                            element
+                            if element.is_free(target_pat, evaluation)
+                            else _expand(element)
+                        )
                         for element in elements
                     ]
                 else:
@@ -248,9 +250,11 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                     elements = sub_expr.elements
                     if target_pat:
                         elements = [
-                            element
-                            if element.is_free(target_pat, evaluation)
-                            else _expand(element)
+                            (
+                                element
+                                if element.is_free(target_pat, evaluation)
+                                else _expand(element)
+                            )
                             for element in elements
                         ]
                     else:
@@ -335,9 +339,11 @@ def get_exponents_sorted(expr, var) -> list:
             # find exponent of terms multiplied with functions: sin, cos, log, exp, ...
             # e.g: x^3 * Sin[x^2] should give 3
             muls = [
-                term.as_coeff_mul(x)[1]
-                if term.as_coeff_mul(x)[1]
-                else (sympy.Integer(0),)
+                (
+                    term.as_coeff_mul(x)[1]
+                    if term.as_coeff_mul(x)[1]
+                    else (sympy.Integer(0),)
+                )
                 for term in coeff.as_ordered_terms()
             ]
             expos = [term.as_coeff_exponent(x)[1] for mul in muls for term in mul]
