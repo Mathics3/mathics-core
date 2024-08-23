@@ -595,7 +595,6 @@ class MPMathFunction(SympyFunction):
     mpmath_name = None
     nargs = {1}
 
-    @lru_cache(maxsize=1024)
     def get_mpmath_function(self, args):
         if self.mpmath_name is None or len(args) not in self.nargs:
             return None

@@ -7,7 +7,6 @@ Many of these do do depend on the evaluation context. Conversions to Sympy are
 used just as a last resource.
 """
 
-from functools import lru_cache
 from typing import Callable, List, Optional, Tuple
 
 import mpmath
@@ -54,7 +53,6 @@ RealOne = Real(1.0)
 
 
 # This cache might not be used that much.
-@lru_cache()
 def run_mpmath(
     mpmath_function: Callable, mpmath_args: tuple, precision: int
 ) -> Optional[BaseElement]:

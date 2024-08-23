@@ -8,7 +8,7 @@ import inspect
 from enum import Enum
 from typing import Any, Callable, Optional
 
-TraceEventNames = ("SymPy", "Numpy", "mpmath", "apply")
+TraceEventNames = ("SymPy", "Numpy", "mpmath", "apply", "debugger")
 TraceEvent = Enum("TraceEvent", TraceEventNames)
 
 
@@ -53,7 +53,7 @@ def trace_call(fn: Callable, *args) -> Any:
 
 def call_event_print(event: TraceEvent, fn: Callable, *args) -> bool:
     """
-    A somehwat generic fuction to show an event-traced call.
+    A somewhat generic function to show an event-traced call.
     """
     if type(fn) == type or inspect.ismethod(fn) or inspect.isfunction(fn):
         name = f"{fn.__module__}.{fn.__qualname__}"
