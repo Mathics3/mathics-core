@@ -17,8 +17,8 @@ from mathics.core.element import (
 # Prefix used for Sympy variables.
 # We wan t this to be short to keep variable names short.
 # In tracing values, long names make output messy.
-sympy_symbol_prefix = "_u_"
-sympy_slot_prefix = "_#_"
+sympy_symbol_prefix = "_u"
+sympy_slot_prefix = "_#"
 
 
 # FIXME: This is repeated below

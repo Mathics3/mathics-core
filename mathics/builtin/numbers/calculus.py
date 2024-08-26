@@ -1099,7 +1099,7 @@ class Integrate(SympyFunction):
             return
         except NotImplementedError:
             # e.g. NotImplementedError: Result depends on the sign of
-            # -sign(_m3u_j)*sign(_m3u_w)
+            # -sign(_u`j)*sign(_u`w)
             return
         if prec is not None and isinstance(sympy_result, sympy.Integral):
             # TODO MaxExtraPrecision -> maxn
