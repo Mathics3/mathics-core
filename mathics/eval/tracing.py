@@ -18,7 +18,7 @@ hook_exit_fn: Optional[Callable] = None
 
 def trace_fn_call_event(func: Callable) -> Callable:
     """
-    Wrap a a call event with callbacks
+    Wrap a call event with callbacks,
     so we can track what happened before the call and
     the result returned by the call.
 

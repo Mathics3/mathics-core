@@ -10,7 +10,7 @@ import importlib
 import os.path as osp
 import re
 from abc import ABC
-from functools import lru_cache, total_ordering
+from functools import total_ordering
 from itertools import chain
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union, cast
 
@@ -18,9 +18,13 @@ import mpmath
 import pkg_resources
 import sympy
 
-# Note: it is important *not* use: from mathics.eval.tracing import run_sympy
-# but instead import the module and access below as tracing.run_sympy.
-# This allows us change where tracing.run_sympy points at runtime.
+# Note: it is important *not* to use:
+#   from mathics.eval.tracing import run_sympy
+# but, instead, import the module, as below, and then
+# access ``run_sympy`` using ``tracing.run_sympy.``
+#
+# This allows us to change where ``tracing.run_sympy`` points to at
+# run time.
 import mathics.eval.tracing as tracing
 from mathics.core.atoms import (
     Integer,
