@@ -12,3 +12,4 @@ mathics3-generate-json-table \
     --field=operator-to-ascii \
     --field=operator-to-unicode \
     -o op-tables.json
+mathics3-generate-operator-json-table -o operator-tables.json

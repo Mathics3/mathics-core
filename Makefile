@@ -141,13 +141,10 @@ doctest:
 latexdoc texdoc doc:
 	(cd mathics/doc/latex && $(MAKE) doc)
 
-#: Build JSON ASCII to unicode opcode tables
-mathics/data/op-tables.json:
+#: Build JSON ASCII to unicode opcode table and operator table
+mathics/data/op-tables.json mathics/data/operators.json:
 	$(BASH) ./admin-tools/make-op-tables.sh
 
-#: Build JSON ASCII to operator tables
-mathics/data/operators.json:
-	$(BASH) ./admin-tools/make-operator-tables.sh
 
 #: Remove ChangeLog
 rmChangeLog:
