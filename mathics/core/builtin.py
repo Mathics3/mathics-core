@@ -7,12 +7,14 @@ SympyFunction, MPMathFunction, etc.
 """
 
 import importlib
+import os.path as osp
 import re
 from functools import lru_cache, total_ordering
 from itertools import chain
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union, cast
 
 import mpmath
+import pkg_resources
 import sympy
 
 from mathics.core.atoms import (
@@ -66,6 +68,21 @@ from mathics.eval.arithmetic import eval_mpmath_function
 from mathics.eval.numbers.numbers import cancel
 from mathics.eval.numerify import numerify
 from mathics.eval.scoping import dynamic_scoping
+
+try:
+    import ujson
+except ImportError:
+    import json as ujson
+
+ROOT_DIR = pkg_resources.resource_filename("mathics", "")
+
+# Load the conversion tables from disk
+characters_path = osp.join(ROOT_DIR, "data", "operator-tables.json")
+assert osp.exists(
+    characters_path
+), f"Operator precedence tables are missing; expected to be in {characters_path}"
+with open(characters_path, "r") as f:
+    operator_data = ujson.load(f)
 
 
 class Builtin:
@@ -982,16 +999,16 @@ class UnaryOperator(Operator):
         super().__init__(*args, **kwargs)
         name = self.get_name()
         if self.needs_verbatim:
-            name = "Verbatim[%s]" % name
+            name = f"Verbatim[{name}"
         if self.default_formats:
-            op_pattern = "%s[item_]" % name
+            op_pattern = f"{name}[item_]"
             if op_pattern not in self.formats:
                 operator = self.get_operator_display()
                 if operator is not None:
                     form = '%s[{HoldForm[item]},"%s",%d]' % (
                         format_function,
                         operator,
-                        self.precedence,
+                        operator_data["operator-precedence"].get(name, self.precedence),
                     )
                     self.formats[op_pattern] = form
 
@@ -1032,7 +1049,7 @@ class BinaryOperator(Operator):
             formatted = "MakeBoxes[Infix[{%s}, %s, %d,%s], form]" % (
                 replace_items,
                 operator,
-                self.precedence,
+                operator_data["operator-precedence"].get(name, self.precedence),
                 self.grouping,
             )
             default_rules = {

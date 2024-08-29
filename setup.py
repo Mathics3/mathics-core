@@ -102,13 +102,17 @@ class build_py(setuptools_build_py):
     def run(self):
         if not os.path.exists("mathics/data/op-tables.json"):
             os.system(
-                "mathics-generate-json-table"
+                "mathics3-generate-json-table"
                 " --field=ascii-operator-to-symbol"
                 " --field=ascii-operator-to-unicode"
                 " --field=ascii-operator-to-wl-unicode"
                 " --field=operator-to-ascii"
                 " --field=operator-to-unicode"
                 " -o mathics/data/op-tables.json"
+            )
+        if not os.path.exists("mathics/data/operator-tables.json"):
+            os.system(
+                "mathics3-generate-operator-json-table" " -o operator-tables.json"
             )
         self.distribution.package_data["mathics"].append("data/op-tables.json")
         setuptools_build_py.run(self)
