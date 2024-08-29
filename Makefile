@@ -66,7 +66,7 @@ develop:  mathics/data/op-tables.json mathics/data/operators.json
 
 # See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies
-develop-full:  mathics/data/op-tables.json
+develop-full:  mathics/data/op-tables.json mathics/data/operators.json
 	$(PIP) install -e .[dev,full]
 
 # See note above on ./setup.py

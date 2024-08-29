@@ -80,7 +80,7 @@ ROOT_DIR = pkg_resources.resource_filename("mathics", "")
 characters_path = osp.join(ROOT_DIR, "data", "operator-tables.json")
 assert osp.exists(
     characters_path
-), f"ASCII operator to Unicode tables are missing from {characters_path}"
+), f"Operator precedence tables are missing; expected to be in {characters_path}"
 with open(characters_path, "r") as f:
     operator_data = ujson.load(f)
 
