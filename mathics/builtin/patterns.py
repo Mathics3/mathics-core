@@ -1176,6 +1176,22 @@ def get_default_value(
 class _Blank(PatternObject):
     arg_counts = [0, 1]
 
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if kwargs.get("expression", None) is False:
+            return super().__new__(cls, *args, **kwargs)
+
+        num_elem = len(args[0].elements)
+        assert num_elem < 2, f"{cls} should have at most an element."
+
+        if num_elem != 0:
+            return super().__new__(cls, *args, **kwargs)
+        # no arguments. Use the singleton
+        if cls._instance is None:
+            cls._instance = super().__new__(cls, *args, **kwargs)
+        return cls._instance
+
     def init(
         self, expr: Expression, evaluation: OptionalType[Evaluation] = None
     ) -> None:
