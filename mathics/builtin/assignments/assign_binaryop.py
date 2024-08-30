@@ -40,7 +40,6 @@ class AddTo(BinaryOperator):
     attributes = A_HOLD_FIRST | A_PROTECTED
     grouping = "Right"
     operator = "+="
-    precedence = 100
 
     rules = {
         "x_ += dx_": "x = x + dx",
@@ -68,7 +67,6 @@ class Decrement(PostfixOperator):
     """
 
     operator = "--"
-    precedence = 660
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
 
     rules = {
@@ -100,7 +98,6 @@ class DivideBy(BinaryOperator):
     attributes = A_HOLD_FIRST | A_PROTECTED
     grouping = "Right"
     operator = "/="
-    precedence = 100
 
     rules = {
         "x_ /= dx_": "x = x / dx",
@@ -131,7 +128,6 @@ class Increment(PostfixOperator):
     """
 
     operator = "++"
-    precedence = 660
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
 
     rules = {

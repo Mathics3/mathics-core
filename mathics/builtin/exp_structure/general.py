@@ -14,14 +14,14 @@ from mathics.core.systemsymbols import SymbolMap
 from mathics.eval.parts import python_levelspec, walk_levels
 
 
-class ApplyLevel(BinaryOperator):
+class MapApply(BinaryOperator):
     """
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/ApplyLevel.html</url>
+    https://reference.wolfram.com/language/ref/MapApply.html</url>
 
     <dl>
-      <dt>'ApplyLevel[$f$, $expr$]'
+      <dt>'MapApply[$f$, $expr$]'
 
       <dt>'$f$ @@@ $expr$'
       <dd>is equivalent to 'Apply[$f$, $expr$, {1}]'.
@@ -36,7 +36,7 @@ class ApplyLevel(BinaryOperator):
     precedence = 620
 
     rules = {
-        "ApplyLevel[f_, expr_]": "Apply[f, expr, {1}]",
+        "MapApply[f_, expr_]": "Apply[f, expr, {1}]",
     }
 
     summary_text = "apply a function to a list, at the top level"
