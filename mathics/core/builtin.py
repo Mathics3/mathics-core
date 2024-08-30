@@ -519,7 +519,7 @@ class SympyObject(Builtin):
 
 # This has to come before MPMathFunction
 class SympyFunction(SympyObject):
-    def eval(self, z, evaluation):
+    def eval(self, z, evaluation: Evaluation):
         # Note: we omit a docstring here, so as not to confuse
         # function signature collector ``contribute``.
 
@@ -983,17 +983,10 @@ class Operator(Builtin, ABC):
             operator_info, dict
         ), 'Internal error: "operator-precedence" should be found in operators.json'
         precedence = operator_info.get(name)
-        try:
-            assert isinstance(
-                precedence, int
-            ), f'Internal error: "precedence" field for "{name}" should be an integer is {precedence}'
-            return precedence
-        except:
-            print("XXX", name)
-            from trepan.api import debug
-
-            debug()
-            pass
+        assert isinstance(
+            precedence, int
+        ), f'Internal error: "precedence" field for "{name}" should be an integer is {precedence}'
+        return precedence
 
     def get_operator(self) -> Optional[str]:
         return self.operator
@@ -1019,7 +1012,7 @@ class Predefined(Builtin):
 
 class UnaryOperator(Operator):
     """
-    Unary Operator builtin operators
+    Class for Unary Operators, (e.g. Not, Factorial)
     """
 
     def __init__(self, format_function, *args, **kwargs):
@@ -1042,18 +1035,26 @@ class UnaryOperator(Operator):
 
 
 class PrefixOperator(UnaryOperator):
+    """
+    Class for Bultin Prefix Unary Operators, e.g. Not ("¬")
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__("Prefix", *args, **kwargs)
 
 
 class PostfixOperator(UnaryOperator):
+    """
+    Class for Bultin Postfix Unary Operators, e.g. Factorial (!)
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__("Postfix", *args, **kwargs)
 
 
 class BinaryOperator(Operator):
     """
-    Unary Operator builtin operators
+    Class for Builtin Binary Operators, e.g. Plus (+)
     """
 
     grouping = "System`None"  # NonAssociative, None, Left, Right
