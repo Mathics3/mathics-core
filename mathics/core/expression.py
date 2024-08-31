@@ -5,7 +5,7 @@ import math
 import time
 from bisect import bisect_left
 from itertools import chain
-from typing import Any, Callable, Iterable, List, Optional, Tuple, Type, Union
+from typing import Any, Callable, Iterable, Optional, Tuple, Type, Union
 
 import sympy
 
@@ -88,6 +88,73 @@ symbols_arithmetic_operations = symbol_set(
 )
 
 
+def eval_SameQ(self, other):
+    """
+    Iterative implementation of SameQ[].
+
+    Tree traversal comparison between `self` and `other`.
+    Return `True` if both tree structures are equal.
+
+    This non-recursive implementation reduces the Python stack needed
+    in evaluation. Staring in Python 3.12 there is a limit on the
+    recursion level.
+    """
+
+    len_elements = len(self.elements)
+    if len(other._elements) != len_elements:
+        return False
+
+    # Initializing a "stack"
+    parents = [
+        (
+            self,
+            other,
+        )
+    ]
+    current = (self._head, other._head)
+    pos = [0]
+
+    # The next element in the tree. Maybe should be an iterator?
+    def next_elem():
+        nonlocal len_elements
+        nonlocal parents
+        nonlocal pos
+
+        while pos and pos[-1] == len_elements:
+            pos.pop()
+            parents.pop()
+            assert len(pos) == len(parents)
+            if len(pos) > 0:
+                len_elements = len(parents[-1][0]._elements)
+                assert len(parents[-1][1]._elements) == len_elements
+
+        if len(pos) == 0:
+            return None
+
+        current = tuple(p._elements[pos[-1]] for p in parents[-1])
+        pos[-1] += 1
+        return current
+
+    while current:
+        if current[0] is current[1]:
+            current = next_elem()
+        elif all(isinstance(elem, Atom) for elem in current):
+            if not current[0].sameQ(current[1]):
+                return False
+            current = next_elem()
+        elif all(isinstance(elem, Expression) for elem in current):
+            len_elements = len(current[0]._elements)
+            if len_elements != len(current[1]._elements):
+                return False
+            parents.append(current)
+            current = tuple((c._head for c in current))
+            pos.append(0)
+        else:  # Atom is not the same than an expression
+            return False
+
+    return True
+
+
 class BoxError(Exception):
     def __init__(self, box, form) -> None:
         super().__init__("Box %s cannot be formatted as %s" % (box, form))
@@ -163,14 +230,6 @@ class ExpressionCache:
             ):
                 return None
 
-        # FIXME: this is workaround the current situtation that some
-        # Atoms, like String, have a cache even though they don't need
-        # it, by virtue of this getting set up in
-        # BaseElement.__init__. Removing the self._cache in there the
-        # causes Boxing to mess up. Untangle this mess.
-        if expr._cache is None:
-            return None
-
         symbols = set.union(*[expr._cache.symbols for expr in expressions])
 
         return ExpressionCache(
@@ -179,12 +238,12 @@ class ExpressionCache:
 
 
 class Expression(BaseElement, NumericOperators, EvalMixin):
-    """
-    A Mathics3 M-Expression.
+    """A Mathics3 (compound) M-Expression.
 
-    A Mathics3 M-Expression is a list where the head is a function designator.
-    (In the more common S-Expression the head is an a Symbol. In Mathics this can be
-    an expression that acts as a function.
+    A Mathics3 M-Expression is a list where the head is a function
+    designator.  (In the more common S-Expression the head is an a
+    Symbol. In Mathics3, this can be an expression that acts as a
+    function.
 
     positional Arguments:
         - head -- The head of the M-Expression
@@ -195,10 +254,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     Keyword Arguments:
         - elements_properties -- properties of the collection of elements
+
     """
 
     _head: BaseElement
-    _elements: List[BaseElement]
+    _elements: Tuple[BaseElement]
     _sequences: Any
     _cache: Optional[ExpressionCache]
     elements_properties: Optional[ElementsProperties]
@@ -421,7 +481,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         self.elements_properties = None
 
     def equal2(self, rhs: Any) -> Optional[bool]:
-        """Mathics two-argument Equal (==)
+        """Mathics3 two-argument Equal (==)
         returns True if self and rhs are identical.
         """
         if self.sameQ(rhs):
@@ -691,6 +751,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return self._head.name if isinstance(self._head, Symbol) else ""
 
     def get_lookup_name(self) -> str:
+        """
+        Returns symbol name of leftmost head.
+        """
         lookup_symbol = self._head
         while True:
             if isinstance(lookup_symbol, Symbol):
@@ -1069,7 +1132,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # used later, include: HoldFirst / HoldAll / HoldRest / HoldAllComplete.
 
         # Note: self._head can be not just a symbol, but some arbitrary expression.
-        # This is what makes expressions in Mathics be M-expressions rather than
+        # This is what makes expressions in Mathics3 be M-expressions rather than
         # S-expressions.
         head = self._head.evaluate(evaluation)
 
@@ -1376,19 +1439,14 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return None
 
     def sameQ(self, other: BaseElement) -> bool:
-        """Mathics SameQ"""
+        """Mathics3 SameQ"""
         if not isinstance(other, Expression):
             return False
         if self is other:
             return True
-        if not self._head.sameQ(other._head):
-            return False
-        if len(self._elements) != len(other._elements):
-            return False
-        return all(
-            (id(element) == id(oelement) or element.sameQ(oelement))
-            for element, oelement in zip(self._elements, other._elements)
-        )
+
+        # All this stuff maybe should be in mathics.eval.expression
+        return eval_SameQ(self, other)
 
     def sequences(self):
         cache = self._cache
@@ -1492,7 +1550,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             #         )
             return py_obj
 
-        # Notice that in this case, `to_python` returns a Mathics Expression object,
+        # Notice that in this case, `to_python` returns a Mathics3 Expression object,
         # instead of a builtin native object.
         return self
 
