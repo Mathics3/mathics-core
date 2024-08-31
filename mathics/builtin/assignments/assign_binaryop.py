@@ -165,7 +165,6 @@ class PreIncrement(PrefixOperator):
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
     operator = "++"
-    precedence = 660
 
     rules = {
         "++x_": "x = x + 1",
@@ -195,7 +194,6 @@ class PreDecrement(PrefixOperator):
     """
 
     operator = "--"
-    precedence = 660
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
 
     rules = {
@@ -225,7 +223,6 @@ class SubtractFrom(BinaryOperator):
     attributes = A_HOLD_FIRST | A_PROTECTED
     grouping = "Right"
     operator = "-="
-    precedence = 100
 
     rules = {
         "x_ -= dx_": "x = x - dx",
@@ -251,7 +248,6 @@ class TimesBy(BinaryOperator):
     """
 
     operator = "*="
-    precedence = 100
     attributes = A_HOLD_FIRST | A_PROTECTED
     grouping = "Right"
 

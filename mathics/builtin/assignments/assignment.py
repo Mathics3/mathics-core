@@ -169,7 +169,6 @@ class Set(BinaryOperator, _SetOperator):
     }
 
     operator = "="
-    precedence = 40
 
     summary_text = "assign a value"
 
@@ -372,7 +371,6 @@ class UpSet(BinaryOperator, _SetOperator):
     attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
     grouping = "Right"
     operator = "^="
-    precedence = 40
 
     summary_text = (
         "set value and associate the assignment with symbols that occur at level one"

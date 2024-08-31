@@ -403,7 +403,6 @@ class Derivative(PostfixOperator, SympyFunction):
     attributes = A_N_HOLD_ALL
     default_formats = False
     operator = "'"
-    precedence = 670
     rules = {
         "MakeBoxes[Derivative[n__Integer][f_], "
         "  form:StandardForm|TraditionalForm]": (
@@ -1752,7 +1751,6 @@ class SeriesData(Builtin):
 
     # TODO: Implement sum, product and composition of series
 
-    precedence = 1000
     summary_text = "power series of a variable about a point"
 
     def eval_reduce(
