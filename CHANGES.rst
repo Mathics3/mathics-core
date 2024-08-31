@@ -19,6 +19,12 @@ Internals
 Operator precedence has been gone over and is picked up in tables from the Mathics Scanner project.
 
 
+Performance
+-----------
+
+* `Blank*` patterns without arguments are now singletons.
+
+  
 7.0.0
 -----
 
