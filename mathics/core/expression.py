@@ -1384,9 +1384,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         # All this stuff maybe should be in mathics.eval.expression
 
-        print("\n\n\n", 80 * "*", "sameQ")
-        print("    self:", self)
-        print("    other:", other)
+        len_elements = len(self.elements)
+        if len(other._elements) != len_elements:
+            return False
+
         parents = [
             (
                 self,
@@ -1395,7 +1396,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         ]
         current = (self._head, other._head)
         pos = [0]
-        len_elements = len(self.elements)
 
         # The next element in the tree. Maybe should be an iterator?
         def next_elem():
@@ -1404,7 +1404,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             nonlocal pos
 
             while pos and pos[-1] == len_elements:
-                print("  end reached in ", pos, "(len=", len_elements, ")")
                 pos.pop()
                 parents.pop()
                 assert len(pos) == len(parents)
@@ -1415,49 +1414,25 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             if len(pos) == 0:
                 return None
 
-            print("accesing element of", parents[-1], len_elements, pos)
-            print("at position ", pos[-1])
-            print("current[0]", (parents[-1][0]._elements))
-            print("current[1]", (parents[-1][1]._elements))
             current = tuple(p._elements[pos[-1]] for p in parents[-1])
             pos[-1] += 1
-
-            print(
-                "    next element",
-                current,
-                "in pos",
-                pos,
-                "with last length",
-                len_elements,
-            )
             return current
 
         while current:
-            print(f"comparing {current}")
             if current[0] is current[1]:
-                print("   elements are the same. continue")
                 current = next_elem()
             elif all(isinstance(elem, Atom) for elem in current):
-                print("   elements are Atoms")
                 if not current[0].sameQ(current[1]):
-                    print("        not the same. Return False")
                     return False
-                print("    are the same. Continue with the next")
                 current = next_elem()
             elif all(isinstance(elem, Expression) for elem in current):
-                print("    both are expressions. \n", "*** Go inside")
                 len_elements = len(current[0]._elements)
                 if len_elements != len(current[1]._elements):
-                    print("    different lengths. Return False")
                     return False
                 parents.append(current)
-                print("   parents:\n", parents)
                 current = tuple((c._head for c in current))
-                print("\n  current:", current)
                 pos.append(0)
-                print("  pos:", pos)
             else:  # Atom is not the same than an expression
-                print(f"cannot compare {type(self)} and{type(other)}. Return False.")
                 return False
 
         return True
