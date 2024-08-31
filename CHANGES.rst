@@ -13,6 +13,12 @@ Compatibility
 * ``GetEnvironment`` expanded to handle ``[]`` and ``{var1, var2,...}`` forms
 
 
+Performance
+-----------
+
+* `Blank*` patterns without arguments are now singletons.
+
+  
 7.0.0
 -----
 
