@@ -248,7 +248,6 @@ class StringExpression(BinaryOperator):
 
     attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
     operator = "~~"
-    precedence = 135
 
     messages = {
         "invld": "Element `1` is not a valid string or pattern element in `2`.",

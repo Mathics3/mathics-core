@@ -171,7 +171,6 @@ class CompoundExpression(BinaryOperator):
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
     operator = ";"
-    precedence = 10
 
     summary_text = "execute expressions in sequence"
 

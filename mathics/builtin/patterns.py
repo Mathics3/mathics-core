@@ -97,7 +97,6 @@ class Rule_(BinaryOperator):
 
     name = "Rule"
     operator = "->"
-    precedence = 120
     attributes = A_SEQUENCE_HOLD | A_PROTECTED
     grouping = "Right"
     needs_verbatim = True
@@ -122,7 +121,6 @@ class RuleDelayed(BinaryOperator):
     attributes = A_SEQUENCE_HOLD | A_HOLD_REST | A_PROTECTED
     needs_verbatim = True
     operator = ":>"
-    precedence = 120
     summary_text = "a rule that keeps the replacement unevaluated"
 
 
@@ -335,7 +333,6 @@ class ReplaceAll(BinaryOperator):
     grouping = "Left"
     needs_verbatim = True
     operator = "/."
-    precedence = 110
 
     messages = {
         "reps": "`1` is not a valid replacement rule.",
@@ -391,7 +388,6 @@ class ReplaceRepeated(BinaryOperator):
     grouping = "Left"
     needs_verbatim = True
     operator = "//."
-    precedence = 110
 
     messages = {
         "reps": "`1` is not a valid replacement rule.",
@@ -544,7 +540,6 @@ class PatternTest(BinaryOperator, PatternObject):
 
     arg_counts = [2]
     operator = "?"
-    precedence = 680
     summary_text = "match to a pattern conditioned to a test result"
 
     def init(
@@ -763,7 +758,6 @@ class Alternatives(BinaryOperator, PatternObject):
     arg_counts = None
     needs_verbatim = True
     operator = "|"
-    precedence = 160
     summary_text = "match to any of several patterns"
 
     def init(
@@ -1097,7 +1091,6 @@ class Optional(BinaryOperator, PatternObject):
         "MakeBoxes[Verbatim[Optional][Verbatim[_]], f:StandardForm|TraditionalForm|InputForm|OutputForm]": '"_."',
     }
     operator = ":"
-    precedence = 140
     summary_text = "an optional argument with a default value"
 
     def init(
@@ -1381,7 +1374,6 @@ class Repeated(PostfixOperator, PatternObject):
     }
 
     operator = ".."
-    precedence = 170
     summary_text = "match to one or more occurrences of a pattern"
 
     def init(
@@ -1451,7 +1443,6 @@ class RepeatedNull(Repeated):
     """
 
     operator = "..."
-    precedence = 170
     summary_text = "match to zero or more occurrences of a pattern"
 
     def init(
@@ -1533,7 +1524,6 @@ class Condition(BinaryOperator, PatternObject):
     # Don't know why this has attribute HoldAll in Mathematica
     attributes = A_HOLD_REST | A_PROTECTED
     operator = "/;"
-    precedence = 130
     summary_text = "conditional definition"
 
     def init(

@@ -86,7 +86,6 @@ class Function(PostfixOperator):
     """
 
     operator = "&"
-    precedence = 90
     attributes = A_HOLD_ALL | A_PROTECTED
 
     messages = {
