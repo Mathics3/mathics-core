@@ -337,7 +337,7 @@ class CharacterEncoding(Predefined):
 
     Setting its value to 'None' restore the value to \
     '$SystemCharacterEncoding':
-    >> $CharacterEncoding = None; 
+    >> $CharacterEncoding = None;
     >> $SystemCharacterEncoding == $CharacterEncoding
      = True
 
@@ -411,14 +411,14 @@ class HexadecimalCharacter(Builtin):
 
 # This isn't your normal Box class. We'll keep this here rather than
 # in mathics.builtin.box for now.
-class InterpretedBox(PrefixOperator):
+class InterpretationBox(PrefixOperator):
     r"""
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/InterpretedBox.html</url>
+    https://reference.wolfram.com/language/ref/InterpretationBox.html</url>
 
     <dl>
-      <dt>'InterpretedBox[$box$]'
+      <dt>'InterpretationBox[$box$]'
       <dd>is the ad hoc fullform for \! $box$. just for internal use...
     </dl>
 
@@ -431,7 +431,7 @@ class InterpretedBox(PrefixOperator):
     summary_text = "interpret boxes as an expression"
 
     def eval(self, boxes, evaluation: Evaluation):
-        """InterpretedBox[boxes_]"""
+        """InterpretationBox[boxes_]"""
         # TODO: the following is a very raw and dummy way to
         # handle these expressions.
         # In the first place, this should handle different kind
