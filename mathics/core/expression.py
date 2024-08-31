@@ -88,11 +88,11 @@ symbols_arithmetic_operations = symbol_set(
 )
 
 
-def expression_sameQ(self, other):
+def eval_SameQ(self, other):
     """
-    Iterative implementation of SameQ.
+    Iterative implementation of SameQ[].
 
-    Ttree traversal comparison between `self` and `other`.
+    Tree traversal comparison between `self` and `other`.
     Return `True` if both tree structures are equal.
 
     This non-recursive implementation reduces the Python stack needed
@@ -1446,7 +1446,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             return True
 
         # All this stuff maybe should be in mathics.eval.expression
-        return expression_sameQ(self, other)
+        return eval_SameQ(self, other)
 
     def sequences(self):
         cache = self._cache
