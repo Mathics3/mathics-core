@@ -46,7 +46,8 @@ from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInte
 from mathics.core.list import ListExpression
 from mathics.core.number import PrecisionValueError, dps, get_precision, min_prec
 from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
-from mathics.core.rules import BuiltinRule, Pattern, Rule
+from mathics.core.pattern import Pattern
+from mathics.core.rules import BuiltinRule, Rule
 from mathics.core.symbols import (
     BaseElement,
     BooleanType,
@@ -191,16 +192,15 @@ class Builtin:
         # well documented.
         # Notice that this behavior was used extensively in
         # mathics.builtin.inout
-
         if kwargs.get("expression", None) is not False:
             return to_expression(cls.get_name(), *args)
-        else:
-            instance = super().__new__(cls)
-            if not instance.formats:
-                # Reset formats so that not every instance shares the same
-                # empty dict {}
-                instance.formats = {}
-            return instance
+
+        instance = super().__new__(cls)
+        if not instance.formats:
+            # Reset formats so that not every instance shares the same
+            # empty dict {}
+            instance.formats = {}
+        return instance
 
     def __init__(self, *args, **kwargs):
         super().__init__()
@@ -472,12 +472,11 @@ class Builtin:
 class BuiltinElement(Builtin, BaseElement):
     def __new__(cls, *args, **kwargs):
         new_kwargs = kwargs.copy()
+        # In a Builtin element, we never return an Expression object,
+        # so we create it with the option `expression=False`.
         new_kwargs["expression"] = False
         instance = super().__new__(cls, *args, **new_kwargs)
-        if not instance.formats:
-            # Reset formats so that not every instance shares the same empty
-            # dict {}
-            instance.formats = {}
+        # If `expression` is not `False`, we need to initialize the object:
         if kwargs.get("expression", None) is not False:
             try:
                 instance.init(*args, **kwargs)
