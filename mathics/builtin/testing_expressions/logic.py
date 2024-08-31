@@ -90,7 +90,6 @@ class And(BinaryOperator):
 
     attributes = A_FLAT | A_HOLD_ALL | A_ONE_IDENTITY | A_PROTECTED
     operator = "&&"
-    precedence = 215
     summary_text = "logic conjunction"
     #    rules = {
     #        "And[a_]": "a",
@@ -212,7 +211,6 @@ class Equivalent(BinaryOperator):
 
     attributes = A_ORDERLESS | A_PROTECTED
     operator = "\u29E6"
-    precedence = 205
     summary_text = "logic equivalence"
 
     def eval(self, args, evaluation: Evaluation):
@@ -280,7 +278,6 @@ class Implies(BinaryOperator):
     """
 
     operator = "\u21D2"
-    precedence = 200
     grouping = "Right"
     summary_text = "logic implication"
 
@@ -355,7 +352,6 @@ class Or(BinaryOperator):
 
     attributes = A_FLAT | A_HOLD_ALL | A_ONE_IDENTITY | A_PROTECTED
     operator = "||"
-    precedence = 215
     summary_text = "logic (inclusive) disjunction"
 
     #    rules = {
@@ -447,7 +443,6 @@ class Not(PrefixOperator):
     """
 
     operator = "!"
-    precedence = 230
 
     rules = {
         "Not[True]": "False",
@@ -498,7 +493,6 @@ class Xor(BinaryOperator):
 
     attributes = A_FLAT | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
     operator = "\u22BB"
-    precedence = 215
     summary_text = "logic (exclusive) disjunction"
 
     def eval(self, args, evaluation: Evaluation):

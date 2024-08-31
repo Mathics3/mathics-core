@@ -164,7 +164,6 @@ class Factorial(PostfixOperator, MPMathFunction):
 
     mpmath_name = "factorial"
     operator = "!"
-    precedence = 610
     summary_text = "factorial"
 
 
@@ -198,7 +197,6 @@ class Factorial2(PostfixOperator, MPMathFunction):
 
     attributes = A_NUMERIC_FUNCTION | A_PROTECTED
     operator = "!!"
-    precedence = 610
     mpmath_name = "fac2"
     sympy_name = "factorial2"
     messages = {

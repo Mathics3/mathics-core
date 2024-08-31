@@ -2,6 +2,7 @@
 CHANGES
 =======
 
+
 New Builtins
 ++++++++++++
 
@@ -11,6 +12,11 @@ Compatibility
 -------------
 
 * ``GetEnvironment`` expanded to handle ``[]`` and ``{var1, var2,...}`` forms
+
+Internals
+---------
+
+Operator precedence has been gone over and is picked up in tables from the Mathics Scanner project.
 
 
 7.0.0
@@ -63,7 +69,7 @@ Compatibility
 
 
 Internals
----
+---------
 
 * ``eval_abs`` and ``eval_sign`` extracted from ``Abs`` and ``Sign`` and added to ``mathics.eval.arithmetic``.
 * Maximum number of digits allowed in a string set to 7000 and can be adjusted using environment variable

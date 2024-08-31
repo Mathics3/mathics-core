@@ -322,7 +322,6 @@ class MessageName(BinaryOperator):
     messages = {"messg": "Message cannot be set to `1`. It must be set to a string."}
     summary_text = "message identifyier"
     operator = "::"
-    precedence = 750
     rules = {
         "MakeBoxes[MessageName[symbol_Symbol, tag_String], "
         "f:StandardForm|TraditionalForm|OutputForm]": (

@@ -427,7 +427,6 @@ class InterpretationBox(PrefixOperator):
     """
 
     operator = "\\!"
-    precedence = 670
     summary_text = "interpret boxes as an expression"
 
     def eval(self, boxes, evaluation: Evaluation):

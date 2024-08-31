@@ -33,7 +33,6 @@ class MapApply(BinaryOperator):
 
     grouping = "Right"
     operator = "@@@"
-    precedence = 620
 
     rules = {
         "MapApply[f_, expr_]": "Apply[f, expr, {1}]",

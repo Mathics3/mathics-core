@@ -236,7 +236,6 @@ class Postfix(BinaryOperator):
     grouping = "Left"
     operator = "//"
     operator_display = None
-    precedence = 70
     summary_text = "postfix form"
 
 
@@ -327,7 +326,6 @@ class Prefix(BinaryOperator):
     grouping = "Right"
     operator = "@"
     operator_display = None
-    precedence = 640
     summary_text = "prefix form"
 
 

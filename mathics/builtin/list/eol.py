@@ -1479,7 +1479,6 @@ class Span(BinaryOperator):
     """
 
     operator = ";;"
-    precedence = 305
     summary_text = "general specification for spans or blocks of elements"
 
 

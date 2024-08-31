@@ -322,7 +322,6 @@ class StringJoin(BinaryOperator):
 
     attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
     operator = "<>"
-    precedence = 600
     summary_text = "join strings together"
 
     def eval(self, items, evaluation):
