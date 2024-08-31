@@ -9,6 +9,7 @@ SympyFunction, MPMathFunction, etc.
 import importlib
 import os.path as osp
 import re
+from abc import ABC
 from functools import lru_cache, total_ordering
 from itertools import chain
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union, cast
@@ -77,12 +78,12 @@ except ImportError:
 ROOT_DIR = pkg_resources.resource_filename("mathics", "")
 
 # Load the conversion tables from disk
-characters_path = osp.join(ROOT_DIR, "data", "operator-tables.json")
+operator_tables_path = osp.join(ROOT_DIR, "data", "operator-tables.json")
 assert osp.exists(
-    characters_path
-), f"Operator precedence tables are missing; expected to be in {characters_path}"
-with open(characters_path, "r") as f:
-    operator_data = ujson.load(f)
+    operator_tables_path
+), f"Internal error: Operator precedence tables are missing; expected to be in {operator_tables_path}"
+with open(operator_tables_path, "r") as f:
+    OPERATOR_DATA = ujson.load(f)
 
 
 class Builtin:
@@ -248,7 +249,7 @@ class Builtin:
             check_options = None
         else:
             raise ValueError(
-                "illegal option mode %s; check $OptionSyntax." % option_syntax
+                f"illegal option mode {option_syntax}; check $OptionSyntax."
             )
 
         rules = []
@@ -518,7 +519,7 @@ class SympyObject(Builtin):
 
 # This has to come before MPMathFunction
 class SympyFunction(SympyObject):
-    def eval(self, z, evaluation):
+    def eval(self, z, evaluation: Evaluation):
         # Note: we omit a docstring here, so as not to confuse
         # function signature collector ``contribute``.
 
@@ -964,13 +965,28 @@ class IterationFunction(Builtin):
         return to_expression(name, to_expression(name, expr, *sequ), first)
 
 
-class Operator(Builtin):
+class Operator(Builtin, ABC):
+    """
+    Base Class for operators: binary, unary, nullary, prefix postfix, ...
+    """
+
     operator: Optional[str] = None
     precedence: Optional[int] = None
     precedence_parse = None
     needs_verbatim = False
 
     default_formats = True
+
+    def get_precedence(self, name: str) -> int:
+        operator_info = OPERATOR_DATA.get("operator-precedence")
+        assert isinstance(
+            operator_info, dict
+        ), 'Internal error: "operator-precedence" should be found in operators.json'
+        precedence = operator_info.get(name)
+        assert isinstance(
+            precedence, int
+        ), f'Internal error: "precedence" field for "{name}" should be an integer is {precedence}'
+        return precedence
 
     def get_operator(self) -> Optional[str]:
         return self.operator
@@ -995,9 +1011,14 @@ class Predefined(Builtin):
 
 
 class UnaryOperator(Operator):
+    """
+    Class for Unary Operators, (e.g. Not, Factorial)
+    """
+
     def __init__(self, format_function, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        name = self.get_name()
+        name = self.get_name(short=True)
+        self.precedence = self.get_precedence(name)
         if self.needs_verbatim:
             name = f"Verbatim[{name}"
         if self.default_formats:
@@ -1008,57 +1029,70 @@ class UnaryOperator(Operator):
                     form = '%s[{HoldForm[item]},"%s",%d]' % (
                         format_function,
                         operator,
-                        operator_data["operator-precedence"].get(name, self.precedence),
+                        self.precedence,
                     )
                     self.formats[op_pattern] = form
 
 
 class PrefixOperator(UnaryOperator):
+    """
+    Class for Bultin Prefix Unary Operators, e.g. Not ("¬")
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__("Prefix", *args, **kwargs)
 
 
 class PostfixOperator(UnaryOperator):
+    """
+    Class for Bultin Postfix Unary Operators, e.g. Factorial (!)
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__("Postfix", *args, **kwargs)
 
 
 class BinaryOperator(Operator):
+    """
+    Class for Builtin Binary Operators, e.g. Plus (+)
+    """
+
     grouping = "System`None"  # NonAssociative, None, Left, Right
 
     def __init__(self, *args, **kwargs):
         super(BinaryOperator, self).__init__(*args, **kwargs)
-        name = self.get_name()
+        name = self.get_name(short=True)
+        self.precedence = self.get_precedence(name)
+
         # Prevent pattern matching symbols from gaining meaning here using
         # Verbatim
-        name = "Verbatim[%s]" % name
+        name = f"Verbatim[{name}]"
 
         # For compatibility, allow grouping symbols in builtins to be
         # specified without System`.
         self.grouping = ensure_context(self.grouping)
 
         if self.grouping in ("System`None", "System`NonAssociative"):
-            op_pattern = "%s[items__]" % name
+            op_pattern = f"{name}[items__]"
             replace_items = "items"
         else:
-            op_pattern = "%s[x_, y_]" % name
+            op_pattern = f"{name}[x_, y_]"
             replace_items = "x, y"
 
         operator = ascii_operator_to_symbol.get(self.operator, self.__class__.__name__)
+
         if self.default_formats:
             formatted = "MakeBoxes[Infix[{%s}, %s, %d,%s], form]" % (
                 replace_items,
                 operator,
-                operator_data["operator-precedence"].get(name, self.precedence),
+                self.precedence,
                 self.grouping,
             )
             default_rules = {
                 "MakeBoxes[{0}, form:StandardForm|TraditionalForm]".format(
                     op_pattern
                 ): formatted,
-                "MakeBoxes[{0}, form:InputForm|OutputForm]".format(
-                    op_pattern
-                ): formatted,
+                f"MakeBoxes[{op_pattern}, form:InputForm|OutputForm]": formatted,
             }
             default_rules.update(self.rules)
             self.rules = default_rules
