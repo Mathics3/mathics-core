@@ -88,6 +88,77 @@ symbols_arithmetic_operations = symbol_set(
 )
 
 
+def expression_sameQ(self, other):
+    """
+    Iterative implementation of SameQ.
+
+    Run a tree transversal comparison between `self` and `other`.
+    Return `True` if both tree structures are equal.
+
+    This implementation avoids the issue with
+    the recursion limit in Python 3.12
+    """
+    # TODO: Consider a faster implementation.
+    # Would be better to use iterators and yield
+    # instead of this light stack implementation?
+    # Or maybe using some tail recursive implementation?
+    # Other ideas in https://www.geeksforgeeks.org/inorder-tree-traversal-without-recursion/
+
+    len_elements = len(self.elements)
+    if len(other._elements) != len_elements:
+        return False
+
+    # Initializing a "stack"
+    parents = [
+        (
+            self,
+            other,
+        )
+    ]
+    current = (self._head, other._head)
+    pos = [0]
+
+    # The next element in the tree. Maybe should be an iterator?
+    def next_elem():
+        nonlocal len_elements
+        nonlocal parents
+        nonlocal pos
+
+        while pos and pos[-1] == len_elements:
+            pos.pop()
+            parents.pop()
+            assert len(pos) == len(parents)
+            if len(pos) > 0:
+                len_elements = len(parents[-1][0]._elements)
+                assert len(parents[-1][1]._elements) == len_elements
+
+        if len(pos) == 0:
+            return None
+
+        current = tuple(p._elements[pos[-1]] for p in parents[-1])
+        pos[-1] += 1
+        return current
+
+    while current:
+        if current[0] is current[1]:
+            current = next_elem()
+        elif all(isinstance(elem, Atom) for elem in current):
+            if not current[0].sameQ(current[1]):
+                return False
+            current = next_elem()
+        elif all(isinstance(elem, Expression) for elem in current):
+            len_elements = len(current[0]._elements)
+            if len_elements != len(current[1]._elements):
+                return False
+            parents.append(current)
+            current = tuple((c._head for c in current))
+            pos.append(0)
+        else:  # Atom is not the same than an expression
+            return False
+
+    return True
+
+
 class BoxError(Exception):
     def __init__(self, box, form) -> None:
         super().__init__("Box %s cannot be formatted as %s" % (box, form))
@@ -1383,59 +1454,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             return True
 
         # All this stuff maybe should be in mathics.eval.expression
-
-        len_elements = len(self.elements)
-        if len(other._elements) != len_elements:
-            return False
-
-        parents = [
-            (
-                self,
-                other,
-            )
-        ]
-        current = (self._head, other._head)
-        pos = [0]
-
-        # The next element in the tree. Maybe should be an iterator?
-        def next_elem():
-            nonlocal len_elements
-            nonlocal parents
-            nonlocal pos
-
-            while pos and pos[-1] == len_elements:
-                pos.pop()
-                parents.pop()
-                assert len(pos) == len(parents)
-                if len(pos) > 0:
-                    len_elements = len(parents[-1][0]._elements)
-                    assert len(parents[-1][1]._elements) == len_elements
-
-            if len(pos) == 0:
-                return None
-
-            current = tuple(p._elements[pos[-1]] for p in parents[-1])
-            pos[-1] += 1
-            return current
-
-        while current:
-            if current[0] is current[1]:
-                current = next_elem()
-            elif all(isinstance(elem, Atom) for elem in current):
-                if not current[0].sameQ(current[1]):
-                    return False
-                current = next_elem()
-            elif all(isinstance(elem, Expression) for elem in current):
-                len_elements = len(current[0]._elements)
-                if len_elements != len(current[1]._elements):
-                    return False
-                parents.append(current)
-                current = tuple((c._head for c in current))
-                pos.append(0)
-            else:  # Atom is not the same than an expression
-                return False
-
-        return True
+        return expression_sameQ(self, other)
 
     def sequences(self):
         cache = self._cache
