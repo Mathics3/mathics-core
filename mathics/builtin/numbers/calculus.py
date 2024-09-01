@@ -15,6 +15,7 @@ from typing import Iterable, Optional
 import numpy as np
 import sympy
 
+import mathics.eval.tracing as tracing
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
     Atom,
@@ -529,7 +530,7 @@ class Derivative(PostfixOperator, SympyFunction):
             sym_d_args.append(count)
 
         try:
-            return sympy.Derivative(sym_func, *sym_d_args)
+            return tracing.run_sympy(sympy.Derivative, sym_func, *sym_d_args)
         except ValueError:
             return
 
@@ -999,6 +1000,7 @@ class Integrate(SympyFunction):
     >> N[Integrate[Sin[Exp[-x^2 /2 ]],{x,1,2}]]
      = 0.330804
     """
+
     # Reinstate as a unit test or describe why it should be an example and fix.
     # >> Integrate[x/Exp[x^2/t], {x, 0, Infinity}]
     # = ConditionalExpression[t / 2, Abs[Arg[t]] < Pi / 2]
@@ -1088,7 +1090,7 @@ class Integrate(SympyFunction):
             else:
                 vars.append((x, a, b))
         try:
-            sympy_result = sympy.integrate(f_sympy, *vars)
+            sympy_result = tracing.run_sympy(sympy.integrate, f_sympy, *vars)
             pass
         except sympy.PolynomialError:
             return
@@ -1097,7 +1099,7 @@ class Integrate(SympyFunction):
             return
         except NotImplementedError:
             # e.g. NotImplementedError: Result depends on the sign of
-            # -sign(_Mathics_User_j)*sign(_Mathics_User_w)
+            # -sign(_u`j)*sign(_u`w)
             return
         if prec is not None and isinstance(sympy_result, sympy.Integral):
             # TODO MaxExtraPrecision -> maxn
@@ -1245,7 +1247,7 @@ class Limit(Builtin):
             return
 
         try:
-            result = sympy.limit(expr, x, x0, dir_sympy)
+            result = tracing.run_sympy(sympy.limit, expr, x, x0, dir_sympy)
         except sympy.PoleError:
             pass
         except RuntimeError:
@@ -1630,7 +1632,7 @@ class Root(SympyFunction):
                 evaluation.message("Root", "iidx", i)
                 return
 
-            r = sympy.CRootOf(poly.to_sympy(), idx)
+            r = tracing.run_sympy(sympy.CRootOf, poly.to_sympy(), idx)
         except sympy.PolynomialError:
             evaluation.message("Root", "nuni", f)
             return
@@ -1661,7 +1663,7 @@ class Root(SympyFunction):
             if i is None:
                 return None
 
-            return sympy.CRootOf(poly, i)
+            return tracing.run_sympy(sympy.CRootOf, poly, i)
         except Exception:
             return None
 
@@ -2243,8 +2245,8 @@ class Solve(Builtin):
                 if left is None or right is None:
                     return
                 eq = left - right
-                eq = sympy.together(eq)
-                eq = sympy.cancel(eq)
+                eq = tracing.run_sympy(sympy.together, eq)
+                eq = tracing.run_sympy(sympy.cancel, eq)
                 sympy_eqs.append(eq)
                 _, denom = eq.as_numer_denom()
                 sympy_denoms.append(denom)
@@ -2302,7 +2304,7 @@ class Solve(Builtin):
             if isinstance(sympy_eqs, bool):
                 result = sympy_eqs
             else:
-                result = sympy.solve(sympy_eqs, vars_sympy)
+                result = tracing.run_sympy(sympy.solve, sympy_eqs, vars_sympy)
             if not isinstance(result, list):
                 result = [result]
             if isinstance(result, list) and len(result) == 1 and result[0] is True:

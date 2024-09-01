@@ -23,7 +23,7 @@ from mathics.core.expression import Expression
 from mathics.core.number import FP_MANTISA_BINARY_DIGITS, dps, min_prec
 from mathics.core.symbols import Symbol, SymbolSequence
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolGamma
-from mathics.eval.arithmetic import call_mpmath
+from mathics.eval.arithmetic import run_mpmath
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 
@@ -110,7 +110,7 @@ class Beta(MPMathMultiFunction):
             if None in float_args:
                 return
 
-            result = call_mpmath(
+            result = run_mpmath(
                 mpmath_function, tuple(float_args), FP_MANTISA_BINARY_DIGITS
             )
         else:
@@ -121,7 +121,7 @@ class Beta(MPMathMultiFunction):
                 mpmath_args = [x.to_mpmath() for x in args]
                 if None in mpmath_args:
                     return
-                result = call_mpmath(mpmath_function, tuple(mpmath_args), prec)
+                result = run_mpmath(mpmath_function, tuple(mpmath_args), prec)
         return result
 
 

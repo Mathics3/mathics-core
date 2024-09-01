@@ -10,7 +10,7 @@ import importlib
 import os.path as osp
 import re
 from abc import ABC
-from functools import lru_cache, total_ordering
+from functools import total_ordering
 from itertools import chain
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union, cast
 
@@ -18,6 +18,14 @@ import mpmath
 import pkg_resources
 import sympy
 
+# Note: it is important *not* to use:
+#   from mathics.eval.tracing import run_sympy
+# but, instead, import the module, as below, and then
+# access ``run_sympy`` using ``tracing.run_sympy.``
+#
+# This allows us to change where ``tracing.run_sympy`` points to at
+# run time.
+import mathics.eval.tracing as tracing
 from mathics.core.atoms import (
     Integer,
     Integer0,
@@ -530,7 +538,7 @@ class SympyFunction(SympyObject):
         sympy_args = to_numeric_sympy_args(z, evaluation)
         sympy_fn = getattr(sympy, self.sympy_name)
         try:
-            return from_sympy(run_sympy(sympy_fn, *sympy_args))
+            return from_sympy(tracing.run_sympy(sympy_fn, *sympy_args))
         except Exception:
             return
 
@@ -564,7 +572,7 @@ class SympyFunction(SympyObject):
                     return None
                 sympy_function = self.get_sympy_function(elements)
                 if sympy_function is not None:
-                    return sympy_function(*sympy_args)
+                    return tracing.run_sympy(sympy_function, *sympy_args)
         except TypeError:
             pass
 
@@ -590,7 +598,6 @@ class MPMathFunction(SympyFunction):
     mpmath_name = None
     nargs = {1}
 
-    @lru_cache(maxsize=1024)
     def get_mpmath_function(self, args):
         if self.mpmath_name is None or len(args) not in self.nargs:
             return None
@@ -1109,15 +1116,6 @@ class Test(Builtin):
     def test(self, expr) -> bool:
         """Subclasses of test must implement a boolean test function"""
         raise NotImplementedError
-
-
-@lru_cache()
-def run_sympy(sympy_fn: Callable, *sympy_args) -> Any:
-    """
-    Wrapper to run a SymPy function with a cache.
-    TODO: hook into SymPyTracing -> True
-    """
-    return sympy_fn(*sympy_args)
 
 
 class PatternError(Exception):
