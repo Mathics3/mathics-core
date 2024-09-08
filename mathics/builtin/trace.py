@@ -33,7 +33,7 @@ from mathics.core.rules import BuiltinRule
 from mathics.core.symbols import SymbolFalse, SymbolNull, SymbolTrue, strip_context
 
 
-def traced_do_replace(self, expression, vars, options: dict, evaluation: Evaluation):
+def traced_apply_rule(self, expression, vars, options: dict, evaluation: Evaluation):
     if options and self.check_options:
         if not self.check_options(options, evaluation):
             return None
@@ -185,7 +185,7 @@ class TraceBuiltins(_TraceBase):
     """
 
     definitions_copy: Definitions
-    do_replace_copy: Callable
+    apply_rule_copy: Callable
 
     function_stats: "defaultdict" = defaultdict(
         lambda: {"count": 0, "elapsed_milliseconds": 0.0}
@@ -238,19 +238,19 @@ class TraceBuiltins(_TraceBase):
     @staticmethod
     def enable_trace(evaluation) -> None:
         if TraceBuiltins.traced_definitions is None:
-            TraceBuiltins.do_replace_copy = BuiltinRule.do_replace
+            TraceBuiltins.apply_rule_copy = BuiltinRule.apply_rule
             TraceBuiltins.definitions_copy = evaluation.definitions
 
-            # Replaces do_replace by the custom one
-            BuiltinRule.do_replace = traced_do_replace
-            # Create new definitions uses the new do_replace
+            # Replaces apply_rule by the custom one
+            BuiltinRule.apply_rule = traced_apply_rule
+            # Create new definitions uses the new apply_rule
             evaluation.definitions = Definitions(add_builtin=True)
         else:
             evaluation.definitions = TraceBuiltins.definitions_copy
 
     @staticmethod
     def disable_trace(evaluation) -> None:
-        BuiltinRule.do_replace = TraceBuiltins.do_replace_copy
+        BuiltinRule.apply_rule = TraceBuiltins.apply_rule_copy
         evaluation.definitions = TraceBuiltins.definitions_copy
 
     def eval(self, expr, evaluation, options={}):
