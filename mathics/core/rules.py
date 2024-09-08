@@ -32,7 +32,7 @@ class BaseRule(KeyComparable):
     https://en.wikipedia.org/wiki/Rewriting
 
     This class is not complete in of itself and subclasses should
-    adapt or fill in what is needed. In particular ``do_replace()``
+    adapt or fill in what is needed. In particular ``apply_rule()``
     needs to be implemented.
 
     Important subclasses: BuiltinRule and Rule.
@@ -75,7 +75,7 @@ class BaseRule(KeyComparable):
                 if name.startswith("_option_"):
                     options[name[len("_option_") :]] = value
                     del vars[name]
-            new_expression = self.do_replace(expression, vars, options, evaluation)
+            new_expression = self.apply_rule(expression, vars, options, evaluation)
             if new_expression is None:
                 new_expression = expression
             if rest[0] or rest[1]:
@@ -120,7 +120,7 @@ class BaseRule(KeyComparable):
         else:
             return None
 
-    def do_replace(self):
+    def apply_rule(self):
         raise NotImplementedError
 
     def get_sort_key(self) -> tuple:
@@ -160,7 +160,7 @@ class Rule(BaseRule):
         super(Rule, self).__init__(pattern, system=system, evaluation=evaluation)
         self.replace = replace
 
-    def do_replace(
+    def apply_rule(
         self, expression: BaseElement, vars: dict, options: dict, evaluation: Evaluation
     ):
         new = self.replace.replace_vars(vars)
@@ -249,9 +249,9 @@ class BuiltinRule(BaseRule):
         self.check_options = check_options
         self.pass_expression = "expression" in function_arguments(function)
 
-    # If you update this, you must also update traced_do_replace
+    # If you update this, you must also update traced_apply_rule
     # (that's in the same file TraceBuiltins is)
-    def do_replace(
+    def apply_rule(
         self, expression: BaseElement, vars: dict, options: dict, evaluation: Evaluation
     ):
         if options and self.check_options:
