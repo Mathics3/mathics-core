@@ -1005,10 +1005,10 @@ class Pattern_(PatternObject):
     def get_match_count(self, vars={}):
         return self.pattern.get_match_count(vars)
 
-    def match(self, yield_func, expression, vars, evaluation, **kwargs):
-        existing = vars.get(self.varname, None)
+    def match(self, yield_func, expression, vars_dict, evaluation, **kwargs):
+        existing = vars_dict.get(self.varname, None)
         if existing is None:
-            new_vars = vars.copy()
+            new_vars = vars_dict.copy()
             new_vars[self.varname] = expression
             # for vars_2, rest in self.pattern.match(
             #    expression, new_vars, evaluation):
@@ -1021,22 +1021,24 @@ class Pattern_(PatternObject):
                 self.pattern.match(yield_func, expression, new_vars, evaluation)
         else:
             if existing.sameQ(expression):
-                yield_func(vars, None)
+                yield_func(vars_dict, None)
 
     def get_match_candidates(
-        self, elements: tuple, expression, attributes, evaluation, vars={}
+        self, elements: tuple, expression, attributes, evaluation, vars_dict=None
     ):
-        existing = vars.get(self.varname, None)
+        if vars_dict is None:
+            vars_dict = {}
+        existing = vars_dict.get(self.varname, None)
         if existing is None:
             return self.pattern.get_match_candidates(
-                elements, expression, attributes, evaluation, vars
+                elements, expression, attributes, evaluation, vars_dict
             )
         else:
             # Treat existing variable as verbatim
             verbatim_expr = Expression(SymbolVerbatim, existing)
             verbatim = Verbatim(verbatim_expr)
             return verbatim.get_match_candidates(
-                elements, expression, attributes, evaluation, vars
+                elements, expression, attributes, evaluation, vars_dict
             )
 
 
