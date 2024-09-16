@@ -55,7 +55,7 @@ from mathics.core.list import ListExpression
 from mathics.core.number import PrecisionValueError, dps, get_precision, min_prec
 from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
 from mathics.core.pattern import Pattern
-from mathics.core.rules import BuiltinRule, Rule
+from mathics.core.rules import FunctionApplyRule, Rule
 from mathics.core.symbols import (
     BaseElement,
     BooleanType,
@@ -121,7 +121,7 @@ class Builtin:
              return Expression(Symbol("G"), x*2)
     ```
 
-    adds a ``BuiltinRule`` to the symbol's definition object that implements
+    adds a ``FunctionApplyRule`` to the symbol's definition object that implements
     ``F[x_]->G[x*2]``.
 
     As shown in the example above, leading argument names of the
@@ -269,11 +269,11 @@ class Builtin:
             prefix="eval", is_pymodule=is_pymodule
         ):
             rules.append(
-                BuiltinRule(name, pattern, function, check_options, system=True)
+                FunctionApplyRule(name, pattern, function, check_options, system=True)
             )
         for pattern, function in self.get_functions(is_pymodule=is_pymodule):
             rules.append(
-                BuiltinRule(name, pattern, function, check_options, system=True)
+                FunctionApplyRule(name, pattern, function, check_options, system=True)
             )
         for pattern_str, replace_str in self.rules.items():
             pattern_str = pattern_str % {"name": name}
@@ -325,7 +325,7 @@ class Builtin:
                 if form not in formatvalues:
                     formatvalues[form] = []
                 formatvalues[form].append(
-                    BuiltinRule(name, pattern, function, None, system=True)
+                    FunctionApplyRule(name, pattern, function, None, system=True)
                 )
         for pattern, replace in self.formats.items():
             forms, pattern = extract_forms(pattern)
