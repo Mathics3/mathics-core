@@ -625,7 +625,7 @@ class ExpressionPattern(Pattern):
 
         evaluation.check_stopped()
 
-        match_count = element.get_match_count(vars)
+        match_count = element.get_match_count(vars_dict)
         element_candidates = element.get_match_candidates(
             tuple(rest_expression[1]),  # element.candidates,
             expression,
