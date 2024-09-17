@@ -29,7 +29,7 @@ from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.rules import BuiltinRule
+from mathics.core.rules import FunctionApplyRule
 from mathics.core.symbols import SymbolFalse, SymbolNull, SymbolTrue, strip_context
 
 
@@ -240,11 +240,11 @@ class TraceBuiltins(_TraceBase):
     @staticmethod
     def enable_trace(evaluation) -> None:
         if TraceBuiltins.traced_definitions is None:
-            TraceBuiltins.apply_function_copy = BuiltinRule.apply_function
+            TraceBuiltins.apply_function_copy = FunctionApplyRule.apply_function
             TraceBuiltins.definitions_copy = evaluation.definitions
 
             # Replaces apply_function by the custom one
-            BuiltinRule.apply_function = traced_apply_function
+            FunctionApplyRule.apply_function = traced_apply_function
             # Create new definitions uses the new apply_function
             evaluation.definitions = Definitions(add_builtin=True)
         else:
@@ -252,7 +252,7 @@ class TraceBuiltins(_TraceBase):
 
     @staticmethod
     def disable_trace(evaluation) -> None:
-        BuiltinRule.apply_function = TraceBuiltins.apply_function_copy
+        FunctionApplyRule.apply_function = TraceBuiltins.apply_function_copy
         evaluation.definitions = TraceBuiltins.definitions_copy
 
     def eval(self, expr, evaluation, options={}):
