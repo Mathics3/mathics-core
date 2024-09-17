@@ -11,6 +11,7 @@ import math
 from collections import namedtuple
 from contextlib import contextmanager
 from itertools import chain
+from typing import Iterable
 
 import mpmath
 
@@ -184,7 +185,7 @@ class Exp(MPMathFunction):
     }
     summary_text = "exponential function"
 
-    def from_sympy(self, sympy_name, elements):
+    def from_sympy(self, elements: Iterable) -> Expression:
         return Expression(SymbolPower, SymbolE, elements[0])
 
 

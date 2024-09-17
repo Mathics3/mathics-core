@@ -34,7 +34,7 @@ class _SetOperator:
     """
 
     # FIXME:
-    # Assigment is determined by the LHS.
+    # Assignment is determined by the LHS.
     # Are there a larger patterns or natural groupings that we are missing?
     # For example, it might be that it
     # we can key off of some attributes or other properties of the
@@ -65,6 +65,7 @@ class LoadModule(Builtin):
       <dt>'LoadModule[$module$]'
       <dd>'Load Mathics definitions from the python module $module$
     </dl>
+
     >> LoadModule["nomodule"]
      : Python import errors with: No module named 'nomodule'.
      = $Failed
@@ -168,7 +169,6 @@ class Set(BinaryOperator, _SetOperator):
     }
 
     operator = "="
-    precedence = 40
 
     summary_text = "assign a value"
 
@@ -371,7 +371,6 @@ class UpSet(BinaryOperator, _SetOperator):
     attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
     grouping = "Right"
     operator = "^="
-    precedence = 40
 
     summary_text = (
         "set value and associate the assignment with symbols that occur at level one"

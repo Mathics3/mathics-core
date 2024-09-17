@@ -377,7 +377,6 @@ class Get(PrefixOperator):
     options = {
         "Trace": "False",
     }
-    precedence = 720
     summary_text = "read in a file and evaluate commands in it"
 
     def eval(self, path: String, evaluation: Evaluation, options: dict):
@@ -567,7 +566,6 @@ class Put(BinaryOperator):
     """
 
     operator = ">>"
-    precedence = 30
     summary_text = "write an expression to a file"
 
     def eval(self, exprs, filename, evaluation):
@@ -663,7 +661,6 @@ class PutAppend(BinaryOperator):
     """
 
     operator = ">>>"
-    precedence = 30
     summary_text = "append an expression to a file"
 
     def eval(self, exprs, filename, evaluation):
@@ -721,6 +718,7 @@ class Read(Builtin):
       <dd>reads the input stream for an Expression and puts it inside 'Hold'.
 
     </dl>
+
     $type$ is one of:
     <ul>
       <li>Byte

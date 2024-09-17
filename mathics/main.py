@@ -19,7 +19,7 @@ import subprocess
 import sys
 
 from mathics import __version__, license_string, settings, version_string
-from mathics.builtin.trace import TraceBuiltins, traced_do_replace
+from mathics.builtin.trace import TraceBuiltins, traced_apply_function
 from mathics.core.atoms import String
 from mathics.core.definitions import Definitions, Symbol, autoload_files
 from mathics.core.evaluation import Evaluation, Output
@@ -385,7 +385,7 @@ Please contribute to Mathics!""",
         extension_modules = default_pymathics_modules
 
     if args.trace_builtins:
-        BuiltinRule.do_replace = traced_do_replace
+        BuiltinRule.apply_rule = traced_apply_function
 
         def dump_tracing_stats():
             TraceBuiltins.dump_tracing_stats(sort_by="count", evaluation=None)

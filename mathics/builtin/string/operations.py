@@ -322,7 +322,6 @@ class StringJoin(BinaryOperator):
 
     attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
     operator = "<>"
-    precedence = 600
     summary_text = "join strings together"
 
     def eval(self, items, evaluation):
@@ -453,7 +452,7 @@ class StringPosition(Builtin):
             evaluation.message("StringPosition", "overall")
             overlap = True
         else:
-            overlap = False  # unknown options are teated as False
+            overlap = False  # unknown options are treated as False
 
         # convert patterns
         if patt.has_form("List", None):

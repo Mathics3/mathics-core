@@ -231,9 +231,11 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                 elements = sub_expr.elements
                 if target_pat:
                     elements = [
-                        element
-                        if element.is_free(target_pat, evaluation)
-                        else _expand(element)
+                        (
+                            element
+                            if element.is_free(target_pat, evaluation)
+                            else _expand(element)
+                        )
                         for element in elements
                     ]
                 else:
@@ -248,9 +250,11 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                     elements = sub_expr.elements
                     if target_pat:
                         elements = [
-                            element
-                            if element.is_free(target_pat, evaluation)
-                            else _expand(element)
+                            (
+                                element
+                                if element.is_free(target_pat, evaluation)
+                                else _expand(element)
+                            )
                             for element in elements
                         ]
                     else:
@@ -335,9 +339,11 @@ def get_exponents_sorted(expr, var) -> list:
             # find exponent of terms multiplied with functions: sin, cos, log, exp, ...
             # e.g: x^3 * Sin[x^2] should give 3
             muls = [
-                term.as_coeff_mul(x)[1]
-                if term.as_coeff_mul(x)[1]
-                else (sympy.Integer(0),)
+                (
+                    term.as_coeff_mul(x)[1]
+                    if term.as_coeff_mul(x)[1]
+                    else (sympy.Integer(0),)
+                )
                 for term in coeff.as_ordered_terms()
             ]
             expos = [term.as_coeff_exponent(x)[1] for mul in muls for term in mul]
@@ -470,7 +476,7 @@ class Coefficient(Builtin):
       <dd>return the coefficient of $form$^$n$ in $expr$.
     </dl>
 
-    ## Form 1: Coefficent[expr, form]
+    ## Form 1: Coefficient[expr, form]
     >> Coefficient[(x + y)^4, (x^2) * (y^2)]
      = 6
     >> Coefficient[a x^2 + b y^3 + c x + d y + 5, x]
@@ -484,7 +490,7 @@ class Coefficient(Builtin):
     >> Coefficient[x*Cos[x + 3] + 6*y, x]
      = Cos[3 + x]
 
-    ## Form 2: Coefficent[expr, form, n]
+    ## Form 2: Coefficient[expr, form, n]
     >> Coefficient[(x + 1)^3, x, 2]
      = 3
     >> Coefficient[a x^2 + b y^3 + c x + d y + 5, y, 3]
@@ -596,7 +602,7 @@ class _CoefficientHandler(Builtin):
 
         def split_coeff_pow(term) -> Tuple[Optional[list], Optional[list]]:
             """
-            This function factorizes term in a coefficent free
+            This function factorizes term in a coefficient free
             of powers of the target variables, and a factor with
             that powers.
             """
@@ -1671,6 +1677,7 @@ class FullSimplify(Simplify):
       <dt>'FullSimplify[$expr$, $assump$]'
       <dd>simplifies $expr$ assuming $assump$ instead of $Assumptions$.
     </dl>
+
     TODO: implement the extension. By now, this does the same than Simplify...
 
     >> FullSimplify[2*Sin[x]^2 + 2*Cos[x]^2]

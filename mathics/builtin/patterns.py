@@ -97,7 +97,6 @@ class Rule_(BinaryOperator):
 
     name = "Rule"
     operator = "->"
-    precedence = 120
     attributes = A_SEQUENCE_HOLD | A_PROTECTED
     grouping = "Right"
     needs_verbatim = True
@@ -122,7 +121,6 @@ class RuleDelayed(BinaryOperator):
     attributes = A_SEQUENCE_HOLD | A_HOLD_REST | A_PROTECTED
     needs_verbatim = True
     operator = ":>"
-    precedence = 120
     summary_text = "a rule that keeps the replacement unevaluated"
 
 
@@ -335,7 +333,6 @@ class ReplaceAll(BinaryOperator):
     grouping = "Left"
     needs_verbatim = True
     operator = "/."
-    precedence = 110
 
     messages = {
         "reps": "`1` is not a valid replacement rule.",
@@ -391,7 +388,6 @@ class ReplaceRepeated(BinaryOperator):
     grouping = "Left"
     needs_verbatim = True
     operator = "//."
-    precedence = 110
 
     messages = {
         "reps": "`1` is not a valid replacement rule.",
@@ -544,7 +540,6 @@ class PatternTest(BinaryOperator, PatternObject):
 
     arg_counts = [2]
     operator = "?"
-    precedence = 680
     summary_text = "match to a pattern conditioned to a test result"
 
     def init(
@@ -763,7 +758,6 @@ class Alternatives(BinaryOperator, PatternObject):
     arg_counts = None
     needs_verbatim = True
     operator = "|"
-    precedence = 160
     summary_text = "match to any of several patterns"
 
     def init(
@@ -1097,7 +1091,6 @@ class Optional(BinaryOperator, PatternObject):
         "MakeBoxes[Verbatim[Optional][Verbatim[_]], f:StandardForm|TraditionalForm|InputForm|OutputForm]": '"_."',
     }
     operator = ":"
-    precedence = 140
     summary_text = "an optional argument with a default value"
 
     def init(
@@ -1175,6 +1168,22 @@ def get_default_value(
 
 class _Blank(PatternObject):
     arg_counts = [0, 1]
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if kwargs.get("expression", None) is False:
+            return super().__new__(cls, *args, **kwargs)
+
+        num_elem = len(args[0].elements)
+        assert num_elem < 2, f"{cls} should have at most an element."
+
+        if num_elem != 0:
+            return super().__new__(cls, *args, **kwargs)
+        # no arguments. Use the singleton
+        if cls._instance is None:
+            cls._instance = super().__new__(cls, *args, **kwargs)
+        return cls._instance
 
     def init(
         self, expr: Expression, evaluation: OptionalType[Evaluation] = None
@@ -1381,7 +1390,6 @@ class Repeated(PostfixOperator, PatternObject):
     }
 
     operator = ".."
-    precedence = 170
     summary_text = "match to one or more occurrences of a pattern"
 
     def init(
@@ -1451,7 +1459,6 @@ class RepeatedNull(Repeated):
     """
 
     operator = "..."
-    precedence = 170
     summary_text = "match to zero or more occurrences of a pattern"
 
     def init(
@@ -1490,6 +1497,7 @@ class Longest(Builtin):
       <dd>is a pattern object that matches the longest sequence consistent \
       with the pattern $p$.
     </dl>
+
     >> StringCases["aabaaab", Longest["a" ~~ __ ~~ "b"]]
      = {aabaaab}
 
@@ -1532,7 +1540,6 @@ class Condition(BinaryOperator, PatternObject):
     # Don't know why this has attribute HoldAll in Mathematica
     attributes = A_HOLD_REST | A_PROTECTED
     operator = "/;"
-    precedence = 130
     summary_text = "conditional definition"
 
     def init(
@@ -1716,6 +1723,7 @@ class DispatchAtom(AtomBuiltin):
           In the future, it should return an optimized DispatchRules atom, \
           containing an optimized set of rules.
     </dl>
+
     >> rules = {{a_,b_}->a^b, {1,2}->3., F[x_]->x^2};
     >> F[2] /. rules
      = 4
@@ -1743,7 +1751,7 @@ class DispatchAtom(AtomBuiltin):
         # check that all the elements in x are rules, eliminate redundancies
         # in the list, and sort the list in a way that increases efficiency.
         # A second step would be to implement an ``Atom`` class containing the
-        # compiled patters, and modify Replace and ReplaceAll to handle this
+        # compiled patterns, and modify Replace and ReplaceAll to handle this
         # kind of objects.
         #
         if isinstance(rules, Dispatch):

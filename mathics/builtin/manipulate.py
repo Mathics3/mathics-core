@@ -262,7 +262,7 @@ Interactive Manipulation
 #       <dd>starts with initial value of $u_init$.
 
 #       <dt>'Manipulate[$expr1$, {{$u$, $u_init$, $u_lbl$}, ...}]'
-#       <dd>labels the $u$ controll by $u_lbl$.
+#       <dd>labels the $u$ control by $u_lbl$.
 
 #       <dt>'Manipulate[$expr1$, {$u$, {$u_1$, $u_2$, ...}}]'
 #       <dd>sets $u$ to take discrete values $u_1$, $u_2$, ... .

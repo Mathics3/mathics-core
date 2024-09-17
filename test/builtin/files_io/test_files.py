@@ -102,6 +102,8 @@ def test_close():
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
+        (None, None, None, None),  # Reset the session and set the working
+        # directory as the temporary directory
         ('Close["abc"]', ("abc is not open.",), "Close[abc]", ""),
         (
             "exp = Sin[1]; FilePrint[exp]",
@@ -167,6 +169,12 @@ def test_close():
             "Close[appendFile]",
             None,
             "Close[{OutputStream, MathicsNonExampleFile}]",
+            "",
+        ),
+        (
+            "Delete[MathicsNonExampleFile]",
+            None,
+            "Delete[MathicsNonExampleFile]",
             "",
         ),
         ## writing to dir

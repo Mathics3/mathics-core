@@ -5,7 +5,7 @@
 Here we have the base class and related function for element inside an Expression.
 """
 
-
+from abc import ABC
 from typing import Any, Optional, Tuple
 
 from mathics.core.attributes import A_NO_ATTRIBUTES
@@ -193,7 +193,7 @@ class KeyComparable:
         ) or self.get_sort_key() != other.get_sort_key()
 
 
-class BaseElement(KeyComparable):
+class BaseElement(KeyComparable, ABC):
     """
     This is the base class from which all other Expressions are
     derived from.  If you think of an Expression as tree-like, then a
@@ -290,7 +290,7 @@ class BaseElement(KeyComparable):
     def get_int_value(self):
         return None
 
-    def get_lookup_name(self):
+    def get_lookup_name(self) -> str:
         """
         Returns symbol name of leftmost head. This method is used
         to determine which definition must be asked for rules
@@ -398,7 +398,7 @@ class BaseElement(KeyComparable):
     def is_inexact(self) -> bool:
         return self.get_precision() is not None
 
-    def sameQ(self, rhs) -> bool:
+    def sameQ(self, rhs: "BaseElement") -> bool:
         """Mathics SameQ"""
         return id(self) == id(rhs)
 

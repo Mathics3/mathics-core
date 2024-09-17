@@ -7,12 +7,15 @@ Many of these do do depend on the evaluation context. Conversions to Sympy are
 used just as a last resource.
 """
 
-from functools import lru_cache
 from typing import Callable, List, Optional, Tuple
 
 import mpmath
 import sympy
 
+# Note: it is important *not* use: from mathics.eval.tracing import run_sympy
+# but instead import the module and access below as tracing.run_sympy.
+# This allows us change where tracing.run_sympy points at runtime.
+import mathics.eval.tracing as tracing
 from mathics.core.atoms import (
     NUMERICAL_CONSTANTS,
     Complex,
@@ -50,8 +53,7 @@ RealOne = Real(1.0)
 
 
 # This cache might not be used that much.
-@lru_cache()
-def call_mpmath(
+def run_mpmath(
     mpmath_function: Callable, mpmath_args: tuple, precision: int
 ) -> Optional[BaseElement]:
     """
@@ -63,7 +65,7 @@ def call_mpmath(
     """
     with mpmath.workprec(precision):
         try:
-            result_mp = mpmath_function(*mpmath_args)
+            result_mp = tracing.run_mpmath(mpmath_function, *mpmath_args)
             if precision != FP_MANTISA_BINARY_DIGITS:
                 return from_mpmath(result_mp, precision)
             return from_mpmath(result_mp)
@@ -337,12 +339,12 @@ def eval_mpmath_function(
         if None in float_args:
             return
 
-        return call_mpmath(mpmath_function, tuple(float_args), FP_MANTISA_BINARY_DIGITS)
+        return run_mpmath(mpmath_function, tuple(float_args), FP_MANTISA_BINARY_DIGITS)
     else:
         mpmath_args = [x.to_mpmath(prec) for x in args]
         if None in mpmath_args:
             return
-        return call_mpmath(mpmath_function, tuple(mpmath_args), prec)
+        return run_mpmath(mpmath_function, tuple(mpmath_args), prec)
 
 
 def eval_Plus(*items: BaseElement) -> BaseElement:

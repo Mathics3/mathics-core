@@ -70,7 +70,6 @@ class Apply(BinaryOperator):
 
     summary_text = "apply a function to a list, at specified levels"
     operator = "@@"
-    precedence = 620
     grouping = "Right"
 
     options = {
@@ -130,7 +129,6 @@ class Map(BinaryOperator):
 
     summary_text = "map a function over a list, at specified levels"
     operator = "/@"
-    precedence = 620
     grouping = "Right"
 
     options = {

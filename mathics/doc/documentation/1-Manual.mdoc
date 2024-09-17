@@ -1,15 +1,10 @@
 
 <chapter title="Introduction">
 
-\Mathics---to be pronounced like "Mathematics" without the "emat"---is
-a <url>:computer algebra
-system:https://en.wikipedia.org/wiki/Computer_algebra_system</url>. It
-is a free, open-source alternative to \Mathematica or the \Wolfram
-Language. However, \Mathics builds around and on top of the Python
-ecosystem of libraries and tools. So in a sense, you can think of it
-as a WMA front-end to the Python ecosystem of tools.
+\Mathics is a <url>:computer algebra
+system:https://en.wikipedia.org/wiki/Computer_algebra_system</url>. It is a free, open-source alternative to \Mathematica or the \Wolfram Language. However, \Mathics builds around and on top of the Python ecosystem of libraries and tools. So in a sense, you can think of it as a WMA front-end to the Python ecosystem of tools.
 
-\Mathics is free both as in "free beer" but also, more importantly, as in "freedom". \Mathics can be run locally. But to facilitate installation of the vast amount of software need to run this, there is a <url>:docker image available on dockerhub: https://hub.docker.com/r/mathicsorg/mathics</url>.
+\Mathics is free both as in "free beer" but also, more importantly, as in "freedom". \Mathics can be run locally. But to facilitate installation of the vast amount of software needed to run this, there is a <url>:docker image available on dockerhub: https://hub.docker.com/r/mathicsorg/mathics</url>.
 
 The programming language and built-in functions of \Mathics tries to match the \Wolfram Language, which is continually evolving changing.
 
@@ -17,9 +12,9 @@ The programming language and built-in functions of \Mathics tries to match the \
 
 See the <url>:installation instructions: https://mathics-development-guide.readthedocs.io/en/latest/installing/index.html</url> for the most recent instructions for installing from PyPI, or the source.
 
-For implementation details, plrease refer to the <url>:Developers Guide:https://mathics-development-guide.readthedocs.io/en/latest/</url>.
+For implementation details, please refer to the <url>:Developers Guide:https://mathics-development-guide.readthedocs.io/en/latest/</url>.
 
-<section title="Why a CAS based on Wolfram Language?">
+<section title="Why try to recreate Wolfram Language?">
 \Mathematica is great, but it a couple of disadvantages.
 
 <ul>
@@ -56,8 +51,8 @@ Primitive types include rationals, complex numbers, and arbitrary-precision numb
 Outside of the "core" \Mathics kernel (which has a only primitive command-line interface), in separate github projects, as add-ons, there is:
 
 <ul>
+  <li>a <url>:command-line interface:https://pypi.org/project/mathicsscript/</url> using either <url>:prompt-toolkit:https://python-prompt-toolkit.readthedocs.io/en/master/</url>, or GNU Readline
   <li>a <url>:Django-based web server:https://pypi.org/project/Mathics-Django/</url>
-  <li>a command-line interface using either prompt-toolkit, or GNU Readline
   <li>a <url>:Mathics3 module for Graphs:https://pypi.org/project/pymathics-graph/</url> (via <url>:NetworkX:https://networkx.org/</url>),
   <li>a <url>:Mathics3 module for NLP:https://pypi.org/project/pymathics-natlang/</url> (via <url>:nltk:https://www.nltk.org/</url>, <url>:spacy:https://spacy.io/</url>, and others)
   <li>a <url>:A docker container:https://hub.docker.com/r/mathicsorg/mathics</url> which bundles all of the above
@@ -82,12 +77,12 @@ https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url> file.
 <section title="What is missing?">
 There are lots of ways in which \Mathics could still be improved. <url>:<con>FUTURE.rst</con>: https://github.com/Mathics-3/mathics/blob/master/FUTURE.txt</url> has the current roadmap.
 
-While we always could use help, such as in Python programming, improving Documentation. But there are other ways to help. For example:
+We always could use help in Python programming and improving the documentation. But there are other ways to help. For example:
 
 <ul>
 <li>Ensure this document is complete and accurate. We could use help to ensure all of the Builtin functions described properly and fully, and that they have link to corresponding Wiki, Sympy, WMA and/or mpath links.
 Make sure the builtin summaries and examples clear and useful.</li>
-<li>We could use help in LaTeX styling, and going over this document to remove overful boxes and things of that nature. We could also use help and our use of Asymptote. The are some graphics primitives such as for polyhedra that haven't been implemented. Similar graphics options are sometimes missing in Asymptote that we have available in other graphics backends.</li>
+<li>We could use help in LaTeX styling, and going over this document to remove overfull boxes and things of that nature. We could also use help and our use of Asymptote. The are some graphics primitives such as for polyhedra that haven't been implemented. Similar graphics options are sometimes missing in Asymptote that we have available in other graphics backends.</li>
 
 <li>add another graphics backend: it could be a javascript library like jsfiddle</li>
 
@@ -231,7 +226,7 @@ The result of the previous query to \Mathics can be accessed by '%':
 
 <section title="Precision and Accuracy">
 
-\Mathics handles relative and absolute uncertanties in numerical quantities. The <em>precision</em> or relative accuracy, is set by adding a RawBackquote character ('`') and the number of digits of precision in the mantissa. For example:
+\Mathics handles relative and absolute uncertainty in numerical quantities. The <em>precision</em> or relative accuracy, is set by adding a RawBackquote character ('`') and the number of digits of precision in the mantissa. For example:
 
   >> 3.1416`3
    = 3.14

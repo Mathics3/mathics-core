@@ -35,7 +35,7 @@ class Quantile(Builtin):
     <url>
     :Quantile:
     https://en.wikipedia.org/wiki/Quantile</url> (<url>
-    :WMA:
+    :WMA link:
     https://reference.wolfram.com/language/ref/Quantile.html</url>)
 
     In statistics and probability, quantiles are cut points dividing the \
@@ -50,12 +50,14 @@ class Quantile(Builtin):
       <dt>'Quantile[$list$, $q$, {{$a$,$b$}, {$c$,$d$}}]'
       <dd>uses the quantile definition specified by parameters $a$, $b$, $c$, $d$.
 
-      <dt>For a list of length $n$, 'Quantile[list, $q$, {{$a$,$b$}, {$c$,$d$}}]' depends on $x$=$a$+($n$+$b$)$q$.
+      <dt>For a list of length $n$:
+      'Quantile[$list$, $q$, {{$a$,$b$}, {$c$,$d$}}]'
+      depends on $x$=$a$+($n$+$b$)$q$.
 
       If $x$ is an integer, the result is '$s$[[$x$]]', where $s$='Sort[list,Less]'.
 
-      Otherwise, the result is \
-      's[[Floor[x]]]+(s[[Ceiling[x]]]-s[[Floor[x]]])(c+dFractionalPart[x])', \
+      Otherwise, the result is:
+      's[[Floor[x]]]+(s[[Ceiling[x]]]-s[[Floor[x]]])(c+dFractionalPart[x])',
       with the indices taken to be 1 or n if they are out of range.
 
       The default choice of parameters is '{{0,0},{1,0}}'.
@@ -157,7 +159,7 @@ class Quartiles(Builtin):
     """
     <url>:Quartile:
     https://en.wikipedia.org/wiki/Quartile</url> (<url>
-    :WMA:
+    :WMA link:
     https://reference.wolfram.com/language/ref/Quartiles.html</url>)
     <dl>
       <dt>'Quartiles[$list$]'

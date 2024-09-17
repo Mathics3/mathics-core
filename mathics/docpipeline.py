@@ -100,10 +100,10 @@ class DocTestPipeline:
 
     def print_and_log(self, message):
         """Print and log a message in the logfile"""
-        if not self.parameters.quiet:
-            print(message)
         if self.logfile:
             print_and_log(self.logfile, message.encode("utf-8"))
+        elif not self.parameters.quiet:
+            print(message)
 
     def validate_group_setup(
         self,
@@ -121,7 +121,7 @@ class DocTestPipeline:
 
         if entity_name is not None:
             include_names = ", ".join(include_set)
-            print(f"Testing {entity_name}(s): {include_names}")
+            self.print_and_log(f"Testing {entity_name}(s): {include_names}")
         else:
             include_names = None
 
@@ -152,7 +152,7 @@ class TestStatus:
     Status parameters of the tests
     """
 
-    def __init__(self, data_path: Optional[str] = None, quiet=False):
+    def __init__(self, data_path: Optional[str] = None, quiet: Optional[bool] = False):
         self.texdatafolder = osp.dirname(data_path) if data_path is not None else None
         self.total = 0
         self.failed = 0
@@ -160,10 +160,6 @@ class TestStatus:
         self.failed_sections = set()
         self.prev_key = []
         self.quiet = quiet
-
-    def find_texdata_folder(self):
-        """Generate a folder for texdata"""
-        return self.textdatafolder
 
     def mark_as_failed(self, key):
         """Mark a key as failed"""
@@ -200,7 +196,7 @@ class TestStatus:
 def test_case(
     test: DocTest,
     test_pipeline: DocTestPipeline,
-    fail: Optional[Callable] = lambda x: False,
+    fail: Callable,
 ) -> bool:
     """
     Run a single test cases ``test``. Return True if test succeeds and False if it
@@ -225,7 +221,9 @@ def test_case(
     comparison_result = test.compare_result(result)
 
     if test_parameters.check_partial_elapsed_time:
-        print("   comparison took ", datetime.now() - time_start)
+        test_pipeline.print_and_log(
+            f"   comparison took {datetime.now() - time_start} seconds"
+        )
     if not comparison_result:
         print("result != wanted")
         fail_msg = f"Result: {result}\nWanted: {test.result}"
@@ -237,7 +235,9 @@ def test_case(
     time_start = datetime.now()
     output_ok = test.compare_out(out)
     if test_parameters.check_partial_elapsed_time:
-        print("   comparing messages took ", datetime.now() - time_start)
+        test_pipeline.print_and_log(
+            f"   comparing messages took {datetime.now() - time_start} seconds"
+        )
     if not output_ok:
         return fail(
             "Output:\n%s\nWanted:\n%s"
@@ -332,14 +332,16 @@ def show_test_summary(
     failed = test_status.failed
     print()
     if test_status.total == 0:
-        test_parameters.print_and_log(
+        test_pipeline.print_and_log(
             f"No {entity_name} found with a name in: {entities_searched}.",
         )
         if "MATHICS_DEBUG_TEST_CREATE" not in os.environ:
-            print(f"Set environment MATHICS_DEBUG_TEST_CREATE to see {entity_name}.")
+            test_pipeline.print_and_log(
+                f"Set environment MATHICS_DEBUG_TEST_CREATE to see {entity_name}."
+            )
     elif failed > 0:
-        print(SEP)
-        if test_parameters.data_path is None:
+        test_pipeline.print_and_log(SEP)
+        if test_pipeline.parameters.data_path is None:
             test_pipeline.print_and_log(
                 f"""{failed} test{'s' if failed != 1 else ''} failed.""",
             )
@@ -668,7 +670,7 @@ def show_report(test_pipeline):
             test_pipeline.print_and_log(f"  - {section} in {part} / {chapter}")
 
     if test_parameters.data_path is not None and (
-        test_status.failed == 0 or test_parameters.doc_even_if_error
+        test_status.failed == 0 or test_parameters.keep_going
     ):
         save_doctest_data(test_pipeline)
         return
@@ -684,7 +686,7 @@ def test_all(
     test_parameters = test_pipeline.parameters
     test_status = test_pipeline.status
     if not test_parameters.quiet:
-        print(f"Testing {version_string}")
+        test_pipeline.print_and_log(f"Testing {version_string}")
 
     try:
         test_tests(
@@ -692,11 +694,11 @@ def test_all(
             excludes=excludes,
         )
     except KeyboardInterrupt:
-        print("\nAborted.\n")
+        test_pipeline.print_and_log("\nAborted.\n")
         return
 
     if test_status.failed > 0:
-        print(SEP)
+        test_pipeline.print_and_log(SEP)
 
     show_report(test_pipeline)
 
@@ -718,16 +720,18 @@ def save_doctest_data(doctest_pipeline: DocTestPipeline):
     output_data: Dict[tuple, dict] = doctest_pipeline.output_data
 
     if len(output_data) == 0:
-        print("output data is empty")
+        doctest_pipeline.print_and_log("output data is empty")
         return
-    print("saving", len(output_data), "entries")
-    print(output_data.keys())
+    doctest_pipeline.print_and_log(f"saving {len(output_data)} entries")
+    doctest_pipeline.print_and_log(output_data.keys())
     doctest_latex_data_path = doctest_pipeline.parameters.data_path
-    print(f"Writing internal document data to {doctest_latex_data_path}")
+    doctest_pipeline.print_and_log(
+        f"Writing internal document data to {doctest_latex_data_path}"
+    )
     i = 0
     for key in output_data:
         i = i + 1
-        print(key, output_data[key])
+        doctest_pipeline.print_and_log(f"{key}, {output_data[key]}")
         if i > 9:
             break
     with open(doctest_latex_data_path, "wb") as output_file:
@@ -741,7 +745,7 @@ def write_doctest_data(doctest_pipeline: DocTestPipeline):
     """
     test_parameters = doctest_pipeline.parameters
     if not test_parameters.quiet:
-        print(f"Extracting internal doc data for {version_string}")
+        doctest_pipeline.print(f"Extracting internal doc data for {version_string}")
         print("This may take a while...")
 
     try:
@@ -756,7 +760,7 @@ def write_doctest_data(doctest_pipeline: DocTestPipeline):
                 tests,
             )
     except KeyboardInterrupt:
-        print("\nAborted.\n")
+        doctest_pipeline.print_and_log("\nAborted.\n")
         return
 
     print("done.\n")
@@ -905,6 +909,7 @@ def main():
     test_pipeline = DocTestPipeline(args, output_format="latex", data_path=data_path)
     test_status = test_pipeline.status
 
+    start_time = None
     if args.sections:
         include_sections = set(args.sections.split(","))
         exclude_subsections = set(args.exclude.split(","))
@@ -924,12 +929,14 @@ def main():
             test_all(test_pipeline, excludes=excludes)
 
     if test_status.total > 0 and start_time is not None:
-        print("Test evaluation took ", datetime.now() - start_time)
+        test_pipeline.print_and_log(
+            f"Test evaluation took {datetime.now() - start_time} seconds"
+        )
 
-    if test_pipeline.logfile:
-        test_pipeline.logfile.close()
     if args.show_statistics:
         show_lru_cache_statistics()
+    if test_pipeline.logfile:
+        test_pipeline.logfile.close()
 
     if test_status.failed == 0:
         print("\nOK")

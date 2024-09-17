@@ -175,6 +175,7 @@ class N(Builtin):
     <dt>'N[$expr$, $prec$]'
         <dd>evaluates $expr$ numerically with a precision of $prec$ digits.
     </dl>
+
     >> N[Pi, 50]
      = 3.1415926535897932384626433832795028841971693993751
 
@@ -185,6 +186,7 @@ class N(Builtin):
      = 0.14286
 
     You can manually assign numerical values to symbols.
+
     When you do not specify a precision, 'MachinePrecision' is taken.
     >> N[a] = 10.9
      = 10.9
@@ -552,6 +554,7 @@ class RealAbs(Builtin):
       <dt>'RealAbs[$x$]'
       <dd>returns the absolute value of a real number $x$.
     </dl>
+
     'RealAbs' is also known as modulus. It is evaluated if $x$ can be compared \
     with $0$.
 
@@ -594,6 +597,7 @@ class RealSign(Builtin):
       <dd>returns -1, 0 or 1 depending on whether $x$ is negative,
       zero or positive.
     </dl>
+
     'RealSign' is also known as $sgn$ or $signum$ function.
 
     >> RealSign[-3.]
@@ -623,7 +627,7 @@ class RealSign(Builtin):
 
 class RealValuedNumberQ(Builtin):
     # No docstring since this is internal and it will mess up documentation.
-    # FIXME: Perhaps in future we will have a more explicite way to indicate not
+    # FIXME: Perhaps in future we will have a more explicit way to indicate not
     # to add something to the docs.
     no_doc = True
     context = "Internal`"
@@ -638,7 +642,7 @@ class RealValuedNumberQ(Builtin):
 
 class RealValuedNumericQ(Builtin):
     # No docstring since this is internal and it will mess up documentation.
-    # FIXME: Perhaps in future we will have a more explicite way to indicate not
+    # FIXME: Perhaps in future we will have a more explicit way to indicate not
     # to add something to the docs.
     no_doc = True
     context = "Internal`"

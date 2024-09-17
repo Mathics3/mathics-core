@@ -440,7 +440,7 @@ class DeleteCases(Builtin):
         # we need to proceed with this complicate procedure
         # involving 1) decode what is the levelspec means
         # 2) find all the occurrences
-        # 3) Set all the occurences to ```System`Nothing```
+        # 3) Set all the occurrences to ```System`Nothing```
 
         levelspec = python_levelspec(levelspec)
 
@@ -1479,7 +1479,6 @@ class Span(BinaryOperator):
     """
 
     operator = ";;"
-    precedence = 305
     summary_text = "general specification for spans or blocks of elements"
 
 

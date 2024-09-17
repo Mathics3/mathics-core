@@ -8,9 +8,7 @@ from typing import Optional, Type, Union
 
 import sympy
 from sympy import Symbol as Sympy_Symbol, false as SympyFalse, true as SympyTrue
-
-# Import the singleton class
-from sympy.core.numbers import S
+from sympy.core.singleton import S
 
 from mathics.core.atoms import (
     MATHICS3_COMPLEX_I,
@@ -501,7 +499,7 @@ def old_from_sympy(expr) -> BaseElement:
                 else:
                     margs.append(from_sympy(arg))
             builtin = sympy_to_mathics.get(name)
-            return builtin.from_sympy(name, margs)
+            return builtin.from_sympy(margs)
 
         elif isinstance(expr, sympy.sign):
             name = "Sign"
@@ -517,7 +515,7 @@ def old_from_sympy(expr) -> BaseElement:
         args = [from_sympy(arg) for arg in expr.args]
         builtin = sympy_to_mathics.get(name)
         if builtin is not None:
-            return builtin.from_sympy(name, args)
+            return builtin.from_sympy(args)
         return Expression(Symbol(name), *args)
 
     if isinstance(expr, sympy.Tuple):

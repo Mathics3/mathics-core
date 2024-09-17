@@ -51,7 +51,6 @@ operators = {
 
 
 class _InequalityOperator(BinaryOperator):
-    precedence = 290
     grouping = "NonAssociative"
 
     @staticmethod
@@ -750,7 +749,6 @@ class SameQ(_ComparisonOperator):
 
     grouping = "None"  # Indeterminate grouping: Neither left nor right
     operator = "==="
-    precedence = 290
 
     summary_text = "literal symbolic identity"
 
@@ -887,7 +885,6 @@ class UnsameQ(_ComparisonOperator):
 
     grouping = "None"  # Indeterminate grouping: Neither left nor right
     operator = "=!="
-    precedence = 290
 
     summary_text = "not literal symbolic identity"
 

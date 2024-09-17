@@ -1,6 +1,15 @@
-# cython: language_level=3
 # -*- coding: utf-8 -*-
+"""Rules are a core part of the way WMA and Mathics3 executes a
+program.  Expressions can be transformed by rewrite rules (AKA
+transformation rules); builtin functions get matched and applied via a
+function signature specified using a BuiltinRule.
 
+This module contains the classes for these two types of rules.
+
+"""
+
+
+from abc import ABC
 from inspect import signature
 from itertools import chain
 from typing import Callable, Optional
@@ -21,21 +30,24 @@ def function_arguments(f):
 
 
 class StopGenerator_BaseRule(StopGenerator):
+    """
+    Signals that there are no more rules to check for pattern matching
+    """
+
     pass
 
 
-class BaseRule(KeyComparable):
+class BaseRule(KeyComparable, ABC):
     """
-    This is the base class from which all other Rules are derived from.
+    This is the base class from which BuiltinRule and Rule classes
+    are derived from.
 
-    Rules are part of the rewriting system of Mathics. See
+    Rules are part of the rewriting system of Mathics3. See
     https://en.wikipedia.org/wiki/Rewriting
 
     This class is not complete in of itself and subclasses should
-    adapt or fill in what is needed. In particular ``do_replace()``
-    needs to be implemented.
-
-    Important subclasses: BuiltinRule and Rule.
+    adapt or fill in what is needed. In particular either ``apply_rule()``
+    or ``apply_function()`` need to be implemented.
 
     Note: we want Rules to be serializable so that we can dump and
     restore Rules in order to make startup time faster.
@@ -75,7 +87,12 @@ class BaseRule(KeyComparable):
                 if name.startswith("_option_"):
                     options[name[len("_option_") :]] = value
                     del vars[name]
-            new_expression = self.do_replace(expression, vars, options, evaluation)
+            apply_fn = (
+                self.apply_function
+                if isinstance(self, BuiltinRule)
+                else self.apply_rule
+            )
+            new_expression = apply_fn(expression, vars, options, evaluation)
             if new_expression is None:
                 new_expression = expression
             if rest[0] or rest[1]:
@@ -120,7 +137,10 @@ class BaseRule(KeyComparable):
         else:
             return None
 
-    def do_replace(self):
+    def apply_rule(self):
+        raise NotImplementedError
+
+    def apply_function(self):
         raise NotImplementedError
 
     def get_sort_key(self) -> tuple:
@@ -128,12 +148,14 @@ class BaseRule(KeyComparable):
         return tuple((self.system, self.pattern.get_sort_key(True)))
 
 
+# FIXME: the class name would be better called RewiteRule.
 class Rule(BaseRule):
-    """There are two kinds of Rules.  This kind of Rule transforms an
-    Expression into another Expression based on the pattern and a
-    replacement term and doesn't involve function application.
+    """There are two kinds of Rules.  This kind of is a rewrite rule
+    and transforms an Expression into another Expression based on the
+    pattern and a replacement term and doesn't involve function
+    application.
 
-    Also, in contrast to BuiltinRule[], rule application cannot force
+    In contrast to BuiltinRule[], rule application cannot force
     a reevaluation of the expression when the rewrite/apply/eval step
     finishes.
 
@@ -148,6 +170,7 @@ class Rule(BaseRule):
 
     Note: we want Rules to be serializable so that we can dump and
     restore Rules in order to make startup time faster.
+
     """
 
     def __init__(
@@ -160,7 +183,7 @@ class Rule(BaseRule):
         super(Rule, self).__init__(pattern, system=system, evaluation=evaluation)
         self.replace = replace
 
-    def do_replace(
+    def apply_rule(
         self, expression: BaseElement, vars: dict, options: dict, evaluation: Evaluation
     ):
         new = self.replace.replace_vars(vars)
@@ -193,6 +216,7 @@ class Rule(BaseRule):
         return "<Rule: %s -> %s>" % (self.pattern, self.replace)
 
 
+# FIXME: the class name would be better called FunctionCallRule.
 class BuiltinRule(BaseRule):
     """
     A BuiltinRule is a rule that has a replacement term that is associated
@@ -249,9 +273,9 @@ class BuiltinRule(BaseRule):
         self.check_options = check_options
         self.pass_expression = "expression" in function_arguments(function)
 
-    # If you update this, you must also update traced_do_replace
+    # If you update this, you must also update traced_apply_function
     # (that's in the same file TraceBuiltins is)
-    def do_replace(
+    def apply_function(
         self, expression: BaseElement, vars: dict, options: dict, evaluation: Evaluation
     ):
         if options and self.check_options:

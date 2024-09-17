@@ -119,6 +119,7 @@ class Hold(Builtin):
     <dt>'Hold[$expr$]'
         <dd>prevents $expr$ from being evaluated.
     </dl>
+
     >> Attributes[Hold]
      = {HoldAll, Protected}
     """
@@ -136,6 +137,7 @@ class HoldComplete(Builtin):
         <dd>prevents $expr$ from being evaluated, and also prevents
         'Sequence' objects from being spliced into argument lists.
     </dl>
+
     >> Attributes[HoldComplete]
      = {HoldAllComplete, Protected}
     """
@@ -253,6 +255,7 @@ class ReleaseHold(Builtin):
         <dd>removes any 'Hold', 'HoldForm', 'HoldPattern' or
         'HoldComplete' head from $expr$.
     </dl>
+
     >> x = 3;
     >> Hold[x]
      = Hold[x]

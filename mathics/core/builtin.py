@@ -7,14 +7,25 @@ SympyFunction, MPMathFunction, etc.
 """
 
 import importlib
+import os.path as osp
 import re
-from functools import lru_cache, total_ordering
+from abc import ABC
+from functools import total_ordering
 from itertools import chain
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union, cast
 
 import mpmath
+import pkg_resources
 import sympy
 
+# Note: it is important *not* to use:
+#   from mathics.eval.tracing import run_sympy
+# but, instead, import the module, as below, and then
+# access ``run_sympy`` using ``tracing.run_sympy.``
+#
+# This allows us to change where ``tracing.run_sympy`` points to at
+# run time.
+import mathics.eval.tracing as tracing
 from mathics.core.atoms import (
     Integer,
     Integer0,
@@ -43,7 +54,8 @@ from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInte
 from mathics.core.list import ListExpression
 from mathics.core.number import PrecisionValueError, dps, get_precision, min_prec
 from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
-from mathics.core.rules import BuiltinRule, Pattern, Rule
+from mathics.core.pattern import Pattern
+from mathics.core.rules import BuiltinRule, Rule
 from mathics.core.symbols import (
     BaseElement,
     BooleanType,
@@ -66,6 +78,21 @@ from mathics.eval.arithmetic import eval_mpmath_function
 from mathics.eval.numbers.numbers import cancel
 from mathics.eval.numerify import numerify
 from mathics.eval.scoping import dynamic_scoping
+
+try:
+    import ujson
+except ImportError:
+    import json as ujson
+
+ROOT_DIR = pkg_resources.resource_filename("mathics", "")
+
+# Load the conversion tables from disk
+operator_tables_path = osp.join(ROOT_DIR, "data", "operator-tables.json")
+assert osp.exists(
+    operator_tables_path
+), f"Internal error: Operator precedence tables are missing; expected to be in {operator_tables_path}"
+with open(operator_tables_path, "r") as f:
+    OPERATOR_DATA = ujson.load(f)
 
 
 class Builtin:
@@ -173,16 +200,15 @@ class Builtin:
         # well documented.
         # Notice that this behavior was used extensively in
         # mathics.builtin.inout
-
         if kwargs.get("expression", None) is not False:
             return to_expression(cls.get_name(), *args)
-        else:
-            instance = super().__new__(cls)
-            if not instance.formats:
-                # Reset formats so that not every instance shares the same
-                # empty dict {}
-                instance.formats = {}
-            return instance
+
+        instance = super().__new__(cls)
+        if not instance.formats:
+            # Reset formats so that not every instance shares the same
+            # empty dict {}
+            instance.formats = {}
+        return instance
 
     def __init__(self, *args, **kwargs):
         super().__init__()
@@ -231,7 +257,7 @@ class Builtin:
             check_options = None
         else:
             raise ValueError(
-                "illegal option mode %s; check $OptionSyntax." % option_syntax
+                f"illegal option mode {option_syntax}; check $OptionSyntax."
             )
 
         rules = []
@@ -454,12 +480,11 @@ class Builtin:
 class BuiltinElement(Builtin, BaseElement):
     def __new__(cls, *args, **kwargs):
         new_kwargs = kwargs.copy()
+        # In a Builtin element, we never return an Expression object,
+        # so we create it with the option `expression=False`.
         new_kwargs["expression"] = False
         instance = super().__new__(cls, *args, **new_kwargs)
-        if not instance.formats:
-            # Reset formats so that not every instance shares the same empty
-            # dict {}
-            instance.formats = {}
+        # If `expression` is not `False`, we need to initialize the object:
         if kwargs.get("expression", None) is not False:
             try:
                 instance.init(*args, **kwargs)
@@ -501,7 +526,7 @@ class SympyObject(Builtin):
 
 # This has to come before MPMathFunction
 class SympyFunction(SympyObject):
-    def eval(self, z, evaluation):
+    def eval(self, z, evaluation: Evaluation):
         # Note: we omit a docstring here, so as not to confuse
         # function signature collector ``contribute``.
 
@@ -513,7 +538,7 @@ class SympyFunction(SympyObject):
         sympy_args = to_numeric_sympy_args(z, evaluation)
         sympy_fn = getattr(sympy, self.sympy_name)
         try:
-            return from_sympy(run_sympy(sympy_fn, *sympy_args))
+            return from_sympy(tracing.run_sympy(sympy_fn, *sympy_args))
         except Exception:
             return
 
@@ -530,7 +555,7 @@ class SympyFunction(SympyObject):
         else:
             return PrecisionReal(sympy_fn.n(d))
 
-    def get_sympy_function(self, elements=None):
+    def get_sympy_function(self, elements=None) -> Optional[Callable]:
         if self.sympy_name:
             return getattr(sympy, self.sympy_name)
         return None
@@ -546,12 +571,13 @@ class SympyFunction(SympyObject):
                 if None in sympy_args:
                     return None
                 sympy_function = self.get_sympy_function(elements)
-                return sympy_function(*sympy_args)
+                if sympy_function is not None:
+                    return tracing.run_sympy(sympy_function, *sympy_args)
         except TypeError:
             pass
 
-    def from_sympy(self, sympy_name, elements):
-        return to_expression(self.get_name(), *elements)
+    def from_sympy(self, elements: list) -> Expression:
+        return Expression(Symbol(self.get_name()), *elements)
 
     def prepare_mathics(self, sympy_expr):
         return sympy_expr
@@ -572,7 +598,6 @@ class MPMathFunction(SympyFunction):
     mpmath_name = None
     nargs = {1}
 
-    @lru_cache(maxsize=1024)
     def get_mpmath_function(self, args):
         if self.mpmath_name is None or len(args) not in self.nargs:
             return None
@@ -946,13 +971,28 @@ class IterationFunction(Builtin):
         return to_expression(name, to_expression(name, expr, *sequ), first)
 
 
-class Operator(Builtin):
+class Operator(Builtin, ABC):
+    """
+    Base Class for operators: binary, unary, nullary, prefix postfix, ...
+    """
+
     operator: Optional[str] = None
     precedence: Optional[int] = None
     precedence_parse = None
     needs_verbatim = False
 
     default_formats = True
+
+    def get_precedence(self, name: str) -> int:
+        operator_info = OPERATOR_DATA.get("operator-precedence")
+        assert isinstance(
+            operator_info, dict
+        ), 'Internal error: "operator-precedence" should be found in operators.json'
+        precedence = operator_info.get(name)
+        assert isinstance(
+            precedence, int
+        ), f'Internal error: "precedence" field for "{name}" should be an integer is {precedence}'
+        return precedence
 
     def get_operator(self) -> Optional[str]:
         return self.operator
@@ -977,13 +1017,18 @@ class Predefined(Builtin):
 
 
 class UnaryOperator(Operator):
+    """
+    Class for Unary Operators, (e.g. Not, Factorial)
+    """
+
     def __init__(self, format_function, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        name = self.get_name()
+        name = self.get_name(short=True)
+        self.precedence = self.get_precedence(name)
         if self.needs_verbatim:
-            name = "Verbatim[%s]" % name
+            name = f"Verbatim[{name}"
         if self.default_formats:
-            op_pattern = "%s[item_]" % name
+            op_pattern = f"{name}[item_]"
             if op_pattern not in self.formats:
                 operator = self.get_operator_display()
                 if operator is not None:
@@ -996,37 +1041,52 @@ class UnaryOperator(Operator):
 
 
 class PrefixOperator(UnaryOperator):
+    """
+    Class for Bultin Prefix Unary Operators, e.g. Not ("¬")
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__("Prefix", *args, **kwargs)
 
 
 class PostfixOperator(UnaryOperator):
+    """
+    Class for Bultin Postfix Unary Operators, e.g. Factorial (!)
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__("Postfix", *args, **kwargs)
 
 
 class BinaryOperator(Operator):
+    """
+    Class for Builtin Binary Operators, e.g. Plus (+)
+    """
+
     grouping = "System`None"  # NonAssociative, None, Left, Right
 
     def __init__(self, *args, **kwargs):
         super(BinaryOperator, self).__init__(*args, **kwargs)
-        name = self.get_name()
+        name = self.get_name(short=True)
+        self.precedence = self.get_precedence(name)
+
         # Prevent pattern matching symbols from gaining meaning here using
         # Verbatim
-        name = "Verbatim[%s]" % name
+        name = f"Verbatim[{name}]"
 
         # For compatibility, allow grouping symbols in builtins to be
         # specified without System`.
         self.grouping = ensure_context(self.grouping)
 
         if self.grouping in ("System`None", "System`NonAssociative"):
-            op_pattern = "%s[items__]" % name
+            op_pattern = f"{name}[items__]"
             replace_items = "items"
         else:
-            op_pattern = "%s[x_, y_]" % name
+            op_pattern = f"{name}[x_, y_]"
             replace_items = "x, y"
 
         operator = ascii_operator_to_symbol.get(self.operator, self.__class__.__name__)
+
         if self.default_formats:
             formatted = "MakeBoxes[Infix[{%s}, %s, %d,%s], form]" % (
                 replace_items,
@@ -1038,9 +1098,7 @@ class BinaryOperator(Operator):
                 "MakeBoxes[{0}, form:StandardForm|TraditionalForm]".format(
                     op_pattern
                 ): formatted,
-                "MakeBoxes[{0}, form:InputForm|OutputForm]".format(
-                    op_pattern
-                ): formatted,
+                f"MakeBoxes[{op_pattern}, form:InputForm|OutputForm]": formatted,
             }
             default_rules.update(self.rules)
             self.rules = default_rules
@@ -1058,15 +1116,6 @@ class Test(Builtin):
     def test(self, expr) -> bool:
         """Subclasses of test must implement a boolean test function"""
         raise NotImplementedError
-
-
-@lru_cache()
-def run_sympy(sympy_fn: Callable, *sympy_args) -> Any:
-    """
-    Wrapper to run a SymPy function with a cache.
-    TODO: hook into SymPyTracing -> True
-    """
-    return sympy_fn(*sympy_args)
 
 
 class PatternError(Exception):

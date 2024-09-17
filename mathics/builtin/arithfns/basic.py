@@ -120,6 +120,7 @@ class Divide(BinaryOperator):
       <dt>'$a$ / $b$'
       <dd>represents the division of $a$ by $b$.
     </dl>
+
     >> 30 / 5
      = 6
     >> 1 / 8
@@ -158,7 +159,6 @@ class Divide(BinaryOperator):
 
     grouping = "Left"
     operator = "/"
-    precedence = 470
 
     rules = {
         "Divide[x_, y_]": "Times[x, Power[y, -1]]",
@@ -207,7 +207,6 @@ class Minus(PrefixOperator):
     }
 
     operator = "-"
-    precedence = 480
 
     rules = {
         "Minus[x_]": "Times[-1, x]",
@@ -282,7 +281,6 @@ class Plus(BinaryOperator, SympyFunction):
     }
 
     operator = "+"
-    precedence = 310
 
     summary_text = "add"
 
@@ -434,7 +432,6 @@ class Power(BinaryOperator, MPMathFunction):
 
     nargs = {2}
     operator = "^"
-    precedence = 590
 
     rules = {
         "Power[]": "1",
@@ -555,8 +552,6 @@ class Subtract(BinaryOperator):
     grouping = "Left"
 
     operator = "-"
-    precedence = 310
-    precedence_parse = 311
     rules = {
         "Subtract[x_, y_]": "Plus[x, Times[-1, y]]",
     }
@@ -579,6 +574,7 @@ class Times(BinaryOperator, SympyFunction):
       <dt>'$a$ $b$ ...'
       <dd>represents the product of the terms $a$, $b$, ...
     </dl>
+
     >> 10 * 2
      = 20
     >> 10 2
@@ -621,14 +617,13 @@ class Times(BinaryOperator, SympyFunction):
     operator = "*"
     operator_display = " "
 
-    precedence = 400
     rules = {}
 
     # FIXME Note this is deprecated in 1.11
     # Remember to up sympy doc link when this is corrected
     sympy_name = "Mul"
 
-    summary_text = "mutiply"
+    summary_text = "multiply"
 
     def format_times(self, items, evaluation, op="\u2062"):
         "Times[items__]"

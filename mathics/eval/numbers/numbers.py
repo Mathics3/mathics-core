@@ -8,6 +8,10 @@ from typing import Optional
 import mpmath
 import sympy
 
+# Note: it is important *not* use: from mathics.eval.tracing import run_sympy
+# but instead import the module and access below as tracing.run_sympy.
+# This allows us change where tracing.run_sympy points at runtime.
+import mathics.eval.tracing as tracing
 from mathics.core.atoms import Complex, MachineReal, PrecisionReal
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
@@ -126,6 +130,27 @@ def cancel(expr):
 
             # result = sympy.powsimp(result, deep=True)
             result = sympy.cancel(result)
+
+            # cancel factors out rationals, so we factor them again
+            result = sympy_factor(result)
+
+            return from_sympy(result)
+        except sympy.PolynomialError:
+            # e.g. for non-commutative expressions
+            return expr
+
+
+def cancel(expr):
+    if expr.has_form("Plus", None):
+        return Expression(SymbolPlus, *[cancel(element) for element in expr.elements])
+    else:
+        try:
+            result = expr.to_sympy()
+            if result is None:
+                return None
+
+            # result = sympy.powsimp(result, deep=True)
+            result = tracing.run_sympy(sympy.cancel, result)
 
             # cancel factors out rationals, so we factor them again
             result = sympy_factor(result)
