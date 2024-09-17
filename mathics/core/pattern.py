@@ -395,6 +395,19 @@ class ExpressionPattern(Pattern):
     # get_pre_choices = pattern_nocython.get_pre_choices
     # match = pattern_nocython.match
 
+    def __init__(self, expr: Expression, evaluation: Optional[Evaluation] = None):
+        self.expr = expr
+        head = expr.head
+        attributes = (
+            None if evaluation is None else head.get_attributes(evaluation.definition)
+        )
+        self.__set_pattern_attributes__(attributes)
+        self.head = Pattern.create(head)
+        self.elements = [Pattern.create(element) for element in expr.elements]
+
+    def __set_pattern_attributes__(self, attributes):
+        self.attributes = attributes
+
     def match(
         self,
         yield_func: Callable,
@@ -460,19 +473,6 @@ class ExpressionPattern(Pattern):
             )
         else:
             yield_choice(vars_dict)
-
-    def __init__(self, expr: Expression, evaluation: Optional[Evaluation] = None):
-        self.expr = expr
-        head = expr.head
-        attributes = (
-            None if evaluation is None else head.get_attributes(evaluation.definition)
-        )
-        self.__set_pattern_attributes__(attributes)
-        self.head = Pattern.create(head)
-        self.elements = [Pattern.create(element) for element in expr.elements]
-
-    def __set_pattern_attributes__(self, attributes):
-        self.attributes = attributes
 
     def filter_elements(self, head_name: str):
         """Filter the elements with a given head_name"""
