@@ -8,7 +8,7 @@ Basic classes for Patterns
 
 
 from itertools import chain
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple, Union
 
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_ORDERLESS
@@ -395,6 +395,8 @@ class ExpressionPattern(Pattern):
     # get_pre_choices = pattern_nocython.get_pre_choices
     # match = pattern_nocython.match
 
+    attributes: Optional[int] = None
+
     def __init__(self, expr: Expression, evaluation: Optional[Evaluation] = None):
         self.expr = expr
         head = expr.head
@@ -406,7 +408,15 @@ class ExpressionPattern(Pattern):
         self.elements = [Pattern.create(element) for element in expr.elements]
 
     def __set_pattern_attributes__(self, attributes):
+        if attributes is None or self.attributes is not None:
+            return
+
         self.attributes = attributes
+        if A_ORDERLESS & attributes:
+            self.sort()
+            self.get_pre_choices = get_pre_choices_orderless
+        else:
+            self.get_pre_choices = get_pre_choices_with_order
 
     def match(
         self,
@@ -420,7 +430,6 @@ class ExpressionPattern(Pattern):
         fully: bool = True,
     ):
         """Try to match the pattern against an Expression"""
-
         evaluation.check_stopped()
         if self.attributes is None:
             self.__set_pattern_attributes__(
@@ -548,7 +557,7 @@ class ExpressionPattern(Pattern):
         if len(element_candidates) < match_count[0]:
             return
 
-        candidates = rest_expression[1]
+        candidates = tuple(rest_expression[1])
 
         # "Artificially" only use more elements than specified for some kind
         # of pattern.
@@ -672,8 +681,8 @@ class ExpressionPattern(Pattern):
 
 def match_expression_with_one_identity(
     parms: dict,
-    element_index: int,
-    element_count: int,
+    element_index: Optional[int],
+    element_count: Optional[int],
     head: Symbol,
 ):
     """
@@ -853,7 +862,7 @@ def basic_match_expression(parms):
             #    expression, attributes, head_vars)
             # for pre_vars in pre_choices:
 
-            self.get_pre_choices(yield_choice, expression, attributes, head_vars)
+            self.get_pre_choices(self, yield_choice, expression, attributes, head_vars)
         else:
             if not expression.elements:
                 yield_func(head_vars, None)
@@ -866,7 +875,7 @@ def basic_match_expression(parms):
 def expression_pattern_match_element_orderless(
     parms: dict,
     candidates: tuple,
-    element_candidates: list,
+    element_candidates: Union[tuple, set],
     less_first: bool,
     set_lengths: tuple,
 ):
@@ -892,7 +901,7 @@ def expression_pattern_match_element_orderless(
             ):
                 needed = existing.elements
             else:
-                needed = [existing]
+                needed = (existing,)
             available = list(candidates)
             for needed_element in needed:
                 if (
@@ -902,7 +911,15 @@ def expression_pattern_match_element_orderless(
                     available.remove(needed_element)
                 else:
                     return set()
-            sets = [(needed, ([], available))]
+            sets = [
+                (
+                    needed,
+                    (
+                        [],
+                        available,
+                    ),
+                )
+            ]
 
     if sets is None:
         sets = subsets(
@@ -914,9 +931,12 @@ def expression_pattern_match_element_orderless(
     return sets
 
 
+# TODO: adding the annotations for items
+# and items_rest as ``tuples`` produce failures in cython.
+# We should investigate what is the right type to pass here.
 def expression_pattern_match_element_process_items(
-    items: tuple,
-    items_rest: tuple,
+    items: Union[tuple, list],
+    items_rest: Union[tuple, list],
     parms: dict,
 ):
     # Include wrappings like Plus[a, b] only if not all items taken
@@ -998,6 +1018,26 @@ def expression_pattern_match_element_process_items(
     )
 
 
+# TODO: these two functions should collect all their arguments
+# in a dict
+def get_pre_choices_with_order(
+    pat: ExpressionPattern,
+    yield_choice: Callable,
+    expression: Expression,
+    attributes: int,
+    vars_dict: dict,
+):
+    """
+    Yield pre choices for expressions without
+    the attribute Orderless.
+
+    In this case, all we have to do is to call
+    the parameter `yield_choice` with the collected
+    var_dict.
+    """
+    yield_choice(vars_dict)
+
+
 def get_pre_choices_orderless(
     pat: ExpressionPattern,
     yield_choice: Callable,
@@ -1005,7 +1045,13 @@ def get_pre_choices_orderless(
     attributes: int,
     vars_dict: dict,
 ):
-    pat.sort()
+    """
+    Yield pre choices for expressions with
+    the attribute Orderless.
+
+    This case is more involved, since the pattern can include subpatterns.
+
+    """
     patterns = pat.filter_elements("Pattern")
     # a dict with entries having patterns with the same name
     # which are not in vars_dict.
