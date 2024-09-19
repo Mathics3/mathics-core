@@ -1,9 +1,11 @@
 # cython: language_level=3
 # cython: profile=False
 # -*- coding: utf-8 -*-
-"""
-Core to Mathics3 is are patterns which match symbol expressions. While there are built-in function which allow
-users to match parts of expressions, patterns are also used in applying of transformation rules and deciding functiosn get applied.
+"""Core to Mathics3 is are patterns which match symbolic expressions. A pattern are built up in a custon pattern notation.
+The parts of a pattern are called "Pattern Objects".
+
+While there is a built-in function which allows users to match parts of expressions, patterns are also used in applying of transformation
+rules and deciding functions that get applied.
 
 See also: mathics.core.rules and https://reference.wolfram.com/language/tutorial/PatternsAndTransformationRules.html
 """
@@ -115,7 +117,7 @@ class BasePattern(ABC):
     # Also, when the initial Definitions object for the evaluation
     # context is created, many rules must be created without an
     # evaluation context available. For that case, we still
-    # must be able to create Patten objects without the evaluation context.
+    # must be able to create Pattern objects without the evaluation context.
     #
     # In any case, just by caching the attributes in the first use of
     # the pattern there is a win ~5% in performance.
@@ -128,7 +130,7 @@ class BasePattern(ABC):
     # ===========================
     #
     # Notice also that the case of `Alternatives` is a corner case,
-    # where attributes are readed at the moment of the rule application:
+    # where attributes are read at the moment of the rule application:
     #
     # For example, in WMA, let's consider this example
     # ```
@@ -261,7 +263,7 @@ class BasePattern(ABC):
         fully: bool = True,
     ) -> bool:
         """returns True if `expression` matches self or we have
-        reached the end fo the matches, and False if it does not.
+        reached the end of the matches, and False if it does not.
         """
 
         if vars_dict is None:
