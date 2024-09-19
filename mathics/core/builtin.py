@@ -54,7 +54,7 @@ from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInte
 from mathics.core.list import ListExpression
 from mathics.core.number import PrecisionValueError, dps, get_precision, min_prec
 from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
-from mathics.core.pattern import Pattern
+from mathics.core.pattern import BasePattern
 from mathics.core.rules import FunctionApplyRule, Rule
 from mathics.core.symbols import (
     BaseElement,
@@ -1131,7 +1131,7 @@ class PatternArgumentError(PatternError):
         super().__init__(name, "argr", count, expected)
 
 
-class PatternObject(BuiltinElement, Pattern):
+class PatternObject(BuiltinElement, BasePattern):
     needs_verbatim = True
 
     arg_counts: List[int] = []
@@ -1142,9 +1142,10 @@ class PatternObject(BuiltinElement, Pattern):
             if len(expr.elements) not in self.arg_counts:
                 self.error_args(len(expr.elements), *self.arg_counts)
         self.expr = expr
-        self.head = Pattern.create(expr.head, evaluation=evaluation)
+        self.head = BasePattern.create(expr.head, evaluation=evaluation)
         self.elements = [
-            Pattern.create(element, evaluation=evaluation) for element in expr.elements
+            BasePattern.create(element, evaluation=evaluation)
+            for element in expr.elements
         ]
 
     def error(self, tag, *args):

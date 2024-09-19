@@ -73,12 +73,12 @@ class StopGenerator_ExpressionPattern_match(StopGenerator):
 
 class StopGenerator_Pattern(StopGenerator):
     """
-    Exception raised when  Pattern matches
+    Exception raised when  BasePattern matches
     an expression.
     """
 
 
-class Pattern(ABC):
+class BasePattern(ABC):
     """
     This is the base class for Mathics3 Pattern objects.
 
@@ -90,11 +90,11 @@ class Pattern(ABC):
 
     expr: BaseElement
 
-    # TODO: In WMA, when a Pattern is created, the attributes
+    # TODO: In WMA, when a BasePattern is created, the attributes
     # from the head are read from the evaluation context and
     # stored as a part of a rule.
     #
-    # As Patterns are nested structures, the factory not only needs
+    # As BasePatterns are nested structures, the factory not only needs
     # the attributes of the head, but also the full evaluation context
     # which is needed to create patterns for its elements.
     #
@@ -165,7 +165,9 @@ class Pattern(ABC):
     #
     #
     @staticmethod
-    def create(expr: BaseElement, evaluation: Optional[Evaluation] = None) -> "Pattern":
+    def create(
+        expr: BaseElement, evaluation: Optional[Evaluation] = None
+    ) -> "BasePattern":
         """
         If ``expr`` is listed in ``pattern_object``  return the pattern found there.
         Otherwise, if ``expr`` is an ``Atom``, create and return  ``AtomPattern`` for ``expr``.
@@ -310,7 +312,7 @@ class Pattern(ABC):
         return self.expr.sameQ(other.expr)
 
 
-class AtomPattern(Pattern):
+class AtomPattern(BasePattern):
     """
     A pattern that matches with an atom.
     """
@@ -390,7 +392,7 @@ class AtomPattern(Pattern):
 #    pass
 
 
-class ExpressionPattern(Pattern):
+class ExpressionPattern(BasePattern):
     """
     Pattern that matches with an Expression.
     """
@@ -407,8 +409,8 @@ class ExpressionPattern(Pattern):
             None if evaluation is None else head.get_attributes(evaluation.definition)
         )
         self.__set_pattern_attributes__(attributes)
-        self.head = Pattern.create(head)
-        self.elements = [Pattern.create(element) for element in expr.elements]
+        self.head = BasePattern.create(head)
+        self.elements = [BasePattern.create(element) for element in expr.elements]
 
     def __set_pattern_attributes__(self, attributes):
         if attributes is None or self.attributes is not None:

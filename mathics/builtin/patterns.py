@@ -37,9 +37,6 @@ Options using 'OptionsPattern' and 'OptionValue':
 The attributes 'Flat', 'Orderless', and 'OneIdentity' affect pattern matching.
 """
 
-# This tells documentation how to sort this module
-sort_order = "mathics.builtin.rules-and-patterns"
-
 from typing import Callable, List, Optional as OptionalType, Tuple, Union
 
 from mathics.core.atoms import Integer, Number, Rational, Real, String
@@ -63,11 +60,14 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Expression, SymbolVerbatim
 from mathics.core.list import ListExpression
-from mathics.core.pattern import Pattern, StopGenerator
+from mathics.core.pattern import BasePattern, StopGenerator
 from mathics.core.rules import Rule
 from mathics.core.symbols import Atom, Symbol, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import SymbolBlank, SymbolDefault, SymbolDispatch
 from mathics.eval.parts import python_levelspec
+
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.rules-and-patterns"
 
 
 class Rule_(BinaryOperator):
@@ -159,7 +159,7 @@ def create_rules(
     if any_lists:
         all_lists = True
         for item in rules:
-            if not item.get_head() is SymbolList:
+            if item.get_head() is not SymbolList:
                 all_lists = False
                 break
 
@@ -568,7 +568,7 @@ class PatternTest(BinaryOperator, PatternObject):
             "System`NonNegative": self.match_nonnegative,
         }
 
-        self.pattern = Pattern.create(expr.elements[0], evaluation=evaluation)
+        self.pattern = BasePattern.create(expr.elements[0], evaluation=evaluation)
         self.test = expr.elements[1]
         testname = self.test.get_name()
         self.test_name = testname
@@ -765,7 +765,8 @@ class Alternatives(BinaryOperator, PatternObject):
     ) -> None:
         super(Alternatives, self).init(expr, evaluation=evaluation)
         self.alternatives = [
-            Pattern.create(element, evaluation=evaluation) for element in expr.elements
+            BasePattern.create(element, evaluation=evaluation)
+            for element in expr.elements
         ]
 
     def match(self, yield_func, expression, vars, evaluation, **kwargs):
@@ -826,11 +827,11 @@ class Except(PatternObject):
         self, expr: Expression, evaluation: OptionalType[Evaluation] = None
     ) -> None:
         super(Except, self).init(expr, evaluation=evaluation)
-        self.c = Pattern.create(expr.elements[0])
+        self.c = BasePattern.create(expr.elements[0])
         if len(expr.elements) == 2:
-            self.p = Pattern.create(expr.elements[1], evaluation=evaluation)
+            self.p = BasePattern.create(expr.elements[1], evaluation=evaluation)
         else:
-            self.p = Pattern.create(Expression(SymbolBlank), evaluation=evaluation)
+            self.p = BasePattern.create(Expression(SymbolBlank), evaluation=evaluation)
 
     def match(self, yield_func, expression, vars, evaluation, **kwargs):
         def except_yield_func(vars, rest):
@@ -910,7 +911,7 @@ class HoldPattern(PatternObject):
         self, expr: Expression, evaluation: OptionalType[Evaluation] = None
     ) -> None:
         super(HoldPattern, self).init(expr, evaluation=evaluation)
-        self.pattern = Pattern.create(expr.elements[0], evaluation=evaluation)
+        self.pattern = BasePattern.create(expr.elements[0], evaluation=evaluation)
 
     def match(self, yield_func, expression, vars, evaluation, **kwargs):
         # for new_vars, rest in self.pattern.match(
@@ -919,7 +920,7 @@ class HoldPattern(PatternObject):
         self.pattern.match(yield_func, expression, vars, evaluation)
 
 
-class Pattern_(PatternObject):
+class Pattern(PatternObject):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Pattern.html</url>
 
@@ -995,9 +996,9 @@ class Pattern_(PatternObject):
         varname = expr.elements[0].get_name()
         if varname is None or varname == "":
             self.error("patvar", expr)
-        super(Pattern_, self).init(expr, evaluation=evaluation)
+        super(Pattern, self).init(expr, evaluation=evaluation)
         self.varname = varname
-        self.pattern = Pattern.create(expr.elements[1], evaluation=evaluation)
+        self.pattern = BasePattern.create(expr.elements[1], evaluation=evaluation)
 
     def __repr__(self):
         return "<Pattern: %s>" % repr(self.pattern)
@@ -1099,7 +1100,7 @@ class Optional(BinaryOperator, PatternObject):
         self, expr: Expression, evaluation: OptionalType[Evaluation] = None
     ) -> None:
         super(Optional, self).init(expr, evaluation=evaluation)
-        self.pattern = Pattern.create(expr.elements[0], evaluation=evaluation)
+        self.pattern = BasePattern.create(expr.elements[0], evaluation=evaluation)
         if len(expr.elements) == 2:
             self.default = expr.elements[1]
         else:
@@ -1400,7 +1401,7 @@ class Repeated(PostfixOperator, PatternObject):
         min: int = 1,
         evaluation: OptionalType[Evaluation] = None,
     ):
-        self.pattern = Pattern.create(expr.elements[0], evaluation=evaluation)
+        self.pattern = BasePattern.create(expr.elements[0], evaluation=evaluation)
         self.max = None
         self.min = min
         if len(expr.elements) == 2:
@@ -1552,9 +1553,9 @@ class Condition(BinaryOperator, PatternObject):
         # if (expr.elements[0].get_head_name() == "System`Condition" and
         #    len(expr.elements[0].elements) == 2):
         #    self.test = Expression(SymbolAnd, self.test, expr.elements[0].elements[1])
-        #    self.pattern = Pattern.create(expr.elements[0].elements[0])
+        #    self.pattern = BasePattern.create(expr.elements[0].elements[0])
         # else:
-        self.pattern = Pattern.create(expr.elements[0], evaluation=evaluation)
+        self.pattern = BasePattern.create(expr.elements[0], evaluation=evaluation)
 
     def match(
         self,

@@ -46,7 +46,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import MACHINE_EPSILON, dps
-from mathics.core.rules import Pattern
+from mathics.core.rules import BasePattern
 from mathics.core.symbols import (
     BaseElement,
     Symbol,
@@ -228,7 +228,7 @@ class D(SympyFunction):
         if f == x:
             return Integer1
 
-        x_pattern = Pattern.create(x)
+        x_pattern = BasePattern.create(x)
         if f.is_free(x_pattern, evaluation):
             return Integer0
 
@@ -1917,7 +1917,7 @@ class SeriesData(Builtin):
             nummax.get_int_value(),
             den.get_int_value(),
         )
-        x_pattern = Pattern.create(x)
+        x_pattern = BasePattern.create(x)
         incompat_series = []
         max_exponent = Integer(int(series[2] / series[3] + 1))
         if coeff.get_head() is SymbolSequence:
@@ -2263,7 +2263,7 @@ class Solve(Builtin):
         vars = []
         vars_sympy = []
         for var, var_sympy in zip(all_vars, all_vars_sympy):
-            pattern = Pattern.create(var)
+            pattern = BasePattern.create(var)
             if not eqs.is_free(pattern, evaluation):
                 vars.append(var)
                 vars_sympy.append(var_sympy)
