@@ -1,5 +1,5 @@
 from mathics.core.evaluation import Evaluation
-from mathics.core.pattern import Pattern, StopGenerator
+from mathics.core.pattern import BasePattern, StopGenerator
 
 
 class _StopGeneratorMatchQ(StopGenerator):
@@ -8,10 +8,10 @@ class _StopGeneratorMatchQ(StopGenerator):
 
 class Matcher:
     def __init__(self, form):
-        if isinstance(form, Pattern):
+        if isinstance(form, BasePattern):
             self.form = form
         else:
-            self.form = Pattern.create(form)
+            self.form = BasePattern.create(form)
 
     def match(self, expr, evaluation: Evaluation):
         def yield_func(vars, rest):

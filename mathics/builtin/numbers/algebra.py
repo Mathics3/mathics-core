@@ -33,7 +33,7 @@ from mathics.core.expression_predefined import (
     MATHICS3_NEG_INFINITY,
 )
 from mathics.core.list import ListExpression
-from mathics.core.rules import Pattern
+from mathics.core.rules import BasePattern
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -549,11 +549,11 @@ class _CoefficientHandler(Builtin):
             else:
                 return [([], expr)]
         if len(var_exprs) == 1:
-            target_pat = Pattern.create(var_exprs[0])
+            target_pat = BasePattern.create(var_exprs[0])
             var_pats = [target_pat]
         else:
-            target_pat = Pattern.create(Expression(SymbolAlternatives, *var_exprs))
-            var_pats = [Pattern.create(var) for var in var_exprs]
+            target_pat = BasePattern.create(Expression(SymbolAlternatives, *var_exprs))
+            var_pats = [BasePattern.create(var) for var in var_exprs]
 
         # ###### Auxiliary functions #########
         def key_powers(lst: list) -> Union[int, float]:
@@ -1172,7 +1172,7 @@ class Expand(_Expand):
             return
 
         if target:
-            kwargs["pattern"] = Pattern.create(target)
+            kwargs["pattern"] = BasePattern.create(target)
         kwargs["evaluation"] = evaluation
         return expand(expr, True, False, **kwargs)
 
@@ -1235,7 +1235,7 @@ class ExpandAll(_Expand):
             return
 
         if target:
-            kwargs["pattern"] = Pattern.create(target)
+            kwargs["pattern"] = BasePattern.create(target)
         kwargs["evaluation"] = evaluation
         return expand(expr, numer=True, denom=True, deep=True, **kwargs)
 

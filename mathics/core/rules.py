@@ -57,7 +57,7 @@ from typing import Callable, Optional
 from mathics.core.element import BaseElement, KeyComparable
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.pattern import Pattern, StopGenerator
+from mathics.core.pattern import BasePattern, StopGenerator
 from mathics.core.symbols import strip_context
 
 
@@ -98,7 +98,7 @@ class BaseRule(KeyComparable, ABC):
         system: bool = False,
         evaluation: Optional[Evaluation] = None,
     ) -> None:
-        self.pattern = Pattern.create(pattern, evaluation=evaluation)
+        self.pattern = BasePattern.create(pattern, evaluation=evaluation)
         self.system = system
 
     def apply(

@@ -1,12 +1,17 @@
 # cython: language_level=3
 # cython: profile=False
 # -*- coding: utf-8 -*-
+"""Core to Mathics3 is are patterns which match symbolic expressions. A pattern are built up in a custon pattern notation.
+The parts of a pattern are called "Pattern Objects".
+
+While there is a built-in function which allows users to match parts of expressions, patterns are also used in applying of transformation
+rules and deciding functions that get applied.
+
+See also: mathics.core.rules and https://reference.wolfram.com/language/tutorial/PatternsAndTransformationRules.html
 """
-Basic classes for Patterns
-
-"""
 
 
+from abc import ABC
 from itertools import chain
 from typing import Callable, List, Optional, Tuple, Union
 
@@ -70,14 +75,14 @@ class StopGenerator_ExpressionPattern_match(StopGenerator):
 
 class StopGenerator_Pattern(StopGenerator):
     """
-    Exception raised when  Pattern matches
+    Exception raised when  BasePattern matches
     an expression.
     """
 
 
-class Pattern:
+class BasePattern(ABC):
     """
-    This is the base class for Mathics Pattern objects.
+    This is the base class for Mathics3 Pattern objects.
 
     A Pattern is a way to represent classes of expressions.
     For example, ``F[x_Symbol]`` is a pattern which matches an expression whose
@@ -87,11 +92,11 @@ class Pattern:
 
     expr: BaseElement
 
-    # TODO: In WMA, when a Pattern is created, the attributes
+    # TODO: In WMA, when a BasePattern is created, the attributes
     # from the head are read from the evaluation context and
     # stored as a part of a rule.
     #
-    # As Patterns are nested structures, the factory not only needs
+    # As BasePatterns are nested structures, the factory not only needs
     # the attributes of the head, but also the full evaluation context
     # which is needed to create patterns for its elements.
     #
@@ -112,7 +117,7 @@ class Pattern:
     # Also, when the initial Definitions object for the evaluation
     # context is created, many rules must be created without an
     # evaluation context available. For that case, we still
-    # must be able to create Patten objects without the evaluation context.
+    # must be able to create Pattern objects without the evaluation context.
     #
     # In any case, just by caching the attributes in the first use of
     # the pattern there is a win ~5% in performance.
@@ -121,11 +126,11 @@ class Pattern:
     # to specialize the match method.
     #
     #
-    # Corner case: `Alternaties`
-    # ==========================
+    # Corner case: `Alternatives`
+    # ===========================
     #
     # Notice also that the case of `Alternatives` is a corner case,
-    # where attributes are readed at the moment of the rule application:
+    # where attributes are read at the moment of the rule application:
     #
     # For example, in WMA, let's consider this example
     # ```
@@ -162,7 +167,9 @@ class Pattern:
     #
     #
     @staticmethod
-    def create(expr: BaseElement, evaluation: Optional[Evaluation] = None) -> "Pattern":
+    def create(
+        expr: BaseElement, evaluation: Optional[Evaluation] = None
+    ) -> "BasePattern":
         """
         If ``expr`` is listed in ``pattern_object``  return the pattern found there.
         Otherwise, if ``expr`` is an ``Atom``, create and return  ``AtomPattern`` for ``expr``.
@@ -227,9 +234,9 @@ class Pattern:
         expression: BaseElement,
         vars_dict: dict,
         evaluation: Evaluation,
-        head: Symbol = None,
-        element_index: int = None,
-        element_count: int = None,
+        head: Optional[Symbol] = None,
+        element_index: Optional[int] = None,
+        element_count: Optional[int] = None,
         fully: bool = True,
     ):
         """
@@ -255,8 +262,8 @@ class Pattern:
         vars_dict: Optional[dict] = None,
         fully: bool = True,
     ) -> bool:
-        """
-        returns True if `expression` matches self.
+        """returns True if `expression` matches self or we have
+        reached the end of the matches, and False if it does not.
         """
 
         if vars_dict is None:
@@ -307,7 +314,7 @@ class Pattern:
         return self.expr.sameQ(other.expr)
 
 
-class AtomPattern(Pattern):
+class AtomPattern(BasePattern):
     """
     A pattern that matches with an atom.
     """
@@ -387,7 +394,7 @@ class AtomPattern(Pattern):
 #    pass
 
 
-class ExpressionPattern(Pattern):
+class ExpressionPattern(BasePattern):
     """
     Pattern that matches with an Expression.
     """
@@ -404,8 +411,8 @@ class ExpressionPattern(Pattern):
             None if evaluation is None else head.get_attributes(evaluation.definition)
         )
         self.__set_pattern_attributes__(attributes)
-        self.head = Pattern.create(head)
-        self.elements = [Pattern.create(element) for element in expr.elements]
+        self.head = BasePattern.create(head)
+        self.elements = [BasePattern.create(element) for element in expr.elements]
 
     def __set_pattern_attributes__(self, attributes):
         if attributes is None or self.attributes is not None:

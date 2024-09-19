@@ -13,7 +13,7 @@ from itertools import permutations
 from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import Integer, is_integer_rational_or_real
 from mathics.core.attributes import A_HOLD_FIRST, A_LISTABLE, A_LOCKED, A_PROTECTED
-from mathics.core.builtin import Builtin, IterationFunction, Pattern
+from mathics.core.builtin import BasePattern, Builtin, IterationFunction
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import ElementsProperties
@@ -431,7 +431,7 @@ class Reap(Builtin):
         "Reap[expr_, {patterns___}, f_]"
 
         patterns = patterns.get_sequence()
-        sown = [(Pattern.create(pattern), []) for pattern in patterns]
+        sown = [(BasePattern.create(pattern), []) for pattern in patterns]
 
         def listener(e, tag):
             result = False
