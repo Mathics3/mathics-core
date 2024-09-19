@@ -701,6 +701,7 @@ def match_expression_with_one_identity(
 
     # This tries to reduce the pattern to a non empty
     # set of default values, and a single pattern.
+    from mathics.builtin.patterns import Pattern
 
     self: ExpressionPattern = parms["self"]
     vars_dict: dict = parms["vars_dict"]
@@ -721,7 +722,7 @@ def match_expression_with_one_identity(
         elif pat_elem.get_head_name() == "System`Optional":
             if len(pat_elem.elements) == 2:
                 pat, value = pat_elem.elements
-                if pat.get_head_name() == "System`Pattern":
+                if isinstance(pat, Pattern):
                     key = pat.elements[0].atom.name
                 else:
                     # if the first element of the Optional
@@ -731,7 +732,7 @@ def match_expression_with_one_identity(
                 optionals[key] = value
             elif len(pat_elem.elements) == 1:
                 pat = pat_elem.elements[0]
-                if pat.get_head_name() == "System`Pattern":
+                if isinstance(pat, Pattern):
                     key = pat.elements[0].atom.name
                 else:
                     key = ""
@@ -893,12 +894,13 @@ def expression_pattern_match_element_orderless(
     # otherwise, constructing a set() is very slow for large lists.
     # performance test case:
     # x = Range[100000]; Timing[Combinatorica`BinarySearch[x, 100]]
+    from mathics.builtin.patterns import Pattern
 
     element: BaseElement = parms["element"]
     element_candidates = set(element_candidates)  # for fast lookup
 
     sets = None
-    if element.get_head_name() == "System`Pattern":
+    if isinstance(element, Pattern):
         varname = element.elements[0].get_name()
         existing = parms["vars_dict"].get(varname, None)
         if existing is not None:
