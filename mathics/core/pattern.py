@@ -2,11 +2,14 @@
 # cython: profile=False
 # -*- coding: utf-8 -*-
 """
-Basic classes for Patterns
+Core to Mathics3 is are patterns which match symbol expressions. While there are built-in function which allow
+users to match parts of expressions, patterns are also used in applying of transformation rules and deciding functiosn get applied.
 
+See also: mathics.core.rules and https://reference.wolfram.com/language/tutorial/PatternsAndTransformationRules.html
 """
 
 
+from abc import ABC
 from itertools import chain
 from typing import Callable, List, Optional, Tuple, Union
 
@@ -75,9 +78,9 @@ class StopGenerator_Pattern(StopGenerator):
     """
 
 
-class Pattern:
+class Pattern(ABC):
     """
-    This is the base class for Mathics Pattern objects.
+    This is the base class for Mathics3 Pattern objects.
 
     A Pattern is a way to represent classes of expressions.
     For example, ``F[x_Symbol]`` is a pattern which matches an expression whose
@@ -121,8 +124,8 @@ class Pattern:
     # to specialize the match method.
     #
     #
-    # Corner case: `Alternaties`
-    # ==========================
+    # Corner case: `Alternatives`
+    # ===========================
     #
     # Notice also that the case of `Alternatives` is a corner case,
     # where attributes are readed at the moment of the rule application:
@@ -227,9 +230,9 @@ class Pattern:
         expression: BaseElement,
         vars_dict: dict,
         evaluation: Evaluation,
-        head: Symbol = None,
-        element_index: int = None,
-        element_count: int = None,
+        head: Optional[Symbol] = None,
+        element_index: Optional[int] = None,
+        element_count: Optional[int] = None,
         fully: bool = True,
     ):
         """
@@ -255,8 +258,8 @@ class Pattern:
         vars_dict: Optional[dict] = None,
         fully: bool = True,
     ) -> bool:
-        """
-        returns True if `expression` matches self.
+        """returns True if `expression` matches self or we have
+        reached the end fo the matches, and False if it does not.
         """
 
         if vars_dict is None:
