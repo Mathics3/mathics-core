@@ -4,7 +4,6 @@
 File and Stream Operations
 """
 
-import builtins
 import io
 import os.path as osp
 import tempfile
@@ -46,10 +45,11 @@ from mathics.core.systemsymbols import (
     SymbolReal,
 )
 from mathics.eval.directories import TMP_DIR
-from mathics.eval.files_io.files import eval_Get
+from mathics.eval.files_io.files import eval_Get, print_line_number_and_text
 from mathics.eval.makeboxes import do_format, format_element
 
 # TODO: Improve docs for these Read[] arguments.
+
 
 # ## FIXME: All of this is related to Read[]
 # ## it can be moved somewhere else.
@@ -332,20 +332,6 @@ class FilePrint(Builtin):
         return SymbolNull
 
 
-class Number_(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Number.html</url>
-
-    <dl>
-    <dt>'Number'
-      <dd>is a data type for 'Read'.
-    </dl>
-    """
-
-    name = "Number"
-    summary_text = "exact or approximate number in Fortran‐like notation"
-
-
 class Get(PrefixOperator):
     r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/Get.html</url>
@@ -356,7 +342,10 @@ class Get(PrefixOperator):
 
       <dt>'Get[$name$, Trace->True]'
       <dd>Runs Get tracing each line before it is evaluated.
+
+     'Settings`$TraceGet' can be also used to trace lines on all 'Get[]' calls.
     </dl>
+
 
     S> filename = $TemporaryDirectory <> "/example_file";
     S> Put[x + y, filename]
@@ -373,6 +362,7 @@ class Get(PrefixOperator):
     ## 'Get' can also load packages:
     ## >> << "VectorAnalysis`"
     """
+
     operator = "<<"
     options = {
         "Trace": "False",
@@ -382,22 +372,16 @@ class Get(PrefixOperator):
     def eval(self, path: String, evaluation: Evaluation, options: dict):
         "Get[path_String, OptionsPattern[Get]]"
 
-        trace_fn = None
+        trace_fn = mathics.eval.files_io.files.DEFAULT_TRACE_FN
         trace_get = evaluation.parse("Settings`$TraceGet")
         if (
             options["System`Trace"].to_python()
             or trace_get.evaluate(evaluation) is SymbolTrue
         ):
-            trace_fn = builtins.print
+            trace_fn = print_line_number_and_text
 
         # perform the actual evaluation
         return eval_Get(path.value, evaluation, trace_fn)
-
-    def eval_default(self, filename, evaluation: Evaluation):
-        "Get[filename_]"
-        expr = to_expression("Get", filename)
-        evaluation.message("General", "stream", filename)
-        return expr
 
 
 class InputFileName_(Predefined):
@@ -442,6 +426,20 @@ class InputStream(Builtin):
     """
 
     summary_text = "an input stream"
+
+
+class Number_(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Number.html</url>
+
+    <dl>
+    <dt>'Number'
+      <dd>is a data type for 'Read'.
+    </dl>
+    """
+
+    name = "Number"
+    summary_text = "exact or approximate number in Fortran‐like notation"
 
 
 class OpenRead(_OpenAction):
@@ -900,12 +898,14 @@ class Read(Builtin):
         # TODO: look for a better implementation handling "Hold[Expression]".
         #
         types = (
-            Symbol("HoldExpression")
-            if (
-                typ.get_head_name() == "System`Hold"
-                and typ.elements[0].get_name() == "System`Expression"
+            (
+                Symbol("HoldExpression")
+                if (
+                    typ.get_head_name() == "System`Hold"
+                    and typ.elements[0].get_name() == "System`Expression"
+                )
+                else typ
             )
-            else typ
             for typ in types
         )
         types = to_mathics_list(*types)

@@ -8,7 +8,7 @@ import os.path as osp
 import sys
 import tempfile
 from io import open as io_open
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 
 import requests
 
@@ -16,7 +16,12 @@ from mathics.core.util import canonic_filename
 from mathics.settings import ROOT_DIR
 
 HOME_DIR = osp.expanduser("~")
-PATH_VAR = [".", HOME_DIR, osp.join(ROOT_DIR, "data"), osp.join(ROOT_DIR, "packages")]
+PATH_VAR: List[str] = [
+    ".",
+    HOME_DIR,
+    osp.join(ROOT_DIR, "data"),
+    osp.join(ROOT_DIR, "packages"),
+]
 
 
 def create_temporary_file(prefix="Mathics3-", suffix=None, delete=True):
