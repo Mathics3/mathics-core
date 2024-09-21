@@ -208,9 +208,10 @@ class BasePattern(ABC):
         """
         return self.expr.get_lookup_name()
 
-    def get_name(self):
+    def get_name(self, short=False) -> str:
         """Return the name of the expression."""
-        return self.expr.get_name()
+        name = self.expr.get_name()
+        return name.split("`")[-1] if short else name
 
     def get_sequence(self):
         """The sequence of elements in the expression"""
