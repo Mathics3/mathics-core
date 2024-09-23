@@ -30,6 +30,7 @@ from mathics.core.parser import MathicsMultiLineFeeder, parse
 from mathics.core.streams import path_search, stream_manager
 from mathics.core.symbols import Symbol, SymbolFullForm, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
+    SymbolEndOfFile,
     SymbolFailed,
     SymbolHold,
     SymbolHoldExpression,
@@ -44,7 +45,6 @@ from mathics.eval.files_io.files import eval_Get
 from mathics.eval.files_io.read import (
     READ_TYPES,
     MathicsOpen,
-    SymbolEndOfFile,
     channel_to_stream,
     close_stream,
     read_from_stream,
