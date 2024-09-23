@@ -3,9 +3,11 @@ Functions to support Read[]
 """
 
 import io
+from typing import Optional, Tuple
 
 from mathics.builtin.atomic.strings import to_python_encoding
 from mathics.core.atoms import Integer, String
+from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -13,9 +15,14 @@ from mathics.core.streams import Stream, path_search, stream_manager
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
     SymbolEndOfFile,
+    SymbolHoldExpression,
     SymbolInputStream,
     SymbolOutputStream,
+    SymbolReal,
 )
+
+# TODO: Improve docs for these Read[] arguments.
+
 
 READ_TYPES = [
     Symbol(k)
@@ -23,18 +30,12 @@ READ_TYPES = [
         "Byte",
         "Character",
         "Expression",
-        "HoldExpression",
         "Number",
-        "Real",
         "Record",
         "String",
         "Word",
     ]
-]
-
-
-# ### FIXME: All of this is related to Read[]
-# ### it can be moved somewhere else.
+] + [SymbolHoldExpression, SymbolReal]
 
 
 class MathicsOpen(Stream):
@@ -130,7 +131,7 @@ def close_stream(stream: Stream, stream_number: int):
     stream_manager.delete(stream_number)
 
 
-def read_name_and_stream_from_channel(channel, evaluation):
+def read_name_and_stream_from_channel(channel, evaluation: Evaluation):
     if channel.has_form("OutputStream", 2):
         evaluation.message("General", "openw", channel)
         return None, None, None
@@ -168,7 +169,7 @@ def read_list_from_types(read_types):
     # TODO: look for a better implementation handling "Hold[Expression]".
     #
     read_types = (
-        Symbol("HoldExpression")
+        SymbolHoldExpression
         if (
             typ.get_head_name() == "System`Hold"
             and typ.elements[0].get_name() == "System`Expression"
@@ -180,7 +181,7 @@ def read_list_from_types(read_types):
     return ListExpression(*read_types)
 
 
-def read_check_options(options: dict) -> dict:
+def read_check_options(options: dict, evaluation: Evaluation) -> Optional[dict]:
     # Options
     # TODO Proper error messages
 
@@ -238,24 +239,30 @@ def read_check_options(options: dict) -> dict:
     # TokenWords
     if "System`TokenWords" in keys:
         token_words = options["System`TokenWords"].to_python()
-        assert token_words == []
+        if not (isinstance(token_words, list) or isinstance(token_words, String)):
+            evaluation.message("ReadList", "opstl", token_words)
+            return None
         result["TokenWords"] = token_words
 
     return result
 
 
-def read_get_separators(options):
+def read_get_separators(
+    options, evaluation: Evaluation
+) -> Optional[Tuple[dict, dict, dict]]:
     """Get record and word separators from apply "options"."""
     # Options
     # TODO Implement extra options
-    py_options = read_check_options(options)
+    py_options = read_check_options(options, evaluation)
+    if py_options is None:
+        return None
     # null_records = py_options['NullRecords']
     # null_words = py_options['NullWords']
     record_separators = py_options["RecordSeparators"]
-    # token_words = py_options['TokenWords']
+    token_words = py_options.get("TokenWords", {})
     word_separators = py_options["WordSeparators"]
 
-    return record_separators, word_separators
+    return record_separators, token_words, word_separators
 
 
 def read_from_stream(stream, word_separators, msgfn, accepted=None):

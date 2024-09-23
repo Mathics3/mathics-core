@@ -11,10 +11,10 @@ import mathics
 from mathics.core.builtin import MessageException
 from mathics.core.evaluation import Evaluation
 from mathics.core.parser import MathicsFileLineFeeder, parse
-from mathics.core.read import MathicsOpen
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed, SymbolPath
 from mathics.core.util import canonic_filename
+from mathics.eval.files_io.read import MathicsOpen
 
 # Python representation of $InputFileName.  On Windows platforms, we
 # canonicalize this to its Posix equivalent name.

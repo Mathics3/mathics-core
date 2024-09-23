@@ -10,6 +10,8 @@ import os.path as osp
 import tempfile
 from io import BytesIO
 
+from mathics_scanner.errors import IncompleteSyntaxError, InvalidSyntaxError
+
 import mathics.eval.files_io.files
 from mathics.core.atoms import Integer, String, SymbolString
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
@@ -23,8 +25,23 @@ from mathics.core.builtin import (
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import BoxError, Expression
-from mathics.core.read import (
+from mathics.core.expression import BaseElement, BoxError, Expression
+from mathics.core.parser import MathicsMultiLineFeeder, parse
+from mathics.core.streams import path_search, stream_manager
+from mathics.core.symbols import Symbol, SymbolFullForm, SymbolNull, SymbolTrue
+from mathics.core.systemsymbols import (
+    SymbolFailed,
+    SymbolHold,
+    SymbolHoldExpression,
+    SymbolInputForm,
+    SymbolInputStream,
+    SymbolOutputForm,
+    SymbolOutputStream,
+    SymbolReal,
+)
+from mathics.eval.directories import TMP_DIR
+from mathics.eval.files_io.files import eval_Get
+from mathics.eval.files_io.read import (
     READ_TYPES,
     MathicsOpen,
     SymbolEndOfFile,
@@ -34,25 +51,7 @@ from mathics.core.read import (
     read_get_separators,
     read_name_and_stream_from_channel,
 )
-from mathics.core.streams import path_search, stream_manager
-from mathics.core.symbols import Symbol, SymbolFullForm, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolFailed,
-    SymbolHold,
-    SymbolInputForm,
-    SymbolInputStream,
-    SymbolOutputForm,
-    SymbolOutputStream,
-    SymbolReal,
-)
-from mathics.eval.directories import TMP_DIR
-from mathics.eval.files_io.files import eval_Get
 from mathics.eval.makeboxes import do_format, format_element
-
-# TODO: Improve docs for these Read[] arguments.
-
-# ## FIXME: All of this is related to Read[]
-# ## it can be moved somewhere else.
 
 
 class Input_(Predefined):
@@ -373,6 +372,7 @@ class Get(PrefixOperator):
     ## 'Get' can also load packages:
     ## >> << "VectorAnalysis`"
     """
+
     operator = "<<"
     options = {
         "Trace": "False",
@@ -819,7 +819,7 @@ class Read(Builtin):
     }
     summary_text = "read an object of the specified type from a stream"
 
-    def check_options(self, options):
+    def check_options(self, options) -> dict:
         # Options
         # TODO Proper error messages
 
@@ -900,12 +900,14 @@ class Read(Builtin):
         # TODO: look for a better implementation handling "Hold[Expression]".
         #
         types = (
-            Symbol("HoldExpression")
-            if (
-                typ.get_head_name() == "System`Hold"
-                and typ.elements[0].get_name() == "System`Expression"
+            (
+                SymbolHoldExpression
+                if (
+                    typ.get_head_name() == "System`Hold"
+                    and typ.elements[0].get_name() == "System`Expression"
+                )
+                else typ
             )
-            else typ
             for typ in types
         )
         types = to_mathics_list(*types)
@@ -915,7 +917,11 @@ class Read(Builtin):
                 evaluation.message("Read", "readf", typ)
                 return SymbolFailed
 
-        record_separators, word_separators = read_get_separators(options)
+        separators = read_get_separators(options, evaluation)
+        if separators is None:
+            return
+
+        record_separators, token_words, word_separators = separators
 
         name = name.to_python()
 
@@ -936,11 +942,6 @@ class Read(Builtin):
             ["+", "-", ".", "e", "E", "^", "*"] + [str(i) for i in range(10)],
         )
 
-        from mathics_scanner.errors import IncompleteSyntaxError, InvalidSyntaxError
-
-        from mathics.core.expression import BaseElement
-        from mathics.core.parser import MathicsMultiLineFeeder, parse
-
         for typ in types.elements:
             try:
                 if typ is Symbol("Byte"):
@@ -953,7 +954,7 @@ class Read(Builtin):
                     if tmp == "":
                         raise EOFError
                     result.append(tmp)
-                elif typ is Symbol("Expression") or typ is Symbol("HoldExpression"):
+                elif typ is Symbol("Expression") or typ is SymbolHoldExpression:
                     tmp = next(read_record)
                     while True:
                         try:
@@ -976,7 +977,7 @@ class Read(Builtin):
                         )
                         return SymbolFailed
                     elif isinstance(expr, BaseElement):
-                        if typ is Symbol("HoldExpression"):
+                        if typ is SymbolHoldExpression:
                             expr = Expression(SymbolHold, expr)
                         result.append(expr)
                     # else:
@@ -1084,16 +1085,16 @@ class ReadList(Read):
     >> InputForm[%]
      = {123, abc}
     """
-    rules = {
-        "ReadList[stream_]": "ReadList[stream, Expression]",
-    }
-
+    messages = {"opstl": "Value of option `1` should be a string or a list of strings."}
     options = {
         "NullRecords": "False",
         "NullWords": "False",
         "RecordSeparators": '{"\r\n", "\n", "\r"}',
         "TokenWords": "{}",
         "WordSeparators": '{" ", "\t"}',
+    }
+    rules = {
+        "ReadList[stream_]": "ReadList[stream, Expression]",
     }
     summary_text = "read a sequence of elements from a file, and put them in a WL list"
 
@@ -1124,8 +1125,8 @@ class ReadList(Read):
             result.append(tmp)
         return from_python(result)
 
-    def eval_m(self, channel, types, m, evaluation: Evaluation, options: dict):
-        "ReadList[channel_, types_, m_, OptionsPattern[ReadList]]"
+    def eval_n(self, channel, types, n: Integer, evaluation: Evaluation, options: dict):
+        "ReadList[channel_, types_, n_Integer, OptionsPattern[ReadList]]"
 
         # Options
         # TODO: Implement extra options
@@ -1136,15 +1137,15 @@ class ReadList(Read):
         # token_words = py_options['TokenWords']
         # word_separators = py_options['WordSeparators']
 
-        py_m = m.get_int_value()
-        if py_m < 0:
+        py_n = n.get_int_value()
+        if py_n < 0:
             evaluation.message(
                 "ReadList", "intnm", to_expression("ReadList", channel, types, m)
             )
             return
 
         result = []
-        for i in range(py_m):
+        for i in range(py_n):
             tmp = super(ReadList, self).eval(channel, types, evaluation, options)
 
             if tmp is SymbolFailed:
