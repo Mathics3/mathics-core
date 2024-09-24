@@ -3,7 +3,7 @@ Functions to support Read[]
 """
 
 import io
-from typing import Optional, Tuple
+from typing import Callable, Optional, Tuple
 
 from mathics.builtin.atomic.strings import to_python_encoding
 from mathics.core.atoms import Integer, String
@@ -77,7 +77,7 @@ class MathicsOpen(Stream):
         if path is None and self.mode in ["w", "a", "wb", "ab"]:
             path = self.name
         if path is None:
-            raise IOError
+            raise IOError(self.name)
 
         # Open the file
         self.fp = io.open(path, self.mode, encoding=self.encoding)
@@ -120,6 +120,73 @@ def channel_to_stream(channel, mode="r"):
         return channel
     else:
         return None
+
+
+def parse_read_options(options) -> dict:
+    """
+    Parses and checks Read[] or ReadList[] options
+    """
+    # Options
+    # TODO Proper error messages
+
+    result = {}
+    keys = list(options.keys())
+
+    # AnchoredSearch
+    if "System`AnchoredSearch" in keys:
+        anchored_search = options["System`AnchoredSearch"].to_python()
+        assert anchored_search in [True, False]
+        result["AnchoredSearch"] = anchored_search
+
+    # IgnoreCase
+    if "System`IgnoreCase" in keys:
+        ignore_case = options["System`IgnoreCase"].to_python()
+        assert ignore_case in [True, False]
+        result["IgnoreCase"] = ignore_case
+
+    # WordSearch
+    if "System`WordSearch" in keys:
+        word_search = options["System`WordSearch"].to_python()
+        assert word_search in [True, False]
+        result["WordSearch"] = word_search
+
+    # RecordSeparators
+    if "System`RecordSeparators" in keys:
+        record_separators = options["System`RecordSeparators"].to_python()
+        assert isinstance(record_separators, list)
+        assert all(
+            isinstance(s, str) and s[0] == s[-1] == '"' for s in record_separators
+        )
+        record_separators = [s[1:-1] for s in record_separators]
+        result["RecordSeparators"] = record_separators
+
+    # WordSeparators
+    if "System`WordSeparators" in keys:
+        word_separators = options["System`WordSeparators"].to_python()
+        assert isinstance(word_separators, list)
+        assert all(isinstance(s, str) and s[0] == s[-1] == '"' for s in word_separators)
+        word_separators = [s[1:-1] for s in word_separators]
+        result["WordSeparators"] = word_separators
+
+    # NullRecords
+    if "System`NullRecords" in keys:
+        null_records = options["System`NullRecords"].to_python()
+        assert null_records in [True, False]
+        result["NullRecords"] = null_records
+
+    # NullWords
+    if "System`NullWords" in keys:
+        null_words = options["System`NullWords"].to_python()
+        assert null_words in [True, False]
+        result["NullWords"] = null_words
+
+    # TokenWords
+    if "System`TokenWords" in keys:
+        token_words = options["System`TokenWords"].to_python()
+        assert token_words == []
+        result["TokenWords"] = token_words
+
+    return result
 
 
 def close_stream(stream: Stream, stream_number: int):
@@ -242,6 +309,7 @@ def read_check_options(options: dict, evaluation: Evaluation) -> Optional[dict]:
         if not (isinstance(token_words, list) or isinstance(token_words, String)):
             evaluation.message("ReadList", "opstl", token_words)
             return None
+        # from trepan.api import debug; debug()
         result["TokenWords"] = token_words
 
     return result
@@ -265,13 +333,17 @@ def read_get_separators(
     return record_separators, token_words, word_separators
 
 
-def read_from_stream(stream, word_separators, msgfn, accepted=None):
+def read_from_stream(
+    stream, word_separators: list, token_words: list, msgfn: Callable, accepted=None
+):
     """
     This is a generator that returns "words" from stream deliminated by
-    "word_separators"
+    "word_separators" or "token_words".
     """
+    # from trepan.api import debug; debug()
     while True:
         word = ""
+        some_token_word_prefix = ""
         while True:
             try:
                 tmp = stream.io.read(1)
@@ -304,15 +376,25 @@ def read_from_stream(stream, word_separators, msgfn, accepted=None):
                     continue
                 if stream.io.seekable():
                     stream.io.seek(stream.io.tell() - 1)
+                word += some_token_word_prefix
                 last_word = word
                 word = ""
+                some_token_word_prefix = ""
                 yield last_word
                 break
 
             if accepted is not None and tmp not in accepted:
+                word += some_token_word_prefix
                 last_word = word
                 word = ""
+                some_token_word_prefix = ""
                 yield last_word
                 break
 
-            word += tmp
+            some_token_word_prefix += tmp
+            for token_word in token_words:
+                if token_word == some_token_word_prefix:
+                    continue
+            else:
+                word += some_token_word_prefix
+                some_token_word_prefix = ""

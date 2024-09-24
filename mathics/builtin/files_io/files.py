@@ -798,6 +798,7 @@ class Read(Builtin):
 
     messages = {
         "openx": "`1` is not open.",
+        "noopen": "Cannot open `1`.",
         "readf": "`1` is not a valid format specification.",
         "readn": "Invalid real number found when reading from `1`.",
         "readt": "Invalid input found when reading `1` from `2`.",
@@ -819,75 +820,15 @@ class Read(Builtin):
     }
     summary_text = "read an object of the specified type from a stream"
 
-    def check_options(self, options) -> dict:
-        # Options
-        # TODO Proper error messages
-
-        result = {}
-        keys = list(options.keys())
-
-        # AnchoredSearch
-        if "System`AnchoredSearch" in keys:
-            anchored_search = options["System`AnchoredSearch"].to_python()
-            assert anchored_search in [True, False]
-            result["AnchoredSearch"] = anchored_search
-
-        # IgnoreCase
-        if "System`IgnoreCase" in keys:
-            ignore_case = options["System`IgnoreCase"].to_python()
-            assert ignore_case in [True, False]
-            result["IgnoreCase"] = ignore_case
-
-        # WordSearch
-        if "System`WordSearch" in keys:
-            word_search = options["System`WordSearch"].to_python()
-            assert word_search in [True, False]
-            result["WordSearch"] = word_search
-
-        # RecordSeparators
-        if "System`RecordSeparators" in keys:
-            record_separators = options["System`RecordSeparators"].to_python()
-            assert isinstance(record_separators, list)
-            assert all(
-                isinstance(s, str) and s[0] == s[-1] == '"' for s in record_separators
-            )
-            record_separators = [s[1:-1] for s in record_separators]
-            result["RecordSeparators"] = record_separators
-
-        # WordSeparators
-        if "System`WordSeparators" in keys:
-            word_separators = options["System`WordSeparators"].to_python()
-            assert isinstance(word_separators, list)
-            assert all(
-                isinstance(s, str) and s[0] == s[-1] == '"' for s in word_separators
-            )
-            word_separators = [s[1:-1] for s in word_separators]
-            result["WordSeparators"] = word_separators
-
-        # NullRecords
-        if "System`NullRecords" in keys:
-            null_records = options["System`NullRecords"].to_python()
-            assert null_records in [True, False]
-            result["NullRecords"] = null_records
-
-        # NullWords
-        if "System`NullWords" in keys:
-            null_words = options["System`NullWords"].to_python()
-            assert null_words in [True, False]
-            result["NullWords"] = null_words
-
-        # TokenWords
-        if "System`TokenWords" in keys:
-            token_words = options["System`TokenWords"].to_python()
-            assert token_words == []
-            result["TokenWords"] = token_words
-
-        return result
-
     def eval(self, channel, types, evaluation: Evaluation, options: dict):
         "Read[channel_, types_, OptionsPattern[Read]]"
 
-        name, n, stream = read_name_and_stream_from_channel(channel, evaluation)
+        try:
+            name, n, stream = read_name_and_stream_from_channel(channel, evaluation)
+        except IOError as e:
+            evaluation.message("Read", "noopen", str(e))
+            return SymbolFailed
+
         if name is None:
             return
 
@@ -927,17 +868,23 @@ class Read(Builtin):
 
         result = []
 
-        read_word = read_from_stream(stream, word_separators, evaluation.message)
-        read_record = read_from_stream(stream, record_separators, evaluation.message)
+        read_word = read_from_stream(
+            stream, word_separators, token_words, evaluation.message
+        )
+        read_record = read_from_stream(
+            stream, record_separators, token_words, evaluation.message
+        )
         read_number = read_from_stream(
             stream,
             word_separators + record_separators,
+            token_words,
             evaluation.message,
             ["+", "-", "."] + [str(i) for i in range(10)],
         )
         read_real = read_from_stream(
             stream,
             word_separators + record_separators,
+            token_words,
             evaluation.message,
             ["+", "-", ".", "e", "E", "^", "*"] + [str(i) for i in range(10)],
         )
@@ -1103,7 +1050,7 @@ class ReadList(Read):
 
         # Options
         # TODO: Implement extra options
-        # py_options = self.check_options(options)
+        # py_options = parse_read_options(options)
         # null_records = py_options['NullRecords']
         # null_words = py_options['NullWords']
         # record_separators = py_options['RecordSeparators']
@@ -1130,7 +1077,7 @@ class ReadList(Read):
 
         # Options
         # TODO: Implement extra options
-        # py_options = self.check_options(options)
+        # py_options = parse_read_options(options)
         # null_records = py_options['NullRecords']
         # null_words = py_options['NullWords']
         # record_separators = py_options['RecordSeparators']
@@ -1337,7 +1284,7 @@ class Skip(Read):
 
         # Options
         # TODO Implement extra options
-        # py_options = self.check_options(options)
+        # py_options = parse_read_options(options)
         # null_records = py_options['NullRecords']
         # null_words = py_options['NullWords']
         # record_separators = py_options['RecordSeparators']
@@ -1399,7 +1346,7 @@ class Find(Read):
 
         # Options
         # TODO Implement extra options
-        # py_options = self.check_options(options)
+        # py_options = parse_read_options(options)
         # anchored_search = py_options['AnchoredSearch']
         # ignore_case = py_options['IgnoreCase']
         # word_search = py_options['WordSearch']
