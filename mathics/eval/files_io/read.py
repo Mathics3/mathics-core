@@ -15,6 +15,7 @@ from mathics.core.streams import Stream, path_search, stream_manager
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
     SymbolEndOfFile,
+    SymbolFailed,
     SymbolHoldExpression,
     SymbolInputStream,
     SymbolOutputStream,
@@ -198,30 +199,37 @@ def close_stream(stream: Stream, stream_number: int):
     stream_manager.delete(stream_number)
 
 
-def read_name_and_stream_from_channel(channel, evaluation: Evaluation):
+def read_name_and_stream_from_channel(channel, evaluation: Evaluation) -> tuple:
     if channel.has_form("OutputStream", 2):
         evaluation.message("General", "openw", channel)
         return None, None, None
 
-    strm = channel_to_stream(channel, "r")
+    try:
+        strm = channel_to_stream(channel, "r")
 
-    if strm is None:
-        return None, None, None
+        if strm is None:
+            return None, None, None
 
-    name, n = strm.elements
+        name, n = strm.elements
 
-    stream = stream_manager.lookup_stream(n.get_int_value())
-    if stream is None:
-        evaluation.message("Read", "openx", strm)
-        return None, None, None
+        stream = stream_manager.lookup_stream(n.get_int_value())
+        if stream is None:
+            evaluation.message("Read", "openx", strm)
+            return SymbolFailed, None, None
 
-    if stream.io is None:
-        stream.__enter__()
+        if stream.io is None:
+            stream.__enter__()
 
-    if stream.io.closed:
-        evaluation.message("Read", "openx", strm)
-        return None, None, None
-    return name, n, stream
+        if stream.io.closed:
+            evaluation.message("Read", "openx", strm)
+            return SymbolFailed, None, None
+
+        name_str = name.to_python()
+        return name_str, n, stream
+
+    except IOError as e:
+        evaluation.message("Read", "noopen", str(e))
+        return SymbolFailed, None, None
 
 
 def read_list_from_types(read_types):

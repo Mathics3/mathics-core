@@ -814,17 +814,14 @@ class Read(Builtin):
     def eval(self, channel, types, evaluation: Evaluation, options: dict):
         "Read[channel_, types_, OptionsPattern[Read]]"
 
-        try:
-            name, n, stream = read_name_and_stream_from_channel(channel, evaluation)
-        except IOError as e:
-            evaluation.message("Read", "noopen", str(e))
-            return SymbolFailed
+        name, n, stream = read_name_and_stream_from_channel(channel, evaluation)
 
         if name is None:
             return
+        elif name == SymbolFailed:
+            return SymbolFailed
 
-        name_str = name.to_python()
-        return eval_Read(name_str, n, types, stream, evaluation, options)
+        return eval_Read(name, n, types, stream, evaluation)
 
     def eval_nostream(self, arg1, arg2, evaluation):
         "Read[arg1_, arg2_]"
@@ -906,8 +903,15 @@ class ReadList(Read):
         # word_separators = py_options['WordSeparators']
 
         result = []
+        name, n, stream = read_name_and_stream_from_channel(channel, evaluation)
+
+        if name is None:
+            return
+        elif name == SymbolFailed:
+            return SymbolFailed
+
         while True:
-            tmp = super(ReadList, self).eval(channel, types, evaluation, options)
+            tmp = eval_Read(name, n, types, stream, evaluation, options)
 
             if tmp is None:
                 return

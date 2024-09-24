@@ -139,7 +139,7 @@ def eval_Read(name: str, n: int, types, stream, evaluation: Evaluation, options:
     result = []
 
     read_word = read_from_stream(
-        stream, word_separators, token_words, evaluation.message
+        stream, word_separators + record_separators, token_words, evaluation.message
     )
     read_record = read_from_stream(
         stream, record_separators, token_words, evaluation.message
