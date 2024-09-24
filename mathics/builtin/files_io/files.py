@@ -432,6 +432,9 @@ class InputStream(Builtin):
      = String
     """
 
+    messages = {
+        "intpm": "Positive machine-sized integer expected at position 2 of `1`",
+    }
     summary_text = "an input stream"
 
 
@@ -821,7 +824,7 @@ class Read(Builtin):
         elif name == SymbolFailed:
             return SymbolFailed
 
-        return eval_Read(name, n, types, stream, evaluation)
+        return eval_Read(name, n, types, stream, evaluation, options)
 
     def eval_nostream(self, arg1, arg2, evaluation):
         "Read[arg1_, arg2_]"

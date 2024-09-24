@@ -212,6 +212,10 @@ def read_name_and_stream_from_channel(channel, evaluation: Evaluation) -> tuple:
 
         name, n = strm.elements
 
+        if n.value < 0:
+            evaluation.message("InputStream", "intpm", strm)
+            return None, None, None
+
         stream = stream_manager.lookup_stream(n.get_int_value())
         if stream is None:
             evaluation.message("Read", "openx", strm)
