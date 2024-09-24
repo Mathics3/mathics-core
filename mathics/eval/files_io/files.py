@@ -6,15 +6,31 @@ File related evaluation functions.
 from typing import Callable, Optional
 
 from mathics_scanner import TranslateError
+from mathics_scanner.errors import IncompleteSyntaxError, InvalidSyntaxError
 
 import mathics
 from mathics.core.builtin import MessageException
+from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
-from mathics.core.parser import MathicsFileLineFeeder, parse
-from mathics.core.symbols import SymbolNull
-from mathics.core.systemsymbols import SymbolFailed, SymbolPath
+from mathics.core.expression import BaseElement, Expression
+from mathics.core.parser import MathicsFileLineFeeder, MathicsMultiLineFeeder, parse
+from mathics.core.symbols import Symbol, SymbolNull
+from mathics.core.systemsymbols import (
+    SymbolEndOfFile,
+    SymbolFailed,
+    SymbolHold,
+    SymbolHoldExpression,
+    SymbolPath,
+    SymbolReal,
+)
 from mathics.core.util import canonic_filename
-from mathics.eval.files_io.read import MathicsOpen
+from mathics.eval.files_io.read import (
+    READ_TYPES,
+    MathicsOpen,
+    read_from_stream,
+    read_get_separators,
+)
 
 # Python representation of $InputFileName.  On Windows platforms, we
 # canonicalize this to its Posix equivalent name.
@@ -83,3 +99,151 @@ def eval_Get(path: str, evaluation: Evaluation, trace_fn: Optional[Callable]):
         INPUT_VAR = outer_input_var
         definitions.set_inputfile(outer_inputfile)
     return result
+
+
+def eval_Read(name: str, n: int, types, stream, evaluation: Evaluation, options: dict):
+    # Wrap types in a list (if it isn't already one)
+    if types.has_form("List", None):
+        types = types.elements
+    else:
+        types = (types,)
+
+    # TODO: look for a better implementation handling "Hold[Expression]".
+    #
+    types = (
+        (
+            SymbolHoldExpression
+            if (
+                typ.get_head_name() == "System`Hold"
+                and typ.elements[0].get_name() == "System`Expression"
+            )
+            else typ
+        )
+        for typ in types
+    )
+    types = to_mathics_list(*types)
+
+    for typ in types.elements:
+        if typ not in READ_TYPES:
+            evaluation.message("Read", "readf", typ)
+            return SymbolFailed
+
+    separators = read_get_separators(options, evaluation)
+    if separators is None:
+        return
+
+    record_separators, token_words, word_separators = separators
+
+    # name = name.to_python()
+
+    result = []
+
+    read_word = read_from_stream(
+        stream, word_separators, token_words, evaluation.message
+    )
+    read_record = read_from_stream(
+        stream, record_separators, token_words, evaluation.message
+    )
+    read_number = read_from_stream(
+        stream,
+        word_separators + record_separators,
+        token_words,
+        evaluation.message,
+        ["+", "-", "."] + [str(i) for i in range(10)],
+    )
+    read_real = read_from_stream(
+        stream,
+        word_separators + record_separators,
+        token_words,
+        evaluation.message,
+        ["+", "-", ".", "e", "E", "^", "*"] + [str(i) for i in range(10)],
+    )
+
+    for typ in types.elements:
+        try:
+            if typ is Symbol("Byte"):
+                tmp = stream.io.read(1)
+                if tmp == "":
+                    raise EOFError
+                result.append(ord(tmp))
+            elif typ is Symbol("Character"):
+                tmp = stream.io.read(1)
+                if tmp == "":
+                    raise EOFError
+                result.append(tmp)
+            elif typ is Symbol("Expression") or typ is SymbolHoldExpression:
+                tmp = next(read_record)
+                while True:
+                    try:
+                        feeder = MathicsMultiLineFeeder(tmp)
+                        expr = parse(evaluation.definitions, feeder)
+                        break
+                    except (IncompleteSyntaxError, InvalidSyntaxError):
+                        try:
+                            nextline = next(read_record)
+                            tmp = tmp + "\n" + nextline
+                        except EOFError:
+                            expr = SymbolEndOfFile
+                            break
+                    except Exception as e:
+                        print(e)
+
+                if expr is SymbolEndOfFile:
+                    evaluation.message(
+                        "Read", "readt", tmp, to_expression("InputSteam", name, n)
+                    )
+                    return SymbolFailed
+                elif isinstance(expr, BaseElement):
+                    if typ is SymbolHoldExpression:
+                        expr = Expression(SymbolHold, expr)
+                    result.append(expr)
+                # else:
+                #  TODO: Supposedly we can't get here
+                # what code should we put here?
+
+            elif typ is Symbol("Number"):
+                tmp = next(read_number)
+                try:
+                    tmp = int(tmp)
+                except ValueError:
+                    try:
+                        tmp = float(tmp)
+                    except ValueError:
+                        evaluation.message(
+                            "Read", "readn", to_expression("InputSteam", name, n)
+                        )
+                        return SymbolFailed
+                result.append(tmp)
+
+            elif typ is SymbolReal:
+                tmp = next(read_real)
+                tmp = tmp.replace("*^", "E")
+                try:
+                    tmp = float(tmp)
+                except ValueError:
+                    evaluation.message(
+                        "Read", "readn", to_expression("InputSteam", name, n)
+                    )
+                    return SymbolFailed
+                result.append(tmp)
+            elif typ is Symbol("Record"):
+                result.append(next(read_record))
+            elif typ is Symbol("String"):
+                tmp = stream.io.readline()
+                if len(tmp) == 0:
+                    raise EOFError
+                result.append(tmp.rstrip("\n"))
+            elif typ is Symbol("Word"):
+                result.append(next(read_word))
+
+        except EOFError:
+            return SymbolEndOfFile
+        except UnicodeDecodeError:
+            evaluation.message("General", "ucdec")
+
+    if isinstance(result, Symbol):
+        return result
+    if len(result) == 1:
+        return from_python(*result)
+
+    return from_python(result)
