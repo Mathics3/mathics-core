@@ -849,7 +849,7 @@ class ReadList(Read):
       <dd>Reads a sequence of specified types until the end of file.
     </dl>
 
-    To read all the numbers in a file and returns a list of them:
+    To read all the numbers in a file and return a list of them:
     >> ReadList["ExampleData/numbers.txt", Number]
      = {11.1, 22.2, 33.3, 44.4, 55.5, 66.6}
 
@@ -877,11 +877,11 @@ class ReadList(Read):
     >> ReadList["ExampleData/strings.txt", Character]
      = ...
 
-    And now are the integer codes corresponding to each of the bytes in the file:
+    And now, here are the integer codes corresponding to each of the bytes in the file:
     >> ReadList["ExampleData/strings.txt", Byte]
      = {72, 101, 114, 101, 32, 105, 115, 32, 116, 101, 120, 116, 46, 10, 65, 110, 100, 32, 109, 111, 114, 101, 32, 116, 101, 120, 116, 46, 10}
 
-    The data can be read by "words":
+    But the data can also be read by "words":
 
     >> ReadList["ExampleData/strings.txt", Word]
      = {Here, is, text., And, more, text.}
