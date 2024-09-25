@@ -21,6 +21,7 @@ from mathics.core.attributes import (
 from mathics.core.builtin import BinaryOperator, Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
+from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import (
     InvalidLevelspecError,
     MessageException,
@@ -589,7 +590,7 @@ class First(Builtin):
     >> First[a + b + c]
      = a
     >> First[x]
-     : Nonatomic expression expected.
+     : Nonatomic expression expected at position 1 in First[x].
      = First[x]
     >> First[{}]
      : {} has zero length and no first element.
@@ -597,16 +598,16 @@ class First(Builtin):
     """
 
     messages = {
-        "normal": "Nonatomic expression expected.",
+        "normal": "Nonatomic expression expected at position 1 in `1`.",
         "nofirst": "`1` has zero length and no first element.",
     }
     summary_text = "first element of a list or expression"
 
-    def eval(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation, expression: Expression):
         "First[expr_]"
 
         if isinstance(expr, Atom):
-            evaluation.message("First", "normal")
+            evaluation.message("First", "normal", expression)
             return
         if len(expr.elements) == 0:
             evaluation.message("First", "nofirst", expr)
@@ -820,7 +821,7 @@ class Last(Builtin):
     >> Last[{a, b, c}]
      = c
     >> Last[x]
-     : Nonatomic expression expected.
+     : Nonatomic expression expected at position 1 in Last[x].
      = Last[x]
     >> Last[{}]
      : {} has zero length and no last element.
@@ -828,16 +829,16 @@ class Last(Builtin):
     """
 
     messages = {
-        "normal": "Nonatomic expression expected.",
+        "normal": "Nonatomic expression expected at position 1 in `1`.",
         "nolast": "`1` has zero length and no last element.",
     }
     summary_text = "last element of a list or expression"
 
-    def eval(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation, expression: Expression):
         "Last[expr_]"
 
         if isinstance(expr, Atom):
-            evaluation.message("Last", "normal")
+            evaluation.message("Last", "normal", expression)
             return
         if len(expr.elements) == 0:
             evaluation.message("Last", "nolast", expr)
@@ -906,17 +907,21 @@ class Most(Builtin):
     >> Most[a + b + c]
      = a + b
     >> Most[x]
-     : Nonatomic expression expected.
+     : Nonatomic expression expected at position 1 in Most[x].
      = Most[x]
     """
 
+    messages = {
+        "normal": "Nonatomic expression expected at position 1 in `1`.",
+    }
+
     summary_text = "remove the last element"
 
-    def eval(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation, expression: Expression):
         "Most[expr_]"
 
         if isinstance(expr, Atom):
-            evaluation.message("Most", "normal")
+            evaluation.message("Most", "normal", expression)
             return
         return expr.slice(expr.head, slice(0, -1), evaluation)
 
@@ -1395,7 +1400,7 @@ class Rest(Builtin):
     >> Rest[a + b + c]
      = b + c
     >> Rest[x]
-     : Nonatomic expression expected.
+     : Nonatomic expression expected at position 1 in Rest[x].
      = Rest[x]
     >> Rest[{}]
      : Cannot take Rest of expression {} with length zero.
@@ -1403,16 +1408,16 @@ class Rest(Builtin):
     """
 
     messages = {
-        "normal": "Nonatomic expression expected.",
+        "normal": "Nonatomic expression expected at position 1 in `1`.",
         "norest": "Cannot take Rest of expression `1` with length zero.",
     }
     summary_text = "remove the first element"
 
-    def eval(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation, expression: Expression):
         "Rest[expr_]"
 
         if isinstance(expr, Atom):
-            evaluation.message("Rest", "normal")
+            evaluation.message("Rest", "normal", expression)
             return
         if len(expr.elements) == 0:
             evaluation.message("Rest", "norest", expr)

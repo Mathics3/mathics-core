@@ -73,7 +73,7 @@ def eval_Get(path: str, evaluation: Evaluation, trace_fn: Optional[Callable]):
                     continue
                 result = query.evaluate(evaluation)
     except IOError:
-        evaluation.message("General", "noopen", path)
+        evaluation.message("Get", "noopen", path)
         return SymbolFailed
     except MessageException as e:
         e.message(evaluation)
