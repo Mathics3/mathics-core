@@ -23,7 +23,8 @@ from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
-from mathics.core.streams import path_search, stream_manager
+from mathics.core.list import ListExpression
+from mathics.core.streams import Stream, path_search, stream_manager
 from mathics.core.symbols import Symbol, SymbolFullForm, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolEndOfFile,
@@ -1497,24 +1498,33 @@ class WriteString(Builtin):
 
     summary_text = "write a sequence of strings to a stream, with no extra newlines"
     messages = {
-        "strml": ("`1` is not a string, stream, " "or list of strings and streams."),
+        "strml": ("`1` is not a string, stream, or list of strings and streams."),
         "writex": "`1`.",
+        "noimp": ("List of strings and streams not implemented yet: `1`"),
     }
 
-    def eval(self, channel, expr, evaluation):
-        "WriteString[channel_, expr___]"
-        stream = None
+    def eval(self, channel, expr, evaluation: Evaluation):
+        """WriteString[channel_, expr___]"""
         if isinstance(channel, String):
             if channel.value == "stdout":
                 stream = stream_manager.lookup_stream(1)
             elif channel.value == "stderr":
                 stream = stream_manager.lookup_stream(2)
-
-        if stream is None:
-            strm = channel_to_stream(channel, "w")
-            if strm is None:
+        elif isinstance(channel, Stream):
+            stream = channel
+        elif isinstance(channel, ListExpression):
+            evaluation.message("WriteString", "noimp", channel)
+            return
+        elif isinstance(channel, Expression) and channel.head == SymbolOutputStream:
+            stream_expr = channel_to_stream(channel, "w")
+            if stream_expr is None:
                 return
-            stream = stream_manager.lookup_stream(strm.elements[1].get_int_value())
+            stream = stream_manager.lookup_stream(
+                stream_expr.elements[1].get_int_value()
+            )
+        else:
+            evaluation.message("WriteString", "strml", channel)
+            return
 
         if stream is None or stream.io is None or stream.io.closed:
             return None
