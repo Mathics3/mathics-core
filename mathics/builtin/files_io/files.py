@@ -4,7 +4,6 @@
 File and Stream Operations
 """
 
-import builtins
 import io
 import os.path as osp
 import tempfile
@@ -322,20 +321,6 @@ class FilePrint(Builtin):
         return SymbolNull
 
 
-class Number_(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Number.html</url>
-
-    <dl>
-    <dt>'Number'
-      <dd>is a data type for 'Read'.
-    </dl>
-    """
-
-    name = "Number"
-    summary_text = "exact or approximate number in Fortran‐like notation"
-
-
 class Get(PrefixOperator):
     r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/Get.html</url>
@@ -346,7 +331,10 @@ class Get(PrefixOperator):
 
       <dt>'Get[$name$, Trace->True]'
       <dd>Runs Get tracing each line before it is evaluated.
+
+     'Settings`$TraceGet' can be also used to trace lines on all 'Get[]' calls.
     </dl>
+
 
     S> filename = $TemporaryDirectory <> "/example_file";
     S> Put[x + y, filename]
@@ -373,22 +361,20 @@ class Get(PrefixOperator):
     def eval(self, path: String, evaluation: Evaluation, options: dict):
         "Get[path_String, OptionsPattern[Get]]"
 
-        trace_fn = None
+        # Make sure to pick up copy from module each time instead of using
+        # use "from ... import DEFAULT_TRACE_FN" which will not pick
+        # up run-time changes made to the module function.
+        trace_fn = mathics.eval.files_io.files.DEFAULT_TRACE_FN
+
         trace_get = evaluation.parse("Settings`$TraceGet")
         if (
             options["System`Trace"].to_python()
             or trace_get.evaluate(evaluation) is SymbolTrue
         ):
-            trace_fn = builtins.print
+            trace_fn = print_line_number_and_text
 
         # perform the actual evaluation
         return eval_Get(path.value, evaluation, trace_fn)
-
-    def eval_default(self, filename, evaluation: Evaluation):
-        "Get[filename_]"
-        expr = to_expression("Get", filename)
-        evaluation.message("General", "stream", filename)
-        return expr
 
 
 class InputFileName_(Predefined):
@@ -436,6 +422,20 @@ class InputStream(Builtin):
         "intpm": "Positive machine-sized integer expected at position 2 of `1`",
     }
     summary_text = "an input stream"
+
+
+class Number_(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Number.html</url>
+
+    <dl>
+    <dt>'Number'
+      <dd>is a data type for 'Read'.
+    </dl>
+    """
+
+    name = "Number"
+    summary_text = "exact or approximate number in Fortran‐like notation"
 
 
 class OpenRead(_OpenAction):

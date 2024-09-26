@@ -198,7 +198,7 @@ class Rule(BaseRule):
     pattern and a replacement term and doesn't involve function
     application.
 
-    In contrast to BuiltinRule[], rule application cannot force
+    In contrast to FunctionApplyRule[], rule application cannot force
     a reevaluation of the expression when the rewrite/apply/eval step
     finishes.
 

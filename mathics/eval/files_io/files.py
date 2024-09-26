@@ -3,12 +3,14 @@
 File related evaluation functions.
 """
 
-from typing import Callable, Optional
+from typing import Callable, Literal, Optional
 
 from mathics_scanner import TranslateError
 from mathics_scanner.errors import IncompleteSyntaxError, InvalidSyntaxError
 
 import mathics
+import mathics.core.parser
+import mathics.core.streams
 from mathics.core.builtin import MessageException
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
@@ -40,6 +42,15 @@ from mathics.eval.files_io.read import (
 #        $InputFilename
 INPUT_VAR: str = ""
 
+DEFAULT_TRACE_FN: Literal[None] = None
+
+
+def print_line_number_and_text(line_number: int, text: str):
+    """Prints a line number an text on that line with it.
+    This is used as the default trace function in Get[]
+    """
+    print(f"%5d: {text}" % line_number, end="")
+
 
 def set_input_var(input_string: str):
     """
@@ -49,7 +60,9 @@ def set_input_var(input_string: str):
     INPUT_VAR = canonic_filename(input_string)
 
 
-def eval_Get(path: str, evaluation: Evaluation, trace_fn: Optional[Callable]):
+def eval_Get(
+    path: str, evaluation: Evaluation, trace_fn: Optional[Callable] = DEFAULT_TRACE_FN
+):
     """
     Reads a file and evaluates each expression, returning only the last one.
     """
@@ -66,7 +79,7 @@ def eval_Get(path: str, evaluation: Evaluation, trace_fn: Optional[Callable]):
     outer_input_var = INPUT_VAR
     outer_inputfile = definitions.get_inputfile()
 
-    # set new input paths
+    # Set a new input path.
     INPUT_VAR = path
     definitions.set_inputfile(INPUT_VAR)
 
@@ -74,13 +87,15 @@ def eval_Get(path: str, evaluation: Evaluation, trace_fn: Optional[Callable]):
         string_quotes=False
     )
     if trace_fn is not None:
-        trace_fn(path)
+        trace_fn(0, path + "\n")
     try:
         with MathicsOpen(path, "r") as f:
             feeder = MathicsFileLineFeeder(f, trace_fn)
             while not feeder.empty():
                 try:
-                    query = parse(definitions, feeder)
+                    # Note: we use mathics.core.parser.parse
+                    # so that tracing/debugging can intercept parse()
+                    query = mathics.core.parser.parse(definitions, feeder)
                 except TranslateError:
                     return SymbolNull
                 finally:
@@ -95,7 +110,8 @@ def eval_Get(path: str, evaluation: Evaluation, trace_fn: Optional[Callable]):
         e.message(evaluation)
         return SymbolFailed
     finally:
-        # Always restore input paths of calling context.
+        # Whether we had an exception or not, restore the input path
+        # and the state of definitions prior to calling Get.
         INPUT_VAR = outer_input_var
         definitions.set_inputfile(outer_inputfile)
     return result
