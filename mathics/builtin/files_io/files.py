@@ -361,7 +361,11 @@ class Get(PrefixOperator):
     def eval(self, path: String, evaluation: Evaluation, options: dict):
         "Get[path_String, OptionsPattern[Get]]"
 
+        # Make sure to pick up copy from module each time instead of using
+        # use "from ... import DEFAULT_TRACE_FN" which will not pick
+        # up run-time changes made to the module function.
         trace_fn = mathics.eval.files_io.files.DEFAULT_TRACE_FN
+
         trace_get = evaluation.parse("Settings`$TraceGet")
         if (
             options["System`Trace"].to_python()
