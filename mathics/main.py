@@ -26,11 +26,11 @@ from mathics.core.evaluation import Evaluation, Output
 from mathics.core.expression import Expression
 from mathics.core.load_builtin import import_and_load_builtins
 from mathics.core.parser import MathicsFileLineFeeder, MathicsLineFeeder
-from mathics.core.read import channel_to_stream
 from mathics.core.rules import FunctionApplyRule
 from mathics.core.streams import stream_manager
 from mathics.core.symbols import SymbolNull, strip_context
 from mathics.eval.files_io.files import set_input_var
+from mathics.eval.files_io.read import channel_to_stream
 from mathics.timing import show_lru_cache_statistics
 
 # from mathics.timing import TimeitContextManager
