@@ -646,7 +646,7 @@ class First(Builtin):
             and len == 2
             and isinstance(first_elem, Atom)
         ):
-            return expr.elements[1].evaluate(evaluation)
+            return expr.elements[1]
 
         return first_elem
 
@@ -908,15 +908,7 @@ class Last(Builtin):
             evaluation.message("Last", "argt", expr_len)
             return
 
-        last_elem = expr.elements[-1]
-        if expr.head == SymbolSequence or (
-            not isinstance(expr, ListExpression)
-            and len == 2
-            and isinstance(expr.elements[0], Atom)
-        ):
-            return last_elem.evaluate(evaluation)
-
-        return last_elem
+        return expr.elements[-1]
 
 
 class Length(Builtin):
