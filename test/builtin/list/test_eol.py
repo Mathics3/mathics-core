@@ -82,6 +82,12 @@ import pytest
             "Drop[{1, 2, 3, 4, 5, 6}, {-5, -2, -2}]",
             None,
         ),
+        (
+            "First[a, b, c]",
+            ("First called with 3 arguments; 1 or 2 arguments are expected.",),
+            "First[a, b, c]",
+            None,
+        ),
         ('FirstPosition[{1, 2, 3}, _?StringQ, "NoStrings"]', None, "NoStrings", None),
         ("FirstPosition[a, a]", None, "{}", None),
         (

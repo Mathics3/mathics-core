@@ -597,20 +597,25 @@ class First(Builtin):
      = First[{}]
     """
 
+    attributes = A_HOLD_REST | A_PROTECTED
     messages = {
+        "argt": "First called with `1` arguments; 1 or 2 arguments are expected.",
         "normal": "Nonatomic expression expected at position 1 in `1`.",
         "nofirst": "`1` has zero length and no first element.",
     }
     summary_text = "first element of a list or expression"
 
     def eval(self, expr, evaluation: Evaluation, expression: Expression):
-        "First[expr_]"
+        "First[expr__]"
 
         if isinstance(expr, Atom):
             evaluation.message("First", "normal", expression)
             return
         if len(expr.elements) == 0:
             evaluation.message("First", "nofirst", expr)
+            return
+        if len(expr.elements) > 2 and expr.head is SymbolSequence:
+            evaluation.message("First", "argt", len(expr.elements))
             return
 
         return expr.elements[0]
@@ -828,6 +833,7 @@ class Last(Builtin):
      = Last[{}]
     """
 
+    attributes = A_HOLD_REST | A_PROTECTED
     messages = {
         "normal": "Nonatomic expression expected at position 1 in `1`.",
         "nolast": "`1` has zero length and no last element.",
