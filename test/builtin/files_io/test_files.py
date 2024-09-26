@@ -196,7 +196,10 @@ def test_close():
         ## Correctly formed InputString but not open
         (
             "Read[InputStream[String, -1], {Word, Number}]",
-            ("InputStream[String, -1] is not open.",),
+            (
+                "Positive machine-sized integer expected at position 2 "
+                "of InputStream[String, -1]",
+            ),
             "Read[InputStream[String, -1], {Word, Number}]",
             "",
         ),
@@ -266,12 +269,15 @@ def test_close():
             "",
         ),
         ("Close[stream];", None, "Null", ""),
-        (
-            "Quiet[Read[stream, {Real}]]//{#1[[0]],#1[[1]][[0]],#1[[1]][[1]],#1[[2]]}&",
-            None,
-            "{Read, InputStream, String, {Real}}",
-            "",
-        ),
+        # Rocky: I don't know what this is supposed to check, but WMA reports:
+        #    Part::partd: Part specification of streapm[[1]] is longer than depth of object.
+        # and partd testing should be done somewhere else.
+        # (
+        #     "Quiet[Read[stream, {Real}]]//{#1[[0]],#1[[1]][[0]],#1[[1]][[1]],#1[[2]]}&",
+        #     None,
+        #     "{Read, InputStream, String, {Real}}",
+        #     "",
+        # ),
         (
             r'stream = StringToStream["\"abc123\""];ReadList[stream, "Invalid"]//{#1[[0]],#1[[2]]}&',
             ("Invalid is not a valid format specification.",),

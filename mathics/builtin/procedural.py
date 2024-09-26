@@ -506,6 +506,47 @@ class Switch(Builtin):
         # return unevaluated Switch when no pattern matches
 
 
+class Throw(Builtin):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Throw.html</url>
+
+    <dl>
+      <dt>'Throw[`value`]'
+      <dd> stops evaluation and returns `value` as the value of the nearest \
+           enclosing 'Catch'.
+
+      <dt>'Catch[`value`, `tag`]'
+      <dd> is caught only by `Catch[expr,form]`, where tag matches form.
+    </dl>
+
+    Using Throw can affect the structure of what is returned by a function:
+
+    >> NestList[#^2 + 1 &, 1, 7]
+     = ...
+    >> Catch[NestList[If[# > 1000, Throw[#], #^2 + 1] &, 1, 7]]
+     = 458330
+
+    >> Throw[1]
+     : Uncaught Throw[1] returned to top level.
+     = Hold[Throw[1]]
+    """
+
+    messages = {
+        "nocatch": "Uncaught `1` returned to top level.",
+    }
+
+    summary_text = "throw an expression to be caught by a surrounding 'Catch'"
+
+    def eval(self, value, evaluation: Evaluation):
+        "Throw[value_]"
+        raise WLThrowInterrupt(value)
+
+    def eval_with_tag(self, value, tag, evaluation: Evaluation):
+        "Throw[value_, tag_]"
+        raise WLThrowInterrupt(value, tag)
+
+
 class Which(Builtin):
     """
     <url>
@@ -609,43 +650,3 @@ class While(Builtin):
             except ReturnInterrupt as e:
                 return e.expr
         return SymbolNull
-
-
-class Throw(Builtin):
-    """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/Throw.html</url>
-
-    <dl>
-      <dt>'Throw[`value`]'
-      <dd> stops evaluation and returns `value` as the value of the nearest \
-           enclosing 'Catch'.
-
-      <dt>'Catch[`value`, `tag`]'
-      <dd> is caught only by `Catch[expr,form]`, where tag matches form.
-    </dl>
-
-    Using Throw can affect the structure of what is returned by a function:
-
-    >> NestList[#^2 + 1 &, 1, 7]
-     = ...
-    >> Catch[NestList[If[# > 1000, Throw[#], #^2 + 1] &, 1, 7]]
-     = 458330
-
-    X> Throw[1]
-      = Null
-    """
-
-    messages = {
-        "nocatch": "Uncaught `1` returned to top level.",
-    }
-
-    summary_text = "throw an expression to be caught by a surrounding 'Catch'"
-
-    def eval(self, value, evaluation: Evaluation):
-        "Throw[value_]"
-        raise WLThrowInterrupt(value)
-
-    def eval_with_tag(self, value, tag, evaluation: Evaluation):
-        "Throw[value_, tag_]"
-        raise WLThrowInterrupt(value, tag)
