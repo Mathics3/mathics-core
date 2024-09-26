@@ -581,20 +581,32 @@ class First(Builtin):
     <dl>
       <dt>'First[$expr$]'
       <dd>returns the first element in $expr$.
+
+      <dt>'First[$expr$, $def$]'
+      <dd>returns the first element in $expr$ if it exists or $def$ otherwise.
     </dl>
 
     'First[$expr$]' is equivalent to '$expr$[[1]]'.
 
     >> First[{a, b, c}]
      = a
+
+    The first argument need not be a list:
     >> First[a + b + c]
      = a
+
     >> First[x]
      : Nonatomic expression expected at position 1 in First[x].
      = First[x]
+
     >> First[{}]
      : {} has zero length and no first element.
      = First[{}]
+
+    As before, the first argument is empty, but a default argument is given, \
+    so evaluate and return the second argument:
+    >> First[{}, 1+2]
+     = 3
     """
 
     attributes = A_HOLD_REST | A_PROTECTED
@@ -605,18 +617,23 @@ class First(Builtin):
     }
     summary_text = "first element of a list or expression"
 
+    # FIXME: the code and the code for Last are similar and can be DRY'd
     def eval(self, expr, evaluation: Evaluation, expression: Expression):
         "First[expr__]"
 
         if isinstance(expr, Atom):
             evaluation.message("First", "normal", expression)
             return
-        if len(expr.elements) == 0:
+        expr_len = len(expr.elements)
+        if expr_len == 0:
             evaluation.message("First", "nofirst", expr)
             return
-        if len(expr.elements) > 2 and expr.head is SymbolSequence:
-            evaluation.message("First", "argt", len(expr.elements))
+        if expr_len > 2 and expr.head is SymbolSequence:
+            evaluation.message("First", "argt", expr_len)
             return
+
+        if expr_len == 2 and isinstance(expr.elements[0], ListExpression):
+            return expr.elements[1].evaluate(evaluation)
 
         return expr.elements[0]
 
@@ -819,36 +836,58 @@ class Last(Builtin):
     <dl>
       <dt>'Last[$expr$]'
       <dd>returns the last element in $expr$.
+
+      <dt>'Last[$expr$, $def$]'
+      <dd>returns the last element in $expr$ if it exists or $def$ otherwise.
     </dl>
 
     'Last[$expr$]' is equivalent to '$expr$[[-1]]'.
 
     >> Last[{a, b, c}]
      = c
+
+    The first argument need not be a list:
+    >> Last[a + b + c]
+     = c
+
     >> Last[x]
      : Nonatomic expression expected at position 1 in Last[x].
      = Last[x]
     >> Last[{}]
      : {} has zero length and no last element.
      = Last[{}]
+
+    As before, the first argument is empty, but a default argument is given, \
+    so evaluate and return the second argument:
+    >> Last[{}, 1+2]
+     = 3
     """
 
     attributes = A_HOLD_REST | A_PROTECTED
     messages = {
+        "argt": "Last called with `1` arguments; 1 or 2 arguments are expected.",
         "normal": "Nonatomic expression expected at position 1 in `1`.",
         "nolast": "`1` has zero length and no last element.",
     }
     summary_text = "last element of a list or expression"
 
+    # FIXME: the code and the code for First are similar and can be DRY'd
     def eval(self, expr, evaluation: Evaluation, expression: Expression):
-        "Last[expr_]"
+        "Last[expr__]"
 
         if isinstance(expr, Atom):
             evaluation.message("Last", "normal", expression)
             return
-        if len(expr.elements) == 0:
+        expr_len = len(expr.elements)
+        if expr_len == 0:
             evaluation.message("Last", "nolast", expr)
             return
+        if expr_len > 2 and expr.head is SymbolSequence:
+            evaluation.message("Last", "argt", expr_len)
+            return
+
+        if expr_len == 2 and isinstance(expr.elements[0], ListExpression):
+            return expr.elements[1].evaluate(evaluation)
 
         return expr.elements[-1]
 

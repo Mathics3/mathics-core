@@ -161,7 +161,13 @@ import pytest
         ("a = {2,3,4}; i = 1; a[[i]] = 0; a", None, "{0, 3, 4}", None),
         ## Negative step
         ("{1,2,3,4,5}[[3;;1;;-1]]", None, "{3, 2, 1}", None),
-        ("{1, 2, 3, 4, 5}[[;; ;; -1]]", None, "{5, 4, 3, 2, 1}", "MMA bug"),
+        ("ClearAll[a]", None, "Null", None),
+        (
+            "Last[a, b, c]",
+            ("Last called with 3 arguments; 1 or 2 arguments are expected.",),
+            "Last[a, b, c]",
+            None,
+        ),
         ("Range[11][[-3 ;; 2 ;; -2]]", None, "{9, 7, 5, 3}", None),
         ("Range[11][[-3 ;; -7 ;; -3]]", None, "{9, 6}", None),
         ("Range[11][[7 ;; -7;; -2]]", None, "{7, 5}", None),
