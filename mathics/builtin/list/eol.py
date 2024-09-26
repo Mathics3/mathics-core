@@ -595,16 +595,23 @@ class First(Builtin):
     >> First[a + b + c]
      = a
 
+    However, the first argument must be Nonatomic when there is a single argument:
     >> First[x]
      : Nonatomic expression expected at position 1 in First[x].
      = First[x]
+
+    Or if it is not, but a second default argument is provided, that is \
+    evaluated and returned:
+
+    >> First[10, 1+2]
+     = 3
 
     >> First[{}]
      : {} has zero length and no first element.
      = First[{}]
 
     As before, the first argument is empty, but a default argument is given, \
-    so evaluate and return the second argument:
+    evaluate and return the second argument:
     >> First[{}, 1+2]
      = 3
     """
@@ -632,10 +639,16 @@ class First(Builtin):
             evaluation.message("First", "argt", expr_len)
             return
 
-        if expr_len == 2 and isinstance(expr.elements[0], ListExpression):
+        first_elem = expr.elements[0]
+
+        if expr.head == SymbolSequence or (
+            not isinstance(expr, ListExpression)
+            and len == 2
+            and isinstance(first_elem, Atom)
+        ):
             return expr.elements[1].evaluate(evaluation)
 
-        return expr.elements[0]
+        return first_elem
 
 
 class FirstCase(Builtin):
@@ -850,15 +863,24 @@ class Last(Builtin):
     >> Last[a + b + c]
      = c
 
-    >> Last[x]
-     : Nonatomic expression expected at position 1 in Last[x].
-     = Last[x]
+    However, the first argument must be Nonatomic when there is a single argument:
+    >> Last[10]
+     : Nonatomic expression expected at position 1 in Last[10].
+     = Last[10]
+
+    Or if it is not, but a second default argument is provided, that is \
+    evaluated and returned:
+
+    >> Last[10, 1+2]
+     = 3
+
+
     >> Last[{}]
      : {} has zero length and no last element.
      = Last[{}]
 
-    As before, the first argument is empty, but a default argument is given, \
-    so evaluate and return the second argument:
+    As before, the first argument is empty, but since default argument is given, \
+    evaluate and return the second argument:
     >> Last[{}, 1+2]
      = 3
     """
@@ -886,10 +908,15 @@ class Last(Builtin):
             evaluation.message("Last", "argt", expr_len)
             return
 
-        if expr_len == 2 and isinstance(expr.elements[0], ListExpression):
-            return expr.elements[1].evaluate(evaluation)
+        last_elem = expr.elements[-1]
+        if expr.head == SymbolSequence or (
+            not isinstance(expr, ListExpression)
+            and len == 2
+            and isinstance(expr.elements[0], Atom)
+        ):
+            return last_elem.evaluate(evaluation)
 
-        return expr.elements[-1]
+        return last_elem
 
 
 class Length(Builtin):
