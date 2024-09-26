@@ -1693,7 +1693,7 @@ class DiscretePlot(_Plot):
             is_joined_plot=False,
             filling=False,
             use_log_scale=False,
-            plot_type=ListPlot.DiscretePlot,
+            list_plot_type=ListPlotType.DiscretePlot,
             options=options,
         )
 

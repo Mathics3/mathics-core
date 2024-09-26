@@ -142,14 +142,17 @@ def eval_ListPlot(
     options: dict,
 ):
     """
-    Evaluation part of LisPlot[] and DiscretePlot[]
+    Evaluation part of ListPlot like plots. eg DiscretePlot[], ListPlot[], ListLinePlot[], etc.
+    which are enumerated in ListPlotType.
 
-    plot_groups: the plot point data, It can be in a number of different list formats
-    x_range: the x range that of the area to show in the plot
-    y_range: the y range that of the area to show in the plot
-    is_discrete_plot: True if called from DiscretePlot, False if called from ListPlot
-    is_joined_plot: True if points are to be joined. This never happens in a discrete plot
-    options: miscellaneous graphics options from underlying M-Expression
+    Parameters;
+      plot_groups: the plot point data, It can be in a number of different list formats
+      x_range: the x range that of the area to show in the plot
+      y_range: the y range that of the area to show in the plot
+      is_discrete_plot: True if called from DiscretePlot, False if called from ListPlot
+      is_joined_plot: True if points are to be joined. This never happens in a discrete plot
+      list_plot_type: the kinds of ListPlots we handle
+      options: miscellaneous graphics options from underlying M-Expression
     """
 
     if not isinstance(plot_groups, list) or len(plot_groups) == 0:
@@ -247,9 +250,9 @@ def eval_ListPlot(
                     break
                 pass
 
-            # For step plots we have 2n - 1 points, which
-            # we create from the n points here
-            # We insert a new point from the y coodinate
+            # For step plots, we have 2n - 1 points These
+            # we create from the n points here.
+            # We insert a new point from the y coordinate
             # of the previous point in between each new point
             # other than the first point
             if list_plot_type == ListPlotType.ListStepPlot:
