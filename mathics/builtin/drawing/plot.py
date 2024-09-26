@@ -8,6 +8,7 @@ points, as another parameter, and plot or show the function applied to the data.
 
 import itertools
 import numbers
+from abc import ABC
 from functools import lru_cache
 from math import cos, pi, sin, sqrt
 from typing import Callable, Optional
@@ -44,13 +45,14 @@ from mathics.core.systemsymbols import (
     SymbolSlot,
     SymbolStyle,
 )
-from mathics.eval.nevaluator import eval_N
-from mathics.eval.plot import (
+from mathics.eval.drawing.plot import (
+    ListPlotType,
     compile_quiet_function,
     eval_ListPlot,
     eval_Plot,
     get_plot_range,
 )
+from mathics.eval.nevaluator import eval_N
 
 # This tells documentation how to sort this module
 # Here we are also hiding "drawing" since this erroneously appears at the top level.
@@ -274,7 +276,7 @@ class _GradientColorScheme:
         return Expression(SymbolColorDataFunction, *arguments)
 
 
-class _ListPlot(Builtin):
+class _ListPlot(Builtin, ABC):
     """
     Base class for ListPlot, and ListLinePlot
     2-Dimensional plot a list of points in some fashion.
@@ -309,6 +311,16 @@ class _ListPlot(Builtin):
         all_points = eval_N(points, evaluation).to_python()
         # FIXME: arrange for self to have a .symbolname property or attribute
         expr = Expression(Symbol(self.get_name()), points, *options_to_rules(options))
+
+        class_name = self.__class__.__name__
+        if class_name == "ListPlot":
+            plot_type = ListPlotType.ListPlot
+        elif class_name == "ListLinePlot":
+            plot_type = ListPlotType.ListLinePlot
+        elif class_name == "ListStepPlot":
+            plot_type = ListPlotType.ListStepPlot
+        else:
+            plot_type = None
 
         plotrange_option = self.get_option(options, "PlotRange", evaluation)
         plotrange = eval_N(plotrange_option, evaluation).to_python()
@@ -366,6 +378,7 @@ class _ListPlot(Builtin):
             is_joined_plot=is_joined_plot,
             filling=filling,
             use_log_scale=self.use_log_scale,
+            list_plot_type=plot_type,
             options=options,
         )
 
@@ -382,7 +395,7 @@ class _PalettableGradient(_GradientColorScheme):
         return colors
 
 
-class _Plot(Builtin):
+class _Plot(Builtin, ABC):
     attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
 
     expect_list = False
@@ -1680,6 +1693,7 @@ class DiscretePlot(_Plot):
             is_joined_plot=False,
             filling=False,
             use_log_scale=False,
+            plot_type=ListPlot.DiscretePlot,
             options=options,
         )
 
@@ -2033,6 +2047,53 @@ class ListLinePlot(_ListPlot):
         }
     )
     summary_text = "plot lines through lists of points"
+
+
+class ListStepPlot(_ListPlot):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ListStepPlot.html</url>
+    <dl>
+      <dt>'ListStepPlot[{$y_1$, $y_2$, ...}]'
+      <dd>plots a line through a list of $y$-values, assuming integer $x$-values 1, 2, 3, ...
+
+      <dt>'ListStepPlot[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]'
+      <dd>plots a line through a list of $x$, $y$ pairs.
+
+      <dt>'ListStepPlot[{$list_1$, $list_2$, ...}]'
+      <dd>plots several lines.
+    </dl>
+
+    >> ListStepPlot[{1, 1, 2, 3, 5, 8, 13, 21}]
+     = -Graphics-
+
+
+    By default ListStepPlots are joined, but that can be disabled.
+
+    >> ListStepPlot[{1, 1, 2, 3, 5, 8, 13, 21}, Joined->False]
+     = -Graphics-
+    ListPlot accepts a superset of the Graphics options.
+
+    >> ListStepPlot[{{-2, -1}, {-1, -1}, {1, 3}}, Filling->Axis]
+     = -Graphics-
+    """
+
+    attributes = A_HOLD_ALL | A_PROTECTED
+
+    options = Graphics.options.copy()
+    options.update(
+        {
+            "Axes": "True",
+            "AspectRatio": "1 / GoldenRatio",
+            "Mesh": "None",
+            "PlotRange": "Automatic",
+            "PlotPoints": "None",
+            "Filling": "None",
+            "Joined": "True",
+        }
+    )
+    summary_text = "plot values in steps"
 
 
 class ListLogPlot(_ListPlot):

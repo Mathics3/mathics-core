@@ -6,6 +6,7 @@ Note that this is distinct from boxing, formatting and rendering e.g. to SVG.
 That is done as another pass after M-expression evaluation finishes.
 """
 
+from enum import Enum
 from math import cos, isinf, isnan, pi, sqrt
 from typing import Callable, Iterable, List, Optional, Type, Union
 
@@ -29,6 +30,14 @@ from mathics.core.systemsymbols import (
     SymbolPoint,
     SymbolPolygon,
 )
+
+ListPlotNames = (
+    "DiscretePlot",
+    "ListPlot",
+    "ListLinePlot",
+    "ListStepPlot",
+)
+ListPlotType = Enum("ListPlotType", ListPlotNames)
 
 RealPoint6 = Real(0.6)
 RealPoint2 = Real(0.2)
@@ -129,6 +138,7 @@ def eval_ListPlot(
     is_joined_plot: bool,
     filling,
     use_log_scale: bool,
+    list_plot_type: ListPlotType,
     options: dict,
 ):
     """
@@ -219,6 +229,9 @@ def eval_ListPlot(
         i = 0
         while i < len(plot_groups[lidx]):
             seg = plot_group[i]
+            # skip empty segments How do they get in though?
+            if not seg:
+                continue
             for j, point in enumerate(seg):
                 x_min = min(x_min, point[0])
                 x_max = max(x_min, point[0])
@@ -232,6 +245,23 @@ def eval_ListPlot(
                     plot_groups[lidx][i + 1] = seg[j + 1 :]
                     i -= 1
                     break
+                pass
+
+            # For step plots we have 2n - 1 points, which
+            # we create from the n points here
+            # We insert a new point from the y coodinate
+            # of the previous point in between each new point
+            # other than the first point
+            if list_plot_type == ListPlotType.ListStepPlot:
+                step_plot_group = []
+                last_point = seg[0]
+                for j, point in enumerate(seg):
+                    if j != 0:
+                        step_plot_group.append([point[0], last_point[1]])
+                        step_plot_group.append(point)
+                    step_plot_group.append(point)
+                    last_point = point
+                plot_groups[lidx][i] = step_plot_group
 
             i += 1
 
@@ -269,43 +299,57 @@ def eval_ListPlot(
     for index, plot_group in enumerate(plot_groups):
         graphics.append(Expression(SymbolHue, Real(hue), RealPoint6, RealPoint6))
         for segment in plot_group:
-            mathics_segment = from_python(segment)
-            if is_joined_plot:
-                graphics.append(Expression(SymbolLine, mathics_segment))
-                if filling is not None:
-                    graphics.append(
-                        Expression(
-                            SymbolHue, Real(hue), RealPoint6, RealPoint6, RealPoint2
-                        )
-                    )
-                    fill_area = list(segment)
-                    fill_area.append([segment[-1][0], filling])
-                    fill_area.append([segment[0][0], filling])
-                    graphics.append(Expression(SymbolPolygon, from_python(fill_area)))
-            elif is_axis_filling:
-                graphics.append(Expression(SymbolPoint, mathics_segment))
-                for mathics_point in mathics_segment:
-                    graphics.append(
-                        Expression(
-                            SymbolLine,
-                            ListExpression(
-                                ListExpression(mathics_point[0], Integer0),
-                                mathics_point,
-                            ),
-                        )
-                    )
+            if not is_joined_plot and list_plot_type == ListPlotType.ListStepPlot:
+                line_segments = [
+                    (segment[i], segment[i + 1])
+                    for i in range(0, len(segment) - 1)
+                    if segment[i][0] != segment[i + 1][0]
+                ]
+                for line_segment in line_segments:
+                    graphics.append(Expression(SymbolLine, from_python(line_segment)))
+                pass
             else:
-                graphics.append(Expression(SymbolPoint, mathics_segment))
-                if filling is not None:
-                    for point in segment:
+                mathics_segment = from_python(segment)
+                if is_joined_plot:
+                    graphics.append(Expression(SymbolLine, mathics_segment))
+                    if filling is not None:
+                        graphics.append(
+                            Expression(
+                                SymbolHue, Real(hue), RealPoint6, RealPoint6, RealPoint2
+                            )
+                        )
+                        fill_area = list(segment)
+                        fill_area.append([segment[-1][0], filling])
+                        fill_area.append([segment[0][0], filling])
+                        graphics.append(
+                            Expression(SymbolPolygon, from_python(fill_area))
+                        )
+                elif is_axis_filling:
+                    graphics.append(Expression(SymbolPoint, mathics_segment))
+                    for mathics_point in mathics_segment:
                         graphics.append(
                             Expression(
                                 SymbolLine,
-                                from_python(
-                                    [[point[0], filling], [point[0], point[1]]]
+                                ListExpression(
+                                    ListExpression(mathics_point[0], Integer0),
+                                    mathics_point,
                                 ),
                             )
                         )
+                else:
+                    graphics.append(Expression(SymbolPoint, mathics_segment))
+                    if filling is not None:
+                        for point in segment:
+                            graphics.append(
+                                Expression(
+                                    SymbolLine,
+                                    from_python(
+                                        [[point[0], filling], [point[0], point[1]]]
+                                    ),
+                                )
+                            )
+                pass
+            pass
 
         if index % 4 == 0:
             hue += hue_pos
