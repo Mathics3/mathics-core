@@ -297,7 +297,7 @@ class _ListPlot(Builtin, ABC):
     def eval(self, points, evaluation: Evaluation, options: dict):
         "%(name)s[points_, OptionsPattern[%(name)s]]"
 
-        plot_name = self.get_name()
+        class_name = self.__class__.__name__
 
         # Scale point values down by Log 10. Tick mark values will be adjusted to be 10^n in GraphicsBox.
         if self.use_log_scale:
@@ -312,7 +312,6 @@ class _ListPlot(Builtin, ABC):
         # FIXME: arrange for self to have a .symbolname property or attribute
         expr = Expression(Symbol(self.get_name()), points, *options_to_rules(options))
 
-        class_name = self.__class__.__name__
         if class_name == "ListPlot":
             plot_type = ListPlotType.ListPlot
         elif class_name == "ListLinePlot":
@@ -367,7 +366,7 @@ class _ListPlot(Builtin, ABC):
         joined_option = self.get_option(options, "Joined", evaluation)
         is_joined_plot = joined_option.to_python()
         if is_joined_plot not in [True, False]:
-            evaluation.message(plot_name, "joind", joined_option, expr)
+            evaluation.message(class_name, "joind", joined_option, expr)
             is_joined_plot = False
 
         return eval_ListPlot(
@@ -1646,7 +1645,7 @@ class DiscretePlot(_Plot):
         # This includes the plot data, and overall graphics directives
         # like the Hue.
 
-        for index, f in enumerate(functions):
+        for f in functions:
             # list of all plotted points for a given function
             plot_points = []
 
@@ -1666,8 +1665,8 @@ class DiscretePlot(_Plot):
                 plot_points.append((x_value, point))
 
             x_range = get_plot_range(
-                [xx for xx, yy in base_plot_points],
-                [xx for xx, yy in plot_points],
+                [xx for xx, _ in base_plot_points],
+                [xx for xx, _ in plot_points],
                 x_range,
             )
             plot_groups.append(plot_points)
