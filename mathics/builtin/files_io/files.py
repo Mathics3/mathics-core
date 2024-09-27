@@ -9,7 +9,9 @@ import os.path as osp
 import tempfile
 from io import BytesIO
 
-import mathics.eval.files_io.files
+# We use the below import for access to variables that may change
+# at runtime.
+import mathics.eval.files_io.files as io_files
 from mathics.core.atoms import Integer, String, SymbolString
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import (
@@ -63,7 +65,7 @@ class Input_(Predefined):
     summary_text = "the name of the current input stream"
 
     def evaluate(self, evaluation: Evaluation) -> String:
-        return String(mathics.eval.files_io.files.INPUT_VAR)
+        return String(io_files.INPUT_VAR)
 
 
 class _OpenAction(Builtin):
@@ -365,14 +367,14 @@ class Get(PrefixOperator):
         # Make sure to pick up copy from module each time instead of using
         # use "from ... import DEFAULT_TRACE_FN" which will not pick
         # up run-time changes made to the module function.
-        trace_fn = mathics.eval.files_io.files.DEFAULT_TRACE_FN
+        trace_fn = io_files.DEFAULT_TRACE_FN
 
         trace_get = evaluation.parse("Settings`$TraceGet")
         if (
             options["System`Trace"].to_python()
             or trace_get.evaluate(evaluation) is SymbolTrue
         ):
-            trace_fn = print_line_number_and_text
+            trace_fn = io_files.GET_PRINT_FN
 
         # perform the actual evaluation
         return eval_Get(path.value, evaluation, trace_fn)

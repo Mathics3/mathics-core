@@ -49,7 +49,13 @@ def print_line_number_and_text(line_number: int, text: str):
     """Prints a line number an text on that line with it.
     This is used as the default trace function in Get[]
     """
-    print(f"%5d: {text}" % line_number, end="")
+    if line_number == 0:
+        print(f"Reading file: {text}")
+    else:
+        print("%5d: %s" % (line_number, text.rstrip()))
+
+
+GET_PRINT_FN: Callable = print_line_number_and_text
 
 
 def set_input_var(input_string: str):
