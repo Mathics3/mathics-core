@@ -2067,7 +2067,7 @@ class ListStepPlot(_ListPlot):
     >> ListStepPlot[{1, 1, 2, 3, 5, 8, 13, 21}]
      = -Graphics-
 
-    'ListPlot' accepts a superset of the Graphics options. \
+    'ListStepPlot' accepts a superset of the Graphics options. \
     By default, 'ListStepPlot's are joined, but that can be disabled.
 
     >> ListStepPlot[{1, 1, 2, 3, 5, 8, 13, 21}, Joined->False]
