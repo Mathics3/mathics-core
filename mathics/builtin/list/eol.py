@@ -1604,7 +1604,7 @@ class UpTo(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/UpTo.html</url>
 
     <dl>
-      <dd> 'Upto'[$n$]
+      <dd> 'UpTo'[$n$]
       <dt> is a symbolic specification that represents up to $n$ objects or \
            positions. If $n$ objects or positions are available, all are used. \
            If fewer are available, only those available are used.
