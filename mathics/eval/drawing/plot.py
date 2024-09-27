@@ -250,11 +250,13 @@ def eval_ListPlot(
                     break
                 pass
 
-            # For step plots, we have 2n - 1 points These
-            # we create from the n points here.
-            # We insert a new point from the y coordinate
+            # For step plots, we have 2n points; n -1 of these
+            # we create from the n points by
+            # insert a new point from the y coordinate
             # of the previous point in between each new point
-            # other than the first point
+            # other than the first point. The last plot point
+            # has the preview plot point y value and the average
+            # step value added to the last x value
             if list_plot_type == ListPlotType.ListStepPlot:
                 step_plot_group = []
                 last_point = seg[0]
@@ -264,6 +266,9 @@ def eval_ListPlot(
                         step_plot_group.append(point)
                     step_plot_group.append(point)
                     last_point = point
+                last_x = last_point[0]
+                average = last_x + ((seg[0][0] + last_x) / 2)
+                step_plot_group.append((average, last_point[1]))
                 plot_groups[lidx][i] = step_plot_group
 
             i += 1

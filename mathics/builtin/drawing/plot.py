@@ -2067,14 +2067,16 @@ class ListStepPlot(_ListPlot):
     >> ListStepPlot[{1, 1, 2, 3, 5, 8, 13, 21}]
      = -Graphics-
 
-
-    By default ListStepPlots are joined, but that can be disabled.
+    'ListPlot' accepts a superset of the Graphics options. \
+    By default, 'ListStepPlot's are joined, but that can be disabled.
 
     >> ListStepPlot[{1, 1, 2, 3, 5, 8, 13, 21}, Joined->False]
      = -Graphics-
-    ListPlot accepts a superset of the Graphics options.
 
-    >> ListStepPlot[{{-2, -1}, {-1, -1}, {1, 3}}, Filling->Axis]
+    The same as the first example but using a list of point as data, \
+    and filling the plot to the x axis.
+
+    >> ListStepPlot[{{1, 1}, {3, 2}, {4, 5}, {5, 8}, {6, 13}, {7, 21}}, Filling->Axis]
      = -Graphics-
     """
 
