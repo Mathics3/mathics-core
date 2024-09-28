@@ -12,7 +12,6 @@ def get_testdir():
     return osp.realpath(filename)
 
 
-@pytest.mark.skipif(sys.version_info < (3, 7), reason="requires Python 3.7 or higher")
 def test_cli():
     script_file = osp.join(get_testdir(), "data", "script.m")
 

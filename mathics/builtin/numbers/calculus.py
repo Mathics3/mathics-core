@@ -898,22 +898,24 @@ class FindRoot(_BaseFinder):
             native_findroot_messages,
             native_findroot_methods,
         )
-
-        methods.update(native_findroot_methods)
-        messages.update(native_findroot_messages)
     except Exception:
         pass
+    else:
+        methods.update(native_findroot_methods)
+        messages.update(native_findroot_messages)
+
     try:
         from mathics.builtin.scipy_utils.optimizers import (
             scipy_findroot_methods,
             update_findroot_messages,
         )
 
+    except Exception:
+        pass
+    else:
         methods.update(scipy_findroot_methods)
         messages = _BaseFinder.messages.copy()
         update_findroot_messages(messages)
-    except Exception:
-        pass
 
 
 # Move to mathics.builtin.domains...
