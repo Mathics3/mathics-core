@@ -30,7 +30,10 @@ from mathics.core.streams import Stream, path_search, stream_manager
 from mathics.core.symbols import Symbol, SymbolFullForm, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolEndOfFile,
+    SymbolExpression,
     SymbolFailed,
+    SymbolHold,
+    SymbolHoldExpression,
     SymbolInputForm,
     SymbolInputStream,
     SymbolOutputForm,
@@ -42,7 +45,7 @@ from mathics.eval.files_io.read import (
     MathicsOpen,
     channel_to_stream,
     close_stream,
-    read_name_and_stream_from_channel,
+    read_name_and_stream,
 )
 from mathics.eval.makeboxes import do_format, format_element
 
@@ -609,7 +612,7 @@ class Put(BinaryOperator):
     def eval_default(self, exprs, filename, evaluation):
         "Put[exprs___, filename_]"
         expr = to_expression("Put", exprs, filename)
-        evaluation.message("General", "stream", filename)
+        evaluation.message("Put", "stream", filename)
         return expr
 
 
@@ -693,8 +696,26 @@ class PutAppend(BinaryOperator):
     def eval_default(self, exprs, filename, evaluation):
         "PutAppend[exprs___, filename_]"
         expr = to_expression("PutAppend", exprs, filename)
-        evaluation.message("General", "stream", filename)
+        evaluation.message("PutAppend", "stream", filename)
         return expr
+
+
+def validate_read_type(name: str, typ, evaluation: Evaluation):
+    """
+    Validate a Read option type, and give a message if
+    the type is invalid. For Expession[Hold]
+    """
+    if hasattr(typ, "head") and typ.head == SymbolHold:
+        if not hasattr(typ, "elements"):
+            evaluation.message(name, "readf", typ)
+            return None
+
+        if typ.elements[0] != SymbolExpression:
+            evaluation.message(name, "readf", typ.elements[0])
+            return None
+
+        return SymbolHoldExpression
+    return typ
 
 
 class Read(Builtin):
@@ -817,22 +838,44 @@ class Read(Builtin):
     }
     summary_text = "read an object of the specified type from a stream"
 
-    def eval(self, channel, types, evaluation: Evaluation, options: dict):
-        "Read[channel_, types_, OptionsPattern[Read]]"
+    def eval(self, stream, types, evaluation: Evaluation, options: dict):
+        "Read[stream_, types_, OptionsPattern[Read]]"
 
-        name, n, stream = read_name_and_stream_from_channel(channel, evaluation)
+        # FIXME: we don't handle SocketObjects yet?
+        if isinstance(stream, Expression) and stream.head is SymbolInputStream:
+            is_valid_stream = True
+        else:
+            is_valid_stream = isinstance(stream, (String, InputStream))
+
+        if not is_valid_stream:
+            evaluation.message("Read", "stream", stream)
+            return
+
+        name, n, stream = read_name_and_stream(stream, evaluation)
 
         if name is None:
             return
         elif name == SymbolFailed:
             return SymbolFailed
 
-        return eval_Read(name, n, types, stream, evaluation, options)
+        # FIXME: DRY better with ReadList[].
+        # Validate types parameter and store the
+        # result into tuple checked_types.
+        if isinstance(types, ListExpression):
+            checked_types = []  # will be converted to tuple at the end
+            for typ in types:
+                new_type = validate_read_type("Read", typ, evaluation)
+                if new_type is None:
+                    return
+                checked_types.append(new_type)
+            check_types = tuple(checked_types)
+        else:
+            new_type = validate_read_type("Read", types, evaluation)
+            if new_type is None:
+                return
+            checked_types = (new_type,)
 
-    def eval_nostream(self, arg1, arg2, evaluation):
-        "Read[arg1_, arg2_]"
-        evaluation.message("General", "stream", arg1)
-        return
+        return eval_Read(name, n, checked_types, stream, evaluation, options)
 
 
 class ReadList(Read):
@@ -952,8 +995,8 @@ class ReadList(Read):
     }
     summary_text = "read a sequence of elements from a file, and put them in a WL list"
 
-    def eval(self, channel, types, evaluation: Evaluation, options: dict):
-        "ReadList[channel_, types_, OptionsPattern[ReadList]]"
+    def eval(self, file, types, evaluation: Evaluation, options: dict):
+        "ReadList[file_, types_, OptionsPattern[ReadList]]"
 
         # Options
         # TODO: Implement extra options
@@ -965,7 +1008,24 @@ class ReadList(Read):
         # word_separators = py_options['WordSeparators']
 
         result = []
-        name, n, stream = read_name_and_stream_from_channel(channel, evaluation)
+        name, n, stream = read_name_and_stream(file, evaluation)
+
+        # FIXME: DRY better with Read[].
+        # Validate types parameter and store the
+        # result into tuple checked_types.
+        if isinstance(types, ListExpression):
+            checked_types = []  # will be converted to tuple at the end
+            for typ in types:
+                new_type = validate_read_type("ReadList", typ, evaluation)
+                if new_type is None:
+                    return
+                checked_types.append(new_type)
+            check_types = tuple(checked_types)
+        else:
+            new_type = validate_read_type("ReadList", types, evaluation)
+            if new_type is None:
+                return
+            checked_types = (new_type,)
 
         if name is None:
             return
@@ -973,7 +1033,7 @@ class ReadList(Read):
             return SymbolFailed
 
         while True:
-            tmp = eval_Read(name, n, types, stream, evaluation, options)
+            tmp = eval_Read(name, n, checked_types, stream, evaluation, options)
 
             if tmp is None:
                 return
@@ -986,8 +1046,8 @@ class ReadList(Read):
             result.append(tmp)
         return from_python(result)
 
-    def eval_n(self, channel, types, n: Integer, evaluation: Evaluation, options: dict):
-        "ReadList[channel_, types_, n_Integer, OptionsPattern[ReadList]]"
+    def eval_n(self, file, types, n: Integer, evaluation: Evaluation, options: dict):
+        "ReadList[file_, types_, n_Integer, OptionsPattern[ReadList]]"
 
         # Options
         # TODO: Implement extra options
@@ -1001,13 +1061,13 @@ class ReadList(Read):
         py_n = n.get_int_value()
         if py_n < 0:
             evaluation.message(
-                "ReadList", "intnm", to_expression("ReadList", channel, types, m)
+                "ReadList", "intnm", to_expression("ReadList", file, types, m)
             )
             return
 
         result = []
         for i in range(py_n):
-            tmp = super(ReadList, self).eval(channel, types, evaluation, options)
+            tmp = super(ReadList, self).eval(file, types, evaluation, options)
 
             if tmp is SymbolFailed:
                 return
@@ -1191,10 +1251,10 @@ class Skip(Read):
     }
     summary_text = "skip over an object of the specified type in an input stream"
 
-    def eval(self, name, n, types, m, evaluation: Evaluation, options: dict):
-        "Skip[InputStream[name_, n_], types_, m_, OptionsPattern[Skip]]"
+    def eval(self, name, n, typ, m, evaluation: Evaluation, options: dict):
+        "Skip[InputStream[name_, n_], typ_, m_, OptionsPattern[Skip]]"
 
-        channel = to_expression("InputStream", name, n)
+        stream = to_expression("InputStream", name, n)
 
         # Options
         # TODO Implement extra options
@@ -1210,11 +1270,11 @@ class Skip(Read):
             evaluation.message(
                 "Skip",
                 "intm",
-                to_expression("Skip", to_expression("InputStream", name, n), types, m),
+                to_expression("Skip", to_expression("InputStream", name, n), typ, m),
             )
             return
         for i in range(py_m):
-            result = super(Skip, self).eval(channel, types, evaluation, options)
+            result = super(Skip, self).eval(stream, typ, evaluation, options)
             if result is SymbolEndOfFile:
                 return result
         return SymbolNull
@@ -1269,24 +1329,24 @@ class Find(Read):
 
         py_text = text.to_python()
 
-        channel = to_expression("InputStream", name, n)
+        stream = to_expression("InputStream", name, n)
 
         if not isinstance(py_text, list):
             py_text = [py_text]
 
         if not all(isinstance(t, str) and t[0] == t[-1] == '"' for t in py_text):
-            evaluation.message("Find", "unknown", to_expression("Find", channel, text))
+            evaluation.message("Find", "unknown", to_expression("Find", stream, text))
             return
 
         py_text = [t[1:-1] for t in py_text]
 
         while True:
-            tmp = super(Find, self).eval(channel, Symbol("Record"), evaluation, options)
+            tmp = super(Find, self).eval(stream, Symbol("Record"), evaluation, options)
             py_tmp = tmp.to_python()[1:-1]
 
             if py_tmp == "System`EndOfFile":
                 evaluation.message(
-                    "Find", "notfound", to_expression("Find", channel, text)
+                    "Find", "notfound", to_expression("Find", stream, text)
                 )
                 return SymbolFailed
 
@@ -1339,9 +1399,9 @@ class StringToStream(Builtin):
         pystring = string.to_python()[1:-1]
         fp = io.StringIO(str(pystring))
 
-        name = Symbol("String")
+        name_symbol = SymbolString
         stream = stream_manager.add(pystring, io=fp)
-        return to_expression("InputStream", name, Integer(stream.n))
+        return to_expression("InputStream", name_symbol, Integer(stream.n))
 
 
 class Streams(Builtin):

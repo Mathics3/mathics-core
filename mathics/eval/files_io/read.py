@@ -205,24 +205,25 @@ def close_stream(stream: Stream, stream_number: int):
     stream_manager.delete(stream_number)
 
 
-def read_name_and_stream_from_channel(channel, evaluation: Evaluation) -> tuple:
-    if channel.has_form("OutputStream", 2):
-        evaluation.message("General", "openw", channel)
+def read_name_and_stream(stream_designator, evaluation: Evaluation) -> tuple:
+    if stream_designator.has_form("OutputStream", 2):
+        evaluation.message("General", "openw", stream_designator)
         return None, None, None
 
     try:
-        strm = channel_to_stream(channel, "r")
+        strm = channel_to_stream(stream_designator, "r")
 
         if strm is None:
             return None, None, None
 
-        name, n = strm.elements
+        stream_name, n = strm.elements
 
-        if n.value < 0:
+        n_int = n.value
+        if n_int < 0:
             evaluation.message("InputStream", "intpm", strm)
             return None, None, None
 
-        stream = stream_manager.lookup_stream(n.get_int_value())
+        stream = stream_manager.lookup_stream(n_int)
         if stream is None:
             evaluation.message("Read", "openx", strm)
             return SymbolFailed, None, None
@@ -234,8 +235,8 @@ def read_name_and_stream_from_channel(channel, evaluation: Evaluation) -> tuple:
             evaluation.message("Read", "openx", strm)
             return SymbolFailed, None, None
 
-        name_str = name.to_python()
-        return name_str, n, stream
+        stream_name_str = stream_name.to_python()
+        return stream_name_str, n, stream
 
     except IOError as e:
         evaluation.message("Read", "noopen", str(e))
@@ -357,7 +358,6 @@ def read_from_stream(
     This is a generator that returns "words" from stream deliminated by
     "word_separators" or "token_words".
     """
-    # from trepan.api import debug; debug()
     while True:
         word = ""
         some_token_word_prefix = ""
