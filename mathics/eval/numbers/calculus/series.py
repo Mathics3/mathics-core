@@ -372,7 +372,7 @@ def build_series(f, x, x0, n, evaluation):
     vars = {
         x_name: x0,
     }
-    x_pattern = BasePattern.create(x)
+    x_pattern = BasePattern.create(x, evaluation=evaluation)
 
     if f.is_free(x_pattern, evaluation):
         print(x, " not in ", f)

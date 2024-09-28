@@ -112,7 +112,7 @@ def is_number(sympy_value) -> bool:
 def check_ArrayQ(expr, pattern, test, evaluation: Evaluation):
     "Check if expr is an Array which test yields true for each of its elements."
 
-    pattern = BasePattern.create(pattern)
+    pattern = BasePattern.create(pattern, evaluation=evaluation)
 
     dims = [len(expr.get_elements())]  # to ensure an atom is not an array
 
@@ -152,7 +152,7 @@ def check_SparseArrayQ(expr, pattern, test, evaluation: Evaluation):
     if not expr.head.sameQ(SymbolSparseArray):
         return SymbolFalse
 
-    pattern = BasePattern.create(pattern)
+    pattern = BasePattern.create(pattern, evaluation=evaluation)
     dims, default_value, rules = expr.elements[1:]
     if not pattern.does_match(Integer(len(dims.elements)), evaluation):
         return SymbolFalse

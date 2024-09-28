@@ -222,6 +222,7 @@ class Builtin:
         if not self.context:
             self.context = "Pymathics`" if is_pymodule else "System`"
         name = self.get_name()
+        attributes = self.attributes
         options = {}
 
         # - 'Strict': warn and fail with unsupported options
@@ -268,19 +269,41 @@ class Builtin:
         for pattern, function in self.get_functions(
             prefix="eval", is_pymodule=is_pymodule
         ):
+            pat_attr = attributes if pattern.get_head_name() == name else None
             rules.append(
-                FunctionApplyRule(name, pattern, function, check_options, system=True)
+                FunctionApplyRule(
+                    name,
+                    pattern,
+                    function,
+                    check_options,
+                    attributes=pat_attr,
+                    system=True,
+                )
             )
         for pattern, function in self.get_functions(is_pymodule=is_pymodule):
+            pat_attr = attributes if pattern.get_head_name() == name else None
             rules.append(
-                FunctionApplyRule(name, pattern, function, check_options, system=True)
+                FunctionApplyRule(
+                    name,
+                    pattern,
+                    function,
+                    check_options,
+                    attributes=pat_attr,
+                    system=True,
+                )
             )
         for pattern_str, replace_str in self.rules.items():
             pattern_str = pattern_str % {"name": name}
             pattern = parse_builtin_rule(pattern_str, definition_class)
             replace_str = replace_str % {"name": name}
+            pat_attr = attributes if pattern.get_head_name() == name else None
             rules.append(
-                Rule(pattern, parse_builtin_rule(replace_str), system=not is_pymodule)
+                Rule(
+                    pattern,
+                    parse_builtin_rule(replace_str),
+                    attributes=pat_attr,
+                    system=not is_pymodule,
+                )
             )
 
         box_rules = []
@@ -321,11 +344,14 @@ class Builtin:
         formatvalues = {"": []}
         for pattern, function in self.get_functions("format_"):
             forms, pattern = extract_forms(pattern)
+            pat_attr = attributes if pattern.get_head_name() == name else None
             for form in forms:
                 if form not in formatvalues:
                     formatvalues[form] = []
                 formatvalues[form].append(
-                    FunctionApplyRule(name, pattern, function, None, system=True)
+                    FunctionApplyRule(
+                        name, pattern, function, None, attributes=pat_attr, system=True
+                    )
                 )
         for pattern, replace in self.formats.items():
             forms, pattern = extract_forms(pattern)
@@ -377,7 +403,7 @@ class Builtin:
             rules=rules,
             formatvalues=formatvalues,
             messages=messages,
-            attributes=self.attributes,
+            attributes=attributes,
             options=options,
             defaultvalues=defaults,
             builtin=self,
