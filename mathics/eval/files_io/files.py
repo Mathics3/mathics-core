@@ -20,6 +20,7 @@ from mathics.core.parser import MathicsFileLineFeeder, MathicsMultiLineFeeder, p
 from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import (
     SymbolEndOfFile,
+    SymbolExpression,
     SymbolFailed,
     SymbolHold,
     SymbolHoldExpression,
@@ -123,26 +124,12 @@ def eval_Get(
     return result
 
 
-def eval_Read(name: str, n: int, types, stream, evaluation: Evaluation, options: dict):
-    # Wrap types in a list (if it isn't already one)
-    if types.has_form("List", None):
-        types = types.elements
-    else:
-        types = (types,)
-
-    # TODO: look for a better implementation handling "Hold[Expression]".
-    #
-    types = (
-        (
-            SymbolHoldExpression
-            if (
-                typ.get_head_name() == "System`Hold"
-                and typ.elements[0].get_name() == "System`Expression"
-            )
-            else typ
-        )
-        for typ in types
-    )
+def eval_Read(
+    name: str, n: int, types: tuple, stream, evaluation: Evaluation, options: dict
+):
+    """
+    Evaluation method for Read[] and ReadList[]
+    """
     types = to_mathics_list(*types)
 
     for typ in types.elements:
@@ -193,7 +180,7 @@ def eval_Read(name: str, n: int, types, stream, evaluation: Evaluation, options:
                 if tmp == "":
                     raise EOFError
                 result.append(tmp)
-            elif typ is Symbol("Expression") or typ is SymbolHoldExpression:
+            elif typ in (SymbolExpression, SymbolHoldExpression):
                 tmp = next(read_record)
                 while True:
                     try:
