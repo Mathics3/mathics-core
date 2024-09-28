@@ -248,12 +248,14 @@ def read_list_from_types(read_types):
     # TODO: look for a better implementation handling "Hold[Expression]".
     #
     read_types = (
-        SymbolHoldExpression
-        if (
-            typ.get_head_name() == "System`Hold"
-            and typ.elements[0].get_name() == "System`Expression"
+        (
+            SymbolHoldExpression
+            if (
+                typ.get_head_name() == "System`Hold"
+                and typ.elements[0].get_name() == "System`Expression"
+            )
+            else typ
         )
-        else typ
         for typ in read_types
     )
 

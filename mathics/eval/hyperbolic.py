@@ -1,6 +1,7 @@
 """
 Mathics3 builtins from mathics.core.numbers.hyperbolic
 """
+
 from sympy import Symbol as SympySymbol
 
 from mathics.core.convert.sympy import from_sympy

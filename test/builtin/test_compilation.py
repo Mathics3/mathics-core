@@ -9,7 +9,13 @@ from test.helper import check_evaluation, evaluate
 
 import pytest
 
+from mathics.compile import has_llvmlite
 
+
+@pytest.mark.skipif(
+    not has_llvmlite,
+    reason="requires llvmlite",
+)
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
