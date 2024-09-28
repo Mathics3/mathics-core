@@ -125,7 +125,7 @@ def eval_Get(
 
 def eval_Read(name: str, n: int, types, stream, evaluation: Evaluation, options: dict):
     # Wrap types in a list (if it isn't already one)
-    if types.has_form("List", None):
+    if isinstance(types, Expression):
         types = types.elements
     else:
         types = (types,)
