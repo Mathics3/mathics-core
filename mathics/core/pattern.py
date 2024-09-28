@@ -92,7 +92,9 @@ class BasePattern(ABC):
 
     expr: BaseElement
 
-    # this attribute allows for a faster match algorithm based on sameq
+    # this attribute allows for a faster match algorithm based on sameq.
+    # Probably we should split ExpressionPattern into two different classes,
+    # one for literal patterns and the other for "Regular" ExpressionPatterns.
     isliteral: bool = False
 
     # TODO: In WMA, when a BasePattern is created, the attributes
@@ -459,6 +461,7 @@ class ExpressionPattern(BasePattern):
         """Try to match the pattern against an Expression"""
         evaluation.check_stopped()
         if self.isliteral:
+            print(self.expr, "is literal")
             if expression.sameQ(self.expr):
                 # yield vars, None
                 yield_func(vars_dict, None)
