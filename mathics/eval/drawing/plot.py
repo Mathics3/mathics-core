@@ -111,8 +111,11 @@ def compile_quiet_function(expr, arg_names, evaluation, list_is_expected: bool):
     expr: Optional[Type[BaseElement]] = Expression(SymbolN, expr).evaluate(evaluation)
 
     def quiet_f(*args):
+        old_quiet_all = evaluation.quiet_all
+        evaluation.quiet_all = True
         vars = {arg_name: Real(arg) for arg_name, arg in zip(arg_names, args)}
         value = dynamic_scoping(expr.evaluate, vars, evaluation)
+        evaluation.quiet_all = old_quiet_all
         if list_is_expected:
             if value.has_form("List", None):
                 value = [extract_pyreal(item) for item in value.elements]

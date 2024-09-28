@@ -49,18 +49,18 @@ class Compile(Builtin):
 
 
     >> cf = Compile[{x, y}, x + 2 y]
-     = CompiledFunction[{x, y}, x + 2 y, -CompiledCode-]
+     = CompiledFunction[{x, y}, x + 2 y, ...]
     >> cf[2.5, 4.3]
      = 11.1
 
     >> cf = Compile[{{x, _Real}}, Sin[x]]
-     = CompiledFunction[{x}, Sin[x], -CompiledCode-]
+     = CompiledFunction[{x}, Sin[x], ...]
     >> cf[1.4]
      = 0.98545
 
     Compile supports basic flow control:
     >> cf = Compile[{{x, _Real}, {y, _Integer}}, If[x == 0.0 && y <= 0, 0.0, Sin[x ^ y] + 1 / Min[x, 0.5]] + 0.5]
-     = CompiledFunction[{x, y}, ..., -CompiledCode-]
+     = CompiledFunction[{x, y}, ...]
     >> cf[3.5, 2]
      = 2.18888
 
@@ -78,7 +78,6 @@ class Compile(Builtin):
         "fdup": "Duplicate parameter `1` found in `2`.",
     }
 
-    requires = ("llvmlite",)
     summary_text = "compile an expression"
 
     def eval(self, vars, expr, evaluation: Evaluation):
@@ -172,7 +171,7 @@ class CompiledFunction(Builtin):
     </dl>
 
     >> sqr = Compile[{x}, x x]
-     = CompiledFunction[{x}, x ^ 2, -CompiledCode-]
+     = CompiledFunction[{x}, x ^ 2, ...]
     >> Head[sqr]
      = CompiledFunction
     >> sqr[2]
