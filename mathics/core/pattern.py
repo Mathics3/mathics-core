@@ -461,7 +461,6 @@ class ExpressionPattern(BasePattern):
         """Try to match the pattern against an Expression"""
         evaluation.check_stopped()
         if self.isliteral:
-            print(self.expr, "is literal")
             if expression.sameQ(self.expr):
                 # yield vars, None
                 yield_func(vars_dict, None)
