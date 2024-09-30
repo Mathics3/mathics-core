@@ -114,7 +114,7 @@ class FreeQ(Builtin):
     def eval(self, expr, form, evaluation: Evaluation):
         "FreeQ[expr_, form_]"
 
-        form = BasePattern.create(form)
+        form = BasePattern.create(form, evaluation=evaluation)
         if expr.is_free(form, evaluation):
             return SymbolTrue
         else:

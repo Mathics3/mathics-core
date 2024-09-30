@@ -431,7 +431,10 @@ class Reap(Builtin):
         "Reap[expr_, {patterns___}, f_]"
 
         patterns = patterns.get_sequence()
-        sown = [(BasePattern.create(pattern), []) for pattern in patterns]
+        sown = [
+            (BasePattern.create(pattern, evaluation=evaluation), [])
+            for pattern in patterns
+        ]
 
         def listener(e, tag):
             result = False

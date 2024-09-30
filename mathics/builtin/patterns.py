@@ -827,7 +827,7 @@ class Except(PatternObject):
         self, expr: Expression, evaluation: OptionalType[Evaluation] = None
     ) -> None:
         super(Except, self).init(expr, evaluation=evaluation)
-        self.c = BasePattern.create(expr.elements[0])
+        self.c = BasePattern.create(expr.elements[0], evaluation=evaluation)
         if len(expr.elements) == 2:
             self.p = BasePattern.create(expr.elements[1], evaluation=evaluation)
         else:

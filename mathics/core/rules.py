@@ -97,8 +97,11 @@ class BaseRule(KeyComparable, ABC):
         pattern: Expression,
         system: bool = False,
         evaluation: Optional[Evaluation] = None,
+        attributes: Optional[int] = None,
     ) -> None:
-        self.pattern = BasePattern.create(pattern, evaluation=evaluation)
+        self.pattern = BasePattern.create(
+            pattern, attributes=attributes, evaluation=evaluation
+        )
         self.system = system
 
     def apply(
@@ -222,8 +225,11 @@ class Rule(BaseRule):
         replace: Expression,
         system=False,
         evaluation: Optional[Evaluation] = None,
+        attributes: Optional[int] = None,
     ) -> None:
-        super(Rule, self).__init__(pattern, system=system, evaluation=evaluation)
+        super(Rule, self).__init__(
+            pattern, system=system, evaluation=evaluation, attributes=attributes
+        )
         self.replace = replace
 
     def apply_rule(
@@ -310,9 +316,10 @@ class FunctionApplyRule(BaseRule):
         check_options: Optional[Callable],
         system: bool = False,
         evaluation: Optional[Evaluation] = None,
+        attributes: Optional[int] = None,
     ) -> None:
         super(FunctionApplyRule, self).__init__(
-            pattern, system=system, evaluation=evaluation
+            pattern, system=system, attributes=attributes, evaluation=evaluation
         )
         self.name = name
         self.function = function

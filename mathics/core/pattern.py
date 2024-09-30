@@ -92,6 +92,11 @@ class BasePattern(ABC):
 
     expr: BaseElement
 
+    # this attribute allows for a faster match algorithm based on sameq.
+    # Probably we should split ExpressionPattern into two different classes,
+    # one for literal patterns and the other for "Regular" ExpressionPatterns.
+    isliteral: bool = False
+
     # TODO: In WMA, when a BasePattern is created, the attributes
     # from the head are read from the evaluation context and
     # stored as a part of a rule.
@@ -168,7 +173,9 @@ class BasePattern(ABC):
     #
     @staticmethod
     def create(
-        expr: BaseElement, evaluation: Optional[Evaluation] = None
+        expr: BaseElement,
+        attributes: Optional[int] = None,
+        evaluation: Optional[Evaluation] = None,
     ) -> "BasePattern":
         """
         If ``expr`` is listed in ``pattern_object``  return the pattern found there.
@@ -181,7 +188,7 @@ class BasePattern(ABC):
             return pattern_object(expr, evaluation=evaluation)
         if isinstance(expr, Atom):
             return AtomPattern(expr, evaluation)
-        return ExpressionPattern(expr, evaluation)
+        return ExpressionPattern(expr, attributes, evaluation)
 
     def get_attributes(self, definitions):
         """The attributes of the expression"""
@@ -320,6 +327,9 @@ class AtomPattern(BasePattern):
     A pattern that matches with an atom.
     """
 
+    # Atoms are always literals
+    isliteral: bool = True
+
     def __init__(self, expr: Atom, evaluation: Optional[Evaluation] = None) -> None:
         self.expr = expr
         self.atom = expr
@@ -405,15 +415,22 @@ class ExpressionPattern(BasePattern):
 
     attributes: Optional[int] = None
 
-    def __init__(self, expr: Expression, evaluation: Optional[Evaluation] = None):
+    def __init__(
+        self,
+        expr: Expression,
+        attributes: Optional[int] = None,
+        evaluation: Optional[Evaluation] = None,
+    ):
         self.expr = expr
         head = expr.head
-        attributes = (
-            None if evaluation is None else head.get_attributes(evaluation.definition)
-        )
+        if attributes is None and evaluation:
+            attributes = head.get_attributes(evaluation.definitions)
+        self.head = BasePattern.create(head, evaluation=evaluation)
+        self.elements = [
+            BasePattern.create(element, evaluation=evaluation)
+            for element in expr.elements
+        ]
         self.__set_pattern_attributes__(attributes)
-        self.head = BasePattern.create(head)
-        self.elements = [BasePattern.create(element) for element in expr.elements]
 
     def __set_pattern_attributes__(self, attributes):
         if attributes is None or self.attributes is not None:
@@ -425,6 +442,10 @@ class ExpressionPattern(BasePattern):
             self.get_pre_choices = get_pre_choices_orderless
         else:
             self.get_pre_choices = get_pre_choices_with_order
+            if not (A_ONE_IDENTITY + A_FLAT) & attributes:
+                self.isliteral = self.head.isliteral and all(
+                    element.isliteral for element in self.elements
+                )
 
     def match(
         self,
@@ -439,6 +460,12 @@ class ExpressionPattern(BasePattern):
     ):
         """Try to match the pattern against an Expression"""
         evaluation.check_stopped()
+        if self.isliteral:
+            if expression.sameQ(self.expr):
+                # yield vars, None
+                yield_func(vars_dict, None)
+            return
+
         if self.attributes is None:
             self.__set_pattern_attributes__(
                 self.head.get_attributes(evaluation.definitions)

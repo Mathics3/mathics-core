@@ -213,7 +213,7 @@ class Cases(Builtin):
         results = []
 
         if pattern.has_form("Rule", 2) or pattern.has_form("RuleDelayed", 2):
-            match = Matcher(pattern.elements[0]).match
+            match = Matcher(pattern.elements[0], evaluation).match
             rule = Rule(pattern.elements[0], pattern.elements[1])
 
             def callback(level):
@@ -224,7 +224,7 @@ class Cases(Builtin):
                 return level
 
         else:
-            match = Matcher(pattern).match
+            match = Matcher(pattern, evaluation).match
 
             def callback(level):
                 if match(level, evaluation):
@@ -467,7 +467,7 @@ class DeleteCases(Builtin):
             return deletecases_with_levelspec(items, pattern, evaluation, levelspec, n)
         # A more efficient way to proceed if levelspec == 1
 
-        match = Matcher(pattern).match
+        match = Matcher(pattern, evaluation).match
         if n == -1:
 
             def cond(element):
@@ -1187,7 +1187,7 @@ class Pick(Builtin):
     def eval_pattern(self, items, sel, pattern, evaluation):
         "Pick[items_, sel_, pattern_]"
 
-        match = Matcher(pattern).match
+        match = Matcher(pattern, evaluation).match
         return self._do(items, sel, lambda s: match(s, evaluation), evaluation)
 
 
@@ -1245,7 +1245,7 @@ class Position(Builtin):
             evaluation.message("Position", "level", ls)
             return
 
-        match = Matcher(patt).match
+        match = Matcher(patt, evaluation).match
         result = []
 
         def callback(level, pos):
