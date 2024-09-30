@@ -140,7 +140,7 @@ def check_ArrayQ(expr, pattern, test, evaluation: Evaluation):
         return SymbolFalse
 
     depth = len(dims) - 1  # None doesn't count
-    if not pattern.does_match(Integer(depth), evaluation):
+    if not pattern.does_match(Integer(depth), evaluation=evaluation):
         return SymbolFalse
 
     return SymbolTrue
