@@ -20,6 +20,7 @@ from mathics.core.atoms import (
     Complex,
     Integer,
     Integer0,
+    Integer1,
     IntegerM1,
     Number,
     Rational,
@@ -29,6 +30,7 @@ from mathics.core.attributes import (
     A_HOLD_ALL,
     A_LISTABLE,
     A_NUMERIC_FUNCTION,
+    A_ORDERLESS,
     A_PROTECTED,
 )
 from mathics.core.builtin import Builtin, MPMathFunction, SympyFunction
@@ -45,7 +47,7 @@ from mathics.core.symbols import (
     SymbolTimes,
     SymbolTrue,
 )
-from mathics.core.systemsymbols import SymbolPiecewise
+from mathics.core.systemsymbols import SymbolLess, SymbolPiecewise
 from mathics.eval.arithmetic import (
     eval_Abs,
     eval_negate_number,
@@ -785,3 +787,57 @@ class Sign(SympyFunction):
     def eval_error(self, x, seqs, evaluation: Evaluation):
         "Sign[x_, seqs__]"
         evaluation.message("Sign", "argx", Integer(len(seqs.get_sequence()) + 1))
+
+
+class UnitStep(Builtin):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/UnitStep.html</url>)
+
+    <dl>
+      <dt>'UnitStep[$x$]'
+      <dd>return 0 if $x < 0$ and 1 for $x >= 0$.
+      <dt>'UnitStep[$x1$, $x2$, ...]'
+      <dd>return 1 if none of the $xi$ are negative, and 1 otherwise.
+    </dl>
+
+    >> UnitStep[.6]
+     = 1
+
+    >> Plot[UnitStep[x], {x, -2, 2}]
+     = -Graphics-
+
+    # >> Plot3D[UnitStep[x, y], {x, -3, 3}, {y, -3, 3}]
+
+    """
+
+    summary_text = "turn number into 0 if less than 0, or 1 otherwise"
+
+    attributes = A_ORDERLESS | A_PROTECTED
+
+    rules = {
+        "UnitStep[]": "1",
+    }
+
+    def eval(self, x, evaluation: Evaluation):
+        "UnitStep[x__]"
+        if isinstance(x, Expression):
+            return (
+                Integer0
+                if all(
+                    [
+                        Expression(SymbolLess, elt, Integer0).evaluate(evaluation)
+                        == SymbolTrue
+                        for elt in x.elements
+                    ]
+                )
+                else Integer1
+            )
+        elif isinstance(x, Number):
+            return (
+                Integer0
+                if Expression(SymbolLess, x, Integer0).evaluate(evaluation)
+                == SymbolTrue
+                else Integer1
+            )
