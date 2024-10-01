@@ -6,6 +6,7 @@ CHANGES
 New Builtins
 ++++++++++++
 
+* ``CheckAbort``
 * ``SetEnvironment``
 
 Compatibility
@@ -22,9 +23,9 @@ Operator precedence has been gone over and is picked up in tables from the Mathi
 Performance
 -----------
 
-* `Blank*` patterns without arguments are now singletons.
+* ``Blank*`` patterns without arguments are now singletons.
 
-  
+
 7.0.0
 -----
 

@@ -152,6 +152,36 @@ class Catch(Builtin):
         return ret
 
 
+class CheckAbort(Builtin):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/CheckAbort.html</url>
+
+    <dl>
+      <dt>'CheckAbort[$expr$, $failexpr$]'
+        <dd>evaluates $expr$, returning $failexpr$ if an abort occurs.
+    </dl>
+
+    >> CheckAbort[Abort[]; 1, 2] + x
+     = 2 + x
+
+    >> CheckAbort[1, 2] + x
+     = 1 + x
+    """
+
+    attributes = A_HOLD_ALL | A_PROTECTED
+
+    summary_text = "catch an Abort[] exception"
+
+    def eval(self, expr, failexpr, evaluation):
+        "CheckAbort[expr_, failexpr_]"
+
+        try:
+            return expr.evaluate(evaluation)
+        except AbortInterrupt:
+            return failexpr
+
+
 class CompoundExpression(BinaryOperator):
     """
     <url>:WMA link:
