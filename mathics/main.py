@@ -319,12 +319,12 @@ Please contribute to Mathics!""",
         action="store_true",
     )
 
+    # --initfile is different from the combination FILE --persist since the first one
+    # leaves the history empty and sets the current $Line to 1.
     argparser.add_argument(
-        "--pyextensions",
-        "-l",
-        action="append",
-        metavar="PYEXT",
-        help="directory to load extensions in python",
+        "--initfile",
+        help="the same that FILE and --persist together",
+        type=argparse.FileType("r"),
     )
 
     argparser.add_argument(
@@ -333,12 +333,18 @@ Please contribute to Mathics!""",
         action="store_true",
     )
 
-    # --initfile is different from the combination FILE --persist since the first one
-    # leaves the history empty and sets the current $Line to 1.
     argparser.add_argument(
-        "--initfile",
-        help="the same that FILE and --persist together",
-        type=argparse.FileType("r"),
+        "--post-mortem",
+        help="go to post-mortem debug on a terminating system exception (needs trepan3k)",
+        action="store_true",
+    )
+
+    argparser.add_argument(
+        "--pyextensions",
+        "-l",
+        action="append",
+        metavar="PYEXT",
+        help="directory to load extensions in python",
     )
 
     argparser.add_argument(
@@ -446,6 +452,17 @@ Please contribute to Mathics!""",
         feeder = MathicsFileLineFeeder(args.initfile)
         eval_loop(feeder, shell)
         definitions.set_line_no(0)
+
+    if args.post_mortem:
+        try:
+            from trepan.post_mortem import post_mortem_excepthook
+        except ImportError:
+            print(
+                "trepan3k is needed for post-mortem debugging --post-mortem option ignored."
+            )
+            print("And you may want also trepan3k-mathics3-plugin as well.")
+        else:
+            sys.excepthook = post_mortem_excepthook
 
     if args.FILE is not None:
         set_input_var(args.FILE.name)
