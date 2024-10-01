@@ -140,7 +140,7 @@ def check_ArrayQ(expr, pattern, test, evaluation: Evaluation):
         return SymbolFalse
 
     depth = len(dims) - 1  # None doesn't count
-    if not pattern.does_match(Integer(depth), evaluation=evaluation):
+    if not pattern.does_match(Integer(depth), {"evaluation": evaluation}):
         return SymbolFalse
 
     return SymbolTrue
@@ -154,7 +154,7 @@ def check_SparseArrayQ(expr, pattern, test, evaluation: Evaluation):
 
     pattern = BasePattern.create(pattern, evaluation=evaluation)
     dims, default_value, rules = expr.elements[1:]
-    if not pattern.does_match(Integer(len(dims.elements)), evaluation):
+    if not pattern.does_match(Integer(len(dims.elements)), {"evaluation": evaluation}):
         return SymbolFalse
 
     array_size = Expression(SymbolTimes, *dims.elements).evaluate(evaluation)

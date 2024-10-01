@@ -164,10 +164,12 @@ class BaseRule(KeyComparable, ABC):
         try:
             self.pattern.match(
                 expression,
-                yield_func=yield_match,
-                vars_dict={},
-                evaluation=evaluation,
-                fully=fully,
+                pattern_context={
+                    "yield_func": yield_match,
+                    "vars_dict": {},
+                    "evaluation": evaluation,
+                    "fully": fully,
+                },
             )
         except StopGenerator_BaseRule as exc:
             # FIXME: figure where these values are not getting set or updated properly.

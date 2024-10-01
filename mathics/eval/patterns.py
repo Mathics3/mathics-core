@@ -19,7 +19,8 @@ class Matcher:
 
         try:
             self.form.match(
-                expr, yield_func=yield_func, vars_dict={}, evaluation=evaluation
+                expr,
+                {"yield_func": yield_func, "vars_dict": {}, "evaluation": evaluation},
             )
         except _StopGeneratorMatchQ:
             return True
