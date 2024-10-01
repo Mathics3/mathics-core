@@ -25,6 +25,13 @@ Performance
 
 * ``Blank*`` patterns without arguments are now singletons.
 
+API Incompatibility
+-------------
+
+* ``Matcher`` now requires an additional ``evaluation`` parameter
+
+
+
 
 7.0.0
 -----
