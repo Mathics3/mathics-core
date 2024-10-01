@@ -9,6 +9,8 @@ from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.systemsymbols import SymbolFailed
 
+sort_order = "mathics.builtin.file-operations.file_utilities"
+
 
 class FindList(Builtin):
     """
