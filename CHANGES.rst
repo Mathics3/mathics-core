@@ -31,6 +31,12 @@ API incompatibility
 * ``Matcher`` now requires an additional ``evaluation`` parameter
 
 
+Bugs
+----
+
+* Fix infinite recursion when formatting ``Sequence[...]``
+
+
 Package updates
 +++++++++++++++
 
