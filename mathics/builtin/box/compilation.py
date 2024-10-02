@@ -2,10 +2,11 @@
 """
 Boxing Symbols for compiled code
 """
-# Docs are not yet ready for prime time. Maybe after release 6.0.0.
-no_doc = True
 
 from mathics.builtin.box.expression import BoxExpression
+
+# Docs are not yet ready for prime time. Maybe after release 6.0.0.
+no_doc = True
 
 
 class CompiledCodeBox(BoxExpression):

@@ -25,6 +25,18 @@ Performance
 
 * ``Blank*`` patterns without arguments are now singletons.
 
+API incompatibility
+-------------
+
+* ``Matcher`` now requires an additional ``evaluation`` parameter
+
+
+Package updates
++++++++++++++++
+
+#. Python 3.12 is now supported
+#. SymPy 1.13 is now supported
+
 
 7.0.0
 -----
