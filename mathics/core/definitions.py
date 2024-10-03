@@ -17,6 +17,7 @@ from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.expression import Expression
 from mathics.core.load_builtin import definition_contribute, mathics3_builtins_modules
+from mathics.core.pattern import BasePattern, ExpressionPattern
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolGet
 from mathics.core.util import canonic_filename
@@ -735,7 +736,7 @@ def get_tag_position(pattern, name) -> Optional[str]:
         "System`BlankNullSequence",
     )
 
-    def strip_pattern_name_and_condition(pat):
+    def strip_pattern_name_and_condition(pat: BasePattern) -> ExpressionPattern:
         """
         In ``Pattern[name_, pattern_]`` and
         ``Condition[pattern_, cond_]``
@@ -743,33 +744,50 @@ def get_tag_position(pattern, name) -> Optional[str]:
         This function strips it to ensure that
         ``pat`` does not have that form.
         """
+
+        # Is "pat" as ExpressionPattern or an AtomPattern?
+        # Note: the below test could also be on ExpressionPattern or
+        # AtomPattern, but using hasattr is more flexible if more
+        # kinds of patterns are added.
+        if not hasattr(pat, "head"):
+            return pat
+
+        # We have to use get_head_name() below because
+        # pat can either SymbolCondition or <AtomPattern: System`Condition>.
+        # In the latter case, comparing to SymbolCondition is not sufficient.
         if pat.get_head_name() == "System`Condition":
             if len(pat.elements) > 1:
                 return strip_pattern_name_and_condition(pat.elements[0])
+        # The same kind of get_head_name() check is needed here as well and
+        # is not the same as testing against SymbolPattern.
         if pat.get_head_name() == "System`Pattern":
             if len(pat.elements) == 2:
                 return strip_pattern_name_and_condition(pat.elements[1])
         return pat
 
-    def check_is_subvalue(pattern_sv, name_sv):
-        """Determines if ``pattern`` is a subvalue of ``name``"""
-        if name_sv == pattern_sv.get_lookup_name():
+    def is_pattern_a_kind_of(pattern: ExpressionPattern, pattern_name: str) -> bool:
+        """
+        Returns `True` if `pattern` or any of its alternates is a
+        pattern with name `pattern_name` and `False` otherwise."""
+
+        if pattern_name == pattern.get_lookup_name():
             return True
 
-        # Try again after strip Pattern and Condition wrappers:
-        head = strip_pattern_name_and_condition(pattern_sv.get_head())
+        # Try again after stripping Pattern and Condition wrappers:
+        head = strip_pattern_name_and_condition(pattern.get_head())
         head_name = head.get_lookup_name()
-        if name_sv == head_name:
+        if pattern_name == head_name:
             return True
+
         # The head is of the form ``_SymbolName|__SymbolName|___SymbolName``
-        # If name matches with SymbolName, then is a subvalue:
+        # If name matches with SymbolName, then it is a kind of:
         if head_name in blanks:
             if isinstance(head, Symbol):
                 return False
             sub_elements = head.elements
             if len(sub_elements) == 1:
                 head_name = head.elements[0].get_name()
-                if head_name == name_sv:
+                if head_name == pattern_name:
                     return True
         return False
 
@@ -810,10 +828,8 @@ def get_tag_position(pattern, name) -> Optional[str]:
         if strip_pattern is not pattern:
             return get_tag_position(strip_pattern, name)
 
-    # Check if ``pattern`` is a subvalue:
-
-    # The head is not a symbol. pattern is a subvalue?
-    if check_is_subvalue(pattern, name):
+    # The head is not a symbol. Is pattern is "name" kind of pattern?
+    if is_pattern_a_kind_of(pattern, name):
         return "sub"
 
     # If we are here, pattern is not an Ownvalue, DownValue, SubValue or NValue
