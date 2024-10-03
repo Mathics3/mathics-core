@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os.path as osp
 import time
 from typing import Optional
 
@@ -11,6 +12,9 @@ import_and_load_builtins()
 # For consistency set the character encoding ASCII which is
 # the lowest common denominator available on all systems.
 session = MathicsSession(character_encoding="ASCII")
+
+# Set up a data path that can be used in testing
+data_dir = osp.normpath(osp.join(osp.dirname(__file__), "data"))
 
 
 def reset_session(add_builtin=True, catch_interrupt=False):

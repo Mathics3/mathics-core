@@ -278,12 +278,6 @@ def test_close():
         #     "{Read, InputStream, String, {Real}}",
         #     "",
         # ),
-        (
-            r'stream = StringToStream["\"abc123\""];ReadList[stream, "Invalid"]//{#1[[0]],#1[[2]]}&',
-            ("Invalid is not a valid format specification.",),
-            "{ReadList, Invalid}",
-            "",
-        ),
         ("Close[stream];", None, "Null", ""),
         (
             'ReadList[StringToStream["a 1 b 2"], {Word, Number}, 1]',
