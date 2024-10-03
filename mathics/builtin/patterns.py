@@ -37,9 +37,9 @@ Options using 'OptionsPattern' and 'OptionValue':
 The attributes 'Flat', 'Orderless', and 'OneIdentity' affect pattern matching.
 """
 
-from typing import Callable, List, Optional as OptionalType, Tuple, Union
+from typing import List, Optional as OptionalType, Tuple, Union
 
-from mathics.core.atoms import Integer, Number, Rational, Real, String
+from mathics.core.atoms import Integer, Integer2, Number, Rational, Real, String
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
@@ -63,7 +63,13 @@ from mathics.core.list import ListExpression
 from mathics.core.pattern import BasePattern, StopGenerator
 from mathics.core.rules import Rule
 from mathics.core.symbols import Atom, Symbol, SymbolList, SymbolTrue
-from mathics.core.systemsymbols import SymbolBlank, SymbolDefault, SymbolDispatch
+from mathics.core.systemsymbols import (
+    SymbolBlank,
+    SymbolDefault,
+    SymbolDispatch,
+    SymbolRule,
+    SymbolRuleDelayed,
+)
 from mathics.eval.parts import python_levelspec
 
 # This tells documentation how to sort this module
@@ -94,7 +100,6 @@ class Rule_(BinaryOperator):
     operator = "->"
     attributes = A_SEQUENCE_HOLD | A_PROTECTED
     grouping = "Right"
-    messages = {"argrx": "Rule called with `1` arguments; 2 arguments are expected."}
     needs_verbatim = True
     summary_text = "a replacement rule"
 
@@ -102,7 +107,7 @@ class Rule_(BinaryOperator):
         """Rule[elems___]"""
         num_parms = len(elems.get_sequence())
         if num_parms != 2:
-            evaluation.message("Rule", "argrx", Integer(num_parms))
+            evaluation.message("Rule", "argrx", "Rule", Integer(num_parms), Integer2)
         return None
 
 
@@ -122,9 +127,6 @@ class RuleDelayed(BinaryOperator):
     """
 
     attributes = A_SEQUENCE_HOLD | A_HOLD_REST | A_PROTECTED
-    messages = {
-        "argrx": "RuleDelayed called with `1` arguments; 2 arguments are expected."
-    }
     needs_verbatim = True
     operator = ":>"
     summary_text = "a rule that keeps the replacement unevaluated"
@@ -133,7 +135,9 @@ class RuleDelayed(BinaryOperator):
         """RuleDelayed[elems___]"""
         num_parms = len(elems.get_sequence())
         if num_parms != 2:
-            evaluation.message("RuleDelayed", "argrx", Integer(num_parms))
+            evaluation.message(
+                "RuleDelayed", "argrx", "RuleDelayed", Integer(num_parms), Integer2
+            )
         return None
 
 
@@ -198,7 +202,7 @@ def create_rules(
 
     result = []
     for rule in rules:
-        if rule.get_head_name() not in ("System`Rule", "System`RuleDelayed"):
+        if rule.head not in (SymbolRule, SymbolRuleDelayed):
             evaluation.message(name, "reps", rule)
             return None, True
         if len(rule.elements) != 2:
