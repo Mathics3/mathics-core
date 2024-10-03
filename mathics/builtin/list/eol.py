@@ -370,10 +370,15 @@ class Delete(Builtin):
             )
             return
 
+        elements = positions.elements
+        if len(elements) == 0:
+            return expr
+
         # Create new python list of the positions and sort it
+
         positions = (
-            [t for t in positions.elements]
-            if positions.elements[0].has_form("List", None)
+            [t for t in elements]
+            if isinstance(elements[0], ListExpression)
             else [positions]
         )
         positions.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
