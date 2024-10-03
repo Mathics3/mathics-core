@@ -19,7 +19,7 @@ from mathics.core.expression import Expression
 from mathics.core.load_builtin import definition_contribute, mathics3_builtins_modules
 from mathics.core.pattern import BasePattern, ExpressionPattern
 from mathics.core.symbols import Atom, Symbol, strip_context
-from mathics.core.systemsymbols import SymbolGet
+from mathics.core.systemsymbols import SymbolGet, SymbolPattern
 from mathics.core.util import canonic_filename
 from mathics.settings import ROOT_DIR
 
@@ -744,10 +744,21 @@ def get_tag_position(pattern, name) -> Optional[str]:
         This function strips it to ensure that
         ``pat`` does not have that form.
         """
+
+        # Is "pat" as ExpressionPattern or an AtomPattern?
+        # Note: the below test could also be on ExpressionPattern or
+        # AtomPattern, but using hasattr is more flexible if more
+        # kinds of patterns are added.
+        if not hasattr(pat, "head"):
+            return pat
+
+        # We have to use get_head_name() below because
+        # pat can either SymbolCondition or <AtomPattern: System`Condition>.
+        # In the latter case, comparing to SymbolCondition is not sufficient.
         if pat.get_head_name() == "System`Condition":
             if len(pat.elements) > 1:
                 return strip_pattern_name_and_condition(pat.elements[0])
-        if pat.get_head_name() == "System`Pattern":
+        if pat.head == SymbolPattern:
             if len(pat.elements) == 2:
                 return strip_pattern_name_and_condition(pat.elements[1])
         return pat
