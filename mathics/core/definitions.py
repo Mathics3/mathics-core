@@ -826,9 +826,7 @@ def get_tag_position(pattern, name) -> Optional[str]:
         if strip_pattern is not pattern:
             return get_tag_position(strip_pattern, name)
 
-    # Check if ``pattern`` is a subvalue:
-
-    # The head is not a symbol. pattern is a subvalue?
+    # The head is not a symbol. Is pattern is "name" kind of pattern?
     if is_pattern_a_kind_of(pattern, name):
         return "sub"
 
