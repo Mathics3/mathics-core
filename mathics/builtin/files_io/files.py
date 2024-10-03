@@ -1354,6 +1354,8 @@ class Find(Read):
      = ...
     """
 
+    rules = {}
+
     options = {
         "AnchoredSearch": "False",
         "IgnoreCase": "False",
