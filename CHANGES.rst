@@ -6,6 +6,7 @@ CHANGES
 New Builtins
 ++++++++++++
 
+* ``CheckAbort``
 * ``SetEnvironment``
 
 Compatibility
@@ -22,9 +23,27 @@ Operator precedence has been gone over and is picked up in tables from the Mathi
 Performance
 -----------
 
-* `Blank*` patterns without arguments are now singletons.
+* ``Blank*`` patterns without arguments are now singletons.
 
-  
+API incompatibility
+-------------
+
+* ``Matcher`` now requires an additional ``evaluation`` parameter
+
+
+Bugs
+----
+
+* Fix infinite recursion when formatting ``Sequence[...]``
+
+
+Package updates
++++++++++++++++
+
+#. Python 3.12 is now supported
+#. SymPy 1.13 is now supported
+
+
 7.0.0
 -----
 

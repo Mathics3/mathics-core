@@ -26,11 +26,11 @@ from mathics.core.evaluation import Evaluation, Output
 from mathics.core.expression import Expression
 from mathics.core.load_builtin import import_and_load_builtins
 from mathics.core.parser import MathicsFileLineFeeder, MathicsLineFeeder
-from mathics.core.read import channel_to_stream
-from mathics.core.rules import BuiltinRule
+from mathics.core.rules import FunctionApplyRule
 from mathics.core.streams import stream_manager
 from mathics.core.symbols import SymbolNull, strip_context
 from mathics.eval.files_io.files import set_input_var
+from mathics.eval.files_io.read import channel_to_stream
 from mathics.timing import show_lru_cache_statistics
 
 # from mathics.timing import TimeitContextManager
@@ -65,10 +65,21 @@ def show_echo(query, evaluation):
 
 
 class TerminalShell(MathicsLineFeeder):
-    def __init__(self, definitions, colors, want_readline, want_completion):
+    def __init__(
+        self,
+        definitions,
+        colors,
+        want_readline,
+        want_completion,
+        autoload=False,
+        in_prefix: str = "In",
+        out_prefix: str = "Out",
+    ):
         super(TerminalShell, self).__init__("<stdin>")
         self.input_encoding = locale.getpreferredencoding()
         self.lineno = 0
+        self.in_prefix = in_prefix
+        self.out_prefix = out_prefix
 
         # Try importing readline to enable arrow keys support etc.
         self.using_readline = False
@@ -129,7 +140,8 @@ class TerminalShell(MathicsLineFeeder):
 
         self.incolors, self.outcolors = term_colors
         self.definitions = definitions
-        autoload_files(definitions, get_srcdir(), "autoload-cli")
+        if autoload:
+            autoload_files(definitions, get_srcdir(), "autoload-cli")
 
     def get_last_line_number(self):
         return self.definitions.get_line_no()
@@ -137,17 +149,21 @@ class TerminalShell(MathicsLineFeeder):
     def get_in_prompt(self):
         next_line_number = self.get_last_line_number() + 1
         if self.lineno > 0:
-            return " " * len("In[{0}]:= ".format(next_line_number))
+            return " " * len("{0}[{1}]:= ".format(self.in_prefix, next_line_number))
         else:
-            return "{1}In[{2}{0}{3}]:= {4}".format(next_line_number, *self.incolors)
+            return "{2}{0}[{3}{1}{4}]:= {5}".format(
+                self.in_prefix, next_line_number, *self.incolors
+            )
 
     def get_out_prompt(self, form=None):
         line_number = self.get_last_line_number()
         if form:
-            return "{2}Out[{3}{0}{4}]//{1}= {5}".format(
-                line_number, form, *self.outcolors
+            return "{3}{0}[{4}{1}{5}]//{2}= {6}".format(
+                self.out_prefix, line_number, form, *self.outcolors
             )
-        return "{1}Out[{2}{0}{3}]= {4}".format(line_number, *self.outcolors)
+        return "{2}{0}[{3}{1}{4}]= {5}".format(
+            self.out_prefix, line_number, *self.outcolors
+        )
 
     def to_output(self, text, form=None):
         line_number = self.get_last_line_number()
@@ -249,6 +265,26 @@ class TerminalOutput(Output):
         return self.shell.out_callback(out)
 
 
+def eval_loop(feeder: MathicsFileLineFeeder, shell: TerminalShell):
+    """
+    A read eval/loop for things having file input `feeder`.
+    `shell` is a shell session
+    """
+    try:
+        while not feeder.empty():
+            evaluation = Evaluation(
+                shell.definitions,
+                output=TerminalOutput(shell),
+                catch_interrupt=False,
+            )
+            query = evaluation.parse_feeder(feeder)
+            if query is None:
+                continue
+            evaluation.evaluate(query, timeout=settings.TIMEOUT)
+    except KeyboardInterrupt:
+        print("\nKeyboardInterrupt")
+
+
 def main() -> int:
     """
     Command-line entry.
@@ -283,12 +319,12 @@ Please contribute to Mathics!""",
         action="store_true",
     )
 
+    # --initfile is different from the combination FILE --persist since the first one
+    # leaves the history empty and sets the current $Line to 1.
     argparser.add_argument(
-        "--pyextensions",
-        "-l",
-        action="append",
-        metavar="PYEXT",
-        help="directory to load extensions in python",
+        "--initfile",
+        help="the same that FILE and --persist together",
+        type=argparse.FileType("r"),
     )
 
     argparser.add_argument(
@@ -297,12 +333,18 @@ Please contribute to Mathics!""",
         action="store_true",
     )
 
-    # --initfile is different from the combination FILE --persist since the first one
-    # leaves the history empty and sets the current $Line to 1.
     argparser.add_argument(
-        "--initfile",
-        help="the same that FILE and --persist together",
-        type=argparse.FileType("r"),
+        "--post-mortem",
+        help="go to post-mortem debug on a terminating system exception (needs trepan3k)",
+        action="store_true",
+    )
+
+    argparser.add_argument(
+        "--pyextensions",
+        "-l",
+        action="append",
+        metavar="PYEXT",
+        help="directory to load extensions in python",
     )
 
     argparser.add_argument(
@@ -385,7 +427,7 @@ Please contribute to Mathics!""",
         extension_modules = default_pymathics_modules
 
     if args.trace_builtins:
-        BuiltinRule.apply_rule = traced_apply_function
+        FunctionApplyRule.apply_rule = traced_apply_function
 
         def dump_tracing_stats():
             TraceBuiltins.dump_tracing_stats(sort_by="count", evaluation=None)
@@ -403,43 +445,30 @@ Please contribute to Mathics!""",
         args.colors,
         want_readline=not (args.no_readline),
         want_completion=not (args.no_completion),
+        autoload=True,
     )
 
     if args.initfile:
         feeder = MathicsFileLineFeeder(args.initfile)
-        try:
-            while not feeder.empty():
-                evaluation = Evaluation(
-                    shell.definitions,
-                    output=TerminalOutput(shell),
-                    catch_interrupt=False,
-                )
-                query = evaluation.parse_feeder(feeder)
-                if query is None:
-                    continue
-                evaluation.evaluate(query, timeout=settings.TIMEOUT)
-        except KeyboardInterrupt:
-            print("\nKeyboardInterrupt")
-
+        eval_loop(feeder, shell)
         definitions.set_line_no(0)
+
+    if args.post_mortem:
+        try:
+            from trepan.post_mortem import post_mortem_excepthook
+        except ImportError:
+            print(
+                "trepan3k is needed for post-mortem debugging --post-mortem option ignored."
+            )
+            print("And you may want also trepan3k-mathics3-plugin as well.")
+        else:
+            sys.excepthook = post_mortem_excepthook
 
     if args.FILE is not None:
         set_input_var(args.FILE.name)
         definitions.set_inputfile(args.FILE.name)
         feeder = MathicsFileLineFeeder(args.FILE)
-        try:
-            while not feeder.empty():
-                evaluation = Evaluation(
-                    shell.definitions,
-                    output=TerminalOutput(shell),
-                    catch_interrupt=False,
-                )
-                query = evaluation.parse_feeder(feeder)
-                if query is None:
-                    continue
-                evaluation.evaluate(query, timeout=settings.TIMEOUT)
-        except KeyboardInterrupt:
-            print("\nKeyboardInterrupt")
+        eval_loop(feeder, shell)
 
         if args.persist:
             definitions.set_line_no(0)

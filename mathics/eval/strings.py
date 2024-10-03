@@ -1,6 +1,7 @@
 """
 String-related evaluation functions.
 """
+
 from mathics.core.atoms import String
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation

@@ -6,7 +6,7 @@ from mathics.core.atoms import Integer, Integer0, Rational
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.rules import Pattern
+from mathics.core.rules import BasePattern
 from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolPower, SymbolTimes
 from mathics.core.systemsymbols import (
     SymbolComplexInfinity,
@@ -372,7 +372,7 @@ def build_series(f, x, x0, n, evaluation):
     vars = {
         x_name: x0,
     }
-    x_pattern = Pattern.create(x)
+    x_pattern = BasePattern.create(x, evaluation=evaluation)
 
     if f.is_free(x_pattern, evaluation):
         print(x, " not in ", f)

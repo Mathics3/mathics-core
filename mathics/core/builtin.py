@@ -54,8 +54,8 @@ from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInte
 from mathics.core.list import ListExpression
 from mathics.core.number import PrecisionValueError, dps, get_precision, min_prec
 from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
-from mathics.core.pattern import Pattern
-from mathics.core.rules import BuiltinRule, Rule
+from mathics.core.pattern import BasePattern
+from mathics.core.rules import FunctionApplyRule, Rule
 from mathics.core.symbols import (
     BaseElement,
     BooleanType,
@@ -121,7 +121,7 @@ class Builtin:
              return Expression(Symbol("G"), x*2)
     ```
 
-    adds a ``BuiltinRule`` to the symbol's definition object that implements
+    adds a ``FunctionApplyRule`` to the symbol's definition object that implements
     ``F[x_]->G[x*2]``.
 
     As shown in the example above, leading argument names of the
@@ -222,6 +222,7 @@ class Builtin:
         if not self.context:
             self.context = "Pymathics`" if is_pymodule else "System`"
         name = self.get_name()
+        attributes = self.attributes
         options = {}
 
         # - 'Strict': warn and fail with unsupported options
@@ -268,19 +269,41 @@ class Builtin:
         for pattern, function in self.get_functions(
             prefix="eval", is_pymodule=is_pymodule
         ):
+            pat_attr = attributes if pattern.get_head_name() == name else None
             rules.append(
-                BuiltinRule(name, pattern, function, check_options, system=True)
+                FunctionApplyRule(
+                    name,
+                    pattern,
+                    function,
+                    check_options,
+                    attributes=pat_attr,
+                    system=True,
+                )
             )
         for pattern, function in self.get_functions(is_pymodule=is_pymodule):
+            pat_attr = attributes if pattern.get_head_name() == name else None
             rules.append(
-                BuiltinRule(name, pattern, function, check_options, system=True)
+                FunctionApplyRule(
+                    name,
+                    pattern,
+                    function,
+                    check_options,
+                    attributes=pat_attr,
+                    system=True,
+                )
             )
         for pattern_str, replace_str in self.rules.items():
             pattern_str = pattern_str % {"name": name}
             pattern = parse_builtin_rule(pattern_str, definition_class)
             replace_str = replace_str % {"name": name}
+            pat_attr = attributes if pattern.get_head_name() == name else None
             rules.append(
-                Rule(pattern, parse_builtin_rule(replace_str), system=not is_pymodule)
+                Rule(
+                    pattern,
+                    parse_builtin_rule(replace_str),
+                    attributes=pat_attr,
+                    system=not is_pymodule,
+                )
             )
 
         box_rules = []
@@ -321,11 +344,14 @@ class Builtin:
         formatvalues = {"": []}
         for pattern, function in self.get_functions("format_"):
             forms, pattern = extract_forms(pattern)
+            pat_attr = attributes if pattern.get_head_name() == name else None
             for form in forms:
                 if form not in formatvalues:
                     formatvalues[form] = []
                 formatvalues[form].append(
-                    BuiltinRule(name, pattern, function, None, system=True)
+                    FunctionApplyRule(
+                        name, pattern, function, None, attributes=pat_attr, system=True
+                    )
                 )
         for pattern, replace in self.formats.items():
             forms, pattern = extract_forms(pattern)
@@ -377,7 +403,7 @@ class Builtin:
             rules=rules,
             formatvalues=formatvalues,
             messages=messages,
-            attributes=self.attributes,
+            attributes=attributes,
             options=options,
             defaultvalues=defaults,
             builtin=self,
@@ -1131,7 +1157,7 @@ class PatternArgumentError(PatternError):
         super().__init__(name, "argr", count, expected)
 
 
-class PatternObject(BuiltinElement, Pattern):
+class PatternObject(BuiltinElement, BasePattern):
     needs_verbatim = True
 
     arg_counts: List[int] = []
@@ -1142,9 +1168,10 @@ class PatternObject(BuiltinElement, Pattern):
             if len(expr.elements) not in self.arg_counts:
                 self.error_args(len(expr.elements), *self.arg_counts)
         self.expr = expr
-        self.head = Pattern.create(expr.head, evaluation=evaluation)
+        self.head = BasePattern.create(expr.head, evaluation=evaluation)
         self.elements = [
-            Pattern.create(element, evaluation=evaluation) for element in expr.elements
+            BasePattern.create(element, evaluation=evaluation)
+            for element in expr.elements
         ]
 
     def error(self, tag, *args):

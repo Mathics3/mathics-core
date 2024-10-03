@@ -309,19 +309,14 @@ class Evaluation:
                 else:
                     raise
             except WLThrowInterrupt as ti:
-                if ti.tag:
-                    self.exc_result = Expression(
-                        SymbolHold, Expression(SymbolThrow, ti.value, ti.tag)
-                    )
-                else:
-                    self.exc_result = Expression(
-                        SymbolHold, Expression(SymbolThrow, ti.value)
-                    )
-                self.message("Throw", "nocatch", self.exc_result)
-            #            except OverflowError:
-            #                print("Catch the overflow")
-            #                self.message("General", "ovfl")
-            #                self.exc_result = Expression(SymbolOverflow)
+                msg_expr = (
+                    Expression(SymbolThrow, ti.value, ti.tag)
+                    if ti.tag
+                    else Expression(SymbolThrow, ti.value)
+                )
+                self.message("Throw", "nocatch", msg_expr)
+                self.exc_result = Expression(SymbolHold, msg_expr)
+
             except BreakInterrupt:
                 self.message("Break", "nofdw")
                 self.exc_result = Expression(SymbolHold, Expression(SymbolBreak))

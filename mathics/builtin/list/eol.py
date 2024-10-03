@@ -21,6 +21,7 @@ from mathics.core.attributes import (
 from mathics.core.builtin import BinaryOperator, Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
+from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import (
     InvalidLevelspecError,
     MessageException,
@@ -212,7 +213,7 @@ class Cases(Builtin):
         results = []
 
         if pattern.has_form("Rule", 2) or pattern.has_form("RuleDelayed", 2):
-            match = Matcher(pattern.elements[0]).match
+            match = Matcher(pattern.elements[0], evaluation).match
             rule = Rule(pattern.elements[0], pattern.elements[1])
 
             def callback(level):
@@ -223,7 +224,7 @@ class Cases(Builtin):
                 return level
 
         else:
-            match = Matcher(pattern).match
+            match = Matcher(pattern, evaluation).match
 
             def callback(level):
                 if match(level, evaluation):
@@ -349,6 +350,8 @@ class Delete(Builtin):
             return delete_one(expr, pos)
         except PartRangeError:
             evaluation.message("Part", "partw", ListExpression(position), expr)
+        except PartDepthError:
+            evaluation.message("Part", "partw", ListExpression(position), expr)
 
     def eval(self, expr, positions, evaluation):
         "Delete[expr_, positions___]"
@@ -391,7 +394,9 @@ class Delete(Builtin):
                 evaluation.message("Part", "partw", Integer(exc.index), expr)
                 return
             except PartError:
-                evaluation.message("Part", "partw", ListExpression(*pos), expr)
+                evaluation.message(
+                    "Part", "partw", ListExpression(*(Integer(p) for p in pos)), expr
+                )
                 return
         return newexpr
 
@@ -466,7 +471,7 @@ class DeleteCases(Builtin):
             return deletecases_with_levelspec(items, pattern, evaluation, levelspec, n)
         # A more efficient way to proceed if levelspec == 1
 
-        match = Matcher(pattern).match
+        match = Matcher(pattern, evaluation).match
         if n == -1:
 
             def cond(element):
@@ -580,39 +585,74 @@ class First(Builtin):
     <dl>
       <dt>'First[$expr$]'
       <dd>returns the first element in $expr$.
+
+      <dt>'First[$expr$, $def$]'
+      <dd>returns the first element in $expr$ if it exists or $def$ otherwise.
     </dl>
 
     'First[$expr$]' is equivalent to '$expr$[[1]]'.
 
     >> First[{a, b, c}]
      = a
+
+    The first argument need not be a list:
     >> First[a + b + c]
      = a
+
+    However, the first argument must be Nonatomic when there is a single argument:
     >> First[x]
-     : Nonatomic expression expected.
+     : Nonatomic expression expected at position 1 in First[x].
      = First[x]
+
+    Or if it is not, but a second default argument is provided, that is \
+    evaluated and returned:
+
+    >> First[10, 1+2]
+     = 3
+
     >> First[{}]
      : {} has zero length and no first element.
      = First[{}]
+
+    As before, the first argument is empty, but a default argument is given, \
+    evaluate and return the second argument:
+    >> First[{}, 1+2]
+     = 3
     """
 
+    attributes = A_HOLD_REST | A_PROTECTED
     messages = {
-        "normal": "Nonatomic expression expected.",
+        "argt": "First called with `1` arguments; 1 or 2 arguments are expected.",
+        "normal": "Nonatomic expression expected at position 1 in `1`.",
         "nofirst": "`1` has zero length and no first element.",
     }
     summary_text = "first element of a list or expression"
 
-    def eval(self, expr, evaluation):
-        "First[expr_]"
+    # FIXME: the code and the code for Last are similar and can be DRY'd
+    def eval(self, expr, evaluation: Evaluation, expression: Expression):
+        "First[expr__]"
 
         if isinstance(expr, Atom):
-            evaluation.message("First", "normal")
+            evaluation.message("First", "normal", expression)
             return
-        if len(expr.elements) == 0:
+        expr_len = len(expr.elements)
+        if expr_len == 0:
             evaluation.message("First", "nofirst", expr)
             return
+        if expr_len > 2 and expr.head is SymbolSequence:
+            evaluation.message("First", "argt", expr_len)
+            return
 
-        return expr.elements[0]
+        first_elem = expr.elements[0]
+
+        if expr.head == SymbolSequence or (
+            not isinstance(expr, ListExpression)
+            and len == 2
+            and isinstance(first_elem, Atom)
+        ):
+            return expr.elements[1]
+
+        return first_elem
 
 
 class FirstCase(Builtin):
@@ -813,34 +853,63 @@ class Last(Builtin):
     <dl>
       <dt>'Last[$expr$]'
       <dd>returns the last element in $expr$.
+
+      <dt>'Last[$expr$, $def$]'
+      <dd>returns the last element in $expr$ if it exists or $def$ otherwise.
     </dl>
 
     'Last[$expr$]' is equivalent to '$expr$[[-1]]'.
 
     >> Last[{a, b, c}]
      = c
-    >> Last[x]
-     : Nonatomic expression expected.
-     = Last[x]
+
+    The first argument need not be a list:
+    >> Last[a + b + c]
+     = c
+
+    However, the first argument must be Nonatomic when there is a single argument:
+    >> Last[10]
+     : Nonatomic expression expected at position 1 in Last[10].
+     = Last[10]
+
+    Or if it is not, but a second default argument is provided, that is \
+    evaluated and returned:
+
+    >> Last[10, 1+2]
+     = 3
+
+
     >> Last[{}]
      : {} has zero length and no last element.
      = Last[{}]
+
+    As before, the first argument is empty, but since default argument is given, \
+    evaluate and return the second argument:
+    >> Last[{}, 1+2]
+     = 3
     """
 
+    attributes = A_HOLD_REST | A_PROTECTED
     messages = {
-        "normal": "Nonatomic expression expected.",
+        "argt": "Last called with `1` arguments; 1 or 2 arguments are expected.",
+        "normal": "Nonatomic expression expected at position 1 in `1`.",
         "nolast": "`1` has zero length and no last element.",
     }
     summary_text = "last element of a list or expression"
 
-    def eval(self, expr, evaluation):
-        "Last[expr_]"
+    # FIXME: the code and the code for First are similar and can be DRY'd
+    def eval(self, expr, evaluation: Evaluation, expression: Expression):
+        "Last[expr__]"
 
         if isinstance(expr, Atom):
-            evaluation.message("Last", "normal")
+            evaluation.message("Last", "normal", expression)
             return
-        if len(expr.elements) == 0:
+        expr_len = len(expr.elements)
+        if expr_len == 0:
             evaluation.message("Last", "nolast", expr)
+            return
+        if expr_len > 2 and expr.head is SymbolSequence:
+            evaluation.message("Last", "argt", expr_len)
             return
 
         return expr.elements[-1]
@@ -906,17 +975,21 @@ class Most(Builtin):
     >> Most[a + b + c]
      = a + b
     >> Most[x]
-     : Nonatomic expression expected.
+     : Nonatomic expression expected at position 1 in Most[x].
      = Most[x]
     """
 
+    messages = {
+        "normal": "Nonatomic expression expected at position 1 in `1`.",
+    }
+
     summary_text = "remove the last element"
 
-    def eval(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation, expression: Expression):
         "Most[expr_]"
 
         if isinstance(expr, Atom):
-            evaluation.message("Most", "normal")
+            evaluation.message("Most", "normal", expression)
             return
         return expr.slice(expr.head, slice(0, -1), evaluation)
 
@@ -1118,7 +1191,7 @@ class Pick(Builtin):
     def eval_pattern(self, items, sel, pattern, evaluation):
         "Pick[items_, sel_, pattern_]"
 
-        match = Matcher(pattern).match
+        match = Matcher(pattern, evaluation).match
         return self._do(items, sel, lambda s: match(s, evaluation), evaluation)
 
 
@@ -1176,7 +1249,7 @@ class Position(Builtin):
             evaluation.message("Position", "level", ls)
             return
 
-        match = Matcher(patt).match
+        match = Matcher(patt, evaluation).match
         result = []
 
         def callback(level, pos):
@@ -1395,7 +1468,7 @@ class Rest(Builtin):
     >> Rest[a + b + c]
      = b + c
     >> Rest[x]
-     : Nonatomic expression expected.
+     : Nonatomic expression expected at position 1 in Rest[x].
      = Rest[x]
     >> Rest[{}]
      : Cannot take Rest of expression {} with length zero.
@@ -1403,16 +1476,16 @@ class Rest(Builtin):
     """
 
     messages = {
-        "normal": "Nonatomic expression expected.",
+        "normal": "Nonatomic expression expected at position 1 in `1`.",
         "norest": "Cannot take Rest of expression `1` with length zero.",
     }
     summary_text = "remove the first element"
 
-    def eval(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation, expression: Expression):
         "Rest[expr_]"
 
         if isinstance(expr, Atom):
-            evaluation.message("Rest", "normal")
+            evaluation.message("Rest", "normal", expression)
             return
         if len(expr.elements) == 0:
             evaluation.message("Rest", "norest", expr)
@@ -1535,7 +1608,7 @@ class UpTo(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/UpTo.html</url>
 
     <dl>
-      <dd> 'Upto'[$n$]
+      <dd> 'UpTo'[$n$]
       <dt> is a symbolic specification that represents up to $n$ objects or \
            positions. If $n$ objects or positions are available, all are used. \
            If fewer are available, only those available are used.

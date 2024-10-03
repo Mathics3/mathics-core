@@ -1,10 +1,50 @@
 # -*- coding: utf-8 -*-
-"""Rules are a core part of the way WMA and Mathics3 executes a
-program.  Expressions can be transformed by rewrite rules (AKA
-transformation rules); builtin functions get matched and applied via a
-function signature specified using a BuiltinRule.
+"""Rules are a core part of the way Mathematica and Mathics3 execute a
+program.
+
+Expressions which are transformed by rewrite rules (AKA transformation
+rules) are handed by the `Rule` class.
+
+There are also rules for how to match, assign function parameter
+arguments, and then apply a Python "evaluation" function to a Mathics3 Expression.
+These kinds of rules are handled by objects in the `FunctionApplyRule` class.
 
 This module contains the classes for these two types of rules.
+
+In a `FunctionApplyRule` rule, the match status of a rule depends on the evaluation return.
+
+For example, suppose that we try to apply rule `F[x_]->x^2` to the expression `F[2]`. The pattern part of the rule,`F[x_]` matches
+the expression, `Blank[x]` (or `x_`) is replaced by `2`, giving the substitution expression `2^2`. Evaluation then stops
+looking for other rules to be applied over `F[2]`.
+
+On the other hand, suppose that we define a `FunctionApplyRule` that associates `F[x_]` with the function:
+
+```
+...
+class MyFunction(Builtin):
+    ...
+    def eval_f(self, x, evaluation) -> Optional[Expression]:
+        "F[x_]"   # pattern part of FunctionApplyRule
+        if x>3:
+            return Expression(SymbolPower, x, Integer2)
+        return None
+```
+
+Then, if we apply the rule to `F[2]`, the function is evaluated returning `None`. Then, in the evaluation loop, we get the same
+effect as if the pattern didn't match with the expression. The loop continues then with the next rule associated with `F`.
+
+Why do things this way?
+
+Sometimes, the cost of deciding if the rule match is similar to the cost of evaluating the function. Suppose for example a rule
+
+   F[x_/;(G[x]>0)]:=G[x]
+
+with G[x] a computationally expensive function. To decide if G[x] is larger than 0, we need to evaluate it,
+and once we have evaluated it, just need to return its value.
+
+Also, this allows us to handle several rules in the same function, without relying on our very slow pattern-matching routines.
+In particular, this is used for for some critical low-level tasks like building lists in iterators, processing arithmetic expressions,
+plotting functions, or evaluating derivatives and integrals.
 
 """
 
@@ -17,7 +57,7 @@ from typing import Callable, Optional
 from mathics.core.element import BaseElement, KeyComparable
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.pattern import Pattern, StopGenerator
+from mathics.core.pattern import BasePattern, StopGenerator
 from mathics.core.symbols import strip_context
 
 
@@ -38,16 +78,15 @@ class StopGenerator_BaseRule(StopGenerator):
 
 
 class BaseRule(KeyComparable, ABC):
-    """
-    This is the base class from which BuiltinRule and Rule classes
-    are derived from.
+    """This is the base class from which the FunctionApplyRule and
+    Rule classes are derived from.
 
     Rules are part of the rewriting system of Mathics3. See
     https://en.wikipedia.org/wiki/Rewriting
 
-    This class is not complete in of itself and subclasses should
-    adapt or fill in what is needed. In particular either ``apply_rule()``
-    or ``apply_function()`` need to be implemented.
+    This class is not complete in of itself; subclasses must adapt or
+    fill in what is needed. In particular either ``apply_rule()`` or
+    ``apply_function()`` need to be implemented.
 
     Note: we want Rules to be serializable so that we can dump and
     restore Rules in order to make startup time faster.
@@ -58,8 +97,11 @@ class BaseRule(KeyComparable, ABC):
         pattern: Expression,
         system: bool = False,
         evaluation: Optional[Evaluation] = None,
+        attributes: Optional[int] = None,
     ) -> None:
-        self.pattern = Pattern.create(pattern, evaluation=evaluation)
+        self.pattern = BasePattern.create(
+            pattern, attributes=attributes, evaluation=evaluation
+        )
         self.system = system
 
     def apply(
@@ -89,7 +131,7 @@ class BaseRule(KeyComparable, ABC):
                     del vars[name]
             apply_fn = (
                 self.apply_function
-                if isinstance(self, BuiltinRule)
+                if isinstance(self, FunctionApplyRule)
                 else self.apply_rule
             )
             new_expression = apply_fn(expression, vars, options, evaluation)
@@ -137,10 +179,14 @@ class BaseRule(KeyComparable, ABC):
         else:
             return None
 
-    def apply_rule(self):
+    def apply_rule(
+        self, expression: BaseElement, vars: dict, options: dict, evaluation: Evaluation
+    ):
         raise NotImplementedError
 
-    def apply_function(self):
+    def apply_function(
+        self, expression: BaseElement, vars: dict, options: dict, evaluation: Evaluation
+    ):
         raise NotImplementedError
 
     def get_sort_key(self) -> tuple:
@@ -155,7 +201,7 @@ class Rule(BaseRule):
     pattern and a replacement term and doesn't involve function
     application.
 
-    In contrast to BuiltinRule[], rule application cannot force
+    In contrast to FunctionApplyRule[], rule application cannot force
     a reevaluation of the expression when the rewrite/apply/eval step
     finishes.
 
@@ -179,8 +225,11 @@ class Rule(BaseRule):
         replace: Expression,
         system=False,
         evaluation: Optional[Evaluation] = None,
+        attributes: Optional[int] = None,
     ) -> None:
-        super(Rule, self).__init__(pattern, system=system, evaluation=evaluation)
+        super(Rule, self).__init__(
+            pattern, system=system, evaluation=evaluation, attributes=attributes
+        )
         self.replace = replace
 
     def apply_rule(
@@ -216,11 +265,11 @@ class Rule(BaseRule):
         return "<Rule: %s -> %s>" % (self.pattern, self.replace)
 
 
-# FIXME: the class name would be better called FunctionCallRule.
-class BuiltinRule(BaseRule):
+class FunctionApplyRule(BaseRule):
     """
-    A BuiltinRule is a rule that has a replacement term that is associated
-    a Python function rather than a Mathics Expression as happens in a Rule.
+    A FunctionApplyRule is a rule that has a replacement term that
+    is associated a Python function rather than a Mathics Expression
+    as happens in a transformation Rule.
 
     Each time the Pattern part of the Rule matches an Expression, the
     matching subexpression is replaced by the expression returned
@@ -229,7 +278,7 @@ class BuiltinRule(BaseRule):
     Parameters for the function are bound to parameters matched by the pattern.
 
     Here is an example taken from the symbol ``System`Plus``.
-    It has has associated a BuiltinRule::
+    It has has associated a FunctionApplyRule::
 
         Plus[items___] -> mathics.builtin.arithfns.basic.Plus.apply
 
@@ -242,8 +291,8 @@ class BuiltinRule(BaseRule):
     The return value of this function is ``Times[2, a]`` (or more compactly: ``2*a``).
     When replaced in the original expression, the result is: ``F[2*a]``.
 
-    In contrast to Rule, BuiltinRules can change the state of definitions
-    in the the system.
+    In contrast to (transformation) Rules, FunctionApplyRules can
+    change the state of definitions in the the system.
 
     For example, the rule::
 
@@ -254,8 +303,9 @@ class BuiltinRule(BaseRule):
     sets the attribute ``NumericFunction`` in the  definition of the symbol ``F`` and
     returns Null (``SymbolNull`)`.
 
-    This will cause `Expression.evalate() to perform an additional
+    This will cause `Expression.evaluate() to perform an additional
     ``rewrite_apply_eval()`` step.
+
     """
 
     def __init__(
@@ -266,8 +316,11 @@ class BuiltinRule(BaseRule):
         check_options: Optional[Callable],
         system: bool = False,
         evaluation: Optional[Evaluation] = None,
+        attributes: Optional[int] = None,
     ) -> None:
-        super(BuiltinRule, self).__init__(pattern, system=system, evaluation=evaluation)
+        super(FunctionApplyRule, self).__init__(
+            pattern, system=system, attributes=attributes, evaluation=evaluation
+        )
         self.name = name
         self.function = function
         self.check_options = check_options
@@ -293,7 +346,7 @@ class BuiltinRule(BaseRule):
             return self.function(evaluation=evaluation, **vars_noctx)
 
     def __repr__(self) -> str:
-        return "<BuiltinRule: %s -> %s>" % (self.pattern, self.function)
+        return "<FunctionApplyRule: %s -> %s>" % (self.pattern, self.function)
 
     def __getstate__(self):
         odict = self.__dict__.copy()

@@ -46,7 +46,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import MACHINE_EPSILON, dps
-from mathics.core.rules import Pattern
+from mathics.core.rules import BasePattern
 from mathics.core.symbols import (
     BaseElement,
     Symbol,
@@ -228,7 +228,7 @@ class D(SympyFunction):
         if f == x:
             return Integer1
 
-        x_pattern = Pattern.create(x)
+        x_pattern = BasePattern.create(x, evaluation=evaluation)
         if f.is_free(x_pattern, evaluation):
             return Integer0
 
@@ -898,22 +898,24 @@ class FindRoot(_BaseFinder):
             native_findroot_messages,
             native_findroot_methods,
         )
-
-        methods.update(native_findroot_methods)
-        messages.update(native_findroot_messages)
     except Exception:
         pass
+    else:
+        methods.update(native_findroot_methods)
+        messages.update(native_findroot_messages)
+
     try:
         from mathics.builtin.scipy_utils.optimizers import (
             scipy_findroot_methods,
             update_findroot_messages,
         )
 
+    except Exception:
+        pass
+    else:
         methods.update(scipy_findroot_methods)
         messages = _BaseFinder.messages.copy()
         update_findroot_messages(messages)
-    except Exception:
-        pass
 
 
 # Move to mathics.builtin.domains...
@@ -1917,7 +1919,7 @@ class SeriesData(Builtin):
             nummax.get_int_value(),
             den.get_int_value(),
         )
-        x_pattern = Pattern.create(x)
+        x_pattern = BasePattern.create(x, evaluation=evaluation)
         incompat_series = []
         max_exponent = Integer(int(series[2] / series[3] + 1))
         if coeff.get_head() is SymbolSequence:
@@ -2263,7 +2265,7 @@ class Solve(Builtin):
         vars = []
         vars_sympy = []
         for var, var_sympy in zip(all_vars, all_vars_sympy):
-            pattern = Pattern.create(var)
+            pattern = BasePattern.create(var, evaluation=evaluation)
             if not eqs.is_free(pattern, evaluation):
                 vars.append(var)
                 vars_sympy.append(var_sympy)

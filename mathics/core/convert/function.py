@@ -22,6 +22,10 @@ try:
     }
 except ImportError:
     use_llvm = False
+    bool_type = bool
+    int_type = int
+    real_type = float
+
     permitted_types = {
         Expression(SymbolBlank, SymbolInteger): int,
         Expression(SymbolBlank, SymbolReal): float,

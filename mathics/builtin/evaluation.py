@@ -308,3 +308,5 @@ class Sequence(Builtin):
     summary_text = (
         "a sequence of arguments that will automatically be spliced into any function"
     )
+
+    formats = {"Sequence[elems___]": "HoldForm[Sequence][elems]"}
