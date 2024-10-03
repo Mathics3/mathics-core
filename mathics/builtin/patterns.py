@@ -37,9 +37,9 @@ Options using 'OptionsPattern' and 'OptionValue':
 The attributes 'Flat', 'Orderless', and 'OneIdentity' affect pattern matching.
 """
 
-from typing import Callable, List, Optional as OptionalType, Tuple, Union
+from typing import List, Optional as OptionalType, Tuple, Union
 
-from mathics.core.atoms import Integer, Number, Rational, Real, String
+from mathics.core.atoms import Integer, Integer2, Number, Rational, Real, String
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
@@ -54,6 +54,7 @@ from mathics.core.builtin import (
     PatternError,
     PatternObject,
     PostfixOperator,
+    Test,
 )
 from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import Evaluation
@@ -63,7 +64,14 @@ from mathics.core.list import ListExpression
 from mathics.core.pattern import BasePattern, StopGenerator
 from mathics.core.rules import Rule
 from mathics.core.symbols import Atom, Symbol, SymbolList, SymbolTrue
-from mathics.core.systemsymbols import SymbolBlank, SymbolDefault, SymbolDispatch
+from mathics.core.systemsymbols import (
+    SymbolBlank,
+    SymbolDefault,
+    SymbolDispatch,
+    SymbolInfinity,
+    SymbolRule,
+    SymbolRuleDelayed,
+)
 from mathics.eval.parts import python_levelspec
 
 # This tells documentation how to sort this module
@@ -85,11 +93,6 @@ class Rule_(BinaryOperator):
     = a + b + d
     >> {x,x^2,y} /. x->3
      = {3, 9, y}
-    """
-
-    # TODO: An error message should appear when Rule is called with a wrong
-    # number of arguments
-    """
     >> a /. Rule[1, 2, 3] -> t
      : Rule called with 3 arguments; 2 arguments are expected.
      = a
@@ -101,6 +104,13 @@ class Rule_(BinaryOperator):
     grouping = "Right"
     needs_verbatim = True
     summary_text = "a replacement rule"
+
+    def eval_rule(self, elems, evaluation):
+        """Rule[elems___]"""
+        num_parms = len(elems.get_sequence())
+        if num_parms != 2:
+            evaluation.message("Rule", "argrx", "Rule", Integer(num_parms), Integer2)
+        return None
 
 
 class RuleDelayed(BinaryOperator):
@@ -123,6 +133,15 @@ class RuleDelayed(BinaryOperator):
     operator = ":>"
     summary_text = "a rule that keeps the replacement unevaluated"
 
+    def eval_rule_delayed(self, elems, evaluation):
+        """RuleDelayed[elems___]"""
+        num_parms = len(elems.get_sequence())
+        if num_parms != 2:
+            evaluation.message(
+                "RuleDelayed", "argrx", "RuleDelayed", Integer(num_parms), Integer2
+            )
+        return None
+
 
 # TODO: disentangle me
 def create_rules(
@@ -130,20 +149,24 @@ def create_rules(
     expr: Expression,
     name: str,
     evaluation: Evaluation,
-    extra_args: List = [],
+    extra_args: OptionalType[List] = None,
 ) -> Tuple[Union[List[Rule], BaseElement], bool]:
     """
-    This function implements  `Replace`, `ReplaceAll`, `ReplaceRepeated` and `ReplaceList` eval methods.
-    `name` controls which of these methods is implemented. These methods applies the rule / list of rules
-    `rules_expr` over the expression `expr`, using the evaluation context `evaluation`.
+    This function implements  `Replace`, `ReplaceAll`, `ReplaceRepeated`
+    and `ReplaceList` eval methods.
+    `name` controls which of these methods is implemented. These methods
+    applies the rule / list of rules
+    `rules_expr` over the expression `expr`, using the evaluation context
+    `evaluation`.
 
-    The result is a tuple of two elements. If the second element is `True`, then the first element is the result of the method.
+    The result is a tuple of two elements. If the second element is `True`,
+    then the first element is the result of the method.
     If `False`, the first element of the tuple is a list of rules.
 
     """
     if isinstance(rules_expr, Dispatch):
         return rules_expr.rules, False
-    elif rules_expr.has_form("Dispatch", None):
+    if rules_expr.has_form("Dispatch", None):
         return Dispatch(rules_expr.elements, evaluation)
 
     if rules_expr.has_form("List", None):
@@ -164,6 +187,8 @@ def create_rules(
                 break
 
         if all_lists:
+            if extra_args is None:
+                extra_args = []
             return (
                 ListExpression(
                     *[
@@ -173,28 +198,28 @@ def create_rules(
                 ),
                 True,
             )
-        else:
-            evaluation.message(name, "rmix", rules_expr)
+
+        evaluation.message(name, "rmix", rules_expr)
+        return None, True
+
+    result = []
+    for rule in rules:
+        if rule.head not in (SymbolRule, SymbolRuleDelayed):
+            evaluation.message(name, "reps", rule)
             return None, True
-    else:
-        result = []
-        for rule in rules:
-            if rule.get_head_name() not in ("System`Rule", "System`RuleDelayed"):
-                evaluation.message(name, "reps", rule)
-                return None, True
-            elif len(rule.elements) != 2:
-                evaluation.message(
-                    # TODO: shorten names here
-                    rule.get_head_name(),
-                    "argrx",
-                    rule.get_head_name(),
-                    3,
-                    2,
-                )
-                return None, True
-            else:
-                result.append(Rule(rule.elements[0], rule.elements[1]))
-        return result, False
+        if len(rule.elements) != 2:
+            evaluation.message(
+                # TODO: shorten names here
+                rule.get_head_name(),
+                "argrx",
+                rule.get_head_name(),
+                3,
+                2,
+            )
+            return None, True
+
+        result.append(Rule(rule.elements[0], rule.elements[1]))
+    return result, False
 
 
 class Replace(Builtin):
@@ -272,7 +297,7 @@ class Replace(Builtin):
 
             heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
 
-            result, applied = expr.do_apply_rules(
+            result, _ = expr.do_apply_rules(
                 rules,
                 evaluation,
                 level=0,
@@ -284,6 +309,8 @@ class Replace(Builtin):
 
         except PatternError:
             evaluation.message("Replace", "reps", rules)
+
+        return None
 
 
 class ReplaceAll(BinaryOperator):
@@ -348,10 +375,11 @@ class ReplaceAll(BinaryOperator):
             rules, ret = create_rules(rules, expr, "ReplaceAll", evaluation)
             if ret:
                 return rules
-            result, applied = expr.do_apply_rules(rules, evaluation)
+            result, _ = expr.do_apply_rules(rules, evaluation)
             return result
         except PatternError:
             evaluation.message("Replace", "reps", rules)
+            return None
 
 
 class ReplaceRepeated(BinaryOperator):
@@ -450,7 +478,10 @@ class ReplaceList(Builtin):
 
     <dl>
       <dt>'ReplaceList[$expr$, $rules$]'
-      <dd>returns a list of all possible results of applying $rules$
+      <dd>returns a list of all possible results when applying $rules$ \
+        to $expr$.
+      <dt>'ReplaceList[$expr$, $rules$, $n$]'
+      <dd>returns a list of at most $n$ results when applying $rules$ \
         to $expr$.
     </dl>
 
@@ -485,20 +516,28 @@ class ReplaceList(Builtin):
     summary_text = "list of possible replacement results"
 
     def eval(
-        self, expr: BaseElement, rules: BaseElement, max: Number, evaluation: Evaluation
+        self,
+        expr: BaseElement,
+        rules: BaseElement,
+        maxidx: Number,
+        evaluation: Evaluation,
     ) -> OptionalType[BaseElement]:
-        "ReplaceList[expr_, rules_, max_:Infinity]"
+        "ReplaceList[expr_, rules_, maxidx_:Infinity]"
 
-        if max.get_name() == "System`Infinity":
+        # TODO: the below handles Infinity getting added as a
+        # default argument, when it is passed explitly, e.g.
+        # ReplaceList[expr, {}, Infinity], then Infinity
+        # comes in as DirectedInfinity[1].
+        if maxidx == SymbolInfinity:
             max_count = None
         else:
-            max_count = max.get_int_value()
+            max_count = maxidx.get_int_value()
             if max_count is None or max_count < 0:
                 evaluation.message("ReplaceList", "innf", 3)
-                return
+                return None
         try:
             rules, ret = create_rules(
-                rules, expr, "ReplaceList", evaluation, extra_args=[max]
+                rules, expr, "ReplaceList", evaluation, extra_args=[maxidx]
             )
         except PatternError:
             evaluation.message("Replace", "reps", rules)
@@ -507,12 +546,12 @@ class ReplaceList(Builtin):
         if ret:
             return rules
 
-        list = []
+        list_result = []
         for rule in rules:
             result = rule.apply(expr, evaluation, return_list=True, max_list=max_count)
-            list.extend(result)
+            list_result.extend(result)
 
-        return ListExpression(*list)
+        return ListExpression(*list_result)
 
 
 class PatternTest(BinaryOperator, PatternObject):
@@ -545,7 +584,7 @@ class PatternTest(BinaryOperator, PatternObject):
     def init(
         self, expr: Expression, evaluation: OptionalType[Evaluation] = None
     ) -> None:
-        super(PatternTest, self).init(expr, evaluation=evaluation)
+        super().init(expr, evaluation=evaluation)
         # This class has an important effect in the general performance,
         # since all the rules that requires specify the type of patterns
         # call it. Then, for simple checks like `NumberQ` or `NumericQ`
@@ -576,7 +615,10 @@ class PatternTest(BinaryOperator, PatternObject):
         if match_function:
             self.match = match_function
 
-    def match_atom(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match_atom(self, expression: Expression, pattern_context: dict):
+        """Match function for AtomQ"""
+        yield_func = pattern_context["yield_func"]
+
         def yield_match(vars_2, rest):
             items = expression.get_sequence()
             # Here we use a `for` loop instead an all over iterator
@@ -588,9 +630,15 @@ class PatternTest(BinaryOperator, PatternObject):
             else:
                 yield_func(vars_2, None)
 
-        self.pattern.match(yield_match, expression, vars, evaluation)
+        # TODO: clarify why we need to use copy here.
+        pattern_context = pattern_context.copy()
+        pattern_context["yield_func"] = yield_match
+        self.pattern.match(expression, pattern_context)
 
-    def match_string(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match_string(self, expression: Expression, pattern_context: dict):
+        """Match function for StringQ"""
+        yield_func = pattern_context["yield_func"]
+
         def yield_match(vars_2, rest):
             items = expression.get_sequence()
             for item in items:
@@ -599,9 +647,14 @@ class PatternTest(BinaryOperator, PatternObject):
             else:
                 yield_func(vars_2, None)
 
-        self.pattern.match(yield_match, expression, vars, evaluation)
+        pattern_context = pattern_context.copy()
+        pattern_context["yield_func"] = yield_match
+        self.pattern.match(expression, pattern_context)
 
-    def match_numberq(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match_numberq(self, expression: Expression, pattern_context: dict):
+        """Match function for NumberQ"""
+        yield_func = pattern_context["yield_func"]
+
         def yield_match(vars_2, rest):
             items = expression.get_sequence()
             for item in items:
@@ -610,9 +663,15 @@ class PatternTest(BinaryOperator, PatternObject):
             else:
                 yield_func(vars_2, None)
 
-        self.pattern.match(yield_match, expression, vars, evaluation)
+        pattern_context = pattern_context.copy()
+        pattern_context["yield_func"] = yield_match
+        self.pattern.match(expression, pattern_context)
 
-    def match_numericq(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match_numericq(self, expression: Expression, pattern_context: dict):
+        """Match function for NumericQ"""
+        yield_func = pattern_context["yield_func"]
+        evaluation = pattern_context["evaluation"]
+
         def yield_match(vars_2, rest):
             items = expression.get_sequence()
             for item in items:
@@ -621,9 +680,14 @@ class PatternTest(BinaryOperator, PatternObject):
             else:
                 yield_func(vars_2, None)
 
-        self.pattern.match(yield_match, expression, vars, evaluation)
+        pattern_context = pattern_context.copy()
+        pattern_context["yield_func"] = yield_match
+        self.pattern.match(expression, pattern_context)
 
-    def match_real_numberq(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match_real_numberq(self, expression: Expression, pattern_context: dict):
+        """Match function for RealValuedNumberQ"""
+        yield_func = pattern_context["yield_func"]
+
         def yield_match(vars_2, rest):
             items = expression.get_sequence()
             for item in items:
@@ -632,9 +696,14 @@ class PatternTest(BinaryOperator, PatternObject):
             else:
                 yield_func(vars_2, None)
 
-        self.pattern.match(yield_match, expression, vars, evaluation)
+        pattern_context = pattern_context.copy()
+        pattern_context["yield_func"] = yield_match
+        self.pattern.match(expression, pattern_context)
 
-    def match_positive(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match_positive(self, expression: Expression, pattern_context: dict):
+        """Match function for PositiveQ"""
+        yield_func = pattern_context["yield_func"]
+
         def yield_match(vars_2, rest):
             items = expression.get_sequence()
             if all(
@@ -643,9 +712,14 @@ class PatternTest(BinaryOperator, PatternObject):
             ):
                 yield_func(vars_2, None)
 
-        self.pattern.match(yield_match, expression, vars, evaluation)
+        pattern_context = pattern_context.copy()
+        pattern_context["yield_func"] = yield_match
+        self.pattern.match(expression, pattern_context)
 
-    def match_negative(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match_negative(self, expression: Expression, pattern_context: dict):
+        """Match function for NegativeQ"""
+        yield_func = pattern_context["yield_func"]
+
         def yield_match(vars_2, rest):
             items = expression.get_sequence()
             if all(
@@ -654,9 +728,14 @@ class PatternTest(BinaryOperator, PatternObject):
             ):
                 yield_func(vars_2, None)
 
-        self.pattern.match(yield_match, expression, vars, evaluation)
+        pattern_context = pattern_context.copy()
+        pattern_context["yield_func"] = yield_match
+        self.pattern.match(expression, pattern_context)
 
-    def match_nonpositive(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match_nonpositive(self, expression: Expression, pattern_context: dict):
+        """Match function for NonPositiveQ"""
+        yield_func = pattern_context["yield_func"]
+
         def yield_match(vars_2, rest):
             items = expression.get_sequence()
             if all(
@@ -665,9 +744,14 @@ class PatternTest(BinaryOperator, PatternObject):
             ):
                 yield_func(vars_2, None)
 
-        self.pattern.match(yield_match, expression, vars, evaluation)
+        pattern_context = pattern_context.copy()
+        pattern_context["yield_func"] = yield_match
+        self.pattern.match(expression, pattern_context)
 
-    def match_nonnegative(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match_nonnegative(self, expression: Expression, pattern_context: dict):
+        """Match function for NonNegativeQ"""
+        yield_func = pattern_context["yield_func"]
+
         def yield_match(vars_2, rest):
             items = expression.get_sequence()
             if all(
@@ -676,35 +760,41 @@ class PatternTest(BinaryOperator, PatternObject):
             ):
                 yield_func(vars_2, None)
 
-        self.pattern.match(yield_match, expression, vars, evaluation)
+        pattern_context = pattern_context.copy()
+        pattern_context["yield_func"] = yield_match
+        self.pattern.match(expression, pattern_context)
 
     def quick_pattern_test(self, candidate, test, evaluation: Evaluation):
+        """Pattern test for some other special cases"""
         if test == "System`NegativePowerQ":
             return (
                 candidate.has_form("Power", 2)
                 and isinstance(candidate.elements[1], (Integer, Rational, Real))
                 and candidate.elements[1].value < 0
             )
-        elif test == "System`NotNegativePowerQ":
+        if test == "System`NotNegativePowerQ":
             return not (
                 candidate.has_form("Power", 2)
                 and isinstance(candidate.elements[1], (Integer, Rational, Real))
                 and candidate.elements[1].value < 0
             )
-        else:
-            from mathics.core.builtin import Test
 
-            builtin = None
-            builtin = evaluation.definitions.get_definition(test)
-            if builtin:
-                builtin = builtin.builtin
-            if builtin is not None and isinstance(builtin, Test):
-                return builtin.test(candidate)
+        builtin = None
+        builtin = evaluation.definitions.get_definition(test)
+        if builtin:
+            builtin = builtin.builtin
+        if builtin is not None and isinstance(builtin, Test):
+            return builtin.test(candidate)
         return None
 
-    def match(self, yield_func, expression, vars, evaluation, **kwargs):
-        # def match(self, yield_func, expression, vars, evaluation, **kwargs):
-        # for vars_2, rest in self.pattern.match(expression, vars, evaluation):
+    def match(self, expression: Expression, pattern_context: dict):
+        """Match expression with PatternTest"""
+        evaluation = pattern_context["evaluation"]
+        vars_dict = pattern_context["vars_dict"]
+        yield_func = pattern_context["yield_func"]
+
+        # def match(self, yield_func, expression, vars_dict, evaluation, **kwargs):
+        # for vars_2, rest in self.pattern.match(expression, vars_dict, evaluation):
         def yield_match(vars_2, rest):
             testname = self.test_name
             items = expression.get_sequence()
@@ -713,25 +803,31 @@ class PatternTest(BinaryOperator, PatternObject):
                 quick_test = self.quick_pattern_test(item, testname, evaluation)
                 if quick_test is False:
                     break
-                elif quick_test is True:
+                if quick_test is True:
                     continue
                     # raise StopGenerator
-                else:
-                    test_expr = Expression(self.test, item)
-                    test_value = test_expr.evaluate(evaluation)
-                    if test_value is not SymbolTrue:
-                        break
-                        # raise StopGenerator
+                test_expr = Expression(self.test, item)
+                test_value = test_expr.evaluate(evaluation)
+                if test_value is not SymbolTrue:
+                    break
+                    # raise StopGenerator
             else:
                 yield_func(vars_2, None)
 
         # try:
-        self.pattern.match(yield_match, expression, vars, evaluation)
+        self.pattern.match(
+            expression,
+            {
+                "yield_func": yield_match,
+                "vars_dict": vars_dict,
+                "evaluation": evaluation,
+            },
+        )
         # except StopGenerator:
         #    pass
 
-    def get_match_count(self, vars={}):
-        return self.pattern.get_match_count(vars)
+    def get_match_count(self, vars_dict: OptionalType[dict] = None):
+        return self.pattern.get_match_count(vars_dict)
 
 
 class Alternatives(BinaryOperator, PatternObject):
@@ -763,31 +859,34 @@ class Alternatives(BinaryOperator, PatternObject):
     def init(
         self, expr: Expression, evaluation: OptionalType[Evaluation] = None
     ) -> None:
-        super(Alternatives, self).init(expr, evaluation=evaluation)
+        super().init(expr, evaluation=evaluation)
         self.alternatives = [
             BasePattern.create(element, evaluation=evaluation)
             for element in expr.elements
         ]
 
-    def match(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match(self, expression: Expression, pattern_context: dict):
+        """Match with Alternatives"""
         for alternative in self.alternatives:
-            # for new_vars, rest in alternative.match(
-            #     expression, vars, evaluation):
-            #     yield_func(new_vars, rest)
-            alternative.match(yield_func, expression, vars, evaluation)
+            # for new_vars_dict, rest in alternative.match(
+            #     expression, vars_dict, evaluation):
+            #     yield_func(new_vars_dict, rest)
+            alternative.match(expression, pattern_context)
 
-    def get_match_count(self, vars={}):
-        range = None
+    def get_match_count(
+        self, vars_dict: OptionalType[dict] = None
+    ) -> Union[None, int, tuple]:
+        range_lst = None
         for alternative in self.alternatives:
-            sub = alternative.get_match_count(vars)
-            if range is None:
-                range = list(sub)
+            sub = alternative.get_match_count(vars_dict)
+            if range_lst is None:
+                range_lst = tuple(sub)
             else:
-                if sub[0] < range[0]:
-                    range[0] = sub[0]
-                if range[1] is None or sub[1] > range[1]:
-                    range[1] = sub[1]
-        return range
+                if sub[0] < range_lst[0]:
+                    range_lst[0] = sub[0]
+                if range_lst[1] is None or sub[1] > range_lst[1]:
+                    range_lst[1] = sub[1]
+        return tuple(range_lst)
 
 
 class _StopGeneratorExcept(StopGenerator):
@@ -826,23 +925,28 @@ class Except(PatternObject):
     def init(
         self, expr: Expression, evaluation: OptionalType[Evaluation] = None
     ) -> None:
-        super(Except, self).init(expr, evaluation=evaluation)
+        super().init(expr, evaluation=evaluation)
         self.c = BasePattern.create(expr.elements[0], evaluation=evaluation)
         if len(expr.elements) == 2:
             self.p = BasePattern.create(expr.elements[1], evaluation=evaluation)
         else:
             self.p = BasePattern.create(Expression(SymbolBlank), evaluation=evaluation)
 
-    def match(self, yield_func, expression, vars, evaluation, **kwargs):
-        def except_yield_func(vars, rest):
+    def match(self, expression: Expression, pattern_context: dict):
+        """Match with Exception Pattern"""
+
+        def except_yield_func(vars_dict, rest):
             raise _StopGeneratorExcept(True)
 
+        new_pattern_context = pattern_context.copy()
+        new_pattern_context["yield_func"] = except_yield_func
+
         try:
-            self.c.match(except_yield_func, expression, vars, evaluation)
+            self.c.match(expression, new_pattern_context)
         except _StopGeneratorExcept:
             pass
         else:
-            self.p.match(yield_func, expression, vars, evaluation)
+            self.p.match(expression, pattern_context)
 
 
 class Verbatim(PatternObject):
@@ -874,12 +978,16 @@ class Verbatim(PatternObject):
     def init(
         self, expr: Expression, evaluation: OptionalType[Evaluation] = None
     ) -> None:
-        super(Verbatim, self).init(expr, evaluation=evaluation)
+        super().init(expr, evaluation=evaluation)
         self.content = expr.elements[0]
 
-    def match(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match(self, expression: Expression, pattern_context: dict):
+        """Match with Verbatim Pattern"""
+        vars_dict = pattern_context["vars_dict"]
+        yield_func = pattern_context["yield_func"]
+
         if self.content.sameQ(expression):
-            yield_func(vars, None)
+            yield_func(vars_dict, None)
 
 
 class HoldPattern(PatternObject):
@@ -910,14 +1018,14 @@ class HoldPattern(PatternObject):
     def init(
         self, expr: Expression, evaluation: OptionalType[Evaluation] = None
     ) -> None:
-        super(HoldPattern, self).init(expr, evaluation=evaluation)
+        super().init(expr, evaluation=evaluation)
         self.pattern = BasePattern.create(expr.elements[0], evaluation=evaluation)
 
-    def match(self, yield_func, expression, vars, evaluation, **kwargs):
-        # for new_vars, rest in self.pattern.match(
-        #     expression, vars, evaluation):
-        #     yield new_vars, rest
-        self.pattern.match(yield_func, expression, vars, evaluation)
+    def match(self, expression: Expression, pattern_context: dict):
+        # for new_vars_dict, rest in self.pattern.match(
+        #     expression, vars_dict, evaluation):
+        #     yield new_vars_dict, rest
+        self.pattern.match(expression, pattern_context)
 
 
 class Pattern(PatternObject):
@@ -976,7 +1084,11 @@ class Pattern(PatternObject):
     }
 
     rules = {
-        "MakeBoxes[Verbatim[Pattern][symbol_Symbol, blank_Blank|blank_BlankSequence|blank_BlankNullSequence], f:StandardForm|TraditionalForm|InputForm|OutputForm]": "MakeBoxes[symbol, f] <> MakeBoxes[blank, f]",
+        (
+            "MakeBoxes[Verbatim[Pattern][symbol_Symbol, blank_Blank|"
+            "blank_BlankSequence|blank_BlankNullSequence], "
+            "f:StandardForm|TraditionalForm|InputForm|OutputForm]"
+        ): "MakeBoxes[symbol, f] <> MakeBoxes[blank, f]",
         # 'StringForm["`1``2`", HoldForm[symbol], blank]',
     }
 
@@ -996,51 +1108,62 @@ class Pattern(PatternObject):
         varname = expr.elements[0].get_name()
         if varname is None or varname == "":
             self.error("patvar", expr)
-        super(Pattern, self).init(expr, evaluation=evaluation)
+        super().init(expr, evaluation=evaluation)
         self.varname = varname
         self.pattern = BasePattern.create(expr.elements[1], evaluation=evaluation)
 
     def __repr__(self):
         return "<Pattern: %s>" % repr(self.pattern)
 
-    def get_match_count(self, vars={}):
-        return self.pattern.get_match_count(vars)
+    def get_match_count(
+        self, vars_dict: OptionalType[dict] = None
+    ) -> Union[int, tuple]:
+        return self.pattern.get_match_count(vars_dict)
 
-    def match(self, yield_func, expression, vars_dict, evaluation, **kwargs):
+    def match(self, expression: Expression, pattern_context: dict):
+        """Match with a (named) pattern"""
+        yield_func = pattern_context["yield_func"]
+        vars_dict = pattern_context["vars_dict"]
+
         existing = vars_dict.get(self.varname, None)
         if existing is None:
-            new_vars = vars_dict.copy()
-            new_vars[self.varname] = expression
+            new_vars_dict = vars_dict.copy()
+            new_vars_dict[self.varname] = expression
+            pattern_context = pattern_context.copy()
+            pattern_context["vars_dict"] = new_vars_dict
             # for vars_2, rest in self.pattern.match(
-            #    expression, new_vars, evaluation):
+            #    expression, new_vars_dict, evaluation):
             #    yield vars_2, rest
-            if type(self.pattern) is OptionsPattern:
+            if isinstance(self.pattern, OptionsPattern):
                 self.pattern.match(
-                    yield_func, expression, new_vars, evaluation, **kwargs
+                    expression=expression, pattern_context=pattern_context
                 )
             else:
-                self.pattern.match(yield_func, expression, new_vars, evaluation)
+                self.pattern.match(
+                    expression=expression, pattern_context=pattern_context
+                )
         else:
             if existing.sameQ(expression):
                 yield_func(vars_dict, None)
 
-    def get_match_candidates(
-        self, elements: tuple, expression, attributes, evaluation, vars_dict=None
-    ):
-        if vars_dict is None:
-            vars_dict = {}
+    def get_match_candidates(self, elements: tuple, pattern_context: dict) -> tuple:
+        """
+        Return a sub-tuple of elements that match with
+        the pattern.
+        Optional parameters provide information
+        about the context where the elements and the
+        patterns come from.
+        """
+        vars_dict = pattern_context.get("vars_dict", {})
+
         existing = vars_dict.get(self.varname, None)
         if existing is None:
-            return self.pattern.get_match_candidates(
-                elements, expression, attributes, evaluation, vars_dict
-            )
-        else:
-            # Treat existing variable as verbatim
-            verbatim_expr = Expression(SymbolVerbatim, existing)
-            verbatim = Verbatim(verbatim_expr)
-            return verbatim.get_match_candidates(
-                elements, expression, attributes, evaluation, vars_dict
-            )
+            return self.pattern.get_match_candidates(elements, pattern_context)
+
+        # Treat existing variable as verbatim
+        verbatim_expr = Expression(SymbolVerbatim, existing)
+        verbatim = Verbatim(verbatim_expr)
+        return verbatim.get_match_candidates(elements, pattern_context)
 
 
 class Optional(BinaryOperator, PatternObject):
@@ -1099,24 +1222,21 @@ class Optional(BinaryOperator, PatternObject):
     def init(
         self, expr: Expression, evaluation: OptionalType[Evaluation] = None
     ) -> None:
-        super(Optional, self).init(expr, evaluation=evaluation)
+        super().init(expr, evaluation=evaluation)
         self.pattern = BasePattern.create(expr.elements[0], evaluation=evaluation)
         if len(expr.elements) == 2:
             self.default = expr.elements[1]
         else:
             self.default = None
 
-    def match(
-        self,
-        yield_func,
-        expression,
-        vars,
-        evaluation,
-        head=None,
-        element_index=None,
-        element_count=None,
-        **kwargs,
-    ):
+    def match(self, expression: Expression, pattern_context: dict):
+        head = pattern_context.get("head", None)
+        evaluation = pattern_context["evaluation"]
+        element_index = pattern_context.get("element_index", None)
+        element_count = pattern_context.get("element_count", None)
+        vars_dict = pattern_context["vars_dict"]
+        yield_func = pattern_context["yield_func"]
+
         if expression.has_form("Sequence", 0):
             if self.default is None:
                 if head is None:  # head should be given by match_element!
@@ -1135,11 +1255,18 @@ class Optional(BinaryOperator, PatternObject):
                 default = self.default
 
             expression = default
-        # for vars_2, rest in self.pattern.match(expression, vars, evaluation):
+        # for vars_2, rest in self.pattern.match(expression, vars_dict, evaluation):
         #    yield vars_2, rest
-        self.pattern.match(yield_func, expression, vars, evaluation)
+        self.pattern.match(
+            expression,
+            {
+                "yield_func": yield_func,
+                "vars_dict": vars_dict,
+                "evaluation": evaluation,
+            },
+        )
 
-    def get_match_count(self, vars={}):
+    def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (0, 1)
 
 
@@ -1149,6 +1276,10 @@ def get_default_value(
     k: OptionalType[int] = None,
     n: OptionalType[int] = None,
 ):
+    """
+    Get the default value associated to a name, and optionally,
+    to a position in the expression.
+    """
     pos = []
     if k is not None:
         pos.append(k)
@@ -1191,7 +1322,7 @@ class _Blank(PatternObject):
     def init(
         self, expr: Expression, evaluation: OptionalType[Evaluation] = None
     ) -> None:
-        super(_Blank, self).init(expr, evaluation=evaluation)
+        super().init(expr, evaluation=evaluation)
         if expr.elements:
             self.head = expr.elements[0]
         else:
@@ -1237,20 +1368,16 @@ class Blank(_Blank):
     }
     summary_text = "match to any single expression"
 
-    def match(
-        self,
-        yield_func: Callable,
-        expression: Expression,
-        vars: dict,
-        evaluation: Evaluation,
-        **kwargs,
-    ):
+    def match(self, expression: Expression, pattern_context: dict):
+        vars_dict = pattern_context["vars_dict"]
+        yield_func = pattern_context["yield_func"]
+
         if not expression.has_form("Sequence", 0):
             if self.head is not None:
                 if expression.get_head().sameQ(self.head):
-                    yield_func(vars, None)
+                    yield_func(vars_dict, None)
             else:
-                yield_func(vars, None)
+                yield_func(vars_dict, None)
 
 
 class BlankSequence(_Blank):
@@ -1292,14 +1419,9 @@ class BlankSequence(_Blank):
     }
     summary_text = "match to a non-empty sequence of elements"
 
-    def match(
-        self,
-        yield_func: Callable,
-        expression: Expression,
-        vars: dict,
-        evaluation: Evaluation,
-        **kwargs,
-    ):
+    def match(self, expression: Expression, pattern_context: dict):
+        vars_dict = pattern_context["vars_dict"]
+        yield_func = pattern_context["yield_func"]
         elements = expression.get_sequence()
         if not elements:
             return
@@ -1310,11 +1432,11 @@ class BlankSequence(_Blank):
                     ok = False
                     break
             if ok:
-                yield_func(vars, None)
+                yield_func(vars_dict, None)
         else:
-            yield_func(vars, None)
+            yield_func(vars_dict, None)
 
-    def get_match_count(self, vars={}):
+    def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (1, None)
 
 
@@ -1341,14 +1463,10 @@ class BlankNullSequence(_Blank):
     }
     summary_text = "match to a sequence of zero or more elements"
 
-    def match(
-        self,
-        yield_func: Callable,
-        expression: Expression,
-        vars: dict,
-        evaluation: Evaluation,
-        **kwargs,
-    ):
+    def match(self, expression: Expression, pattern_context: dict):
+        """Match with a BlankNullSequence"""
+        vars_dict = pattern_context["vars_dict"]
+        yield_func = pattern_context["yield_func"]
         elements = expression.get_sequence()
         if self.head:
             ok = True
@@ -1357,11 +1475,11 @@ class BlankNullSequence(_Blank):
                     ok = False
                     break
             if ok:
-                yield_func(vars, None)
+                yield_func(vars_dict, None)
         else:
-            yield_func(vars, None)
+            yield_func(vars_dict, None)
 
-    def get_match_count(self, vars={}):
+    def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (0, None)
 
 
@@ -1398,12 +1516,12 @@ class Repeated(PostfixOperator, PatternObject):
     def init(
         self,
         expr: Expression,
-        min: int = 1,
+        min_idx: int = 1,
         evaluation: OptionalType[Evaluation] = None,
     ):
         self.pattern = BasePattern.create(expr.elements[0], evaluation=evaluation)
         self.max = None
-        self.min = min
+        self.min = min_idx
         if len(expr.elements) == 2:
             element_1 = expr.elements[1]
             allnumbers = not any(
@@ -1417,32 +1535,43 @@ class Repeated(PostfixOperator, PatternObject):
             else:
                 self.error("range", 2, expr)
 
-    def match(self, yield_func, expression, vars, evaluation, **kwargs):
+    def match(self, expression: Expression, pattern_context: dict):
+        """Match with Repeated[...]"""
+        yield_func = pattern_context["yield_func"]
+        vars_dict = pattern_context["vars_dict"]
+        evaluation = pattern_context["evaluation"]
         elements = expression.get_sequence()
         if len(elements) < self.min:
             return
         if self.max is not None and len(elements) > self.max:
             return
 
-        def iter(yield_iter, rest_elements, vars):
+        def iter_fn(yield_iter, rest_elements, vars_dict):
             if rest_elements:
-                # for new_vars, rest in self.pattern.match(rest_elements[0],
-                # vars, evaluation):
-                def yield_match(new_vars, rest):
-                    # for sub_vars, sub_rest in iter(rest_elements[1:],
+                # for new_vars_dict, rest in self.pattern.match(rest_elements[0],
+                # vars_dict, evaluation):
+                def yield_match(new_vars_dict, rest):
+                    # for sub_vars_dict, sub_rest in iter(rest_elements[1:],
                     #                                new_vars):
-                    #    yield sub_vars, rest
-                    iter(yield_iter, rest_elements[1:], new_vars)
+                    #    yield sub_vars_dict, rest
+                    iter_fn(yield_iter, rest_elements[1:], new_vars_dict)
 
-                self.pattern.match(yield_match, rest_elements[0], vars, evaluation)
+                self.pattern.match(
+                    rest_elements[0],
+                    {
+                        "yield_func": yield_match,
+                        "vars_dict": vars_dict,
+                        "evaluation": evaluation,
+                    },
+                )
             else:
-                yield_iter(vars, None)
+                yield_iter(vars_dict, None)
 
-        # for vars, rest in iter(elements, vars):
-        #    yield_func(vars, rest)
-        iter(yield_func, elements, vars)
+        # for vars_dict, rest in iter(elements, vars):
+        #    yield_func(vars_dict, rest)
+        iter_fn(yield_func, elements, vars_dict)
 
-    def get_match_count(self, vars={}):
+    def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (self.min, self.max)
 
 
@@ -1467,7 +1596,7 @@ class RepeatedNull(Repeated):
     def init(
         self, expr: Expression, evaluation: OptionalType[Evaluation] = None
     ) -> None:
-        super(RepeatedNull, self).init(expr, min=0, evaluation=evaluation)
+        super().init(expr, min_idx=0, evaluation=evaluation)
 
 
 class Shortest(Builtin):
@@ -1548,7 +1677,7 @@ class Condition(BinaryOperator, PatternObject):
     def init(
         self, expr: Expression, evaluation: OptionalType[Evaluation] = None
     ) -> None:
-        super(Condition, self).init(expr, evaluation=evaluation)
+        super().init(expr, evaluation=evaluation)
         self.test = expr.elements[1]
         # if (expr.elements[0].get_head_name() == "System`Condition" and
         #    len(expr.elements[0].elements) == 2):
@@ -1557,23 +1686,22 @@ class Condition(BinaryOperator, PatternObject):
         # else:
         self.pattern = BasePattern.create(expr.elements[0], evaluation=evaluation)
 
-    def match(
-        self,
-        yield_func: Callable,
-        expression: Expression,
-        vars: dict,
-        evaluation: Evaluation,
-        **kwargs,
-    ):
-        # for new_vars, rest in self.pattern.match(expression, vars,
+    def match(self, expression: Expression, pattern_context: dict):
+        """Match with Condition pattern"""
+        # for new_vars_dict, rest in self.pattern.match(expression, vars_dict,
         # evaluation):
-        def yield_match(new_vars, rest):
-            test_expr = self.test.replace_vars(new_vars)
+        evaluation = pattern_context["evaluation"]
+        yield_func = pattern_context["yield_func"]
+
+        def yield_match(new_vars_dict, rest):
+            test_expr = self.test.replace_vars(new_vars_dict)
             test_result = test_expr.evaluate(evaluation)
             if test_result is SymbolTrue:
-                yield_func(new_vars, rest)
+                yield_func(new_vars_dict, rest)
 
-        self.pattern.match(yield_match, expression, vars, evaluation)
+        pattern_context = pattern_context.copy()
+        pattern_context["yield_func"] = yield_match
+        self.pattern.match(expression, pattern_context)
 
 
 class OptionsPattern(PatternObject):
@@ -1622,7 +1750,7 @@ class OptionsPattern(PatternObject):
     def init(
         self, expr: Expression, evaluation: OptionalType[Evaluation] = None
     ) -> None:
-        super(OptionsPattern, self).init(expr, evaluation=evaluation)
+        super().init(expr, evaluation=evaluation)
         try:
             self.defaults = expr.elements[0]
         except IndexError:
@@ -1630,16 +1758,12 @@ class OptionsPattern(PatternObject):
             # function. Set to not None in self.match
             self.defaults = None
 
-    def match(
-        self,
-        yield_func: Callable,
-        expression: Expression,
-        vars: dict,
-        evaluation: Evaluation,
-        **kwargs,
-    ):
+    def match(self, expression: Expression, pattern_context: dict):
+        """Match with an OptionsPattern"""
+        head = pattern_context.get("head", None)
+        evaluation = pattern_context["evaluation"]
         if self.defaults is None:
-            self.defaults = kwargs.get("head")
+            self.defaults = head
             if self.defaults is None:
                 # we end up here with OptionsPattern that do not have any
                 # default options defined, e.g. with this code:
@@ -1664,28 +1788,27 @@ class OptionsPattern(PatternObject):
             if option_values is None:
                 return
             values.update(option_values)
-        new_vars = vars.copy()
+        new_vars_dict = pattern_context["vars_dict"].copy()
         for name, value in values.items():
-            new_vars["_option_" + name] = value
-        yield_func(new_vars, None)
+            new_vars_dict["_option_" + name] = value
+        pattern_context["yield_func"](new_vars_dict, None)
 
-    def get_match_count(self, vars: dict = {}):
+    def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (0, None)
 
     def get_match_candidates(
-        self,
-        elements: Tuple[BaseElement],
-        expression: Expression,
-        attributes: int,
-        evaluation: Evaluation,
-        vars: dict = {},
-    ):
+        self, elements: Tuple[BaseElement], pattern_context: dict
+    ) -> tuple:
+        """
+        Return the sub-tuple of elements that matches with the pattern.
+        """
+
         def _match(element: Expression):
             return element.has_form(("Rule", "RuleDelayed"), 2) or element.has_form(
                 "List", None
             )
 
-        return [element for element in elements if _match(element)]
+        return tuple((element for element in elements if _match(element)))
 
 
 class Dispatch(Atom):
@@ -1697,7 +1820,7 @@ class Dispatch(Atom):
         self._elements = None
         self._head = SymbolDispatch
 
-    def get_sort_key(self) -> tuple:
+    def get_sort_key(self, pattern_sort: bool = False) -> tuple:
         return self.src.get_sort_key()
 
     def get_atom_name(self):
@@ -1785,15 +1908,14 @@ class DispatchAtom(AtomBuiltin):
                 # WMA does not raise this message: just leave it unevaluated,
                 # and raise an error when the dispatch rule is used.
                 evaluation.message("Dispatch", "invrpl", rule)
-                return
+                return None
         try:
             return Dispatch(flatten_list, evaluation)
         except Exception:
-            return
+            return None
 
     def eval_normal(self, dispatch: Dispatch, evaluation: Evaluation) -> ListExpression:
         """Normal[dispatch_Dispatch]"""
         if isinstance(dispatch, Dispatch):
             return dispatch.src
-        else:
-            return dispatch.elements[0]
+        return dispatch.elements[0]

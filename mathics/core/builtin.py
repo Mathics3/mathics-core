@@ -1198,11 +1198,11 @@ class PatternObject(BuiltinElement, BasePattern):
         return self.get_name()
 
     def get_match_candidates(
-        self, elements: Tuple[BaseElement], expression, attributes, evaluation, vars={}
+        self, elements: Tuple[BaseElement], pattern_context: dict
     ) -> Tuple[BaseElement]:
         return elements
 
-    def get_match_count(self, vars={}):
+    def get_match_count(self, vars_dict: dict = {}):
         return (1, 1)
 
     def get_sort_key(self, pattern_sort=False) -> tuple:

@@ -162,7 +162,15 @@ class BaseRule(KeyComparable, ABC):
                 # only first possibility counts
 
         try:
-            self.pattern.match(yield_match, expression, {}, evaluation, fully=fully)
+            self.pattern.match(
+                expression,
+                pattern_context={
+                    "yield_func": yield_match,
+                    "vars_dict": {},
+                    "evaluation": evaluation,
+                    "fully": fully,
+                },
+            )
         except StopGenerator_BaseRule as exc:
             # FIXME: figure where these values are not getting set or updated properly.
             # For now we have to take a pessimistic view
