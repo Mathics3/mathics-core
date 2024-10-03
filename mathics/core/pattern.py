@@ -9,7 +9,7 @@ While there is a built-in function which allows users to match parts of
 expressions, patterns are also used in applying of transformation
 rules and deciding functions that get applied.
 
-See also: mathics.core.rules and 
+See also: mathics.core.rules and
 https://reference.wolfram.com/language/tutorial/PatternsAndTransformationRules.html
 """
 
@@ -364,7 +364,7 @@ class AtomPattern(BasePattern):
             )
         )
 
-    def get_match_count(self, vars_dict: Optional[dict] = None) -> Union[int, tuple]:
+    def get_match_count(self, vars_dict: Optional[dict] = None) -> Tuple[int, int]:
         """The number of matches"""
         return (1, 1)
 
@@ -482,7 +482,7 @@ class ExpressionPattern(BasePattern):
     def __repr__(self):
         return f"<ExpressionPattern: {self.expr}>"
 
-    def get_match_count(self, vars_dict: Optional[dict] = None):
+    def get_match_count(self, vars_dict: Optional[dict] = None) -> Tuple[int, int]:
         """the number of matches"""
         return (1, 1)
 
@@ -492,9 +492,9 @@ class ExpressionPattern(BasePattern):
 
         If items has length 1, apply yield_func to the unique element.
         Otherwise, apply it to a sequence. If the expression has the
-        attribute "Orderless", apply it to all the possible orders.
-        Finally , if the expression is Flat, and the parameter `include_flattened`
-        is True, apply yield_func to the expression with the head of the original
+        attribute `Orderless`, apply it to all the possible orders.
+        Finally , if the expression is `Flat`, and the parameter `include_flattened`
+        is `True`, apply yield_func to the expression with the head of the original
         expression applied to the original sequence.
         """
         if len(items) == 1:
@@ -940,7 +940,7 @@ def expression_pattern_match_element_process_items(
     parms: dict,
 ):
     """
-    try to match sequences built from items
+    Try to match sequences built from items
     against the pattern.
     """
     # Include wrappings like Plus[a, b] only if not all items taken

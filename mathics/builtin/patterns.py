@@ -68,6 +68,7 @@ from mathics.core.systemsymbols import (
     SymbolBlank,
     SymbolDefault,
     SymbolDispatch,
+    SymbolInfinity,
     SymbolRule,
     SymbolRuleDelayed,
 )
@@ -523,7 +524,11 @@ class ReplaceList(Builtin):
     ) -> OptionalType[BaseElement]:
         "ReplaceList[expr_, rules_, maxidx_:Infinity]"
 
-        if maxidx.get_name() == "System`Infinity":
+        # TODO: the below handles Infinity getting added as a
+        # default argument, when it is passed explitly, e.g.
+        # ReplaceList[expr, {}, Infinity], then Infinity
+        # comes in as DirectedInfinity[1].
+        if maxidx == SymbolInfinity:
             max_count = None
         else:
             max_count = maxidx.get_int_value()
@@ -625,6 +630,7 @@ class PatternTest(BinaryOperator, PatternObject):
             else:
                 yield_func(vars_2, None)
 
+        # TODO: clarify why we need to use copy here.
         pattern_context = pattern_context.copy()
         pattern_context["yield_func"] = yield_match
         self.pattern.match(expression, pattern_context)
@@ -869,12 +875,12 @@ class Alternatives(BinaryOperator, PatternObject):
 
     def get_match_count(
         self, vars_dict: OptionalType[dict] = None
-    ) -> Union[int, tuple]:
+    ) -> Union[None, int, tuple]:
         range_lst = None
         for alternative in self.alternatives:
             sub = alternative.get_match_count(vars_dict)
             if range_lst is None:
-                range_lst = list(sub)
+                range_lst = tuple(sub)
             else:
                 if sub[0] < range_lst[0]:
                     range_lst[0] = sub[0]
