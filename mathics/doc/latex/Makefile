@@ -19,8 +19,11 @@ all doc texdoc: mathics.pdf
 doc-data $(DOCTEST_LATEX_DATA_PCL):
 	(cd ../.. && MATHICS_CHARACTER_ENCODING="UTF-8" $(PYTHON) docpipeline.py --output --keep-going $(MATHICS3_MODULE_OPTION))
 
+mathics-title.pdf:
+	cp mathics-title.pdf-src mathics-title.pdf
+
 #: Build mathics PDF
-mathics.pdf: mathics.tex documentation.tex logo-text-nodrop.pdf logo-heptatom.pdf version-info.tex $(DOCTEST_LATEX_DATA_PCL)
+mathics.pdf: mathics.tex documentation.tex mathics-title.pdf logo-text-nodrop.pdf logo-heptatom.pdf version-info.tex $(DOCTEST_LATEX_DATA_PCL)
 	$(LATEXMK) --verbose -f -pdf -pdflatex="$(XETEX) -halt-on-error" mathics
 
 #: File containing version information

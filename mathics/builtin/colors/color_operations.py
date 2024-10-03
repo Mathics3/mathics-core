@@ -130,7 +130,9 @@ class Blend(Builtin):
                 values = 0.0
             use_list = False
         if values is None:
-            evaluation.message("Blend", "argl", u, ListExpression(colors_orig))
+            evaluation.message(
+                "Blend", "argl", u, ListExpression(*colors_orig.elements)
+            )
             return
 
         if use_list:

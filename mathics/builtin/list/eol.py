@@ -350,6 +350,8 @@ class Delete(Builtin):
             return delete_one(expr, pos)
         except PartRangeError:
             evaluation.message("Part", "partw", ListExpression(position), expr)
+        except PartDepthError:
+            evaluation.message("Part", "partw", ListExpression(position), expr)
 
     def eval(self, expr, positions, evaluation):
         "Delete[expr_, positions___]"
@@ -392,7 +394,9 @@ class Delete(Builtin):
                 evaluation.message("Part", "partw", Integer(exc.index), expr)
                 return
             except PartError:
-                evaluation.message("Part", "partw", ListExpression(*pos), expr)
+                evaluation.message(
+                    "Part", "partw", ListExpression(*(Integer(p) for p in pos)), expr
+                )
                 return
         return newexpr
 
