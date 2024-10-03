@@ -54,6 +54,7 @@ from mathics.core.builtin import (
     PatternError,
     PatternObject,
     PostfixOperator,
+    Test,
 )
 from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import Evaluation
@@ -476,7 +477,10 @@ class ReplaceList(Builtin):
 
     <dl>
       <dt>'ReplaceList[$expr$, $rules$]'
-      <dd>returns a list of all possible results of applying $rules$
+      <dd>returns a list of all possible results when applying $rules$ \
+        to $expr$.
+      <dt>'ReplaceList[$expr$, $rules$, $n$]'
+      <dd>returns a list of at most $n$ results when applying $rules$ \
         to $expr$.
     </dl>
 
@@ -675,7 +679,7 @@ class PatternTest(BinaryOperator, PatternObject):
         self.pattern.match(expression, pattern_context)
 
     def match_real_numberq(self, expression: Expression, pattern_context: dict):
-        """Match function for RealValudNumberQ"""
+        """Match function for RealValuedNumberQ"""
         yield_func = pattern_context["yield_func"]
 
         def yield_match(vars_2, rest):
@@ -768,8 +772,6 @@ class PatternTest(BinaryOperator, PatternObject):
                 and isinstance(candidate.elements[1], (Integer, Rational, Real))
                 and candidate.elements[1].value < 0
             )
-
-        from mathics.core.builtin import Test
 
         builtin = None
         builtin = evaluation.definitions.get_definition(test)
