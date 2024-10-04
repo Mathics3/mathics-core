@@ -1,4 +1,3 @@
-	.. contents::
 CHANGES
 =======
 
@@ -8,6 +7,11 @@ New Builtins
 
 * ``CheckAbort``
 * ``SetEnvironment``
+
+mathics command line
+++++++++++++++++++++
+
+* ``--post-mortem`` option added which will go into the `trepan3k debugger <https https://pypi.org/project/trepan3k/>`_ on an unrecoverable error.
 
 Compatibility
 -------------
@@ -26,7 +30,7 @@ Performance
 * ``Blank*`` patterns without arguments are now singletons.
 
 API incompatibility
--------------
+-------------------
 
 * ``Matcher`` now requires an additional ``evaluation`` parameter
 
@@ -115,7 +119,7 @@ Bugs
 * ``Definitions`` is compatible with ``pickle``.
 * Improved support for ``Quantity`` expressions, including conversions, formatting and arithmetic operations.
 * ``Background`` option for ``Graphics`` and ``Graphics3D`` is operative again.
-* Numeric comparisons against expressions involving ``String``s; Issue #797)
+* Numeric comparisons against expressions involving ``String``; Issue #797)
 * ``Switch[]`` involving ``Infinity``. Issue #956
 * ``Outer[]`` on ``SparseArray``. Issue #939
 * ``ArrayQ[]`` detects ``SparseArray`` PR #947
@@ -195,14 +199,14 @@ API
 
 
 Package update
-..............
+--------------
 
 #. SymPy 1.11.1 accepted
 #. Numpy 1.24.0 accepted
 
 
 New Builtins
-+++++++++++
+++++++++++++
 
 #. ``$BoxForms``
 #. ``$OutputForms``
@@ -435,7 +439,7 @@ Internals
 #. ``Definition`` has a new property ``is_numeric``.
 
 Speed improvements:
-...................
+-------------------
 
 #. Creating two ``Symbol`` objects with the same name will give the same object. This avoids unnecessary string comparisons, and calls to ``ensure_context``.
 #. Attributes are now stored in a bitset instead of a tuple of strings.
@@ -447,7 +451,7 @@ Speed improvements:
 
 
 Package update
-..............
+--------------
 
 #. SymPy 1.10.1
 
@@ -456,8 +460,7 @@ Compatibility
 
 #. ``ScriptCommandLine`` now returns, as the first element, the name of the script file (when available), for compatibility with WMA. Issue #132.
 #. ``Expression.numerify`` improved in a way to obtain a behavior closer to WMA.
-#. ``NumericQ`` lhs expressions are now handled as a special case in assignment. For example ``NumericQ[a]=True`` tells the interpreter that ``a`` must be considered
-  a numeric quantity, so ``NumericQ[Sin[a]]`` evaluates to ``True``.
+#. ``NumericQ`` lhs expressions are now handled as a special case in assignment. For example, ``NumericQ[a]=True`` tells the interpreter that ``a`` must be considered a numeric quantity, so ``NumericQ[Sin[a]]`` evaluates to ``True``.
 
 Bugs
 ++++
@@ -489,8 +492,7 @@ Incompatible changes
 
 The following changes were motivated by a need to speed up the interpreter.
 
-#. ``Expression`` arguments differ. The first parameter has to be a ``Symbol`` while the remaining arguments have to be some sort of ``BaseElement`` rather than something that can be converted to an element.
-  Properties for the collection of elements can be specified when they are known. To get the old behavior, use ``to_expression``
+#. ``Expression`` arguments differ. The first parameter has to be a ``Symbol`` while the remaining arguments have to be some sort of ``BaseElement`` rather than something that can be converted to an element. Properties for the collection of elements can be specified when they are known. To get the old behavior, use ``to_expression``
 #. Expressions which are lists are a new kind of class, ``ListExpression``. As with expressions, the constructor requires valid elements, not something convertible to an element. Use ``to_mathics_list``
 
 
@@ -552,11 +554,9 @@ Bugs
 ++++
 
 #. Fix and document better behavior of ``Quantile``
-#. Improve Asymptote ``BezierCurve``implementation
-#. ``Rationalize`` gives symmetric results for +/- like MMA does. If
-  the result is an integer, it stays that way.
-#. stream processing was redone. ``InputStream``, ``OutputStream`` and
-  ``StringToStream`` should all open, close, and assign stream numbers now
+#. Improve Asymptote ``BezierCurve`` implementation
+#. ``Rationalize`` gives symmetric results for +/- like MMA does. If the result is an integer, it stays that way.
+#. stream processing was redone. ``InputStream``, ``OutputStream`` and ``StringToStream`` should all open, close, and assign stream numbers now
 
 4.0.0
 #.----
@@ -581,8 +581,7 @@ Enhancements
 
 #. a Graphics3D protocol, mentioned above, has been started
 #. ``mathics.setting`` have been gone over to simplify.
-#. A rudimentary and crude SVG Density Plot was added. The prior method
-  relied on mysterious secret handshakes in JSON between Mathics Core
+#. A rudimentary and crude SVG Density Plot was added. The prior method relied on mysterious secret handshakes in JSON between Mathics Core
   and Mathics Django. While the density plot output was nicer in
   Mathics Django, from an overall API perspective this was untenable. A
   future version may improve SVG handling of Density plots using
@@ -594,29 +593,19 @@ Enhancements
 Documentation
 .............
 
-#. Document data used in producing PDFs and HTML-rendered documents is now stored
-  in both the user space, where it can be extended, and in the package install
-  space -- which is useful when there is no user-space data.
-#. The documentation pipeline has been gone over. Turning the internal data
-  into a LaTeX file is now a separate own program. See ``mathics/doc/test/README.rst``
-  for an overview of the dataflow needed to create a PDF.
-#. Summary text for various built-in functions has been started. These
-  summaries are visible in Mathics Django when lists links are given
-  in Chapters, Guide Sections, or Sections.
-#. A Sections for Lists has been started and grouping for these
-  have been added. So code and sections have moved around here.
+#. Document data used in producing PDFs and HTML-rendered documents is now stored in both the user space, where it can be extended, and in the package install space -- which is useful when there is no user-space data.
+#. The documentation pipeline has been gone over. Turning the internal data into a LaTeX file is now a separate own program. See ``mathics/doc/test/README.rst`` for an overview of the dataflow needed to create a PDF.
+#. Summary text for various built-in functions has been started. These  summaries are visible in Mathics Django when lists links are given in Chapters, Guide Sections, or Sections.
+#. A Sections for Lists has been started and grouping for these have been added. So code and sections have moved around here.
 #. Regexp detection of tests versus document text has been improved.
 #. Documentation improved
-#. The flakiness around showing sine graphs with filling on the axes or below has
-  been addressed. We now warn when a version of Asymptote or Ghostscript is used
-  that is likely to give a problem.
+#. The flakiness around showing sine graphs with filling on the axes or below has been addressed. We now warn when a version of Asymptote or Ghostscript is used that is likely to give a problem.
 
 Bugs
 ++++
 
 #. A small SVGTransform bug was fixed. Thanks to axelclk for spotting.
-#. Elliptic arcs are now supported in Asymptote. There still is a bug however
-  in calculating the bounding box when this happens.
+#. Elliptic arcs are now supported in Asymptote. There still is a bug however in calculating the bounding box when this happens.
 #. A bug in image decoding introduced in 3.1.0 or so was fixed.
 #. A bug SVG LineBoxes was fixed
 
@@ -928,8 +917,8 @@ What's to expect in a Future Release
 To accommodate growth and increased use of pieces of Mathics inside other packages, parts of Mathics have been split off and moved to separate packages. In particular:
 
 #. The Django front-end is now a PyPI installable package called `Mathics-Django <https://pypi.org/project/Mathics-Django/>`_.
-#. Scanner routines, character translation tables to/from Unicode, and character properties are now `mathics-scanner https://github.com/Mathics3/mathics-scanner`_.
-#. Specific builtins involving heavy, non-standard routines were moved to pymathics modules `pymathics-graph https://github.com/Mathics3/pymathics-graph`_, `pymathics-natlang https://github.com/Mathics3/pymathics-natlang`_.
+#. Scanner routines, character translation tables to/from Unicode, and character properties are now `mathics-scanner <https://github.com/Mathics3/mathics-scanner>`_.
+#. Specific builtins involving heavy, non-standard routines were moved to pymathics modules `pymathics-graph <https://github.com/Mathics3/pymathics-graph>`_, `pymathics-natlang <https://github.com/Mathics3/pymathics-natlang>`_.
 
 Incompatible changes:
 +++++++++++++++++++++
@@ -1471,18 +1460,15 @@ Bugs fixed
 ++++++++++
 
 #. Fix unevaluated index handling (issue #217)
-#. Fix ``Solve`` treating one solution equal to 1 as a tautology (issue
-  #208)
-#. Fix temporary symbols appearing in the result when taking
-  derivatives with respect to t (issue #184)
-#. typo in save worksheet help text (issue #199)
+#. Fix ``Solve`` treating one solution equal to 1 as a tautology (issue #208)
+#. Fix temporary symbols appearing in the result when taking derivatives with respect to ``t`` (issue #184)
+#. Typo in save worksheet help text (issue #199)
 #. Fix mathicsserver wildcard address binding
 #. Fix ``Dot`` acting on matrices in MatrixForm (issue #145)
 #. Fix Sum behaviour when using range to generate index values (issue #149)
 #. Fix behaviour of plot with unevaluated arguments (issue #150)
 #. Fix zero-width space between factors in MathJax output (issue #45)
-#. Fix ``{{2*a, 0},{0,0}}//MatrixForm`` crashing in the web interface
-  (issue #182)
+#. Fix ``{{2*a, 0},{0,0}}//MatrixForm`` crashing in the web interface (issue #182)
 
 --------------
 
@@ -1529,8 +1515,7 @@ Bugs fixed
 #. 3D graphics and plots using WebGL in the browser and Asymptote in TeX output
 #. Plot: adaptive sampling
 #. MathJax 2.0 and line breaking
-#. New symbols: ``Graphics3D`` etc., ``Plot3D``, ``ListPlot``,
-  ``ListLinePlot``, ``ParametricPlot``, ``Prime``, ``Names``, ``$Version``
+#. New symbols: ``Graphics3D`` etc., ``Plot3D``, ``ListPlot``, ``ListLinePlot``, ``ParametricPlot``, ``Prime``, ``Names``, ``$Version``
 #. Fixed issues: 1, 4, 6, 8-21, 23-27
 #. Lots of minor fixes and improvements
 #. Number of built-in symbols: 386
@@ -1540,13 +1525,13 @@ Bugs fixed
 0.4
 ---
 
-Compatibility to Sage 4.0 and other latest libraries
+Compatibility with Sage 4.0 and other latest libraries
 
 -------
 
 
 0.3 (beta only)
---------------
+---------------
 
 Resolved several issues
 
@@ -1554,6 +1539,6 @@ Resolved several issues
 
 
 0.1 (alpha only)
---------------
+-----------------
 
 Initial version
