@@ -8,8 +8,8 @@ New Builtins
 * ``CheckAbort``
 * ``SetEnvironment``
 
-mathics command line
-++++++++++++++++++++
+``mathics`` command line
+++++++++++++++++++++++++
 
 * ``--post-mortem`` option added which will go into the `trepan3k debugger <https https://pypi.org/project/trepan3k/>`_ on an unrecoverable error.
 
@@ -581,17 +581,11 @@ Enhancements
 
 #. a Graphics3D protocol, mentioned above, has been started
 #. ``mathics.setting`` have been gone over to simplify.
-#. A rudimentary and crude SVG Density Plot was added. The prior method relied on mysterious secret handshakes in JSON between Mathics Core
-  and Mathics Django. While the density plot output was nicer in
-  Mathics Django, from an overall API perspective this was untenable. A
-  future version may improve SVG handling of Density plots using
-  elliptic density gratings in SVG. And/or we may define this in the
-  JSON API.
-#. SVG and Asymptote drawing now includes inline comments indicating
-  which Box Structures are being implemented in code
+#. A rudimentary and crude SVG Density Plot was added. The prior method relied on mysterious secret handshakes in JSON between Mathics Core and Mathics Django. While the density plot output was nicer in Mathics Django, from an overall API perspective this was untenable. A future version may improve SVG handling of Density plots using elliptic density gratings in SVG. And/or we may define this in the JSON API.
+#. SVG and Asymptote drawing now includes inline comments indicating which Box Structures are being implemented in code
 
 Documentation
-.............
++++++++++++++
 
 #. Document data used in producing PDFs and HTML-rendered documents is now stored in both the user space, where it can be extended, and in the package install space -- which is useful when there is no user-space data.
 #. The documentation pipeline has been gone over. Turning the internal data into a LaTeX file is now a separate own program. See ``mathics/doc/test/README.rst`` for an overview of the dataflow needed to create a PDF.
@@ -613,16 +607,11 @@ Regressions
 +++++++++++
 
 #. Some of the test output for builtins inside a guide sections is not automatically rendered
-#. Density plot rendered in Mathics Django do not render as nice since we no longer
-  use the secret protocol handshake hack. We may fix this in a future release
-#. Some of the Asymptote graphs look different. Graphic3D mesh lines are not as
-  prominent or don't appear. This is due to using a newer version of Asymptote, and
-  we will address this in a future release.
-
------------------
+#. Density plot rendered in Mathics Django do not render as nice since we no longer use the secret protocol handshake hack. We may fix this in a future release
+#. Some of the Asymptote graphs look different. Graphic3D mesh lines are not as prominent or don't appear. This is due to using a newer version of Asymptote, and we will address this in a future release.
 
 3.1.0
-----
+-----
 
 New variables and builtins
 ++++++++++++++++++++++++++
@@ -661,7 +650,7 @@ Bugs
 
 
 3.0.0
-----
+-----
 
 Overall there is a major refactoring underway of how formatting works
 and its interaction with graphics.  More work will come in later releases.
@@ -724,8 +713,7 @@ have been revised such as for ``PieChart``, ``Pi`` and others.
 The Mathics Gallery examples have been updated.
 
 Some slight improvements were made to producing the PDF and more kinds
-of non-ASCII symbols are tolerated. Expect more work on this in the
-future via tables from the `Mathics Scanner <https://pypi.org/project/Mathics-Scanner/1.2.1/>`_ project.
+of non-ASCII symbols are tolerated. Expect more work on this in the future via tables from the `Mathics Scanner <https://pypi.org/project/Mathics-Scanner/1.2.1/>`_ project.
 
 Chapters are no longer in Roman Numerals.
 
@@ -734,18 +722,14 @@ Internal changes
 ++++++++++++++++
 
 #. ``docpipline.py``  accepts the option ``--chapters`` or ``-c`` to narrow tests to a particular chapter
-#. Format routines have been isolated into its own module. Currently we have format routines for SVG, JSON and
-  Asymptote. Expect more reorganization in the future.
+#. Format routines have been isolated into its own module. Currently we have format routines for SVG, JSON and Asymptote. Expect more reorganization in the future.
 #. Boxing routines have been isolated to its own module.
 #. The entire code base has been run through the Python formatter `black <https://black.readthedocs.io/en/stable/>`_.
 #. More Python3 types to function signatures have been added.
-#. More document tests that were not user-visible have been moved to
-  unit tests which run faster. More work is needed here.
-
------------------
+#. More document tests that were not user-visible have been moved to unit tests which run faster. More work is needed here.
 
 2.2.0
-----
+-----
 
 Package update
 ++++++++++++++
@@ -797,11 +781,8 @@ Enhancements
 #. ``ToExpression`` handles multi-line string input.
 #. ``$VersionNumber`` now set to 10.0 (was 6.0).
 #. The implementation of Streams was redone.
-#. Function ``mathics.core.definitions.autoload_files`` was added and
-  exposed to allow front-ends to provide their own custom Mathics.
-  settings.
-#. String output in the ``mathics`` terminal has surrounding quotes to make it more visually distinct from unexpanded and symbol output.
-  To disable this behavior use ``--strict-wl-output``.
+#. Function ``mathics.core.definitions.autoload_files`` was added and exposed to allow front-ends to provide their own custom Mathics. settings.
+#. String output in the ``mathics`` terminal has surrounding quotes to make it more visually distinct from unexpanded and symbol output. To disable this behavior use ``--strict-wl-output``.
 
 
 Bug fixes
@@ -823,19 +804,13 @@ Incompatible changes
 Internal changes
 #.---------------
 
-#. ``docpipeline.py``  accepts the option ``-d`` to show how long it takes to parse, evaluate and compare each individual test.
-  ``-x`` option (akin to ``pytests -x`` is a short-hand for stop on first error
-#. Some builtin functions have been grouped together in a module
-  underneath the top-level builtin directory.  As a result, in the
-  documents you will list some builtins listed under an overarching
-  category like ``Specific Functions`` or ``Graphics, Drawing, and
-  Images``. More work is expected in the future to improve document sectioning.
+#. ``docpipeline.py``  accepts the option ``-d`` to show how long it takes to parse, evaluate and compare each individual test. ``-x`` option (akin to ``pytests -x`` is a short-hand for stop on first error
+#. Some builtin functions have been grouped together in a module underneath the top-level builtin directory.  As a result, in the documents you will list some builtins listed under an overarching category like ``Specific Functions`` or ``Graphics, Drawing, and Images``. More work is expected in the future to improve document sectioning.
 #. ``System`$Notebooks`` is removed from settings. It is in all of the front-ends now.
 
-------
 
 2.1.0
-----
+-----
 
 New builtins
 ++++++++++++
@@ -856,10 +831,7 @@ Enhancements
 #. The Mathics version is checked for builtin modules at load time. A message is given when a builtin doesn't load.
 #. Automatic detection for the best strategy to numeric evaluation of constants.
 #. ``FileNameJoin`` now implements ``OperatingSystem`` option
-#. Mathics functions are accepted by ``Compile[]``. The return value or
-  type will be ``Compile[] and CompiledFunction[]``.  Every Mathics
-  Expression can have a compiled form, which may be implemented as a
-  Python function.
+#. Mathics functions are accepted by ``Compile[]``. The return value or type will be ``Compile[] and CompiledFunction[]``.  Every Mathics Expression can have a compiled form, which may be implemented as a Python function.
 #. ``Equal[]`` now compares complex against other numbers properly.
 #. Improvements in handling products with infinite factors: ``0 Infinity``-> ``Indeterminate``, and ``expr Infinity``-> ``DirectedInfinite[expr]``
 #. ``$Path`` is now ``Unprotected`` by default
@@ -880,11 +852,8 @@ Pymathics Modules
 +++++++++++++++++
 
 #. Pymathics modules now can run initialization code when are loaded.
-#. The ``builtins`` list is not hard-linked to the library anymore. This simplifies
-  the loading and reloading of pymathics modules.
-#. Decoupling of BoxConstructors from the library. Now are defined at the
-  level of the definition objects. This is useful for customizing the
-  Graphics output if it is available.
+#. The ``builtins`` list is not hard-linked to the library anymore. This simplifies the loading and reloading of pymathics modules.
+#. Decoupling of BoxConstructors from the library. Now are defined at the level of the definition objects. This is useful for customizing the Graphics output if it is available.
 
 
 Miscellanea
@@ -909,10 +878,9 @@ What's to expect in a Future Release
 #. ``Collect[]`` See `Issue #1194 <https://github.com/mathics/Mathics/issues/1194>`_.
 #. ``Series[]`` See `Issue #1193 <https://github.com/mathics/Mathics/issues/1194>`_.
 
------
 
 2.0.0
-----
+-----
 
 To accommodate growth and increased use of pieces of Mathics inside other packages, parts of Mathics have been split off and moved to separate packages. In particular:
 
@@ -1014,10 +982,8 @@ Future
 #. A method option ("mpmath", "sympy", or "numpy") will be added to the ``N[]``. See `PR #1144 <https://github.com/mathics/Mathics/pull/1144>`_.
 
 
-----
-
 1.1.1
-----
+-----
 
 This may be the last update before some major refactoring and interface changing occurs.
 
@@ -1032,8 +998,7 @@ Package updates
 
 Mathics Packages added:
 
-#. ``DiscreteMath`CombinatoricaV0.9`` (preferred) and
-  ``DiscreteMath`CombinatoricaV0.6``.
+#. ``DiscreteMath`CombinatoricaV0.9`` (preferred) and ``DiscreteMath`CombinatoricaV0.6``.
 
 Both of these correspond to Steven Skiena's *older* book: *Implementing Discrete Mathematics: Combinatorics and Graph Theory*.
 
@@ -1046,9 +1011,7 @@ New builtins
 
 #. ``StirlingS1``, ``StirlingS2`` (not all WL variations handled)
 #. ``MapAt`` (not all WL variations handled)
-#. ``PythonForm``, ``SympyForm``: not in WL.
-  Will show a crude translation to SymPy or Python.
-  Expect more and better translation later
+#. ``PythonForm``, ``SympyForm``: not in WL. Expect more and better translation later as Mathics3 modules.
 #. ``Throw`` and ``Catch``
 #. ``With``
 #. ``FileNameTake``
@@ -1076,7 +1039,7 @@ Enhancements and bug fixes
 ----
 
 1.1.0
-----
+-----
 
 So we can get onto PyPI, the PyPI install name has changed from Mathics to Mathics3.
 
@@ -1097,7 +1060,7 @@ Enhancements and bug fixes
 ----
 
 1.1.0 rc1
---------
+---------
 
 Package updates
 +++++++++++++++
@@ -1199,21 +1162,9 @@ Other changes
 Backward incompatibilities
 ++++++++++++++++++++++++++
 
-#. Support for Python 3.5 and earlier, and in particular Python 2.7,
-  was dropped.
-#. The ``graphs`` module (for Graphs) has been pulled until Mathics
-  supports pymathics and graphics using networkx better. It will
-  reappear as a pymathics module.
-#. The ``natlang`` (for Natural Language processing) has also been
-  pulled.  The problem here too is that the pymathics mechanism needs
-  a small amount of work to make it scalable, and in 1.0 these were
-  hard coded. Also, both this module and ``graphs`` pulled in some
-  potentially hard-to-satisfy non-Python dependencies such as
-  matplotlib, or NLP libraries, and word lists. All of this made
-  installation of Mathics harder, and the import of these libraries,
-  ``natlang`` in particular, took some time. All of this points to having
-  these live in their own repositories and get imported on lazily on
-  demand.
+#. Support for Python 3.5 and earlier, and in particular Python 2.7, was dropped.
+#. The ``graphs`` module (for Graphs) has been pulled until Mathics   supports  pymathics and graphics using ``networkx`` better. It will reappear as a pymathics module.
+#. The ``natlang`` (for Natural Language processing) has also been pulled.  The problem here too is that the pymathics mechanism needs a small amount of work to make it scalable, and in 1.0 these were hard coded. Also, both this module and ``graphs`` pulled in some   potentially hard-to-satisfy non-Python dependencies such as matplotlib, or NLP libraries, and word lists. All of this made installation of Mathics harder, and the import of these libraries,   ``natlang`` in particular, took some time. All of this points to having these live in their own repositories and get imported on lazily on demand.
 
 
 -----
