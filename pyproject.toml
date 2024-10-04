@@ -21,6 +21,7 @@ dependencies = [
     "pillow >= 9.2",
     "pint",
     "python-dateutil",
+    "Pympler",
     "requests",
     "scipy",
     "setuptools",
