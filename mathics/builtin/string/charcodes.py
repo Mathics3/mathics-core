@@ -65,9 +65,6 @@ class ToCharacterCode(Builtin):
      = -Graphics-
     """
 
-    messages = {
-        "strse": "String or list of strings expected at position `1` in `2`.",
-    }
     summary_text = "convert a string to a list of character codes"
 
     def _encode(self, string, encoding, evaluation: Evaluation):
