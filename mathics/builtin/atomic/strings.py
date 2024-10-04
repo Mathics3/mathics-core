@@ -6,6 +6,7 @@ String Manipulation
 import io
 import re
 import unicodedata
+from abc import ABC
 from binascii import unhexlify
 from heapq import heappop, heappush
 from typing import Any, List
@@ -20,7 +21,6 @@ from mathics.core.convert.python import from_bool
 from mathics.core.convert.regex import to_regex
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.symbols import Symbol, SymbolTrue
@@ -606,14 +606,13 @@ class RemoveDiacritics(Builtin):
         )
 
 
-class _StringFind(Builtin):
+class _StringFind(Builtin, ABC):
     options = {
         "IgnoreCase": "False",
         "MetaCharacters": "None",
     }
 
     messages = {
-        "strse": "String or list of strings expected at position `1` in `2`.",
         "srep": "`1` is not a valid string replacement rule.",
         "innf": (
             "Non-negative integer or Infinity expected at " "position `1` in `2`."
@@ -623,81 +622,8 @@ class _StringFind(Builtin):
     def _find(py_stri, py_rules, py_n, flags):
         raise NotImplementedError()
 
-    def _apply(self, string, rule, n, evaluation, options, cases):
-        if n.sameQ(Symbol("System`Private`Null")):
-            expr = Expression(Symbol(self.get_name()), string, rule)
-            n = None
-        else:
-            expr = Expression(Symbol(self.get_name()), string, rule, n)
 
-        # convert string
-        if string.has_form("List", None):
-            py_strings = [stri.get_string_value() for stri in string.elements]
-            if None in py_strings:
-                evaluation.message(self.get_name(), "strse", Integer1, expr)
-                return
-        else:
-            py_strings = string.get_string_value()
-            if py_strings is None:
-                evaluation.message(self.get_name(), "strse", Integer1, expr)
-                return
-
-        # convert rule
-        def convert_rule(r):
-            if r.has_form("Rule", None) and len(r.elements) == 2:
-                py_s = to_regex(r.elements[0], show_message=evaluation.message)
-                if py_s is None:
-                    evaluation.message(
-                        "StringExpression", "invld", r.elements[0], r.elements[0]
-                    )
-                    return
-                py_sp = r.elements[1]
-                return py_s, py_sp
-            elif cases:
-                py_s = to_regex(r, show_message=evaluation.message)
-                if py_s is None:
-                    evaluation.message("StringExpression", "invld", r, r)
-                    return
-                return py_s, None
-
-            evaluation.message(self.get_name(), "srep", r)
-            return
-
-        if rule.has_form("List", None):
-            py_rules = [convert_rule(r) for r in rule.elements]
-        else:
-            py_rules = [convert_rule(rule)]
-        if None in py_rules:
-            return None
-
-        # convert n
-        if n is None:
-            py_n = 0
-        elif n.sameQ(MATHICS3_INFINITY):
-            py_n = 0
-        else:
-            py_n = n.get_int_value()
-            if py_n is None or py_n < 0:
-                evaluation.message(self.get_name(), "innf", Integer(3), expr)
-                return
-
-        # flags
-        flags = re.MULTILINE
-        if options["System`IgnoreCase"] is SymbolTrue:
-            flags = flags | re.IGNORECASE
-
-        if isinstance(py_strings, list):
-            return to_mathics_list(
-                *[
-                    self._find(py_stri, py_rules, py_n, flags, evaluation)
-                    for py_stri in py_strings
-                ]
-            )
-        else:
-            return self._find(py_strings, py_rules, py_n, flags, evaluation)
-
-
-class String_(Builtin):
+class String_(Builtin, ABC):
     """
     <url>
     :WMA link:
@@ -754,10 +680,6 @@ class StringContainsQ(Builtin):
     >> StringContainsQ["e" ~~ ___ ~~ "u"] /@ {"The Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"}
      = {True, True, True, False, False, False, False, False, True}
     """
-
-    messages = {
-        "strse": "String or list of strings expected at position `1` in `2`.",
-    }
 
     options = {
         "IgnoreCase": "False",
