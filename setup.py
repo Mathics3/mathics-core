@@ -74,7 +74,14 @@ else:
                 "rules",
                 "pattern",
             ),
-            "builtin": ["arithmetic", "patterns.*", "graphics"],
+            "builtin": [
+                "arithmetic",
+                "patterns.blanks",
+                "patterns.patterns",
+                "patterns.options",
+                "patterns.rules",
+                "graphics",
+            ],
             "eval": ("nevaluator", "makeboxes", "test"),
         }
         EXTENSIONS = [
