@@ -51,7 +51,7 @@ clean:
 	rm -f mathics.asy mathics.aux mathics.idx mathics.log mathics.mtc mathics.mtc* mathics.out mathics.toc || true
 	rm -f test-mathics.aux test-mathics.idx test-mathics.log test-mathics.mtc test-mathics.mtc* test-mathics.out test-mathics.toc || true
 	rm -f mathics.fdb_latexmk mathics.ilg mathics.ind mathics.maf mathics.pre || true
-	rm -f mathics-*.* || true
+	rm -f mathics-*.??? || true
 	rm -f mathics-test.asy mathics-test.aux mathics-test.idx mathics-test.log mathics-test.mtc mathicsest.mtc* mathics-test.out mathics-test.toc || true
 	rm -f documentation.tex $(DOCTEST_LATEX_DATA_PCL) || true
 	rm -f mathics.pdf mathics.dvi test-mathics.pdf test-mathics.dvi || true
