@@ -1,6 +1,10 @@
 """
 Rules and Patterns
 
+<url>:WMA link:
+https://reference.wolfram.com/language/guide/RulesAndPatterns.html</url>
+
+
 The concept of transformation rules for arbitrary symbolic patterns is key \
 in \\Mathics.
 

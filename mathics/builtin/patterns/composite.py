@@ -18,6 +18,10 @@ from mathics.core.systemsymbols import SymbolBlank
 sort_order = "mathics.builtin.rules-and-patterns.composite"
 
 
+class _StopGeneratorExcept(StopGenerator):
+    pass
+
+
 class Alternatives(BinaryOperator, PatternObject):
     """
     <url>
@@ -77,10 +81,6 @@ class Alternatives(BinaryOperator, PatternObject):
         return tuple(range_lst)
 
 
-class _StopGeneratorExcept(StopGenerator):
-    pass
-
-
 class Except(PatternObject):
     """
     <url>
@@ -137,47 +137,6 @@ class Except(PatternObject):
             self.p.match(expression, pattern_context)
 
 
-class Verbatim(PatternObject):
-    """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/Verbatim.html</url>
-
-    <dl>
-      <dt>'Verbatim[$expr$]'
-      <dd>prevents pattern constructs in $expr$ from taking effect,
-        allowing them to match themselves.
-    </dl>
-
-    Create a pattern matching 'Blank':
-    >> _ /. Verbatim[_]->t
-     = t
-    >> x /. Verbatim[_]->t
-     = x
-
-    Without 'Verbatim', 'Blank' has its normal effect:
-    >> x /. _->t
-     = t
-    """
-
-    arg_counts = [1, 2]
-    summary_text = "take the pattern elements as literals"
-
-    def init(
-        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
-    ) -> None:
-        super().init(expr, evaluation=evaluation)
-        self.content = expr.elements[0]
-
-    def match(self, expression: Expression, pattern_context: dict):
-        """Match with Verbatim Pattern"""
-        vars_dict = pattern_context["vars_dict"]
-        yield_func = pattern_context["yield_func"]
-
-        if self.content.sameQ(expression):
-            yield_func(vars_dict, None)
-
-
 class HoldPattern(PatternObject):
     """
 
@@ -214,6 +173,28 @@ class HoldPattern(PatternObject):
         #     expression, vars_dict, evaluation):
         #     yield new_vars_dict, rest
         self.pattern.match(expression, pattern_context)
+
+
+class Longest(Builtin):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Longest.html</url>
+
+    <dl>
+      <dt>'Longest[$pat$]'
+      <dd>is a pattern object that matches the longest sequence consistent \
+      with the pattern $p$.
+    </dl>
+
+    >> StringCases["aabaaab", Longest["a" ~~ __ ~~ "b"]]
+     = {aabaaab}
+
+    >> StringCases["aabaaab", Longest[RegularExpression["a+b"]]]
+     = {aab, aaab}
+    """
+
+    summary_text = "the longest part matching a string pattern"
 
 
 class Pattern(PatternObject):
@@ -356,47 +337,6 @@ class Pattern(PatternObject):
         return verbatim.get_match_candidates(elements, pattern_context)
 
 
-class Shortest(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Shortest.html</url>
-
-    <dl>
-      <dt>'Shortest[$pat$]'
-      <dd>is a pattern object that matches the shortest sequence consistent with the pattern $p$.
-    </dl>
-
-    >> StringCases["aabaaab", Shortest["a" ~~ __ ~~ "b"]]
-     =  {aab, aaab}
-
-    >> StringCases["aabaaab", Shortest[RegularExpression["a+b"]]]
-     = {aab, aaab}
-    """
-
-    summary_text = "the shortest part matching a string pattern"
-
-
-class Longest(Builtin):
-    """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/Longest.html</url>
-
-    <dl>
-      <dt>'Longest[$pat$]'
-      <dd>is a pattern object that matches the longest sequence consistent \
-      with the pattern $p$.
-    </dl>
-
-    >> StringCases["aabaaab", Longest["a" ~~ __ ~~ "b"]]
-     = {aabaaab}
-
-    >> StringCases["aabaaab", Longest[RegularExpression["a+b"]]]
-     = {aab, aaab}
-    """
-
-    summary_text = "the longest part matching a string pattern"
-
-
 class Repeated(PostfixOperator, PatternObject):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Repeated.html</url>
@@ -511,3 +451,66 @@ class RepeatedNull(Repeated):
         self, expr: Expression, evaluation: OptionalType[Evaluation] = None
     ) -> None:
         super().init(expr, min_idx=0, evaluation=evaluation)
+
+
+class Shortest(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Shortest.html</url>
+
+    <dl>
+      <dt>'Shortest[$pat$]'
+      <dd>is a pattern object that matches the shortest sequence consistent with the pattern $p$.
+    </dl>
+
+    >> StringCases["aabaaab", Shortest["a" ~~ __ ~~ "b"]]
+     =  {aab, aaab}
+
+    >> StringCases["aabaaab", Shortest[RegularExpression["a+b"]]]
+     = {aab, aaab}
+    """
+
+    summary_text = "the shortest part matching a string pattern"
+
+
+class Verbatim(PatternObject):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Verbatim.html</url>
+
+    <dl>
+      <dt>'Verbatim[$expr$]'
+      <dd>prevents pattern constructs in $expr$ from taking effect,
+        allowing them to match themselves.
+    </dl>
+
+    Create a pattern matching 'Blank':
+    >> _ /. Verbatim[_]->t
+     = t
+    >> x /. Verbatim[_]->t
+     = x
+
+    Without 'Verbatim', 'Blank' has its normal effect:
+    >> x /. _->t
+     = t
+    """
+
+    arg_counts = [1, 2]
+    summary_text = "take the pattern elements as literals"
+
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
+        super().init(expr, evaluation=evaluation)
+        self.content = expr.elements[0]
+
+    def match(self, expression: Expression, pattern_context: dict):
+        """Match with Verbatim Pattern"""
+        vars_dict = pattern_context["vars_dict"]
+        yield_func = pattern_context["yield_func"]
+
+        if self.content.sameQ(expression):
+            yield_func(vars_dict, None)
+
+
+# TODO: Implement `KeyValuePattern` and `OrderlessPatternSequence`

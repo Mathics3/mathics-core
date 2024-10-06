@@ -7,18 +7,16 @@ Pattern Defaults
 
 from typing import Optional as OptionalType, Tuple
 
-from mathics.core.atoms import Integer
 from mathics.core.builtin import BinaryOperator, PatternObject
 from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.pattern import BasePattern
-from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolDefault
+from mathics.eval.patterns import get_default_value
 
 # This tells documentation how to sort this module
-sort_order = "mathics.builtin.rules-and-patterns.option-like"
+sort_order = "mathics.builtin.rules-and-patterns.defaults"
 
 
 class Optional(BinaryOperator, PatternObject):
@@ -125,36 +123,6 @@ class Optional(BinaryOperator, PatternObject):
         return (0, 1)
 
 
-def get_default_value(
-    name: str,
-    evaluation: Evaluation,
-    k: OptionalType[int] = None,
-    n: OptionalType[int] = None,
-):
-    """
-    Get the default value associated to a name, and optionally,
-    to a position in the expression.
-    """
-    pos = []
-    if k is not None:
-        pos.append(k)
-    if n is not None:
-        pos.append(n)
-    for pos_len in reversed(range(len(pos) + 1)):
-        # Try patterns from specific to general
-        defaultexpr = Expression(
-            SymbolDefault, Symbol(name), *[Integer(index) for index in pos[:pos_len]]
-        )
-        result = evaluation.definitions.get_value(
-            name, "System`DefaultValues", defaultexpr, evaluation
-        )
-        if result is not None:
-            if result.sameQ(defaultexpr):
-                result = result.evaluate(evaluation)
-            return result
-    return None
-
-
 class OptionsPattern(PatternObject):
     """
     <url>
@@ -165,11 +133,11 @@ class OptionsPattern(PatternObject):
       <dt>'OptionsPattern[$f$]'
       <dd>is a pattern that stands for a sequence of options given \
         to a function, with default values taken from 'Options[$f$]'. \
-        The options can be of the form '$opt$->$value$' or
+        The options can be of the form '$opt$->$value$' or \
         '$opt$:>$value$', and might be in arbitrarily nested lists.
 
       <dt>'OptionsPattern[{$opt1$->$value1$, ...}]'
-      <dd>takes explicit default values from the given list. The
+      <dd>takes explicit default values from the given list. The \
         list may also contain symbols $f$, for which 'Options[$f$]' is \
         taken into account; it may be arbitrarily nested. \
         'OptionsPattern[{}]' does not use any default values.

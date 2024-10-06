@@ -11,7 +11,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 
 # This tells documentation how to sort this module
-sort_order = "mathics.builtin.rules-and-patterns.blank-like"
+sort_order = "mathics.builtin.rules-and-patterns.basic"
 
 
 class _Blank(PatternObject):
@@ -100,6 +100,49 @@ class Blank(_Blank):
                 yield_func(vars_dict, None)
 
 
+class BlankNullSequence(_Blank):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BlankNullSequence.html</url>
+
+    <dl>
+      <dt>'BlankNullSequence[]'
+      <dt>'___'
+      <dd>represents any sequence of expression elements in a pattern,
+        including an empty sequence.
+    </dl>
+
+    'BlankNullSequence' is like 'BlankSequence', except it can match an
+    empty sequence:
+    >> MatchQ[f[], f[___]]
+     = True
+    """
+
+    rules = {
+        "MakeBoxes[Verbatim[BlankNullSequence][], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"___"',
+        "MakeBoxes[Verbatim[BlankNullSequence][head_Symbol], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"___" <> MakeBoxes[head, f]',
+    }
+    summary_text = "match to a sequence of zero or more elements"
+
+    def match(self, expression: Expression, pattern_context: dict):
+        """Match with a BlankNullSequence"""
+        vars_dict = pattern_context["vars_dict"]
+        yield_func = pattern_context["yield_func"]
+        elements = expression.get_sequence()
+        if self.head:
+            ok = True
+            for element in elements:
+                if element.get_head() != self.head:
+                    ok = False
+                    break
+            if ok:
+                yield_func(vars_dict, None)
+        else:
+            yield_func(vars_dict, None)
+
+    def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
+        return (0, None)
+
+
 class BlankSequence(_Blank):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/BlankSequence.html</url>
@@ -158,46 +201,3 @@ class BlankSequence(_Blank):
 
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (1, None)
-
-
-class BlankNullSequence(_Blank):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/BlankNullSequence.html</url>
-
-    <dl>
-      <dt>'BlankNullSequence[]'
-      <dt>'___'
-      <dd>represents any sequence of expression elements in a pattern,
-        including an empty sequence.
-    </dl>
-
-    'BlankNullSequence' is like 'BlankSequence', except it can match an
-    empty sequence:
-    >> MatchQ[f[], f[___]]
-     = True
-    """
-
-    rules = {
-        "MakeBoxes[Verbatim[BlankNullSequence][], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"___"',
-        "MakeBoxes[Verbatim[BlankNullSequence][head_Symbol], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"___" <> MakeBoxes[head, f]',
-    }
-    summary_text = "match to a sequence of zero or more elements"
-
-    def match(self, expression: Expression, pattern_context: dict):
-        """Match with a BlankNullSequence"""
-        vars_dict = pattern_context["vars_dict"]
-        yield_func = pattern_context["yield_func"]
-        elements = expression.get_sequence()
-        if self.head:
-            ok = True
-            for element in elements:
-                if element.get_head() != self.head:
-                    ok = False
-                    break
-            if ok:
-                yield_func(vars_dict, None)
-        else:
-            yield_func(vars_dict, None)
-
-    def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
-        return (0, None)
