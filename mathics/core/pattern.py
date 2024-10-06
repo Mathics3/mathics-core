@@ -669,7 +669,7 @@ def match_expression_with_one_identity(
 
     # This tries to reduce the pattern to a non empty
     # set of default values, and a single pattern.
-    from mathics.builtin.patterns.patterns import Pattern
+    from mathics.builtin.patterns.composite import Pattern
 
     vars_dict: dict = parms["vars_dict"]
     evaluation: Evaluation = parms["evaluation"]
@@ -883,7 +883,7 @@ def expression_pattern_match_element_orderless(
     # otherwise, constructing a set() is very slow for large lists.
     # performance test case:
     # x = Range[100000]; Timing[Combinatorica`BinarySearch[x, 100]]
-    from mathics.builtin.patterns.patterns import Pattern
+    from mathics.builtin.patterns.composite import Pattern
 
     element: BaseElement = parms["element"]
     element_candidates = set(element_candidates)  # for fast lookup

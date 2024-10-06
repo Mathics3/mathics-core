@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Patterns for Optional elements and options.
+Pattern Defaults
+
+
 """
 
 from typing import Optional as OptionalType, Tuple

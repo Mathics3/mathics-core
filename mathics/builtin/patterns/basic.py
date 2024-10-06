@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Blank-like patterns.
+Basic Pattern Objects
+
 """
 
 from typing import Optional as OptionalType
 
-from mathics.core.builtin import PatternObject, PostfixOperator
+from mathics.core.builtin import PatternObject
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.pattern import BasePattern
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.rules-and-patterns.blank-like"
@@ -201,119 +201,3 @@ class BlankNullSequence(_Blank):
 
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (0, None)
-
-
-class Repeated(PostfixOperator, PatternObject):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Repeated.html</url>
-
-    <dl>
-      <dt>'Repeated[$pattern$]'
-      <dd>matches one or more occurrences of $pattern$.
-    </dl>
-
-    >> a_Integer.. // FullForm
-     = Repeated[Pattern[a, Blank[Integer]]]
-    >> 0..1//FullForm
-     = Repeated[0]
-    >> {{}, {a}, {a, b}, {a, a, a}, {a, a, a, a}} /. {Repeated[x : a | b, 3]} -> x
-     = {{}, a, {a, b}, a, {a, a, a, a}}
-    >> f[x, 0, 0, 0] /. f[x, s:0..] -> s
-     = Sequence[0, 0, 0]
-    """
-
-    arg_counts = [1, 2]
-    messages = {
-        "range": (
-            "Range specification in integers (max or {min, max}) "
-            "expected at position `1` in `2`."
-        )
-    }
-
-    operator = ".."
-    summary_text = "match to one or more occurrences of a pattern"
-
-    def init(
-        self,
-        expr: Expression,
-        min_idx: int = 1,
-        evaluation: OptionalType[Evaluation] = None,
-    ):
-        self.pattern = BasePattern.create(expr.elements[0], evaluation=evaluation)
-        self.max = None
-        self.min = min_idx
-        if len(expr.elements) == 2:
-            element_1 = expr.elements[1]
-            allnumbers = not any(
-                element.get_int_value() is None for element in element_1.get_elements()
-            )
-            if element_1.has_form("List", 1, 2) and allnumbers:
-                self.max = element_1.elements[-1].get_int_value()
-                self.min = element_1.elements[0].get_int_value()
-            elif element_1.get_int_value():
-                self.max = element_1.get_int_value()
-            else:
-                self.error("range", 2, expr)
-
-    def match(self, expression: Expression, pattern_context: dict):
-        """Match with Repeated[...]"""
-        yield_func = pattern_context["yield_func"]
-        vars_dict = pattern_context["vars_dict"]
-        evaluation = pattern_context["evaluation"]
-        elements = expression.get_sequence()
-        if len(elements) < self.min:
-            return
-        if self.max is not None and len(elements) > self.max:
-            return
-
-        def iter_fn(yield_iter, rest_elements, vars_dict):
-            if rest_elements:
-                # for new_vars_dict, rest in self.pattern.match(rest_elements[0],
-                # vars_dict, evaluation):
-                def yield_match(new_vars_dict, rest):
-                    # for sub_vars_dict, sub_rest in iter(rest_elements[1:],
-                    #                                new_vars):
-                    #    yield sub_vars_dict, rest
-                    iter_fn(yield_iter, rest_elements[1:], new_vars_dict)
-
-                self.pattern.match(
-                    rest_elements[0],
-                    {
-                        "yield_func": yield_match,
-                        "vars_dict": vars_dict,
-                        "evaluation": evaluation,
-                    },
-                )
-            else:
-                yield_iter(vars_dict, None)
-
-        # for vars_dict, rest in iter(elements, vars):
-        #    yield_func(vars_dict, rest)
-        iter_fn(yield_func, elements, vars_dict)
-
-    def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
-        return (self.min, self.max)
-
-
-class RepeatedNull(Repeated):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/RepeatedNull.html</url>
-
-    <dl>
-      <dt>'RepeatedNull[$pattern$]'
-      <dd>matches zero or more occurrences of $pattern$.
-    </dl>
-
-    >> a___Integer...//FullForm
-     = RepeatedNull[Pattern[a, BlankNullSequence[Integer]]]
-    >> f[x] /. f[x, 0...] -> t
-     = t
-    """
-
-    operator = "..."
-    summary_text = "match to zero or more occurrences of a pattern"
-
-    def init(
-        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
-    ) -> None:
-        super().init(expr, min_idx=0, evaluation=evaluation)

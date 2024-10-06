@@ -76,9 +76,10 @@ else:
             ),
             "builtin": [
                 "arithmetic",
-                "patterns/blanks",
-                "patterns/patterns",
-                "patterns/options",
+                "patterns/basic",
+                "patterns/composite",
+                "patterns/defaults",
+                "patterns/restrictions",
                 "patterns/rules",
                 "graphics",
             ],
