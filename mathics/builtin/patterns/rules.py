@@ -133,7 +133,7 @@ class DispatchAtom(AtomBuiltin):
         result = eval_dispatch_atom(rules, evaluation)
         return result
 
-    def eval_list(
+    def eval(
         self, rules: Expression, evaluation: Evaluation
     ) -> OptionalType[BaseElement]:
         """Dispatch[rules_]"""
@@ -354,7 +354,7 @@ class ReplaceList(Builtin):
         "reps": "`1` is not a valid replacement rule.",
         "rmix": "Elements of `1` are a mixture of lists and nonlists.",
     }
-    summary_text = "list of possible replacement results"
+    summary_text = "list possible replacement results"
 
     def eval(
         self,
@@ -462,7 +462,7 @@ class ReplaceRepeated(BinaryOperator):
             return rules
 
         maxit = self.get_option(options, "MaxIterations", evaluation)
-        if maxit.is_numeric(evaluation):
+        if maxit is not None and maxit.is_numeric(evaluation):
             maxit = maxit.get_int_value()
         else:
             maxit = -1

@@ -769,11 +769,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return list(self._elements)
 
     def get_option_values(
-        self, evaluation, allow_symbols=False, stop_on_error=True
+        self, evaluation: Evaluation, allow_symbols=False, stop_on_error=True
     ) -> Optional[dict]:
         """
         Build a dictionary of options from an expression.
-        For example Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)
+        For example, Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)
         will return a list of options associated to the definition of the symbol "Integrate".
         """
         options = self
