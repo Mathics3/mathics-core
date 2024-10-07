@@ -8,12 +8,12 @@ https://reference.wolfram.com/language/guide/Rules.html</url>
 
 
 Rules are a basic element in the evaluation process. Every Definition in \
-\\Mathics3 consists of a set of rules associated with a symbol. \
+\\Mathics consists of a set of rules associated with a symbol. \
 The evaluation process consists of the sequential application of rules \
 associated with the symbols appearing in a given expression. \
 The process iterates until no rules match the final expression.
 
-In \\Mathics3, rules consist of a Pattern object $patt$ and an \
+In \\Mathics, rules consist of a Pattern object $patt$ and an \
 Expression $repl$. When the Rule is applied to a symbolic \
 Expression $expr$, the interpreter tries to match the pattern with \
 subexpressions of $expr$ in a top-to-bottom way. If a match is found, the \
@@ -59,7 +59,8 @@ same rule over different expressions faster, it is convenient to use \
 a list of rules, avoiding repeating the 'compilation' step each time \
 the rules are applied.
 
-   >> dispatchrule = Dispatch[{rule}];
+   >> dispatchrule = Dispatch[{rule}]
+    = Dispatch[<1>]
    >> a + F[F[x ^ 2]] //. dispatchrule
     = a + g[g[x ^ 2]]
 
@@ -74,6 +75,7 @@ from mathics.core.builtin import AtomBuiltin, BinaryOperator, Builtin, PatternEr
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolTrue
 from mathics.core.systemsymbols import SymbolInfinity
@@ -105,7 +107,7 @@ class DispatchAtom(AtomBuiltin):
     >> F[2] /. rules
      = 4
     >> dispatchrules = Dispatch[rules]
-     =  Dispatch[{{a_, b_} -> a ^ b, {1, 2} -> 3., F[x_] -> x ^ 2}]
+     =  Dispatch[<3>]
     >>  F[2] /. dispatchrules
      = 4
     """
@@ -123,7 +125,29 @@ class DispatchAtom(AtomBuiltin):
         self, rules: ListExpression, evaluation: Evaluation
     ) -> OptionalType[BaseElement]:
         """Dispatch[rules_List]"""
-        eval_dispatch_atom(rules, evaluation)
+        result = eval_dispatch_atom(rules, evaluation)
+        return result
+
+    def eval_list(
+        self, rules: Expression, evaluation: Evaluation
+    ) -> OptionalType[BaseElement]:
+        """Dispatch[rules_]"""
+        if not isinstance(rules, Expression):
+            return None
+
+        if isinstance(rules, Dispatch):
+            return rules
+
+        if isinstance(rules, ListExpression):
+            rules_tuple = rules.elements
+        elif rules.head in (SymbolRule, SymbolRuleDelayed) and len(rules.elements) == 2:
+            rules_tuple = (rules,)
+        else:
+            return None
+
+        assert isinstance(rules_tuple, tuple)
+        result = eval_dispatch_atom(rules_tuple, evaluation)
+        return result
 
     def eval_normal(self, dispatch: Dispatch, evaluation: Evaluation) -> ListExpression:
         """Normal[dispatch_Dispatch]"""
