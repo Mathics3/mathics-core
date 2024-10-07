@@ -35,7 +35,9 @@ def create_rules(
     if isinstance(rules_expr, Dispatch):
         return rules_expr.rules, False
     if rules_expr.has_form("Dispatch", None):
-        return Dispatch(rules_expr.elements, evaluation)
+        if rules_expr.head is SymbolList:
+            return Dispatch(rules_expr.elements, evaluation)
+        return Dispatch((rules_expr,), evaluation)
 
     if rules_expr.has_form("List", None):
         rules = rules_expr.elements
@@ -94,7 +96,7 @@ def create_rules(
 
 
 def eval_dispatch_atom(
-    rules: ListExpression, evaluation: Evaluation
+    rules: tuple, evaluation: Evaluation
 ) -> OptionalType[BaseElement]:
     """Dispatch[rules_List]"""
     # TODO:
@@ -105,15 +107,6 @@ def eval_dispatch_atom(
     # compiled patterns, and modify Replace and ReplaceAll to handle this
     # kind of objects.
     #
-    if isinstance(rules, Dispatch):
-        return rules
-    if isinstance(rules, Symbol):
-        rules = rules.evaluate(evaluation)
-
-    if rules.has_form("List", None):
-        rules = rules.elements
-    else:
-        rules = [rules]
 
     all_list = all(rule.has_form("List", None) for rule in rules)
     if all_list:
@@ -134,10 +127,8 @@ def eval_dispatch_atom(
             # and raise an error when the dispatch rule is used.
             evaluation.message("Dispatch", "invrpl", rule)
             return None
-    try:
-        return Dispatch(flatten_list, evaluation)
-    except Exception:
-        return None
+
+    return Dispatch(tuple(flatten_list), evaluation)
 
 
 def eval_replace_with_levelspec(expr, rules, ls, heads, evaluation, options):
@@ -158,9 +149,15 @@ def eval_replace_with_levelspec(expr, rules, ls, heads, evaluation, options):
 class Dispatch(Atom):
     class_head_name = "System`Dispatch"
 
-    def __init__(self, rulelist: Expression, evaluation: Evaluation) -> None:
-        self.src = ListExpression(*rulelist)
-        self.rules = [Rule(rule.elements[0], rule.elements[1]) for rule in rulelist]
+    def __init__(self, rule_tuple: Expression, evaluation: Evaluation) -> None:
+        assert isinstance(rule_tuple, tuple)
+        self.src = ListExpression(*rule_tuple)
+        try:
+            self.rules = [
+                Rule(rule.elements[0], rule.elements[1]) for rule in rule_tuple
+            ]
+        except:
+            raise
         self._elements = None
         self._head = SymbolDispatch
 
@@ -177,5 +174,6 @@ class Dispatch(Atom):
         from mathics.builtin.box.layout import RowBox
         from mathics.eval.makeboxes import format_element
 
-        box_element = format_element(self.src, evaluation, f)
+        # box_element = format_element(self.src, evaluation, f)
+        box_element = String(f"<{len(self.rules)}>")
         return RowBox(String("Dispatch"), String("["), box_element, String("]"))

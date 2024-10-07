@@ -59,7 +59,8 @@ same rule over different expressions faster, it is convenient to use \
 a list of rules, avoiding repeating the 'compilation' step each time \
 the rules are applied.
 
-   >> dispatchrule = Dispatch[{rule}];
+   >> dispatchrule = Dispatch[{rule}]
+    = Dispatch[<1>]
    >> a + F[F[x ^ 2]] //. dispatchrule
     = a + g[g[x ^ 2]]
 
@@ -68,15 +69,16 @@ the rules are applied.
 
 from typing import Optional as OptionalType
 
-from mathics.core.atoms import Integer, Integer2, Number
+from mathics.core.atoms import Integer, Integer0, Integer2, Number
 from mathics.core.attributes import A_HOLD_REST, A_PROTECTED, A_SEQUENCE_HOLD
 from mathics.core.builtin import AtomBuiltin, BinaryOperator, Builtin, PatternError
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolTrue
-from mathics.core.systemsymbols import SymbolInfinity
+from mathics.core.systemsymbols import SymbolInfinity, SymbolRule, SymbolRuleDelayed
 from mathics.eval.rules import (
     Dispatch,
     create_rules,
@@ -105,13 +107,14 @@ class DispatchAtom(AtomBuiltin):
     >> F[2] /. rules
      = 4
     >> dispatchrules = Dispatch[rules]
-     =  Dispatch[{{a_, b_} -> a ^ b, {1, 2} -> 3., F[x_] -> x ^ 2}]
+     =  Dispatch[<3>]
     >>  F[2] /. dispatchrules
      = 4
     """
 
     class_head_name = "System`DispatchAtom"
     messages = {
+        "argt": "Dispatch called with `1` arguments; 1 argument is expected.",
         "invrpl": "`1` is not a valid rule or list of rules.",
     }
     summary_text = "convert a list of rules in an optimized dispatch-rules atom"
@@ -119,11 +122,37 @@ class DispatchAtom(AtomBuiltin):
     def __repr__(self):
         return "dispatchatom"
 
+    def eval_empty(self, evaluation: Evaluation):
+        "Dispatch[]"
+        evaluation.message("Dispatch", "argt", Integer0)
+
     def eval_list(
         self, rules: ListExpression, evaluation: Evaluation
     ) -> OptionalType[BaseElement]:
         """Dispatch[rules_List]"""
-        eval_dispatch_atom(rules, evaluation)
+        result = eval_dispatch_atom(rules, evaluation)
+        return result
+
+    def eval_list(
+        self, rules: Expression, evaluation: Evaluation
+    ) -> OptionalType[BaseElement]:
+        """Dispatch[rules_]"""
+        if not isinstance(rules, Expression):
+            return None
+
+        if isinstance(rules, Dispatch):
+            return rules
+
+        if isinstance(rules, ListExpression):
+            rules_tuple = rules.elements
+        elif rules.head in (SymbolRule, SymbolRuleDelayed) and len(rules.elements) == 2:
+            rules_tuple = (rules,)
+        else:
+            return None
+
+        assert isinstance(rules_tuple, tuple)
+        result = eval_dispatch_atom(rules_tuple, evaluation)
+        return result
 
     def eval_normal(self, dispatch: Dispatch, evaluation: Evaluation) -> ListExpression:
         """Normal[dispatch_Dispatch]"""
