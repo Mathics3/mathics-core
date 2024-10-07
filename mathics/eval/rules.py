@@ -94,7 +94,7 @@ def create_rules(
 
 
 def eval_dispatch_atom(
-    self, rules: ListExpression, evaluation: Evaluation
+    rules: ListExpression, evaluation: Evaluation
 ) -> OptionalType[BaseElement]:
     """Dispatch[rules_List]"""
     # TODO:
