@@ -69,7 +69,7 @@ the rules are applied.
 
 from typing import Optional as OptionalType
 
-from mathics.core.atoms import Integer, Integer2, Number
+from mathics.core.atoms import Integer, Integer0, Integer2, Number
 from mathics.core.attributes import A_HOLD_REST, A_PROTECTED, A_SEQUENCE_HOLD
 from mathics.core.builtin import AtomBuiltin, BinaryOperator, Builtin, PatternError
 from mathics.core.element import BaseElement
@@ -114,12 +114,17 @@ class DispatchAtom(AtomBuiltin):
 
     class_head_name = "System`DispatchAtom"
     messages = {
+        "argt": "Dispatch called with `1` arguments; 1 argument is expected.",
         "invrpl": "`1` is not a valid rule or list of rules.",
     }
     summary_text = "convert a list of rules in an optimized dispatch-rules atom"
 
     def __repr__(self):
         return "dispatchatom"
+
+    def eval_empty(self, evaluation: Evaluation):
+        "Dispatch[]"
+        evaluation.message("Dispatch", "argt", Integer0)
 
     def eval_list(
         self, rules: ListExpression, evaluation: Evaluation
