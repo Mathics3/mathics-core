@@ -16,7 +16,7 @@ from mathics.eval.parts import walk_levels
 if platform.python_implementation() == "PyPy":
     bytecount_support = False
 else:
-    from mathics.builtin.pympler.asizeof import asizeof as count_bytes
+    from pympler.asizeof import asizeof as count_bytes
 
     bytecount_support = True
 
