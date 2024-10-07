@@ -71,6 +71,9 @@ def create_rules(
 
     result = []
     for rule in rules:
+        if not isinstance(rule, Expression):
+            evaluation.message(name, "reps", rule)
+            return None, True
         if rule.head not in (SymbolRule, SymbolRuleDelayed):
             evaluation.message(name, "reps", rule)
             return None, True

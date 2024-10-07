@@ -20,7 +20,7 @@ way. If a match is found, the subexpression is then replaced by $repl$.
 If the $patt$ includes named subpatterns, symbols in $repl$ associated with \
 that name are replaced by the (sub) match in the final expression.
 
-Let's consider for example the Rule
+Let's consider for example the 'Rule'
 
     >> rule = F[u_]->g[u]
      = F[u_] -> g[u]
@@ -29,25 +29,25 @@ This rule associates the pattern $F[u_]$ with the expression $g[u]$.
 
 Then, using the 'Replace' operator $/.$ we can apply the rule to an expression
 
-    >> a + F[x^2] /. rule
-     = a + g[x^2]
+    >> a + F[x ^ 2] /. rule
+     = a + g[x ^ 2]
 
 
 Notice that the rule is applied from top to bottom just once:
 
-    >> a + F[F[x^2]] /. rule
-     = a + g[F[x^2]]
+    >> a + F[F[x ^ 2]] /. rule
+     = a + g[F[x ^ 2]]
 
 Here, the subexpression $F[F[x^2]]$ matches with the pattern, and the named \
 subpattern $u_$ matches with $F[x^2]$. The original expression is then \replaced by
 $g[u]$, and $u$ is replaced with the subexpression that matches the \
-subpattern ($F[x^2]$).
+subpattern ($F[x ^ 2]$).
 
 Notice also that the rule is applied just once. We can apply it recursively \
 until no further matches are found by using the 'ReplaceRepeated' operator $//.$:
 
-   >> a + F[F[x^2]] //. rule
-    = a + g[g[x^2]]
+   >> a + F[F[x ^ 2]] //. rule
+    = a + g[g[x ^ 2]]
 
 Rules are keept as expressions until a 'Replace' expression is evaluated. \
 At that moment, 'Pattern' objects are 'compiled', taking into account the
@@ -58,8 +58,8 @@ a list of rules, avoiding repeating the 'compilation' step each time
 the rules are applied.
 
    >> dispatchrule = Dispatch[{rule}];
-   >> a + F[F[x^2]] //. dipatchrule
-    = a + g[g[x^2]]
+   >> a + F[F[x ^ 2]] //. dispatchrule
+    = a + g[g[x ^ 2]]
 
 
 """
