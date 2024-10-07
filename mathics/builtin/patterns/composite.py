@@ -2,15 +2,16 @@
 """
 Composite Patterns
 
-
 """
 
-from typing import Optional as OptionalType, Union
+from typing import Optional as OptionalType, Tuple, Union
 
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_FIRST, A_PROTECTED
 from mathics.core.builtin import BinaryOperator, Builtin, PatternObject, PostfixOperator
+from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, SymbolVerbatim
+from mathics.core.list import ListExpression
 from mathics.core.pattern import BasePattern, StopGenerator
 from mathics.core.systemsymbols import SymbolBlank
 
@@ -182,9 +183,9 @@ class Longest(Builtin):
     https://reference.wolfram.com/language/ref/Longest.html</url>
 
     <dl>
-      <dt>'Longest[$pattern$]'
+      <dt>'Longest[$pat$]'
       <dd>is a pattern object that matches the longest sequence consistent \
-      with the pattern $p$.
+      with the pattern $pat$.
     </dl>
 
     >> StringCases["aabaaab", Longest["a" ~~ __ ~~ "b"]]
@@ -197,20 +198,127 @@ class Longest(Builtin):
     summary_text = "the longest part matching a string pattern"
 
 
+class OptionsPattern(PatternObject):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/OptionsPattern.html</url>
+
+    <dl>
+      <dt>'OptionsPattern[$f$]'
+      <dd>is a pattern that stands for a sequence of options given \
+        to a function, with default values taken from 'Options[$f$]'. \
+        The options can be of the form '$opt$->$value$' or \
+        '$opt$:>$value$', and might be in arbitrarily nested lists.
+
+      <dt>'OptionsPattern[{$opt1$->$value1$, ...}]'
+      <dd>takes explicit default values from the given list. The \
+        list may also contain symbols $f$, for which 'Options[$f$]' is \
+        taken into account; it may be arbitrarily nested. \
+        'OptionsPattern[{}]' does not use any default values.
+    </dl>
+
+    The option values can be accessed using 'OptionValue'.
+
+    >> f[x_, OptionsPattern[{n->2}]] := x ^ OptionValue[n]
+    >> f[x]
+     = x ^ 2
+    >> f[x, n->3]
+     = x ^ 3
+
+    Delayed rules as options:
+    >> e = f[x, n:>a]
+     = x ^ a
+    >> a = 5;
+    >> e
+     = x ^ 5
+
+    Options might be given in nested lists:
+    >> f[x, {{{n->4}}}]
+     = x ^ 4
+    """
+
+    arg_counts = [0, 1]
+    summary_text = "a sequence of optional named arguments"
+
+    def init(
+        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
+    ) -> None:
+        super().init(expr, evaluation=evaluation)
+        try:
+            self.defaults = expr.elements[0]
+        except IndexError:
+            # OptionsPattern[] takes default options of the nearest enclosing
+            # function. Set to not None in self.match
+            self.defaults = None
+
+    def match(self, expression: Expression, pattern_context: dict):
+        """Match with an OptionsPattern"""
+        head = pattern_context.get("head", None)
+        evaluation = pattern_context["evaluation"]
+        if self.defaults is None:
+            self.defaults = head
+            if self.defaults is None:
+                # we end up here with OptionsPattern that do not have any
+                # default options defined, e.g. with this code:
+                # f[x:OptionsPattern[]] := x; f["Test" -> 1]
+                # set self.defaults to an empty List, so we don't crash.
+                self.defaults = ListExpression()
+        defaults = self.defaults
+        values = (
+            defaults.get_option_values(
+                evaluation, allow_symbols=True, stop_on_error=False
+            )
+            if isinstance(defaults, EvalMixin)
+            else {}
+        )
+        sequence = expression.get_sequence()
+        for options in sequence:
+            option_values = (
+                options.get_option_values(evaluation)
+                if isinstance(options, EvalMixin)
+                else None
+            )
+            if option_values is None:
+                return
+            values.update(option_values)
+        new_vars_dict = pattern_context["vars_dict"].copy()
+        for name, value in values.items():
+            new_vars_dict["_option_" + name] = value
+        pattern_context["yield_func"](new_vars_dict, None)
+
+    def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
+        return (0, None)
+
+    def get_match_candidates(
+        self, elements: Tuple[BaseElement], pattern_context: dict
+    ) -> tuple:
+        """
+        Return the sub-tuple of elements that matches with the pattern.
+        """
+
+        def _match(element: Expression):
+            return element.has_form(("Rule", "RuleDelayed"), 2) or element.has_form(
+                "List", None
+            )
+
+        return tuple((element for element in elements if _match(element)))
+
+
 class Pattern(PatternObject):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Pattern.html</url>
 
     <dl>
-      <dt>'Pattern[$symb$, $pattern$]'
-      <dt>'$symb$ : $pattern$'
-      <dd>assigns the name $symb$ to the pattern $pattern$.
+      <dt>'Pattern[$symb$, $pat$]'
+      <dt>'$symb$ : $pat$'
+      <dd>assigns the name $symb$ to the pattern $pat$.
       <dt>'$symb$_$head$'
       <dd>is equivalent to '$symb$ : _$head$' (accordingly with '__' \
         and '___').
-      <dt>'$symb$ : $pattern$ : $default$'
+      <dt>'$symb$ : $pat$ : $default$'
       <dd>is a pattern with name $symb$ and default value $default$, \
-        equivalent to 'Optional[$pattern$ : $symb$, $default$]'.
+        equivalent to 'Optional[$pat$ : $symb$, $default$]'.
     </dl>
 
     >> FullForm[a_b]
@@ -291,7 +399,7 @@ class Pattern(PatternObject):
 
     def match(self, expression: Expression, pattern_context: dict):
         """Match with a (named) pattern"""
-        from mathics.builtin.patterns.defaults import OptionsPattern
+        from mathics.builtin.patterns.composite import OptionsPattern
 
         yield_func = pattern_context["yield_func"]
         vars_dict = pattern_context["vars_dict"]
@@ -342,8 +450,8 @@ class Repeated(PostfixOperator, PatternObject):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Repeated.html</url>
 
     <dl>
-      <dt>'Repeated[$pattern$]'
-      <dd>matches one or more occurrences of $pattern$.
+      <dt>'Repeated[$pat$]'
+      <dd>matches one or more occurrences of $pat$.
     </dl>
 
     >> a_Integer.. // FullForm
@@ -434,8 +542,8 @@ class RepeatedNull(Repeated):
     <url>:WMA link:https://reference.wolfram.com/language/ref/RepeatedNull.html</url>
 
     <dl>
-      <dt>'RepeatedNull[$pattern$]'
-      <dd>matches zero or more occurrences of $pattern$.
+      <dt>'RepeatedNull[$pat$]'
+      <dd>matches zero or more occurrences of $pat$.
     </dl>
 
     >> a___Integer...//FullForm
@@ -458,8 +566,8 @@ class Shortest(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Shortest.html</url>
 
     <dl>
-      <dt>'Shortest[$pattern$]'
-      <dd>is a pattern object that matches the shortest sequence consistent with the pattern $p$.
+      <dt>'Shortest[$pat$]'
+      <dd>is a pattern object that matches the shortest sequence consistent with the pattern $pat$.
     </dl>
 
     >> StringCases["aabaaab", Shortest["a" ~~ __ ~~ "b"]]
@@ -513,4 +621,4 @@ class Verbatim(PatternObject):
             yield_func(vars_dict, None)
 
 
-# TODO: Implement `KeyValuePattern` and `OrderlessPatternSequence`
+# TODO: Implement `KeyValuePattern`, `PatternSequence`, and `OrderlessPatternSequence`

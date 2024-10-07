@@ -5,18 +5,16 @@ Pattern Defaults
 
 """
 
-from typing import Optional as OptionalType, Tuple
+from typing import Optional as OptionalType
 
 from mathics.core.builtin import BinaryOperator, PatternObject
-from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression
 from mathics.core.pattern import BasePattern
 from mathics.eval.patterns import get_default_value
 
 # This tells documentation how to sort this module
-sort_order = "mathics.builtin.rules-and-patterns.defaults"
+sort_order = "mathics.builtin.rules-and-patterns.patttern-defaults"
 
 
 class Optional(BinaryOperator, PatternObject):
@@ -121,110 +119,3 @@ class Optional(BinaryOperator, PatternObject):
 
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (0, 1)
-
-
-class OptionsPattern(PatternObject):
-    """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/OptionsPattern.html</url>
-
-    <dl>
-      <dt>'OptionsPattern[$f$]'
-      <dd>is a pattern that stands for a sequence of options given \
-        to a function, with default values taken from 'Options[$f$]'. \
-        The options can be of the form '$opt$->$value$' or \
-        '$opt$:>$value$', and might be in arbitrarily nested lists.
-
-      <dt>'OptionsPattern[{$opt1$->$value1$, ...}]'
-      <dd>takes explicit default values from the given list. The \
-        list may also contain symbols $f$, for which 'Options[$f$]' is \
-        taken into account; it may be arbitrarily nested. \
-        'OptionsPattern[{}]' does not use any default values.
-    </dl>
-
-    The option values can be accessed using 'OptionValue'.
-
-    >> f[x_, OptionsPattern[{n->2}]] := x ^ OptionValue[n]
-    >> f[x]
-     = x ^ 2
-    >> f[x, n->3]
-     = x ^ 3
-
-    Delayed rules as options:
-    >> e = f[x, n:>a]
-     = x ^ a
-    >> a = 5;
-    >> e
-     = x ^ 5
-
-    Options might be given in nested lists:
-    >> f[x, {{{n->4}}}]
-     = x ^ 4
-    """
-
-    arg_counts = [0, 1]
-    summary_text = "a sequence of optional named arguments"
-
-    def init(
-        self, expr: Expression, evaluation: OptionalType[Evaluation] = None
-    ) -> None:
-        super().init(expr, evaluation=evaluation)
-        try:
-            self.defaults = expr.elements[0]
-        except IndexError:
-            # OptionsPattern[] takes default options of the nearest enclosing
-            # function. Set to not None in self.match
-            self.defaults = None
-
-    def match(self, expression: Expression, pattern_context: dict):
-        """Match with an OptionsPattern"""
-        head = pattern_context.get("head", None)
-        evaluation = pattern_context["evaluation"]
-        if self.defaults is None:
-            self.defaults = head
-            if self.defaults is None:
-                # we end up here with OptionsPattern that do not have any
-                # default options defined, e.g. with this code:
-                # f[x:OptionsPattern[]] := x; f["Test" -> 1]
-                # set self.defaults to an empty List, so we don't crash.
-                self.defaults = ListExpression()
-        defaults = self.defaults
-        values = (
-            defaults.get_option_values(
-                evaluation, allow_symbols=True, stop_on_error=False
-            )
-            if isinstance(defaults, EvalMixin)
-            else {}
-        )
-        sequence = expression.get_sequence()
-        for options in sequence:
-            option_values = (
-                options.get_option_values(evaluation)
-                if isinstance(options, EvalMixin)
-                else None
-            )
-            if option_values is None:
-                return
-            values.update(option_values)
-        new_vars_dict = pattern_context["vars_dict"].copy()
-        for name, value in values.items():
-            new_vars_dict["_option_" + name] = value
-        pattern_context["yield_func"](new_vars_dict, None)
-
-    def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
-        return (0, None)
-
-    def get_match_candidates(
-        self, elements: Tuple[BaseElement], pattern_context: dict
-    ) -> tuple:
-        """
-        Return the sub-tuple of elements that matches with the pattern.
-        """
-
-        def _match(element: Expression):
-            return element.has_form(("Rule", "RuleDelayed"), 2) or element.has_form(
-                "List", None
-            )
-
-        return tuple((element for element in elements if _match(element)))
