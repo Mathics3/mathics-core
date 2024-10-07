@@ -38,6 +38,12 @@ def test_replace_all():
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
         (
+            None,
+            None,
+            None,
+            None,
+        ),
+        (
             "Dispatch[]",
             ("Dispatch called with 0 arguments; 1 argument is expected.",),
             "Dispatch[]",
@@ -60,10 +66,11 @@ def test_replace_all():
             "Dispatch[<3>]",
             "Flatten nested rules.",
         ),
+        # TODO: handle 2 or more arguments.
     ],
 )
 def test_private_doctests_dispatch(str_expr, msgs, str_expected, fail_msg):
-    """ """
+    """Test several cases for Dispatch"""
     check_evaluation(
         str_expr,
         str_expected,
