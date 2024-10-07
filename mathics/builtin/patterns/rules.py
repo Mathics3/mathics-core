@@ -6,6 +6,62 @@ Define, apply and compiling rules.
 :WMA link:
 https://reference.wolfram.com/language/guide/Rules.html</url>
 
+
+Rules are a basic element in the evaluation process. Every Definition in WL \
+consists of a set of rules associated with a symbol. The evaluation process \
+consists of the sequential application of rules associated with the symbols \
+appearing in a given expression. The process iterates until no rules match \
+the final expression.
+
+In WL, Rules consist of a Pattern object $patt$ and an Expression $repl$. \
+When the Rule is applied to a symbolic Expression $expr$, the interpreter \
+tries to match the pattern with subexpressions of $expr$ in a top-to-bottom \
+way. If a match is found, the subexpression is then replaced by $repl$.
+If the $patt$ includes named subpatterns, symbols in $repl$ associated with \
+that name are replaced by the (sub) match in the final expression.
+
+Let's consider for example the Rule
+
+    >> rule = F[u_]->g[u]
+     = F[u_] -> g[u]
+
+This rule associates the pattern $F[u_]$ with the expression $g[u]$.
+
+Then, using the 'Replace' operator $/.$ we can apply the rule to an expression
+
+    >> a + F[x^2] /. rule
+     = a + g[x^2]
+
+
+Notice that the rule is applied from top to bottom just once:
+
+    >> a + F[F[x^2]] /. rule
+     = a + g[F[x^2]]
+
+Here, the subexpression $F[F[x^2]]$ matches with the pattern, and the named \
+subpattern $u_$ matches with $F[x^2]$. The original expression is then \replaced by
+$g[u]$, and $u$ is replaced with the subexpression that matches the \
+subpattern ($F[x^2]$).
+
+Notice also that the rule is applied just once. We can apply it recursively \
+until no further matches are found by using the 'ReplaceRepeated' operator $//.$:
+
+   >> a + F[F[x^2]] //. rule
+    = a + g[g[x^2]]
+
+Rules are keept as expressions until a 'Replace' expression is evaluated. \
+At that moment, 'Pattern' objects are 'compiled', taking into account the
+attributes of the symbols involved. To make the repeated application of the \
+same rule over different expressions faster, it is convenient to use 
+'Dispatch' tables. These expressions store precompiled versions of 
+a list of rules, avoiding repeating the 'compilation' step each time
+the rules are applied.
+
+   >> dispatchrule = Dispatch[{rule}];
+   >> a + F[F[x^2]] //. dipatchrule
+    = a + g[g[x^2]]
+
+
 """
 
 from typing import Optional as OptionalType

@@ -4,6 +4,7 @@ Basic Pattern Objects
 
 """
 
+from abc import ABC
 from typing import Optional as OptionalType
 
 from mathics.core.builtin import PatternObject
@@ -14,7 +15,7 @@ from mathics.core.expression import Expression
 sort_order = "mathics.builtin.rules-and-patterns.basic"
 
 
-class _Blank(PatternObject):
+class _Blank(PatternObject, ABC):
     arg_counts = [0, 1]
 
     _instance = None
