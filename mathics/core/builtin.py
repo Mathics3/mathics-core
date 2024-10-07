@@ -1162,7 +1162,7 @@ class PatternObject(BuiltinElement, BasePattern):
 
     arg_counts: List[int] = []
 
-    def init(self, expr, evaluation: Optional[Evaluation] = None):
+    def init(self, expr: Expression, evaluation: Optional[Evaluation] = None):
         super().init(expr, evaluation=evaluation)
         if self.arg_counts is not None:
             if len(expr.elements) not in self.arg_counts:

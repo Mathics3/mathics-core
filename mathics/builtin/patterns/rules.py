@@ -8,21 +8,21 @@ https://reference.wolfram.com/language/guide/Rules.html</url>
 
 
 Rules are a basic element in the evaluation process. Every Definition in \
-\\Mathics3 consists of a set of rules associated with a symbol. \
+\\Mathics consists of a set of rules associated with a symbol. \
 The evaluation process consists of the sequential application of rules \
 associated with the symbols appearing in a given expression. \
 The process iterates until no rules match the final expression.
 
-In \\Mathics3, rules consist of a Pattern object $patt$ and an \
+In \\Mathics, rules consist of a Pattern object $pat$ and an \
 Expression $repl$. When the Rule is applied to a symbolic \
 Expression $expr$, the interpreter tries to match the pattern with \
 subexpressions of $expr$ in a top-to-bottom way. If a match is found, the \
 subexpression is then replaced by $repl$.
 
-If the $patt$ includes named subpatterns, symbols in $repl$ associated with \
+If the $pat$ includes named subpatterns, symbols in $repl$ associated with \
 that name are replaced by the (sub) match in the final expression.
 
-Let's consider for example the 'Rule'
+Let us consider, for example, the 'Rule':
 
     >> rule = F[u_]->g[u]
      = F[u_] -> g[u]
@@ -176,7 +176,7 @@ class Replace(Builtin):
     >> Replace[x[x[y]], x -> z, All]
      = x[x[y]]
 
-    Heads can be replaced using the Heads option:
+    Heads can be replaced using the 'Heads' option:
     >> Replace[x[x[y]], x -> z, All, Heads -> True]
      = z[z[y]]
 
@@ -190,7 +190,6 @@ class Replace(Builtin):
     """
 
     messages = {
-        "reps": "`1` is not a valid replacement rule.",
         "rmix": "Elements of `1` are a mixture of lists and nonlists.",
     }
 
@@ -209,7 +208,7 @@ class Replace(Builtin):
             evaluation.message("General", "level", ls)
 
         except PatternError:
-            evaluation.message("Replace", "reps", rules)
+            evaluation.message("Replace", "rep", rules)
 
         return None
 
@@ -338,7 +337,7 @@ class ReplaceList(Builtin):
         "ReplaceList[expr_, rules_, maxidx_:Infinity]"
 
         # TODO: the below handles Infinity getting added as a
-        # default argument, when it is passed explitly, e.g.
+        # default argument, when it is passed explictly, e.g.
         # ReplaceList[expr, {}, Infinity], then Infinity
         # comes in as DirectedInfinity[1].
         if maxidx == SymbolInfinity:
@@ -414,7 +413,7 @@ class ReplaceRepeated(BinaryOperator):
     rules = {
         "ReplaceRepeated[rules_][expr_]": "ReplaceRepeated[expr, rules]",
     }
-    summary_text = "iteratively replace until the expression does not change anymore"
+    summary_text = "replace until the expression does not change anymore"
 
     def eval_list(
         self,
