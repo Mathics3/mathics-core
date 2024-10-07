@@ -78,7 +78,7 @@ from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolTrue
-from mathics.core.systemsymbols import SymbolInfinity
+from mathics.core.systemsymbols import SymbolInfinity, SymbolRule, SymbolRuleDelayed
 from mathics.eval.rules import (
     Dispatch,
     create_rules,
