@@ -2,7 +2,6 @@ from typing import Callable, Optional
 
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
-from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 

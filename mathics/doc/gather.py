@@ -6,7 +6,6 @@ Functions used to build the reference sections from module information.
 
 """
 
-import importlib
 import os.path as osp
 import pkgutil
 from os import listdir
@@ -14,7 +13,7 @@ from types import ModuleType
 from typing import Tuple, Union
 
 from mathics.core.builtin import Builtin, check_requires_list
-from mathics.core.load_builtin import get_submodule_names, submodules
+from mathics.core.load_builtin import submodules
 from mathics.core.util import IS_PYPY
 from mathics.doc.doc_entries import DocumentationEntry
 from mathics.doc.structure import DocChapter, DocGuideSection, DocSection, DocSubsection
@@ -215,7 +214,7 @@ def gather_guides_and_sections(chapter, module, builtins_by_module):
     # Loop over submodules
     docpath = f"/doc/{chapter.part.slug}/{chapter.slug}/"
 
-    for sub_module in submodules(module):
+    for sub_module in sorted_modules(submodules(module)):
         if skip_module_doc(sub_module):
             continue
 
