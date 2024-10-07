@@ -1,22 +1,24 @@
 # -*- coding: utf-8 -*-
 """
-Define, apply and compiling rules.
+Defining, applying and compiling rules.
 
 <url>
 :WMA link:
 https://reference.wolfram.com/language/guide/Rules.html</url>
 
 
-Rules are a basic element in the evaluation process. Every Definition in WL \
-consists of a set of rules associated with a symbol. The evaluation process \
-consists of the sequential application of rules associated with the symbols \
-appearing in a given expression. The process iterates until no rules match \
-the final expression.
+Rules are a basic element in the evaluation process. Every Definition in \
+\\Mathics3 consists of a set of rules associated with a symbol. \
+The evaluation process consists of the sequential application of rules \
+associated with the symbols appearing in a given expression. \
+The process iterates until no rules match the final expression.
 
-In WL, Rules consist of a Pattern object $patt$ and an Expression $repl$. \
-When the Rule is applied to a symbolic Expression $expr$, the interpreter \
-tries to match the pattern with subexpressions of $expr$ in a top-to-bottom \
-way. If a match is found, the subexpression is then replaced by $repl$.
+In \\Mathics3, rules consist of a Pattern object $patt$ and an \
+Expression $repl$. When the Rule is applied to a symbolic \
+Expression $expr$, the interpreter tries to match the pattern with \
+subexpressions of $expr$ in a top-to-bottom way. If a match is found, the \
+subexpression is then replaced by $repl$.
+
 If the $patt$ includes named subpatterns, symbols in $repl$ associated with \
 that name are replaced by the (sub) match in the final expression.
 
@@ -39,9 +41,9 @@ Notice that the rule is applied from top to bottom just once:
      = a + g[F[x ^ 2]]
 
 Here, the subexpression 'F[F[x^2]]' matches with the pattern, and the named \
-subpattern 'u_' matches with 'F[x^2]'. The original expression is then \replaced by
-'g[u]', and 'u' is replaced with the subexpression that matches the \
-subpattern ('F[x ^ 2]').
+subpattern 'u_' matches with 'F[x^2]'. The original expression is then \
+replaced by 'g[u]', and 'u' is replaced with the subexpression that \
+matches the subpattern ('F[x ^ 2]').
 
 Notice also that the rule is applied just once. We can apply it recursively \
 until no further matches are found by using the 'ReplaceRepeated' operator '//.':
@@ -49,12 +51,12 @@ until no further matches are found by using the 'ReplaceRepeated' operator '//.'
    >> a + F[F[x ^ 2]] //. rule
     = a + g[g[x ^ 2]]
 
-Rules are keept as expressions until a 'Replace' expression is evaluated. \
-At that moment, 'Pattern' objects are 'compiled', taking into account the
+Rules are kept as expressions until a 'Replace' expression is evaluated. \
+At that moment, 'Pattern' objects are 'compiled', taking into account the \
 attributes of the symbols involved. To make the repeated application of the \
-same rule over different expressions faster, it is convenient to use 
-'Dispatch' tables. These expressions store precompiled versions of 
-a list of rules, avoiding repeating the 'compilation' step each time
+same rule over different expressions faster, it is convenient to use \
+'Dispatch' tables. These expressions store precompiled versions of \
+a list of rules, avoiding repeating the 'compilation' step each time \
 the rules are applied.
 
    >> dispatchrule = Dispatch[{rule}];
@@ -73,13 +75,17 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolTrue
+from mathics.core.symbols import SymbolTrue
 from mathics.core.systemsymbols import SymbolInfinity
-from mathics.eval.parts import python_levelspec
-from mathics.eval.rules import Dispatch, create_rules
+from mathics.eval.rules import (
+    Dispatch,
+    create_rules,
+    eval_dispatch_atom,
+    eval_replace_with_levelspec,
+)
 
 # This tells documentation how to sort this module
-sort_order = "mathics.builtin.rules-and-patterns.rules"
+sort_order = "mathics.builtin.rules-and-patterns.defining-applying-and-compiling-rules"
 
 
 class DispatchAtom(AtomBuiltin):
@@ -108,56 +114,16 @@ class DispatchAtom(AtomBuiltin):
     messages = {
         "invrpl": "`1` is not a valid rule or list of rules.",
     }
-    summary_text = "convert a list of rules in an optimized dispatch rules atom"
+    summary_text = "convert a list of rules in an optimized dispatch-rules atom"
 
     def __repr__(self):
         return "dispatchatom"
 
-    def eval_create(
+    def eval_list(
         self, rules: ListExpression, evaluation: Evaluation
     ) -> OptionalType[BaseElement]:
         """Dispatch[rules_List]"""
-        # TODO:
-        # The next step would be to enlarge this method, in order to
-        # check that all the elements in x are rules, eliminate redundancies
-        # in the list, and sort the list in a way that increases efficiency.
-        # A second step would be to implement an ``Atom`` class containing the
-        # compiled patterns, and modify Replace and ReplaceAll to handle this
-        # kind of objects.
-        #
-        if isinstance(rules, Dispatch):
-            return rules
-        if isinstance(rules, Symbol):
-            rules = rules.evaluate(evaluation)
-
-        if rules.has_form("List", None):
-            rules = rules.elements
-        else:
-            rules = [rules]
-
-        all_list = all(rule.has_form("List", None) for rule in rules)
-        if all_list:
-            elements = [self.eval_create(rule, evaluation) for rule in rules]
-            return ListExpression(*elements)
-        flatten_list = []
-        for rule in rules:
-            if isinstance(rule, Symbol):
-                rule = rule.evaluate(evaluation)
-            if rule.has_form("List", None):
-                flatten_list.extend(rule.elements)
-            elif rule.has_form(("Rule", "RuleDelayed"), 2):
-                flatten_list.append(rule)
-            elif isinstance(rule, Dispatch):
-                flatten_list.extend(rule.src.elements)
-            else:
-                # WMA does not raise this message: just leave it unevaluated,
-                # and raise an error when the dispatch rule is used.
-                evaluation.message("Dispatch", "invrpl", rule)
-                return None
-        try:
-            return Dispatch(flatten_list, evaluation)
-        except Exception:
-            return None
+        eval_dispatch_atom(rules, evaluation)
 
     def eval_normal(self, dispatch: Dispatch, evaluation: Evaluation) -> ListExpression:
         """Normal[dispatch_Dispatch]"""
@@ -175,50 +141,50 @@ class Replace(Builtin):
 
     <dl>
       <dt>'Replace[$expr$, $x$ -> $y$]'
-      <dd>yields the result of replacing $expr$ with $y$ if it
+      <dd>yields the result of replacing $expr$ with $y$ if it \
         matches the pattern $x$.
       <dt>'Replace[$expr$, $x$ -> $y$, $levelspec$]'
-      <dd>replaces only subexpressions at levels specified through
+      <dd>replaces only subexpressions at levels specified through \
         $levelspec$.
       <dt>'Replace[$expr$, {$x$ -> $y$, ...}]'
-      <dd>performs replacement with multiple rules, yielding a
+      <dd>performs replacement with multiple rules, yielding a \
         single result expression.
       <dt>'Replace[$expr$, {{$a$ -> $b$, ...}, {$c$ -> $d$, ...}, ...}]'
-      <dd>returns a list containing the result of performing each
+      <dd>returns a list containing the result of performing each \
         set of replacements.
     </dl>
 
     >> Replace[x, {x -> 2}]
      = 2
 
-    By default, only the top level is searched for matches
+    By default, only the top level is searched for matches:
     >> Replace[1 + x, {x -> 2}]
      = 1 + x
 
     >> Replace[x, {{x -> 1}, {x -> 2}}]
      = {1, 2}
 
-    Replace stops after the first replacement
+    Replace stops after the first replacement:
     >> Replace[x, {x -> {}, _List -> y}]
      = {}
 
-    Replace replaces the deepest levels first
+    Replace replaces the deepest levels first:
     >> Replace[x[1], {x[1] -> y, 1 -> 2}, All]
      = x[2]
 
-    By default, heads are not replaced
+    By default, heads are not replaced:
     >> Replace[x[x[y]], x -> z, All]
      = x[x[y]]
 
-    Heads can be replaced using the Heads option
+    Heads can be replaced using the Heads option:
     >> Replace[x[x[y]], x -> z, All, Heads -> True]
      = z[z[y]]
 
-    Note that heads are handled at the level of elements
+    Note that heads are handled at the level of elements:
     >> Replace[x[x[y]], x -> z, {1}, Heads -> True]
      = z[x[y]]
 
-    You can use Replace as an operator
+    You can use Replace as an operator:
     >> Replace[{x_ -> x + 1}][10]
      = 11
     """
@@ -235,19 +201,10 @@ class Replace(Builtin):
     def eval_levelspec(self, expr, rules, ls, evaluation, options):
         "Replace[expr_, rules_, Optional[Pattern[ls, _?LevelQ], {0}], OptionsPattern[Replace]]"
         try:
-            rules, ret = create_rules(rules, expr, "Replace", evaluation)
-            if ret:
-                return rules
-
             heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
-
-            result, _ = expr.do_apply_rules(
-                rules,
-                evaluation,
-                level=0,
-                options={"levelspec": python_levelspec(ls), "heads": heads},
+            return eval_replace_with_levelspec(
+                expr, rules, ls, heads, evaluation, options
             )
-            return result
         except InvalidLevelspecError:
             evaluation.message("General", "level", ls)
 
@@ -266,13 +223,13 @@ class ReplaceAll(BinaryOperator):
     <dl>
       <dt>'ReplaceAll[$expr$, $x$ -> $y$]'
       <dt>'$expr$ /. $x$ -> $y$'
-      <dd>yields the result of replacing all subexpressions of
+      <dd>yields the result of replacing all subexpressions of \
         $expr$ matching the pattern $x$ with $y$.
       <dt>'$expr$ /. {$x$ -> $y$, ...}'
-      <dd>performs replacement with multiple rules, yielding a
+      <dd>performs replacement with multiple rules, yielding a \
         single result expression.
       <dt>'$expr$ /. {{$a$ -> $b$, ...}, {$c$ -> $d$, ...}, ...}'
-      <dd>returns a list containing the result of performing each
+      <dd>returns a list containing the result of performing each \
         set of replacements.
     </dl>
 
@@ -281,7 +238,7 @@ class ReplaceAll(BinaryOperator):
     >> g[a+b+c,a]/.g[x_+y_,x_]->{x,y}
      = {a, b + c}
 
-    If $rules$ is a list of lists, a list of all possible respective
+    If $rules$ is a list of lists, a list of all possible respective \
     replacements is returned:
     >> {a, b} /. {{a->x, b->y}, {a->u, b->v}}
      = {{x, y}, {u, v}}
@@ -540,7 +497,7 @@ class RuleDelayed(BinaryOperator):
     <dl>
       <dt>'RuleDelayed[$x$, $y$]'
       <dt>'$x$ :> $y$'
-      <dd>represents a rule replacing $x$ with $y$, with $y$ held
+      <dd>represents a rule replacing $x$ with $y$, with $y$ held \
         unevaluated.
     </dl>
 

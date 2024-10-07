@@ -25,9 +25,9 @@ class Optional(BinaryOperator, PatternObject):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Optional.html</url>
 
     <dl>
-      <dt>'Optional[$patt$, $default$]'
-      <dt>'$patt$ : $default$'
-      <dd>is a pattern which matches $patt$, which if omitted
+      <dt>'Optional[$pattern$, $default$]'
+      <dt>'$pattern$ : $default$'
+      <dd>is a pattern which matches $pattern$, which if omitted
         should be replaced by $default$.
     </dl>
 
@@ -37,7 +37,7 @@ class Optional(BinaryOperator, PatternObject):
     >> f[a]
      = {a, 1}
 
-    Note that '$symb$ : $patt$' represents a 'Pattern' object. However, there is no
+    Note that '$symb$ : $pattern$' represents a 'Pattern' object. However, there is no
     disambiguity, since $symb$ has to be a symbol in this case.
 
     >> x:_ // FullForm

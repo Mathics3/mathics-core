@@ -8,6 +8,7 @@ from mathics.core.list import ListExpression
 from mathics.core.rules import Rule
 from mathics.core.symbols import Atom, Symbol, SymbolList
 from mathics.core.systemsymbols import SymbolDispatch, SymbolRule, SymbolRuleDelayed
+from mathics.eval.parts import python_levelspec
 
 
 # TODO: disentangle me
@@ -90,6 +91,68 @@ def create_rules(
 
         result.append(Rule(rule.elements[0], rule.elements[1]))
     return result, False
+
+
+def eval_dispatch_atom(
+    self, rules: ListExpression, evaluation: Evaluation
+) -> OptionalType[BaseElement]:
+    """Dispatch[rules_List]"""
+    # TODO:
+    # The next step would be to enlarge this method, in order to
+    # check that all the elements in x are rules, eliminate redundancies
+    # in the list, and sort the list in a way that increases efficiency.
+    # A second step would be to implement an ``Atom`` class containing the
+    # compiled patterns, and modify Replace and ReplaceAll to handle this
+    # kind of objects.
+    #
+    if isinstance(rules, Dispatch):
+        return rules
+    if isinstance(rules, Symbol):
+        rules = rules.evaluate(evaluation)
+
+    if rules.has_form("List", None):
+        rules = rules.elements
+    else:
+        rules = [rules]
+
+    all_list = all(rule.has_form("List", None) for rule in rules)
+    if all_list:
+        elements = [eval_dispatch_atom(rule, evaluation) for rule in rules]
+        return ListExpression(*elements)
+    flatten_list = []
+    for rule in rules:
+        if isinstance(rule, Symbol):
+            rule = rule.evaluate(evaluation)
+        if rule.has_form("List", None):
+            flatten_list.extend(rule.elements)
+        elif rule.has_form(("Rule", "RuleDelayed"), 2):
+            flatten_list.append(rule)
+        elif isinstance(rule, Dispatch):
+            flatten_list.extend(rule.src.elements)
+        else:
+            # WMA does not raise this message: just leave it unevaluated,
+            # and raise an error when the dispatch rule is used.
+            evaluation.message("Dispatch", "invrpl", rule)
+            return None
+    try:
+        return Dispatch(flatten_list, evaluation)
+    except Exception:
+        return None
+
+
+def eval_replace_with_levelspec(expr, rules, ls, heads, evaluation, options):
+    """eval Replace with a levelspec parameter"""
+    rules, ret = create_rules(rules, expr, "Replace", evaluation)
+    if ret:
+        return rules
+
+    result, _ = expr.do_apply_rules(
+        rules,
+        evaluation,
+        level=0,
+        options={"levelspec": python_levelspec(ls), "heads": heads},
+    )
+    return result
 
 
 class Dispatch(Atom):

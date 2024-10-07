@@ -63,7 +63,7 @@ class Blank(_Blank):
     >> MatchQ[a + b, _]
      = True
 
-    Patterns of the form '_'$h$ can be used to test the types of
+    Patterns of the form '_'$h$ can be used to test the types of \
     objects:
     >> MatchQ[42, _Integer]
      = True
@@ -108,11 +108,11 @@ class BlankNullSequence(_Blank):
     <dl>
       <dt>'BlankNullSequence[]'
       <dt>'___'
-      <dd>represents any sequence of expression elements in a pattern,
+      <dd>represents any sequence of expression elements in a pattern, \
         including an empty sequence.
     </dl>
 
-    'BlankNullSequence' is like 'BlankSequence', except it can match an
+    'BlankNullSequence' is like 'BlankSequence', except it can match an \
     empty sequence:
     >> MatchQ[f[], f[___]]
      = True
@@ -151,14 +151,14 @@ class BlankSequence(_Blank):
     <dl>
       <dt>'BlankSequence[]'
       <dt>'__'
-      <dd>represents any non-empty sequence of expression elements in
+      <dd>represents any non-empty sequence of expression elements in \
         a pattern.
       <dt>'BlankSequence[$h$]'
       <dt>'__$h$'
       <dd>represents any sequence of elements, all of which have head $h$.
     </dl>
 
-    Use a 'BlankSequence' pattern to stand for a non-empty sequence of
+    Use a 'BlankSequence' pattern to stand for a non-empty sequence of \
     arguments:
     >> MatchQ[f[1, 2, 3], f[__]]
      = True
@@ -171,7 +171,7 @@ class BlankSequence(_Blank):
     >> MatchQ[f[1, 2.0, 3], f[__Integer]]
      = False
 
-    The value captured by a named 'BlankSequence' pattern is a
+    The value captured by a named 'BlankSequence' pattern is a \
     'Sequence' object:
     >> f[1, 2, 3] /. f[x__] -> x
      = Sequence[1, 2, 3]

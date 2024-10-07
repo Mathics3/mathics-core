@@ -31,14 +31,14 @@ class Alternatives(BinaryOperator, PatternObject):
     <dl>
       <dt>'Alternatives[$p1$, $p2$, ..., $p_i$]'
       <dt>'$p1$ | $p2$ | ... | $p_i$'
-      <dd>is a pattern that matches any of the patterns '$p1$, $p2$,
-        ...., $p_i$'.
+      <dd>is a pattern that matches any of the patterns $p1$, $p2$, \
+        ...., $p_i$.
     </dl>
 
     >> a+b+c+d/.(a|b)->t
      = c + d + 2 t
 
-    Alternatives can also be used for string expressions
+    Alternatives can also be used for string expressions:
     >> StringReplace["0123 3210", "1" | "2" -> "X"]
      = 0XX3 3XX0
     """
@@ -144,7 +144,7 @@ class HoldPattern(PatternObject):
 
     <dl>
       <dt>'HoldPattern[$expr$]'
-      <dd>is equivalent to $expr$ for pattern matching, but
+      <dd>is equivalent to $expr$ for pattern matching, but \
         maintains it in an unevaluated form.
     </dl>
 
@@ -182,7 +182,7 @@ class Longest(Builtin):
     https://reference.wolfram.com/language/ref/Longest.html</url>
 
     <dl>
-      <dt>'Longest[$pat$]'
+      <dt>'Longest[$pattern$]'
       <dd>is a pattern object that matches the longest sequence consistent \
       with the pattern $p$.
     </dl>
@@ -202,15 +202,15 @@ class Pattern(PatternObject):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Pattern.html</url>
 
     <dl>
-      <dt>'Pattern[$symb$, $patt$]'
-      <dt>'$symb$ : $patt$'
-      <dd>assigns the name $symb$ to the pattern $patt$.
+      <dt>'Pattern[$symb$, $pattern$]'
+      <dt>'$symb$ : $pattern$'
+      <dd>assigns the name $symb$ to the pattern $pattern$.
       <dt>'$symb$_$head$'
-      <dd>is equivalent to '$symb$ : _$head$' (accordingly with '__'
+      <dd>is equivalent to '$symb$ : _$head$' (accordingly with '__' \
         and '___').
-      <dt>'$symb$ : $patt$ : $default$'
-      <dd>is a pattern with name $symb$ and default value $default$,
-        equivalent to 'Optional[$patt$ : $symb$, $default$]'.
+      <dt>'$symb$ : $pattern$ : $default$'
+      <dd>is a pattern with name $symb$ and default value $default$, \
+        equivalent to 'Optional[$pattern$ : $symb$, $default$]'.
     </dl>
 
     >> FullForm[a_b]
@@ -224,7 +224,7 @@ class Pattern(PatternObject):
     >> x_
      = x_
 
-    Nested 'Pattern' assign multiple names to the same pattern. Still,
+    Nested 'Pattern' assigns multiple names to the same pattern. Still, \
     the last parameter is the default value.
     >> f[y] /. f[a:b,_:d] -> {a, b}
      = f[y]
@@ -458,7 +458,7 @@ class Shortest(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Shortest.html</url>
 
     <dl>
-      <dt>'Shortest[$pat$]'
+      <dt>'Shortest[$pattern$]'
       <dd>is a pattern object that matches the shortest sequence consistent with the pattern $p$.
     </dl>
 
@@ -480,7 +480,7 @@ class Verbatim(PatternObject):
 
     <dl>
       <dt>'Verbatim[$expr$]'
-      <dd>prevents pattern constructs in $expr$ from taking effect,
+      <dd>prevents pattern constructs in $expr$ from taking effect, \
         allowing them to match themselves.
     </dl>
 
