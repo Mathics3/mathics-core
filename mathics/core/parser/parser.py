@@ -31,6 +31,7 @@ from mathics.core.parser.ast import (
 )
 from mathics.core.parser.operators import (
     all_ops,
+    binary_box_ops,
     binary_ops,
     flat_binary_ops,
     inequality_ops,
@@ -40,6 +41,7 @@ from mathics.core.parser.operators import (
     postfix_ops,
     prefix_ops,
     right_binary_ops,
+    ternary_box_ops,
     ternary_ops,
 )
 
@@ -52,6 +54,15 @@ special_symbols = {
     "\u00B0": "Degree",  # Degree
 }
 
+
+# An operator precedence value that will ensure that whatever operator
+# this is attached to does not have parenthesis surrounding it.
+# Operator precedence values are integers; If if an operator
+# "op" is greater than the surrounding precedence, then "op"
+# will be surrounded by parenthesis, e.g. ... (...op...) ...
+# In named-characters.yml of mathics-scanner we start at 0.
+# However, negative values would also work.
+NEVER_ADD_PARENTHESIS = 0
 
 permitted_digits = {c: i for i, c in enumerate(string.digits + string.ascii_lowercase)}
 permitted_digits["."] = 0
@@ -116,7 +127,7 @@ class Parser:
     def parse_e(self) -> Union[Node, Optional[list]]:
         result = []
         while self.next().tag != "END":
-            result.append(self.parse_exp(0))
+            result.append(self.parse_exp(NEVER_ADD_PARENTHESIS))
         if len(result) > 1:
             return Node("Times", *result)
         if len(result) == 1:
@@ -152,8 +163,8 @@ class Parser:
                 new_result = None
             if new_result is None:
                 break
-            else:
-                result = new_result
+
+            result = new_result
         return result
 
     def parse_p(self):
@@ -171,31 +182,45 @@ class Parser:
             self.tokeniser.sntx_message(token.pos)
             raise InvalidSyntaxError()
 
-    def parse_box(self, p):
-        result = None
+    def parse_box(self, precedence: int) -> Union[String, Node]:
+        """
+        Return the parsed boxed expression for the current
+        sequence of tokens.
+
+        If there is only an Atom we return a String of that.
+        Otherwise we return the Node parse expression.
+        """
+        result = self.parse_p()
         while True:
+            new_result = None
             token = self.next()
             tag = token.tag
             method = getattr(self, "b_" + tag, None)
             if method is not None:
-                new_result = method(result, token, p)
+                new_result = method(result, token, precedence)
             elif tag in ("OtherscriptBox", "RightRowBox"):
+                self.consume()
                 break
-            elif tag == "END":
-                self.incomplete(token.pos)
+
+            # if tag == "END":
+            #     self.incomplete(token.pos)
+            #     new_result = None
+            elif new_result:
+                continue
             elif result is None and tag != "END":
                 self.consume()
                 new_result = String(token.text)
                 if new_result.value == r"\(":
                     new_result = self.p_LeftRowBox(token)
-            else:
-                new_result = None
+
             if new_result is None:
                 break
-            else:
-                result = new_result
+
+            result = new_result
+
         if result is None:
             result = NullString
+
         return result
 
     def parse_seq(self) -> list:
@@ -219,7 +244,8 @@ class Parser:
                 if tag == "RawComma":
                     self.consume()
                     continue
-                elif tag in ("RawRightAssociation", "RawRightBrace", "RawRightBracket"):
+
+                if tag in ("RawRightAssociation", "RawRightBrace", "RawRightBracket"):
                     break
         return result
 
@@ -288,19 +314,19 @@ class Parser:
     # Called with one Token and return a Node.
     # Used for prefix operators and brackets.
 
-    def p_Factorial(self, token):
+    def p_Factorial(self, token) -> Node:
         self.consume()
         q = prefix_ops["Not"]
         child = self.parse_exp(q)
         return Node("Not", child)
 
-    def p_Factorial2(self, token):
+    def p_Factorial2(self, token) -> Node:
         self.consume()
         q = prefix_ops["Not"]
         child = self.parse_exp(q)
         return Node("Not", Node("Not", child))
 
-    def p_RawLeftParenthesis(self, token):
+    def p_RawLeftParenthesis(self, token) -> Node:
         self.consume()
         self.bracket_depth += 1
         result = self.parse_exp(0)
@@ -331,8 +357,8 @@ class Parser:
         self.box_depth += 1
         self.bracket_depth += 1
         token = self.next()
-        while token.tag not in ("RightRowBox", "OtherscriptBox"):
-            newnode = self.parse_box(0)
+        while token.tag not in ("RightRowBox", "OtherscriptBox", "END"):
+            newnode = self.parse_box(NEVER_ADD_PARENTHESIS)
             children.append(newnode)
             token = self.next()
         if len(children) == 0:
@@ -341,7 +367,8 @@ class Parser:
             result = children[0]
         else:
             result = Node("RowBox", Node("List", *children))
-        self.expect("RightRowBox")
+        if token.tag != "END":
+            self.expect("RightRowBox")
         self.box_depth -= 1
         self.bracket_depth -= 1
         result.parenthesised = True
@@ -424,6 +451,7 @@ class Parser:
     def p_Pattern(self, token) -> Node:
         self.consume()
         text = token.text
+        name: str = "?Unknown"
         if "." in text:
             name = text[:-2]
             if name:
@@ -790,74 +818,6 @@ class Parser:
     # The first argument may be None if the LHS is absent.
     # Used for boxes.
 
-    def b_SqrtBox(self, box0, token: Token, p: int) -> Optional[Node]:
-        if box0 is not None:
-            return None
-        self.consume()
-        q = misc_ops["SqrtBox"]
-        box1 = self.parse_box(q)
-        if self.next().tag == "OtherscriptBox":
-            self.consume()
-            box2 = self.parse_box(q)
-            return Node("RadicalBox", box1, box2)
-        else:
-            return Node("SqrtBox", box1)
-
-    def b_SuperscriptBox(self, box1, token: Token, p: int) -> Optional[Node]:
-        q = misc_ops["SuperscriptBox"]
-        if q < p:
-            return None
-        if box1 is None:
-            box1 = NullString
-        self.consume()
-        box2 = self.parse_box(q)
-        if self.next().tag == "OtherscriptBox":
-            self.consume()
-            box3 = self.parse_box(misc_ops["SubsuperscriptBox"])
-            return Node("SubsuperscriptBox", box1, box3, box2)
-        else:
-            return Node("SuperscriptBox", box1, box2)
-
-    def b_SubscriptBox(self, box1, token: Token, p: int) -> Optional[Node]:
-        q = misc_ops["SubscriptBox"]
-        if q < p:
-            return None
-        if box1 is None:
-            box1 = NullString
-        self.consume()
-        box2 = self.parse_box(q)
-        if self.next().tag == "OtherscriptBox":
-            self.consume()
-            box3 = self.parse_box(misc_ops["SubsuperscriptBox"])
-            return Node("SubsuperscriptBox", box1, box2, box3)
-        else:
-            return Node("SubscriptBox", box1, box2)
-
-    def b_UnderscriptBox(self, box1, token: Token, p: int) -> Optional[Node]:
-        q = misc_ops["UnderscriptBox"]
-        if q < p:
-            return None
-        if box1 is None:
-            box1 = NullString
-        self.consume()
-        box2 = self.parse_box(q)
-        if self.next().tag == "OtherscriptBox":
-            self.consume()
-            box3 = self.parse_box(misc_ops["UnderoverscriptBox"])
-            return Node("UnderoverscriptBox", box1, box2, box3)
-        else:
-            return Node("UnderscriptBox", box1, box2)
-
-    def b_FractionBox(self, box1, token: Token, p: int) -> Optional[Node]:
-        q = misc_ops["FractionBox"]
-        if q < p:
-            return None
-        if box1 is None:
-            box1 = NullString
-        self.consume()
-        box2 = self.parse_box(q + 1)
-        return Node("FractionBox", box1, box2)
-
     def b_FormBox(self, box1, token: Token, p: int) -> Optional[Node]:
         q = misc_ops["FormBox"]
         if q < p:
@@ -871,6 +831,16 @@ class Parser:
         self.consume()
         box2 = self.parse_box(q)
         return Node("FormBox", box2, box1)
+
+    def b_FractionBox(self, box1, token: Token, p: int) -> Optional[Node]:
+        q = binary_box_ops["FractionBox"]
+        if q < p:
+            return None
+        if box1 is None:
+            box1 = NullString
+        self.consume()
+        box2 = self.parse_box(q + 1)
+        return Node("FractionBox", box1, box2)
 
     def b_OverscriptBox(self, box1, token: Token, p: int) -> Optional[Node]:
         q = misc_ops["OverscriptBox"]
@@ -886,3 +856,61 @@ class Parser:
             return Node("UnderoverscriptBox", box1, box3, box2)
         else:
             return Node("OverscriptBox", box1, box2)
+
+    def b_SqrtBox(self, box0, token: Token, p: int) -> Optional[Node]:
+        if box0 is not None:
+            return None
+        self.consume()
+        q = binary_box_ops["SqrtBox"]
+        box1 = self.parse_box(q)
+        if self.next().tag == "OtherscriptBox":
+            self.consume()
+            box2 = self.parse_box(q)
+            return Node("RadicalBox", box1, box2)
+        else:
+            return Node("SqrtBox", box1)
+
+    def b_SuperscriptBox(self, box1, token: Token, precedence: int) -> Optional[Node]:
+        q = binary_box_ops["SuperscriptBox"]
+        if q < precedence:
+            return None
+        if box1 is None:
+            box1 = NullString
+        self.consume()
+        box2 = self.parse_box(q)
+        if self.next().tag == "OtherscriptBox":
+            self.consume()
+            box3 = self.parse_box(ternary_box_ops["SubsuperscriptBox"])
+            return Node("SubsuperscriptBox", box1, box3, box2)
+        else:
+            return Node("SuperscriptBox", box1, box2)
+
+    def b_SubscriptBox(self, box1, token: Token, p: int) -> Optional[Node]:
+        q = binary_box_ops["SubscriptBox"]
+        if q < p:
+            return None
+        if box1 is None:
+            box1 = NullString
+        self.consume()
+        box2 = self.parse_box(q)
+        if self.next().tag == "OtherscriptBox":
+            self.consume()
+            box3 = self.parse_box(ternary_ops["SubsuperscriptBox"])
+            return Node("SubsuperscriptBox", box1, box2, box3)
+        else:
+            return Node("SubscriptBox", box1, box2)
+
+    def b_UnderscriptBox(self, box1, token: Token, p: int) -> Optional[Node]:
+        q = ternary_box_ops["UnderscriptBox"]
+        if q < p:
+            return None
+        if box1 is None:
+            box1 = NullString
+        self.consume()
+        box2 = self.parse_box(q)
+        if self.next().tag == "OtherscriptBox":
+            self.consume()
+            box3 = self.parse_box(ternary_ops["UnderoverscriptBox"])
+            return Node("UnderoverscriptBox", box1, box2, box3)
+        else:
+            return Node("UnderscriptBox", box1, box2)
