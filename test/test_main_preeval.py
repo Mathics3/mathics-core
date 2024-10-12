@@ -18,7 +18,7 @@ def test_pre_evaluation_hook():
 
     def pre_evaluation_hook(query: BaseElement, evaluation: Evaluation):
         """
-        hook ot see that pre-evalution hook gets called
+        hook to see that pre-evalution hook gets called
         """
         assert query == Integer1 + Integer2
         global hook_was_called
