@@ -12,3 +12,10 @@ While some parts of ``mathics-core`` could conceivably be written in
 Mathics, but are instead written in Python for efficiency, everything
 here pretty much has to written in Python.
 """
+
+from typing import Callable, Optional
+
+# PRE_EVALUATION_HOOK allows a debugger or tracer
+# to intercept each expression parsed in order to
+# change or wrap certain definitions or even alter the query.
+PRE_EVALUATION_HOOK: Optional[Callable] = None
