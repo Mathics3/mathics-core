@@ -2,9 +2,6 @@
 import os.path as osp
 import re
 import subprocess
-import sys
-
-import pytest
 
 
 def get_testdir():
