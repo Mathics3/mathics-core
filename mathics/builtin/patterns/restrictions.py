@@ -4,7 +4,7 @@ Restrictions on Patterns
 
 
 """
-from typing import Optional as OptionalType
+from typing import Optional as OptionalType, Tuple
 
 from mathics.core.atoms import Integer, Number, Rational, Real, String
 from mathics.core.attributes import A_HOLD_REST, A_PROTECTED
@@ -27,11 +27,11 @@ class Condition(BinaryOperator, PatternObject):
     <dl>
       <dt>'Condition[$pattern$, $expr$]'
       <dt>'$pattern$ /; $expr$'
-      <dd>places an additional constraint on $pattern$ that only
-        allows it to match if $expr$ evaluates to 'True'.
+      <dd>places an additional constraint on $pattern$ that only \
+          allows it to match if $expr$ evaluates to 'True'.
     </dl>
 
-    The controlling expression of a 'Condition' can use variables from
+    The controlling expression of a 'Condition' can use variables from \
     the pattern:
     >> f[3] /. f[x_] /; x>0 -> t
      = t
@@ -92,8 +92,8 @@ class PatternTest(BinaryOperator, PatternObject):
     <dl>
       <dt>'PatternTest[$pattern$, $test$]'
       <dt>'$pattern$ ? $test$'
-      <dd>constrains $pattern$ to match $expr$ only if the
-        evaluation of '$test$[$expr$]' yields 'True'.
+      <dd>constrains $pattern$ to match $expr$ only if the \
+          evaluation of '$test$[$expr$]' yields 'True'.
     </dl>
 
     >> MatchQ[3, _Integer?(#>0&)]
@@ -354,5 +354,5 @@ class PatternTest(BinaryOperator, PatternObject):
         # except StopGenerator:
         #    pass
 
-    def get_match_count(self, vars_dict: OptionalType[dict] = None):
+    def get_match_count(self, vars_dict: OptionalType[dict] = None) -> Tuple[int, int]:
         return self.pattern.get_match_count(vars_dict)

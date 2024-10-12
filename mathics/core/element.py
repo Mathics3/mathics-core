@@ -304,7 +304,9 @@ class BaseElement(KeyComparable, ABC):
 
         return ""
 
-    def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
+    def get_option_values(
+        self, evaluation: "Evaluation", allow_symbols=False, stop_on_error=True
+    ) -> Optional[dict]:
         pass
 
     def get_precision(self) -> Optional[int]:
