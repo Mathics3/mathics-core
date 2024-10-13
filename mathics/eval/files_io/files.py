@@ -11,6 +11,7 @@ from mathics_scanner.errors import IncompleteSyntaxError, InvalidSyntaxError
 import mathics
 import mathics.core.parser
 import mathics.core.streams
+from mathics.core.atoms import String
 from mathics.core.builtin import MessageException
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
@@ -200,9 +201,7 @@ def eval_Read(
                         print(e)
 
                 if expr is SymbolEndOfFile:
-                    evaluation.message(
-                        name, "readt", tmp, to_expression("InputSteam", name, n)
-                    )
+                    evaluation.message(name, "readt", tmp, String(stream.name))
                     return SymbolFailed
                 elif isinstance(expr, BaseElement):
                     if typ is SymbolHoldExpression:

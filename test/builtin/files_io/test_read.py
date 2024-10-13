@@ -36,3 +36,43 @@ def test_read_list(str_expr, msgs, str_expected, fail_msg):
         failure_message=fail_msg,
         expected_messages=msgs,
     )
+
+
+lisp1_path = f"{data_dir}/lisp1.m"
+invalid_path = f"{data_dir}/file-should-not-appear"
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
+        (
+            f'Read["{lisp1_path}", Junk]',
+            ["Junk is not a valid format specification."],
+            f'Read["{lisp1_path}", Junk]',
+            "Read invalid format specification",
+        ),
+        (
+            f'Read["{invalid_path}"]',
+            [f"Cannot open {invalid_path}."],
+            "$Failed",
+            "Read[] with missing path",
+        ),
+        (
+            f'Read["{lisp1_path}"]',
+            [f"Invalid input found when reading '(1) from {lisp1_path}."],
+            "$Failed",
+            "Read[] with unparsable default data",
+        ),
+    ],
+)
+def test_read(str_expr, msgs, str_expected, fail_msg):
+    """Read[] tests."""
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=False,
+        to_string_expected=False,
+        hold_expected=False,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )
