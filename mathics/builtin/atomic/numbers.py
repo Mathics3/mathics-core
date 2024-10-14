@@ -53,7 +53,9 @@ SymbolIntegerExponent = Symbol("IntegerExponent")
 
 @lru_cache()
 def log_n_b(py_n, py_b) -> int:
-    return int(mpmath.ceil(mpmath.log(py_n, py_b))) if py_n != 0 and py_n != 1 else 1
+    return (
+        int(mpmath.floor(mpmath.log(py_n, py_b))) + 1 if py_n != 0 and py_n != 1 else 1
+    )
 
 
 def check_finite_decimal(denominator):
@@ -413,6 +415,9 @@ class RealDigits(Builtin):
     Return 25 digits of in base 10:
     >> RealDigits[Pi, 10, 25]
      = {{3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4, 6, 2, 6, 4, 3}, 1}
+
+    >> RealDigits[10]
+     = {{1, 0}, 2}
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -439,7 +444,7 @@ class RealDigits(Builtin):
         if check_finite_decimal(n.denominator().get_int_value()) and not py_b % 2:
             return self.eval_with_base(n, b, evaluation)
         else:
-            exp = int(mpmath.ceil(mpmath.log(py_n, py_b)))
+            exp = log_n_b(py_n, py_b)
             (head, tails) = convert_repeating_decimal(
                 py_n.as_numer_denom()[0], py_n.as_numer_denom()[1], py_b
             )
