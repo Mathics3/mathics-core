@@ -105,6 +105,58 @@ class Divisors(Builtin):
         return to_mathics_list(*sympy.divisors(n.value), elements_conversion_fn=Integer)
 
 
+class DivisorSigma(SympyFunction):
+    """
+    <url>:Divisor function: https://en.wikipedia.org/wiki/Divisor_function</url>
+    (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.divisor_sigma</url>,
+    <url>:WMA: https://reference.wolfram.com/language/ref/DivisorSigma.html</url>)
+
+    <dl>
+      <dt>'DivisorSigma[$k$, $n$]'
+      <dd>returns $\\sigma_k(n)$
+    </dl>
+
+    >> DivisorSigma[1, 20]
+    = 42
+    >> DivisorSigma[2, 20]
+    = 546
+    """
+
+    attributes = A_LISTABLE | A_PROTECTED
+    summary_text = "divisor function"
+    sympy_name = "divisor_sigma"
+
+    def eval(self, k: Integer, n: Integer, evaluation: Evaluation):
+        "DivisorSigma[k_Integer, n_Integer]"
+        # arguments are in reverse order
+        return from_sympy(sympy.divisor_sigma(n.to_sympy(), k.to_sympy()))
+
+
+class DivisorSum(Builtin):
+    """
+    <url>:WMA: https://reference.wolfram.com/language/ref/DivisorSum.html</url>
+
+    <dl>
+      <dt>'DivisorSum[$n$, $form$]'
+      <dd>transform the divisors of $n$ using $form$ and take their sum
+    </dl>
+
+    >> DivisorSum[30, # &]
+    = 72
+    >> DivisorSum[1000, #^2 &]
+    = 1383460
+
+    """
+
+    attributes = A_LISTABLE | A_PROTECTED
+    summary_text = "divisor sum"
+
+    rules = {
+        "DivisorSum[n_Integer, form_]": "Sum[form[d], {d, Divisors[n]}]",
+        "DivisorSum[n_Integer, form_, cond_]": "Sum[If[cond[d], form[d], 0], {d, Divisors[n]}]",
+    }
+
+
 # FIXME: Previously this used gmpy's gcdext. sympy's gcdex is not as powerful
 # class ExtendedGCD(Builtin):
 #    """
@@ -411,6 +463,55 @@ class MantissaExponent(Builtin):
 
         exp = Integer((base_exp + 1) if base_exp >= 0 else base_exp)
         return ListExpression(Expression(SymbolDivide, n, b**exp), exp)
+
+
+class MersennePrimeExponent(SympyFunction):
+    """
+    <url>:SymPy: https://docs.sympy.org/latest/modules/ntheory.html#sympy.ntheory.factor_.mersenne_prime_exponent</url>,
+    <url>:WMA: https://reference.wolfram.com/language/ref/MersennePrimeExponent.html</url>
+
+    <dl>
+      <dt>'MersennePrimeExponent[$n$]'
+      <dd>returns the exponent of the $n$th Mersenne prime.
+    </dl>
+
+    >> Table[MersennePrimeExponent[n], {n, 10}]
+    = {2, 3, 5, 7, 13, 17, 19, 31, 61, 89}
+
+    """
+
+    attributes = A_LISTABLE | A_PROTECTED
+    summary_text = "Mersenne prime exponent"
+    sympy_name = "mersenne_prime_exponent"
+
+    def eval(self, n: Integer, evaluation: Evaluation):
+        "MersennePrimeExponent[n_Integer]"
+        return super().eval(n, evaluation)
+
+
+class MoebiusMu(SympyFunction):
+    """
+    <url>:Mobius function: https://en.wikipedia.org/wiki/M%C3%B6bius_function</url>
+    (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.mobius</url>,
+    <url>:WMA: https://reference.wolfram.com/language/ref/MoebiusMu.html</url>)
+
+    <dl>
+      <dt>'MoebiusMu[$n$]'
+      <dd>returns $\\mu(n)$
+    </dl>
+
+    >> Array[MoebiusMu, 10]
+    = {1, -1, -1, 0, -1, 1, -1, 0, 0, 1}
+
+    """
+
+    attributes = A_LISTABLE | A_PROTECTED
+    summary_text = "Mobius function"
+    sympy_name = "mobius"
+
+    def eval(self, n: Integer, evaluation: Evaluation):
+        "MoebiusMu[n_Integer]"
+        return super().eval(n, evaluation)
 
 
 class NextPrime(Builtin):

@@ -899,6 +899,8 @@ class CoefficientList(Builtin):
      = {{5, d, 0, b}, {c, 0, 0, 0}, {a, 0, 0, 0}}
     >> CoefficientList[(x - 2 y + 3 z)^3, {x, y, z}]
      = {{{0, 0, 0, 27}, {0, 0, -54, 0}, {0, 36, 0, 0}, {-8, 0, 0, 0}}, {{0, 0, 27, 0}, {0, -36, 0, 0}, {12, 0, 0, 0}, {0, 0, 0, 0}}, {{0, 9, 0, 0}, {-6, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}, {{1, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}}
+    >> CoefficientList[Series[Log[1-x], {x, 0, 9}], x]
+     = {-1, -1 / 2, -1 / 3, -1 / 4, -1 / 5, -1 / 6, -1 / 7, -1 / 8, -1 / 9}
     """
 
     messages = {
@@ -935,6 +937,8 @@ class CoefficientList(Builtin):
             return ListExpression(expr)
         elif form.has_form("List", 0):
             return expr
+        elif expr.get_head_name() == "System`SeriesData" and expr.elements[0] == form and expr.elements[1] == Integer0:
+            return expr.elements[2]
 
         sympy_expr = expr.to_sympy()
         sympy_vars = [v.to_sympy() for v in vars]

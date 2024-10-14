@@ -1731,6 +1731,32 @@ class Series(Builtin):
         return None
 
 
+class SeriesCoefficient(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SeriesCoefficient.html</url>
+
+    <dl>
+      <dt>'SeriesCoefficient[$series$, $n$]'
+      <dd>Find the $n$th coefficient in the given $series$
+    </dl>
+
+    >> SeriesCoefficient[Series[Exp[Sin[x]], {x, 0, 10}], 8]
+     = 31 / 5760
+    >> SeriesCoefficient[Exp[-x], {x, 0, 5}]
+     = -1 / 120
+    """
+
+    summary_text = "power series coefficient"
+
+    rules = {
+        "SeriesCoefficient[f_, {x_Symbol, x0_, n_Integer}]": "SeriesCoefficient[Series[f, {x, x0, n}], n]"
+    }
+
+    def eval(self, series: Expression, n: Integer, evaluation: Evaluation):
+        """SeriesCoefficient[series_SeriesData, n_Integer]"""
+        return series.elements[2][n.value]
+
+
 class SeriesData(Builtin):
     """
 

@@ -214,6 +214,37 @@ class JaccardDissimilarity(_BooleanDissimilarity):
         )
 
 
+class LucasL(SympyFunction):
+    """
+    <url>
+    :Lucas Number:
+    https://en.wikipedia.org/wiki/Lucas_number</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.lucas</url>, \
+    <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/LucasL.html</url>)
+
+    <dl>
+      <dt>'LucasL[$n$]'
+      <dd>gives the $n$th Lucas number.
+    </dl>
+
+    A list of the first five Lucas numbers:
+    >> Table[LucasL[n], {n, 1, 5}]
+     = {1, 3, 4, 7, 11}
+    """
+
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
+
+    summary_text = "lucas number"
+    sympy_name = "lucas"
+
+    def eval_integer(self, n: Integer, evaluation):
+        "LucasL[n_Integer]"
+        return self.eval(n, evaluation)
+
+
 class MatchingDissimilarity(_BooleanDissimilarity):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/MatchingDissimilarity.html</url>

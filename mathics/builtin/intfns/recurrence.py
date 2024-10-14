@@ -73,6 +73,27 @@ class HarmonicNumber(MPMathFunction):
     sympy_name = "harmonic"
 
 
+class LinearRecurrence(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LinearRecurrence.html</url>
+
+    <dl>
+      <dt>'LinearRecurrence[$ker$, $init$, $n$]'
+      <dd>computes $n$ terms of the linear recurrence with kernel $ker$ and intial values $init$
+    </dl>
+
+    >> LinearRecurrence[{1, 1}, {1, 1}, 10]
+     = {1, 1, 2, 3, 5, 8, 13, 21, 34, 55}
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "linear recurrence"
+
+    rules = {
+        "LinearRecurrence[ker_List, init_List, n_Integer]": "Nest[Append[#, Reverse[ker] . Take[#, -Length[ker]]] &, init, n - Length[init]]"
+    }
+
+
 # Note: WL allows StirlingS1[{2, 4, 6}, 2], but we don't (yet).
 class StirlingS1(Builtin):
     """
