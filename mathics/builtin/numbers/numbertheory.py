@@ -33,6 +33,7 @@ from mathics.core.systemsymbols import (
 from mathics.eval.nevaluator import eval_N
 
 SymbolFractionalPart = Symbol("System`FractionalPart")
+SymbolIntegerPart = Symbol("System`IntegerPart")
 SymbolMantissaExponent = Symbol("System`MantissaExponent")
 
 
@@ -286,23 +287,22 @@ class FactorInteger(Builtin):
             evaluation.message("FactorInteger", "exact", n)
 
 
-def _fractional_part(self, n, expr, evaluation: Evaluation):
+def _integer_part(n, expr, evaluation: Evaluation):
     n_sympy = n.to_sympy()
     if n_sympy.is_constant():
         if n_sympy >= 0:
-            positive_integer_part = (
-                Expression(SymbolFloor, n).evaluate(evaluation).to_python()
-            )
-            result = n - Integer(positive_integer_part)
+            return Expression(SymbolFloor, n).evaluate(evaluation)
         else:
-            negative_integer_part = (
-                Expression(SymbolCeiling, n).evaluate(evaluation).to_python()
-            )
-            result = n - Integer(negative_integer_part)
+            return Expression(SymbolCeiling, n).evaluate(evaluation)
     else:
         return expr
 
-    return from_python(result)
+
+def _fractional_part(n, expr, evaluation: Evaluation):
+    if n.to_sympy().is_constant():
+        return n - _integer_part(n, expr, evaluation)
+    else:
+        return expr
 
 
 class FractionalPart(Builtin):
@@ -327,7 +327,7 @@ class FractionalPart(Builtin):
     def eval(self, n, evaluation: Evaluation):
         "FractionalPart[n_]"
         expr = Expression(SymbolFractionalPart, n)
-        return _fractional_part(self.__class__.__name__, n, expr, evaluation)
+        return _fractional_part(n, expr, evaluation)
 
     def eval_complex_n(self, n, evaluation: Evaluation):
         "FractionalPart[n_Complex]"
@@ -335,12 +335,8 @@ class FractionalPart(Builtin):
         n_real = Expression(SymbolRe, n).evaluate(evaluation)
         n_image = Expression(SymbolIm, n).evaluate(evaluation)
 
-        real_fractional_part = _fractional_part(
-            self.__class__.__name__, n_real, expr, evaluation
-        )
-        image_fractional_part = _fractional_part(
-            self.__class__.__name__, n_image, expr, evaluation
-        )
+        real_fractional_part = _fractional_part(n_real, expr, evaluation)
+        image_fractional_part = _fractional_part(n_image, expr, evaluation)
         return Expression(SymbolComplex, real_fractional_part, image_fractional_part)
 
 
@@ -372,6 +368,41 @@ class FromContinuedFraction(SympyFunction):
         nums = expr.to_python()
         if all(isinstance(i, int) for i in nums):
             return from_sympy(sympy.continued_fraction_reduce(nums))
+
+
+class IntegerPart(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/IntegerPart.html</url>
+
+    <dl>
+      <dt>'IntegerPart[$n$]'
+      <dd>finds the integer part of $n$.
+    </dl>
+
+    >> IntegerPart[4.1]
+     = 4
+
+    >> IntegerPart[-5.25]
+     = -5
+    """
+
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_READ_PROTECTED | A_PROTECTED
+    summary_text = "integer part of a number"
+
+    def eval(self, n, evaluation: Evaluation):
+        "IntegerPart[n_]"
+        expr = Expression(SymbolIntegerPart, n)
+        return _integer_part(n, expr, evaluation)
+
+    def eval_complex_n(self, n, evaluation: Evaluation):
+        "IntegerPart[n_Complex]"
+        expr = Expression(SymbolIntegerPart, n)
+        n_real = Expression(SymbolRe, n).evaluate(evaluation)
+        n_image = Expression(SymbolIm, n).evaluate(evaluation)
+
+        real_integer_part = _integer_part(n_real, expr, evaluation)
+        image_integer_part = _integer_part(n_image, expr, evaluation)
+        return Expression(SymbolComplex, real_integer_part, image_integer_part)
 
 
 class MantissaExponent(Builtin):
