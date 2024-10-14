@@ -371,6 +371,33 @@ class IntegerLength(Builtin):
         return Integer(j)
 
 
+class NumberDigit(Builtin):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/NumberDigit.html</url>
+
+    <dl>
+      <dt>'NumberDigit[$x$, $n$, $b$]'
+      <dd>returns the coefficient of $b^n$ in the base-$b$ representation of $x$.
+    </dl>
+
+    >> NumberDigit[123456, 2]
+     = 4
+    >> NumberDigit[12.3456, -1]
+     = 3
+
+    """
+
+    attributes = A_LISTABLE | A_PROTECTED
+
+    summary_text = "digits of a real number"
+
+    rules = {
+        "NumberDigit[x_, n_Integer]": "NumberDigit[x, n, 10]",
+        "NumberDigit[x_, n_Integer, b_Integer]": "RealDigits[x, b, 1, n][[1]][[1]]",
+    }
+
+
 class RealDigits(Builtin):
     """
     <url>:WMA link:
