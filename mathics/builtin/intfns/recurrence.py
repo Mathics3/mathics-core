@@ -84,13 +84,17 @@ class LinearRecurrence(Builtin):
 
     >> LinearRecurrence[{1, 1}, {1, 1}, 10]
      = {1, 1, 2, 3, 5, 8, 13, 21, 34, 55}
+    >> LinearRecurrence[{1, 1}, {1, 1}, {5, 5}]
+     = {5}
     """
 
     attributes = A_PROTECTED | A_READ_PROTECTED
     summary_text = "linear recurrence"
 
     rules = {
-        "LinearRecurrence[ker_List, init_List, n_Integer]": "Nest[Append[#, Reverse[ker] . Take[#, -Length[ker]]] &, init, n - Length[init]]"
+        "LinearRecurrence[ker_List, init_List, n_Integer]": "Nest[Append[#, Reverse[ker] . Take[#, -Length[ker]]] &, init, n - Length[init]]",
+        "LinearRecurrence[ker_List, init_List, {n_Integer?Positive}]": "LinearRecurrence[ker, init, n][[n]]",
+        "LinearRecurrence[ker_List, init_List, {nmin_Integer?Positive, nmax_Integer?Positive}]": "LinearRecurrence[ker, init, nmax][[nmin;;nmax]]",
     }
 
 
