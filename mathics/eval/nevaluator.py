@@ -32,7 +32,9 @@ def eval_N(
     """
     Equivalent to Expression(SymbolN, expression).evaluate(evaluation)
     """
-    evaluated_expression = expression.evaluate(evaluation)
+    evaluated_expression = (
+        expression if expression.is_literal else expression.evaluate(evaluation)
+    )
     result = eval_NValues(evaluated_expression, prec, evaluation)
     if result is None:
         return expression
