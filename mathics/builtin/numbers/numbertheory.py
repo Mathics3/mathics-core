@@ -5,6 +5,7 @@ Number theoretic functions
 """
 import mpmath
 import sympy
+from sympy.utilities.iterables import ordered_partitions
 from packaging.version import Version
 
 from mathics.core.atoms import Integer, Integer0, Integer10, Rational, Real
@@ -403,6 +404,34 @@ class IntegerPart(Builtin):
         real_integer_part = _integer_part(n_real, expr, evaluation)
         image_integer_part = _integer_part(n_image, expr, evaluation)
         return Expression(SymbolComplex, real_integer_part, image_integer_part)
+
+
+class IntegerPartitions(Builtin):
+    """
+    <url>:Integer partition: https://en.wikipedia.org/wiki/Integer_partition</url>
+    (<url>:SymPy: https://docs.sympy.org/latest/modules/utilities/iterables.html#sympy.utilities.iterables.ordered_partitions</url>,
+    <url>:WMA: https://reference.wolfram.com/language/ref/IntegerPartitions.html</url>)
+
+    <dl>
+      <dt>'IntegerPartitions[$n$]'
+      <dd>lists partitions of the integer $n$
+    </dl>
+
+    >> IntegerPartitions[5]
+    = {{5}, {4, 1}, {3, 2}, {3, 1, 1}, {2, 2, 1}, {2, 1, 1, 1}, {1, 1, 1, 1, 1}}
+    """
+
+    attributes = A_PROTECTED
+    summary_text = "list integer partitions"
+
+    def eval(self, n: Integer, evaluation: Evaluation):
+        "IntegerPartitions[n_Integer]"
+        partitions = [
+            [Integer(i) for i in reversed(p)]
+            for p in ordered_partitions(n.value)
+        ]
+        partitions.sort(reverse=True)
+        return ListExpression(*[ListExpression(*p) for p in partitions])
 
 
 class MantissaExponent(Builtin):
