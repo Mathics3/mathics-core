@@ -28,6 +28,7 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
+    SymbolBlack,
     SymbolBlend,
     SymbolColorData,
     SymbolEdgeForm,
@@ -308,7 +309,16 @@ class _ListPlot(Builtin, ABC):
                 )
             )
 
-        all_points = eval_N(points, evaluation).to_python()
+        # If "points" is a literal value with a Python representation,
+        # it has a ".value" attribute with a non-None value. So here,
+        # we don't have to eval_N().to_python().
+
+        all_points = (
+            points.value
+            if hasattr(points, "value") and points.value is not None
+            else eval_N(points, evaluation).to_python()
+        )
+
         # FIXME: arrange for self to have a .symbolname property or attribute
         expr = Expression(Symbol(self.get_name()), points, *options_to_rules(options))
 
@@ -1176,7 +1186,7 @@ class BarChart(_Chart):
                 x += 0.2
 
         def rectangles():
-            yield Expression(SymbolEdgeForm, Symbol("Black"))
+            yield Expression(SymbolEdgeForm, SymbolBlack)
 
             last_x1 = 0
 
@@ -1198,7 +1208,7 @@ class BarChart(_Chart):
             )
 
         def axes():
-            yield Expression(SymbolFaceForm, Symbol("Black"))
+            yield Expression(SymbolFaceForm, SymbolBlack)
 
             def points(x):
                 return ListExpression(vector2(x, 0), vector2(x, MTwoTenths))
@@ -1210,7 +1220,7 @@ class BarChart(_Chart):
                     yield Expression(SymbolLine, points(x1))
 
         def labels(names):
-            yield Expression(SymbolFaceForm, Symbol("Black"))
+            yield Expression(SymbolFaceForm, SymbolBlack)
 
             for (k, n), x0, x1, y in boxes():
                 if k <= len(names):
@@ -2362,7 +2372,7 @@ class PieChart(_Chart):
                 phi0 = phi1
 
         def segments():
-            yield Expression(SymbolEdgeForm, Symbol("Black"))
+            yield Expression(SymbolEdgeForm, SymbolBlack)
 
             origin = vector2(0.0, 0.0)
 
@@ -2386,7 +2396,7 @@ class PieChart(_Chart):
                     )
 
         def labels(names):
-            yield Expression(SymbolFaceForm, Symbol("Black"))
+            yield Expression(SymbolFaceForm, SymbolBlack)
 
             for values, (r0, r1) in zip(data, radii()):
                 for name, (phi0, phi1) in zip(names, phis(values)):
