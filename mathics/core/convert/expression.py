@@ -65,22 +65,21 @@ def to_expression_with_specialization(
 
 
 def to_mathics_list(
-    *elements: Any, elements_conversion_fn: Callable = from_python, is_literal=False
+    *elements: Any,
+    elements_conversion_fn: Callable = from_python,
 ) -> ListExpression:
     """
     This is an expression constructor for list that can be used when the elements are not Mathics
     objects. For example:
        to_mathics_list(1, 2, 3)
-       to_mathics_list(1, 2, 3, elements_conversion_fn=Integer, is_literal=True)
+       to_mathics_list(1, 2, 3, elements_conversion_fn=Integer)
     """
-    elements_tuple, elements_properties, values = convert_expression_elements(
+    elements_tuple, elements_properties, _ = convert_expression_elements(
         elements, elements_conversion_fn
     )
     list_expression = ListExpression(
         *elements_tuple, elements_properties=elements_properties
     )
-    if is_literal:
-        list_expression.value = elements
     return list_expression
 
 
