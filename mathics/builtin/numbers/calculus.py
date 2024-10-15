@@ -1670,6 +1670,26 @@ class Root(SympyFunction):
             return None
 
 
+class RootSum(Builtin):
+    """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/RootSum.html</url>
+
+    <dl>
+      <dt>'RootSum[$f$, $form$]'
+      <dd>sums $form[x]$ for all roots of $f[x]$.
+    </dl>
+
+    >> RootSum[#^5 - 3 # - 7 &, Sin] //N//Chop
+     = 0.292188
+    """
+
+    summary_text = "sum polynomial roots"
+
+    rules = {
+        "RootSum[f_, form_]": "With[{x = Unique[]},  Total[form /@ (x /. Solve[f[x] == 0, x])]]",
+    }
+
+
 class Series(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Series.html</url>
