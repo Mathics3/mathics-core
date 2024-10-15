@@ -40,8 +40,10 @@ def eval_N(
     result = eval_NValues(evaluated_expression, prec, evaluation)
     if result is None:
         return expression
-    if isinstance(result, Number):
+
+    if result.is_literal:
         return result
+
     return result.evaluate(evaluation)
 
 
