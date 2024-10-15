@@ -158,7 +158,7 @@ def eval_ListPlot(
       options: miscellaneous graphics options from underlying M-Expression
     """
 
-    if not isinstance(plot_groups, list) or len(plot_groups) == 0:
+    if not isinstance(plot_groups, (list, tuple)) or len(plot_groups) == 0:
         return
 
     # Classify the kind of data that "point" is, and

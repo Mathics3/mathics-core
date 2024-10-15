@@ -830,6 +830,7 @@ class IterationFunction(Builtin):
 
     def eval_range(self, expr, i, imax, evaluation):
         "%(name)s[expr_, {i_Symbol, imax_}]"
+
         imax = imax.evaluate(evaluation)
         if imax.has_form("Range", None):
             # FIXME: this should work as an iterator in Python3, not
@@ -965,6 +966,7 @@ class IterationFunction(Builtin):
 
     def eval_list(self, expr, i, items, evaluation):
         "%(name)s[expr_, {i_Symbol, {items___}}]"
+
         items = items.evaluate(evaluation).get_sequence()
         result = []
         for item in items:
