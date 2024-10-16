@@ -959,6 +959,14 @@ class Sum(IterationFunction, SympyFunction):
     Verify algebraic identities:
     >> Sum[x ^ 2, {x, 1, y}] - y * (y + 1) * (2 * y + 1) / 6
      = 0
+
+    Non-integer bounds:
+    >> Sum[i, {i, 1, 2.5}]
+     = 3
+    >> Sum[i, {i, 1.1, 2.5}]
+     = 3.2
+    >> Sum[k, {k, I, I + 1.5}]
+     = 1 + 2 I
     """
 
     summary_text = "discrete sum"
@@ -1020,7 +1028,11 @@ class Sum(IterationFunction, SympyFunction):
                 # If we have integer bounds, we'll use Mathics's iterator Sum
                 # (which is Plus)
 
-                if all(hasattr(i, "is_integer") and i.is_integer for i in bounds[1:]):
+                if all(
+                    (hasattr(i, "is_integer") and i.is_integer)
+                    or (hasattr(i, "is_finite") and i.is_finite and i.is_constant())
+                    for i in bounds[1:]
+                ):
                     # When we have integer bounds, it is better to not use Sympy but
                     # use Mathics evaluation. We turn:
                     # Sum[f[x], {<limits>}] into
@@ -1029,9 +1041,10 @@ class Sum(IterationFunction, SympyFunction):
                     values = Expression(SymbolTable, *expr.elements).evaluate(
                         evaluation
                     )
-                    ret = self.get_result(values.elements).evaluate(evaluation)
-                    # Make sure to convert the result back to sympy.
-                    return ret.to_sympy()
+                    if values.get_head_name() != SymbolTable.get_name():
+                        ret = self.get_result(values.elements).evaluate(evaluation)
+                        # Make sure to convert the result back to sympy.
+                        return ret.to_sympy()
 
             if None not in bounds:
                 return sympy.summation(f_sympy, bounds)
