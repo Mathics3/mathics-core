@@ -5,9 +5,11 @@ Zeta Functions and Polylogarithms
 """
 
 import mpmath
+import sympy
 
 from mathics.core.builtin import MPMathFunction
 from mathics.core.convert.mpmath import from_mpmath
+from mathics.core.convert.sympy import from_sympy
 
 
 class LerchPhi(MPMathFunction):
@@ -45,6 +47,35 @@ class LerchPhi(MPMathFunction):
             # return sympy.expand_func(sympy.lerchphi(py_z, py_s, py_a))
 
 
+class PolyLog(MPMathFunction):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/PolyLog.html</url>
+
+    <dl>
+      <dt>'PolyLog[$n$, $z$]'
+      <dd>returns the polylogarithm function $Li_n(z)$.
+    </dl>
+
+    >> PolyLog[s, 1]
+     = Zeta[s]
+    >> PolyLog[-7, I] //Chop
+     = 136.
+    """
+
+    summary_text = "Polylogarithm function"
+    sympy_name = "polylog"
+    mpmath_name = "polylog"
+
+    def eval(self, n, z, evaluation):
+        "PolyLog[n_, z_]"
+        try:
+            return from_mpmath(mpmath.polylog(n.to_python(), z.to_python()))
+        except:
+            return from_sympy(sympy.polylog(n.to_sympy(), z.to_sympy()))
+
+
 class Zeta(MPMathFunction):
     """
     <url>
@@ -68,4 +99,4 @@ class Zeta(MPMathFunction):
     mpmath_name = "zeta"
 
 
-# TODO: PolyLog, ReimannSiegelTheta, ReimannSiegelZ, ReimannXi, ZetaZero
+# TODO: ReimannSiegelTheta, ReimannSiegelZ, ReimannXi, ZetaZero
