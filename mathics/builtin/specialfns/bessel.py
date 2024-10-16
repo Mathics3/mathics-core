@@ -558,6 +558,26 @@ class HankelH2(_Bessel):
     sympy_name = "hankel2"
 
 
+class HypergeometricU(MPMathFunction):
+    """
+    <url>:Confluent hypergeometric function: https://en.wikipedia.org/wiki/Confluent_hypergeometric_function</url>
+    (<url>:mpmath: https://mpmath.org/doc/current/functions/bessel.html#mpmath.hyperu</url>,
+    <url>:WMA: https://reference.wolfram.com/language/ref/HypergeometricU.html</url>)
+    <dl>
+      <dt>'HypergeometricU[$a$, $b$, $z$]'
+      <dd>returns $U(a,b,z)$.
+    </dl>
+
+    >> HypergeometricU[3, 2, 1.]
+     = 0.105479
+    """
+
+    summary_text = "Tricomi confluent hypergeometric function"
+    mpmath_name = "hyperu"
+    sympy_name = ""
+    nargs = {3}
+
+
 # Kelvin Functions
 
 
