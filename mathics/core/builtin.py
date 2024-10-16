@@ -30,6 +30,7 @@ from mathics.core.atoms import (
     Integer,
     Integer0,
     Integer1,
+    IntegerM1,
     MachineReal,
     Number,
     PrecisionReal,
@@ -62,6 +63,8 @@ from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
     SymbolPlus,
+    SymbolPower,
+    SymbolTimes,
     SymbolTrue,
     ensure_context,
     strip_context,
@@ -896,18 +899,26 @@ class IterationFunction(Builtin):
                 return result
             return
 
-        index = imin.evaluate(evaluation)
+        index = Integer0
+        imin = imin.evaluate(evaluation)
         imax = imax.evaluate(evaluation)
         di = di.evaluate(evaluation)
 
+        # (imax - imin) / di
+        normalised_range = Expression(
+            Symbol("System`Chop"),
+            Expression(
+                SymbolTimes,
+                Expression(SymbolPlus, imax, Expression(SymbolTimes, IntegerM1, imin)),
+                Expression(SymbolPower, di, IntegerM1),
+            ),
+        ).evaluate(evaluation)
+
         result = []
-        compare_type = (
-            SymbolGreaterEqual
-            if Expression(SymbolLess, di, Integer0).evaluate(evaluation).to_python()
-            else SymbolLessEqual
-        )
         while True:
-            cont = Expression(compare_type, index, imax).evaluate(evaluation)
+            cont = Expression(SymbolLessEqual, index, normalised_range).evaluate(
+                evaluation
+            )
             if cont is SymbolFalse:
                 break
             if cont is not SymbolTrue:
@@ -917,7 +928,15 @@ class IterationFunction(Builtin):
 
             evaluation.check_stopped()
             try:
-                item = dynamic_scoping(expr.evaluate, {i.name: index}, evaluation)
+                item = dynamic_scoping(
+                    expr.evaluate,
+                    {
+                        i.name: Expression(
+                            SymbolPlus, imin, Expression(SymbolTimes, di, index)
+                        ).evaluate(evaluation)
+                    },
+                    evaluation,
+                )
                 result.append(item)
             except ContinueInterrupt:
                 if self.allow_loopcontrol:
@@ -934,7 +953,7 @@ class IterationFunction(Builtin):
                     return e.expr
                 else:
                     raise
-            index = Expression(SymbolPlus, index, di).evaluate(evaluation)
+            index = Expression(SymbolPlus, index, Integer1).evaluate(evaluation)
         return self.get_result(result)
 
     def eval_list(self, expr, i, items, evaluation):

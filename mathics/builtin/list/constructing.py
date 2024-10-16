@@ -519,6 +519,7 @@ class Table(IterationFunction):
      = {x, x, x}
     >> n = 0; Table[n = n + 1, {5}]
      = {1, 2, 3, 4, 5}
+    #> Clear[n]
     >> Table[i, {i, 4}]
      = {1, 2, 3, 4}
     >> Table[i, {i, 2, 5}]
@@ -533,6 +534,10 @@ class Table(IterationFunction):
     'Table' supports multi-dimensional tables:
     >> Table[{i, j}, {i, {a, b}}, {j, 1, 2}]
      = {{{a, 1}, {a, 2}}, {{b, 1}, {b, 2}}}
+
+    Symbolic bounds:
+    >> Table[x, {x, a, a + 5 n, n}]
+     = {a, a + n, a + 2 n, a + 3 n, a + 4 n, a + 5 n}
     """
 
     rules = {
