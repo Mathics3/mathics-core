@@ -214,6 +214,35 @@ class DiceDissimilarity(_BooleanDissimilarity):
         )
 
 
+class EulerE(SympyFunction):
+    """
+    <url>:Euler numbers: https://en.wikipedia.org/wiki/Euler_numbers</url>
+    (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.euler</url>,
+    <url>:WMA: https://reference.wolfram.com/language/ref/EulerE.html</url>)
+    <dl>
+      <dt>'EulerE[$n$]'
+      <dd>Euler number $E_n$.
+
+      <dt>'EulerE[$n$, $x$]'
+      <dd>Euler polynomial $E_n(x)$.
+    </dl>
+
+    >> Table[EulerE[k], {k, 0, 10}]
+     = {1, 0, -1, 0, 5, 0, -61, 0, 1385, 0, -50521}
+
+    >> EulerE[5, z]
+     = -1 / 2 + 5 z ^ 2 / 2 - 5 z ^ 4 / 2 + z ^ 5
+    """
+
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    summary_text = "Euler numbers"
+    sympy_name = "euler"
+
+    def eval(self, z, evaluation: Evaluation):
+        "%(name)s[z__]"
+        return super().eval(z, evaluation)
+
+
 class JaccardDissimilarity(_BooleanDissimilarity):
     """
     <url>
