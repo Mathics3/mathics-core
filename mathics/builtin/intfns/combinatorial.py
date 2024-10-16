@@ -23,6 +23,7 @@ from mathics.core.attributes import (
     A_READ_PROTECTED,
 )
 from mathics.core.builtin import Builtin, MPMathFunction, SympyFunction
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
@@ -37,6 +38,35 @@ from mathics.core.symbols import (
 
 SymbolBinomial = Symbol("Binomial")
 SymbolSubsets = Symbol("Subsets")
+
+
+class BellB(SympyFunction):
+    """
+    <url>:Bell number: https://en.wikipedia.org/wiki/Bell_number</url>
+    (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.bell</url>,
+    <url>:WMA: https://reference.wolfram.com/language/ref/BellB.html</url>)
+    <dl>
+      <dt>'BellB[$n$]'
+      <dd>Bell number $B_n$.
+
+      <dt>'BellB[$n$, $x$]'
+      <dd>Bell polynomial $B_n(x)$.
+    </dl>
+
+    >> BellB[10]
+     = 115975
+
+    >> BellB[5, x]
+     = x + 15 x ^ 2 + 25 x ^ 3 + 10 x ^ 4 + x ^ 5
+    """
+
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    summary_text = "Bell numbers"
+    sympy_name = "bell"
+
+    def eval(self, z, evaluation: Evaluation):
+        "%(name)s[z__]"
+        return super().eval(z, evaluation)
 
 
 class _BooleanDissimilarity(Builtin):
