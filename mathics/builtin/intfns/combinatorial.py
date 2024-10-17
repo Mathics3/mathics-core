@@ -273,6 +273,27 @@ class JaccardDissimilarity(_BooleanDissimilarity):
         )
 
 
+class JacobiSymbol(Builtin):
+    """
+    <url>:Jacobi symbol: https://en.wikipedia.org/wiki/Jacobi_symbol</url>
+    (<url>:WMA: https://reference.wolfram.com/language/ref/JacobiSymbol.html</url>)
+    <dl>
+      <dt>'JacobiSymbol[$a$, $n$]'
+      <dd>returns the Jacobi symbol $\\left(\\frac{a}{n}\\right)$.
+    </dl>
+
+    >> Table[JacobiSymbol[n, m], {n, 0, 10}, {m, 1, n, 2}]
+     = {{}, {1}, {1}, {1, 0}, {1, 1}, {1, -1, 0}, {1, 0, 1}, {1, 1, -1, 0}, {1, -1, -1, 1}, {1, 0, 1, 1, 0}, {1, 1, 0, -1, 1}}
+    """
+
+    summary_text = "Jacobi symbol"
+
+    rules = {
+        "JacobiSymbol[a_, p_?PrimeQ]": "Which[Mod[a, p] == 0, 0, PowerMod[a, (p - 1)/2, p] == 1, 1, True, -1]",  # Legendre symbol
+        "JacobiSymbol[a_, n_]": "Times @@ (JacobiSymbol[a, #1]^#2 & @@@ FactorInteger[n])",
+    }
+
+
 class LucasL(SympyFunction):
     """
     <url>
