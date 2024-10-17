@@ -29,6 +29,8 @@ class Fibonacci(MPMathFunction):
     <dl>
       <dt>'Fibonacci[$n$]'
       <dd>computes the $n$th Fibonacci number.
+      <dt>'Fibonacci[$n$, $x$]'
+      <dd>computes the Fibonacci polynomial $F_n(x)$.
     </dl>
 
     >> Fibonacci[0]
@@ -39,6 +41,8 @@ class Fibonacci(MPMathFunction):
      = 55
     >> Fibonacci[200]
      = 280571172992510140037611932413038677189525
+    >> Fibonacci[7, x]
+     = 1 + 6 x ^ 2 + 5 x ^ 4 + x ^ 6
     """
 
     nargs = {1}
@@ -46,6 +50,11 @@ class Fibonacci(MPMathFunction):
     sympy_name = "fibonacci"
     mpmath_name = "fibonacci"
     summary_text = "Fibonacci's numbers"
+
+    rules = {
+        "Fibonacci[0, x_]": "0",
+        "Fibonacci[n_Integer?Negative, x_]": "Fibonacci[-n, x]",
+    }
 
 
 class HarmonicNumber(MPMathFunction):
