@@ -160,7 +160,7 @@ class Factorial(PostfixOperator, MPMathFunction):
 
     """
 
-    attributes = A_NUMERIC_FUNCTION | A_PROTECTED
+    attributes = A_NUMERIC_FUNCTION | A_PROTECTED | A_LISTABLE
 
     mpmath_name = "factorial"
     operator = "!"
