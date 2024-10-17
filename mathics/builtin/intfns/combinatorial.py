@@ -294,6 +294,30 @@ class JacobiSymbol(Builtin):
     }
 
 
+class KroneckerSymbol(Builtin):
+    """
+    <url>:Kronecker symbol: https://en.wikipedia.org/wiki/Kronecker_symbol</url>
+    (<url>:WMA: https://reference.wolfram.com/language/ref/KroneckerSymbol.html</url>)
+    <dl>
+      <dt>'KroneckerSymbol[$a$, $n$]'
+      <dd>returns the Kronecker symbol $\\left(\\frac{a}{n}\\right)$.
+    </dl>
+
+    >> Table[KroneckerSymbol[n, m], {n, 5}, {m, 5}]
+     = {{1, 1, 1, 1, 1}, {1, 0, -1, 0, -1}, {1, -1, 0, 1, -1}, {1, 0, 1, 0, 1}, {1, -1, -1, 1, 0}}
+    """
+
+    summary_text = "Kronecker symbol"
+
+    rules = {
+        "KroneckerSymbol[a_, n_?(Positive[#] && OddQ[#] &)]": "JacobiSymbol[a, n]",
+        "KroneckerSymbol[a_, 0]": "If[Abs[a] == 1, 1, 0]",
+        "KroneckerSymbol[a_, -1]": "If[a < 0, -1, 1]",
+        "KroneckerSymbol[a_, 2]": "Which[EvenQ[a], 0, Mod[a, 8] == 1 || Mod[a, 8] == 7, 1, True, -1]",
+        "KroneckerSymbol[a_, n_]": "Times @@ (KroneckerSymbol[a, #1]^#2 & @@@ FactorInteger[n])",
+    }
+
+
 class LucasL(SympyFunction):
     """
     <url>
