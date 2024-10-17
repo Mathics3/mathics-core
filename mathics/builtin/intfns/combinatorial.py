@@ -511,6 +511,40 @@ class SokalSneathDissimilarity(_BooleanDissimilarity):
         return Expression(SymbolDivide, Integer(r), Integer(c_tt + r))
 
 
+class SquaresR(Builtin):
+    """
+    <url>:Sum of squares function: https://en.wikipedia.org/wiki/Sum_of_squares_function</url>
+    (<url>:WMA: https://reference.wolfram.com/language/ref/SquaresR.html</url>)
+
+    <dl>
+      <dt>'SquaresR[$d$, $n$]'
+      <dd>returns $r_d(n)$, the number of ways to represent $n$ as a sum of $d$ squares.
+    </dl>
+
+    >> Table[SquaresR[2, n], {n, 10}]
+     = {4, 4, 0, 4, 8, 0, 0, 4, 4, 8}
+    >> Table[Sum[SquaresR[2, k], {k, 0, n^2}], {n, 5}]
+     = {5, 13, 29, 49, 81}
+    >> Table[SquaresR[4, n], {n, 10}]
+     = {8, 24, 32, 24, 48, 96, 64, 24, 104, 144}
+    >> Table[SquaresR[6, n], {n, 10}]
+     = {12, 60, 160, 252, 312, 544, 960, 1020, 876, 1560}
+    >> Table[SquaresR[8, n], {n, 10}]
+     = {16, 112, 448, 1136, 2016, 3136, 5504, 9328, 12112, 14112}
+    """
+
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    summary_text = "sum of squares function"
+
+    rules = {
+        "SquaresR[d_Integer, 0]": "1",
+        "SquaresR[2, n_Integer?Positive]": "4 Total[(-1)^((# - 1)/2) & /@ Select[Divisors[n], Mod[#, 4] == 1 || Mod[#, 4] == 3 &]]",
+        "SquaresR[4, n_Integer?Positive]": "8 Total[Select[Divisors[n], Mod[#, 4] != 0 &]]",
+        "SquaresR[6, n_Integer?Positive]": "4 Total[#^2 * (4 * KroneckerSymbol[-4, n/#] - KroneckerSymbol[-4, #]) & /@ Divisors[n]]",
+        "SquaresR[8, n_Integer?Positive]": "16 Total[(-1)^(n + #) #^3 & /@ Divisors[n]]",
+    }
+
+
 class Subsets(Builtin):
     """
     <url>
