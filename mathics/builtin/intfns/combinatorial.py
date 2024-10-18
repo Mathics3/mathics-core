@@ -337,12 +337,19 @@ class LucasL(SympyFunction):
     A list of the first five Lucas numbers:
     >> Table[LucasL[n], {n, 1, 5}]
      = {1, 3, 4, 7, 11}
+    >> Series[LucasL[1/2, x], {x, 0, 5}]
+     = 1 + 1 / 4 x + 1 / 32 x ^ 2 + (-1 / 128) x ^ 3 + (-5 / 2048) x ^ 4 + 7 / 8192 x ^ 5 + O[x] ^ 6
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
 
     summary_text = "lucas number"
     sympy_name = "lucas"
+
+    rules = {
+        "LucasL[n_, 1]": "LucasL[n]",
+        "LucasL[n_, x_]": "(x/2 + Sqrt[1 + x^2 / 4])^n + Cos[n Pi] / (x/2 + Sqrt[1 + x^2 / 4])^n // Simplify",
+    }
 
     def eval_integer(self, n: Integer, evaluation):
         "LucasL[n_Integer]"
