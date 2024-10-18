@@ -195,7 +195,7 @@ class Factorial2(PostfixOperator, MPMathFunction):
      = 3.35237
     """
 
-    attributes = A_NUMERIC_FUNCTION | A_PROTECTED
+    attributes = A_NUMERIC_FUNCTION | A_PROTECTED | A_LISTABLE
     operator = "!!"
     mpmath_name = "fac2"
     sympy_name = "factorial2"
@@ -513,3 +513,25 @@ class StieltjesGamma(SympyFunction):
 
     summary_text = "Stieltjes' function"
     sympy_name = "stieltjes"
+
+
+class Subfactorial(MPMathFunction):
+    """
+    <url>:Derangement: https://en.wikipedia.org/wiki/Derangement</url>
+    (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.factorials.subfactorial</url>,
+    <url>:WMA: https://reference.wolfram.com/language/ref/Subfactorial.html</url>)
+
+    <dl>
+      <dt>'Subfactorial[$n$]'
+      <dd>computes the subfactorial of $n$.
+    </dl>
+
+    >> Subfactorial[6]
+     = 265
+    """
+
+    attributes = A_NUMERIC_FUNCTION | A_PROTECTED | A_LISTABLE
+
+    mpmath_name = "subfactorial"
+    sympy_name = "subfactorial"
+    summary_text = "subfactorial"
