@@ -246,6 +246,31 @@ class RankedMin(Builtin):
             return introselect(element.get_mutable_elements(), py_n - 1)
 
 
+class ReverseSort(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ReverseSort.html</url>
+
+    <dl>
+      <dt>'ReverseSort[$list$]'
+      <dd>sorts $list$ (or the elements of any other expression) according \
+          to reverse canonical ordering.
+
+      <dt>'ReverseSort[$list$, $p$]'
+      <dd>sorts using $p$ to determine the order of two elements.
+    </dl>
+
+    >> ReverseSort[{c, b, d, a}]
+     = {d, c, b, a}
+    """
+
+    summary_text = "reverse sort"
+
+    rules = {
+        "ReverseSort[list_]": "Reverse[Sort[list]]",
+        "ReverseSort[list_, p_]": "Reverse[Sort[list, p]]",
+    }
+
+
 class Sort(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Sort.html</url>

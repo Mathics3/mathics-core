@@ -427,6 +427,8 @@ class IntegerPartitions(Builtin):
     = {{5, 2, 1}, {5, 1, 1, 1}, {2, 2, 2, 2}, {2, 2, 2, 1, 1}, {2, 2, 1, 1, 1, 1}, {2, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1, 1}}
     >> IntegerPartitions[8, All, All, 3]
     = {{8}, {7, 1}, {6, 2}}
+    >> IntegerPartitions[4, {2}, {-1, 0, 1, 4, 5}]
+    = {{5, -1}, {4, 0}}
     """
 
     attributes = A_PROTECTED
@@ -437,9 +439,10 @@ class IntegerPartitions(Builtin):
         "IntegerPartitions[n_Integer, All]": "IntegerPartitions[n, n]",
         "IntegerPartitions[n_Integer, k_Integer]": "IntegerPartitions[n, {1, k}]",
         "IntegerPartitions[n_Integer, {k_Integer}]": "IntegerPartitions[n, {k, k}]",
-        "IntegerPartitions[n_Integer, kspec_, s_List]": "Select[IntegerPartitions[n, kspec], SubsetQ[s, #] &]",
+        "IntegerPartitions[n_Integer, kspec_, s_List] /; SubsetQ[Range[n], s]": "Select[IntegerPartitions[n, kspec], SubsetQ[s, #] &]",
         "IntegerPartitions[n_Integer, kspec_, All]": "IntegerPartitions[n, kspec]",
         "IntegerPartitions[n_Integer, kspec_, sspec_, m_]": "Take[IntegerPartitions[n, kspec, sspec], m]",
+        "IntegerPartitions[n_Integer, {k_Integer}, s_List]": "ReverseSort@Select[Union[ReverseSort /@ Tuples[s, k]], Total[#] == n &]",
     }
 
     def eval(self, n: Integer, kmin: Integer, kmax: Integer, evaluation: Evaluation):
@@ -689,6 +692,28 @@ class PartitionsP(SympyFunction):
     def eval(self, n, evaluation: Evaluation):
         """PartitionsP[n_Integer]"""
         return super().eval(n, evaluation)
+
+
+class PowersRepresentations(Builtin):
+    """
+    <url>:WMA: https://reference.wolfram.com/language/ref/PowersRepresentations.html</url>
+    <dl>
+      <dt>'PowersRepresentations[$n$, $k$, $p$]'
+      <dd>represent $n$ as a sum of $k$ non-negative integers raised to the power of $p$.
+    </dl>
+
+    >> PowersRepresentations[1729, 2, 3]
+     = {{1, 12}, {9, 10}}
+    >> PowersRepresentations[50, 3, 2]
+     = {{0, 1, 7}, {0, 5, 5}, {3, 4, 5}}
+    """
+
+    attributes = A_PROTECTED
+    summary_text = "represent a number as a sum of powers"
+
+    rules = {
+        "PowersRepresentations[n_,k_,p_]": "Sort /@ IntegerPartitions[n, {k}, Range[0, Floor[n^(1/p)]]^p]^(1/p) // Sort",
+    }
 
 
 class Prime(SympyFunction):
