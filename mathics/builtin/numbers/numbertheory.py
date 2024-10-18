@@ -5,8 +5,8 @@ Number theoretic functions
 """
 import mpmath
 import sympy
-from sympy.utilities.iterables import ordered_partitions
 from packaging.version import Version
+from sympy.utilities.iterables import ordered_partitions
 
 from mathics.core.atoms import Integer, Integer0, Integer10, Rational, Real
 from mathics.core.attributes import (
@@ -419,17 +419,35 @@ class IntegerPartitions(Builtin):
 
     >> IntegerPartitions[5]
     = {{5}, {4, 1}, {3, 2}, {3, 1, 1}, {2, 2, 1}, {2, 1, 1, 1}, {1, 1, 1, 1, 1}}
+    >> IntegerPartitions[8, 3]
+    = {{8}, {7, 1}, {6, 2}, {6, 1, 1}, {5, 3}, {5, 2, 1}, {4, 4}, {4, 3, 1}, {4, 2, 2}, {3, 3, 2}}
+    >> IntegerPartitions[8, {3}]
+    = {{6, 1, 1}, {5, 2, 1}, {4, 3, 1}, {4, 2, 2}, {3, 3, 2}}
+    >> IntegerPartitions[8, All, {1, 2, 5}]
+    = {{5, 2, 1}, {5, 1, 1, 1}, {2, 2, 2, 2}, {2, 2, 2, 1, 1}, {2, 2, 1, 1, 1, 1}, {2, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1, 1}}
+    >> IntegerPartitions[8, All, All, 3]
+    = {{8}, {7, 1}, {6, 2}}
     """
 
     attributes = A_PROTECTED
     summary_text = "list integer partitions"
 
-    def eval(self, n: Integer, evaluation: Evaluation):
-        "IntegerPartitions[n_Integer]"
-        partitions = [
-            [Integer(i) for i in reversed(p)]
-            for p in ordered_partitions(n.value)
-        ]
+    rules = {
+        "IntegerPartitions[n_Integer]": "IntegerPartitions[n, All]",
+        "IntegerPartitions[n_Integer, All]": "IntegerPartitions[n, n]",
+        "IntegerPartitions[n_Integer, k_Integer]": "IntegerPartitions[n, {1, k}]",
+        "IntegerPartitions[n_Integer, {k_Integer}]": "IntegerPartitions[n, {k, k}]",
+        "IntegerPartitions[n_Integer, kspec_, s_List]": "Select[IntegerPartitions[n, kspec], SubsetQ[s, #] &]",
+        "IntegerPartitions[n_Integer, kspec_, All]": "IntegerPartitions[n, kspec]",
+        "IntegerPartitions[n_Integer, kspec_, sspec_, m_]": "Take[IntegerPartitions[n, kspec, sspec], m]",
+    }
+
+    def eval(self, n: Integer, kmin: Integer, kmax: Integer, evaluation: Evaluation):
+        "IntegerPartitions[n_Integer, {kmin_Integer, kmax_Integer}]"
+        partitions = []
+        for k in range(kmin.value, kmax.value + 1):
+            for p in ordered_partitions(n.value, k, sort=False):
+                partitions.append([Integer(i) for i in reversed(p)])
         partitions.sort(reverse=True)
         return ListExpression(*[ListExpression(*p) for p in partitions])
 
