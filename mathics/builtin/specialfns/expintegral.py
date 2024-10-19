@@ -5,7 +5,7 @@ Exponential Integral and Special Functions
 """
 
 
-from mathics.core.builtin import MPMathFunction
+from mathics.core.builtin import Builtin, MPMathFunction
 
 
 class ExpIntegralE(MPMathFunction):
@@ -43,6 +43,19 @@ class ExpIntegralEi(MPMathFunction):
     summary_text = "exponential integral function"
     sympy_name = "Ei"
     mpmath_name = "ei"
+
+
+class LambertW(Builtin):
+    """
+    >> LambertW[k, z]
+     = ProductLog[k, z]
+    """
+
+    summary_text = "undocumented alias"
+    rules = {
+        "LambertW[z_]": "ProductLog[z]",
+        "LambertW[k_, z_]": "ProductLog[k, z]",
+    }
 
 
 class ProductLog(MPMathFunction):
