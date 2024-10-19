@@ -47,6 +47,13 @@ class ExpIntegralEi(MPMathFunction):
 
 class LambertW(Builtin):
     """
+    <url>:Lambert W-Function: https://mathworld.wolfram.com/LambertW-Function.html</url>
+
+    <dl>
+      <dt>'LambertW[$k$, $z$]'
+      <dd>alias for ProductLog[$k$, $z$].
+    </dl>
+
     >> LambertW[k, z]
      = ProductLog[k, z]
     """
