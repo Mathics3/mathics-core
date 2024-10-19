@@ -900,7 +900,7 @@ class CoefficientList(Builtin):
     >> CoefficientList[(x - 2 y + 3 z)^3, {x, y, z}]
      = {{{0, 0, 0, 27}, {0, 0, -54, 0}, {0, 36, 0, 0}, {-8, 0, 0, 0}}, {{0, 0, 27, 0}, {0, -36, 0, 0}, {12, 0, 0, 0}, {0, 0, 0, 0}}, {{0, 9, 0, 0}, {-6, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}, {{1, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}}
     >> CoefficientList[Series[Log[1-x], {x, 0, 9}], x]
-     = {-1, -1 / 2, -1 / 3, -1 / 4, -1 / 5, -1 / 6, -1 / 7, -1 / 8, -1 / 9}
+     = {0, -1, -1 / 2, -1 / 3, -1 / 4, -1 / 5, -1 / 6, -1 / 7, -1 / 8, -1 / 9}
     """
 
     messages = {
@@ -914,7 +914,7 @@ class CoefficientList(Builtin):
         "CoefficientList[expr_]"
         evaluation.message("CoefficientList", "argtu")
 
-    def eval(self, expr, form, evaluation):
+    def eval(self, expr: Expression, form: Expression, evaluation: Evaluation):
         "CoefficientList[expr_, form_]"
         vars = [form] if not form.has_form("List", None) else [v for v in form.elements]
 
@@ -937,12 +937,18 @@ class CoefficientList(Builtin):
             return ListExpression(expr)
         elif form.has_form("List", 0):
             return expr
-        elif (
-            expr.get_head_name() == "System`SeriesData"
-            and expr.elements[0] == form
-            and expr.elements[1] == Integer0
-        ):
-            return expr.elements[2]
+        elif expr.get_head_name() == "System`SeriesData":
+            coeffs: ListExpression
+            nmin: Integer
+            nmax: Integer
+            x, x0, coeffs, nmin, nmax, den = expr.elements
+            if x == form and x0 == Integer0 and den == Integer1:
+                return ListExpression(
+                    *[
+                        coeffs.elements[i - nmin.value] if i >= nmin.value else Integer0
+                        for i in range(0, nmax.value)
+                    ]
+                )
 
         sympy_expr = expr.to_sympy()
         sympy_vars = [v.to_sympy() for v in vars]
@@ -959,8 +965,7 @@ class CoefficientList(Builtin):
 
             # single & multiple variables cases
             if not form.has_form("List", None):
-                return Expression(
-                    SymbolList,
+                return ListExpression(
                     *[
                         _coefficient(
                             self.__class__.__name__, expr, form, Integer(n), evaluation
@@ -970,8 +975,7 @@ class CoefficientList(Builtin):
                 )
             elif form.has_form("List", 1):
                 form = form.elements[0]
-                return Expression(
-                    SymbolList,
+                return ListExpression(
                     *[
                         _coefficient(
                             self.__class__.__name__, expr, form, Integer(n), evaluation
