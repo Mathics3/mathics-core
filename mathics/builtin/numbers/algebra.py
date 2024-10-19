@@ -937,7 +937,11 @@ class CoefficientList(Builtin):
             return ListExpression(expr)
         elif form.has_form("List", 0):
             return expr
-        elif expr.get_head_name() == "System`SeriesData" and expr.elements[0] == form and expr.elements[1] == Integer0:
+        elif (
+            expr.get_head_name() == "System`SeriesData"
+            and expr.elements[0] == form
+            and expr.elements[1] == Integer0
+        ):
             return expr.elements[2]
 
         sympy_expr = expr.to_sympy()
