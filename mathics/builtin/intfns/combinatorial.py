@@ -286,6 +286,7 @@ class JacobiSymbol(Builtin):
      = {{}, {1}, {1}, {1, 0}, {1, 1}, {1, -1, 0}, {1, 0, 1}, {1, 1, -1, 0}, {1, -1, -1, 1}, {1, 0, 1, 1, 0}, {1, 1, 0, -1, 1}}
     """
 
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "Jacobi symbol"
 
     rules = {
@@ -307,6 +308,7 @@ class KroneckerSymbol(Builtin):
      = {{1, 1, 1, 1, 1}, {1, 0, -1, 0, -1}, {1, -1, 0, 1, -1}, {1, 0, 1, 0, 1}, {1, -1, -1, 1, 0}}
     """
 
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "Kronecker symbol"
 
     rules = {
