@@ -22,7 +22,14 @@ from functools import lru_cache
 import mpmath
 import sympy
 
-from mathics.core.atoms import Integer, Integer0, Integer10, MachineReal, Rational
+from mathics.core.atoms import (
+    Integer,
+    Integer0,
+    Integer3,
+    Integer10,
+    MachineReal,
+    Rational,
+)
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
 from mathics.core.builtin import Builtin, Predefined
 from mathics.core.convert.python import from_python
@@ -453,7 +460,6 @@ class RealDigits(Builtin):
         "realx": "The value `1` is not a real number.",
         "ndig": "The number of digits to return cannot be determined.",
         "rbase": "Base `1` is not a real number greater than 1.",
-        "intnm": "Non-negative machine-sized integer expected at position 3 in `1`.",
         "intm": "Machine-sized integer expected at position 4 in `1`.",
     }
 
@@ -622,7 +628,7 @@ class RealDigits(Builtin):
             elements.append(from_python(pos))
         expr = Expression(SymbolRealDigits, n, b, length, *elements)
         if not (isinstance(length, Integer) and length.get_int_value() >= 0):
-            evaluation.message("RealDigits", "intnm", expr)
+            evaluation.message("RealDigits", "intnm", Integer3, expr)
             return
 
         return self.eval_with_base(

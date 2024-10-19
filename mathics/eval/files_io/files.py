@@ -11,6 +11,7 @@ from mathics_scanner.errors import IncompleteSyntaxError, InvalidSyntaxError
 import mathics
 import mathics.core.parser
 import mathics.core.streams
+from mathics.core.atoms import String
 from mathics.core.builtin import MessageException
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
@@ -26,6 +27,7 @@ from mathics.core.systemsymbols import (
     SymbolHoldExpression,
     SymbolPath,
     SymbolReal,
+    SymbolWord,
 )
 from mathics.core.util import canonic_filename
 from mathics.eval.files_io.read import (
@@ -128,13 +130,14 @@ def eval_Read(
     name: str, n: int, types: tuple, stream, evaluation: Evaluation, options: dict
 ):
     """
-    Evaluation method for Read[] and ReadList[]
+    Evaluation method for Read[] and ReadList[]. `name` will be either "Read" or
+    "ReadList" and is used in error messages
     """
     types = to_mathics_list(*types)
 
     for typ in types.elements:
         if typ not in READ_TYPES:
-            evaluation.message("Read", "readf", typ)
+            evaluation.message(name, "readf", typ)
             return SymbolFailed
 
     separators = read_get_separators(options, evaluation)
@@ -198,9 +201,7 @@ def eval_Read(
                         print(e)
 
                 if expr is SymbolEndOfFile:
-                    evaluation.message(
-                        "Read", "readt", tmp, to_expression("InputSteam", name, n)
-                    )
+                    evaluation.message(name, "readt", tmp, String(stream.name))
                     return SymbolFailed
                 elif isinstance(expr, BaseElement):
                     if typ is SymbolHoldExpression:
@@ -219,7 +220,7 @@ def eval_Read(
                         tmp = float(tmp)
                     except ValueError:
                         evaluation.message(
-                            "Read", "readn", to_expression("InputSteam", name, n)
+                            name, "readn", to_expression("InputSteam", name, n)
                         )
                         return SymbolFailed
                 result.append(tmp)
@@ -231,7 +232,7 @@ def eval_Read(
                     tmp = float(tmp)
                 except ValueError:
                     evaluation.message(
-                        "Read", "readn", to_expression("InputSteam", name, n)
+                        name, "readn", to_expression("InputSteam", name, n)
                     )
                     return SymbolFailed
                 result.append(tmp)
@@ -242,17 +243,37 @@ def eval_Read(
                 if len(tmp) == 0:
                     raise EOFError
                 result.append(tmp.rstrip("\n"))
-            elif typ is Symbol("Word"):
-                result.append(next(read_word))
+            elif typ is SymbolWord:
+                # next() for word tokens can return one or two words:
+                # the next word in the list and a following TokenWord
+                # match.  Therefore, test for this and do list-like
+                # appending here.
+
+                # THINK ABOUT: We might need to reconsider/refactor
+                # other cases to allow for multiple words as well. And
+                # for uniformity, we may want to redo the generators to
+                # always return *lists* instead instead of either a
+                # word or a list (which is always at most two words?)
+                words = next(read_word)
+                if not isinstance(words, list):
+                    words = [words]
+                result += words
 
         except EOFError:
             return SymbolEndOfFile
         except UnicodeDecodeError:
-            evaluation.message("General", "ucdec")
+            evaluation.message(name, "ucdec")
 
     if isinstance(result, Symbol):
         return result
-    if len(result) == 1:
-        return from_python(*result)
+    if isinstance(result, list):
+        result_len = len(result)
+        if result_len == 0:
+            if SymbolHoldExpression in types:
+                return Expression(SymbolHold, SymbolNull)
+        elif result_len == 2 and SymbolWord in types:
+            return [from_python(part) for part in result]
+        elif result_len == 1:
+            result = result[0]
 
     return from_python(result)

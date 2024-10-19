@@ -213,7 +213,7 @@ class Cases(Builtin):
         results = []
 
         if pattern.has_form("Rule", 2) or pattern.has_form("RuleDelayed", 2):
-            match = Matcher(pattern.elements[0]).match
+            match = Matcher(pattern.elements[0], evaluation).match
             rule = Rule(pattern.elements[0], pattern.elements[1])
 
             def callback(level):
@@ -224,7 +224,7 @@ class Cases(Builtin):
                 return level
 
         else:
-            match = Matcher(pattern).match
+            match = Matcher(pattern, evaluation).match
 
             def callback(level):
                 if match(level, evaluation):
@@ -350,6 +350,8 @@ class Delete(Builtin):
             return delete_one(expr, pos)
         except PartRangeError:
             evaluation.message("Part", "partw", ListExpression(position), expr)
+        except PartDepthError:
+            evaluation.message("Part", "partw", ListExpression(position), expr)
 
     def eval(self, expr, positions, evaluation):
         "Delete[expr_, positions___]"
@@ -368,10 +370,15 @@ class Delete(Builtin):
             )
             return
 
+        elements = positions.elements
+        if len(elements) == 0:
+            return expr
+
         # Create new python list of the positions and sort it
+
         positions = (
-            [t for t in positions.elements]
-            if positions.elements[0].has_form("List", None)
+            [t for t in elements]
+            if isinstance(elements[0], ListExpression)
             else [positions]
         )
         positions.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
@@ -392,7 +399,9 @@ class Delete(Builtin):
                 evaluation.message("Part", "partw", Integer(exc.index), expr)
                 return
             except PartError:
-                evaluation.message("Part", "partw", ListExpression(*pos), expr)
+                evaluation.message(
+                    "Part", "partw", ListExpression(*(Integer(p) for p in pos)), expr
+                )
                 return
         return newexpr
 
@@ -467,7 +476,7 @@ class DeleteCases(Builtin):
             return deletecases_with_levelspec(items, pattern, evaluation, levelspec, n)
         # A more efficient way to proceed if levelspec == 1
 
-        match = Matcher(pattern).match
+        match = Matcher(pattern, evaluation).match
         if n == -1:
 
             def cond(element):
@@ -1187,7 +1196,7 @@ class Pick(Builtin):
     def eval_pattern(self, items, sel, pattern, evaluation):
         "Pick[items_, sel_, pattern_]"
 
-        match = Matcher(pattern).match
+        match = Matcher(pattern, evaluation).match
         return self._do(items, sel, lambda s: match(s, evaluation), evaluation)
 
 
@@ -1245,7 +1254,7 @@ class Position(Builtin):
             evaluation.message("Position", "level", ls)
             return
 
-        match = Matcher(patt).match
+        match = Matcher(patt, evaluation).match
         result = []
 
         def callback(level, pos):

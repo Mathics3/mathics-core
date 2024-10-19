@@ -1201,12 +1201,6 @@ class TimeZone(Predefined):
 
     summary_text = "gets the default time zone"
 
-    def eval(self, lhs, rhs, evaluation):
-        "lhs_ = rhs_"
-
-        self.assign(lhs, rhs, evaluation)
-        return rhs
-
     def evaluate(self, evaluation) -> Real:
         return self.value
 

@@ -12,7 +12,7 @@ from io import BytesIO
 # We use the below import for access to variables that may change
 # at runtime.
 import mathics.eval.files_io.files as io_files
-from mathics.core.atoms import Integer, String, SymbolString
+from mathics.core.atoms import Integer, Integer3, String, SymbolString
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import (
     BinaryOperator,
@@ -45,6 +45,7 @@ from mathics.eval.files_io.read import (
     MathicsOpen,
     channel_to_stream,
     close_stream,
+    parse_read_options,
     read_name_and_stream,
 )
 from mathics.eval.makeboxes import do_format, format_element
@@ -703,7 +704,9 @@ class PutAppend(BinaryOperator):
 def validate_read_type(name: str, typ, evaluation: Evaluation):
     """
     Validate a Read option type, and give a message if
-    the type is invalid. For Expession[Hold]
+    the type is invalid. For Expession[Hold], we convert it to
+    SymbolHoldExpression, String names are like "Byte" are
+    converted to Symbols in the return.
     """
     if hasattr(typ, "head") and typ.head == SymbolHold:
         if not hasattr(typ, "elements"):
@@ -715,6 +718,26 @@ def validate_read_type(name: str, typ, evaluation: Evaluation):
             return None
 
         return SymbolHoldExpression
+
+    if isinstance(typ, String):
+        typ = Symbol(typ.value)
+    elif not isinstance(typ, Symbol):
+        evaluation.message(name, "readf", typ)
+        return None
+
+    if typ.short_name not in (
+        "Byte",
+        "Character",
+        "Expression",
+        "Number",
+        "Real",
+        "Record",
+        "String",
+        "Word",
+    ):
+        evaluation.message(name, "readf", typ)
+        return None
+
     return typ
 
 
@@ -791,11 +814,11 @@ class Read(Builtin):
      = 5
     #> Close[stream];
 
-    Reading a comment however will return the empty list:
+    Reading a comment, a non-expression, will return 'Hold[Null]'
     >> stream = StringToStream["(* ::Package:: *)"];
 
     >> Read[stream, Hold[Expression]]
-     = {}
+     = Hold[Null]
 
     #> Close[stream];
 
@@ -820,9 +843,6 @@ class Read(Builtin):
         "readf": "`1` is not a valid format specification.",
         "readn": "Invalid real number found when reading from `1`.",
         "readt": "Invalid input found when reading `1` from `2`.",
-        "intnm": (
-            "Non-negative machine-sized integer expected at " "position 3 in `1`."
-        ),
     }
 
     rules = {
@@ -868,14 +888,26 @@ class Read(Builtin):
                 if new_type is None:
                     return
                 checked_types.append(new_type)
-            check_types = tuple(checked_types)
+            checked_types = tuple(checked_types)
         else:
             new_type = validate_read_type("Read", types, evaluation)
             if new_type is None:
                 return
             checked_types = (new_type,)
 
-        return eval_Read(name, n, checked_types, stream, evaluation, options)
+        result = eval_Read("Read", n, checked_types, stream, evaluation, options)
+        if isinstance(result, list):
+            if isinstance(types, ListExpression):
+                assert len(result) == len(
+                    types.elements
+                ), "internal error: eval_Read() should have a return for each type"
+            else:
+                assert (
+                    len(result) == 1
+                ), f"internal error: eval_Read() should return at most 1 element; got {result}"
+                return result[0]
+
+        return from_python(result)
 
 
 class ReadList(Read):
@@ -982,7 +1014,10 @@ class ReadList(Read):
     >> InputForm[%]
      = {123, abc}
     """
-    messages = {"opstl": "Value of option `1` should be a string or a list of strings."}
+    messages = {
+        "opstl": "Value of option `1` should be a string or a list of strings.",
+        "readf": "`1` is not a valid format specification.",
+    }
     options = {
         "NullRecords": "False",
         "NullWords": "False",
@@ -998,9 +1033,9 @@ class ReadList(Read):
     def eval(self, file, types, evaluation: Evaluation, options: dict):
         "ReadList[file_, types_, OptionsPattern[ReadList]]"
 
+        py_options = parse_read_options(options)
         # Options
         # TODO: Implement extra options
-        # py_options = parse_read_options(options)
         # null_records = py_options['NullRecords']
         # null_words = py_options['NullWords']
         # record_separators = py_options['RecordSeparators']
@@ -1008,7 +1043,6 @@ class ReadList(Read):
         # word_separators = py_options['WordSeparators']
 
         result = []
-        name, n, stream = read_name_and_stream(file, evaluation)
 
         # FIXME: DRY better with Read[].
         # Validate types parameter and store the
@@ -1020,12 +1054,14 @@ class ReadList(Read):
                 if new_type is None:
                     return
                 checked_types.append(new_type)
-            check_types = tuple(checked_types)
+            checked_types = tuple(checked_types)
         else:
             new_type = validate_read_type("ReadList", types, evaluation)
             if new_type is None:
                 return
             checked_types = (new_type,)
+
+        name, n, stream = read_name_and_stream(file, evaluation)
 
         if name is None:
             return
@@ -1033,17 +1069,26 @@ class ReadList(Read):
             return SymbolFailed
 
         while True:
-            tmp = eval_Read(name, n, checked_types, stream, evaluation, options)
+            next_elt = eval_Read(
+                "ReadList", n, checked_types, stream, evaluation, options
+            )
 
-            if tmp is None:
+            if next_elt is None:
                 return
 
-            if tmp is SymbolFailed:
+            if next_elt is SymbolFailed:
                 return
 
-            if tmp is SymbolEndOfFile:
+            if next_elt is SymbolEndOfFile:
                 break
-            result.append(tmp)
+
+            if isinstance(next_elt, list) and py_options["TokenWords"]:
+                # FIXME: This might not be correct in all cases.
+                # we probably need a more positive way to indicate whether next_elt
+                # was returned from TokenWord parsing or not.
+                result += next_elt
+            else:
+                result.append(next_elt)
         return from_python(result)
 
     def eval_n(self, file, types, n: Integer, evaluation: Evaluation, options: dict):
@@ -1305,6 +1350,8 @@ class Find(Read):
     #> Close[stream]
      = ...
     """
+
+    rules = {}
 
     options = {
         "AnchoredSearch": "False",

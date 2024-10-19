@@ -15,7 +15,7 @@ sort_order = "mathics.builtin.applying-functions-to-lists"
 from typing import Iterable
 
 from mathics.builtin.list.constructing import List
-from mathics.core.atoms import Integer
+from mathics.core.atoms import Integer, Integer3
 from mathics.core.builtin import BinaryOperator, Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
@@ -328,7 +328,6 @@ class MapThread(Builtin):
 
     summary_text = "map a function across corresponding elements in multiple lists"
     messages = {
-        "intnm": "Non-negative machine-sized integer expected at position `2` in `1`.",
         "mptc": "Incompatible dimensions of objects at positions {2, `1`} and {2, `2`} of `3`; dimensions are `4` and `5`.",
         "mptd": "Object `1` at position {2, `2`} in `3` has only `4` of required `5` dimensions.",
         "list": "List expected at position `2` in `1`.",
@@ -350,7 +349,7 @@ class MapThread(Builtin):
             n = n.get_int_value()
 
         if n is None or n < 0:
-            evaluation.message("MapThread", "intnm", full_expr, 3)
+            evaluation.message("MapThread", "intnm", Integer3, full_expr)
             return
 
         if expr.has_form("List", 0):

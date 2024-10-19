@@ -19,8 +19,11 @@ all doc texdoc: mathics.pdf
 doc-data $(DOCTEST_LATEX_DATA_PCL):
 	(cd ../.. && MATHICS_CHARACTER_ENCODING="UTF-8" $(PYTHON) docpipeline.py --output --keep-going $(MATHICS3_MODULE_OPTION))
 
+mathics-title.pdf:
+	cp mathics-title.pdf-src mathics-title.pdf
+
 #: Build mathics PDF
-mathics.pdf: mathics.tex documentation.tex logo-text-nodrop.pdf logo-heptatom.pdf version-info.tex $(DOCTEST_LATEX_DATA_PCL)
+mathics.pdf: mathics.tex documentation.tex mathics-title.pdf logo-text-nodrop.pdf logo-heptatom.pdf version-info.tex $(DOCTEST_LATEX_DATA_PCL)
 	$(LATEXMK) --verbose -f -pdf -pdflatex="$(XETEX) -halt-on-error" mathics
 
 #: File containing version information
@@ -48,7 +51,7 @@ clean:
 	rm -f mathics.asy mathics.aux mathics.idx mathics.log mathics.mtc mathics.mtc* mathics.out mathics.toc || true
 	rm -f test-mathics.aux test-mathics.idx test-mathics.log test-mathics.mtc test-mathics.mtc* test-mathics.out test-mathics.toc || true
 	rm -f mathics.fdb_latexmk mathics.ilg mathics.ind mathics.maf mathics.pre || true
-	rm -f mathics-*.* || true
+	rm -f mathics-*.??? || true
 	rm -f mathics-test.asy mathics-test.aux mathics-test.idx mathics-test.log mathics-test.mtc mathicsest.mtc* mathics-test.out mathics-test.toc || true
 	rm -f documentation.tex $(DOCTEST_LATEX_DATA_PCL) || true
 	rm -f mathics.pdf mathics.dvi test-mathics.pdf test-mathics.dvi || true

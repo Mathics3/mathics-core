@@ -1,4 +1,4 @@
-name: Mathics3 (OSX)
+name: Mathics3 (macOS)
 
 on:
   push:

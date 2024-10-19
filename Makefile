@@ -61,7 +61,7 @@ build:
 # because pip install doesn't handle
 # INSTALL_REQUIRES properly
 #: Set up to run from the source tree
-develop:  mathics/data/op-tables.json mathics/data/operators.json
+develop:  mathics/data/op-tables.json mathics/data/operator-tables.json
 	$(PIP) install -e .[dev]
 
 # See note above on ./setup.py

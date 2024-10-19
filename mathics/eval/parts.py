@@ -560,7 +560,7 @@ def deletecases_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
     """
     nothing = SymbolNothing
 
-    match = Matcher(pattern)
+    match = Matcher(pattern, evaluation)
     match = match.match
     if type(levelspec) is int:
         lsmin = 1
@@ -631,9 +631,8 @@ def find_matching_indices_with_levelspec(expr, pattern, evaluation, levelspec=1,
     n indicates the number of occurrences to return. By default, it
     returns all the occurrences.
     """
-    from mathics.builtin.patterns import Matcher
 
-    match = Matcher(pattern)
+    match = Matcher(pattern, evaluation)
     match = match.match
     if type(levelspec) is int:
         lsmin = 0

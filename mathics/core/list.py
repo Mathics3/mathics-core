@@ -110,12 +110,7 @@ class ListExpression(Expression):
             return self
 
         new_list = ListExpression(*elements)
-        # TODO: we could have a specialized version of this
-        # that keeps self.value up to date when that is
-        # easy to do. That is left of some future time to
-        # decide whether doing this this is warranted.
         new_list._build_elements_properties()
-        new_list.value = None
         return new_list
 
     @property

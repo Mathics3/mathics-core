@@ -225,6 +225,7 @@ class Builtin:
         if not self.context:
             self.context = "Pymathics`" if is_pymodule else "System`"
         name = self.get_name()
+        attributes = self.attributes
         options = {}
 
         # - 'Strict': warn and fail with unsupported options
@@ -271,19 +272,41 @@ class Builtin:
         for pattern, function in self.get_functions(
             prefix="eval", is_pymodule=is_pymodule
         ):
+            pat_attr = attributes if pattern.get_head_name() == name else None
             rules.append(
-                FunctionApplyRule(name, pattern, function, check_options, system=True)
+                FunctionApplyRule(
+                    name,
+                    pattern,
+                    function,
+                    check_options,
+                    attributes=pat_attr,
+                    system=True,
+                )
             )
         for pattern, function in self.get_functions(is_pymodule=is_pymodule):
+            pat_attr = attributes if pattern.get_head_name() == name else None
             rules.append(
-                FunctionApplyRule(name, pattern, function, check_options, system=True)
+                FunctionApplyRule(
+                    name,
+                    pattern,
+                    function,
+                    check_options,
+                    attributes=pat_attr,
+                    system=True,
+                )
             )
         for pattern_str, replace_str in self.rules.items():
             pattern_str = pattern_str % {"name": name}
             pattern = parse_builtin_rule(pattern_str, definition_class)
             replace_str = replace_str % {"name": name}
+            pat_attr = attributes if pattern.get_head_name() == name else None
             rules.append(
-                Rule(pattern, parse_builtin_rule(replace_str), system=not is_pymodule)
+                Rule(
+                    pattern,
+                    parse_builtin_rule(replace_str),
+                    attributes=pat_attr,
+                    system=not is_pymodule,
+                )
             )
 
         box_rules = []
@@ -324,11 +347,14 @@ class Builtin:
         formatvalues = {"": []}
         for pattern, function in self.get_functions("format_"):
             forms, pattern = extract_forms(pattern)
+            pat_attr = attributes if pattern.get_head_name() == name else None
             for form in forms:
                 if form not in formatvalues:
                     formatvalues[form] = []
                 formatvalues[form].append(
-                    FunctionApplyRule(name, pattern, function, None, system=True)
+                    FunctionApplyRule(
+                        name, pattern, function, None, attributes=pat_attr, system=True
+                    )
                 )
         for pattern, replace in self.formats.items():
             forms, pattern = extract_forms(pattern)
@@ -380,7 +406,7 @@ class Builtin:
             rules=rules,
             formatvalues=formatvalues,
             messages=messages,
-            attributes=self.attributes,
+            attributes=attributes,
             options=options,
             defaultvalues=defaults,
             builtin=self,
@@ -807,6 +833,7 @@ class IterationFunction(Builtin):
 
     def eval_range(self, expr, i, imax, evaluation):
         "%(name)s[expr_, {i_Symbol, imax_}]"
+
         imax = imax.evaluate(evaluation)
         if imax.has_form("Range", None):
             # FIXME: this should work as an iterator in Python3, not
@@ -958,6 +985,7 @@ class IterationFunction(Builtin):
 
     def eval_list(self, expr, i, items, evaluation):
         "%(name)s[expr_, {i_Symbol, {items___}}]"
+
         items = items.evaluate(evaluation).get_sequence()
         result = []
         for item in items:
@@ -1155,7 +1183,7 @@ class PatternObject(BuiltinElement, BasePattern):
 
     arg_counts: List[int] = []
 
-    def init(self, expr, evaluation: Optional[Evaluation] = None):
+    def init(self, expr: Expression, evaluation: Optional[Evaluation] = None):
         super().init(expr, evaluation=evaluation)
         if self.arg_counts is not None:
             if len(expr.elements) not in self.arg_counts:
@@ -1191,11 +1219,11 @@ class PatternObject(BuiltinElement, BasePattern):
         return self.get_name()
 
     def get_match_candidates(
-        self, elements: Tuple[BaseElement], expression, attributes, evaluation, vars={}
+        self, elements: Tuple[BaseElement], pattern_context: dict
     ) -> Tuple[BaseElement]:
         return elements
 
-    def get_match_count(self, vars={}):
+    def get_match_count(self, vars_dict: dict = {}):
         return (1, 1)
 
     def get_sort_key(self, pattern_sort=False) -> tuple:

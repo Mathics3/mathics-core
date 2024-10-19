@@ -97,8 +97,11 @@ class BaseRule(KeyComparable, ABC):
         pattern: Expression,
         system: bool = False,
         evaluation: Optional[Evaluation] = None,
+        attributes: Optional[int] = None,
     ) -> None:
-        self.pattern = BasePattern.create(pattern, evaluation=evaluation)
+        self.pattern = BasePattern.create(
+            pattern, attributes=attributes, evaluation=evaluation
+        )
         self.system = system
 
     def apply(
@@ -159,7 +162,15 @@ class BaseRule(KeyComparable, ABC):
                 # only first possibility counts
 
         try:
-            self.pattern.match(yield_match, expression, {}, evaluation, fully=fully)
+            self.pattern.match(
+                expression,
+                pattern_context={
+                    "yield_func": yield_match,
+                    "vars_dict": {},
+                    "evaluation": evaluation,
+                    "fully": fully,
+                },
+            )
         except StopGenerator_BaseRule as exc:
             # FIXME: figure where these values are not getting set or updated properly.
             # For now we have to take a pessimistic view
@@ -222,8 +233,11 @@ class Rule(BaseRule):
         replace: Expression,
         system=False,
         evaluation: Optional[Evaluation] = None,
+        attributes: Optional[int] = None,
     ) -> None:
-        super(Rule, self).__init__(pattern, system=system, evaluation=evaluation)
+        super(Rule, self).__init__(
+            pattern, system=system, evaluation=evaluation, attributes=attributes
+        )
         self.replace = replace
 
     def apply_rule(
@@ -310,9 +324,10 @@ class FunctionApplyRule(BaseRule):
         check_options: Optional[Callable],
         system: bool = False,
         evaluation: Optional[Evaluation] = None,
+        attributes: Optional[int] = None,
     ) -> None:
         super(FunctionApplyRule, self).__init__(
-            pattern, system=system, evaluation=evaluation
+            pattern, system=system, attributes=attributes, evaluation=evaluation
         )
         self.name = name
         self.function = function

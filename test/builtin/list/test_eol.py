@@ -2,7 +2,7 @@
 """
 Unit tests for mathics.builtins.list.constructing
 """
-from test.helper import check_evaluation
+from test.helper import check_evaluation, check_evaluation_as_in_cli
 
 import pytest
 
@@ -265,4 +265,19 @@ def test_eol_edicates_private_doctests(
         failure_message=assert_message,
         expected_messages=expected_messages,
         hold_expected=True,
+    )
+
+
+# To check expressions with has `Sequence` as output,
+# we need to use ``check_evaluation_as_in_cli``
+@pytest.mark.parametrize(
+    ("str_expr", "expected_messages", "str_expected", "assert_message"),
+    [
+        ("Delete[{}, 0]", None, "Sequence[]", None),
+        ("Delete[{1, 2}, 0]", None, "Sequence[1, 2]", None),
+    ],
+)
+def test_as_in_cli(str_expr, expected_messages, str_expected, assert_message):
+    check_evaluation_as_in_cli(
+        str_expr, str_expected, expected_messages, assert_message
     )

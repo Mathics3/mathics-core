@@ -431,12 +431,15 @@ class Reap(Builtin):
         "Reap[expr_, {patterns___}, f_]"
 
         patterns = patterns.get_sequence()
-        sown = [(BasePattern.create(pattern), []) for pattern in patterns]
+        sown = [
+            (BasePattern.create(pattern, evaluation=evaluation), [])
+            for pattern in patterns
+        ]
 
         def listener(e, tag):
             result = False
             for pattern, items in sown:
-                if pattern.does_match(tag, evaluation):
+                if pattern.does_match(tag, {"evaluation": evaluation}):
                     for item in items:
                         if item[0].sameQ(tag):
                             item[1].append(e)

@@ -228,7 +228,7 @@ class D(SympyFunction):
         if f == x:
             return Integer1
 
-        x_pattern = BasePattern.create(x)
+        x_pattern = BasePattern.create(x, evaluation=evaluation)
         if f.is_free(x_pattern, evaluation):
             return Integer0
 
@@ -1945,7 +1945,7 @@ class SeriesData(Builtin):
             nummax.get_int_value(),
             den.get_int_value(),
         )
-        x_pattern = BasePattern.create(x)
+        x_pattern = BasePattern.create(x, evaluation=evaluation)
         incompat_series = []
         max_exponent = Integer(int(series[2] / series[3] + 1))
         if coeff.get_head() is SymbolSequence:
@@ -2291,7 +2291,7 @@ class Solve(Builtin):
         vars = []
         vars_sympy = []
         for var, var_sympy in zip(all_vars, all_vars_sympy):
-            pattern = BasePattern.create(var)
+            pattern = BasePattern.create(var, evaluation=evaluation)
             if not eqs.is_free(pattern, evaluation):
                 vars.append(var)
                 vars_sympy.append(var_sympy)

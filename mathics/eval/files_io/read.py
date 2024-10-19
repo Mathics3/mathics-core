@@ -159,9 +159,9 @@ def parse_read_options(options) -> dict:
             string_quotes=False
         )
         assert isinstance(record_separators, list)
-        assert all(
-            isinstance(s, str) and s[0] == s[-1] == '"' for s in record_separators
-        )
+        # assert all(
+        #     isinstance(s, str) and s[0] == s[-1] == '"' for s in record_separators
+        # )
         record_separators = [s[1:-1] for s in record_separators]
         result["RecordSeparators"] = record_separators
 
@@ -171,8 +171,6 @@ def parse_read_options(options) -> dict:
             string_quotes=False
         )
         assert isinstance(word_separators, list)
-        assert all(isinstance(s, str) and s[0] == s[-1] == '"' for s in word_separators)
-        word_separators = [s[1:-1] for s in word_separators]
         result["WordSeparators"] = word_separators
 
     # NullRecords
@@ -190,7 +188,6 @@ def parse_read_options(options) -> dict:
     # TokenWords
     if "System`TokenWords" in keys:
         token_words = options["System`TokenWords"].to_python(string_quotes=False)
-        assert token_words == []
         result["TokenWords"] = token_words
 
     return result
@@ -385,9 +382,7 @@ def read_from_stream(
                         else:
                             yield word
                             continue
-                last_word = word
-                word = ""
-                yield last_word
+                yield word
                 break
 
             if tmp in word_separators:
@@ -396,30 +391,24 @@ def read_from_stream(
                 if stream.io.seekable():
                     stream.io.seek(stream.io.tell() - 1)
                 word += some_token_word_prefix
-                last_word = word
-                word = ""
                 some_token_word_prefix = ""
-                yield last_word
+                yield word
                 break
 
             if accepted is not None and tmp not in accepted:
                 word += some_token_word_prefix
-                last_word = word
-                word = ""
                 some_token_word_prefix = ""
-                yield last_word
+                yield word
                 break
 
             some_token_word_prefix += tmp
             for token_word in token_words:
                 if token_word == some_token_word_prefix:
                     if word:
-                        # Start here
-                        last_word = word
-                        word = ""
-                        some_token_word_prefix = ""
-                        yield last_word
-                    yield token_word
+                        yield [word, token_word]
+                    else:
+                        yield token_word
+                    some_token_word_prefix = ""
                     break
             else:
                 word += some_token_word_prefix
