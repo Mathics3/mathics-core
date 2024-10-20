@@ -1746,6 +1746,7 @@ class SeriesCoefficient(Builtin):
      = -1 / 120
     """
 
+    attributes = A_PROTECTED
     summary_text = "power series coefficient"
 
     rules = {

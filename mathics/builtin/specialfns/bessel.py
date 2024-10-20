@@ -572,6 +572,7 @@ class HypergeometricU(MPMathFunction):
      = 0.105479
     """
 
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
     summary_text = "Tricomi confluent hypergeometric function"
     mpmath_name = "hyperu"
     sympy_name = ""

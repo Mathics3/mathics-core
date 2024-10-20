@@ -18,6 +18,7 @@ from mpmath import ceil as mpceil, floor as mpfloor
 from mathics.algorithm.introselect import introselect
 from mathics.builtin.list.math import _RankedTakeLargest, _RankedTakeSmallest
 from mathics.core.atoms import Atom, Integer, Symbol, SymbolTrue
+from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
@@ -85,6 +86,7 @@ class Quantile(Builtin):
         "nquan": "The quantile `1` has to be between 0 and 1.",
     }
 
+    attributes = A_PROTECTED | A_READ_PROTECTED
     rules = {
         "Quantile[list_List, q_, abcd_]": "Quantile[list, {q}, abcd]",
         "Quantile[list_List, q_]": "Quantile[list, q, {{0, 0}, {1, 0}}]",
@@ -170,6 +172,7 @@ class Quartiles(Builtin):
      = {27 / 4, 13, 77 / 4}
     """
 
+    attributes = A_PROTECTED | A_READ_PROTECTED
     rules = {
         "Quartiles[list_List]": "Quantile[list, {1/4, 1/2, 3/4}, {{1/2, 0}, {0, 1}}]",
     }
@@ -194,6 +197,7 @@ class RankedMax(Builtin):
         "intpm": "Expected positive integer at position 2 in ``.",
         "rank": "The specified rank `1` is not between 1 and `2`.",
     }
+    attributes = A_PROTECTED | A_READ_PROTECTED
     summary_text = "the n-th largest item"
 
     def eval(self, element, n: Integer, evaluation: Evaluation):
@@ -231,6 +235,7 @@ class RankedMin(Builtin):
         "intpm": "Expected positive integer at position 2 in ``.",
         "rank": "The specified rank `1` is not between 1 and `2`.",
     }
+    attributes = A_PROTECTED | A_READ_PROTECTED
     summary_text = "the n-th smallest item"
 
     def eval(self, element, n: Integer, evaluation: Evaluation):
@@ -263,6 +268,7 @@ class ReverseSort(Builtin):
      = {d, c, b, a}
     """
 
+    attributes = A_PROTECTED
     summary_text = "reverse sort"
 
     rules = {
@@ -301,6 +307,7 @@ class Sort(Builtin):
      = {x_ + n_ y_, x_ + y_}
     """
 
+    attributes = A_PROTECTED
     summary_text = "sort lexicographically or with any comparison function"
 
     def eval(self, list, evaluation: Evaluation):
@@ -359,6 +366,7 @@ class TakeLargest(_RankedTakeLargest):
      = {Missing[abc], 150}
     """
 
+    attributes = A_PROTECTED
     summary_text = "sublist of n largest elements"
 
     def eval(self, element, n, evaluation, options):
@@ -381,6 +389,7 @@ class TakeSmallest(_RankedTakeSmallest):
      = {-1, 10}
     """
 
+    attributes = A_PROTECTED
     summary_text = "sublist of n smallest elements"
 
     def eval(self, element, n, evaluation, options):

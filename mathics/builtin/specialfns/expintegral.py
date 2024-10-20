@@ -5,6 +5,12 @@ Exponential Integral and Special Functions
 """
 
 
+from mathics.core.attributes import (
+    A_LISTABLE,
+    A_NUMERIC_FUNCTION,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+)
 from mathics.core.builtin import Builtin, MPMathFunction
 
 
@@ -21,6 +27,7 @@ class ExpIntegralE(MPMathFunction):
      = 0.0375343
     """
 
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
     summary_text = "exponential integral function of order n"
     nargs = {2}
     sympy_name = "expint"
@@ -58,6 +65,7 @@ class LambertW(Builtin):
      = ProductLog[k, z]
     """
 
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "undocumented alias"
     rules = {
         "LambertW[z_]": "ProductLog[z]",
@@ -89,6 +97,7 @@ class ProductLog(MPMathFunction):
      = -Graphics-
     """
 
+    attributes = A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
     summary_text = "Lambert's W function"
     sympy_name = "LambertW"  # function called LambertW in SymPy
     mpmath_name = "lambertw"

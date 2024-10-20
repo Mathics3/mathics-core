@@ -11,6 +11,7 @@ from sympy.utilities.iterables import ordered_partitions
 from mathics.core.atoms import Integer, Integer0, Integer10, Rational, Real
 from mathics.core.attributes import (
     A_LISTABLE,
+    A_N_HOLD_ALL,
     A_NUMERIC_FUNCTION,
     A_ORDERLESS,
     A_PROTECTED,
@@ -124,7 +125,7 @@ class DivisorSigma(SympyFunction):
     = 546
     """
 
-    attributes = A_LISTABLE | A_PROTECTED
+    attributes = A_LISTABLE | A_N_HOLD_ALL | A_PROTECTED
     summary_text = "divisor function"
     sympy_name = "divisor_sigma"
 
@@ -150,7 +151,7 @@ class DivisorSum(Builtin):
 
     """
 
-    attributes = A_LISTABLE | A_PROTECTED
+    attributes = A_N_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
     summary_text = "divisor sum"
 
     rules = {
@@ -387,7 +388,7 @@ class IntegerPart(Builtin):
      = -5
     """
 
-    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_READ_PROTECTED | A_PROTECTED
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     summary_text = "integer part of a number"
 
     def eval(self, n, evaluation: Evaluation):
@@ -561,7 +562,7 @@ class MersennePrimeExponent(SympyFunction):
 
     """
 
-    attributes = A_LISTABLE | A_PROTECTED
+    attributes = A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
     summary_text = "Mersenne prime exponent"
     sympy_name = "mersenne_prime_exponent"
 
@@ -708,7 +709,7 @@ class PowersRepresentations(Builtin):
      = {{0, 1, 7}, {0, 5, 5}, {3, 4, 5}}
     """
 
-    attributes = A_PROTECTED
+    attributes = A_PROTECTED | A_READ_PROTECTED
     summary_text = "represent a number as a sum of powers"
 
     rules = {

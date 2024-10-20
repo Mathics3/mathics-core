@@ -30,7 +30,7 @@ from mathics.core.atoms import (
     MachineReal,
     Rational,
 )
-from mathics.core.attributes import A_LISTABLE, A_PROTECTED
+from mathics.core.attributes import A_LISTABLE, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Predefined
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
@@ -395,7 +395,7 @@ class NumberDigit(Builtin):
 
     """
 
-    attributes = A_LISTABLE | A_PROTECTED
+    attributes = A_PROTECTED | A_READ_PROTECTED
 
     summary_text = "digits of a real number"
 

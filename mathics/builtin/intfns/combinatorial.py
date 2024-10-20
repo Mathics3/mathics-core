@@ -17,6 +17,7 @@ from itertools import combinations
 from mathics.core.atoms import Integer
 from mathics.core.attributes import (
     A_LISTABLE,
+    A_N_HOLD_FIRST,
     A_NUMERIC_FUNCTION,
     A_ORDERLESS,
     A_PROTECTED,
@@ -60,7 +61,7 @@ class BellB(SympyFunction):
      = x + 15 x ^ 2 + 25 x ^ 3 + 10 x ^ 4 + x ^ 5
     """
 
-    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    attributes = A_LISTABLE | A_N_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
     summary_text = "Bell numbers"
     sympy_name = "bell"
 
@@ -234,7 +235,7 @@ class EulerE(SympyFunction):
      = -1 / 2 + 5 z ^ 2 / 2 - 5 z ^ 4 / 2 + z ^ 5
     """
 
-    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "Euler numbers"
     sympy_name = "euler"
 
@@ -308,7 +309,7 @@ class KroneckerSymbol(Builtin):
      = {{1, 1, 1, 1, 1}, {1, 0, -1, 0, -1}, {1, -1, 0, 1, -1}, {1, 0, 1, 0, 1}, {1, -1, -1, 1, 0}}
     """
 
-    attributes = A_LISTABLE | A_PROTECTED
+    attributes = A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
     summary_text = "Kronecker symbol"
 
     rules = {
@@ -435,7 +436,7 @@ class PolygonalNumber(Builtin):
      = {55, 100, 145, 190, 235, 280, 325, 370}
     """
 
-    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
     summary_text = "polygonal number"
 
     rules = {
@@ -542,7 +543,7 @@ class SquaresR(Builtin):
      = {16, 112, 448, 1136, 2016, 3136, 5504, 9328, 12112, 14112}
     """
 
-    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    attributes = A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
     summary_text = "sum of squares function"
 
     rules = {

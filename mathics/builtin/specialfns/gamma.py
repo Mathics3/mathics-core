@@ -9,7 +9,12 @@ import mpmath
 import sympy
 
 from mathics.core.atoms import Integer, Integer0, Number
-from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
+from mathics.core.attributes import (
+    A_LISTABLE,
+    A_NUMERIC_FUNCTION,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+)
 from mathics.core.builtin import (
     MPMathFunction,
     MPMathMultiFunction,
@@ -160,7 +165,7 @@ class Factorial(PostfixOperator, MPMathFunction):
 
     """
 
-    attributes = A_NUMERIC_FUNCTION | A_PROTECTED | A_LISTABLE
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
 
     mpmath_name = "factorial"
     operator = "!"
@@ -195,7 +200,7 @@ class Factorial2(PostfixOperator, MPMathFunction):
      = 3.35237
     """
 
-    attributes = A_NUMERIC_FUNCTION | A_PROTECTED | A_LISTABLE
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
     operator = "!!"
     mpmath_name = "fac2"
     sympy_name = "factorial2"
@@ -530,7 +535,7 @@ class Subfactorial(MPMathFunction):
      = 265
     """
 
-    attributes = A_NUMERIC_FUNCTION | A_PROTECTED | A_LISTABLE
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
 
     mpmath_name = "subfactorial"
     sympy_name = "subfactorial"
