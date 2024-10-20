@@ -276,55 +276,6 @@ class JaccardDissimilarity(_BooleanDissimilarity):
         )
 
 
-class JacobiSymbol(Builtin):
-    """
-    <url>
-    :Jacobi symbol: https://en.wikipedia.org/wiki/Jacobi_symbol</url> (<url>
-    :WMA: https://reference.wolfram.com/language/ref/JacobiSymbol.html</url>)
-    <dl>
-      <dt>'JacobiSymbol[$a$, $n$]'
-      <dd>returns the Jacobi symbol ($a$/$n$).
-    </dl>
-
-    >> Table[JacobiSymbol[n, m], {n, 0, 10}, {m, 1, n, 2}]
-     = {{}, {1}, {1}, {1, 0}, {1, 1}, {1, -1, 0}, {1, 0, 1}, {1, 1, -1, 0}, {1, -1, -1, 1}, {1, 0, 1, 1, 0}, {1, 1, 0, -1, 1}}
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED
-    summary_text = "Jacobi symbol"
-
-    rules = {
-        "JacobiSymbol[a_, p_?PrimeQ]": "Which[Mod[a, p] == 0, 0, PowerMod[a, (p - 1)/2, p] == 1, 1, True, -1]",  # Legendre symbol
-        "JacobiSymbol[a_, n_]": "Times @@ (JacobiSymbol[a, #1]^#2 & @@@ FactorInteger[n])",
-    }
-
-
-class KroneckerSymbol(Builtin):
-    """
-    <url>
-    :Kronecker symbol: https://en.wikipedia.org/wiki/Kronecker_symbol</url> (<url>
-    :WMA: https://reference.wolfram.com/language/ref/KroneckerSymbol.html</url>)
-    <dl>
-      <dt>'KroneckerSymbol[$a$, $n$]'
-      <dd>returns the Kronecker symbol ($a$/$n$).
-    </dl>
-
-    >> Table[KroneckerSymbol[n, m], {n, 5}, {m, 5}]
-     = {{1, 1, 1, 1, 1}, {1, 0, -1, 0, -1}, {1, -1, 0, 1, -1}, {1, 0, 1, 0, 1}, {1, -1, -1, 1, 0}}
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
-    summary_text = "Kronecker symbol"
-
-    rules = {
-        "KroneckerSymbol[a_, n_?(Positive[#] && OddQ[#] &)]": "JacobiSymbol[a, n]",
-        "KroneckerSymbol[a_, 0]": "If[Abs[a] == 1, 1, 0]",
-        "KroneckerSymbol[a_, -1]": "If[a < 0, -1, 1]",
-        "KroneckerSymbol[a_, 2]": "Which[EvenQ[a], 0, Mod[a, 8] == 1 || Mod[a, 8] == 7, 1, True, -1]",
-        "KroneckerSymbol[a_, n_]": "Times @@ (KroneckerSymbol[a, #1]^#2 & @@@ FactorInteger[n])",
-    }
-
-
 class LucasL(SympyFunction):
     """
     <url>
@@ -524,41 +475,6 @@ class SokalSneathDissimilarity(_BooleanDissimilarity):
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         r = 2 * (c_tf + c_ft)
         return Expression(SymbolDivide, Integer(r), Integer(c_tt + r))
-
-
-class SquaresR(Builtin):
-    """
-    <url>
-    :Sum of squares function: https://en.wikipedia.org/wiki/Sum_of_squares_function</url> (<url>
-    :WMA: https://reference.wolfram.com/language/ref/SquaresR.html</url>)
-
-    <dl>
-      <dt>'SquaresR[$d$, $n$]'
-      <dd>returns the number of ways to represent $n$ as a sum of $d$ squares.
-    </dl>
-
-    >> Table[SquaresR[2, n], {n, 10}]
-     = {4, 4, 0, 4, 8, 0, 0, 4, 4, 8}
-    >> Table[Sum[SquaresR[2, k], {k, 0, n^2}], {n, 5}]
-     = {5, 13, 29, 49, 81}
-    >> Table[SquaresR[4, n], {n, 10}]
-     = {8, 24, 32, 24, 48, 96, 64, 24, 104, 144}
-    >> Table[SquaresR[6, n], {n, 10}]
-     = {12, 60, 160, 252, 312, 544, 960, 1020, 876, 1560}
-    >> Table[SquaresR[8, n], {n, 10}]
-     = {16, 112, 448, 1136, 2016, 3136, 5504, 9328, 12112, 14112}
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
-    summary_text = "sum of squares function"
-
-    rules = {
-        "SquaresR[d_Integer, 0]": "1",
-        "SquaresR[2, n_Integer?Positive]": "4 Total[(-1)^((# - 1)/2) & /@ Select[Divisors[n], Mod[#, 4] == 1 || Mod[#, 4] == 3 &]]",
-        "SquaresR[4, n_Integer?Positive]": "8 Total[Select[Divisors[n], Mod[#, 4] != 0 &]]",
-        "SquaresR[6, n_Integer?Positive]": "4 Total[#^2 * (4 * KroneckerSymbol[-4, n/#] - KroneckerSymbol[-4, #]) & /@ Divisors[n]]",
-        "SquaresR[8, n_Integer?Positive]": "16 Total[(-1)^(n + #) #^3 & /@ Divisors[n]]",
-    }
 
 
 class Subsets(Builtin):
