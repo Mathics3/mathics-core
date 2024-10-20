@@ -43,9 +43,10 @@ SymbolSubsets = Symbol("Subsets")
 
 class BellB(SympyFunction):
     """
-    <url>:Bell number: https://en.wikipedia.org/wiki/Bell_number</url>
-    (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.bell</url>,
-    <url>:WMA: https://reference.wolfram.com/language/ref/BellB.html</url>)
+    <url>
+    :Bell number: https://en.wikipedia.org/wiki/Bell_number</url> (<url>
+    :SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.bell</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/BellB.html</url>)
     <dl>
       <dt>'BellB[$n$]'
       <dd>Bell number $B_n$.
@@ -217,9 +218,10 @@ class DiceDissimilarity(_BooleanDissimilarity):
 
 class EulerE(SympyFunction):
     """
-    <url>:Euler numbers: https://en.wikipedia.org/wiki/Euler_numbers</url>
-    (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.euler</url>,
-    <url>:WMA: https://reference.wolfram.com/language/ref/EulerE.html</url>)
+    <url>
+    :Euler numbers: https://en.wikipedia.org/wiki/Euler_numbers</url> (<url>
+    :SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.euler</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/EulerE.html</url>)
     <dl>
       <dt>'EulerE[$n$]'
       <dd>Euler number $E_n$.
@@ -276,8 +278,9 @@ class JaccardDissimilarity(_BooleanDissimilarity):
 
 class JacobiSymbol(Builtin):
     """
-    <url>:Jacobi symbol: https://en.wikipedia.org/wiki/Jacobi_symbol</url>
-    (<url>:WMA: https://reference.wolfram.com/language/ref/JacobiSymbol.html</url>)
+    <url>
+    :Jacobi symbol: https://en.wikipedia.org/wiki/Jacobi_symbol</url> (<url>
+    :WMA: https://reference.wolfram.com/language/ref/JacobiSymbol.html</url>)
     <dl>
       <dt>'JacobiSymbol[$a$, $n$]'
       <dd>returns the Jacobi symbol $\\left(\\frac{a}{n}\\right)$.
@@ -298,8 +301,9 @@ class JacobiSymbol(Builtin):
 
 class KroneckerSymbol(Builtin):
     """
-    <url>:Kronecker symbol: https://en.wikipedia.org/wiki/Kronecker_symbol</url>
-    (<url>:WMA: https://reference.wolfram.com/language/ref/KroneckerSymbol.html</url>)
+    <url>
+    :Kronecker symbol: https://en.wikipedia.org/wiki/Kronecker_symbol</url> (<url>
+    :WMA: https://reference.wolfram.com/language/ref/KroneckerSymbol.html</url>)
     <dl>
       <dt>'KroneckerSymbol[$a$, $n$]'
       <dd>returns the Kronecker symbol $\\left(\\frac{a}{n}\\right)$.
@@ -423,8 +427,9 @@ class Multinomial(Builtin):
 
 class PolygonalNumber(Builtin):
     """
-    <url>:Polygonal number: https://en.wikipedia.org/wiki/Polygonal_number</url>
-    (<url>:WMA: https://reference.wolfram.com/language/ref/PolygonalNumber.html</url>)
+    <url>
+    :Polygonal number: https://en.wikipedia.org/wiki/Polygonal_number</url> (<url>
+    :WMA: https://reference.wolfram.com/language/ref/PolygonalNumber.html</url>)
     <dl>
       <dt>'PolygonalNumber[$r$, $n$]'
       <dd>gives the $n$th $r$-gonal number.
@@ -523,8 +528,9 @@ class SokalSneathDissimilarity(_BooleanDissimilarity):
 
 class SquaresR(Builtin):
     """
-    <url>:Sum of squares function: https://en.wikipedia.org/wiki/Sum_of_squares_function</url>
-    (<url>:WMA: https://reference.wolfram.com/language/ref/SquaresR.html</url>)
+    <url>
+    :Sum of squares function: https://en.wikipedia.org/wiki/Sum_of_squares_function</url> (<url>
+    :WMA: https://reference.wolfram.com/language/ref/SquaresR.html</url>)
 
     <dl>
       <dt>'SquaresR[$d$, $n$]'

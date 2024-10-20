@@ -110,9 +110,10 @@ class Divisors(Builtin):
 
 class DivisorSigma(SympyFunction):
     """
-    <url>:Divisor function: https://en.wikipedia.org/wiki/Divisor_function</url>
-    (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.divisor_sigma</url>,
-    <url>:WMA: https://reference.wolfram.com/language/ref/DivisorSigma.html</url>)
+    <url>
+    :Divisor function: https://en.wikipedia.org/wiki/Divisor_function</url> (<url>
+    :SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.divisor_sigma</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/DivisorSigma.html</url>)
 
     <dl>
       <dt>'DivisorSigma[$k$, $n$]'
@@ -409,9 +410,9 @@ class IntegerPart(Builtin):
 
 class IntegerPartitions(Builtin):
     """
-    <url>:Integer partition: https://en.wikipedia.org/wiki/Integer_partition</url>
-    (<url>:SymPy: https://docs.sympy.org/latest/modules/utilities/iterables.html#sympy.utilities.iterables.ordered_partitions</url>,
-    <url>:WMA: https://reference.wolfram.com/language/ref/IntegerPartitions.html</url>)
+    <url>:Integer partition: https://en.wikipedia.org/wiki/Integer_partition</url> (<url>
+    :SymPy: https://docs.sympy.org/latest/modules/utilities/iterables.html#sympy.utilities.iterables.ordered_partitions</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/IntegerPartitions.html</url>)
 
     <dl>
       <dt>'IntegerPartitions[$n$]'
@@ -549,8 +550,9 @@ class MantissaExponent(Builtin):
 
 class MersennePrimeExponent(SympyFunction):
     """
-    <url>:SymPy: https://docs.sympy.org/latest/modules/ntheory.html#sympy.ntheory.factor_.mersenne_prime_exponent</url>,
-    <url>:WMA: https://reference.wolfram.com/language/ref/MersennePrimeExponent.html</url>
+    <url>
+    :SymPy: https://docs.sympy.org/latest/modules/ntheory.html#sympy.ntheory.factor_.mersenne_prime_exponent</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/MersennePrimeExponent.html</url>
 
     <dl>
       <dt>'MersennePrimeExponent[$n$]'
@@ -573,9 +575,10 @@ class MersennePrimeExponent(SympyFunction):
 
 class MoebiusMu(SympyFunction):
     """
-    <url>:Mobius function: https://en.wikipedia.org/wiki/M%C3%B6bius_function</url>
-    (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.mobius</url>,
-    <url>:WMA: https://reference.wolfram.com/language/ref/MoebiusMu.html</url>)
+    <url>
+    :Mobius function: https://en.wikipedia.org/wiki/M%C3%B6bius_function</url> (<url>
+    :SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.mobius</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/MoebiusMu.html</url>)
 
     <dl>
       <dt>'MoebiusMu[$n$]'

@@ -522,9 +522,10 @@ class StieltjesGamma(SympyFunction):
 
 class Subfactorial(MPMathFunction):
     """
-    <url>:Derangement: https://en.wikipedia.org/wiki/Derangement</url>
-    (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.factorials.subfactorial</url>,
-    <url>:WMA: https://reference.wolfram.com/language/ref/Subfactorial.html</url>)
+    <url>
+    :Derangement: https://en.wikipedia.org/wiki/Derangement</url> (<url>
+    :SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.factorials.subfactorial</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/Subfactorial.html</url>)
 
     <dl>
       <dt>'Subfactorial[$n$]'

@@ -560,9 +560,10 @@ class HankelH2(_Bessel):
 
 class HypergeometricU(MPMathFunction):
     """
-    <url>:Confluent hypergeometric function: https://en.wikipedia.org/wiki/Confluent_hypergeometric_function</url>
-    (<url>:mpmath: https://mpmath.org/doc/current/functions/bessel.html#mpmath.hyperu</url>,
-    <url>:WMA: https://reference.wolfram.com/language/ref/HypergeometricU.html</url>)
+    <url>
+    :Confluent hypergeometric function: https://en.wikipedia.org/wiki/Confluent_hypergeometric_function</url> (<url>
+    :mpmath: https://mpmath.org/doc/current/functions/bessel.html#mpmath.hyperu</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/HypergeometricU.html</url>)
     <dl>
       <dt>'HypergeometricU[$a$, $b$, $z$]'
       <dd>returns $U(a,b,z)$.
