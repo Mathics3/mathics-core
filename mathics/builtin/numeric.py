@@ -15,7 +15,6 @@ from typing import Optional
 
 import sympy
 
-from mathics.builtin.inference import evaluate_predicate
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -52,6 +51,7 @@ from mathics.eval.arithmetic import (
     eval_RealSign,
     eval_Sign,
 )
+from mathics.eval.inference import evaluate_predicate
 from mathics.eval.nevaluator import eval_NValues
 
 

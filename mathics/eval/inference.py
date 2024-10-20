@@ -3,8 +3,7 @@
 Inference Functions
 """
 
-no_doc = "no doc"
-
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.parser import parse_builtin_rule
 from mathics.core.parser.util import SystemDefinitions
@@ -14,11 +13,21 @@ from mathics.core.systemsymbols import SymbolAnd, SymbolEqual, SymbolNot, Symbol
 
 # TODO: Extend these rules?
 
+no_doc = "no doc"
 
-def debug_logical_expr(pref, expr, evaluation):
-    pass
-    # return
-    # print(pref , expr) #expr.format(evaluation,"OutputForm").boxes_to_text(evaluation=evaluation))
+
+def debug_logical_expr(pref, expr, evaluation: Evaluation):
+    print(
+        pref, expr
+    )  # expr.format(evaluation,"OutputForm").boxes_to_text(evaluation=evaluation))
+
+
+def null_debug_logical_expr(pref, expr, evaluation: Evaluation):
+    return
+
+
+# Tracing can redefine this to provide trace information
+DEBUG_LOGICAL_EXPR = null_debug_logical_expr
 
 
 logical_algebraic_rules_spec = {
@@ -105,7 +114,7 @@ def remove_nots_when_unnecesary(pred, evaluation):
     cc = True
     while cc:
         pred, cc = pred.do_apply_rules(remove_not_rules, evaluation)
-        debug_logical_expr("->  ", pred, evaluation)
+        DEBUG_LOGICAL_EXPR("->  ", pred, evaluation)
         if pred is SymbolTrue or pred is SymbolFalse:
             return pred
     return pred
@@ -362,14 +371,14 @@ def evaluate_predicate(pred, evaluation):
             *[evaluate_predicate(subp, evaluation) for subp in pred.elements],
         )
 
-    debug_logical_expr("reducing ", pred, evaluation)
+    DEBUG_LOGICAL_EXPR("reducing ", pred, evaluation)
     ensure_logical_algebraic_rules()
     pred = pred.evaluate(evaluation)
-    debug_logical_expr("->  ", pred, evaluation)
+    DEBUG_LOGICAL_EXPR("->  ", pred, evaluation)
     cc = True
     while cc:
         pred, cc = pred.do_apply_rules(logical_algebraic_rules, evaluation)
-        debug_logical_expr("->  ", pred, evaluation)
+        DEBUG_LOGICAL_EXPR("->  ", pred, evaluation)
         if pred is SymbolTrue or pred is SymbolFalse:
             return pred
 
@@ -378,11 +387,11 @@ def evaluate_predicate(pred, evaluation):
         return remove_nots_when_unnecesary(pred, evaluation).evaluate(evaluation)
 
     if assumption_rules is not None:
-        debug_logical_expr(" Now, using the assumptions over ", pred, evaluation)
+        DEBUG_LOGICAL_EXPR(" Now, using the assumptions over ", pred, evaluation)
         changed = True
         while changed:
             pred, changed = pred.do_apply_rules(assumption_rules, evaluation)
-            debug_logical_expr(" -> ", pred, evaluation)
+            DEBUG_LOGICAL_EXPR(" -> ", pred, evaluation)
 
     pred = remove_nots_when_unnecesary(pred, evaluation).evaluate(evaluation)
     return pred

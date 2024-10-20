@@ -17,7 +17,6 @@ from typing import Optional, Tuple, Union
 
 import sympy
 
-from mathics.builtin.inference import evaluate_predicate
 from mathics.builtin.options import options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import Integer, Integer0, Integer1, Number, RationalOneHalf
@@ -63,7 +62,10 @@ from mathics.core.systemsymbols import (
     SymbolTable,
     SymbolTanh,
 )
-from mathics.eval.numbers.algebra.simplify import default_complexity_function
+from mathics.eval.numbers.algebra.simplify import (
+    default_complexity_function,
+    eval_Simplify,
+)
 from mathics.eval.numbers.numbers import cancel, sympy_factor
 from mathics.eval.parts import walk_parts
 from mathics.eval.patterns import match
@@ -1605,65 +1607,9 @@ class Simplify(Builtin):
                 {"System`$Assumptions": assumptions},
                 evaluation,
             )
-        return self.do_apply(expr, evaluation, options)
 
-    def do_apply(self, expr, evaluation, options={}):
-        # Check first if we are dealing with a logic expression...
-        if expr in (SymbolTrue, SymbolFalse, SymbolList):
-            return expr
-
-        # ``evaluate_predicate`` tries to reduce expr taking into account
-        # the assumptions established in ``$Assumptions``.
-        expr = evaluate_predicate(expr, evaluation)
-
-        # If we get an atom, return it.
-        if isinstance(expr, Atom):
-            return expr
-
-        # Now, try to simplify the elements.
-        # TODO:  Consider to move this step inside ``evaluate_predicate``.
-        # Notice that here we want to pass through the full evaluation process
-        # to use all the defined rules...
-        name = self.get_name()
-        symbol_name = Symbol(name)
-        elements = [
-            Expression(symbol_name, element).evaluate(evaluation)
-            for element in expr._elements
-        ]
-        head = Expression(symbol_name, expr.get_head()).evaluate(evaluation)
-        expr = Expression(head, *elements)
-
-        # At this point, we used all the tools available in Mathics.
-        # If the expression has a sympy form, try to use it.
-        # Now, convert the expression to sympy
-        sympy_expr = expr.to_sympy()
-        # If the expression cannot be handled by Sympy, just return it.
-        if sympy_expr is None:
-            return expr
-        # Now, try to simplify using sympy
-        complexity_function = options.get("System`ComplexityFunction", None)
-        if complexity_function is None or complexity_function is SymbolAutomatic:
-
-            def _default_complexity_function(x):
-                return default_complexity_function(from_sympy(x))
-
-            complexity_function = _default_complexity_function
-        else:
-            if isinstance(complexity_function, (Expression, Symbol)):
-                _complexity_function = complexity_function
-                complexity_function = (
-                    lambda x: Expression(_complexity_function, from_sympy(x))
-                    .evaluate(evaluation)
-                    .to_python()
-                )
-
-        # At this point, ``complexity_function`` is a function that takes a
-        # sympy expression and returns an integer.
-        sympy_result = sympy.simplify(sympy_expr, measure=complexity_function)
-
-        # and bring it back
-        result = from_sympy(sympy_result).evaluate(evaluation)
-        return result
+        symbol_name = Symbol(self.get_name())
+        return eval_Simplify(symbol_name, expr, evaluation, options)
 
 
 class FullSimplify(Simplify):
