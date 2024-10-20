@@ -117,7 +117,7 @@ class DivisorSigma(SympyFunction):
 
     <dl>
       <dt>'DivisorSigma[$k$, $n$]'
-      <dd>returns $\\sigma_k(n)$
+      <dd>returns σ_$k$($n$)
     </dl>
 
     >> DivisorSigma[1, 20]
@@ -582,7 +582,7 @@ class MoebiusMu(SympyFunction):
 
     <dl>
       <dt>'MoebiusMu[$n$]'
-      <dd>returns $\\mu(n)$
+      <dd>returns μ($n$)
     </dl>
 
     >> Array[MoebiusMu, 10]

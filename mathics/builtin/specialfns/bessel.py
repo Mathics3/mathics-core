@@ -566,7 +566,7 @@ class HypergeometricU(MPMathFunction):
     :WMA: https://reference.wolfram.com/language/ref/HypergeometricU.html</url>)
     <dl>
       <dt>'HypergeometricU[$a$, $b$, $z$]'
-      <dd>returns $U(a,b,z)$.
+      <dd>returns $U$($a$, $b$, $z$).
     </dl>
 
     >> HypergeometricU[3, 2, 1.]

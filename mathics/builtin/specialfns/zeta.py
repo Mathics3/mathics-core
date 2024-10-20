@@ -62,7 +62,7 @@ class PolyLog(MPMathFunction):
 
     <dl>
       <dt>'PolyLog[$n$, $z$]'
-      <dd>returns the polylogarithm function $Li_n(z)$.
+      <dd>returns the polylogarithm function Li_$n$($z$).
     </dl>
 
     >> PolyLog[s, 1]

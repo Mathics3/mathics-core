@@ -30,7 +30,7 @@ class Fibonacci(MPMathFunction):
       <dt>'Fibonacci[$n$]'
       <dd>computes the $n$th Fibonacci number.
       <dt>'Fibonacci[$n$, $x$]'
-      <dd>computes the Fibonacci polynomial $F_n(x)$.
+      <dd>computes the Fibonacci polynomial $F$_$n$($x$).
     </dl>
 
     >> Fibonacci[0]

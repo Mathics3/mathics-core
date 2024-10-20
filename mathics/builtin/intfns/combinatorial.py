@@ -49,10 +49,10 @@ class BellB(SympyFunction):
     :WMA: https://reference.wolfram.com/language/ref/BellB.html</url>)
     <dl>
       <dt>'BellB[$n$]'
-      <dd>Bell number $B_n$.
+      <dd>Bell number $B$_$n$.
 
       <dt>'BellB[$n$, $x$]'
-      <dd>Bell polynomial $B_n(x)$.
+      <dd>Bell polynomial $B$_$n$($x$).
     </dl>
 
     >> BellB[10]
@@ -224,10 +224,10 @@ class EulerE(SympyFunction):
     :WMA: https://reference.wolfram.com/language/ref/EulerE.html</url>)
     <dl>
       <dt>'EulerE[$n$]'
-      <dd>Euler number $E_n$.
+      <dd>Euler number $E$_$n$.
 
       <dt>'EulerE[$n$, $x$]'
-      <dd>Euler polynomial $E_n(x)$.
+      <dd>Euler polynomial $E$_$n$($x$).
     </dl>
 
     >> Table[EulerE[k], {k, 0, 10}]
@@ -283,7 +283,7 @@ class JacobiSymbol(Builtin):
     :WMA: https://reference.wolfram.com/language/ref/JacobiSymbol.html</url>)
     <dl>
       <dt>'JacobiSymbol[$a$, $n$]'
-      <dd>returns the Jacobi symbol $\\left(\\frac{a}{n}\\right)$.
+      <dd>returns the Jacobi symbol ($a$/$n$).
     </dl>
 
     >> Table[JacobiSymbol[n, m], {n, 0, 10}, {m, 1, n, 2}]
@@ -306,7 +306,7 @@ class KroneckerSymbol(Builtin):
     :WMA: https://reference.wolfram.com/language/ref/KroneckerSymbol.html</url>)
     <dl>
       <dt>'KroneckerSymbol[$a$, $n$]'
-      <dd>returns the Kronecker symbol $\\left(\\frac{a}{n}\\right)$.
+      <dd>returns the Kronecker symbol ($a$/$n$).
     </dl>
 
     >> Table[KroneckerSymbol[n, m], {n, 5}, {m, 5}]
@@ -534,7 +534,7 @@ class SquaresR(Builtin):
 
     <dl>
       <dt>'SquaresR[$d$, $n$]'
-      <dd>returns $r_d(n)$, the number of ways to represent $n$ as a sum of $d$ squares.
+      <dd>returns the number of ways to represent $n$ as a sum of $d$ squares.
     </dl>
 
     >> Table[SquaresR[2, n], {n, 10}]
