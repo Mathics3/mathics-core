@@ -316,7 +316,7 @@ class _ListPlot(Builtin, ABC):
         all_points = (
             points.value
             if hasattr(points, "value") and points.value is not None
-            else eval_N(points, evaluation).to_python()
+            else eval_N(points, evaluation).to_python()  # TODO: force tuple-ness?
         )
 
         # FIXME: arrange for self to have a .symbolname property or attribute
