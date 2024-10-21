@@ -63,6 +63,7 @@ from mathics.core.systemsymbols import (
     SymbolConditionalExpression,
     SymbolD,
     SymbolDerivative,
+    SymbolIndeterminate,
     SymbolInfinity,
     SymbolInfix,
     SymbolIntegrate,
@@ -1729,6 +1730,50 @@ class Series(Builtin):
             result = self.eval_multivariate_series(inner, remain_vars, evaluation)
             return result
         return None
+
+
+class SeriesCoefficient(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SeriesCoefficient.html</url>
+
+    <dl>
+      <dt>'SeriesCoefficient[$series$, $n$]'
+      <dd>Find the $n$th coefficient in the given $series$
+    </dl>
+
+    >> SeriesCoefficient[Series[Exp[Sin[x]], {x, 0, 10}], 8]
+     = 31 / 5760
+    >> SeriesCoefficient[Exp[-x], {x, 0, 5}]
+     = -1 / 120
+
+    >> SeriesCoefficient[SeriesData[x, c, Table[i^2, {i, 10}], 7, 17, 3], 14/3]
+     = 64
+    >> SeriesCoefficient[SeriesData[x, c, Table[i^2, {i, 10}], 7, 17, 3], 6/3]
+     = 0
+    >> SeriesCoefficient[SeriesData[x, c, Table[i^2, {i, 10}], 7, 17, 3], 17/3]
+     = Indeterminate
+    """
+
+    attributes = A_PROTECTED
+    summary_text = "power series coefficient"
+
+    rules = {
+        "SeriesCoefficient[f_, {x_Symbol, x0_, n_Integer}]": "SeriesCoefficient[Series[f, {x, x0, n}], n]"
+    }
+
+    def eval(self, series: Expression, n: Rational, evaluation: Evaluation):
+        """SeriesCoefficient[series_SeriesData, n_]"""
+        coeffs: ListExpression
+        nmin: Integer
+        nmax: Integer
+        den: Integer
+        coeffs, nmin, nmax, den = series.elements[2:]
+        index = n.value * den.value - nmin.value
+        if index < 0:
+            return Integer0
+        if index >= nmax.value - nmin.value:
+            return SymbolIndeterminate
+        return coeffs[index]
 
 
 class SeriesData(Builtin):

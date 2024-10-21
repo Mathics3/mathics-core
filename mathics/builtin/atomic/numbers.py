@@ -30,7 +30,7 @@ from mathics.core.atoms import (
     MachineReal,
     Rational,
 )
-from mathics.core.attributes import A_LISTABLE, A_PROTECTED
+from mathics.core.attributes import A_LISTABLE, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Predefined
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
@@ -60,7 +60,9 @@ SymbolIntegerExponent = Symbol("IntegerExponent")
 
 @lru_cache()
 def log_n_b(py_n, py_b) -> int:
-    return int(mpmath.ceil(mpmath.log(py_n, py_b))) if py_n != 0 and py_n != 1 else 1
+    return (
+        int(mpmath.floor(mpmath.log(py_n, py_b))) + 1 if py_n != 0 and py_n != 1 else 1
+    )
 
 
 def check_finite_decimal(denominator):
@@ -376,6 +378,33 @@ class IntegerLength(Builtin):
         return Integer(j)
 
 
+class NumberDigit(Builtin):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/NumberDigit.html</url>
+
+    <dl>
+      <dt>'NumberDigit[$x$, $n$, $b$]'
+      <dd>returns the coefficient of $b^n$ in the base-$b$ representation of $x$.
+    </dl>
+
+    >> NumberDigit[123456, 2]
+     = 4
+    >> NumberDigit[12.3456, -1]
+     = 3
+
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+
+    summary_text = "digits of a real number"
+
+    rules = {
+        "NumberDigit[x_, n_Integer]": "NumberDigit[x, n, 10]",
+        "NumberDigit[x_, n_Integer, b_Integer]": "RealDigits[x, b, 1, n][[1]][[1]]",
+    }
+
+
 class RealDigits(Builtin):
     """
     <url>:WMA link:
@@ -420,6 +449,9 @@ class RealDigits(Builtin):
     Return 25 digits of in base 10:
     >> RealDigits[Pi, 10, 25]
      = {{3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4, 6, 2, 6, 4, 3}, 1}
+
+    >> RealDigits[10]
+     = {{1, 0}, 2}
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -445,7 +477,7 @@ class RealDigits(Builtin):
         if check_finite_decimal(n.denominator().get_int_value()) and not py_b % 2:
             return self.eval_with_base(n, b, evaluation)
         else:
-            exp = int(mpmath.ceil(mpmath.log(py_n, py_b)))
+            exp = log_n_b(py_n, py_b)
             (head, tails) = convert_repeating_decimal(
                 py_n.as_numer_denom()[0], py_n.as_numer_denom()[1], py_b
             )
