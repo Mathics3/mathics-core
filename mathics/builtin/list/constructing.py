@@ -541,6 +541,10 @@ class Table(IterationFunction):
     Symbolic bounds:
     >> Table[x, {x, a, a + 5 n, n}]
      = {a, a + n, a + 2 n, a + 3 n, a + 4 n, a + 5 n}
+
+    The lower bound is always included even for large step sizes:
+    >> Table[i, {i, 1, 9, Infinity}]
+     = {1}
     """
 
     rules = {

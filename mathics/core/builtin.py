@@ -958,9 +958,13 @@ class IterationFunction(Builtin):
                 item = dynamic_scoping(
                     expr.evaluate,
                     {
-                        i.name: Expression(
-                            SymbolPlus, imin, Expression(SymbolTimes, di, index)
-                        ).evaluate(evaluation)
+                        i.name: (
+                            Expression(
+                                SymbolPlus, imin, Expression(SymbolTimes, di, index)
+                            ).evaluate(evaluation)
+                            if index.value > 0
+                            else imin
+                        )
                     },
                     evaluation,
                 )
