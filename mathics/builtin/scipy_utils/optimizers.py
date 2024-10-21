@@ -5,10 +5,9 @@ from mathics.core.convert.function import expression_to_callable_and_args
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolFailed, SymbolInfinity
-from mathics.core.util import IS_PYPY
 from mathics.eval.nevaluator import eval_N
 
-if IS_PYPY or not check_requires_list(["scipy", "numpy"]):
+if not check_requires_list(["scipy", "numpy"]):
     raise ImportError
 
 

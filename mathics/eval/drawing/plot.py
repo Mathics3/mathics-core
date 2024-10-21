@@ -134,7 +134,8 @@ def compile_quiet_function(expr, arg_names, evaluation, list_is_expected: bool):
 
 
 def eval_ListPlot(
-    plot_groups: list,
+    # TODO: plot_groups should be a tuple only?
+    plot_groups: Union[list, tuple],
     x_range: list,
     y_range: list,
     is_discrete_plot: bool,
