@@ -411,14 +411,16 @@ class HexadecimalCharacter(Builtin):
 
 # This isn't your normal Box class. We'll keep this here rather than
 # in mathics.builtin.box for now.
-class InterpretationBox(PrefixOperator):
+# mmatera commenct: This does not even exist in WMA. \! should be associated
+# to `ToExpression`, but it was not  properly implemented by now...
+class InterpretedBox(PrefixOperator):
     r"""
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/InterpretationBox.html</url>
 
     <dl>
-      <dt>'InterpretationBox[$box$]'
+      <dt>'InterpretedBox[$box$]'
       <dd>is the ad hoc fullform for \! $box$. just for internal use...
     </dl>
 
@@ -430,7 +432,7 @@ class InterpretationBox(PrefixOperator):
     summary_text = "interpret boxes as an expression"
 
     def eval(self, boxes, evaluation: Evaluation):
-        """InterpretationBox[boxes_]"""
+        """InterpretedBox[boxes_]"""
         # TODO: the following is a very raw and dummy way to
         # handle these expressions.
         # In the first place, this should handle different kind
