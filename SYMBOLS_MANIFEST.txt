@@ -399,6 +399,7 @@ System`FileFormat
 System`FileHash
 System`FileInformation
 System`FileNameDepth
+System`FileNameDrop
 System`FileNameJoin
 System`FileNameSplit
 System`FileNameTake

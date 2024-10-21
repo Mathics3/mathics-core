@@ -20,6 +20,8 @@ from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import SymbolAbsoluteTime, SymbolFailed, SymbolNone
 from mathics.eval.nevaluator import eval_N
 
+sort_order = "mathics.builtin.file-operations.file_properties"
+
 
 class FileDate(Builtin):
     """
