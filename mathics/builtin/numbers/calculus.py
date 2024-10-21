@@ -41,7 +41,12 @@ from mathics.core.builtin import Builtin, PostfixOperator, SympyFunction
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.function import expression_to_callable_and_args
 from mathics.core.convert.python import from_python
-from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
+from mathics.core.convert.sympy import (
+    SymbolRootSum,
+    SympyExpression,
+    from_sympy,
+    sympy_symbol_prefix,
+)
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -63,6 +68,7 @@ from mathics.core.systemsymbols import (
     SymbolConditionalExpression,
     SymbolD,
     SymbolDerivative,
+    SymbolFunction,
     SymbolInfinity,
     SymbolInfix,
     SymbolIntegrate,
@@ -75,6 +81,7 @@ from mathics.core.systemsymbols import (
     SymbolSeries,
     SymbolSeriesData,
     SymbolSimplify,
+    SymbolSlot,
     SymbolUndefined,
 )
 from mathics.eval.makeboxes import format_element
@@ -1668,6 +1675,46 @@ class Root(SympyFunction):
             return tracing.run_sympy(sympy.CRootOf, poly, i)
         except Exception:
             return None
+
+
+class RootSum(SympyFunction):
+    """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/RootSum.html</url>
+
+    <dl>
+      <dt>'RootSum[$f$, $form$]'
+      <dd>sums $form[x]$ for all roots of the polynomial $f[x]$.
+    </dl>
+
+    >> Integrate[1/(x^5 + 11 x + 1), {x, 1, 3}]
+     = RootSum[41232181 #1 ^ 5 - 212960 #1 ^ 3 - 9680 #1 ^ 2 - 165 #1 - 1&, (Log[3749971 - 3512322106304 #1 ^ 4 + 453522741 #1 + 16326568676 #1 ^ 2 + 79825502416 #1 ^ 3] - 4 Log[5]) #1&] - RootSum[41232181 #1 ^ 5 - 212960 #1 ^ 3 - 9680 #1 ^ 2 - 165 #1 - 1&, (Log[3748721 - 3512322106304 #1 ^ 4 + 453522741 #1 + 16326568676 #1 ^ 2 + 79825502416 #1 ^ 3] - 4 Log[5]) #1&]
+    >> N[%, 50]
+     = 0.051278805184286949884270940103072421286139857550894
+
+    >> RootSum[#^5 - 11 # + 1 &, (#^2 - 1)/(#^3 - 2 # + c) &]
+     = (538 - 88 c + 396 c ^ 2 + 5 c ^ 3 - 5 c ^ 4) / (97 - 529 c - 53 c ^ 2 + 88 c ^ 3 + c ^ 5)
+
+    >> RootSum[#^5 - 3 # - 7 &, Sin] //N//Chop
+     = 0.292188
+    """
+
+    summary_text = "sum polynomial roots"
+
+    def eval(self, f, form, evaluation: Evaluation):
+        "RootSum[f_, form_]"
+        return from_sympy(Expression(SymbolRootSum, f, form).to_sympy())
+
+    def to_sympy(self, expr: Expression, **kwargs):
+        func = expr.elements[1]
+        if not isinstance(func.to_sympy(), sympy.Lambda):
+            # eta conversion
+            func = Expression(
+                SymbolFunction, Expression(func, Expression(SymbolSlot, Integer1))
+            )
+
+        poly = expr.elements[0].to_sympy()
+        poly_x = sympy.Symbol("poly_x")
+        return sympy.RootSum(poly(poly_x), func.to_sympy(), x=poly_x)
 
 
 class Series(Builtin):
