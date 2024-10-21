@@ -1498,7 +1498,10 @@ class FactorTermsList(Builtin):
 # FullSimplify
 class Simplify(Builtin):
     r"""
-    <url>:WMA link:
+    <url>:SymPy:
+    https://docs.sympy.org/latest/modules/simplify
+    /simplify.html</url>, <url>
+    :WMA:
     https://reference.wolfram.com/language/ref/Simplify.html</url>
 
     <dl>

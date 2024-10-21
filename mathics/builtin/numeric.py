@@ -319,7 +319,10 @@ class N(Builtin):
 
 class Piecewise(SympyFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Piecewise.html</url>
+    <url>:SymPy:
+    https://docs.sympy.org/latest/modules/functions
+    /elementary.html#piecewise</url>, <url>
+    :WMA:https://reference.wolfram.com/language/ref/Piecewise.html</url>
 
     <dl>
       <dt>'Piecewise[{{expr1, cond1}, ...}]'
