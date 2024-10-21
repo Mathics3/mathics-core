@@ -4,6 +4,7 @@ File Path Manipulation
 
 import os.path as osp
 from pathlib import Path
+from typing import Optional
 
 from mathics.core.atoms import Integer, String
 from mathics.core.builtin import Builtin
@@ -42,45 +43,54 @@ class FileNameDrop(Builtin):
     >> FileNameDrop[path]
     """
 
+    messages = {
+        "notfinished": "m-n handling is not complete.",
+    }
     rules = {
         "FileNameDrop[name_]": "FileNameDrop[name, -1]",
         "FileNameDrop[list_List, parms___]": "FileNameDrop[#1,parms]&/@list",
     }
     summary_text = "drop a part of a file path"
 
-    def eval_with_n(self, path: String, n: Integer, evaluation: Evaluation):
+    def eval_with_n(self, path: String, n: Integer, evaluation: Evaluation) -> String:
         "FileNameDrop[path_String, n_Integer]"
         pos = n.value
+        if pos == 0:
+            return path
         path_elts = Path(path.value).parts
         path_len = len(path_elts)
-        if pos < 0:
-            pos = path_len + pos
-
-        if pos >= len(path_elts):
+        if pos >= path_len or pos <= -path_len:
             return String("")
-        new_elts = path_elts[pos:]
-        return String(osp.join(*new_elts))
+
+        new_elts = path_elts[pos:] if pos > 0 else path_elts[:pos]
+        return String(osp.join(*new_elts) if new_elts else "")
 
     def eval_with_n_to_m(
         self, path: String, n: Integer, m: Integer, evaluation: Evaluation
-    ):
+    ) -> Optional[String]:
         "FileNameDrop[path_String, {n_Integer, m_Integer}]"
         n_pos = n.value
         m_pos = m.value
         path_elts = Path(path.value).parts
         path_len = len(path_elts)
-        if n_pos < 0 or n_pos >= path_len:
+        if n_pos > path_len:
             return path
-        elif n_pos == 0:
-            # We need to keep pos from going negative which is interpreted as
-            # the last value. 1-1 = 0, so 1 is the right value here.
-            n_pos = 1
 
-        if m_pos < 0:
-            m_pos = path_len + m_pos - 1
+        if n_pos == path_len:
+            if n_pos == m_pos or n_pos + m_pos == -1:
+                # Not sure why this is so.
+                return String(osp.join(*path_elts[:-1]))
+            return path
+        evaluation.message("FindNameDrop", "notfinished")
+        return None
 
-        new_elts = path_elts[: n_pos - 1] + path_elts[m_pos:]
-        if new_elts:
-            return String(osp.join(*new_elts))
-        else:
-            return String("")
+        # if n_pos > path_len:
+        #     return path
+
+        # new_elts = None
+        # if 0 < n_pos < m_pos:
+        #     new_elts = path_elts[n_pos+1: m_pos+2]
+        # if new_elts:
+        #     return String(osp.join(*new_elts))s
+        # else:
+        #     return String("")
