@@ -35,12 +35,15 @@ class FileNameDrop(Builtin):
     </dl>
 
     >> path = FileNameJoin{"a","b","c"}
+     = ...
 
     >> FileNameDrop[path, -1]
+      = ...
 
     A shorthand for the above:
 
     >> FileNameDrop[path]
+     = ...
     """
 
     messages = {
