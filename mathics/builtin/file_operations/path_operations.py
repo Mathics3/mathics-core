@@ -42,7 +42,10 @@ class FileNameDrop(Builtin):
     >> FileNameDrop[path]
     """
 
-    rules = {"FileNameDrop[name_]": "FileNameDrop[name, -1]"}
+    rules = {
+        "FileNameDrop[name_]": "FileNameDrop[name, -1]",
+        "FileNameDrop[list_List, parms___]": "FileNameDrop[#1,parms]&/@list",
+    }
     summary_text = "drop a part of a file path"
 
     def eval_with_n(self, path: String, n: Integer, evaluation: Evaluation):
