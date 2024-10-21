@@ -346,63 +346,6 @@ class Directory(Builtin):
         return String(result)
 
 
-class DirectoryName(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/DirectoryName.html</url>
-
-    <dl>
-      <dt>'DirectoryName["$name$"]'
-      <dd>extracts the directory name from a filename.
-    </dl>
-
-    >> DirectoryName["a/b/c"]
-     = a/b
-
-    >> DirectoryName["a/b/c", 2]
-     = a
-    """
-
-    messages = {
-        "string": "String expected at position 1 in `1`.",
-        "intpm": ("Positive machine-sized integer expected at " "position 2 in `1`."),
-    }
-
-    options = {
-        "OperatingSystem": "$OperatingSystem",
-    }
-    summary_text = "directory part of a filename"
-
-    def eval_with_n(self, name, n, evaluation: Evaluation, options: dict):
-        "DirectoryName[name_, n_, OptionsPattern[DirectoryName]]"
-
-        if n is None:
-            expr = to_expression("DirectoryName", name)
-            py_n = 1
-        else:
-            expr = to_expression("DirectoryName", name, n)
-            py_n = n.to_python()
-
-        if not (isinstance(py_n, int) and py_n > 0):
-            evaluation.message("DirectoryName", "intpm", expr)
-            return
-
-        py_name = name.to_python()
-        if not (isinstance(py_name, str) and py_name[0] == py_name[-1] == '"'):
-            evaluation.message("DirectoryName", "string", expr)
-            return
-        py_name = py_name[1:-1]
-
-        result = py_name
-        for i in range(py_n):
-            (result, tmp) = osp.split(result)
-
-        return String(result)
-
-    def eval(self, name, evaluation: Evaluation, options: dict):
-        "DirectoryName[name_, OptionsPattern[DirectoryName]]"
-        return self.eval_with_n(name, None, evaluation, options)
-
-
 class DirectoryStack(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/DirectoryStack.html</url>

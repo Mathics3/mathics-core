@@ -35,3 +35,4 @@ jobs:
     - name: Test Mathics Consistency and Style
       run: |
         make check-consistency-and-style
+	make chec-builtin-manifest

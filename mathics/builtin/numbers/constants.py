@@ -756,3 +756,7 @@ for cls in (Catalan, Degree, Glaisher, GoldenRatio, Khinchin):
     instance = cls(expression=False)
     val = instance.get_constant()
     NUMERICAL_CONSTANTS[instance.symbol] = MachineReal(val.value)
+
+del cls
+del instance
+del val
