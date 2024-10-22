@@ -96,7 +96,7 @@ def eval_NValues(
 
     # Special case for the Root builtin
     # This should be implemented as an NValue
-    if expr.has_form("Root", 2):
+    if expr.has_form("Root", 2) or expr.has_form("RootSum", 2):
         return from_sympy(sympy.N(expr.to_sympy(), d))
 
     # Here we look for the NValues associated to the

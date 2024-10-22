@@ -139,6 +139,7 @@ class SympyExpression(BasicSympy):
         if all(isinstance(expr, BasicSympy) for expr in exprs):
             # called with SymPy arguments
             obj = super().__new__(cls, *exprs)
+            obj.expr = None
         elif len(exprs) == 1 and isinstance(exprs[0], Expression):
             # called with Mathics argument
             expr = exprs[0]
