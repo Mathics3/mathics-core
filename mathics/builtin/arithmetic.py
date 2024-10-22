@@ -10,7 +10,6 @@ from typing import Optional
 
 import sympy
 
-from mathics.builtin.inference import get_assumptions_list
 from mathics.builtin.numeric import Abs
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
@@ -72,6 +71,7 @@ from mathics.core.systemsymbols import (
     SymbolUndefined,
 )
 from mathics.eval.arithmetic import eval_Sign
+from mathics.eval.inference import get_assumptions_list
 from mathics.eval.nevaluator import eval_N
 
 # This tells documentation how to sort this module

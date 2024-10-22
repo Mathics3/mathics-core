@@ -15,7 +15,6 @@ from typing import Optional
 
 import sympy
 
-from mathics.builtin.inference import evaluate_predicate
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -52,6 +51,7 @@ from mathics.eval.arithmetic import (
     eval_RealSign,
     eval_Sign,
 )
+from mathics.eval.inference import evaluate_predicate
 from mathics.eval.nevaluator import eval_NValues
 
 
@@ -319,7 +319,10 @@ class N(Builtin):
 
 class Piecewise(SympyFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Piecewise.html</url>
+    <url>:SymPy:
+    https://docs.sympy.org/latest/modules/functions
+    /elementary.html#piecewise</url>, <url>
+    :WMA:https://reference.wolfram.com/language/ref/Piecewise.html</url>
 
     <dl>
       <dt>'Piecewise[{{expr1, cond1}, ...}]'
