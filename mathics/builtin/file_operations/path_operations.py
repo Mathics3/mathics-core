@@ -84,16 +84,20 @@ class FileNameDrop(Builtin):
                 # Not sure why this is so.
                 return String(osp.join(*path_elts[:-1]))
             return path
-        evaluation.message("FindNameDrop", "notfinished")
-        return None
 
-        # if n_pos > path_len:
-        #     return path
+        if n_pos > m_pos:
+            return path
 
-        # new_elts = None
-        # if 0 < n_pos < m_pos:
-        #     new_elts = path_elts[n_pos+1: m_pos+2]
-        # if new_elts:
-        #     return String(osp.join(*new_elts))s
-        # else:
-        #     return String("")
+        new_elts = None
+        if 0 < n_pos < m_pos:
+            new_elts = path_elts[: n_pos - 1] + path_elts[m_pos:]
+        elif n_pos <= m_pos <= 0:
+            new_elts = path_elts[:n_pos] + path_elts[m_pos + 1 :]
+        else:
+            evaluation.message("FindNameDrop", "notfinished")
+            return None
+
+        if new_elts:
+            return String(osp.join(*new_elts))
+        else:
+            return String("")
