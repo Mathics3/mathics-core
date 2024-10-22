@@ -485,6 +485,7 @@ System`HoldForm
 System`HoldPattern
 System`HoldRest
 System`Hue
+System`HypergeometricU
 System`I
 System`Icosahedron
 System`Identity
@@ -572,6 +573,7 @@ System`LCHColor
 System`LCM
 System`LUVColor
 System`LaguerreL
+System`LambertW
 System`Large
 System`Last
 System`LeafCount
@@ -606,6 +608,7 @@ System`Line
 System`Line3DBox
 System`LineBox
 System`LinearModelFit
+System`LinearRecurrence
 System`LinearSolve
 System`List
 System`ListLinePlot
@@ -706,6 +709,7 @@ System`Now
 System`Null
 System`NullSpace
 System`Number
+System`NumberDigit
 System`NumberForm
 System`NumberLinePlot
 System`NumberQ
@@ -774,6 +778,7 @@ System`PointBox
 System`PointSize
 System`PolarPlot
 System`PolyGamma
+System`PolyLog
 System`Polygon
 System`Polygon3DBox
 System`PolygonBox
@@ -901,6 +906,7 @@ System`Select
 System`Sequence
 System`SequenceHold
 System`Series
+System`SeriesCoefficient
 System`SeriesData
 System`SessionTime
 System`Set
@@ -983,6 +989,7 @@ System`StruveL
 System`Style
 System`StyleBox
 System`SubValues
+System`Subfactorial
 System`Subscript
 System`SubscriptBox
 System`SubsetQ
