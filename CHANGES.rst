@@ -9,6 +9,31 @@ New Builtins
 * ``FileNameDrop``
 * ``SetEnvironment``
 
+By `@davidar <https://github.com/davidar>`_:
+
+* ``BellB``
+* ``DivisorSigma``
+* ``DivisorSum``
+* ``EulerE``
+* ``HypergeometricU``
+* ``IntegerPart``
+* ``IntegerPartitions``
+* ``JacobiSymbol``
+* ``KroneckerSymbol``
+* ``LambertW``
+* ``LinearRecurrence``
+* ``LucasL``
+* ``MersennePrimeExponent``
+* ``MoebiusMu``
+* ``NumberDigit``
+* ``PolygonalNumber``
+* ``PolyLog``
+* ``PowersRepresentations``
+* ``ReverseSort``
+* ``SeriesCoefficient``
+* ``SquaresR``
+* ``Subfactorial``
+
 ``mathics`` command line
 ++++++++++++++++++++++++
 

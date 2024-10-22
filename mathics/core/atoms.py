@@ -775,8 +775,10 @@ class Complex(Number):
             self.real.to_python(*args, **kwargs), self.imag.to_python(*args, **kwargs)
         )
 
-    def to_mpmath(self):
-        return mpmath.mpc(self.real.to_mpmath(), self.imag.to_mpmath())
+    def to_mpmath(self, precision: Optional[int] = None):
+        return mpmath.mpc(
+            self.real.to_mpmath(precision), self.imag.to_mpmath(precision)
+        )
 
     def default_format(self, evaluation, form) -> str:
         return "Complex[%s, %s]" % (
