@@ -6,6 +6,7 @@ New Builtins
 ++++++++++++
 
 * ``CheckAbort``
+* ``FileNameDrop``
 * ``SetEnvironment``
 
 ``mathics`` command line
