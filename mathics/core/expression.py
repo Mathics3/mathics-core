@@ -258,7 +258,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     """
 
     _head: BaseElement
-    _elements: Tuple[BaseElement]
+    _elements: Tuple[BaseElement, ...]
     _sequences: Any
     _cache: Optional[ExpressionCache]
     elements_properties: Optional[ElementsProperties]
@@ -388,15 +388,14 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         elements = self._elements
 
-        flattened = []
-        extend = flattened.extend
+        flattened: list[BaseElement] = []
 
         k = 0
         for i in indices:
-            extend(elements[k:i])
-            extend(sequence(elements[i]))
+            flattened.extend(elements[k:i])
+            flattened.extend(sequence(elements[i]))
             k = i + 1
-        extend(elements[k:])
+        flattened.extend(elements[k:])
 
         return self.restructure(self._head, flattened, evaluation)
 
@@ -1814,7 +1813,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             element.user_hash(update)
 
 
-def _create_expression(self, head, *elements):
+def _create_expression(self, head: BaseElement, *elements: BaseElement) -> Expression:
     return Expression(head, *elements)
 
 

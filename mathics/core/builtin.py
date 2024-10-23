@@ -664,8 +664,8 @@ class MPMathFunction(SympyFunction):
 
 
 class MPMathMultiFunction(MPMathFunction):
-    sympy_names = None
-    mpmath_names = None
+    sympy_names: Optional[dict[int, str]] = None
+    mpmath_names: Optional[dict[int, str]] = None
 
     def get_sympy_names(self):
         if self.sympy_names is None:

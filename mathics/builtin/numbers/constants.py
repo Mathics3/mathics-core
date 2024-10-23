@@ -155,9 +155,9 @@ class _MPMathConstant(_Constant_Common):
     """Representation of a constant in mpmath, e.g. Pi, E, I, etc."""
 
     # Subclasses should define this.
-    mpmath_name = None
+    mpmath_name: Optional[str] = None
 
-    mathics_to_mpmath = {}
+    mathics_to_mpmath: dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -175,9 +175,9 @@ class _NumpyConstant(_Constant_Common):
     """Representation of a constant in numpy, e.g. Pi, E, etc."""
 
     # Subclasses should define this.
-    numpy_name = None
+    numpy_name: Optional[str] = None
 
-    mathics_to_numpy = {}
+    mathics_to_numpy: dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -198,7 +198,7 @@ class _SympyConstant(_Constant_Common, SympyObject):
     """Representation of a constant in Sympy, e.g. Pi, E, I, Catalan, etc."""
 
     # Subclasses should define this.
-    sympy_name = None
+    sympy_name: Optional[str] = None
 
     def to_sympy(self, expr=None, **kwargs):
         if expr is None or isinstance(expr, Atom):

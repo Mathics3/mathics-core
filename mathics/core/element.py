@@ -430,6 +430,12 @@ class BaseElement(KeyComparable, ABC):
     def to_sympy(self, **kwargs):
         raise NotImplementedError
 
+    def copy(self, reevaluate=False) -> "BaseElement":
+        raise NotImplementedError
+
+    def default_format(self, evaluation, form) -> str:
+        raise NotImplementedError
+
 
 class EvalMixin:
     """
@@ -462,6 +468,9 @@ class EvalMixin:
         """Mathics SameQ
         Each class should decide what is right here.
         """
+        raise NotImplementedError
+
+    def evaluate(self, evaluation: "Evaluation") -> Optional["BaseElement"]:
         raise NotImplementedError
 
 

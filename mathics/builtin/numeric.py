@@ -472,7 +472,7 @@ class Rationalize(Builtin):
         if py_x.is_positive:
             return from_sympy(self.find_approximant(py_x))
         else:
-            return -from_sympy(self.find_approximant(-py_x))
+            return from_sympy(-self.find_approximant(-py_x))
 
     @staticmethod
     def find_approximant(x):
@@ -578,7 +578,7 @@ class RealAbs(Builtin):
     }
     summary_text = "real absolute value"
 
-    def eval(self, x: BaseElement, evaluation: Evaluation):
+    def eval(self, x: Number, evaluation: Evaluation):
         """RealAbs[x_]"""
         real_sign = eval_RealSign(x)
         if real_sign is IntegerM1:

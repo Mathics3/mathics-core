@@ -559,9 +559,8 @@ class _CoefficientHandler(Builtin):
 
         # ###### Auxiliary functions #########
         def key_powers(lst: list) -> Union[int, float]:
-            key = Expression(SymbolPlus, *lst)
-            key = key.evaluate(evaluation)
-            if key.is_numeric(evaluation):
+            key = Expression(SymbolPlus, *lst).evaluate(evaluation)
+            if key is not None and key.is_numeric(evaluation):
                 return key.to_python()
             return 0
 
