@@ -268,7 +268,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     def __init__(
         self,
         head: BaseElement,
-        *elements: Tuple[BaseElement],
+        *elements: BaseElement,
         elements_properties: Optional[ElementsProperties] = None,
         literal_values: Optional[tuple] = None,
     ):
@@ -514,7 +514,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     def evaluate(
         self,
         evaluation: Evaluation,
-    ) -> Optional[Type["BaseElement"]]:
+    ) -> Optional[BaseElement]:
         """
         Apply transformation rules and expression evaluation to ``evaluation`` via
         ``rewrite_apply_eval_step()`` until that method tells us to stop,
@@ -523,7 +523,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         Evaluation is recursive:``rewrite_apply_eval_step()`` may call us.
         """
         if evaluation.timeout:
-            return
+            return None
 
         expr = self
         reevaluate = True

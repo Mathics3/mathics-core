@@ -130,7 +130,7 @@ class DivisorSigma(SympyFunction):
     summary_text = "divisor function"
     sympy_name = "divisor_sigma"
 
-    def eval(self, k: Integer, n: Integer, evaluation: Evaluation):
+    def eval(self, k: Integer, n: Integer, evaluation: Evaluation):  # type: ignore[override]
         "DivisorSigma[k_Integer, n_Integer]"
         # arguments are in reverse order
         return from_sympy(sympy.divisor_sigma(n.to_sympy(), k.to_sympy()))
@@ -555,6 +555,8 @@ class MantissaExponent(Builtin):
         # Handle Input with special cases such as PI and E
         if n_sympy.is_constant():
             temp_n = eval_N(n, evaluation)
+            if temp_n is None:
+                return expr
             py_n = temp_n.to_python()
         else:
             return expr
@@ -577,12 +579,16 @@ class MantissaExponent(Builtin):
 
         if n_sympy.is_constant():
             temp_n = eval_N(n, evaluation)
+            if temp_n is None:
+                return expr
             py_n = temp_n.to_python()
         else:
             return expr
 
         if b_sympy.is_constant():
             temp_b = eval_N(b, evaluation)
+            if temp_b is None:
+                return expr
             py_b = temp_b.to_python()
         else:
             return expr
@@ -848,8 +854,9 @@ class PrimePi(SympyFunction):
 
     def eval(self, n, evaluation: Evaluation):
         "PrimePi[n_?NumericQ]"
-        result = sympy.primepi(eval_N(n, evaluation).to_python())
-        return Integer(result)
+        result = eval_N(n, evaluation)
+        if result is not None:
+            return Integer(sympy.primepi(result.to_python()))
 
 
 class PrimePowerQ(Builtin):

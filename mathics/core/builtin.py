@@ -7,6 +7,7 @@ SympyFunction, MPMathFunction, etc.
 """
 
 import importlib
+import importlib.util
 import os.path as osp
 import re
 from abc import ABC
@@ -70,8 +71,6 @@ from mathics.core.symbols import (
     strip_context,
 )
 from mathics.core.systemsymbols import (
-    SymbolGreaterEqual,
-    SymbolLess,
     SymbolLessEqual,
     SymbolMessageName,
     SymbolRule,
@@ -187,7 +186,7 @@ class Builtin:
     formats: Dict[str, Any] = {}
     messages: Dict[str, Any] = {}
     options: Dict[str, Any] = {}
-    defaults = {}
+    defaults: Dict[Optional[int], str] = {}
 
     def __getnewargs_ex__(self):
         return tuple(), {
@@ -536,7 +535,7 @@ class BuiltinElement(Builtin, BaseElement):
 class SympyObject(Builtin):
     sympy_name: Optional[str] = None
 
-    mathics_to_sympy = {}
+    mathics_to_sympy: dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -565,6 +564,8 @@ class SympyFunction(SympyObject):
         #
         # "%(name)s[z__]"
         sympy_args = to_numeric_sympy_args(z, evaluation)
+        if self.sympy_name is None:
+            return
         sympy_fn = getattr(sympy, self.sympy_name)
         try:
             return from_sympy(tracing.run_sympy(sympy_fn, *sympy_args))
@@ -624,7 +625,7 @@ class MPMathFunction(SympyFunction):
     # So those classes should expclicitly set/override this.
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
-    mpmath_name = None
+    mpmath_name: Optional[str] = None
     nargs = {1}
 
     def get_mpmath_function(self, args):
@@ -657,7 +658,7 @@ class MPMathFunction(SympyFunction):
         else:
             prec = min_prec(*args)
             d = dps(prec)
-            args = [arg.round(d) for arg in args]
+            args = tuple([arg.round(d) for arg in args])
 
         return eval_mpmath_function(mpmath_function, *args, prec=prec)
 
@@ -783,7 +784,7 @@ def has_option(options, name, evaluation):
     return get_option(options, name, evaluation, evaluate=False) is not None
 
 
-mathics_to_python = {}  # here we have: name -> string
+mathics_to_python: dict[str, Any] = {}  # here we have: name -> string
 
 
 class AtomBuiltin(Builtin):
@@ -796,7 +797,8 @@ class AtomBuiltin(Builtin):
     # which are by default not in the definitions' contribution pipeline.
     # see Image[] for an example of this.
 
-    def get_name(self, short=False) -> str:
+    @classmethod
+    def get_name(cls, short=False) -> str:
         name = super().get_name(short=short)
         return re.sub(r"Atom$", "", name)
 
@@ -1251,7 +1253,7 @@ class CountableInteger:
     # _support_infinity to False.
     _finite: bool
     _upper_limit: bool
-    _integer: Union[str, int]
+    _integer: Union[str, int, None]
     _support_infinity = False
 
     def __init__(self, value: Union[int, str] = "Infinity", upper_limit=True):

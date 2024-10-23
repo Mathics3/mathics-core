@@ -10,7 +10,7 @@ arithmetic operations.
 """
 
 from itertools import product
-from typing import Iterable, Optional
+from typing import Callable, Optional, Tuple
 
 import numpy as np
 import sympy
@@ -219,7 +219,7 @@ class D(SympyFunction):
     summary_text = "partial derivatives of scalar or vector functions"
     sympy_name = "Derivative"
 
-    def eval(self, f, x, evaluation: Evaluation):
+    def eval(self, f, x, evaluation: Evaluation):  # type: ignore[override]
         "D[f_, x_?NotListQ]"
 
         # Handle partial derivative special cases:
@@ -599,7 +599,13 @@ class _BaseFinder(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
-    methods = {}
+    methods: dict[
+        str,
+        Callable[
+            [Expression, BaseElement, Expression, dict, Evaluation],
+            Tuple[BaseElement, bool],
+        ],
+    ] = {}
     messages = {
         "snum": "Value `1` is not a number.",
         "nnum": "The function value is not a number at `1` = `2`.",
@@ -1046,7 +1052,7 @@ class Integrate(SympyFunction):
                 return [elements[0]] + x.elements
         return elements
 
-    def from_sympy(self, elements: Iterable) -> Expression:
+    def from_sympy(self, elements: list) -> Expression:
         args = []
         for element in elements[1:]:
             if element.has_form("List", 1):
@@ -1057,7 +1063,7 @@ class Integrate(SympyFunction):
         new_elements = [elements[0]] + args
         return Expression(Symbol(self.get_name()), *new_elements)
 
-    def eval(self, f, xs, evaluation: Evaluation, options: dict):
+    def eval(self, f, xs, evaluation: Evaluation, options: dict):  # type: ignore[override]
         "Integrate[f_, xs__, OptionsPattern[]]"
         f_sympy = f.to_sympy()
         if f_sympy.is_infinite:
@@ -1108,7 +1114,7 @@ class Integrate(SympyFunction):
             # TODO MaxExtraPrecision -> maxn
             sympy_result = sympy_result.evalf(dps(prec))
 
-        result = from_sympy(sympy_result)
+        result: Optional[BaseElement] = from_sympy(sympy_result)
         # If we obtain an atom (number or symbol)
         # just return...
         if isinstance(result, Atom):
@@ -1127,7 +1133,11 @@ class Integrate(SympyFunction):
             evaluation.definitions.set_ownvalue("System`$Assumptions", assuming)
         # Set the $Assumptions
 
-        if result.get_head_name() == "System`Piecewise":
+        if (
+            result is not None
+            and result.get_head_name() == "System`Piecewise"
+            and isinstance(result, Expression)
+        ):
             cases = result.elements[0].elements
             if len(result.elements) == 1:
                 if cases[-1].elements[1] is SymbolTrue:
@@ -1156,7 +1166,11 @@ class Integrate(SympyFunction):
                             "System`$Assumptions", old_assumptions
                         )
                     return resif
-                if resif.has_form("ConditionalExpression", 2):
+                if (
+                    isinstance(resif, Expression)
+                    and resif.has_form("ConditionalExpression", 2)
+                    and cond is not None
+                ):
                     cond = Expression(SymbolAnd, resif.elements[1], cond)
                     cond = Expression(SymbolSimplify, cond).evaluate(evaluation)
                     resif = resif.elements[0]
@@ -1165,21 +1179,27 @@ class Integrate(SympyFunction):
             if default is SymbolUndefined and len(cases) == 1:
                 cases = cases[0]
                 result = Expression(SymbolConditionalExpression, *(cases.elements))
-            else:
+            elif isinstance(result._head, Symbol):
                 # FIXME: there is a bug in from_sympy which is leaving an integer
                 # untranslated. Fix this and we can use Expression()
                 result = to_expression(result._head, cases, default)
+            else:
+                raise NotImplementedError
         else:
-            if result.get_head() is SymbolIntegrate:
-                if result.elements[0].evaluate(evaluation).sameQ(f):
-                    # Sympy returned the same expression, so it can't be evaluated.
-                    if old_assumptions:
-                        evaluation.definitions.set_ownvalue(
-                            "System`$Assumptions", old_assumptions
-                        )
-                    return
-            result = Expression(SymbolSimplify, result)
-            result = result.evaluate(evaluation)
+            if (
+                isinstance(result, Expression)
+                and result.get_head() is SymbolIntegrate
+                and result.elements[0].evaluate(evaluation).sameQ(f)
+            ):
+                # Sympy returned the same expression, so it can't be evaluated.
+                if old_assumptions:
+                    evaluation.definitions.set_ownvalue(
+                        "System`$Assumptions", old_assumptions
+                    )
+                return
+            if result is not None:
+                result = Expression(SymbolSimplify, result)
+                result = result.evaluate(evaluation)
 
         if old_assumptions:
             evaluation.definitions.set_ownvalue("System`$Assumptions", old_assumptions)

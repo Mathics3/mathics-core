@@ -101,7 +101,7 @@ class TerminalShell(MathicsLineFeeder):
                     )
 
                     readline.parse_and_bind("tab: complete")
-                    self.completion_candidates = []
+                    self.completion_candidates: list[str] = []
         except ImportError:
             pass
 
@@ -468,7 +468,7 @@ Please contribute to Mathics!""",
         extension_modules = default_pymathics_modules
 
     if args.trace_builtins:
-        FunctionApplyRule.apply_rule = traced_apply_function
+        FunctionApplyRule.apply_rule = traced_apply_function  # type: ignore[method-assign]
 
         def dump_tracing_stats():
             TraceBuiltins.dump_tracing_stats(sort_by="count", evaluation=None)
