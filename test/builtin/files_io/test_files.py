@@ -99,6 +99,10 @@ def test_close():
     ), f"temporary filename {temp_filename} should not appear"
 
 
+@pytest.mark.skipif(
+    sys.platform in ("emscripten",),
+    reason="Pyodide has restricted filesystem access",
+)
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
