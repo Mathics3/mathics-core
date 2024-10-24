@@ -1903,7 +1903,7 @@ class SeriesData(Builtin):
                 term,
                 x,
                 x0,
-                nummax.value / nummax.value,
+                Integer(nummax.value / den.value),
                 evaluation,
             )
             return ret

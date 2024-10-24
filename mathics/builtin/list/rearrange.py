@@ -232,7 +232,7 @@ class _Pad(Builtin):
             Integer0,
             Integer0,
             evaluation,
-            lambda: Expression(self.get_name(), element, n),
+            lambda: Expression(Symbol(self.get_name()), element, n),
         )
 
     def eval(self, element, n, x, evaluation: Evaluation):
@@ -243,7 +243,7 @@ class _Pad(Builtin):
             x,
             Integer0,
             evaluation,
-            lambda: Expression(self.get_name(), element, n, x),
+            lambda: Expression(Symbol(self.get_name()), element, n, x),
         )
 
     def eval_margin(self, element, n, x, m, evaluation: Evaluation):
@@ -254,7 +254,7 @@ class _Pad(Builtin):
             x,
             m,
             evaluation,
-            lambda: Expression(self.get_name(), element, n, x, m),
+            lambda: Expression(Symbol(self.get_name()), element, n, x, m),
         )
 
 
@@ -354,6 +354,8 @@ class _GatherOperation(Builtin):
 class _Rotate(Builtin):
     messages = {"rspec": "`` should be an integer or a list of integers."}
 
+    _sign: int
+
     def _rotate(self, expr, n, evaluation: Evaluation):
         if not isinstance(expr, Expression):
             return expr
@@ -363,7 +365,7 @@ class _Rotate(Builtin):
             return expr
 
         index = (self._sign * n[0]) % len(elements)  # with Python's modulo: index >= 1
-        new_elements = chain(elements[index:], elements[:index])
+        new_elements = list(chain(elements[index:], elements[:index]))
 
         if len(n) > 1:
             new_elements = [
