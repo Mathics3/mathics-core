@@ -51,7 +51,9 @@ jobs:
 
           # Activate the virtual environment
           source .venv-pyodide/bin/activate
-          
+
+          pip install "setuptools>=70.0.0" PyYAML click packaging
+
           git clone https://github.com/Mathics3/mathics-scanner.git
           cd mathics-scanner/
           pip install --no-build-isolation -e .
