@@ -461,8 +461,6 @@ class OpenRead(_OpenAction):
 
     The stream must be closed after using it to release the resource:
     >> Close[%];
-
-    S> Close[OpenRead["https://raw.githubusercontent.com/Mathics3/mathics-core/master/README.rst"]];
     """
 
     summary_text = "open a file for reading"

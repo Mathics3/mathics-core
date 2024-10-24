@@ -152,6 +152,12 @@ def test_close():
             "",
         ),
         (
+            'Close[OpenRead["https://raw.githubusercontent.com/Mathics3/mathics-core/master/README.rst"]];',
+            None,
+            "Null",
+            "",
+        ),
+        (
             'fd=OpenRead["ExampleData/EinsteinSzilLetter.txt", BinaryFormat -> True, CharacterEncoding->"UTF8"]//Head',
             None,
             "InputStream",
@@ -318,6 +324,16 @@ def test_close():
         ),
         ("FilePrint[pathname]", None, "Null", ""),
         ("DeleteFile[pathname];Clear[pathname];", None, "Null", ""),
+        ('tmpfilename = $TemporaryDirectory <> "/tmp0";', None, "Null", ""),
+        ("Close[OpenWrite[tmpfilename]];", None, "Null", ""),
+        (
+            'SetFileDate[tmpfilename, {2002, 1, 1, 0, 0, 0.}, "Access"];',
+            None,
+            "Null",
+            "",
+        ),
+        ('FileDate[tmpfilename, "Access"]', None, "{2002, 1, 1, 0, 0, 0.}", ""),
+        ("DeleteFile[tmpfilename]", None, "Null", ""),
     ],
 )
 def test_private_doctests_files(str_expr, msgs, str_expected, fail_msg):
