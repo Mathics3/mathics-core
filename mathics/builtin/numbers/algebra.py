@@ -438,7 +438,9 @@ class Cancel(Builtin):
 
 
 # Get a coefficient of form in an expression
-def _coefficient(name, expr, form, n, evaluation):
+def _coefficient(
+    name: str, expr: Expression, form: Expression, n: Integer, evaluation: Evaluation
+) -> BaseElement:
     if expr is SymbolNull or form is SymbolNull or n is SymbolNull:
         return Integer0
 
@@ -450,18 +452,11 @@ def _coefficient(name, expr, form, n, evaluation):
     sympy_var = form.to_sympy()
     sympy_n = n.to_sympy()
 
-    def combine_exprs(exprs):
-        result = 0
-        for e in exprs:
-            result += e
-        return result
-
     # expand sub expressions if they contain variables
-    sympy_exprs = [
+    sympy_expr: sympy.Expr = sum(
         sympy.expand(e) if sympy_var.free_symbols.issubset(e.free_symbols) else e
         for e in sympy_exprs
-    ]
-    sympy_expr = combine_exprs(sympy_exprs)
+    )
     sympy_result = sympy_expr.coeff(sympy_var, sympy_n)
     return from_sympy(sympy_result)
 
@@ -519,16 +514,18 @@ class Coefficient(Builtin):
 
     summary_text = "coefficient of a monomial in a polynomial expression"
 
-    def eval_noform(self, expr, evaluation):
+    def eval_noform(self, expr: Expression, evaluation: Evaluation):
         "Coefficient[expr_]"
         evaluation.message("Coefficient", "argtu")
 
-    def eval(self, expr, form, evaluation):
+    def eval(self, expr: Expression, form: Expression, evaluation: Evaluation):
         "Coefficient[expr_, form_]"
         return _coefficient(self.__class__.__name__, expr, form, Integer1, evaluation)
 
-    def eval_n(self, expr, form, n, evaluation):
-        "Coefficient[expr_, form_, n_]"
+    def eval_n(
+        self, expr: Expression, form: Expression, n: Integer, evaluation: Evaluation
+    ):
+        "Coefficient[expr_, form_, n_Integer]"
         return _coefficient(self.__class__.__name__, expr, form, n, evaluation)
 
 
