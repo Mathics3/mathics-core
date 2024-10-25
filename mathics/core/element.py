@@ -273,6 +273,9 @@ class BaseElement(KeyComparable, ABC):
     def get_elements(self) -> Sequence["BaseElement"]:
         raise NotImplementedError
 
+    def get_head(self) -> "BaseElement":
+        raise NotImplementedError
+
     def get_head_name(self) -> str:
         """
         All elements have a "Head" whether or not the element is compount.

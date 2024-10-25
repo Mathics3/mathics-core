@@ -1221,6 +1221,9 @@ class PatternObject(BuiltinElement, BasePattern):
             return A_NO_ATTRIBUTES
         return self.head.get_attributes(definitions)
 
+    def get_head(self) -> Symbol:
+        return Symbol(self.get_name())
+
     def get_head_name(self) -> str:
         return self.get_name()
 
