@@ -248,15 +248,6 @@ class Atom(BaseElement):
         """
         return self
 
-    # comment @mmatera: This just makes sense if the Expression has elements...
-    # rocky: It is currently getting called when on Atoms; so more work
-    # is needed to remove this, probably by fixing the callers.
-    def evaluate_elements(self, evaluation) -> "Atom":
-        """
-        Create a new expression by evaluating the head and elements of self.
-        """
-        return self
-
     def get_atom_name(self) -> str:
         return self.__class__.__name__
 

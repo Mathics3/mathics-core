@@ -57,7 +57,7 @@ from mathics.core.list import ListExpression
 from mathics.core.number import PrecisionValueError, dps, get_precision, min_prec
 from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
 from mathics.core.pattern import BasePattern
-from mathics.core.rules import FunctionApplyRule, Rule
+from mathics.core.rules import BaseRule, FunctionApplyRule, Rule
 from mathics.core.symbols import (
     BaseElement,
     BooleanType,
@@ -263,7 +263,7 @@ class Builtin:
                 f"illegal option mode {option_syntax}; check $OptionSyntax."
             )
 
-        rules = []
+        rules: list[BaseRule] = []
         definition_class = (
             PyMathicsDefinitions() if is_pymodule else SystemDefinitions()
         )
@@ -343,7 +343,7 @@ class Builtin:
                 forms = [""]
             return forms, pattern
 
-        formatvalues = {"": []}
+        formatvalues: dict[str, list[BaseRule]] = {"": []}
         for pattern, function in self.get_functions("format_"):
             forms, pattern = extract_forms(pattern)
             pat_attr = attributes if pattern.get_head_name() == name else None
@@ -644,7 +644,10 @@ class MPMathFunction(SympyFunction):
             result = self.prepare_mathics(result)
             result = from_sympy(result)
             # evaluate elements to convert e.g. Plus[2, I] -> Complex[2, 1]
-            return result.evaluate_elements(evaluation)
+            if isinstance(result, Expression):
+                return result.evaluate_elements(evaluation)
+            else:
+                return result
 
         if not all(isinstance(arg, Number) for arg in args):
             return

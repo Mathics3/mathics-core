@@ -605,11 +605,16 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return a new expression with the same head, and the
         evaluable elements evaluated.
         """
-        elements = [
-            element.evaluate(evaluation) if isinstance(element, EvalMixin) else element
-            for element in self._elements
-        ]
-        head = self._head.evaluate_elements(evaluation)
+        elements = []
+        for element in self._elements:
+            if isinstance(element, EvalMixin):
+                result = element.evaluate(evaluation)
+                if result is not None:
+                    element = result
+            elements.append(element)
+        head = self._head
+        if isinstance(head, Expression):
+            head = head.evaluate_elements(evaluation)
         return Expression(head, *elements)
 
     def filter(self, head, cond, evaluation):
