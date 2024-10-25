@@ -5,7 +5,7 @@ import math
 import time
 from bisect import bisect_left
 from itertools import chain
-from typing import Any, Callable, Iterable, Optional, Tuple, Type, Union
+from typing import Any, Callable, Iterable, Optional, Sequence, Tuple, Type, Union
 
 import sympy
 
@@ -739,7 +739,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 result = result | attribute_string_to_number.get(attrib.name, 0)
         return result
 
-    def get_elements(self):
+    def get_elements(self) -> Sequence[BaseElement]:
         # print("Use of get_elements is deprecated. Use elements instead.")
         return self._elements
 
@@ -759,7 +759,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 return lookup_symbol.name
             if isinstance(lookup_symbol, Atom):
                 return lookup_symbol.get_head().name
-            lookup_symbol = lookup_symbol._head
+            lookup_symbol = lookup_symbol.get_head()
 
     def get_mutable_elements(self) -> list:
         """
@@ -781,7 +781,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             values = options.elements
         else:
             values = [options]
-        option_values = {}
+        option_values: dict[str, BaseElement] = {}
         for option in values:
             symbol_name = option.get_name()
             if allow_symbols and symbol_name:
@@ -940,25 +940,25 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             3: tuple:        list of Elements
             4: 1:        No clue...
             """
-            exps = {}
+            exps: dict[str, float] = {}
             head = self._head
             if head is SymbolTimes:
-                for element in self._elements:
+                for element in self.elements:
                     name = element.get_name()
                     if element.has_form("Power", 2):
-                        var = element._elements[0].get_name()
-                        exp = element._elements[1].round_to_float()
+                        var = element.elements[0].get_name()
+                        exp = element.elements[1].round_to_float()
                         if var and exp is not None:
                             exps[var] = exps.get(var, 0) + exp
                     elif name:
                         exps[name] = exps.get(name, 0) + 1
             elif self.has_form("Power", 2):
-                var = self._elements[0].get_name()
+                var = self.elements[0].get_name()
                 # TODO: Check if this is the expected behaviour.
                 # round_to_float is an attribute of Expression,
                 # but not for Atoms.
                 try:
-                    exp = self._elements[1].round_to_float()
+                    exp = self.elements[1].round_to_float()
                 except AttributeError:
                     exp = None
                 if var and exp is not None:
@@ -1032,7 +1032,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         return definitions.is_uncertain_final_value(time, cache.symbols)
 
-    def has_form(self, heads, *element_counts):
+    def has_form(
+        self, heads: Sequence[str] | str, *element_counts: Optional[int]
+    ) -> bool:
         """
         element_counts:
             (,):        no elements allowed
@@ -1046,9 +1048,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         if isinstance(heads, (tuple, list, set)):
             if head_name not in [ensure_context(h) for h in heads]:
                 return False
-        else:
+        elif isinstance(heads, str):
             if head_name != ensure_context(heads):
                 return False
+        else:
+            raise TypeError(
+                f"Heads must be a string or a sequence of strings, not {type(heads)}"
+            )
         if not element_counts:
             return False
         if element_counts and element_counts[0] is not None:

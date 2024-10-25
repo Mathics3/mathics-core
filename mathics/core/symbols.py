@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import time
-from typing import Any, FrozenSet, List, Optional, Union
+from typing import Any, FrozenSet, List, Optional, Sequence, Union
 
 from mathics.core.element import (
     BaseElement,
@@ -40,6 +40,8 @@ class NumericOperators:
         abs(Integer(-8))
         Integer(1) + Integer(2)
     """
+
+    create_expression: Any
 
     def __abs__(self) -> BaseElement:
         return self.create_expression(SymbolAbs, self)
@@ -211,6 +213,7 @@ class Atom(BaseElement):
     _head_name = ""
     _symbol_head = None
     class_head_name = ""
+    original: Optional["Atom"] = None
 
     def __repr__(self) -> str:
         return "<%s: %s>" % (self.get_atom_name(), self)
@@ -218,6 +221,9 @@ class Atom(BaseElement):
     def atom_to_boxes(self, f, evaluation):
         """Produces a Box expression that represents
         how the expression should be formatted."""
+        raise NotImplementedError
+
+    def do_copy(self) -> "Atom":
         raise NotImplementedError
 
     def copy(self, reevaluate=False) -> "Atom":
@@ -289,7 +295,9 @@ class Atom(BaseElement):
         else:
             raise NotImplementedError
 
-    def has_form(self, heads, *element_counts) -> bool:
+    def has_form(
+        self, heads: Sequence[str] | str, *element_counts: Optional[int]
+    ) -> bool:
         if element_counts:
             return False
         name = self.get_atom_name()
@@ -328,7 +336,13 @@ class Atom(BaseElement):
         """
         return False
 
-    def replace_vars(self, vars, options=None, in_scoping=True) -> "Atom":
+    def replace_vars(
+        self,
+        vars: dict[str, BaseElement],
+        options=None,
+        in_scoping=True,
+        in_function=True,
+    ) -> "Atom":
         return self
 
     def replace_slots(self, slots, evaluation) -> "Atom":
@@ -369,14 +383,15 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     """
 
     name: str
-    hash: str
+    hash: int
     sympy_dummy: Any
+    _short_name: str
 
     # Dictionary of Symbols defined so far.
     # We use this for object uniqueness.
     # The key is the Symbol object's string name, and the
     # diectionary's value is the Mathics object for the Symbol.
-    _symbols = {}
+    _symbols: dict[str, "Symbol"] = {}
 
     class_head_name = "System`Symbol"
 
@@ -621,7 +636,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             from mathics.eval.nevaluator import eval_N
 
             value = eval_N(self, n_evaluation)
-            if value is not self:
+            if value is not self and value is not None:
                 return value.to_python()
 
         # For general symbols, the default behaviour is
@@ -666,7 +681,7 @@ class SymbolConstant(Symbol):
     # We use this for object uniqueness.
     # The key is the SymbolConstant's value, and the
     # diectionary's value is the Mathics object representing that Python value.
-    _symbol_constants = {}
+    _symbol_constants: dict[str, "SymbolConstant"] = {}
 
     # We use __new__ here to unsure that two Integer's that have the same value
     # return the same object.
@@ -801,6 +816,8 @@ class NumericOperators:
         abs(Integer(-8))
         Integer(1) + Integer(2)
     """
+
+    create_expression: Any
 
     def __abs__(self) -> BaseElement:
         return self.create_expression(SymbolAbs, self)

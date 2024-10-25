@@ -16,7 +16,7 @@ https://reference.wolfram.com/language/tutorial/PatternsAndTransformationRules.h
 
 from abc import ABC
 from itertools import chain
-from typing import Callable, Optional, Tuple, Union
+from typing import Callable, Optional, Sequence, Tuple, Union
 
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_ORDERLESS
@@ -229,13 +229,17 @@ class BasePattern(ABC):
         """The sort key of the expression"""
         return self.expr.get_sort_key(pattern_sort=pattern_sort)
 
-    def get_option_values(self):
+    def get_option_values(
+        self, evaluation: Evaluation, allow_symbols=False, stop_on_error=True
+    ) -> Optional[dict]:
         """Option values of the expression"""
-        return self.expr.get_option_values()
+        return self.expr.get_option_values(evaluation, allow_symbols, stop_on_error)
 
-    def has_form(self, *args):
+    def has_form(
+        self, heads: Sequence[str] | str, *element_counts: Optional[int]
+    ) -> bool:
         """Compare the expression against a form"""
-        return self.expr.has_form(*args)
+        return self.expr.has_form(heads, *element_counts)
 
     def match(self, expression: BaseElement, pattern_context: dict):
         """

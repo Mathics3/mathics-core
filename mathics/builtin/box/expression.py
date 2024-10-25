@@ -1,6 +1,8 @@
 # This is never intended to go in Mathics3 docs
 no_doc = True
 
+from typing import Optional, Sequence
+
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import BuiltinElement
 from mathics.core.element import BoxElementMixin
@@ -109,8 +111,8 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
     def get_lookup_name(self):
         return self.get_name()
 
-    def get_sort_key(self) -> tuple:
-        return self.to_expression().get_sort_key()
+    def get_sort_key(self, pattern_sort=False) -> tuple:
+        return self.to_expression().get_sort_key(pattern_sort)
 
     def get_string_value(self):
         return "-@" + self.get_head_name() + "@-"
@@ -119,7 +121,13 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
     def head(self):
         return self.get_head()
 
-    def has_form(self, heads, *element_counts):
+    @head.setter
+    def head(self, value):
+        raise ValueError("BoxExpression.head is write protected.")
+
+    def has_form(
+        self, heads: Sequence[str] | str, *element_counts: Optional[int]
+    ) -> bool:
         """
         element_counts:
             (,):        no elements allowed
@@ -133,9 +141,13 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         if isinstance(heads, (tuple, list, set)):
             if head_name not in [ensure_context(h) for h in heads]:
                 return False
-        else:
+        elif isinstance(heads, str):
             if head_name != ensure_context(heads):
                 return False
+        else:
+            raise TypeError(
+                f"Heads must be a string or a sequence of strings, not {type(heads)}"
+            )
         if not element_counts:
             return False
         if element_counts and element_counts[0] is not None:
@@ -150,10 +162,6 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
                 else:
                     return False
         return True
-
-    @head.setter
-    def head(self, value):
-        raise ValueError("BoxExpression.head is write protected.")
 
     @property
     def is_literal(self) -> bool:

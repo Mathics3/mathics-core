@@ -197,9 +197,9 @@ class BaseRule(KeyComparable, ABC):
     ):
         raise NotImplementedError
 
-    def get_sort_key(self) -> tuple:
+    def get_sort_key(self, pattern_sort=True) -> tuple:
         # FIXME: check if this makes sense:
-        return tuple((self.system, self.pattern.get_sort_key(True)))
+        return tuple((self.system, self.pattern.get_sort_key(pattern_sort)))
 
 
 # FIXME: the class name would be better called RewiteRule.
@@ -230,7 +230,7 @@ class Rule(BaseRule):
     def __init__(
         self,
         pattern: Expression,
-        replace: Expression,
+        replace: BaseElement,
         system=False,
         evaluation: Optional[Evaluation] = None,
         attributes: Optional[int] = None,

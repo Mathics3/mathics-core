@@ -6,7 +6,7 @@ Here we have the base class and related function for element inside an Expressio
 """
 
 from abc import ABC
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Sequence, Tuple
 
 from mathics.core.attributes import A_NO_ATTRIBUTES
 
@@ -270,7 +270,10 @@ class BaseElement(KeyComparable, ABC):
     def get_attributes(self, definitions):
         return A_NO_ATTRIBUTES
 
-    def get_head_name(self):
+    def get_elements(self) -> Sequence["BaseElement"]:
+        raise NotImplementedError
+
+    def get_head_name(self) -> str:
         """
         All elements have a "Head" whether or not the element is compount.
         The Head of an Atom is its type. The Head of an S-expression is
@@ -299,7 +302,7 @@ class BaseElement(KeyComparable, ABC):
 
         return self.get_name()
 
-    def get_name(self):
+    def get_name(self, short=False) -> str:
         "Returns symbol's name if Symbol instance"
 
         return ""
@@ -378,7 +381,9 @@ class BaseElement(KeyComparable, ABC):
         # used by NumericQ and expression ordering
         return False
 
-    def has_form(self, heads, *element_counts):
+    def has_form(
+        self, heads: Sequence[str] | str, *element_counts: Optional[int]
+    ) -> bool:
         """Check if the expression is of the form Head[l1,...,ln]
         with Head.name in `heads` and a number of elements according to the specification in
         element_counts.
