@@ -364,7 +364,7 @@ def reduce_series_plus(series, terms, x, x0):
 
 def build_series(
     f: BaseElement, x: BaseElement, x0: BaseElement, n: Integer, evaluation: Evaluation
-):
+) -> BaseElement:
     """
     Builds the series expansion of f on x around x0, upto order n.
     """
@@ -379,7 +379,7 @@ def build_series(
     x_pattern = BasePattern.create(x, evaluation=evaluation)
 
     if f.is_free(x_pattern, evaluation):
-        print(x, " not in ", f)
+        # print(x, " not in ", f)
         return f
 
     data = [f.replace_vars(vars)]

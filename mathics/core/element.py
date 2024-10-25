@@ -436,6 +436,15 @@ class BaseElement(KeyComparable, ABC):
     def default_format(self, evaluation, form) -> str:
         raise NotImplementedError
 
+    def replace_vars(
+        self,
+        vars: dict[str, "BaseElement"],
+        options=None,
+        in_scoping=True,
+        in_function=True,
+    ) -> "BaseElement":
+        raise NotImplementedError
+
 
 class EvalMixin:
     """

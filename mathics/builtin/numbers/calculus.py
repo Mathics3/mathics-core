@@ -1975,7 +1975,15 @@ class SeriesData(Builtin):
         return series_expr
 
     def eval_times(
-        self, x, x0, data, nummin, nummax, den, coeff, evaluation: Evaluation
+        self,
+        x,
+        x0,
+        data: ListExpression,
+        nummin: Integer,
+        nummax: Integer,
+        den: Integer,
+        coeff: BaseElement,
+        evaluation: Evaluation,
     ):
         """Times[SeriesData[x_, x0_, data_, nummin_, nummax_, den_], coeff__]"""
         series = (
