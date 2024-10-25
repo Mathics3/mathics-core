@@ -48,7 +48,7 @@ from mathics.core.convert.expression import to_expression
 from mathics.core.convert.op import ascii_operator_to_symbol
 from mathics.core.convert.python import from_bool
 from mathics.core.convert.sympy import from_sympy, to_numeric_sympy_args
-from mathics.core.definitions import Definition
+from mathics.core.definitions import Definition, Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression, SymbolDefault
@@ -181,7 +181,7 @@ class Builtin:
     name: Optional[str] = None
     context: str = ""
     attributes: int = A_PROTECTED
-    is_numeric: bool = False
+    _is_numeric: bool = False
     rules: Dict[str, Any] = {}
     formats: Dict[str, Any] = {}
     messages: Dict[str, Any] = {}
@@ -217,7 +217,7 @@ class Builtin:
         if hasattr(self, "python_equivalent"):
             mathics_to_python[self.get_name()] = self.python_equivalent
 
-    def contribute(self, definitions, is_pymodule=False):
+    def contribute(self, definitions: Definitions, is_pymodule=False):
         from mathics.core.parser import parse_builtin_rule
 
         # Set the default context
@@ -409,7 +409,7 @@ class Builtin:
             options=options,
             defaultvalues=defaults,
             builtin=self,
-            is_numeric=self.is_numeric,
+            is_numeric=self._is_numeric,
         )
         if is_pymodule:
             definitions.pymathics[name] = definition

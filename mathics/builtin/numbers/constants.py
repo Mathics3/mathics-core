@@ -71,7 +71,7 @@ def sympy_constant(fn, d=None):
 
 
 class _Constant_Common(Predefined):
-    is_numeric = True
+    _is_numeric = True
     attributes = A_CONSTANT | A_PROTECTED | A_READ_PROTECTED
     nargs = {0}
     options = {"Method": "Automatic"}

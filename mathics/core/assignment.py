@@ -9,7 +9,11 @@ from typing import Optional, Tuple
 from mathics.core.atoms import Atom, Integer
 from mathics.core.attributes import A_LOCKED, A_PROTECTED, attribute_string_to_number
 from mathics.core.element import BaseElement
-from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
+from mathics.core.evaluation import (
+    MAX_RECURSION_DEPTH,
+    Evaluation,
+    set_python_recursion_limit,
+)
 from mathics.core.expression import Expression, SymbolDefault
 from mathics.core.list import ListExpression
 from mathics.core.rules import Rule
@@ -572,7 +576,7 @@ def eval_assign_options(self, lhs, rhs, evaluation, tags, upset):
     return True
 
 
-def eval_assign_numericq(self, lhs, rhs, evaluation, tags, upset):
+def eval_assign_numericq(self, lhs, rhs, evaluation: Evaluation, tags, upset):
     # lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
     if rhs not in (SymbolTrue, SymbolFalse):

@@ -164,7 +164,7 @@ class Evaluation:
 
         if definitions is None:
             definitions = Definitions()
-        self.definitions = definitions
+        self.definitions: Definitions = definitions
         self.recursion_depth = 0
         self.timeout = False
         self.timeout_queue: list[tuple[float, float]] = []

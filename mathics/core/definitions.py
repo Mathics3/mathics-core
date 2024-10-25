@@ -111,9 +111,9 @@ class Definitions:
         self, add_builtin=False, builtin_filename=None, extension_modules=[]
     ) -> None:
         super(Definitions, self).__init__()
-        self.builtin = {}
-        self.user = {}
-        self.pymathics = {}
+        self.builtin: dict[str, Definition] = {}
+        self.user: dict[str, Definition] = {}
+        self.pymathics: dict[str, Definition] = {}
         self.definitions_cache = {}
         self.lookup_cache = {}
         self.proxy = defaultdict(set)
@@ -413,7 +413,7 @@ class Definitions:
     def have_definition(self, name) -> bool:
         return self.get_definition(name, only_if_exists=True) is not None
 
-    def get_definition(self, name, only_if_exists=False) -> "Definition":
+    def get_definition(self, name: str, only_if_exists=False) -> "Definition":
         definition = self.definitions_cache.get(name, None)
         if definition is not None:
             return definition
