@@ -9,7 +9,11 @@ from typing import Optional, Tuple
 from mathics.core.atoms import Atom, Integer
 from mathics.core.attributes import A_LOCKED, A_PROTECTED, attribute_string_to_number
 from mathics.core.element import BaseElement
-from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
+from mathics.core.evaluation import (
+    MAX_RECURSION_DEPTH,
+    Evaluation,
+    set_python_recursion_limit,
+)
 from mathics.core.expression import Expression, SymbolDefault
 from mathics.core.list import ListExpression
 from mathics.core.rules import Rule
@@ -238,21 +242,21 @@ def unroll_conditions(lhs) -> Tuple[BaseElement, Optional[Expression]]:
         return lhs, None
     else:
         name, lhs_elements = lhs.get_head_name(), lhs.get_elements()
-    condition = []
+    conditions = []
     # This handle the case of many sucesive conditions:
     # f[x_]/; cond1 /; cond2 ... ->  f[x_]/; And[cond1, cond2, ...]
     while name == "System`Condition" and len(lhs.elements) == 2:
-        condition.append(lhs_elements[1])
+        conditions.append(lhs_elements[1])
         lhs = lhs_elements[0]
         if isinstance(lhs, Atom):
             break
         name, lhs_elements = lhs.get_head_name(), lhs.elements
-    if len(condition) == 0:
+    if len(conditions) == 0:
         return lhs, None
-    if len(condition) > 1:
-        condition = Expression(SymbolAnd, *condition)
+    if len(conditions) > 1:
+        condition = Expression(SymbolAnd, *conditions)
     else:
-        condition = condition[0]
+        condition = conditions[0]
     condition = Expression(SymbolCondition, lhs, condition)
     # lhs._format_cache = None
     return lhs, condition
@@ -572,7 +576,7 @@ def eval_assign_options(self, lhs, rhs, evaluation, tags, upset):
     return True
 
 
-def eval_assign_numericq(self, lhs, rhs, evaluation, tags, upset):
+def eval_assign_numericq(self, lhs, rhs, evaluation: Evaluation, tags, upset):
     # lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
     if rhs not in (SymbolTrue, SymbolFalse):
@@ -742,8 +746,11 @@ def process_rhs_conditions(lhs, rhs, condition, evaluation):
     return lhs, rhs
 
 
-def process_tags_and_upset_dont_allow_custom(tags, upset, self, lhs, focus, evaluation):
-    focus = focus.evaluate_elements(evaluation)
+def process_tags_and_upset_dont_allow_custom(
+    tags, upset, self, lhs, focus: BaseElement, evaluation: Evaluation
+):
+    if isinstance(focus, Expression):
+        focus = focus.evaluate_elements(evaluation)
     name = lhs.get_head_name()
     if tags is None and not upset:
         name = focus.get_lookup_name()
@@ -762,10 +769,13 @@ def process_tags_and_upset_dont_allow_custom(tags, upset, self, lhs, focus, eval
     return tags
 
 
-def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
+def process_tags_and_upset_allow_custom(
+    tags, upset, self, lhs: BaseElement, evaluation: Evaluation
+):
     name = lhs.get_head_name()
     focus = lhs
-    focus = focus.evaluate_elements(evaluation)
+    if isinstance(focus, Expression):
+        focus = focus.evaluate_elements(evaluation)
     if tags is None and not upset:
         name = focus.get_lookup_name()
         if not name:
@@ -777,7 +787,7 @@ def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
         if isinstance(focus, Atom):
             evaluation.message(self.get_name(), "normal")
             raise AssignmentException(lhs, None)
-        for element in focus.elements:
+        for element in focus.get_elements():
             name = element.get_lookup_name()
             tags.append(name)
     else:
@@ -786,18 +796,18 @@ def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
             if not isinstance(element, Symbol) and element.get_head_name() in (
                 "System`HoldPattern",
             ):
-                element = element.elements[0]
+                element = element.get_element(0)
             if not isinstance(element, Symbol) and element.get_head_name() in (
                 "System`Pattern",
             ):
-                element = element.elements[1]
+                element = element.get_element(1)
             if not isinstance(element, Symbol) and element.get_head_name() in (
                 "System`Blank",
                 "System`BlankSequence",
                 "System`BlankNullSequence",
             ):
-                if len(element.elements) == 1:
-                    element = element.elements[0]
+                if len(element.get_elements()) == 1:
+                    element = element.get_element(0)
 
             allowed_names.append(element.get_lookup_name())
         for name in tags:

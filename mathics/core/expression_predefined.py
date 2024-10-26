@@ -20,7 +20,7 @@ class PredefinedExpression(Expression):
     def __init__(
         self,
         head: BaseElement,
-        *elements: Tuple[BaseElement],
+        *elements: BaseElement,
     ):
         elements_properties = ElementsProperties(True, True, True)
         super().__init__(head, *elements, elements_properties=elements_properties)

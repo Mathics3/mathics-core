@@ -7,7 +7,7 @@ import pickle
 import re
 from collections import defaultdict
 from os.path import join as osp_join
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from mathics_scanner.tokeniser import full_names_pattern
 
@@ -111,9 +111,9 @@ class Definitions:
         self, add_builtin=False, builtin_filename=None, extension_modules=[]
     ) -> None:
         super(Definitions, self).__init__()
-        self.builtin = {}
-        self.user = {}
-        self.pymathics = {}
+        self.builtin: Dict[str, Definition] = {}
+        self.user: Dict[str, Definition] = {}
+        self.pymathics: Dict[str, Definition] = {}
         self.definitions_cache = {}
         self.lookup_cache = {}
         self.proxy = defaultdict(set)
@@ -413,7 +413,7 @@ class Definitions:
     def have_definition(self, name) -> bool:
         return self.get_definition(name, only_if_exists=True) is not None
 
-    def get_definition(self, name, only_if_exists=False) -> "Definition":
+    def get_definition(self, name: str, only_if_exists=False) -> "Definition":
         definition = self.definitions_cache.get(name, None)
         if definition is not None:
             return definition
@@ -926,7 +926,7 @@ class Definition:
         self.formatvalues = dict((name, list) for name, list in formatvalues.items())
         self.messages = messages
         self.attributes = attributes
-        self.options = options
+        self.options: Dict[str, str] = options
         self.nvalues = nvalues
         self.defaultvalues = defaultvalues
         self.builtin = builtin

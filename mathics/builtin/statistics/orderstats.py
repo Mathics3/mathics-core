@@ -93,7 +93,16 @@ class Quantile(Builtin):
     }
     summary_text = "cut points dividing the range of a probability distribution into continuous intervals"
 
-    def eval(self, data, qs, a, b, c, d, evaluation: Evaluation):
+    def eval(
+        self,
+        data: ListExpression,
+        qs: ListExpression,
+        a,
+        b,
+        c,
+        d,
+        evaluation: Evaluation,
+    ):
         """Quantile[data_List, qs_List, {{a_, b_}, {c_, d_}}]"""
 
         n = len(data.elements)
@@ -102,7 +111,9 @@ class Quantile(Builtin):
         def ranked(i):
             return introselect(partially_sorted, min(max(0, i - 1), n - 1))
 
-        numeric_qs = numerify(qs.evaluate(evaluation), evaluation)
+        numeric_qs = qs.evaluate(evaluation)
+        if numeric_qs is not None:
+            numeric_qs = numerify(numeric_qs, evaluation)
         results = []
 
         for q in numeric_qs.elements:

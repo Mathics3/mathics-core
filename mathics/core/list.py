@@ -26,6 +26,8 @@ class ListExpression(Expression):
         - literal_values -- if this is not None, then it is a tuple of Python values
     """
 
+    _is_literal: bool
+
     def __init__(
         self,
         *elements,
@@ -102,7 +104,7 @@ class ListExpression(Expression):
                 if isinstance(element, EvalMixin):
                     new_value = element.evaluate(evaluation)
                     # We need id() because != by itself is too permissive
-                    if id(element) != id(new_value):
+                    if new_value is not None and id(element) != id(new_value):
                         elements_changed = True
                         elements[index] = new_value
 
@@ -145,8 +147,7 @@ class ListExpression(Expression):
         if self.elements_properties is None:
             self._build_elements_properties()
         if not self.elements_properties.elements_fully_evaluated:
-            new = self.shallow_copy()
-            new = new.evaluate_elements(evaluation)
+            new = self.shallow_copy().evaluate_elements(evaluation)
             return new, False
         return self, False
 

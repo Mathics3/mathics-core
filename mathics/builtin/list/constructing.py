@@ -8,7 +8,9 @@ Functions for constructing lists of various sizes and structure.
 See also Constructing Vectors.
 """
 
+import typing
 from itertools import permutations
+from typing import Optional, Tuple
 
 from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import Integer, is_integer_rational_or_real
@@ -20,7 +22,7 @@ from mathics.core.element import ElementsProperties
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, structure
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Atom
+from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import SymbolNormal
 from mathics.eval.lists import get_tuples, list_boxes
 
@@ -268,9 +270,9 @@ class Range(Builtin):
             and isinstance(di, Integer)
         ):
             pm = 1 if di.value >= 0 else -1
-            result = [Integer(i) for i in range(imin.value, imax.value + pm, di.value)]
             return ListExpression(
-                *result, elements_properties=range_list_elements_properties
+                *[Integer(i) for i in range(imin.value, imax.value + pm, di.value)],
+                elements_properties=range_list_elements_properties,
             )
 
         imin = imin.to_sympy()
@@ -344,7 +346,7 @@ class Permutations(Builtin):
     def eval_n(self, li, n, evaluation: Evaluation):
         "Permutations[li_List, n_]"
 
-        rs = None
+        rs: Optional[Tuple[int, ...]] = None
         if isinstance(n, Integer):
             py_n = min(n.get_int_value(), len(li.elements))
         elif n.has_form("List", 1) and isinstance(n.elements[0], Integer):
@@ -359,12 +361,12 @@ class Permutations(Builtin):
 
         if py_n is None or py_n < 0:
             evaluation.message(
-                self.get_name(), "nninfseq", Expression(self.get_name(), li, n)
+                self.get_name(), "nninfseq", Expression(Symbol(self.get_name()), li, n)
             )
             return
 
         if rs is None:
-            rs = range(py_n + 1)
+            rs = tuple(range(py_n + 1))
 
         inner = structure("List", li, evaluation)
         outer = structure("List", inner, evaluation)
@@ -431,7 +433,7 @@ class Reap(Builtin):
         "Reap[expr_, {patterns___}, f_]"
 
         patterns = patterns.get_sequence()
-        sown = [
+        sown: typing.List[typing.Tuple[BasePattern, list]] = [
             (BasePattern.create(pattern, evaluation=evaluation), [])
             for pattern in patterns
         ]

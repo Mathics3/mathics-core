@@ -7,6 +7,7 @@ SympyFunction, MPMathFunction, etc.
 """
 
 import importlib
+import importlib.util
 import os.path as osp
 import re
 from abc import ABC
@@ -47,7 +48,7 @@ from mathics.core.convert.expression import to_expression
 from mathics.core.convert.op import ascii_operator_to_symbol
 from mathics.core.convert.python import from_bool
 from mathics.core.convert.sympy import from_sympy, to_numeric_sympy_args
-from mathics.core.definitions import Definition
+from mathics.core.definitions import Definition, Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression, SymbolDefault
@@ -56,7 +57,7 @@ from mathics.core.list import ListExpression
 from mathics.core.number import PrecisionValueError, dps, get_precision, min_prec
 from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
 from mathics.core.pattern import BasePattern
-from mathics.core.rules import FunctionApplyRule, Rule
+from mathics.core.rules import BaseRule, FunctionApplyRule, Rule
 from mathics.core.symbols import (
     BaseElement,
     BooleanType,
@@ -70,8 +71,6 @@ from mathics.core.symbols import (
     strip_context,
 )
 from mathics.core.systemsymbols import (
-    SymbolGreaterEqual,
-    SymbolLess,
     SymbolLessEqual,
     SymbolMessageName,
     SymbolRule,
@@ -182,12 +181,12 @@ class Builtin:
     name: Optional[str] = None
     context: str = ""
     attributes: int = A_PROTECTED
-    is_numeric: bool = False
+    _is_numeric: bool = False
     rules: Dict[str, Any] = {}
     formats: Dict[str, Any] = {}
     messages: Dict[str, Any] = {}
     options: Dict[str, Any] = {}
-    defaults = {}
+    defaults: Dict[Optional[int], str] = {}
 
     def __getnewargs_ex__(self):
         return tuple(), {
@@ -218,7 +217,7 @@ class Builtin:
         if hasattr(self, "python_equivalent"):
             mathics_to_python[self.get_name()] = self.python_equivalent
 
-    def contribute(self, definitions, is_pymodule=False):
+    def contribute(self, definitions: Definitions, is_pymodule=False):
         from mathics.core.parser import parse_builtin_rule
 
         # Set the default context
@@ -264,7 +263,7 @@ class Builtin:
                 f"illegal option mode {option_syntax}; check $OptionSyntax."
             )
 
-        rules = []
+        rules: List[BaseRule] = []
         definition_class = (
             PyMathicsDefinitions() if is_pymodule else SystemDefinitions()
         )
@@ -344,7 +343,7 @@ class Builtin:
                 forms = [""]
             return forms, pattern
 
-        formatvalues = {"": []}
+        formatvalues: Dict[str, List[BaseRule]] = {"": []}
         for pattern, function in self.get_functions("format_"):
             forms, pattern = extract_forms(pattern)
             pat_attr = attributes if pattern.get_head_name() == name else None
@@ -410,7 +409,7 @@ class Builtin:
             options=options,
             defaultvalues=defaults,
             builtin=self,
-            is_numeric=self.is_numeric,
+            is_numeric=self._is_numeric,
         )
         if is_pymodule:
             definitions.pymathics[name] = definition
@@ -536,7 +535,7 @@ class BuiltinElement(Builtin, BaseElement):
 class SympyObject(Builtin):
     sympy_name: Optional[str] = None
 
-    mathics_to_sympy = {}
+    mathics_to_sympy: Dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -565,6 +564,8 @@ class SympyFunction(SympyObject):
         #
         # "%(name)s[z__]"
         sympy_args = to_numeric_sympy_args(z, evaluation)
+        if self.sympy_name is None:
+            return
         sympy_fn = getattr(sympy, self.sympy_name)
         try:
             return from_sympy(tracing.run_sympy(sympy_fn, *sympy_args))
@@ -605,7 +606,7 @@ class SympyFunction(SympyObject):
         except TypeError:
             pass
 
-    def from_sympy(self, elements: list) -> Expression:
+    def from_sympy(self, elements: Tuple[BaseElement, ...]) -> Expression:
         return Expression(Symbol(self.get_name()), *elements)
 
     def prepare_mathics(self, sympy_expr):
@@ -624,7 +625,7 @@ class MPMathFunction(SympyFunction):
     # So those classes should expclicitly set/override this.
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
-    mpmath_name = None
+    mpmath_name: Optional[str] = None
     nargs = {1}
 
     def get_mpmath_function(self, args):
@@ -643,7 +644,10 @@ class MPMathFunction(SympyFunction):
             result = self.prepare_mathics(result)
             result = from_sympy(result)
             # evaluate elements to convert e.g. Plus[2, I] -> Complex[2, 1]
-            return result.evaluate_elements(evaluation)
+            if isinstance(result, Expression):
+                return result.evaluate_elements(evaluation)
+            else:
+                return result
 
         if not all(isinstance(arg, Number) for arg in args):
             return
@@ -657,14 +661,14 @@ class MPMathFunction(SympyFunction):
         else:
             prec = min_prec(*args)
             d = dps(prec)
-            args = [arg.round(d) for arg in args]
+            args = tuple([arg.round(d) for arg in args])
 
         return eval_mpmath_function(mpmath_function, *args, prec=prec)
 
 
 class MPMathMultiFunction(MPMathFunction):
-    sympy_names = None
-    mpmath_names = None
+    sympy_names: Optional[Dict[int, str]] = None
+    mpmath_names: Optional[Dict[int, str]] = None
 
     def get_sympy_names(self):
         if self.sympy_names is None:
@@ -783,7 +787,7 @@ def has_option(options, name, evaluation):
     return get_option(options, name, evaluation, evaluate=False) is not None
 
 
-mathics_to_python = {}  # here we have: name -> string
+mathics_to_python: Dict[str, Any] = {}  # here we have: name -> string
 
 
 class AtomBuiltin(Builtin):
@@ -796,7 +800,8 @@ class AtomBuiltin(Builtin):
     # which are by default not in the definitions' contribution pipeline.
     # see Image[] for an example of this.
 
-    def get_name(self, short=False) -> str:
+    @classmethod
+    def get_name(cls, short=False) -> str:
         name = super().get_name(short=short)
         return re.sub(r"Atom$", "", name)
 
@@ -1216,6 +1221,9 @@ class PatternObject(BuiltinElement, BasePattern):
             return A_NO_ATTRIBUTES
         return self.head.get_attributes(definitions)
 
+    def get_head(self) -> Symbol:
+        return Symbol(self.get_name())
+
     def get_head_name(self) -> str:
         return self.get_name()
 
@@ -1251,7 +1259,7 @@ class CountableInteger:
     # _support_infinity to False.
     _finite: bool
     _upper_limit: bool
-    _integer: Union[str, int]
+    _integer: Union[str, int, None]
     _support_infinity = False
 
     def __init__(self, value: Union[int, str] = "Infinity", upper_limit=True):

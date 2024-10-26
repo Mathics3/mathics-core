@@ -13,12 +13,12 @@ from mathics.eval.parts import python_levelspec
 
 # TODO: disentangle me
 def create_rules(
-    rules_expr: BaseElement,
+    rules_expr: Expression,
     expr: Expression,
     name: str,
     evaluation: Evaluation,
     extra_args: OptionalType[List] = None,
-) -> Tuple[Union[List[Rule], BaseElement], bool]:
+) -> Union[Tuple[Union[List[Rule], BaseElement, None], bool], "Dispatch"]:
     """
     This function implements  `Replace`, `ReplaceAll`, `ReplaceRepeated`
     and `ReplaceList` eval methods.
@@ -35,7 +35,7 @@ def create_rules(
     if isinstance(rules_expr, Dispatch):
         return rules_expr.rules, False
     if rules_expr.has_form("Dispatch", None):
-        if rules_expr.head is SymbolList:
+        if rules_expr.get_head() is SymbolList:
             return Dispatch(rules_expr.elements, evaluation)
         return Dispatch((rules_expr,), evaluation)
 
@@ -149,7 +149,12 @@ def eval_replace_with_levelspec(expr, rules, ls, heads, evaluation, options):
 class Dispatch(Atom):
     class_head_name = "System`Dispatch"
 
-    def __init__(self, rule_tuple: Expression, evaluation: Evaluation) -> None:
+    src: ListExpression
+    rules: List[Rule]
+
+    def __init__(
+        self, rule_tuple: Tuple[Expression, ...], evaluation: Evaluation
+    ) -> None:
         assert isinstance(rule_tuple, tuple)
         self.src = ListExpression(*rule_tuple)
         try:

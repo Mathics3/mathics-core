@@ -50,7 +50,7 @@ def to_expression(
 
 
 def to_expression_with_specialization(
-    head: Union[str, Symbol],
+    head: BaseElement,
     *elements: Any,
     elements_conversion_fn: Callable = from_python,
 ) -> Union[ListExpression, Expression]:

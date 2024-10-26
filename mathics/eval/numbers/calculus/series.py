@@ -4,6 +4,8 @@ Implementation of Series handling functions.
 """
 from mathics.core.atoms import Integer, Integer0, Rational
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.element import BaseElement
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import BasePattern
@@ -360,7 +362,9 @@ def reduce_series_plus(series, terms, x, x0):
     return series, other_terms
 
 
-def build_series(f, x, x0, n, evaluation):
+def build_series(
+    f: BaseElement, x: BaseElement, x0: BaseElement, n: Integer, evaluation: Evaluation
+) -> BaseElement:
     """
     Builds the series expansion of f on x around x0, upto order n.
     """
@@ -375,13 +379,12 @@ def build_series(f, x, x0, n, evaluation):
     x_pattern = BasePattern.create(x, evaluation=evaluation)
 
     if f.is_free(x_pattern, evaluation):
-        print(x, " not in ", f)
+        # print(x, " not in ", f)
         return f
 
     data = [f.replace_vars(vars)]
     df = f
-    n = n.get_int_value()
-    for i in range(n):
+    for i in range(n.get_int_value()):
         df = Expression(SymbolD, df, x).evaluate(evaluation)
         newcoeff = df.replace_vars(vars).evaluate(evaluation)
         factorial = Expression(SymbolFactorial, Integer(i + 1))
@@ -398,13 +401,13 @@ def build_series(f, x, x0, n, evaluation):
             return Expression(
                 f.get_head(),
                 *[
-                    build_series(element, x, x0, Integer(n), evaluation)
+                    build_series(element, x, x0, n, evaluation)
                     for element in f.elements
                 ],
             )
         data.append(newcoeff)
     data = ListExpression(*data).evaluate(evaluation)
-    series = reduce_series_trailing_zeros((data, 0, n + 1, 1))
+    series = reduce_series_trailing_zeros((data, 0, n.get_int_value() + 1, 1))
     return Expression(
         SymbolSeriesData,
         x,

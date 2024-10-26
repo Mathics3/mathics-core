@@ -7,7 +7,7 @@ formatting rules.
 
 
 import typing
-from typing import Any, Dict, Optional, Type
+from typing import Any, Callable, Dict, Optional, Type
 
 from mathics.core.atoms import Complex, Integer, Rational, Real, String, SymbolI
 from mathics.core.convert.expression import to_expression_with_specialization
@@ -57,7 +57,10 @@ StringRepeated = String("..")
 
 builtins_precedence: Dict[Symbol, int] = {}
 
-element_formatters = {}
+element_formatters: Dict[
+    Type[BaseElement],
+    Callable[[BaseElement, Evaluation, Symbol], Optional[BaseElement]],
+] = {}
 
 
 # this temporarily replaces the _BoxedString class
@@ -70,7 +73,7 @@ def _boxed_string(string: str, **options):
 # 640 = sys.int_info.str_digits_check_threshold.
 # Someday when 3.11 is the minimum version of Python supported,
 # we can replace the magic value 640 below with sys.int.str_digits_check_threshold.
-def int_to_string_shorter_repr(value: Integer, form: Symbol, max_digits=640):
+def int_to_string_shorter_repr(value: int, form: Symbol, max_digits=640):
     """Convert value to a String, restricted to max_digits characters.
 
     if value has an n-digit decimal representation,
@@ -147,7 +150,7 @@ def int_to_string_shorter_repr(value: Integer, form: Symbol, max_digits=640):
 
 def eval_fullform_makeboxes(
     self, expr, evaluation: Evaluation, form=SymbolStandardForm
-) -> Expression:
+) -> Optional[BaseElement]:
     """
     This function takes the definitions provided by the evaluation
     object, and produces a boxed form for expr.
@@ -159,7 +162,9 @@ def eval_fullform_makeboxes(
     return Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
 
 
-def eval_makeboxes(expr, evaluation: Evaluation, form=SymbolStandardForm) -> Expression:
+def eval_makeboxes(
+    expr, evaluation: Evaluation, form=SymbolStandardForm
+) -> Optional[BaseElement]:
     """
     This function takes the definitions provided by the evaluation
     object, and produces a boxed fullform for expr.
@@ -172,11 +177,13 @@ def eval_makeboxes(expr, evaluation: Evaluation, form=SymbolStandardForm) -> Exp
 
 def format_element(
     element: BaseElement, evaluation: Evaluation, form: Symbol, **kwargs
-) -> Type[BaseElement]:
+) -> Optional[BaseElement]:
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
     expr = do_format(element, evaluation, form)
+    if expr is None:
+        return None
     result = Expression(SymbolMakeBoxes, expr, form)
     result_box = result.evaluate(evaluation)
     if isinstance(result_box, String):
@@ -192,14 +199,14 @@ def format_element(
 
 def do_format(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> Type[BaseElement]:
+) -> Optional[BaseElement]:
     do_format_method = element_formatters.get(type(element), do_format_element)
     return do_format_method(element, evaluation, form)
 
 
 def do_format_element(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> Type[BaseElement]:
+) -> Optional[BaseElement]:
     """
     Applies formats associated to the expression and removes
     superfluous enclosing formats.
@@ -216,7 +223,7 @@ def do_format_element(
         # If the expression is enclosed by a Format
         # takes the form from the expression and
         # removes the format from the expression.
-        if head in OutputForms and len(expr.elements) == 1:
+        if head in OutputForms and len(elements) == 1:
             expr = elements[0]
             if not form.sameQ(head):
                 form = head
@@ -274,7 +281,7 @@ def do_format_element(
         if formatted is not None:
             do_format = element_formatters.get(type(formatted), do_format_element)
             result = do_format(formatted, evaluation, form)
-            if include_form:
+            if include_form and result is not None:
                 result = Expression(form, result)
             return result
 
@@ -288,10 +295,12 @@ def do_format_element(
             # Form[expr, opts]
             # then the format was not stripped. Then,
             # just return it as it is.
-            if len(expr.elements) != 1:
+            if len(expr.get_elements()) != 1:
                 return expr
             do_format = element_formatters.get(type(element), do_format_element)
-            expr = do_format(expr, evaluation, form)
+            result = do_format(expr, evaluation, form)
+            if isinstance(result, Expression):
+                expr = result
 
         elif (
             head is not SymbolNumberForm
@@ -319,7 +328,9 @@ def do_format_element(
 
 def do_format_rational(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> Type[BaseElement]:
+) -> Optional[BaseElement]:
+    if not isinstance(element, Rational):
+        return None
     if form is SymbolFullForm:
         return do_format_expression(
             Expression(
@@ -344,7 +355,9 @@ def do_format_rational(
 
 def do_format_complex(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> Type[BaseElement]:
+) -> Optional[BaseElement]:
+    if not isinstance(element, Complex):
+        return None
     if form is SymbolFullForm:
         return do_format_expression(
             Expression(
@@ -372,7 +385,7 @@ def do_format_complex(
 
 def do_format_expression(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> Type[BaseElement]:
+) -> Optional[BaseElement]:
     # # not sure how much useful is this format_cache
     # if element._format_cache is None:
     #    element._format_cache = {}
@@ -393,10 +406,10 @@ def do_format_expression(
 
 def parenthesize(
     precedence: Optional[int],
-    element: Type[BaseElement],
+    element: Expression,
     element_boxes,
     when_equal: bool,
-) -> Type[Expression]:
+) -> Expression:
     """
     "Determines if ``element_boxes`` needs to be surrounded with parenthesis.
     This is done based on ``precedence`` and the computed preceence of

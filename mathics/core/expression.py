@@ -5,7 +5,18 @@ import math
 import time
 from bisect import bisect_left
 from itertools import chain
-from typing import Any, Callable, Iterable, Optional, Tuple, Type, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+)
 
 import sympy
 
@@ -258,7 +269,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     """
 
     _head: BaseElement
-    _elements: Tuple[BaseElement]
+    _elements: Tuple[BaseElement, ...]
     _sequences: Any
     _cache: Optional[ExpressionCache]
     elements_properties: Optional[ElementsProperties]
@@ -268,7 +279,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     def __init__(
         self,
         head: BaseElement,
-        *elements: Tuple[BaseElement],
+        *elements: BaseElement,
         elements_properties: Optional[ElementsProperties] = None,
         literal_values: Optional[tuple] = None,
     ):
@@ -388,15 +399,14 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         elements = self._elements
 
-        flattened = []
-        extend = flattened.extend
+        flattened: List[BaseElement] = []
 
         k = 0
         for i in indices:
-            extend(elements[k:i])
-            extend(sequence(elements[i]))
+            flattened.extend(elements[k:i])
+            flattened.extend(sequence(elements[i]))
             k = i + 1
-        extend(elements[k:])
+        flattened.extend(elements[k:])
 
         return self.restructure(self._head, flattened, evaluation)
 
@@ -514,7 +524,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     def evaluate(
         self,
         evaluation: Evaluation,
-    ) -> Optional[Type["BaseElement"]]:
+    ) -> Optional[BaseElement]:
         """
         Apply transformation rules and expression evaluation to ``evaluation`` via
         ``rewrite_apply_eval_step()`` until that method tells us to stop,
@@ -523,7 +533,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         Evaluation is recursive:``rewrite_apply_eval_step()`` may call us.
         """
         if evaluation.timeout:
-            return
+            return None
 
         expr = self
         reevaluate = True
@@ -606,11 +616,16 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return a new expression with the same head, and the
         evaluable elements evaluated.
         """
-        elements = [
-            element.evaluate(evaluation) if isinstance(element, EvalMixin) else element
-            for element in self._elements
-        ]
-        head = self._head.evaluate_elements(evaluation)
+        elements = []
+        for element in self._elements:
+            if isinstance(element, EvalMixin):
+                result = element.evaluate(evaluation)
+                if result is not None:
+                    element = result
+            elements.append(element)
+        head = self._head
+        if isinstance(head, Expression):
+            head = head.evaluate_elements(evaluation)
         return Expression(head, *elements)
 
     def filter(self, head, cond, evaluation):
@@ -740,7 +755,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 result = result | attribute_string_to_number.get(attrib.name, 0)
         return result
 
-    def get_elements(self):
+    def get_elements(self) -> Sequence[BaseElement]:
         # print("Use of get_elements is deprecated. Use elements instead.")
         return self._elements
 
@@ -760,7 +775,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 return lookup_symbol.name
             if isinstance(lookup_symbol, Atom):
                 return lookup_symbol.get_head().name
-            lookup_symbol = lookup_symbol._head
+            lookup_symbol = lookup_symbol.get_head()
 
     def get_mutable_elements(self) -> list:
         """
@@ -776,18 +791,15 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         For example, Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)
         will return a list of options associated to the definition of the symbol "Integrate".
         """
-        options = self
-        if options.has_form("List", None):
-            options = options.flatten_with_respect_to_head(SymbolList)
-            values = options.elements
+        if self.has_form("List", None):
+            values = self.flatten_with_respect_to_head(SymbolList).elements
         else:
-            values = [options]
-        option_values = {}
+            values = [self]
+        option_values: Dict[str, Union[str, BaseElement]] = {}
         for option in values:
             symbol_name = option.get_name()
             if allow_symbols and symbol_name:
-                options = evaluation.definitions.get_options(symbol_name)
-                option_values.update(options)
+                option_values.update(evaluation.definitions.get_options(symbol_name))
             else:
                 if not option.has_form(("Rule", "RuleDelayed"), 2):
                     if stop_on_error:
@@ -941,25 +953,25 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             3: tuple:        list of Elements
             4: 1:        No clue...
             """
-            exps = {}
+            exps: Dict[str, float] = {}
             head = self._head
             if head is SymbolTimes:
-                for element in self._elements:
+                for element in self.elements:
                     name = element.get_name()
                     if element.has_form("Power", 2):
-                        var = element._elements[0].get_name()
-                        exp = element._elements[1].round_to_float()
+                        var = element.get_element(0).get_name()
+                        exp = element.get_element(1).round_to_float()
                         if var and exp is not None:
                             exps[var] = exps.get(var, 0) + exp
                     elif name:
                         exps[name] = exps.get(name, 0) + 1
             elif self.has_form("Power", 2):
-                var = self._elements[0].get_name()
+                var = self.elements[0].get_name()
                 # TODO: Check if this is the expected behaviour.
                 # round_to_float is an attribute of Expression,
                 # but not for Atoms.
                 try:
-                    exp = self._elements[1].round_to_float()
+                    exp = self.elements[1].round_to_float()
                 except AttributeError:
                     exp = None
                 if var and exp is not None:
@@ -1033,7 +1045,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         return definitions.is_uncertain_final_value(time, cache.symbols)
 
-    def has_form(self, heads, *element_counts):
+    def has_form(
+        self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
+    ) -> bool:
         """
         element_counts:
             (,):        no elements allowed
@@ -1047,9 +1061,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         if isinstance(heads, (tuple, list, set)):
             if head_name not in [ensure_context(h) for h in heads]:
                 return False
-        else:
+        elif isinstance(heads, str):
             if head_name != ensure_context(heads):
                 return False
+        else:
+            raise TypeError(
+                f"Heads must be a string or a sequence of strings, not {type(heads)}"
+            )
         if not element_counts:
             return False
         if element_counts and element_counts[0] is not None:
@@ -1134,7 +1152,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # Note: self._head can be not just a symbol, but some arbitrary expression.
         # This is what makes expressions in Mathics3 be M-expressions rather than
         # S-expressions.
-        head = self._head.evaluate(evaluation)
+        head = self._head
+        if isinstance(head, EvalMixin):
+            result = head.evaluate(evaluation)
+            if result is not None:
+                head = result
 
         attributes = head.get_attributes(evaluation.definitions)
 
@@ -1194,6 +1216,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # * run to_python() on them in Expression construction, or
         # * convert Expression elements from a tuple to a list and back
         recompute_properties = False
+        elements: Sequence[BaseElement]
         if self.elements_properties.elements_fully_evaluated:
             elements = self._elements
         else:
@@ -1212,7 +1235,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # Step 3: Now, process the attributes of head
         # If there are sequence, flatten them if the attributes allow it.
         if (
-            not new.elements_properties.is_flat
+            new.elements_properties is not None
+            and not new.elements_properties.is_flat
             and not (A_SEQUENCE_HOLD | A_HOLD_ALL_COMPLETE) & attributes
         ):
             # This step is applied to most of the expressions
@@ -1254,7 +1278,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 if element.has_form("Unevaluated", 1):
                     if dirty_elements is None:
                         dirty_elements = list(elements)
-                    dirty_elements[index] = element._elements[0]
+                    dirty_elements[index] = element.get_element(0)
                     dirty_elements[index].unevaluated = True
 
             if dirty_elements:
@@ -1278,7 +1302,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # element's ``get_sort_key()`` method.
         # Sorting can be time consuming which is why we note this in ``elements_properties``.
         # Checking for sortedness takes O(n) while sorting take O(n log n).
-        if not new.elements_properties.is_ordered and (A_ORDERLESS & attributes):
+        if (
+            new.elements_properties is not None
+            and not new.elements_properties.is_ordered
+            and (A_ORDERLESS & attributes)
+        ):
             new.sort()
 
         # Step 4:  Rebuild the ExpressionCache, which tracks which symbols
@@ -1699,15 +1727,26 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     func_params = [self._elements[0].get_name()]
                 else:
                     func_params = [
-                        element.get_name() for element in self._elements[0]._elements
+                        element.get_name()
+                        for element in self._elements[0].get_elements()
                     ]
                 if "" not in func_params:
                     body = self._elements[1]
-                    replacement = {name: Symbol(name + "$") for name in func_params}
-                    func_params = [Symbol(name + "$") for name in func_params]
-                    body = body.replace_vars(replacement, options, in_scoping)
-                    elements = chain(
-                        [ListExpression(*func_params), body], self._elements[2:]
+                    body = body.replace_vars(
+                        {name: Symbol(name + "$") for name in func_params},
+                        options,
+                        in_scoping,
+                    )
+                    elements = tuple(
+                        chain(
+                            [
+                                ListExpression(
+                                    *[Symbol(name + "$") for name in func_params]
+                                ),
+                                body,
+                            ],
+                            self._elements[2:],
+                        )
                     )
 
         if not vars:  # might just be a symbol set via Set[] we looked up here
@@ -1770,9 +1809,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         for element in self._elements:
             if element.get_head().sameQ(head):
                 if dim is None:
-                    dim = len(element._elements)
+                    dim = len(element.get_elements())
                     items = [
-                        (items + [innerelement]) for innerelement in element._elements
+                        (items + [innerelement])
+                        for innerelement in element.get_elements()
                     ]
                 elif len(element._elements) != dim:
                     evaluation.message("Thread", "tdlen")
@@ -1814,7 +1854,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             element.user_hash(update)
 
 
-def _create_expression(self, head, *elements):
+def _create_expression(self, head: BaseElement, *elements: BaseElement) -> Expression:
     return Expression(head, *elements)
 
 
