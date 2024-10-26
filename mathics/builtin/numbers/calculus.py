@@ -1614,7 +1614,7 @@ class Root(SympyFunction):
 
     Roots that can't be represented by radicals:
     >> Root[#1 ^ 5 + 2 #1 + 1&, 2]
-     = Root[#1 ^ 5 + 2 #1 + 1&, 2]
+     = Root[1 + #1 ^ 5 + 2 #1&, 2]
     """
 
     messages = {
