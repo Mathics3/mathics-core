@@ -29,7 +29,7 @@ def eval_N(
     expression: BaseElement,
     evaluation: Evaluation,
     prec: BaseElement = SymbolMachinePrecision,
-) -> BaseElement:
+) -> Optional[BaseElement]:
     """
     Equivalent to Expression(SymbolN, expression).evaluate(evaluation)
     """

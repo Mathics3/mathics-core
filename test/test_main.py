@@ -2,6 +2,9 @@
 import os.path as osp
 import re
 import subprocess
+import sys
+
+import pytest
 
 
 def get_testdir():
@@ -9,6 +12,10 @@ def get_testdir():
     return osp.realpath(filename)
 
 
+@pytest.mark.skipif(
+    sys.platform in ("emscripten",),
+    reason="Pyodide does not support processes",
+)
 def test_cli():
     script_file = osp.join(get_testdir(), "data", "script.m")
 

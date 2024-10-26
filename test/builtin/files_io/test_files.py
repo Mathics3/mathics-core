@@ -99,6 +99,10 @@ def test_close():
     ), f"temporary filename {temp_filename} should not appear"
 
 
+@pytest.mark.skipif(
+    sys.platform in ("emscripten",),
+    reason="Pyodide has restricted filesystem access",
+)
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
@@ -145,6 +149,12 @@ def test_close():
             'OpenRead[""]',
             ("File specification  is not a string of one or more characters.",),
             "OpenRead[]",
+            "",
+        ),
+        (
+            'Close[OpenRead["https://raw.githubusercontent.com/Mathics3/mathics-core/master/README.rst"]];',
+            None,
+            "Null",
             "",
         ),
         (
@@ -314,6 +324,16 @@ def test_close():
         ),
         ("FilePrint[pathname]", None, "Null", ""),
         ("DeleteFile[pathname];Clear[pathname];", None, "Null", ""),
+        ('tmpfilename = $TemporaryDirectory <> "/tmp0";', None, "Null", ""),
+        ("Close[OpenWrite[tmpfilename]];", None, "Null", ""),
+        (
+            'SetFileDate[tmpfilename, {2002, 1, 1, 0, 0, 0.}, "Access"];',
+            None,
+            "Null",
+            "",
+        ),
+        ('FileDate[tmpfilename, "Access"]', None, "{2002, 1, 1, 0, 0, 0.}", ""),
+        ("DeleteFile[tmpfilename]", None, "Null", ""),
     ],
 )
 def test_private_doctests_files(str_expr, msgs, str_expected, fail_msg):

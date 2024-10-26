@@ -11,7 +11,7 @@ import pytest
 
 
 @pytest.mark.skipif(
-    sys.platform in ("win32",) or hasattr(sys, "pyston_version_info"),
+    sys.platform in ("win32", "emscripten") or hasattr(sys, "pyston_version_info"),
     reason="TimeConstrained needs to be rewritten",
 )
 def test_timeremaining():

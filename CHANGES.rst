@@ -6,7 +6,33 @@ New Builtins
 ++++++++++++
 
 * ``CheckAbort``
+* ``FileNameDrop``
 * ``SetEnvironment``
+
+By `@davidar <https://github.com/davidar>`_:
+
+* ``BellB``
+* ``DivisorSigma``
+* ``DivisorSum``
+* ``EulerE``
+* ``HypergeometricU``
+* ``IntegerPart``
+* ``IntegerPartitions``
+* ``JacobiSymbol``
+* ``KroneckerSymbol``
+* ``LambertW``
+* ``LinearRecurrence``
+* ``LucasL``
+* ``MersennePrimeExponent``
+* ``MoebiusMu``
+* ``NumberDigit``
+* ``PolygonalNumber``
+* ``PolyLog``
+* ``PowersRepresentations``
+* ``ReverseSort``
+* ``SeriesCoefficient``
+* ``SquaresR``
+* ``Subfactorial``
 
 ``mathics`` command line
 ++++++++++++++++++++++++
@@ -33,6 +59,7 @@ API incompatibility
 -------------------
 
 * ``Matcher`` now requires an additional ``evaluation`` parameter
+* ``Romberg`` removed as an ``NIntegrate[]`` method. It is depcrecated in SciPy and is to be removed by SciPy 1.15.
 
 
 Bugs

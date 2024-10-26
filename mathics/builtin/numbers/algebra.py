@@ -17,7 +17,6 @@ from typing import Optional, Tuple, Union
 
 import sympy
 
-from mathics.builtin.inference import evaluate_predicate
 from mathics.builtin.options import options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import Integer, Integer0, Integer1, Number, RationalOneHalf
@@ -63,7 +62,10 @@ from mathics.core.systemsymbols import (
     SymbolTable,
     SymbolTanh,
 )
-from mathics.eval.numbers.algebra.simplify import default_complexity_function
+from mathics.eval.numbers.algebra.simplify import (
+    default_complexity_function,
+    eval_Simplify,
+)
 from mathics.eval.numbers.numbers import cancel, sympy_factor
 from mathics.eval.parts import walk_parts
 from mathics.eval.patterns import match
@@ -899,6 +901,8 @@ class CoefficientList(Builtin):
      = {{5, d, 0, b}, {c, 0, 0, 0}, {a, 0, 0, 0}}
     >> CoefficientList[(x - 2 y + 3 z)^3, {x, y, z}]
      = {{{0, 0, 0, 27}, {0, 0, -54, 0}, {0, 36, 0, 0}, {-8, 0, 0, 0}}, {{0, 0, 27, 0}, {0, -36, 0, 0}, {12, 0, 0, 0}, {0, 0, 0, 0}}, {{0, 9, 0, 0}, {-6, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}, {{1, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}}
+    >> CoefficientList[Series[Log[1-x], {x, 0, 9}], x]
+     = {0, -1, -1 / 2, -1 / 3, -1 / 4, -1 / 5, -1 / 6, -1 / 7, -1 / 8, -1 / 9}
     """
 
     messages = {
@@ -912,7 +916,7 @@ class CoefficientList(Builtin):
         "CoefficientList[expr_]"
         evaluation.message("CoefficientList", "argtu")
 
-    def eval(self, expr, form, evaluation):
+    def eval(self, expr: Expression, form: Expression, evaluation: Evaluation):
         "CoefficientList[expr_, form_]"
         vars = [form] if not form.has_form("List", None) else [v for v in form.elements]
 
@@ -935,6 +939,18 @@ class CoefficientList(Builtin):
             return ListExpression(expr)
         elif form.has_form("List", 0):
             return expr
+        elif expr.get_head_name() == "System`SeriesData":
+            coeffs: ListExpression
+            nmin: Integer
+            nmax: Integer
+            x, x0, coeffs, nmin, nmax, den = expr.elements
+            if x == form and x0 == Integer0 and den == Integer1:
+                return ListExpression(
+                    *[
+                        coeffs.elements[i - nmin.value] if i >= nmin.value else Integer0
+                        for i in range(0, nmax.value)
+                    ]
+                )
 
         sympy_expr = expr.to_sympy()
         sympy_vars = [v.to_sympy() for v in vars]
@@ -951,8 +967,7 @@ class CoefficientList(Builtin):
 
             # single & multiple variables cases
             if not form.has_form("List", None):
-                return Expression(
-                    SymbolList,
+                return ListExpression(
                     *[
                         _coefficient(
                             self.__class__.__name__, expr, form, Integer(n), evaluation
@@ -962,8 +977,7 @@ class CoefficientList(Builtin):
                 )
             elif form.has_form("List", 1):
                 form = form.elements[0]
-                return Expression(
-                    SymbolList,
+                return ListExpression(
                     *[
                         _coefficient(
                             self.__class__.__name__, expr, form, Integer(n), evaluation
@@ -1496,7 +1510,10 @@ class FactorTermsList(Builtin):
 # FullSimplify
 class Simplify(Builtin):
     r"""
-    <url>:WMA link:
+    <url>:SymPy:
+    https://docs.sympy.org/latest/modules/simplify
+    /simplify.html</url>, <url>
+    :WMA:
     https://reference.wolfram.com/language/ref/Simplify.html</url>
 
     <dl>
@@ -1605,65 +1622,9 @@ class Simplify(Builtin):
                 {"System`$Assumptions": assumptions},
                 evaluation,
             )
-        return self.do_apply(expr, evaluation, options)
 
-    def do_apply(self, expr, evaluation, options={}):
-        # Check first if we are dealing with a logic expression...
-        if expr in (SymbolTrue, SymbolFalse, SymbolList):
-            return expr
-
-        # ``evaluate_predicate`` tries to reduce expr taking into account
-        # the assumptions established in ``$Assumptions``.
-        expr = evaluate_predicate(expr, evaluation)
-
-        # If we get an atom, return it.
-        if isinstance(expr, Atom):
-            return expr
-
-        # Now, try to simplify the elements.
-        # TODO:  Consider to move this step inside ``evaluate_predicate``.
-        # Notice that here we want to pass through the full evaluation process
-        # to use all the defined rules...
-        name = self.get_name()
-        symbol_name = Symbol(name)
-        elements = [
-            Expression(symbol_name, element).evaluate(evaluation)
-            for element in expr._elements
-        ]
-        head = Expression(symbol_name, expr.get_head()).evaluate(evaluation)
-        expr = Expression(head, *elements)
-
-        # At this point, we used all the tools available in Mathics.
-        # If the expression has a sympy form, try to use it.
-        # Now, convert the expression to sympy
-        sympy_expr = expr.to_sympy()
-        # If the expression cannot be handled by Sympy, just return it.
-        if sympy_expr is None:
-            return expr
-        # Now, try to simplify using sympy
-        complexity_function = options.get("System`ComplexityFunction", None)
-        if complexity_function is None or complexity_function is SymbolAutomatic:
-
-            def _default_complexity_function(x):
-                return default_complexity_function(from_sympy(x))
-
-            complexity_function = _default_complexity_function
-        else:
-            if isinstance(complexity_function, (Expression, Symbol)):
-                _complexity_function = complexity_function
-                complexity_function = (
-                    lambda x: Expression(_complexity_function, from_sympy(x))
-                    .evaluate(evaluation)
-                    .to_python()
-                )
-
-        # At this point, ``complexity_function`` is a function that takes a
-        # sympy expression and returns an integer.
-        sympy_result = sympy.simplify(sympy_expr, measure=complexity_function)
-
-        # and bring it back
-        result = from_sympy(sympy_result).evaluate(evaluation)
-        return result
+        symbol_name = Symbol(self.get_name())
+        return eval_Simplify(symbol_name, expr, evaluation, options)
 
 
 class FullSimplify(Simplify):
