@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import time
-from typing import Any, FrozenSet, List, Optional, Sequence, Union
+from typing import Any, Dict, FrozenSet, List, Optional, Sequence, Union
 
 from mathics.core.element import (
     BaseElement,
@@ -332,7 +332,7 @@ class Atom(BaseElement):
 
     def replace_vars(
         self,
-        vars: dict[str, BaseElement],
+        vars: Dict[str, BaseElement],
         options=None,
         in_scoping=True,
         in_function=True,
@@ -385,7 +385,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     # We use this for object uniqueness.
     # The key is the Symbol object's string name, and the
     # diectionary's value is the Mathics object for the Symbol.
-    _symbols: dict[str, "Symbol"] = {}
+    _symbols: Dict[str, "Symbol"] = {}
 
     class_head_name = "System`Symbol"
 
@@ -675,7 +675,7 @@ class SymbolConstant(Symbol):
     # We use this for object uniqueness.
     # The key is the SymbolConstant's value, and the
     # diectionary's value is the Mathics object representing that Python value.
-    _symbol_constants: dict[str, "SymbolConstant"] = {}
+    _symbol_constants: Dict[str, "SymbolConstant"] = {}
 
     # We use __new__ here to unsure that two Integer's that have the same value
     # return the same object.

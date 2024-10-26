@@ -4,7 +4,7 @@
 import base64
 import math
 import re
-from typing import Any, Generic, Optional, Tuple, TypeVar, Union
+from typing import Any, Dict, Generic, Optional, Tuple, TypeVar, Union
 
 import mpmath
 import sympy
@@ -183,7 +183,7 @@ class Integer(Number[int]):
     # We use this for object uniqueness.
     # The key is the Integer's Python `int` value, and the
     # dictionary's value is the corresponding Mathics Integer object.
-    _integers: dict[Any, "Integer"] = {}
+    _integers: Dict[Any, "Integer"] = {}
 
     # We use __new__ here to ensure that two Integer's that have the same value
     # return the same object, and to set an object hash value.
@@ -418,7 +418,7 @@ class MachineReal(Real[float]):
     # We use this for object uniqueness.
     # The key is the MachineReal's Python `float` value, and the
     # dictionary's value is the corresponding Mathics MachineReal object.
-    _machine_reals: dict[Any, "MachineReal"] = {}
+    _machine_reals: Dict[Any, "MachineReal"] = {}
 
     def __new__(cls, value) -> "MachineReal":
         n = float(value)
@@ -530,7 +530,7 @@ class PrecisionReal(Real[sympy.Float]):
     # We use this for object uniqueness.
     # The key is the PrecisionReal's sympy.Float, and the
     # dictionary's value is the corresponding Mathics PrecisionReal object.
-    _precision_reals: dict[Any, "PrecisionReal"] = {}
+    _precision_reals: Dict[Any, "PrecisionReal"] = {}
 
     def __new__(cls, value) -> "PrecisionReal":
         n = sympy.Float(value)
@@ -712,7 +712,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
     # We use this for object uniqueness.
     # The key is the Complex value's real and imaginary parts as a tuple,
     # dictionary's value is the corresponding Mathics Complex object.
-    _complex_numbers: dict[Any, "Complex"] = {}
+    _complex_numbers: Dict[Any, "Complex"] = {}
 
     # We use __new__ here to ensure that two Integer's that have the same value
     # return the same object, and to set an object hash value.
@@ -893,7 +893,7 @@ class Rational(Number[sympy.Rational]):
     class_head_name = "System`Rational"
 
     # Collection of integers defined so far.
-    _rationals: dict[Any, "Rational"] = {}
+    _rationals: Dict[Any, "Rational"] = {}
 
     # We use __new__ here to ensure that two Rationals's that have the same value
     # return the same object, and to set an object hash value.

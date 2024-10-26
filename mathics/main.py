@@ -17,6 +17,7 @@ import os.path as osp
 import re
 import subprocess
 import sys
+from typing import List
 
 import mathics.core as mathics_core
 from mathics import __version__, license_string, settings, version_string
@@ -101,7 +102,7 @@ class TerminalShell(MathicsLineFeeder):
                     )
 
                     readline.parse_and_bind("tab: complete")
-                    self.completion_candidates: list[str] = []
+                    self.completion_candidates: List[str] = []
         except ImportError:
             pass
 

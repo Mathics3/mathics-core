@@ -5,7 +5,18 @@ import math
 import time
 from bisect import bisect_left
 from itertools import chain
-from typing import Any, Callable, Iterable, Optional, Sequence, Tuple, Type, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+)
 
 import sympy
 
@@ -388,7 +399,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         elements = self._elements
 
-        flattened: list[BaseElement] = []
+        flattened: List[BaseElement] = []
 
         k = 0
         for i in indices:
@@ -784,7 +795,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             values = self.flatten_with_respect_to_head(SymbolList).elements
         else:
             values = [self]
-        option_values: dict[str, Union[str, BaseElement]] = {}
+        option_values: Dict[str, Union[str, BaseElement]] = {}
         for option in values:
             symbol_name = option.get_name()
             if allow_symbols and symbol_name:
@@ -942,7 +953,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             3: tuple:        list of Elements
             4: 1:        No clue...
             """
-            exps: dict[str, float] = {}
+            exps: Dict[str, float] = {}
             head = self._head
             if head is SymbolTimes:
                 for element in self.elements:

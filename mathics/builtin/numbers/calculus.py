@@ -10,7 +10,7 @@ arithmetic operations.
 """
 
 from itertools import product
-from typing import Callable, Optional, Tuple
+from typing import Callable, Dict, Optional, Tuple
 
 import numpy as np
 import sympy
@@ -599,7 +599,7 @@ class _BaseFinder(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
-    methods: dict[
+    methods: Dict[
         str,
         Callable[
             [Expression, BaseElement, Expression, dict, Evaluation],

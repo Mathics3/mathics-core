@@ -6,7 +6,7 @@ import time
 from abc import ABC
 from queue import Queue
 from threading import Thread, stack_size as set_thread_stack_size
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from mathics_scanner import TranslateError
 
@@ -152,7 +152,7 @@ class _Out(KeyComparable):
     def get_sort_key(self):
         return (self.is_message, self.is_print, self.text)
 
-    def get_data(self) -> dict[str, Any]:
+    def get_data(self) -> Dict[str, Any]:
         raise NotImplementedError
 
 
@@ -167,11 +167,11 @@ class Evaluation:
         self.definitions: Definitions = definitions
         self.recursion_depth = 0
         self.timeout = False
-        self.timeout_queue: list[tuple[float, float]] = []
+        self.timeout_queue: List[Tuple[float, float]] = []
         self.stopped = False
-        self.out: list[_Out] = []
+        self.out: List[_Out] = []
         self.output = output if output else Output()
-        self.listeners: dict[str, list[Callable]] = {}
+        self.listeners: Dict[str, List[Callable]] = {}
         self.options: Optional[tuple] = None
         self.predetermined_out = None
 
@@ -185,7 +185,7 @@ class Evaluation:
         self.last_eval = None
         # Used in ``mathics.builtin.numbers.constants.get_constant`` and
         # ``mathics.builtin.numeric.N``.
-        self._preferred_n_method: list[str] = []
+        self._preferred_n_method: List[str] = []
 
     def parse(self, query, src_name: str = ""):
         "Parse a single expression and print the messages."

@@ -263,7 +263,7 @@ class Builtin:
                 f"illegal option mode {option_syntax}; check $OptionSyntax."
             )
 
-        rules: list[BaseRule] = []
+        rules: List[BaseRule] = []
         definition_class = (
             PyMathicsDefinitions() if is_pymodule else SystemDefinitions()
         )
@@ -343,7 +343,7 @@ class Builtin:
                 forms = [""]
             return forms, pattern
 
-        formatvalues: dict[str, list[BaseRule]] = {"": []}
+        formatvalues: Dict[str, List[BaseRule]] = {"": []}
         for pattern, function in self.get_functions("format_"):
             forms, pattern = extract_forms(pattern)
             pat_attr = attributes if pattern.get_head_name() == name else None
@@ -535,7 +535,7 @@ class BuiltinElement(Builtin, BaseElement):
 class SympyObject(Builtin):
     sympy_name: Optional[str] = None
 
-    mathics_to_sympy: dict[str, str] = {}
+    mathics_to_sympy: Dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -667,8 +667,8 @@ class MPMathFunction(SympyFunction):
 
 
 class MPMathMultiFunction(MPMathFunction):
-    sympy_names: Optional[dict[int, str]] = None
-    mpmath_names: Optional[dict[int, str]] = None
+    sympy_names: Optional[Dict[int, str]] = None
+    mpmath_names: Optional[Dict[int, str]] = None
 
     def get_sympy_names(self):
         if self.sympy_names is None:
@@ -787,7 +787,7 @@ def has_option(options, name, evaluation):
     return get_option(options, name, evaluation, evaluate=False) is not None
 
 
-mathics_to_python: dict[str, Any] = {}  # here we have: name -> string
+mathics_to_python: Dict[str, Any] = {}  # here we have: name -> string
 
 
 class AtomBuiltin(Builtin):

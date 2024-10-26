@@ -6,7 +6,7 @@ Here we have the base class and related function for element inside an Expressio
 """
 
 from abc import ABC
-from typing import Any, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Optional, Sequence, Tuple, Union
 
 from mathics.core.attributes import A_NO_ATTRIBUTES
 
@@ -449,7 +449,7 @@ class BaseElement(KeyComparable, ABC):
 
     def replace_vars(
         self,
-        vars: dict[str, "BaseElement"],
+        vars: Dict[str, "BaseElement"],
         options=None,
         in_scoping=True,
         in_function=True,

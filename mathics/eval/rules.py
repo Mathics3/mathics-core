@@ -150,10 +150,10 @@ class Dispatch(Atom):
     class_head_name = "System`Dispatch"
 
     src: ListExpression
-    rules: list[Rule]
+    rules: List[Rule]
 
     def __init__(
-        self, rule_tuple: tuple[Expression, ...], evaluation: Evaluation
+        self, rule_tuple: Tuple[Expression, ...], evaluation: Evaluation
     ) -> None:
         assert isinstance(rule_tuple, tuple)
         self.src = ListExpression(*rule_tuple)

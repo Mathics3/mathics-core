@@ -8,6 +8,7 @@ Functions for constructing lists of various sizes and structure.
 See also Constructing Vectors.
 """
 
+import typing
 from itertools import permutations
 
 from mathics.builtin.box.layout import RowBox
@@ -431,7 +432,7 @@ class Reap(Builtin):
         "Reap[expr_, {patterns___}, f_]"
 
         patterns = patterns.get_sequence()
-        sown: list[tuple[BasePattern, list]] = [
+        sown: typing.List[typing.Tuple[BasePattern, list]] = [
             (BasePattern.create(pattern, evaluation=evaluation), [])
             for pattern in patterns
         ]

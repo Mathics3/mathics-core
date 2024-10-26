@@ -10,7 +10,7 @@ Numeric, Arithmetic, or Symbolic constants like Pi, E, or Infinity.
 sort_order = "mathics.builtin.mathematical-constants"
 
 import math
-from typing import Optional
+from typing import Dict, Optional
 
 import mpmath
 import numpy
@@ -157,7 +157,7 @@ class _MPMathConstant(_Constant_Common):
     # Subclasses should define this.
     mpmath_name: Optional[str] = None
 
-    mathics_to_mpmath: dict[str, str] = {}
+    mathics_to_mpmath: Dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -177,7 +177,7 @@ class _NumpyConstant(_Constant_Common):
     # Subclasses should define this.
     numpy_name: Optional[str] = None
 
-    mathics_to_numpy: dict[str, str] = {}
+    mathics_to_numpy: Dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

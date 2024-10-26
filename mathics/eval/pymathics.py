@@ -5,6 +5,7 @@ PyMathics3 module handling
 import importlib
 import inspect
 import sys
+from typing import Dict
 
 from mathics.core.builtin import Builtin
 from mathics.core.definitions import Definitions
@@ -61,7 +62,7 @@ def load_pymathics_module(definitions: Definitions, module_name: str):
         else dir(loaded_module)
     )
 
-    newsymbols: dict[str, Builtin] = {}
+    newsymbols: Dict[str, Builtin] = {}
     if not ("pymathics_version_data" in vars):
         raise PyMathicsLoadException(module_name)
     for name in vars - set(("pymathics_version_data", "__version__")):
