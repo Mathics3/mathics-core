@@ -10,6 +10,7 @@ See also Constructing Vectors.
 
 import typing
 from itertools import permutations
+from typing import Optional, Tuple
 
 from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import Integer, is_integer_rational_or_real
@@ -345,12 +346,12 @@ class Permutations(Builtin):
     def eval_n(self, li, n, evaluation: Evaluation):
         "Permutations[li_List, n_]"
 
-        rs = None
+        rs: Optional[Tuple[int, ...]] = None
         if isinstance(n, Integer):
             py_n = min(n.get_int_value(), len(li.elements))
         elif n.has_form("List", 1) and isinstance(n.elements[0], Integer):
             py_n = n.elements[0].get_int_value()
-            rs = [py_n]
+            rs = (py_n,)
         elif (
             n.has_form("DirectedInfinity", 1) and n.elements[0].get_int_value() == 1
         ) or n.get_name() == "System`All":
@@ -365,7 +366,7 @@ class Permutations(Builtin):
             return
 
         if rs is None:
-            rs = list(range(py_n + 1))
+            rs = tuple(range(py_n + 1))
 
         inner = structure("List", li, evaluation)
         outer = structure("List", inner, evaluation)

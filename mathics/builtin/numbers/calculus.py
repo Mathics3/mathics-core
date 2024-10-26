@@ -1052,7 +1052,7 @@ class Integrate(SympyFunction):
                 return [elements[0]] + x.elements
         return elements
 
-    def from_sympy(self, elements: list) -> Expression:
+    def from_sympy(self, elements: Tuple[BaseElement, ...]) -> Expression:
         args = []
         for element in elements[1:]:
             if element.has_form("List", 1):

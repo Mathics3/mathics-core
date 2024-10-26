@@ -606,7 +606,7 @@ class SympyFunction(SympyObject):
         except TypeError:
             pass
 
-    def from_sympy(self, elements: list) -> Expression:
+    def from_sympy(self, elements: Tuple[BaseElement, ...]) -> Expression:
         return Expression(Symbol(self.get_name()), *elements)
 
     def prepare_mathics(self, sympy_expr):
