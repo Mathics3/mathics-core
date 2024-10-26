@@ -6,7 +6,7 @@ Here we have the base class and related function for element inside an Expressio
 """
 
 from abc import ABC
-from typing import Any, Optional, Sequence, Tuple
+from typing import Any, Optional, Sequence, Tuple, Union
 
 from mathics.core.attributes import A_NO_ATTRIBUTES
 
@@ -388,7 +388,7 @@ class BaseElement(KeyComparable, ABC):
         return False
 
     def has_form(
-        self, heads: Sequence[str] | str, *element_counts: Optional[int]
+        self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
     ) -> bool:
         """Check if the expression is of the form Head[l1,...,ln]
         with Head.name in `heads` and a number of elements according to the specification in

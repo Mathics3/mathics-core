@@ -784,7 +784,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             values = self.flatten_with_respect_to_head(SymbolList).elements
         else:
             values = [self]
-        option_values: dict[str, str | BaseElement] = {}
+        option_values: dict[str, Union[str, BaseElement]] = {}
         for option in values:
             symbol_name = option.get_name()
             if allow_symbols and symbol_name:
@@ -1035,7 +1035,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return definitions.is_uncertain_final_value(time, cache.symbols)
 
     def has_form(
-        self, heads: Sequence[str] | str, *element_counts: Optional[int]
+        self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
     ) -> bool:
         """
         element_counts:

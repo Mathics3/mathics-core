@@ -1,7 +1,7 @@
 # This is never intended to go in Mathics3 docs
 no_doc = True
 
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Union
 
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import BuiltinElement
@@ -126,7 +126,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         raise ValueError("BoxExpression.head is write protected.")
 
     def has_form(
-        self, heads: Sequence[str] | str, *element_counts: Optional[int]
+        self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
     ) -> bool:
         """
         element_counts:

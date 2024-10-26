@@ -18,7 +18,7 @@ def create_rules(
     name: str,
     evaluation: Evaluation,
     extra_args: OptionalType[List] = None,
-) -> Tuple[Union[List[Rule], BaseElement, None], bool] | "Dispatch":
+) -> Union[Tuple[Union[List[Rule], BaseElement, None], bool], "Dispatch"]:
     """
     This function implements  `Replace`, `ReplaceAll`, `ReplaceRepeated`
     and `ReplaceList` eval methods.

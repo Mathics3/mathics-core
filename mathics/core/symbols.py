@@ -290,7 +290,7 @@ class Atom(BaseElement):
             raise NotImplementedError
 
     def has_form(
-        self, heads: Sequence[str] | str, *element_counts: Optional[int]
+        self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
     ) -> bool:
         if element_counts:
             return False
