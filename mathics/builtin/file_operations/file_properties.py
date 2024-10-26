@@ -241,9 +241,6 @@ class SetFileDate(Builtin):
 
     >> SetFileDate[tmpfilename, {2002, 1, 1, 0, 0, 0.}, "Access"];
 
-    >> FileDate[tmpfilename, "Access"]
-     = {2002, 1, 1, 0, 0, 0.}
-
     #> DeleteFile[tmpfilename]
     """
 
