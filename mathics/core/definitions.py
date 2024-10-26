@@ -926,7 +926,7 @@ class Definition:
         self.formatvalues = dict((name, list) for name, list in formatvalues.items())
         self.messages = messages
         self.attributes = attributes
-        self.options = options
+        self.options: dict[str, str] = options
         self.nvalues = nvalues
         self.defaultvalues = defaultvalues
         self.builtin = builtin

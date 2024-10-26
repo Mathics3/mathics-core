@@ -22,7 +22,6 @@ sympy_symbol_prefix = "_u"
 sympy_slot_prefix = "_#"
 
 
-# FIXME: This is repeated below
 class NumericOperators:
     """
     This is a mixin class for Element-like objects that might have numeric values.
@@ -78,7 +77,11 @@ class NumericOperators:
     def __pow__(self, other) -> BaseElement:
         return self.create_expression(SymbolPower, self, other)
 
-    def round_to_float(self, evaluation=None, permit_complex=False) -> Optional[float]:
+    # FIXME: The name "round_to_float" is misleading when
+    # permit_complex is True.
+    def round_to_float(
+        self, evaluation=None, permit_complex=False
+    ) -> Optional[Union[complex, float]]:
         """
         Round to a Python float. Return None if rounding is not possible.
         This can happen if self or evaluation is NaN.
@@ -787,79 +790,3 @@ SymbolSequence = Symbol("System`Sequence")
 SymbolUpSet = Symbol("UpSet")
 SymbolTeXForm = Symbol("TeXForm")
 SymbolTimes = Symbol("Times")
-
-
-# NumericOperators uses some of the Symbols above.
-class NumericOperators:
-    """
-    This is a mixin class for Element-like objects that might have numeric values.
-    It adds or "mixes in" numeric functions for these objects like round_to_float().
-
-    It also adds methods to the class to facilite building
-    ``Expression``s in the Mathics Python code using Python syntax.
-
-    So for example, instead of writing in Python:
-
-        to_expression("Abs", -8)
-        Expression(SymbolPlus, Integer1, Integer2)
-
-    you can instead have:
-        abs(Integer(-8))
-        Integer(1) + Integer(2)
-    """
-
-    create_expression: Any
-
-    def __abs__(self) -> BaseElement:
-        return self.create_expression(SymbolAbs, self)
-
-    def __add__(self, other) -> BaseElement:
-        return self.create_expression(SymbolPlus, self, other)
-
-    def __pos__(self):
-        return self
-
-    def __neg__(self):
-        from mathics.core.atoms import IntegerM1
-
-        return self.create_expression(SymbolTimes, self, IntegerM1)
-
-    def __sub__(self, other) -> BaseElement:
-        from mathics.core.atoms import IntegerM1
-
-        return self.create_expression(
-            SymbolPlus, self, self.create_expression(SymbolTimes, other, IntegerM1)
-        )
-
-    def __mul__(self, other) -> BaseElement:
-        return self.create_expression(SymbolTimes, self, other)
-
-    def __truediv__(self, other) -> BaseElement:
-        return self.create_expression(SymbolDivide, self, other)
-
-    def __floordiv__(self, other) -> BaseElement:
-        return self.create_expression(
-            SymbolFloor, self.create_expression(SymbolDivide, self, other)
-        )
-
-    def __pow__(self, other) -> BaseElement:
-        return self.create_expression(SymbolPower, self, other)
-
-    # FIXME: The name "round_to_float" is misleading when
-    # permit_complex is True.
-    def round_to_float(
-        self, evaluation=None, permit_complex=False
-    ) -> Optional[Union[complex, float]]:
-        """
-        Round to a Python float. Return None if rounding is not possible.
-        This can happen if self or evaluation is NaN.
-        """
-        value = (
-            self
-            if evaluation is None
-            else self.create_expression(SymbolN, self).evaluate(evaluation)
-        )
-        if hasattr(value, "round") and hasattr(value, "get_float_value"):
-            value = value.round()
-            return value.get_float_value(permit_complex=permit_complex)
-        return None

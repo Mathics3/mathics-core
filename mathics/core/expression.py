@@ -780,18 +780,15 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         For example, Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)
         will return a list of options associated to the definition of the symbol "Integrate".
         """
-        options = self
-        if options.has_form("List", None):
-            options = options.flatten_with_respect_to_head(SymbolList)
-            values = options.elements
+        if self.has_form("List", None):
+            values = self.flatten_with_respect_to_head(SymbolList).elements
         else:
-            values = [options]
-        option_values: dict[str, BaseElement] = {}
+            values = [self]
+        option_values: dict[str, str | BaseElement] = {}
         for option in values:
             symbol_name = option.get_name()
             if allow_symbols and symbol_name:
-                options = evaluation.definitions.get_options(symbol_name)
-                option_values.update(options)
+                option_values.update(evaluation.definitions.get_options(symbol_name))
             else:
                 if not option.has_form(("Rule", "RuleDelayed"), 2):
                     if stop_on_error:
@@ -951,8 +948,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 for element in self.elements:
                     name = element.get_name()
                     if element.has_form("Power", 2):
-                        var = element.elements[0].get_name()
-                        exp = element.elements[1].round_to_float()
+                        var = element.get_elements()[0].get_name()
+                        exp = element.get_elements()[1].round_to_float()
                         if var and exp is not None:
                             exps[var] = exps.get(var, 0) + exp
                     elif name:
@@ -1144,7 +1141,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # Note: self._head can be not just a symbol, but some arbitrary expression.
         # This is what makes expressions in Mathics3 be M-expressions rather than
         # S-expressions.
-        head = self._head.evaluate(evaluation)
+        head = self._head
+        if isinstance(head, EvalMixin):
+            result = head.evaluate(evaluation)
+            if result is not None:
+                head = result
 
         attributes = head.get_attributes(evaluation.definitions)
 
