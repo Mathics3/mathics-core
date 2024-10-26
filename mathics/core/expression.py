@@ -948,8 +948,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 for element in self.elements:
                     name = element.get_name()
                     if element.has_form("Power", 2):
-                        var = element.get_elements()[0].get_name()
-                        exp = element.get_elements()[1].round_to_float()
+                        var = element.get_element(0).get_name()
+                        exp = element.get_element(1).round_to_float()
                         if var and exp is not None:
                             exps[var] = exps.get(var, 0) + exp
                     elif name:
@@ -1205,6 +1205,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # * run to_python() on them in Expression construction, or
         # * convert Expression elements from a tuple to a list and back
         recompute_properties = False
+        elements: Sequence[BaseElement]
         if self.elements_properties.elements_fully_evaluated:
             elements = self._elements
         else:
@@ -1223,7 +1224,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # Step 3: Now, process the attributes of head
         # If there are sequence, flatten them if the attributes allow it.
         if (
-            not new.elements_properties.is_flat
+            new.elements_properties is not None
+            and not new.elements_properties.is_flat
             and not (A_SEQUENCE_HOLD | A_HOLD_ALL_COMPLETE) & attributes
         ):
             # This step is applied to most of the expressions
@@ -1265,7 +1267,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 if element.has_form("Unevaluated", 1):
                     if dirty_elements is None:
                         dirty_elements = list(elements)
-                    dirty_elements[index] = element._elements[0]
+                    dirty_elements[index] = element.get_element(0)
                     dirty_elements[index].unevaluated = True
 
             if dirty_elements:
@@ -1289,7 +1291,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # element's ``get_sort_key()`` method.
         # Sorting can be time consuming which is why we note this in ``elements_properties``.
         # Checking for sortedness takes O(n) while sorting take O(n log n).
-        if not new.elements_properties.is_ordered and (A_ORDERLESS & attributes):
+        if (
+            new.elements_properties is not None
+            and not new.elements_properties.is_ordered
+            and (A_ORDERLESS & attributes)
+        ):
             new.sort()
 
         # Step 4:  Rebuild the ExpressionCache, which tracks which symbols
@@ -1710,15 +1716,26 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     func_params = [self._elements[0].get_name()]
                 else:
                     func_params = [
-                        element.get_name() for element in self._elements[0]._elements
+                        element.get_name()
+                        for element in self._elements[0].get_elements()
                     ]
                 if "" not in func_params:
                     body = self._elements[1]
-                    replacement = {name: Symbol(name + "$") for name in func_params}
-                    func_params = [Symbol(name + "$") for name in func_params]
-                    body = body.replace_vars(replacement, options, in_scoping)
-                    elements = chain(
-                        [ListExpression(*func_params), body], self._elements[2:]
+                    body = body.replace_vars(
+                        {name: Symbol(name + "$") for name in func_params},
+                        options,
+                        in_scoping,
+                    )
+                    elements = tuple(
+                        chain(
+                            [
+                                ListExpression(
+                                    *[Symbol(name + "$") for name in func_params]
+                                ),
+                                body,
+                            ],
+                            self._elements[2:],
+                        )
                     )
 
         if not vars:  # might just be a symbol set via Set[] we looked up here
@@ -1781,9 +1798,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         for element in self._elements:
             if element.get_head().sameQ(head):
                 if dim is None:
-                    dim = len(element._elements)
+                    dim = len(element.get_elements())
                     items = [
-                        (items + [innerelement]) for innerelement in element._elements
+                        (items + [innerelement])
+                        for innerelement in element.get_elements()
                     ]
                 elif len(element._elements) != dim:
                     evaluation.message("Thread", "tdlen")

@@ -796,18 +796,18 @@ def process_tags_and_upset_allow_custom(
             if not isinstance(element, Symbol) and element.get_head_name() in (
                 "System`HoldPattern",
             ):
-                element = element.get_elements()[0]
+                element = element.get_element(0)
             if not isinstance(element, Symbol) and element.get_head_name() in (
                 "System`Pattern",
             ):
-                element = element.get_elements()[1]
+                element = element.get_element(1)
             if not isinstance(element, Symbol) and element.get_head_name() in (
                 "System`Blank",
                 "System`BlankSequence",
                 "System`BlankNullSequence",
             ):
                 if len(element.get_elements()) == 1:
-                    element = element.get_elements()[0]
+                    element = element.get_element(0)
 
             allowed_names.append(element.get_lookup_name())
         for name in tags:

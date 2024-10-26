@@ -270,6 +270,9 @@ class BaseElement(KeyComparable, ABC):
     def get_attributes(self, definitions):
         return A_NO_ATTRIBUTES
 
+    def get_element(self, index: int) -> "BaseElement":
+        return self.get_elements()[index]
+
     def get_elements(self) -> Sequence["BaseElement"]:
         raise NotImplementedError
 
