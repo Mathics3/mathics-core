@@ -82,7 +82,8 @@ def eval_Simplify(symbol_name: Symbol, expr, evaluation, options: dict):
 
     # At this point, ``complexity_function`` is a function that takes a
     # sympy expression and returns an integer.
-    sympy_result = simplify(sympy_expr, measure=complexity_function)
+    sympy_result = simplify(sympy_expr, measure=complexity_function, doit=False)
+    sympy_result = sympy_result.doit(roots=False)  # Don't expand RootSum
 
     # and bring it back
     result = from_sympy(sympy_result).evaluate(evaluation)

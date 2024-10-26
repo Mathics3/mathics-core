@@ -461,7 +461,7 @@ def old_from_sympy(expr) -> BaseElement:
                 result.append(Expression(SymbolTimes, *factors))
             else:
                 result.append(Integer1)
-        return Expression(SymbolFunction, Expression(SymbolPlus, *result))
+        return Expression(SymbolFunction, Expression(SymbolPlus, *sorted(result)))
     if isinstance(expr, sympy.CRootOf):
         try:
             e_root, indx = expr.args

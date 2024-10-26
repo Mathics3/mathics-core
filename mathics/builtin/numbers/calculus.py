@@ -1697,11 +1697,17 @@ class RootSum(SympyFunction):
 
     >> RootSum[#^5 - 3 # - 7 &, Sin] //N//Chop
      = 0.292188
+
+    Use Normal to expand RootSum:
+    >> RootSum[1+#+#^2+#^3+#^4 &, Log[x + #] &]
+     = RootSum[#1 ^ 4 + #1 ^ 3 + #1 ^ 2 + #1 + 1&, Log[x + #1]&]
+    >> %//Normal
+     = Log[-1 / 4 - Sqrt[5] / 4 - I Sqrt[5 / 8 - Sqrt[5] / 8] + x] + Log[-1 / 4 - Sqrt[5] / 4 + I Sqrt[5 / 8 - Sqrt[5] / 8] + x] + Log[-1 / 4 - I Sqrt[5 / 8 + Sqrt[5] / 8] + Sqrt[5] / 4 + x] + Log[-1 / 4 + I Sqrt[5 / 8 + Sqrt[5] / 8] + Sqrt[5] / 4 + x]
     """
 
     summary_text = "sum polynomial roots"
 
-    def eval(self, f, form, evaluation: Evaluation):
+    def eval(self, f, form, evaluation: Evaluation):  # type: ignore[override]
         "RootSum[f_, form_]"
         return from_sympy(Expression(SymbolRootSum, f, form).to_sympy())
 
