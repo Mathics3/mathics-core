@@ -738,7 +738,7 @@ def get_tag_position(pattern, name) -> Optional[str]:
         "System`BlankNullSequence",
     )
 
-    def strip_pattern_name_and_condition(pat: BasePattern) -> ExpressionPattern:
+    def strip_pattern_name_and_condition(pat: BasePattern) -> BasePattern:
         """
         In ``Pattern[name_, pattern_]`` and
         ``Condition[pattern_, cond_]``
@@ -754,17 +754,19 @@ def get_tag_position(pattern, name) -> Optional[str]:
         if not hasattr(pat, "head"):
             return pat
 
-        # We have to use get_head_name() below because
-        # pat can either SymbolCondition or <AtomPattern: System`Condition>.
-        # In the latter case, comparing to SymbolCondition is not sufficient.
-        if pat.get_head_name() == "System`Condition":
-            if len(pat.elements) > 1:
-                return strip_pattern_name_and_condition(pat.elements[0])
-        # The same kind of get_head_name() check is needed here as well and
-        # is not the same as testing against SymbolPattern.
-        if pat.get_head_name() == "System`Pattern":
-            if len(pat.elements) == 2:
-                return strip_pattern_name_and_condition(pat.elements[1])
+        if hasattr(pat, "elements"):
+            # We have to use get_head_name() below because
+            # pat can either SymbolCondition or <AtomPattern: System`Condition>.
+            # In the latter case, comparing to SymbolCondition is not sufficient.
+            if pat.get_head_name() == "System`Condition":
+                if len(pat.elements) > 1:
+                    return strip_pattern_name_and_condition(pat.elements[0])
+            # The same kind of get_head_name() check is needed here as well and
+            # is not the same as testing against SymbolPattern.
+            if pat.get_head_name() == "System`Pattern":
+                if len(pat.elements) == 2:
+                    return strip_pattern_name_and_condition(pat.elements[1])
+
         return pat
 
     def is_pattern_a_kind_of(pattern: ExpressionPattern, pattern_name: str) -> bool:
@@ -786,6 +788,7 @@ def get_tag_position(pattern, name) -> Optional[str]:
         if head_name in blanks:
             if isinstance(head, Symbol):
                 return False
+            assert hasattr(head, "elements")
             sub_elements = head.elements
             if len(sub_elements) == 1:
                 head_name = head.elements[0].get_name()

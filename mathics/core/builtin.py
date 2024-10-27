@@ -1241,7 +1241,7 @@ class PatternObject(BuiltinElement, BasePattern):
     ) -> Tuple[BaseElement]:
         return elements
 
-    def get_match_count(self, vars_dict: dict = {}):
+    def get_match_count(self, vars_dict: Optional[dict] = None):
         return (1, 1)
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
