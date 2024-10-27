@@ -139,6 +139,7 @@ class SympyExpression(BasicSympy):
         if all(isinstance(expr, BasicSympy) for expr in exprs):
             # called with SymPy arguments
             obj = super().__new__(cls, *exprs)
+            obj.expr = None
         elif len(exprs) == 1 and isinstance(exprs[0], Expression):
             # called with Mathics argument
             expr = exprs[0]
@@ -460,7 +461,7 @@ def old_from_sympy(expr) -> BaseElement:
                 result.append(Expression(SymbolTimes, *factors))
             else:
                 result.append(Integer1)
-        return Expression(SymbolFunction, Expression(SymbolPlus, *result))
+        return Expression(SymbolFunction, Expression(SymbolPlus, *sorted(result)))
     if isinstance(expr, sympy.CRootOf):
         try:
             e_root, indx = expr.args

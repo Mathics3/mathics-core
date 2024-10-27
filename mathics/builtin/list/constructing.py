@@ -188,10 +188,12 @@ class Normal(Builtin):
 
     summary_text = "convert objects to normal expressions"
 
-    def eval_general(self, expr, evaluation: Evaluation):
+    def eval_general(self, expr: Expression, evaluation: Evaluation):
         "Normal[expr_]"
         if isinstance(expr, Atom):
             return
+        if expr.has_form("RootSum", 2):
+            return from_sympy(expr.to_sympy().doit(roots=True))
         return Expression(
             expr.get_head(),
             *[Expression(SymbolNormal, element) for element in expr.elements],
