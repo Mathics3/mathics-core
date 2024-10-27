@@ -205,6 +205,7 @@ class BaseElement(KeyComparable, ABC):
     Some important subclasses: Atom and Expression.
     """
 
+    options: dict
     last_evaluated: Any
     # this variable holds a function defined in mathics.core.expression that creates an expression
     create_expression: Any

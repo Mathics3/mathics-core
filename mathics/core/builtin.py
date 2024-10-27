@@ -15,7 +15,7 @@ from functools import total_ordering
 from itertools import chain
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union, cast
 
-import mpmath
+import mpmath  # type: ignore[import-untyped]
 import pkg_resources
 import sympy
 
@@ -84,7 +84,7 @@ from mathics.eval.scoping import dynamic_scoping
 try:
     import ujson
 except ImportError:
-    import json as ujson
+    import json as ujson  # type: ignore[no-redef]
 
 ROOT_DIR = pkg_resources.resource_filename("mathics", "")
 
