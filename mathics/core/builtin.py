@@ -13,7 +13,18 @@ import re
 from abc import ABC
 from functools import total_ordering
 from itertools import chain
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+    cast,
+)
 
 import mpmath  # type: ignore[import-untyped]
 import pkg_resources
@@ -642,7 +653,7 @@ class MPMathFunction(SympyFunction):
     def eval(self, z, evaluation: Evaluation):
         "%(name)s[z__]"
 
-        args = numerify(z, evaluation).get_sequence()
+        args = cast(Sequence[Number], numerify(z, evaluation).get_sequence())
 
         # if no arguments are inexact attempt to use sympy
         if all(not x.is_inexact() for x in args):

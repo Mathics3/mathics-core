@@ -325,7 +325,7 @@ class Parser:
         self.bracket_depth -= 1
         return Node("Association", *seq)
 
-    def p_LeftRowBox(self, token) -> Node:
+    def p_LeftRowBox(self, token) -> Union[Node, String]:
         self.consume()
         children = []
         self.box_depth += 1
@@ -335,6 +335,7 @@ class Parser:
             newnode = self.parse_box(0)
             children.append(newnode)
             token = self.next()
+        result: Union[Node, String]
         if len(children) == 0:
             result = NullString
         elif len(children) == 1:
@@ -489,15 +490,15 @@ class Parser:
 
     def p_Slot(self, token) -> Node:
         self.consume()
-        text = token.text
-        if len(text) == 1:
+        text = token.text[1:]
+        n: Union[Number, String]
+        if text == "":
             n = Number1
         else:
-            n = text[1:]
-            if n.isdigit():
-                n = Number(n)
+            if text.isdigit():
+                n = Number(text)
             else:
-                n = String(n)
+                n = String(text)
         return Node("Slot", n)
 
     def p_SlotSequence(self, token) -> Node:

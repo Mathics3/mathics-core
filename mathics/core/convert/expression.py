@@ -91,8 +91,8 @@ def to_numeric_args(mathics_args: BaseElement, evaluation) -> tuple:
 
     We make use of fast conversions for literals.
     """
-    return (
-        tuple(mathics_args.value)  # type: ignore[attr-defined]
+    return tuple(
+        mathics_args.value  # type: ignore[attr-defined]
         if mathics_args.is_literal
         else numerify(mathics_args, evaluation).get_sequence()
     )

@@ -6,9 +6,12 @@ Here we have the base class and related function for element inside an Expressio
 """
 
 from abc import ABC
-from typing import Any, Dict, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional, Sequence, Tuple, Union
 
 from mathics.core.attributes import A_NO_ATTRIBUTES
+
+if TYPE_CHECKING:
+    from mathics.core.evaluation import Evaluation
 
 
 def ensure_context(name: str, context="System`") -> str:
@@ -38,7 +41,7 @@ def fully_qualified_symbol_name(name) -> bool:
 
 
 try:
-    from recordclass import RecordClass
+    from recordclass import RecordClass  # type: ignore[import-not-found]
 
     # Note: Something in cythonization barfs if we put this in
     # Expression and you try to call this like
@@ -82,7 +85,7 @@ except ImportError:
     from dataclasses import dataclass
 
     @dataclass
-    class ElementsProperties:
+    class ElementsProperties:  # type: ignore[no-redef]
         """Properties of Expression elements that are useful in evaluation.
 
         In general, if you have some set of properties that you know should
@@ -248,7 +251,7 @@ class BaseElement(KeyComparable, ABC):
             return self == rhs
         return None
 
-    def format(self, evaluation, form, **kwargs) -> "BoxElementMixin":
+    def format(self, evaluation, form, **kwargs) -> Optional["BaseElement"]:
         from mathics.core.symbols import Symbol
         from mathics.eval.makeboxes import format_element
 
@@ -332,7 +335,7 @@ class BaseElement(KeyComparable, ABC):
         """
         return None
 
-    def get_sequence(self) -> tuple:
+    def get_sequence(self) -> Sequence["BaseElement"]:
         """
         If ``self`` is a Mathics3 Sequence, return its elements.
         Otherwise, just return self wrapped in a tuple
@@ -351,7 +354,7 @@ class BaseElement(KeyComparable, ABC):
         # for the expression "F[{a,b}]" this function is expected to return:
         #   ListExpression[Symbol(a), Symbol(b)].
         if self.get_head() is SymbolSequence:
-            return self.elements
+            return self.get_elements()
         else:
             return tuple([self])
 
@@ -475,7 +478,9 @@ class EvalMixin:
         """
         return False
 
-    def rewrite_apply_eval_step(self, evaluation) -> Tuple["BaseElement", bool]:
+    def rewrite_apply_eval_step(
+        self, evaluation
+    ) -> Tuple[Optional["BaseElement"], bool]:
         """
         Performs a since rewrite/apply/eval step used in
         evaluation.

@@ -83,7 +83,9 @@ def expression_to_callable(
 
 
 def expression_to_callable_and_args(
-    expr: Expression, vars: list = None, evaluation: Optional[Evaluation] = None
+    expr: Expression,
+    vars: Optional[list] = None,
+    evaluation: Optional[Evaluation] = None,
 ) -> Tuple[Optional[Callable], Optional[list]]:
     """
     Return a tuple of Python callable and a list of CompileArgs.

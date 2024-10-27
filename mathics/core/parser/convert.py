@@ -4,7 +4,7 @@ Conversion from AST node to Mathic BaseElement objects
 """
 
 from math import log10
-from typing import Tuple
+from typing import Optional, Tuple
 
 import sympy
 
@@ -111,14 +111,10 @@ class GenericConverter:
                 # For 0, a finite absolute precision even if
                 # the number is an integer, it is stored as a
                 # PrecisionReal number.
-                if x == 0:
-                    prec10 = acc
-                else:
-                    prec10 = acc + log10(abs(x))
                 return (
                     "PrecisionReal",
                     ("DecimalString", str("-" + s if sign == -1 else s)),
-                    prec10,
+                    acc + log10(abs(x)) if x != 0 else acc,
                 )
             else:
                 # A single Reversed Prime ("`") represents a fixed precision
@@ -156,6 +152,7 @@ class GenericConverter:
         x = float(sympy.Rational(p, q))
 
         # determine `prec10` the digits of precision in base 10
+        prec10: Optional[float]
         if suffix is None:
             acc = len(s[1])
             acc10 = acc * log10(base)

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import time
-from typing import Any, Dict, FrozenSet, List, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, Dict, FrozenSet, List, Optional, Sequence, Union
 
 from mathics.core.element import (
     BaseElement,
@@ -10,6 +10,9 @@ from mathics.core.element import (
     ensure_context,
     fully_qualified_symbol_name,
 )
+
+if TYPE_CHECKING:
+    from mathics.core.atoms import String
 
 # I put this constants here instead of inside `mathics.core.convert.sympy`
 # to avoid a circular reference. Maybe they should be in its own module.
