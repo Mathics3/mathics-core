@@ -14,13 +14,16 @@ import os.path as osp
 import pkgutil
 from glob import glob
 from types import ModuleType
-from typing import Dict, List, Optional, Set
+from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple
 
 from mathics.core.convert.sympy import mathics_to_sympy, sympy_to_mathics
 from mathics.core.pattern import pattern_objects
 from mathics.core.symbols import Symbol
 from mathics.eval.makeboxes import builtins_precedence
 from mathics.settings import ENABLE_FILES_MODULE
+
+if TYPE_CHECKING:
+    from mathics.core.builtin import Builtin
 
 # List of Python modules contain Mathics3 Builtins.
 # This list used outside to gather documentation,
@@ -43,7 +46,9 @@ builtins_by_module: Dict[str, list] = {}
 display_operators_set: Set[str] = set()
 
 
-def add_builtins_from_builtin_module(module: ModuleType, builtins_list: list):
+def add_builtins_from_builtin_module(
+    module: ModuleType, builtins_list: List[Tuple[str, "Builtin"]]
+):
     """
     Process a modules which contains Builtin classes so that the
     class is imported in the Python sense but also that we
@@ -70,7 +75,7 @@ def add_builtins_from_builtin_module(module: ModuleType, builtins_list: list):
 
 
 def add_builtins_from_builtin_modules(modules: List[ModuleType]):
-    builtins_list = []
+    builtins_list: List[Tuple[str, "Builtin"]] = []
     for module in modules:
         add_builtins_from_builtin_module(module, builtins_list)
     add_builtins(builtins_list)
@@ -79,7 +84,7 @@ def add_builtins_from_builtin_modules(modules: List[ModuleType]):
 
 # The fact that we are importing inside here, suggests add_builtins
 # should get moved elsewhere.
-def add_builtins(new_builtins):
+def add_builtins(new_builtins: List[Tuple[str, "Builtin"]]):
     from mathics.core.builtin import (
         Operator,
         PatternObject,

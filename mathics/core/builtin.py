@@ -551,6 +551,12 @@ class SympyObject(Builtin):
             return [self.sympy_name]
         return []
 
+    def to_sympy(self, expr=None, **kwargs):
+        raise NotImplementedError
+
+    def from_sympy(self, elements: Tuple[BaseElement, ...]) -> Expression:
+        raise NotImplementedError
+
 
 # This has to come before MPMathFunction
 class SympyFunction(SympyObject):
