@@ -63,7 +63,7 @@ def read_doctest_data(quiet=False) -> Optional[Dict[tuple, dict]]:
         )
     except KeyboardInterrupt:
         print("\nAborted.\n")
-        return
+        return None
 
 
 def get_versions():

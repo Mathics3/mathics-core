@@ -107,7 +107,7 @@ def test_chapter():
         "\\section{Numerical Properties}\n"
         "\\label{reference-of-built-in-symbols/testing-expressions/numerical-properties}\n"
         "\\sectionstart\n\n\n\n"
-        "\\subsection{CoprimeQ}\index{CoprimeQ}"
+        "\\subsection{CoprimeQ}\\index{CoprimeQ}"
     )
     latex_section_head = section.latex({}).strip()[: len(expected_latex_section_head)]
 

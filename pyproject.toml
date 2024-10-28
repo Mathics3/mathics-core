@@ -113,3 +113,10 @@ include = ["mathics*"]
 
 [tool.setuptools.dynamic]
 version = {attr = "mathics.version.__version__"}
+
+[tool.mypy]
+force_union_syntax = true
+
+[[tool.mypy.overrides]]
+module = ["mpmath", "llvmlite.*"]
+ignore_missing_imports = true

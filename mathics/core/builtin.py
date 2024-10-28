@@ -26,7 +26,7 @@ from typing import (
     cast,
 )
 
-import mpmath  # type: ignore[import-untyped]
+import mpmath
 import pkg_resources
 import sympy
 
