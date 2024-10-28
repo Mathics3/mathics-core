@@ -49,7 +49,7 @@ class DocSection:
 
     def __init__(
         self,
-        chapter,
+        chapter: "DocChapter",
         title: str,
         text: str,
         operator,
@@ -119,7 +119,9 @@ class DocChapter:
     A Chapter is part of a Part[dChapter. It can contain (Guide or plain) Sections.
     """
 
-    def __init__(self, part, title, doc=None, chapter_order: Optional[int] = None):
+    def __init__(
+        self, part: "DocPart", title: str, doc=None, chapter_order: Optional[int] = None
+    ):
         self.chapter_order = chapter_order
         self.doc = doc
         self.guide_sections = []
@@ -198,7 +200,7 @@ class DocPart:
 
     chapter_class = DocChapter
 
-    def __init__(self, documentation, title, is_reference=False):
+    def __init__(self, documentation: "Documentation", title: str, is_reference=False):
         self.documentation = documentation
         self.title = title
         self.chapters = []

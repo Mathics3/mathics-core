@@ -4,7 +4,7 @@ FIXME: Ditch home-grown and lame parsing and hook into sphinx.
 """
 
 import re
-from typing import Callable, Optional
+from typing import Callable, Optional, Sequence
 
 from mathics.doc.doc_entries import (
     CONSOLE_RE,
@@ -535,6 +535,8 @@ class LaTeXDocumentationEntry(DocumentationEntry):
     Mathics core also uses this in getting usage strings (`??`).
     """
 
+    items: Sequence["LaTeXDocumentationEntry"]
+
     def __init__(self, doc_str: str, title: str, section: Optional[DocSection]):
         super().__init__(doc_str, title, section)
 
@@ -548,7 +550,7 @@ class LaTeXDocumentationEntry(DocumentationEntry):
                 return escape_latex(self.rawdoc)
 
         return "\n".join(
-            item.latex(doc_data) for item in self.items if not item.is_private()
+            item.latex(doc_data) for item in self.items  # if not item.is_private()
         )
 
     def _set_classes(self):

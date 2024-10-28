@@ -10,12 +10,15 @@ system, and the functions used to parse docstrings into these objects.
 import logging
 import re
 from os import getenv
-from typing import Callable, List, Optional
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence
 
-from mathics.core.evaluation import Message, Print
+from mathics.core.evaluation import Message, Print, _Out
+
+if TYPE_CHECKING:
+    from mathics.doc.structure import DocSection
 
 # Used for getting test results by test expression and chapter/section information.
-test_result_map = {}
+test_result_map: Dict[tuple, list] = {}
 
 
 # These are all the XML/HTML-like tags that documentation supports.
@@ -157,9 +160,9 @@ def filter_comments(doc: str) -> str:
 POST_SUBSTITUTION_TAG = "_POST_SUBSTITUTION%d_"
 
 
-def pre_sub(regexp, text: str, repl_func):
+def pre_sub(regexp, text: str, repl_func: Callable):
     """apply substitutions previous to parse the text"""
-    post_substitutions = []
+    post_substitutions: List[str] = []
 
     def repl_pre(match):
         repl = repl_func(match)
@@ -185,7 +188,7 @@ def parse_docstring_to_DocumentationEntry_items(
     test_case_constructor: Callable,
     text_constructor: Callable,
     key_part=None,
-) -> list:
+) -> List["DocumentationEntry"]:
     """
     This parses string `doc` (using regular expressions) into Python objects.
     The function returns a list of ``DocText`` and ``DocTests`` objects which
@@ -296,7 +299,7 @@ class DocTest:
             return line.strip()
 
         self.index = index
-        self.outs = []
+        self.outs: List[_Out] = []
         self.result = None
 
         # Private test cases are executed, but NOT shown as part of the docs
@@ -312,7 +315,7 @@ class DocTest:
             self.ignore = False
 
         self.test = strip_sentinal(testcase[1])
-        self._key = key_prefix + (index,) if key_prefix else None
+        self._key: Optional[tuple] = key_prefix + (index,) if key_prefix else None
 
         outs = testcase[2].splitlines()
         for line in outs:
@@ -337,16 +340,14 @@ class DocTest:
                 if symbol == "=":
                     self.result = text
                 elif symbol == ":":
-                    out = Message("", "", text)
-                    self.outs.append(out)
+                    self.outs.append(Message("", "", text))
                 elif symbol == "|":
-                    out = Print(text)
-                    self.outs.append(out)
+                    self.outs.append(Print(text))
 
     def __str__(self) -> str:
         return self.test
 
-    def compare(self, result: Optional[str], out: Optional[tuple] = tuple()) -> bool:
+    def compare(self, result: Optional[str], out: tuple = tuple()) -> bool:
         """
         Performs a doctest comparison between ``result`` and ``wanted`` and returns
         True if the test should be considered a success.
@@ -427,9 +428,9 @@ class DocTests:
         """
         return self.tests
 
-    def is_private(self) -> bool:
-        """Returns True if this test is "private" not supposed to be visible as example documentation."""
-        return all(test.private for test in self.tests)
+    # def is_private(self) -> bool:
+    #     """Returns True if this test is "private" not supposed to be visible as example documentation."""
+    #     return all(test.private for test in self.tests)
 
     def __str__(self) -> str:
         return "\n".join(str(test) for test in self.tests)
@@ -462,10 +463,10 @@ class DocText:
         """
         return []
 
-    def is_private(self) -> bool:
-        """the test is private, meaning that it will not be included in the
-        documentation, but tested in the doctest cycle."""
-        return False
+    # def is_private(self) -> bool:
+    #     """the test is private, meaning that it will not be included in the
+    #     documentation, but tested in the doctest cycle."""
+    #     return False
 
     def test_indices(self) -> List[int]:
         """indices of the tests"""
@@ -492,6 +493,8 @@ class DocumentationEntry:
     Mathics core also uses this in getting usage strings (`??`).
 
     """
+
+    items: Sequence["DocumentationEntry"]
 
     def __init__(
         self, doc_str: str, title: str, section: Optional["DocSection"] = None
@@ -546,7 +549,7 @@ class DocumentationEntry:
         item = "\n".join(line for line in item.split("\n") if not line.isspace())
         return item
 
-    def get_tests(self) -> list:
+    def get_tests(self) -> List["DocumentationEntry"]:
         """retrieve a list of tests in the documentation entry"""
         tests = []
         for item in self.items:

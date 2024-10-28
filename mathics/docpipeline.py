@@ -17,7 +17,7 @@ import sys
 from argparse import ArgumentParser
 from collections import namedtuple
 from datetime import datetime
-from typing import Callable, Dict, Optional, Set, Union
+from typing import Callable, Dict, Generator, List, Optional, Set, Union
 
 import mathics
 from mathics import settings, version_string
@@ -70,7 +70,7 @@ class DocTestPipeline:
 
     def __init__(self, args, output_format="latex", data_path: Optional[str] = None):
         self.session = MathicsSession()
-        self.output_data = {}
+        self.output_data: Dict[tuple, dict] = {}
 
         # LoadModule Mathics3 modules
         if args.pymathics:
@@ -157,16 +157,16 @@ class TestStatus:
         self.total = 0
         self.failed = 0
         self.skipped = 0
-        self.failed_sections = set()
-        self.prev_key = []
+        self.failed_sections: Set[str] = set()
+        self.prev_key: list = []
         self.quiet = quiet
 
-    def mark_as_failed(self, key):
+    def mark_as_failed(self, key: str):
         """Mark a key as failed"""
         self.failed_sections.add(key)
         self.failed += 1
 
-    def section_name_for_print(self, test) -> str:
+    def section_name_for_print(self, test: DocTest) -> str:
         """
         If the test has a different key,
         returns a printable version of the section name.
@@ -177,7 +177,7 @@ class TestStatus:
             return " / ".join(key)
         return ""
 
-    def show_section(self, test):
+    def show_section(self, test: DocTest):
         """Show information about the current test case"""
         section_name_for_print = self.section_name_for_print(test)
         if section_name_for_print:
@@ -186,7 +186,7 @@ class TestStatus:
             else:
                 print(f"{STARS} {section_name_for_print} {STARS}")
 
-    def show_test(self, test, index, subindex):
+    def show_test(self, test: DocTest, index: int, subindex: int):
         """Show the current test"""
         test_str = test.test
         if not self.quiet:
@@ -353,8 +353,11 @@ def show_test_summary(
 
 
 def section_tests_iterator(
-    section, test_pipeline, include_subsections=None, exclude_sections=None
-):
+    section: DocSection,
+    test_pipeline: DocTestPipeline,
+    include_subsections: Optional[Set[str]] = None,
+    exclude_sections: Optional[Set[str]] = None,
+) -> Generator[DocTest, None, None]:
     """
     Iterator over tests in a section.
     A section contains tests in its documentation entry,
@@ -365,7 +368,7 @@ def section_tests_iterator(
     the user definitions are reset.
     """
     chapter = section.chapter
-    subsections = [section]
+    subsections: List[DocSection] = [section]
     if chapter.doc:
         subsections = [chapter.doc] + subsections
     if section.subsections:
@@ -381,12 +384,8 @@ def section_tests_iterator(
             continue
         test_pipeline.reset_user_definitions()
 
-        for tests in subsection.get_tests():
-            if isinstance(tests, DocTests):
-                for test in tests:
-                    yield test
-            else:
-                yield tests
+        for test in subsection.get_tests():
+            yield test
 
 
 def test_section_in_chapter(
@@ -585,8 +584,8 @@ def test_chapters(
 
 def test_sections(
     test_pipeline: DocTestPipeline,
-    include_sections: set,
-    exclude_subsections: set,
+    include_sections: Set[str],
+    exclude_subsections: Set[str],
 ):
     """Runs a group of related tests for the set specified in ``sections``.
 
@@ -606,10 +605,10 @@ def test_sections(
     if (output_data, section_names) == INVALID_TEST_GROUP_SETUP:
         return
 
-    seen_sections = set()
-    seen_last_section = False
-    last_section_name = None
-    section_name_for_finish = None
+    # seen_sections: Set[str] = set()
+    # seen_last_section = False
+    # last_section_name = None
+    # section_name_for_finish = None
 
     for part in test_pipeline.documentation.parts:
         for chapter in part.chapters:
@@ -627,17 +626,17 @@ def test_sections(
                         section.doc.get_tests(),
                     )
 
-                if last_section_name != section_name_for_finish:
-                    if seen_sections == include_sections:
-                        seen_last_section = True
-                        break
-                    if section_name_for_finish in include_sections:
-                        seen_sections.add(section_name_for_finish)
-                    last_section_name = section_name_for_finish
+                # if last_section_name != section_name_for_finish:
+                #     if seen_sections == include_sections:
+                #         seen_last_section = True
+                #         break
+                #     if section_name_for_finish in include_sections:
+                #         seen_sections.add(section_name_for_finish)
+                #     last_section_name = section_name_for_finish
 
-                if seen_last_section:
-                    show_test_summary(test_pipeline, "sections", section_names)
-                    return
+                # if seen_last_section:
+                #     show_test_summary(test_pipeline, "sections", section_names)
+                #     return
 
     show_test_summary(test_pipeline, "sections", section_names)
     return
@@ -745,7 +744,9 @@ def write_doctest_data(doctest_pipeline: DocTestPipeline):
     """
     test_parameters = doctest_pipeline.parameters
     if not test_parameters.quiet:
-        doctest_pipeline.print(f"Extracting internal doc data for {version_string}")
+        doctest_pipeline.print_and_log(
+            f"Extracting internal doc data for {version_string}"
+        )
         print("This may take a while...")
 
     try:
