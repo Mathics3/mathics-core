@@ -653,7 +653,7 @@ class MPMathFunction(SympyFunction):
     def eval(self, z, evaluation: Evaluation):
         "%(name)s[z__]"
 
-        args = cast(Sequence[Number], numerify(z, evaluation).get_sequence())
+        args = numerify(z, evaluation).get_sequence()
 
         # if no arguments are inexact attempt to use sympy
         if all(not x.is_inexact() for x in args):
@@ -668,6 +668,8 @@ class MPMathFunction(SympyFunction):
 
         if not all(isinstance(arg, Number) for arg in args):
             return
+        # mypy isn't yet smart enough to recognise that we can only reach this point if all args are Numbers
+        args = cast(Sequence[Number], args)
 
         mpmath_function = self.get_mpmath_function(tuple(args))
         if mpmath_function is None:
@@ -680,7 +682,9 @@ class MPMathFunction(SympyFunction):
             d = dps(prec)
             args = tuple([arg.round(d) for arg in args])
 
-        return eval_mpmath_function(mpmath_function, *args, prec=prec)
+        return eval_mpmath_function(
+            mpmath_function, *cast(Sequence[Number], args), prec=prec
+        )
 
 
 class MPMathMultiFunction(MPMathFunction):
