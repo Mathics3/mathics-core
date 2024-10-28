@@ -3,6 +3,7 @@
 Implementation of numbers handling functions.
 """
 
+from functools import lru_cache
 from typing import Optional
 
 import mpmath
@@ -18,6 +19,87 @@ from mathics.core.element import BaseElement
 from mathics.core.expression import Expression
 from mathics.core.number import MACHINE_PRECISION_VALUE, ZERO_MACHINE_ACCURACY, dps
 from mathics.core.symbols import SymbolPlus
+
+
+def check_finite_decimal(denominator):
+    # The rational number is finite decimal if the denominator has form 2^a * 5^b
+    while denominator % 5 == 0:
+        denominator = denominator / 5
+
+    while denominator % 2 == 0:
+        denominator = denominator / 2
+
+    return True if denominator == 1 else False
+
+
+def convert_repeating_decimal(numerator, denominator, base):
+    head = [x for x in str(numerator // denominator)]
+    tails = []
+    subresults = [numerator % denominator]
+    numerator %= denominator
+
+    while numerator != 0:  # only rational input can go to this case
+        numerator *= base
+        result_digit, numerator = divmod(numerator, denominator)
+        tails.append(str(result_digit))
+        if numerator not in subresults:
+            subresults.append(numerator)
+        else:
+            break
+
+    for i in range(len(head) - 1, -1, -1):
+        j = len(tails) - 1
+        if head[i] != tails[j]:
+            break
+        else:
+            del tails[j]
+            tails.insert(0, head[i])
+            del head[i]
+
+    # truncate all leading 0's
+    if all(elem == "0" for elem in head):
+        for i in range(0, len(tails)):
+            if tails[0] == "0":
+                tails = tails[1:] + [str(0)]
+            else:
+                break
+    return (head, tails)
+
+
+def convert_float_base(x, base, precision=10):
+    length_of_int = 0 if x == 0 else int(mpmath.log(x, base))
+    # iexps = list(range(length_of_int, -1, -1))
+
+    def convert_int(x, base, exponents):
+        out = []
+        for e in range(0, exponents + 1):
+            d = x % base
+            out.append(d)
+            x = x / base
+            if x == 0:
+                break
+        out.reverse()
+        return out
+
+    def convert_float(x, base, exponents):
+        out = []
+        for e in range(0, exponents):
+            d = int(x * base)
+            out.append(d)
+            x = (x * base) - d
+            if x == 0:
+                break
+        return out
+
+    int_part = convert_int(int(x), base, length_of_int)
+    if isinstance(x, (float, sympy.Float)):
+        # fexps = list(range(-1, -int(precision + 1), -1))
+        real_part = convert_float(x - int(x), base, precision + 1)
+        return int_part + real_part
+    elif isinstance(x, int):
+        return int_part
+    else:
+        raise TypeError(x)
 
 
 def eval_Accuracy(z: BaseElement) -> Optional[float]:
@@ -129,27 +211,6 @@ def cancel(expr):
                 return None
 
             # result = sympy.powsimp(result, deep=True)
-            result = sympy.cancel(result)
-
-            # cancel factors out rationals, so we factor them again
-            result = sympy_factor(result)
-
-            return from_sympy(result)
-        except sympy.PolynomialError:
-            # e.g. for non-commutative expressions
-            return expr
-
-
-def cancel(expr):
-    if expr.has_form("Plus", None):
-        return Expression(SymbolPlus, *[cancel(element) for element in expr.elements])
-    else:
-        try:
-            result = expr.to_sympy()
-            if result is None:
-                return None
-
-            # result = sympy.powsimp(result, deep=True)
             result = tracing.run_sympy(sympy.cancel, result)
 
             # cancel factors out rationals, so we factor them again
@@ -159,6 +220,13 @@ def cancel(expr):
         except sympy.PolynomialError:
             # e.g. for non-commutative expressions
             return expr
+
+
+@lru_cache()
+def log_n_b(py_n, py_b) -> int:
+    return (
+        int(mpmath.floor(mpmath.log(py_n, py_b))) + 1 if py_n != 0 and py_n != 1 else 1
+    )
 
 
 def sympy_factor(expr_sympy):

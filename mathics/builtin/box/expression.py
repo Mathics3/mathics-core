@@ -1,6 +1,3 @@
-# This is never intended to go in Mathics3 docs
-no_doc = True
-
 from typing import Optional, Sequence, Union
 
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
@@ -9,6 +6,9 @@ from mathics.core.element import BoxElementMixin
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolHoldForm, ensure_context
+
+# This is never intended to go in Mathics3 docs
+no_doc = True
 
 
 def split_name(name: str) -> str:
