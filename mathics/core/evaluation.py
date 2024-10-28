@@ -172,7 +172,7 @@ class Evaluation:
         self.out: List[_Out] = []
         self.output = output if output else Output()
         self.listeners: Dict[str, List[Callable]] = {}
-        self.options: Optional[tuple] = None
+        self.options: Optional[Dict[str, Any]] = None
         self.predetermined_out = None
 
         self.quiet_all = False

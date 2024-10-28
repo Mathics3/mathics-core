@@ -196,7 +196,7 @@ class Builtin:
     rules: Dict[str, Any] = {}
     formats: Dict[str, Any] = {}
     messages: Dict[str, Any] = {}
-    options: Dict[str, Any] = {}
+    options: Optional[Dict[str, Any]] = {}
     defaults: Dict[Optional[int], str] = {}
 
     def __getnewargs_ex__(self):
@@ -244,6 +244,7 @@ class Builtin:
 
         option_syntax = "Warn"
 
+        assert self.options is not None
         for option, value in self.options.items():
             if option == "$OptionSyntax":
                 option_syntax = value
