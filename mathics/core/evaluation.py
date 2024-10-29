@@ -6,7 +6,7 @@ import time
 from abc import ABC
 from queue import Queue
 from threading import Thread, stack_size as set_thread_stack_size
-from typing import List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union, overload
 
 from mathics_scanner import TranslateError
 
@@ -149,8 +149,11 @@ class _Out(KeyComparable):
         self.is_print = False
         self.text = ""
 
-    def get_sort_key(self) -> Tuple[bool, bool, str]:
+    def get_sort_key(self):
         return (self.is_message, self.is_print, self.text)
+
+    def get_data(self) -> Dict[str, Any]:
+        raise NotImplementedError
 
 
 class Evaluation:
@@ -161,15 +164,15 @@ class Evaluation:
 
         if definitions is None:
             definitions = Definitions()
-        self.definitions = definitions
+        self.definitions: Definitions = definitions
         self.recursion_depth = 0
         self.timeout = False
-        self.timeout_queue = []
+        self.timeout_queue: List[Tuple[float, float]] = []
         self.stopped = False
-        self.out = []
+        self.out: List[_Out] = []
         self.output = output if output else Output()
-        self.listeners = {}
-        self.options = None
+        self.listeners: Dict[str, List[Callable]] = {}
+        self.options: Optional[tuple] = None
         self.predetermined_out = None
 
         self.quiet_all = False
@@ -178,11 +181,11 @@ class Evaluation:
         self.SymbolNull = SymbolNull
 
         # status of last evaluate
-        self.exc_result = self.SymbolNull
+        self.exc_result: Optional[Symbol] = self.SymbolNull
         self.last_eval = None
         # Used in ``mathics.builtin.numbers.constants.get_constant`` and
         # ``mathics.builtin.numeric.N``.
-        self._preferred_n_method = []
+        self._preferred_n_method: List[str] = []
 
     def parse(self, query, src_name: str = ""):
         "Parse a single expression and print the messages."
@@ -309,19 +312,14 @@ class Evaluation:
                 else:
                     raise
             except WLThrowInterrupt as ti:
-                if ti.tag:
-                    self.exc_result = Expression(
-                        SymbolHold, Expression(SymbolThrow, ti.value, ti.tag)
-                    )
-                else:
-                    self.exc_result = Expression(
-                        SymbolHold, Expression(SymbolThrow, ti.value)
-                    )
-                self.message("Throw", "nocatch", self.exc_result)
-            #            except OverflowError:
-            #                print("Catch the overflow")
-            #                self.message("General", "ovfl")
-            #                self.exc_result = Expression(SymbolOverflow)
+                msg_expr = (
+                    Expression(SymbolThrow, ti.value, ti.tag)
+                    if ti.tag
+                    else Expression(SymbolThrow, ti.value)
+                )
+                self.message("Throw", "nocatch", msg_expr)
+                self.exc_result = Expression(SymbolHold, msg_expr)
+
             except BreakInterrupt:
                 self.message("Break", "nofdw")
                 self.exc_result = Expression(SymbolHold, Expression(SymbolBreak))
@@ -380,9 +378,17 @@ class Evaluation:
     def stop(self) -> None:
         self.stopped = True
 
+    @overload
+    def format_output(self, expr: BaseElement, format: Optional[dict] = None) -> dict:
+        ...
+
+    @overload
     def format_output(
         self, expr: BaseElement, format: Optional[str] = None
-    ) -> Union[BaseElement, str]:
+    ) -> Union[BaseElement, str, None]:
+        ...
+
+    def format_output(self, expr, format=None):
         """
         This function takes an expression `expr` and
         a format `format`. If `format` is None, then returns `expr`. Otherwise,
@@ -417,6 +423,9 @@ class Evaluation:
         else:
             raise ValueError
 
+        if result is None:
+            return None
+
         try:
             # With the new implementation, if result is not a ``BoxExpression``
             # then we should raise a BoxError here.
@@ -447,7 +456,7 @@ class Evaluation:
             return []
         return value.elements
 
-    def message(self, symbol_name: str, tag, *msgs) -> "Message":
+    def message(self, symbol_name: str, tag, *msgs) -> Optional["Message"]:
         """
         Format message given its components, ``symbol``, ``tag``
 
@@ -463,7 +472,7 @@ class Evaluation:
         pattern = Expression(SymbolMessageName, Symbol(symbol), String(tag))
 
         if pattern in quiet_messages or self.quiet_all:
-            return
+            return None
 
         # Shorten the symbol's name according to the current context
         # settings. This makes sure we print the context, if it would
@@ -527,12 +536,11 @@ class Evaluation:
         from mathics.core.symbols import Symbol
 
         if len(needed) == 1:
-            needed = needed[0]
-            if given > 1 and needed > 1:
-                self.message(symbol, "argrx", Symbol(symbol), given, needed)
+            if given > 1 and needed[0] > 1:
+                self.message(symbol, "argrx", Symbol(symbol), given, *needed)
             elif given == 1:
-                self.message(symbol, "argr", Symbol(symbol), needed)
-            elif needed == 1:
+                self.message(symbol, "argr", Symbol(symbol), *needed)
+            elif needed[0] == 1:
                 self.message(symbol, "argx", Symbol(symbol), given)
         elif len(needed) == 2:
             if given == 1:
@@ -561,16 +569,16 @@ class Evaluation:
     def dec_recursion_depth(self) -> None:
         self.recursion_depth -= 1
 
-    def add_listener(self, tag, listener) -> None:
+    def add_listener(self, tag: str, listener: Callable) -> None:
         existing = self.listeners.get(tag)
         if existing is None:
             existing = self.listeners[tag] = []
         existing.insert(0, listener)
 
-    def remove_listener(self, tag, listener) -> None:
-        self.listeners.get(tag).remove(listener)
+    def remove_listener(self, tag: str, listener: Callable) -> None:
+        self.listeners.get(tag, []).remove(listener)
 
-    def publish(self, tag, *args, **kwargs) -> None:
+    def publish(self, tag: str, *args, **kwargs) -> None:
         listeners = self.listeners.get(tag, [])
         for listener in listeners:
             if listener(*args, **kwargs):
@@ -681,7 +689,7 @@ class Result:
     """
 
     def __init__(
-        self, out: OutputLines, result, line_no: int, last_eval=None, form=None
+        self, out: List[_Out], result, line_no: int, last_eval=None, form=None
     ) -> None:
         self.out = out
         self.result = result

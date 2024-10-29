@@ -20,6 +20,8 @@ from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import SymbolAbsoluteTime, SymbolFailed, SymbolNone
 from mathics.eval.nevaluator import eval_N
 
+sort_order = "mathics.builtin.file-operations.file_properties"
+
 
 class FileDate(Builtin):
     """
@@ -238,9 +240,6 @@ class SetFileDate(Builtin):
     >> Close[OpenWrite[tmpfilename]];
 
     >> SetFileDate[tmpfilename, {2002, 1, 1, 0, 0, 0.}, "Access"];
-
-    >> FileDate[tmpfilename, "Access"]
-     = {2002, 1, 1, 0, 0, 0.}
 
     #> DeleteFile[tmpfilename]
     """

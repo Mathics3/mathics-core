@@ -159,7 +159,7 @@ class FilterRules(Builtin):
     def eval(self, rules, pattern, evaluation):
         "FilterRules[rules_List, pattern_]"
 
-        match = Matcher(pattern).match
+        match = Matcher(pattern, evaluation).match
 
         def matched():
             for rule in rules.elements:

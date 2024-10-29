@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import time
-from typing import Any, FrozenSet, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, FrozenSet, List, Optional, Sequence, Union
 
 from mathics.core.element import (
     BaseElement,
@@ -11,14 +11,20 @@ from mathics.core.element import (
     fully_qualified_symbol_name,
 )
 
+if TYPE_CHECKING:
+    from mathics.core.atoms import String
+
 # I put this constants here instead of inside `mathics.core.convert.sympy`
 # to avoid a circular reference. Maybe they should be in its own module.
 
-sympy_symbol_prefix = "_Mathics_User_"
-sympy_slot_prefix = "_Mathics_Slot_"
+# Prefix used for Sympy variables.  We want prefixes to be short to
+# keep variable names short.  In tracing values, long names makes
+# output messy and harder to follow, since it detracts from the
+# important information
+sympy_symbol_prefix = "_u"
+sympy_slot_prefix = "_#"
 
 
-# FIXME: This is repeated below
 class NumericOperators:
     """
     This is a mixin class for Element-like objects that might have numeric values.
@@ -36,6 +42,8 @@ class NumericOperators:
         abs(Integer(-8))
         Integer(1) + Integer(2)
     """
+
+    create_expression: Any
 
     def __abs__(self) -> BaseElement:
         return self.create_expression(SymbolAbs, self)
@@ -72,7 +80,11 @@ class NumericOperators:
     def __pow__(self, other) -> BaseElement:
         return self.create_expression(SymbolPower, self, other)
 
-    def round_to_float(self, evaluation=None, permit_complex=False) -> Optional[float]:
+    # FIXME: The name "round_to_float" is misleading when
+    # permit_complex is True.
+    def round_to_float(
+        self, evaluation=None, permit_complex=False
+    ) -> Optional[Union[complex, float]]:
         """
         Round to a Python float. Return None if rounding is not possible.
         This can happen if self or evaluation is NaN.
@@ -207,6 +219,7 @@ class Atom(BaseElement):
     _head_name = ""
     _symbol_head = None
     class_head_name = ""
+    original: Optional["Atom"] = None
 
     def __repr__(self) -> str:
         return "<%s: %s>" % (self.get_atom_name(), self)
@@ -214,6 +227,9 @@ class Atom(BaseElement):
     def atom_to_boxes(self, f, evaluation):
         """Produces a Box expression that represents
         how the expression should be formatted."""
+        raise NotImplementedError
+
+    def do_copy(self) -> "Atom":
         raise NotImplementedError
 
     def copy(self, reevaluate=False) -> "Atom":
@@ -235,15 +251,6 @@ class Atom(BaseElement):
         """Returns the value of the expression.
 
         The value of an Atom is itself.
-        """
-        return self
-
-    # comment @mmatera: This just makes sense if the Expression has elements...
-    # rocky: It is currently getting called when on Atoms; so more work
-    # is needed to remove this, probably by fixing the callers.
-    def evaluate_elements(self, evaluation) -> "Atom":
-        """
-        Create a new expression by evaluating the head and elements of self.
         """
         return self
 
@@ -285,7 +292,9 @@ class Atom(BaseElement):
         else:
             raise NotImplementedError
 
-    def has_form(self, heads, *element_counts) -> bool:
+    def has_form(
+        self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
+    ) -> bool:
         if element_counts:
             return False
         name = self.get_atom_name()
@@ -324,7 +333,13 @@ class Atom(BaseElement):
         """
         return False
 
-    def replace_vars(self, vars, options=None, in_scoping=True) -> "Atom":
+    def replace_vars(
+        self,
+        vars: Dict[str, BaseElement],
+        options=None,
+        in_scoping=True,
+        in_function=True,
+    ) -> "Atom":
         return self
 
     def replace_slots(self, slots, evaluation) -> "Atom":
@@ -365,14 +380,15 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     """
 
     name: str
-    hash: str
+    hash: int
     sympy_dummy: Any
+    _short_name: str
 
     # Dictionary of Symbols defined so far.
     # We use this for object uniqueness.
     # The key is the Symbol object's string name, and the
     # diectionary's value is the Mathics object for the Symbol.
-    _symbols = {}
+    _symbols: Dict[str, "Symbol"] = {}
 
     class_head_name = "System`Symbol"
 
@@ -558,7 +574,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     def get_attributes(self, definitions):
         return definitions.get_attributes(self.name)
 
-    def get_name(self) -> str:
+    def get_name(self, short=False) -> str:
         return self.name
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
@@ -617,7 +633,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             from mathics.eval.nevaluator import eval_N
 
             value = eval_N(self, n_evaluation)
-            if value is not self:
+            if value is not self and value is not None:
                 return value.to_python()
 
         # For general symbols, the default behaviour is
@@ -662,7 +678,7 @@ class SymbolConstant(Symbol):
     # We use this for object uniqueness.
     # The key is the SymbolConstant's value, and the
     # diectionary's value is the Mathics object representing that Python value.
-    _symbol_constants = {}
+    _symbol_constants: Dict[str, "SymbolConstant"] = {}
 
     # We use __new__ here to unsure that two Integer's that have the same value
     # return the same object.
@@ -777,77 +793,3 @@ SymbolSequence = Symbol("System`Sequence")
 SymbolUpSet = Symbol("UpSet")
 SymbolTeXForm = Symbol("TeXForm")
 SymbolTimes = Symbol("Times")
-
-
-# NumericOperators uses some of the Symbols above.
-class NumericOperators:
-    """
-    This is a mixin class for Element-like objects that might have numeric values.
-    It adds or "mixes in" numeric functions for these objects like round_to_float().
-
-    It also adds methods to the class to facilite building
-    ``Expression``s in the Mathics Python code using Python syntax.
-
-    So for example, instead of writing in Python:
-
-        to_expression("Abs", -8)
-        Expression(SymbolPlus, Integer1, Integer2)
-
-    you can instead have:
-        abs(Integer(-8))
-        Integer(1) + Integer(2)
-    """
-
-    def __abs__(self) -> BaseElement:
-        return self.create_expression(SymbolAbs, self)
-
-    def __add__(self, other) -> BaseElement:
-        return self.create_expression(SymbolPlus, self, other)
-
-    def __pos__(self):
-        return self
-
-    def __neg__(self):
-        from mathics.core.atoms import IntegerM1
-
-        return self.create_expression(SymbolTimes, self, IntegerM1)
-
-    def __sub__(self, other) -> BaseElement:
-        from mathics.core.atoms import IntegerM1
-
-        return self.create_expression(
-            SymbolPlus, self, self.create_expression(SymbolTimes, other, IntegerM1)
-        )
-
-    def __mul__(self, other) -> BaseElement:
-        return self.create_expression(SymbolTimes, self, other)
-
-    def __truediv__(self, other) -> BaseElement:
-        return self.create_expression(SymbolDivide, self, other)
-
-    def __floordiv__(self, other) -> BaseElement:
-        return self.create_expression(
-            SymbolFloor, self.create_expression(SymbolDivide, self, other)
-        )
-
-    def __pow__(self, other) -> BaseElement:
-        return self.create_expression(SymbolPower, self, other)
-
-    # FIXME: The name "round_to_float" is misleading when
-    # permit_complex is True.
-    def round_to_float(
-        self, evaluation=None, permit_complex=False
-    ) -> Optional[Union[complex, float]]:
-        """
-        Round to a Python float. Return None if rounding is not possible.
-        This can happen if self or evaluation is NaN.
-        """
-        value = (
-            self
-            if evaluation is None
-            else self.create_expression(SymbolN, self).evaluate(evaluation)
-        )
-        if hasattr(value, "round") and hasattr(value, "get_float_value"):
-            value = value.round()
-            return value.get_float_value(permit_complex=permit_complex)
-        return None

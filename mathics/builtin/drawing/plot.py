@@ -8,6 +8,7 @@ points, as another parameter, and plot or show the function applied to the data.
 
 import itertools
 import numbers
+from abc import ABC
 from functools import lru_cache
 from math import cos, pi, sin, sqrt
 from typing import Callable, Optional
@@ -27,6 +28,7 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
+    SymbolBlack,
     SymbolBlend,
     SymbolColorData,
     SymbolEdgeForm,
@@ -44,13 +46,14 @@ from mathics.core.systemsymbols import (
     SymbolSlot,
     SymbolStyle,
 )
-from mathics.eval.nevaluator import eval_N
-from mathics.eval.plot import (
+from mathics.eval.drawing.plot import (
+    ListPlotType,
     compile_quiet_function,
     eval_ListPlot,
     eval_Plot,
     get_plot_range,
 )
+from mathics.eval.nevaluator import eval_N
 
 # This tells documentation how to sort this module
 # Here we are also hiding "drawing" since this erroneously appears at the top level.
@@ -274,7 +277,7 @@ class _GradientColorScheme:
         return Expression(SymbolColorDataFunction, *arguments)
 
 
-class _ListPlot(Builtin):
+class _ListPlot(Builtin, ABC):
     """
     Base class for ListPlot, and ListLinePlot
     2-Dimensional plot a list of points in some fashion.
@@ -295,7 +298,7 @@ class _ListPlot(Builtin):
     def eval(self, points, evaluation: Evaluation, options: dict):
         "%(name)s[points_, OptionsPattern[%(name)s]]"
 
-        plot_name = self.get_name()
+        class_name = self.__class__.__name__
 
         # Scale point values down by Log 10. Tick mark values will be adjusted to be 10^n in GraphicsBox.
         if self.use_log_scale:
@@ -306,9 +309,27 @@ class _ListPlot(Builtin):
                 )
             )
 
-        all_points = eval_N(points, evaluation).to_python()
+        # If "points" is a literal value with a Python representation,
+        # it has a ".value" attribute with a non-None value. So here,
+        # we don't have to eval_N().to_python().
+
+        all_points = (
+            points.value
+            if hasattr(points, "value") and points.value is not None
+            else eval_N(points, evaluation).to_python()  # TODO: force tuple-ness?
+        )
+
         # FIXME: arrange for self to have a .symbolname property or attribute
         expr = Expression(Symbol(self.get_name()), points, *options_to_rules(options))
+
+        if class_name == "ListPlot":
+            plot_type = ListPlotType.ListPlot
+        elif class_name == "ListLinePlot":
+            plot_type = ListPlotType.ListLinePlot
+        elif class_name == "ListStepPlot":
+            plot_type = ListPlotType.ListStepPlot
+        else:
+            plot_type = None
 
         plotrange_option = self.get_option(options, "PlotRange", evaluation)
         plotrange = eval_N(plotrange_option, evaluation).to_python()
@@ -355,7 +376,7 @@ class _ListPlot(Builtin):
         joined_option = self.get_option(options, "Joined", evaluation)
         is_joined_plot = joined_option.to_python()
         if is_joined_plot not in [True, False]:
-            evaluation.message(plot_name, "joind", joined_option, expr)
+            evaluation.message(class_name, "joind", joined_option, expr)
             is_joined_plot = False
 
         return eval_ListPlot(
@@ -366,6 +387,7 @@ class _ListPlot(Builtin):
             is_joined_plot=is_joined_plot,
             filling=filling,
             use_log_scale=self.use_log_scale,
+            list_plot_type=plot_type,
             options=options,
         )
 
@@ -382,7 +404,7 @@ class _PalettableGradient(_GradientColorScheme):
         return colors
 
 
-class _Plot(Builtin):
+class _Plot(Builtin, ABC):
     attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
 
     expect_list = False
@@ -814,8 +836,8 @@ class _Plot3D(Builtin):
                     # 1   2        1   2
                     #
                     # Approaching the boundary of the well defined region is
-                    # important too. Use first stategy if 1 or 4 are undefined
-                    # and stategy 2 if either 2 or 3 are undefined.
+                    # important too. Use first strategy if 1 or 4 are undefined
+                    # and strategy 2 if either 2 or 3 are undefined.
                     #
                     (x1, x2, x3, x4) = (
                         xstart + value * (xstop - xstart)
@@ -1164,7 +1186,7 @@ class BarChart(_Chart):
                 x += 0.2
 
         def rectangles():
-            yield Expression(SymbolEdgeForm, Symbol("Black"))
+            yield Expression(SymbolEdgeForm, SymbolBlack)
 
             last_x1 = 0
 
@@ -1186,7 +1208,7 @@ class BarChart(_Chart):
             )
 
         def axes():
-            yield Expression(SymbolFaceForm, Symbol("Black"))
+            yield Expression(SymbolFaceForm, SymbolBlack)
 
             def points(x):
                 return ListExpression(vector2(x, 0), vector2(x, MTwoTenths))
@@ -1198,7 +1220,7 @@ class BarChart(_Chart):
                     yield Expression(SymbolLine, points(x1))
 
         def labels(names):
-            yield Expression(SymbolFaceForm, Symbol("Black"))
+            yield Expression(SymbolFaceForm, SymbolBlack)
 
             for (k, n), x0, x1, y in boxes():
                 if k <= len(names):
@@ -1224,7 +1246,7 @@ class BarChart(_Chart):
             y_range[0] = -0.4  # room for labels at the bottom
 
         # FIXME: this can't be right...
-        # always specify -.1 as the minimum x plot range, as this will make the y axis apppear
+        # always specify -.1 as the minimum x plot range, as this will make the y axis appear
         # at origin (0,0); otherwise it will be shifted right; see GraphicsBox.axis_ticks().
         x_range[0] = -0.1
 
@@ -1347,6 +1369,7 @@ class ColorDataFunction(Builtin):
       <dt>'ColorDataFunction[range, ...]'
       <dd> is a function that represents a color scheme.
     </dl>
+
     """
 
     summary_text = "color scheme object"
@@ -1628,11 +1651,11 @@ class DiscretePlot(_Plot):
         # list of all plotted points across all functions
         plot_groups = []
 
-        # List of graphics primitves that rendering will use to draw.
+        # List of graphics primitives that rendering will use to draw.
         # This includes the plot data, and overall graphics directives
         # like the Hue.
 
-        for index, f in enumerate(functions):
+        for f in functions:
             # list of all plotted points for a given function
             plot_points = []
 
@@ -1652,8 +1675,8 @@ class DiscretePlot(_Plot):
                 plot_points.append((x_value, point))
 
             x_range = get_plot_range(
-                [xx for xx, yy in base_plot_points],
-                [xx for xx, yy in plot_points],
+                [xx for xx, _ in base_plot_points],
+                [xx for xx, _ in plot_points],
                 x_range,
             )
             plot_groups.append(plot_points)
@@ -1679,6 +1702,7 @@ class DiscretePlot(_Plot):
             is_joined_plot=False,
             filling=False,
             use_log_scale=False,
+            list_plot_type=ListPlotType.DiscretePlot,
             options=options,
         )
 
@@ -1882,7 +1906,7 @@ class Histogram(Builtin):
             x_range = list(get_plot_range(x_coords, x_coords, x_range))
             y_range = list(get_plot_range(y_coords, y_coords, y_range))
 
-            # always specify -.1 as the minimum x plot range, as this will make the y axis apppear
+            # always specify -.1 as the minimum x plot range, as this will make the y axis appear
             # at origin (0,0); otherwise it will be shifted right; see GraphicsBox.axis_ticks().
             x_range[0] = -0.1
 
@@ -1954,7 +1978,7 @@ class ListPlot(_ListPlot):
       <dd>plots several lists of points.
     </dl>
 
-    The frequecy of Primes:
+    The frequency of Primes:
     >> ListPlot[Prime[Range[30]]]
      = -Graphics-
 
@@ -2032,6 +2056,55 @@ class ListLinePlot(_ListPlot):
         }
     )
     summary_text = "plot lines through lists of points"
+
+
+class ListStepPlot(_ListPlot):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ListStepPlot.html</url>
+    <dl>
+      <dt>'ListStepPlot[{$y_1$, $y_2$, ...}]'
+      <dd>plots a line through a list of $y$-values, assuming integer $x$-values 1, 2, 3, ...
+
+      <dt>'ListStepPlot[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]'
+      <dd>plots a line through a list of $x$, $y$ pairs.
+
+      <dt>'ListStepPlot[{$list_1$, $list_2$, ...}]'
+      <dd>plots several lines.
+    </dl>
+
+    >> ListStepPlot[{1, 1, 2, 3, 5, 8, 13, 21}]
+     = -Graphics-
+
+    'ListStepPlot' accepts a superset of the Graphics options. \
+    By default, 'ListStepPlot's are joined, but that can be disabled.
+
+    >> ListStepPlot[{1, 1, 2, 3, 5, 8, 13, 21}, Joined->False]
+     = -Graphics-
+
+    The same as the first example but using a list of point as data, \
+    and filling the plot to the x axis.
+
+    >> ListStepPlot[{{1, 1}, {3, 2}, {4, 5}, {5, 8}, {6, 13}, {7, 21}}, Filling->Axis]
+     = -Graphics-
+    """
+
+    attributes = A_HOLD_ALL | A_PROTECTED
+
+    options = Graphics.options.copy()
+    options.update(
+        {
+            "Axes": "True",
+            "AspectRatio": "1 / GoldenRatio",
+            "Mesh": "None",
+            "PlotRange": "Automatic",
+            "PlotPoints": "None",
+            "Filling": "None",
+            "Joined": "True",
+        }
+    )
+    summary_text = "plot values in steps"
 
 
 class ListLogPlot(_ListPlot):
@@ -2299,7 +2372,7 @@ class PieChart(_Chart):
                 phi0 = phi1
 
         def segments():
-            yield Expression(SymbolEdgeForm, Symbol("Black"))
+            yield Expression(SymbolEdgeForm, SymbolBlack)
 
             origin = vector2(0.0, 0.0)
 
@@ -2323,7 +2396,7 @@ class PieChart(_Chart):
                     )
 
         def labels(names):
-            yield Expression(SymbolFaceForm, Symbol("Black"))
+            yield Expression(SymbolFaceForm, SymbolBlack)
 
             for values, (r0, r1) in zip(data, radii()):
                 for name, (phi0, phi1) in zip(names, phis(values)):

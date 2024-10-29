@@ -6,7 +6,6 @@ Functions used to build the reference sections from module information.
 
 """
 
-import importlib
 import os.path as osp
 import pkgutil
 from os import listdir
@@ -14,6 +13,7 @@ from types import ModuleType
 from typing import Tuple, Union
 
 from mathics.core.builtin import Builtin, check_requires_list
+from mathics.core.load_builtin import submodules
 from mathics.core.util import IS_PYPY
 from mathics.doc.doc_entries import DocumentationEntry
 from mathics.doc.structure import DocChapter, DocGuideSection, DocSection, DocSubsection
@@ -138,7 +138,7 @@ def gather_sections(chapter, module, builtins_by_module, section_class=None) -> 
     # converting the entries into `set`s.
     #
     visited = set()
-    for symbol_instance in builtins_by_module[module.__name__]:
+    for symbol_instance in builtins_by_module.get(module.__name__, []):
         if skip_doc(symbol_instance, module):
             continue
         default_contexts = ("System`", "Pymathics`")
@@ -214,7 +214,7 @@ def gather_guides_and_sections(chapter, module, builtins_by_module):
     # Loop over submodules
     docpath = f"/doc/{chapter.part.slug}/{chapter.slug}/"
 
-    for sub_module in submodules(module):
+    for sub_module in sorted_modules(submodules(module)):
         if skip_module_doc(sub_module):
             continue
 
@@ -361,14 +361,3 @@ def sorted_modules(modules) -> list:
         if hasattr(module, "sort_order")
         else module.__name__,
     )
-
-
-def submodules(package):
-    """Generator of the submodules in a package"""
-    package_folder = package.__file__[: -len("__init__.py")]
-    for _, module_name, __ in pkgutil.iter_modules([package_folder]):
-        try:
-            module = importlib.import_module(package.__name__ + "." + module_name)
-        except Exception:
-            continue
-        yield module

@@ -485,7 +485,9 @@ class PointSize(_Size):
       <dt>'PointSize[$t$]'
       <dd>sets the diameter of points to $t$, which is relative to the overall width.
     </dl>
-    'PointSize' can be used for both two- and three-dimensional graphics. The initial default pointsize is 0.008 for two-dimensional graphics and 0.01 for three-dimensional graphics.
+
+    'PointSize' can be used for both two- and three-dimensional graphics. \
+    The initial default pointsize is 0.008 for two-dimensional graphics and 0.01 for three-dimensional graphics.
 
     >> Table[Graphics[{PointSize[r], Point[{0, 0}]}], {r, {0.02, 0.05, 0.1, 0.3}}]
      = {-Graphics-, -Graphics-, -Graphics-, -Graphics-}
@@ -638,7 +640,7 @@ class RegularPolygon(Builtin):
     = -Graphics-
     """
 
-    summary_text = "graphics primitve for a regular polygon in 2D"
+    summary_text = "graphics primitive for a regular polygon in 2D"
 
 
 class Arrow(Builtin):
@@ -1337,6 +1339,7 @@ class EdgeForm(Builtin):
       <dt> 'EdgeForm[$g$]'
       <dd> is a graphics directive that specifies that edges of filled graphics objects are to be drawn using the graphics directive or list of directives $g$.
     </dl>
+
     >> Graphics[{EdgeForm[{Thick, Green}], Disk[]}]
      = -Graphics-
 

@@ -1,6 +1,7 @@
 """
 Distance-related evaluation functions and exception classes
 """
+
 from mathics.core.atoms import Integer, Real
 
 

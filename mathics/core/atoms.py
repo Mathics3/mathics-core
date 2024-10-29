@@ -4,9 +4,9 @@
 import base64
 import math
 import re
-from typing import Optional, Type, Union
+from typing import Any, Dict, Generic, Optional, Tuple, TypeVar, Union
 
-import mpmath
+import mpmath  # type: ignore[import-untyped]
 import sympy
 
 from mathics.core.element import BoxElementMixin, ImmutableValueMixin
@@ -39,12 +39,17 @@ SymbolString = Symbol("String")
 
 SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM = symbol_set(SymbolInputForm, SymbolFullForm)
 
+T = TypeVar("T")
 
-class Number(Atom, ImmutableValueMixin, NumericOperators):
+
+class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
     """
     Different kinds of Mathics Numbers, the main built-in subclasses
     being: Integer, Rational, Real, Complex.
     """
+
+    _value: T
+    hash: int
 
     def __getnewargs__(self):
         """
@@ -75,7 +80,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators):
         if pattern_sort:
             return super().get_sort_key(True)
         else:
-            return (0, 0, self._value, 0, 1)
+            return (0, 0, self.value, 0, 1)
 
     @property
     def is_literal(self) -> bool:
@@ -101,15 +106,33 @@ class Number(Atom, ImmutableValueMixin, NumericOperators):
         """
         if precision is not None:
             with mpmath.workprec(precision):
-                return mpmath.mpf(self._value)
-        return mpmath.mpf(self._value)
+                return mpmath.mpf(self.value)
+        return mpmath.mpf(self.value)
 
     @property
-    def value(self):
+    def value(self) -> T:
         """
         Returns this number's value.
         """
         return self._value
+
+    def __eq__(self, other):
+        if isinstance(other, Number):
+            return self.get_sort_key() == other.get_sort_key()
+        else:
+            return False
+
+    def default_format(self, evaluation, form) -> str:
+        return str(self.value)
+
+    def round(self, d: Optional[int] = None) -> "Number":
+        """
+        Produce a Real approximation of ``self`` with decimal precision ``d``.
+        """
+        return self
+
+    def do_copy(self) -> "Number":
+        raise NotImplementedError
 
 
 def _ExponentFunction(value):
@@ -153,15 +176,14 @@ _number_form_options = {
 }
 
 
-class Integer(Number):
-    value: int
+class Integer(Number[int]):
     class_head_name = "System`Integer"
 
     # Dictionary of Integer constant values defined so far.
     # We use this for object uniqueness.
     # The key is the Integer's Python `int` value, and the
     # dictionary's value is the corresponding Mathics Integer object.
-    _integers = {}
+    _integers: Dict[Any, "Integer"] = {}
 
     # We use __new__ here to ensure that two Integer's that have the same value
     # return the same object, and to set an object hash value.
@@ -240,9 +262,6 @@ class Integer(Number):
     def atom_to_boxes(self, f, evaluation):
         return self.make_boxes(f.get_name())
 
-    def default_format(self, evaluation, form) -> str:
-        return str(self._value)
-
     def make_boxes(self, form) -> "String":
         from mathics.eval.makeboxes import _boxed_string
 
@@ -316,12 +335,12 @@ IntegerM1 = Integer(-1)
 
 
 # This has to come before Complex
-class Real(Number):
+class Real(Number[T]):
     class_head_name = "System`Real"
 
     # __new__ rather than __init__ is used here because the kind of
     # object created differs based on contents of "value".
-    def __new__(cls, value, p: int = None) -> "Real":
+    def __new__(cls, value, p: Optional[int] = None) -> "Real":
         """
         Return either a MachineReal or a PrecisionReal object.
         Or raise a TypeError.
@@ -358,13 +377,13 @@ class Real(Number):
             # MMA Docs: "Approximate numbers that differ in their last seven
             # binary digits are considered equal"
             _prec = min_prec(self, other)
-            with mpmath.workprec(_prec):
-                rel_eps = 0.5 ** (_prec - 7)
-                return mpmath.almosteq(
-                    self.to_mpmath(), other.to_mpmath(), abs_eps=0, rel_eps=rel_eps
-                )
-        else:
-            return self.get_sort_key() == other.get_sort_key()
+            if _prec is not None:
+                with mpmath.workprec(_prec):
+                    rel_eps = 0.5 ** float(_prec - 7)
+                    return mpmath.almosteq(
+                        self.to_mpmath(), other.to_mpmath(), abs_eps=0, rel_eps=rel_eps
+                    )
+        return super().__eq__(other)
 
     def __hash__(self):
         # ignore last 7 binary digits when hashing
@@ -388,7 +407,7 @@ class Real(Number):
 
 
 # Has to come before PrecisionReal
-class MachineReal(Real):
+class MachineReal(Real[float]):
     """
     Machine precision real number.
 
@@ -399,7 +418,7 @@ class MachineReal(Real):
     # We use this for object uniqueness.
     # The key is the MachineReal's Python `float` value, and the
     # dictionary's value is the corresponding Mathics MachineReal object.
-    _machine_reals = {}
+    _machine_reals: Dict[Any, "MachineReal"] = {}
 
     def __new__(cls, value) -> "MachineReal":
         n = float(value)
@@ -465,12 +484,6 @@ class MachineReal(Real):
     def is_zero(self) -> bool:
         return self.value == 0.0
 
-    def round(self, d: Optional[int] = None) -> "MachineReal":
-        """
-        Produce a Real approximation of ``self`` with decimal precision ``d``.
-        """
-        return self
-
     def sameQ(self, other) -> bool:
         """Mathics SameQ for MachineReal.
         If the other comparison value is a MachineReal, the values
@@ -504,7 +517,7 @@ class MachineReal(Real):
 MachineReal0 = MachineReal(0)
 
 
-class PrecisionReal(Real):
+class PrecisionReal(Real[sympy.Float]):
     """
     Arbitrary precision real number.
 
@@ -517,9 +530,7 @@ class PrecisionReal(Real):
     # We use this for object uniqueness.
     # The key is the PrecisionReal's sympy.Float, and the
     # dictionary's value is the corresponding Mathics PrecisionReal object.
-    _precision_reals = {}
-
-    value: sympy.Float
+    _precision_reals: Dict[Any, "PrecisionReal"] = {}
 
     def __new__(cls, value) -> "PrecisionReal":
         n = sympy.Float(value)
@@ -558,7 +569,7 @@ class PrecisionReal(Real):
     @property
     def is_zero(self) -> bool:
         # self.value == 0 does not work for sympy >=1.13
-        return self.value.is_zero
+        return self.value.is_zero or False
 
     def make_boxes(self, form):
         from mathics.builtin.makeboxes import NumberForm_to_String
@@ -601,7 +612,7 @@ class PrecisionReal(Real):
 
 
 class ByteArrayAtom(Atom, ImmutableValueMixin):
-    value: str
+    value: Union[bytes, bytearray]
     class_head_name = "System`ByteArrayAtom"
 
     # We use __new__ here to ensure that two ByteArrayAtom's that have the same value
@@ -676,7 +687,7 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
     def to_sympy(self, **kwargs):
         return None
 
-    def to_python(self, *args, **kwargs) -> str:
+    def to_python(self, *args, **kwargs) -> Union[bytes, bytearray]:
         return self.value
 
     def user_hash(self, update):
@@ -688,20 +699,20 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
         return (self.value,)
 
 
-class Complex(Number):
+class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
     """
     Complex wraps two real-valued Numbers.
     """
 
     class_head_name = "System`Complex"
-    real: Type[Number]
-    imag: Type[Number]
+    real: Number[T]
+    imag: Number[T]
 
     # Dictionary of Complex constant values defined so far.
     # We use this for object uniqueness.
     # The key is the Complex value's real and imaginary parts as a tuple,
     # dictionary's value is the corresponding Mathics Complex object.
-    _complex_numbers = {}
+    _complex_numbers: Dict[Any, "Complex"] = {}
 
     # We use __new__ here to ensure that two Integer's that have the same value
     # return the same object, and to set an object hash value.
@@ -775,8 +786,10 @@ class Complex(Number):
             self.real.to_python(*args, **kwargs), self.imag.to_python(*args, **kwargs)
         )
 
-    def to_mpmath(self):
-        return mpmath.mpc(self.real.to_mpmath(), self.imag.to_mpmath())
+    def to_mpmath(self, precision: Optional[int] = None):
+        return mpmath.mpc(
+            self.real.to_mpmath(precision), self.imag.to_mpmath(precision)
+        )
 
     def default_format(self, evaluation, form) -> str:
         return "Complex[%s, %s]" % (
@@ -822,8 +835,7 @@ class Complex(Number):
             imag = self.imag.get_float_value()
             if real is not None and imag is not None:
                 return complex(real, imag)
-        else:
-            return None
+        return None
 
     def get_precision(self) -> Optional[int]:
         """Returns the default specification for precision in N and other numerical functions.
@@ -850,7 +862,7 @@ class Complex(Number):
         if isinstance(other, Complex):
             return self.real == other.real and self.imag == other.imag
         else:
-            return self.get_sort_key() == other.get_sort_key()
+            return super().__eq__(other)
 
     def __getnewargs__(self):
         return (self.real, self.imag)
@@ -877,11 +889,11 @@ class Complex(Number):
         return real_zero and imag_zero
 
 
-class Rational(Number):
+class Rational(Number[sympy.Rational]):
     class_head_name = "System`Rational"
 
     # Collection of integers defined so far.
-    _rationals = {}
+    _rationals: Dict[Any, "Rational"] = {}
 
     # We use __new__ here to ensure that two Rationals's that have the same value
     # return the same object, and to set an object hash value.
@@ -972,8 +984,8 @@ class Rational(Number):
 
 RationalOneHalf = Rational(1, 2)
 RationalMinusOneHalf = Rational(-1, 2)
-MATHICS3_COMPLEX_I = Complex(Integer0, Integer1)
-MATHICS3_COMPLEX_I_NEG = Complex(Integer0, IntegerM1)
+MATHICS3_COMPLEX_I: Complex[int] = Complex(Integer0, Integer1)
+MATHICS3_COMPLEX_I_NEG: Complex[int] = Complex(Integer0, IntegerM1)
 
 # Numerical constants
 # These constants are populated by the `Predefined`

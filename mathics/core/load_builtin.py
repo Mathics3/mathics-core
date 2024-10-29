@@ -14,13 +14,16 @@ import os.path as osp
 import pkgutil
 from glob import glob
 from types import ModuleType
-from typing import Dict, List, Optional, Set
+from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple
 
 from mathics.core.convert.sympy import mathics_to_sympy, sympy_to_mathics
 from mathics.core.pattern import pattern_objects
 from mathics.core.symbols import Symbol
 from mathics.eval.makeboxes import builtins_precedence
 from mathics.settings import ENABLE_FILES_MODULE
+
+if TYPE_CHECKING:
+    from mathics.core.builtin import Builtin
 
 # List of Python modules contain Mathics3 Builtins.
 # This list used outside to gather documentation,
@@ -43,7 +46,9 @@ builtins_by_module: Dict[str, list] = {}
 display_operators_set: Set[str] = set()
 
 
-def add_builtins_from_builtin_module(module: ModuleType, builtins_list: list):
+def add_builtins_from_builtin_module(
+    module: ModuleType, builtins_list: List[Tuple[str, "Builtin"]]
+):
     """
     Process a modules which contains Builtin classes so that the
     class is imported in the Python sense but also that we
@@ -70,7 +75,7 @@ def add_builtins_from_builtin_module(module: ModuleType, builtins_list: list):
 
 
 def add_builtins_from_builtin_modules(modules: List[ModuleType]):
-    builtins_list = []
+    builtins_list: List[Tuple[str, "Builtin"]] = []
     for module in modules:
         add_builtins_from_builtin_module(module, builtins_list)
     add_builtins(builtins_list)
@@ -79,7 +84,7 @@ def add_builtins_from_builtin_modules(modules: List[ModuleType]):
 
 # The fact that we are importing inside here, suggests add_builtins
 # should get moved elsewhere.
-def add_builtins(new_builtins):
+def add_builtins(new_builtins: List[Tuple[str, "Builtin"]]):
     from mathics.core.builtin import (
         Operator,
         PatternObject,
@@ -139,6 +144,41 @@ def get_module_names(builtin_path: str, exclude_files: set) -> list:
         osp.basename(f[0:-3]) for f in glob(osp.join(builtin_path, "[a-z]*.py"))
     ]
     return [f for f in py_files if f not in exclude_files]
+
+
+def get_submodule_names(obj) -> list:
+    """Many builtins are organized into modules which, from a documentation
+    standpoint, are like Mathematica Online Guide Docs.
+
+    "List Functions", "Colors", or "Distance and Similarity Measures"
+    are some examples Guide Documents group group various Builtin Functions,
+    under submodules relate to that general classification.
+
+    Here, we want to return a list of the Python modules under a "Guide Doc"
+    module.
+
+    As an example of a "Guide Doc" and its submodules, consider the
+    module named mathics.builtin.colors. It collects code and documentation pertaining
+    to the builtin functions that would be found in the Guide documentation for "Colors".
+
+    The `mathics.builtin.colors` module has a submodule
+    `mathics.builtin.colors.named_colors`.
+
+    The builtin functions defined in `named_colors` then are those found in the
+    "Named Colors" group of the "Colors" Guide Doc.
+
+    So in this example then, in the list the modules returned for
+    Python module `mathics.builtin.colors` would be the
+    `mathics.builtin.colors.named_colors` module which contains the
+    definition and docs for the "Named Colors" Mathics Bultin
+    Functions.
+    """
+    modpkgs = []
+    if hasattr(obj, "__path__"):
+        for _, modname, __ in pkgutil.iter_modules(obj.__path__):
+            modpkgs.append(modname)
+        modpkgs.sort()
+    return modpkgs
 
 
 def import_and_load_builtins():
@@ -304,6 +344,17 @@ def name_is_builtin_symbol(module: ModuleType, name: str) -> Optional[type]:
     if module_object in getattr(module, "DOES_NOT_ADD_BUILTIN_DEFINITION", []):
         return None
     return module_object
+
+
+def submodules(package):
+    """Generator of the submodules in a package"""
+    package_folder = package.__file__[: -len("__init__.py")]
+    for _, module_name, __ in pkgutil.iter_modules([package_folder]):
+        try:
+            module = importlib.import_module(package.__name__ + "." + module_name)
+        except Exception:
+            continue
+        yield module
 
 
 def update_display_operators_set(builtin_instance):

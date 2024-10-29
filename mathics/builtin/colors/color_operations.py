@@ -79,15 +79,15 @@ class Blend(Builtin):
 
     def do_blend(self, colors, values):
         type = None
-        homogenous = True
+        homogeneous = True
         for color in colors:
             if type is None:
                 type = color.__class__
             else:
                 if color.__class__ != type:
-                    homogenous = False
+                    homogeneous = False
                     break
-        if not homogenous:
+        if not homogeneous:
             colors = [RGBColor(components=color.to_rgba()) for color in colors]
             type = RGBColor
         total = sum(values)
@@ -130,7 +130,9 @@ class Blend(Builtin):
                 values = 0.0
             use_list = False
         if values is None:
-            evaluation.message("Blend", "argl", u, ListExpression(colors_orig))
+            evaluation.message(
+                "Blend", "argl", u, ListExpression(*colors_orig.elements)
+            )
             return
 
         if use_list:

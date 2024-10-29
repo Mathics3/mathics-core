@@ -7,7 +7,7 @@ Up until around  2017 was maintained by:
 - Angus Griffith @sn6uv
 - Ben Jones @bnjones
 
-Currently it is maintained by the Mathics Team
+Currently it is maintained by the Mathics3 Team
 
 Additional contributions were made by:
 

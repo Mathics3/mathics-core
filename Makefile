@@ -61,17 +61,17 @@ build:
 # because pip install doesn't handle
 # INSTALL_REQUIRES properly
 #: Set up to run from the source tree
-develop:  mathics/data/op-tables.json
+develop:  mathics/data/op-tables.json mathics/data/operator-tables.json
 	$(PIP) install -e .[dev]
 
 # See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies
-develop-full:  mathics/data/op-tables.json
+develop-full:  mathics/data/op-tables.json mathics/data/operators.json
 	$(PIP) install -e .[dev,full]
 
 # See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies and Cython
-develop-full-cython: mathics/data/op-tables.json
+develop-full-cython: mathics/data/op-tables.json mathics/data/operators.json
 	$(PIP) install -e .[dev,full,cython]
 
 
@@ -141,9 +141,10 @@ doctest:
 latexdoc texdoc doc:
 	(cd mathics/doc/latex && $(MAKE) doc)
 
-#: Build JSON ASCII to unicode opcode tables
-mathics/data/op-tables.json:
+#: Build JSON ASCII to unicode opcode table and operator table
+mathics/data/op-tables.json mathics/data/operators.json:
 	$(BASH) ./admin-tools/make-op-tables.sh
+
 
 #: Remove ChangeLog
 rmChangeLog:
@@ -152,3 +153,4 @@ rmChangeLog:
 #: Create a ChangeLog from git via git log and git2cl
 ChangeLog: rmChangeLog
 	git log --pretty --numstat --summary | $(GIT2CL) >$@
+	patch -R ChangeLog < ChangeLog-spell-corrected.diff

@@ -9,6 +9,8 @@ from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.systemsymbols import SymbolFailed
 
+sort_order = "mathics.builtin.file-operations.file_utilities"
+
 
 class FindList(Builtin):
     """
@@ -37,7 +39,6 @@ class FindList(Builtin):
 
     messages = {
         "strs": "String or non-empty list of strings expected at position `1` in `2`.",
-        "intnm": "Non-negative machine-sized integer expected at position `1` in `2`.",
     }
 
     options = {

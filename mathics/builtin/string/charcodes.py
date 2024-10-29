@@ -65,9 +65,6 @@ class ToCharacterCode(Builtin):
      = -Graphics-
     """
 
-    messages = {
-        "strse": "String or list of strings expected at position `1` in `2`.",
-    }
     summary_text = "convert a string to a list of character codes"
 
     def _encode(self, string, encoding, evaluation: Evaluation):
@@ -160,9 +157,6 @@ class FromCharacterCode(Builtin):
             "A character code, which should be a non-negative integer less "
             "than 65536, is expected at position `2` in `1`."
         ),
-        "intnm": (
-            "Non-negative machine-sized integer expected at " "position `2` in `1`."
-        ),
         "utf8": "The given codes could not be decoded as utf-8.",
     }
     summary_text = "convert from a list of character codes to a string"
@@ -215,7 +209,7 @@ class FromCharacterCode(Builtin):
             else:
                 pyn = n.get_int_value()
                 if not (isinstance(pyn, int) and pyn > 0 and pyn < sys.maxsize):
-                    evaluation.message("FromCharacterCode", "intnm", exp, Integer1)
+                    evaluation.message("FromCharacterCode", "intnm", Integer1, exp)
                     return
                 return String(convert_codepoint_list([n]))
         except _InvalidCodepointError:

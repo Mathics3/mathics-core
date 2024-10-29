@@ -79,6 +79,7 @@ class Identity(Builtin):
       <dt>'Identity[$x$]'
       <dd>is the identity function, which returns $x$ unchanged.
     </dl>
+
     X> Identity[x]
      = x
     X> Identity[x, y]

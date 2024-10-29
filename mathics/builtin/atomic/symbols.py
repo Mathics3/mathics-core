@@ -236,7 +236,6 @@ class Definition(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
-    precedence = 670
     summary_text = "give values of a symbol in a form that can be stored in a package"
 
     def format_definition(self, symbol, evaluation, grid=True):
@@ -416,6 +415,7 @@ class Information(PrefixOperator):
       <dt>'Information[$symbol$]'
       <dd>Prints information about a $symbol$
     </dl>
+
     'Information' does not print information for 'ReadProtected' symbols.
 
     'Information' uses 'InputForm' to format values.
@@ -427,7 +427,6 @@ class Information(PrefixOperator):
     options = {
         "LongForm": "True",
     }
-    precedence = 0
     summary_text = "get information about all assignments for a symbol"
 
     def format_definition(self, symbol, evaluation, options, grid=True):
@@ -577,7 +576,7 @@ class Names(Builtin):
 
     The wildcard '*' matches any character:
     >> Names["List*"]
-     = {List, ListLinePlot, ListLogPlot, ListPlot, ListQ, Listable}
+     = {List, ListLinePlot, ListLogPlot, ListPlot, ListQ, ListStepPlot, Listable}
 
     The wildcard '@' matches only lowercase characters:
     >> Names["List@"]

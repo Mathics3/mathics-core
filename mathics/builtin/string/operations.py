@@ -39,6 +39,7 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.makeboxes import format_element
 from mathics.eval.parts import convert_seq, python_seq
+from mathics.eval.strings import eval_StringFind
 
 
 class StringDrop(Builtin):
@@ -197,7 +198,6 @@ class StringInsert(Builtin):
      = 1.234.567.890.123.456"""
 
     messages = {
-        "strse": "String or list of strings expected at position `1` in `2`.",
         "string": "String expected at position `1` in `2`.",
         "ins": "Cannot insert at position `1` in `2`.",
         "psl": "Position specification `1` in `2` is not a machine-sized integer or a list of machine-sized integers.",
@@ -322,7 +322,6 @@ class StringJoin(BinaryOperator):
 
     attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
     operator = "<>"
-    precedence = 600
     summary_text = "join strings together"
 
     def eval(self, items, evaluation):
@@ -403,7 +402,6 @@ class StringPosition(Builtin):
     """
 
     messages = {
-        "strse": "String or list of strings expected at position `1` in `2`.",
         "overall": "Overlaps -> All option is not currently implemented in Mathics.",
         "innf": "Non-negative integer or Infinity expected at position `2` in `1`.",
     }
@@ -453,7 +451,7 @@ class StringPosition(Builtin):
             evaluation.message("StringPosition", "overall")
             overlap = True
         else:
-            overlap = False  # unknown options are teated as False
+            overlap = False  # unknown options are treated as False
 
         # convert patterns
         if patt.has_form("List", None):
@@ -577,7 +575,7 @@ class StringReplace(_StringFind):
     def eval(self, string, rule, n, evaluation: Evaluation, options: dict):
         "%(name)s[string_, rule_, OptionsPattern[%(name)s], n_:System`Private`Null]"
         # this pattern is a slight hack to get around missing Shortest/Longest.
-        return self._apply(string, rule, n, evaluation, options, False)
+        return eval_StringFind(self, string, rule, n, evaluation, options, False)
 
 
 class StringReverse(Builtin):
@@ -751,7 +749,6 @@ class StringSplit(Builtin):
     """
 
     messages = {
-        "strse": "String or list of strings expected at position `1` in `2`.",
         "pysplit": "As of Python 3.5 re.split does not handle empty pattern matches.",
     }
 
@@ -863,20 +860,21 @@ class StringTake(Builtin):
     """
 
     messages = {
-        "strse": "String or list of strings expected at position 1.",
         # FIXME: mseqs should be: Sequence specification (+n, -n, {+n}, {-n}, {m, n}, or {m, n, s}) or a list
         # of sequence specifications expected at position 2 in
         "mseqs": "Integer or a list of sequence specifications expected at position 2.",
+        # FIXME: we can't used stre from General because we do not have the expr context
+        "strse": "String or list of strings expected at position 1.",
         "take": 'Cannot take positions `1` through `2` in "`3`".',
     }
 
     summary_text = "sub-string from a range of positions"
 
-    def eval(self, string, seqspec, evaluation):
+    def eval(self, string: String, seqspec, evaluation: Evaluation):
         "StringTake[string_String, seqspec_]"
         result = string.get_string_value()
         if result is None:
-            evaluation.message("StringTake", "strse")
+            evaluation.message("StringTake", "strse", Integer1, string)
             return
 
         if isinstance(seqspec, Integer):

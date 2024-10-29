@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os.path as osp
 import time
 from typing import Optional
 
@@ -12,10 +13,17 @@ import_and_load_builtins()
 # the lowest common denominator available on all systems.
 session = MathicsSession(character_encoding="ASCII")
 
+# Set up a data path that can be used in testing
+data_dir = osp.normpath(osp.join(osp.dirname(__file__), "data"))
+
 
 def reset_session(add_builtin=True, catch_interrupt=False):
+    """
+    reset the session cleaning all the definitions.
+    """
     global session
     session.reset()
+    session.evaluate("SetDirectory[$TemporaryDirectory];")
 
 
 def evaluate_value(str_expr: str):
@@ -38,20 +46,29 @@ def check_evaluation(
 ):
     """
     Helper function to test Mathics expression against
-    its results
+    its results.
 
     Compares the expressions represented by ``str_expr`` and  ``str_expected`` by
     evaluating the first, and optionally, the second. If omitted, `str_expected`
     is assumed to be `"Null"`.
 
+    str_expr: The expression to be tested. If its value is ``None``, the session is
+              reset.
+              At the beginning of each set of pytests, it is important to call
+              ``check_evaluation(None)`` to avoid that definitions introduced by
+              other tests affect the results.
+
+    str_expected: The expected result. The value ``None`` is equivalent to ``"Null"``.
+
+    failure_message: message shown in case of failure. Use "" for no failure message.
+
+    hold_expected:   If ``False`` (default value) the ``str_expected`` is evaluated.
+                     Otherwise, the expression is considered literally.
+
     to_string_expr: If ``True`` (default value) the result of the evaluation is
                     converted into a Python string. Otherwise, the expression is kept
                     as an Expression object.
                     If this argument is set to ``None``, the session is reset.
-
-    failure_message: message shown in case of failure. Use "" for no failure message.
-    hold_expected:   If ``False`` (default value) the ``str_expected`` is evaluated.
-                     Otherwise, the expression is considered literally.
 
     to_string_expected: If ``True`` (default value) the expected expression is
                         evaluated and then converted to a Python string. result of the

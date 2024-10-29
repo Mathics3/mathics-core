@@ -42,6 +42,10 @@ if has_llvmlite:
     )
 
 
+@pytest.mark.skipif(
+    not has_llvmlite,
+    reason="requires llvmlite",
+)
 def test_compile_code():
     for str_expr, x, res in [
         ("Sin[x]", 1.5, 0.997495),
@@ -60,6 +64,10 @@ def test_compile_code():
         assert abs(y - res) < 1.0e-6
 
 
+@pytest.mark.skipif(
+    not has_llvmlite,
+    reason="requires llvmlite",
+)
 def test_builtin_fns_with_symbols_1():
     for str_expr, x, res in [
         ("Sin[x]", 1.5, 0.997495),

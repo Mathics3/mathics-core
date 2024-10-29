@@ -73,6 +73,7 @@ class Quit(Builtin):
       <dt>'Quit[$n$]'
       <dd> Terminates the mathics session with exit code $n$.
     </dl>
+
     'Quit' is the same thing as 'Exit'.
     """
 
@@ -97,5 +98,6 @@ class Exit(Quit):
       <dt>'Exit[$n$]'
       <dd> Terminates the mathics session with exit code $n$.
     </dl>
+
     'Exit' is the same thing as 'Quit'.
     """

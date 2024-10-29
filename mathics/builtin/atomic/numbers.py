@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Note: docstring is not flowed in documentation. To avoid line breaks
-# in docstrings apparing in the printed output, use \ before the line
+# in docstrings appearing in the printed output, use \ before the line
 # break.
 
 """
@@ -17,15 +17,20 @@ precision is supported.
 However, things like 'N[Pi, 100]' should work as expected.
 """
 
-from functools import lru_cache
-
 import mpmath
-import sympy
 
-from mathics.core.atoms import Integer, Integer0, Integer10, MachineReal, Rational
-from mathics.core.attributes import A_LISTABLE, A_PROTECTED
+from mathics.core.atoms import (
+    Integer,
+    Integer0,
+    Integer3,
+    Integer10,
+    MachineReal,
+    Rational,
+)
+from mathics.core.attributes import A_LISTABLE, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, Predefined
 from mathics.core.convert.python import from_python
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import (
@@ -45,97 +50,17 @@ from mathics.core.systemsymbols import (
     SymbolRound,
 )
 from mathics.eval.nevaluator import eval_N
-from mathics.eval.numbers.numbers import eval_Accuracy, eval_Precision
+from mathics.eval.numbers.numbers import (
+    check_finite_decimal,
+    convert_float_base,
+    convert_repeating_decimal,
+    eval_Accuracy,
+    eval_Precision,
+    log_n_b,
+)
 
 SymbolIntegerDigits = Symbol("IntegerDigits")
 SymbolIntegerExponent = Symbol("IntegerExponent")
-
-
-@lru_cache()
-def log_n_b(py_n, py_b) -> int:
-    return int(mpmath.ceil(mpmath.log(py_n, py_b))) if py_n != 0 and py_n != 1 else 1
-
-
-def check_finite_decimal(denominator):
-    # The rational number is finite decimal if the denominator has form 2^a * 5^b
-    while denominator % 5 == 0:
-        denominator = denominator / 5
-
-    while denominator % 2 == 0:
-        denominator = denominator / 2
-
-    return True if denominator == 1 else False
-
-
-def convert_repeating_decimal(numerator, denominator, base):
-    head = [x for x in str(numerator // denominator)]
-    tails = []
-    subresults = [numerator % denominator]
-    numerator %= denominator
-
-    while numerator != 0:  # only rational input can go to this case
-        numerator *= base
-        result_digit, numerator = divmod(numerator, denominator)
-        tails.append(str(result_digit))
-        if numerator not in subresults:
-            subresults.append(numerator)
-        else:
-            break
-
-    for i in range(len(head) - 1, -1, -1):
-        j = len(tails) - 1
-        if head[i] != tails[j]:
-            break
-        else:
-            del tails[j]
-            tails.insert(0, head[i])
-            del head[i]
-            j = j - 1
-
-    # truncate all leading 0's
-    if all(elem == "0" for elem in head):
-        for i in range(0, len(tails)):
-            if tails[0] == "0":
-                tails = tails[1:] + [str(0)]
-            else:
-                break
-    return (head, tails)
-
-
-def convert_float_base(x, base, precision=10):
-    length_of_int = 0 if x == 0 else int(mpmath.log(x, base))
-    # iexps = list(range(length_of_int, -1, -1))
-
-    def convert_int(x, base, exponents):
-        out = []
-        for e in range(0, exponents + 1):
-            d = x % base
-            out.append(d)
-            x = x / base
-            if x == 0:
-                break
-        out.reverse()
-        return out
-
-    def convert_float(x, base, exponents):
-        out = []
-        for e in range(0, exponents):
-            d = int(x * base)
-            out.append(d)
-            x = (x * base) - d
-            if x == 0:
-                break
-        return out
-
-    int_part = convert_int(int(x), base, length_of_int)
-    if isinstance(x, (float, sympy.Float)):
-        # fexps = list(range(-1, -int(precision + 1), -1))
-        real_part = convert_float(x - int(x), base, precision + 1)
-        return int_part + real_part
-    elif isinstance(x, int):
-        return int_part
-    else:
-        raise TypeError(x)
 
 
 class Accuracy(Builtin):
@@ -153,10 +78,10 @@ class Accuracy(Builtin):
       decimal point in the number x.
     </dl>
 
-    <i>Notice that the result could be slightly different than the obtained \
-    in WMA, due to differencs in the internal representation of the real numbers.</i>
+    <i>Notice that the result could be slightly different from the result obtained \
+    in WMA, due to differences in the internal representation of the real numbers.</i>
 
-    Accuracy of a real number is estimated from its value and its precision:
+    'Accuracy' of a real number is estimated from its value and its precision:
 
     >> Accuracy[3.1416`2]
      = 1.50298
@@ -207,7 +132,7 @@ class Accuracy(Builtin):
     summary_text = "find the accuracy of a number"
 
     def eval(self, z, evaluation):
-        "Accuracy[z_]"
+        """Accuracy[z_]"""
         acc = eval_Accuracy(z)
         if acc is None:
             return SymbolInfinity
@@ -247,8 +172,8 @@ class IntegerExponent(Builtin):
 
     summary_text = "number of trailing 0s in a given base"
 
-    def eval_two_arg_integers(self, n: Integer, b: Integer, evaluation):
-        "IntegerExponent[n_Integer, b_Integer]"
+    def eval_two_arg_integers(self, n: Integer, b: Integer, evaluation: Evaluation):
+        """IntegerExponent[n_Integer, b_Integer]"""
 
         py_n, py_b = n.value, b.value
         py_n = abs(py_n)
@@ -335,7 +260,7 @@ class IntegerLength(Builtin):
     summary_text = "total number of digits in any base"
 
     def eval(self, n, b, evaluation):
-        "IntegerLength[n_, b_]"
+        """IntegerLength[n_, b_]"""
 
         n, b = n.get_int_value(), b.get_int_value()
         if n is None or b is None:
@@ -368,6 +293,33 @@ class IntegerLength(Builtin):
             else:
                 j = k
         return Integer(j)
+
+
+class NumberDigit(Builtin):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/NumberDigit.html</url>
+
+    <dl>
+      <dt>'NumberDigit[$x$, $n$, $b$]'
+      <dd>returns the coefficient of $b^n$ in the base-$b$ representation of $x$.
+    </dl>
+
+    >> NumberDigit[123456, 2]
+     = 4
+    >> NumberDigit[12.3456, -1]
+     = 3
+
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+
+    summary_text = "digits of a real number"
+
+    rules = {
+        "NumberDigit[x_, n_Integer]": "NumberDigit[x, n, 10]",
+        "NumberDigit[x_, n_Integer, b_Integer]": "RealDigits[x, b, 1, n][[1]][[1]]",
+    }
 
 
 class RealDigits(Builtin):
@@ -414,6 +366,9 @@ class RealDigits(Builtin):
     Return 25 digits of in base 10:
     >> RealDigits[Pi, 10, 25]
      = {{3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4, 6, 2, 6, 4, 3}, 1}
+
+    >> RealDigits[10]
+     = {{1, 0}, 2}
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -422,7 +377,6 @@ class RealDigits(Builtin):
         "realx": "The value `1` is not a real number.",
         "ndig": "The number of digits to return cannot be determined.",
         "rbase": "Base `1` is not a real number greater than 1.",
-        "intnm": "Non-negative machine-sized integer expected at position 3 in `1`.",
         "intm": "Machine-sized integer expected at position 4 in `1`.",
     }
 
@@ -440,7 +394,7 @@ class RealDigits(Builtin):
         if check_finite_decimal(n.denominator().get_int_value()) and not py_b % 2:
             return self.eval_with_base(n, b, evaluation)
         else:
-            exp = int(mpmath.ceil(mpmath.log(py_n, py_b)))
+            exp = log_n_b(py_n, py_b)
             (head, tails) = convert_repeating_decimal(
                 py_n.as_numer_denom()[0], py_n.as_numer_denom()[1], py_b
             )
@@ -471,7 +425,7 @@ class RealDigits(Builtin):
             return self.eval_with_base(n, from_python(10), evaluation)
 
     def eval_with_base(self, n, b, evaluation, nr_elements=None, pos=None):
-        "%(name)s[n_?NumericQ, b_Integer]"
+        """%(name)s[n_?NumericQ, b_Integer]"""
 
         expr = Expression(SymbolRealDigits, n)
         rational_no = (
@@ -585,13 +539,13 @@ class RealDigits(Builtin):
         return ListExpression(list_expr, Integer(exp))
 
     def eval_with_base_and_length(self, n, b, length, evaluation, pos=None):
-        "%(name)s[n_?NumericQ, b_Integer, length_]"
+        """%(name)s[n_?NumericQ, b_Integer, length_]"""
         elements = []
         if pos is not None:
             elements.append(from_python(pos))
         expr = Expression(SymbolRealDigits, n, b, length, *elements)
         if not (isinstance(length, Integer) and length.get_int_value() >= 0):
-            evaluation.message("RealDigits", "intnm", expr)
+            evaluation.message("RealDigits", "intnm", Integer3, expr)
             return
 
         return self.eval_with_base(
@@ -599,7 +553,7 @@ class RealDigits(Builtin):
         )
 
     def eval_with_base_length_and_precision(self, n, b, length, p, evaluation):
-        "%(name)s[n_?NumericQ, b_Integer, length_, p_]"
+        """%(name)s[n_?NumericQ, b_Integer, length_, p_]"""
         if not isinstance(p, Integer):
             evaluation.message(
                 "RealDigits", "intm", Expression(SymbolRealDigits, n, b, length, p)
@@ -631,7 +585,7 @@ class MaxPrecision(Predefined):
      = 3.141592654
     """
 
-    is_numeric = False
+    _is_numeric = False
     messages = {
         "precset": "Cannot set `1` to `2`; value must be a positive number or Infinity.",
         "preccon": "Cannot set `1` such that $MaxPrecision < $MinPrecision.",
@@ -665,7 +619,7 @@ class MachineEpsilon_(Predefined):
      = {0., 0., 2.22045×10^-16}
     """
 
-    is_numeric = True
+    _is_numeric = True
     name = "$MachineEpsilon"
 
     summary_text = "the difference between 1.0 and the next-nearest number representable as a machine-precision number"
@@ -692,7 +646,7 @@ class MachinePrecision_(Predefined):
     summary_text = (
         "the number of decimal digits of precision for machine-precision numbers"
     )
-    is_numeric = True
+    _is_numeric = True
     rules = {
         "$MachinePrecision": "N[MachinePrecision]",
     }
@@ -712,7 +666,7 @@ class MachinePrecision(Predefined):
      = 15.9545897701910033463281614204
     """
 
-    is_numeric = True
+    _is_numeric = True
     rules = {
         "N[MachinePrecision, prec_]": (
             "N[Log[10, 2] * %i, prec]" % FP_MANTISA_BINARY_DIGITS
@@ -749,7 +703,7 @@ class MinPrecision(Builtin):
     }
 
     name = "$MinPrecision"
-    is_numeric = True
+    _is_numeric = True
     rules = {
         "$MinPrecision": "0",
     }
@@ -771,9 +725,9 @@ class Precision(Builtin):
     </dl>
 
     <i>Note that the result could be slightly different than the obtained \
-    in WMA, due to differencs in the internal representation of the real numbers.</i>
+    in WMA, due to differences in the internal representation of the real numbers.</i>
 
-    The precision of an exact number, e.g. an Integer, is 'Infinity':
+    The precision of an exact number, e.g., an Integer, is 'Infinity':
 
     >> Precision[1]
      = Infinity
@@ -792,25 +746,22 @@ class Precision(Builtin):
     >> Precision[0.5]
      = MachinePrecision
 
-    In compound expressions, the 'Precision' is fixed by the number with
+    In compound expressions, the 'Precision' is fixed by the number with \
     the lowest 'Precision':
     >> Precision[{{1, 1.`},{1.`5, 1.`10}}]
      = 5.
 
-    For non-zero Real values, it holds in general:
-
-    'Accuracy'[$z$] == 'Precision'[$z$] + 'Log'[$z$]
+    In general, 'Accuracy'[$z$] == 'Precision'[$z$] + 'Log'[$z$] \
+    for non-zero Real values:
 
     >> (Accuracy[z] == Precision[z] + Log[z])/.z-> 37.`
      = True
 
-    The case of `0.` values is special. Following WMA, in a Machine Real\
-    representation, the precision is set to 'MachinePrecision':
+    Following WMA, values in Machine Real representation starting with '0.' are values are special:
     >> Precision[0.]
      = MachinePrecision
 
-    On the other hand, for a Precision Real with fixed accuracy,\
-    the precision is evaluated to 0.:
+    On the other hand, for a Precision Real with fixed accuracy, the precision is evaluated to '0.':
     >> Precision[0.``3]
      = 0.
 
@@ -823,7 +774,7 @@ class Precision(Builtin):
     summary_text = "find the precision of a number"
 
     def eval(self, z, evaluation):
-        "Precision[z_]"
+        """Precision[z_]"""
         if isinstance(z, MachineReal):
             return SymbolMachinePrecision
 

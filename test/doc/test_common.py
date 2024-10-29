@@ -1,6 +1,7 @@
 """
 Pytests for the documentation system. Basic functions and classes.
 """
+
 import os.path as osp
 
 from mathics.core.evaluation import Message, Print

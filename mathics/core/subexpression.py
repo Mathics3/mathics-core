@@ -278,14 +278,6 @@ class SubExpression:
     def elements(self, value):
         raise ValueError("SubExpression.elements is write protected.")
 
-    @property
-    def elements(self):
-        return self._elementsp
-
-    @elements.setter
-    def elements(self, value):
-        raise ValueError("SubExpression.elements is write protected.")
-
     def to_expression(self):
         return Expression(
             self._headp.to_expression(),

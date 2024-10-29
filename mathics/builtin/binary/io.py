@@ -21,10 +21,10 @@ from mathics.core.expression_predefined import (
     MATHICS3_INFINITY,
     MATHICS3_NEG_INFINITY,
 )
-from mathics.core.read import SymbolEndOfFile
 from mathics.core.streams import stream_manager
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolIndeterminate
+from mathics.eval.files_io.read import SymbolEndOfFile
 from mathics.eval.nevaluator import eval_N
 
 SymbolBinaryWrite = Symbol("BinaryWrite")

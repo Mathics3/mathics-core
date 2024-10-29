@@ -18,6 +18,7 @@ from mpmath import ceil as mpceil, floor as mpfloor
 from mathics.algorithm.introselect import introselect
 from mathics.builtin.list.math import _RankedTakeLargest, _RankedTakeSmallest
 from mathics.core.atoms import Atom, Integer, Symbol, SymbolTrue
+from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
@@ -35,7 +36,7 @@ class Quantile(Builtin):
     <url>
     :Quantile:
     https://en.wikipedia.org/wiki/Quantile</url> (<url>
-    :WMA:
+    :WMA link:
     https://reference.wolfram.com/language/ref/Quantile.html</url>)
 
     In statistics and probability, quantiles are cut points dividing the \
@@ -50,12 +51,14 @@ class Quantile(Builtin):
       <dt>'Quantile[$list$, $q$, {{$a$,$b$}, {$c$,$d$}}]'
       <dd>uses the quantile definition specified by parameters $a$, $b$, $c$, $d$.
 
-      <dt>For a list of length $n$, 'Quantile[list, $q$, {{$a$,$b$}, {$c$,$d$}}]' depends on $x$=$a$+($n$+$b$)$q$.
+      <dt>For a list of length $n$:
+      'Quantile[$list$, $q$, {{$a$,$b$}, {$c$,$d$}}]'
+      depends on $x$=$a$+($n$+$b$)$q$.
 
       If $x$ is an integer, the result is '$s$[[$x$]]', where $s$='Sort[list,Less]'.
 
-      Otherwise, the result is \
-      's[[Floor[x]]]+(s[[Ceiling[x]]]-s[[Floor[x]]])(c+dFractionalPart[x])', \
+      Otherwise, the result is:
+      's[[Floor[x]]]+(s[[Ceiling[x]]]-s[[Floor[x]]])(c+dFractionalPart[x])',
       with the indices taken to be 1 or n if they are out of range.
 
       The default choice of parameters is '{{0,0},{1,0}}'.
@@ -83,13 +86,23 @@ class Quantile(Builtin):
         "nquan": "The quantile `1` has to be between 0 and 1.",
     }
 
+    attributes = A_PROTECTED | A_READ_PROTECTED
     rules = {
         "Quantile[list_List, q_, abcd_]": "Quantile[list, {q}, abcd]",
         "Quantile[list_List, q_]": "Quantile[list, q, {{0, 0}, {1, 0}}]",
     }
     summary_text = "cut points dividing the range of a probability distribution into continuous intervals"
 
-    def eval(self, data, qs, a, b, c, d, evaluation: Evaluation):
+    def eval(
+        self,
+        data: ListExpression,
+        qs: ListExpression,
+        a,
+        b,
+        c,
+        d,
+        evaluation: Evaluation,
+    ):
         """Quantile[data_List, qs_List, {{a_, b_}, {c_, d_}}]"""
 
         n = len(data.elements)
@@ -98,7 +111,9 @@ class Quantile(Builtin):
         def ranked(i):
             return introselect(partially_sorted, min(max(0, i - 1), n - 1))
 
-        numeric_qs = numerify(qs.evaluate(evaluation), evaluation)
+        numeric_qs = qs.evaluate(evaluation)
+        if numeric_qs is not None:
+            numeric_qs = numerify(numeric_qs, evaluation)
         results = []
 
         for q in numeric_qs.elements:
@@ -157,7 +172,7 @@ class Quartiles(Builtin):
     """
     <url>:Quartile:
     https://en.wikipedia.org/wiki/Quartile</url> (<url>
-    :WMA:
+    :WMA link:
     https://reference.wolfram.com/language/ref/Quartiles.html</url>)
     <dl>
       <dt>'Quartiles[$list$]'
@@ -168,6 +183,7 @@ class Quartiles(Builtin):
      = {27 / 4, 13, 77 / 4}
     """
 
+    attributes = A_PROTECTED | A_READ_PROTECTED
     rules = {
         "Quartiles[list_List]": "Quantile[list, {1/4, 1/2, 3/4}, {{1/2, 0}, {0, 1}}]",
     }
@@ -192,6 +208,7 @@ class RankedMax(Builtin):
         "intpm": "Expected positive integer at position 2 in ``.",
         "rank": "The specified rank `1` is not between 1 and `2`.",
     }
+    attributes = A_PROTECTED | A_READ_PROTECTED
     summary_text = "the n-th largest item"
 
     def eval(self, element, n: Integer, evaluation: Evaluation):
@@ -229,6 +246,7 @@ class RankedMin(Builtin):
         "intpm": "Expected positive integer at position 2 in ``.",
         "rank": "The specified rank `1` is not between 1 and `2`.",
     }
+    attributes = A_PROTECTED | A_READ_PROTECTED
     summary_text = "the n-th smallest item"
 
     def eval(self, element, n: Integer, evaluation: Evaluation):
@@ -242,6 +260,32 @@ class RankedMin(Builtin):
             evaluation.message("RankedMin", "rank", py_n, len(element.elements))
         else:
             return introselect(element.get_mutable_elements(), py_n - 1)
+
+
+class ReverseSort(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ReverseSort.html</url>
+
+    <dl>
+      <dt>'ReverseSort[$list$]'
+      <dd>sorts $list$ (or the elements of any other expression) according \
+          to reverse canonical ordering.
+
+      <dt>'ReverseSort[$list$, $p$]'
+      <dd>sorts using $p$ to determine the order of two elements.
+    </dl>
+
+    >> ReverseSort[{c, b, d, a}]
+     = {d, c, b, a}
+    """
+
+    attributes = A_PROTECTED
+    summary_text = "reverse sort"
+
+    rules = {
+        "ReverseSort[list_]": "Reverse[Sort[list]]",
+        "ReverseSort[list_, p_]": "Reverse[Sort[list, p]]",
+    }
 
 
 class Sort(Builtin):
@@ -274,6 +318,7 @@ class Sort(Builtin):
      = {x_ + n_ y_, x_ + y_}
     """
 
+    attributes = A_PROTECTED
     summary_text = "sort lexicographically or with any comparison function"
 
     def eval(self, list, evaluation: Evaluation):
@@ -332,6 +377,7 @@ class TakeLargest(_RankedTakeLargest):
      = {Missing[abc], 150}
     """
 
+    attributes = A_PROTECTED
     summary_text = "sublist of n largest elements"
 
     def eval(self, element, n, evaluation, options):
@@ -354,6 +400,7 @@ class TakeSmallest(_RankedTakeSmallest):
      = {-1, 10}
     """
 
+    attributes = A_PROTECTED
     summary_text = "sublist of n smallest elements"
 
     def eval(self, element, n, evaluation, options):

@@ -179,6 +179,7 @@ class Remove(Builtin):
       <dt>'Remove[$x$]'
       <dd>removes the definition associated to $x$.
     </dl>
+
     >> a := 2
     >> Names["Global`a"]
      = {a}
@@ -189,7 +190,6 @@ class Remove(Builtin):
 
     attributes = A_HOLD_ALL | A_LOCKED | A_PROTECTED
 
-    precedence = 670
     summary_text = "remove the definition of a symbol"
 
     def eval(self, symb, evaluation):
@@ -214,6 +214,7 @@ class Unset(PostfixOperator):
       <dt>'$x$=.'
       <dd>removes any value belonging to $x$.
     </dl>
+
     >> a = 2
      = 2
     >> a =.
@@ -254,7 +255,6 @@ class Unset(PostfixOperator):
         "norep": "Assignment on `2` for `1` not found.",
         "usraw": "Cannot unset raw object `1`.",
     }
-    precedence = 670
     summary_text = "unset a value of the LHS"
 
     def eval(self, expr, evaluation):

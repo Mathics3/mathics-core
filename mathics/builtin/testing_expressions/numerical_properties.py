@@ -42,8 +42,8 @@ class CoprimeQ(Builtin):
     ## CoprimeQ also works for complex numbers
     ## >> CoprimeQ[1+2I, 1-I]
     ## = True
-    
-    ## This test case is commenteted out because the result produced by sympy is wrong:
+
+    ## This test case is commented out because the result produced by sympy is wrong:
     ## In this case, both numbers can be factorized as 2 (2 + I)  and 3 (2 + I):
     ## >> CoprimeQ[4+2I, 6+3I]
     ## = False
@@ -245,6 +245,7 @@ class Negative(Builtin):
       <dt>'Negative[$x$]'
       <dd>returns 'True' if $x$ is a negative real number.
     </dl>
+
     >> Negative[0]
      = False
     >> Negative[-3]

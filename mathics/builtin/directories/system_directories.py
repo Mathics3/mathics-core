@@ -61,6 +61,7 @@ class InstallationDirectory(Predefined):
       <dt>'$InstallationDirectory'
       <dd>returns the top-level directory in which \\Mathics was installed.
     </dl>
+
     >> $InstallationDirectory
      = ...
     """

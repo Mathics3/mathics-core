@@ -232,7 +232,7 @@ class _Pad(Builtin):
             Integer0,
             Integer0,
             evaluation,
-            lambda: Expression(self.get_name(), element, n),
+            lambda: Expression(Symbol(self.get_name()), element, n),
         )
 
     def eval(self, element, n, x, evaluation: Evaluation):
@@ -243,7 +243,7 @@ class _Pad(Builtin):
             x,
             Integer0,
             evaluation,
-            lambda: Expression(self.get_name(), element, n, x),
+            lambda: Expression(Symbol(self.get_name()), element, n, x),
         )
 
     def eval_margin(self, element, n, x, m, evaluation: Evaluation):
@@ -254,7 +254,7 @@ class _Pad(Builtin):
             x,
             m,
             evaluation,
-            lambda: Expression(self.get_name(), element, n, x, m),
+            lambda: Expression(Symbol(self.get_name()), element, n, x, m),
         )
 
 
@@ -354,6 +354,8 @@ class _GatherOperation(Builtin):
 class _Rotate(Builtin):
     messages = {"rspec": "`` should be an integer or a list of integers."}
 
+    _sign: int
+
     def _rotate(self, expr, n, evaluation: Evaluation):
         if not isinstance(expr, Expression):
             return expr
@@ -363,12 +365,12 @@ class _Rotate(Builtin):
             return expr
 
         index = (self._sign * n[0]) % len(elements)  # with Python's modulo: index >= 1
-        new_elements = chain(elements[index:], elements[:index])
+        new_elements = tuple(chain(elements[index:], elements[:index]))
 
         if len(n) > 1:
-            new_elements = [
+            new_elements = tuple(
                 self._rotate(item, n[1:], evaluation) for item in new_elements
-            ]
+            )
 
         return expr.restructure(expr.head, new_elements, evaluation)
 
@@ -963,7 +965,7 @@ class Partition(Builtin):
       <dt>'Partition[$list$, $n$]'
       <dd>partitions $list$ into sublists of length $n$.
 
-      <dt>'Parition[$list$, $n$, $d$]'
+      <dt>'Partition[$list$, $n$, $d$]'
       <dd>partitions $list$ into sublists of length $n$ which overlap $d$ \
           indices.
     </dl>
@@ -982,7 +984,7 @@ class Partition(Builtin):
     """
     summary_text = "partition a list into sublists of a given length"
     rules = {
-        "Parition[list_, n_, d_, k]": "Partition[list, n, d, {k, k}]",
+        "Partition[list_, n_, d_, k]": "Partition[list, n, d, {k, k}]",
     }
 
     def _partition(self, expr, n, d, evaluation: Evaluation):

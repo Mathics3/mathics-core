@@ -7,7 +7,7 @@ import pickle
 import re
 from collections import defaultdict
 from os.path import join as osp_join
-from typing import List, Optional
+from typing import Dict, List, Optional, Sequence, Set, Tuple
 
 from mathics_scanner.tokeniser import full_names_pattern
 
@@ -17,6 +17,7 @@ from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.expression import Expression
 from mathics.core.load_builtin import definition_contribute, mathics3_builtins_modules
+from mathics.core.pattern import BasePattern, ExpressionPattern
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolGet
 from mathics.core.util import canonic_filename
@@ -25,10 +26,10 @@ from mathics.settings import ROOT_DIR
 type_compiled_pattern = type(re.compile("a.a"))
 
 # The contents of $OutputForms. FormMeta in mathics.base.forms adds to this.
-OutputForms = set()
+OutputForms: Set[Symbol] = set()
 
 # The contents of $PrintForms. FormMeta in mathics.base.forms adds to this.
-PrintForms = set()
+PrintForms: Set[Symbol] = set()
 
 
 def get_file_time(file) -> float:
@@ -110,16 +111,16 @@ class Definitions:
         self, add_builtin=False, builtin_filename=None, extension_modules=[]
     ) -> None:
         super(Definitions, self).__init__()
-        self.builtin = {}
-        self.user = {}
-        self.pymathics = {}
-        self.definitions_cache = {}
-        self.lookup_cache = {}
-        self.proxy = defaultdict(set)
+        self.builtin: Dict[str, Definition] = {}
+        self.user: Dict[str, Definition] = {}
+        self.pymathics: Dict[str, Definition] = {}
+        self.definitions_cache: Dict[str, Definition] = {}
+        self.lookup_cache: Dict[str, str] = {}
+        self.proxy: Dict[str, Set[str]] = defaultdict(set)
         self.now = 0  # increments whenever something is updated
-        self._packages = []
+        self._packages: List[str] = []
         self.current_context = "Global`"
-        self.context_path = (
+        self.context_path: Tuple[str, ...] = (
             "System`",
             "Global`",
         )
@@ -150,8 +151,8 @@ class Definitions:
                 ]
                 builtin_time = max(builtin_dates)
                 if get_file_time(builtin_filename) > builtin_time:
-                    builtin_file = open(builtin_filename, "rb")
-                    self.builtin = pickle.load(builtin_file)
+                    with open(builtin_filename, "rb") as builtin_file:
+                        self.builtin = pickle.load(builtin_file)
                     loaded = True
             if not loaded:
                 definition_contribute(self)
@@ -164,8 +165,8 @@ class Definitions:
                         raise
 
                 if builtin_filename is not None:
-                    builtin_file = open(builtin_filename, "wb")
-                    pickle.dump(self.builtin, builtin_file, -1)
+                    with open(builtin_filename, "wb") as builtin_file:
+                        pickle.dump(self.builtin, builtin_file, -1)
 
             autoload_files(self, ROOT_DIR, "autoload")
 
@@ -230,12 +231,7 @@ class Definitions:
                 pass
             else:
                 # Get timestamp for the most-recently changed part of the given expression.
-                symbol_change_time = getattr(symbol, "changed", None)
-                if symbol_change_time is None:
-                    # Must be a system symbol that never changes.
-                    # FIXME: couldn't this initially start out 0 so no test is needed?
-                    symbol.change_timestamp = 0
-                elif symbol_change_time > last_evaluated_time:
+                if symbol.changed > last_evaluated_time:
                     return True
 
         return False
@@ -255,14 +251,13 @@ class Definitions:
         self.current_context = context
         self.clear_cache()
 
-    def set_context_path(self, context_path) -> None:
-        assert isinstance(context_path, list)
+    def set_context_path(self, context_path: Sequence[str]) -> None:
         assert all([isinstance(c, str) for c in context_path])
         self.set_ownvalue(
             "System`$ContextPath",
             to_mathics_list(*context_path, elements_conversion_fn=String),
         )
-        self.context_path = context_path
+        self.context_path = tuple(context_path)
         self.clear_cache()
 
     def set_inputfile(self, dir: str) -> None:
@@ -412,7 +407,7 @@ class Definitions:
     def have_definition(self, name) -> bool:
         return self.get_definition(name, only_if_exists=True) is not None
 
-    def get_definition(self, name, only_if_exists=False) -> "Definition":
+    def get_definition(self, name: str, only_if_exists=False) -> Optional["Definition"]:
         definition = self.definitions_cache.get(name, None)
         if definition is not None:
             return definition
@@ -450,7 +445,7 @@ class Definitions:
                 attributes = A_NO_ATTRIBUTES
 
             options = {}
-            formatvalues = {
+            formatvalues: Dict[str, list] = {
                 "": [],
             }
             # Merge definitions
@@ -556,7 +551,7 @@ class Definitions:
             self.clear_cache(name)
             return self.user[name]
 
-    def mark_changed(self, definition) -> None:
+    def mark_changed(self, definition: "Definition") -> None:
         self.now += 1
         definition.changed = self.now
 
@@ -576,21 +571,23 @@ class Definitions:
 
     def set_attribute(self, name, attribute) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
-        definition.attributes |= attribute
-
-        self.mark_changed(definition)
+        if definition is not None:
+            definition.attributes |= attribute
+            self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
     def set_attributes(self, name, attributes) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
-        definition.attributes = attributes
-        self.mark_changed(definition)
+        if definition is not None:
+            definition.attributes = attributes
+            self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
     def clear_attribute(self, name, attribute) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
-        definition.attributes &= ~attribute
-        self.mark_changed(definition)
+        if definition is not None:
+            definition.attributes &= ~attribute
+            self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
     def add_rule(self, name, rule, position=None):
@@ -609,36 +606,41 @@ class Definitions:
             forms = form
         else:
             forms = [form]
-        for form in forms:
-            if form not in definition.formatvalues:
-                definition.formatvalues[form] = []
-            insert_rule(definition.formatvalues[form], rule)
-        self.mark_changed(definition)
+        if definition is not None:
+            for form in forms:
+                if form not in definition.formatvalues:
+                    definition.formatvalues[form] = []
+                insert_rule(definition.formatvalues[form], rule)
+            self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
     def add_nvalue(self, name, rule) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
-        definition.add_rule_at(rule, "n")
-        self.mark_changed(definition)
+        if definition is not None:
+            definition.add_rule_at(rule, "n")
+            self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
     def add_default(self, name, rule) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
-        definition.add_rule_at(rule, "default")
-        self.mark_changed(definition)
+        if definition is not None:
+            definition.add_rule_at(rule, "default")
+            self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
     def add_message(self, name, rule) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
-        definition.add_rule_at(rule, "messages")
-        self.mark_changed(definition)
+        if definition is not None:
+            definition.add_rule_at(rule, "messages")
+            self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
     def set_values(self, name, values, rules) -> None:
         pos = valuesname(values)
         definition = self.get_user_definition(self.lookup_name(name))
-        definition.set_values_list(pos, rules)
-        self.mark_changed(definition)
+        if definition is not None:
+            definition.set_values_list(pos, rules)
+            self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
     def get_options(self, name):
@@ -675,8 +677,9 @@ class Definitions:
 
     def set_options(self, name, options) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
-        definition.options = options
-        self.mark_changed(definition)
+        if definition is not None:
+            definition.options = options
+            self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
     def unset(self, name, expr):
@@ -725,25 +728,140 @@ class Definitions:
 
 
 def get_tag_position(pattern, name) -> Optional[str]:
+    """
+    Determine the position of a pattern in
+    the definition of the symbol ``name``
+    """
+    blanks = (
+        "System`Blank",
+        "System`BlankSequence",
+        "System`BlankNullSequence",
+    )
+
+    def strip_pattern_name_and_condition(pat: BasePattern) -> BasePattern:
+        """
+        In ``Pattern[name_, pattern_]`` and
+        ``Condition[pattern_, cond_]``
+        the tag is determined by pat.
+        This function strips it to ensure that
+        ``pat`` does not have that form.
+        """
+
+        # Is "pat" as ExpressionPattern or an AtomPattern?
+        # Note: the below test could also be on ExpressionPattern or
+        # AtomPattern, but using hasattr is more flexible if more
+        # kinds of patterns are added.
+        if not hasattr(pat, "head"):
+            return pat
+
+        if hasattr(pat, "elements"):
+            # We have to use get_head_name() below because
+            # pat can either SymbolCondition or <AtomPattern: System`Condition>.
+            # In the latter case, comparing to SymbolCondition is not sufficient.
+            if pat.get_head_name() == "System`Condition":
+                if len(pat.elements) > 1:
+                    return strip_pattern_name_and_condition(pat.elements[0])
+            # The same kind of get_head_name() check is needed here as well and
+            # is not the same as testing against SymbolPattern.
+            if pat.get_head_name() == "System`Pattern":
+                if len(pat.elements) == 2:
+                    return strip_pattern_name_and_condition(pat.elements[1])
+
+        return pat
+
+    def is_pattern_a_kind_of(pattern: ExpressionPattern, pattern_name: str) -> bool:
+        """
+        Returns `True` if `pattern` or any of its alternates is a
+        pattern with name `pattern_name` and `False` otherwise."""
+
+        if pattern_name == pattern.get_lookup_name():
+            return True
+
+        # Try again after stripping Pattern and Condition wrappers:
+        head = strip_pattern_name_and_condition(pattern.get_head())
+        head_name = head.get_lookup_name()
+        if pattern_name == head_name:
+            return True
+
+        # The head is of the form ``_SymbolName|__SymbolName|___SymbolName``
+        # If name matches with SymbolName, then it is a kind of:
+        if head_name in blanks:
+            if isinstance(head, Symbol):
+                return False
+            assert hasattr(head, "elements")
+            sub_elements = head.elements
+            if len(sub_elements) == 1:
+                head_name = head.elements[0].get_name()
+                if head_name == pattern_name:
+                    return True
+        return False
+
+    # If pattern is a Symbol, and coincides with
+    # name, it is an ownvalue:
+
     if pattern.get_name() == name:
         return "own"
-    elif isinstance(pattern, Atom):
+    # If pattern is an ``Atom``, does not have
+    # a position
+    if isinstance(pattern, Atom):
         return None
-    else:
-        head_name = pattern.get_head_name()
-        if head_name == name:
-            return "down"
-        elif head_name == "System`N" and len(pattern.elements) == 2:
+
+    # The pattern is an Expression.
+    head_name = pattern.get_head_name()
+    # If the name is the head name, is a downvalue:
+    if head_name == name:
+        return "down"
+
+    # Handle special cases
+    if head_name == "System`N":
+        if len(pattern.elements) == 2:
             return "n"
-        elif head_name == "System`Condition" and len(pattern.elements) > 0:
-            return get_tag_position(pattern.elements[0], name)
-        elif pattern.get_lookup_name() == name:
-            return "sub"
-        else:
-            for element in pattern.elements:
-                if element.get_lookup_name() == name:
+
+    # The pattern has the form `_SymbolName | __SymbolName | ___SymbolName`
+    # Then it only can be a downvalue
+    if head_name in blanks:
+        elements = pattern.elements
+        if len(elements) == 1:
+            head_name = elements[0].get_name()
+            return "down" if head_name == name else None
+
+    # TODO: Consider process format_values
+
+    if head_name != "":
+        # Check
+        strip_pattern = strip_pattern_name_and_condition(pattern)
+        if strip_pattern is not pattern:
+            return get_tag_position(strip_pattern, name)
+
+    # The head is not a symbol. Is pattern is "name" kind of pattern?
+    if is_pattern_a_kind_of(pattern, name):
+        return "sub"
+
+    # If we are here, pattern is not an Ownvalue, DownValue, SubValue or NValue
+    # Let's check the elements for UpValues
+    for element in pattern.elements:
+        lookup_name = element.get_lookup_name()
+        if lookup_name == name:
+            return "up"
+
+        # Strip Pattern and Condition wrappers and check again
+        if lookup_name in (
+            "System`Condition",
+            "System`Pattern",
+        ):
+            element = strip_pattern_name_and_condition(element)
+            lookup_name = element.get_lookup_name()
+            if lookup_name == name:
+                return "up"
+        # Check if one of the elements is not a "Blank"
+
+        if element.get_head_name() in blanks:
+            sub_elements = element.elements
+            if len(sub_elements) == 1:
+                if sub_elements[0].get_name() == name:
                     return "up"
-        return None
+    # ``pattern`` does not have a tag position in the Definition
+    return None
 
 
 def insert_rule(values, rule) -> None:
@@ -813,12 +931,14 @@ class Definition:
         self.formatvalues = dict((name, list) for name, list in formatvalues.items())
         self.messages = messages
         self.attributes = attributes
-        self.options = options
+        self.options: Dict[str, str] = options
         self.nvalues = nvalues
         self.defaultvalues = defaultvalues
         self.builtin = builtin
+        self.changed = 0
         for rule in rules:
-            self.add_rule(rule)
+            if not self.add_rule(rule):
+                print(f"{rule.pattern.expr} could not be associated to {self.name}")
 
     def get_values_list(self, pos):
         assert pos.isalpha()

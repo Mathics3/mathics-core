@@ -20,6 +20,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
+from mathics.eval.strings import eval_StringFind
 
 SymbolStringMatchQ = Symbol("StringMatchQ")
 SymbolStringExpression = Symbol("StringExpression")
@@ -230,7 +231,7 @@ class StringCases(_StringFind):
     def eval(self, string, rule, n, evaluation: Evaluation, options: dict):
         "%(name)s[string_, rule_, OptionsPattern[%(name)s], n_:System`Private`Null]"
         # this pattern is a slight hack to get around missing Shortest/Longest.
-        return self._apply(string, rule, n, evaluation, options, True)
+        return eval_StringFind(self, string, rule, n, evaluation, options, True)
 
 
 class StringExpression(BinaryOperator):
@@ -248,7 +249,6 @@ class StringExpression(BinaryOperator):
 
     attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
     operator = "~~"
-    precedence = 135
 
     messages = {
         "invld": "Element `1` is not a valid string or pattern element in `2`.",
@@ -307,10 +307,6 @@ class StringFreeQ(Builtin):
 
     """
 
-    messages = {
-        "strse": "String or list of strings expected at position `1` in `2`.",
-    }
-
     options = {
         "IgnoreCase": "False",
     }
@@ -357,10 +353,6 @@ class StringMatchQ(Builtin):
     options = {
         "IgnoreCase": "False",
         "SpellingCorrections": "None",
-    }
-
-    messages = {
-        "strse": "String or list of strings expected at position `1` in `2`.",
     }
 
     rules = {

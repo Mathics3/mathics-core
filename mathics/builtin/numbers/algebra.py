@@ -17,7 +17,6 @@ from typing import Optional, Tuple, Union
 
 import sympy
 
-from mathics.builtin.inference import evaluate_predicate
 from mathics.builtin.options import options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import Integer, Integer0, Integer1, Number, RationalOneHalf
@@ -33,7 +32,7 @@ from mathics.core.expression_predefined import (
     MATHICS3_NEG_INFINITY,
 )
 from mathics.core.list import ListExpression
-from mathics.core.rules import Pattern
+from mathics.core.rules import BasePattern
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -63,7 +62,10 @@ from mathics.core.systemsymbols import (
     SymbolTable,
     SymbolTanh,
 )
-from mathics.eval.numbers.algebra.simplify import default_complexity_function
+from mathics.eval.numbers.algebra.simplify import (
+    default_complexity_function,
+    eval_Simplify,
+)
 from mathics.eval.numbers.numbers import cancel, sympy_factor
 from mathics.eval.parts import walk_parts
 from mathics.eval.patterns import match
@@ -231,9 +233,11 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                 elements = sub_expr.elements
                 if target_pat:
                     elements = [
-                        element
-                        if element.is_free(target_pat, evaluation)
-                        else _expand(element)
+                        (
+                            element
+                            if element.is_free(target_pat, evaluation)
+                            else _expand(element)
+                        )
                         for element in elements
                     ]
                 else:
@@ -248,9 +252,11 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                     elements = sub_expr.elements
                     if target_pat:
                         elements = [
-                            element
-                            if element.is_free(target_pat, evaluation)
-                            else _expand(element)
+                            (
+                                element
+                                if element.is_free(target_pat, evaluation)
+                                else _expand(element)
+                            )
                             for element in elements
                         ]
                     else:
@@ -335,9 +341,11 @@ def get_exponents_sorted(expr, var) -> list:
             # find exponent of terms multiplied with functions: sin, cos, log, exp, ...
             # e.g: x^3 * Sin[x^2] should give 3
             muls = [
-                term.as_coeff_mul(x)[1]
-                if term.as_coeff_mul(x)[1]
-                else (sympy.Integer(0),)
+                (
+                    term.as_coeff_mul(x)[1]
+                    if term.as_coeff_mul(x)[1]
+                    else (sympy.Integer(0),)
+                )
                 for term in coeff.as_ordered_terms()
             ]
             expos = [term.as_coeff_exponent(x)[1] for mul in muls for term in mul]
@@ -430,7 +438,9 @@ class Cancel(Builtin):
 
 
 # Get a coefficient of form in an expression
-def _coefficient(name, expr, form, n, evaluation):
+def _coefficient(
+    name: str, expr: Expression, form: Expression, n: Integer, evaluation: Evaluation
+) -> BaseElement:
     if expr is SymbolNull or form is SymbolNull or n is SymbolNull:
         return Integer0
 
@@ -442,18 +452,11 @@ def _coefficient(name, expr, form, n, evaluation):
     sympy_var = form.to_sympy()
     sympy_n = n.to_sympy()
 
-    def combine_exprs(exprs):
-        result = 0
-        for e in exprs:
-            result += e
-        return result
-
     # expand sub expressions if they contain variables
-    sympy_exprs = [
+    sympy_expr: sympy.Expr = sum(
         sympy.expand(e) if sympy_var.free_symbols.issubset(e.free_symbols) else e
         for e in sympy_exprs
-    ]
-    sympy_expr = combine_exprs(sympy_exprs)
+    )
     sympy_result = sympy_expr.coeff(sympy_var, sympy_n)
     return from_sympy(sympy_result)
 
@@ -470,7 +473,7 @@ class Coefficient(Builtin):
       <dd>return the coefficient of $form$^$n$ in $expr$.
     </dl>
 
-    ## Form 1: Coefficent[expr, form]
+    ## Form 1: Coefficient[expr, form]
     >> Coefficient[(x + y)^4, (x^2) * (y^2)]
      = 6
     >> Coefficient[a x^2 + b y^3 + c x + d y + 5, x]
@@ -484,7 +487,7 @@ class Coefficient(Builtin):
     >> Coefficient[x*Cos[x + 3] + 6*y, x]
      = Cos[3 + x]
 
-    ## Form 2: Coefficent[expr, form, n]
+    ## Form 2: Coefficient[expr, form, n]
     >> Coefficient[(x + 1)^3, x, 2]
      = 3
     >> Coefficient[a x^2 + b y^3 + c x + d y + 5, y, 3]
@@ -511,16 +514,18 @@ class Coefficient(Builtin):
 
     summary_text = "coefficient of a monomial in a polynomial expression"
 
-    def eval_noform(self, expr, evaluation):
+    def eval_noform(self, expr: Expression, evaluation: Evaluation):
         "Coefficient[expr_]"
         evaluation.message("Coefficient", "argtu")
 
-    def eval(self, expr, form, evaluation):
+    def eval(self, expr: Expression, form: Expression, evaluation: Evaluation):
         "Coefficient[expr_, form_]"
         return _coefficient(self.__class__.__name__, expr, form, Integer1, evaluation)
 
-    def eval_n(self, expr, form, n, evaluation):
-        "Coefficient[expr_, form_, n_]"
+    def eval_n(
+        self, expr: Expression, form: Expression, n: Integer, evaluation: Evaluation
+    ):
+        "Coefficient[expr_, form_, n_Integer]"
         return _coefficient(self.__class__.__name__, expr, form, n, evaluation)
 
 
@@ -543,17 +548,16 @@ class _CoefficientHandler(Builtin):
             else:
                 return [([], expr)]
         if len(var_exprs) == 1:
-            target_pat = Pattern.create(var_exprs[0])
+            target_pat = BasePattern.create(var_exprs[0])
             var_pats = [target_pat]
         else:
-            target_pat = Pattern.create(Expression(SymbolAlternatives, *var_exprs))
-            var_pats = [Pattern.create(var) for var in var_exprs]
+            target_pat = BasePattern.create(Expression(SymbolAlternatives, *var_exprs))
+            var_pats = [BasePattern.create(var) for var in var_exprs]
 
         # ###### Auxiliary functions #########
         def key_powers(lst: list) -> Union[int, float]:
-            key = Expression(SymbolPlus, *lst)
-            key = key.evaluate(evaluation)
-            if key.is_numeric(evaluation):
+            key = Expression(SymbolPlus, *lst).evaluate(evaluation)
+            if key is not None and key.is_numeric(evaluation):
                 return key.to_python()
             return 0
 
@@ -596,7 +600,7 @@ class _CoefficientHandler(Builtin):
 
         def split_coeff_pow(term) -> Tuple[Optional[list], Optional[list]]:
             """
-            This function factorizes term in a coefficent free
+            This function factorizes term in a coefficient free
             of powers of the target variables, and a factor with
             that powers.
             """
@@ -893,6 +897,8 @@ class CoefficientList(Builtin):
      = {{5, d, 0, b}, {c, 0, 0, 0}, {a, 0, 0, 0}}
     >> CoefficientList[(x - 2 y + 3 z)^3, {x, y, z}]
      = {{{0, 0, 0, 27}, {0, 0, -54, 0}, {0, 36, 0, 0}, {-8, 0, 0, 0}}, {{0, 0, 27, 0}, {0, -36, 0, 0}, {12, 0, 0, 0}, {0, 0, 0, 0}}, {{0, 9, 0, 0}, {-6, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}, {{1, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}}
+    >> CoefficientList[Series[Log[1-x], {x, 0, 9}], x]
+     = {0, -1, -1 / 2, -1 / 3, -1 / 4, -1 / 5, -1 / 6, -1 / 7, -1 / 8, -1 / 9}
     """
 
     messages = {
@@ -906,7 +912,7 @@ class CoefficientList(Builtin):
         "CoefficientList[expr_]"
         evaluation.message("CoefficientList", "argtu")
 
-    def eval(self, expr, form, evaluation):
+    def eval(self, expr: Expression, form: Expression, evaluation: Evaluation):
         "CoefficientList[expr_, form_]"
         vars = [form] if not form.has_form("List", None) else [v for v in form.elements]
 
@@ -929,6 +935,18 @@ class CoefficientList(Builtin):
             return ListExpression(expr)
         elif form.has_form("List", 0):
             return expr
+        elif expr.get_head_name() == "System`SeriesData":
+            coeffs: ListExpression
+            nmin: Integer
+            nmax: Integer
+            x, x0, coeffs, nmin, nmax, den = expr.elements
+            if x == form and x0 == Integer0 and den == Integer1:
+                return ListExpression(
+                    *[
+                        coeffs.elements[i - nmin.value] if i >= nmin.value else Integer0
+                        for i in range(0, nmax.value)
+                    ]
+                )
 
         sympy_expr = expr.to_sympy()
         sympy_vars = [v.to_sympy() for v in vars]
@@ -945,8 +963,7 @@ class CoefficientList(Builtin):
 
             # single & multiple variables cases
             if not form.has_form("List", None):
-                return Expression(
-                    SymbolList,
+                return ListExpression(
                     *[
                         _coefficient(
                             self.__class__.__name__, expr, form, Integer(n), evaluation
@@ -956,8 +973,7 @@ class CoefficientList(Builtin):
                 )
             elif form.has_form("List", 1):
                 form = form.elements[0]
-                return Expression(
-                    SymbolList,
+                return ListExpression(
                     *[
                         _coefficient(
                             self.__class__.__name__, expr, form, Integer(n), evaluation
@@ -1166,7 +1182,7 @@ class Expand(_Expand):
             return
 
         if target:
-            kwargs["pattern"] = Pattern.create(target)
+            kwargs["pattern"] = BasePattern.create(target)
         kwargs["evaluation"] = evaluation
         return expand(expr, True, False, **kwargs)
 
@@ -1229,7 +1245,7 @@ class ExpandAll(_Expand):
             return
 
         if target:
-            kwargs["pattern"] = Pattern.create(target)
+            kwargs["pattern"] = BasePattern.create(target)
         kwargs["evaluation"] = evaluation
         return expand(expr, numer=True, denom=True, deep=True, **kwargs)
 
@@ -1490,7 +1506,10 @@ class FactorTermsList(Builtin):
 # FullSimplify
 class Simplify(Builtin):
     r"""
-    <url>:WMA link:
+    <url>:SymPy:
+    https://docs.sympy.org/latest/modules/simplify
+    /simplify.html</url>, <url>
+    :WMA:
     https://reference.wolfram.com/language/ref/Simplify.html</url>
 
     <dl>
@@ -1599,65 +1618,9 @@ class Simplify(Builtin):
                 {"System`$Assumptions": assumptions},
                 evaluation,
             )
-        return self.do_apply(expr, evaluation, options)
 
-    def do_apply(self, expr, evaluation, options={}):
-        # Check first if we are dealing with a logic expression...
-        if expr in (SymbolTrue, SymbolFalse, SymbolList):
-            return expr
-
-        # ``evaluate_predicate`` tries to reduce expr taking into account
-        # the assumptions established in ``$Assumptions``.
-        expr = evaluate_predicate(expr, evaluation)
-
-        # If we get an atom, return it.
-        if isinstance(expr, Atom):
-            return expr
-
-        # Now, try to simplify the elements.
-        # TODO:  Consider to move this step inside ``evaluate_predicate``.
-        # Notice that here we want to pass through the full evaluation process
-        # to use all the defined rules...
-        name = self.get_name()
-        symbol_name = Symbol(name)
-        elements = [
-            Expression(symbol_name, element).evaluate(evaluation)
-            for element in expr._elements
-        ]
-        head = Expression(symbol_name, expr.get_head()).evaluate(evaluation)
-        expr = Expression(head, *elements)
-
-        # At this point, we used all the tools available in Mathics.
-        # If the expression has a sympy form, try to use it.
-        # Now, convert the expression to sympy
-        sympy_expr = expr.to_sympy()
-        # If the expression cannot be handled by Sympy, just return it.
-        if sympy_expr is None:
-            return expr
-        # Now, try to simplify using sympy
-        complexity_function = options.get("System`ComplexityFunction", None)
-        if complexity_function is None or complexity_function is SymbolAutomatic:
-
-            def _default_complexity_function(x):
-                return default_complexity_function(from_sympy(x))
-
-            complexity_function = _default_complexity_function
-        else:
-            if isinstance(complexity_function, (Expression, Symbol)):
-                _complexity_function = complexity_function
-                complexity_function = (
-                    lambda x: Expression(_complexity_function, from_sympy(x))
-                    .evaluate(evaluation)
-                    .to_python()
-                )
-
-        # At this point, ``complexity_function`` is a function that takes a
-        # sympy expression and returns an integer.
-        sympy_result = sympy.simplify(sympy_expr, measure=complexity_function)
-
-        # and bring it back
-        result = from_sympy(sympy_result).evaluate(evaluation)
-        return result
+        symbol_name = Symbol(self.get_name())
+        return eval_Simplify(symbol_name, expr, evaluation, options)
 
 
 class FullSimplify(Simplify):
@@ -1671,6 +1634,7 @@ class FullSimplify(Simplify):
       <dt>'FullSimplify[$expr$, $assump$]'
       <dd>simplifies $expr$ assuming $assump$ instead of $Assumptions$.
     </dl>
+
     TODO: implement the extension. By now, this does the same than Simplify...
 
     >> FullSimplify[2*Sin[x]^2 + 2*Cos[x]^2]

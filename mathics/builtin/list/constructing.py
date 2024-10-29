@@ -8,19 +8,21 @@ Functions for constructing lists of various sizes and structure.
 See also Constructing Vectors.
 """
 
+import typing
 from itertools import permutations
+from typing import Optional, Tuple
 
 from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import Integer, is_integer_rational_or_real
 from mathics.core.attributes import A_HOLD_FIRST, A_LISTABLE, A_LOCKED, A_PROTECTED
-from mathics.core.builtin import Builtin, IterationFunction, Pattern
+from mathics.core.builtin import BasePattern, Builtin, IterationFunction
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import ElementsProperties
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, structure
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Atom
+from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import SymbolNormal
 from mathics.eval.lists import get_tuples, list_boxes
 
@@ -186,10 +188,12 @@ class Normal(Builtin):
 
     summary_text = "convert objects to normal expressions"
 
-    def eval_general(self, expr, evaluation: Evaluation):
+    def eval_general(self, expr: Expression, evaluation: Evaluation):
         "Normal[expr_]"
         if isinstance(expr, Atom):
             return
+        if expr.has_form("RootSum", 2):
+            return from_sympy(expr.to_sympy().doit(roots=True))
         return Expression(
             expr.get_head(),
             *[Expression(SymbolNormal, element) for element in expr.elements],
@@ -268,9 +272,9 @@ class Range(Builtin):
             and isinstance(di, Integer)
         ):
             pm = 1 if di.value >= 0 else -1
-            result = [Integer(i) for i in range(imin.value, imax.value + pm, di.value)]
             return ListExpression(
-                *result, elements_properties=range_list_elements_properties
+                *[Integer(i) for i in range(imin.value, imax.value + pm, di.value)],
+                elements_properties=range_list_elements_properties,
             )
 
         imin = imin.to_sympy()
@@ -344,7 +348,7 @@ class Permutations(Builtin):
     def eval_n(self, li, n, evaluation: Evaluation):
         "Permutations[li_List, n_]"
 
-        rs = None
+        rs: Optional[Tuple[int, ...]] = None
         if isinstance(n, Integer):
             py_n = min(n.get_int_value(), len(li.elements))
         elif n.has_form("List", 1) and isinstance(n.elements[0], Integer):
@@ -359,12 +363,12 @@ class Permutations(Builtin):
 
         if py_n is None or py_n < 0:
             evaluation.message(
-                self.get_name(), "nninfseq", Expression(self.get_name(), li, n)
+                self.get_name(), "nninfseq", Expression(Symbol(self.get_name()), li, n)
             )
             return
 
         if rs is None:
-            rs = range(py_n + 1)
+            rs = tuple(range(py_n + 1))
 
         inner = structure("List", li, evaluation)
         outer = structure("List", inner, evaluation)
@@ -431,12 +435,15 @@ class Reap(Builtin):
         "Reap[expr_, {patterns___}, f_]"
 
         patterns = patterns.get_sequence()
-        sown = [(Pattern.create(pattern), []) for pattern in patterns]
+        sown: typing.List[typing.Tuple[BasePattern, list]] = [
+            (BasePattern.create(pattern, evaluation=evaluation), [])
+            for pattern in patterns
+        ]
 
         def listener(e, tag):
             result = False
             for pattern, items in sown:
-                if pattern.does_match(tag, evaluation):
+                if pattern.does_match(tag, {"evaluation": evaluation}):
                     for item in items:
                         if item[0].sameQ(tag):
                             item[1].append(e)
@@ -519,6 +526,7 @@ class Table(IterationFunction):
      = {x, x, x}
     >> n = 0; Table[n = n + 1, {5}]
      = {1, 2, 3, 4, 5}
+    #> Clear[n]
     >> Table[i, {i, 4}]
      = {1, 2, 3, 4}
     >> Table[i, {i, 2, 5}]
@@ -533,6 +541,14 @@ class Table(IterationFunction):
     'Table' supports multi-dimensional tables:
     >> Table[{i, j}, {i, {a, b}}, {j, 1, 2}]
      = {{{a, 1}, {a, 2}}, {{b, 1}, {b, 2}}}
+
+    Symbolic bounds:
+    >> Table[x, {x, a, a + 5 n, n}]
+     = {a, a + n, a + 2 n, a + 3 n, a + 4 n, a + 5 n}
+
+    The lower bound is always included even for large step sizes:
+    >> Table[i, {i, 1, 9, Infinity}]
+     = {1}
     """
 
     rules = {

@@ -202,6 +202,7 @@ class General(Builtin):
         "int": "Integer expected.",
         "intp": "Positive integer expected.",
         "intnn": "Non-negative integer expected.",
+        "intnm": "Non-negative machine-sized integer expected at position `1` in `2`.",
         "iterb": "Iterator does not have appropriate bounds.",
         "ivar": "`1` is not a valid variable.",
         "level": ("Level specification `1` is not of the form n, " "{n}, or {m, n}."),
@@ -230,6 +231,7 @@ class General(Builtin):
         "ssym": "`1` is not a symbol or a string.",
         "stream": "`1` is not string, InputStream[], or OutputStream[]",
         "string": "String expected.",
+        "strse": "String or list of strings expected at position `1` in `2`.",
         "sym": "Argument `1` at position `2` is expected to be a symbol.",
         "tag": "Rule for `1` can only be attached to `2`.",
         "take": "Cannot take positions `1` through `2` in `3`.",
@@ -322,7 +324,6 @@ class MessageName(BinaryOperator):
     messages = {"messg": "Message cannot be set to `1`. It must be set to a string."}
     summary_text = "message identifyier"
     operator = "::"
-    precedence = 750
     rules = {
         "MakeBoxes[MessageName[symbol_Symbol, tag_String], "
         "f:StandardForm|TraditionalForm|OutputForm]": (

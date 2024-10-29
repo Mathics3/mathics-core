@@ -29,11 +29,13 @@ from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.rules import BuiltinRule
+from mathics.core.rules import FunctionApplyRule
 from mathics.core.symbols import SymbolFalse, SymbolNull, SymbolTrue, strip_context
 
 
-def traced_do_replace(self, expression, vars, options: dict, evaluation: Evaluation):
+def traced_apply_function(
+    self, expression, vars, options: dict, evaluation: Evaluation
+):
     if options and self.check_options:
         if not self.check_options(options, evaluation):
             return None
@@ -42,15 +44,15 @@ def traced_do_replace(self, expression, vars, options: dict, evaluation: Evaluat
         vars_noctx["expression"] = expression
     builtin_name = self.function.__qualname__.split(".")[0]
     stat = TraceBuiltins.function_stats[builtin_name]
-    ts = time()
+    t_start = time()
 
     stat["count"] += 1
     if options:
         result = self.function(evaluation=evaluation, options=options, **vars_noctx)
     else:
         result = self.function(evaluation=evaluation, **vars_noctx)
-    te = time()
-    elapsed = (te - ts) * 1000
+    t_end = time()
+    elapsed = (t_end - t_start) * 1000
     stat["elapsed_milliseconds"] += elapsed
     return result
 
@@ -185,7 +187,7 @@ class TraceBuiltins(_TraceBase):
     """
 
     definitions_copy: Definitions
-    do_replace_copy: Callable
+    apply_function_copy: Callable
 
     function_stats: "defaultdict" = defaultdict(
         lambda: {"count": 0, "elapsed_milliseconds": 0.0}
@@ -238,19 +240,19 @@ class TraceBuiltins(_TraceBase):
     @staticmethod
     def enable_trace(evaluation) -> None:
         if TraceBuiltins.traced_definitions is None:
-            TraceBuiltins.do_replace_copy = BuiltinRule.do_replace
+            TraceBuiltins.apply_function_copy = FunctionApplyRule.apply_function
             TraceBuiltins.definitions_copy = evaluation.definitions
 
-            # Replaces do_replace by the custom one
-            BuiltinRule.do_replace = traced_do_replace
-            # Create new definitions uses the new do_replace
+            # Replaces apply_function by the custom one
+            FunctionApplyRule.apply_function = traced_apply_function
+            # Create new definitions uses the new apply_function
             evaluation.definitions = Definitions(add_builtin=True)
         else:
             evaluation.definitions = TraceBuiltins.definitions_copy
 
     @staticmethod
     def disable_trace(evaluation) -> None:
-        BuiltinRule.do_replace = TraceBuiltins.do_replace_copy
+        FunctionApplyRule.apply_function = TraceBuiltins.apply_function_copy
         evaluation.definitions = TraceBuiltins.definitions_copy
 
     def eval(self, expr, evaluation, options={}):
@@ -365,7 +367,7 @@ class TraceEvaluation(Builtin):
     options = {
         "System`ShowTimeBySteps": "False",
     }
-    summary_text = "trace the succesive evaluations"
+    summary_text = "trace the successive evaluations"
 
     def eval(self, expr, evaluation: Evaluation, options: dict):
         "TraceEvaluation[expr_, OptionsPattern[]]"

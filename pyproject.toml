@@ -4,15 +4,14 @@ requires = [
     "cython>=0.15.1; implementation_name!='pypy'",
     # For mathics-generate-json-table
     "Mathics-Scanner >= 1.3.0",
+    "packaging",
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "Mathics3"
 description = "A general-purpose computer algebra system."
 dependencies = [
     "Mathics-Scanner >= 1.3.0",
-    "llvmlite",
     "mpmath>=1.2.0",
     "numpy<1.27",
     "palettable",
@@ -22,13 +21,17 @@ dependencies = [
     "pillow >= 9.2",
     "pint",
     "python-dateutil",
+    # Pympler is used onlyfor ByteCount[]. It could be made optional.
+    "Pympler",
     "requests",
+    "scipy",
     "setuptools",
-    "sympy>=1.11,<1.13",
+    "sympy>=1.11,<1.14",
 ]
+license = {text = "GPL"}
+name = "Mathics3"
 requires-python = ">=3.8" # Sympy 1.11 is supported only down to 3.8
 readme = "README.rst"
-license = {text = "GPL"}
 keywords = ["Mathematica", "Wolfram", "Interpreter", "Shell", "Math", "CAS"]
 maintainers = [
     {name = "Mathics Group", email = "mathics-devel@googlegroups.com"},
@@ -62,6 +65,7 @@ dev = [
 ]
 full = [
     "ipywidgets",
+    "llvmlite",
     "lxml",
     "psutil",
     "pyocr",

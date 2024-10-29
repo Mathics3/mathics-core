@@ -2,7 +2,7 @@
 """
 Unit tests for mathics.builtins.list.constructing
 """
-from test.helper import check_evaluation
+from test.helper import check_evaluation, check_evaluation_as_in_cli
 
 import pytest
 
@@ -82,6 +82,12 @@ import pytest
             "Drop[{1, 2, 3, 4, 5, 6}, {-5, -2, -2}]",
             None,
         ),
+        (
+            "First[a, b, c]",
+            ("First called with 3 arguments; 1 or 2 arguments are expected.",),
+            "First[a, b, c]",
+            None,
+        ),
         ('FirstPosition[{1, 2, 3}, _?StringQ, "NoStrings"]', None, "NoStrings", None),
         ("FirstPosition[a, a]", None, "{}", None),
         (
@@ -155,7 +161,13 @@ import pytest
         ("a = {2,3,4}; i = 1; a[[i]] = 0; a", None, "{0, 3, 4}", None),
         ## Negative step
         ("{1,2,3,4,5}[[3;;1;;-1]]", None, "{3, 2, 1}", None),
-        ("{1, 2, 3, 4, 5}[[;; ;; -1]]", None, "{5, 4, 3, 2, 1}", "MMA bug"),
+        ("ClearAll[a]", None, "Null", None),
+        (
+            "Last[a, b, c]",
+            ("Last called with 3 arguments; 1 or 2 arguments are expected.",),
+            "Last[a, b, c]",
+            None,
+        ),
         ("Range[11][[-3 ;; 2 ;; -2]]", None, "{9, 7, 5, 3}", None),
         ("Range[11][[-3 ;; -7 ;; -3]]", None, "{9, 6}", None),
         ("Range[11][[7 ;; -7;; -2]]", None, "{7, 5}", None),
@@ -253,4 +265,19 @@ def test_eol_edicates_private_doctests(
         failure_message=assert_message,
         expected_messages=expected_messages,
         hold_expected=True,
+    )
+
+
+# To check expressions with has `Sequence` as output,
+# we need to use ``check_evaluation_as_in_cli``
+@pytest.mark.parametrize(
+    ("str_expr", "expected_messages", "str_expected", "assert_message"),
+    [
+        ("Delete[{}, 0]", None, "Sequence[]", None),
+        ("Delete[{1, 2}, 0]", None, "Sequence[1, 2]", None),
+    ],
+)
+def test_as_in_cli(str_expr, expected_messages, str_expected, assert_message):
+    check_evaluation_as_in_cli(
+        str_expr, str_expected, expected_messages, assert_message
     )

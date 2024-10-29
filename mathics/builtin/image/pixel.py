@@ -86,7 +86,7 @@ class PixelValuePositions(Builtin):
         )
 
         # python indexes from 0 at top left -> indices from 1 starting at bottom left
-        # if single channel then ommit channel indices
+        # if single channel then omit channel indices
         height = image.pixels.shape[0]
         if image.pixels.shape[2] == 1:
             result = sorted((j + 1, height - i) for i, j, k in positions.tolist())
