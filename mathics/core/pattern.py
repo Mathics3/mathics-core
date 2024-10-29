@@ -16,7 +16,7 @@ https://reference.wolfram.com/language/tutorial/PatternsAndTransformationRules.h
 
 from abc import ABC
 from itertools import chain
-from typing import Callable, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Callable, Dict, Optional, Sequence, Tuple, Type, Union
 
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_ORDERLESS
@@ -40,6 +40,9 @@ from mathics.core.systemsymbols import (
 )
 from mathics.core.util import permutations, subranges, subsets
 
+if TYPE_CHECKING:
+    from mathics.core.builtin import PatternObject
+
 SYSTEM_SYMBOLS_PATTERNS = symbol_set(
     SymbolAlternatives,
     SymbolBlank,
@@ -54,7 +57,7 @@ SYSTEM_SYMBOLS_PATTERNS = symbol_set(
     SymbolRepeatedNull,
 )
 
-pattern_objects = {}
+pattern_objects: Dict[str, Type["PatternObject"]] = {}
 
 
 class StopGenerator(Exception):
@@ -189,7 +192,9 @@ class BasePattern(ABC):
             return pattern_object(expr, evaluation=evaluation)
         if isinstance(expr, Atom):
             return AtomPattern(expr, evaluation)
-        return ExpressionPattern(expr, attributes, evaluation)
+        if isinstance(expr, Expression):
+            return ExpressionPattern(expr, attributes, evaluation)
+        raise TypeError(f"Cannot create Pattern for {expr}")
 
     def get_attributes(self, definitions):
         """The attributes of the expression"""
@@ -300,6 +305,9 @@ class BasePattern(ABC):
         """
         return tuple()
 
+    def get_match_count(self, vars_dict: Optional[dict] = None) -> Tuple[int, int]:
+        raise NotImplementedError
+
     def get_match_candidates_count(
         self, elements: Tuple[BaseElement], pattern_context: dict
     ) -> Union[int, tuple]:
@@ -308,6 +316,8 @@ class BasePattern(ABC):
 
     def sameQ(self, other: BaseElement) -> bool:
         """Mathics SameQ"""
+        if not isinstance(other, BasePattern):
+            return False
         return self.expr.sameQ(other.expr)
 
 
@@ -323,8 +333,8 @@ class AtomPattern(BasePattern):
         self.expr = expr
         self.atom = expr
         if isinstance(expr, Symbol):
-            self.match = self.match_symbol
-            self.get_match_candidates = self.get_match_symbol_candidates
+            self.match = self.match_symbol  # type: ignore[method-assign]
+            self.get_match_candidates = self.get_match_symbol_candidates  # type: ignore[method-assign]
 
     def __repr__(self):
         return f"<AtomPattern: {self.atom}>"
@@ -436,6 +446,7 @@ class ExpressionPattern(BasePattern):
             self.__set_pattern_attributes__(
                 self.head.get_attributes(evaluation.definitions)
             )
+        assert self.attributes is not None
         attributes = self.attributes
 
         if not A_FLAT & attributes:
@@ -448,21 +459,17 @@ class ExpressionPattern(BasePattern):
         parms.setdefault("element_index", None)
         parms.setdefault("element_count", None)
 
-        if not isinstance(expression, Atom):
+        if isinstance(expression, Expression):
             try:
-                basic_match_expression(
-                    self,
-                    expression,
-                    parms,
-                )
+                basic_match_expression(self, expression, parms)
             except StopGenerator_ExpressionPattern_match:
                 return
 
         if A_ONE_IDENTITY & attributes:
-            match_expression_with_one_identity(self, expression=expression, parms=parms)
+            match_expression_with_one_identity(self, expression, parms)
 
     def _get_pre_choices(
-        self, expression: BaseElement, yield_choice: Callable, pattern_context: dict
+        self, expression: Expression, yield_choice: Callable, pattern_context: dict
     ):
         """
         If not Orderless, call yield_choice with vars as the parameter.
@@ -523,7 +530,7 @@ class ExpressionPattern(BasePattern):
 
     def match_element(
         self,
-        element: BaseElement,
+        element: BasePattern,
         pattern_context,
     ):
         """Try to match an element."""
@@ -557,6 +564,7 @@ class ExpressionPattern(BasePattern):
             element.get_head() in SYSTEM_SYMBOLS_PATTERNS
         )
 
+        set_lengths: Tuple[int, Optional[int]]
         if try_flattened:
             set_lengths = (match_count[0], None)
         else:
@@ -566,21 +574,19 @@ class ExpressionPattern(BasePattern):
         # into one operand may occur.
         # This can of course also be when flat and same head.
         try_flattened = try_flattened or (
-            A_FLAT & attributes and element.get_head() == expression.head
+            A_FLAT & attributes and element.get_head() == expression.get_head()
         )
 
         less_first = len(rest_elements) > 0
 
         if A_ORDERLESS & attributes:
-            parms = {
-                "expression": expression,
-                "element": element,
-                "vars_dict": vars_dict,
-                "attributes": attributes,
-            }
-
             sets = expression_pattern_match_element_orderless(
-                parms,
+                {
+                    "expression": expression,
+                    "element": element,
+                    "vars_dict": vars_dict,
+                    "attributes": attributes,
+                },
                 candidates,
                 element_candidates,
                 less_first,
@@ -660,8 +666,8 @@ class ExpressionPattern(BasePattern):
 
 
 def match_expression_with_one_identity(
-    self: BasePattern,
-    expression: Expression,
+    self: ExpressionPattern,
+    expression: BaseElement,
     parms: dict,
 ):
     """
@@ -674,14 +680,15 @@ def match_expression_with_one_identity(
     # This tries to reduce the pattern to a non empty
     # set of default values, and a single pattern.
     from mathics.builtin.patterns.composite import Pattern
+    from mathics.core.builtin import PatternObject
 
     vars_dict: dict = parms["vars_dict"]
     evaluation: Evaluation = parms["evaluation"]
 
     default_indx: int = 0
     optionals: dict = {}
-    new_pattern: Optional[Pattern] = None
-    pattern_head: Expression = self.head.expr
+    new_pattern: Optional[BasePattern] = None
+    pattern_head: BaseElement = self.head.expr
     for pat_elem in self.elements:
         default_indx += 1
         if isinstance(pat_elem, AtomPattern):
@@ -690,11 +697,14 @@ def match_expression_with_one_identity(
             new_pattern = pat_elem
             # TODO: check into account the second argument,
             # and if there is a default value...
-        elif pat_elem.get_head_name() == "System`Optional":
+        elif (
+            isinstance(pat_elem, PatternObject)
+            and pat_elem.get_head() == SymbolOptional
+        ):
             if len(pat_elem.elements) == 2:
                 pat, value = pat_elem.elements
                 if isinstance(pat, Pattern):
-                    key = pat.elements[0].atom.name
+                    key = pat.elements[0].atom.name  # type: ignore[attr-defined]
                 else:
                     # if the first element of the Optional
                     # is not a `Pattern`, then we need to
@@ -704,22 +714,23 @@ def match_expression_with_one_identity(
             elif len(pat_elem.elements) == 1:
                 pat = pat_elem.elements[0]
                 if isinstance(pat, Pattern):
-                    key = pat.elements[0].atom.name
+                    key = pat.elements[0].atom.name  # type: ignore[attr-defined]
                 else:
                     key = ""
                 # Now, determine the default value
                 defaultvalue_expr = Expression(
                     SymbolDefault, pattern_head, Integer(default_indx)
                 )
-                value = defaultvalue_expr.evaluate(evaluation)
-                if value.sameQ(defaultvalue_expr):
+                result = defaultvalue_expr.evaluate(evaluation)
+                assert result is not None
+                if result.sameQ(defaultvalue_expr):
                     return
-                optionals[key] = value
+                optionals[key] = result
             else:
                 return
+        elif new_pattern is not None:
+            return
         else:
-            if new_pattern is not None:
-                return
             new_pattern = pat_elem
 
     # If there is not optional values in the pattern, then
@@ -744,6 +755,7 @@ def match_expression_with_one_identity(
 
     # TODO: remove me eventually
     del parms["attributes"]
+    assert new_pattern is not None
     new_pattern.match(expression=expression, pattern_context=parms)
 
 
@@ -878,7 +890,7 @@ def expression_pattern_match_element_orderless(
     candidates: tuple,
     element_candidates: Union[tuple, set],
     less_first: bool,
-    set_lengths: tuple,
+    set_lengths: Tuple[int, Optional[int]],
 ):
     """
     match element for orderless expressions
@@ -1072,7 +1084,7 @@ def get_pre_choices_orderless(
     # prev_element = None
 
     # count duplicate elements
-    expr_groups = {}
+    expr_groups: Dict[BaseElement, int] = {}
     for element in expression.elements:
         expr_groups[element] = expr_groups.get(element, 0) + 1
 

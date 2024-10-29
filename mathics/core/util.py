@@ -7,6 +7,7 @@ import sys
 from itertools import chain
 from pathlib import PureWindowsPath
 from platform import python_implementation
+from typing import Optional
 
 IS_PYPY = python_implementation() == "PyPy"
 
@@ -44,13 +45,12 @@ def permutations(items):
             # already_taken.add(item)
 
 
-def subsets(items, min, max, included=None, less_first=False):
+def subsets(items, min: int, max: Optional[int], included=None, less_first=False):
     if max is None:
         max = len(items)
     lengths = list(range(min, max + 1))
     if not less_first:
-        lengths = reversed(lengths)
-    lengths = list(lengths)
+        lengths = list(reversed(lengths))
     if lengths and lengths[0] == 0:
         lengths = lengths[1:] + [0]
 

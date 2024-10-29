@@ -3,7 +3,7 @@
 from functools import lru_cache
 from typing import Optional, Union
 
-import mpmath
+import mpmath  # type: ignore[import-untyped]
 import sympy
 
 from mathics.core.atoms import Complex, MachineReal, MachineReal0, PrecisionReal

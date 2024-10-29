@@ -83,7 +83,7 @@ def to_mathics_list(
     return list_expression
 
 
-def to_numeric_args(mathics_args: Type[BaseElement], evaluation) -> list:
+def to_numeric_args(mathics_args: BaseElement, evaluation) -> tuple:
     """
     Convert Mathics arguments, such as the arguments in an evaluation
     method a Python list that is suitable for feeding as arguments
@@ -91,8 +91,8 @@ def to_numeric_args(mathics_args: Type[BaseElement], evaluation) -> list:
 
     We make use of fast conversions for literals.
     """
-    return (
-        tuple(mathics_args.value)
+    return tuple(
+        mathics_args.value  # type: ignore[attr-defined]
         if mathics_args.is_literal
         else numerify(mathics_args, evaluation).get_sequence()
     )

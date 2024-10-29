@@ -6,7 +6,7 @@ import time
 from abc import ABC
 from queue import Queue
 from threading import Thread, stack_size as set_thread_stack_size
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union, overload
 
 from mathics_scanner import TranslateError
 
@@ -378,9 +378,17 @@ class Evaluation:
     def stop(self) -> None:
         self.stopped = True
 
+    @overload
+    def format_output(self, expr: BaseElement, format: Optional[dict] = None) -> dict:
+        ...
+
+    @overload
     def format_output(
         self, expr: BaseElement, format: Optional[str] = None
     ) -> Union[BaseElement, str, None]:
+        ...
+
+    def format_output(self, expr, format=None):
         """
         This function takes an expression `expr` and
         a format `format`. If `format` is None, then returns `expr`. Otherwise,

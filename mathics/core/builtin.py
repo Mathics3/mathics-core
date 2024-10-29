@@ -13,9 +13,20 @@ import re
 from abc import ABC
 from functools import total_ordering
 from itertools import chain
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union, cast
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+    cast,
+)
 
-import mpmath
+import mpmath  # type: ignore[import-untyped]
 import pkg_resources
 import sympy
 
@@ -84,7 +95,7 @@ from mathics.eval.scoping import dynamic_scoping
 try:
     import ujson
 except ImportError:
-    import json as ujson
+    import json as ujson  # type: ignore[no-redef]
 
 ROOT_DIR = pkg_resources.resource_filename("mathics", "")
 
@@ -551,6 +562,12 @@ class SympyObject(Builtin):
             return [self.sympy_name]
         return []
 
+    def to_sympy(self, expr=None, **kwargs):
+        raise NotImplementedError
+
+    def from_sympy(self, elements: Tuple[BaseElement, ...]) -> Expression:
+        raise NotImplementedError
+
 
 # This has to come before MPMathFunction
 class SympyFunction(SympyObject):
@@ -651,6 +668,8 @@ class MPMathFunction(SympyFunction):
 
         if not all(isinstance(arg, Number) for arg in args):
             return
+        # mypy isn't yet smart enough to recognise that we can only reach this point if all args are Numbers
+        args = cast(Sequence[Number], args)
 
         mpmath_function = self.get_mpmath_function(tuple(args))
         if mpmath_function is None:
@@ -663,7 +682,9 @@ class MPMathFunction(SympyFunction):
             d = dps(prec)
             args = tuple([arg.round(d) for arg in args])
 
-        return eval_mpmath_function(mpmath_function, *args, prec=prec)
+        return eval_mpmath_function(
+            mpmath_function, *cast(Sequence[Number], args), prec=prec
+        )
 
 
 class MPMathMultiFunction(MPMathFunction):
@@ -1235,7 +1256,7 @@ class PatternObject(BuiltinElement, BasePattern):
     ) -> Tuple[BaseElement]:
         return elements
 
-    def get_match_count(self, vars_dict: dict = {}):
+    def get_match_count(self, vars_dict: Optional[dict] = None):
         return (1, 1)
 
     def get_sort_key(self, pattern_sort=False) -> tuple:

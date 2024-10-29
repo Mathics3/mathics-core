@@ -592,7 +592,8 @@ def eval_assign_numericq(self, lhs, rhs, evaluation: Evaluation, tags, upset):
     if isinstance(target, Symbol):
         name = target.get_name()
         definition = evaluation.definitions.get_definition(name)
-        definition.is_numeric = rhs is SymbolTrue
+        if definition is not None:
+            definition.is_numeric = rhs is SymbolTrue
         return True
     else:
         evaluation.message("NumericQ", "set", lhs, rhs)

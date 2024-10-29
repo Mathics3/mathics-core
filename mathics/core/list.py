@@ -146,6 +146,7 @@ class ListExpression(Expression):
 
         if self.elements_properties is None:
             self._build_elements_properties()
+        assert self.elements_properties is not None
         if not self.elements_properties.elements_fully_evaluated:
             new = self.shallow_copy().evaluate_elements(evaluation)
             return new, False

@@ -96,7 +96,7 @@ def to_regex_internal(
     (None, "") is returned if there is an error of some sort.
     """
 
-    def recurse(x: Expression, quantifiers=q) -> Tuple[Optional[str], str]:
+    def recurse(x: Expression, quantifiers=q) -> Optional[str]:
         """
         Shortened way to call to_regexp_internal -
         only the expr and quantifiers change here.

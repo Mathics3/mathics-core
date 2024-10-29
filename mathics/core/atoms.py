@@ -6,7 +6,7 @@ import math
 import re
 from typing import Any, Dict, Generic, Optional, Tuple, TypeVar, Union
 
-import mpmath
+import mpmath  # type: ignore[import-untyped]
 import sympy
 
 from mathics.core.element import BoxElementMixin, ImmutableValueMixin

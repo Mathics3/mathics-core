@@ -94,7 +94,7 @@ class BaseRule(KeyComparable, ABC):
 
     def __init__(
         self,
-        pattern: Expression,
+        pattern: BaseElement,
         system: bool = False,
         evaluation: Optional[Evaluation] = None,
         attributes: Optional[int] = None,
@@ -229,7 +229,7 @@ class Rule(BaseRule):
 
     def __init__(
         self,
-        pattern: Expression,
+        pattern: BaseElement,
         replace: BaseElement,
         system=False,
         evaluation: Optional[Evaluation] = None,
