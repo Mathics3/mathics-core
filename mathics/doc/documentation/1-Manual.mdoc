@@ -10,9 +10,9 @@ The programming language and built-in functions of \Mathics tries to match the \
 
 \Mathics is in no way affiliated or supported by \Wolfram. \Mathics will probably never have the power to compete with \Mathematica in industrial applications; it is a free alternative though. It also invites community development at all levels.
 
-See the <url>:installation instructions: https://mathics-development-guide.readthedocs.io/en/latest/installing/index.html</url> for the most recent instructions for installing from PyPI, or the source.
+See the [installation instructions](https://mathics-development-guide.readthedocs.io/en/latest/installing/index.html) for the most recent instructions for installing from PyPI, or the source.
 
-For implementation details, please refer to the <url>:Developers Guide:https://mathics-development-guide.readthedocs.io/en/latest/</url>.
+For implementation details please refer to <https://mathics-development-guide.readthedocs.io/en/latest/>.
 
 <section title="Why try to recreate Wolfram Language?">
 \Mathematica is great, but it a couple of disadvantages.
@@ -30,10 +30,10 @@ However, even if you are willing to pay hundreds of dollars for the software, yo
 \Mathics combines the beauty of \Mathematica implemented in an open-source environment written in Python. The Python ecosystem includes libraries and toos like:
 
 <ul>
-  <li><url>:mpmath: https://mpmath.org/</url> for floating-point arithmetic with arbitrary precision,
-  <li><url>:NumPy: https://numpy.org</url> for numeric computation,
-  <li><url>:SymPy: https://sympy.org</url> for symbolic mathematics, and
-  <li><url>:SciPy: https://www.scipy.org/</url> for Scientific calculations.
+  <li>[mpmath](https://mpmath.org/) for floating-point arithmetic with arbitrary precision,
+  <li>[numpy](https://numpy.org/numpy) for numeric computation,
+  <li>[SymPy](https://sympy.org) for symbolic mathematics, and
+  <li>optionally [SciPy](https://www.scipy.org/) for Scientific calculations.
 </ul>
 
 Performance of \Mathics is not, right now, practical in large-scale projects and calculations. However can be used as a tool for exploration and education.
@@ -53,9 +53,10 @@ Outside of the "core" \Mathics kernel (which has a only primitive command-line i
 <ul>
   <li>a <url>:command-line interface:https://pypi.org/project/mathicsscript/</url> using either <url>:prompt-toolkit:https://python-prompt-toolkit.readthedocs.io/en/master/</url>, or GNU Readline
   <li>a <url>:Django-based web server:https://pypi.org/project/Mathics-Django/</url>
-  <li>a <url>:Mathics3 module for Graphs:https://pypi.org/project/pymathics-graph/</url> (via <url>:NetworkX:https://networkx.org/</url>),
-  <li>a <url>:Mathics3 module for NLP:https://pypi.org/project/pymathics-natlang/</url> (via <url>:nltk:https://www.nltk.org/</url>, <url>:spacy:https://spacy.io/</url>, and others)
-  <li>a <url>:A docker container:https://hub.docker.com/r/mathicsorg/mathics</url> which bundles all of the above
+  <li>a command-line interface using either prompt-toolkit, or GNU Readline
+  <li>a [Mathics3 module for Graphs](https://pypi.org/project/pymathics-graph/) (via [NetworkX](https://networkx.org/)),
+  <li>a [Mathics3 module for NLP](https://pypi.org/project/pymathics-natlang/) (via [nltk](https://www.nltk.org/), [spacy](https://spacy.io/), and others)
+  <li>a [A docker container](https://hub.docker.com/r/mathicsorg/mathics) which bundles all of the above
 </ul>
 
 </section>
@@ -238,8 +239,7 @@ The relative uncertainty of '3.1416`3' is 10^-3. It is numerically equivalent, i
   >> 3.1416`3 == 3.1413`4
    = True
 
-
-We can get the precision of the number by using the \Mathics Built-in function <url>:'Precision': /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/precision</url>:
+We can get the precision of the number by using the \Mathics Built-in function <url>:'Precision': /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/precision</url>:
 
     >> Precision[3.1413`4]
      = 4.
