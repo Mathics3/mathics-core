@@ -9,7 +9,7 @@ and extended regular expressions used to parse it.
 import logging
 import re
 from os import environ
-from typing import Iterator, List, Optional
+from typing import Dict, Iterator, List, Optional, Sequence
 
 from mathics import settings
 from mathics.core.builtin import check_requires_list
@@ -17,7 +17,7 @@ from mathics.core.load_builtin import (
     builtins_by_module as global_builtins_by_module,
     mathics3_builtins_modules,
 )
-from mathics.doc.doc_entries import DocumentationEntry, Tests, filter_comments
+from mathics.doc.doc_entries import DocTest, DocumentationEntry, Tests, filter_comments
 from mathics.doc.utils import slugify
 from mathics.eval.pymathics import pymathics_builtins_by_module, pymathics_modules
 
@@ -60,11 +60,12 @@ class DocSection:
         self.chapter = chapter
         self.in_guide = in_guide
         self.installed = installed
-        self.items = []  # tests in section when this is under a guide section
+        # tests in section when this is under a guide section
+        self.items: List[DocTest] = []
         self.operator = operator
         self.slug = slugify(title)
-        self.subsections = []
-        self.subsections_by_slug = {}
+        self.subsections: Sequence[DocSubsection] = []
+        self.subsections_by_slug: Dict[str, DocSubsection] = {}
         self.summary_text = summary_text
         self.tests = None  # tests in section when not under a guide section
         self.title = title
@@ -120,18 +121,22 @@ class DocChapter:
     """
 
     def __init__(
-        self, part: "DocPart", title: str, doc=None, chapter_order: Optional[int] = None
+        self,
+        part: "DocPart",
+        title: str,
+        doc: Optional["DocumentationEntry"] = None,
+        chapter_order: Optional[int] = None,
     ):
         self.chapter_order = chapter_order
         self.doc = doc
-        self.guide_sections = []
+        self.guide_sections: Sequence[DocGuideSection] = []
         self.part = part
         self.title = title
         self.slug = slugify(title)
-        self.sections = []
-        self.sections_by_slug = {}
+        self.sections: List[DocSection] = []
+        self.sections_by_slug: Dict[str, DocSection] = {}
         self.sort_order = None
-        if doc:
+        if self.doc:
             self.doc.set_parent_path(self)
 
         part.chapters_by_slug[self.slug] = self
@@ -203,8 +208,8 @@ class DocPart:
     def __init__(self, documentation: "Documentation", title: str, is_reference=False):
         self.documentation = documentation
         self.title = title
-        self.chapters = []
-        self.chapters_by_slug = {}
+        self.chapters: List[DocChapter] = []
+        self.chapters_by_slug: Dict[str, DocChapter] = {}
         self.is_reference = is_reference
         self.is_appendix = False
         self.slug = slugify(title)
@@ -257,10 +262,10 @@ class Documentation:
         # without defining these attributes as class
         # attributes.
         self._set_classes()
-        self.appendix = []
+        self.appendix: List[DocPart] = []
         self.doc_dir = doc_dir
-        self.parts = []
-        self.parts_by_slug = {}
+        self.parts: Sequence[DocPart] = []
+        self.parts_by_slug: Dict[str, DocPart] = {}
         self.title = title
 
     def _set_classes(self):
@@ -421,7 +426,7 @@ class Documentation:
                 if MATHICS_DEBUG_TEST_CREATE:
                     print(f"DEBUG Gathering tests for Chapter {chapter.title}")
 
-                tests = chapter.doc.get_tests()
+                tests = chapter.doc.get_tests() if chapter.doc else []
                 if tests:
                     yield Tests(part.title, chapter.title, "", tests)
 
@@ -538,6 +543,7 @@ class Documentation:
             part.is_appendix = True
             self.appendix.append(part)
         else:
+            assert isinstance(self.parts, list)
             self.parts.append(part)
         return chapter_order
 
@@ -549,10 +555,10 @@ class DocSubsection:
 
     def __init__(
         self,
-        chapter,
-        section,
-        title,
-        text,
+        chapter: DocChapter,
+        section: DocSection,
+        title: str,
+        text: str,
         operator=None,
         installed=True,
         in_guide=False,
@@ -587,7 +593,7 @@ class DocSubsection:
 
         self.section = section
         self.slug = slugify(title)
-        self.subsections = []
+        self.subsections: Sequence[DocSubsection] = []
         self.title = title
         self.doc.set_parent_path(self)
 

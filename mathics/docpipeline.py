@@ -23,8 +23,13 @@ import mathics
 from mathics import settings, version_string
 from mathics.core.evaluation import Output
 from mathics.core.load_builtin import _builtins, import_and_load_builtins
-from mathics.doc.common_doc import DocGuideSection, DocSection, MathicsMainDocumentation
-from mathics.doc.doc_entries import DocTest, DocTests
+from mathics.doc.doc_entries import DocTest, DocumentationEntry
+from mathics.doc.structure import (
+    DocGuideSection,
+    DocSection,
+    DocSubsection,
+    MathicsMainDocumentation,
+)
 from mathics.doc.utils import load_doctest_data, print_and_log, slugify
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 from mathics.session import MathicsSession
@@ -368,11 +373,11 @@ def section_tests_iterator(
     the user definitions are reset.
     """
     chapter = section.chapter
-    subsections: List[DocSection] = [section]
+    subsections: List[Union[DocumentationEntry, DocSection, DocSubsection]] = [section]
     if chapter.doc:
         subsections = [chapter.doc] + subsections
     if section.subsections:
-        subsections = subsections + section.subsections
+        subsections.extend(section.subsections)
 
     for subsection in subsections:
         if (
@@ -409,11 +414,11 @@ def test_section_in_chapter(
 
     chapter = section.chapter
     index = 0
-    subsections = [section]
+    subsections: List[Union[DocumentationEntry, DocSection, DocSubsection]] = [section]
     if chapter.doc:
         subsections = [chapter.doc] + subsections
     if section.subsections:
-        subsections = subsections + section.subsections
+        subsections.extend(section.subsections)
 
     section_name_for_print = ""
     for doctest in section_tests_iterator(

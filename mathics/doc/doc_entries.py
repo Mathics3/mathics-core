@@ -549,7 +549,7 @@ class DocumentationEntry:
         item = "\n".join(line for line in item.split("\n") if not line.isspace())
         return item
 
-    def get_tests(self) -> List["DocumentationEntry"]:
+    def get_tests(self) -> List["DocTest"]:
         """retrieve a list of tests in the documentation entry"""
         tests = []
         for item in self.items:

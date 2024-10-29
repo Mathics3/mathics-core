@@ -569,6 +569,8 @@ class LaTeXMathicsDocumentation(MathicsMainDocumentation):
     produce a the documentation in LaTeX format.
     """
 
+    parts: Sequence["LaTeXDocPart"]
+
     def __init__(self):
         super().__init__()
         self.load_documentation_sources()
@@ -629,6 +631,9 @@ class LaTeXMathicsDocumentation(MathicsMainDocumentation):
 
 
 class LaTeXDocChapter(DocChapter):
+    doc: LaTeXDocumentationEntry
+    guide_sections: Sequence["LaTeXDocGuideSection"]
+
     def latex(
         self, doc_data: dict, quiet=False, filter_sections: Optional[str] = None
     ) -> str:
@@ -712,6 +717,8 @@ class LaTeXDocPart(DocPart):
 
 
 class LaTeXDocSection(DocSection):
+    subsections: Sequence["LaTeXDocSubsection"]
+
     def __init__(
         self,
         chapter,
@@ -764,6 +771,8 @@ class LaTeXDocGuideSection(DocGuideSection):
     are examples of Guide Sections, and each contains a number of Sections.
     like NamedColors or Orthogonal Polynomials.
     """
+
+    subsections: Sequence["LaTeXDocSubsection"]
 
     def __init__(
         self,
@@ -827,6 +836,8 @@ class LaTeXDocSubsection(DocSubsection):
     """An object for a Documented Subsection.
     A Subsection is part of a Section.
     """
+
+    subsections: Sequence["LaTeXDocSubsection"]
 
     def __init__(
         self,
