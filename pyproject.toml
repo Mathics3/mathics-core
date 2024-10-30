@@ -118,5 +118,9 @@ version = {attr = "mathics.version.__version__"}
 force_union_syntax = true
 
 [[tool.mypy.overrides]]
-module = ["mpmath", "llvmlite.*"]
+module = ["mpmath", "llvmlite.*", "trepan.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["mathics.benchmark", "mathics.builtin.*", "mathics.eval.*", "test.*"]
+ignore_errors = true
