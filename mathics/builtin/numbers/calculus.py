@@ -1704,7 +1704,7 @@ class RootSum(SympyFunction):
 
     <dl>
       <dt>'RootSum[$f$, $form$]'
-      <dd>sums $form[x]$ for all roots of the polynomial $f[x]$.
+      <dd>sums $form$[$x$] for all roots of the polynomial $f$[$x$].
     </dl>
 
     >> Integrate[1/(x^5 + 11 x + 1), {x, 1, 3}]
@@ -1718,7 +1718,7 @@ class RootSum(SympyFunction):
     >> RootSum[#^5 - 3 # - 7 &, Sin] //N//Chop
      = 0.292188
 
-    Use Normal to expand RootSum:
+    Use 'Normal' to expand 'RootSum':
     >> RootSum[1+#+#^2+#^3+#^4 &, Log[x + #] &]
      = RootSum[1 + #1 ^ 2 + #1 ^ 3 + #1 ^ 4 + #1&, Log[x + #1]&]
     >> %//Normal

@@ -30,6 +30,7 @@ By `@davidar <https://github.com/davidar>`_:
 * ``PolyLog``
 * ``PowersRepresentations``
 * ``ReverseSort``
+* ``RootSum``
 * ``SeriesCoefficient``
 * ``SquaresR``
 * ``Subfactorial``
