@@ -140,7 +140,7 @@ def arcbox(self: _ArcBox, **options) -> str:
         is_face_element=self.face_element,
     )
     command = "filldraw" if self.face_element else "draw"
-    arc_path = create_arc_path(self.face_element, yscale)
+    arc_path = create_arc_path(self.face_element or False, yscale)
     asy = f"""// ArcBox
 {command}({arc_path}, {pen});"""
     # print("### arcbox", asy)
@@ -705,18 +705,18 @@ add_conversion_fn(Sphere3DBox)
 
 
 def tube_3d_box(self: Tube3DBox, **options) -> str:
-    if not (hasattr(self.graphics, "tube_import_added") and self.tube_import_added):
-        self.graphics.tube_import_added = True
-        asy_head = "import tube;\n\n"
-    else:
-        asy_head = ""
+    # if not (hasattr(self.graphics, "tube_import_added") and self.tube_import_added):
+    #     self.graphics.tube_import_added = True
+    #     asy_head = "import tube;\n\n"
+    # else:
+    #     asy_head = ""
     face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
     opacity = self.face_opacity
     color_str = build_3d_pen_color(face_color, opacity)
 
     asy = (
-        asy_head
-        + "// Tube3DBox\n draw(tube({0}, scale({1})*unitcircle), {2});".format(
+        # asy_head +
+        "// Tube3DBox\n draw(tube({0}, scale({1})*unitcircle), {2});".format(
             "--".join(
                 "({0},{1},{2})".format(*coords.pos()[0]) for coords in self.points
             ),
@@ -730,7 +730,7 @@ def tube_3d_box(self: Tube3DBox, **options) -> str:
 add_conversion_fn(Tube3DBox, tube_3d_box)
 
 
-def uniform_polyhedron_3d_box(self: RectangleBox, **options) -> str:
+def uniform_polyhedron_3d_box(self: UniformPolyhedron3DBox, **options) -> str:
     # l = self.style.get_line_width(face_element=True)
 
     face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)

@@ -26,7 +26,7 @@ from typing import (
     cast,
 )
 
-import mpmath  # type: ignore[import-untyped]
+import mpmath
 import pkg_resources
 import sympy
 
@@ -517,6 +517,8 @@ class Builtin:
 
 
 class BuiltinElement(Builtin, BaseElement):
+    options: Dict[str, Any]
+
     def __new__(cls, *args, **kwargs):
         new_kwargs = kwargs.copy()
         # In a Builtin element, we never return an Expression object,
@@ -1212,6 +1214,7 @@ class PatternObject(BuiltinElement, BasePattern):
     needs_verbatim = True
 
     arg_counts: List[int] = []
+    options: Dict[str, Any]
 
     def init(self, expr: Expression, evaluation: Optional[Evaluation] = None):
         super().init(expr, evaluation=evaluation)

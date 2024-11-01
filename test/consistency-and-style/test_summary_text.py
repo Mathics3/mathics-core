@@ -3,6 +3,8 @@ import importlib
 import os
 import os.path as osp
 import pkgutil
+from types import ModuleType
+from typing import Dict
 
 import pytest
 
@@ -59,7 +61,7 @@ local_vocabulary = (
 language_tool = None
 if CHECK_GRAMMAR:
     try:
-        import language_tool_python
+        import language_tool_python  # type: ignore[import-not-found]
 
         language_tool = language_tool_python.LanguageToolPublicAPI("en-US")
         # , config={ 'cacheSize': 1000, 'pipelineCaching': True })
@@ -114,7 +116,7 @@ for subdir in module_subdirs:
         module_names.append(f"{subdir}.{modname}")
 
 
-modules = dict()
+modules: Dict[str, ModuleType] = dict()
 for module_name in module_names:
     import_module(module_name)
 
@@ -122,6 +124,7 @@ for module_name in module_names:
 
 
 def check_grammar(text: str):
+    assert language_tool is not None
     matches = language_tool.check(text)
     filtered_matches = []
     if matches:

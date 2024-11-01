@@ -8,6 +8,7 @@ import os
 import os.path as osp
 import sys
 from pathlib import Path
+from typing import List
 
 import pkg_resources
 
@@ -97,7 +98,7 @@ ENABLE_FILES_MODULE = True
 
 # Rocky: this is probably a hack. LoadModule[] needs to handle
 # whatever it is that setting this thing did.
-default_pymathics_modules = []
+default_pymathics_modules: List[str] = []
 
 character_encoding = os.environ.get(
     "MATHICS_CHARACTER_ENCODING", sys.getdefaultencoding()

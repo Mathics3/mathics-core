@@ -3,7 +3,7 @@
 import platform
 import sys
 from importlib import import_module
-from typing import Dict
+from typing import Dict, Tuple
 
 from mpmath import __version__ as mpmath_version
 from numpy import __version__ as numpy_version
@@ -26,7 +26,7 @@ version_info: Dict[str, str] = {
 
 # optional_software contains a list of Python packages
 # that add functionality but are optional
-optional_software: Dict[str, str] = (
+optional_software: Tuple[str, ...] = (
     "cython",
     "lxml",
     "matplotlib",

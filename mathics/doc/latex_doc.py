@@ -4,7 +4,7 @@ FIXME: Ditch home-grown and lame parsing and hook into sphinx.
 """
 
 import re
-from typing import Optional
+from typing import Callable, Optional, Sequence
 
 from mathics.doc.doc_entries import (
     CONSOLE_RE,
@@ -257,11 +257,11 @@ def escape_latex(text):
                 if content.find("/doc/") == 0:
                     slug = "/".join(content.split("/")[2:]).rstrip("/")
                     return "%s \\ref{%s}" % (text, latex_label_safe(slug))
-                    slug = "/".join(content.split("/")[2:]).rstrip("/")
-                    return "%s of section~\\ref{%s}" % (text, latex_label_safe(slug))
+                    # slug = "/".join(content.split("/")[2:]).rstrip("/")
+                    # return "%s of section~\\ref{%s}" % (text, latex_label_safe(slug))
                 else:
                     return "\\href{%s}{%s}" % (content, text)
-                return "\\href{%s}{%s}" % (content, text)
+        return "\\href{%s}{%s}" % (content, text)
 
     text = QUOTATIONS_RE.sub(repl_quotation, text)
     text = HYPERTEXT_RE.sub(repl_hypertext, text)
@@ -535,6 +535,8 @@ class LaTeXDocumentationEntry(DocumentationEntry):
     Mathics core also uses this in getting usage strings (`??`).
     """
 
+    items: Sequence["LaTeXDocumentationEntry"]
+
     def __init__(self, doc_str: str, title: str, section: Optional[DocSection]):
         super().__init__(doc_str, title, section)
 
@@ -548,7 +550,7 @@ class LaTeXDocumentationEntry(DocumentationEntry):
                 return escape_latex(self.rawdoc)
 
         return "\n".join(
-            item.latex(doc_data) for item in self.items if not item.is_private()
+            item.latex(doc_data) for item in self.items  # if not item.is_private()
         )
 
     def _set_classes(self):
@@ -566,6 +568,8 @@ class LaTeXMathicsDocumentation(MathicsMainDocumentation):
     Subclass of MathicsMainDocumentation which is able to
     produce a the documentation in LaTeX format.
     """
+
+    parts: Sequence["LaTeXDocPart"]
 
     def __init__(self):
         super().__init__()
@@ -627,6 +631,9 @@ class LaTeXMathicsDocumentation(MathicsMainDocumentation):
 
 
 class LaTeXDocChapter(DocChapter):
+    doc: LaTeXDocumentationEntry
+    guide_sections: Sequence["LaTeXDocGuideSection"]
+
     def latex(
         self, doc_data: dict, quiet=False, filter_sections: Optional[str] = None
     ) -> str:
@@ -646,6 +653,7 @@ class LaTeXDocChapter(DocChapter):
                 short,
             )
 
+        sort_section_function: Callable
         if self.part.is_reference:
             sort_section_function = sorted
         else:
@@ -691,6 +699,7 @@ class LaTeXDocPart(DocPart):
         `output` is not used here but passed along to the bottom-most
         level in getting expected test results.
         """
+        chapter_fn: Callable
         if self.is_reference:
             chapter_fn = sorted_chapters
         else:
@@ -708,6 +717,8 @@ class LaTeXDocPart(DocPart):
 
 
 class LaTeXDocSection(DocSection):
+    subsections: Sequence["LaTeXDocSubsection"]
+
     def __init__(
         self,
         chapter,
@@ -760,6 +771,8 @@ class LaTeXDocGuideSection(DocGuideSection):
     are examples of Guide Sections, and each contains a number of Sections.
     like NamedColors or Orthogonal Polynomials.
     """
+
+    subsections: Sequence["LaTeXDocSubsection"]
 
     def __init__(
         self,
@@ -823,6 +836,8 @@ class LaTeXDocSubsection(DocSubsection):
     """An object for a Documented Subsection.
     A Subsection is part of a Section.
     """
+
+    subsections: Sequence["LaTeXDocSubsection"]
 
     def __init__(
         self,

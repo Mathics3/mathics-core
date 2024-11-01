@@ -32,6 +32,7 @@ import os
 import os.path as osp
 import platform
 import sys
+from typing import List
 
 from setuptools import Extension, setup
 from setuptools.command.build_py import build_py as setuptools_build_py
@@ -49,7 +50,7 @@ def get_srcdir():
     return osp.realpath(filename)
 
 
-DEPENDENCY_LINKS = []
+DEPENDENCY_LINKS: List[str] = []
 #     "http://github.com/Mathics3/mathics-scanner/tarball/master#egg=Mathics_Scanner-1.0.0.dev"
 # ]
 
@@ -60,7 +61,7 @@ CMDCLASS = {}
 try:
     if is_PyPy:
         raise ImportError
-    from Cython.Distutils import build_ext
+    from Cython.Distutils import build_ext  # type: ignore[import-not-found]
 except ImportError:
     pass
 else:

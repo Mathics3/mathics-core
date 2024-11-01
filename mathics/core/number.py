@@ -6,7 +6,7 @@ from math import ceil, log
 from sys import float_info
 from typing import List, Optional, Union
 
-import mpmath  # type: ignore[import-untyped]
+import mpmath
 import sympy
 
 from mathics.core.element import BaseElement

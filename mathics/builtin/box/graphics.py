@@ -7,6 +7,7 @@ no_doc = True
 
 
 from math import atan2, ceil, cos, degrees, floor, log10, pi, sin
+from typing import Optional
 
 from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.colors.color_directives import (
@@ -48,7 +49,7 @@ SymbolStandardForm = Symbol("StandardForm")
 
 # Note: has to come before _ArcBox
 class _RoundBox(_GraphicsElementBox):
-    face_element = None
+    face_element: Optional[bool] = None
 
     def init(self, graphics, style, item):
         super(_RoundBox, self).init(graphics, item, style)
