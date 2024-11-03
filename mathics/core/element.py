@@ -301,7 +301,7 @@ class BaseElement(KeyComparable, ABC):
     def get_float_value(self, permit_complex=False):
         return None
 
-    def get_int_value(self):
+    def get_int_value(self) -> Optional[int]:
         return None
 
     def get_lookup_name(self) -> str:
