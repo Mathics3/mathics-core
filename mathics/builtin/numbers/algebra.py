@@ -899,6 +899,8 @@ class CoefficientList(Builtin):
      = {{{0, 0, 0, 27}, {0, 0, -54, 0}, {0, 36, 0, 0}, {-8, 0, 0, 0}}, {{0, 0, 27, 0}, {0, -36, 0, 0}, {12, 0, 0, 0}, {0, 0, 0, 0}}, {{0, 9, 0, 0}, {-6, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}, {{1, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}}}
     >> CoefficientList[Series[Log[1-x], {x, 0, 9}], x]
      = {0, -1, -1 / 2, -1 / 3, -1 / 4, -1 / 5, -1 / 6, -1 / 7, -1 / 8, -1 / 9}
+    >> CoefficientList[Series[2x, {x, 0, 9}], x]
+     = {0, 2}
     """
 
     messages = {
@@ -944,7 +946,9 @@ class CoefficientList(Builtin):
                 return ListExpression(
                     *[
                         coeffs.elements[i - nmin.value] if i >= nmin.value else Integer0
-                        for i in range(0, nmax.value)
+                        for i in range(
+                            0, min(nmax.value, nmin.value + len(coeffs.elements))
+                        )
                     ]
                 )
 

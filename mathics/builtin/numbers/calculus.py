@@ -1818,6 +1818,8 @@ class SeriesCoefficient(Builtin):
      = 31 / 5760
     >> SeriesCoefficient[Exp[-x], {x, 0, 5}]
      = -1 / 120
+    >> SeriesCoefficient[2x, {x, 0, 2}]
+     = 0
 
     >> SeriesCoefficient[SeriesData[x, c, Table[i^2, {i, 10}], 7, 17, 3], 14/3]
      = 64
@@ -1842,10 +1844,10 @@ class SeriesCoefficient(Builtin):
         den: Integer
         coeffs, nmin, nmax, den = series.elements[2:]
         index = n.value * den.value - nmin.value
-        if index < 0:
-            return Integer0
         if index >= nmax.value - nmin.value:
             return SymbolIndeterminate
+        if index < 0 or index >= len(coeffs.elements):
+            return Integer0
         return coeffs[index]
 
 
