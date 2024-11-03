@@ -486,11 +486,14 @@ class RealDigits(Builtin):
         digits = []
         if not py_b == 10:
             digits = convert_float_base(py_n, py_b, display_len - exp)
-            # truncate all the leading 0's
-            i = 0
-            while digits and digits[i] == 0:
-                i += 1
-            digits = digits[i:]
+            if all(d == 0 for d in digits):
+                digits = [0]
+            else:
+                # truncate all the leading 0's
+                i = 0
+                while digits and digits[i] == 0:
+                    i += 1
+                digits = digits[i:]
 
             if not isinstance(n, Integer):
                 if len(digits) > display_len:

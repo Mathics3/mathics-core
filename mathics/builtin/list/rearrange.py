@@ -8,11 +8,12 @@ These functions reorder and rearrange lists.
 import functools
 from collections import defaultdict
 from itertools import chain
-from typing import Callable
+from typing import Callable, Optional
 
-from mathics.core.atoms import Integer, Integer0
+from mathics.core.atoms import Integer, Integer0, Number
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
 from mathics.core.builtin import Builtin, MessageException
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, structure
 from mathics.core.expression_predefined import MATHICS3_INFINITY
@@ -655,6 +656,7 @@ class Flatten(Builtin):
             "Level `1` specified in `2` exceeds the levels, `3`, "
             "which can be flattened together in `4`."
         ),
+        "normal": "Nonatomic expression expected at position `1` in `2`.",
     }
 
     rules = {
@@ -759,11 +761,12 @@ class Flatten(Builtin):
 
         return Expression(h, *insert_element(elements))
 
-    def eval(self, expr, n, h, evaluation):
+    def eval(self, expr: BaseElement, n: Number, h, evaluation):
         "Flatten[expr_, n_, h_]"
 
+        n_int: Optional[int]
         if n.sameQ(MATHICS3_INFINITY):
-            n = -1  # a negative number indicates an unbounded level
+            n_int = -1  # a negative number indicates an unbounded level
         else:
             n_int = n.get_int_value()
             # Here we test for negative since in Mathics Flatten[] as opposed to flatten_with_respect_to_head()
@@ -771,9 +774,12 @@ class Flatten(Builtin):
             if n_int is None or n_int < 0:
                 evaluation.message("Flatten", "flpi", n)
                 return
-            n = n_int
 
-        return expr.flatten_with_respect_to_head(h, level=n)
+        if not isinstance(expr, Expression):
+            evaluation.message("Flatten", "normal", 1, expr)
+            return
+
+        return expr.flatten_with_respect_to_head(h, level=n_int)
 
 
 class GatherBy(_GatherOperation):
@@ -814,14 +820,15 @@ class GatherBy(_GatherOperation):
     summary_text = "gather based on values of a function applied to elements"
     _bin = _GatherBin
 
-    def eval(self, values, func, evaluation: Evaluation):
+    def eval(self, values: BaseElement, func, evaluation: Evaluation):
         "%(name)s[values_, func_]"
 
         if not self._check_list(values, func, evaluation):
             return
 
         keys = Expression(SymbolMap, func, values).evaluate(evaluation)
-        if len(keys.elements) != len(values.elements):
+        assert keys is not None
+        if len(keys.get_elements()) != len(values.get_elements()):
             return
 
         return self._gather(keys, values, _FastEquivalence())

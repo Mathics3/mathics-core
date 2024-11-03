@@ -662,7 +662,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return self._flatten_sequence(sequence, evaluation)
 
     def flatten_with_respect_to_head(
-        self, head, pattern_only=False, callback=None, level=100
+        self, head: Symbol, pattern_only=False, callback=None, level=100
     ) -> "Expression":
         """
         Flatten elements in self which have `head` in them.
@@ -1304,6 +1304,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 element.unevaluated = old.unevaluated
 
         if A_FLAT & attributes:
+            assert isinstance(new._head, Symbol)
             new = new.flatten_with_respect_to_head(new._head, callback=flatten_callback)
             if new.elements_properties is None:
                 new._build_elements_properties()
