@@ -217,6 +217,8 @@ class EulerPhi(SympyFunction):
     'EulerPhi' of a negative integer is same as its positive counterpart:
     >> EulerPhi[-11] == EulerPhi[11]
     = True
+    >> EulerPhi[0]
+    = 0
 
     Large arguments are computed quickly:
     >> EulerPhi[40!]
@@ -238,7 +240,15 @@ class EulerPhi(SympyFunction):
 
     def eval(self, n: Integer, evaluation: Evaluation):
         "EulerPhi[n_Integer]"
+        if n.is_zero:
+            return Integer0
         return super().eval(abs(n), evaluation)
+
+    def to_sympy(self, expr, **kwargs):
+        try:
+            return super().to_sympy(expr, **kwargs)
+        except ValueError:  # n must be a positive integer
+            return None
 
 
 class FactorInteger(Builtin):
