@@ -16,8 +16,8 @@ Infix operators combined with assignment end in 'By', 'From', or 'To'.
 """
 
 
-from mathics.builtin.base import BinaryOperator, PostfixOperator, PrefixOperator
 from mathics.core.attributes import A_HOLD_FIRST, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import BinaryOperator, PostfixOperator, PrefixOperator
 
 
 class AddTo(BinaryOperator):
@@ -40,12 +40,11 @@ class AddTo(BinaryOperator):
     attributes = A_HOLD_FIRST | A_PROTECTED
     grouping = "Right"
     operator = "+="
-    precedence = 100
 
     rules = {
         "x_ += dx_": "x = x + dx",
     }
-    summary_text = "add a value and assignes that returning the new value"
+    summary_text = "add a value and assigns that returning the new value"
 
 
 class Decrement(PostfixOperator):
@@ -68,7 +67,6 @@ class Decrement(PostfixOperator):
     """
 
     operator = "--"
-    precedence = 660
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
 
     rules = {
@@ -100,7 +98,6 @@ class DivideBy(BinaryOperator):
     attributes = A_HOLD_FIRST | A_PROTECTED
     grouping = "Right"
     operator = "/="
-    precedence = 100
 
     rules = {
         "x_ /= dx_": "x = x / dx",
@@ -131,7 +128,6 @@ class Increment(PostfixOperator):
     """
 
     operator = "++"
-    precedence = 660
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
 
     rules = {
@@ -169,7 +165,6 @@ class PreIncrement(PrefixOperator):
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
     operator = "++"
-    precedence = 660
 
     rules = {
         "++x_": "x = x + 1",
@@ -199,7 +194,6 @@ class PreDecrement(PrefixOperator):
     """
 
     operator = "--"
-    precedence = 660
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
 
     rules = {
@@ -229,7 +223,6 @@ class SubtractFrom(BinaryOperator):
     attributes = A_HOLD_FIRST | A_PROTECTED
     grouping = "Right"
     operator = "-="
-    precedence = 100
 
     rules = {
         "x_ -= dx_": "x = x - dx",
@@ -255,7 +248,6 @@ class TimesBy(BinaryOperator):
     """
 
     operator = "*="
-    precedence = 100
     attributes = A_HOLD_FIRST | A_PROTECTED
     grouping = "Right"
 

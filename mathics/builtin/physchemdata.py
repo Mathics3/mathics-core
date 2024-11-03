@@ -8,9 +8,10 @@ Physical and Chemical data
 import os
 from csv import reader as csvreader
 
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer, String
+from mathics.core.builtin import Builtin
 from mathics.core.convert.python import from_python
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, strip_context
 
@@ -27,9 +28,9 @@ def load_element_data():
 
         datadir = mathics_scanner.__file__[:-11]
         element_file = open(os.path.join(datadir, "data/element.csv"), "r")
-    except:
-        print(os.path.join(datadir, "data/element.csv"), "  not found.")
-        return None
+    except Exception:
+        raise NoElementDataFile("data/elements.csv is not available.")
+
     reader = csvreader(element_file, delimiter="\t")
     element_data = []
     for row in reader:
@@ -39,9 +40,6 @@ def load_element_data():
 
 
 _ELEMENT_DATA = load_element_data()
-
-if _ELEMENT_DATA is None:
-    raise NoElementDataFile("data/elements.csv is not available.")
 
 
 class ElementData(Builtin):
@@ -89,9 +87,6 @@ class ElementData(Builtin):
 
     >> ListPlot[Table[ElementData[z, "AtomicWeight"], {z, 118}]]
      = -Graphics-
-
-    ## Ensure all data parses #664
-    #> Outer[ElementData, Range[118], ElementData["Properties"]];
     """
 
     messages = {
@@ -113,16 +108,16 @@ class ElementData(Builtin):
 
     summary_text = "Data about chemical elements"
 
-    def apply_all(self, evaluation):
+    def eval_all(self, evaluation: Evaluation):
         "ElementData[All]"
         iprop = _ELEMENT_DATA[0].index("StandardName")
         return from_python([element[iprop] for element in _ELEMENT_DATA[1:]])
 
-    def apply_all_properties(self, evaluation):
+    def eval_all_properties(self, evaluation: Evaluation):
         'ElementData[All, "Properties"]'
         return from_python(sorted(_ELEMENT_DATA[0]))
 
-    def apply_name(self, expr, prop, evaluation):
+    def eval_name(self, expr, prop, evaluation: Evaluation):
         "ElementData[expr_, prop_]"
 
         if isinstance(expr, String):

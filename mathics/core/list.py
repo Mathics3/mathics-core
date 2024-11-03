@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Module containing ListExpression
+"""
 
 import reprlib
 from typing import Optional, Tuple
@@ -11,17 +14,19 @@ from mathics.core.symbols import EvalMixin, Symbol, SymbolList
 
 class ListExpression(Expression):
     """
-    A Mathics List-Expression.
+    A Mathics3 List-Expression.
 
-    A Mathics List is a specialization of Expression where the head is SymbolList.
+    A Mathics3 List is a specialization of Expression where the head is SymbolList.
 
     positional Arguments:
         - *elements - optional: the remaining elements
 
     Keyword Arguments:
-        - element_properties -- properties of the collection of elements
+        - elements_properties -- properties of the collection of elements
         - literal_values -- if this is not None, then it is a tuple of Python values
     """
+
+    _is_literal: bool
 
     def __init__(
         self,
@@ -83,7 +88,7 @@ class ListExpression(Expression):
 
     def __str__(self) -> str:
         """str() representation of ListExpression. May be longer than repr()"""
-        return f"<ListExpression: {self._elements}>"
+        return "{" + ",".join(str(e) for e in self.elements) + "}"
 
     # @timeit
     def evaluate_elements(self, evaluation: Evaluation) -> Expression:
@@ -99,7 +104,7 @@ class ListExpression(Expression):
                 if isinstance(element, EvalMixin):
                     new_value = element.evaluate(evaluation)
                     # We need id() because != by itself is too permissive
-                    if id(element) != id(new_value):
+                    if new_value is not None and id(element) != id(new_value):
                         elements_changed = True
                         elements[index] = new_value
 
@@ -107,12 +112,7 @@ class ListExpression(Expression):
             return self
 
         new_list = ListExpression(*elements)
-        # TODO: we could have a specialized version of this
-        # that keeps self.value up to date when that is
-        # easy to do. That is left of some future time to
-        # decide whether doing this this is warranted.
         new_list._build_elements_properties()
-        new_list.value = None
         return new_list
 
     @property
@@ -146,9 +146,9 @@ class ListExpression(Expression):
 
         if self.elements_properties is None:
             self._build_elements_properties()
+        assert self.elements_properties is not None
         if not self.elements_properties.elements_fully_evaluated:
-            new = self.shallow_copy()
-            new = new.evaluate_elements(evaluation)
+            new = self.shallow_copy().evaluate_elements(evaluation)
             return new, False
         return self, False
 

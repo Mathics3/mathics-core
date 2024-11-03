@@ -4,7 +4,7 @@ Binary Types
 """
 
 
-from mathics.builtin.base import Builtin
+from mathics.core.builtin import Builtin
 
 
 class Byte(Builtin):
@@ -15,6 +15,7 @@ class Byte(Builtin):
       <dt>'Byte'
       <dd>is a data type for 'Read'.
     </dl>
+
     """
 
     summary_text = "single byte of data, returned as an integer"

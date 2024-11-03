@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Boxing Routines for 2D Graphics
+Boxing Symbols for 2D Graphics
 """
+# Docs are not yet ready for prime time. Maybe after release 6.0.0.
+no_doc = True
 
 
 from math import atan2, ceil, cos, degrees, floor, log10, pi, sin
+from typing import Optional
 
 from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.colors.color_directives import (
@@ -46,7 +49,7 @@ SymbolStandardForm = Symbol("StandardForm")
 
 # Note: has to come before _ArcBox
 class _RoundBox(_GraphicsElementBox):
-    face_element = None
+    face_element: Optional[bool] = None
 
     def init(self, graphics, style, item):
         super(_RoundBox, self).init(graphics, item, style)
@@ -138,10 +141,12 @@ class _ArcBox(_RoundBox):
 class ArrowBox(_Polyline):
     """
     <dl>
-      <dt>'ArrowBox[...]'
-      <dd>is a box structure for 'Arrow' elements.
+      <dt>'ArrowBox'
+      <dd>is the symbol used in boxing 'Arrow' expressions.
     </dl>
     """
+
+    summary_text = "symbol used in boxing 'Arrow' expressions"
 
     def init(self, graphics, style, item=None):
         if not item:
@@ -338,10 +343,12 @@ class ArrowBox(_Polyline):
 class BezierCurveBox(_Polyline):
     """
     <dl>
-      <dt>'BezierCurveBox[...]'
-      <dd>is a box structure for a 'BezierCurve' element.
+      <dt>'BezierCurveBox'
+      <dd>is the symbol used in boxing 'BezierCurve' expressions.
     </dl>
     """
+
+    summary_text = "symbol used in boxing 'BezierCurve' expressions"
 
     def init(self, graphics, style, item, options):
         super(BezierCurveBox, self).init(graphics, item, style)
@@ -360,40 +367,38 @@ class BezierCurveBox(_Polyline):
 class CircleBox(_ArcBox):
     """
     <dl>
-      <dt>'CircleBox[...]'
-      <dd>box structure for a 'Circle' element.
+      <dt>'CircleBox'
+      <dd>is the symbol used in boxing 'Circle' expressions.
     </dl>
     """
 
     face_element = False
-    summary_text = "internal box representation for 'Circle' elements"
+    summary_text = "is the symbol used in boxing 'Circle' expressions"
 
 
 class DiskBox(_ArcBox):
     """
     <dl>
-      <dt>'DiskBox[...]'
-      <dd>box structure for a 'Disk' element.
+      <dt>'DiskBox'
+      <dd>is the symbol used in boxing 'Disk' expressions.
     </dl>
     """
 
     face_element = True
-    summary_text = "internal box representation for 'Disk' elements"
+    summary_text = "symbol used in boxing 'Disk' expressions"
 
 
 class GraphicsBox(BoxExpression):
     """
     <dl>
-      <dt>'GraphicsBox[...]'
-      <dd>box structure holding a 'Graphics' object.
+      <dt>'GraphicsBox'
+      <dd>is the symbol used in boxing 'Graphics'.
     </dl>
-
-    Boxing method which get called when Boxing (adding formatting and bounding-box information)
-    Graphics.
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
     options = Graphics.options
+    summary_text = "symbol used in boxing 'Graphics'"
 
     def __new__(cls, *elements, **kwargs):
         instance = super().__new__(cls, *elements, **kwargs)
@@ -470,7 +475,10 @@ class GraphicsBox(BoxExpression):
         ):
             self.background_color = None
         else:
-            self.background_color = _ColorObject.create(background)
+            try:
+                self.background_color = _ColorObject.create(background)
+            except ColorError:
+                self.background_color = None
 
         base_width, base_height, size_multiplier, size_aspect = self._get_image_size(
             options, self.graphics_options, max_width
@@ -487,6 +495,11 @@ class GraphicsBox(BoxExpression):
         if evaluation is None:
             evaluation = self.evaluation
         elements = GraphicsElements(elements[0], evaluation, neg_y)
+        if hasattr(elements, "background_color"):
+            self.background_color = elements.background_color
+        if hasattr(elements, "tooltip_text"):
+            self.tooltip_text = elements.tooltip_text
+
         axes = []  # to be filled further down
 
         def calc_dimensions(final_pass=True):
@@ -692,26 +705,39 @@ class GraphicsBox(BoxExpression):
         svg_body = format_fn(self, elements, data=data, **options)
         return svg_body
 
-    def create_axes(self, elements, graphics_options, xmin, xmax, ymin, ymax):
+    def create_axes(self, elements, graphics_options, xmin, xmax, ymin, ymax) -> tuple:
+        # Note that Asymptote has special commands for drawing axes, like "xaxis"
+        # "yaxis", "xtick" "labelx", "labely". Extend our language
+        # here and use those in render-like routines.
+
         use_log_for_y_axis = graphics_options.get("System`LogPlot", False)
-        axes = graphics_options.get("System`Axes")
-        if axes is SymbolTrue:
+        axes_option = graphics_options.get("System`Axes")
+
+        if axes_option is SymbolTrue:
             axes = (True, True)
-        elif axes.has_form("List", 2):
-            axes = (axes.elements[0] is SymbolTrue, axes.elements[1] is SymbolTrue)
+        elif axes_option.has_form("List", 2):
+            axes = (
+                axes_option.elements[0] is SymbolTrue,
+                axes_option.elements[1] is SymbolTrue,
+            )
         else:
             axes = (False, False)
-        ticks_style = graphics_options.get("System`TicksStyle")
-        axes_style = graphics_options.get("System`AxesStyle")
+
+        # The Style option pushes its setting down into graphics components
+        # like ticks, axes, and labels.
+        ticks_style_option = graphics_options.get("System`TicksStyle")
+        axes_style_option = graphics_options.get("System`AxesStyle")
         label_style = graphics_options.get("System`LabelStyle")
-        if ticks_style.has_form("List", 2):
-            ticks_style = ticks_style.elements
+
+        if ticks_style_option.has_form("List", 2):
+            ticks_style = ticks_style_option.elements
         else:
-            ticks_style = [ticks_style] * 2
-        if axes_style.has_form("List", 2):
-            axes_style = axes_style.elements
+            ticks_style = [ticks_style_option] * 2
+
+        if axes_style_option.has_form("List", 2):
+            axes_style = axes_style_option.elements
         else:
-            axes_style = [axes_style] * 2
+            axes_style = [axes_style_option] * 2
 
         ticks_style = [elements.create_style(s) for s in ticks_style]
         axes_style = [elements.create_style(s) for s in axes_style]
@@ -723,12 +749,16 @@ class GraphicsBox(BoxExpression):
             element.is_completely_visible = True
             elements.elements.append(element)
 
+        # Units seem to be in point size units
+
         ticks_x, ticks_x_small, origin_x = self.axis_ticks(xmin, xmax)
         ticks_y, ticks_y_small, origin_y = self.axis_ticks(ymin, ymax)
 
         axes_extra = 6
+
         tick_small_size = 3
         tick_large_size = 5
+
         tick_label_d = 2
 
         ticks_x_int = all(floor(x) == x for x in ticks_x)
@@ -791,8 +821,10 @@ class GraphicsBox(BoxExpression):
                     )
                 )
                 ticks_lines = []
+
                 tick_label_style = ticks_style[index].clone()
                 tick_label_style.extend(label_style)
+
                 for x in ticks:
                     ticks_lines.append(
                         [
@@ -816,6 +848,7 @@ class GraphicsBox(BoxExpression):
                         content = String(
                             "%g" % tick_value
                         )  # fix e.g. 0.6000000000000001
+
                     add_element(
                         InsetBox(
                             elements,
@@ -839,38 +872,39 @@ class GraphicsBox(BoxExpression):
                 add_element(LineBox(elements, axes_style[0], lines=ticks_lines))
         return axes
 
-        """if axes[1]:
-            add_element(LineBox(elements, axes_style[1], lines=[[Coords(elements, pos=(origin_x,ymin), d=(0,-axes_extra)),
-                Coords(elements, pos=(origin_x,ymax), d=(0,axes_extra))]]))
-            ticks = []
-            tick_label_style = ticks_style[1].clone()
-            tick_label_style.extend(label_style)
-            for k in range(start_k_y, start_k_y+steps_y+1):
-                if k != origin_k_y:
-                    y = k * step_y
-                    if y > ymax:
-                        break
-                    pos = (origin_x,y)
-                    ticks.append([Coords(elements, pos=pos),
-                        Coords(elements, pos=pos, d=(tick_large_size,0))])
-                    add_element(InsetBox(elements, tick_label_style, content=Real(y), pos=Coords(elements, pos=pos,
-                        d=(-tick_label_d,0)), opos=(1,0)))
-            for k in range(start_k_y_small, start_k_y_small+steps_y_small+1):
-                if k % sub_y != 0:
-                    y = k * step_y_small
-                    if y > ymax:
-                        break
-                    pos = (origin_x,y)
-                    ticks.append([Coords(elements, pos=pos),
-                        Coords(elements, pos=pos, d=(tick_small_size,0))])
-            add_element(LineBox(elements, axes_style[1], lines=ticks))"""
+        # Old code?
+        # if axes[1]:
+        #     add_element(LineBox(elements, axes_style[1], lines=[[Coords(elements, pos=(origin_x,ymin), d=(0,-axes_extra)),
+        #         Coords(elements, pos=(origin_x,ymax), d=(0,axes_extra))]]))
+        #     ticks = []
+        #     tick_label_style = ticks_style[1].clone()
+        #     tick_label_style.extend(label_style)
+        #     for k in range(start_k_y, start_k_y+steps_y+1):
+        #         if k != origin_k_y:
+        #             y = k * step_y
+        #             if y > ymax:
+        #                 break
+        #             pos = (origin_x,y)
+        #             ticks.append([Coords(elements, pos=pos),
+        #                 Coords(elements, pos=pos, d=(tick_large_size,0))])
+        #             add_element(InsetBox(elements, tick_label_style, content=Real(y), pos=Coords(elements, pos=pos,
+        #                 d=(-tick_label_d,0)), opos=(1,0)))
+        #     for k in range(start_k_y_small, start_k_y_small+steps_y_small+1):
+        #         if k % sub_y != 0:
+        #             y = k * step_y_small
+        #             if y > ymax:
+        #                 break
+        #             pos = (origin_x,y)
+        #             ticks.append([Coords(elements, pos=pos),
+        #                 Coords(elements, pos=pos, d=(tick_small_size,0))])
+        #     add_element(LineBox(elements, axes_style[1], lines=ticks))
 
 
 class FilledCurveBox(_GraphicsElementBox):
     """
     <dl>
-      <dt>'FilledCurveBox[...]'
-      <dd>is a box structure for 'FilledCurve' elements.
+      <dt>'FilledCurveBox'
+      <dd>is the symbol used in boxing 'FilledCurve' expressions.
     </dl>
     """
 
@@ -947,6 +981,9 @@ class FilledCurveBox(_GraphicsElementBox):
 
 
 class InsetBox(_GraphicsElementBox):
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(
         self,
         graphics,
@@ -1012,7 +1049,14 @@ class InsetBox(_GraphicsElementBox):
 
 
 class LineBox(_Polyline):
-    # Boxing methods for a list of Line.
+    """
+    <dl>
+      <dt>'LineBox'
+      <dd>is the symbol used in boxing 'Line' expressions.
+    </dl>
+    """
+
+    summary_text = "symbol used in boxing 'Line' expressions"
 
     def init(self, graphics, style, item=None, lines=None):
         super(LineBox, self).init(graphics, item, style)
@@ -1032,19 +1076,14 @@ class LineBox(_Polyline):
 class PointBox(_Polyline):
     """
     <dl>
-      <dt>'PointBox'[{$x$, $y$}]
-      <dd> a box construction representing a point in a Graphic.
-      <dt>'PointBox'[{$x$, $y$, $z$}]
-      <dd> represents a point in a Graphic3D.
-      <dt>'PointBox'[{$p_1$, $p_2$,...}]
-      <dd> represents a set of points.
+      <dt>'PointBox']
+      <dd>is the symbol used in boxing 'Point' expressions.
     </dl>
-    ## Boxing methods for a list of Point.
-    ##
-    ## object attributes:
-    ## edge_color: _ColorObject
-    ## point_radius: radius of each point
+
+    Options include the edge color and the point radius for each of the points.
     """
+
+    summary_text = "symbol used in boxing 'Point' expressions"
 
     def init(self, graphics, style, item=None):
         super(PointBox, self).init(graphics, item, style)
@@ -1097,6 +1136,9 @@ class PointBox(_Polyline):
 
 
 class PolygonBox(_Polyline):
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(self, graphics, style, item=None):
         super(PolygonBox, self).init(graphics, item, style)
         self.edge_color, self.face_color = style.get_style(
@@ -1148,6 +1190,9 @@ class PolygonBox(_Polyline):
 
 
 class RectangleBox(_GraphicsElementBox):
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(self, graphics, style, item):
         super(RectangleBox, self).init(graphics, item, style)
         if len(item.elements) not in (1, 2):
@@ -1181,6 +1226,9 @@ class RectangleBox(_GraphicsElementBox):
 
 
 class RegularPolygonBox(PolygonBox):
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(self, graphics, style, item):
         if len(item.elements) in (1, 2, 3) and isinstance(item.elements[-1], Integer):
             r = 1.0

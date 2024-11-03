@@ -3,7 +3,8 @@
 """
 Trigonometric Functions
 
-Numerical values and derivatives can be computed; however, most special exact values and simplification rules are not implemented yet.
+Numerical values and derivatives can be computed; however, \
+most special exact values and simplification rules are not implemented yet.
 """
 
 import math
@@ -13,22 +14,20 @@ from itertools import chain
 
 import mpmath
 
-from mathics.builtin.arithmetic import _MPMathFunction
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer, Integer0, IntegerM1, Real
+from mathics.core.builtin import Builtin, MPMathFunction
 from mathics.core.convert.python import from_python
+from mathics.core.exceptions import IllegalStepSpecification
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolPower
-from mathics.core.systemsymbols import SymbolCos, SymbolSin
-
-SymbolArcCos = Symbol("ArcCos")
-SymbolArcSin = Symbol("ArcSin")
-SymbolArcTan = Symbol("ArcTan")
-
-
-class _IllegalStepSpecification(Exception):
-    pass
+from mathics.core.symbols import SymbolPower
+from mathics.core.systemsymbols import (
+    SymbolArcCos,
+    SymbolArcSin,
+    SymbolArcTan,
+    SymbolCos,
+    SymbolSin,
+)
 
 
 class Fold:
@@ -163,23 +162,33 @@ class Fold:
 
 class AnglePath(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/AnglePath.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/AnglePath.html</url>
 
     <dl>
       <dt>'AnglePath[{$phi1$, $phi2$, ...}]'
-      <dd>returns the points formed by a turtle starting at {0, 0} and angled at 0 degrees going through
-        the turns given by angles $phi1$, $phi2$, ... and using distance 1 for each step.
+      <dd>returns the points formed by a turtle starting at {0, 0} and angled \
+          at 0 degrees going through
+          the turns given by angles $phi1$, $phi2$, ... and using distance 1 \
+          for each step.
+
       <dt>'AnglePath[{{$r1$, $phi1$}, {$r2$, $phi2$}, ...}]'
-      <dd>instead of using 1 as distance, use $r1$, $r2$, ... as distances for the respective steps.
+      <dd>instead of using 1 as distance, use $r1$, $r2$, ... as distances for \
+          the respective steps.
+
       <dt>'AnglePath[$phi0$, {$phi1$, $phi2$, ...}]'
       <dd>starts with direction $phi0$ instead of 0.
+
       <dt>'AnglePath[{$x$, $y$}, {$phi1$, $phi2$, ...}]'
       <dd>starts at {$x, $y} instead of {0, 0}.
+
       <dt>'AnglePath[{{$x$, $y$}, $phi0$}, {$phi1$, $phi2$, ...}]'
       <dd>specifies initial position {$x$, $y$} and initial direction $phi0$.
+
       <dt>'AnglePath[{{$x$, $y$}, {$dx$, $dy$}}, {$phi1$, $phi2$, ...}]'
-      <dd>specifies initial position {$x$, $y$} and a slope {$dx$, $dy$} that is understood to be the
-        initial direction of the turtle.
+      <dd>specifies initial position {$x$, $y$} and a slope {$dx$, $dy$} that is \
+          understood to be the initial direction of the turtle.
     </dl>
 
     >> AnglePath[{90 Degree, 90 Degree, 90 Degree, 90 Degree}]
@@ -213,17 +222,17 @@ class AnglePath(Builtin):
 
             def parse(step):
                 if step.get_head_name() != "System`List":
-                    raise _IllegalStepSpecification
+                    raise IllegalStepSpecification
                 arguments = step.elements
                 if len(arguments) != 2:
-                    raise _IllegalStepSpecification
+                    raise IllegalStepSpecification
                 return arguments
 
         else:
 
             def parse(step):
                 if step.get_head_name() == "System`List":
-                    raise _IllegalStepSpecification
+                    raise IllegalStepSpecification
                 return None, step
 
         try:
@@ -232,30 +241,30 @@ class AnglePath(Builtin):
                 ListExpression(x, y) for x, y, _ in fold.fold((x0, y0, phi0), steps)
             ]
             return ListExpression(*elements)
-        except _IllegalStepSpecification:
+        except IllegalStepSpecification:
             evaluation.message("AnglePath", "steps", ListExpression(*steps))
 
-    def apply(self, steps, evaluation):
+    def eval(self, steps, evaluation):
         "AnglePath[{steps___}]"
         return AnglePath._compute(
             Integer0, Integer0, None, steps.get_sequence(), evaluation
         )
 
-    def apply_phi0(self, phi0, steps, evaluation):
+    def eval_phi0(self, phi0, steps, evaluation):
         "AnglePath[phi0_, {steps___}]"
         return AnglePath._compute(
             Integer0, Integer0, phi0, steps.get_sequence(), evaluation
         )
 
-    def apply_xy(self, x, y, steps, evaluation):
+    def eval_xy(self, x, y, steps, evaluation):
         "AnglePath[{x_, y_}, {steps___}]"
         return AnglePath._compute(x, y, None, steps.get_sequence(), evaluation)
 
-    def apply_xy_phi0(self, x, y, phi0, steps, evaluation):
+    def eval_xy_phi0(self, x, y, phi0, steps, evaluation):
         "AnglePath[{{x_, y_}, phi0_}, {steps___}]"
         return AnglePath._compute(x, y, phi0, steps.get_sequence(), evaluation)
 
-    def apply_xy_dx(self, x, y, dx, dy, steps, evaluation):
+    def eval_xy_dx(self, x, y, dx, dy, steps, evaluation):
         "AnglePath[{{x_, y_}, {dx_, dy_}}, {steps___}]"
         phi0 = Expression(SymbolArcTan, dx, dy)
         return AnglePath._compute(x, y, phi0, steps.get_sequence(), evaluation)
@@ -324,9 +333,17 @@ class AnglePathFold(Fold):
             yield x, y, phi
 
 
-class ArcCos(_MPMathFunction):
+class ArcCos(MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcCos.html</url>
+    Inverse cosine, <url>
+    :arccosine:
+    https://en.wikipedia.org/wiki/Inverse_trigonometric_functions#Principal_values</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/elementary.html#acot</url>, <url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/trigonometric.html#acos</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/ArcCos.html</url>)
 
     <dl>
       <dt>'ArcCos[$z$]'
@@ -341,8 +358,6 @@ class ArcCos(_MPMathFunction):
      = Pi
     """
 
-    summary_text = "inverse cosine function"
-    sympy_name = "acos"
     mpmath_name = "acos"
 
     rules = {
@@ -351,11 +366,21 @@ class ArcCos(_MPMathFunction):
         "ArcCos[Undefined]": "Undefined",
         "Derivative[1][ArcCos]": "-1/Sqrt[1-#^2]&",
     }
+    summary_text = "inverse cosine function"
+    sympy_name = "acos"
 
 
-class ArcCot(_MPMathFunction):
+class ArcCot(MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcCot.html</url>
+    Inverse cotangent, <url>
+    :arccotangent:
+    https://en.wikipedia.org/wiki/Inverse_trigonometric_functions#Principal_values</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/elementary.html#acot</url>, <url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/trigonometric.html#acot</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/ArcCot.html</url>)
 
     <dl>
       <dt>'ArcCot[$z$]'
@@ -368,8 +393,6 @@ class ArcCot(_MPMathFunction):
      = Pi / 4
     """
 
-    summary_text = "inverse cotangent function"
-    sympy_name = "acot"
     mpmath_name = "acot"
 
     rules = {
@@ -378,11 +401,21 @@ class ArcCot(_MPMathFunction):
         "ArcCot[Undefined]": "Undefined",
         "Derivative[1][ArcCot]": "-1/(1+#^2)&",
     }
+    summary_text = "inverse cotangent function"
+    sympy_name = "acot"
 
 
-class ArcCsc(_MPMathFunction):
+class ArcCsc(MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcCsc.html</url>
+    Inverse cosecant, <url>
+    :arccosecant:
+    https://en.wikipedia.org/wiki/Inverse_trigonometric_functions#Principal_values</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/elementary.html#acsc</url>, <url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/trigonometric.html#acsc</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/ArcCsc.html</url>)
 
     <dl>
       <dt>'ArcCsc[$z$]'
@@ -395,8 +428,6 @@ class ArcCsc(_MPMathFunction):
      = -Pi / 2
     """
 
-    summary_text = "inverse cosecant function"
-    sympy_name = ""
     mpmath_name = "acsc"
 
     rules = {
@@ -405,6 +436,8 @@ class ArcCsc(_MPMathFunction):
         "ArcCsc[1]": "Pi / 2",
         "Derivative[1][ArcCsc]": "-1 / (Sqrt[1 - 1/#^2] * #^2)&",
     }
+    summary_text = "inverse cosecant function"
+    sympy_name = "acsc"
 
     def to_sympy(self, expr, **kwargs):
         if len(expr.elements) == 1:
@@ -413,9 +446,17 @@ class ArcCsc(_MPMathFunction):
             ).to_sympy()
 
 
-class ArcSec(_MPMathFunction):
+class ArcSec(MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcSec.html</url>
+    Inverse secant, <url>
+    :arcsecant:
+    https://en.wikipedia.org/wiki/Inverse_trigonometric_functions#Principal_values</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/elementary.html#sympy.functions.elementary.trigonometric.asec</url>, <url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/trigonometric.html#asec</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/ArcSec.html</url>)
 
     <dl>
       <dt>'ArcSec[$z$]'
@@ -438,7 +479,7 @@ class ArcSec(_MPMathFunction):
     }
 
     summary_text = "inverse secant function"
-    sympy_name = ""
+    sympy_name = "asec"
 
     def to_sympy(self, expr, **kwargs):
         if len(expr.elements) == 1:
@@ -447,9 +488,17 @@ class ArcSec(_MPMathFunction):
             ).to_sympy()
 
 
-class ArcSin(_MPMathFunction):
+class ArcSin(MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcSin.html</url>
+    Inverse sine, <url>
+    :arcsine:
+    https://en.wikipedia.org/wiki/Inverse_trigonometric_functions#Principal_values</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/elementary.html#asin</url>, <url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/trigonometric.html#asin</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/ArcSin.html</url>)
 
     <dl>
       <dt>'ArcSin[$z$]'
@@ -475,9 +524,17 @@ class ArcSin(_MPMathFunction):
     sympy_name = "asin"
 
 
-class ArcTan(_MPMathFunction):
+class ArcTan(MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcTan.html</url>
+    Inverse tangent, <url>
+    :arctangent:
+    https://en.wikipedia.org/wiki/Inverse_trigonometric_functions#Principal_values</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/elementary.html#atan</url>, <url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/trigonometric.html#atan</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/ArcTan.html</url>)
 
     <dl>
       <dt>'ArcTan[$z$]'
@@ -493,21 +550,6 @@ class ArcTan(_MPMathFunction):
 
     >> ArcTan[1, 1]
      = Pi / 4
-    #> ArcTan[-1, 1]
-     = 3 Pi / 4
-    #> ArcTan[1, -1]
-     = -Pi / 4
-    #> ArcTan[-1, -1]
-     = -3 Pi / 4
-
-    #> ArcTan[1, 0]
-     = 0
-    #> ArcTan[-1, 0]
-     = Pi
-    #> ArcTan[0, 1]
-     = Pi / 2
-    #> ArcTan[0, -1]
-     = -Pi / 2
     """
 
     mpmath_name = "atan"
@@ -518,7 +560,7 @@ class ArcTan(_MPMathFunction):
         "ArcTan[Undefined]": "Undefined",
         "ArcTan[Undefined, x_]": "Undefined",
         "ArcTan[y_, Undefined]": "Undefined",
-        "ArcTan[x_?RealNumberQ, y_?RealNumberQ]": """If[x == 0, If[y == 0, 0, If[y > 0, Pi/2, -Pi/2]], If[x > 0,
+        "ArcTan[x_?RealValuedNumberQ, y_?RealValuedNumberQ]": """If[x == 0, If[y == 0, 0, If[y > 0, Pi/2, -Pi/2]], If[x > 0,
             ArcTan[y/x], If[y >= 0, ArcTan[y/x] + Pi, ArcTan[y/x] - Pi]]]""",
         "Derivative[1][ArcTan]": "1/(1+#^2)&",
     }
@@ -527,9 +569,17 @@ class ArcTan(_MPMathFunction):
     sympy_name = "atan"
 
 
-class Cos(_MPMathFunction):
+class Cos(MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Cos.html</url>
+    <url>
+    :Cosine:
+    https://en.wikipedia.org/wiki/Sine_and_cosine</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/elementary.html#cos</url>, <url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/trigonometric.html#cos</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Cos.html</url>)
 
     <dl>
       <dt>'Cos[$z$]'
@@ -538,9 +588,6 @@ class Cos(_MPMathFunction):
 
     >> Cos[3 Pi]
      = -1
-
-    #> Cos[1.5 Pi]
-     = -1.83697×10^-16
     """
 
     mpmath_name = "cos"
@@ -555,11 +602,20 @@ class Cos(_MPMathFunction):
     }
 
     summary_text = "cosine function"
+    sympy_name = "cos"
 
 
-class Cot(_MPMathFunction):
+class Cot(MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Cot.html</url>
+    <url>
+    :Cotangent:
+    https://en.wikipedia.org/wiki/Trigonometric_functions</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/elementary.html#cot</url>, <url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/trigonometric.html#cot</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Cot.html</url>)
 
     <dl>
       <dt>'Cot[$z$]'
@@ -581,11 +637,20 @@ class Cot(_MPMathFunction):
     }
 
     summary_text = "cotangent function"
+    sympy_name = "cot"
 
 
-class Csc(_MPMathFunction):
+class Csc(MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Csc.html</url>
+    <url>
+    :Cosecant:
+    https://en.wikipedia.org/wiki/Trigonometric_functions</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/elementary.html#csc</url>, <url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/trigonometric.html#csc</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Csc.html</url>)
 
     <dl>
       <dt>'Csc[$z$]'
@@ -609,6 +674,7 @@ class Csc(_MPMathFunction):
     }
 
     summary_text = "cosecant function"
+    sympy_name = "csc"
 
     def to_sympy(self, expr, **kwargs):
         if len(expr.elements) == 1:
@@ -617,9 +683,11 @@ class Csc(_MPMathFunction):
             ).to_sympy()
 
 
-class Haversine(_MPMathFunction):
+class Haversine(MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Haversine.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Haversine.html</url>
 
     <dl>
       <dt>'Haversine[$z$]'
@@ -633,13 +701,15 @@ class Haversine(_MPMathFunction):
      = -1.15082 + 0.869405 I
     """
 
-    summary_text = "Haversine function"
     rules = {"Haversine[z_]": "Power[Sin[z/2], 2]"}
+    summary_text = "Haversine function"
 
 
-class InverseHaversine(_MPMathFunction):
+class InverseHaversine(MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/InverseHaversine.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/InverseHaversine.html</url>
 
     <dl>
       <dt>'InverseHaversine[$z$]'
@@ -653,13 +723,21 @@ class InverseHaversine(_MPMathFunction):
      = 1.76459 + 2.33097 I
     """
 
-    summary_text = "inverse Haversine function"
     rules = {"InverseHaversine[z_]": "2 * ArcSin[Sqrt[z]]"}
+    summary_text = "inverse Haversine function"
 
 
-class Sec(_MPMathFunction):
+class Sec(MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Sec.html</url>
+    <url>
+    :Secant:
+    https://en.wikipedia.org/wiki/Trigonometric_functions</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/elementary.html#sec</url>, <url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/trigonometric.html#sec</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Sec.html</url>)
 
     <dl>
       <dt>'Sec[$z$]'
@@ -674,13 +752,15 @@ class Sec(_MPMathFunction):
      = 1.85082
     """
 
-    summary_text = "secant function"
     mpmath_name = "sec"
 
     rules = {
         "Derivative[1][Sec]": "Sec[#] Tan[#]&",
         "Sec[0]": "1",
     }
+
+    summary_text = "secant function"
+    sympy_name = "sec"
 
     def to_sympy(self, expr, **kwargs):
         if len(expr.elements) == 1:
@@ -689,9 +769,17 @@ class Sec(_MPMathFunction):
             ).to_sympy()
 
 
-class Sin(_MPMathFunction):
+class Sin(MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Sin.html</url>
+    <url>
+    :Sine:
+    https://en.wikipedia.org/wiki/Sine_and_cosine</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/elementary.html#sin</url>, <url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/trigonometric.html#sin</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Sin.html</url>)
 
     <dl>
       <dt>'Sin[$z$]'
@@ -709,12 +797,8 @@ class Sin(_MPMathFunction):
 
     >> Plot[Sin[x], {x, -Pi, Pi}]
      = -Graphics-
-
-    #> N[Sin[1], 40]
-     = 0.8414709848078965066525023216302989996226
     """
 
-    summary_text = "sine function"
     mpmath_name = "sin"
 
     rules = {
@@ -725,11 +809,21 @@ class Sin(_MPMathFunction):
         "Sin[0]": "0",
         "Sin[Undefined]": "Undefined",
     }
+    summary_text = "sine function"
+    sympy_name = "sin"
 
 
-class Tan(_MPMathFunction):
+class Tan(MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Tan.html</url>
+    <url>
+    :Tangent:
+    https://en.wikipedia.org/wiki/Tangent</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/elementary.html#tan</url>, <url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/trigonometric.html#tan</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Tan.html</url>)
 
     <dl>
       <dt>'Tan[$z$]'
@@ -740,9 +834,6 @@ class Tan(_MPMathFunction):
      = 0
     >> Tan[Pi / 2]
      = ComplexInfinity
-
-    #> Tan[0.5 Pi]
-     = 1.63312×10^16
     """
 
     mpmath_name = "tan"
@@ -753,4 +844,6 @@ class Tan(_MPMathFunction):
         "Tan[0]": "0",
         "Tan[Undefined]": "Undefined",
     }
+
     summary_text = "tangent function"
+    sympy_name = "tan"

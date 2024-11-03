@@ -3,28 +3,75 @@
 """
 Options Management
 
-A number of functions have various options which control the behavior or the default behavior that function.
-Default options can be queried or set.
+A number of functions have various options which control the behavior or \
+the default behavior that function. Default options can be queried or set.
 
 <url>
 :WMA link:
 https://reference.wolfram.com/language/guide/OptionsManagement.html</url>
 """
 
-from mathics.builtin.base import Builtin, Test, get_option
 from mathics.builtin.image.base import Image
 from mathics.core.atoms import String
+from mathics.core.builtin import Builtin, Predefined, Test, get_option
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, SymbolDefault, get_default_value
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList, ensure_context, strip_context
 from mathics.core.systemsymbols import SymbolRule, SymbolRuleDelayed
+from mathics.eval.patterns import Matcher
+
+
+class All(Predefined):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/All.html</url>
+
+    <dl>
+      <dt>'All'
+      <dd>is an option value for a number of functions indicating to include everything.
+    </dl>
+
+
+    In list functions, it indicates all levels of the list.
+
+    For example, in <url>
+    :Part:
+    /doc/reference-of-built-in-symbols/list-functions/elements-of-lists/part</url>, \
+    'All', extracts into a first column vector the first element of each of the \
+    list elements:
+
+    >> {{1, 3}, {5, 7}}[[All, 1]]
+     = {1, 5}
+
+    While in <url>
+    :Take:
+    /doc/reference-of-built-in-symbols/list-functions/elements-of-lists/part</url>, \
+    'All' extracts as a column matrix the first element as a list for each of the list \
+    elements:
+
+    >> Take[{{1, 3}, {5, 7}}, All, {1}]
+     = {{1}, {5}}
+
+    In <url>
+    :Plot:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/plotting-data/plot</url>, \
+    setting the <url>
+    :Mesh:
+/doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values/mesh</url> \
+    option to 'All' will show the specific plot points:
+
+    >> Plot[x^2, {x, -1, 1}, MaxRecursion->5, Mesh->All]
+     = -Graphics-
+
+    """
+
+    summary_text = "option value that specify using everything"
 
 
 class Default(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Default.html</url>
-
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/Default.html</url>
@@ -111,9 +158,8 @@ class FilterRules(Builtin):
 
     def eval(self, rules, pattern, evaluation):
         "FilterRules[rules_List, pattern_]"
-        from mathics.builtin.patterns import Matcher
 
-        match = Matcher(pattern).match
+        match = Matcher(pattern, evaluation).match
 
         def matched():
             for rule in rules.elements:
@@ -123,10 +169,35 @@ class FilterRules(Builtin):
         return ListExpression(*list(matched()))
 
 
+class None_(Predefined):
+    """
+        <url>:WMA link:https://reference.wolfram.com/language/ref/None.html</url>
+
+        <dl>
+          <dt>'None'
+          <dd>is a setting value for many options.
+        </dl>
+
+        Plot3D shows the mesh grid between computed points by default. This the <url>
+        :Mesh:
+/doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values/mesh</url> \
+
+        However, you hide the mesh by setting the 'Mesh' option value to 'None':
+
+        >> Plot3D[{x^2 + y^2, -x^2 - y^2}, {x, -2, 2}, {y, -2, 2}, BoxRatios-> Automatic, Mesh->None]
+         = -Graphics3D-
+    """
+
+    name = "None"
+    summary_text = "option value that disables the option"
+
+
 # Has this been removed from WL? I cannot find a WMA link.
 class NotOptionQ(Test):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/NotOptionQ.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/NotOptionQ.html</url>
 
     <dl>
       <dt>'NotOptionQ[$expr$]'
@@ -147,7 +218,7 @@ class NotOptionQ(Test):
 
     summary_text = "test whether an expression does not match the form of a valid option specification"
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         if hasattr(expr, "flatten_with_respect_to_head"):
             expr = expr.flatten_with_respect_to_head(SymbolList)
         if not expr.has_form("List", None):
@@ -162,7 +233,9 @@ class NotOptionQ(Test):
 # Has this been removed from WL? I cannot find a WMA link.
 class OptionQ(Test):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/OptionQ.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/OptionQ.html</url>
 
     <dl>
       <dt>'OptionQ[$expr$]'
@@ -180,7 +253,7 @@ class OptionQ(Test):
     >> OptionQ[{a :> True}]
      = True
 
-    Options lists are flattened when are applyied, so
+    Options lists are flattened when are applied, so
     >> OptionQ[{a -> True, {b->1, "c"->2}}]
      = True
     >> OptionQ[{a -> True, {b->1, c}}]
@@ -198,7 +271,7 @@ class OptionQ(Test):
         "test whether an expression matches the form of a valid option specification"
     )
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         if hasattr(expr, "flatten_with_respect_to_head"):
             expr = expr.flatten_with_respect_to_head(SymbolList)
         if not expr.has_form("List", None):
@@ -233,11 +306,6 @@ class Options(Builtin):
     >> f[x, n -> 3]
      = x ^ 3
 
-    #> f[x_, OptionsPattern[f]] := x ^ OptionValue["m"];
-    #> Options[f] = {"m" -> 7};
-    #> f[x]
-     = x ^ 7
-
     Delayed option rules are evaluated just when the corresponding 'OptionValue' is called:
     >> f[a :> Print["value"]] /. f[OptionsPattern[{}]] :> (OptionValue[a]; Print["between"]; OptionValue[a]);
      | value
@@ -261,18 +329,6 @@ class Options(Builtin):
     >> Options[a + b] = {a -> b}
      : Argument a + b at position 1 is expected to be a symbol.
      = {a -> b}
-
-    #> f /: Options[f] = {a -> b}
-     = {a -> b}
-    #> Options[f]
-     = {a :> b}
-    #> f /: Options[g] := {a -> b}
-     : Rule for Options can only be attached to g.
-     = $Failed
-
-    #> Options[f] = a /; True
-     : a /; True is not a valid list of option rules.
-     = a /; True
     """
 
     summary_text = "the list of optional arguments and their default values"
@@ -300,11 +356,9 @@ class Options(Builtin):
 
 class OptionValue(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/OptionValue.html</url>
-
     <url>
-      :WMA link:
-      https://reference.wolfram.com/language/ref/OptionValue.html</url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/OptionValue.html</url>
 
     <dl>
       <dt>'OptionValue[$name$]'
@@ -348,7 +402,7 @@ class OptionValue(Builtin):
     }
     summary_text = "retrieve values of options while executing a function"
 
-    def eval_1(self, optname, evaluation):
+    def eval(self, optname, evaluation):
         "OptionValue[optname_]"
         if evaluation.options is None:
             return
@@ -373,11 +427,11 @@ class OptionValue(Builtin):
             return Symbol(name)
         return val
 
-    def eval_2(self, f, optname, evaluation):
+    def eval_with_f(self, f, optname, evaluation):
         "OptionValue[f_, optname_]"
-        return self.apply_3(f, None, optname, evaluation)
+        return self.eval_with_f_and_optvals(f, None, optname, evaluation)
 
-    def eval_3(self, f, optvals, optname, evaluation):
+    def eval_with_f_and_optvals(self, f, optvals, optname, evaluation):
         "OptionValue[f_, optvals_, optname_]"
         if type(optname) is String:
             name = optname.to_python()[1:-1]
@@ -427,9 +481,6 @@ class OptionValue(Builtin):
             evaluation.message("OptionValue", "optnf", optname)
             return Symbol(name)
         return val
-
-    # FIXME until we figure out what test/test_evaluation.py fails
-    apply_3 = eval_3
 
 
 class SetOptions(Builtin):

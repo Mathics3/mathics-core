@@ -5,9 +5,15 @@ Basic Image Processing
 import numpy
 import PIL
 
-from mathics.builtin.base import Builtin, String
-from mathics.builtin.image.base import Image
-from mathics.core.atoms import Integer, MachineReal
+from mathics.builtin.image.base import Image, image_common_messages
+from mathics.core.atoms import (
+    Integer,
+    Integer0,
+    Integer1,
+    MachineReal,
+    is_integer_rational_or_real,
+)
+from mathics.core.builtin import Builtin, String
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
@@ -33,18 +39,21 @@ class Blur(Builtin):
       <dd>blurs $image$ with a kernel of size $r$.
     </dl>
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> Blur[lena]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> Blur[hedy]
      = -Image-
-    >> Blur[lena, 5]
+    >> Blur[hedy, 5]
      = -Image-
     """
 
-    summary_text = "blur an image"
     rules = {
         "Blur[image_Image]": "Blur[image, 2]",
-        "Blur[image_Image, r_?RealNumberQ]": "ImageConvolve[image, BoxMatrix[r] / Total[Flatten[BoxMatrix[r]]]]",
+        "Blur[image_Image, r:(_Integer|_Real|_Rational)]": (
+            "ImageConvolve[image, BoxMatrix[r] / Total[Flatten[BoxMatrix[r]]]]"
+        ),
     }
+
+    summary_text = "blur an image"
 
 
 class ImageAdjust(Builtin):
@@ -67,19 +76,36 @@ class ImageAdjust(Builtin):
       <dd>adjusts the contrast $c$, brightness $b$, and gamma $g$ in $image$.
     </dl>
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> ImageAdjust[lena]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> ImageAdjust[hedy]
      = -Image-
     """
 
-    summary_text = "adjust levels, brightness, contrast, gamma, etc"
-    rules = {
-        "ImageAdjust[image_Image, c_?RealNumberQ]": "ImageAdjust[image, {c, 0, 1}]",
-        "ImageAdjust[image_Image, {c_?RealNumberQ, b_?RealNumberQ}]": "ImageAdjust[image, {c, b, 1}]",
+    messages = {
+        "arg2": "Invalid correction parameters `1`.",
+        "brght": (
+            "The brightness specficiation in {`1`, `2`}\n" "should be a real number."
+        ),
+        "gamma": (
+            "The gamma correction specficiation in {`1`, `2`, `3`}\n"
+            "should be a positive number."
+        ),
+        "imginv": image_common_messages["imginv"],
     }
 
+    rules = {
+        "ImageAdjust[image, {c_, b_}]": "ImageAdjust[image, {c, b, 1}]",
+    }
+
+    summary_text = "adjust levels, brightness, contrast, gamma, etc"
+
     def eval_auto(self, image, evaluation: Evaluation):
-        "ImageAdjust[image_Image]"
+        "ImageAdjust[image_]"
+
+        if not isinstance(image, Image):
+            evaluation.message(self.get_name(), "imginv", image)
+            return
+
         pixels = pixels_as_float(image.pixels)
 
         # channel limits
@@ -95,8 +121,37 @@ class ImageAdjust(Builtin):
         pixels /= scales
         return Image(pixels, image.color_space)
 
-    def eval_contrast_brightness_gamma(self, image, c, b, g, evaluation: Evaluation):
-        "ImageAdjust[image_Image, {c_?RealNumberQ, b_?RealNumberQ, g_?RealNumberQ}]"
+    def eval_with_correction(self, image, corr, evaluation: Evaluation):
+        "ImageAdjust[image_, corr_]"
+
+        if not is_integer_rational_or_real(corr):
+            evaluation.message(self.get_name(), "arg2", corr)
+            return
+
+        return self.eval_with_contrast_brightness_gamma(
+            image, corr, Integer0, Integer1, evaluation
+        )
+
+    def eval_with_contrast_brightness_gamma(
+        self, image, c, b, g, evaluation: Evaluation
+    ):
+        "ImageAdjust[image, {c_, b_, g_}]"
+
+        if not isinstance(image, Image):
+            evaluation.message(self.get_name(), "imginv", image)
+            return
+
+        if not is_integer_rational_or_real(c):
+            evaluation.message(self.get_name(), "arg2", c)
+            return
+
+        if not is_integer_rational_or_real(b):
+            evaluation.message(self.get_name(), "brght", c, b)
+            return
+
+        if not is_integer_rational_or_real(g):
+            evaluation.message(self.get_name(), "gamma", c, b, g)
+            return
 
         im = image.pil()
 
@@ -130,40 +185,27 @@ class ImagePartition(Builtin):
       <dd>Partitions an image into an array of $w$ x $h$ pixel subimages.
     </dl>
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> ImageDimensions[lena]
-     = {512, 512}
-    >> ImagePartition[lena, 256]
-     = {{-Image-, -Image-}, {-Image-, -Image-}}
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> ImageDimensions[hedy]
+     = {646, 800}
+    >> ImagePartition[hedy, 256]
+     = {{-Image-, -Image-}, {-Image-, -Image-}, {-Image-, -Image-}}
 
-    >> ImagePartition[lena, {512, 128}]
-     = {{-Image-}, {-Image-}, {-Image-}, {-Image-}}
-
-    #> ImagePartition[lena, 257]
-     = {{-Image-}}
-    #> ImagePartition[lena, 512]
-     = {{-Image-}}
-    #> ImagePartition[lena, 513]
-     = {}
-    #> ImagePartition[lena, {256, 300}]
-     = {{-Image-, -Image-}}
-
-    #> ImagePartition[lena, {0, 300}]
-     : {0, 300} is not a valid size specification for image partitions.
-     = ImagePartition[-Image-, {0, 300}]
+    >> ImagePartition[hedy, {512, 128}]
+     = {{-Image-}, {-Image-}, {-Image-}, {-Image-}, {-Image-}, {-Image-}}
     """
 
-    summary_text = "divide an image in an array of sub-images"
-    rules = {"ImagePartition[i_Image, s_Integer]": "ImagePartition[i, {s, s}]"}
-
     messages = {"arg2": "`1` is not a valid size specification for image partitions."}
+    rules = {"ImagePartition[i_Image, s_Integer]": "ImagePartition[i, {s, s}]"}
+    summary_text = "divide an image in an array of sub-images"
 
     def eval(self, image, w: Integer, h: Integer, evaluation: Evaluation):
         "ImagePartition[image_Image, {w_Integer, h_Integer}]"
         py_w = w.value
         py_h = h.value
         if py_w <= 0 or py_h <= 0:
-            return evaluation.message("ImagePartition", "arg2", ListExpression(w, h))
+            evaluation.message("ImagePartition", "arg2", ListExpression(w, h))
+            return
         pixels = image.pixels
         shape = pixels.shape
 
@@ -192,18 +234,32 @@ class Sharpen(Builtin):
       <dd>sharpens $image$ with a kernel of size $r$.
     </dl>
 
-    >> lena = Import["ExampleData/lena.tif"];
-    >> Sharpen[lena]
+    >> hedy = Import["ExampleData/hedy.tif"];
+    >> Sharpen[hedy]
      = -Image-
-    >> Sharpen[lena, 5]
+    >> Sharpen[hedy, 5]
      = -Image-
     """
 
-    summary_text = "sharpen version of an image"
+    messages = {
+        "bdrad": "The specified radius should be either a non-negative number",
+        "imginv": image_common_messages["imginv"],
+    }
+
     rules = {"Sharpen[i_Image]": "Sharpen[i, 2]"}
+    summary_text = "sharpen version of an image"
 
     def eval(self, image, r, evaluation: Evaluation):
-        "Sharpen[image_Image, r_?RealNumberQ]"
+        "Sharpen[image_, r_]"
+
+        if not isinstance(image, Image):
+            evaluation.message(self.get_name(), "imginv", image)
+            return
+
+        if not is_integer_rational_or_real(r):
+            evaluation.message(self.get_name(), "bdrad", r)
+            return
+
         f = PIL.ImageFilter.UnsharpMask(r.round_to_float())
         return image.filter(lambda im: im.filter(f))
 
@@ -222,15 +278,15 @@ class Threshold(Builtin):
 
     The option "Method" may be "Cluster" (use Otsu's threshold), "Median", or "Mean".
 
-    >> img = Import["ExampleData/lena.tif"];
+    >> img = Import["ExampleData/hedy.tif"];
     >> Threshold[img]
-     = 0.456739
+     = ...
     X> Binarize[img, %]
      = -Image-
     X> Threshold[img, Method -> "Mean"]
-     = 0.486458
+     = 0.22086
     X> Threshold[img, Method -> "Median"]
-     = 0.504726
+     = 0.0593961
     """
 
     summary_text = "estimate a threshold value for binarize an image"
@@ -244,7 +300,7 @@ class Threshold(Builtin):
         "skimage": "Please install scikit-image to use Method -> Cluster.",
     }
 
-    def eval(self, image, evaluation: Evaluation, options):
+    def eval(self, image, evaluation: Evaluation, options: dict):
         "Threshold[image_Image, OptionsPattern[Threshold]]"
         pixels = image.grayscale().pixels
 
@@ -264,9 +320,11 @@ class Threshold(Builtin):
         elif method_name == "Mean":
             threshold = numpy.mean(pixels)
         else:
-            return evaluation.message("Threshold", "illegalmethod", method)
+            evaluation.message("Threshold", "illegalmethod", method)
+            return
 
         return MachineReal(float(threshold))
 
 
-# Todo  Darker, ImageClip, ImageEffect, ImageRestyle, Lighter
+# TODO  Darker, ImageClip, ImageEffect, ImageRestyle, Lighter
+# Some existing functions allow for other forms.

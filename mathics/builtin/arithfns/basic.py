@@ -2,22 +2,16 @@
 """
 Basic Arithmetic
 
-The functions here are the basic arithmetic operations that you might find on a calculator.
+The functions here are the basic arithmetic operations that you might find \
+on a calculator.
 
 """
 
-
-import mpmath
-import sympy
-
-from mathics.builtin.arithmetic import _MPMathFunction, create_infix
-from mathics.builtin.base import BinaryOperator, Builtin, PrefixOperator, SympyFunction
+from mathics.builtin.arithmetic import create_infix
 from mathics.core.atoms import (
     Complex,
     Integer,
-    Integer0,
     Integer1,
-    Integer2,
     Integer3,
     Integer310,
     IntegerM1,
@@ -36,42 +30,46 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import (
+    BinaryOperator,
+    Builtin,
+    MPMathFunction,
+    PrefixOperator,
+    SympyFunction,
+)
 from mathics.core.convert.expression import to_expression
-from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
-from mathics.core.expression import ElementsProperties, Expression
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import dps, min_prec
 from mathics.core.symbols import (
     Symbol,
     SymbolDivide,
     SymbolHoldForm,
     SymbolNull,
-    SymbolPlus,
     SymbolPower,
     SymbolTimes,
 )
 from mathics.core.systemsymbols import (
-    SymbolAccuracy,
     SymbolBlank,
     SymbolComplexInfinity,
-    SymbolDirectedInfinity,
     SymbolIndeterminate,
-    SymbolInfinity,
     SymbolInfix,
     SymbolLeft,
     SymbolMinus,
     SymbolPattern,
     SymbolSequence,
 )
+from mathics.eval.arithmetic import eval_Plus, eval_Times
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 
 
 class CubeRoot(Builtin):
     """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/CubeRoot.html</url>
+    <url>
+    :Cube root:
+    https://en.wikipedia.org/wiki/Cube_root</url> (<url> :WMA:
+    https://reference.wolfram.com/language/ref/CubeRoot.html</url>)
 
     <dl>
       <dt>'CubeRoot[$n$]'
@@ -80,25 +78,6 @@ class CubeRoot(Builtin):
 
     >> CubeRoot[16]
      = 2 2 ^ (1 / 3)
-
-    #> CubeRoot[-5]
-     = -5 ^ (1 / 3)
-
-    #> CubeRoot[-510000]
-     = -10 510 ^ (1 / 3)
-
-    #> CubeRoot[-5.1]
-     = -1.7213
-
-    #> CubeRoot[b]
-     = b ^ (1 / 3)
-
-    #> CubeRoot[-0.5]
-     = -0.793701
-
-    #> CubeRoot[3 + 4 I]
-     : The parameter 3 + 4 I should be real valued.
-     = (3 + 4 I) ^ (1 / 3)
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
@@ -115,7 +94,7 @@ class CubeRoot(Builtin):
         ),
     }
 
-    summary_text = "cubed root"
+    summary_text = "cube root"
 
     def eval(self, n, evaluation):
         "CubeRoot[n_Complex]"
@@ -124,24 +103,24 @@ class CubeRoot(Builtin):
         return Expression(
             SymbolPower,
             n,
-            Expression(
-                SymbolDivide,
-                Integer1,
-                Integer3,
-                elements_properties=ElementsProperties(True, True, True),
-            ),
+            Integer1 / Integer3,
         )
 
 
 class Divide(BinaryOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Divide.html</url>
+    <url>
+    :Division:
+    https://en.wikipedia.org/wiki/Division_(mathematics)</url> (<url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Divide.html</url>)
 
     <dl>
       <dt>'Divide[$a$, $b$]'
       <dt>'$a$ / $b$'
       <dd>represents the division of $a$ by $b$.
     </dl>
+
     >> 30 / 5
      = 6
     >> 1 / 8
@@ -166,23 +145,20 @@ class Divide(BinaryOperator):
      = a d / (b c e)
     >> a / (b ^ 2 * c ^ 3 / e)
      = a e / (b ^ 2 c ^ 3)
-
-    #> 1 / 4.0
-     = 0.25
-    #> 10 / 3 // FullForm
-     = Rational[10, 3]
-    #> a / b // FullForm
-     = Times[a, Power[b, -1]]
-
     """
 
-    operator = "/"
-    precedence = 470
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
-    grouping = "Left"
 
     default_formats = False
 
+    formats = {
+        (("InputForm", "OutputForm"), "Divide[x_, y_]"): (
+            'Infix[{HoldForm[x], HoldForm[y]}, "/", 400, Left]'
+        ),
+    }
+
+    grouping = "Left"
+    operator = "/"
     rules = {
         "Divide[x_, y_]": "Times[x, Power[y, -1]]",
         "MakeBoxes[Divide[x_, y_], f:StandardForm|TraditionalForm]": (
@@ -190,18 +166,16 @@ class Divide(BinaryOperator):
         ),
     }
 
-    formats = {
-        (("InputForm",), "Divide[x_, y_]"): (
-            'Infix[{HoldForm[x], HoldForm[y]}, "/", 400, Left]'
-        ),
-    }
-
-    summary_text = r"division"
+    summary_text = "divide"
 
 
 class Minus(PrefixOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Minus.html</url>
+    <url>
+    :Additive inverse:
+    https://en.wikipedia.org/wiki/Additive_inverse</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Minus.html</url>)
 
     <dl>
       <dt>'Minus[$expr$]'
@@ -220,13 +194,7 @@ class Minus(PrefixOperator):
     = {-1, -2, -3, -4, -5, -6, -7, -8, -9, -10}
     """
 
-    operator = "-"
-    precedence = 480
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
-
-    rules = {
-        "Minus[x_]": "Times[-1, x]",
-    }
 
     formats = {
         "Minus[x_]": 'Prefix[{HoldForm[x]}, "-", 480]',
@@ -237,7 +205,13 @@ class Minus(PrefixOperator):
         ),
     }
 
-    summary_text = "arithmetic negation"
+    operator = "-"
+
+    rules = {
+        "Minus[x_]": "Times[-1, x]",
+    }
+
+    summary_text = "arithmetic negate"
 
     def eval_int(self, x: Integer, evaluation):
         "Minus[x_Integer]"
@@ -246,7 +220,13 @@ class Minus(PrefixOperator):
 
 class Plus(BinaryOperator, SympyFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Plus.html</url>
+    <url>
+    :Addition:
+    https://en.wikipedia.org/wiki/Addition</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/core.html#id48</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Plus.html</url>)
 
     <dl>
       <dt>'Plus[$a$, $b$, ...]'
@@ -282,30 +262,8 @@ class Plus(BinaryOperator, SympyFunction):
     The sum of 2 red circles and 3 red circles is...
     >> 2 Graphics[{Red,Disk[]}] + 3 Graphics[{Red,Disk[]}]
      = 5 -Graphics-
-
-    #> -2a - 2b
-     = -2 a - 2 b
-    #> -4+2x+2*Sqrt[3]
-     = -4 + 2 Sqrt[3] + 2 x
-    #> 2a-3b-c
-     = 2 a - 3 b - c
-    #> 2a+5d-3b-2c-e
-     = 2 a - 3 b - 2 c + 5 d - e
-
-    #> 1 - I * Sqrt[3]
-     = 1 - I Sqrt[3]
-
-    #> Head[3 + 2 I]
-     = Complex
-
-    #> N[Pi, 30] + N[E, 30]
-     = 5.85987448204883847382293085463
-    #> % // Precision
-     = 30.
     """
 
-    operator = "+"
-    precedence = 310
     attributes = (
         A_FLAT
         | A_LISTABLE
@@ -321,7 +279,12 @@ class Plus(BinaryOperator, SympyFunction):
         None: "0",
     }
 
-    summary_text = "addition of numbers, lists, arrays, or symbolic expressions"
+    operator = "+"
+
+    summary_text = "add"
+
+    # FIXME Note this is deprecated in 1.11
+    # Remember to up sympy doc link when this is corrected
     sympy_name = "Add"
 
     def format_plus(self, items, evaluation):
@@ -377,96 +340,19 @@ class Plus(BinaryOperator, SympyFunction):
 
     def eval(self, items, evaluation):
         "Plus[items___]"
-
         items_tuple = numerify(items, evaluation).get_sequence()
-        elements = []
-        last_item = last_count = None
-
-        prec = min_prec(*items_tuple)
-        is_machine_precision = any(item.is_machine_precision() for item in items_tuple)
-        numbers = []
-
-        def append_last():
-            if last_item is not None:
-                if last_count == 1:
-                    elements.append(last_item)
-                else:
-                    if last_item.has_form("Times", None):
-                        elements.append(
-                            Expression(
-                                SymbolTimes, from_sympy(last_count), *last_item.elements
-                            )
-                        )
-                    else:
-                        elements.append(
-                            Expression(SymbolTimes, from_sympy(last_count), last_item)
-                        )
-
-        for item in items_tuple:
-            if isinstance(item, Number):
-                numbers.append(item)
-            else:
-                count = rest = None
-                if item.has_form("Times", None):
-                    for element in item.elements:
-                        if isinstance(element, Number):
-                            count = element.to_sympy()
-                            rest = item.get_mutable_elements()
-                            rest.remove(element)
-                            if len(rest) == 1:
-                                rest = rest[0]
-                            else:
-                                rest.sort()
-                                rest = Expression(SymbolTimes, *rest)
-                            break
-                if count is None:
-                    count = sympy.Integer(1)
-                    rest = item
-                if last_item is not None and last_item == rest:
-                    last_count = last_count + count
-                else:
-                    append_last()
-                    last_item = rest
-                    last_count = count
-        append_last()
-
-        if numbers:
-            if prec is not None:
-                if is_machine_precision:
-                    numbers = [item.to_mpmath() for item in numbers]
-                    number = mpmath.fsum(numbers)
-                    number = from_mpmath(number)
-                else:
-                    # For a sum, what is relevant is the minimum accuracy of the terms
-                    acc = (
-                        Expression(SymbolAccuracy, ListExpression(items))
-                        .evaluate(evaluation)
-                        .to_python()
-                    )
-                    with mpmath.workprec(prec):
-                        numbers = [item.to_mpmath() for item in numbers]
-                        number = mpmath.fsum(numbers)
-                        number = from_mpmath(number, acc=acc)
-            else:
-                number = from_sympy(sum(item.to_sympy() for item in numbers))
-        else:
-            number = Integer0
-
-        if not number.sameQ(Integer0):
-            elements.insert(0, number)
-
-        if not elements:
-            return Integer0
-        elif len(elements) == 1:
-            return elements[0]
-        else:
-            elements.sort()
-            return Expression(SymbolPlus, *elements)
+        return eval_Plus(*items_tuple)
 
 
-class Power(BinaryOperator, _MPMathFunction):
+class Power(BinaryOperator, MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Power.html</url>
+    <url>
+    :Exponentiation:
+    https://en.wikipedia.org/wiki/Exponentiation</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/core.html#sympy.core.power.Pow</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Power.html</url>)
 
     <dl>
       <dt>'Power[$a$, $b$]'
@@ -504,64 +390,10 @@ class Power(BinaryOperator, _MPMathFunction):
      = -3.68294 + 6.95139 I
     >> (1.5 + 1.0 I) ^ (3.5 + 1.5 I)
      = -3.19182 + 0.645659 I
-
-    #> 1/0
-     : Infinite expression 1 / 0 encountered.
-     = ComplexInfinity
-    #> 0 ^ -2
-     : Infinite expression 1 / 0 ^ 2 encountered.
-     = ComplexInfinity
-    #> 0 ^ (-1/2)
-     : Infinite expression 1 / Sqrt[0] encountered.
-     = ComplexInfinity
-    #> 0 ^ -Pi
-     : Infinite expression 1 / 0 ^ 3.14159 encountered.
-     = ComplexInfinity
-    #> 0 ^ (2 I E)
-     : Indeterminate expression 0 ^ (0. + 5.43656 I) encountered.
-     = Indeterminate
-    #> 0 ^ - (Pi + 2 E I)
-     : Infinite expression 0 ^ (-3.14159 - 5.43656 I) encountered.
-     = ComplexInfinity
-
-    #> 0 ^ 0
-     : Indeterminate expression 0 ^ 0 encountered.
-     = Indeterminate
-
-    #> Sqrt[-3+2. I]
-     = 0.550251 + 1.81735 I
-    #> Sqrt[-3+2 I]
-     = Sqrt[-3 + 2 I]
-    #> (3/2+1/2I)^2
-     = 2 + 3 I / 2
-    #> I ^ I
-     = (-1) ^ (I / 2)
-
-    #> 2 ^ 2.0
-     = 4.
-
-    #> Pi ^ 4.
-     = 97.4091
-
-    #> a ^ b
-     = a ^ b
     """
 
-    operator = "^"
-    precedence = 590
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_ONE_IDENTITY | A_PROTECTED
-    grouping = "Right"
-
     default_formats = False
-
-    sympy_name = "Pow"
-    mpmath_name = "power"
-    nargs = {2}
-
-    messages = {
-        "infy": "Infinite expression `1` encountered.",
-        "indet": "Indeterminate expression `1` encountered.",
-    }
 
     defaults = {
         2: "1",
@@ -590,17 +422,33 @@ class Power(BinaryOperator, _MPMathFunction):
         ),
     }
 
+    grouping = "Right"
+
+    mpmath_name = "power"
+
+    messages = {
+        "infy": "Infinite expression `1` encountered.",
+        "indet": "Indeterminate expression `1` encountered.",
+    }
+
+    nargs = {2}
+    operator = "^"
+
     rules = {
         "Power[]": "1",
         "Power[x_]": "x",
     }
 
-    summary_text = "exponentiation"
+    summary_text = "exponentiate"
+
+    # FIXME Note this is deprecated in 1.11
+    # Remember to up sympy doc link when this is corrected
+    sympy_name = "Pow"
 
     def eval_check(self, x, y, evaluation):
         "Power[x_, y_]"
 
-        # Power uses _MPMathFunction but does some error checking first
+        # Power uses MPMathFunction but does some error checking first
         if isinstance(x, Number) and x.is_zero:
             if isinstance(y, Number):
                 y_err = y
@@ -634,7 +482,13 @@ class Power(BinaryOperator, _MPMathFunction):
 
 class Sqrt(SympyFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Sqrt.html</url>
+    <url>
+    :Square root:
+    https://en.wikipedia.org/wiki/Square_root</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/codegen.html#sympy.codegen.cfunctions.Sqrt</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Sqrt.html</url>)
 
     <dl>
       <dt>'Sqrt[$expr$]'
@@ -658,9 +512,6 @@ class Sqrt(SympyFunction):
 
     >> Plot[Sqrt[a^2], {a, -2, 2}]
      = -Graphics-
-
-    #> N[Sqrt[2], 50]
-     = 1.4142135623730950488016887242096980785696718753769
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
@@ -677,8 +528,10 @@ class Sqrt(SympyFunction):
 
 class Subtract(BinaryOperator):
     """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/Subtract.html</url>
+    <url>
+    :Subtraction:
+    https://en.wikipedia.org/wiki/Subtraction</url>, (<url>:WMA:
+    https://reference.wolfram.com/language/ref/Subtract.html</url>)
 
     <dl>
       <dt>'Subtract[$a$, $b$]'
@@ -696,22 +549,25 @@ class Subtract(BinaryOperator):
      = a - b + c
     """
 
-    operator = "-"
-    precedence_parse = 311
-    precedence = 310
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     grouping = "Left"
 
+    operator = "-"
     rules = {
         "Subtract[x_, y_]": "Plus[x, Times[-1, y]]",
     }
 
-    summary_text = "subtraction"
+    summary_text = "subtract"
 
 
 class Times(BinaryOperator, SympyFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Times.html</url>
+    <url>
+    :Multiplication:
+    https://en.wikipedia.org/wiki/Multiplication</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/core.html#sympy.core.mul.Mul</url>, <url>
+    :WMA:https://reference.wolfram.com/language/ref/Times.html</url>)
 
     <dl>
       <dt>'Times[$a$, $b$, ...]'
@@ -719,6 +575,7 @@ class Times(BinaryOperator, SympyFunction):
       <dt>'$a$ $b$ ...'
       <dd>represents the product of the terms $a$, $b$, ...
     </dl>
+
     >> 10 * 2
      = 20
     >> 10 2
@@ -739,61 +596,8 @@ class Times(BinaryOperator, SympyFunction):
      = {HoldPattern[Default[Times]] :> 1}
     >> a /. n_. * x_ :> {n, x}
      = {1, a}
-
-    #> -a*b // FullForm
-     = Times[-1, a, b]
-    #> -(x - 2/3)
-     = 2 / 3 - x
-    #> -x*2
-     = -2 x
-    #> -(h/2) // FullForm
-     = Times[Rational[-1, 2], h]
-
-    #> x / x
-     = 1
-    #> 2x^2 / x^2
-     = 2
-
-    #> 3. Pi
-     = 9.42478
-
-    #> Head[3 * I]
-     = Complex
-
-    #> Head[Times[I, 1/2]]
-     = Complex
-
-    #> Head[Pi * I]
-     = Times
-
-    #> 3 * a //InputForm
-     = 3*a
-    #> 3 * a //OutputForm
-     = 3 a
-
-    #> -2.123456789 x
-     = -2.12346 x
-    #> -2.123456789 I
-     = 0. - 2.12346 I
-
-    #> N[Pi, 30] * I
-     = 3.14159265358979323846264338328 I
-    #> N[I Pi, 30]
-     = 3.14159265358979323846264338328 I
-
-    #> N[Pi * E, 30]
-     = 8.53973422267356706546355086955
-    #> N[Pi, 30] * N[E, 30]
-     = 8.53973422267356706546355086955
-    #> N[Pi, 30] * E
-     = 8.53973422267356706546355086955
-    #> % // Precision
-     = 30.
     """
 
-    operator = "*"
-    operator_display = " "
-    precedence = 400
     attributes = (
         A_FLAT
         | A_LISTABLE
@@ -811,11 +615,16 @@ class Times(BinaryOperator, SympyFunction):
 
     formats = {}
 
+    operator = "*"
+    operator_display = " "
+
     rules = {}
 
+    # FIXME Note this is deprecated in 1.11
+    # Remember to up sympy doc link when this is corrected
     sympy_name = "Mul"
 
-    summary_text = "mutiplication"
+    summary_text = "multiply"
 
     def format_times(self, items, evaluation, op="\u2062"):
         "Times[items__]"
@@ -841,7 +650,6 @@ class Times(BinaryOperator, SympyFunction):
                 and isinstance(item.elements[1], (Integer, Rational, Real))
                 and item.elements[1].to_sympy() < 0
             ):  # nopep8
-
                 negative.append(inverse(item))
             elif isinstance(item, Rational):
                 numerator = item.numerator()
@@ -892,111 +700,4 @@ class Times(BinaryOperator, SympyFunction):
     def eval(self, items, evaluation):
         "Times[items___]"
         items = numerify(items, evaluation).get_sequence()
-        elements = []
-        numbers = []
-        infinity_factor = False
-
-        prec = min_prec(*items)
-        is_machine_precision = any(item.is_machine_precision() for item in items)
-
-        # find numbers and simplify Times -> Power
-        for item in items:
-            if isinstance(item, Number):
-                numbers.append(item)
-            elif elements and item == elements[-1]:
-                elements[-1] = Expression(SymbolPower, elements[-1], Integer2)
-            elif (
-                elements
-                and item.has_form("Power", 2)
-                and elements[-1].has_form("Power", 2)
-                and item.elements[0].sameQ(elements[-1].elements[0])
-            ):
-                elements[-1] = Expression(
-                    SymbolPower,
-                    elements[-1].elements[0],
-                    Expression(SymbolPlus, item.elements[1], elements[-1].elements[1]),
-                )
-            elif (
-                elements
-                and item.has_form("Power", 2)
-                and item.elements[0].sameQ(elements[-1])
-            ):
-                elements[-1] = Expression(
-                    SymbolPower,
-                    elements[-1],
-                    Expression(SymbolPlus, item.elements[1], Integer1),
-                )
-            elif (
-                elements
-                and elements[-1].has_form("Power", 2)
-                and elements[-1].elements[0].sameQ(item)
-            ):
-                elements[-1] = Expression(
-                    SymbolPower,
-                    item,
-                    Expression(SymbolPlus, Integer1, elements[-1].elements[1]),
-                )
-            elif item.get_head().sameQ(SymbolDirectedInfinity):
-                infinity_factor = True
-                if len(item.elements) > 1:
-                    direction = item.elements[0]
-                    if isinstance(direction, Number):
-                        numbers.append(direction)
-                    else:
-                        elements.append(direction)
-            elif item.sameQ(SymbolInfinity) or item.sameQ(SymbolComplexInfinity):
-                infinity_factor = True
-            else:
-                elements.append(item)
-
-        if numbers:
-            if prec is not None:
-                if is_machine_precision:
-                    numbers = [item.to_mpmath() for item in numbers]
-                    number = mpmath.fprod(numbers)
-                    number = from_mpmath(number)
-                else:
-                    with mpmath.workprec(prec):
-                        numbers = [item.to_mpmath() for item in numbers]
-                        number = mpmath.fprod(numbers)
-                        number = from_mpmath(number, dps(prec))
-            else:
-                number = sympy.Mul(*[item.to_sympy() for item in numbers])
-                number = from_sympy(number)
-        else:
-            number = Integer1
-
-        if number.sameQ(Integer1):
-            number = None
-        elif number.is_zero:
-            if infinity_factor:
-                return SymbolIndeterminate
-            return number
-        elif (
-            number.sameQ(IntegerM1) and elements and elements[0].has_form("Plus", None)
-        ):
-            elements[0] = Expression(
-                elements[0].get_head(),
-                *[
-                    Expression(SymbolTimes, IntegerM1, element)
-                    for element in elements[0].elements
-                ],
-            )
-            number = None
-
-        if number is not None:
-            elements.insert(0, number)
-
-        if not elements:
-            if infinity_factor:
-                return SymbolComplexInfinity
-            return Integer1
-
-        if len(elements) == 1:
-            ret = elements[0]
-        else:
-            ret = Expression(SymbolTimes, *elements)
-        if infinity_factor:
-            return Expression(SymbolDirectedInfinity, ret)
-        else:
-            return ret
+        return eval_Times(*items)

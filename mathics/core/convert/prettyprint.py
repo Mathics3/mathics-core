@@ -253,7 +253,7 @@ def plus_expression_to_2d_text(expr, evaluation, form, **kwargs):
                             Expression(SymbolTimes, *elem.elements[1:]),
                             evaluation,
                             form,
-                            **kwargs
+                            **kwargs,
                         )
                     )
                     continue

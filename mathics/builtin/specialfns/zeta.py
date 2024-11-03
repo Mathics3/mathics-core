@@ -5,12 +5,20 @@ Zeta Functions and Polylogarithms
 """
 
 import mpmath
+import sympy
 
-from mathics.builtin.arithmetic import _MPMathFunction
+from mathics.core.attributes import (
+    A_LISTABLE,
+    A_NUMERIC_FUNCTION,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+)
+from mathics.core.builtin import MPMathFunction
 from mathics.core.convert.mpmath import from_mpmath
+from mathics.core.convert.sympy import from_sympy
 
 
-class LerchPhi(_MPMathFunction):
+class LerchPhi(MPMathFunction):
     """
     <url>
     :WMA link:
@@ -28,6 +36,7 @@ class LerchPhi(_MPMathFunction):
      = 17.1973
     """
 
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
     mpmath_name = "lerchphi"
     sympy_name = "lerchphi"
     summary_text = "Lerch's trascendental ϕ function"
@@ -40,12 +49,42 @@ class LerchPhi(_MPMathFunction):
         py_a = a.to_python()
         try:
             return from_mpmath(mpmath.lerchphi(py_z, py_s, py_a))
-        except:
+        except Exception:
             pass
             # return sympy.expand_func(sympy.lerchphi(py_z, py_s, py_a))
 
 
-class Zeta(_MPMathFunction):
+class PolyLog(MPMathFunction):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/PolyLog.html</url>
+
+    <dl>
+      <dt>'PolyLog[$n$, $z$]'
+      <dd>returns the polylogarithm function Li_$n$($z$).
+    </dl>
+
+    >> PolyLog[s, 1]
+     = Zeta[s]
+    >> PolyLog[-7, I] //Chop
+     = 136.
+    """
+
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
+    summary_text = "Polylogarithm function"
+    sympy_name = "polylog"
+    mpmath_name = "polylog"
+
+    def eval(self, n, z, evaluation):
+        "PolyLog[n_, z_]"
+        try:
+            return from_mpmath(mpmath.polylog(n.to_python(), z.to_python()))
+        except:
+            return from_sympy(sympy.polylog(n.to_sympy(), z.to_sympy()))
+
+
+class Zeta(MPMathFunction):
     """
     <url>
     :WMA link:
@@ -63,9 +102,10 @@ class Zeta(_MPMathFunction):
      = 0.0235936 + 0.0014078 I
     """
 
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
     summary_text = "Riemann's ζ function"
     sympy_name = "zeta"
     mpmath_name = "zeta"
 
 
-# TODO: PolyLog, ReimannSiegelTheta, ReimannSiegelZ, ReimannXi, ZetaZero
+# TODO: ReimannSiegelTheta, ReimannSiegelZ, ReimannXi, ZetaZero

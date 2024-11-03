@@ -1,22 +1,37 @@
 # -*- coding: utf-8 -*-
+"""
+Miscellaneous mathics.core utility functions.
+"""
 
-import re
 import sys
 from itertools import chain
+from pathlib import PureWindowsPath
+from platform import python_implementation
+from typing import Optional
 
-# Remove "try"  below and adjust return type after Python 3.6 support is dropped.
-try:
-    from re import Pattern
-except ImportError:
-    Pattern = re._pattern_type
+IS_PYPY = python_implementation() == "PyPy"
 
 
-IS_PYPY = "__pypy__" in sys.builtin_module_names
+def canonic_filename(path: str) -> str:
+    """
+    Canonicalize path. On Microsoft Windows, use PureWidnowsPath() to
+    turn backslash "\" to "/". On other platforms we currently, do
+    nothing, but we might in the future canonicalize the filename
+    further, e.g. via os.path.normpath().
+    """
+    if sys.platform.startswith("win"):
+        # win32 or win64..
+        # PureWindowsPath.as_posix() strips trailing "/" .
+        dir_suffix = "/" if path.endswith("/") else ""
+        path = PureWindowsPath(path).as_posix() + dir_suffix
+    # Should we use "os.path.normpath() here?
+    return path
+
 
 # FIXME: These functions are used pattern.py
 
 
-def permutations(items, without_duplicates=True):
+def permutations(items):
     if not items:
         yield []
     # already_taken = set()
@@ -26,17 +41,16 @@ def permutations(items, without_duplicates=True):
         item = items[index]
         # if item not in already_taken:
         for sub in permutations(items[:index] + items[index + 1 :]):
-            yield [item] + sub
+            yield [item] + list(sub)
             # already_taken.add(item)
 
 
-def subsets(items, min, max, included=None, less_first=False):
+def subsets(items, min: int, max: Optional[int], included=None, less_first=False):
     if max is None:
         max = len(items)
     lengths = list(range(min, max + 1))
     if not less_first:
-        lengths = reversed(lengths)
-    lengths = list(lengths)
+        lengths = list(reversed(lengths))
     if lengths and lengths[0] == 0:
         lengths = lengths[1:] + [0]
 

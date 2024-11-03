@@ -8,18 +8,19 @@ points, as another parameter, and plot or show the function applied to the data.
 
 import itertools
 import numbers
+from abc import ABC
 from functools import lru_cache
 from math import cos, pi, sin, sqrt
 from typing import Callable, Optional
 
 import palettable
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.drawing.graphics3d import Graphics3D
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Integer, Integer0, Integer1, MachineReal, Real, String
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
@@ -27,6 +28,7 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
+    SymbolBlack,
     SymbolBlend,
     SymbolColorData,
     SymbolEdgeForm,
@@ -44,13 +46,14 @@ from mathics.core.systemsymbols import (
     SymbolSlot,
     SymbolStyle,
 )
-from mathics.eval.nevaluator import eval_N
-from mathics.eval.plot import (
+from mathics.eval.drawing.plot import (
+    ListPlotType,
     compile_quiet_function,
     eval_ListPlot,
     eval_Plot,
     get_plot_range,
 )
+from mathics.eval.nevaluator import eval_N
 
 # This tells documentation how to sort this module
 # Here we are also hiding "drawing" since this erroneously appears at the top level.
@@ -61,6 +64,9 @@ SymbolDisk = Symbol("Disk")
 SymbolFaceForm = Symbol("FaceForm")
 SymbolRectangle = Symbol("Rectangle")
 SymbolText = Symbol("Text")
+
+TwoTenths = Real(0.2)
+MTwoTenths = -TwoTenths
 
 
 # PlotRange Option
@@ -271,7 +277,7 @@ class _GradientColorScheme:
         return Expression(SymbolColorDataFunction, *arguments)
 
 
-class _ListPlot(Builtin):
+class _ListPlot(Builtin, ABC):
     """
     Base class for ListPlot, and ListLinePlot
     2-Dimensional plot a list of points in some fashion.
@@ -292,7 +298,7 @@ class _ListPlot(Builtin):
     def eval(self, points, evaluation: Evaluation, options: dict):
         "%(name)s[points_, OptionsPattern[%(name)s]]"
 
-        plot_name = self.get_name()
+        class_name = self.__class__.__name__
 
         # Scale point values down by Log 10. Tick mark values will be adjusted to be 10^n in GraphicsBox.
         if self.use_log_scale:
@@ -303,9 +309,27 @@ class _ListPlot(Builtin):
                 )
             )
 
-        all_points = eval_N(points, evaluation).to_python()
+        # If "points" is a literal value with a Python representation,
+        # it has a ".value" attribute with a non-None value. So here,
+        # we don't have to eval_N().to_python().
+
+        all_points = (
+            points.value
+            if hasattr(points, "value") and points.value is not None
+            else eval_N(points, evaluation).to_python()  # TODO: force tuple-ness?
+        )
+
         # FIXME: arrange for self to have a .symbolname property or attribute
         expr = Expression(Symbol(self.get_name()), points, *options_to_rules(options))
+
+        if class_name == "ListPlot":
+            plot_type = ListPlotType.ListPlot
+        elif class_name == "ListLinePlot":
+            plot_type = ListPlotType.ListLinePlot
+        elif class_name == "ListStepPlot":
+            plot_type = ListPlotType.ListStepPlot
+        else:
+            plot_type = None
 
         plotrange_option = self.get_option(options, "PlotRange", evaluation)
         plotrange = eval_N(plotrange_option, evaluation).to_python()
@@ -352,7 +376,7 @@ class _ListPlot(Builtin):
         joined_option = self.get_option(options, "Joined", evaluation)
         is_joined_plot = joined_option.to_python()
         if is_joined_plot not in [True, False]:
-            evaluation.message(plot_name, "joind", joined_option, expr)
+            evaluation.message(class_name, "joind", joined_option, expr)
             is_joined_plot = False
 
         return eval_ListPlot(
@@ -363,6 +387,7 @@ class _ListPlot(Builtin):
             is_joined_plot=is_joined_plot,
             filling=filling,
             use_log_scale=self.use_log_scale,
+            list_plot_type=plot_type,
             options=options,
         )
 
@@ -379,8 +404,7 @@ class _PalettableGradient(_GradientColorScheme):
         return colors
 
 
-class _Plot(Builtin):
-
+class _Plot(Builtin, ABC):
     attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
 
     expect_list = False
@@ -453,7 +477,8 @@ class _Plot(Builtin):
         if plotpoints == "System`None":
             plotpoints = 57
         if not (isinstance(plotpoints, int) and plotpoints >= 2):
-            return evaluation.message(self.get_name(), "ppts", plotpoints)
+            evaluation.message(self.get_name(), "ppts", plotpoints)
+            return
 
         # MaxRecursion Option
         max_recursion_limit = 15
@@ -561,7 +586,6 @@ class _Plot(Builtin):
     def process_function_and_options(
         self, functions, x, start, stop, evaluation: Evaluation, options: dict
     ) -> tuple:
-
         if isinstance(functions, Symbol) and functions.name is not x.get_name():
             rules = evaluation.definitions.get_ownvalues(functions.name)
             for rule in rules:
@@ -589,9 +613,11 @@ class _Plot(Builtin):
         py_start = start.round_to_float(evaluation)
         py_stop = stop.round_to_float(evaluation)
         if py_start is None or py_stop is None:
-            return evaluation.message(self.get_name(), "plln", stop, expr)
+            evaluation.message(self.get_name(), "plln", stop, expr)
+            return
         if py_start >= py_stop:
-            return evaluation.message(self.get_name(), "plld", expr_limits)
+            evaluation.message(self.get_name(), "plld", expr_limits)
+            return
 
         plotrange_option = self.get_option(options, "PlotRange", evaluation)
         plot_range = eval_N(plotrange_option, evaluation).to_python()
@@ -650,7 +676,7 @@ class _Plot3D(Builtin):
             functions,
             xexpr_limits,
             yexpr_limits,
-            *options_to_rules(options)
+            *options_to_rules(options),
         )
 
         functions = self.get_functions_param(functions)
@@ -810,8 +836,8 @@ class _Plot3D(Builtin):
                     # 1   2        1   2
                     #
                     # Approaching the boundary of the well defined region is
-                    # important too. Use first stategy if 1 or 4 are undefined
-                    # and stategy 2 if either 2 or 3 are undefined.
+                    # important too. Use first strategy if 1 or 4 are undefined
+                    # and strategy 2 if either 2 or 3 are undefined.
                     #
                     (x1, x2, x3, x4) = (
                         xstart + value * (xstop - xstart)
@@ -1094,6 +1120,7 @@ class BarChart(_Chart):
         <dt>'BarChart[{$b1$, $b2$ ...}]'
         <dd>makes a bar chart with lengths $b1$, $b2$, ....
     </dl>
+
     Drawing options include -
     Charting:
     <ul>
@@ -1159,7 +1186,7 @@ class BarChart(_Chart):
                 x += 0.2
 
         def rectangles():
-            yield Expression(SymbolEdgeForm, Symbol("Black"))
+            yield Expression(SymbolEdgeForm, SymbolBlack)
 
             last_x1 = 0
 
@@ -1181,10 +1208,10 @@ class BarChart(_Chart):
             )
 
         def axes():
-            yield Expression(SymbolFaceForm, Symbol("Black"))
+            yield Expression(SymbolFaceForm, SymbolBlack)
 
             def points(x):
-                return ListExpression(vector2(x, 0), vector2(x, Real(-0.2)))
+                return ListExpression(vector2(x, 0), vector2(x, MTwoTenths))
 
             for (k, n), x0, x1, y in boxes():
                 if k == 1:
@@ -1193,13 +1220,13 @@ class BarChart(_Chart):
                     yield Expression(SymbolLine, points(x1))
 
         def labels(names):
-            yield Expression(SymbolFaceForm, Symbol("Black"))
+            yield Expression(SymbolFaceForm, SymbolBlack)
 
             for (k, n), x0, x1, y in boxes():
                 if k <= len(names):
                     name = names[k - 1]
                     yield Expression(
-                        SymbolText, name, vector2((x0 + x1) / 2, Real(-0.2))
+                        SymbolText, name, vector2((x0 + x1) / 2, MTwoTenths)
                     )
 
         x_coords = list(itertools.chain(*[[x0, x1] for (k, n), x0, x1, y in boxes()]))
@@ -1219,7 +1246,7 @@ class BarChart(_Chart):
             y_range[0] = -0.4  # room for labels at the bottom
 
         # FIXME: this can't be right...
-        # always specify -.1 as the minimum x plot range, as this will make the y axis apppear
+        # always specify -.1 as the minimum x plot range, as this will make the y axis appear
         # at origin (0,0); otherwise it will be shifted right; see GraphicsBox.axis_ticks().
         x_range[0] = -0.1
 
@@ -1342,6 +1369,7 @@ class ColorDataFunction(Builtin):
       <dt>'ColorDataFunction[range, ...]'
       <dd> is a function that represents a color scheme.
     </dl>
+
     """
 
     summary_text = "color scheme object"
@@ -1496,7 +1524,7 @@ class DensityPlot(_Plot3D):
         return Expression(
             SymbolGraphics,
             ListExpression(*graphics),
-            *options_to_rules(options, Graphics.options)
+            *options_to_rules(options, Graphics.options),
         )
 
 
@@ -1533,7 +1561,7 @@ class DiscretePlot(_Plot):
      = -Graphics-
 
     Compare with <url>:'Plot':
-    /doc/reference-of-built-in-symbols/graphics-drawing-and-images/plotting-data/plot/</url>.
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/plotting-data/plot/</url>.
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
@@ -1593,9 +1621,11 @@ class DiscretePlot(_Plot):
         py_nmax = nmax.value
         py_step = step.value
         if py_start is None or py_nmax is None:
-            return evaluation.message(self.get_name(), "plln", nmax, expr)
+            evaluation.message(self.get_name(), "plln", nmax, expr)
+            return
         if py_start >= py_nmax:
-            return evaluation.message(self.get_name(), "plld", expr_limits)
+            evaluation.message(self.get_name(), "plld", expr_limits)
+            return
 
         plotrange_option = self.get_option(options, "PlotRange", evaluation)
         plot_range = eval_N(plotrange_option, evaluation).to_python()
@@ -1621,11 +1651,11 @@ class DiscretePlot(_Plot):
         # list of all plotted points across all functions
         plot_groups = []
 
-        # List of graphics primitves that rendering will use to draw.
+        # List of graphics primitives that rendering will use to draw.
         # This includes the plot data, and overall graphics directives
         # like the Hue.
 
-        for index, f in enumerate(functions):
+        for f in functions:
             # list of all plotted points for a given function
             plot_points = []
 
@@ -1645,8 +1675,8 @@ class DiscretePlot(_Plot):
                 plot_points.append((x_value, point))
 
             x_range = get_plot_range(
-                [xx for xx, yy in base_plot_points],
-                [xx for xx, yy in plot_points],
+                [xx for xx, _ in base_plot_points],
+                [xx for xx, _ in plot_points],
                 x_range,
             )
             plot_groups.append(plot_points)
@@ -1672,6 +1702,7 @@ class DiscretePlot(_Plot):
             is_joined_plot=False,
             filling=False,
             use_log_scale=False,
+            list_plot_type=ListPlotType.DiscretePlot,
             options=options,
         )
 
@@ -1875,7 +1906,7 @@ class Histogram(Builtin):
             x_range = list(get_plot_range(x_coords, x_coords, x_range))
             y_range = list(get_plot_range(y_coords, y_coords, y_range))
 
-            # always specify -.1 as the minimum x plot range, as this will make the y axis apppear
+            # always specify -.1 as the minimum x plot range, as this will make the y axis appear
             # at origin (0,0); otherwise it will be shifted right; see GraphicsBox.axis_ticks().
             x_range[0] = -0.1
 
@@ -1929,7 +1960,7 @@ class Histogram(Builtin):
         return Expression(
             SymbolGraphics,
             ListExpression(*graphics),
-            *options_to_rules(options, Graphics.options)
+            *options_to_rules(options, Graphics.options),
         )
 
 
@@ -1947,7 +1978,7 @@ class ListPlot(_ListPlot):
       <dd>plots several lists of points.
     </dl>
 
-    The frequecy of Primes:
+    The frequency of Primes:
     >> ListPlot[Prime[Range[30]]]
      = -Graphics-
 
@@ -1961,13 +1992,13 @@ class ListPlot(_ListPlot):
      = -Graphics-
 
     Compare with <url>:'Plot':
-    /doc/reference-of-built-in-symbols/graphics-drawing-and-images/plotting-data/plot/</url>.
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/plotting-data/plot/</url>.
 
     >> ListPlot[Table[n ^ 2, {n, 30}], Filling->Axis]
      = -Graphics-
 
     Compare with <url>:'Plot':
-    /doc/reference-of-built-in-symbols/graphics-drawing-and-images/plotting-data/plot</url>.
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/plotting-data/plot</url>.
     """
 
     options = Graphics.options.copy()
@@ -1987,7 +2018,9 @@ class ListPlot(_ListPlot):
 
 class ListLinePlot(_ListPlot):
     """
-    <url>:WMA link: https://reference.wolfram.com/language/ref/ListLinePlot.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ListLinePlot.html</url>
     <dl>
       <dt>'ListLinePlot[{$y_1$, $y_2$, ...}]'
       <dd>plots a line through a list of $y$-values, assuming integer $x$-values 1, 2, 3, ...
@@ -2023,6 +2056,55 @@ class ListLinePlot(_ListPlot):
         }
     )
     summary_text = "plot lines through lists of points"
+
+
+class ListStepPlot(_ListPlot):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ListStepPlot.html</url>
+    <dl>
+      <dt>'ListStepPlot[{$y_1$, $y_2$, ...}]'
+      <dd>plots a line through a list of $y$-values, assuming integer $x$-values 1, 2, 3, ...
+
+      <dt>'ListStepPlot[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]'
+      <dd>plots a line through a list of $x$, $y$ pairs.
+
+      <dt>'ListStepPlot[{$list_1$, $list_2$, ...}]'
+      <dd>plots several lines.
+    </dl>
+
+    >> ListStepPlot[{1, 1, 2, 3, 5, 8, 13, 21}]
+     = -Graphics-
+
+    'ListStepPlot' accepts a superset of the Graphics options. \
+    By default, 'ListStepPlot's are joined, but that can be disabled.
+
+    >> ListStepPlot[{1, 1, 2, 3, 5, 8, 13, 21}, Joined->False]
+     = -Graphics-
+
+    The same as the first example but using a list of point as data, \
+    and filling the plot to the x axis.
+
+    >> ListStepPlot[{{1, 1}, {3, 2}, {4, 5}, {5, 8}, {6, 13}, {7, 21}}, Filling->Axis]
+     = -Graphics-
+    """
+
+    attributes = A_HOLD_ALL | A_PROTECTED
+
+    options = Graphics.options.copy()
+    options.update(
+        {
+            "Axes": "True",
+            "AspectRatio": "1 / GoldenRatio",
+            "Mesh": "None",
+            "PlotRange": "Automatic",
+            "PlotPoints": "None",
+            "Filling": "None",
+            "Joined": "True",
+        }
+    )
+    summary_text = "plot values in steps"
 
 
 class ListLogPlot(_ListPlot):
@@ -2092,9 +2174,61 @@ class LogPlot(_Plot):
 
     """
 
-    summary_text = "plots on a log scale curves of one or more functions"
+    summary_text = "plot on a log scale curves of one or more functions"
 
     use_log_scale = True
+
+
+class NumberLinePlot(_ListPlot):
+    """
+     <url>:WMA link:
+     https://reference.wolfram.com/language/ref/NumberLinePlot.html</url>
+     <dl>
+       <dt>'NumberLinePlot[{$v_1$, $v_2$, ...}]'
+       <dd>plots a list of values along a line.
+     </dl>
+
+     >> NumberLinePlot[Prime[Range[10]]]
+      = -Graphics-
+
+    Compare with:
+     >> NumberLinePlot[Table[x^2, {x, 10}]]
+
+      = -Graphics-
+    """
+
+    options = Graphics.options.copy()
+
+    # This is ListPlot with some tweaks:
+    # * remove the Y axis in display,
+    # * set the Y value to a constant, and
+    # * set the aspect ratio to reduce the distance above the
+    #   x-axis
+    options.update(
+        {
+            "Axes": "{True, False}",
+            "AspectRatio": "1 / 10",
+            "Mesh": "None",
+            "PlotRange": "Automatic",
+            "PlotPoints": "None",
+            "Filling": "None",
+            "Joined": "False",
+        }
+    )
+    summary_text = "plot along a number line"
+
+    use_log_scale = False
+
+    def eval(self, values, evaluation: Evaluation, options: dict):
+        "%(name)s[values_, OptionsPattern[%(name)s]]"
+
+        # Fill in a Y value, and use the generic _ListPlot.eval().
+        # Some graphics options have been adjusted above.
+        points_list = [
+            ListExpression(eval_N(value, evaluation), Integer1)
+            for value in values.elements
+        ]
+        return _ListPlot.eval(self, ListExpression(*points_list), evaluation, options)
 
 
 class PieChart(_Chart):
@@ -2124,7 +2258,7 @@ class PieChart(_Chart):
       <li>SectorSpacing" (default Automatic)
     </ul>
 
-    A hypothetical comparsion between types of pets owned:
+    A hypothetical comparison between types of pets owned:
     >> PieChart[{30, 20, 10}, ChartLabels -> {Dogs, Cats, Fish}]
      = -Graphics-
 
@@ -2132,7 +2266,7 @@ class PieChart(_Chart):
     >> PieChart[{8, 16, 2}, SectorOrigin -> {Automatic, 1.5}]
      = -Graphics-
 
-    A Pie chart with multple datasets:
+    A Pie chart with multiple datasets:
     >> PieChart[{{10, 20, 30}, {15, 22, 30}}]
      = -Graphics-
 
@@ -2194,7 +2328,7 @@ class PieChart(_Chart):
         sector_spacing = self.get_option(options, "SectorSpacing", evaluation)
         if isinstance(sector_spacing, Symbol):
             if sector_spacing.get_name() == "System`Automatic":
-                sector_spacing = ListExpression(Integer0, Real(0.2))
+                sector_spacing = ListExpression(Integer0, TwoTenths)
             elif sector_spacing.get_name() == "System`None":
                 sector_spacing = ListExpression(Integer0, Integer0)
             else:
@@ -2238,7 +2372,7 @@ class PieChart(_Chart):
                 phi0 = phi1
 
         def segments():
-            yield Expression(SymbolEdgeForm, Symbol("Black"))
+            yield Expression(SymbolEdgeForm, SymbolBlack)
 
             origin = vector2(0.0, 0.0)
 
@@ -2262,7 +2396,7 @@ class PieChart(_Chart):
                     )
 
         def labels(names):
-            yield Expression(SymbolFaceForm, Symbol("Black"))
+            yield Expression(SymbolFaceForm, SymbolBlack)
 
             for values, (r0, r1) in zip(data, radii()):
                 for name, (phi0, phi1) in zip(names, phis(values)):
@@ -2320,21 +2454,6 @@ class Plot(_Plot):
     A constant function:
     >> Plot[3, {x, 0, 1}]
      = -Graphics-
-
-    #> Plot[1 / x, {x, -1, 1}]
-     = -Graphics-
-    #> Plot[x, {y, 0, 2}]
-     = -Graphics-
-
-    #> Plot[{f[x],-49x/12+433/108},{x,-6,6}, PlotRange->{-10,10}, AspectRatio->{1}]
-     = -Graphics-
-
-    #> Plot[Sin[t],  {t, 0, 2 Pi}, PlotPoints -> 1]
-     : Value of option PlotPoints -> 1 is not an integer >= 2.
-     = Plot[Sin[t], {t, 0, 2 Pi}, PlotPoints -> 1]
-
-    #> Plot[x*y, {x, -1, 1}]
-     = -Graphics-
     """
 
     summary_text = "plot curves of one or more functions"
@@ -2348,7 +2467,9 @@ class Plot(_Plot):
 
 class ParametricPlot(_Plot):
     """
-    <url>:WMA link: https://reference.wolfram.com/language/ref/ParametricPlot.html</url>
+    <url>
+    :WMA link
+    : https://reference.wolfram.com/language/ref/ParametricPlot.html</url>
     <dl>
       <dt>'ParametricPlot[{$f_x$, $f_y$}, {$u$, $umin$, $umax$}]'
       <dd>plots a parametric function $f$ with the parameter $u$ ranging from $umin$ to $umax$.
@@ -2496,17 +2617,13 @@ class Plot3D(_Plot3D):
     <url>:WMA link: https://reference.wolfram.com/language/ref/Plot3D.html</url>
     <dl>
       <dt>'Plot3D[$f$, {$x$, $xmin$, $xmax$}, {$y$, $ymin$, $ymax$}]'
-      <dd>creates a three-dimensional plot of $f$ with $x$ ranging from $xmin$ to $xmax$ and $y$ ranging from $ymin$ to $ymax$.
+      <dd>creates a three-dimensional plot of $f$ with $x$ ranging from $xmin$ to \
+          $xmax$ and $y$ ranging from $ymin$ to $ymax$.
 
+          See <url>:Drawing Option and Option Values:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    </url> for a list of Plot options.
     </dl>
-
-    Plot3D has the same options as Graphics3D, in particular:
-    <ul>
-    <li>Mesh
-    <li>PlotPoints
-    <li>MaxRecursion
-    </ul>
-
 
     >> Plot3D[x ^ 2 + 1 / y, {x, -1, 1}, {y, 1, 4}]
      = -Graphics3D-
@@ -2522,37 +2639,8 @@ class Plot3D(_Plot3D):
 
     >> Plot3D[Log[x + y^2], {x, -1, 1}, {y, -1, 1}]
      = -Graphics3D-
-
-    #> Plot3D[z, {x, 1, 20}, {y, 1, 10}]
-     = -Graphics3D-
-
-    ## MaxRecursion Option
-    #> Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> 0]
-     = -Graphics3D-
-    #> Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> 15]
-     = -Graphics3D-
-    #> Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> 16]
-     : MaxRecursion must be a non-negative integer; the recursion value is limited to 15. Using MaxRecursion -> 15.
-     = -Graphics3D-
-    #> Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> -1]
-     : MaxRecursion must be a non-negative integer; the recursion value is limited to 15. Using MaxRecursion -> 0.
-     = -Graphics3D-
-    #> Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> a]
-     : MaxRecursion must be a non-negative integer; the recursion value is limited to 15. Using MaxRecursion -> 0.
-     = -Graphics3D-
-    #> Plot3D[0, {x, -2, 2}, {y, -2, 2}, MaxRecursion -> Infinity]
-     : MaxRecursion must be a non-negative integer; the recursion value is limited to 15. Using MaxRecursion -> 15.
-     = -Graphics3D-
-
-    #> Plot3D[x ^ 2 + 1 / y, {x, -1, 1}, {y, 1, z}]
-     : Limiting value z in {y, 1, z} is not a machine-size real number.
-     = Plot3D[x ^ 2 + 1 / y, {x, -1, 1}, {y, 1, z}]
     """
 
-    # FIXME: This test passes but the result is 511 lines long !
-    """
-    #> Plot3D[x + 2y, {x, -2, 2}, {y, -2, 2}] // TeXForm
-    """
     attributes = A_HOLD_ALL | A_PROTECTED
 
     options = Graphics.options.copy()
@@ -2607,5 +2695,5 @@ class Plot3D(_Plot3D):
         return Expression(
             SymbolGraphics3D,
             ListExpression(*graphics),
-            *options_to_rules(options, Graphics3D.options)
+            *options_to_rules(options, Graphics3D.options),
         )

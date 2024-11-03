@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Various Exception objects used in Mathics3.
+"""
 
 
 class BoxExpressionError(Exception):
@@ -7,6 +10,10 @@ class BoxExpressionError(Exception):
 
 # Backward compatibility
 BoxConstructError = BoxExpressionError
+
+
+class IllegalStepSpecification(Exception):
+    pass
 
 
 class InvalidLevelspecError(Exception):
@@ -31,4 +38,7 @@ class MessageException(Exception):
         self._message = message
 
     def message(self, evaluation):
+        """
+        Transfer this exception to evaluation's ``message`` method.
+        """
         evaluation.message(*self._message)

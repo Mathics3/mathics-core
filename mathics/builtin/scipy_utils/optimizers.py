@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
-from mathics.builtin.base import check_requires_list
+from typing import Optional, Tuple
+
 from mathics.core.atoms import Number, Real
+from mathics.core.builtin import check_requires_list
 from mathics.core.convert.function import expression_to_callable_and_args
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolFailed, SymbolInfinity
-from mathics.core.util import IS_PYPY
 from mathics.eval.nevaluator import eval_N
 
-if IS_PYPY or not check_requires_list(["scipy", "numpy"]):
+if not check_requires_list(["scipy", "numpy"]):
     raise ImportError
 
 
@@ -18,7 +20,7 @@ from scipy.optimize import (  # minimize,; basinhopping,; least_squares,; curve_
 )
 
 
-def get_tolerance_and_maxit(opts: dict, scale=0, evaluation: "Evaluation" = None):
+def get_tolerance_and_maxit(opts: dict, scale: float, evaluation: Evaluation):
     """
     Looks at an opts dictionary and tries to determine the numeric values of
     Accuracy and Precision goals. If not available, returns None.
@@ -43,7 +45,7 @@ def get_tolerance_and_maxit(opts: dict, scale=0, evaluation: "Evaluation" = None
         elif not isinstance(prec_goal, Number):
             prec_goal = None
 
-    tol = 0.0
+    tol: Optional[float] = 0.0
     if acc_goal:
         tol = 10 ** (-acc_goal.to_python())
     if prec_goal and scale:
@@ -85,12 +87,12 @@ def process_result_1d_solver(result, opts, evaluation):
 
 
 def find_minimum_brent(
-    f: "Expression",
-    x0: "Expression",
-    x: "Expression",
+    f: Expression,
+    x0: BaseElement,
+    x: Expression,
     opts: dict,
-    evaluation: "Evaluation",
-) -> (Number, bool):
+    evaluation: Evaluation,
+) -> Tuple[BaseElement, bool]:
     """
     This implements the Brent's optimizer
     """
@@ -113,12 +115,12 @@ def find_minimum_brent(
 
 
 def find_minimum_golden(
-    f: "Expression",
-    x0: "Expression",
-    x: "Expression",
+    f: Expression,
+    x0: BaseElement,
+    x: Expression,
     opts: dict,
-    evaluation: "Evaluation",
-) -> (Number, bool):
+    evaluation: Evaluation,
+) -> Tuple[BaseElement, bool]:
     """
     This implements the golden rule optimizer
     """
@@ -142,12 +144,12 @@ def find_minimum_golden(
 
 
 def find_root1d_brenth(
-    f: "Expression",
-    x0: "Expression",
-    x: "Expression",
+    f: Expression,
+    x0: BaseElement,
+    x: Expression,
     opts: dict,
-    evaluation: "Evaluation",
-) -> (Number, bool):
+    evaluation: Evaluation,
+) -> Tuple[BaseElement, bool]:
     """
     This implements the Brent's solver
     """

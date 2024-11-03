@@ -2,30 +2,22 @@
 """
 UpValue-related assignments
 
-An <i>UpValue<i> is a definition associated with a symbols that does not appear directly its head.
+An <i>UpValue</i> is a definition associated with a symbols that does not appear directly its head.
 
 See <url>
 :Associating Definitions with Different Symbols:
 https://reference.wolfram.com/language/tutorial/TransformationRulesAndDefinitions.html#6972</url>.
 """
 
-from mathics.builtin.assignments.assignment import _SetOperator
-from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.core.assignment import get_symbol_values
-from mathics.core.attributes import (
-    A_HOLD_ALL,
-    A_HOLD_FIRST,
-    A_PROTECTED,
-    A_SEQUENCE_HOLD,
-)
-from mathics.core.symbols import SymbolNull
-from mathics.core.systemsymbols import SymbolFailed
+from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
+from mathics.core.builtin import Builtin
 
 
 # In Mathematica 5, this appears under "Types of Values".
 class UpValues(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/UpValues.html</url>
+    <url>:WMA link: https://reference.wolfram.com/language/ref/UpValues.html</url>
     <dl>
       <dt>'UpValues[$symbol$]'
       <dd>gives the list of transformation rules corresponding to upvalues \

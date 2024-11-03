@@ -10,7 +10,7 @@ import pkg_resources
 try:
     import ujson
 except ImportError:
-    import json as ujson
+    import json as ujson  # type: ignore[no-redef]
 
 ROOT_DIR = pkg_resources.resource_filename("mathics", "")
 

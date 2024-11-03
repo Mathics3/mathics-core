@@ -1,4 +1,11 @@
 # -*- coding: utf-8 -*-
+"""
+Mathics3 System Information that front-ends can use to show as
+configuration information.
+
+Some of these we get from mathics.settings and are configurable
+via Environment Variables.
+"""
 
 import os
 import platform
@@ -6,11 +13,14 @@ import sys
 
 import mathics.builtin.atomic.numbers as numeric
 import mathics.builtin.datentime as datentime
-import mathics.builtin.files_io.filesystem as filesystem
+import mathics.builtin.directories.system_directories as system_directories
+import mathics.builtin.directories.user_directories as user_directories
 import mathics.builtin.system as msystem
 from mathics.core.evaluation import Evaluation
+from mathics.settings import MAX_STR_DIGITS, SYSTEM_CHARACTER_ENCODING, TIME_12HOUR
 
 
+# Largest number of digits Python allows in a string.
 def python_implementation() -> str:
     """
     Returns the Python implementation, e.g Pyston, PyPy, CPython...
@@ -37,20 +47,23 @@ def mathics_system_info(defs):
 
     evaluation = Evaluation(defs, output=None)
     return {
-        "$BaseDirectory": eval(filesystem.BaseDirectory_),
-        "$HomeDirectory": eval(filesystem.HomeDirectory),
-        "$InstallationDirectory": eval(filesystem.InstallationDirectory),
+        "$BaseDirectory": eval(system_directories.BaseDirectory_),
+        "$HomeDirectory": eval(user_directories.HomeDirectory),
+        "$InstallationDirectory": eval(system_directories.InstallationDirectory),
         "$Machine": sys.platform,
         "$MachineName": platform.uname().node,
         "$ProcessID": os.getppid(),
         "$ProcessorType": platform.machine(),
         "$PythonImplementation": python_implementation(),
-        "$RootDirectory": eval(filesystem.RootDirectory),
+        "$RootDirectory": eval(system_directories.RootDirectory),
         "$SystemID": sys.platform,
         "$SystemMemory": eval(msystem.SystemMemory),
         "$SystemTimeZone": eval(datentime.SystemTimeZone),
-        "$TemporaryDirectory": eval(filesystem.TemporaryDirectory),
+        "$TemporaryDirectory": eval(system_directories.TemporaryDirectory),
         "$UserName": eval(msystem.UserName),
         "MachinePrecision": eval(numeric.MachinePrecision_),
+        "MaximumDigitsInString": MAX_STR_DIGITS,
         "MemoryAvailable[]": eval(msystem.MemoryAvailable, needs_head=False),
+        "SystemCharacterEncoding": SYSTEM_CHARACTER_ENCODING,
+        "Time12Hour": TIME_12HOUR,
     }

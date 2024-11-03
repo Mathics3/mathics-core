@@ -1,12 +1,12 @@
 Welcome to Mathics Core!
 ========================
 
-|Pypi Installs| |Latest Version| |Supported Python Versions| |SlackStatus|_
+|Pypi Installs| |Latest Version| |Supported Python Versions|
 
 |Packaging status|
 
 
-Mathics is a general-purpose computer algebra system (CAS).
+Mathics3 is a general-purpose computer algebra system (CAS).
 
 However this repository contains just the Python modules for WL Built-in functions, variables, core primitives, e.g. Symbol, a parser to create Expressions, and an evaluator to execute them.
 
@@ -17,7 +17,7 @@ Installing
 
 Installing locally, requires a number of dependencies and OS package dependencies.
 
-See the `Installing Mathics <https://mathics-development-guide.readthedocs.io/en/latest/installing.html>`_ for instructions on installing Mathics3.
+See the `Installing Mathics3 <https://mathics-development-guide.readthedocs.io/en/latest/installing.html>`_ for instructions on installing Mathics3.
 
 Running:
 --------
@@ -60,8 +60,6 @@ License
 
 Mathics is released under the GNU General Public License Version 3 (GPL3).
 
-.. |SlackStatus| image:: https://mathics-slackin.herokuapp.com/badge.svg
-.. _SlackStatus: https://mathics-slackin.herokuapp.com/
 .. |Travis| image:: https://secure.travis-ci.org/Mathics3/mathics-core.svg?branch=master
 .. _Travis: https://travis-ci.org/Mathics3/mathics-core
 .. _PyPI: https://pypi.org/project/Mathics/

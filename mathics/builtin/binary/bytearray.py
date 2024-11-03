@@ -3,8 +3,8 @@
 Byte Arrays
 """
 
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import ByteArrayAtom, Integer, String
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.expression import Expression
 from mathics.core.systemsymbols import SymbolByteArray, SymbolFailed
@@ -35,14 +35,14 @@ class ByteArray(Builtin):
     >> ByteArray["ARkD"]
      = ByteArray[<3>]
     >> B=ByteArray["asy"]
-     : The first argument in Bytearray[asy] should be a B64 enconded string or a vector of integers.
+     : The first argument in Bytearray[asy] should be a B64 encoded string or a vector of integers.
      = $Failed
     """
 
     messages = {
         "aotd": "Elements in `1` are inconsistent with type Byte",
         "lend": "The first argument in Bytearray[`1`] should "
-        + "be a B64 enconded string or a vector of integers.",
+        + "be a B64 encoded string or a vector of integers.",
     }
     summary_text = "array of bytes"
 

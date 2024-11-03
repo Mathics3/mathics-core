@@ -5,28 +5,17 @@ Calculus
 
 Originally called infinitesimal calculus or "the calculus of infinitesimals", \
 is the mathematical study of continuous change, in the same way that geometry \
-is the study of shape and algebra is the study of generalizations of arithmetic operations.
+is the study of shape and algebra is the study of generalizations of \
+arithmetic operations.
 """
 
 from itertools import product
-from typing import Optional
+from typing import Callable, Dict, Optional, Tuple
 
 import numpy as np
 import sympy
 
-from mathics.algorithm.integrators import (
-    _fubini,
-    _internal_adaptative_simpsons_rule,
-    apply_D_to_Integral,
-    decompose_domain,
-)
-from mathics.algorithm.series import (
-    build_series,
-    series_derivative,
-    series_plus_series,
-    series_times_series,
-)
-from mathics.builtin.base import Builtin, PostfixOperator, SympyFunction
+import mathics.eval.tracing as tracing
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
     Atom,
@@ -48,15 +37,21 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import Builtin, PostfixOperator, SympyFunction
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.function import expression_to_callable_and_args
 from mathics.core.convert.python import from_python
-from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
+from mathics.core.convert.sympy import (
+    SymbolRootSum,
+    SympyExpression,
+    from_sympy,
+    sympy_symbol_prefix,
+)
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import dps, machine_epsilon
-from mathics.core.rules import Pattern
+from mathics.core.number import MACHINE_EPSILON, dps
+from mathics.core.rules import BasePattern
 from mathics.core.symbols import (
     BaseElement,
     Symbol,
@@ -73,6 +68,8 @@ from mathics.core.systemsymbols import (
     SymbolConditionalExpression,
     SymbolD,
     SymbolDerivative,
+    SymbolFunction,
+    SymbolIndeterminate,
     SymbolInfinity,
     SymbolInfix,
     SymbolIntegrate,
@@ -85,10 +82,23 @@ from mathics.core.systemsymbols import (
     SymbolSeries,
     SymbolSeriesData,
     SymbolSimplify,
+    SymbolSlot,
     SymbolUndefined,
 )
 from mathics.eval.makeboxes import format_element
 from mathics.eval.nevaluator import eval_N
+from mathics.eval.numbers.calculus.integrators import (
+    _fubini,
+    _internal_adaptative_simpsons_rule,
+    decompose_domain,
+    eval_D_to_Integral,
+)
+from mathics.eval.numbers.calculus.series import (
+    build_series,
+    series_derivative,
+    series_plus_series,
+    series_times_series,
+)
 
 # These should be used in lower-level formatting
 SymbolDifferentialD = Symbol("System`DifferentialD")
@@ -171,24 +181,6 @@ class D(SympyFunction):
     Hesse matrix:
     >> D[Sin[x] * Cos[y], {{x,y}, 2}]
      = {{-Cos[y] Sin[x], -Cos[x] Sin[y]}, {-Cos[x] Sin[y], -Cos[y] Sin[x]}}
-
-    #> D[2/3 Cos[x] - 1/3 x Cos[x] Sin[x] ^ 2,x]//Expand
-     = -2 x Cos[x] ^ 2 Sin[x] / 3 + x Sin[x] ^ 3 / 3 - 2 Sin[x] / 3 - Cos[x] Sin[x] ^ 2 / 3
-
-    #> D[f[#1], {#1,2}]
-     = f''[#1]
-    #> D[(#1&)[t],{t,4}]
-     = 0
-
-    #> Attributes[f] ={HoldAll}; Apart[f''[x + x]]
-     = f''[2 x]
-
-    #> Attributes[f] = {}; Apart[f''[x + x]]
-     = f''[2 x]
-
-    ## Issue #375
-    #> D[{#^2}, #]
-     = {2 #1}
     """
 
     # TODO
@@ -234,7 +226,7 @@ class D(SympyFunction):
     summary_text = "partial derivatives of scalar or vector functions"
     sympy_name = "Derivative"
 
-    def apply(self, f, x, evaluation):
+    def eval(self, f, x, evaluation: Evaluation):  # type: ignore[override]
         "D[f_, x_?NotListQ]"
 
         # Handle partial derivative special cases:
@@ -244,7 +236,7 @@ class D(SympyFunction):
         if f == x:
             return Integer1
 
-        x_pattern = Pattern.create(x)
+        x_pattern = BasePattern.create(x, evaluation=evaluation)
         if f.is_free(x_pattern, evaluation):
             return Integer0
 
@@ -358,7 +350,7 @@ class D(SympyFunction):
             else:
                 return Expression(SymbolPlus, *result)
 
-    def apply_wrong(self, expr, x, other, evaluation):
+    def eval_wrong(self, expr, x, other, evaluation: Evaluation):
         "D[expr_, {x_, other___}]"
 
         arg = ListExpression(x, *other.get_sequence())
@@ -415,22 +407,11 @@ class Derivative(PostfixOperator, SympyFunction):
      = Derivative[2, 1][h]
     >> Derivative[2, 0, 1, 0][h[g]]
      = Derivative[2, 0, 1, 0][h[g]]
-
-    ## Parser Tests
-    #> Hold[f''] // FullForm
-     = Hold[Derivative[2][f]]
-    #> Hold[f ' '] // FullForm
-     = Hold[Derivative[2][f]]
-    #> Hold[f '' ''] // FullForm
-     = Hold[Derivative[4][f]]
-    #> Hold[Derivative[x][4] '] // FullForm
-     = Hold[Derivative[1][Derivative[x][4]]]
     """
 
     attributes = A_N_HOLD_ALL
     default_formats = False
     operator = "'"
-    precedence = 670
     rules = {
         "MakeBoxes[Derivative[n__Integer][f_], "
         "  form:StandardForm|TraditionalForm]": (
@@ -439,34 +420,64 @@ class Derivative(PostfixOperator, SympyFunction):
             r'    RowBox[{"(", Sequence @@ Riffle[{n}, ","], ")"}]]]]'
         ),
         "MakeBoxes[Derivative[n:1|2][f_], form:OutputForm]": """RowBox[{MakeBoxes[f, form], If[n==1, "'", "''"]}]""",
-        # The following rules should be applied in the apply method, instead of relying on the pattern matching
+        # The following rules should be applied in the eval method, instead of relying on the pattern matching
         # mechanism.
         "Derivative[0...][f_]": "f",
         "Derivative[n__Integer][Derivative[m__Integer][f_]] /; Length[{m}] "
         "== Length[{n}]": "Derivative[Sequence @@ ({n} + {m})][f]",
-        # This would require at least some comments...
+        "Derivative[n__Integer][Alternatives[_Integer|_Rational|_Real|_Complex]]": "0 &",
+        # The following rule tries to evaluate a derivative of a pure function by applying it to a list
+        # of symbolic elements and use the rules in `D`.
+        # The rule just applies if f is not a locked symbol, and it does not have a previous definition
+        # for its `Derivative`.
+        # The main drawback of this implementation is that it requires to compute two times the derivative,
+        # just because the way in which the evaluation loop works, and the lack of a working `Unevaluated`
+        # symbol. In our current implementation, the a better way to implement this would be through a builtin
+        # rule (i.e., an eval_ method).
         """Derivative[n__Integer][f_Symbol] /; Module[{t=Sequence@@Slot/@Range[Length[{n}]], result, nothing, ft=f[t]},
-            If[Head[ft] === f
+            If[
+            (*If the head of ft is f, and it does not have a previous definition of derivative, and the context is `System,
+              the rule fails:
+            *)
+            Head[ft] === f
             && FreeQ[Join[UpValues[f], DownValues[f], SubValues[f]], Derivative|D]
             && Context[f] != "System`",
                 False,
-                (* else *)
+                (* else, evaluate ft, set the order n derivative of f to "nothing" and try to evaluate it *)
                 ft = f[t];
                 Block[{f},
-                    Unprotect[f];
-                    (*Derivative[1][f] ^= nothing;*)
-                    Derivative[n][f] ^= nothing;
-                    Derivative[n][nothing] ^= nothing;
+                    (*
+                      The idea of the test is to set `Derivative[n][f]` to `nothing`. Then, the derivative is
+                      evaluated. If it is not possible to find an explicit expression for the derivative,
+                      then their occurencies are replaced by `nothing`. Therefore, if the resulting expression
+                      if free of `nothing`, then we can use the result. Otherwise, the rule does not work.
+
+                      Differently from `True` and  `False`, `List` does not produce an infinite recurrence,
+                      but since is a protected symbol, the following test produces error messages.
+                      Let's put this inside Quiet to avoid the warnings.
+                     *)
+                    Quiet[Unprotect[f];
+                     Derivative[n][f] ^= nothing;
+                     Derivative[n][nothing] ^= nothing;
+                    ];
                     result = D[ft, Sequence@@Table[{Slot[i], {n}[[i]]}, {i, Length[{n}]}]];
                 ];
+                (*The rule applies if `nothing` disappeared in the result*)
                 FreeQ[result, nothing]
             ]
-            ]""": """Module[{t=Sequence@@Slot/@Range[Length[{n}]], result, nothing, ft},
+            ]""": """
+                (*
+                 Provided the assumptions, the derivative of F[#1,#2,...] is evaluated,
+                 and returned a an anonymous function.
+                *)
+                Module[{t=Sequence@@Slot/@Range[Length[{n}]], result, nothing, ft},
                 ft = f[t];
                 Block[{f},
-                    Unprotect[f];
-                    Derivative[n][f] ^= nothing;
-                    Derivative[n][nothing] ^= nothing;
+                    Quiet[
+                       Unprotect[f];
+                       Derivative[n][f] ^= nothing;
+                       Derivative[n][nothing] ^= nothing;
+                    ];
                     result = D[ft, Sequence@@Table[{Slot[i], {n}[[i]]}, {i, Length[{n}]}]];
                 ];
                 Function @@ {result}
@@ -481,6 +492,17 @@ class Derivative(PostfixOperator, SympyFunction):
 
     def __init__(self, *args, **kwargs):
         super(Derivative, self).__init__(*args, **kwargs)
+
+    def eval_locked_symbols(self, n, **kwargs):
+        """Derivative[n__Integer][Alternatives[True|False|Symbol|TooBig|$Aborted|Removed|Locked|$PrintLiteral|$Off]]"""
+        # Prevents the evaluation for True, False, and other Locked symbols
+        # as function names. This produces a recursion error in the evaluation rule for Derivative.
+        # See
+        # https://github.com/Mathics3/mathics-core/issues/971#issuecomment-1902814462
+        # in issue #971
+        # An alternative would be to reformulate the long rule.
+        # TODO: Add other locked symbols producing the same error.
+        return
 
     def to_sympy(self, expr, **kwargs):
         inner = expr
@@ -516,7 +538,7 @@ class Derivative(PostfixOperator, SympyFunction):
             sym_d_args.append(count)
 
         try:
-            return sympy.Derivative(sym_func, *sym_d_args)
+            return tracing.run_sympy(sympy.Derivative, sym_func, *sym_d_args)
         except ValueError:
             return
 
@@ -553,7 +575,7 @@ class DiscreteLimit(Builtin):
     }
     summary_text = "limits of sequences including recurrence and number theory"
 
-    def apply(self, f, n, n0, evaluation, options={}):
+    def eval(self, f, n, n0, evaluation: Evaluation, options: dict = {}):
         "DiscreteLimit[f_, n_->n0_, OptionsPattern[DiscreteLimit]]"
 
         f = f.to_sympy(convert_all_global_functions=True)
@@ -584,7 +606,13 @@ class _BaseFinder(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
-    methods = {}
+    methods: Dict[
+        str,
+        Callable[
+            [Expression, BaseElement, Expression, dict, Evaluation],
+            Tuple[BaseElement, bool],
+        ],
+    ] = {}
     messages = {
         "snum": "Value `1` is not a number.",
         "nnum": "The function value is not a number at `1` = `2`.",
@@ -611,7 +639,7 @@ class _BaseFinder(Builtin):
         "Jacobian": "Automatic",
     }
 
-    def apply(self, f, x, x0, evaluation, options):
+    def eval(self, f, x, x0, evaluation: Evaluation, options: dict):
         "%(name)s[f_, {x_, x0_}, OptionsPattern[]]"
         # This is needed to get the right messages
         options["_isfindmaximum"] = self.__class__ is FindMaximum
@@ -633,7 +661,7 @@ class _BaseFinder(Builtin):
         # keeping x without evaluation (Like inside a "Block[{x},f])
         f = dynamic_scoping(lambda ev: f.evaluate(ev), {x_name: None}, evaluation)
         # If after evaluation, we get an "Equal" expression,
-        # convert it in a function by substracting both
+        # convert it in a function by subtracting both
         # members. Again, ensure the scope in the evaluation
         if f.get_head_name() == "System`Equal":
             f = Expression(
@@ -693,10 +721,9 @@ class _BaseFinder(Builtin):
         else:
             return ListExpression(Expression(SymbolRule, x, x0))
 
-    def apply_with_x_tuple(self, f, xtuple, evaluation, options):
+    def eval_with_x_tuple(self, f, xtuple, evaluation: Evaluation, options: dict):
         "%(name)s[f_, xtuple_, OptionsPattern[]]"
         f_val = f.evaluate(evaluation)
-
         if f_val.has_form("Equal", 2):
             f = Expression(SymbolPlus, f_val.elements[0], f_val.elements[1])
 
@@ -710,7 +737,7 @@ class _BaseFinder(Builtin):
                 options["$$Region"] = (x0, x1)
             else:
                 return
-            return self.apply(f, x, x0, evaluation, options)
+            return self.eval(f, x, x0, evaluation, options)
         return
 
 
@@ -748,7 +775,9 @@ class FindMaximum(_BaseFinder):
     messages = _BaseFinder.messages.copy()
     summary_text = "local maximum optimization"
     try:
-        from mathics.algorithm.optimizers import native_local_optimizer_methods
+        from mathics.eval.numbers.calculus.optimizers import (
+            native_local_optimizer_methods,
+        )
 
         methods.update(native_local_optimizer_methods)
     except Exception:
@@ -797,7 +826,7 @@ class FindMinimum(_BaseFinder):
     messages = _BaseFinder.messages.copy()
     summary_text = "local minimum optimization"
     try:
-        from mathics.algorithm.optimizers import (
+        from mathics.eval.numbers.calculus.optimizers import (
             native_local_optimizer_methods,
             native_optimizer_messages,
         )
@@ -864,12 +893,8 @@ class FindRoot(_BaseFinder):
      = FindRoot[Sin[x] - x, {x, 0}]
 
 
-    #> FindRoot[2.5==x,{x,0}]
-     = {x -> 2.5}
-
     >> FindRoot[x^2 - 2, {x, 1,3}, Method->"Secant"]
      = {x -> 1.41421}
-
     """
 
     rules = {
@@ -883,26 +908,28 @@ class FindRoot(_BaseFinder):
     )
 
     try:
-        from mathics.algorithm.optimizers import (
+        from mathics.eval.numbers.calculus.optimizers import (
             native_findroot_messages,
             native_findroot_methods,
         )
-
-        methods.update(native_findroot_methods)
-        messages.update(native_findroot_messages)
     except Exception:
         pass
+    else:
+        methods.update(native_findroot_methods)
+        messages.update(native_findroot_messages)
+
     try:
         from mathics.builtin.scipy_utils.optimizers import (
             scipy_findroot_methods,
             update_findroot_messages,
         )
 
+    except Exception:
+        pass
+    else:
         methods.update(scipy_findroot_methods)
         messages = _BaseFinder.messages.copy()
         update_findroot_messages(messages)
-    except Exception:
-        pass
 
 
 # Move to mathics.builtin.domains...
@@ -970,20 +997,6 @@ class Integrate(SympyFunction):
     >> Integrate[f[x], {x, a, b}] // TeXForm
      = \int_a^b f\left[x\right] \, dx
 
-    #> DownValues[Integrate]
-     = {}
-    #> Definition[Integrate]
-     = Attributes[Integrate] = {Protected, ReadProtected}
-     .
-     . Options[Integrate] = {Assumptions -> $Assumptions, GenerateConditions -> Automatic, PrincipalValue -> False}
-    #> Integrate[Hold[x + x], {x, a, b}]
-     = Integrate[Hold[x + x], {x, a, b}]
-    #> Integrate[sin[x], x]
-     = Integrate[sin[x], x]
-
-    #> Integrate[x ^ 3.5 + x, x]
-     = x ^ 2 / 2 + 0.222222 x ^ 4.5
-
     Sometimes there is a loss of precision during integration.
     You can check the precision of your result with the following sequence
     of commands.
@@ -991,20 +1004,6 @@ class Integrate(SympyFunction):
      = 4.
      >> % // Precision
      = MachinePrecision
-
-    #> Integrate[1/(x^5+1), x]
-     = RootSum[1 + 5 #1 + 25 #1 ^ 2 + 125 #1 ^ 3 + 625 #1 ^ 4&, Log[x + 5 #1] #1&] + Log[1 + x] / 5
-
-    #> Integrate[ArcTan(x), x]
-     = x ^ 2 ArcTan / 2
-    #> Integrate[E[x], x]
-     = Integrate[E[x], x]
-
-    #> Integrate[Exp[-(x/2)^2],{x,-Infinity,+Infinity}]
-     = 2 Sqrt[Pi]
-
-    #> Integrate[Exp[-1/(x^2)], x]
-     = x E ^ (-1 / x ^ 2) + Sqrt[Pi] Erf[1 / x]
 
     >> Integrate[ArcSin[x / 3], x]
      = x ArcSin[x / 3] + Sqrt[9 - x ^ 2]
@@ -1017,6 +1016,7 @@ class Integrate(SympyFunction):
     >> N[Integrate[Sin[Exp[-x^2 /2 ]],{x,1,2}]]
      = 0.330804
     """
+
     # Reinstate as a unit test or describe why it should be an example and fix.
     # >> Integrate[x/Exp[x^2/t], {x, 0, Infinity}]
     # = ConditionalExpression[t / 2, Abs[Arg[t]] < Pi / 2]
@@ -1059,7 +1059,7 @@ class Integrate(SympyFunction):
                 return [elements[0]] + x.elements
         return elements
 
-    def from_sympy(self, sympy_name, elements):
+    def from_sympy(self, elements: Tuple[BaseElement, ...]) -> Expression:
         args = []
         for element in elements[1:]:
             if element.has_form("List", 1):
@@ -1070,7 +1070,7 @@ class Integrate(SympyFunction):
         new_elements = [elements[0]] + args
         return Expression(Symbol(self.get_name()), *new_elements)
 
-    def apply(self, f, xs, evaluation, options):
+    def eval(self, f, xs, evaluation: Evaluation, options: dict):  # type: ignore[override]
         "Integrate[f_, xs__, OptionsPattern[]]"
         f_sympy = f.to_sympy()
         if f_sympy.is_infinite:
@@ -1106,7 +1106,7 @@ class Integrate(SympyFunction):
             else:
                 vars.append((x, a, b))
         try:
-            sympy_result = sympy.integrate(f_sympy, *vars)
+            sympy_result = tracing.run_sympy(sympy.integrate, f_sympy, *vars)
             pass
         except sympy.PolynomialError:
             return
@@ -1115,13 +1115,13 @@ class Integrate(SympyFunction):
             return
         except NotImplementedError:
             # e.g. NotImplementedError: Result depends on the sign of
-            # -sign(_Mathics_User_j)*sign(_Mathics_User_w)
+            # -sign(_u`j)*sign(_u`w)
             return
         if prec is not None and isinstance(sympy_result, sympy.Integral):
             # TODO MaxExtraPrecision -> maxn
             sympy_result = sympy_result.evalf(dps(prec))
 
-        result = from_sympy(sympy_result)
+        result: Optional[BaseElement] = from_sympy(sympy_result)
         # If we obtain an atom (number or symbol)
         # just return...
         if isinstance(result, Atom):
@@ -1140,7 +1140,11 @@ class Integrate(SympyFunction):
             evaluation.definitions.set_ownvalue("System`$Assumptions", assuming)
         # Set the $Assumptions
 
-        if result.get_head_name() == "System`Piecewise":
+        if (
+            result is not None
+            and result.get_head_name() == "System`Piecewise"
+            and isinstance(result, Expression)
+        ):
             cases = result.elements[0].elements
             if len(result.elements) == 1:
                 if cases[-1].elements[1] is SymbolTrue:
@@ -1169,7 +1173,11 @@ class Integrate(SympyFunction):
                             "System`$Assumptions", old_assumptions
                         )
                     return resif
-                if resif.has_form("ConditionalExpression", 2):
+                if (
+                    isinstance(resif, Expression)
+                    and resif.has_form("ConditionalExpression", 2)
+                    and cond is not None
+                ):
                     cond = Expression(SymbolAnd, resif.elements[1], cond)
                     cond = Expression(SymbolSimplify, cond).evaluate(evaluation)
                     resif = resif.elements[0]
@@ -1178,29 +1186,35 @@ class Integrate(SympyFunction):
             if default is SymbolUndefined and len(cases) == 1:
                 cases = cases[0]
                 result = Expression(SymbolConditionalExpression, *(cases.elements))
-            else:
+            elif isinstance(result._head, Symbol):
                 # FIXME: there is a bug in from_sympy which is leaving an integer
                 # untranslated. Fix this and we can use Expression()
                 result = to_expression(result._head, cases, default)
+            else:
+                raise NotImplementedError
         else:
-            if result.get_head() is SymbolIntegrate:
-                if result.elements[0].evaluate(evaluation).sameQ(f):
-                    # Sympy returned the same expression, so it can't be evaluated.
-                    if old_assumptions:
-                        evaluation.definitions.set_ownvalue(
-                            "System`$Assumptions", old_assumptions
-                        )
-                    return
-            result = Expression(SymbolSimplify, result)
-            result = result.evaluate(evaluation)
+            if (
+                isinstance(result, Expression)
+                and result.get_head() is SymbolIntegrate
+                and result.elements[0].evaluate(evaluation).sameQ(f)
+            ):
+                # Sympy returned the same expression, so it can't be evaluated.
+                if old_assumptions:
+                    evaluation.definitions.set_ownvalue(
+                        "System`$Assumptions", old_assumptions
+                    )
+                return
+            if result is not None:
+                result = Expression(SymbolSimplify, result)
+                result = result.evaluate(evaluation)
 
         if old_assumptions:
             evaluation.definitions.set_ownvalue("System`$Assumptions", old_assumptions)
         return result
 
-    def apply_D(self, func, domain, var, evaluation, options):
+    def eval_D(self, func, domain, var, evaluation: Evaluation, options: dict):
         """D[%(name)s[func_, domain__, OptionsPattern[%(name)s]], var_Symbol]"""
-        return apply_D_to_Integral(
+        return eval_D_to_Integral(
             func, domain, var, evaluation, options, SymbolIntegrate
         )
 
@@ -1229,16 +1243,6 @@ class Limit(Builtin):
      = Infinity
     >> Limit[1/x, x->0, Direction->1]
      = -Infinity
-
-    #> Limit[x, x -> x0, Direction -> x]
-     : Value of Direction -> x should be -1 or 1.
-     = Limit[x, x -> x0, Direction -> x]
-    """
-
-    """
-    The following test is currently causing PyPy to segfault...
-     #> Limit[(1 + cos[x]) / x, x -> 0]
-     = Limit[(1 + cos[x]) / x, x -> 0]
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -1252,7 +1256,7 @@ class Limit(Builtin):
 
     summary_text = "directed and undirected limits"
 
-    def apply(self, expr, x, x0, evaluation, options={}):
+    def eval(self, expr, x, x0, evaluation: Evaluation, options={}):
         "Limit[expr_, x_->x0_, OptionsPattern[Limit]]"
 
         expr = expr.to_sympy()
@@ -1269,10 +1273,11 @@ class Limit(Builtin):
         elif value == 1:
             dir_sympy = "-"
         else:
-            return evaluation.message("Limit", "ldir", direction)
+            evaluation.message("Limit", "ldir", direction)
+            return
 
         try:
-            result = sympy.limit(expr, x, x0, dir_sympy)
+            result = tracing.run_sympy(sympy.limit, expr, x, x0, dir_sympy)
         except sympy.PoleError:
             pass
         except RuntimeError:
@@ -1294,10 +1299,12 @@ class NIntegrate(Builtin):
 
     <dl>
        <dt>'NIntegrate[$expr$, $interval$]'
-       <dd>returns a numeric approximation to the definite integral of $expr$ with limits $interval$ and with a precision of $prec$ digits.
+       <dd>returns a numeric approximation to the definite integral of $expr$ with \
+           limits $interval$ and with a precision of $prec$ digits.
 
         <dt>'NIntegrate[$expr$, $interval1$, $interval2$, ...]'
-        <dd>returns a numeric approximation to the multiple integral of $expr$ with limits $interval1$, $interval2$ and with a precision of $prec$ digits.
+        <dd>returns a numeric approximation to the multiple integral of $expr$ with \
+            limits $interval1$, $interval2$ and with a precision of $prec$ digits.
     </dl>
 
     >> NIntegrate[Exp[-x],{x,0,Infinity},Tolerance->1*^-6, Method->"Internal"]
@@ -1321,7 +1328,7 @@ class NIntegrate(Builtin):
     # >> Table[ NIntegrate[x^(1./k-1.), {x,0,1.}, Tolerance->1*^-6], {k,1,7.}]
     # = {1., 2., 3., 4., 5., 6., 7.}
 
-    # Mutiple Integrals :
+    # Multiple Integrals :
     # >> NIntegrate[x * y,{x, 0, 1}, {y, 0, 1}]
     # = 0.25
 
@@ -1356,7 +1363,7 @@ class NIntegrate(Builtin):
 
     try:
         # builtin integrators
-        from mathics.algorithm.integrators import (
+        from mathics.eval.numbers.calculus.integrators import (
             integrator_messages,
             integrator_methods,
         )
@@ -1387,7 +1394,9 @@ class NIntegrate(Builtin):
         }
     )
 
-    def apply_with_func_domain(self, func, domain, evaluation, options):
+    def eval_with_func_domain(
+        self, func, domain, evaluation: Evaluation, options: dict
+    ):
         "%(name)s[func_, domain__, OptionsPattern[%(name)s]]"
         if func.is_numeric() and func.is_zero:
             return Integer0
@@ -1456,7 +1465,7 @@ class NIntegrate(Builtin):
                     if b.get_head_name() == "System`DirectedInfinity":
                         a = a.to_python()
                         b = b.to_python()
-                        le = 1 - machine_epsilon
+                        le = 1 - MACHINE_EPSILON
                         if a == b:
                             nulldomain = True
                             break
@@ -1473,7 +1482,7 @@ class NIntegrate(Builtin):
                             return
                         z = a.elements[0].value
                         b = b.value
-                        subdomain2.append([machine_epsilon, 1.0])
+                        subdomain2.append([MACHINE_EPSILON, 1.0])
                         coordtransform.append(
                             (lambda u: b - z + z / u, lambda u: -z * u ** (-2.0))
                         )
@@ -1483,7 +1492,7 @@ class NIntegrate(Builtin):
                         return
                     a = a.value
                     z = b.elements[0].value
-                    subdomain2.append([machine_epsilon, 1.0])
+                    subdomain2.append([MACHINE_EPSILON, 1.0])
                     coordtransform.append(
                         (lambda u: a - z + z / u, lambda u: z * u ** (-2.0))
                     )
@@ -1556,9 +1565,9 @@ class NIntegrate(Builtin):
         #                                         be implemented...
         return from_python(result)
 
-    def apply_D(self, func, domain, var, evaluation, options):
+    def eval_D(self, func, domain, var, evaluation: Evaluation, options: dict):
         """D[%(name)s[func_, domain__, OptionsPattern[%(name)s]], var_Symbol]"""
-        return apply_D_to_Integral(
+        return eval_D_to_Integral(
             func, domain, var, evaluation, options, SymbolNIntegrate
         )
 
@@ -1625,7 +1634,7 @@ class Root(SympyFunction):
 
     Roots that can't be represented by radicals:
     >> Root[#1 ^ 5 + 2 #1 + 1&, 2]
-     = Root[#1 ^ 5 + 2 #1 + 1&, 2]
+     = Root[1 + #1 ^ 5 + 2 #1&, 2]
     """
 
     messages = {
@@ -1637,7 +1646,7 @@ class Root(SympyFunction):
     summary_text = "the i-th root of a polynomial."
     sympy_name = "CRootOf"
 
-    def apply(self, f, i, evaluation):
+    def eval(self, f, i, evaluation: Evaluation):
         "Root[f_, i_]"
 
         try:
@@ -1648,12 +1657,12 @@ class Root(SympyFunction):
             poly = body.replace_slots([f, Symbol("_1")], evaluation)
             idx = i.to_sympy() - 1
 
-            # Check for negative indeces (they are not allowed in Mathematica)
+            # Check for negative indices (they are not allowed in Mathematica)
             if idx < 0:
                 evaluation.message("Root", "iidx", i)
                 return
 
-            r = sympy.CRootOf(poly.to_sympy(), idx)
+            r = tracing.run_sympy(sympy.CRootOf, poly.to_sympy(), idx)
         except sympy.PolynomialError:
             evaluation.message("Root", "nuni", f)
             return
@@ -1684,9 +1693,55 @@ class Root(SympyFunction):
             if i is None:
                 return None
 
-            return sympy.CRootOf(poly, i)
+            return tracing.run_sympy(sympy.CRootOf, poly, i)
         except Exception:
             return None
+
+
+class RootSum(SympyFunction):
+    """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/RootSum.html</url>
+
+    <dl>
+      <dt>'RootSum[$f$, $form$]'
+      <dd>sums $form$[$x$] for all roots of the polynomial $f$[$x$].
+    </dl>
+
+    >> Integrate[1/(x^5 + 11 x + 1), {x, 1, 3}]
+     = RootSum[-1 - 212960 #1 ^ 3 - 9680 #1 ^ 2 - 165 #1 + 41232181 #1 ^ 5&, (Log[3749971 - 3512322106304 #1 ^ 4 + 453522741 #1 + 16326568676 #1 ^ 2 + 79825502416 #1 ^ 3] - 4 Log[5]) #1&] - RootSum[-1 - 212960 #1 ^ 3 - 9680 #1 ^ 2 - 165 #1 + 41232181 #1 ^ 5&, (Log[3748721 - 3512322106304 #1 ^ 4 + 453522741 #1 + 16326568676 #1 ^ 2 + 79825502416 #1 ^ 3] - 4 Log[5]) #1&]
+    >> N[%, 50]
+     = 0.051278805184286949884270940103072421286139857550894
+
+    >> RootSum[#^5 - 11 # + 1 &, (#^2 - 1)/(#^3 - 2 # + c) &]
+     = (538 - 88 c + 396 c ^ 2 + 5 c ^ 3 - 5 c ^ 4) / (97 - 529 c - 53 c ^ 2 + 88 c ^ 3 + c ^ 5)
+
+    >> RootSum[#^5 - 3 # - 7 &, Sin] //N//Chop
+     = 0.292188
+
+    Use 'Normal' to expand 'RootSum':
+    >> RootSum[1+#+#^2+#^3+#^4 &, Log[x + #] &]
+     = RootSum[1 + #1 ^ 2 + #1 ^ 3 + #1 ^ 4 + #1&, Log[x + #1]&]
+    >> %//Normal
+     = Log[-1 / 4 - Sqrt[5] / 4 - I Sqrt[5 / 8 - Sqrt[5] / 8] + x] + Log[-1 / 4 - Sqrt[5] / 4 + I Sqrt[5 / 8 - Sqrt[5] / 8] + x] + Log[-1 / 4 - I Sqrt[5 / 8 + Sqrt[5] / 8] + Sqrt[5] / 4 + x] + Log[-1 / 4 + I Sqrt[5 / 8 + Sqrt[5] / 8] + Sqrt[5] / 4 + x]
+    """
+
+    summary_text = "sum polynomial roots"
+
+    def eval(self, f, form, evaluation: Evaluation):  # type: ignore[override]
+        "RootSum[f_, form_]"
+        return from_sympy(Expression(SymbolRootSum, f, form).to_sympy())
+
+    def to_sympy(self, expr: Expression, **kwargs):
+        func = expr.elements[1]
+        if not isinstance(func.to_sympy(), sympy.Lambda):
+            # eta conversion
+            func = Expression(
+                SymbolFunction, Expression(func, Expression(SymbolSlot, Integer1))
+            )
+
+        poly = expr.elements[0].to_sympy()
+        poly_x = sympy.Symbol("poly_x")
+        return sympy.RootSum(poly(poly_x), func.to_sympy(), x=poly_x)
 
 
 class Series(Builtin):
@@ -1730,11 +1785,11 @@ class Series(Builtin):
 
     summary_text = "power series and asymptotic expansions"
 
-    def apply_series(self, f, x, x0, n, evaluation):
+    def eval_series(self, f, x, x0, n, evaluation: Evaluation):
         """Series[f_, {x_Symbol, x0_, n_Integer}]"""
         return build_series(f, x, x0, n, evaluation)
 
-    def apply_multivariate_series(self, f, varspec, evaluation):
+    def eval_multivariate_series(self, f, varspec, evaluation: Evaluation):
         """Series[f_,varspec__List]"""
         lastvar = varspec.elements[-1]
         if not lastvar.has_form("List", 3):
@@ -1745,9 +1800,55 @@ class Series(Builtin):
             if len(varspec.elements) == 1:
                 return inner
             remain_vars = Expression(SymbolSequence, *varspec.elements[:-1])
-            result = self.apply_multivariate_series(inner, remain_vars, evaluation)
+            result = self.eval_multivariate_series(inner, remain_vars, evaluation)
             return result
         return None
+
+
+class SeriesCoefficient(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SeriesCoefficient.html</url>
+
+    <dl>
+      <dt>'SeriesCoefficient[$series$, $n$]'
+      <dd>Find the $n$th coefficient in the given $series$
+    </dl>
+
+    >> SeriesCoefficient[Series[Exp[Sin[x]], {x, 0, 10}], 8]
+     = 31 / 5760
+    >> SeriesCoefficient[Exp[-x], {x, 0, 5}]
+     = -1 / 120
+    >> SeriesCoefficient[2x, {x, 0, 2}]
+     = 0
+
+    >> SeriesCoefficient[SeriesData[x, c, Table[i^2, {i, 10}], 7, 17, 3], 14/3]
+     = 64
+    >> SeriesCoefficient[SeriesData[x, c, Table[i^2, {i, 10}], 7, 17, 3], 6/3]
+     = 0
+    >> SeriesCoefficient[SeriesData[x, c, Table[i^2, {i, 10}], 7, 17, 3], 17/3]
+     = Indeterminate
+    """
+
+    attributes = A_PROTECTED
+    summary_text = "power series coefficient"
+
+    rules = {
+        "SeriesCoefficient[f_, {x_Symbol, x0_, n_Integer}]": "SeriesCoefficient[Series[f, {x, x0, n}], n]"
+    }
+
+    def eval(self, series: Expression, n: Rational, evaluation: Evaluation):
+        """SeriesCoefficient[series_SeriesData, n_]"""
+        coeffs: ListExpression
+        nmin: Integer
+        nmax: Integer
+        den: Integer
+        coeffs, nmin, nmax, den = series.elements[2:]
+        index = n.value * den.value - nmin.value
+        if index >= nmax.value - nmin.value:
+            return SymbolIndeterminate
+        if index < 0 or index >= len(coeffs.elements):
+            return Integer0
+        return coeffs[index]
 
 
 class SeriesData(Builtin):
@@ -1774,15 +1875,16 @@ class SeriesData(Builtin):
 
     # TODO: Implement sum, product and composition of series
 
-    precedence = 1000
     summary_text = "power series of a variable about a point"
 
-    def apply_reduce(self, x, x0, data, nummin, nummax, den, evaluation):
+    def eval_reduce(
+        self, x, x0, data, nummin: Integer, nummax: Integer, den, evaluation: Evaluation
+    ):
         """SeriesData[x_,x0_,data_,nummin_Integer, nummax_Integer, den_Integer]"""
         # This method tries to reduce the series expansion in two ways:
         # if x===x0, evaluates the series
         if x.sameQ(x0):
-            nummin_val = nummin.get_int_value()
+            nummin_val = nummin.value
             if nummin_val > 0:
                 return Integer0
             if nummin_val < 0:
@@ -1836,7 +1938,17 @@ class SeriesData(Builtin):
                 den,
             )
 
-    def apply_plus(self, x, x0, data, nummin, nummax, den, term, evaluation):
+    def eval_plus(
+        self,
+        x,
+        x0,
+        data,
+        nummin: Integer,
+        nummax: Integer,
+        den: Integer,
+        term,
+        evaluation: Evaluation,
+    ):
         """Plus[SeriesData[x_, x0_, data_, nummin_Integer, nummax_Integer, den_Integer], term__]"""
         # If the series is null, build a series with the remaining terms
         if all(Integer0.sameQ(element) for element in data.elements):
@@ -1846,7 +1958,7 @@ class SeriesData(Builtin):
                 term,
                 x,
                 x0,
-                nummax.value / nummax.value,
+                Integer(nummax.value / den.value),
                 evaluation,
             )
             return ret
@@ -1917,7 +2029,17 @@ class SeriesData(Builtin):
             series_expr = Expression(SymbolPlus, *incompat_series, series_expr)
         return series_expr
 
-    def apply_times(self, x, x0, data, nummin, nummax, den, coeff, evaluation):
+    def eval_times(
+        self,
+        x,
+        x0,
+        data: ListExpression,
+        nummin: Integer,
+        nummax: Integer,
+        den: Integer,
+        coeff: BaseElement,
+        evaluation: Evaluation,
+    ):
         """Times[SeriesData[x_, x0_, data_, nummin_, nummax_, den_], coeff__]"""
         series = (
             data,
@@ -1925,7 +2047,7 @@ class SeriesData(Builtin):
             nummax.get_int_value(),
             den.get_int_value(),
         )
-        x_pattern = Pattern.create(x)
+        x_pattern = BasePattern.create(x, evaluation=evaluation)
         incompat_series = []
         max_exponent = Integer(int(series[2] / series[3] + 1))
         if coeff.get_head() is SymbolSequence:
@@ -1993,7 +2115,9 @@ class SeriesData(Builtin):
             series_expr = Expression(SymbolTimes, *incompat_series, series_expr)
         return series_expr
 
-    def apply_derivative(self, x, x0, data, nummin, nummax, den, y, evaluation):
+    def eval_derivative(
+        self, x, x0, data, nummin, nummax, den, y, evaluation: Evaluation
+    ):
         """D[SeriesData[x_, x0_, data_, nummin_, nummax_, den_], y_]"""
         series = (
             data,
@@ -2024,12 +2148,12 @@ class SeriesData(Builtin):
         )
         return result
 
-    def apply_normal(self, x, x0, data, nummin, nummax, den, evaluation):
+    def eval_normal(self, x, x0, data, nummin, nummax, den, evaluation: Evaluation):
         """Normal[SeriesData[x_, x0_, data_, nummin_, nummax_, den_]]"""
         new_data = []
         for element in data.elements:
             if element.has_form("SeriesData", 6):
-                element = self.apply_normal(*(element.elements), evaluation)
+                element = self.eval_normal(*(element.elements), evaluation)
                 if element is None:
                     return
             new_data.extend([element])
@@ -2042,7 +2166,7 @@ class SeriesData(Builtin):
             ],
         )
 
-    def pre_makeboxes(self, x, x0, data, nmin, nmax, den, form, evaluation):
+    def pre_makeboxes(self, x, x0, data, nmin, nmax, den, form, evaluation: Evaluation):
         if x0.is_zero:
             variable = x
         else:
@@ -2087,7 +2211,17 @@ class SeriesData(Builtin):
         )
         return Expression(SymbolInfix, expansion, String("+"), Integer(300), SymbolLeft)
 
-    def apply_makeboxes(self, x, x0, data, nmin, nmax, den, form, evaluation):
+    def eval_makeboxes(
+        self,
+        x,
+        x0,
+        data,
+        nmin: Integer,
+        nmax: Integer,
+        den: Integer,
+        form,
+        evaluation: Evaluation,
+    ):
         """MakeBoxes[SeriesData[x_, x0_, data_List, nmin_Integer, nmax_Integer, den_Integer],
         form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
@@ -2100,7 +2234,8 @@ class Solve(Builtin):
     <url>:Equation solving:
     https://en.wikipedia.org/wiki/Equation_solving</url> (<url>
     :SymPy:
-    https://docs.sympy.org/latest/modules/solvers/solvers.html#module-sympy.solvers</url>, \
+    https://docs.sympy.org/latest/modules
+/solvers/solvers.html#module-sympy.solvers</url>, \
     <url>:WMA:
     https://reference.wolfram.com/language/ref/Solve.html</url>)
 
@@ -2109,7 +2244,8 @@ class Solve(Builtin):
       <dd>attempts to solve $equation$ for the variables $vars$.
 
       <dt>'Solve[$equation$, $vars$, $domain$]'
-      <dd>restricts variables to $domain$, which can be 'Complexes' or 'Reals' or 'Integers'.
+      <dd>restricts variables to $domain$, which can be 'Complexes' \
+         or 'Reals' or 'Integers'.
     </dl>
 
     >> Solve[x ^ 2 - 3 x == 4, x]
@@ -2193,7 +2329,7 @@ class Solve(Builtin):
     rules = {
         "Solve[eqs_, vars_, Complexes]": "Solve[eqs, vars]",
         "Solve[eqs_, vars_, Reals]": (
-            "Cases[Solve[eqs, vars], {Rule[x_,y_?RealNumberQ]}]"
+            "Cases[Solve[eqs, vars], {Rule[x_,y_?RealValuedNumberQ]}]"
         ),
         "Solve[eqs_, vars_, Integers]": (
             "Cases[Solve[eqs, vars], {Rule[x_,y_Integer]}]"
@@ -2201,7 +2337,7 @@ class Solve(Builtin):
     }
     summary_text = "find generic solutions for variables"
 
-    def apply(self, eqs, vars, evaluation):
+    def eval(self, eqs, vars, evaluation: Evaluation):
         "Solve[eqs_, vars_]"
 
         vars_original = vars
@@ -2216,7 +2352,6 @@ class Solve(Builtin):
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
                 or A_CONSTANT & var.get_attributes(evaluation.definitions)
             ):
-
                 evaluation.message("Solve", "ivar", vars_original)
                 return
         if eqs.get_head_name() in ("System`List", "System`And"):
@@ -2231,7 +2366,8 @@ class Solve(Builtin):
             elif eq is SymbolFalse:
                 return ListExpression()
             elif not eq.has_form("Equal", 2):
-                return evaluation.message("Solve", "eqf", eqs)
+                evaluation.message("Solve", "eqf", eqs)
+                return
             else:
                 left, right = eq.elements
                 left = left.to_sympy()
@@ -2239,10 +2375,10 @@ class Solve(Builtin):
                 if left is None or right is None:
                     return
                 eq = left - right
-                eq = sympy.together(eq)
-                eq = sympy.cancel(eq)
+                eq = tracing.run_sympy(sympy.together, eq)
+                eq = tracing.run_sympy(sympy.cancel, eq)
                 sympy_eqs.append(eq)
-                numer, denom = eq.as_numer_denom()
+                _, denom = eq.as_numer_denom()
                 sympy_denoms.append(denom)
 
         vars_sympy = [var.to_sympy() for var in vars]
@@ -2257,7 +2393,7 @@ class Solve(Builtin):
         vars = []
         vars_sympy = []
         for var, var_sympy in zip(all_vars, all_vars_sympy):
-            pattern = Pattern.create(var)
+            pattern = BasePattern.create(var, evaluation=evaluation)
             if not eqs.is_free(pattern, evaluation):
                 vars.append(var)
                 vars_sympy.append(var_sympy)
@@ -2298,7 +2434,7 @@ class Solve(Builtin):
             if isinstance(sympy_eqs, bool):
                 result = sympy_eqs
             else:
-                result = sympy.solve(sympy_eqs, vars_sympy)
+                result = tracing.run_sympy(sympy.solve, sympy_eqs, vars_sympy)
             if not isinstance(result, list):
                 result = [result]
             if isinstance(result, list) and len(result) == 1 and result[0] is True:
@@ -2369,6 +2505,6 @@ def is_zero(
     eps_expr: BaseElement = Integer10 ** (-prec_goal) if prec_goal else Integer0
     if acc_goal:
         eps_expr = eps_expr + Integer10 ** (-acc_goal) / abs(val)
-    threeshold_expr = Expression(SymbolLog, eps_expr)
-    threeshold: Real = eval_N(threeshold_expr, evaluation)
-    return threeshold.to_python() > 0
+    threshold_expr = Expression(SymbolLog, eps_expr)
+    threshold: Real = eval_N(threshold_expr, evaluation)
+    return threshold.to_python() > 0

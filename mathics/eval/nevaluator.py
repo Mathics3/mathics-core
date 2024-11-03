@@ -15,13 +15,13 @@ import sympy
 
 from mathics.core.atoms import Number
 from mathics.core.attributes import A_N_HOLD_ALL, A_N_HOLD_FIRST, A_N_HOLD_REST
-from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from mathics.core.number import PrecisionValueError, get_precision
-from mathics.core.symbols import Atom
-from mathics.core.systemsymbols import SymbolMachinePrecision, SymbolN
+from mathics.core.symbols import Atom, SymbolList
+from mathics.core.systemsymbols import SymbolMachinePrecision, SymbolN, SymbolRule
 
 
 # FIXME: Add the two-argument form N[expr, n]
@@ -29,52 +29,48 @@ def eval_N(
     expression: BaseElement,
     evaluation: Evaluation,
     prec: BaseElement = SymbolMachinePrecision,
-) -> BaseElement:
+) -> Optional[BaseElement]:
     """
     Equivalent to Expression(SymbolN, expression).evaluate(evaluation)
     """
-    evaluated_expression = expression.evaluate(evaluation)
-    result = eval_nvalues(evaluated_expression, prec, evaluation)
+    evaluated_expression = (
+        expression if expression.is_literal else expression.evaluate(evaluation)
+    )
+
+    result = eval_NValues(evaluated_expression, prec, evaluation)
     if result is None:
         return expression
-    if isinstance(result, Number):
+
+    if result.is_literal:
         return result
+
     return result.evaluate(evaluation)
 
 
-def eval_nvalues(
+def eval_NValues(
     expr: BaseElement, prec: BaseElement, evaluation: Evaluation
 ) -> Optional[BaseElement]:
     """
-    Looks for the numeric value of ```expr`` with precision ``prec`` by appling NValues rules
+    Looks for the numeric value of ```expr`` with precision ``prec`` by applying NValues rules
     stored in ``evaluation.definitions``.
-    If `prec` can not be evaluated as a number, returns None, otherwise, returns an expression.
+    If ``prec`` can not be evaluated as a number, returns None, otherwise, returns an expression.
     """
-
-    # The first step is to determine the precision goal
-    try:
-        # Here ``get_precision`` is called with ``show_messages``
-        # set to ``False`` to avoid show the same warnings repeatedly.
-        d = get_precision(prec, evaluation, show_messages=False)
-    except PrecisionValueError:
-        # We can ensure that the function always return an expression if
-        # the exception was captured by the caller.
-        return
-    # If the expression is a number, just round it to the required
-    # precision
-    if isinstance(expr, Number):
-        return expr.round(d)
+    from mathics.core.convert.sympy import from_sympy
 
     # If expr is a List, or a Rule (or maybe expressions with heads for
     # which we are sure do not have NValues or special attributes)
-    # just apply `eval_nvalues` to each element and return the new list.
-    if expr.get_head_name() in ("System`List", "System`Rule"):
+    # just apply `eval_NValues` to each element and return the new list.
+    if hasattr(expr, "head") and expr.head in (SymbolList, SymbolRule):
         elements = expr.elements
 
         # FIXME: incorporate these lines into Expression call
-        result = Expression(expr.head)
+        result = (
+            ListExpression(expr.head)
+            if expr.head is SymbolList
+            else Expression(expr.head)
+        )
         new_elements = [
-            eval_nvalues(element, prec, evaluation) for element in expr.elements
+            eval_NValues(element, prec, evaluation) for element in expr.elements
         ]
         result.elements = tuple(
             new_element if new_element else element
@@ -83,15 +79,30 @@ def eval_nvalues(
         result._build_elements_properties()
         return result
 
+    # Get the precision goal to use in non-integer numbers
+    try:
+        # Here ``get_precision`` is called with ``show_messages``
+        # set to ``False`` to avoid show the same warnings repeatedly.
+        d = get_precision(prec, evaluation, show_messages=False)
+    except PrecisionValueError:
+        # We can ensure that the function always return an expression if
+        # the exception was captured by the caller.
+        return
+
+    # If the expression is a number, just round it to the required
+    # precision
+    if isinstance(expr, Number):
+        return expr.round(d)
+
     # Special case for the Root builtin
     # This should be implemented as an NValue
-    if expr.has_form("Root", 2):
+    if expr.has_form("Root", 2) or expr.has_form("RootSum", 2):
         return from_sympy(sympy.N(expr.to_sympy(), d))
 
     # Here we look for the NValues associated to the
     # lookup_name of the expression.
-    # If a rule is found and successfuly applied,
-    # reevaluate the result and apply `eval_nvalues` again.
+    # If a rule is found and successfully applied,
+    # reevaluate the result and apply `eval_NValues` again.
     # This should be implemented as a loop instead of
     # recursively.
     name = expr.get_lookup_name()
@@ -103,7 +114,7 @@ def eval_nvalues(
         if result is not None:
             if not result.sameQ(nexpr):
                 result = result.evaluate(evaluation)
-                result = eval_nvalues(result, prec, evaluation)
+                result = eval_NValues(result, prec, evaluation)
                 return result
 
     # If we are here, is because there are not NValues that matches
@@ -113,7 +124,7 @@ def eval_nvalues(
         return expr
     else:
         # Otherwise, look at the attributes, determine over which elements
-        # we need to apply `eval_nvalues`, and rebuild the expression with
+        # we need to apply `eval_NValues`, and rebuild the expression with
         # the results.
         attributes = expr.head.get_attributes(evaluation.definitions)
         head = expr.head
@@ -130,11 +141,11 @@ def eval_nvalues(
         else:
             eval_range = range(len(elements))
 
-        newhead = eval_nvalues(head, prec, evaluation)
+        newhead = eval_NValues(head, prec, evaluation)
         head = head if newhead is None else newhead
 
         for index in eval_range:
-            new_element = eval_nvalues(elements[index], prec, evaluation)
+            new_element = eval_NValues(elements[index], prec, evaluation)
             if new_element:
                 elements[index] = new_element
 

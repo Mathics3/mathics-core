@@ -1,7 +1,12 @@
 """
 Angular Momentum
 
-<url>:Angular momentum: https://en.wikipedia.org/wiki/Angular_momentum</url> in physics is the rotational analog of linear momentum. It is an important quantity in physics because it is a conserved quantity the total angular momentum of a closed system remains constant.
+<url>
+:Angular momentum:
+https://en.wikipedia.org/wiki/Angular_momentum</url> in physics \
+is the rotational analog of linear momentum. It is an important quantity \
+in physics because it is a conserved quantity the total angular momentum \
+of a closed system remains constant.
 """
 
 from typing import List, Optional
@@ -10,12 +15,12 @@ from sympy.physics.matrices import msigma
 from sympy.physics.quantum.cg import CG
 from sympy.physics.wigner import wigner_3j, wigner_6j
 
-from mathics.builtin.base import SympyFunction
 from mathics.core.atoms import Integer
 from mathics.core.attributes import (  # A_LISTABLE,; A_NUMERIC_FUNCTION,
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import SympyFunction
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluation import Evaluation
@@ -25,11 +30,18 @@ from mathics.core.symbols import Symbol
 
 class ClebschGordan(SympyFunction):
     """
-    <url>:Clebsch-Gordan coefficients matrices: https://en.wikipedia.org/wiki/Clebsch%E2%80%93Gordan_coefficients</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/physics/quantum/cg.html</url>, <url>:WMA: https://reference.wolfram.com/language/ref/ClebschGordan</url>)
+    <url>
+    :Clebsch-Gordan coefficients matrices:
+    https://en.wikipedia.org/wiki/Clebsch%E2%80%93Gordan_coefficients</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/physics/quantum/cg.html</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/ClebschGordan</url>)
 
     <dl>
       <dt>'ClebschGordan[{$j1$, $m1$}, {$j2$, $m2$}, {$j$ $m$}]'
-      <dd>returns the Clebsch-Gordan coefficient for the decomposition of |$j$,$m$> in terms of |$j1$, $m$>, |$j2$, $m2$>.
+      <dd>returns the Clebsch-Gordan coefficient for the decomposition of |$j$,$m$> \
+      in terms of |$j1$, $m$>, |$j2$, $m2$>.
     </dl>
 
     >> ClebschGordan[{3 / 2, 3 / 2}, {1 / 2, -1 / 2}, {1, 1}]
@@ -52,7 +64,7 @@ class ClebschGordan(SympyFunction):
     summary_text = "Clebsch-Gordan coefficient"
     sympy_name = "physics.quantum.cg.CG"
 
-    def apply(
+    def eval(
         self,
         j1m1: ListExpression,
         j2m2: ListExpression,
@@ -75,7 +87,13 @@ IdentityMatrix2 = from_python([[1, 0], [0, 1]])
 
 class PauliMatrix(SympyFunction):
     """
-    <url>:Pauli matrices: https://en.wikipedia.org/wiki/Pauli_matrices</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/physics/matrices.html#sympy.physics.matrices.msigma</url>, <url>:WMA: https://reference.wolfram.com/language/ref/PauliMatrix.html</url>)
+    <url>
+    :Pauli matrices:
+    https://en.wikipedia.org/wiki/Pauli_matrices</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/physics/matrices.html#sympy.physics.matrices.msigma</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/PauliMatrix.html</url>)
 
     <dl>
       <dt>'PauliMatrix[$k$]'
@@ -88,10 +106,10 @@ class PauliMatrix(SympyFunction):
     >> PauliMatrix[1] . PauliMatrix[2] == I PauliMatrix[3]
      = True
 
-    >> MatrixExp[I \[Phi]/2 PauliMatrix[3]]
+    >> MatrixExp[I \\[Phi]/2 PauliMatrix[3]]
      = {{E ^ (I / 2 ϕ), 0}, {0, E ^ ((-I / 2) ϕ)}}
 
-    >> % /. \[Phi] -> 2 Pi
+    >> % /. \\[Phi] -> 2 Pi
      = {{-1, 0}, {0, -1}}
     """
 
@@ -103,7 +121,7 @@ class PauliMatrix(SympyFunction):
     summary_text = "Pauli spin matrix"
     sympy_name = "physics.matrices.msigma"
 
-    def apply(self, k: Integer, evaluation: Evaluation) -> Optional[Evaluation]:
+    def eval(self, k: Integer, evaluation: Evaluation) -> Optional[Evaluation]:
         "PauliMatrix[k_]"
         py_k = k.value
         if 0 <= py_k <= 4:
@@ -116,7 +134,13 @@ class PauliMatrix(SympyFunction):
 
 class SixJSymbol(SympyFunction):
     """
-    <url>:6-j symbol: https://en.wikipedia.org/wiki/6-j_symbol</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/physics/wigner.html#sympy.physics.wigner.wigner_6j</url>, <url>:WMA: https://reference.wolfram.com/language/ref/SixJSymbol.html</url>)
+    <url>
+    :6-j symbol:
+    https://en.wikipedia.org/wiki/6-j_symbol</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/physics/wigner.html#sympy.physics.wigner.wigner_6j</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/SixJSymbol.html</url>)
 
     <dl>
       <dt>'SixJSymbol[{$j1, $j2$, $j3$}, {$j4$, $j5$, $j6$}]'
@@ -166,7 +190,7 @@ class SixJSymbol(SympyFunction):
     summary_text = "values of the Wigner 6-j symbol"
     sympy_name = "physics.wigner.wigner_6j"
 
-    def apply(self, j13: ListExpression, j46: ListExpression, evaluation: Evaluation):
+    def eval(self, j13: ListExpression, j46: ListExpression, evaluation: Evaluation):
         "SixJSymbol[j13_List, j46_List]"
         sympy_js = []
         i = 0
@@ -194,7 +218,13 @@ class SixJSymbol(SympyFunction):
 
 class ThreeJSymbol(SympyFunction):
     """
-    <url>:3-j symbol: https://en.wikipedia.org/wiki/3-j_symbol</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/physics/wigner.html#sympy.physics.wigner.wigner_3j</url>, <url>:WMA: https://reference.wolfram.com/language/ref/ThreeJSymbol.html</url>)
+    <url>
+    :3-j symbol:
+    https://en.wikipedia.org/wiki/3-j_symbol</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/physics/wigner.html#sympy.physics.wigner.wigner_3j</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/ThreeJSymbol.html</url>)
 
     <dl>
       <dt>'ThreeJSymbol[{$j1, $m1}, {$j2$, $m2$}, {$j3$, $m3$}]'
@@ -242,7 +272,7 @@ class ThreeJSymbol(SympyFunction):
     summary_text = "values of the Wigner 3-j symbol"
     sympy_name = "physics.wigner.wigner_3j"
 
-    def apply(
+    def eval(
         self,
         j12: ListExpression,
         j34: ListExpression,

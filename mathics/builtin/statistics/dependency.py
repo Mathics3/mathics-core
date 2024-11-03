@@ -9,27 +9,34 @@ Dependency and Dispursion Statistics
 # Here we are also hiding "moements" since this can erroneously appear at the top level.
 sort_order = "mathics.builtin.special-moments"
 
-from mathics.builtin.base import Builtin
-from mathics.builtin.lists import _NotRectangularException, _Rectangular
+from mathics.builtin.statistics.base import NotRectangularException, Rectangular
 from mathics.core.atoms import Integer
+from mathics.core.builtin import Builtin
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolDivide
-from mathics.core.systemsymbols import SymbolDot, SymbolMean, SymbolSubtract
-
-SymbolConjugate = Symbol("Conjugate")
-SymbolCovariance = Symbol("Covariance")
+from mathics.core.systemsymbols import (
+    SymbolConjugate,
+    SymbolCovariance,
+    SymbolDot,
+    SymbolMean,
+    SymbolStandardDeviation,
+    SymbolSubtract,
+    SymbolVariance,
+)
 
 # Something is weird here. No System`. And we can't use what is in
 # SymbolSqrt from systemsymbols?
 SymbolSqrt = Symbol("Sqrt")
 
-SymbolStandardDeviation = Symbol("StandardDeviation")
-SymbolVariance = Symbol("Variance")
-
 
 class Correlation(Builtin):
     """
-    <url>:Pearson correlation coefficient:https://en.wikipedia.org/wiki/Pearson_correlation_coefficient</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Correlation.html</url>)
+    <url>
+    :Pearson correlation coefficient:
+    https://en.wikipedia.org/wiki/Pearson_correlation_coefficient</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Correlation.html</url>)
 
     <dl>
       <dt>'Correlation[$a$, $b$]'
@@ -48,7 +55,7 @@ class Correlation(Builtin):
     }
     summary_text = "Pearson's correlation of a pair of datasets"
 
-    def apply(self, a, b, evaluation):
+    def eval(self, a, b, evaluation: Evaluation):
         "Correlation[a_List, b_List]"
 
         if len(a.elements) != len(b.elements):
@@ -65,7 +72,11 @@ class Correlation(Builtin):
 
 class Covariance(Builtin):
     """
-    <url>:Covariance: https://en.wikipedia.org/wiki/Covariance</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Covariance.html</url>)
+    <url>
+    :Covariance:
+    https://en.wikipedia.org/wiki/Covariance</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Covariance.html</url>)
     <dl>
       <dt>'Covariance[$a$, $b$]'
       <dd>computes the covariance between the equal-sized vectors $a$ and $b$.
@@ -81,7 +92,7 @@ class Covariance(Builtin):
     }
     summary_text = "covariance matrix for a pair of datasets"
 
-    def apply(self, a, b, evaluation):
+    def eval(self, a, b, evaluation: Evaluation):
         "Covariance[a_List, b_List]"
 
         if len(a.elements) != len(b.elements):
@@ -100,12 +111,17 @@ class Covariance(Builtin):
             )
 
 
-class StandardDeviation(_Rectangular):
+class StandardDeviation(Rectangular):
     """
-    <url>:Standard deviation: https://en.wikipedia.org/wiki/Standard_deviation</url> (<url>:WMA: https://reference.wolfram.com/language/ref/StandardDeviation.html</url>)
+    <url>
+    :Standard deviation:
+    https://en.wikipedia.org/wiki/Standard_deviation</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/StandardDeviation.html</url>)
     <dl>
       <dt>'StandardDeviation[$list$]'
-      <dd>computes the standard deviation of $list. $list$ may consist of numerical values or symbols. Numerical values may be real or complex.
+      <dd>computes the standard deviation of $list. $list$ may consist of \
+          numerical values or symbols. Numerical values may be real or complex.
 
       StandardDeviation[{{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}] will yield
       {StandardDeviation[{$a1$, $b1$, ...}, StandardDeviation[{$a2$, $b2$, ...}], ...}.
@@ -130,24 +146,30 @@ class StandardDeviation(_Rectangular):
     }
     summary_text = "standard deviation of a dataset"
 
-    def apply(self, l, evaluation):
-        "StandardDeviation[l_List]"
-        if len(l.elements) <= 1:
-            evaluation.message("StandardDeviation", "shlen", l)
-        elif all(element.get_head_name() == "System`List" for element in l.elements):
+    def eval(self, li, evaluation: Evaluation):
+        "StandardDeviation[li_List]"
+        if len(li.elements) <= 1:
+            evaluation.message("StandardDeviation", "shlen", li)
+        elif all(element.get_head_name() == "System`List" for element in li.elements):
             try:
-                return self.rect(l)
-            except _NotRectangularException:
+                return self.rect(li)
+            except NotRectangularException:
                 evaluation.message(
-                    "StandardDeviation", "rectt", Expression(SymbolStandardDeviation, l)
+                    "StandardDeviation",
+                    "rectt",
+                    Expression(SymbolStandardDeviation, li),
                 )
         else:
-            return Expression(SymbolSqrt, Expression(SymbolVariance, l))
+            return Expression(SymbolSqrt, Expression(SymbolVariance, li))
 
 
-class Variance(_Rectangular):
+class Variance(Rectangular):
     """
-    <url>:Variance: https://en.wikipedia.org/wiki/Variance</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Variance.html</url>)
+    <url>
+    :Variance:
+    https://en.wikipedia.org/wiki/Variance</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Variance.html</url>)
     <dl>
       <dt>'Variance[$list$]'
       <dd>computes the variance of $list. $list$ may consist of numerical values or symbols. Numerical values may be real or complex.
@@ -180,21 +202,21 @@ class Variance(_Rectangular):
     # for the general formulation of real and complex variance below, see for example
     # https://en.wikipedia.org/wiki/Variance#Generalizations
 
-    def apply(self, l, evaluation):
-        "Variance[l_List]"
-        if len(l.elements) <= 1:
-            evaluation.message("Variance", "shlen", l)
-        elif all(element.get_head_name() == "System`List" for element in l.elements):
+    def eval(self, li, evaluation: Evaluation):
+        "Variance[li_List]"
+        if len(li.elements) <= 1:
+            evaluation.message("Variance", "shlen", li)
+        elif all(element.get_head_name() == "System`List" for element in li.elements):
             try:
-                return self.rect(l)
-            except _NotRectangularException:
-                evaluation.message("Variance", "rectt", Expression(SymbolVariance, l))
+                return self.rect(li)
+            except NotRectangularException:
+                evaluation.message("Variance", "rectt", Expression(SymbolVariance, li))
         else:
-            d = Expression(SymbolSubtract, l, Expression(SymbolMean, l))
+            d = Expression(SymbolSubtract, li, Expression(SymbolMean, li))
             return Expression(
                 SymbolDivide,
                 Expression(SymbolDot, d, Expression(SymbolConjugate, d)),
-                Integer(len(l.elements) - 1),
+                Integer(len(li.elements) - 1),
             )
 
 

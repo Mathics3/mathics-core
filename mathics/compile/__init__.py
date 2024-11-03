@@ -15,8 +15,9 @@ except ImportError:
     has_llvmlite = False
 
 
+from .base import CompileArg, CompileError
+from .types import *
+
 if has_llvmlite:
-    from .base import CompileArg, CompileError
     from .compile import _compile
     from .ir import IRGenerator
-    from .types import *

@@ -5,10 +5,13 @@
 Here we have the base class and related function for element inside an Expression.
 """
 
-
-from typing import Any, Optional, Tuple, Union
+from abc import ABC
+from typing import TYPE_CHECKING, Any, Dict, Optional, Sequence, Tuple, Union
 
 from mathics.core.attributes import A_NO_ATTRIBUTES
+
+if TYPE_CHECKING:
+    from mathics.core.evaluation import Evaluation
 
 
 def ensure_context(name: str, context="System`") -> str:
@@ -38,11 +41,12 @@ def fully_qualified_symbol_name(name) -> bool:
 
 
 try:
-    from recordclass import RecordClass
+    from recordclass import RecordClass  # type: ignore[import-not-found]
 
-    # Note: Something in cythonization barfs if we put this in Expression and you try to call this
-    # like ExpressionProperties(True, True, True). Cython reports:
-    #   number of the arguments greater than the number of the items
+    # Note: Something in cythonization barfs if we put this in
+    # Expression and you try to call this like
+    # ExpressionProperties(True, True, True). Cython reports:
+    # number of the arguments greater than the number of the items
     class ElementsProperties(RecordClass):
         """Properties of Expression elements that are useful in evaluation.
 
@@ -81,7 +85,7 @@ except ImportError:
     from dataclasses import dataclass
 
     @dataclass
-    class ElementsProperties:
+    class ElementsProperties:  # type: ignore[no-redef]
         """Properties of Expression elements that are useful in evaluation.
 
         In general, if you have some set of properties that you know should
@@ -128,7 +132,7 @@ class ImmutableValueMixin:
 class KeyComparable:
     """
 
-    Some Mathics/WL Symbols have an "OrderLess" attribute
+    Some Mathics3/WL Symbols have an "OrderLess" attribute
     which is used in the evaluation process to arrange items in a list.
 
     To do that, we need a way to compare Symbols, and that is what
@@ -141,13 +145,13 @@ class KeyComparable:
     mixed into other classes.
 
     Each class should provide a `get_sort_key()` method which
-    is the primative from which all other comparsions are based on.
+    is the primative from which all other comparisons are based on.
     """
 
     # FIXME: return type should be a specific kind of Tuple, not a list.
     # FIXME: Describe sensible, and easy to follow rules by which one
     #        can create the kind of tuple for some new kind of element.
-    def get_sort_key(self) -> list:
+    def get_sort_key(self, pattern_sort=False) -> tuple:
         """
         This returns a tuple in a way that
         it can be used to compare in expressions.
@@ -163,8 +167,8 @@ class KeyComparable:
 
         then self comes before expr.
 
-        The values in the positions of the list/tuple are used to indicate how comparison should be
-        treated for specific element classes.
+        The values in the positions of the list/tuple are used to indicate how
+        comparison should be treated for specific element classes.
         """
         raise NotImplementedError
 
@@ -192,7 +196,7 @@ class KeyComparable:
         ) or self.get_sort_key() != other.get_sort_key()
 
 
-class BaseElement(KeyComparable):
+class BaseElement(KeyComparable, ABC):
     """
     This is the base class from which all other Expressions are
     derived from.  If you think of an Expression as tree-like, then a
@@ -204,7 +208,9 @@ class BaseElement(KeyComparable):
     Some important subclasses: Atom and Expression.
     """
 
+    options: Optional[Dict[str, Any]]
     last_evaluated: Any
+    unevaluated: bool
     # this variable holds a function defined in mathics.core.expression that creates an expression
     create_expression: Any
 
@@ -237,15 +243,16 @@ class BaseElement(KeyComparable):
         if self.sameQ(rhs):
             return True
 
-        # If the types are the same then we'll use the classes definition of == (or __eq__).
-        # Superclasses which need to specialized this behavior should redefine equal2()
+        # If the types are the same then we'll use the classes
+        # definition of == (or __eq__).  Superclasses which need to
+        # specialized this behavior should redefine equal2()
         #
         # I would use `is` instead `==` here, to compare classes.
         if type(self) is type(rhs):
             return self == rhs
         return None
 
-    def format(self, evaluation, form, **kwargs) -> "BoxElementMixin":
+    def format(self, evaluation, form, **kwargs) -> Optional["BaseElement"]:
         from mathics.core.symbols import Symbol
         from mathics.eval.makeboxes import format_element
 
@@ -268,7 +275,23 @@ class BaseElement(KeyComparable):
     def get_attributes(self, definitions):
         return A_NO_ATTRIBUTES
 
-    def get_head_name(self):
+    def get_element(self, index: int) -> "BaseElement":
+        return self.get_elements()[index]
+
+    def get_elements(self) -> Sequence["BaseElement"]:
+        raise NotImplementedError
+
+    def get_head(self) -> "BaseElement":
+        raise NotImplementedError
+
+    def get_head_name(self) -> str:
+        """
+        All elements have a "Head" whether or not the element is compount.
+        The Head of an Atom is its type. The Head of an S-expression is
+        its function name.
+
+        Each class must define its own get_head_name.
+        """
         raise NotImplementedError
 
     # FIXME: this behavior of defining a specific default implementation
@@ -278,10 +301,10 @@ class BaseElement(KeyComparable):
     def get_float_value(self, permit_complex=False):
         return None
 
-    def get_int_value(self):
+    def get_int_value(self) -> Optional[int]:
         return None
 
-    def get_lookup_name(self):
+    def get_lookup_name(self) -> str:
         """
         Returns symbol name of leftmost head. This method is used
         to determine which definition must be asked for rules
@@ -290,15 +313,17 @@ class BaseElement(KeyComparable):
 
         return self.get_name()
 
-    def get_name(self):
+    def get_name(self, short=False) -> str:
         "Returns symbol's name if Symbol instance"
 
         return ""
 
-    def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
+    def get_option_values(
+        self, evaluation: "Evaluation", allow_symbols=False, stop_on_error=True
+    ) -> Optional[dict]:
         pass
 
-    def get_precision(self) -> Optional[float]:
+    def get_precision(self) -> Optional[int]:
         """Returns the default specification for precision in N and other
         numerical functions.  It is expected to be redefined in those
         classes that provide inexact arithmetic like PrecisionReal.
@@ -311,49 +336,28 @@ class BaseElement(KeyComparable):
         """
         return None
 
-    def get_rules_list(self):
+    def get_sequence(self) -> Sequence["BaseElement"]:
         """
-        If the expression is of the form {pat1->expr1,... {pat_2,expr2},...}
-        return a (python) list of rules.
+        If ``self`` is a Mathics3 Sequence, return its elements.
+        Otherwise, just return self wrapped in a tuple
         """
-        from mathics.core.rules import Rule
-        from mathics.core.symbols import SymbolList
-
-        # comment mm: This makes sense for expressions, but not for numbers. This should
-        # have at most a trivial implementation here, and specialize it
-        # in the `Expression` class.
-
-        list_expr = self.flatten_with_respect_to_head(SymbolList)
-        list = []
-        if list_expr.has_form("List", None):
-            list.extend(list_expr.elements)
-        else:
-            list.append(list_expr)
-        rules = []
-        for item in list:
-            if not item.has_form(("Rule", "RuleDelayed"), 2):
-                return None
-            rule = Rule(item.elements[0], item.elements[1])
-            rules.append(rule)
-        return rules
-
-    def get_sequence(self) -> Union[tuple, list]:
-        """Convert's a Mathics Sequence into a Python's list of elements"""
         from mathics.core.symbols import SymbolSequence
 
         # Below, we special-case for SymbolSequence. Here is an example to suggest why.
         # Suppose we have this evaluation method:
         #
-        # def apply(x, evaluation):
+        # def eval(x, evaluation: Evaluation):
         #     """F[x__]"""
         #     args = x.get_sequence()
         #
-        # For the expression "F[a,b]", this function is expected to return [Symbol(a), Symbol(b)], while
-        # for the expression "F[{a,b}]" this function is expected to return ListExpression[Symbol(a), Symbol(b)].
+        # For the expression "F[a,b]", this function is expected to return:
+        #   [Symbol(a), Symbol(b)], while
+        # for the expression "F[{a,b}]" this function is expected to return:
+        #   ListExpression[Symbol(a), Symbol(b)].
         if self.get_head() is SymbolSequence:
-            return self.elements
+            return self.get_elements()
         else:
-            return [self]
+            return tuple([self])
 
     def get_string_value(self):
         return None
@@ -388,7 +392,9 @@ class BaseElement(KeyComparable):
         # used by NumericQ and expression ordering
         return False
 
-    def has_form(self, heads, *element_counts):
+    def has_form(
+        self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
+    ) -> bool:
         """Check if the expression is of the form Head[l1,...,ln]
         with Head.name in `heads` and a number of elements according to the specification in
         element_counts.
@@ -410,7 +416,7 @@ class BaseElement(KeyComparable):
     def is_inexact(self) -> bool:
         return self.get_precision() is not None
 
-    def sameQ(self, rhs) -> bool:
+    def sameQ(self, rhs: "BaseElement") -> bool:
         """Mathics SameQ"""
         return id(self) == id(rhs)
 
@@ -440,6 +446,21 @@ class BaseElement(KeyComparable):
     def to_sympy(self, **kwargs):
         raise NotImplementedError
 
+    def copy(self, reevaluate=False) -> "BaseElement":
+        raise NotImplementedError
+
+    def default_format(self, evaluation, form) -> str:
+        raise NotImplementedError
+
+    def replace_vars(
+        self,
+        vars: Dict[str, "BaseElement"],
+        options=None,
+        in_scoping=True,
+        in_function=True,
+    ) -> "BaseElement":
+        raise NotImplementedError
+
 
 class EvalMixin:
     """
@@ -458,7 +479,9 @@ class EvalMixin:
         """
         return False
 
-    def rewrite_apply_eval_step(self, evaluation) -> Tuple["BaseElement", bool]:
+    def rewrite_apply_eval_step(
+        self, evaluation
+    ) -> Tuple[Optional["BaseElement"], bool]:
         """
         Performs a since rewrite/apply/eval step used in
         evaluation.
@@ -472,6 +495,9 @@ class EvalMixin:
         """Mathics SameQ
         Each class should decide what is right here.
         """
+        raise NotImplementedError
+
+    def evaluate(self, evaluation: "Evaluation") -> Optional["BaseElement"]:
         raise NotImplementedError
 
 

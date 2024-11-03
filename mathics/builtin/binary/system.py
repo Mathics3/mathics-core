@@ -5,8 +5,8 @@ System-related binary handling
 
 import sys
 
-from mathics.builtin.base import Predefined
 from mathics.core.atoms import Integer, Integer1, IntegerM1
+from mathics.core.builtin import Predefined
 
 
 class ByteOrdering(Predefined):
@@ -21,11 +21,6 @@ class ByteOrdering(Predefined):
       computer system..
     </dl>
 
-    X> ByteOrdering
-     = 1
-
-    #> ByteOrdering == -1 || ByteOrdering == 1
-     = True
     """
 
     name = "ByteOrdering"
@@ -41,11 +36,6 @@ class ByteOrdering_(Predefined):
           <dd>returns the native ordering of bytes in binary data on your computer system.
         </dl>
 
-        X> $ByteOrdering
-         = 1
-
-        #> $ByteOrdering == -1 || $ByteOrdering == 1
-         = True
     """
 
     name = "$ByteOrdering"

@@ -8,14 +8,20 @@ import os.path as osp
 import sys
 import tempfile
 from io import open as io_open
-from typing import Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import requests
 
+from mathics.core.util import canonic_filename
 from mathics.settings import ROOT_DIR
 
 HOME_DIR = osp.expanduser("~")
-PATH_VAR = [".", HOME_DIR, osp.join(ROOT_DIR, "data"), osp.join(ROOT_DIR, "packages")]
+PATH_VAR: List[str] = [
+    ".",
+    HOME_DIR,
+    osp.join(ROOT_DIR, "data"),
+    osp.join(ROOT_DIR, "packages"),
+]
 
 
 def create_temporary_file(prefix="Mathics3-", suffix=None, delete=True):
@@ -48,7 +54,7 @@ def urlsave_tmp(url, location=None, **kwargs):
     return None
 
 
-def path_search(filename: str) -> Tuple[str, bool]:
+def path_search(filename: str) -> Tuple[Optional[str], bool]:
     """
     Search for a Mathics `filename` possibly adding extensions ".mx", or ".m"
     or as a file under directory PATH_VAR or as an Internet address.
@@ -64,8 +70,7 @@ def path_search(filename: str) -> Tuple[str, bool]:
         for ext in [".mx", ".m"]:
             result, is_temporary_file = path_search(filename + ext)
             if result is not None:
-                filename = None
-                break
+                return result, is_temporary_file
     if filename is not None:
         result = None
         # If filename is an Internet address, download the file
@@ -80,7 +85,7 @@ def path_search(filename: str) -> Tuple[str, bool]:
             is_temporary_file = True
         else:
             for p in PATH_VAR + [""]:
-                path = osp.join(p, filename)
+                path = canonic_filename(osp.join(p, filename))
                 if osp.exists(path):
                     result = path
                     break
@@ -163,7 +168,7 @@ class Stream:
 
 class StreamsManager:
     __instance = None
-    STREAMS = {}
+    STREAMS: Dict[int, Stream] = {}
 
     @staticmethod
     def get_instance():

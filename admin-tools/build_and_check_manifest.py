@@ -2,13 +2,20 @@
 
 import sys
 
-from mathics.builtin import Builtin, modules, name_is_builtin_symbol
+from mathics.core.builtin import Builtin
+from mathics.core.load_builtin import (
+    import_and_load_builtins,
+    mathics3_builtins_modules,
+    name_is_builtin_symbol,
+)
+
+import_and_load_builtins()
 
 
 def generate_available_builtins_names():
     msg = ""
     builtins_by_name = {}
-    for module in modules:
+    for module in mathics3_builtins_modules:
         vars = dir(module)
         for name in vars:
             var = name_is_builtin_symbol(module, name)

@@ -3,8 +3,8 @@
 Atomic Primitives
 """
 
-from mathics.builtin.base import Builtin, Test
 from mathics.core.atoms import Atom
+from mathics.core.builtin import Builtin, Test
 
 
 class AtomQ(Test):
@@ -56,7 +56,7 @@ class AtomQ(Test):
 
     summary_text = "test whether an expression is an atom"
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         return isinstance(expr, Atom)
 
 

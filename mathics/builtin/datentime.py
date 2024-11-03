@@ -5,7 +5,8 @@ Date and Time
 
 Dates and times are represented symbolically; computations can be performed on them.
 
-Date object can also input and output dates and times in a wide range of formats, as well as handle calendars.
+Date object can also input and output dates and times in a wide range of formats, as \
+well as handle calendars.
 """
 
 import re
@@ -15,7 +16,6 @@ from datetime import datetime, timedelta
 
 import dateutil.parser
 
-from mathics.builtin.base import Builtin, Predefined
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.attributes import (
     A_HOLD_ALL,
@@ -23,10 +23,15 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import Builtin, Predefined
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.element import ImmutableValueMixin
-from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack
+from mathics.core.evaluation import (
+    Evaluation,
+    TimeoutInterrupt,
+    run_with_timeout_and_stack,
+)
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolNull
@@ -255,7 +260,6 @@ class _DateFormat(Builtin):
             (isinstance(val, float) and i > 1) or isinstance(val, int)
             for i, val in enumerate(etime)
         ):
-
             default_date = [1900, 1, 1, 0, 0, 0.0]
             datelist = etime + default_date[len(etime) :]
             prec_part, imprec_part = datelist[:2], datelist[2:]
@@ -263,7 +267,7 @@ class _DateFormat(Builtin):
             try:
                 dtime = datetime(prec_part[0], prec_part[1], 1)
             except ValueError:
-                # FIXME datetime is fairly easy to overlfow. 1 <= month <= 12
+                # FIXME datetime is fairly easy to overflow. 1 <= month <= 12
                 # and some bounds on year too.
                 evaluation.message(form_name, "arg", epochtime)
                 return
@@ -324,7 +328,7 @@ class _DateFormat(Builtin):
                     return
                 datelist = date.to_list()
 
-                # If year is ambiguious, assume the current year
+                # If year is ambiguous, assume the current year
                 if "Year" not in etime[1] and "YearShort" not in etime[1]:
                     datelist[0] = datetime.today().year
 
@@ -344,7 +348,8 @@ class AbsoluteTime(_DateFormat):
 
     <dl>
       <dt>'AbsoluteTime[]'
-      <dd>gives the local time in seconds since epoch January 1, 1900, in your time zone.
+      <dd>gives the local time in seconds since epoch January 1, 1900, in your \
+          time zone.
 
       <dt>'AbsoluteTime[{$y$, $m$, $d$, $h$, $m$, $s$}]'
       <dd>gives the absolute time specification corresponding to a date list.
@@ -370,15 +375,9 @@ class AbsoluteTime(_DateFormat):
 
     >> AbsoluteTime[{"6-6-91", {"Day", "Month", "YearShort"}}]
      = 2885155200
-
-    ## Mathematica Bug - Mathics gets it right
-    #> AbsoluteTime[1000]
-     = 1000
     """
 
-    abstract = "absolute time in seconds"
-
-    summary_text = "absolute time in seconds"
+    summary_text = "get absolute time in seconds"
 
     def eval_now(self, evaluation):
         "AbsoluteTime[]"
@@ -406,7 +405,8 @@ class AbsoluteTiming(Builtin):
 
     <dl>
       <dt>'AbsoluteTiming[$expr$]'
-      <dd>evaluates $expr$, returning a list of the absolute number of seconds in real time that have elapsed, together with the result obtained.
+      <dd>evaluates $expr$, returning a list of the absolute number of seconds in \
+          real time that have elapsed, together with the result obtained.
     </dl>
 
     >> AbsoluteTiming[50!]
@@ -417,7 +417,7 @@ class AbsoluteTiming(Builtin):
 
     attributes = A_HOLD_ALL | A_PROTECTED
 
-    summary_text = "total wall-clock time to run a Mathics command"
+    summary_text = "get total wall-clock time to run a Mathics command"
 
     def eval(self, expr, evaluation):
         "AbsoluteTiming[expr_]"
@@ -456,7 +456,7 @@ class DateDifference(Builtin):
      = {{9, Week}, {6, Day}}
     """
 
-    # FIXME: Since timedelta doesnt use large time units (years, months etc)
+    # FIXME: Since timedelta does not use large time units (years, months etc)
     # this method can be innacuarate. The example below gives fractional Days
     # (20.1666666667 not 20).
 
@@ -589,6 +589,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
       <dt>'DateObject[...]'
       <dd> Returns an object codifiyng DateList....
     </dl>
+
     >> DateObject[{2020, 4, 15}]
      = [...]
     """
@@ -608,7 +609,9 @@ class DateObject(_DateFormat, ImmutableValueMixin):
     ]
 
     messages = {
-        "notz": "Argument `1` in DateObject is not a recognized TimeZone specification.",
+        "notz": (
+            "Argument `1` in DateObject is not a recognized " "TimeZone specification."
+        ),
     }
 
     options = {
@@ -621,11 +624,9 @@ class DateObject(_DateFormat, ImmutableValueMixin):
         "DateObject[]": "DateObject[AbsoluteTime[]]",
     }
 
-    summary_text = (
-        " an object representing a date of any granularity (year, hour, instant, ...)"
-    )
+    summary_text = "get an object representing a date (year, hour, instant, ...)"
 
-    def eval_any(self, args, evaluation, options):
+    def eval_any(self, args, evaluation: Evaluation, options: dict):
         "DateObject[args_, OptionsPattern[]]"
         datelist = None
         tz = None
@@ -775,7 +776,6 @@ class DatePlus(Builtin):
             and isinstance(o[0], (float, int))
             for o in pyoff
         ):
-
             for o in pyoff:
                 idate.addself([o[0] * TIME_INCREMENTS[o[1]][i] for i in range(6)])
         else:
@@ -831,10 +831,6 @@ class DateList(_DateFormat):
      : The interpretation of 1/10/1991 is ambiguous.
      = {1991, 1, 10, 0, 0, 0.}
 
-    #> DateList["7/8/9"]
-     : The interpretation of 7/8/9 is ambiguous.
-     = {2009, 7, 8, 0, 0, 0.}
-
     >> DateList[{"31/10/91", {"Day", "Month", "YearShort"}}]
      = {1991, 10, 31, 0, 0, 0.}
 
@@ -879,7 +875,7 @@ class DateString(_DateFormat):
       <dd>returns the time formatted according to $elems$.
 
       <dt>'DateString[{$e1$, $e2$, ...}]'
-      <dd>concatinates the time formatted according to elements $ei$.
+      <dd>concatenates the time formatted according to elements $ei$.
 
       <dt>'DateString[$time$]'
       <dd>returns the date string of an AbsoluteTime.
@@ -909,22 +905,6 @@ class DateString(_DateFormat):
     Non-integer values are accepted too:
     >> DateString[{1991, 6, 6.5}]
      = Thu 6 Jun 1991 12:00:00
-
-    ## Check Leading 0
-    #> DateString[{1979, 3, 14}, {"DayName", "  ", "MonthShort", "-", "YearShort"}]
-     =  Wednesday  3-79
-
-    #> DateString[{"DayName", "  ", "Month", "/", "YearShort"}]
-     = ...
-
-    ## Assumed separators
-    #> DateString[{"06/06/1991", {"Month", "Day", "Year"}}]
-     = Thu 6 Jun 1991 00:00:00
-
-    ## Specified separators
-    #> DateString[{"06/06/1991", {"Month", "/", "Day", "/", "Year"}}]
-     = Thu 6 Jun 1991 00:00:00
-
     """
 
     attributes = A_READ_PROTECTED | A_PROTECTED
@@ -994,7 +974,7 @@ class DateStringFormat(Predefined):
 
     value = "DateTimeShort"
 
-    summary_text = "default date string format"
+    summary_text = "get default date string format as a list"
 
     # TODO: Methods to change this
 
@@ -1038,10 +1018,10 @@ class EasterSunday(Builtin):  # Calendar`EasterSunday
         h = (19 * a + b - d - g + 15) % 30
         i = c // 4
         k = c % 4
-        l = (32 + 2 * e + 2 * i - h - k) % 7
-        m = (a + 11 * h + 22 * l) // 451
-        month = (h + l - 7 * m + 114) // 31
-        day = ((h + l - 7 * m + 114) % 31) + 1
+        le = (32 + 2 * e + 2 * i - h - k) % 7
+        m = (a + 11 * h + 22 * le) // 451
+        month = (h + le - 7 * m + 114) // 31
+        day = ((h + le - 7 * m + 114) % 31) + 1
 
         return ListExpression(year, Integer(month), Integer(day))
 
@@ -1087,7 +1067,8 @@ class SystemTimeZone(Predefined):
 
     <dl>
       <dt>'$SystemTimeZone'
-      <dd> gives the current time zone for the computer system on which Mathics is being run.
+      <dd> gives the current time zone for the computer system on which Mathics is \
+           being run.
     </dl>
 
     >> $SystemTimeZone
@@ -1097,7 +1078,7 @@ class SystemTimeZone(Predefined):
     name = "$SystemTimeZone"
     value = Real(-time.timezone / 3600.0)
 
-    summary_text = "time zone used by your system"
+    summary_text = "get the time zone used by your system"
 
     def evaluate(self, evaluation):
         return self.value
@@ -1116,7 +1097,7 @@ class Now(Predefined):
      = ...
     """
 
-    summary_text = "current date and time"
+    summary_text = "get current date and time"
 
     def evaluate(self, evaluation):
         return Expression(SymbolDateObject.evaluate(evaluation))
@@ -1138,9 +1119,9 @@ if sys.platform != "win32" and not hasattr(sys, "pyston_version_info"):
 
         Possible issues: for certain time-consuming functions (like simplify)
         which are based on sympy or other libraries, it is possible that
-        the evaluation continues after the timeout. However, at the end of the evaluation, the function will return '$Aborted' and the results will not affect
-        the state of the \\Mathics kernel.
-
+        the evaluation continues after the timeout. However, at the end of the \
+        evaluation, the function will return '$Aborted' and the results will not affect
+        the state of the Mathics3 kernel.
         """
 
         # FIXME: these tests sometimes cause SEGVs which probably means
@@ -1162,7 +1143,10 @@ if sys.platform != "win32" and not hasattr(sys, "pyston_version_info"):
 
         attributes = A_HOLD_ALL | A_PROTECTED
         messages = {
-            "timc": "Number of seconds `1` is not a positive machine-sized number or Infinity.",
+            "timc": (
+                "Number of seconds `1` is not a positive machine-sized number "
+                "or Infinity."
+            ),
         }
 
         summary_text = "run a command for at most a specified time"
@@ -1185,7 +1169,7 @@ if sys.platform != "win32" and not hasattr(sys, "pyston_version_info"):
             except TimeoutInterrupt:
                 evaluation.timeout_queue.pop()
                 return failexpr.evaluate(evaluation)
-            except:
+            except Exception:
                 evaluation.timeout_queue.pop()
                 raise
             evaluation.timeout_queue.pop()
@@ -1215,13 +1199,7 @@ class TimeZone(Predefined):
         "$TimeZone": str(value),
     }
 
-    summary_text = "resettable default time zone"
-
-    def eval(self, lhs, rhs, evaluation):
-        "lhs_ = rhs_"
-
-        self.assign(lhs, rhs, evaluation)
-        return rhs
+    summary_text = "gets the default time zone"
 
     def evaluate(self, evaluation) -> Real:
         return self.value
@@ -1241,7 +1219,7 @@ class TimeUsed(Builtin):
     """
 
     summary_text = (
-        "the total number of seconds of CPU time in the current Mathics session"
+        "get the total number of seconds of CPU time in the current Mathics3 session"
     )
 
     def eval(self, evaluation):
@@ -1270,7 +1248,7 @@ class Timing(Builtin):
 
     attributes = A_HOLD_ALL | A_PROTECTED
 
-    summary_text = "CPU time to run a Mathics command"
+    summary_text = "get CPU time to run a Mathics3 command"
 
     def eval(self, expr, evaluation):
         "Timing[expr_]"
@@ -1297,7 +1275,7 @@ class SessionTime(Builtin):
     """
 
     summary_text = (
-        "total elapsed time in seconds since the beginning of your Mathics session"
+        "get total elapsed time in seconds since the beginning of Mathics3 session"
     )
 
     def eval(self, evaluation):
@@ -1313,7 +1291,8 @@ class TimeRemaining(Builtin):
 
     <dl>
       <dt>'TimeRemaining[]'
-      <dd>Gives the number of seconds remaining until the earliest enclosing 'TimeConstrained' will request the current computation to stop.
+      <dd>Gives the number of seconds remaining until the earliest enclosing \
+          'TimeConstrained' will request the current computation to stop.
 
       <dt>'TimeConstrained[$expr$, $t$, $failexpr$]'
       <dd>returns $failexpr$ if the time constraint is not met.
@@ -1328,7 +1307,7 @@ class TimeRemaining(Builtin):
 
     """
 
-    summary_text = "time before a time constraint in a running program"
+    summary_text = "get remaining time in allowed to run an expression"
 
     def eval(self, evaluation):
         "TimeRemaining[]"

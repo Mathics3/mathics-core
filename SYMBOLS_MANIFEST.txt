@@ -1,4 +1,3 @@
-CombinatoricaOld`BinarySearch
 HTML`DataImport
 HTML`FullDataImport
 HTML`HyperlinksImport
@@ -40,7 +39,10 @@ System`$Machine
 System`$MachineEpsilon
 System`$MachineName
 System`$MachinePrecision
+System`$MaxLengthIntStringConversion
+System`$MaxMachineNumber
 System`$MaxPrecision
+System`$MinMachineNumber
 System`$MinPrecision
 System`$ModuleNumber
 System`$OperatingSystem
@@ -103,7 +105,6 @@ System`Apart
 System`Append
 System`AppendTo
 System`Apply
-System`ApplyLevel
 System`ArcCos
 System`ArcCosh
 System`ArcCot
@@ -132,10 +133,12 @@ System`Attributes
 System`Automatic
 System`Axes
 System`Axis
+System`Background
 System`BarChart
 System`BaseForm
 System`Begin
 System`BeginPackage
+System`BellB
 System`BernoulliB
 System`BernsteinBasis
 System`BesselI
@@ -195,6 +198,7 @@ System`ChartLegends
 System`ChebyshevT
 System`ChebyshevU
 System`Check
+System`CheckAbort
 System`ChessboardDistance
 System`Chop
 System`Circle
@@ -211,7 +215,6 @@ System`Coefficient
 System`CoefficientArrays
 System`CoefficientList
 System`Collect
-System`ColorCombine
 System`ColorConvert
 System`ColorData
 System`ColorDataFunction
@@ -225,6 +228,7 @@ System`CompiledCodeBox
 System`CompiledFunction
 System`Complement
 System`Complex
+System`ComplexExpand
 System`ComplexInfinity
 System`Complexes
 System`CompositeQ
@@ -236,6 +240,7 @@ System`ConditionalExpression
 System`Cone
 System`Cone3DBox
 System`Conjugate
+System`ConjugateTranspose
 System`Constant
 System`ConstantArray
 System`ContainsOnly
@@ -245,8 +250,8 @@ System`Continue
 System`ContinuedFraction
 System`Convert`B64Dump`B64Decode
 System`Convert`B64Dump`B64Encode
-System`ConvertersDump`$extensionMappings
-System`ConvertersDump`$formatMappings
+System`ConvertersDump`$ExtensionMappings
+System`ConvertersDump`$FormatMappings
 System`CoprimeQ
 System`CopyDirectory
 System`CopyFile
@@ -320,6 +325,8 @@ System`Dispatch
 System`Divide
 System`DivideBy
 System`Divisible
+System`DivisorSigma
+System`DivisorSum
 System`Divisors
 System`Do
 System`Dodecahedron
@@ -335,6 +342,7 @@ System`EditDistance
 System`Eigensystem
 System`Eigenvalues
 System`Eigenvectors
+System`Element
 System`ElementData
 System`EllipticE
 System`EllipticF
@@ -352,12 +360,14 @@ System`Erf
 System`Erfc
 System`Erosion
 System`EuclideanDistance
+System`EulerE
 System`EulerGamma
 System`EulerPhi
 System`Evaluate
 System`EvenQ
 System`ExactNumberQ
 System`Except
+System`Exit
 System`Exp
 System`ExpIntegralE
 System`ExpIntegralEi
@@ -389,6 +399,7 @@ System`FileFormat
 System`FileHash
 System`FileInformation
 System`FileNameDepth
+System`FileNameDrop
 System`FileNameJoin
 System`FileNameSplit
 System`FileNameTake
@@ -474,6 +485,7 @@ System`HoldForm
 System`HoldPattern
 System`HoldRest
 System`Hue
+System`HypergeometricU
 System`I
 System`Icosahedron
 System`Identity
@@ -523,6 +535,8 @@ System`Integer
 System`IntegerDigits
 System`IntegerExponent
 System`IntegerLength
+System`IntegerPart
+System`IntegerPartitions
 System`IntegerQ
 System`IntegerReverse
 System`IntegerString
@@ -540,6 +554,7 @@ System`InverseGudermannian
 System`InverseHaversine
 System`JaccardDissimilarity
 System`JacobiP
+System`JacobiSymbol
 System`Join
 System`Joined
 System`KelvinBei
@@ -551,12 +566,14 @@ System`Keys
 System`Khinchin
 System`KnownUnitQ
 System`KroneckerProduct
+System`KroneckerSymbol
 System`Kurtosis
 System`LABColor
 System`LCHColor
 System`LCM
 System`LUVColor
 System`LaguerreL
+System`LambertW
 System`Large
 System`Last
 System`LeafCount
@@ -573,6 +590,7 @@ System`LetterNumber
 System`LetterQ
 System`Level
 System`LevelQ
+System`LeviCivitaTensor
 System`LightBlue
 System`LightBrown
 System`LightCyan
@@ -590,12 +608,14 @@ System`Line
 System`Line3DBox
 System`LineBox
 System`LinearModelFit
+System`LinearRecurrence
 System`LinearSolve
 System`List
 System`ListLinePlot
 System`ListLogPlot
 System`ListPlot
 System`ListQ
+System`ListStepPlot
 System`Listable
 System`LoadModule
 System`Locked
@@ -608,14 +628,15 @@ System`LogisticSigmoid
 System`Longest
 System`Lookup
 System`LowerCaseQ
+System`LucasL
 System`MachineNumberQ
 System`MachinePrecision
 System`Magenta
 System`MakeBoxes
 System`ManhattanDistance
-System`Manipulate
 System`MantissaExponent
 System`Map
+System`MapApply
 System`MapAt
 System`MapIndexed
 System`MapThread
@@ -639,6 +660,7 @@ System`Medium
 System`MemberQ
 System`MemoryAvailable
 System`MemoryInUse
+System`MersennePrimeExponent
 System`Mesh
 System`Message
 System`MessageName
@@ -652,6 +674,7 @@ System`Missing
 System`Mod
 System`ModularInverse
 System`Module
+System`MoebiusMu
 System`MorphologicalComponents
 System`Most
 System`Multinomial
@@ -686,7 +709,9 @@ System`Now
 System`Null
 System`NullSpace
 System`Number
+System`NumberDigit
 System`NumberForm
+System`NumberLinePlot
 System`NumberQ
 System`NumberString
 System`Numerator
@@ -738,7 +763,6 @@ System`Pi
 System`Pick
 System`PieChart
 System`Piecewise
-System`PillowImageFilter
 System`Pink
 System`PixelValue
 System`PixelValuePositions
@@ -754,9 +778,11 @@ System`PointBox
 System`PointSize
 System`PolarPlot
 System`PolyGamma
+System`PolyLog
 System`Polygon
 System`Polygon3DBox
 System`PolygonBox
+System`PolygonalNumber
 System`PolynomialQ
 System`Position
 System`Positive
@@ -765,9 +791,11 @@ System`Postfix
 System`Power
 System`PowerExpand
 System`PowerMod
+System`PowersRepresentations
 System`PreDecrement
 System`PreIncrement
 System`Precedence
+System`PrecedenceForm
 System`Precision
 System`Prefix
 System`Prepend
@@ -780,7 +808,6 @@ System`Print
 System`PrintTrace
 System`Private`$ContextPathStack
 System`Private`$ContextStack
-System`Private`ManipulateParameter
 System`Product
 System`ProductLog
 System`Projection
@@ -790,6 +817,7 @@ System`PseudoInverse
 System`Purple
 System`Put
 System`PutAppend
+System`PythonCProfileEvaluation
 System`PythonForm
 System`QRDecomposition
 System`Quantile
@@ -822,13 +850,16 @@ System`Read
 System`ReadList
 System`ReadProtected
 System`Real
+System`RealAbs
 System`RealDigits
-System`RealNumberQ
+System`RealSign
+System`RealValuedNumberQ
 System`Reals
 System`Reap
 System`Record
 System`Rectangle
 System`RectangleBox
+System`Rectangular
 System`Red
 System`RegularExpression
 System`RegularPolygon
@@ -849,6 +880,7 @@ System`ResetDirectory
 System`Rest
 System`Return
 System`Reverse
+System`ReverseSort
 System`Riffle
 System`Right
 System`RogersTanimotoDissimilarity
@@ -874,12 +906,14 @@ System`Select
 System`Sequence
 System`SequenceHold
 System`Series
+System`SeriesCoefficient
 System`SeriesData
 System`SessionTime
 System`Set
 System`SetAttributes
 System`SetDelayed
 System`SetDirectory
+System`SetEnvironment
 System`SetFileDate
 System`SetOptions
 System`SetStreamPosition
@@ -919,6 +953,7 @@ System`SplitBy
 System`Sqrt
 System`SqrtBox
 System`SquaredEuclideanDistance
+System`SquaresR
 System`StandardDeviation
 System`StandardForm
 System`StartOfLine
@@ -954,6 +989,7 @@ System`StruveL
 System`Style
 System`StyleBox
 System`SubValues
+System`Subfactorial
 System`Subscript
 System`SubscriptBox
 System`SubsetQ
