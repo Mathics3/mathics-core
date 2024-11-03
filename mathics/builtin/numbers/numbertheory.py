@@ -451,7 +451,7 @@ class IntegerPartitions(Builtin):
         "IntegerPartitions[n_Integer, All]": "IntegerPartitions[n, n]",
         "IntegerPartitions[n_Integer, k_Integer]": "IntegerPartitions[n, {1, k}]",
         "IntegerPartitions[n_Integer, {k_Integer}]": "IntegerPartitions[n, {k, k}]",
-        "IntegerPartitions[n_Integer, kspec_, s_List] /; SubsetQ[Range[n], s]": "Select[IntegerPartitions[n, kspec], SubsetQ[s, #] &]",
+        "IntegerPartitions[n_Integer, kspec_, s_List] /; SubsetQ[Range[n], s] && s == Union[s]": "Select[IntegerPartitions[n, kspec], SubsetQ[s, #] &]",
         "IntegerPartitions[n_Integer, kspec_, All]": "IntegerPartitions[n, kspec]",
         "IntegerPartitions[n_Integer, kspec_, sspec_, m_]": "Take[IntegerPartitions[n, kspec, sspec], m]",
         "IntegerPartitions[n_Integer, {k_Integer}, s_List]": "ReverseSort@Select[Union[ReverseSort /@ Tuples[s, k]], Total[#] == n &]",
