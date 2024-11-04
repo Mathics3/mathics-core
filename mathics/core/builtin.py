@@ -1167,6 +1167,12 @@ class BinaryOperator(Operator):
         operator = ascii_operator_to_symbol.get(self.operator, self.__class__.__name__)
 
         if self.default_formats:
+            formats = {
+                op_pattern: "HoldForm[Infix[{%s}, %s, %d, %s]]"
+                % (replace_items, operator, self.precedence, self.grouping)
+            }
+            formats.update(self.formats)
+            self.formats = formats
             formatted = "MakeBoxes[Infix[{%s}, %s, %d,%s], form]" % (
                 replace_items,
                 operator,

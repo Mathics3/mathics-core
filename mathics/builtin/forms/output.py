@@ -568,15 +568,16 @@ class OutputForm(FormBaseClass):
      = -Graphics-
     """
 
+    formats = {"OutputForm[s_String]": "s"}
     summary_text = "plain-text output format"
 
-    def apply_makeboxes(self, expr, form, evaluation):
-        """MakeBoxes[OutputForm[expr_], form_]"""
-        text2d = expression_to_2d_text(expr, evaluation, form).text
-        elem1 = PaneBox(String(text2d))
-        elem2 = Expression(SymbolOutputForm, expr)
-        result = InterpretationBox(elem1, elem2)
-        return result
+    # def apply_makeboxes(self, expr, form, evaluation):
+    #    """MakeBoxes[OutputForm[expr_], form_]"""
+    #    text2d = expression_to_2d_text(expr, evaluation, form).text
+    #    elem1 = PaneBox(String(text2d))
+    #    elem2 = Expression(SymbolOutputForm, expr)
+    #    result = InterpretationBox(elem1, elem2)
+    #    return result
 
 
 class PythonForm(FormBaseClass):

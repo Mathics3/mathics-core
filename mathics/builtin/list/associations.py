@@ -10,15 +10,83 @@ actual keys found in the collection.
 
 
 from mathics.builtin.box.layout import RowBox
-from mathics.core.atoms import Integer
+from mathics.builtin.layout import Row
+from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED
 from mathics.core.builtin import Builtin, Test
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolTrue
-from mathics.core.systemsymbols import SymbolAssociation, SymbolMakeBoxes, SymbolMissing
-from mathics.eval.lists import list_boxes
+from mathics.core.systemsymbols import (
+    SymbolAssociation,
+    SymbolHoldForm,
+    SymbolInputForm,
+    SymbolMakeBoxes,
+    SymbolMathMLForm,
+    SymbolMissing,
+    SymbolOutputForm,
+    SymbolStandardForm,
+    SymbolTeXForm,
+    SymbolTraditionalForm,
+)
+from mathics.eval.lists import list_boxes, riffle
+from mathics.eval.makeboxes import do_format
+from mathics.eval.strings import eval_ToString
+
+
+class NotAnAssociationItem(Exception):
+    pass
+
+
+SymbolInterpretation = Symbol("System`Interpretation")
+
+ASSOCIATION_DELIMITER_FORMATS = {
+    SymbolInputForm: {"start": String("<|"), "sep": String(", "), "end": String("|>")},
+    SymbolOutputForm: {"start": String("<|"), "sep": String(","), "end": String("|>")},
+    SymbolStandardForm: {
+        "start": String("<|"),
+        "sep": String(","),
+        "end": String("|>"),
+    },
+    SymbolTraditionalForm: {
+        "start": String("<|"),
+        "sep": String(","),
+        "end": String("|>"),
+    },
+    SymbolTeXForm: {"start": String("<|"), "sep": String(", "), "end": String("|>")},
+    SymbolMathMLForm: {"start": String("<|"), "sep": String(","), "end": String("|>")},
+}
+
+
+def format_association(rules: tuple, evaluation: Evaluation, form: Symbol):
+    """Association[rules___]"""
+    delimiters = ASSOCIATION_DELIMITER_FORMATS[form]
+
+    def yield_rules(rule_tuple):
+        for rule in rule_tuple:
+            if rule.has_form(("Rule", "RuleDelayed"), 2):
+                yield rule
+            elif rule.has_form(
+                (
+                    "List",
+                    "Association",
+                ),
+                None,
+            ):
+                for subrule in yield_rules(rule.elements):
+                    yield subrule
+            else:
+                raise NotAnAssociationItem
+
+    try:
+        items = riffle(
+            [do_format(rule, evaluation, form) for rule in yield_rules(rules)],
+            delimiters["sep"],
+        )
+        return Row(to_mathics_list(delimiters["start"], *items, delimiters["end"]))
+    except NotAnAssociationItem:
+        return None
 
 
 class Association(Builtin):
@@ -54,34 +122,52 @@ class Association(Builtin):
 
     summary_text = "an association between keys and values"
 
-    def eval_makeboxes(self, rules, f, evaluation: Evaluation):
-        """MakeBoxes[<|rules___|>,
-        f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
-
-        def validate(exprs):
-            for expr in exprs:
-                if expr.has_form(("Rule", "RuleDelayed"), 2):
-                    pass
-                elif expr.has_form(("List", "Association"), None):
-                    if not validate(expr.elements):
-                        return False
-                else:
-                    return False
-            return True
-
-        rules = rules.get_sequence()
-        if self.error_idx == 0 and validate(rules) is True:
-            expr = RowBox(*list_boxes(rules, f, evaluation, "<|", "|>"))
-        else:
-            self.error_idx += 1
-            symbol = Expression(SymbolMakeBoxes, SymbolAssociation, f)
-            expr = RowBox(
-                symbol.evaluate(evaluation), *list_boxes(rules, f, evaluation, "[", "]")
+    def format_association_input(self, rules, evaluation: Evaluation, expression):
+        """InputForm: Association[rules___]"""
+        print("format association input", rules)
+        formatted = format_association(
+            rules.get_sequence(), evaluation, SymbolInputForm
+        )
+        if formatted is None:
+            return None
+        print("   formatted elements:")
+        elements = formatted.elements[0].elements
+        for elem in elements:
+            print("   ", elem)
+        elems = tuple(
+            (
+                eval_ToString(elem, SymbolOutputForm, "unicode", evaluation).value
+                for elem in elements
             )
+        )
+        elems = tuple((elem[1:-1] if elem[0] == '"' else elem for elem in elems))
+        print("   elems", elems)
+        result_str = "".join(elems)
+        result = Expression(SymbolOutputForm, String(result_str))
+        print("      result->", result)
+        return result
 
-        if self.error_idx > 0:
-            self.error_idx -= 1
-        return expr
+    def format_association_output(self, rules, evaluation: Evaluation):
+        """OutputForm: Association[rules___]"""
+        return format_association(rules.get_sequence(), evaluation, SymbolOutputForm)
+
+    def format_association_standard(self, rules, evaluation: Evaluation):
+        """StandardForm: Association[rules___]"""
+        return format_association(rules.get_sequence(), evaluation, SymbolStandardForm)
+
+    def format_association_traditional(self, rules, evaluation: Evaluation):
+        """TraditionalForm: Association[rules___]"""
+        return format_association(
+            rules.get_sequence(), evaluation, SymbolTraditionalForm
+        )
+
+    def format_association_tex(self, rules, evaluation: Evaluation):
+        """TeXForm: Association[rules___]"""
+        return format_association(rules.get_sequence(), evaluation, SymbolTeXForm)
+
+    def format_association_mathml(self, rules, evaluation: Evaluation):
+        """MathMLForm: Association[rules___]"""
+        return format_association(rules.get_sequence(), evaluation, SymbolMathMLForm)
 
     def eval(self, rules, evaluation: Evaluation):
         "Association[rules__]"

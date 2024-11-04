@@ -33,6 +33,7 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     SymbolComplex,
+    SymbolGrid,
     SymbolMinus,
     SymbolOutputForm,
     SymbolRational,
@@ -211,6 +212,25 @@ def format_element(
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
+    expr = do_format(element, evaluation, form)
+    if expr is None:
+        return None
+    result = Expression(SymbolMakeBoxes, expr, form)
+    result_box = result.evaluate(evaluation)
+    if isinstance(result_box, String):
+        return result_box
+    if isinstance(result_box, BoxElementMixin):
+        return result_box
+    else:
+        return format_element(element, evaluation, SymbolFullForm, **kwargs)
+
+
+def new_format_element(
+    element: BaseElement, evaluation: Evaluation, form: Symbol, **kwargs
+) -> Optional[BaseElement]:
+    """
+    Applies formats associated to the expression, and then calls Makeboxes
+    """
 
     from mathics.core.convert.prettyprint import expression_to_2d_text
 
@@ -252,7 +272,6 @@ def do_format_element(
     Applies formats associated to the expression and removes
     superfluous enclosing formats.
     """
-
     from mathics.core.definitions import OutputForms
 
     evaluation.inc_recursion_depth()
@@ -275,6 +294,7 @@ def do_format_element(
             if include_form:
                 expr = Expression(form, expr)
             return expr
+
         # Repeated and RepeatedNull confuse the formatter,
         # so we need to hardlink their format rules:
         if head is SymbolRepeated:
@@ -320,8 +340,8 @@ def do_format_element(
 
         formatted = format_expr(expr) if isinstance(expr, EvalMixin) else None
         if formatted is not None:
-            do_format = element_formatters.get(type(formatted), do_format_element)
-            result = do_format(formatted, evaluation, form)
+            do_format_fn = element_formatters.get(type(formatted), do_format_element)
+            result = do_format_fn(formatted, evaluation, form)
             if include_form and result is not None:
                 result = Expression(form, result)
             return result
@@ -338,8 +358,8 @@ def do_format_element(
             # just return it as it is.
             if len(expr.get_elements()) != 1:
                 return expr
-            do_format = element_formatters.get(type(element), do_format_element)
-            result = do_format(expr, evaluation, form)
+            do_format_fn = element_formatters.get(type(element), do_format_element)
+            result = do_format_fn(expr, evaluation, form)
             if isinstance(result, Expression):
                 expr = result
 
@@ -349,12 +369,34 @@ def do_format_element(
             and head not in (SymbolGraphics, SymbolGraphics3D)
         ):
             # print("Not inside graphics or numberform, and not is atom")
-            new_elements = [
-                element_formatters.get(type(element), do_format_element)(
-                    element, evaluation, form
+            options = []
+            new_elements = expr.get_elements()
+            option_values = head.get_option_values(evaluation, allow_symbols=True)
+            if option_values and elements:
+                num_elements = len(new_elements)
+                last_option_position = 1
+                num_elems = len(expr.elements)
+                for last_option_position in range(num_elements):
+                    next_position = last_option_position + 1
+                    if not elements[-next_position].has_form(
+                        ["Rule", "RuleDelayed"], 2
+                    ):
+                        break
+                    last_option_position = next_position
+                if last_option_position:
+                    options = elements[-last_option_position:]
+                    new_elements = new_elements[:-last_option_position]
+
+            new_elements = tuple(
+                (
+                    element_formatters.get(type(element), do_format_element)(
+                        element, evaluation, form
+                    )
+                    for element in new_elements
                 )
-                for element in expr.elements
-            ]
+            )
+            if options:
+                new_elements = new_elements + options
             expr_head = expr.head
             do_format = element_formatters.get(type(expr_head), do_format_element)
             head = do_format(expr_head, evaluation, form)

@@ -159,6 +159,7 @@ class Divide(BinaryOperator):
 
     grouping = "Left"
     operator = "/"
+
     rules = {
         "Divide[x_, y_]": "Times[x, Power[y, -1]]",
         "MakeBoxes[Divide[x_, y_], f:StandardForm|TraditionalForm]": (
@@ -405,13 +406,11 @@ class Power(BinaryOperator, MPMathFunction):
             Expression(SymbolPattern, Symbol("x"), Expression(SymbolBlank)),
             RationalOneHalf,
         ): "HoldForm[Sqrt[x]]",
-        (("InputForm",), "x_ ^ y_"): (
+        (("InputForm", "OutputForm"), "x_ ^ y_"): (
             'Infix[{HoldForm[x], HoldForm[y]}, "^", 590, Right]'
         ),
         ("", "x_ ^ y_"): (
-            #    "PrecedenceForm[Superscript[PrecedenceForm[HoldForm[x], 590],"
-            #    "  HoldForm[y]], 590]"
-            "PrecedenceForm[Superscript[HoldForm[x],"
+            "PrecedenceForm[Superscript[PrecedenceForm[HoldForm[x], 590],"
             "  HoldForm[y]], 590]"
         ),
         ("", "x_ ^ y_?Negative"): (
