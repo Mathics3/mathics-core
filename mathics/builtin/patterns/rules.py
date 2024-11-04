@@ -503,11 +503,11 @@ class Rule_(BinaryOperator):
      = a
     """
 
-    name = "Rule"
-    operator = "->"
     attributes = A_SEQUENCE_HOLD | A_PROTECTED
     grouping = "Right"
+    name = "Rule"
     needs_verbatim = True
+    operator = "->"
     summary_text = "a replacement rule"
 
     def eval_rule(self, elems, evaluation):

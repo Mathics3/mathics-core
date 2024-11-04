@@ -6,8 +6,7 @@ formatting rules.
 """
 
 
-import typing
-from typing import Any, Callable, Dict, Optional, Type
+from typing import Any, Callable, Dict, List, Optional, Type
 
 from mathics.core.atoms import Complex, Integer, Rational, Real, String, SymbolI
 from mathics.core.convert.expression import to_expression_with_specialization
@@ -68,6 +67,35 @@ def _boxed_string(string: str, **options):
     from mathics.builtin.box.layout import StyleBox
 
     return StyleBox(String(string), **options)
+
+
+def compare_precedence(
+    element: BaseElement, precedence: Optional[int] = None
+) -> Optional[int]:
+    """
+    compare the precedence of the element regarding a precedence value.
+    If both precedences are equivalent, return 0. If precedence of element
+    is higher, return 1, otherwise -1.
+    If precedences cannot be compared, return None.
+    """
+    while element.has_form("HoldForm", 1):
+        element = element.elements[0]
+
+    if precedence is None:
+        return None
+    if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
+        element_prec = element.elements[2].value
+    elif element.has_form("PrecedenceForm", 2):
+        element_prec = element.elements[1].value
+    # For negative values, ensure that the element_precedence is at least the precedence. (Fixes #332)
+    elif isinstance(element, (Integer, Real)) and element.value < 0:
+        element_prec = precedence
+    else:
+        element_prec = builtins_precedence.get(element.get_head_name())
+
+    if element_prec is None:
+        return None
+    return 0 if element_prec == precedence else (1 if element_prec > precedence else -1)
 
 
 # 640 = sys.int_info.str_digits_check_threshold.
@@ -211,7 +239,6 @@ def do_format_element(
     Applies formats associated to the expression and removes
     superfluous enclosing formats.
     """
-
     from mathics.core.definitions import OutputForms
 
     evaluation.inc_recursion_depth()
@@ -234,6 +261,7 @@ def do_format_element(
             if include_form:
                 expr = Expression(form, expr)
             return expr
+
         # Repeated and RepeatedNull confuse the formatter,
         # so we need to hardlink their format rules:
         if head is SymbolRepeated:
@@ -279,8 +307,8 @@ def do_format_element(
 
         formatted = format_expr(expr) if isinstance(expr, EvalMixin) else None
         if formatted is not None:
-            do_format = element_formatters.get(type(formatted), do_format_element)
-            result = do_format(formatted, evaluation, form)
+            do_format_fn = element_formatters.get(type(formatted), do_format_element)
+            result = do_format_fn(formatted, evaluation, form)
             if include_form and result is not None:
                 result = Expression(form, result)
             return result
@@ -297,8 +325,8 @@ def do_format_element(
             # just return it as it is.
             if len(expr.get_elements()) != 1:
                 return expr
-            do_format = element_formatters.get(type(element), do_format_element)
-            result = do_format(expr, evaluation, form)
+            do_format_fn = element_formatters.get(type(element), do_format_element)
+            result = do_format_fn(expr, evaluation, form)
             if isinstance(result, Expression):
                 expr = result
 
@@ -307,13 +335,14 @@ def do_format_element(
             and not isinstance(expr, (Atom, BoxElementMixin))
             and head not in (SymbolGraphics, SymbolGraphics3D)
         ):
-            # print("Not inside graphics or numberform, and not is atom")
-            new_elements = [
-                element_formatters.get(type(element), do_format_element)(
-                    element, evaluation, form
+            new_elements = tuple(
+                (
+                    element_formatters.get(type(element), do_format_element)(
+                        element, evaluation, form
+                    )
+                    for element in expr.elements
                 )
-                for element in expr.elements
-            ]
+            )
             expr_head = expr.head
             do_format = element_formatters.get(type(expr_head), do_format_element)
             head = do_format(expr_head, evaluation, form)
@@ -367,7 +396,7 @@ def do_format_complex(
             form,
         )
 
-    parts: typing.List[Any] = []
+    parts: List[Any] = []
     if element.is_machine_precision() or not element.real.is_zero:
         parts.append(element.real)
     if element.imag.sameQ(Integer(1)):
@@ -418,27 +447,12 @@ def parenthesize(
     If when_equal is True, parentheses will be added if the two
     precedence values are equal.
     """
-    while element.has_form("HoldForm", 1):
-        element = element.elements[0]
-
-    if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
-        element_prec = element.elements[2].value
-    elif element.has_form("PrecedenceForm", 2):
-        element_prec = element.elements[1].value
-    # If "element" is a negative number, we need to parenthesize the number. (Fixes #332)
-    elif isinstance(element, (Integer, Real)) and element.value < 0:
-        # Force parenthesis by adjusting the surrounding context's precedence value,
-        # We can't change the precedence for the number since it, doesn't
-        # have a precedence value.
-        element_prec = precedence
-    else:
-        element_prec = builtins_precedence.get(element.get_head())
-    if precedence is not None and element_prec is not None:
-        if precedence > element_prec or (precedence == element_prec and when_equal):
-            return Expression(
-                SymbolRowBox,
-                ListExpression(StringLParen, element_boxes, StringRParen),
-            )
+    cmp = compare_precedence(element, precedence)
+    if cmp is not None and (cmp == -1 or cmp == 0 and when_equal):
+        return Expression(
+            SymbolRowBox,
+            ListExpression(String("("), element_boxes, String(")")),
+        )
     return element_boxes
 
 

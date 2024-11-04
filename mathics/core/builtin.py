@@ -1151,22 +1151,29 @@ class BinaryOperator(Operator):
 
         # Prevent pattern matching symbols from gaining meaning here using
         # Verbatim
-        name = f"Verbatim[{name}]"
+        verbatim_name = f"Verbatim[{name}]"
 
         # For compatibility, allow grouping symbols in builtins to be
         # specified without System`.
         self.grouping = ensure_context(self.grouping)
 
         if self.grouping in ("System`None", "System`NonAssociative"):
-            op_pattern = f"{name}[items__]"
+            op_pattern = f"{verbatim_name}[items__]"
             replace_items = "items"
         else:
-            op_pattern = f"{name}[x_, y_]"
+            op_pattern = f"{verbatim_name}[x_, y_]"
             replace_items = "x, y"
 
         operator = ascii_operator_to_symbol.get(self.operator, self.__class__.__name__)
 
         if self.default_formats:
+            if name not in ("Rule", "RuleDelayed"):
+                formats = {
+                    op_pattern: "HoldForm[Infix[{%s}, %s, %d, %s]]"
+                    % (replace_items, operator, self.precedence, self.grouping)
+                }
+                formats.update(self.formats)
+                self.formats = formats
             formatted = "MakeBoxes[Infix[{%s}, %s, %d,%s], form]" % (
                 replace_items,
                 operator,
