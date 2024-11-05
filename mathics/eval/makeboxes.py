@@ -206,12 +206,26 @@ def eval_makeboxes(
     return Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
 
 
+def make_output_form(expr, evaluation, form):
+    """ """
+    from mathics.builtin.box.layout import InterpretationBox, PaneBox
+    from mathics.core.convert.prettyprint import expression_to_2d_text
+
+    text2d = expression_to_2d_text(expr, evaluation, form, **{"2d": True}).text
+    elem1 = PaneBox(String(8 * " " + text2d))
+    elem2 = Expression(SymbolOutputForm, expr)
+    return InterpretationBox(elem1, elem2)
+
+
 def format_element(
     element: BaseElement, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> Optional[BaseElement]:
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
+    if element.has_form("OutputForm", 1):
+        return make_output_form(element.elements[0], evaluation, form)
+
     expr = do_format(element, evaluation, form)
     if expr is None:
         return None

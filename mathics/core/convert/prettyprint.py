@@ -181,7 +181,8 @@ def integrate_expression_to_2d_text(expr, evaluation, form, **kwargs):
     if len(elems) > 2 or not kwargs.get("2d", False):
         raise _WrongFormattedExpression
 
-    result = expression_to_2d_text(elems.pop(0), evaluation, form, **kwargs)
+    integrand = elems.pop(0)
+    result = expression_to_2d_text(integrand, evaluation, form, **kwargs)
     while elems:
         var = elems.pop(0)
         if var.has_form("List", 3):
