@@ -74,8 +74,8 @@ def compare_precedence(
 ) -> Optional[int]:
     """
     compare the precedence of the element regarding a precedence value.
-    If both precedences are equivalent, return 0. If precedence of element
-    is higher, return 1, otherwise -1.
+    If both precedences are equal, return 0. If precedence of the
+    first element is higher, return 1, otherwise -1.
     If precedences cannot be compared, return None.
     """
     while element.has_form("HoldForm", 1):

@@ -49,7 +49,7 @@ class RSolve(Builtin):
     ## PyPy:    {{a -> Function[{n}, 1 - C[1] + C[1] -1 ^ n]}}
     ## CPython: {{a -> Function[{n}, 1 + C[1] -1 ^ n - C[1]]}
 
-    Geta "pure function" solution for a with two boundary conditions:
+    Get a "pure function" solution for a with two boundary conditions:
     >> RSolve[{a[n + 2] == a[n], a[0] == 1, a[1] == 4}, a, n]
      = {{a -> Function[{n}, 5 / 2 - 3 (-1) ^ n / 2]}}
     """
