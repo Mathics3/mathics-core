@@ -30,10 +30,10 @@ from mathics.core.symbols import (
     SymbolRepeated,
     SymbolRepeatedNull,
     SymbolTimes,
+    SymbolTrue,
 )
 from mathics.core.systemsymbols import (
     SymbolComplex,
-    SymbolGrid,
     SymbolMinus,
     SymbolOutputForm,
     SymbolRational,
@@ -207,12 +207,20 @@ def eval_makeboxes(
 
 
 def make_output_form(expr, evaluation, form):
-    """ """
+    """
+    Build a 2D text representation of the expression.
+    """
     from mathics.builtin.box.layout import InterpretationBox, PaneBox
     from mathics.core.convert.prettyprint import expression_to_2d_text
 
-    text2d = expression_to_2d_text(expr, evaluation, form, **{"2d": True}).text
-    elem1 = PaneBox(String(8 * " " + text2d))
+    use_2d = (
+        evaluation.definitions.get_ownvalues("System`$Use2DOutputForm")[0].replace
+        is SymbolTrue
+    )
+    text2d = expression_to_2d_text(expr, evaluation, form, **{"2d": use_2d}).text
+    if "\n" in text2d:
+        text2d = "\n" + text2d
+    elem1 = PaneBox(String(text2d))
     elem2 = Expression(SymbolOutputForm, expr)
     return InterpretationBox(elem1, elem2)
 

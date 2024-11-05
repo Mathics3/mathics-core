@@ -2,6 +2,8 @@
 This module produces a "pretty-print" inspired 2d text representation.
 """
 
+from typing import List, Optional, Union
+
 
 class TextBlock:
     @staticmethod
@@ -63,6 +65,7 @@ class TextBlock:
         return result
 
     def __iadd__(self, tb):
+        """In-place addition"""
         if isinstance(tb, str):
             tb = TextBlock(tb)
         base = self.base
@@ -160,7 +163,45 @@ def _draw_integral_symbol(height: int) -> TextBlock:
     )
 
 
-def draw_vertical(pen: str, height, base=0, left_padding=0, right_padding=0):
+def bracket(inner: Union[str, TextBlock]) -> TextBlock:
+    if isinstance(inner, str):
+        inner = TextBlock(inner)
+    height = inner.height
+    if height == 1:
+        left_br, right_br = TextBlock("["), TextBlock("]")
+    else:
+        left_br = TextBlock(
+            "+-\n" + "\n".join((height) * ["| "]) + "\n+-", base=inner.base + 1
+        )
+        right_br = TextBlock(
+            "-+ \n" + "\n".join((height) * [" |"]) + "\n-+", base=inner.base + 1
+        )
+    return left_br + inner + right_br
+
+
+def curly_braces(inner: Union[str, TextBlock]) -> TextBlock:
+    if isinstance(inner, str):
+        inner = TextBlock(inner)
+    height = inner.height
+    if height == 1:
+        left_br, right_br = TextBlock("{"), TextBlock("}")
+    else:
+        half_height = max(1, int((height - 3) / 2))
+        half_line = "\n".join(half_height * [" |"])
+        left_br = TextBlock(
+            "\n".join([" /", half_line, "< ", half_line, " \\"]), base=half_height + 1
+        )
+        half_line = "\n".join(half_height * ["| "])
+        right_br = TextBlock(
+            "\n".join(["\\ ", half_line, " >", half_line, "/ "]), base=half_height + 1
+        )
+
+    return left_br + inner + right_br
+
+
+def draw_vertical(
+    pen: str, height, base=0, left_padding=0, right_padding=0
+) -> TextBlock:
     """
     build a TextBlock with a vertical line of height `height`
     using the string `pen`. If paddings are given,
@@ -175,65 +216,11 @@ def draw_vertical(pen: str, height, base=0, left_padding=0, right_padding=0):
     return TextBlock("\n".join(height * [pen]), base=base)
 
 
-def subsuperscript(base, a, b):
-    if isinstance(base, str):
-        base = TextBlock(base)
-    if isinstance(a, str):
-        a = TextBlock(a)
-    if isinstance(b, str):
-        b = TextBlock(b)
-
-    text2 = a.stack((base.height - 1) * "\n", align="l").stack(b, align="l")
-    text2.base = base.base + a.height
-    return base + text2
-
-
-def superscript(base, a):
-    if isinstance(base, str):
-        base = TextBlock(base)
-    text2 = TextBlock((base.height - 1) * "\n", base=base.base).stack(a, align="l")
-    return base + text2
-
-
-def subscript(base, a):
-    if isinstance(a, str):
-        a = TextBlock(a)
-    if isinstance(base, str):
-        base = TextBlock(base)
-
-    text2 = a.stack(TextBlock(base.height * [""], base=base.base), align="l")
-    text2.base = base.base + a.height
-    return base + text2
-
-
-def sqrt_block(a, index=None):
-    if isinstance(a, str):
-        a = TextBlock(a)
-    if isinstance(index, str):
-        index = TextBlock(index)
-
-    a_height = a.height
-    result_2 = TextBlock(
-        "\n".join("|" + line for line in a.text.split("\n")), base=a.base
-    )
-    result_2 = result_2.stack((a.width + 1) * "_", align="l")
-    half_height = int(a_height / 2)
-
-    result_1 = TextBlock(
-        "\n".join(
-            [
-                (int(i) * " " + "\\" + int((half_height - i - 1)) * " ")
-                for i in range(half_height)
-            ]
-        ),
-        base=a.base,
-    )
-    if index is not None:
-        result_1 = result_1.stack(index, align="c")
-    return result_1 + result_2
-
-
-def fraction(a, b):
+def fraction(a: Union[TextBlock, str], b: Union[TextBlock, str]) -> TextBlock:
+    """
+    A TextBlock representation of
+    a Fraction
+    """
     if isinstance(a, str):
         a = TextBlock(a)
     if isinstance(b, str):
@@ -246,7 +233,10 @@ def fraction(a, b):
     return result
 
 
-def grid(items: list, **options) -> str:
+def grid(items: List[Union[TextBlock, str]], **options) -> TextBlock:
+    """
+    Process items and build a TextBlock
+    """
     result: TextBlock = TextBlock("")
 
     if not items:
@@ -350,7 +340,9 @@ def grid(items: list, **options) -> str:
     return result
 
 
-def integral_indefinite(integrand, var):
+def integral_indefinite(
+    integrand: Union[TextBlock, str], var: Union[TextBlock, str]
+) -> TextBlock:
     # TODO: handle list of vars
     # TODO: use utf as an option
     if isinstance(var, str):
@@ -363,7 +355,12 @@ def integral_indefinite(integrand, var):
     return int_symb + integrand + " d" + var
 
 
-def integral_definite(integrand, var, a, b):
+def integral_definite(
+    integrand: Union[TextBlock, str],
+    var: Union[TextBlock, str],
+    a: Union[TextBlock, str],
+    b: Union[TextBlock, str],
+) -> TextBlock:
     # TODO: handle list of vars
     # TODO: use utf as an option
     if isinstance(var, str):
@@ -379,23 +376,7 @@ def integral_definite(integrand, var, a, b):
     return subsuperscript(int_symb, a, b) + " " + integrand + " d" + var
 
 
-def bracket(inner):
-    if isinstance(inner, str):
-        inner = TextBlock(inner)
-    height = inner.height
-    if height == 1:
-        left_br, right_br = TextBlock("["), TextBlock("]")
-    else:
-        left_br = TextBlock(
-            "+-\n" + "\n".join((height) * ["| "]) + "\n+-", base=inner.base + 1
-        )
-        right_br = TextBlock(
-            "-+ \n" + "\n".join((height) * [" |"]) + "\n-+", base=inner.base + 1
-        )
-    return left_br + inner + right_br
-
-
-def parenthesize(inner):
+def parenthesize(inner: Union[str, TextBlock]) -> TextBlock:
     if isinstance(inner, str):
         inner = TextBlock(inner)
     height = inner.height
@@ -411,21 +392,66 @@ def parenthesize(inner):
     return left_br + inner + right_br
 
 
-def curly_braces(inner):
-    if isinstance(inner, str):
-        inner = TextBlock(inner)
-    height = inner.height
-    if height == 1:
-        left_br, right_br = TextBlock("{"), TextBlock("}")
-    else:
-        half_height = max(1, int((height - 3) / 2))
-        half_line = "\n".join(half_height * [" |"])
-        left_br = TextBlock(
-            "\n".join([" /", half_line, "< ", half_line, " \\"]), base=half_height + 1
-        )
-        half_line = "\n".join(half_height * ["| "])
-        right_br = TextBlock(
-            "\n".join(["\\ ", half_line, " >", half_line, "/ "]), base=half_height + 1
-        )
+def sqrt_block(
+    a: Union[TextBlock, str], index: Optional[Union[TextBlock, str]] = None
+) -> TextBlock:
+    """
+    Sqrt Text Block
+    """
+    if isinstance(a, str):
+        a = TextBlock(a)
+    if isinstance(index, str):
+        index = TextBlock(index)
 
-    return left_br + inner + right_br
+    a_height = a.height
+    result_2 = TextBlock(
+        "\n".join("|" + line for line in a.text.split("\n")), base=a.base
+    )
+    result_2 = result_2.stack((a.width + 1) * "_", align="l")
+    half_height = int(a_height / 2)
+
+    result_1 = TextBlock(
+        "\n".join(
+            [
+                (int(i) * " " + "\\" + int((half_height - i - 1)) * " ")
+                for i in range(half_height)
+            ]
+        ),
+        base=a.base,
+    )
+    if index is not None:
+        result_1 = result_1.stack(index, align="c")
+    return result_1 + result_2
+
+
+def subscript(base: Union[TextBlock, str], a: Union[TextBlock, str]) -> TextBlock:
+    if isinstance(a, str):
+        a = TextBlock(a)
+    if isinstance(base, str):
+        base = TextBlock(base)
+
+    text2 = a.stack(TextBlock(base.height * [""], base=base.base), align="l")
+    text2.base = base.base + a.height
+    return base + text2
+
+
+def subsuperscript(
+    base: Union[TextBlock, str], a: Union[TextBlock, str], b: Union[TextBlock, str]
+) -> TextBlock:
+    if isinstance(base, str):
+        base = TextBlock(base)
+    if isinstance(a, str):
+        a = TextBlock(a)
+    if isinstance(b, str):
+        b = TextBlock(b)
+
+    text2 = a.stack((base.height - 1) * "\n", align="l").stack(b, align="l")
+    text2.base = base.base + a.height
+    return base + text2
+
+
+def superscript(base: Union[TextBlock, str], a: Union[TextBlock, str]) -> TextBlock:
+    if isinstance(base, str):
+        base = TextBlock(base)
+    text2 = TextBlock((base.height - 1) * "\n", base=base.base).stack(a, align="l")
+    return base + text2

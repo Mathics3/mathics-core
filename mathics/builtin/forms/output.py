@@ -61,6 +61,7 @@ from mathics.core.systemsymbols import (
     SymbolOutputForm,
     SymbolRowBox,
     SymbolRuleDelayed,
+    SymbolStandardForm,
     SymbolSubscriptBox,
     SymbolSuperscriptBox,
 )
@@ -724,7 +725,7 @@ class TeXForm(FormBaseClass):
 
     def eval_tex(self, expr, evaluation) -> Expression:
         "MakeBoxes[expr_, TeXForm]"
-        boxes = MakeBoxes(expr).evaluate(evaluation)
+        boxes = format_element(expr, evaluation, SymbolStandardForm)
         try:
             # Here we set ``show_string_characters`` to False, to reproduce
             # the standard behaviour in WMA. Remove this parameter to recover the
