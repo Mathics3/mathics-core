@@ -9,6 +9,8 @@ from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
     FractionBox,
     GridBox,
+    InterpretationBox,
+    PaneBox,
     RowBox,
     SqrtBox,
     StyleBox,
@@ -38,6 +40,14 @@ def string(self, **options) -> str:
 
 
 add_conversion_fn(String, string)
+
+
+def interpretation_panebox(self, **options):
+    return boxes_to_text(self.elements[0], **options)
+
+
+add_conversion_fn(InterpretationBox, interpretation_panebox)
+add_conversion_fn(PaneBox, interpretation_panebox)
 
 
 def fractionbox(self, **options) -> str:

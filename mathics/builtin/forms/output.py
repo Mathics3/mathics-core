@@ -16,7 +16,13 @@ import re
 from math import ceil
 from typing import Optional
 
-from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
+from mathics.builtin.box.layout import (
+    GridBox,
+    InterpretationBox,
+    PaneBox,
+    RowBox,
+    to_boxes,
+)
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.builtin.makeboxes import MakeBoxes, NumberForm_to_String
 from mathics.builtin.tensors import get_dimensions
@@ -29,6 +35,7 @@ from mathics.core.atoms import (
     StringFromPython,
 )
 from mathics.core.builtin import Builtin
+from mathics.core.convert.prettyprint import expression_to_2d_text
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
 from mathics.core.list import ListExpression
@@ -561,7 +568,17 @@ class OutputForm(FormBaseClass):
      = -Graphics-
     """
 
+    formats = {"OutputForm[s_String]": "s"}
     summary_text = "plain-text output format"
+
+    def eval_makeboxes(self, expr, form, evaluation):
+        """MakeBoxes[OutputForm[expr_], form_]"""
+        print(" eval Makeboxes outputform")
+        text2d = expression_to_2d_text(expr, evaluation, form).text
+        elem1 = PaneBox(String(text2d))
+        elem2 = Expression(SymbolOutputForm, expr)
+        result = InterpretationBox(elem1, elem2)
+        return result
 
 
 class PythonForm(FormBaseClass):

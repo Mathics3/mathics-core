@@ -33,10 +33,13 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     SymbolComplex,
+    SymbolGrid,
     SymbolMinus,
+    SymbolOutputForm,
     SymbolRational,
     SymbolRowBox,
     SymbolStandardForm,
+    SymbolTraditionalForm,
 )
 
 # An operator precedence value that will ensure that whatever operator
@@ -203,16 +206,60 @@ def eval_makeboxes(
     return Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
 
 
+def make_output_form(expr, evaluation, form):
+    """ """
+    from mathics.builtin.box.layout import InterpretationBox, PaneBox
+    from mathics.core.convert.prettyprint import expression_to_2d_text
+
+    text2d = expression_to_2d_text(expr, evaluation, form, **{"2d": True}).text
+    elem1 = PaneBox(String(8 * " " + text2d))
+    elem2 = Expression(SymbolOutputForm, expr)
+    return InterpretationBox(elem1, elem2)
+
+
 def format_element(
     element: BaseElement, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> Optional[BaseElement]:
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
+    if element.has_form("OutputForm", 1):
+        return make_output_form(element.elements[0], evaluation, form)
+
     expr = do_format(element, evaluation, form)
     if expr is None:
         return None
     result = Expression(SymbolMakeBoxes, expr, form)
+    result_box = result.evaluate(evaluation)
+    if isinstance(result_box, String):
+        return result_box
+    if isinstance(result_box, BoxElementMixin):
+        return result_box
+    else:
+        return format_element(element, evaluation, SymbolFullForm, **kwargs)
+
+
+def new_format_element(
+    element: BaseElement, evaluation: Evaluation, form: Symbol, **kwargs
+) -> Optional[BaseElement]:
+    """
+    Applies formats associated to the expression, and then calls Makeboxes
+    """
+
+    from mathics.core.convert.prettyprint import expression_to_2d_text
+
+    if form is SymbolOutputForm:
+        txt2d_form = expression_to_2d_text(element, evaluation, form, **kwargs)
+        return String(txt2d_form.text)
+
+    expr = do_format(element, evaluation, form)
+    if expr is None:
+        return None
+    if form in (SymbolStandardForm, SymbolTraditionalForm):
+        result = Expression(SymbolMakeBoxes, expr, form)
+    else:
+        expr = Expression(form, expr)
+        result = Expression(SymbolMakeBoxes, expr, SymbolStandardForm)
     result_box = result.evaluate(evaluation)
     if isinstance(result_box, String):
         return result_box
