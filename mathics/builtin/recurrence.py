@@ -40,18 +40,18 @@ class RSolve(Builtin):
 
     No boundary conditions gives two general parameters:
     >> RSolve[{a[n + 2] == a[n]}, a, n]
-     = {{a -> (Function[{n}, C[0] + C[1] (-1) ^ n])}}
+     = {{a -> Function[{n}, C[0] + C[1] (-1) ^ n]}}
 
     Include one boundary condition:
     >> RSolve[{a[n + 2] == a[n], a[0] == 1}, a, n]
      = ...
     ## Order of terms depends on interpreter:
-    ## PyPy:    {{a -> (Function[{n}, 1 - C[1] + C[1] -1 ^ n])}}
-    ## CPython: {{a -> (Function[{n}, 1 + C[1] -1 ^ n - C[1]])}
+    ## PyPy:    {{a -> Function[{n}, 1 - C[1] + C[1] -1 ^ n]}}
+    ## CPython: {{a -> Function[{n}, 1 + C[1] -1 ^ n - C[1]]}
 
-    Geta "pure function" solution for a with two boundary conditions:
+    Get a "pure function" solution for a with two boundary conditions:
     >> RSolve[{a[n + 2] == a[n], a[0] == 1, a[1] == 4}, a, n]
-     = {{a -> (Function[{n}, 5 / 2 - 3 (-1) ^ n / 2])}}
+     = {{a -> Function[{n}, 5 / 2 - 3 (-1) ^ n / 2]}}
     """
 
     messages = {
