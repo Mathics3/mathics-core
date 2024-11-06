@@ -247,36 +247,6 @@ def format_element(
         return format_element(element, evaluation, SymbolFullForm, **kwargs)
 
 
-def new_format_element(
-    element: BaseElement, evaluation: Evaluation, form: Symbol, **kwargs
-) -> Optional[BaseElement]:
-    """
-    Applies formats associated to the expression, and then calls Makeboxes
-    """
-
-    from mathics.core.convert.prettyprint import expression_to_2d_text
-
-    if form is SymbolOutputForm:
-        txt2d_form = expression_to_2d_text(element, evaluation, form, **kwargs)
-        return String(txt2d_form.text)
-
-    expr = do_format(element, evaluation, form)
-    if expr is None:
-        return None
-    if form in (SymbolStandardForm, SymbolTraditionalForm):
-        result = Expression(SymbolMakeBoxes, expr, form)
-    else:
-        expr = Expression(form, expr)
-        result = Expression(SymbolMakeBoxes, expr, SymbolStandardForm)
-    result_box = result.evaluate(evaluation)
-    if isinstance(result_box, String):
-        return result_box
-    if isinstance(result_box, BoxElementMixin):
-        return result_box
-    else:
-        return format_element(element, evaluation, SymbolFullForm, **kwargs)
-
-
 # do_format_*
 
 
