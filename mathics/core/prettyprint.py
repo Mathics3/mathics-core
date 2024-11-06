@@ -6,6 +6,11 @@ from typing import List, Optional, Union
 
 
 class TextBlock:
+    lines: List[str]
+    width: int
+    height: int
+    base: int
+
     @staticmethod
     def _build_attributes(lines, width=0, height=0, base=0):
         width = max(width, max(len(line) for line in lines)) if lines else 0
@@ -91,7 +96,7 @@ class TextBlock:
             base=base,
         )
 
-    def ajust_base(self, base):
+    def ajust_base(self, base: int):
         """
         if base is larger than self.base,
         adds lines at the bottom of the text
@@ -105,7 +110,7 @@ class TextBlock:
 
         return result
 
-    def ajust_width(self, width, align="c"):
+    def ajust_width(self, width: int, align: str = "c"):
         def padding(lines, diff):
             if diff > 0:
                 if align == "c":
@@ -133,16 +138,16 @@ class TextBlock:
         out = top + "\n" + out + "\n" + top
         return TextBlock(out, self.base + 1)
 
-    def join(self, iter):
+    def join(self, iterable):
         result = TextBlock("")
-        for i, item in enumerate(iter):
+        for i, item in enumerate(iterable):
             if i == 0:
                 result = item
             else:
                 result = result + self + item
         return result
 
-    def stack(self, top, align="c"):
+    def stack(self, top, align: str = "c"):
         if isinstance(top, str):
             top = TextBlock(top)
 
@@ -154,7 +159,7 @@ class TextBlock:
         elif bottom_width < top_width:
             bottom = bottom.ajust_width(top_width, align=align)
 
-        return TextBlock(top.lines + bottom.lines, base=self.base)
+        return TextBlock(top.lines + bottom.lines, base=self.base)  # type: ignore[union-attr]
 
 
 def _draw_integral_symbol(height: int) -> TextBlock:
@@ -233,7 +238,7 @@ def fraction(a: Union[TextBlock, str], b: Union[TextBlock, str]) -> TextBlock:
     return result
 
 
-def grid(items: List[Union[TextBlock, str]], **options) -> TextBlock:
+def grid(items: list, **options) -> TextBlock:
     """
     Process items and build a TextBlock
     """
