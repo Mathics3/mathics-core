@@ -13,6 +13,7 @@ import pytest
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
+        ("ClearAll[x, y, a, b]", None, None, None),
         ("Dimensions[{}]", None, "{0}", None),
         ("Dimensions[{{}}]", None, "{1, 0}", None),
         ## Issue #670

@@ -13,6 +13,7 @@ import pytest
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
+        ("ClearAll[x, y, f]", None, None, None),
         ("Plot[1 / x, {x, -1, 1}]", None, "-Graphics-", None),
         ("Plot[x, {y, 0, 2}]", None, "-Graphics-", None),
         (

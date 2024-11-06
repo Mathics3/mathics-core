@@ -3,6 +3,7 @@ from .helper import check_evaluation, evaluate
 
 
 def test_catch():
+    evaluate("ClearAll[a, b, c, d, e, f]")
     evaluate(
         """
         (* Define a function that can "throw an exception": *)

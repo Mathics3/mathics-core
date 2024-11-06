@@ -31,6 +31,7 @@ def test_downvalues():
 @pytest.mark.parametrize(
     ("str_expr", "warnings", "str_expected", "fail_msg"),
     [
+        ("ClearAll[a, b, f, g, x]", None, None, None),
         ## placeholder for general context-related tests
         ("x === Global`x", None, "True", None),
         ("`x === Global`x", None, "True", None),

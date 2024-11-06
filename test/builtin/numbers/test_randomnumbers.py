@@ -11,6 +11,7 @@ import pytest
 @pytest.mark.parametrize(
     ("str_expr", "str_expected"),
     [
+        ("ClearAll[a, b, c, d, e, f, g, h]", None),
         ("SeedRandom[42]; RandomSample[{a, b, c, d}]", "{b, d, a, c}"),
         (
             "SeedRandom[42]; RandomSample[{a, b, c, d, e, f, g, h}, 7]",

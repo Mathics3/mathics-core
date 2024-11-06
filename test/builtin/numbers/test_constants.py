@@ -2,7 +2,7 @@
 """
 Unit tests for mathics.builtins.numbers.constants
 """
-from test.helper import check_evaluation
+from test.helper import check_evaluation, evaluate
 
 import pytest
 
@@ -37,7 +37,9 @@ def test_Undefined():
         "Tan",
         "Tanh",
     ]:
-        check_evaluation(f"{fn}[Undefined]", "Undefined")
+        check_evaluation(f"{fn}[Undefined]", "Undefined", failure_message=fn)
+
+    evaluate("ClearAll[a, b]")
 
     for fn in [
         "ArcTan",
@@ -50,8 +52,8 @@ def test_Undefined():
         "StruveH",
         "StruveL",
     ]:
-        check_evaluation(f"{fn}[a, Undefined]", "Undefined")
-        check_evaluation(f"{fn}[Undefined, b]", "Undefined")
+        check_evaluation(f"{fn}[a, Undefined]", "Undefined", failure_message=fn)
+        check_evaluation(f"{fn}[Undefined, b]", "Undefined", failure_message=fn)
 
 
 # This is a miscelanea of private tests. I put here to make it easier to check

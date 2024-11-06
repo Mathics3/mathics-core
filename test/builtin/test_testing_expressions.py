@@ -86,13 +86,14 @@ def test_private_doctests_list_oriented(str_expr, msgs, str_expected, fail_msg):
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
+        ("ClearAll[a, b, x, y]", None, None, None),
         ('BooleanQ["string"]', None, "False", None),
         ("BooleanQ[Together[x/y + y/x]]", None, "False", None),
         ("Max[x]", None, "x", None),
         ("Min[x]", None, "x", None),
         ("Pi != N[Pi]", None, "False", None),
         ("a_ != b_", None, "a_ != b_", None),
-        ("Clear[a, b];a != a != a", None, "False", None),
+        ("a != a != a", None, "False", None),
         ('"abc" != "def" != "abc"', None, "False", None),
         ("a != b != a", None, "a != b != a", "Reproduce strange MMA behaviour"),
     ],

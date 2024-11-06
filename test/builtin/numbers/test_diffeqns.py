@@ -10,6 +10,7 @@ import pytest
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
+        ("ClearAll[f, x, y]", None, None, None),
         ## FIXME: sympy solves this as `Function[{x}, C[1] + Integrate[ArcSin[f[2 x]], x]]`
         #        (
         #            "Attributes[f] = {HoldAll}; DSolve[f[x + x] == Sin[f'[x]], f, x]",

@@ -13,6 +13,7 @@ import pytest
     # Basically special rules from autoload/rules/Bessel.m that are not covered
     # by SymPy.
     [
+        ("ClearAll[x, y, z]", None, None),
         (
             "z=.;BesselI[1/2,z]",
             "Sqrt[2] Sinh[z] / (Sqrt[z] Sqrt[Pi])",

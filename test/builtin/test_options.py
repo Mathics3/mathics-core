@@ -12,6 +12,7 @@ import pytest
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
+        ("ClearAll[f, g, a, b]", None, None, None),
         (
             (
                 'f[x_, OptionsPattern[f]] := x ^ OptionValue["m"];'

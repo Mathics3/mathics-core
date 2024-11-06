@@ -84,6 +84,7 @@ else:
 
 
 tests_for_integrate = [
+    (r"ClearAll[x]", None, None),
     (r"Integrate[Sec[x]*Tan[x],x]", "1 / Cos[x]", "issue #346"),
     (r"Integrate[Sin[x]/(3 + Cos[x])^2,x]", "1 / (3 + Cos[x])", "issue #346"),
 ]
@@ -123,6 +124,7 @@ def test_integrate(str_expr: str, str_expected: str, assert_fail_message):
 @pytest.mark.parametrize(
     "str_expr, str_expected, expected_messages",
     [
+        ("ClearAll[x, y]", None, None),
         (
             "D[{y, -x}[2], {x, y}]",
             "D[{y, -x}[2], {x, y}]",
@@ -144,6 +146,7 @@ def test_D(str_expr: str, str_expected: str, expected_messages):
 @pytest.mark.parametrize(
     "str_expr, str_expected, expected_messages",
     [
+        ("ClearAll[x]", None, None),
         (
             "Solve[x^2 +1 == 0, x]",
             "{{x -> -I}, {x -> I}}",

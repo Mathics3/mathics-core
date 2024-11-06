@@ -108,6 +108,7 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
+        ("ClearAll[x]", None, None, None),
         (r'Quiet[URLFetch["https://", {}]]', None, "$Failed", None),
         # (r'Quiet[URLFetch["https://www.example.com", {}]]', None,
         #  "...", None),

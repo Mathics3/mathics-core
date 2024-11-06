@@ -5,10 +5,11 @@ Unit tests from builtin ... calculus.py specific for Series
 
 import pytest
 
-from .helper import check_evaluation
+from .helper import check_evaluation, evaluate
 
 
 def test_seriesdata_product():
+    evaluate("ClearAll[x, y, a, F]")
     for str_expr, str_expected, message in (
         (
             "3 * Series[F[x],{x,a,2}]//FullForm",

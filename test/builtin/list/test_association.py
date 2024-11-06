@@ -10,6 +10,7 @@ import pytest
 @pytest.mark.parametrize(
     ("str_expr", "expected_messages", "str_expected", "assert_message"),
     [
+        ("ClearAll[assoc, a, b, c, d, t, x, y, z]", None, None, None),
         (
             "assoc=<|a -> x, b -> y, c -> <|d -> t|>|>",
             None,
