@@ -26,7 +26,7 @@ dependencies = [
     "requests",
     "scipy",
     "setuptools",
-    "sympy>=1.11,<1.14",
+    "sympy>=1.13,<1.14",
 ]
 license = {text = "GPL"}
 name = "Mathics3"
