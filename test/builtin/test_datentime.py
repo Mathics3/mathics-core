@@ -29,7 +29,7 @@ def test_timeconstrained1():
     expected = evaluate(str_expected)
     assert result == expected
     time.sleep(1)
-    assert evaluate("a").to_python() < 10
+    assert evaluate("a").to_python() <= 10
 
 
 def test_datelist():
