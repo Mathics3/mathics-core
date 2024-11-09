@@ -17,7 +17,18 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.prettyprint import (
+from mathics.core.symbols import Atom, Symbol, SymbolTimes
+from mathics.core.systemsymbols import (
+    SymbolDerivative,
+    SymbolInfix,
+    SymbolNone,
+    SymbolOutputForm,
+    SymbolPower,
+    SymbolStandardForm,
+    SymbolTraditionalForm,
+)
+from mathics.eval.makeboxes import compare_precedence, do_format  # , format_element
+from mathics.format.pane_text import (
     TextBlock,
     bracket,
     fraction,
@@ -30,17 +41,6 @@ from mathics.core.prettyprint import (
     subsuperscript,
     superscript,
 )
-from mathics.core.symbols import Atom, Symbol, SymbolTimes
-from mathics.core.systemsymbols import (
-    SymbolDerivative,
-    SymbolInfix,
-    SymbolNone,
-    SymbolOutputForm,
-    SymbolPower,
-    SymbolStandardForm,
-    SymbolTraditionalForm,
-)
-from mathics.eval.makeboxes import compare_precedence, do_format  # , format_element
 
 SymbolNonAssociative = Symbol("System`NonAssociative")
 SymbolPostfix = Symbol("System`Postfix")

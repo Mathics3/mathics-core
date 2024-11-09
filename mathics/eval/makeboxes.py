@@ -211,13 +211,14 @@ def make_output_form(expr, evaluation, form):
     Build a 2D text representation of the expression.
     """
     from mathics.builtin.box.layout import InterpretationBox, PaneBox
-    from mathics.core.convert.prettyprint import expression_to_2d_text
+    from mathics.format.prettyprint import expression_to_2d_text
 
     use_2d = (
         evaluation.definitions.get_ownvalues("System`$Use2DOutputForm")[0].replace
         is SymbolTrue
     )
     text2d = expression_to_2d_text(expr, evaluation, form, **{"2d": use_2d}).text
+
     if "\n" in text2d:
         text2d = "\n" + text2d
     elem1 = PaneBox(String(text2d))

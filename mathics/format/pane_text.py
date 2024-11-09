@@ -1,5 +1,8 @@
 """
 This module produces a "pretty-print" inspired 2d text representation.
+
+This code is completely independent from Mathics objects, so it could live
+alone in a different package.
 """
 
 from typing import List, Optional, Union

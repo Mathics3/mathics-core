@@ -35,7 +35,6 @@ from mathics.core.atoms import (
     StringFromPython,
 )
 from mathics.core.builtin import Builtin
-from mathics.core.convert.prettyprint import expression_to_2d_text
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression
 from mathics.core.list import ListExpression
@@ -67,6 +66,7 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.makeboxes import StringLParen, StringRParen, format_element
 from mathics.eval.testing_expressions import expr_min
+from mathics.format.prettyprint import expression_to_2d_text
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
