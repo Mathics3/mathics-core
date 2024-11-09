@@ -211,6 +211,34 @@ def test_inverse(str_expr, str_expected, fail_msg, warnings):
             "SingularValueDecomposition[{1, {2}}]",
             None,
         ),
+        (
+            "A = Array[a, {2,2}]; eigvals=Eigenvalues[A.ConjugateTranspose[A]][[1]]",
+            None,
+            (
+                "-Sqrt[(a[1, 1] Conjugate[a[1, 1]] + a[1, 2] Conjugate[a[1, 2]] "
+                "+ a[2, 1] Conjugate[a[2, 1]] + a[2, 2] Conjugate[a[2, 2]]) ^ 2 "
+                "- 4 (a[1, 1] Conjugate[a[1, 1]] + a[1, 2] Conjugate[a[1, 2]]) "
+                "(a[2, 1] Conjugate[a[2, 1]] + a[2, 2] Conjugate[a[2, 2]]) + 4 "
+                "(a[1, 1] Conjugate[a[2, 1]] + a[1, 2] Conjugate[a[2, 2]]) "
+                "(a[2, 1] Conjugate[a[1, 1]] + a[2, 2] Conjugate[a[1, 2]])] / 2 "
+                "+ a[1, 1] Conjugate[a[1, 1]] / 2 + a[1, 2] Conjugate[a[1, 2]] / 2 "
+                "+ a[2, 1] Conjugate[a[2, 1]] / 2 + a[2, 2] Conjugate[a[2, 2]] / 2"
+            ),
+            None,  # "Sympy issue #1156",
+        ),
+        (
+            "eigvals[[1]] // FullSimplify",
+            None,
+            (
+                "-Sqrt[(a[1, 1] Conjugate[a[1, 1]] + a[1, 2] Conjugate[a[1, 2]] + "
+                "a[2, 1] Conjugate[a[2, 1]] + a[2, 2] Conjugate[a[2, 2]]) ^ 2 - "
+                "4 a[1, 1] a[2, 2] Conjugate[a[1, 1]] Conjugate[a[2, 2]] - "
+                "4 a[1, 2] a[2, 1] Conjugate[a[1, 2]] Conjugate[a[2, 1]] + "
+                "4 a[1, 1] a[2, 2] Conjugate[a[1, 2]] Conjugate[a[2, 1]] + "
+                "4 a[1, 2] a[2, 1] Conjugate[a[1, 1]] Conjugate[a[2, 2]]] / 2"
+            ),
+            None,  #            "Sympy issue #1156",
+        ),
     ],
 )
 def test_private_doctests_linalg(str_expr, msgs, str_expected, fail_msg):
