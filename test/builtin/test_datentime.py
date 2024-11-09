@@ -10,17 +10,20 @@ from test.helper import check_evaluation, evaluate
 import pytest
 
 
-# @pytest.mark.skipif(
-#    sys.platform in ("win32", "emscripten") or hasattr(sys, "pyston_version_info"),
-#    reason="TimeConstrained needs to be rewritten",
-# )
+@pytest.mark.skipif(
+    sys.platform in ("emscripten",),
+    reason="TimeConstrained is based in Threads, which are not supported in Piodide",
+)
 def test_timeremaining():
     str_expr = "TimeConstrained[1+2; TimeRemaining[], 0.9]"
     result = evaluate(str_expr)
     assert result is None or 0 < result.to_python() < 9
 
 
-# @pytest.mark.skip(reason="TimeConstrained needs to be rewritten")
+@pytest.mark.skipif(
+    sys.platform in ("emscripten",),
+    reason="TimeConstrained is based in Threads, which are not supported in Piodide",
+)
 def test_timeconstrained1():
     #
     str_expr1 = "a=1.; TimeConstrained[Do[Pause[.01];a=a+1,{1000}],.1]"
@@ -109,6 +112,28 @@ def test_datestring():
             "Thu 6 Jun 1991 00:00:00",
             "Specified separators",
         ),
+    ],
+)
+def test_private_doctests_datetime(str_expr, msgs, str_expected, fail_msg):
+    """ """
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )
+
+
+@pytest.mark.skipif(
+    sys.platform in ("emscripten",),
+    reason="TimeConstrained is based in Threads, which are not supported in Piodide",
+)
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
         ##
         (
             "TimeConstrained[Integrate[Sin[x]^100,x],.5]",
@@ -139,8 +164,8 @@ def test_datestring():
         ("a=.;s=.;", None, "Null", None),
     ],
 )
-def test_private_doctests_datetime(str_expr, msgs, str_expected, fail_msg):
-    """ """
+def test_private_doctests_TimeConstrained(str_expr, msgs, str_expected, fail_msg):
+    """TimeConstrained tests"""
     check_evaluation(
         str_expr,
         str_expected,

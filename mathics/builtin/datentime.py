@@ -1109,7 +1109,7 @@ class Now(Predefined):
         return Expression(SymbolDateObject.evaluate(evaluation))
 
 
-if True:
+if sys.platform != "emscripten":
 
     class TimeConstrained(Builtin):
         """
