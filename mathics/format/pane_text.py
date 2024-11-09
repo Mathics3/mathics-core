@@ -233,7 +233,7 @@ def fraction(a: Union[TextBlock, str], b: Union[TextBlock, str]) -> TextBlock:
         a = TextBlock(a)
     if isinstance(b, str):
         b = TextBlock(b)
-    width = max(b.width, a.width) + 2
+    width = max(b.width, a.width)
     frac_bar = TextBlock(width * "-")
     result = frac_bar.stack(a)
     result = b.stack(result)
@@ -416,7 +416,7 @@ def sqrt_block(
         "\n".join("|" + line for line in a.text.split("\n")), base=a.base
     )
     result_2 = result_2.stack((a.width + 1) * "_", align="l")
-    half_height = int(a_height / 2)
+    half_height = int(a_height / 2 + 1)
 
     result_1 = TextBlock(
         "\n".join(
