@@ -1055,7 +1055,13 @@ class Pause(Builtin):
             )
             return
 
-        time.sleep(sleeptime)
+        steps = int(1000 * sleeptime)
+        while steps > 0:
+            time.sleep(0.001)
+            if evaluation.timeout:
+                return SymbolNull
+            steps = steps - 1
+
         return SymbolNull
 
 
@@ -1103,7 +1109,7 @@ class Now(Predefined):
         return Expression(SymbolDateObject.evaluate(evaluation))
 
 
-if sys.platform != "win32" and not hasattr(sys, "pyston_version_info"):
+if True:
 
     class TimeConstrained(Builtin):
         """
@@ -1123,23 +1129,6 @@ if sys.platform != "win32" and not hasattr(sys, "pyston_version_info"):
         evaluation, the function will return '$Aborted' and the results will not affect
         the state of the Mathics3 kernel.
         """
-
-        # FIXME: these tests sometimes cause SEGVs which probably means
-        # that TimeConstraint has bugs.
-
-        # Consider testing via unit tests.
-        # >> TimeConstrained[Integrate[Sin[x]^1000000,x],1]
-        # = $Aborted
-
-        # >> TimeConstrained[Integrate[Sin[x]^1000000,x], 1, Integrate[Cos[x],x]]
-        # = Sin[x]
-
-        # >> s=TimeConstrained[Integrate[Sin[x] ^ 3, x], a]
-        #  : Number of seconds a is not a positive machine-sized number or Infinity.
-        #  = TimeConstrained[Integrate[Sin[x] ^ 3, x], a]
-
-        # >> a=1; s
-        # =  Cos[x] (-5 + Cos[2 x]) / 6
 
         attributes = A_HOLD_ALL | A_PROTECTED
         messages = {

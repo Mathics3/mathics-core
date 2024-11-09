@@ -10,26 +10,26 @@ from test.helper import check_evaluation, evaluate
 import pytest
 
 
-@pytest.mark.skipif(
-    sys.platform in ("win32", "emscripten") or hasattr(sys, "pyston_version_info"),
-    reason="TimeConstrained needs to be rewritten",
-)
+# @pytest.mark.skipif(
+#    sys.platform in ("win32", "emscripten") or hasattr(sys, "pyston_version_info"),
+#    reason="TimeConstrained needs to be rewritten",
+# )
 def test_timeremaining():
     str_expr = "TimeConstrained[1+2; TimeRemaining[], 0.9]"
     result = evaluate(str_expr)
     assert result is None or 0 < result.to_python() < 9
 
 
-@pytest.mark.skip(reason="TimeConstrained needs to be rewritten")
+# @pytest.mark.skip(reason="TimeConstrained needs to be rewritten")
 def test_timeconstrained1():
     #
-    str_expr1 = "a=1.; TimeConstrained[Do[Pause[.1];a=a+1,{1000}],1]"
+    str_expr1 = "a=1.; TimeConstrained[Do[Pause[.01];a=a+1,{1000}],.1]"
     result = evaluate(str_expr1)
     str_expected = "$Aborted"
     expected = evaluate(str_expected)
     assert result == expected
     time.sleep(1)
-    assert evaluate("a").to_python() == 10
+    assert evaluate("a").to_python() < 10
 
 
 def test_datelist():
@@ -109,6 +109,34 @@ def test_datestring():
             "Thu 6 Jun 1991 00:00:00",
             "Specified separators",
         ),
+        ##
+        (
+            "TimeConstrained[Integrate[Sin[x]^100,x],.5]",
+            None,
+            "$Aborted",
+            "TimeConstrained with two arguments",
+        ),
+        (
+            "TimeConstrained[Integrate[Sin[x]^100,x],.5, Integrate[Cos[x],x]]",
+            None,
+            "Sin[x]",
+            "TimeConstrained with three arguments",
+        ),
+        (
+            "a=.;s=TimeConstrained[Integrate[Sin[x] ^ 3, x], a]",
+            (
+                "Number of seconds a is not a positive machine-sized number or Infinity.",
+            ),
+            "TimeConstrained[Integrate[Sin[x] ^ 3, x], a]",
+            "TimeConstrained unevaluated because the second argument is not numeric",
+        ),
+        (
+            "a=1; s",
+            None,
+            "Cos[x] (-3 + Cos[x] ^ 2) / 3",
+            "s is now evaluated because `a` is a number.",
+        ),
+        ("a=.;s=.;", None, "Null", None),
     ],
 )
 def test_private_doctests_datetime(str_expr, msgs, str_expected, fail_msg):
