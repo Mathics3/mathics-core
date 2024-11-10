@@ -1016,10 +1016,13 @@ class String(Atom, BoxElementMixin):
         return '"%s"' % self.value
 
     def atom_to_boxes(self, f, evaluation):
+        return self.make_boxes(f.get_name())
+
+    def make_boxes(self, f):
         from mathics.eval.makeboxes import _boxed_string
 
         inner = str(self.value)
-        if f in SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM:
+        if f in ("System`InputForm", "System`FullForm"):
             inner = '"' + inner.replace("\\", "\\\\") + '"'
             return _boxed_string(inner, **{"System`ShowStringCharacters": SymbolTrue})
         return String('"' + inner + '"')

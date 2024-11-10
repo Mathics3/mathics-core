@@ -13,7 +13,7 @@ from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol, SymbolFullForm, SymbolMakeBoxes
-from mathics.core.systemsymbols import SymbolStandardForm
+from mathics.core.systemsymbols import SymbolOutputForm, SymbolStandardForm
 from mathics.eval.makeboxes.formatvalues import do_format
 from mathics.eval.makeboxes.precedence import parenthesize
 
@@ -126,8 +126,21 @@ def int_to_string_shorter_repr(value: int, form: Symbol, max_digits=640):
     return String(value_str)
 
 
+def eval_makeboxes_outputform(expr, evaluation, form):
+    """
+    Build a 2D text representation of the expression.
+    """
+    from mathics.builtin.box.layout import InterpretationBox, PaneBox
+    from mathics.format.outputform import expression_to_outputform_text
+
+    text_outputform = str(expression_to_outputform_text(expr, evaluation, form))
+    elem1 = PaneBox(String(text_outputform))
+    elem2 = Expression(SymbolOutputForm, expr)
+    return InterpretationBox(elem1, elem2)
+
+
 def eval_fullform_makeboxes(
-    self, expr, evaluation: Evaluation, form=SymbolStandardForm
+    expr, evaluation: Evaluation, form=SymbolStandardForm
 ) -> Optional[BaseElement]:
     """
     This function takes the definitions provided by the evaluation
@@ -220,9 +233,27 @@ def format_element(
     Applies formats associated to the expression, and then calls Makeboxes
     """
     evaluation.is_boxing = True
+    while element.get_head() is form:
+        element = element.elements[0]
+
+    if element.has_form("FullForm", 1):
+        return eval_fullform_makeboxes(element.elements[0], evaluation)
+
+    # In order to work like in WMA, `format_element`
+    # should evaluate `MakeBoxes[element//form, StandardForm]`
+    # Then, MakeBoxes[expr_, StandardForm], for any expr,
+    # should apply Format[...] rules, and then
+    # MakeBoxes[...] rules. These rules should be stored
+    # as FormatValues[...]
+    # As a first step in that direction, let's mimic this behaviour
+    # just for the case of OutputForm:
+    if element.has_form("OutputForm", 1):
+        return eval_makeboxes_outputform(element.elements[0], evaluation, form)
+
     expr = do_format(element, evaluation, form)
     if expr is None:
         return None
+
     result = Expression(SymbolMakeBoxes, expr, form)
     result_box = result.evaluate(evaluation)
     if isinstance(result_box, String):

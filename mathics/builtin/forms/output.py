@@ -37,6 +37,7 @@ from mathics.eval.makeboxes import (
     StringLParen,
     StringRParen,
     eval_baseform,
+    eval_makeboxes_outputform,
     eval_mathmlform,
     eval_tableform,
     eval_texform,
@@ -490,7 +491,12 @@ class OutputForm(FormBaseClass):
      = -Graphics-
     """
 
+    formats = {"OutputForm[s_String]": "s"}
     summary_text = "plain-text output format"
+
+    def eval_makeboxes(self, expr, form, evaluation):
+        """MakeBoxes[OutputForm[expr_], form_]"""
+        return eval_makeboxes_outputform(expr, evaluation, form)
 
 
 class PythonForm(FormBaseClass):
