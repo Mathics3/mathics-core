@@ -31,6 +31,7 @@ from mathics.eval.makeboxes import compare_precedence, do_format  # , format_ele
 from mathics.format.pane_text import (
     TextBlock,
     bracket,
+    curly_braces,
     fraction,
     grid,
     integral_definite,
@@ -83,7 +84,10 @@ def expression_to_2d_text(
 
     lookup_name = format_expr.get_head().get_lookup_name()
     try:
-        return expr_to_2d_text_map[lookup_name](format_expr, evaluation, form, **kwargs)
+        result = expr_to_2d_text_map[lookup_name](
+            format_expr, evaluation, form, **kwargs
+        )
+        return result
     except _WrongFormattedExpression:
         # If the key is not present, or the execution fails for any reason, use
         # the default
@@ -109,7 +113,7 @@ def _default_expression_to_2d_text(
 
     if form is SymbolTraditionalForm:
         return head + parenthesize(result)
-    return head + bracket(result)
+    return TextBlock(*TextBlock.next(head, bracket(result)))
 
 
 def _divide(num, den, evaluation, form, **kwargs):
@@ -155,17 +159,21 @@ def derivative_expression_to_2d_text(
         if len(derivatives) == 1:
             order_iv = derivatives[0]
             if order_iv == Integer1:
-                return function_head + "'"
+                return TextBlock(*TextBlock.next(function_head, TextBlock("'")))
             elif order_iv == Integer2:
-                return function_head + "''"
+                return TextBlock(*TextBlock.next(function_head, TextBlock("''")))
 
         if not kwargs["2d"]:
             return _default_expression_to_2d_text(expr, evaluation, form, **kwargs)
 
-        superscript_tb = TextBlock(",").join(
+        comma = TextBlock(",")
+        superscript_tb, *rest_derivatives = (
             expression_to_2d_text(order, evaluation, form, **kwargs)
             for order in derivatives
         )
+        for order in rest_derivatives:
+            superscript_tb = TextBlock(*TextBlock.next(superscript_tb, comma, order))
+
         superscript_tb = parenthesize(superscript_tb)
         return superscript(function_head, superscript_tb)
 
@@ -278,16 +286,14 @@ expr_to_2d_text_map["System`Integrate"] = integrate_expression_to_2d_text
 def list_expression_to_2d_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> TextBlock:
-    return (
-        TextBlock("{")
-        + TextBlock(", ").join(
-            [
-                expression_to_2d_text(elem, evaluation, form, **kwargs)
-                for elem in expr.elements
-            ]
-        )
-        + TextBlock("}")
+    result, *rest_elems = (
+        expression_to_2d_text(elem, evaluation, form, **kwargs)
+        for elem in expr.elements
     )
+    comma_tb = TextBlock(", ")
+    for next_elem in rest_elems:
+        result = TextBlock(*TextBlock.next(result, comma_tb, next_elem))
+    return curly_braces(result)
 
 
 expr_to_2d_text_map["System`List"] = list_expression_to_2d_text
@@ -407,7 +413,73 @@ def power_expression_to_2d_text(
 expr_to_2d_text_map["System`Power"] = power_expression_to_2d_text
 
 
-def pre_pos_infix_expression_to_2d_text(
+def pre_pos_fix_expression_to_2d_text(
+    expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
+) -> TextBlock:
+    elements = expr.elements
+    if not (0 <= len(elements) <= 4):
+        raise _WrongFormattedExpression
+
+    group = None
+    precedence = 670
+    # Processing the first argument:
+    head = expr.get_head()
+    target = expr.elements[0]
+    if isinstance(target, Atom):
+        raise _WrongFormattedExpression
+
+    operands = list(target.elements)
+    if len(operands) != 1:
+        raise _WrongFormattedExpression
+
+    # Processing the second argument, if it is there:
+    if len(elements) > 1:
+        ops = elements[1]
+        ops_txt = [expression_to_2d_text(ops, evaluation, form, **kwargs)]
+    else:
+        if head is SymbolPrefix:
+            default_symb = TextBlock(" @ ")
+            ops_txt = (
+                expression_to_2d_text(head, evaluation, form, **kwargs) + default_symb
+            )
+        elif head is SymbolPostfix:
+            default_symb = TextBlock(" // ")
+            ops_txt = default_symb + expression_to_2d_text(
+                head, evaluation, form, **kwargs
+            )
+
+    # Processing the third argument, if it is there:
+    if len(elements) > 2:
+        if isinstance(elements[2], Integer):
+            precedence = elements[2].value
+        else:
+            raise _WrongFormattedExpression
+
+    # Processing the forth argument, if it is there:
+    if len(elements) > 3:
+        group = elements[3]
+        if group not in (SymbolNone, SymbolLeft, SymbolRight, SymbolNonAssociative):
+            raise _WrongFormattedExpression
+        if group is SymbolNone:
+            group = None
+
+    operand = operands[0]
+    cmp_precedence = compare_precedence(operand, precedence)
+    target_txt = expression_to_2d_text(operand, evaluation, form, **kwargs)
+    if cmp_precedence is not None and cmp_precedence != -1:
+        target_txt = parenthesize(target_txt)
+
+    if head is SymbolPrefix:
+        return TextBlock(*TextBlock.next(ops_txt[0], target_txt))
+    if head is SymbolPostfix:
+        return TextBlock(*TextBlock.next(target_txt, ops_txt[0]))
+
+
+expr_to_2d_text_map["System`Prefix"] = pre_pos_fix_expression_to_2d_text
+expr_to_2d_text_map["System`Postfix"] = pre_pos_fix_expression_to_2d_text
+
+
+def infix_expression_to_2d_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> TextBlock:
     elements = expr.elements
@@ -424,13 +496,7 @@ def pre_pos_infix_expression_to_2d_text(
 
     operands = list(target.elements)
 
-    if head in (SymbolPrefix, SymbolPostfix):
-        if len(operands) != 1:
-            raise _WrongFormattedExpression
-    elif head is SymbolInfix:
-        if len(operands) < 2:
-            raise _WrongFormattedExpression
-    else:
+    if len(operands) < 2:
         raise _WrongFormattedExpression
 
     # Processing the second argument, if it is there:
@@ -515,17 +581,22 @@ def pre_pos_infix_expression_to_2d_text(
                 if group in (SymbolLeft, SymbolRight):
                     parenthesized = not parenthesized
             else:
-                if ops_lst[index % num_ops].text != " ":
-                    result = result + " " + ops_lst[index % num_ops] + " " + operand_txt
+                space = TextBlock(" ")
+                if str(ops_lst[index % num_ops]) != " ":
+                    result_lst = (
+                        result,
+                        space,
+                        ops_lst[index % num_ops],
+                        space,
+                        operand_txt,
+                    )
                 else:
-                    result = result + " " + operand_txt
+                    result_lst = (result, space, operand_txt)
 
-        return result
+        return TextBlock(*TextBlock.next(*result_lst))
 
 
-expr_to_2d_text_map["System`Prefix"] = pre_pos_infix_expression_to_2d_text
-expr_to_2d_text_map["System`Postfix"] = pre_pos_infix_expression_to_2d_text
-expr_to_2d_text_map["System`Infix"] = pre_pos_infix_expression_to_2d_text
+expr_to_2d_text_map["System`Infix"] = infix_expression_to_2d_text
 
 
 def precedenceform_expression_to_2d_text(
@@ -617,7 +688,10 @@ expr_to_2d_text_map["System`Subsuperscript"] = subsuperscript_expression_to_2d_t
 def string_expression_to_2d_text(
     expr: String, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> TextBlock:
-    return TextBlock(expr.value)
+    lines = expr.value.split("\n")
+    max_len = max([len(line) for line in lines])
+    lines = [line + (max_len - len(line)) * " " for line in lines]
+    return TextBlock("\n".join(lines))
 
 
 expr_to_2d_text_map["System`String"] = string_expression_to_2d_text

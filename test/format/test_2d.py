@@ -29,7 +29,7 @@ import pytest
         ),
         (
             "Integrate[f[x]^2,x]",
-            ("\n" " /+         \n" " |      2   \n" " |  f[x]  dx\n" "+/          "),
+            ("\n" "⌠    2   \n" "⎮f[x]  dx\n" "⌡        "),
             "Indefinite integral",
         ),
         ("$Use2DOutputForm=False;", "Null", "Go back to the standard behavior."),

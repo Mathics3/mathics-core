@@ -217,7 +217,7 @@ def make_output_form(expr, evaluation, form):
         evaluation.definitions.get_ownvalues("System`$Use2DOutputForm")[0].replace
         is SymbolTrue
     )
-    text2d = expression_to_2d_text(expr, evaluation, form, **{"2d": use_2d}).text
+    text2d = str(expression_to_2d_text(expr, evaluation, form, **{"2d": use_2d}))
 
     if "\n" in text2d:
         text2d = "\n" + text2d
