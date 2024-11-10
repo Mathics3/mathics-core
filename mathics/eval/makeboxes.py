@@ -30,13 +30,16 @@ from mathics.core.symbols import (
     SymbolRepeated,
     SymbolRepeatedNull,
     SymbolTimes,
+    SymbolTrue,
 )
 from mathics.core.systemsymbols import (
     SymbolComplex,
     SymbolMinus,
+    SymbolOutputForm,
     SymbolRational,
     SymbolRowBox,
     SymbolStandardForm,
+    SymbolTraditionalForm,
 )
 
 # An operator precedence value that will ensure that whatever operator
@@ -203,12 +206,31 @@ def eval_makeboxes(
     return Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
 
 
+def make_output_form(expr, evaluation, form):
+    """
+    Build a 2D text representation of the expression.
+    """
+    from mathics.builtin.box.layout import InterpretationBox, PaneBox
+    from mathics.format.outputform import expression_to_outputform_text
+
+    text_outputform = str(expression_to_outputform_text(expr, evaluation, form))
+    elem1 = PaneBox(String(text_outputform))
+    elem2 = Expression(SymbolOutputForm, expr)
+    return InterpretationBox(elem1, elem2)
+
+
 def format_element(
     element: BaseElement, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> Optional[BaseElement]:
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
+    while element.get_head() is form:
+        element = element.elements[0]
+
+    if element.has_form("OutputForm", 1):
+        return make_output_form(element.elements[0], evaluation, form)
+
     expr = do_format(element, evaluation, form)
     if expr is None:
         return None
