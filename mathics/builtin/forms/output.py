@@ -575,7 +575,7 @@ class OutputForm(FormBaseClass):
     def eval_makeboxes(self, expr, form, evaluation):
         """MakeBoxes[OutputForm[expr_], form_]"""
         print(" eval Makeboxes outputform")
-        text2d = expression_to_2d_text(expr, evaluation, form).text
+        text2d = str(expression_to_2d_text(expr, evaluation, form))
         elem1 = PaneBox(String(text2d))
         elem2 = Expression(SymbolOutputForm, expr)
         result = InterpretationBox(elem1, elem2)

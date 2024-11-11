@@ -29,6 +29,12 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.makeboxes import compare_precedence, do_format  # , format_element
 from mathics.format.pane_text import (
+    TEXTBLOCK_COMMA,
+    TEXTBLOCK_MINUS,
+    TEXTBLOCK_NULL,
+    TEXTBLOCK_PLUS,
+    TEXTBLOCK_QUOTE,
+    TEXTBLOCK_SPACE,
     TextBlock,
     bracket,
     curly_braces,
@@ -36,6 +42,7 @@ from mathics.format.pane_text import (
     grid,
     integral_definite,
     integral_indefinite,
+    join_blocks,
     parenthesize,
     sqrt_block,
     subscript,
@@ -48,6 +55,15 @@ SymbolPostfix = Symbol("System`Postfix")
 SymbolPrefix = Symbol("System`Prefix")
 SymbolRight = Symbol("System`Right")
 SymbolLeft = Symbol("System`Left")
+
+
+TEXTBLOCK_ARROBA = TextBlock("@")
+TEXTBLOCK_BACKQUOTE = TextBlock("`")
+TEXTBLOCK_DOUBLESLASH = TextBlock("//")
+TEXTBLOCK_GRAPHICS = TextBlock("-Graphics-")
+TEXTBLOCK_GRAPHICS3D = TextBlock("-Graphics3D-")
+TEXTBLOCK_ONE = TextBlock("1")
+TEXTBLOCK_TILDE = TextBlock("~")
 
 ####  Functions that convert Expressions in TextBlock
 
@@ -105,15 +121,15 @@ def _default_expression_to_2d_text(
     """
     expr_head = expr.head
     head = expression_to_2d_text(expr_head, evaluation, form, **kwargs)
-    comma = TextBlock(", ")
+    comma = join_blocks(TEXTBLOCK_COMMA, TEXTBLOCK_SPACE)
     elements = [expression_to_2d_text(elem, evaluation) for elem in expr.elements]
-    result = elements.pop(0) if elements else TextBlock(" ")
+    result = elements.pop(0) if elements else TEXTBLOCK_SPACE
     while elements:
-        result = result + comma + elements.pop(0)
+        result = join_blocks(result, comma, elements.pop(0))
 
     if form is SymbolTraditionalForm:
-        return head + parenthesize(result)
-    return TextBlock(*TextBlock.next(head, bracket(result)))
+        return join_blocks(head, parenthesize(result))
+    return join_blocks(head, bracket(result))
 
 
 def _divide(num, den, evaluation, form, **kwargs):
@@ -159,20 +175,20 @@ def derivative_expression_to_2d_text(
         if len(derivatives) == 1:
             order_iv = derivatives[0]
             if order_iv == Integer1:
-                return TextBlock(*TextBlock.next(function_head, TextBlock("'")))
+                return join_blocks(function_head, TEXTBLOCK_QUOTE)
             elif order_iv == Integer2:
-                return TextBlock(*TextBlock.next(function_head, TextBlock("''")))
+                return join_blocks(function_head, TEXTBLOCK_QUOTE, TEXTBLOCK_QUOTE)
 
         if not kwargs["2d"]:
             return _default_expression_to_2d_text(expr, evaluation, form, **kwargs)
 
-        comma = TextBlock(",")
+        comma = TEXTBLOCK_COMMA
         superscript_tb, *rest_derivatives = (
             expression_to_2d_text(order, evaluation, form, **kwargs)
             for order in derivatives
         )
         for order in rest_derivatives:
-            superscript_tb = TextBlock(*TextBlock.next(superscript_tb, comma, order))
+            superscript_tb = join_blocks(superscript_tb, comma, order)
 
         superscript_tb = parenthesize(superscript_tb)
         return superscript(function_head, superscript_tb)
@@ -200,7 +216,7 @@ expr_to_2d_text_map["System`Divide"] = divide_expression_to_2d_text
 def graphics(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> TextBlock:
-    return TextBlock("-Graphics-")
+    return TEXTBLOCK_GRAPHICS
 
 
 expr_to_2d_text_map["System`Graphics"] = graphics
@@ -209,7 +225,7 @@ expr_to_2d_text_map["System`Graphics"] = graphics
 def graphics3d(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> TextBlock:
-    return TextBlock("-Graphics3D-")
+    return TEXTBLOCK_GRAPHICS3D
 
 
 expr_to_2d_text_map["System`Graphics3D"] = graphics3d
@@ -290,7 +306,7 @@ def list_expression_to_2d_text(
         expression_to_2d_text(elem, evaluation, form, **kwargs)
         for elem in expr.elements
     )
-    comma_tb = TextBlock(", ")
+    comma_tb = join_blocks(TEXTBLOCK_COMMA, TEXTBLOCK_SPACE)
     for next_elem in rest_elems:
         result = TextBlock(*TextBlock.next(result, comma_tb, next_elem))
     return curly_braces(result)
@@ -326,7 +342,9 @@ def plus_expression_to_2d_text(
     expr: Expression, evaluation: Evaluation, form: Symbol, **kwargs
 ) -> TextBlock:
     elements = expr.elements
-    result = TextBlock("")
+    result = TEXTBLOCK_NULL
+    tb_minus = join_blocks(TEXTBLOCK_SPACE, TEXTBLOCK_MINUS, TEXTBLOCK_SPACE)
+    tb_plus = join_blocks(TEXTBLOCK_SPACE, TEXTBLOCK_PLUS, TEXTBLOCK_SPACE)
     for i, elem in enumerate(elements):
         if elem.has_form("Times", None):
             # If the first element is -1, remove it and use
@@ -334,51 +352,51 @@ def plus_expression_to_2d_text(
             first = elem.elements[0]
             if isinstance(first, Integer):
                 if first.value == -1:
-                    result = (
-                        result
-                        + " - "
-                        + expression_to_2d_text(
+                    result = join_blocks(
+                        result,
+                        tb_minus,
+                        expression_to_2d_text(
                             Expression(SymbolTimes, *elem.elements[1:]),
                             evaluation,
                             form,
                             **kwargs,
-                        )
+                        ),
                     )
                     continue
                 elif first.value < 0:
-                    result = (
-                        result
-                        + " "
-                        + expression_to_2d_text(elem, evaluation, form, **kwargs)
+                    result = join_blocks(
+                        result,
+                        TEXTBLOCK_SPACE,
+                        expression_to_2d_text(elem, evaluation, form, **kwargs),
                     )
                     continue
             elif isinstance(first, Real):
                 if first.value < 0:
-                    result = (
-                        result
-                        + " "
-                        + expression_to_2d_text(elem, evaluation, form, **kwargs)
+                    result = join_blocks(
+                        result,
+                        TEXTBLOCK_SPACE,
+                        expression_to_2d_text(elem, evaluation, form, **kwargs),
                     )
                     continue
-            result = (
-                result + " + " + expression_to_2d_text(elem, evaluation, form, **kwargs)
+            result = join_blocks(
+                result, tb_plus, expression_to_2d_text(elem, evaluation, form, **kwargs)
             )
             ## TODO: handle complex numbers?
         else:
             elem_txt = expression_to_2d_text(elem, evaluation, form, **kwargs)
             if (compare_precedence(elem, 310) or -1) < 0:
                 elem_txt = parenthesize(elem_txt)
-                result = result + " + " + elem_txt
+                result = join_blocks(result, tb_plus, elem_txt)
             elif i == 0 or (
                 (isinstance(elem, Integer) and elem.value < 0)
                 or (isinstance(elem, Real) and elem.value < 0)
             ):
-                result = result + elem_txt
+                result = join_blocks(result, elem_txt)
             else:
-                result = (
-                    result
-                    + " + "
-                    + expression_to_2d_text(elem, evaluation, form, **kwargs)
+                result = join_blocks(
+                    result,
+                    tb_plus,
+                    expression_to_2d_text(elem, evaluation, form, **kwargs),
                 )
     return result
 
@@ -438,14 +456,14 @@ def pre_pos_fix_expression_to_2d_text(
         ops_txt = [expression_to_2d_text(ops, evaluation, form, **kwargs)]
     else:
         if head is SymbolPrefix:
-            default_symb = TextBlock(" @ ")
-            ops_txt = (
-                expression_to_2d_text(head, evaluation, form, **kwargs) + default_symb
+            default_symb = TEXTBLOCK_ARROBA
+            ops_txt = join_blocks(
+                expression_to_2d_text(head, evaluation, form, **kwargs), default_symb
             )
-        elif head is SymbolPostfix:
-            default_symb = TextBlock(" // ")
-            ops_txt = default_symb + expression_to_2d_text(
-                head, evaluation, form, **kwargs
+        else:  #  head is SymbolPostfix:
+            default_symb = TEXTBLOCK_DOUBLESLASH
+            ops_txt = join_blocks(
+                default_symb, expression_to_2d_text(head, evaluation, form, **kwargs)
             )
 
     # Processing the third argument, if it is there:
@@ -469,10 +487,11 @@ def pre_pos_fix_expression_to_2d_text(
     if cmp_precedence is not None and cmp_precedence != -1:
         target_txt = parenthesize(target_txt)
 
-    if head is SymbolPrefix:
-        return TextBlock(*TextBlock.next(ops_txt[0], target_txt))
-    if head is SymbolPostfix:
-        return TextBlock(*TextBlock.next(target_txt, ops_txt[0]))
+    return (
+        join_blocks(ops_txt[0], target_txt)
+        if head is SymbolPrefix
+        else join_blocks(target_txt, ops_txt[0])
+    )
 
 
 expr_to_2d_text_map["System`Prefix"] = pre_pos_fix_expression_to_2d_text
@@ -516,24 +535,15 @@ def infix_expression_to_2d_text(
         elif head in (SymbolPrefix, SymbolPostfix):
             ops_txt = [expression_to_2d_text(ops, evaluation, form, **kwargs)]
     else:
-        if head is SymbolInfix:
-            num_ops = 1
-            default_symb = TextBlock(" ~ ")
-            ops_lst = [
-                default_symb
-                + expression_to_2d_text(head, evaluation, form, **kwargs)
-                + default_symb
-            ]
-        elif head is SymbolPrefix:
-            default_symb = TextBlock(" @ ")
-            ops_txt = (
-                expression_to_2d_text(head, evaluation, form, **kwargs) + default_symb
+        num_ops = 1
+        default_symb = join_blocks(TEXTBLOCK_SPACE, TEXTBLOCK_TILDE, TEXTBLOCK_SPACE)
+        ops_lst = [
+            join_blocks(
+                default_symb,
+                expression_to_2d_text(head, evaluation, form, **kwargs),
+                default_symb,
             )
-        elif head is SymbolPostfix:
-            default_symb = TextBlock(" // ")
-            ops_txt = default_symb + expression_to_2d_text(
-                head, evaluation, form, **kwargs
-            )
+        ]
 
     # Processing the third argument, if it is there:
     if len(elements) > 2:
@@ -550,50 +560,35 @@ def infix_expression_to_2d_text(
         if group is SymbolNone:
             group = None
 
-    if head is SymbolPrefix:
-        operand = operands[0]
+    parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
+    for index, operand in enumerate(operands):
+        operand_txt = expression_to_2d_text(operand, evaluation, form, **kwargs)
         cmp_precedence = compare_precedence(operand, precedence)
-        target_txt = expression_to_2d_text(operand, evaluation, form, **kwargs)
-        if cmp_precedence is not None and cmp_precedence != -1:
-            target_txt = parenthesize(target_txt)
-        return ops_txt[0] + target_txt
-    if head is SymbolPostfix:
-        operand = operands[0]
-        cmp_precedence = compare_precedence(operand, precedence)
-        target_txt = expression_to_2d_text(operand, evaluation, form, **kwargs)
-        if cmp_precedence is not None and cmp_precedence != -1:
-            target_txt = parenthesize(target_txt)
-        return target_txt + ops_txt[0]
-    else:  # Infix
-        parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
-        for index, operand in enumerate(operands):
-            operand_txt = expression_to_2d_text(operand, evaluation, form, **kwargs)
-            cmp_precedence = compare_precedence(operand, precedence)
-            if cmp_precedence is not None and (
-                cmp_precedence == -1 or (cmp_precedence == 0 and parenthesized)
-            ):
-                operand_txt = parenthesize(operand_txt)
+        if cmp_precedence is not None and (
+            cmp_precedence == -1 or (cmp_precedence == 0 and parenthesized)
+        ):
+            operand_txt = parenthesize(operand_txt)
 
-            if index == 0:
-                result = operand_txt
-                # After the first element, for lateral
-                # associativity, parenthesized is flipped:
-                if group in (SymbolLeft, SymbolRight):
-                    parenthesized = not parenthesized
+        if index == 0:
+            result = operand_txt
+            # After the first element, for lateral
+            # associativity, parenthesized is flipped:
+            if group in (SymbolLeft, SymbolRight):
+                parenthesized = not parenthesized
+        else:
+            space = TEXTBLOCK_SPACE
+            if str(ops_lst[index % num_ops]) != " ":
+                result_lst = [
+                    result,
+                    space,
+                    ops_lst[index % num_ops],
+                    space,
+                    operand_txt,
+                ]
             else:
-                space = TextBlock(" ")
-                if str(ops_lst[index % num_ops]) != " ":
-                    result_lst = (
-                        result,
-                        space,
-                        ops_lst[index % num_ops],
-                        space,
-                        operand_txt,
-                    )
-                else:
-                    result_lst = (result, space, operand_txt)
+                result_lst = [result, space, operand_txt]
 
-        return TextBlock(*TextBlock.next(*result_lst))
+    return join_blocks(*result_lst)
 
 
 expr_to_2d_text_map["System`Infix"] = infix_expression_to_2d_text
@@ -738,11 +733,13 @@ def stringform_expression_to_2d_text(
                 quote_open = False
                 continue
             else:
-                result = result + "`" + part + "`"
+                result = join_blocks(
+                    result, TEXTBLOCK_BACKQUOTE, part, TEXTBLOCK_BACKQUOTE
+                )
                 quote_open = False
                 continue
         else:
-            result = result + part
+            result = join_blocks(result, part)
             quote_open = True
 
     return result
@@ -856,7 +853,7 @@ def times_expression_to_2d_text(
         return expression_to_2d_text(num[0], evaluation, form, **kwargs)
 
     prefactor = 1
-    result: TextBlock = TextBlock("")
+    result: TextBlock = TEXTBLOCK_NULL
     for i, elem in enumerate(num):
         if elem is IntegerM1:
             prefactor *= -1
@@ -871,11 +868,11 @@ def times_expression_to_2d_text(
         if i == 0:
             result = elem_txt
         else:
-            result = result + " " + elem_txt
-    if result.text == "":
-        result = TextBlock("1")
+            result = join_blocks(result, TEXTBLOCK_SPACE, elem_txt)
+    if str(result) == "":
+        result = TEXTBLOCK_ONE
     if prefactor == -1:
-        result = TextBlock("-") + result
+        result = join_blocks(TEXTBLOCK_MINUS, result)
     return result
 
 

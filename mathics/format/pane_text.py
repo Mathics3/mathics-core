@@ -18,6 +18,39 @@ class TextBlock(prettyForm):
         assert height == 1
         assert width == 0
 
+    @staticmethod
+    def stack(self, *args, align="c"):
+        if align == "c":
+            return super.stack(*args)
+        max_width = max((block.width() for block in args))
+        if align == "l":
+            new_args = []
+            for block in args:
+                block_width = block.width()
+                if block_width == max_width:
+                    new_args.append(block)
+                else:
+                    fill_block = TextBlock((max_width - block_width) * " ")
+                    new_block = TextBlock(*TextBlock.next(block, fill_block))
+                    new_args.append(new_block)
+            return super.stack(*args)
+        else:  # align=="r"
+            new_args = []
+            for block in args:
+                block_width = block.width()
+                if block_width == max_width:
+                    new_args.append(block)
+                else:
+                    fill_block = TextBlock((max_width - block_width) * " ")
+                    new_block = TextBlock(
+                        *TextBlock.next(
+                            fill_block,
+                            block,
+                        )
+                    )
+                    new_args.append(new_block)
+            return super.stack(*args)
+
     def root(self, n=None):
         """Produce a nice root symbol.
         Produces ugly results for big n inserts.
@@ -93,7 +126,7 @@ class OldTextBlock:
         else:
             lines = [line.replace("\t", "    ") for line in lines]
 
-        self.lines, self.width, self.height, self.base = self._build_attributes(
+        self.lines, self.width, self.height, self.baseline = self._build_attributes(
             lines, width, height, base
         )
 
@@ -257,7 +290,6 @@ def fraction(a: Union[TextBlock, str], b: Union[TextBlock, str]) -> TextBlock:
     if isinstance(b, str):
         b = TextBlock(b)
     return a / b
-    return result
 
 
 def grid(items: list, **options) -> TextBlock:
@@ -290,10 +322,10 @@ def grid(items: list, **options) -> TextBlock:
     full_width: int = 0
     for row in items:
         if isinstance(row, TextBlock):
-            full_width = max(full_width, row.width)
+            full_width = max(full_width, row.width())
         else:
             for index, item in enumerate(row):
-                widths[index] = max(widths[index], item.width)
+                widths[index] = max(widths[index], item.width())
 
     total_width: int = sum(widths) + max(0, len(widths) - 1) * 3
 
@@ -308,7 +340,7 @@ def grid(items: list, **options) -> TextBlock:
             interline = TextBlock("+" + "+".join((w + 2) * "-" for w in widths) + "+")
         else:
             interline = TextBlock((sum(w + 3 for w in widths) - 2) * "-")
-        full_width = interline.width - 4
+        full_width = interline.width() - 4
     else:
         if col_border:
             interline = (
@@ -316,10 +348,10 @@ def grid(items: list, **options) -> TextBlock:
                 + TextBlock("|".join((w + 2) * " " for w in widths))
                 + TextBlock("|")
             )
-            full_width = max(0, interline.width - 4)
+            full_width = max(0, interline.width() - 4)
         else:
             interline = TextBlock((sum(w + 3 for w in widths) - 3) * " ")
-            full_width = max(0, interline.width - 4)
+            full_width = max(0, interline.width() - 4)
 
     def normalize_widths(row):
         if isinstance(row, TextBlock):
@@ -336,11 +368,20 @@ def grid(items: list, **options) -> TextBlock:
                 "|", height=row_height, base=row_base, left_padding=1, right_padding=1
             )
 
-            new_row_txt = col_sep.join(row)
-            new_row_txt = (
-                draw_vertical("|", row_height, base=row_base, right_padding=1)
-                + new_row_txt
-                + draw_vertical("|", row_height, base=row_base, left_padding=1)
+            if row:
+                field, *rest_row_txt = row
+                new_row_txt = field
+                for field in rest_row_txt:
+                    new_row_txt = TextBlock(
+                        *TextBlock.next(new_row_txt, col_sep, field)
+                    )
+            else:
+                new_row_txt = TextBlock("")
+            vertical_line = draw_vertical(
+                "|", row_height, base=row_base, left_padding=1
+            )
+            new_row_txt = TextBlock(
+                *TextBlock.next(vertical_line, new_row_txt, vertical_line)
             )
             if i == 0:
                 if row_border:
@@ -351,7 +392,16 @@ def grid(items: list, **options) -> TextBlock:
                 result = new_row_txt.stack(result, align="l")
     else:
         for i, row in enumerate(items):
-            new_row_txt = TextBlock("   ").join(row)
+            separator = TextBlock("   ")
+            if row:
+                field, *rest = row
+                new_row_txt = field
+                for field in rest:
+                    new_row_txt = TextBlock(
+                        *TextBlock.next(new_row_txt, separator, field)
+                    )
+            else:
+                new_row_txt = TextBlock("")
             if i == 0:
                 if row_border:
                     new_row_txt = new_row_txt.stack(interline, align="l")
@@ -363,7 +413,7 @@ def grid(items: list, **options) -> TextBlock:
     if row_border:
         result = interline.stack(result, align="l")
 
-    result.base = int(result.height / 2)
+    result.baseline = int(result.height() / 2)
     return result
 
 
@@ -507,3 +557,20 @@ def superscript(base: Union[TextBlock, str], a: Union[TextBlock, str]) -> TextBl
     base = TextBlock(*TextBlock.next(base, TextBlock(a_width * " ")))
     result = TextBlock(*TextBlock.above(base, a))
     return result
+
+
+def join_blocks(*blocks) -> TextBlock:
+    """
+    Concatenate blocks.
+    The same that the idiom
+    TextBlock(*TextBlock.next(*blocks))
+    """
+    return TextBlock(*TextBlock.next(*blocks))
+
+
+TEXTBLOCK_COMMA = TextBlock(",")
+TEXTBLOCK_MINUS = TextBlock("-")
+TEXTBLOCK_NULL = TextBlock("")
+TEXTBLOCK_PLUS = TextBlock("+")
+TEXTBLOCK_QUOTE = TextBlock("'")
+TEXTBLOCK_SPACE = TextBlock(" ")
