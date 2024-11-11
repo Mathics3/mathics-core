@@ -53,6 +53,20 @@ class IsNot2DArray(Exception):
     pass
 
 
+def parenthesize(expr_str: str) -> str:
+    """wrap with parenthesis"""
+    return f"({expr_str})"
+
+
+def bracket(expr_str: str) -> str:
+    """wrap with square brackets"""
+    return f"[{expr_str}]"
+
+
+def grid(expr):
+    raise NotImplementedError
+
+
 def expression_to_outputform_text(
     expr: BaseElement, evaluation: Evaluation, form=SymbolStandardForm, **kwargs
 ):
