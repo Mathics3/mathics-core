@@ -64,7 +64,12 @@ from mathics.core.systemsymbols import (
     SymbolSubscriptBox,
     SymbolSuperscriptBox,
 )
-from mathics.eval.makeboxes import StringLParen, StringRParen, format_element
+from mathics.eval.makeboxes import (
+    StringLParen,
+    StringRParen,
+    format_element,
+    makeboxes_outputform,
+)
 from mathics.eval.testing_expressions import expr_min
 from mathics.format.outputform import expression_to_outputform_text
 
@@ -574,12 +579,7 @@ class OutputForm(FormBaseClass):
 
     def eval_makeboxes(self, expr, form, evaluation):
         """MakeBoxes[OutputForm[expr_], form_]"""
-        print(" eval Makeboxes outputform")
-        text_outputform = str(expression_to_outputform_text(expr, evaluation, form))
-        elem1 = PaneBox(String(text_outputform))
-        elem2 = Expression(SymbolOutputForm, expr)
-        result = InterpretationBox(elem1, elem2)
-        return result
+        return makeboxes_outputform(expr, evaluation, form)
 
 
 class PythonForm(FormBaseClass):
