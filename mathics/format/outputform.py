@@ -771,7 +771,7 @@ def times_expression_to_outputform_text(
             result = elem_txt
         else:
             result = result + " " + elem_txt
-    if result.text == "":
+    if result == "":
         result = "1"
     if prefactor == -1:
         result = "-" + result
