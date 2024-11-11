@@ -228,7 +228,7 @@ class PaneBox(BoxExpression):
     attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED | A_READ_PROTECTED
     summary_text = "box associated to panel"
 
-    def apply_display(boxexpr, evaluation, expression):
+    def apply_display_form(boxexpr, form, evaluation, expression):
         """ToExpression[boxexpr_PaneBox, form_]"""
         return Expression(expression.head, boxexpr.elements[0], form).evaluate(
             evaluation

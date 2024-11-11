@@ -273,7 +273,7 @@ def format_element(
     # As a first step in that direction, let's mimic this behaviour
     # just for the case of OutputForm:
     if element.has_form("OutputForm", 1):
-        return makeboxes_output_form(element.elements[0], evaluation, form)
+        return makeboxes_outputform(element.elements[0], evaluation, form)
 
     expr = do_format(element, evaluation, form)
     if expr is None:

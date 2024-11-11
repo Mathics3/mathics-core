@@ -16,13 +16,7 @@ import re
 from math import ceil
 from typing import Optional
 
-from mathics.builtin.box.layout import (
-    GridBox,
-    InterpretationBox,
-    PaneBox,
-    RowBox,
-    to_boxes,
-)
+from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.builtin.makeboxes import MakeBoxes, NumberForm_to_String
 from mathics.builtin.tensors import get_dimensions
@@ -71,7 +65,6 @@ from mathics.eval.makeboxes import (
     makeboxes_outputform,
 )
 from mathics.eval.testing_expressions import expr_min
-from mathics.format.outputform import expression_to_outputform_text
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
