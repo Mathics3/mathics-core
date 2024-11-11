@@ -433,10 +433,7 @@ def pre_pos_fix_expression_to_outputform_text(
     if cmp_precedence is not None and cmp_precedence != -1:
         target_txt = parenthesize(target_txt)
 
-    if head is SymbolPrefix:
-        return ops_txt[0] + target_txt
-    if head is SymbolPostfix:
-        return target_txt + ops_txt[0]
+    return ops_txt[0] + target_txt if head is SymbolPrefix else target_txt + ops_txt[0]
 
 
 expr_to_outputform_text_map["System`Prefix"] = pre_pos_fix_expression_to_outputform_text
@@ -536,8 +533,8 @@ def infix_expression_to_outputform_text(
     else:  # Infix
         parenthesized = group in (None, SymbolRight, SymbolNonAssociative)
         for index, operand in enumerate(operands):
-            operand_txt = expression_to_outputform_text(
-                operand, evaluation, form, **kwargs
+            operand_txt = str(
+                expression_to_outputform_text(operand, evaluation, form, **kwargs)
             )
             cmp_precedence = compare_precedence(operand, precedence)
             if cmp_precedence is not None and (
@@ -553,16 +550,17 @@ def infix_expression_to_outputform_text(
                     parenthesized = not parenthesized
             else:
                 space = " "
+                result_lst: List[str]
                 if str(ops_lst[index % num_ops]) != " ":
-                    result_lst = (
+                    result_lst = [
                         result,
                         space,
-                        ops_lst[index % num_ops],
+                        str(ops_lst[index % num_ops]),
                         space,
                         operand_txt,
-                    )
+                    ]
                 else:
-                    result_lst = (result, space, operand_txt)
+                    result_lst = [result, space, operand_txt]
 
         return "".join(result_lst)
 
