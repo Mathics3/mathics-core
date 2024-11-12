@@ -1032,7 +1032,7 @@ class Pause(Builtin):
 
     <dl>
     <dt>'Pause[n]'
-      <dd>pauses for $n$ seconds.
+      <dd>pauses for at least $n$ seconds.
     </dl>
 
     >> Pause[0.5]
@@ -1056,11 +1056,10 @@ class Pause(Builtin):
             return
 
         steps = int(1000 * sleeptime)
-        while steps > 0:
+        for _ in range(steps):
             time.sleep(0.001)
             if evaluation.timeout:
                 return SymbolNull
-            steps = steps - 1
 
         return SymbolNull
 
