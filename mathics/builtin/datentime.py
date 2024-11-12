@@ -1046,6 +1046,10 @@ class Pause(Builtin):
 
     summary_text = "pause for a number of seconds"
 
+    # Number of timeout polls per second that we perform in looking
+    # for a timeout.
+    PAUSE_TICKS_PER_SECOND = 1000
+
     def eval(self, n, evaluation):
         "Pause[n_]"
         sleeptime = n.to_python()
@@ -1055,9 +1059,9 @@ class Pause(Builtin):
             )
             return
 
-        steps = int(1000 * sleeptime)
+        steps = int(self.PAUSE_TICKS_PER_SECOND * sleeptime)
         for _ in range(steps):
-            time.sleep(0.001)
+            time.sleep(1 / self.PAUSE_TICKS_PER_SECOND)
             if evaluation.timeout:
                 return SymbolNull
 
