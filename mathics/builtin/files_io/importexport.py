@@ -1326,6 +1326,9 @@ class Import(Builtin):
       <dt>'Import["$file$"]'
       <dd>imports data from a file.
 
+      <dt>'Import["$file$", "$fmt$"]'
+      <dd>imports file assuming the specified file format.
+
       <dt>'Import["$file$", $elements$]'
       <dd>imports the specified elements from a file.
 
@@ -1372,11 +1375,17 @@ class Import(Builtin):
 
     def eval_element(self, filename, element: String, evaluation, options={}):
         "Import[filename_, element_String, OptionsPattern[]]"
-        return self.eval_elements(
-            filename, ListExpression(element), evaluation, options
-        )
+        if element.get_string_value() in IMPORTERS.keys():
+            # Here, 'element' corresponds to the file type
+            return self.eval_elements(
+                filename, ListExpression(), evaluation, options, element
+            )
+        else:
+            return self.eval_elements(
+                filename, ListExpression(element), evaluation, options
+            )
 
-    def eval_elements(self, filename, elements, evaluation, options={}):
+    def eval_elements(self, filename, elements, evaluation, options={}, filetype: String=None):
         "Import[filename_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
         # Check filename
         path = filename.to_python()
@@ -1391,12 +1400,16 @@ class Import(Builtin):
             evaluation.message("Import", "nffil")
             return findfile
 
-        def determine_filetype():
-            return (
-                Expression(SymbolFileFormat, findfile)
-                .evaluate(evaluation=evaluation)
-                .get_string_value()
-            )
+        if filetype is None:
+            def determine_filetype():
+                return (
+                    Expression(SymbolFileFormat, findfile)
+                    .evaluate(evaluation=evaluation)
+                    .get_string_value()
+                )
+        else:
+            def determine_filetype():
+                return filetype.get_string_value()
 
         return self._import(findfile, determine_filetype, elements, evaluation, options)
 
