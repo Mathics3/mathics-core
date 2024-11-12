@@ -37,6 +37,7 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
     SymbolAborted,
+    SymbolAbsoluteTime,
     SymbolAutomatic,
     SymbolInfinity,
     SymbolRowBox,
