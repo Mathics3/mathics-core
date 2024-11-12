@@ -464,7 +464,7 @@ class Pause(Builtin):
     # for a timeout.
     PAUSE_TICKS_PER_SECOND = 1000
 
-    def eval(self, n, evaluation):
+    def eval(self, n, evaluation: Evaluation):
         "Pause[n_]"
         sleeptime = n.to_python()
         if not isinstance(sleeptime, (int, float)) or sleeptime < 0:
