@@ -1,21 +1,29 @@
 """
-Evaluation of sympy functions
+Evaluation of SymPy functions
 """
 
 import sys
 from queue import Queue
 from threading import Thread
+from typing import Optional
 
 import sympy
 
 import mathics.eval.tracing as tracing
 from mathics.core.convert.sympy import from_sympy, to_numeric_sympy_args
+from mathics.core.element import BaseElement
+from mathics.core.evaluation import Evaluation
 
 
-def eval_sympy_unconstrained(self, z, evaluation):
+def eval_sympy_unconstrained(
+    self, z: BaseElement, evaluation: Evaluation
+) -> Optional[BaseElement]:
     """
-    Evaluate an expression converting it to Sympy
-    and back to Mathics.
+    Evaluate element `z` converting it to SymPy and back to Mathics3.
+    If an exception is raised we return None.
+
+    This version is called not-wrapped in a thread on systems like
+    emscripten that do not support Python-style threading.
     """
     sympy_args = to_numeric_sympy_args(z, evaluation)
     if self.sympy_name is None:
@@ -27,13 +35,15 @@ def eval_sympy_unconstrained(self, z, evaluation):
         return
 
 
-def eval_sympy_with_timeout(self, z, evaluation):
+def eval_sympy_with_timeout(
+    self, z: BaseElement, evaluation: Evaluation
+) -> Optional[BaseElement]:
     """
-    Evaluate an expression converting it to Sympy,
-    and back to Mathics.
-    This version put the evaluation in a thread,
-    and check each some time if the evaluation
-    reached a timeout.
+    Evaluate an element `z` converting it to SymPy,
+    and back to Mathics3.
+    If an exception is raised we return None.
+
+    This version is run in a thread, and checked for evaluation timeout.
     """
 
     if evaluation.timeout is None:
@@ -66,9 +76,10 @@ def eval_sympy_with_timeout(self, z, evaluation):
     if success:
         return result
     else:
-        raise result[0].with_traceback(result[1], result[2])
+        raise result[1].with_traceback(result[2])
 
 
+# Common top-level evaluation SymPy "eval" function:
 eval_sympy = (
     eval_sympy_unconstrained
     if sys.platform in ("emscripten",)

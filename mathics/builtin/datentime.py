@@ -34,9 +34,10 @@ from mathics.core.evaluation import (
 )
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolNull
+from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
     SymbolAborted,
+    SymbolAbsoluteTime,
     SymbolAutomatic,
     SymbolInfinity,
     SymbolRowBox,
@@ -109,11 +110,9 @@ if not hasattr(timedelta, "total_seconds"):
 else:
     total_seconds = timedelta.total_seconds
 
-SymbolAbsoluteTime = Symbol("AbsoluteTime")
 SymbolDateObject = Symbol("DateObject")
 SymbolDateString = Symbol("DateString")
 SymbolGregorian = Symbol("Gregorian")
-SymbolPause = Symbol("Pause")
 
 
 class _Date:
@@ -1024,45 +1023,6 @@ class EasterSunday(Builtin):  # Calendar`EasterSunday
         day = ((h + le - 7 * m + 114) % 31) + 1
 
         return ListExpression(year, Integer(month), Integer(day))
-
-
-class Pause(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Pause.html</url>
-
-    <dl>
-    <dt>'Pause[n]'
-      <dd>pauses for $n$ seconds.
-    </dl>
-
-    >> Pause[0.5]
-    """
-
-    messages = {
-        "numnm": (
-            "Non-negative machine-sized number expected at " "position 1 in `1`."
-        ),
-    }
-
-    summary_text = "pause for a number of seconds"
-
-    def eval(self, n, evaluation):
-        "Pause[n_]"
-        sleeptime = n.to_python()
-        if not isinstance(sleeptime, (int, float)) or sleeptime < 0:
-            evaluation.message(
-                "Pause", "numnm", Expression(SymbolPause, from_python(n))
-            )
-            return
-
-        steps = int(1000 * sleeptime)
-        while steps > 0:
-            time.sleep(0.001)
-            if evaluation.timeout:
-                return SymbolNull
-            steps = steps - 1
-
-        return SymbolNull
 
 
 class SystemTimeZone(Predefined):

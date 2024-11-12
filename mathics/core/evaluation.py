@@ -141,7 +141,7 @@ def run_with_timeout_and_stack(request, timeout, evaluation):
     if success:
         return result
     else:
-        raise result[1].with_traceback(result[1], result[2])
+        raise result[1].with_traceback(result[2])
 
 
 class _Out(KeyComparable):
