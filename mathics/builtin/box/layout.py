@@ -146,6 +146,7 @@ class GridBox(BoxExpression):
     # >> MathMLForm[TableForm[{{a,b},{c,d}}]]
     #  = ...
     """
+
     options = {"ColumnAlignments": "Center"}
     summary_text = "low-level representation of an arbitrary 2D layout"
 
@@ -208,6 +209,33 @@ class InterpretationBox(BoxExpression):
 
     def eval_display(boxexpr, evaluation):
         """DisplayForm[boxexpr_InterpretationBox]"""
+        return boxexpr.elements[0]
+
+
+class PaneBox(BoxExpression):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/InterpretationBox.html</url>
+
+    <dl>
+      <dt>'PaneBox[expr]'
+      <dd> is a low-level box construct, used in OutputForm.
+    </dl>
+
+    """
+
+    attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED | A_READ_PROTECTED
+    summary_text = "box associated to panel"
+
+    def apply_display(boxexpr, evaluation, expression):
+        """ToExpression[boxexpr_PaneBox, form_]"""
+        return Expression(expression.head, boxexpr.elements[0], form).evaluate(
+            evaluation
+        )
+
+    def apply_display(boxexpr, evaluation):
+        """DisplayForm[boxexpr_PaneBox]"""
         return boxexpr.elements[0]
 
 
