@@ -34,9 +34,10 @@ from mathics.core.evaluation import (
 )
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolNull
+from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
     SymbolAborted,
+    SymbolAbsoluteTime,
     SymbolAutomatic,
     SymbolInfinity,
     SymbolRowBox,
@@ -109,11 +110,9 @@ if not hasattr(timedelta, "total_seconds"):
 else:
     total_seconds = timedelta.total_seconds
 
-SymbolAbsoluteTime = Symbol("AbsoluteTime")
 SymbolDateObject = Symbol("DateObject")
 SymbolDateString = Symbol("DateString")
 SymbolGregorian = Symbol("Gregorian")
-SymbolPause = Symbol("Pause")
 
 
 class _Date:
@@ -1026,39 +1025,6 @@ class EasterSunday(Builtin):  # Calendar`EasterSunday
         return ListExpression(year, Integer(month), Integer(day))
 
 
-class Pause(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Pause.html</url>
-
-    <dl>
-    <dt>'Pause[n]'
-      <dd>pauses for $n$ seconds.
-    </dl>
-
-    >> Pause[0.5]
-    """
-
-    messages = {
-        "numnm": (
-            "Non-negative machine-sized number expected at " "position 1 in `1`."
-        ),
-    }
-
-    summary_text = "pause for a number of seconds"
-
-    def eval(self, n, evaluation):
-        "Pause[n_]"
-        sleeptime = n.to_python()
-        if not isinstance(sleeptime, (int, float)) or sleeptime < 0:
-            evaluation.message(
-                "Pause", "numnm", Expression(SymbolPause, from_python(n))
-            )
-            return
-
-        time.sleep(sleeptime)
-        return SymbolNull
-
-
 class SystemTimeZone(Predefined):
     """
     <url>
@@ -1103,7 +1069,7 @@ class Now(Predefined):
         return Expression(SymbolDateObject.evaluate(evaluation))
 
 
-if sys.platform != "win32" and not hasattr(sys, "pyston_version_info"):
+if sys.platform != "emscripten":
 
     class TimeConstrained(Builtin):
         """
@@ -1123,23 +1089,6 @@ if sys.platform != "win32" and not hasattr(sys, "pyston_version_info"):
         evaluation, the function will return '$Aborted' and the results will not affect
         the state of the Mathics3 kernel.
         """
-
-        # FIXME: these tests sometimes cause SEGVs which probably means
-        # that TimeConstraint has bugs.
-
-        # Consider testing via unit tests.
-        # >> TimeConstrained[Integrate[Sin[x]^1000000,x],1]
-        # = $Aborted
-
-        # >> TimeConstrained[Integrate[Sin[x]^1000000,x], 1, Integrate[Cos[x],x]]
-        # = Sin[x]
-
-        # >> s=TimeConstrained[Integrate[Sin[x] ^ 3, x], a]
-        #  : Number of seconds a is not a positive machine-sized number or Infinity.
-        #  = TimeConstrained[Integrate[Sin[x] ^ 3, x], a]
-
-        # >> a=1; s
-        # =  Cos[x] (-5 + Cos[2 x]) / 6
 
         attributes = A_HOLD_ALL | A_PROTECTED
         messages = {
