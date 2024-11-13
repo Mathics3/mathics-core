@@ -59,9 +59,6 @@ def eval_sympy_with_timeout(
 
     queue = Queue(maxsize=1)  # stores the result or exception
 
-    def evaluate():
-        return
-
     thread = Thread(target=_thread_target, args=(queue,))
     thread.start()
     while thread.is_alive():
