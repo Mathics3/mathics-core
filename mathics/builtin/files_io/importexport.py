@@ -1423,10 +1423,12 @@ class Import(Builtin):
 
         elements = [el.get_string_value() for el in elements]
 
-        # Determine file type from elements[0] or determine_fileytype()
-        if elements and elements[0] in IMPORTERS.keys():
-            filetype = elements[0]
-            elements.remove(elements[0])
+        # Determine file type
+        for el in elements:
+            if el in IMPORTERS.keys():
+                filetype = el
+                elements.remove(el)
+                break
         else:
             filetype = determine_filetype()
 
