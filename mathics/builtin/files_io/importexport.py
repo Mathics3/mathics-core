@@ -1332,6 +1332,9 @@ class Import(Builtin):
       <dt>'Import["$file$", $elements$]'
       <dd>imports the specified elements from a file.
 
+      <dt>'Import["$file$", {"$fmt$", $elements$}]'
+      <dd>imports the specified elements from a file asuming the specified file format.
+
       <dt>'Import["http://$url$", ...]' and 'Import["ftp://$url$", ...]'
       <dd>imports from a URL.
     </dl>
@@ -1375,17 +1378,11 @@ class Import(Builtin):
 
     def eval_element(self, filename, element: String, evaluation, options={}):
         "Import[filename_, element_String, OptionsPattern[]]"
-        if element.get_string_value() in IMPORTERS.keys():
-            # Here, 'element' corresponds to the file type
-            return self.eval_elements(
-                filename, ListExpression(), evaluation, options, element
-            )
-        else:
-            return self.eval_elements(
-                filename, ListExpression(element), evaluation, options
-            )
+        return self.eval_elements(
+            filename, ListExpression(element), evaluation, options
+        )
 
-    def eval_elements(self, filename, elements, evaluation, options={}, filetype: String=None):
+    def eval_elements(self, filename, elements, evaluation, options={}):
         "Import[filename_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
         # Check filename
         path = filename.to_python()
@@ -1400,16 +1397,12 @@ class Import(Builtin):
             evaluation.message("Import", "nffil")
             return findfile
 
-        if filetype is None:
-            def determine_filetype():
-                return (
-                    Expression(SymbolFileFormat, findfile)
-                    .evaluate(evaluation=evaluation)
-                    .get_string_value()
-                )
-        else:
-            def determine_filetype():
-                return filetype.get_string_value()
+        def determine_filetype():
+            return (
+                Expression(SymbolFileFormat, findfile)
+                .evaluate(evaluation=evaluation)
+                .get_string_value()
+            )
 
         return self._import(findfile, determine_filetype, elements, evaluation, options)
 
@@ -1430,12 +1423,10 @@ class Import(Builtin):
 
         elements = [el.get_string_value() for el in elements]
 
-        # Determine file type
-        for el in elements:
-            if el in IMPORTERS.keys():
-                filetype = el
-                elements.remove(el)
-                break
+        # Determine file type from elements[0] or determine_fileytype()
+        if elements and elements[0] in IMPORTERS.keys():
+            filetype = elements[0]
+            elements.remove(elements[0])
         else:
             filetype = determine_filetype()
 
