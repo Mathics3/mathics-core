@@ -58,7 +58,7 @@ from mathics.core.attributes import (
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.op import ascii_operator_to_symbol
 from mathics.core.convert.python import from_bool
-from mathics.core.convert.sympy import from_sympy, to_numeric_sympy_args
+from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import Definition, Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import MessageException
@@ -91,6 +91,7 @@ from mathics.eval.arithmetic import eval_mpmath_function
 from mathics.eval.numbers.numbers import cancel
 from mathics.eval.numerify import numerify
 from mathics.eval.scoping import dynamic_scoping
+from mathics.eval.sympy import eval_sympy
 
 try:
     import ujson
@@ -582,14 +583,7 @@ class SympyFunction(SympyObject):
         # converted to python and the result is converted from sympy
         #
         # "%(name)s[z__]"
-        sympy_args = to_numeric_sympy_args(z, evaluation)
-        if self.sympy_name is None:
-            return
-        sympy_fn = getattr(sympy, self.sympy_name)
-        try:
-            return from_sympy(tracing.run_sympy(sympy_fn, *sympy_args))
-        except Exception:
-            return
+        return eval_sympy(self, z, evaluation)
 
     def get_constant(self, precision, evaluation, have_mpmath=False):
         try:

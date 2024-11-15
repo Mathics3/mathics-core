@@ -938,6 +938,9 @@ def main():
         test_pipeline.print_and_log(
             f"Test evaluation took {datetime.now() - start_time} seconds"
         )
+        test_pipeline.print_and_log(
+            f"Test finished at {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}"
+        )
 
     if args.show_statistics:
         show_lru_cache_statistics()

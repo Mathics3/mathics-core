@@ -131,6 +131,7 @@ def run_with_timeout_and_stack(request, timeout, evaluation):
     if thread.is_alive():
         evaluation.timeout = True
         while thread.is_alive():
+            time.sleep(0.001)
             pass
         evaluation.timeout = False
         evaluation.stopped = False
@@ -140,7 +141,7 @@ def run_with_timeout_and_stack(request, timeout, evaluation):
     if success:
         return result
     else:
-        raise result[0].with_traceback(result[1], result[2])
+        raise result[1].with_traceback(result[2])
 
 
 class _Out(KeyComparable):
