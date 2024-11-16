@@ -159,25 +159,25 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
             'Import["ExampleData/Testosterone.svg"];',
             ("SVG is not a supported Import format.",),
             "Null",
-            None
+            None,
         ),
         (
             'Import["ExampleData/Testosterone.svg", "XML"] // Head',
             None,
             "XMLObject[Document]",
-            None
+            None,
         ),
         (
             'Import["ExampleData/Testosterone.svg", {"XML"}] // Head',
             None,
             "XMLObject[Document]",
-            None
+            None,
         ),
         (
             'Import["ExampleData/Testosterone.svg", {"XML", "XML"}];',
             ("The Import element XML is not present when importing as XML.",),
             "Null",
-            None
+            None,
         ),
         ## XML
         (
