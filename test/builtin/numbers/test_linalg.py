@@ -252,9 +252,7 @@ def test_inverse(str_expr, str_expected, fail_msg, warnings):
         (
             "eigvals /. a[x_, y_] -> x+I*y",
             None,
-            (
-                "{10 - 3 Sqrt[11], 10 + 3 Sqrt[11]}"
-            ),
+            ("{10 - 3 Sqrt[11], 10 + 3 Sqrt[11]}"),
             None,  # "Sympy issue #1156",
         ),
     ],
