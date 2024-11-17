@@ -1,7 +1,6 @@
 # cython: language_level=3
 # -*- coding: utf-8 -*-
 
-import time
 from typing import TYPE_CHECKING, Any, Dict, FrozenSet, List, Optional, Sequence, Union
 
 from mathics.core.element import (
@@ -13,6 +12,8 @@ from mathics.core.element import (
 
 if TYPE_CHECKING:
     from mathics.core.atoms import String
+
+from mathics.eval.tracing import trace_evaluate
 
 # I put this constants here instead of inside `mathics.core.convert.sympy`
 # to avoid a circular reference. Maybe they should be in its own module.
@@ -483,18 +484,12 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             return self == rhs
         return None
 
+    @trace_evaluate
     def evaluate(self, evaluation):
         """
         Evaluates the symbol by applying the rules (ownvalues) in its definition,
         recursively.
         """
-        if evaluation.definitions.trace_evaluation:
-            if evaluation.definitions.timing_trace_evaluation:
-                evaluation.print_out(time.time() - evaluation.start_time)
-            evaluation.print_out(
-                "  " * evaluation.recursion_depth + "  Evaluating: %s" % self
-            )
-
         rules = evaluation.definitions.get_ownvalues(self.name)
         for rule in rules:
             result = rule.apply(self, evaluation, fully=True)

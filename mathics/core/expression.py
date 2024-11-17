@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import math
-import time
 from bisect import bisect_left
 from itertools import chain
 from typing import (
@@ -78,6 +77,7 @@ from mathics.core.systemsymbols import (
     SymbolSubtract,
     SymbolUnevaluated,
 )
+from mathics.eval.tracing import trace_evaluate
 
 # from mathics.timing import timeit
 
@@ -521,6 +521,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     # Note that the return type is some subclass of BaseElement, it could be
     # a Real, an Expression, etc. It probably will *not* be a BaseElement since
     # the point of evaluation when there is not an error is to produce a concrete result.
+    @trace_evaluate
     def evaluate(
         self,
         evaluation: Evaluation,
@@ -544,12 +545,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         old_options = evaluation.options
         evaluation.inc_recursion_depth()
-        if evaluation.definitions.trace_evaluation:
-            if evaluation.definitions.timing_trace_evaluation:
-                evaluation.print_out(time.time() - evaluation.start_time)
-            evaluation.print_out(
-                "  " * evaluation.recursion_depth + "Evaluating: %s" % expr
-            )
         try:
             # Evaluation loop:
             while reevaluate:
