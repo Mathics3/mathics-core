@@ -575,7 +575,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         return definitions.get_attributes(self.name)
 
     def get_name(self, short=False) -> str:
-        return self.name
+        return self.name.split("`")[-1] if short else self.name
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
