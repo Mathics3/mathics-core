@@ -61,7 +61,7 @@ def trace_evaluate(func: Callable) -> Callable:
         if not skip_call:
             result = func(expr, evaluation)
             if trace_evaluate_on_return is not None and not evaluation.is_boxing:
-                trace_evaluate_on_call(result, evaluation, "Returning", expr)
+                trace_evaluate_on_return(result, evaluation, "Returning", expr)
         return result
 
     return wrapper
