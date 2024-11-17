@@ -357,11 +357,11 @@ class TraceEvaluation(Builtin):
 
     The 'ShowTimeBySteps' option prints the elapsed time before an evaluation occurs.
 
-    >> TraceEvaluation[(x + 1)^2]
+    >> TraceEvaluation[(x + x)^2]
      | ...
      = ...
 
-    >> TraceEvaluation[(x + 1)^2, ShowTimeBySteps->True]
+    >> TraceEvaluation[(x + x)^2, ShowTimeBySteps->True]
      | ...
      = ...
     """
