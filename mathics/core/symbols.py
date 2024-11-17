@@ -575,7 +575,17 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         return definitions.get_attributes(self.name)
 
     def get_name(self, short=False) -> str:
-        return self.name
+        """
+        Returns symbol's name field. If short=True
+        we strip off the context parts.
+
+        Note however that many places in the code we do not need the
+        "short" parameter becasue of Definitions.shorten_name() which
+        keeps track of the current $Context and $ContextPath to decide
+        whether the name of a symbol should or should not be
+        shortened.
+        """
+        return self.name.split("`")[-1] if short else self.name
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
