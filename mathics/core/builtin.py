@@ -1133,9 +1133,11 @@ class PostfixOperator(UnaryOperator):
 
 class BinaryOperator(Operator):
     """
-    Class for Builtin Binary Operators, e.g. Plus (+)
+    Class for Builtin Infix Operators (which includes Binary
+    operators), e.g. Plus (+).
     """
 
+    # Note: grouping must be Python string, not a Symbol.
     grouping = "System`None"  # NonAssociative, None, Left, Right
 
     def __init__(self, *args, **kwargs):
