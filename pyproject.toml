@@ -18,7 +18,7 @@ dependencies = [
     # Pillow 9.1.0 supports BigTIFF with big-endian byte order.
     # ExampleData image hedy.tif is in this format.
     # Pillow 9.2 handles sunflowers.jpg
-    "stopit; sys_platform in ('win32', 'linux', 'darwin')",
+    "stopit; platform_system != 'Emscripten'",
     "pillow >= 9.2",
     "pint",
     "python-dateutil",
