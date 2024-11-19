@@ -757,6 +757,8 @@ def match_expression_with_one_identity(
     del parms["attributes"]
     assert new_pattern is not None
     new_pattern.match(expression=expression, pattern_context=parms)
+    for optional in optionals:
+        vars_dict.pop(optional)
 
 
 def basic_match_expression(
