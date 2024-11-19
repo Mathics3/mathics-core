@@ -1254,6 +1254,36 @@ class InfixOperator(Operator, ABC):
             self.rules = default_rules
 
 
+class NoMeaningInfixOperator(InfixOperator, ABC):
+    """
+    Operators that have no pre-defined meaning are derived from this class.
+    """
+
+    # This will be used to create a docstring
+    __doc_pattern__ = r"""
+    {operator_name} <url>
+    :WML link:
+    https://reference.wolfram.com/language/ref/{operator_name}.html</url>
+
+    <dl>
+      <dt>'{operator_name}[$x$, $y$, ...]'
+      <dd>displays $x$ {operator_string} $y$ {operator_string} ...
+    </dl>
+
+    >> {operator_name}[x, y, z]
+     = x {operator_string} y {operator_string} z
+
+    >> a \[{operator_name}] b
+     = a {operator_string} b
+
+    """
+    attributes = A_NO_ATTRIBUTES
+    default_formats = False  # Don't use any default format rules. Instead, see below.
+
+    operator = "This should be overwritten"
+    summary_text = "This should be overwritten"
+
+
 class Predefined(Builtin, ABC):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
