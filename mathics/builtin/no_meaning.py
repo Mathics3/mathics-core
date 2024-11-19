@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-# Note: this will be redone soon to pull no-meaning operator information from operators.yml out
-# of the MathicsScanner project.
 """
 Operators without Built-in Meanings
 
