@@ -724,9 +724,10 @@ def match_expression_with_one_identity(
                 result = defaultvalue_expr.evaluate(evaluation)
                 assert result is not None
                 if result.sameQ(defaultvalue_expr):
-                    # The optional pattern has no default value
-                    # for the given position
-                    new_pattern = pat_elem
+                    if new_pattern is None:
+                        # The optional pattern has no default value
+                        # for the given position
+                        new_pattern = pat_elem
                 else:
                     optionals[key] = result
             else:
