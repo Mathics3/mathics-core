@@ -701,7 +701,12 @@ def match_expression_with_one_identity(
             isinstance(pat_elem, PatternObject)
             and pat_elem.get_head() == SymbolOptional
         ):
-            if len(pat_elem.elements) == 2:
+            if optionals:
+                # A default pattern already exists
+                # Do not use the second one
+                if new_pattern is None:
+                    new_pattern = pat_elem
+            elif len(pat_elem.elements) == 2:
                 pat, value = pat_elem.elements
                 if isinstance(pat, Pattern):
                     key = pat.elements[0].atom.name  # type: ignore[attr-defined]
