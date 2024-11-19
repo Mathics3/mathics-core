@@ -15,8 +15,8 @@ import mathics.eval.files_io.files as io_files
 from mathics.core.atoms import Integer, Integer3, String, SymbolString
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import (
-    BinaryOperator,
     Builtin,
+    InfixOperator,
     MessageException,
     Predefined,
     PrefixOperator,
@@ -511,7 +511,7 @@ class OpenAppend(_OpenAction):
     )
 
 
-class Put(BinaryOperator):
+class Put(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Put.html</url>
 
@@ -615,7 +615,7 @@ class Put(BinaryOperator):
         return expr
 
 
-class PutAppend(BinaryOperator):
+class PutAppend(InfixOperator):
     """
     <url>
     :WMA link:

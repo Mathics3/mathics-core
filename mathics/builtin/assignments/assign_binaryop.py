@@ -17,10 +17,10 @@ Infix operators combined with assignment end in 'By', 'From', or 'To'.
 
 
 from mathics.core.attributes import A_HOLD_FIRST, A_PROTECTED, A_READ_PROTECTED
-from mathics.core.builtin import BinaryOperator, PostfixOperator, PrefixOperator
+from mathics.core.builtin import InfixOperator, PostfixOperator, PrefixOperator
 
 
-class AddTo(BinaryOperator):
+class AddTo(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/AddTo.html</url>
 
@@ -78,7 +78,7 @@ class Decrement(PostfixOperator):
     )
 
 
-class DivideBy(BinaryOperator):
+class DivideBy(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/DivideBy.html</url>
 
@@ -202,7 +202,7 @@ class PreDecrement(PrefixOperator):
     summary_text = "decrease the value by one and assigns that returning the new value"
 
 
-class SubtractFrom(BinaryOperator):
+class SubtractFrom(InfixOperator):
     """
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/SubtractFrom.html</url>
@@ -230,7 +230,7 @@ class SubtractFrom(BinaryOperator):
     summary_text = "subtract a value and assins that returning the new value"
 
 
-class TimesBy(BinaryOperator):
+class TimesBy(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/TimesBy.html</url>
 
