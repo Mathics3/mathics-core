@@ -4,10 +4,8 @@ import os
 import sys
 import time
 from abc import ABC
-from threading import stack_size as set_thread_stack_size
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, overload
 
-import stopit
 from mathics_scanner import TranslateError
 
 from mathics import settings
@@ -84,30 +82,6 @@ def set_python_recursion_limit(n) -> None:
     sys.setrecursionlimit(python_depth)
     if sys.getrecursionlimit() != python_depth:
         raise OverflowError
-
-
-def run_with_timeout_and_stack(request, timeout, evaluation):
-    """
-    interrupts evaluation after a given time period. Provides a suitable stack environment.
-    """
-
-    # only use set_thread_stack_size if max recursion depth was changed via the environment variable
-    # MATHICS_MAX_RECURSION_DEPTH. if it is set, we always use a thread, even if timeout is None, in
-    # order to be able to set the thread stack size.
-
-    if MAX_RECURSION_DEPTH > settings.DEFAULT_MAX_RECURSION_DEPTH:
-        set_thread_stack_size(python_stack_size(MAX_RECURSION_DEPTH))
-    elif timeout is None:
-        return request()
-
-    done = False
-    with stopit.ThreadingTimeout(timeout) as to_ctx_mgr:
-        assert to_ctx_mgr.state == to_ctx_mgr.EXECUTING
-        result = request()
-        done = True
-    if done:
-        return result
-    raise TimeoutInterrupt()
 
 
 class _Out(KeyComparable):
@@ -262,7 +236,7 @@ class Evaluation:
 
         try:
             try:
-                result = run_with_timeout_and_stack(evaluate, timeout, self)
+                result = evaluate()
             except KeyboardInterrupt:
                 if self.catch_interrupt:
                     self.exc_result = SymbolAborted
