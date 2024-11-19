@@ -9,10 +9,10 @@ You can use these operators as a way to build up your own notation within the Ma
 """
 
 from mathics.core.attributes import A_NO_ATTRIBUTES
-from mathics.core.builtin import BinaryOperator
+from mathics.core.builtin import InfixOperator
 
 
-class Star(BinaryOperator):
+class Star(InfixOperator):
     r"""
     Star <url>
     :WML link:

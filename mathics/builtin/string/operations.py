@@ -21,7 +21,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
-from mathics.core.builtin import BinaryOperator, Builtin
+from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression, string_list
@@ -299,7 +299,7 @@ class StringInsert(Builtin):
             return String(self._insert(py_strsource, py_strnew, listpos, evaluation))
 
 
-class StringJoin(BinaryOperator):
+class StringJoin(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/StringJoin.html</url>
 

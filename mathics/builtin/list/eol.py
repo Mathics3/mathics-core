@@ -18,7 +18,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
-from mathics.core.builtin import BinaryOperator, Builtin
+from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
@@ -1537,7 +1537,7 @@ class Select(Builtin):
         return items.filter(items.head, cond, evaluation)
 
 
-class Span(BinaryOperator):
+class Span(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Span.html</url>
 
