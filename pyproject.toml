@@ -16,6 +16,7 @@ dependencies = [
     "mpmath>=1.2.0",
     "numpy<1.27",
     "palettable",
+    "stopit",
     # Pillow 9.1.0 supports BigTIFF with big-endian byte order.
     # ExampleData image hedy.tif is in this format.
     # Pillow 9.2 handles sunflowers.jpg
