@@ -4,10 +4,10 @@ import os
 import sys
 import time
 from abc import ABC
-from queue import Queue
-from threading import Thread, stack_size as set_thread_stack_size
+from threading import stack_size as set_thread_stack_size
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, overload
 
+import stopit
 from mathics_scanner import TranslateError
 
 from mathics import settings
@@ -57,16 +57,6 @@ SymbolPre = Symbol("System`$Pre")
 SymbolPrePrint = Symbol("System`$PrePrint")
 SymbolPost = Symbol("System`$Post")
 
-
-def _thread_target(request, queue) -> None:
-    try:
-        result = request()
-        queue.put((True, result))
-    except BaseException:
-        exc_info = sys.exc_info()
-        queue.put((False, exc_info))
-
-
 # MAX_RECURSION_DEPTH gives the maximum value allowed for $RecursionLimit. it's usually set to its
 # default settings.DEFAULT_MAX_RECURSION_DEPTH.
 
@@ -110,38 +100,14 @@ def run_with_timeout_and_stack(request, timeout, evaluation):
     elif timeout is None:
         return request()
 
-    queue = Queue(maxsize=1)  # stores the result or exception
-    thread = Thread(target=_thread_target, args=(request, queue))
-    thread.start()
-
-    # Thead join(timeout) can leave zombie threads (we are the parent)
-    # when a time out occurs, but the thread hasn't terminated.  See
-    # https://docs.python.org/3/library/multiprocessing.shared_memory.html
-    # for a detailed discussion of this.
-    #
-    # To reduce this problem, we make use of specific properties of
-    # the Mathics3 evaluator: if we set "evaluation.timeout", the
-    # next call to "Expression.evaluate" in the thread will finish it
-    # immediately.
-    #
-    # However this still will not terminate long-running processes
-    # in Sympy or or libraries called by Mathics3 that might hang or run
-    # for a long time.
-    thread.join(timeout)
-    if thread.is_alive():
-        evaluation.timeout = True
-        while thread.is_alive():
-            time.sleep(0.001)
-            pass
-        evaluation.timeout = False
-        evaluation.stopped = False
-        raise TimeoutInterrupt()
-
-    success, result = queue.get()
-    if success:
+    done = False
+    with stopit.ThreadingTimeout(timeout) as to_ctx_mgr:
+        assert to_ctx_mgr.state == to_ctx_mgr.EXECUTING
+        result = request()
+        done = True
+    if done:
         return result
-    else:
-        raise result[1].with_traceback(result[2])
+    raise TimeoutInterrupt()
 
 
 class _Out(KeyComparable):

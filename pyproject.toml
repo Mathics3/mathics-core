@@ -2,6 +2,7 @@
 requires = [
     "setuptools>=70.0.0", # CVE-2024-38335 recommends this
     "cython>=0.15.1; implementation_name!='pypy'",
+    "stopit",
     # For mathics-generate-json-table
     "Mathics-Scanner >= 1.3.0",
     "packaging",

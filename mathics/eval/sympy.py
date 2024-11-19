@@ -2,9 +2,6 @@
 Evaluation of SymPy functions
 """
 
-import sys
-from queue import Queue
-from threading import Thread
 from typing import Optional
 
 import sympy
@@ -15,9 +12,7 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 
 
-def eval_sympy_unconstrained(
-    self, z: BaseElement, evaluation: Evaluation
-) -> Optional[BaseElement]:
+def eval_sympy(self, z: BaseElement, evaluation: Evaluation) -> Optional[BaseElement]:
     """
     Evaluate element `z` converting it to SymPy and back to Mathics3.
     If an exception is raised we return None.
@@ -33,52 +28,3 @@ def eval_sympy_unconstrained(
         return from_sympy(tracing.run_sympy(sympy_fn, *sympy_args))
     except Exception:
         return
-
-
-def eval_sympy_with_timeout(
-    self, z: BaseElement, evaluation: Evaluation
-) -> Optional[BaseElement]:
-    """
-    Evaluate an element `z` converting it to SymPy,
-    and back to Mathics3.
-    If an exception is raised we return None.
-
-    This version is run in a thread, and checked for evaluation timeout.
-    """
-
-    if evaluation.timeout is None:
-        return eval_sympy_unconstrained(self, z, evaluation)
-
-    def _thread_target(queue) -> None:
-        try:
-            result = eval_sympy_unconstrained(self, z, evaluation)
-            queue.put((True, result))
-        except BaseException:
-            exc_info = sys.exc_info()
-            queue.put((False, exc_info))
-
-    queue = Queue(maxsize=1)  # stores the result or exception
-
-    thread = Thread(target=_thread_target, args=(queue,))
-    thread.start()
-    while thread.is_alive():
-        thread.join(0.001)
-        if evaluation.timeout:
-            # I can kill the thread.
-            # just leave it...
-            return None
-
-    # pick the result and return
-    success, result = queue.get()
-    if success:
-        return result
-    else:
-        raise result[1].with_traceback(result[2])
-
-
-# Common top-level evaluation SymPy "eval" function:
-eval_sympy = (
-    eval_sympy_unconstrained
-    if sys.platform in ("emscripten",)
-    else eval_sympy_with_timeout
-)
