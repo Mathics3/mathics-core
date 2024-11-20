@@ -10,7 +10,7 @@ from mathics.core.attributes import (
     A_ORDERLESS,
     A_PROTECTED,
 )
-from mathics.core.builtin import BinaryOperator, Builtin, Predefined, PrefixOperator
+from mathics.core.builtin import Builtin, InfixOperator, Predefined, PrefixOperator
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Expression
@@ -66,7 +66,7 @@ class _ManyTrue(Builtin):
         return self._no_short_circuit()
 
 
-class And(BinaryOperator):
+class And(InfixOperator):
     """
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/And.html</url>
@@ -183,7 +183,7 @@ class AllTrue(_ManyTrue):
         return SymbolTrue
 
 
-class Equivalent(BinaryOperator):
+class Equivalent(InfixOperator):
     """
     <url>
     :WMA link:
@@ -253,7 +253,7 @@ class False_(Predefined):
     summary_text = "boolean constant for False"
 
 
-class Implies(BinaryOperator):
+class Implies(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Implies.html</url>
 
@@ -329,7 +329,7 @@ class NoneTrue(_ManyTrue):
         return SymbolTrue
 
 
-class Or(BinaryOperator):
+class Or(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Or.html</url>
 
@@ -467,7 +467,7 @@ class True_(Predefined):
     summary_text = "boolean constant for True"
 
 
-class Xor(BinaryOperator):
+class Xor(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Xor.html</url>
 

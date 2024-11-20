@@ -2,7 +2,7 @@
 """
 Class definitions used in mathics.builtin modules that define the
 base Mathics3's classes: Predefined, Builtin, Test, Operator (and from that
-UnaryOperator, BinaryOperator, PrefixOperator, PostfixOperator, etc.),
+UnaryOperator, InfixOperator, PrefixOperator, PostfixOperator, etc.),
 SympyFunction, MPMathFunction, etc.
 """
 
@@ -58,7 +58,7 @@ from mathics.core.attributes import (
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.op import ascii_operator_to_symbol
 from mathics.core.convert.python import from_bool
-from mathics.core.convert.sympy import from_sympy, to_numeric_sympy_args
+from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import Definition, Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import MessageException
@@ -91,6 +91,7 @@ from mathics.eval.arithmetic import eval_mpmath_function
 from mathics.eval.numbers.numbers import cancel
 from mathics.eval.numerify import numerify
 from mathics.eval.scoping import dynamic_scoping
+from mathics.eval.sympy import eval_sympy
 
 try:
     import ujson
@@ -106,6 +107,25 @@ assert osp.exists(
 ), f"Internal error: Operator precedence tables are missing; expected to be in {operator_tables_path}"
 with open(operator_tables_path, "r") as f:
     OPERATOR_DATA = ujson.load(f)
+
+
+# Exceptions...
+class NegativeIntegerException(Exception):
+    pass
+
+
+# Has to come before PatternArgumentError
+class PatternError(Exception):
+    def __init__(self, name, tag, *args):
+        super().__init__()
+        self.name = name
+        self.tag = tag
+        self.args = args
+
+
+class PatternArgumentError(PatternError):
+    def __init__(self, name, count, expected):
+        super().__init__(name, "argr", count, expected)
 
 
 class Builtin:
@@ -582,14 +602,7 @@ class SympyFunction(SympyObject):
         # converted to python and the result is converted from sympy
         #
         # "%(name)s[z__]"
-        sympy_args = to_numeric_sympy_args(z, evaluation)
-        if self.sympy_name is None:
-            return
-        sympy_fn = getattr(sympy, self.sympy_name)
-        try:
-            return from_sympy(tracing.run_sympy(sympy_fn, *sympy_args))
-        except Exception:
-            return
+        return eval_sympy(self, z, evaluation)
 
     def get_constant(self, precision, evaluation, have_mpmath=False):
         try:
@@ -811,6 +824,102 @@ def has_option(options, name, evaluation):
 
 
 mathics_to_python: Dict[str, Any] = {}  # here we have: name -> string
+
+
+@total_ordering
+class CountableInteger:
+    """
+    CountableInteger is an integer specifying a countable amount (including
+    zero) that can optionally be specified as an upper bound through UpTo[].
+    """
+
+    # currently MMA does not support UpTo[Infinity], but Infinity already shows
+    # up in UpTo's parameter error messages as supported option; it would make
+    # perfect sense. currently, we stick with MMA's current behaviour and set
+    # _support_infinity to False.
+    _finite: bool
+    _upper_limit: bool
+    _integer: Union[str, int, None]
+    _support_infinity = False
+
+    def __init__(self, value: Union[int, str] = "Infinity", upper_limit=True):
+        self._finite = value != "Infinity"
+        if self._finite:
+            assert isinstance(value, int) and value >= 0
+            self._integer = value
+        else:
+            assert upper_limit
+            self._integer = None
+        self._upper_limit = upper_limit
+
+    def is_upper_limit(self) -> bool:
+        return self._upper_limit
+
+    def get_int_value(self) -> int:
+        assert self._finite
+        return cast(int, self._integer)
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, CountableInteger):
+            if self._finite:
+                return other._finite and cast(int, self._integer) == other._integer
+            else:
+                return not other._finite
+        elif isinstance(other, int):
+            return self._finite and cast(int, self._integer) == other
+        else:
+            return False
+
+    def __lt__(self, other) -> bool:
+        if isinstance(other, CountableInteger):
+            if self._finite:
+                return other._finite and cast(int, self._integer) < cast(
+                    int, other._integer
+                )
+            else:
+                return False
+        elif isinstance(other, int):
+            return self._finite and cast(int, self._integer) < other
+        else:
+            return False
+
+    @staticmethod
+    def from_expression(expr):
+        """
+        :param expr: expression from which to build a CountableInteger
+        :return: an instance of CountableInteger or None, if the whole
+        original expression should remain unevaluated.
+        :raises: MessageException, NegativeIntegerException
+        """
+
+        if isinstance(expr, Integer):
+            py_n = expr.value
+            if py_n >= 0:
+                return CountableInteger(py_n, upper_limit=False)
+            else:
+                raise NegativeIntegerException()
+        elif expr.get_head_name() == "System`UpTo":
+            if len(expr.elements) != 1:
+                raise MessageException("UpTo", "argx", len(expr.elements))
+            else:
+                n = expr.elements[0]
+                if isinstance(n, Integer):
+                    py_n = n.value
+                    if py_n < 0:
+                        raise MessageException("UpTo", "innf", expr)
+                    else:
+                        return CountableInteger(py_n, upper_limit=True)
+                elif CountableInteger._support_infinity:
+                    if (
+                        n.get_head_name() == "System`DirectedInfinity"
+                        and len(n.elements) == 1
+                    ):
+                        if n.elements[0].get_int_value() > 0:
+                            return CountableInteger("Infinity", upper_limit=True)
+                        else:
+                            return CountableInteger(0, upper_limit=True)
+
+        return None  # leave original expression unevaluated
 
 
 class AtomBuiltin(Builtin):
@@ -1083,69 +1192,24 @@ class Operator(Builtin, ABC):
             return self.operator
 
 
-class Predefined(Builtin):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.symbol = Symbol(self.get_name())
-
-    def get_functions(self, prefix="eval", is_pymodule=False) -> List[Callable]:
-        functions = list(super().get_functions(prefix))
-        if prefix == "eval" and hasattr(self, "evaluate"):
-            functions.append((self.symbol, self.evaluate))
-        return functions
-
-
-class UnaryOperator(Operator):
+class InfixOperator(Operator, ABC):
     """
-    Class for Unary Operators, (e.g. Not, Factorial)
+    Class for Mathics3 built-in Infix Operators. Infix operators are
+    represented with an operator in between each argument. A common
+    and special case is when the number of operands is two. This is
+    called a binary operator.
+
+    In Mathics3, many operators that are conventionally thought of as
+    binary operators, like Plus (+) allow an accept more than two
+    arguments.
+
     """
 
-    def __init__(self, format_function, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        name = self.get_name(short=True)
-        self.precedence = self.get_precedence(name)
-        if self.needs_verbatim:
-            name = f"Verbatim[{name}"
-        if self.default_formats:
-            op_pattern = f"{name}[item_]"
-            if op_pattern not in self.formats:
-                operator = self.get_operator_display()
-                if operator is not None:
-                    form = '%s[{HoldForm[item]},"%s",%d]' % (
-                        format_function,
-                        operator,
-                        self.precedence,
-                    )
-                    self.formats[op_pattern] = form
-
-
-class PrefixOperator(UnaryOperator):
-    """
-    Class for Bultin Prefix Unary Operators, e.g. Not ("¬")
-    """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__("Prefix", *args, **kwargs)
-
-
-class PostfixOperator(UnaryOperator):
-    """
-    Class for Bultin Postfix Unary Operators, e.g. Factorial (!)
-    """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__("Postfix", *args, **kwargs)
-
-
-class BinaryOperator(Operator):
-    """
-    Class for Builtin Binary Operators, e.g. Plus (+)
-    """
-
+    # Note: grouping must be Python string, not a Symbol.
     grouping = "System`None"  # NonAssociative, None, Left, Right
 
     def __init__(self, *args, **kwargs):
-        super(BinaryOperator, self).__init__(*args, **kwargs)
+        super(InfixOperator, self).__init__(*args, **kwargs)
         name = self.get_name(short=True)
         self.precedence = self.get_precedence(name)
 
@@ -1190,31 +1254,59 @@ class BinaryOperator(Operator):
             self.rules = default_rules
 
 
-class Test(Builtin):
-    def eval(self, expr, evaluation) -> Optional[BooleanType]:
-        # Note: in the docstring below, we need to use %(name)s for
-        # subclasses like ExactNumberQ to work with function-application
-        # pattern matching.
-        """%(name)s[expr_]"""
-        test_expr = self.test(expr)
-        return None if test_expr is None else from_bool(bool(test_expr))
+class Predefined(Builtin, ABC):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.symbol = Symbol(self.get_name())
 
-    def test(self, expr) -> bool:
-        """Subclasses of test must implement a boolean test function"""
-        raise NotImplementedError
+    def get_functions(self, prefix="eval", is_pymodule=False) -> List[Callable]:
+        functions = list(super().get_functions(prefix))
+        if prefix == "eval" and hasattr(self, "evaluate"):
+            functions.append((self.symbol, self.evaluate))
+        return functions
 
 
-class PatternError(Exception):
-    def __init__(self, name, tag, *args):
-        super().__init__()
-        self.name = name
-        self.tag = tag
-        self.args = args
+# Has to come before PostFixOperator and PrefixOperator
+class UnaryOperator(Operator, ABC):
+    """
+    Class for Unary Operators, (e.g. Not, Factorial)
+    """
+
+    def __init__(self, format_function, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        name = self.get_name(short=True)
+        self.precedence = self.get_precedence(name)
+        if self.needs_verbatim:
+            name = f"Verbatim[{name}"
+        if self.default_formats:
+            op_pattern = f"{name}[item_]"
+            if op_pattern not in self.formats:
+                operator = self.get_operator_display()
+                if operator is not None:
+                    form = '%s[{HoldForm[item]},"%s",%d]' % (
+                        format_function,
+                        operator,
+                        self.precedence,
+                    )
+                    self.formats[op_pattern] = form
 
 
-class PatternArgumentError(PatternError):
-    def __init__(self, name, count, expected):
-        super().__init__(name, "argr", count, expected)
+class PostfixOperator(UnaryOperator, ABC):
+    """
+    Class for Builtin Postfix Unary Operators, e.g. Factorial (!)
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__("Postfix", *args, **kwargs)
+
+
+class PrefixOperator(UnaryOperator, ABC):
+    """
+    Class for Builtin Prefix Unary Operators, e.g. Not ("¬")
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__("Prefix", *args, **kwargs)
 
 
 class PatternObject(BuiltinElement, BasePattern):
@@ -1273,101 +1365,15 @@ class PatternObject(BuiltinElement, BasePattern):
         return self.expr.get_sort_key(pattern_sort=pattern_sort)
 
 
-class NegativeIntegerException(Exception):
-    pass
+class Test(Builtin, ABC):
+    def eval(self, expr, evaluation: Evaluation) -> Optional[BooleanType]:
+        # Note: in the docstring below, we need to use %(name)s for
+        # subclasses like ExactNumberQ to work with function-application
+        # pattern matching.
+        """%(name)s[expr_]"""
+        test_expr = self.test(expr)
+        return None if test_expr is None else from_bool(bool(test_expr))
 
-
-@total_ordering
-class CountableInteger:
-    """
-    CountableInteger is an integer specifying a countable amount (including
-    zero) that can optionally be specified as an upper bound through UpTo[].
-    """
-
-    # currently MMA does not support UpTo[Infinity], but Infinity already shows
-    # up in UpTo's parameter error messages as supported option; it would make
-    # perfect sense. currently, we stick with MMA's current behaviour and set
-    # _support_infinity to False.
-    _finite: bool
-    _upper_limit: bool
-    _integer: Union[str, int, None]
-    _support_infinity = False
-
-    def __init__(self, value: Union[int, str] = "Infinity", upper_limit=True):
-        self._finite = value != "Infinity"
-        if self._finite:
-            assert isinstance(value, int) and value >= 0
-            self._integer = value
-        else:
-            assert upper_limit
-            self._integer = None
-        self._upper_limit = upper_limit
-
-    def is_upper_limit(self) -> bool:
-        return self._upper_limit
-
-    def get_int_value(self) -> int:
-        assert self._finite
-        return cast(int, self._integer)
-
-    def __eq__(self, other) -> bool:
-        if isinstance(other, CountableInteger):
-            if self._finite:
-                return other._finite and cast(int, self._integer) == other._integer
-            else:
-                return not other._finite
-        elif isinstance(other, int):
-            return self._finite and cast(int, self._integer) == other
-        else:
-            return False
-
-    def __lt__(self, other) -> bool:
-        if isinstance(other, CountableInteger):
-            if self._finite:
-                return other._finite and cast(int, self._integer) < cast(
-                    int, other._integer
-                )
-            else:
-                return False
-        elif isinstance(other, int):
-            return self._finite and cast(int, self._integer) < other
-        else:
-            return False
-
-    @staticmethod
-    def from_expression(expr):
-        """
-        :param expr: expression from which to build a CountableInteger
-        :return: an instance of CountableInteger or None, if the whole
-        original expression should remain unevaluated.
-        :raises: MessageException, NegativeIntegerException
-        """
-
-        if isinstance(expr, Integer):
-            py_n = expr.value
-            if py_n >= 0:
-                return CountableInteger(py_n, upper_limit=False)
-            else:
-                raise NegativeIntegerException()
-        elif expr.get_head_name() == "System`UpTo":
-            if len(expr.elements) != 1:
-                raise MessageException("UpTo", "argx", len(expr.elements))
-            else:
-                n = expr.elements[0]
-                if isinstance(n, Integer):
-                    py_n = n.value
-                    if py_n < 0:
-                        raise MessageException("UpTo", "innf", expr)
-                    else:
-                        return CountableInteger(py_n, upper_limit=True)
-                elif CountableInteger._support_infinity:
-                    if (
-                        n.get_head_name() == "System`DirectedInfinity"
-                        and len(n.elements) == 1
-                    ):
-                        if n.elements[0].get_int_value() > 0:
-                            return CountableInteger("Infinity", upper_limit=True)
-                        else:
-                            return CountableInteger(0, upper_limit=True)
-
-        return None  # leave original expression unevaluated
+    def test(self, expr) -> bool:
+        """Subclasses of test must implement a boolean test function"""
+        raise NotImplementedError

@@ -4,7 +4,7 @@ Structural Expression Functions
 """
 
 from mathics.core.atoms import Integer
-from mathics.core.builtin import BinaryOperator, Builtin, Predefined
+from mathics.core.builtin import Builtin, InfixOperator, Predefined
 from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
@@ -14,7 +14,7 @@ from mathics.core.systemsymbols import SymbolMap
 from mathics.eval.parts import python_levelspec, walk_levels
 
 
-class MapApply(BinaryOperator):
+class MapApply(InfixOperator):
     """
     <url>
     :WMA link:

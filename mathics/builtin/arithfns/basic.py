@@ -32,8 +32,8 @@ from mathics.core.attributes import (
     A_READ_PROTECTED,
 )
 from mathics.core.builtin import (
-    BinaryOperator,
     Builtin,
+    InfixOperator,
     MPMathFunction,
     PrefixOperator,
     SympyFunction,
@@ -109,7 +109,7 @@ class CubeRoot(Builtin):
         )
 
 
-class Divide(BinaryOperator):
+class Divide(InfixOperator):
     """
     <url>
     :Division:
@@ -238,7 +238,7 @@ class Minus(PrefixOperator):
         return Integer(-x.value)
 
 
-class Plus(BinaryOperator, SympyFunction):
+class Plus(InfixOperator, SympyFunction):
     """
     <url>
     :Addition:
@@ -364,7 +364,7 @@ class Plus(BinaryOperator, SympyFunction):
         return eval_Plus(*items_tuple)
 
 
-class Power(BinaryOperator, MPMathFunction):
+class Power(InfixOperator, MPMathFunction):
     """
     <url>
     :Exponentiation:
@@ -555,7 +555,7 @@ class Sqrt(SympyFunction):
     summary_text = "square root"
 
 
-class Subtract(BinaryOperator):
+class Subtract(InfixOperator):
     """
     <url>
     :Subtraction:
@@ -589,7 +589,7 @@ class Subtract(BinaryOperator):
     summary_text = "subtract"
 
 
-class Times(BinaryOperator, SympyFunction):
+class Times(InfixOperator, SympyFunction):
     """
     <url>
     :Multiplication:
