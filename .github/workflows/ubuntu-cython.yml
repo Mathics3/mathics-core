@@ -31,7 +31,6 @@ jobs:
         pip install -e .
         cd ..
 
-        # python -m pip install Mathics-Scanner[full]
     - name: Install Mathics with full dependencies
       run: |
         make develop-full-cython
