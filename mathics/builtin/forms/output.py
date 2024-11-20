@@ -16,7 +16,13 @@ import re
 from math import ceil
 from typing import Optional
 
-from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
+from mathics.builtin.box.layout import (
+    GridBox,
+    InterpretationBox,
+    PaneBox,
+    RowBox,
+    to_boxes,
+)
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.builtin.makeboxes import MakeBoxes, NumberForm_to_String
 from mathics.builtin.tensors import get_dimensions
@@ -54,11 +60,13 @@ from mathics.core.systemsymbols import (
     SymbolOutputForm,
     SymbolRowBox,
     SymbolRuleDelayed,
+    SymbolStandardForm,
     SymbolSubscriptBox,
     SymbolSuperscriptBox,
 )
 from mathics.eval.makeboxes import StringLParen, StringRParen, format_element
 from mathics.eval.testing_expressions import expr_min
+from mathics.format.prettyprint import expression_to_2d_text
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
@@ -561,7 +569,17 @@ class OutputForm(FormBaseClass):
      = -Graphics-
     """
 
+    formats = {"OutputForm[s_String]": "s"}
     summary_text = "plain-text output format"
+
+    def eval_makeboxes(self, expr, form, evaluation):
+        """MakeBoxes[OutputForm[expr_], form_]"""
+        print(" eval Makeboxes outputform")
+        text2d = str(expression_to_2d_text(expr, evaluation, form))
+        elem1 = PaneBox(String(text2d))
+        elem2 = Expression(SymbolOutputForm, expr)
+        result = InterpretationBox(elem1, elem2)
+        return result
 
 
 class PythonForm(FormBaseClass):
@@ -707,7 +725,7 @@ class TeXForm(FormBaseClass):
 
     def eval_tex(self, expr, evaluation) -> Expression:
         "MakeBoxes[expr_, TeXForm]"
-        boxes = MakeBoxes(expr).evaluate(evaluation)
+        boxes = format_element(expr, evaluation, SymbolStandardForm)
         try:
             # Here we set ``show_string_characters`` to False, to reproduce
             # the standard behaviour in WMA. Remove this parameter to recover the
