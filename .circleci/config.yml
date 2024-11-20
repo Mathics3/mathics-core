@@ -1,6 +1,4 @@
 version: 2.1
-orbs:
-  python: circleci/python@2
 jobs:
   build:
     working_directory: ~/mathics-core
@@ -14,12 +12,19 @@ jobs:
     steps:
       - checkout  # checkout source code to working directory
       - run: sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-dev tesseract-ocr remake
-      - run: pip install --local -e .
       - run: git clone https://github.com/Mathics3/mathics-scanner.git
       - run: (cd mathics-scanner && pip install -e .)
-      - run: pip install -e .
-      - run: remake -x
+      - run: pip install --local -e .
+      - run: remake -x develop-full
       - run: remake -x -j3 check
+      - restore_cache:
+          keys:
+            # This branch if available
+            - v2-dependencies-{{ .Branch }}-
+            # Default branch if not
+            - v2-dependencies-master-
+            # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
+            - v2-dependencies-
       - restore_cache:
           keys:
             # This branch if available
@@ -41,4 +46,3 @@ jobs:
             - ~/.bundle
             - ~/.go_workspace
             - ~/.gradle
-            - ~/.cache/bower
