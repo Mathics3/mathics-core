@@ -51,7 +51,7 @@ from mathics.core.systemsymbols import (
 )
 
 
-def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):
+def _get_usage_string(symbol, evaluation, is_long_form: bool):
     """
     Returns a python string with the documentation associated to a given symbol.
     """
@@ -78,16 +78,13 @@ def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):
     if bio is not None:
         if not is_long_form and hasattr(bio.builtin.__class__, "summary_text"):
             return bio.builtin.__class__.summary_text
-        from mathics.doc.common_doc import XMLDoc
+        from mathics.doc.common_doc import XMLDOC
 
         docstr = bio.builtin.__class__.__doc__
         title = bio.builtin.__class__.__name__
         if docstr is None:
             return None
-        if htmlout:
-            usagetext = XMLDoc(docstr, title).html()
-        else:
-            usagetext = XMLDoc(docstr, title).text(0)
+        usagetext = XMLDOC(docstr, title).text(0)
         usagetext = re.sub(r"\$([0-9a-zA-Z]*)\$", r"\1", usagetext)
         return usagetext
     return None
