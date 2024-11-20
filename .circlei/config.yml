@@ -1,0 +1,46 @@
+version: 2.1
+jobs:
+  build:
+    working_directory: ~/mathics-core
+    parallelism: 1
+    shell: /bin/bash --login
+    environment:
+      CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
+      CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
+    docker:
+    - image: cimg/python:3.12.6
+      auth:
+        username: rockyb
+        password: $DOCKERHUB_PASSWORD
+    steps:
+      - checkout  # checkout source code to working directory
+gg=pyficache
+      - run sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-dev tesseract-ocr remake
+      - run: pip install --local -e .
+      - run: git clone https://github.com/Mathics3/mathics-scanner.git
+      - run: (cd mathics-scanner && pip install -e .)
+      - run: pip install -e .
+      - run: remake -x
+      - run: remake -x -j3 check
+      - restore_cache:
+          keys:
+            # This branch if available
+            - v2-dependencies-{{ .Branch }}-
+            # Default branch if not
+            - v2-dependencies-master-
+            # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
+            - v2-dependencies-
+      # Save dependency cache
+      - save_cache:
+          key: v2-dependencies-{{ .Branch }}-{{ epoch }}
+          paths:
+            # This is a broad list of cache paths to include many possible development environments
+            # You can probably delete some of these entries
+            - vendor/bundle
+            - ~/virtualenvs
+            - ~/.m2
+            - ~/.ivy2
+            - ~/.bundle
+            - ~/.go_workspace
+            - ~/.gradle
+            - ~/.cache/bower
