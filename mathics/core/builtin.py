@@ -1159,7 +1159,7 @@ class IterationFunction(Builtin):
         return to_expression(name, to_expression(name, expr, *sequ), first)
 
 
-class Operator(Builtin, ABC):
+class Operator(Builtin):
     """
     Base Class for operators: binary, unary, nullary, prefix postfix, ...
     """
@@ -1192,7 +1192,9 @@ class Operator(Builtin, ABC):
             return self.operator
 
 
-class InfixOperator(Operator, ABC):
+# Note: Metaprogramming in mathics.builtin.no_meaning fails if
+# we inherit from ABC
+class InfixOperator(Operator):
     """
     Class for Mathics3 built-in Infix Operators. Infix operators are
     represented with an operator in between each argument. A common
@@ -1254,14 +1256,14 @@ class InfixOperator(Operator, ABC):
             self.rules = default_rules
 
 
-class NoMeaningInfixOperator(InfixOperator, ABC):
+class NoMeaningInfixOperator(InfixOperator):
     """
     Operators that have no pre-defined meaning are derived from this class.
     """
 
     # This will be used to create a docstring
     __doc_pattern__ = r"""
-    {operator_name} <url>
+    <url>
     :WML link:
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
@@ -1277,6 +1279,13 @@ class NoMeaningInfixOperator(InfixOperator, ABC):
      = a {operator_string} b
 
     """
+    __formats_pattern__ = r"""{lbrace}
+                    (
+                           ("InputForm", "OutputForm", "StandardForm"),
+                        f"{operator_name}[args__]",
+                    ): (('Infix[{lbrace}args{rbrace}, {operator_string}"]'))
+                {rbrace}"""
+
     attributes = A_NO_ATTRIBUTES
     default_formats = False  # Don't use any default format rules. Instead, see below.
 
@@ -1296,8 +1305,10 @@ class Predefined(Builtin, ABC):
         return functions
 
 
-# Has to come before PostFixOperator and PrefixOperator
-class UnaryOperator(Operator, ABC):
+# Has to come before PostfixOperator and PrefixOperator
+# Note: Metaprogramming in mathics.builtin.no_meaning fails if
+# we inherit from ABC
+class UnaryOperator(Operator):
     """
     Class for Unary Operators, (e.g. Not, Factorial)
     """
@@ -1321,7 +1332,9 @@ class UnaryOperator(Operator, ABC):
                     self.formats[op_pattern] = form
 
 
-class PostfixOperator(UnaryOperator, ABC):
+# Note: Metaprogramming in mathics.builtin.no_meaning fails if
+# we inherit from ABC
+class PostfixOperator(UnaryOperator):
     """
     Class for Builtin Postfix Unary Operators, e.g. Factorial (!)
     """
@@ -1330,13 +1343,77 @@ class PostfixOperator(UnaryOperator, ABC):
         super().__init__("Postfix", *args, **kwargs)
 
 
-class PrefixOperator(UnaryOperator, ABC):
+# Has to be after PostfixOperator
+class NoMeaningPostfixOperator(PostfixOperator):
+    """
+    Postfix Operators that have no pre-defined meaning are derived from this class.
+    """
+
+    # This will be used to create a docstring
+    __doc_pattern__ = r"""
+    <url>
+    :WML link:
+    https://reference.wolfram.com/language/ref/{operator_name}.html</url>
+
+    <dl>
+      <dt>'{operator_name}[$x$]'
+      <dd>displays $x$ {operator_string}
+    </dl>
+
+    >> {operator_name}[x]
+     = x {operator_string}
+
+    >> x \[{operator_name}]
+     = x {operator_string}
+
+    """
+    attributes = A_NO_ATTRIBUTES
+    default_formats = False  # Don't use any default format rules. Instead, see below.
+
+    operator = "This should be overwritten"
+    summary_text = "This should be overwritten"
+
+
+# Note: Metaprogramming in mathics.builtin.no_meaning fails if
+# we inherit from ABC
+class PrefixOperator(UnaryOperator):
     """
     Class for Builtin Prefix Unary Operators, e.g. Not ("¬")
     """
 
     def __init__(self, *args, **kwargs):
         super().__init__("Prefix", *args, **kwargs)
+
+
+# Has to be after PrefixOperator
+class NoMeaningPrefixOperator(PrefixOperator):
+    """
+    Prefix Operators that have no pre-defined meaning are derived from this class.
+    """
+
+    # This will be used to create a docstring
+    __doc_pattern__ = r"""
+    <url>
+    :WML link:
+    https://reference.wolfram.com/language/ref/{operator_name}.html</url>
+
+    <dl>
+      <dt>'{operator_name}[$x$]'
+      <dd>displays {operator_string} $x$
+    </dl>
+
+    >> {operator_name}[x]
+     = {operator_string}x
+
+    >> \[{operator_name}]x
+     = {operator_string}x
+
+    """
+    attributes = A_NO_ATTRIBUTES
+    default_formats = False  # Don't use any default format rules. Instead, see below.
+
+    operator = "This should be overwritten"
+    summary_text = "This should be overwritten"
 
 
 class PatternObject(BuiltinElement, BasePattern):
