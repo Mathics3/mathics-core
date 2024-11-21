@@ -13,6 +13,7 @@ You can use these operators as a way to build up your own notation within Mathic
 
 from sys import modules
 
+import mathics.core.parser.operators
 from mathics.core.builtin import (
     OPERATOR_DATA,
     NoMeaningInfixOperator,
@@ -49,6 +50,9 @@ for affix, format_fn, operator_base_class in (
                 },
             },
         )
+        if affix == "infix":
+            # FIXME get precedence from JSON. Value 100 is a hack for now.
+            mathics.core.parser.operators.flat_binary_ops[operator_name] = 100
 
         # Put the newly-created Builtin class inside this module.
         setattr(modules[__name__], operator_name, generated_operator_class)

@@ -163,28 +163,51 @@ inequality_ops = ["Less", "LessEqual", "Greater", "GreaterEqual", "Equal", "Uneq
 
 # binary_ops = left_binary_ops V right_binary_ops V flat_binary_ops V nonassoc_binary_ops
 binary_ops = {}
-for ops in (left_binary_ops, right_binary_ops, flat_binary_ops, nonassoc_binary_ops):
-    for op, prec in ops.items():
-        binary_ops[op] = prec
-
-all_op_collections = (
-    prefix_ops,
-    postfix_ops,
-    left_binary_ops,
-    right_binary_ops,
-    flat_binary_ops,
-    ternary_ops,
-    nonassoc_binary_ops,
-    misc_ops,
-)
 
 # all ops - check they're disjoint
 all_ops = defaultdict(lambda: 670)
 
-for ops in all_op_collections:
-    for op, prec in ops.items():
-        if op in all_ops:
-            raise AssertionError
-        all_ops[op] = prec
+# Set below
+all_operator_names = []
 
-all_operator_names = list(all_ops.keys())
+
+def calculate_operator_information():
+    global binary_ops
+    global all_ops
+    global all_operator_names
+
+    all_operator_names = []
+
+    for ops in (
+        left_binary_ops,
+        right_binary_ops,
+        flat_binary_ops,
+        nonassoc_binary_ops,
+    ):
+        for op, prec in ops.items():
+            binary_ops[op] = prec
+
+    all_op_collections = (
+        prefix_ops,
+        postfix_ops,
+        left_binary_ops,
+        right_binary_ops,
+        flat_binary_ops,
+        ternary_ops,
+        nonassoc_binary_ops,
+        misc_ops,
+    )
+
+    for ops in all_op_collections:
+        for op, prec in ops.items():
+            all_ops[op] = prec
+
+    all_operator_names = list(all_ops.keys())
+
+
+# Calculating operator information is also done
+# after loading in Builtin operators with no-meaning.
+# However we also need to do this before reading that module in.
+# This is a mess!
+
+calculate_operator_information()
