@@ -15,24 +15,27 @@ from sys import modules
 
 import mathics.core.parser.operators
 from mathics.core.builtin import (
-    OPERATOR_DATA,
     NoMeaningInfixOperator,
     NoMeaningPostfixOperator,
     NoMeaningPrefixOperator,
 )
+from mathics.core.parser.operators import OPERATOR_DATA
 
 # Generate no-meaning Mathics3 Builtin class from the operator name,
-# affix, and Operator Unicode values found read from the JSON operators
-# file.
+# affix, and Operator Unicode values found in OPERATOR_DATA.  This
+# data ultimately comes from a YAML file in the MathicsScanner project
+# which is processed into a JSON file.
+
 for affix, format_fn, operator_base_class in (
     ("infix", "Infix", NoMeaningInfixOperator),
     ("postfix", "Postfix", NoMeaningPostfixOperator),
     ("prefix", "Prefix", NoMeaningPrefixOperator),
 ):
-    for operator_name, operator_string in OPERATOR_DATA[
+    for operator_name, operator_tuple in OPERATOR_DATA[
         f"no-meaning-{affix}-operators"
     ].items():
         # Create the Mathics3 Builtin class...
+        operator_string = operator_tuple[0]
         generated_operator_class = type(
             operator_name,
             (operator_base_class,),
