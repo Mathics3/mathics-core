@@ -142,9 +142,8 @@ latexdoc texdoc doc:
 	(cd mathics/doc/latex && $(MAKE) doc)
 
 #: Build JSON ASCII to unicode opcode table and operator table
-mathics/data/op-tables.json mathics/data/operators.json:
+mathics/data/operator-tables.json mathics/data/op-tables.json mathics/data/operators.json:
 	$(BASH) ./admin-tools/make-op-tables.sh
-
 
 #: Remove ChangeLog
 rmChangeLog:
