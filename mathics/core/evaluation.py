@@ -4,8 +4,6 @@ import os
 import sys
 import time
 from abc import ABC
-from queue import Queue
-from threading import Thread, stack_size as set_thread_stack_size
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, overload
 
 from mathics_scanner import TranslateError
@@ -57,16 +55,6 @@ SymbolPre = Symbol("System`$Pre")
 SymbolPrePrint = Symbol("System`$PrePrint")
 SymbolPost = Symbol("System`$Post")
 
-
-def _thread_target(request, queue) -> None:
-    try:
-        result = request()
-        queue.put((True, result))
-    except BaseException:
-        exc_info = sys.exc_info()
-        queue.put((False, exc_info))
-
-
 # MAX_RECURSION_DEPTH gives the maximum value allowed for $RecursionLimit. it's usually set to its
 # default settings.DEFAULT_MAX_RECURSION_DEPTH.
 
@@ -94,54 +82,6 @@ def set_python_recursion_limit(n) -> None:
     sys.setrecursionlimit(python_depth)
     if sys.getrecursionlimit() != python_depth:
         raise OverflowError
-
-
-def run_with_timeout_and_stack(request, timeout, evaluation):
-    """
-    interrupts evaluation after a given time period. Provides a suitable stack environment.
-    """
-
-    # only use set_thread_stack_size if max recursion depth was changed via the environment variable
-    # MATHICS_MAX_RECURSION_DEPTH. if it is set, we always use a thread, even if timeout is None, in
-    # order to be able to set the thread stack size.
-
-    if MAX_RECURSION_DEPTH > settings.DEFAULT_MAX_RECURSION_DEPTH:
-        set_thread_stack_size(python_stack_size(MAX_RECURSION_DEPTH))
-    elif timeout is None:
-        return request()
-
-    queue = Queue(maxsize=1)  # stores the result or exception
-    thread = Thread(target=_thread_target, args=(request, queue))
-    thread.start()
-
-    # Thead join(timeout) can leave zombie threads (we are the parent)
-    # when a time out occurs, but the thread hasn't terminated.  See
-    # https://docs.python.org/3/library/multiprocessing.shared_memory.html
-    # for a detailed discussion of this.
-    #
-    # To reduce this problem, we make use of specific properties of
-    # the Mathics3 evaluator: if we set "evaluation.timeout", the
-    # next call to "Expression.evaluate" in the thread will finish it
-    # immediately.
-    #
-    # However this still will not terminate long-running processes
-    # in Sympy or or libraries called by Mathics3 that might hang or run
-    # for a long time.
-    thread.join(timeout)
-    if thread.is_alive():
-        evaluation.timeout = True
-        while thread.is_alive():
-            time.sleep(0.001)
-            pass
-        evaluation.timeout = False
-        evaluation.stopped = False
-        raise TimeoutInterrupt()
-
-    success, result = queue.get()
-    if success:
-        return result
-    else:
-        raise result[1].with_traceback(result[2])
 
 
 class _Out(KeyComparable):
@@ -298,7 +238,7 @@ class Evaluation:
 
         try:
             try:
-                result = run_with_timeout_and_stack(evaluate, timeout, self)
+                result = evaluate()
             except KeyboardInterrupt:
                 if self.catch_interrupt:
                     self.exc_result = SymbolAborted

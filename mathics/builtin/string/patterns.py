@@ -15,7 +15,7 @@ from mathics.builtin.atomic.strings import (
 )
 from mathics.core.atoms import Integer1, String
 from mathics.core.attributes import A_FLAT, A_LISTABLE, A_ONE_IDENTITY, A_PROTECTED
-from mathics.core.builtin import BinaryOperator, Builtin
+from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -234,7 +234,7 @@ class StringCases(_StringFind):
         return eval_StringFind(self, string, rule, n, evaluation, options, True)
 
 
-class StringExpression(BinaryOperator):
+class StringExpression(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/StringExpression.html</url>
 

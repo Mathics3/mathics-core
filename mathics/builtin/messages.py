@@ -8,7 +8,7 @@ from typing import Any
 
 from mathics.core.atoms import String
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_FIRST, A_LOCKED, A_PROTECTED
-from mathics.core.builtin import BinaryOperator, Builtin, Predefined
+from mathics.core.builtin import Builtin, InfixOperator, Predefined
 from mathics.core.evaluation import Evaluation, Message as EvaluationMessage
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -299,7 +299,7 @@ def check_message(expr) -> bool:
     return False
 
 
-class MessageName(BinaryOperator):
+class MessageName(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/MessageName.html</url>
 

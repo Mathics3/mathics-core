@@ -16,7 +16,7 @@ from typing import Iterable
 
 from mathics.builtin.list.constructing import List
 from mathics.core.atoms import Integer, Integer3
-from mathics.core.builtin import BinaryOperator, Builtin
+from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import (
@@ -31,7 +31,7 @@ from mathics.core.systemsymbols import SymbolMapThread, SymbolRule
 from mathics.eval.parts import python_levelspec, walk_levels
 
 
-class Apply(BinaryOperator):
+class Apply(InfixOperator):
     """
     <dl>
       <dt>'Apply[$f$, $expr$]'
@@ -103,7 +103,7 @@ class Apply(BinaryOperator):
         return result
 
 
-class Map(BinaryOperator):
+class Map(InfixOperator):
     """
     <dl>
       <dt>'Map[$f$, $expr$]' or '$f$ /@ $expr$'

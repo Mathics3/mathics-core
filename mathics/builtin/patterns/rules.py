@@ -71,7 +71,7 @@ from typing import Optional as OptionalType
 
 from mathics.core.atoms import Integer, Integer0, Integer2, Number
 from mathics.core.attributes import A_HOLD_REST, A_PROTECTED, A_SEQUENCE_HOLD
-from mathics.core.builtin import AtomBuiltin, BinaryOperator, Builtin, PatternError
+from mathics.core.builtin import AtomBuiltin, Builtin, InfixOperator, PatternError
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError
@@ -242,7 +242,7 @@ class Replace(Builtin):
         return None
 
 
-class ReplaceAll(BinaryOperator):
+class ReplaceAll(InfixOperator):
     """
     <url>
     :WMA link:
@@ -395,7 +395,7 @@ class ReplaceList(Builtin):
         return ListExpression(*list_result)
 
 
-class ReplaceRepeated(BinaryOperator):
+class ReplaceRepeated(InfixOperator):
     """
 
     <url>
@@ -483,7 +483,7 @@ class ReplaceRepeated(BinaryOperator):
         return result
 
 
-class Rule_(BinaryOperator):
+class Rule_(InfixOperator):
     """
 
     <url>:WMA link:https://reference.wolfram.com/language/ref/Rule_.html</url>
@@ -518,7 +518,7 @@ class Rule_(BinaryOperator):
         return None
 
 
-class RuleDelayed(BinaryOperator):
+class RuleDelayed(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/RuleDelayed.html</url>
 

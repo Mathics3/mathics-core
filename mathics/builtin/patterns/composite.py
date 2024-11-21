@@ -7,7 +7,7 @@ Composite Patterns
 from typing import Optional as OptionalType, Tuple, Union
 
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_FIRST, A_PROTECTED
-from mathics.core.builtin import BinaryOperator, Builtin, PatternObject, PostfixOperator
+from mathics.core.builtin import Builtin, InfixOperator, PatternObject, PostfixOperator
 from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, SymbolVerbatim
@@ -23,7 +23,7 @@ class _StopGeneratorExcept(StopGenerator):
     pass
 
 
-class Alternatives(BinaryOperator, PatternObject):
+class Alternatives(InfixOperator, PatternObject):
     """
     <url>
     :WMA link:
