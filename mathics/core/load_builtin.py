@@ -17,6 +17,7 @@ from types import ModuleType
 from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple
 
 from mathics.core.convert.sympy import mathics_to_sympy, sympy_to_mathics
+from mathics.core.parser.operators import calculate_operator_information
 from mathics.core.pattern import pattern_objects
 from mathics.core.symbols import Symbol
 from mathics.eval.makeboxes import builtins_precedence
@@ -133,6 +134,8 @@ def definition_contribute(definitions):
     # All builtins are loaded. Create dummy builtin definitions for
     # any remaining operators that don't have them. This allows
     # operators like \[Cup] to behave correctly.
+
+    calculate_operator_information()
     for operator in all_operator_names:
         if not definitions.have_definition(ensure_context(operator)):
             op = ensure_context(operator)
