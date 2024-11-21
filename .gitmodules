@@ -1,0 +1,3 @@
+[submodule "mathics/packages/Mathics3-Rubi"]
+	path = mathics/packages/Mathics3-Rubi
+	url = git@github.com:Mathics3/Mathics3-Rubi.git
