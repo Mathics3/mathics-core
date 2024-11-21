@@ -6,8 +6,8 @@ from mathics.core.atoms import String
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.builtin import Predefined
 from mathics.core.evaluation import Evaluation
-from mathics.core.streams import ROOT_DIR
 from mathics.eval.directories import INITIAL_DIR, SYS_ROOT_DIR, TMP_DIR
+from mathics.settings import ROOT_DIR
 
 
 class BaseDirectory_(Predefined):

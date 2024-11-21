@@ -2,7 +2,24 @@
 # -*- coding: utf-8 -*-
 
 
+import os.path as osp
 from collections import defaultdict
+
+from mathics.settings import ROOT_DIR
+
+try:
+    import ujson
+except ImportError:
+    import json as ujson  # type: ignore[no-redef]
+
+# Load the conversion tables from disk
+operator_tables_path = osp.join(ROOT_DIR, "data", "operator-tables.json")
+assert osp.exists(
+    operator_tables_path
+), f"Internal error: Operator precedence tables are missing; expected to be in {operator_tables_path}"
+with open(operator_tables_path, "r") as f:
+    OPERATOR_DATA = ujson.load(f)
+
 
 prefix_ops = {
     "Get": 720,

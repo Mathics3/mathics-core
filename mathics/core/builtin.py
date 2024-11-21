@@ -8,7 +8,6 @@ SympyFunction, MPMathFunction, etc.
 
 import importlib
 import importlib.util
-import os.path as osp
 import re
 from abc import ABC
 from functools import total_ordering
@@ -27,7 +26,6 @@ from typing import (
 )
 
 import mpmath
-import pkg_resources
 import sympy
 
 # Note: it is important *not* to use:
@@ -66,6 +64,7 @@ from mathics.core.expression import Expression, SymbolDefault
 from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
 from mathics.core.list import ListExpression
 from mathics.core.number import PrecisionValueError, dps, get_precision, min_prec
+from mathics.core.parser.operators import OPERATOR_DATA
 from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
 from mathics.core.pattern import BasePattern
 from mathics.core.rules import BaseRule, FunctionApplyRule, Rule
@@ -92,21 +91,6 @@ from mathics.eval.numbers.numbers import cancel
 from mathics.eval.numerify import numerify
 from mathics.eval.scoping import dynamic_scoping
 from mathics.eval.sympy import eval_sympy
-
-try:
-    import ujson
-except ImportError:
-    import json as ujson  # type: ignore[no-redef]
-
-ROOT_DIR = pkg_resources.resource_filename("mathics", "")
-
-# Load the conversion tables from disk
-operator_tables_path = osp.join(ROOT_DIR, "data", "operator-tables.json")
-assert osp.exists(
-    operator_tables_path
-), f"Internal error: Operator precedence tables are missing; expected to be in {operator_tables_path}"
-with open(operator_tables_path, "r") as f:
-    OPERATOR_DATA = ujson.load(f)
 
 
 # Exceptions...
