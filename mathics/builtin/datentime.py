@@ -27,11 +27,7 @@ from mathics.core.builtin import Builtin, Predefined
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.element import ImmutableValueMixin
-from mathics.core.evaluation import (
-    Evaluation,
-    TimeoutInterrupt,
-    run_with_timeout_and_stack,
-)
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
@@ -1070,6 +1066,7 @@ class Now(Predefined):
 
 
 if sys.platform != "emscripten":
+    import stopit
 
     class TimeConstrained(Builtin):
         """
@@ -1111,18 +1108,22 @@ if sys.platform != "emscripten":
                 evaluation.message("TimeConstrained", "timc", t)
                 return
             try:
-                t = float(t.to_python())
-                evaluation.timeout_queue.append((t, datetime.now().timestamp()))
+                timeout = float(t.to_python())
+                evaluation.timeout_queue.append((timeout, datetime.now().timestamp()))
                 request = lambda: expr.evaluate(evaluation)
-                res = run_with_timeout_and_stack(request, t, evaluation)
-            except TimeoutInterrupt:
-                evaluation.timeout_queue.pop()
-                return failexpr.evaluate(evaluation)
+                done = False
+                with stopit.ThreadingTimeout(timeout) as to_ctx_mgr:
+                    assert to_ctx_mgr.state == to_ctx_mgr.EXECUTING
+                    result = request()
+                    done = True
+                if done:
+                    evaluation.timeout_queue.pop()
+                    return result
             except Exception:
                 evaluation.timeout_queue.pop()
                 raise
             evaluation.timeout_queue.pop()
-            return res
+            return failexpr.evaluate(evaluation)
 
 
 class TimeZone(Predefined):

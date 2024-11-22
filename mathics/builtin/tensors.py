@@ -21,7 +21,7 @@ of any rank can be handled.
 
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
-from mathics.core.builtin import BinaryOperator, Builtin
+from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
 from mathics.eval.tensors import (
@@ -90,7 +90,7 @@ class Dimensions(Builtin):
         return ListExpression(*[Integer(dim) for dim in get_dimensions(expr)])
 
 
-class Dot(BinaryOperator):
+class Dot(InfixOperator):
     """
     <url>:Dot product:https://en.wikipedia.org/wiki/Dot_product</url> \
     (<url>:WMA link: https://reference.wolfram.com/language/ref/Dot.html</url>)

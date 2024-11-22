@@ -16,7 +16,7 @@ from mathics.core.attributes import (
     A_ORDERLESS,
     A_PROTECTED,
 )
-from mathics.core.builtin import BinaryOperator, Builtin, SympyFunction
+from mathics.core.builtin import Builtin, InfixOperator, SympyFunction
 from mathics.core.convert.expression import to_expression, to_numeric_args
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import (
@@ -50,7 +50,7 @@ operators = {
 }
 
 
-class _InequalityOperator(BinaryOperator):
+class _InequalityOperator(InfixOperator):
     grouping = "NonAssociative"
 
     @staticmethod
