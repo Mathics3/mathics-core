@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Unit tests for mathics pattern matching
+Unit tests for mathics.core.pattern
 """
 
 import sys
@@ -55,9 +55,8 @@ def test_patterns(str_expr, msgs, str_expected, fail_msg):
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
-        # Rule
-        ("rule=A[a_.+B[b_.*x_]]->{a,b,x};", None, "Null", None),
         # Two default arguments (linear)
+        ("rule=A[a_.+B[b_.*x_]]->{a,b,x};", None, "Null", None),
         ("A[B[1]] /. rule", None, "{0, 1, 1}", None),
         ("A[B[x]] /. rule", None, "{0, 1, x}", None),
         ("A[B[2*x]] /. rule", None, "{0, x, 2}", None),
