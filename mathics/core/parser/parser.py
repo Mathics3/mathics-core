@@ -10,13 +10,8 @@ https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overvi
 import string
 from typing import Optional, Union
 
-from mathics_scanner import (
-    InvalidSyntaxError,
-    Tokeniser,
-    TranslateError,
-    is_symbol_name,
-)
-from mathics_scanner.tokeniser import Token
+from mathics_scanner import InvalidSyntaxError, TranslateError
+from mathics_scanner.tokeniser import Token, Tokeniser, is_symbol_name
 
 from mathics.core.parser.ast import (
     Filename,

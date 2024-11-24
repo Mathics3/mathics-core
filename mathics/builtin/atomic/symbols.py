@@ -8,7 +8,7 @@ or namespace, and can have a variety of type of values and attributes.
 
 import re
 
-from mathics_scanner import is_symbol_name
+from mathics_scanner.tokeniser import is_symbol_name
 
 from mathics.core.assignment import get_symbol_values
 from mathics.core.atoms import String
