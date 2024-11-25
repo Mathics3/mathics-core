@@ -23,6 +23,7 @@ from mathics.core.builtin import (
 )
 from mathics.core.parser.operators import OPERATOR_DATA
 
+
 def init():
     # Generate no-meaning Mathics3 Builtin class from the operator name,
     # affix, and Operator Unicode values found in OPERATOR_DATA.  This
@@ -62,7 +63,9 @@ def init():
             # Put the newly-created Builtin class inside this module.
             setattr(modules[__name__], operator_name, generated_operator_class)
 
+
 init()
+
 
 class DirectedEdge(InfixOperator):
     # This will be used to create a docstring
