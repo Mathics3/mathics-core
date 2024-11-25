@@ -10,7 +10,7 @@ for describing how this works.
 """
 
 
-from mathics_scanner import is_symbol_name
+from mathics_scanner.tokeniser import is_symbol_name
 
 from mathics.core.parser.feed import (
     MathicsFileLineFeeder,

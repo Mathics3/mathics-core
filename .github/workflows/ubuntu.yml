@@ -29,6 +29,7 @@ jobs:
         git clone https://github.com/Mathics3/mathics-scanner.git
         cd mathics-scanner/
         pip install -e .
+        python -m mathics_scanner.generate.build_tables
         cd ..
 
         # python -m pip install Mathics-Scanner[full]
