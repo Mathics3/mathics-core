@@ -884,11 +884,11 @@ class Breakpoint(Builtin):
            variable `PYTHONBREAKPOINT` can be utilized.
     </dl>
 
-    >> (* Test with a dummy breakpoint. *)
-    >> SetEnvironment["PYTHONBREAKPOINT" -> "mathics.docpipeline.dummy_breakpoint"]
-    Out[1]= SetEnvironment[PYTHONBREAKPOINT → mathics.docpipeline.dummy_breakpoint]
+    >> (* Test with a disabled breakpoint. *)
+    >> In[1]:= SetEnvironment["PYTHONBREAKPOINT" -> "mathics.disabled_breakpoint"]
+    Out[1]= SetEnvironment[PYTHONBREAKPOINT → mathics.disabled_breakpoint]
     >> Breakpoint[]
-    Dummy breakpoint() reached! Returning.
+    Hit disabled breakpoint.
     Out[2]= Breakpoint[]
     """
 
