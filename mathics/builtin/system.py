@@ -875,6 +875,8 @@ class Share(Builtin):
 
 class Breakpoint(Builtin):
     """
+    ## <url>:trace native symbol:</url>
+
     <dl>
       <dt>'Breakpoint[]'
       <dd> Invoke a Python breakpoint. By default, the Python debugger \
