@@ -69,6 +69,7 @@ def init():
 
 init()
 
+
 class DirectedEdge(InfixOperator):
     # This will be used to create a docstring
     r"""

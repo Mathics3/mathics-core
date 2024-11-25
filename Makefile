@@ -114,6 +114,8 @@ clean: clean-cython clean-cache
 	for dir in mathics/doc ; do \
 	   ($(MAKE) -C "$$dir" clean); \
 	done; \
+        rm -f mathics/data/op-tables.json; \
+        rm -f mathics/data/operator-tables.json; \
 	rm -f factorials || true; \
 	rm -f mathics/data/op-tables || true; \
 	rm -rf build || true
