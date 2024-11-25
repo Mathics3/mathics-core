@@ -882,12 +882,12 @@ class Breakpoint(Builtin):
            variable `PYTHONBREAKPOINT` can be utilized.
     </dl>
 
+    >> (* Test with a dummy breakpoint. *)
+    >> SetEnvironment["PYTHONBREAKPOINT" -> "mathics.docpipeline.dummy_breakpoint"]
+    Out[1]= SetEnvironment[PYTHONBREAKPOINT → mathics.docpipeline.dummy_breakpoint]
     >> Breakpoint[]
-    --Return--
-    > mathics/builtin/system.py(891)eval()->None
-    -> breakpoint()
-    (Pdb) c
-    Out[1]= Breakpoint[]
+    Dummy breakpoint() reached! Returning.
+    Out[2]= Breakpoint[]
     """
 
     summary_text = "invoke a Python breakpoint()"

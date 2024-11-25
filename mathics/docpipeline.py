@@ -60,6 +60,11 @@ TestParameters = namedtuple(
 )
 
 
+# Dummy breakpoint for doctests
+def dummy_breakpoint():
+    print("Dummy breakpoint() reached! Returning.")
+
+
 class TestOutput(Output):
     """Output class for tests"""
 
