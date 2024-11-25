@@ -22,6 +22,7 @@ from io import StringIO
 from time import time
 from typing import Callable
 
+import mathics.eval.tracing
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.convert.python import from_bool, from_python
@@ -354,6 +355,8 @@ class TraceEvaluation(Builtin):
       <dd>Evaluate $expr$ and print each step of the evaluation.
     </dl>
 
+    The 'ShowTimeBySteps' option prints the elapsed time before an evaluation occurs.
+
     >> TraceEvaluation[(x + x)^2]
      | ...
      = ...
@@ -367,12 +370,20 @@ class TraceEvaluation(Builtin):
     options = {
         "System`ShowTimeBySteps": "False",
     }
-    summary_text = "trace the successive evaluations"
+    summary_text = "trace expression evaluation"
 
     def eval(self, expr, evaluation: Evaluation, options: dict):
         "TraceEvaluation[expr_, OptionsPattern[]]"
+
         curr_trace_evaluation = evaluation.definitions.trace_evaluation
         curr_time_by_steps = evaluation.definitions.timing_trace_evaluation
+
+        old_evaluation_hook = mathics.eval.tracing.trace_evaluate_on_call
+
+        mathics.eval.tracing.trace_evaluate_on_call = (
+            mathics.eval.tracing.print_evaluate
+        )
+
         evaluation.definitions.trace_evaluation = True
         evaluation.definitions.timing_trace_evaluation = (
             options["System`ShowTimeBySteps"] is SymbolTrue
@@ -380,6 +391,9 @@ class TraceEvaluation(Builtin):
         result = expr.evaluate(evaluation)
         evaluation.definitions.trace_evaluation = curr_trace_evaluation
         evaluation.definitions.timing_trace_evaluation = curr_time_by_steps
+
+        mathics.eval.tracing.trace_evaluate_on_call = old_evaluation_hook
+
         return result
 
 
