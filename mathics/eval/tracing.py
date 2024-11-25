@@ -5,15 +5,66 @@ This is how we support external (Mathics3 module) debuggers and tracers.
 """
 
 import inspect
+import time
 from enum import Enum
 from typing import Any, Callable, Optional
 
-TraceEventNames = ("SymPy", "Numpy", "mpmath", "apply", "debugger")
+TraceEventNames = ("SymPy", "Numpy", "mpmath", "apply", "evaluate", "debugger")
 TraceEvent = Enum("TraceEvent", TraceEventNames)
 
 
 hook_entry_fn: Optional[Callable] = None
 hook_exit_fn: Optional[Callable] = None
+
+
+def print_evaluate(expr, evaluation, status: str, orig_expr=None) -> bool:
+    """
+    Called from a decorated Python @trace_evaluate .evaluate()
+    method when TraceActivate["evaluate" -> True]
+    """
+    if evaluation.definitions.timing_trace_evaluation:
+        evaluation.print_out(time.time() - evaluation.start_time)
+    indents = "  " * evaluation.recursion_depth
+    evaluation.print_out(f"{indents}{status}: {expr}")
+    return False
+
+
+# When not None, evaluate() methods call this
+# to show the status of evaluation on entry and return.
+trace_evaluate_on_call: Optional[Callable] = None
+trace_evaluate_on_return: Optional[Callable] = None
+
+
+def trace_evaluate(func: Callable) -> Callable:
+    """
+    Wrap a method evaluate() call event with trace_evaluate_on_call()
+    and trace_evaluate_on_return() callback so we can trace the
+    progress in evaluation.
+    """
+
+    def wrapper(expr, evaluation) -> Any:
+        from mathics.core.symbols import SymbolConstant
+
+        skip_call = False
+        result = None
+        if (
+            trace_evaluate_on_call is not None
+            and not evaluation.is_boxing
+            and not isinstance(expr, SymbolConstant)
+        ):
+            # We may use boxing in print_evaluate_fn(). So turn off
+            # boxing temporarily.
+            was_boxing = evaluation.is_boxing
+            evaluation.is_boxing = True
+            skip_call = trace_evaluate_on_call(expr, evaluation, "Evaluating")
+            evaluation.is_boxing = was_boxing
+        if not skip_call:
+            result = func(expr, evaluation)
+            if trace_evaluate_on_return is not None and not evaluation.is_boxing:
+                trace_evaluate_on_return(result, evaluation, "Returning", expr)
+        return result
+
+    return wrapper
 
 
 def trace_fn_call_event(func: Callable) -> Callable:

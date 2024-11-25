@@ -209,6 +209,7 @@ def format_element(
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
+    evaluation.is_boxing = True
     expr = do_format(element, evaluation, form)
     if expr is None:
         return None
