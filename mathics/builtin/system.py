@@ -871,3 +871,28 @@ class Share(Builtin):
         else:
             gc.collect()
             return Integer0
+
+
+class Breakpoint(Builtin):
+    """
+    <dl>
+      <dt>'Breakpoint[]'
+      <dd> Invoke a Python breakpoint. By default, the python debugger \
+           (pdb) is loaded. For loading other debuggers, the Python environment \
+           variable `PYTHONBREAKPOINT` can be utilized.
+    </dl>
+
+    >> Breakpoint[]
+    --Return--
+    > mathics/builtin/system.py(891)eval()->None
+    -> breakpoint()
+    (Pdb) c
+    Out[1]= Breakpoint[]
+    """
+
+    summary_text = "invoke a Python breakpoint"
+
+    def eval(self, evaluation: Evaluation):
+        "Breakpoint[]"
+
+        breakpoint()
