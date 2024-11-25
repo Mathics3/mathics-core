@@ -115,6 +115,7 @@ class Stream:
         self,
         name: str,
         mode="r",
+        path: Optional[str] = None,
         encoding=None,
         io=None,
         channel_num=None,
@@ -124,7 +125,10 @@ class Stream:
             channel_num = stream_manager.next
         if mode is None:
             mode = "r"
-        self.name = name
+        if path is None:
+            path = name
+        self.name = name  # name provided by user
+        self.path = path  # resolved path name
         self.mode = mode
         self.encoding = encoding
         self.io = io
@@ -151,8 +155,9 @@ class Stream:
         # open the stream
         fp = io_open(path, self.mode, encoding=encoding)
         stream_manager.add(
-            name=path,
+            name=self.name,
             mode=self.mode,
+            path=path,
             encoding=encoding,
             io=fp,
             is_temporary_file=is_temporary_file,
@@ -188,6 +193,7 @@ class StreamsManager:
         self,
         name: str,
         mode: Optional[str] = None,
+        path: Optional[str] = None,
         encoding=None,
         io=None,
         num: Optional[int] = None,
@@ -195,12 +201,17 @@ class StreamsManager:
     ) -> Optional["Stream"]:
         if num is None:
             num = self.next
+            assert isinstance(num, int)
             # In theory in this branch we won't find num.
+        if path is None:
+            path = name
+        if mode is None:
+            mode = "r"
         # sanity check num
         found = self.lookup_stream(num)
         if found and found is not None:
             raise Exception(f"Stream {num} already open")
-        stream = Stream(name, mode, encoding, io, num, is_temporary_file)
+        stream = Stream(name, mode, path, encoding, io, num, is_temporary_file)
         self.STREAMS[num] = stream
         return stream
 
@@ -218,8 +229,18 @@ class StreamsManager:
         """
         is_temporary_file = stream.is_temporary_file
         if is_temporary_file:
-            os.unlink(stream.name)
+            os.unlink(stream.path)
         del self.STREAMS[stream.n]
+
+    def get_stream_by_name(self, name: str) -> Optional[Stream]:
+        """
+        Find and return a stream given its stream name.
+        Return None if not stream is found.
+        """
+        for i in self.STREAMS:
+            if self.STREAMS[i].name == name:
+                return self.STREAMS[i]
+        return None
 
     def lookup_stream(self, n: int) -> Optional[Stream]:
         """

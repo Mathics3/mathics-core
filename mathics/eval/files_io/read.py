@@ -54,7 +54,12 @@ class MathicsOpen(Stream):
     """
 
     def __init__(
-        self, file: str, mode: str = "r", encoding=None, is_temporary_file: bool = False
+        self,
+        path: str,
+        mode: str = "r",
+        name=None,
+        encoding=None,
+        is_temporary_file: bool = False,
     ):
         if encoding is not None:
             encoding = to_python_encoding(encoding)
@@ -64,7 +69,9 @@ class MathicsOpen(Stream):
             elif encoding is None:
                 raise MessageException("General", "charcode", self.encoding)
         self.encoding = encoding
-        super().__init__(file, mode, self.encoding)
+        if name is None:
+            name = path
+        super().__init__(name, mode=mode, path=path, encoding=self.encoding)
         self.is_temporary_file = is_temporary_file
 
         # The following are set in __enter__ and __exit__
@@ -85,8 +92,9 @@ class MathicsOpen(Stream):
 
         # Add to our internal list of streams
         self.stream = stream_manager.add(
-            name=path,
+            name=self.name,
             mode=self.mode,
+            path=path,
             encoding=self.encoding,
             io=self.fp,
             num=stream_manager.next,
