@@ -14,7 +14,9 @@ You can use these operators as a way to build up your own notation within Mathic
 from sys import modules
 
 import mathics.core.parser.operators
+from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.builtin import (
+    InfixOperator,
     NoMeaningInfixOperator,
     NoMeaningPostfixOperator,
     NoMeaningPrefixOperator,
@@ -59,3 +61,67 @@ for affix, format_fn, operator_base_class in (
 
         # Put the newly-created Builtin class inside this module.
         setattr(modules[__name__], operator_name, generated_operator_class)
+
+
+class DirectedEdge(InfixOperator):
+    # This will be used to create a docstring
+    r"""
+    <url>
+    :WML link:
+    https://reference.wolfram.com/language/ref/DirectedEdge.html</url>
+
+    <dl>
+      <dt>'DirectedEdge[$x$, $y$, ...]'
+      <dd>displays $x$ → $y$ → ...
+    </dl>
+
+    >> DirectedEdge[x, y, z]
+     = x → y → z
+
+    >> a \[DirectedEdge] b
+     = a → b
+
+    """
+    formats = {
+        (("InputForm", "OutputForm", "StandardForm"), "DirectedEdge[args__]"): (
+            'Infix[{args}, "→"]'
+        ),
+    }
+
+    attributes = A_NO_ATTRIBUTES
+    default_formats = False  # Don't use any default format rules. Instead, see belo.
+
+    operator = "→"
+    summary_text = 'DirectedEdge infix operator "→"'
+
+
+class UndirectedEdge(InfixOperator):
+    # This will be used to create a docstring
+    r"""
+    <url>
+    :WML link:
+    https://reference.wolfram.com/language/ref/UndirectedEdge.html</url>
+
+    <dl>
+      <dt>'UndrectedEdge[$x$, $y$, ...]'
+      <dd>displays $x$ ↔ $y$ ↔ ...
+    </dl>
+
+    >> UndirectedEdge[x, y, z]
+     = x ↔ y ↔ z
+
+    >> a \[UndirectedEdge] b
+     = a ↔ b
+
+    """
+    formats = {
+        (("InputForm", "OutputForm", "StandardForm"), "UndirectedEdge[args__]"): (
+            'Infix[{args}, "↔"]'
+        ),
+    }
+
+    attributes = A_NO_ATTRIBUTES
+    default_formats = False  # Don't use any default format rules. Instead, see belo.
+
+    operator = "↔"
+    summary_text = 'UndirectedEdge infix operator "↔"'
