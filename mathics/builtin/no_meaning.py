@@ -23,6 +23,9 @@ from mathics.core.builtin import (
 )
 from mathics.core.parser.operators import OPERATOR_DATA
 
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.operators-without-built-in-meanings"
+
 
 def init():
     # Generate no-meaning Mathics3 Builtin class from the operator name,
