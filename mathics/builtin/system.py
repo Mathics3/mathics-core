@@ -877,7 +877,7 @@ class Breakpoint(Builtin):
     """
     <dl>
       <dt>'Breakpoint[]'
-      <dd> Invoke a Python breakpoint. By default, the python debugger \
+      <dd> Invoke a Python breakpoint. By default, the Python debugger \
            (pdb) is loaded. For loading other debuggers, the Python environment \
            variable `PYTHONBREAKPOINT` can be utilized.
     </dl>
@@ -890,7 +890,7 @@ class Breakpoint(Builtin):
     Out[1]= Breakpoint[]
     """
 
-    summary_text = "invoke a Python breakpoint"
+    summary_text = "invoke a Python breakpoint()"
 
     def eval(self, evaluation: Evaluation):
         "Breakpoint[]"
