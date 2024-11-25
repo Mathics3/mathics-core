@@ -51,7 +51,7 @@ If this is too long, then try narrowing the problem to something short.
 
 ## Your Environment
 
-<!-- _This information can be helpful..
+<!-- _This information can be helpful...
 
 **All: Mathics version, Installed Python Python packages.
 
