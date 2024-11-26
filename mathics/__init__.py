@@ -68,3 +68,8 @@ This program comes with ABSOLUTELY NO WARRANTY.
 This is free software, and you are welcome to redistribute it
 under certain conditions.
 See the documentation for the full license."""
+
+
+# Disabled breakpoint
+def disabled_breakpoint():
+    print("Hit disabled breakpoint.")

@@ -136,13 +136,13 @@ def test_private_doctests_datetime(str_expr, msgs, str_expected, fail_msg):
     [
         ##
         (
-            "TimeConstrained[Integrate[Sin[x]^100,x],.5]",
+            "TimeConstrained[Integrate[Sin[x]^100,x],.001]",
             None,
             "$Aborted",
             "TimeConstrained with two arguments",
         ),
         (
-            "TimeConstrained[Integrate[Sin[x]^100,x],.5, Integrate[Cos[x],x]]",
+            "TimeConstrained[Integrate[Sin[x]^100,x],.001, Integrate[Cos[x],x]]",
             None,
             "Sin[x]",
             "TimeConstrained with three arguments",

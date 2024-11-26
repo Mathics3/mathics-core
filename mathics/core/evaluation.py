@@ -128,6 +128,8 @@ class Evaluation:
         # ``mathics.builtin.numeric.N``.
         self._preferred_n_method: List[str] = []
 
+        self.is_boxing = False
+
     def parse(self, query, src_name: str = ""):
         "Parse a single expression and print the messages."
         from mathics.core.parser import MathicsSingleLineFeeder
@@ -450,6 +452,7 @@ class Evaluation:
         if self.definitions.trace_evaluation:
             self.definitions.trace_evaluation = False
             text = self.format_output(from_python(text), "text")
+            self.is_boxing = False
             self.definitions.trace_evaluation = True
         else:
             text = self.format_output(from_python(text), "text")

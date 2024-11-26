@@ -701,7 +701,12 @@ def match_expression_with_one_identity(
             isinstance(pat_elem, PatternObject)
             and pat_elem.get_head() == SymbolOptional
         ):
-            if len(pat_elem.elements) == 2:
+            if optionals:
+                # A default pattern already exists
+                # Do not use the second one
+                if new_pattern is None:
+                    new_pattern = pat_elem
+            elif len(pat_elem.elements) == 2:
                 pat, value = pat_elem.elements
                 if isinstance(pat, Pattern):
                     key = pat.elements[0].atom.name  # type: ignore[attr-defined]
@@ -724,8 +729,12 @@ def match_expression_with_one_identity(
                 result = defaultvalue_expr.evaluate(evaluation)
                 assert result is not None
                 if result.sameQ(defaultvalue_expr):
-                    return
-                optionals[key] = result
+                    if new_pattern is None:
+                        # The optional pattern has no default value
+                        # for the given position
+                        new_pattern = pat_elem
+                else:
+                    optionals[key] = result
             else:
                 return
         elif new_pattern is not None:
@@ -757,6 +766,8 @@ def match_expression_with_one_identity(
     del parms["attributes"]
     assert new_pattern is not None
     new_pattern.match(expression=expression, pattern_context=parms)
+    for optional in optionals:
+        vars_dict.pop(optional)
 
 
 def basic_match_expression(
