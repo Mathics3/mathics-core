@@ -887,7 +887,7 @@ class Breakpoint(Builtin):
     >> (* Test with a disabled breakpoint. *)
     >> SetEnvironment["PYTHONBREAKPOINT" -> "mathics.disabled_breakpoint"];
     >> Breakpoint[]
-    Hit disabled breakpoint.
+    = Hit disabled breakpoint.
     Out[2]= Breakpoint[]
     """
 
