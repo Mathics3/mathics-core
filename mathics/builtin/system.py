@@ -888,7 +888,7 @@ class Breakpoint(Builtin):
     >> SetEnvironment["PYTHONBREAKPOINT" -> "mathics.disabled_breakpoint"];
     >> Breakpoint[]
     = Hit disabled breakpoint.
-    Out[2]= Breakpoint[]
+    = Breakpoint[]
     """
 
     summary_text = "invoke a Python breakpoint()"
