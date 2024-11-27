@@ -89,7 +89,6 @@ class And(InfixOperator):
     """
 
     attributes = A_FLAT | A_HOLD_ALL | A_ONE_IDENTITY | A_PROTECTED
-    operator = "&&"
     summary_text = "logic conjunction"
     #    rules = {
     #        "And[a_]": "a",
@@ -210,7 +209,6 @@ class Equivalent(InfixOperator):
     """
 
     attributes = A_ORDERLESS | A_PROTECTED
-    operator = "\u29E6"
     summary_text = "logic equivalence"
 
     def eval(self, args, evaluation: Evaluation):
@@ -379,7 +377,7 @@ class Or(InfixOperator):
             return SymbolFalse
 
 
-class Nand(Builtin):
+class Nand(InfixOperator):
     """
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/Nand.html</url>
@@ -402,7 +400,7 @@ class Nand(Builtin):
     summary_text = "negation of logic conjunction"
 
 
-class Nor(Builtin):
+class Nor(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Nor.html</url>
 
@@ -417,7 +415,6 @@ class Nor(Builtin):
      = False
     """
 
-    operator = "\u22BD"
     rules = {
         "Nor[expr___]": "Not[Or[expr]]",
     }
@@ -492,7 +489,6 @@ class Xor(InfixOperator):
     """
 
     attributes = A_FLAT | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
-    operator = "\u22BB"
     summary_text = "logic (exclusive) disjunction"
 
     def eval(self, args, evaluation: Evaluation):

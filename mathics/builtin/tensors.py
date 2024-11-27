@@ -114,7 +114,6 @@ class Dot(InfixOperator):
      = a . b
     """
 
-    operator = "."
     attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
 
     rules = {

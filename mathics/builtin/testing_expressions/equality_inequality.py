@@ -468,7 +468,6 @@ class Equal(_EqualityOperator, _SympyComparison):
     """
 
     grouping = "None"
-    operator = "=="
     summary_text = "numerical equality"
     sympy_name = "Eq"
 
@@ -503,7 +502,6 @@ class Greater(_ComparisonOperator, _SympyComparison):
      = True
     """
 
-    operator = ">"
     summary_text = "greater than"
     sympy_name = "StrictGreaterThan"
 
@@ -522,7 +520,6 @@ class GreaterEqual(_ComparisonOperator, _SympyComparison):
     </dl>
     """
 
-    operator = ">="
     summary_text = "greater than or equal to"
     sympy_name = "GreaterThan"
 
@@ -600,7 +597,6 @@ class Less(_ComparisonOperator, _SympyComparison):
      = 1 < 3 < x < 2
     """
 
-    operator = "<"
     summary_text = "less than"
     sympy_name = "StrictLessThan"
 
@@ -623,7 +619,6 @@ class LessEqual(_ComparisonOperator, _SympyComparison):
 
     """
 
-    operator = "<="
     summary_text = "less than or equal to"
     sympy_name = "LessThan"  # in contrast to StrictLessThan
 
@@ -748,7 +743,6 @@ class SameQ(_ComparisonOperator):
     """
 
     grouping = "None"  # Indeterminate grouping: Neither left nor right
-    operator = "==="
 
     summary_text = "literal symbolic identity"
 
@@ -842,7 +836,6 @@ class Unequal(_EqualityOperator, _SympyComparison):
      = {True, True, True}
     """
 
-    operator = "!="
     summary_text = "numerical inequality"
     sympy_name = "Ne"
 
@@ -884,7 +877,6 @@ class UnsameQ(_ComparisonOperator):
     """
 
     grouping = "None"  # Indeterminate grouping: Neither left nor right
-    operator = "=!="
 
     summary_text = "not literal symbolic identity"
 
