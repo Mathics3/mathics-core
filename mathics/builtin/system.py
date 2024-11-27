@@ -874,24 +874,34 @@ class Share(Builtin):
 
 
 class Breakpoint(Builtin):
-    """
-    ## <url>:trace native symbol:</url>
+    """<url>:Python breakpoint:https://docs.python.org/3/library/functions.html#breakpoint</url>
 
     <dl>
       <dt>'Breakpoint[]'
-      <dd> Invoke a Python breakpoint. By default, the Python debugger \
-           (pdb) is loaded. For loading other debuggers, the Python environment \
-           variable `PYTHONBREAKPOINT` can be utilized.
+      <dd> Invoke a Python breakpoint.
+
+      This can be used for debugging the Mathics3 implementation, but \
+      if you are familiar with Python, it might assist in debugging a Mathics3 programs \
+      as well.
+
+      By default, the Python debugger ('pdb') is loaded. For loading other debuggers, \
+      the change the environment variable 'PYTHONBREAKPOINT'.
     </dl>
 
-    >> (* Test with a disabled breakpoint. *)
+
+    Mathics3 also provides "breakpoint" handler 'mathics.disabled_breakpoint' which \
+    notes that a 'Breakpoint[]' was encountered, but does not stop inside Python. \
+    Here is how to to use that:
+
     >> SetEnvironment["PYTHONBREAKPOINT" -> "mathics.disabled_breakpoint"];
+
     >> Breakpoint[]
     = Hit disabled breakpoint.
     = Breakpoint[]
+
     """
 
-    summary_text = "invoke a Python breakpoint()"
+    summary_text = "invoke Python breakpoint()"
 
     def eval(self, evaluation: Evaluation):
         "Breakpoint[]"
