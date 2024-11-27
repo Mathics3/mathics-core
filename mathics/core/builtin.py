@@ -1426,14 +1426,14 @@ def add_no_meaning_builtin_classes(
             mathics3_format_function_name,
         )
 
-        # FIXME: Right now, precedence for infix operators is listed in
-        # JSON only for infix operators. Extend table generation in the same way
-        # for prefix and postfix, and then extend the code below to
-        # assign operator precedences for prefix and postfix operators.
         if affix == "infix":
             mathics.core.parser.operators.flat_binary_ops[
                 operator_name
             ] = operator_tuple[1]
+        elif affix == "postfix":
+            mathics.core.parser.operators.postfix_ops[operator_name] = operator_tuple[1]
+        elif affix == "prefix":
+            mathics.core.parser.operators.prefix_ops[operator_name] = operator_tuple[1]
 
         # Put the newly-created Builtin class inside the module under
         # mathics.builtin.no_meaning.xxx.
