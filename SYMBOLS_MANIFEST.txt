@@ -174,6 +174,7 @@ System`BoxData
 System`BoxMatrix
 System`BrayCurtisDistance
 System`Break
+System`Breakpoint
 System`Brown
 System`ButtonBox
 System`Byte
@@ -326,6 +327,7 @@ System`DigitCount
 System`DigitQ
 System`Dilation
 System`Dimensions
+System`DirectedEdge
 System`DirectedInfinity
 System`Directive
 System`Directory
@@ -1251,6 +1253,7 @@ System`URLSave
 System`Uncompress
 System`Undefined
 System`Underflow
+System`UndirectedEdge
 System`Unequal
 System`Unevaluated
 System`UniformPolyhedron
