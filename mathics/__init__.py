@@ -89,5 +89,5 @@ def disabled_breakpoint():
     """
     # Note that we were called. In Django and other front-ends, the
     # print message below will appear on the console; it might not be user
-    # visable by default.
+    # visible by default.
     print("Hit disabled breakpoint.")
