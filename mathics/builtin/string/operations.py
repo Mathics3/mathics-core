@@ -321,7 +321,6 @@ class StringJoin(InfixOperator):
     """
 
     attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
-    operator = "<>"
     summary_text = "join strings together"
 
     def eval(self, items, evaluation):
