@@ -73,7 +73,7 @@ See the documentation for the full license."""
 def disabled_breakpoint():
     """
     This breakpoint handler can be used as a dummy breakpoint
-    handler function which does not stop in Mathics3 when Breakpoint[] is
+    handler function which does not stop in Mathics3 when `Breakpoint[]` is
     called. In effect, it disables, going into a Python breakpoint handler.
 
     Here is how to set this from inside Mathics3:
