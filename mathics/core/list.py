@@ -68,7 +68,10 @@ class ListExpression(Expression):
             if self._is_literal:
                 self.value = tuple(values)
 
-        self.elements_properties = elements_properties
+        if elements_properties is None:
+            self._build_elements_properties()
+        else:
+            self.elements_properties = elements_properties
 
         # FIXME: get rid of this junk
         self._sequences = None
