@@ -863,7 +863,8 @@ def test_precedence_values(symbol, prec):
 
     Transpose[{a, ALLOPS}] // TableForm"""
 
-    mathics_prec = session.evaluate("Precedence[{symbol}]").value
+    mathics_prec = session.evaluate(f"Precedence[{symbol}]").value
+    print("Check", f"Precedence[{symbol}]=={prec}")
     check_evaluation(
         f"Precedence[{symbol}]=={prec}",
         "True",
