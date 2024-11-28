@@ -48,7 +48,7 @@ class Breakpoint(Builtin):
       as well.
 
       By default, the Python debugger ('pdb') is loaded. For loading other debuggers, \
-      the change the environment variable 'PYTHONBREAKPOINT'.
+      change the environment variable `PYTHONBREAKPOINT`.
     </dl>
 
 
