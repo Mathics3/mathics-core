@@ -37,7 +37,7 @@ sort_order = "mathics.builtin.global-system-information"
 
 
 class Breakpoint(Builtin):
-    """<url>:Python breakpoint:https://docs.python.org/3/library/functions.html#breakpoint</url>
+    """<url>:Python breakpoint():https://docs.python.org/3/library/functions.html#breakpoint</url>
 
     <dl>
       <dt>'Breakpoint[]'
@@ -48,19 +48,26 @@ class Breakpoint(Builtin):
       as well.
 
       By default, the Python debugger ('pdb') is loaded. For loading other debuggers, \
-      change the environment variable `PYTHONBREAKPOINT`.
+      change the environment variable 'PYTHONBREAKPOINT'.
     </dl>
 
 
-    Mathics3 also provides "breakpoint" handler 'mathics.disabled_breakpoint' which \
-    notes that a 'Breakpoint[]' was encountered, but does not stop inside Python. \
-    Here is how to to use that:
+    Mathics3 also provides "breakpoint" handler, 'mathics.disabled_breakpoint', which \
+    notes that a ether 'Breakpoint[]' was encountered in Mathics3, or 'breakpoint()' was encountered \
+    in the Mathics3 source code. Either way, this breakpoint handler does not stop inside Python \
+    as you might do for debugging.
+
+    Here is how to use 'mathics.disabled_breakpoint':
 
     >> SetEnvironment["PYTHONBREAKPOINT" -> "mathics.disabled_breakpoint"];
-The environment variable `PYTHONBREAKPOINT` can be changed during runtime to swich the breakpoint behavior.
+
     >> Breakpoint[]
     = Hit disabled breakpoint.
     = Breakpoint[]
+
+    The environment variable 'PYTHONBREAKPOINT' can be changed as \
+    often as you want at runtime to switch 'breakpoint()' and \
+    'Breakpoint[]' behavior.
 
     """
 
