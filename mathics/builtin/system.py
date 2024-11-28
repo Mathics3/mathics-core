@@ -57,7 +57,7 @@ class Breakpoint(Builtin):
     Here is how to to use that:
 
     >> SetEnvironment["PYTHONBREAKPOINT" -> "mathics.disabled_breakpoint"];
-
+The environment variable `PYTHONBREAKPOINT` can be changed during runtime to swich the breakpoint behavior.
     >> Breakpoint[]
     = Hit disabled breakpoint.
     = Breakpoint[]
