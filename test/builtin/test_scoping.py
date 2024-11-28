@@ -58,3 +58,22 @@ def test_private_doctests_scoping(str_expr, msgs, str_expected, fail_msg):
         failure_message=fail_msg,
         expected_messages=msgs,
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
+        ("Block[{i = 0}, With[{}, Module[{j = i}, Set[i, i+1]; j]]]", None, "0", None),
+    ],
+)
+def test_scoping_constructs(str_expr, msgs, str_expected, fail_msg):
+    """ """
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )
