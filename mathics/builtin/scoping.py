@@ -712,5 +712,4 @@ class With(Builtin):
 
         vars = dict(get_scoping_vars(vars, "With", evaluation))
         result = expr.replace_vars(vars)
-        result.evaluate(evaluation)
-        return result
+        return result.evaluate(evaluation)
