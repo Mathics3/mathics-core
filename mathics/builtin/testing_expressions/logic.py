@@ -275,7 +275,6 @@ class Implies(InfixOperator):
      = a Implies b Implies c
     """
 
-    operator = "\u21D2"
     grouping = "Right"
     summary_text = "logic implication"
 
@@ -393,7 +392,6 @@ class Nand(InfixOperator):
      = True
     """
 
-    operator = "\u22BC"
     rules = {
         "Nand[expr___]": "Not[And[expr]]",
     }
