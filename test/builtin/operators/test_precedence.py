@@ -576,7 +576,7 @@ def test_precedence_values(symbol, prec):
     )
 
 
-def test_sort_precedence():
+def test_precedence_order():
     """
     Test the precedence order.
     This is a slighly flexible test, which does not
