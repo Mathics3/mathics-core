@@ -142,7 +142,7 @@ def test_private_doctests_datetime(str_expr, msgs, str_expected, fail_msg):
             "TimeConstrained with two arguments",
         ),
         (
-            "TimeConstrained[Integrate[Sin[x]^1000,x],.001, Integrate[Cos[x],x]]",
+            "TimeConstrained[Integrate[Cos[x]^1000,x],.001, Integrate[Cos[x],x]]",
             None,
             "Sin[x]",
             "TimeConstrained with three arguments",
