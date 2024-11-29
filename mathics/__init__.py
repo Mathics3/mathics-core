@@ -70,6 +70,24 @@ under certain conditions.
 See the documentation for the full license."""
 
 
-# Disabled breakpoint
 def disabled_breakpoint():
+    """
+    This breakpoint handler can be used as a dummy breakpoint
+    handler function which does not stop in Mathics3 when `Breakpoint[]` is
+    called. In effect, it disables, going into a Python breakpoint handler.
+
+    Here is how to set this from inside Mathics3:
+        SetEnvironment["PYTHONBREAKPOINT" -> "mathics.disabled_breakpoint"];
+
+    Or when invoking `mathics` from a POSIX shell:
+
+       PYTHONBREAKPOINT=mathics.disabled_breakpoint mathics # other arguments
+
+    See https://docs.python.org/3/library/functions.html#breakpoint for information on
+    the Python builtin breakpoint() function
+
+    """
+    # Note that we were called. In Django and other front-ends, the
+    # print message below will appear on the console; it might not be user
+    # visible by default.
     print("Hit disabled breakpoint.")

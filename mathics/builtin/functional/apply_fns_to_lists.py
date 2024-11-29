@@ -69,7 +69,6 @@ class Apply(InfixOperator):
     """
 
     summary_text = "apply a function to a list, at specified levels"
-    operator = "@@"
     grouping = "Right"
 
     options = {
@@ -128,7 +127,6 @@ class Map(InfixOperator):
     """
 
     summary_text = "map a function over a list, at specified levels"
-    operator = "/@"
     grouping = "Right"
 
     options = {

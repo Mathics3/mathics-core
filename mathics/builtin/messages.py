@@ -322,7 +322,6 @@ class MessageName(InfixOperator):
     default_formats = False
     formats: typing.Dict[str, Any] = {}
     messages = {"messg": "Message cannot be set to `1`. It must be set to a string."}
-    summary_text = "message identifyier"
     operator = "::"
     rules = {
         "MakeBoxes[MessageName[symbol_Symbol, tag_String], "
@@ -333,6 +332,7 @@ class MessageName(InfixOperator):
             'RowBox[{MakeBoxes[symbol, InputForm], "::", tag}]'
         ),
     }
+    summary_text = "associate a message name with a tag"
 
     def eval(self, symbol: Symbol, tag: String, evaluation: Evaluation):
         "MessageName[symbol_Symbol, tag_String]"
