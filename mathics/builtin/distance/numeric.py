@@ -150,14 +150,20 @@ class CosineDistance(Builtin):
     >> N[CosineDistance[{7, 9}, {71, 89}]]
      = 0.0000759646
 
-    >> CosineDistance[{0, 0}, {x, y}]
+    When the length of either vector is 0, the result is 0:
+    >> CosineDistance[{0.0, 0.0}, {x, y}]
      = 0
 
     >> CosineDistance[{1, 0}, {x, y}]
      = 1 - Conjugate[x] / Sqrt[Abs[x] ^ 2 + Abs[y] ^ 2]
 
-    >> CosineDistance[{a, b}, {c, d}]
-     = 1 + (-a Conjugate[c] - b Conjugate[d]) / (Sqrt[Abs[a] ^ 2 + Abs[b] ^ 2] Sqrt[Abs[c] ^ 2 + Abs[d] ^ 2])
+    The order of the vectors influences the result:
+    >> CosineDistance[{x, y}, {1, 0}]
+     = 1 - x / Sqrt[Abs[x] ^ 2 + Abs[y] ^ 2]
+
+    Cosine distance inclues a dot product scaled by norms:
+    >> CosineDistance[{a, b, c}, {x, y, z}]
+     = 1 + (-a Conjugate[x] - b Conjugate[y] - c Conjugate[z]) / (Sqrt[Abs[a] ^ 2 + Abs[b] ^ 2 + Abs[c] ^ 2] Sqrt[Abs[x] ^ 2 + Abs[y] ^ 2 + Abs[z] ^ 2])
     """
 
     summary_text = "cosine distance"
