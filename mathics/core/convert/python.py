@@ -24,12 +24,26 @@ def from_bool(arg: bool) -> BooleanType:
     return SymbolTrue if arg else SymbolFalse
 
 
+def from_complex(arg: complex) -> Complex:
+    """
+    Conversion from a Python complex to Complex.
+    Care is taken to preserve integer-ness of the
+    reall and imaginary parts
+    """
+    convert_fn = Integer if isinstance(arg.real, int) else Real
+    real_value = convert_fn(arg.real)
+    convert_fn = Integer if isinstance(arg.imag, int) else Real
+    imag_value = convert_fn(arg.imag)
+    return Complex(real_value, imag_value)
+
+
 # Historically, from_python() was identified as a bottleneck.
 
 # A large part of this was due to the inefficient monolithic
 # non-specialized interpreter that forced everything into an single
 # Expression class which tried to handle anything given it using
 # conversions.
+
 # Also, through vague or lazy coding this cause a lot of
 # unnecessary conversions.
 
@@ -39,19 +53,20 @@ def from_bool(arg: bool) -> BooleanType:
 # sure from_python() isn't too slow.
 
 
+# TODO:
+#  I think there are number of subtleties to be explained here.
+#  In particular, the expression might been the result of evaluation
+#  a SymPy expression which contains SymPy symbols.
+#
+#  If the end result is to go back into Mathics3 for further
+#  evaluation, then probably no problem.  However if the end result
+#  is produce say a Python string, then at a minimum we may want to
+#  convert backtick (context) symbols into some Python identifier
+#  symbol like underscore.
+
+
 def from_python(arg: Any) -> BaseElement:
-    """Converts a Python expression into a Mathics expression.
-
-    TODO: I think there are number of subtleties to be explained here.
-    In particular, the expression might been the result of evaluation
-    a sympy expression which contains sympy symbols.
-
-    If the end result is to go back into Mathics for further
-    evaluation, then probably no problem.  However if the end result
-    is produce say a Python string, then at a minimum we may want to
-    convert backtick (context) symbols into some Python identifier
-    symbol like underscore.
-    """
+    """Converts a Python expression into a Mathics expression."""
     from mathics.core.convert.expression import to_mathics_list
     from mathics.core.expression import Expression
     from mathics.core.list import ListExpression
@@ -73,10 +88,8 @@ def from_python(arg: Any) -> BaseElement:
         return Real(arg)
     elif number_type == "q":
         return Rational(arg)
-    elif isinstance(arg, complex):
-        return Complex(Real(arg.real), Real(arg.imag))
-    elif number_type == "c":
-        return Complex(arg.real, arg.imag)
+    elif isinstance(arg, complex) or number_type == "c":
+        return from_complex(arg)
     elif isinstance(arg, str):
         return String(arg)
         # if arg[0] == arg[-1] == '"':

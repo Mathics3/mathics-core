@@ -2,17 +2,27 @@
 Numerical Data
 """
 
-from mathics.core.atoms import Integer2
+# Don't use from ... import for eval functions so that
+# tracers/debuggers can tap/switch eval functions
+import mathics.eval.distance as distance
+from mathics.core.atoms import Complex, Integer, Integer1, Integer2, Real
 from mathics.core.builtin import Builtin
 from mathics.core.expression import Evaluation, Expression
-from mathics.core.symbols import SymbolAbs, SymbolDivide, SymbolPlus, SymbolPower
+from mathics.core.symbols import (
+    SymbolAbs,
+    SymbolDivide,
+    SymbolPlus,
+    SymbolPower,
+    SymbolTrue,
+)
 from mathics.core.systemsymbols import (
+    SymbolFunction,
     SymbolMax,
     SymbolNorm,
     SymbolSubtract,
     SymbolTotal,
 )
-from mathics.eval.distance import eval_CosineDistance
+from mathics.eval.testing_expressions import check_ArrayQ
 
 
 def _norm_calc(head, u, v, evaluation: Evaluation):
@@ -145,7 +155,7 @@ class CosineDistance(Builtin):
       <dd>returns the angular cosine distance between vectors $u$ and $v$.
     </dl>
 
-    The cosine distance is equivalent to 1 - $u$. $v$ / ('Norm[$u$] Norm[$v$]').
+    The cosine distance is equivalent to 1 - $u$.Conjugate[$v$] / ('Norm[$u$] Norm[$v$]').
 
     >> N[CosineDistance[{7, 9}, {71, 89}]]
      = 0.0000759646
@@ -166,12 +176,43 @@ class CosineDistance(Builtin):
      = 1 + (-a Conjugate[x] - b Conjugate[y] - c Conjugate[z]) / (Sqrt[Abs[a] ^ 2 + Abs[b] ^ 2 + Abs[c] ^ 2] Sqrt[Abs[x] ^ 2 + Abs[y] ^ 2 + Abs[z] ^ 2])
     """
 
+    messages = {
+        "bldim": "The arguments `1` and `2` do not have compatible dimensions.",
+    }
+
     summary_text = "cosine distance"
 
     def eval(self, u, v, evaluation: Evaluation):
         "CosineDistance[u_, v_]"
 
-        return eval_CosineDistance(u, v)
+        true_function = Expression(SymbolFunction, SymbolTrue)
+        u_is_vector = check_ArrayQ(u, Integer1, true_function, evaluation) is SymbolTrue
+        v_is_vector = check_ArrayQ(u, Integer1, true_function, evaluation) is SymbolTrue
+
+        if not u_is_vector:
+            if isinstance(u, (Complex, Integer, Real)) and isinstance(
+                v, (Complex, Integer, Real)
+            ):
+                return
+
+            if v_is_vector:
+                # u and v are not both vectors nor are they
+                # both numeric scalars. There is nothing we can do here.
+                return
+
+            # FIXME: what to do about scalar vs vector?
+
+        elif v_is_vector:
+            # Check dimensions.
+            # FIXME: do we need something more general than len() here?
+            if len(u.elements) != len(v.elements):
+                evaluation.message("CosineDistance", "bldim", u, v)
+                return
+
+        # Note: use distance.eval_... not
+        # eval_...  This allows tracers and debuggers
+        # to redirect eval_ functions.
+        return distance.eval_CosineDistance(u, v)
 
 
 class EuclideanDistance(Builtin):

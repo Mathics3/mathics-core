@@ -2,7 +2,8 @@
 Distance-related evaluation functions and exception classes
 """
 
-from mathics.core.atoms import Integer, Integer0, Real
+from mathics.core.atoms import Complex, Integer, Integer0, Real
+from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
 
 
@@ -39,9 +40,23 @@ def eval_CosineDistance(u, v):
 
     # We follow pretty much what is done in Symja in ClusteringFunctions.java for this:
     # https://github.com/axkr/symja_android_library/blob/master/symja_android_library/matheclipse-core/src/main/java/org/matheclipse/core/builtin/ClusteringFunctions.java#L377-L386
+    # Some extensions for degenerate cases have been added.
+
+    # Handle some degenerate cases
+    if isinstance(u, (Complex, Integer, Real)) and isinstance(
+        v, (Complex, Integer, Real)
+    ):
+        u_val = u.to_python()
+        v_val = v.to_python()
+        distance = 1 - u_val * v_val.conjugate() / (abs(u_val) * abs(v_val))
+        return from_python(distance)
 
     sym_u = to_sympy_matrix(u)
+    if sym_u is None:
+        return
     sym_v = to_sympy_matrix(v)
+    if sym_v is None:
+        return
     u_norm = sym_u.norm()
     if u_norm == 0:
         return Integer0
