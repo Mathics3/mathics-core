@@ -2,18 +2,12 @@
 Numerical Data
 """
 
-from mathics.core.atoms import Integer1, Integer2
+from mathics.core.atoms import Integer0, Integer2
 from mathics.core.builtin import Builtin
+from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
 from mathics.core.expression import Evaluation, Expression
-from mathics.core.symbols import (
-    SymbolAbs,
-    SymbolDivide,
-    SymbolPlus,
-    SymbolPower,
-    SymbolTimes,
-)
+from mathics.core.symbols import SymbolAbs, SymbolDivide, SymbolPlus, SymbolPower
 from mathics.core.systemsymbols import (
-    SymbolDot,
     SymbolMax,
     SymbolNorm,
     SymbolSubtract,
@@ -143,44 +137,47 @@ class CosineDistance(Builtin):
     r"""
     <url>
     :Cosine similarity:
-    https://en.wikipedia.org/wiki/Cosine_similarity</url> \
-    (<url>:WMA:
+    https://en.wikipedia.org/wiki/Cosine_similarity</url> (<url>:WMA:
     https://reference.wolfram.com/language/ref/CosineDistance.html</url>)
 
     <dl>
       <dt>'CosineDistance[$u$, $v$]'
-      <dd>returns the cosine distance between $u$ and $v$.
+      <dd>returns the angular cosine distance between vectors $u$ and $v$.
     </dl>
 
-    The cosine distance is given by $1 - u\cdot v/(Norm[u] Norm[v])=2\sin(\phi/2)^2$ with $\phi$
-    the angle between both vectors.
+    The cosine distance is equivalent to 1 - $u$. $v$ / ('Norm[$u$] Norm[$v$]').
 
     >> N[CosineDistance[{7, 9}, {71, 89}]]
      = 0.0000759646
 
+    >> CosineDistance[{0, 0}, {x, y}]
+     = 0
+
+    >> CosineDistance[{1, 0}, {x, y}]
+     = 1 - Conjugate[x] / Sqrt[Abs[x] ^ 2 + Abs[y] ^ 2]
+
     >> CosineDistance[{a, b}, {c, d}]
-     = 1 + (-a c - b d) / (Sqrt[Abs[a] ^ 2 + Abs[b] ^ 2] Sqrt[Abs[c] ^ 2 + Abs[d] ^ 2])
+     = 1 + (-a Conjugate[c] - b Conjugate[d]) / (Sqrt[Abs[a] ^ 2 + Abs[b] ^ 2] Sqrt[Abs[c] ^ 2 + Abs[d] ^ 2])
     """
 
     summary_text = "cosine distance"
 
     def eval(self, u, v, evaluation: Evaluation):
         "CosineDistance[u_, v_]"
-        dot = _norm_calc(SymbolDot, u, v, evaluation)
-        if dot is not None:
-            return Expression(
-                SymbolSubtract,
-                Integer1,
-                Expression(
-                    SymbolDivide,
-                    dot,
-                    Expression(
-                        SymbolTimes,
-                        Expression(SymbolNorm, u),
-                        Expression(SymbolNorm, v),
-                    ),
-                ),
-            )
+
+        # We follow pretty much what is done in Symja in ClusteringFunctions.java for this:
+        # https://github.com/axkr/symja_android_library/blob/master/symja_android_library/matheclipse-core/src/main/java/org/matheclipse/core/builtin/ClusteringFunctions.java#L377-L386
+
+        sym_u = to_sympy_matrix(u)
+        sym_v = to_sympy_matrix(v)
+        u_norm = sym_u.norm()
+        if u_norm == 0:
+            return Integer0
+        v_norm = sym_v.norm()
+        if v_norm == 0:
+            return Integer0
+
+        return from_sympy(1 - sym_u.dot(sym_v.conjugate()) / (u_norm * v_norm))
 
 
 class EuclideanDistance(Builtin):
