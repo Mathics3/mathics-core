@@ -2,9 +2,8 @@
 Numerical Data
 """
 
-from mathics.core.atoms import Integer0, Integer2
+from mathics.core.atoms import Integer2
 from mathics.core.builtin import Builtin
-from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.symbols import SymbolAbs, SymbolDivide, SymbolPlus, SymbolPower
 from mathics.core.systemsymbols import (
@@ -13,6 +12,7 @@ from mathics.core.systemsymbols import (
     SymbolSubtract,
     SymbolTotal,
 )
+from mathics.eval.distance import eval_CosineDistance
 
 
 def _norm_calc(head, u, v, evaluation: Evaluation):
@@ -171,19 +171,7 @@ class CosineDistance(Builtin):
     def eval(self, u, v, evaluation: Evaluation):
         "CosineDistance[u_, v_]"
 
-        # We follow pretty much what is done in Symja in ClusteringFunctions.java for this:
-        # https://github.com/axkr/symja_android_library/blob/master/symja_android_library/matheclipse-core/src/main/java/org/matheclipse/core/builtin/ClusteringFunctions.java#L377-L386
-
-        sym_u = to_sympy_matrix(u)
-        sym_v = to_sympy_matrix(v)
-        u_norm = sym_u.norm()
-        if u_norm == 0:
-            return Integer0
-        v_norm = sym_v.norm()
-        if v_norm == 0:
-            return Integer0
-
-        return from_sympy(1 - sym_u.dot(sym_v.conjugate()) / (u_norm * v_norm))
+        return eval_CosineDistance(u, v)
 
 
 class EuclideanDistance(Builtin):
