@@ -1069,8 +1069,7 @@ if sys.platform != "emscripten":
     import stopit
 
     class TimeConstrained(Builtin):
-        """
-        <url>:WMA link:https://reference.wolfram.com/language/ref/TimeConstrained.html</url>
+        """<url>:WMA link:https://reference.wolfram.com/language/ref/TimeConstrained.html</url>
 
         <dl>
           <dt>'TimeConstrained[$expr$, $t$]'
@@ -1084,14 +1083,14 @@ if sys.platform != "emscripten":
         If a second 'TimeConstrianed[]' is called when another is in progress, \
         it will fail and return $failexpr$.
 
-        Possible issues: for certain time-consuming functions (like simplify)
-        which are based on SymPy or other libraries, it is possible that
-        the evaluation continues after the timeout. However, at the end of the \
-        evaluation, the function will return '$Aborted' and the results will not affect
-        the state of the Mathics3 kernel.
+        In time-consuming library functions, like simplify, evalution \
+        can continue after the timeout. However, at the end of the \
+        evaluation, the function will return '$Aborted' and the
+        results will not affect the state of the Mathics3 kernel.
 
-        In Python, a timeout exception can occur at a place where Python is not in a position to be able to handle it. \
-        This is called an "unraisable exception".
+        In Python, a timeout exception can occur at a place where \
+        Python is not in a position to be able to handle it. This is \
+        called an "unraisable exception".
         """
 
         # If True, we are already running TimeConstrained[].
