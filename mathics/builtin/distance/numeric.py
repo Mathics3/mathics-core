@@ -202,7 +202,7 @@ class CosineDistance(Builtin):
 
             # FIXME: what to do about scalar vs vector?
 
-        elif v_is_vector:
+        if v_is_vector:
             # Check dimensions.
             # FIXME: do we need something more general than len() here?
             if len(u.elements) != len(v.elements):
