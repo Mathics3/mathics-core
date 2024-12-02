@@ -195,14 +195,14 @@ class CosineDistance(Builtin):
             ):
                 return
 
-            elif v_is_vector:
+            if v_is_vector:
                 # u and v are not both vectors nor are they
                 # both numeric scalars. There is nothing we can do here.
                 return
 
             # FIXME: what to do about scalar vs vector?
 
-        if v_is_vector:
+        elif v_is_vector:
             # Check dimensions.
             # FIXME: do we need something more general than len() here?
             if len(u.elements) != len(v.elements):
