@@ -1080,12 +1080,22 @@ if sys.platform != "emscripten":
           <dd>'returns $failexpr$ if the time constraint is not met.'
         </dl>
 
+        At most one 'TimeConstrained[]' evalution can be performed at a time. \
+        If a second 'TimeConstrianed[]' is called when another is in progress, \
+        it will fail and return $failexpr$.
+
         Possible issues: for certain time-consuming functions (like simplify)
-        which are based on sympy or other libraries, it is possible that
+        which are based on SymPy or other libraries, it is possible that
         the evaluation continues after the timeout. However, at the end of the \
         evaluation, the function will return '$Aborted' and the results will not affect
         the state of the Mathics3 kernel.
+
+        In Python, a timeout exception can occur at a place where Python is not in a position to be able to handle it. \
+        This is called an "unraisable exception".
         """
+
+        # If True, we are already running TimeConstrained[].
+        is_running_TimeConstrained = False
 
         attributes = A_HOLD_ALL | A_PROTECTED
         messages = {
@@ -1097,11 +1107,11 @@ if sys.platform != "emscripten":
 
         summary_text = "run a command for at most a specified time"
 
-        def eval_2(self, expr, t, evaluation):
+        def eval(self, expr, t, evaluation: Evaluation):
             "TimeConstrained[expr_, t_]"
-            return self.eval_3(expr, t, SymbolAborted, evaluation)
+            return self.eval_with_failexpr(expr, t, SymbolAborted, evaluation)
 
-        def eval_3(self, expr, t, failexpr, evaluation):
+        def eval_with_failexpr(self, expr, t, failexpr, evaluation: Evaluation):
             "TimeConstrained[expr_, t_, failexpr_]"
             t = t.evaluate(evaluation)
             if not t.is_numeric(evaluation):
@@ -1110,12 +1120,23 @@ if sys.platform != "emscripten":
             try:
                 timeout = float(t.to_python())
                 evaluation.timeout_queue.append((timeout, datetime.now().timestamp()))
-                request = lambda: expr.evaluate(evaluation)
+
+                def run():
+                    return expr.evaluate(evaluation)
+
+                request = run
                 done = False
+                if self.is_running_TimeConstrained:
+                    # We are already running TimeConstained, so don't try
+                    # to start another, just evaluate and return.
+                    # print(f"Already running no - {expr}")
+                    return failexpr.evaluate(evaluation)
                 with stopit.ThreadingTimeout(timeout) as to_ctx_mgr:
+                    self.is_running_TimeConstrained = True
                     assert to_ctx_mgr.state == to_ctx_mgr.EXECUTING
                     result = request()
                     done = True
+                    self.is_running_TimeConstrained = False
                 if done:
                     evaluation.timeout_queue.pop()
                     return result
@@ -1151,7 +1172,7 @@ class TimeZone(Predefined):
 
     summary_text = "gets the default time zone"
 
-    def evaluate(self, evaluation) -> Real:
+    def evaluate(self, evaluation: Evaluation) -> Real:
         return self.value
 
 
