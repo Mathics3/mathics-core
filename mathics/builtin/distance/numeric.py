@@ -171,7 +171,7 @@ class CosineDistance(Builtin):
     >> CosineDistance[{x, y}, {1, 0}]
      = 1 - x / Sqrt[Abs[x] ^ 2 + Abs[y] ^ 2]
 
-    Cosine distance inclues a dot product scaled by norms:
+    Cosine distance includes a dot product scaled by norms:
     >> CosineDistance[{a, b, c}, {x, y, z}]
      = 1 + (-a Conjugate[x] - b Conjugate[y] - c Conjugate[z]) / (Sqrt[Abs[a] ^ 2 + Abs[b] ^ 2 + Abs[c] ^ 2] Sqrt[Abs[x] ^ 2 + Abs[y] ^ 2 + Abs[z] ^ 2])
     """
@@ -202,7 +202,7 @@ class CosineDistance(Builtin):
 
             # FIXME: what to do about scalar vs vector?
 
-        elif v_is_vector:
+        if v_is_vector:
             # Check dimensions.
             # FIXME: do we need something more general than len() here?
             if len(u.elements) != len(v.elements):
