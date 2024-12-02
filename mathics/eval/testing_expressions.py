@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 
 import sympy
 
@@ -87,20 +87,20 @@ def do_cplx_equal(x, y) -> Optional[int]:
     return c == 0
 
 
-def expr_max(elements):
+def expr_max(elements) -> Union[Expression, int]:
     result = Expression(SymbolDirectedInfinity, IntegerM1)
     for element in elements:
         c = do_cmp(element, result)
-        if c > 0:
+        if c is not None and c > 0:
             result = element
     return result
 
 
-def expr_min(elements):
+def expr_min(elements) -> Union[Expression, int]:
     result = Expression(SymbolDirectedInfinity, Integer1)
     for element in elements:
         c = do_cmp(element, result)
-        if c < 0:
+        if c is not None and c < 0:
             result = element
     return result
 
@@ -109,7 +109,7 @@ def is_number(sympy_value) -> bool:
     return hasattr(sympy_value, "is_number") or isinstance(sympy_value, sympy.Float)
 
 
-def eval_ArrayQ(expr, pattern, test, evaluation: Evaluation) -> BooleanType:
+def eval_ArrayQ(expr, pattern, test_condition, evaluation: Evaluation) -> BooleanType:
     "Check if expr is an Array which test yields true for each of its elements."
 
     pattern = BasePattern.create(pattern, evaluation=evaluation)
@@ -118,9 +118,10 @@ def eval_ArrayQ(expr, pattern, test, evaluation: Evaluation) -> BooleanType:
 
     def check(level, expr):
         if not expr.has_form("List", None):
-            test_expr = Expression(test, expr)
-            if test_expr.evaluate(evaluation) != SymbolTrue:
-                return False
+            if test_condition is not None:
+                test_expr = Expression(test_condition, expr)
+                if test_expr.evaluate(evaluation) != SymbolTrue:
+                    return False
             level_dim = None
         else:
             level_dim = len(expr.elements)
