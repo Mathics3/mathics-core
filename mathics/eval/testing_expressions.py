@@ -6,7 +6,7 @@ from mathics.core.atoms import Complex, Integer, Integer0, Integer1, IntegerM1
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.rules import BasePattern
-from mathics.core.symbols import SymbolFalse, SymbolTimes, SymbolTrue
+from mathics.core.symbols import BooleanType, SymbolFalse, SymbolTimes, SymbolTrue
 from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolSparseArray
 
 
@@ -109,7 +109,7 @@ def is_number(sympy_value) -> bool:
     return hasattr(sympy_value, "is_number") or isinstance(sympy_value, sympy.Float)
 
 
-def check_ArrayQ(expr, pattern, test, evaluation: Evaluation):
+def eval_ArrayQ(expr, pattern, test, evaluation: Evaluation) -> BooleanType:
     "Check if expr is an Array which test yields true for each of its elements."
 
     pattern = BasePattern.create(pattern, evaluation=evaluation)
@@ -146,7 +146,7 @@ def check_ArrayQ(expr, pattern, test, evaluation: Evaluation):
     return SymbolTrue
 
 
-def check_SparseArrayQ(expr, pattern, test, evaluation: Evaluation):
+def eval_SparseArrayQ(expr, pattern, test, evaluation: Evaluation) -> BooleanType:
     "Check if expr is a SparseArray which test yields true for each of its elements."
 
     if not expr.head.sameQ(SymbolSparseArray):

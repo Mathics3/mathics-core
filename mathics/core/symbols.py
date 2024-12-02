@@ -740,9 +740,12 @@ class SymbolConstant(Symbol):
         return self._value
 
 
-# A BooleanType is a special form of SymbolConstant where the value
-# of the constant is either SymbolTrue or SymbolFalse.
-BooleanType = SymbolConstant
+class BooleanType(SymbolConstant):
+    """A Special form of SymbolConstant where the value
+    the constant is either SymbolTrue or SymbolFalse.
+    """
+
+    pass
 
 
 def symbol_set(*symbols: Symbol) -> FrozenSet[Symbol]:
@@ -771,9 +774,9 @@ def symbol_set(*symbols: Symbol) -> FrozenSet[Symbol]:
 # more of the below and in systemsymbols
 # PredefineSymbol.
 
-SymbolFalse = SymbolConstant("System`False", value=False)
+SymbolFalse = BooleanType("System`False", value=False)
 SymbolList = SymbolConstant("System`List", value=list)
-SymbolTrue = SymbolConstant("System`True", value=True)
+SymbolTrue = BooleanType("System`True", value=True)
 
 SymbolAbs = Symbol("Abs")
 SymbolDivide = Symbol("Divide")
