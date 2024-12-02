@@ -22,7 +22,7 @@ from mathics.core.systemsymbols import (
     SymbolSubtract,
     SymbolTotal,
 )
-from mathics.eval.testing_expressions import check_ArrayQ
+from mathics.eval.testing_expressions import eval_ArrayQ
 
 
 def _norm_calc(head, u, v, evaluation: Evaluation):
@@ -186,11 +186,11 @@ class CosineDistance(Builtin):
         "CosineDistance[u_, v_]"
 
         true_function = Expression(SymbolFunction, SymbolTrue)
-        u_is_vector = check_ArrayQ(u, Integer1, true_function, evaluation) is SymbolTrue
-        v_is_vector = check_ArrayQ(u, Integer1, true_function, evaluation) is SymbolTrue
+        u_is_vector = eval_ArrayQ(u, Integer1, true_function, evaluation) is SymbolTrue
+        v_is_vector = eval_ArrayQ(u, Integer1, true_function, evaluation) is SymbolTrue
 
         if not u_is_vector:
-            if isinstance(u, (Complex, Integer, Real)) and isinstance(
+            if not isinstance(u, (Complex, Integer, Real)) and isinstance(
                 v, (Complex, Integer, Real)
             ):
                 return

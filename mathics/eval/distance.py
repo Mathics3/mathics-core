@@ -49,6 +49,14 @@ def eval_CosineDistance(u, v):
         u_val = u.to_python()
         v_val = v.to_python()
         distance = 1 - u_val * v_val.conjugate() / (abs(u_val) * abs(v_val))
+
+        # If the input arguments were Integers, preserve that in the result
+        if isinstance(u_val, int) and isinstance(v_val, int):
+            try:
+                if distance == int(distance):
+                    distance = int(distance)
+            except Exception:
+                pass
         return from_python(distance)
 
     sym_u = to_sympy_matrix(u)
