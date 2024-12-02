@@ -4,7 +4,7 @@ Numerical Data
 
 # Don't use from ... import for eval functions so that
 # tracers/debuggers can tap/switch eval functions
-import mathics.eval.distance as distance
+import mathics.eval.distance.numeric as distance_numeric
 from mathics.core.atoms import Complex, Integer, Integer1, Integer2, Real
 from mathics.core.builtin import Builtin
 from mathics.core.expression import Evaluation, Expression
@@ -16,7 +16,6 @@ from mathics.core.symbols import (
     SymbolTrue,
 )
 from mathics.core.systemsymbols import (
-    SymbolFunction,
     SymbolMax,
     SymbolNorm,
     SymbolSubtract,
@@ -185,9 +184,8 @@ class CosineDistance(Builtin):
     def eval(self, u, v, evaluation: Evaluation):
         "CosineDistance[u_, v_]"
 
-        true_function = Expression(SymbolFunction, SymbolTrue)
-        u_is_vector = eval_ArrayQ(u, Integer1, true_function, evaluation) is SymbolTrue
-        v_is_vector = eval_ArrayQ(u, Integer1, true_function, evaluation) is SymbolTrue
+        u_is_vector = eval_ArrayQ(u, Integer1, None, evaluation) is SymbolTrue
+        v_is_vector = eval_ArrayQ(u, Integer1, None, evaluation) is SymbolTrue
 
         if not u_is_vector:
             if not isinstance(u, (Complex, Integer, Real)) and isinstance(
@@ -212,7 +210,7 @@ class CosineDistance(Builtin):
         # Note: use distance.eval_... not
         # eval_...  This allows tracers and debuggers
         # to redirect eval_ functions.
-        return distance.eval_CosineDistance(u, v)
+        return distance_numeric.eval_CosineDistance(u, v)
 
 
 class EuclideanDistance(Builtin):

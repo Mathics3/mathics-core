@@ -27,7 +27,7 @@ from mathics.core.systemsymbols import (
     SymbolFindClusters,
     SymbolRule,
 )
-from mathics.eval.distance import (
+from mathics.eval.distance.clusters import (
     IllegalDataPoint,
     IllegalDistance,
     dist_repr,
@@ -495,7 +495,7 @@ class Nearest(Builtin):
                 else:
                     candidates = heapq.nsmallest(py_n, py_distances)
 
-                for d, i in candidates:
+                for _, i in candidates:
                     yield repr_p[i]
 
             return ListExpression(*list(pick()))

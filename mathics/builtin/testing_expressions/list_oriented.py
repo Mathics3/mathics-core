@@ -45,12 +45,19 @@ class ArrayQ(Builtin):
 
     rules = {
         "ArrayQ[expr_]": "ArrayQ[expr, _, True&]",
-        "ArrayQ[expr_, pattern_]": "ArrayQ[expr, pattern, True&]",
     }
 
     summary_text = "test whether an object is a tensor of a given rank"
 
-    def eval(self, expr, pattern, test, evaluation: Evaluation):
+    def eval_with_pattern(self, expr, pattern, evaluation: Evaluation):
+        "ArrayQ[expr_, pattern_]"
+
+        # if not isinstance(expr, Atom) and expr.head.sameQ(SymbolSparseArray):
+        #    return check_SparseArrayQ(expr, pattern, test, evaluation)
+
+        return eval_ArrayQ(expr, pattern, None, evaluation)
+
+    def eval_with_pattern_and_test(self, expr, pattern, test, evaluation: Evaluation):
         "ArrayQ[expr_, pattern_, test_]"
 
         # if not isinstance(expr, Atom) and expr.head.sameQ(SymbolSparseArray):
