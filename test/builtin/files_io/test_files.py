@@ -295,6 +295,12 @@ def test_close():
             "{{a, 1}}",
             "",
         ),
+        (
+            'ReadList[StringToStream["(**)"], Expression]',
+            None,
+            "{Null}",
+            "",
+        ),
         ('stream = StringToStream["Mathics is cool!"];', None, "Null", ""),
         ("SetStreamPosition[stream, -5]", ("Invalid I/O Seek.",), "0", ""),
         (
