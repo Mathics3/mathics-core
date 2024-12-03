@@ -1140,6 +1140,7 @@ if sys.platform != "emscripten":
             self.is_running_TimeConstrained = False
             return result
 
+
 class TimeZone(Predefined):
     """
     <url>:Time Zone:https://en.wikipedia.org/wiki/Time_zone</url> (<url>
