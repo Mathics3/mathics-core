@@ -340,6 +340,12 @@ class Definitions:
 
         return [name for name in self.get_names() if regex.match(name)]
 
+    def is_defined(self, symbol: Symbol) -> bool:
+        """
+        Return True if `name` is defined, or False if not.
+        """
+        return symbol.name in self.get_names()
+
     def lookup_name(self, name) -> str:
         """
         Determine the full name (including context) for a symbol name.

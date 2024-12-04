@@ -16,35 +16,114 @@ Infix operators combined with assignment end in 'By', 'From', or 'To'.
 """
 
 
+from mathics.core.atoms import Integer1, IntegerM1
 from mathics.core.attributes import A_HOLD_FIRST, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import InfixOperator, PostfixOperator, PrefixOperator
+from mathics.core.evaluation import Evaluation
+from mathics.core.systemsymbols import SymbolPlus
+from mathics.eval.assignments.assign_binaryop import eval_inplace_op
 
 
-class AddTo(InfixOperator):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/AddTo.html</url>
-
-    <dl>
-      <dt>'AddTo[$x$, $dx$]'
-      <dt>'$x$ += $dx$'
-      <dd>is equivalent to '$x$ = $x$ + $dx$'.
-    </dl>
-
-    >> a = 10;
-    >> a += 2
-     = 12
-    >> a
-     = 12
-    """
-
-    attributes = A_HOLD_FIRST | A_PROTECTED
+class InplaceInfixOperator:
     grouping = "Right"
-    operator = "+="
+    operator_symbol = SymbolPlus
+    increment_symbol = Integer1
+    return_before_value: bool = False
 
-    rules = {
-        "x_ += dx_": "x = x + dx",
-    }
-    summary_text = "add a value and assigns that returning the new value"
+    def eval(self, expr, evaluation: Evaluation):
+        """%(name)s[expr_]"""
+        return eval_inplace_op(
+            self,
+            expr,
+            self.operator_symbol,
+            self.increment_symbol,
+            self.return_before_value,
+            evaluation,
+        )
+
+
+# class AddTo(InfixOperator, InplaceInfixOperator):
+#     """
+#     <url>:WMA link:https://reference.wolfram.com/language/ref/AddTo.html</url>
+
+#     <dl>
+#       <dt>'AddTo[$x$, $dx$]'
+#       <dt>'$x$ += $dx$'
+#       <dd>is equivalent to '$x$ = $x$ + $dx$'.
+#     </dl>
+
+#     >> a = 10;
+#     >> a += 2
+#      = 12
+#     >> a
+#      = 12
+#     """
+
+#     attributes = A_HOLD_FIRST | A_PROTECTED
+#     operator = "+="
+
+#     operator_symbol: Symbol = SymbolPlus
+#     return_before_value: bool = False
+#     summary_text = "add a value and assigns that returning the new value"
+
+#     def eval(self, expr, increment, evaluation: Evaluation):
+#         """%(name)s[expr_, increment_]"""
+#         return eval_inplace_op(self, expr, self.operator_symbol, increment, self.return_before_value, evaluation)
+
+
+# class Decrement(InplaceInfixOperator, InfixOperator, PostfixOperator):
+#     """
+#     <url>:WMA link
+#     :https://reference.wolfram.com/language/ref/Decrement.html</url>
+
+#     <dl>
+#       <dt>'Decrement[$x$]'
+
+#       <dt>'$x$--'
+#       <dd>decrements $x$ by 1, returning the original value of $x$.
+#     </dl>
+
+#     >> a = 5;
+#     X> a--
+#      = 5
+#     X> a
+#      = 4
+#     """
+
+#     increment_symbol = IntegerM1
+#     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
+#     operator = "--"
+
+#     summary_text = (
+#         "decreases the value by one and assigns that returning the original value"
+#     )
+
+
+# class AddTo(InfixOperator):
+#     """
+#     <url>:WMA link:https://reference.wolfram.com/language/ref/AddTo.html</url>
+
+#     <dl>
+#       <dt>'AddTo[$x$, $dx$]'
+#       <dt>'$x$ += $dx$'
+#       <dd>is equivalent to '$x$ = $x$ + $dx$'.
+#     </dl>
+
+#     >> a = 10;
+#     >> a += 2
+#      = 12
+#     >> a
+#      = 12
+#     """
+
+#     attributes = A_HOLD_FIRST | A_PROTECTED
+#     grouping = "Right"
+#     operator = "+="
+
+#     rules = {
+#         "x_ += dx_": "x = x + dx",
+#     }
+#     summary_text = "add a value and assigns that returning the new value"
 
 
 class Decrement(PostfixOperator):
@@ -103,6 +182,38 @@ class DivideBy(InfixOperator):
         "x_ /= dx_": "x = x / dx",
     }
     summary_text = "divide a value and assigns that returning the new value"
+
+
+# class Increment(InplaceInfixOperator, InfixOperator, PostfixOperator):
+#     """
+#     <url>:WMA link:
+#     https://reference.wolfram.com/language/ref/Increment.html</url>
+
+#     <dl>
+#       <dt>'Increment[$x$]'
+
+#       <dt>'$x$++'
+#       <dd>increments $x$ by 1, returning the original value of $x$.
+#     </dl>
+
+#     >> a = 2;
+#     >> a++
+#      = 2
+#     >> a
+#      = 3
+#     Grouping of 'Increment', 'PreIncrement' and 'Plus':
+#     >> ++++a+++++2//Hold//FullForm
+#      = Hold[Plus[PreIncrement[PreIncrement[Increment[Increment[a]]]], 2]]
+#     """
+
+#     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
+#     increment_symbol = Integer1
+#     operator = "++"
+#     operator_symbol = SymbolPlus
+#     return_before_value: bool = True
+#     summary_text = (
+#         "increases the value by one and assigns that returning the original value"
+#     )
 
 
 class Increment(PostfixOperator):
