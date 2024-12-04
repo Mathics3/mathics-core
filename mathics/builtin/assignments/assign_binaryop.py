@@ -16,11 +16,33 @@ Infix operators combined with assignment end in 'By', 'From', or 'To'.
 """
 
 
+from mathics.core.atoms import Integer1, IntegerM1
 from mathics.core.attributes import A_HOLD_FIRST, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import InfixOperator, PostfixOperator, PrefixOperator
+from mathics.core.evaluation import Evaluation
+from mathics.core.systemsymbols import SymbolPlus
+from mathics.eval.assignments.assign_binaryop import eval_inplace_op
 
 
-class AddTo(InfixOperator):
+class InplaceInfixOperator:
+    grouping = "Right"
+    operator_symbol = SymbolPlus
+    increment_symbol = Integer1
+    returns_updated_value: bool = True
+
+    def eval(self, expr, evaluation: Evaluation):
+        """%(name)s[expr_]"""
+        return eval_inplace_op(
+            self,
+            expr,
+            self.operator_symbol,
+            self.increment_symbol,
+            self.returns_updated_value,
+            evaluation,
+        )
+
+
+class AddTo(InfixOperator, InplaceInfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/AddTo.html</url>
 
@@ -38,16 +60,27 @@ class AddTo(InfixOperator):
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED
-    grouping = "Right"
     operator = "+="
 
-    rules = {
-        "x_ += dx_": "x = x + dx",
-    }
+    operator_symbol = SymbolPlus
+    return_before_value: bool = True
     summary_text = "add a value and assigns that returning the new value"
 
+    def eval(self, expr, increment, evaluation: Evaluation):
+        """%(name)s[expr_, increment_]"""
+        return eval_inplace_op(
+            self,
+            expr,
+            self.operator_symbol,
+            increment,
+            self.return_before_value,
+            evaluation,
+        )
 
-class Decrement(PostfixOperator):
+
+# Decrement has Infix properties for evaluation purposes, but Postfix
+# properties for operator association.
+class Decrement(InplaceInfixOperator, InfixOperator, PostfixOperator):
     """
     <url>:WMA link
     :https://reference.wolfram.com/language/ref/Decrement.html</url>
@@ -66,19 +99,18 @@ class Decrement(PostfixOperator):
      = 4
     """
 
-    operator = "--"
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
+    increment_symbol = IntegerM1
+    operator = "--"
+    operator_symbol = SymbolPlus
 
-    rules = {
-        "x_--": "Module[{t=x}, x = x - 1; t]",
-    }
-
+    returns_updated_value = False
     summary_text = (
         "decreases the value by one and assigns that returning the original value"
     )
 
 
-class DivideBy(InfixOperator):
+class DivideBy(InplaceInfixOperator, InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/DivideBy.html</url>
 
@@ -105,7 +137,7 @@ class DivideBy(InfixOperator):
     summary_text = "divide a value and assigns that returning the new value"
 
 
-class Increment(PostfixOperator):
+class Increment(InplaceInfixOperator, InfixOperator, PostfixOperator):
     """
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/Increment.html</url>
@@ -127,24 +159,17 @@ class Increment(PostfixOperator):
      = Hold[Plus[PreIncrement[PreIncrement[Increment[Increment[a]]]], 2]]
     """
 
-    operator = "++"
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
-
-    rules = {
-        "x_++": (
-            "Module[{Internal`IncrementTemporary = x},"
-            "       x = x + 1;"
-            "       Internal`IncrementTemporary"
-            "]"
-        ),
-    }
-
+    increment_symbol = Integer1
+    operator = "++"
+    operator_symbol = SymbolPlus
+    returns_updated_value: bool = False
     summary_text = (
         "increases the value by one and assigns that returning the original value"
     )
 
 
-class PreIncrement(PrefixOperator):
+class PreIncrement(InplaceInfixOperator, PrefixOperator):
     """
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/PreIncrement.html</url>
@@ -165,15 +190,13 @@ class PreIncrement(PrefixOperator):
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
     operator = "++"
-
-    rules = {
-        "++x_": "x = x + 1",
-    }
+    operator_symbol = SymbolPlus
+    return_before_value: bool = False
 
     summary_text = "increase the value by one and assigns that returning the new value"
 
 
-class PreDecrement(PrefixOperator):
+class PreDecrement(InplaceInfixOperator, PrefixOperator):
     """
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/PreDecrement.html</url>
@@ -193,12 +216,11 @@ class PreDecrement(PrefixOperator):
      = 1
     """
 
-    operator = "--"
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
-
-    rules = {
-        "--x_": "x = x - 1",
-    }
+    increment_symbol = IntegerM1
+    operator = "--"
+    operator_symbol = SymbolPlus
+    returns_updated_value: bool = True
     summary_text = "decrease the value by one and assigns that returning the new value"
 
 
