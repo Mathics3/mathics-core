@@ -99,8 +99,7 @@ if not hasattr(timedelta, "total_seconds"):
 
     def total_seconds(td):
         return (
-            float(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6)
-            / 10**6
+            float(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
         )
 
 else:
@@ -1081,7 +1080,7 @@ if sys.platform != "emscripten":
 
         At most one 'TimeConstrained[]' evalution can be performed at a time. \
         If a second 'TimeConstrianed[]' is called when another is in progress, \
-        it will fail and return $failexpr$.
+        it will be executed without a time constraint.
 
         In time-consuming library functions, like simplify, evalution \
         can continue after the timeout. However, at the end of the \
@@ -1116,34 +1115,30 @@ if sys.platform != "emscripten":
             if not t.is_numeric(evaluation):
                 evaluation.message("TimeConstrained", "timc", t)
                 return
+
+            if self.is_running_TimeConstrained:
+                return expr.evaluate(evaluation)
+
             try:
                 timeout = float(t.to_python())
                 evaluation.timeout_queue.append((timeout, datetime.now().timestamp()))
-
-                def run():
-                    return expr.evaluate(evaluation)
-
-                request = run
-                done = False
-                if self.is_running_TimeConstrained:
-                    # We are already running TimeConstained, so don't try
-                    # to start another, just evaluate and return.
-                    # print(f"Already running no - {expr}")
-                    return failexpr.evaluate(evaluation)
                 with stopit.ThreadingTimeout(timeout) as to_ctx_mgr:
                     self.is_running_TimeConstrained = True
                     assert to_ctx_mgr.state == to_ctx_mgr.EXECUTING
-                    result = request()
-                    done = True
+                    result = expr.evaluate(evaluation)
                     self.is_running_TimeConstrained = False
-                if done:
+                if to_ctx_mgr.state == to_ctx_mgr.EXECUTED:
                     evaluation.timeout_queue.pop()
                     return result
             except Exception:
+                to_ctx_mgr.cancel()
+                self.is_running_TimeConstrained = False
                 evaluation.timeout_queue.pop()
                 raise
             evaluation.timeout_queue.pop()
-            return failexpr.evaluate(evaluation)
+            result = failexpr.evaluate(evaluation)
+            self.is_running_TimeConstrained = False
+            return result
 
 
 class TimeZone(Predefined):
