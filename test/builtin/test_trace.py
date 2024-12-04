@@ -55,6 +55,6 @@ def test_TraceEvaluation():
         pytest.xfail("We should have raised an AbortInterrupt in evaluation")
     finally:
         # Just in case, restore everything back to what it was before running this test.
+        mathics.eval.tracing.print_evaluate = old_evaluation_hook
         old_recursion_limit = evaluate(f"$RecursionLimit = {old_recursion_limit.value}")
-        mathics.eval.tracing.trace_evaluate_on_call = old_evaluation_hook
-    assert mathics.eval.tracing.trace_evaluate_on_call == old_evaluation_hook
+    assert mathics.eval.tracing.print_evaluate == old_evaluation_hook
