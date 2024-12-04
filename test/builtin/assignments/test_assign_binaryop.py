@@ -22,3 +22,11 @@ def test_uninitialized():
                 "a is not a variable with a value, so its value cannot be changed.",
             ),
         ),
+
+
+def test_predecrement():
+    check_evaluation(
+        "--5",
+        "--5",
+        failure_message="PreDecrement::rvalue: 5 is not a variable with a value, so its value cannot be changed.",
+    )
