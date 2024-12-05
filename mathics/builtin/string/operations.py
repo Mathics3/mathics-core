@@ -13,7 +13,7 @@ from mathics.builtin.atomic.strings import (
     mathics_split,
     to_regex,
 )
-from mathics.core.atoms import Integer, Integer1, String
+from mathics.core.atoms import Integer, Integer1, Integer3, String
 from mathics.core.attributes import (
     A_FLAT,
     A_LISTABLE,
@@ -437,7 +437,7 @@ class StringPosition(Builtin):
         else:
             py_n = n.get_int_value()
             if py_n is None or py_n < 0:
-                evaluation.message("StringPosition", "innf", expr, Integer(3))
+                evaluation.message("StringPosition", "innf", expr, Integer3)
                 return
 
         # check options

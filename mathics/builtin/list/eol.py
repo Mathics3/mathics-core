@@ -8,10 +8,9 @@ patterns of criteria.
 """
 
 from itertools import chain
-from typing import Optional
 
 from mathics.builtin.box.layout import RowBox
-from mathics.core.atoms import Integer, Integer0, Integer1, String
+from mathics.core.atoms import Integer, Integer0, Integer1, Integer3, Integer4, String
 from mathics.core.attributes import (
     A_HOLD_FIRST,
     A_HOLD_REST,
@@ -30,7 +29,7 @@ from mathics.core.exceptions import (
     PartError,
     PartRangeError,
 )
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, ExpressionInfinity
 from mathics.core.list import ListExpression
 from mathics.core.rules import Rule
 from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
@@ -42,6 +41,7 @@ from mathics.core.systemsymbols import (
     SymbolKey,
     SymbolMakeBoxes,
     SymbolMissing,
+    SymbolSelect,
     SymbolSequence,
     SymbolSet,
 )
@@ -437,7 +437,6 @@ class DeleteCases(Builtin):
 
     messages = {
         "level": "Level specification `1` is not of the form n, {n}, or {m, n}.",
-        "innf": "Non-negative integer or Infinity expected at position 4 in `1`",
     }
     summary_text = "delete all occurrences of a pattern"
 
@@ -455,14 +454,15 @@ class DeleteCases(Builtin):
 
         levelspec = python_levelspec(levelspec)
 
-        if n is SymbolInfinity:
+        if n is SymbolInfinity or ExpressionInfinity == n:
             n = -1
-        elif n.get_head_name() == "System`Integer":
-            n = n.get_int_value()
+        elif isinstance(n, Integer):
+            n = n.value
             if n < 0:
                 evaluation.message(
                     "DeleteCases",
                     "innf",
+                    Integer4,
                     Expression(SymbolDeleteCases, items, pattern, levelspec, n),
                 )
         else:
@@ -1533,10 +1533,26 @@ class Select(Builtin):
     def eval(self, items, expr, evaluation: Evaluation):
         "Select[items_, expr_]"
 
-        return self.eval_with_n(items, expr, None, evaluation)
+        return self.eval_with_n(items, expr, SymbolInfinity, evaluation)
 
-    def eval_with_n(self, items, expr, n: Optional[Integer], evaluation: Evaluation):
-        "Select[items_, expr_, n_Integer]"
+    def eval_with_n(self, items, expr, n, evaluation: Evaluation):
+        "Select[items_, expr_, n_]"
+
+        count_is_valid = True
+        if n is SymbolInfinity or ExpressionInfinity == n:
+            count = None
+        elif isinstance(n, Integer):
+            count = n.value
+            if count < 0:
+                count_is_valid = False
+        else:
+            count_is_valid = False
+
+        if not count_is_valid:
+            evaluation.message(
+                "Select", "innf", Integer3, Expression(SymbolSelect, items, expr, n)
+            )
+            return
 
         if isinstance(items, Atom):
             evaluation.message("Select", "normal")
@@ -1546,7 +1562,6 @@ class Select(Builtin):
             test = Expression(expr, element)
             return test.evaluate(evaluation) is SymbolTrue
 
-        count = n.value if n is not None else None
         return items.filter(items.head, cond, evaluation, count=count)
 
 
@@ -1633,6 +1648,7 @@ class UpTo(Builtin):
     </dl>
     """
 
+    # TODO: is there as way we can use general's innf?
     messages = {
         "innf": "Expected non-negative integer or infinity at position 1 in ``.",
         "argx": "UpTo expects 1 argument, `1` arguments were given.",

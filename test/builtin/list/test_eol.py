@@ -226,6 +226,7 @@ import pytest
         ## Formatting
         ("a ;; b ;; c", None, "a ;; b ;; c", None),
         ("a ;; b", None, "a ;; b", None),
+        # TODO: Rework this test
         ("{a ;; b ;; c ;; d}", None, "{a ;; b ;; c, 1 ;; d}", ";; association"),
         (
             "Select[a, True]",
@@ -233,7 +234,6 @@ import pytest
             "Select[a, True]",
             None,
         ),
-        # TODO: Rework this test
         ("Take[Range[10], {8, 2, -1}]", None, "{8, 7, 6, 5, 4, 3, 2}", None),
         ("Take[Range[10], {-3, -7, -2}]", None, "{8, 6, 4}", None),
         (
