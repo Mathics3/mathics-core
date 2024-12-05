@@ -3,7 +3,7 @@
 Unit tests from mathics.builtin.string.
 """
 
-from test.helper import check_evaluation, session
+from test.helper import check_evaluation
 
 import pytest
 
@@ -166,9 +166,9 @@ import pytest
         (
             'StringReplace[x, "a" -> "b"]',
             (
-                "String or list of strings expected at position 1 in StringReplace[x, a -> b].",
+                "String or list of strings expected at position 1 in StringReplace[x, a → b].",
             ),
-            "StringReplace[x, a -> b]",
+            "StringReplace[x, a → b]",
             None,
         ),
         (
@@ -180,15 +180,15 @@ import pytest
         (
             'StringReplace["xyzwxyzwaxyzxyzw", x -> y]',
             ("Element x is not a valid string or pattern element in x.",),
-            "StringReplace[xyzwxyzwaxyzxyzw, x -> y]",
+            "StringReplace[xyzwxyzwaxyzxyzw, x → y]",
             None,
         ),
         (
             'StringReplace["abcabc", "a" -> "b", -1]',
             (
-                "Non-negative integer or Infinity expected at position 3 in StringReplace[abcabc, a -> b, -1].",
+                "Non-negative integer or Infinity expected at position 3 in StringReplace[abcabc, a → b, -1]",
             ),
-            "StringReplace[abcabc, a -> b, -1]",
+            "StringReplace[abcabc, a → b, -1]",
             None,
         ),
         ('StringReplace["abc", "b" -> 4]', ("String expected.",), "a <> 4 <> c", None),
