@@ -625,9 +625,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             head = head.evaluate_elements(evaluation)
         return Expression(head, *elements)
 
-    def filter(self, head, cond, evaluation):
+    def filter(self, head, cond, evaluation: Evaluation, count: Optional[int] = None):
         # faster equivalent to: Expression(head, [element in self.elements if cond(element)])
-        return structure(head, self, evaluation).filter(self, cond)
+        return structure(head, self, evaluation).filter(self, cond, count)
 
     # FIXME: go over and preserve elements_properties.
     def flatten_pattern_sequence(self, evaluation):
