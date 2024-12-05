@@ -92,11 +92,29 @@ class Decrement(InplaceInfixOperator, InfixOperator, PostfixOperator):
       <dd>decrements $x$ by 1, returning the original value of $x$.
     </dl>
 
-    >> a = 5;
-    X> a--
+    >> a = 5; a--
      = 5
-    X> a
+    >> a
      = 4
+
+    Decrement a numerical value:
+
+    >> a = 1.6; a--; a
+     = 0.6
+
+    Decrement all values in a list:
+
+    >> a = {1, 3, 5}
+     = {1, 3, 5}
+
+    >> a--; a
+     = {0, 2, 4}
+
+    Compare with <url>:PreDecrement:
+    /doc/reference-of-built-in-symbols/assignments/in-place-binary-assignment-operator/predecrement
+    </url> which returns the value before updating, and <url>:Increment:
+    /doc/reference-of-built-in-symbols/assignments/in-place-binary-assignment-operator/increment
+    </url> which goes the other way.
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
@@ -149,14 +167,41 @@ class Increment(InplaceInfixOperator, InfixOperator, PostfixOperator):
       <dd>increments $x$ by 1, returning the original value of $x$.
     </dl>
 
-    >> a = 2;
-    >> a++
-     = 2
+    >> a = 1; a++
+     = 1
     >> a
-     = 3
+     = 2
+
+    Increment a numeric value:
+
+    >> a = 1.5; a++
+     = 1.5
+
+    >> a
+     = 2.5
+
+    Increment a symbolic value:
+
+    >> y = 2 x; y++; y
+     = 1 + 2 x
+
+    Increment all values in a list:
+
+    >> x = {1, 3, 5}
+     = {1, 3, 5}
+
+    x++; x
+     = {2, 4, 6}
+
     Grouping of 'Increment', 'PreIncrement' and 'Plus':
     >> ++++a+++++2//Hold//FullForm
      = Hold[Plus[PreIncrement[PreIncrement[Increment[Increment[a]]]], 2]]
+
+    Compare with <url>:PreIncrement:
+    /doc/reference-of-built-in-symbols/assignments/in-place-binary-assignment-operator/preincrement
+    </url> which returns the value before update.
+
+    #> Clear[a, x, y]
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
@@ -167,33 +212,6 @@ class Increment(InplaceInfixOperator, InfixOperator, PostfixOperator):
     summary_text = (
         "increases the value by one and assigns that returning the original value"
     )
-
-
-class PreIncrement(InplaceInfixOperator, PrefixOperator):
-    """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/PreIncrement.html</url>
-
-    <dl>
-      <dt>'PreIncrement[$x$]'
-      <dt>'++$x$'
-      <dd>increments $x$ by 1, returning the new value of $x$.
-    </dl>
-
-    '++$a$' is equivalent to '$a$ = $a$ + 1':
-    >> a = 2;
-    >> ++a
-     = 3
-    >> a
-     = 3
-    """
-
-    attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
-    operator = "++"
-    operator_symbol = SymbolPlus
-    return_before_value: bool = False
-
-    summary_text = "increase the value by one and assigns that returning the new value"
 
 
 class PreDecrement(InplaceInfixOperator, PrefixOperator):
@@ -214,6 +232,14 @@ class PreDecrement(InplaceInfixOperator, PrefixOperator):
      = 1
     >> a
      = 1
+
+    Compare with <url>:Decrement:
+    /doc/reference-of-built-in-symbols/assignments/in-place-binary-assignment-operator/decrement
+    </url> which returns the updated value, and <url>:Increment:
+    /doc/reference-of-built-in-symbols/assignments/in-place-binary-assignment-operator/increment
+    </url> which goes the other way.
+
+    #> Clear[a]
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
@@ -222,6 +248,60 @@ class PreDecrement(InplaceInfixOperator, PrefixOperator):
     operator_symbol = SymbolPlus
     returns_updated_value: bool = True
     summary_text = "decrease the value by one and assigns that returning the new value"
+
+
+class PreIncrement(InplaceInfixOperator, PrefixOperator):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/PreIncrement.html</url>
+
+    <dl>
+      <dt>'PreIncrement[$x$]'
+      <dt>'++$x$'
+      <dd>increments $x$ by 1, returning the new value of $x$.
+    </dl>
+
+    '++$a$' is equivalent to '$a$ = $a$ + 1':
+    >> a = 2
+     = 2
+
+    >> ++a
+     = 3
+
+    >> a
+     = 3
+
+    PreIncrement a numeric value:
+
+    >> a + 1.6
+     = 4.6
+
+
+    PreIncrement a symbolic value:
+
+    #> Clear[x, y]
+
+    >> y = x; ++y
+     = 1 + x
+
+    >> y
+     = 1 + x
+
+    Compare with <url>:Increment:
+    /doc/reference-of-built-in-symbols/assignments/in-place-binary-assignment-operator/increment
+    </url> which returns the updated value, and <url>:PreDecrement:
+    /doc/reference-of-built-in-symbols/assignments/in-place-binary-assignment-operator/predecrement
+    </url> which goes the other way.
+
+    #> Clear[a, x, y]
+    """
+
+    attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
+    operator = "++"
+    operator_symbol = SymbolPlus
+    return_before_value: bool = False
+
+    summary_text = "increase the value by one and assigns that returning the new value"
 
 
 class SubtractFrom(InfixOperator):
@@ -240,6 +320,8 @@ class SubtractFrom(InfixOperator):
      = 8
     >> a
      = 8
+
+    #> Clear[a]
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED
@@ -267,6 +349,8 @@ class TimesBy(InfixOperator):
      = 20
     >> a
      = 20
+
+    #> Clear[a]
     """
 
     operator = "*="
