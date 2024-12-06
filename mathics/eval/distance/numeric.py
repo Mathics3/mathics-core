@@ -1,3 +1,5 @@
+from sympy.core.power import Mul, Pow
+
 from mathics.core.atoms import Complex, Integer, Integer0, Real
 from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
 from mathics.eval.arithmetic import eval_Abs
@@ -14,23 +16,18 @@ def eval_CosineDistance(u, v):
     if isinstance(u, (Complex, Integer, Real)) and isinstance(
         v, (Complex, Integer, Real)
     ):
-        u_val = u.to_python()
-        v_val = v.to_python()
         u_abs = eval_Abs(u)
         if u_abs is None:
             return
         v_abs = eval_Abs(v)
         if v_abs is None:
             return
-        distance = 1 - u_val * v_val.conjugate() / (u_abs.to_sympy() * v_abs.to_sympy())
 
-        # If the input arguments were Integers, preserve that in the result
-        if isinstance(u_val, int) and isinstance(v_val, int):
-            try:
-                if distance == int(distance):
-                    distance = int(distance)
-            except Exception:
-                pass
+        # Do the following, but using SymPy expressions:
+        #   distance = 1 - (u * v.conjugate()) / (abs(u) * abs(v))
+        numerator = Mul(u.to_sympy(), v.to_sympy().conjugate())
+        divisor_product = Mul(u_abs.to_sympy(), v_abs.to_sympy())
+        distance = 1 - numerator * Pow(divisor_product, -1)
         return from_sympy(distance)
 
     sym_u = to_sympy_matrix(u)
