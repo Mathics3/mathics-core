@@ -28,7 +28,10 @@ def eval_CosineDistance(u, v):
         numerator = Mul(u.to_sympy(), v.to_sympy().conjugate())
         divisor_product = Mul(u_abs.to_sympy(), v_abs.to_sympy())
         distance = 1 - numerator * Pow(divisor_product, -1)
-        return from_sympy(distance)
+        result = from_sympy(distance)
+        if (isinstance(u, Real) or isinstance(v, Real)) and isinstance(result, Integer):
+            result = Real(result.value)
+        return result
 
     sym_u = to_sympy_matrix(u)
     if sym_u is None:
