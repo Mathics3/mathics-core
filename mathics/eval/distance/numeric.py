@@ -1,6 +1,6 @@
 from mathics.core.atoms import Complex, Integer, Integer0, Real
-from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
+from mathics.eval.arithmetic import eval_Abs
 
 
 def eval_CosineDistance(u, v):
@@ -16,7 +16,13 @@ def eval_CosineDistance(u, v):
     ):
         u_val = u.to_python()
         v_val = v.to_python()
-        distance = 1 - u_val * v_val.conjugate() / (abs(u_val) * abs(v_val))
+        u_abs = eval_Abs(u)
+        if u_abs is None:
+            return
+        v_abs = eval_Abs(v)
+        if v_abs is None:
+            return
+        distance = 1 - u_val * v_val.conjugate() / (u_abs.to_sympy() * v_abs.to_sympy())
 
         # If the input arguments were Integers, preserve that in the result
         if isinstance(u_val, int) and isinstance(v_val, int):
@@ -25,7 +31,7 @@ def eval_CosineDistance(u, v):
                     distance = int(distance)
             except Exception:
                 pass
-        return from_python(distance)
+        return from_sympy(distance)
 
     sym_u = to_sympy_matrix(u)
     if sym_u is None:
