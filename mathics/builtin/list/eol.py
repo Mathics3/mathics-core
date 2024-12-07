@@ -129,9 +129,6 @@ class AppendTo(Builtin):
 
     attributes = A_HOLD_FIRST | A_PROTECTED
 
-    messages = {
-        "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
-    }
     summary_text = "add an element at the end of an stored list or expression"
 
     def eval(self, s, element, evaluation):
@@ -1344,7 +1341,6 @@ class PrependTo(Builtin):
     attributes = A_HOLD_FIRST | A_PROTECTED
 
     messages = {
-        "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
         "normal": "Nonatomic expression expected at position 1 in `1`.",
     }
     summary_text = "add an element at the beginning of an stored list or expression"
