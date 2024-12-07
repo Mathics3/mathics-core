@@ -128,8 +128,8 @@ def test_private_doctests_datetime(str_expr, msgs, str_expected, fail_msg):
 
 
 @pytest.mark.skipif(
-    sys.platform in ("emscripten",),
-    reason="TimeConstrained is based in Threads, which are not supported in Piodide",
+    sys.platform in ("emscripten", "darwin"),
+    reason="TimeConstrained is based in Threads, which are not supported in Piodide and has problems on MacOS",
 )
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
