@@ -154,7 +154,7 @@ class CosineDistance(Builtin):
       <dd>returns the angular cosine distance between vectors $u$ and $v$.
     </dl>
 
-    The cosine distance is equivalent to 1 - $u$.Conjugate[$v$] / ('Norm[$u$] Norm[$v$]').
+    The cosine distance is equivalent to 1 - ($u$.Conjugate[$v$]) / ('Norm[$u$] Norm[$v$]').
 
     >> N[CosineDistance[{7, 9}, {71, 89}]]
      = 0.0000759646
@@ -173,6 +173,12 @@ class CosineDistance(Builtin):
     Cosine distance includes a dot product scaled by norms:
     >> CosineDistance[{a, b, c}, {x, y, z}]
      = 1 + (-a Conjugate[x] - b Conjugate[y] - c Conjugate[z]) / (Sqrt[Abs[a] ^ 2 + Abs[b] ^ 2 + Abs[c] ^ 2] Sqrt[Abs[x] ^ 2 + Abs[y] ^ 2 + Abs[z] ^ 2])
+
+    A Cosine distance applied to complex numbers, uses 'Abs[]' for 'Norm[]' and complex multiplication for dot product,
+    1 - $u$ * Conjugate[$v$] / ('Abs[$u$] Abs[$v$]'):
+
+    >> CosineDistance[1+2I, 5]
+     = 1 - (1 / 5 + 2 I / 5) Sqrt[5]
     """
 
     messages = {

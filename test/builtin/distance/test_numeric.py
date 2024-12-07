@@ -15,7 +15,7 @@ def test_cosine_distance():
             "CosineDistance of an Integers and a Real is 0.0",
             None,
         ),
-        ("CosineDistance[Complex[1, 0], Complex[0, 2]]", "1. + 1 I", None, None),
+        ("CosineDistance[Complex[1, 0], Complex[0, 2]]", "1 + I", None, None),
         (
             "CosineDistance[Complex[5.0, 0], Complex[10, 3]]",
             "0.0421737 + 0.287348 I",
