@@ -212,17 +212,25 @@ def test_inverse(str_expr, str_expected, fail_msg, warnings):
             None,
         ),
         (
-            "A = Array[a, {2,2}]; eigvals=Eigenvalues[A.ConjugateTranspose[A]][[1]]",
+            "A = Array[a, {2,2}]; eigvals=Eigenvalues[A.ConjugateTranspose[A]]",
             None,
             (
-                "-Sqrt[(a[1, 1] Conjugate[a[1, 1]] + a[1, 2] Conjugate[a[1, 2]] "
-                "+ a[2, 1] Conjugate[a[2, 1]] + a[2, 2] Conjugate[a[2, 2]]) ^ 2 "
-                "- 4 (a[1, 1] Conjugate[a[1, 1]] + a[1, 2] Conjugate[a[1, 2]]) "
+                "{-Sqrt[(a[1, 1] Conjugate[a[1, 1]] + a[1, 2] Conjugate[a[1, 2]] + "
+                "a[2, 1] Conjugate[a[2, 1]] + a[2, 2] Conjugate[a[2, 2]]) ^ 2 - "
+                "4 (a[1, 1] Conjugate[a[1, 1]] + a[1, 2] Conjugate[a[1, 2]]) "
+                "(a[2, 1] Conjugate[a[2, 1]] + a[2, 2] Conjugate[a[2, 2]]) + "
+                "4 (a[1, 1] Conjugate[a[2, 1]] + a[1, 2] Conjugate[a[2, 2]]) "
+                "(a[2, 1] Conjugate[a[1, 1]] + a[2, 2] Conjugate[a[1, 2]])] / 2 "
+                "+ a[1, 1] Conjugate[a[1, 1]] / 2 + a[1, 2] Conjugate[a[1, 2]] / 2 + "
+                "a[2, 1] Conjugate[a[2, 1]] / 2 + a[2, 2] Conjugate[a[2, 2]] / 2, "
+                "Sqrt[(a[1, 1] Conjugate[a[1, 1]] + a[1, 2] Conjugate[a[1, 2]] + "
+                "a[2, 1] Conjugate[a[2, 1]] + a[2, 2] Conjugate[a[2, 2]]) ^ 2 - "
+                "4 (a[1, 1] Conjugate[a[1, 1]] + a[1, 2] Conjugate[a[1, 2]]) "
                 "(a[2, 1] Conjugate[a[2, 1]] + a[2, 2] Conjugate[a[2, 2]]) + 4 "
                 "(a[1, 1] Conjugate[a[2, 1]] + a[1, 2] Conjugate[a[2, 2]]) "
-                "(a[2, 1] Conjugate[a[1, 1]] + a[2, 2] Conjugate[a[1, 2]])] / 2 "
-                "+ a[1, 1] Conjugate[a[1, 1]] / 2 + a[1, 2] Conjugate[a[1, 2]] / 2 "
-                "+ a[2, 1] Conjugate[a[2, 1]] / 2 + a[2, 2] Conjugate[a[2, 2]] / 2"
+                "(a[2, 1] Conjugate[a[1, 1]] + a[2, 2] Conjugate[a[1, 2]])] / 2 + "
+                "a[1, 1] Conjugate[a[1, 1]] / 2 + a[1, 2] Conjugate[a[1, 2]] / 2 + "
+                "a[2, 1] Conjugate[a[2, 1]] / 2 + a[2, 2] Conjugate[a[2, 2]] / 2}"
             ),
             None,  # "Sympy issue #1156",
         ),
@@ -235,9 +243,17 @@ def test_inverse(str_expr, str_expected, fail_msg, warnings):
                 "4 a[1, 1] a[2, 2] Conjugate[a[1, 1]] Conjugate[a[2, 2]] - "
                 "4 a[1, 2] a[2, 1] Conjugate[a[1, 2]] Conjugate[a[2, 1]] + "
                 "4 a[1, 1] a[2, 2] Conjugate[a[1, 2]] Conjugate[a[2, 1]] + "
-                "4 a[1, 2] a[2, 1] Conjugate[a[1, 1]] Conjugate[a[2, 2]]] / 2"
+                "4 a[1, 2] a[2, 1] Conjugate[a[1, 1]] Conjugate[a[2, 2]]] / 2 + "
+                "a[1, 1] Conjugate[a[1, 1]] / 2 + a[1, 2] Conjugate[a[1, 2]] / 2 + "
+                "a[2, 1] Conjugate[a[2, 1]] / 2 + a[2, 2] Conjugate[a[2, 2]] / 2"
             ),
-            None,  #            "Sympy issue #1156",
+            None,  # "Sympy issue #1156",
+        ),
+        (
+            "eigvals /. a[x_, y_] -> x+I*y",
+            None,
+            ("{10 - 3 Sqrt[11], 10 + 3 Sqrt[11]}"),
+            None,  # "Sympy issue #1156",
         ),
     ],
 )

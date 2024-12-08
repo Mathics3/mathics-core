@@ -17,7 +17,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_SEQUENCE_HOLD,
 )
-from mathics.core.builtin import BinaryOperator, Builtin
+from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
@@ -94,7 +94,7 @@ class LoadModule(Builtin):
         return module
 
 
-class Set(BinaryOperator, _SetOperator):
+class Set(InfixOperator, _SetOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Set.html</url>
 
@@ -338,7 +338,7 @@ class TagSetDelayed(TagSet):
             return SymbolFailed
 
 
-class UpSet(BinaryOperator, _SetOperator):
+class UpSet(InfixOperator, _SetOperator):
     """
     <url>:WMA link:
          https://reference.wolfram.com/language/ref/UpSet.html</url>

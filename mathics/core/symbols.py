@@ -1,7 +1,6 @@
 # cython: language_level=3
 # -*- coding: utf-8 -*-
 
-import time
 from typing import TYPE_CHECKING, Any, Dict, FrozenSet, List, Optional, Sequence, Union
 
 from mathics.core.element import (
@@ -13,6 +12,8 @@ from mathics.core.element import (
 
 if TYPE_CHECKING:
     from mathics.core.atoms import String
+
+from mathics.eval.tracing import trace_evaluate
 
 # I put this constants here instead of inside `mathics.core.convert.sympy`
 # to avoid a circular reference. Maybe they should be in its own module.
@@ -483,18 +484,12 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             return self == rhs
         return None
 
+    @trace_evaluate
     def evaluate(self, evaluation):
         """
         Evaluates the symbol by applying the rules (ownvalues) in its definition,
         recursively.
         """
-        if evaluation.definitions.trace_evaluation:
-            if evaluation.definitions.timing_trace_evaluation:
-                evaluation.print_out(time.time() - evaluation.start_time)
-            evaluation.print_out(
-                "  " * evaluation.recursion_depth + "  Evaluating: %s" % self
-            )
-
         rules = evaluation.definitions.get_ownvalues(self.name)
         for rule in rules:
             result = rule.apply(self, evaluation, fully=True)
@@ -575,7 +570,17 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         return definitions.get_attributes(self.name)
 
     def get_name(self, short=False) -> str:
-        return self.name
+        """
+        Returns symbol's name field. If short=True
+        we strip off the context parts.
+
+        Note however that many places in the code we do not need the
+        "short" parameter becasue of Definitions.shorten_name() which
+        keeps track of the current $Context and $ContextPath to decide
+        whether the name of a symbol should or should not be
+        shortened.
+        """
+        return self.name.split("`")[-1] if short else self.name
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
@@ -735,9 +740,12 @@ class SymbolConstant(Symbol):
         return self._value
 
 
-# A BooleanType is a special form of SymbolConstant where the value
-# of the constant is either SymbolTrue or SymbolFalse.
-BooleanType = SymbolConstant
+class BooleanType(SymbolConstant):
+    """A Special form of SymbolConstant where the value
+    the constant is either SymbolTrue or SymbolFalse.
+    """
+
+    pass
 
 
 def symbol_set(*symbols: Symbol) -> FrozenSet[Symbol]:
@@ -766,9 +774,9 @@ def symbol_set(*symbols: Symbol) -> FrozenSet[Symbol]:
 # more of the below and in systemsymbols
 # PredefineSymbol.
 
-SymbolFalse = SymbolConstant("System`False", value=False)
+SymbolFalse = BooleanType("System`False", value=False)
 SymbolList = SymbolConstant("System`List", value=list)
-SymbolTrue = SymbolConstant("System`True", value=True)
+SymbolTrue = BooleanType("System`True", value=True)
 
 SymbolAbs = Symbol("Abs")
 SymbolDivide = Symbol("Divide")

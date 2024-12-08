@@ -18,7 +18,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
-from mathics.core.builtin import BinaryOperator, Builtin
+from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
@@ -129,9 +129,6 @@ class AppendTo(Builtin):
 
     attributes = A_HOLD_FIRST | A_PROTECTED
 
-    messages = {
-        "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
-    }
     summary_text = "add an element at the end of an stored list or expression"
 
     def eval(self, s, element, evaluation):
@@ -1344,7 +1341,6 @@ class PrependTo(Builtin):
     attributes = A_HOLD_FIRST | A_PROTECTED
 
     messages = {
-        "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
         "normal": "Nonatomic expression expected at position 1 in `1`.",
     }
     summary_text = "add an element at the beginning of an stored list or expression"
@@ -1537,7 +1533,7 @@ class Select(Builtin):
         return items.filter(items.head, cond, evaluation)
 
 
-class Span(BinaryOperator):
+class Span(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Span.html</url>
 

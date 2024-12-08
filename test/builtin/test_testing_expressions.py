@@ -135,3 +135,45 @@ def test_private_doctests_numerical_properties(str_expr, msgs, str_expected, fai
         failure_message=fail_msg,
         expected_messages=msgs,
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
+        # Two default arguments (linear)
+        ("MatchQ[1, a_.+b_.*x_]", None, "True", None),
+        ("MatchQ[x, a_.+b_.*x_]", None, "True", None),
+        ("MatchQ[2*x, a_.+b_.*x_]", None, "True", None),
+        ("MatchQ[1+x, a_.+b_.*x_]", None, "True", None),
+        ("MatchQ[1+2*x, a_.+b_.*x_]", None, "True", None),
+        # Default argument (power)
+        ("MatchQ[1, x_^m_.]", None, "True", None),
+        ("MatchQ[x, x_^m_.]", None, "True", None),
+        ("MatchQ[x^1, x_^m_.]", None, "True", None),
+        ("MatchQ[x^2, x_^m_.]", None, "True", None),
+        # Two default arguments (power)
+        ("MatchQ[1, x_.^m_.]", None, "True", None),
+        ("MatchQ[x, x_.^m_.]", None, "True", None),
+        ("MatchQ[x^1, x_.^m_.]", None, "True", None),
+        ("MatchQ[x^2, x_.^m_.]", None, "True", None),
+        # Two default arguments (no non-head)
+        ("MatchQ[1, a_.+b_.]", None, "True", None),
+        ("MatchQ[x, a_.+b_.]", None, "True", None),
+        ("MatchQ[1+x, a_.+b_.]", None, "True", None),
+        ("MatchQ[1+2*x, a_.+b_.]", None, "True", None),
+        ("MatchQ[1, a_.*b_.]", None, "True", None),
+        ("MatchQ[x, a_.*b_.]", None, "True", None),
+        ("MatchQ[2*x, a_.*b_.]", None, "True", None),
+    ],
+)
+def test_matchq(str_expr, msgs, str_expected, fail_msg):
+    """text_expressions.matchq"""
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )

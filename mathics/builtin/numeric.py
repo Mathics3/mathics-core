@@ -32,7 +32,6 @@ from mathics.core.attributes import (
 )
 from mathics.core.builtin import Builtin, MPMathFunction, SympyFunction
 from mathics.core.convert.sympy import from_sympy
-from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.number import MACHINE_EPSILON

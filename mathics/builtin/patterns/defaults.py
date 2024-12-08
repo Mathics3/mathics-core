@@ -7,7 +7,7 @@ Pattern Defaults
 
 from typing import Optional as OptionalType
 
-from mathics.core.builtin import BinaryOperator, PatternObject
+from mathics.core.builtin import InfixOperator, PatternObject
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.pattern import BasePattern
@@ -17,7 +17,7 @@ from mathics.eval.patterns import get_default_value
 sort_order = "mathics.builtin.rules-and-patterns.patttern-defaults"
 
 
-class Optional(BinaryOperator, PatternObject):
+class Optional(InfixOperator, PatternObject):
     """
 
     <url>:WMA link:https://reference.wolfram.com/language/ref/Optional.html</url>

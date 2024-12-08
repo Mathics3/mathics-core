@@ -200,7 +200,9 @@ def eval_Read(
                     except Exception as e:
                         print(e)
 
-                if expr is SymbolEndOfFile:
+                if expr is None:
+                    result.append(None)
+                elif expr is SymbolEndOfFile:
                     evaluation.message(name, "readt", tmp, String(stream.name))
                     return SymbolFailed
                 elif isinstance(expr, BaseElement):
@@ -275,5 +277,10 @@ def eval_Read(
             return [from_python(part) for part in result]
         elif result_len == 1:
             result = result[0]
+            if SymbolHoldExpression in types:
+                if hasattr(result, "head") and result.head is SymbolHold:
+                    return from_python(result)
+                else:
+                    return Expression(SymbolHold, from_python(result))
 
     return from_python(result)

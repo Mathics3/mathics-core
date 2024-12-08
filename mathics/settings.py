@@ -10,8 +10,6 @@ import sys
 from pathlib import Path
 from typing import List
 
-import pkg_resources
-
 from mathics.core.util import canonic_filename
 
 
@@ -21,7 +19,6 @@ def get_srcdir():
 
 
 DEBUG = True
-
 DEBUG_PRINT = False
 
 # Maximum recursion depth is safe for all Python environments
@@ -51,7 +48,7 @@ TIMEOUT = None
 # historically 10000 was used on public mathics servers
 MAX_STORED_SIZE = 10000
 
-ROOT_DIR = pkg_resources.resource_filename("mathics", "")
+ROOT_DIR = osp.dirname(__file__)
 if sys.platform.startswith("win"):
     DATA_DIR = canonic_filename(osp.join(os.environ["APPDATA"], "Python", "Mathics"))
 else:

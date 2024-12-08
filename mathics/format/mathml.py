@@ -8,7 +8,7 @@ MathML formatting is usually initiated in Mathics via MathMLForm[].
 import base64
 import html
 
-from mathics_scanner import is_symbol_name
+from mathics_scanner.tokeniser import is_symbol_name
 
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox

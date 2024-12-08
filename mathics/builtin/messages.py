@@ -8,7 +8,7 @@ from typing import Any
 
 from mathics.core.atoms import String
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_FIRST, A_LOCKED, A_PROTECTED
-from mathics.core.builtin import BinaryOperator, Builtin, Predefined
+from mathics.core.builtin import Builtin, InfixOperator, Predefined
 from mathics.core.evaluation import Evaluation, Message as EvaluationMessage
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -224,6 +224,7 @@ class General(Builtin):
         "pspec": (
             "Part specification `1` is neither an integer nor " "a list of integer."
         ),
+        "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
         "seqs": "Sequence specification expected, but got `1`.",
         "setp": "Part assignment to `1` could not be made",
         "setps": "`1` in the part assignment is not a symbol.",
@@ -299,7 +300,7 @@ def check_message(expr) -> bool:
     return False
 
 
-class MessageName(BinaryOperator):
+class MessageName(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/MessageName.html</url>
 
@@ -322,7 +323,6 @@ class MessageName(BinaryOperator):
     default_formats = False
     formats: typing.Dict[str, Any] = {}
     messages = {"messg": "Message cannot be set to `1`. It must be set to a string."}
-    summary_text = "message identifyier"
     operator = "::"
     rules = {
         "MakeBoxes[MessageName[symbol_Symbol, tag_String], "
@@ -333,6 +333,7 @@ class MessageName(BinaryOperator):
             'RowBox[{MakeBoxes[symbol, InputForm], "::", tag}]'
         ),
     }
+    summary_text = "associate a message name with a tag"
 
     def eval(self, symbol: Symbol, tag: String, evaluation: Evaluation):
         "MessageName[symbol_Symbol, tag_String]"

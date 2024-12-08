@@ -154,6 +154,31 @@ if not (os.environ.get("CI", False) or sys.platform in ("win32",)):
             "Null",
             None,
         ),
+        ## Import with format
+        (
+            'Import["ExampleData/Testosterone.svg"];',
+            ("SVG is not a supported Import format.",),
+            "Null",
+            None,
+        ),
+        (
+            'Import["ExampleData/Testosterone.svg", "XML"] // Head',
+            None,
+            "XMLObject[Document]",
+            None,
+        ),
+        (
+            'Import["ExampleData/Testosterone.svg", {"XML"}] // Head',
+            None,
+            "XMLObject[Document]",
+            None,
+        ),
+        (
+            'Import["ExampleData/Testosterone.svg", {"XML", "XML"}];',
+            ("The Import element XML is not present when importing as XML.",),
+            "Null",
+            None,
+        ),
         ## XML
         (
             'MatchQ[Import["ExampleData/InventionNo1.xml", "Tags"],{__String}]',

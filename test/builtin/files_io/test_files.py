@@ -295,6 +295,18 @@ def test_close():
             "{{a, 1}}",
             "",
         ),
+        (
+            'ReadList[StringToStream["(**)"], Expression]',
+            None,
+            "{Null}",
+            "",
+        ),
+        (
+            'ReadList[StringToStream["Hold[1+2]"], Expression]',
+            None,
+            "{Hold[1 + 2]}",
+            "",
+        ),
         ('stream = StringToStream["Mathics is cool!"];', None, "Null", ""),
         ("SetStreamPosition[stream, -5]", ("Invalid I/O Seek.",), "0", ""),
         (
@@ -441,6 +453,55 @@ def test_streams():
         failure_message="Expecting stream found in list to be the one we just added",
     )
     evaluate("Close[newStream]")
+
+
+def test_write_string():
+    """
+    Check OpenWrite[] and WriteString[] using a path name.
+    """
+    # 1. Create a temporary file name in Python.
+    # 2. Open that for writing in Mathics3 using OpenWrite[].
+    # 3. Write some data to that using WriteString[] and
+    #    close the stream using Close[]
+    # 4. Then back in Python, see that the file was written and
+    #    that it has the data that was written via WriteString[].
+    # 5. Finally, remove the file.
+
+    # 1. Create temporary file name
+    tempfile = NamedTemporaryFile(mode="r", delete=False)
+    tempfile_path = tempfile.name
+
+    # 2. Open that for writing in Mathics3 using OpenWrite[].
+    check_evaluation(
+        str_expr=f'stream = OpenWrite["{tempfile_path}"];',
+        to_string_expr=False,
+        to_string_expected=False,
+    )
+
+    # 3. Write some data to that using WriteString[] and
+    #    close the stream using Close[]
+    text = "testing\n"
+    check_evaluation(
+        str_expr=f'WriteString["{tempfile_path}", "{text}"];',
+        to_string_expr=False,
+        to_string_expected=False,
+    )
+    check_evaluation(
+        str_expr="Close[stream];",
+    )
+
+    # 4. Back in Python, see that the file was written and
+    #    that it has the data that was written via WriteString[].
+
+    assert osp.exists(tempfile_path)
+    assert open(tempfile_path, "r").read() == text
+
+    # 5. Finally, remove the file.
+    try:
+        os.unlink(tempfile_path)
+    except PermissionError:
+        # This can happen in MS Windows
+        pass
 
 
 # rocky: I don't understand what these are supposed to test.

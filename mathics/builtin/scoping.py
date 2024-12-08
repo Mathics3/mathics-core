@@ -3,7 +3,7 @@
 Scoping Constructs
 """
 
-from mathics_scanner import is_symbol_name
+from mathics_scanner.tokeniser import is_symbol_name
 
 from mathics.core.assignment import get_symbol_list
 from mathics.core.atoms import Integer, String
@@ -712,5 +712,4 @@ class With(Builtin):
 
         vars = dict(get_scoping_vars(vars, "With", evaluation))
         result = expr.replace_vars(vars)
-        result.evaluate(evaluation)
-        return result
+        return result.evaluate(evaluation)

@@ -1,6 +1,7 @@
+(* -*- wolfram -*- *)
 (* ****************************************************************************
 
-    by Brian Beckman. License the same as for mathics.
+    by Brian Beckman. License the same as for Mathics3: GPL3.
 
     Oct 2020
 

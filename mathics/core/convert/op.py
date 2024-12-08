@@ -5,14 +5,13 @@ Conversions from the ASCII representation of Mathics operators to their Unicode 
 import os.path as osp
 from functools import lru_cache
 
-import pkg_resources
+from mathics.settings import ROOT_DIR
 
 try:
     import ujson
 except ImportError:
     import json as ujson  # type: ignore[no-redef]
 
-ROOT_DIR = pkg_resources.resource_filename("mathics", "")
 
 # Load the conversion tables from disk
 characters_path = osp.join(ROOT_DIR, "data", "op-tables.json")

@@ -257,6 +257,7 @@ def format_element(
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
+
     # Strip repeated form
     while element.get_head() is form:
         element = element.elements[0]
@@ -275,6 +276,7 @@ def format_element(
     if element.has_form("OutputForm", 1):
         return makeboxes_outputform(element.elements[0], evaluation, form)
 
+    evaluation.is_boxing = True
     expr = do_format(element, evaluation, form)
     if expr is None:
         return None

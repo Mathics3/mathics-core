@@ -3,9 +3,7 @@
 Unit tests for mathics.builtin.exp_structure
 """
 
-import sys
-import time
-from test.helper import check_evaluation, evaluate
+from test.helper import check_evaluation
 
 import pytest
 

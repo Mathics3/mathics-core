@@ -1,28 +1,28 @@
-This file is about the copyright on Mathics and all included components. 
- 
+This file is about the copyright on Mathics3 and all included components.
+
 * ORIGINAL MATHICS CODE:
 
-  All original Mathics code is distributed under the terms of the 
+  All original Mathics code is distributed under the terms of the
   GNU General Public License, version 3.
- 
+
      This code is distributed in the hope that it will be useful,
      but WITHOUT ANY WARRANTY; without even the implied warranty of
      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
      General Public License for more details.
- 
+
 The full text of the GPL is available below in this file. Details of
 the licenses of the components of Mathics are included below as well.
- 
+
 * LICENSES OF INCLUDED DATA:
 
-Mathics includes data from Wikipedia that is published under the Creative 
-Commons Attribution-Sharealike 3.0 Unported License and the GNU Free 
-Documentation License contributed by the respective authors that are listed 
+Mathics includes data from Wikipedia that is published under the Creative
+Commons Attribution-Sharealike 3.0 Unported License and the GNU Free
+Documentation License contributed by the respective authors that are listed
 on the websites specified in "data/elements.txt".
 
 
 * LICENSES OF INCLUDED SOFTWARE:
- 
+
 SOFTWARE                           LICENSE
 ----------------------------------------------
 scripaculous                       MIT
@@ -31,14 +31,14 @@ MathJax                            Apache 2.0
 Three.js                           MIT
 pymimemagic                        BSD 3-Clause
 SciPy                              BSD 3-Clause
- 
+
 CONTACT INFO:
-     Jan Poeschko; jan@poeschko.com; 
+     Jan Poeschko; jan@poeschko.com;
      https://mathics.org/
 
 =========================================================================
- 
- 
+
+
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
@@ -713,7 +713,7 @@ may consider it more useful to permit linking proprietary applications with
 the library.  If this is what you want to do, use the GNU Lesser General
 Public License instead of this License.  But first, please read
 <http://www.gnu.org/philosophy/why-not-lgpl.html>.
- 
+
 ================================================================================
 
 scriptaculous:
