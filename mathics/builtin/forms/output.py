@@ -54,10 +54,16 @@ from mathics.core.systemsymbols import (
     SymbolOutputForm,
     SymbolRowBox,
     SymbolRuleDelayed,
+    SymbolStandardForm,
     SymbolSubscriptBox,
     SymbolSuperscriptBox,
 )
-from mathics.eval.makeboxes import StringLParen, StringRParen, format_element
+from mathics.eval.makeboxes import (
+    StringLParen,
+    StringRParen,
+    format_element,
+    makeboxes_outputform,
+)
 from mathics.eval.testing_expressions import expr_min
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
@@ -561,7 +567,12 @@ class OutputForm(FormBaseClass):
      = -Graphics-
     """
 
+    formats = {"OutputForm[s_String]": "s"}
     summary_text = "plain-text output format"
+
+    def eval_makeboxes(self, expr, form, evaluation):
+        """MakeBoxes[OutputForm[expr_], form_]"""
+        return makeboxes_outputform(expr, evaluation, form)
 
 
 class PythonForm(FormBaseClass):
@@ -707,7 +718,7 @@ class TeXForm(FormBaseClass):
 
     def eval_tex(self, expr, evaluation) -> Expression:
         "MakeBoxes[expr_, TeXForm]"
-        boxes = MakeBoxes(expr).evaluate(evaluation)
+        boxes = format_element(expr, evaluation, SymbolStandardForm)
         try:
             # Here we set ``show_string_characters`` to False, to reproduce
             # the standard behaviour in WMA. Remove this parameter to recover the
