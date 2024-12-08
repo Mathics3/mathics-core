@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 
+from abc import ABC
+from typing import Optional
 
-class Structure:
+
+class Structure(ABC):
     """
     Structure helps implementations make the ExpressionCache not invalidate across simple commands
     such as Take[], Most[], etc. without this, constant reevaluation of lists happens, which results
@@ -11,18 +14,32 @@ class Structure:
     """
 
     def __call__(self, elements):
-        # create an Expression with the given list "elements" as elements.
-        # NOTE: the caller guarantees that "elements" only contains items that are from "origins".
+        """Return an Expression with the given list "elements" as elements.
+        Tthe caller guarantees that "elements" only contains items that are from "origins
+        """
         raise NotImplementedError
 
-    def filter(self, expr, cond):
-        # create an Expression with a subset of "expr".elements (picked out by the filter "cond").
-        # NOTE: the caller guarantees that "expr" is from "origins".
-        raise NotImplementedError
+    def filter(self, expr, condition, count: Optional[int] = None):
+        """
+        Returns self type consisting of `expr` filtered by `condition`.
+        If `count` is not None, return at most `count` elements.
+        """
+        if count is None:
+            result = [element for element in expr.elements if condition(element)]
+        else:
+            result = []
+            for element in expr.elements:
+                if condition(element):
+                    result.append(element)
+                    count -= 1
+                    if count == 0:
+                        break
+
+        return self(result)
 
     def slice(self, expr, py_slice):
-        # create an Expression, using the given slice of "expr".elements as elements.
-        # NOTE: the caller guarantees that "expr" is from "origins".
+        """create an Expression, using the given slice of "expr".elements as elements.
+        The caller guarantees that "expr" is from "origins"."""
         raise NotImplementedError
 
 
@@ -52,9 +69,6 @@ class UnlinkedStructure(Structure):
         # from mathics.core.convert.expression import to_expression_with_specialization
         # return to_expression_with_specialization(self._head, *new_elements)
 
-    def filter(self, expr, cond):
-        return self([element for element in expr.elements if cond(element)])
-
     def slice(self, expr, py_slice):
         elements = expr.elements
         lower, upper, step = py_slice.indices(len(elements))
@@ -81,9 +95,6 @@ class LinkedStructure(Structure):
         expr.elements = tuple(elements)
         expr._cache = self._cache.reordered()
         return expr
-
-    def filter(self, expr, cond):
-        return self([element for element in expr.elements if cond(element)])
 
     def slice(self, expr, py_slice):
         elements = expr.elements

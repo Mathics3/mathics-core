@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os.path as osp
+import re
 import time
 from typing import Optional
 
@@ -39,7 +40,7 @@ def check_evaluation(
     str_expected: Optional[str] = None,
     failure_message: str = "",
     hold_expected: bool = False,
-    to_string_expr: bool = True,
+    to_string_expr: Optional[bool] = True,
     to_string_expected: bool = True,
     to_python_expected: bool = False,
     expected_messages: Optional[tuple] = None,
@@ -75,6 +76,7 @@ def check_evaluation(
                         evaluation is converted into a Python string.
                         If ``False``, the expected expression is kept as an Expression
                         object.
+                        If ``None`` the result string is matched as is.
 
     to_python_expected: If ``True``, and ``to_string_expected`` is ``False``, the result
                         of evaluating ``str_expr``is compared against the result of the
@@ -96,6 +98,8 @@ def check_evaluation(
     if to_string_expr:
         str_expr = f"ToString[{str_expr}]"
         result = evaluate_value(str_expr)
+    elif to_string_expr is None:
+        result = str_expr
     else:
         result = evaluate(str_expr)
 
@@ -107,6 +111,8 @@ def check_evaluation(
         else:
             str_expected = f"ToString[{str_expected}]"
             expected = evaluate_value(str_expected)
+    elif to_string_expected is None:
+        expected = str_expected
     else:
         if hold_expected:
             if to_python_expected:
@@ -124,7 +130,10 @@ def check_evaluation(
         assert result == expected, failure_message
     else:
         print((result, expected))
-        assert result == expected
+        if isinstance(expected, re.Pattern):
+            assert expected.match(result)
+        else:
+            assert result == expected
 
     if expected_messages is not None:
         msgs = list(expected_messages)
@@ -134,7 +143,8 @@ def check_evaluation(
             expected_len == got_len
         ), f"expected {expected_len}; got {got_len}. Messages: {outs}"
         for out, msg in zip(outs, msgs):
-            if out != msg:
+            compare_ok = msg.match(out) if isinstance(msg, re.Pattern) else out == msg
+            if not compare_ok:
                 print(f"out:<<{out}>>")
                 print(" and ")
                 print(f"expected=<<{msg}>>")

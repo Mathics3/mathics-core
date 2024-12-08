@@ -6,8 +6,8 @@ from mathics.core.builtin import check_requires_list
 from mathics.core.convert.function import expression_to_callable_and_args
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
-from mathics.core.systemsymbols import SymbolAutomatic, SymbolFailed, SymbolInfinity
+from mathics.core.expression import Expression, ExpressionInfinity
+from mathics.core.systemsymbols import SymbolAutomatic, SymbolFailed
 from mathics.eval.nevaluator import eval_N
 
 if not check_requires_list(["scipy", "numpy"]):
@@ -30,7 +30,7 @@ def get_tolerance_and_maxit(opts: dict, scale: float, evaluation: Evaluation):
         acc_goal = eval_N(acc_goal, evaluation)
         if acc_goal is SymbolAutomatic:
             acc_goal = Real(12.0)
-        elif acc_goal is SymbolInfinity:
+        elif ExpressionInfinity == acc_goal:
             acc_goal = None
         elif not isinstance(acc_goal, Number):
             acc_goal = None
@@ -40,7 +40,7 @@ def get_tolerance_and_maxit(opts: dict, scale: float, evaluation: Evaluation):
         prec_goal = eval_N(prec_goal, evaluation)
         if prec_goal is SymbolAutomatic:
             prec_goal = Real(12.0)
-        elif prec_goal is SymbolInfinity:
+        elif ExpressionInfinity == prec_goal:
             prec_goal = None
         elif not isinstance(prec_goal, Number):
             prec_goal = None

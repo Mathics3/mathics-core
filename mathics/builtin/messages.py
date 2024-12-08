@@ -198,7 +198,7 @@ class General(Builtin):
             "Single or list of non-negative integers expected at " "position `1`."
         ),
         "indet": "Indeterminate expression `1` encountered.",
-        "innf": "Non-negative integer or Infinity expected at position `1`.",
+        "innf": "Non-negative integer or Infinity expected at position `1` in `2`",
         "int": "Integer expected.",
         "intp": "Positive integer expected.",
         "intnn": "Non-negative integer expected.",
