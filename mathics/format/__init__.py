@@ -27,6 +27,7 @@ TeXForm if the front-end supports this and the user so desires that.
 import glob
 import importlib
 import os.path as osp
+import sys
 
 __py_files__ = [
     osp.basename(f[0:-3])
