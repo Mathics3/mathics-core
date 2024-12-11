@@ -1438,7 +1438,7 @@ class NIntegrate(Builtin):
         coords = [axis[0] for axis in domain]
         # If any of the points in the integration domain is complex,
         # stop the evaluation...
-        if any([c.get_head_name() == "System`List" for c in coords]):
+        if any(c.get_head_name() == "System`List" for c in coords):
             evaluation.message("NIntegrate", "cmpint")
             return
 

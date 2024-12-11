@@ -416,7 +416,7 @@ def old_from_sympy(expr) -> BaseElement:
         if expr is sympy.false:
             return SymbolFalse
 
-    if expr.is_number and all([x.is_Number for x in expr.as_real_imag()]):
+    if expr.is_number and all(x.is_Number for x in expr.as_real_imag()):
         # Hack to convert <Integer> * I to Complex[0, <Integer>]
         try:
             return Complex(*[from_sympy(arg) for arg in expr.as_real_imag()])

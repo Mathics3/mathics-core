@@ -416,7 +416,7 @@ class RandomComplex(Builtin):
         if not isinstance(py_ns, list):
             py_ns = [py_ns]
 
-        if not all([isinstance(i, int) and i >= 0 for i in py_ns]):
+        if not all(isinstance(i, int) and i >= 0 for i in py_ns):
             evaluation.message("RandomComplex", "array", ns, expr)
             return
 
@@ -581,12 +581,12 @@ class RandomReal(Builtin):
         min_value, max_value = xmin.to_python(), xmax.to_python()
         result = ns.to_python()
 
-        if not all([isinstance(i, int) and i >= 0 for i in result]):
+        if not all(isinstance(i, int) and i >= 0 for i in result):
             expr = Expression(SymbolRandomReal, ListExpression(xmin, xmax), ns)
             evaluation.message("RandomReal", "array", expr, ns)
             return
 
-        assert all([isinstance(i, int) for i in result])
+        assert all(isinstance(i, int) for i in result)
 
         with RandomEnv(evaluation) as rand:
             return instantiate_elements(
