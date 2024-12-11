@@ -4,7 +4,7 @@ Conversion from AST node to Mathics3 BaseElement objects
 """
 
 from math import log10
-from typing import Optional, Tuple, TypeAlias
+from typing import Optional, Tuple
 
 import sympy
 
@@ -26,7 +26,7 @@ from mathics.core.util import canonic_filename
 #   ["String" "/etc/hosts"]
 #   ["Symbol" "System`Infinity"]
 #   ["Lookup" "Infinity"]
-StringValueToken: TypeAlias = Tuple[str, str]
+StringValueToken = Tuple[str, str]
 
 
 class GenericConverter:
