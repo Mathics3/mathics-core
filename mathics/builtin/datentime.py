@@ -99,8 +99,7 @@ if not hasattr(timedelta, "total_seconds"):
 
     def total_seconds(td):
         return (
-            float(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6)
-            / 10**6
+            float(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
         )
 
 else:
@@ -1069,8 +1068,7 @@ if sys.platform != "emscripten":
     import stopit
 
     class TimeConstrained(Builtin):
-        """
-        <url>:WMA link:https://reference.wolfram.com/language/ref/TimeConstrained.html</url>
+        """<url>:WMA link:https://reference.wolfram.com/language/ref/TimeConstrained.html</url>
 
         <dl>
           <dt>'TimeConstrained[$expr$, $t$]'
@@ -1080,12 +1078,22 @@ if sys.platform != "emscripten":
           <dd>'returns $failexpr$ if the time constraint is not met.'
         </dl>
 
-        Possible issues: for certain time-consuming functions (like simplify)
-        which are based on sympy or other libraries, it is possible that
-        the evaluation continues after the timeout. However, at the end of the \
-        evaluation, the function will return '$Aborted' and the results will not affect
-        the state of the Mathics3 kernel.
+        At most one 'TimeConstrained[]' evalution can be performed at a time. \
+        If a second 'TimeConstrianed[]' is called when another is in progress, \
+        it will be executed without a time constraint.
+
+        In time-consuming library functions, like simplify, evalution \
+        can continue after the timeout. However, at the end of the \
+        evaluation, the function will return '$Aborted' and the
+        results will not affect the state of the Mathics3 kernel.
+
+        In Python, a timeout exception can occur at a place where \
+        Python is not in a position to be able to handle it. This is \
+        called an "unraisable exception".
         """
+
+        # If True, we are already running TimeConstrained[].
+        is_running_TimeConstrained = False
 
         attributes = A_HOLD_ALL | A_PROTECTED
         messages = {
@@ -1097,33 +1105,40 @@ if sys.platform != "emscripten":
 
         summary_text = "run a command for at most a specified time"
 
-        def eval_2(self, expr, t, evaluation):
+        def eval(self, expr, t, evaluation: Evaluation):
             "TimeConstrained[expr_, t_]"
-            return self.eval_3(expr, t, SymbolAborted, evaluation)
+            return self.eval_with_failexpr(expr, t, SymbolAborted, evaluation)
 
-        def eval_3(self, expr, t, failexpr, evaluation):
+        def eval_with_failexpr(self, expr, t, failexpr, evaluation: Evaluation):
             "TimeConstrained[expr_, t_, failexpr_]"
             t = t.evaluate(evaluation)
             if not t.is_numeric(evaluation):
                 evaluation.message("TimeConstrained", "timc", t)
                 return
+
+            if self.is_running_TimeConstrained:
+                return expr.evaluate(evaluation)
+
             try:
                 timeout = float(t.to_python())
                 evaluation.timeout_queue.append((timeout, datetime.now().timestamp()))
-                request = lambda: expr.evaluate(evaluation)
-                done = False
                 with stopit.ThreadingTimeout(timeout) as to_ctx_mgr:
+                    self.is_running_TimeConstrained = True
                     assert to_ctx_mgr.state == to_ctx_mgr.EXECUTING
-                    result = request()
-                    done = True
-                if done:
+                    result = expr.evaluate(evaluation)
+                    self.is_running_TimeConstrained = False
+                if to_ctx_mgr.state == to_ctx_mgr.EXECUTED:
                     evaluation.timeout_queue.pop()
                     return result
             except Exception:
+                to_ctx_mgr.cancel()
+                self.is_running_TimeConstrained = False
                 evaluation.timeout_queue.pop()
                 raise
             evaluation.timeout_queue.pop()
-            return failexpr.evaluate(evaluation)
+            result = failexpr.evaluate(evaluation)
+            self.is_running_TimeConstrained = False
+            return result
 
 
 class TimeZone(Predefined):
@@ -1151,7 +1166,7 @@ class TimeZone(Predefined):
 
     summary_text = "gets the default time zone"
 
-    def evaluate(self, evaluation) -> Real:
+    def evaluate(self, evaluation: Evaluation) -> Real:
         return self.value
 
 
