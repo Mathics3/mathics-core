@@ -53,8 +53,8 @@ permitted_digits["."] = 0
 
 def unescape_string(s: str) -> str:
     """
-    Turn an a string representation with quotes and backslashes into
-    the equivalant string with the quotes removed and the backslashes
+    Turn a string representation with quotes and backslashes into
+    the equivalent string with the quotes removed and the backslashes
     evaluated.
 
     For example, '"a\\n\\c"' becomes 'a\nb\nc'

@@ -15,7 +15,7 @@ class Structure(ABC):
 
     def __call__(self, elements):
         """Return an Expression with the given list "elements" as elements.
-        Tthe caller guarantees that "elements" only contains items that are from "origins
+        The caller guarantees that "elements" only contains items that are from "origins
         """
         raise NotImplementedError
 
@@ -60,7 +60,7 @@ class UnlinkedStructure(Structure):
         # we seem to to require Expression(System`List, ... )
         # and can't use ListExpression(...).
         # It may be in formatting of RowBoxes, so that may take care of itself
-        # when we revise Boxing and formattin.
+        # when we revise Boxing and formatting.
         # Also make sure to test via test/test_series.py
         # Of course, a failure would would be in something poorly documented and the smells hacky
         # or misguided involving a home-grown caching system.

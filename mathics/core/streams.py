@@ -74,7 +74,7 @@ def path_search(filename: str) -> Tuple[Optional[str], bool]:
     if filename is not None:
         result = None
         # If filename is an Internet address, download the file
-        # and store it in a tempory file
+        # and store it in a temporary file
         lenfn = len(filename)
         if (
             (lenfn > 7 and filename[:7] == "http://")

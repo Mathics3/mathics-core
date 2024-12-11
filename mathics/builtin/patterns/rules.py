@@ -368,7 +368,7 @@ class ReplaceList(Builtin):
         "ReplaceList[expr_, rules_, maxidx_:Infinity]"
 
         # TODO: the below handles Infinity getting added as a
-        # default argument, when it is passed explictly, e.g.
+        # default argument, when it is passed explicitly, e.g.
         # ReplaceList[expr, {}, Infinity], then Infinity
         # comes in as DirectedInfinity[1].
         if maxidx == SymbolInfinity or ExpressionInfinity == maxidx:

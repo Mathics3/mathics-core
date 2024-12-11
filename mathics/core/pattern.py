@@ -2,7 +2,7 @@
 # cython: profile=False
 # -*- coding: utf-8 -*-
 """Core to Mathics3 is are patterns which match symbolic expressions. Patterns
-are built up in a custon pattern notation.
+are built up in a custom pattern notation.
 The parts of a pattern are called "Pattern Objects".
 
 While there is a built-in function which allows users to match parts of

@@ -62,7 +62,7 @@ def assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset=False):
     ignore_protection, tags = eval_assign_other(self, lhs, rhs, evaluation, tags, upset)
     # In WMA, this does not happens. However, if we remove this,
     # some combinatorica tests fail.
-    # Also, should not be at the begining?
+    # Also, should not be at the beginning?
     lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
     count = 0
     rule = Rule(lhs, rhs)
@@ -243,7 +243,7 @@ def unroll_conditions(lhs) -> Tuple[BaseElement, Optional[Expression]]:
     else:
         name, lhs_elements = lhs.get_head_name(), lhs.get_elements()
     conditions = []
-    # This handle the case of many sucesive conditions:
+    # This handle the case of many successive conditions:
     # f[x_]/; cond1 /; cond2 ... ->  f[x_]/; And[cond1, cond2, ...]
     while name == "System`Condition" and len(lhs.elements) == 2:
         conditions.append(lhs_elements[1])
@@ -641,7 +641,8 @@ def eval_assign_other(
 
     The function returns a tuple of a bool value and a list of tags.
     If lhs is one of the special cases, then the bool variable is
-    True, meaning that the `Protected` attribute should not be taken into accout.
+    True, meaning that the `Protected` attribute should not be taken
+    into account.
     Otherwise, the value is False.
     """
     tags, focus = process_tags_and_upset_allow_custom(

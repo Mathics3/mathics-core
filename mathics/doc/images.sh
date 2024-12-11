@@ -1,5 +1,5 @@
 #!/bin/bash
-# The program create PDF images that can be imbedded into the
+# The program create PDF images that can be embedded into the
 # Mathics manual. In particular the Mathics heptatom logo and the
 # Mathics logo with a shadow that extends a little bit down forward right.
 

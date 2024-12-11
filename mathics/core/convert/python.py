@@ -27,8 +27,9 @@ def from_bool(arg: bool) -> BooleanType:
 def from_complex(arg: complex) -> Complex:
     """
     Conversion from a Python complex to Complex.
+
     Care is taken to preserve integer-ness of the
-    reall and imaginary parts
+    real and imaginary parts.
     """
     convert_fn = Integer if isinstance(arg.real, int) else Real
     real_value = convert_fn(arg.real)
