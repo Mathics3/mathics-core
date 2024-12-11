@@ -19,7 +19,7 @@ from typing import (
 
 import sympy
 
-from mathics.core.atoms import Integer, String
+from mathics.core.atoms import Integer, Integer1, String
 from mathics.core.attributes import (
     A_FLAT,
     A_HOLD_ALL,
@@ -625,9 +625,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             head = head.evaluate_elements(evaluation)
         return Expression(head, *elements)
 
-    def filter(self, head, cond, evaluation):
+    def filter(self, head, cond, evaluation: Evaluation, count: Optional[int] = None):
         # faster equivalent to: Expression(head, [element in self.elements if cond(element)])
-        return structure(head, self, evaluation).filter(self, cond)
+        return structure(head, self, evaluation).filter(self, cond, count)
 
     # FIXME: go over and preserve elements_properties.
     def flatten_pattern_sequence(self, evaluation):
@@ -2068,3 +2068,6 @@ def convert_expression_elements(
 
 def string_list(head, elements, evaluation):
     return atom_list_constructor(evaluation, head, "String")(elements)
+
+
+ExpressionInfinity = Expression(SymbolDirectedInfinity, Integer1)
