@@ -148,8 +148,7 @@ class SparseArray(Builtin):
                 for i, idx in enumerate(pos.elements):
                     if isinstance(idx, Integer):
                         j = idx.get_int_value()
-                        if dims[i] < j:
-                            dims[i] = j
+                        dims[i] = max(dims[i], j)
         if any(d == 0 for d in dims):
             return
         return ListExpression(*[Integer(d) for d in dims])

@@ -10,7 +10,7 @@ The information for this comes from:
   on the command line
 
 * doctest tests and test result that have been stored in a Python
-  Pickle file, from a privious docpipeline.py run.  Ideally the
+  Pickle file, from a previous docpipeline.py run.  Ideally the
   Mathics3 Modules given to docpipeline.py are the same as
   given on the command line for this program
 """

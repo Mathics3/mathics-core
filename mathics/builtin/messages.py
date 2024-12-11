@@ -198,7 +198,7 @@ class General(Builtin):
             "Single or list of non-negative integers expected at " "position `1`."
         ),
         "indet": "Indeterminate expression `1` encountered.",
-        "innf": "Non-negative integer or Infinity expected at position `1`.",
+        "innf": "Non-negative integer or Infinity expected at position `1` in `2`",
         "int": "Integer expected.",
         "intp": "Positive integer expected.",
         "intnn": "Non-negative integer expected.",
@@ -224,6 +224,7 @@ class General(Builtin):
         "pspec": (
             "Part specification `1` is neither an integer nor " "a list of integer."
         ),
+        "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
         "seqs": "Sequence specification expected, but got `1`.",
         "setp": "Part assignment to `1` could not be made",
         "setps": "`1` in the part assignment is not a symbol.",

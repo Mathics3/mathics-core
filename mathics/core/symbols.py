@@ -372,7 +372,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     more information.
 
     Symbol acts like Python's intern() built-in function or Lisp's
-    Symbol without its modifyable property list.  Here, the only
+    Symbol without its modifiable property list.  Here, the only
     attribute we care about is the value which is unique across all
     mentions and uses, and therefore needs it only to be stored as a
     single object in the system.
@@ -575,7 +575,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         we strip off the context parts.
 
         Note however that many places in the code we do not need the
-        "short" parameter becasue of Definitions.shorten_name() which
+        "short" parameter because of Definitions.shorten_name() which
         keeps track of the current $Context and $ContextPath to decide
         whether the name of a symbol should or should not be
         shortened.

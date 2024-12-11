@@ -10,7 +10,7 @@ patterns of criteria.
 from itertools import chain
 
 from mathics.builtin.box.layout import RowBox
-from mathics.core.atoms import Integer, Integer0, Integer1, String
+from mathics.core.atoms import Integer, Integer0, Integer1, Integer3, Integer4, String
 from mathics.core.attributes import (
     A_HOLD_FIRST,
     A_HOLD_REST,
@@ -29,7 +29,7 @@ from mathics.core.exceptions import (
     PartError,
     PartRangeError,
 )
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, ExpressionInfinity
 from mathics.core.list import ListExpression
 from mathics.core.rules import Rule
 from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
@@ -41,6 +41,7 @@ from mathics.core.systemsymbols import (
     SymbolKey,
     SymbolMakeBoxes,
     SymbolMissing,
+    SymbolSelect,
     SymbolSequence,
     SymbolSet,
 )
@@ -129,9 +130,6 @@ class AppendTo(Builtin):
 
     attributes = A_HOLD_FIRST | A_PROTECTED
 
-    messages = {
-        "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
-    }
     summary_text = "add an element at the end of an stored list or expression"
 
     def eval(self, s, element, evaluation):
@@ -436,7 +434,6 @@ class DeleteCases(Builtin):
 
     messages = {
         "level": "Level specification `1` is not of the form n, {n}, or {m, n}.",
-        "innf": "Non-negative integer or Infinity expected at position 4 in `1`",
     }
     summary_text = "delete all occurrences of a pattern"
 
@@ -454,14 +451,15 @@ class DeleteCases(Builtin):
 
         levelspec = python_levelspec(levelspec)
 
-        if n is SymbolInfinity:
+        if n is SymbolInfinity or ExpressionInfinity == n:
             n = -1
-        elif n.get_head_name() == "System`Integer":
-            n = n.get_int_value()
+        elif isinstance(n, Integer):
+            n = n.value
             if n < 0:
                 evaluation.message(
                     "DeleteCases",
                     "innf",
+                    Integer4,
                     Expression(SymbolDeleteCases, items, pattern, levelspec, n),
                 )
         else:
@@ -1344,7 +1342,6 @@ class PrependTo(Builtin):
     attributes = A_HOLD_FIRST | A_PROTECTED
 
     messages = {
-        "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
         "normal": "Nonatomic expression expected at position 1 in `1`.",
     }
     summary_text = "add an element at the beginning of an stored list or expression"
@@ -1504,27 +1501,54 @@ class Select(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Select.html</url>
 
     <dl>
-      <dt>'Select[{$e1$, $e2$, ...}, $f$]'
-      <dd>returns a list of the elements $ei$ for which $f$[$ei$] returns 'True'.
+      <dt>'Select[{$e1$, $e2$, ...}, $crit$]'
+      <dd>returns a list of the elements $ei$ for which $crit$[$ei$] is 'True'.
+      <dt>'Select[{$e1$, $e2$, ...}, $crit$, n]'
+      <dd>returns a list of the first $n$ elements $ei$ for which $crit$[$ei$] is 'True'.
     </dl>
 
-    Find numbers greater than zero:
-    >> Select[{-3, 0, 1, 3, a}, #>0&]
-     = {1, 3}
+    Get a list of even numbers up to 10:
+    >> Select[Range[10], EvenQ]
+     = {2, 4, 6, 8, 10}
+
+    Find numbers that are greater than zero in a list:
+    >> Select[{-3, 0, 10, 3, a}, #>0&]
+     = {10, 3}
+
+    Find the first number that is list greater than zero in a list:
+    >> Select[{-3, 0, 10, 3, a}, #>0&, 1]
+     = {10}
 
     'Select' works on an expression with any head:
     >> Select[f[a, 2, 3], NumberQ]
      = f[2, 3]
-
-    >> Select[a, True]
-     : Nonatomic expression expected.
-     = Select[a, True]
     """
 
     summary_text = "pick elements according to a criterion"
 
-    def eval(self, items, expr, evaluation):
+    def eval(self, items, expr, evaluation: Evaluation):
         "Select[items_, expr_]"
+
+        return self.eval_with_n(items, expr, SymbolInfinity, evaluation)
+
+    def eval_with_n(self, items, expr, n, evaluation: Evaluation):
+        "Select[items_, expr_, n_]"
+
+        count_is_valid = True
+        if n is SymbolInfinity or ExpressionInfinity == n:
+            count = None
+        elif isinstance(n, Integer):
+            count = n.value
+            if count < 0:
+                count_is_valid = False
+        else:
+            count_is_valid = False
+
+        if not count_is_valid:
+            evaluation.message(
+                "Select", "innf", Integer3, Expression(SymbolSelect, items, expr, n)
+            )
+            return
 
         if isinstance(items, Atom):
             evaluation.message("Select", "normal")
@@ -1534,7 +1558,7 @@ class Select(Builtin):
             test = Expression(expr, element)
             return test.evaluate(evaluation) is SymbolTrue
 
-        return items.filter(items.head, cond, evaluation)
+        return items.filter(items.head, cond, evaluation, count=count)
 
 
 class Span(InfixOperator):
@@ -1620,6 +1644,7 @@ class UpTo(Builtin):
     </dl>
     """
 
+    # TODO: is there as way we can use general's innf?
     messages = {
         "innf": "Expected non-negative integer or infinity at position 1 in ``.",
         "argx": "UpTo expects 1 argument, `1` arguments were given.",

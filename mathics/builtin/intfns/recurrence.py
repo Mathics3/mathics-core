@@ -88,7 +88,7 @@ class LinearRecurrence(Builtin):
 
     <dl>
       <dt>'LinearRecurrence[$ker$, $init$, $n$]'
-      <dd>computes $n$ terms of the linear recurrence with kernel $ker$ and intial values $init$
+      <dd>computes $n$ terms of the linear recurrence with kernel $ker$ and initial values $init$
     </dl>
 
     >> LinearRecurrence[{1, 1}, {1, 1}, 10]

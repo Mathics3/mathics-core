@@ -51,6 +51,19 @@ permitted_digits = {c: i for i, c in enumerate(string.digits + string.ascii_lowe
 permitted_digits["."] = 0
 
 
+def unescape_string(s: str) -> str:
+    """
+    Turn a string representation with quotes and backslashes into
+    the equivalent string with the quotes removed and the backslashes
+    evaluated.
+
+    For example, '"a\\n\\c"' becomes 'a\nb\nc'
+    """
+    assert len(s) >= 2 and s[0] == s[-1]
+    s = s.encode("raw_unicode_escape").decode("unicode_escape")
+    return s[1:-1]
+
+
 class Parser:
     def __init__(self):
         # no implicit times on these tokens
@@ -390,7 +403,7 @@ class Parser:
         return result
 
     def p_String(self, token) -> String:
-        result = String(token.text[1:-1])
+        result = String(unescape_string(token.text))
         self.consume()
         return result
 

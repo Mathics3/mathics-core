@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # The builtin's attributes are stored in a bit set.
-# Each bit represets a attribute, if that is 0, the builtin doesn't has the
+# Each bit represents a attribute, if that is 0, the builtin doesn't has the
 # property, if that is 1, the builtin has the property.
 
 # The Builtin class has the property Protected by default, but if you overrides
