@@ -138,7 +138,7 @@ class TerminalShell(MathicsLineFeeder):
         if term_colors is None:
             out_msg = "The 'colors' argument must be {0} or None"
             print(out_msg.format(repr(list(color_schemes.keys()))))
-            quit()
+            sys.exit()
 
         self.incolors, self.outcolors = term_colors
         self.definitions = definitions

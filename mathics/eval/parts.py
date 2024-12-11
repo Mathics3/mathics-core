@@ -374,8 +374,7 @@ def walk_levels(
                 include_pos,
                 cur_pos + [index + 1],
             )
-            if element_depth + 1 > depth:
-                depth = element_depth + 1
+            depth = max(element_depth + 1, depth)
             elements.append(element)
         new_expr = make_expression(head, *elements)
 
