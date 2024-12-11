@@ -40,4 +40,4 @@ for module_name in __py_files__:
         print(e)
         print(f"    Not able to load {module_name}. Check your installation.")
         print(f"    mathics.format loads from {osp.dirname(__file__)}")
-        exit(-1)
+        sys.exit(-1)
