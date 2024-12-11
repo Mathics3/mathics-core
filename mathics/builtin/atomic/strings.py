@@ -428,7 +428,6 @@ class InterpretedBox(PrefixOperator):
      = 4
     """
 
-    operator = "\\!"
     summary_text = "interpret boxes as an expression"
 
     def eval(self, boxes, evaluation: Evaluation):

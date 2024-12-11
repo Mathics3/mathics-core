@@ -221,7 +221,6 @@ EXTENSIONMAPPINGS = {
     "*.csa": "HarwellBoeing",
     "*.cse": "HarwellBoeing",
     "*.css": "CSS",
-    "*.css": "CSS",
     "*.csv": "CSV",
     "*.ct": "SCT",
     "*.cua": "HarwellBoeing",
