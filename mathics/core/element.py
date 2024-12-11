@@ -138,14 +138,14 @@ class KeyComparable:
     To do that, we need a way to compare Symbols, and that is what
     this class is for.
 
-    This class adds the boilerplate Python comparision operators that
+    This class adds the boilerplate Python comparison operators that
     you expect in Python programs for comparing Python objects.
 
     This class is not complete in of itself, it is intended to be
     mixed into other classes.
 
     Each class should provide a `get_sort_key()` method which
-    is the primative from which all other comparisons are based on.
+    is the primitive from which all other comparisons are based on.
     """
 
     # FIXME: return type should be a specific kind of Tuple, not a list.
@@ -286,7 +286,7 @@ class BaseElement(KeyComparable, ABC):
 
     def get_head_name(self) -> str:
         """
-        All elements have a "Head" whether or not the element is compount.
+        All elements have a "Head" whether or not the element is compound.
         The Head of an Atom is its type. The Head of an S-expression is
         its function name.
 

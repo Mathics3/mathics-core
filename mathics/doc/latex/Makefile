@@ -6,7 +6,7 @@ LATEXMK ?= latexmk
 BASH ?= /bin/bash
 #-quiet
 
-# Location of Python Pickle file containg doctest tests and test results formatted for LaTeX
+# Location of Python Pickle file containing doctest tests and test results formatted for LaTeX
 DOCTEST_LATEX_DATA_PCL ?= $(HOME)/.local/var/mathics/doctest_latex_data.pcl
 
 # Variable indicating Mathics3 Modules you have available on your system, in latex2doc option format

@@ -704,7 +704,7 @@ class PutAppend(InfixOperator):
 def validate_read_type(name: str, typ, evaluation: Evaluation):
     """
     Validate a Read option type, and give a message if
-    the type is invalid. For Expession[Hold], we convert it to
+    the type is invalid. For Expression[Hold], we convert it to
     SymbolHoldExpression, String names are like "Byte" are
     converted to Symbols in the return.
     """

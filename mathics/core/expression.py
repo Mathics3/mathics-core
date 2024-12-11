@@ -178,7 +178,7 @@ class BoxError(Exception):
 # time: (1) the last time (in terms of Definitions.now) this expression was evaluated
 #   or (2) None, if the current expression has not yet been evaluated (i.e. is new or
 #   changed).
-# symbols: (1) a set of symbols occuring in this expression's head, its elements'
+# symbols: (1) a set of symbols occurring in this expression's head, its elements'
 #   heads, any of its sub expressions' heads or as Symbol elements somewhere (maybe deep
 #   down) in the expression tree start by this expressions' elements, or (2) None, if no
 #   information on which symbols are contained in this expression is available
@@ -555,7 +555,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 if not expr.is_uncertain_final_definitions(definitions):
                     break
                 # Here the names of the lookupname of the expression
-                # are stored. This is necesary for the implementation
+                # are stored. This is necessary for the implementation
                 # of the builtin `Return[]`
                 names.add(expr.get_lookup_name())
 
@@ -594,7 +594,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # "Return gets discarded only if it was called from within the r.h.s.
         # of a user-defined rule."
         # http://mathematica.stackexchange.com/questions/29353/how-does-return-work
-        # Otherwise it propogates up.
+        # Otherwise it propagates up.
         #
         except ReturnInterrupt as ret:
             if names.intersection(definitions.user.keys()):
@@ -679,7 +679,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         the expression is unchanged.
 
-        head: head element to be consdier flattening on. Only expressions with this will be flattened.
+        head: head element to be consider flattening on. Only expressions with this will be flattened.
               This is always the head element or the next head element of the expression that the
               elements are drawn from
 
