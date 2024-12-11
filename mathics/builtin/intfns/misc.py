@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Miscelanea of Integer Functions 
+Miscelanea of Integer Functions
 """
 
 
