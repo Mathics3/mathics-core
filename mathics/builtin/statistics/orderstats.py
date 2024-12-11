@@ -343,10 +343,9 @@ class Sort(Builtin):
 
                 def __gt__(self, other):
                     return (
-                        not Expression(p, self.element, other.element).evaluate(
+                        Expression(p, self.element, other.element).evaluate(
                             evaluation
-                        )
-                        is SymbolTrue
+                        ) is not SymbolTrue
                     )
 
             new_elements = sorted(list.elements, key=Key)

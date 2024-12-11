@@ -75,8 +75,7 @@ class Alternatives(InfixOperator, PatternObject):
             if range_lst is None:
                 range_lst = tuple(sub)
             else:
-                if sub[0] < range_lst[0]:
-                    range_lst[0] = sub[0]
+                range_lst[0] = min(sub[0], range_lst[0])
                 if range_lst[1] is None or sub[1] > range_lst[1]:
                     range_lst[1] = sub[1]
         return tuple(range_lst)

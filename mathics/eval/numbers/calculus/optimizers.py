@@ -178,7 +178,7 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
 
 def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
     region = opts.get("$$Region", None)
-    if not type(region) is list:
+    if type(region) is not list:
         if x0.is_zero:
             region = (Real(-1), Real(1))
         else:
