@@ -582,16 +582,17 @@ class Syntax(Builtin):
 
     # Extension: WMA does not provide lineno and filename in its error messages
     messages = {
-        "snthex": r"4 hexadecimal digits are required after \: to construct a 16-bit character (line `4` of `5`).",
-        "sntoct1": r"3 octal digits are required after \ to construct an 8-bit character (line `4` of `5`).",
-        "sntoct2": r"2 hexadecimal digits are required after \. to construct an 8-bit character (line `4` of `5`).",
-        "sntxi": "Incomplete expression; more input is needed (line `4` of `5`).",
-        "sntxb": "Expression cannot begin with `1` (line `4` of `5`).",
-        "sntxf": "`1` cannot be followed by `2` (line `4` of `5`).",
-        "bktwrn": "`1` represents multiplication; use `2` to represent a function (line `4` of `5`).",  # TODO
         "bktmch": "`1` must be followed by `2`, not `3` (line `4` of `5`).",
+        "bktwrn": "`1` represents multiplication; use `2` to represent a function (line `4` of `5`).",  # TODO
+        "com": "Warning: comma encountered with no adjacent expression. The expression will be treated as Null (line `4` of `5`).",
+        "snthex": r"4 hexadecimal digits are required after \: to construct a 16-bit character (line `4` of `5`).",
+        "sntoct1": r"3 octal digits are required after \ to construct an 8-bit character.",
+        "sntoct2": r"2 hexadecimal digits are required after \. to construct an 8-bit character.",
         "sntue": "Unexpected end of file; probably unfinished expression (line `4` of `5`).",
         "sntufn": "Unknown unicode longname `1` (line `4` of `5`).",
-        "com": "Warning: comma encountered with no adjacent expression. The expression will be treated as Null (line `4` of `5`).",
+        "sntxb": "Expression cannot begin with `1` (line `4` of `5`).",
+        "sntxf": "`1` cannot be followed by `2` (line `4` of `5`).",
+        "sntxi": "Incomplete expression; more input is needed (line `4` of `5`).",
+        "stresc": "Unknown string escape `1`",
     }
     summary_text = "syntax messages"

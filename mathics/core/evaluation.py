@@ -401,8 +401,7 @@ class Evaluation:
 
     def message(self, symbol_name: str, tag, *msgs) -> Optional["Message"]:
         """
-        Format message given its components, ``symbol``, ``tag``
-
+        Format message given its components, ``symbol_name``, ``tag``
 
         """
         from mathics.core.expression import Expression
