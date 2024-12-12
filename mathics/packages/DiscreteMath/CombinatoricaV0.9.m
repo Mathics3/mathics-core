@@ -1219,7 +1219,7 @@ RandomPartition[n_Integer?Positive] :=
   Module[{mult = Table[0, {n}], j, d, r=n, z},
     While[ (r > 0),
       d = 1;  j = 0;
-      z = Random[] r PartitionsP[r];
+      z = RandomReal[] r PartitionsP[r];
       While [z >= 0,
          j++;
          If [r-j*d < 0, {j=1; d++;}];
@@ -2176,7 +2176,7 @@ NthPair[n_Integer] :=
 		{n - Binomial[i-1,2], i}
 	]
 
-RandomVertices[n_Integer] := Table[{Random[], Random[]}, {n}]
+RandomVertices[n_Integer] := Table[{RandomReal[], RandomReal[]}, {n}]
 RandomVertices[g_Graph] := Graph[ Edges[g], RandomVertices[V[g]] ]
 
 RandomGraph[n_Integer,p_,range_List,Directed] :=
