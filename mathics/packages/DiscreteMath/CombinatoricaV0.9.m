@@ -1133,10 +1133,18 @@ Partitions[0,_] := { {} }
 Partitions[n_Integer,1] := { Table[1,{n}] }
 Partitions[_,0] := {}
 
+(* FIXME: Below the If[] is added to fold in the rule:
+   Partitions[0,_] := { {} }
+from above. That rule
+is taking precedence over the above in Mathematica, but not in
+Mathics3.
+ *)
 Partitions[n_Integer,maxpart_Integer] :=
-	Join[
-		Map[(Prepend[#,maxpart])&, Partitions[n-maxpart,maxpart]],
-		Partitions[n,maxpart-1]
+	If[n<0, {}, (* rocky added If *)
+	   Join[
+		   Map[(Prepend[#,maxpart])&, Partitions[n-maxpart,maxpart]],
+		   Partitions[n,maxpart-1]
+	   ]
 	]
 
 NextPartition[p_List] := Join[Drop[p,-1],{Last[p]-1,1}]  /; (Last[p] > 1)
