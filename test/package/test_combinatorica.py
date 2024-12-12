@@ -569,11 +569,11 @@ def test_combinatorica_rest():
             "2",
             "BinarySearch - find where key is a list",
         ),
-        # (
-        #     "SetPartitions[3]",
-        #     "{{{1, 2, 3}}, {{1}, {2, 3}}, {{1, 2}, {3}}, {{1, 3}, {2}}, {{1}, {2}, {3}}}",
-        #     "SetPartitions"
-        # ),
+        (
+            "SetPartitions[3]",
+            "{{{1, 2, 3}}, {{1}, {2, 3}}, {{1, 2}, {3}}, {{1, 3}, {2}}, {{1}, {2}, {3}}}",
+            "SetPartitions",
+        ),
         (
             "TransposePartition[{8, 6, 4, 4, 3, 1}]",
             "{6, 5, 5, 4, 2, 2, 1, 1}",

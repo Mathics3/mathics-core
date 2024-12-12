@@ -324,6 +324,9 @@ Josephus::usage = "Josephus[n,m] generates the inverse of the permutation define
 
 KSubsets::usage = "KSubsets[l,k] returns all subsets of set l containing exactly k elements, ordered lexicographically."
 
+KSetPartitions::usage = "KSetPartitions[set, k] returns the list of set partitions of set with k blocks. KSetPartitions[n, k] returns the list of set partitions of {1, 2, ..., n} with k blocks. If all set partitions of a set are needed, use the function SetPartitions."
+
+
 K::usage = "K[n] creates a complete graph on n vertices. K[a,b,c,...,k] creates a complete k-partite graph of the prescribed shape."
 
 LabeledTreeToCode::usage = "LabeledTreeToCode[g] reduces the tree g to its Prufer code."
@@ -491,6 +494,8 @@ SamenessRelation::usage = "SamenessRelation[l] constructs a binary relation from
 SelectionSort::usage = "SelectionSort[l,f] sorts list l using ordering function f."
 
 SelfComplementaryQ::usage = "SelfComplementaryQ[g] returns True if graph g is self-complementary, meaning it is isomorphic to its complement."
+
+SetPartitions::usage = "SetPartitions[set] returns the list of set partitions of set. SetPartitions[n] returns the list of set partitions of {1, 2, ..., n}. If all set partitions with a fixed number of subsets are needed use KSetPartitions."
 
 ShakeGraph::usage = "ShakeGraph[g,d] performs a random perturbation of the vertices of graph g, with each vertex moving at most a distance d from its original position."
 
@@ -1060,6 +1065,38 @@ KSubsets[l_List,k_Integer?Positive] :=
 		Map[(Prepend[#,First[l]])&, KSubsets[Rest[l],k-1]],
 		KSubsets[Rest[l],k]
 	]
+
+(* From combinatorica 2.0.0 *)
+KSetPartitions[{}, 0] := {{}}
+KSetPartitions[s_List, 0] := {}
+KSetPartitions[s_List, k_Integer] := {} /; (k > Length[s])
+KSetPartitions[s_List, k_Integer] := {Map[{#} &, s]} /; (k === Length[s])
+KSetPartitions[s_List, k_Integer] :=
+       Block[{$RecursionLimit = 512},
+             Join[Map[Prepend[#, {First[s]}] &, KSetPartitions[Rest[s], k - 1]],
+                  Flatten[
+                     Map[Table[Prepend[Delete[#, j], Prepend[#[[j]], s[[1]]]],
+                              {j, Length[#]}
+                         ]&,
+                         KSetPartitions[Rest[s], k]
+                     ], 1
+                  ]
+             ]
+       ] /; (k > 0) && (k < Length[s])
+
+KSetPartitions[0, 0] := {{}}
+KSetPartitions[0, k_Integer?Positive] := {}
+KSetPartitions[n_Integer?Positive, 0] := {}
+KSetPartitions[n_Integer?Positive, k_Integer?Positive] := KSetPartitions[Range[n], k]
+
+
+SetPartitions[{}] := {{}}
+SetPartitions[s_List] := Flatten[Table[KSetPartitions[s, i], {i, Length[s]}], 1]
+
+SetPartitions[0] := {{}}
+SetPartitions[n_Integer?Positive] := SetPartitions[Range[n]]
+
+(* end *)
 
 NextKSubset[set_List,subset_List] :=
 	Take[set,Length[subset]] /; (Take[set,-Length[subset]] === subset)
@@ -3329,8 +3366,9 @@ IsomorphicQ,
 IsomorphismQ,
 Isomorphism,
 Josephus,
-KSubsets,
 K,
+KSetPartitions,
+KSubsets,
 LabeledTreeToCode,
 LastLexicographicTableau,
 LexicographicPermutations,
@@ -3414,6 +3452,7 @@ Runs,
 SamenessRelation,
 SelectionSort,
 SelfComplementaryQ,
+SetPartitions,
 ShakeGraph,
 ShortestPathSpanningTree,
 ShortestPath,
