@@ -2144,7 +2144,7 @@ CodeToLabeledTree[l_List] :=
 	]
 
 RandomTree[n_Integer?Positive] :=
-	RadialEmbedding[CodeToLabeledTree[ Table[Random[Integer,{1,n}],{n-2}] ], 1]
+	RadialEmbedding[CodeToLabeledTree[ Table[RandomInteger[{1,n}],{n-2}] ], 1]
 
 RandomGraph[n_Integer,p_] := RandomGraph[n,p,{1,1}]
 
@@ -2154,7 +2154,7 @@ RandomGraph[n_Integer,p_,range_List] :=
 			Join[
 				Table[0,{i}],
 				Table[
-					If[Random[Real]<p, Random[Integer,range], 0],
+					If[RandomReal[]<p, RandomInteger[range], 0],
 					{n-i}
 				]
 			],
@@ -2182,7 +2182,7 @@ RandomVertices[g_Graph] := Graph[ Edges[g], RandomVertices[V[g]] ]
 RandomGraph[n_Integer,p_,range_List,Directed] :=
 	RemoveSelfLoops[
 		Graph[
-			Table[If[Random[Real]<p,Random[Integer,range],0],{n},{n}],
+			Table[If[RandomReal[]<p,RandomInteger[range],0],{n},{n}],
 			CircularVertices[n]
 		]
 	]
