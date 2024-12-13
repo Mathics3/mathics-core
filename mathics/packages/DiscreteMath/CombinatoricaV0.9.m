@@ -1219,7 +1219,7 @@ RandomPartition[n_Integer?Positive] :=
   Module[{mult = Table[0, {n}], j, d, r=n, z},
     While[ (r > 0),
       d = 1;  j = 0;
-      z = Random[] r PartitionsP[r];
+      z = RandomReal[] r PartitionsP[r];
       While [z >= 0,
          j++;
          If [r-j*d < 0, {j=1; d++;}];
@@ -2144,7 +2144,7 @@ CodeToLabeledTree[l_List] :=
 	]
 
 RandomTree[n_Integer?Positive] :=
-	RadialEmbedding[CodeToLabeledTree[ Table[Random[Integer,{1,n}],{n-2}] ], 1]
+	RadialEmbedding[CodeToLabeledTree[ Table[RandomInteger[{1,n}],{n-2}] ], 1]
 
 RandomGraph[n_Integer,p_] := RandomGraph[n,p,{1,1}]
 
@@ -2154,7 +2154,7 @@ RandomGraph[n_Integer,p_,range_List] :=
 			Join[
 				Table[0,{i}],
 				Table[
-					If[Random[Real]<p, Random[Integer,range], 0],
+					If[RandomReal[]<p, RandomInteger[range], 0],
 					{n-i}
 				]
 			],
@@ -2176,13 +2176,13 @@ NthPair[n_Integer] :=
 		{n - Binomial[i-1,2], i}
 	]
 
-RandomVertices[n_Integer] := Table[{Random[], Random[]}, {n}]
+RandomVertices[n_Integer] := Table[{RandomReal[], RandomReal[]}, {n}]
 RandomVertices[g_Graph] := Graph[ Edges[g], RandomVertices[V[g]] ]
 
 RandomGraph[n_Integer,p_,range_List,Directed] :=
 	RemoveSelfLoops[
 		Graph[
-			Table[If[Random[Real]<p,Random[Integer,range],0],{n},{n}],
+			Table[If[RandomReal[]<p,RandomInteger[range],0],{n},{n}],
 			CircularVertices[n]
 		]
 	]

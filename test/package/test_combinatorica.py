@@ -525,12 +525,20 @@ def test_2_1_to_2_3():
             "{{7}, {6, 1}, {5, 2}, {4, 3}, {4, 2, 1}}",
             "Bijections between Partitions 2.1.3, Page 56",
         ),
+<<<<<<< HEAD
         # RandomPartition gives an error of trying to modify a List head.
         # (
         #     "{DurfeeSquare[p=RandomPartition[20]], DurfeeSquare[TransposePartition[p]]}",
         #     "{42, 42}",
         #     "Counting Partitions 2.1.3, Page 57",
         # ),
+=======
+        (
+            "DurfeeSquare[p=RandomPartition[20]] == DurfeeSquare[TransposePartition[p]]",
+            "True",
+            "Counting Partitions 2.1.3, Page 57",
+        ),
+>>>>>>> 88059faff0d505f168058017e9f0f3efc7934ab6
         (
             "{PartitionsP[10], NumberOfPartitions[10]}",
             "{42, 42}",
