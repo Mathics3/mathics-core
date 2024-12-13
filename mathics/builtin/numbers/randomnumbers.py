@@ -235,7 +235,7 @@ class Random(Builtin):
     """
 
     rules = {
-        "Random[]": "RandomReal[0, 1]",
+        "Random[]": "RandomReal[{0, 1}]",
         "Random[Integer]": "RandomInteger[]",
         "Random[Integer,  zmax_Integer]": "RandomInteger[zmax]",
         "Random[Integer, {zmin_Integer, zmax_Integer}]": "RandomInteger[{zmin, zmax}]",
