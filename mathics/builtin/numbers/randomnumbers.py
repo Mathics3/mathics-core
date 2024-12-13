@@ -217,25 +217,36 @@ class _RandomSelection(_RandomBase):
 # FIXME: This class should be removed and put in a Mathematica V.5 compatibility package
 class Random(Builtin):
     """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/Random.html</url>
-    <dl>
-      <dt>'Random[]'
-      <dd>gives a uniformly distributed pseudorandom Real number in the range 0 to 1.
+     <url>:Randomness:
+     https://en.wikipedia.org/wiki/Randomness</url> (<url>:WMA link:
+     https://reference.wolfram.com/language/ref/Random.html</url>)
+     <dl>
+       <dt>'Random[]'
+       <dd>gives a pseudorandom real number in the range 0 to 1.
 
-      <dt>'Random[$type$, $range$]'
-      <dd>gives a uniformly distributed pseudorandom number of the type \
-          $type$, in the specified interval $range$. Possible types are \
-          'Integer', 'Real' or 'Complex'.
-    </dl>
+       <dt>'Random[$type$, $range$]'
+       <dd>gives a pseudorandom number of the type $type$, in the specified interval $range$.
+           Possible types are 'Integer', 'Real' or 'Complex'.
+     </dl>
 
-    Legacy function. Superseded by RandomReal, RandomInteger and RandomComplex.
+     Legacy function. Superseded by <url>
+     :RandomReal:/doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/random-number-generation/randomreal
+     </url>, <url>
+    :RandomInteger:/doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/random-number-generation/randominteger
+     </url>, and <url>
+    :RandomComplex:/doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/random-number-generation/randomcomplex</url>.
 
+     Four random numbers in the range 0..1:
+     >> Table[Random[], {4}]
+      = ...
+
+     Eight random integers in the range 1..100:
+     >> Table[Random[Integer, {1, 100}], {8}]
+      = ...
     """
 
     rules = {
-        "Random[]": "RandomReal[{0, 1}]",
+        "Random[]": "RandomReal[]",
         "Random[Integer]": "RandomInteger[]",
         "Random[Integer,  zmax_Integer]": "RandomInteger[zmax]",
         "Random[Integer, {zmin_Integer, zmax_Integer}]": "RandomInteger[{zmin, zmax}]",
@@ -247,7 +258,7 @@ class Random(Builtin):
         "Random[Complex, {zmin_?NumberQ, zmax_?NumberQ}]": "RandomComplex[{zmin, zmax}]",
     }
 
-    summary_text = "pick a random number"
+    summary_text = "pick a random number (legacy function)"
 
 
 class RandomChoice(_RandomSelection):
