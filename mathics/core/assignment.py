@@ -645,8 +645,8 @@ def eval_assign_other(
     into account.
     Otherwise, the value is False.
     """
-    tags, focus = process_tags_and_upset_allow_custom(
-        tags, upset, self, lhs, evaluation
+    tags, _ = process_tags_and_upset_allow_custom(
+        tags, upset, self, lhs, rhs, evaluation
     )
     lhs_name = lhs.get_name()
     if lhs_name == "System`$RecursionLimit":
@@ -772,7 +772,7 @@ def process_tags_and_upset_dont_allow_custom(
 
 
 def process_tags_and_upset_allow_custom(
-    tags, upset, self, lhs: BaseElement, evaluation: Evaluation
+    tags, upset, self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
 ):
     name = lhs.get_head_name()
     focus = lhs
@@ -787,7 +787,13 @@ def process_tags_and_upset_allow_custom(
     elif upset:
         tags = []
         if isinstance(focus, Atom):
-            evaluation.message(self.get_name(), "normal", Integer1, lhs)
+            symbol_name = self.get_name()
+            evaluation.message(
+                symbol_name,
+                "normal",
+                Integer1,
+                Expression(Symbol(symbol_name), lhs, rhs),
+            )
             raise AssignmentException(lhs, None)
         for element in focus.get_elements():
             name = element.get_lookup_name()

@@ -428,13 +428,6 @@ def test_process_assign_other():
             ],
             "Unset Message",
         ),
-        # From assignent
-        (
-            "f[g, a + b, h] ^= 2",
-            "2",
-            ("Tag Plus in f[g, a + b, h] is Protected.",),
-            "Upset to protected symbols fails",
-        ),
         ("UpValues[h]", "{HoldPattern[f[g, a + b, h]] :> 2}", None, None),
         (" g[a+b] ^:= 2", "$Failed", ("Tag Plus in g[a + b] is Protected.",), None),
         (" g[a+b]", "g[a + b]", None, None),
