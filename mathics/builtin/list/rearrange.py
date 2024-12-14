@@ -10,7 +10,7 @@ from collections import defaultdict
 from itertools import chain
 from typing import Callable, Optional
 
-from mathics.core.atoms import Integer, Integer0, Number
+from mathics.core.atoms import Integer, Integer0, Integer1, Number
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
 from mathics.core.builtin import Builtin, MessageException
 from mathics.core.element import BaseElement
@@ -77,7 +77,6 @@ class _IllegalPaddingDepth(Exception):
 
 class _Pad(Builtin):
     messages = {
-        "normal": "Expression at position 1 in `` must not be an atom.",
         "level": "Cannot pad list `3` which has `4` using padding `1` which specifies `2`.",
         "ilsm": "Expected an integer or a list of integers at position `1` in `2`.",
     }
@@ -176,7 +175,7 @@ class _Pad(Builtin):
 
     def _pad(self, in_l, in_n, in_x, in_m, evaluation, expr):
         if not isinstance(in_l, Expression):
-            evaluation.message(self.get_name(), "normal", expr())
+            evaluation.message(self.get_name(), "normal", Integer1, expr())
             return
 
         py_n = None
@@ -300,7 +299,6 @@ class _GatherOperation(Builtin):
     rules = {"%(name)s[list_]": "%(name)s[list, SameQ]"}
 
     messages = {
-        "normal": "Nonatomic expression expected at position `1` in `2`.",
         "list": "List expected at position `2` in `1`.",
         "smtst": (
             "Application of the SameTest yielded `1`, which evaluates "
@@ -324,7 +322,7 @@ class _GatherOperation(Builtin):
     def _check_list(self, values, arg2, evaluation: Evaluation):
         if isinstance(values, Atom):
             expr = Expression(Symbol(self.get_name()), values, arg2)
-            evaluation.message(self.get_name(), "normal", 1, expr)
+            evaluation.message(self.get_name(), "normal", Integer1, expr)
             return False
 
         if values.get_head_name() != "System`List":
@@ -398,7 +396,6 @@ class _Rotate(Builtin):
 
 class _SetOperation(Builtin):
     messages = {
-        "normal": "Non-atomic expression expected at position `1` in `2`.",
         "heads": (
             "Heads `1` and `2` at positions `3` and `4` are expected " "to be the same."
         ),
@@ -432,7 +429,7 @@ class _SetOperation(Builtin):
                 evaluation.message(
                     self.get_name(),
                     "normal",
-                    pos + 1,
+                    Integer(pos + 1),
                     Expression(Symbol(self.get_name()), *seq),
                 )
                 return
@@ -656,7 +653,6 @@ class Flatten(Builtin):
             "Level `1` specified in `2` exceeds the levels, `3`, "
             "which can be flattened together in `4`."
         ),
-        "normal": "Nonatomic expression expected at position `1` in `2`.",
     }
 
     rules = {
@@ -776,7 +772,7 @@ class Flatten(Builtin):
                 return
 
         if not isinstance(expr, Expression):
-            evaluation.message("Flatten", "normal", 1, expr)
+            evaluation.message("Flatten", "normal", Integer1, expr)
             return
 
         return expr.flatten_with_respect_to_head(h, level=n_int)
@@ -1262,9 +1258,6 @@ class Split(Builtin):
         "Split[list_]": "Split[list, SameQ]",
     }
 
-    messages = {
-        "normal": "Nonatomic expression expected at position `1` in `2`.",
-    }
     summary_text = "split into runs of identical elements"
 
     def eval(self, mlist, test, evaluation: Evaluation):
@@ -1273,7 +1266,7 @@ class Split(Builtin):
         expr = Expression(SymbolSplit, mlist, test)
 
         if isinstance(mlist, Atom):
-            evaluation.message("Select", "normal", 1, expr)
+            evaluation.message("Select", "normal", Integer1, expr)
             return
 
         if not mlist.elements:
@@ -1311,10 +1304,6 @@ class SplitBy(Builtin):
      = {{{1}}, {{2}}, {{1}, {1.2}}}
     """
 
-    messages = {
-        "normal": "Nonatomic expression expected at position `1` in `2`.",
-    }
-
     rules = {
         "SplitBy[list_]": "SplitBy[list, Identity]",
     }
@@ -1327,7 +1316,7 @@ class SplitBy(Builtin):
         expr = Expression(SymbolSplit, mlist, func)
 
         if isinstance(mlist, Atom):
-            evaluation.message("Select", "normal", 1, expr)
+            evaluation.message("Select", "normal", Integer1, expr)
             return
 
         plist = [t for t in mlist.elements]
@@ -1351,7 +1340,7 @@ class SplitBy(Builtin):
         expr = Expression(SymbolSplit, mlist, funcs)
 
         if isinstance(mlist, Atom):
-            evaluation.message("Select", "normal", 1, expr)
+            evaluation.message("Select", "normal", Integer1, expr)
             return
 
         result = mlist

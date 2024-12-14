@@ -13,7 +13,7 @@ from itertools import permutations
 from typing import Optional, Tuple
 
 from mathics.builtin.box.layout import RowBox
-from mathics.core.atoms import Integer, is_integer_rational_or_real
+from mathics.core.atoms import Integer, Integer1, is_integer_rational_or_real
 from mathics.core.attributes import A_HOLD_FIRST, A_LISTABLE, A_LOCKED, A_PROTECTED
 from mathics.core.builtin import BasePattern, Builtin, IterationFunction
 from mathics.core.convert.expression import to_expression
@@ -23,7 +23,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, structure
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol
-from mathics.core.systemsymbols import SymbolNormal
+from mathics.core.systemsymbols import SymbolNormal, SymbolTuples
 from mathics.eval.lists import get_tuples, list_boxes
 
 
@@ -607,7 +607,7 @@ class Tuples(Builtin):
         "Tuples[expr_, n_Integer]"
 
         if isinstance(expr, Atom):
-            evaluation.message("Tuples", "normal")
+            evaluation.message("Tuples", "normal", Integer1, Expression(expr, n))
             return
         py_n = n.value
         if py_n is None or py_n < 0:
@@ -633,10 +633,12 @@ class Tuples(Builtin):
 
         exprs = exprs.get_sequence()
         items = []
-        for expr in exprs:
+        for i, expr in enumerate(exprs):
             evaluation.check_stopped()
             if isinstance(expr, Atom):
-                evaluation.message("Tuples", "normal")
+                evaluation.message(
+                    "Tuples", "normal", Integer(i + 1), Expression(SymbolTuples)
+                )
                 return
             items.append(expr.elements)
 
