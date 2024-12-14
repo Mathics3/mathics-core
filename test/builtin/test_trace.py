@@ -2,12 +2,15 @@
 """
 Unit tests for mathics.builtin.trace
 """
-
+from inspect import isfunction
 from test.helper import evaluate
+from typing import Callable
 
 import pytest
 
 import mathics.eval.tracing
+from mathics import version_info
+from mathics.core.evaluation import Evaluation
 from mathics.core.interrupt import AbortInterrupt
 
 trace_evaluation_calls = 0
@@ -20,13 +23,18 @@ def test_TraceEvaluation():
     old_recursion_limit = evaluate("$RecursionLimit")
     old_evaluation_hook = mathics.eval.tracing.print_evaluate
 
-    def counting_print_evaluate(expr, evaluation, status: str, orig_expr=None) -> bool:
+    def counting_print_evaluate(
+        expr, evaluation: Evaluation, status: str, fn: Callable, orig_expr=None
+    ) -> bool:
         """
         A replacement for mathics.eval.tracing.print_evaluate() that counts the
         number of evaluation calls.
         """
         global trace_evaluation_calls
         trace_evaluation_calls += 1
+        assert status in ("Evaluating", "Returning")
+        if "cython" not in version_info:
+            assert isfunction(fn), "Expecting 4th argument to be a function"
         return False
 
     try:

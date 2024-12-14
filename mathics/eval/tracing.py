@@ -23,12 +23,17 @@ def print_evaluate(expr, evaluation, status: str, fn: Callable, orig_expr=None):
     method when TraceActivate["evaluate" -> True]
     """
 
-    # Test and dispose of various situations where showing information
-    # is pretty useless:
-    # Showing the return value of a ListExpression literal is
-    # useless.
     if evaluation.definitions.timing_trace_evaluation:
         evaluation.print_out(time.time() - evaluation.start_time)
+
+    # Test and dispose of various situations where showing information
+    # is pretty useless: evaluating a Symbol is the Symbol.
+    # Showing the return value of a ListExpression literal is
+    # also useless.
+    from mathics.core.symbols import Symbol, SymbolConstant
+
+    if isinstance(expr, Symbol) and not isinstance(expr, SymbolConstant):
+        return
 
     if (
         status == "Returning"
@@ -39,8 +44,35 @@ def print_evaluate(expr, evaluation, status: str, fn: Callable, orig_expr=None):
     ):
         return
 
+    if orig_expr == expr:
+        # If the two expressions are the same, there is no point in
+        # repeating the output.
+        return
+
     indents = "  " * evaluation.recursion_depth
-    evaluation.print_out(f"{indents}{status} {fn.__qualname__}(): {expr}")
+
+    if orig_expr is not None:
+        if fn.__name__ == "rewrite_apply_eval_step":
+            assert isinstance(expr, tuple)
+            if orig_expr != expr[0]:
+                if status == "Returning":
+                    if expr[1]:
+                        status = "Rewriting"
+                        arrow = " -> "
+                    else:
+                        return
+                else:
+                    arrow = " = "
+                    return
+
+                evaluation.print_out(
+                    f"{indents}{status}: {expr[0]}" + arrow + str(expr)
+                )
+        else:
+            evaluation.print_out(f"{indents}{status}: {orig_expr} = " + str(expr))
+
+    elif fn.__name__ != "rewrite_apply_eval_step":
+        evaluation.print_out(f"{indents}{status} {fn.__qualname__}(): {expr}")
     return
 
 
@@ -122,7 +154,7 @@ def call_event_print(event: TraceEvent, fn: Callable, *args) -> bool:
     """
     A somewhat generic function to show an event-traced call.
     """
-    if type(fn) == type or inspect.ismethod(fn) or inspect.isfunction(fn):
+    if isinstance(type(fn), type) or inspect.ismethod(fn) or inspect.isfunction(fn):
         name = f"{fn.__module__}.{fn.__qualname__}"
     else:
         name = str(fn)
