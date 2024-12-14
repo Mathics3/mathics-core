@@ -17,16 +17,31 @@ hook_entry_fn: Optional[Callable] = None
 hook_exit_fn: Optional[Callable] = None
 
 
-def print_evaluate(expr, evaluation, status: str, orig_expr=None) -> bool:
+def print_evaluate(expr, evaluation, status: str, fn: Callable, orig_expr=None):
     """
     Called from a decorated Python @trace_evaluate .evaluate()
     method when TraceActivate["evaluate" -> True]
     """
+
+    # Test and dispose of various situations where showing information
+    # is pretty useless:
+    # Showing the return value of a ListExpression literal is
+    # useless.
     if evaluation.definitions.timing_trace_evaluation:
         evaluation.print_out(time.time() - evaluation.start_time)
+
+    if (
+        status == "Returning"
+        and hasattr(expr, "is_literal")
+        and expr.is_literal
+        and hasattr(orig_expr, "is_literal")
+        and orig_expr.is_literal
+    ):
+        return
+
     indents = "  " * evaluation.recursion_depth
-    evaluation.print_out(f"{indents}{status}: {expr}")
-    return False
+    evaluation.print_out(f"{indents}{status} {fn.__qualname__}(): {expr}")
+    return
 
 
 # When not None, evaluate() methods call this
@@ -56,12 +71,12 @@ def trace_evaluate(func: Callable) -> Callable:
             # We may use boxing in print_evaluate_fn(). So turn off
             # boxing temporarily.
             evaluation.is_boxing = True
-            skip_call = trace_evaluate_on_call(expr, evaluation, "Evaluating")
+            skip_call = trace_evaluate_on_call(expr, evaluation, "Evaluating", func)
             evaluation.is_boxing = was_boxing
         if not skip_call:
             result = func(expr, evaluation)
             if trace_evaluate_on_return is not None and not was_boxing:
-                trace_evaluate_on_return(result, evaluation, "Returning", expr)
+                trace_evaluate_on_return(result, evaluation, "Returning", func, expr)
             evaluation.is_boxing = was_boxing
         return result
 

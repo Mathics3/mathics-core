@@ -1127,6 +1127,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         s = structure(head, deps, evaluation, structure_cache=structure_cache)
         return s(list(elements))
 
+    @trace_evaluate
     def rewrite_apply_eval_step(self, evaluation) -> Tuple[BaseElement, bool]:
         """Perform a single rewrite/apply/eval step of the bigger
         Expression.evaluate() process.
