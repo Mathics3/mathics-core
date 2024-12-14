@@ -47,6 +47,7 @@ def trace_evaluate(func: Callable) -> Callable:
 
         skip_call = False
         result = None
+        was_boxing = evaluation.is_boxing
         if (
             trace_evaluate_on_call is not None
             and not evaluation.is_boxing
@@ -54,14 +55,14 @@ def trace_evaluate(func: Callable) -> Callable:
         ):
             # We may use boxing in print_evaluate_fn(). So turn off
             # boxing temporarily.
-            was_boxing = evaluation.is_boxing
             evaluation.is_boxing = True
             skip_call = trace_evaluate_on_call(expr, evaluation, "Evaluating")
             evaluation.is_boxing = was_boxing
         if not skip_call:
             result = func(expr, evaluation)
-            if trace_evaluate_on_return is not None and not evaluation.is_boxing:
+            if trace_evaluate_on_return is not None and not was_boxing:
                 trace_evaluate_on_return(result, evaluation, "Returning", expr)
+            evaluation.is_boxing = was_boxing
         return result
 
     return wrapper
