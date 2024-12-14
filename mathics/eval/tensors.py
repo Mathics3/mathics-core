@@ -18,7 +18,9 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
+    SymbolInner,
     SymbolNormal,
+    SymbolOuter,
     SymbolRule,
     SymbolSparseArray,
 )
@@ -171,7 +173,9 @@ def eval_Inner(f, list1, list2, g, evaluation: Evaluation):
     n = get_dimensions(list2)
 
     if not m or not n:
-        evaluation.message("Inner", "normal")
+        evaluation.message(
+            "Inner", "normal", Integer1, Expression(SymbolInner, list1, list2)
+        )
         return
     if list1.get_head() != list2.get_head():
         evaluation.message("Inner", "heads", list1.get_head(), list2.get_head())
@@ -213,7 +217,7 @@ def eval_Outer(f, lists, evaluation: Evaluation):
     "Evaluates recursively the outer product of lists"
 
     if isinstance(lists, Atom):
-        evaluation.message("Outer", "normal")
+        evaluation.message("Outer", "normal", Integer1, Expression(SymbolOuter, lists))
         return
 
     # If f=!=Times, or lists contain both SparseArray and List, then convert all SparseArrays to Lists
@@ -232,9 +236,11 @@ def eval_Outer(f, lists, evaluation: Evaluation):
             break
     if sparse_to_list:
         new_lists = []
-    for _list in lists:
+    for i, _list in enumerate(lists):
         if isinstance(_list, Atom):
-            evaluation.message("Outer", "normal")
+            evaluation.message(
+                "Outer", "normal", Integer(i), Expression(SymbolOuter, lists)
+            )
             return
         if sparse_to_list:
             if _list.head.sameQ(SymbolSparseArray):

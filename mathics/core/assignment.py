@@ -6,7 +6,7 @@ Support for Set and SetDelayed, and other assignment-like builtins
 from functools import reduce
 from typing import Optional, Tuple
 
-from mathics.core.atoms import Atom, Integer
+from mathics.core.atoms import Atom, Integer, Integer1
 from mathics.core.attributes import A_LOCKED, A_PROTECTED, attribute_string_to_number
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import (
@@ -787,7 +787,7 @@ def process_tags_and_upset_allow_custom(
     elif upset:
         tags = []
         if isinstance(focus, Atom):
-            evaluation.message(self.get_name(), "normal")
+            evaluation.message(self.get_name(), "normal", Integer1, lhs)
             raise AssignmentException(lhs, None)
         for element in focus.get_elements():
             name = element.get_lookup_name()

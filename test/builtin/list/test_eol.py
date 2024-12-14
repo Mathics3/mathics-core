@@ -10,7 +10,12 @@ import pytest
 @pytest.mark.parametrize(
     ("str_expr", "expected_messages", "str_expected", "assert_message"),
     [
-        ("Append[a, b]", ("Nonatomic expression expected.",), "Append[a, b]", None),
+        (
+            "Append[a, b]",
+            ("Nonatomic expression expected at position 1 in Append[a, b].",),
+            "Append[a, b]",
+            None,
+        ),
         (
             "AppendTo[{}, 1]",
             ("{} is not a variable with a value, so its value cannot be changed.",),
@@ -185,7 +190,7 @@ import pytest
         ),
         (
             "a=.;b=.;Prepend[a, b]",
-            ("Nonatomic expression expected.",),
+            ("Nonatomic expression expected at position 1 in Prepend[a, b].",),
             "Prepend[a, b]",
             "Prepend works with non-atomic expressions",
         ),
@@ -230,7 +235,9 @@ import pytest
         ("{a ;; b ;; c ;; d}", None, "{a ;; b ;; c, 1 ;; d}", ";; association"),
         (
             "Select[a, True]",
-            ("Nonatomic expression expected.",),
+            (
+                "Nonatomic expression expected at position 1 in Select[a, True, Infinity].",
+            ),
             "Select[a, True]",
             None,
         ),
