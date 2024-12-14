@@ -395,17 +395,17 @@ def test_process_assign_other():
             check_evaluation(
                 f"{prefix}{limit} = 2",
                 "2",
-                expected_messages=[
-                    f"Cannot set {limit} to 2; value must be an integer between 20 and {suffix}."
-                ],
+                expected_messages=(
+                    f"Cannot set {limit} to 2; value must be an integer between 20 and {suffix}.",
+                ),
             )
         check_evaluation(f"{prefix}$ModuleNumber = 3", "3")
         check_evaluation(
             f"{prefix}$ModuleNumber = -1",
             "-1",
-            expected_messages=[
-                "Cannot set $ModuleNumber to -1; value must be a positive integer."
-            ],
+            expected_messages=(
+                "Cannot set $ModuleNumber to -1; value must be a positive integer.",
+            ),
         )
 
 
@@ -428,7 +428,6 @@ def test_process_assign_other():
             ],
             "Unset Message",
         ),
-        ("UpValues[h]", "{HoldPattern[f[g, a + b, h]] :> 2}", None, None),
         (" g[a+b] ^:= 2", "$Failed", ("Tag Plus in g[a + b] is Protected.",), None),
         (" g[a+b]", "g[a + b]", None, None),
     ],

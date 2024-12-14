@@ -226,6 +226,7 @@ def eval_Outer(f, lists, evaluation: Evaluation):
     sparse_to_list = f != SymbolTimes
     contain_sparse = False
     contain_list = False
+    new_lists = []
     for _list in lists:
         if _list.head.sameQ(SymbolSparseArray):
             contain_sparse = True
@@ -234,12 +235,10 @@ def eval_Outer(f, lists, evaluation: Evaluation):
         sparse_to_list = sparse_to_list or (contain_sparse and contain_list)
         if sparse_to_list:
             break
-    if sparse_to_list:
-        new_lists = []
     for i, _list in enumerate(lists):
         if isinstance(_list, Atom):
             evaluation.message(
-                "Outer", "normal", Integer(i), Expression(SymbolOuter, lists)
+                "Outer", "normal", Integer(i + 1), Expression(SymbolOuter, lists)
             )
             return
         if sparse_to_list:
@@ -251,6 +250,7 @@ def eval_Outer(f, lists, evaluation: Evaluation):
         elif not _list.head.sameQ(head):
             evaluation.message("Outer", "heads", head, _list.head)
             return
+
     if sparse_to_list:
         lists = new_lists
 
@@ -283,7 +283,7 @@ def eval_Outer(f, lists, evaluation: Evaluation):
     def sparse_cond_next_list(item, level) -> bool:
         return isinstance(item, Atom) or not item.head.sameQ(head)
 
-    def sparse_apply_Rule(current) -> tuple:
+    def sparse_apply_Rule(current) -> Expression:
         return Expression(SymbolRule, ListExpression(*current[0]), current[1])
 
     def sparse_join_elem(current, item) -> tuple:

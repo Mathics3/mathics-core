@@ -22,3 +22,4 @@ def test_upset():
         failure_message="UpSet on a protected value should fail",
         expected_messages=("Tag Plus in f[g, a + b, h] is Protected.",),
     )
+    check_evaluation("UpValues[h]", "{HoldPattern[f[g, a + b, h]] :> 2}")
