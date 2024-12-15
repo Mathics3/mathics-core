@@ -99,7 +99,8 @@ if not hasattr(timedelta, "total_seconds"):
 
     def total_seconds(td):
         return (
-            float(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+            float(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6)
+            / 10**6
         )
 
 else:
