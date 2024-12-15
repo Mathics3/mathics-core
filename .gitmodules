@@ -1,0 +1,3 @@
+[submodule "mathics/packages/Combinatorica"]
+	path = mathics/packages/Combinatorica
+	url = https://github.com/Mathics3/Mathics3-Combinatorica.git
