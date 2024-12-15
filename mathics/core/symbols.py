@@ -494,10 +494,6 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         for rule in rules:
             result = rule.apply(self, evaluation, fully=True)
             if result is not None and not result.sameQ(self):
-                if evaluation.definitions.trace_evaluation:
-                    evaluation.print_out(
-                        "  " * evaluation.recursion_depth + "  -> %s" % result
-                    )
                 return result.evaluate(evaluation)
         return self
 

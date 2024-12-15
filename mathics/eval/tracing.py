@@ -72,7 +72,7 @@ def print_evaluate(expr, evaluation, status: str, fn: Callable, orig_expr=None):
             evaluation.print_out(f"{indents}{status}: {orig_expr} = " + str(expr))
 
     elif fn.__name__ != "rewrite_apply_eval_step":
-        evaluation.print_out(f"{indents}{status} {fn.__qualname__}(): {expr}")
+        evaluation.print_out(f"{indents}{status}: {expr}")
     return
 
 
