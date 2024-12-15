@@ -14,7 +14,7 @@ biology to computer science, etc.
 
 from itertools import combinations
 
-from mathics.core.atoms import Integer
+from mathics.core.atoms import Integer, Integer1
 from mathics.core.attributes import (
     A_LISTABLE,
     A_N_HOLD_FIRST,
@@ -536,7 +536,6 @@ class Subsets(Builtin):
 
     messages = {
         "nninfseq": "Position 2 of `1` must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer.",
-        "normal": "Nonatomic expression expected at position 1 in `1`.",
     }
 
     rules = {
@@ -549,7 +548,9 @@ class Subsets(Builtin):
         "Subsets[list_]"
 
         if isinstance(list, Atom):
-            evaluation.message("Subsets", "normal", Expression(SymbolSubsets, list))
+            evaluation.message(
+                "Subsets", "normal", Integer1, Expression(SymbolSubsets, list)
+            )
         else:
             return self.eval_list_n(list, Integer(len(list.elements)), evaluation)
 
@@ -558,7 +559,7 @@ class Subsets(Builtin):
 
         expr = Expression(SymbolSubsets, list, n)
         if isinstance(list, Atom):
-            evaluation.message("Subsets", "normal", expr)
+            evaluation.message("Subsets", "normal", Integer1, expr)
             return
         else:
             head_t = list.head
@@ -584,7 +585,7 @@ class Subsets(Builtin):
         expr = Expression(SymbolSubsets, list, n)
 
         if isinstance(list, Atom):
-            evaluation.message("Subsets", "normal", expr)
+            evaluation.message("Subsets", "normal", Integer1, expr)
             return
         else:
             head_t = list.head
@@ -663,7 +664,7 @@ class Subsets(Builtin):
         "Subsets[list_?AtomQ, Pattern[n,_List|All|DirectedInfinity[1]], spec_]"
 
         evaluation.message(
-            "Subsets", "normal", Expression(SymbolSubsets, list, n, spec)
+            "Subsets", "normal", Integer1, Expression(SymbolSubsets, list, n, spec)
         )
 
 

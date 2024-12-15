@@ -252,7 +252,7 @@ class Definitions:
         self.clear_cache()
 
     def set_context_path(self, context_path: Sequence[str]) -> None:
-        assert all([isinstance(c, str) for c in context_path])
+        assert all(isinstance(c, str) for c in context_path)
         self.set_ownvalue(
             "System`$ContextPath",
             to_mathics_list(*context_path, elements_conversion_fn=String),
