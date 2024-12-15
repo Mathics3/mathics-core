@@ -30,8 +30,11 @@ jobs:
         pip install -e .
         python -m mathics_scanner.generate.build_tables
         cd ../..
-        git submodule update
-    - name: Test Mathics
+    - name: Run Mathics3 Combinatorica tests
       run: |
+        git submodule init
+        git submodule update
+        remake -x develop
         cd mathics/packages/Combinatorica-repo
+        pip install -e .[dev]
         remake -x check
