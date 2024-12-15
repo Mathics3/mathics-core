@@ -11,7 +11,7 @@ import re
 from mathics_scanner.tokeniser import is_symbol_name
 
 from mathics.core.assignment import get_symbol_values
-from mathics.core.atoms import String
+from mathics.core.atoms import Integer1, String
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
@@ -39,6 +39,7 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     SymbolAttributes,
+    SymbolContext,
     SymbolDefinition,
     SymbolFormat,
     SymbolGrid,
@@ -122,7 +123,9 @@ class Context(Builtin):
 
         name = symbol.get_name()
         if not name:
-            evaluation.message("Context", "normal")
+            evaluation.message(
+                "Context", "normal", Integer1, Expression(SymbolContext, symbol)
+            )
             return
         assert "`" in name
         context = name[: name.rindex("`") + 1]

@@ -179,9 +179,6 @@ class Infix(Builtin):
      = a + b - c
     """
 
-    messages = {
-        "normal": "Nonatomic expression expected at position `1`",
-    }
     summary_text = "infix form"
 
 
