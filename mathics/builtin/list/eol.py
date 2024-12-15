@@ -93,7 +93,9 @@ class Append(Builtin):
         "Append[expr_, item_]"
 
         if isinstance(expr, Atom):
-            evaluation.message("Append", "normal")
+            evaluation.message(
+                "Append", "normal", Integer1, Expression(SymbolAppend, expr, item)
+            )
             return
 
         return expr.restructure(
@@ -145,7 +147,9 @@ class AppendTo(Builtin):
             )
             return result.evaluate(evaluation)
 
-        evaluation.message("AppendTo", "normal", Expression(SymbolAppendTo, s, element))
+        evaluation.message(
+            "AppendTo", "normal", Integer1, Expression(SymbolAppendTo, s, element)
+        )
 
 
 class Cases(Builtin):
@@ -441,7 +445,12 @@ class DeleteCases(Builtin):
         "DeleteCases[items_, pattern_, levelspec_:1, n_:System`Infinity]"
 
         if isinstance(items, Atom):
-            evaluation.message("Select", "normal")
+            evaluation.message(
+                "DeleteCases",
+                "normal",
+                Integer1,
+                Expression(SymbolDeleteCases, items, pattern, levelspec, n),
+            )
             return
         # If levelspec is specified to a non-trivial value,
         # we need to proceed with this complicate procedure
@@ -496,28 +505,29 @@ class DeleteCases(Builtin):
             return items.filter("List", condn, evaluation)
 
 
-class _DeleteDuplicatesBin:
-    def __init__(self, item):
-        self._item = item
-        self.add_to = lambda elem: None
-
-    def from_python(self):
-        return self._item
-
-
 class Drop(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Drop.html</url>
 
     <dl>
-      <dt>'Drop[$expr$, $n$]'
-      <dd>returns $expr$ with the first $n$ elements removed.
+      <dt>'Drop[$list$, $n$]'
+      <dd>returns $list$ with the first $n$ elements removed.
+      <dt>'Drop[$list$, -$n$]'
+      <dd>returns $list$ with its last $n$ elements removed.
+      <dt>'Drop[$list$, {$m$, $n$}]'
+      <dd>returns $list$ with elements $m$ though $n$ removed.
     </dl>
+
+    Drop up intil the 3rd item from the beginning of a list:
 
     >> Drop[{a, b, c, d}, 3]
      = {d}
+
+    Drop until the second item from the end of that list:
     >> Drop[{a, b, c, d}, -2]
      = {a, b}
+
+    Drop from the second item to the second-to-the-end item:
     >> Drop[{a, b, c, d, e}, {2, -2}]
      = {a, e}
 
@@ -526,27 +536,41 @@ class Drop(Builtin):
      = {{11, 12, 13, 14}, {21, 22, 23, 24}, {31, 32, 33, 34}, {41, 42, 43, 44}}
     >> Drop[A, {2, 3}, {2, 3}]
      = {{11, 14}, {41, 44}}
+
+    Dropping the 0th element does nothing and returns the list unmodified:
+
+    >> Drop[{a, b, c, d}, 0]
+      = {a, b, c, d}
+
+    Even if the list is empty:
+
+    >> Drop[{}, 0]
+      = {}
     """
 
     messages = {
-        "normal": "Nonatomic expression expected at position `1` in `2`.",
         "drop": "Cannot drop positions `1` through `2` in `3`.",
     }
     summary_text = "remove a number of elements from a list"
 
-    def eval(self, items, seqs, evaluation):
+    def eval(self, items, seqs, evaluation: Evaluation):
         "Drop[items_, seqs___]"
 
-        seqs = seqs.get_sequence()
+        if seqs is Integer0:
+            return items
+
+        seq_tuple = seqs.get_sequence()
 
         if isinstance(items, Atom):
             evaluation.message(
-                "Drop", "normal", 1, Expression(SymbolDrop, items, *seqs)
+                "Drop", "normal", Integer1, Expression(SymbolDrop, items, *seq_tuple)
             )
             return
 
         try:
-            return parts(items, [_drop_span_selector(seq) for seq in seqs], evaluation)
+            return parts(
+                items, [_drop_span_selector(seq) for seq in seq_tuple], evaluation
+            )
         except MessageException as e:
             e.message(evaluation)
 
@@ -626,7 +650,6 @@ class First(Builtin):
     attributes = A_HOLD_REST | A_PROTECTED
     messages = {
         "argt": "First called with `1` arguments; 1 or 2 arguments are expected.",
-        "normal": "Nonatomic expression expected at position 1 in `1`.",
         "nofirst": "`1` has zero length and no first element.",
     }
     summary_text = "first element of a list or expression"
@@ -636,7 +659,7 @@ class First(Builtin):
         "First[expr__]"
 
         if isinstance(expr, Atom):
-            evaluation.message("First", "normal", expression)
+            evaluation.message("First", "normal", Integer1, expression)
             return
         expr_len = len(expr.elements)
         if expr_len == 0:
@@ -895,7 +918,6 @@ class Last(Builtin):
     attributes = A_HOLD_REST | A_PROTECTED
     messages = {
         "argt": "Last called with `1` arguments; 1 or 2 arguments are expected.",
-        "normal": "Nonatomic expression expected at position 1 in `1`.",
         "nolast": "`1` has zero length and no last element.",
     }
     summary_text = "last element of a list or expression"
@@ -905,7 +927,7 @@ class Last(Builtin):
         "Last[expr__]"
 
         if isinstance(expr, Atom):
-            evaluation.message("Last", "normal", expression)
+            evaluation.message("Last", "normal", Integer1, expression)
             return
         expr_len = len(expr.elements)
         if expr_len == 0:
@@ -982,17 +1004,13 @@ class Most(Builtin):
      = Most[x]
     """
 
-    messages = {
-        "normal": "Nonatomic expression expected at position 1 in `1`.",
-    }
-
     summary_text = "remove the last element"
 
     def eval(self, expr, evaluation: Evaluation, expression: Expression):
         "Most[expr_]"
 
         if isinstance(expr, Atom):
-            evaluation.message("Most", "normal", expression)
+            evaluation.message("Most", "normal", Integer1, expression)
             return
         return expr.slice(expr.head, slice(0, -1), evaluation)
 
@@ -1299,7 +1317,9 @@ class Prepend(Builtin):
         "Prepend[expr_, item_]"
 
         if isinstance(expr, Atom):
-            evaluation.message("Prepend", "normal")
+            evaluation.message(
+                "Prepend", "normal", Integer1, Expression(SymbolPrepend, expr, item)
+            )
             return
 
         return expr.restructure(
@@ -1341,9 +1361,6 @@ class PrependTo(Builtin):
 
     attributes = A_HOLD_FIRST | A_PROTECTED
 
-    messages = {
-        "normal": "Nonatomic expression expected at position 1 in `1`.",
-    }
     summary_text = "add an element at the beginning of an stored list or expression"
 
     def eval(self, s, item, evaluation):
@@ -1359,7 +1376,9 @@ class PrependTo(Builtin):
             )
             return result.evaluate(evaluation)
 
-        evaluation.message("PrependTo", "normal", Expression(SymbolPrependTo, s, item))
+        evaluation.message(
+            "PrependTo", "normal", Integer1, Expression(SymbolPrependTo, s, item)
+        )
 
 
 class ReplacePart(Builtin):
@@ -1478,7 +1497,6 @@ class Rest(Builtin):
     """
 
     messages = {
-        "normal": "Nonatomic expression expected at position 1 in `1`.",
         "norest": "Cannot take Rest of expression `1` with length zero.",
     }
     summary_text = "remove the first element"
@@ -1487,7 +1505,7 @@ class Rest(Builtin):
         "Rest[expr_]"
 
         if isinstance(expr, Atom):
-            evaluation.message("Rest", "normal", expression)
+            evaluation.message("Rest", "normal", Integer1, expression)
             return
         if len(expr.elements) == 0:
             evaluation.message("Rest", "norest", expr)
@@ -1551,7 +1569,9 @@ class Select(Builtin):
             return
 
         if isinstance(items, Atom):
-            evaluation.message("Select", "normal")
+            evaluation.message(
+                "Select", "normal", Integer1, Expression(SymbolSelect, items, expr, n)
+            )
             return
 
         def cond(element):
@@ -1610,9 +1630,6 @@ class Take(Builtin):
      = {{b}, {e}}
     """
 
-    messages = {
-        "normal": "Nonatomic expression expected at position `1` in `2`.",
-    }
     summary_text = "pick a range of elements"
 
     def eval(self, items, seqs, evaluation):
@@ -1622,7 +1639,7 @@ class Take(Builtin):
 
         if isinstance(items, Atom):
             evaluation.message(
-                "Take", "normal", 1, Expression(SymbolTake, items, *seqs)
+                "Take", "normal", Integer1, Expression(SymbolTake, items, *seqs)
             )
             return
 

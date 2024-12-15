@@ -489,12 +489,50 @@ def test_combinations_1_5():
 def test_2_1_to_2_3():
     for str_expr, str_expected, message in (
         (
-            # 2.1.1 uses Partitions which is broken
-            # 2.1.2 Ferrers Diagrams can't be tested easily and robustly here
-            # easily
-            # 2.1.3 uses Partitions which is broken
-            "PartitionsP[10]",
-            "NumberOfPartitions[10]",
+            "Partitions[6]",
+            "{{6}, {5, 1}, {4, 2}, {4, 1, 1}, {3, 3}, "
+            "{3, 2, 1}, {3, 1, 1, 1}, {2, 2, 2}, {2, 2, 1, 1}, "
+            "{2, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1}}",
+            "Generating Partitions 2.1.1, Page 52",
+        ),
+        (
+            "Partitions[6, 3]",
+            "{{3, 3}, {3, 2, 1}, {3, 1, 1, 1}, {2, 2, 2}, "
+            "{2, 2, 1, 1}, {2, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1}}",
+            "Generating Partitions 2.1.1, Page 52",
+        ),
+        (
+            "Length[Partitions[10]]",
+            "42",
+            "Generating Partitions 2.1.1, Page 52",
+        ),
+        # 2.1.2 Ferrers Diagrams can't be tested easily and robustly here
+        # easily
+        # (
+        #     "(p=Table[1,{6}]; Table[p=NextPartition[p], {NumberOfPartitions[6]}])",
+        #     "{{6}, {5, 1}, {4, 2}, {4, 1, 1}, {3, 3}, "
+        #     "{3, 2, 1}, {3, 1, 1, 1}, {2, 2, 2}, {2, 2, 1, 1}, "
+        #      "{2, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1}}",
+        #     "Generating Partitions 2.1.1, Page 52",
+        # ),
+        (
+            "Select[Partitions[7], (Apply[And,Map[OddQ, #]])&]",
+            "{{7}, {5, 1, 1}, {3, 3, 1}, {3, 1, 1, 1, 1}, " "{1, 1, 1, 1, 1, 1, 1}}",
+            "Bijections between Partitions 2.1.3, Page 56",
+        ),
+        (
+            "Select[Partitions[7], (Length[#] == Length[Union[#]])&]",
+            "{{7}, {6, 1}, {5, 2}, {4, 3}, {4, 2, 1}}",
+            "Bijections between Partitions 2.1.3, Page 56",
+        ),
+        (
+            "DurfeeSquare[p=RandomPartition[20]] == DurfeeSquare[TransposePartition[p]]",
+            "True",
+            "Counting Partitions 2.1.3, Page 57",
+        ),
+        (
+            "{PartitionsP[10], NumberOfPartitions[10]}",
+            "{42, 42}",
             "Counting Partitions 2.1.4, Page 57",
         ),
         (
@@ -503,14 +541,24 @@ def test_2_1_to_2_3():
             "Random Compositions 2.2.1, Page 60",
         ),
         (
-            "TableauQ[{{1,2,5}, {3,4,5}, {6}}]",
-            "True",
-            "Young Tableau 2.3, Page 64",
+            "Compositions[6,3]",
+            "{{0, 0, 6}, {0, 1, 5}, {0, 2, 4}, {0, 3, 3}, "
+            "{0, 4, 2}, {0, 5, 1}, {0, 6, 0}, {1, 0, 5}, {1, 1, 4}, "
+            "{1, 2, 3}, {1, 3, 2}, {1, 4, 1}, {1, 5, 0}, {2, 0, 4}, "
+            "{2, 1, 3}, {2, 2, 2}, {2, 3, 1}, {2, 4, 0}, {3, 0, 3}, "
+            "{3, 1, 2}, {3, 2, 1}, {3, 3, 0}, {4, 0, 2}, {4, 1, 1}, "
+            "{4, 2, 0}, {5, 0, 1}, {5, 1, 0}, {6, 0, 0}}",
+            "Generating Compositions 2.2.2, Page 61",
         ),
         (
-            "TableauQ[{{1,2,5,9,10}, {5,4,7,13}, {4,8,12},{11}}]",
-            "False",
-            "Young Tableau 2.3, Page 64",
+            "(c = {0, 0, 6}; Table[c = NextComposition[c], {28}])",
+            "{{6, 0, 0}, {5, 1, 0}, {4, 2, 0}, {3, 3, 0}, "
+            "{2, 4, 0}, {1, 5, 0}, {0, 6, 0}, {5, 0, 1}, {4, 1, 1}, "
+            "{3, 2, 1}, {2, 3, 1}, {1, 4, 1}, {0, 5, 1}, {4, 0, 2}, "
+            "{3, 1, 2}, {2, 2, 2}, {1, 3, 2}, {0, 4, 2}, {3, 0, 3}, "
+            "{2, 1, 3}, {1, 2, 3}, {0, 3, 3}, {2, 0, 4}, {1, 1, 4}, "
+            "{0, 2, 4}, {1, 0, 5}, {0, 1, 5}, {0, 0, 6}}",
+            "Generating Compositions 2.2.2, Page 62",
         ),
         # Need to not evaluate expected which reformats \n's
         #         (
@@ -522,6 +570,16 @@ def test_2_1_to_2_3():
         #             "False",
         #             "Young Tableau 2.3, Page 63",
         #         ),
+        (
+            "TableauQ[{{1,2,5}, {3,4,5}, {6}}]",
+            "True",
+            "Young Tableau 2.3, Page 64",
+        ),
+        (
+            "TableauQ[{{1,2,5,9,10}, {5,4,7,13}, {4,8,12},{11}}]",
+            "False",
+            "Young Tableau 2.3, Page 64",
+        ),
     ):
         check_evaluation(str_expr, str_expected, message)
 
@@ -569,11 +627,11 @@ def test_combinatorica_rest():
             "2",
             "BinarySearch - find where key is a list",
         ),
-        # (
-        #     "SetPartitions[3]",
-        #     "{{{1, 2, 3}}, {{1}, {2, 3}}, {{1, 2}, {3}}, {{1, 3}, {2}}, {{1}, {2}, {3}}}",
-        #     "SetPartitions"
-        # ),
+        (
+            "SetPartitions[3]",
+            "{{{1, 2, 3}}, {{1}, {2, 3}}, {{1, 2}, {3}}, {{1, 3}, {2}}, {{1}, {2}, {3}}}",
+            "SetPartitions",
+        ),
         (
             "TransposePartition[{8, 6, 4, 4, 3, 1}]",
             "{6, 5, 5, 4, 2, 2, 1, 1}",

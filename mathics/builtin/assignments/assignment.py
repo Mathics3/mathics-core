@@ -355,10 +355,6 @@ class UpSet(InfixOperator, _SetOperator):
     >> UpValues[b]
      = {HoldPattern[a[b]] :> 3}
 
-    >> a ^= 3
-     : Nonatomic expression expected.
-     = 3
-
     You can use 'UpSet' to specify special values like format values.
     However, these values will not be saved in 'UpValues':
     >> Format[r] ^= "custom";

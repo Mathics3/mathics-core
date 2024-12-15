@@ -12,7 +12,7 @@ import pytest
     [
         (
             "Complement[a, b]",
-            ("Non-atomic expression expected at position 1 in Complement[a, b].",),
+            ("Nonatomic expression expected at position 1 in Complement[a, b].",),
             "Complement[a, b]",
             None,
         ),

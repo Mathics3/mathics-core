@@ -288,7 +288,6 @@ class SubsetQ(Builtin):
         "argr": "SubsetQ called with 1 argument; 2 arguments are expected.",
         "argrx": "SubsetQ called with `1` arguments; 2 arguments are expected.",
         "heads": "Heads `1` and `2` at positions 1 and 2 are expected to be the same.",
-        "normal": "Nonatomic expression expected at position `1` in `2`.",
     }
     summary_text = "test if a list is a subset of another list"
 
