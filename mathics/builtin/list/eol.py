@@ -469,13 +469,26 @@ class DeleteCases(Builtin):
                     "DeleteCases",
                     "innf",
                     Integer4,
-                    Expression(SymbolDeleteCases, items, pattern, levelspec, n),
+                    Expression(
+                        SymbolDeleteCases,
+                        items,
+                        pattern,
+                        *from_python(levelspec),
+                        Integer(n),
+                    ),
                 )
         else:
             evaluation.message(
                 "DeleteCases",
                 "innf",
-                Expression(SymbolDeleteCases, items, pattern, levelspec, n),
+                Integer4,
+                Expression(
+                    SymbolDeleteCases,
+                    items,
+                    pattern,
+                    *from_python(levelspec),
+                    Integer(n),
+                ),
             )
             return SymbolNull
 
@@ -518,7 +531,7 @@ class Drop(Builtin):
       <dd>returns $list$ with elements $m$ though $n$ removed.
     </dl>
 
-    Drop up intil the 3rd item from the beginning of a list:
+    Drop up until the third item from the beginning of a list:
 
     >> Drop[{a, b, c, d}, 3]
      = {d}
@@ -537,7 +550,7 @@ class Drop(Builtin):
     >> Drop[A, {2, 3}, {2, 3}]
      = {{11, 14}, {41, 44}}
 
-    Dropping the 0th element does nothing and returns the list unmodified:
+    Dropping the 0th element does nothing, and returns the list unmodified:
 
     >> Drop[{a, b, c, d}, 0]
       = {a, b, c, d}
@@ -546,6 +559,10 @@ class Drop(Builtin):
 
     >> Drop[{}, 0]
       = {}
+
+    See also <url>
+    :'Take':
+    /doc/reference-of-built-in-symbols/list-functions/elements-of-lists/take/</url>.
     """
 
     messages = {
@@ -750,7 +767,13 @@ class FirstPosition(Builtin):
     summary_text = "position of the first element matching a pattern"
 
     def eval(
-        self, expr, pattern, evaluation, default=None, minLevel=None, maxLevel=None
+        self,
+        expr,
+        pattern,
+        evaluation: Evaluation,
+        default=None,
+        minLevel=None,
+        maxLevel=None,
     ):
         "FirstPosition[expr_, pattern_]"
 
@@ -973,8 +996,8 @@ class Length(Builtin):
 
     summary_text = "number of elements in a list or expression"
 
-    def eval(self, expr, evaluation):
-        "Length[expr_]"
+    def eval(self, expr, evaluation: Evaluation):
+        """Length[expr_]"""
 
         if isinstance(expr, Atom):
             return Integer0
@@ -1611,12 +1634,21 @@ class Take(Builtin):
     <dl>
       <dt>'Take[$expr$, $n$]'
       <dd>returns $expr$ with all but the first $n$ elements removed.
+      <dt>'Take[$list$, -$n$]'
+      <dd>returns last $n$ elements of $list$.
+      <dt>'Take[$list$, {$m$, $n$}]'
+      <dd>returns elements $m$ through $n$ of $list$.
     </dl>
 
+    Get the first three elements:
     >> Take[{a, b, c, d}, 3]
      = {a, b, c}
+
+    Get the last two elements:
     >> Take[{a, b, c, d}, -2]
      = {c, d}
+
+    Get the elements from the second element through the next to last element:
     >> Take[{a, b, c, d, e}, {2, -2}]
      = {b, c, d}
 
@@ -1628,12 +1660,24 @@ class Take(Builtin):
     Take a single column:
     >> Take[A, All, {2}]
      = {{b}, {e}}
+
+    Taking the 0th element does nothing, and returns an empty list:
+
+    >> Take[{a, b, c, d}, 0]
+      = {}
+
+    See also <url>
+    :'Drop':
+    /doc/reference-of-built-in-symbols/list-functions/elements-of-lists/drop/</url>.
     """
 
     summary_text = "pick a range of elements"
 
     def eval(self, items, seqs, evaluation):
         "Take[items_, seqs___]"
+
+        if seqs is Integer0:
+            return ListExpression()
 
         seqs = seqs.get_sequence()
 
