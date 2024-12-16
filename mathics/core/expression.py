@@ -576,10 +576,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     break
 
                 # TraceEvaluation[] logging.
-                if evaluation.definitions.trace_evaluation:
-                    evaluation.print_out(
-                        "  " * evaluation.recursion_depth + "-> %s" % expr
-                    )
                 iteration += 1
                 # Check whether we have hit $Iterationlimit: is the number of times
                 # ``reevaluate`` came back False in this loop.
