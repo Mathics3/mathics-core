@@ -411,7 +411,7 @@ class _Size(_GraphicsDirective):
     def init(self, graphics, item=None, value=None):
         super(_Size, self).init(graphics, item)
         if item is not None:
-            self.value = item.elements[0].round_to_float()
+            self.value = item.elements[0].round_to_float() * 0.7
         elif value is not None:
             self.value = value
         else:

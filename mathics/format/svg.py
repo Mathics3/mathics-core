@@ -387,6 +387,7 @@ def inset_box(self, **options) -> str:
             font_color=self.color,
             edge_color=self.color,
             face_color=self.color,
+            stroke_width=0.2,
             opacity=self.opacity.opacity,
         )
         text_pos_opts = f'x="{x}" y="{y}" ox="{self.opos[0]}" oy="{self.opos[1]}"'
