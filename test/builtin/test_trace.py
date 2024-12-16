@@ -41,12 +41,14 @@ def test_TraceEvaluation():
         # Set a small recursion limit,
         # Replace TraceEvaluation's print function something that counts evaluation
         # calls, and then force a RecursionLimit Error.
-        evaluate("$RecursionLimit = 20")
+        evaluate("$RecursionLimit = 40")
         assert mathics.eval.tracing.print_evaluate == old_evaluation_hook
         evaluate("f[x_] := x + f[x-1]; f[0] = 0")
         global trace_evaluation_calls
         trace_evaluation_calls = 0
-        mathics.eval.tracing.print_evaluate = counting_print_evaluate
+        mathics.eval.tracing.print_evaluate = (
+            mathics.eval.tracing.trace_evaluate_on_call
+        ) = mathics.eval.tracing.trace_evaluate_on_return = counting_print_evaluate
         evaluate("f[30] // TraceEvaluation")
 
     except AbortInterrupt:
