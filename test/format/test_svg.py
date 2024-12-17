@@ -3,13 +3,11 @@ from test.helper import session
 
 from mathics.builtin.makeboxes import MakeBoxes
 from mathics.core.atoms import Integer0, Integer1, Real
-from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolPoint
-from mathics.session import MathicsSession
 
 evaluation = session.evaluation
 
@@ -27,7 +25,6 @@ COLOR_RED_ALPHA = Expression(
 
 svg_wrapper_pat = r"""\s*<svg width="[0-9.]+px" height="[0-9.]+px" xmlns:svg="http://www.w3.org/2000/svg"
 \s*xmlns="http://www.w3.org/2000/svg"
-\s*version="1\.1"
 """
 
 
