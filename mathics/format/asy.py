@@ -417,12 +417,11 @@ def inset_box(self, **options) -> str:
         edge_color=self.color, edge_opacity=opacity_value, fontsize=font_size
     )
     asy = """// InsetBox
-label("$%s$", (%s,%s), (%s,%s), %s);\n""" % (
+label("$%s$", (%s,%s), %s, %s);\n""" % (
         content,
         x,
         y,
-        -self.opos[0],
-        -self.opos[1],
+        "align=SW",
         pen,
     )
     return asy
