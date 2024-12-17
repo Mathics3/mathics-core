@@ -106,10 +106,10 @@ def arcbox(self, **options) -> str:
 
     def path(closed):
         if closed:
-            yield "M %f,%f" % (x, y)
-            yield "L %f,%f" % (sx, sy)
+            yield f"M {x:f},{y:f}"
+            yield f"L {sx:f},{sy:f}"
         else:
-            yield "M %f,%f" % (sx, sy)
+            yield f"M {sx:f},{sy:f}"
 
         yield "A %f,%f,0,%d,0,%f,%f" % (rx, ry, large_arc, ex, ey)
 
@@ -124,7 +124,7 @@ def arcbox(self, **options) -> str:
         edge_opacity=self.edge_opacity,
         face_opacity=self.face_opacity,
     )
-    svg = '<path d="%s" style="%s" />' % (" ".join(path(self.face_element)), style)
+    svg = f"<path d=\"{' '.join(path(self.face_element))}\" style=\"{style}\" />"
     # print("_Arcbox: ", svg)
     return svg
 
@@ -211,7 +211,7 @@ def density_plot_box(self, **options):
         b = (colors[0][2] + colors[1][2] + colors[2][1]) / 3
         mid_color = r"rgb(%f, %f, %f)" % (r * 255, g * 255, b * 255)
 
-        points = " ".join("%f,%f" % (point[0], point[1]) for point in triangle)
+        points = " ".join(f"{point[0]:f},{point[1]:f}" for point in triangle)
         svg_data.append(f'<polygon points="{points}" fill="{mid_color}" />')
 
     svg = "\n".join(svg_data)
@@ -542,13 +542,7 @@ def _roundbox(self):
         edge_opacity=self.edge_opacity,
         face_opacity=self.face_opacity,
     )
-    svg = '<ellipse cx="%f" cy="%f" rx="%f" ry="%f" style="%s" />' % (
-        x,
-        y,
-        rx,
-        ry,
-        style,
-    )
+    svg = f'<ellipse cx="{x:f}" cy="{y:f}" rx="{rx:f}" ry="{ry:f}" style="{style}" />'
     # print("_RoundBox: ", svg)
     return svg
 
@@ -569,9 +563,9 @@ def wrap_svg_body(
     svg_str = f"""
 <svg width="{box_width}px" height="{box_height}px" xmlns:svg="http://www.w3.org/2000/svg"
             xmlns="http://www.w3.org/2000/svg"
-            version="1.1"
             viewBox="{x_min:f} {y_min:f} {box_width:f}, {box_height:f}">
     {svg_body}
 </svg>
 """
+    # print(svg_str)
     return svg_str
