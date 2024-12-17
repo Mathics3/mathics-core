@@ -19,7 +19,14 @@ import sympy
 
 from mathics.builtin.options import options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
-from mathics.core.atoms import Integer, Integer0, Integer1, Number, RationalOneHalf
+from mathics.core.atoms import (
+    Integer,
+    Integer0,
+    Integer1,
+    IntegerM1,
+    Number,
+    RationalOneHalf,
+)
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.convert.python import from_bool
@@ -47,7 +54,6 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolAlternatives,
     SymbolAssumptions,
-    SymbolAutomatic,
     SymbolCos,
     SymbolCosh,
     SymbolCot,
@@ -62,10 +68,7 @@ from mathics.core.systemsymbols import (
     SymbolTable,
     SymbolTanh,
 )
-from mathics.eval.numbers.algebra.simplify import (
-    default_complexity_function,
-    eval_Simplify,
-)
+from mathics.eval.numbers.algebra.simplify import eval_Simplify
 from mathics.eval.numbers.numbers import cancel, sympy_factor
 from mathics.eval.parts import walk_parts
 from mathics.eval.patterns import match
@@ -153,25 +156,25 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                 elif head is Symbol("Tan"):
                     a = _expand(Expression(SymbolSin, theta))
                     b = Expression(
-                        SymbolPower, _expand(Expression(SymbolCos, theta)), Integer(-1)
+                        SymbolPower, _expand(Expression(SymbolCos, theta)), IntegerM1
                     )
                     return _expand(Expression(SymbolTimes, a, b))
                 elif head is SymbolCot:
                     a = _expand(Expression(SymbolCos, theta))
                     b = Expression(
-                        "Power", _expand(Expression(SymbolSin, theta)), Integer(-1)
+                        SymbolPower, _expand(Expression(SymbolSin, theta)), IntegerM1
                     )
                     return _expand(Expression(SymbolTimes, a, b))
                 elif head is SymbolTanh:
                     a = _expand(Expression(SymbolSinh, theta))
                     b = Expression(
-                        SymbolPower, _expand(Expression(SymbolCosh, theta)), Integer(-1)
+                        SymbolPower, _expand(Expression(SymbolCosh, theta)), IntegerM1
                     )
                     return _expand(Expression(SymbolTimes, a, b))
                 elif head is SymbolCoth:
-                    a = _expand(Expression(SymbolTimes, "Cosh", theta))
+                    a = _expand(Expression(SymbolTimes, SymbolCosh, theta))
                     b = Expression(
-                        SymbolPower, _expand(Expression(SymbolSinh, theta)), Integer(-1)
+                        SymbolPower, _expand(Expression(SymbolSinh, theta)), IntegerM1
                     )
                     return _expand(Expression(a, b))
 
@@ -392,7 +395,7 @@ class Apart(Builtin):
     }
     summary_text = "partial fraction decomposition"
 
-    def eval(self, expr, var, evaluation):
+    def eval(self, expr, var, evaluation: Evaluation):
         "Apart[expr_, var_Symbol]"
 
         expr_sympy = expr.to_sympy()
@@ -431,7 +434,7 @@ class Cancel(Builtin):
     attributes = A_LISTABLE | A_PROTECTED
     summary_text = "cancel common factors in rational expressions"
 
-    def eval(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation):
         "Cancel[expr_]"
 
         return cancel(expr)
@@ -439,8 +442,8 @@ class Cancel(Builtin):
 
 # Get a coefficient of form in an expression
 def _coefficient(
-    name: str, expr: Expression, form: Expression, n: Integer, evaluation: Evaluation
-) -> BaseElement:
+    name: str, expr: Expression, form, n: Integer, evaluation: Evaluation
+) -> Optional[BaseElement]:
     if expr is SymbolNull or form is SymbolNull or n is SymbolNull:
         return Integer0
 
@@ -1726,41 +1729,67 @@ class Numerator(Builtin):
     attributes = A_LISTABLE | A_PROTECTED
     summary_text = "numerator of an expression"
 
-    def eval(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation):
         "Numerator[expr_]"
 
         sympy_expr = expr.to_sympy()
         if sympy_expr is None:
             return None
-        numer, denom = sympy_expr.as_numer_denom()
+        numer, _ = sympy_expr.as_numer_denom()
         return from_sympy(numer)
 
 
 class PolynomialQ(Builtin):
     """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/PolynomialQ.html</url>
+    <url>:Polynomial:
+    https://en.wikipedia.org/wiki/Polynomial:</url>, (<url>:WMA link:
+    https://reference.wolfram.com/language/ref/PolynomialQ.html</url>)
 
     <dl>
+      <dt>'PolynomialQ[expr]'
+      <dd>returns True if $expr$ is a polynomial and returns False otherwise.
       <dt>'PolynomialQ[expr, var]'
       <dd>returns True if $expr$ is a polynomial in $var$, and returns False otherwise.
       <dt>'PolynomialQ[expr, {var1, ...}]'
       <dd>tests whether $expr$ is a polynomial in the $vari$.
     </dl>
 
-    ## Form 1:
+
+    'PolynomialQ' with no explicit variable mentioned:
+
+    >> PolynomialQ[x^2]
+     = True
+
+    A number is a degenerate kind of polynomial:
+    >> PolynomialQ[2]
+     = True
+
+    The following is not a polynomial because $y$ is raised to \
+    the power -1:
+    >> PolynomialQ[x^2 + x/y]
+     = False
+
+    'PolynomialQ' using an expression and a single variable:
     >> PolynomialQ[x^3 - 2 x/y + 3xz, x]
      = True
-    >> PolynomialQ[x^3 - 2 x/y + 3xz, y]
+
+    In the above, there were no negative powers for $x$. \
+    In the below when we check with respect to $y$, \
+    we <i>do</i> find $y$ has is raised to a negative power:
+    >> PolynomialQ[x^3 - 2 x/y^2 + 3xz, y]
      = False
+
     >> PolynomialQ[f[a] + f[a]^2, f[a]]
      = True
 
-    ## Form 2
+    'PolynomialQ' using an expression and a list of variables:
+
     >> PolynomialQ[x^2 + axy^2 - bSin[c], {x, y}]
      = True
     >> PolynomialQ[x^2 + axy^2 - bSin[c], {a, b, c}]
      = False
+
+
     """
 
     messages = {
@@ -1779,8 +1808,9 @@ class PolynomialQ(Builtin):
             evaluation.message("PolynomialQ", "argt", Integer(len(v) + 1))
             return
         elif len(v) == 0:
-            evaluation.message("PolynomialQ", "novar")
-            return
+            sympy_expr = expr.to_sympy()
+            sympy_result = sympy_expr.is_polynomial()
+            return from_bool(sympy_result)
 
         var = v[0]
         if var is SymbolNull:
