@@ -786,7 +786,7 @@ def check_requires_list(requires: list) -> bool:
     return True
 
 
-def get_option(options, name, evaluation, pop=False, evaluate=True):
+def get_option(options: dict, name, evaluation, pop=False, evaluate=True):
     # we do not care whether an option X is given as System`X,
     # Global`X, or with any prefix from $ContextPath for that
     # matter. Also, the quoted string form "X" is ok. all these
