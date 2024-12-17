@@ -1,3 +1,4 @@
+(* -*- wolfram -*- *)
 (* DiscreteMath`CombinatoricaV0.9 goes with:
 
  	Implementing Discrete Mathematics: Combinatorics and Graph Theory
@@ -11,6 +12,13 @@ For ordering information, call 1-800-447-2226.
  *)
 Get[ "DiscreteMath`CombinatoricaV0.6" ]
 Get[ "DiscreteMath`CombinatoricaV0.9" ]
+
+(* The revised edition of the book is:
+*Computational Discrete Mathematics: Combinatorics and Graph Theory in
+Mathematica*, by Sriram V. Pemmaraju and Steven S. Skiena, Cambridge
+University Press, 2003.
+ *)
+Get[ "DiscreteMath`CombinatoricaV2.0.0" ]
 
 (* The below is from https://library.wolfram.com/infocenter/MathSource/6825/
  An alpha test version is at:
