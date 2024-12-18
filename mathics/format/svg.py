@@ -391,8 +391,18 @@ def inset_box(self, **options) -> str:
             opacity=self.opacity.opacity,
         )
         text_pos_opts = f'x="{x}" y="{y}" ox="{self.opos[0]}" oy="{self.opos[1]}"'
+
+        alignment = " dominant-baseline:hanging;"
+        if hasattr(self, "alignment"):
+            if self.alignment == "bottom":
+                # This is typically done for labels under the x axis.
+                alignment = " dominant-baseline:hanging; text-anchor:middle;"
+            elif self.alignment == "left":
+                # This is typically done for labels to the left of the y axis.
+                alignment = " dominant-baseline:middle; text-anchor:end;"
+
         # FIXME: don't hard code text_style_opts, but allow these to be adjustable.
-        text_style_opts = "text-anchor:end; dominant-baseline:hanging;"
+        text_style_opts = alignment
         content = self.content.boxes_to_text(evaluation=self.graphics.evaluation)
         font_size = f'''font-size="{options.get("point_size", "10px")}"'''
         svg = f'<text {text_pos_opts} {font_size} style="{text_style_opts} {css_style}">{content}</text>'
