@@ -409,6 +409,16 @@ add_conversion_fn(Graphics3DElements)
 def inset_box(self, **options) -> str:
     """Asymptote formatting for boxing an Inset in a graphic."""
     x, y = self.pos.pos()
+
+    alignment = "SW"
+    if hasattr(self, "alignment"):
+        if self.alignment == "bottom":
+            # This is typically done for labels under the x axis.
+            alignment = "S"
+        elif self.alignment == "left":
+            # This is typically done for labels to the left of the y axis.
+            alignment = "W"
+
     opacity_value = self.opacity.opacity if self.opacity else None
     content = self.content.boxes_to_tex(evaluation=self.graphics.evaluation)
     # FIXME: don't hard code text_style_opts, but allow these to be adjustable.
@@ -416,14 +426,8 @@ def inset_box(self, **options) -> str:
     pen = asy_create_pens(
         edge_color=self.color, edge_opacity=opacity_value, fontsize=font_size
     )
-    asy = """// InsetBox
-label("$%s$", (%s,%s), %s, %s);\n""" % (
-        content,
-        x,
-        y,
-        "align=SW",
-        pen,
-    )
+    asy = f"""// InsetBox
+label("${content}$", ({x},{y}), align={alignment}, {pen});\n"""
     return asy
 
 
