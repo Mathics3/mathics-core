@@ -4,7 +4,7 @@
 Evaluation methods for accessing and manipulating elements in nested lists / expressions
 """
 
-from typing import List
+from typing import List, Optional, Tuple
 
 from mathics.core.atoms import Integer
 from mathics.core.convert.expression import make_expression
@@ -374,8 +374,7 @@ def walk_levels(
                 include_pos,
                 cur_pos + [index + 1],
             )
-            if element_depth + 1 > depth:
-                depth = element_depth + 1
+            depth = max(element_depth + 1, depth)
             elements.append(element)
         new_expr = make_expression(head, *elements)
 
@@ -387,8 +386,8 @@ def walk_levels(
     return new_expr, depth
 
 
-def python_levelspec(levelspec):
-    def value_to_level(expr):
+def python_levelspec(levelspec) -> Tuple[int, Optional[int]]:
+    def value_to_level(expr) -> Optional[int]:
         value = expr.get_int_value()
         if value is None:
             if expr.sameQ(MATHICS3_INFINITY):

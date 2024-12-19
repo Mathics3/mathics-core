@@ -224,7 +224,7 @@ class SubExpression:
         elif type(pos) is Expression:
             if pos.has_form("System`List", None):
                 tuple_pos = [i.get_int_value() for i in pos.elements]
-                if any([i is None for i in tuple_pos]):
+                if any(i is None for i in tuple_pos):
                     raise MessageException("Part", "pspec", pos)
                 pos = tuple_pos
             elif pos.has_form("System`Span", None):
@@ -286,7 +286,7 @@ class SubExpression:
 
     def replace(self, new):
         """
-        Asigns `new` to the subexpression, according to the logic of `mathics.core.walk_parts`
+        Assigns `new` to the subexpression, according to the logic of `mathics.core.walk_parts`
         """
         if (new.has_form("List", None) or new.get_head_name() == "System`List") and len(
             new.elements

@@ -276,9 +276,9 @@ class Graphics(Builtin):
      = #<--#
      . \begin{asy}
      . usepackage("amsmath");
-     . size(5.8556cm, 5.8333cm);
-     . draw(ellipse((175,175),175,175), rgb(0, 0, 0)+linewidth(0.66667));
-     . clip(box((-0.33333,0.33333), (350.33,349.67)));
+     . size(5.8445cm, 5.8333cm);
+     . draw(ellipse((175,175),175,175), rgb(0, 0, 0)+linewidth(0.33333));
+     . clip(box((-0.16667,0.16667), (350.17,349.83)));
      . \end{asy}
     """
 
@@ -411,7 +411,7 @@ class _Size(_GraphicsDirective):
     def init(self, graphics, item=None, value=None):
         super(_Size, self).init(graphics, item)
         if item is not None:
-            self.value = item.elements[0].round_to_float()
+            self.value = item.elements[0].round_to_float() * 0.7
         elif value is not None:
             self.value = value
         else:
@@ -1038,15 +1038,15 @@ class Style:
     def get_option(self, name):
         return self.options.get(name, None)
 
-    def get_line_width(self, face_element=True):
+    def get_line_width(self, face_element=True) -> float:
         if self.graphics.pixel_width is None:
-            return 0
+            return 0.0
         edge_style, _ = self.get_style(
             _Thickness, default_to_faces=face_element, consider_forms=face_element
         )
         if edge_style is None:
-            return 0
-        return edge_style.get_thickness()
+            return 0.0
+        return edge_style.get_thickness() / 2.0
 
 
 def _flatten(elements):
@@ -1161,7 +1161,7 @@ class _GraphicsElements:
             )
             self.tooltip_text = messages
             self.background_color = ERROR_BACKGROUND_COLOR
-            logging.warn(messages)
+            logging.warning(messages)
 
     def create_style(self, expr):
         style = self.style_class(self)

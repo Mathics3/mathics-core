@@ -2,15 +2,17 @@
 List-Oriented Tests
 """
 
+from typing import Optional
+
 from mathics.core.atoms import Integer, Integer1, Integer2
 from mathics.core.builtin import Builtin, Test
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Expression
-from mathics.core.symbols import Atom, SymbolFalse, SymbolTrue
+from mathics.core.symbols import Atom, BooleanType, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolSubsetQ  # , SymbolSparseArray
 from mathics.eval.parts import python_levelspec
-from mathics.eval.testing_expressions import check_ArrayQ  # , check_SparseArrayQ
+from mathics.eval.testing_expressions import eval_ArrayQ  # , check_SparseArrayQ
 
 
 class ArrayQ(Builtin):
@@ -43,18 +45,25 @@ class ArrayQ(Builtin):
 
     rules = {
         "ArrayQ[expr_]": "ArrayQ[expr, _, True&]",
-        "ArrayQ[expr_, pattern_]": "ArrayQ[expr, pattern, True&]",
     }
 
     summary_text = "test whether an object is a tensor of a given rank"
 
-    def eval(self, expr, pattern, test, evaluation: Evaluation):
+    def eval_with_pattern(self, expr, pattern, evaluation: Evaluation):
+        "ArrayQ[expr_, pattern_]"
+
+        # if not isinstance(expr, Atom) and expr.head.sameQ(SymbolSparseArray):
+        #    return check_SparseArrayQ(expr, pattern, test, evaluation)
+
+        return eval_ArrayQ(expr, pattern, None, evaluation)
+
+    def eval_with_pattern_and_test(self, expr, pattern, test, evaluation: Evaluation):
         "ArrayQ[expr_, pattern_, test_]"
 
         # if not isinstance(expr, Atom) and expr.head.sameQ(SymbolSparseArray):
         #    return check_SparseArrayQ(expr, pattern, test, evaluation)
 
-        return check_ArrayQ(expr, pattern, test, evaluation)
+        return eval_ArrayQ(expr, pattern, test, evaluation)
 
 
 class DisjointQ(Test):
@@ -134,9 +143,9 @@ class LevelQ(Test):
 
     summary_text = "test whether is a valid level specification"
 
-    def test(self, ls) -> bool:
+    def test(self, expr) -> bool:
         try:
-            start, stop = python_levelspec(ls)
+            python_levelspec(expr)
             return True
         except InvalidLevelspecError:
             return False
@@ -279,11 +288,10 @@ class SubsetQ(Builtin):
         "argr": "SubsetQ called with 1 argument; 2 arguments are expected.",
         "argrx": "SubsetQ called with `1` arguments; 2 arguments are expected.",
         "heads": "Heads `1` and `2` at positions 1 and 2 are expected to be the same.",
-        "normal": "Nonatomic expression expected at position `1` in `2`.",
     }
     summary_text = "test if a list is a subset of another list"
 
-    def eval(self, expr, subset, evaluation: Evaluation):
+    def eval(self, expr, subset, evaluation: Evaluation) -> Optional[BooleanType]:
         "SubsetQ[expr_, subset___]"
 
         if isinstance(expr, Atom):

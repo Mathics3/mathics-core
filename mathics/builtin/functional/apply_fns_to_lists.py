@@ -9,9 +9,6 @@ Many mathematical functions are automatically taken to be "listable", so that \
 they are always applied to every element in a list.
 """
 
-# This tells documentation how to sort this module
-sort_order = "mathics.builtin.applying-functions-to-lists"
-
 from typing import Iterable
 
 from mathics.builtin.list.constructing import List
@@ -29,6 +26,9 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import SymbolMapThread, SymbolRule
 from mathics.eval.parts import python_levelspec, walk_levels
+
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.applying-functions-to-lists"
 
 
 class Apply(InfixOperator):
@@ -69,7 +69,6 @@ class Apply(InfixOperator):
     """
 
     summary_text = "apply a function to a list, at specified levels"
-    operator = "@@"
     grouping = "Right"
 
     options = {
@@ -128,7 +127,6 @@ class Map(InfixOperator):
     """
 
     summary_text = "map a function over a list, at specified levels"
-    operator = "/@"
     grouping = "Right"
 
     options = {
@@ -197,17 +195,17 @@ class MapAt(Builtin):
      = {f[a], b, c, d}
     """
 
-    summary_text = "map a function at particular positions"
     rules = {
         "MapAt[f_, pos_][expr_]": "MapAt[f, expr, pos]",
     }
+    summary_text = "map a function at particular positions"
 
-    def eval(self, f, expr, args, evaluation, options={}):
+    def eval(self, f, expr, args, evaluation: Evaluation):
         "MapAt[f_, expr_, args_]"
 
         m = len(expr.elements)
 
-        def map_at_one(i, elements):
+        def map_at_one(i):
             if 1 <= i <= m:
                 j = i - 1
             elif -m <= i <= -1:
@@ -230,13 +228,13 @@ class MapAt(Builtin):
         a = args.to_python()
         if isinstance(a, int):
             new_elements = list(expr.elements)
-            new_elements = map_at_one(a, new_elements)
+            new_elements = map_at_one(a)
             return List(*new_elements)
         elif isinstance(a, list):
             new_elements = list(expr.elements)
             for item in a:
                 if len(item) == 1 and isinstance(item[0], int):
-                    new_elements = map_at_one(item[0], new_elements)
+                    new_elements = map_at_one(item[0])
             return List(*new_elements)
 
 
@@ -483,5 +481,5 @@ class Thread(Builtin):
 
         args = args.get_sequence()
         expr = Expression(f, *args)
-        threaded, result = expr.thread(evaluation, head=h)
+        _, result = expr.thread(evaluation, head=h)
         return result

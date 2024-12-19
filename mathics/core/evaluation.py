@@ -401,8 +401,7 @@ class Evaluation:
 
     def message(self, symbol_name: str, tag, *msgs) -> Optional["Message"]:
         """
-        Format message given its components, ``symbol``, ``tag``
-
+        Format message given its components, ``symbol_name``, ``tag``
 
         """
         from mathics.core.expression import Expression
@@ -504,8 +503,7 @@ class Evaluation:
             "$RecursionLimit", MAX_RECURSION_DEPTH
         )
         if limit is not None:
-            if limit < 20:
-                limit = 20
+            limit = max(limit, 20)
             self.recursion_depth += 1
             if self.recursion_depth > limit:
                 self.error("$RecursionLimit", "reclim", limit)

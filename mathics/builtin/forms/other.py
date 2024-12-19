@@ -46,8 +46,7 @@ class StringForm(FormBaseClass):
                 index = int(match.group(2))
             else:
                 index = last_index + 1
-            if index > last_index:
-                last_index = index
+            last_index = max(index, last_index)
             if start > pos:
                 result.append(to_boxes(String(s[pos:start]), evaluation))
             pos = end

@@ -1,5 +1,5 @@
 """
-Distance-related evaluation functions and exception classes
+mathics.distance.clusters evaluation functions and exception classes
 """
 
 from mathics.core.atoms import Integer, Real

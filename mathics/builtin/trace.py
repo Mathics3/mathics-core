@@ -378,9 +378,14 @@ class TraceEvaluation(Builtin):
         curr_trace_evaluation = evaluation.definitions.trace_evaluation
         curr_time_by_steps = evaluation.definitions.timing_trace_evaluation
 
-        old_evaluation_hook = mathics.eval.tracing.trace_evaluate_on_call
+        old_evaluation_call_hook = mathics.eval.tracing.trace_evaluate_on_call
+        old_evaluation_return_hook = mathics.eval.tracing.trace_evaluate_on_return
 
         mathics.eval.tracing.trace_evaluate_on_call = (
+            mathics.eval.tracing.print_evaluate
+        )
+
+        mathics.eval.tracing.trace_evaluate_on_return = (
             mathics.eval.tracing.print_evaluate
         )
 
@@ -388,13 +393,17 @@ class TraceEvaluation(Builtin):
         evaluation.definitions.timing_trace_evaluation = (
             options["System`ShowTimeBySteps"] is SymbolTrue
         )
-        result = expr.evaluate(evaluation)
-        evaluation.definitions.trace_evaluation = curr_trace_evaluation
-        evaluation.definitions.timing_trace_evaluation = curr_time_by_steps
+        try:
+            result = expr.evaluate(evaluation)
+            return result
+        except Exception:
+            raise
+        finally:
+            evaluation.definitions.trace_evaluation = curr_trace_evaluation
+            evaluation.definitions.timing_trace_evaluation = curr_time_by_steps
 
-        mathics.eval.tracing.trace_evaluate_on_call = old_evaluation_hook
-
-        return result
+            mathics.eval.tracing.trace_evaluate_on_call = old_evaluation_call_hook
+            mathics.eval.tracing.trace_evaluate_on_return = old_evaluation_return_hook
 
 
 class TraceEvaluationVariable(Builtin):

@@ -17,17 +17,19 @@ from mpmath import ceil as mpceil, floor as mpfloor
 
 from mathics.algorithm.introselect import introselect
 from mathics.builtin.list.math import _RankedTakeLargest, _RankedTakeSmallest
-from mathics.core.atoms import Atom, Integer, Symbol, SymbolTrue
+from mathics.core.atoms import Atom, Integer, Integer1, SymbolTrue
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolFloor, SymbolPlus, SymbolTimes
-from mathics.core.systemsymbols import SymbolSubtract
+from mathics.core.systemsymbols import (
+    SymbolRankedMax,
+    SymbolRankedMin,
+    SymbolSort,
+    SymbolSubtract,
+)
 from mathics.eval.numerify import numerify
-
-SymbolRankedMax = Symbol("RankedMax")
-SymbolRankedMin = Symbol("RankedMin")
 
 
 class Quantile(Builtin):
@@ -325,7 +327,7 @@ class Sort(Builtin):
         "Sort[list_]"
 
         if isinstance(list, Atom):
-            evaluation.message("Sort", "normal")
+            evaluation.message("Sort", "normal", Integer1, Expression(SymbolSort, list))
         else:
             new_elements = sorted(list.elements)
             return list.restructure(list.head, new_elements, evaluation)
@@ -334,7 +336,7 @@ class Sort(Builtin):
         "Sort[list_, p_]"
 
         if isinstance(list, Atom):
-            evaluation.message("Sort", "normal")
+            evaluation.message("Sort", "normal", Integer1, Expression(SymbolSort, list))
         else:
 
             class Key:
@@ -343,10 +345,8 @@ class Sort(Builtin):
 
                 def __gt__(self, other):
                     return (
-                        not Expression(p, self.element, other.element).evaluate(
-                            evaluation
-                        )
-                        is SymbolTrue
+                        Expression(p, self.element, other.element).evaluate(evaluation)
+                        is not SymbolTrue
                     )
 
             new_elements = sorted(list.elements, key=Key)

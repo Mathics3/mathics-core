@@ -1770,8 +1770,7 @@ class Histogram(Builtin):
         minimum = min(minima)
         maximum = max(maxima)
 
-        if minimum > 0:
-            minimum = 0
+        minimum = min(minimum, 0)
 
         span = maximum - minimum
 
@@ -1861,8 +1860,7 @@ class Histogram(Builtin):
                 step_size = (max_bins - n_bins) // 2
             else:
                 step_size = (n_bins - 1) // 2
-            if step_size < 1:
-                step_size = 1
+            step_size = max(step_size, 1)
 
             while True:
                 new_n_bins = n_bins + dir * step_size

@@ -19,7 +19,7 @@ from typing import (
 
 import sympy
 
-from mathics.core.atoms import Integer, String
+from mathics.core.atoms import Integer, Integer1, String
 from mathics.core.attributes import (
     A_FLAT,
     A_HOLD_ALL,
@@ -178,7 +178,7 @@ class BoxError(Exception):
 # time: (1) the last time (in terms of Definitions.now) this expression was evaluated
 #   or (2) None, if the current expression has not yet been evaluated (i.e. is new or
 #   changed).
-# symbols: (1) a set of symbols occuring in this expression's head, its elements'
+# symbols: (1) a set of symbols occurring in this expression's head, its elements'
 #   heads, any of its sub expressions' heads or as Symbol elements somewhere (maybe deep
 #   down) in the expression tree start by this expressions' elements, or (2) None, if no
 #   information on which symbols are contained in this expression is available
@@ -555,7 +555,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 if not expr.is_uncertain_final_definitions(definitions):
                     break
                 # Here the names of the lookupname of the expression
-                # are stored. This is necesary for the implementation
+                # are stored. This is necessary for the implementation
                 # of the builtin `Return[]`
                 names.add(expr.get_lookup_name())
 
@@ -576,10 +576,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     break
 
                 # TraceEvaluation[] logging.
-                if evaluation.definitions.trace_evaluation:
-                    evaluation.print_out(
-                        "  " * evaluation.recursion_depth + "-> %s" % expr
-                    )
                 iteration += 1
                 # Check whether we have hit $Iterationlimit: is the number of times
                 # ``reevaluate`` came back False in this loop.
@@ -594,7 +590,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # "Return gets discarded only if it was called from within the r.h.s.
         # of a user-defined rule."
         # http://mathematica.stackexchange.com/questions/29353/how-does-return-work
-        # Otherwise it propogates up.
+        # Otherwise it propagates up.
         #
         except ReturnInterrupt as ret:
             if names.intersection(definitions.user.keys()):
@@ -625,9 +621,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             head = head.evaluate_elements(evaluation)
         return Expression(head, *elements)
 
-    def filter(self, head, cond, evaluation):
+    def filter(self, head, cond, evaluation: Evaluation, count: Optional[int] = None):
         # faster equivalent to: Expression(head, [element in self.elements if cond(element)])
-        return structure(head, self, evaluation).filter(self, cond)
+        return structure(head, self, evaluation).filter(self, cond, count)
 
     # FIXME: go over and preserve elements_properties.
     def flatten_pattern_sequence(self, evaluation):
@@ -679,7 +675,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         the expression is unchanged.
 
-        head: head element to be consdier flattening on. Only expressions with this will be flattened.
+        head: head element to be consider flattening on. Only expressions with this will be flattened.
               This is always the head element or the next head element of the expression that the
               elements are drawn from
 
@@ -1127,6 +1123,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         s = structure(head, deps, evaluation, structure_cache=structure_cache)
         return s(list(elements))
 
+    @trace_evaluate
     def rewrite_apply_eval_step(self, evaluation) -> Tuple[BaseElement, bool]:
         """Perform a single rewrite/apply/eval step of the bigger
         Expression.evaluate() process.
@@ -2068,3 +2065,6 @@ def convert_expression_elements(
 
 def string_list(head, elements, evaluation):
     return atom_list_constructor(evaluation, head, "String")(elements)
+
+
+ExpressionInfinity = Expression(SymbolDirectedInfinity, Integer1)

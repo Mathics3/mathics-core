@@ -6,7 +6,7 @@ Support for Set and SetDelayed, and other assignment-like builtins
 from functools import reduce
 from typing import Optional, Tuple
 
-from mathics.core.atoms import Atom, Integer
+from mathics.core.atoms import Atom, Integer, Integer1
 from mathics.core.attributes import A_LOCKED, A_PROTECTED, attribute_string_to_number
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import (
@@ -62,7 +62,7 @@ def assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset=False):
     ignore_protection, tags = eval_assign_other(self, lhs, rhs, evaluation, tags, upset)
     # In WMA, this does not happens. However, if we remove this,
     # some combinatorica tests fail.
-    # Also, should not be at the begining?
+    # Also, should not be at the beginning?
     lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
     count = 0
     rule = Rule(lhs, rhs)
@@ -243,7 +243,7 @@ def unroll_conditions(lhs) -> Tuple[BaseElement, Optional[Expression]]:
     else:
         name, lhs_elements = lhs.get_head_name(), lhs.get_elements()
     conditions = []
-    # This handle the case of many sucesive conditions:
+    # This handle the case of many successive conditions:
     # f[x_]/; cond1 /; cond2 ... ->  f[x_]/; And[cond1, cond2, ...]
     while name == "System`Condition" and len(lhs.elements) == 2:
         conditions.append(lhs_elements[1])
@@ -641,11 +641,12 @@ def eval_assign_other(
 
     The function returns a tuple of a bool value and a list of tags.
     If lhs is one of the special cases, then the bool variable is
-    True, meaning that the `Protected` attribute should not be taken into accout.
+    True, meaning that the `Protected` attribute should not be taken
+    into account.
     Otherwise, the value is False.
     """
-    tags, focus = process_tags_and_upset_allow_custom(
-        tags, upset, self, lhs, evaluation
+    tags, _ = process_tags_and_upset_allow_custom(
+        tags, upset, self, lhs, rhs, evaluation
     )
     lhs_name = lhs.get_name()
     if lhs_name == "System`$RecursionLimit":
@@ -771,7 +772,7 @@ def process_tags_and_upset_dont_allow_custom(
 
 
 def process_tags_and_upset_allow_custom(
-    tags, upset, self, lhs: BaseElement, evaluation: Evaluation
+    tags, upset, self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
 ):
     name = lhs.get_head_name()
     focus = lhs
@@ -786,7 +787,13 @@ def process_tags_and_upset_allow_custom(
     elif upset:
         tags = []
         if isinstance(focus, Atom):
-            evaluation.message(self.get_name(), "normal")
+            symbol_name = self.get_name()
+            evaluation.message(
+                symbol_name,
+                "normal",
+                Integer1,
+                Expression(Symbol(symbol_name), lhs, rhs),
+            )
             raise AssignmentException(lhs, None)
         for element in focus.get_elements():
             name = element.get_lookup_name()

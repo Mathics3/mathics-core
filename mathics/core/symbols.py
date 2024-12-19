@@ -372,7 +372,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     more information.
 
     Symbol acts like Python's intern() built-in function or Lisp's
-    Symbol without its modifyable property list.  Here, the only
+    Symbol without its modifiable property list.  Here, the only
     attribute we care about is the value which is unique across all
     mentions and uses, and therefore needs it only to be stored as a
     single object in the system.
@@ -494,10 +494,6 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         for rule in rules:
             result = rule.apply(self, evaluation, fully=True)
             if result is not None and not result.sameQ(self):
-                if evaluation.definitions.trace_evaluation:
-                    evaluation.print_out(
-                        "  " * evaluation.recursion_depth + "  -> %s" % result
-                    )
                 return result.evaluate(evaluation)
         return self
 
@@ -575,7 +571,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         we strip off the context parts.
 
         Note however that many places in the code we do not need the
-        "short" parameter becasue of Definitions.shorten_name() which
+        "short" parameter because of Definitions.shorten_name() which
         keeps track of the current $Context and $ContextPath to decide
         whether the name of a symbol should or should not be
         shortened.
@@ -740,9 +736,12 @@ class SymbolConstant(Symbol):
         return self._value
 
 
-# A BooleanType is a special form of SymbolConstant where the value
-# of the constant is either SymbolTrue or SymbolFalse.
-BooleanType = SymbolConstant
+class BooleanType(SymbolConstant):
+    """A Special form of SymbolConstant where the value
+    the constant is either SymbolTrue or SymbolFalse.
+    """
+
+    pass
 
 
 def symbol_set(*symbols: Symbol) -> FrozenSet[Symbol]:
@@ -771,9 +770,9 @@ def symbol_set(*symbols: Symbol) -> FrozenSet[Symbol]:
 # more of the below and in systemsymbols
 # PredefineSymbol.
 
-SymbolFalse = SymbolConstant("System`False", value=False)
+SymbolFalse = BooleanType("System`False", value=False)
 SymbolList = SymbolConstant("System`List", value=list)
-SymbolTrue = SymbolConstant("System`True", value=True)
+SymbolTrue = BooleanType("System`True", value=True)
 
 SymbolAbs = Symbol("Abs")
 SymbolDivide = Symbol("Divide")

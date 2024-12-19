@@ -173,7 +173,7 @@ def get_submodule_names(obj) -> list:
     So in this example then, in the list the modules returned for
     Python module `mathics.builtin.colors` would be the
     `mathics.builtin.colors.named_colors` module which contains the
-    definition and docs for the "Named Colors" Mathics Bultin
+    definition and docs for the "Named Colors" Mathics Builtin
     Functions.
     """
     modpkgs = []
@@ -317,7 +317,7 @@ def name_is_builtin_symbol(module: ModuleType, name: str) -> Optional[type]:
 
     # Mathics3 modules modules, however, right now import all builtin modules from
     # __init__
-    # Note Mathics3 modules do not support buitin hierarchies, e.g.
+    # Note Mathics3 modules do not support builtin hierarchies, e.g.
     # pymathics.graph.parametric is allowed but not pymathics.graph.parametric.xxx.
     # This too has to do with the custom doc/doctest that is currently used.
 

@@ -428,7 +428,6 @@ class InterpretedBox(PrefixOperator):
      = 4
     """
 
-    operator = "\\!"
     summary_text = "interpret boxes as an expression"
 
     def eval(self, boxes, evaluation: Evaluation):
@@ -616,9 +615,6 @@ class _StringFind(Builtin, ABC):
 
     messages = {
         "srep": "`1` is not a valid string replacement rule.",
-        "innf": (
-            "Non-negative integer or Infinity expected at " "position `1` in `2`."
-        ),
     }
 
     def _find(py_stri, py_rules, py_n, flags):

@@ -69,16 +69,21 @@ the rules are applied.
 
 from typing import Optional as OptionalType
 
-from mathics.core.atoms import Integer, Integer0, Integer2, Number
+from mathics.core.atoms import Integer, Integer0, Integer2, Integer3, Number
 from mathics.core.attributes import A_HOLD_REST, A_PROTECTED, A_SEQUENCE_HOLD
 from mathics.core.builtin import AtomBuiltin, Builtin, InfixOperator, PatternError
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, ExpressionInfinity
 from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolTrue
-from mathics.core.systemsymbols import SymbolInfinity, SymbolRule, SymbolRuleDelayed
+from mathics.core.systemsymbols import (
+    SymbolInfinity,
+    SymbolReplaceList,
+    SymbolRule,
+    SymbolRuleDelayed,
+)
 from mathics.eval.rules import (
     Dispatch,
     create_rules,
@@ -341,9 +346,6 @@ class ReplaceList(Builtin):
     Like in 'ReplaceAll', $rules$ can be a nested list:
     >> ReplaceList[{a, b, c}, {{{___, x__, ___} -> {x}}, {{a, b, c} -> t}}, 2]
      = {{{a}, {a, b}}, {t}}
-    >> ReplaceList[expr, {}, -1]
-     : Non-negative integer or Infinity expected at position 3.
-     = ReplaceList[expr, {}, -1]
 
     Possible matches for a sum:
     >> ReplaceList[a + b + c, x_ + y_ -> {x, y}]
@@ -366,15 +368,20 @@ class ReplaceList(Builtin):
         "ReplaceList[expr_, rules_, maxidx_:Infinity]"
 
         # TODO: the below handles Infinity getting added as a
-        # default argument, when it is passed explictly, e.g.
+        # default argument, when it is passed explicitly, e.g.
         # ReplaceList[expr, {}, Infinity], then Infinity
         # comes in as DirectedInfinity[1].
-        if maxidx == SymbolInfinity:
+        if maxidx == SymbolInfinity or ExpressionInfinity == maxidx:
             max_count = None
         else:
             max_count = maxidx.get_int_value()
             if max_count is None or max_count < 0:
-                evaluation.message("ReplaceList", "innf", 3)
+                evaluation.message(
+                    "ReplaceList",
+                    "innf",
+                    Integer3,
+                    Expression(SymbolReplaceList, expr, rules, maxidx),
+                )
                 return None
         try:
             rules, ret = create_rules(

@@ -12,7 +12,7 @@ from io import BytesIO
 # We use the below import for access to variables that may change
 # at runtime.
 import mathics.eval.files_io.files as io_files
-from mathics.core.atoms import Integer, Integer3, String, SymbolString
+from mathics.core.atoms import Integer, String, SymbolString
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import (
     Builtin,
@@ -109,13 +109,13 @@ class _OpenAction(Builtin):
             tmpf = tempfile.NamedTemporaryFile(dir=TMP_DIR, delete=False)
             path = String(tmpf.name)
             tmpf.close()
-            return self.eval_path(path, evaluation, options)
+            return self.eval_name(path, evaluation, options)
         else:
             evaluation.message("OpenRead", "argx")
             return
 
-    def eval_path(self, path, evaluation: Evaluation, options: dict):
-        "%(name)s[path_?NotOptionQ, OptionsPattern[]]"
+    def eval_name(self, name, evaluation: Evaluation, options: dict):
+        "%(name)s[name_?NotOptionQ, OptionsPattern[]]"
 
         # Options
         # BinaryFormat
@@ -124,17 +124,18 @@ class _OpenAction(Builtin):
             if not self.mode.endswith("b"):
                 mode += "b"
 
-        if not (isinstance(path, String) and len(path.to_python()) > 2):
-            evaluation.message(self.__class__.__name__, "fstr", path)
+        if not (isinstance(name, String) and len(name.to_python()) > 2):
+            evaluation.message(self.__class__.__name__, "fstr", name)
             return
 
-        path_string = path.get_string_value()
+        name_string = name.get_string_value()
 
-        tmp, is_temporary_file = path_search(path_string)
+        tmp, is_temporary_file = path_search(name_string)
         if tmp is None:
             if mode in ["r", "rb"]:
-                evaluation.message("General", "noopen", path)
+                evaluation.message("General", "noopen", name)
                 return
+            path_string = name_string
         else:
             path_string = tmp
 
@@ -146,19 +147,20 @@ class _OpenAction(Builtin):
             opener = MathicsOpen(
                 path_string,
                 mode=mode,
+                name=name_string,
                 encoding=encoding.value,
                 is_temporary_file=is_temporary_file,
             )
             opener.__enter__(is_temporary_file=is_temporary_file)
             n = opener.n
         except IOError:
-            evaluation.message("General", "noopen", path)
+            evaluation.message("General", "noopen", name)
             return
         except MessageException as e:
             e.message(evaluation)
             return
 
-        return Expression(Symbol(self.stream_type), path, Integer(n))
+        return Expression(Symbol(self.stream_type), name, Integer(n))
 
 
 class Character(Builtin):
@@ -702,7 +704,7 @@ class PutAppend(InfixOperator):
 def validate_read_type(name: str, typ, evaluation: Evaluation):
     """
     Validate a Read option type, and give a message if
-    the type is invalid. For Expession[Hold], we convert it to
+    the type is invalid. For Expression[Hold], we convert it to
     SymbolHoldExpression, String names are like "Byte" are
     converted to Symbols in the return.
     """
@@ -1612,11 +1614,9 @@ class WriteString(Builtin):
 
     def eval(self, channel, expr, evaluation: Evaluation):
         """WriteString[channel_, expr___]"""
+
         if isinstance(channel, String):
-            if channel.value == "stdout":
-                stream = stream_manager.lookup_stream(1)
-            elif channel.value == "stderr":
-                stream = stream_manager.lookup_stream(2)
+            stream = stream_manager.get_stream_by_name(channel.value)
         elif isinstance(channel, Stream):
             stream = channel
         elif isinstance(channel, ListExpression):

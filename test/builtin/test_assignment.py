@@ -375,12 +375,6 @@ def test_set_and_clear_messages(str_expr, str_expected, message, out_msgs):
     )
 
 
-def test_predecrement():
-    check_evaluation(
-        "--5", "4", failure_message="Set::setraw: Cannot assign to raw object 5."
-    )
-
-
 def test_assign_list():
     check_evaluation("G[x_Real]=x^2; a={G[x]}; {x=1.; a, x=.; a}", "{{1.}, {G[x]}}")
 
@@ -401,17 +395,17 @@ def test_process_assign_other():
             check_evaluation(
                 f"{prefix}{limit} = 2",
                 "2",
-                expected_messages=[
-                    f"Cannot set {limit} to 2; value must be an integer between 20 and {suffix}."
-                ],
+                expected_messages=(
+                    f"Cannot set {limit} to 2; value must be an integer between 20 and {suffix}.",
+                ),
             )
         check_evaluation(f"{prefix}$ModuleNumber = 3", "3")
         check_evaluation(
             f"{prefix}$ModuleNumber = -1",
             "-1",
-            expected_messages=[
-                "Cannot set $ModuleNumber to -1; value must be a positive integer."
-            ],
+            expected_messages=(
+                "Cannot set $ModuleNumber to -1; value must be a positive integer.",
+            ),
         )
 
 
@@ -434,14 +428,6 @@ def test_process_assign_other():
             ],
             "Unset Message",
         ),
-        # From assignent
-        (
-            "f[g, a + b, h] ^= 2",
-            "2",
-            ("Tag Plus in f[g, a + b, h] is Protected.",),
-            "Upset to protected symbols fails",
-        ),
-        ("UpValues[h]", "{HoldPattern[f[g, a + b, h]] :> 2}", None, None),
         (" g[a+b] ^:= 2", "$Failed", ("Tag Plus in g[a + b] is Protected.",), None),
         (" g[a+b]", "g[a + b]", None, None),
     ],
