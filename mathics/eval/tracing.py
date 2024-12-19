@@ -17,16 +17,63 @@ hook_entry_fn: Optional[Callable] = None
 hook_exit_fn: Optional[Callable] = None
 
 
-def print_evaluate(expr, evaluation, status: str, orig_expr=None) -> bool:
+def print_evaluate(expr, evaluation, status: str, fn: Callable, orig_expr=None):
     """
     Called from a decorated Python @trace_evaluate .evaluate()
     method when TraceActivate["evaluate" -> True]
     """
+
     if evaluation.definitions.timing_trace_evaluation:
         evaluation.print_out(time.time() - evaluation.start_time)
+
+    # Test and dispose of various situations where showing information
+    # is pretty useless: evaluating a Symbol is the Symbol.
+    # Showing the return value of a ListExpression literal is
+    # also useless.
+    from mathics.core.symbols import Symbol, SymbolConstant
+
+    if isinstance(expr, Symbol) and not isinstance(expr, SymbolConstant):
+        return
+
+    if (
+        status == "Returning"
+        and hasattr(expr, "is_literal")
+        and expr.is_literal
+        and hasattr(orig_expr, "is_literal")
+        and orig_expr.is_literal
+    ):
+        return
+
+    if orig_expr == expr:
+        # If the two expressions are the same, there is no point in
+        # repeating the output.
+        return
+
     indents = "  " * evaluation.recursion_depth
-    evaluation.print_out(f"{indents}{status}: {expr}")
-    return False
+
+    if orig_expr is not None:
+        if fn.__name__ == "rewrite_apply_eval_step":
+            assert isinstance(expr, tuple)
+            if orig_expr != expr[0]:
+                if status == "Returning":
+                    if expr[1]:
+                        status = "Rewriting"
+                        arrow = " -> "
+                    else:
+                        return
+                else:
+                    arrow = " = "
+                    return
+
+                evaluation.print_out(
+                    f"{indents}{status}: {expr[0]}" + arrow + str(expr)
+                )
+        else:
+            evaluation.print_out(f"{indents}{status}: {orig_expr} = " + str(expr))
+
+    elif fn.__name__ != "rewrite_apply_eval_step":
+        evaluation.print_out(f"{indents}{status}: {expr}")
+    return
 
 
 # When not None, evaluate() methods call this
@@ -47,6 +94,7 @@ def trace_evaluate(func: Callable) -> Callable:
 
         skip_call = False
         result = None
+        was_boxing = evaluation.is_boxing
         if (
             trace_evaluate_on_call is not None
             and not evaluation.is_boxing
@@ -54,14 +102,14 @@ def trace_evaluate(func: Callable) -> Callable:
         ):
             # We may use boxing in print_evaluate_fn(). So turn off
             # boxing temporarily.
-            was_boxing = evaluation.is_boxing
             evaluation.is_boxing = True
-            skip_call = trace_evaluate_on_call(expr, evaluation, "Evaluating")
+            skip_call = trace_evaluate_on_call(expr, evaluation, "Evaluating", func)
             evaluation.is_boxing = was_boxing
         if not skip_call:
             result = func(expr, evaluation)
-            if trace_evaluate_on_return is not None and not evaluation.is_boxing:
-                trace_evaluate_on_return(result, evaluation, "Returning", expr)
+            if trace_evaluate_on_return is not None and not was_boxing:
+                trace_evaluate_on_return(result, evaluation, "Returning", func, expr)
+            evaluation.is_boxing = was_boxing
         return result
 
     return wrapper
@@ -106,7 +154,7 @@ def call_event_print(event: TraceEvent, fn: Callable, *args) -> bool:
     """
     A somewhat generic function to show an event-traced call.
     """
-    if type(fn) == type or inspect.ismethod(fn) or inspect.isfunction(fn):
+    if isinstance(type(fn), type) or inspect.ismethod(fn) or inspect.isfunction(fn):
         name = f"{fn.__module__}.{fn.__qualname__}"
     else:
         name = str(fn)

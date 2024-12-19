@@ -2,10 +2,6 @@
 """
 Boxing Symbols for 2D Graphics
 """
-# Docs are not yet ready for prime time. Maybe after release 6.0.0.
-no_doc = True
-
-
 from math import atan2, ceil, cos, degrees, floor, log10, pi, sin
 from typing import Optional
 
@@ -42,6 +38,9 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolTraditionalForm
 from mathics.eval.makeboxes import format_element
+
+# Docs are not yet ready for prime time. Maybe after release 6.0.0.
+no_doc = True
 
 SymbolRegularPolygonBox = Symbol("RegularPolygonBox")
 SymbolStandardForm = Symbol("StandardForm")
