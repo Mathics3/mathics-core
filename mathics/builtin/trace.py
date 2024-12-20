@@ -22,6 +22,7 @@ from io import StringIO
 from time import time
 from typing import Callable
 
+import mathics.eval.trace
 import mathics.eval.tracing
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
 from mathics.core.builtin import Builtin
@@ -145,6 +146,46 @@ class PrintTrace(_TraceBase):
             evaluation=evaluation,
         )
 
+        return SymbolNull
+
+
+class Stacktrace(_TraceBase):
+    """
+    ## <url>:trace native symbol:</url>
+
+    <dl>
+      <dt>'Stacktrace[]'
+      <dd>Print Mathics3 stack trace of evalutations leading to this point
+    </dl>
+
+    Show evaluation stack when computing a homegrown factorial function:
+
+    >> F[0] := {1, Stacktrace[]}[[1]]
+     = None
+
+    >> F[n_] := n * F[n-1]
+     = None
+
+    >> F[3]
+      = None
+
+    The actual 'Stacktrace[0]' call is hidden from the output so when \
+    run on its own nothing app
+
+    >> Stacktrace[]
+     = None
+
+    #> Clear[F]
+    """
+
+    summary_text = "print Mathics3 function stacktrace"
+
+    def eval(self, evaluation: Evaluation):
+        "Stacktrace[]"
+
+        # use longer-form resolve call
+        # so a debugger can change this.
+        mathics.eval.trace.eval_Stacktrace()
         return SymbolNull
 
 
