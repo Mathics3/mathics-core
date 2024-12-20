@@ -125,7 +125,7 @@ class PrintTrace(_TraceBase):
 
     Note: before '$TraceBuiltins' is set to 'True', 'PrintTrace[]' will print an empty
     list.
-    >> PrintTrace[]
+    >> PrintTrace[] (* See console log *)
 
     >> $TraceBuiltins = True
      = True
@@ -158,19 +158,21 @@ class Stacktrace(_TraceBase):
       <dd>Print Mathics3 stack trace of evalutations leading to this point
     </dl>
 
-    Show evaluation stack when computing a homegrown factorial function:
+    To show the Mathics3 evaluation stack at the \
+    point where expression $expr$ is evaluated, wrap $expr$ inside '{$expr$ Stacktrace[]}[1]]' \
+    or something similar.
 
-    >> F[0] := {1, Stacktrace[]}[[1]]
+    Here is a complete example. To show the evaluation stack when computing a homegrown \
+    factorial function:
+
+    >> F[0] := {1, Stacktrace[]}[[1]]; F[n_] := n * F[n-1]
      = None
 
-    >> F[n_] := n * F[n-1]
-     = None
-
-    >> F[3]
+    >> F[3] (* See console log *)
       = None
 
-    The actual 'Stacktrace[0]' call is hidden from the output so when \
-    run on its own nothing app
+    The actual 'Stacktrace[0]' call is hidden from the output; so when \
+    run on its own, nothing appears.
 
     >> Stacktrace[]
      = None
@@ -183,7 +185,7 @@ class Stacktrace(_TraceBase):
     def eval(self, evaluation: Evaluation):
         "Stacktrace[]"
 
-        # use longer-form resolve call
+        # Use longer-form resolve call
         # so a debugger can change this.
         mathics.eval.trace.eval_Stacktrace()
         return SymbolNull
@@ -209,22 +211,22 @@ class TraceBuiltins(_TraceBase):
     </ul>
 
 
-    >> TraceBuiltins[Graphics3D[Tetrahedron[]]]
+    >> TraceBuiltins[Graphics3D[Tetrahedron[]]] (* See console log *)
      = -Graphics3D-
 
     By default, the output is sorted by the name:
-    >> TraceBuiltins[Times[x, x]]
+    >> TraceBuiltins[Times[x, x]] (* See console log *)
      = x ^ 2
 
     By default, the output is sorted by the number of calls of the builtin from \
     highest to lowest:
-    >> TraceBuiltins[Times[x, x], SortBy->"count"]
+    >> TraceBuiltins[Times[x, x], SortBy->"count"] (* See console log *)
      = x ^ 2
 
     You can have results ordered by name, or time.
 
     Trace an expression and list the result by time from highest to lowest.
-    >> TraceBuiltins[Times[x, x], SortBy->"time"]
+    >> TraceBuiltins[Times[x, x], SortBy->"time"] (* See console log *)
      = x ^ 2
     """
 

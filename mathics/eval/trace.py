@@ -6,12 +6,13 @@ import inspect
 from math import log10
 from typing import Any, Tuple
 
+from mathics.core.expression import Expression
+
 
 def eval_Stacktrace():
     """
     Display the Python call stack but filtered so that we Builtin calls.
     """
-    from mathics.core.expression import Expression
 
     frame = inspect.currentframe()
     assert frame is not None
@@ -33,15 +34,19 @@ def eval_Stacktrace():
                     last_was_eval = True
                     builtin_class = self_obj.__class__
                     mathics_builtin_name = builtin_class.__name__
-                    if len(frame.f_code.co_consts) > 0:
-                        # Use code's __doc__ string
-                        frame_str = frame.f_code.co_consts[0]
-                        if frame_str.startswith("%(name)s"):
-                            frame_str = frame_str.replace(
-                                "%(name)s", mathics_builtin_name
-                            )
+                    eval_name = frame.f_code.co_name
+                    if hasattr(self_obj, eval_name):
+                        docstring = getattr(self_obj, eval_name).__doc__
+                        docstring = docstring.replace("%(name)s", mathics_builtin_name)
+                        args_pattern = (
+                            docstring[len(mathics_builtin_name) + 1 : -1]
+                            if docstring.startswith(mathics_builtin_name)
+                            else ""
+                        )
                     else:
-                        frame_str = mathics_builtin_name
+                        args_pattern = ""
+
+                    frame_str = f"{mathics_builtin_name}[{args_pattern}]"
                 frames.append(frame_str)
             frame_number += 1
         frame = frame.f_back
