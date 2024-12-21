@@ -186,9 +186,17 @@ class MapAt(Builtin):
     >> MapAt[f, <|"a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4|>, -3]
      = {a -> 1, b -> f[2], c -> 3, d -> 4}
 
-    Use the operator form of MapAt:
+    Use the operator form of 'MapAt':
     >> MapAt[f, 1][{a, b, c, d}]
      = {f[a], b, c, d}
+
+    A vector position of a multi-dimensional array can be supplied:
+    >> MapAt[1&, {{0, 0}, {0, 0}}, {1, 1}]
+     = {{1, 0}, {0, 0}}
+
+    Lists of vector position of a multi-dimensional array can be supplied too:
+    >> MapAt[1&, {{0, 0}, {0, 0}}, {{1, 2}, {2, 1}}]
+     = {{0, 1}, {1, 0}}
     """
 
     rules = {
