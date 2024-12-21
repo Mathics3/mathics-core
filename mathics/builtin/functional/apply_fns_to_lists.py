@@ -29,6 +29,10 @@ sort_order = "mathics.builtin.applying-functions-to-lists"
 
 class Apply(InfixOperator):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Apply.html</url>
+
+
     <dl>
       <dt>'Apply[$f$, $expr$]'
 
@@ -67,6 +71,8 @@ class Apply(InfixOperator):
     summary_text = "apply a function to a list, at specified levels"
     grouping = "Right"
 
+    operator = "@@"  # FIXME generate this automatically
+
     options = {
         "Heads": "False",
     }
@@ -100,6 +106,9 @@ class Apply(InfixOperator):
 
 class Map(InfixOperator):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Map.html</url>
+
     <dl>
       <dt>'Map[$f$, $expr$]' or '$f$ /@ $expr$'
       <dd>applies $f$ to each part on the first level of $expr$.
@@ -155,6 +164,9 @@ class Map(InfixOperator):
 
 class MapAt(Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/MapAt.html</url>
+
     <dl>
       <dt>'MapAt[$f$, $expr$, $n$]'
       <dd>applies $f$ to the element at position $n$ in $expr$. If $n$ is negative, the position is counted from the end.
@@ -211,6 +223,9 @@ class MapAt(Builtin):
 
 class MapIndexed(Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/MapIndexed.html</url>
+
     <dl>
       <dt>'MapIndexed[$f$, $expr$]'
       <dd>applies $f$ to each part on the first level of $expr$, including the part positions in the call to $f$.
@@ -280,6 +295,9 @@ class MapIndexed(Builtin):
 
 class MapThread(Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/MapThread.html</url>
+
     <dl>
       <dt>'MapThread[$f$, {{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}]
       <dd>returns '{$f$[$a1$, $b1$, ...], $f$[$a2$, $b2$, ...], ...}'.
@@ -367,6 +385,9 @@ class MapThread(Builtin):
 
 class Scan(Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Scan.html</url>
+
     <dl>
       <dt>'Scan[$f$, $expr$]'
       <dd>applies $f$ to each element of $expr$ and returns 'Null'.
@@ -417,6 +438,9 @@ class Scan(Builtin):
 
 class Thread(Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Thread.html</url>
+
     <dl>
       <dt>'Thread[$f$[$args$]]'
       <dd>threads $f$ over any lists that appear in $args$.
