@@ -286,7 +286,7 @@ class SubExpression:
 
     def replace(self, new):
         """
-        Assigns `new` to the subexpression, according to the logic of `mathics.core.walk_parts`
+        Assigns `new` to the subexpression, according to the logic of `mathics.eval.list.eol.eval_Part`
         """
         if (new.has_form("List", None) or new.get_head_name() == "System`List") and len(
             new.elements

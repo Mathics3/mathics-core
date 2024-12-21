@@ -11,7 +11,6 @@ they are always applied to every element in a list.
 
 from typing import Iterable
 
-from mathics.builtin.list.constructing import List
 from mathics.core.atoms import Integer, Integer3
 from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.convert.expression import to_mathics_list
@@ -24,7 +23,7 @@ from mathics.core.exceptions import (
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import SymbolMapThread, SymbolRule
+from mathics.core.systemsymbols import SymbolMapAt, SymbolMapThread, SymbolRule
 from mathics.eval.parts import python_levelspec, walk_levels
 
 # This tells documentation how to sort this module
@@ -97,7 +96,7 @@ class Apply(InfixOperator):
                 return Expression(f, *level.elements)
 
         heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
-        result, depth = walk_levels(expr, start, stop, heads=heads, callback=callback)
+        result, _ = walk_levels(expr, start, stop, heads=heads, callback=callback)
 
         return result
 
@@ -152,7 +151,7 @@ class Map(InfixOperator):
             return Expression(f, level)
 
         heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
-        result, depth = walk_levels(expr, start, stop, heads=heads, callback=callback)
+        result, _ = walk_levels(expr, start, stop, heads=heads, callback=callback)
 
         return result
 
@@ -204,6 +203,7 @@ class MapAt(Builtin):
         "MapAt[f_, expr_, args_]"
 
         m = len(expr.elements)
+        new_elements = list(expr.elements)
 
         def map_at_one(i):
             if 1 <= i <= m:
@@ -223,19 +223,27 @@ class MapAt(Builtin):
                 )
             else:
                 new_elements[j] = Expression(f, replace_element)
-            return new_elements
 
-        a = args.to_python()
-        if isinstance(a, int):
-            new_elements = list(expr.elements)
-            new_elements = map_at_one(a)
-            return List(*new_elements)
-        elif isinstance(a, list):
-            new_elements = list(expr.elements)
-            for item in a:
-                if len(item) == 1 and isinstance(item[0], int):
-                    new_elements = map_at_one(item[0])
-            return List(*new_elements)
+        # FIXME: use eval_Part
+
+        if isinstance(args, Integer):
+            map_at_one(args.value)
+            return ListExpression(*new_elements)
+        elif isinstance(args, Expression):
+            for item in args.elements:
+                # Get value for arg in expr.elemnts
+                # Replace value
+                if (
+                    isinstance(item, Expression)
+                    and len(item.elements) == 1
+                    and isinstance(item.elements[0], Integer)
+                ):
+                    map_at_one(item.elements[0].value)
+            return ListExpression(*new_elements)
+        else:
+            evaluation.message(
+                "MapAt", "psl", args, Expression(SymbolMapAt, f, expr, args)
+            )
 
 
 class MapIndexed(Builtin):

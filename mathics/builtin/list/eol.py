@@ -45,6 +45,7 @@ from mathics.core.systemsymbols import (
     SymbolSequence,
     SymbolSet,
 )
+from mathics.eval.list.eol import eval_Part
 from mathics.eval.lists import delete_one, delete_rec, list_boxes
 from mathics.eval.parts import (
     _drop_span_selector,
@@ -54,7 +55,6 @@ from mathics.eval.parts import (
     python_levelspec,
     set_part,
     walk_levels,
-    walk_parts,
 )
 from mathics.eval.patterns import Matcher
 
@@ -340,7 +340,6 @@ class Delete(Builtin):
         # Delete *can* take more than 2 arguments.
         "argr": "Delete called with 1 argument; 2 arguments are expected.",
         "argt": "Delete called with `1` arguments; 2 arguments are expected.",
-        "psl": "Position specification `1` in `2` is not a machine-sized integer or a list of machine-sized integers.",
         "pkspec": "The expression `1` cannot be used as a part specification. Use `2` instead.",
     }
     summary_text = "delete elements from a list at given positions"
@@ -1183,7 +1182,7 @@ class Part(Builtin):
             return
 
         # Otherwise...
-        result = walk_parts([list], indices, evaluation)
+        result = eval_Part([list], indices, evaluation)
         if result:
             return result
 

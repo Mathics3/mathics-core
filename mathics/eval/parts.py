@@ -18,7 +18,6 @@ from mathics.core.exceptions import (
 from mathics.core.expression import Expression
 from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
-from mathics.core.subexpression import SubExpression
 from mathics.core.symbols import Atom, Symbol, SymbolList
 from mathics.core.systemsymbols import SymbolInfinity, SymbolNothing
 from mathics.eval.patterns import Matcher
@@ -280,44 +279,6 @@ def parts(expr, selectors, evaluation) -> list:
     the `selectors`.
     """
     return list(_list_parts([expr], list(selectors), evaluation))[0]
-
-
-def walk_parts(list_of_list, indices, evaluation, assign_rhs=None):
-    """
-    walk_parts takes the first element of `list_of_list`, and builds
-    a subexpression composed of the expressions at the index positions
-    listed in `indices`.
-
-    `assign_rhs`, when not empty, indicates where to the store parts of the composed list.
-
-    list_of_list: a list of `Expression`s with a unique element.
-
-    indices: a list of part specification `Expression`s, including
-    `Integer` indices,  `Span` `Expression`s, `List` of `Integer`s
-    and
-
-    assign_rhs: None or an `Expression` object.
-    """
-    walk_list = list_of_list[0]
-    indices = [index.evaluate(evaluation) for index in indices]
-    if assign_rhs is not None:
-        try:
-            result = SubExpression(walk_list, indices)
-            result.replace(assign_rhs.copy())
-            result = result.to_expression()
-        except MessageException as e:
-            e.message(evaluation)
-            return False
-        if isinstance(result, Expression):
-            result.clear_cache()
-        return result
-    else:
-        try:
-            result = parts(walk_list, _part_selectors(indices), evaluation)
-        except MessageException as e:
-            e.message(evaluation)
-            return False
-        return result
 
 
 def is_in_level(current, depth, start=1, stop=None):
