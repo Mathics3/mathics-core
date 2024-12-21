@@ -37,8 +37,8 @@ from mathics.core.systemsymbols import (
     SymbolStringRiffle,
     SymbolStringSplit,
 )
+from mathics.eval.list.eol import convert_seq, python_seq
 from mathics.eval.makeboxes import format_element
-from mathics.eval.parts import convert_seq, python_seq
 from mathics.eval.strings import eval_StringFind
 
 
