@@ -15,15 +15,12 @@ from mathics.core.atoms import Integer, Integer3
 from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
-from mathics.core.exceptions import (
-    InvalidLevelspecError,
-    MessageException,
-    PartRangeError,
-)
+from mathics.core.exceptions import InvalidLevelspecError, MessageException
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import SymbolMapAt, SymbolMapThread, SymbolRule
+from mathics.core.symbols import Atom, SymbolNull, SymbolTrue
+from mathics.core.systemsymbols import SymbolMapThread
+from mathics.eval.functional.apply_fns_to_lists import eval_MapAt
 from mathics.eval.parts import python_levelspec, walk_levels
 
 # This tells documentation how to sort this module
@@ -201,49 +198,7 @@ class MapAt(Builtin):
 
     def eval(self, f, expr, args, evaluation: Evaluation):
         "MapAt[f_, expr_, args_]"
-
-        m = len(expr.elements)
-        new_elements = list(expr.elements)
-
-        def map_at_one(i):
-            if 1 <= i <= m:
-                j = i - 1
-            elif -m <= i <= -1:
-                j = m + i
-            else:
-                raise PartRangeError
-            replace_element = new_elements[j]
-            if hasattr(replace_element, "head") and replace_element.head is Symbol(
-                "System`Rule"
-            ):
-                new_elements[j] = Expression(
-                    SymbolRule,
-                    replace_element.elements[0],
-                    Expression(f, replace_element.elements[1]),
-                )
-            else:
-                new_elements[j] = Expression(f, replace_element)
-
-        # FIXME: use eval_Part
-
-        if isinstance(args, Integer):
-            map_at_one(args.value)
-            return ListExpression(*new_elements)
-        elif isinstance(args, Expression):
-            for item in args.elements:
-                # Get value for arg in expr.elemnts
-                # Replace value
-                if (
-                    isinstance(item, Expression)
-                    and len(item.elements) == 1
-                    and isinstance(item.elements[0], Integer)
-                ):
-                    map_at_one(item.elements[0].value)
-            return ListExpression(*new_elements)
-        else:
-            evaluation.message(
-                "MapAt", "psl", args, Expression(SymbolMapAt, f, expr, args)
-            )
+        return eval_MapAt(f, expr, args, evaluation)
 
 
 class MapIndexed(Builtin):
