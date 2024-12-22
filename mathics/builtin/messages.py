@@ -224,6 +224,7 @@ class General(Builtin):
         "pspec": (
             "Part specification `1` is neither an integer nor " "a list of integer."
         ),
+        "psl": "Position specification `1` in `2` is not a machine-sized integer or a list of machine-sized integers.",
         "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
         "seqs": "Sequence specification expected, but got `1`.",
         "setp": "Part assignment to `1` could not be made",

@@ -68,9 +68,9 @@ from mathics.core.systemsymbols import (
     SymbolTable,
     SymbolTanh,
 )
+from mathics.eval.list.eol import eval_Part
 from mathics.eval.numbers.algebra.simplify import eval_Simplify
 from mathics.eval.numbers.numbers import cancel, sympy_factor
-from mathics.eval.parts import walk_parts
 from mathics.eval.patterns import match
 
 
@@ -868,7 +868,7 @@ class CoefficientArrays(_CoefficientHandler):
                 if dim1 == 1 and order == 0:
                     arrays[0] = coeff
                 else:
-                    walk_parts([curr_array], arrayidx, evaluation, coeff)
+                    eval_Part([curr_array], arrayidx, evaluation, coeff)
                     arrays[order] = curr_array
         return ListExpression(*arrays)
 

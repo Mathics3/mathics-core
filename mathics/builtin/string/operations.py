@@ -37,8 +37,8 @@ from mathics.core.systemsymbols import (
     SymbolStringRiffle,
     SymbolStringSplit,
 )
+from mathics.eval.list.eol import convert_seq, python_seq
 from mathics.eval.makeboxes import format_element
-from mathics.eval.parts import convert_seq, python_seq
 from mathics.eval.strings import eval_StringFind
 
 
@@ -200,7 +200,6 @@ class StringInsert(Builtin):
     messages = {
         "string": "String expected at position `1` in `2`.",
         "ins": "Cannot insert at position `1` in `2`.",
-        "psl": "Position specification `1` in `2` is not a machine-sized integer or a list of machine-sized integers.",
     }
 
     summary_text = "insert a string in a given position"
