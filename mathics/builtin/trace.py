@@ -166,16 +166,14 @@ class Stacktrace(_TraceBase):
     factorial function:
 
     >> F[0] := {1, Stacktrace[]}[[1]]; F[n_] := n * F[n-1]
-     = None
 
     >> F[3] (* See console log *)
-      = None
+     = 6
 
     The actual 'Stacktrace[0]' call is hidden from the output; so when \
     run on its own, nothing appears.
 
     >> Stacktrace[]
-     = None
 
     #> Clear[F]
     """
