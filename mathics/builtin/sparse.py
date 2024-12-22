@@ -17,7 +17,7 @@ from mathics.core.systemsymbols import (
     SymbolSparseArray,
     SymbolTable,
 )
-from mathics.eval.parts import walk_parts
+from mathics.eval.list.eol import eval_Part
 
 
 class SparseArray(Builtin):
@@ -135,7 +135,7 @@ class SparseArray(Builtin):
         for item in data.elements:
             pos, val = item.elements
             if pos.has_form("List", None):
-                walk_parts([table], pos.elements, evaluation, val)
+                eval_Part([table], pos.elements, evaluation, val)
         return table
 
     def find_dimensions(self, rules, evaluation: Evaluation):

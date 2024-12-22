@@ -38,7 +38,7 @@ from mathics.core.systemsymbols import (
     SymbolPattern,
     SymbolRuleDelayed,
 )
-from mathics.eval.parts import walk_parts
+from mathics.eval.list.eol import eval_Part
 
 
 class AssignmentException(Exception):
@@ -689,7 +689,7 @@ def eval_assign_part(self, lhs, rhs, evaluation, tags, upset):
         evaluation.message(self.get_name(), "noval", symbol)
         return False
     indices = lhs.elements[1:]
-    return walk_parts([rule.replace], indices, evaluation, rhs)
+    return eval_Part([rule.replace], indices, evaluation, rhs)
 
 
 def eval_assign_random_state(self, lhs, rhs, evaluation, tags, upset):

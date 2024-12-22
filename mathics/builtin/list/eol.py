@@ -35,7 +35,9 @@ from mathics.core.rules import Rule
 from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAppend,
+    SymbolAppendTo,
     SymbolByteArray,
+    SymbolDrop,
     SymbolFailed,
     SymbolInfinity,
     SymbolKey,
@@ -44,26 +46,26 @@ from mathics.core.systemsymbols import (
     SymbolSelect,
     SymbolSequence,
     SymbolSet,
+    SymbolTake,
+)
+from mathics.eval.list.eol import (
+    drop_span_selector,
+    eval_Part,
+    parts,
+    take_span_selector,
 )
 from mathics.eval.lists import delete_one, delete_rec, list_boxes
 from mathics.eval.parts import (
-    _drop_span_selector,
-    _take_span_selector,
     deletecases_with_levelspec,
-    parts,
     python_levelspec,
     set_part,
     walk_levels,
-    walk_parts,
 )
 from mathics.eval.patterns import Matcher
 
-SymbolAppendTo = Symbol("System`AppendTo")
 SymbolDeleteCases = Symbol("System`DeleteCases")
-SymbolDrop = Symbol("System`Drop")
 SymbolPrepend = Symbol("System`Prepend")
 SymbolPrependTo = Symbol("System`PrependTo")
-SymbolTake = Symbol("System`Take")
 
 
 class Append(Builtin):
@@ -340,7 +342,6 @@ class Delete(Builtin):
         # Delete *can* take more than 2 arguments.
         "argr": "Delete called with 1 argument; 2 arguments are expected.",
         "argt": "Delete called with `1` arguments; 2 arguments are expected.",
-        "psl": "Position specification `1` in `2` is not a machine-sized integer or a list of machine-sized integers.",
         "pkspec": "The expression `1` cannot be used as a part specification. Use `2` instead.",
     }
     summary_text = "delete elements from a list at given positions"
@@ -586,7 +587,7 @@ class Drop(Builtin):
 
         try:
             return parts(
-                items, [_drop_span_selector(seq) for seq in seq_tuple], evaluation
+                items, [drop_span_selector(seq) for seq in seq_tuple], evaluation
             )
         except MessageException as e:
             e.message(evaluation)
@@ -1183,7 +1184,7 @@ class Part(Builtin):
             return
 
         # Otherwise...
-        result = walk_parts([list], indices, evaluation)
+        result = eval_Part([list], indices, evaluation)
         if result:
             return result
 
@@ -1688,7 +1689,7 @@ class Take(Builtin):
             return
 
         try:
-            return parts(items, [_take_span_selector(seq) for seq in seqs], evaluation)
+            return parts(items, [take_span_selector(seq) for seq in seqs], evaluation)
         except MessageException as e:
             e.message(evaluation)
 
