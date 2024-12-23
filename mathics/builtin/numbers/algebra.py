@@ -1810,13 +1810,15 @@ class PolynomialQ(Builtin):
             return
         elif len(v) == 0:
             sympy_expr = expr.to_sympy(convert_functions_for_polynomialq=True)
-            sympy_result = tracing.run_sympy(
-                sympy_expr.is_polynomial,
-                *[
-                    SympyExpression(free_symbol)
-                    for free_symbol in sympy_expr.free_symbols
-                ],
-            )
+            free_symbols = []
+            # Until we understand and get expression generation under control,
+            # for now, we include both sympy.Symbol and
+            # SympyExpression(sympy.Symbol) variants
+            # as free variables.
+            for free_symbol in sympy_expr.free_symbols:
+                free_symbols.append(SympyExpression(free_symbol))
+                free_symbols.append(free_symbol)
+            sympy_result = tracing.run_sympy(sympy_expr.is_polynomial, *free_symbols)
             return from_bool(sympy_result)
 
         var = v[0]
