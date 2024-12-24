@@ -171,44 +171,50 @@ class MapAt(Builtin):
       <dt>'MapAt[$f$, $expr$, $n$]'
       <dd>applies $f$ to the element at position $n$ in $expr$. If $n$ is negative, the position is counted from the end.
 
-      <dt>'MapAt[f, $exp$r, {$i$, $j$ ...}]'
+      <dt>'MapAt[f, $expr$, {$i$, $j$ ...}]'
       <dd>applies $f$ to the part of $expr$ at position {$i$, $j$, ...}.
 
-      <dt>'MapAt[$f$,$pos$]'
+      <dt>'MapAt[$f$, $pos$]'
       <dd>represents an operator form of MapAt that can be applied to an expression.
     </dl>
 
-    Map $f$ onto the part at position 2:
-    >> MapAt[f, {a, b, c, d}, 2]
-     = {a, f[b], c, d}
+    Map function $f$ to the second element of an simple flat list:
+    >> MapAt[f, {a, b, c}, 2]
+     = {a, f[b], c}
 
-    Map $f$ onto multiple parts:
-    >> MapAt[f, {a, b, c, d}, {{1}, {4}}]
-     = {f[a], b, c, f[d]}
+    Above we specified a simple integer value 2. In general the expression can an arbitrary vector.
 
-    Map $f$ onto the at the end:
-    >> MapAt[f, {a, b, c, d}, -1]
-     = {a, b, c, f[d]}
+    Using 'MapAt' with 'Function[0]', we can zero values in a vector:
 
-     Map $f$ onto an association:
-    >> MapAt[f, <|"a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4, "e" -> 5|>, 3]
-     = {a -> 1, b -> 2, c -> f[3], d -> 4, e -> 5}
+    >> MapAt[0&, {{0, 1}, {1, 0}}, {2, 1}]
+     = {{0, 1}, {0, 0}}
 
-    Use negative position in an association:
-    >> MapAt[f, <|"a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4|>, -3]
+    When the dimension of the replacment expression is less than the vector, \
+    that element's dimension changes:
+
+    >> MapAt[0&, {{0, 1}, {1, 0}}, 2]
+     = {{0, 1}, 0}
+
+    So now compare what happen when using {{2}, {1}} instead of {2, 1} above:
+    >> MapAt[0&, {{0, 1}, {1, 0}}, {{2}, {1}}]
+     = {0, 0}
+
+    Map $f$ onto the last element of a list:
+    >> MapAt[f, {a, b, c}, -1]
+     = {a, b, f[c]}
+
+    Same as above, but use the operator form of 'MapAt':
+    >> MapAt[f, -1][{a, b, c}]
+     = {a, b, f[c]}
+
+    Map $f$ onto at the second position of an association:
+    >> MapAt[f, <|"a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4|>, 2]
      = {a -> 1, b -> f[2], c -> 3, d -> 4}
 
-    Use the operator form of 'MapAt':
-    >> MapAt[f, 1][{a, b, c, d}]
-     = {f[a], b, c, d}
+    Same as above, but select the second-from-the-end position:
+    >> MapAt[f, <|"a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4|>, -2]
+     = {a -> 1, b -> 2, c -> f[3], d -> 4}
 
-    A vector position of a multi-dimensional array can be supplied:
-    >> MapAt[1&, {{0, 0}, {0, 0}}, {1, 1}]
-     = {{1, 0}, {0, 0}}
-
-    Lists of vector position of a multi-dimensional array can be supplied too:
-    >> MapAt[1&, {{0, 0}, {0, 0}}, {{1, 2}, {2, 1}}]
-     = {{0, 1}, {1, 0}}
     """
 
     rules = {
