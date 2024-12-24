@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Unit tests for mathics.builtin.functional
+Unit tests for mathics.builtin.functional.apply_fns_to_lists
 """
 
-import sys
-import time
-from test.helper import check_evaluation, check_evaluation_as_in_cli, evaluate, session
+from test.helper import check_evaluation_as_in_cli
 
 import pytest
 
@@ -93,64 +91,31 @@ import pytest
         ("Scan[Return, {1, 2}]", None, "1", None),
     ],
 )
-def test_private_doctests_apply_fns_to_lists(str_expr, msgs, str_expected, fail_msg):
+def test_apply_fns_to_lists(str_expr, msgs, str_expected, fail_msg):
     """functional.apply_fns_to_lists"""
     check_evaluation_as_in_cli(str_expr, str_expected, fail_msg, msgs)
 
 
-@pytest.mark.parametrize(
-    ("str_expr", "msgs", "str_expected", "fail_msg"),
-    [
-        ("g[x_,y_] := x+y;g[Sequence@@Slot/@Range[2]]&[1,2]", None, "#1 + #2", None),
-        ("Evaluate[g[Sequence@@Slot/@Range[2]]]&[1,2]", None, "3", None),
-        ("# // InputForm", None, "#1", None),
-        ("#0 // InputForm", None, "#0", None),
-        ("## // InputForm", None, "##1", None),
-        ("Clear[g];", None, "Null", None),
-    ],
-)
-def test_private_doctests_application(str_expr, msgs, str_expected, fail_msg):
-    """functional.application"""
-    check_evaluation(
-        str_expr,
-        str_expected,
-        to_string_expr=True,
-        to_string_expected=True,
-        hold_expected=True,
-        failure_message=fail_msg,
-        expected_messages=msgs,
-    )
-
-
-@pytest.mark.parametrize(
-    ("str_expr", "msgs", "str_expected", "fail_msg"),
-    [
-        ("FixedPoint[f, x, 0]", None, "x", None),
+def test_map_at():
+    """functional.apply_fns_to_lists"""
+    for str_expr, msgs, str_expected, fail_msg in (
         (
-            "FixedPoint[f, x, -1]",
-            ("Non-negative integer expected.",),
-            "FixedPoint[f, x, -1]",
-            None,
+            "MapAt[f, {a, b, c, d}, 10]",
+            ("Part {10} of {a, b, c, d} does not exist.",),
+            "MapAt[f, {a, b, c, d}, 10]",
+            "Indexing beyond the end of a list",
         ),
-        ("FixedPoint[Cos, 1.0, Infinity]", None, "0.739085", None),
-        ("FixedPointList[f, x, 0]", None, "{x}", None),
         (
-            "FixedPointList[f, x, -1]",
-            ("Non-negative integer expected.",),
-            "FixedPointList[f, x, -1]",
-            None,
+            "MapAt[f, {a, b, c, d}, -9]",
+            ("Part {-9} of {a, b, c, d} does not exist.",),
+            "MapAt[f, {a, b, c, d}, -9]",
+            "Indexing before the beginning of a list",
         ),
-        ("Last[FixedPointList[Cos, 1.0, Infinity]]", None, "0.739085", None),
-    ],
-)
-def test_private_doctests_functional_iteration(str_expr, msgs, str_expected, fail_msg):
-    """functional.functional_iteration"""
-    check_evaluation(
-        str_expr,
-        str_expected,
-        to_string_expr=True,
-        to_string_expected=True,
-        hold_expected=True,
-        failure_message=fail_msg,
-        expected_messages=msgs,
-    )
+        (
+            "MapAt[f, {a, b, c, d}, {1, 1}]",
+            ("Part {1, 1} of {a, b, c, d} does not exist.",),
+            "MapAt[f, {a, b, c, d}, {1, 1}]",
+            "Indexing a dimension beyond the level of a list",
+        ),
+    ):
+        check_evaluation_as_in_cli(str_expr, str_expected, fail_msg, msgs)
