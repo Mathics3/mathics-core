@@ -182,7 +182,7 @@ class MapAt(Builtin):
     >> MapAt[f, {a, b, c}, 2]
      = {a, f[b], c}
 
-    Above we specified a simple integer value 2. In general the expression can an arbitrary vector.
+    Above we specified a simple integer value 2. In general, the expression can an arbitrary vector.
 
     Using 'MapAt' with 'Function[0]', we can zero values in a vector:
 
