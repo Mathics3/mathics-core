@@ -15,6 +15,7 @@ from mathics.core.atoms import Integer, Integer0, IntegerM1, Real, String
 from mathics.core.attributes import A_CONSTANT
 from mathics.core.builtin import Builtin, Predefined
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.sympy import SympyExpression
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -708,6 +709,30 @@ class Share(Builtin):
         else:
             gc.collect()
             return Integer0
+
+
+class SymPy(Builtin):
+    """
+    ## <url>:trace native symbol:</url>
+
+    <dl>
+      <dt>'SymPyExpression[expr]'
+      <dd>returns expr but keeps a copy of its SymPy representation.
+    </dl>
+
+    >> SymPy[x^2]
+     = x^2
+
+    >> SymPy[3] = 2
+     = 5
+    """
+
+    summary_text = "store SymPy into an element or expression"
+
+    def eval(self, expr, evaluation: Evaluation):
+        "SymPy[expr_]"
+        expr.sympy = SympyExpression(expr)
+        return expr
 
 
 class SystemID(Predefined):

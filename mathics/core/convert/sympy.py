@@ -12,6 +12,7 @@ from sympy.core.singleton import S
 
 from mathics.core.atoms import (
     MATHICS3_COMPLEX_I,
+    Atom,
     Complex,
     Integer,
     Integer0,
@@ -144,15 +145,20 @@ class SympyExpression(BasicSympy):
             # called with SymPy arguments
             obj = super().__new__(cls, *exprs)
             obj.expr = None
-        elif len(exprs) == 1 and isinstance(exprs[0], Expression):
-            # called with Mathics argument
-            expr = exprs[0]
-            sympy_head = expr.head.to_sympy()
-            sympy_elements = [element.to_sympy() for element in expr.elements]
-            if sympy_head is None or None in sympy_elements:
-                return None
-            obj = super().__new__(cls, sympy_head, *sympy_elements)
-            obj.expr = expr
+        elif len(exprs) == 1:
+            element = exprs[0]
+            if isinstance(exprs[0], Expression):
+                # called with Mathics argument
+                expr = exprs[0]
+                sympy_head = expr.head.to_sympy()
+                sympy_elements = [element.to_sympy() for element in expr.elements]
+                if sympy_head is None or None in sympy_elements:
+                    return None
+                obj = super().__new__(cls, sympy_head, *sympy_elements)
+                obj.expr = expr
+            elif isinstance(element, Atom):
+                obj = super().__new__(cls, element)
+                obj.expr = element
         else:
             raise TypeError
         return obj
