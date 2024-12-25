@@ -201,14 +201,14 @@ def eval_ListPlot(
             [xx for xx, yy in plot_groups], [xx for xx, yy in plot_groups], x_range
         )
         plot_groups = [plot_groups]
-    elif all(isinstance(line, list) for line in plot_groups):
-        if not all(isinstance(line, list) for line in plot_groups):
+    elif all(isinstance(line, (list, tuple)) for line in plot_groups):
+        if not all(isinstance(line, (list, tuple)) for line in plot_groups):
             return
 
         # He have a list of plot groups
         if all(
-            isinstance(point, list) and len(point) == 2
-            for plot_group in plot_groups
+            isinstance(point, (list, tuple)) and len(point) == 2
+            for _ in plot_groups
             for point in plot_groups
         ):
             pass
