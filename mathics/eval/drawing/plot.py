@@ -279,6 +279,7 @@ def eval_ListPlot(
         # He have a list of plot groups
         if all(
             isinstance(point, (list, tuple)) and len(point) == 2
+            for _ in plot_groups
             for point in plot_groups
         ):
             pass

@@ -111,6 +111,16 @@ class _ListPlot(Builtin, ABC):
 
         class_name = self.__class__.__name__
 
+        # Scale point values down by Log 10. Tick mark values will be adjusted to be 10^n in GraphicsBox.
+        if self.use_log_scale:
+            points = ListExpression(
+                *(
+                    Expression(SymbolLog10, point).evaluate(evaluation)
+                    for point in points
+                )
+            )
+
+        points = points.evaluate(evaluation)
         if not isinstance(points, ListExpression):
             evaluation.message(class_name, "lpn", points)
             return
@@ -124,15 +134,6 @@ class _ListPlot(Builtin, ABC):
         ):
             evaluation.message(class_name, "lpn", points)
             return
-
-        # Scale point values down by Log 10. Tick mark values will be adjusted to be 10^n in GraphicsBox.
-        if self.use_log_scale:
-            points = ListExpression(
-                *(
-                    Expression(SymbolLog10, point).evaluate(evaluation)
-                    for point in points
-                )
-            )
 
         # If "points" is a literal value with a Python representation,
         # it has a ".value" attribute with a non-None value. So here,
