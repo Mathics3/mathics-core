@@ -213,7 +213,9 @@ def eval_ListPlot(
         ):
             pass
         elif not is_discrete_plot and all(
-            not isinstance(point, list) for line in plot_groups for point in line
+            not isinstance(point, (list, tuple))
+            for line in plot_groups
+            for point in line
         ):
             # FIXME: is this right?
             y_min = min(plot_groups)[0]
