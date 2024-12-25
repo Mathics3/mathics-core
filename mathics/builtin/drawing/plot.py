@@ -96,11 +96,12 @@ class _ListPlot(Builtin, ABC):
     attributes = A_PROTECTED | A_READ_PROTECTED
 
     messages = {
+        "joind": "Value of option Joined -> `1` is not True or False.",
+        "lpn": "`1` is not a list of numbers or pairs of numbers.",
         "prng": (
             "Value of option PlotRange -> `1` is not All, Automatic or "
             "an appropriate list of range specifications."
         ),
-        "joind": "Value of option Joined -> `1` is not True or False.",
     }
 
     use_log_scale = False
@@ -110,8 +111,21 @@ class _ListPlot(Builtin, ABC):
 
         class_name = self.__class__.__name__
 
-        # Scale point values down by Log 10. Tick mark values will be adjusted
-        # to be 10^n in GraphicsBox.
+        if not isinstance(points, ListExpression):
+            evaluation.message(class_name, "lpn", points)
+            return
+
+        if not all(
+            element.is_numeric(evaluation)
+            or isinstance(element, ListExpression)
+            or (1 <= len(element.elements) <= 2)
+            or (len(element.elements) == 1 and isinstance(element[0], ListExpression))
+            for element in points.elements
+        ):
+            evaluation.message(class_name, "lpn", points)
+            return
+
+        # Scale point values down by Log 10. Tick mark values will be adjusted to be 10^n in GraphicsBox.
         if self.use_log_scale:
             points = ListExpression(
                 *(
