@@ -229,7 +229,7 @@ def eval_ListPlot(
     # Split into plot segments
     plot_groups = [[plot_group] for plot_group in plot_groups]
     if isinstance(x_range, (list, tuple)):
-        x_min, m_max = x_range
+        x_min, x_max = x_range
         y_min, y_max = y_range
 
     for lidx, plot_group in enumerate(plot_groups):
