@@ -1369,7 +1369,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     # new can be a Expression[SymbolConstant: System`List...]
                     # while "result' might be ListExpression!?
                     # So make sure to use "result", not "new".
-                    result._timestamp_cache(evaluation)
+                    if isinstance(result, Expression):
+                        result._timestamp_cache(evaluation)
                     return result, False
                 else:
                     return result, True
