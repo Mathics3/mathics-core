@@ -6,12 +6,13 @@ Scoping Constructs
 from mathics_scanner.tokeniser import is_symbol_name
 
 from mathics.core.assignment import get_symbol_list
-from mathics.core.atoms import Integer, String
+from mathics.core.atoms import Integer
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, attribute_string_to_number
 from mathics.core.builtin import Builtin, Predefined
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, fully_qualified_symbol_name
+from mathics.eval.scoping import eval_contexts, eval_contexts_with_string
 
 
 def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
@@ -232,24 +233,36 @@ class Contexts(Builtin):
 
     <dl>
       <dt>'Contexts[]'
-      <dd>yields a list of all contexts.
+      <dd>returns a list of contexts.
+      <dt>'Contexts["string"]'
+      <dd>returns a list of contexts that match the string.
     </dl>
 
-    ## this assignment makes sure that a definition in Global` exists
-    ## >> x = 5;
-    ## X> Contexts[] // InputForm
+    'Contexts' allows the string patterns with the follwing metacharacters:
+    <ul>
+     <li> '*' zero or more characters
+     <li> '@' one or more characters, excluding uppercase letters
+    </ul>
+
+    Get a list of all contexts:
+    >> Contexts[]
+     = ...
+
+    Get a list of HTML contexts only:
+    >> Contexts["HTML*"]
+     = {HTML`, HTML`Parser`}
     """
 
-    summary_text = "list all the defined contexts"
+    summary_text = "list defined contexts"
 
-    def eval(self, evaluation: Evaluation):
+    def eval(self, evaluation: Evaluation) -> ListExpression:
         "Contexts[]"
 
-        contexts = set()
-        for name in evaluation.definitions.get_names():
-            contexts.add(String(name[: name.rindex("`") + 1]))
+        return eval_contexts(evaluation.definitions)
 
-        return ListExpression(*sorted(contexts))
+    def eval_with_string(self, string, evaluation: Evaluation) -> ListExpression:
+        "Contexts[string_]"
+        return eval_contexts_with_string(string.value, evaluation.definitions)
 
 
 class ContextPath_(Predefined):

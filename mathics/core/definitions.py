@@ -280,7 +280,7 @@ class Definitions:
             | self.get_user_names()
         )
 
-    def get_accessible_contexts(self):
+    def get_accessible_contexts(self) -> set:
         """Return the contexts reachable though $Context or $ContextPath."""
         accessible_ctxts = set(ctx for ctx in self.context_path)
         accessible_ctxts.add(self.current_context)
