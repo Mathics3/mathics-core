@@ -4,26 +4,28 @@
 Function Application
 """
 
-# This tells documentation how to sort this module
-sort_order = "mathics.builtin.function-application"
-
-
 from itertools import chain
 
 import sympy
 
 from mathics.core.atoms import Integer, Integer1
 from mathics.core.attributes import A_HOLD_ALL, A_N_HOLD_ALL, A_PROTECTED
-from mathics.core.builtin import Builtin, PostfixOperator, SympyFunction
+from mathics.core.builtin import Builtin, PostfixOperator, PrefixOperator, SympyFunction
 from mathics.core.convert.sympy import SymbolFunction
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, sympy_slot_prefix
 from mathics.core.systemsymbols import SymbolSlot
 
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.function-application"
+
 
 class Function(PostfixOperator, SympyFunction):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Function.html</url>
+
     <dl>
       <dt>'Function[$body$]'
       <dt>'$body$ &'
@@ -164,8 +166,11 @@ class Function(PostfixOperator, SympyFunction):
             raise NotImplementedError
 
 
-class Slot(SympyFunction):
+class Slot(SympyFunction, PrefixOperator):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/Slot.html</url>
+
     <dl>
       <dt>'#$n$'
       <dd>represents the $n$th argument to a pure function.
@@ -190,6 +195,9 @@ class Slot(SympyFunction):
     """
 
     attributes = A_N_HOLD_ALL | A_PROTECTED
+
+    operator = "#"  # FIXME generate this automatically
+
     rules = {
         "Slot[]": "Slot[1]",
         "MakeBoxes[Slot[n_Integer?NonNegative],"
@@ -204,8 +212,12 @@ class Slot(SympyFunction):
         return sympy.Symbol(f"{sympy_slot_prefix}{index.get_int_value()}")
 
 
-class SlotSequence(Builtin):
+class SlotSequence(PrefixOperator, Builtin):
     """
+    <url>:WMA link:
+      https://reference.wolfram.com/language/ref/SlotSequence.html</url>
+
+
     <dl>
       <dt>'##'
       <dd>is the sequence of arguments supplied to a pure function.
@@ -224,6 +236,8 @@ class SlotSequence(Builtin):
     """
 
     attributes = A_N_HOLD_ALL | A_PROTECTED
+
+    operator = "##"  # FIXME generate this automatically
 
     rules = {
         "SlotSequence[]": "SlotSequence[1]",
