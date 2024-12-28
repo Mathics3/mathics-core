@@ -70,9 +70,9 @@ from mathics.core.systemsymbols import (
     SymbolTable,
     SymbolUndefined,
 )
-from mathics.eval.arithmetic import eval_Sign
 from mathics.eval.inference import get_assumptions_list
 from mathics.eval.nevaluator import eval_N
+from mathics.eval.numeric import eval_Sign
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.mathematical-functions"
