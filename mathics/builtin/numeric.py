@@ -811,7 +811,10 @@ class UnitStep(Builtin):
     >> UnitStep[0.7]
      = 1
 
-    We can use 'UnitStep' on irrational numbers:
+    We can use 'UnitStep' on irrational numbers and infinities:
+    >> Map[UnitStep, {Pi, Infinity, -Infinity}]
+     = {1, 1, 0}
+
     >> Table[UnitStep[x], {x, -3, 3}]
      = {0, 0, 0, 1, 1, 1, 1}
 
