@@ -10,6 +10,8 @@ import platform
 import subprocess
 import sys
 
+from pympler.asizeof import asizeof
+
 from mathics import version_string
 from mathics.core.atoms import Integer, Integer0, IntegerM1, Real, String
 from mathics.core.attributes import A_CONSTANT
@@ -383,41 +385,12 @@ class MemoryInUse(Builtin):
      = ...
     """
 
-    summary_text = "number of bytes of memory currently being used by Mathics"
+    summary_text = "number of bytes of memory currently being used by Mathics3"
 
-    def eval_0(self, evaluation) -> Integer:
+    def eval(self, evaluation: Evaluation) -> Integer:
         """MemoryInUse[]"""
-        # Partially borrowed from https://code.activestate.com/recipes/577504/
-        from itertools import chain
-        from sys import getsizeof
-
-        definitions = evaluation.definitions
-        seen = set()
-        try:
-            default_size = getsizeof(0)
-        except TypeError:
-            return IntegerM1
-
-        handlers = {
-            tuple: iter,
-            list: iter,
-            dict: (lambda d: chain.from_iterable(d.items())),
-            set: iter,
-            frozenset: iter,
-        }
-
-        def sizeof(obj):
-            if id(obj) in seen:
-                return 0
-            seen.add(id(obj))
-            s = getsizeof(obj, default_size)
-            for typ, handler in handlers.items():
-                if isinstance(obj, typ):
-                    s += sum(map(sizeof, handler(obj)))
-                    break
-            return s
-
-        return Integer(sizeof(definitions))
+        gc.collect()
+        return Integer(asizeof(evaluation.definitions))
 
 
 class Packages(Predefined):
