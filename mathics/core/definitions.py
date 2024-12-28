@@ -558,7 +558,8 @@ class Definitions:
     def reset_user_definition(self, name) -> None:
         assert not isinstance(name, Symbol)
         fullname = self.lookup_name(name)
-        del self.user[fullname]
+        if fullname in self.user:
+            del self.user[fullname]
         self.clear_cache(fullname)
         # TODO fix changed
 
