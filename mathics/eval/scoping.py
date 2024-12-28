@@ -1,4 +1,12 @@
+"""
+Evaluation module corresponding to builtin functions in mathics.builtins.scoping.
+"""
+import re
+
+from mathics.core.atoms import String
+from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
+from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, fully_qualified_symbol_name
 
 
@@ -23,6 +31,35 @@ def dynamic_scoping(func, vars, evaluation: Evaluation):
         for name, definition in original_definitions.items():
             evaluation.definitions.add_user_definition(name, definition)
     return result
+
+
+def eval_contexts(definitions: Definitions) -> ListExpression:
+    """
+    Corresponding eval routine (sans builtin class boilerplate) for Context[]
+    """
+    return ListExpression(*sorted(get_contexts(definitions)))
+
+
+def eval_contexts_with_string(string: str, definitions: Definitions) -> ListExpression:
+    """
+    Corresponding eval routine (sans builtin class boilerplate) for Context[string]
+    """
+    contexts = [context.value for context in get_contexts(definitions)]
+
+    short_pattern = (
+        string.replace("@", "[^A-Z]+").replace("*", ".*").replace("$", r"\$")
+    )
+    regex = re.compile("^" + short_pattern + "`$")
+
+    matched_contexts = [String(name) for name in contexts if regex.match(name)]
+    return ListExpression(*sorted(matched_contexts))
+
+
+def get_contexts(definitions) -> set:
+    contexts = set()
+    for name in definitions.get_names():
+        contexts.add(String(name[: name.rindex("`") + 1]))
+    return contexts
 
 
 def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
