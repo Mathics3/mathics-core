@@ -557,6 +557,7 @@ class ArcTan(MPMathFunction):
     rules = {
         "ArcTan[0]": "0",
         "ArcTan[1]": "Pi/4",
+        "ArcTan[DirectedInfinity[]]": "Indeterminate",
         "ArcTan[Undefined]": "Undefined",
         "ArcTan[Undefined, x_]": "Undefined",
         "ArcTan[y_, Undefined]": "Undefined",
