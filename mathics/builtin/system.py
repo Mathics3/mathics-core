@@ -767,7 +767,7 @@ class Version(Predefined):
     </dl>
 
     >> $Version
-     = Mathics ...
+     = Mathics3 ...
     """
 
     summary_text = "the current Mathics version"

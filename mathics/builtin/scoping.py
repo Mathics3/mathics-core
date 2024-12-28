@@ -6,7 +6,7 @@ Scoping Constructs
 from mathics_scanner.tokeniser import is_symbol_name
 
 from mathics.core.assignment import get_symbol_list
-from mathics.core.atoms import Integer
+from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, attribute_string_to_number
 from mathics.core.builtin import Builtin, Predefined
 from mathics.core.evaluation import Evaluation
@@ -262,6 +262,8 @@ class Contexts(Builtin):
 
     def eval_with_string(self, string, evaluation: Evaluation) -> ListExpression:
         "Contexts[string_]"
+        if not isinstance(string, String):
+            return ListExpression()
         return eval_contexts_with_string(string.value, evaluation.definitions)
 
 
