@@ -36,6 +36,8 @@ jobs:
         git submodule update
         remake -x develop
         cd mathics/packages/Combinatorica-repo
-        git pull origin HEAD
+        # If Combinatorica repo changes, we may need the below altered
+        # with a branch name, (not HEAD) for testing.
+        # git pull origin HEAD
         pip install -e .[dev]
         remake -x check
