@@ -286,11 +286,12 @@ class _ListPlot(Builtin, ABC):
     attributes = A_PROTECTED | A_READ_PROTECTED
 
     messages = {
+        "joind": "Value of option Joined -> `1` is not True or False.",
+        "lpn": "`1` is not a list of numbers or pairs of numbers.",
         "prng": (
             "Value of option PlotRange -> `1` is not All, Automatic or "
             "an appropriate list of range specifications."
         ),
-        "joind": "Value of option Joined -> `1` is not True or False.",
     }
 
     use_log_scale = False
@@ -308,6 +309,21 @@ class _ListPlot(Builtin, ABC):
                     for point in points
                 )
             )
+
+        points = points.evaluate(evaluation)
+        if not isinstance(points, ListExpression):
+            evaluation.message(class_name, "lpn", points)
+            return
+
+        if not all(
+            element.is_numeric(evaluation)
+            or isinstance(element, ListExpression)
+            or (1 <= len(element.elements) <= 2)
+            or (len(element.elements) == 1 and isinstance(element[0], ListExpression))
+            for element in points.elements
+        ):
+            evaluation.message(class_name, "lpn", points)
+            return
 
         # If "points" is a literal value with a Python representation,
         # it has a ".value" attribute with a non-None value. So here,

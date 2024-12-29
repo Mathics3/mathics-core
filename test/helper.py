@@ -38,7 +38,7 @@ def evaluate(str_expr: str):
 def check_evaluation(
     str_expr: Optional[str],
     str_expected: Optional[str] = None,
-    failure_message: str = "",
+    failure_message: Optional[str] = "",
     hold_expected: bool = False,
     to_string_expr: Optional[bool] = True,
     to_string_expected: bool = True,
