@@ -1743,7 +1743,8 @@ class Numerator(Builtin):
 class PolynomialQ(Builtin):
     """
     <url>:Polynomial:
-    https://en.wikipedia.org/wiki/Polynomial:</url>, (<url>:WMA link:
+    https://en.wikipedia.org/wiki/Polynomial:</url> (<url>:SymPy:
+    https://docs.sympy.org/latest/modules/core.html#sympy.core.expr.Expr.is_polynomial</url>, <url>:WMA:
     https://reference.wolfram.com/language/ref/PolynomialQ.html</url>)
 
     <dl>
