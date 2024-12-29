@@ -1260,6 +1260,7 @@ System`Union
 System`UnionPlus
 System`Unique
 System`UnitConvert
+System`UnitStep
 System`UnitVector
 System`Unprotect
 System`UnsameQ
