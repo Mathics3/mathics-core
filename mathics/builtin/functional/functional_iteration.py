@@ -220,6 +220,8 @@ class Nest(Builtin):
      = f[f[f[x]]]
     >> Nest[(1+#) ^ 2 &, x, 2]
      = (1 + (1 + x) ^ 2) ^ 2
+    >> Nest[Subsuperscript[#,#,#]&,0,5]
+     = ...
     """
 
     summary_text = "give the result of nesting a function"
