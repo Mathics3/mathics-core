@@ -257,6 +257,14 @@ class Mesh(Builtin):
           specifies the mesh to be drawn. The default is 'Mesh->None'.
      </dl>
 
+    Options include:
+
+    <ul>
+      <li>None: No mesh is drawn
+      <li>All: mesh divisions between elements
+      <li>Full: mesh divisions between regular datapoints
+    </ul>
+
     >> Plot[Sin[Cos[x^2]],{x,-4,4},Mesh->All]
      = -Graphics-
 
