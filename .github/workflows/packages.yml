@@ -36,5 +36,6 @@ jobs:
         git submodule update
         remake -x develop
         cd mathics/packages/Combinatorica-repo
+        git pull origin rename-combinatorica-files
         pip install -e .[dev]
         remake -x check
