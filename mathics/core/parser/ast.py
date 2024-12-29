@@ -125,8 +125,8 @@ class Symbol(Atom):
     """
     Symbols are like variables in a programming language.
 
-    But initially in an M-Expression the only properties it has is its name
-    and a representation of its name.
+    But initially in an M-Expression the only properties it has are its
+    name, and a representation of its name.
 
     Devoid of a binding to the Symbol, which is done via a Definition, Symbols
     are unique as they are say in Lisp, or Python.

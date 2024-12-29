@@ -59,7 +59,7 @@ from mathics.core.systemsymbols import (
     SymbolPattern,
     SymbolSequence,
 )
-from mathics.eval.arithmetic import eval_Plus, eval_Times
+from mathics.eval.arithfns.basic import eval_Plus, eval_Times
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 

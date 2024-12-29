@@ -184,10 +184,10 @@ class MapAt(Builtin):
 
     Above we specified a simple integer value 2. In general, the expression can an arbitrary vector.
 
-    Using 'MapAt' with 'Function[0]', we can zero values in a vector:
+    Using 'MapAt' with 'Function[0]', we can zero a value or values in a vector:
 
-    >> MapAt[0&, {{0, 1}, {1, 0}}, {2, 1}]
-     = {{0, 1}, {0, 0}}
+    >> MapAt[0&, {{1, 1}, {1, 1}}, {2, 1}]
+     = {{1, 1}, {0, 1}}
 
     When the dimension of the replacment expression is less than the vector, \
     that element's dimension changes:
