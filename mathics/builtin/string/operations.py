@@ -11,7 +11,6 @@ from mathics.builtin.atomic.strings import (
     _parallel_match,
     _StringFind,
     mathics_split,
-    to_regex,
 )
 from mathics.core.atoms import Integer, Integer1, Integer3, String
 from mathics.core.attributes import (
@@ -23,6 +22,7 @@ from mathics.core.attributes import (
 )
 from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.convert.python import from_python
+from mathics.core.convert.regex import to_regex
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BoxError, Expression, string_list
 from mathics.core.expression_predefined import MATHICS3_INFINITY

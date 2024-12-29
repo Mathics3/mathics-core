@@ -5,6 +5,7 @@ import re
 
 from mathics.core.atoms import Integer1, Integer3, String
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.python import from_bool
 from mathics.core.convert.regex import to_regex
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
@@ -22,6 +23,48 @@ def eval_ToString(
     boxes = format_element(expr, evaluation, form, encoding=encoding)
     text = boxes.boxes_to_text(evaluation=evaluation)
     return String(text)
+
+
+def eval_StringContainsQ(name, string, patt, evaluation, options, matched):
+    # Get the pattern list and check validity for each
+    if patt.has_form("List", None):
+        patts = patt.elements
+    else:
+        patts = [patt]
+    re_patts = []
+    for p in patts:
+        py_p = to_regex(p, show_message=evaluation.message)
+        if py_p is None:
+            evaluation.message("StringExpression", "invld", p, patt)
+            return
+        re_patts.append(py_p)
+
+    flags = re.MULTILINE
+    if options["System`IgnoreCase"] is SymbolTrue:
+        flags = flags | re.IGNORECASE
+
+    def _search(patts, str, flags, matched):
+        if any(re.search(p, str, flags=flags) for p in patts):
+            return from_bool(matched)
+        return from_bool(not matched)
+
+    # Check string validity and perform regex searchhing
+    if string.has_form("List", None):
+        py_s = [s.get_string_value() for s in string.elements]
+        if any(s is None for s in py_s):
+            evaluation.message(
+                name, "strse", Integer1, Expression(Symbol(name), string, patt)
+            )
+            return
+        return to_mathics_list(*[_search(re_patts, s, flags, matched) for s in py_s])
+    else:
+        py_s = string.get_string_value()
+        if py_s is None:
+            evaluation.message(
+                name, "strse", Integer1, Expression(Symbol(name), string, patt)
+            )
+            return
+        return _search(re_patts, py_s, flags, matched)
 
 
 def eval_StringFind(self, string, rule, n, evaluation, options, cases):
