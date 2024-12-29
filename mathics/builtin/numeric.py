@@ -28,6 +28,7 @@ from mathics.core.attributes import (
     A_HOLD_ALL,
     A_LISTABLE,
     A_NUMERIC_FUNCTION,
+    A_ORDERLESS,
     A_PROTECTED,
 )
 from mathics.core.builtin import Builtin, MPMathFunction, SympyFunction
@@ -44,14 +45,16 @@ from mathics.core.symbols import (
     SymbolTrue,
 )
 from mathics.core.systemsymbols import SymbolPiecewise
-from mathics.eval.arithmetic import (
+from mathics.eval.inference import evaluate_predicate
+from mathics.eval.nevaluator import eval_NValues
+from mathics.eval.numeric import (
     eval_Abs,
     eval_negate_number,
     eval_RealSign,
     eval_Sign,
+    eval_UnitStep,
+    eval_UnitStep_multidimensional,
 )
-from mathics.eval.inference import evaluate_predicate
-from mathics.eval.nevaluator import eval_NValues
 
 
 def chop(expr, delta=10.0 ** (-10.0)):
@@ -787,3 +790,51 @@ class Sign(SympyFunction):
     def eval_error(self, x, seqs, evaluation: Evaluation):
         "Sign[x_, seqs__]"
         evaluation.message("Sign", "argx", Integer(len(seqs.get_sequence()) + 1))
+
+
+class UnitStep(Builtin):
+    """
+    <url>
+    :Heaviside step function:
+    https://en.wikipedia.org/wiki/Heaviside_step_function</url> (<url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/UnitStep.html</url>)
+
+    <dl>
+      <dt>'UnitStep[$x$]'
+      <dd>return 0 if $x$ < 0, and 1 if $x$ >= 0.
+      <dt>'UnitStep[$x1$, $x2$, ...]'
+      <dd>return the multidimensional unit step function which is 1 only if none of the $xi$ are negative.
+    </dl>
+
+    Evaluation numerically:
+    >> UnitStep[0.7]
+     = 1
+
+    We can use 'UnitStep' on irrational numbers and infinities:
+    >> Map[UnitStep, {Pi, Infinity, -Infinity}]
+     = {1, 1, 0}
+
+    >> Table[UnitStep[x], {x, -3, 3}]
+     = {0, 0, 0, 1, 1, 1, 1}
+
+    Plot in one dimension:
+    >> Plot[UnitStep[x], {x, -4, 4}]
+     = -Graphics-
+
+    ## UnitStep is a piecewise function
+    ## PiecewiseExpand[UnitStep[x]]
+    ## = ...
+    """
+
+    summary_text = "unit step function of a number"
+
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_ORDERLESS | A_PROTECTED
+
+    def eval(self, x, evaluation: Evaluation):
+        "UnitStep[x_]"
+        return eval_UnitStep(x)
+
+    def eval_multidimenional(self, seqs, evaluation: Evaluation):
+        "UnitStep[seqs__]"
+        return eval_UnitStep_multidimensional(seqs)
