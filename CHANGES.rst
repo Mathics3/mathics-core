@@ -8,7 +8,6 @@ New Builtins
 * ``CheckAbort``
 * ``FileNameDrop``
 * ``SetEnvironment``
-* ``UnitStep``
 
 By `@davidar <https://github.com/davidar>`_:
 
