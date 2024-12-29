@@ -287,6 +287,15 @@ def test_factor_terms_list():
         check_evaluation(str_expr, str_expected)
 
 
+def test_polynomialq():
+    for str_expr, str_expected in [
+        ("PolynomialQ[1/x[1]^2]", "False"),
+        ("PolynomialQ[x[1]^2]", "True"),
+        ("PolynomialQ[y[1] ^ 3 / 6 + y[3] / 3 + y[1] y[2] / 2]", "True"),
+    ]:
+        check_evaluation(str_expr, str_expected)
+
+
 def test_simplify():
     for str_expr, str_expected in (
         (

@@ -51,7 +51,7 @@ for package in optional_software:
 
     version_info[package] = package_version
 
-version_string = """Mathics {mathics}
+version_string = """Mathics3 {mathics}
 on {python}
 using SymPy {sympy}, mpmath {mpmath}, numpy {numpy}""".format(
     **version_info

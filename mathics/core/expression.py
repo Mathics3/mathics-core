@@ -322,15 +322,22 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             ", ".join([str(element) for element in self.elements]),
         )
 
-    def _as_sympy_function(self, **kwargs) -> Optional[sympy.Function]:
+    def _as_sympy_function(self, **kwargs):
         from mathics.core.convert.sympy import sympy_symbol_prefix
 
+        function_name = str(sympy_symbol_prefix + self.get_head_name())
+        f = sympy.Function(function_name)
+
+        if kwargs.get("convert_functions_for_polynomial", False):
+            # For polynomials, we ignore the arguments in a PolynomialQ
+            return f()
+
+        f = sympy.Function(function_name)
         sym_args = [element.to_sympy(**kwargs) for element in self._elements]
 
         if None in sym_args:
             return None
 
-        f = sympy.Function(str(sympy_symbol_prefix + self.get_head_name()))
         return f(*sym_args)
 
     # Note: this function is called a *lot* so it needs to be fast.

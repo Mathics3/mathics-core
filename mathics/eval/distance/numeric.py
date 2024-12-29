@@ -2,7 +2,7 @@ from sympy.core.power import Mul, Pow
 
 from mathics.core.atoms import Complex, Integer, Integer0, Real
 from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
-from mathics.eval.arithmetic import eval_Abs
+from mathics.eval.numeric import eval_Abs
 
 
 def eval_CosineDistance(u, v):

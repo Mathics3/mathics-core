@@ -17,6 +17,7 @@ from typing import Optional, Tuple, Union
 
 import sympy
 
+import mathics.eval.tracing as tracing
 from mathics.builtin.options import options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
@@ -30,7 +31,7 @@ from mathics.core.atoms import (
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.convert.python import from_bool
-from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix
+from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -1742,7 +1743,8 @@ class Numerator(Builtin):
 class PolynomialQ(Builtin):
     """
     <url>:Polynomial:
-    https://en.wikipedia.org/wiki/Polynomial:</url>, (<url>:WMA link:
+    https://en.wikipedia.org/wiki/Polynomial:</url> (<url>:SymPy:
+    https://docs.sympy.org/latest/modules/core.html#sympy.core.expr.Expr.is_polynomial</url>, <url>:WMA:
     https://reference.wolfram.com/language/ref/PolynomialQ.html</url>)
 
     <dl>
@@ -1775,7 +1777,7 @@ class PolynomialQ(Builtin):
 
     In the above, there were no negative powers for $x$. \
     In the below when we check with respect to $y$, \
-    we <i>do</i> find $y$ has is raised to a negative power:
+    we <i>do</i> find $y$ is raised to a negative power:
     >> PolynomialQ[x^3 - 2 x/y^2 + 3xz, y]
      = False
 
@@ -1808,8 +1810,16 @@ class PolynomialQ(Builtin):
             evaluation.message("PolynomialQ", "argt", Integer(len(v) + 1))
             return
         elif len(v) == 0:
-            sympy_expr = expr.to_sympy()
-            sympy_result = sympy_expr.is_polynomial()
+            sympy_expr = expr.to_sympy(convert_functions_for_polynomialq=True)
+            free_symbols = []
+            # Until we understand and get expression generation under control,
+            # for now, we include both sympy.Symbol and
+            # SympyExpression(sympy.Symbol) variants
+            # as free variables.
+            for free_symbol in sympy_expr.free_symbols:
+                free_symbols.append(SympyExpression(free_symbol))
+                free_symbols.append(free_symbol)
+            sympy_result = tracing.run_sympy(sympy_expr.is_polynomial, *free_symbols)
             return from_bool(sympy_result)
 
         var = v[0]
@@ -1824,7 +1834,9 @@ class PolynomialQ(Builtin):
             sympy_var = [var.to_sympy()]
 
         sympy_expr = expr.to_sympy()
-        sympy_result = sympy_expr.is_polynomial(*[x for x in sympy_var])
+        sympy_result = tracing.run_sympy(
+            sympy_expr.is_polynomial, *[x for x in sympy_var]
+        )
         return from_bool(sympy_result)
 
 

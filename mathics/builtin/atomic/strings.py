@@ -15,25 +15,21 @@ from mathics_scanner import TranslateError
 
 from mathics.core.atoms import Integer, Integer0, Integer1, String
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
-from mathics.core.builtin import Builtin, Predefined, PrefixOperator, Test
+from mathics.core.builtin import Builtin, Predefined, PrefixOperator
 from mathics.core.convert.expression import to_mathics_list
-from mathics.core.convert.python import from_bool
-from mathics.core.convert.regex import to_regex
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.parser import MathicsFileLineFeeder, parse
-from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolInputForm,
     SymbolNone,
     SymbolOutputForm,
+    SymbolToExpression,
 )
-from mathics.eval.strings import eval_ToString
+from mathics.eval.strings import eval_StringContainsQ, eval_ToString
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
-
-SymbolToExpression = Symbol("ToExpression")
 
 # covers all of the variations. Here we just give some minimal basics
 
@@ -128,48 +124,6 @@ def _parallel_match(text, rules, flags, limit):
             k = match.end()
 
         push(i, iter, form)
-
-
-def _pattern_search(name, string, patt, evaluation, options, matched):
-    # Get the pattern list and check validity for each
-    if patt.has_form("List", None):
-        patts = patt.elements
-    else:
-        patts = [patt]
-    re_patts = []
-    for p in patts:
-        py_p = to_regex(p, show_message=evaluation.message)
-        if py_p is None:
-            evaluation.message("StringExpression", "invld", p, patt)
-            return
-        re_patts.append(py_p)
-
-    flags = re.MULTILINE
-    if options["System`IgnoreCase"] is SymbolTrue:
-        flags = flags | re.IGNORECASE
-
-    def _search(patts, str, flags, matched):
-        if any(re.search(p, str, flags=flags) for p in patts):
-            return from_bool(matched)
-        return from_bool(not matched)
-
-    # Check string validity and perform regex searchhing
-    if string.has_form("List", None):
-        py_s = [s.get_string_value() for s in string.elements]
-        if any(s is None for s in py_s):
-            evaluation.message(
-                name, "strse", Integer1, Expression(Symbol(name), string, patt)
-            )
-            return
-        return to_mathics_list(*[_search(re_patts, s, flags, matched) for s in py_s])
-    else:
-        py_s = string.get_string_value()
-        if py_s is None:
-            evaluation.message(
-                name, "strse", Integer1, Expression(Symbol(name), string, patt)
-            )
-            return
-        return _search(re_patts, py_s, flags, matched)
 
 
 def anchor_pattern(patt):
@@ -691,33 +645,9 @@ class StringContainsQ(Builtin):
 
     def eval(self, string, patt, evaluation: Evaluation, options: dict):
         "StringContainsQ[string_, patt_, OptionsPattern[%(name)s]]"
-        return _pattern_search(
+        return eval_StringContainsQ(
             self.__class__.__name__, string, patt, evaluation, options, True
         )
-
-
-class StringQ(Test):
-    """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/StringQ.html</url>
-    <dl>
-      <dt>'StringQ[$expr$]'
-      <dd>returns 'True' if $expr$ is a 'String', or 'False' otherwise.
-    </dl>
-
-    >> StringQ["abc"]
-     = True
-    >> StringQ[1.5]
-     = False
-    >> Select[{"12", 1, 3, 5, "yz", x, y}, StringQ]
-     = {12, yz}
-    """
-
-    summary_text = "test whether an expression is a string"
-
-    def test(self, expr) -> bool:
-        return isinstance(expr, String)
 
 
 class StringRepeat(Builtin):

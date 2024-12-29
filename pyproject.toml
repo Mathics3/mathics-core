@@ -22,7 +22,7 @@ dependencies = [
     "pillow >= 9.2",
     "pint",
     "python-dateutil",
-    # Pympler is used onlyfor ByteCount[]. It could be made optional.
+    # Pympler is used in ByteCount[] and MemoryInUse[].
     "Pympler",
     "requests",
     "scipy",
