@@ -1777,7 +1777,7 @@ class PolynomialQ(Builtin):
 
     In the above, there were no negative powers for $x$. \
     In the below when we check with respect to $y$, \
-    we <i>do</i> find $y$ has is raised to a negative power:
+    we <i>do</i> find $y$ is raised to a negative power:
     >> PolynomialQ[x^3 - 2 x/y^2 + 3xz, y]
      = False
 
