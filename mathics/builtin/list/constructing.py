@@ -156,7 +156,7 @@ class List(Builtin):
     attributes = A_LOCKED | A_PROTECTED
     summary_text = "form a list"
 
-    def eval(self, elements, evaluation):
+    def eval(self, elements, evaluation: Evaluation):
         """List[elements___]"""
         # Pick out the elements part of the parameter elements;
         # we we will call that `elements_part_of_elements__`.
@@ -464,7 +464,7 @@ class Reap(Builtin):
         try:
             result = expr.evaluate(evaluation)
             items = []
-            for pattern, tags in sown:
+            for _, tags in sown:
                 list_of_elements = []
                 for tag, elements in tags:
                     list_of_elements.append(
@@ -521,11 +521,11 @@ class Table(IterationFunction):
       <dd>generates a list of the values of expr when $i$ runs from 1 to $n$.
 
       <dt>'Table[$expr$, {$i$, $start$, $stop$, $step$}]'
-      <dd>evaluates $expr$ with $i$ ranging from $start$ to $stop$,
+      <dd>evaluates $expr$ with $i$ ranging from $start$ to $stop$, \
         incrementing by $step$.
 
       <dt>'Table[$expr$, {$i$, {$e1$, $e2$, ..., $ei$}}]'
-      <dd>evaluates $expr$ with $i$ taking on the values $e1$, $e2$,
+      <dd>evaluates $expr$ with $i$ taking on the values $e1$, $e2$, \
         ..., $ei$.
     </dl>
 

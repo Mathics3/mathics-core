@@ -925,13 +925,13 @@ class AtomBuiltin(Builtin):
         return re.sub(r"Atom$", "", name)
 
 
-class IterationFunction(Builtin):
+class IterationFunction(Builtin, ABC):
     attributes = A_HOLD_ALL | A_PROTECTED
     allow_loopcontrol = False
     throw_iterb = True
 
-    def get_result(self, items):
-        pass
+    def get_result(self, elements) -> ListExpression:
+        raise NotImplementedError
 
     def eval_symbol(self, expr, iterator, evaluation):
         "%(name)s[expr_, iterator_Symbol]"
