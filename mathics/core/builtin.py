@@ -57,7 +57,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
 )
 from mathics.core.convert.expression import to_expression
-from mathics.core.convert.op import ascii_operator_to_symbol
+from mathics.core.convert.op import ascii_operator_to_symbol, operator_to_unicode
 from mathics.core.convert.python import from_bool
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import Definition, Definitions
@@ -1166,11 +1166,12 @@ class Operator(Builtin):
         precedence = operator_info.get(name)
         assert isinstance(
             precedence, int
-        ), f'Internal error: "precedence" field for "{name}" should be an integer is {precedence}'
+        ), f'Internal error: "precedence" field for "{name}" should be an integer; is {precedence}'
         return precedence
 
     def get_operator(self) -> Optional[str]:
-        return self.operator
+        name = self.__class__.__name__
+        return operator_to_unicode.get(name)
 
     def get_operator_display(self) -> Optional[str]:
         if hasattr(self, "operator_display"):
@@ -1200,6 +1201,17 @@ class InfixOperator(Operator):
     def __init__(self, *args, **kwargs):
         super(InfixOperator, self).__init__(*args, **kwargs)
         name = self.get_name(short=True)
+
+        # Pick up operator string from JSON table if
+        # it appears there.
+        operator_string = self.get_operator()
+        if operator_string:
+            self.operator = operator_string
+        # else:
+        #     if self.operator is None:
+        #         breakpoint()
+        #     print("FIX UP", self.operator, name)
+
         self.precedence = self.get_precedence(name)
 
         # Prevent pattern matching symbols from gaining meaning here using

@@ -168,8 +168,6 @@ class Set(InfixOperator, _SetOperator):
         "shape": "Lists `1` and `2` are not the same shape.",
     }
 
-    operator = "="
-
     summary_text = "assign a value"
 
     def eval(self, lhs, rhs, evaluation):
@@ -246,7 +244,6 @@ class SetDelayed(Set):
     # In Mathics, this last line would return 3
     # """
 
-    operator = ":="
     attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD
 
     summary_text = "test a delayed value; used in defining functions"
@@ -366,7 +363,6 @@ class UpSet(InfixOperator, _SetOperator):
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
     grouping = "Right"
-    operator = "^="
 
     summary_text = (
         "set value and associate the assignment with symbols that occur at level one"
@@ -400,7 +396,6 @@ class UpSetDelayed(UpSet):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD
-    operator = "^:="
     summary_text = "set a delayed value and associate the assignment with symbols that occur at level one"
 
     def eval(self, lhs, rhs, evaluation):

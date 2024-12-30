@@ -19,11 +19,11 @@ assert osp.exists(
     characters_path
 ), f"ASCII operator to Unicode tables are missing from {characters_path}"
 with open(characters_path, "r") as f:
-    op_data = ujson.load(f)
+    OPERATOR_CONVERSION_TABLES = ujson.load(f)
 
-ascii_operator_to_symbol = op_data["ascii-operator-to-symbol"]
-operator_to_unicode = op_data["operator-to-unicode"]
-operator_to_ascii = op_data["operator-to-ascii"]
+ascii_operator_to_symbol = OPERATOR_CONVERSION_TABLES["ascii-operator-to-symbol"]
+operator_to_unicode = OPERATOR_CONVERSION_TABLES["operator-to-unicode"]
+operator_to_ascii = OPERATOR_CONVERSION_TABLES["operator-to-ascii"]
 
 
 @lru_cache(maxsize=1024)
@@ -34,7 +34,11 @@ def ascii_op_to_unicode(ascii_op: str, encoding: str) -> str:
     If we can't come up with a unicode equivalent, just return "ascii_op".
     """
     if encoding in ("UTF-8", "utf-8", "Unicode"):
-        return op_data["ascii-operator-to-unicode"].get(ascii_op, ascii_op)
+        return OPERATOR_CONVERSION_TABLES["ascii-operator-to-unicode"].get(
+            ascii_op, ascii_op
+        )
     if encoding in ("WMA",):
-        return op_data["ascii-operator-to-wl-unicode"].get(ascii_op, ascii_op)
+        return OPERATOR_CONVERSION_TABLES["ascii-operator-to-wl-unicode"].get(
+            ascii_op, ascii_op
+        )
     return ascii_op

@@ -28,9 +28,10 @@ jobs:
         python -m pip install --upgrade pip
     - name: Install Mathics3 with full Python dependencies
       run: |
-        # We can comment out after next Mathics-Scanner release
         python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
-        git clone https://github.com/Mathics3/mathics-scanner.git
+        # We can comment out after next Mathics-Scanner release
+        git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
+        # git clone --single-branch --branch operator-refactor-part1.5 https://github.com/Mathics3/mathics-scanner.git
         cd mathics-scanner/
         pip install -e .
         cd ..

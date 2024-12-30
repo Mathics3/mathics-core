@@ -293,7 +293,6 @@ class ReplaceAll(InfixOperator):
 
     grouping = "Left"
     needs_verbatim = True
-    operator = "/."
 
     messages = {
         "reps": "`1` is not a valid replacement rule.",
@@ -435,7 +434,6 @@ class ReplaceRepeated(InfixOperator):
 
     grouping = "Left"
     needs_verbatim = True
-    operator = "//."
 
     messages = {
         "reps": "`1` is not a valid replacement rule.",
@@ -542,7 +540,6 @@ class RuleDelayed(InfixOperator):
 
     attributes = A_SEQUENCE_HOLD | A_HOLD_REST | A_PROTECTED
     needs_verbatim = True
-    operator = ":>"
     summary_text = "a rule that keeps the replacement unevaluated"
 
     def eval_rule_delayed(self, elems, evaluation):
