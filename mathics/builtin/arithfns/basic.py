@@ -158,7 +158,6 @@ class Divide(InfixOperator):
     }
 
     grouping = "Left"
-    operator = "/"
 
     rules = {
         "Divide[x_, y_]": "Times[x, Power[y, -1]]",
@@ -205,8 +204,6 @@ class Minus(PrefixOperator):
             'Prefix[{Infix[expr, op, 400, grouping]}, "-", 399]'
         ),
     }
-
-    operator = "-"
 
     rules = {
         "Minus[x_]": "Times[-1, x]",
@@ -279,8 +276,6 @@ class Plus(InfixOperator, SympyFunction):
     defaults = {
         None: "0",
     }
-
-    operator = "+"
 
     summary_text = "add"
 
@@ -431,8 +426,6 @@ class Power(InfixOperator, MPMathFunction):
     }
 
     nargs = {2}
-    operator = "^"
-
     rules = {
         "Power[]": "1",
         "Power[x_]": "x",
@@ -551,7 +544,6 @@ class Subtract(InfixOperator):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     grouping = "Left"
 
-    operator = "-"
     rules = {
         "Subtract[x_, y_]": "Plus[x, Times[-1, y]]",
     }
@@ -614,7 +606,6 @@ class Times(InfixOperator, SympyFunction):
 
     formats = {}
 
-    operator = "*"
     operator_display = " "
 
     rules = {}
