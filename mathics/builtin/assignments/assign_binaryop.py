@@ -60,6 +60,7 @@ class AddTo(InfixOperator, InplaceInfixOperator):
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED
+    grouping = "Right"
     operator = "+="
 
     operator_symbol = SymbolPlus
@@ -147,7 +148,6 @@ class DivideBy(InplaceInfixOperator, InfixOperator):
 
     attributes = A_HOLD_FIRST | A_PROTECTED
     grouping = "Right"
-    operator = "/="
 
     rules = {
         "x_ /= dx_": "x = x / dx",
