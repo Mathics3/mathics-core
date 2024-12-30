@@ -46,7 +46,6 @@ class Alternatives(InfixOperator, PatternObject):
 
     arg_counts = None
     needs_verbatim = True
-    operator = "|"
     summary_text = "match to any of several patterns"
 
     def init(

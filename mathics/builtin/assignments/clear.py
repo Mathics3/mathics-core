@@ -249,7 +249,6 @@ class Unset(PostfixOperator):
     """
 
     attributes = A_HOLD_FIRST | A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
-    operator = "=."
 
     messages = {
         "norep": "Assignment on `2` for `1` not found.",

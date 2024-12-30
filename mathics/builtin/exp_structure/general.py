@@ -32,7 +32,6 @@ class MapApply(InfixOperator):
     """
 
     grouping = "Right"
-    operator = "@@@"
 
     rules = {
         "MapApply[f_, expr_]": "Apply[f, expr, {1}]",
