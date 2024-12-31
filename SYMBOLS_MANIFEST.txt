@@ -1069,6 +1069,7 @@ System`SetDirectory
 System`SetEnvironment
 System`SetFileDate
 System`SetOptions
+System`SequenceForm
 System`SetStreamPosition
 System`Share
 System`Sharpen
