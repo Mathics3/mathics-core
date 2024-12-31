@@ -231,7 +231,6 @@ class Postfix(PostfixOperator):
     """
 
     grouping = "Left"
-    operator = "//"
     operator_display = None
     summary_text = "postfix form"
 

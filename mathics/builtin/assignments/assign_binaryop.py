@@ -241,7 +241,6 @@ class PreDecrement(InplaceInfixOperator, PrefixOperator):
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
     increment_symbol = IntegerM1
-    operator = "--"
     operator_symbol = SymbolPlus
     returns_updated_value: bool = True
     summary_text = "decrease the value by one and assigns that returning the new value"
