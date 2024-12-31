@@ -361,7 +361,6 @@ class Get(PrefixOperator):
     ## >> << "VectorAnalysis`"
     """
 
-    operator = "<<"
     options = {
         "Trace": "False",
     }
@@ -566,7 +565,6 @@ class Put(InfixOperator):
     S> DeleteFile[filename]
     """
 
-    operator = ">>"
     summary_text = "write an expression to a file"
 
     def eval(self, exprs, filename, evaluation):

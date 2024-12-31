@@ -61,7 +61,6 @@ class AddTo(InfixOperator, InplaceInfixOperator):
 
     attributes = A_HOLD_FIRST | A_PROTECTED
     grouping = "Right"
-    operator = "+="
 
     operator_symbol = SymbolPlus
     return_before_value: bool = True
@@ -120,7 +119,6 @@ class Decrement(InplaceInfixOperator, InfixOperator, PostfixOperator):
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
     increment_symbol = IntegerM1
-    operator = "--"
     operator_symbol = SymbolPlus
 
     returns_updated_value = False
@@ -206,7 +204,6 @@ class Increment(InplaceInfixOperator, InfixOperator, PostfixOperator):
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
     increment_symbol = Integer1
-    operator = "++"
     operator_symbol = SymbolPlus
     returns_updated_value: bool = False
     summary_text = (
@@ -297,7 +294,6 @@ class PreIncrement(InplaceInfixOperator, PrefixOperator):
     """
 
     attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
-    operator = "++"
     operator_symbol = SymbolPlus
     return_before_value: bool = False
 
@@ -326,7 +322,6 @@ class SubtractFrom(InfixOperator):
 
     attributes = A_HOLD_FIRST | A_PROTECTED
     grouping = "Right"
-    operator = "-="
 
     rules = {
         "x_ -= dx_": "x = x - dx",
@@ -353,7 +348,6 @@ class TimesBy(InfixOperator):
     #> Clear[a]
     """
 
-    operator = "*="
     attributes = A_HOLD_FIRST | A_PROTECTED
     grouping = "Right"
 
