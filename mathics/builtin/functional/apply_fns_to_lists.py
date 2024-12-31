@@ -71,8 +71,6 @@ class Apply(InfixOperator):
     summary_text = "apply a function to a list, at specified levels"
     grouping = "Right"
 
-    operator = "@@"  # FIXME generate this automatically
-
     options = {
         "Heads": "False",
     }

@@ -91,7 +91,6 @@ class Function(PostfixOperator, SympyFunction):
     to the function body.
     """
 
-    operator = "&"
     attributes = A_HOLD_ALL | A_PROTECTED
 
     messages = {
@@ -196,8 +195,6 @@ class Slot(SympyFunction, PrefixOperator):
 
     attributes = A_N_HOLD_ALL | A_PROTECTED
 
-    operator = "#"  # FIXME generate this automatically
-
     rules = {
         "Slot[]": "Slot[1]",
         "MakeBoxes[Slot[n_Integer?NonNegative],"
@@ -236,8 +233,6 @@ class SlotSequence(PrefixOperator, Builtin):
     """
 
     attributes = A_N_HOLD_ALL | A_PROTECTED
-
-    operator = "##"  # FIXME generate this automatically
 
     rules = {
         "SlotSequence[]": "SlotSequence[1]",

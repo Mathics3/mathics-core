@@ -44,8 +44,6 @@ class DirectedEdge(InfixOperator):
 
     attributes = A_NO_ATTRIBUTES
     default_formats = False  # Don't use any default format rules. Instead, see belo.
-
-    operator = "→"
     summary_text = 'DirectedEdge infix operator "→"'
 
 
@@ -82,6 +80,4 @@ class UndirectedEdge(InfixOperator):
 
     attributes = A_NO_ATTRIBUTES
     default_formats = False  # Don't use any default format rules. Instead, see belo.
-
-    operator = "↔"
     summary_text = 'UndirectedEdge infix operator "↔"'

@@ -512,6 +512,9 @@ class Rule_(InfixOperator):
     grouping = "Right"
     name = "Rule"
     needs_verbatim = True
+
+    # FIXME: if we remove this we have problems.
+    # We should be able to get this from JSON.
     operator = "->"
     summary_text = "a replacement rule"
 

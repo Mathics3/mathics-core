@@ -49,7 +49,6 @@ class Condition(InfixOperator, PatternObject):
     arg_counts = [2]
     # Don't know why this has attribute HoldAll in Mathematica
     attributes = A_HOLD_REST | A_PROTECTED
-    operator = "/;"
     summary_text = "conditional definition"
 
     def init(
@@ -106,7 +105,6 @@ class PatternTest(InfixOperator, PatternObject):
     """
 
     arg_counts = [2]
-    operator = "?"
     summary_text = "match to a pattern conditioned to a test result"
 
     def init(

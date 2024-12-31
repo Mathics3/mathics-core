@@ -411,7 +411,6 @@ class Derivative(PostfixOperator, SympyFunction):
 
     attributes = A_N_HOLD_ALL
     default_formats = False
-    operator = "'"
     rules = {
         "MakeBoxes[Derivative[n__Integer][f_], "
         "  form:StandardForm|TraditionalForm]": (
