@@ -22,7 +22,6 @@ from io import StringIO
 from time import time
 from typing import Callable
 
-import mathics.eval.trace
 import mathics.eval.tracing
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
 from mathics.core.builtin import Builtin
