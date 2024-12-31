@@ -659,7 +659,6 @@ class PutAppend(InfixOperator):
     >> DeleteFile["factorials"];
     """
 
-    operator = ">>>"
     summary_text = "append an expression to a file"
 
     def eval(self, exprs, filename, evaluation):
