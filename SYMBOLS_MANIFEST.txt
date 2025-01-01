@@ -1120,7 +1120,7 @@ System`SquareSupersetEqual
 System`SquareUnion
 System`SquaredEuclideanDistance
 System`SquaresR
-System`Stacktrace
+System`Stack
 System`StandardDeviation
 System`StandardForm
 System`Star

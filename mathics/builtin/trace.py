@@ -432,8 +432,7 @@ class TraceEvaluation(Builtin):
             options["System`ShowTimeBySteps"] is SymbolTrue
         )
         try:
-            result = expr.evaluate(evaluation)
-            return result
+            return expr.evaluate(evaluation)
         except Exception:
             raise
         finally:
