@@ -212,15 +212,20 @@ Methods beginning with `b_TAG` are used for parsing boxes and can be ignored
 on first reading of the parser code.
 
 #### Backtracking
-Most of the Wolfram language can be parsed with precedence climbing but there are a few special language features that require something more. The `Span` operator is one example. Both `a ;; b` and `a ;;` are valid syntax, the latter is equivalent to `a ;; All`.
+Most of the Wolfram language can be parsed with precedence climbing but there are a few special language features that require something more. The `Span` operator is one example.
 
-Consider the example: `a;;!b`. There are four options for parsing this:
- - `Span[a, Not[b]]`
- - `Factorial[Span[a, Null]]`
- - `Times[Span[a, All], Not[b]]`
- - `Times[Factorial[Span[a, All]], b]`
+Both `a ;; b` and `a ;;` are valid syntax, the former is the infix form of `Span` while the latter is the postfix form of `Span`, equivalent to `a ;; All`.
 
-`a ! b` parses as `Times[Factorial[a], b]` which might suggest option 4 is correct but the precedence of `Span` is lower than that of `Times` so it is here and we must use the postfix form of `Span`. Since the precedence of `Factorial` is higher than that of `Span` we can apply the postfix rule for `!` and option 3 turns out to be correct.
+Now consider this example: `a;;!b`.
+
+Here are some ways to parse this:
+1. `Span[a, Not[b]]`
+2. `Times[Span[a, All], Not[b]]`
+3. `Times[Factorial[Span[a, All]], b]`
+
+`x!b` parses as `Times[Factorial[x], b]` which might suggest option 3 is correct substituting `a;;` for `x`; However, the precedence of `Span` in `a;;`, 305 is lower than that of `Times`, 400. So here we must use the postfix form of `Span` and option 2 turns out to be correct.
+
+Note: Currently, Mathics3 has a bug and parses as 1. although the correct result is 2.
 
 The problem with `Span`, and also `CompoundExpression` is that they require arbitrary lookahead to see if the right hand side has lower precedence. It's not a large issue for `CompoundExpression` which has very low precedence but nevertheless this language quirk requires backtracking in the parser.
 
