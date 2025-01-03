@@ -24,11 +24,16 @@ references that explain the algorithm better than I could:
 - [Wikipedia: Operator-precedence parser](https://en.wikipedia.org/wiki/Operator-precedence_parser#Precedence_climbing_method)
 - [Eli Bendersky's blog entry: Parsing expressions by precedence climbing](http://eli.thegreenplace.net/2012/08/02/parsing-expressions-by-precedence-climbing)
 
-### Precedence
+This algorithm has a natural application to the Wolfram language.
 
-This algorithm has a natural application to the Wolfram language. Every
-operator has an inbuilt precedence level which can be accessed with e.g.
-`Precedence[Plus]`.
+### Precedence Value
+
+Every operator has a numeric precedence value which. This is
+user-visible via the built-in function `Precedence[]`,
+e.g. `Precedence[Plus]`.  A higher value causes an operator to bind
+more tightly. For example, the Times precedence 400 is higher than the Plus
+precedence 310 because a + b * c is a + (b * c), not (a + b) * c.
+
 
 ### Grouping
 
@@ -64,20 +69,42 @@ The relevant code snippet for binary operators is:
 
 
 ```python
-def parse_binary(self, expr1, token, p):    # called with expr1
-    'expr <- expr1 BINARY expr2'
+def parse_binary(self, expr1, token, expr1_precedence: int) -> Node:
+    """
+    Implements grammar rule:
+	   expr <- expr1 BINARY expr2
+	when it is applicable.
+
+	When called, we have parsed expr1 and seen token BINARY. This routine will
+	may cause expr2 to get scanned and parsed if applicable based on expr1_precedence.
+
+	"left_precendence" is the precedence of expr1 and is used whether parsing
+	should be interpreted as:
+	   (expr1) BINARY expr2
+
+	or:
+	   (expr1 BINARY expr2)
+
+
+    In the former case, we will return None (no further tokens
+    added) and let a higher level of parsing parse:
+	  (expr1) BINARY expr2.
+
+	In the latter case, we will return a node for: (expr1 BINARY expr2).
+	"""
+
     tag = token.tag                         # name of BINARY token
 
-    q = binary_ops[tag]                     # lookup precedence of operator
-    if q < p:
+    operator_precedence = binary_ops[tag]   # lookup precedence of operator
+    if operator_precedence < top_precedence:
         return None
 
     self.consume()                          # consume BINARY token
 
     if tag not in right_binary_ops:         # left/right grouping
-        q += 1
+        operator_precedence += 1
 
-    expr2 = self.parse_exp(q)               # parse expr2
+    expr2 = self.parse_exp(operator_precedence)  # parse expr2
 
                                             # handle nonassoc operators
     if tag in nonassoc_binary_ops and expr1.get_head_name() == tag and not expr1.parenthesised:
@@ -86,7 +113,7 @@ def parse_binary(self, expr1, token, p):    # called with expr1
 
     result = Node(tag, expr1, expr2)        # construct the result: `BINARY[expr1, expr2]`
 
-    if tag in flat_binary_ops:              # flatten the tree if required
+    if tag in flat_binary_operators:        # flatten the tree if required
         result.flatten()
 
     return result
@@ -133,7 +160,7 @@ snippet is:
 ```python
 def e_Infix(self, expr1, token, p):     # called with expr1
     'expr <- expr1 '~' expr2 '~' expr3'
-    q = ternary_ops['Infix']            # lookup precedence of Infix
+    q = ternary_operators['Infix']            # lookup precedence of Infix
     if q < p:
         return None
     self.consume()                      # consume first '~'
@@ -169,8 +196,8 @@ def p_Integral(self, token):
     `expr <- Integral expr1 DifferentialD expr2
     self.consume()                          # consume 'Integral'
 
-    inner_prec = all_ops['Sum'] + 1         # lookup inner
-    outer_prec = all_ops['Power'] - 1       # and outer prec
+    inner_prec = all_operators['Sum'] + 1   # lookup inner
+    outer_prec = all_operators['Power'] - 1 # and outer prec
 
     expr1 = self.parse_exp(inner_prec)      # consume expr1
     self.expect('DifferentialD')            # consume 'DifferentialD'
