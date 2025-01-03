@@ -249,7 +249,7 @@ class Parser:
         return result
 
     def parse_seq(self) -> list:
-        result = []
+        result: list = []
         while True:
             token = self.next_noend()
             tag = token.tag
@@ -285,7 +285,7 @@ class Parser:
             expr1.children.append(Symbol(tag))
             expr1.children.append(expr2)
         elif head in inequality_operators and head != tag and not expr1.parenthesised:
-            children = []
+            children: list = []
             first = True
             for child in expr1.children:
                 if not first:
@@ -411,6 +411,7 @@ class Parser:
         result = self.parse_exp(NEVER_ADD_PARENTHESIS)
         self.expect("RawRightParenthesis")
         self.bracket_depth -= 1
+        assert result is not None
         result.parenthesised = True
         return result
 
@@ -659,6 +660,7 @@ class Parser:
             return None
         self.consume()
         # Span[expr1, expr2]
+        expr2: Union[Symbol, Node, None]
         token = self.next()
         if token.tag == "Span":
             expr2 = Symbol("All")
@@ -805,6 +807,7 @@ class Parser:
 
         # So that e.g. 'x = 1;' doesn't wait for newline in the frontend
         tag = self.next().tag
+        expr2: Union[Symbol, Node, None]
         if tag == "END" and self.bracket_depth == 0:
             expr2 = NullSymbol
             return Node("CompoundExpression", expr1, expr2).flatten()
