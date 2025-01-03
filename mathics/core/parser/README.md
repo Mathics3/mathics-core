@@ -54,7 +54,7 @@ The relevant code snippet for binary operators is:
 def parse_binary(self, expr1, token, expr1_precedence: int) -> Node:
     """
     Implements grammar rule:
-	   expr ::= expr1 BINARY expr2
+	   expr : expr1 BINARY expr2
 	when it is applicable.
 
 	When called, we have parsed expr1 and seen token BINARY. This routine will
@@ -104,7 +104,7 @@ def parse_binary(self, expr1, token, expr1_precedence: int) -> Node:
 #### Special case: Implicit times
 In the Wolfram language the expression `a b` should parse as `Times[a b]`. This seemingly simple rule actually creates lots of headaches.
 
-In the context of precedence climbing we use the rule `E_n ::= E_n E_n` where `n = 400` is the precedence of `Times`.
+In the context of precedence climbing we use the rule `E_n : E_n E_n` where `n = 400` is the precedence of `Times`.
 
 ### Unary operators
 
@@ -129,7 +129,7 @@ The simplest ternary operator in the Wolfram language is `Infix`, for example, `
 def e_Infix(self, expr1, token: Token, expr1_precedence: int) -> Optional[Node]:
     """
 	Implements the rule:
-	   expr ::= expr1 '~' expr2 '~' expr3
+	   expr : expr1 '~' expr2 '~' expr3
 	when applicable.
 
 	When called, we have parsed expr1 and seen token "~". This routine will
@@ -159,7 +159,7 @@ See the section on backtracking.
 
 ### Special case: Integrate
 
-The `Integrate` rule is `E ::= Integrate expr1 DifferentialD expr2`. Similarly this can be handled by treating `Integrate` as a prefix operator that consumes
+The `Integrate` rule is `E : Integrate expr1 DifferentialD expr2`. Similarly this can be handled by treating `Integrate` as a prefix operator that consumes
 an extra token and expression. Unlike `Infix`, the precedences for the inner (`expr1`) and outer (`expr2`) expressions differ.
 
 To quote the Wolfram docs:
@@ -174,7 +174,7 @@ This is simple to handle with precedence climbing:
 
 ```python
 def p_Integral(self, token):
-    `expr ::= Integral expr1 DifferentialD expr2
+    `expr : Integral expr1 DifferentialD expr2
     self.consume()                          # consume 'Integral'
 
     inner_prec = all_operators['Sum'] + 1   # lookup inner
@@ -196,15 +196,15 @@ All the Mathics operators are specified in `mathics/core/parser/operators.py`. T
 
 Methods beginning with `p_TAG` declare what to do when the `TAG` token is
 encountered at the beginning of an expression. For example, the first token
-after an open parenthesis. These rules define all the atomics `E ::= A`, prefix
-operators, `E ::= PREFIX E` and also brackets `E ::= ( E )`.
+after an open parenthesis. These rules define all the atomics `E : A`, prefix
+operators, `E : PREFIX E` and also brackets `E : ( E )`.
 
 #### E Rules
 
 Methods beginning with `e_TAG` are called when one expression is already
 present and we encounter the `TAG` token. This covers binary operators
-`E ::= E BINARY E`, postfix operators `E ::= E POSTFIX`, ternary operators,
-`E ::= E TERNARY1 E TERNARY2 E`, and functions `E ::= E [ SEQUENCE ]`.
+`E : E BINARY E`, postfix operators `E : E POSTFIX`, ternary operators,
+`E : E TERNARY1 E TERNARY2 E`, and functions `E : E [ SEQUENCE ]`.
 
 #### B Rules
 
