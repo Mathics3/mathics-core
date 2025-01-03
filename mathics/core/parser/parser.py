@@ -24,10 +24,9 @@ from mathics.core.parser.ast import (
     String,
     Symbol,
 )
-from mathics.core.parser.operators import (
+from mathics.core.parser.operators import (  # box_operators,  # Soon to come...
     all_operators,
     binary_operators,
-    box_operators,
     flat_binary_operators,
     inequality_operators,
     left_binary_operators,
@@ -131,6 +130,9 @@ class Parser:
         self.current_token = None
 
     def parse_e(self) -> Union[Node, Optional[list]]:
+        """
+        Parse the single top-level or "start" expression.
+        """
         result = []
         while self.next().tag != "END":
             result.append(self.parse_exp(NEVER_ADD_PARENTHESIS))
@@ -141,8 +143,23 @@ class Parser:
         else:
             return None
 
-    def parse_exp(self, p: int):
+    def parse_exp(self, expr1_precedence: int) -> Optional[Node]:
+        """
+        Parse an expression.
+
+        Implements grammar rules of the form:
+
+        expr ::= <e_tag_fn(expr1)>
+               | expr1 inequality_operator expr2 ...
+               | expr1 binary_operator expr2 ...
+               | expr1 ternary_operator expr2 ternary_operator2 expr3 ...
+               | expr1 postfix_operator ...
+               | expr1 expr2 ... (* implicit multiplication *)
+
+        """
         result = self.parse_p()
+
+        # The while loop below flattens expressions.
         while True:
             if self.bracket_depth > 0:
                 token = self.next_noend()
@@ -151,17 +168,20 @@ class Parser:
             tag = token.tag
             method = getattr(self, "e_" + tag, None)
             if method is not None:
-                new_result = method(result, token, p)
+                new_result = method(result, token, expr1_precedence)
             elif tag in inequality_operators:
-                new_result = self.parse_inequality(result, token, p)
+                new_result = self.parse_inequality(result, token, expr1_precedence)
             elif tag in binary_operators:
-                new_result = self.parse_binary(result, token, p)
+                new_result = self.parse_binary(result, token, expr1_precedence)
             elif tag in ternary_operators:
-                new_result = self.parse_ternary(result, token, p)
+                new_result = self.parse_ternary(result, token, expr1_precedence)
             elif tag in postfix_operators:
-                new_result = self.parse_postfix(result, token, p)
-            elif tag not in self.halt_tags and flat_binary_operators["Times"] >= p:
-                # implicit times
+                new_result = self.parse_postfix(result, token, expr1_precedence)
+            elif (
+                tag not in self.halt_tags
+                and flat_binary_operators["Times"] >= expr1_precedence
+            ):
+                # implicit multiplication
                 q = flat_binary_operators["Times"]
                 child = self.parse_exp(q + 1)
                 new_result = Node("Times", result, child).flatten()
@@ -284,7 +304,7 @@ class Parser:
     ) -> Optional[Node]:
         """
         Implements grammar rule:
-           expr <- expr1 BINARY expr2
+           expr ::= expr1 BINARY expr2
         when it is applicable.
 
         When called, we have parsed expr1 and seen token BINARY. This routine will
@@ -335,7 +355,6 @@ class Parser:
     ) -> Optional[Node]:
         """
         Implements grammar rule:
-
           expr <- PREFIX_OPERATOR expr1
         when it is applicable.
 
@@ -362,7 +381,9 @@ class Parser:
         self.consume()
         return Node(tag, expr1)
 
-    def parse_ternary(self, expr1, token: Token, p: int) -> Optional[Node]:
+    def parse_ternary(
+        self, expr1, token: Token, expr1_precedence: int
+    ) -> Optional[Node]:
         raise NotImplementedError
 
     # P methods
@@ -372,19 +393,19 @@ class Parser:
     # Used for prefix operators, brackets and tokens which
     # can uniquely identified by a prefix character or string.
 
-    def p_Factorial(self, token) -> Node:
+    def p_Factorial(self, token: Token) -> Node:
         self.consume()
         q = prefix_operators["Not"]
         child = self.parse_exp(q)
         return Node("Not", child)
 
-    def p_Factorial2(self, token) -> Node:
+    def p_Factorial2(self, token: Token) -> Node:
         self.consume()
         q = prefix_operators["Not"]
         child = self.parse_exp(q)
         return Node("Not", Node("Not", child))
 
-    def p_RawLeftParenthesis(self, token) -> Node:
+    def p_RawLeftParenthesis(self, token: Token) -> Node:
         self.consume()
         self.bracket_depth += 1
         result = self.parse_exp(NEVER_ADD_PARENTHESIS)
@@ -393,7 +414,7 @@ class Parser:
         result.parenthesised = True
         return result
 
-    def p_RawLeftBrace(self, token) -> Node:
+    def p_RawLeftBrace(self, token: Token) -> Node:
         self.consume()
         self.bracket_depth += 1
         seq = self.parse_seq()
@@ -401,7 +422,7 @@ class Parser:
         self.bracket_depth -= 1
         return Node("List", *seq)
 
-    def p_RawLeftAssociation(self, token) -> Node:
+    def p_RawLeftAssociation(self, token: Token) -> Node:
         self.consume()
         self.bracket_depth += 1
         seq = self.parse_seq()
@@ -409,7 +430,7 @@ class Parser:
         self.bracket_depth -= 1
         return Node("Association", *seq)
 
-    def p_LeftRowBox(self, token) -> Union[Node, String]:
+    def p_LeftRowBox(self, token: Token) -> Union[Node, String]:
         self.consume()
         children = []
         self.box_depth += 1
@@ -432,7 +453,7 @@ class Parser:
         result.parenthesised = True
         return result
 
-    def p_Number(self, token) -> Number:
+    def p_Number(self, token: Token) -> Number:
         s = token.text
 
         # sign
@@ -479,18 +500,18 @@ class Parser:
         self.consume()
         return result
 
-    def p_String(self, token) -> String:
+    def p_String(self, token: Token) -> String:
         result = String(unescape_string(token.text))
         self.consume()
         return result
 
-    def p_Symbol(self, token) -> Symbol:
+    def p_Symbol(self, token: Token) -> Symbol:
         symbol_name = special_symbols.get(token.text, token.text)
         result = Symbol(symbol_name, context=None)
         self.consume()
         return result
 
-    def p_Filename(self, token) -> Filename:
+    def p_Filename(self, token: Token) -> Filename:
         result = Filename(token.text)
         self.consume()
         return result
@@ -498,7 +519,7 @@ class Parser:
     def p_Span(self, token):
         return self.e_Span(Number1, token, 0)
 
-    def p_Integral(self, token) -> Node:
+    def p_Integral(self, token: Token) -> Node:
         self.consume()
         inner_prec, outer_prec = all_operators["Sum"] + 1, all_operators["Power"] - 1
         expr1 = self.parse_exp(inner_prec)
@@ -506,9 +527,9 @@ class Parser:
         expr2 = self.parse_exp(outer_prec)
         return Node("Integrate", expr1, expr2)
 
-    def p_Pattern(self, token) -> Node:
+    def p_Pattern(self, token: Token) -> Node:
         self.consume()
-        text = token.text
+        name = text = token.text
         if "." in text:
             name = text[:-2]
             if name:
@@ -535,7 +556,7 @@ class Parser:
         else:
             return blank
 
-    def p_Minus(self, token):
+    def p_Minus(self, token: Token) -> Optional[Node]:
         self.consume()
         q = prefix_operators["Minus"]
         expr = self.parse_exp(q)
@@ -545,23 +566,23 @@ class Parser:
         else:
             return Node("Times", NumberM1, expr).flatten()
 
-    def p_Plus(self, token):
+    def p_Plus(self, token: Token):
         self.consume()
         q = prefix_operators["Minus"]
         # note flattening here even flattens e.g. + a + b
         return Node("Plus", self.parse_exp(q)).flatten()
 
-    def p_PlusMinus(self, token) -> Node:
+    def p_PlusMinus(self, token: Token) -> Node:
         self.consume()
         q = prefix_operators["Minus"]
         return Node("PlusMinus", self.parse_exp(q))
 
-    def p_MinusPlus(self, token) -> Node:
+    def p_MinusPlus(self, token: Token) -> Node:
         self.consume()
         q = prefix_operators["Minus"]
         return Node("MinusPlus", self.parse_exp(q))
 
-    def p_Out(self, token) -> Node:
+    def p_Out(self, token: Token) -> Node:
         self.consume()
         text = token.text
         if text == "%":
@@ -572,7 +593,7 @@ class Parser:
             n = text[1:]
         return Node("Out", Number(n))
 
-    def p_Slot(self, token) -> Node:
+    def p_Slot(self, token: Token) -> Node:
         self.consume()
         text = token.text[1:]
         n: Union[Number, String]
@@ -585,7 +606,7 @@ class Parser:
                 n = String(text)
         return Node("Slot", n)
 
-    def p_SlotSequence(self, token) -> Node:
+    def p_SlotSequence(self, token: Token) -> Node:
         self.consume()
         text = token.text
         if len(text) == 2:
@@ -594,17 +615,17 @@ class Parser:
             n = text[2:]
         return Node("SlotSequence", Number(n))
 
-    def p_Increment(self, token) -> Node:
+    def p_Increment(self, token: Token) -> Node:
         self.consume()
         q = prefix_operators["PreIncrement"]
         return Node("PreIncrement", self.parse_exp(q))
 
-    def p_Decrement(self, token) -> Node:
+    def p_Decrement(self, token: Token) -> Node:
         self.consume()
         q = prefix_operators["PreDecrement"]
         return Node("PreDecrement", self.parse_exp(q))
 
-    def p_PatternTest(self, token) -> Node:
+    def p_PatternTest(self, token: Token) -> Node:
         self.consume()
         q = prefix_operators["Definition"]
         child = self.parse_exp(q)
@@ -612,7 +633,7 @@ class Parser:
             "Information", child, Node("Rule", Symbol("LongForm"), Symbol("False"))
         )
 
-    def p_Information(self, token) -> Node:
+    def p_Information(self, token: Token) -> Node:
         self.consume()
         q = prefix_operators["Information"]
         child = self.parse_exp(q)
@@ -629,7 +650,7 @@ class Parser:
     # Used for binary and ternary operators.
     # return None if precedence is too low.
 
-    def e_Span(self, expr1, token, p) -> Optional[Node]:
+    def e_Span(self, expr1, token: Token, p) -> Optional[Node]:
         q = ternary_operators["Span"]
         if q < p:
             return None
@@ -687,14 +708,30 @@ class Parser:
             result.parenthesised = True
             return result
 
-    def e_Infix(self, expr1, token, p) -> Optional[Node]:
-        q = ternary_operators["Infix"]
-        if q < p:
+    def e_Infix(self, expr1, token: Token, expr1_precedence) -> Optional[Node]:
+        """
+        Implements the rule:
+           expr ::= expr1 '~' expr2 '~' expr3
+        when applicable.
+
+        When called, we have parsed expr1 and seen token "~". This routine will
+        may cause expr2 ~ expr3 to get scanned and parsed if applicable based on expr1_precedence.
+
+        "expr1_precendence" is the precedence of expr1 and is used whether parsing
+        should be interpreted as:
+           (expr1) ~ expr2 ~ expr3
+
+        or:
+           (expr1 ~ expr2) ~ expr3
+
+        """
+        operator_precedence = ternary_operators["Infix"]
+        if expr1_precedence > operator_precedence:
             return None
         self.consume()
-        expr2 = self.parse_exp(q + 1)
+        expr2 = self.parse_exp(operator_precedence + 1)
         self.expect("Infix")
-        expr3 = self.parse_exp(q + 1)
+        expr3 = self.parse_exp(operator_precedence + 1)
         return Node(expr2, expr1, expr3)
 
     def e_Postfix(self, expr1, token: Token, p: int) -> Optional[Node]:
