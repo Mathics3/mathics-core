@@ -39,15 +39,6 @@ from mathics.core.systemsymbols import (
     SymbolStandardForm,
 )
 
-# An operator precedence value that will ensure that whatever operator
-# this is attached to does not have parenthesis surrounding it.
-# Operator precedence values are integers; If if an operator
-# "op" is greater than the surrounding precedence, then "op"
-# will be surrounded by parenthesis, e.g. ... (...op...) ...
-# In named-characters.yml of mathics-scanner we start at 0.
-# However, negative values would also work.
-NEVER_ADD_PARENTHESIS = 0
-
 # These Strings are used in Boxing output
 StringElipsis = String("...")
 StringLParen = String("(")
