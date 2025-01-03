@@ -149,7 +149,7 @@ class Parser:
 
         Implements grammar rules of the form:
 
-        expr ::= <e_tag_fn(expr1)>
+        expr : <e_tag_fn(expr1)>
                | expr1 inequality_operator expr2 ...
                | expr1 binary_operator expr2 ...
                | expr1 ternary_operator expr2 ternary_operator2 expr3 ...
@@ -304,7 +304,7 @@ class Parser:
     ) -> Optional[Node]:
         """
         Implements grammar rule:
-           expr ::= expr1 BINARY expr2
+           expr : expr1 BINARY expr2
         when it is applicable.
 
         When called, we have parsed expr1 and seen token BINARY. This routine will
@@ -355,7 +355,7 @@ class Parser:
     ) -> Optional[Node]:
         """
         Implements grammar rule:
-          expr <- PREFIX_OPERATOR expr1
+          expr : PREFIX_OPERATOR expr1
         when it is applicable.
 
         When called, we have parsed PREFIX_OPERATOR and expr1. This routine will
@@ -393,11 +393,17 @@ class Parser:
     # Used for prefix operators, brackets and tokens which
     # can uniquely identified by a prefix character or string.
 
-    def p_Factorial(self, token: Token) -> Node:
+    def p_Not(self, token: Token) -> Node:
         self.consume()
-        q = prefix_operators["Not"]
-        child = self.parse_exp(q)
+        operator_precedence = prefix_operators["Not"]
+        child = self.parse_exp(operator_precedence)
         return Node("Not", child)
+
+    # p_Factorial sometimes gets called when p_Not would be more
+    # approriate. In "a;;!b" we can't tell initially if "!" is postfix
+    # Factorial or prefix Not.
+    # See if we can fix this mess.
+    p_Factorial = p_Not
 
     def p_Factorial2(self, token: Token) -> Node:
         self.consume()
@@ -713,7 +719,7 @@ class Parser:
     def e_Infix(self, expr1, token: Token, expr1_precedence) -> Optional[Node]:
         """
         Implements the rule:
-           expr ::= expr1 '~' expr2 '~' expr3
+           expr : expr1 '~' expr2 '~' expr3
         when applicable.
 
         When called, we have parsed expr1 and seen token "~". This routine will
