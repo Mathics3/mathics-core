@@ -465,31 +465,31 @@ class Parser:
             sign = 1
 
         # base
-        s = s.split("^^")
-        if len(s) == 1:
-            base, s = 10, s[0]
+        base_parts = s.split("^^")
+        if len(base_parts) == 1:
+            base, s = 10, base_parts[0]
         else:
-            assert len(s) == 2
-            base, s = int(s[0]), s[1]
+            assert len(base_parts) == 2
+            base, s = int(base_parts[0]), base_parts[1]
             if not 2 <= base <= 36:
                 self.tokeniser.feeder.message("General", "base", base, token.text, 36)
                 self.tokeniser.sntx_message(token.pos)
                 raise InvalidSyntaxError()
 
         # mantissa
-        s = s.split("*^")
-        if len(s) == 1:
-            exp, s = 0, s[0]
+        mantissa_parts = s.split("*^")
+        if len(mantissa_parts) == 1:
+            exp, s = 0, mantissa_parts[0]
         else:
             # TODO modify regex and provide error if `exp` is not an int
-            exp, s = int(s[1]), s[0]
+            exp, s = int(mantissa_parts[1]), mantissa_parts[0]
 
         # precision/accuracy
-        s = s.split("`", 1)
-        if len(s) == 1:
-            s, suffix = s[0], None
+        precision_accuracy = s.split("`", 1)
+        if len(precision_accuracy) == 1:
+            s, suffix = precision_accuracy[0], None
         else:
-            s, suffix = s[0], s[1]
+            s, suffix = precision_accuracy[0], precision_accuracy[1]
 
         for i, c in enumerate(s.lower()):
             if permitted_digits[c] >= base:
