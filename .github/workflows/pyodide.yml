@@ -54,6 +54,11 @@ jobs:
 
           pip install "setuptools>=70.0.0" PyYAML click packaging pytest
 
+          # First install our patched version of stopit
+          git clone --depth 1 https://github.com/Mathics3/stopit.git
+          cd stopit/
+          pip install -e .
+          cd ..
           # We can comment out after next Mathics-Scanner release
           # python -m pip install --no-build-isolation -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner
           # pip install --no-build-isolation -e .

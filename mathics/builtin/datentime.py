@@ -39,8 +39,12 @@ from mathics.core.systemsymbols import (
     SymbolInfinity,
     SymbolRowBox,
 )
-from mathics.eval.datetime import eval_timeconstrained, valid_time_from_expression
 from mathics.settings import TIME_12HOUR
+
+if sys.platform == "emscripten":
+    from stopit import SignalTimeout as TimeoutHandler
+else:
+    from timed_threads import ThreadingTimeout as TimeoutHandler
 
 START_TIME = time.time()
 
@@ -1094,35 +1098,34 @@ class Now(Predefined):
 
 
 class TimeConstrained(Builtin):
-    r"""
+    """
     <url>:WMA link:https://reference.wolfram.com/language/ref/TimeConstrained.html</url>
 
     <dl>
-      <dt>'TimeConstrained'[$expr$, $t$]
+      <dt>'TimeConstrained[$expr$, $t$]'
       <dd>'evaluates $expr$, stopping after $t$ seconds.'
 
-      <dt>'TimeConstrained'[$expr$, $t$, $failexpr$]
+      <dt>'TimeConstrained[$expr$, $t$, $failexpr$]'
       <dd>'returns $failexpr$ if the time constraint is not met.'
     </dl>
 
     Possible issues: for certain time-consuming functions (like simplify)
     which are based on sympy or other libraries, it is possible that
     the evaluation continues after the timeout. However, at the end of the \
-    evaluation, the function will return '\$Aborted' and the results will not affect
+    evaluation, the function will return '$Aborted' and the results will not affect
     the state of the Mathics3 kernel.
 
+    >> TimeConstrained[Pause[5]; a, 1]
+     = $Aborted
 
-    ## >> TimeConstrained[Pause[5]; a, 1]
-    ##  = $Aborted
-
-    ## 'TimeConstrained' can be nested. In this case, the outer 'TimeConstrained' waits for \
-    ## 2 seconds that the inner sequence be executed. Inner expressions would take in \
-    ## sequence more than 3 seconds:
-    ## >> TimeConstrained[TimeConstrained[Pause[1]; Print["First Done"], 2];\
-    ##              TimeConstrained[Pause[5];Print["Second Done"],2,"inner"], \
-    ##              2, "outer"]
-    ## | First Done
-    ## = outer
+    'TimeConstrained' can be nested. In this case, the outer 'TimeConstrained' waits for \
+    2 seconds that the inner sequence be executed. Inner expressions would take in \
+    sequence more than 3 seconds:
+    >> TimeConstrained[TimeConstrained[Pause[1]; Print["First Done"], 2];\
+                  TimeConstrained[Pause[5];Print["Second Done"],2,"inner"], \
+                  2, "outer"]
+     | First Done
+     = outer
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
@@ -1132,30 +1135,36 @@ class TimeConstrained(Builtin):
             "or Infinity."
         ),
     }
-    if sys.platform == "emscripten":
-        messages.update({"tcns": f"TimeConstrained is not supported in {sys.platform}"})
 
     summary_text = "run a command for at most a specified time"
 
-    def eval_with_timeout(self, expr, t, evaluation) -> Optional[BaseElement]:
+    def eval_2(self, expr, t, evaluation):
         "TimeConstrained[expr_, t_]"
-        try:
-            timeout = valid_time_from_expression(t, evaluation)
-        except ValueError:
-            evaluation.message("TimeConstrained", "timc", t)
-            return
-        return eval_timeconstrained(expr, timeout, SymbolAborted, evaluation)
+        return self.eval_3(expr, t, SymbolAborted, evaluation)
 
-    def eval_with_timeout_and_failexpr(
-        self, expr, t, failexpr, evaluation
-    ) -> Optional[BaseElement]:
+    def eval_3(self, expr, t, failexpr, evaluation):
         "TimeConstrained[expr_, t_, failexpr_]"
-        try:
-            timeout = valid_time_from_expression(t, evaluation)
-        except ValueError:
+        t = t.evaluate(evaluation)
+        if not t.is_numeric(evaluation):
             evaluation.message("TimeConstrained", "timc", t)
             return
-        return eval_timeconstrained(expr, timeout, failexpr, evaluation)
+        try:
+            timeout = float(t.to_python())
+            evaluation.timeout_queue.append((timeout, datetime.now().timestamp()))
+            request = lambda: expr.evaluate(evaluation)
+            done = False
+            with TimeoutHandler(timeout) as to_ctx_mgr:
+                assert to_ctx_mgr.state == to_ctx_mgr.EXECUTING
+                result = request()
+                done = True
+            if done:
+                evaluation.timeout_queue.pop()
+                return result
+        except Exception:
+            evaluation.timeout_queue.pop()
+            raise
+        evaluation.timeout_queue.pop()
+        return failexpr.evaluate(evaluation)
 
 
 class TimeZone(Predefined):
