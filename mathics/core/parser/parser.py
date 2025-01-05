@@ -31,6 +31,7 @@ from mathics.core.parser.operators import (  # box_operators,  # Soon to come...
     inequality_operators,
     left_binary_operators,
     nonassoc_binary_operators,
+    operator_precedences,
     postfix_operators,
     prefix_operators,
     right_binary_operators,
@@ -111,13 +112,25 @@ class Parser:
             self.incomplete(token.pos)
 
     def consume(self):
+        """
+        We mark that the current token is "consumed" by setting it
+        to None.  Then, when parsing is requested, the function
+        "next()" will see that the current token is None and
+        read a new token".
+        """
         self.current_token = None
 
     def incomplete(self, pos):
         self.tokeniser.incomplete()
         self.backtrack(pos)
 
-    def expect(self, expected_tag):
+    def expect(self, expected_tag: str):
+        """
+        This "expect()" function is the sort of thing one expects to see in
+        top-down predictive parsing. In this kind of parsing, a "expected_tag" is, well, expected,
+        and here we verify that what was expected is found. When this is not so, then we have
+        a syntax error.
+        """
         token = self.next_noend()
         if token.tag == expected_tag:
             self.consume()
@@ -147,7 +160,7 @@ class Parser:
         """
         Parse an expression.
 
-        Implements grammar rules of the form:
+        Used to implement recognizing grammar rules of the form:
 
         expr : <e_tag_fn(expr1)>
                | expr1 inequality_operator expr2 ...
@@ -156,6 +169,7 @@ class Parser:
                | expr1 postfix_operator ...
                | expr1 expr2 ... (* implicit multiplication *)
 
+        and transforming this into its corresponding Node S-expression form.
         """
         result = self.parse_p()
 
@@ -302,27 +316,33 @@ class Parser:
     def parse_binary(
         self, expr1, token: Token, expr1_precedence: int
     ) -> Optional[Node]:
-        """
-        Implements grammar rule:
-           expr : expr1 BINARY expr2
+        """Implements grammar rule and tranformation of binary operators:
+           expr : expr1 <binary-operator> expr2
         when it is applicable.
 
-        When called, we have parsed expr1 and seen token BINARY. This routine will
+        When called, we have parsed "expr1" and seen <binary-operator> passed as "token". This routine
         may cause expr2 to get scanned and parsed.
 
-        "expr1_precendence" is the precedence of expr1 and is used whether parsing
-        should be interpreted as:
-            (expr1) BINARY expr2
+        "expr1_precendence" is the precedence of "expr1" and is used
+        to determine whether parsing should be interpreted as:
 
-         or:
-            (expr1 BINARY expr2)
+        (... expr1) <binary-operator> expr2
+
+        or:
+           ... (expr1 <binary-operator> expr2)
 
 
-         In the former case, we will return None (no further tokens
-         added) and let a higher level of parsing parse:
-          (expr1) BINARY expr2.
+        In the first case, we will return None (no further tokens
+        added) and a higher level of parsing resolve and parse:
+           (... expr1) <binary_operator> expr2
 
-        In the later case we will return (expr1 BINARY expr2).
+        In this situation, this routine will get called again with a
+        new expr1 that contains (... expr1).
+
+        In the latter case:
+           ...(expr1 <binary-operator> expr2),
+
+        we return Node(<binary-operator>, expr1, expr2)
         """
         tag = token.tag
         operator_precedence = binary_operators[tag]
@@ -353,26 +373,21 @@ class Parser:
     def parse_postfix(
         self, expr1, token: Token, expr1_precedence: int
     ) -> Optional[Node]:
-        """
-        Implements grammar rule:
-          expr : PREFIX_OPERATOR expr1
+        """Implements grammar rule:
+          expr : expr1 <postfix-operator>
         when it is applicable.
 
-        When called, we have parsed PREFIX_OPERATOR and expr1. This routine will
-
-        "expr1_precendence" is the precedence of expr1 and is used whether parsing
+        When called, we have parsed "expr1" and <prefix-operator> in "token".
+        "expr1_precedence" is the precedence of expr1 and is used to determine whether parsing
         should be interpreted as:
-            PREFIX_OPERATOR (expr1 ... )
+            (... expr1) <postfix-operator>
 
          or:
-            (PREFIX_OPERATOR expr1)
+           ... (expr1 <postfix-operator>)
 
-
-         In the former case, we will return None (no further tokens
-         added) and let a higher level of parsing parse:
-         PREFIX_OPERATOR (expr1 ...)
-
-        In the latter case, we will return a node for (PREFIX_OPERATOR expr1).
+        In the first case, we return None and at a higher level we may get called
+        again with (... expr1) passed as a new expr1 parameter.
+        In the latter case, we return Node(<postfix-operator>, expr1)
         """
         tag = token.tag
         prefix_operator_precedence = postfix_operators[tag]
@@ -401,7 +416,7 @@ class Parser:
 
     # p_Factorial sometimes gets called when p_Not would be more
     # approriate. In "a;;!b" we can't tell initially if "!" is postfix
-    # Factorial or prefix Not.
+    # "Factorial" or prefix "Not".
     # See if we can fix this mess.
     p_Factorial = p_Not
 
@@ -573,21 +588,10 @@ class Parser:
         else:
             return Node("Times", NumberM1, expr).flatten()
 
-    def p_Plus(self, token: Token):
-        self.consume()
-        q = prefix_operators["Minus"]
-        # note flattening here even flattens e.g. + a + b
-        return Node("Plus", self.parse_exp(q)).flatten()
-
-    def p_PlusMinus(self, token: Token) -> Node:
-        self.consume()
-        q = prefix_operators["Minus"]
-        return Node("PlusMinus", self.parse_exp(q))
-
     def p_MinusPlus(self, token: Token) -> Node:
         self.consume()
-        q = prefix_operators["Minus"]
-        return Node("MinusPlus", self.parse_exp(q))
+        operator_precedence = operator_precedences["UnaryMinusPlus"]
+        return Node("MinusPlus", self.parse_exp(operator_precedence))
 
     def p_Out(self, token: Token) -> Node:
         self.consume()
@@ -599,6 +603,17 @@ class Parser:
         else:
             n = text[1:]
         return Node("Out", Number(n))
+
+    def p_Plus(self, token: Token):
+        self.consume()
+        operator_precedence = prefix_operators["UnaryPlus"]
+        # note flattening here even flattens e.g. + a + b
+        return Node("Plus", self.parse_exp(operator_precedence)).flatten()
+
+    def p_PlusMinus(self, token: Token) -> Node:
+        self.consume()
+        operator_precedence = operator_precedences["UnaryPlusMinus"]
+        return Node("PlusMinus", self.parse_exp(operator_precedence))
 
     def p_Slot(self, token: Token) -> Node:
         self.consume()
@@ -718,7 +733,7 @@ class Parser:
 
     def e_Infix(self, expr1, token: Token, expr1_precedence) -> Optional[Node]:
         """
-        Implements the rule:
+        Used to implement the rule:
            expr : expr1 '~' expr2 '~' expr3
         when applicable.
 
@@ -742,42 +757,81 @@ class Parser:
         expr3 = self.parse_exp(operator_precedence + 1)
         return Node(expr2, expr1, expr3)
 
-    def e_Postfix(self, expr1, token: Token, p: int) -> Optional[Node]:
-        q = left_binary_operators["Postfix"]
-        if q < p:
+    def e_Postfix(self, expr1, token: Token, expr1_precedence: int) -> Optional[Node]:
+        """
+        Used to parse
+           expr1 // expr2
+        into the Node S-expression form of
+           expr2(expr1)
+
+        When called, we have parsed expr1 and seen token "//".
+
+        "expr1_precendence" is the precedence of expr1 and is used whether parsing
+        should be interpreted as:
+           (... expr1) // expr2
+
+        or:
+           ... (expr1 // expr2)
+
+        In the first case, we return None and at a higher level we may get called
+        again with (... expr1) passed as a new expr1 parameter.
+        """
+        operator_precedence = left_binary_operators["Postfix"]
+        if expr1_precedence > operator_precedence:
+            # Mark the completion of (... expr1)
             return None
+
         self.consume()
-        # postix has lowest prec and is left assoc
-        expr2 = self.parse_exp(q + 1)
+
+        # Precedence[Postix] is lower than expr1; Postfix[] is left associative.
+        expr2 = self.parse_exp(operator_precedence + 1)
         return Node(expr2, expr1)
 
-    def e_Prefix(self, expr1, token: Token, p: int) -> Optional[Node]:
-        q = 640
-        if 640 < p:
+    def e_Prefix(self, expr1, token: Token, expr1_precedence: int) -> Optional[Node]:
+        """
+        Used to parse:
+           expr1 @ expr2
+        into the Node S-expression form of
+           expr1(expr2)
+
+        When called, we have parsed expr1 and seen token "@".
+
+        "expr1_precendence" is the precedence of expr1 and is used whether parsing
+        should be interpreted as:
+           (... expr1) @ expr2
+
+        or:
+           ... (expr1 @ expr2)
+
+        In the first case, we return None and at a higher level we may get called
+        again with (... expr1) passed as a new expr1 parameter.
+        """
+        operator_precedence = flat_binary_operators["Prefix"]
+        if expr1_precedence > operator_precedence:
             return None
         self.consume()
-        expr2 = self.parse_exp(q)
+        expr2 = self.parse_exp(operator_precedence)
         return Node(expr1, expr2)
 
     def e_ApplyList(self, expr1, token: Token, p: int) -> Optional[Node]:
-        q = right_binary_operators["Apply"]
-        if q < p:
+        operator_precedence = right_binary_operators["Apply"]
+        if operator_precedence < p:
             return None
         self.consume()
-        expr2 = self.parse_exp(q)
+        expr2 = self.parse_exp(operator_precedence)
         expr3 = Node("List", Number1)
         return Node("Apply", expr1, expr2, expr3)
 
     def e_Function(self, expr1, token: Token, p: int) -> Optional[Node]:
-        q = postfix_operators["Function"]
-        if q < p:
+        operator_precedence = postfix_operators["Function"]
+        if operator_precedence < p:
             return None
         # postfix or right-binary determined by symbol
         self.consume()
         if token.text == "&":
             return Node("Function", expr1)
         else:
-            expr2 = self.parse_exp(q)
+            expr2 = self.parse_exp(operator_precedence)
             return Node("Function", expr1, expr2)
 
     def e_RawColon(self, expr1, token: Token, p: int) -> Optional[Node]:
@@ -801,9 +855,28 @@ class Parser:
         expr2 = self.parse_exp(q + 1)
         return Node(head, expr1, expr2)
 
-    def e_Semicolon(self, expr1, token: Token, p: int) -> Optional[Node]:
-        q = flat_binary_operators["CompoundExpression"]
-        if q < p:
+    def e_Semicolon(self, expr1, token: Token, expr1_precedence: int) -> Optional[Node]:
+        """
+        Used to parse
+           expr1 ; expr2
+        into S-expression:
+           CompondExpression(expr1, expr2)
+
+        When called, we have parsed expr1 and seen token ";".
+
+        "expr1_precendence" is the precedence of expr1 and is used whether parsing
+        should be interpreted as:
+           (... expr1) ; expr2
+
+        or:
+           ... (expr1 ; exp2)
+
+        In the first case, we return None and at a higher level we may get called
+        again with (... expr1) passed as a new expr1 parameter.
+        In the latter case, we return Node(CompoundExpression, expr1, expr2)
+        """
+        operator_precedence = flat_binary_operators["CompoundExpression"]
+        if expr1_precedence > operator_precedence:
             return None
         self.consume()
 
@@ -820,7 +893,7 @@ class Parser:
 
         # XXX look for next expr otherwise backtrack
         try:
-            expr2 = self.parse_exp(q + 1)
+            expr2 = self.parse_exp(operator_precedence + 1)
         except TranslateError:
             self.backtrack(pos)
             self.feeder.messages = messages
