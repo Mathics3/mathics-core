@@ -67,7 +67,6 @@ class Optional(InfixOperator, PatternObject):
         "MakeBoxes[Verbatim[Optional][Verbatim[Pattern][symbol_Symbol, Verbatim[_]]], f:StandardForm|TraditionalForm|InputForm|OutputForm]": 'MakeBoxes[symbol, f] <> "_."',
         "MakeBoxes[Verbatim[Optional][Verbatim[_]], f:StandardForm|TraditionalForm|InputForm|OutputForm]": '"_."',
     }
-    operator = ":"
     summary_text = "an optional argument with a default value"
 
     def init(

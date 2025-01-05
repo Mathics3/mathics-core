@@ -1315,6 +1315,18 @@ class UnaryOperator(Operator):
     def __init__(self, format_function, *args, **kwargs):
         super().__init__(*args, **kwargs)
         name = self.get_name(short=True)
+
+        # Pick up operator string from JSON table if
+        # it appears there.
+        if self.operator is None:
+            operator_string = self.get_operator()
+            if operator_string:
+                self.operator = operator_string
+            # else:
+            #     if self.operator is None:
+            #         breakpoint()
+            #     print("FIX UP", self.operator, name)
+
         self.precedence = self.get_precedence(name)
         if self.needs_verbatim:
             name = f"Verbatim[{name}"

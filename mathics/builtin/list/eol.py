@@ -1624,7 +1624,6 @@ class Span(InfixOperator):
      = Span[1, 3]
     """
 
-    operator = ";;"
     summary_text = "general specification for spans or blocks of elements"
 
 

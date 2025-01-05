@@ -470,7 +470,6 @@ class Repeated(PostfixOperator, PatternObject):
         )
     }
 
-    operator = ".."
     summary_text = "match to one or more occurrences of a pattern"
 
     def init(
@@ -550,7 +549,6 @@ class RepeatedNull(Repeated):
      = t
     """
 
-    operator = "..."
     summary_text = "match to zero or more occurrences of a pattern"
 
     def init(

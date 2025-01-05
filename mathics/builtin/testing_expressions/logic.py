@@ -348,7 +348,6 @@ class Or(InfixOperator):
     """
 
     attributes = A_FLAT | A_HOLD_ALL | A_ONE_IDENTITY | A_PROTECTED
-    operator = "||"
     summary_text = "logic (inclusive) disjunction"
 
     #    rules = {
@@ -437,6 +436,8 @@ class Not(PrefixOperator):
      = !b
     """
 
+    # FIXME: If we remove this we pick up unicode unconditionally
+    # which wew don't want to do.
     operator = "!"
 
     rules = {

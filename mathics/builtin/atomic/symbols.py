@@ -423,7 +423,6 @@ class Information(PrefixOperator):
 
     attributes = A_HOLD_ALL | A_SEQUENCE_HOLD | A_PROTECTED | A_READ_PROTECTED
     messages = {"notfound": "Expression `1` is not a symbol"}
-    operator = "??"
     options = {
         "LongForm": "True",
     }

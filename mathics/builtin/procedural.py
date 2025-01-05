@@ -202,7 +202,6 @@ class CompoundExpression(InfixOperator):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
-    operator = ";"
 
     summary_text = "execute expressions in sequence"
 
