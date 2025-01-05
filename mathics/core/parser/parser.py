@@ -27,6 +27,7 @@ from mathics.core.parser.ast import (
 from mathics.core.parser.operators import (  # box_operators,  # Soon to come...
     all_operators,
     binary_operators,
+    box_operators,
     flat_binary_operators,
     inequality_operators,
     left_binary_operators,
@@ -123,16 +124,16 @@ class Parser:
             self.tokeniser.sntx_message(token.pos)
             raise InvalidSyntaxError()
 
-    def incomplete(self, pos):
+    def incomplete(self, pos: int):
         self.tokeniser.incomplete()
         self.backtrack(pos)
 
-    def next(self):
+    def next(self) -> Token:
         if self.current_token is None:
             self.current_token = self.tokeniser.next()
         return self.current_token
 
-    def next_noend(self):
+    def next_noend(self) -> Token:
         "returns next token which is not END"
         while True:
             token = self.next()
@@ -140,9 +141,7 @@ class Parser:
                 return token
             self.incomplete(token.pos)
 
-    # FIXME: Should be Optional[Node], but parse_seq returns
-    # a list.
-    def parse(self, feeder) -> Union[Node, Optional[list]]:
+    def parse(self, feeder) -> Optional[Node]:
         """
         top-level parsing routine. This kicks off parsing
         by doing some initialization and then calling
@@ -155,16 +154,14 @@ class Parser:
         self.box_depth = 0
         return self.parse_e()
 
-    # FIXME: Should be Optional[Node], but parse_seq returns
-    # a list.
-    def parse_e(self) -> Union[Node, Optional[list]]:
+    def parse_e(self) -> Optional[Node]:
         """
         Parse the single top-level or "start" expression.
         This is called right after doing parse setup.
         """
         result = []
         while self.next().tag != "END":
-            result.append(self.parse_exp(NEVER_ADD_PARENTHESIS))
+            result.append(self.parse_expr(NEVER_ADD_PARENTHESIS))
         if len(result) > 1:
             return Node("Times", *result)
         if len(result) == 1:
@@ -172,7 +169,7 @@ class Parser:
         else:
             return None
 
-    def parse_binary(
+    def parse_binary_operator(
         self, expr1, token: Token, expr1_precedence: int
     ) -> Optional[Node]:
         """
@@ -211,7 +208,7 @@ class Parser:
         self.consume()
         if tag not in right_binary_operators:
             operator_precedence += 1
-        expr2 = self.parse_exp(operator_precedence)
+        expr2 = self.parse_expr(operator_precedence)
 
         # Handle nonassociative operators
         if (
@@ -230,22 +227,33 @@ class Parser:
 
         return result
 
-    def parse_box(self, precedence: int) -> Union[String, Node]:
-        """
-        Return the parsed boxed expression for the current
-        sequence of tokens.
+    def parse_box_expr(self, precedence: int) -> Union[String, Node]:
+        r"""
+        Parse a box expression returning an AST Node tree for this.
 
         If there is only an Atom we return a String of that.
-        Otherwise we return the Node parse expression.
+        Otherwise we return an AST Node tree for this.
+
+        This code recognizes grammar rules of the form:
+
+        <b_tag_fn(expr1)>
+        | \( box-expr \)
+        | \( box-expr <box-operator> box-expr \)
+
         """
         result = None
         new_result = None
         while True:
-            token = self.next()
+            if self.box_depth > 0:
+                token = self.next_noend()
+            else:
+                token = self.next()
             tag = token.tag
             method = getattr(self, "b_" + tag, None)
             if method is not None:
                 new_result = method(result, token, precedence)
+            elif tag in box_operators:
+                new_result = self.parse_box_operator(result, token, precedence)
             elif tag in ("OtherscriptBox", "RightRowBox"):
                 break
             elif tag == "END":
@@ -263,6 +271,64 @@ class Parser:
                 result = new_result
         if result is None:
             result = NullString
+        return result
+
+    def parse_box_operator(
+        self, box_expr1, token: Token, box_expr1_precedence: int
+    ) -> Optional[Node]:
+        """
+        Implements parsing and tranformation of box operators:
+           box_expr1 <box-operator> box_expr2
+        when it is applicable.
+
+        When called, we have parsed "box_expr1" and seen <box-operator> passed as "token". This routine
+        may cause box_expr2 to get scanned and parsed.
+
+        "box_expr1_precendence" is the precedence of "box_expr1" and is used
+        to determine whether parsing should be interpreted as:
+
+        (... box_expr1) <box-operator> box_expr2
+
+        or:
+           ... (box_expr1 <box-operator> box_expr2)
+
+        In the first case, we will return None (no further tokens
+        added). A higher level will handle group (... box_expr1) and
+        pass that as box_expr1 in another call to this routine.
+
+        In this situation, this routine will get called again with a
+        new box_expr1 that contains (... box_expr1).
+
+        However, in the second case:
+           ...(box_expr1 <box-operator> box_expr2),
+
+        we return Node(<box-operator>, expr1, expr2)
+        """
+        tag = token.tag
+        operator_precedence = binary_operators[tag]
+        if box_expr1_precedence > operator_precedence:
+            return None
+        self.consume()
+
+        # We don't handle any notion of right associativity yet,
+        # if there is such a thing....
+        # if tag not in right_box_operators:
+        #     operator_precedence += 1
+
+        box_expr2 = self.parse_expr(operator_precedence)
+
+        # Is there such a thing as non-associative box operators?
+        # Handle nonassociative box operators
+        # if (
+        #     tag in nonassoc_binary_operators
+        #     and expr1.get_head_name() == tag
+        #     and not expr1.parenthesised
+        # ):
+        #     self.tokeniser.sntx_message(token.pos)
+        #     raise InvalidSyntaxError()
+
+        result = Node(tag, box_expr1, box_expr2)
+
         return result
 
     def parse_comparison(
@@ -301,7 +367,7 @@ class Parser:
             return None
         self.consume()
         head = expr1.get_head_name()
-        expr2 = self.parse_exp(operator_precedence + 1)
+        expr2 = self.parse_expr(operator_precedence + 1)
         if head == "Inequality" and not expr1.parenthesised:
             expr1.children.append(Symbol(tag))
             expr1.children.append(expr2)
@@ -320,24 +386,35 @@ class Parser:
             expr1 = Node(tag, expr1, expr2).flatten()
         return expr1
 
-    def parse_exp(self, expr1_precedence: int) -> Optional[Node]:
+    def parse_expr(self, precedence: int) -> Optional[Node]:
         """
-        Parse an expression.
+        Parse an expression returning an AST Node tree for this.
 
-        Used to implement recognizing grammar rules of the form:
+        This code recognizes grammar rules of the form:
 
-        expr : <e_tag_fn(expr1)>
-               | expr1 inequality_operator expr2 ...
-               | expr1 binary_operator expr2 ...
-               | expr1 ternary_operator expr2 ternary_operator2 expr3 ...
-               | expr1 postfix_operator ...
-               | expr1 expr2 ... (* implicit multiplication *)
+        <e_tag_fn(expr1)>
+        | expr1 inequality_operator expr2 ...
+        | expr1 binary_operator expr2 ...
+        | expr1 ternary_operator expr2 ternary_operator2 expr3 ...
+        | expr1 postfix_operator ...
+        | expr1 expr2 ... (* implicit multiplication *)
 
         and transforming this into its corresponding Node S-expression form.
+
+        "precedence" is an operator precedence of the parent node which is
+        often the operator token seen just before a grouping symbol which probably
+        caused "parse_expr" to get called. For example in:
+            (a + b) * (c + d)
+        or equivalently:
+            (a + b) (c + d)
+        or
+            (a + b)(c + d)
+
+        if we have been called to parse "(c + d)", "precedence" will be the
+        precedence for "Times", also sometimes known as "*".
         """
         result = self.parse_p()
 
-        # The while loop below flattens expressions.
         while True:
             if self.bracket_depth > 0:
                 token = self.next_noend()
@@ -346,22 +423,22 @@ class Parser:
             tag = token.tag
             method = getattr(self, "e_" + tag, None)
             if method is not None:
-                new_result = method(result, token, expr1_precedence)
+                new_result = method(result, token, precedence)
             elif tag in inequality_operators:
-                new_result = self.parse_comparison(result, token, expr1_precedence)
+                new_result = self.parse_comparison(result, token, precedence)
             elif tag in binary_operators:
-                new_result = self.parse_binary(result, token, expr1_precedence)
+                new_result = self.parse_binary_operator(result, token, precedence)
             elif tag in ternary_operators:
-                new_result = self.parse_ternary(result, token, expr1_precedence)
+                new_result = self.parse_ternary_operator(result, token, precedence)
             elif tag in postfix_operators:
-                new_result = self.parse_postfix(result, token, expr1_precedence)
+                new_result = self.parse_postfix(result, token, precedence)
             elif (
                 tag not in self.halt_tags
-                and flat_binary_operators["Times"] >= expr1_precedence
+                and flat_binary_operators["Times"] >= precedence
             ):
                 # implicit multiplication
                 q = flat_binary_operators["Times"]
-                child = self.parse_exp(q + 1)
+                child = self.parse_expr(q + 1)
                 new_result = Node("Times", result, child).flatten()
             else:
                 new_result = None
@@ -385,7 +462,7 @@ class Parser:
         elif tag in prefix_operators:
             self.consume()
             q = prefix_operators[tag]
-            child = self.parse_exp(q)
+            child = self.parse_expr(q)
             return Node(tag, child)
         else:
             self.tokeniser.sntx_message(token.pos)
@@ -433,7 +510,7 @@ class Parser:
                     result.append(NullSymbol)
                 break
             else:
-                result.append(self.parse_exp(NEVER_ADD_PARENTHESIS))
+                result.append(self.parse_expr(NEVER_ADD_PARENTHESIS))
                 token = self.next_noend()
                 tag = token.tag
                 if tag == "RawComma":
@@ -443,14 +520,14 @@ class Parser:
                     break
         return result
 
-    def parse_ternary(
+    def parse_ternary_operator(
         self, expr1, token: Token, expr1_precedence: int
     ) -> Optional[Node]:
         raise NotImplementedError
 
     # B methods
     #
-    # b_xxx methods are called from parse_box.
+    # b_xxx methods are called from parse_box_expr.
     # They expect args (Node, Token precedence) and return Node or None.
     # The first argument may be None if the LHS is absent.
     # Used for boxes.
@@ -460,10 +537,10 @@ class Parser:
             return None
         self.consume()
         q = all_operators["SqrtBox"]
-        box1 = self.parse_box(q)
+        box1 = self.parse_box_expr(q)
         if self.next().tag == "OtherscriptBox":
             self.consume()
-            box2 = self.parse_box(q)
+            box2 = self.parse_box_expr(q)
             return Node("RadicalBox", box1, box2)
         else:
             return Node("SqrtBox", box1)
@@ -475,10 +552,10 @@ class Parser:
         if box1 is None:
             box1 = NullString
         self.consume()
-        box2 = self.parse_box(q)
+        box2 = self.parse_box_expr(q)
         if self.next().tag == "OtherscriptBox":
             self.consume()
-            box3 = self.parse_box(all_operators["SubsuperscriptBox"])
+            box3 = self.parse_box_expr(all_operators["SubsuperscriptBox"])
             return Node("SubsuperscriptBox", box1, box3, box2)
         else:
             return Node("SuperscriptBox", box1, box2)
@@ -490,10 +567,10 @@ class Parser:
         if box1 is None:
             box1 = NullString
         self.consume()
-        box2 = self.parse_box(q)
+        box2 = self.parse_box_expr(q)
         if self.next().tag == "OtherscriptBox":
             self.consume()
-            box3 = self.parse_box(all_operators["SubsuperscriptBox"])
+            box3 = self.parse_box_expr(all_operators["SubsuperscriptBox"])
             return Node("SubsuperscriptBox", box1, box2, box3)
         else:
             return Node("SubscriptBox", box1, box2)
@@ -505,10 +582,10 @@ class Parser:
         if box1 is None:
             box1 = NullString
         self.consume()
-        box2 = self.parse_box(q)
+        box2 = self.parse_box_expr(q)
         if self.next().tag == "OtherscriptBox":
             self.consume()
-            box3 = self.parse_box(all_operators["UnderoverscriptBox"])
+            box3 = self.parse_box_expr(all_operators["UnderoverscriptBox"])
             return Node("UnderoverscriptBox", box1, box2, box3)
         else:
             return Node("UnderscriptBox", box1, box2)
@@ -520,7 +597,7 @@ class Parser:
         if box1 is None:
             box1 = NullString
         self.consume()
-        box2 = self.parse_box(q + 1)
+        box2 = self.parse_box_expr(q + 1)
         return Node("FractionBox", box1, box2)
 
     def b_FormBox(self, box1, token: Token, p: int) -> Optional[Node]:
@@ -534,7 +611,7 @@ class Parser:
         else:
             box1 = Node("Removed", String("$$Failure"))
         self.consume()
-        box2 = self.parse_box(q)
+        box2 = self.parse_box_expr(q)
         return Node("FormBox", box2, box1)
 
     def b_OverscriptBox(self, box1, token: Token, p: int) -> Optional[Node]:
@@ -544,10 +621,10 @@ class Parser:
         if box1 is None:
             box1 = NullString
         self.consume()
-        box2 = self.parse_box(q)
+        box2 = self.parse_box_expr(q)
         if self.next().tag == "OtherscriptBox":
             self.consume()
-            box3 = self.parse_box(all_operators["UnderoverscriptBox"])
+            box3 = self.parse_box_expr(all_operators["UnderoverscriptBox"])
             return Node("UnderoverscriptBox", box1, box3, box2)
         else:
             return Node("OverscriptBox", box1, box2)
@@ -564,7 +641,7 @@ class Parser:
         if operator_precedence < p:
             return None
         self.consume()
-        expr2 = self.parse_exp(operator_precedence)
+        expr2 = self.parse_expr(operator_precedence)
         expr3 = Node("List", Number1)
         return Node("Apply", expr1, expr2, expr3)
 
@@ -573,7 +650,7 @@ class Parser:
         if q < p:
             return None
         self.consume()
-        expr2 = self.parse_exp(q + 1)
+        expr2 = self.parse_expr(q + 1)
         return Node("Alternatives", expr1, expr2).flatten()
 
     def e_Derivative(self, expr1, token: Token, p: int) -> Optional[Node]:
@@ -619,7 +696,7 @@ class Parser:
         if expr1_precedence > operator_precedence:
             return None
         self.consume()
-        expr2 = self.parse_exp(operator_precedence + 1)
+        expr2 = self.parse_expr(operator_precedence + 1)
         return Node("Times", expr1, Node("Power", expr2, NumberM1)).flatten()
 
     def e_Infix(self, expr1, token: Token, expr1_precedence) -> Optional[Node]:
@@ -643,9 +720,9 @@ class Parser:
         if expr1_precedence > operator_precedence:
             return None
         self.consume()
-        expr2 = self.parse_exp(operator_precedence + 1)
+        expr2 = self.parse_expr(operator_precedence + 1)
         self.expect("Infix")
-        expr3 = self.parse_exp(operator_precedence + 1)
+        expr3 = self.parse_expr(operator_precedence + 1)
         return Node(expr2, expr1, expr3)
 
     def e_Prefix(self, expr1, token: Token, expr1_precedence: int) -> Optional[Node]:
@@ -671,7 +748,7 @@ class Parser:
         if expr1_precedence > operator_precedence:
             return None
         self.consume()
-        expr2 = self.parse_exp(operator_precedence)
+        expr2 = self.parse_expr(operator_precedence)
         return Node(expr1, expr2)
 
     def e_Function(self, expr1, token: Token, p: int) -> Optional[Node]:
@@ -683,7 +760,7 @@ class Parser:
         if token.text == "&":
             return Node("Function", expr1)
         else:
-            expr2 = self.parse_exp(operator_precedence)
+            expr2 = self.parse_expr(operator_precedence)
             return Node("Function", expr1, expr2)
 
     def e_MessageName(self, expr1, token: Token, p: int) -> Node:
@@ -708,7 +785,7 @@ class Parser:
         if q < p:
             return None
         self.consume()
-        expr2 = self.parse_exp(q + 1)
+        expr2 = self.parse_expr(q + 1)
         if isinstance(expr2, Number) and not expr2.value.startswith("-"):
             expr2.value = "-" + expr2.value
         else:
@@ -742,7 +819,7 @@ class Parser:
         self.consume()
 
         # Precedence[Postix] is lower than expr1; Postfix[] is left associative.
-        expr2 = self.parse_exp(operator_precedence + 1)
+        expr2 = self.parse_expr(operator_precedence + 1)
         return Node(expr2, expr1)
 
     def e_RawColon(self, expr1, token: Token, p: int) -> Optional[Node]:
@@ -763,7 +840,7 @@ class Parser:
         if p == 151:
             return None
         self.consume()
-        expr2 = self.parse_exp(q + 1)
+        expr2 = self.parse_expr(q + 1)
         return Node(head, expr1, expr2)
 
     def e_RawLeftBracket(self, expr, token: Token, p: int) -> Optional[Node]:
@@ -826,7 +903,7 @@ class Parser:
 
         # XXX look for next expr otherwise backtrack
         try:
-            expr2 = self.parse_exp(operator_precedence + 1)
+            expr2 = self.parse_expr(operator_precedence + 1)
         except TranslateError:
             self.backtrack(pos)
             self.feeder.messages = messages
@@ -853,7 +930,7 @@ class Parser:
         else:
             messages = list(self.feeder.messages)
             try:
-                expr2 = self.parse_exp(q + 1)
+                expr2 = self.parse_expr(q + 1)
             except TranslateError:
                 expr2 = Symbol("All")
                 self.backtrack(token.pos)
@@ -863,7 +940,7 @@ class Parser:
             self.consume()
             messages = list(self.feeder.messages)
             try:
-                expr3 = self.parse_exp(q + 1)
+                expr3 = self.parse_expr(q + 1)
                 return Node("Span", expr1, expr2, expr3)
             except TranslateError:
                 self.backtrack(token.pos)
@@ -875,7 +952,7 @@ class Parser:
         if q < p:
             return None
         self.consume()
-        expr2 = self.parse_exp(q + 1)
+        expr2 = self.parse_expr(q + 1)
         # examine next token
         token = self.next_noend()
         tag = token.tag
@@ -891,7 +968,7 @@ class Parser:
         self.consume()
         if head == "TagUnset":
             return Node(head, expr1, expr2)
-        expr3 = self.parse_exp(q + 1)
+        expr3 = self.parse_expr(q + 1)
         return Node(head, expr1, expr2, expr3)
 
     def e_Unset(self, expr1, token: Token, p: int) -> Optional[Node]:
@@ -911,17 +988,17 @@ class Parser:
     def p_Decrement(self, token: Token) -> Node:
         self.consume()
         q = prefix_operators["PreDecrement"]
-        return Node("PreDecrement", self.parse_exp(q))
+        return Node("PreDecrement", self.parse_expr(q))
 
     def p_Increment(self, token: Token) -> Node:
         self.consume()
         q = prefix_operators["PreIncrement"]
-        return Node("PreIncrement", self.parse_exp(q))
+        return Node("PreIncrement", self.parse_expr(q))
 
     def p_Information(self, token: Token) -> Node:
         self.consume()
         q = prefix_operators["Information"]
-        child = self.parse_exp(q)
+        child = self.parse_expr(q)
         if child.__class__ is not Symbol:
             raise InvalidSyntaxError()
         return Node(
@@ -931,15 +1008,15 @@ class Parser:
     def p_Integral(self, token: Token) -> Node:
         self.consume()
         inner_prec, outer_prec = all_operators["Sum"] + 1, all_operators["Power"] - 1
-        expr1 = self.parse_exp(inner_prec)
+        expr1 = self.parse_expr(inner_prec)
         self.expect("DifferentialD")
-        expr2 = self.parse_exp(outer_prec)
+        expr2 = self.parse_expr(outer_prec)
         return Node("Integrate", expr1, expr2)
 
     def p_Factorial2(self, token: Token) -> Node:
         self.consume()
         q = prefix_operators["Not"]
-        child = self.parse_exp(q)
+        child = self.parse_expr(q)
         return Node("Not", Node("Not", child))
 
     def p_Filename(self, token: Token) -> Filename:
@@ -954,7 +1031,7 @@ class Parser:
         self.bracket_depth += 1
         token = self.next()
         while token.tag not in ("RightRowBox", "OtherscriptBox"):
-            newnode = self.parse_box(NEVER_ADD_PARENTHESIS)
+            newnode = self.parse_box_expr(NEVER_ADD_PARENTHESIS)
             children.append(newnode)
             token = self.next()
         result: Union[Node, String]
@@ -980,7 +1057,7 @@ class Parser:
         """
         self.consume()
         q = prefix_operators["Minus"]
-        expr = self.parse_exp(q)
+        expr = self.parse_expr(q)
         if isinstance(expr, Number) and not expr.value.startswith("-"):
             expr.value = "-" + expr.value
             return expr
@@ -998,12 +1075,12 @@ class Parser:
         """
         self.consume()
         operator_precedence = operator_precedences["UnaryMinusPlus"]
-        return Node("MinusPlus", self.parse_exp(operator_precedence))
+        return Node("MinusPlus", self.parse_expr(operator_precedence))
 
     def p_Not(self, token: Token) -> Node:
         self.consume()
         operator_precedence = prefix_operators["Not"]
-        child = self.parse_exp(operator_precedence)
+        child = self.parse_expr(operator_precedence)
         return Node("Not", child)
 
     # p_Factorial sometimes gets called when p_Not would be more
@@ -1102,7 +1179,7 @@ class Parser:
     def p_PatternTest(self, token: Token) -> Node:
         self.consume()
         q = prefix_operators["Definition"]
-        child = self.parse_exp(q)
+        child = self.parse_expr(q)
         return Node(
             "Information", child, Node("Rule", Symbol("LongForm"), Symbol("False"))
         )
@@ -1119,7 +1196,7 @@ class Parser:
         self.consume()
         operator_precedence = prefix_operators["UnaryPlus"]
         # note flattening here even flattens e.g. + a + b
-        return Node("Plus", self.parse_exp(operator_precedence)).flatten()
+        return Node("Plus", self.parse_expr(operator_precedence)).flatten()
 
     def p_PlusMinus(self, token: Token) -> Node:
         """
@@ -1132,7 +1209,7 @@ class Parser:
         """
         self.consume()
         operator_precedence = operator_precedences["UnaryPlusMinus"]
-        return Node("PlusMinus", self.parse_exp(operator_precedence))
+        return Node("PlusMinus", self.parse_expr(operator_precedence))
 
     def p_RawLeftAssociation(self, token: Token) -> Node:
         self.consume()
@@ -1153,7 +1230,7 @@ class Parser:
     def p_RawLeftParenthesis(self, token: Token) -> Node:
         self.consume()
         self.bracket_depth += 1
-        result = self.parse_exp(NEVER_ADD_PARENTHESIS)
+        result = self.parse_expr(NEVER_ADD_PARENTHESIS)
         self.expect("RawRightParenthesis")
         self.bracket_depth -= 1
         assert result is not None
