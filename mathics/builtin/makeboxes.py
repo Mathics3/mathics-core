@@ -17,14 +17,10 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps
+from mathics.core.parser.parser import NEVER_ADD_PARENTHESIS
 from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import SymbolInputForm, SymbolOutputForm, SymbolRowBox
-from mathics.eval.makeboxes import (
-    NEVER_ADD_PARENTHESIS,
-    _boxed_string,
-    format_element,
-    parenthesize,
-)
+from mathics.eval.makeboxes import _boxed_string, format_element, parenthesize
 
 
 def int_to_tuple_info(integer: Integer) -> Tuple[str, int, bool]:

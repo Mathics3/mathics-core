@@ -28,59 +28,69 @@ assert osp.exists(
 with open(operator_tables_path, "r") as f:
     OPERATOR_DATA = ujson.load(f)
 
-flat_binary_ops = OPERATOR_DATA["flat-binary-operators"]
-left_binary_ops = OPERATOR_DATA["left-binary-operators"]
-misc_ops = OPERATOR_DATA["miscellaneous-operators"]
-nonassoc_binary_ops = OPERATOR_DATA["non-associative-binary-operators"]
-postfix_ops = OPERATOR_DATA["postfix-operators"]
-prefix_ops = OPERATOR_DATA["prefix-operators"]
-right_binary_ops = OPERATOR_DATA["right-binary-operators"]
-ternary_ops = OPERATOR_DATA["ternary-operators"]
+box_operators = OPERATOR_DATA["box-operators"]
+flat_binary_operators = OPERATOR_DATA["flat-binary-operators"]
+left_binary_operators = OPERATOR_DATA["left-binary-operators"]
+misc_operators = OPERATOR_DATA["miscellaneous-operators"]
+nonassoc_binary_operators = OPERATOR_DATA["non-associative-binary-operators"]
+operator_precedences = OPERATOR_DATA["operator-precedence"]
+postfix_operators = OPERATOR_DATA["postfix-operators"]
+prefix_operators = OPERATOR_DATA["prefix-operators"]
+right_binary_operators = OPERATOR_DATA["right-binary-operators"]
+ternary_operators = OPERATOR_DATA["ternary-operators"]
 
-inequality_ops = ["Less", "LessEqual", "Greater", "GreaterEqual", "Equal", "Unequal"]
+# FIXME: get from JSON
+inequality_operators = [
+    "Less",
+    "LessEqual",
+    "Greater",
+    "GreaterEqual",
+    "Equal",
+    "Unequal",
+]
 
-# binary_ops = left_binary_ops V right_binary_ops V flat_binary_ops V nonassoc_binary_ops
-binary_ops = {}
+# binary_operators = left_binary_operators V right_binary_operators V flat_binary_operators V nonassoc_binary_operators
+binary_operators = {}
 
 # all ops - check they're disjoint
-all_ops = defaultdict(lambda: 670)
+all_operators = defaultdict(lambda: 670)
 
 # Set below
 all_operator_names = []
 
 
 def calculate_operator_information():
-    global binary_ops
-    global all_ops
+    global binary_operators
+    global all_operators
     global all_operator_names
 
     all_operator_names = []
 
     for ops in (
-        left_binary_ops,
-        right_binary_ops,
-        flat_binary_ops,
-        nonassoc_binary_ops,
+        left_binary_operators,
+        right_binary_operators,
+        flat_binary_operators,
+        nonassoc_binary_operators,
     ):
         for op, prec in ops.items():
-            binary_ops[op] = prec
+            binary_operators[op] = prec
 
     all_op_collections = (
-        prefix_ops,
-        postfix_ops,
-        left_binary_ops,
-        right_binary_ops,
-        flat_binary_ops,
-        ternary_ops,
-        nonassoc_binary_ops,
-        misc_ops,
+        prefix_operators,
+        postfix_operators,
+        left_binary_operators,
+        right_binary_operators,
+        flat_binary_operators,
+        ternary_operators,
+        nonassoc_binary_operators,
+        misc_operators,
     )
 
     for ops in all_op_collections:
         for op, prec in ops.items():
-            all_ops[op] = prec
+            all_operators[op] = prec
 
-    all_operator_names = list(all_ops.keys())
+    all_operator_names = list(all_operators.keys())
 
 
 # Calculating operator information is also done
