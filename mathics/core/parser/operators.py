@@ -39,6 +39,7 @@ prefix_operators = OPERATOR_DATA["prefix-operators"]
 right_binary_operators = OPERATOR_DATA["right-binary-operators"]
 ternary_operators = OPERATOR_DATA["ternary-operators"]
 
+# FIXME: get from JSON
 inequality_operators = [
     "Less",
     "LessEqual",

@@ -38,6 +38,7 @@ from mathics.core.parser.operators import (  # box_operators,  # Soon to come...
     ternary_operators,
 )
 
+# FIXME: get from JSON
 special_symbols = {
     "\u03C0": "Pi",  # Pi
     "\uF74D": "E",  # ExponentialE
@@ -93,7 +94,7 @@ class Parser:
     def backtrack(self, pos):
         """
         Rewinds parse state (self.pos and self.current_token) so that
-        another another parse sequence can be considered.
+        another parse sequence can be considered.
         """
         assert self.tokeniser.pos >= pos
         self.tokeniser.pos = pos
@@ -174,8 +175,9 @@ class Parser:
     def parse_binary(
         self, expr1, token: Token, expr1_precedence: int
     ) -> Optional[Node]:
-        """Implements grammar rule and tranformation of binary operators:
-           expr : expr1 <binary-operator> expr2
+        """
+        Implements parsing and tranformation of binary operators:
+           expr1 <binary-operator> expr2
         when it is applicable.
 
         When called, we have parsed "expr1" and seen <binary-operator> passed as "token". This routine
@@ -191,13 +193,13 @@ class Parser:
 
 
         In the first case, we will return None (no further tokens
-        added) and a higher level of parsing resolve and parse:
-           (... expr1) <binary_operator> expr2
+        added). A higher level will handle group (... expr1) and
+        pass that as expr1 in another call to this routine.
 
         In this situation, this routine will get called again with a
         new expr1 that contains (... expr1).
 
-        In the latter case:
+        However, in the second case:
            ...(expr1 <binary-operator> expr2),
 
         we return Node(<binary-operator>, expr1, expr2)
@@ -263,6 +265,61 @@ class Parser:
             result = NullString
         return result
 
+    def parse_comparison(
+        self, expr1, token: Token, expr1_precedence: int
+    ) -> Optional[Node]:
+        """
+        Implements parsing and tranformation of comparison (equality and inequality) operators:
+           expr1 <comparison-operator> expr2
+        when it is applicable.
+
+        When called, we have parsed "expr1" and seen <comparison-operator> passed as "token". This routine
+        may cause expr2 to get scanned and parsed.
+
+        "expr1_precendence" is the precedence of "expr1" and is used
+        to determine whether parsing should be interpreted as:
+
+        (... expr1) <comparison-operator> expr2
+
+        or:
+           ... (expr1 <comparison-operator> expr2)
+
+
+        In the first case, we will return None (no further tokens
+        added) and a higher level of parsing resolve and parse:
+           (... expr1) <comparison_operator> expr2
+
+        In this situation, this routine will get called again with a
+        new expr1 that contains (... expr1).
+
+        In the latter case, we flatten expressions if expr1 is not
+        parenthesized
+        """
+        tag = token.tag
+        operator_precedence = flat_binary_operators[tag]
+        if expr1_precedence > operator_precedence:
+            return None
+        self.consume()
+        head = expr1.get_head_name()
+        expr2 = self.parse_exp(operator_precedence + 1)
+        if head == "Inequality" and not expr1.parenthesised:
+            expr1.children.append(Symbol(tag))
+            expr1.children.append(expr2)
+        elif head in inequality_operators and head != tag and not expr1.parenthesised:
+            children: list = []
+            first = True
+            for child in expr1.children:
+                if not first:
+                    children.append(Symbol(head))
+                children.append(child)
+                first = False
+            children.append(Symbol(tag))
+            children.append(expr2)
+            expr1 = Node("Inequality", *children)
+        else:
+            expr1 = Node(tag, expr1, expr2).flatten()
+        return expr1
+
     def parse_exp(self, expr1_precedence: int) -> Optional[Node]:
         """
         Parse an expression.
@@ -291,7 +348,7 @@ class Parser:
             if method is not None:
                 new_result = method(result, token, expr1_precedence)
             elif tag in inequality_operators:
-                new_result = self.parse_inequality(result, token, expr1_precedence)
+                new_result = self.parse_comparison(result, token, expr1_precedence)
             elif tag in binary_operators:
                 new_result = self.parse_binary(result, token, expr1_precedence)
             elif tag in ternary_operators:
@@ -334,32 +391,6 @@ class Parser:
             self.tokeniser.sntx_message(token.pos)
             raise InvalidSyntaxError()
 
-    def parse_inequality(self, expr1, token: Token, p: int) -> Optional[Node]:
-        tag = token.tag
-        q = flat_binary_operators[tag]
-        if q < p:
-            return None
-        self.consume()
-        head = expr1.get_head_name()
-        expr2 = self.parse_exp(q + 1)
-        if head == "Inequality" and not expr1.parenthesised:
-            expr1.children.append(Symbol(tag))
-            expr1.children.append(expr2)
-        elif head in inequality_operators and head != tag and not expr1.parenthesised:
-            children: list = []
-            first = True
-            for child in expr1.children:
-                if not first:
-                    children.append(Symbol(head))
-                children.append(child)
-                first = False
-            children.append(Symbol(tag))
-            children.append(expr2)
-            expr1 = Node("Inequality", *children)
-        else:
-            expr1 = Node(tag, expr1, expr2).flatten()
-        return expr1
-
     def parse_postfix(
         self, expr1, token: Token, expr1_precedence: int
     ) -> Optional[Node]:
@@ -386,6 +417,7 @@ class Parser:
         self.consume()
         return Node(tag, expr1)
 
+    # FIXME: returning a list breaks type uniformity.
     def parse_seq(self) -> list:
         result: list = []
         while True:
@@ -555,12 +587,39 @@ class Parser:
         head = Node("Derivative", Number(str(n)))
         return Node(head, expr1)
 
-    def e_Divide(self, expr1, token: Token, p: int):
-        q = left_binary_operators["Divide"]
-        if q < p:
+    def e_Divide(self, expr1, token: Token, expr1_precedence: int):
+        """
+        Implements parsing and tranformation of Divide
+           expr1 /  expr2
+        when it is applicable.
+
+        When called, we have parsed "expr1" and seen "/" passed as "token". This routine
+        may cause expr2 to get scanned and parsed.
+
+        "expr1_precendence" is the precedence of "expr1" and is used
+        to determine whether parsing should be interpreted as:
+
+        (... expr1) / expr2
+
+        or:
+           ... (expr1 / expr2)
+
+
+        In the first case, we will return None (no further tokens
+        added). A higher level will handle group (... expr1) and
+        pass that as expr1 in another call to this routine.
+
+        However, in the second case:
+           ...(expr1 <binary-operator> expr2),
+
+        we return Node(Times, expr1, Node(Power, expr2, -1))
+        """
+
+        operator_precedence = left_binary_operators["Divide"]
+        if expr1_precedence > operator_precedence:
             return None
         self.consume()
-        expr2 = self.parse_exp(q + 1)
+        expr2 = self.parse_exp(operator_precedence + 1)
         return Node("Times", expr1, Node("Power", expr2, NumberM1)).flatten()
 
     def e_Infix(self, expr1, token: Token, expr1_precedence) -> Optional[Node]:
