@@ -473,10 +473,14 @@ class Pause(Builtin):
             return
 
         steps = int(self.PAUSE_TICKS_PER_SECOND * sleeptime)
+        step_duration = 1 / self.PAUSE_TICKS_PER_SECOND
+        start = time.time()
         for _ in range(steps):
-            time.sleep(1 / self.PAUSE_TICKS_PER_SECOND)
+            time.sleep(step_duration)
             if evaluation.timeout:
-                return SymbolNull
+                break
+            if sleeptime < time.time() - start:
+                break
 
         return SymbolNull
 
