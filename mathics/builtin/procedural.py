@@ -472,6 +472,20 @@ class Pause(Builtin):
             )
             return
 
+        # Due to the GIL lock, if we implement this method
+        # by just calling `time.sleep(sleeptime)`, the
+        # evaluation would not be aware of `TimeoutException`
+        # raised by an outer `TimeConstrained` expression.
+        #
+        # For this reason, the splitting of the sleep time is
+        # needed.
+        # It was also noticed in tests that in some platforms
+        # the total time that takes n calls to time.sleep(delta_t)
+        # can be appreciably larger than n*delta_t. For this reason,
+        # we also need to chech that inside the loop that the
+        # enlapsed time at the i-esim iteration does not exceed
+        # the  desired total time.
+
         steps = int(self.PAUSE_TICKS_PER_SECOND * sleeptime)
         step_duration = 1 / self.PAUSE_TICKS_PER_SECOND
         start = time.time()
