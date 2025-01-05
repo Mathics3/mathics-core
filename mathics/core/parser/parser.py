@@ -1040,7 +1040,6 @@ class Parser:
         self.consume()
         children = []
         self.box_depth += 1
-        self.bracket_depth += 1
         token = self.next()
         while token.tag not in ("RightRowBox", "OtherscriptBox"):
             newnode = self.parse_box_expr(NEVER_ADD_PARENTHESIS)
@@ -1055,7 +1054,6 @@ class Parser:
             result = Node("RowBox", Node("List", *children))
         self.expect("RightRowBox")
         self.box_depth -= 1
-        self.bracket_depth -= 1
         result.parenthesised = True
         return result
 

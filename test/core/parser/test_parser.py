@@ -21,7 +21,7 @@ class ParserTests(unittest.TestCase):
     def setUp(self):
         self.parser = Parser()
 
-    def parse(self, s):
+    def parse(self, s: str):
         return self.parser.parse(SingleLineFeeder(s))
 
     def check(self, expr1, expr2):
