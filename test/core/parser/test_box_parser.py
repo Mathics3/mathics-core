@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Unit tests Box expressions of mathics.core.parser.parser
+Unit tests for Box-expression parsing of mathics.core.parser.parser
 """
 
 import time
@@ -10,9 +10,9 @@ from mathics_scanner import SingleLineFeeder
 
 from mathics.core.parser.parser import Parser
 
-# Set up a Mathics session with definitions.
-# For consistency set the character encoding ASCII which is
-# the lowest common denominator available on all systems.
+# Set up a Parser that we can use to parse expressions.
+# Note we don't use or pull in sessions here since we
+# want are testing just the parse layer, not the evaluation layer.
 parser = Parser()
 
 
@@ -58,6 +58,11 @@ def test_box_parsing():
             r"\( x \_ \( i \^ n \) \)",
             'SubscriptBox["x", SuperscriptBox["i", "n"]]',
             "Box parsing multiple box operators with box parenthesis should work",
+        ),
+        (
+            r"\( x \^ \( i \/ 2 + 5 \) \)",
+            'SuperscriptBox["x", RowBox[{FractionBox["i", "2"], "+", "5"}]]',
+            "Box parsing using FractionBox and parenthesis should work",
         ),
     ):
         check_evaluation(str_expr, str_expected, assert_message)
