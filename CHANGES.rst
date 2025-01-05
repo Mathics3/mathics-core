@@ -8,6 +8,7 @@ New Builtins
 * ``CheckAbort``
 * ``FileNameDrop``
 * ``SetEnvironment``
+* ``SequenceForm``
 
 By `@davidar <https://github.com/davidar>`_:
 
