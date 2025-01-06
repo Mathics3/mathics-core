@@ -50,33 +50,6 @@ class AssignmentException(Exception):
         self.rhs = rhs
 
 
-def assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset=False) -> bool:
-    """
-    This is the default assignment. Stores a rule of the form lhs->rhs
-    as a value associated to each symbol listed in tags.
-    For special cases, such like conditions or patterns in the lhs,
-    lhs and rhs are rewritten in a normal form, where
-    conditions are associated to the lhs.
-    """
-    lhs, condition = unroll_conditions(lhs)
-    lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
-    defs = evaluation.definitions
-    ignore_protection, tags = eval_assign_other(self, lhs, rhs, evaluation, tags, upset)
-    # In WMA, this does not happens. However, if we remove this,
-    # some combinatorica tests fail.
-    # Also, should not be at the beginning?
-    lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
-    count = 0
-    rule = Rule(lhs, rhs)
-    position = "up" if upset else None
-    for tag in tags:
-        if rejected_because_protected(self, lhs, tag, evaluation, ignore_protection):
-            continue
-        count += 1
-        defs.add_rule(tag, rule, position=position)
-    return count > 0
-
-
 def eval_assign(
     self,
     lhs: BaseElement,
@@ -116,7 +89,7 @@ def eval_assign(
         if assignment_func:
             return assignment_func(self, lhs, rhs, evaluation, tags, upset)
 
-        return assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
+        return eval_assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
     except AssignmentException:
         return False
 
@@ -987,7 +960,7 @@ def eval_assign_n(
     defs = evaluation.definitions
     # If we try to set `N=4`, (issue #210) just deal with it as with a generic expression:
     if lhs is SymbolN:
-        return assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
+        return eval_assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
 
     if len(lhs.elements) not in (1, 2):
         evaluation.message_args("N", len(lhs.elements), 1, 2)
@@ -1195,6 +1168,35 @@ def eval_assign_recursion_limit(lhs, rhs, evaluation):
         # TODO: Show a Message
         raise AssignmentException(lhs, None)
     return False
+
+
+def eval_assign_store_rules_by_tag(
+    self, lhs, rhs, evaluation, tags, upset=False
+) -> bool:
+    """
+    This is the default assignment. Stores a rule of the form lhs->rhs
+    as a value associated to each symbol listed in tags.
+    For special cases, such like conditions or patterns in the lhs,
+    lhs and rhs are rewritten in a normal form, where
+    conditions are associated to the lhs.
+    """
+    lhs, condition = unroll_conditions(lhs)
+    lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
+    defs = evaluation.definitions
+    ignore_protection, tags = eval_assign_other(self, lhs, rhs, evaluation, tags, upset)
+    # In WMA, this does not happens. However, if we remove this,
+    # some combinatorica tests fail.
+    # Also, should not be at the beginning?
+    lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
+    count = 0
+    rule = Rule(lhs, rhs)
+    position = "up" if upset else None
+    for tag in tags:
+        if rejected_because_protected(self, lhs, tag, evaluation, ignore_protection):
+            continue
+        count += 1
+        defs.add_rule(tag, rule, position=position)
+    return count > 0
 
 
 def find_tag_and_check(
