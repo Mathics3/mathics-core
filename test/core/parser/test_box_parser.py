@@ -11,8 +11,9 @@ from mathics_scanner import SingleLineFeeder
 from mathics.core.parser.parser import Parser
 
 # Set up a Parser that we can use to parse expressions.
-# Note we don't use or pull in sessions here since we
-# want are testing just the parse layer, not the evaluation layer.
+# Note we don't import mathics.session here since we
+# are testing just the parse layer, not the evaluation layer.
+# Simpler is better.
 parser = Parser()
 
 
