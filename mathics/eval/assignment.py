@@ -154,7 +154,7 @@ def eval_assign_attributes(
 
     Parameters
     ----------
-    self : Bultin
+    self : Builtin
         The builtin assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
@@ -228,7 +228,7 @@ def eval_assign_context(
 
     Parameters
     ----------
-    self : Bultin
+    self : Builtin
         The builtin assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
@@ -291,7 +291,7 @@ def eval_assign_context_path(
 
     Parameters
     ----------
-    self : Bultin
+    self : Builtin
         The builtin assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
@@ -341,7 +341,7 @@ def eval_assign_default(
 
     Parameters
     ----------
-    self : Bultin
+    self : Builtin
         The builtin assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
@@ -400,7 +400,7 @@ def eval_assign_definition_values(
 
     Parameters
     ----------
-    self : Bultin
+    self : Builtin
         The builtin assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
@@ -447,7 +447,7 @@ def eval_assign_format(
 
     Parameters
     ----------
-    self : Bultin
+    self : Builtin
         The builtin assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
@@ -540,7 +540,7 @@ def eval_assign_line_number_and_history_length(
 
     Parameters
     ----------
-    self : Bultin
+    self : Builtin
         The builtin assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
@@ -585,7 +585,7 @@ def eval_assign_list(
 
     Parameters
     ----------
-    self : Bultin
+    self : Builtin
         The builtin assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
@@ -633,7 +633,7 @@ def eval_assign_makeboxes(
 
     Parameters
     ----------
-    self : Bultin
+    self : Builtin
         The builtin assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
@@ -685,7 +685,7 @@ def eval_assign_minprecision(
 
     Parameters
     ----------
-    self : Bultin
+    self : Builtin
         The builtin assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
@@ -735,7 +735,7 @@ def eval_assign_maxprecision(
 
     Parameters
     ----------
-    self : Bultin
+    self : Builtin
         The builtin assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
@@ -787,7 +787,7 @@ def eval_assign_messagename(
 
     Parameters
     ----------
-    self : Bultin
+    self : Builtin
         The builtin assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
@@ -858,7 +858,7 @@ def eval_assign_options(
 
     Parameters
     ----------
-    self : Bultin
+    self : Builtin
         The builtin assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
@@ -913,11 +913,11 @@ def eval_assign_numericq(
     upset: bool,
 ) -> bool:
     """
-    Assing to expressions of the form `NumericQ[expr_]`.
+    Assign to expressions of the form `NumericQ[expr_]`.
 
     Parameters
     ----------
-    self : Bultin
+    self : Builtin
         The builtin assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
@@ -974,11 +974,11 @@ def eval_assign_n(
     upset: bool,
 ) -> bool:
     """
-    Assing to expressions of the form `N[expr_]`.
+    Assign to expressions of the form `N[expr_]`.
 
     Parameters
     ----------
-    self : Bultin
+    self : Builtin
         The builtin assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
@@ -1052,7 +1052,7 @@ def eval_assign_other(
 
     Parameters
     ----------
-    self : Bultin
+    self : Builtin
         The builtin assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
@@ -1111,7 +1111,7 @@ def eval_assign_part(
 
     Parameters
     ----------
-    self : Bultin
+    self : Builtin
         The builtin assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
@@ -1163,11 +1163,11 @@ def eval_assign_random_state(
     upset: bool,
 ) -> bool:
     """
-    Assing to expressions of the form `RandomState[]`.
+    Assign to expressions of the form `RandomState[]`.
 
     Parameters
     ----------
-    self : Bultin
+    self : Builtin
         The builtin assignment operator
     lhs : BaseElement
         The pattern of the rule to be assigned.
@@ -1299,45 +1299,48 @@ def process_tags_and_upset_dont_allow_custom(
     evaluation: Evaluation,
 ) -> list:
     """
-
+    If `upset` is `True`,  collect a list of tag candidates from the elements of
+    the lhs.
+    If `upset` is `False`, and `tags` is given, check if the elements
+    in `tags` are all names of symbols in the `lhs` elements. If `tags` is
+    `None`, the list of tags contains just the `lookup_name` of the LHS.
 
     Parameters
     ----------
-    tags : Optional[list]
-        DESCRIPTION.
+    tags : Optional[List]
+        The list of symbols to which the rule must be associated.
     upset : bool
-        DESCRIPTION.
+        If `True`, assign as an UpValue.
     self : Builtin
-        DESCRIPTION.
+        The Assignment operator object that started the call.
     lhs : BaseElement
-        DESCRIPTION.
-    focus : BaseElement
-        DESCRIPTION.
+        The LHS of the assignment.
+    rhs : BaseElement
+        The RHS of the assignment.
     evaluation : Evaluation
-        DESCRIPTION.
+        The evaluation object.
 
     Raises
     ------
     AssignmentException
-        DESCRIPTION.
 
     Returns
     -------
-    list
-        DESCRIPTION.
+    tags: list
+        the list of allowed tags.
 
     """
     if isinstance(focus, Expression):
         focus = focus.evaluate_elements(evaluation)
     name = lhs.get_head_name()
-    if tags is None and not upset:
+    if upset:
+        tags = [focus.get_lookup_name()]
+    elif tags is None:
         name = focus.get_lookup_name()
         if not name:
             evaluation.message(self.get_name(), "setraw", focus)
             raise AssignmentException(lhs, None)
         tags = [name]
-    elif upset:
-        tags = [focus.get_lookup_name()]
     else:
         allowed_names = [focus.get_lookup_name()]
         for name in tags:
@@ -1356,45 +1359,44 @@ def process_tags_and_upset_allow_custom(
     evaluation: Evaluation,
 ) -> Tuple[list, BaseElement]:
     """
-
+    If `upset` is `True`,  collect a list of tag candidates from the elements of
+    the lhs.
+    If `upset` is `False`, and `tags` is given, check if the elements
+    in `tags` are all names of symbols in the `lhs` elements. If `tags` is
+    `None`, the list of tags contains just the `lookup_name` of the LHS.
 
     Parameters
     ----------
     tags : Optional[List]
-        DESCRIPTION.
+        The list of symbols to which the rule must be associated.
     upset : bool
-        DESCRIPTION.
+        If `True`, assign as an UpValue.
     self : Builtin
-        DESCRIPTION.
+        The Assignment operator object that started the call.
     lhs : BaseElement
-        DESCRIPTION.
+        The LHS of the assignment.
     rhs : BaseElement
-        DESCRIPTION.
+        The RHS of the assignment.
     evaluation : Evaluation
-        DESCRIPTION.
+        The evaluation object.
 
     Raises
     ------
-    AssignmentException
-        DESCRIPTION.
+    AssignmentException.
 
     Returns
     -------
-    Tuple[list, BaseElement]
-        DESCRIPTION.
+    (tags, focus,): Tuple[list, BaseElement]
+        tags: the list of symbols to which the rule must be associated.
+        focus: the lhs
 
     """
     name = lhs.get_head_name()
     focus = lhs
     if isinstance(focus, Expression):
         focus = focus.evaluate_elements(evaluation)
-    if tags is None and not upset:
-        name = focus.get_lookup_name()
-        if not name:
-            evaluation.message(self.get_name(), "setraw", focus)
-            raise AssignmentException(lhs, None)
-        tags = [name]
-    elif upset:
+
+    if upset:
         tags = []
         if isinstance(focus, Atom):
             symbol_name = self.get_name()
@@ -1408,6 +1410,14 @@ def process_tags_and_upset_allow_custom(
         for element in focus.get_elements():
             name = element.get_lookup_name()
             tags.append(name)
+        return tags, focus
+
+    if tags is None:
+        name = focus.get_lookup_name()
+        if not name:
+            evaluation.message(self.get_name(), "setraw", focus)
+            raise AssignmentException(lhs, None)
+        tags = [name]
     else:
         allowed_names = [focus.get_lookup_name()]
         for element in focus.get_elements():
