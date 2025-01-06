@@ -228,10 +228,10 @@ def rejected_because_protected(
 
 def unroll_conditions(lhs: BaseElement) -> Tuple[BaseElement, Optional[Expression]]:
     """
-    If `element` is a nested `Condition` expression,
+    If `lhst` is a nested `Condition` expression,
     gather all the conditions in a single one, and returns a tuple
-    with the `element` stripped from the conditions and the shallow condition.
-    If there is not any condition, returns the lhs and None
+    with the `lhs` stripped from the conditions and the shallow condition.
+    If there is not any condition, returns the `lhs` and None
     """
     if isinstance(lhs, Symbol):
         return lhs, None
