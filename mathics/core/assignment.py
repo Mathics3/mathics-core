@@ -244,7 +244,7 @@ def unroll_conditions(lhs: BaseElement) -> Tuple[BaseElement, Optional[Expressio
     while name == "System`Condition" and len(lhs_elements) == 2:
         conditions.append(lhs_elements[1])
         lhs = lhs_elements[0]
-        if isinstance(expr, Atom):
+        if isinstance(lhs, Atom):
             break
         expr = cast(Expression, lhs)
         name, lhs_elements = expr.get_head_name(), expr.elements
