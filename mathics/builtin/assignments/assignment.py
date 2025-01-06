@@ -16,7 +16,7 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
-from mathics.eval.assignment import eval_assign
+from mathics.eval.assignments import eval_assign
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 
 
