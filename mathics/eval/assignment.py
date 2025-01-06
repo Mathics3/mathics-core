@@ -50,7 +50,7 @@ class AssignmentException(Exception):
         self.rhs = rhs
 
 
-class _SetOperator:
+class __SetOperator:
     """
 
     This is the base class for assignment Builtin operators.
@@ -100,17 +100,51 @@ class _SetOperator:
             True if the assignment was successful.
 
         """
-        lhs, lookup_name = normalize_lhs(lhs, evaluation)
-        try:
-            # Using a builtin name, find which assignment procedure to perform,
-            # and then call that function.
-            assignment_func = ASSIGNMENT_FUNCTION_MAP.get(lookup_name, None)
-            if assignment_func:
-                return assignment_func(self, lhs, rhs, evaluation, tags, upset)
+        return eval_assign(self, lhs, rhs, evaluation, tags, upset)
 
-            return assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
-        except AssignmentException:
-            return False
+
+def eval_assign(
+    self,
+    lhs: BaseElement,
+    rhs: BaseElement,
+    evaluation: Evaluation,
+    tags: Optional[list] = None,
+    upset: bool = False,
+) -> bool:
+    """
+    Method that implements the assignment.
+
+    Parameters
+    ----------
+    lhs : BaseElement
+        The expression to be assigned.
+    rhs : BaseElement
+        the RHS.
+    evaluation : Evaluation
+        The evaluation object.
+    tags : Optional[list], optional
+        The list of symbol names for which the rule must be associated.
+        The default is None.
+    upset : bool, optional
+        If true, the assignment is to an UpsetValue. The default is False.
+
+    Returns
+    -------
+    bool:
+        True if the assignment was successful.
+
+    """
+    lhs, lookup_name = normalize_lhs(lhs, evaluation)
+    try:
+        # Using a builtin name, find which assignment procedure to perform,
+        # and then call that function.
+        assignment_func = ASSIGNMENT_FUNCTION_MAP.get(lookup_name, None)
+        if assignment_func:
+            return assignment_func(self, lhs, rhs, evaluation, tags, upset)
+
+        return assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
+    except AssignmentException:
+        return False
 
 
 def assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset=False) -> bool:
@@ -615,7 +649,7 @@ def eval_assign_list(
         return False
     result = True
     for left, right in zip(lhs.elements, rhs.elements):
-        if not self.assign(left, right, evaluation):
+        if not eval_assign(self, left, right, evaluation):
             result = False
     return result
 

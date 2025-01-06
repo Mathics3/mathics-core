@@ -16,7 +16,7 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
-from mathics.eval.assignment import _SetOperator
+from mathics.eval.assignment import eval_assign
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 
 
@@ -59,7 +59,7 @@ class LoadModule(Builtin):
         return module
 
 
-class Set(InfixOperator, _SetOperator):
+class Set(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Set.html</url>
 
@@ -139,7 +139,7 @@ class Set(InfixOperator, _SetOperator):
     def eval(self, lhs, rhs, evaluation):
         "lhs_ = rhs_"
 
-        self.assign(lhs, rhs, evaluation)
+        eval_assign(self, lhs, rhs, evaluation)
         return rhs
 
 
@@ -219,13 +219,13 @@ class SetDelayed(Set):
     def eval(self, lhs, rhs, evaluation):
         "lhs_ := rhs_"
 
-        if self.assign(lhs, rhs, evaluation):
+        if eval_assign(self, lhs, rhs, evaluation):
             return SymbolNull
 
         return SymbolFailed
 
 
-class TagSet(Builtin, _SetOperator):
+class TagSet(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/TagSet.html</url>
 
@@ -279,7 +279,7 @@ class TagSet(Builtin, _SetOperator):
             return None
 
         rhs = rhs.evaluate(evaluation)
-        self.assign(lhs, rhs, evaluation, tags=[tag_name])
+        eval_assign(self, lhs, rhs, evaluation, tags=[tag_name])
         return rhs
 
 
@@ -316,13 +316,13 @@ class TagSetDelayed(TagSet):
             evaluation.message(self.get_name(), "sym", tag, 1)
             return None
 
-        if self.assign(lhs, rhs, evaluation, tags=[tag_name]):
+        if eval_assign(self, lhs, rhs, evaluation, tags=[tag_name]):
             return SymbolNull
 
         return SymbolFailed
 
 
-class UpSet(InfixOperator, _SetOperator):
+class UpSet(InfixOperator):
     """
     <url>:WMA link:
          https://reference.wolfram.com/language/ref/UpSet.html</url>
@@ -361,7 +361,7 @@ class UpSet(InfixOperator, _SetOperator):
     ) -> Optional[BaseElement]:
         "lhs_ ^= rhs_"
 
-        self.assign(lhs, rhs, evaluation, upset=True)
+        eval_assign(self, lhs, rhs, evaluation, upset=True)
         return rhs
 
 
@@ -397,7 +397,7 @@ class UpSetDelayed(UpSet):
     ) -> Optional[BaseElement]:
         "lhs_ ^:= rhs_"
 
-        if self.assign(lhs, rhs, evaluation, upset=True):
+        if eval_assign(self, lhs, rhs, evaluation, upset=True):
             return SymbolNull
 
         return SymbolFailed
