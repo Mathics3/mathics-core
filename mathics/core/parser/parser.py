@@ -128,6 +128,14 @@ class Parser:
         self.tokeniser.incomplete()
         self.backtrack(pos)
 
+    @property
+    def is_inside_rowbox(self) -> bool:
+        r"""
+        Return True iff we parsing inside a RowBox, i.e. RowBox[...]
+        or \( ... \)
+        """
+        return self.box_depth > 0
+
     def next(self) -> Token:
         if self.current_token is None:
             self.current_token = self.tokeniser.next()
@@ -173,7 +181,7 @@ class Parser:
         self, expr1, token: Token, expr1_precedence: int
     ) -> Optional[Node]:
         """
-        Implements parsing and tranformation of binary operators:
+        Implements parsing and transformation of binary operators:
            expr1 <binary-operator> expr2
         when it is applicable.
 
@@ -244,7 +252,7 @@ class Parser:
         result = None
         new_result = None
         while True:
-            if self.box_depth > 0:
+            if self.is_inside_rowbox:
                 token = self.next_noend()
             else:
                 token = self.next()
@@ -260,6 +268,15 @@ class Parser:
                 self.incomplete(token.pos)
             elif result is None and tag != "END":
                 self.consume()
+                # TODO: handle non-box expressions inside RowBox
+                # new_result = self.parse_expr(precedence)
+                # if new_result is None:
+                #     self.consume()
+                #     new_result = String(token.text)
+                #     if new_result.value == r"\(":
+                #         new_result = self.p_LeftRowBox(token)
+                # elif isinstance(new_result, (Symbol, Number)):
+                #     new_result = String(new_result.value)
                 new_result = String(token.text)
                 if new_result.value == r"\(":
                     new_result = self.p_LeftRowBox(token)
@@ -277,7 +294,7 @@ class Parser:
         self, box_expr1, token: Token, box_expr1_precedence: int
     ) -> Optional[Node]:
         """
-        Implements parsing and tranformation of box operators:
+        Implements parsing and transformation of box operators:
            box_expr1 <box-operator> box_expr2
         when it is applicable.
 
@@ -335,7 +352,7 @@ class Parser:
         self, expr1, token: Token, expr1_precedence: int
     ) -> Optional[Node]:
         """
-        Implements parsing and tranformation of comparison (equality and inequality) operators:
+        Implements parsing and transformation of comparison (equality and inequality) operators:
            expr1 <comparison-operator> expr2
         when it is applicable.
 
@@ -415,11 +432,23 @@ class Parser:
         """
         result = self.parse_p()
 
+        # Note: Number and String below are the mathics.core.parser's Number, String and Symbol,
+        # not mathics.core.atom's Number and String, and Symbol.
+        if self.is_inside_rowbox and isinstance(result, (Number, Symbol)):
+            result = String(result.value)
+
         while True:
-            if self.bracket_depth > 0:
+            if self.bracket_depth > 0 or self.is_inside_rowbox:
                 token = self.next_noend()
+                if token.tag in ("OtherscriptBox", "RightRowBox"):
+                    if self.is_inside_rowbox:
+                        break
+                    else:
+                        self.tokeniser.sntx_message(token.pos)
+                        raise InvalidSyntaxError()
             else:
                 token = self.next()
+
             tag = token.tag
             method = getattr(self, "e_" + tag, None)
             if method is not None:
@@ -436,10 +465,17 @@ class Parser:
                 tag not in self.halt_tags
                 and flat_binary_operators["Times"] >= precedence
             ):
-                # implicit multiplication
-                q = flat_binary_operators["Times"]
-                child = self.parse_expr(q + 1)
-                new_result = Node("Times", result, child).flatten()
+                if self.is_inside_rowbox:
+                    # Inside a RowBox, implicit multiplication is treated as
+                    # concatenation.
+                    child = self.parse_expr(precedence)
+                    children = [result, child]
+                    new_result = Node("RowBox", Node("List", *children))
+                else:
+                    # There is an implicit multiplication.
+                    operator_precedence = flat_binary_operators["Times"]
+                    child = self.parse_expr(operator_precedence + 1)
+                    new_result = Node("Times", result, child).flatten()
             else:
                 new_result = None
             if new_result is None:
@@ -464,6 +500,8 @@ class Parser:
             operator_precedence = prefix_operators[tag]
             child = self.parse_expr(operator_precedence)
             return Node(tag, child)
+        elif self.is_inside_rowbox:
+            return None
         else:
             self.tokeniser.sntx_message(token.pos)
             raise InvalidSyntaxError()
@@ -678,7 +716,7 @@ class Parser:
 
     def e_Divide(self, expr1, token: Token, expr1_precedence: int):
         """
-        Implements parsing and tranformation of Divide
+        Implements parsing and transformation of Divide
            expr1 /  expr2
         when it is applicable.
 
@@ -873,6 +911,13 @@ class Parser:
             seq = self.parse_seq()
             self.expect("RawRightBracket")
             self.bracket_depth -= 1
+
+            # TODO: something like this may be needed for function application
+            # inside a RowBox.
+            # if self.is_inside_rowbox:
+            #     result = Node("List", expr, String("["), *seq, String("]"))
+            # else:
+
             result = Node(expr, *seq)
             result.parenthesised = True
             return result
@@ -997,6 +1042,7 @@ class Parser:
     # Used for prefix operators, brackets and tokens which
     # can uniquely identified by a prefix character or string.
 
+    # FIXME DRY with pre_Decrement
     def p_Decrement(self, token: Token) -> Node:
         self.consume()
         q = prefix_operators["PreDecrement"]
@@ -1094,7 +1140,7 @@ class Parser:
         return Node("Not", child)
 
     # p_Factorial sometimes gets called when p_Not would be more
-    # approriate. In "a;;!b" we can't tell initially if "!" is postfix
+    # appropriate. In "a;;!b" we can't tell initially if "!" is postfix
     # "Factorial" or prefix "Not".
     # See if we can fix this mess.
     p_Factorial = p_Not
