@@ -50,59 +50,6 @@ class AssignmentException(Exception):
         self.rhs = rhs
 
 
-class __SetOperator:
-    """
-
-    This is the base class for assignment Builtin operators.
-
-    Special cases are determined by the head of the expression. Then
-    they are processed by specific routines, which are poke from
-    the ``ASSIGNMENT_FUNCTION_MAP`` dict.
-    """
-
-    # FIXME:
-    # Assignment is determined by the LHS.
-    # Are there a larger patterns or natural groupings that we are missing?
-    # For example, it might be that it
-    # we can key off of some attributes or other properties of the
-    # LHS of a builtin, instead of listing all of the builtins in that class
-    # (which may miss some).
-    # Below, we key on a string, but Symbol is more correct.
-
-    def assign(
-        self,
-        lhs: BaseElement,
-        rhs: BaseElement,
-        evaluation: Evaluation,
-        tags: Optional[list] = None,
-        upset: bool = False,
-    ) -> bool:
-        """
-        Method that implements the assignment.
-
-        Parameters
-        ----------
-        lhs : BaseElement
-            The expression to be assigned.
-        rhs : BaseElement
-            the RHS.
-        evaluation : Evaluation
-            The evaluation object.
-        tags : Optional[list], optional
-            The list of symbol names for which the rule must be associated.
-            The default is None.
-        upset : bool, optional
-            If true, the assignment is to an UpsetValue. The default is False.
-
-        Returns
-        -------
-        bool:
-            True if the assignment was successful.
-
-        """
-        return eval_assign(self, lhs, rhs, evaluation, tags, upset)
-
-
 def eval_assign(
     self,
     lhs: BaseElement,
