@@ -238,7 +238,7 @@ class Contexts(Builtin):
       <dd>returns a list of contexts that match the string.
     </dl>
 
-    'Contexts' allows the string patterns with the follwing metacharacters:
+    'Contexts' allows the string patterns with the following metacharacters:
     <ul>
      <li> '*' zero or more characters
      <li> '@' one or more characters, excluding uppercase letters
@@ -614,7 +614,7 @@ class Unique(Predefined):
         new_name = "$%d" % (self.seq_number)
         self.seq_number += 1
         # Next symbol in case of new name is defined before
-        while evaluation.definitions.get_definition(new_name, True) is not None:
+        while evaluation.definitions.have_definition(new_name):
             new_name = "$%d" % (self.seq_number)
             self.seq_number += 1
         return Symbol(new_name)
@@ -654,7 +654,7 @@ class Unique(Predefined):
                 new_name = f"{symbol.get_string_value()}{self.seq_number}"
                 self.seq_number += 1
                 # Next symbol in case of new name is defined before
-                while evaluation.definitions.get_definition(new_name, True) is not None:
+                while evaluation.definitions.have_definition(new_name):
                     new_name = f"{symbol.get_string_value()}{self.seq_number}"
                     self.seq_number += 1
                 list.append(Symbol(new_name))

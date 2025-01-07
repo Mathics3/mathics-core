@@ -270,7 +270,12 @@ class Definition(Builtin):
             evaluation.message("Definition", "sym", symbol, 1)
             return
         attributes = evaluation.definitions.get_attributes(name)
-        definition = evaluation.definitions.get_user_definition(name, create=False)
+        try:
+            definition = evaluation.definitions.get_user_definition(name, create=False)
+        except KeyError:
+            # TODO: avoid to assign None to a definition variable.
+            definition = None
+
         all = evaluation.definitions.get_definition(name)
         if attributes:
             attributes_list = attributes_bitset_to_list(attributes)

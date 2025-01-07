@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+"""
+Objects that represent the `Definition` associated to a `Symbol` and
+groups of `Definitions`.
+"""
+
 import base64
 import bisect
 import os
@@ -7,17 +12,18 @@ import pickle
 import re
 from collections import defaultdict
 from os.path import join as osp_join
-from typing import Dict, List, Optional, Sequence, Set, Tuple
+from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
 
 from mathics_scanner.tokeniser import full_names_pattern
 
-from mathics.core.atoms import String
+from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.expression import Expression
 from mathics.core.load_builtin import definition_contribute, mathics3_builtins_modules
 from mathics.core.pattern import BasePattern, ExpressionPattern
+from mathics.core.rules import Rule
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolGet
 from mathics.core.util import canonic_filename
@@ -33,6 +39,7 @@ PrintForms: Set[Symbol] = set()
 
 
 def get_file_time(file) -> float:
+    """Determine the last time that a file was accessed"""
     try:
         return os.stat(file).st_mtime
     except OSError:
@@ -45,8 +52,7 @@ def valuesname(name) -> str:
     assert name.startswith("System`"), name
     if name == "System`Messages":
         return "messages"
-    else:
-        return name[7:-6].lower()
+    return name[7:-6].lower()
 
 
 def autoload_files(
@@ -57,7 +63,7 @@ def autoload_files(
     """
     from mathics.core.evaluation import Evaluation
 
-    for root, dirs, files in os.walk(osp_join(root_dir_path, autoload_dir)):
+    for root, _, files in os.walk(osp_join(root_dir_path, autoload_dir)):
         for path in [osp_join(root, f) for f in files if f.endswith(".m")]:
             # Autoload definitions should be go in the System context
             # by default, rather than the Global context.
@@ -170,7 +176,10 @@ class Definitions:
 
             autoload_files(self, ROOT_DIR, "autoload")
 
-    def clear_cache(self, name=None):
+    def clear_cache(self, name: Optional[str] = None):
+        """Clear the cache of definitions. If `name` is provided,
+        just remove the definition for `name` from the definition cache.
+        """
         # The definitions cache (self.definitions_cache) caches
         # (incomplete and complete) names -> Definition(), e.g. "xy"
         # -> d and "MyContext`xy" -> d. we need to clear this cache if
@@ -207,7 +216,11 @@ class Definitions:
                 definitions_cache.pop(k, None)
                 lookup_cache.pop(k, None)
 
-    def clear_definitions_cache(self, name) -> None:
+    def clear_definitions_cache(self, name: str) -> None:
+        """
+        Remove from the definition cache all the entries
+        associated to name
+        """
         definitions_cache = self.definitions_cache
         tail = strip_context(name)
         for k in self.proxy.pop(tail, []):
@@ -225,14 +238,14 @@ class Definitions:
         and evaluation may lead to a different result.
         """
         for name in symbols:
-            symbol = self.get_definition(name, only_if_exists=True)
-            if symbol is None:
+            try:
+                symbol = self.get_definition(name, only_if_exists=True)
+            except KeyError:
                 # "symbol" doesn't exist, so it was never changed.
-                pass
-            else:
-                # Get timestamp for the most-recently changed part of the given expression.
-                if symbol.changed > last_evaluated_time:
-                    return True
+                continue
+            # Get timestamp for the most-recently changed part of the given expression.
+            if symbol.changed > last_evaluated_time:
+                return True
 
         return False
 
@@ -260,20 +273,28 @@ class Definitions:
         self.context_path = tuple(context_path)
         self.clear_cache()
 
-    def set_inputfile(self, dir: str) -> None:
-        self.inputfile = osp.normpath(osp.abspath(dir))
+    def set_inputfile(self, path: str) -> None:
+        """Set the input file to `path`"""
+        self.inputfile = osp.normpath(osp.abspath(path))
         self.inputfile = canonic_filename(self.inputfile)
 
-    def get_builtin_names(self):
+    def get_builtin_names(self) -> set:
+        """Return a set of builtin symbol names"""
         return set(self.builtin)
 
-    def get_user_names(self):
+    def get_user_names(self) -> set:
+        """Return a set of user symbol names"""
         return set(self.user)
 
-    def get_pymathics_names(self):
+    def get_pymathics_names(self) -> set:
+        """Return a set of the names of symbols defined in Pymathics modules"""
         return set(self.pymathics)
 
-    def get_names(self):
+    def get_names(self) -> set:
+        """
+        Return a set with the names of all the symbols
+        defined in the system
+        """
         return (
             self.get_builtin_names()
             | self.get_pymathics_names()
@@ -405,9 +426,40 @@ class Definitions:
         return name_with_ctx
 
     def have_definition(self, name) -> bool:
-        return self.get_definition(name, only_if_exists=True) is not None
+        try:
+            self.get_definition(name, only_if_exists=True)
+        except KeyError:
+            return False
+        return True
 
-    def get_definition(self, name: str, only_if_exists=False) -> Optional["Definition"]:
+    def get_definition(self, name: str, only_if_exists=False) -> "Definition":
+        """
+        Return the definition associated to the Symbol `name`.
+        If `only_if_exists` is `True` and the symbol does not
+        have an associated `Definition`, raise a `KeyError` exception.
+        Otherwise, creates a temporary definition, which is not
+        stored into the `Definitions` object.
+
+        Parameters
+        ----------
+        name : str
+            The name of the Symbol.
+        only_if_exists : TYPE, optional
+            If True, and the symbol was not already defined, raise a KeyError
+            exception. Otherwise, Creates a temporary Definition for
+            the symbol, but does not store it. The default is False.
+
+        Raises
+        ------
+        KeyError
+            DESCRIPTION.
+
+        Returns
+        -------
+        Definition
+            A definition for the requested Symbol name.
+
+        """
         definition = self.definitions_cache.get(name, None)
         if definition is not None:
             return definition
@@ -449,7 +501,7 @@ class Definitions:
                 "": [],
             }
             # Merge definitions
-            its = [c for c in candidates]
+            its = list(candidates)
             while its:
                 # This behaviour for options is wrong:
                 # because of this, ``Unprotect[Expand]; ClearAll[Expand]; Options[Expand]``
@@ -480,45 +532,53 @@ class Definitions:
                 is_numeric=is_numeric,
             )
 
-        if definition is not None:
-            self.proxy[strip_context(original_name)].add(original_name)
-            self.definitions_cache[original_name] = definition
-            self.lookup_cache[original_name] = name
-        elif not only_if_exists:
+        if definition is None:
+            if only_if_exists:
+                raise KeyError
+
             definition = Definition(name=name)
             if name[-1] != "`":
                 self.user[name] = definition
+        else:
+            self.proxy[strip_context(original_name)].add(original_name)
+            self.definitions_cache[original_name] = definition
+            self.lookup_cache[original_name] = name
 
         return definition
 
-    def get_attributes(self, name):
+    def get_attributes(self, name: str) -> list:
         return self.get_definition(name).attributes
 
-    def get_ownvalues(self, name):
+    def get_ownvalues(self, name: str) -> list:
         return self.get_definition(name).ownvalues
 
-    def get_downvalues(self, name):
+    def get_downvalues(self, name: str) -> list:
         return self.get_definition(name).downvalues
 
-    def get_subvalues(self, name):
+    def get_subvalues(self, name: str) -> list:
         return self.get_definition(name).subvalues
 
-    def get_upvalues(self, name):
+    def get_upvalues(self, name: str) -> list:
         return self.get_definition(name).upvalues
 
-    def get_formats(self, name, format=""):
+    def get_formats(self, name: str, format_name="") -> list:
+        """
+        Return a list of format rules associated to `name`.
+        if `format_name` is given, looks to the rules associated
+        to that format.
+        """
         formats = self.get_definition(name).formatvalues
-        result = formats.get(format, []) + formats.get("", [])
+        result = formats.get(format_name, []) + formats.get("", [])
         result.sort()
         return result
 
-    def get_nvalues(self, name):
+    def get_nvalues(self, name: str):
         return self.get_definition(name).nvalues
 
-    def get_defaultvalues(self, name):
+    def get_defaultvalues(self, name: str):
         return self.get_definition(name).defaultvalues
 
-    def get_value(self, name, pos, pattern, evaluation):
+    def get_value(self, name: str, pos: str, pattern, evaluation):
         assert isinstance(name, str)
         assert "`" in name
         rules = self.get_definition(name).get_values_list(valuesname(pos))
@@ -526,30 +586,57 @@ class Definitions:
             result = rule.apply(pattern, evaluation)
             if result is not None:
                 return result
+        return None
 
-    def get_user_definition(self, name, create=True) -> Optional["Definition"]:
+    def get_user_definition(self, name: str, create: bool = True) -> "Definition":
+        """
+        Return a user definition for `name`. If `create` is `False`
+        and a user definition is not available, raise a KeyError exception.
+
+        Otherwise, tries to create a definition from a definition existing
+        into the space of builtin definitions.
+
+        Parameters
+        ----------
+        name : str
+            The name of the requested symbol.
+        create : bool, optional
+            If `True` and the symbol does not have a definition, create it.
+            Otherwise, raise a KeyError exception. The default is True.
+
+        Raises
+        ------
+        KeyError
+
+        Returns
+        -------
+        Optional[Definition]
+            The definition of the symbol.
+
+        """
+
         assert not isinstance(name, Symbol)
 
         existing = self.user.get(name)
         if existing:
             return existing
+
+        if not create:
+            raise KeyError(name)
+        builtin = self.builtin.get(name)
+        if builtin:
+            attributes = builtin.attributes
+            is_numeric = builtin.is_numeric
         else:
-            if not create:
-                return None
-            builtin = self.builtin.get(name)
-            if builtin:
-                attributes = builtin.attributes
-                is_numeric = builtin.is_numeric
-            else:
-                attributes = A_NO_ATTRIBUTES
-                is_numeric = False
-            self.user[name] = Definition(
-                name=name,
-                attributes=attributes,
-                is_numeric=is_numeric,
-            )
-            self.clear_cache(name)
-            return self.user[name]
+            attributes = A_NO_ATTRIBUTES
+            is_numeric = False
+        self.user[name] = Definition(
+            name=name,
+            attributes=attributes,
+            is_numeric=is_numeric,
+        )
+        self.clear_cache(name)
+        return self.user[name]
 
     def mark_changed(self, definition: "Definition") -> None:
         self.now += 1
@@ -601,12 +688,10 @@ class Definitions:
         self.clear_definitions_cache(name)
         return result
 
-    def add_format(self, name, rule, form="") -> None:
+    def add_format(self, name: str, rule, form_names: Union[str, list] = "") -> None:
+        """Add a format rule"""
         definition = self.get_user_definition(self.lookup_name(name))
-        if isinstance(form, tuple) or isinstance(form, list):
-            forms = form
-        else:
-            forms = [form]
+        forms = form_names if isinstance(form_names, (tuple, list)) else [form_names]
         if definition is not None:
             for form in forms:
                 if form not in definition.formatvalues:
@@ -662,16 +747,14 @@ class Definitions:
             self.user = {}
         self.clear_cache()
 
-    def get_ownvalue(self, name):
+    def get_ownvalue(self, name: str):
         ownvalues = self.get_definition(self.lookup_name(name)).ownvalues
         if ownvalues:
             return ownvalues[0]
         return None
 
-    def set_ownvalue(self, name, value) -> None:
-        from .expression import Symbol
-        from .rules import Rule
-
+    def set_ownvalue(self, name: str, value) -> None:
+        """Set an ownvalue for name"""
         name = self.lookup_name(name)
         self.add_rule(name, Rule(Symbol(name), value))
         self.clear_cache(name)
@@ -690,7 +773,9 @@ class Definitions:
         self.clear_definitions_cache(name)
         return result
 
-    def get_config_value(self, name, default=None):
+    def get_config_value(
+        self, name: str, default: Optional[int] = None
+    ) -> Optional[int]:
         "Infinity -> None, otherwise returns integer."
         value = self.get_definition(name).ownvalues
         if value:
@@ -704,15 +789,14 @@ class Definitions:
                 return None
 
             return int(value.get_int_value())
-        else:
-            return default
 
-    def set_config_value(self, name, new_value) -> None:
-        from mathics.core.expression import Integer
+        return default
 
+    def set_config_value(self, name: str, new_value: int) -> None:
+        """Set the (own)value of an integer variable"""
         self.set_ownvalue(name, Integer(new_value))
 
-    def set_line_no(self, line_no) -> None:
+    def set_line_no(self, line_no: int) -> None:
         self.set_config_value("$Line", line_no)
 
     def get_line_no(self):
@@ -945,8 +1029,7 @@ class Definition:
         assert pos.isalpha()
         if pos == "messages":
             return self.messages
-        else:
-            return getattr(self, "%svalues" % pos)
+        return getattr(self, "%svalues" % pos)
 
     def set_values_list(self, pos, rules) -> None:
         assert pos.isalpha()
@@ -977,7 +1060,7 @@ class Definition:
         return False
 
     def __repr__(self) -> str:
-        s = "<Definition: name: {}, downvalues: {}, formats: {}, attributes: {}>".format(
+        repr_str = "<Definition: name: {}, downvalues: {}, formats: {}, attributes: {}>".format(
             self.name, self.downvalues, self.formatvalues, self.attributes
         )
-        return s
+        return repr_str
