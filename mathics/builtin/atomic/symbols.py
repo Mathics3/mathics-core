@@ -6,7 +6,7 @@ Symbolic data. Every symbol has a unique name, exists in a certain context \
 or namespace, and can have a variety of type of values and attributes.
 """
 import re
-from typing import Callable
+from typing import Callable, List
 
 from mathics_scanner.tokeniser import is_symbol_name
 
@@ -52,16 +52,19 @@ from mathics.core.systemsymbols import (
 from mathics.doc.online import online_doc_string
 
 
-def show_definitions(symbol: Symbol, evaluation: Evaluation) -> list:
+def show_definitions(symbol: Symbol, evaluation: Evaluation) -> List[Expression]:
     """Return a list of lines describing the definition of `symbol`"""
     lines = []
 
-    def print_rule(
+    def show_rule(
         rule: Rule,
         up: bool = False,
         lhs: Callable = lambda k: k,
         rhs: Callable = lambda r: r,
     ):
+        """
+        Add a line showing `rule`
+        """
         evaluation.check_stopped()
         if isinstance(rule, Rule):
             r = rhs(
@@ -78,21 +81,21 @@ def show_definitions(symbol: Symbol, evaluation: Evaluation) -> list:
                 )
             )
 
-    def print_rules(definition: Definition):
+    def show_rules(definition: Definition):
         """
-        Print all the rules associated
+        Add to the description all the rules associated
         to a definition object
         """
         for rule in definition.ownvalues:
-            print_rule(rule)
+            show_rule(rule)
         for rule in definition.downvalues:
-            print_rule(rule)
+            show_rule(rule)
         for rule in definition.subvalues:
-            print_rule(rule)
+            show_rule(rule)
         for rule in definition.upvalues:
-            print_rule(rule, up=True)
+            show_rule(rule, up=True)
         for rule in definition.nvalues:
-            print_rule(rule)
+            show_rule(rule)
         formats = sorted(definition.formatvalues.items())
         for format, rules in formats:
             for rule in rules:
@@ -107,7 +110,7 @@ def show_definitions(symbol: Symbol, evaluation: Evaluation) -> list:
                         )
                     return Expression(SymbolInputForm, expr)
 
-                print_rule(rule, lhs=lhs, rhs=rhs)
+                show_rule(rule, lhs=lhs, rhs=rhs)
 
     name = symbol.get_name()
     if not name:
@@ -130,12 +133,12 @@ def show_definitions(symbol: Symbol, evaluation: Evaluation) -> list:
 
     if not A_READ_PROTECTED & attributes:
         try:
-            print_rules(evaluation.definitions.get_user_definition(name, create=False))
+            show_rules(evaluation.definitions.get_user_definition(name, create=False))
         except KeyError:
             pass
 
     for rule in all.defaultvalues:
-        print_rule(rule)
+        show_rule(rule)
     if all.options:
         options = sorted(all.options.items())
         lines.append(
