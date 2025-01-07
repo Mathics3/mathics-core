@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Objects that represent the `Definition` associated to a `Symbol` and
+Objects that represent the `Definition` associated with a `Symbol` and
 groups of `Definitions`.
 """
 
@@ -39,7 +39,7 @@ PrintForms: Set[Symbol] = set()
 
 
 def get_file_time(file) -> float:
-    """Determine the last time that a file was accessed"""
+    """Return the last time that a file was accessed"""
     try:
         return os.stat(file).st_mtime
     except OSError:
@@ -107,14 +107,17 @@ class Definitions:
       modules.
     - user: stores the definitions created during the runtime.
     - definition_cache: keep definitions obtained by merging builtins, pymathics, and
-      user definitions associated to the same symbol.
+      user definitions associated with the same symbol.
 
     Note: we want Rules to be serializable so that we can dump and
     restore Rules in order to make startup time faster.
     """
 
     def __init__(
-        self, add_builtin=False, builtin_filename=None, extension_modules=[]
+        self,
+        add_builtin: bool = False,
+        builtin_filename: Optional[str] = None,
+        extension_modules: list = [],
     ) -> None:
         super(Definitions, self).__init__()
         self.builtin: Dict[str, Definition] = {}
@@ -177,7 +180,7 @@ class Definitions:
             autoload_files(self, ROOT_DIR, "autoload")
 
     def clear_cache(self, name: Optional[str] = None):
-        """Clear the cache of definitions. If `name` is provided,
+        """Clear the definitions cache. If `name` is provided,
         just remove the definition for `name` from the definition cache.
         """
         # The definitions cache (self.definitions_cache) caches
@@ -219,7 +222,7 @@ class Definitions:
     def clear_definitions_cache(self, name: str) -> None:
         """
         Remove from the definition cache all the entries
-        associated to name
+        associated with a `name`
         """
         definitions_cache = self.definitions_cache
         tail = strip_context(name)
@@ -287,7 +290,7 @@ class Definitions:
         return set(self.user)
 
     def get_pymathics_names(self) -> set:
-        """Return a set of the names of symbols defined in Pymathics modules"""
+        """Return a set of the names of symbols defined in Mathics3 modules"""
         return set(self.pymathics)
 
     def get_names(self) -> set:
@@ -307,7 +310,7 @@ class Definitions:
         accessible_ctxts.add(self.current_context)
         return accessible_ctxts
 
-    def get_matching_names(self, pattern) -> List[str]:
+    def get_matching_names(self, pattern: str) -> List[str]:
         """
         Return a list of the symbol names matching a string pattern.
 
@@ -361,7 +364,7 @@ class Definitions:
 
         return [name for name in self.get_names() if regex.match(name)]
 
-    def lookup_name(self, name) -> str:
+    def lookup_name(self, name: str) -> str:
         """
         Determine the full name (including context) for a symbol name.
 
@@ -410,11 +413,11 @@ class Definitions:
 
         # return sorted({name.split("`")[0] for name in self.get_names()})
 
-    def shorten_name(self, name_with_ctx) -> str:
+    def shorten_name(self, name_with_ctx: str) -> str:
         if "`" not in name_with_ctx:
             return name_with_ctx
 
-        def in_ctx(name, ctx):
+        def in_ctx(name: str, ctx: str):
             return name.startswith(ctx) and "`" not in name[len(ctx) :]
 
         current_context = self.current_context
@@ -425,16 +428,16 @@ class Definitions:
                 return name_with_ctx[len(ctx) :]
         return name_with_ctx
 
-    def have_definition(self, name) -> bool:
+    def have_definition(self, name: str) -> bool:
         try:
             self.get_definition(name, only_if_exists=True)
         except KeyError:
             return False
         return True
 
-    def get_definition(self, name: str, only_if_exists=False) -> "Definition":
+    def get_definition(self, name: str, only_if_exists: bool = False) -> Definition:
         """
-        Return the definition associated to the Symbol `name`.
+        Return the definition associated with the Symbol `name`.
         If `only_if_exists` is `True` and the symbol does not
         have an associated `Definition`, raise a `KeyError` exception.
         Otherwise, creates a temporary definition, which is not
@@ -444,7 +447,7 @@ class Definitions:
         ----------
         name : str
             The name of the Symbol.
-        only_if_exists : TYPE, optional
+        only_if_exists : bool, optional
             If True, and the symbol was not already defined, raise a KeyError
             exception. Otherwise, Creates a temporary Definition for
             the symbol, but does not store it. The default is False.
@@ -563,7 +566,7 @@ class Definitions:
 
     def get_formats(self, name: str, format_name="") -> list:
         """
-        Return a list of format rules associated to `name`.
+        Return a list of format rules associated with `name`.
         if `format_name` is given, looks to the rules associated
         to that format.
         """
@@ -588,7 +591,7 @@ class Definitions:
                 return result
         return None
 
-    def get_user_definition(self, name: str, create: bool = True) -> "Definition":
+    def get_user_definition(self, name: str, create: bool = True) -> Definition:
         """
         Return a user definition for `name`. If `create` is `False`
         and a user definition is not available, raise a KeyError exception.
@@ -638,11 +641,11 @@ class Definitions:
         self.clear_cache(name)
         return self.user[name]
 
-    def mark_changed(self, definition: "Definition") -> None:
+    def mark_changed(self, definition: Definition) -> None:
         self.now += 1
         definition.changed = self.now
 
-    def reset_user_definition(self, name) -> None:
+    def reset_user_definition(self, name: str) -> None:
         assert not isinstance(name, Symbol)
         fullname = self.lookup_name(name)
         if fullname in self.user:
@@ -650,35 +653,35 @@ class Definitions:
         self.clear_cache(fullname)
         # TODO fix changed
 
-    def add_user_definition(self, name, definition) -> None:
+    def add_user_definition(self, name: str, definition: Definition) -> None:
         assert not isinstance(name, Symbol)
         self.mark_changed(definition)
         fullname = self.lookup_name(name)
         self.user[fullname] = definition
         self.clear_cache(fullname)
 
-    def set_attribute(self, name, attribute) -> None:
+    def set_attribute(self, name: str, attribute: int) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
             definition.attributes |= attribute
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def set_attributes(self, name, attributes) -> None:
+    def set_attributes(self, name: str, attributes: int) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
             definition.attributes = attributes
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def clear_attribute(self, name, attribute) -> None:
+    def clear_attribute(self, name: str, attribute: int) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
             definition.attributes &= ~attribute
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def add_rule(self, name, rule, position=None):
+    def add_rule(self, name: str, rule, position: Optional[str] = None):
         definition = self.get_user_definition(self.lookup_name(name))
         if position is None:
             result = definition.add_rule(rule)
@@ -700,28 +703,28 @@ class Definitions:
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def add_nvalue(self, name, rule) -> None:
+    def add_nvalue(self, name: str, rule) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
             definition.add_rule_at(rule, "n")
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def add_default(self, name, rule) -> None:
+    def add_default(self, name: str, rule) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
             definition.add_rule_at(rule, "default")
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def add_message(self, name, rule) -> None:
+    def add_message(self, name: str, rule) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
             definition.add_rule_at(rule, "messages")
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def set_values(self, name, values, rules) -> None:
+    def set_values(self, name: str, values, rules) -> None:
         pos = valuesname(values)
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
@@ -759,14 +762,14 @@ class Definitions:
         self.add_rule(name, Rule(Symbol(name), value))
         self.clear_cache(name)
 
-    def set_options(self, name, options) -> None:
+    def set_options(self, name: str, options) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
             definition.options = options
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def unset(self, name, expr):
+    def unset(self, name: str, expr):
         definition = self.get_user_definition(self.lookup_name(name))
         result = definition.remove_rule(expr)
         self.mark_changed(definition)
@@ -812,7 +815,7 @@ class Definitions:
         return history_length
 
 
-def get_tag_position(pattern, name) -> Optional[str]:
+def get_tag_position(pattern, name: str) -> Optional[str]:
     """
     Determine the position of a pattern in
     the definition of the symbol ``name``
@@ -823,7 +826,7 @@ def get_tag_position(pattern, name) -> Optional[str]:
         "System`BlankNullSequence",
     )
 
-    def strip_pattern_name_and_condition(pat: BasePattern) -> BasePattern:
+    def strip_pattern_name_and_condition(pat) -> BasePattern:
         """
         In ``Pattern[name_, pattern_]`` and
         ``Condition[pattern_, cond_]``
@@ -961,7 +964,7 @@ def insert_rule(values, rule) -> None:
 
 class Definition:
     """
-    A Definition is a collection of ``Rule``s and attributes which are associated to ``Symbol``.
+    A Definition is a collection of ``Rule``s and attributes which are associated with ``Symbol``.
 
     The ``Rule``s are internally organized in terms of the context of application in
     ``ownvalues``, ``upvalues``,  ``downvalues``,  ``subvalues``, ``nvalues``,  ``format``, etc.
@@ -1023,22 +1026,22 @@ class Definition:
         self.changed = 0
         for rule in rules:
             if not self.add_rule(rule):
-                print(f"{rule.pattern.expr} could not be associated to {self.name}")
+                print(f"{rule.pattern.expr} could not be associated with {self.name}")
 
-    def get_values_list(self, pos):
+    def get_values_list(self, pos: str):
         assert pos.isalpha()
         if pos == "messages":
             return self.messages
         return getattr(self, "%svalues" % pos)
 
-    def set_values_list(self, pos, rules) -> None:
+    def set_values_list(self, pos: str, rules) -> None:
         assert pos.isalpha()
         if pos == "messages":
             self.messages = rules
         else:
             setattr(self, "%svalues" % pos, rules)
 
-    def add_rule_at(self, rule, position) -> bool:
+    def add_rule_at(self, rule, position: str) -> bool:
         values = self.get_values_list(position)
         insert_rule(values, rule)
         return True

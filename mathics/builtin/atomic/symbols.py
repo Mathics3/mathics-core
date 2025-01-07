@@ -52,11 +52,13 @@ from mathics.core.systemsymbols import (
 from mathics.doc.online import online_doc_string
 
 
-def show_definitions(symbol: Symbol, evaluation: Evaluation) -> List[Expression]:
+def gather_and_format_definition_rules(
+    symbol: Symbol, evaluation: Evaluation
+) -> List[Expression]:
     """Return a list of lines describing the definition of `symbol`"""
     lines = []
 
-    def show_rule(
+    def format_rule(
         rule: Rule,
         up: bool = False,
         lhs: Callable = lambda k: k,
@@ -81,21 +83,21 @@ def show_definitions(symbol: Symbol, evaluation: Evaluation) -> List[Expression]
                 )
             )
 
-    def show_rules(definition: Definition):
+    def gather_rules(definition: Definition):
         """
         Add to the description all the rules associated
         to a definition object
         """
         for rule in definition.ownvalues:
-            show_rule(rule)
+            format_rule(rule)
         for rule in definition.downvalues:
-            show_rule(rule)
+            format_rule(rule)
         for rule in definition.subvalues:
-            show_rule(rule)
+            format_rule(rule)
         for rule in definition.upvalues:
-            show_rule(rule, up=True)
+            format_rule(rule, up=True)
         for rule in definition.nvalues:
-            show_rule(rule)
+            format_rule(rule)
         formats = sorted(definition.formatvalues.items())
         for format, rules in formats:
             for rule in rules:
@@ -110,7 +112,7 @@ def show_definitions(symbol: Symbol, evaluation: Evaluation) -> List[Expression]
                         )
                     return Expression(SymbolInputForm, expr)
 
-                show_rule(rule, lhs=lhs, rhs=rhs)
+                format_rule(rule, lhs=lhs, rhs=rhs)
 
     name = symbol.get_name()
     if not name:
@@ -133,7 +135,7 @@ def show_definitions(symbol: Symbol, evaluation: Evaluation) -> List[Expression]
 
     if not A_READ_PROTECTED & attributes:
         try:
-            show_rules(evaluation.definitions.get_user_definition(name, create=False))
+            gather_rules(evaluation.definitions.get_user_definition(name, create=False))
         except KeyError:
             pass
 
@@ -311,7 +313,7 @@ class Definition(Builtin):
     ) -> Symbol:
         "StandardForm,TraditionalForm,OutputForm: Definition[symbol_]"
 
-        lines = show_definitions(symbol, evaluation)
+        lines = gather_and_format_definition_rules(symbol, evaluation)
         if lines:
             if grid:
                 return Expression(
@@ -427,7 +429,7 @@ class Information(PrefixOperator):
             lines.append(usagetext)
 
         if is_long_form:
-            lines.extend(show_definitions(symbol, evaluation))
+            lines.extend(gather_and_format_definition_rules(symbol, evaluation))
 
         if lines:
             if grid:
