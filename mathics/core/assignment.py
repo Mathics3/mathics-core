@@ -5,12 +5,12 @@
 Support for Set and SetDelayed, and other assignment-like builtins
 """
 
-from typing import Callable, List, Optional, Tuple, cast
+from typing import Callable, List, Optional, Tuple
 
 from mathics.core.atoms import Atom
 from mathics.core.attributes import A_PROTECTED
 from mathics.core.builtin import Builtin
-from mathics.core.definitions import Definition, Definitions
+from mathics.core.definitions import Definitions
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -106,16 +106,17 @@ def get_symbol_values(
         evaluation.message(func_name, "sym", symbol, 1)
         return None
     definitions = evaluation.definitions
-    definition = (
-        definitions.get_definition(name)
-        if position in ("default",)
-        else definitions.get_user_definition(name)
-    )
-    if definition is None:
+    try:
+        definition = (
+            definitions.get_definition(name, True)
+            if position in ("default",)
+            else definitions.get_user_definition(name, True)
+        )
+    except KeyError:
         return ListExpression()
 
     elements = []
-    for rule in cast(Definition, definition).get_values_list(position):
+    for rule in definition.get_values_list(position):
         if isinstance(rule, Rule):
             pattern = rule.pattern
             if pattern.has_form("HoldPattern", 1):
@@ -129,7 +130,7 @@ def get_symbol_values(
 def is_protected(tag: str, defin: Definitions) -> bool:
     """Check if the `Symbol` with name `tag`
     is protected in the `Definitions` `defin`"""
-    return A_PROTECTED & defin.get_attributes(tag)
+    return bool(A_PROTECTED & defin.get_attributes(tag))
 
 
 def normalize_lhs(lhs, evaluation):
@@ -226,6 +227,9 @@ def rejected_because_protected(
     return False
 
 
+# In the folliwing routines
+
+
 def unroll_conditions(lhs: BaseElement) -> Tuple[BaseElement, Optional[Expression]]:
     """
     If `lhst` is a nested `Condition` expression,
@@ -236,8 +240,7 @@ def unroll_conditions(lhs: BaseElement) -> Tuple[BaseElement, Optional[Expressio
     if isinstance(lhs, Symbol):
         return lhs, None
 
-    expr: Expression = cast(Expression, lhs)
-    name, lhs_elements = expr.get_head_name(), expr.get_elements()
+    name, lhs_elements = lhs.get_head_name(), lhs.get_elements()
     conditions = []
     # This handle the case of many successive conditions:
     # f[x_]/; cond1 /; cond2 ... ->  f[x_]/; And[cond1, cond2, ...]
@@ -246,8 +249,7 @@ def unroll_conditions(lhs: BaseElement) -> Tuple[BaseElement, Optional[Expressio
         lhs = lhs_elements[0]
         if isinstance(lhs, Atom):
             break
-        expr = cast(Expression, lhs)
-        name, lhs_elements = expr.get_head_name(), expr.elements
+        name, lhs_elements = lhs.get_head_name(), lhs.get_elements()
     if len(conditions) == 0:
         return lhs, None
 
@@ -268,7 +270,7 @@ def unroll_patterns(
     if isinstance(lhs, Atom):
         return lhs, rhs
     name = lhs.get_head_name()
-    lhs_elements = cast(Expression, lhs).elements
+    lhs_elements = lhs.get_elements()
     if name == "System`Pattern":
         lhs = lhs_elements[1]
         rulerepl = (lhs_elements[0], repl_pattern_by_symbol(lhs))

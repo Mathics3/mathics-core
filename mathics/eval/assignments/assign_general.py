@@ -908,9 +908,11 @@ def eval_assign_numericq(
     target = elements[0]
     if isinstance(target, Symbol):
         name = target.get_name()
-        definition = evaluation.definitions.get_definition(name)
-        if definition is not None:
+        try:
+            definition = evaluation.definitions.get_definition(name)
             definition.is_numeric = rhs is SymbolTrue
+        except KeyError:
+            pass
         return True
 
     evaluation.message("NumericQ", "set", lhs, rhs)
