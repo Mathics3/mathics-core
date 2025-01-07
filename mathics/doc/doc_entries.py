@@ -241,6 +241,9 @@ def parse_docstring_to_DocumentationEntry_items(
                 items.append(tests)
                 tests = None
             text = post_sub(text, post_substitutions)
+            # Remove line breaks
+            text = re.sub(r" \\\n[ ]*", r" ", text)
+            text = re.sub(r"\\\n[ ]*", r" ", text)
             items.append(text_constructor(text))
             tests = None
         if index < len(testcases) - 1:
@@ -539,8 +542,6 @@ class DocumentationEntry:
         # TODO parse XML and pretty print
         # HACK
         item = str(self.items[0])
-        item = re.sub(r" \\\n[ ]*", r" ", item)
-        item = re.sub(r"\\\n[ ]*", r" ", item)
         item = "\n".join(line.strip() for line in item.split("\n"))
         item = item.replace("<dl>", "")
         item = item.replace("</dl>", "")
