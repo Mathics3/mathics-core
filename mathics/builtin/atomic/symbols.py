@@ -306,7 +306,9 @@ class Definition(Builtin):
     attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "give values of a symbol in a form that can be stored in a package"
 
-    def format_definition(self, symbol, evaluation: Evaluation, grid: bool = True):
+    def format_definition(
+        self, symbol: Symbol, evaluation: Evaluation, grid: bool = True
+    ) -> Symbol:
         "StandardForm,TraditionalForm,OutputForm: Definition[symbol_]"
 
         lines = show_definitions(symbol, evaluation)
@@ -323,7 +325,7 @@ class Definition(Builtin):
 
         return SymbolNull
 
-    def format_definition_input(self, symbol, evaluation):
+    def format_definition_input(self, symbol: Symbol, evaluation: Evaluation) -> Symbol:
         "InputForm: Definition[symbol_]"
         return self.format_definition(symbol, evaluation, grid=False)
 
@@ -406,7 +408,9 @@ class Information(PrefixOperator):
     }
     summary_text = "get information about all assignments for a symbol"
 
-    def format_information(self, symbol, evaluation, options, grid=True):
+    def format_information(
+        self, symbol: Symbol, evaluation: Evaluation, options: dict, grid: bool = True
+    ) -> Symbol:
         "StandardForm,TraditionalForm,OutputForm: Information[symbol_, OptionsPattern[Information]]"
         ret = SymbolNull
         lines = []
@@ -438,7 +442,9 @@ class Information(PrefixOperator):
                     evaluation.print_out(Expression(SymbolInputForm, line))
         return ret
 
-    def format_information_input(self, symbol, evaluation: Evaluation, options: dict):
+    def format_information_input(
+        self, symbol: Symbol, evaluation: Evaluation, options: dict
+    ) -> Symbol:
         "InputForm: Information[symbol_, OptionsPattern[Information]]"
         self.format_information(symbol, evaluation, options, grid=False)
         ret = SymbolNull

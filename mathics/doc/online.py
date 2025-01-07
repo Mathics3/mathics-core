@@ -18,7 +18,7 @@ def online_doc_string(
     """
     definition = evaluation.definitions.get_definition(symbol.name)
     ruleusage = definition.get_values_list("messages")
-    usagetext = None
+    usagetext = ""
 
     # First look at user definitions:
     for rulemsg in ruleusage:
