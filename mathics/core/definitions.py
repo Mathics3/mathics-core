@@ -474,12 +474,12 @@ class Definitions:
         builtin_instance = None
 
         if pymathics:
-            builtin_instance = pymathics
+            builtin_instance = pymathics.builtin
             candidates.append(pymathics)
         if builtin:
             candidates.append(builtin)
             if builtin_instance is None:
-                builtin_instance = builtin
+                builtin_instance = builtin.builtin
 
         definition = candidates[0] if len(candidates) == 1 else None
         if len(candidates) > 0 and not definition:
