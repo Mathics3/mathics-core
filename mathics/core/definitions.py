@@ -546,7 +546,7 @@ class Definitions:
 
         return definition
 
-    def get_attributes(self, name: str) -> list:
+    def get_attributes(self, name: str) -> int:
         return self.get_definition(name).attributes
 
     def get_ownvalues(self, name: str) -> list:
