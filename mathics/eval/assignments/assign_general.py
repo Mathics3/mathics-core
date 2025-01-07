@@ -478,7 +478,7 @@ def eval_assign_iteration_limit(
     ) and not rhs.get_name() == "System`Infinity":
         evaluation.message("$IterationLimit", "limset", rhs)
         raise AssignmentException(lhs, None)
-    return False
+    return True
 
 
 def eval_assign_line_number_and_history_length(
@@ -914,9 +914,7 @@ def eval_assign_numericq(
         return True
 
     evaluation.message("NumericQ", "set", lhs, rhs)
-    # raise AssignmentException(lhs, rhs)
-    # TODO: check if this should not be `False`
-    return True
+    raise AssignmentException(lhs, rhs)
 
 
 def eval_assign_n(
@@ -1117,7 +1115,7 @@ def eval_assign_random_state(
     upset: bool,
 ) -> bool:
     """
-    Assign to expressions of the form `RandomState[]`.
+    Assign to expressions of the form `$RandomState`.
 
     Parameters
     ----------
@@ -1144,10 +1142,24 @@ def eval_assign_random_state(
         True if the assignment was successful.
 
     """
-    # TODO: allow setting of legal random states!
-    # (but consider pickle's insecurity!)
+    # By a design decision, Mathics3 does not allow to
+    # modify this variable.
+    # To change this behaviour we should
+    #
+    # * Base `get_random_state` and `set_random_state` in a
+    #   safer serialization mechanism. The branch
+    #   origin/setteable_randomstate has a proposal for this.
+    # * Modify the behaviour of
+    #   `mathics.builtin.numbers.randomnumbers.RandomEnvBase`
+    # * Uncomment the following lines:
+    #
+    # from call here mathics.builtin.numbers.randomnumbers import (
+    # set_random_state,
+    # )
+    # set_random_state(rhs.get_int_value())
+    #
     evaluation.message("$RandomState", "rndst", rhs)
-    raise AssignmentException(lhs, None)
+    return False
 
 
 def eval_assign_recursion_limit(lhs, rhs, evaluation):
@@ -1167,7 +1179,7 @@ def eval_assign_recursion_limit(lhs, rhs, evaluation):
     except OverflowError:
         # TODO: Show a Message
         raise AssignmentException(lhs, None)
-    return False
+    return True
 
 
 def eval_assign_store_rules_by_tag(
@@ -1179,6 +1191,32 @@ def eval_assign_store_rules_by_tag(
     For special cases, such like conditions or patterns in the lhs,
     lhs and rhs are rewritten in a normal form, where
     conditions are associated to the lhs.
+
+
+    Parameters
+    ----------
+    self : Builtin
+        The builtin assignment operator
+    lhs : BaseElement
+        The pattern of the rule to be assigned.
+    rhs : BaseElement
+        the expression representing the replacement.
+    evaluation : Evaluation
+        DESCRIPTION.
+    tags : list
+        the list of symbols to be associated to the rule.
+    upset : bool
+        `True` if the rule is an Up value.
+
+    Raises
+    ------
+    AssignmentException
+
+    Returns
+    -------
+    bool
+        True if the assignment was successful.
+
     """
     lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
