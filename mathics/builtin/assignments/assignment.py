@@ -2,14 +2,8 @@
 """
 Forms of Assignment
 """
+from typing import Optional
 
-
-from mathics.core.assignment import (
-    ASSIGNMENT_FUNCTION_MAP,
-    AssignmentException,
-    assign_store_rules_by_tag,
-    normalize_lhs,
-)
 from mathics.core.atoms import String
 from mathics.core.attributes import (
     A_HOLD_ALL,
@@ -18,45 +12,16 @@ from mathics.core.attributes import (
     A_SEQUENCE_HOLD,
 )
 from mathics.core.builtin import Builtin, InfixOperator
+from mathics.core.element import BaseElement
+from mathics.core.evaluation import Evaluation
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
+from mathics.eval.assignments import eval_assign
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 
 
-class _SetOperator:
-    """
-
-    This is the base class for assignment Builtin operators.
-
-    Special cases are determined by the head of the expression. Then
-    they are processed by specific routines, which are poke from
-    the ``ASSIGNMENT_FUNCTION_MAP`` dict.
-    """
-
-    # FIXME:
-    # Assignment is determined by the LHS.
-    # Are there a larger patterns or natural groupings that we are missing?
-    # For example, it might be that it
-    # we can key off of some attributes or other properties of the
-    # LHS of a builtin, instead of listing all of the builtins in that class
-    # (which may miss some).
-    # Below, we key on a string, but Symbol is more correct.
-
-    def assign(self, lhs, rhs, evaluation, tags=None, upset=False):
-        lhs, lookup_name = normalize_lhs(lhs, evaluation)
-        try:
-            # Using a builtin name, find which assignment procedure to perform,
-            # and then call that function.
-            assignment_func = ASSIGNMENT_FUNCTION_MAP.get(lookup_name, None)
-            if assignment_func:
-                return assignment_func(self, lhs, rhs, evaluation, tags, upset)
-
-            return assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
-        except AssignmentException:
-            return False
-
-
-# Placing this here is a bit weird, but it is not clear where else is better suited for this right now.
+# Placing this here is a bit weird, but it is not clear where else is better
+# suited for this right now.
 class LoadModule(Builtin):
     """
     ## <url>:mathics native for pymathics:</url>
@@ -88,13 +53,13 @@ class LoadModule(Builtin):
         except PyMathicsLoadException:
             evaluation.message(self.name, "notmathicslib", module)
             return SymbolFailed
-        except Exception as e:
-            evaluation.message(self.get_name(), "loaderror", String(str(e)))
+        except ImportError as exception:
+            evaluation.message(self.get_name(), "loaderror", String(str(exception)))
             return SymbolFailed
         return module
 
 
-class Set(InfixOperator, _SetOperator):
+class Set(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Set.html</url>
 
@@ -105,7 +70,8 @@ class Set(InfixOperator, _SetOperator):
       <dd>evaluates $value$ and assigns it to $expr$.
 
       <dt>{$s1$, $s2$, $s3$} = {$v1$, $v2$, $v3$}
-      <dd>sets multiple symbols ($s1$, $s2$, ...) to the corresponding values ($v1$, $v2$, ...).
+      <dd>sets multiple symbols ($s1$, $s2$, ...) to the corresponding \
+          values ($v1$, $v2$, ...).
     </dl>
 
     'Set' can be used to give a symbol a value:
@@ -173,7 +139,7 @@ class Set(InfixOperator, _SetOperator):
     def eval(self, lhs, rhs, evaluation):
         "lhs_ = rhs_"
 
-        self.assign(lhs, rhs, evaluation)
+        eval_assign(self, lhs, rhs, evaluation)
         return rhs
 
 
@@ -189,7 +155,9 @@ class SetDelayed(Set):
       <dd>assigns $value$ to $expr$, without evaluating $value$.
     </dl>
 
-    'SetDelayed' is like 'Set', except it has attribute 'HoldAll', thus it does not evaluate the right-hand side immediately, but evaluates it when needed.
+    'SetDelayed' is like 'Set', except it has attribute 'HoldAll', thus it \
+        does not evaluate the right-hand side immediately, but evaluates \
+            it when needed.
 
     >> Attributes[SetDelayed]
      = {HoldAll, Protected, SequenceHold}
@@ -251,13 +219,13 @@ class SetDelayed(Set):
     def eval(self, lhs, rhs, evaluation):
         "lhs_ := rhs_"
 
-        if self.assign(lhs, rhs, evaluation):
+        if eval_assign(self, lhs, rhs, evaluation):
             return SymbolNull
-        else:
-            return SymbolFailed
+
+        return SymbolFailed
 
 
-class TagSet(Builtin, _SetOperator):
+class TagSet(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/TagSet.html</url>
 
@@ -277,7 +245,8 @@ class TagSet(Builtin, _SetOperator):
     >> UpValues[square]
      = {HoldPattern[area[square[s_]]] :> s ^ 2}
 
-    The symbol $f$ must appear as the ultimate head of $lhs$ or as the head of an element in $lhs$:
+    The symbol $f$ must appear as the ultimate head of $lhs$ or as the head \
+        of an element in $lhs$:
     >> x /: f[g[x]] = 3;
      : Tag x not found or too deep for an assigned rule.
     >> g /: f[g[x]] = 3;
@@ -290,18 +259,27 @@ class TagSet(Builtin, _SetOperator):
     messages = {
         "tagnfd": "Tag `1` not found or too deep for an assigned rule.",
     }
-    summary_text = "assign a value to an expression, associating the corresponding assignment with the a symbol"
+    summary_text = (
+        "assign a value to an expression, associating the "
+        "corresponding assignment with the a symbol"
+    )
 
-    def eval(self, f, lhs, rhs, evaluation):
-        "f_ /: lhs_ = rhs_"
+    def eval(
+        self,
+        tag: BaseElement,
+        lhs: BaseElement,
+        rhs: BaseElement,
+        evaluation: Evaluation,
+    ) -> Optional[BaseElement]:
+        "tag_ /: lhs_ = rhs_"
 
-        name = f.get_name()
-        if not name:
-            evaluation.message(self.get_name(), "sym", f, 1)
-            return
+        tag_name = tag.get_name()
+        if not tag_name:
+            evaluation.message(self.get_name(), "sym", tag, 1)
+            return None
 
         rhs = rhs.evaluate(evaluation)
-        self.assign(lhs, rhs, evaluation, tags=[name])
+        eval_assign(self, lhs, rhs, evaluation, tags=[tag_name])
         return rhs
 
 
@@ -319,30 +297,40 @@ class TagSetDelayed(TagSet):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD
-    summary_text = "assign a delayed value to an expression, associating the corresponding assignment with the a symbol"
+    summary_text = (
+        "assign a delayed value to an expression, associating "
+        "the corresponding assignment with the a symbol"
+    )
 
-    def eval(self, f, lhs, rhs, evaluation):
-        "f_ /: lhs_ := rhs_"
+    def eval(
+        self,
+        tag: BaseElement,
+        lhs: BaseElement,
+        rhs: BaseElement,
+        evaluation: Evaluation,
+    ) -> Optional[BaseElement]:
+        "tag_ /: lhs_ := rhs_"
 
-        name = f.get_name()
-        if not name:
-            evaluation.message(self.get_name(), "sym", f, 1)
-            return
+        tag_name = tag.get_name()
+        if not tag_name:
+            evaluation.message(self.get_name(), "sym", tag, 1)
+            return None
 
-        if self.assign(lhs, rhs, evaluation, tags=[name]):
+        if eval_assign(self, lhs, rhs, evaluation, tags=[tag_name]):
             return SymbolNull
-        else:
-            return SymbolFailed
+
+        return SymbolFailed
 
 
-class UpSet(InfixOperator, _SetOperator):
+class UpSet(InfixOperator):
     """
     <url>:WMA link:
          https://reference.wolfram.com/language/ref/UpSet.html</url>
 
     <dl>
       <dt>$f$[$x$] ^= $expression$
-      <dd>evaluates $expression$ and assigns it to the value of $f$[$x$], associating the value with $x$.
+      <dd>evaluates $expression$ and assigns it to the value of $f$[$x$], \
+          associating the value with $x$.
     </dl>
 
     'UpSet' creates an upvalue:
@@ -365,13 +353,15 @@ class UpSet(InfixOperator, _SetOperator):
     grouping = "Right"
 
     summary_text = (
-        "set value and associate the assignment with symbols that occur at level one"
+        "set value and associate the assignment with " "symbols that occur at level one"
     )
 
-    def eval(self, lhs, rhs, evaluation):
+    def eval(
+        self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
+    ) -> Optional[BaseElement]:
         "lhs_ ^= rhs_"
 
-        self.assign(lhs, rhs, evaluation, upset=True)
+        eval_assign(self, lhs, rhs, evaluation, upset=True)
         return rhs
 
 
@@ -384,7 +374,8 @@ class UpSetDelayed(UpSet):
        <dt>'UpSetDelayed[$expression$, $value$]'
 
        <dt>'$expression$ ^:= $value$'
-       <dd>assigns $expression$ to the value of $f$[$x$] (without evaluating $expression$), associating the value with $x$.
+       <dd>assigns $expression$ to the value of $f$[$x$] \
+           (without evaluating $expression$), associating the value with $x$.
     </dl>
 
     >> a[b] ^:= x
@@ -396,12 +387,17 @@ class UpSetDelayed(UpSet):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD
-    summary_text = "set a delayed value and associate the assignment with symbols that occur at level one"
+    summary_text = (
+        "set a delayed value and associate the assignment "
+        "with symbols that occur at level one"
+    )
 
-    def eval(self, lhs, rhs, evaluation):
+    def eval(
+        self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
+    ) -> Optional[BaseElement]:
         "lhs_ ^:= rhs_"
 
-        if self.assign(lhs, rhs, evaluation, upset=True):
+        if eval_assign(self, lhs, rhs, evaluation, upset=True):
             return SymbolNull
-        else:
-            return SymbolFailed
+
+        return SymbolFailed
