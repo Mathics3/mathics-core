@@ -2,7 +2,8 @@
 # pylint: disable-msg=too-many-arguments
 
 """
-Support for Set and SetDelayed, and other assignment-like builtins
+evaluation routines for Set and SetDelayed, and Builtin functions
+found in module mathics.builtin.assigments.assignment
 """
 
 from functools import reduce

@@ -14,7 +14,7 @@ from mathics.core.attributes import (
 from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
-from mathics.core.symbols import SymbolNull
+from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
 from mathics.eval.assignments import eval_assign
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
@@ -216,7 +216,9 @@ class SetDelayed(Set):
 
     summary_text = "test a delayed value; used in defining functions"
 
-    def eval(self, lhs, rhs, evaluation):
+    def eval(
+        self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
+    ) -> Symbol:
         "lhs_ := rhs_"
 
         if eval_assign(self, lhs, rhs, evaluation):
@@ -266,14 +268,14 @@ class TagSet(Builtin):
 
     def eval(
         self,
-        tag: BaseElement,
+        f: BaseElement,
         lhs: BaseElement,
         rhs: BaseElement,
         evaluation: Evaluation,
     ) -> Optional[BaseElement]:
-        "tag_ /: lhs_ = rhs_"
+        "f_ /: lhs_ = rhs_"
 
-        tag_name = tag.get_name()
+        tag_name = f.get_name()
         if not tag_name:
             evaluation.message(self.get_name(), "sym", tag, 1)
             return None
@@ -304,16 +306,16 @@ class TagSetDelayed(TagSet):
 
     def eval(
         self,
-        tag: BaseElement,
+        f: BaseElement,
         lhs: BaseElement,
         rhs: BaseElement,
         evaluation: Evaluation,
-    ) -> Optional[BaseElement]:
-        "tag_ /: lhs_ := rhs_"
+    ) -> Optional[Symbol]:
+        "f_ /: lhs_ := rhs_"
 
-        tag_name = tag.get_name()
+        tag_name = f.get_name()
         if not tag_name:
-            evaluation.message(self.get_name(), "sym", tag, 1)
+            evaluation.message(self.get_name(), "sym", f, 1)
             return None
 
         if eval_assign(self, lhs, rhs, evaluation, tags=[tag_name]):
@@ -353,7 +355,7 @@ class UpSet(InfixOperator):
     grouping = "Right"
 
     summary_text = (
-        "set value and associate the assignment with " "symbols that occur at level one"
+        "set value and associate the assignment with symbols that occur at level one"
     )
 
     def eval(
@@ -394,7 +396,7 @@ class UpSetDelayed(UpSet):
 
     def eval(
         self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
-    ) -> Optional[BaseElement]:
+    ) -> Symbol:
         "lhs_ ^:= rhs_"
 
         if eval_assign(self, lhs, rhs, evaluation, upset=True):
