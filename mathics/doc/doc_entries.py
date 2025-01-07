@@ -539,6 +539,8 @@ class DocumentationEntry:
         # TODO parse XML and pretty print
         # HACK
         item = str(self.items[0])
+        item = re.sub(r" \\\n[ ]*", r" ", item)
+        item = re.sub(r"\\\n[ ]*", r" ", item)
         item = "\n".join(line.strip() for line in item.split("\n"))
         item = item.replace("<dl>", "")
         item = item.replace("</dl>", "")
