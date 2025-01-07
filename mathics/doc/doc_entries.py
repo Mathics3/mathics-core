@@ -550,6 +550,7 @@ class DocumentationEntry:
         item = item.replace("<dd>", "    ")
         item = item.replace("</dd>", "")
         item = "\n".join(line for line in item.split("\n") if not line.isspace())
+        item = re.sub(r"\$([0-9a-zA-Z]*)\$", r"\1", item)
         return item
 
     def get_tests(self) -> List["DocTest"]:

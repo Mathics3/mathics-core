@@ -43,46 +43,13 @@ from mathics.core.systemsymbols import (
     SymbolDefinition,
     SymbolFormat,
     SymbolGrid,
-    SymbolInfix,
     SymbolInputForm,
     SymbolLeft,
     SymbolOptions,
     SymbolRule,
     SymbolSet,
 )
-
-
-def _get_usage_string(symbol, evaluation, is_long_form: bool):
-    """
-    Returns a python string with the documentation associated to a given symbol.
-    """
-    definition = evaluation.definitions.get_definition(symbol.name)
-    ruleusage = definition.get_values_list("messages")
-    usagetext = None
-
-    # First look at user definitions:
-    for rulemsg in ruleusage:
-        if rulemsg.pattern.expr.elements[1].__str__() == '"usage"':
-            usagetext = rulemsg.replace.value
-
-    if not is_long_form and usagetext:
-        return usagetext
-
-    builtins = evaluation.definitions.builtin
-    pymathics = evaluation.definitions.pymathics
-    bio = pymathics.get(definition.name) or builtins.get(definition.name)
-
-    if bio is not None:
-        from mathics.doc.doc_entries import DocumentationEntry
-
-        docstr = bio.builtin.__class__.__doc__
-        title = bio.builtin.__class__.__name__
-        if docstr is None:
-            return usagetext
-        docstr = docstr[docstr.find("<dl>") : (docstr.find("</dl>") + 6)]
-        usagetext = DocumentationEntry(docstr, title).text()
-        usagetext = re.sub(r"\$([0-9a-zA-Z]*)\$", r"\1", usagetext)
-    return usagetext
+from mathics.doc.online import online_doc_string
 
 
 def show_definitions(symbol: Symbol, evaluation: Evaluation) -> list:
@@ -448,7 +415,7 @@ class Information(PrefixOperator):
             return ret
         # Print the "usage" message if available.
         is_long_form = self.get_option(options, "LongForm", evaluation).to_python()
-        usagetext = _get_usage_string(symbol, evaluation, is_long_form)
+        usagetext = online_doc_string(symbol, evaluation, is_long_form)
         if usagetext is not None:
             lines.append(usagetext)
 
