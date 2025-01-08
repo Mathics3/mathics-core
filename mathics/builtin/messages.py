@@ -339,9 +339,12 @@ class MessageName(InfixOperator):
         "MessageName[symbol_Symbol, tag_String]"
 
         pattern = Expression(SymbolMessageName, symbol, tag)
-        return evaluation.definitions.get_value(
-            symbol.get_name(), "System`Messages", pattern, evaluation
-        )
+        try:
+            return evaluation.definitions.get_value(
+                symbol.get_name(), "System`Messages", pattern, evaluation
+            )
+        except ValueError:
+            return None
 
 
 class Off(Builtin):

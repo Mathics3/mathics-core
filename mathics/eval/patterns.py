@@ -53,13 +53,16 @@ def get_default_value(
         defaultexpr = Expression(
             SymbolDefault, Symbol(name), *[Integer(index) for index in pos[:pos_len]]
         )
-        result = evaluation.definitions.get_value(
-            name, "System`DefaultValues", defaultexpr, evaluation
-        )
-        if result is not None:
-            if result.sameQ(defaultexpr):
-                result = result.evaluate(evaluation)
-            return result
+        try:
+            result = evaluation.definitions.get_value(
+                name, "System`DefaultValues", defaultexpr, evaluation
+            )
+        except ValueError:
+            continue
+
+        if result.sameQ(defaultexpr):
+            result = result.evaluate(evaluation)
+        return result
     return None
 
 

@@ -19,11 +19,11 @@ from mathics_scanner.tokeniser import full_names_pattern
 from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
-from mathics.core.element import fully_qualified_symbol_name
+from mathics.core.element import BaseElement, fully_qualified_symbol_name
 from mathics.core.expression import Expression
 from mathics.core.load_builtin import definition_contribute, mathics3_builtins_modules
 from mathics.core.pattern import BasePattern, ExpressionPattern
-from mathics.core.rules import Rule
+from mathics.core.rules import BaseRule, Rule
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolGet
 from mathics.core.util import canonic_filename
@@ -82,7 +82,7 @@ def get_file_time(file) -> float:
         return 0
 
 
-def get_tag_position(pattern, name: str) -> Optional[str]:
+def get_tag_position(pattern: BaseElement, name: str) -> Optional[str]:
     """
     Determine the position of a pattern in
     the definition of the symbol ``name``
@@ -93,7 +93,7 @@ def get_tag_position(pattern, name: str) -> Optional[str]:
         "System`BlankNullSequence",
     )
 
-    def strip_pattern_name_and_condition(pat) -> BasePattern:
+    def strip_pattern_name_and_condition(pat) -> BaseElement:
         """
         In ``Pattern[name_, pattern_]`` and
         ``Condition[pattern_, cond_]``
@@ -124,7 +124,7 @@ def get_tag_position(pattern, name: str) -> Optional[str]:
 
         return pat
 
-    def is_pattern_a_kind_of(pattern: ExpressionPattern, pattern_name: str) -> bool:
+    def is_pattern_a_kind_of(pattern: BaseElement, pattern_name: str) -> bool:
         """
         Returns `True` if `pattern` or any of its alternates is a
         pattern with name `pattern_name` and `False` otherwise."""
@@ -169,13 +169,13 @@ def get_tag_position(pattern, name: str) -> Optional[str]:
 
     # Handle special cases
     if head_name == "System`N":
-        if len(pattern.elements) == 2:
+        if len(pattern.get_elements()) == 2:
             return "n"
 
     # The pattern has the form `_SymbolName | __SymbolName | ___SymbolName`
     # Then it only can be a downvalue
     if head_name in blanks:
-        elements = pattern.elements
+        elements = pattern.get_elements()
         if len(elements) == 1:
             head_name = elements[0].get_name()
             return "down" if head_name == name else None
@@ -194,7 +194,7 @@ def get_tag_position(pattern, name: str) -> Optional[str]:
 
     # If we are here, pattern is not an Ownvalue, DownValue, SubValue or NValue
     # Let's check the elements for UpValues
-    for element in pattern.elements:
+    for element in pattern.get_elements():
         lookup_name = element.get_lookup_name()
         if lookup_name == name:
             return "up"
@@ -211,7 +211,7 @@ def get_tag_position(pattern, name: str) -> Optional[str]:
         # Check if one of the elements is not a "Blank"
 
         if element.get_head_name() in blanks:
-            sub_elements = element.elements
+            sub_elements = element.get_elements()
             if len(sub_elements) == 1:
                 if sub_elements[0].get_name() == name:
                     return "up"
@@ -219,7 +219,7 @@ def get_tag_position(pattern, name: str) -> Optional[str]:
     return None
 
 
-def insert_rule(values: list, rule: Rule) -> None:
+def insert_rule(values: list, rule: BaseRule) -> None:
     """
     Add a new rule inside a list of values.
     Rules are sorted in a way that the first elements
@@ -341,7 +341,7 @@ class Definition:
         else:
             setattr(self, f"{pos}values", rules)
 
-    def add_rule_at(self, rule, position: str) -> bool:
+    def add_rule_at(self, rule: BaseRule, position: str) -> bool:
         """
         Add `rule` to the set of rules in `position`
         """
@@ -349,14 +349,14 @@ class Definition:
         insert_rule(values, rule)
         return True
 
-    def add_rule(self, rule) -> bool:
+    def add_rule(self, rule: BaseRule) -> bool:
         """Add a rule. The position is automatically determined."""
-        pos = get_tag_position(rule.pattern, self.name)
+        pos = get_tag_position(rule.pattern.expr, self.name)
         if pos:
             return self.add_rule_at(rule, pos)
         return False
 
-    def remove_rule(self, lhs) -> bool:
+    def remove_rule(self, lhs: BaseElement) -> bool:
         """Remove a rule"""
         position = get_tag_position(lhs, self.name)
         if position:
@@ -460,7 +460,7 @@ class Definitions:
 
             autoload_files(self, ROOT_DIR, "autoload")
 
-    def clear_cache(self, name: Optional[str] = None):
+    def clear_cache(self, name: Optional[str] = None) -> None:
         """Clear the definitions cache. If `name` is provided,
         just remove the definition for `name` from the definition cache.
         """
@@ -692,22 +692,22 @@ class Definitions:
 
     def get_package_names(self) -> List[str]:
         """Return the list of names of the packages loaded in the system."""
-        packages = self.get_ownvalue("System`$Packages")
-        if packages is None:
+        try:
+            packages = self.get_ownvalue("System`$Packages")
+        except ValueError:
             return []
-        packages = packages.replace
+
         assert packages.has_form("System`List", None)
         packages = [c.get_string_value() for c in packages.elements]
-        return packages
-
         # return sorted({name.split("`")[0] for name in self.get_names()})
+        return packages
 
     def shorten_name(self, name_with_ctx: str) -> str:
         """Remove the context of the symbol name if can be deduced."""
         if "`" not in name_with_ctx:
             return name_with_ctx
 
-        def in_ctx(name: str, ctx: str):
+        def in_ctx(name: str, ctx: str) -> str:
             return name.startswith(ctx) and "`" not in name[len(ctx) :]
 
         current_context = self.current_context
@@ -875,24 +875,26 @@ class Definitions:
         result.sort()
         return result
 
-    def get_nvalues(self, name: str):
+    def get_nvalues(self, name: str) -> list:
         """Return the list of nvalues"""
         return self.get_definition(name).nvalues
 
-    def get_defaultvalues(self, name: str):
+    def get_defaultvalues(self, name: str) -> list:
         """Return the list of defaultvalues"""
         return self.get_definition(name).defaultvalues
 
-    def get_value(self, name: str, pos: str, pattern, evaluation):
-        """Apply rules in `pos` until get the value of the symbol"""
+    def get_value(
+        self, name: str, pos: str, expression: BaseElement, evaluation
+    ) -> BaseElement:
+        """Apply rules in `pos` over `expression` until get the value of the symbol"""
         assert isinstance(name, str)
         assert "`" in name
         rules = self.get_definition(name).get_values_list(valuesname(pos))
         for rule in rules:
-            result = rule.apply(pattern, evaluation)
+            result = rule.apply(expression, evaluation)
             if result is not None:
                 return result
-        return None
+        raise ValueError
 
     def get_user_definition(self, name: str, create: bool = True) -> Definition:
         """
@@ -990,7 +992,9 @@ class Definitions:
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def add_rule(self, name: str, rule, position: Optional[str] = None):
+    def add_rule(
+        self, name: str, rule: BaseRule, position: Optional[str] = None
+    ) -> bool:
         """Add a rule for the Symbol `name` in the list `pos`."""
         definition = self.get_user_definition(self.lookup_name(name))
         if position is None:
@@ -1001,7 +1005,9 @@ class Definitions:
         self.clear_definitions_cache(name)
         return result
 
-    def add_format(self, name: str, rule, form_names: Union[str, list] = "") -> None:
+    def add_format(
+        self, name: str, rule: BaseRule, form_names: Union[str, list] = ""
+    ) -> None:
         """Add a format rule"""
         definition = self.get_user_definition(self.lookup_name(name))
         forms = form_names if isinstance(form_names, (tuple, list)) else [form_names]
@@ -1013,7 +1019,7 @@ class Definitions:
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def add_nvalue(self, name: str, rule) -> None:
+    def add_nvalue(self, name: str, rule: BaseRule) -> None:
         """Add a nvalue rule to the Symbol `name`"""
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
@@ -1021,7 +1027,7 @@ class Definitions:
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def add_default(self, name: str, rule) -> None:
+    def add_default(self, name: str, rule: BaseRule) -> None:
         """Add a DefaultValue to the Symbol `name`"""
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
@@ -1029,7 +1035,7 @@ class Definitions:
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def add_message(self, name: str, rule) -> None:
+    def add_message(self, name: str, rule: BaseRule) -> None:
         """Add a message to the Symbol `name`"""
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
@@ -1046,7 +1052,7 @@ class Definitions:
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def get_options(self, name):
+    def get_options(self, name: str) -> dict:
         """Get the options associated with the Symbol `name`"""
         return self.get_definition(self.lookup_name(name)).options
 
@@ -1068,12 +1074,13 @@ class Definitions:
             self.user = {}
         self.clear_cache()
 
-    def get_ownvalue(self, name: str):
+    def get_ownvalue(self, name: str) -> BaseElement:
         """Get ownvalue associated with `name`"""
         ownvalues = self.get_definition(self.lookup_name(name)).ownvalues
         if ownvalues:
             return ownvalues[0]
-        return None
+        raise ValueError
+        # return None
 
     def set_ownvalue(self, name: str, value) -> None:
         """Set an ownvalue for name"""
@@ -1089,7 +1096,7 @@ class Definitions:
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def unset(self, name: str, expr):
+    def unset(self, name: str, expr: BaseElement) -> bool:
         """Remove the rule corresponding to the expression `expr` in
         the definition of Symbol `name`"""
         definition = self.get_user_definition(self.lookup_name(name))
@@ -1125,9 +1132,9 @@ class Definitions:
         """Set $Line, the current input line number"""
         self.set_config_value("$Line", line_no)
 
-    def get_line_no(self):
+    def get_line_no(self) -> int:
         """Get $Line, the current input line number"""
-        return self.get_config_value("$Line", 0)
+        return self.get_config_value("$Line", 0) or 0
 
     def increment_line_no(self, increment: int = 1) -> None:
         """Increment $Line, the current input line number"""
