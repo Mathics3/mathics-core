@@ -29,8 +29,6 @@ from mathics.core.systemsymbols import SymbolGet
 from mathics.core.util import canonic_filename
 from mathics.settings import ROOT_DIR
 
-type_compiled_pattern = type(re.compile("a.a"))
-
 # The contents of $OutputForms. FormMeta in mathics.base.forms adds to this.
 OutputForms: Set[Symbol] = set()
 
@@ -598,7 +596,7 @@ class Definitions:
         accessible_ctxts.add(self.current_context)
         return accessible_ctxts
 
-    def get_matching_names(self, pattern) -> List[str]:
+    def get_matching_names(self, pattern: Union[str, re.Pattern]) -> List[str]:
         """
         Return a list of the symbol names matching a string pattern.
 
@@ -613,7 +611,7 @@ class Definitions:
         which aren't uppercase letters. In the context pattern, both
         '*' and '@' match context marks.
         """
-        if isinstance(pattern, type_compiled_pattern):
+        if isinstance(pattern, re.Pattern):
             regex = pattern
         else:
             if re.match(full_names_pattern, pattern) is None:
