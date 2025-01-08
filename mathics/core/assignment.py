@@ -81,7 +81,7 @@ def get_symbol_values(
     symbol: BaseElement, func_name: str, position: str, evaluation: Evaluation
 ) -> Optional[ListExpression]:
     """
-    Build a ListExpression with the rules associated to `symbol` in the
+    Build a ListExpression with the rules associated with `symbol` in the
     `Definitions` object of `evaluation`.
 
     Parameters
@@ -198,23 +198,27 @@ def rejected_because_protected(
     ignore: bool = False,
 ) -> bool:
     """
+    Determine if the assignment must be rejected because
+    the symbol `tag` is protected. Show the messages
+    accordingly.
 
 
     Parameters
     ----------
     lhs : BaseElement
-        DESCRIPTION.
+        The LHS of the assignment.
     tag : str
-        DESCRIPTION.
+        The symbol to which the rule must be assigned.
     evaluation : Evaluation
-        DESCRIPTION.
+        the evaluation object.
     ignore : bool, optional
-        DESCRIPTION. The default is False.
+        If True, ignore if the tag has the attribute Protected.
+        The default is False.
 
     Returns
     -------
     bool
-        DESCRIPTION.
+       If `True`, the assignment must be rejected.
 
     """
     defs = evaluation.definitions
