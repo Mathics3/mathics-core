@@ -598,7 +598,7 @@ class Definitions:
         accessible_ctxts.add(self.current_context)
         return accessible_ctxts
 
-    def get_matching_names(self, pattern: str) -> List[str]:
+    def get_matching_names(self, pattern) -> List[str]:
         """
         Return a list of the symbol names matching a string pattern.
 
@@ -695,6 +695,8 @@ class Definitions:
     def get_package_names(self) -> List[str]:
         """Return the list of names of the packages loaded in the system."""
         packages = self.get_ownvalue("System`$Packages")
+        if packages is None:
+            return []
         packages = packages.replace
         assert packages.has_form("System`List", None)
         packages = [c.get_string_value() for c in packages.elements]
@@ -1122,19 +1124,22 @@ class Definitions:
         self.set_ownvalue(name, Integer(new_value))
 
     def set_line_no(self, line_no: int) -> None:
-        """Set the current line number"""
+        """Set $Line, the current input line number"""
         self.set_config_value("$Line", line_no)
 
     def get_line_no(self):
-        """Get the current line number"""
+        """Get $Line, the current input line number"""
         return self.get_config_value("$Line", 0)
 
     def increment_line_no(self, increment: int = 1) -> None:
-        """Increment the line number"""
-        self.set_config_value("$Line", self.get_line_no() + increment)
+        """Increment $Line, the current input line number"""
+        line_number = self.get_line_no()
+        if line_number is not None:
+            self.set_config_value("$Line", +increment)
 
     def get_history_length(self) -> int:
-        """Return the length of the command history"""
+        """Return the length of the command history. The number will
+        never be greater than $HistoryLength"""
         history_length = self.get_config_value("$HistoryLength", 100)
         if history_length is None or history_length > 100:
             history_length = 100

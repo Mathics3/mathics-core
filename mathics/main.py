@@ -62,7 +62,7 @@ def show_echo(query, evaluation):
             stream = stream_manager.lookup_stream(strm.elements[1].value)
             if stream is None or stream.io is None or stream.io.closed:
                 continue
-        if stream is not None:
+        if stream is not None and stream.io is not None:
             stream.io.write(query + "\n")
 
 
@@ -257,7 +257,7 @@ class TerminalShell(MathicsLineFeeder):
 
 
 class TerminalOutput(Output):
-    def max_stored_size(self, settings):
+    def max_stored_size(self, output_settings):
         return None
 
     def __init__(self, shell):

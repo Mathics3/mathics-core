@@ -27,6 +27,7 @@ def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
     scoping_vars = set()
     for var in vars:
         var_name = None
+        new_def = None
         if var.has_form("Set", 2):
             var_name = var.elements[0].get_name()
             new_def = var.elements[1]
