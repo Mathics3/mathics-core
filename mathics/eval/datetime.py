@@ -43,7 +43,7 @@ def eval_pause(sleeptime: float, evaluation):
     # It was also noticed in tests that in some platforms
     # the total time that takes n calls to time.sleep(delta_t)
     # can be appreciably larger than n*delta_t. For this reason,
-    # we also need to chech that inside the loop that the
+    # we also need to check that inside the loop that the
     # enlapsed time at the i-esim iteration does not exceed
     # the  desired total time.
 
