@@ -93,6 +93,113 @@ def autoload_files(
     defs.clear_cache()
 
 
+class Definition:
+    """
+    A Definition is a collection of ``Rule``s and attributes which are associated with ``Symbol``.
+
+    The ``Rule``s are internally organized in terms of the context of application in
+    ``ownvalues``, ``upvalues``,  ``downvalues``,  ``subvalues``, ``nvalues``,  ``format``, etc.
+    """
+
+    def __init__(
+        self,
+        name,
+        rules=None,
+        ownvalues=None,
+        downvalues=None,
+        subvalues=None,
+        upvalues=None,
+        formatvalues=None,
+        messages=None,
+        attributes=A_NO_ATTRIBUTES,
+        options=None,
+        nvalues=None,
+        defaultvalues=None,
+        builtin=None,
+        is_numeric=False,
+    ) -> None:
+        super(Definition, self).__init__()
+        self.name = name
+
+        if rules is None:
+            rules = []
+        if ownvalues is None:
+            ownvalues = []
+        if downvalues is None:
+            downvalues = []
+        if subvalues is None:
+            subvalues = []
+        if upvalues is None:
+            upvalues = []
+        if formatvalues is None:
+            formatvalues = {}
+        if options is None:
+            options = {}
+        if nvalues is None:
+            nvalues = []
+        if defaultvalues is None:
+            defaultvalues = []
+        if messages is None:
+            messages = []
+
+        self.is_numeric = is_numeric
+        self.ownvalues = ownvalues
+        self.downvalues = downvalues
+        self.subvalues = subvalues
+        self.upvalues = upvalues
+        self.formatvalues = dict((name, list) for name, list in formatvalues.items())
+        self.messages = messages
+        self.attributes = attributes
+        self.options: Dict[str, str] = options
+        self.nvalues = nvalues
+        self.defaultvalues = defaultvalues
+        self.builtin = builtin
+        self.changed = 0
+        for rule in rules:
+            if not self.add_rule(rule):
+                print(f"{rule.pattern.expr} could not be associated with {self.name}")
+
+    def get_values_list(self, pos: str):
+        assert pos.isalpha()
+        if pos == "messages":
+            return self.messages
+        return getattr(self, "%svalues" % pos)
+
+    def set_values_list(self, pos: str, rules) -> None:
+        assert pos.isalpha()
+        if pos == "messages":
+            self.messages = rules
+        else:
+            setattr(self, "%svalues" % pos, rules)
+
+    def add_rule_at(self, rule, position: str) -> bool:
+        values = self.get_values_list(position)
+        insert_rule(values, rule)
+        return True
+
+    def add_rule(self, rule) -> bool:
+        pos = get_tag_position(rule.pattern, self.name)
+        if pos:
+            return self.add_rule_at(rule, pos)
+        return False
+
+    def remove_rule(self, lhs) -> bool:
+        position = get_tag_position(lhs, self.name)
+        if position:
+            values = self.get_values_list(position)
+            for index, existing in enumerate(values):
+                if existing.pattern.expr.sameQ(lhs):
+                    del values[index]
+                    return True
+        return False
+
+    def __repr__(self) -> str:
+        repr_str = "<Definition: name: {}, downvalues: {}, formats: {}, attributes: {}>".format(
+            self.name, self.downvalues, self.formatvalues, self.attributes
+        )
+        return repr_str
+
+
 class Definitions:
     """The state of one instance of the Mathics3 interpreter is stored in this object.
 
@@ -960,110 +1067,3 @@ def insert_rule(values, rule) -> None:
     # use insort_left to guarantee that if equal rules exist, newer rules will
     # get higher precedence by being inserted before them. see DownValues[].
     bisect.insort_left(values, rule)
-
-
-class Definition:
-    """
-    A Definition is a collection of ``Rule``s and attributes which are associated with ``Symbol``.
-
-    The ``Rule``s are internally organized in terms of the context of application in
-    ``ownvalues``, ``upvalues``,  ``downvalues``,  ``subvalues``, ``nvalues``,  ``format``, etc.
-    """
-
-    def __init__(
-        self,
-        name,
-        rules=None,
-        ownvalues=None,
-        downvalues=None,
-        subvalues=None,
-        upvalues=None,
-        formatvalues=None,
-        messages=None,
-        attributes=A_NO_ATTRIBUTES,
-        options=None,
-        nvalues=None,
-        defaultvalues=None,
-        builtin=None,
-        is_numeric=False,
-    ) -> None:
-        super(Definition, self).__init__()
-        self.name = name
-
-        if rules is None:
-            rules = []
-        if ownvalues is None:
-            ownvalues = []
-        if downvalues is None:
-            downvalues = []
-        if subvalues is None:
-            subvalues = []
-        if upvalues is None:
-            upvalues = []
-        if formatvalues is None:
-            formatvalues = {}
-        if options is None:
-            options = {}
-        if nvalues is None:
-            nvalues = []
-        if defaultvalues is None:
-            defaultvalues = []
-        if messages is None:
-            messages = []
-
-        self.is_numeric = is_numeric
-        self.ownvalues = ownvalues
-        self.downvalues = downvalues
-        self.subvalues = subvalues
-        self.upvalues = upvalues
-        self.formatvalues = dict((name, list) for name, list in formatvalues.items())
-        self.messages = messages
-        self.attributes = attributes
-        self.options: Dict[str, str] = options
-        self.nvalues = nvalues
-        self.defaultvalues = defaultvalues
-        self.builtin = builtin
-        self.changed = 0
-        for rule in rules:
-            if not self.add_rule(rule):
-                print(f"{rule.pattern.expr} could not be associated with {self.name}")
-
-    def get_values_list(self, pos: str):
-        assert pos.isalpha()
-        if pos == "messages":
-            return self.messages
-        return getattr(self, "%svalues" % pos)
-
-    def set_values_list(self, pos: str, rules) -> None:
-        assert pos.isalpha()
-        if pos == "messages":
-            self.messages = rules
-        else:
-            setattr(self, "%svalues" % pos, rules)
-
-    def add_rule_at(self, rule, position: str) -> bool:
-        values = self.get_values_list(position)
-        insert_rule(values, rule)
-        return True
-
-    def add_rule(self, rule) -> bool:
-        pos = get_tag_position(rule.pattern, self.name)
-        if pos:
-            return self.add_rule_at(rule, pos)
-        return False
-
-    def remove_rule(self, lhs) -> bool:
-        position = get_tag_position(lhs, self.name)
-        if position:
-            values = self.get_values_list(position)
-            for index, existing in enumerate(values):
-                if existing.pattern.expr.sameQ(lhs):
-                    del values[index]
-                    return True
-        return False
-
-    def __repr__(self) -> str:
-        repr_str = "<Definition: name: {}, downvalues: {}, formats: {}, attributes: {}>".format(
-            self.name, self.downvalues, self.formatvalues, self.attributes
-        )
-        return repr_str

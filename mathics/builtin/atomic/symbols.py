@@ -140,7 +140,7 @@ def gather_and_format_definition_rules(
             pass
 
     for rule in all.defaultvalues:
-        show_rule(rule)
+        format_rule(rule)
     if all.options:
         options = sorted(all.options.items())
         lines.append(
@@ -425,7 +425,7 @@ class Information(PrefixOperator):
         # Print the "usage" message if available.
         is_long_form = self.get_option(options, "LongForm", evaluation).to_python()
         usagetext = online_doc_string(symbol, evaluation, is_long_form)
-        if usagetext is not None:
+        if usagetext:
             lines.append(usagetext)
 
         if is_long_form:
