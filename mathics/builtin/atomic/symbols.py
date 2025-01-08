@@ -6,7 +6,7 @@ Symbolic data. Every symbol has a unique name, exists in a certain context \
 or namespace, and can have a variety of type of values and attributes.
 """
 import re
-from typing import Callable, List
+from typing import Callable, List, Optional
 
 from mathics_scanner.tokeniser import is_symbol_name
 
@@ -54,7 +54,7 @@ from mathics.doc.online import online_doc_string
 
 def gather_and_format_definition_rules(
     symbol: Symbol, evaluation: Evaluation
-) -> List[Expression]:
+) -> Optional[List[Expression]]:
     """Return a list of lines describing the definition of `symbol`"""
     lines = []
 
@@ -484,11 +484,11 @@ class Names(Builtin):
 
     summary_text = "find a list of symbols with names matching a pattern"
 
-    def eval(self, pattern, evaluation):
+    def eval(self, pattern, evaluation: Evaluation):
         "Names[pattern_]"
         headname = pattern.get_head_name()
         if headname == "System`StringExpression":
-            pattern = re.compile(to_regex(pattern, show_message=evaluation.messages))
+            pattern = re.compile(to_regex(pattern, show_message=evaluation.message))
         else:
             pattern = pattern.get_string_value()
 

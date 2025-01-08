@@ -1,9 +1,7 @@
 """
-Functions used in the inline (Information[]) help. 
+Functions used in the inline (Information[]) help.
 
 """
-
-import re
 
 from mathics.core.evaluation import Evaluation
 from mathics.core.symbols import Symbol
