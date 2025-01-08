@@ -14,6 +14,7 @@ from mathics.core.attributes import (
 from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
+from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
 from mathics.eval.assignments import eval_assign
@@ -270,14 +271,14 @@ class TagSet(Builtin):
         self,
         f: BaseElement,
         lhs: BaseElement,
-        rhs: BaseElement,
+        rhs,
         evaluation: Evaluation,
     ) -> Optional[BaseElement]:
         "f_ /: lhs_ = rhs_"
 
         tag_name = f.get_name()
         if not tag_name:
-            evaluation.message(self.get_name(), "sym", tag, 1)
+            evaluation.message(self.get_name(), "sym", f, 1)
             return None
 
         rhs = rhs.evaluate(evaluation)
