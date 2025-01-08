@@ -460,7 +460,7 @@ class Definitions:
 
             autoload_files(self, ROOT_DIR, "autoload")
 
-    def clear_cache(self, name: Optional[str] = None):
+    def clear_cache(self, name: Optional[str] = None) -> None:
         """Clear the definitions cache. If `name` is provided,
         just remove the definition for `name` from the definition cache.
         """
@@ -709,7 +709,7 @@ class Definitions:
         if "`" not in name_with_ctx:
             return name_with_ctx
 
-        def in_ctx(name: str, ctx: str):
+        def in_ctx(name: str, ctx: str) -> str:
             return name.startswith(ctx) and "`" not in name[len(ctx) :]
 
         current_context = self.current_context
@@ -877,11 +877,11 @@ class Definitions:
         result.sort()
         return result
 
-    def get_nvalues(self, name: str):
+    def get_nvalues(self, name: str) -> list:
         """Return the list of nvalues"""
         return self.get_definition(name).nvalues
 
-    def get_defaultvalues(self, name: str):
+    def get_defaultvalues(self, name: str) -> list:
         """Return the list of defaultvalues"""
         return self.get_definition(name).defaultvalues
 
@@ -994,7 +994,9 @@ class Definitions:
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def add_rule(self, name: str, rule: BaseRule, position: Optional[str] = None):
+    def add_rule(
+        self, name: str, rule: BaseRule, position: Optional[str] = None
+    ) -> bool:
         """Add a rule for the Symbol `name` in the list `pos`."""
         definition = self.get_user_definition(self.lookup_name(name))
         if position is None:
@@ -1096,7 +1098,7 @@ class Definitions:
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def unset(self, name: str, expr: BaseElement):
+    def unset(self, name: str, expr: BaseElement) -> bool:
         """Remove the rule corresponding to the expression `expr` in
         the definition of Symbol `name`"""
         definition = self.get_user_definition(self.lookup_name(name))
