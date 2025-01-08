@@ -698,16 +698,15 @@ class Definitions:
             return []
 
         assert packages.has_form("System`List", None)
-        packages = [c.get_string_value() for c in packages.elements]
+        return [c.get_string_value() for c in packages.get_elements()]
         # return sorted({name.split("`")[0] for name in self.get_names()})
-        return packages
 
     def shorten_name(self, name_with_ctx: str) -> str:
         """Remove the context of the symbol name if can be deduced."""
         if "`" not in name_with_ctx:
             return name_with_ctx
 
-        def in_ctx(name: str, ctx: str) -> str:
+        def in_ctx(name: str, ctx: str) -> bool:
             return name.startswith(ctx) and "`" not in name[len(ctx) :]
 
         current_context = self.current_context
