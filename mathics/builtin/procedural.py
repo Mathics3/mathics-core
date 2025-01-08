@@ -16,8 +16,6 @@ Procedural functions are integrated into \\Mathics symbolic programming \
 environment.
 """
 
-import time
-
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_REST,
@@ -25,7 +23,6 @@ from mathics.core.attributes import (
     A_READ_PROTECTED,
 )
 from mathics.core.builtin import Builtin, InfixOperator, IterationFunction
-from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.interrupt import (
@@ -37,6 +34,7 @@ from mathics.core.interrupt import (
 )
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import SymbolMatchQ, SymbolPause
+from mathics.eval.datetime import eval_pause, valid_time_from_expression
 from mathics.eval.patterns import match
 
 SymbolWhich = Symbol("Which")
@@ -461,41 +459,15 @@ class Pause(Builtin):
 
     # Number of timeout polls per second that we perform in looking
     # for a timeout.
-    PAUSE_TICKS_PER_SECOND = 1000
 
     def eval(self, n, evaluation: Evaluation):
         "Pause[n_]"
-        sleeptime = n.to_python()
-        if not isinstance(sleeptime, (int, float)) or sleeptime < 0:
-            evaluation.message(
-                "Pause", "numnm", Expression(SymbolPause, from_python(n))
-            )
+        try:
+            sleep_time = valid_time_from_expression(n, evaluation)
+        except ValueError:
+            evaluation.message("Pause", "numnm", Expression(SymbolPause, n))
             return
-
-        # Due to the GIL lock, if we implement this method
-        # by just calling `time.sleep(sleeptime)`, the
-        # evaluation would not be aware of `TimeoutException`
-        # raised by an outer `TimeConstrained` expression.
-        #
-        # For this reason, the splitting of the sleep time is
-        # needed.
-        # It was also noticed in tests that in some platforms
-        # the total time that takes n calls to time.sleep(delta_t)
-        # can be appreciably larger than n*delta_t. For this reason,
-        # we also need to chech that inside the loop that the
-        # enlapsed time at the i-esim iteration does not exceed
-        # the  desired total time.
-
-        steps = int(self.PAUSE_TICKS_PER_SECOND * sleeptime)
-        step_duration = 1 / self.PAUSE_TICKS_PER_SECOND
-        start = time.time()
-        for _ in range(steps):
-            time.sleep(step_duration)
-            if evaluation.timeout:
-                break
-            if sleeptime < time.time() - start:
-                break
-
+        eval_pause(sleep_time, evaluation)
         return SymbolNull
 
 

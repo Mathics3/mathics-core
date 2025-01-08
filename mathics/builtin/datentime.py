@@ -1138,6 +1138,7 @@ class TimeConstrained(Builtin):
         try:
             timeout = valid_time_from_expression(t, evaluation)
         except ValueError:
+            evaluation.message("TimeConstrained", "timc", t)
             return
         return eval_timeconstrained(expr, timeout, SymbolAborted, evaluation)
 
@@ -1146,6 +1147,7 @@ class TimeConstrained(Builtin):
         try:
             timeout = valid_time_from_expression(t, evaluation)
         except ValueError:
+            evaluation.message("TimeConstrained", "timc", t)
             return
         return eval_timeconstrained(expr, timeout, failexpr, evaluation)
 
