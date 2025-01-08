@@ -127,10 +127,10 @@ def get_symbol_values(
     return ListExpression(*elements)
 
 
-def is_protected(tag: str, defin: Definitions) -> bool:
+def is_protected(tag: str, definitions: Definitions) -> bool:
     """Check if the `Symbol` with name `tag`
-    is protected in the `Definitions` `defin`"""
-    return bool(A_PROTECTED & defin.get_attributes(tag))
+    is protected in the `definitions`"""
+    return bool(A_PROTECTED & definitions.get_attributes(tag))
 
 
 def normalize_lhs(lhs, evaluation):
