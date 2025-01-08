@@ -1877,27 +1877,6 @@ def _create_expression(self, head: BaseElement, *elements: BaseElement) -> Expre
 BaseElement.create_expression = _create_expression
 
 
-def get_default_value(name, evaluation, k=None, n=None):
-    pos = []
-    if k is not None:
-        pos.append(k)
-    if n is not None:
-        pos.append(n)
-    for pos_len in reversed(list(range(len(pos) + 1))):
-        # Try patterns from specific to general
-        defaultexpr = Expression(
-            SymbolDefault, Symbol(name), *[Integer(index) for index in pos[:pos_len]]
-        )
-        result = evaluation.definitions.get_value(
-            name, "System`DefaultValues", defaultexpr, evaluation
-        )
-        if result is not None:
-            if result.sameQ(defaultexpr) and isinstance(result, EvalMixin):
-                result = result.evaluate(evaluation)
-            return result
-    return None
-
-
 def print_parenthesizes(
     precedence, outer_precedence=None, parenthesize_when_equal=False
 ) -> bool:
