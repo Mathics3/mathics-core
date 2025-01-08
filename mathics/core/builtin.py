@@ -1159,10 +1159,10 @@ class Operator(Builtin):
     default_formats = True
 
     def get_precedence(self, name: str) -> int:
-        operator_info = OPERATOR_DATA.get("operator-precedence")
+        operator_info = OPERATOR_DATA.get("operator-precedences")
         assert isinstance(
             operator_info, dict
-        ), 'Internal error: "operator-precedence" should be found in operators.json'
+        ), 'Internal error: "operator-precedences" should be found in operators.json'
         precedence = operator_info.get(name)
         assert isinstance(
             precedence, int
