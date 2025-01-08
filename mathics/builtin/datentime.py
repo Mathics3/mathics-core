@@ -17,7 +17,7 @@ from typing import Optional
 
 import dateutil.parser
 
-from mathics.core.atoms import Integer, Real, String
+from mathics.core.atoms import Integer, MachineReal, Real, String
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_NO_ATTRIBUTES,
@@ -39,6 +39,7 @@ from mathics.core.systemsymbols import (
     SymbolInfinity,
     SymbolRowBox,
 )
+from mathics.eval.datetime import eval_timeconstrained, valid_time_from_expression
 from mathics.settings import TIME_12HOUR
 
 START_TIME = time.time()
@@ -110,42 +111,6 @@ else:
 SymbolDateObject = Symbol("DateObject")
 SymbolDateString = Symbol("DateString")
 SymbolGregorian = Symbol("Gregorian")
-
-
-if sys.platform == "emscripten":
-    # from stopit import SignalTimeout as TimeoutHandler
-
-    def eval_timeconstrained(
-        expr: BaseElement, timeout: float, failexpr: BaseElement, evaluation: Evaluation
-    ) -> BaseElement:
-        """
-        Evaluate expr with a walltime specified by `t`, for platforms
-        which does not support it.
-        """
-        evaluation.message("TimeConstrained", "tcns")
-        return expr
-
-else:
-    from stopit import ThreadingTimeout as TimeoutHandler
-
-    def eval_timeconstrained(
-        expr: BaseElement, timeout: float, failexpr: BaseElement, evaluation: Evaluation
-    ) -> BaseElement:
-        """
-        Evaluate expr with a walltime specified by `t`
-        """
-        try:
-            evaluation.timeout_queue.append((timeout, datetime.now().timestamp()))
-            done = False
-            with TimeoutHandler(timeout) as to_ctx_mgr:
-                assert to_ctx_mgr.state == to_ctx_mgr.EXECUTING
-                result = expr.evaluate(evaluation)
-                done = True
-                evaluation.timeout_queue.pop()
-            return result if done else failexpr
-        except Exception:
-            evaluation.timeout_queue.pop()
-            raise
 
 
 class _Date:
@@ -727,10 +692,10 @@ class DateObject(_DateFormat, ImmutableValueMixin):
     def eval_makeboxes(
         self,
         datetime: Expression,
-        gran: BaseExpression,
-        cal: BaseExpression,
-        tz: BaseExpression,
-        fmt: BaseExpression,
+        gran: BaseElement,
+        cal: BaseElement,
+        tz: BaseElement,
+        fmt: BaseElement,
         evaluation: Evaluation,
     ) -> Optional[Expression]:
         "MakeBoxes[DateObject[datetime_List, gran_, cal_, tz_, fmt_], StandardForm|TraditionalForm|OutputForm]"
@@ -1142,17 +1107,18 @@ class TimeConstrained(Builtin):
     evaluation, the function will return '$Aborted' and the results will not affect
     the state of the Mathics3 kernel.
 
-    >> TimeConstrained[Pause[5]; a, 1]
-     = $Aborted
+    
+    ## >> TimeConstrained[Pause[5]; a, 1]
+    ##  = $Aborted
 
-    'TimeConstrained' can be nested. In this case, the outer 'TimeConstrained' waits for \
-    2 seconds that the inner sequence be executed. Inner expressions would take in \
-    sequence more than 3 seconds:
-    >> TimeConstrained[TimeConstrained[Pause[1]; Print["First Done"], 2];\
-                  TimeConstrained[Pause[5];Print["Second Done"],2,"inner"], \
-                  2, "outer"]
-     | First Done
-     = outer
+    ## 'TimeConstrained' can be nested. In this case, the outer 'TimeConstrained' waits for \
+    ## 2 seconds that the inner sequence be executed. Inner expressions would take in \
+    ## sequence more than 3 seconds:
+    ## >> TimeConstrained[TimeConstrained[Pause[1]; Print["First Done"], 2];\
+    ##              TimeConstrained[Pause[5];Print["Second Done"],2,"inner"], \
+    ##              2, "outer"]
+    ## | First Done
+    ## = outer
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
@@ -1169,25 +1135,17 @@ class TimeConstrained(Builtin):
 
     def eval_2(self, expr, t, evaluation) -> Optional[BaseElement]:
         "TimeConstrained[expr_, t_]"
-        t = t.evaluate(evaluation)
-        if not t.is_numeric(evaluation):
-            evaluation.message("TimeConstrained", "timc", t)
-            return
         try:
-            timeout = float(t.to_python())
-        except (ValueError, TypeError):
+            timeout = valid_time_from_expression(t, evaluation)
+        except ValueError:
             return
         return eval_timeconstrained(expr, timeout, SymbolAborted, evaluation)
 
     def eval_3(self, expr, t, failexpr, evaluation) -> Optional[BaseElement]:
         "TimeConstrained[expr_, t_, failexpr_]"
-        t = t.evaluate(evaluation)
-        if not t.is_numeric(evaluation):
-            evaluation.message("TimeConstrained", "timc", t)
-            return
         try:
-            timeout = float(t.to_python())
-        except (ValueError, TypeError):
+            timeout = valid_time_from_expression(t, evaluation)
+        except ValueError:
             return
         return eval_timeconstrained(expr, timeout, failexpr, evaluation)
 

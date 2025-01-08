@@ -181,6 +181,17 @@ def test_private_doctests_datetime(str_expr, msgs, str_expected, fail_msg):
             "Cos[x] (-3 + Cos[x] ^ 2) / 3",
             "s is now evaluated because `a` is a number.",
         ),
+        ("TimeConstrained[Pause[5]; a, 1]", None, "$Aborted", None),
+        (
+            (
+                'TimeConstrained[TimeConstrained[Pause[1]; Print["First Done"], 2];'
+                'TimeConstrained[Pause[5];Print["Second Done"],2,"inner"],'
+                '2, "outer"]'
+            ),
+            ("First Done",),
+            "outer",
+            None,
+        ),
         ("a=.;s=.;", None, "Null", None),
     ],
 )
