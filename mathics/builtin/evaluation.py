@@ -83,7 +83,7 @@ class IterationLimit(Predefined):
 
     Calculations terminated by '$IterationLimit' return '$Aborted':
 
-    > $IterationLimit
+    >> $IterationLimit
      = 1000
     """
 

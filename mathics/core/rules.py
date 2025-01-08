@@ -202,7 +202,7 @@ class BaseRule(KeyComparable, ABC):
         return tuple((self.system, self.pattern.get_sort_key(pattern_sort)))
 
 
-# FIXME: the class name would be better called RewiteRule.
+# FIXME: the class name would be better called RewriteRule.
 class Rule(BaseRule):
     """There are two kinds of Rules.  This kind of is a rewrite rule
     and transforms an Expression into another Expression based on the

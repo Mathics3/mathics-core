@@ -508,7 +508,7 @@ class Sow(Builtin):
 
 
 class Table(IterationFunction):
-    """
+    r"""
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/Table.html</url>

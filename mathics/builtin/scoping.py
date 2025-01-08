@@ -27,6 +27,7 @@ def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
     scoping_vars = set()
     for var in vars:
         var_name = None
+        new_def = None
         if var.has_form("Set", 2):
             var_name = var.elements[0].get_name()
             new_def = var.elements[1]
@@ -238,7 +239,7 @@ class Contexts(Builtin):
       <dd>returns a list of contexts that match the string.
     </dl>
 
-    'Contexts' allows the string patterns with the follwing metacharacters:
+    'Contexts' allows the string patterns with the following metacharacters:
     <ul>
      <li> '*' zero or more characters
      <li> '@' one or more characters, excluding uppercase letters
@@ -614,7 +615,7 @@ class Unique(Predefined):
         new_name = "$%d" % (self.seq_number)
         self.seq_number += 1
         # Next symbol in case of new name is defined before
-        while evaluation.definitions.get_definition(new_name, True) is not None:
+        while evaluation.definitions.have_definition(new_name):
             new_name = "$%d" % (self.seq_number)
             self.seq_number += 1
         return Symbol(new_name)
@@ -654,7 +655,7 @@ class Unique(Predefined):
                 new_name = f"{symbol.get_string_value()}{self.seq_number}"
                 self.seq_number += 1
                 # Next symbol in case of new name is defined before
-                while evaluation.definitions.get_definition(new_name, True) is not None:
+                while evaluation.definitions.have_definition(new_name):
                     new_name = f"{symbol.get_string_value()}{self.seq_number}"
                     self.seq_number += 1
                 list.append(Symbol(new_name))

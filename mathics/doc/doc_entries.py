@@ -241,6 +241,9 @@ def parse_docstring_to_DocumentationEntry_items(
                 items.append(tests)
                 tests = None
             text = post_sub(text, post_substitutions)
+            # Remove line breaks
+            text = re.sub(r" \\\n[ ]*", r" ", text)
+            text = re.sub(r"\\\n[ ]*", r" ", text)
             items.append(text_constructor(text))
             tests = None
         if index < len(testcases) - 1:
@@ -547,6 +550,7 @@ class DocumentationEntry:
         item = item.replace("<dd>", "    ")
         item = item.replace("</dd>", "")
         item = "\n".join(line for line in item.split("\n") if not line.isspace())
+        item = re.sub(r"\$([0-9a-zA-Z]*)\$", r"\1", item)
         return item
 
     def get_tests(self) -> List["DocTest"]:
