@@ -234,7 +234,7 @@ def insert_rule(values: list, rule: Rule) -> None:
     ----------
     values : List[Rule]
         A list of rules.
-    rule : BaseRule
+    rule : Rule
         A new rule.
 
     Returns
@@ -876,12 +876,15 @@ class Definitions:
         return result
 
     def get_nvalues(self, name: str):
+        """Return the list of nvalues"""
         return self.get_definition(name).nvalues
 
     def get_defaultvalues(self, name: str):
+        """Return the list of defaultvalues"""
         return self.get_definition(name).defaultvalues
 
     def get_value(self, name: str, pos: str, pattern, evaluation):
+        """Apply rules in `pos` until get the value of the symbol"""
         assert isinstance(name, str)
         assert "`" in name
         rules = self.get_definition(name).get_values_list(valuesname(pos))
@@ -942,10 +945,12 @@ class Definitions:
         return self.user[name]
 
     def mark_changed(self, definition: Definition) -> None:
+        """Mark a definition change"""
         self.now += 1
         definition.changed = self.now
 
     def reset_user_definition(self, name: str) -> None:
+        """Remove the user definition associated with the Symbol `name`"""
         assert not isinstance(name, Symbol)
         fullname = self.lookup_name(name)
         if fullname in self.user:
@@ -954,6 +959,7 @@ class Definitions:
         # TODO fix changed
 
     def add_user_definition(self, name: str, definition: Definition) -> None:
+        """Assign a definition to a symbol of name `name`"""
         assert not isinstance(name, Symbol)
         self.mark_changed(definition)
         fullname = self.lookup_name(name)
@@ -961,6 +967,7 @@ class Definitions:
         self.clear_cache(fullname)
 
     def set_attribute(self, name: str, attribute: int) -> None:
+        """Set an attribute to the Symbol `name`"""
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
             definition.attributes |= attribute
@@ -968,6 +975,7 @@ class Definitions:
         self.clear_definitions_cache(name)
 
     def set_attributes(self, name: str, attributes: int) -> None:
+        """Set the attribute property for the Symbol `name`"""
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
             definition.attributes = attributes
@@ -975,6 +983,7 @@ class Definitions:
         self.clear_definitions_cache(name)
 
     def clear_attribute(self, name: str, attribute: int) -> None:
+        """Clear the attributes of the Symbol `name`"""
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
             definition.attributes &= ~attribute
@@ -982,6 +991,7 @@ class Definitions:
         self.clear_definitions_cache(name)
 
     def add_rule(self, name: str, rule, position: Optional[str] = None):
+        """Add a rule for the Symbol `name` in the list `pos`."""
         definition = self.get_user_definition(self.lookup_name(name))
         if position is None:
             result = definition.add_rule(rule)
@@ -1004,6 +1014,7 @@ class Definitions:
         self.clear_definitions_cache(name)
 
     def add_nvalue(self, name: str, rule) -> None:
+        """Add a nvalue rule to the Symbol `name`"""
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
             definition.add_rule_at(rule, "n")
@@ -1011,6 +1022,7 @@ class Definitions:
         self.clear_definitions_cache(name)
 
     def add_default(self, name: str, rule) -> None:
+        """Add a DefaultValue to the Symbol `name`"""
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
             definition.add_rule_at(rule, "default")
@@ -1018,6 +1030,7 @@ class Definitions:
         self.clear_definitions_cache(name)
 
     def add_message(self, name: str, rule) -> None:
+        """Add a message to the Symbol `name`"""
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
             definition.add_rule_at(rule, "messages")
@@ -1025,6 +1038,7 @@ class Definitions:
         self.clear_definitions_cache(name)
 
     def set_values(self, name: str, values, rules) -> None:
+        """Set a list of rules associated with the Symbol `name`"""
         pos = valuesname(values)
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
@@ -1033,6 +1047,7 @@ class Definitions:
         self.clear_definitions_cache(name)
 
     def get_options(self, name):
+        """Get the options associated with the Symbol `name`"""
         return self.get_definition(self.lookup_name(name)).options
 
     def reset_user_definitions(self) -> None:
@@ -1067,6 +1082,7 @@ class Definitions:
         self.clear_cache(name)
 
     def set_options(self, name: str, options) -> None:
+        """Set the options dict associated with the Symbol `name`"""
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
             definition.options = options
@@ -1074,6 +1090,8 @@ class Definitions:
         self.clear_definitions_cache(name)
 
     def unset(self, name: str, expr):
+        """Remove the rule corresponding to the expression `expr` in
+        the definition of Symbol `name`"""
         definition = self.get_user_definition(self.lookup_name(name))
         result = definition.remove_rule(expr)
         self.mark_changed(definition)
