@@ -40,7 +40,7 @@ def get_settings_value(definitions: Definitions, setting_name: str):
     settings_value = definitions.get_ownvalue(setting_name)
     if settings_value is None:
         return None
-    return settings_value.replace.to_python(string_quotes=False)
+    return settings_value.to_python(string_quotes=False)
 
 
 def set_settings_value(definitions: Definitions, setting_name: str, value):
