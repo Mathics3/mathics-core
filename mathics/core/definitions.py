@@ -38,23 +38,6 @@ OutputForms: Set[Symbol] = set()
 PrintForms: Set[Symbol] = set()
 
 
-def get_file_time(file) -> float:
-    """Return the last time that a file was accessed"""
-    try:
-        return os.stat(file).st_mtime
-    except OSError:
-        return 0
-
-
-def valuesname(name) -> str:
-    """'NValues' -> 'n'"""
-
-    assert name.startswith("System`"), name
-    if name == "System`Messages":
-        return "messages"
-    return name[7:-6].lower()
-
-
 def autoload_files(
     defs, root_dir_path: str, autoload_dir: str, block_global_definitions: bool = True
 ):
@@ -83,7 +66,7 @@ def autoload_files(
 
         for name in defs.user:
             if name.startswith("Global`"):
-                raise ValueError("autoload defined %s." % name)
+                raise ValueError(f"autoload defined {name}.")
 
     # Move the user definitions to builtin:
     for symbol_name in defs.user:
@@ -91,6 +74,192 @@ def autoload_files(
 
     defs.user = {}
     defs.clear_cache()
+
+
+def get_file_time(file) -> float:
+    """Return the last time that a file was accessed"""
+    try:
+        return os.stat(file).st_mtime
+    except OSError:
+        return 0
+
+
+def get_tag_position(pattern, name: str) -> Optional[str]:
+    """
+    Determine the position of a pattern in
+    the definition of the symbol ``name``
+    """
+    blanks = (
+        "System`Blank",
+        "System`BlankSequence",
+        "System`BlankNullSequence",
+    )
+
+    def strip_pattern_name_and_condition(pat) -> BasePattern:
+        """
+        In ``Pattern[name_, pattern_]`` and
+        ``Condition[pattern_, cond_]``
+        the tag is determined by pat.
+        This function strips it to ensure that
+        ``pat`` does not have that form.
+        """
+
+        # Is "pat" as ExpressionPattern or an AtomPattern?
+        # Note: the below test could also be on ExpressionPattern or
+        # AtomPattern, but using hasattr is more flexible if more
+        # kinds of patterns are added.
+        if not hasattr(pat, "head"):
+            return pat
+
+        if hasattr(pat, "elements"):
+            # We have to use get_head_name() below because
+            # pat can either SymbolCondition or <AtomPattern: System`Condition>.
+            # In the latter case, comparing to SymbolCondition is not sufficient.
+            if pat.get_head_name() == "System`Condition":
+                if len(pat.elements) > 1:
+                    return strip_pattern_name_and_condition(pat.elements[0])
+            # The same kind of get_head_name() check is needed here as well and
+            # is not the same as testing against SymbolPattern.
+            if pat.get_head_name() == "System`Pattern":
+                if len(pat.elements) == 2:
+                    return strip_pattern_name_and_condition(pat.elements[1])
+
+        return pat
+
+    def is_pattern_a_kind_of(pattern: ExpressionPattern, pattern_name: str) -> bool:
+        """
+        Returns `True` if `pattern` or any of its alternates is a
+        pattern with name `pattern_name` and `False` otherwise."""
+
+        if pattern_name == pattern.get_lookup_name():
+            return True
+
+        # Try again after stripping Pattern and Condition wrappers:
+        head = strip_pattern_name_and_condition(pattern.get_head())
+        head_name = head.get_lookup_name()
+        if pattern_name == head_name:
+            return True
+
+        # The head is of the form ``_SymbolName|__SymbolName|___SymbolName``
+        # If name matches with SymbolName, then it is a kind of:
+        if head_name in blanks:
+            if isinstance(head, Symbol):
+                return False
+            assert hasattr(head, "elements")
+            sub_elements = head.elements
+            if len(sub_elements) == 1:
+                head_name = head.elements[0].get_name()
+                if head_name == pattern_name:
+                    return True
+        return False
+
+    # If pattern is a Symbol, and coincides with
+    # name, it is an ownvalue:
+
+    if pattern.get_name() == name:
+        return "own"
+    # If pattern is an ``Atom``, does not have
+    # a position
+    if isinstance(pattern, Atom):
+        return None
+
+    # The pattern is an Expression.
+    head_name = pattern.get_head_name()
+    # If the name is the head name, is a downvalue:
+    if head_name == name:
+        return "down"
+
+    # Handle special cases
+    if head_name == "System`N":
+        if len(pattern.elements) == 2:
+            return "n"
+
+    # The pattern has the form `_SymbolName | __SymbolName | ___SymbolName`
+    # Then it only can be a downvalue
+    if head_name in blanks:
+        elements = pattern.elements
+        if len(elements) == 1:
+            head_name = elements[0].get_name()
+            return "down" if head_name == name else None
+
+    # TODO: Consider process format_values
+
+    if head_name != "":
+        # Check
+        strip_pattern = strip_pattern_name_and_condition(pattern)
+        if strip_pattern is not pattern:
+            return get_tag_position(strip_pattern, name)
+
+    # The head is not a symbol. Is pattern is "name" kind of pattern?
+    if is_pattern_a_kind_of(pattern, name):
+        return "sub"
+
+    # If we are here, pattern is not an Ownvalue, DownValue, SubValue or NValue
+    # Let's check the elements for UpValues
+    for element in pattern.elements:
+        lookup_name = element.get_lookup_name()
+        if lookup_name == name:
+            return "up"
+
+        # Strip Pattern and Condition wrappers and check again
+        if lookup_name in (
+            "System`Condition",
+            "System`Pattern",
+        ):
+            element = strip_pattern_name_and_condition(element)
+            lookup_name = element.get_lookup_name()
+            if lookup_name == name:
+                return "up"
+        # Check if one of the elements is not a "Blank"
+
+        if element.get_head_name() in blanks:
+            sub_elements = element.elements
+            if len(sub_elements) == 1:
+                if sub_elements[0].get_name() == name:
+                    return "up"
+    # ``pattern`` does not have a tag position in the Definition
+    return None
+
+
+def insert_rule(values: list, rule: Rule) -> None:
+    """
+    Add a new rule inside a list of values.
+    Rules are sorted in a way that the first elements
+    in value list have more priority in evaluation.
+    If there is an existent rule in `values` with
+    the same pattern than `rule`,  `rule` takes its
+    place.
+
+    Parameters
+    ----------
+    values : List[Rule]
+        A list of rules.
+    rule : BaseRule
+        A new rule.
+
+    Returns
+    -------
+    None
+        DESCRIPTION.
+
+    """
+
+    for index, existing in enumerate(values):
+        if existing.pattern.sameQ(rule.pattern):
+            del values[index]
+            break
+    # use insort_left to guarantee that if equal rules exist, newer rules will
+    # get higher precedence by being inserted before them. see DownValues[].
+    bisect.insort_left(values, rule)
+
+
+def valuesname(name: str) -> str:
+    """'NValues' -> 'n'"""
+
+    assert name.startswith("System`"), name
+    if name == "System`Messages":
+        return "messages"
+    return name[7:-6].lower()
 
 
 class Definition:
@@ -159,31 +328,38 @@ class Definition:
             if not self.add_rule(rule):
                 print(f"{rule.pattern.expr} could not be associated with {self.name}")
 
-    def get_values_list(self, pos: str):
+    def get_values_list(self, pos: str) -> list:
+        """Return one of the value lists"""
         assert pos.isalpha()
         if pos == "messages":
             return self.messages
-        return getattr(self, "%svalues" % pos)
+        return getattr(self, f"{pos}values")
 
-    def set_values_list(self, pos: str, rules) -> None:
+    def set_values_list(self, pos: str, rules: list) -> None:
+        """Set one of the value lists"""
         assert pos.isalpha()
         if pos == "messages":
             self.messages = rules
         else:
-            setattr(self, "%svalues" % pos, rules)
+            setattr(self, f"{pos}values", rules)
 
     def add_rule_at(self, rule, position: str) -> bool:
+        """
+        Add `rule` to the set of rules in `position`
+        """
         values = self.get_values_list(position)
         insert_rule(values, rule)
         return True
 
     def add_rule(self, rule) -> bool:
+        """Add a rule. The position is automatically determined."""
         pos = get_tag_position(rule.pattern, self.name)
         if pos:
             return self.add_rule_at(rule, pos)
         return False
 
     def remove_rule(self, lhs) -> bool:
+        """Remove a rule"""
         position = get_tag_position(lhs, self.name)
         if position:
             values = self.get_values_list(position)
@@ -224,7 +400,7 @@ class Definitions:
         self,
         add_builtin: bool = False,
         builtin_filename: Optional[str] = None,
-        extension_modules: list = [],
+        extension_modules: tuple = (),
     ) -> None:
         super(Definitions, self).__init__()
         self.builtin: Dict[str, Definition] = {}
@@ -359,22 +535,27 @@ class Definitions:
 
         return False
 
-    def get_current_context(self):
+    def get_current_context(self) -> str:
+        """Return a string with the current context"""
         return self.current_context
 
-    def get_context_path(self):
+    def get_context_path(self) -> Tuple[str, ...]:
+        """return a tuple with the context path"""
         return self.context_path
 
     def get_inputfile(self) -> str:
+        """Return the input file"""
         return self.inputfile if hasattr(self, "inputfile") else ""
 
-    def set_current_context(self, context) -> None:
+    def set_current_context(self, context: str) -> None:
+        """Set the current context"""
         assert isinstance(context, str)
         self.set_ownvalue("System`$Context", String(context))
         self.current_context = context
         self.clear_cache()
 
     def set_context_path(self, context_path: Sequence[str]) -> None:
+        """Set the context path"""
         assert all(isinstance(c, str) for c in context_path)
         self.set_ownvalue(
             "System`$ContextPath",
@@ -506,12 +687,13 @@ class Definitions:
         with_context = current_context + name
         # if not self.have_definition(with_context):
         for ctx in self.context_path:
-            n = ctx + name
-            if self.have_definition(n):
-                return n
+            ctx_name = ctx + name
+            if self.have_definition(ctx_name):
+                return ctx_name
         return with_context
 
     def get_package_names(self) -> List[str]:
+        """Return the list of names of the packages loaded in the system."""
         packages = self.get_ownvalue("System`$Packages")
         packages = packages.replace
         assert packages.has_form("System`List", None)
@@ -521,6 +703,7 @@ class Definitions:
         # return sorted({name.split("`")[0] for name in self.get_names()})
 
     def shorten_name(self, name_with_ctx: str) -> str:
+        """Remove the context of the symbol name if can be deduced."""
         if "`" not in name_with_ctx:
             return name_with_ctx
 
@@ -536,6 +719,7 @@ class Definitions:
         return name_with_ctx
 
     def have_definition(self, name: str) -> bool:
+        """Check if the Symbol `name` has an associated definition."""
         try:
             self.get_definition(name, only_if_exists=True)
         except KeyError:
@@ -657,18 +841,27 @@ class Definitions:
         return definition
 
     def get_attributes(self, name: str) -> int:
+        """
+        Return the integer representing the
+        attributes of the symbol `name`
+
+        """
         return self.get_definition(name).attributes
 
     def get_ownvalues(self, name: str) -> list:
+        """Return the list of ownvalues"""
         return self.get_definition(name).ownvalues
 
     def get_downvalues(self, name: str) -> list:
+        """Return the list of downvalues"""
         return self.get_definition(name).downvalues
 
     def get_subvalues(self, name: str) -> list:
+        """Return the list of subvalues"""
         return self.get_definition(name).subvalues
 
     def get_upvalues(self, name: str) -> list:
+        """Return the list of upvalues"""
         return self.get_definition(name).upvalues
 
     def get_formats(self, name: str, format_name="") -> list:
@@ -843,14 +1036,17 @@ class Definitions:
         return self.get_definition(self.lookup_name(name)).options
 
     def reset_user_definitions(self) -> None:
+        """Remove all the user definitions"""
         self.user = {}
         self.clear_cache()
         # TODO changed
 
-    def get_user_definitions(self):
+    def get_user_definitions(self) -> str:
+        """Return a string encoding all the user definitions"""
         return base64.encodebytes(pickle.dumps(self.user, protocol=2)).decode("ascii")
 
-    def set_user_definitions(self, definitions) -> None:
+    def set_user_definitions(self, definitions: str) -> None:
+        """Set the user definitions encoded in a string"""
         if definitions:
             self.user = pickle.loads(base64.decodebytes(definitions.encode("ascii")))
         else:
@@ -858,6 +1054,7 @@ class Definitions:
         self.clear_cache()
 
     def get_ownvalue(self, name: str):
+        """Get ownvalue associated with `name`"""
         ownvalues = self.get_definition(self.lookup_name(name)).ownvalues
         if ownvalues:
             return ownvalues[0]
@@ -907,163 +1104,20 @@ class Definitions:
         self.set_ownvalue(name, Integer(new_value))
 
     def set_line_no(self, line_no: int) -> None:
+        """Set the current line number"""
         self.set_config_value("$Line", line_no)
 
     def get_line_no(self):
+        """Get the current line number"""
         return self.get_config_value("$Line", 0)
 
     def increment_line_no(self, increment: int = 1) -> None:
+        """Increment the line number"""
         self.set_config_value("$Line", self.get_line_no() + increment)
 
-    def get_history_length(self):
+    def get_history_length(self) -> int:
+        """Return the length of the command history"""
         history_length = self.get_config_value("$HistoryLength", 100)
         if history_length is None or history_length > 100:
             history_length = 100
         return history_length
-
-
-def get_tag_position(pattern, name: str) -> Optional[str]:
-    """
-    Determine the position of a pattern in
-    the definition of the symbol ``name``
-    """
-    blanks = (
-        "System`Blank",
-        "System`BlankSequence",
-        "System`BlankNullSequence",
-    )
-
-    def strip_pattern_name_and_condition(pat) -> BasePattern:
-        """
-        In ``Pattern[name_, pattern_]`` and
-        ``Condition[pattern_, cond_]``
-        the tag is determined by pat.
-        This function strips it to ensure that
-        ``pat`` does not have that form.
-        """
-
-        # Is "pat" as ExpressionPattern or an AtomPattern?
-        # Note: the below test could also be on ExpressionPattern or
-        # AtomPattern, but using hasattr is more flexible if more
-        # kinds of patterns are added.
-        if not hasattr(pat, "head"):
-            return pat
-
-        if hasattr(pat, "elements"):
-            # We have to use get_head_name() below because
-            # pat can either SymbolCondition or <AtomPattern: System`Condition>.
-            # In the latter case, comparing to SymbolCondition is not sufficient.
-            if pat.get_head_name() == "System`Condition":
-                if len(pat.elements) > 1:
-                    return strip_pattern_name_and_condition(pat.elements[0])
-            # The same kind of get_head_name() check is needed here as well and
-            # is not the same as testing against SymbolPattern.
-            if pat.get_head_name() == "System`Pattern":
-                if len(pat.elements) == 2:
-                    return strip_pattern_name_and_condition(pat.elements[1])
-
-        return pat
-
-    def is_pattern_a_kind_of(pattern: ExpressionPattern, pattern_name: str) -> bool:
-        """
-        Returns `True` if `pattern` or any of its alternates is a
-        pattern with name `pattern_name` and `False` otherwise."""
-
-        if pattern_name == pattern.get_lookup_name():
-            return True
-
-        # Try again after stripping Pattern and Condition wrappers:
-        head = strip_pattern_name_and_condition(pattern.get_head())
-        head_name = head.get_lookup_name()
-        if pattern_name == head_name:
-            return True
-
-        # The head is of the form ``_SymbolName|__SymbolName|___SymbolName``
-        # If name matches with SymbolName, then it is a kind of:
-        if head_name in blanks:
-            if isinstance(head, Symbol):
-                return False
-            assert hasattr(head, "elements")
-            sub_elements = head.elements
-            if len(sub_elements) == 1:
-                head_name = head.elements[0].get_name()
-                if head_name == pattern_name:
-                    return True
-        return False
-
-    # If pattern is a Symbol, and coincides with
-    # name, it is an ownvalue:
-
-    if pattern.get_name() == name:
-        return "own"
-    # If pattern is an ``Atom``, does not have
-    # a position
-    if isinstance(pattern, Atom):
-        return None
-
-    # The pattern is an Expression.
-    head_name = pattern.get_head_name()
-    # If the name is the head name, is a downvalue:
-    if head_name == name:
-        return "down"
-
-    # Handle special cases
-    if head_name == "System`N":
-        if len(pattern.elements) == 2:
-            return "n"
-
-    # The pattern has the form `_SymbolName | __SymbolName | ___SymbolName`
-    # Then it only can be a downvalue
-    if head_name in blanks:
-        elements = pattern.elements
-        if len(elements) == 1:
-            head_name = elements[0].get_name()
-            return "down" if head_name == name else None
-
-    # TODO: Consider process format_values
-
-    if head_name != "":
-        # Check
-        strip_pattern = strip_pattern_name_and_condition(pattern)
-        if strip_pattern is not pattern:
-            return get_tag_position(strip_pattern, name)
-
-    # The head is not a symbol. Is pattern is "name" kind of pattern?
-    if is_pattern_a_kind_of(pattern, name):
-        return "sub"
-
-    # If we are here, pattern is not an Ownvalue, DownValue, SubValue or NValue
-    # Let's check the elements for UpValues
-    for element in pattern.elements:
-        lookup_name = element.get_lookup_name()
-        if lookup_name == name:
-            return "up"
-
-        # Strip Pattern and Condition wrappers and check again
-        if lookup_name in (
-            "System`Condition",
-            "System`Pattern",
-        ):
-            element = strip_pattern_name_and_condition(element)
-            lookup_name = element.get_lookup_name()
-            if lookup_name == name:
-                return "up"
-        # Check if one of the elements is not a "Blank"
-
-        if element.get_head_name() in blanks:
-            sub_elements = element.elements
-            if len(sub_elements) == 1:
-                if sub_elements[0].get_name() == name:
-                    return "up"
-    # ``pattern`` does not have a tag position in the Definition
-    return None
-
-
-def insert_rule(values, rule) -> None:
-    for index, existing in enumerate(values):
-        if existing.pattern.sameQ(rule.pattern):
-            del values[index]
-            break
-    # use insort_left to guarantee that if equal rules exist, newer rules will
-    # get higher precedence by being inserted before them. see DownValues[].
-    bisect.insort_left(values, rule)
