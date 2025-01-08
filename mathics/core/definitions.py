@@ -885,7 +885,9 @@ class Definitions:
         """Return the list of defaultvalues"""
         return self.get_definition(name).defaultvalues
 
-    def get_value(self, name: str, pos: str, expression: BaseElement, evaluation):
+    def get_value(
+        self, name: str, pos: str, expression: BaseElement, evaluation
+    ) -> BaseElement:
         """Apply rules in `pos` over `expression` until get the value of the symbol"""
         assert isinstance(name, str)
         assert "`" in name
@@ -894,7 +896,7 @@ class Definitions:
             result = rule.apply(expression, evaluation)
             if result is not None:
                 return result
-        return None
+        raise ValueError
 
     def get_user_definition(self, name: str, create: bool = True) -> Definition:
         """
@@ -1050,7 +1052,7 @@ class Definitions:
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def get_options(self, name):
+    def get_options(self, name: str) -> dict:
         """Get the options associated with the Symbol `name`"""
         return self.get_definition(self.lookup_name(name)).options
 
@@ -1072,12 +1074,13 @@ class Definitions:
             self.user = {}
         self.clear_cache()
 
-    def get_ownvalue(self, name: str) -> Optional[BaseElement]:
+    def get_ownvalue(self, name: str) -> BaseElement:
         """Get ownvalue associated with `name`"""
         ownvalues = self.get_definition(self.lookup_name(name)).ownvalues
         if ownvalues:
             return ownvalues[0]
-        return None
+        raise ValueError
+        # return None
 
     def set_ownvalue(self, name: str, value) -> None:
         """Set an ownvalue for name"""
@@ -1129,9 +1132,9 @@ class Definitions:
         """Set $Line, the current input line number"""
         self.set_config_value("$Line", line_no)
 
-    def get_line_no(self):
+    def get_line_no(self) -> int:
         """Get $Line, the current input line number"""
-        return self.get_config_value("$Line", 0)
+        return self.get_config_value("$Line", 0) or 0
 
     def increment_line_no(self, increment: int = 1) -> None:
         """Increment $Line, the current input line number"""

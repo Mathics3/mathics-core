@@ -425,22 +425,25 @@ class Evaluation:
         if settings.DEBUG_PRINT:
             print(f"MESSAGE: {symbol_shortname}::{tag} ({msgs})")
 
-        text = self.definitions.get_value(symbol, "System`Messages", pattern, self)
-        if text is None:
-            pattern = Expression(SymbolMessageName, Symbol("General"), String(tag))
-            text = self.definitions.get_value(
-                "System`General", "System`Messages", pattern, self
+        try:
+            text: BaseElement = self.definitions.get_value(
+                symbol, "System`Messages", pattern, self
             )
+        except ValueError:
+            pattern = Expression(SymbolMessageName, Symbol("General"), String(tag))
+            try:
+                text = self.definitions.get_value(
+                    "System`General", "System`Messages", pattern, self
+                )
+            except ValueError:
+                text = String(f"Message {symbol_shortname}::{tag} not found.")
 
-        if text is None:
-            text = String(f"Message {symbol_shortname}::{tag} not found.")
-
-        text = self.format_output(
+        formatted_text = self.format_output(
             Expression(SymbolStringForm, text, *(from_python(arg) for arg in msgs)),
             "text",
         )
 
-        message = Message(symbol_shortname, tag, text)
+        message = Message(symbol_shortname, tag, str(formatted_text))
         self.out.append(message)
         self.output.out(self.out[-1])
         return message

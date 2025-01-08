@@ -37,8 +37,9 @@ def get_settings_value(definitions: Definitions, setting_name: str):
     """Get a Mathics Settings` value with name "setting_name" from
     definitions. If setting_name is not defined return None.
     """
-    settings_value = definitions.get_ownvalue(setting_name)
-    if settings_value is None:
+    try:
+        settings_value = definitions.get_ownvalue(setting_name)
+    except ValueError:
         return None
     return settings_value.to_python(string_quotes=False)
 
