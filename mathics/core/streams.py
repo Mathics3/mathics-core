@@ -242,6 +242,21 @@ class StreamsManager:
                 return self.STREAMS[i]
         return None
 
+    # Note: WMA specify that lookup by "name" should be unique, but it appears it
+    # as of 13.2.0 name does not have to be unique. We'll follow what WMA
+    # does as opposed to what the documentation says.
+    def get_stream_and_channel_by_name(self, name: str) -> Tuple[Optional[Stream], int]:
+        """
+        Find a stream given its stream name. If there is only one channel associated with that
+        name, then return a tuple of the the name and channel.
+        """
+        # When there are duplicates, WMA seems to find largest, the most-recent? stream
+        # first. We will mimic this behavior using reversed().
+        for i in reversed(self.STREAMS):
+            if self.STREAMS[i].name == name:
+                return self.STREAMS[i], i
+        return None, -1
+
     def lookup_stream(self, n: int) -> Optional[Stream]:
         """
         Find and return a stream given is stream number `n`.

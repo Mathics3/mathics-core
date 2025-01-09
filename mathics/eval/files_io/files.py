@@ -19,6 +19,7 @@ from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BaseElement, Expression
 from mathics.core.parser import MathicsFileLineFeeder, MathicsMultiLineFeeder, parse
+from mathics.core.streams import stream_manager
 from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import (
     SymbolEndOfFile,
@@ -34,6 +35,7 @@ from mathics.core.util import canonic_filename
 from mathics.eval.files_io.read import (
     READ_TYPES,
     MathicsOpen,
+    close_stream,
     read_from_stream,
     read_get_separators,
 )
@@ -76,6 +78,38 @@ def set_input_var(input_string: str):
     """
     global INPUT_VAR
     INPUT_VAR = canonic_filename(input_string)
+
+
+def eval_Close(obj, evaluation: Evaluation):
+    """
+    Closes a stream or socket `obj` which can be an 'InputStream' or
+    'OutputStream' object, or `SocketObject`. If there is only one
+    stream with a particular name, `obj` can be the string name, the
+    file path, of `obj`.
+    """
+
+    n = name = None
+    if obj.has_form(("InputStream", "OutputStream"), 2):
+        [name, n] = obj.elements
+        stream = stream_manager.lookup_stream(n.value)
+    elif isinstance(obj, String):
+        stream, channel = stream_manager.get_stream_and_channel_by_name(obj.value)
+        if stream is None:
+            if channel == -1:
+                evaluation.message("General", "openx", obj)
+            return
+        close_stream(stream, channel)
+        return obj
+    else:
+        stream = None
+
+    if stream is None or stream.io is None or stream.io.closed:
+        evaluation.message("General", "openx", obj)
+        return
+
+    if n is not None:
+        close_stream(stream, n.value)
+    return name
 
 
 def eval_Get(
