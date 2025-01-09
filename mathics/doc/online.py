@@ -24,7 +24,7 @@ def online_doc_string(
             # mypy complains about the plane conversion, but
             # to_python() returns a string wrapped in quotes.
             # So, let's get ride the quotes...
-            usagetext = rulemsg.get_replace_value().to_python()[1:-1]
+            usagetext = rulemsg.get_replace_value().to_python(use_quotes=False)
 
     if not is_long_form and usagetext:
         return usagetext
