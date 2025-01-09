@@ -70,10 +70,10 @@ def test_box_parsing():
             'SuperscriptBox["x", RowBox[{FractionBox["i", "2"], "+", "5"}]]',
             "Box parsing using FractionBox and parenthesis should work",
         ),
-        # (
-        #     r"\(1 F[\(Q\)]\)",
-        #     'RowBox[{"1", RowBox[{"F", "[", "Q", "]"}]}]',
-        #     "Box parsing with a function expression",
-        # ),
+        (
+            r"\(1 F[\(Q\)]\)",
+            'RowBox[{"1", "F", "[", "Q", "]"}]',
+            "Box parsing with a function expression",
+        ),
     ):
         check_evaluation(str_expr, str_expected, assert_message)

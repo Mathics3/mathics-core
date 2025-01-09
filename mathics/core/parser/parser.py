@@ -411,6 +411,7 @@ class Parser:
         | expr1 binary_operator expr2 ...
         | expr1 ternary_operator expr2 ternary_operator2 expr3 ...
         | expr1 postfix_operator ...
+        | box-expr box-operator box-expr2 (* only if inside rowbox *)
         | expr1 expr2 ... (* implicit multiplication *)
 
         and transforming this into its corresponding Node S-expression form.
@@ -463,11 +464,14 @@ class Parser:
                 and flat_binary_operators["Times"] >= precedence
             ):
                 if self.is_inside_rowbox:
-                    # Inside a RowBox, implicit multiplication is treated as
-                    # concatenation.
-                    child = self.parse_expr(precedence)
-                    children = [result, child]
-                    new_result = Node("RowBox", Node("List", *children))
+                    if tag in box_operators:
+                        new_result = self.parse_box_operator(result, token, precedence)
+                    else:
+                        # Inside a RowBox, implicit multiplication is treated as
+                        # concatenation.
+                        child = self.parse_expr(precedence)
+                        children = [result, child]
+                        new_result = Node("RowBox", Node("List", *children))
                 else:
                     # There is an implicit multiplication.
                     operator_precedence = flat_binary_operators["Times"]
@@ -529,7 +533,8 @@ class Parser:
         self.consume()
         return Node(tag, expr1)
 
-    # FIXME: returning a list breaks type uniformity.
+    # Note: returning a list is different from how most other parse_ routines
+    # work and it makes the type system more complicated.
     def parse_seq(self) -> list:
         result: list = []
         while True:
@@ -567,82 +572,6 @@ class Parser:
     # The first argument may be None if the LHS is absent.
     # Used for boxes.
 
-    def b_SqrtBox(self, box0, token: Token, p: int) -> Optional[Node]:
-        if box0 is not None:
-            return None
-        self.consume()
-        operator_precedence = all_operators["SqrtBox"]
-        box_expr1 = self.parse_box_expr(operator_precedence)
-        if self.next().tag == "OtherscriptBox":
-            self.consume()
-            box2 = self.parse_box_expr(operator_precedence)
-            return Node("RadicalBox", box_expr1, box2)
-        else:
-            return Node("SqrtBox", box_expr1)
-
-    def b_SuperscriptBox(
-        self, box_expr1, token: Token, box_expr1_precedence: int
-    ) -> Optional[Node]:
-        operator_precedence = all_operators["SuperscriptBox"]
-        if box_expr1_precedence > operator_precedence:
-            return None
-        if box_expr1 is None:
-            box_expr1 = NullString
-        self.consume()
-        box2 = self.parse_box_expr(operator_precedence)
-        if self.next().tag == "OtherscriptBox":
-            self.consume()
-            box3 = self.parse_box_expr(all_operators["SubsuperscriptBox"])
-            return Node("SubsuperscriptBox", box_expr1, box3, box2)
-        else:
-            return Node("SuperscriptBox", box_expr1, box2)
-
-    def b_SubscriptBox(
-        self, box_expr1, token: Token, box_expr1_precedence: int
-    ) -> Optional[Node]:
-        operator_precedence = all_operators["SubscriptBox"]
-        if box_expr1_precedence > operator_precedence:
-            return None
-        if box_expr1 is None:
-            box_expr1 = NullString
-        self.consume()
-        box_expr2 = self.parse_box_expr(operator_precedence)
-        if self.next().tag == "OtherscriptBox":
-            self.consume()
-            box_expr3 = self.parse_box_expr(all_operators["SubsuperscriptBox"])
-            return Node("SubsuperscriptBox", box_expr1, box_expr2, box_expr3)
-        else:
-            return Node("SubscriptBox", box_expr1, box_expr2)
-
-    def b_UnderscriptBox(
-        self, box_expr1, token: Token, box_expr1_precedence: int
-    ) -> Optional[Node]:
-        operator_precedence = all_operators["UnderscriptBox"]
-        if box_expr1_precedence > operator_precedence:
-            return None
-        if box_expr1 is None:
-            box_expr1 = NullString
-        self.consume()
-        box_expr2 = self.parse_box_expr(operator_precedence)
-        if self.next().tag == "OtherscriptBox":
-            self.consume()
-            box_expr3 = self.parse_box_expr(all_operators["UnderoverscriptBox"])
-            return Node("UnderoverscriptBox", box_expr1, box_expr2, box_expr3)
-        else:
-            return Node("UnderscriptBox", box_expr1, box_expr2)
-
-    def b_FractionBox(
-        self, box_expr1, token: Token, box_expr1_precendence: int
-    ) -> Optional[Node]:
-        operator_precedence = all_operators["FractionBox"]
-        if box_expr1_precendence > operator_precedence:
-            return None
-        if box_expr1 is None:
-            box_expr1 = NullString
-        self.consume()
-        box_expr2 = self.parse_box_expr(operator_precedence + 1)
-        return Node("FractionBox", box_expr1, box_expr2)
-
     def b_FormBox(
         self, box_expr1, token: Token, box_expr1_precedence: int
     ) -> Optional[Node]:
@@ -658,6 +587,18 @@ class Parser:
         self.consume()
         box2 = self.parse_box_expr(operator_precedence)
         return Node("FormBox", box2, box_expr1)
+
+    def b_FractionBox(
+        self, box_expr1, token: Token, box_expr1_precendence: int
+    ) -> Optional[Node]:
+        operator_precedence = all_operators["FractionBox"]
+        if box_expr1_precendence > operator_precedence:
+            return None
+        if box_expr1 is None:
+            box_expr1 = NullString
+        self.consume()
+        box_expr2 = self.parse_box_expr(operator_precedence + 1)
+        return Node("FractionBox", box_expr1, box_expr2)
 
     def b_OverscriptBox(
         self, box_expr1, token: Token, box_expr1_precedence: int
@@ -676,12 +617,84 @@ class Parser:
         else:
             return Node("OverscriptBox", box_expr1, box_expr2)
 
+    def b_SqrtBox(self, box0, token: Token, p: int) -> Optional[Node]:
+        if box0 is not None:
+            return None
+        self.consume()
+        operator_precedence = all_operators["SqrtBox"]
+        box_expr1 = self.parse_box_expr(operator_precedence)
+        if self.next().tag == "OtherscriptBox":
+            self.consume()
+            box2 = self.parse_box_expr(operator_precedence)
+            return Node("RadicalBox", box_expr1, box2)
+        else:
+            return Node("SqrtBox", box_expr1)
+
+    def b_SubscriptBox(
+        self, box_expr1, token: Token, box_expr1_precedence: int
+    ) -> Optional[Node]:
+        operator_precedence = all_operators["SubscriptBox"]
+        if box_expr1_precedence > operator_precedence:
+            return None
+        if box_expr1 is None:
+            box_expr1 = NullString
+        self.consume()
+        box_expr2 = self.parse_box_expr(operator_precedence)
+        if self.next().tag == "OtherscriptBox":
+            self.consume()
+            box_expr3 = self.parse_box_expr(all_operators["SubsuperscriptBox"])
+            return Node("SubsuperscriptBox", box_expr1, box_expr2, box_expr3)
+        else:
+            return Node("SubscriptBox", box_expr1, box_expr2)
+
+    def b_SuperscriptBox(
+        self, box_expr1, token: Token, box_expr1_precedence: int
+    ) -> Optional[Node]:
+        operator_precedence = all_operators["SuperscriptBox"]
+        if box_expr1_precedence > operator_precedence:
+            return None
+        if box_expr1 is None:
+            box_expr1 = NullString
+        self.consume()
+        box2 = self.parse_box_expr(operator_precedence)
+        if self.next().tag == "OtherscriptBox":
+            self.consume()
+            box3 = self.parse_box_expr(all_operators["SubsuperscriptBox"])
+            return Node("SubsuperscriptBox", box_expr1, box3, box2)
+        else:
+            return Node("SuperscriptBox", box_expr1, box2)
+
+    def b_UnderscriptBox(
+        self, box_expr1, token: Token, box_expr1_precedence: int
+    ) -> Optional[Node]:
+        operator_precedence = all_operators["UnderscriptBox"]
+        if box_expr1_precedence > operator_precedence:
+            return None
+        if box_expr1 is None:
+            box_expr1 = NullString
+        self.consume()
+        box_expr2 = self.parse_box_expr(operator_precedence)
+        if self.next().tag == "OtherscriptBox":
+            self.consume()
+            box_expr3 = self.parse_box_expr(all_operators["UnderoverscriptBox"])
+            return Node("UnderoverscriptBox", box_expr1, box_expr2, box_expr3)
+        else:
+            return Node("UnderscriptBox", box_expr1, box_expr2)
+
     # E methods
     #
     # e_xxx methods are called from parse_e.
     # They expect args (Node, Token precedence) and return Node or None.
     # Used for binary and ternary operators.
     # return None if precedence is too low.
+
+    def e_Alternatives(self, expr1, token: Token, p: int) -> Optional[Node]:
+        q = flat_binary_operators["Alternatives"]
+        if q < p:
+            return None
+        self.consume()
+        expr2 = self.parse_expr(q + 1)
+        return Node("Alternatives", expr1, expr2).flatten()
 
     def e_ApplyList(self, expr1, token: Token, p: int) -> Optional[Node]:
         operator_precedence = right_binary_operators["Apply"]
@@ -691,14 +704,6 @@ class Parser:
         expr2 = self.parse_expr(operator_precedence)
         expr3 = Node("List", Number1)
         return Node("Apply", expr1, expr2, expr3)
-
-    def e_Alternatives(self, expr1, token: Token, p: int) -> Optional[Node]:
-        q = flat_binary_operators["Alternatives"]
-        if q < p:
-            return None
-        self.consume()
-        expr2 = self.parse_expr(q + 1)
-        return Node("Alternatives", expr1, expr2).flatten()
 
     def e_Derivative(self, expr1, token: Token, p: int) -> Optional[Node]:
         q = postfix_operators["Derivative"]
@@ -772,32 +777,6 @@ class Parser:
         expr3 = self.parse_expr(operator_precedence + 1)
         return Node(expr2, expr1, expr3)
 
-    def e_Prefix(self, expr1, token: Token, expr1_precedence: int) -> Optional[Node]:
-        """
-        Used to parse:
-           expr1 @ expr2
-        into the Node S-expression form of
-           expr1(expr2)
-
-        When called, we have parsed expr1 and seen token "@".
-
-        "expr1_precendence" is the precedence of expr1 and is used whether parsing
-        should be interpreted as:
-           (... expr1) @ expr2
-
-        or:
-           ... (expr1 @ expr2)
-
-        In the first case, we return None and at a higher level we may get called
-        again with (... expr1) passed as a new expr1 parameter.
-        """
-        operator_precedence = flat_binary_operators["Prefix"]
-        if expr1_precedence > operator_precedence:
-            return None
-        self.consume()
-        expr2 = self.parse_expr(operator_precedence)
-        return Node(expr1, expr2)
-
     def e_Function(self, expr1, token: Token, p: int) -> Optional[Node]:
         operator_precedence = postfix_operators["Function"]
         if operator_precedence < p:
@@ -838,6 +817,32 @@ class Parser:
         else:
             expr2 = Node("Times", NumberM1, expr2).flatten()
         return Node("Plus", expr1, expr2).flatten()
+
+    def e_Prefix(self, expr1, token: Token, expr1_precedence: int) -> Optional[Node]:
+        """
+        Used to parse:
+           expr1 @ expr2
+        into the Node S-expression form of
+           expr1(expr2)
+
+        When called, we have parsed expr1 and seen token "@".
+
+        "expr1_precendence" is the precedence of expr1 and is used whether parsing
+        should be interpreted as:
+           (... expr1) @ expr2
+
+        or:
+           ... (expr1 @ expr2)
+
+        In the first case, we return None and at a higher level we may get called
+        again with (... expr1) passed as a new expr1 parameter.
+        """
+        operator_precedence = flat_binary_operators["Prefix"]
+        if expr1_precedence > operator_precedence:
+            return None
+        self.consume()
+        expr2 = self.parse_expr(operator_precedence)
+        return Node(expr1, expr2)
 
     def e_Postfix(self, expr1, token: Token, expr1_precedence: int) -> Optional[Node]:
         """
@@ -909,13 +914,12 @@ class Parser:
             self.expect("RawRightBracket")
             self.bracket_depth -= 1
 
-            # TODO: something like this may be needed for function application
-            # inside a RowBox.
-            # if self.is_inside_rowbox:
-            #     result = Node("List", expr, String("["), *seq, String("]"))
-            # else:
+            if self.is_inside_rowbox:
+                # Hande function calls inside a RowBox.
+                result = Node("List", expr, String("["), *seq, String("]"))
+            else:
+                result = Node(expr, *seq)
 
-            result = Node(expr, *seq)
             result.parenthesised = True
             return result
 
