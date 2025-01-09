@@ -13,6 +13,7 @@ from typing import Optional, Union
 from mathics_scanner import InvalidSyntaxError, TranslateError
 from mathics_scanner.tokeniser import Token, Tokeniser, is_symbol_name
 
+from mathics.core.convert.op import builtin_constants
 from mathics.core.parser.ast import (
     Filename,
     Node,
@@ -39,15 +40,11 @@ from mathics.core.parser.operators import (
     ternary_operators,
 )
 
-# FIXME: get from JSON
-special_symbols = {
-    "\u03C0": "Pi",  # Pi
-    "\uF74D": "E",  # ExponentialE
-    "\uF74E": "I",  # ImaginaryI
-    "\uF74F": "I",  # ImaginaryJ
-    "\u221E": "Infinity",  # Infinity
-    "\u00B0": "Degree",  # Degree
-}
+special_symbols = builtin_constants.copy()
+# FIXME: should rework so we don't have to do this
+# We have the character name ImaginaryI and ImaginaryJ, but we should
+# have the *operator* name, "I".
+special_symbols["\uF74F"] = special_symbols["\uF74E"] = "I"
 
 
 # An operator precedence value that will ensure that whatever operator

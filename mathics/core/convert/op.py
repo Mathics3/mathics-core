@@ -22,6 +22,7 @@ with open(characters_path, "r") as f:
     OPERATOR_CONVERSION_TABLES = ujson.load(f)
 
 ascii_operator_to_symbol = OPERATOR_CONVERSION_TABLES["ascii-operator-to-symbol"]
+builtin_constants = OPERATOR_CONVERSION_TABLES["builtin-constants"]
 operator_to_unicode = OPERATOR_CONVERSION_TABLES["operator-to-unicode"]
 operator_to_ascii = OPERATOR_CONVERSION_TABLES["operator-to-ascii"]
 
