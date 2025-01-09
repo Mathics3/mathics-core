@@ -62,7 +62,7 @@ API incompatibility
 
 * ``Matcher`` now requires an additional ``evaluation`` parameter
 * ``Romberg`` removed as an ``NIntegrate[]`` method. It is depcrecated in SciPy and is to be removed by SciPy 1.15.
-
+* `Definitions.get_ownvalue` now returns a `BaseElement` instead of a `BaseRule` object.
 
 Bugs
 ----
