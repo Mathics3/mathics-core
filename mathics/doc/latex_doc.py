@@ -6,6 +6,7 @@ FIXME: Ditch home-grown and lame parsing and hook into sphinx.
 import re
 from typing import Callable, Optional, Sequence
 
+from mathics.core.parser.operators import operator_to_amslatex
 from mathics.doc.doc_entries import (
     CONSOLE_RE,
     DL_ITEM_RE,
@@ -333,6 +334,25 @@ def get_latex_escape_char(text):
         if escape_char not in text:
             return escape_char
     raise ValueError
+
+
+def get_latex_operator(operator: str) -> str:
+    r"""
+    If operator is found in operator_to_amslatex, then
+    return the operator converted to its AMS operator surrounded
+    in math-mode, e.g. $ ... $
+
+    Otherwise, return operator as a \code{} string.
+    """
+    return_str = operator_to_amslatex.get(operator)
+    if return_str is not None and len(return_str) > 0:
+        if return_str[0] != "$":
+            return_str = "$" + return_str
+        if return_str[-1] != "$":
+            return_str += "$"
+    else:
+        return_str = r"\code{%s}" % escape_latex_code(operator)
+    return return_str
 
 
 def latex_label_safe(s: str) -> str:
@@ -744,7 +764,8 @@ class LaTeXDocSection(DocSection):
             print(f"  Formatting Section {self.title}")
         title = escape_latex(self.title)
         if self.operator:
-            title += " (\\code{%s})" % escape_latex_code(self.operator)
+            code_str = get_latex_operator(self.operator)
+            title += f" ({code_str})"
         index = (
             r"\index{%s}" % escape_latex(self.title)
             if self.chapter.part.is_reference
@@ -879,7 +900,8 @@ class LaTeXDocSubsection(DocSubsection):
 
         title = escape_latex(self.title)
         if self.operator:
-            title += " (\\code{%s})" % escape_latex_code(self.operator)
+            code_str = get_latex_operator(self.operator)
+            title += f" ({code_str})"
         index = (
             r"\index{%s}" % escape_latex(self.title)
             if self.chapter.part.is_reference
