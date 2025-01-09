@@ -48,7 +48,7 @@ def get_srcdir():
 
 
 def show_echo(query, evaluation):
-    echovar = evaluation.definitions.get_ownvalue("System`$Echo").replace
+    echovar = evaluation.definitions.get_ownvalue("System`$Echo")
     if not isinstance(echovar, Expression) or not echovar.has_form("List", None):
         return
 

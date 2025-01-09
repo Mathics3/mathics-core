@@ -16,7 +16,17 @@ https://reference.wolfram.com/language/tutorial/PatternsAndTransformationRules.h
 
 from abc import ABC
 from itertools import chain
-from typing import TYPE_CHECKING, Callable, Dict, Optional, Sequence, Tuple, Type, Union
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    Dict,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+    overload,
+)
 
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_ORDERLESS
@@ -314,11 +324,19 @@ class BasePattern(ABC):
         """Return the number of candidates that match with the pattern."""
         return len(self.get_match_candidates(elements, pattern_context))
 
+    @overload
+    def sameQ(self, other: "BasePattern") -> bool:
+        ...
+
+    @overload
     def sameQ(self, other: BaseElement) -> bool:
+        ...
+
+    def sameQ(self, other) -> bool:
         """Mathics SameQ"""
-        if not isinstance(other, BasePattern):
-            return False
-        return self.expr.sameQ(other.expr)
+        if isinstance(other, BasePattern):
+            return self.expr.sameQ(other.expr)
+        return self.expr.sameQ(other)
 
 
 class AtomPattern(BasePattern):

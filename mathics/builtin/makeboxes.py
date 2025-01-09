@@ -516,9 +516,7 @@ class MakeBoxes(Builtin):
                 encoding_rule = evaluation.definitions.get_ownvalue(
                     "$CharacterEncoding"
                 )
-                encoding = (
-                    "UTF8" if encoding_rule is None else encoding_rule.replace.value
-                )
+                encoding = "UTF8" if encoding_rule is None else encoding_rule.value
                 op_str = (
                     operator.value
                     if isinstance(operator, String)
