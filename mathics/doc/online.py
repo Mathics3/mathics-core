@@ -21,7 +21,10 @@ def online_doc_string(
     # First look at user definitions:
     for rulemsg in ruleusage:
         if rulemsg.pattern.expr.get_elements()[1].__str__() == '"usage"':
-            usagetext = rulemsg.get_replace_value().to_python()
+            # mypy complains about the plane conversion, but
+            # to_python() returns a string wrapped in quotes.
+            # So, let's get ride the quotes...
+            usagetext = rulemsg.get_replace_value().to_python()[1:-1]
 
     if not is_long_form and usagetext:
         return usagetext
