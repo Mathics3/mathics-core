@@ -190,7 +190,7 @@ def test_private_doctests_datetime(str_expr, msgs, str_expected, fail_msg):
             ),
             ("First Done",),
             "outer",
-            None,
+            "Two successive time constrained blocks inside another timeconstrained blocks.",
         ),
         ("a=.;s=.;", None, "Null", None),
     ],
