@@ -5,6 +5,7 @@ CHANGES
 New Builtins
 ++++++++++++
 
+* ``Between``
 * ``CheckAbort``
 * ``FileNameDrop``
 * ``SetEnvironment``
