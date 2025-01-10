@@ -1083,10 +1083,7 @@ def load_builtin_definitions(
     if not loaded:
         definition_contribute(self)
         for module in extension_modules:
-            try:
-                load_pymathics_module(self, module)
-            except ImportError as exc:
-                raise PyMathicsLoadException from exc
+            load_pymathics_module(self, module)
 
         if builtin_filename is not None:
             with open(builtin_filename, "wb") as builtin_file:
