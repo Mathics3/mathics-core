@@ -40,7 +40,7 @@ from mathics.core.systemsymbols import (
     SymbolOutputStream,
 )
 from mathics.eval.directories import TMP_DIR
-from mathics.eval.files_io.files import eval_Get, eval_Read
+from mathics.eval.files_io.files import eval_Close, eval_Get, eval_Read
 from mathics.eval.files_io.read import (
     MathicsOpen,
     channel_to_stream,
@@ -177,13 +177,19 @@ class Character(Builtin):
     summary_text = "single character, returned as a one‐character string"
 
 
+# Note: WMA documentation specifies that Close["name"] should be unique, but it appears it
+# as of 13.2.0 name does not have to be unique. We'll follow what WMA
+# does as opposed to what the documentation says.
 class Close(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Close.html</url>
 
     <dl>
-      <dt>'Close[$stream$]'
-      <dd>closes an input or output stream.
+      <dt>'Close[$obj$]'
+      <dd>Closes a stream or socket.
+
+      $obj$ can be an 'InputStream', or an 'OutputStream' object, or a 'String'. \
+      When $obj$ is a string file path, one of the channels associated with it is closed.
     </dl>
 
     >> Close[StringToStream["123abc"]]
@@ -192,10 +198,40 @@ class Close(Builtin):
     >> file=Close[OpenWrite[]]
      = ...
 
-    Closing a file doesn't delete it from the filesystem
+    Closing a file doesn't delete it from the filesystem.
     >> DeleteFile[file];
 
     #> Clear[file]
+
+    If two streams are open with the same file, then \
+    a 'Close' by file path closes only one of the streams:
+
+    >> stream1 = OpenRead["ExampleData/numbers.txt"]
+     = InputStream[ExampleData/numbers.txt, ...]
+
+    >> stream2 = OpenRead["ExampleData/numbers.txt"]
+     = InputStream[ExampleData/numbers.txt, ...]
+
+    >> Close["ExampleData/numbers.txt"]
+     = ExampleData/numbers.txt
+
+    Usually, the most-recent stream is closed, while the earlier-opened \
+    stream still persists:
+    >> Read[stream1]
+     = 8205.79
+
+
+    However, one of the streams <i>is</i> closed:
+    >> Read[stream2]
+     : ...
+     = $Failed
+
+    >> Close["ExampleData/numbers.txt"]
+     = ExampleData/numbers.txt
+
+    >> Read[stream1]
+     : ...
+     = $Failed
     """
 
     summary_text = "close a stream"
@@ -203,23 +239,10 @@ class Close(Builtin):
         "closex": "`1`.",
     }
 
-    def eval(self, channel, evaluation: Evaluation):
-        "Close[channel_]"
+    def eval(self, obj, evaluation: Evaluation):
+        "Close[obj_]"
 
-        n = name = None
-        if channel.has_form(("InputStream", "OutputStream"), 2):
-            [name, n] = channel.elements
-            py_n = n.get_int_value()
-            stream = stream_manager.lookup_stream(py_n)
-        else:
-            stream = None
-
-        if stream is None or stream.io is None or stream.io.closed:
-            evaluation.message("General", "openx", channel)
-            return
-
-        close_stream(stream, n.value)
-        return name
+        return eval_Close(obj, evaluation)
 
 
 class EndOfFile(Builtin):
