@@ -28,7 +28,6 @@ def autoload_files(
     """
     Load Mathics code from the autoload-folder files.
     """
-    from mathics.core.evaluation import Evaluation
     from mathics.eval.files_io.files import eval_Get
 
     for root, _, files in os.walk(osp_join(root_dir_path, autoload_dir)):
@@ -118,6 +117,7 @@ class MathicsSession:
         if character_encoding is not None:
             mathics.settings.SYSTEM_CHARACTER_ENCODING = character_encoding
         self.form = form
+        self.last_result = None
         self.reset(add_builtin, catch_interrupt)
 
     def reset(self, add_builtin=True, catch_interrupt=False):
