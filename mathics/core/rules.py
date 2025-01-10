@@ -361,6 +361,8 @@ class FunctionApplyRule(BaseRule):
             return self.function(evaluation=evaluation, **vars_noctx)
 
     def __repr__(self) -> str:
+        # Cython doesn't allow f-string below and reports:
+        #  Cannot convert Unicode string to 'str' implicitly. This is not portable and requires explicit encoding.
         return "<FunctionApplyRule: %s -> %s>" % (self.pattern, self.function)
 
     def __getstate__(self):
