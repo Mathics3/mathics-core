@@ -56,7 +56,7 @@ def urlsave_tmp(url, location=None, **kwargs):
 
 def path_search(filename: str) -> Tuple[Optional[str], bool]:
     """
-    Search for a Mathics `filename` possibly adding extensions ".mx", or ".m"
+    Search for a Mathics `filename` possibly adding extensions ".mx", ".m", or ".wl"
     or as a file under directory PATH_VAR or as an Internet address.
 
     Return the resolved file name and True if this is a file in the
@@ -67,7 +67,7 @@ def path_search(filename: str) -> Tuple[Optional[str], bool]:
     is_temporary_file = False
     if filename[-1] == "`":
         filename = filename[:-1].replace("`", osp.sep)
-        for ext in [".mx", ".m"]:
+        for ext in [".mx", ".m", ".wl"]:
             result, is_temporary_file = path_search(filename + ext)
             if result is not None:
                 return result, is_temporary_file

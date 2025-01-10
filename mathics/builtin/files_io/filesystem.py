@@ -36,6 +36,7 @@ from mathics.core.systemsymbols import (
     SymbolPackages,
 )
 from mathics.eval.directories import DIRECTORY_STACK
+from mathics.eval.files_io.files import eval_Get
 
 SymbolAbsoluteTime = Symbol("AbsoluteTime")
 
@@ -858,14 +859,14 @@ class Needs(Builtin):
 
     def eval(self, context, evaluation):
         "Needs[context_String]"
-        contextstr = context.get_string_value()
-        if contextstr == "":
+        context_str = context.value
+        if context_str == "":
             return SymbolNull
-        if contextstr[0] == "`":
+        if context_str[0] == "`":
             curr_ctxt = evaluation.definitions.get_current_context()
-            contextstr = curr_ctxt + contextstr[1:]
-            context = String(contextstr)
-        if not valid_context_name(contextstr):
+            context_str = curr_ctxt + context_str[1:]
+            context = String(context_str)
+        if not valid_context_name(context_str):
             evaluation.message("Needs", "ctx", Expression(SymbolNeeds, context), 1, "`")
             return
         test_loaded = Expression(SymbolMemberQ, SymbolPackages, context)
@@ -873,7 +874,7 @@ class Needs(Builtin):
         if test_loaded is SymbolTrue:
             # Already loaded
             return SymbolNull
-        result = Expression(SymbolGet, context).evaluate(evaluation)
+        result = eval_Get(context_str, evaluation)
 
         if result is SymbolFailed:
             evaluation.message("Needs", "nocont", context)

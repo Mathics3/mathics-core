@@ -20,7 +20,7 @@ def test_returncode():
     assert subprocess.run(["mathics", "-e", "1 + 2'"]).returncode == 0
     assert subprocess.run(["mathics", "-e", "Quit[0]"]).returncode == 0
 
-    gcd_file = osp.join(get_testdir(), "data", "recursive-gcd.m")
+    gcd_file = osp.join(get_testdir(), "data", "recursive-gcd.wl")
     assert subprocess.run(["mathics", "-f", gcd_file]).returncode == 0
 
 
