@@ -63,7 +63,7 @@ from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import Definition, Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import MessageException
-from mathics.core.expression import Expression, SymbolDefault
+from mathics.core.expression import Expression
 from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
 from mathics.core.list import ListExpression
 from mathics.core.number import PrecisionValueError, dps, get_precision, min_prec
@@ -84,6 +84,7 @@ from mathics.core.symbols import (
     strip_context,
 )
 from mathics.core.systemsymbols import (
+    SymbolDefault,
     SymbolLessEqual,
     SymbolMessageName,
     SymbolRule,
@@ -420,12 +421,14 @@ class Builtin:
 
         definition = Definition(
             name=name,
-            rules=rules,
-            formatvalues=formatvalues,
-            messages=messages,
+            rules=tuple(rules),
+            rules_dict={
+                "formatvalues": formatvalues,
+                "messages": messages,
+                "options": options,
+                "defaultvalues": defaults,
+            },
             attributes=attributes,
-            options=options,
-            defaultvalues=defaults,
             builtin=self,
             is_numeric=self._is_numeric,
         )

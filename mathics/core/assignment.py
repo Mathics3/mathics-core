@@ -91,7 +91,7 @@ def get_symbol_values(
     func_name : str
         the name of the caller.
     position : str
-        the kind of rule ('ownvalue', 'downvalue', 'upvalue', 'default', etc)
+        the kind of rule ('ownvalues', 'downvalues', 'upvalues', 'defaultvalues', etc)
     evaluation : Evaluation
         The evaluation object.
 
@@ -109,7 +109,7 @@ def get_symbol_values(
     try:
         definition = (
             definitions.get_definition(name, True)
-            if position in ("default",)
+            if position in ("defaultvalues",)
             else definitions.get_user_definition(name, True)
         )
     except KeyError:

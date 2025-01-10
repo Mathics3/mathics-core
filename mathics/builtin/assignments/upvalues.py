@@ -43,4 +43,4 @@ class UpValues(Builtin):
     def eval(self, symbol, evaluation):
         "UpValues[symbol_]"
 
-        return get_symbol_values(symbol, "UpValues", "up", evaluation)
+        return get_symbol_values(symbol, "UpValues", "upvalues", evaluation)

@@ -53,7 +53,9 @@ class DefaultValues(Builtin):
     def eval(self, symbol, evaluation):
         "DefaultValues[symbol_]"
 
-        return get_symbol_values(symbol, "System`DefaultValues", "default", evaluation)
+        return get_symbol_values(
+            symbol, "System`DefaultValues", "defaultvalues", evaluation
+        )
 
 
 class Messages(Builtin):
@@ -133,7 +135,7 @@ class NValues(Builtin):
     def eval(self, symbol, evaluation):
         "NValues[symbol_]"
 
-        return get_symbol_values(symbol, "NValues", "n", evaluation)
+        return get_symbol_values(symbol, "NValues", "nvalues", evaluation)
 
 
 class SubValues(Builtin):
@@ -164,4 +166,4 @@ class SubValues(Builtin):
     def eval(self, symbol, evaluation):
         "SubValues[symbol_]"
 
-        return get_symbol_values(symbol, "SubValues", "sub", evaluation)
+        return get_symbol_values(symbol, "SubValues", "subvalues", evaluation)

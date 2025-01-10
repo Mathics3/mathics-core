@@ -19,7 +19,7 @@ from typing import (
 
 import sympy
 
-from mathics.core.atoms import Integer, Integer1, String
+from mathics.core.atoms import Integer1, String
 from mathics.core.attributes import (
     A_FLAT,
     A_HOLD_ALL,
@@ -60,7 +60,6 @@ from mathics.core.systemsymbols import (
     SymbolBlankNullSequence,
     SymbolBlankSequence,
     SymbolCondition,
-    SymbolDefault,
     SymbolDirectedInfinity,
     SymbolFunction,
     SymbolMinus,
@@ -1904,7 +1903,7 @@ def _is_neutral_symbol(symbol_name, cache, evaluation):
     else:
         r = all(
             len(definition.get_values_list(x)) == 0
-            for x in ("up", "sub", "down", "own")
+            for x in ("upvalues", "subvalues", "downvalues", "ownvalues")
         )
 
     if cache:

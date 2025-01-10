@@ -6,12 +6,10 @@ groups of `Definitions`.
 
 import base64
 import bisect
-import os
 import os.path as osp
 import pickle
 import re
 from collections import defaultdict
-from os.path import join as osp_join
 from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
 
 from mathics_scanner.tokeniser import full_names_pattern
@@ -20,12 +18,9 @@ from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import BaseElement, fully_qualified_symbol_name
-from mathics.core.expression import Expression
 from mathics.core.load_builtin import definition_contribute, mathics3_builtins_modules
-from mathics.core.pattern import BasePattern, ExpressionPattern
 from mathics.core.rules import BaseRule, Rule
 from mathics.core.symbols import Atom, Symbol, strip_context
-from mathics.core.systemsymbols import SymbolGet
 from mathics.core.util import canonic_filename
 from mathics.settings import ROOT_DIR
 
@@ -47,55 +42,27 @@ class Definition:
     def __init__(
         self,
         name,
-        rules=None,
-        ownvalues=None,
-        downvalues=None,
-        subvalues=None,
-        upvalues=None,
-        formatvalues=None,
-        messages=None,
-        attributes=A_NO_ATTRIBUTES,
-        options=None,
-        nvalues=None,
-        defaultvalues=None,
+        *,
+        rules_dict: Optional[dict] = None,
+        rules: tuple = tuple(),
+        attributes: int = A_NO_ATTRIBUTES,
         builtin=None,
-        is_numeric=False,
+        is_numeric: bool = False,
     ) -> None:
-        super(Definition, self).__init__()
         self.name = name
-
-        if rules is None:
-            rules = []
-        if ownvalues is None:
-            ownvalues = []
-        if downvalues is None:
-            downvalues = []
-        if subvalues is None:
-            subvalues = []
-        if upvalues is None:
-            upvalues = []
-        if formatvalues is None:
-            formatvalues = {}
-        if options is None:
-            options = {}
-        if nvalues is None:
-            nvalues = []
-        if defaultvalues is None:
-            defaultvalues = []
-        if messages is None:
-            messages = []
+        rules_dict = rules_dict or {}
+        self.ownvalues = rules_dict.get("ownvalues", [])
+        self.downvalues = rules_dict.get("downvalues", [])
+        self.subvalues = rules_dict.get("subvalues", [])
+        self.upvalues = rules_dict.get("upvalues", [])
+        self.nvalues = rules_dict.get("nvalues", [])
+        self.formatvalues = rules_dict.get("formatvalues", {})
+        self.defaultvalues = rules_dict.get("defaultvalues", [])
+        self.options: Dict[str, str] = rules_dict.get("options", {})
+        self.messages = rules_dict.get("messages", [])
 
         self.is_numeric = is_numeric
-        self.ownvalues = ownvalues
-        self.downvalues = downvalues
-        self.subvalues = subvalues
-        self.upvalues = upvalues
-        self.formatvalues = dict((name, list) for name, list in formatvalues.items())
-        self.messages = messages
         self.attributes = attributes
-        self.options: Dict[str, str] = options
-        self.nvalues = nvalues
-        self.defaultvalues = defaultvalues
         self.builtin = builtin
         self.changed = 0
         for rule in rules:
@@ -105,17 +72,12 @@ class Definition:
     def get_values_list(self, pos: str) -> List[BaseRule]:
         """Return one of the value lists"""
         assert pos.isalpha()
-        if pos == "messages":
-            return self.messages
-        return getattr(self, f"{pos}values")
+        return getattr(self, pos)
 
     def set_values_list(self, pos: str, rules: List[BaseRule]) -> None:
         """Set one of the value lists"""
         assert pos.isalpha()
-        if pos == "messages":
-            self.messages = rules
-        else:
-            setattr(self, f"{pos}values", rules)
+        setattr(self, pos, rules)
 
     def add_rule_at(self, rule: BaseRule, position: str) -> bool:
         """
@@ -144,8 +106,18 @@ class Definition:
         return False
 
     def __repr__(self) -> str:
-        repr_str = "<Definition: name: {}, downvalues: {}, formats: {}, attributes: {}>".format(
-            self.name, self.downvalues, self.formatvalues, self.attributes
+        repr_str = (
+            "<Definition: name: {},"
+            "\n ownvalues: {},\n"
+            " downvalues: {},\n"
+            " formats: {},\n"
+            " attributes: {}>"
+        ).format(
+            self.name,
+            self.ownvalues,
+            self.downvalues,
+            self.formatvalues,
+            self.attributes,
         )
         return repr_str
 
@@ -176,7 +148,6 @@ class Definitions:
         builtin_filename: Optional[str] = None,
         extension_modules: tuple = (),
     ) -> None:
-        super(Definitions, self).__init__()
         self.builtin: Dict[str, Definition] = {}
         self.user: Dict[str, Definition] = {}
         self.pymathics: Dict[str, Definition] = {}
@@ -192,6 +163,9 @@ class Definitions:
         )
         self.inputfile = ""
 
+        self.trace_evaluation = False
+        self.timing_trace_evaluation = False
+
         # Importing "mathics.format" populates the Symbol of the
         # PrintForms and OutputForms sets.
         #
@@ -200,41 +174,14 @@ class Definitions:
         #   2 were given
         # Rocky: this smells of something not quite right in terms of
         # modularity.
+
         import mathics.format  # noqa
-        from mathics.eval.pymathics import PyMathicsLoadException, load_pymathics_module
 
         self.printforms = list(PrintForms)
         self.outputforms = list(OutputForms)
-        self.trace_evaluation = False
-        self.timing_trace_evaluation = False
 
         if add_builtin:
-            loaded = False
-            if builtin_filename is not None:
-                builtin_dates = [
-                    get_file_time(module.__file__)
-                    for module in mathics3_builtins_modules
-                ]
-                builtin_time = max(builtin_dates)
-                if get_file_time(builtin_filename) > builtin_time:
-                    with open(builtin_filename, "rb") as builtin_file:
-                        self.builtin = pickle.load(builtin_file)
-                    loaded = True
-            if not loaded:
-                definition_contribute(self)
-                for module in extension_modules:
-                    try:
-                        load_pymathics_module(self, module)
-                    except PyMathicsLoadException:
-                        raise
-                    except ImportError:
-                        raise
-
-                if builtin_filename is not None:
-                    with open(builtin_filename, "wb") as builtin_file:
-                        pickle.dump(self.builtin, builtin_file, -1)
-
-            autoload_files(self, ROOT_DIR, "autoload")
+            load_builtin_definitions(self, builtin_filename, extension_modules)
 
     def clear_cache(self, name: Optional[str] = None) -> None:
         """Clear the definitions cache. If `name` is provided,
@@ -618,7 +565,7 @@ class Definitions:
         """Apply rules in `pos` over `expression` until get the value of the symbol"""
         assert isinstance(name, str)
         assert "`" in name
-        rules = self.get_definition(name).get_values_list(valuesname(pos))
+        rules = self.get_definition(name).get_values_list(_valuesname(pos))
         for rule in rules:
             result = rule.apply(expression, evaluation)
             if result is not None:
@@ -752,7 +699,7 @@ class Definitions:
         """Add a nvalue rule to the Symbol `name`"""
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
-            definition.add_rule_at(rule, "n")
+            definition.add_rule_at(rule, "nvalues")
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
@@ -760,7 +707,7 @@ class Definitions:
         """Add a DefaultValue to the Symbol `name`"""
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
-            definition.add_rule_at(rule, "default")
+            definition.add_rule_at(rule, "defaultvalues")
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
@@ -774,7 +721,7 @@ class Definitions:
 
     def set_values(self, name: str, values: str, rules: List[BaseRule]) -> None:
         """Set a list of rules associated with the Symbol `name`"""
-        pos = valuesname(values)
+        pos = _valuesname(values)
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
             definition.set_values_list(pos, rules)
@@ -882,50 +829,10 @@ class Definitions:
         return history_length
 
 
-def autoload_files(
-    defs, root_dir_path: str, autoload_dir: str, block_global_definitions: bool = True
-):
-    """
-    Load Mathics code from the autoload-folder files.
-    """
-    from mathics.core.evaluation import Evaluation
-
-    for root, _, files in os.walk(osp_join(root_dir_path, autoload_dir)):
-        for path in [osp_join(root, f) for f in files if f.endswith(".m")]:
-            # Autoload definitions should be go in the System context
-            # by default, rather than the Global context.
-            defs.set_current_context("System`")
-            Expression(SymbolGet, String(path)).evaluate(Evaluation(defs))
-            # Restore default context to Global
-            defs.set_current_context("Global`")
-
-    if block_global_definitions:
-        # Move any user definitions created by autoloaded files to
-        # builtins, and clear out the user definitions list. This
-        # means that any autoloaded definitions become shared
-        # between users and no longer disappear after a Quit[].
-        #
-        # Autoloads that accidentally define a name in Global`
-        # could cause confusion, so check for this.
-
-        for name in defs.user:
-            if name.startswith("Global`"):
-                raise ValueError(f"autoload defined {name}.")
-
-    # Move the user definitions to builtin:
-    for symbol_name in defs.user:
-        defs.builtin[symbol_name] = defs.get_definition(symbol_name)
-
-    defs.user = {}
-    defs.clear_cache()
-
-
-def get_file_time(file) -> float:
-    """Return the last time that a file was accessed"""
-    try:
-        return os.stat(file).st_mtime
-    except OSError:
-        return 0
+def _valuesname(name: str) -> str:
+    """'NValues' -> 'n'"""
+    assert name.startswith("System`"), name
+    return name[7:].lower()
 
 
 def get_tag_position(pattern: BaseElement, name: str) -> Optional[str]:
@@ -1001,7 +908,7 @@ def get_tag_position(pattern: BaseElement, name: str) -> Optional[str]:
     # name, it is an ownvalue:
 
     if pattern.get_name() == name:
-        return "own"
+        return "ownvalues"
     # If pattern is an ``Atom``, does not have
     # a position
     if isinstance(pattern, Atom):
@@ -1011,12 +918,12 @@ def get_tag_position(pattern: BaseElement, name: str) -> Optional[str]:
     head_name = pattern.get_head_name()
     # If the name is the head name, is a downvalue:
     if head_name == name:
-        return "down"
+        return "downvalues"
 
     # Handle special cases
     if head_name == "System`N":
         if len(pattern.get_elements()) == 2:
-            return "n"
+            return "nvalues"
 
     # The pattern has the form `_SymbolName | __SymbolName | ___SymbolName`
     # Then it only can be a downvalue
@@ -1024,7 +931,7 @@ def get_tag_position(pattern: BaseElement, name: str) -> Optional[str]:
         elements = pattern.get_elements()
         if len(elements) == 1:
             head_name = elements[0].get_name()
-            return "down" if head_name == name else None
+            return "downvalues" if head_name == name else None
 
     # TODO: Consider process format_values
 
@@ -1036,14 +943,14 @@ def get_tag_position(pattern: BaseElement, name: str) -> Optional[str]:
 
     # The head is not a symbol. Is pattern is "name" kind of pattern?
     if is_pattern_a_kind_of(pattern, name):
-        return "sub"
+        return "subvalues"
 
     # If we are here, pattern is not an Ownvalue, DownValue, SubValue or NValue
     # Let's check the elements for UpValues
     for element in pattern.get_elements():
         lookup_name = element.get_lookup_name()
         if lookup_name == name:
-            return "up"
+            return "upvalues"
 
         # Strip Pattern and Condition wrappers and check again
         if lookup_name in (
@@ -1053,14 +960,14 @@ def get_tag_position(pattern: BaseElement, name: str) -> Optional[str]:
             element = strip_pattern_name_and_condition(element)
             lookup_name = element.get_lookup_name()
             if lookup_name == name:
-                return "up"
+                return "upvalues"
         # Check if one of the elements is not a "Blank"
 
         if element.get_head_name() in blanks:
             sub_elements = element.get_elements()
             if len(sub_elements) == 1:
                 if sub_elements[0].get_name() == name:
-                    return "up"
+                    return "upvalues"
     # ``pattern`` does not have a tag position in the Definition
     return None
 
@@ -1144,17 +1051,42 @@ def merge_definitions(candidates: List[Definition]) -> Definition:
     # Now, build the new definition and return it.
     return Definition(
         name=name,
+        rules_dict=rules,
         attributes=attributes,
         builtin=builtin_instance,
         is_numeric=is_numeric,
-        **rules,
     )
 
 
-def valuesname(name: str) -> str:
-    """'NValues' -> 'n'"""
+def load_builtin_definitions(
+    self: Definitions,
+    builtin_filename: Optional[str] = None,
+    extension_modules: tuple = tuple(),
+):
+    """
+    Load definitions from Builtin classes, autoload files and extension modules.
+    """
+    from mathics.eval.files_io.files import get_file_time
+    from mathics.eval.pymathics import PyMathicsLoadException, load_pymathics_module
+    from mathics.session import autoload_files
 
-    assert name.startswith("System`"), name
-    if name == "System`Messages":
-        return "messages"
-    return name[7:-6].lower()
+    loaded = False
+    if builtin_filename is not None:
+        builtin_dates = [
+            get_file_time(module.__file__) for module in mathics3_builtins_modules
+        ]
+        builtin_time = max(builtin_dates)
+        if get_file_time(builtin_filename) > builtin_time:
+            with open(builtin_filename, "rb") as builtin_file:
+                self.builtin = pickle.load(builtin_file)
+            loaded = True
+    if not loaded:
+        definition_contribute(self)
+        for module in extension_modules:
+            load_pymathics_module(self, module)
+
+        if builtin_filename is not None:
+            with open(builtin_filename, "wb") as builtin_file:
+                pickle.dump(self.builtin, builtin_file, -1)
+
+    autoload_files(self, ROOT_DIR, "autoload")
