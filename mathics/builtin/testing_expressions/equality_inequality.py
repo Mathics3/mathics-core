@@ -4,7 +4,7 @@ Equality and Inequality
 """
 
 from abc import ABC
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import sympy
 
@@ -55,7 +55,7 @@ class _InequalityOperator(InfixOperator, ABC):
     grouping = "NonAssociative"
 
     @staticmethod
-    def numerify_args(elements, evaluation: Evaluation) -> list:
+    def numerify_args(elements, evaluation: Evaluation) -> Union[list, tuple]:
         element_sequence = elements.get_sequence()
         all_numeric = all(
             item.is_numeric(evaluation) and item.get_precision() is None
@@ -282,7 +282,7 @@ class _MinMax(Builtin):
 
     sense = 1
 
-    def eval(self, items, evaluation):
+    def eval(self, items, evaluation: Evaluation):
         "%(name)s[items___]"
         if hasattr(items, "flatten_with_respect_to_head"):
             items = items.flatten_with_respect_to_head(SymbolList)
@@ -362,7 +362,8 @@ class Between(Builtin):
     >> Between[{4, 10}][6]
      = True
 
-    >> Between[{4, 10}][206]
+    'Between' works with irrational numbers:
+    >> Between[2, {E, Pi}]
      = False
     """
 
@@ -370,6 +371,7 @@ class Between(Builtin):
 
     rules = {
         "Between[x_, {min_, max_}]": "min <= x <= max",  # FIXME add error checking
+        # "Between[x_, {ranges__}]": "Apply[Or, Between[#][x]& /@List[ranges]]",  # FIXME add error checking
         "Between[range_List][x_]": "Between[x, range]",  # operator form
     }
 
@@ -540,8 +542,8 @@ class Equal(_EqualityOperator, _SympyComparison):
             yield (args[i], args[i + 1])
 
     @staticmethod
-    def operator_sense(x):
-        return x
+    def operator_sense(value):
+        return value
 
 
 class Greater(_ComparisonOperator, _SympyComparison):
