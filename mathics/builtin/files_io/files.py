@@ -202,6 +202,36 @@ class Close(Builtin):
     >> DeleteFile[file];
 
     #> Clear[file]
+
+    If two streams are open with the same file, then \
+    a 'Close' by file path closes only one of the streams:
+
+    >> stream1 = OpenRead["ExampleData/numbers.txt"]
+     = InputStream[ExampleData/numbers.txt, ...]
+
+    >> stream2 = OpenRead["ExampleData/numbers.txt"]
+     = InputStream[ExampleData/numbers.txt, ...]
+
+    >> Close["ExampleData/numbers.txt"]
+     = ExampleData/numbers.txt
+
+    Usually, the most-recent stream is closed, while the earlier-opened \
+    stream still persists:
+    >> Read[stream1]
+     = 8205.79
+
+
+    However, one of the streams <i>is</i> closed:
+    >> Read[stream2]
+     : ...
+     = $Failed
+
+    >> Close["ExampleData/numbers.txt"]
+     = ExampleData/numbers.txt
+
+    >> Read[stream1]
+     : ...
+     = $Failed
     """
 
     summary_text = "close a stream"
