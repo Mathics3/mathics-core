@@ -386,7 +386,7 @@ class DownValues(Builtin):
     def eval(self, symbol, evaluation):
         "DownValues[symbol_]"
 
-        return get_symbol_values(symbol, "DownValues", "down", evaluation)
+        return get_symbol_values(symbol, "DownValues", "downvalues", evaluation)
 
 
 class Information(PrefixOperator):
@@ -537,7 +537,7 @@ class OwnValues(Builtin):
     def eval(self, symbol, evaluation):
         "OwnValues[symbol_]"
 
-        return get_symbol_values(symbol, "OwnValues", "own", evaluation)
+        return get_symbol_values(symbol, "OwnValues", "ownvalues", evaluation)
 
 
 class Symbol_(Builtin):

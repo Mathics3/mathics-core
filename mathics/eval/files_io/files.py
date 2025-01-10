@@ -3,6 +3,7 @@
 File related evaluation functions.
 """
 
+import os
 from typing import Callable, Literal, Optional
 
 from mathics_scanner import TranslateError
@@ -59,6 +60,14 @@ def print_line_number_and_text(line_number: int, text: str):
 
 
 GET_PRINT_FN: Callable = print_line_number_and_text
+
+
+def get_file_time(file) -> float:
+    """Return the last time that a file was accessed"""
+    try:
+        return os.stat(file).st_mtime
+    except OSError:
+        return 0
 
 
 def set_input_var(input_string: str):

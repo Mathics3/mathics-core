@@ -15,10 +15,10 @@ from mathics.builtin.image.base import Image
 from mathics.core.atoms import String
 from mathics.core.builtin import Builtin, Predefined, Test, get_option
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression, SymbolDefault
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList, ensure_context, strip_context
-from mathics.core.systemsymbols import SymbolRule, SymbolRuleDelayed
+from mathics.core.systemsymbols import SymbolDefault, SymbolRule, SymbolRuleDelayed
 from mathics.eval.patterns import Matcher, get_default_value
 
 

@@ -32,7 +32,7 @@ from mathics.core.atoms import Integer
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_ORDERLESS
 from mathics.core.element import BaseElement, ensure_context
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression, SymbolDefault
+from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol, symbol_set
 from mathics.core.systemsymbols import (
     SymbolAlternatives,
@@ -40,6 +40,7 @@ from mathics.core.systemsymbols import (
     SymbolBlankNullSequence,
     SymbolBlankSequence,
     SymbolCondition,
+    SymbolDefault,
     SymbolOptional,
     SymbolOptionsPattern,
     SymbolPattern,

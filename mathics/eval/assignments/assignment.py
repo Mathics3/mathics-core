@@ -3,7 +3,7 @@
 
 """
 evaluation routines for Set and SetDelayed, and Builtin functions
-found in module mathics.builtin.assigments.assignment
+found in module mathics.builtin.assignments.assignment
 """
 
 from functools import reduce
@@ -27,7 +27,7 @@ from mathics.core.evaluation import (
     Evaluation,
     set_python_recursion_limit,
 )
-from mathics.core.expression import Expression, SymbolDefault
+from mathics.core.expression import Expression
 from mathics.core.rules import Rule
 from mathics.core.symbols import (
     Symbol,
@@ -38,7 +38,11 @@ from mathics.core.symbols import (
     SymbolTrue,
     valid_context_name,
 )
-from mathics.core.systemsymbols import SymbolCondition, SymbolMachinePrecision
+from mathics.core.systemsymbols import (
+    SymbolCondition,
+    SymbolDefault,
+    SymbolMachinePrecision,
+)
 from mathics.eval.list.eol import eval_Part
 
 
@@ -621,7 +625,7 @@ def eval_assign_makeboxes(
     #   MakeBoxes[CubeRoot, StandardForm] -> RadicalBox[3, StandardForm]
     makeboxes_rule = Rule(lhs, rhs, system=False)
     definitions = evaluation.definitions
-    definitions.add_rule("System`MakeBoxes", makeboxes_rule, "down")
+    definitions.add_rule("System`MakeBoxes", makeboxes_rule, "downvalues")
     #    makeboxes_defs = evaluation.definitions.builtin["System`MakeBoxes"]
     #    makeboxes_defs.add_rule(makeboxes_rule)
     return True
@@ -1232,7 +1236,7 @@ def eval_assign_store_rules_by_tag(
     lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
     count = 0
     rule = Rule(lhs, rhs)
-    position = "up" if upset else None
+    position = "upvalues" if upset else None
     for tag in tags:
         if rejected_because_protected(self, lhs, tag, evaluation, ignore_protection):
             continue
