@@ -49,21 +49,17 @@ class Definition:
         builtin=None,
         is_numeric: bool = False,
     ) -> None:
+        from mathics.core.builtin import Builtin
+
         self.name = name
         rules_dict = rules_dict or {}
-        self.ownvalues = rules_dict.get("ownvalues", [])
-        self.downvalues = rules_dict.get("downvalues", [])
-        self.subvalues = rules_dict.get("subvalues", [])
-        self.upvalues = rules_dict.get("upvalues", [])
-        self.nvalues = rules_dict.get("nvalues", [])
-        self.formatvalues = rules_dict.get("formatvalues", {})
-        self.defaultvalues = rules_dict.get("defaultvalues", [])
-        self.options: Dict[str, str] = rules_dict.get("options", {})
-        self.messages = rules_dict.get("messages", [])
-
+        self.rules_dict = {key: val for key, val in rules_dict.items()}
         self.is_numeric = is_numeric
         self.attributes = attributes
         self.builtin = builtin
+        assert builtin is None or isinstance(
+            builtin, Builtin
+        ), "builtin must be a Builtin object"
         self.changed = 0
         for rule in rules:
             if not self.add_rule(rule):
@@ -71,13 +67,11 @@ class Definition:
 
     def get_values_list(self, pos: str) -> List[BaseRule]:
         """Return one of the value lists"""
-        assert pos.isalpha()
-        return getattr(self, pos)
+        return self.rules_dict.setdefault(pos, [])
 
     def set_values_list(self, pos: str, rules: List[BaseRule]) -> None:
         """Set one of the value lists"""
-        assert pos.isalpha()
-        setattr(self, pos, rules)
+        self.rules_dict[pos] = rules
 
     def add_rule_at(self, rule: BaseRule, position: str) -> bool:
         """
@@ -114,9 +108,9 @@ class Definition:
             " attributes: {}>"
         ).format(
             self.name,
-            self.ownvalues,
-            self.downvalues,
-            self.formatvalues,
+            self.rules_dict["ownvalues"],
+            self.rules_dict["downvalues"],
+            self.rules_dict["formatvalues"],
             self.attributes,
         )
         return repr_str
@@ -526,19 +520,19 @@ class Definitions:
 
     def get_ownvalues(self, name: str) -> List[BaseRule]:
         """Return the list of ownvalues"""
-        return self.get_definition(name).ownvalues
+        return self.get_definition(name).rules_dict.setdefault("ownvalues", [])
 
     def get_downvalues(self, name: str) -> List[BaseRule]:
         """Return the list of downvalues"""
-        return self.get_definition(name).downvalues
+        return self.get_definition(name).rules_dict.setdefault("downvalues", [])
 
     def get_subvalues(self, name: str) -> List[BaseRule]:
         """Return the list of subvalues"""
-        return self.get_definition(name).subvalues
+        return self.get_definition(name).rules_dict.setdefault("subvalues", [])
 
     def get_upvalues(self, name: str) -> List[BaseRule]:
         """Return the list of upvalues"""
-        return self.get_definition(name).upvalues
+        return self.get_definition(name).rules_dict.setdefault("upvalues", [])
 
     def get_formats(self, name: str, format_name="") -> List[BaseRule]:
         """
@@ -546,18 +540,18 @@ class Definitions:
         if `format_name` is given, looks to the rules associated
         to that format.
         """
-        formats = self.get_definition(name).formatvalues
+        formats = self.get_definition(name).rules_dict.setdefault("formatvalues", {})
         result = formats.get(format_name, []) + formats.get("", [])
         result.sort()
         return result
 
     def get_nvalues(self, name: str) -> List[BaseRule]:
         """Return the list of nvalues"""
-        return self.get_definition(name).nvalues
+        return self.get_definition(name).rules_dict.setdefault("nvalues", [])
 
     def get_defaultvalues(self, name: str) -> List[BaseRule]:
         """Return the list of defaultvalues"""
-        return self.get_definition(name).defaultvalues
+        return self.get_definition(name).rules_dict.setdefault("defaultvalues", [])
 
     def get_value(
         self, name: str, pos: str, expression: BaseElement, evaluation
@@ -688,10 +682,11 @@ class Definitions:
         definition = self.get_user_definition(self.lookup_name(name))
         forms = form_names if isinstance(form_names, (tuple, list)) else [form_names]
         if definition is not None:
+            formatvalues = definition.rules_dict.setdefault("formatvalues", {})
             for form in forms:
-                if form not in definition.formatvalues:
-                    definition.formatvalues[form] = []
-                insert_rule(definition.formatvalues[form], rule)
+                if form not in formatvalues:
+                    formatvalues[form] = []
+                insert_rule(formatvalues[form], rule)
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
@@ -730,7 +725,7 @@ class Definitions:
 
     def get_options(self, name: str) -> dict:
         """Get the options associated with the Symbol `name`"""
-        return self.get_definition(self.lookup_name(name)).options
+        return self.get_definition(self.lookup_name(name)).rules_dict.get("options", {})
 
     def reset_user_definitions(self) -> None:
         """Remove all the user definitions"""
@@ -753,7 +748,9 @@ class Definitions:
     def get_ownvalue(self, name: str) -> BaseElement:
         """Get ownvalue associated with `name`"""
         lookup_name = self.lookup_name(name)
-        ownvalues = self.get_definition(lookup_name).ownvalues
+        ownvalues = self.get_definition(lookup_name).rules_dict.setdefault(
+            "ownvalues", []
+        )
 
         for ownvalue in ownvalues:
             if not isinstance(ownvalue.pattern.expr, Symbol):
@@ -775,7 +772,7 @@ class Definitions:
         """Set the options dict associated with the Symbol `name`"""
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
-            definition.options = options
+            definition.rules_dict["options"] = options
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
@@ -1025,13 +1022,18 @@ def merge_definitions(candidates: List[Definition]) -> Definition:
 
     for candidate in candidates:
         builtin_instance = builtin_instance or candidate.builtin
+        candidate_rules = candidate.rules_dict
         for key, rule in rules.items():
             if isinstance(rule, list):
-                rule.extend(getattr(candidate, key))
+                try:
+                    rule.extend(candidate_rules[key])
+                except KeyError:
+                    continue
 
         # formats are dictionaries, and must be handled
         # differently.
-        for form, format_rules in candidate.formatvalues.items():
+        candidate_fv = candidate_rules.get("formatvalues", {})
+        for form, format_rules in candidate_fv.items():
             if form in formatvalues:
                 formatvalues[form].extend(format_rules)
             else:
@@ -1040,13 +1042,14 @@ def merge_definitions(candidates: List[Definition]) -> Definition:
     rules["options"] = options
     # Options are updated in reversed order.
     for candidate in candidates[::-1]:
+        candidate_rules = candidate.rules_dict
         # This behaviour for options is different than in WMA:
         # because of this, ``Unprotect[Expand]; ClearAll[Expand]; Options[Expand]``
         # returns the builtin options of ``Expand`` instead of an empty list, like
         # in WMA.
         # To get this behavior, we could just pick the options from the first
         # candidate.
-        options.update(candidate.options)
+        options.update(candidate_rules.get("options", {}))
 
     # Now, build the new definition and return it.
     return Definition(
@@ -1067,7 +1070,7 @@ def load_builtin_definitions(
     Load definitions from Builtin classes, autoload files and extension modules.
     """
     from mathics.eval.files_io.files import get_file_time
-    from mathics.eval.pymathics import PyMathicsLoadException, load_pymathics_module
+    from mathics.eval.pymathics import load_pymathics_module
     from mathics.session import autoload_files
 
     loaded = False

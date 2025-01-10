@@ -81,12 +81,13 @@ class Clear(Builtin):
     summary_text = "clear all values associated with the LHS or symbol"
 
     def do_clear(self, definition):
-        definition.ownvalues = []
-        definition.downvalues = []
-        definition.subvalues = []
-        definition.upvalues = []
-        definition.formatvalues = {}
-        definition.nvalues = []
+        rules_dict = definition.rules_dict
+        rules_dict["ownvalues"] = []
+        rules_dict["downvalues"] = []
+        rules_dict["upvalues"] = []
+        rules_dict["subvalues"] = []
+        rules_dict["nvalues"] = []
+        rules_dict["formatvalues"] = {}
 
     def eval(self, symbols, evaluation):
         "%(name)s[symbols___]"
@@ -164,9 +165,9 @@ class ClearAll(Clear):
     def do_clear(self, definition):
         super(ClearAll, self).do_clear(definition)
         definition.attributes = A_NO_ATTRIBUTES
-        definition.messages = []
-        definition.options = []
-        definition.defaultvalues = []
+        definition.rules_dict["messages"] = []
+        definition.rules_dict["options"] = {}
+        definition.rules_dict["defaultvalues"] = []
 
 
 class Remove(Builtin):

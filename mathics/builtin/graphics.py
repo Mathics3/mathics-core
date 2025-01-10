@@ -1075,7 +1075,7 @@ class _GraphicsElements:
             builtin = builtins.get(name)
             if builtin is None:
                 return None
-            return builtin.options
+            return builtin.rules_dict.get("options", {})
 
         def stylebox_style(style, specs):
             new_style = style.clone()

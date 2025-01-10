@@ -88,17 +88,19 @@ def gather_and_format_definition_rules(
         Add to the description all the rules associated
         to a definition object
         """
-        for rule in definition.ownvalues:
+        rules_dict = definition.rules_dict
+        for rule in rules_dict.get("ownvalues", []):
             format_rule(rule)
-        for rule in definition.downvalues:
+        for rule in rules_dict.get("downvalues", []):
             format_rule(rule)
-        for rule in definition.subvalues:
-            format_rule(rule)
-        for rule in definition.upvalues:
+        for rule in rules_dict.get("upvalues", []):
             format_rule(rule, up=True)
-        for rule in definition.nvalues:
+        for rule in rules_dict.get("subvalues", []):
             format_rule(rule)
-        formats = sorted(definition.formatvalues.items())
+        for rule in rules_dict.get("nvalues", []):
+            format_rule(rule)
+
+        formats = sorted(rules_dict.get("formatvalues", {}).items())
         for format, rules in formats:
             for rule in rules:
 
@@ -139,10 +141,11 @@ def gather_and_format_definition_rules(
         except KeyError:
             pass
 
-    for rule in all.defaultvalues:
+    for rule in all.rules_dict.get("defaultvalues", []):
         format_rule(rule)
-    if all.options:
-        options = sorted(all.options.items())
+    all_options = all.rules_dict.get("options", {})
+    if all_options:
+        options = sorted(all_options.items())
         lines.append(
             Expression(
                 SymbolHoldForm,

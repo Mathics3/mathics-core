@@ -121,17 +121,8 @@ def remove_nots_when_unnecesary(pred, evaluation):
 
 
 def get_assumptions_list(evaluation):
-    assumptions = None
-    assumptions_def = evaluation.definitions.get_definition(
-        "System`$Assumptions", only_if_exists=True
-    )
-    if assumptions_def:
-        assumptions = assumptions_def.ownvalues
-        if len(assumptions) > 0:
-            assumptions = assumptions[0].replace
-    if assumptions is None:
-        return None
-
+    """Return a list of assumptions"""
+    assumptions = evaluation.definitions.get_ownvalue("System`$Assumptions")
     if isinstance(assumptions, Atom) or not assumptions.has_form("List", None):
         assumptions = (assumptions,)
     else:
