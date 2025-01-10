@@ -76,6 +76,7 @@ def add_builtins_from_builtin_module(
 
 
 def add_builtins_from_builtin_modules(modules: List[ModuleType]):
+    """Load the Builtin classes from `modules`"""
     builtins_list: List[Tuple[str, "Builtin"]] = []
     for module in modules:
         add_builtins_from_builtin_module(module, builtins_list)
@@ -86,6 +87,11 @@ def add_builtins_from_builtin_modules(modules: List[ModuleType]):
 # The fact that we are importing inside here, suggests add_builtins
 # should get moved elsewhere.
 def add_builtins(new_builtins: List[Tuple[str, "Builtin"]]):
+    """
+    Populate _builtins, builtins_precedence, pattern_objects
+    mathics_to_python and sympy_to_python from a list of
+    builtins.
+    """
     from mathics.core.builtin import (
         Operator,
         PatternObject,
@@ -112,15 +118,21 @@ def add_builtins(new_builtins: List[Tuple[str, "Builtin"]]):
     _builtins.update(dict(new_builtins))
 
 
-def builtins_dict(builtins_by_module):
+def builtins_dict(builtins_by_module_dict):
+    """Return a dictionary with all the builtins organized by
+    name"""
     return {
         builtin.get_name(): builtin
-        for _, builtins in builtins_by_module.items()
+        for _, builtins in builtins_by_module_dict.items()
         for builtin in builtins
     }
 
 
 def definition_contribute(definitions):
+    """
+    Load the Definition objects associated to all the builtins
+    on `Definitions`
+    """
     # let MakeBoxes contribute first
     _builtins["System`MakeBoxes"].contribute(definitions)
     for name, item in _builtins.items():
@@ -143,6 +155,7 @@ def definition_contribute(definitions):
 
 
 def get_module_names(builtin_path: str, exclude_files: set) -> list:
+    """Return a list of modules from the path `builtin_path`"""
     py_files = [
         osp.basename(f[0:-3]) for f in glob(osp.join(builtin_path, "[a-z]*.py"))
     ]
@@ -231,11 +244,11 @@ def import_builtin_module(import_name: str, modules: List[ModuleType]):
     """
     try:
         module = importlib.import_module(import_name)
-    except Exception as e:
-        print(e)
+    except Exception as exc:
+        print(exc)
         print(f"    Not able to load {import_name}. Check your installation.")
         print(f"    mathics.builtin loads from {__file__[:-11]}")
-        return None
+        return
 
     if module:
         modules.append(module)

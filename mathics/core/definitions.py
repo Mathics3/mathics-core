@@ -33,10 +33,12 @@ PrintForms: Set[Symbol] = set()
 
 class Definition:
     """
-    A Definition is a collection of ``Rule``s and attributes which are associated with ``Symbol``.
+    A Definition is a collection of ``Rule``s and attributes which are
+    associated with ``Symbol``.
 
-    The ``Rule``s are internally organized in terms of the context of application in
-    ``ownvalues``, ``upvalues``,  ``downvalues``,  ``subvalues``, ``nvalues``,  ``format``, etc.
+    The ``Rule``s are internally organized in terms of the context of
+    application in ``ownvalues``, ``upvalues``,  ``downvalues``,
+    ``subvalues``, ``nvalues``,  ``format``, etc.
     """
 
     def __init__(
@@ -49,17 +51,12 @@ class Definition:
         builtin=None,
         is_numeric: bool = False,
     ) -> None:
-        from mathics.core.builtin import Builtin
-
         self.name = name
         rules_dict = rules_dict or {}
-        self.rules_dict = {key: val for key, val in rules_dict.items()}
+        self.rules_dict = dict(rules_dict.items())
         self.is_numeric = is_numeric
         self.attributes = attributes
         self.builtin = builtin
-        assert builtin is None or isinstance(
-            builtin, Builtin
-        ), "builtin must be a Builtin object"
         self.changed = 0
         for rule in rules:
             if not self.add_rule(rule):
@@ -117,7 +114,8 @@ class Definition:
 
 
 class Definitions:
-    """The state of one instance of the Mathics3 interpreter is stored in this object.
+    """The state of one instance of the Mathics3 interpreter is stored in this
+    object.
 
     The state is then stored as ``Definition`` object of the different
     symbols defined during the runtime.
@@ -126,11 +124,11 @@ class Definitions:
     ``Definition`` s in four dictionaries:
 
     - builtins: stores the definitions of the ``Builtin`` symbols
-    - pymathics: stores the definitions of the ``Builtin`` symbols added from pymathics
-      modules.
+    - pymathics: stores the definitions of the ``Builtin`` symbols added from
+      Mathics3 modules.
     - user: stores the definitions created during the runtime.
-    - definition_cache: keep definitions obtained by merging builtins, pymathics, and
-      user definitions associated with the same symbol.
+    - definition_cache: keep definitions obtained by merging builtins,
+      pymathics, and user definitions associated with the same symbol.
 
     Note: we want Rules to be serializable so that we can dump and
     restore Rules in order to make startup time faster.
@@ -244,7 +242,8 @@ class Definitions:
             except KeyError:
                 # "symbol" doesn't exist, so it was never changed.
                 continue
-            # Get timestamp for the most-recently changed part of the given expression.
+            # Get timestamp for the most-recently changed part of the given
+            # expression.
             if symbol.changed > last_evaluated_time:
                 return True
 
@@ -1013,11 +1012,8 @@ def merge_definitions(candidates: List[Definition]) -> Definition:
     first_candidate = candidates[0]
     name = first_candidate.name
 
-    is_numeric = first_candidate.is_numeric
-    attributes = first_candidate.attributes
     builtin_instance = candidates[-1].builtin
     formatvalues: Dict[str, List[BaseRule]] = {}
-    options: dict = {}
     rules["formatvalues"] = formatvalues
 
     for candidate in candidates:
@@ -1039,25 +1035,25 @@ def merge_definitions(candidates: List[Definition]) -> Definition:
             else:
                 formatvalues[form] = format_rules
 
+    options: dict = {}
     rules["options"] = options
     # Options are updated in reversed order.
     for candidate in candidates[::-1]:
-        candidate_rules = candidate.rules_dict
         # This behaviour for options is different than in WMA:
         # because of this, ``Unprotect[Expand]; ClearAll[Expand]; Options[Expand]``
-        # returns the builtin options of ``Expand`` instead of an empty list, like
-        # in WMA.
+        # returns the builtin options of ``Expand`` instead of an empty list,
+        # like in WMA.
         # To get this behavior, we could just pick the options from the first
         # candidate.
-        options.update(candidate_rules.get("options", {}))
+        options.update(candidate.rules_dict.get("options", {}))
 
     # Now, build the new definition and return it.
     return Definition(
         name=name,
         rules_dict=rules,
-        attributes=attributes,
+        attributes=first_candidate.attributes,
         builtin=builtin_instance,
-        is_numeric=is_numeric,
+        is_numeric=first_candidate.is_numeric,
     )
 
 
