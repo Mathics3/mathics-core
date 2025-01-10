@@ -1081,11 +1081,6 @@ def insert_rule(values: List[BaseRule], rule: BaseRule) -> None:
     rule : Rule
         A new rule.
 
-    Returns
-    -------
-    None
-        DESCRIPTION.
-
     """
 
     for index, existing in enumerate(values):
@@ -1099,7 +1094,7 @@ def insert_rule(values: List[BaseRule], rule: BaseRule) -> None:
 
 def merge_definitions(candidates: List[Definition]) -> Definition:
     """Build a Definition object by merging other definitions"""
-    rules = {
+    rules: dict = {
         key: []
         for key in (
             "ownvalues",
@@ -1118,7 +1113,7 @@ def merge_definitions(candidates: List[Definition]) -> Definition:
     attributes = first_candidate.attributes
     builtin_instance = candidates[-1].builtin
     formatvalues: Dict[str, List[BaseRule]] = {}
-    options: [str, BaseElement] = {}
+    options: dict = {}
     rules["formatvalues"] = formatvalues
 
     for candidate in candidates:
