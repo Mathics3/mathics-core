@@ -42,6 +42,7 @@ class Definition:
     def __init__(
         self,
         name,
+        *,
         rules_dict: Optional[dict] = None,
         rules: tuple = tuple(),
         attributes: int = A_NO_ATTRIBUTES,
@@ -105,7 +106,13 @@ class Definition:
         return False
 
     def __repr__(self) -> str:
-        repr_str = "<Definition: name: {},\n ownvalues: {},\n downvalues: {},\n formats: {},\n attributes: {}>".format(
+        repr_str = (
+            "<Definition: name: {},"
+            "\n ownvalues: {},\n"
+            " downvalues: {},\n"
+            " formats: {},\n"
+            " attributes: {}>"
+        ).format(
             self.name,
             self.ownvalues,
             self.downvalues,
@@ -141,7 +148,6 @@ class Definitions:
         builtin_filename: Optional[str] = None,
         extension_modules: tuple = (),
     ) -> None:
-        super(Definitions, self).__init__()
         self.builtin: Dict[str, Definition] = {}
         self.user: Dict[str, Definition] = {}
         self.pymathics: Dict[str, Definition] = {}
@@ -175,7 +181,7 @@ class Definitions:
         self.outputforms = list(OutputForms)
 
         if add_builtin:
-            load_builtin_definitions(self)
+            load_builtin_definitions(self, builtin_filename, extension_modules)
 
     def clear_cache(self, name: Optional[str] = None) -> None:
         """Clear the definitions cache. If `name` is provided,
@@ -1079,10 +1085,8 @@ def load_builtin_definitions(
         for module in extension_modules:
             try:
                 load_pymathics_module(self, module)
-            except PyMathicsLoadException:
-                raise
-            except ImportError:
-                raise
+            except ImportError as exc:
+                raise PyMathicsLoadException from exc
 
         if builtin_filename is not None:
             with open(builtin_filename, "wb") as builtin_file:
