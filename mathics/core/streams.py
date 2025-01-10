@@ -242,7 +242,7 @@ class StreamsManager:
                 return self.STREAMS[i]
         return None
 
-    # Note: WMA specify that lookup by "name" should be unique, but it appears it
+    # Note: WMA documentationspecifies that lookup by "name" should be unique, but it appears it
     # as of 13.2.0 name does not have to be unique. We'll follow what WMA
     # does as opposed to what the documentation says.
     def get_stream_and_channel_by_name(self, name: str) -> Tuple[Optional[Stream], int]:

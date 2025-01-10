@@ -177,7 +177,7 @@ class Character(Builtin):
     summary_text = "single character, returned as a one‐character string"
 
 
-# Note: WMA specify that Close["name"] should be unique, but it appears it
+# Note: WMA documentation specifies that Close["name"] should be unique, but it appears it
 # as of 13.2.0 name does not have to be unique. We'll follow what WMA
 # does as opposed to what the documentation says.
 class Close(Builtin):
@@ -186,7 +186,9 @@ class Close(Builtin):
 
     <dl>
       <dt>'Close[$obj$]'
-      <dd>Closes a stream or socket. $obj$ can be an 'InputStream', or an 'OutputStream' object, or a 'String'. \
+      <dd>Closes a stream or socket.
+
+      $obj$ can be an 'InputStream', or an 'OutputStream' object, or a 'String'. \
       When $obj$ is a string file path, one of the channels associated with it is closed.
     </dl>
 
