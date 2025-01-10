@@ -262,7 +262,7 @@ class Builtin:
                 # Otherwise it'll be created in Global` when it's
                 # used, so it won't work.
                 if option not in definitions.builtin:
-                    definitions.builtin[option] = Definition(name=name)
+                    definitions.builtin[option] = Definition(name=option)
 
         # Check if the given options are actually supported by the
         # Builtin.  If not, we might issue an "optx" error and

@@ -1101,12 +1101,13 @@ def eval_assign_part(
     if is_protected(name, defs):
         evaluation.message(self.get_name(), "wrsym", symbol)
         return False
-    rule = defs.get_ownvalue(name)
-    if rule is None:
+    try:
+        rule = defs.get_ownvalue(name)
+    except ValueError:
         evaluation.message(self.get_name(), "noval", symbol)
         return False
     indices = lhs.elements[1:]
-    return eval_Part([rule.replace], indices, evaluation, rhs)
+    return eval_Part([rule], indices, evaluation, rhs)
 
 
 def eval_assign_random_state(

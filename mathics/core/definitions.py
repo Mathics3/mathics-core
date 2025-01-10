@@ -219,7 +219,7 @@ def get_tag_position(pattern: BaseElement, name: str) -> Optional[str]:
     return None
 
 
-def insert_rule(values: list, rule: BaseRule) -> None:
+def insert_rule(values: List[BaseRule], rule: BaseRule) -> None:
     """
     Add a new rule inside a list of values.
     Rules are sorted in a way that the first elements
@@ -326,14 +326,14 @@ class Definition:
             if not self.add_rule(rule):
                 print(f"{rule.pattern.expr} could not be associated with {self.name}")
 
-    def get_values_list(self, pos: str) -> list:
+    def get_values_list(self, pos: str) -> List[BaseRule]:
         """Return one of the value lists"""
         assert pos.isalpha()
         if pos == "messages":
             return self.messages
         return getattr(self, f"{pos}values")
 
-    def set_values_list(self, pos: str, rules: list) -> None:
+    def set_values_list(self, pos: str, rules: List[BaseRule]) -> None:
         """Set one of the value lists"""
         assert pos.isalpha()
         if pos == "messages":
@@ -847,23 +847,23 @@ class Definitions:
         """
         return self.get_definition(name).attributes
 
-    def get_ownvalues(self, name: str) -> list:
+    def get_ownvalues(self, name: str) -> List[BaseRule]:
         """Return the list of ownvalues"""
         return self.get_definition(name).ownvalues
 
-    def get_downvalues(self, name: str) -> list:
+    def get_downvalues(self, name: str) -> List[BaseRule]:
         """Return the list of downvalues"""
         return self.get_definition(name).downvalues
 
-    def get_subvalues(self, name: str) -> list:
+    def get_subvalues(self, name: str) -> List[BaseRule]:
         """Return the list of subvalues"""
         return self.get_definition(name).subvalues
 
-    def get_upvalues(self, name: str) -> list:
+    def get_upvalues(self, name: str) -> List[BaseRule]:
         """Return the list of upvalues"""
         return self.get_definition(name).upvalues
 
-    def get_formats(self, name: str, format_name="") -> list:
+    def get_formats(self, name: str, format_name="") -> List[BaseRule]:
         """
         Return a list of format rules associated with `name`.
         if `format_name` is given, looks to the rules associated
@@ -874,11 +874,11 @@ class Definitions:
         result.sort()
         return result
 
-    def get_nvalues(self, name: str) -> list:
+    def get_nvalues(self, name: str) -> List[BaseRule]:
         """Return the list of nvalues"""
         return self.get_definition(name).nvalues
 
-    def get_defaultvalues(self, name: str) -> list:
+    def get_defaultvalues(self, name: str) -> List[BaseRule]:
         """Return the list of defaultvalues"""
         return self.get_definition(name).defaultvalues
 
@@ -1042,7 +1042,7 @@ class Definitions:
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def set_values(self, name: str, values, rules) -> None:
+    def set_values(self, name: str, values: str, rules: List[BaseRule]) -> None:
         """Set a list of rules associated with the Symbol `name`"""
         pos = valuesname(values)
         definition = self.get_user_definition(self.lookup_name(name))
@@ -1075,9 +1075,16 @@ class Definitions:
 
     def get_ownvalue(self, name: str) -> BaseElement:
         """Get ownvalue associated with `name`"""
-        ownvalues = self.get_definition(self.lookup_name(name)).ownvalues
-        if ownvalues:
-            return ownvalues[0]
+        lookup_name = self.lookup_name(name)
+        ownvalues = self.get_definition(lookup_name).ownvalues
+
+        for ownvalue in ownvalues:
+            if not isinstance(ownvalue.pattern.expr, Symbol):
+                continue
+            try:
+                return ownvalue.get_replace_value()
+            except ValueError:
+                continue
         raise ValueError
         # return None
 
@@ -1108,20 +1115,15 @@ class Definitions:
         self, name: str, default: Optional[int] = None
     ) -> Optional[int]:
         "Infinity -> None, otherwise returns integer."
-        value = self.get_definition(name).ownvalues
-        if value:
-            try:
-                value = value[0].replace
-            except AttributeError:
-                return None
-            if value.get_name() == "System`Infinity" or value.has_form(
-                "DirectedInfinity", 1
-            ):
-                return None
-
-            return int(value.get_int_value())
-
-        return default
+        try:
+            value = self.get_ownvalue(name)
+        except ValueError:
+            return default
+        if value.get_name() == "System`Infinity" or value.has_form(
+            "DirectedInfinity", 1
+        ):
+            return None
+        return int(value.to_python())  # .get_int_value())
 
     def set_config_value(self, name: str, new_value: int) -> None:
         """Set the (own)value of an integer variable"""
