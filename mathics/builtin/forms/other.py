@@ -26,8 +26,8 @@ class SequenceForm(FormBaseClass):
     /doc/reference-of-built-in-symbols/layout/row
     </url> and 'Text' (which is not implemented yet).
 
-    >> SequenceForm["[x = ", 56, "]"]
-    = [x = 56]
+    >> SequenceForm["[", "x = ", 56, "]"]
+     = [x = 56]
     """
 
     in_outputforms = False

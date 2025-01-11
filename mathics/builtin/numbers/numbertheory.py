@@ -109,7 +109,7 @@ class Divisors(Builtin):
 
 
 class DivisorSigma(SympyFunction):
-    """
+    r"""
     <url>
     :Divisor function: https://en.wikipedia.org/wiki/Divisor_function</url> (<url>
     :SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.divisor_sigma</url>, <url>
@@ -117,7 +117,7 @@ class DivisorSigma(SympyFunction):
 
     <dl>
       <dt>'DivisorSigma[$k$, $n$]'
-      <dd>returns σ_$k$($n$)
+      <dd>returns $\sigma_k$($n$)
     </dl>
 
     >> DivisorSigma[1, 20]

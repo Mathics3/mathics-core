@@ -36,6 +36,7 @@ sed -i -e 's/⧦/\\\\Equiv/g' documentation.tex
 sed -i -e 's/⊻/xor/g' documentation.tex
 sed -i -e 's/∧/&&/g' documentation.tex
 sed -i -e 's/‖/||/g' documentation.tex
+sed -i -e 's/ⅅ/$\\mathbb{D}$/' documentation.tex
 sed -i -e 's/→/->/g' documentation.tex
 
 # This kind of tick mark appears in latitude/longitude "minute" tick marks of ExampleData/PrimeMeridian.html

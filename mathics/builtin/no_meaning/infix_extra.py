@@ -12,7 +12,7 @@ from mathics.core.builtin import InfixOperator
 
 
 class DirectedEdge(InfixOperator):
-    """
+    r"""
     <url>
     :WML link:
     https://reference.wolfram.com/language/ref/DirectedEdge.html</url>
@@ -29,9 +29,8 @@ class DirectedEdge(InfixOperator):
     </dl>
 
     >> DirectedEdge[x, y, z]
-     = x → y → z
-
-    >> a \\[DirectedEdge] b
+     =  x → y → z
+    >> a \[DirectedEdge] b
      = a → b
 
     """
@@ -44,20 +43,20 @@ class DirectedEdge(InfixOperator):
 
     attributes = A_NO_ATTRIBUTES
     default_formats = False  # Don't use any default format rules. Instead, see belo.
-    summary_text = 'DirectedEdge infix operator "→"'
+    summary_text = 'DirectedEdge infix operator "->"'
 
 
 class UndirectedEdge(InfixOperator):
-    """
+    r"""
     <url>
     :WML link:
     https://reference.wolfram.com/language/ref/UndirectedEdge.html</url>
 
     <dl>
       <dt>'UndrectedEdge[$x$, $y$, ...]'
-      <dd>displays $x$ ↔ $y$ ↔ ...
+      <dd>displays $x <-> y$ ...
 
-      Undirected edges are typically used in network graphs. In Mathics3, \
+      Undirected edges are typically used in network graphs. In Mathics3, \\
       network graphs are supported through a Mathics3 module.
 
       Issue 'LoadModule["pymathics.graph"]' after 'pip' installing Python package \
@@ -67,17 +66,17 @@ class UndirectedEdge(InfixOperator):
     >> UndirectedEdge[x, y, z]
      = x ↔ y ↔ z
 
-    >> a \\[UndirectedEdge] b
+    >> a <-> b
      = a ↔ b
 
     """
 
     formats = {
         (("InputForm", "OutputForm", "StandardForm"), "UndirectedEdge[args__]"): (
-            'Infix[{args}, "↔"]'
+            'Infix[{args}, "\\[UndirectedEdge]"]'
         ),
     }
 
     attributes = A_NO_ATTRIBUTES
-    default_formats = False  # Don't use any default format rules. Instead, see belo.
-    summary_text = 'UndirectedEdge infix operator "↔"'
+    default_formats = False  # Don't use any default format rules. Instead, see below.
+    summary_text = 'UndirectedEdge infix operator "<->"'

@@ -6,7 +6,7 @@ FIXME: Ditch home-grown and lame parsing and hook into sphinx.
 import re
 from typing import Callable, Optional, Sequence
 
-from mathics.core.parser.operators import operator_to_amslatex
+from mathics.core.convert.op import get_latex_operator
 from mathics.doc.doc_entries import (
     CONSOLE_RE,
     DL_ITEM_RE,
@@ -168,6 +168,7 @@ def escape_latex(text):
             ("$", r"\$"),
             ("\00f1", r"\~n"),
             ("\u00e7", r"\c{c}"),
+            ("\u2216", r"\\"),
             ("\u00e9", r"\'e"),
             ("\u00ea", r"\^e"),
             ("\u03b3", r"$\gamma$"),
@@ -336,7 +337,7 @@ def get_latex_escape_char(text):
     raise ValueError
 
 
-def get_latex_operator(operator: str) -> str:
+def get_latex_operator_enclosed(operator: str) -> str:
     r"""
     If operator is found in operator_to_amslatex, then
     return the operator converted to its AMS operator surrounded
@@ -344,15 +345,17 @@ def get_latex_operator(operator: str) -> str:
 
     Otherwise, return operator as a \code{} string.
     """
-    return_str = operator_to_amslatex.get(operator)
-    if return_str is not None and len(return_str) > 0:
-        if return_str[0] != "$":
-            return_str = "$" + return_str
-        if return_str[-1] != "$":
-            return_str += "$"
-    else:
-        return_str = r"\code{%s}" % escape_latex_code(operator)
-    return return_str
+
+    result = get_latex_operator(operator)
+    if result:
+        if len(result) > 7 and result[:7] == "\\symbol":
+            return result
+        if result[0] == "\\":
+            return f"${result}$"
+
+    assert result.isascii(), f"{operator} -> {result}"
+
+    return r"\code{%s}" % escape_latex_code(result)
 
 
 def latex_label_safe(s: str) -> str:
@@ -523,7 +526,9 @@ class LaTeXDocTest(DocTest):
             output_for_key = get_results_by_test(self.test, self.key, doc_data)
         text = f"%% Test {'/'.join((str(x) for x in self.key))}\n"
         text += "\\begin{testcase}\n"
-        text += "\\test{%s}\n" % escape_latex_code(self.test)
+        test_str = self.test
+        # TODO: replace nonascii characters in test_str
+        text += "\\test{%s}\n" % escape_latex_code(test_str)
 
         results = output_for_key.get("results", [])
         for result in results:
@@ -764,14 +769,22 @@ class LaTeXDocSection(DocSection):
             print(f"  Formatting Section {self.title}")
         title = escape_latex(self.title)
         if self.operator:
-            code_str = get_latex_operator(self.operator)
+            code_str = get_latex_operator_enclosed(self.operator)
             title += f" ({code_str})"
         index = (
             r"\index{%s}" % escape_latex(self.title)
             if self.chapter.part.is_reference
             else ""
         )
+
         content = self.doc.latex(doc_data)
+        # This just replaces the occurrences of the unicode
+        # character associated to the operator.
+        # At some point we would like to scan all the unicode characters
+        # and replace them according to the context.
+        if self.operator and not self.operator.isascii():
+            content = content.replace(self.operator, code_str)
+
         sections = "\n\n".join(section.latex(doc_data) for section in self.subsections)
         slug = f"{self.chapter.part.slug}/{self.chapter.slug}/{self.slug}"
         section_string = (
@@ -899,8 +912,9 @@ class LaTeXDocSubsection(DocSubsection):
             print(f"    Formatting Subsection Section {self.title}")
 
         title = escape_latex(self.title)
+
         if self.operator:
-            code_str = get_latex_operator(self.operator)
+            code_str = get_latex_operator_enclosed(self.operator)
             title += f" ({code_str})"
         index = (
             r"\index{%s}" % escape_latex(self.title)
@@ -908,6 +922,13 @@ class LaTeXDocSubsection(DocSubsection):
             else ""
         )
         content = self.doc.latex(doc_data)
+        # This just replaces the occurrences of the unicode
+        # character associated to the operator.
+        # At some point we would like to scan all the unicode characters
+        # and replace them according to the context.
+        if self.operator and not self.operator.isascii():
+            content = content.replace(self.operator, code_str)
+
         slug = f"{self.chapter.part.slug}/{self.chapter.slug}/{self.section.slug}/{self.slug}"
 
         section_string = (
