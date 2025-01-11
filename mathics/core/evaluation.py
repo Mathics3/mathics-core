@@ -389,12 +389,11 @@ class Evaluation:
     def get_quiet_messages(self):
         from mathics.core.expression import Expression
 
-        value = self.definitions.get_definition("Internal`$QuietMessages").ownvalues
-        if value:
-            try:
-                value = value[0].replace
-            except AttributeError:
-                return []
+        try:
+            value = self.definitions.get_ownvalue("Internal`$QuietMessages")
+        except ValueError:
+            return []
+
         if not isinstance(value, Expression):
             return []
         return value.elements

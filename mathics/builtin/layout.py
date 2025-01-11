@@ -267,9 +267,12 @@ class Precedence(Builtin):
         name = expr.get_name()
         precedence = 1000
         if name:
-            builtin = evaluation.definitions.get_definition(name, only_if_exists=True)
-            if builtin:
-                builtin = builtin.builtin
+            try:
+                builtin = evaluation.definitions.get_definition(
+                    name, only_if_exists=True
+                ).builtin
+            except KeyError:
+                builtin = None
             if builtin is not None and isinstance(builtin, Operator):
                 precedence = builtin.precedence
             else:

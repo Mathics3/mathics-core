@@ -540,10 +540,11 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         Returns True if the symbol is tagged as a numeric constant.
         """
         if evaluation:
-            symbol_definition = evaluation.definitions.get_definition(self.name)
-            if symbol_definition is None:
+            try:
+                symbol_definition = evaluation.definitions.get_definition(self.name)
+                return symbol_definition.is_numeric
+            except KeyError:
                 return False
-            return symbol_definition.is_numeric
         return False
 
     def is_uncertain_final_definitions(self, definitions) -> bool:
