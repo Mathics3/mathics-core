@@ -389,7 +389,6 @@ class Evaluation:
     def get_quiet_messages(self):
         from mathics.core.expression import Expression
 
-
         value = self.definitions.get_ownvalues("Internal`$QuietMessages")
         if value:
             try:
