@@ -1899,21 +1899,16 @@ def _is_neutral_symbol(symbol_name, cache, evaluation):
 
     try:
         definition = definitions.get_definition(symbol_name, only_if_exists=True)
-    except KeyError:
-        definition = None
-
-    if definition is None:
-        r = True
-    else:
         r = all(
             len(definition.get_values_list(x)) == 0
             for x in ("upvalues", "subvalues", "downvalues", "ownvalues")
         )
-
-    if cache:
-        cache[symbol_name] = r
-
-    return r
+        if cache:
+            cache[symbol_name] = r
+        return r
+    except KeyError:
+        cache[symbol_name] = True
+        return True
 
 
 def _is_neutral_head(head, cache, evaluation):

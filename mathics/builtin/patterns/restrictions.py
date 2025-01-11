@@ -305,10 +305,11 @@ class PatternTest(InfixOperator, PatternObject):
                 and candidate.elements[1].value < 0
             )
 
-        builtin = None
-        builtin = evaluation.definitions.get_definition(test)
-        if builtin:
-            builtin = builtin.builtin
+        try:
+            builtin = evaluation.definitions.get_definition(test, True).builtin
+        except KeyError:
+            return None
+
         if builtin is not None and isinstance(builtin, Test):
             return builtin.test(candidate)
         return None
