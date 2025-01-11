@@ -118,20 +118,31 @@ def gather_and_format_definition_rules(
     if not name:
         evaluation.message("Definition", "sym", symbol, 1)
         return
-    attributes = evaluation.definitions.get_attributes(name)
-    all = evaluation.definitions.get_definition(name)
-    if attributes:
-        attributes_list = attributes_bitset_to_list(attributes)
-        lines.append(
-            Expression(
-                SymbolHoldForm,
+
+    try:
+        all = evaluation.definitions.get_definition(name)
+        attributes = all.attributes
+        all_options = all.options
+        all_defaultvalues = all.defaultvalues
+
+        if attributes:
+            attributes_list = attributes_bitset_to_list(attributes)
+            lines.append(
                 Expression(
-                    SymbolSet,
-                    Expression(SymbolAttributes, symbol),
-                    to_mathics_list(*attributes_list, elements_conversion_fn=Symbol),
-                ),
+                    SymbolHoldForm,
+                    Expression(
+                        SymbolSet,
+                        Expression(SymbolAttributes, symbol),
+                        to_mathics_list(
+                            *attributes_list, elements_conversion_fn=Symbol
+                        ),
+                    ),
+                )
             )
-        )
+    except KeyError:
+        attributes = 0
+        all_options = {}
+        all_defaultvalues = []
 
     if not A_READ_PROTECTED & attributes:
         try:
@@ -139,10 +150,10 @@ def gather_and_format_definition_rules(
         except KeyError:
             pass
 
-    for rule in all.defaultvalues:
+    for rule in all_defaultvalues:
         format_rule(rule)
-    if all.options:
-        options = sorted(all.options.items())
+    if all_options:
+        options = sorted(all_options.items())
         lines.append(
             Expression(
                 SymbolHoldForm,
