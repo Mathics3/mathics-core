@@ -1897,7 +1897,11 @@ def _is_neutral_symbol(symbol_name, cache, evaluation):
 
     definitions = evaluation.definitions
 
-    definition = definitions.get_definition(symbol_name, only_if_exists=True)
+    try:
+        definition = definitions.get_definition(symbol_name, only_if_exists=True)
+    except KeyError:
+        definition = None
+
     if definition is None:
         r = True
     else:
