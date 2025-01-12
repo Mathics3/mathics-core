@@ -13,12 +13,13 @@ from typing import Dict, List, Optional, Tuple
 import requests
 
 from mathics.core.util import canonic_filename
-from mathics.settings import ROOT_DIR
+from mathics.settings import ROOT_DIR, USER_PACKAGE_DIR
 
 HOME_DIR = osp.expanduser("~")
 PATH_VAR: List[str] = [
     ".",
     HOME_DIR,
+    USER_PACKAGE_DIR,
     osp.join(ROOT_DIR, "data"),
     osp.join(ROOT_DIR, "packages"),
 ]
