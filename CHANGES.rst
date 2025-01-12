@@ -78,10 +78,11 @@ Bugs
 Mathics3 Packages
 +++++++++++++++++
 
-* Rubi added (preliminary)
+* ``BoolEval``
 * ``CleanSlate``
 * ``Combinatorica`` moved to a separate repository and v.9 renamed to 0.9.1.
     More code v0.9.1 works. v2.0 renamed v2.0.1 and some code now works.
+* ``Rubi`` version 4.17 (work in progress; algebraic integrations work)
 
 
 Python Package Updates
