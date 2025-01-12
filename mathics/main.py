@@ -34,6 +34,7 @@ from mathics.core.symbols import SymbolNull, strip_context
 from mathics.eval.files_io.files import set_input_var
 from mathics.eval.files_io.read import channel_to_stream
 from mathics.session import autoload_files
+from mathics.settings import DATA_DIR, USER_PACKAGE_DIR, ensure_directory
 from mathics.timing import show_lru_cache_statistics
 
 # from mathics.timing import TimeitContextManager
@@ -555,6 +556,8 @@ Please contribute to Mathics!""",
         print(license_string + "\n")
         print(f"Quit by evaluating Quit[] or by pressing {quit_command}.\n")
 
+    ensure_directory(DATA_DIR)
+    ensure_directory(USER_PACKAGE_DIR)
     interactive_eval_loop(shell, args.full_form, args.strict_wl_output)
     return exit_rc
 
