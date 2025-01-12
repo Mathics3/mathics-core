@@ -21,7 +21,7 @@ PATH_VAR: List[str] = [
     HOME_DIR,
     USER_PACKAGE_DIR,
     osp.join(ROOT_DIR, "data"),
-    osp.join(ROOT_DIR, "packages"),
+    osp.join(ROOT_DIR, "Packages"),
 ]
 
 
