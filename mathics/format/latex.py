@@ -87,7 +87,7 @@ def encode_tex(text: str, in_text=False) -> str:
 
 
 def string(self, **options) -> str:
-    """String to TeX form"""
+    """String to LaTeX form"""
     text = self.value
 
     def render(format, string, in_text=False):

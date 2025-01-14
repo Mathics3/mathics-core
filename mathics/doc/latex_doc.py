@@ -527,7 +527,7 @@ class LaTeXDocTest(DocTest):
         text = f"%% Test {'/'.join((str(x) for x in self.key))}\n"
         text += "\\begin{testcase}\n"
         test_str = self.test
-        # TODO: replace nonascii characters in test_str
+        # TODO: replace non-ASCII characters in test_str
         text += "\\test{%s}\n" % escape_latex_code(test_str)
 
         results = output_for_key.get("results", [])
