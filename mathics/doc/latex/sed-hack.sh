@@ -24,8 +24,3 @@ sed -i -e 's/ç/\\c{c}/g' documentation.tex
 sed -i -e 's/ñ/\\~n/g' documentation.tex
 sed -i -e 's/ê/\\^e/g' documentation.tex
 sed -i -e "s/é/\\\'e/g" documentation.tex
-
-# other...
-# Happends in GreaterEqual, probably because an error
-# into the tables
-sed -i -e 's/≖/=||=/g' documentation.tex
