@@ -674,7 +674,7 @@ class First(Builtin):
 
     # FIXME: the code and the code for Last are similar and can be DRY'd
     def eval(self, expr, evaluation: Evaluation, expression: Expression):
-        "First[expr__]"
+        "expression: First[expr__]"
 
         if isinstance(expr, Atom):
             evaluation.message("First", "normal", Integer1, expression)
@@ -947,8 +947,8 @@ class Last(Builtin):
     summary_text = "last element of a list or expression"
 
     # FIXME: the code and the code for First are similar and can be DRY'd
-    def eval(self, expr, evaluation: Evaluation, expression: Expression):
-        "Last[expr__]"
+    def eval(self, expression: Expression, expr, evaluation: Evaluation):
+        "expression: Last[expr__]"
 
         if isinstance(expr, Atom):
             evaluation.message("Last", "normal", Integer1, expression)
@@ -1030,8 +1030,8 @@ class Most(Builtin):
 
     summary_text = "remove the last element"
 
-    def eval(self, expr, evaluation: Evaluation, expression: Expression):
-        "Most[expr_]"
+    def eval(self, expression: Expression, expr, evaluation: Evaluation):
+        "expression: Most[expr_]"
 
         if isinstance(expr, Atom):
             evaluation.message("Most", "normal", Integer1, expression)
@@ -1526,7 +1526,7 @@ class Rest(Builtin):
     summary_text = "remove the first element"
 
     def eval(self, expr, evaluation: Evaluation, expression: Expression):
-        "Rest[expr_]"
+        "expression: Rest[expr_]"
 
         if isinstance(expr, Atom):
             evaluation.message("Rest", "normal", Integer1, expression)
