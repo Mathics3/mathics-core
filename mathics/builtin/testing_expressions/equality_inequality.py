@@ -348,8 +348,8 @@ class Between(Builtin):
     <dl>
       <dt>'Between'[$x$, {$min$, $max$}]
       <dd>equivalent to $min$ <= $x$ <= $max$.
-      ## <dt>'Between[$x$, { {$min1$, $max1$}, {$min2$, $max2$}, ...]'
-      ## <dd>equivalent to $min1$ <= $x$ <= $max1$' || $min2$ <= $x$ <= $max2$ ...
+      <dt>'Between[$x$, { {$min1$, $max1$}, {$min2$, $max2$}, ...]'
+      <dd>equivalent to $min1$ <= $x$ <= $max1$' || $min2$ <= $x$ <= $max2$ ...
       <dt>'Between[$range$]'
       <dd>operator form that yields 'Between'[$x$, $range$] when applied to expression $x$.
     </dl>
@@ -365,13 +365,19 @@ class Between(Builtin):
     'Between' works with irrational numbers:
     >> Between[2, {E, Pi}]
      = False
+
+    If more than an interval is given, 'Between' returns 'True' if $x$ belongs \\
+    to one of them:
+
+    >> {Between[3, {1, 2}, {4, 6}], Between[5, {1, 2}, {4, 6}]}
+     = {False, True}
     """
 
     attributes = A_PROTECTED
 
     rules = {
         "Between[x_, {min_, max_}]": "min <= x <= max",  # FIXME add error checking
-        # "Between[x_, {ranges__}]": "Apply[Or, Between[#][x]& /@List[ranges]]",  # FIXME add error checking
+        "Between[x_, ranges__List]": "If[Do[If[Between[x,range], Return[True]],{range, {ranges}}]===True, True, False]",
         "Between[range_List][x_]": "Between[x, range]",  # operator form
     }
 
