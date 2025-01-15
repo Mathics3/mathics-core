@@ -53,8 +53,8 @@ class UndirectedEdge(InfixOperator):
     https://reference.wolfram.com/language/ref/UndirectedEdge.html</url>
 
     <dl>
-      <dt>'UndrectedEdge[$x$, $y$, ...]'
-      <dd>displays $x <-> y$ ...
+      <dt>'UndirectedEdge[$x$, $y$, ...]'
+      <dd>displays $x$ ↔ $y$ ...
 
       Undirected edges are typically used in network graphs. In Mathics3, \\
       network graphs are supported through a Mathics3 module.
