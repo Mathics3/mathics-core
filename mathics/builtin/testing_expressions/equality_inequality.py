@@ -377,7 +377,7 @@ class Between(Builtin):
 
     rules = {
         "Between[x_, {min_, max_}]": "min <= x <= max",  # FIXME add error checking
-        "Between[x_, ranges__List]": "If[Do[If[Between[x,range], Return[True]],{range, {ranges}}]===True, True, False]",
+        "Between[x_, ranges__List]": "(Do[If[Between[x,range], Return[True]],{range, {ranges}}]===True)",
         "Between[range_List][x_]": "Between[x, range]",  # operator form
     }
 
