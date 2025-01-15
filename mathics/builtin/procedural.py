@@ -16,8 +16,6 @@ Procedural functions are integrated into \\Mathics symbolic programming \
 environment.
 """
 
-import time
-
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_REST,
@@ -25,7 +23,6 @@ from mathics.core.attributes import (
     A_READ_PROTECTED,
 )
 from mathics.core.builtin import Builtin, InfixOperator, IterationFunction
-from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.interrupt import (
@@ -37,6 +34,7 @@ from mathics.core.interrupt import (
 )
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import SymbolMatchQ, SymbolPause
+from mathics.eval.datetime import eval_pause, valid_time_from_expression
 from mathics.eval.patterns import match
 
 SymbolWhich = Symbol("Which")
@@ -461,23 +459,15 @@ class Pause(Builtin):
 
     # Number of timeout polls per second that we perform in looking
     # for a timeout.
-    PAUSE_TICKS_PER_SECOND = 1000
 
     def eval(self, n, evaluation: Evaluation):
         "Pause[n_]"
-        sleeptime = n.to_python()
-        if not isinstance(sleeptime, (int, float)) or sleeptime < 0:
-            evaluation.message(
-                "Pause", "numnm", Expression(SymbolPause, from_python(n))
-            )
+        try:
+            sleep_time = valid_time_from_expression(n, evaluation)
+        except ValueError:
+            evaluation.message("Pause", "numnm", Expression(SymbolPause, n))
             return
-
-        steps = int(self.PAUSE_TICKS_PER_SECOND * sleeptime)
-        for _ in range(steps):
-            time.sleep(1 / self.PAUSE_TICKS_PER_SECOND)
-            if evaluation.timeout:
-                return SymbolNull
-
+        eval_pause(sleep_time, evaluation)
         return SymbolNull
 
 

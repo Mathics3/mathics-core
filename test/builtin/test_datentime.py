@@ -12,7 +12,7 @@ import pytest
 
 @pytest.mark.skipif(
     sys.platform in ("emscripten",),
-    reason="TimeConstrained is based in Threads, which are not supported in Piodide",
+    reason="TimeConstrained is not supported in Pyodide",
 )
 def test_timeremaining():
     str_expr = "TimeConstrained[1+2; TimeRemaining[], 0.9]"
@@ -22,17 +22,33 @@ def test_timeremaining():
 
 @pytest.mark.skipif(
     sys.platform in ("emscripten",),
-    reason="TimeConstrained is based in Threads, which are not supported in Piodide",
+    reason="TimeConstrained is not supported in Pyodide",
 )
 def test_timeconstrained1():
-    #
+    """
+    This test checks that
+    * TimeConstrained manages to return $Aborted when the
+      evaluated expression exceeds the walltime.
+    * That the evaluation does not proceeds after the walltime.
+
+    If `Pause` and TimeConstrained were absolutely accurate,
+    `a` should be always less than 11. However, sometimes
+    the innacuracies in time could allow to reach more than 10
+    iterations before get stopped. 20 iterations should be a safe
+    bound.
+    After `TimeConstrained` returns `$Abort`, iterations should stop,
+    so if we check one second after the end of the evaluation, `a`
+    should not change its value.
+    """
     str_expr1 = "a=1.; TimeConstrained[Do[Pause[.01];a=a+1,{1000}],.1]"
     result = evaluate(str_expr1)
     str_expected = "$Aborted"
     expected = evaluate(str_expected)
     assert result == expected
+    current_a = evaluate("a").to_python()
+    assert current_a <= 20
     time.sleep(1)
-    assert evaluate("a").to_python() <= 10
+    assert evaluate("a").to_python() == current_a, "the evaluation was not stopped..."
 
 
 def test_datelist():
@@ -128,24 +144,28 @@ def test_private_doctests_datetime(str_expr, msgs, str_expected, fail_msg):
 
 
 @pytest.mark.skipif(
-    sys.platform in ("emscripten", "darwin"),
-    reason="TimeConstrained is based in Threads, which are not supported in Piodide and has problems on MacOS",
+    sys.platform in ("emscripten",),
+    reason="TimeConstrained is not supported in Piodide",
 )
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),
     [
         ##
         (
-            "TimeConstrained[Integrate[Sin[x]^100,x],.001]",
+            "TimeConstrained[Integrate[Sin[x]^1000, x];,.001]",
             None,
             "$Aborted",
-            "TimeConstrained with two arguments",
+            (
+                "TimeConstrained with two arguments. "
+                "The integration of Sin[x]^1000 should be costly enough "
+                "for sympy to reach the walltime."
+            ),
         ),
         (
-            "TimeConstrained[Integrate[Sin[x]^100,x],.001, Integrate[Cos[x],x]]",
+            "TimeConstrained[Integrate[Cos[x]^1000,x];,.001, Integrate[Cos[x],x]]",
             None,
             "Sin[x]",
-            "TimeConstrained with three arguments",
+            "TimeConstrained with three arguments. The integrand must be different to avoid using the cache.",
         ),
         (
             "a=.;s=TimeConstrained[Integrate[Sin[x] ^ 3, x], a]",
@@ -160,6 +180,17 @@ def test_private_doctests_datetime(str_expr, msgs, str_expected, fail_msg):
             None,
             "Cos[x] (-3 + Cos[x] ^ 2) / 3",
             "s is now evaluated because `a` is a number.",
+        ),
+        ("TimeConstrained[Pause[5]; a, 1]", None, "$Aborted", None),
+        (
+            (
+                'TimeConstrained[TimeConstrained[Pause[1]; Print["First Done"], 2];'
+                'TimeConstrained[Pause[5];Print["Second Done"],2,"inner"],'
+                '2, "outer"]'
+            ),
+            ("First Done",),
+            "outer",
+            "Two successive time constrained blocks inside another timeconstrained blocks.",
         ),
         ("a=.;s=.;", None, "Null", None),
     ],
