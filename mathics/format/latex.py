@@ -556,6 +556,7 @@ def graphics3dbox(self, elements=None, **options) -> str:
 \begin{{asy}}
 import three;
 import solids;
+import tube;
 size({0}cm, {1}cm);
 currentprojection=perspective({2[0]},{2[1]},{2[2]});
 currentlight=light(rgb(0.5,0.5,1), {5}specular=red, (2,0,2), (2,2,2), (0,2,2));
