@@ -59,8 +59,14 @@ def eval_pause(sleeptime: float, evaluation):
     return
 
 
+## @rocky rocky Jan 8, 2025
+## See https://stackoverflow.com/questions/8420422/python-windows-equivalent-of-sigalrm
+## for a more robust mechanism that uses Threading.
+##Event to allow Pause or sleep to be canceled.
+
+
 if sys.platform == "emscripten":
-    from stopit import SignalTimeout as TimeoutHandler
+    # from stopit import SignalTimeout as TimeoutHandler
 
     def eval_timeconstrained(
         expr: BaseElement, timeout: float, failexpr: BaseElement, evaluation: Evaluation

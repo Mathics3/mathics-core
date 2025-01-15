@@ -1133,7 +1133,7 @@ class TimeConstrained(Builtin):
 
     summary_text = "run a command for at most a specified time"
 
-    def eval_2(self, expr, t, evaluation) -> Optional[BaseElement]:
+    def eval_with_timeout(self, expr, t, evaluation) -> Optional[BaseElement]:
         "TimeConstrained[expr_, t_]"
         try:
             timeout = valid_time_from_expression(t, evaluation)
@@ -1142,7 +1142,9 @@ class TimeConstrained(Builtin):
             return
         return eval_timeconstrained(expr, timeout, SymbolAborted, evaluation)
 
-    def eval_3(self, expr, t, failexpr, evaluation) -> Optional[BaseElement]:
+    def eval_with_timeout_and_failexpr(
+        self, expr, t, failexpr, evaluation
+    ) -> Optional[BaseElement]:
         "TimeConstrained[expr_, t_, failexpr_]"
         try:
             timeout = valid_time_from_expression(t, evaluation)

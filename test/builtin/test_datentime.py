@@ -12,7 +12,7 @@ import pytest
 
 @pytest.mark.skipif(
     sys.platform in ("emscripten",),
-    reason="TimeConstrained is not supported in Piodide",
+    reason="TimeConstrained is not supported in Pyodide",
 )
 def test_timeremaining():
     str_expr = "TimeConstrained[1+2; TimeRemaining[], 0.9]"
@@ -22,7 +22,7 @@ def test_timeremaining():
 
 @pytest.mark.skipif(
     sys.platform in ("emscripten",),
-    reason="TimeConstrained is not supported in Piodide",
+    reason="TimeConstrained is not supported in Pyodide",
 )
 def test_timeconstrained1():
     """
