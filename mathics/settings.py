@@ -53,8 +53,9 @@ if sys.platform.startswith("win"):
     DATA_DIR = canonic_filename(osp.join(os.environ["APPDATA"], "Python", "Mathics"))
 else:
     DATA_DIR = osp.join(
-        os.environ.get("APPDATA", osp.expanduser("~/.local/var/mathics/"))
+        os.environ.get("APPDATA", osp.expanduser("~/.local/var/Mathics3/"))
     )
+USER_PACKAGE_DIR = osp.join(DATA_DIR, "Packages")
 
 # In contrast to ROOT_DIR, LOCAL_ROOT_DIR is used in building
 # LaTeX documentation. When Mathics is installed, we don't want LaTeX file documentation.tex
@@ -101,6 +102,15 @@ character_encoding = os.environ.get(
     "MATHICS_CHARACTER_ENCODING", sys.getdefaultencoding()
 )
 SYSTEM_CHARACTER_ENCODING = "UTF-8" if character_encoding == "utf-8" else "ASCII"
+
+
+def ensure_directory(directory: str):
+    """
+    Create directory `directory` if it does not exist.
+    """
+    dir_path = Path(directory)
+    if not dir_path.is_dir():
+        os.mkdir(directory)
 
 
 def get_doctest_latex_data_path(should_be_readable=False, create_parent=False) -> str:

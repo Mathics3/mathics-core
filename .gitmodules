@@ -1,6 +1,6 @@
-[submodule "mathics/packages/Combinatorica-repo"]
-	path = mathics/packages/Combinatorica-repo
+[submodule "mathics/Packages/Combinatorica-repo"]
+	path = mathics/Packages/Combinatorica-repo
 	url = https://github.com/Mathics3/Mathics3-Combinatorica.git
-[submodule "mathics/packages/Mathics3-Rubi"]
-	path = mathics/packages/Mathics3-Rubi
+[submodule "mathics/Packages/Mathics3-Rubi"]
+	path = mathics/Packages/Mathics3-Rubi
 	url = git@github.com:Mathics3/Mathics3-Rubi.git

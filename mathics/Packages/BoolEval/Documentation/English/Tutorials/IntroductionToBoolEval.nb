@@ -1,0 +1,1083 @@
+Notebook[{
+Cell[TextData[{
+ "New in: ",
+ Cell["1.0", "HistoryData",
+  CellTags->"New",
+  ExpressionUUID -> "58b04ab9-7311-4b48-a80c-9d2c9eed9dce"],
+ " | Modified in: ",
+ Cell[" ", "HistoryData",
+  CellTags->"Modified",
+  ExpressionUUID -> "d4c6e109-dc50-401f-b80b-61af248f1c55"],
+ " | Obsolete in: ",
+ Cell[" ", "HistoryData",
+  CellTags->"Obsolete",
+  ExpressionUUID -> "d5a55c19-6ffe-4fc8-bdc2-6a06dd4faf11"],
+ " | Excised in: ",
+ Cell[" ", "HistoryData",
+  CellTags->"Excised",
+  ExpressionUUID -> "7c58611a-500c-4eaa-9704-3b2b861354fa"]
+}], "History",
+ CellID->1247902091,
+ ExpressionUUID -> "5dc0e575-d78a-4a88-a5cb-8535b25154b4"],
+
+Cell[CellGroupData[{
+
+Cell["Categorization", "CategorizationSection",
+ CellID->1122911449,
+ ExpressionUUID -> "8ef4d17e-1673-46d5-a440-98743f7b2cf1"],
+
+Cell["Tutorial", "Categorization",
+ CellLabel->"Entity Type",
+ CellID->686433507,
+ ExpressionUUID -> "24090c00-1e59-415a-8962-bebde4fb0733"],
+
+Cell["BoolEval", "Categorization",
+ CellLabel->"Paclet Name",
+ CellID->605800465,
+ ExpressionUUID -> "253bad31-f4c4-4719-bb07-d38f40ddfa23"],
+
+Cell["BoolEval`", "Categorization",
+ CellLabel->"Context",
+ CellID->468444828,
+ ExpressionUUID -> "27c0a1cc-508f-4973-a8ac-04b81c32b3b4"],
+
+Cell["BoolEval/tutorial/Introduction to BoolEval", "Categorization",
+ CellLabel->"URI",
+ ExpressionUUID -> "aff8d860-f5b3-4dc8-9dfc-8b33ca175aaa"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Keywords", "KeywordsSection",
+ CellID->1427428552,
+ ExpressionUUID -> "812dac49-65c2-4cb8-88c0-b2c931aafb53"],
+
+Cell["XXXX", "Keywords",
+ CellID->1251852827,
+ ExpressionUUID -> "0feaa3d3-a5e1-4ad7-ba1b-cc187ca174d9"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Details", "DetailsSection",
+ CellID->307771771,
+ ExpressionUUID -> "06544793-128c-4f9d-9cd8-f00c17225eac"],
+
+Cell["XXXX", "Details",
+ CellLabel->"Lead",
+ CellID->218895918,
+ ExpressionUUID -> "ed9dd287-fa01-458c-93e9-720987acf840"],
+
+Cell["XXXX", "Details",
+ CellLabel->"Developers",
+ CellID->350963985,
+ ExpressionUUID -> "def64e8d-4c5e-4fac-90a3-bf6d33c88f24"],
+
+Cell["XXXX", "Details",
+ CellLabel->"Authors",
+ CellID->795871300,
+ ExpressionUUID -> "820adce4-c79c-4779-bac7-05e63a85a501"],
+
+Cell["XXXX", "Details",
+ CellLabel->"Feature Name",
+ CellID->199739161,
+ ExpressionUUID -> "32d7bc2c-5e6b-4613-8130-c0beb37854f0"],
+
+Cell["XXXX", "Details",
+ CellLabel->"QA",
+ CellID->40625308,
+ ExpressionUUID -> "e7a148ee-38b9-4e94-aee3-14d59076eeec"],
+
+Cell["XXXX", "Details",
+ CellLabel->"DA",
+ CellID->357121918,
+ ExpressionUUID -> "34f9316d-41d8-4374-83aa-0dd8e998f44b"],
+
+Cell["XXXX", "Details",
+ CellLabel->"Docs",
+ CellID->35949532,
+ ExpressionUUID -> "d3e0be78-647e-4234-8196-fc8a8bb9653b"],
+
+Cell["XXXX", "Details",
+ CellLabel->"Features Page Notes",
+ CellID->929432370,
+ ExpressionUUID -> "664e5b5c-6aeb-4b30-b1c6-e3e59d030123"],
+
+Cell["XXXX", "Details",
+ CellLabel->"Comments",
+ CellID->240026365,
+ ExpressionUUID -> "dda9fb37-f76d-417d-bed6-968c4725351b"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Introduction to BoolEval", "Title",
+ CellID->509267359,
+ ExpressionUUID -> "a7cdda53-89b3-495c-a8b2-a4b8bc619431"],
+
+Cell["\<\
+The BoolEval package makes it easy to vectorize the evaluation of array \
+inequalities and equalities. Its main purpose is to achieve better \
+performance than what is possible with built-in functions, while maintaining \
+readability.\
+\>", "Text",
+ CellID->1800959032,
+ ExpressionUUID -> "23e2ce61-df10-482d-8543-34751b17976b"],
+
+Cell[CellGroupData[{
+
+Cell["Basic Usage", "Section",
+ CellID->517914260,
+ ExpressionUUID -> "ae1dd025-e6c4-4106-ae29-cc2d5606d1a3"],
+
+Cell[CellGroupData[{
+
+Cell["This loads the package.", "MathCaption",
+ CellID->836781195,
+ ExpressionUUID -> "693d69f8-f627-4519-8ede-9b83d7a00bfd"],
+
+Cell[BoxData[
+ RowBox[{"<<", "BoolEval`"}]], "Input",
+ InitializationCell->True,
+ CellLabel->"In[1]:=",
+ CellID->2058623809,
+ ExpressionUUID -> "b06d51e0-c966-4813-bbba-50b34796fcdd"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+Compute an array which has ones where the condition is satisfied and zeros \
+elsewhere.\
+\>", "MathCaption",
+ CellID->622212758,
+ ExpressionUUID -> "84648e91-1e2a-4600-8f70-efd6cec1a4d6"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"array", "=", 
+   RowBox[{"Range", "[", "10", "]"}]}], ";"}]], "Input",
+ CellLabel->"In[2]:=",
+ CellID->1011225986,
+ ExpressionUUID -> "6a3b987c-e5d7-494d-afec-c3c7ebda00e3"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolEval", "[", 
+  RowBox[{"array", ">", "3"}], "]"}]], "Input",
+ CellLabel->"In[3]:=",
+ CellID->1431946463,
+ ExpressionUUID -> "81c1fe22-875a-4216-aea2-b8bf030912a8"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+  "0", ",", "0", ",", "0", ",", "1", ",", "1", ",", "1", ",", "1", ",", "1", 
+   ",", "1", ",", "1"}], "}"}]], "Output",
+ CellLabel->"Out[3]=",
+ CellID->1766684200,
+ ExpressionUUID -> "dd7616f0-5992-48d9-b0f9-38522f6b9c9f"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Filter an array on a condition.", "MathCaption",
+ CellID->1036053997,
+ ExpressionUUID -> "7a5011f8-1f75-488e-a2e4-00a4a5d68d2b"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolPick", "[", 
+  RowBox[{"array", ",", 
+   RowBox[{"array", ">", "3"}]}], "]"}]], "Input",
+ CellLabel->"In[4]:=",
+ CellID->1162117703,
+ ExpressionUUID -> "20a3f539-ecac-44ac-b39d-5f76dc86abef"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"4", ",", "5", ",", "6", ",", "7", ",", "8", ",", "9", ",", "10"}], 
+  "}"}]], "Output",
+ CellLabel->"Out[4]=",
+ CellID->1552445978,
+ ExpressionUUID -> "065df99e-1611-4676-a364-041faf5c9815"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Use more complex conditions.", "MathCaption",
+ CellID->460929423,
+ ExpressionUUID -> "1519a343-ed87-4e79-815a-c8a2948129f4"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolPick", "[", 
+  RowBox[{"array", ",", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"Mod", "[", 
+      RowBox[{"array", ",", "3"}], "]"}], "\[Equal]", "1"}], "&&", 
+    RowBox[{"array", "<", "5"}]}]}], "]"}]], "Input",
+ CellLabel->"In[5]:=",
+ CellID->867297632,
+ ExpressionUUID -> "81658554-420f-4547-9a9e-a9a2622e75f1"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"1", ",", "4"}], "}"}]], "Output",
+ CellLabel->"Out[5]=",
+ CellID->33241196,
+ ExpressionUUID -> "124c751c-c8e9-40d8-b0c3-2290d621f52c"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Count how many elements satisfy a condition.", "MathCaption",
+ CellID->375993804,
+ ExpressionUUID -> "f73dde63-173f-4925-b474-806ba9900611"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolCount", "[", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"Mod", "[", 
+     RowBox[{"array", ",", "3"}], "]"}], "\[Equal]", "1"}], "&&", 
+   RowBox[{"array", "<", "5"}]}], "]"}]], "Input",
+ CellLabel->"In[6]:=",
+ CellID->1430974354,
+ ExpressionUUID -> "4f6618e7-080b-4760-a23f-e36f2f3d6f03"],
+
+Cell[BoxData["2"], "Output",
+ CellLabel->"Out[6]=",
+ CellID->339032952,
+ ExpressionUUID -> "c94da56e-27cb-403f-8ea2-6bed9db1ed12"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Performance", "Section",
+ CellID->2086193085,
+ ExpressionUUID -> "49a3a41d-bcb4-4524-8dcf-78c82f7e64ce"],
+
+Cell[TextData[{
+ "The main purpose of BoolEval is to compute conditions on the elements of \
+numerical arrays efficiently. It is typically much faster than the equivalent \
+",
+ ButtonBox["Select",
+  BaseStyle->"Link",
+  ButtonData->"paclet:ref/Select"],
+ ", ",
+ ButtonBox["Cases",
+  BaseStyle->"Link",
+  ButtonData->"paclet:ref/Cases"],
+ " or ",
+ ButtonBox["Count",
+  BaseStyle->"Link",
+  ButtonData->"paclet:ref/Count"],
+ " statement."
+}], "Text",
+ CellID->1967622811,
+ ExpressionUUID -> "8ac37a2d-3141-461b-9b4f-cf4b7a96a5e6"],
+
+Cell[CellGroupData[{
+
+Cell["Create a large numerical array.", "MathCaption",
+ CellID->1840718434,
+ ExpressionUUID -> "38eec349-b410-44cd-b4d2-54d62836da17"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"array", "=", 
+   RowBox[{"Range", "[", "1000000", "]"}]}], ";"}]], "Input",
+ CellLabel->"In[7]:=",
+ CellID->1164682125,
+ ExpressionUUID -> "89d2409d-4bf3-4a19-a4db-71e3890bde57"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+ "Benchmark ",
+ ButtonBox["Select",
+  BaseStyle->"Link",
+  ButtonData->"paclet:ref/Select"],
+ "."
+}], "MathCaption",
+ CellID->226411368,
+ ExpressionUUID -> "96db2de1-bf5d-4919-9e95-9f5071448f28"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"AbsoluteTiming", "[", 
+  RowBox[{
+   RowBox[{"result1", "=", 
+    RowBox[{"Select", "[", 
+     RowBox[{"array", ",", 
+      RowBox[{
+       RowBox[{"#", ">", "123456"}], "&"}]}], "]"}]}], ";"}], "]"}]], "Input",
+ 
+ CellLabel->"In[8]:=",
+ CellID->499032470,
+ ExpressionUUID -> "d4a8a9b6-38ff-448f-8fae-d08f2a82e6ec"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+  "0.41257599999999999829114472049695905298`5.636103874263533", ",", "Null"}],
+   "}"}]], "Output",
+ CellLabel->"Out[8]=",
+ CellID->852708773,
+ ExpressionUUID -> "8c44a4bd-07c7-416e-a9e8-5e4a8274da29"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+ "Benchmark ",
+ Cell[BoxData[
+  ButtonBox["BoolPick",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolPick"]], "InlineFormula",
+  ExpressionUUID -> "1b777c15-c1b7-4902-a221-f6cf1b26de6a"],
+ "."
+}], "MathCaption",
+ CellID->921833383,
+ ExpressionUUID -> "8463e911-63a0-4ee6-b625-99a6f9735fd4"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"AbsoluteTiming", "[", 
+  RowBox[{
+   RowBox[{"result2", "=", 
+    RowBox[{"BoolPick", "[", 
+     RowBox[{"array", ",", 
+      RowBox[{"array", ">", "123456"}]}], "]"}]}], ";"}], "]"}]], "Input",
+ CellLabel->"In[9]:=",
+ CellID->677361361,
+ ExpressionUUID -> "a7447408-d0f0-4627-8aac-8ea6f670d00d"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+  "0.0270479999999999991266985688298518653`4.452735071037337", ",", "Null"}], 
+  "}"}]], "Output",
+ CellLabel->"Out[9]=",
+ CellID->1317971380,
+ ExpressionUUID -> "caf69cb7-072b-4165-97f8-76bc02dfdbf7"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The results are identical.", "MathCaption",
+ CellID->1625498594,
+ ExpressionUUID -> "3df6a3bf-f73e-4aea-93e5-f26f2bc3c4de"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"result1", "===", "result2"}]], "Input",
+ CellLabel->"In[10]:=",
+ CellID->428604984,
+ ExpressionUUID -> "19955d5e-e95d-4205-9966-abba81cde2ce"],
+
+Cell[BoxData["True"], "Output",
+ CellLabel->"Out[10]=",
+ CellID->1998648502,
+ ExpressionUUID -> "cb6c4bbc-7879-4cc9-a6c8-af63c8d11f90"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["How does it work?", "Section",
+ CellID->1192594565,
+ ExpressionUUID -> "c8e3a921-94a2-4b37-8eda-0734b81818ef"],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+ "BoolEval is based on the principle of replacing comparisons, such as ",
+ Cell[BoxData["\[GreaterEqual]"], "InlineFormula",
+  ExpressionUUID -> "7aaf989b-5e92-4415-a6d9-931dda2e8d18"],
+ ", and logical operations, such as ",
+ Cell[BoxData["&&"], "InlineFormula",
+  ExpressionUUID -> "abe77d9a-4f44-4b23-a053-0f1081070761"],
+ ", with arithmetic. Suppose that we need to find all elements of a list \
+greater than or equal to zero. This is easily achieved with the ",
+ ButtonBox["UnitStep",
+  BaseStyle->"Link",
+  ButtonData->"paclet:ref/UnitStep"],
+ " function."
+}], "Text",
+ CellID->380265997,
+ ExpressionUUID -> "32b9e085-65ee-4039-92f9-0198380799d1"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"UnitStep", "[", 
+  RowBox[{"{", 
+   RowBox[{
+    RowBox[{"-", "2"}], ",", 
+    RowBox[{"-", "1"}], ",", "0", ",", "1", ",", "2"}], "}"}], "]"}]], "Input",
+ CellLabel->"In[11]:=",
+ CellID->612258921,
+ ExpressionUUID -> "6addad39-4a6d-46a2-8ec2-43536c8afdd8"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"0", ",", "0", ",", "1", ",", "1", ",", "1"}], "}"}]], "Output",
+ CellLabel->"Out[11]=",
+ CellID->346166740,
+ ExpressionUUID -> "e4af80dd-42bb-43b8-b844-1e103db39d34"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[TextData[{
+ "It replaces negative elements by 0 and non-negative ones by 1. If we need \
+to identify all elements ",
+ Cell[BoxData[
+  RowBox[{"\[GreaterEqual]", "x"}]], "InlineFormula",
+  ExpressionUUID -> "46620aa7-d074-47d5-909c-9cb386c7e18d"],
+ ", we could use ",
+ Cell[BoxData[
+  RowBox[{"UnitStep", "[", 
+   RowBox[{"array", "-", "x"}], "]"}]], "InlineFormula",
+  ExpressionUUID -> "ade155b0-b5f7-4c7f-af6a-e925e136634c"],
+ " instead. Logical conjunctions and disjunctions between Boolean values can \
+be replaced by ",
+ Cell[BoxData[
+  RowBox[{"x", "*", "y"}]], "InlineFormula",
+  ExpressionUUID -> "30790b39-4b54-4050-b9b0-8688f5d99698"],
+ " and ",
+ Cell[BoxData[
+  RowBox[{"Unitize", "[", 
+   RowBox[{"x", "+", "y"}], "]"}]], "InlineFormula",
+  ExpressionUUID -> "a53d308c-4d0c-445b-9743-0e1a309c1789"],
+ " respectively, while negation can be represented using ",
+ Cell[BoxData[
+  RowBox[{"1", "-", "x"}]], "InlineFormula",
+  ExpressionUUID -> "15cb3f8b-5459-4b4d-b50e-b3820c10c5ed"],
+ "."
+}], "Text",
+ CellID->898031893,
+ ExpressionUUID -> "528b7560-bb4c-4707-9903-283b4603fd85"],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+ "Using these ideas, we can formulate more complex conditions. For example, \
+to identify elements of ",
+ Cell[BoxData["array"], "InlineFormula",
+  ExpressionUUID -> "ae1faf54-268a-4525-9d01-48d1cb824eea"],
+ " that are ",
+ Cell[BoxData[
+  RowBox[{"\[LessEqual]", "3"}]], "InlineFormula",
+  ExpressionUUID -> "92bffa03-1bce-439c-b874-ff489350c97b"],
+ " or ",
+ Cell[BoxData[
+  RowBox[{">", "10"}]], "InlineFormula",
+  ExpressionUUID -> "1dd941e5-5691-4d7c-b1c8-bfed25eb48bf"],
+ ", we first rewrite ",
+ Cell[BoxData[
+  RowBox[{"a", ">", "10"}]], "InlineFormula",
+  ExpressionUUID -> "a67c92c3-f954-44bc-8049-024325b04074"],
+ " in terms of ",
+ Cell[BoxData[
+  RowBox[{"\[GreaterEqual]", " "}]], "InlineFormula",
+  ExpressionUUID -> "f97cc81e-2b14-4df2-b8b9-d271175f5c2b"],
+ " as ",
+ Cell[BoxData[
+  RowBox[{"Not", "[", 
+   RowBox[{"10", "\[GreaterEqual]", "a"}], "]"}]], "InlineFormula",
+  ExpressionUUID -> "36a2a2da-e2da-4906-ab25-b6585da2a8e4"],
+ ". Then we can write the entire expression as"
+}], "Text",
+ CellID->381875257,
+ ExpressionUUID -> "a6ae6278-752a-4706-89b4-2c9b650499d0"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"array", "=", 
+   RowBox[{"Range", "[", "20", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"Unitize", "[", 
+  RowBox[{
+   RowBox[{"UnitStep", "[", 
+    RowBox[{"3", "-", "array"}], "]"}], "+", 
+   RowBox[{"(", 
+    RowBox[{"1", "-", 
+     RowBox[{"UnitStep", "[", 
+      RowBox[{"10", "-", "array"}], "]"}]}], ")"}]}], "]"}]}], "Input",
+ CellLabel->"In[12]:=",
+ CellID->686789654,
+ ExpressionUUID -> "e5511648-0c82-4897-85d3-dfef18b81dce"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+  "1", ",", "1", ",", "1", ",", "0", ",", "0", ",", "0", ",", "0", ",", "0", 
+   ",", "0", ",", "0", ",", "1", ",", "1", ",", "1", ",", "1", ",", "1", ",", 
+   "1", ",", "1", ",", "1", ",", "1", ",", "1"}], "}"}]], "Output",
+ CellLabel->"Out[13]=",
+ CellID->491199457,
+ ExpressionUUID -> "b4168da3-1c86-45ed-bb07-28c9f61d1f72"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+ "This evaluates very fast, but it is hardly readable. It is very easy to \
+make a mistake while constructing such expressions manually. ",
+ Cell[BoxData[
+  ButtonBox["BoolEval",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolEval"]], "InlineFormula",
+  ExpressionUUID -> "0b27784a-a945-4eac-b342-ebda9debc06f"],
+ " simply translates a clear, human-readable notation to arithmetic \
+expressions such as the above."
+}], "Text",
+ CellID->175544078,
+ ExpressionUUID -> "7e3bd067-1ebf-43a9-9af4-bec0daa6770d"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"array", "=", 
+   RowBox[{"Range", "[", "20", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"BoolEval", "[", 
+  RowBox[{
+   RowBox[{"array", "\[LessEqual]", "3"}], "||", 
+   RowBox[{"array", ">", "10"}]}], "]"}]}], "Input",
+ CellLabel->"In[14]:=",
+ CellID->39273617,
+ ExpressionUUID -> "faefa81a-4946-447e-8ff3-889f8b6c247e"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+  "1", ",", "1", ",", "1", ",", "0", ",", "0", ",", "0", ",", "0", ",", "0", 
+   ",", "0", ",", "0", ",", "1", ",", "1", ",", "1", ",", "1", ",", "1", ",", 
+   "1", ",", "1", ",", "1", ",", "1", ",", "1"}], "}"}]], "Output",
+ CellLabel->"Out[15]=",
+ CellID->662134731,
+ ExpressionUUID -> "af25715b-80b5-498e-a249-4a4f4bf7f5dd"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+ "The arithmetic expression generated by ",
+ Cell[BoxData[
+  ButtonBox["BoolEval",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolEval"]], "InlineFormula",
+  ExpressionUUID -> "71778a9b-02f2-44f8-a854-b68c5c0e82aa"],
+ " can be examined by passing it a symbolic expression."
+}], "Text",
+ CellID->559525026,
+ ExpressionUUID -> "c6754402-cca3-4f02-9c77-17aae7629ced"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolEval", "[", 
+  RowBox[{
+   RowBox[{"a", "\[LessEqual]", "3"}], "||", 
+   RowBox[{"a", ">", "10"}]}], "]"}]], "Input",
+ CellLabel->"In[16]:=",
+ CellID->1466338010,
+ ExpressionUUID -> "c7f046ef-9e7d-4f69-b48a-7dd8e1d1f8b4"],
+
+Cell[BoxData[
+ RowBox[{"Unitize", "[", 
+  RowBox[{"1", "+", 
+   RowBox[{"UnitStep", "[", 
+    RowBox[{"3", "-", "a"}], "]"}], "-", 
+   RowBox[{"UnitStep", "[", 
+    RowBox[{"10", "-", "a"}], "]"}]}], "]"}]], "Output",
+ CellLabel->"Out[16]=",
+ CellID->238165163,
+ ExpressionUUID -> "a0d247a1-8e96-4ce2-9cc9-ebfd96f5162e"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[TextData[{
+ "Such vectorized comparisons are idiomatic in MATLAB, R, numpy or Julia, but \
+",
+ StyleBox["Mathematica",
+  FontSlant->"Italic"],
+ " does not provide an easy way to evaluate them out-of-the-box. BoolEval \
+tries to fill this gap."
+}], "Text",
+ CellID->1720405392,
+ ExpressionUUID -> "1e973182-2a05-4f87-ab58-baa3b590c030"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Possible issues", "Section",
+ CellID->1732433741,
+ ExpressionUUID -> "dec9e42c-687d-4583-a97b-b96aa1724793"],
+
+Cell[CellGroupData[{
+
+Cell["Operators must appear literally within BoolEval", "Subsection",
+ CellID->1286027477,
+ ExpressionUUID -> "db992ffd-b317-4365-bf10-0d5f36c418fe"],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+ "Operators must appear literally within ",
+ Cell[BoxData[
+  ButtonBox["BoolEval",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolEval"]], "InlineFormula",
+  ExpressionUUID -> "6f6967d8-26fb-455f-86b1-575848dfd722"],
+ ". In the following example, the inequality generated by the function ",
+ Cell[BoxData["f"], "InlineFormula",
+  ExpressionUUID -> "4a453727-2b6b-4b8c-8fd5-3d44cb16a93a"],
+ " is not evaluated because it did not appear literally in the argument of ",
+ Cell[BoxData[
+  ButtonBox["BoolEval",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolEval"]], "InlineFormula",
+  ExpressionUUID -> "900db71e-d864-45cd-8f08-6da89749d827"],
+ "."
+}], "Text",
+ CellID->1488391555,
+ ExpressionUUID -> "33cb0530-533a-4601-98f4-fd3696f38060"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"f", "[", "arr_", "]"}], ":=", 
+   RowBox[{"arr", ">", "5"}]}], ";"}], "\n", 
+ RowBox[{"BoolEval", "[", 
+  RowBox[{"f", "[", 
+   RowBox[{"Range", "[", "10", "]"}], "]"}], "]"}]}], "Input",
+ CellLabel->"In[17]:=",
+ CellID->1184447469,
+ ExpressionUUID -> "110dafbb-ca4c-4ac9-a25b-3d355292fd8d"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"{", 
+   RowBox[{
+   "1", ",", "2", ",", "3", ",", "4", ",", "5", ",", "6", ",", "7", ",", "8", 
+    ",", "9", ",", "10"}], "}"}], ">", "5"}]], "Output",
+ CellLabel->"Out[18]=",
+ CellID->2079860180,
+ ExpressionUUID -> "6fb55ae8-7549-44f5-9732-528e56b7fd3a"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["It must either be inserted literally \[Ellipsis]", "Text",
+ CellID->342070135,
+ ExpressionUUID -> "cff83d8b-a694-43a8-8314-5a93ba74719f"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolEval", "[", 
+  RowBox[{
+   RowBox[{"Range", "[", "10", "]"}], ">", "5"}], "]"}]], "Input",
+ CellLabel->"In[19]:=",
+ CellID->2135616514,
+ ExpressionUUID -> "b285c63f-2872-4f09-b5f3-583b5840599c"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+  "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", "1", ",", "1", ",", "1", 
+   ",", "1", ",", "1"}], "}"}]], "Output",
+ CellLabel->"Out[19]=",
+ CellID->1618723041,
+ ExpressionUUID -> "c994be3c-3547-4883-84bb-9f9105781b29"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+ "\[Ellipsis] or ",
+ Cell[BoxData["f"], "InlineFormula",
+  ExpressionUUID -> "8ab87cde-b148-4e5d-aa0b-0ca679c4cd90"],
+ " must be explicitly evaluated."
+}], "Text",
+ CellID->1783680749,
+ ExpressionUUID -> "8b6cdd8e-32a1-4a9d-9d49-801d1cb2a23b"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolEval", "[", 
+  RowBox[{
+   RowBox[{"f", "[", 
+    RowBox[{"Range", "[", "10", "]"}], "]"}], "//", "Evaluate"}], 
+  "]"}]], "Input",
+ CellLabel->"In[20]:=",
+ CellID->285131446,
+ ExpressionUUID -> "0af5c068-3816-437b-94dc-1650d16d8e3b"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+  "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", "1", ",", "1", ",", "1", 
+   ",", "1", ",", "1"}], "}"}]], "Output",
+ CellLabel->"Out[20]=",
+ CellID->1555309891,
+ ExpressionUUID -> "c9dce275-6a20-4e03-9c9d-b245d7f8c74c"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["The meaning of operators is changed within BoolEval", "Subsection",
+ CellID->1350533949,
+ ExpressionUUID -> "c4df2af9-e51b-49f8-abf9-b6009969d41c"],
+
+Cell[TextData[{
+ "The meaning of relational operators (",
+ Cell[BoxData[">"], "InlineFormula",
+  ExpressionUUID -> "8e9ccc40-54ae-4a63-bbd8-db9e44d98089"],
+ ", ",
+ Cell[BoxData["\[GreaterEqual]"], "InlineFormula",
+  ExpressionUUID -> "032dce62-ddd1-491e-87fb-1b77c846e025"],
+ ", ",
+ Cell[BoxData["\[Equal]"], "InlineFormula",
+  ExpressionUUID -> "2a4d3376-530c-4fee-9b37-eb2b68062880"],
+ ", etc.) and logical operators (",
+ Cell[BoxData["&&"], "InlineFormula",
+  ExpressionUUID -> "0c2c3ffb-e294-4fe5-9e1f-5145973c1974"],
+ ", ",
+ Cell[BoxData["||"], "InlineFormula",
+  ExpressionUUID -> "29fd67a7-1248-4329-8ce7-95f2b51fd6c0"],
+ ", ",
+ Cell[BoxData["!"], "InlineFormula",
+  ExpressionUUID -> "16994ff1-4ad6-4482-8b56-2f5f82436b43"],
+ ", etc.) is overloaded within ",
+ Cell[BoxData[
+  ButtonBox["BoolEval",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolEval"]], "InlineFormula",
+  ExpressionUUID -> "a51798d9-7287-4bc0-8065-fc9d2aa3b6ac"],
+ ". The expression passed to ",
+ Cell[BoxData[
+  ButtonBox["BoolEval",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolEval"]], "InlineFormula",
+  ExpressionUUID -> "9781c47e-f76b-4360-8067-e9319148b58e"],
+ " should be considered a domain specific language where the behaviour of \
+these operations is modified."
+}], "Text",
+ CellID->1430598961,
+ ExpressionUUID -> "bbff41e5-7596-4a17-aa59-929a73c50e9c"],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+ "For this reason, any program code that uses these operations must be \
+avoided within ",
+ Cell[BoxData[
+  ButtonBox["BoolEval",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolEval"]], "InlineFormula",
+  ExpressionUUID -> "a284a368-2504-4758-be85-1f3711ccbf45"],
+ " and related functions. For example, the following will fail without error \
+messages:"
+}], "Text",
+ CellID->849825715,
+ ExpressionUUID -> "7c387094-aa8c-43e4-92ce-4769018eedec"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolEval", "[", "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"Select", "[", 
+    RowBox[{
+     RowBox[{"Range", "[", "100", "]"}], ",", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"OddQ", "[", "#", "]"}], "||", 
+       RowBox[{"#", "\[Equal]", "2"}]}], "&"}]}], "]"}], "<", "10"}], 
+  "\[IndentingNewLine]", "]"}]], "Input",
+ CellLabel->"In[21]:=",
+ CellID->107055808,
+ ExpressionUUID -> "6063a4fc-96c7-4c82-99a8-5865306f0077"],
+
+Cell[BoxData[
+ RowBox[{"{", "}"}]], "Output",
+ CellLabel->"Out[21]=",
+ CellID->922386753,
+ ExpressionUUID -> "ac4cdaf7-c1f5-403b-bad0-ec8a96735845"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[TextData[{
+ "The solution is to compute the array first, and use it in ",
+ Cell[BoxData[
+  ButtonBox["BoolEval",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolEval"]], "InlineFormula",
+  ExpressionUUID -> "9781c47e-f76b-4360-8067-e9319148b58e"],
+ " afterwards:"
+}], "Text",
+ CellID->412745244,
+ ExpressionUUID -> "3819060d-d189-4575-9d48-775b82675059"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"array", "=", 
+  RowBox[{"Select", "[", 
+   RowBox[{
+    RowBox[{"Range", "[", "100", "]"}], ",", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"OddQ", "[", "#", "]"}], "||", 
+      RowBox[{"#", "\[Equal]", "2"}]}], "&"}]}], "]"}]}]], "Input",
+ CellLabel->"In[22]:=",
+ CellID->637136098,
+ ExpressionUUID -> "d4efae2f-4d5f-498d-aef0-8bd8a5d23482"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+  "1", ",", "2", ",", "3", ",", "5", ",", "7", ",", "9", ",", "11", ",", "13",
+    ",", "15", ",", "17", ",", "19", ",", "21", ",", "23", ",", "25", ",", 
+   "27", ",", "29", ",", "31", ",", "33", ",", "35", ",", "37", ",", "39", 
+   ",", "41", ",", "43", ",", "45", ",", "47", ",", "49", ",", "51", ",", 
+   "53", ",", "55", ",", "57", ",", "59", ",", "61", ",", "63", ",", "65", 
+   ",", "67", ",", "69", ",", "71", ",", "73", ",", "75", ",", "77", ",", 
+   "79", ",", "81", ",", "83", ",", "85", ",", "87", ",", "89", ",", "91", 
+   ",", "93", ",", "95", ",", "97", ",", "99"}], "}"}]], "Output",
+ CellLabel->"Out[22]=",
+ CellID->2017193625,
+ ExpressionUUID -> "2c92b674-70a4-4fa6-bf05-c34e219329a3"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolEval", "[", 
+  RowBox[{"array", "<", "10"}], "]"}]], "Input",
+ CellLabel->"In[23]:=",
+ CellID->165544371,
+ ExpressionUUID -> "b52472ac-bfc1-441c-95af-05cab2aea345"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+  "1", ",", "1", ",", "1", ",", "1", ",", "1", ",", "1", ",", "0", ",", "0", 
+   ",", "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", 
+   "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", "0", 
+   ",", "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", 
+   "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", "0", 
+   ",", "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", 
+   "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", "0"}], "}"}]], "Output",
+ CellLabel->"Out[23]=",
+ CellID->648920186,
+ ExpressionUUID -> "ab6ddd8c-3583-410c-829e-9329f64ed3f6"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolPick", "[", 
+  RowBox[{"array", ",", 
+   RowBox[{"array", "<", "10"}]}], "]"}]], "Input",
+ CellLabel->"In[24]:=",
+ CellID->860908399,
+ ExpressionUUID -> "f56839aa-de46-47d3-88dc-b3cfca5bf53b"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"1", ",", "2", ",", "3", ",", "5", ",", "7", ",", "9"}], 
+  "}"}]], "Output",
+ CellLabel->"Out[24]=",
+ CellID->1479606636,
+ ExpressionUUID -> "2fe720a5-4397-4329-85c5-259b52f0cca1"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["BoolEval does not check its argument for correctness", "Subsection",
+ CellID->1256723071,
+ ExpressionUUID -> "35636414-8796-4554-9c84-c8acfae54f6f"],
+
+Cell[TextData[{
+ "The purpose of ",
+ Cell[BoxData[
+  ButtonBox["BoolEval",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolEval"]], "InlineFormula",
+  ExpressionUUID -> "c12f6e15-2d0e-407a-a1bc-d7fcf9204e1a"],
+ " is to achieve the highest possible performance when evaluating array \
+conditions. Thus ",
+ Cell[BoxData[
+  ButtonBox["BoolEval",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolEval"]], "InlineFormula",
+  ExpressionUUID -> "5b9be83e-0f6f-4e35-8643-ef4318548da9"],
+ " does not check its argument for correctness to minimize the processing \
+overhead. Passing it invalid input may lead to unexpected results."
+}], "Text",
+ CellID->917158566,
+ ExpressionUUID -> "d6d133c3-0326-4dd3-b8ea-303506a0f9ff"],
+
+Cell[CellGroupData[{
+
+Cell["\<\
+Arrays on the two sides of an operator must have matching sizes.\
+\>", "MathCaption",
+ CellID->1456800091,
+ ExpressionUUID -> "25d2d585-3718-44aa-9fd3-6e3fde3862c5"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolEval", "[", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"1", ",", "2", ",", "3"}], "}"}], "<", 
+   RowBox[{"{", 
+    RowBox[{"2", ",", "3"}], "}"}]}], "]"}]], "Input",
+ CellLabel->"In[25]:=",
+ CellID->1834311771,
+ ExpressionUUID -> "b09f8299-d935-44bf-88f0-fb9f4150ac4a"],
+
+Cell[BoxData[
+ RowBox[{
+  StyleBox[
+   RowBox[{"Thread", "::", "tdlen"}], "MessageName"], ":", 
+  " ", "\<\"Objects of unequal length in \[NoBreak]\\!\\(\\(\\({1, 2, \
+3}\\)\\) - \\(\\({2, 3}\\)\\)\\)\[NoBreak] cannot be combined. \
+\\!\\(\\*ButtonBox[\\\"\[RightSkeleton]\\\", ButtonStyle->\\\"Link\\\", \
+ButtonFrame->None, ButtonData:>\\\"paclet:ref/message/Thread/tdlen\\\", \
+ButtonNote -> \\\"Thread::tdlen\\\"]\\)\"\>"}]], "Message", "MSG",
+ CellLabel->"During evaluation of In[25]:=",
+ CellID->2035582639,
+ ExpressionUUID -> "a6cd44c5-4abf-448e-8e05-028aac9a5ab8"],
+
+Cell[BoxData[
+ RowBox[{"1", "-", 
+  RowBox[{"UnitStep", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"1", ",", "2", ",", "3"}], "}"}], "-", 
+    RowBox[{"{", 
+     RowBox[{"2", ",", "3"}], "}"}]}], "]"}]}]], "Output",
+ CellLabel->"Out[25]=",
+ CellID->475433316,
+ ExpressionUUID -> "4b4054ec-b53d-4d19-a88e-c4ad7ed884c4"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Arrays must be numeric.", "MathCaption",
+ CellID->1017514269,
+ ExpressionUUID -> "f48aed23-2290-492d-acbd-4494a413bbc0"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolEval", "[", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"\"\<a\>\"", ",", "\"\<b\>\"", ",", "\"\<c\>\""}], "}"}], "<", 
+   "\"\<b\>\""}], "]"}]], "Input",
+ CellLabel->"In[26]:=",
+ CellID->950038022,
+ ExpressionUUID -> "9d5425b8-6dd8-4d14-96d7-44cfd587a558"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"1", "-", 
+    RowBox[{"UnitStep", "[", 
+     RowBox[{"\<\"a\"\>", "-", "\<\"b\"\>"}], "]"}]}], ",", "0", ",", 
+   RowBox[{"1", "-", 
+    RowBox[{"UnitStep", "[", 
+     RowBox[{
+      RowBox[{"-", "\<\"b\"\>"}], "+", "\<\"c\"\>"}], "]"}]}]}], 
+  "}"}]], "Output",
+ CellLabel->"Out[26]=",
+ CellID->1968575172,
+ ExpressionUUID -> "210488cc-3e90-4684-bf85-765ba717dc91"]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["More About", "TutorialMoreAboutSection",
+ CellID->23220180,
+ ExpressionUUID -> "eb81e85c-e98c-45f6-b2a5-bf60037b9238"],
+
+Cell[TextData[Cell[BoxData[
+ ButtonBox["BoolEval",
+  BaseStyle->"Link",
+  ButtonData->"paclet:BoolEval/guide/BoolEval"]], "InlineFormula",
+ ExpressionUUID -> 
+ "b7347f2e-45d9-479b-be4f-e85db6afd8b8"]], "TutorialMoreAbout",
+ CellID->1567025153,
+ ExpressionUUID -> "06ed1864-b062-459f-ad3f-b5b2b5a1f591"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Related Tutorials", "RelatedTutorialsSection",
+ CellID->415694126,
+ ExpressionUUID -> "1c84afe9-2068-4e0e-9c5e-14505506fc75"],
+
+Cell[TextData[ButtonBox["Selecting Parts of Expressions with Functions",
+ BaseStyle->"Link",
+ ButtonData->
+  "paclet:tutorial/SelectingPartsOfExpressionsWithFunctions"]], \
+"RelatedTutorials",
+ CellID->1223839376,
+ ExpressionUUID -> "ae71d6ff-aab7-4de8-9885-be9e107e6ecf"]
+}, Open  ]]
+}, Open  ]]
+},
+WindowSize->{700, 770},
+WindowMargins->{{4, Automatic}, {Automatic, 0}},
+TrackCellChangeTimes->False,
+FrontEndVersion->"10.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (December 4, \
+2014)",
+StyleDefinitions->FrontEnd`FileName[{"Wolfram"}, "TutorialPageStyles.nb", 
+  CharacterEncoding -> "UTF-8"]
+]

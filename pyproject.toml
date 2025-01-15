@@ -101,8 +101,8 @@ include = ["mathics*"]
     "autoload-cli/*.m",
     "autoload/formats/*/Import.m",
     "autoload/formats/*/Export.m",
-    "packages/*/*.m",
-    "packages/*/Kernel/init.m",
+    "Packages/*/*.m",
+    "Packages/*/Kernel/init.m",
 ]
 "mathics.doc" = [
     "documentation/*.mdoc",
