@@ -322,7 +322,7 @@ class Definition(Builtin):
     def format_definition(
         self, symbol: Symbol, evaluation: Evaluation, grid: bool = True
     ) -> Symbol:
-        "StandardForm,TraditionalForm,OutputForm: Definition[symbol_]"
+        "(StandardForm,TraditionalForm,OutputForm,): Definition[symbol_]"
 
         lines = gather_and_format_definition_rules(symbol, evaluation)
         if lines:
@@ -339,7 +339,7 @@ class Definition(Builtin):
         return SymbolNull
 
     def format_definition_input(self, symbol: Symbol, evaluation: Evaluation) -> Symbol:
-        "InputForm: Definition[symbol_]"
+        "(InputForm,): Definition[symbol_]"
         return self.format_definition(symbol, evaluation, grid=False)
 
 
@@ -424,7 +424,7 @@ class Information(PrefixOperator):
     def format_information(
         self, symbol: Symbol, evaluation: Evaluation, options: dict, grid: bool = True
     ) -> Symbol:
-        "StandardForm,TraditionalForm,OutputForm: Information[symbol_, OptionsPattern[Information]]"
+        "(StandardForm,TraditionalForm,OutputForm,): Information[symbol_, OptionsPattern[Information]]"
         ret = SymbolNull
         lines = []
         if isinstance(symbol, String):
@@ -458,7 +458,7 @@ class Information(PrefixOperator):
     def format_information_input(
         self, symbol: Symbol, evaluation: Evaluation, options: dict
     ) -> Symbol:
-        "InputForm: Information[symbol_, OptionsPattern[Information]]"
+        "(InputForm,): Information[symbol_, OptionsPattern[Information]]"
         self.format_information(symbol, evaluation, options, grid=False)
         ret = SymbolNull
         return ret

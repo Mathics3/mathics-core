@@ -52,8 +52,14 @@ Compatibility
 Internals
 ---------
 
-Operator information has been gone over and is picked up from JSON
+* Operator information has been gone over and is picked up from JSON
 tables produced from the Mathics Scanner project.
+* Patterns in ``eval_`` and ``format_`` methods of builtin classes
+  parses patterns in docstrings of the form
+  ``Symbol: Expr`` as `Pattern[Symbol, Expr]`.
+  To specify associated format in ``format_`` methods the
+  docstring, the list of format must be wrapped in parenthesis, like
+  ``(InputForm,): Definitions[...]`` instead of just ``InputForm: Definitions[...]``.
 
 
 Performance
