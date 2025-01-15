@@ -395,8 +395,8 @@ all_test = {
             "System`OutputForm": "<mi>Pi</mi>",
         },
         "latex": {
-            "System`StandardForm": "π",
-            "System`TraditionalForm": "π",
+            "System`StandardForm": "\\pi",
+            "System`TraditionalForm": "\\pi",
             "System`InputForm": "\\text{Pi}",
             "System`OutputForm": "\\text{Pi}",
         },
@@ -937,12 +937,12 @@ if fragile_tests:
             assert (
                 format_result.boxes_to_tex(
                     show_string_characters=False, evaluation=session.evaluation
-                )
-                == str_expected
+                ).strip()
+                == str_expected.strip()
             ), msg
         else:
-            strresult = format_result.boxes_to_text(evaluation=session.evaluation)
-            assert strresult == str_expected
+            strresult = format_result.boxes_to_tex(evaluation=session.evaluation)
+            assert strresult.strip() == str_expected.strip()
 
 
 @pytest.mark.parametrize(
@@ -956,11 +956,11 @@ def test_makeboxes_tex(str_expr, str_expected, form, msg):
         assert (
             format_result.boxes_to_tex(
                 show_string_characters=False, evaluation=session.evaluation
-            )
-            == str_expected
+            ).strip()
+            == str_expected.strip()
         ), msg
     else:
-        strresult = format_result.boxes_to_text(evaluation=session.evaluation)
+        strresult = format_result.boxes_to_text(evaluation=session.evaluation).strip()
         assert strresult == str_expected
 
 
@@ -978,11 +978,11 @@ if fragile_tests:
         format_result = result.format(session.evaluation, form)
         if msg:
             assert (
-                format_result.boxes_to_tex(evaluation=session.evaluation)
+                format_result.boxes_to_mathml(evaluation=session.evaluation)
                 == str_expected
             ), msg
         else:
-            strresult = format_result.boxes_to_text(evaluation=session.evaluation)
+            strresult = format_result.boxes_to_mathml(evaluation=session.evaluation)
             assert strresult == str_expected
 
 

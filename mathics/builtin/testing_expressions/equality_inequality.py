@@ -514,7 +514,7 @@ class GreaterEqual(_ComparisonOperator, _SympyComparison):
 
     <dl>
       <dt>'GreaterEqual[$x$, $y$]'
-      <dt>$x$ \u2256 $y$ or '$x$ >= $y$'
+      <dt>$x$ \u2265 $y$ or '$x$ >= $y$'
       <dd>yields 'True' if $x$ is known to be greater than or equal
         to $y$.
     </dl>

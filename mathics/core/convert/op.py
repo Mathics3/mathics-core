@@ -2,6 +2,7 @@
 Conversions from the ASCII representation of Mathics operators to their Unicode equivalent
 """
 
+import logging
 import os.path as osp
 from functools import lru_cache
 
@@ -25,6 +26,43 @@ ascii_operator_to_symbol = OPERATOR_CONVERSION_TABLES["ascii-operator-to-symbol"
 builtin_constants = OPERATOR_CONVERSION_TABLES["builtin-constants"]
 operator_to_unicode = OPERATOR_CONVERSION_TABLES["operator-to-unicode"]
 operator_to_ascii = OPERATOR_CONVERSION_TABLES["operator-to-ascii"]
+unicode_operator_to_ascii = {
+    val: operator_to_ascii[key] for key, val in operator_to_unicode.items()
+}
+unicode_to_amslatex = OPERATOR_CONVERSION_TABLES["unicode-to-amslatex"]
+
+
+amstex_operators = {
+    "\u2032": "'",
+    "\u2032\u2032": "''",
+    "\u2062": " ",
+    "\u221e": r"\infty ",
+    "\u00d7": r"\times ",
+    "(": r"\left(",
+    "[": r"\left[",
+    "{": r"\left\{",
+    ")": r"\right)",
+    "]": r"\right]",
+    "}": r"\right\}",
+    "\u301a": r"\left[\left[",
+    "\u301b": r"\right]\right]",
+    ",": ",",
+    ", ": ", ",
+    "\u222b": r"\int",
+    "\u2146": r"\, d",
+    "\uF74C": r"\, d",
+    "\U0001D451": r"\, d",
+    "\u2211": r"\sum",
+    "\u220f": r"\prod",
+}
+
+
+def is_named_operator(str_op):
+    if len(str_op) < 3:
+        return False
+    if str_op[:2] != "\\[" or str_op[-1] != "]":
+        return False
+    return str_op[2:-1].isalnum()
 
 
 @lru_cache(maxsize=1024)
@@ -43,3 +81,35 @@ def ascii_op_to_unicode(ascii_op: str, encoding: str) -> str:
             ascii_op, ascii_op
         )
     return ascii_op
+
+
+def get_latex_operator(unicode_op: str) -> str:
+    """
+    Get a LaTeX representation of the unicode operator.
+    """
+
+    def hex_form_code(char_str):
+        return hex(ord(char_str))[2:]
+
+    for candidate_dict in (
+        unicode_to_amslatex,
+        # amstex_operators,
+        unicode_operator_to_ascii,
+    ):
+        return_str = candidate_dict.get(unicode_op)
+        if return_str and return_str.isascii():
+            # if result match with \[[]:alpha:*[]]
+            if is_named_operator(return_str):
+                return "\\backslash\\text{" + return_str[1:] + "}"
+            return return_str
+    # `unicode_op` is not in any of the candidates.
+    # if it is already an ascii, return without changes.
+    if unicode_op.isascii():
+        return unicode_op
+
+    # the `unicode_op` cannot be converted into an ascii string. Show a
+    # warning and return a `\symbol{code}` expression.
+    logging.warning(
+        "Unicode op" + unicode_op + "(" + hex_form_code(unicode_op) + ") not found."
+    )
+    return '\\symbol{"' + hex_form_code(unicode_op) + "}"

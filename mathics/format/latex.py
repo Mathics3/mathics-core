@@ -28,6 +28,7 @@ from mathics.builtin.box.layout import (
 )
 from mathics.builtin.colors.color_directives import RGBColor
 from mathics.core.atoms import String
+from mathics.core.convert.op import amstex_operators, get_latex_operator
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
     add_conversion_fn,
@@ -39,29 +40,6 @@ from mathics.format.asy_fns import asy_color, asy_create_pens, asy_number
 # mathics_scanner does not generates this table in a way that we can load it here.
 # When it get fixed, we can use that table instead of this one:
 
-amstex_operators = {
-    "\u2032": "'",
-    "\u2032\u2032": "''",
-    "\u2062": " ",
-    "\u221e": r"\infty ",
-    "\u00d7": r"\times ",
-    "(": r"\left(",
-    "[": r"\left[",
-    "{": r"\left\{",
-    ")": r"\right)",
-    "]": r"\right]",
-    "}": r"\right\}",
-    "\u301a": r"\left[\left[",
-    "\u301b": r"\right]\right]",
-    ",": ",",
-    ", ": ", ",
-    "\u222b": r"\int",
-    "\u2146": r"\, d",
-    "\uF74C": r"\, d",
-    "\U0001D451": r"\, d",
-    "\u2211": r"\sum",
-    "\u220f": r"\prod",
-}
 
 TEX_REPLACE = {
     "{": r"\{",
@@ -109,6 +87,7 @@ def encode_tex(text: str, in_text=False) -> str:
 
 
 def string(self, **options) -> str:
+    """String to LaTeX form"""
     text = self.value
 
     def render(format, string, in_text=False):
@@ -130,13 +109,25 @@ def string(self, **options) -> str:
     elif text and text[0] in "0123456789-.":
         return render("%s", text)
     else:
+        # First consider the special cases
         op_string = amstex_operators.get(text, None)
         if op_string:
             return op_string
-        elif len(text) > 1:
+
+        # Regular text:
+        if len(text) > 1:
             return render(r"\text{%s}", text, in_text=True)
-        else:
-            return render("%s", text)
+
+        # Unicode operator or variable?
+        op_string = get_latex_operator(text)
+        if len(op_string) > 7 and op_string[:7] == r"\symbol":
+            op_string = r"\text{" + op_string + "}"
+
+        if op_string != text:
+            return f" {op_string} "
+
+        # must be a variable...
+        return render("%s", text)
 
 
 add_conversion_fn(String, string)
@@ -565,6 +556,7 @@ def graphics3dbox(self, elements=None, **options) -> str:
 \begin{{asy}}
 import three;
 import solids;
+import tube;
 size({0}cm, {1}cm);
 currentprojection=perspective({2[0]},{2[1]},{2[2]});
 currentlight=light(rgb(0.5,0.5,1), {5}specular=red, (2,0,2), (2,2,2), (0,2,2));

@@ -727,7 +727,6 @@ def save_doctest_data(doctest_pipeline: DocTestPipeline):
         doctest_pipeline.print_and_log("output data is empty")
         return
     doctest_pipeline.print_and_log(f"saving {len(output_data)} entries")
-    doctest_pipeline.print_and_log(output_data.keys())
     doctest_latex_data_path = doctest_pipeline.parameters.data_path
     doctest_pipeline.print_and_log(
         f"Writing internal document data to {doctest_latex_data_path}"

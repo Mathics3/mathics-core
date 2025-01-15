@@ -87,6 +87,7 @@ class Graphics3D(Graphics):
          . \begin{asy}
          . import three;
          . import solids;
+         . import tube;
          . size(6.6667cm, 6.6667cm);
          . currentprojection=perspective(2.6,-4.8,4.0);
          . currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
