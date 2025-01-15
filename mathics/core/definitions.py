@@ -6,12 +6,10 @@ groups of `Definitions`.
 
 import base64
 import bisect
-import os
 import os.path as osp
 import pickle
 import re
 from collections import defaultdict
-from os.path import join as osp_join
 from typing import Dict, List, Optional, Sequence, Set, Tuple, Union
 
 from mathics_scanner.tokeniser import full_names_pattern
@@ -20,12 +18,9 @@ from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import BaseElement, fully_qualified_symbol_name
-from mathics.core.expression import Expression
 from mathics.core.load_builtin import definition_contribute, mathics3_builtins_modules
-from mathics.core.pattern import BasePattern, ExpressionPattern
 from mathics.core.rules import BaseRule, Rule
 from mathics.core.symbols import Atom, Symbol, strip_context
-from mathics.core.systemsymbols import SymbolGet
 from mathics.core.util import canonic_filename
 from mathics.settings import ROOT_DIR
 
@@ -34,230 +29,6 @@ OutputForms: Set[Symbol] = set()
 
 # The contents of $PrintForms. FormMeta in mathics.base.forms adds to this.
 PrintForms: Set[Symbol] = set()
-
-
-def autoload_files(
-    defs, root_dir_path: str, autoload_dir: str, block_global_definitions: bool = True
-):
-    """
-    Load Mathics code from the autoload-folder files.
-    """
-    from mathics.core.evaluation import Evaluation
-
-    for root, _, files in os.walk(osp_join(root_dir_path, autoload_dir)):
-        for path in [osp_join(root, f) for f in files if f.endswith(".m")]:
-            # Autoload definitions should be go in the System context
-            # by default, rather than the Global context.
-            defs.set_current_context("System`")
-            Expression(SymbolGet, String(path)).evaluate(Evaluation(defs))
-            # Restore default context to Global
-            defs.set_current_context("Global`")
-
-    if block_global_definitions:
-        # Move any user definitions created by autoloaded files to
-        # builtins, and clear out the user definitions list. This
-        # means that any autoloaded definitions become shared
-        # between users and no longer disappear after a Quit[].
-        #
-        # Autoloads that accidentally define a name in Global`
-        # could cause confusion, so check for this.
-
-        for name in defs.user:
-            if name.startswith("Global`"):
-                raise ValueError(f"autoload defined {name}.")
-
-    # Move the user definitions to builtin:
-    for symbol_name in defs.user:
-        defs.builtin[symbol_name] = defs.get_definition(symbol_name)
-
-    defs.user = {}
-    defs.clear_cache()
-
-
-def get_file_time(file) -> float:
-    """Return the last time that a file was accessed"""
-    try:
-        return os.stat(file).st_mtime
-    except OSError:
-        return 0
-
-
-def get_tag_position(pattern: BaseElement, name: str) -> Optional[str]:
-    """
-    Determine the position of a pattern in
-    the definition of the symbol ``name``
-    """
-    blanks = (
-        "System`Blank",
-        "System`BlankSequence",
-        "System`BlankNullSequence",
-    )
-
-    def strip_pattern_name_and_condition(pat) -> BaseElement:
-        """
-        In ``Pattern[name_, pattern_]`` and
-        ``Condition[pattern_, cond_]``
-        the tag is determined by pat.
-        This function strips it to ensure that
-        ``pat`` does not have that form.
-        """
-
-        # Is "pat" as ExpressionPattern or an AtomPattern?
-        # Note: the below test could also be on ExpressionPattern or
-        # AtomPattern, but using hasattr is more flexible if more
-        # kinds of patterns are added.
-        if not hasattr(pat, "head"):
-            return pat
-
-        if hasattr(pat, "elements"):
-            # We have to use get_head_name() below because
-            # pat can either SymbolCondition or <AtomPattern: System`Condition>.
-            # In the latter case, comparing to SymbolCondition is not sufficient.
-            if pat.get_head_name() == "System`Condition":
-                if len(pat.elements) > 1:
-                    return strip_pattern_name_and_condition(pat.elements[0])
-            # The same kind of get_head_name() check is needed here as well and
-            # is not the same as testing against SymbolPattern.
-            if pat.get_head_name() == "System`Pattern":
-                if len(pat.elements) == 2:
-                    return strip_pattern_name_and_condition(pat.elements[1])
-
-        return pat
-
-    def is_pattern_a_kind_of(pattern: BaseElement, pattern_name: str) -> bool:
-        """
-        Returns `True` if `pattern` or any of its alternates is a
-        pattern with name `pattern_name` and `False` otherwise."""
-
-        if pattern_name == pattern.get_lookup_name():
-            return True
-
-        # Try again after stripping Pattern and Condition wrappers:
-        head = strip_pattern_name_and_condition(pattern.get_head())
-        head_name = head.get_lookup_name()
-        if pattern_name == head_name:
-            return True
-
-        # The head is of the form ``_SymbolName|__SymbolName|___SymbolName``
-        # If name matches with SymbolName, then it is a kind of:
-        if head_name in blanks:
-            if isinstance(head, Symbol):
-                return False
-            assert hasattr(head, "elements")
-            sub_elements = head.elements
-            if len(sub_elements) == 1:
-                head_name = head.elements[0].get_name()
-                if head_name == pattern_name:
-                    return True
-        return False
-
-    # If pattern is a Symbol, and coincides with
-    # name, it is an ownvalue:
-
-    if pattern.get_name() == name:
-        return "own"
-    # If pattern is an ``Atom``, does not have
-    # a position
-    if isinstance(pattern, Atom):
-        return None
-
-    # The pattern is an Expression.
-    head_name = pattern.get_head_name()
-    # If the name is the head name, is a downvalue:
-    if head_name == name:
-        return "down"
-
-    # Handle special cases
-    if head_name == "System`N":
-        if len(pattern.get_elements()) == 2:
-            return "n"
-
-    # The pattern has the form `_SymbolName | __SymbolName | ___SymbolName`
-    # Then it only can be a downvalue
-    if head_name in blanks:
-        elements = pattern.get_elements()
-        if len(elements) == 1:
-            head_name = elements[0].get_name()
-            return "down" if head_name == name else None
-
-    # TODO: Consider process format_values
-
-    if head_name != "":
-        # Check
-        strip_pattern = strip_pattern_name_and_condition(pattern)
-        if strip_pattern is not pattern:
-            return get_tag_position(strip_pattern, name)
-
-    # The head is not a symbol. Is pattern is "name" kind of pattern?
-    if is_pattern_a_kind_of(pattern, name):
-        return "sub"
-
-    # If we are here, pattern is not an Ownvalue, DownValue, SubValue or NValue
-    # Let's check the elements for UpValues
-    for element in pattern.get_elements():
-        lookup_name = element.get_lookup_name()
-        if lookup_name == name:
-            return "up"
-
-        # Strip Pattern and Condition wrappers and check again
-        if lookup_name in (
-            "System`Condition",
-            "System`Pattern",
-        ):
-            element = strip_pattern_name_and_condition(element)
-            lookup_name = element.get_lookup_name()
-            if lookup_name == name:
-                return "up"
-        # Check if one of the elements is not a "Blank"
-
-        if element.get_head_name() in blanks:
-            sub_elements = element.get_elements()
-            if len(sub_elements) == 1:
-                if sub_elements[0].get_name() == name:
-                    return "up"
-    # ``pattern`` does not have a tag position in the Definition
-    return None
-
-
-def insert_rule(values: list, rule: BaseRule) -> None:
-    """
-    Add a new rule inside a list of values.
-    Rules are sorted in a way that the first elements
-    in value list have more priority in evaluation.
-    If there is an existent rule in `values` with
-    the same pattern than `rule`,  `rule` takes its
-    place.
-
-    Parameters
-    ----------
-    values : List[Rule]
-        A list of rules.
-    rule : Rule
-        A new rule.
-
-    Returns
-    -------
-    None
-        DESCRIPTION.
-
-    """
-
-    for index, existing in enumerate(values):
-        if existing.pattern.sameQ(rule.pattern):
-            del values[index]
-            break
-    # use insort_left to guarantee that if equal rules exist, newer rules will
-    # get higher precedence by being inserted before them. see DownValues[].
-    bisect.insort_left(values, rule)
-
-
-def valuesname(name: str) -> str:
-    """'NValues' -> 'n'"""
-
-    assert name.startswith("System`"), name
-    if name == "System`Messages":
-        return "messages"
-    return name[7:-6].lower()
 
 
 class Definition:
@@ -271,75 +42,42 @@ class Definition:
     def __init__(
         self,
         name,
-        rules=None,
-        ownvalues=None,
-        downvalues=None,
-        subvalues=None,
-        upvalues=None,
-        formatvalues=None,
-        messages=None,
-        attributes=A_NO_ATTRIBUTES,
-        options=None,
-        nvalues=None,
-        defaultvalues=None,
+        *,
+        rules_dict: Optional[dict] = None,
+        rules: tuple = tuple(),
+        attributes: int = A_NO_ATTRIBUTES,
         builtin=None,
-        is_numeric=False,
+        is_numeric: bool = False,
     ) -> None:
-        super(Definition, self).__init__()
         self.name = name
-
-        if rules is None:
-            rules = []
-        if ownvalues is None:
-            ownvalues = []
-        if downvalues is None:
-            downvalues = []
-        if subvalues is None:
-            subvalues = []
-        if upvalues is None:
-            upvalues = []
-        if formatvalues is None:
-            formatvalues = {}
-        if options is None:
-            options = {}
-        if nvalues is None:
-            nvalues = []
-        if defaultvalues is None:
-            defaultvalues = []
-        if messages is None:
-            messages = []
+        rules_dict = rules_dict or {}
+        self.ownvalues = rules_dict.get("ownvalues", [])
+        self.downvalues = rules_dict.get("downvalues", [])
+        self.subvalues = rules_dict.get("subvalues", [])
+        self.upvalues = rules_dict.get("upvalues", [])
+        self.nvalues = rules_dict.get("nvalues", [])
+        self.formatvalues = rules_dict.get("formatvalues", {})
+        self.defaultvalues = rules_dict.get("defaultvalues", [])
+        self.options: Dict[str, str] = rules_dict.get("options", {})
+        self.messages = rules_dict.get("messages", [])
 
         self.is_numeric = is_numeric
-        self.ownvalues = ownvalues
-        self.downvalues = downvalues
-        self.subvalues = subvalues
-        self.upvalues = upvalues
-        self.formatvalues = dict((name, list) for name, list in formatvalues.items())
-        self.messages = messages
         self.attributes = attributes
-        self.options: Dict[str, str] = options
-        self.nvalues = nvalues
-        self.defaultvalues = defaultvalues
         self.builtin = builtin
         self.changed = 0
         for rule in rules:
             if not self.add_rule(rule):
                 print(f"{rule.pattern.expr} could not be associated with {self.name}")
 
-    def get_values_list(self, pos: str) -> list:
+    def get_values_list(self, pos: str) -> List[BaseRule]:
         """Return one of the value lists"""
         assert pos.isalpha()
-        if pos == "messages":
-            return self.messages
-        return getattr(self, f"{pos}values")
+        return getattr(self, pos)
 
-    def set_values_list(self, pos: str, rules: list) -> None:
+    def set_values_list(self, pos: str, rules: List[BaseRule]) -> None:
         """Set one of the value lists"""
         assert pos.isalpha()
-        if pos == "messages":
-            self.messages = rules
-        else:
-            setattr(self, f"{pos}values", rules)
+        setattr(self, pos, rules)
 
     def add_rule_at(self, rule: BaseRule, position: str) -> bool:
         """
@@ -368,8 +106,18 @@ class Definition:
         return False
 
     def __repr__(self) -> str:
-        repr_str = "<Definition: name: {}, downvalues: {}, formats: {}, attributes: {}>".format(
-            self.name, self.downvalues, self.formatvalues, self.attributes
+        repr_str = (
+            "<Definition: name: {},"
+            "\n ownvalues: {},\n"
+            " downvalues: {},\n"
+            " formats: {},\n"
+            " attributes: {}>"
+        ).format(
+            self.name,
+            self.ownvalues,
+            self.downvalues,
+            self.formatvalues,
+            self.attributes,
         )
         return repr_str
 
@@ -400,7 +148,6 @@ class Definitions:
         builtin_filename: Optional[str] = None,
         extension_modules: tuple = (),
     ) -> None:
-        super(Definitions, self).__init__()
         self.builtin: Dict[str, Definition] = {}
         self.user: Dict[str, Definition] = {}
         self.pymathics: Dict[str, Definition] = {}
@@ -416,6 +163,9 @@ class Definitions:
         )
         self.inputfile = ""
 
+        self.trace_evaluation = False
+        self.timing_trace_evaluation = False
+
         # Importing "mathics.format" populates the Symbol of the
         # PrintForms and OutputForms sets.
         #
@@ -424,41 +174,14 @@ class Definitions:
         #   2 were given
         # Rocky: this smells of something not quite right in terms of
         # modularity.
+
         import mathics.format  # noqa
-        from mathics.eval.pymathics import PyMathicsLoadException, load_pymathics_module
 
         self.printforms = list(PrintForms)
         self.outputforms = list(OutputForms)
-        self.trace_evaluation = False
-        self.timing_trace_evaluation = False
 
         if add_builtin:
-            loaded = False
-            if builtin_filename is not None:
-                builtin_dates = [
-                    get_file_time(module.__file__)
-                    for module in mathics3_builtins_modules
-                ]
-                builtin_time = max(builtin_dates)
-                if get_file_time(builtin_filename) > builtin_time:
-                    with open(builtin_filename, "rb") as builtin_file:
-                        self.builtin = pickle.load(builtin_file)
-                    loaded = True
-            if not loaded:
-                definition_contribute(self)
-                for module in extension_modules:
-                    try:
-                        load_pymathics_module(self, module)
-                    except PyMathicsLoadException:
-                        raise
-                    except ImportError:
-                        raise
-
-                if builtin_filename is not None:
-                    with open(builtin_filename, "wb") as builtin_file:
-                        pickle.dump(self.builtin, builtin_file, -1)
-
-            autoload_files(self, ROOT_DIR, "autoload")
+            load_builtin_definitions(self, builtin_filename, extension_modules)
 
     def clear_cache(self, name: Optional[str] = None) -> None:
         """Clear the definitions cache. If `name` is provided,
@@ -745,7 +468,8 @@ class Definitions:
         Raises
         ------
         KeyError
-            DESCRIPTION.
+            Raised when `name` has not a Definition, and `only_if_exists`
+            is `True`.
 
         Returns
         -------
@@ -753,16 +477,16 @@ class Definitions:
             A definition for the requested Symbol name.
 
         """
-        definition = self.definitions_cache.get(name, None)
-        if definition is not None:
-            return definition
+        try:
+            return self.definitions_cache[name]
+        except KeyError:
+            pass
 
         original_name = name
         name = self.lookup_name(name)
         user = self.user.get(name, None)
         pymathics = self.pymathics.get(name, None)
         builtin = self.builtin.get(name, None)
-
         candidates = [user] if user else []
         builtin_instance = None
 
@@ -774,68 +498,21 @@ class Definitions:
             if builtin_instance is None:
                 builtin_instance = builtin.builtin
 
-        definition = candidates[0] if len(candidates) == 1 else None
-        if len(candidates) > 0 and not definition:
-            if user:
-                is_numeric = user.is_numeric
-                attributes = user.attributes
-            elif pymathics:
-                is_numeric = pymathics.is_numeric
-                attributes = pymathics.attributes
-            elif builtin:
-                is_numeric = builtin.is_numeric
-                attributes = builtin.attributes
-            else:
-                is_numeric = False
-                attributes = A_NO_ATTRIBUTES
-
-            options = {}
-            formatvalues: Dict[str, list] = {
-                "": [],
-            }
-            # Merge definitions
-            its = list(candidates)
-            while its:
-                # This behaviour for options is wrong:
-                # because of this, ``Unprotect[Expand]; ClearAll[Expand]; Options[Expand]``
-                # returns the builtin options of ``Expand`` instead of an empty list, like
-                # in WMA. This suggests that this idea of keeping different dicts for builtin
-                # and user definitions is pointless.
-                curr = its.pop()
-                options.update(curr.options)
-                for form, rules in curr.formatvalues.items():
-                    if form in formatvalues:
-                        formatvalues[form].extend(rules)
-                    else:
-                        formatvalues[form] = rules
-            # Build the new definition
-            definition = Definition(
-                name=name,
-                ownvalues=sum((c.ownvalues for c in candidates), []),
-                downvalues=sum((c.downvalues for c in candidates), []),
-                subvalues=sum((c.subvalues for c in candidates), []),
-                upvalues=sum((c.upvalues for c in candidates), []),
-                formatvalues=formatvalues,
-                messages=sum((c.messages for c in candidates), []),
-                attributes=attributes,
-                options=options,
-                nvalues=sum((c.nvalues for c in candidates), []),
-                defaultvalues=sum((c.defaultvalues for c in candidates), []),
-                builtin=builtin_instance,
-                is_numeric=is_numeric,
-            )
-
-        if definition is None:
+        len_candidates = len(candidates)
+        if len_candidates == 1:
+            definition = candidates[0]
+        elif len_candidates == 0:
             if only_if_exists:
                 raise KeyError
-
             definition = Definition(name=name)
             if name[-1] != "`":
                 self.user[name] = definition
         else:
-            self.proxy[strip_context(original_name)].add(original_name)
-            self.definitions_cache[original_name] = definition
-            self.lookup_cache[original_name] = name
+            definition = merge_definitions(candidates)
+
+        self.proxy[strip_context(original_name)].add(original_name)
+        self.definitions_cache[original_name] = definition
+        self.lookup_cache[original_name] = name
 
         return definition
 
@@ -847,23 +524,23 @@ class Definitions:
         """
         return self.get_definition(name).attributes
 
-    def get_ownvalues(self, name: str) -> list:
+    def get_ownvalues(self, name: str) -> List[BaseRule]:
         """Return the list of ownvalues"""
         return self.get_definition(name).ownvalues
 
-    def get_downvalues(self, name: str) -> list:
+    def get_downvalues(self, name: str) -> List[BaseRule]:
         """Return the list of downvalues"""
         return self.get_definition(name).downvalues
 
-    def get_subvalues(self, name: str) -> list:
+    def get_subvalues(self, name: str) -> List[BaseRule]:
         """Return the list of subvalues"""
         return self.get_definition(name).subvalues
 
-    def get_upvalues(self, name: str) -> list:
+    def get_upvalues(self, name: str) -> List[BaseRule]:
         """Return the list of upvalues"""
         return self.get_definition(name).upvalues
 
-    def get_formats(self, name: str, format_name="") -> list:
+    def get_formats(self, name: str, format_name="") -> List[BaseRule]:
         """
         Return a list of format rules associated with `name`.
         if `format_name` is given, looks to the rules associated
@@ -874,11 +551,11 @@ class Definitions:
         result.sort()
         return result
 
-    def get_nvalues(self, name: str) -> list:
+    def get_nvalues(self, name: str) -> List[BaseRule]:
         """Return the list of nvalues"""
         return self.get_definition(name).nvalues
 
-    def get_defaultvalues(self, name: str) -> list:
+    def get_defaultvalues(self, name: str) -> List[BaseRule]:
         """Return the list of defaultvalues"""
         return self.get_definition(name).defaultvalues
 
@@ -888,7 +565,7 @@ class Definitions:
         """Apply rules in `pos` over `expression` until get the value of the symbol"""
         assert isinstance(name, str)
         assert "`" in name
-        rules = self.get_definition(name).get_values_list(valuesname(pos))
+        rules = self.get_definition(name).get_values_list(_valuesname(pos))
         for rule in rules:
             result = rule.apply(expression, evaluation)
             if result is not None:
@@ -1022,7 +699,7 @@ class Definitions:
         """Add a nvalue rule to the Symbol `name`"""
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
-            definition.add_rule_at(rule, "n")
+            definition.add_rule_at(rule, "nvalues")
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
@@ -1030,7 +707,7 @@ class Definitions:
         """Add a DefaultValue to the Symbol `name`"""
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
-            definition.add_rule_at(rule, "default")
+            definition.add_rule_at(rule, "defaultvalues")
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
@@ -1042,9 +719,9 @@ class Definitions:
             self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
-    def set_values(self, name: str, values, rules) -> None:
+    def set_values(self, name: str, values: str, rules: List[BaseRule]) -> None:
         """Set a list of rules associated with the Symbol `name`"""
-        pos = valuesname(values)
+        pos = _valuesname(values)
         definition = self.get_user_definition(self.lookup_name(name))
         if definition is not None:
             definition.set_values_list(pos, rules)
@@ -1075,9 +752,16 @@ class Definitions:
 
     def get_ownvalue(self, name: str) -> BaseElement:
         """Get ownvalue associated with `name`"""
-        ownvalues = self.get_definition(self.lookup_name(name)).ownvalues
-        if ownvalues:
-            return ownvalues[0]
+        lookup_name = self.lookup_name(name)
+        ownvalues = self.get_definition(lookup_name).ownvalues
+
+        for ownvalue in ownvalues:
+            if not isinstance(ownvalue.pattern.expr, Symbol):
+                continue
+            try:
+                return ownvalue.get_replace_value()
+            except ValueError:
+                continue
         raise ValueError
         # return None
 
@@ -1108,20 +792,15 @@ class Definitions:
         self, name: str, default: Optional[int] = None
     ) -> Optional[int]:
         "Infinity -> None, otherwise returns integer."
-        value = self.get_definition(name).ownvalues
-        if value:
-            try:
-                value = value[0].replace
-            except AttributeError:
-                return None
-            if value.get_name() == "System`Infinity" or value.has_form(
-                "DirectedInfinity", 1
-            ):
-                return None
-
-            return int(value.get_int_value())
-
-        return default
+        try:
+            value = self.get_ownvalue(name)
+        except ValueError:
+            return default
+        if value.get_name() == "System`Infinity" or value.has_form(
+            "DirectedInfinity", 1
+        ):
+            return None
+        return int(value.to_python())  # .get_int_value())
 
     def set_config_value(self, name: str, new_value: int) -> None:
         """Set the (own)value of an integer variable"""
@@ -1148,3 +827,266 @@ class Definitions:
         if history_length is None or history_length > 100:
             history_length = 100
         return history_length
+
+
+def _valuesname(name: str) -> str:
+    """'NValues' -> 'n'"""
+    assert name.startswith("System`"), name
+    return name[7:].lower()
+
+
+def get_tag_position(pattern: BaseElement, name: str) -> Optional[str]:
+    """
+    Determine the position of a pattern in
+    the definition of the symbol ``name``
+    """
+    blanks = (
+        "System`Blank",
+        "System`BlankSequence",
+        "System`BlankNullSequence",
+    )
+
+    def strip_pattern_name_and_condition(pat) -> BaseElement:
+        """
+        In ``Pattern[name_, pattern_]`` and
+        ``Condition[pattern_, cond_]``
+        the tag is determined by pat.
+        This function strips it to ensure that
+        ``pat`` does not have that form.
+        """
+
+        # Is "pat" as ExpressionPattern or an AtomPattern?
+        # Note: the below test could also be on ExpressionPattern or
+        # AtomPattern, but using hasattr is more flexible if more
+        # kinds of patterns are added.
+        if not hasattr(pat, "head"):
+            return pat
+
+        if hasattr(pat, "elements"):
+            # We have to use get_head_name() below because
+            # pat can either SymbolCondition or <AtomPattern: System`Condition>.
+            # In the latter case, comparing to SymbolCondition is not sufficient.
+            if pat.get_head_name() == "System`Condition":
+                if len(pat.elements) > 1:
+                    return strip_pattern_name_and_condition(pat.elements[0])
+            # The same kind of get_head_name() check is needed here as well and
+            # is not the same as testing against SymbolPattern.
+            if pat.get_head_name() == "System`Pattern":
+                if len(pat.elements) == 2:
+                    return strip_pattern_name_and_condition(pat.elements[1])
+
+        return pat
+
+    def is_pattern_a_kind_of(pattern: BaseElement, pattern_name: str) -> bool:
+        """
+        Returns `True` if `pattern` or any of its alternates is a
+        pattern with name `pattern_name` and `False` otherwise."""
+
+        if pattern_name == pattern.get_lookup_name():
+            return True
+
+        # Try again after stripping Pattern and Condition wrappers:
+        head = strip_pattern_name_and_condition(pattern.get_head())
+        head_name = head.get_lookup_name()
+        if pattern_name == head_name:
+            return True
+
+        # The head is of the form ``_SymbolName|__SymbolName|___SymbolName``
+        # If name matches with SymbolName, then it is a kind of:
+        if head_name in blanks:
+            if isinstance(head, Symbol):
+                return False
+            assert hasattr(head, "elements")
+            sub_elements = head.elements
+            if len(sub_elements) == 1:
+                head_name = head.elements[0].get_name()
+                if head_name == pattern_name:
+                    return True
+        return False
+
+    # If pattern is a Symbol, and coincides with
+    # name, it is an ownvalue:
+
+    if pattern.get_name() == name:
+        return "ownvalues"
+    # If pattern is an ``Atom``, does not have
+    # a position
+    if isinstance(pattern, Atom):
+        return None
+
+    # The pattern is an Expression.
+    head_name = pattern.get_head_name()
+    # If the name is the head name, is a downvalue:
+    if head_name == name:
+        return "downvalues"
+
+    # Handle special cases
+    if head_name == "System`N":
+        if len(pattern.get_elements()) == 2:
+            return "nvalues"
+
+    # The pattern has the form `_SymbolName | __SymbolName | ___SymbolName`
+    # Then it only can be a downvalue
+    if head_name in blanks:
+        elements = pattern.get_elements()
+        if len(elements) == 1:
+            head_name = elements[0].get_name()
+            return "downvalues" if head_name == name else None
+
+    # TODO: Consider process format_values
+
+    if head_name != "":
+        # Check
+        strip_pattern = strip_pattern_name_and_condition(pattern)
+        if strip_pattern is not pattern:
+            return get_tag_position(strip_pattern, name)
+
+    # The head is not a symbol. Is pattern is "name" kind of pattern?
+    if is_pattern_a_kind_of(pattern, name):
+        return "subvalues"
+
+    # If we are here, pattern is not an Ownvalue, DownValue, SubValue or NValue
+    # Let's check the elements for UpValues
+    for element in pattern.get_elements():
+        lookup_name = element.get_lookup_name()
+        if lookup_name == name:
+            return "upvalues"
+
+        # Strip Pattern and Condition wrappers and check again
+        if lookup_name in (
+            "System`Condition",
+            "System`Pattern",
+        ):
+            element = strip_pattern_name_and_condition(element)
+            lookup_name = element.get_lookup_name()
+            if lookup_name == name:
+                return "upvalues"
+        # Check if one of the elements is not a "Blank"
+
+        if element.get_head_name() in blanks:
+            sub_elements = element.get_elements()
+            if len(sub_elements) == 1:
+                if sub_elements[0].get_name() == name:
+                    return "upvalues"
+    # ``pattern`` does not have a tag position in the Definition
+    return None
+
+
+def insert_rule(values: List[BaseRule], rule: BaseRule) -> None:
+    """
+    Add a new rule inside a list of values.
+    Rules are sorted in a way that the first elements
+    in value list have more priority in evaluation.
+    If there is an existent rule in `values` with
+    the same pattern than `rule`,  `rule` takes its
+    place.
+
+    Parameters
+    ----------
+    values : List[Rule]
+        A list of rules.
+    rule : Rule
+        A new rule.
+
+    """
+
+    for index, existing in enumerate(values):
+        if existing.pattern.sameQ(rule.pattern):
+            del values[index]
+            break
+    # use insort_left to guarantee that if equal rules exist, newer rules will
+    # get higher precedence by being inserted before them. see DownValues[].
+    bisect.insort_left(values, rule)
+
+
+def merge_definitions(candidates: List[Definition]) -> Definition:
+    """Build a Definition object by merging other definitions"""
+    rules: dict = {
+        key: []
+        for key in (
+            "ownvalues",
+            "downvalues",
+            "subvalues",
+            "upvalues",
+            "nvalues",
+            "defaultvalues",
+            "messages",
+        )
+    }
+    first_candidate = candidates[0]
+    name = first_candidate.name
+
+    is_numeric = first_candidate.is_numeric
+    attributes = first_candidate.attributes
+    builtin_instance = candidates[-1].builtin
+    formatvalues: Dict[str, List[BaseRule]] = {}
+    options: dict = {}
+    rules["formatvalues"] = formatvalues
+
+    for candidate in candidates:
+        builtin_instance = builtin_instance or candidate.builtin
+        for key, rule in rules.items():
+            if isinstance(rule, list):
+                rule.extend(getattr(candidate, key))
+
+        # formats are dictionaries, and must be handled
+        # differently.
+        for form, format_rules in candidate.formatvalues.items():
+            if form in formatvalues:
+                formatvalues[form].extend(format_rules)
+            else:
+                formatvalues[form] = format_rules
+
+    rules["options"] = options
+    # Options are updated in reversed order.
+    for candidate in candidates[::-1]:
+        # This behaviour for options is different than in WMA:
+        # because of this, ``Unprotect[Expand]; ClearAll[Expand]; Options[Expand]``
+        # returns the builtin options of ``Expand`` instead of an empty list, like
+        # in WMA.
+        # To get this behavior, we could just pick the options from the first
+        # candidate.
+        options.update(candidate.options)
+
+    # Now, build the new definition and return it.
+    return Definition(
+        name=name,
+        rules_dict=rules,
+        attributes=attributes,
+        builtin=builtin_instance,
+        is_numeric=is_numeric,
+    )
+
+
+def load_builtin_definitions(
+    self: Definitions,
+    builtin_filename: Optional[str] = None,
+    extension_modules: tuple = tuple(),
+):
+    """
+    Load definitions from Builtin classes, autoload files and extension modules.
+    """
+    from mathics.eval.files_io.files import get_file_time
+    from mathics.eval.pymathics import PyMathicsLoadException, load_pymathics_module
+    from mathics.session import autoload_files
+
+    loaded = False
+    if builtin_filename is not None:
+        builtin_dates = [
+            get_file_time(module.__file__) for module in mathics3_builtins_modules
+        ]
+        builtin_time = max(builtin_dates)
+        if get_file_time(builtin_filename) > builtin_time:
+            with open(builtin_filename, "rb") as builtin_file:
+                self.builtin = pickle.load(builtin_file)
+            loaded = True
+    if not loaded:
+        definition_contribute(self)
+        for module in extension_modules:
+            load_pymathics_module(self, module)
+
+        if builtin_filename is not None:
+            with open(builtin_filename, "wb") as builtin_file:
+                pickle.dump(self.builtin, builtin_file, -1)
+
+    autoload_files(self, ROOT_DIR, "autoload")

@@ -37,7 +37,7 @@ jobs:
         git submodule init
         git submodule update
         remake -x develop
-        cd mathics/packages/Combinatorica-repo
+        cd mathics/Packages/Combinatorica-repo
         # If Combinatorica repo changes, we may need the below altered
         # with a branch name, (not HEAD) for testing.
         git pull origin HEAD

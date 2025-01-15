@@ -13,14 +13,15 @@ from typing import Dict, List, Optional, Tuple
 import requests
 
 from mathics.core.util import canonic_filename
-from mathics.settings import ROOT_DIR
+from mathics.settings import ROOT_DIR, USER_PACKAGE_DIR
 
 HOME_DIR = osp.expanduser("~")
 PATH_VAR: List[str] = [
     ".",
     HOME_DIR,
+    USER_PACKAGE_DIR,
     osp.join(ROOT_DIR, "data"),
-    osp.join(ROOT_DIR, "packages"),
+    osp.join(ROOT_DIR, "Packages"),
 ]
 
 
@@ -56,7 +57,7 @@ def urlsave_tmp(url, location=None, **kwargs):
 
 def path_search(filename: str) -> Tuple[Optional[str], bool]:
     """
-    Search for a Mathics `filename` possibly adding extensions ".mx", or ".m"
+    Search for a Mathics `filename` possibly adding extensions ".mx", ".m", or ".wl"
     or as a file under directory PATH_VAR or as an Internet address.
 
     Return the resolved file name and True if this is a file in the
@@ -67,7 +68,7 @@ def path_search(filename: str) -> Tuple[Optional[str], bool]:
     is_temporary_file = False
     if filename[-1] == "`":
         filename = filename[:-1].replace("`", osp.sep)
-        for ext in [".mx", ".m"]:
+        for ext in [".mx", ".m", ".wl"]:
             result, is_temporary_file = path_search(filename + ext)
             if result is not None:
                 return result, is_temporary_file
@@ -241,6 +242,21 @@ class StreamsManager:
             if self.STREAMS[i].name == name:
                 return self.STREAMS[i]
         return None
+
+    # Note: WMA documentationspecifies that lookup by "name" should be unique, but it appears it
+    # as of 13.2.0 name does not have to be unique. We'll follow what WMA
+    # does as opposed to what the documentation says.
+    def get_stream_and_channel_by_name(self, name: str) -> Tuple[Optional[Stream], int]:
+        """
+        Find a stream given its stream name. If there is only one channel associated with that
+        name, then return a tuple of the the name and channel.
+        """
+        # When there are duplicates, WMA seems to find largest, the most-recent? stream
+        # first. We will mimic this behavior using reversed().
+        for i in reversed(self.STREAMS):
+            if self.STREAMS[i].name == name:
+                return self.STREAMS[i], i
+        return None, -1
 
     def lookup_stream(self, n: int) -> Optional[Stream]:
         """

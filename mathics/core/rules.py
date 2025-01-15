@@ -197,6 +197,9 @@ class BaseRule(KeyComparable, ABC):
     ):
         raise NotImplementedError
 
+    def get_replace_value(self) -> BaseElement:
+        raise ValueError
+
     def get_sort_key(self, pattern_sort=True) -> tuple:
         # FIXME: check if this makes sense:
         return tuple((self.system, self.pattern.get_sort_key(pattern_sort)))
@@ -268,6 +271,10 @@ class Rule(BaseRule):
             new = new.copy(reevaluate=True)
 
         return new
+
+    def get_replace_value(self) -> BaseElement:
+        """return the replace value"""
+        return self.replace
 
     def __repr__(self) -> str:
         return "<Rule: %s -> %s>" % (self.pattern, self.replace)
@@ -354,6 +361,8 @@ class FunctionApplyRule(BaseRule):
             return self.function(evaluation=evaluation, **vars_noctx)
 
     def __repr__(self) -> str:
+        # Cython doesn't allow f-string below and reports:
+        #  Cannot convert Unicode string to 'str' implicitly. This is not portable and requires explicit encoding.
         return "<FunctionApplyRule: %s -> %s>" % (self.pattern, self.function)
 
     def __getstate__(self):

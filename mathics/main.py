@@ -23,7 +23,7 @@ import mathics.core as mathics_core
 from mathics import __version__, license_string, settings, version_string
 from mathics.builtin.trace import TraceBuiltins, traced_apply_function
 from mathics.core.atoms import String
-from mathics.core.definitions import Definitions, Symbol, autoload_files
+from mathics.core.definitions import Definitions, Symbol
 from mathics.core.evaluation import Evaluation, Output
 from mathics.core.expression import Expression
 from mathics.core.load_builtin import import_and_load_builtins
@@ -33,6 +33,8 @@ from mathics.core.streams import stream_manager
 from mathics.core.symbols import SymbolNull, strip_context
 from mathics.eval.files_io.files import set_input_var
 from mathics.eval.files_io.read import channel_to_stream
+from mathics.session import autoload_files
+from mathics.settings import DATA_DIR, USER_PACKAGE_DIR, ensure_directory
 from mathics.timing import show_lru_cache_statistics
 
 # from mathics.timing import TimeitContextManager
@@ -48,7 +50,7 @@ def get_srcdir():
 
 
 def show_echo(query, evaluation):
-    echovar = evaluation.definitions.get_ownvalue("System`$Echo").replace
+    echovar = evaluation.definitions.get_ownvalue("System`$Echo")
     if not isinstance(echovar, Expression) or not echovar.has_form("List", None):
         return
 
@@ -554,6 +556,8 @@ Please contribute to Mathics!""",
         print(license_string + "\n")
         print(f"Quit by evaluating Quit[] or by pressing {quit_command}.\n")
 
+    ensure_directory(DATA_DIR)
+    ensure_directory(USER_PACKAGE_DIR)
     interactive_eval_loop(shell, args.full_form, args.strict_wl_output)
     return exit_rc
 

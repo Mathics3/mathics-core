@@ -105,8 +105,10 @@ class MathicsOpen(Stream):
         return self.fp
 
     def __exit__(self, type, value, traceback):
-        self.fp.close()
-        stream_manager.delete_stream(self.stream)
+        if self.fp is not None:
+            self.fp.close()
+        if self.stream is not None:
+            stream_manager.delete_stream(self.stream)
         super().__exit__(type, value, traceback)
 
 
@@ -206,7 +208,8 @@ def close_stream(stream: Stream, stream_number: int):
     Close stream: `stream` and delete it from the list of streams we manage.
     If the stream was to a temporary file, remove the temporary file.
     """
-    stream.io.close()
+    if stream.io is not None:
+        stream.io.close()
     stream_manager.delete(stream_number)
 
 
@@ -223,8 +226,7 @@ def read_name_and_stream(stream_designator, evaluation: Evaluation) -> tuple:
 
         stream_name, n = strm.elements
 
-        n_int = n.value
-        if n_int < 0:
+        if not isinstance(n, Integer) or (n_int := n.value) < 0:
             evaluation.message("InputStream", "intpm", strm)
             return None, None, None
 
@@ -236,7 +238,7 @@ def read_name_and_stream(stream_designator, evaluation: Evaluation) -> tuple:
         if stream.io is None:
             stream.__enter__()
 
-        if stream.io.closed:
+        elif stream.io.closed:
             evaluation.message("Read", "openx", strm)
             return SymbolFailed, None, None
 

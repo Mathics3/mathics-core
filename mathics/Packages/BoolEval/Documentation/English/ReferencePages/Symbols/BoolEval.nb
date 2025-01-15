@@ -1,0 +1,710 @@
+Notebook[{
+Cell[TextData[{
+ "New in: ",
+ Cell["XX", "HistoryData",
+  CellTags->"New"],
+ " | Modified in: ",
+ Cell[" ", "HistoryData",
+  CellTags->"Modified"],
+ " | Obsolete in: ",
+ Cell[" ", "HistoryData",
+  CellTags->"Obsolete"],
+ " | Excised in: ",
+ Cell[" ", "HistoryData",
+  CellTags->"Excised"]
+}], "History",
+ CellID->1247902091],
+
+Cell[CellGroupData[{
+
+Cell["Categorization", "CategorizationSection",
+ CellID->1122911449],
+
+Cell["Symbol", "Categorization",
+ CellLabel->"Entity Type",
+ CellID->686433507],
+
+Cell["BoolEval Package", "Categorization",
+ CellLabel->"Paclet Name",
+ CellID->1839215797],
+
+Cell["BoolEval`", "Categorization",
+ CellLabel->"Context",
+ CellID->820285261],
+
+Cell["BoolEval/ref/BoolEval", "Categorization",
+ CellLabel->"URI",
+ CellID->1836851534]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Keywords", "KeywordsSection",
+ CellID->477174294],
+
+Cell["XXXX", "Keywords",
+ CellID->1164421360]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Syntax Templates", "TemplatesSection",
+ CellID->1872225408],
+
+Cell[BoxData[""], "Template",
+ CellLabel->"Additional Function Template",
+ CellID->1562036412],
+
+Cell[BoxData[""], "Template",
+ CellLabel->"Arguments Pattern",
+ CellID->158391909],
+
+Cell[BoxData[""], "Template",
+ CellLabel->"Local Variables",
+ CellID->1360575930],
+
+Cell[BoxData[""], "Template",
+ CellLabel->"Color Equal Signs",
+ CellID->793782254]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Details", "DetailsSection",
+ CellID->307771771],
+
+Cell["XXXX", "Details",
+ CellLabel->"Lead",
+ CellID->670882175],
+
+Cell["XXXX", "Details",
+ CellLabel->"Developers",
+ CellID->350963985],
+
+Cell["XXXX", "Details",
+ CellLabel->"Authors",
+ CellID->8391405],
+
+Cell["XXXX", "Details",
+ CellLabel->"Feature Name",
+ CellID->3610269],
+
+Cell["XXXX", "Details",
+ CellLabel->"QA",
+ CellID->401364205],
+
+Cell["XXXX", "Details",
+ CellLabel->"DA",
+ CellID->350204745],
+
+Cell["XXXX", "Details",
+ CellLabel->"Docs",
+ CellID->732958810],
+
+Cell["XXXX", "Details",
+ CellLabel->"Features Page Notes",
+ CellID->222905350],
+
+Cell["XXXX", "Details",
+ CellLabel->"Comments",
+ CellID->240026365]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["BoolEval", "ObjectName",
+ CellID->1224892054],
+
+Cell[TextData[{
+ Cell["   ", "ModInfo"],
+ Cell[BoxData[
+  RowBox[{
+   ButtonBox["BoolEval",
+    BaseStyle->"Link",
+    ButtonData->"paclet:BoolEval/ref/BoolEval"], "[", 
+   RowBox[{
+    StyleBox["array", "TI"], " ", ">", " ", 
+    StyleBox["value", "TI"]}], "]"}]], "InlineFormula"],
+ "\[LineSeparator]replaces elements of ",
+ Cell[BoxData[
+  StyleBox["array", "TI"]], "InlineFormula"],
+ " which are greater than ",
+ Cell[BoxData[
+  StyleBox["value", "TI"]], "InlineFormula"],
+ " with 1, and the rest with 0. \n",
+ Cell["   ", "ModInfo"],
+ Cell[BoxData[
+  RowBox[{
+   ButtonBox["BoolEval",
+    BaseStyle->"Link",
+    ButtonData->"paclet:BoolEval/ref/BoolEval"], "[", 
+   StyleBox["condition", "TI"], "]"}]], "InlineFormula"],
+ "\[LineSeparator]takes a condition expressed in terms of ",
+ Cell[BoxData[">"], "InlineFormula"],
+ ", ",
+ Cell[BoxData["\[GreaterEqual]"], "InlineFormula"],
+ ", ",
+ Cell[BoxData["<"], "InlineFormula"],
+ ", ",
+ Cell[BoxData["\[LessEqual]"], "InlineFormula"],
+ ", ",
+ Cell[BoxData["\[Equal]"], "InlineFormula"],
+ ", ",
+ Cell[BoxData["\[NotEqual]"], "InlineFormula"],
+ " and logical operators, and evaluates it for each element of the arrays \
+appearing in the condition. The result is returned as a Boolean array of 0s \
+and 1s."
+}], "Usage"],
+
+Cell[TextData[{
+ "The expression ",
+ Cell[BoxData[
+  StyleBox["array", "TI"]], "InlineFormula"],
+ " must be a numerical array. Higher dimensional arrays are allowed."
+}], "Notes",
+ CellID->1067943069],
+
+Cell["\<\
+Arrays that are operated together with comparison or Boolean operators must \
+have compatible dimensions.\
+\>", "Notes",
+ CellID->146817712],
+
+Cell[TextData[{
+ "Comparison and logical operators must appear literally within the argument \
+of ",
+ Cell[BoxData[
+  ButtonBox["BoolEval",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolEval"]], "InlineFormula"],
+ "."
+}], "Notes",
+ CellID->938774166],
+
+Cell[TextData[{
+ "Effectively, ",
+ Cell[BoxData[
+  RowBox[{"BoolEval", "[", 
+   RowBox[{"x", ">", "a"}], "]"}]], "InlineFormula"],
+ " is equivalent to ",
+ Cell[BoxData[
+  RowBox[{"Boole", "@", 
+   RowBox[{"Thread", "[", 
+    RowBox[{"x", ">", "a"}], "]"}]}]], "InlineFormula"],
+ "."
+}], "Notes",
+ CellID->1418751935]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Tutorials", "TutorialsSection",
+ CellID->250839057],
+
+Cell[TextData[ButtonBox["Introduction to BoolEval",
+ BaseStyle->"Link",
+ ButtonData->"paclet:BoolEval/tutorial/IntroductionToBoolEval"]], "Tutorials",
+ 
+ CellID->341631938]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Related Demonstrations", "RelatedDemonstrationsSection",
+ CellID->1268215905],
+
+Cell["XXXX", "RelatedDemonstrations",
+ CellID->1129518860]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Related Links", "RelatedLinksSection",
+ CellID->1584193535],
+
+Cell["XXXX", "RelatedLinks",
+ CellID->1038487239]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["See Also", "SeeAlsoSection",
+ CellID->1255426704],
+
+Cell[TextData[{
+ Cell[BoxData[
+  ButtonBox["BoolPick",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolPick"]], "InlineFormula"],
+ " \[EmptyVerySmallSquare] ",
+ Cell[BoxData[
+  ButtonBox["BoolCount",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolCount"]], "InlineFormula"]
+}], "SeeAlso",
+ CellID->929782353]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["More About", "MoreAboutSection",
+ CellID->38303248],
+
+Cell["XXXX", "MoreAbout",
+ CellID->1665078683]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ InterpretationBox[GridBox[{
+    {
+     StyleBox["Examples", "PrimaryExamplesSection"], 
+     ButtonBox[
+      RowBox[{
+       RowBox[{"More", " ", "Examples"}], " ", "\[RightTriangle]"}],
+      BaseStyle->"ExtendedExamplesLink",
+      ButtonData:>"ExtendedExamples"]}
+   }],
+  $Line = 0; Null]], "PrimaryExamplesSection",
+ CellID->880084151],
+
+Cell["This loads the package.", "ExampleText",
+ CellID->1430781738],
+
+Cell[BoxData[
+ RowBox[{"Needs", "[", "\"\<BoolEval`\>\"", "]"}]], "Input",
+ CellLabel->"In[8]:=",
+ CellID->1115162452],
+
+Cell["Find elements of an array that are greater than 5.", "ExampleText",
+ CellID->1173795963],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolEval", "[", 
+  RowBox[{
+   RowBox[{"Range", "[", "10", "]"}], ">", "5"}], "]"}]], "Input",
+ CellLabel->"In[10]:=",
+ CellID->948152968],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+  "0", ",", "0", ",", "0", ",", "0", ",", "0", ",", "1", ",", "1", ",", "1", 
+   ",", "1", ",", "1"}], "}"}]], "Output",
+ CellLabel->"Out[10]=",
+ CellID->1415265824]
+}, Open  ]],
+
+Cell["\<\
+Find elements that are greater than or equal to 3 but less than 7.\
+\>", "ExampleText",
+ CellID->2061958631],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolEval", "[", 
+  RowBox[{"3", "<=", 
+   RowBox[{"Range", "[", "10", "]"}], "<", "7"}], "]"}]], "Input",
+ CellLabel->"In[12]:=",
+ CellID->380470128],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+  "0", ",", "0", ",", "1", ",", "1", ",", "1", ",", "1", ",", "0", ",", "0", 
+   ",", "0", ",", "0"}], "}"}]], "Output",
+ CellLabel->"Out[12]=",
+ CellID->1422863480]
+}, Open  ]],
+
+Cell["Higher dimensional arrays are supported.", "ExampleText",
+ CellID->569605107],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolEval", "[", 
+  RowBox[{
+   RowBox[{"(", GridBox[{
+      {"1", "2"},
+      {"3", "4"}
+     }], ")"}], "\[NotEqual]", "3"}], "]"}]], "Input",
+ CellLabel->"In[55]:=",
+ CellID->288535965],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"1", ",", "1"}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"0", ",", "1"}], "}"}]}], "}"}]], "Output",
+ CellLabel->"Out[55]=",
+ CellID->1464456645]
+}, Open  ]],
+
+Cell["Compare each row of a matrix with a different constant.", "ExampleText",
+ 
+ CellID->1972319947],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolEval", "[", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"1", ",", "2"}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"3", ",", "4"}], "}"}]}], "}"}], "<=", 
+   RowBox[{"{", 
+    RowBox[{"2", ",", "3"}], "}"}]}], "]"}]], "Input",
+ CellLabel->"In[27]:=",
+ CellID->279059401],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"1", ",", "1"}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{"1", ",", "0"}], "}"}]}], "}"}]], "Output",
+ CellLabel->"Out[27]=",
+ CellID->310665148]
+}, Open  ]],
+
+Cell["Compare two arrays.", "ExampleText",
+ CellID->81559598],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolEval", "[", 
+  RowBox[{
+   RowBox[{"Range", "[", "5", "]"}], "\[Equal]", 
+   RowBox[{"Range", "[", 
+    RowBox[{"5", ",", "1", ",", 
+     RowBox[{"-", "1"}]}], "]"}]}], "]"}]], "Input",
+ CellLabel->"In[9]:=",
+ CellID->1019046064],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"0", ",", "0", ",", "1", ",", "0", ",", "0"}], "}"}]], "Output",
+ CellLabel->"Out[9]=",
+ CellID->1991136166]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["More Examples", "ExtendedExamplesSection",
+ CellTags->"ExtendedExamples",
+ CellID->1854448968],
+
+Cell[BoxData[
+ InterpretationBox[Cell["Scope", "ExampleSection"],
+  $Line = 0; Null]], "ExampleSection",
+ CellID->1293636265],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ InterpretationBox[Cell["Generalizations & Extensions", "ExampleSection"],
+  $Line = 0; Null]], "ExampleSection",
+ CellID->1020263627],
+
+Cell[BoxData[
+ RowBox[{"Needs", "[", "\"\<BoolEval`\>\"", "]"}]], "Input",
+ CellID->787870761],
+
+Cell["\<\
+BoolEval supports any expression that works with arithmetic and basic \
+numerical operations.\
+\>", "ExampleText",
+ CellID->359712725],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolEval", "[", 
+  RowBox[{
+   RowBox[{"\[LeftAssociation]", 
+    RowBox[{
+     RowBox[{"\"\<a\>\"", "\[Rule]", "10"}], ",", 
+     RowBox[{"\"\<b\>\"", "\[Rule]", "3"}]}], "\[RightAssociation]"}], "<", 
+   "5"}], "]"}]], "Input",
+ CellLabel->"In[21]:=",
+ CellID->912086807],
+
+Cell[BoxData[
+ RowBox[{"\[LeftAssociation]", 
+  RowBox[{
+   RowBox[{"\<\"a\"\>", "\[Rule]", "0"}], ",", 
+   RowBox[{"\<\"b\"\>", "\[Rule]", "1"}]}], "\[RightAssociation]"}]], "Output",
+ CellLabel->"Out[21]=",
+ CellID->1177240997]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ InterpretationBox[Cell["Options", "ExampleSection"],
+  $Line = 0; Null]], "ExampleSection",
+ CellID->2061341341],
+
+Cell[BoxData[
+ InterpretationBox[Cell["XXXX", "ExampleSubsection"],
+  $Line = 0; Null]], "ExampleSubsection",
+ CellID->1757724783],
+
+Cell[BoxData[
+ InterpretationBox[Cell["XXXX", "ExampleSubsection"],
+  $Line = 0; Null]], "ExampleSubsection",
+ CellID->1295379749]
+}, Closed]],
+
+Cell[BoxData[
+ InterpretationBox[Cell["Applications", "ExampleSection"],
+  $Line = 0; Null]], "ExampleSection",
+ CellID->258228157],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ InterpretationBox[Cell["Properties & Relations", "ExampleSection"],
+  $Line = 0; Null]], "ExampleSection",
+ CellID->2123667759],
+
+Cell[BoxData[
+ RowBox[{"Needs", "[", "\"\<BoolEval`\>\"", "]"}]], "Input",
+ CellID->816396579],
+
+Cell["\<\
+BoolEval effectively threads comparisons over arrays, then converts truth \
+values to 0 or 1.\
+\>", "ExampleText",
+ CellID->904282570],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolEval", "[", 
+  RowBox[{
+   RowBox[{"Range", "[", "5", "]"}], "<", "3"}], "]"}]], "Input",
+ CellLabel->"In[29]:=",
+ CellID->728469659],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"1", ",", "1", ",", "0", ",", "0", ",", "0"}], "}"}]], "Output",
+ CellLabel->"Out[29]=",
+ CellID->1310247337]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Boole", "[", 
+  RowBox[{"Thread", "[", 
+   RowBox[{
+    RowBox[{"Range", "[", "5", "]"}], "<", "3"}], "]"}], "]"}]], "Input",
+ CellLabel->"In[28]:=",
+ CellID->535384171],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"1", ",", "1", ",", "0", ",", "0", ",", "0"}], "}"}]], "Output",
+ CellLabel->"Out[28]=",
+ CellID->1829668550]
+}, Open  ]],
+
+Cell["\<\
+Internally, BoolEval converts comparison and Boolean operators to arithmetic \
+ones. Use a symbolic input to see the generated arithmetic expression.\
+\>", "ExampleText",
+ CellID->937574216],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolEval", "[", 
+  RowBox[{"a", "\[LessEqual]", "5"}], "]"}]], "Input",
+ CellLabel->"In[35]:=",
+ CellID->1756902744],
+
+Cell[BoxData[
+ RowBox[{"UnitStep", "[", 
+  RowBox[{"5", "-", "a"}], "]"}]], "Output",
+ CellLabel->"Out[35]=",
+ CellID->1307540657]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolEval", "[", 
+  RowBox[{
+   RowBox[{"a", "<", "3"}], "||", 
+   RowBox[{"a", "\[GreaterEqual]", "8"}]}], "]"}]], "Input",
+ CellLabel->"In[36]:=",
+ CellID->40259439],
+
+Cell[BoxData[
+ RowBox[{"Unitize", "[", 
+  RowBox[{"1", "+", 
+   RowBox[{"UnitStep", "[", 
+    RowBox[{
+     RowBox[{"-", "8"}], "+", "a"}], "]"}], "-", 
+   RowBox[{"UnitStep", "[", 
+    RowBox[{
+     RowBox[{"-", "3"}], "+", "a"}], "]"}]}], "]"}]], "Output",
+ CellLabel->"Out[36]=",
+ CellID->1361467529]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolEval", "[", 
+  RowBox[{"!", 
+   RowBox[{"(", 
+    RowBox[{"5", "<", "a", "<", "6"}], ")"}]}], "]"}]], "Input",
+ CellLabel->"In[37]:=",
+ CellID->844824452],
+
+Cell[BoxData[
+ RowBox[{"1", "-", 
+  RowBox[{
+   RowBox[{"(", 
+    RowBox[{"1", "-", 
+     RowBox[{"UnitStep", "[", 
+      RowBox[{"5", "-", "a"}], "]"}]}], ")"}], " ", 
+   RowBox[{"(", 
+    RowBox[{"1", "-", 
+     RowBox[{"UnitStep", "[", 
+      RowBox[{
+       RowBox[{"-", "6"}], "+", "a"}], "]"}]}], ")"}]}]}]], "Output",
+ CellLabel->"Out[37]=",
+ CellID->969144662]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ InterpretationBox[Cell["Possible Issues", "ExampleSection"],
+  $Line = 0; Null]], "ExampleSection",
+ CellID->1305812373],
+
+Cell[BoxData[
+ RowBox[{"Needs", "[", "\"\<BoolEval`\>\"", "]"}]], "Input",
+ CellID->2064912264],
+
+Cell[TextData[{
+ "Only those operators are processed which appear literally within the \
+argument of ",
+ Cell[BoxData[
+  ButtonBox["BoolEval",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolEval"]], "InlineFormula"],
+ "."
+}], "ExampleText",
+ CellID->1644685528],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"f", "[", "arr_", "]"}], ":=", 
+  RowBox[{"arr", ">", "3"}]}], "\[IndentingNewLine]", 
+ RowBox[{"BoolEval", "[", 
+  RowBox[{"f", "[", 
+   RowBox[{"Range", "[", "5", "]"}], "]"}], "]"}]}], "Input",
+ CellLabel->"In[30]:=",
+ CellID->1406532604],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"{", 
+   RowBox[{"1", ",", "2", ",", "3", ",", "4", ",", "5"}], "}"}], ">", 
+  "3"}]], "Output",
+ CellLabel->"Out[31]=",
+ CellID->1696768383]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolEval", "[", 
+  RowBox[{
+   RowBox[{"Range", "[", "5", "]"}], ">", "3"}], "]"}]], "Input",
+ CellLabel->"In[32]:=",
+ CellID->195585847],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"0", ",", "0", ",", "0", ",", "1", ",", "1"}], "}"}]], "Output",
+ CellLabel->"Out[32]=",
+ CellID->136348787]
+}, Open  ]],
+
+Cell[TextData[{
+ "Use ",
+ ButtonBox["Evaluate",
+  BaseStyle->"Link",
+  ButtonData->"paclet:ref/Evaluate"],
+ " to generate the comparison operators before ",
+ Cell[BoxData[
+  ButtonBox["BoolEval",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolEval"]], "InlineFormula"],
+ " can see them."
+}], "ExampleText",
+ CellID->1785651896],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolEval", "[", 
+  RowBox[{
+   RowBox[{"f", "[", 
+    RowBox[{"Range", "[", "5", "]"}], "]"}], "//", "Evaluate"}], 
+  "]"}]], "Input",
+ CellLabel->"In[33]:=",
+ CellID->1842505964],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"0", ",", "0", ",", "0", ",", "1", ",", "1"}], "}"}]], "Output",
+ CellLabel->"Out[33]=",
+ CellID->835840658]
+}, Open  ]]
+}, Open  ]],
+
+Cell[BoxData[
+ InterpretationBox[Cell["Interactive Examples", "ExampleSection"],
+  $Line = 0; Null]], "ExampleSection",
+ CellID->1653164318],
+
+Cell[BoxData[
+ InterpretationBox[Cell["Neat Examples", "ExampleSection"],
+  $Line = 0; Null]], "ExampleSection",
+ CellID->589267740]
+}, Open  ]]
+},
+WindowSize->{700, 770},
+WindowMargins->{{208, Automatic}, {Automatic, 0}},
+CellContext->"Global`",
+TrackCellChangeTimes->False,
+FrontEndVersion->"10.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (December 4, \
+2014)",
+StyleDefinitions->FrontEnd`FileName[{"Wolfram"}, "FunctionPageStyles.nb", 
+  CharacterEncoding -> "UTF-8"]
+]

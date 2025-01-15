@@ -1,0 +1,481 @@
+Notebook[{
+Cell[TextData[{
+ "New in: ",
+ Cell["XX", "HistoryData",
+  CellTags->"New",
+  ExpressionUUID -> "eae1f4e3-4874-46f4-bdb9-7702c6578457"],
+ " | Modified in: ",
+ Cell[" ", "HistoryData",
+  CellTags->"Modified",
+  ExpressionUUID -> "d8133a75-521e-41a9-94cb-89767a4b5738"],
+ " | Obsolete in: ",
+ Cell[" ", "HistoryData",
+  CellTags->"Obsolete",
+  ExpressionUUID -> "c6e4fea9-4707-4b48-8a49-4b0b8a09cf14"],
+ " | Excised in: ",
+ Cell[" ", "HistoryData",
+  CellTags->"Excised",
+  ExpressionUUID -> "4aa0ea01-163b-4a0f-9085-7a0756e66755"]
+}], "History",
+ CellID->1247902091,
+ ExpressionUUID -> "2e9a19cd-4714-4bcd-b506-bbcd263052cc"],
+
+Cell[CellGroupData[{
+
+Cell["Categorization", "CategorizationSection",
+ CellID->1122911449,
+ ExpressionUUID -> "eaafee18-309a-4a33-b2a4-0d22dc012a0b"],
+
+Cell["Symbol", "Categorization",
+ CellLabel->"Entity Type",
+ CellID->686433507,
+ ExpressionUUID -> "6a0b58e5-ae81-4030-b7bf-69932662b447"],
+
+Cell["BoolEval Package", "Categorization",
+ CellLabel->"Paclet Name",
+ CellID->576093070,
+ ExpressionUUID -> "869c8413-b90c-4ca4-a178-111648d6df8c"],
+
+Cell["BoolEval`", "Categorization",
+ CellLabel->"Context",
+ CellID->1539946814,
+ ExpressionUUID -> "594c561a-74ed-4ba8-a401-98029e1fd4bb"],
+
+Cell["BoolEval/ref/BoolCount", "Categorization",
+ CellLabel->"URI",
+ CellID->413189254,
+ ExpressionUUID -> "1281939f-b935-4caa-b15b-a7469702957d"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Keywords", "KeywordsSection",
+ CellID->477174294,
+ ExpressionUUID -> "22d55c5e-5178-45eb-ba8f-587274d7a1b0"],
+
+Cell["XXXX", "Keywords",
+ CellID->1164421360,
+ ExpressionUUID -> "4065c11f-6509-4d93-b283-cb6a62105c9d"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Syntax Templates", "TemplatesSection",
+ CellID->1872225408,
+ ExpressionUUID -> "46d0bc32-a713-44db-b7b8-bf7fa3fdad7e"],
+
+Cell[BoxData[""], "Template",
+ CellLabel->"Additional Function Template",
+ CellID->1562036412,
+ ExpressionUUID -> "8709f111-7072-44f7-b31c-fa024215a926"],
+
+Cell[BoxData[""], "Template",
+ CellLabel->"Arguments Pattern",
+ CellID->158391909,
+ ExpressionUUID -> "838cec2d-02b2-4f22-b2b2-7fbbc4d7c5e3"],
+
+Cell[BoxData[""], "Template",
+ CellLabel->"Local Variables",
+ CellID->1360575930,
+ ExpressionUUID -> "fb35a3b0-85da-4bf6-935e-fcffc25a7722"],
+
+Cell[BoxData[""], "Template",
+ CellLabel->"Color Equal Signs",
+ CellID->793782254,
+ ExpressionUUID -> "f9f4f4bc-8e16-490c-a01a-65308efe091f"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["Details", "DetailsSection",
+ CellID->307771771,
+ ExpressionUUID -> "9b7f7e41-bfc2-45fb-94b8-47443fd6ca98"],
+
+Cell["XXXX", "Details",
+ CellLabel->"Lead",
+ CellID->670882175,
+ ExpressionUUID -> "277d2f29-8169-499d-9b3b-ffd8a3ddb470"],
+
+Cell["XXXX", "Details",
+ CellLabel->"Developers",
+ CellID->350963985,
+ ExpressionUUID -> "677952fa-483e-455c-8b3f-84fbc1ca019f"],
+
+Cell["XXXX", "Details",
+ CellLabel->"Authors",
+ CellID->8391405,
+ ExpressionUUID -> "8e9717e1-1b4c-434a-b910-e320e5df6d1c"],
+
+Cell["XXXX", "Details",
+ CellLabel->"Feature Name",
+ CellID->3610269,
+ ExpressionUUID -> "27acb121-ac0b-4398-94e0-48d94143f1b3"],
+
+Cell["XXXX", "Details",
+ CellLabel->"QA",
+ CellID->401364205,
+ ExpressionUUID -> "2db41436-73ba-4db2-9116-3cf7e3735cb3"],
+
+Cell["XXXX", "Details",
+ CellLabel->"DA",
+ CellID->350204745,
+ ExpressionUUID -> "f3dbf2b3-f92c-4b31-8811-96340e247e2d"],
+
+Cell["XXXX", "Details",
+ CellLabel->"Docs",
+ CellID->732958810,
+ ExpressionUUID -> "0a3b09e9-5a26-4e5b-9e5f-1b412166eb29"],
+
+Cell["XXXX", "Details",
+ CellLabel->"Features Page Notes",
+ CellID->222905350,
+ ExpressionUUID -> "712bc3f8-a35d-4a03-8132-7b3c5869ee88"],
+
+Cell["XXXX", "Details",
+ CellLabel->"Comments",
+ CellID->240026365,
+ ExpressionUUID -> "f1d8b4d5-9982-449c-8230-f3c4da545dc8"]
+}, Closed]],
+
+Cell[CellGroupData[{
+
+Cell["BoolCount", "ObjectName",
+ CellID->1224892054,
+ ExpressionUUID -> "7f979ef1-94ed-4586-bba7-2cf115dc5e87"],
+
+Cell[TextData[{
+ Cell["   ", "ModInfo",
+  ExpressionUUID -> "9a75ce4a-ebd8-4b51-b61e-46aba669c67e"],
+ Cell[BoxData[
+  RowBox[{"BoolCount", "[", 
+   StyleBox["condition", "TI"], "]"}]], "InlineFormula",
+  ExpressionUUID -> "ece1fd9d-3a00-489d-892c-b47eefdae2ab"],
+ "\[LineSeparator]counts the number of array elements satisfying ",
+ Cell[BoxData[
+  StyleBox["condition", "TI"]], "InlineFormula",
+  ExpressionUUID -> "010d1403-4510-4075-bd8e-0140cb490abb"],
+ "."
+}], "Usage",
+ ExpressionUUID -> "66b549b5-eba1-4558-96c2-ab234bd0d1a6"],
+
+Cell[TextData[{
+ "The expression ",
+ Cell[BoxData[
+  StyleBox["condition", "TI"]], "InlineFormula",
+  ExpressionUUID -> "ea834d8a-c9ef-470c-863e-73c09e9c457c"],
+ " must consist of equality and inequality operators, possibly joined by \
+logical operators, applied to numerical arrays."
+}], "Notes",
+ CellID->1067943069,
+ ExpressionUUID -> "93b7c581-a810-44df-aaa2-7c6c261d8e10"],
+
+Cell[TextData[{
+ Cell[BoxData["BoolCount"], "InlineFormula",
+  ExpressionUUID -> "9c025162-d4e0-4164-9e3f-42a5a3e18ad7"],
+ " effectively applies ",
+ Cell[BoxData[
+  ButtonBox["BoolEval",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolEval"]], "InlineFormula",
+  ExpressionUUID -> "a65a0246-4985-4dfb-b456-9d1343c28d98"],
+ " to condition and counts the number of 1s in the result."
+}], "Notes",
+ CellID->967988863,
+ ExpressionUUID -> "d29534c2-77a3-4f58-9e0d-95951c0aaa03"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Tutorials", "TutorialsSection",
+ CellID->250839057,
+ ExpressionUUID -> "8e273145-83a8-4dd2-85a4-baa05b2dbbc6"],
+
+Cell[TextData[ButtonBox["Introduction to BoolEval",
+ BaseStyle->"Link",
+ ButtonData->"paclet:BoolEval/tutorial/IntroductionToBoolEval"]], "Tutorials",
+ 
+ CellID->341631938,
+ ExpressionUUID -> "0d17b81c-dcd8-40fe-9258-6bcb3afc92a6"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Related Demonstrations", "RelatedDemonstrationsSection",
+ CellID->1268215905,
+ ExpressionUUID -> "0544e869-5b4b-4785-9f13-9b6fa0fd2336"],
+
+Cell["XXXX", "RelatedDemonstrations",
+ CellID->1129518860,
+ ExpressionUUID -> "84cf1ce3-f07c-4720-a4b1-d74c3c8e5bb7"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Related Links", "RelatedLinksSection",
+ CellID->1584193535,
+ ExpressionUUID -> "46d90b7f-be0e-477a-8614-8b7be1b135a3"],
+
+Cell["XXXX", "RelatedLinks",
+ CellID->1038487239,
+ ExpressionUUID -> "54735fe1-5b45-4d22-84ca-dbb055bb26df"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["See Also", "SeeAlsoSection",
+ CellID->1255426704,
+ ExpressionUUID -> "b8b572e8-e007-4992-9c9c-fb3131e946c8"],
+
+Cell[TextData[{
+ Cell[BoxData[
+  ButtonBox["BoolEval",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolEval"]], "InlineFormula"],
+ " \[EmptyVerySmallSquare] ",
+ Cell[BoxData[
+  ButtonBox["BoolPick",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolPick"]], "InlineFormula"],
+ " \[EmptyVerySmallSquare] ",
+ Cell[BoxData[
+  ButtonBox["Count",
+   BaseStyle->"Link"]], "InlineFormula"]
+}], "SeeAlso",
+ CellID->929782353,
+ $CellContext`ExpressionUUID -> "b47117f8-c3c2-4c58-a504-6b538558957e"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["More About", "MoreAboutSection",
+ CellID->38303248,
+ ExpressionUUID -> "a1617a49-53b3-4dac-aca7-ccfefbfff8ab"],
+
+Cell["XXXX", "MoreAbout",
+ CellID->1665078683,
+ ExpressionUUID -> "8dea34bb-4626-4247-8c48-11703f6cc600"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ InterpretationBox[GridBox[{
+    {
+     StyleBox["Examples", "PrimaryExamplesSection"], 
+     ButtonBox[
+      RowBox[{
+       RowBox[{"More", " ", "Examples"}], " ", "\[RightTriangle]"}],
+      BaseStyle->"ExtendedExamplesLink",
+      ButtonData:>"ExtendedExamples"]}
+   }],
+  $Line = 0; Null]], "PrimaryExamplesSection",
+ CellID->880084151,
+ ExpressionUUID -> "814e1ec4-cc0f-4b1f-8463-d560afd8ccfe"],
+
+Cell["This loads the package.", "ExampleText",
+ CellID->1430781738],
+
+Cell[BoxData[
+ RowBox[{"Needs", "[", "\"\<BoolEval`\>\"", "]"}]], "Input",
+ CellLabel->"In[8]:=",
+ CellID->1876675057,
+ ExpressionUUID -> "07f2921e-6a0c-452c-b263-5366043d680e"],
+
+Cell["How many numbers in the range 1..10 are greater than 3?", "ExampleText",
+ 
+ CellID->1052154442,
+ ExpressionUUID -> "f1437610-f47d-4717-9a17-a7bbfef47c91"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"BoolCount", "[", 
+  RowBox[{
+   RowBox[{"Range", "[", "10", "]"}], ">", "3"}], "]"}]], "Input",
+ CellLabel->"In[52]:=",
+ CellID->131491351,
+ ExpressionUUID -> "8b3b757d-e579-4c91-8c13-04250fdbb913"],
+
+Cell[BoxData["7"], "Output",
+ CellLabel->"Out[52]=",
+ CellID->1526637906,
+ ExpressionUUID -> "69000d84-5313-417e-bcfc-33875c51696f"]
+}, Open  ]],
+
+Cell["\<\
+Approximate the area of the unit circle using Monte Carlo integration.\
+\>", "ExampleText",
+ CellID->213876091,
+ ExpressionUUID -> "ddc24d90-64cd-4c6d-a075-51b57804229c"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"n", "=", "1000000"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"coord", "=", 
+   RowBox[{"RandomReal", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"-", "1"}], ",", "1"}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"2", ",", "n"}], "}"}]}], "]"}]}], ";"}], "\n", 
+ RowBox[{"4.0", "\[Times]", 
+  RowBox[{
+   RowBox[{"BoolCount", "[", 
+    RowBox[{
+     RowBox[{"Total", "[", 
+      RowBox[{"coord", "^", "2"}], "]"}], "<", "1"}], "]"}], "/", 
+   "n"}]}]}], "Input",
+ CellLabel->"In[48]:=",
+ CellID->357418830,
+ ExpressionUUID -> "ac0d5f4d-af2a-4837-b178-d7378b9039b2"],
+
+Cell[BoxData["3.141316`"], "Output",
+ CellLabel->"Out[50]=",
+ CellID->350231416,
+ ExpressionUUID -> "adda6733-8142-46a7-9428-430d2ec2318a"]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["More Examples", "ExtendedExamplesSection",
+ CellTags->"ExtendedExamples",
+ CellID->1854448968,
+ ExpressionUUID -> "5bfb1d15-b540-4d6c-a080-42daca6c492e"],
+
+Cell[BoxData[
+ InterpretationBox[Cell["Scope", "ExampleSection",
+   ExpressionUUID -> "1b5c530a-851b-464a-9062-b58591554b20"],
+  $Line = 0; Null]], "ExampleSection",
+ CellID->1293636265,
+ ExpressionUUID -> "a7ed1120-6970-46c1-9bf1-5c6b105cd167"],
+
+Cell[BoxData[
+ InterpretationBox[Cell["Generalizations & Extensions", "ExampleSection",
+   ExpressionUUID -> "85cd8d5b-3077-46c1-93ea-cc63c75b275c"],
+  $Line = 0; Null]], "ExampleSection",
+ CellID->1020263627,
+ ExpressionUUID -> "938738ce-b393-4c16-94bd-90538890ce72"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ InterpretationBox[Cell["Options", "ExampleSection",
+   ExpressionUUID -> "0d156751-4079-4d9a-a568-02dd1ef6c86c"],
+  $Line = 0; Null]], "ExampleSection",
+ CellID->2061341341,
+ ExpressionUUID -> "a954f59f-3bb3-4363-b4a9-787bc05cbc19"],
+
+Cell[BoxData[
+ InterpretationBox[Cell["XXXX", "ExampleSubsection",
+   ExpressionUUID -> "be28a404-0de9-4562-a5a5-d57c4008673b"],
+  $Line = 0; Null]], "ExampleSubsection",
+ CellID->1757724783,
+ ExpressionUUID -> "45f51f77-6bcd-487b-9ff5-0db53cbddc86"],
+
+Cell[BoxData[
+ InterpretationBox[Cell["XXXX", "ExampleSubsection",
+   ExpressionUUID -> "04840078-dde0-4d27-9e61-2b82e2efd9eb"],
+  $Line = 0; Null]], "ExampleSubsection",
+ CellID->1295379749,
+ ExpressionUUID -> "72b66daa-f465-4e7a-a301-931d8d324ec1"]
+}, Closed]],
+
+Cell[BoxData[
+ InterpretationBox[Cell["Applications", "ExampleSection",
+   ExpressionUUID -> "d720c693-489b-4cfa-9a19-3780d0b778d8"],
+  $Line = 0; Null]], "ExampleSection",
+ CellID->258228157,
+ ExpressionUUID -> "f3a45c31-c089-413e-977b-1e9e8ea9074b"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ InterpretationBox[Cell["Properties & Relations", "ExampleSection",
+   ExpressionUUID -> "9f87cb26-0515-420f-86bd-e4d77b9bb018"],
+  $Line = 0; Null]], "ExampleSection",
+ CellID->2123667759,
+ ExpressionUUID -> "43d9c90c-978c-4a7b-95b2-197ecf3d7728"],
+
+Cell[TextData[{
+ "The following ",
+ Cell[BoxData[
+  ButtonBox["BoolCount",
+   BaseStyle->"Link",
+   ButtonData->"paclet:BoolEval/ref/BoolCount"]], "InlineFormula"],
+ " and ",
+ ButtonBox["Count",
+  BaseStyle->"Link",
+  ButtonData->"paclet:ref/Count"],
+ " expressions are equivalent."
+}], "ExampleText",
+ CellID->1918734338],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"arr", "=", 
+   RowBox[{"RandomReal", "[", 
+    RowBox[{"2", ",", "100"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{"BoolCount", "[", 
+  RowBox[{"arr", "<", "0.5"}], "]"}]}], "Input",
+ CellLabel->"In[9]:=",
+ CellID->1506307115],
+
+Cell[BoxData["19"], "Output",
+ CellLabel->"Out[10]=",
+ CellID->1539975163]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Count", "[", 
+  RowBox[{"arr", ",", 
+   RowBox[{"x_", "/;", 
+    RowBox[{"x", "<", "0.5"}]}]}], "]"}]], "Input",
+ CellLabel->"In[11]:=",
+ CellID->1581475465],
+
+Cell[BoxData["19"], "Output",
+ CellLabel->"Out[11]=",
+ CellID->677760368]
+}, Open  ]]
+}, Open  ]],
+
+Cell[BoxData[
+ InterpretationBox[Cell["Possible Issues", "ExampleSection",
+   ExpressionUUID -> "5845854f-b34b-40f3-ba6c-582844dac0ca"],
+  $Line = 0; Null]], "ExampleSection",
+ CellID->1305812373,
+ ExpressionUUID -> "ade87846-ce8c-4a46-80b8-7d1b5e02caf4"],
+
+Cell[BoxData[
+ InterpretationBox[Cell["Interactive Examples", "ExampleSection",
+   ExpressionUUID -> "7aefca53-4d6f-4510-8998-6996fdcf9d9d"],
+  $Line = 0; Null]], "ExampleSection",
+ CellID->1653164318,
+ ExpressionUUID -> "da436978-b027-4463-98c3-f6c565daf8c9"],
+
+Cell[BoxData[
+ InterpretationBox[Cell["Neat Examples", "ExampleSection",
+   ExpressionUUID -> "4ca69da7-6d6f-4c89-a67f-de53d205293d"],
+  $Line = 0; Null]], "ExampleSection",
+ CellID->589267740,
+ ExpressionUUID -> "964952e5-6e43-404c-9eec-8801285f2ddc"]
+}, Open  ]]
+},
+WindowSize->{700, 770},
+WindowMargins->{{328, Automatic}, {28, Automatic}},
+CellContext->"Global`",
+TrackCellChangeTimes->False,
+FrontEndVersion->"10.0 for Mac OS X x86 (32-bit, 64-bit Kernel) (December 4, \
+2014)",
+StyleDefinitions->FrontEnd`FileName[{"Wolfram"}, "FunctionPageStyles.nb", 
+  CharacterEncoding -> "UTF-8"]
+]

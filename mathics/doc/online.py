@@ -14,14 +14,17 @@ def online_doc_string(
     """
     Returns a python string with the documentation associated to a given symbol.
     """
-    definition = evaluation.definitions.get_definition(symbol.name)
-    ruleusage = definition.get_values_list("messages")
     usagetext = ""
+    try:
+        definition = evaluation.definitions.get_definition(symbol.name)
+        ruleusage = definition.get_values_list("messages")
+    except KeyError:
+        ruleusage = []
 
     # First look at user definitions:
     for rulemsg in ruleusage:
-        if rulemsg.pattern.expr.elements[1].__str__() == '"usage"':
-            usagetext = rulemsg.replace.value
+        if rulemsg.pattern.expr.get_elements()[1].__str__() == '"usage"':
+            usagetext = rulemsg.get_replace_value().to_python(string_quotes=False)
 
     if not is_long_form and usagetext:
         return usagetext

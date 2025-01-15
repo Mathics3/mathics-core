@@ -45,11 +45,14 @@ Compatibility
 -------------
 
 * ``GetEnvironment`` expanded to handle ``[]`` and ``{var1, var2,...}`` forms
+* The system ``packages`` directory has been renamed ``Packages`` to conformance with WMA.
+* ``$Path`` now includes a ``Packages`` directory under ``$HOME``.
 
 Internals
 ---------
 
-Operator precedence has been gone over and is picked up in tables from the Mathics Scanner project.
+Operator information has been gone over and is picked up from JSON
+tables produced from the Mathics Scanner project.
 
 
 Performance
@@ -61,7 +64,10 @@ API incompatibility
 -------------------
 
 * ``Matcher`` now requires an additional ``evaluation`` parameter
-* ``Romberg`` removed as an ``NIntegrate[]`` method. It is depcrecated in SciPy and is to be removed by SciPy 1.15.
+* ``Romberg`` removed as an ``NIntegrate[]`` method. It is deprecated in SciPy and is to be removed by SciPy 1.15.
+* The signature of the ``Definition.__init__`` now receives a single dict parameter instead of the several `*values` parameters.
+* Rule positions in ``Definition.{get|set}_values`` now includes the word ``values``. For example ``pos="up"`` now is ``pos="upvalues"``.
+* ``Definitions.get_ownvalue`` now returns a ``BaseElement`` instead of a ``BaseRule`` object.
 
 
 Bugs
@@ -69,9 +75,18 @@ Bugs
 
 * Fix infinite recursion when formatting ``Sequence[...]``
 
+Mathics3 Packages
++++++++++++++++++
 
-Package updates
-+++++++++++++++
+* ``BoolEval``
+* ``CleanSlate``
+* ``Combinatorica`` moved to a separate repository and v.9 renamed to 0.9.1.
+    More code v0.9.1 works. v2.0 renamed v2.0.1 and some code now works.
+* ``Rubi`` version 4.17 (work in progress; algebraic integrations work)
+
+
+Python Package Updates
++++++++++++++++++++++++
 
 #. Python 3.12 is now supported
 #. SymPy 1.13 is now supported

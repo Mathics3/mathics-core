@@ -16,13 +16,23 @@ https://reference.wolfram.com/language/tutorial/PatternsAndTransformationRules.h
 
 from abc import ABC
 from itertools import chain
-from typing import TYPE_CHECKING, Callable, Dict, Optional, Sequence, Tuple, Type, Union
+from typing import (
+    TYPE_CHECKING,
+    Callable,
+    Dict,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    Union,
+    overload,
+)
 
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_ORDERLESS
 from mathics.core.element import BaseElement, ensure_context
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression, SymbolDefault
+from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol, symbol_set
 from mathics.core.systemsymbols import (
     SymbolAlternatives,
@@ -30,6 +40,7 @@ from mathics.core.systemsymbols import (
     SymbolBlankNullSequence,
     SymbolBlankSequence,
     SymbolCondition,
+    SymbolDefault,
     SymbolOptional,
     SymbolOptionsPattern,
     SymbolPattern,
@@ -314,11 +325,19 @@ class BasePattern(ABC):
         """Return the number of candidates that match with the pattern."""
         return len(self.get_match_candidates(elements, pattern_context))
 
+    @overload
+    def sameQ(self, other: "BasePattern") -> bool:
+        ...
+
+    @overload
     def sameQ(self, other: BaseElement) -> bool:
+        ...
+
+    def sameQ(self, other) -> bool:
         """Mathics SameQ"""
-        if not isinstance(other, BasePattern):
-            return False
-        return self.expr.sameQ(other.expr)
+        if isinstance(other, BasePattern):
+            return self.expr.sameQ(other.expr)
+        return self.expr.sameQ(other)
 
 
 class AtomPattern(BasePattern):
