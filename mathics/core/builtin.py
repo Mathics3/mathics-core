@@ -583,7 +583,7 @@ class SympyObject(Builtin):
 
 # This has to come before MPMathFunction
 class SympyFunction(SympyObject):
-    def eval(self, z, evaluation: Evaluation):
+    def eval(self, elements, evaluation: Evaluation):
         # Note: we omit a docstring here, so as not to confuse
         # function signature collector ``contribute``.
 
@@ -591,8 +591,8 @@ class SympyFunction(SympyObject):
         # to call the corresponding sympy function. Arguments are
         # converted to python and the result is converted from sympy
         #
-        # "%(name)s[z__]"
-        return eval_sympy(self, z, evaluation)
+        # "%(name)s[elements]"
+        return eval_sympy(self, elements, evaluation)
 
     def get_constant(self, precision, evaluation, have_mpmath=False):
         try:
