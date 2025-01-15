@@ -930,8 +930,8 @@ class StringTrim(Builtin):
         "StringTrim[s_String]"
         return String(s.get_string_value().strip(" \t\n"))
 
-    def eval_pattern(self, s, patt, expression, evaluation):
-        "StringTrim[s_String, patt_]"
+    def eval_pattern(self, expression, s, patt, evaluation):
+        "expression: StringTrim[s_String, patt_]"
         text = s.get_string_value()
         if not text:
             return s
