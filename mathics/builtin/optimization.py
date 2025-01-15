@@ -1,22 +1,29 @@
 # -*- coding: utf-8 -*-
 """Mathematical Optimization
 
-Mathematical optimization is the selection of a best element, with regard to some criterion, from some set of available alternatives.
+Mathematical optimization is the selection of a best element, with regard to \
+some criterion, from some set of available alternatives.
 
-Optimization problems of sorts arise in all quantitative disciplines from computer science and engineering to operations research and economics, and the development of solution methods has been of interest in mathematics for centuries.
+Optimization problems of sorts arise in all quantitative disciplines from \
+computer science and engineering to operations research and economics, \
+and the development of solution methods has been of interest in mathematics \
+for centuries.
 
-We intend to provide local and global optimization techniques, both numeric and symbolic.
+We intend to provide local and global optimization techniques, both numeric \
+and symbolic.
 """
 
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.mathematical-optimization"
 
 import sympy
 
-from mathics.builtin.base import Builtin
-
 from mathics.core.atoms import IntegerM1
-from mathics.core.attributes import constant, protected, read_protected
+from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol
@@ -25,29 +32,83 @@ from mathics.core.systemsymbols import SymbolRule
 SymbolMinimize = Symbol("Minimize")
 
 
+class Maximize(Builtin):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Maximize.html</url>
+
+    <dl>
+      <dt>'Maximize[$f$, $x$]'
+      <dd>compute the maximum of $f$ respect $x$ that change between \
+      $a$ and $b$.
+    </dl>
+
+    >> Maximize[-2 x^2 - 3 x + 5, x]
+     = {{49 / 8, {x -> -3 / 4}}}
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "compute the maximum of a function"
+
+    def eval(self, f, vars, evaluation: Evaluation):
+        "Maximize[f_?NotListQ, vars_]"
+
+        dual_f = f.to_sympy() * (-1)
+
+        dual_solutions = (
+            Expression(SymbolMinimize, from_sympy(dual_f), vars)
+            .evaluate(evaluation)
+            .elements
+        )
+
+        solutions = []
+        for dual_solution in dual_solutions:
+            solution_elements = dual_solution.elements
+            solutions.append([solution_elements[0] * IntegerM1, solution_elements[1]])
+
+        return from_python(solutions)
+
+    def eval_constraints(self, f, vars, evaluation: Evaluation):
+        "Maximize[f_List, vars_]"
+
+        constraints = [function for function in f.elements]
+        constraints[0] = from_sympy(-(constraints[0].to_sympy()))
+        constraints = ListExpression(*constraints)
+        minimize_expr = Expression(SymbolMinimize, constraints, vars).evaluate(
+            evaluation
+        )
+        dual_solutions = minimize_expr.evaluate(evaluation).elements
+
+        solutions = []
+        for dual_solution in dual_solutions:
+            solution_elements = dual_solution.elements
+            solutions.append([solution_elements[0] * IntegerM1, solution_elements[1]])
+
+        return from_python(solutions)
+
+
 class Minimize(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Minimize.html</url>
+
     <dl>
     <dt>'Minimize[$f$, $x$]'
-        <dd>compute the minimum of $f$ respect $x$ that change between $a$ and $b$
+        <dd>compute the minimum of $f$ respect $x$ that change between \
+        $a$ and $b$.
     </dl>
 
     >> Minimize[2 x^2 - 3 x + 5, x]
      = {{31 / 8, {x -> 3 / 4}}}
-
-    #>> Minimize[(x y - 3)^2 + 1, {x, y}]
-     = {{1, {x -> 3, y -> 1}}}
-
-    #>> Minimize[{x - 2 y, x^2 + y^2 <= 1}, {x, y}]
-     = {{-Sqrt[5], {x -> -Sqrt[5] / 5, y -> 2 Sqrt[5] / 5}}}
     """
 
-    attributes = protected | read_protected
-    summary_text = "minimize a function"
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "compute the minimum of a function"
 
-    def apply_onevariable(self, f, x, evaluation):
+    def eval_onevariable(self, f, x, evaluation: Evaluation):
         "Minimize[f_?NotListQ, x_?NotListQ]"
-
         sympy_x = x.to_sympy()
         sympy_f = f.to_sympy()
 
@@ -56,11 +117,9 @@ class Minimize(Builtin):
         candidates = sympy.solve(derivative, sympy_x, real=True, dict=True)
 
         minimum_list = []
-
         for candidate in candidates:
             value = second_derivative.subs(candidate)
             if value.is_real and value > 0:
-
                 if candidate is not list:
                     candidate = candidate
 
@@ -76,7 +135,7 @@ class Minimize(Builtin):
             )
         )
 
-    def apply_multiplevariable(self, f, vars, evaluation):
+    def eval_multiplevariable(self, f, vars, evaluation: Evaluation):
         "Minimize[f_?NotListQ, vars_List]"
 
         head_name = vars.get_head_name()
@@ -86,9 +145,8 @@ class Minimize(Builtin):
             if (
                 (isinstance(var, Atom) and not isinstance(var, Symbol))
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
-                or constant & var.get_attributes(evaluation.definitions)
+                or A_CONSTANT & var.get_attributes(evaluation.definitions)
             ):
-
                 evaluation.message("Minimize", "ivar", vars_or)
                 return
 
@@ -117,7 +175,6 @@ class Minimize(Builtin):
             candidates.append(candidate)
 
         minimum_list = []
-
         for candidate in candidates:
             eigenvals = hessian.subs(candidate).eigenvals()
 
@@ -141,20 +198,22 @@ class Minimize(Builtin):
             *(
                 ListExpression(
                     from_sympy(sympy_f.subs(minimum).simplify()),
-                    [
-                        Expression(
-                            SymbolRule,
-                            from_sympy(list(minimum.keys())[i]),
-                            from_sympy(list(minimum.values())[i]),
+                    ListExpression(
+                        *(
+                            Expression(
+                                SymbolRule,
+                                from_sympy(list(minimum.keys())[i]),
+                                from_sympy(list(minimum.values())[i]),
+                            )
+                            for i in range(len(vars_sympy))
                         )
-                        for i in range(len(vars_sympy))
-                    ],
+                    ),
                 )
                 for minimum in minimum_list
             )
         )
 
-    def apply_constraints(self, f, vars, evaluation):
+    def eval_constraints(self, f, vars, evaluation: Evaluation):
         "Minimize[f_List, vars_List]"
         head_name = vars.get_head_name()
         vars_or = vars
@@ -163,9 +222,8 @@ class Minimize(Builtin):
             if (
                 (isinstance(var, Atom) and not isinstance(var, Symbol))
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
-                or constant & var.get_attributes(evaluation.definitions)
+                or A_CONSTANT & var.get_attributes(evaluation.definitions)
             ):
-
                 evaluation.message("Minimize", "ivar", vars_or)
                 return
 
@@ -334,71 +392,17 @@ class Minimize(Builtin):
             *(
                 ListExpression(
                     from_sympy(objective_function.subs(minimum).simplify()),
-                    [
-                        Expression(
-                            SymbolRule,
-                            from_sympy(list(minimum.keys())[i]),
-                            from_sympy(list(minimum.values())[i]),
+                    ListExpression(
+                        *(
+                            Expression(
+                                SymbolRule,
+                                from_sympy(list(minimum.keys())[i]),
+                                from_sympy(list(minimum.values())[i]),
+                            )
+                            for i in range(len(vars_sympy))
                         )
-                        for i in range(len(vars_sympy))
-                    ],
+                    ),
                 )
                 for minimum in minimum_list
             )
         )
-
-
-class Maximize(Builtin):
-    """
-    <dl>
-    <dt>'Maximize[$f$, $x$]'
-        <dd>compute the maximum of $f$ respect $x$ that change between $a$ and $b$
-    </dl>
-
-    >> Maximize[-2 x^2 - 3 x + 5, x]
-     = {{49 / 8, {x -> -3 / 4}}}
-
-    #>> Maximize[1 - (x y - 3)^2, {x, y}]
-     = {{1, {x -> 3, y -> 1}}}
-
-    #>> Maximize[{x - 2 y, x^2 + y^2 <= 1}, {x, y}]
-     = {{Sqrt[5], {x -> Sqrt[5] / 5, y -> -2 Sqrt[5] / 5}}}
-    """
-
-    attributes = protected | read_protected
-    summary_text = "maximize a function"
-
-    def apply(self, f, vars, evaluation):
-        "Maximize[f_?NotListQ, vars_]"
-
-        dual_f = f.to_sympy() * (-1)
-
-        dual_solutions = (
-            Expression(SymbolMinimize, from_sympy(dual_f), vars)
-            .evaluate(evaluation)
-            .elements
-        )
-
-        solutions = []
-        for dual_solution in dual_solutions:
-            solution_elements = dual_solution.elements
-            solutions.append([solution_elements[0] * IntegerM1, solution_elements[1]])
-
-        return from_python(solutions)
-
-    def apply_constraints(self, f, vars, evaluation):
-        "Maximize[f_List, vars_]"
-
-        constraints = [function for function in f.elements]
-        constraints[0] = from_sympy(constraints[0].to_sympy() * IntegerM1)
-
-        dual_solutions = (
-            Expression(SymbolMinimize, constraints, vars).evaluate(evaluation).elements
-        )
-
-        solutions = []
-        for dual_solution in dual_solutions:
-            solution_elements = dual_solution.elements
-            solutions.append([solution_elements[0] * IntegerM1, solution_elements[1]])
-
-        return from_python(solutions)

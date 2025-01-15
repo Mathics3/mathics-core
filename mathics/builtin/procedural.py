@@ -3,21 +3,30 @@
 """
 Procedural Programming
 
-Procedural programming is a programming paradigm, derived from imperative programming, based on the concept of the procedure call. This term is sometimes compared and contrasted with Functional Programming.
+Procedural programming is a programming paradigm, derived from imperative \
+programming, based on the concept of the procedure call. This term is \
+sometimes compared and contrasted with Functional Programming.
 
-Procedures (a type of routine or subroutine) simply contain a series of computational steps to be carried out. Any given procedure might be called at any point during a program's execution, including by other procedures or itself.
+Procedures (a type of routine or subroutine) simply contain a series of \
+computational steps to be carried out. Any given procedure might be called \
+at any point during a program's execution, including by other procedures \
+or itself.
 
-Procedural functions are integrated into Mathics symbolic programming environment.
+Procedural functions are integrated into \\Mathics symbolic programming \
+environment.
 """
 
+import time
 
-from mathics.builtin.base import Builtin, BinaryOperator
-from mathics.builtin.lists import _IterationFunction
-from mathics.builtin.patterns import match
-
-from mathics.core.atoms import Integer1
-from mathics.core.attributes import hold_all, hold_rest, protected, read_protected
+from mathics.core.attributes import (
+    A_HOLD_ALL,
+    A_HOLD_REST,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+)
+from mathics.core.builtin import Builtin, InfixOperator, IterationFunction
 from mathics.core.convert.python import from_python
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.interrupt import (
     AbortInterrupt,
@@ -26,26 +35,23 @@ from mathics.core.interrupt import (
     ReturnInterrupt,
     WLThrowInterrupt,
 )
-from mathics.core.symbols import (
-    Symbol,
-    SymbolFalse,
-    SymbolNull,
-    SymbolTrue,
-)
-from mathics.core.systemsymbols import (
-    SymbolDirectedInfinity,
-    SymbolMatchQ,
-)
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolNull, SymbolTrue
+from mathics.core.systemsymbols import SymbolMatchQ, SymbolPause
+from mathics.eval.patterns import match
 
 SymbolWhich = Symbol("Which")
 
 
 class Abort(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Abort.html</url>
+
     <dl>
       <dt>'Abort[]'
       <dd>aborts an evaluation completely and returns '$Aborted'.
     </dl>
+
     >> Print["a"]; Abort[]; Print["b"]
      | a
      = $Aborted
@@ -53,7 +59,7 @@ class Abort(Builtin):
 
     summary_text = "generate an abort"
 
-    def apply(self, evaluation):
+    def eval(self, evaluation: Evaluation):
         "Abort[]"
 
         raise AbortInterrupt
@@ -61,10 +67,13 @@ class Abort(Builtin):
 
 class Break(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Break.html</url>
+
     <dl>
       <dt>'Break[]'
       <dd>exits a 'For', 'While', or 'Do' loop.
     </dl>
+
     >> n = 0;
     >> While[True, If[n>10, Break[]]; n=n+1]
     >> n
@@ -77,7 +86,7 @@ class Break(Builtin):
 
     summary_text = "exit a 'For', 'While', or 'Do' loop"
 
-    def apply(self, evaluation):
+    def eval(self, evaluation: Evaluation):
         "Break[]"
 
         raise BreakInterrupt
@@ -85,12 +94,16 @@ class Break(Builtin):
 
 class Catch(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Catch.html</url>
+
     <dl>
       <dt>'Catch[$expr$]'
-      <dd> returns the argument of the first 'Throw' generated in the evaluation of $expr$.
+      <dd> returns the argument of the first 'Throw' generated in the evaluation of
+           $expr$.
 
       <dt>'Catch[$expr$, $form$]'
-      <dd> returns value from the first 'Throw[$value$, $tag$]' for which $form$ matches $tag$.
+      <dd> returns value from the first 'Throw[$value$, $tag$]' for which $form$ matches
+           $tag$.
 
       <dt>'Catch[$expr$, $form$, $f$]'
       <dd> returns $f$[$value$, $tag$].
@@ -112,11 +125,11 @@ class Catch(Builtin):
     #> Clear[f]
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
 
     summary_text = "handle an exception raised by a 'Throw'"
 
-    def apply_expr(self, expr, evaluation):
+    def eval_expr(self, expr, evaluation):
         "Catch[expr_]"
         try:
             ret = expr.evaluate(evaluation)
@@ -124,7 +137,7 @@ class Catch(Builtin):
             return e.value
         return ret
 
-    def apply_with_form_and_fn(self, expr, form, f, evaluation):
+    def eval_with_form_and_fn(self, expr, form, f, evaluation):
         "Catch[expr_, form_, f__:Identity]"
         try:
             ret = expr.evaluate(evaluation)
@@ -141,8 +154,41 @@ class Catch(Builtin):
         return ret
 
 
-class CompoundExpression(BinaryOperator):
+class CheckAbort(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/CheckAbort.html</url>
+
+    <dl>
+      <dt>'CheckAbort[$expr$, $failexpr$]'
+        <dd>evaluates $expr$, returning $failexpr$ if an abort occurs.
+    </dl>
+
+    >> CheckAbort[Abort[]; 1, 2] + x
+     = 2 + x
+
+    >> CheckAbort[1, 2] + x
+     = 1 + x
+    """
+
+    attributes = A_HOLD_ALL | A_PROTECTED
+
+    summary_text = "catch an Abort[] exception"
+
+    def eval(self, expr, failexpr, evaluation):
+        "CheckAbort[expr_, failexpr_]"
+
+        try:
+            return expr.evaluate(evaluation)
+        except AbortInterrupt:
+            return failexpr
+
+
+class CompoundExpression(InfixOperator):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/CompoundExpression.html</url>
+
     <dl>
       <dt>'CompoundExpression[$e1$, $e2$, ...]'
       <dt>'$e1$; $e2$; ...'
@@ -153,48 +199,13 @@ class CompoundExpression(BinaryOperator):
      = d
     If the last argument is omitted, 'Null' is taken:
     >> a;
-
-    ## Parser Tests
-    #> FullForm[Hold[; a]]
-     : "FullForm[Hold[" cannot be followed by "; a]]" (line 1 of "<test>").
-    #> FullForm[Hold[; a ;]]
-     : "FullForm[Hold[" cannot be followed by "; a ;]]" (line 1 of "<test>").
-
-    ## Issue331
-    #> CompoundExpression[x, y, z]
-     = z
-    #> %
-     = z
-
-    #> CompoundExpression[x, y, Null]
-    #> %
-     = y
-
-    #> CompoundExpression[CompoundExpression[x, y, Null], Null]
-    #> %
-     = y
-
-    #> CompoundExpression[x, Null, Null]
-    #> %
-     = x
-
-    #> CompoundExpression[]
-    #> %
-
-    ## Issue 531
-    #> z = Max[1, 1 + x]; x = 2; z
-     = 3
-
-    #> Clear[x]; Clear[z]
     """
 
-    attributes = hold_all | protected | read_protected
-    operator = ";"
-    precedence = 10
+    attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
 
     summary_text = "execute expressions in sequence"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "CompoundExpression[expr___]"
 
         items = expr.get_sequence()
@@ -204,8 +215,9 @@ class CompoundExpression(BinaryOperator):
             prev_result = result
             result = expr.evaluate(evaluation)
 
-            # `expr1; expr2;` returns `Null` but assigns `expr2` to `Out[n]`.
-            # even stranger `CompoundExpression[expr1, Null, Null]` assigns `expr1` to `Out[n]`.
+            # `expr1; expr2;` returns `Null` but assigns `expr2` to
+            # `Out[n]`.  even stranger `CompoundExpression[expr1,
+            # Null, Null]` assigns `expr1` to `Out[n]`.
             if result is SymbolNull and prev_result != SymbolNull:
                 evaluation.predetermined_out = prev_result
 
@@ -214,6 +226,8 @@ class CompoundExpression(BinaryOperator):
 
 class Continue(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Continue.html</url>
+
     <dl>
       <dt>'Continue[]'
       <dd>continues with the next iteration in a 'For', 'While', or 'Do' loop.
@@ -232,20 +246,23 @@ class Continue(Builtin):
 
     summary_text = "continue with the next iteration in a 'For', 'While' or 'Do' loop"
 
-    def apply(self, evaluation):
+    def eval(self, evaluation):
         "Continue[]"
 
         raise ContinueInterrupt
 
 
-class Do(_IterationFunction):
+class Do(IterationFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Do.html</url>
+
     <dl>
       <dt>'Do[$expr$, {$max$}]'
       <dd>evaluates $expr$ $max$ times.
 
       <dt>'Do[$expr$, {$i$, $max$}]'
-      <dd>evaluates $expr$ $max$ times, substituting $i$ in $expr$ with values from 1 to $max$.
+      <dd>evaluates $expr$ $max$ times, substituting $i$ in $expr$ with values from 1 to
+          $max$.
 
       <dt>'Do[$expr$, {$i$, $min$, $max$}]'
       <dd>starts with '$i$ = $max$'.
@@ -257,8 +274,10 @@ class Do(_IterationFunction):
       <dd>uses values $i1$, $i2$, ... for $i$.
 
       <dt>'Do[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]'
-      <dd>evaluates $expr$ for each $j$ from $jmin$ to $jmax$, for each $i$ from $imin$ to $imax$, etc.
+      <dd>evaluates $expr$ for each $j$ from $jmin$ to $jmax$, for each $i$ from $imin$
+          to $imax$, etc.
     </dl>
+
     >> Do[Print[i], {i, 2, 4}]
      | 2
      | 3
@@ -275,10 +294,6 @@ class Do(_IterationFunction):
      | 5
      | 7
      | 9
-
-    #> Do[Print["hi"],{1+1}]
-     | hi
-     | hi
     """
 
     allow_loopcontrol = True
@@ -290,9 +305,12 @@ class Do(_IterationFunction):
 
 class For(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/For.html</url>
+
     <dl>
       <dt>'For[$start$, $test$, $incr$, $body$]'
-      <dd>evaluates $start$, and then iteratively $body$ and $incr$ as long as $test$ evaluates to 'True'.
+      <dd>evaluates $start$, and then iteratively $body$ and $incr$ as long as $test$
+          evaluates to 'True'.
 
       <dt>'For[$start$, $test$, $incr$]'
       <dd>evaluates only $incr$ and no $body$.
@@ -308,21 +326,15 @@ class For(Builtin):
      = 3628800
     >> n == 10!
      = True
-
-    #> n := 1
-    #> For[i=1, i<=10, i=i+1, If[i > 5, Return[i]]; n = n * i]
-     = 6
-    #> n
-     = 120
     """
 
-    attributes = hold_rest | protected
+    attributes = A_HOLD_REST | A_PROTECTED
     rules = {
         "For[start_, test_, incr_]": "For[start, test, incr, Null]",
     }
     summary_text = "a 'For' loop"
 
-    def apply(self, start, test, incr, body, evaluation):
+    def eval(self, start, test, incr, body, evaluation):
         "For[start_, test_, incr_, body_]"
         while test.evaluate(evaluation) is SymbolTrue:
             evaluation.check_stopped()
@@ -345,9 +357,12 @@ class For(Builtin):
 
 class If(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/If.html</url>
+
     <dl>
       <dt>'If[$cond$, $pos$, $neg$]'
-      <dd>returns $pos$ if $cond$ evaluates to 'True', and $neg$ if it evaluates to 'False'.
+      <dd>returns $pos$ if $cond$ evaluates to 'True', and $neg$ if it evaluates to
+          'False'.
 
       <dt>'If[$cond$, $pos$, $neg$, $other$]'
       <dd>returns $other$ if $cond$ evaluates to neither 'True' nor 'False'.
@@ -364,16 +379,18 @@ class If(Builtin):
     >> If[False, a] //FullForm
      = Null
 
-    You might use comments (inside '(*' and '*)') to make the branches of 'If' more readable:
+    You might use comments (inside '(*' and '*)') to make the branches of 'If'
+    more readable:
     >> If[a, (*then*) b, (*else*) c];
     """
 
     summary_text = "if-then-else conditional expression"
-    # this is the WR summary: "test if a condition is true, false, or of unknown truth value"
-    attributes = hold_rest | protected
+    # This is the WR summary: "test if a condition is true, false, or
+    # of unknown truth value"
+    attributes = A_HOLD_REST | A_PROTECTED
     summary_text = "test if a condition is true, false, or of unknown truth value"
 
-    def apply_2(self, condition, t, evaluation):
+    def eval(self, condition, t, evaluation):
         "If[condition_, t_]"
 
         if condition is SymbolTrue:
@@ -381,7 +398,7 @@ class If(Builtin):
         elif condition is SymbolFalse:
             return SymbolNull
 
-    def apply_3(self, condition, t, f, evaluation):
+    def eval_with_false(self, condition, t, f, evaluation):
         "If[condition_, t_, f_]"
 
         if condition is SymbolTrue:
@@ -389,7 +406,7 @@ class If(Builtin):
         elif condition is SymbolFalse:
             return f.evaluate(evaluation)
 
-    def apply_4(self, condition, t, f, u, evaluation):
+    def eval_with_false_and_other(self, condition, t, f, u, evaluation):
         "If[condition_, t_, f_, u_]"
 
         if condition is SymbolTrue:
@@ -400,152 +417,15 @@ class If(Builtin):
             return u.evaluate(evaluation)
 
 
-class FixedPoint(Builtin):
-    """
-    <dl>
-      <dt>'FixedPoint[$f$, $expr$]'
-      <dd>starting with $expr$, iteratively applies $f$ until the result no longer changes.
-
-      <dt>'FixedPoint[$f$, $expr$, $n$]'
-      <dd>performs at most $n$ iterations. The same that using $MaxIterations->n$
-    </dl>
-
-    >> FixedPoint[Cos, 1.0]
-     = 0.739085
-
-    >> FixedPoint[#+1 &, 1, 20]
-     = 21
-
-    #> FixedPoint[f, x, 0]
-     = x
-    #> FixedPoint[f, x, -1]
-     : Non-negative integer expected.
-     = FixedPoint[f, x, -1]
-    #> FixedPoint[Cos, 1.0, Infinity]
-     = 0.739085
-    """
-
-    options = {
-        "MaxIterations": "Infinity",
-        "SameTest": "Automatic",
-    }
-
-    summary_text = "nest until a fixed point is reached returning the last expression"
-
-    def apply(self, f, expr, n, evaluation, options):
-        "FixedPoint[f_, expr_, n_:DirectedInfinity[1], OptionsPattern[FixedPoint]]"
-        if n == Expression(SymbolDirectedInfinity, Integer1):
-            count = None
-        else:
-            count = n.get_int_value()
-            if count is None or count < 0:
-                evaluation.message("FixedPoint", "intnn")
-                return
-
-        if count is None:
-            count = self.get_option(options, "MaxIterations", evaluation)
-            if count.is_numeric(evaluation):
-                count = count.get_int_value()
-            else:
-                count = None
-
-        result = expr
-        index = 0
-        sametest = self.get_option(options, "SameTest", evaluation)
-        if sametest is Symbol("Automatic"):
-            sametest = None
-
-        while count is None or index < count:
-            evaluation.check_stopped()
-            new_result = Expression(f, result).evaluate(evaluation)
-            if sametest:
-                same = Expression(sametest, result, new_result).evaluate(evaluation)
-                same = same is SymbolTrue
-                if same:
-                    break
-            else:
-                if new_result == result:
-                    result = new_result
-                    break
-            result = new_result
-            index += 1
-
-        return result
-
-
-class FixedPointList(Builtin):
-    """
-    <dl>
-      <dt>'FixedPointList[$f$, $expr$]'
-      <dd>starting with $expr$, iteratively applies $f$ until the result no longer changes, and returns a list of all intermediate results.
-
-      <dt>'FixedPointList[$f$, $expr$, $n$]'
-      <dd>performs at most $n$ iterations.
-    </dl>
-
-    >> FixedPointList[Cos, 1.0, 4]
-     = {1., 0.540302, 0.857553, 0.65429, 0.79348}
-
-    Observe the convergence of Newton's method for approximating square roots:
-    >> newton[n_] := FixedPointList[.5(# + n/#) &, 1.];
-    >> newton[9]
-     = {1., 5., 3.4, 3.02353, 3.00009, 3., 3., 3.}
-
-    Plot the "hailstone" sequence of a number:
-    >> collatz[1] := 1;
-    >> collatz[x_ ? EvenQ] := x / 2;
-    >> collatz[x_] := 3 x + 1;
-    >> list = FixedPointList[collatz, 14]
-     = {14, 7, 22, 11, 34, 17, 52, 26, 13, 40, 20, 10, 5, 16, 8, 4, 2, 1, 1}
-    >> ListLinePlot[list]
-     = -Graphics-
-
-    #> FixedPointList[f, x, 0]
-     = {x}
-    #> FixedPointList[f, x, -1]
-     : Non-negative integer expected.
-     = FixedPointList[f, x, -1]
-    #> Last[FixedPointList[Cos, 1.0, Infinity]]
-     = 0.739085
-    """
-
-    summary_text = "nest until a fixed point is reached return a list "
-
-    def apply(self, f, expr, n, evaluation):
-        "FixedPointList[f_, expr_, n_:DirectedInfinity[1]]"
-
-        if n == Expression(SymbolDirectedInfinity, Integer1):
-            count = None
-        else:
-            count = n.get_int_value()
-            if count is None or count < 0:
-                evaluation.message("FixedPoint", "intnn")
-                return
-
-        interm = expr
-        result = [interm]
-
-        index = 0
-        while count is None or index < count:
-            evaluation.check_stopped()
-
-            new_result = Expression(f, interm).evaluate(evaluation)
-            result.append(new_result)
-            if new_result == interm:
-                break
-
-            interm = new_result
-            index += 1
-
-        return from_python(result)
-
-
 class Interrupt(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Interrupt.html</url>
+
     <dl>
       <dt>'Interrupt[]'
       <dd>Interrupt an evaluation and returns '$Aborted'.
     </dl>
+
     >> Print["a"]; Interrupt[]; Print["b"]
      | a
      = $Aborted
@@ -553,123 +433,59 @@ class Interrupt(Builtin):
 
     summary_text = "interrupt evaluation and return '$Aborted'"
 
-    def apply(self, evaluation):
+    def eval(self, evaluation: Evaluation):
         "Interrupt[]"
 
         raise AbortInterrupt
 
 
-class Nest(Builtin):
+class Pause(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Pause.html</url>
+
     <dl>
-      <dt>'Nest[$f$, $expr$, $n$]'
-      <dd>starting with $expr$, iteratively applies $f$ $n$ times and returns the final result.
+    <dt>'Pause[n]'
+      <dd>pauses for at least $n$ seconds.
     </dl>
 
-    >> Nest[f, x, 3]
-     = f[f[f[x]]]
-    >> Nest[(1+#) ^ 2 &, x, 2]
-     = (1 + (1 + x) ^ 2) ^ 2
+    >> Pause[0.5]
     """
 
-    summary_text = "give the result of nesting a function"
-
-    def apply(self, f, expr, n, evaluation):
-        "Nest[f_, expr_, n_Integer]"
-
-        n = n.get_int_value()
-        if n is None or n < 0:
-            return
-        result = expr
-        for k in range(n):
-            result = Expression(f, result).evaluate(evaluation)
-        return result
-
-
-class NestList(Builtin):
-    """
-    <dl>
-      <dt>'NestList[$f$, $expr$, $n$]'
-      <dd>starting with $expr$, iteratively applies $f$ $n$ times and returns a list of all intermediate results.
-    </dl>
-
-    >> NestList[f, x, 3]
-     = {x, f[x], f[f[x]], f[f[f[x]]]}
-    >> NestList[2 # &, 1, 8]
-     = {1, 2, 4, 8, 16, 32, 64, 128, 256}
-
-    ## TODO: improve this example when RandomChoice, PointSize, Axes->False are implemented
-    Chaos game rendition of the Sierpinski triangle:
-    >> vertices = {{0,0}, {1,0}, {.5, .5 Sqrt[3]}};
-    >> points = NestList[.5(vertices[[ RandomInteger[{1,3}] ]] + #) &, {0.,0.}, 500];
-    >> Graphics[Point[points], ImageSize->Small]
-     = -Graphics-
-    """
-
-    summary_text = "successively nest a function"
-
-    def apply(self, f, expr, n, evaluation):
-        "NestList[f_, expr_, n_Integer]"
-
-        n = n.get_int_value()
-        if n is None or n < 0:
-            return
-
-        interm = expr
-        result = [interm]
-
-        for k in range(n):
-            interm = Expression(f, interm).evaluate(evaluation)
-            result.append(interm)
-
-        return from_python(result)
-
-
-class NestWhile(Builtin):
-    """
-    <dl>
-      <dt>'NestWhile[$f$, $expr$, $test$]'
-      <dd>applies a function $f$ repeatedly on an expression $expr$, until applying $test$ on the result no longer yields 'True'.
-
-      <dt>'NestWhile[$f$, $expr$, $test$, $m$]'
-      <dd>supplies the last $m$ results to $test$ (default value: 1).
-
-      <dt>'NestWhile[$f$, $expr$, $test$, All]'
-      <dd>supplies all results gained so far to $test$.
-    </dl>
-
-    Divide by 2 until the result is no longer an integer:
-    >> NestWhile[#/2&, 10000, IntegerQ]
-     = 625 / 2
-    """
-
-    summary_text = "nest while a condition is satisfied returning the last expression"
-
-    rules = {
-        "NestWhile[f_, expr_, test_]": "NestWhile[f, expr, test, 1]",
+    messages = {
+        "numnm": (
+            "Non-negative machine-sized number expected at " "position 1 in `1`."
+        ),
     }
 
-    def apply(self, f, expr, test, m, evaluation):
-        "NestWhile[f_, expr_, test_, Pattern[m,_Integer|All]]"
+    summary_text = "pause for a number of seconds"
 
-        results = [expr]
-        while True:
-            if m.get_name() == "All":
-                test_elements = results
-            else:
-                test_elements = results[-m.value :]
-            test_expr = Expression(test, *test_elements)
-            test_result = test_expr.evaluate(evaluation)
-            if test_result is SymbolTrue:
-                next = Expression(f, results[-1])
-                results.append(next.evaluate(evaluation))
-            else:
-                break
-        return results[-1]
+    # Number of timeout polls per second that we perform in looking
+    # for a timeout.
+    PAUSE_TICKS_PER_SECOND = 1000
+
+    def eval(self, n, evaluation: Evaluation):
+        "Pause[n_]"
+        sleeptime = n.to_python()
+        if not isinstance(sleeptime, (int, float)) or sleeptime < 0:
+            evaluation.message(
+                "Pause", "numnm", Expression(SymbolPause, from_python(n))
+            )
+            return
+
+        steps = int(self.PAUSE_TICKS_PER_SECOND * sleeptime)
+        for _ in range(steps):
+            time.sleep(1 / self.PAUSE_TICKS_PER_SECOND)
+            if evaluation.timeout:
+                return SymbolNull
+
+        return SymbolNull
 
 
 class Return(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Return.html</url>
+
     <dl>
       <dt>'Return[$expr$]'
       <dd>aborts a function call and returns $expr$.
@@ -690,17 +506,6 @@ class Return(Builtin):
     >> g[x_] := (Do[If[x < 0, Return[0]], {i, {2, 1, 0, -1}}]; x)
     >> g[-1]
      = -1
-
-    #> h[x_] := (If[x < 0, Return[]]; x)
-    #> h[1]
-     = 1
-    #> h[-1]
-
-    ## Issue 513
-    #> f[x_] := Return[x];
-    #> g[y_] := Module[{}, z = f[y]; 2]
-    #> g[1]
-     = 2
     """
 
     rules = {
@@ -709,7 +514,7 @@ class Return(Builtin):
 
     summary_text = "return from a function"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation):
         "Return[expr_]"
 
         raise ReturnInterrupt(expr)
@@ -717,9 +522,13 @@ class Return(Builtin):
 
 class Switch(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Switch.html</url>
+
     <dl>
       <dt>'Switch[$expr$, $pattern1$, $value1$, $pattern2$, $value2$, ...]'
-      <dd>yields the first $value$ for which $expr$ matches the corresponding $pattern$.
+      <dd>yields the first $value$ for which $expr$ matches the corresponding \
+          $pattern$.
     </dl>
 
     >> Switch[2, 1, x, 2, y, 3, z]
@@ -732,19 +541,18 @@ class Switch(Builtin):
      : Switch called with 2 arguments. Switch must be called with an odd number of arguments.
      = Switch[2, 1]
 
-    #> a; Switch[b, b]
-     : Switch called with 2 arguments. Switch must be called with an odd number of arguments.
-     = Switch[b, b]
 
-    ## Issue 531
-    #> z = Switch[b, b];
-     : Switch called with 2 arguments. Switch must be called with an odd number of arguments.
-    #> z
-     = Switch[b, b]
+    Notice that 'Switch' evaluates each pattern before it against \
+    $expr$, stopping after the first match:
+    >> a:=(Print["a->p"];p); b:=(Print["b->q"];q);
+    >> Switch[p,a,1,b,2]
+     | a->p
+     = 1
+    >> a=.; b=.;
     """
 
     summary_text = "switch based on a value, with patterns allowed"
-    attributes = hold_rest | protected
+    attributes = A_HOLD_REST | A_PROTECTED
 
     messages = {
         "argct": (
@@ -755,7 +563,7 @@ class Switch(Builtin):
 
     summary_text = "switch based on a value, with patterns allowed"
 
-    def apply(self, expr, rules, evaluation):
+    def eval(self, expr, rules, evaluation):
         "Switch[expr_, rules___]"
 
         rules = rules.get_sequence()
@@ -763,16 +571,65 @@ class Switch(Builtin):
             evaluation.message("Switch", "argct", "Switch", len(rules) + 1)
             return
         for pattern, value in zip(rules[::2], rules[1::2]):
-            if match(expr, pattern, evaluation):
+            # The match is done against the result of the evaluation
+            # of `pattern`. HoldRest allows to evaluate the patterns
+            # just until a match is found.
+            if match(expr, pattern.evaluate(evaluation), evaluation):
                 return value.evaluate(evaluation)
         # return unevaluated Switch when no pattern matches
 
 
+class Throw(Builtin):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Throw.html</url>
+
+    <dl>
+      <dt>'Throw[`value`]'
+      <dd> stops evaluation and returns `value` as the value of the nearest \
+           enclosing 'Catch'.
+
+      <dt>'Catch[`value`, `tag`]'
+      <dd> is caught only by `Catch[expr,form]`, where tag matches form.
+    </dl>
+
+    Using Throw can affect the structure of what is returned by a function:
+
+    >> NestList[#^2 + 1 &, 1, 7]
+     = ...
+    >> Catch[NestList[If[# > 1000, Throw[#], #^2 + 1] &, 1, 7]]
+     = 458330
+
+    >> Throw[1]
+     : Uncaught Throw[1] returned to top level.
+     = Hold[Throw[1]]
+    """
+
+    messages = {
+        "nocatch": "Uncaught `1` returned to top level.",
+    }
+
+    summary_text = "throw an expression to be caught by a surrounding 'Catch'"
+
+    def eval(self, value, evaluation: Evaluation):
+        "Throw[value_]"
+        raise WLThrowInterrupt(value)
+
+    def eval_with_tag(self, value, tag, evaluation: Evaluation):
+        "Throw[value_, tag_]"
+        raise WLThrowInterrupt(value, tag)
+
+
 class Which(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Which.html</url>
+
     <dl>
       <dt>'Which[$cond1$, $expr1$, $cond2$, $expr2$, ...]'
-      <dd>yields $expr1$ if $cond1$ evaluates to 'True', $expr2$ if $cond2$ evaluates to 'True', etc.
+      <dd>yields $expr1$ if $cond1$ evaluates to 'True', $expr2$ if $cond2$ \
+          evaluates to 'True', etc.
     </dl>
 
     >> n = 5;
@@ -799,10 +656,10 @@ class Which(Builtin):
      = Which[a, b, c]
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "test which of a sequence of conditions are true"
 
-    def apply(self, items, evaluation):
+    def eval(self, items, evaluation):
         "Which[items___]"
 
         items = items.get_sequence()
@@ -828,6 +685,9 @@ class Which(Builtin):
 
 class While(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/While.html</url>
+
     <dl>
       <dt>'While[$test$, $body$]'
       <dd>evaluates $body$ as long as $test$ evaluates to 'True'.
@@ -841,18 +701,15 @@ class While(Builtin):
     >> While[b != 0, {a, b} = {b, Mod[a, b]}];
     >> a
      = 3
-
-    #> i = 1; While[True, If[i^2 > 100, Return[i + 1], i++]]
-     = 12
     """
 
     summary_text = "evaluate an expression while a criterion is true"
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     rules = {
         "While[test_]": "While[test, Null]",
     }
 
-    def apply(self, test, body, evaluation):
+    def eval(self, test, body, evaluation):
         "While[test_, body_]"
 
         while test.evaluate(evaluation) is SymbolTrue:
@@ -866,39 +723,3 @@ class While(Builtin):
             except ReturnInterrupt as e:
                 return e.expr
         return SymbolNull
-
-
-class Throw(Builtin):
-    """
-    <dl>
-      <dt>'Throw[`value`]'
-      <dd> stops evaluation and returns `value` as the value of the nearest enclosing 'Catch'.
-
-      <dt>'Catch[`value`, `tag`]'
-      <dd> is caught only by `Catch[expr,form]`, where tag matches form.
-    </dl>
-
-    Using Throw can affect the structure of what is returned by a function:
-
-    >> NestList[#^2 + 1 &, 1, 7]
-     = ...
-    >> Catch[NestList[If[# > 1000, Throw[#], #^2 + 1] &, 1, 7]]
-     = 458330
-
-    X> Throw[1]
-      = Null
-    """
-
-    messages = {
-        "nocatch": "Uncaught `1` returned to top level.",
-    }
-
-    summary_text = "throw an expression to be caught by a surrounding 'Catch'"
-
-    def apply1(self, value, evaluation):
-        "Throw[value_]"
-        raise WLThrowInterrupt(value)
-
-    def apply_with_tag(self, value, tag, evaluation):
-        "Throw[value_, tag_]"
-        raise WLThrowInterrupt(value, tag)

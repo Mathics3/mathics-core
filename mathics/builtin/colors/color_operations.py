@@ -8,22 +8,14 @@ Functions for manipulating colors and color images.
 
 import itertools
 from math import floor
-from mathics.builtin.base import Builtin
-from mathics.builtin.colors.color_directives import (
-    _ColorObject,
-    ColorError,
-    RGBColor,
-)
-from mathics.builtin.colors.color_internals import convert_color
-from mathics.builtin.drawing.image import _ImageBuiltin, Image
 
-from mathics.core.atoms import (
-    Integer,
-    MachineReal,
-    Rational,
-    Real,
-)
+from mathics.builtin.colors.color_directives import ColorError, RGBColor, _ColorObject
+from mathics.builtin.colors.color_internals import convert_color
+from mathics.builtin.image.base import Image
+from mathics.core.atoms import Integer, MachineReal, Rational, Real, String
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
@@ -31,26 +23,26 @@ from mathics.core.systemsymbols import SymbolRGBColor
 
 _image_requires = ("numpy", "PIL")
 
-try:
-    import PIL.ImageOps
-    import numpy
-
-    _enabled = True
-except ImportError:
-    _enabled = False
+import numpy
+import PIL.ImageOps
 
 
 class Blend(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Blend.html</url>
+
     <dl>
-    <dt>'Blend[{$c1$, $c2$}]'
-        <dd>represents the color between $c1$ and $c2$.
-    <dt>'Blend[{$c1$, $c2$}, $x$]'
-        <dd>represents the color formed by blending $c1$ and $c2$ with
-        factors 1 - $x$ and $x$ respectively.
-    <dt>'Blend[{$c1$, $c2$, ..., $cn$}, $x$]'
-        <dd>blends between the colors $c1$ to $cn$ according to the
-        factor $x$.
+      <dt>'Blend[{$c1$, $c2$}]'
+      <dd>represents the color between $c1$ and $c2$.
+
+      <dt>'Blend[{$c1$, $c2$}, $x$]'
+      <dd>represents the color formed by blending $c1$ and $c2$ with
+          factors 1 - $x$ and $x$ respectively.
+
+      <dt>'Blend[{$c1$, $c2$, ..., $cn$}, $x$]'
+      <dd>blends between the colors $c1$ to $cn$ according to the
+          factor $x$.
     </dl>
 
     >> Blend[{Red, Blue}]
@@ -87,15 +79,15 @@ class Blend(Builtin):
 
     def do_blend(self, colors, values):
         type = None
-        homogenous = True
+        homogeneous = True
         for color in colors:
             if type is None:
                 type = color.__class__
             else:
                 if color.__class__ != type:
-                    homogenous = False
+                    homogeneous = False
                     break
-        if not homogenous:
+        if not homogeneous:
             colors = [RGBColor(components=color.to_rgba()) for color in colors]
             type = RGBColor
         total = sum(values)
@@ -109,7 +101,7 @@ class Blend(Builtin):
                 result = [r + p for r, p in zip(result, part)]
         return type(components=result)
 
-    def apply(self, colors, u, evaluation):
+    def eval(self, colors, u, evaluation: Evaluation):
         "Blend[{colors___}, u_]"
 
         colors_orig = colors
@@ -138,7 +130,10 @@ class Blend(Builtin):
                 values = 0.0
             use_list = False
         if values is None:
-            return evaluation.message("Blend", "argl", u, ListExpression(colors_orig))
+            evaluation.message(
+                "Blend", "argl", u, ListExpression(*colors_orig.elements)
+            )
+            return
 
         if use_list:
             return self.do_blend(colors, values).to_expr()
@@ -154,10 +149,13 @@ class Blend(Builtin):
 
 class ColorConvert(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/ColorConvert.html</url>
+
     <dl>
-    <dt>'ColorConvert[$c$, $colspace$]'
-        <dd>returns the representation of $c$ in the color space $colspace$. $c$
-        may be a color or an image.
+      <dt>'ColorConvert[$c$, $colspace$]'
+      <dd>returns the representation of $c$ in the color space $colspace$. $c$ \
+          may be a color or an image.
     </dl>
 
     Valid values for $colspace$ are:
@@ -178,15 +176,15 @@ class ColorConvert(Builtin):
     }
     summary_text = "convert between color models"
 
-    def apply(self, input, colorspace, evaluation):
+    def eval(self, input, colorspace, evaluation: Evaluation):
         "ColorConvert[input_, colorspace_String]"
 
         if isinstance(input, Image):
             return input.color_convert(colorspace.get_string_value())
         else:
             from mathics.builtin.colors.color_directives import (
-                expression_to_color,
                 color_to_expression,
+                expression_to_color,
             )
 
             py_color = expression_to_color(input)
@@ -206,24 +204,34 @@ class ColorConvert(Builtin):
             return color_to_expression(converted_components, py_colorspace)
 
 
-class ColorNegate(_ImageBuiltin):
+class ColorNegate(Builtin):
     """
+    Color Inversion (<url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ColorNegate.html</url>)
+
     <dl>
-      <dt>'ColorNegate[$image$]'
-      <dd>returns the negative of $image$ in which colors have been negated.
-
       <dt>'ColorNegate[$color$]'
-      <dd>returns the negative of a color.
+      <dd>returns the negative of a color, that is, the RGB color \
+          subtracted from white.
 
-      Yellow is RGBColor[1.0, 1.0, 0.0]
-      >> ColorNegate[Yellow]
-       = RGBColor[0., 0., 1.]
+      <dt>'ColorNegate[$image$]'
+      <dd>returns an image where each pixel has its color negated.
     </dl>
+
+    Yellow is 'RGBColor[1.0, 1.0, 0.0]' So when inverted or subtracted \
+    from 'White', we get blue:
+
+    >> ColorNegate[Yellow] == Blue
+     = True
+
+    >> ColorNegate[Import["ExampleData/sunflowers.jpg"]]
+     = -Image-
     """
 
-    summary_text = "the negative color of a given color"
+    summary_text = "perform color inversion on a color or image"
 
-    def apply_for_color(self, color, evaluation):
+    def eval_for_color(self, color, evaluation: Evaluation):
         "ColorNegate[color_RGBColor]"
         # Get components
         r, g, b = [element.to_python() for element in color.elements]
@@ -232,13 +240,17 @@ class ColorNegate(_ImageBuiltin):
         # Reconstitute
         return Expression(SymbolRGBColor, Real(r), Real(g), Real(b))
 
-    def apply_for_image(self, image, evaluation):
+    def eval_for_image(self, image, evaluation: Evaluation):
         "ColorNegate[image_Image]"
         return image.filter(lambda im: PIL.ImageOps.invert(im))
 
 
 class Darker(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Darker.html</url>
+
     <dl>
     <dt>'Darker[$c$, $f$]'
         <dd>is equivalent to 'Blend[{$c$, Black}, $f$]'.
@@ -260,52 +272,64 @@ class Darker(Builtin):
     summary_text = "make a color darker"
 
 
-class DominantColors(_ImageBuiltin):
+class DominantColors(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/DominantColors.html</url>
+
     <dl>
-    <dt>'DominantColors[$image$]'
+      <dt>'DominantColors[$image$]'
       <dd>gives a list of colors which are dominant in the given image.
-    <dt>'DominantColors[$image$, $n$]'
+
+      <dt>'DominantColors[$image$, $n$]'
       <dd>returns at most $n$ colors.
-    <dt>'DominantColors[$image$, $n$, $prop$]'
-      <dd>returns the given property $prop$, which may be "Color" (return RGB colors), "LABColor" (return
-      LAB colors), "Count" (return the number of pixels a dominant color covers), "Coverage" (return the
-      fraction of the image a dominant color covers), or "CoverageImage" (return a black and white image
-      indicating with white the parts that are covered by a dominant color).
+
+      <dt>'DominantColors[$image$, $n$, $prop$]'
+      <dd>returns the given property $prop$, which may be:
+        <ul>
+           <li>"Color": return RGB colors,
+           <li> "LABColor": return  LAB colors,
+           <li> "Count": return the number of pixels a dominant color covers,
+           <li> "Coverage": return the fraction of the image a dominant color \
+                 covers, or
+           <li> "CoverageImage": return a black and white image indicating with \
+                 white the parts that are covered by a dominant color.
+        </ul>
     </dl>
 
-    The option "ColorCoverage" specifies the minimum amount of coverage needed to include a dominant color
-    in the result.
+    The option "ColorCoverage" specifies the minimum amount of coverage needed to \
+    include a dominant color in the result.
 
-    The option "MinColorDistance" specifies the distance (in LAB color space) up to which colors are merged
-    and thus regarded as belonging to the same dominant color.
+    The option "MinColorDistance" specifies the distance (in LAB color space) up \
+    to which colors are merged and thus regarded as belonging to the same dominant color.
 
-    >> img = Import["ExampleData/lena.tif"]
+    >> img = Import["ExampleData/hedy.tif"]
      = -Image-
 
     >> DominantColors[img]
-     = {RGBColor[0.827451, 0.537255, 0.486275], RGBColor[0.87451, 0.439216, 0.45098], RGBColor[0.341176, 0.0705882, 0.254902], RGBColor[0.690196, 0.266667, 0.309804], RGBColor[0.533333, 0.192157, 0.298039], RGBColor[0.878431, 0.760784, 0.721569]}
+     = {RGBColor[0.00784314, 0.00784314, 0.0156863], RGBColor[0.996078, 0.803922, 0.721569], RGBColor[0.227451, 0.329412, 0.360784]}
 
     >> DominantColors[img, 3]
-     = {RGBColor[0.827451, 0.537255, 0.486275], RGBColor[0.87451, 0.439216, 0.45098], RGBColor[0.341176, 0.0705882, 0.254902]}
+     = {RGBColor[0.00784314, 0.00784314, 0.0156863], RGBColor[0.996078, 0.803922, 0.721569], RGBColor[0.227451, 0.329412, 0.360784]}
 
     >> DominantColors[img, 3, "Coverage"]
-     = {28579 / 131072, 751 / 4096, 23841 / 131072}
+     = {68817 / 103360, 62249 / 516800, 37953 / 516800}
 
     >> DominantColors[img, 3, "CoverageImage"]
      = {-Image-, -Image-, -Image-}
 
     >> DominantColors[img, 3, "Count"]
-     = {57158, 48064, 47682}
+     = {344085, 62249, 37953}
 
     >> DominantColors[img, 2, "LABColor"]
-     = {LABColor[0.646831, 0.279785, 0.193184], LABColor[0.608465, 0.443559, 0.195911]}
+     = {LABColor[0.00581591, 0.00207458, -0.00760911], LABColor[0.863667, 0.156864, 0.173956]}
 
     >> DominantColors[img, MinColorDistance -> 0.5]
-     = {RGBColor[0.87451, 0.439216, 0.45098], RGBColor[0.341176, 0.0705882, 0.254902]}
+     = {RGBColor[0.00784314, 0.00784314, 0.0156863], RGBColor[0.996078, 0.803922, 0.721569]}
 
     >> DominantColors[img, ColorCoverage -> 0.15]
-     = {RGBColor[0.827451, 0.537255, 0.486275], RGBColor[0.87451, 0.439216, 0.45098], RGBColor[0.341176, 0.0705882, 0.254902]}
+     = {RGBColor[0.00784314, 0.00784314, 0.0156863]}
     """
 
     rules = {
@@ -316,10 +340,17 @@ class DominantColors(_ImageBuiltin):
     options = {"ColorCoverage": "Automatic", "MinColorDistance": "Automatic"}
     summary_text = "find a list of dominant colors"
 
-    def apply(self, image, n, prop, evaluation, options):
+    def eval(
+        self,
+        image: Image,
+        n: Integer,
+        prop: String,
+        evaluation: Evaluation,
+        options: dict,
+    ):
         "DominantColors[image_Image, n_Integer, prop_String, OptionsPattern[%(name)s]]"
 
-        py_prop = prop.get_string_value()
+        py_prop = prop.value
         if py_prop not in ("Color", "LABColor", "Count", "Coverage", "CoverageImage"):
             return
 
@@ -379,9 +410,9 @@ class DominantColors(_ImageBuiltin):
         num_pixels = im.size[0] * im.size[1]
 
         from mathics.algorithm.clusters import (
-            agglomerate,
-            PrecomputedDistances,
             FixedDistanceCriterion,
+            PrecomputedDistances,
+            agglomerate,
         )
 
         norm = numpy.linalg.norm
@@ -416,7 +447,7 @@ class DominantColors(_ImageBuiltin):
                     elif py_prop == "Coverage":
                         yield Rational(int(count), num_pixels)
                     elif py_prop == "CoverageImage":
-                        mask = numpy.ndarray(shape=pixels.shape, dtype=numpy.bool)
+                        mask = numpy.ndarray(shape=pixels.shape, dtype=bool)
                         mask.fill(0)
                         for i in members:
                             mask = mask | (pixels == i)
@@ -425,7 +456,7 @@ class DominantColors(_ImageBuiltin):
                         yield to_expression(
                             Symbol(out_palette_head),
                             *prototype,
-                            elements_conversion_fn=MachineReal
+                            elements_conversion_fn=MachineReal,
                         )
 
         return to_mathics_list(*itertools.islice(result(), 0, at_most))
@@ -433,6 +464,8 @@ class DominantColors(_ImageBuiltin):
 
 class Lighter(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Lighter.html</url>
+
     <dl>
       <dt>'Lighter[$c$, $f$]'
       <dd>is equivalent to 'Blend[{$c$, White}, $f$]'.

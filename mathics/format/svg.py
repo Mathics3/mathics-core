@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Format a Mathics object as an SVG string
+Lower-level formatter of Mathics objects as SVG strings.
 """
 
 from mathics.builtin.box.graphics import (
-    _ArcBox,
     ArrowBox,
     BezierCurveBox,
     FilledCurveBox,
@@ -14,9 +13,9 @@ from mathics.builtin.box.graphics import (
     PointBox,
     PolygonBox,
     RectangleBox,
+    _ArcBox,
     _RoundBox,
 )
-
 from mathics.builtin.drawing.graphics3d import Graphics3DElements
 from mathics.builtin.graphics import (
     DEFAULT_POINT_FACTOR,
@@ -24,8 +23,7 @@ from mathics.builtin.graphics import (
     PointSize,
     _svg_bezier,
 )
-
-from mathics.core.formatter import lookup_method, add_conversion_fn
+from mathics.core.formatter import add_conversion_fn, lookup_method
 
 
 class _SVGTransform:
@@ -108,10 +106,10 @@ def arcbox(self, **options) -> str:
 
     def path(closed):
         if closed:
-            yield "M %f,%f" % (x, y)
-            yield "L %f,%f" % (sx, sy)
+            yield f"M {x:f},{y:f}"
+            yield f"L {sx:f},{sy:f}"
         else:
-            yield "M %f,%f" % (sx, sy)
+            yield f"M {sx:f},{sy:f}"
 
         yield "A %f,%f,0,%d,0,%f,%f" % (rx, ry, large_arc, ex, ey)
 
@@ -126,7 +124,7 @@ def arcbox(self, **options) -> str:
         edge_opacity=self.edge_opacity,
         face_opacity=self.face_opacity,
     )
-    svg = '<path d="%s" style="%s" />' % (" ".join(path(self.face_element)), style)
+    svg = f"<path d=\"{' '.join(path(self.face_element))}\" style=\"{style}\" />"
     # print("_Arcbox: ", svg)
     return svg
 
@@ -161,7 +159,7 @@ add_conversion_fn(ArrowBox, arrow_box)
 
 def bezier_curve_box(self, **options) -> str:
     """
-    Asymptote formatter for BezerCurveBox.
+    SVG formatter for BezierCurveBox.
     """
     line_width = self.style.get_line_width(face_element=False)
     style = create_css(
@@ -201,7 +199,7 @@ def density_plot_box(self, **options):
     # since it is a cute idea, it is worthy of comment space...  Put
     # two triangles together to get a parallelogram. Compute the
     # midpoint color in the enter and along all four sides. Then use
-    # two overlayed rectangular gradients each at opacity 0.5
+    # two overlaid rectangular gradients each at opacity 0.5
     # to go from the center to each of the (square) sides.
 
     svg_data = ["<--DensityPlot-->"]
@@ -213,7 +211,7 @@ def density_plot_box(self, **options):
         b = (colors[0][2] + colors[1][2] + colors[2][1]) / 3
         mid_color = r"rgb(%f, %f, %f)" % (r * 255, g * 255, b * 255)
 
-        points = " ".join("%f,%f" % (point[0], point[1]) for point in triangle)
+        points = " ".join(f"{point[0]:f},{point[1]:f}" for point in triangle)
         svg_data.append(f'<polygon points="{points}" fill="{mid_color}" />')
 
     svg = "\n".join(svg_data)
@@ -252,10 +250,24 @@ def filled_curve_box(self, **options):
 add_conversion_fn(FilledCurveBox, filled_curve_box)
 
 
-def graphics_box(self, leaves=None, **options) -> str:
+def graphics_box(self, elements=None, **options: dict) -> str:
+    """
+    Top-level SVG routine takes ``elements`` and ``options`` and turns
+    this into a SVG string, including the <svg>..</svg> tag.
 
-    if not leaves:
-        leaves = self._elements
+    ``elements`` could be a ``GraphicsElements`` object,
+    a tuple or a list.
+
+    Options is a dictionary of Graphics options dictionary. Interesting Graphics options keys:
+
+    ``data``: a tuple bounding box information as well as a copy of ``elements``. If given
+    this supersedes the information in the ``elements`` parameter.
+
+    ``evaluation``:  an ``Evaluation`` object that can be used when further evaluation is needed.
+    """
+
+    if not elements:
+        elements = self._elements
 
     data = options.get("data", None)
     if data:
@@ -271,7 +283,9 @@ def graphics_box(self, leaves=None, **options) -> str:
             height,
         ) = data
     else:
-        elements, calc_dimensions = self._prepare_elements(leaves, options, neg_y=True)
+        elements, calc_dimensions = self._prepare_elements(
+            elements, options, neg_y=True
+        )
         (
             xmin,
             xmax,
@@ -294,29 +308,32 @@ def graphics_box(self, leaves=None, **options) -> str:
     self.boxwidth = options.get("width", self.boxwidth)
     self.boxheight = options.get("height", self.boxheight)
 
+    tooltip_text = self.tooltip_text if hasattr(self, "tooltip_text") else ""
     if self.background_color is not None:
+        # FIXME: tests don't seem to cover this section of code.
         # Wrap svg_elements in a rectangle
-        svg_body = '<rect x="%f" y="%f" width="%f" height="%f" style="fill:%s"/>%s' % (
-            xmin,
-            ymin,
-            self.boxwidth,
-            self.boxheight,
-            self.background_color.to_css()[0],
-            svg_body,
-        )
+
+        background = "rgba(100%,100%,100%,100%)"
+        if self.background_color:
+            components = self.background_color.to_rgba()
+            if len(components) == 3:
+                background = "rgb(" + ", ".join(f"{100*c}%" for c in components) + ")"
+            else:
+                background = "rgba(" + ", ".join(f"{100*c}%" for c in components) + ")"
+
+        svg_body = f"""
+            <rect
+                 x="{xmin:f}" y="{ymin:f}"
+                 width="{self.boxwidth:f}"
+                 height="{self.boxheight:f}"
+                 style="fill:{background}"><title>{tooltip_text}</title></rect>
+            {svg_body}
+           """
 
     if options.get("noheader", False):
         return svg_body
-    svg_main = f"""<svg width="{self.boxwidth}px" height="{self.boxheight}px" xmlns:svg="http://www.w3.org/2000/svg"
-                xmlns="http://www.w3.org/2000/svg"
-                version="1.1"
-                viewBox="%s">
-                %s
-</svg>
-""" % (
-        " ".join("%f" % t for t in (xmin, ymin, self.boxwidth, self.boxheight)),
-        svg_body,
-    )
+
+    svg_main = wrap_svg_body(self.boxwidth, self.boxheight, xmin, ymin, svg_body)
     # print("svg_main", svg_main)
     return svg_main  # , width, height
 
@@ -370,11 +387,22 @@ def inset_box(self, **options) -> str:
             font_color=self.color,
             edge_color=self.color,
             face_color=self.color,
+            stroke_width=0.2,
             opacity=self.opacity.opacity,
         )
         text_pos_opts = f'x="{x}" y="{y}" ox="{self.opos[0]}" oy="{self.opos[1]}"'
+
+        alignment = " dominant-baseline:hanging;"
+        if hasattr(self, "alignment"):
+            if self.alignment == "bottom":
+                # This is typically done for labels under the x axis.
+                alignment = " dominant-baseline:hanging; text-anchor:middle;"
+            elif self.alignment == "left":
+                # This is typically done for labels to the left of the y axis.
+                alignment = " dominant-baseline:middle; text-anchor:end;"
+
         # FIXME: don't hard code text_style_opts, but allow these to be adjustable.
-        text_style_opts = "text-anchor:end; dominant-baseline:hanging;"
+        text_style_opts = alignment
         content = self.content.boxes_to_text(evaluation=self.graphics.evaluation)
         font_size = f'''font-size="{options.get("point_size", "10px")}"'''
         svg = f'<text {text_pos_opts} {font_size} style="{text_style_opts} {css_style}">{content}</text>'
@@ -524,15 +552,30 @@ def _roundbox(self):
         edge_opacity=self.edge_opacity,
         face_opacity=self.face_opacity,
     )
-    svg = '<ellipse cx="%f" cy="%f" rx="%f" ry="%f" style="%s" />' % (
-        x,
-        y,
-        rx,
-        ry,
-        style,
-    )
+    svg = f'<ellipse cx="{x:f}" cy="{y:f}" rx="{rx:f}" ry="{ry:f}" style="{style}" />'
     # print("_RoundBox: ", svg)
     return svg
 
 
 add_conversion_fn(_RoundBox)
+
+
+def wrap_svg_body(
+    box_width: float, box_height: float, x_min: float, y_min: float, svg_body: str
+) -> str:
+    """
+    Wraps ``svg`` into an SVG tag <svg> ... </svg>
+    ``box_width`` and ``box_height`` are pixel units. These together with
+    x_min, and y_min also form the viewBox attribute.
+
+    The wrapped SVG text is returned as a string.
+    """
+    svg_str = f"""
+<svg width="{box_width}px" height="{box_height}px" xmlns:svg="http://www.w3.org/2000/svg"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="{x_min:f} {y_min:f} {box_width:f}, {box_height:f}">
+    {svg_body}
+</svg>
+"""
+    # print(svg_str)
+    return svg_str

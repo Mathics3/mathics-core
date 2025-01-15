@@ -1,0 +1,66 @@
+# Copied from SymPy https://github.com/sympy/sympy/pull/27183
+
+name: Mathics3 (Pyodide)
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  pyodide-test:
+    runs-on: ubuntu-latest
+    env:
+      PYODIDE_VERSION: 0.27.0a2
+      # PYTHON_VERSION and EMSCRIPTEN_VERSION are determined by PYODIDE_VERSION.
+      # The appropriate versions can be found in the Pyodide repodata.json
+      # "info" field, or in Makefile.envs:
+      # https://github.com/pyodide/pyodide/blob/main/Makefile.envs#L2
+      PYTHON_VERSION: 3.12.1
+      EMSCRIPTEN_VERSION: 3.1.58
+      NODE_VERSION: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Emscripten toolchain
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: ${{ env.EMSCRIPTEN_VERSION }}
+          actions-cache-folder: emsdk-cache
+
+      - name: Install pyodide-build
+        run: pip install pyodide-build
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Set up Pyodide virtual environment and run tests
+        run: |
+          # Set up Pyodide virtual environment
+          pyodide xbuildenv install ${{ env.PYODIDE_VERSION }}
+          pyodide venv .venv-pyodide
+
+          # Activate the virtual environment
+          source .venv-pyodide/bin/activate
+
+          pip install "setuptools>=70.0.0" PyYAML click packaging pytest
+
+          # We can comment out after next Mathics-Scanner release
+          git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
+          # git clone --single-branch --branch operator-refactor-part1.5 https://github.com/Mathics3/mathics-scanner.git
+          cd mathics-scanner/
+          pip install --no-build-isolation -e .
+          cd ..
+
+          make mathics/data/op-tables.json mathics/data/operator-tables.json
+          pip install --no-build-isolation -e .
+          make -j3 check

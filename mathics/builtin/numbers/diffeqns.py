@@ -5,8 +5,10 @@ Differential Equations
 """
 
 import sympy
-from mathics.builtin.base import Builtin
+
+from mathics.core.builtin import Builtin
 from mathics.core.convert.sympy import from_sympy
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol
@@ -15,6 +17,8 @@ from mathics.core.systemsymbols import SymbolFunction, SymbolRule
 
 class DSolve(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DSolve.html</url>
+
     <dl>
     <dt>'DSolve[$eq$, $y$[$x$], $x$]'
         <dd>solves a differential equation for the function $y$[$x$].
@@ -27,59 +31,17 @@ class DSolve(Builtin):
      = {{y[x] -> C[1] E ^ (-x) + C[2] E ^ x}}
 
     >> DSolve[y''[x] == y[x], y, x]
-     = {{y -> (Function[{x}, C[1] E ^ (-x) + C[2] E ^ x])}}
+     = {{y -> Function[{x}, C[1] E ^ (-x) + C[2] E ^ x]}}
 
     DSolve can also solve basic PDE
     >> DSolve[D[f[x, y], x] / f[x, y] + 3 D[f[x, y], y] / f[x, y] == 2, f, {x, y}]
-     = {{f -> (Function[{x, y}, E ^ (x / 5 + 3 y / 5) C[1][3 x - y]])}}
+     = {{f -> Function[{x, y}, E ^ (x / 5 + 3 y / 5) C[1][3 x - y]]}}
 
     >> DSolve[D[f[x, y], x] x + D[f[x, y], y] y == 2, f[x, y], {x, y}]
      = {{f[x, y] -> 2 Log[x] + C[1][y / x]}}
 
     >> DSolve[D[y[x, t], t] + 2 D[y[x, t], x] == 0, y[x, t], {x, t}]
      = {{y[x, t] -> C[1][x - 2 t]}}
-
-    ## FIXME: sympy solves this as `Function[{x}, C[1] + Integrate[ArcSin[f[2 x]], x]]`
-    ## #> Attributes[f] = {HoldAll};
-    ## #> DSolve[f[x + x] == Sin[f'[x]], f, x]
-    ##  : To avoid possible ambiguity, the arguments of the dependent variable in f[x + x] == Sin[f'[x]] should literally match the independent variables.
-    ##  = DSolve[f[x + x] == Sin[f'[x]], f, x]
-
-    ## #> Attributes[f] = {};
-    ## #> DSolve[f[x + x] == Sin[f'[x]], f, x]
-    ##  : To avoid possible ambiguity, the arguments of the dependent variable in f[2 x] == Sin[f'[x]] should literally match the independent variables.
-    ##  = DSolve[f[2 x] == Sin[f'[x]], f, x]
-
-    #> DSolve[f'[x] == f[x], f, x] // FullForm
-     = {{Rule[f, Function[{x}, Times[C[1], Power[E, x]]]]}}
-
-    #> DSolve[f'[x] == f[x], f, x] /. {C[1] -> 1}
-     = {{f -> (Function[{x}, 1 E ^ x])}}
-
-    #> DSolve[f'[x] == f[x], f, x] /. {C -> D}
-     = {{f -> (Function[{x}, D[1] E ^ x])}}
-
-    #> DSolve[f'[x] == f[x], f, x] /. {C[1] -> C[0]}
-     = {{f -> (Function[{x}, C[0] E ^ x])}}
-
-    #> DSolve[f[x] == 0, f, {}]
-     : {} cannot be used as a variable.
-     = DSolve[f[x] == 0, f, {}]
-
-    ## Order of arguments shoudn't matter
-    #> DSolve[D[f[x, y], x] == D[f[x, y], y], f, {x, y}]
-     = {{f -> (Function[{x, y}, C[1][-x - y]])}}
-    #> DSolve[D[f[x, y], x] == D[f[x, y], y], f[x, y], {x, y}]
-     = {{f[x, y] -> C[1][-x - y]}}
-    #> DSolve[D[f[x, y], x] == D[f[x, y], y], f[x, y], {y, x}]
-     = {{f[x, y] -> C[1][-x - y]}}
-    """
-
-    # XXX sympy #11669 test
-    """
-    #> DSolve[\\[Gamma]'[x] == 0, \\[Gamma], x]
-     : Hit sympy bug #11669.
-     = ...
     """
 
     # TODO: GeneratedParameters option
@@ -108,12 +70,12 @@ class DSolve(Builtin):
     }
     summary_text = "Differential equation analytical solver."
 
-    def apply(self, eqn, y, x, evaluation):
+    def eval(self, eqn, y, x, evaluation: Evaluation):
         "DSolve[eqn_, y_, x_]"
 
         if eqn.has_form("List", None):
-            # TODO: Try and solve BVPs using Solve or something analagous OR
-            # add this functonality to sympy.
+            # TODO: Try and solve BVPs using Solve or something analogous OR
+            # add this functionality to sympy.
             evaluation.message("DSolve", "symsys")
             return
 
@@ -124,13 +86,14 @@ class DSolve(Builtin):
         if isinstance(x, Symbol):
             syms = [x]
         elif x.has_form("List", 1, None):
-            syms = sorted(x.get_elements())
+            syms = sorted(x.elements)
         else:
-            return evaluation.message("DSolve", "dsvar", x)
+            evaluation.message("DSolve", "dsvar", x)
+            return
 
-        # Fixes pathalogical DSolve[y''[x] == y[x], y, x]
+        # Fixes pathological DSolve[y''[x] == y[x], y, x]
         try:
-            y.leaves
+            y.elements
             function_form = None
             func = y
         except AttributeError:
@@ -141,7 +104,7 @@ class DSolve(Builtin):
             evaluation.message("DSolve", "dsfun", y)
             return
 
-        if set(func.leaves) != set(syms):
+        if set(func.elements) != set(syms):
             evaluation.message("DSolve", "deqx")
             return
 
@@ -197,7 +160,7 @@ class DSolve(Builtin):
                             Expression(
                                 SymbolFunction,
                                 function_form,
-                                *from_sympy(soln).leaves[1:]
+                                *from_sympy(soln).elements[1:],
                             ),
                         ),
                     )
@@ -211,6 +174,8 @@ class DSolve(Builtin):
 
 class C(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/C.html</url>
+
     <dl>
       <dt>'C'[$n$]
       <dd>represents the $n$th constant in a solution to a differential equation.

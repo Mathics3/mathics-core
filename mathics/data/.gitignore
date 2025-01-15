@@ -1,1 +1,5 @@
-/doc_tex_data.pcl
+/.python-version
+/doc_latex_data.pcl
+/doctest_latex_data.pcl
+/op-tables.json
+/operator-tables.json

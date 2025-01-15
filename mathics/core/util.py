@@ -1,116 +1,37 @@
 # -*- coding: utf-8 -*-
+"""
+Miscellaneous mathics.core utility functions.
+"""
 
-import os
-import re
 import sys
 from itertools import chain
+from pathlib import PureWindowsPath
+from platform import python_implementation
+from typing import Optional
 
-# Remove "try"  below and adjust return type after Python 3.6 support is dropped.
-try:
-    from re import Pattern
-except ImportError:
-    Pattern = re._pattern_type
-
-
-FORMAT_RE = re.compile(r"\`(\d*)\`")
-
-import time
-
-IS_PYPY = "__pypy__" in sys.builtin_module_names
-
-# A small, simple timing tool
-MIN_ELAPSE_REPORT = int(os.environ.get("MIN_ELAPSE_REPORT", "0"))
+IS_PYPY = python_implementation() == "PyPy"
 
 
-# FIXME: move this up out of mathics.core
-def timeit(method):
-    """Add this as a decorator to time parts of the code.
-
-    For example:
-        @timeit
-        def long_running_function():
-            ...
+def canonic_filename(path: str) -> str:
     """
-
-    def timed(*args, **kw):
-        method_name = method.__name__
-        # print(f"{date.today()}	{method_name} starts")
-        ts = time.time()
-        result = method(*args, **kw)
-        te = time.time()
-        elapsed = (te - ts) * 1000
-        if elapsed > MIN_ELAPSE_REPORT:
-            if "log_time" in kw:
-                name = kw.get("log_name", method.__name__.upper())
-                kw["log_time"][name] = elapsed
-            else:
-                print("%r  %2.2f ms" % (method_name, elapsed))
-        # print(f"{date.today()}	{method_name} ends")
-        return result
-
-    return timed
-
-
-# FIXME: move this up out of mathics.core
-class TimeitContextManager:
-    """Add this as a context manager to time parts of the code.
-
-    For example:
-        with TimeitContextManager("testing my loop"):
-           for x in collection:
-               ...
+    Canonicalize path. On Microsoft Windows, use PureWidnowsPath() to
+    turn backslash "\" to "/". On other platforms we currently, do
+    nothing, but we might in the future canonicalize the filename
+    further, e.g. via os.path.normpath().
     """
-
-    def __init__(self, name: str):
-        self.name = name
-
-    def __enter__(self):
-        # print(f"{date.today()}	{method_name} starts")
-        self.ts = time.time()
-
-    def __exit__(self, exc_type, exc_value, exc_tb):
-        te = time.time()
-        elapsed = (te - self.ts) * 1000
-        if elapsed > MIN_ELAPSE_REPORT:
-            print("%r  %2.2f ms" % (self.name, elapsed))
+    if sys.platform.startswith("win"):
+        # win32 or win64..
+        # PureWindowsPath.as_posix() strips trailing "/" .
+        dir_suffix = "/" if path.endswith("/") else ""
+        path = PureWindowsPath(path).as_posix() + dir_suffix
+    # Should we use "os.path.normpath() here?
+    return path
 
 
-def interpolate_string(text, get_param) -> str:
-    index = [1]
-
-    def get_item(index):
-        if 1 <= index <= len(args):
-            return args[index - 1]
-        else:
-            return ""
-
-    if isinstance(get_param, list):
-        args = get_param
-        get_param = get_item
-
-    def repl(match):
-        arg = match.group(1)
-        if arg == "" or arg == "0":
-            arg = index[0]
-        else:
-            arg = int(arg)
-        index[0] += 1
-        param = get_param(arg)
-        return param
-
-    return FORMAT_RE.sub(repl, text)
+# FIXME: These functions are used pattern.py
 
 
-"""
-NOTE: Maybe see
-http://www.cosc.canterbury.ac.nz/tad.takaoka/isaac.pdf
-resp.
-http://www.cosc.canterbury.ac.nz/tad.takaoka/perm.p
-for a permutation generating algorithm for multisets.
-"""
-
-
-def permutations(items, without_duplicates=True):
+def permutations(items):
     if not items:
         yield []
     # already_taken = set()
@@ -120,17 +41,16 @@ def permutations(items, without_duplicates=True):
         item = items[index]
         # if item not in already_taken:
         for sub in permutations(items[:index] + items[index + 1 :]):
-            yield [item] + sub
+            yield [item] + list(sub)
             # already_taken.add(item)
 
 
-def subsets(items, min, max, included=None, less_first=False):
+def subsets(items, min: int, max: Optional[int], included=None, less_first=False):
     if max is None:
         max = len(items)
     lengths = list(range(min, max + 1))
     if not less_first:
-        lengths = reversed(lengths)
-    lengths = list(lengths)
+        lengths = list(reversed(lengths))
     if lengths and lengths[0] == 0:
         lengths = lengths[1:] + [0]
 
@@ -155,56 +75,15 @@ def subsets(items, min, max, included=None, less_first=False):
             yield chosen, ([], not_chosen)
 
 
-def subsets_2(items, min, max, without_duplicates=True):
-    """max may only be 1 or None (= infinity).
-    Respects include property of items
-    """
-
-    if min <= max == 1:
-        for index in range(len(items)):
-            if items[index].include:
-                yield [items[index]], ([], items[:index] + items[index + 1 :])
-        if min == 0:
-            yield [], ([], items)
-    else:
-        counts = {}
-        for item in items:
-            if item.include:
-                if item in counts:
-                    counts[item] += 1
-                else:
-                    counts[item] = 1
-        already = set()
-
-        def decide(chosen, not_chosen, rest):
-            if not rest:
-                if len(chosen) >= min:
-                    """if False and len(chosen) > 1 and (
-                            permutate_until is None or
-                            len(chosen) <= permutate_until):
-                        for perm in permutations(chosen):
-                            yield perm, ([], not_chosen)
-                    else:"""
-                    yield chosen, ([], not_chosen)
-            else:
-                if rest[0].include:
-                    for set in decide(chosen + [rest[0]], not_chosen, rest[1:]):
-                        yield set
-                for set in decide(chosen, not_chosen + [rest[0]], rest[1:]):
-                    yield set
-
-        for subset in decide([], [], list(counts.keys())):
-            t = tuple(subset[0])
-            if t not in already:
-                yield subset
-                already.add(t)
-            else:
-                print("already taken")
-
-
 def subranges(
     items, min_count, max, flexible_start=False, included=None, less_first=False
 ):
+    """
+    generator that yields possible divisions of items as
+    ([items_inside],([previos_items],[remaining_items]))
+    with items_inside of variable lengths.
+    If flexible_start, then [previos_items] also has a variable size.
+    """
     # TODO: take into account included
 
     if max is None:
@@ -226,81 +105,3 @@ def subranges(
                 items[start : start + length],
                 (items[:start], items[start + length :]),
             )
-
-
-def unicode_superscript(value) -> str:
-    def repl_char(c):
-        if c == "1":
-            value = 185
-        elif c == "2":
-            value = 178
-        elif c == "3":
-            value = 179
-        elif "0" <= c <= "9":
-            value = 8304 + (ord(c) - ord("0"))
-        elif c == "-":
-            value = 8315
-        elif c == "(":
-            value = 8317
-        elif c == ")":
-            value = 8318
-        else:
-            value = ord(c)
-        return chr(value)
-
-    return "".join(repl_char(c) for c in value)
-
-
-try:
-    from inspect import signature
-
-    def _python_function_arguments(f):
-        return signature(f).parameters.keys()
-
-except ImportError:  # py2, pypy
-    from inspect import getargspec
-
-    def _python_function_arguments(f):
-        return getargspec(f).args
-
-
-if sys.version_info >= (3, 4, 0):
-    _cython_function_arguments = _python_function_arguments
-elif sys.version_info[0] >= 3:  # py3.3
-
-    def _cython_function_arguments(f):
-        return f.__code__.co_varnames
-
-else:  # py2
-
-    def _cython_function_arguments(f):
-        return f.func_code.co_varnames
-
-
-def function_arguments(f):
-    try:
-        return _python_function_arguments(f)
-    except (TypeError, ValueError):
-        return _cython_function_arguments(f)
-
-
-def robust_min(iterable):
-    minimum = None
-    for i in iterable:
-        if minimum is None or i < minimum:
-            minimum = i
-    return minimum
-
-
-def re_from_keys(d: dict) -> Pattern:
-    """Returns a regex that matches any of the keys of the dictionary"""
-
-    # The keys are sorted to prevent shorter keys from obscuring longer keys
-    # when pattern matching
-    return re.compile("|".join(sorted(d.keys(), key=lambda k: (-len(k), k))))
-
-
-def dict_with_escaped_keys(d: dict) -> dict:
-    """Takes a dictionary and returns a copy of it where the keys are escaped
-    with re.escape"""
-    return {re.escape(k): v for k, v in d.items()}

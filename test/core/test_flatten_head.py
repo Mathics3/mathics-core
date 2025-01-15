@@ -1,17 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from mathics.core.atoms import (
-    Integer,
-    Integer1,
-    Integer2,
-    Integer3,
-)
-
+from mathics.core.atoms import Integer, Integer1, Integer2, Integer3
 from mathics.core.expression import Expression
-from mathics.core.symbols import (
-    Symbol,
-    SymbolPlus,
-)
+from mathics.core.symbols import Symbol, SymbolPlus
 
 
 def test_flatten_with_respect_to_head():

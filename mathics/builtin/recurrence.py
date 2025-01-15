@@ -4,22 +4,31 @@
 Solving Recurrence Equations
 """
 
+# This tells documentation how to sort this module
+# Here we are also hiding "moments" since this erroneously appears at the
+# top level.
+sort_order = "mathics.builtin.solving-recurrence-equations"
+
 
 import sympy
 
-from mathics.builtin.base import Builtin
-
-from mathics.core.atoms import IntegerM1, SymbolPlus, SymbolTimes
-from mathics.core.attributes import constant
-from mathics.core.convert.sympy import sympy_symbol_prefix, from_sympy
+from mathics.core.atoms import IntegerM1
+from mathics.core.attributes import A_CONSTANT
+from mathics.core.builtin import Builtin
+from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Atom, Symbol
+from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolTimes
 from mathics.core.systemsymbols import SymbolFunction, SymbolRule
 
 
 class RSolve(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RSolve.html</url>
+
     <dl>
     <dt>'RSolve[$eqn$, $a$[$n$], $n$]'
         <dd>solves a recurrence equation for the function '$a$[$n$]'.
@@ -29,20 +38,20 @@ class RSolve(Builtin):
     >> RSolve[a[n] == a[n+1], a[n], n]
      = {{a[n] -> C[0]}}
 
-    No boundary conditions gives two general paramaters:
+    No boundary conditions gives two general parameters:
     >> RSolve[{a[n + 2] == a[n]}, a, n]
-     = {{a -> (Function[{n}, C[0] + C[1] -1 ^ n])}}
+     = {{a -> Function[{n}, C[0] + C[1] (-1) ^ n]}}
 
     Include one boundary condition:
     >> RSolve[{a[n + 2] == a[n], a[0] == 1}, a, n]
      = ...
-    ## Order of terms depends on intepreter:
-    ## PyPy:    {{a -> (Function[{n}, 1 - C[1] + C[1] -1 ^ n])}}
-    ## CPython: {{a -> (Function[{n}, 1 + C[1] -1 ^ n - C[1]])}
+    ## Order of terms depends on interpreter:
+    ## PyPy:    {{a -> Function[{n}, 1 - C[1] + C[1] -1 ^ n]}}
+    ## CPython: {{a -> Function[{n}, 1 + C[1] -1 ^ n - C[1]]}
 
-    Geta "pure function" solution for a with two boundary conditions:
+    Get a "pure function" solution for a with two boundary conditions:
     >> RSolve[{a[n + 2] == a[n], a[0] == 1, a[1] == 4}, a, n]
-     = {{a -> (Function[{n}, 5 / 2 - 3 -1 ^ n / 2])}}
+     = {{a -> Function[{n}, 5 / 2 - 3 (-1) ^ n / 2]}}
     """
 
     messages = {
@@ -58,7 +67,7 @@ class RSolve(Builtin):
     }
     summary_text = "recurrence equations solver"
 
-    def apply(self, eqns, a, n, evaluation):
+    def eval(self, eqns, a, n, evaluation: Evaluation):
         "RSolve[eqns_, a_, n_]"
 
         # TODO: Do this with rules?
@@ -76,7 +85,7 @@ class RSolve(Builtin):
         if (
             (isinstance(n, Atom) and not isinstance(n, Symbol))
             or n.get_head_name() in ("System`Plus", "System`Times", "System`Power")
-            or constant & n.get_attributes(evaluation.definitions)
+            or A_CONSTANT & n.get_attributes(evaluation.definitions)
         ):
             # TODO: Factor out this check for dsvar into a separate
             # function. DSolve uses this too.
@@ -97,7 +106,7 @@ class RSolve(Builtin):
         if n not in func.elements:
             evaluation.message("DSolve", "deqx")
 
-        # Seperate relations from conditions
+        # Separate relations from conditions
         conditions = {}
 
         def is_relation(eqn):
@@ -109,7 +118,6 @@ class RSolve(Builtin):
                     and isinstance(le.elements[0].to_python(), int)
                     and ri.is_numeric(evaluation)
                 ):
-
                     r_sympy = ri.to_sympy()
                     if r_sympy is None:
                         raise ValueError
@@ -145,7 +153,7 @@ class RSolve(Builtin):
 
         try:
             # Sympy raises error when given empty conditions. Fixed in
-            # upcomming sympy release.
+            # upcoming sympy release.
             if sym_conds != {}:
                 sym_result = sympy.rsolve(sym_eq, sym_func, sym_conds)
             else:

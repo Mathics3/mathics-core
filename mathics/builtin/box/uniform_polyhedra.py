@@ -1,22 +1,16 @@
-from mathics.builtin.box.graphics3d import Coords3D
-
-from mathics.builtin.base import BoxConstructError
-
-from mathics.builtin.colors.color_directives import _ColorObject, Opacity
-from mathics.builtin.drawing.graphics_internals import GLOBALS3D, _GraphicsElementBox
+# Docs are not yet ready for prime time. Maybe after release 6.0.0.
+no_doc = True
 
 import numbers
+
+from mathics.builtin.box.graphics3d import Coords3D
+from mathics.builtin.colors.color_directives import Opacity, _ColorObject
+from mathics.builtin.drawing.graphics_internals import GLOBALS3D, _GraphicsElementBox
+from mathics.core.exceptions import BoxExpressionError
 from mathics.core.symbols import Symbol
 
 
 class UniformPolyhedron3DBox(_GraphicsElementBox):
-    """
-    <dl>
-    <dt>'UniformPolyedron3DBox[]'
-    <dd>
-    </dl>
-    """
-
     # Let's overwrite the default summary_text here,
     # to recover the spaces.
     summary_text = "box representation of a 3d uniform polyhedron"
@@ -29,19 +23,19 @@ class UniformPolyhedron3DBox(_GraphicsElementBox):
             Opacity, face_element=True
         )
 
-        if len(item.leaves) != 3:
-            raise BoxConstructError
+        if len(item.elements) != 3:
+            raise BoxExpressionError
 
-        points = item.leaves[1].to_python()
+        points = item.elements[1].to_python()
         if not all(
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
         ):
-            raise BoxConstructError
+            raise BoxExpressionError
 
         self.points = tuple(Coords3D(pos=point) for point in points)
-        self.edge_length = item.leaves[2].to_python()
-        self.sub_type = item.leaves[0].to_python(string_quotes=False)
+        self.edge_length = item.elements[2].to_python()
+        self.sub_type = item.elements[0].to_python(string_quotes=False)
 
     def extent(self):
         result = []

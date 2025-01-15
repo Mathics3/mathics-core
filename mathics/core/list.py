@@ -1,56 +1,101 @@
 # -*- coding: utf-8 -*-
+"""
+Module containing ListExpression
+"""
 
+import reprlib
 from typing import Optional, Tuple
 
 from mathics.core.element import ElementsProperties
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.symbols import EvalMixin, SymbolList
+from mathics.core.symbols import EvalMixin, Symbol, SymbolList
 
 
 class ListExpression(Expression):
     """
-    A Mathics List-Expression.
+    A Mathics3 List-Expression.
 
-    A Mathics List is a specialization of Expression where the head is SymbolList.
+    A Mathics3 List is a specialization of Expression where the head is SymbolList.
 
     positional Arguments:
         - *elements - optional: the remaining elements
 
     Keyword Arguments:
-        - element_properties -- properties of the collection of elements
+        - elements_properties -- properties of the collection of elements
+        - literal_values -- if this is not None, then it is a tuple of Python values
     """
 
+    _is_literal: bool
+
     def __init__(
-        self, *elements, elements_properties: Optional[ElementsProperties] = None
+        self,
+        *elements,
+        elements_properties: Optional[ElementsProperties] = None,
+        literal_values: Optional[tuple] = None,
     ):
         self.options = None
         self.pattern_sequence = False
         self._head = SymbolList
 
-        # For debugging
-        # from mathics.core.symbols import BaseElement
+        # For debugging:
+
+        # if literal_values is not None:
+        #     import inspect
+
+        #     curframe = inspect.currentframe()
+        #     call_frame = inspect.getouterframes(curframe, 2)
+        #     print("caller name:", call_frame[1][3])
+
+        # from mathics.core.element import BaseElement
         # for element in elements:
         #     if not isinstance(element, BaseElement):
         #          from trepan.api import debug; debug()
 
         self._elements = elements
-        self._is_literal = False
-        self.python_list = None
+        self.value = literal_values
+
+        # Check for literalness if it is not known
+        if literal_values is None:
+            self._is_literal = True
+            values = []
+            for element in elements:
+                if element.is_literal:
+                    values.append(element.value)
+                else:
+                    self._is_literal = False
+                    break
+            if self._is_literal:
+                self.value = tuple(values)
+
         self.elements_properties = elements_properties
 
         # FIXME: get rid of this junk
         self._sequences = None
         self._cache = None
-        # comment @mmatera: this cache should be useful in BoxConstruct, but not
-        # here...
-        self._format_cache = None
 
-    # Add this when it is safe to do.
+    def __getitem__(self, index: int):
+        """
+        Allows ListExpression elements to accessed via [], e.g.
+        ListExpression[Integer1, Integer0][0] == Integer1
+        """
+        return self._elements[index]
+
     def __repr__(self) -> str:
-        return "<ListExpression: %s>" % self
+        """(reprlib.repr)-limited display or ListExpression"""
+        list_data = reprlib.repr(self._elements)
+        return f"<ListExpression: {list_data}>"
+
+    def __str__(self) -> str:
+        """str() representation of ListExpression. May be longer than repr()"""
+        return "{" + ",".join(str(e) for e in self.elements) + "}"
 
     # @timeit
-    def evaluate_elements(self, evaluation):
+    def evaluate_elements(self, evaluation: Evaluation) -> Expression:
+        """
+        return a new expression with the same head, and the
+        evaluable elements evaluated.
+        """
         elements_changed = False
         # Make tuple self._elements mutable by turning it into a list.
         elements = list(self._elements)
@@ -59,20 +104,16 @@ class ListExpression(Expression):
                 if isinstance(element, EvalMixin):
                     new_value = element.evaluate(evaluation)
                     # We need id() because != by itself is too permissive
-                    if id(element) != id(new_value):
+                    if new_value is not None and id(element) != id(new_value):
                         elements_changed = True
                         elements[index] = new_value
 
-        if elements_changed:
-            # Save changed elements, making them immutable again.
-            self._elements = tuple(elements)
+        if not elements_changed:
+            return self
 
-            # TODO: we could have a specialized version of this
-            # that keeps self.python_list up to date when that is
-            # easy to do. That is left of some future time to
-            # decide whether doing this this is warranted.
-            self._build_elements_properties()
-            self.python_list = None
+        new_list = ListExpression(*elements)
+        new_list._build_elements_properties()
+        return new_list
 
     @property
     def is_literal(self) -> bool:
@@ -105,11 +146,19 @@ class ListExpression(Expression):
 
         if self.elements_properties is None:
             self._build_elements_properties()
+        assert self.elements_properties is not None
         if not self.elements_properties.elements_fully_evaluated:
-            new = self.shallow_copy()
-            new.evaluate_elements(evaluation)
+            new = self.shallow_copy().evaluate_elements(evaluation)
             return new, False
         return self, False
+
+    def set_head(self, head: Symbol):
+        """
+        Change the Head of an Expression.
+        Unless this is a ListExpression, this is forbidden here.
+        """
+        if head != SymbolList:
+            raise TypeError("Attempt to modify the Head of a ListExpression")
 
     def shallow_copy(self) -> "ListExpression":
         """
@@ -126,5 +175,4 @@ class ListExpression(Expression):
         expr.options = self.options
         expr.original = self
         expr._sequences = self._sequences
-        expr._format_cache = self._format_cache
         return expr

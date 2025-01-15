@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import sys
-import os.path
 import logging
+import os.path
+import sys
 
 
 class MagicRule:

@@ -1,18 +1,28 @@
 # -*- coding: utf-8 -*-
+"""Evaluation Control
 
 
-from mathics.builtin.base import Predefined, Builtin
+Mathics3 takes an expression that it is given, and evaluates it. Built \
+into the evaluation are primitives that allow finer control over the \
+process of evaluation in cases where it is needed.
+"""
+
 from mathics.core.atoms import Integer
+from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
+from mathics.core.builtin import Builtin, Predefined
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
-
-from mathics.core.attributes import hold_all, hold_all_complete, protected
 
 
 class RecursionLimit(Predefined):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/$RecursionLimit.html</url>
+
     <dl>
       <dt>'$RecursionLimit'
-      <dd>specifies the maximum allowable recursion depth after which a calculation is terminated.
+      <dd>specifies the maximum allowable recursion depth after which a \
+          calculation is terminated.
     </dl>
 
     Calculations terminated by '$RecursionLimit' return '$Aborted':
@@ -30,28 +40,6 @@ class RecursionLimit(Predefined):
     >> a = a + a
      : Recursion depth of 512 exceeded.
      = $Aborted
-
-    #> $RecursionLimit = 20
-     = 20
-    #> a = a + a
-     : Recursion depth of 20 exceeded.
-     = $Aborted
-
-    #> $RecursionLimit = 200
-     = 200
-
-    #> ClearAll[f];
-    #> f[x_, 0] := x; f[x_, n_] := f[x + 1, n - 1];
-    #> Block[{$RecursionLimit = 20}, f[0, 100]]
-     = 100
-    #> ClearAll[f];
-
-    #> ClearAll[f];
-    #> f[x_, 0] := x; f[x_, n_] := Module[{y = x + 1}, f[y, n - 1]];
-    #> Block[{$RecursionLimit = 20}, f[0, 100]]
-     : Recursion depth of 20 exceeded.
-     = $Aborted
-    #> ClearAll[f];
     """
 
     name = "$RecursionLimit"
@@ -84,6 +72,8 @@ class RecursionLimit(Predefined):
 
 class IterationLimit(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$IterationLimit.html</url>
+
     <dl>
         <dt>'$IterationLimit'
 
@@ -93,30 +83,8 @@ class IterationLimit(Predefined):
 
     Calculations terminated by '$IterationLimit' return '$Aborted':
 
-    > $IterationLimit
+    >> $IterationLimit
      = 1000
-    #> ClearAll[f]; f[x_] := f[x + 1];
-    #> f[x]
-     : Iteration limit of 1000 exceeded.
-     = $Aborted
-    #> ClearAll[f];
-
-    #> $IterationLimit = x;
-     : Cannot set $IterationLimit to x; value must be an integer between 20 and Infinity.
-
-    #> ClearAll[f];
-    #> f[x_, 0] := x; f[x_, n_] := f[x + 1, n - 1];
-    #> Block[{$IterationLimit = 20}, f[0, 100]]
-     : Iteration limit of 20 exceeded.
-     = $Aborted
-    #> ClearAll[f];
-
-    # FIX Later
-    # #> ClearAll[f];
-    # #> f[x_, 0] := x; f[x_, n_] := Module[{y = x + 1}, f[y, n - 1]];
-    # #> Block[{$IterationLimit = 20}, f[0, 100]]
-    #  = 100
-    # #> ClearAll[f];
     """
 
     name = "$IterationLimit"
@@ -145,35 +113,43 @@ class IterationLimit(Predefined):
 
 class Hold(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Hold.html</url>
+
     <dl>
     <dt>'Hold[$expr$]'
         <dd>prevents $expr$ from being evaluated.
     </dl>
+
     >> Attributes[Hold]
      = {HoldAll, Protected}
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "prevent the evaluation"
 
 
 class HoldComplete(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/HoldComplete.html</url>
+
     <dl>
     <dt>'HoldComplete[$expr$]'
         <dd>prevents $expr$ from being evaluated, and also prevents
         'Sequence' objects from being spliced into argument lists.
     </dl>
+
     >> Attributes[HoldComplete]
      = {HoldAllComplete, Protected}
     """
 
-    attributes = hold_all_complete | protected
+    attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED
     summary_text = "prevents the evaluation, including the upvalues"
 
 
 class HoldForm(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/HoldForm.html</url>
+
     <dl>
     <dt>'HoldForm[$expr$]'
         <dd>is equivalent to 'Hold[$expr$]', but prints as $expr$.
@@ -187,7 +163,7 @@ class HoldForm(Builtin):
      = {HoldAll, Protected}
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
 
     rules = {
         "MakeBoxes[HoldForm[expr_], f_]": "MakeBoxes[expr, f]",
@@ -197,6 +173,8 @@ class HoldForm(Builtin):
 
 class Evaluate(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Evaluate.html</url>
+
     <dl>
     <dt>'Evaluate[$expr$]'
         <dd>forces evaluation of $expr$, even if it occurs inside a
@@ -230,6 +208,8 @@ class Evaluate(Builtin):
 
 class Unevaluated(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Unevaluated.html</url>
+
     <dl>
     <dt>'Unevaluated[$expr$]'
         <dd>temporarily leaves $expr$ in an unevaluated form when it
@@ -260,23 +240,22 @@ class Unevaluated(Builtin):
     >> g[Unevaluated[Sequence[a, b, c]]]
      = g[Unevaluated[Sequence[a, b, c]]]
 
-    #> Attributes[h] = Flat;
-    #> h[items___] := Plus[items]
-    #> h[1, Unevaluated[Sequence[Unevaluated[2], 3]], Sequence[4, Unevaluated[5]]]
-     = 15
     """
 
-    attributes = hold_all_complete | protected
+    attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED
     summary_text = "keep the element unevaluated, disregarding Hold attributes"
 
 
 class ReleaseHold(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ReleaseHold.html</url>
+
     <dl>
     <dt>'ReleaseHold[$expr$]'
         <dd>removes any 'Hold', 'HoldForm', 'HoldPattern' or
         'HoldComplete' head from $expr$.
     </dl>
+
     >> x = 3;
     >> Hold[x]
      = Hold[x]
@@ -295,6 +274,8 @@ class ReleaseHold(Builtin):
 
 class Sequence(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Sequence.html</url>
+
     <dl>
     <dt>'Sequence[$x1$, $x2$, ...]'
         <dd>represents a sequence of arguments to a function.
@@ -328,33 +309,4 @@ class Sequence(Builtin):
         "a sequence of arguments that will automatically be spliced into any function"
     )
 
-
-class Quit(Builtin):
-    """
-    <dl>
-    <dt>'Quit'[]
-      <dd> Terminates the Mathics session.
-    <dt>'Quit[$n$]'
-      <dd> Terminates the mathics session with exit code $n$.
-    </dl>
-
-    <dl>
-    <dt>'Exit'[]
-      <dd> Terminates the Mathics session.
-    <dt>'Exit[$n$]'
-      <dd> Terminates the mathics session with exit code $n$.
-    </dl>
-
-    """
-
-    rules = {
-        "Exit[n___]": "Quit[n]",
-    }
-    summary_text = "terminate the session"
-
-    def apply(self, evaluation, n):
-        "%(name)s[n___]"
-        exitcode = 0
-        if isinstance(n, Integer):
-            exitcode = n.get_int_value()
-        raise SystemExit(exitcode)
+    formats = {"Sequence[elems___]": "HoldForm[Sequence][elems]"}

@@ -3,8 +3,9 @@
 Unit tests from builtin ... calculus.py specific for Series
 """
 
-from .helper import check_evaluation
 import pytest
+
+from .helper import check_evaluation
 
 
 def test_seriesdata_product():

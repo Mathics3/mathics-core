@@ -1,15 +1,31 @@
 import re
-from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
-from mathics.core.atoms import Integer0, Integer1
+from test.helper import session
+
+from mathics.builtin.makeboxes import MakeBoxes
+from mathics.core.atoms import Integer0, Integer1, Real
 from mathics.core.evaluation import Evaluation
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolGraphics, SymbolPoint
 from mathics.session import MathicsSession
-from mathics.builtin.inout import MakeBoxes
 
-session = MathicsSession(add_builtin=True, catch_interrupt=False)
-evaluation = Evaluation(session.definitions)
+evaluation = session.evaluation
+
+
+# TODO: DRY this, which is repeated in test_svg
+
+GraphicsSymbol = Symbol("Graphics")
+ListSymbol = Symbol("List")
+
+
+DISK_TEST_EXPR = Expression(
+    Symbol("Disk")
+)  # , ListExpression(Integer0, Integer0), Integer1)
+COLOR_RED = Expression(Symbol("RGBColor"), Integer1, Integer0, Integer0)
+COLOR_RED_ALPHA = Expression(
+    Symbol("RGBColor"), Integer1, Integer0, Integer0, Real(0.25)
+)
 
 
 asy_wrapper_pat = r"""^\s*
@@ -90,8 +106,36 @@ def test_asy_arrowbox():
     assert matches
 
 
-def test_asy_bezier_curve():
+def test_asy_background():
+    def check(expr, result):
+        # TODO: use regular expressions...
+        background = get_asy(expression).strip().splitlines()[3]
+        print(background)
+        assert background == result
 
+    # If not specified, the background is empty
+    expression = Expression(
+        GraphicsSymbol,
+        DISK_TEST_EXPR,
+    ).evaluate(evaluation)
+    check(expression, "")
+
+    expression = Expression(
+        GraphicsSymbol,
+        DISK_TEST_EXPR,
+        Expression(Symbol("Rule"), Symbol("System`Background"), COLOR_RED),
+    ).evaluate(evaluation)
+    check(expression, "filldraw(box((0,0), (350,350)), rgb(1, 0, 0));")
+
+    expression = Expression(
+        GraphicsSymbol,
+        DISK_TEST_EXPR,
+        Expression(Symbol("Rule"), Symbol("System`Background"), COLOR_RED_ALPHA),
+    ).evaluate(evaluation)
+    check(expression, "filldraw(box((0,0), (350,350)), rgb(1, 0, 0)+opacity(0.25));")
+
+
+def test_asy_bezier_curve():
     expression = Expression(
         SymbolGraphics,
         Expression(
@@ -107,6 +151,20 @@ def test_asy_bezier_curve():
 
     matches = re.match(r"// BezierCurveBox\nimport graph;", inner_asy)
     # TODO: Match line and arrowbox
+    assert matches
+
+
+def test_asy_rectanglebox():
+    expression = Expression(
+        SymbolGraphics,
+        ListExpression(
+            Expression(Symbol("Rectangle"), ListExpression(Integer0, Integer0))
+        ),
+    )
+    asy = get_asy(expression)
+    inner_asy = extract_asy_body(asy)
+
+    matches = re.match(r"// RectangleBox\n", inner_asy)
     assert matches
 
 

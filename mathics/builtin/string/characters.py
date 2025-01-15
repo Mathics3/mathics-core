@@ -2,18 +2,22 @@
 """
 Characters in Strings
 """
-
-
-from mathics.builtin.base import Builtin, Test
+# FIXME: Redo: this is part of a Tech note, not a guide section.
 
 from mathics.core.atoms import String
-from mathics.core.attributes import listable, protected, read_protected
+from mathics.core.attributes import A_LISTABLE, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin, Test
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
 
 
 class Characters(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Characters.html</url>
+
     <dl>
       <dt>'Characters["$string$"]'
       <dd>returns a list of the characters in $string$.
@@ -21,24 +25,12 @@ class Characters(Builtin):
 
     >> Characters["abc"]
      = {a, b, c}
-
-    #> \\.78\\.79\\.7A
-     = xyz
-
-    #> \\:0078\\:0079\\:007A
-     = xyz
-
-    #> \\101\\102\\103\\061\\062\\063
-     = ABC123
-
-    #> \\[Alpha]\\[Beta]\\[Gamma]
-     = \u03B1\u03B2\u03B3
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "list the characters in a string"
 
-    def apply(self, string, evaluation):
+    def eval(self, string, evaluation: Evaluation):
         "Characters[string_String]"
 
         return to_mathics_list(*string.value, elements_conversion_fn=String)
@@ -46,6 +38,10 @@ class Characters(Builtin):
 
 class CharacterRange(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/CharacterRange.html</url>
+
     <dl>
       <dt>'CharacterRange["$a$", "$b$"]'
       <dd>returns a list of the Unicode characters from $a$ to $b$ inclusive.
@@ -57,7 +53,7 @@ class CharacterRange(Builtin):
      = {}
     """
 
-    attributes = protected | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
 
     messages = {
         "argtype": "Arguments `1` and `2` are not both strings of length 1.",
@@ -65,7 +61,7 @@ class CharacterRange(Builtin):
 
     summary_text = "range of characters with successive character codes"
 
-    def apply(self, start, stop, evaluation):
+    def eval(self, start, stop, evaluation: Evaluation):
         "CharacterRange[start_String, stop_String]"
 
         if len(start.value) != 1 or len(stop.value) != 1:
@@ -76,72 +72,10 @@ class CharacterRange(Builtin):
         return ListExpression(*[String(chr(code)) for code in range(start, stop + 1)])
 
 
-class DigitQ(Builtin):
-    """
-    <dl>
-      <dt>'DigitQ[$string$]'
-      <dd>yields 'True' if all the characters in the $string$ are digits, and yields 'False' otherwise.
-
-    </dl>
-
-    >> DigitQ["9"]
-     = True
-
-    >> DigitQ["a"]
-     = False
-
-    >> DigitQ["01001101011000010111010001101000011010010110001101110011"]
-     = True
-
-    >> DigitQ["-123456789"]
-     = False
-
-    """
-
-    rules = {
-        "DigitQ[string_]": (
-            "If[StringQ[string], StringMatchQ[string, DigitCharacter...], False, False]"
-        ),
-    }
-    summary_text = "test whether all the characters are digits"
-
-
-class LetterQ(Builtin):
-    """
-    <dl>
-      <dt>'LetterQ[$string$]'
-      <dd>  yields 'True' if all the characters in the $string$ are letters, and yields 'False' otherwise.
-    </dl>
-
-    >> LetterQ["m"]
-     = True
-
-    >> LetterQ["9"]
-     = False
-
-    >> LetterQ["Mathics"]
-     = True
-
-    >> LetterQ["Welcome to Mathics"]
-     = False
-
-    #> LetterQ[""]
-     = True
-
-    #> LetterQ["\\[Alpha]\\[Beta]\\[Gamma]\\[Delta]\\[Epsilon]\\[Zeta]\\[Eta]\\[Theta]"]
-     = True
-    """
-
-    rules = {
-        "LetterQ[string_]": (
-            "If[StringQ[string], StringMatchQ[string, LetterCharacter...], False, False]"
-        ),
-    }
-    summary_text = "test whether all the characters are letters"
-
-
 class LowerCaseQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LowerCaseQ.html</url>
+
     <dl>
       <dt>'LowerCaseQ[$s$]'
       <dd>returns True if $s$ consists wholly of lower case characters.
@@ -155,55 +89,63 @@ class LowerCaseQ(Test):
      = True
     """
 
-    summary_text = "test wether all the characters are lower-case letters"
+    summary_text = "test whether all the characters are lower-case letters"
 
-    def test(self, s):
-        return isinstance(s, String) and all(c.islower() for c in s.get_string_value())
+    def test(self, expr) -> bool:
+        return isinstance(expr, String) and all(
+            c.islower() for c in expr.get_string_value()
+        )
 
 
 class ToLowerCase(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ToLowerCase.html</url>
+
     <dl>
-    <dt>'ToLowerCase[$s$]'
-        <dd>returns $s$ in all lower case.
+      <dt>'ToLowerCase[$s$]'
+      <dd>returns $s$ in all lower case.
     </dl>
 
     >> ToLowerCase["New York"]
      = new york
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "turn all the letters into lower case"
 
-    def apply(self, s, evaluation):
+    def eval(self, s, evaluation: Evaluation):
         "ToLowerCase[s_String]"
         return String(s.get_string_value().lower())
 
 
 class ToUpperCase(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ToUpperCase.html</url>
+
     <dl>
-    <dt>'ToUpperCase[$s$]'
-        <dd>returns $s$ in all upper case.
+      <dt>'ToUpperCase[$s$]'
+      <dd>returns $s$ in all upper case.
     </dl>
 
     >> ToUpperCase["New York"]
      = NEW YORK
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "turn all the letters into upper case"
 
-    def apply(self, s, evaluation):
+    def eval(self, s, evaluation: Evaluation):
         "ToUpperCase[s_String]"
         return String(s.get_string_value().upper())
 
 
 class UpperCaseQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/UpperCaseQ.html</url>
+
     <dl>
-    <dt>'UpperCaseQ[$s$]'
-        <dd>returns True if $s$ consists wholly of upper case characters.
+     <dt>'UpperCaseQ[$s$]'
+     <dd>returns True if $s$ consists wholly of upper case characters.
     </dl>
 
     >> UpperCaseQ["ABC"]
@@ -214,7 +156,9 @@ class UpperCaseQ(Test):
      = True
     """
 
-    summary_text = "test wether all the characters are upper-case letters"
+    summary_text = "test whether all the characters are upper-case letters"
 
-    def test(self, s):
-        return isinstance(s, String) and all(c.isupper() for c in s.get_string_value())
+    def test(self, expr) -> bool:
+        return isinstance(expr, String) and all(
+            c.isupper() for c in expr.get_string_value()
+        )

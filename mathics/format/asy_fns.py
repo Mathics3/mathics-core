@@ -1,8 +1,15 @@
 # -*- coding: utf-8 -*-
 
-""" Asymptote-related functions"""
+"""
+Asymptote-related functions
+"""
 
 from itertools import chain
+from typing import Optional, Union
+
+from mathics.builtin.colors.color_directives import _ColorObject
+
+RealType = Union[int, float]
 
 
 def asy_add_bezier_fn(self) -> str:
@@ -89,7 +96,7 @@ def asy_bezier(*segments):
         connect = p[-1:]
 
 
-def asy_color(self):
+def asy_color(self: _ColorObject):
     """Return an asymptote rgba string fragment for object's RGB or RGBA
     value and it opacity (alpha) value"""
     rgba = self.to_rgba()
@@ -101,13 +108,14 @@ def asy_color(self):
 
 
 def asy_create_pens(
-    edge_color=None,
-    face_color=None,
-    edge_opacity=None,
-    face_opacity=None,
+    edge_color: Optional[_ColorObject] = None,
+    face_color: Optional[_ColorObject] = None,
+    edge_opacity: Optional[RealType] = None,
+    face_opacity: Optional[RealType] = None,
     stroke_width=None,
     is_face_element=False,
     dotfactor=None,
+    fontsize: Optional[RealType] = None,
 ) -> str:
     """
     Return an asymptote string fragment that creates a drawing pen.
@@ -130,6 +138,8 @@ def asy_create_pens(
             opacity = edge_opacity
         if opacity is not None and opacity != 1:
             pen += f"+opacity({asy_number(opacity)})"
+        if fontsize is not None:
+            pen += f"+fontsize({fontsize})"
         if stroke_width is not None:
             pen += f"+linewidth({asy_number(stroke_width)})"
         result.append(pen)

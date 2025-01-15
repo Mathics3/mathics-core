@@ -1,36 +1,49 @@
 # -*- coding: utf-8 -*-
+"""
+Units and Quantities
+"""
+from typing import Optional
 
-
-from mathics.builtin.base import Builtin, Test
-from mathics.core.atoms import (
-    String,
-    Integer,
-    Integer1,
-    Real,
-    Number,
+from mathics.core.atoms import Integer, Integer1, Number, String
+from mathics.core.attributes import (
+    A_HOLD_REST,
+    A_N_HOLD_REST,
+    A_PROTECTED,
+    A_READ_PROTECTED,
 )
-from mathics.core.convert.expression import to_mathics_list
+from mathics.core.builtin import Builtin, Test
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolRowBox
+from mathics.core.systemsymbols import (
+    SymbolPower,
+    SymbolQuantity,
+    SymbolRow,
+    SymbolTimes,
+)
+from mathics.eval.quantities import (
+    add_quantities,
+    convert_units,
+    normalize_unit_expression,
+    normalize_unit_expression_with_magnitude,
+    validate_pint_unit,
+    validate_unit_expression,
+)
 
-from mathics.core.attributes import hold_rest, n_hold_rest, protected, read_protected
-
-from pint import UnitRegistry
-
-SymbolQuantity = Symbol("Quantity")
-
-ureg = UnitRegistry()
-Q_ = ureg.Quantity
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.units-and-quantites"
 
 
 class KnownUnitQ(Test):
-
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/KnownUnitQ.html</url>
+
     <dl>
-    <dt>'KnownUnitQ[$unit$]'
-        <dd>returns True if $unit$ is a canonical unit, and False otherwise.
+      <dt>'KnownUnitQ[$unit$]'
+      <dd>returns True if $unit$ is a canonical unit, and False otherwise.
     </dl>
 
     >> KnownUnitQ["Feet"]
@@ -38,134 +51,29 @@ class KnownUnitQ(Test):
 
     >> KnownUnitQ["Foo"]
      = False
+
+    >> KnownUnitQ["meter"^2/"second"]
+     = True
     """
 
-    summary_text = "check if its argument is a canonical unit."
+    summary_text = "tests whether its argument is a canonical unit."
 
-    def test(self, expr):
-        def validate(unit):
-            try:
-                Q_(1, unit)
-            except Exception:
-                return False
-            else:
-                return True
-
-        return validate(expr.get_string_value().lower())
-
-
-class UnitConvert(Builtin):
-
-    """
-    <dl>
-    <dt>'UnitConvert[$quantity$, $targetunit$] '
-        <dd> converts the specified $quantity$ to the specified $targetunit$.
-    <dt>'UnitConvert[quantity]'
-        <dd> converts the specified $quantity$ to its "SIBase" units.
-    </dl>
-
-    Convert from miles to kilometers:
-    >> UnitConvert[Quantity[5.2, "miles"], "kilometers"]
-     = 8.36859 kilometer
-
-    Convert a Quantity object to the appropriate SI base units:
-    >> UnitConvert[Quantity[3.8, "Pounds"]]
-     = 1.72365 kilogram
-
-    #> UnitConvert[Quantity[{3, 10}, "centimeter"]]
-     = {0.03 meter, 0.1 meter}
-
-    #> UnitConvert[Quantity[3, "aaa"]]
-     : Unable to interpret unit specification aaa.
-     = UnitConvert[Quantity[3,aaa]]
-
-    #> UnitConvert[Quantity[{300, 152}, "centimeter"], Quantity[10, "meter"]]
-     = {3 meter, 1.52 meter}
-
-    #> UnitConvert[Quantity[{3, 1}, "meter"], "inch"]
-     = {118.11 inch, 39.3701 inch}
-    """
-
-    messages = {
-        "argrx": "UnitConvert called with `1` arguments; 2 arguments are expected"
-    }
-    summary_text = "Conversion between units."
-
-    def apply(self, expr, toUnit, evaluation):
-        "UnitConvert[expr_, toUnit_]"
-
-        def convert_unit(leaves, target):
-
-            mag = leaves[0]
-            unit = leaves[1].get_string_value()
-            quantity = Q_(mag, unit)
-            converted_quantity = quantity.to(target)
-
-            q_mag = converted_quantity.magnitude.evaluate(evaluation).get_float_value()
-
-            # Displaying the magnitude in Integer form if the convert rate is an Integer
-            if q_mag - int(q_mag) > 0:
-                return Expression(SymbolQuantity, Real(q_mag), target)
-            else:
-                return Expression(SymbolQuantity, Integer(q_mag), target)
-
-        if len(evaluation.out) > 0:
-            return
-
-        if toUnit.has_form("Quantity", None):
-            targetUnit = toUnit.leaves[1].get_string_value().lower()
-        elif toUnit.has_form("List", None):
-            if not toUnit.leaves[0].has_form("Quantity", None):
-                return
-            else:
-                targetUnit = toUnit.leaves[0].leaves[1].get_string_value().lower()
-        elif isinstance(toUnit, String):
-            targetUnit = toUnit.get_string_value().lower()
-        else:
-            return
-        if expr.has_form("List", None):
-            abc = []
-            for i in range(len(expr.leaves)):
-                abc.append(convert_unit(expr.leaves[i].leaves, targetUnit))
-            return ListExpression(*abc)
-        else:
-            return convert_unit(expr.leaves, targetUnit)
-
-    def apply_base_unit(self, expr, evaluation):
-        "UnitConvert[expr_]"
-
-        def convert_unit(leaves):
-
-            mag = leaves[0]
-            unit = leaves[1].get_string_value()
-
-            quantity = Q_(mag, unit)
-            converted_quantity = quantity.to_base_units()
-
-            return Expression(
-                "Quantity",
-                converted_quantity.magnitude,
-                String(converted_quantity.units),
-            )
-
-        if len(evaluation.out) > 0:
-            return
-        if expr.has_form("List", None):
-            abc = []
-            for i in range(len(expr.leaves)):
-                abc.append(convert_unit(expr.leaves[i].leaves))
-            return ListExpression(*abc)
-        else:
-            return convert_unit(expr.leaves)
+    def test(self, expr) -> bool:
+        return validate_unit_expression(expr)
 
 
 class Quantity(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Quantity.html</url>
+
     <dl>
-    <dt>'Quantity[$magnitude$, $unit$]'
-        <dd>represents a quantity with size $magnitude$ and unit specified by $unit$.
-    <dt>'Quantity[$unit$]'
-        <dd>assumes the magnitude of the specified $unit$ to be 1.
+      <dt>'Quantity[$magnitude$, $unit$]'
+      <dd>represents a quantity with size $magnitude$ and unit specified by $unit$.
+
+      <dt>'Quantity[$unit$]'
+      <dd>assumes the magnitude of the specified $unit$ to be 1.
     </dl>
 
     >> Quantity["Kilogram"]
@@ -174,173 +82,156 @@ class Quantity(Builtin):
     >> Quantity[10, "Meters"]
      = 10 meter
 
-    >> Quantity[{10,20}, "Meters"]
+    If the first argument is an array, then the unit is distributed on each element
+    >> Quantity[{10, 20}, "Meters"]
      = {10 meter, 20 meter}
 
-    #> Quantity[10, Meters]
-     = Quantity[10, Meters]
+    If the second argument is a number, then the expression is evaluated to
+    the product of the magnitude and that number
+    >> Quantity[2, 3/2]
+     = 3
 
-    #> Quantity[Meters]
-     : Unable to interpret unit specification Meters.
-     = Quantity[Meters]
+    Notice that units are specified as Strings. If the unit is not a Symbol or a Number,
+    the expression is not interpreted as a Quantity object:
 
-    #> Quantity[1, "foot"]
-     = 1 foot
+    >> QuantityQ[Quantity[2, Second]]
+     : Unable to interpret unit specification Second.
+     = False
+
+    Quantities can be multiplied and raised to integer powers:
+    >> Quantity[3, "centimeter"] / Quantity[2, "second"]^2
+     = 3 / 4 centimeter / second ^ 2
+
+    ## TODO: Allow to simplify producs:
+    ## >> Quantity[3, "centimeter"] Quantity[2, "meter"]
+    ##  = 600 centimeter ^ 2
+
+    Quantities of the same kind can be added:
+    >> Quantity[6, "meter"] + Quantity[3, "centimeter"]
+     = 603 centimeter
+
+
+    Quantities of different kind can not:
+    >> Quantity[6, "meter"] + Quantity[3, "second"]
+     : second and meter are incompatible units.
+     = 3 second + 6 meter
+
+    ## TODO: Implement quantities with composed units:
+    ## >> UnitConvert[Quantity[2, "Ampere" * "Second"], "Coulomb"]
+    ## = Quantity[2, Coulomb]
     """
 
-    attributes = hold_rest | n_hold_rest | protected | read_protected
+    attributes = A_HOLD_REST | A_N_HOLD_REST | A_PROTECTED | A_READ_PROTECTED
 
     messages = {
         "unkunit": "Unable to interpret unit specification `1`.",
+        "compat": "`1` and `2` are incompatible units.",
     }
-    summary_text = "quantity with units"
+    # TODO: Support fractional powers of units
+    rules = {
+        "Quantity[m1_, u1_]*Quantity[m2_, u2_]": "Quantity[m1*m2, u1*u2]",
+        "Quantity[m_, u_]*a_": "Quantity[a*m, u]",
+        "Power[Quantity[m_, u_], p_]": "Quantity[m^p, u^p]",
+    }
+    summary_text = "represents a quantity with units"
 
-    def validate(self, unit, evaluation):
-        if KnownUnitQ(unit).evaluate(evaluation) is Symbol("False"):
-            return False
-        return True
+    def eval_plus(self, q1, u1, q2, u2, evaluation):
+        """Plus[Quantity[q1_, u1_], Quantity[q2_,u2_]]"""
+        result = add_quantities(q1, u1, q2, u2, evaluation)
+        if result is None:
+            evaluation.message("Quantity", "compat", u1, u2)
+        return result
 
-    def apply_makeboxes(self, mag, unit, f, evaluation):
-        "MakeBoxes[Quantity[mag_, unit_String], f:StandardForm|TraditionalForm|OutputForm|InputForm]"
+    def format_quantity(self, mag, unit, evaluation: Evaluation):
+        "Quantity[mag_, unit_]"
 
-        q_unit = unit.get_string_value().lower()
-        if self.validate(unit, evaluation):
-            return Expression(SymbolRowBox, ListExpression(mag, " ", q_unit))
-        else:
-            return Expression(
-                SymbolRowBox,
-                to_mathics_list(SymbolQuantity, "[", mag, ",", q_unit, "]"),
-            )
-
-    def apply_n(self, mag, unit, evaluation):
-        "Quantity[mag_, unit_String]"
-
-        if self.validate(unit, evaluation):
-            if mag.has_form("List", None):
-                results = []
-                for i in range(len(mag.leaves)):
-                    quantity = Q_(mag.leaves[i], unit.get_string_value().lower())
-                    results.append(
-                        Expression(
-                            SymbolQuantity, quantity.magnitude, String(quantity.units)
-                        )
-                    )
-                return ListExpression(*results)
-            else:
-                quantity = Q_(mag, unit.get_string_value().lower())
-                return Expression(
-                    "Quantity", quantity.magnitude, String(quantity.units)
+        def format_units(units):
+            if isinstance(units, String):
+                q_unit = units.value
+                if validate_pint_unit(q_unit):
+                    result = String(q_unit.replace("_", " "))
+                    return result
+                return None
+            if units.has_form("Power", 2):
+                base, exp = units.elements
+                if not isinstance(exp, Integer):
+                    return None
+                result = Expression(SymbolPower, format_units(base), exp)
+                return result
+            if units.has_form("Times", None):
+                result = Expression(
+                    SymbolTimes, *(format_units(factor) for factor in units.elements)
                 )
-        else:
-            return evaluation.message("Quantity", "unkunit", unit)
+                return result
+            return None
 
-    def apply_1(self, unit, evaluation):
+        unit = format_units(unit)
+        if unit is None:
+            return None
+
+        return Expression(SymbolRow, ListExpression(mag, String(" "), unit))
+
+    def eval_list_of_magnitudes_unit(self, mag, unit, evaluation: Evaluation):
+        "Quantity[mag_List, unit_]"
+        head = Symbol(self.get_name())
+        return ListExpression(
+            *(Expression(head, m, unit).evaluate(evaluation) for m in mag.elements)
+        )
+
+    def eval_magnitude_and_unit(
+        self, mag, unit, evaluation: Evaluation
+    ) -> Optional[Expression]:
+        "Quantity[mag_, unit_]"
+
+        unit = unit.evaluate(evaluation)
+
+        if isinstance(unit, Number):
+            return Expression(SymbolTimes, mag, unit).evaluate(evaluation)
+
+        if unit.has_form("Quantity", 2):
+            if not validate_unit_expression(unit):
+                return None
+            unit = unit.elements[1]
+
+        try:
+            normalized_unit = normalize_unit_expression_with_magnitude(unit, mag)
+        except ValueError:
+            evaluation.message("Quantity", "unkunit", unit)
+            return None
+
+        if unit.sameQ(normalized_unit):
+            return None
+
+        return Expression(SymbolQuantity, mag, normalized_unit)
+
+    def eval_unit(self, unit, evaluation: Evaluation):
         "Quantity[unit_]"
-        if not isinstance(unit, String):
-            return evaluation.message("Quantity", "unkunit", unit)
-        else:
-            return self.apply_n(Integer1, unit, evaluation)
-
-
-class QuantityQ(Test):
-    """
-    <dl>
-    <dt>'QuantityQ[$expr$]'
-        <dd>return True if $expr$ is a valid Association object, and False otherwise.
-    </dl>
-
-    >> QuantityQ[Quantity[3, "Meters"]]
-     = True
-
-    >> QuantityQ[Quantity[3, "Maters"]]
-     : Unable to interpret unit specification Maters.
-     = False
-
-    #> QuantityQ[3]
-     = False
-    """
-
-    summary_text = "checks if the argument is a quantity"
-
-    def test(self, expr):
-        def validate_unit(unit):
-            try:
-                Q_(1, unit)
-            except Exception:
-                return False
-            else:
-                return True
-
-        def validate(leaves):
-            if len(leaves) < 1 or len(leaves) > 2:
-                return False
-            elif len(leaves) == 1:
-                if validate_unit(leaves[0].get_string_value().lower()):
-                    return True
-                else:
-                    return False
-            else:
-                if isinstance(leaves[0], Number):
-                    if validate_unit(leaves[1].get_string_value().lower()):
-                        return True
-                    else:
-                        return False
-                else:
-                    return False
-
-        return expr.get_head_name() == "System`Quantity" and validate(expr.leaves)
-
-
-class QuantityUnit(Builtin):
-    """
-    <dl>
-    <dt>'QuantityUnit[$quantity$]'
-        <dd>returns the unit associated with the specified $quantity$.
-    </dl>
-
-    >> QuantityUnit[Quantity["Kilogram"]]
-     = kilogram
-
-    >> QuantityUnit[Quantity[10, "Meters"]]
-     = meter
-
-    >> QuantityUnit[Quantity[{10,20}, "Meters"]]
-     = {meter, meter}
-
-    #> QuantityUnit[Quantity[10, "aaa"]]
-     : Unable to interpret unit specification aaa.
-     = QuantityUnit[Quantity[10,aaa]]
-    """
-
-    summary_text = "the unit associated to a quantity"
-
-    def apply(self, expr, evaluation):
-        "QuantityUnit[expr_]"
-
-        def get_unit(leaves):
-            if len(leaves) == 1:
-                return leaves[0]
-            else:
-                return leaves[1]
-
-        if len(evaluation.out) > 0:
-            return
-        if expr.has_form("List", None):
-            results = []
-            for i in range(len(expr.leaves)):
-                results.append(get_unit(expr.leaves[i].leaves))
-            return ListExpression(*results)
-        else:
-            return get_unit(expr.leaves)
+        unit = unit.evaluate(evaluation)
+        if isinstance(unit, Number):
+            return unit
+        if unit.has_form("Quantity", 2):
+            return unit
+        try:
+            unit = normalize_unit_expression(unit)
+        except ValueError:
+            evaluation.message("Quantity", "unkunit", unit)
+            return None
+        # TODO: add element property "fully_evaluated
+        return Expression(SymbolQuantity, Integer1, unit)
 
 
 class QuantityMagnitude(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/QuantityMagnitude.html</url>
+
     <dl>
-    <dt>'QuantityMagnitude[$quantity$]'
-        <dd>gives the amount of the specified $quantity$.
-    <dt>'QuantityMagnitude[$quantity$, $unit$]'
-        <dd>gives the value corresponding to $quantity$ when converted to $unit$.
+      <dt>'QuantityMagnitude[$quantity$]'
+      <dd>gives the amount of the specified $quantity$.
+
+      <dt>'QuantityMagnitude[$quantity$, $unit$]'
+      <dd>gives the value corresponding to $quantity$ when converted to $unit$.
     </dl>
 
     >> QuantityMagnitude[Quantity["Kilogram"]]
@@ -351,85 +242,212 @@ class QuantityMagnitude(Builtin):
 
     >> QuantityMagnitude[Quantity[{10,20}, "Meters"]]
      = {10, 20}
-
-    #> QuantityMagnitude[Quantity[1, "meter"], "centimeter"]
-     = 100
-
-    #> QuantityMagnitude[Quantity[{3,1}, "meter"], "centimeter"]
-     = {300, 100}
-
-    #> QuantityMagnitude[Quantity[{300,100}, "centimeter"], "meter"]
-     = {3, 1}
-
-    #> QuantityMagnitude[Quantity[{3, 1}, "meter"], "inch"]
-     = {118.11, 39.3701}
-
-    #> QuantityMagnitude[Quantity[{3, 1}, "meter"], Quantity[3, "centimeter"]]
-     = {300, 100}
-
-    #> QuantityMagnitude[Quantity[3,"mater"]]
-     : Unable to interpret unit specification mater.
-     = QuantityMagnitude[Quantity[3,mater]]
     """
 
-    summary_text = "The magnitude associated to a quantity."
+    summary_text = "get magnitude associated with a quantity."
 
-    def apply(self, expr, evaluation):
-        "QuantityMagnitude[expr_]"
+    def eval_list(self, expr, evaluation: Evaluation):
+        "QuantityMagnitude[expr_List]"
+        return ListExpression(
+            *(
+                Expression(Symbol(self.get_name()), e).evaluate(evaluation)
+                for e in expr.elements
+            )
+        )
 
-        def get_magnitude(leaves):
-            if len(leaves) == 1:
-                return 1
-            else:
-                return leaves[0]
+    def eval_list_with_unit(self, expr, unit, evaluation: Evaluation):
+        "QuantityMagnitude[expr_List, unit_]"
+        return ListExpression(
+            *(
+                Expression(Symbol(self.get_name()), e, unit).evaluate(evaluation)
+                for e in expr.elements
+            )
+        )
 
-        if len(evaluation.out) > 0:
-            return
-        if expr.has_form("List", None):
-            results = []
-            for i in range(len(expr.leaves)):
-                results.append(get_magnitude(expr.leaves[i].leaves))
-            return ListExpression(*results)
-        else:
-            return get_magnitude(expr.leaves)
+    def eval_quantity(self, mag, unit, evaluation: Evaluation):
+        "QuantityMagnitude[Quantity[mag_, unit_]]"
+        return mag if validate_unit_expression(unit) else None
 
-    def apply_unit(self, expr, unit, evaluation):
-        "QuantityMagnitude[expr_, unit_]"
+    def eval_quantity_unit(self, quantity, targetUnit, evaluation: Evaluation):
+        "QuantityMagnitude[quantity_Quantity, targetUnit_]"
 
-        def get_magnitude(elements, targetUnit, evaluation):
-            quanity = Q_(elements[0], elements[1].get_string_value())
-            converted_quantity = quanity.to(targetUnit)
-            q_mag = converted_quantity.magnitude.evaluate(evaluation).get_float_value()
-
-            # Displaying the magnitude in Integer form if the convert rate is an Integer
-            if q_mag - int(q_mag) > 0:
-                return Real(q_mag)
-            else:
-                return Integer(q_mag)
-
-        if len(evaluation.out) > 0:
-            return
-
-        # Getting the target unit
-        if unit.has_form("Quantity", None):
-            targetUnit = unit.elements[1].get_string_value().lower()
-        elif unit.has_form("List", None):
-            if not unit.elements[0].has_form("Quantity", None):
-                return
-            else:
-                targetUnit = unit.elements[0].elements[1].get_string_value().lower()
-        elif isinstance(unit, String):
-            targetUnit = unit.get_string_value().lower()
-        else:
-            return
-
-        # convert the quantity to the target unit and return the magnitude
-        if expr.has_form("List", None):
-            results = []
-            for i in range(len(expr.elements)):
-                results.append(
-                    get_magnitude(expr.elements[i].elements, targetUnit, evaluation)
+        if targetUnit.has_form("System`List", None):
+            return ListExpression(
+                *(
+                    Expression(Symbol(self.get_name()), quantity, u)
+                    for u in targetUnit.elements
                 )
-            return ListExpression(*results)
-        else:
-            return get_magnitude(expr.elements, targetUnit, evaluation)
+            )
+        if targetUnit.has_form("Quantity", 2):
+            targetUnit = targetUnit.elements[1]
+
+        try:
+            magnitude, unit = quantity.elements
+        except ValueError:
+            return None
+        try:
+            converted_quantity = convert_units(
+                magnitude,
+                unit,
+                targetUnit,
+                evaluation,
+            )
+            return converted_quantity.elements[0]
+        except ValueError:
+            return None
+
+
+class QuantityQ(Test):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/QuantityQ.html</url>
+    <dl>
+      <dt>'QuantityQ[$expr$]'
+      <dd>return True if $expr$ is a valid Association object, and False otherwise.
+    </dl>
+
+    >> QuantityQ[Quantity[3, "Meters"]]
+     = True
+
+    >> QuantityQ[Quantity[3, "Maters"]]
+     : Unable to interpret unit specification Maters.
+     = False
+    """
+
+    summary_text = "tests whether its the argument is a quantity"
+
+    def test(self, expr) -> bool:
+        if not expr.has_form("Quantity", 2):
+            return False
+        try:
+            magnitude, unit = expr.elements
+        except ValueError:
+            return False
+
+        if not isinstance(magnitude, Number):
+            return False
+
+        return validate_unit_expression(unit)
+
+
+class QuantityUnit(Builtin):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/QuantityUnit.html</url>
+
+    <dl>
+      <dt>'QuantityUnit[$quantity$]'
+      <dd>returns the unit associated with the specified $quantity$.
+    </dl>
+
+    >> QuantityUnit[Quantity["Kilogram"]]
+     = kilogram
+
+    >> QuantityUnit[Quantity[10, "Meters"]]
+     = meter
+
+    >> QuantityUnit[Quantity[{10,20}, "Meters"]]
+     = {meter, meter}
+    """
+
+    summary_text = "the unit associated to a quantity"
+
+    def eval_quantity(self, mag, unit, evaluation: Evaluation):
+        "QuantityUnit[Quantity[mag_, unit_]]"
+        return unit if validate_unit_expression(unit) else None
+
+    def eval_list(self, expr, evaluation: Evaluation):
+        "QuantityUnit[expr_List]"
+        return ListExpression(
+            *(
+                Expression(Symbol(self.get_name()), e).evaluate(evaluation)
+                for e in expr.elements
+            )
+        )
+
+
+class UnitConvert(Builtin):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/UnitConvert.html</url>
+
+    <dl>
+      <dt>'UnitConvert[$quantity$, $targetunit$] '
+      <dd> converts the specified $quantity$ to the specified $targetunit$.
+
+      <dt>'UnitConvert[quantity]'
+      <dd> converts the specified $quantity$ to its "SIBase" units.
+    </dl>
+
+    Convert from miles to kilometers:
+    >> UnitConvert[Quantity[5.2, "miles"], "kilometers"]
+     = 8.36859 kilometer
+
+    Convert a Quantity object to the appropriate SI base units:
+    >> UnitConvert[Quantity[3.8, "Pounds"]]
+     = 1.72365 kilogram
+    """
+
+    messages = {
+        "argrx": "UnitConvert called with `1` arguments; 2 arguments are expected"
+    }
+    summary_text = "convert between units."
+
+    def eval_expr_several_units(self, expr, toUnit, evaluation: Evaluation):
+        "UnitConvert[expr_, toUnit_List]"
+        return ListExpression(
+            *(
+                Expression(Symbol(self.get_name()), expr, u).evaluate(evaluation)
+                for u in toUnit.elements
+            )
+        )
+
+    def eval_quantity_to_unit_from_quantity(self, expr, toUnit, evaluation: Evaluation):
+        "UnitConvert[expr_, toUnit_Quantity]"
+        if not toUnit.has_form("Quantity", 2):
+            return None
+        toUnit = toUnit.elements[1]
+        return Expression(Symbol(self.get_name()), expr, toUnit).evaluate(evaluation)
+
+    def eval_quantity_to_unit(self, expr, toUnit, evaluation: Evaluation):
+        "UnitConvert[expr_, toUnit_]"
+        if expr.has_form("List", None):
+            return ListExpression(
+                *(
+                    Expression(Symbol(self.get_name()), elem, toUnit).evaluate(
+                        evaluation
+                    )
+                    for elem in expr.elements
+                )
+            )
+        if not expr.has_form("Quantity", 2):
+            return None
+
+        mag, unit = expr.elements
+
+        try:
+            return convert_units(
+                mag,
+                unit,
+                toUnit,
+                evaluation,
+            )
+        except ValueError:
+            return None
+
+    def eval_list_to_base_unit(self, expr, evaluation: Evaluation):
+        "UnitConvert[expr_List]"
+        head = Symbol(self.get_name())
+        return ListExpression(
+            *(Expression(head, item).evaluate(evaluation) for item in expr.elements)
+        )
+
+    def eval_quantity_to_base_unit(self, mag, unit, evaluation: Evaluation):
+        "UnitConvert[Quantity[mag_, unit_]]"
+        try:
+            return convert_units(mag, unit, evaluation=evaluation)
+        except ValueError:
+            return None

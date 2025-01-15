@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-from .helper import check_evaluation, reset_session
 import pytest
+
+from .helper import check_evaluation, reset_session
 
 _initialized = False
 

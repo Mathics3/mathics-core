@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from .helper import evaluate
-
 import pytest
+
+from .helper import evaluate
 
 
 @pytest.mark.parametrize(

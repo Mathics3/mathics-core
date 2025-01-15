@@ -1,6 +1,7 @@
+(* -*- wolfram -*- *)
 (* ****************************************************************************
 
-    by Brian Beckman. License the same as for mathics.
+    by Brian Beckman. License the same as for Mathics3: GPL3.
 
     Oct 2020
 
@@ -617,7 +618,7 @@ expect[ sameq[ x+y, 7 ],
     right-hand side of the rule now, while parsing the rule itself, only later,
     after doing the pattern substitutions specified by the rule."
 
-    Remember, evaluation is really aggressive. When you write a rule withe "->",
+    Remember, evaluation is really aggressive. When you write a rule with a "->",
     mathics will try to evaluate the right-hand side.
 
     Sometimes, it doesn't matter which of the two you use. In the example

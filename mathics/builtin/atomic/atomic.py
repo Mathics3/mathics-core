@@ -3,19 +3,18 @@
 Atomic Primitives
 """
 
-from mathics.builtin.base import (
-    Builtin,
-    Test,
-)
-
 from mathics.core.atoms import Atom
+from mathics.core.builtin import Builtin, Test
 
 
 class AtomQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AtomQ.html</url>
+
     <dl>
       <dt>'AtomQ[$expr$]'
-      <dd>returns 'True' if $expr$ is an expression which cannot be divided into subexpressions, or 'False' otherwise.
+      <dd>returns 'True' if $expr$ is an expression which cannot be divided into \
+      subexpressions, or 'False' otherwise.
 
       An expression that cannot be divided into subparts is called called an "atom".
     </dl>
@@ -57,12 +56,14 @@ class AtomQ(Test):
 
     summary_text = "test whether an expression is an atom"
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         return isinstance(expr, Atom)
 
 
 class Head(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Head.html</url>
+
     <dl>
       <dt>'Head[$expr$]'
       <dd>returns the head of the expression or atom $expr$.
@@ -78,7 +79,7 @@ class Head(Builtin):
 
     summary_text = "find the head of any expression, including an atom"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "Head[expr_]"
 
         return expr.get_head()

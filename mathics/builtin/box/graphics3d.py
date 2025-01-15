@@ -1,51 +1,55 @@
 # -*- coding: utf-8 -*-
 """
-Boxing Routines for 3D Graphics
+Boxing Symbols for 3D Graphics
 """
 
-import html
 import json
+import logging
 import numbers
 
-from mathics.builtin.base import BoxConstructError
 from mathics.builtin.box.graphics import (
-    GraphicsBox,
     ArrowBox,
+    GraphicsBox,
     LineBox,
     PointBox,
     PolygonBox,
 )
-
-from mathics.builtin.colors.color_directives import _ColorObject, Opacity, RGBColor
-from mathics.builtin.drawing.graphics_internals import GLOBALS3D, _GraphicsElementBox
-
-from mathics.builtin.drawing.graphics3d import (
-    Coords3D,
-    Graphics3DElements,
-    Style3D,
+from mathics.builtin.colors.color_directives import (
+    ColorError,
+    Opacity,
+    RGBColor,
+    _ColorObject,
 )
-
-from mathics.builtin.drawing.graphics_internals import get_class
-from mathics.core.symbols import Symbol, SymbolTrue
+from mathics.builtin.drawing.graphics3d import Coords3D, Graphics3DElements, Style3D
+from mathics.builtin.drawing.graphics_internals import (
+    GLOBALS3D,
+    _GraphicsElementBox,
+    get_class,
+)
+from mathics.core.exceptions import BoxExpressionError
 from mathics.core.formatter import lookup_method
-from mathics.format.asy_fns import asy_create_pens, asy_number
+from mathics.core.symbols import Symbol, SymbolTrue
+from mathics.eval.nevaluator import eval_N
+
+# Docs are not yet ready for prime time. Maybe after release 7.0.0.
+no_doc = True
 
 
 class Graphics3DBox(GraphicsBox):
     """
     <dl>
-    <dt>'Graphics3DBox[{...}]'
-    <dd>a box structure for Graphics3D elements.
+      <dt>'Graphics3DBox'
+      <dd>is the symbol used in boxing 'Graphics3D' expressions.
     </dl>
-    Routines which get called when Boxing (adding formatting and bounding-box information)
-    a Graphics3D object.
     """
 
-    def _prepare_elements(self, leaves, options, max_width=None):
-        if not leaves:
-            raise BoxConstructError
+    summary_text = "symbol used boxing Graphics3D expressions"
 
-        self.graphics_options = self.get_option_values(leaves[1:], **options)
+    def _prepare_elements(self, elements, options, max_width=None):
+        if not elements:
+            raise BoxExpressionError
+
+        self.graphics_options = self.get_option_values(elements[1:], **options)
 
         background = self.graphics_options["System`Background"]
         if (
@@ -54,7 +58,11 @@ class Graphics3DBox(GraphicsBox):
         ):
             self.background_color = None
         else:
-            self.background_color = _ColorObject.create(background)
+            try:
+                self.background_color = _ColorObject.create(background)
+            except ColorError:
+                logging.warning(f"{str(background)} is not a valid color spec.")
+                self.background_color = None
 
         evaluation = options["evaluation"]
 
@@ -184,7 +192,7 @@ class Graphics3DBox(GraphicsBox):
 
         # ViewPoint Option
         viewpoint_option = self.graphics_options["System`ViewPoint"]
-        viewpoint = viewpoint_option.to_python(n_evaluation=evaluation)
+        viewpoint = eval_N(viewpoint_option, evaluation).to_python()
 
         if isinstance(viewpoint, list) and len(viewpoint) == 3:
             if all(isinstance(x, numbers.Real) for x in viewpoint):
@@ -221,15 +229,20 @@ class Graphics3DBox(GraphicsBox):
         else:
             boxratios = boxratios
         if not isinstance(boxratios, list) or len(boxratios) != 3:
-            raise BoxConstructError
+            raise BoxExpressionError
 
         plot_range = self.graphics_options["System`PlotRange"].to_python()
         if plot_range == "System`Automatic":
             plot_range = ["System`Automatic"] * 3
         if not isinstance(plot_range, list) or len(plot_range) != 3:
-            raise BoxConstructError
+            raise BoxExpressionError
 
-        elements = Graphics3DElements(leaves[0], evaluation)
+        elements = Graphics3DElements(elements[0], evaluation)
+        # If one of the primitives or directives fails to be
+        # converted into a box expression, then the background color
+        # is set to pink, overwriting the options.
+        if hasattr(elements, "background_color"):
+            self.background_color = elements.background_color
 
         def calc_dimensions(final_pass=True):
             if "System`Automatic" in plot_range:
@@ -250,7 +263,7 @@ class Graphics3DBox(GraphicsBox):
                     xmin = elements.translate((xmin, 0, 0))[0]
                     xmax = elements.translate((xmax, 0, 0))[0]
                 else:
-                    raise BoxConstructError
+                    raise BoxExpressionError
 
                 if plot_range[1] == "System`Automatic":
                     if ymin is None and ymax is None:
@@ -264,7 +277,7 @@ class Graphics3DBox(GraphicsBox):
                     ymin = elements.translate((0, ymin, 0))[1]
                     ymax = elements.translate((0, ymax, 0))[1]
                 else:
-                    raise BoxConstructError
+                    raise BoxExpressionError
 
                 if plot_range[2] == "System`Automatic":
                     if zmin is None and zmax is None:
@@ -278,9 +291,9 @@ class Graphics3DBox(GraphicsBox):
                     zmin = elements.translate((0, 0, zmin))[2]
                     zmax = elements.translate((0, 0, zmax))[2]
                 else:
-                    raise BoxConstructError
+                    raise BoxExpressionError
             except (ValueError, TypeError):
-                raise BoxConstructError
+                raise BoxExpressionError
 
             boxscale = [1.0, 1.0, 1.0]
             if boxratios[0] != "System`Automatic":
@@ -359,6 +372,18 @@ class Graphics3DBox(GraphicsBox):
             boxscale,
         ) = self._prepare_elements(elements, options)
 
+        background = "rgba(100.0%, 100.0%, 100.0%, 100.0%)"
+        if self.background_color:
+            components = self.background_color.to_rgba()
+            if len(components) == 3:
+                background = "rgb(" + ", ".join(f"{100*c}%" for c in components) + ")"
+            else:
+                background = "rgba(" + ", ".join(f"{100*c}%" for c in components) + ")"
+
+        tooltip_text = (
+            elements.tooltip_text if hasattr(elements, "tooltip_text") else ""
+        )
+
         js_ticks_style = [s.to_js() for s in ticks_style]
 
         elements._apply_boxscaling(boxscale)
@@ -373,6 +398,8 @@ class Graphics3DBox(GraphicsBox):
         json_repr = json.dumps(
             {
                 "elements": format_fn(elements, **options),
+                "background_color": background,
+                "tooltip_text": tooltip_text,
                 "axes": {
                     "hasaxes": axes,
                     "ticks": ticks,
@@ -394,223 +421,6 @@ class Graphics3DBox(GraphicsBox):
 
         return json_repr
 
-    def boxes_to_mathml(self, elements=None, **options) -> str:
-        """Turn the Graphics3DBox into a MathML string"""
-        json_repr = self.boxes_to_json(elements, **options)
-        mathml = f'<graphics3d data="{html.escape(json_repr)}" />'
-        mathml = f"<mtable><mtr><mtd>{mathml}</mtd></mtr></mtable>"
-        return mathml
-
-    def boxes_to_tex(self, elements=None, **options):
-        if not elements:
-            elements = self._elements
-
-        (
-            elements,
-            axes,
-            ticks,
-            ticks_style,
-            calc_dimensions,
-            boxscale,
-        ) = self._prepare_elements(elements, options, max_width=450)
-
-        elements._apply_boxscaling(boxscale)
-
-        format_fn = lookup_method(elements, "asy")
-        if format_fn is not None:
-            asy = format_fn(elements)
-        else:
-            asy = elements.to_asy()
-
-        xmin, xmax, ymin, ymax, zmin, zmax, boxscale, w, h = calc_dimensions()
-
-        # TODO: Intelligently place the axes on the longest non-middle edge.
-        # See algorithm used by web graphics in mathics/web/media/graphics.js
-        # for details of this. (Projection to sceen etc).
-
-        # Choose axes placement (boundbox edge vertices)
-        axes_indices = []
-        if axes[0]:
-            axes_indices.append(0)
-        if axes[1]:
-            axes_indices.append(6)
-        if axes[2]:
-            axes_indices.append(8)
-
-        # Draw boundbox and axes
-        boundbox_asy = ""
-        boundbox_lines = self.get_boundbox_lines(xmin, xmax, ymin, ymax, zmin, zmax)
-
-        for i, line in enumerate(boundbox_lines):
-            if i in axes_indices:
-                pen = asy_create_pens(
-                    edge_color=RGBColor(components=(0, 0, 0, 1)), stroke_width=1.5
-                )
-            else:
-                pen = asy_create_pens(
-                    edge_color=RGBColor(components=(0.4, 0.4, 0.4, 1)), stroke_width=1
-                )
-
-            path = "--".join(["(%.5g,%.5g,%.5g)" % coords for coords in line])
-            boundbox_asy += "draw((%s), %s);\n" % (path, pen)
-
-        # TODO: Intelligently draw the axis ticks such that they are always
-        # directed inward and choose the coordinate direction which makes the
-        # ticks the longest. Again, details in mathics/web/media/graphics.js
-
-        # Draw axes ticks
-        ticklength = 0.05 * max([xmax - xmin, ymax - ymin, zmax - zmin])
-        pen = asy_create_pens(
-            edge_color=RGBColor(components=(0, 0, 0, 1)), stroke_width=1.2
-        )
-        for xi in axes_indices:
-            if xi < 4:  # x axis
-                for i, tick in enumerate(ticks[0][0]):
-                    line = [
-                        (tick, boundbox_lines[xi][0][1], boundbox_lines[xi][0][2]),
-                        (
-                            tick,
-                            boundbox_lines[xi][0][1],
-                            boundbox_lines[xi][0][2] + ticklength,
-                        ),
-                    ]
-
-                    path = "--".join(
-                        ["({0},{1},{2})".format(*coords) for coords in line]
-                    )
-
-                    boundbox_asy += "draw(({0}), {1});\n".format(path, pen)
-                    boundbox_asy += 'label("{0}",{1},{2});\n'.format(
-                        ticks[0][2][i],
-                        (tick, boundbox_lines[xi][0][1], boundbox_lines[xi][0][2]),
-                        "S",
-                    )
-
-                for small_tick in ticks[0][1]:
-                    line = [
-                        (
-                            small_tick,
-                            boundbox_lines[xi][0][1],
-                            boundbox_lines[xi][0][2],
-                        ),
-                        (
-                            small_tick,
-                            boundbox_lines[xi][0][1],
-                            boundbox_lines[xi][0][2] + 0.5 * ticklength,
-                        ),
-                    ]
-
-                    path = "--".join(
-                        ["({0},{1},{2})".format(*coords) for coords in line]
-                    )
-
-                    boundbox_asy += "draw(({0}), {1});\n".format(path, pen)
-
-            if 4 <= xi < 8:  # y axis
-                for i, tick in enumerate(ticks[1][0]):
-                    line = [
-                        (boundbox_lines[xi][0][0], tick, boundbox_lines[xi][0][2]),
-                        (
-                            boundbox_lines[xi][0][0],
-                            tick,
-                            boundbox_lines[xi][0][2] - ticklength,
-                        ),
-                    ]
-                    path = "--".join(
-                        ["({0},{1},{2})".format(*coords) for coords in line]
-                    )
-
-                    boundbox_asy += "draw(({0}), {1});\n".format(path, pen)
-
-                    boundbox_asy += 'label("{0}",{1},{2});\n'.format(
-                        ticks[1][2][i],
-                        (boundbox_lines[xi][0][0], tick, boundbox_lines[xi][0][2]),
-                        "NW",
-                    )
-
-                for small_tick in ticks[1][1]:
-                    line = [
-                        (
-                            boundbox_lines[xi][0][0],
-                            small_tick,
-                            boundbox_lines[xi][0][2],
-                        ),
-                        (
-                            boundbox_lines[xi][0][0],
-                            small_tick,
-                            boundbox_lines[xi][0][2] - 0.5 * ticklength,
-                        ),
-                    ]
-                    path = "--".join(
-                        ["({0},{1},{2})".format(*coords) for coords in line]
-                    )
-                    boundbox_asy += "draw(({0}), {1});\n".format(path, pen)
-            if 8 <= xi:  # z axis
-                for i, tick in enumerate(ticks[2][0]):
-                    line = [
-                        (boundbox_lines[xi][0][0], boundbox_lines[xi][0][1], tick),
-                        (
-                            boundbox_lines[xi][0][0],
-                            boundbox_lines[xi][0][1] + ticklength,
-                            tick,
-                        ),
-                    ]
-                    path = "--".join(
-                        ["({0},{1},{2})".format(*coords) for coords in line]
-                    )
-                    boundbox_asy += "draw(({0}), {1});\n".format(path, pen)
-                    boundbox_asy += 'label("{0}",{1},{2});\n'.format(
-                        ticks[2][2][i],
-                        (boundbox_lines[xi][0][0], boundbox_lines[xi][0][1], tick),
-                        "W",
-                    )
-                for small_tick in ticks[2][1]:
-                    line = [
-                        (
-                            boundbox_lines[xi][0][0],
-                            boundbox_lines[xi][0][1],
-                            small_tick,
-                        ),
-                        (
-                            boundbox_lines[xi][0][0],
-                            boundbox_lines[xi][0][1] + 0.5 * ticklength,
-                            small_tick,
-                        ),
-                    ]
-                    path = "--".join(
-                        ["({0},{1},{2})".format(*coords) for coords in line]
-                    )
-                    boundbox_asy += "draw(({0}), {1});\n".format(path, pen)
-
-        (height, width) = (400, 400)  # TODO: Proper size
-        tex = r"""
-\begin{{asy}}
-import three;
-import solids;
-size({0}cm, {1}cm);
-currentprojection=perspective({2[0]},{2[1]},{2[2]});
-currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
-{3}
-{4}
-\end{{asy}}
-""".format(
-            asy_number(width / 60),
-            asy_number(height / 60),
-            # Rescale viewpoint
-            [
-                vp * max([xmax - xmin, ymax - ymin, zmax - zmin])
-                for vp in self.viewpoint
-            ],
-            asy,
-            boundbox_asy,
-        )
-        return tex
-
-    def boxes_to_text(self, elements=None, **options):
-        if not elements:
-            elements = self._elements
-        return "-Graphics3D-"
-
     def create_axes(
         self, elements, graphics_options, xmin, xmax, ymin, ymax, zmin, zmax, boxscale
     ):
@@ -618,7 +428,7 @@ currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
         if axes is SymbolTrue:
             axes = (True, True, True)
         elif axes.has_form("List", 3):
-            axes = (leaf is SymbolTrue for leaf in axes.leaves)
+            axes = (element is SymbolTrue for element in axes.elements)
         else:
             axes = (False, False, False)
         ticks_style = graphics_options.get("System`TicksStyle")
@@ -627,14 +437,14 @@ currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
 
         # FIXME: Doesn't handle GrayScale
         if ticks_style.has_form("List", 1, 2, 3):
-            ticks_style = ticks_style.leaves
+            ticks_style = ticks_style.elements
         elif ticks_style.has_form("RGBColor", None):
             ticks_style = [ticks_style] * 3
         else:
             ticks_style = []
 
         if axes_style.has_form("List", 1, 2, 3):
-            axes_style = axes_style.leaves
+            axes_style = axes_style.elements
         else:
             axes_style = [axes_style] * 3
 
@@ -697,6 +507,9 @@ currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
 
 
 class Arrow3DBox(ArrowBox):
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(self, *args, **kwargs):
         super(Arrow3DBox, self).init(*args, **kwargs)
 
@@ -718,6 +531,9 @@ class Cone3DBox(_GraphicsElementBox):
     # Internal Python class used when Boxing a 'Cone' object.
     # """
 
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(self, graphics, style, item):
         self.edge_color, self.face_color = style.get_style(
             _ColorObject, face_element=True
@@ -725,22 +541,22 @@ class Cone3DBox(_GraphicsElementBox):
         self.edge_opacity, self.face_opacity = style.get_style(
             Opacity, face_element=True
         )
-        if len(item.leaves) != 2:
-            raise BoxConstructError
+        if len(item.elements) != 2:
+            raise BoxExpressionError
 
-        points = item.leaves[0].to_python()
+        points = item.elements[0].to_python()
         if not all(
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
         ):
-            raise BoxConstructError
+            raise BoxExpressionError
 
         self.points = tuple(Coords3D(graphics, pos=point) for point in points)
-        self.radius = item.leaves[1].to_python()
+        self.radius = item.elements[1].to_python()
 
     def extent(self):
         result = []
-        # FIXME: the extent is roughly wrong. It is using the extent of a shpere at each coordinate.
+        # FIXME: the extent is roughly wrong. It is using the extent of a sphere at each coordinate.
         # Anyway, it is very difficult to calculate the extent of a cone.
         result.extend(
             [
@@ -766,6 +582,9 @@ class Cuboid3DBox(_GraphicsElementBox):
     # Internal Python class used when Boxing a 'Cuboid' object.
     # """
 
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(self, graphics, style, item):
         self.edge_color, self.face_color = style.get_style(
             _ColorObject, face_element=True
@@ -773,15 +592,15 @@ class Cuboid3DBox(_GraphicsElementBox):
         self.edge_opacity, self.face_opacity = style.get_style(
             Opacity, face_element=True
         )
-        if len(item.leaves) != 1:
-            raise BoxConstructError
+        if len(item.elements) != 1:
+            raise BoxExpressionError
 
-        points = item.leaves[0].to_python()
+        points = item.elements[0].to_python()
         if not all(
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
         ):
-            raise BoxConstructError
+            raise BoxExpressionError
 
         self.points = tuple(Coords3D(pos=point) for point in points)
 
@@ -798,6 +617,9 @@ class Cylinder3DBox(_GraphicsElementBox):
     # Internal Python class used when Boxing a 'Cylinder' object.
     # """
 
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(self, graphics, style, item):
         self.edge_color, self.face_color = style.get_style(
             _ColorObject, face_element=True
@@ -805,18 +627,18 @@ class Cylinder3DBox(_GraphicsElementBox):
         self.edge_opacity, self.face_opacity = style.get_style(
             Opacity, face_element=True
         )
-        if len(item.leaves) != 2:
-            raise BoxConstructError
+        if len(item.elements) != 2:
+            raise BoxExpressionError
 
-        points = item.leaves[0].to_python()
+        points = item.elements[0].to_python()
         if not all(
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
         ):
-            raise BoxConstructError
+            raise BoxExpressionError
 
         self.points = tuple(Coords3D(pos=point) for point in points)
-        self.radius = item.leaves[1].to_python()
+        self.radius = item.elements[1].to_python()
 
     def extent(self):
         result = []
@@ -844,6 +666,9 @@ class Cylinder3DBox(_GraphicsElementBox):
 class Line3DBox(LineBox):
     # summary_text = "box representation for a 3D line"
 
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(self, *args, **kwargs):
         super(Line3DBox, self).init(*args, **kwargs)
 
@@ -862,6 +687,9 @@ class Line3DBox(LineBox):
 
 class Point3DBox(PointBox):
     # summary_text = "box representation for a 3D point"
+
+    # We have no documentation for this (yet).
+    no_doc = True
 
     def get_default_face_color(self):
         return RGBColor(components=(0, 0, 0, 1))
@@ -891,6 +719,9 @@ class Point3DBox(PointBox):
 class Polygon3DBox(PolygonBox):
     # summary_text = "box representation for a 3D polygon"
 
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(self, *args, **kwargs):
         self.vertex_normals = None
         super(Polygon3DBox, self).init(*args, **kwargs)
@@ -915,6 +746,9 @@ class Polygon3DBox(PolygonBox):
 class Sphere3DBox(_GraphicsElementBox):
     # summary_text = "box representation for a sphere"
 
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(self, graphics, style, item):
         self.edge_color, self.face_color = style.get_style(
             _ColorObject, face_element=True
@@ -922,20 +756,20 @@ class Sphere3DBox(_GraphicsElementBox):
         self.edge_opacity, self.face_opacity = style.get_style(
             Opacity, face_element=True
         )
-        if len(item.leaves) != 2:
-            raise BoxConstructError
+        if len(item.elements) != 2:
+            raise BoxExpressionError
 
-        points = item.leaves[0].to_python()
+        points = item.elements[0].to_python()
         if not all(isinstance(point, list) for point in points):
             points = [points]
         if not all(
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
         ):
-            raise BoxConstructError
+            raise BoxExpressionError
 
         self.points = tuple(Coords3D(pos=point) for point in points)
-        self.radius = item.leaves[1].to_python()
+        self.radius = item.elements[1].to_python()
 
     def extent(self):
         result = []
@@ -961,6 +795,9 @@ class Sphere3DBox(_GraphicsElementBox):
 class Tube3DBox(_GraphicsElementBox):
     # summary_text = "box representation for a tube"
 
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(self, graphics, style, item):
         self.graphics = graphics
         self.edge_color, self.face_color = style.get_style(
@@ -969,15 +806,15 @@ class Tube3DBox(_GraphicsElementBox):
         self.edge_opacity, self.face_opacity = style.get_style(
             Opacity, face_element=True
         )
-        points = item.leaves[0].to_python()
+        points = item.elements[0].to_python()
         if not all(
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
         ):
-            raise BoxConstructError
+            raise BoxExpressionError
 
         self.points = [Coords3D(graphics, pos=point) for point in points]
-        self.radius = item.leaves[1].to_python()
+        self.radius = item.elements[1].to_python()
 
     def extent(self):
         result = []

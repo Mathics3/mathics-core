@@ -5,18 +5,26 @@ Error Function and Related Functions
 """
 
 
-from mathics.builtin.arithmetic import _MPMathFunction, _MPMathMultiFunction
+from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
+from mathics.core.builtin import MPMathFunction, MPMathMultiFunction
 
-from mathics.core.attributes import listable, numeric_function, protected
 
-
-class Erf(_MPMathMultiFunction):
+class Erf(MPMathMultiFunction):
     """
+    <url>
+    :Error function:
+    https://en.wikipedia.org/wiki/Error_function</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions
+    /special.html#sympy.functions.special.error_functions.erf</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/Erf.html</url>)
+
     <dl>
-    <dt>'Erf[$z$]'
-        <dd>returns the error function of $z$.
-    <dt>'Erf[$z0$, $z1$]'
-        <dd>returns the result of 'Erf[$z1$] - Erf[$z0$]'.
+      <dt>'Erf[$z$]'
+      <dd>returns the error function of $z$.
+
+      <dt>'Erf[$z0$, $z1$]'
+      <dd>returns the result of 'Erf[$z1$] - Erf[$z0$]'.
     </dl>
 
     'Erf[$x$]' is an odd function:
@@ -33,7 +41,7 @@ class Erf(_MPMathMultiFunction):
      = -Graphics-
     """
 
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     summary_text = "error function"
     mpmath_names = {
         1: "erf",
@@ -48,11 +56,19 @@ class Erf(_MPMathMultiFunction):
     }
 
 
-class Erfc(_MPMathFunction):
+class Erfc(MPMathFunction):
     """
+    <url>
+    :Complementary Error function:
+    https://en.wikipedia.org/wiki/Error_function</url> (<url>
+    :SymPy: https://docs.sympy.org/latest/modules/functions
+    /special.html#sympy.functions.special.error_functions.erfc</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Erfc.html</url>)
+
     <dl>
-    <dt>'Erfc[$z$]'
-        <dd>returns the complementary error function of $z$.
+      <dt>'Erfc[$z$]'
+      <dd>returns the complementary error function of $z$.
     </dl>
 
     >> Erfc[-x] / 2
@@ -72,11 +88,19 @@ class Erfc(_MPMathFunction):
     }
 
 
-class FresnelC(_MPMathFunction):
+class FresnelC(MPMathFunction):
     """
+    <url>
+    :Fresnel integral:
+    https://en.wikipedia.org/wiki/Fresnel_integral</url> (<url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/expintegrals.html?mpmath.fresnelc</url>,\
+    <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/FresnelC.html</url>)
     <dl>
-    <dt>'FresnelC[$z$]'
-        <dd>is the Fresnel C integral $C$($z$).
+      <dt>'FresnelC[$z$]'
+      <dd>is the Fresnel C integral $C$($z$).
     </dl>
 
     >> FresnelC[{0, Infinity}]
@@ -94,11 +118,20 @@ class FresnelC(_MPMathFunction):
     mpmath_name = "fresnelc"
 
 
-class FresnelS(_MPMathFunction):
+class FresnelS(MPMathFunction):
     """
+    <url>
+    :Fresnel integral:
+    https://en.wikipedia.org/wiki/Fresnel_integral</url> (<url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/expintegrals.html#mpmath.fresnels</url>,\
+    <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/FresnelS.html</url>)
+
     <dl>
-    <dt>'FresnelS[$z$]'
-        <dd>is the Fresnel S integral $S$($z$).
+      <dt>'FresnelS[$z$]'
+      <dd>is the Fresnel S integral $S$($z$).
     </dl>
 
     >> FresnelS[{0, Infinity}]
@@ -116,11 +149,19 @@ class FresnelS(_MPMathFunction):
     mpmath_name = "fresnels"
 
 
-class InverseErf(_MPMathFunction):
+class InverseErf(MPMathFunction):
     """
+     <url>
+     :Inverse error function:
+     https://en.wikipedia.org/wiki/Error_function#Inverse_functions</url> (<url>
+     :SymPy:
+     https://docs.sympy.org/latest/modules/functions/special.html?sympy.functions.special.error_functions.erfinv</url>, <url>
+     :WMA:
+     https://reference.wolfram.com/language/ref/InverseErf.html</url>)
+
     <dl>
-    <dt>'InverseErf[$z$]'
-        <dd>returns the inverse error function of $z$.
+      <dt>'InverseErf[$z$]'
+      <dd>returns the inverse error function of $z$.
     </dl>
 
     >> InverseErf /@ {-1, 0, 1}
@@ -134,7 +175,7 @@ class InverseErf(_MPMathFunction):
     """
 
     # No inherited NumericFunction
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "inverse of the error function"
     sympy_name = "erfinv"
     mpmath_name = "erfinv"
@@ -143,11 +184,11 @@ class InverseErf(_MPMathFunction):
         "Derivative[1][InverseErf]": "Sqrt[Pi] Exp[InverseErf[#]^2] / 2 &",
     }
 
-    def apply(self, z, evaluation):
+    def eval(self, z, evaluation):
         "%(name)s[z__]"
 
         try:
-            return super(InverseErf, self).apply(z, evaluation)
+            return super(InverseErf, self).eval(z, evaluation)
         except ValueError as exc:
             if str(exc) == "erfinv(x) is defined only for -1 <= x <= 1":
                 return
@@ -155,11 +196,21 @@ class InverseErf(_MPMathFunction):
                 raise
 
 
-class InverseErfc(_MPMathFunction):
+class InverseErfc(MPMathFunction):
     """
+    <url>
+    :Complementary error function:
+    https://en.wikipedia.org/wiki/Error_function#Complementary_error_function</url>\
+    (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions
+    /special.html?sympy.functions.special.error_functions.erfcinv</url>,\
+    <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/InverseErfc.html</url>)
     <dl>
-    <dt>'InverseErfc[$z$]'
-        <dd>returns the inverse complementary error function of $z$.
+      <dt>'InverseErfc[$z$]'
+      <dd>returns the inverse complementary error function of $z$.
     </dl>
 
     >> InverseErfc /@ {0, 1, 2}
@@ -167,7 +218,7 @@ class InverseErfc(_MPMathFunction):
     """
 
     # No inherited NumericFunction
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     sympy_name = "erfcinv"
     summary_text = "inverse of the complementary error function"
     rules = {

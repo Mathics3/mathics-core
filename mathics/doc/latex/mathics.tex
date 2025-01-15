@@ -1,0 +1,336 @@
+% -*- latex -*-
+%
+% This is the top-level LaTeX file to build the Mathics3 Book (Tutorial + Reference)
+% which is stored in mathic.pdf
+%
+% To build this:
+%    make mathics.pdf
+%
+% The bulk of this LaTeX is in file documentation.tex which is
+% automatically generated via ./doc2latex.py from:
+%
+%  * static files in ../documentation/*.mdoc (Tutorial and
+%  * SVG images in ./images/*.svg  (Mostly logos right now)
+%  * Information pulled out of the Python docstrings for built-in Functions. These
+%    are stored in
+%
+% Since this file is rather bulky, to troubleshoot, put stripped down
+% text such as from documentation.tex in a file called testing.tex
+% and build that using:
+%  make mathics-test.pdf
+
+\documentclass[index=totoc,fleqn,10pt,oneside,toc=flat]{scrbook}
+
+% The number is sections and subsections can get high, for example:
+%  26.2.16 PolarPlot
+%  ^^^^^^^
+% So we need the below to automatically calculate the width numbers can take
+% See:
+% https://tex.stackexchange.com/questions/694088/koma-book-class-listoftables-increase-the-space-between-the-number-and-title-of
+\DeclareTOCStyleEntry[dynnumwidth]{default}{chapter}
+\DeclareTOCStyleEntry[dynnumwidth]{default}{section}
+\DeclareTOCStyleEntry[dynnumwidth]{default}{subsection}
+
+%\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{gensymb} % For \degree. usepackage needs to be early.
+\usepackage{lmodern}
+\usepackage[english]{babel}
+\usepackage{makeidx}
+\usepackage{graphicx}
+\usepackage{asymptote}
+\usepackage[hypertexnames=false]{hyperref} % make hyperref aware of chapter reset for built-in symbols
+% (http://tex.stackexchange.com/questions/6098/wrong-hyper-references-after-resetting-chapter-counter)
+
+% Use AMS fonts
+\usepackage{amsmath, amssymb}
+
+% Improved Palatino fonts - better unicode support?
+\usepackage{newpxtext,newpxmath}
+
+\usepackage{color}
+\usepackage{fullpage}
+\usepackage{graphics}
+\usepackage{listings}
+\usepackage{paralist}
+\usepackage{mathpazo}
+\usepackage[mathpazo]{flexisym}
+\usepackage{breqn}
+\usepackage{environ}
+\usepackage{multicol}
+\usepackage[]{colophon}
+\usepackage[k-tight]{minitoc}
+\setlength{\mtcindent}{0pt}
+\mtcsetformat{minitoc}{tocrightmargin}{2.55em plus 1fil}
+\newcommand{\multicolumnmtc}{2}
+\makeatletter
+\let\SV@mtc@verse\mtc@verse
+\let\SV@endmtc@verse\endmtc@verse
+\def\mtc@verse#1{\SV@mtc@verse#1\removelastskip%
+ \begin{multicols}{\multicolumnmtc}\raggedcolumns\leavevmode\unskip
+ \vskip -1.5ex \vskip -1\baselineskip}
+\def\endmtc@verse{\end{multicols}\SV@endmtc@verse}
+\makeatother
+
+\definecolor{message}{rgb}{0.8,0.4,0}
+\definecolor{print}{rgb}{0,0,1}
+\definecolor{definitions}{rgb}{0.96,0.96,0.94}
+\definecolor{subtitle}{rgb}{0.3,0.3,0.3}
+
+\definecolor{pythonstring}{rgb}{0,0.5,0}
+
+\title{
+    \includegraphics[height=0.1\linewidth]{mathics-title.pdf}
+\\[.5em]
+  {\LARGE\color{subtitle}\textit{\textmd{A free, open-source alternative to Mathematica}}}
+  \par\textmd{\Large Mathics3 Core Version \MathicsCoreVersion}
+}
+\author{The Mathics3 Team}
+
+% Since we are using a XML input we have need to specify missed hyphenation
+% in LaTeX sich as here:
+\hyphenation{eco-system}
+
+% Fix unicode mappings for listings
+% http://tex.stackexchange.com/questions/39640/typesetting-utf8-listings-with-german-umlaute
+\lstset{literate=%
+    {Ö}{{\"O}}1
+    {Ä}{{\"A}}1
+    {Ü}{{\"U}}1
+    {ß}{{\ss}}1
+    {ü}{{\"u}}1
+    {ä}{{\"a}}1
+    {ö}{{\"o}}1
+    {~}{{\textasciitilde}}1
+    {⧦}{{===}}1
+    {}{{=>}}1
+    {⇒}{{$\Rightarrow$}}1
+    {⊻}{{$\oplus$}}1
+    {…}{{...}}1
+    {∫}{{S}}1
+    {}{{d}}1
+}
+
+\setlength{\columnsep}{1cm}
+
+\makeatletter\newenvironment{definitions}{
+
+	\vspace{0.5em}%
+	\begin{lrbox}{\@tempboxa}
+          \hspace*{0.6em}
+          \begin{minipage}{0.9\columnwidth}%
+	\nobreak\vspace{0.6em}%
+}{%
+	\nobreak%
+	\vspace{0.6em}%
+      \end{minipage}\hspace*{1em}
+       \end{lrbox}
+	\colorbox{definitions}{\usebox{\@tempboxa}}
+	\vspace{0.6em}%
+}\makeatother
+
+\newcommand{\dt}[1]{#1%
+\par%
+}
+\newcommand{\dd}[1]{{%
+\hangindent2em%
+\hangafter=0%
+#1%
+\par%
+}}
+
+% Unfortunately, this doesn't work with code segments:
+%\newenvironment{definitions}{\begin{description}}{\end{description}}
+%\newcommand{\dt}[1]{\item[#1]}
+%\newcommand{\dd}[1]{#1}
+
+\newcommand{\sectionstart}{}
+\newcommand{\sectionend}{}
+
+\newcommand{\subsectionstart}{}
+\newcommand{\subsectionend}{}
+
+\newcommand{\chapterstart}{
+}
+\newcommand{\chaptersections}{
+ \begin{sloppypar}
+   \minitoc
+ \end{sloppypar}
+}
+\newcommand{\chapterend}{
+	%\end{multicols}
+}
+
+\newcommand{\referencestart}{
+%\def\thechapter{\Roman{chapter}}
+\renewcommand{\chaptersections}{
+ \begin{sloppypar}
+   \minitoc
+	%\begin{multicols*}{2}
+ \end{sloppypar}
+}
+\renewcommand{\chapterend}{
+	%\end{multicols*}
+}
+}
+
+% don't use two columns in appendix
+\let\originalappendix\appendix
+\renewcommand{\appendix}{\originalappendix
+\renewcommand{\chaptersections}{
+}
+\renewcommand{\chapterend}{
+}
+}
+
+\newenvironment{chapterintro}{
+  % \begin{multicols}{2}
+}{
+%\end{multicols}
+}
+\newenvironment{chapterintroshort}{\par}{}
+
+\newenvironment{guidesectionintro}{
+  % \begin{multicols}{2}
+}{
+  % \end{multicols}
+}
+\newenvironment{guidesectionintroshort}{\par}{}
+
+\newcommand{\codewidth}{0.9\columnwidth}
+
+\newenvironment{tests}{%
+	\begin{compactitem}[{%
+	\tiny\ttfamily $>>$
+	}]%
+}{%
+	\end{compactitem}%
+}
+\newenvironment{testcase}{%
+	\item%
+	\begin{minipage}[t]{\codewidth}
+	\begin{compactitem}[]%
+}{%
+	\end{compactitem}%
+	\end{minipage}
+	\vspace{1em}%
+}
+
+\newcommand{\test}[1]{%
+\item \begin{minipage}[t]{\codewidth}\begin{flushleft} {\ttfamily \bfseries #1} \end{flushleft} \end{minipage} \hfill \nobreak%
+}
+
+% Test case error message output
+\newenvironment{testmessage}{\item
+\begin{minipage}{\codewidth}
+  \begin{ttfamily}%
+    \vspace{0.1em}%
+    \color{message}%
+}{%
+  \end{ttfamily}%
+\end{minipage}%
+}
+% Test case print output
+\newenvironment{testprint}{\item
+  \vspace{-0.5em}
+  \begin{minipage}{\codewidth}
+    \begin{ttfamily}%
+      \vspace{0.1em}%
+      \tiny%
+      \color{print}%
+}{%
+    \end{ttfamily}%
+\end{minipage}%
+}
+
+% Test case output; the ... in (Out[x]= ... )
+\newenvironment{testresult}{%
+	\item%
+	\vspace{-0.5em}%
+	\begin{minipage}{\codewidth}%
+	\hbadness=10000
+	\begin{dmath*}[indentstep={0em},compact]%
+}{%
+	\end{dmath*}%
+	\end{minipage}%
+}
+\newenvironment{testresultlist}{%
+	\item%
+	\vspace{-0.5em}%
+	\begin{minipage}{\codewidth}%
+	\begin{dgroup*}[indentstep={0em},compact]%
+}{%
+	\end{dgroup*}%
+	\end{minipage}%
+}
+
+\newcommand{\code}[1]{\hbadness=10000{\ttfamily #1}}
+\newcommand{\codevar}[1]{{\rmfamily #1}}
+\newcommand{\console}[1]{\hbadness=10000{\ttfamily #1}}
+
+\setlength{\parindent}{0mm}
+\setlength{\parskip}{10pt}
+
+\setlength{\mathindent}{0em}
+
+\raggedbottom
+
+\raggedcolumns
+
+\makeindex
+
+\hyphenation{assign-ments}
+
+\begin{document}
+\input{version-info.tex}
+
+\maketitle
+
+\dominitoc
+
+\setcounter{tocdepth}{0}
+\tableofcontents
+
+
+\lstset{
+%  inputencoding=utf8,
+  extendedchars=true,
+  breaklines=true,
+  breakatwhitespace=false,
+  showspaces=false,
+  basicstyle=\ttfamily
+}
+
+\lstdefinestyle{python}{language=Python,tabsize=2,basicstyle=\scriptsize\ttfamily,showstringspaces=false,stringstyle=\color{pythonstring},commentstyle=\ttfamily\color{pythonstring},frame=lines}
+
+\input{documentation.tex}
+
+\part*{Appendices}
+\printindex
+\begin{colophon}
+% Add this into table of contents
+% The page reference may come out wrong and refer to the index.
+% If so, adjust by hand, or diff file.
+  \addcontentsline{toc}{chapter}{Colophon}
+
+\begin{description}
+  \item[Mathics3 Core] \hfill \MathicsCoreVersion
+  \item[Python] \hfill \\ \PythonVersion
+  \item[XeTeX] \hfill \\ \XeTeXVersion
+  \item[Asymptote] \hfill \\ \AsymptoteVersion
+  \item[mpmath] \hfill  \mpmathVersion
+  \item[NumpyPy] \hfill  \NumPyVersion
+  \item[SymPy] \hfill  \SymPyVersion
+  \item[Ghostscript] \hfill  \GhostscriptVersion
+  \item[cython] \hfill  \cython
+  \item[lxml] \hfill  \lxml
+  \item[matplotlib] \hfill  \matplotlib
+  \item[networkx] \hfill  \networkx
+  \item[psutil] \hfill \psutil
+  \item[skimage] \hfill  \skimage
+  \item[scipy] \hfill  \scipy
+  \item[wordcloud] \hfill  \wordcloud
+\end{description}
+
+\end{colophon}
+\end{document}

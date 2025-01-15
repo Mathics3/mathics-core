@@ -1,60 +1,51 @@
 # -*- coding: utf-8 -*-
-import sys
-
-from mathics.builtin import check_requires_list
+from typing import Optional, Tuple
 
 from mathics.core.atoms import Number, Real
-from mathics.core.expression import Expression
+from mathics.core.builtin import check_requires_list
+from mathics.core.convert.function import expression_to_callable_and_args
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
-from mathics.core.evaluators import apply_N
-from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolAutomatic, SymbolInfinity, SymbolFailed
-from mathics.core.utils import IS_PYPY
+from mathics.core.expression import Expression, ExpressionInfinity
+from mathics.core.systemsymbols import SymbolAutomatic, SymbolFailed
+from mathics.eval.nevaluator import eval_N
 
-SymbolCompile = Symbol("Compile")
-
-if IS_PYPY or not check_requires_list(["scipy", "numpy"]):
+if not check_requires_list(["scipy", "numpy"]):
     raise ImportError
 
 
-from scipy.optimize import (
+from scipy.optimize import (  # minimize,; basinhopping,; least_squares,; curve_fit,; root,
     minimize_scalar,
-    # minimize,
-    # basinhopping,
-    # least_squares,
-    # curve_fit,
     root_scalar,
-    # root,
 )
 
 
-def get_tolerance_and_maxit(opts: dict, scale=0, evaluation: "Evaluation" = None):
+def get_tolerance_and_maxit(opts: dict, scale: float, evaluation: Evaluation):
     """
     Looks at an opts dictionary and tries to determine the numeric values of
     Accuracy and Precision goals. If not available, returns None.
     """
     acc_goal = opts.get("System`AccuracyGoal", None)
     if acc_goal:
-        acc_goal = apply_N(acc_goal, evaluation)
+        acc_goal = eval_N(acc_goal, evaluation)
         if acc_goal is SymbolAutomatic:
             acc_goal = Real(12.0)
-        elif acc_goal is SymbolInfinity:
+        elif ExpressionInfinity == acc_goal:
             acc_goal = None
         elif not isinstance(acc_goal, Number):
             acc_goal = None
 
     prec_goal = opts.get("System`PrecisionGoal", None)
     if prec_goal:
-        prec_goal = apply_N(prec_goal, evaluation)
+        prec_goal = eval_N(prec_goal, evaluation)
         if prec_goal is SymbolAutomatic:
             prec_goal = Real(12.0)
-        elif prec_goal is SymbolInfinity:
+        elif ExpressionInfinity == prec_goal:
             prec_goal = None
         elif not isinstance(prec_goal, Number):
             prec_goal = None
 
-    tol = 0.0
+    tol: Optional[float] = 0.0
     if acc_goal:
         tol = 10 ** (-acc_goal.to_python())
     if prec_goal and scale:
@@ -67,7 +58,7 @@ def get_tolerance_and_maxit(opts: dict, scale=0, evaluation: "Evaluation" = None
         maxit = 100
     else:
         if not isinstance(maxit_parm, Number):
-            maxit_parm = apply_N(maxit_parm, evaluation)
+            maxit_parm = eval_N(maxit_parm, evaluation)
         maxit = maxit_parm.get_int_value()
     return tol, maxit
 
@@ -76,8 +67,8 @@ def compile_fn(f, x, opts, evaluation):
     """produces a compiled version of f, which is callable from Python"""
     if opts["_isfindmaximum"]:
         f = -f
-    comp_func = Expression(SymbolCompile, ListExpression(x), f).evaluate(evaluation)
-    return comp_func._elements[2].cfunc
+    cf, args = expression_to_callable_and_args(f, [x], evaluation)
+    return cf
 
 
 def process_result_1d_opt(result, opts, evaluation):
@@ -96,12 +87,12 @@ def process_result_1d_solver(result, opts, evaluation):
 
 
 def find_minimum_brent(
-    f: "Expression",
-    x0: "Expression",
-    x: "Expression",
+    f: Expression,
+    x0: BaseElement,
+    x: Expression,
     opts: dict,
-    evaluation: "Evaluation",
-) -> (Number, bool):
+    evaluation: Evaluation,
+) -> Tuple[BaseElement, bool]:
     """
     This implements the Brent's optimizer
     """
@@ -111,7 +102,7 @@ def find_minimum_brent(
     if boundary and len(boundary) == 2:
         a, b = sorted(u.to_python() for u in boundary)
     else:
-        x0 = apply_N(x0, evaluation)
+        x0 = eval_N(x0, evaluation)
         b = abs(x0.to_python())
         b = 1 if b == 0 else b
         a = -b
@@ -124,12 +115,12 @@ def find_minimum_brent(
 
 
 def find_minimum_golden(
-    f: "Expression",
-    x0: "Expression",
-    x: "Expression",
+    f: Expression,
+    x0: BaseElement,
+    x: Expression,
     opts: dict,
-    evaluation: "Evaluation",
-) -> (Number, bool):
+    evaluation: Evaluation,
+) -> Tuple[BaseElement, bool]:
     """
     This implements the golden rule optimizer
     """
@@ -138,7 +129,7 @@ def find_minimum_golden(
     if boundary and len(boundary) == 2:
         a, b = sorted(u.to_python() for u in boundary)
     else:
-        x0 = apply_N(x0, evaluation)
+        x0 = eval_N(x0, evaluation)
         b = abs(x0.to_python())
         b = 1 if b == 0 else b
         a = -b
@@ -153,12 +144,12 @@ def find_minimum_golden(
 
 
 def find_root1d_brenth(
-    f: "Expression",
-    x0: "Expression",
-    x: "Expression",
+    f: Expression,
+    x0: BaseElement,
+    x: Expression,
     opts: dict,
-    evaluation: "Evaluation",
-) -> (Number, bool):
+    evaluation: Evaluation,
+) -> Tuple[BaseElement, bool]:
     """
     This implements the Brent's solver
     """
@@ -167,12 +158,12 @@ def find_root1d_brenth(
     if boundary and len(boundary) == 2:
         a, b = sorted(u.to_python() for u in boundary)
     else:
-        x0 = apply_N(x0, evaluation)
+        x0 = eval_N(x0, evaluation)
         b = abs(x0.to_python())
         b = 1 if b == 0 else b
         a = -b
 
-    if not isinstance(comp_fun(a), Number):
+    if not isinstance(comp_fun(a), float):
         evaluation.message("FindRoot", "nnum", x, x0)
         return SymbolFailed, False
 

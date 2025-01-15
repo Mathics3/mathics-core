@@ -1,6 +1,6 @@
-import unittest
 import random
 import sys
+import unittest
 
 from mathics_scanner import (
     IncompleteSyntaxError,
@@ -9,20 +9,12 @@ from mathics_scanner import (
     SingleLineFeeder,
 )
 
-from mathics.core.atoms import (
-    Integer,
-    Integer0,
-    Integer1,
-    Real,
-    Rational,
-    String,
-)
+from mathics.core.atoms import Integer, Integer0, Integer1, Rational, Real, String
 from mathics.core.definitions import Definitions
 from mathics.core.expression import Expression
 from mathics.core.parser import parse
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolDerivative
-
 
 definitions = Definitions(add_builtin=True)
 
@@ -66,6 +58,10 @@ class ConvertTests(unittest.TestCase):
         self.check("10*^3", Integer(10000))
         self.check("10*^-3", Rational(1, 100))
         self.check("8^^23*^2", Integer(1216))
+        self.check("2^^0101", Integer(5))
+        self.check(
+            "36^^0123456789abcDEFxyzXYZ", Integer(14142263610074677021975869033659)
+        )
 
         n = random.randint(-sys.maxsize, sys.maxsize)
         self.check(str(n), Integer(n))
@@ -73,15 +69,38 @@ class ConvertTests(unittest.TestCase):
         n = random.randint(sys.maxsize, sys.maxsize * sys.maxsize)
         self.check(str(n), Integer(n))
 
+        # Requested base 1 in 1^^2 should be between 2 and 36.
+        self.invalid_error(r"1^^2")
+        # Requested base 37 in 37^^3 should be between 2 and 36.
+        self.invalid_error(r"37^^3")
+        # Digit at position 3 in 01210 is too large to be used in base 2.
+        self.invalid_error(r"2^^01210")
+        # "Digit at position 2 in 5g is too large to be used in base 16."
+        self.invalid_error(r"16^^5g")
+
     def testReal(self):
         self.check("1.5", Real("1.5"))
         self.check("1.5`", Real("1.5"))
         self.check("0.0", Real(0))
         self.check("-1.5`", Real("-1.5"))
-
+        self.check("0`3", Integer(0))
+        self.check("0``3", "0.000`3")
+        self.check("0.`3", "0.000`3")
+        self.check("0.``3", "0.000``3")
+        ## Mathematica treats zero strangely
         self.check("0.00000000000000000", "0.")
         self.check("0.000000000000000000`", "0.")
         self.check("0.000000000000000000", "0.``18")
+        # Parse *^ notation
+        self.check("1.5×10^24", Real(1.5) * Integer(10) ** Integer(24))
+        self.check("1.5*^+24", Real("1.5e24"))
+        self.check("1.5*^-24", Real("1.5e-24"))
+        ## Don't accept *^ with spaces
+        # > 1.5 *^10
+        # "1.5*" cannot be followed by "^ 10"
+        self.invalid_error("1.5 *^10")
+        # "1.5*" cannot be followed by "^ 10"
+        self.invalid_error("1.5*^ 10")
 
     def testString(self):
         self.check(r'"abc"', String("abc"))

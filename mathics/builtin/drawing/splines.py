@@ -5,9 +5,12 @@ Splines
 A Spline is a mathematical function used for interpolation or smoothing. Splines are used both in graphics and computations
 """
 
-from mathics.builtin.base import Builtin
+# This tells documentation how to sort this module
+# Here we are also hiding "drawing" since this can erroneously appear at the top level.
+sort_order = "mathics.builtin.splines"
 
-from mathics.core.attributes import listable, numeric_function, protected
+from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
+from mathics.core.builtin import Builtin
 
 
 # For a more generic implementation in Python using scipy,
@@ -15,22 +18,23 @@ from mathics.core.attributes import listable, numeric_function, protected
 #  https://github.com/Tarheel-Formal-Methods/kaa
 class BernsteinBasis(Builtin):
     """
+
+    <url>:Bernstein polynomial basis: https://en.wikipedia.org/wiki/Bernstein_polynomial</url> (<url>:SciPy: https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.BPoly.html</url> :WMA:
+
+    A Bernstein is a polynomial that is a linear combination of Bernstein basis polynomials.
+    With the advent of computer graphics, Bernstein polynomials, restricted to the interval [0, 1], became important in the form of Bézier curves.
+    'BernsteinBasis[d,n,x]' equals 'Binomial[d, n] x^n (1-x)^(d-n)' in the interval [0, 1] and zero elsewhere.
+
     <dl>
       <dt>'BernsteinBasis[$d$,$n$,$x$]'
       <dd>returns the $n$th Bernstein basis of degree $d$ at $x$.
     </dl>
 
-    A Bernstein polynomial <url>https://en.wikipedia.org/wiki/Bernstein_polynomial</url> is a polynomial that is a linear combination of Bernstein basis polynomials.
-
-    With the advent of computer graphics, Bernstein polynomials, restricted to the interval [0, 1], became important in the form of Bézier curves.
-
-    'BernsteinBasis[d,n,x]' equals 'Binomial[d, n] x^n (1-x)^(d-n)' in the interval [0, 1] and zero elsewhere.
-
     >> BernsteinBasis[4, 3, 0.5]
      = 0.25
     """
 
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     rules = {
         "BernsteinBasis[d_, n_, x_]": "Piecewise[{{Binomial[d, n] * x ^ n * (1 - x) ^ (d - n), 0 < x < 1}}, 0]"
     }
@@ -40,6 +44,7 @@ class BernsteinBasis(Builtin):
 
 class BezierFunction(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BezierFunction.html</url>
     <dl>
       <dt>'BezierFunction[{$pt_1$, $pt_2$, ...}]'
       <dd>returns a Bézier function for the curve defined by points $pt_i$.
@@ -70,6 +75,8 @@ class BezierFunction(Builtin):
 
 class BezierCurve(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BezierCurve.html</url>
+
      <dl>
        <dt>'BezierCurve[{$pt_1$, $pt_2$ ...}]'
        <dd>represents a Bézier curve with control points $p_i$.

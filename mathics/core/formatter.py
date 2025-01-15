@@ -1,6 +1,8 @@
 import inspect
-from typing import Callable
 import re
+from typing import Callable
+
+from mathics.core.element import BoxElementMixin
 
 # key is str: (to_xxx name, value) is formatter function to call
 format2fn: dict = {}
@@ -74,7 +76,15 @@ extra_operators = set(
 )
 
 
-def lookup_method(self, format: str, module_fn_name=None) -> Callable:
+def boxes_to_format(boxes, format, **options) -> str:  # Maybe Union[str, bytearray]
+    """
+    Translates a box structure ``boxes`` to a file format ``format``.
+
+    """
+    return lookup_method(boxes, format)(boxes, **options)
+
+
+def lookup_method(self, format: str) -> Callable:
     """
     Find a conversion method for `format` in self's class method resolution order.
     """
@@ -83,9 +93,19 @@ def lookup_method(self, format: str, module_fn_name=None) -> Callable:
         if format_fn is not None:
             # print(f"format function: {format_fn.__name__} for {type(self).__name__}")
             return format_fn
-    raise RuntimeError(
-        f"Can't find formatter {format_fn.__name__} for {type(self).__name__}"
-    )
+    # backward compatibility
+    boxes_to_method = getattr(self, f"boxes_to_{format}", None)
+    if getattr(BoxElementMixin, f"boxes_to_{format}") is boxes_to_method:
+        boxes_to_method = None
+    if boxes_to_method:
+
+        def ret_fn(box, elements=None, **opts):
+            return boxes_to_method(elements, **opts)
+
+        return ret_fn
+
+    error_msg = f"Can't find formatter {format} for {type(self).__name__} ({self})"
+    raise RuntimeError(error_msg)
 
 
 def add_conversion_fn(cls, module_fn_name=None) -> None:
@@ -104,7 +124,10 @@ def add_conversion_fn(cls, module_fn_name=None) -> None:
 
     We use frame introspection to get all of this done.
     """
-    fr = inspect.currentframe().f_back
+    fr = inspect.currentframe()
+    assert fr is not None
+    fr = fr.f_back
+    assert fr is not None
     module_dict = fr.f_globals
 
     # The last part of the module name is expected to be the conversion routine.

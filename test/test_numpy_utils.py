@@ -5,23 +5,21 @@
 import unittest
 
 from mathics.builtin.numpy_utils import (
-    stack,
-    unstack,
-    concat,
-    vectorize,
-    conditional,
-    clip,
+    allclose,
     array,
     choose,
-)
-from mathics.builtin.numpy_utils import (
-    minimum,
-    maximum,
+    clip,
+    concat,
+    conditional,
     dot_t,
-    mod,
     floor,
+    maximum,
+    minimum,
+    mod,
     sqrt,
-    allclose,
+    stack,
+    unstack,
+    vectorize,
 )
 
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-from ...helper import check_evaluation
 import pytest
+
+from ...helper import check_evaluation
 
 list_test_assumptions_integrate = [
     (

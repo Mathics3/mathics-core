@@ -1,55 +1,75 @@
 # -*- coding: utf-8 -*-
-
+"""
+Conversion from AST node to Mathics3 BaseElement objects
+"""
 
 from math import log10
+from typing import Optional, Tuple
+
 import sympy
 
-import mathics.core.atoms as maa
-import mathics.core.symbols as mas
-import mathics.core.convert.expression as mae
-from mathics.core.parser.ast import Symbol, String, Number, Filename
-from mathics.core.number import machine_precision, reconstruct_digits
+from mathics.core.atoms import Integer, MachineReal, PrecisionReal, Rational, String
+from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.number import RECONSTRUCT_MACHINE_PRECISION_DIGITS
+from mathics.core.parser.ast import (
+    Filename as AST_Filename,
+    Number as AST_Number,
+    String as AST_String,
+    Symbol as AST_Symbol,
+)
+from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.util import canonic_filename
+
+# A StringValueToken is a tuple pair contaiing a token
+# name, either: "String, "Lookup", or "Symbol"
+# a token's string value. Examples:
+#   ["String" "/etc/hosts"]
+#   ["Symbol" "System`Infinity"]
+#   ["Lookup" "Infinity"]
+StringValueToken = Tuple[str, str]
 
 
 class GenericConverter:
     def do_convert(self, node):
-        if isinstance(node, Symbol):
+        if isinstance(node, AST_Symbol):
             return self.convert_Symbol(node)
-        elif isinstance(node, String):
+        elif isinstance(node, AST_String):
             return self.convert_String(node)
-        elif isinstance(node, Number):
+        elif isinstance(node, AST_Number):
             return self.convert_Number(node)
-        elif isinstance(node, Filename):
+        elif isinstance(node, AST_Filename):
             return self.convert_Filename(node)
         else:
             head = self.do_convert(node.head)
             children = [self.do_convert(child) for child in node.children]
             return "Expression", head, children
 
+    # FIXME REMOVE this.
     @staticmethod
-    def string_escape(s):
+    def string_escape(s: str) -> str:
         return s.encode("raw_unicode_escape").decode("unicode_escape")
 
-    def convert_Symbol(self, node: Symbol):
+    def convert_Symbol(self, node: AST_Symbol) -> StringValueToken:
         if node.context is not None:
             return "Symbol", node.context + "`" + node.value
         else:
             return "Lookup", node.value
 
-    def convert_String(self, node: String):
-        value = self.string_escape(node.value)
-        return "String", value
+    def convert_String(self, node: AST_String) -> StringValueToken:
+        return "String", node.value
 
-    def convert_Filename(self, node: Filename):
+    def convert_Filename(self, node: AST_Filename) -> StringValueToken:
         s = node.value
         if s.startswith('"'):
             assert s.endswith('"')
             s = s[1:-1]
+
+        s = self.string_escape(canonic_filename(s))
         s = self.string_escape(s)
-        s = s.replace("\\", "\\\\")
+
         return "String", s
 
-    def convert_Number(self, node: Number):
+    def convert_Number(self, node: AST_Number) -> tuple:
         s = node.value
         sign = node.sign
         base = node.base
@@ -74,34 +94,48 @@ class GenericConverter:
             if suffix is None:
                 # MachineReal/PrecisionReal is determined by number of digits
                 # in the mantissa
-                d = len(man) - 2  # one less for decimal point
-                if d < reconstruct_digits(machine_precision):
+                # if the number of digits is less than 17, then MachineReal is used.
+                # If more digits are provided, then PrecisionReal is used.
+                digits = len(man) - 2
+                if digits < RECONSTRUCT_MACHINE_PRECISION_DIGITS:
                     return "MachineReal", sign * float(s)
                 else:
                     return (
                         "PrecisionReal",
                         ("DecimalString", str("-" + s if sign == -1 else s)),
-                        d,
+                        digits,
                     )
             elif suffix == "":
                 return "MachineReal", sign * float(s)
             elif suffix.startswith("`"):
+                # A double Reversed Prime ("``") represents a fixed accuracy
+                # (absolute uncertainty).
                 acc = float(suffix[1:])
                 x = float(s)
-                if x == 0:
-                    prec10 = acc
-                else:
-                    prec10 = acc + log10(x)
+                # For 0, a finite absolute precision even if
+                # the number is an integer, it is stored as a
+                # PrecisionReal number.
                 return (
                     "PrecisionReal",
                     ("DecimalString", str("-" + s if sign == -1 else s)),
-                    prec10,
+                    acc + log10(abs(x)) if x != 0 else acc,
                 )
             else:
+                # A single Reversed Prime ("`") represents a fixed precision
+                # (relative uncertainty).
+                # For 0, a finite relative precision reduces to no uncertainty,
+                # so ``` 0`3 === 0 ``` and  ``` 0.`3 === 0.`4 ```
+                if node.value == "0":
+                    return "Integer", 0
+
+                s_float = float(s)
+                prec = float(suffix)
+                if s_float == 0.0:
+                    return "MachineReal", sign * s_float
                 return (
                     "PrecisionReal",
                     ("DecimalString", str("-" + s if sign == -1 else s)),
-                    float(suffix),
+                    prec,
                 )
 
         # Put into standard form mantissa * base ^ n
@@ -122,6 +156,7 @@ class GenericConverter:
         x = float(sympy.Rational(p, q))
 
         # determine `prec10` the digits of precision in base 10
+        prec10: Optional[float]
         if suffix is None:
             acc = len(s[1])
             acc10 = acc * log10(base)
@@ -129,7 +164,7 @@ class GenericConverter:
                 prec10 = acc10
             else:
                 prec10 = acc10 + log10(abs(x))
-            if prec10 < reconstruct_digits(machine_precision):
+            if prec10 < RECONSTRUCT_MACHINE_PRECISION_DIGITS:
                 prec10 = None
         elif suffix == "":
             prec10 = None
@@ -164,24 +199,24 @@ class Converter(GenericConverter):
         result = GenericConverter.do_convert(self, node)
         return getattr(self, "_make_" + result[0])(*result[1:])
 
-    def _make_Symbol(self, s):
-        return mas.Symbol(s)
+    def _make_Symbol(self, s: str) -> Symbol:
+        return Symbol(s)
 
-    def _make_Lookup(self, s):
+    def _make_Lookup(self, s: str) -> Symbol:
         value = self.definitions.lookup_name(s)
-        return mas.Symbol(value)
+        return Symbol(value)
 
-    def _make_String(self, s):
-        return maa.String(s)
+    def _make_String(self, s: str) -> String:
+        return String(s)
 
-    def _make_Integer(self, x):
-        return maa.Integer(x)
+    def _make_Integer(self, x) -> Integer:
+        return Integer(x)
 
-    def _make_Rational(self, x, y):
-        return maa.Rational(x, y)
+    def _make_Rational(self, x, y) -> Rational:
+        return Rational(x, y)
 
     def _make_MachineReal(self, x):
-        return maa.MachineReal(x)
+        return MachineReal(x)
 
     def _make_PrecisionReal(self, value, prec):
         if value[0] == "Rational":
@@ -192,10 +227,13 @@ class Converter(GenericConverter):
             x = value[1]
         else:
             assert False
-        return maa.PrecisionReal(sympy.Float(x, prec))
+        return PrecisionReal(sympy.Float(x, prec))
 
-    def _make_Expression(self, head, children):
-        return mae.to_expression(head, *children)
+    def _make_Expression(self, head: Symbol, children: list):
+        if head == SymbolList:
+            return to_mathics_list(*children)
+
+        return to_expression(head, *children)
 
 
 converter = Converter()

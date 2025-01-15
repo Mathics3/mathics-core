@@ -4,8 +4,10 @@
 
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
+from mathics.core.load_builtin import import_and_load_builtins
 from mathics.core.parser import MathicsSingleLineFeeder, parse
 
+import_and_load_builtins()
 definitions = Definitions(add_builtin=True)
 
 for i in range(0, 4):

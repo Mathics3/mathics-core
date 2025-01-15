@@ -1,0 +1,41 @@
+name: Mathics3 (Type checking)
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.12']
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        sudo apt update -qq && sudo apt install llvm-dev remake
+        python -m pip install --upgrade pip
+        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        # We can comment out after next Mathics-Scanner release
+        git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
+        # git clone --single-branch --branch operator-refactor-part1.5 https://github.com/Mathics3/mathics-scanner.git
+        cd mathics-scanner/
+        pip install -e .
+        cd ..
+
+    - name: Install Mathics with minimum dependencies
+      run: |
+        make develop
+    - name: Run mypy
+      run: |
+        pip install mypy==1.13 sympy==1.12
+        touch ./mathics-scanner/mathics_scanner/py.typed
+        pip install ./mathics-scanner/
+        mypy --install-types --non-interactive mathics

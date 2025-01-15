@@ -5,13 +5,16 @@
 Here we have the base class and related function for element inside an Expression.
 """
 
+from abc import ABC
+from typing import TYPE_CHECKING, Any, Dict, Optional, Sequence, Tuple, Union
 
-from typing import Any, Optional, Tuple, Type
+from mathics.core.attributes import A_NO_ATTRIBUTES
 
-from mathics.core.attributes import no_attributes
+if TYPE_CHECKING:
+    from mathics.core.evaluation import Evaluation
 
 
-def ensure_context(name, context="System`") -> str:
+def ensure_context(name: str, context="System`") -> str:
     assert isinstance(name, str)
     assert name != ""
     if "`" in name:
@@ -38,11 +41,12 @@ def fully_qualified_symbol_name(name) -> bool:
 
 
 try:
-    from recordclass import RecordClass
+    from recordclass import RecordClass  # type: ignore[import-not-found]
 
-    # Note: Something in cythonization barfs if we put this in Expression and you try to call this
-    # like ExpressionProperties(True, True, True). Cython reports:
-    #   number of the arguments greater than the number of the items
+    # Note: Something in cythonization barfs if we put this in
+    # Expression and you try to call this like
+    # ExpressionProperties(True, True, True). Cython reports:
+    # number of the arguments greater than the number of the items
     class ElementsProperties(RecordClass):
         """Properties of Expression elements that are useful in evaluation.
 
@@ -81,7 +85,7 @@ except ImportError:
     from dataclasses import dataclass
 
     @dataclass
-    class ElementsProperties:
+    class ElementsProperties:  # type: ignore[no-redef]
         """Properties of Expression elements that are useful in evaluation.
 
         In general, if you have some set of properties that you know should
@@ -128,23 +132,44 @@ class ImmutableValueMixin:
 class KeyComparable:
     """
 
-    Some Mathics/WL Symbols have an "OrderLess" attribute
+    Some Mathics3/WL Symbols have an "OrderLess" attribute
     which is used in the evaluation process to arrange items in a list.
 
     To do that, we need a way to compare Symbols, and that is what
     this class is for.
 
-    This class adds the boilerplate Python comparision operators that
+    This class adds the boilerplate Python comparison operators that
     you expect in Python programs for comparing Python objects.
 
     This class is not complete in of itself, it is intended to be
     mixed into other classes.
 
     Each class should provide a `get_sort_key()` method which
-    is the primative from which all other comparsions are based on.
+    is the primitive from which all other comparisons are based on.
     """
 
-    def get_sort_key(self):
+    # FIXME: return type should be a specific kind of Tuple, not a list.
+    # FIXME: Describe sensible, and easy to follow rules by which one
+    #        can create the kind of tuple for some new kind of element.
+    def get_sort_key(self, pattern_sort=False) -> tuple:
+        """
+        This returns a tuple in a way that
+        it can be used to compare in expressions.
+
+        Returns a particular encoded list (better though would be a tuple) that is used
+        in ``Sort[]`` comparisons and in the ordering that occurs
+        in an M-Expression which has the ``Orderless`` property.
+
+        The encoded tuple/list is selected to have the property: when
+        compared against element ``expr`` in a compound expression, if
+
+           `self.get_sort_key() <= expr.get_sort_key()`
+
+        then self comes before expr.
+
+        The values in the positions of the list/tuple are used to indicate how
+        comparison should be treated for specific element classes.
+        """
         raise NotImplementedError
 
     def __eq__(self, other) -> bool:
@@ -171,7 +196,7 @@ class KeyComparable:
         ) or self.get_sort_key() != other.get_sort_key()
 
 
-class BaseElement(KeyComparable):
+class BaseElement(KeyComparable, ABC):
     """
     This is the base class from which all other Expressions are
     derived from.  If you think of an Expression as tree-like, then a
@@ -183,7 +208,9 @@ class BaseElement(KeyComparable):
     Some important subclasses: Atom and Expression.
     """
 
+    options: Optional[Dict[str, Any]]
     last_evaluated: Any
+    unevaluated: bool
     # this variable holds a function defined in mathics.core.expression that creates an expression
     create_expression: Any
 
@@ -208,130 +235,6 @@ class BaseElement(KeyComparable):
                 return result, True
         return self, False
 
-    # FIXME the fact that we have to import all of these symbols means
-    # modularity is broken somehwere.
-    # And do_format really doesn't belong here.
-    def do_format(self, evaluation, form):
-        """
-        Applies formats associated to the expression and removes
-        superfluous enclosing formats.
-        """
-        from mathics.core.symbols import (
-            Atom,
-            Symbol,
-            SymbolFullForm,
-            SymbolGraphics,
-            SymbolGraphics3D,
-            SymbolHoldForm,
-            SymbolList,
-            SymbolNumberForm,
-            SymbolOutputForm,
-            SymbolPostfix,
-            SymbolRepeated,
-            SymbolRepeatedNull,
-            SymbolStandardForm,
-            format_symbols,
-        )
-        from mathics.builtin.base import BoxExpression
-
-        if isinstance(form, str):
-            form = Symbol(form)
-        formats = format_symbols
-        evaluation.inc_recursion_depth()
-        try:
-            expr = self
-            head = self.get_head()
-            elements = self.get_elements()
-            include_form = False
-            # If the expression is enclosed by a Format
-            # takes the form from the expression and
-            # removes the format from the expression.
-            if head in formats and len(elements) == 1:
-                expr = elements[0]
-                if not (form is SymbolOutputForm and head is SymbolStandardForm):
-                    form = head
-                    include_form = True
-
-            # If form is Fullform, return it without changes
-            if form is SymbolFullForm:
-                if include_form:
-                    expr = self.create_expression(form, expr)
-                return expr
-            # Repeated and RepeatedNull confuse the formatter,
-            # so we need to hardlink their format rules:
-            if head is SymbolRepeated:
-                if len(elements) == 1:
-                    return self.create_expression(
-                        SymbolHoldForm,
-                        self.create_expression(
-                            SymbolPostfix,
-                            self.create_expression(SymbolList, elements[0]),
-                            "..",
-                            170,
-                        ),
-                    )
-                else:
-                    return self.create_expression(SymbolHoldForm, expr)
-            elif head is SymbolRepeatedNull:
-                if len(elements) == 1:
-                    return self.create_expression(
-                        SymbolHoldForm,
-                        self.create_expression(
-                            SymbolPostfix,
-                            self.create_expression(SymbolList, elements[0]),
-                            "...",
-                            170,
-                        ),
-                    )
-                else:
-                    return self.create_expression(SymbolHoldForm, expr)
-
-            # If expr is not an atom, looks for formats in its definition
-            # and apply them.
-            def format_expr(expr):
-                if not (isinstance(expr, Atom)) and not (isinstance(expr.head, Atom)):
-                    # expr is of the form f[...][...]
-                    return None
-                name = expr.get_lookup_name()
-                formats = evaluation.definitions.get_formats(name, form.get_name())
-                for rule in formats:
-                    result = rule.apply(expr, evaluation)
-                    if result is not None and result != expr:
-                        return result.evaluate(evaluation)
-                return None
-
-            formatted = format_expr(expr) if isinstance(expr, EvalMixin) else None
-            if formatted is not None:
-                result = formatted.do_format(evaluation, form)
-                if include_form:
-                    result = self.create_expression(form, result)
-                return result
-
-            # If the expression is still enclosed by a Format,
-            # iterate.
-            # If the expression is not atomic or of certain
-            # specific cases, iterate over the elements.
-            head = expr.get_head()
-            if head in formats:
-                expr = expr.do_format(evaluation, form)
-            elif (
-                head is not SymbolNumberForm
-                and not isinstance(expr, (Atom, BoxExpression))
-                and head not in (SymbolGraphics, SymbolGraphics3D)
-            ):
-                # print("Not inside graphics or numberform, and not is atom")
-                new_elements = [
-                    element.do_format(evaluation, form) for element in expr.elements
-                ]
-                expr = self.create_expression(
-                    expr.head.do_format(evaluation, form), *new_elements
-                )
-            if include_form:
-                expr = self.create_expression(form, expr)
-            return expr
-        finally:
-            evaluation.dec_recursion_depth()
-
     def equal2(self, rhs: Any) -> Optional[bool]:
         """
         Mathics two-argument Equal (==)
@@ -340,49 +243,22 @@ class BaseElement(KeyComparable):
         if self.sameQ(rhs):
             return True
 
-        # If the types are the same then we'll use the classes definition of == (or __eq__).
-        # Superclasses which need to specialized this behavior should redefine equal2()
+        # If the types are the same then we'll use the classes
+        # definition of == (or __eq__).  Superclasses which need to
+        # specialized this behavior should redefine equal2()
         #
         # I would use `is` instead `==` here, to compare classes.
         if type(self) is type(rhs):
             return self == rhs
         return None
 
-    def evaluate(self, evaluation) -> "BaseElement":
-        """
-        Evaluates the element.
-        Each subclass should decide what is right here.
-        """
-        raise NotImplementedError
-
-    # FIXME the fact that we have to import all of these symbols means
-    # modularity is broken somehwere.
-    # And format really doesn't belong here.
-    def format(self, evaluation, form, **kwargs) -> "BaseElement":
-        """
-        Applies formats associated to the expression, and then calls Makeboxes
-        """
-        from mathics.core.symbols import (
-            Symbol,
-            SymbolMakeBoxes,
-        )
-        from mathics.core.atoms import String
-        from mathics.builtin.base import BoxExpression
-        from mathics.builtin.box.inout import _BoxedString
+    def format(self, evaluation, form, **kwargs) -> Optional["BaseElement"]:
+        from mathics.core.symbols import Symbol
+        from mathics.eval.makeboxes import format_element
 
         if isinstance(form, str):
             form = Symbol(form)
-
-        expr = self.do_format(evaluation, form)
-        result = self.create_expression(SymbolMakeBoxes, expr, form)
-        result_box = result.evaluate(evaluation)
-
-        if isinstance(result_box, BoxExpression):
-            return result_box
-        elif isinstance(result_box, String):
-            return _BoxedString(result_box.value)
-        else:
-            return self.format(evaluation, "FullForm", **kwargs)
+        return format_element(self, evaluation, form, **kwargs)
 
     def get_atoms(self, include_heads=True):
         """
@@ -397,9 +273,25 @@ class BaseElement(KeyComparable):
         return []
 
     def get_attributes(self, definitions):
-        return no_attributes
+        return A_NO_ATTRIBUTES
 
-    def get_head_name(self):
+    def get_element(self, index: int) -> "BaseElement":
+        return self.get_elements()[index]
+
+    def get_elements(self) -> Sequence["BaseElement"]:
+        raise NotImplementedError
+
+    def get_head(self) -> "BaseElement":
+        raise NotImplementedError
+
+    def get_head_name(self) -> str:
+        """
+        All elements have a "Head" whether or not the element is compound.
+        The Head of an Atom is its type. The Head of an S-expression is
+        its function name.
+
+        Each class must define its own get_head_name.
+        """
         raise NotImplementedError
 
     # FIXME: this behavior of defining a specific default implementation
@@ -409,10 +301,10 @@ class BaseElement(KeyComparable):
     def get_float_value(self, permit_complex=False):
         return None
 
-    def get_int_value(self):
+    def get_int_value(self) -> Optional[int]:
         return None
 
-    def get_lookup_name(self):
+    def get_lookup_name(self) -> str:
         """
         Returns symbol name of leftmost head. This method is used
         to determine which definition must be asked for rules
@@ -421,15 +313,17 @@ class BaseElement(KeyComparable):
 
         return self.get_name()
 
-    def get_name(self):
+    def get_name(self, short=False) -> str:
         "Returns symbol's name if Symbol instance"
 
         return ""
 
-    def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
+    def get_option_values(
+        self, evaluation: "Evaluation", allow_symbols=False, stop_on_error=True
+    ) -> Optional[dict]:
         pass
 
-    def get_precision(self) -> Optional[float]:
+    def get_precision(self) -> Optional[int]:
         """Returns the default specification for precision in N and other
         numerical functions.  It is expected to be redefined in those
         classes that provide inexact arithmetic like PrecisionReal.
@@ -442,40 +336,28 @@ class BaseElement(KeyComparable):
         """
         return None
 
-    def get_rules_list(self):
+    def get_sequence(self) -> Sequence["BaseElement"]:
         """
-        If the expression is of the form {pat1->expr1,... {pat_2,expr2},...}
-        return a (python) list of rules.
+        If ``self`` is a Mathics3 Sequence, return its elements.
+        Otherwise, just return self wrapped in a tuple
         """
-        from mathics.core.rules import Rule
-        from mathics.core.symbols import SymbolList
-
-        # comment mm: This makes sense for expressions, but not for numbers. This should
-        # have at most a trivial implementation here, and specialize it
-        # in the `Expression` class.
-
-        list_expr = self.flatten_with_respect_to_head(SymbolList)
-        list = []
-        if list_expr.has_form("List", None):
-            list.extend(list_expr.elements)
-        else:
-            list.append(list_expr)
-        rules = []
-        for item in list:
-            if not item.has_form(("Rule", "RuleDelayed"), 2):
-                return None
-            rule = Rule(item.elements[0], item.elements[1])
-            rules.append(rule)
-        return rules
-
-    def get_sequence(self):
-        """Convert's a Mathics Sequence into a Python's list of elements"""
         from mathics.core.symbols import SymbolSequence
 
+        # Below, we special-case for SymbolSequence. Here is an example to suggest why.
+        # Suppose we have this evaluation method:
+        #
+        # def eval(x, evaluation: Evaluation):
+        #     """F[x__]"""
+        #     args = x.get_sequence()
+        #
+        # For the expression "F[a,b]", this function is expected to return:
+        #   [Symbol(a), Symbol(b)], while
+        # for the expression "F[{a,b}]" this function is expected to return:
+        #   ListExpression[Symbol(a), Symbol(b)].
         if self.get_head() is SymbolSequence:
-            return self.elements
+            return self.get_elements()
         else:
-            return [self]
+            return tuple([self])
 
     def get_string_value(self):
         return None
@@ -510,7 +392,9 @@ class BaseElement(KeyComparable):
         # used by NumericQ and expression ordering
         return False
 
-    def has_form(self, heads, *element_counts):
+    def has_form(
+        self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
+    ) -> bool:
         """Check if the expression is of the form Head[l1,...,ln]
         with Head.name in `heads` and a number of elements according to the specification in
         element_counts.
@@ -521,18 +405,11 @@ class BaseElement(KeyComparable):
     def is_zero(self) -> bool:
         return False
 
-    def __hash__(self):
-        """
-        To allow usage of expression as dictionary keys,
-        as in Expression.get_pre_choices
-        """
-        raise NotImplementedError
-
     def is_free(self, form, evaluation) -> bool:
         """
         Check if self has a subexpression of the form `form`.
         """
-        from mathics.builtin.patterns import item_is_free
+        from mathics.eval.test import item_is_free
 
         return item_is_free(self, form, evaluation)
 
@@ -553,10 +430,35 @@ class BaseElement(KeyComparable):
         # __hash__ might only hash a sample of the data available.
         raise NotImplementedError
 
-    def to_sympy(self, **kwargs):
+    def to_python(self, *args, **kwargs):
+        # Returns a native builtin Python object
+        # something in (int, float, complex, str, tuple, list or dict.).
+        # (See discussions in
+        #  https://github.com/Mathics3/mathics-core/discussions/550
+        # and
+        # https://github.com/Mathics3/mathics-core/pull/551
+        #
         raise NotImplementedError
 
     def to_mpmath(self):
+        raise NotImplementedError
+
+    def to_sympy(self, **kwargs):
+        raise NotImplementedError
+
+    def copy(self, reevaluate=False) -> "BaseElement":
+        raise NotImplementedError
+
+    def default_format(self, evaluation, form) -> str:
+        raise NotImplementedError
+
+    def replace_vars(
+        self,
+        vars: Dict[str, "BaseElement"],
+        options=None,
+        in_scoping=True,
+        in_function=True,
+    ) -> "BaseElement":
         raise NotImplementedError
 
 
@@ -577,7 +479,9 @@ class EvalMixin:
         """
         return False
 
-    def rewrite_apply_eval_step(self, evaluation) -> Tuple["Expression", bool]:
+    def rewrite_apply_eval_step(
+        self, evaluation
+    ) -> Tuple[Optional["BaseElement"], bool]:
         """
         Performs a since rewrite/apply/eval step used in
         evaluation.
@@ -592,3 +496,30 @@ class EvalMixin:
         Each class should decide what is right here.
         """
         raise NotImplementedError
+
+    def evaluate(self, evaluation: "Evaluation") -> Optional["BaseElement"]:
+        raise NotImplementedError
+
+
+class BoxElementMixin(ImmutableValueMixin):
+    """
+    The base class for all the boxed
+    elements
+    """
+
+    def boxes_to_format(self, format: str, **options: dict) -> str:
+        from mathics.core.formatter import boxes_to_format
+
+        return boxes_to_format(self, format, **options)
+
+    def boxes_to_mathml(self, **options: dict) -> str:
+        """For compatibility deprecated"""
+        return self.boxes_to_format("mathml", **options)
+
+    def boxes_to_tex(self, **options: dict) -> str:
+        """For compatibility deprecated"""
+        return self.boxes_to_format("latex", **options)
+
+    def boxes_to_text(self, **options: dict) -> str:
+        """For compatibility deprecated"""
+        return self.boxes_to_format("text", **options)

@@ -5,7 +5,8 @@ Date and Time
 
 Dates and times are represented symbolically; computations can be performed on them.
 
-Date object can also input and output dates and times in a wide range of formats, as well as handle calendars.
+Date object can also input and output dates and times in a wide range of formats, as \
+well as handle calendars.
 """
 
 import re
@@ -15,23 +16,28 @@ from datetime import datetime, timedelta
 
 import dateutil.parser
 
-from mathics.builtin.base import Builtin, Predefined
 from mathics.core.atoms import Integer, Real, String
-from mathics.core.attributes import hold_all, no_attributes, protected, read_protected
+from mathics.core.attributes import (
+    A_HOLD_ALL,
+    A_NO_ATTRIBUTES,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+)
+from mathics.core.builtin import Builtin, Predefined
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
-from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack
 from mathics.core.element import ImmutableValueMixin
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolNull
+from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
     SymbolAborted,
+    SymbolAbsoluteTime,
     SymbolAutomatic,
     SymbolInfinity,
     SymbolRowBox,
 )
-
 from mathics.settings import TIME_12HOUR
 
 START_TIME = time.time()
@@ -100,11 +106,9 @@ if not hasattr(timedelta, "total_seconds"):
 else:
     total_seconds = timedelta.total_seconds
 
-SymbolAbsoluteTime = Symbol("AbsoluteTime")
 SymbolDateObject = Symbol("DateObject")
 SymbolDateString = Symbol("DateString")
 SymbolGregorian = Symbol("Gregorian")
-SymbolPause = Symbol("Pause")
 
 
 class _Date:
@@ -251,7 +255,6 @@ class _DateFormat(Builtin):
             (isinstance(val, float) and i > 1) or isinstance(val, int)
             for i, val in enumerate(etime)
         ):
-
             default_date = [1900, 1, 1, 0, 0, 0.0]
             datelist = etime + default_date[len(etime) :]
             prec_part, imprec_part = datelist[:2], datelist[2:]
@@ -259,7 +262,7 @@ class _DateFormat(Builtin):
             try:
                 dtime = datetime(prec_part[0], prec_part[1], 1)
             except ValueError:
-                # FIXME datetime is fairly easy to overlfow. 1 <= month <= 12
+                # FIXME datetime is fairly easy to overflow. 1 <= month <= 12
                 # and some bounds on year too.
                 evaluation.message(form_name, "arg", epochtime)
                 return
@@ -320,7 +323,7 @@ class _DateFormat(Builtin):
                     return
                 datelist = date.to_list()
 
-                # If year is ambiguious, assume the current year
+                # If year is ambiguous, assume the current year
                 if "Year" not in etime[1] and "YearShort" not in etime[1]:
                     datelist[0] = datetime.today().year
 
@@ -336,9 +339,12 @@ class _DateFormat(Builtin):
 
 class AbsoluteTime(_DateFormat):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AbsoluteTime.html</url>
+
     <dl>
       <dt>'AbsoluteTime[]'
-      <dd>gives the local time in seconds since epoch January 1, 1900, in your time zone.
+      <dd>gives the local time in seconds since epoch January 1, 1900, in your \
+          time zone.
 
       <dt>'AbsoluteTime[{$y$, $m$, $d$, $h$, $m$, $s$}]'
       <dd>gives the absolute time specification corresponding to a date list.
@@ -364,22 +370,16 @@ class AbsoluteTime(_DateFormat):
 
     >> AbsoluteTime[{"6-6-91", {"Day", "Month", "YearShort"}}]
      = 2885155200
-
-    ## Mathematica Bug - Mathics gets it right
-    #> AbsoluteTime[1000]
-     = 1000
     """
 
-    abstract = "absolute time in seconds"
+    summary_text = "get absolute time in seconds"
 
-    summary_text = "absolute time in seconds"
-
-    def apply_now(self, evaluation):
+    def eval_now(self, evaluation):
         "AbsoluteTime[]"
 
         return Real(total_seconds(datetime.now() - EPOCH_START))
 
-    def apply_spec(self, epochtime, evaluation):
+    def eval_spec(self, epochtime, evaluation):
         "AbsoluteTime[epochtime_]"
 
         datelist = self.to_datelist(epochtime, evaluation)
@@ -396,9 +396,12 @@ class AbsoluteTime(_DateFormat):
 
 class AbsoluteTiming(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AbsoluteTiming.html</url>
+
     <dl>
       <dt>'AbsoluteTiming[$expr$]'
-      <dd>evaluates $expr$, returning a list of the absolute number of seconds in real time that have elapsed, together with the result obtained.
+      <dd>evaluates $expr$, returning a list of the absolute number of seconds in \
+          real time that have elapsed, together with the result obtained.
     </dl>
 
     >> AbsoluteTiming[50!]
@@ -407,11 +410,11 @@ class AbsoluteTiming(Builtin):
      = {HoldAll, Protected}
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
 
-    summary_text = "total wall-clock time to run a Mathics command"
+    summary_text = "get total wall-clock time to run a Mathics command"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "AbsoluteTiming[expr_]"
 
         start = time.time()
@@ -422,6 +425,8 @@ class AbsoluteTiming(Builtin):
 
 class DateDifference(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DateDifference.html</url>
+
     <dl>
       <dt>'DateDifference[$date1$, $date2$]'
       <dd>returns the difference between $date1$ and $date2$ in days.
@@ -446,7 +451,7 @@ class DateDifference(Builtin):
      = {{9, Week}, {6, Day}}
     """
 
-    # FIXME: Since timedelta doesnt use large time units (years, months etc)
+    # FIXME: Since timedelta does not use large time units (years, months etc)
     # this method can be innacuarate. The example below gives fractional Days
     # (20.1666666667 not 20).
 
@@ -455,7 +460,7 @@ class DateDifference(Builtin):
      = {{14, "Month"}, {20, "Day"}}
     """
 
-    attributes = read_protected | protected
+    attributes = A_READ_PROTECTED | A_PROTECTED
 
     messages = {
         "date": "Argument `1` cannot be interpreted as a date.",
@@ -468,7 +473,7 @@ class DateDifference(Builtin):
 
     summary_text = "find the difference in days, weeks, etc. between two dates"
 
-    def apply(self, date1, date2, units, evaluation):
+    def eval(self, date1, date2, units, evaluation):
         "DateDifference[date1_, date2_, units_]"
 
         # Process dates
@@ -573,10 +578,13 @@ class DateDifference(Builtin):
 
 class DateObject(_DateFormat, ImmutableValueMixin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DateObject.html</url>
+
     <dl>
       <dt>'DateObject[...]'
       <dd> Returns an object codifiyng DateList....
     </dl>
+
     >> DateObject[{2020, 4, 15}]
      = [...]
     """
@@ -596,7 +604,9 @@ class DateObject(_DateFormat, ImmutableValueMixin):
     ]
 
     messages = {
-        "notz": "Argument `1` in DateObject is not a recognized TimeZone specification.",
+        "notz": (
+            "Argument `1` in DateObject is not a recognized " "TimeZone specification."
+        ),
     }
 
     options = {
@@ -609,17 +619,15 @@ class DateObject(_DateFormat, ImmutableValueMixin):
         "DateObject[]": "DateObject[AbsoluteTime[]]",
     }
 
-    summary_text = (
-        " an object representing a date of any granularity (year, hour, instant, ...)"
-    )
+    summary_text = "get an object representing a date (year, hour, instant, ...)"
 
-    def apply_any(self, args, evaluation, options):
+    def eval_any(self, args, evaluation: Evaluation, options: dict):
         "DateObject[args_, OptionsPattern[]]"
         datelist = None
         tz = None
         if isinstance(args, Expression):
             if args.get_head_name() in ("System`Rule", "System`DelayedRule"):
-                options[args.leaves[0].get_name()] = args.leaves[1]
+                options[args.elements[0].get_name()] = args.elements[1]
                 args = Expression(SymbolAbsoluteTime).evaluate(evaluation)
             elif args.get_head_name() == "System`DateObject":
                 datelist = args._elements[0]
@@ -671,7 +679,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
             fmt,
         )
 
-    def apply_makeboxes(self, datetime, gran, cal, tz, fmt, evaluation):
+    def eval_makeboxes(self, datetime, gran, cal, tz, fmt, evaluation):
         "MakeBoxes[DateObject[datetime_List, gran_, cal_, tz_, fmt_], StandardForm|TraditionalForm|OutputForm]"
         # TODO:
         if fmt.sameQ(SymbolAutomatic):
@@ -688,6 +696,8 @@ class DateObject(_DateFormat, ImmutableValueMixin):
 
 class DatePlus(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DatePlus.html</url>
+
     <dl>
       <dt>'DatePlus[$date$, $n$]'
       <dd>finds the date $n$ days after $date$.
@@ -714,7 +724,7 @@ class DatePlus(Builtin):
      = {2010, 4, 3}
     """
 
-    attributes = read_protected | protected
+    attributes = A_READ_PROTECTED | A_PROTECTED
 
     messages = {
         "date": "Argument `1` cannot be interpreted as a date.",
@@ -727,7 +737,7 @@ class DatePlus(Builtin):
 
     summary_text = "add or subtract days, weeks, etc. in a date list or string"
 
-    def apply(self, date, off, evaluation):
+    def eval(self, date, off, evaluation):
         "DatePlus[date_, off_]"
 
         # Process date
@@ -761,7 +771,6 @@ class DatePlus(Builtin):
             and isinstance(o[0], (float, int))
             for o in pyoff
         ):
-
             for o in pyoff:
                 idate.addself([o[0] * TIME_INCREMENTS[o[1]][i] for i in range(6)])
         else:
@@ -785,6 +794,8 @@ class DatePlus(Builtin):
 
 class DateList(_DateFormat):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DateList.html</url>
+
     <dl>
       <dt>'DateList[]'
       <dd>returns the current local time in the form {$year$, $month$, $day$, $hour$, $minute$, $second$}.
@@ -815,10 +826,6 @@ class DateList(_DateFormat):
      : The interpretation of 1/10/1991 is ambiguous.
      = {1991, 1, 10, 0, 0, 0.}
 
-    #> DateList["7/8/9"]
-     : The interpretation of 7/8/9 is ambiguous.
-     = {2009, 7, 8, 0, 0, 0.}
-
     >> DateList[{"31/10/91", {"Day", "Month", "YearShort"}}]
      = {1991, 10, 31, 0, 0, 0.}
 
@@ -840,7 +847,7 @@ class DateList(_DateFormat):
 
     summary_text = "date elements as numbers in {y,m,d,h,m,s} format"
 
-    def apply(self, epochtime, evaluation):
+    def eval(self, epochtime, evaluation):
         "%(name)s[epochtime_]"
         datelist = self.to_datelist(epochtime, evaluation)
 
@@ -853,6 +860,8 @@ class DateList(_DateFormat):
 
 class DateString(_DateFormat):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DateString.html</url>
+
     <dl>
       <dt>'DateString[]'
       <dd>returns the current local time and date as a string.
@@ -861,7 +870,7 @@ class DateString(_DateFormat):
       <dd>returns the time formatted according to $elems$.
 
       <dt>'DateString[{$e1$, $e2$, ...}]'
-      <dd>concatinates the time formatted according to elements $ei$.
+      <dd>concatenates the time formatted according to elements $ei$.
 
       <dt>'DateString[$time$]'
       <dd>returns the date string of an AbsoluteTime.
@@ -891,25 +900,9 @@ class DateString(_DateFormat):
     Non-integer values are accepted too:
     >> DateString[{1991, 6, 6.5}]
      = Thu 6 Jun 1991 12:00:00
-
-    ## Check Leading 0
-    #> DateString[{1979, 3, 14}, {"DayName", "  ", "MonthShort", "-", "YearShort"}]
-     =  Wednesday  3-79
-
-    #> DateString[{"DayName", "  ", "Month", "/", "YearShort"}]
-     = ...
-
-    ## Assumed separators
-    #> DateString[{"06/06/1991", {"Month", "Day", "Year"}}]
-     = Thu 6 Jun 1991 00:00:00
-
-    ## Specified separators
-    #> DateString[{"06/06/1991", {"Month", "/", "Day", "/", "Year"}}]
-     = Thu 6 Jun 1991 00:00:00
-
     """
 
-    attributes = read_protected | protected
+    attributes = A_READ_PROTECTED | A_PROTECTED
 
     rules = {
         "DateString[]": "DateString[DateList[], $DateStringFormat]",
@@ -921,7 +914,7 @@ class DateString(_DateFormat):
 
     summary_text = "current or specified date as a string in many possible formats"
 
-    def apply(self, epochtime, form, evaluation):
+    def eval(self, epochtime, form, evaluation):
         "DateString[epochtime_, form_]"
         datelist = self.to_datelist(epochtime, evaluation)
 
@@ -961,6 +954,8 @@ class DateString(_DateFormat):
 
 class DateStringFormat(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$DateStringFormat.html</url>
+
     <dl>
       <dt>'$DateStringFormat'
       <dd>gives the format used for dates generated by 'DateString'.
@@ -974,7 +969,7 @@ class DateStringFormat(Predefined):
 
     value = "DateTimeShort"
 
-    summary_text = "default date string format"
+    summary_text = "get default date string format as a list"
 
     # TODO: Methods to change this
 
@@ -984,8 +979,13 @@ class DateStringFormat(Predefined):
 
 class EasterSunday(Builtin):  # Calendar`EasterSunday
     """
+    <url>:Date of Easter:
+    https://en.wikipedia.org/wiki/Date_of_Easter</url> (<url>
+    :WMA link:
+    https://reference.wolfram.com/language/Calendar/ref/EasterSunday.html</url>)
+
     <dl>
-    <dt>'EasterSunday[$year$]'
+      <dt>'EasterSunday[$year$]'
       <dd>returns the date of the Gregorian Easter Sunday as {year, month, day}.
     </dl>
 
@@ -998,7 +998,7 @@ class EasterSunday(Builtin):  # Calendar`EasterSunday
 
     summary_text = "find the date of Easter Sunday for a given year"
 
-    def apply(self, year, evaluation):
+    def eval(self, year, evaluation):
         "EasterSunday[year_Integer]"
         y = year.value
 
@@ -1013,50 +1013,24 @@ class EasterSunday(Builtin):  # Calendar`EasterSunday
         h = (19 * a + b - d - g + 15) % 30
         i = c // 4
         k = c % 4
-        l = (32 + 2 * e + 2 * i - h - k) % 7
-        m = (a + 11 * h + 22 * l) // 451
-        month = (h + l - 7 * m + 114) // 31
-        day = ((h + l - 7 * m + 114) % 31) + 1
+        le = (32 + 2 * e + 2 * i - h - k) % 7
+        m = (a + 11 * h + 22 * le) // 451
+        month = (h + le - 7 * m + 114) // 31
+        day = ((h + le - 7 * m + 114) % 31) + 1
 
         return ListExpression(year, Integer(month), Integer(day))
 
 
-class Pause(Builtin):
-    """
-    <dl>
-    <dt>'Pause[n]'
-      <dd>pauses for $n$ seconds.
-    </dl>
-
-    >> Pause[0.5]
-    """
-
-    messages = {
-        "numnm": (
-            "Non-negative machine-sized number expected at " "position 1 in `1`."
-        ),
-    }
-
-    summary_text = "pause for a number of seconds"
-
-    def apply(self, n, evaluation):
-        "Pause[n_]"
-        sleeptime = n.to_python()
-        if not isinstance(sleeptime, (int, float)) or sleeptime < 0:
-            evaluation.message(
-                "Pause", "numnm", Expression(SymbolPause, from_python(n))
-            )
-            return
-
-        time.sleep(sleeptime)
-        return SymbolNull
-
-
 class SystemTimeZone(Predefined):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/$SystemTimeZone.html</url>
+
     <dl>
       <dt>'$SystemTimeZone'
-      <dd> gives the current time zone for the computer system on which Mathics is being run.
+      <dd> gives the current time zone for the computer system on which Mathics is \
+           being run.
     </dl>
 
     >> $SystemTimeZone
@@ -1066,7 +1040,7 @@ class SystemTimeZone(Predefined):
     name = "$SystemTimeZone"
     value = Real(-time.timezone / 3600.0)
 
-    summary_text = "time zone used by your system"
+    summary_text = "get the time zone used by your system"
 
     def evaluate(self, evaluation):
         return self.value
@@ -1074,6 +1048,8 @@ class SystemTimeZone(Predefined):
 
 class Now(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Now.html</url>
+
     <dl>
       <dt>'Now'
       <dd> gives the current time on the system.
@@ -1083,16 +1059,19 @@ class Now(Predefined):
      = ...
     """
 
-    summary_text = "current date and time"
+    summary_text = "get current date and time"
 
     def evaluate(self, evaluation):
         return Expression(SymbolDateObject.evaluate(evaluation))
 
 
-if sys.platform != "win32" and not hasattr(sys, "pyston_version_info"):
+if sys.platform != "emscripten":
+    import stopit
 
     class TimeConstrained(Builtin):
-        r"""
+        """
+        <url>:WMA link:https://reference.wolfram.com/language/ref/TimeConstrained.html</url>
+
         <dl>
           <dt>'TimeConstrained[$expr$, $t$]'
           <dd>'evaluates $expr$, stopping after $t$ seconds.'
@@ -1103,62 +1082,56 @@ if sys.platform != "win32" and not hasattr(sys, "pyston_version_info"):
 
         Possible issues: for certain time-consuming functions (like simplify)
         which are based on sympy or other libraries, it is possible that
-        the evaluation continues after the timeout. However, at the end of the evaluation, the function will return '$Aborted' and the results will not affect
-        the state of the \Mathics kernel.
-
+        the evaluation continues after the timeout. However, at the end of the \
+        evaluation, the function will return '$Aborted' and the results will not affect
+        the state of the Mathics3 kernel.
         """
 
-        # FIXME: these tests sometimes cause SEGVs which probably means
-        # that TimeConstraint has bugs.
-
-        # Consider testing via unit tests.
-        # >> TimeConstrained[Integrate[Sin[x]^1000000,x],1]
-        # = $Aborted
-
-        # >> TimeConstrained[Integrate[Sin[x]^1000000,x], 1, Integrate[Cos[x],x]]
-        # = Sin[x]
-
-        # >> s=TimeConstrained[Integrate[Sin[x] ^ 3, x], a]
-        #  : Number of seconds a is not a positive machine-sized number or Infinity.
-        #  = TimeConstrained[Integrate[Sin[x] ^ 3, x], a]
-
-        # >> a=1; s
-        # =  Cos[x] (-5 + Cos[2 x]) / 6
-
-        attributes = hold_all | protected
+        attributes = A_HOLD_ALL | A_PROTECTED
         messages = {
-            "timc": "Number of seconds `1` is not a positive machine-sized number or Infinity.",
+            "timc": (
+                "Number of seconds `1` is not a positive machine-sized number "
+                "or Infinity."
+            ),
         }
 
         summary_text = "run a command for at most a specified time"
 
-        def apply_2(self, expr, t, evaluation):
+        def eval_2(self, expr, t, evaluation):
             "TimeConstrained[expr_, t_]"
-            return self.apply_3(expr, t, SymbolAborted, evaluation)
+            return self.eval_3(expr, t, SymbolAborted, evaluation)
 
-        def apply_3(self, expr, t, failexpr, evaluation):
+        def eval_3(self, expr, t, failexpr, evaluation):
             "TimeConstrained[expr_, t_, failexpr_]"
             t = t.evaluate(evaluation)
             if not t.is_numeric(evaluation):
                 evaluation.message("TimeConstrained", "timc", t)
                 return
             try:
-                t = float(t.to_python())
-                evaluation.timeout_queue.append((t, datetime.now().timestamp()))
+                timeout = float(t.to_python())
+                evaluation.timeout_queue.append((timeout, datetime.now().timestamp()))
                 request = lambda: expr.evaluate(evaluation)
-                res = run_with_timeout_and_stack(request, t, evaluation)
-            except TimeoutInterrupt:
-                evaluation.timeout_queue.pop()
-                return failexpr.evaluate(evaluation)
-            except:
+                done = False
+                with stopit.ThreadingTimeout(timeout) as to_ctx_mgr:
+                    assert to_ctx_mgr.state == to_ctx_mgr.EXECUTING
+                    result = request()
+                    done = True
+                if done:
+                    evaluation.timeout_queue.pop()
+                    return result
+            except Exception:
                 evaluation.timeout_queue.pop()
                 raise
             evaluation.timeout_queue.pop()
-            return res
+            return failexpr.evaluate(evaluation)
 
 
 class TimeZone(Predefined):
     """
+    <url>:Time Zone:https://en.wikipedia.org/wiki/Time_zone</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/$TimeZone.html</url>)
+
     <dl>
       <dt>'$TimeZone'
       <dd> gives the current time zone to assume for dates and times.
@@ -1168,7 +1141,7 @@ class TimeZone(Predefined):
      = ...
     """
 
-    attributes = no_attributes
+    attributes = A_NO_ATTRIBUTES
     name = "$TimeZone"
     value = SystemTimeZone.value.copy()
 
@@ -1176,13 +1149,7 @@ class TimeZone(Predefined):
         "$TimeZone": str(value),
     }
 
-    summary_text = "resettable default time zone"
-
-    def apply(self, lhs, rhs, evaluation):
-        "lhs_ = rhs_"
-
-        self.assign(lhs, rhs, evaluation)
-        return rhs
+    summary_text = "gets the default time zone"
 
     def evaluate(self, evaluation) -> Real:
         return self.value
@@ -1190,6 +1157,8 @@ class TimeZone(Predefined):
 
 class TimeUsed(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TimeUsed.html</url>
+
     <dl>
     <dt>'TimeUsed[]'
       <dd>returns the total CPU time used for this session, in seconds.
@@ -1200,10 +1169,10 @@ class TimeUsed(Builtin):
     """
 
     summary_text = (
-        "the total number of seconds of CPU time in the current Mathics session"
+        "get the total number of seconds of CPU time in the current Mathics3 session"
     )
 
-    def apply(self, evaluation):
+    def eval(self, evaluation):
         "TimeUsed[]"
         # time.process_time() is better than
         # time.clock(). See https://bugs.python.org/issue31803
@@ -1212,10 +1181,13 @@ class TimeUsed(Builtin):
 
 class Timing(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Timing.html</url>
+
     <dl>
-    <dt>'Timing[$expr$]'
+      <dt>'Timing[$expr$]'
       <dd>measures the processor time taken to evaluate $expr$.
-      It returns a list containing the measured time in seconds and the result of the evaluation.
+          It returns a list containing the measured time in seconds and \
+          the result of the evaluation.
     </dl>
 
     >> Timing[50!]
@@ -1224,11 +1196,11 @@ class Timing(Builtin):
      = {HoldAll, Protected}
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
 
-    summary_text = "CPU time to run a Mathics command"
+    summary_text = "get CPU time to run a Mathics3 command"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "Timing[expr_]"
 
         start = time.process_time()
@@ -1239,8 +1211,12 @@ class Timing(Builtin):
 
 class SessionTime(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/SessionTime.html</url>
+
     <dl>
-    <dt>'SessionTime[]'
+      <dt>'SessionTime[]'
       <dd>returns the total time in seconds since this session started.
     </dl>
 
@@ -1249,21 +1225,27 @@ class SessionTime(Builtin):
     """
 
     summary_text = (
-        "total elapsed time in seconds since the beginning of your Mathics session"
+        "get total elapsed time in seconds since the beginning of Mathics3 session"
     )
 
-    def apply(self, evaluation):
+    def eval(self, evaluation):
         "SessionTime[]"
         return Real(time.time() - START_TIME)
 
 
 class TimeRemaining(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/TimeRemaining.html</url>
+
     <dl>
-    <dt>'TimeRemaining[]'
-        <dd>Gives the number of seconds remaining until the earliest enclosing 'TimeConstrained' will request the current computation to stop.
-    <dt>'TimeConstrained[$expr$, $t$, $failexpr$]'
-        <dd>returns $failexpr$ if the time constraint is not met.
+      <dt>'TimeRemaining[]'
+      <dd>Gives the number of seconds remaining until the earliest enclosing \
+          'TimeConstrained' will request the current computation to stop.
+
+      <dt>'TimeConstrained[$expr$, $t$, $failexpr$]'
+      <dd>returns $failexpr$ if the time constraint is not met.
     </dl>
 
     If TimeConstrained is called out of a TimeConstrained expression, returns `Infinity`
@@ -1275,9 +1257,9 @@ class TimeRemaining(Builtin):
 
     """
 
-    summary_text = "time before a time constraint in a running program"
+    summary_text = "get remaining time in allowed to run an expression"
 
-    def apply(self, evaluation):
+    def eval(self, evaluation):
         "TimeRemaining[]"
         if len(evaluation.timeout_queue) > 0:
             t, start_time = evaluation.timeout_queue[-1]

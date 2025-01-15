@@ -1,66 +1,59 @@
 # -*- coding: utf-8 -*-
 """
-Boxing Routines for 2D Graphics
+Boxing Symbols for 2D Graphics
 """
-
-import base64
 from math import atan2, ceil, cos, degrees, floor, log10, pi, sin
+from typing import Optional
 
-from mathics.builtin.base import (
-    BoxConstruct,
-    BoxConstructError,
-)
-
+from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.colors.color_directives import (
-    _ColorObject,
     ColorError,
     Opacity,
     RGBColor,
+    _ColorObject,
 )
-from mathics.builtin.drawing.graphics_internals import _GraphicsElementBox, GLOBALS
-
+from mathics.builtin.drawing.graphics_internals import GLOBALS, _GraphicsElementBox
 from mathics.builtin.graphics import (
+    DEFAULT_POINT_FACTOR,
     Arrowheads,
     Coords,
-    DEFAULT_POINT_FACTOR,
     Graphics,
     GraphicsElements,
     PointSize,
     _BezierCurve,
-    _Line,
-    _Polyline,
     _data_and_options,
     _extract_graphics,
+    _Line,
     _norm,
+    _Polyline,
     _to_float,
     coords,
 )
-
-from mathics.core.atoms import (
-    Integer,
-    Real,
-    String,
-)
-from mathics.core.attributes import hold_all, protected, read_protected
+from mathics.core.atoms import Integer, Real, String
+from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.exceptions import BoxExpressionError
 from mathics.core.expression import Expression
 from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
-from mathics.core.systemsymbols import SymbolAutomatic
+from mathics.core.systemsymbols import SymbolAutomatic, SymbolTraditionalForm
+from mathics.eval.makeboxes import format_element
 
-from mathics.format.asy_fns import asy_color, asy_number
+# Docs are not yet ready for prime time. Maybe after release 6.0.0.
+no_doc = True
 
 SymbolRegularPolygonBox = Symbol("RegularPolygonBox")
 SymbolStandardForm = Symbol("StandardForm")
 
+
 # Note: has to come before _ArcBox
 class _RoundBox(_GraphicsElementBox):
-    face_element = None
+    face_element: Optional[bool] = None
 
     def init(self, graphics, style, item):
         super(_RoundBox, self).init(graphics, item, style)
         if len(item.elements) not in (1, 2):
-            raise BoxConstructError
+            raise BoxExpressionError
         self.edge_color, self.face_color = style.get_style(
             _ColorObject, face_element=self.face_element
         )
@@ -99,7 +92,7 @@ class _ArcBox(_RoundBox):
         if len(item.elements) == 3:
             arc_expr = item.elements[2]
             if arc_expr.get_head_name() != "System`List":
-                raise BoxConstructError
+                raise BoxExpressionError
             arc = arc_expr.elements
             pi2 = 2 * pi
 
@@ -107,7 +100,7 @@ class _ArcBox(_RoundBox):
             end_angle = arc[1].round_to_float()
 
             if start_angle is None or end_angle is None:
-                raise BoxConstructError
+                raise BoxExpressionError
             elif end_angle >= start_angle + pi2:  # full circle?
                 self.arc = None
             else:
@@ -147,14 +140,16 @@ class _ArcBox(_RoundBox):
 class ArrowBox(_Polyline):
     """
     <dl>
-    <dt>'ArrowBox[...]'
-    <dd>is a box structure for 'Arrow' elements.
+      <dt>'ArrowBox'
+      <dd>is the symbol used in boxing 'Arrow' expressions.
     </dl>
     """
 
+    summary_text = "symbol used in boxing 'Arrow' expressions"
+
     def init(self, graphics, style, item=None):
         if not item:
-            raise BoxConstructError
+            raise BoxExpressionError
 
         super(ArrowBox, self).init(graphics, item, style)
 
@@ -164,7 +159,7 @@ class ArrowBox(_Polyline):
         elif len(elements) == 1:
             setback = (0, 0)
         else:
-            raise BoxConstructError
+            raise BoxExpressionError
 
         curve = elements[0]
 
@@ -174,16 +169,16 @@ class ArrowBox(_Polyline):
             self.curve = _Line()
         elif curve_head_name == "System`Line":
             if len(curve.elements) != 1:
-                raise BoxConstructError
+                raise BoxExpressionError
             curve_points = curve.elements[0]
             self.curve = _Line()
         elif curve_head_name == "System`BezierCurve":
             if len(curve.elements) != 1:
-                raise BoxConstructError
+                raise BoxExpressionError
             curve_points = curve.elements[0]
             self.curve = _BezierCurve()
         else:
-            raise BoxConstructError
+            raise BoxExpressionError
 
         self.setback = setback
         self.do_init(graphics, curve_points)
@@ -197,7 +192,7 @@ class ArrowBox(_Polyline):
         if expr.get_head_name() == "System`List":
             elements = expr.elements
             if len(elements) != 2:
-                raise BoxConstructError
+                raise BoxExpressionError
             return tuple(max(_to_float(w), 0.0) for w in elements)
         else:
             s = max(_to_float(expr), 0.0)
@@ -347,62 +342,62 @@ class ArrowBox(_Polyline):
 class BezierCurveBox(_Polyline):
     """
     <dl>
-    <dt>'BezierCurveBox[...]'
-    <dd>is a box structure for a 'BezierCurve' element.
+      <dt>'BezierCurveBox'
+      <dd>is the symbol used in boxing 'BezierCurve' expressions.
     </dl>
     """
+
+    summary_text = "symbol used in boxing 'BezierCurve' expressions"
 
     def init(self, graphics, style, item, options):
         super(BezierCurveBox, self).init(graphics, item, style)
         if len(item.elements) != 1 or item.elements[0].get_head_name() != "System`List":
-            raise BoxConstructError
+            raise BoxExpressionError
         self.edge_color, _ = style.get_style(_ColorObject, face_element=False)
         self.edge_opacity, _ = style.get_style(Opacity, face_element=False)
         points = item.elements[0]
         self.do_init(graphics, points)
         spline_degree = options.get("System`SplineDegree")
         if not isinstance(spline_degree, Integer):
-            raise BoxConstructError
+            raise BoxExpressionError
         self.spline_degree = spline_degree.get_int_value()
 
 
 class CircleBox(_ArcBox):
     """
     <dl>
-    <dt>'CircleBox[...]'
-    <dd>box structure for a 'Circle' element.
+      <dt>'CircleBox'
+      <dd>is the symbol used in boxing 'Circle' expressions.
     </dl>
     """
 
     face_element = False
-    summary_text = "internal box representation for 'Circle' elements"
+    summary_text = "is the symbol used in boxing 'Circle' expressions"
 
 
 class DiskBox(_ArcBox):
     """
     <dl>
-    <dt>'DiskBox[...]'
-    <dd>box structure for a 'Disk' element.
+      <dt>'DiskBox'
+      <dd>is the symbol used in boxing 'Disk' expressions.
     </dl>
     """
 
     face_element = True
-    summary_text = "internal box representation for 'Disk' elements"
+    summary_text = "symbol used in boxing 'Disk' expressions"
 
 
-class GraphicsBox(BoxConstruct):
+class GraphicsBox(BoxExpression):
     """
     <dl>
-    <dt>'GraphicsBox[...]'
-    <dd>box structure holding a 'Graphics' object.
+      <dt>'GraphicsBox'
+      <dd>is the symbol used in boxing 'Graphics'.
     </dl>
-
-    Boxing method which get called when Boxing (adding formatting and bounding-box information)
-    Graphics.
     """
 
-    attributes = hold_all | protected | read_protected
+    attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
     options = Graphics.options
+    summary_text = "symbol used in boxing 'Graphics'"
 
     def __new__(cls, *elements, **kwargs):
         instance = super().__new__(cls, *elements, **kwargs)
@@ -417,9 +412,6 @@ class GraphicsBox(BoxConstruct):
     @elements.setter
     def elements(self, value):
         self._elements = value
-        return self._elements
-
-    def get_elements(self):
         return self._elements
 
     def _get_image_size(self, options, graphics_options, max_width):
@@ -446,7 +438,7 @@ class GraphicsBox(BoxConstruct):
                 [x.round_to_float() for x in image_size.elements] + [0, 0]
             )[:2]
             if base_width is None or base_height is None:
-                raise BoxConstructError
+                raise BoxExpressionError
             aspect = base_height / base_width
         else:
             image_size = image_size.get_name()
@@ -458,7 +450,7 @@ class GraphicsBox(BoxConstruct):
                 "System`Large": (600, 500),
             }.get(image_size, (None, None))
         if base_width is None:
-            raise BoxConstructError
+            raise BoxExpressionError
         if max_width is not None and base_width > max_width:
             base_width = max_width
 
@@ -473,7 +465,7 @@ class GraphicsBox(BoxConstruct):
 
     def _prepare_elements(self, elements, options, neg_y=False, max_width=None):
         if not elements:
-            raise BoxConstructError
+            raise BoxExpressionError
         self.graphics_options = self.get_option_values(elements[1:], **options)
         background = self.graphics_options["System`Background"]
         if (
@@ -482,7 +474,10 @@ class GraphicsBox(BoxConstruct):
         ):
             self.background_color = None
         else:
-            self.background_color = _ColorObject.create(background)
+            try:
+                self.background_color = _ColorObject.create(background)
+            except ColorError:
+                self.background_color = None
 
         base_width, base_height, size_multiplier, size_aspect = self._get_image_size(
             options, self.graphics_options, max_width
@@ -493,12 +488,17 @@ class GraphicsBox(BoxConstruct):
             plot_range = ["System`Automatic", "System`Automatic"]
 
         if not isinstance(plot_range, list) or len(plot_range) != 2:
-            raise BoxConstructError
+            raise BoxExpressionError
 
         evaluation = options.get("evaluation", None)
         if evaluation is None:
             evaluation = self.evaluation
         elements = GraphicsElements(elements[0], evaluation, neg_y)
+        if hasattr(elements, "background_color"):
+            self.background_color = elements.background_color
+        if hasattr(elements, "tooltip_text"):
+            self.tooltip_text = elements.tooltip_text
+
         axes = []  # to be filled further down
 
         def calc_dimensions(final_pass=True):
@@ -563,7 +563,7 @@ class GraphicsBox(BoxConstruct):
                     if exmax is not None and exmax > xmax:
                         xmax = exmax
                 else:
-                    raise BoxConstructError
+                    raise BoxExpressionError
 
                 if plot_range[1] == "System`Automatic":
                     if ymin is None and ymax is None:
@@ -584,9 +584,9 @@ class GraphicsBox(BoxConstruct):
                     if eymax is not None and eymax > ymax:
                         ymax = eymax
                 else:
-                    raise BoxConstructError
+                    raise BoxExpressionError
             except (ValueError, TypeError):
-                raise BoxConstructError
+                raise BoxExpressionError
 
             w = 0 if (xmin is None or xmax is None) else xmax - xmin
             h = 0 if (ymin is None or ymax is None) else ymax - ymin
@@ -686,28 +686,6 @@ class GraphicsBox(BoxConstruct):
 
         return ticks, ticks_small, origin_x
 
-    def boxes_to_mathml(self, elements=None, **options) -> str:
-
-        # FIXME: SVG is the only thing we can convert MathML into.
-        # Handle other graphics formats.
-        svg_body = self.boxes_to_svg(elements, **options)
-
-        # mglyph, which is what we have been using, is bad because MathML standard changed.
-        # metext does not work because the way in which we produce the svg images is also based on this outdated mglyph behaviour.
-        # template = '<mtext width="%dpx" height="%dpx"><img width="%dpx" height="%dpx" src="data:image/svg+xml;base64,%s"/></mtext>'
-        template = (
-            '<mglyph width="%dpx" height="%dpx" src="data:image/svg+xml;base64,%s"/>'
-            # '<mglyph  src="data:image/svg+xml;base64,%s"/>'
-        )
-        # print(svg_body)
-        mathml = template % (
-            int(self.width),
-            int(self.height),
-            base64.b64encode(svg_body.encode("utf8")).decode("utf8"),
-        )
-        # print("boxes_to_mathml", mathml)
-        return mathml
-
     def boxes_to_svg(self, elements=None, **options) -> str:
         """This is the top-level function that converts a Mathics Expression
         in to something suitable for SVG rendering.
@@ -726,104 +704,39 @@ class GraphicsBox(BoxConstruct):
         svg_body = format_fn(self, elements, data=data, **options)
         return svg_body
 
-    def boxes_to_tex(self, elements=None, **options) -> str:
-        """This is the top-level function that converts a Mathics Expression
-        in to something suitable for LaTeX.  (Yes, the name "tex" is
-        perhaps misleading of vague.)
+    def create_axes(self, elements, graphics_options, xmin, xmax, ymin, ymax) -> tuple:
+        # Note that Asymptote has special commands for drawing axes, like "xaxis"
+        # "yaxis", "xtick" "labelx", "labely". Extend our language
+        # here and use those in render-like routines.
 
-        However right now the only LaTeX support for graphics is via Asymptote and
-        that seems to be the package of choice in general for LaTeX.
-        """
+        use_log_for_y_axis = graphics_options.get("System`LogPlot", False)
+        axes_option = graphics_options.get("System`Axes")
 
-        if not elements:
-            elements = self._elements
-            fields = self._prepare_elements(elements, options, max_width=450)
-            if len(fields) == 2:
-                elements, calc_dimensions = fields
-            else:
-                elements, calc_dimensions = fields[0], fields[-2]
-
-        fields = calc_dimensions()
-        if len(fields) == 8:
-            xmin, xmax, ymin, ymax, w, h, width, height = fields
-            elements.view_width = w
-
-        else:
-            assert len(fields) == 9
-            xmin, xmax, ymin, ymax, _, _, _, width, height = fields
-            elements.view_width = width
-
-        asy_completely_visible = "\n".join(
-            lookup_method(element, "asy")(element)
-            for element in elements.elements
-            if element.is_completely_visible
-        )
-
-        asy_regular = "\n".join(
-            lookup_method(element, "asy")(element)
-            for element in elements.elements
-            if not element.is_completely_visible
-        )
-
-        asy_box = "box((%s,%s), (%s,%s))" % (
-            asy_number(xmin),
-            asy_number(ymin),
-            asy_number(xmax),
-            asy_number(ymax),
-        )
-
-        if self.background_color is not None:
-            color, opacity = asy_color(self.background_color)
-            asy_background = "filldraw(%s, %s);" % (asy_box, color)
-        else:
-            asy_background = ""
-
-        tex = r"""
-\begin{asy}
-usepackage("amsmath");
-size(%scm, %scm);
-%s
-%s
-clip(%s);
-%s
-\end{asy}
-""" % (
-            asy_number(width / 60),
-            asy_number(height / 60),
-            asy_background,
-            asy_regular,
-            asy_box,
-            asy_completely_visible,
-        )
-
-        return tex
-
-    def boxes_to_text(self, elements=None, **options) -> str:
-        if not elements:
-            elements = self._elements
-
-        self._prepare_elements(elements, options)  # to test for Box errors
-        return "-Graphics-"
-
-    def create_axes(self, elements, graphics_options, xmin, xmax, ymin, ymax):
-        axes = graphics_options.get("System`Axes")
-        if axes is SymbolTrue:
+        if axes_option is SymbolTrue:
             axes = (True, True)
-        elif axes.has_form("List", 2):
-            axes = (axes.elements[0] is SymbolTrue, axes.elements[1] is SymbolTrue)
+        elif axes_option.has_form("List", 2):
+            axes = (
+                axes_option.elements[0] is SymbolTrue,
+                axes_option.elements[1] is SymbolTrue,
+            )
         else:
             axes = (False, False)
-        ticks_style = graphics_options.get("System`TicksStyle")
-        axes_style = graphics_options.get("System`AxesStyle")
+
+        # The Style option pushes its setting down into graphics components
+        # like ticks, axes, and labels.
+        ticks_style_option = graphics_options.get("System`TicksStyle")
+        axes_style_option = graphics_options.get("System`AxesStyle")
         label_style = graphics_options.get("System`LabelStyle")
-        if ticks_style.has_form("List", 2):
-            ticks_style = ticks_style.elements
+
+        if ticks_style_option.has_form("List", 2):
+            ticks_style = ticks_style_option.elements
         else:
-            ticks_style = [ticks_style] * 2
-        if axes_style.has_form("List", 2):
-            axes_style = axes_style.elements
+            ticks_style = [ticks_style_option] * 2
+
+        if axes_style_option.has_form("List", 2):
+            axes_style = axes_style_option.elements
         else:
-            axes_style = [axes_style] * 2
+            axes_style = [axes_style_option] * 2
 
         ticks_style = [elements.create_style(s) for s in ticks_style]
         axes_style = [elements.create_style(s) for s in axes_style]
@@ -835,12 +748,16 @@ clip(%s);
             element.is_completely_visible = True
             elements.elements.append(element)
 
+        # Units seem to be in point size units
+
         ticks_x, ticks_x_small, origin_x = self.axis_ticks(xmin, xmax)
         ticks_y, ticks_y_small, origin_y = self.axis_ticks(ymin, ymax)
 
         axes_extra = 6
+
         tick_small_size = 3
         tick_large_size = 5
+
         tick_label_d = 2
 
         ticks_x_int = all(floor(x) == x for x in ticks_x)
@@ -848,7 +765,17 @@ clip(%s);
 
         for (
             index,
-            (min, max, p_self0, p_other0, p_origin, ticks, ticks_small, ticks_int),
+            (
+                min,
+                max,
+                p_self0,
+                p_other0,
+                p_origin,
+                ticks,
+                ticks_small,
+                ticks_int,
+                is_logscale,
+            ),
         ) in enumerate(
             [
                 (
@@ -860,6 +787,7 @@ clip(%s);
                     ticks_x,
                     ticks_x_small,
                     ticks_x_int,
+                    False,
                 ),
                 (
                     ymin,
@@ -870,9 +798,20 @@ clip(%s);
                     ticks_y,
                     ticks_y_small,
                     ticks_y_int,
+                    use_log_for_y_axis,
                 ),
             ]
         ):
+            # Where should the placement of tick mark labels go?
+            if index == 0:
+                # x labels go under tick marks
+                alignment = "bottom"
+            elif index == 1:
+                # y labels go to the left of tick marks
+                alignment = "left"
+            else:
+                alignment = None
+
             if axes[index]:
                 add_element(
                     LineBox(
@@ -891,8 +830,10 @@ clip(%s);
                     )
                 )
                 ticks_lines = []
+
                 tick_label_style = ticks_style[index].clone()
                 tick_label_style.extend(label_style)
+
                 for x in ticks:
                     ticks_lines.append(
                         [
@@ -902,12 +843,21 @@ clip(%s);
                             ),
                         ]
                     )
+
+                    # FIXME: for log plots we labels should appear
+                    # as 10^x rather than say 1000000.
+                    tick_value = 10**x if is_logscale else x
                     if ticks_int:
-                        content = String(str(int(x)))
-                    elif x == floor(x):
-                        content = String("%.1f" % x)  # e.g. 1.0 (instead of 1.)
+                        content = String(str(int(tick_value)))
+                    elif tick_value == floor(x):
+                        content = String(
+                            "%.1f" % tick_value
+                        )  # e.g. 1.0 (instead of 1.)
                     else:
-                        content = String("%g" % x)  # fix e.g. 0.6000000000000001
+                        content = String(
+                            "%g" % tick_value
+                        )  # fix e.g. 0.6000000000000001
+
                     add_element(
                         InsetBox(
                             elements,
@@ -918,6 +868,7 @@ clip(%s);
                             ),
                             opos=p_self0(1),
                             opacity=1.0,
+                            alignment=alignment,
                         )
                     )
                 for x in ticks_small:
@@ -931,38 +882,39 @@ clip(%s);
                 add_element(LineBox(elements, axes_style[0], lines=ticks_lines))
         return axes
 
-        """if axes[1]:
-            add_element(LineBox(elements, axes_style[1], lines=[[Coords(elements, pos=(origin_x,ymin), d=(0,-axes_extra)),
-                Coords(elements, pos=(origin_x,ymax), d=(0,axes_extra))]]))
-            ticks = []
-            tick_label_style = ticks_style[1].clone()
-            tick_label_style.extend(label_style)
-            for k in range(start_k_y, start_k_y+steps_y+1):
-                if k != origin_k_y:
-                    y = k * step_y
-                    if y > ymax:
-                        break
-                    pos = (origin_x,y)
-                    ticks.append([Coords(elements, pos=pos),
-                        Coords(elements, pos=pos, d=(tick_large_size,0))])
-                    add_element(InsetBox(elements, tick_label_style, content=Real(y), pos=Coords(elements, pos=pos,
-                        d=(-tick_label_d,0)), opos=(1,0)))
-            for k in range(start_k_y_small, start_k_y_small+steps_y_small+1):
-                if k % sub_y != 0:
-                    y = k * step_y_small
-                    if y > ymax:
-                        break
-                    pos = (origin_x,y)
-                    ticks.append([Coords(elements, pos=pos),
-                        Coords(elements, pos=pos, d=(tick_small_size,0))])
-            add_element(LineBox(elements, axes_style[1], lines=ticks))"""
+        # Old code?
+        # if axes[1]:
+        #     add_element(LineBox(elements, axes_style[1], lines=[[Coords(elements, pos=(origin_x,ymin), d=(0,-axes_extra)),
+        #         Coords(elements, pos=(origin_x,ymax), d=(0,axes_extra))]]))
+        #     ticks = []
+        #     tick_label_style = ticks_style[1].clone()
+        #     tick_label_style.extend(label_style)
+        #     for k in range(start_k_y, start_k_y+steps_y+1):
+        #         if k != origin_k_y:
+        #             y = k * step_y
+        #             if y > ymax:
+        #                 break
+        #             pos = (origin_x,y)
+        #             ticks.append([Coords(elements, pos=pos),
+        #                 Coords(elements, pos=pos, d=(tick_large_size,0))])
+        #             add_element(InsetBox(elements, tick_label_style, content=Real(y), pos=Coords(elements, pos=pos,
+        #                 d=(-tick_label_d,0)), opos=(1,0)))
+        #     for k in range(start_k_y_small, start_k_y_small+steps_y_small+1):
+        #         if k % sub_y != 0:
+        #             y = k * step_y_small
+        #             if y > ymax:
+        #                 break
+        #             pos = (origin_x,y)
+        #             ticks.append([Coords(elements, pos=pos),
+        #                 Coords(elements, pos=pos, d=(tick_small_size,0))])
+        #     add_element(LineBox(elements, axes_style[1], lines=ticks))
 
 
 class FilledCurveBox(_GraphicsElementBox):
     """
     <dl>
-    <dt>'FilledCurveBox[...]'
-    <dd>is a box structure for 'FilledCurve' elements.
+      <dt>'FilledCurveBox'
+      <dd>is the symbol used in boxing 'FilledCurve' expressions.
     </dl>
     """
 
@@ -980,7 +932,7 @@ class FilledCurveBox(_GraphicsElementBox):
             and item.elements[0].has_form("List", None)
         ):
             if len(item.elements) != 1:
-                raise BoxConstructError
+                raise BoxExpressionError
             elements = item.elements[0].elements
 
             def parse_component(segments):
@@ -994,19 +946,19 @@ class FilledCurveBox(_GraphicsElementBox):
                         parts, options = _data_and_options(segment.elements, {})
                         spline_degree = options.get("SplineDegree", Integer(3))
                         if not isinstance(spline_degree, Integer):
-                            raise BoxConstructError
+                            raise BoxExpressionError
                         k = spline_degree.get_int_value()
                     elif head == "System`BSplineCurve":
                         raise NotImplementedError  # FIXME convert bspline to bezier here
                         # parts = segment.elements
                     else:
-                        raise BoxConstructError
+                        raise BoxExpressionError
 
                     coords = []
 
                     for part in parts:
                         if part.get_head_name() != "System`List":
-                            raise BoxConstructError
+                            raise BoxExpressionError
                         coords.extend(
                             [graphics.coords(graphics, xy) for xy in part.elements]
                         )
@@ -1018,7 +970,7 @@ class FilledCurveBox(_GraphicsElementBox):
             else:
                 self.components = [list(parse_component(elements))]
         else:
-            raise BoxConstructError
+            raise BoxExpressionError
 
     def extent(self):
         lw = self.style.get_line_width(face_element=False)
@@ -1039,6 +991,9 @@ class FilledCurveBox(_GraphicsElementBox):
 
 
 class InsetBox(_GraphicsElementBox):
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(
         self,
         graphics,
@@ -1048,6 +1003,7 @@ class InsetBox(_GraphicsElementBox):
         pos=None,
         opos=(0, 0),
         opacity=None,
+        alignment=None,
     ):
         super(InsetBox, self).init(graphics, item, style)
 
@@ -1064,12 +1020,15 @@ class InsetBox(_GraphicsElementBox):
             opacity = Opacity(1.0)
 
         self.opacity = opacity
+        self.alignment = alignment
 
         if item is not None:
             if len(item.elements) not in (1, 2, 3):
-                raise BoxConstructError
+                raise BoxExpressionError
             content = item.elements[0]
-            self.content = content.format(graphics.evaluation, "TraditionalForm")
+            self.content = format_element(
+                content, graphics.evaluation, SymbolTraditionalForm
+            )
             if len(item.elements) > 1:
                 self.pos = Coords(graphics, item.elements[1])
             else:
@@ -1083,10 +1042,10 @@ class InsetBox(_GraphicsElementBox):
             self.pos = pos
             self.opos = opos
 
-        if isinstance(self.content, String):
-            self.content = self.content.atom_to_boxes(
-                SymbolStandardForm, evaluation=self.graphics.evaluation
-            )
+        # if isinstance(self.content, String):
+        #    self.content = self.content.atom_to_boxes(
+        #        SymbolStandardForm, evaluation=self.graphics.evaluation
+        #    )
         self.content_text = self.content.boxes_to_text(
             evaluation=self.graphics.evaluation
         )
@@ -1102,7 +1061,14 @@ class InsetBox(_GraphicsElementBox):
 
 
 class LineBox(_Polyline):
-    # Boxing methods for a list of Line.
+    """
+    <dl>
+      <dt>'LineBox'
+      <dd>is the symbol used in boxing 'Line' expressions.
+    </dl>
+    """
+
+    summary_text = "symbol used in boxing 'Line' expressions"
 
     def init(self, graphics, style, item=None, lines=None):
         super(LineBox, self).init(graphics, item, style)
@@ -1110,31 +1076,26 @@ class LineBox(_Polyline):
         self.edge_opacity, _ = style.get_style(Opacity, face_element=False)
         if item is not None:
             if len(item.elements) != 1:
-                raise BoxConstructError
+                raise BoxExpressionError
             points = item.elements[0]
             self.do_init(graphics, points)
         elif lines is not None:
             self.lines = lines
         else:
-            raise BoxConstructError
+            raise BoxExpressionError
 
 
 class PointBox(_Polyline):
     """
     <dl>
-    <dt>'PointBox'[{$x$, $y$}]
-    <dd> a box construction representing a point in a Graphic.
-    <dt>'PointBox'[{$x$, $y$, $z$}]
-    <dd> represents a point in a Graphic3D.
-    <dt>'PointBox'[{$p_1$, $p_2$,...}]
-    <dd> represents a set of points.
+      <dt>'PointBox']
+      <dd>is the symbol used in boxing 'Point' expressions.
     </dl>
-    ## Boxing methods for a list of Point.
-    ##
-    ## object attributes:
-    ## edge_color: _ColorObject
-    ## point_radius: radius of each point
+
+    Options include the edge color and the point radius for each of the points.
     """
+
+    summary_text = "symbol used in boxing 'Point' expressions"
 
     def init(self, graphics, style, item=None):
         super(PointBox, self).init(graphics, item, style)
@@ -1157,14 +1118,16 @@ class PointBox(_Polyline):
         if item is not None:
             if len(item.elements) != 1:
                 print("item:", item)
-                raise BoxConstructError
+                raise BoxExpressionError
             points = item.elements[0]
             if points.has_form("List", None) and len(points.elements) != 0:
-                if all(not leaf.has_form("List", None) for leaf in points.elements):
+                if all(
+                    not element.has_form("List", None) for element in points.elements
+                ):
                     points = ListExpression(points)
             self.do_init(graphics, points)
         else:
-            raise BoxConstructError
+            raise BoxExpressionError
 
     def extent(self):
         """Returns a list of bounding-box coordinates each point in the PointBox"""
@@ -1185,6 +1148,9 @@ class PointBox(_Polyline):
 
 
 class PolygonBox(_Polyline):
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(self, graphics, style, item=None):
         super(PolygonBox, self).init(graphics, item, style)
         self.edge_color, self.face_color = style.get_style(
@@ -1195,22 +1161,22 @@ class PolygonBox(_Polyline):
         )
         if item is not None:
             if len(item.elements) not in (1, 2):
-                raise BoxConstructError
+                raise BoxExpressionError
             points = item.elements[0]
             self.do_init(graphics, points)
             self.vertex_colors = None
-            for leaf in item.elements[1:]:
-                if not leaf.has_form("Rule", 2):
-                    raise BoxConstructError
-                name = leaf.elements[0].get_name()
-                self.process_option(name, leaf.elements[1])
+            for element in item.elements[1:]:
+                if not element.has_form("Rule", 2):
+                    raise BoxExpressionError
+                name = element.elements[0].get_name()
+                self.process_option(name, element.elements[1])
         else:
-            raise BoxConstructError
+            raise BoxExpressionError
 
     def process_option(self, name, value):
         if name == "System`VertexColors":
             if not value.has_form("List", None):
-                raise BoxConstructError
+                raise BoxExpressionError
             black = RGBColor(components=[0, 0, 0, 1])
             self.vertex_colors = [[black] * len(line) for line in self.lines]
             colors = value.elements
@@ -1232,14 +1198,17 @@ class PolygonBox(_Polyline):
                     except ColorError:
                         continue
         else:
-            raise BoxConstructError
+            raise BoxExpressionError
 
 
 class RectangleBox(_GraphicsElementBox):
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(self, graphics, style, item):
         super(RectangleBox, self).init(graphics, item, style)
         if len(item.elements) not in (1, 2):
-            raise BoxConstructError
+            raise BoxExpressionError
         self.edge_color, self.face_color = style.get_style(
             _ColorObject, face_element=True
         )
@@ -1269,6 +1238,9 @@ class RectangleBox(_GraphicsElementBox):
 
 
 class RegularPolygonBox(PolygonBox):
+    # We have no documentation for this (yet).
+    no_doc = True
+
     def init(self, graphics, style, item):
         if len(item.elements) in (1, 2, 3) and isinstance(item.elements[-1], Integer):
             r = 1.0
@@ -1278,7 +1250,7 @@ class RegularPolygonBox(PolygonBox):
                 rspec = item.elements[-2]
                 if rspec.get_head_name() == "System`List":
                     if len(rspec.elements) != 2:
-                        raise BoxConstructError
+                        raise BoxExpressionError
                     r = rspec.elements[0].round_to_float()
                     phi0 = rspec.elements[1].round_to_float()
                 else:
@@ -1289,14 +1261,14 @@ class RegularPolygonBox(PolygonBox):
             if len(item.elements) == 3:
                 pos = item.elements[0]
                 if not pos.has_form("List", 2):
-                    raise BoxConstructError
+                    raise BoxExpressionError
                 x = pos.elements[0].round_to_float()
                 y = pos.elements[1].round_to_float()
 
             n = item.elements[-1].get_int_value()
 
             if any(t is None for t in (x, y, r)) or n < 0:
-                raise BoxConstructError
+                raise BoxExpressionError
 
             if phi0 is None:
                 phi0 = -pi / 2.0
@@ -1314,7 +1286,7 @@ class RegularPolygonBox(PolygonBox):
                 SymbolRegularPolygonBox, ListExpression(*list(vertices()))
             )
         else:
-            raise BoxConstructError
+            raise BoxExpressionError
 
         super(RegularPolygonBox, self).init(graphics, style, new_item)
 

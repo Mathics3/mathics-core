@@ -5,29 +5,30 @@
 Functions for working with 3D graphics.
 """
 
-
-from mathics.core.evaluators import apply_N
-from mathics.core.expression import Expression
-from mathics.core.symbols import SymbolN
-
-from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_directives import RGBColor
 from mathics.builtin.graphics import (
-    _GraphicsElements,
     CoordinatesError,
     Graphics,
     Style,
+    _GraphicsElements,
 )
+from mathics.core.atoms import Integer, Rational, Real
+from mathics.core.builtin import Builtin
+from mathics.core.expression import Evaluation, Expression
+from mathics.core.symbols import SymbolN
+from mathics.eval.nevaluator import eval_N
 
-from mathics.core.atoms import Real, Integer, Rational
+# This tells documentation how to sort this module
+# Here we are also hiding "drawing" since this erroneously appears at the top level.
+sort_order = "mathics.builtin.three-dimensional-graphics"
 
 
 def coords3D(value):
     if value.has_form("List", 3):
         result = (
-            value.leaves[0].round_to_float(),
-            value.leaves[1].round_to_float(),
-            value.leaves[2].round_to_float(),
+            value.elements[0].round_to_float(),
+            value.elements[1].round_to_float(),
+            value.elements[2].round_to_float(),
         )
         if None not in result:
             return result
@@ -39,8 +40,8 @@ class Coords3D:
         self.p = pos
         if expr is not None:
             if expr.has_form("Offset", 1, 2):
-                if len(expr.leaves) > 1:
-                    self.p = coords3D(expr.leaves[1])
+                if len(expr.elements) > 1:
+                    self.p = coords3D(expr.elements[1])
             else:
                 self.p = coords3D(expr)
 
@@ -62,64 +63,49 @@ class Style3D(Style):
 
 class Graphics3D(Graphics):
     r"""
-    <dl>
-      <dt>'Graphics3D[$primitives$, $options$]'
-      <dd>represents a three-dimensional graphic.
+        <url>:WMA link:https://reference.wolfram.com/language/ref/Graphics3D.html</url>
 
-      <dd>See also the Section "Plotting" for a list of Plot options.
-    </dl>
+        <dl>
+          <dt>'Graphics3D[$primitives$, $options$]'
+          <dd>represents a three-dimensional graphic.
 
-    >> Graphics3D[Polygon[{{0,0,0}, {0,1,1}, {1,0,0}}]]
-     = -Graphics3D-
+          See <url>:Drawing Option and Option Values:
+    /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values
+    </url> for a list of Plot options.
+        </dl>
 
-    In 'TeXForm', 'Graphics3D' creates Asymptote figures:
-    >> Graphics3D[Sphere[]] // TeXForm
-     = #<--#
-     . \begin{asy}
-     . import three;
-     . import solids;
-     . size(6.6667cm, 6.6667cm);
-     . currentprojection=perspective(2.6,-4.8,4.0);
-     . currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
-     . // Sphere3DBox
-     . draw(surface(sphere((0, 0, 0), 1)), rgb(1,1,1)+opacity(1));
-     . draw(((-1,-1,-1)--(1,-1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-1,1,-1)--(1,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-1,-1,1)--(1,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-1,1,1)--(1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-1,-1,-1)--(-1,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((1,-1,-1)--(1,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-1,-1,1)--(-1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((1,-1,1)--(1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-1,-1,-1)--(-1,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((1,-1,-1)--(1,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-1,1,-1)--(-1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((1,1,-1)--(1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . \end{asy}
+        >> Graphics3D[Polygon[{{0,0,0}, {0,1,1}, {1,0,0}}]]
+         = -Graphics3D-
 
-    #> Graphics3D[Point[Table[{Sin[t], Cos[t], 0}, {t, 0, 2. Pi, Pi / 15.}]]] // TeXForm
-     = #<--#
-     . \begin{asy}
-     . import three;
-     . import solids;
-     . size(6.6667cm, 6.6667cm);
-     . currentprojection=perspective(2.6,-4.8,4.0);
-     . currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
-     . // Point3DBox
-     . path3 g=(0,1,0)--(0.20791,0.97815,0)--(0.40674,0.91355,0)--(0.58779,0.80902,0)--(0.74314,0.66913,0)--(0.86603,0.5,0)--(0.95106,0.30902,0)--(0.99452,0.10453,0)--(0.99452,-0.10453,0)--(0.95106,-0.30902,0)--(0.86603,-0.5,0)--(0.74314,-0.66913,0)--(0.58779,-0.80902,0)--(0.40674,-0.91355,0)--(0.20791,-0.97815,0)--(5.6655e-16,-1,0)--(-0.20791,-0.97815,0)--(-0.40674,-0.91355,0)--(-0.58779,-0.80902,0)--(-0.74314,-0.66913,0)--(-0.86603,-0.5,0)--(-0.95106,-0.30902,0)--(-0.99452,-0.10453,0)--(-0.99452,0.10453,0)--(-0.95106,0.30902,0)--(-0.86603,0.5,0)--(-0.74314,0.66913,0)--(-0.58779,0.80902,0)--(-0.40674,0.91355,0)--(-0.20791,0.97815,0)--(1.5314e-15,1,0)--cycle;dot(g, rgb(0, 0, 0));
-     . draw(((-0.99452,-1,-1)--(0.99452,-1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-0.99452,1,-1)--(0.99452,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-0.99452,-1,1)--(0.99452,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-0.99452,1,1)--(0.99452,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-0.99452,-1,-1)--(-0.99452,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((0.99452,-1,-1)--(0.99452,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-0.99452,-1,1)--(-0.99452,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((0.99452,-1,1)--(0.99452,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-0.99452,-1,-1)--(-0.99452,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((0.99452,-1,-1)--(0.99452,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((-0.99452,1,-1)--(-0.99452,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . draw(((0.99452,1,-1)--(0.99452,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
-     . \end{asy}
+        The 'Background' option allows to set the color of the background:
+        >> Graphics3D[Sphere[], Background->RGBColor[.6, .7, 1.]]
+         = -Graphics3D-
+
+        In 'TeXForm', 'Graphics3D' creates Asymptote figures:
+        >> Graphics3D[Sphere[]] // TeXForm
+         = #<--#
+         . \begin{asy}
+         . import three;
+         . import solids;
+         . import tube;
+         . size(6.6667cm, 6.6667cm);
+         . currentprojection=perspective(2.6,-4.8,4.0);
+         . currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
+         . // Sphere3DBox
+         . draw(surface(sphere((0, 0, 0), 1)), rgb(1,1,1)+opacity(1));
+         . draw(((-1,-1,-1)--(1,-1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((-1,1,-1)--(1,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((-1,-1,1)--(1,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((-1,1,1)--(1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((-1,-1,-1)--(-1,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((1,-1,-1)--(1,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((-1,-1,1)--(-1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((1,-1,1)--(1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((-1,-1,-1)--(-1,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((1,-1,-1)--(1,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((-1,1,-1)--(-1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . draw(((1,1,-1)--(1,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
+         . \end{asy}
     """
     summary_text = "a three-dimensional graphics image wrapper"
     options = Graphics.options.copy()
@@ -181,13 +167,16 @@ class Graphics3DElements(_GraphicsElements):
 
 class Sphere(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Sphere.html</url>
+
     <dl>
     <dt>'Sphere[{$x$, $y$, $z$}]'
         <dd>is a sphere of radius 1 centered at the point {$x$, $y$, $z$}.
     <dt>'Sphere[{$x$, $y$, $z$}, $r$]'
         <dd>is a sphere of radius $r$ centered at the point {$x$, $y$, $z$}.
     <dt>'Sphere[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}, ... }, $r$]'
-        <dd>is a collection spheres of radius $r$ centered at the points {$x1$, $y2$, $z2$}, {$x2$, $y2$, $z2$}, ...
+        <dd>is a collection spheres of radius $r$ centered at the points \
+            {$x1$, $y2$, $z2$}, {$x2$, $y2$, $z2$}, ...
     </dl>
 
     >> Graphics3D[Sphere[{0, 0, 0}, 1]]
@@ -206,12 +195,15 @@ class Sphere(Builtin):
 
 class Cone(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Cone.html</url>
+
     <dl>
       <dt>'Cone[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}]'
       <dd>represents a cone of radius 1.
 
       <dt>'Cone[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}, $r$]'
-      <dd>is a cone of radius $r$ starting at ($x1$, $y1$, $z1$) and ending at ($x2$, $y2$, $z2$).
+      <dd>is a cone of radius $r$ starting at ($x1$, $y1$, $z1$) and ending at \
+          ($x2$, $y2$, $z2$).
 
       <dt>'Cone[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}, ... }, $r$]'
       <dd>is a collection cones of radius $r$.
@@ -235,10 +227,10 @@ class Cone(Builtin):
         "Cone[positions_List]": "Cone[positions, 1]",
     }
 
-    def apply_check(self, positions, radius, evaluation):
+    def eval_check(self, positions, radius, evaluation: Evaluation):
         "Cone[positions_List, radius_]"
 
-        if len(positions.get_elements()) % 2 == 1:
+        if len(positions.elements) % 2 == 1:
             # The number of points is odd, so abort.
             evaluation.error("Cone", "oddn", positions)
         if not isinstance(radius, (Integer, Rational, Real)):
@@ -251,6 +243,8 @@ class Cone(Builtin):
 
 class Cuboid(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Cuboid.html</url>
+
     Cuboid also known as interval, rectangle, square, cube, rectangular parallelepiped, tesseract, orthotope, and box.
     <dl>
       <dt>'Cuboid[$p_min$]'
@@ -291,10 +285,10 @@ class Cuboid(Builtin):
 
     summary_text = "unit cube"
 
-    def apply_check(self, positions, evaluation):
+    def eval_check(self, positions, evaluation: Evaluation):
         "Cuboid[positions_List]"
 
-        if len(positions.get_elements()) % 2 == 1:
+        if len(positions.elements) % 2 == 1:
             # The number of points is odd, so abort.
             evaluation.error("Cuboid", "oddn", positions)
 
@@ -303,12 +297,15 @@ class Cuboid(Builtin):
 
 class Cylinder(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Cylinder.html</url>
+
     <dl>
       <dt>'Cylinder[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}]'
       <dd>represents a cylinder of radius 1.
 
       <dt>'Cylinder[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}, $r$]'
-      <dd>is a cylinder of radius $r$ starting at ($x1$, $y1$, $z1$) and ending at ($x2$, $y2$, $z2$).
+      <dd>is a cylinder of radius $r$ starting at ($x1$, $y1$, $z1$) and ending at \
+          ($x2$, $y2$, $z2$).
 
       <dt>'Cylinder[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}, ... }, $r$]'
       <dd>is a collection cylinders of radius $r$.
@@ -332,14 +329,14 @@ class Cylinder(Builtin):
         "Cylinder[positions_List]": "Cylinder[positions, 1]",
     }
 
-    def apply_check(self, positions, radius, evaluation):
+    def eval_check(self, positions, radius, evaluation: Evaluation):
         "Cylinder[positions_List, radius_]"
 
-        if len(positions.get_elements()) % 2 == 1:
+        if len(positions.elements) % 2 == 1:
             # The number of points is odd, so abort.
             evaluation.error("Cylinder", "oddn", positions)
         if not isinstance(radius, (Integer, Rational, Real)):
-            nradius = apply_N(radius, evaluation)
+            nradius = eval_N(radius, evaluation)
             if not isinstance(nradius, (Integer, Rational, Real)):
                 evaluation.error("Cylinder", "nrr", radius)
 
@@ -348,6 +345,8 @@ class Cylinder(Builtin):
 
 class Tube(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Tube.html</url>
+
     <dl>
       <dt>'Tube[{$p1$, $p2$, ...}]'
       <dd>represents a tube passing through $p1$, $p2$, ... with radius 1.

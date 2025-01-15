@@ -6,25 +6,23 @@ Mathematical Constants
 Numeric, Arithmetic, or Symbolic constants like Pi, E, or Infinity.
 """
 
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.mathematical-constants"
+
 import math
+from typing import Dict, Optional
+
 import mpmath
 import numpy
 import sympy
 
-
-from mathics.builtin.base import Builtin, Predefined, SympyObject
-
-from mathics.core.atoms import (
-    MachineReal,
-    PrecisionReal,
-)
-from mathics.core.attributes import constant, protected, read_protected
-from mathics.core.number import get_precision, PrecisionValueError, machine_precision
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    strip_context,
-)
+from mathics.core.atoms import NUMERICAL_CONSTANTS, MachineReal, PrecisionReal
+from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin, Predefined, SympyObject
+from mathics.core.element import BaseElement
+from mathics.core.evaluation import Evaluation
+from mathics.core.number import MACHINE_DIGITS, PrecisionValueError, get_precision, prec
+from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolIndeterminate
 
 
@@ -39,8 +37,11 @@ def mp_constant(fn: str, d=None) -> mpmath.mpf:
         # ask for a certain number of digits, but the
         # accuracy will be less than that. Figure out
         # what's up and compensate somehow.
-        mpmath.mp.dps = int_d = int(d * 3.321928)
-        return getattr(mpmath, fn)(prec=int_d)
+
+        int_d = prec(d)
+        with mpmath.workprec(int_d):
+            result = str(getattr(mpmath, fn)(prec=int_d))
+            return result
 
 
 def mp_convert_constant(obj, **kwargs):
@@ -70,43 +71,47 @@ def sympy_constant(fn, d=None):
 
 
 class _Constant_Common(Predefined):
-    is_numeric = True
-    attributes = constant | protected | read_protected
-    nargs = 0
+    _is_numeric = True
+    attributes = A_CONSTANT | A_PROTECTED | A_READ_PROTECTED
+    nargs = {0}
     options = {"Method": "Automatic"}
 
-    def apply_N(self, precision, evaluation):
+    def eval_N(self, precision, evaluation):
         "N[%(name)s, precision_?NumericQ]"
         return self.get_constant(precision, evaluation)
 
     def is_constant(self) -> bool:
         return True
 
-    def get_constant(self, precision, evaluation):
+    def get_constant(
+        self,
+        precision: Optional[BaseElement] = None,
+        evaluation: Optional[Evaluation] = None,
+    ):
         # first, determine the precision
-        machine_d = int(0.30103 * machine_precision)
         d = None
-        if precision:
-            try:
-                d = get_precision(precision, evaluation)
-            except PrecisionValueError:
-                pass
+        preference = None
+        if evaluation:
+            if precision:
+                try:
+                    d = get_precision(precision, evaluation)
+                except PrecisionValueError:
+                    pass
+
+            preflist = evaluation._preferred_n_method.copy()
+            while preflist:
+                pref_method = preflist.pop()
+                if pref_method in ("numpy", "mpmath", "sympy"):
+                    preference = pref_method
+                    break
 
         if d is None:
-            d = machine_d
+            d = MACHINE_DIGITS
 
         # If preference not especified, determine it
         # from the precision.
-        preference = None
-        preflist = evaluation._preferred_n_method.copy()
-        while preflist:
-            pref_method = preflist.pop()
-            if pref_method in ("numpy", "mpmath", "sympy"):
-                preference = pref_method
-                break
-
         if preference is None:
-            if d <= machine_d:
+            if d <= MACHINE_DIGITS:
                 preference = "numpy"
             else:
                 preference = "mpmath"
@@ -125,10 +130,16 @@ class _Constant_Common(Predefined):
                 preference = "mpmath"
             else:
                 preference = ""
+
         if preference == "numpy":
+            if d == MACHINE_DIGITS:
+                try:
+                    return NUMERICAL_CONSTANTS[self.symbol]
+                except KeyError:
+                    value = MachineReal(numpy_constant(self.numpy_name))
+                    NUMERICAL_CONSTANTS[self.symbol] = value
+                    return value
             value = numpy_constant(self.numpy_name)
-            if d == machine_d:
-                return MachineReal(value)
         if preference == "sympy":
             value = sympy_constant(self.sympy_name, d + 2)
         if preference == "mpmath":
@@ -144,9 +155,9 @@ class _MPMathConstant(_Constant_Common):
     """Representation of a constant in mpmath, e.g. Pi, E, I, etc."""
 
     # Subclasses should define this.
-    mpmath_name = None
+    mpmath_name: Optional[str] = None
 
-    mathics_to_mpmath = {}
+    mathics_to_mpmath: Dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -164,27 +175,30 @@ class _NumpyConstant(_Constant_Common):
     """Representation of a constant in numpy, e.g. Pi, E, etc."""
 
     # Subclasses should define this.
-    numpy_name = None
+    numpy_name: Optional[str] = None
 
-    mathics_to_numpy = {}
+    mathics_to_numpy: Dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.numpy_name is None:
-            self.numpy_name = strip_context(self.get_name()).lower()
+            self.numpy_name = strip_context(self.symbol.name).lower()
         self.mathics_to_numpy[self.__class__.__name__] = self.numpy_name
+        try:
+            value_float = numpy_constant(self.numpy_name)
+        except AttributeError:
+            value_float = self.to_numpy(self.symbol)
+        NUMERICAL_CONSTANTS[self.symbol] = MachineReal(value_float)
 
     def to_numpy(self, args):
-        if self.numpy_name is None or len(args) != 0:
-            return None
-        return self.get_constant()
+        return NUMERICAL_CONSTANTS[self.symbol]
 
 
 class _SympyConstant(_Constant_Common, SympyObject):
     """Representation of a constant in Sympy, e.g. Pi, E, I, Catalan, etc."""
 
     # Subclasses should define this.
-    sympy_name = None
+    sympy_name: Optional[str] = None
 
     def to_sympy(self, expr=None, **kwargs):
         if expr is None or isinstance(expr, Atom):
@@ -199,9 +213,16 @@ class _SympyConstant(_Constant_Common, SympyObject):
 
 class Catalan(_MPMathConstant, _SympyConstant):
     """
+    <url>
+    :Catalan's constant:
+    https://en.wikipedia.org/wiki/Catalan%27s_constant</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.Catalan</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/Catalan.html</url>)
+
     <dl>
-    <dt>'Catalan'
-        <dd>is Catalan's constant with numerical value \u2243 0.915966.
+      <dt>'Catalan'
+      <dd>is Catalan's constant with numerical value \u2243 0.915966.
     </dl>
 
     >> Catalan // N
@@ -219,25 +240,42 @@ class Catalan(_MPMathConstant, _SympyConstant):
 
 class ComplexInfinity(_SympyConstant):
     """
+    <url>
+    :Complex Infinity:
+    https://en.wikipedia.org/wiki/Infinity#Complex_analysis</url> \
+    is an infinite number in the complex plane whose complex argument \
+    is unknown or undefined. (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.ComplexInfinity</url>, <url>
+    :MathWorld:
+    https://mathworld.wolfram.com/ComplexInfinity.html</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/ComplexInfinity.html</url>)
+
     <dl>
-    <dt>'ComplexInfinity'
-        <dd>represents an infinite complex quantity of undetermined direction.
+      <dt>'ComplexInfinity'
+      <dd>represents an infinite complex quantity of undetermined direction.
     </dl>
 
+    ComplexInfinity can appear as the result of a computation such as dividing by zero:
+    >> 1 / 0
+     : Infinite expression 1 / 0 encountered.
+     = ComplexInfinity
+
+    But it can be used as an explicit value in an expression:
     >> 1 / ComplexInfinity
      = 0
+
     >> ComplexInfinity * Infinity
      = ComplexInfinity
+
+    ComplexInfinity though is a special case of DirectedInfinity:
     >> FullForm[ComplexInfinity]
      = DirectedInfinity[]
 
-    ## Issue689
-    #> ComplexInfinity + ComplexInfinity
-     : Indeterminate expression ComplexInfinity + ComplexInfinity encountered.
-     = Indeterminate
-    #> ComplexInfinity + Infinity
-     : Indeterminate expression ComplexInfinity + Infinity encountered.
-     = Indeterminate
+    See also <url>
+    :'DirectedInfinity':
+    /doc/reference-of-built-in-symbols/mathematical-functions/directedinfinity/</url>.
     """
 
     summary_text = "infinite complex quantity of undetermined direction"
@@ -250,10 +288,17 @@ class ComplexInfinity(_SympyConstant):
 
 class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
+    <url>
+    :Degree (angle):
+    https://en.wikipedia.org/wiki/Degree_(angle)</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Degree.html</url>)
+
     <dl>
       <dt>'Degree'
       <dd>is the number of radians in one degree. It has a numerical value of \u03c0 / 180.
     </dl>
+
     >> Cos[60 Degree]
      = 1 / 2
 
@@ -263,15 +308,6 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
 
     >> N[\\[Degree]] == N[Degree]
      = True
-
-    #> Cos[Degree[x]]
-     = Cos[Degree[x]]
-
-
-    #> N[Degree]
-     = 0.0174533
-    #> N[Degree, 30]
-     = 0.0174532925199432957692369076849
     """
 
     summary_text = "conversion factor from radians to degrees"
@@ -287,7 +323,7 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
             # return mpmath.degree
             return numpy.pi / 180
 
-    def apply_N(self, precision, evaluation):
+    def eval_N(self, precision, evaluation):
         "N[Degree, precision_]"
         try:
             if precision:
@@ -298,7 +334,7 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
             return
 
         # FIXME: There are all sorts of interactions between in the trig functions,
-        # that are expected to work out right. Until we have convertion between
+        # that are expected to work out right. Until we have conversion between
         # mpmath and sympy worked out so that values can be made the to the same
         # precision and compared. we have to not use mpmath right now.
         # return self.get_constant(precision, evaluation, preference="mpmath")
@@ -311,18 +347,23 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
 
 class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
+    <url>
+    :Euler's number:
+    https://en.wikipedia.org/wiki/E_(mathematical_constant)</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/core.html#exp1</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/E.html</url>)
+
     <dl>
-    <dt>'E'
-        <dd>is the constant \u2107 with numerical value \u2243 2.71828.
+      <dt>'E'
+      <dd>is the constant \u2107 with numerical value \u2243 2.71828.
     </dl>
 
     >> N[E]
      = 2.71828
     >> N[E, 50]
      = 2.7182818284590452353602874713526624977572470937000
-
-    #> 5. E
-     = 13.5914
     """
 
     summary_text = "exponential constant E ≃ 2.7182"
@@ -330,16 +371,22 @@ class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
     numpy_name = "e"
     sympy_name = "E"
 
-    def apply_N(self, precision, evaluation):
+    def eval_N(self, precision, evaluation):
         "N[E, precision_]"
         return self.get_constant(precision, evaluation)
 
 
 class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
+    <url>
+    :Euler's constant:
+    https://en.wikipedia.org/wiki/Euler%27s_constant</url> (<url>
+    :SymPy: https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.EulerGamma</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/EulerGamma.html</url>)
+
     <dl>
       <dt>'EulerGamma'
-      <dd>is Euler's constant \u03b3 with numerial value \u2243 0.577216.
+      <dd>is Euler's constant \u03b3 with numerical value \u2243 0.577216.
     </dl>
 
     >> EulerGamma // N
@@ -357,6 +404,13 @@ class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
 
 class Glaisher(_MPMathConstant):
     """
+    <url>
+    :Glaisher–Kinkelin constant:
+    https://en.wikipedia.org/wiki/Glaisher%E2%80%93Kinkelin_constant</url> (<url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/constants.html#glaisher-s-constant-glaisher</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Glaisher.html</url>)
     <dl>
       <dt>'Glaisher'
       <dd>is Glaisher's constant, with numerical value \u2243 1.28243.
@@ -369,12 +423,20 @@ class Glaisher(_MPMathConstant):
      # 1.2824271291006219541941391071304678916931152343750
     """
 
-    summary_text = "Glaiser's constant A ≃ 1.282"
+    summary_text = "Glaisher's constant A ≃ 1.282"
     mpmath_name = "glaisher"
 
 
 class GoldenRatio(_MPMathConstant, _SympyConstant):
     """
+    <url>
+    :Golden ratio:
+    https://en.wikipedia.org/wiki/Golden_ratio</url> (<url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/constants.html#golden-ratio-phi</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/GoldenRatio.html</url>)
+
     <dl>
       <dt>'GoldenRatio'
       <dd>is the golden ratio, \u03D5 = (1+Sqrt[5])/2.
@@ -393,9 +455,16 @@ class GoldenRatio(_MPMathConstant, _SympyConstant):
 
 class Indeterminate(_SympyConstant):
     """
+    <url>
+    :Indeterminate form:
+    https://en.wikipedia.org/wiki/Indeterminate_form</url> (<url>
+    :SymPy: https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.NaN</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Indeterminate.html</url>)
+
     <dl>
-    <dt>'Indeterminate'
-        <dd>represents an indeterminate result.
+      <dt>'Indeterminate'
+      <dd>represents an indeterminate result.
     </dl>
 
     >> 0^0
@@ -409,36 +478,51 @@ class Indeterminate(_SympyConstant):
     summary_text = "indeterminate value"
     sympy_name = "nan"
 
-    def apply_N(self, precision, evaluation, options={}):
+    def eval_N(self, precision, evaluation, options={}):
         "N[%(name)s, precision_?NumericQ, OptionsPattern[%(name)s]]"
         return SymbolIndeterminate
 
 
 class Infinity(_SympyConstant):
     """
+    <url>:
+    Infinity:
+    https://en.wikipedia.org/wiki/Infinity</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.Infinity</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Infinity.html</url>)
+
     <dl>
-    <dt>'Infinity'
-        <dd>a symbol that represents an infinite real quantity.
+      <dt>'Infinity'
+      <dd>a symbol that represents an infinite real quantity.
     </dl>
 
+    'Infinity' sometimes appears as the result of a calculation:
+    >> Precision[1]
+     = Infinity
+
+    But 'Infinity' it often used as a value in expressions:
     >> 1 / Infinity
      = 0
+
     >> Infinity + 100
      = Infinity
 
-    Use 'Infinity' in sum and limit calculations:
+    'Infinity' often appears in sum and limit calculations:
     >> Sum[1/x^2, {x, 1, Infinity}]
      = Pi ^ 2 / 6
 
-    #> FullForm[Infinity]
+    >> Limit[1/x, x->0]
+     = -Infinity
+
+    However, 'Infinity' a shorthand for 'DirectedInfinity[1]':
+    >> FullForm[Infinity]
      = DirectedInfinity[1]
-    #> (2 + 3.5*I) / Infinity
-     = 0.
-    #> Infinity + Infinity
-     = Infinity
-    #> Infinity / Infinity
-     : Indeterminate expression 0 Infinity encountered.
-     = Indeterminate
+
+    See also <url>
+    :'DirectedInfinity':
+    /doc/reference-of-built-in-symbols/mathematical-functions/directedinfinity/</url>.
     """
 
     sympy_name = "oo"
@@ -454,6 +538,14 @@ class Infinity(_SympyConstant):
 
 class Khinchin(_MPMathConstant):
     """
+    <url>
+    :Khinchin's constant:
+    https://en.wikipedia.org/wiki/Khinchin%27s_constant</url> (<url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/constants.html#mpmath.mp.khinchin</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Khinchin.html</url>)
+
     <dl>
       <dt>'Khinchin'
       <dd>is Khinchin's constant, with numerical value \u2243 2.68545.
@@ -472,6 +564,15 @@ class Khinchin(_MPMathConstant):
 
 class Overflow(Builtin):
     """
+    Numeric Overflow (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Overflow.html
+    </url>)
+
+    See also <url>
+    :Integer Overflow:
+    <https://en.wikipedia.org/wiki/Integer_overflow></url>.
+
     <dl>
       <dt>'Overflow[]'
       <dd>represents a number too large to be represented by Mathics.
@@ -493,8 +594,129 @@ class Overflow(Builtin):
     summary_text = "overflow in numeric evaluation"
 
 
+class MaxMachineNumber(Predefined):
+    """
+    Largest normalizable machine number (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/$MaxMachineNumber.html
+    </url>)
+
+    <dl>
+      <dt>'$MaxMachineNumber'
+      <dd>Represents the largest positive number that can be represented \
+          as a normalized machine number in the system.
+    </dl>
+
+    The product of '$MaxMachineNumber' and  '$MinMachineNumber' is a constant:
+    >> $MaxMachineNumber * $MinMachineNumber
+     = 4.
+
+    """
+
+    name = "$MaxMachineNumber"
+    summary_text = "largest normalized positive machine number"
+
+    def evaluate(self, evaluation: Evaluation) -> MachineReal:
+        return NUMERICAL_CONSTANTS[self.symbol]
+
+
+class MinMachineNumber(Predefined):
+    """
+    Smallest normalizable machine number (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/$MinMachineNumber.html
+    </url>)
+
+    <dl>
+      <dt>'$MinMachineNumber'
+      <dd>Represents the smallest positive number that can be represented \
+          as a normalized machine number in the system.
+    </dl>
+
+    'MachinePrecision' minus the 'Log' base 10 of this number is the\
+    'Accuracy' of 0`:
+    >> MachinePrecision -Log[10., $MinMachineNumber]==Accuracy[0`]
+     = True
+
+    """
+
+    name = "$MinMachineNumber"
+    summary_text = "smallest normalized positive machine number"
+
+    def evaluate(self, evaluation: Evaluation) -> MachineReal:
+        return NUMERICAL_CONSTANTS[self.symbol]
+
+
+class Pi(_MPMathConstant, _NumpyConstant, _SympyConstant):
+    """
+    <url>
+    :Pi, \u03c0: https://en.wikipedia.org/wiki/Pi</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.Pi</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Pi.html</url>)
+
+    <dl>
+      <dt>'Pi'
+      <dd>is the constant \u03c0.
+    </dl>
+
+    >> Pi
+     = Pi
+
+    >> N[Pi]
+     = 3.14159
+
+    Pi to a numeric precision of 20 digits:
+    >> N[Pi, 20]
+     = 3.1415926535897932385
+
+    Note that the above is not the same thing as the number of digits <i>after</i> the decimal point. This may differ from similar concepts from other mathematical libraries, including those which Mathics uses!
+
+    Use numpy to compute Pi to 20 digits:
+    >> N[Pi, 20, Method->"numpy"]
+     = 3.1415...
+
+    "sympy" is the default method.
+
+    >> Attributes[Pi]
+     = {Constant, Protected, ReadProtected}
+    """
+
+    mpmath_name = "pi"
+    numpy_name = "pi"
+    rules = {"MakeBoxes[Pi,(StandardForm|TraditionalForm)]": '"\\[Pi]"'}
+    summary_text = "Pi, \u03c0 ≃ 3.1416"
+    sympy_name = "pi"
+
+
+class Undefined(Builtin):
+    """
+    Undefined symbol/value (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Undefined.html</url>)
+
+    <dl>
+      <dt>'Undefined'
+      <dd>a symbol that represents a quantity with no defined value.
+    </dl>
+
+    >> ConditionalExpression[a, False]
+     = Undefined
+    >> Attributes[Undefined]
+     = {Protected}
+    """
+
+    attributes = A_PROTECTED
+    summary_text = "undefined value"
+
+
 class Underflow(Builtin):
     """
+    <url>:Arithmetic underflow:
+    https://en.wikipedia.org/wiki/Arithmetic_underflow</url> (<url>
+    :WMA: https://reference.wolfram.com/language/ref/Underflow.html</url>)
+
     <dl>
       <dt>'Overflow[]'
       <dd>represents a number too small to be represented by Mathics.
@@ -512,13 +734,14 @@ class Underflow(Builtin):
      = 1 - Underflow[]
     >> % // N
      = 1.
+    """
+
     #
     # TODO: handle this kind of expressions where precision may be
     # lost:
     # >> Exp[-1000.]
     #  : Exp[-1000.] is too small to represent as a normalized machine number; precision may be lost.
     #  = Underflow[]
-    """
 
     rules = {
         "Power[Underflow[], -1]": "Overflow[]",
@@ -528,34 +751,13 @@ class Underflow(Builtin):
     summary_text = "underflow in numeric evaluation"
 
 
-class Pi(_MPMathConstant, _SympyConstant):
-    """
-     <dl>
-       <dt>'Pi'
-       <dd>is the constant \u03c0.
-     </dl>
+# Constants that are not numpy constants,
+for cls in (Catalan, Degree, Glaisher, GoldenRatio, Khinchin):
+    instance = cls(expression=False)
+    val = instance.get_constant()
+    NUMERICAL_CONSTANTS[instance.symbol] = MachineReal(val.value)
 
-     >> N[Pi]
-      = 3.14159
-
-     Pi to a numeric precision of 20 digits:
-     >> N[Pi, 20]
-      = 3.1415926535897932385
-
-     Note that the above is not the same thing as the number of digits <i>after</i> the decimal point. This may differ from similar concepts from other mathematical libraries, including those which Mathics uses!
-
-     Use numpy to compute Pi to 20 digits:
-     >> N[Pi, 20, Method->"numpy"]
-      = 3.1415...
-
-    "sympy" is the default method.
-
-     >> Attributes[Pi]
-      = {Constant, Protected, ReadProtected}
-    """
-
-    mpmath_name = "pi"
-    numpy_name = "pi"
-    rules = {"MakeBoxes[Pi,(StandardForm|TraditionalForm)]": '"\\[Pi]"'}
-    summary_text = "pi \u03c0 ≃ 3.1416"
-    sympy_name = "pi"
+# Remove these variables to prevent errors in the SYMBOL_MANIFEST check.
+del cls
+del instance
+del val

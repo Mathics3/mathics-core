@@ -5,65 +5,54 @@
 Drawing Graphics
 """
 
-
+import logging
 from math import sqrt
 
-
-from mathics.core.evaluators import apply_N
-
-from mathics.builtin.base import (
-    Builtin,
-    BoxConstructError,
-)
-
-from mathics.builtin.drawing.graphics_internals import (
-    _GraphicsDirective,
-    _GraphicsElementBox,
-    GLOBALS,
-    get_class,
-)
 from mathics.builtin.colors.color_directives import (
-    _ColorObject,
-    Opacity,
     CMYKColor,
+    ColorError,
     GrayLevel,
     Hue,
     LABColor,
     LCHColor,
     LUVColor,
+    Opacity,
     RGBColor,
     XYZColor,
+    _ColorObject,
 )
-
+from mathics.builtin.drawing.graphics_internals import (
+    GLOBALS,
+    _GraphicsDirective,
+    _GraphicsElementBox,
+    get_class,
+)
 from mathics.builtin.options import options_to_rules
-
-from mathics.core.atoms import (
-    Integer,
-    Rational,
-    Real,
-)
+from mathics.core.atoms import Integer, Rational, Real
+from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.exceptions import BoxExpressionError
 from mathics.core.expression import Expression
+from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Symbol,
-    system_symbols,
-    system_symbols_dict,
     SymbolList,
     SymbolNull,
+    symbol_set,
+    system_symbols_dict,
 )
 from mathics.core.systemsymbols import (
+    SymbolEdgeForm,
+    SymbolFaceForm,
     SymbolMakeBoxes,
+    SymbolRule,
 )
+from mathics.eval.nevaluator import eval_N
 
-from mathics.core.formatter import lookup_method
-from mathics.format.asy_fns import asy_bezier
-
-from mathics.core.attributes import protected, read_protected
-
-
-SymbolEdgeForm = Symbol("System`EdgeForm")
-SymbolFaceForm = Symbol("System`FaceForm")
+# This following line tells documentation how to sort this module
+sort_order = "mathics.builtin.drawing-graphics"
 
 GRAPHICS_OPTIONS = {
     "AspectRatio": "Automatic",
@@ -82,7 +71,10 @@ GRAPHICS_OPTIONS = {
 DEFAULT_POINT_FACTOR = 0.005
 
 
-class CoordinatesError(BoxConstructError):
+ERROR_BACKGROUND_COLOR = RGBColor(components=[1, 0.3, 0.3, 0.25])
+
+
+class CoordinatesError(BoxExpressionError):
     pass
 
 
@@ -136,7 +128,7 @@ def cut(value):
 def _to_float(x):
     x = x.round_to_float()
     if x is None:
-        raise BoxConstructError
+        raise BoxExpressionError
     return x
 
 
@@ -146,7 +138,7 @@ def _data_and_options(elements, defined_options):
     for element in elements:
         if element.get_head_name() == "System`Rule":
             if len(element.elements) != 2:
-                raise BoxConstructError
+                raise BoxExpressionError
             name, value = element.elements
             name_head = name.get_head_name()
             if name_head == "System`Symbol":
@@ -154,7 +146,7 @@ def _data_and_options(elements, defined_options):
             elif name_head == "System`String":
                 py_name = "System`" + name.get_string_value()
             else:  # unsupported name type
-                raise BoxConstructError
+                raise BoxExpressionError
             options[py_name] = value
         else:
             data.append(element)
@@ -198,9 +190,12 @@ def _extract_graphics(graphics, format, evaluation):
 
 class Show(Builtin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Show.html</url>
+
     <dl>
-    <dt>'Show[$graphics$, $options$]'
-        <dd>shows a list of graphics with the specified options added.
+      <dt>'Show[$graphics$, $options$]'
+      <dd>shows a list of graphics with the specified options added.
     </dl>
 
     >> Show[{Plot[x, {x, 0, 10}], ListPlot[{1,2,3}]}]
@@ -210,12 +205,12 @@ class Show(Builtin):
     options = GRAPHICS_OPTIONS
     summary_text = "display graphic objects"
 
-    def apply(self, graphics, evaluation, options):
+    def eval(self, graphics, evaluation, options):
         """Show[graphics_, OptionsPattern[%(name)s]]"""
 
         for option in options:
             if option not in ("System`ImageSize",):
-                options[option] = apply_N(options[option], evaluation)
+                options[option] = eval_N(options[option], evaluation)
 
         # The below could probably be done with graphics.filter..
         new_elements = []
@@ -237,6 +232,8 @@ class Show(Builtin):
 
 class Graphics(Builtin):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Graphics.html</url>
+
     <dl>
       <dt>'Graphics[$primitives$, $options$]'
       <dd>represents a graphic.
@@ -270,14 +267,18 @@ class Graphics(Builtin):
     >> Graphics[Rectangle[]] // ToBoxes // Head
      = GraphicsBox
 
+    The 'Background' option allows to set the color of the background:
+    >> Graphics[{Green, Disk[]}, Background->RGBColor[.6, .7, 1.]]
+     = -Graphics-
+
     In 'TeXForm', 'Graphics' produces Asymptote figures:
     >> Graphics[Circle[]] // TeXForm
      = #<--#
      . \begin{asy}
      . usepackage("amsmath");
-     . size(5.8556cm, 5.8333cm);
-     . draw(ellipse((175,175),175,175), rgb(0, 0, 0)+linewidth(0.66667));
-     . clip(box((-0.33333,0.33333), (350.33,349.67)));
+     . size(5.8445cm, 5.8333cm);
+     . draw(ellipse((175,175),175,175), rgb(0, 0, 0)+linewidth(0.33333));
+     . clip(box((-0.16667,0.16667), (350.17,349.83)));
      . \end{asy}
     """
 
@@ -286,7 +287,7 @@ class Graphics(Builtin):
     box_suffix = "Box"
     summary_text = "general two‐dimensional graphics"
 
-    def apply_makeboxes(self, content, evaluation, options):
+    def eval_makeboxes(self, content, evaluation, options):
         """MakeBoxes[%(name)s[content_, OptionsPattern[%(name)s]],
         StandardForm|TraditionalForm|OutputForm]"""
 
@@ -316,16 +317,16 @@ class Graphics(Builtin):
                         if inset.get_head() is Symbol("System`Graphics"):
                             opts = {}
                             # opts = dict(opt._elements[0].name:opt_elements[1]   for opt in  inset._elements[1:])
-                            inset = self.apply_makeboxes(
+                            inset = self.eval_makeboxes(
                                 inset._elements[0], evaluation, opts
                             )
                         n_elements = [inset] + [
-                            apply_N(element, evaluation)
+                            eval_N(element, evaluation)
                             for element in content.elements[1:]
                         ]
                     else:
                         n_elements = (
-                            apply_N(element, evaluation) for element in content.elements
+                            eval_N(element, evaluation) for element in content.elements
                         )
                 else:
                     n_elements = content.elements
@@ -334,7 +335,7 @@ class Graphics(Builtin):
 
         for option in options:
             if option not in ("System`ImageSize",):
-                options[option] = apply_N(options[option], evaluation)
+                options[option] = eval_N(options[option], evaluation)
 
         from mathics.builtin.box.graphics import GraphicsBox
         from mathics.builtin.box.graphics3d import Graphics3DBox
@@ -350,248 +351,18 @@ class Graphics(Builtin):
             )
 
 
-class _Size(_GraphicsDirective):
-    def init(self, graphics, item=None, value=None):
-        super(_Size, self).init(graphics, item)
-        if item is not None:
-            self.value = item.elements[0].round_to_float()
-        elif value is not None:
-            self.value = value
-        else:
-            raise BoxConstructError
-        if self.value < 0:
-            raise BoxConstructError
-
-
-class _Thickness(_Size):
-    pass
-
-
-class AbsoluteThickness(_Thickness):
-    """
-    <dl>
-    <dt>'AbsoluteThickness[$p$]'
-        <dd>sets the line thickness for subsequent graphics primitives
-        to $p$ points.
-    </dl>
-
-    >> Graphics[Table[{AbsoluteThickness[t], Line[{{20 t, 10}, {20 t, 80}}], Text[ToString[t]<>"pt", {20 t, 0}]}, {t, 0, 10}]]
-     = -Graphics-
-    """
-
-    def get_thickness(self):
-        return self.graphics.translate_absolute((self.value, 0))[0]
-
-
-class Thickness(_Thickness):
-    """
-    <dl>
-    <dt>'Thickness[$t$]'
-        <dd>sets the line thickness for subsequent graphics primitives
-        to $t$ times the size of the plot area.
-    </dl>
-
-    >> Graphics[{Thickness[0.2], Line[{{0, 0}, {0, 5}}]}, Axes->True, PlotRange->{{-5, 5}, {-5, 5}}]
-     = -Graphics-
-    """
-
-    summary_text = "line thicknesses"
-
-    def get_thickness(self):
-        return self.graphics.translate_relative(self.value)
-
-
-class Thin(Builtin):
-    """
-    <dl>
-    <dt>'Thin'
-        <dd>sets the line width for subsequent graphics primitives to 0.5pt.
-    </dl>
-    """
-
-    rules = {"Thin": "AbsoluteThickness[0.5]"}
-    summary_text = "make lines width thiner"
-
-
-class Thick(Builtin):
-    """
-    <dl>
-    <dt>'Thick'
-        <dd>sets the line width for subsequent graphics primitives to 2pt.
-    </dl>
-    """
-
-    rules = {"Thick": "AbsoluteThickness[2]"}
-    summary_text = "make lines width thicker"
-
-
-class PointSize(_Size):
-    """
-    <dl>
-      <dt>'PointSize[$t$]'
-      <dd>sets the diameter of points to $t$, which is relative to the overall width.
-    </dl>
-    'PointSize' can be used for both two- and three-dimensional graphics. The initial default pointsize is 0.008 for two-dimensional graphics and 0.01 for three-dimensional graphics.
-
-    >> Table[Graphics[{PointSize[r], Point[{0, 0}]}], {r, {0.02, 0.05, 0.1, 0.3}}]
-     = {-Graphics-, -Graphics-, -Graphics-, -Graphics-}
-
-    >> Table[Graphics3D[{PointSize[r], Point[{0, 0, 0}]}], {r, {0.05, 0.1, 0.8}}]
-    = {-Graphics3D-, -Graphics3D-, -Graphics3D-}
-    """
-
-    summary_text = "relative sizes of points"
-
-    def get_absolute_size(self):
-        if self.graphics.view_width is None:
-            self.graphics.view_width = 400
-        if self.value is None:
-            self.value = DEFAULT_POINT_FACTOR
-        return self.graphics.view_width * self.value
-
-
-class FontColor(Builtin):
-    """
-    <dl>
-    <dt>'FontColor'
-        <dd>is an option for Style to set the font color.
-    </dl>
-    """
-
-    summary_text = "color of characters"
-
-
-class Offset(Builtin):
-    """
-    <dl>
-    <dt>'Offset[{$dx$, $dy$}, $position$]'
-    <dd>gives the position of a graphical object obtained by starting at the specified $position$ and then moving by absolute offset {$dx$,$dy$}.
-    </dl>
-    """
-
-    summary_text = "offset by an absolute distance"
-
-
-class Rectangle(Builtin):
-    """
-    <dl>
-    <dt>'Rectangle[{$xmin$, $ymin$}]'
-        <dd>represents a unit square with bottom-left corner at {$xmin$, $ymin$}.
-    <dt>'Rectangle[{$xmin$, $ymin$}, {$xmax$, $ymax$}]
-        <dd>is a rectange extending from {$xmin$, $ymin$} to {$xmax$, $ymax$}.
-    </dl>
-
-    >> Graphics[Rectangle[]]
-     = -Graphics-
-
-    >> Graphics[{Blue, Rectangle[{0.5, 0}], Orange, Rectangle[{0, 0.5}]}]
-     = -Graphics-
-    """
-
-    rules = {"Rectangle[]": "Rectangle[{0, 0}]"}
-    summary_text = "2D filled rectangle"
-
-
-class Disk(Builtin):
-    """
-    <dl>
-    <dt>'Disk[{$cx$, $cy$}, $r$]'
-        <dd>fills a circle with center '($cx$, $cy$)' and radius $r$.
-    <dt>'Disk[{$cx$, $cy$}, {$rx$, $ry$}]'
-        <dd>fills an ellipse.
-    <dt>'Disk[{$cx$, $cy$}]'
-        <dd>chooses radius 1.
-    <dt>'Disk[]'
-        <dd>chooses center '(0, 0)' and radius 1.
-    <dt>'Disk[{$x$, $y$}, ..., {$t1$, $t2$}]'
-        <dd>is a sector from angle $t1$ to $t2$.
-    </dl>
-
-    >> Graphics[{Blue, Disk[{0, 0}, {2, 1}]}]
-     = -Graphics-
-    The outer border can be drawn using 'EdgeForm':
-    >> Graphics[{EdgeForm[Black], Red, Disk[]}]
-     = -Graphics-
-
-    Disk can also draw sectors of circles and ellipses
-    >> Graphics[Disk[{0, 0}, 1, {Pi / 3, 2 Pi / 3}]]
-     = -Graphics-
-    >> Graphics[{Blue, Disk[{0, 0}, {1, 2}, {Pi / 3, 5 Pi / 3}]}]
-     = -Graphics-
-    """
-
-    rules = {"Disk[]": "Disk[{0, 0}]"}
-    summary_text = "filled circle, ellipse or arc"
-
-
-class Circle(Builtin):
-    """
-    <dl>
-      <dt>'Circle[{$cx$, $cy$}, $r$]'
-      <dd>draws a circle with center '($cx$, $cy$)' and radius $r$.
-
-      <dt>'Circle[{$cx$, $cy$}, {$rx$, $ry$}]'
-      <dd>draws an ellipse.
-
-      <dt>'Circle[{$cx$, $cy$}]'
-      <dd>chooses radius 1.
-
-      <dt>'Circle[]'
-      <dd>chooses center '(0, 0)' and radius 1.
-    </dl>
-
-    >> Graphics[{Red, Circle[{0, 0}, {2, 1}]}]
-     = -Graphics-
-    >> Graphics[{Circle[], Disk[{0, 0}, {1, 1}, {0, 2.1}]}]
-     = -Graphics-
-
-    Target practice:
-    >> Graphics[Circle[], Axes-> True]
-     = -Graphics-
-    """
-
-    rules = {"Circle[]": "Circle[{0, 0}]"}
-    summary_text = "empty circle, ellipse or arc"
-
-
-class Inset(Builtin):
-    """
-    <dl>
-    <dt>'Text[$obj$]'
-        <dd>represents an object $obj$ inset in a graphic.
-    <dt>'Text[$obj$, $pos$]'
-        <dd>represents an object $obj$ inset in a graphic at position $pos$.
-    <dt>'Text[$obj$, $pos$, $$]'
-        <dd>represents an object $obj$ inset in a graphic at position $pos$, ina way that the position $opos$ of $obj$ coincides with $pos$ in
-            the enclosing graphic.
-    </dl>
-
-    """
-
-    summary_text = "arbitrary objects in 2D or 3D inset into a larger graphic"
-
-
-class Text(Inset):
-    """
-    <dl>
-    <dt>'Text["$text$", {$x$, $y$}]'
-        <dd>draws $text$ centered on position '{$x$, $y$}'.
-    </dl>
-
-    >> Graphics[{Text["First", {0, 0}], Text["Second", {1, 1}]}, Axes->True, PlotRange->{{-2, 2}, {-2, 2}}]
-     = -Graphics-
-
-    #> Graphics[{Text[x, {0,0}]}]
-     = -Graphics-
-    """
-
-    summary_text = "arbitrary text or other expressions in 2D or 3D"
-
-
 class _Polyline(_GraphicsElementBox):
+    """
+    A structure containing a list of line segments
+    stored in ``self.lines`` created from
+    a list of points.
+
+    Lines are formed by pairs of consecutive point.
+    """
+
     def do_init(self, graphics, points):
         if not points.has_form("List", None):
-            raise BoxConstructError
+            raise BoxExpressionError
         if (
             points.elements
             and points.elements[0].has_form("List", None)
@@ -602,6 +373,10 @@ class _Polyline(_GraphicsElementBox):
         ):
             elements = points.elements
             self.multi_parts = True
+        elif len(points.elements) == 0:
+            # Ensure there are no line segments if there are no points.
+            self.lines = []
+            return
         else:
             elements = [ListExpression(*points.elements)]
             self.multi_parts = False
@@ -610,30 +385,76 @@ class _Polyline(_GraphicsElementBox):
             if element.has_form("List", None):
                 lines.append(element.elements)
             else:
-                raise BoxConstructError
+                raise BoxExpressionError
         self.lines = [
             [graphics.coords(graphics, point) for point in line] for line in lines
         ]
 
     def extent(self) -> list:
-        l = self.style.get_line_width(face_element=False)
+        lw = self.style.get_line_width(face_element=False)
         result = []
         for line in self.lines:
             for c in line:
                 x, y = c.pos()
                 result.extend(
-                    [(x - l, y - l), (x - l, y + l), (x + l, y - l), (x + l, y + l)]
+                    [
+                        (x - lw, y - lw),
+                        (x - lw, y + lw),
+                        (x + lw, y - lw),
+                        (x + lw, y + lw),
+                    ]
                 )
         return result
 
 
+class _Size(_GraphicsDirective):
+    def init(self, graphics, item=None, value=None):
+        super(_Size, self).init(graphics, item)
+        if item is not None:
+            self.value = item.elements[0].round_to_float() * 0.7
+        elif value is not None:
+            self.value = value
+        else:
+            raise BoxExpressionError
+        if self.value < 0:
+            raise BoxExpressionError
+
+
+class _Thickness(_Size):
+    pass
+
+
+class AbsoluteThickness(_Thickness):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/AbsoluteThickness.html</url>
+
+    <dl>
+      <dt>'AbsoluteThickness[$p$]'
+      <dd>sets the line thickness for subsequent graphics primitives to $p$ \
+          points.
+    </dl>
+
+    >> Graphics[Table[{AbsoluteThickness[t], Line[{{20 t, 10}, {20 t, 80}}], Text[ToString[t]<>"pt", {20 t, 0}]}, {t, 0, 10}]]
+     = -Graphics-
+    """
+
+    summary_text = "graphics directive for the absolute line thickness"
+
+    def get_thickness(self):
+        return self.graphics.translate_absolute((self.value, 0))[0]
+
+
 class Point(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Point.html</url>
+
     <dl>
-    <dt>'Point[{$point_1$, $point_2$ ...}]'
-        <dd>represents the point primitive.
-    <dt>'Point[{{$p_11$, $p_12$, ...}, {$p_21$, $p_22$, ...}, ...}]'
-        <dd>represents a number of point primitives.
+      <dt>'Point[{$point_1$, $point_2$ ...}]'
+      <dd>represents the point primitive.
+      <dt>'Point[{{$p_11$, $p_12$, ...}, {$p_21$, $p_22$, ...}, ...}]'
+      <dd>represents a number of point primitives.
     </dl>
 
     Points are rendered if possible as circular regions. Their diameters can be specified using 'PointSize'.
@@ -653,18 +474,51 @@ class Point(Builtin):
 
     """
 
-    summary_text = "a point or list of points in 2D or 3D"
+    summary_text = "point or list of points graphics object(s) in 2D or 3D"
+
+
+class PointSize(_Size):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PointSize.html</url>
+
+    <dl>
+      <dt>'PointSize[$t$]'
+      <dd>sets the diameter of points to $t$, which is relative to the overall width.
+    </dl>
+
+    'PointSize' can be used for both two- and three-dimensional graphics. \
+    The initial default pointsize is 0.008 for two-dimensional graphics and 0.01 for three-dimensional graphics.
+
+    >> Table[Graphics[{PointSize[r], Point[{0, 0}]}], {r, {0.02, 0.05, 0.1, 0.3}}]
+     = {-Graphics-, -Graphics-, -Graphics-, -Graphics-}
+
+    >> Table[Graphics3D[{PointSize[r], Point[{0, 0, 0}]}], {r, {0.05, 0.1, 0.8}}]
+    = {-Graphics3D-, -Graphics3D-, -Graphics3D-}
+    """
+
+    summary_text = "graphics directive for relative sizes of points"
+
+    def get_absolute_size(self):
+        if self.graphics.view_width is None:
+            self.graphics.view_width = 400
+        if self.value is None:
+            self.value = DEFAULT_POINT_FACTOR
+        return self.graphics.view_width * self.value
 
 
 # FIXME: We model points as line segments which
 # is kind of  wrong.
 class Line(Builtin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Line.html</url>
+
     <dl>
-    <dt>'Line[{$point_1$, $point_2$ ...}]'
-        <dd>represents the line primitive.
-    <dt>'Line[{{$p_11$, $p_12$, ...}, {$p_21$, $p_22$, ...}, ...}]'
-        <dd>represents a number of line primitives.
+      <dt>'Line[{$point_1$, $point_2$ ...}]'
+      <dd>represents the line primitive.
+
+      <dt>'Line[{{$p_11$, $p_12$, ...}, {$p_21$, $p_22$, ...}, ...}]'
+      <dd>represents a number of line primitives.
     </dl>
 
     >> Graphics[Line[{{0,1},{0,0},{1,0},{1,1}}]]
@@ -674,7 +528,7 @@ class Line(Builtin):
     = -Graphics3D-
     """
 
-    summary_text = "a line joining a sequence of points in 2D or 3D"
+    summary_text = "line graphics object joining a sequence of points in 2D or 3D"
 
 
 def _svg_bezier(*segments):
@@ -694,7 +548,7 @@ def _svg_bezier(*segments):
         while p:
             n = min(max_degree, len(p))  # 1, 2, or 3
             if n < 1:
-                raise BoxConstructError
+                raise BoxExpressionError
             yield forms[n - 1] + " ".join("%f,%f" % xy for xy in p[:n])
             p = p[n:]
 
@@ -711,9 +565,14 @@ def _svg_bezier(*segments):
 
 class FilledCurve(Builtin):
     """
+
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/FilledCurve.html</url>
+
     <dl>
-    <dt>'FilledCurve[{$segment1$, $segment2$ ...}]'
-        <dd>represents a filled curve.
+      <dt>'FilledCurve[{$segment1$, $segment2$ ...}]'
+      <dd>represents a filled curve.
     </dl>
 
     >> Graphics[FilledCurve[{Line[{{0, 0}, {1, 1}, {2, 0}}]}]]
@@ -728,6 +587,8 @@ class FilledCurve(Builtin):
 
 class Polygon(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Polygon.html</url>
+
     <dl>
       <dt>'Polygon[{$point_1$, $point_2$ ...}]'
       <dd>represents the filled polygon primitive.
@@ -742,7 +603,8 @@ class Polygon(Builtin):
 
     Notice that there is a line connecting from the last point to the first one.
 
-    A point is an element of the polygon if a ray from the point in any direction in the plane crosses the boundary line segments an odd number of times.
+    A point is an element of the polygon if a ray from the point in any direction in \
+    the plane crosses the boundary line segments an odd number of times.
     >> Graphics[Polygon[{{150,0},{121,90},{198,35},{102,35},{179,90}}]]
     = -Graphics-
 
@@ -750,20 +612,25 @@ class Polygon(Builtin):
     = -Graphics3D-
     """
 
-    summary_text = "a polygon in 2D or 3D"
+    summary_text = "graphics primitive for a polygon in 2D or 3D"
 
 
 class RegularPolygon(Builtin):
     """
+
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RegularPolygon.html</url>
+
     <dl>
-    <dt>'RegularPolygon[$n$]'
-        <dd>gives the regular polygon with $n$ edges.
-    <dt>'RegularPolygon[$r$, $n$]'
-        <dd>gives the regular polygon with $n$ edges and radius $r$.
-    <dt>'RegularPolygon[{$r$, $phi$}, $n$]'
-        <dd>gives the regular polygon with radius $r$ with one vertex drawn at angle $phi$.
-    <dt>'RegularPolygon[{$x, $y}, $r$, $n$]'
-        <dd>gives the regular polygon centered at the position {$x, $y}.
+      <dt>'RegularPolygon[$n$]'
+      <dd>gives the regular polygon with $n$ edges.
+      <dt>'RegularPolygon[$r$, $n$]'
+      <dd>gives the regular polygon with $n$ edges and radius $r$.
+      <dt>'RegularPolygon[{$r$, $phi$}, $n$]'
+      <dd>gives the regular polygon with radius $r$ with one vertex drawn at angle $phi$.
+      <dt>'RegularPolygon[{$x, $y}, $r$, $n$]'
+      <dd>gives the regular polygon centered at the position {$x, $y}.
     </dl>
 
     >> Graphics[RegularPolygon[5]]
@@ -773,11 +640,15 @@ class RegularPolygon(Builtin):
     = -Graphics-
     """
 
-    summary_text = "a regular polygon in 2D"
+    summary_text = "graphics primitive for a regular polygon in 2D"
 
 
 class Arrow(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Arrow.html</url>
+
     <dl>
       <dt>'Arrow[{$p1$, $p2$}]'
       <dd>represents a line from $p1$ to $p2$ that ends with an arrow at $p2$.
@@ -786,10 +657,12 @@ class Arrow(Builtin):
       <dd>represents a line with arrow that keeps a distance of $s$ from $p1$ and $p2$.
 
       <dt>'Arrow[{$point_1$, $point_2$}, {$s1$, $s2$}]'
-      <dd>represents a line with arrow that keeps a distance of $s1$ from $p1$ and a distance of $s2$ from $p2$.
+      <dd>represents a line with arrow that keeps a distance of $s1$ from $p1$ and a \
+          distance of $s2$ from $p2$.
 
       <dt>'Arrow[{$point_1$, $point_2$}, {$s1$, $s2$}]'
-      <dd>represents a line with arrow that keeps a distance of $s1$ from $p1$ and a distance of $s2$ from $p2$.
+      <dd>represents a line with arrow that keeps a distance of $s1$ from $p1$ and a \
+          distance of $s2$ from $p2$.
     </dl>
 
     >> Graphics[Arrow[{{0,0}, {1,1}}]]
@@ -798,7 +671,7 @@ class Arrow(Builtin):
     >> Graphics[{Circle[], Arrow[{{2, 1}, {0, 0}}, 1]}]
     = -Graphics-
 
-    Arrows can also be drawn in 3D by giving poing in three dimensions:
+    Arrows can also be drawn in 3D by giving point in three dimensions:
 
     >> Graphics3D[Arrow[{{1, 1, -1}, {2, 2, 0}, {3, 3, -1}, {4, 4, 0}}]]
      = -Graphics3D-
@@ -809,24 +682,36 @@ class Arrow(Builtin):
      = {-Graphics-, -Graphics-, -Graphics-, -Graphics-, -Graphics-}
     """
 
-    summary_text = "graphics primitive to specify arbitrary graphical arrows"
+    summary_text = "graphics primitive for arbitrary graphical arrows"
 
 
 class Arrowheads(_GraphicsDirective):
     """
+
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Arrowheads.html</url>
+
     <dl>
-    <dt>'Arrowheads[$s$]'
-        <dd>specifies that Arrow[] draws one arrow of size $s$ (relative to width of image, defaults to 0.04).
-    <dt>'Arrowheads[{$spec1$, $spec2$, ..., $specn$}]'
-        <dd>specifies that Arrow[] draws n arrows as defined by $spec1$, $spec2$, ... $specn$.
-    <dt>'Arrowheads[{{$s$}}]'
-        <dd>specifies that one arrow of size $s$ should be drawn.
-    <dt>'Arrowheads[{{$s$, $pos$}}]'
-        <dd>specifies that one arrow of size $s$ should be drawn at position $pos$ (for the arrow to
-        be on the line, $pos$ has to be between 0, i.e. the start for the line, and 1, i.e. the end
-        of the line).
-    <dt>'Arrowheads[{{$s$, $pos$, $g$}}]'
-        <dd>specifies that one arrow of size $s$ should be drawn at position $pos$ using Graphics $g$.
+      <dt>'Arrowheads[$s$]'
+      <dd>specifies that Arrow[] draws one arrow of size $s$ (relative to width of \
+          image, defaults to 0.04).
+
+      <dt>'Arrowheads[{$spec1$, $spec2$, ..., $specn$}]'
+      <dd>specifies that Arrow[] draws n arrows as defined by $spec1$, $spec2$, \
+          ... $specn$.
+
+      <dt>'Arrowheads[{{$s$}}]'
+      <dd>specifies that one arrow of size $s$ should be drawn.
+
+      <dt>'Arrowheads[{{$s$, $pos$}}]'
+      <dd>specifies that one arrow of size $s$ should be drawn at position $pos$ (for \
+          the arrow to be on the line, $pos$ has to be between 0, i.e. the start for \
+          the line, and 1, i.e. the end of the line).
+
+      <dt>'Arrowheads[{{$s$, $pos$, $g$}}]'
+      <dd>specifies that one arrow of size $s$ should be drawn at position $pos$ \
+          using Graphics $g$.
     </dl>
 
     Arrows on both ends can be achieved using negative sizes:
@@ -845,18 +730,19 @@ class Arrowheads(_GraphicsDirective):
 
     default_size = 0.04
 
+    summary_text = "graphics directive for the form and placement of an arrowhead"
+
     symbolic_sizes = {
         "System`Tiny": 3,
         "System`Small": 5,
         "System`Medium": 9,
         "System`Large": 18,
     }
-    summary_text = "form and placement of arrowheads"
 
     def init(self, graphics, item=None):
         super(Arrowheads, self).init(graphics, item)
         if len(item.elements) != 1:
-            raise BoxConstructError
+            raise BoxExpressionError
         self.spec = item.elements[0]
 
     def _arrow_size(self, s, extent):
@@ -875,7 +761,7 @@ class Arrowheads(_GraphicsDirective):
                 for head in elements:
                     spec = head.elements
                     if len(spec) not in (2, 3):
-                        raise BoxConstructError
+                        raise BoxExpressionError
                     size_spec = spec[0]
                     if (
                         isinstance(size_spec, Symbol)
@@ -885,18 +771,18 @@ class Arrowheads(_GraphicsDirective):
                     elif size_spec.is_numeric():
                         s = self._arrow_size(size_spec, extent)
                     else:
-                        raise BoxConstructError
+                        raise BoxExpressionError
 
                     if len(spec) == 3 and custom_arrow:
                         graphics = spec[2]
                         if graphics.get_head_name() != "System`Graphics":
-                            raise BoxConstructError
+                            raise BoxExpressionError
                         arrow = custom_arrow(graphics)
                     else:
                         arrow = default_arrow
 
                     if not isinstance(spec[1], (Real, Rational, Integer)):
-                        raise BoxConstructError
+                        raise BoxExpressionError
 
                     yield s, _to_float(spec[1]), arrow
             else:
@@ -1015,6 +901,8 @@ class _BezierCurve:
         return draw
 
     def make_draw_asy(self, pen):
+        from mathics.format.asy_fns import asy_bezier
+
         def draw(points):
             for path in asy_bezier((self.spline_degree, points)):
                 yield "draw(%s, %s);" % (path, pen)
@@ -1063,33 +951,6 @@ def total_extent(extents):
     return xmin, xmax, ymin, ymax
 
 
-class EdgeForm(Builtin):
-    """
-    <dl>
-    <dt> 'EdgeForm[$g$]'
-    <dd> is a graphics directive that specifies that edges of filled graphics objects are to be drawn using the graphics directive or list of directives $g$.
-    </dl>
-    >> Graphics[{EdgeForm[{Thick, Green}], Disk[]}]
-     = -Graphics-
-
-    >> Graphics[{Style[Disk[],EdgeForm[{Thick,Red}]], Circle[{1,1}]}]
-     = -Graphics-
-    """
-
-    summary_text = "rendering properties for edges"
-
-
-class FaceForm(Builtin):
-    """
-    <dl>
-    <dt> 'FaceForm[$g$]'
-    <dd> is a graphics directive that specifies that faces of filled graphics objects are to be drawn using the graphics directive or list of directives $g$.
-    </dl>
-    """
-
-    summary_text = "rendering properties for faces"
-
-
 def _style(graphics, item):
     head = item.get_head()
     if head in style_heads:
@@ -1100,7 +961,7 @@ def _style(graphics, item):
             graphics, edge=head is SymbolEdgeForm, face=head is SymbolFaceForm
         )
         if len(item.elements) > 1:
-            raise BoxConstructError
+            raise BoxExpressionError
         if item.elements:
             if item.elements[0].has_form("List", None):
                 for dir in item.elements[0].elements:
@@ -1108,7 +969,7 @@ def _style(graphics, item):
             else:
                 style.append(item.elements[0], allow_forms=False)
     else:
-        raise BoxConstructError
+        raise BoxExpressionError
     return style
 
 
@@ -1177,15 +1038,15 @@ class Style:
     def get_option(self, name):
         return self.options.get(name, None)
 
-    def get_line_width(self, face_element=True):
+    def get_line_width(self, face_element=True) -> float:
         if self.graphics.pixel_width is None:
-            return 0
+            return 0.0
         edge_style, _ = self.get_style(
             _Thickness, default_to_faces=face_element, consider_forms=face_element
         )
         if edge_style is None:
-            return 0
-        return edge_style.get_thickness()
+            return 0.0
+        return edge_style.get_thickness() / 2.0
 
 
 def _flatten(elements):
@@ -1225,17 +1086,19 @@ class _GraphicsElements:
                 elif head is Symbol("System`Rule") and len(spec.elements) == 2:
                     option, expr = spec.elements
                     if not isinstance(option, Symbol):
-                        raise BoxConstructError
+                        raise BoxExpressionError
 
                     name = option.get_name()
                     create = style_options.get(name, None)
                     if create is None:
-                        raise BoxConstructError
+                        raise BoxExpressionError
 
                     new_style.set_option(name, create(style.graphics, expr))
                 else:
-                    raise BoxConstructError
+                    raise BoxExpressionError
             return new_style
+
+        failed = []
 
         def convert(content, style):
             if content.has_form("List", None):
@@ -1248,32 +1111,57 @@ class _GraphicsElements:
                     continue
                 head = item.get_head()
                 if head in style_and_form_heads:
-                    style.append(item)
+                    try:
+                        style.append(item)
+                    except ColorError:
+                        failed.append(head)
                 elif head is Symbol("System`StyleBox"):
                     if len(item.elements) < 1:
-                        raise BoxConstructError
+                        failed.append(item.head)
                     for element in convert(
                         item.elements[0], stylebox_style(style, item.elements[1:])
                     ):
                         yield element
                 elif head.name[-3:] == "Box":  # and head[:-3] in element_heads:
                     element_class = get_class(head)
+                    if element_class is None:
+                        failed.append(head)
+                        continue
                     options = get_options(head.name[:-3])
                     if options:
                         data, options = _data_and_options(item.elements, options)
                         new_item = Expression(head, *data)
-                        element = element_class(self, style, new_item, options)
+                        try:
+                            element = element_class(self, style, new_item, options)
+                        except (BoxExpressionError, CoordinatesError):
+                            failed.append(head)
+                            continue
                     else:
-                        element = element_class(self, style, item)
+                        try:
+                            element = element_class(self, style, item)
+                        except (BoxExpressionError, CoordinatesError):
+                            failed.append(head)
+                            continue
                     yield element
                 elif head is SymbolList:
                     for element in convert(item, style):
                         yield element
                 else:
-                    print(item, " of type ", type(item), " is not a box.")
-                    raise BoxConstructError
+                    failed.append(head)
+                    continue
+
+            # if failed:
+            #    yield build_error_box2(style)
+            #    raise BoxExpressionError(messages)
 
         self.elements = list(convert(content, self.style_class(self)))
+        if failed:
+            messages = "\n".join(
+                [f"{str(h)} is not a valid primitive or directive." for h in failed]
+            )
+            self.tooltip_text = messages
+            self.background_color = ERROR_BACKGROUND_COLOR
+            logging.warning(messages)
 
     def create_style(self, expr):
         style = self.style_class(self)
@@ -1318,8 +1206,8 @@ class GraphicsElements(_GraphicsElements):
         if self.pixel_width is None:
             return (0, 0)
         else:
-            l = 96.0 / 72
-            return (d[0] * l, (-1 if self.neg_y else 1) * d[1] * l)
+            lw = 96.0 / 72
+            return (d[0] * lw, (-1 if self.neg_y else 1) * d[1] * lw)
 
     def translate_relative(self, x):
         if self.pixel_width is None:
@@ -1354,89 +1242,339 @@ class GraphicsElements(_GraphicsElements):
     def set_size(
         self, xmin, ymin, extent_width, extent_height, pixel_width, pixel_height
     ):
-
         self.xmin, self.ymin = xmin, ymin
         self.extent_width, self.extent_height = extent_width, extent_height
         self.pixel_width, self.pixel_height = pixel_width, pixel_height
 
 
+class Circle(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Circle.html</url>
+
+    <dl>
+      <dt>'Circle[{$cx$, $cy$}, $r$]'
+      <dd>draws a circle with center '($cx$, $cy$)' and radius $r$.
+
+      <dt>'Circle[{$cx$, $cy$}, {$rx$, $ry$}]'
+      <dd>draws an ellipse.
+
+      <dt>'Circle[{$cx$, $cy$}]'
+      <dd>chooses radius 1.
+
+      <dt>'Circle[]'
+      <dd>chooses center '(0, 0)' and radius 1.
+    </dl>
+
+    >> Graphics[{Red, Circle[{0, 0}, {2, 1}]}]
+     = -Graphics-
+    >> Graphics[{Circle[], Disk[{0, 0}, {1, 1}, {0, 2.1}]}]
+     = -Graphics-
+
+    Target practice:
+    >> Graphics[Circle[], Axes-> True]
+     = -Graphics-
+    """
+
+    rules = {"Circle[]": "Circle[{0, 0}]"}
+    summary_text = "graphics primitive for an empty circle, ellipse, or arc"
+
+
+class Disk(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Disk.html</url>
+
+    <dl>
+      <dt>'Disk[{$cx$, $cy$}, $r$]'
+      <dd>fills a circle with center '($cx$, $cy$)' and radius $r$.
+
+      <dt>'Disk[{$cx$, $cy$}, {$rx$, $ry$}]'
+      <dd>fills an ellipse.
+
+      <dt>'Disk[{$cx$, $cy$}]'
+      <dd>chooses radius 1.
+
+      <dt>'Disk[]'
+      <dd>chooses center '(0, 0)' and radius 1.
+
+      <dt>'Disk[{$x$, $y$}, ..., {$t1$, $t2$}]'
+      <dd>is a sector from angle $t1$ to $t2$.
+    </dl>
+
+    >> Graphics[{Blue, Disk[{0, 0}, {2, 1}]}]
+     = -Graphics-
+    The outer border can be drawn using 'EdgeForm':
+    >> Graphics[{EdgeForm[Black], Red, Disk[]}]
+     = -Graphics-
+
+    Disk can also draw sectors of circles and ellipses
+    >> Graphics[Disk[{0, 0}, 1, {Pi / 3, 2 Pi / 3}]]
+     = -Graphics-
+    >> Graphics[{Blue, Disk[{0, 0}, {1, 2}, {Pi / 3, 5 Pi / 3}]}]
+     = -Graphics-
+    """
+
+    rules = {"Disk[]": "Disk[{0, 0}]"}
+    summary_text = "create a filled circle, ellipse or arc graphics object"
+
+
 class Directive(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Directive.html</url>
+
     <dl>
-    <dt> 'Directive'[$g_1$, $g_2$, ...]
-    <dd> represents a single graphics directive composed of the directives $g_1$, $g_2$, ...
+      <dt> 'Directive'[$g_1$, $g_2$, ...]
+      <dd> represents a single graphics directive composed of the directives $g_1$, $g_2$, ...
     </dl>
     """
 
-    attributes = read_protected | protected
+    attributes = A_READ_PROTECTED | A_PROTECTED
     summary_text = "compound directive"
 
 
-class Tiny(Builtin):
+class EdgeForm(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EdgeForm.html</url>
+
     <dl>
-    <dt>'ImageSize' -> 'Tiny'
-        <dd>produces a tiny image.
+      <dt> 'EdgeForm[$g$]'
+      <dd> is a graphics directive that specifies that edges of filled graphics objects are to be drawn using the graphics directive or list of directives $g$.
+    </dl>
+
+    >> Graphics[{EdgeForm[{Thick, Green}], Disk[]}]
+     = -Graphics-
+
+    >> Graphics[{Style[Disk[],EdgeForm[{Thick,Red}]], Circle[{1,1}]}]
+     = -Graphics-
+    """
+
+    summary_text = "rendering properties for edges"
+
+
+class FaceForm(Builtin):
+    """
+    <url>:WMA link
+    :https://reference.wolfram.com/language/ref/FaceForm.html</url>
+
+    <dl>
+      <dt> 'FaceForm[$g$]'
+      <dd> is a graphics directive that specifies that faces of filled graphics\
+           objects are to be drawn using the graphics directive or list of \
+           directives $g$.
     </dl>
     """
 
-    summary_text = "tiny size"
+    summary_text = "rendering properties for faces"
 
 
-class Small(Builtin):
+class FontColor(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/FontColor.html</url>
+
     <dl>
-    <dt>'ImageSize' -> 'Small'
-        <dd>produces a small image.
+      <dt>'FontColor'
+      <dd>is an option for Style to set the font color.
     </dl>
     """
 
-    summary_text = "small size"
+    summary_text = "color of characters"
 
 
-class Medium(Builtin):
+class Inset(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Inset.html</url>
+
     <dl>
-    <dt>'ImageSize' -> 'Medium'
-        <dd>produces a medium-sized image.
+      <dt>'Text[$obj$]'
+      <dd>represents an object $obj$ inset in a graphic.
+
+      <dt>'Text[$obj$, $pos$]'
+      <dd>represents an object $obj$ inset in a graphic at position $pos$.
+
+      <dt>'Text[$obj$, $pos$, $$]'
+      <dd>represents an object $obj$ inset in a graphic at position $pos$, \
+          in away that the position $opos$ of $obj$ coincides with $pos$ \
+          in the enclosing graphic.
     </dl>
     """
 
-    summary_text = "medium size"
+    summary_text = "arbitrary objects in 2D or 3D inset into a larger graphic"
 
 
 class Large(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Large.html</url>
+
     <dl>
-    <dt>'ImageSize' -> 'Large'
-        <dd>produces a large image.
+      <dt>'ImageSize' -> 'Large'
+      <dd>produces a large image.
     </dl>
     """
 
-    summary_text = "large size"
+    summary_text = "large size style or option setting"
+
+
+class Medium(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Medium.html</url>
+
+    <dl>
+      <dt>'ImageSize' -> 'Medium'
+      <dd>produces a medium-sized image.
+    </dl>
+    """
+
+    summary_text = "medium size style or option setting"
+
+
+class Offset(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Offset.html</url>
+
+    <dl>
+      <dt>'Offset[{$dx$, $dy$}, $position$]'
+      <dd>gives the position of a graphical object obtained by starting at the specified $position$ and then moving by absolute offset {$dx$,$dy$}.
+    </dl>
+    """
+
+    summary_text = "offset a graphics object by a specified position"
+
+
+class Rectangle(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Rectangle.html</url>
+
+    <dl>
+      <dt>'Rectangle[{$xmin$, $ymin$}]'
+      <dd>represents a unit square with bottom-left corner at {$xmin$, $ymin$}.
+
+      <dt>'Rectangle[{$xmin$, $ymin$}, {$xmax$, $ymax$}]
+      <dd>is a rectangle extending from {$xmin$, $ymin$} to {$xmax$, $ymax$}.
+    </dl>
+
+    >> Graphics[Rectangle[]]
+     = -Graphics-
+
+    >> Graphics[{Blue, Rectangle[{0.5, 0}], Orange, Rectangle[{0, 0.5}]}]
+     = -Graphics-
+    """
+
+    rules = {"Rectangle[]": "Rectangle[{0, 0}]"}
+    summary_text = "create a 2D filled rectangle graphical object"
+
+
+class Small(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Small.html</url>
+
+    <dl>
+      <dt>'ImageSize' -> 'Small'
+      <dd>produces a small image.
+    </dl>
+    """
+
+    summary_text = "small size style or option setting"
+
+
+class Text(Inset):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Text.html</url>
+
+    <dl>
+      <dt>'Text["$text$", {$x$, $y$}]'
+      <dd>draws $text$ centered on position '{$x$, $y$}'.
+    </dl>
+
+    >> Graphics[{Text["First", {0, 0}], Text["Second", {1, 1}]}, Axes->True, PlotRange->{{-2, 2}, {-2, 2}}]
+     = -Graphics-
+    """
+
+    summary_text = "arbitrary text or other expressions in 2D or 3D"
+
+
+class Thick(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Thick.html</url>
+
+    <dl>
+      <dt>'Thick'
+      <dd>sets the line width for subsequent graphics primitives to 2pt.
+    </dl>
+    """
+
+    rules = {"Thick": "AbsoluteThickness[2]"}
+    summary_text = "graphics directive to make thicker lines"
+
+
+class Thin(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Thin.html</url>
+
+    <dl>
+      <dt>'Thin'
+      <dd>sets the line width for subsequent graphics primitives to 0.5pt.
+    </dl>
+    """
+
+    rules = {"Thin": "AbsoluteThickness[0.5]"}
+    summary_text = "graphics directive to make thinner lines"
+
+
+class Thickness(_Thickness):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Thickness.html</url>
+
+    <dl>
+      <dt>'Thickness[$t$]'
+      <dd>sets the line thickness for subsequent graphics primitives to $t$ times the size of the plot area.
+    </dl>
+
+    >> Graphics[{Thickness[0.2], Line[{{0, 0}, {0, 5}}]}, Axes->True, PlotRange->{{-5, 5}, {-5, 5}}]
+     = -Graphics-
+    """
+
+    summary_text = "graphics directive for line thicknesses"
+
+    def get_thickness(self):
+        return self.graphics.translate_relative(self.value)
+
+
+class Tiny(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Tiny.html</url>
+
+    <dl>
+      <dt>'ImageSize' -> 'Tiny'
+      <dd>produces a tiny image.
+    </dl>
+    """
+
+    summary_text = "tiny size style or option setting"
 
 
 element_heads = frozenset(
-    system_symbols(
-        "Arrow",
-        "BezierCurve",
-        "Circle",
-        "Cone",
-        "Cuboid",
-        "Cylinder",
-        "Disk",
-        "FilledCurve",
-        "Inset",
-        "Line",
-        "Point",
-        "Polygon",
-        "Rectangle",
-        "RegularPolygon",
-        "Sphere",
-        "Style",
-        "Text",
-        "Tube",
-        "UniformPolyhedron",
+    symbol_set(
+        Symbol("System`Arrow"),
+        Symbol("System`BezierCurve"),
+        Symbol("System`Circle"),
+        Symbol("System`Cone"),
+        Symbol("System`Cuboid"),
+        Symbol("System`Cylinder"),
+        Symbol("System`Disk"),
+        Symbol("System`FilledCurve"),
+        Symbol("System`Inset"),
+        Symbol("System`Line"),
+        Symbol("System`Point"),
+        Symbol("System`Polygon"),
+        Symbol("System`Rectangle"),
+        Symbol("System`RegularPolygon"),
+        Symbol("System`Sphere"),
+        Symbol("System`Style"),
+        Symbol("System`Text"),
+        Symbol("System`Tube"),
+        Symbol("System`UniformPolyhedron"),
     )
 )
 
@@ -1467,7 +1605,7 @@ style_options = system_symbols_dict(
 style_heads = frozenset(styles.keys())
 
 style_and_form_heads = frozenset(
-    style_heads.union(system_symbols("System`EdgeForm", "System`FaceForm"))
+    style_heads.union(symbol_set(SymbolEdgeForm, SymbolFaceForm))
 )
 
 GLOBALS.update(
@@ -1487,8 +1625,8 @@ GLOBALS.update(
 GLOBALS.update(styles)
 
 GRAPHICS_SYMBOLS = {
-    Symbol("System`List"),
-    Symbol("System`Rule"),
+    SymbolList,
+    SymbolRule,
     Symbol("System`VertexColors"),
     *element_heads,
     *[Symbol(element.name + "Box") for element in element_heads],

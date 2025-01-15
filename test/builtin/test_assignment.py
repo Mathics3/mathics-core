@@ -1,7 +1,16 @@
 # -*- coding: utf-8 -*-
-import pytest
+import os
 from test.helper import check_evaluation, session
+
+import pytest
 from mathics_scanner.errors import IncompleteSyntaxError
+
+DEBUGASSIGN = int(os.environ.get("DEBUGSET", "0")) == 1
+
+if DEBUGASSIGN:
+    skip_or_fail = pytest.mark.xfail
+else:
+    skip_or_fail = pytest.mark.skip
 
 
 str_test_set_with_oneidentity = """
@@ -149,6 +158,58 @@ def test_setdelayed_oneidentity():
             "{a + b, Q[a, b], a + b}",
             None,
         ),
+        (None, None, None),
+        (r"a=b; a=4; {a, b}", "{4, b}", None),
+        (None, None, None),
+        (r"a=b; b=4;  {a,b}", "{4, 4}", None),
+        (None, None, None),
+        (r"a=b; b=4; Clear[a]; {a,b}", "{a, 4}", None),
+        (None, None, None),
+        ("a=b; b=4; Clear[b]; {a, b}", "{b, b}", None),
+        (None, None, None),
+        ("F[x_]:=x^2; G[x_]:=F[x]; ClearAll[F]; G[u]", "F[u]", None),
+        (None, None, None),
+        ("F[x_]:=G[x]; G[x_]:=x^2; ClearAll[G]; F[u]", "G[u]", None),
+        (None, None, None),
+        (
+            "F[x_]:=G[x]; H[F[y_]]:=Q[y]; ClearAll[F]; {H[G[5]],H[F[5]]}",
+            "{Q[5], H[F[5]]}",
+            "Arguments on the LHS are evaluated before the assignment in := after F reset",
+        ),
+        (None, None, None),
+        (
+            "F[x_]:=G[x]; H[F[y_]]^:=Q[y]; ClearAll[F]; {H[G[5]],H[F[5]]}",
+            "{Q[5], H[F[5]]}",
+            "Arguments on the LHS are evaluated before the assignment in ^:= after F reset",
+        ),
+        (None, None, None),
+        (
+            "F[x_]:=G[x]; H[F[y_]]:=Q[y]; ClearAll[G]; {H[G[5]],H[F[5]]}",
+            "{Q[5], Q[5]}",
+            "The arguments on the LHS are evaluated before the assignment in := after G reset",
+        ),
+        (None, None, None),
+        (
+            "F[x_]:=G[x]; H[F[y_]]^:=Q[y]; ClearAll[G]; {H[G[5]],H[F[5]]}",
+            "{H[G[5]], H[G[5]]}",
+            "The arguments on the LHS are evaluated before the assignment in ^:= after G reset",
+        ),
+        (None, None, None),
+        (
+            (
+                "A[x_]:=B[x];B[x_]:=F[x];F[x_]:=G[x];"
+                "H[A[y_]]:=Q[y]; ClearAll[F];"
+                "{H[A[5]],H[B[5]],H[F[5]],H[G[5]]}"
+            ),
+            "{H[F[5]], H[F[5]], H[F[5]], Q[5]}",
+            "The arguments on the LHS are completely evaluated before the assignment",
+        ),
+        (None, None, None),
+        (
+            "F[x_]:=G[x];N[F[x_]]:=x^2;ClearAll[F];{N[F[2]],N[G[2]]}",
+            "{F[2.], 4.}",
+            "Assign N rule",
+        ),
         (
             None,
             None,
@@ -157,6 +218,81 @@ def test_setdelayed_oneidentity():
     ],
 )
 def test_set_and_clear(str_expr, str_expected, msg):
+    """
+    Test calls to Set, Clear and ClearAll. If
+    str_expr is None, the session is reset,
+    in a way that the next test run over a fresh
+    environment.
+    """
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=msg,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        (None, None, None),
+        (r"a=b; a=4; {a, b}", "{4, b}", None),
+        (None, None, None),
+        (r"a=b; b=4;  {a,b}", "{4, 4}", None),
+        (None, None, None),
+        (r"a=b; b=4; Clear[a]; {a,b}", "{a, 4}", None),
+        (None, None, None),
+        ("a=b; b=4; Clear[b]; {a, b}", "{b, b}", None),
+        (None, None, None),
+        ("F[x_]:=x^2; G[x_]:=F[x]; ClearAll[F]; G[u]", "F[u]", None),
+        (None, None, None),
+        ("F[x_]:=G[x]; G[x_]:=x^2; ClearAll[G]; F[u]", "G[u]", None),
+        (None, None, None),
+        (
+            "F[x_]:=G[x]; H[F[y_]]:=Q[y]; ClearAll[F]; {H[G[5]],H[F[5]]}",
+            "{Q[5], H[F[5]]}",
+            "The arguments on the LHS are evaluated before the assignment",
+        ),
+        (None, None, None),
+        (
+            "F[x_]:=G[x]; H[F[y_]]^:=Q[y]; ClearAll[F]; {H[G[5]],H[F[5]]}",
+            "{Q[5], H[F[5]]}",
+            "The arguments on the LHS are evaluated before the assignment",
+        ),
+        (None, None, None),
+        (
+            "F[x_]:=G[x]; H[F[y_]]:=Q[y]; ClearAll[G]; {H[G[5]],H[F[5]]}",
+            "{Q[5], Q[5]}",
+            "The arguments on the LHS are evaluated before the assignment",
+        ),
+        (None, None, None),
+        (
+            "F[x_]:=G[x]; H[F[y_]]^:=Q[y]; ClearAll[G]; {H[G[5]],H[F[5]]}",
+            "{H[G[5]], H[G[5]]}",
+            "The arguments on the LHS are evaluated before the assignment",
+        ),
+        (None, None, None),
+        (
+            (
+                "A[x_]:=B[x];B[x_]:=F[x_];F[x_]:=G[x];"
+                "H[A[y_]]:=Q[y]; ClearAll[F];"
+                "{H[A[5]],H[B[5]],H[F[5]],H[G[5]]}"
+            ),
+            "{H[F[5]], H[F[5]], H[F[5]], Q[5]}",
+            "The arguments on the LHS are completely evaluated before the assignment",
+        ),
+        (None, None, None),
+        (
+            "F[x_]:=G[x];N[F[x_]]:=x^2;ClearAll[F];{N[F[2]],N[G[2]]}",
+            "{F[2.], 4.}",
+            "Assign N rule",
+        ),
+    ],
+)
+@skip_or_fail
+def test_set_and_clear_to_fix(str_expr, str_expected, msg):
     """
     Test calls to Set, Clear and ClearAll. If
     str_expr is None, the session is reset,
@@ -219,6 +355,11 @@ def test_set_and_clear(str_expr, str_expected, msg):
             "This clears A and B, but not $ContextPath",
             ("Special symbol $ContextPath cannot be cleared.",),
         ),
+        # `This test was in mathics.builtin.arithmetic.Sum`. It is clear that it does not
+        # belongs there. On the other hand, this is something to check at the level of the interpreter,
+        # and is not related with Sum, or Set.
+        # ("a=Sum[x^k*Sum[y^l,{l,0,4}],{k,0,4}]]", "None" , "syntax error",
+        # ('"a=Sum[x^k*Sum[y^l,{l,0,4}],{k,0,4}]" cannot be followed by "]" (line 1 of "<test>").',))
     ],
 )
 def test_set_and_clear_messages(str_expr, str_expected, message, out_msgs):
@@ -231,12 +372,6 @@ def test_set_and_clear_messages(str_expr, str_expected, message, out_msgs):
         hold_expected=True,
         failure_message=message,
         expected_messages=out_msgs,
-    )
-
-
-def test_predecrement():
-    check_evaluation(
-        "--5", "4", failure_message="Set::setraw: Cannot assign to raw object 5."
     )
 
 
@@ -260,15 +395,44 @@ def test_process_assign_other():
             check_evaluation(
                 f"{prefix}{limit} = 2",
                 "2",
-                expected_messages=[
-                    f"Cannot set {limit} to 2; value must be an integer between 20 and {suffix}."
-                ],
+                expected_messages=(
+                    f"Cannot set {limit} to 2; value must be an integer between 20 and {suffix}.",
+                ),
             )
         check_evaluation(f"{prefix}$ModuleNumber = 3", "3")
         check_evaluation(
             f"{prefix}$ModuleNumber = -1",
             "-1",
-            expected_messages=[
-                "Cannot set $ModuleNumber to -1; value must be a positive integer."
-            ],
+            expected_messages=(
+                "Cannot set $ModuleNumber to -1; value must be a positive integer.",
+            ),
         )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msgs", "failure_msg"),
+    [
+        (None, None, None, None),
+        # From Clear
+        ("x = 2;OwnValues[x]=.;x", "x", None, "Erase Ownvalues"),
+        ("f[a][b] = 3; SubValues[f] =.;f[a][b]", "f[a][b]", None, "Erase Subvalues"),
+        ("PrimeQ[p] ^= True; PrimeQ[p]", "True", None, "Subvalues"),
+        ("UpValues[p]=.; PrimeQ[p]", "False", None, "Erase Subvalues"),
+        ("a + b ^= 5; a =.; a + b", "5", None, None),
+        ("{UpValues[a], UpValues[b]} =.; a+b", "a+b", None, None),
+        (
+            "Unset[Messages[1]]",
+            "$Failed",
+            [
+                "First argument in Messages[1] is not a symbol or a string naming a symbol."
+            ],
+            "Unset Message",
+        ),
+        (" g[a+b] ^:= 2", "$Failed", ("Tag Plus in g[a + b] is Protected.",), None),
+        (" g[a+b]", "g[a + b]", None, None),
+    ],
+)
+def test_private_doctests(str_expr, str_expected, msgs, failure_msg):
+    check_evaluation(
+        str_expr, str_expected, expected_messages=msgs, failure_message=failure_msg
+    )

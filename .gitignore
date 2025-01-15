@@ -14,10 +14,14 @@
 .settings
 .vscode
 /.cache
+/.gdbinit
 /.python-version
-/Mathics3.egg-info
+/.pyodide-xbuildenv-*
 /Mathics.egg-info
+/Mathics3.egg-info
 ChangeLog
+ChangeLog.orig
+ChangeLog.rej
 Documents/
 Homepage/
 Test/
@@ -33,9 +37,9 @@ mathics/doc/tex/logo-heptatom.pdf
 mathics/doc/tex/logo-text-nodrop.pdf
 mathics/doc/tex/mathics-*.asy
 mathics/doc/tex/mathics-*.dvi
+mathics/doc/tex/mathics-*.dvi
 mathics/doc/tex/mathics-*.eps
 mathics/doc/tex/mathics-*.pdf
-mathics/doc/tex/mathics-*.dvi
 mathics/doc/tex/mathics-*.tex
 mathics/doc/tex/mathics.aux
 mathics/doc/tex/mathics.dvi

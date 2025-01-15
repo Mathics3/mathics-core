@@ -3,90 +3,44 @@
 """
 Tensors
 
-In mathematics, a tensor is an algebraic object that describes a (multilinear) relationship between sets of algebraic objects related to a vector space. Objects that tensors may map between include vectors and scalars, and even other tensors.
+A <url>:tensor: https://en.wikipedia.org/wiki/Tensor</url> is an algebraic \
+object that describes a (multilinear) relationship between sets of algebraic \
+objects related to a vector space. Objects that tensors may map between \
+include vectors and scalars, and even other tensors.
 
-There are many types of tensors, including scalars and vectors (which are the simplest tensors), dual vectors, multilinear maps between vector spaces, and even some operations such as the dot product. Tensors are defined independent of any basis, although they are often referred to by their components in a basis related to a particular coordinate system.
+There are many types of tensors, including scalars and vectors (which are \
+the simplest tensors), dual vectors, multilinear maps between vector spaces, \
+and even some operations such as the dot product. Tensors are defined \
+independent of any basis, although they are often referred to by their \
+components in a basis related to a particular coordinate system.
 
-Mathics represents tensors of vectors and matrices as lists; tensors of any rank can be handled.
+Mathics3 represents tensors of vectors and matrices as lists; tensors \
+of any rank can be handled.
 """
 
 
-from mathics.algorithm.parts import get_part
-from mathics.builtin.base import Builtin, BinaryOperator
-
-from mathics.core.atoms import (
-    Integer,
-    String,
-)
-from mathics.core.attributes import flat, one_identity, protected
-from mathics.core.expression import Expression
+from mathics.core.atoms import Integer
+from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
+from mathics.core.builtin import Builtin, InfixOperator
+from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
-from mathics.core.rules import Pattern
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    SymbolFalse,
-    SymbolTrue,
+from mathics.eval.tensors import (
+    eval_Inner,
+    eval_LeviCivitaTensor,
+    eval_Outer,
+    get_dimensions,
 )
-
-
-def get_default_distance(p):
-    if all(q.is_numeric() for q in p):
-        return Symbol("SquaredEuclideanDistance")
-    elif all(q.get_head_name() == "System`List" for q in p):
-        dimensions = [get_dimensions(q) for q in p]
-        if len(dimensions) < 1:
-            return None
-        d0 = dimensions[0]
-        if not all(d == d0 for d in dimensions[1:]):
-            return None
-        if len(dimensions[0]) == 1:  # vectors?
-
-            def is_boolean(x):
-                return x.get_head_name() == "System`Symbol" and x in (
-                    SymbolTrue,
-                    SymbolFalse,
-                )
-
-            if all(all(is_boolean(e) for e in q.leaves) for q in p):
-                return Symbol("JaccardDissimilarity")
-        return Symbol("SquaredEuclideanDistance")
-    elif all(isinstance(q, String) for q in p):
-        return Symbol("EditDistance")
-    else:
-        from mathics.builtin.colors.color_directives import expression_to_color
-
-        if all(expression_to_color(q) is not None for q in p):
-            return Symbol("ColorDistance")
-
-        return None
-
-
-def get_dimensions(expr, head=None):
-    if isinstance(expr, Atom):
-        return []
-    else:
-        if head is not None and not expr.head.sameQ(head):
-            return []
-        sub_dim = None
-        sub = []
-        for leaf in expr.leaves:
-            sub = get_dimensions(leaf, expr.head)
-            if sub_dim is None:
-                sub_dim = sub
-            else:
-                if sub_dim != sub:
-                    sub = []
-                    break
-        return [len(expr.leaves)] + sub
 
 
 class ArrayDepth(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/ArrayDepth.html</url>
+
     <dl>
-    <dt>'ArrayDepth[$a$]'
-        <dd>returns the depth of the non-ragged array $a$, defined as
-        'Length[Dimensions[$a$]]'.
+      <dt>'ArrayDepth[$a$]'
+      <dd>returns the depth of the non-ragged array $a$, defined as \
+      'Length[Dimensions[$a$]]'.
     </dl>
 
     >> ArrayDepth[{{a,b},{c,d}}]
@@ -102,75 +56,10 @@ class ArrayDepth(Builtin):
     summary_text = "the rank of a tensor"
 
 
-class ArrayQ(Builtin):
-    """
-    <dl>
-      <dt>'ArrayQ[$expr$]'
-      <dd>tests whether $expr$ is a full array.
-
-      <dt>'ArrayQ[$expr$, $pattern$]'
-      <dd>also tests whether the array depth of $expr$ matches $pattern$.
-
-      <dt>'ArrayQ[$expr$, $pattern$, $test$]'
-      <dd>furthermore tests whether $test$ yields 'True' for all elements of $expr$.
-        'ArrayQ[$expr$]' is equivalent to 'ArrayQ[$expr$, _, True&]'.
-    </dl>
-
-    >> ArrayQ[a]
-     = False
-    >> ArrayQ[{a}]
-     = True
-    >> ArrayQ[{{{a}},{{b,c}}}]
-     = False
-    >> ArrayQ[{{a, b}, {c, d}}, 2, SymbolQ]
-     = True
-    """
-
-    rules = {
-        "ArrayQ[expr_]": "ArrayQ[expr, _, True&]",
-        "ArrayQ[expr_, pattern_]": "ArrayQ[expr, pattern, True&]",
-    }
-
-    summary_text = "test whether an object is a tensor of a given rank"
-
-    def apply(self, expr, pattern, test, evaluation):
-        "ArrayQ[expr_, pattern_, test_]"
-
-        pattern = Pattern.create(pattern)
-
-        dims = [len(expr.get_elements())]  # to ensure an atom is not an array
-
-        def check(level, expr):
-            if not expr.has_form("List", None):
-                test_expr = Expression(test, expr)
-                if test_expr.evaluate(evaluation) != SymbolTrue:
-                    return False
-                level_dim = None
-            else:
-                level_dim = len(expr.leaves)
-
-            if len(dims) > level:
-                if dims[level] != level_dim:
-                    return False
-            else:
-                dims.append(level_dim)
-            if level_dim is not None:
-                for leaf in expr.leaves:
-                    if not check(level + 1, leaf):
-                        return False
-            return True
-
-        if not check(0, expr):
-            return SymbolFalse
-
-        depth = len(dims) - 1  # None doesn't count
-        if not pattern.does_match(Integer(depth), evaluation):
-            return SymbolFalse
-        return SymbolTrue
-
-
 class Dimensions(Builtin):
     """
+    <url>:WMA: https://reference.wolfram.com/language/ref/Dimensions.html</url>
+
     <dl>
     <dt>'Dimensions[$expr$]'
         <dd>returns a list of the dimensions of the expression $expr$.
@@ -191,27 +80,25 @@ class Dimensions(Builtin):
     The expression can have any head:
     >> Dimensions[f[f[a, b, c]]]
      = {1, 3}
-
-    #> Dimensions[{}]
-     = {0}
-    #> Dimensions[{{}}]
-     = {1, 0}
     """
 
     summary_text = "the dimensions of a tensor"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation):
         "Dimensions[expr_]"
 
         return ListExpression(*[Integer(dim) for dim in get_dimensions(expr)])
 
 
-class Dot(BinaryOperator):
+class Dot(InfixOperator):
     """
+    <url>:Dot product:https://en.wikipedia.org/wiki/Dot_product</url> \
+    (<url>:WMA link: https://reference.wolfram.com/language/ref/Dot.html</url>)
+
     <dl>
-    <dt>'Dot[$x$, $y$]'
-    <dt>'$x$ . $y$'
-        <dd>computes the vector dot product or matrix product $x$ . $y$.
+      <dt>'Dot[$x$, $y$]'
+      <dt>'$x$ . $y$'
+      <dd>computes the vector dot product or matrix product $x$ . $y$.
     </dl>
 
     Scalar product of vectors:
@@ -227,9 +114,7 @@ class Dot(BinaryOperator):
      = a . b
     """
 
-    operator = "."
-    precedence = 490
-    attributes = flat | one_identity | protected
+    attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
 
     rules = {
         "Dot[a_List, b_List]": "Inner[Times, a, b, Plus]",
@@ -240,6 +125,8 @@ class Dot(BinaryOperator):
 
 class Inner(Builtin):
     """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/Inner.html</url>
+
     <dl>
     <dt>'Inner[$f$, $x$, $y$, $g$]'
         <dd>computes a generalised inner product of $x$ and $y$, using
@@ -260,21 +147,12 @@ class Inner(Builtin):
     Inner works with tensors of any depth:
     >> Inner[f, {{{a, b}}, {{c, d}}}, {{1}, {2}}, g]
      = {{{g[f[a, 1], f[b, 2]]}}, {{g[f[c, 1], f[d, 2]]}}}
-
-
-    ## Issue #670
-    #> A = {{ b ^ ( -1 / 2), 0}, {a * b ^ ( -1 / 2 ), b ^ ( 1 / 2 )}}
-     = {{1 / Sqrt[b], 0}, {a / Sqrt[b], Sqrt[b]}}
-    #> A . Inverse[A]
-     = {{1, 0}, {0, 1}}
-    #> A
-     = {{1 / Sqrt[b], 0}, {a / Sqrt[b], Sqrt[b]}}
     """
 
     messages = {
         "incom": (
             "Length `1` of dimension `2` in `3` is incommensurate with "
-            "length `4` of dimension 1 in `5."
+            "length `4` of dimension 1 in `5`."
         ),
     }
 
@@ -284,57 +162,20 @@ class Inner(Builtin):
 
     summary_text = "generalized inner product"
 
-    def apply(self, f, list1, list2, g, evaluation):
+    def eval(self, f, list1, list2, g, evaluation: Evaluation):
         "Inner[f_, list1_, list2_, g_]"
 
-        m = get_dimensions(list1)
-        n = get_dimensions(list2)
-
-        if not m or not n:
-            evaluation.message("Inner", "normal")
-            return
-        if list1.get_head() != list2.get_head():
-            evaluation.message("Inner", "heads", list1.get_head(), list2.get_head())
-            return
-        if m[-1] != n[0]:
-            evaluation.message("Inner", "incom", m[-1], len(m), list1, n[0], list2)
-            return
-
-        head = list1.get_head()
-        inner_dim = n[0]
-
-        def rec(i_cur, j_cur, i_rest, j_rest):
-            evaluation.check_stopped()
-            if i_rest:
-                leaves = []
-                for i in range(1, i_rest[0] + 1):
-                    leaves.append(rec(i_cur + [i], j_cur, i_rest[1:], j_rest))
-                return Expression(head, *leaves)
-            elif j_rest:
-                leaves = []
-                for j in range(1, j_rest[0] + 1):
-                    leaves.append(rec(i_cur, j_cur + [j], i_rest, j_rest[1:]))
-                return Expression(head, *leaves)
-            else:
-
-                def summand(i):
-                    part1 = get_part(list1, i_cur + [i])
-                    part2 = get_part(list2, [i] + j_cur)
-                    return Expression(f, part1, part2)
-
-                part = Expression(g, *[summand(i) for i in range(1, inner_dim + 1)])
-                # cur_expr.leaves.append(part)
-                return part
-
-        return rec([], [], m[:-1], n[1:])
+        return eval_Inner(f, list1, list2, g, evaluation)
 
 
 class Outer(Builtin):
     """
+    <url>:Outer product:https://en.wikipedia.org/wiki/Outer_product</url> \
+    (<url>:WMA link: https://reference.wolfram.com/language/ref/Outer.html</url>)
+
     <dl>
-    <dt>'Outer[$f$, $x$, $y$]'
-        <dd>computes a generalised outer product of $x$ and $y$, using
-        the function $f$ in place of multiplication.
+      <dt>'Outer[$f$, $x$, $y$]'
+      <dd>computes a generalised outer product of $x$ and $y$, using the function $f$ in place of multiplication.
     </dl>
 
     >> Outer[f, {a, b}, {1, 2, 3}]
@@ -344,9 +185,20 @@ class Outer(Builtin):
     >> Outer[Times, {{a, b}, {c, d}}, {{1, 2}, {3, 4}}]
      = {{{{a, 2 a}, {3 a, 4 a}}, {{b, 2 b}, {3 b, 4 b}}}, {{{c, 2 c}, {3 c, 4 c}}, {{d, 2 d}, {3 d, 4 d}}}}
 
+    Outer product of two sparse arrays:
+    >> Outer[Times, SparseArray[{{1, 2} -> a, {2, 1} -> b}], SparseArray[{{1, 2} -> c, {2, 1} -> d}]]
+     = SparseArray[Automatic, {2, 2, 2, 2}, 0, {{1, 2, 1, 2} -> a c, {1, 2, 2, 1} -> a d, {2, 1, 1, 2} -> b c, {2, 1, 2, 1} -> b d}]
+
     'Outer' of multiple lists:
     >> Outer[f, {a, b}, {x, y, z}, {1, 2}]
      = {{{f[a, x, 1], f[a, x, 2]}, {f[a, y, 1], f[a, y, 2]}, {f[a, z, 1], f[a, z, 2]}}, {{f[b, x, 1], f[b, x, 2]}, {f[b, y, 1], f[b, y, 2]}, {f[b, z, 1], f[b, z, 2]}}}
+
+    'Outer' converts input sparse arrays to lists if f=!=Times, or if the input is a mixture of sparse arrays and lists:
+    >> Outer[f, SparseArray[{{1, 2} -> a, {2, 1} -> b}], SparseArray[{{1, 2} -> c, {2, 1} -> d}]]
+     = {{{{f[0, 0], f[0, c]}, {f[0, d], f[0, 0]}}, {{f[a, 0], f[a, c]}, {f[a, d], f[a, 0]}}}, {{{f[b, 0], f[b, c]}, {f[b, d], f[b, 0]}}, {{f[0, 0], f[0, c]}, {f[0, d], f[0, 0]}}}}
+
+    >> Outer[Times, SparseArray[{{1, 2} -> a, {2, 1} -> b}], {c, d}]
+     = {{{0, 0}, {a c, a d}}, {{b c, b d}, {0, 0}}}
 
     Arrays can be ragged:
     >> Outer[Times, {{1, 2}}, {{a, b}, {c, d, e}}]
@@ -366,39 +218,16 @@ class Outer(Builtin):
 
     summary_text = "generalized outer product"
 
-    def apply(self, f, lists, evaluation):
+    def eval(self, f, lists, evaluation: Evaluation):
         "Outer[f_, lists__]"
 
-        lists = lists.get_sequence()
-        head = None
-        for list in lists:
-            if isinstance(list, Atom):
-                evaluation.message("Outer", "normal")
-                return
-            if head is None:
-                head = list.head
-            elif not list.head.sameQ(head):
-                evaluation.message("Outer", "heads", head, list.head)
-                return
-
-        def rec(item, rest_lists, current):
-            evaluation.check_stopped()
-            if isinstance(item, Atom) or not item.head.sameQ(head):
-                if rest_lists:
-                    return rec(rest_lists[0], rest_lists[1:], current + [item])
-                else:
-                    return Expression(f, *(current + [item]))
-            else:
-                leaves = []
-                for leaf in item.leaves:
-                    leaves.append(rec(leaf, rest_lists, current))
-                return Expression(head, *leaves)
-
-        return rec(lists[0], lists[1:], [])
+        return eval_Outer(f, lists, evaluation)
 
 
 class RotationTransform(Builtin):
     """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/RotationTransform.html</url>
+
     <dl>
       <dt>'RotationTransform[$phi$]'
       <dd>gives a rotation by $phi$.
@@ -417,6 +246,8 @@ class RotationTransform(Builtin):
 
 class ScalingTransform(Builtin):
     """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ScalingTransform.html</url>
+
     <dl>
       <dt>'ScalingTransform[$v$]'
       <dd>gives a scaling transform of $v$. $v$ may be a scalar or a vector.
@@ -435,6 +266,8 @@ class ScalingTransform(Builtin):
 
 class ShearingTransform(Builtin):
     """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ShearingTransform.html</url>
+
     <dl>
     <dt>'ShearingTransform[$phi$, {1, 0}, {0, 1}]'
         <dd>gives a horizontal shear by the angle $phi$.
@@ -455,6 +288,8 @@ class ShearingTransform(Builtin):
 
 class TransformationFunction(Builtin):
     """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/TransformationFunction.html</url>
+
     <dl>
       <dt>'TransformationFunction[$m$]'
       <dd>represents a transformation.
@@ -476,31 +311,49 @@ class TransformationFunction(Builtin):
 
 class TranslationTransform(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/TranslationTransform.html</url>
+
     <dl>
       <dt>'TranslationTransform[$v$]'
-      <dd>gives the translation by the vector $v$.
+      <dd>gives a 'TransformationFunction' that translates points by vector $v$.
     </dl>
 
-    >> TranslationTransform[{1, 2}]
-     = TransformationFunction[{{1, 0, 1}, {0, 1, 2}, {0, 0, 1}}]
+    >> t = TranslationTransform[{x0, y0}]
+     = TransformationFunction[{{1, 0, x0}, {0, 1, y0}, {0, 0, 1}}]
+
+    >> t[{x, y}]
+     = {x + x0, y + y0}
+
+    From <url>
+    :Creating a Sierpinsky gasket with the missing triangles filled in:
+    "https://mathematica.stackexchange.com/questions/7360/creating-a-sierpinski-gasket-with-the-missing-triangles-filled-in/7361#7361</url>:
+    >> Show[Graphics[Table[Polygon[TranslationTransform[{Sqrt[3] (i - j/2), 3 j/2}] /@ {{Sqrt[3]/2, -1/2}, {0, 1}, {-Sqrt[3]/2, -1/2}}], {i, 7}, {j, i}]]]
+     = -Graphics-
     """
 
     rules = {
         "TranslationTransform[v_]": "TransformationFunction[IdentityMatrix[Length[v] + 1] + "
         "(Join[ConstantArray[0, Length[v]], {#}]& /@ Join[v, {0}])]",
     }
-    summary_text = "symbolic representation of translation"
+    summary_text = "create a vector translation function"
 
 
 class Transpose(Builtin):
     """
+    <url>
+    :Transpose: https://en.wikipedia.org/wiki/Transpose</url> (<url>
+    :WMA: https://reference.wolfram.com/language/ref/Transpose.html</url>)
+
     <dl>
-      <dt>'Tranpose[$m$]'
+      <dt>'Transpose[$m$]'
       <dd>transposes rows and columns in the matrix $m$.
     </dl>
 
-    >> Transpose[{{1, 2, 3}, {4, 5, 6}}]
+    >> square = {{1, 2, 3}, {4, 5, 6}}; Transpose[square]
      = {{1, 4}, {2, 5}, {3, 6}}
+
     >> MatrixForm[%]
      = 1   4
      .
@@ -508,18 +361,27 @@ class Transpose(Builtin):
      .
      . 3   6
 
-    #> Transpose[x]
-     = Transpose[x]
+    >> matrix = {{1, 2}, {3, 4}, {5, 6}}; MatrixForm[Transpose[matrix]]
+     = 1   3   5
+     .
+     . 2   4   6
+
+    Transpose is its own inverse. Transposing a matrix twice will give you back the same thing you started out with:
+
+    >> Transpose[Transpose[matrix]] == matrix
+     = True
+
+    #> Clear[matrix, square]
     """
 
     summary_text = "transpose to rearrange indices in any way"
 
-    def apply(self, m, evaluation):
+    def eval(self, m, evaluation: Evaluation):
         "Transpose[m_?MatrixQ]"
 
         result = []
-        for row_index, row in enumerate(m.leaves):
-            for col_index, item in enumerate(row.leaves):
+        for row_index, row in enumerate(m.elements):
+            for col_index, item in enumerate(row.elements):
                 if row_index == 0:
                     result.append([item])
                 else:
@@ -527,22 +389,55 @@ class Transpose(Builtin):
         return ListExpression(*[ListExpression(*row) for row in result])
 
 
-class VectorQ(Builtin):
+class ConjugateTranspose(Builtin):
     """
-    <dl>
-      <dt>'VectorQ[$v$]'
-      <dd>returns 'True' if $v$ is a list of elements which are not themselves lists.
+    <url>
+    :Conjugate transpose: https://en.wikipedia.org/wiki/Conjugate_transpose</url> (<url>
+    :WMA: https://reference.wolfram.com/language/ref/ConjugateTranspose.html</url>)
 
-      <dt>'VectorQ[$v$, $f$]'
-      <dd>returns 'True' if $v$ is a vector and '$f$[$x$]' returns 'True' for each element $x$ of $v$.
+    <dl>
+      <dt>'ConjugateTranspose[$m$]'
+      <dd>gives the conjugate transpose of $m$.
     </dl>
 
-    >> VectorQ[{a, b, c}]
-     = True
+    >> ConjugateTranspose[{{0, I}, {0, 0}}]
+     = {{0, 0}, {-I, 0}}
+
+    >> ConjugateTranspose[{{1, 2 I, 3}, {3 + 4 I, 5, I}}]
+     = {{1, 3 - 4 I}, {-2 I, 5}, {3, -I}}
     """
 
     rules = {
-        "VectorQ[expr_]": "ArrayQ[expr, 1]",
-        "VectorQ[expr_, test_]": "ArrayQ[expr, 1, test]",
+        "ConjugateTranspose[m_]": "Conjugate[Transpose[m]]",
     }
-    summary_text = "test whether an object is a vector"
+    summary_text = "give the conjugate transpose"
+
+
+class LeviCivitaTensor(Builtin):
+    """
+    <url>:Levi-Civita tensor:https://en.wikipedia.org/wiki/Levi-Civita_symbol</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/LeviCivitaTensor.html</url>)
+
+    <dl>
+      <dt>'LeviCivitaTensor[$d$]'
+      <dd>gives the $d$-dimensional Levi-Civita totally antisymmetric tensor.
+    </dl>
+
+    >> LeviCivitaTensor[3]
+     = SparseArray[Automatic, {3, 3, 3}, 0, {{1, 2, 3} -> 1, {1, 3, 2} -> -1, {2, 1, 3} -> -1, {2, 3, 1} -> 1, {3, 1, 2} -> 1, {3, 2, 1} -> -1}]
+
+    >> LeviCivitaTensor[3, List]
+     = {{{0, 0, 0}, {0, 0, 1}, {0, -1, 0}}, {{0, 0, -1}, {0, 0, 0}, {1, 0, 0}}, {{0, 1, 0}, {-1, 0, 0}, {0, 0, 0}}}
+    """
+
+    rules = {
+        "LeviCivitaTensor[d_Integer]/; Greater[d, 0]": "LeviCivitaTensor[d, SparseArray]",
+        "LeviCivitaTensor[d_Integer, List] /; Greater[d, 0]": "LeviCivitaTensor[d, SparseArray] // Normal",
+    }
+
+    summary_text = "give the Levi-Civita tensor with a given dimension"
+
+    def eval(self, d, type, evaluation: Evaluation):
+        "LeviCivitaTensor[d_Integer, type_]"
+
+        return eval_LeviCivitaTensor(d, type)

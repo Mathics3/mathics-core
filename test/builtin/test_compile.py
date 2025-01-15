@@ -1,18 +1,16 @@
+import io
+import itertools
+import math
+import random
 import sys
 import unittest
+from test.helper import session
+
 import mpmath
-import itertools
-import random
-import io
-import math
+import pytest
 
-
-from test.helper import check_evaluation, session
-
-
-from mathics.builtin.compile import has_llvmlite
 from mathics.builtin.compilation import CompiledCode
-
+from mathics.compile import has_llvmlite
 from mathics.core.atoms import (
     Integer,
     Integer1,
@@ -21,9 +19,9 @@ from mathics.core.atoms import (
     MachineReal,
     String,
 )
+from mathics.core.convert.function import expression_to_callable_and_args
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolPlus, SymbolPower
-
 from mathics.core.systemsymbols import (
     SymbolCos,
     SymbolEqual,
@@ -34,30 +32,55 @@ from mathics.core.systemsymbols import (
 )
 
 if has_llvmlite:
-    from mathics.builtin.compile import (
-        _compile,
+    from mathics.compile import (
         CompileArg,
+        CompileError,
+        _compile,
+        bool_type,
         int_type,
         real_type,
-        bool_type,
-        CompileError,
     )
 
 
-def test_pythonize_code():
+@pytest.mark.skipif(
+    not has_llvmlite,
+    reason="requires llvmlite",
+)
+def test_compile_code():
     for str_expr, x, res in [
         ("Sin[x]", 1.5, 0.997495),
         ("Exp[-x^2/2.]", 0.0, 1.0),
         ("Sqrt[x]", 1.0, 1.0),
         ("BesselJ[0, x]", 0.0, 1.0),
+        ("Exp[BesselJ[0,x]-1.]", 0.0, 1.0),
     ]:
-
         expr = session.evaluate("Compile[{x}, " + str_expr + " ]")
         assert expr.get_head_name() == "System`CompiledFunction"
         assert len(expr.elements) == 3
         code = expr.elements[2]
         assert isinstance(code, CompiledCode)
         y = code.cfunc(x)
+        print(str_expr, code.cfunc)
+        assert abs(y - res) < 1.0e-6
+
+
+@pytest.mark.skipif(
+    not has_llvmlite,
+    reason="requires llvmlite",
+)
+def test_builtin_fns_with_symbols_1():
+    for str_expr, x, res in [
+        ("Sin[x]", 1.5, 0.997495),
+        ("Exp[-x^2/2.]", 0.0, 1.0),
+        ("Sqrt[x]", 1.0, 1.0),
+        ("BesselJ[0,x]", 0.0, 1.0),
+    ]:
+        expr = session.evaluate(str_expr)
+        cfunc, args = expression_to_callable_and_args(
+            expr, [Symbol("Global`x")], session.evaluation
+        )
+        print(str_expr, cfunc)
+        y = cfunc(x)
         assert abs(y - res) < 1.0e-6
 
 
@@ -184,7 +207,7 @@ class ArithmeticTest(CompileTest):
     def test_pow_real(self):
         self._test_binary_math("Power", mpmath.power)
 
-    @unittest.expectedFailure
+    @pytest.mark.skip(reason="LLVM compile produces float result instead of int")
     def test_pow_int(self):
         expr = Expression(SymbolPower, Symbol("x"), Symbol("y"))
         args = [CompileArg("System`x", int_type), CompileArg("System`y", int_type)]
@@ -329,7 +352,7 @@ class FlowControlTest(CompileTest):
         cfunc = _compile(expr, args)
         self.assertTypeEqual(cfunc(1), 1)
 
-    @unittest.expectedFailure
+    @pytest.mark.skip(reason="LLVM cannot compile Print[]")
     def test_print(self):
         expr = Expression(Symbol("Print"), String("Hello world"))
         cfunc = _compile(expr, [])

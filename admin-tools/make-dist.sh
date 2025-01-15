@@ -3,11 +3,11 @@ PACKAGE=mathics3
 
 # FIXME put some of the below in a common routine
 function finish {
-  cd $owd
+  cd $mathics_core_owd
 }
 
 cd $(dirname ${BASH_SOURCE[0]})
-owd=$(pwd)
+mathics_core_owd=$(pwd)
 trap finish EXIT
 
 if ! source ./pyenv-versions ; then
@@ -16,17 +16,15 @@ fi
 
 cd ..
 source mathics/version.py
-cp -v ${HOME}/.local/var/mathics/doc_tex_data.pcl mathics/data/
+cp -v ${HOME}/.local/var/mathics/doctest_latex_data.pcl mathics/data/
 
 echo $__version__
 
-for pyversion in $PYVERSIONS; do
-    if ! pyenv local $pyversion ; then
-	exit $?
-    fi
-    rm -fr build
-    python setup.py bdist_egg
-    python setup.py bdist_wheel
-done
-
+pyversion=3.11
+if ! pyenv local $pyversion ; then
+    exit $?
+fi
+rm -fr build
+python setup.py bdist_wheel
 python ./setup.py sdist
+finish

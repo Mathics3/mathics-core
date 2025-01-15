@@ -3,30 +3,30 @@
 """
 Associations
 
-An Association maps keys to values and is similar to a dictionary in Python; it is often sparse in that their key space is much larger than the number of actual keys found in the collection.
+An Association maps keys to values and is similar to a dictionary in Python; \
+it is often sparse in that their key space is much larger than the number of \
+actual keys found in the collection.
 """
 
 
-from mathics.builtin.base import (
-    Builtin,
-    Test,
-)
-from mathics.builtin.box.inout import RowBox
-from mathics.builtin.lists import list_boxes
+from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import Integer
-from mathics.core.attributes import hold_all_complete, protected
+from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED
+from mathics.core.builtin import Builtin, Test
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolAssociation,
-    SymbolMakeBoxes,
-    SymbolMissing,
-)
+from mathics.core.systemsymbols import SymbolAssociation, SymbolMakeBoxes, SymbolMissing
+from mathics.eval.lists import list_boxes
 
 
 class Association(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Association.html</url>
+
     <dl>
       <dt>'Association[$key1$ -> $val1$, $key2$ -> $val2$, ...]'
       <dt>'<|$key1$ -> $val1$, $key2$ -> $val2$, ...|>'
@@ -46,47 +46,15 @@ class Association(Builtin):
     Associations can be nested:
     >> <|a -> x, b -> y, <|a -> z, d -> t|>|>
      = <|a -> z, b -> y, d -> t|>
-
-    #> <|a -> x, b -> y, c -> <|d -> t|>|>
-     = <|a -> x, b -> y, c -> <|d -> t|>|>
-    #> %["s"]
-     = Missing[KeyAbsent, s]
-
-    #> <|a -> x, b + c -> y, {<|{}|>, a -> {z}}|>
-     = <|a -> {z}, b + c -> y|>
-    #> %[a]
-     = {z}
-
-    #> <|"x" -> 1, {y} -> 1|>
-     = <|x -> 1, {y} -> 1|>
-    #> %["x"]
-     = 1
-
-    #> <|<|a -> v|> -> x, <|b -> y, a -> <|c -> z|>, {}, <||>|>, {d}|>[c]
-     =  Association[Association[a -> v] -> x, Association[b -> y, a -> Association[c -> z], {}, Association[]], {d}][c]
-
-    #> <|<|a -> v|> -> x, <|b -> y, a -> <|c -> z|>, {d}|>, {}, <||>|>[a]
-     = Association[Association[a -> v] -> x, Association[b -> y, a -> Association[c -> z], {d}], {}, Association[]][a]
-
-    #> <|<|a -> v|> -> x, <|b -> y, a -> <|c -> z, {d}|>, {}, <||>|>, {}, <||>|>
-     = <|<|a -> v|> -> x, b -> y, a -> Association[c -> z, {d}]|>
-    #> %[a]
-     = Association[c -> z, {d}]
-
-    #> <|a -> x, b -> y, c -> <|d -> t|>|> // ToBoxes
-     = RowBox[{<|, RowBox[{RowBox[{a, ->, x}], ,, RowBox[{b, ->, y}], ,, RowBox[{c, ->, RowBox[{<|, RowBox[{d, ->, t}], |>}]}]}], |>}]
-
-    #> Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]] // ToBoxes
-     = RowBox[{<|, RowBox[{RowBox[{a, ->, x}], ,, RowBox[{b, ->, y}], ,, RowBox[{c, ->, RowBox[{<|, RowBox[{RowBox[{d, ->, t}], ,, RowBox[{e, ->, u}]}], |>}]}]}], |>}]
     """
 
     error_idx = 0
 
-    attributes = hold_all_complete | protected
+    attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED
 
     summary_text = "an association between keys and values"
 
-    def apply_makeboxes(self, rules, f, evaluation):
+    def eval_makeboxes(self, rules, f, evaluation: Evaluation):
         """MakeBoxes[<|rules___|>,
         f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
@@ -115,7 +83,7 @@ class Association(Builtin):
             self.error_idx -= 1
         return expr
 
-    def apply(self, rules, evaluation):
+    def eval(self, rules, evaluation: Evaluation):
         "Association[rules__]"
 
         def make_flatten(exprs, rules_dictionary: dict = {}):
@@ -136,7 +104,7 @@ class Association(Builtin):
         except TypeError:
             return None
 
-    def apply_key(self, rules, key, evaluation):
+    def eval_key(self, rules, key, evaluation: Evaluation):
         "Association[rules__][key_]"
 
         def find_key(exprs, rules_dictionary: dict = {}):
@@ -163,6 +131,8 @@ class Association(Builtin):
 
 class AssociationQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AssociationQ.html</url>
+
     <dl>
       <dt>'AssociationQ[$expr$]'
       <dd>return True if $expr$ is a valid Association object, and False otherwise.
@@ -177,7 +147,7 @@ class AssociationQ(Test):
 
     summary_text = "test if an expression is a valid association"
 
-    def test(self, expr):
+    def test(self, expr) -> bool:
         def validate(elements):
             for element in elements:
                 if element.has_form(("Rule", "RuleDelayed"), 2):
@@ -192,8 +162,28 @@ class AssociationQ(Test):
         return expr.get_head_name() == "System`Association" and validate(expr.elements)
 
 
+class Key(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Key.html</url>
+
+    <dl>
+      <dt>Key[$key$]
+      <dd> represents a key used to access a value in an association.
+      <dt>Key[$key$][$assoc$]
+      <dd>
+    </dl>
+    """
+
+    rules = {
+        "Key[key_][assoc_Association]": "assoc[key]",
+    }
+    summary_text = "indicate a key within a part specification"
+
+
 class Keys(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Keys.html</url>
+
     <dl>
       <dt>'Keys[<|$key1$ -> $val1$, $key2$ -> $val2$, ...|>]'
       <dd>return a list of the keys $keyi$ in an association.
@@ -215,44 +205,9 @@ class Keys(Builtin):
     Keys are listed in the order of their appearance:
     >> Keys[{c -> z, b -> y, a -> x}]
      = {c, b, a}
-
-    #> Keys[a -> x]
-     = a
-
-    #> Keys[{a -> x, a -> y, {a -> z, <|b -> t|>, <||>, {}}}]
-     = {a, a, {a, {b}, {}, {}}}
-
-    #> Keys[{a -> x, a -> y, <|a -> z, {b -> t}, <||>, {}|>}]
-     = {a, a, {a, b}}
-
-    #> Keys[<|a -> x, a -> y, <|a -> z, <|b -> t|>, <||>, {}|>|>]
-     = {a, b}
-
-    #> Keys[<|a -> x, a -> y, {a -> z, {b -> t}, <||>, {}}|>]
-     = {a, b}
-
-    #> Keys[<|a -> x, <|a -> y, b|>|>]
-     : The argument Association[a -> x, Association[a -> y, b]] is not a valid Association or a list of rules.
-     = Keys[Association[a -> x, Association[a -> y, b]]]
-
-    #> Keys[<|a -> x, {a -> y, b}|>]
-     : The argument Association[a -> x, {a -> y, b}] is not a valid Association or a list of rules.
-     = Keys[Association[a -> x, {a -> y, b}]]
-
-    #> Keys[{a -> x, <|a -> y, b|>}]
-     : The argument Association[a -> y, b] is not a valid Association or a list of rules.
-     = Keys[{a -> x, Association[a -> y, b]}]
-
-    #> Keys[{a -> x, {a -> y, b}}]
-     : The argument b is not a valid Association or a list of rules.
-     = Keys[{a -> x, {a -> y, b}}]
-
-    #> Keys[a -> x, b -> y]
-     : Keys called with 2 arguments; 1 argument is expected.
-     = Keys[a -> x, b -> y]
     """
 
-    attributes = protected
+    attributes = A_PROTECTED
 
     messages = {
         "argx": "Keys called with `1` arguments; 1 argument is expected.",
@@ -261,7 +216,7 @@ class Keys(Builtin):
 
     summary_text = "list association keys"
 
-    def apply(self, rules, evaluation):
+    def eval(self, rules, evaluation: Evaluation):
         "Keys[rules___]"
 
         def get_keys(expr):
@@ -278,7 +233,8 @@ class Keys(Builtin):
 
         rules = rules.get_sequence()
         if len(rules) != 1:
-            return evaluation.message("Keys", "argx", Integer(len(rules)))
+            evaluation.message("Keys", "argx", Integer(len(rules)))
+            return
 
         try:
             return get_keys(rules[0])
@@ -288,13 +244,16 @@ class Keys(Builtin):
 
 class Lookup(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Lookup.html</url>
+
     <dl>
       <dt>Lookup[$assoc$, $key$]
-      <dd> looks up the value associated with $key$ in the association $assoc$, or Missing[$KeyAbsent$].
+      <dd>looks up the value associated with $key$ in the association $assoc$, \
+          or Missing[$KeyAbsent$].
     </dl>
     """
 
-    attributes = hold_all_complete
+    attributes = A_HOLD_ALL_COMPLETE
     rules = {
         "Lookup[assoc_?AssociationQ, key_, default_]": "FirstCase[assoc, _[Verbatim[key], val_] :> val, default]",
         "Lookup[assoc_?AssociationQ, key_]": 'Lookup[assoc, key, Missing["KeyAbsent", key]]',
@@ -305,10 +264,15 @@ class Lookup(Builtin):
 
 class Missing(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Missing.html</url>
+
     <dl>
-    <dd>'Missing[]'
-    <dt> represents a data that is misssing.
+      <dd>'Missing[]'
+      <dt> represents a data that is missing.
     </dl>
+
     >> ElementData["Meitnerium","MeltingPoint"]
      = Missing[NotAvailable]
     """
@@ -318,6 +282,8 @@ class Missing(Builtin):
 
 class Values(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Values.html</url>
+
     <dl>
       <dt>'Values[<|$key1$ -> $val1$, $key2$ -> $val2$, ...|>]'
       <dd>return a list of the values $vali$ in an association.
@@ -340,43 +306,9 @@ class Values(Builtin):
     >> Values[{c -> z, b -> y, a -> x}]
      = {z, y, x}
 
-    #> Values[a -> x]
-     = x
-
-    #> Values[{a -> x, a -> y, {a -> z, <|b -> t|>, <||>, {}}}]
-     = {x, y, {z, {t}, {}, {}}}
-
-    #> Values[{a -> x, a -> y, <|a -> z, {b -> t}, <||>, {}|>}]
-     = {x, y, {z, t}}
-
-    #> Values[<|a -> x, a -> y, <|a -> z, <|b -> t|>, <||>, {}|>|>]
-     = {z, t}
-
-    #> Values[<|a -> x, a -> y, {a -> z, {b -> t}, <||>, {}}|>]
-     = {z, t}
-
-    #> Values[<|a -> x, <|a -> y, b|>|>]
-     : The argument Association[a -> x, Association[a -> y, b]] is not a valid Association or a list of rules.
-     = Values[Association[a -> x, Association[a -> y, b]]]
-
-    #> Values[<|a -> x, {a -> y, b}|>]
-     : The argument Association[a -> x, {a -> y, b}] is not a valid Association or a list of rules.
-     = Values[Association[a -> x, {a -> y, b}]]
-
-    #> Values[{a -> x, <|a -> y, b|>}]
-     : The argument {a -> x, Association[a -> y, b]} is not a valid Association or a list of rules.
-     = Values[{a -> x, Association[a -> y, b]}]
-
-    #> Values[{a -> x, {a -> y, b}}]
-     : The argument {a -> x, {a -> y, b}} is not a valid Association or a list of rules.
-     = Values[{a -> x, {a -> y, b}}]
-
-    #> Values[a -> x, b -> y]
-     : Values called with 2 arguments; 1 argument is expected.
-     = Values[a -> x, b -> y]
     """
 
-    attributes = protected
+    attributes = A_PROTECTED
 
     messages = {
         "argx": "Values called with `1` arguments; 1 argument is expected.",
@@ -385,7 +317,7 @@ class Values(Builtin):
 
     summary_text = "list association values"
 
-    def apply(self, rules, evaluation):
+    def eval(self, rules, evaluation: Evaluation):
         "Values[rules___]"
 
         def get_values(expr):
@@ -403,9 +335,10 @@ class Values(Builtin):
 
         rules = rules.get_sequence()
         if len(rules) != 1:
-            return evaluation.message("Values", "argx", Integer(len(rules)))
+            evaluation.message("Values", "argx", Integer(len(rules)))
+            return
 
         try:
             return get_values(rules[0])
         except TypeError:
-            return evaluation.message("Values", "invrl", rules[0])
+            evaluation.message("Values", "invrl", rules[0])

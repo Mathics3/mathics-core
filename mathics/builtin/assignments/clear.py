@@ -4,41 +4,40 @@ Clearing Assignments
 """
 
 
-from mathics.builtin.base import (
-    Builtin,
-    PostfixOperator,
-)
-from mathics.core.attributes import (
-    hold_all,
-    hold_first,
-    listable,
-    locked,
-    no_attributes,
-    protected,
-    read_protected,
-)
-from mathics.core.expression import Expression
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    SymbolNull,
-    system_symbols,
-)
-
-from mathics.core.systemsymbols import (
-    Symbol_Context,
-    Symbol_ContextPath,
-    SymbolFailed,
-    SymbolOptions,
-)
-
+from mathics.core.assignment import is_protected
 from mathics.core.atoms import String
-
-from mathics.builtin.assignments.internals import is_protected
+from mathics.core.attributes import (
+    A_HOLD_ALL,
+    A_HOLD_FIRST,
+    A_LISTABLE,
+    A_LOCKED,
+    A_NO_ATTRIBUTES,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+)
+from mathics.core.builtin import Builtin, PostfixOperator
+from mathics.core.expression import Expression
+from mathics.core.symbols import Atom, Symbol, SymbolNull, symbol_set
+from mathics.core.systemsymbols import (
+    SymbolContext,
+    SymbolContextPath,
+    SymbolDownValues,
+    SymbolFailed,
+    SymbolMessages,
+    SymbolNValues,
+    SymbolOptions,
+    SymbolOwnValues,
+    SymbolSubValues,
+    SymbolUpValues,
+)
 
 
 class Clear(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Clear.html</url>
+
     <dl>
       <dt>'Clear[$symb1$, $symb2$, ...]'
       <dd>clears all values of the given symbols. The arguments can also be given as strings containing symbol names.
@@ -75,9 +74,8 @@ class Clear(Builtin):
     """
 
     allow_locked = True
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     messages = {
-        "ssym": "`1` is not a symbol or a string.",
         "spsym": "Special symbol `1` cannot be cleared.",
     }
     summary_text = "clear all values associated with the LHS or symbol"
@@ -90,7 +88,7 @@ class Clear(Builtin):
         definition.formatvalues = {}
         definition.nvalues = []
 
-    def apply(self, symbols, evaluation):
+    def eval(self, symbols, evaluation):
         "%(name)s[symbols___]"
         if isinstance(symbols, Symbol):
             symbols = [symbols]
@@ -104,7 +102,7 @@ class Clear(Builtin):
         for symbol in symbols:
             if isinstance(symbol, Symbol):
                 symbol_name = symbol.get_name()
-                if symbol in (Symbol_Context, Symbol_ContextPath):
+                if symbol in (SymbolContext, SymbolContextPath):
                     evaluation.message(self.get_name(), "spsym", symbol)
                     continue
                 names = [symbol_name]
@@ -122,7 +120,7 @@ class Clear(Builtin):
                 if is_protected(name, evaluation.definitions):
                     evaluation.message(self.get_name(), "wrsym", Symbol(name))
                     continue
-                if not self.allow_locked and locked & attributes:
+                if not self.allow_locked and A_LOCKED & attributes:
                     evaluation.message(self.get_name(), "locked", Symbol(name))
                     continue
                 # remove the cache for the definition first.
@@ -135,6 +133,10 @@ class Clear(Builtin):
 
 class ClearAll(Clear):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ClearAll.html</url>
+
     <dl>
       <dt>'ClearAll[$symb1$, $symb2$, ...]'
       <dd>clears all values, attributes, messages and options associated with the given symbols.
@@ -161,19 +163,58 @@ class ClearAll(Clear):
 
     def do_clear(self, definition):
         super(ClearAll, self).do_clear(definition)
-        definition.attributes = no_attributes
+        definition.attributes = A_NO_ATTRIBUTES
         definition.messages = []
         definition.options = []
         definition.defaultvalues = []
 
 
+class Remove(Builtin):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Remove.html</url>
+
+    <dl>
+      <dt>'Remove[$x$]'
+      <dd>removes the definition associated to $x$.
+    </dl>
+
+    >> a := 2
+    >> Names["Global`a"]
+     = {a}
+    >> Remove[a]
+    >> Names["Global`a"]
+     = {}
+    """
+
+    attributes = A_HOLD_ALL | A_LOCKED | A_PROTECTED
+
+    summary_text = "remove the definition of a symbol"
+
+    def eval(self, symb, evaluation):
+        """Remove[symb_]"""
+        if isinstance(symb, Symbol):
+            evaluation.definitions.reset_user_definition(symb.name)
+        elif isinstance(symb, String):
+            evaluation.definitions.reset_user_definition(symb.value)
+        else:
+            evaluation.message(self.get_name(), "ssym", symb)
+        return SymbolNull
+
+
 class Unset(PostfixOperator):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Unset.html</url>
+
     <dl>
-    <dt>'Unset[$x$]'
-    <dt>'$x$=.'
-        <dd>removes any value belonging to $x$.
+      <dt>'Unset[$x$]'
+      <dt>'$x$=.'
+      <dd>removes any value belonging to $x$.
     </dl>
+
     >> a = 2
      = 2
     >> a =.
@@ -205,56 +246,25 @@ class Unset(PostfixOperator):
     >> a = b = 3;
     >> {a, {b}} =.
      = {Null, {Null}}
-
-    #> x = 2;
-    #> OwnValues[x] =.
-    #> x
-     = x
-    #> f[a][b] = 3;
-    #> SubValues[f] =.
-    #> f[a][b]
-     = f[a][b]
-    #> PrimeQ[p] ^= True
-     = True
-    #> PrimeQ[p]
-     = True
-    #> UpValues[p] =.
-    #> PrimeQ[p]
-     = False
-
-    #> a + b ^= 5;
-    #> a =.
-    #> a + b
-     = 5
-    #> {UpValues[a], UpValues[b]} =.
-     = {Null, Null}
-    #> a + b
-     = a + b
-
-    #> Unset[Messages[1]]
-     : First argument in Messages[1] is not a symbol or a string naming a symbol.
-     = $Failed
     """
 
-    attributes = hold_first | listable | protected | read_protected
-    operator = "=."
+    attributes = A_HOLD_FIRST | A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
 
     messages = {
         "norep": "Assignment on `2` for `1` not found.",
         "usraw": "Cannot unset raw object `1`.",
     }
-    precedence = 670
     summary_text = "unset a value of the LHS"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "Unset[expr_]"
 
         head = expr.get_head()
         if head in SYSTEM_SYMBOL_VALUES:
-            if len(expr.leaves) != 1:
-                evaluation.message_args(expr.get_head_name(), len(expr.leaves), 1)
+            if len(expr.elements) != 1:
+                evaluation.message_args(expr.get_head_name(), len(expr.elements), 1)
                 return SymbolFailed
-            symbol = expr.leaves[0].get_name()
+            symbol = expr.elements[0].get_name()
             if not symbol:
                 evaluation.message(expr.get_head_name(), "fnsym", expr)
                 return SymbolFailed
@@ -275,12 +285,12 @@ class Unset(PostfixOperator):
         return SymbolNull
 
 
-SYSTEM_SYMBOL_VALUES = system_symbols(
-    "OwnValues",
-    "DownValues",
-    "SubValues",
-    "UpValues",
-    "NValues",
-    "Options",
-    "Messages",
+SYSTEM_SYMBOL_VALUES = symbol_set(
+    SymbolDownValues,
+    SymbolMessages,
+    SymbolNValues,
+    SymbolOptions,
+    SymbolOwnValues,
+    SymbolSubValues,
+    SymbolUpValues,
 )

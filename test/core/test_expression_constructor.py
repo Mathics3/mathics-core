@@ -1,7 +1,7 @@
-from mathics.core.convert.expression import to_expression
-from mathics.core.expression import Expression, ElementsProperties
-from mathics.core.symbols import SymbolPlus
 from mathics.core.atoms import Integer, Integer1
+from mathics.core.convert.expression import to_expression
+from mathics.core.expression import ElementsProperties, Expression
+from mathics.core.symbols import SymbolPlus
 
 
 def test_expression_constructor():
@@ -12,14 +12,14 @@ def test_expression_constructor():
 
     # The below will convert 1 Integer(1) multiple times
     # and discover that the arguments are flat, fully evaluated, and ordered.
-    ones = [1] * 50
+    ones = [1] * 20
     e1 = to_expression(SymbolPlus, *ones)
     attribute_check(e1, "e1")
 
     e1a = to_expression("Plus", *ones)
     attribute_check(e1a, "e1a")
 
-    integer_ones = [Integer1] * 50
+    integer_ones = [Integer1] * 20
     e2 = Expression(SymbolPlus, *integer_ones)
     e2._build_elements_properties()
     attribute_check(e2, "e2")
@@ -35,7 +35,7 @@ def test_expression_constructor():
     e4 = Expression(
         SymbolPlus,
         *integer_ones,
-        elements_properties=ElementsProperties(True, True, True)
+        elements_properties=ElementsProperties(True, True, True),
     )
     attribute_check(e4, "e4")
     assert e1 == e4

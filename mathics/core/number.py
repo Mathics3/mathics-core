@@ -1,41 +1,50 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3
 
-import sympy
-import mpmath
-
-from math import log, ceil
 import string
+from math import ceil, log
+from sys import float_info
+from typing import List, Optional, Union
 
-from typing import List, Optional
+import mpmath
+import sympy
 
+from mathics.core.element import BaseElement
 from mathics.core.symbols import (
-    SymbolMinPrecision,
-    SymbolMaxPrecision,
     SymbolMachinePrecision,
+    SymbolMaxPrecision,
+    SymbolMinPrecision,
 )
 
-C = log(10, 2)  # ~ 3.3219280948873626
+LOG2_10 = mpmath.log(10.0, 2.0)  # ~ 3.3219280948873626
+
+# Number of digits in the mantisa of a normalized floating-point number.
+# In Python as of 2023, almost all machines and platform map
+# Python floats to IEEEE-754 "double precision", which contains exactly
+# 53 bits of precision.
+# (See https://docs.python.org/3/tutorial/floatingpoint.html)
+FP_MANTISA_BINARY_DIGITS = float_info.mant_dig
+
+# The (integer) number of decimal digits in a normalized floating-point number.
+MACHINE_DIGITS = float_info.dig  # ~15
+
+# The difference between 1.0 and the next representable floating-point number:
+MACHINE_EPSILON = float_info.epsilon
+# the number of accurate decimal digits hold by a normalized floating point number.
+MACHINE_PRECISION_VALUE = float_info.mant_dig / LOG2_10
 
 
-# Number of bits of machine precision.
-# Note this is a float, not an int.
-# WMA uses real values for precision, to take into account the internal representation of numbers.
-# This is why $MachinePrecision is not 16, but 15.9546`
-machine_precision = 53.0
-machine_digits = int(machine_precision / C)
+#  Maximum normalized float
+MAX_MACHINE_NUMBER = float_info.max
 
-machine_epsilon = 2 ** (1 - machine_precision)
+#  Minimum positive normalized float
+MIN_MACHINE_NUMBER = float_info.min
 
+# the accuracy associated with 0.`
+ZERO_MACHINE_ACCURACY = -mpmath.log(MIN_MACHINE_NUMBER, 10.0) + MACHINE_PRECISION_VALUE
 
-def reconstruct_digits(bits) -> int:
-    """
-    Number of digits needed to reconstruct a number with given bits of precision.
-
-    >>> reconstruct_digits(53)
-    17
-    """
-    return int(ceil(bits / C) + 1)
+# the (integer) number of decimal digits needed to reconstruct a floating-point number.
+RECONSTRUCT_MACHINE_PRECISION_DIGITS = int(ceil(float_info.mant_dig / LOG2_10) + 1)
 
 
 class PrecisionValueError(Exception):
@@ -50,24 +59,31 @@ class SpecialValueError(Exception):
 def _get_float_inf(value, evaluation) -> Optional[float]:
     value = value.evaluate(evaluation)
     if value.has_form("DirectedInfinity", 1):
-        if value.leaves[0].get_int_value() == 1:
+        if value.elements[0].get_int_value() == 1:
             return float("inf")
-        elif value.leaves[0].get_int_value() == -1:
+        elif value.elements[0].get_int_value() == -1:
             return float("-inf")
         else:
             return None
     return value.round_to_float(evaluation)
 
 
-def get_precision(value, evaluation, show_messages=True) -> Optional[float]:
+def get_precision(
+    value: BaseElement, evaluation, show_messages: bool = True
+) -> Optional[Union[int, float]]:
     """
-    Returns the ``float`` in the interval     [``$MinPrecision``, ``$MaxPrecision``] closest to ``value``.
-    If ``value`` does not belongs to that interval, and ``show_messages`` is True, a Message warning is shown.
+    Returns the ``float`` in the interval [``$MinPrecision``, ``$MaxPrecision``] closest
+    to ``value``.
+
+    If ``value`` does not belongs to that interval, and
+    ``show_messages`` is True, a Message warning is shown.
+
     If ``value`` fails to be evaluated as a number, returns None.
+
     """
     if value is SymbolMachinePrecision:
         return None
-    else:
+    elif hasattr(value, "round_to_float"):
         from mathics.core.atoms import MachineReal
 
         dmin = _get_float_inf(SymbolMinPrecision, evaluation)
@@ -90,6 +106,7 @@ def get_precision(value, evaluation, show_messages=True) -> Optional[float]:
         else:
             return d
         raise PrecisionValueError()
+    return None
 
 
 def get_type(value) -> Optional[str]:
@@ -113,20 +130,29 @@ def sameQ(v1, v2) -> bool:
 
 
 def dps(prec) -> int:
-    return max(1, int(round(int(prec) / C - 1)))
+    return max(1, int(round(int(prec) / LOG2_10 - 1)))
 
 
 def prec(dps) -> int:
-    return max(1, int(round((int(dps) + 1) * C)))
+    return max(1, int(round((int(dps) + 1) * LOG2_10)))
 
 
-def min_prec(*args):
-    result = None
-    for arg in args:
-        prec = arg.get_precision()
-        if result is None or (prec is not None and prec < result):
-            result = prec
-    return result
+def min_prec(*args: BaseElement) -> Optional[int]:
+    """
+    Returns the precision of the expression with the minimum precision.
+    If all the expressions are exact or non numeric, return None.
+
+    If one of the expressions is an inexact value with zero
+    nominal value, then its accuracy is used instead. For example,
+    ```min_prec(1, 0.``4) ``` returns 4.
+
+    Notice that this behaviour is different that the one obtained
+    using mathics.core.numbers.eval_Precision.
+    """
+    args_prec = (arg.get_precision() for arg in args)
+    return min(
+        (arg_prec for arg_prec in args_prec if arg_prec is not None), default=None
+    )
 
 
 def pickle_mp(value):

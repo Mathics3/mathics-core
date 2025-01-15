@@ -3,66 +3,75 @@
 """
 Elements of Lists
 
-Functions for accessing elements of lists using either indices, positions, or patterns of criteria.
+Functions for accessing elements of lists using either indices, positions, or \
+patterns of criteria.
 """
 
 from itertools import chain
 
-from mathics.builtin.base import (
-    BinaryOperator,
-    Builtin,
-    MessageException,
-)
-from mathics.builtin.box.inout import RowBox
-from mathics.builtin.exceptions import InvalidLevelspecError, PartError
-
-from mathics.builtin.lists import list_boxes
-from mathics.algorithm.parts import (
-    _drop_span_selector,
-    _parts,
-    _take_span_selector,
-    deletecases_with_levelspec,
-    python_levelspec,
-    set_part,
-    walk_levels,
-    walk_parts,
-)
-
-
-from mathics.core.atoms import Integer, Integer0, Integer1, String
+from mathics.builtin.box.layout import RowBox
+from mathics.core.atoms import Integer, Integer0, Integer1, Integer3, Integer4, String
 from mathics.core.attributes import (
-    hold_first,
-    hold_rest,
-    n_hold_rest,
-    protected,
-    read_protected,
+    A_HOLD_FIRST,
+    A_HOLD_REST,
+    A_N_HOLD_REST,
+    A_PROTECTED,
+    A_READ_PROTECTED,
 )
-from mathics.core.expression import Expression
+from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.python import from_python
+from mathics.core.evaluation import Evaluation
+from mathics.core.exceptions import (
+    InvalidLevelspecError,
+    MessageException,
+    PartDepthError,
+    PartError,
+    PartRangeError,
+)
+from mathics.core.expression import Expression, ExpressionInfinity
 from mathics.core.list import ListExpression
 from mathics.core.rules import Rule
 from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAppend,
+    SymbolAppendTo,
     SymbolByteArray,
+    SymbolDrop,
     SymbolFailed,
     SymbolInfinity,
+    SymbolKey,
     SymbolMakeBoxes,
     SymbolMissing,
+    SymbolSelect,
     SymbolSequence,
     SymbolSet,
+    SymbolTake,
 )
+from mathics.eval.list.eol import (
+    drop_span_selector,
+    eval_Part,
+    parts,
+    take_span_selector,
+)
+from mathics.eval.lists import delete_one, delete_rec, list_boxes
+from mathics.eval.parts import (
+    deletecases_with_levelspec,
+    python_levelspec,
+    set_part,
+    walk_levels,
+)
+from mathics.eval.patterns import Matcher
 
-SymbolAppendTo = Symbol("AppendTo")
-SymbolDeleteCases = Symbol("DeleteCases")
-SymbolDrop = Symbol("Drop")
-SymbolPrepend = Symbol("Prepend")
-SymbolPrependTo = Symbol("PrependTo")
-SymbolTake = Symbol("Take")
+SymbolDeleteCases = Symbol("System`DeleteCases")
+SymbolPrepend = Symbol("System`Prepend")
+SymbolPrependTo = Symbol("System`PrependTo")
 
 
 class Append(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Append.html</url>
+
     <dl>
       <dt>'Append[$expr$, $elem$]'
       <dd>returns $expr$ with $elem$ appended.
@@ -78,23 +87,22 @@ class Append(Builtin):
     Unlike 'Join', 'Append' does not flatten lists in $item$:
     >> Append[{a, b}, {c, d}]
      = {a, b, {c, d}}
-
-    #> Append[a, b]
-     : Nonatomic expression expected.
-     = Append[a, b]
     """
 
     summary_text = "add an element at the end of an expression"
 
-    def apply(self, expr, item, evaluation):
+    def eval(self, expr, item, evaluation):
         "Append[expr_, item_]"
 
         if isinstance(expr, Atom):
-            return evaluation.message("Append", "normal")
+            evaluation.message(
+                "Append", "normal", Integer1, Expression(SymbolAppend, expr, item)
+            )
+            return
 
         return expr.restructure(
             expr.head,
-            list(chain(expr.get_elements(), [item])),
+            list(chain(expr.elements, [item])),
             evaluation,
             deps=(expr, item),
         )
@@ -102,9 +110,12 @@ class Append(Builtin):
 
 class AppendTo(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/AppendTo.html</url>
+
     <dl>
-    <dt>'AppendTo[$s$, $elem$]'
-        <dd>append $elem$ to value of $s$ and sets $s$ to the result.
+      <dt>'AppendTo[$s$, $elem$]'
+      <dd>append $elem$ to value of $s$ and sets $s$ to the result.
     </dl>
 
     >> s = {};
@@ -119,28 +130,18 @@ class AppendTo(Builtin):
      = f[x]
     >> y
      = f[x]
-
-    #> AppendTo[{}, 1]
-     : {} is not a variable with a value, so its value cannot be changed.
-     = AppendTo[{}, 1]
-
-    #> AppendTo[a, b]
-     : a is not a variable with a value, so its value cannot be changed.
-     = AppendTo[a, b]
     """
 
-    attributes = hold_first | protected
+    attributes = A_HOLD_FIRST | A_PROTECTED
 
-    messages = {
-        "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
-    }
     summary_text = "add an element at the end of an stored list or expression"
 
-    def apply(self, s, element, evaluation):
+    def eval(self, s, element, evaluation):
         "AppendTo[s_, element_]"
         resolved_s = s.evaluate(evaluation)
         if s == resolved_s:
-            return evaluation.message("AppendTo", "rvalue", s)
+            evaluation.message("AppendTo", "rvalue", s)
+            return
 
         if not isinstance(resolved_s, Atom):
             result = Expression(
@@ -148,13 +149,15 @@ class AppendTo(Builtin):
             )
             return result.evaluate(evaluation)
 
-        return evaluation.message(
-            "AppendTo", "normal", Expression(SymbolAppendTo, s, element)
+        evaluation.message(
+            "AppendTo", "normal", Integer1, Expression(SymbolAppendTo, s, element)
         )
 
 
 class Cases(Builtin):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Cases.html</url>
+
     <dl>
       <dt>'Cases[$list$, $pattern$]'
       <dd>returns the elements of $list$ that match $pattern$.
@@ -178,28 +181,6 @@ class Cases(Builtin):
     Also include the head of the expression in the previous search:
     >> Cases[{b, 6, \[Pi]}, _Symbol, Heads -> True]
      = {List, b, Pi}
-
-    #> Cases[1, 2]
-     = {}
-
-    #> Cases[f[1, 2], 2]
-     = {2}
-
-    #> Cases[f[f[1, 2], f[2]], 2]
-     = {}
-    #> Cases[f[f[1, 2], f[2]], 2, 2]
-     = {2, 2}
-    #> Cases[f[f[1, 2], f[2], 2], 2, Infinity]
-     = {2, 2, 2}
-
-    #> Cases[{1, f[2], f[3, 3, 3], 4, f[5, 5]}, f[x__] :> Plus[x]]
-     = {2, 9, 10}
-    #> Cases[{1, f[2], f[3, 3, 3], 4, f[5, 5]}, f[x__] -> Plus[x]]
-     = {2, 3, 3, 3, 5, 5}
-
-    ## Issue 531
-    #> z = f[x, y]; x = 1; Cases[z, _Symbol, Infinity]
-     = {y}
     """
 
     rules = {
@@ -212,32 +193,31 @@ class Cases(Builtin):
 
     summary_text = "list elements matching a pattern"
 
-    def apply(self, items, pattern, ls, evaluation, options):
+    def eval(self, items, pattern, ls, evaluation, options):
         "Cases[items_, pattern_, ls_:{1}, OptionsPattern[]]"
         if isinstance(items, Atom):
             return ListExpression()
-
-        from mathics.builtin.patterns import Matcher
 
         if ls.has_form("Rule", 2):
             if ls.elements[0].get_name() == "System`Heads":
                 heads = ls.elements[1] is SymbolTrue
                 ls = ListExpression(Integer1)
             else:
-                return evaluation.message("Position", "level", ls)
+                evaluation.message("Position", "level", ls)
+                return
         else:
             heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
 
         try:
             start, stop = python_levelspec(ls)
         except InvalidLevelspecError:
-            return evaluation.message("Position", "level", ls)
+            evaluation.message("Position", "level", ls)
+            return
 
         results = []
 
         if pattern.has_form("Rule", 2) or pattern.has_form("RuleDelayed", 2):
-
-            match = Matcher(pattern.elements[0]).match
+            match = Matcher(pattern.elements[0], evaluation).match
             rule = Rule(pattern.elements[0], pattern.elements[1])
 
             def callback(level):
@@ -248,7 +228,7 @@ class Cases(Builtin):
                 return level
 
         else:
-            match = Matcher(pattern).match
+            match = Matcher(pattern, evaluation).match
 
             def callback(level):
                 if match(level, evaluation):
@@ -262,6 +242,8 @@ class Cases(Builtin):
 
 class Count(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Count.html</url>
+
     <dl>
       <dt>'Count[$list$, $pattern$]'
       <dd>returns the number of times $pattern$ appears in $list$.
@@ -284,10 +266,161 @@ class Count(Builtin):
     summary_text = "count the number of occurrences of a pattern"
 
 
+class Delete(Builtin):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Delete.html</url>
+
+    <dl>
+      <dt>'Delete[$expr$, $i$]'
+      <dd>deletes the element at position $i$ in $expr$. The position is counted from the end if $i$ is negative.
+      <dt>'Delete[$expr$, {$m$, $n$, ...}]'
+      <dd>deletes the element at position {$m$, $n$, ...}.
+      <dt>'Delete[$expr$, {{$m1$, $n1$, ...}, {$m2$, $n2$, ...}, ...}]'
+      <dd>deletes the elements at several positions.
+    </dl>
+
+    Delete the element at position 3:
+    >> Delete[{a, b, c, d}, 3]
+     = {a, b, d}
+
+    Delete at position 2 from the end:
+    >> Delete[{a, b, c, d}, -2]
+     = {a, b, d}
+
+    Delete at positions 1 and 3:
+    >> Delete[{a, b, c, d}, {{1}, {3}}]
+     = {b, d}
+
+    Delete in a 2D array:
+    >> Delete[{{a, b}, {c, d}}, {2, 1}]
+     = {{a, b}, {d}}
+
+    Deleting the head of a whole expression gives a Sequence object:
+    >> Delete[{a, b, c}, 0]
+     = Sequence[a, b, c]
+
+    Delete in an expression with any head:
+    >> Delete[f[a, b, c, d], 3]
+     = f[a, b, d]
+
+    Delete a head to splice in its arguments:
+    >> Delete[f[a, b, u + v, c], {3, 0}]
+     = f[a, b, u, v, c]
+
+    >> Delete[{a, b, c}, 0]
+     = Sequence[a, b, c]
+
+    Delete without the position:
+    >> Delete[{a, b, c, d}]
+     : Delete called with 1 argument; 2 arguments are expected.
+     = Delete[{a, b, c, d}]
+
+    Delete with many arguments:
+    >> Delete[{a, b, c, d}, 1, 2]
+     : Delete called with 3 arguments; 2 arguments are expected.
+     = Delete[{a, b, c, d}, 1, 2]
+
+    Delete the element out of range:
+    >> Delete[{a, b, c, d}, 5]
+     : Part {5} of {a, b, c, d} does not exist.
+     = Delete[{a, b, c, d}, 5]
+
+    #> Delete[{a, b, c, d}, {1, 2}]
+     : Part 2 of {a, b, c, d} does not exist.
+     = Delete[{a, b, c, d}, {1, 2}]
+
+    Delete the position not integer:
+    >> Delete[{a, b, c, d}, {1, n}]
+     : Position specification n in {a, b, c, d} is not a machine-sized integer or a list of machine-sized integers.
+     = Delete[{a, b, c, d}, {1, n}]
+    """
+
+    messages = {
+        # FIXME: This message doesn't exist in more modern WMA, and
+        # Delete *can* take more than 2 arguments.
+        "argr": "Delete called with 1 argument; 2 arguments are expected.",
+        "argt": "Delete called with `1` arguments; 2 arguments are expected.",
+        "pkspec": "The expression `1` cannot be used as a part specification. Use `2` instead.",
+    }
+    summary_text = "delete elements from a list at given positions"
+
+    def eval_one(self, expr, position: Integer, evaluation):
+        "Delete[expr_, position_Integer]"
+        pos = position.value
+        try:
+            return delete_one(expr, pos)
+        except PartRangeError:
+            evaluation.message("Part", "partw", ListExpression(position), expr)
+        except PartDepthError:
+            evaluation.message("Part", "partw", ListExpression(position), expr)
+
+    def eval(self, expr, positions, evaluation):
+        "Delete[expr_, positions___]"
+        positions = positions.get_sequence()
+        if len(positions) > 1:
+            evaluation.message("Delete", "argt", Integer(len(positions) + 1))
+            return
+        elif len(positions) == 0:
+            evaluation.message("Delete", "argr")
+            return
+
+        positions = positions[0]
+        if not positions.has_form("List", None):
+            evaluation.message(
+                "Delete", "pkspec", positions, Expression(SymbolKey, positions)
+            )
+            return
+
+        elements = positions.elements
+        if len(elements) == 0:
+            return expr
+
+        # Create new python list of the positions and sort it
+
+        positions = (
+            [t for t in elements]
+            if isinstance(elements[0], ListExpression)
+            else [positions]
+        )
+        positions.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
+        newexpr = expr
+        for position in positions:
+            pos = [p.get_int_value() for p in position.get_elements()]
+            if None in pos:
+                evaluation.message(
+                    "Delete", "psl", position.elements[pos.index(None)], expr
+                )
+                return
+            if len(pos) == 0:
+                evaluation.message("Delete", "psl", ListExpression(*positions), expr)
+                return
+            try:
+                newexpr = delete_rec(newexpr, pos)
+            except PartDepthError as exc:
+                evaluation.message("Part", "partw", Integer(exc.index), expr)
+                return
+            except PartError:
+                evaluation.message(
+                    "Part", "partw", ListExpression(*(Integer(p) for p in pos)), expr
+                )
+                return
+        return newexpr
+
+
+# TODO: seems to want to produces a fancy box for failure.
+#    rules = {'Failure /: MakeBoxes[Failure[tag_, assoc_Association], StandardForm]' :
+# 		'With[{msg = assoc["MessageTemplate"], msgParam = assoc["MessageParameters"], type = assoc["Type"]}, ToBoxes @ Interpretation["Failure" @ Panel @ Grid[{{Style["\[WarningSign]", "Message", FontSize -> 35], Style["Message:", FontColor->GrayLevel[0.5]], ToString[StringForm[msg, Sequence @@ msgParam], StandardForm]}, {SpanFromAbove, Style["Tag:", FontColor->GrayLevel[0.5]], ToString[tag, StandardForm]},{SpanFromAbove,Style["Type:", FontColor->GrayLevel[0.5]],ToString[type, StandardForm]}},Alignment -> {Left, Top}], Failure[tag, assoc]] /; msg =!= Missing["KeyAbsent", "MessageTemplate"] && msgParam =!= Missing["KeyAbsent", "MessageParameters"] && msgParam =!= Missing["KeyAbsent", "Type"]]',
+#     }
+
+
 class DeleteCases(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DeleteCases.html</url>
+
     <dl>
-     <dt>'DeleteCases[$list$, $pattern$]'
+      <dt>'DeleteCases[$list$, $pattern$]'
       <dd>returns the elements of $list$ that do not match $pattern$.
 
       <dt>'DeleteCases[$list$, $pattern$, $levelspec$]'
@@ -302,56 +435,69 @@ class DeleteCases(Builtin):
 
     >> DeleteCases[{a, b, 1, c, 2, 3}, _Symbol]
      = {1, 2, 3}
-
-    ## Issue 531
-    #> z = {x, y}; x = 1; DeleteCases[z, _Symbol]
-     = {1}
     """
 
     messages = {
         "level": "Level specification `1` is not of the form n, {n}, or {m, n}.",
-        "innf": "Non-negative integer or Infinity expected at position 4 in `1`",
     }
     summary_text = "delete all occurrences of a pattern"
 
-    def apply_ls_n(self, items, pattern, levelspec, n, evaluation):
+    def eval_ls_n(self, items, pattern, levelspec, n, evaluation):
         "DeleteCases[items_, pattern_, levelspec_:1, n_:System`Infinity]"
 
         if isinstance(items, Atom):
-            evaluation.message("Select", "normal")
+            evaluation.message(
+                "DeleteCases",
+                "normal",
+                Integer1,
+                Expression(SymbolDeleteCases, items, pattern, levelspec, n),
+            )
             return
         # If levelspec is specified to a non-trivial value,
         # we need to proceed with this complicate procedure
         # involving 1) decode what is the levelspec means
-        # 2) find all the occurences
-        # 3) Set all the occurences to ```System`Nothing```
+        # 2) find all the occurrences
+        # 3) Set all the occurrences to ```System`Nothing```
 
         levelspec = python_levelspec(levelspec)
 
-        if n is SymbolInfinity:
+        if n is SymbolInfinity or ExpressionInfinity == n:
             n = -1
-        elif n.get_head_name() == "System`Integer":
-            n = n.get_int_value()
+        elif isinstance(n, Integer):
+            n = n.value
             if n < 0:
                 evaluation.message(
                     "DeleteCases",
                     "innf",
-                    Expression(SymbolDeleteCases, items, pattern, levelspec, n),
+                    Integer4,
+                    Expression(
+                        SymbolDeleteCases,
+                        items,
+                        pattern,
+                        *from_python(levelspec),
+                        Integer(n),
+                    ),
                 )
         else:
             evaluation.message(
                 "DeleteCases",
                 "innf",
-                Expression(SymbolDeleteCases, items, pattern, levelspec, n),
+                Integer4,
+                Expression(
+                    SymbolDeleteCases,
+                    items,
+                    pattern,
+                    *from_python(levelspec),
+                    Integer(n),
+                ),
             )
             return SymbolNull
 
         if levelspec[0] != 1 or levelspec[1] != 1:
             return deletecases_with_levelspec(items, pattern, evaluation, levelspec, n)
         # A more efficient way to proceed if levelspec == 1
-        from mathics.builtin.patterns import Matcher
 
-        match = Matcher(pattern).match
+        match = Matcher(pattern, evaluation).match
         if n == -1:
 
             def cond(element):
@@ -373,26 +519,29 @@ class DeleteCases(Builtin):
             return items.filter("List", condn, evaluation)
 
 
-class _DeleteDuplicatesBin:
-    def __init__(self, item):
-        self._item = item
-        self.add_to = lambda elem: None
-
-    def from_python(self):
-        return self._item
-
-
 class Drop(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Drop.html</url>
+
     <dl>
-      <dt>'Drop[$expr$, $n$]'
-      <dd>returns $expr$ with the first $n$ elements removed.
+      <dt>'Drop[$list$, $n$]'
+      <dd>returns $list$ with the first $n$ elements removed.
+      <dt>'Drop[$list$, -$n$]'
+      <dd>returns $list$ with its last $n$ elements removed.
+      <dt>'Drop[$list$, {$m$, $n$}]'
+      <dd>returns $list$ with elements $m$ though $n$ removed.
     </dl>
+
+    Drop up until the third item from the beginning of a list:
 
     >> Drop[{a, b, c, d}, 3]
      = {d}
+
+    Drop until the second item from the end of that list:
     >> Drop[{a, b, c, d}, -2]
      = {a, b}
+
+    Drop from the second item to the second-to-the-end item:
     >> Drop[{a, b, c, d, e}, {2, -2}]
      = {a, e}
 
@@ -402,110 +551,52 @@ class Drop(Builtin):
     >> Drop[A, {2, 3}, {2, 3}]
      = {{11, 14}, {41, 44}}
 
-    #> Drop[Range[10], {-2, -6, -3}]
-     = {1, 2, 3, 4, 5, 7, 8, 10}
-    #> Drop[Range[10], {10, 1, -3}]
-     = {2, 3, 5, 6, 8, 9}
+    Dropping the 0th element does nothing, and returns the list unmodified:
 
-    #> Drop[Range[6], {-5, -2, -2}]
-     : Cannot drop positions -5 through -2 in {1, 2, 3, 4, 5, 6}.
-     = Drop[{1, 2, 3, 4, 5, 6}, {-5, -2, -2}]
+    >> Drop[{a, b, c, d}, 0]
+      = {a, b, c, d}
+
+    Even if the list is empty:
+
+    >> Drop[{}, 0]
+      = {}
+
+    See also <url>
+    :'Take':
+    /doc/reference-of-built-in-symbols/list-functions/elements-of-lists/take/</url>.
     """
 
     messages = {
-        "normal": "Nonatomic expression expected at position `1` in `2`.",
         "drop": "Cannot drop positions `1` through `2` in `3`.",
     }
     summary_text = "remove a number of elements from a list"
 
-    def apply(self, items, seqs, evaluation):
+    def eval(self, items, seqs, evaluation: Evaluation):
         "Drop[items_, seqs___]"
 
-        seqs = seqs.get_sequence()
+        if seqs is Integer0:
+            return items
+
+        seq_tuple = seqs.get_sequence()
 
         if isinstance(items, Atom):
-            return evaluation.message(
-                "Drop", "normal", 1, Expression(SymbolDrop, items, *seqs)
+            evaluation.message(
+                "Drop", "normal", Integer1, Expression(SymbolDrop, items, *seq_tuple)
             )
+            return
 
         try:
-            return _parts(items, [_drop_span_selector(seq) for seq in seqs], evaluation)
+            return parts(
+                items, [drop_span_selector(seq) for seq in seq_tuple], evaluation
+            )
         except MessageException as e:
             e.message(evaluation)
 
 
-class First(Builtin):
-    """
-    <dl>
-      <dt>'First[$expr$]'
-      <dd>returns the first element in $expr$.
-    </dl>
-
-    'First[$expr$]' is equivalent to '$expr$[[1]]'.
-
-    >> First[{a, b, c}]
-     = a
-    >> First[a + b + c]
-     = a
-    >> First[x]
-     : Nonatomic expression expected.
-     = First[x]
-    >> First[{}]
-     : {} has zero length and no first element.
-     = First[{}]
-    """
-
-    messages = {
-        "normal": "Nonatomic expression expected.",
-        "nofirst": "`1` has zero length and no first element.",
-    }
-    summary_text = "first element of a list or expression"
-
-    def apply(self, expr, evaluation):
-        "First[expr_]"
-
-        if isinstance(expr, Atom):
-            evaluation.message("First", "normal")
-            return
-        if len(expr.elements) == 0:
-            evaluation.message("First", "nofirst", expr)
-            return
-
-        return expr.elements[0]
-
-
-class FirstCase(Builtin):
-    """
-    <dl>
-    <dt> FirstCase[{$e1$, $e2$, ...}, $pattern$]
-        <dd>gives the first $ei$ to match $pattern$, or $Missing[\"NotFound\"]$ if none matching pattern is found.
-
-    <dt> FirstCase[{$e1$,$e2$, ...}, $pattern$ -> $rhs$]
-        <dd> gives the value of $rhs$ corresponding to the first $ei$ to match pattern.
-    <dt> FirstCase[$expr$, $pattern$, $default$]
-         <dd> gives $default$ if no element matching $pattern$ is found.
-
-    <dt>FirstCase[$expr$, $pattern$, $default$, $levelspec$] \
-         <dd>finds only objects that appear on levels specified by $levelspec$.
-
-    <dt>FirstCase[$pattern$]
-        <dd>represents an operator form of FirstCase that can be applied to an expression.
-    </dl>
-
-
-    """
-
-    attributes = hold_rest | protected
-    options = Cases.options
-    rules = {
-        'FirstCase[expr_, pattOrRule_, Shortest[default_:Missing["NotFound"], 1],Shortest[levelspec_:{1}, 2], opts:OptionsPattern[]]': "Replace[Cases[expr, pattOrRule, levelspec, 1, opts],{{} :> default, {match_} :> match}]",
-        "FirstCase[pattOrRule_][expr_]": "FirstCase[expr, pattOrRule]",
-    }
-    summary_text = "first element that matches a pattern"
-
-
 class Extract(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Extract.html</url>
+
     <dl>
       <dt>'Extract[$expr$, $list$]'
       <dd>extracts parts of $expr$ specified by $list$.
@@ -522,7 +613,7 @@ class Extract(Builtin):
      = {{a, b}, d}
     """
 
-    attributes = n_hold_rest | protected
+    attributes = A_N_HOLD_REST | A_PROTECTED
 
     rules = {
         "Extract[expr_, list_List]": "Part[expr, Sequence @@ list]",
@@ -531,8 +622,121 @@ class Extract(Builtin):
     summary_text = "extract elements that appear at a list of positions"
 
 
+class First(Builtin):
+    """
+    <url>:WMA link:
+         https://reference.wolfram.com/language/ref/First.html</url>
+
+    <dl>
+      <dt>'First[$expr$]'
+      <dd>returns the first element in $expr$.
+
+      <dt>'First[$expr$, $def$]'
+      <dd>returns the first element in $expr$ if it exists or $def$ otherwise.
+    </dl>
+
+    'First[$expr$]' is equivalent to '$expr$[[1]]'.
+
+    >> First[{a, b, c}]
+     = a
+
+    The first argument need not be a list:
+    >> First[a + b + c]
+     = a
+
+    However, the first argument must be Nonatomic when there is a single argument:
+    >> First[x]
+     : Nonatomic expression expected at position 1 in First[x].
+     = First[x]
+
+    Or if it is not, but a second default argument is provided, that is \
+    evaluated and returned:
+
+    >> First[10, 1+2]
+     = 3
+
+    >> First[{}]
+     : {} has zero length and no first element.
+     = First[{}]
+
+    As before, the first argument is empty, but a default argument is given, \
+    evaluate and return the second argument:
+    >> First[{}, 1+2]
+     = 3
+    """
+
+    attributes = A_HOLD_REST | A_PROTECTED
+    messages = {
+        "argt": "First called with `1` arguments; 1 or 2 arguments are expected.",
+        "nofirst": "`1` has zero length and no first element.",
+    }
+    summary_text = "first element of a list or expression"
+
+    # FIXME: the code and the code for Last are similar and can be DRY'd
+    def eval(self, expr, evaluation: Evaluation, expression: Expression):
+        "First[expr__]"
+
+        if isinstance(expr, Atom):
+            evaluation.message("First", "normal", Integer1, expression)
+            return
+        expr_len = len(expr.elements)
+        if expr_len == 0:
+            evaluation.message("First", "nofirst", expr)
+            return
+        if expr_len > 2 and expr.head is SymbolSequence:
+            evaluation.message("First", "argt", expr_len)
+            return
+
+        first_elem = expr.elements[0]
+
+        if expr.head == SymbolSequence or (
+            not isinstance(expr, ListExpression)
+            and len == 2
+            and isinstance(first_elem, Atom)
+        ):
+            return expr.elements[1]
+
+        return first_elem
+
+
+class FirstCase(Builtin):
+    """
+    <url>:WMA link:
+         https://reference.wolfram.com/language/ref/FirstCase.html</url>
+
+    <dl>
+      <dt> FirstCase[{$e1$, $e2$, ...}, $pattern$]
+      <dd>gives the first $ei$ to match $pattern$, or $Missing[\"NotFound\"]$ if none matching pattern is found.
+
+      <dt> FirstCase[{$e1$,$e2$, ...}, $pattern$ -> $rhs$]
+      <dd> gives the value of $rhs$ corresponding to the first $ei$ to match pattern.
+      <dt> FirstCase[$expr$, $pattern$, $default$]
+      <dd> gives $default$ if no element matching $pattern$ is found.
+
+      <dt>FirstCase[$expr$, $pattern$, $default$, $levelspec$]
+      <dd>finds only objects that appear on levels specified by $levelspec$.
+
+      <dt>FirstCase[$pattern$]
+      <dd>represents an operator form of FirstCase that can be applied to an expression.
+    </dl>
+
+
+    """
+
+    attributes = A_HOLD_REST | A_PROTECTED
+    options = Cases.options
+    rules = {
+        'FirstCase[expr_, pattOrRule_, Shortest[default_:Missing["NotFound"], 1],Shortest[levelspec_:{1}, 2], opts:OptionsPattern[]]': "Replace[Cases[expr, pattOrRule, levelspec, 1, opts],{{} :> default, {match_} :> match}]",
+        "FirstCase[pattOrRule_][expr_]": "FirstCase[expr, pattOrRule]",
+    }
+    summary_text = "first element that matches a pattern"
+
+
 class FirstPosition(Builtin):
     """
+    <url>:WMA link:
+         https://reference.wolfram.com/language/ref/FirstPosition.html</url>
+
     <dl>
       <dt>'FirstPosition[$expr$, $pattern$]'
       <dd>gives the position of the first element in $expr$ that matches $pattern$, or Missing["NotFound"] if no such element is found.
@@ -556,49 +760,6 @@ class FirstPosition(Builtin):
     Find the first position at which x^2 to appears:
     >> FirstPosition[{1 + x^2, 5, x^4, a + (1 + x^2)^2}, x^2]
      = {1, 2}
-
-    #> FirstPosition[{1, 2, 3}, _?StringQ, "NoStrings"]
-     = NoStrings
-
-    #> FirstPosition[a, a]
-     = {}
-
-    #> FirstPosition[{{{1, 2}, {2, 3}, {3, 1}}, {{1, 2}, {2, 3}, {3, 1}}},3]
-     = {1, 2, 2}
-
-    #> FirstPosition[{{1, {2, 1}}, {2, 3}, {3, 1}}, 2, Missing["NotFound"],2]
-     = {2, 1}
-
-    #> FirstPosition[{{1, {2, 1}}, {2, 3}, {3, 1}}, 2, Missing["NotFound"],4]
-     = {1, 2, 1}
-
-    #> FirstPosition[{{1, 2}, {2, 3}, {3, 1}}, 3, Missing["NotFound"], {1}]
-     = Missing[NotFound]
-
-    #> FirstPosition[{{1, 2}, {2, 3}, {3, 1}}, 3, Missing["NotFound"], 0]
-     = Missing[NotFound]
-
-    #> FirstPosition[{{1, 2}, {1, {2, 1}}, {2, 3}}, 2, Missing["NotFound"], {3}]
-     = {2, 2, 1}
-
-    #> FirstPosition[{{1, 2}, {1, {2, 1}}, {2, 3}}, 2, Missing["NotFound"], 3]
-     = {1, 2}
-
-    #> FirstPosition[{{1, 2}, {1, {2, 1}}, {2, 3}}, 2,  Missing["NotFound"], {}]
-     = {1, 2}
-
-    #> FirstPosition[{{1, 2}, {2, 3}, {3, 1}}, 3, Missing["NotFound"], {1, 2, 3}]
-     : Level specification {1, 2, 3} is not of the form n, {n}, or {m, n}.
-     = FirstPosition[{{1, 2}, {2, 3}, {3, 1}}, 3, Missing[NotFound], {1, 2, 3}]
-
-    #> FirstPosition[{{1, 2}, {2, 3}, {3, 1}}, 3, Missing["NotFound"], a]
-     : Level specification a is not of the form n, {n}, or {m, n}.
-     = FirstPosition[{{1, 2}, {2, 3}, {3, 1}}, 3, Missing[NotFound], a]
-
-    #> FirstPosition[{{1, 2}, {2, 3}, {3, 1}}, 3, Missing["NotFound"], {1, a}]
-     : Level specification {1, a} is not of the form n, {n}, or {m, n}.
-     = FirstPosition[{{1, 2}, {2, 3}, {3, 1}}, 3, Missing[NotFound], {1, a}]
-
     """
 
     messages = {
@@ -606,8 +767,14 @@ class FirstPosition(Builtin):
     }
     summary_text = "position of the first element matching a pattern"
 
-    def apply(
-        self, expr, pattern, evaluation, default=None, minLevel=None, maxLevel=None
+    def eval(
+        self,
+        expr,
+        pattern,
+        evaluation: Evaluation,
+        default=None,
+        minLevel=None,
+        maxLevel=None,
     ):
         "FirstPosition[expr_, pattern_]"
 
@@ -650,11 +817,11 @@ class FirstPosition(Builtin):
                 else default
             )
 
-    def apply_default(self, expr, pattern, default, evaluation):
+    def eval_default(self, expr, pattern, default, evaluation):
         "FirstPosition[expr_, pattern_, default_]"
-        return self.apply(expr, pattern, evaluation, default=default)
+        return self.eval(expr, pattern, evaluation, default=default)
 
-    def apply_level(self, expr, pattern, default, level, evaluation):
+    def eval_level(self, expr, pattern, default, level, evaluation):
         "FirstPosition[expr_, pattern_, default_, level_]"
 
         def is_interger_list(expr_list):
@@ -666,7 +833,8 @@ class FirstPosition(Builtin):
         if level.has_form("List", None):
             len_list = len(level.elements)
             if len_list > 2 or not is_interger_list(level):
-                return evaluation.message("FirstPosition", "level", level)
+                evaluation.message("FirstPosition", "level", level)
+                return
             elif len_list == 0:
                 min_Level = max_Level = None
             elif len_list == 1:
@@ -678,9 +846,10 @@ class FirstPosition(Builtin):
             min_Level = 0
             max_Level = level.get_int_value()
         else:
-            return evaluation.message("FirstPosition", "level", level)
+            evaluation.message("FirstPosition", "level", level)
+            return
 
-        return self.apply(
+        return self.eval(
             expr,
             pattern,
             evaluation,
@@ -690,39 +859,106 @@ class FirstPosition(Builtin):
         )
 
 
+# From backports in CellsToTeX. This functions provides compatibility to WMA 10.
+#  TODO:
+#  * Add doctests
+#  * Translate to python the more complex rules
+#  * Complete the support.
+
+
+class Insert(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Insert.html</url>
+
+    <dl>
+      <dt>'Insert[$list$, $elem$, $n$]'
+      <dd>inserts $elem$ at position $n$ in $list$. When $n$ is negative, \
+          the position is counted from the end.
+    </dl>
+
+    >> Insert[{a,b,c,d,e}, x, 3]
+     = {a, b, x, c, d, e}
+
+    >> Insert[{a,b,c,d,e}, x, -2]
+     = {a, b, c, d, x, e}
+    """
+
+    summary_text = "insert an element at a given position"
+
+    def eval(self, expr, elem, n: Integer, evaluation):
+        "Insert[expr_List, elem_, n_Integer]"
+
+        py_n = n.value
+        new_list = list(expr.get_elements())
+
+        position = py_n - 1 if py_n > 0 else py_n + 1
+        new_list.insert(position, elem)
+        return expr.restructure(expr.head, new_list, evaluation, deps=(expr, elem))
+
+
 class Last(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Last.html</url>
+
     <dl>
       <dt>'Last[$expr$]'
       <dd>returns the last element in $expr$.
+
+      <dt>'Last[$expr$, $def$]'
+      <dd>returns the last element in $expr$ if it exists or $def$ otherwise.
     </dl>
 
     'Last[$expr$]' is equivalent to '$expr$[[-1]]'.
 
     >> Last[{a, b, c}]
      = c
-    >> Last[x]
-     : Nonatomic expression expected.
-     = Last[x]
+
+    The first argument need not be a list:
+    >> Last[a + b + c]
+     = c
+
+    However, the first argument must be Nonatomic when there is a single argument:
+    >> Last[10]
+     : Nonatomic expression expected at position 1 in Last[10].
+     = Last[10]
+
+    Or if it is not, but a second default argument is provided, that is \
+    evaluated and returned:
+
+    >> Last[10, 1+2]
+     = 3
+
+
     >> Last[{}]
      : {} has zero length and no last element.
      = Last[{}]
+
+    As before, the first argument is empty, but since default argument is given, \
+    evaluate and return the second argument:
+    >> Last[{}, 1+2]
+     = 3
     """
 
+    attributes = A_HOLD_REST | A_PROTECTED
     messages = {
-        "normal": "Nonatomic expression expected.",
+        "argt": "Last called with `1` arguments; 1 or 2 arguments are expected.",
         "nolast": "`1` has zero length and no last element.",
     }
     summary_text = "last element of a list or expression"
 
-    def apply(self, expr, evaluation):
-        "Last[expr_]"
+    # FIXME: the code and the code for First are similar and can be DRY'd
+    def eval(self, expr, evaluation: Evaluation, expression: Expression):
+        "Last[expr__]"
 
         if isinstance(expr, Atom):
-            evaluation.message("Last", "normal")
+            evaluation.message("Last", "normal", Integer1, expression)
             return
-        if len(expr.elements) == 0:
+        expr_len = len(expr.elements)
+        if expr_len == 0:
             evaluation.message("Last", "nolast", expr)
+            return
+        if expr_len > 2 and expr.head is SymbolSequence:
+            evaluation.message("Last", "argt", expr_len)
             return
 
         return expr.elements[-1]
@@ -730,6 +966,8 @@ class Last(Builtin):
 
 class Length(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Length.html</url>
+
     <dl>
       <dt>'Length[$expr$]'
       <dd>returns the number of elements in $expr$.
@@ -759,8 +997,8 @@ class Length(Builtin):
 
     summary_text = "number of elements in a list or expression"
 
-    def apply(self, expr, evaluation):
-        "Length[expr_]"
+    def eval(self, expr, evaluation: Evaluation):
+        """Length[expr_]"""
 
         if isinstance(expr, Atom):
             return Integer0
@@ -768,32 +1006,12 @@ class Length(Builtin):
             return Integer(len(expr.elements))
 
 
-class MemberQ(Builtin):
-    """
-    <dl>
-      <dt>'MemberQ[$list$, $pattern$]'
-      <dd>returns 'True' if $pattern$ matches any element of $list$, or 'False' otherwise.
-    </dl>
-
-    >> MemberQ[{a, b, c}, b]
-     = True
-    >> MemberQ[{a, b, c}, d]
-     = False
-    >> MemberQ[{"a", b, f[x]}, _?NumericQ]
-     = False
-    >> MemberQ[_List][{{}}]
-     = True
-    """
-
-    rules = {
-        "MemberQ[list_, pattern_]": ("Length[Select[list, MatchQ[#, pattern]&]] > 0"),
-        "MemberQ[pattern_][expr_]": "MemberQ[expr, pattern]",
-    }
-    summary_text = "test whether an element is a member of a list"
-
-
 class Most(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Most.html</url>
+
     <dl>
       <dt>'Most[$expr$]'
       <dd>returns $expr$ with the last element removed.
@@ -806,28 +1024,25 @@ class Most(Builtin):
     >> Most[a + b + c]
      = a + b
     >> Most[x]
-     : Nonatomic expression expected.
+     : Nonatomic expression expected at position 1 in Most[x].
      = Most[x]
-
-    #> A[x__] := 7 /; Length[{x}] == 3;
-    #> Most[A[1, 2, 3, 4]]
-     = 7
-    #> ClearAll[A];
     """
 
     summary_text = "remove the last element"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation, expression: Expression):
         "Most[expr_]"
 
         if isinstance(expr, Atom):
-            evaluation.message("Most", "normal")
+            evaluation.message("Most", "normal", Integer1, expression)
             return
         return expr.slice(expr.head, slice(0, -1), evaluation)
 
 
 class Part(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Part.html</url>
+
     <dl>
       <dt>'Part[$expr$, $i$]'
       <dd>returns part $i$ of $expr$.
@@ -910,36 +1125,12 @@ class Part(Builtin):
     Of course, part specifications have precedence over most arithmetic operations:
     >> A[[1]] + B[[2]] + C[[3]] // Hold // FullForm
      = Hold[Plus[Part[A, 1], Part[B, 2], Part[C, 3]]]
-
-    #> a = {2,3,4}; i = 1; a[[i]] = 0; a
-     = {0, 3, 4}
-
-    ## Negative step
-    #> {1,2,3,4,5}[[3;;1;;-1]]
-     = {3, 2, 1}
-
-    #> {1, 2, 3, 4, 5}[[;; ;; -1]]      (* MMA bug *)
-     = {5, 4, 3, 2, 1}
-
-    #> Range[11][[-3 ;; 2 ;; -2]]
-     = {9, 7, 5, 3}
-    #> Range[11][[-3 ;; -7 ;; -3]]
-     = {9, 6}
-    #> Range[11][[7 ;; -7;; -2]]
-     = {7, 5}
-
-    #> {1, 2, 3, 4}[[1;;3;;-1]]
-     : Cannot take positions 1 through 3 in {1, 2, 3, 4}.
-     = {1, 2, 3, 4}[[1 ;; 3 ;; -1]]
-    #> {1, 2, 3, 4}[[3;;1]]
-     : Cannot take positions 3 through 1 in {1, 2, 3, 4}.
-     = {1, 2, 3, 4}[[3 ;; 1]]
     """
 
-    attributes = n_hold_rest | protected | read_protected
+    attributes = A_N_HOLD_REST | A_PROTECTED | A_READ_PROTECTED
     summary_text = "get/set any part of an expression"
 
-    def apply_makeboxes(self, list, i, f, evaluation):
+    def eval_makeboxes(self, list, i, f, evaluation):
         """MakeBoxes[Part[list_, i___],
         f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
@@ -953,14 +1144,14 @@ class Part(Builtin):
         result = RowBox(list, *indices)
         return result
 
-    def apply(self, list, i, evaluation):
+    def eval(self, list, i, evaluation):
         "Part[list_, i___]"
 
         if list is SymbolFailed:
             return
         indices = i.get_sequence()
         # How to deal with ByteArrays
-        if list.get_head_name() == "System`ByteArray":
+        if list.get_head() is SymbolByteArray:
             list = list.evaluate(evaluation)
             if len(indices) > 1:
                 print(
@@ -969,8 +1160,8 @@ class Part(Builtin):
                 )
                 return
             idx = indices[0]
-            if idx.get_head_name() == "System`Integer":
-                idx = idx.get_int_value()
+            if isinstance(idx, Integer):
+                idx = idx.value
                 if idx == 0:
                     return SymbolByteArray
                 data = list.elements[0].value
@@ -993,13 +1184,15 @@ class Part(Builtin):
             return
 
         # Otherwise...
-        result = walk_parts([list], indices, evaluation)
+        result = eval_Part([list], indices, evaluation)
         if result:
             return result
 
 
 class Pick(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Pick.html</url>
+
     <dl>
       <dt>'Pick[$list$, $sel$]'
       <dd>returns those items in $list$ that are True in $sel$.
@@ -1036,26 +1229,96 @@ class Pick(Builtin):
         else:
             return r[0]
 
-    def apply(self, items, sel, evaluation):
+    def eval(self, items, sel, evaluation):
         "Pick[items_, sel_]"
         return self._do(items, sel, lambda s: s is SymbolTrue, evaluation)
 
-    def apply_pattern(self, items, sel, pattern, evaluation):
+    def eval_pattern(self, items, sel, pattern, evaluation):
         "Pick[items_, sel_, pattern_]"
-        from mathics.builtin.patterns import Matcher
 
-        match = Matcher(pattern).match
+        match = Matcher(pattern, evaluation).match
         return self._do(items, sel, lambda s: match(s, evaluation), evaluation)
+
+
+class Position(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Position.html</url>
+
+    <dl>
+      <dt>'Position[$expr$, $patt$]'
+      <dd>returns the list of positions for which $expr$ matches $patt$.
+
+      <dt>'Position[$expr$, $patt$, $ls$]'
+      <dd>returns the positions on levels specified by levelspec $ls$.
+    </dl>
+
+    >> Position[{1, 2, 2, 1, 2, 3, 2}, 2]
+     = {{2}, {3}, {5}, {7}}
+
+    Find positions upto 3 levels deep:
+
+    >> Position[{1 + Sin[x], x, (Tan[x] - y)^2}, x, 3]
+     = {{1, 2, 1}, {2}}
+
+    Find all powers of x:
+
+    >> Position[{1 + x^2, x y ^ 2,  4 y,  x ^ z}, x^_]
+     = {{1, 2}, {4}}
+
+    Use Position as an operator:
+
+    >> Position[_Integer][{1.5, 2, 2.5}]
+     = {{2}}
+    """
+
+    options = {"Heads": "True"}
+
+    rules = {
+        "Position[pattern_][expr_]": "Position[expr, pattern]",
+    }
+    summary_text = "positions of matching elements"
+
+    def eval_invalidlevel(self, patt, expr, ls, evaluation, options={}):
+        "Position[expr_, patt_, ls_, OptionsPattern[Position]]"
+
+        evaluation.message("Position", "level", ls)
+        return
+
+    def eval_level(self, expr, patt, ls, evaluation, options={}):
+        """Position[expr_, patt_, Optional[Pattern[ls, _?LevelQ], {0, DirectedInfinity[1]}],
+        OptionsPattern[Position]]"""
+
+        try:
+            start, stop = python_levelspec(ls)
+        except InvalidLevelspecError:
+            evaluation.message("Position", "level", ls)
+            return
+
+        match = Matcher(patt, evaluation).match
+        result = []
+
+        def callback(level, pos):
+            if match(level, evaluation):
+                result.append(pos)
+            return level
+
+        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
+        walk_levels(expr, start, stop, heads=heads, callback=callback, include_pos=True)
+        return from_python(result)
 
 
 class Prepend(Builtin):
     """
-    <dl>
-     <dt>'Prepend[$expr$, $item$]'
-     <dd>returns $expr$ with $item$ prepended to its elements.
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Prepend.html</url>
 
-     <dt>'Prepend[$expr$]'
-     <dd>'Prepend[$elem$][$expr$]' is equivalent to 'Prepend[$expr$,$elem$]'.
+    <dl>
+      <dt>'Prepend[$expr$, $item$]'
+      <dd>returns $expr$ with $item$ prepended to its elements.
+
+      <dt>'Prepend[$expr$]'
+      <dd>'Prepend[$elem$][$expr$]' is equivalent to 'Prepend[$expr$,$elem$]'.
     </dl>
 
     'Prepend' is similar to 'Append', but adds $item$ to the beginning
@@ -1070,23 +1333,22 @@ class Prepend(Builtin):
     Unlike 'Join', 'Prepend' does not flatten lists in $item$:
     >> Prepend[{c, d}, {a, b}]
      = {{a, b}, c, d}
-
-    #> Prepend[a, b]
-     : Nonatomic expression expected.
-     = Prepend[a, b]
     """
 
     summary_text = "add an element at the beginning"
 
-    def apply(self, expr, item, evaluation):
+    def eval(self, expr, item, evaluation):
         "Prepend[expr_, item_]"
 
         if isinstance(expr, Atom):
-            return evaluation.message("Prepend", "normal")
+            evaluation.message(
+                "Prepend", "normal", Integer1, Expression(SymbolPrepend, expr, item)
+            )
+            return
 
         return expr.restructure(
             expr.head,
-            list(chain([item], expr.get_elements())),
+            list(chain([item], expr.elements)),
             evaluation,
             deps=(expr, item),
         )
@@ -1094,6 +1356,8 @@ class Prepend(Builtin):
 
 class PrependTo(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PrependTo.html</url>
+
     <dl>
       <dt>'PrependTo[$s$, $item$]'
       <dd>prepends $item$ to value of $s$ and sets $s$ to the result.
@@ -1117,34 +1381,18 @@ class PrependTo(Builtin):
      = f[x, a, b, c]
     >> y
      = f[x, a, b, c]
-
-    #> PrependTo[{a, b}, 1]
-     :  {a, b} is not a variable with a value, so its value cannot be changed.
-     = PrependTo[{a, b}, 1]
-
-    #> PrependTo[a, b]
-     : a is not a variable with a value, so its value cannot be changed.
-     = PrependTo[a, b]
-
-    #> x = 1 + 2;
-    #> PrependTo[x, {3, 4}]
-     : Nonatomic expression expected at position 1 in PrependTo[x, {3, 4}].
-     =  PrependTo[x, {3, 4}]
     """
 
-    attributes = hold_first | protected
+    attributes = A_HOLD_FIRST | A_PROTECTED
 
-    messages = {
-        "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
-        "normal": "Nonatomic expression expected at position 1 in `1`.",
-    }
     summary_text = "add an element at the beginning of an stored list or expression"
 
-    def apply(self, s, item, evaluation):
+    def eval(self, s, item, evaluation):
         "PrependTo[s_, item_]"
         resolved_s = s.evaluate(evaluation)
         if s == resolved_s:
-            return evaluation.message("PrependTo", "rvalue", s)
+            evaluation.message("PrependTo", "rvalue", s)
+            return
 
         if not isinstance(resolved_s, Atom):
             result = Expression(
@@ -1152,13 +1400,15 @@ class PrependTo(Builtin):
             )
             return result.evaluate(evaluation)
 
-        return evaluation.message(
-            "PrependTo", "normal", Expression(SymbolPrependTo, s, item)
+        evaluation.message(
+            "PrependTo", "normal", Integer1, Expression(SymbolPrependTo, s, item)
         )
 
 
 class ReplacePart(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ReplacePart.html</url>
+
     <dl>
       <dt>'ReplacePart[$expr$, $i$ -> $new$]'
       <dd>replaces part $i$ in $expr$ with $new$.
@@ -1209,7 +1459,7 @@ class ReplacePart(Builtin):
     }
     summary_text = "replace elements at given positions"
 
-    def apply(self, expr, replacements, evaluation):
+    def eval(self, expr, replacements, evaluation):
         "ReplacePart[expr_, {replacements___}]"
 
         new_expr = expr.copy()
@@ -1240,7 +1490,7 @@ class ReplacePart(Builtin):
                     replace_value = replace.evaluate(evaluation)
                 else:
                     replace_value = replace
-                set_part(new_expr, position, replace_value)
+                new_expr = set_part(new_expr, position, replace_value)
             except PartError:
                 pass
 
@@ -1249,6 +1499,8 @@ class ReplacePart(Builtin):
 
 class Rest(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Rest.html</url>
+
     <dl>
       <dt>'Rest[$expr$]'
       <dd>returns $expr$ with the first element removed.
@@ -1261,7 +1513,7 @@ class Rest(Builtin):
     >> Rest[a + b + c]
      = b + c
     >> Rest[x]
-     : Nonatomic expression expected.
+     : Nonatomic expression expected at position 1 in Rest[x].
      = Rest[x]
     >> Rest[{}]
      : Cannot take Rest of expression {} with length zero.
@@ -1269,16 +1521,15 @@ class Rest(Builtin):
     """
 
     messages = {
-        "normal": "Nonatomic expression expected.",
         "norest": "Cannot take Rest of expression `1` with length zero.",
     }
     summary_text = "remove the first element"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation: Evaluation, expression: Expression):
         "Rest[expr_]"
 
         if isinstance(expr, Atom):
-            evaluation.message("Rest", "normal")
+            evaluation.message("Rest", "normal", Integer1, expression)
             return
         if len(expr.elements) == 0:
             evaluation.message("Rest", "norest", expr)
@@ -1289,47 +1540,75 @@ class Rest(Builtin):
 
 class Select(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Select.html</url>
+
     <dl>
-      <dt>'Select[{$e1$, $e2$, ...}, $f$]'
-      <dd>returns a list of the elements $ei$ for which $f$[$ei$] returns 'True'.
+      <dt>'Select[{$e1$, $e2$, ...}, $crit$]'
+      <dd>returns a list of the elements $ei$ for which $crit$[$ei$] is 'True'.
+      <dt>'Select[{$e1$, $e2$, ...}, $crit$, n]'
+      <dd>returns a list of the first $n$ elements $ei$ for which $crit$[$ei$] is 'True'.
     </dl>
 
-    Find numbers greater than zero:
-    >> Select[{-3, 0, 1, 3, a}, #>0&]
-     = {1, 3}
+    Get a list of even numbers up to 10:
+    >> Select[Range[10], EvenQ]
+     = {2, 4, 6, 8, 10}
+
+    Find numbers that are greater than zero in a list:
+    >> Select[{-3, 0, 10, 3, a}, #>0&]
+     = {10, 3}
+
+    Find the first number that is list greater than zero in a list:
+    >> Select[{-3, 0, 10, 3, a}, #>0&, 1]
+     = {10}
 
     'Select' works on an expression with any head:
     >> Select[f[a, 2, 3], NumberQ]
      = f[2, 3]
-
-    >> Select[a, True]
-     : Nonatomic expression expected.
-     = Select[a, True]
-
-    #> A[x__] := 31415 /; Length[{x}] == 3;
-    #> Select[A[5, 2, 7, 1], OddQ]
-     = 31415
-    #> ClearAll[A];
     """
 
     summary_text = "pick elements according to a criterion"
 
-    def apply(self, items, expr, evaluation):
+    def eval(self, items, expr, evaluation: Evaluation):
         "Select[items_, expr_]"
 
+        return self.eval_with_n(items, expr, SymbolInfinity, evaluation)
+
+    def eval_with_n(self, items, expr, n, evaluation: Evaluation):
+        "Select[items_, expr_, n_]"
+
+        count_is_valid = True
+        if n is SymbolInfinity or ExpressionInfinity == n:
+            count = None
+        elif isinstance(n, Integer):
+            count = n.value
+            if count < 0:
+                count_is_valid = False
+        else:
+            count_is_valid = False
+
+        if not count_is_valid:
+            evaluation.message(
+                "Select", "innf", Integer3, Expression(SymbolSelect, items, expr, n)
+            )
+            return
+
         if isinstance(items, Atom):
-            evaluation.message("Select", "normal")
+            evaluation.message(
+                "Select", "normal", Integer1, Expression(SymbolSelect, items, expr, n)
+            )
             return
 
         def cond(element):
             test = Expression(expr, element)
             return test.evaluate(evaluation) is SymbolTrue
 
-        return items.filter(items.head, cond, evaluation)
+        return items.filter(items.head, cond, evaluation, count=count)
 
 
-class Span(BinaryOperator):
+class Span(InfixOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Span.html</url>
+
     <dl>
       <dt>'Span'
       <dd>is the head of span ranges like '1;;3'.
@@ -1343,50 +1622,33 @@ class Span(BinaryOperator):
      = Span[2, -2]
     >> ;;3 // FullForm
      = Span[1, 3]
-
-    ## Parsing: 8 cases to consider
-    #> a ;; b ;; c // FullForm
-     = Span[a, b, c]
-    #>   ;; b ;; c // FullForm
-     = Span[1, b, c]
-    #> a ;;   ;; c // FullForm
-     = Span[a, All, c]
-    #>   ;;   ;; c // FullForm
-     = Span[1, All, c]
-    #> a ;; b      // FullForm
-     = Span[a, b]
-    #>   ;; b      // FullForm
-     = Span[1, b]
-    #> a ;;        // FullForm
-     = Span[a, All]
-    #>   ;;        // FullForm
-     = Span[1, All]
-
-    ## Formatting
-    #> a ;; b ;; c
-     = a ;; b ;; c
-    #> a ;; b
-     = a ;; b
-    #> a ;; b ;; c ;; d
-     = (1 ;; d) (a ;; b ;; c)
     """
 
-    operator = ";;"
-    precedence = 305
     summary_text = "general specification for spans or blocks of elements"
 
 
 class Take(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Take.html</url>
+
     <dl>
       <dt>'Take[$expr$, $n$]'
       <dd>returns $expr$ with all but the first $n$ elements removed.
+      <dt>'Take[$list$, -$n$]'
+      <dd>returns last $n$ elements of $list$.
+      <dt>'Take[$list$, {$m$, $n$}]'
+      <dd>returns elements $m$ through $n$ of $list$.
     </dl>
 
+    Get the first three elements:
     >> Take[{a, b, c, d}, 3]
      = {a, b, c}
+
+    Get the last two elements:
     >> Take[{a, b, c, d}, -2]
      = {c, d}
+
+    Get the elements from the second element through the next to last element:
     >> Take[{a, b, c, d, e}, {2, -2}]
      = {b, c, d}
 
@@ -1399,66 +1661,57 @@ class Take(Builtin):
     >> Take[A, All, {2}]
      = {{b}, {e}}
 
-    #> Take[Range[10], {8, 2, -1}]
-     = {8, 7, 6, 5, 4, 3, 2}
-    #> Take[Range[10], {-3, -7, -2}]
-     = {8, 6, 4}
+    Taking the 0th element does nothing, and returns an empty list:
 
-    #> Take[Range[6], {-5, -2, -2}]
-     : Cannot take positions -5 through -2 in {1, 2, 3, 4, 5, 6}.
-     = Take[{1, 2, 3, 4, 5, 6}, {-5, -2, -2}]
+    >> Take[{a, b, c, d}, 0]
+      = {}
 
-    #> Take[l, {-1}]
-     : Nonatomic expression expected at position 1 in Take[l, {-1}].
-     = Take[l, {-1}]
-
-    ## Empty case
-    #> Take[{1, 2, 3, 4, 5}, {-1, -2}]
-     = {}
-    #> Take[{1, 2, 3, 4, 5}, {0, -1}]
-     = {}
-    #> Take[{1, 2, 3, 4, 5}, {1, 0}]
-     = {}
-    #> Take[{1, 2, 3, 4, 5}, {2, 1}]
-     = {}
-    #> Take[{1, 2, 3, 4, 5}, {1, 0, 2}]
-     = {}
-    #> Take[{1, 2, 3, 4, 5}, {1, 0, -1}]
-     : Cannot take positions 1 through 0 in {1, 2, 3, 4, 5}.
-     = Take[{1, 2, 3, 4, 5}, {1, 0, -1}]
+    See also <url>
+    :'Drop':
+    /doc/reference-of-built-in-symbols/list-functions/elements-of-lists/drop/</url>.
     """
 
-    messages = {
-        "normal": "Nonatomic expression expected at position `1` in `2`.",
-    }
     summary_text = "pick a range of elements"
 
-    def apply(self, items, seqs, evaluation):
+    def eval(self, items, seqs, evaluation):
         "Take[items_, seqs___]"
+
+        if seqs is Integer0:
+            return ListExpression()
 
         seqs = seqs.get_sequence()
 
         if isinstance(items, Atom):
-            return evaluation.message(
-                "Take", "normal", 1, Expression(SymbolTake, items, *seqs)
+            evaluation.message(
+                "Take", "normal", Integer1, Expression(SymbolTake, items, *seqs)
             )
+            return
 
         try:
-            return _parts(items, [_take_span_selector(seq) for seq in seqs], evaluation)
+            return parts(items, [take_span_selector(seq) for seq in seqs], evaluation)
         except MessageException as e:
             e.message(evaluation)
 
 
 class UpTo(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/UpTo.html</url>
+
     <dl>
-      <dd> 'Upto'[$n$]
-      <dt> is a symbolic specification that represents up to $n$ objects or positions. If $n$ objects or positions are available, all are used. If fewer are available, only those available are used.
+      <dd> 'UpTo'[$n$]
+      <dt> is a symbolic specification that represents up to $n$ objects or \
+           positions. If $n$ objects or positions are available, all are used. \
+           If fewer are available, only those available are used.
     </dl>
     """
 
+    # TODO: is there as way we can use general's innf?
     messages = {
         "innf": "Expected non-negative integer or infinity at position 1 in ``.",
         "argx": "UpTo expects 1 argument, `1` arguments were given.",
     }
     summary_text = "a certain number of elements, or as many as are available"
+
+
+# TODO: ArrayRules, BinLists, Ordering, Position, SelectFirst,
+#       TakeDrop, TakeList, TakeWhile
