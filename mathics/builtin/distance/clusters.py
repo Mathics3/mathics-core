@@ -423,9 +423,9 @@ class Nearest(Builtin):
     summary_text = "the nearest element from a list"
 
     def eval(
-        self, items, pivot, limit, expression, evaluation: Evaluation, options: dict
+        self, expression, items, pivot, limit, evaluation: Evaluation, options: dict
     ):
-        "Nearest[items_, pivot_, limit_, OptionsPattern[%(name)s]]"
+        "expression: Nearest[items_, pivot_, limit_, OptionsPattern[%(name)s]]"
 
         method = self.get_option(options, "Method", evaluation)
         if not isinstance(method, String) or method.get_string_value() != "Scan":

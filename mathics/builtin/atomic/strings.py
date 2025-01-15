@@ -677,16 +677,16 @@ class StringRepeat(Builtin):
 
     summary_text = "build a string by concatenating repetitions"
 
-    def eval(self, s, n, expression, evaluation):
-        "StringRepeat[s_String, n_]"
+    def eval(self, expression, s, n, evaluation):
+        "expression: StringRepeat[s_String, n_]"
         py_n = n.value if isinstance(n, Integer) else 0
         if py_n < 1:
             evaluation.message("StringRepeat", "intp", 2, expression)
         else:
             return String(s.value * py_n)
 
-    def eval_truncated(self, s, n, m, expression, evaluation):
-        "StringRepeat[s_String, n_Integer, m_Integer]"
+    def eval_truncated(self, expression, s, n, m, evaluation):
+        "expression: StringRepeat[s_String, n_Integer, m_Integer]"
         # The above rule insures that n and m are boht Integer type
         py_n = n.value
         py_m = m.value

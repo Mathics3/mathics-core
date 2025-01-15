@@ -468,7 +468,7 @@ class Builtin:
                 if pattern is None:  # Fixes PyPy bug
                     continue
                 else:
-                    m = re.match(r"([\w,]+)\:\s*(.*)", pattern)
+                    m = re.match(r"[(]([\w,]+),[)]\:\s*(.*)", pattern)
                 if m is not None:
                     attrs = m.group(1).split(",")
                     pattern = m.group(2)

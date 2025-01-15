@@ -42,8 +42,6 @@ def traced_apply_function(
         if not self.check_options(options, evaluation):
             return None
     vars_noctx = dict(((strip_context(s), vars[s]) for s in vars))
-    if self.pass_expression:
-        vars_noctx["expression"] = expression
     builtin_name = self.function.__qualname__.split(".")[0]
     stat = TraceBuiltins.function_stats[builtin_name]
     t_start = time()

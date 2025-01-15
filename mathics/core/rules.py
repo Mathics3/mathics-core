@@ -339,7 +339,6 @@ class FunctionApplyRule(BaseRule):
         self.name = name
         self.function = function
         self.check_options = check_options
-        self.pass_expression = "expression" in function_arguments(function)
 
     # If you update this, you must also update traced_apply_function
     # (that's in the same file TraceBuiltins is)
@@ -353,8 +352,6 @@ class FunctionApplyRule(BaseRule):
         # argument names corresponding to the symbol names without
         # context marks.
         vars_noctx = dict(((strip_context(s), vars[s]) for s in vars))
-        if self.pass_expression:
-            vars_noctx["expression"] = expression
         if options:
             return self.function(evaluation=evaluation, options=options, **vars_noctx)
         else:
