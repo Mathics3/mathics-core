@@ -3,4 +3,4 @@
 	url = https://github.com/Mathics3/Mathics3-Combinatorica.git
 [submodule "mathics/Packages/Mathics3-Rubi"]
 	path = mathics/Packages/Mathics3-Rubi
-	url = git@github.com:Mathics3/Mathics3-Rubi.git
+	url = https://github.com/Mathics3/Mathics3-Rubi.git
