@@ -4,6 +4,3 @@
 [submodule "mathics/Packages/Mathics3-Rubi"]
 	path = mathics/Packages/Mathics3-Rubi
 	url = https://github.com/Mathics3/Mathics3-Rubi.git
-[submodule "mathics/Packages/Rubi"]
-	path = mathics/Packages/Rubi
-	url = https://github.com/Mathics3/Mathics3-Rubi.git
