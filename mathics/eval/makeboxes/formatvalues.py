@@ -183,14 +183,10 @@ def do_format_rational(
     if not isinstance(element, Rational):
         return None
     if form is SymbolFullForm:
-        return do_format_expression(
-            Expression(
-                Expression(SymbolHoldForm, SymbolRational),
-                element.numerator(),
-                element.denominator(),
-            ),
-            evaluation,
-            form,
+        return Expression(
+            SymbolRational,
+            element.numerator(),
+            element.denominator(),
         )
     else:
         numerator = element.numerator()
@@ -211,12 +207,10 @@ def do_format_complex(
     if not isinstance(element, Complex):
         return None
     if form is SymbolFullForm:
-        return do_format_expression(
-            Expression(
-                Expression(SymbolHoldForm, SymbolComplex), element.real, element.imag
-            ),
-            evaluation,
-            form,
+        return Expression(
+            SymbolComplex,
+            element.real,
+            element.imag,
         )
 
     parts: List[Any] = []
