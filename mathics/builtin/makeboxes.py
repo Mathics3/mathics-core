@@ -11,6 +11,7 @@ from mathics.core.symbols import Symbol
 from mathics.eval.makeboxes import (
     eval_generic_makeboxes,
     eval_infix,
+    eval_makeboxes_fullform,
     eval_postprefix,
     format_element,
     parenthesize,
@@ -98,7 +99,8 @@ class MakeBoxes(Builtin):
         "MakeBoxes[(form:StandardForm|TraditionalForm|OutputForm|TeXForm|"
         "MathMLForm)[expr_], StandardForm|TraditionalForm]": ("MakeBoxes[expr, form]"),
         "MakeBoxes[(form:StandardForm|OutputForm|MathMLForm|TeXForm)[expr_], OutputForm]": "MakeBoxes[expr, form]",
-        "MakeBoxes[(form:FullForm|InputForm)[expr_], StandardForm|TraditionalForm|OutputForm]": "StyleBox[MakeBoxes[expr, form], ShowStringCharacters->True]",
+        "MakeBoxes[InputForm[expr_], StandardForm|TraditionalForm|OutputForm]": "StyleBox[MakeBoxes[expr, InputForm], ShowStringCharacters->True]",
+        "MakeBoxes[expr_, FullForm]": "MakeBoxes[FullForm[expr], StandardForm]",
         "MakeBoxes[PrecedenceForm[expr_, prec_], f_]": "MakeBoxes[expr, f]",
         "MakeBoxes[Style[expr_, OptionsPattern[Style]], f_]": (
             "StyleBox[MakeBoxes[expr, f], "
@@ -111,6 +113,10 @@ class MakeBoxes(Builtin):
         """MakeBoxes[expr_,
         f:TraditionalForm|StandardForm|OutputForm|InputForm|FullForm]"""
         return eval_generic_makeboxes(self, expr, f, evaluation)
+
+    def eval_fullform(self, expr, evaluation):
+        """MakeBoxes[FullForm[expr_], _Symbol]"""
+        return eval_makeboxes_fullform(expr, evaluation)
 
     def eval_outerprecedenceform(self, expr, precedence, form, evaluation):
         """MakeBoxes[PrecedenceForm[expr_, precedence_],
