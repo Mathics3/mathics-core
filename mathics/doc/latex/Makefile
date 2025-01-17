@@ -22,7 +22,10 @@ doc-data $(DOCTEST_LATEX_DATA_PCL):
 mathics-title.pdf:
 	cp mathics-title.pdf-src mathics-title.pdf
 
-#: Build mathics PDF
+#: Build somewhat incomplete mathics DVI
+mathics.dvi: mathics.tex documentation.tex
+	$(LATEXMK) -dvi -f --verbose mathics
+
 mathics.pdf: mathics.tex documentation.tex mathics-title.pdf logo-text-nodrop.pdf logo-heptatom.pdf version-info.tex $(DOCTEST_LATEX_DATA_PCL)
 	$(LATEXMK) --verbose -f -pdf -pdflatex="$(XETEX) -halt-on-error" mathics
 
