@@ -5,7 +5,7 @@ from test.helper import evaluate
 import pytest
 
 import mathics.core.systemsymbols as SymbolOutputForm
-from mathics.eval.makeboxes import int_to_string_shorter_repr
+from mathics.eval.makeboxes.makeboxes import int_to_string_shorter_repr
 
 
 @pytest.mark.parametrize(

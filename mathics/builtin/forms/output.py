@@ -12,55 +12,35 @@
 """
 Form Functions
 """
-import re
-from math import ceil
 from typing import Optional
 
-from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
+from mathics.builtin.box.layout import RowBox
 from mathics.builtin.forms.base import FormBaseClass
-from mathics.builtin.makeboxes import MakeBoxes, NumberForm_to_String
-from mathics.builtin.tensors import get_dimensions
-from mathics.core.atoms import (
-    Integer,
-    MachineReal,
-    PrecisionReal,
-    Real,
-    String,
-    StringFromPython,
-)
+from mathics.core.atoms import Integer, Real, String, StringFromPython
 from mathics.core.builtin import Builtin
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import BoxError, Expression
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import (
-    LOG2_10,
-    RECONSTRUCT_MACHINE_PRECISION_DIGITS,
-    convert_base,
-    dps,
-)
-from mathics.core.symbols import (
-    Symbol,
-    SymbolFalse,
-    SymbolFullForm,
-    SymbolList,
-    SymbolNull,
-    SymbolTrue,
-)
+from mathics.core.number import dps
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolInfinity,
     SymbolMakeBoxes,
     SymbolNumberForm,
-    SymbolOutputForm,
     SymbolRowBox,
     SymbolRuleDelayed,
-    SymbolSubscriptBox,
     SymbolSuperscriptBox,
 )
-from mathics.eval.makeboxes import StringLParen, StringRParen, format_element
-from mathics.eval.testing_expressions import expr_min
-
-MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
+from mathics.eval.makeboxes import (
+    NumberForm_to_String,
+    StringLParen,
+    StringRParen,
+    eval_baseform,
+    eval_mathmlform,
+    eval_tableform,
+    eval_texform,
+)
 
 
 class BaseForm(FormBaseClass):
@@ -118,36 +98,7 @@ class BaseForm(FormBaseClass):
     def eval_makeboxes(self, expr, n, f, evaluation: Evaluation):
         """MakeBoxes[BaseForm[expr_, n_],
         f:StandardForm|TraditionalForm|OutputForm]"""
-
-        base = n.get_int_value()
-        if base <= 0:
-            evaluation.message("BaseForm", "intpm", expr, n)
-            return None
-
-        if isinstance(expr, PrecisionReal):
-            x = expr.to_sympy()
-            p = int(ceil(expr.get_precision() / LOG2_10) + 1)
-        elif isinstance(expr, MachineReal):
-            x = expr.value
-            p = RECONSTRUCT_MACHINE_PRECISION_DIGITS
-        elif isinstance(expr, Integer):
-            x = expr.value
-            p = 0
-        else:
-            return to_boxes(Expression(SymbolMakeBoxes, expr, f), evaluation)
-
-        try:
-            val = convert_base(x, base, p)
-        except ValueError:
-            evaluation.message("BaseForm", "basf", n)
-            return
-
-        if f is SymbolOutputForm:
-            return to_boxes(String("%s_%d" % (val, base)), evaluation)
-        else:
-            return to_boxes(
-                Expression(SymbolSubscriptBox, String(val), String(base)), evaluation
-            )
+        return eval_baseform(self, expr, n, f, evaluation)
 
 
 class FullForm(FormBaseClass):
@@ -208,29 +159,7 @@ class MathMLForm(FormBaseClass):
 
     def eval_mathml(self, expr, evaluation) -> Expression:
         "MakeBoxes[expr_, MathMLForm]"
-
-        boxes = MakeBoxes(expr).evaluate(evaluation)
-        try:
-            mathml = boxes.boxes_to_mathml(evaluation=evaluation)
-        except BoxError:
-            evaluation.message(
-                "General",
-                "notboxes",
-                Expression(SymbolFullForm, boxes).evaluate(evaluation),
-            )
-            mathml = ""
-        is_a_picture = mathml[:6] == "<mtext"
-
-        # mathml = '<math><mstyle displaystyle="true">%s</mstyle></math>' % mathml
-        # #convert_box(boxes)
-        query = evaluation.parse("Settings`$UseSansSerif")
-        usesansserif = query.evaluate(evaluation).to_python()
-        if not is_a_picture:
-            if isinstance(usesansserif, bool) and usesansserif:
-                mathml = '<mstyle mathvariant="sans-serif">%s</mstyle>' % mathml
-
-        mathml = '<math display="block">%s</math>' % mathml  # convert_box(boxes)
-        return Expression(SymbolRowBox, ListExpression(String(mathml)))
+        return eval_mathmlform(expr, evaluation)
 
 
 class InputForm(FormBaseClass):
@@ -297,9 +226,9 @@ class _NumberForm(Builtin):
         py_value = value.get_int_value()
         if value.sameQ(SymbolInfinity):
             return [0, 0]
-        elif py_value is not None and py_value > 0:
+        if py_value is not None and py_value > 0:
             return [py_value, py_value]
-        elif value.has_form("List", 2):
+        if value.has_form("List", 2):
             nleft, nright = value.elements
             py_left, py_right = nleft.get_int_value(), nright.get_int_value()
             if nleft.sameQ(SymbolInfinity):
@@ -707,27 +636,7 @@ class TeXForm(FormBaseClass):
 
     def eval_tex(self, expr, evaluation) -> Expression:
         "MakeBoxes[expr_, TeXForm]"
-        boxes = MakeBoxes(expr).evaluate(evaluation)
-        try:
-            # Here we set ``show_string_characters`` to False, to reproduce
-            # the standard behaviour in WMA. Remove this parameter to recover the
-            # quotes in InputForm and FullForm
-            tex = boxes.boxes_to_tex(
-                show_string_characters=False, evaluation=evaluation
-            )
-
-            # Replace multiple newlines by a single one e.g. between asy-blocks
-            tex = MULTI_NEWLINE_RE.sub("\n", tex)
-
-            tex = tex.replace(" \uF74c", " \\, d")  # tmp hack for Integrate
-        except BoxError:
-            evaluation.message(
-                "General",
-                "notboxes",
-                Expression(SymbolFullForm, boxes).evaluate(evaluation),
-            )
-            tex = ""
-        return Expression(SymbolRowBox, ListExpression(String(tex)))
+        return eval_texform(expr, evaluation)
 
 
 class TableForm(FormBaseClass):
@@ -777,51 +686,7 @@ class TableForm(FormBaseClass):
     def eval_makeboxes(self, table, f, evaluation, options):
         """MakeBoxes[%(name)s[table_, OptionsPattern[%(name)s]],
         f:StandardForm|TraditionalForm|OutputForm]"""
-        dims = len(get_dimensions(table, head=SymbolList))
-        depth = self.get_option(options, "TableDepth", evaluation, pop=True)
-        options["System`TableDepth"] = depth
-        depth = expr_min((Integer(dims), depth))
-        depth = depth.value
-        if depth is None:
-            evaluation.message(self.get_name(), "int")
-            return
-
-        if depth <= 0:
-            return format_element(table, evaluation, f)
-        elif depth == 1:
-            return GridBox(
-                ListExpression(
-                    *(
-                        ListExpression(format_element(item, evaluation, f))
-                        for item in table.elements
-                    ),
-                )
-            )
-            # return Expression(
-            #    'GridBox', Expression('List', *(
-            #        Expression('List', Expression('MakeBoxes', item, f))
-            #        for item in table.elements)))
-        else:
-            options["System`TableDepth"] = Integer(depth - 2)
-
-            def transform_item(item):
-                if depth > 2:
-                    return self.eval_makeboxes(item, f, evaluation, options)
-                else:
-                    return format_element(item, evaluation, f)
-
-            result = GridBox(
-                ListExpression(
-                    *(
-                        ListExpression(
-                            *(transform_item(item) for item in row.elements),
-                        )
-                        for row in table.elements
-                    ),
-                )
-            )
-            options["System`TableDepth"] = Integer(depth)
-            return result
+        return eval_tableform(self, table, f, evaluation, options)
 
 
 class MatrixForm(TableForm):
