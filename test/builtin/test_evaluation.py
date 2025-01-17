@@ -5,7 +5,7 @@ Unit tests from mathics.builtin.evaluation.
 
 
 import sys
-from test.helper import check_evaluation_as_in_cli, session
+from test.helper import check_evaluation_as_in_cli
 
 import pytest
 
@@ -62,6 +62,7 @@ import pytest
             None,
         ),
         ("ClearAll[f];", None, None, None),
+        ("HoldForm[Times[]]", None, "Times[]", None),
     ],
 )
 def test_private_doctests_evaluation(str_expr, msgs, str_expected, fail_msg):
