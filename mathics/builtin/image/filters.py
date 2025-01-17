@@ -5,9 +5,9 @@ Image Filters
 import numpy
 import PIL
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.image.base import Image
 from mathics.core.atoms import Integer, is_integer_rational_or_real
+from mathics.core.builtin import Builtin
 from mathics.core.evaluation import Evaluation
 from mathics.eval.image import convolve, matrix_to_numpy, pixels_as_float
 

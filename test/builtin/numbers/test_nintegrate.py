@@ -10,10 +10,10 @@ from typing import Optional
 
 import pytest
 
-from mathics.builtin.base import check_requires_list
+from mathics.core.builtin import check_requires_list
 
 if check_requires_list(["scipy", "scipy.integrate"]):
-    methods = ["Automatic", "Romberg", "Internal", "NQuadrature"]
+    methods = ["Automatic", "Internal", "NQuadrature"]
 
     generic_tests_for_nintegrate = [
         (r"NIntegrate[x^2, {x,0,1}, {method} ]", r"1/3.", ""),
@@ -46,7 +46,7 @@ if check_requires_list(["scipy", "scipy.integrate"]):
                 "1.",
                 None,
                 [
-                    r"The Method option should be a built-in method name in {`Automatic`, `Internal`, `Simpson`, `NQuadrature`, `Quadrature`, `Romberg`}. Using `Automatic`"
+                    r"The Method option should be a built-in method name in {`Automatic`, `Internal`, `Simpson`, `NQuadrature`, `Quadrature`}. Using `Automatic`"
                 ],
             ),
         ],

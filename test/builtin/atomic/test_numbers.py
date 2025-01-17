@@ -308,3 +308,132 @@ def test_precision(str_expr, str_expected):
 )
 def test_change_prec(str_expr, str_expected, msg):
     check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "warnings", "str_expected", "fail_msg"),
+    [
+        ("IntegerLength /@ (10 ^ Range[100] - 1) == Range[1, 100]", None, "True", None),
+        (
+            "RealDigits[-1.25, -1]",
+            ("Base -1 is not a real number greater than 1.",),
+            "RealDigits[-1.25, -1]",
+            None,
+        ),
+        (
+            "RealDigits[-Pi]",
+            ("The number of digits to return cannot be determined.",),
+            "RealDigits[-Pi]",
+            None,
+        ),
+        (
+            "RealDigits[I, 7]",
+            ("The value I is not a real number.",),
+            "RealDigits[I, 7]",
+            None,
+        ),
+        (
+            "RealDigits[Pi]",
+            ("The number of digits to return cannot be determined.",),
+            "RealDigits[Pi]",
+            None,
+        ),
+        (
+            "RealDigits[3 + 4 I]",
+            ("The value 3 + 4 I is not a real number.",),
+            "RealDigits[3 + 4 I]",
+            None,
+        ),
+        (
+            "RealDigits[3.14, 10, 1.5]",
+            (
+                "Non-negative machine-sized integer expected at position 3 in RealDigits[3.14, 10, 1.5].",
+            ),
+            "RealDigits[3.14, 10, 1.5]",
+            None,
+        ),
+        (
+            "RealDigits[3.14, 10, 1, 1.5]",
+            (
+                "Machine-sized integer expected at position 4 in RealDigits[3.14, 10, 1, 1.5].",
+            ),
+            "RealDigits[3.14, 10, 1, 1.5]",
+            None,
+        ),
+        ("N[Pi, 10]", None, "3.141592654", None),
+        (
+            "$MaxPrecision = x",
+            (
+                "Cannot set $MaxPrecision to x; value must be a positive number or Infinity.",
+            ),
+            "x",
+            None,
+        ),
+        (
+            "$MaxPrecision = -Infinity",
+            (
+                "Cannot set $MaxPrecision to -Infinity; value must be a positive number or Infinity.",
+            ),
+            "-Infinity",
+            None,
+        ),
+        (
+            "$MaxPrecision = 0",
+            (
+                "Cannot set $MaxPrecision to 0; value must be a positive number or Infinity.",
+            ),
+            "0",
+            None,
+        ),
+        ("$MaxPrecision = Infinity;$MinPrecision = 15;", None, "Null", None),
+        (
+            "$MaxPrecision = 10",
+            ("Cannot set $MaxPrecision such that $MaxPrecision < $MinPrecision.",),
+            "10",
+            None,
+        ),
+        ("$MaxPrecision", None, "Infinity", None),
+        ("$MinPrecision = 0;", None, "Null", None),
+        ("N[E, MachinePrecision]", None, "2.71828", None),
+        ("Round[MachinePrecision]", None, "16", None),
+        ("N[Pi, 10]", None, "3.141592654", None),
+        (
+            "$MinPrecision = x",
+            ("Cannot set $MinPrecision to x; value must be a non-negative number.",),
+            "x",
+            None,
+        ),
+        (
+            "$MinPrecision = -Infinity",
+            (
+                "Cannot set $MinPrecision to -Infinity; value must be a non-negative number.",
+            ),
+            "-Infinity",
+            None,
+        ),
+        (
+            "$MinPrecision = -1",
+            ("Cannot set $MinPrecision to -1; value must be a non-negative number.",),
+            "-1",
+            None,
+        ),
+        ("$MinPrecision = 0;", None, "Null", None),
+        ("$MaxPrecision = 10;", None, "Null", None),
+        (
+            "$MinPrecision = 15",
+            ("Cannot set $MinPrecision such that $MaxPrecision < $MinPrecision.",),
+            "15",
+            None,
+        ),
+        ("$MinPrecision", None, "0", None),
+        ("$MaxPrecision = Infinity;", None, "Null", None),
+    ],
+)
+def test_private_doctests_string(str_expr, warnings, str_expected, fail_msg):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        failure_message="",
+        expected_messages=warnings,
+        hold_expected=True,
+    )

@@ -6,10 +6,10 @@ from typing import Tuple
 import numpy
 import PIL.Image
 
-from mathics.builtin.base import AtomBuiltin, String
 from mathics.builtin.box.image import ImageBox
 from mathics.builtin.colors.color_internals import convert_color
 from mathics.core.atoms import Atom
+from mathics.core.builtin import AtomBuiltin, String
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -125,7 +125,6 @@ class Image(Atom):
         return self.color_convert("Grayscale")
 
     def pil(self):
-
         if hasattr(self, "pillow") and self.pillow is not None:
             return self.pillow
 
@@ -223,12 +222,6 @@ class ImageAtom(AtomBuiltin):
       <dd> produces the internal representation of an image from an array \
           of values for the pixels.
     </dl>
-
-    #> Image[{{{1,1,0},{0,1,1}}, {{1,0,1},{1,1,0}}}]
-     = -Image-
-
-    #> Image[{{{0,0,0,0.25},{0,0,0,0.5}}, {{0,0,0,0.5},{0,0,0,0.75}}}]
-     = -Image-
     """
 
     summary_text = "get internal representation of an image"

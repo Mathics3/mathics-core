@@ -1,7 +1,7 @@
 """
 Base classes for Descriptive Statistics
 """
-from mathics.builtin.base import Builtin
+from mathics.core.builtin import Builtin
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
@@ -16,7 +16,7 @@ class NotRectangularException(Exception):
 
 class Rectangular(Builtin):
     """
-    A base class for statics builtin functions X that allow X[{a1, a2, ...}, {b1, b2, ...}, ...]
+    A base class for statistics builtin functions X that allow X[{a1, a2, ...}, {b1, b2, ...}, ...]
     to be evaluated as
     {X[{a1, b1, ...}, {a1, b2, ...}, ...]}.
     """

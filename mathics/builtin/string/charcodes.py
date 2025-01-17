@@ -6,8 +6,8 @@ Character Codes
 import sys
 
 from mathics.builtin.atomic.strings import to_python_encoding
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer, Integer1, String
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -57,31 +57,14 @@ class ToCharacterCode(Builtin):
     >> ToCharacterCode[{"ab", "c"}]
      = {{97, 98}, {99}}
 
-    #> ToCharacterCode[{"ab"}]
-     = {{97, 98}}
-
-    #> ToCharacterCode[{{"ab"}}]
-     : String or list of strings expected at position 1 in ToCharacterCode[{{ab}}].
-     = ToCharacterCode[{{ab}}]
-
     >> ToCharacterCode[{"ab", x}]
      : String or list of strings expected at position 1 in ToCharacterCode[{ab, x}].
      = ToCharacterCode[{ab, x}]
 
     >> ListPlot[ToCharacterCode["plot this string"], Filling -> Axis]
      = -Graphics-
-
-    #> ToCharacterCode[x]
-     : String or list of strings expected at position 1 in ToCharacterCode[x].
-     = ToCharacterCode[x]
-
-    #> ToCharacterCode[""]
-     = {}
     """
 
-    messages = {
-        "strse": "String or list of strings expected at position `1` in `2`.",
-    }
     summary_text = "convert a string to a list of character codes"
 
     def _encode(self, string, encoding, evaluation: Evaluation):
@@ -167,51 +150,12 @@ class FromCharacterCode(Builtin):
 
     >> ToCharacterCode["abc 123"] // FromCharacterCode
      = abc 123
-
-    #> #1 == ToCharacterCode[FromCharacterCode[#1]] & [RandomInteger[{0, 65535}, 100]]
-     = True
-
-    #> FromCharacterCode[{}] // InputForm
-     = ""
-
-    #> FromCharacterCode[65536]
-     : A character code, which should be a non-negative integer less than 65536, is expected at position 1 in {65536}.
-     = FromCharacterCode[65536]
-    #> FromCharacterCode[-1]
-     : Non-negative machine-sized integer expected at position 1 in FromCharacterCode[-1].
-     = FromCharacterCode[-1]
-    #> FromCharacterCode[444444444444444444444444444444444444]
-     : Non-negative machine-sized integer expected at position 1 in FromCharacterCode[444444444444444444444444444444444444].
-     = FromCharacterCode[444444444444444444444444444444444444]
-
-    #> FromCharacterCode[{100, 101, -1}]
-     : A character code, which should be a non-negative integer less than 65536, is expected at position 3 in {100, 101, -1}.
-     = FromCharacterCode[{100, 101, -1}]
-    #> FromCharacterCode[{100, 101, 65536}]
-     : A character code, which should be a non-negative integer less than 65536, is expected at position 3 in {100, 101, 65536}.
-     = FromCharacterCode[{100, 101, 65536}]
-    #> FromCharacterCode[{100, 101, x}]
-     : A character code, which should be a non-negative integer less than 65536, is expected at position 3 in {100, 101, x}.
-     = FromCharacterCode[{100, 101, x}]
-    #> FromCharacterCode[{100, {101}}]
-     : A character code, which should be a non-negative integer less than 65536, is expected at position 2 in {100, {101}}.
-     = FromCharacterCode[{100, {101}}]
-
-    #> FromCharacterCode[{{97, 98, 99}, {100, 101, x}}]
-     : A character code, which should be a non-negative integer less than 65536, is expected at position 3 in {100, 101, x}.
-     = FromCharacterCode[{{97, 98, 99}, {100, 101, x}}]
-    #> FromCharacterCode[{{97, 98, x}, {100, 101, x}}]
-     : A character code, which should be a non-negative integer less than 65536, is expected at position 3 in {97, 98, x}.
-     = FromCharacterCode[{{97, 98, x}, {100, 101, x}}]
     """
 
     messages = {
         "notunicode": (
             "A character code, which should be a non-negative integer less "
             "than 65536, is expected at position `2` in `1`."
-        ),
-        "intnm": (
-            "Non-negative machine-sized integer expected at " "position `2` in `1`."
         ),
         "utf8": "The given codes could not be decoded as utf-8.",
     }
@@ -265,7 +209,7 @@ class FromCharacterCode(Builtin):
             else:
                 pyn = n.get_int_value()
                 if not (isinstance(pyn, int) and pyn > 0 and pyn < sys.maxsize):
-                    evaluation.message("FromCharacterCode", "intnm", exp, Integer1)
+                    evaluation.message("FromCharacterCode", "intnm", Integer1, exp)
                     return
                 return String(convert_codepoint_list([n]))
         except _InvalidCodepointError:

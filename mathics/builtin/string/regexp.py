@@ -4,7 +4,7 @@ Regular Expressions
 """
 
 
-from mathics.builtin.base import Builtin
+from mathics.core.builtin import Builtin
 
 
 # eval.strings.to_regex seems to have the implementation.

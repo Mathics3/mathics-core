@@ -28,7 +28,7 @@ class ImageBox(BoxExpression):
 
     """
 
-    summary_text = "symbol used boxing Image expresssions"
+    summary_text = "symbol used boxing Image expressions"
 
     def boxes_to_b64text(
         self, elements: Tuple[BaseElement] = None, **options
@@ -109,7 +109,7 @@ class ImageBox(BoxExpression):
         head = rf"\includegraphics[width={width_str}cm,height={height_str}cm]"
 
         # This produces a random name, where the png file is going to be stored.
-        # LaTeX does not have a native way to store an figure embeded in
+        # LaTeX does not have a native way to store an figure embedded in
         # the source.
         fp = tempfile.NamedTemporaryFile(delete=True, suffix=".png")
         path = fp.name

@@ -124,7 +124,10 @@ def add_conversion_fn(cls, module_fn_name=None) -> None:
 
     We use frame introspection to get all of this done.
     """
-    fr = inspect.currentframe().f_back
+    fr = inspect.currentframe()
+    assert fr is not None
+    fr = fr.f_back
+    assert fr is not None
     module_dict = fr.f_globals
 
     # The last part of the module name is expected to be the conversion routine.

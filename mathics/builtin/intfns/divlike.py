@@ -9,7 +9,6 @@ from typing import List
 import sympy
 from sympy import Q, ask
 
-from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.atoms import Integer
 from mathics.core.attributes import (
     A_FLAT,
@@ -20,6 +19,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import Builtin, SympyFunction
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_bool
 from mathics.core.evaluation import Evaluation
@@ -298,16 +298,6 @@ class Quotient(Builtin):
 
     >> Quotient[23, 7]
      = 3
-
-    #> Quotient[13, 0]
-     : Infinite expression Quotient[13, 0] encountered.
-     = ComplexInfinity
-    #> Quotient[-17, 7]
-     = -3
-    #> Quotient[-17, -4]
-     = 4
-    #> Quotient[19, -4]
-     = -5
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
@@ -338,24 +328,6 @@ class QuotientRemainder(Builtin):
 
     >> QuotientRemainder[23, 7]
      = {3, 2}
-
-    #> QuotientRemainder[13, 0]
-     : The argument 0 in QuotientRemainder[13, 0] should be nonzero.
-     = QuotientRemainder[13, 0]
-    #> QuotientRemainder[-17, 7]
-     = {-3, 4}
-    #> QuotientRemainder[-17, -4]
-     = {4, -1}
-    #> QuotientRemainder[19, -4]
-     = {-5, -1}
-    #> QuotientRemainder[a, 0]
-     = QuotientRemainder[a, 0]
-    #> QuotientRemainder[a, b]
-     = QuotientRemainder[a, b]
-    #> QuotientRemainder[5.2,2.5]
-     = {2, 0.2}
-    #> QuotientRemainder[5, 2.]
-     = {2, 1.}
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
@@ -378,7 +350,7 @@ class QuotientRemainder(Builtin):
                 )
                 return
             # Note: py_m % py_n can be a float or an int.
-            # Also note that we *want* the first arguemnt to be an Integer.
+            # Also note that we *want* the first argument to be an Integer.
             return to_mathics_list(Integer(py_m // py_n), py_m % py_n)
         else:
             return Expression(SymbolQuotientRemainder, m, n)

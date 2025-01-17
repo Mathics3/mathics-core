@@ -12,11 +12,13 @@ jobs:
     strategy:
       matrix:
         os: [windows]
-        python-version: ['3.10', '3.11']
+        # "make doctest" on MS Windows fails without showing much of a
+        # trace of where things went wrong on Python before 3.11.
+        python-version: ['3.12']
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install OS dependencies
@@ -27,13 +29,25 @@ jobs:
         # so we will be safe here. Another possibility would be check and install
         # conditionally.
         choco install --force llvm
-        choco install tesseract
+        # choco install tesseract
         set LLVM_DIR="C:\Program Files\LLVM"
     - name: Install Mathics3 with Python dependencies
       run: |
+        # First install our patched version of stopit
+        git clone --depth 1 https://github.com/Mathics3/stopit.git
+        cd stopit/
+        pip install -e .
+        cd ..
         # We can comment out after next Mathics-Scanner release
-        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
-        python -m pip install Mathics-Scanner
+        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
+        # git clone --single-branch --branch operator-refactor-part1.5 https://github.com/Mathics3/mathics-scanner.git
+        cd mathics-scanner
+        pip install -e .
+        python -m mathics_scanner.generate.build_tables
+        cd ..
+
+        # python -m pip install Mathics-Scanner[full]
         make develop-full
     - name: Test Mathics3
       # Limit pip install to a basic install *without* full dependencies.
@@ -46,8 +60,6 @@ jobs:
       run: |
         pip install pyocr # from full
         pip install -e .[dev]
-        set PYTEST_WORKERS="-n3"
-        # Until we can't figure out what's up with TextRecognize:
         make pytest gstest
-        make doctest o="--exclude TextRecognize"
+        make doctest DOCTEST_OPTIONS="--exclude WordCloud"
         # make check

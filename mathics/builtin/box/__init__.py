@@ -1,4 +1,4 @@
-"""
+r"""
 Boxing modules.
 
 Boxes are added in formatting \Mathics Expressions.

@@ -1,15 +1,12 @@
 import os
-from test.helper import check_evaluation
-
-from mathics.core.symbols import Symbol
-from mathics.session import MathicsSession
-
-session = MathicsSession()
-
-# from mathics.builtin.base import BoxConstruct, Predefined
-
+from test.helper import check_evaluation, session
 
 import pytest
+
+from mathics.core.symbols import Symbol
+
+# from mathics.core.builtin import BoxConstruct, Predefined
+
 
 #
 #  Aim of the tests:
@@ -42,6 +39,48 @@ MATHML_STRICT = (
 
 
 all_test = {
+    "<|a -> x, b -> y, c -> <|d -> t|>|>": {
+        "msg": "Association",
+        "text": {
+            "System`StandardForm": "<|a->x,b->y,c-><|d->t|>|>",
+            "System`TraditionalForm": "<|a->x,b->y,c-><|d->t|>|>",
+            "System`InputForm": "<|a -> x, b -> y, c -> <|d -> t|>|>",
+            "System`OutputForm": "<|a -> x, b -> y, c -> <|d -> t|>|>",
+        },
+        "latex": {
+            "System`StandardForm": r"\text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t\text{$\vert$>}\text{$\vert$>}",
+            "System`TraditionalForm": r"\text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t\text{$\vert$>}\text{$\vert$>}",
+            "System`InputForm": r"\text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{ -> }t\text{$\vert$>}\text{$\vert$>}",
+            "System`OutputForm": r"\text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{ -> }t\text{$\vert$>}\text{$\vert$>}",
+        },
+        "mathml": {
+            "System`StandardForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn> <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow> <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi> <mn>-&gt;</mn> <mi>t</mi></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+            "System`TraditionalForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn> <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow> <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi> <mn>-&gt;</mn> <mi>t</mi></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+            "System`InputForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>t</mi></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+            "System`OutputForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mrow><mtext>&lt;|</mtext> <mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>t</mi></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+        },
+    },
+    "Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]]": {
+        "msg": "Nested Association",
+        "text": {
+            "System`StandardForm": "<|a->x,b->y,c-><|d->t,e->u|>|>",
+            "System`TraditionalForm": "<|a->x,b->y,c-><|d->t,e->u|>|>",
+            "System`InputForm": "<|a -> x, b -> y, c -> <|d -> t, e -> u|>|>",
+            "System`OutputForm": "<|a -> x, b -> y, c -> <|d -> t, e -> u|>|>",
+        },
+        "latex": {
+            "System`StandardForm": r"\text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t,e->u\text{$\vert$>}\text{$\vert$>}",
+            "System`TraditionalForm": r"\text{<$\vert$}a->x,b->y,c->\text{<$\vert$}d->t,e->u\text{$\vert$>}\text{$\vert$>}",
+            "System`InputForm": r"\text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{ -> }t, e\text{ -> }u\text{$\vert$>}\text{$\vert$>}",
+            "System`OutputForm": r"\text{<$\vert$}a\text{ -> }x, b\text{ -> }y, c\text{ -> }\text{<$\vert$}d\text{ -> }t, e\text{ -> }u\text{$\vert$>}\text{$\vert$>}",
+        },
+        "mathml": {
+            "System`StandardForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn> <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow> <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi> <mn>-&gt;</mn> <mi>t</mi></mrow> <mo>,</mo> <mrow><mi>e</mi> <mn>-&gt;</mn> <mi>u</mi></mrow></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+            "System`TraditionalForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mn>-&gt;</mn> <mi>x</mi></mrow> <mo>,</mo> <mrow><mi>b</mi> <mn>-&gt;</mn> <mi>y</mi></mrow> <mo>,</mo> <mrow><mi>c</mi> <mn>-&gt;</mn> <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi> <mn>-&gt;</mn> <mi>t</mi></mrow> <mo>,</mo> <mrow><mi>e</mi> <mn>-&gt;</mn> <mi>u</mi></mrow></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+            "System`InputForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>t</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>e</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>u</mi></mrow></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+            "System`OutputForm": r"<mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>a</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>x</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>b</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>y</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>c</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mrow><mtext>&lt;|</mtext> <mrow><mrow><mi>d</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>t</mi></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>e</mi> <mtext>&nbsp;-&gt;&nbsp;</mtext> <mi>u</mi></mrow></mrow> <mtext>|&gt;</mtext></mrow></mrow></mrow> <mtext>|&gt;</mtext></mrow>",
+        },
+    },
     # Checking basic formats for atoms
     "-4": {
         "msg": "An Integer",
@@ -263,7 +302,7 @@ all_test = {
         },
         # Notice that differetly from "text", where InputForm
         # preserves the quotes in strings, MathTeXForm just
-        # sorrounds the string in a ``\text{...}`` command,
+        # surrounds the string in a ``\text{...}`` command,
         # in the same way that all the other forms. This choice
         # follows the behavior in WMA.
         "latex": {
@@ -356,8 +395,8 @@ all_test = {
             "System`OutputForm": "<mi>Pi</mi>",
         },
         "latex": {
-            "System`StandardForm": "π",
-            "System`TraditionalForm": "π",
+            "System`StandardForm": "\\pi",
+            "System`TraditionalForm": "\\pi",
             "System`InputForm": "\\text{Pi}",
             "System`OutputForm": "\\text{Pi}",
         },
@@ -509,8 +548,8 @@ all_test = {
             "System`OutputForm": "<mrow><mi>Integrate</mi> <mo>[</mo> <mrow><mrow><mi>F</mi> <mo>[</mo> <mi>x</mi> <mo>]</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><mi>x</mi> <mtext>,&nbsp;</mtext> <mi>a</mi> <mtext>,&nbsp;</mtext> <mrow><mi>g</mi> <mo>[</mo> <mi>b</mi> <mo>]</mo></mrow></mrow> <mo>}</mo></mrow></mrow> <mo>]</mo></mrow>",
         },
         "latex": {
-            "System`StandardForm": "\\int_a^{g\\left[b\\right]} F\\left[x\\right] \, dx",
-            "System`TraditionalForm": "\\int_a^{g\\left(b\\right)} F\\left(x\\right) \, dx",
+            "System`StandardForm": "\\int_a^{g\\left[b\\right]} F\\left[x\\right] \\, dx",
+            "System`TraditionalForm": "\\int_a^{g\\left(b\\right)} F\\left(x\\right) \\, dx",
             "System`InputForm": "\\text{Integrate}\\left[F\\left[x\\right], \\left\\{x, a, g\\left[b\\right]\\right\\}\\right]",
             "System`OutputForm": "\\text{Integrate}\\left[F\\left[x\\right], \\left\\{x, a, g\\left[b\\right]\\right\\}\\right]",
         },
@@ -684,7 +723,16 @@ all_test = {
         #    "System`OutputForm": '<mglyph width="350px" height="350px" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMnB4IiBoZWlnaHQ9IjJweCIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHZlcnNpb249IjEuMSIKICAgICAgICAgICAgICAgIHZpZXdCb3g9Ii0xLjAwMDAwMCAtMS4wMDAwMDAgMi4wMDAwMDAgMi4wMDAwMDAiPgogICAgICAgICAgICAgICAgPCEtLUdyYXBoaWNzRWxlbWVudHMtLT4KPC9zdmc+Cg=="/>',
         # },
         "latex": {
-            "System`StandardForm": '\n\\begin{asy}\nusepackage("amsmath");\nsize(5.8333cm, 5.8333cm);\n\n\nclip(box((-1,-1), (1,1)));\n\n\\end{asy}\n',
+            "System`StandardForm": """
+\\begin{asy}
+usepackage("amsmath");
+size(5.8333cm, 5.8333cm);
+
+
+clip(box((-1,-1), (1,1)));
+
+\\end{asy}
+""",
             "System`TraditionalForm": '\n\\begin{asy}\nusepackage("amsmath");\nsize(5.8333cm, 5.8333cm);\n\n\nclip(box((-1,-1), (1,1)));\n\n\\end{asy}\n',
             "System`InputForm": "\\text{Graphics}\\left[\\left\\{\\right\\}\\right]",
             "System`OutputForm": '\n\\begin{asy}\nusepackage("amsmath");\nsize(5.8333cm, 5.8333cm);\n\n\nclip(box((-1,-1), (1,1)));\n\n\\end{asy}\n',
@@ -705,10 +753,37 @@ all_test = {
         #     "System`OutputForm": '<mglyph width="294px" height="350px" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjEuMHB4IiBoZWlnaHQ9IjI1LjBweCIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHZlcnNpb249IjEuMSIKICAgICAgICAgICAgICAgIHZpZXdCb3g9IjEzNi41MDAwMDAgMTYyLjUwMDAwMCAyMS4wMDAwMDAgMjUuMDAwMDAwIj4KICAgICAgICAgICAgICAgIDwhLS1HcmFwaGljc0VsZW1lbnRzLS0+Cjx0ZXh0IHg9IjE0Ny4wIiB5PSIxNzUuMCIgb3g9IjAiIG95PSIwIiBmb250LXNpemU9IjEwcHgiIHN0eWxlPSJ0ZXh0LWFuY2hvcjplbmQ7IGRvbWluYW50LWJhc2VsaW5lOmhhbmdpbmc7IHN0cm9rZTogcmdiKDAuMDAwMDAwJSwgMC4wMDAwMDAlLCAwLjAwMDAwMCUpOyBzdHJva2Utb3BhY2l0eTogMTsgZmlsbDogcmdiKDAuMDAwMDAwJSwgMC4wMDAwMDAlLCAwLjAwMDAwMCUpOyBmaWxsLW9wYWNpdHk6IDE7IGNvbG9yOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IG9wYWNpdHk6IDEuMCI+YV5iPC90ZXh0Pgo8L3N2Zz4K"/>',
         # },
         "latex": {
-            "System`StandardForm": '\n\\begin{asy}\nusepackage("amsmath");\nsize(4.9cm, 5.8333cm);\n\n// InsetBox\nlabel("$a^b$", (147.0,175.0), (0,0), rgb(0, 0, 0)+fontsize(3));\n\nclip(box((136.5,162.5), (157.5,187.5)));\n\n\\end{asy}\n',
-            "System`TraditionalForm": '\n\\begin{asy}\nusepackage("amsmath");\nsize(4.9cm, 5.8333cm);\n\n// InsetBox\nlabel("$a^b$", (147.0,175.0), (0,0), rgb(0, 0, 0)+fontsize(3));\n\nclip(box((136.5,162.5), (157.5,187.5)));\n\n\\end{asy}\n',
+            "System`StandardForm": """
+\\begin{asy}
+usepackage("amsmath");
+size(4.9cm, 5.8333cm);
+
+// InsetBox\nlabel("$a^b$", (147.0,175.0), align=SW, rgb(0, 0, 0)+fontsize(3));
+
+clip(box((136.5,162.5), (157.5,187.5)));
+
+\\end{asy}
+""",
+            "System`TraditionalForm": """
+\\begin{asy}
+usepackage("amsmath");
+size(4.9cm, 5.8333cm);
+
+// InsetBox\nlabel("$a^b$", (147.0,175.0), align=SW, rgb(0, 0, 0)+fontsize(3));
+
+clip(box((136.5,162.5), (157.5,187.5)));
+
+\\end{asy}
+""",
             "System`InputForm": "\\text{Graphics}\\left[\\left\\{\\text{Text}\\left[\\text{Power}\\left[a, b\\right], \\left\\{0, 0\\right\\}\\right]\\right\\}\\right]",
-            "System`OutputForm": '\n\\begin{asy}\nusepackage("amsmath");\nsize(4.9cm, 5.8333cm);\n\n// InsetBox\nlabel("$a^b$", (147.0,175.0), (0,0), rgb(0, 0, 0)+fontsize(3));\n\nclip(box((136.5,162.5), (157.5,187.5)));\n\n\\end{asy}\n',
+            "System`OutputForm": """
+\\begin{asy}\nusepackage("amsmath");
+size(4.9cm, 5.8333cm);
+
+// InsetBox\nlabel("$a^b$", (147.0,175.0), align=SW, rgb(0, 0, 0)+fontsize(3));
+
+clip(box((136.5,162.5), (157.5,187.5)));\n\n\\end{asy}
+""",
         },
     },
     "TableForm[{Graphics[{Text[a^b,{0,0}]}], Graphics[{Text[a^b,{0,0}]}]}]": {
@@ -726,10 +801,26 @@ all_test = {
         #     "System`OutputForm": '<mtable columnalign="center">\n<mtr><mtd columnalign="center"><mglyph width="147px" height="175px" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjEuMHB4IiBoZWlnaHQ9IjI1LjBweCIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHZlcnNpb249IjEuMSIKICAgICAgICAgICAgICAgIHZpZXdCb3g9IjYzLjAwMDAwMCA3NS4wMDAwMDAgMjEuMDAwMDAwIDI1LjAwMDAwMCI+CiAgICAgICAgICAgICAgICA8IS0tR3JhcGhpY3NFbGVtZW50cy0tPgo8dGV4dCB4PSI3My41IiB5PSI4Ny41IiBveD0iMCIgb3k9IjAiIGZvbnQtc2l6ZT0iMTBweCIgc3R5bGU9InRleHQtYW5jaG9yOmVuZDsgZG9taW5hbnQtYmFzZWxpbmU6aGFuZ2luZzsgc3Ryb2tlOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IHN0cm9rZS1vcGFjaXR5OiAxOyBmaWxsOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IGZpbGwtb3BhY2l0eTogMTsgY29sb3I6IHJnYigwLjAwMDAwMCUsIDAuMDAwMDAwJSwgMC4wMDAwMDAlKTsgb3BhY2l0eTogMS4wIj5hXmI8L3RleHQ+Cjwvc3ZnPgo="/></mtd></mtr>\n<mtr><mtd columnalign="center"><mglyph width="147px" height="175px" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjEuMHB4IiBoZWlnaHQ9IjI1LjBweCIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHZlcnNpb249IjEuMSIKICAgICAgICAgICAgICAgIHZpZXdCb3g9IjYzLjAwMDAwMCA3NS4wMDAwMDAgMjEuMDAwMDAwIDI1LjAwMDAwMCI+CiAgICAgICAgICAgICAgICA8IS0tR3JhcGhpY3NFbGVtZW50cy0tPgo8dGV4dCB4PSI3My41IiB5PSI4Ny41IiBveD0iMCIgb3k9IjAiIGZvbnQtc2l6ZT0iMTBweCIgc3R5bGU9InRleHQtYW5jaG9yOmVuZDsgZG9taW5hbnQtYmFzZWxpbmU6aGFuZ2luZzsgc3Ryb2tlOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IHN0cm9rZS1vcGFjaXR5OiAxOyBmaWxsOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IGZpbGwtb3BhY2l0eTogMTsgY29sb3I6IHJnYigwLjAwMDAwMCUsIDAuMDAwMDAwJSwgMC4wMDAwMDAlKTsgb3BhY2l0eTogMS4wIj5hXmI8L3RleHQ+Cjwvc3ZnPgo="/></mtd></mtr>\n</mtable>',
         # },
         "latex": {
-            "System`StandardForm": '\\begin{array}{c} \n\\begin{asy}\nusepackage("amsmath");\nsize(2.45cm, 2.9167cm);\n\n// InsetBox\nlabel("$a^b$", (73.5,87.5), (0,0), rgb(0, 0, 0)+fontsize(3));\n\nclip(box((63,75), (84,100)));\n\n\\end{asy}\n\\\\ \n\\begin{asy}\nusepackage("amsmath");\nsize(2.45cm, 2.9167cm);\n\n// InsetBox\nlabel("$a^b$", (73.5,87.5), (0,0), rgb(0, 0, 0)+fontsize(3));\n\nclip(box((63,75), (84,100)));\n\n\\end{asy}\n\\end{array}',
-            "System`TraditionalForm": '\\begin{array}{c} \n\\begin{asy}\nusepackage("amsmath");\nsize(2.45cm, 2.9167cm);\n\n// InsetBox\nlabel("$a^b$", (73.5,87.5), (0,0), rgb(0, 0, 0)+fontsize(3));\n\nclip(box((63,75), (84,100)));\n\n\\end{asy}\n\\\\ \n\\begin{asy}\nusepackage("amsmath");\nsize(2.45cm, 2.9167cm);\n\n// InsetBox\nlabel("$a^b$", (73.5,87.5), (0,0), rgb(0, 0, 0)+fontsize(3));\n\nclip(box((63,75), (84,100)));\n\n\\end{asy}\n\\end{array}',
-            "System`InputForm": "\\text{TableForm}\\left[\\left\\{\\text{Graphics}\\left[\\left\\{\\text{Text}\\left[\\text{Power}\\left[a, b\\right], \\left\\{0, 0\\right\\}\\right]\\right\\}\\right], \\text{Graphics}\\left[\\left\\{\\text{Text}\\left[\\text{Power}\\left[a, b\\right], \\left\\{0, 0\\right\\}\\right]\\right\\}\\right]\\right\\}\\right]",
-            "System`OutputForm": '\\begin{array}{c} \n\\begin{asy}\nusepackage("amsmath");\nsize(2.45cm, 2.9167cm);\n\n// InsetBox\nlabel("$a^b$", (73.5,87.5), (0,0), rgb(0, 0, 0)+fontsize(3));\n\nclip(box((63,75), (84,100)));\n\n\\end{asy}\n\\\\ \n\\begin{asy}\nusepackage("amsmath");\nsize(2.45cm, 2.9167cm);\n\n// InsetBox\nlabel("$a^b$", (73.5,87.5), (0,0), rgb(0, 0, 0)+fontsize(3));\n\nclip(box((63,75), (84,100)));\n\n\\end{asy}\n\\end{array}',
+            "System`StandardForm": """\\begin{array}{c} \n\\begin{asy}
+usepackage("amsmath");
+size(2.45cm, 2.9167cm);
+
+// InsetBox\nlabel("$a^b$", (73.5,87.5), align=SW, rgb(0, 0, 0)+fontsize(3));
+
+clip(box((63,75), (84,100)));
+
+\\end{asy}
+\\\\ \n\\begin{asy}
+usepackage("amsmath");
+size(2.45cm, 2.9167cm);
+
+// InsetBox\nlabel("$a^b$", (73.5,87.5), align=SW, rgb(0, 0, 0)+fontsize(3));
+
+clip(box((63,75), (84,100)));
+
+\\end{asy}
+\\end{array}""",
+            "System`TraditionalForm": """\\begin{array}{c} \n\\begin{asy}\nusepackage("amsmath");\nsize(2.45cm, 2.9167cm);\n\n// InsetBox\nlabel("$a^b$", (73.5,87.5), align=SW, rgb(0, 0, 0)+fontsize(3));\n\nclip(box((63,75), (84,100)));\n\n\\end{asy}\n\\\\ \n\\begin{asy}\nusepackage("amsmath");\nsize(2.45cm, 2.9167cm);\n\n// InsetBox\nlabel("$a^b$", (73.5,87.5), align=SW, rgb(0, 0, 0)+fontsize(3));\n\nclip(box((63,75), (84,100)));\n\n\\end{asy}\n\\end{array}""",
         },
     },
 }
@@ -762,7 +853,7 @@ def load_tests(key):
         # been adjusted, then skip it.
         #
         if expected_fmt is None:
-            assert is_fragile(base_msg)
+            assert is_fragile(base_msg), [expr, key, base_msg]
             continue
 
         for form in expected_fmt:
@@ -846,12 +937,12 @@ if fragile_tests:
             assert (
                 format_result.boxes_to_tex(
                     show_string_characters=False, evaluation=session.evaluation
-                )
-                == str_expected
+                ).strip()
+                == str_expected.strip()
             ), msg
         else:
-            strresult = format_result.boxes_to_text(evaluation=session.evaluation)
-            assert strresult == str_expected
+            strresult = format_result.boxes_to_tex(evaluation=session.evaluation)
+            assert strresult.strip() == str_expected.strip()
 
 
 @pytest.mark.parametrize(
@@ -865,11 +956,11 @@ def test_makeboxes_tex(str_expr, str_expected, form, msg):
         assert (
             format_result.boxes_to_tex(
                 show_string_characters=False, evaluation=session.evaluation
-            )
-            == str_expected
+            ).strip()
+            == str_expected.strip()
         ), msg
     else:
-        strresult = format_result.boxes_to_text(evaluation=session.evaluation)
+        strresult = format_result.boxes_to_text(evaluation=session.evaluation).strip()
         assert strresult == str_expected
 
 
@@ -887,11 +978,11 @@ if fragile_tests:
         format_result = result.format(session.evaluation, form)
         if msg:
             assert (
-                format_result.boxes_to_tex(evaluation=session.evaluation)
+                format_result.boxes_to_mathml(evaluation=session.evaluation)
                 == str_expected
             ), msg
         else:
-            strresult = format_result.boxes_to_text(evaluation=session.evaluation)
+            strresult = format_result.boxes_to_mathml(evaluation=session.evaluation)
             assert strresult == str_expected
 
 
@@ -934,4 +1025,33 @@ def test_format_private_doctests(str_expr, str_expected, msg):
         to_string_expected=True,
         hold_expected=True,
         failure_message=msg,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
+        (
+            (
+                'Format[r[items___]] := Infix[If[Length[{items}] > 1, {items}, {ab}], "~"];'
+                "r[1, 2, 3]"
+            ),
+            None,
+            "1 ~ 2 ~ 3",
+            None,
+        ),
+        ("r[1]", None, "ab", None),
+        (None, None, None, None),
+    ],
+)
+def test_private_doctests_layout(str_expr, msgs, str_expected, fail_msg):
+    """ """
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
     )

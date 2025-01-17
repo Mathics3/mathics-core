@@ -11,15 +11,15 @@ the default behavior that function. Default options can be queried or set.
 https://reference.wolfram.com/language/guide/OptionsManagement.html</url>
 """
 
-from mathics.builtin.base import Builtin, Predefined, Test, get_option
 from mathics.builtin.image.base import Image
 from mathics.core.atoms import String
+from mathics.core.builtin import Builtin, Predefined, Test, get_option
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression, SymbolDefault, get_default_value
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList, ensure_context, strip_context
-from mathics.core.systemsymbols import SymbolRule, SymbolRuleDelayed
-from mathics.eval.patterns import Matcher
+from mathics.core.systemsymbols import SymbolDefault, SymbolRule, SymbolRuleDelayed
+from mathics.eval.patterns import Matcher, get_default_value
 
 
 class All(Predefined):
@@ -159,7 +159,7 @@ class FilterRules(Builtin):
     def eval(self, rules, pattern, evaluation):
         "FilterRules[rules_List, pattern_]"
 
-        match = Matcher(pattern).match
+        match = Matcher(pattern, evaluation).match
 
         def matched():
             for rule in rules.elements:
@@ -306,11 +306,6 @@ class Options(Builtin):
     >> f[x, n -> 3]
      = x ^ 3
 
-    #> f[x_, OptionsPattern[f]] := x ^ OptionValue["m"];
-    #> Options[f] = {"m" -> 7};
-    #> f[x]
-     = x ^ 7
-
     Delayed option rules are evaluated just when the corresponding 'OptionValue' is called:
     >> f[a :> Print["value"]] /. f[OptionsPattern[{}]] :> (OptionValue[a]; Print["between"]; OptionValue[a]);
      | value
@@ -334,18 +329,6 @@ class Options(Builtin):
     >> Options[a + b] = {a -> b}
      : Argument a + b at position 1 is expected to be a symbol.
      = {a -> b}
-
-    #> f /: Options[f] = {a -> b}
-     = {a -> b}
-    #> Options[f]
-     = {a :> b}
-    #> f /: Options[g] := {a -> b}
-     : Rule for Options can only be attached to g.
-     = $Failed
-
-    #> Options[f] = a /; True
-     : a /; True is not a valid list of option rules.
-     = a /; True
     """
 
     summary_text = "the list of optional arguments and their default values"

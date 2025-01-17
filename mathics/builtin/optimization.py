@@ -18,9 +18,9 @@ sort_order = "mathics.builtin.mathematical-optimization"
 
 import sympy
 
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import IntegerM1
 from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluation import Evaluation
@@ -46,12 +46,6 @@ class Maximize(Builtin):
 
     >> Maximize[-2 x^2 - 3 x + 5, x]
      = {{49 / 8, {x -> -3 / 4}}}
-
-    #>> Maximize[1 - (x y - 3)^2, {x, y}]
-     = {{1, {x -> 3, y -> 1}}}
-
-    #>> Maximize[{x - 2 y, x^2 + y^2 <= 1}, {x, y}]
-     = {{Sqrt[5], {x -> Sqrt[5] / 5, y -> -2 Sqrt[5] / 5}}}
     """
 
     attributes = A_PROTECTED | A_READ_PROTECTED
@@ -79,11 +73,12 @@ class Maximize(Builtin):
         "Maximize[f_List, vars_]"
 
         constraints = [function for function in f.elements]
-        constraints[0] = from_sympy(constraints[0].to_sympy() * IntegerM1)
-
-        dual_solutions = (
-            Expression(SymbolMinimize, constraints, vars).evaluate(evaluation).elements
+        constraints[0] = from_sympy(-(constraints[0].to_sympy()))
+        constraints = ListExpression(*constraints)
+        minimize_expr = Expression(SymbolMinimize, constraints, vars).evaluate(
+            evaluation
         )
+        dual_solutions = minimize_expr.evaluate(evaluation).elements
 
         solutions = []
         for dual_solution in dual_solutions:
@@ -107,12 +102,6 @@ class Minimize(Builtin):
 
     >> Minimize[2 x^2 - 3 x + 5, x]
      = {{31 / 8, {x -> 3 / 4}}}
-
-    #>> Minimize[(x y - 3)^2 + 1, {x, y}]
-     = {{1, {x -> 3, y -> 1}}}
-
-    #>> Minimize[{x - 2 y, x^2 + y^2 <= 1}, {x, y}]
-     = {{-Sqrt[5], {x -> -Sqrt[5] / 5, y -> 2 Sqrt[5] / 5}}}
     """
 
     attributes = A_PROTECTED | A_READ_PROTECTED
@@ -120,7 +109,6 @@ class Minimize(Builtin):
 
     def eval_onevariable(self, f, x, evaluation: Evaluation):
         "Minimize[f_?NotListQ, x_?NotListQ]"
-
         sympy_x = x.to_sympy()
         sympy_f = f.to_sympy()
 
@@ -129,11 +117,9 @@ class Minimize(Builtin):
         candidates = sympy.solve(derivative, sympy_x, real=True, dict=True)
 
         minimum_list = []
-
         for candidate in candidates:
             value = second_derivative.subs(candidate)
             if value.is_real and value > 0:
-
                 if candidate is not list:
                     candidate = candidate
 
@@ -161,7 +147,6 @@ class Minimize(Builtin):
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
                 or A_CONSTANT & var.get_attributes(evaluation.definitions)
             ):
-
                 evaluation.message("Minimize", "ivar", vars_or)
                 return
 
@@ -190,7 +175,6 @@ class Minimize(Builtin):
             candidates.append(candidate)
 
         minimum_list = []
-
         for candidate in candidates:
             eigenvals = hessian.subs(candidate).eigenvals()
 
@@ -214,14 +198,16 @@ class Minimize(Builtin):
             *(
                 ListExpression(
                     from_sympy(sympy_f.subs(minimum).simplify()),
-                    [
-                        Expression(
-                            SymbolRule,
-                            from_sympy(list(minimum.keys())[i]),
-                            from_sympy(list(minimum.values())[i]),
+                    ListExpression(
+                        *(
+                            Expression(
+                                SymbolRule,
+                                from_sympy(list(minimum.keys())[i]),
+                                from_sympy(list(minimum.values())[i]),
+                            )
+                            for i in range(len(vars_sympy))
                         )
-                        for i in range(len(vars_sympy))
-                    ],
+                    ),
                 )
                 for minimum in minimum_list
             )
@@ -238,7 +224,6 @@ class Minimize(Builtin):
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
                 or A_CONSTANT & var.get_attributes(evaluation.definitions)
             ):
-
                 evaluation.message("Minimize", "ivar", vars_or)
                 return
 
@@ -407,14 +392,16 @@ class Minimize(Builtin):
             *(
                 ListExpression(
                     from_sympy(objective_function.subs(minimum).simplify()),
-                    [
-                        Expression(
-                            SymbolRule,
-                            from_sympy(list(minimum.keys())[i]),
-                            from_sympy(list(minimum.values())[i]),
+                    ListExpression(
+                        *(
+                            Expression(
+                                SymbolRule,
+                                from_sympy(list(minimum.keys())[i]),
+                                from_sympy(list(minimum.values())[i]),
+                            )
+                            for i in range(len(vars_sympy))
                         )
-                        for i in range(len(vars_sympy))
-                    ],
+                    ),
                 )
                 for minimum in minimum_list
             )

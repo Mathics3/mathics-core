@@ -9,6 +9,8 @@ PYTHON ?= python3
 PIP ?= pip3
 BASH ?= bash
 RM  ?= rm
+PYTEST_OPTIONS ?=
+DOCTEST_OPTIONS ?=
 
 # Variable indicating Mathics3 Modules you have available on your system, in latex2doc option format
 MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
@@ -59,21 +61,21 @@ build:
 # because pip install doesn't handle
 # INSTALL_REQUIRES properly
 #: Set up to run from the source tree
-develop:  mathics/data/op-tables.json
+develop:  mathics/data/op-tables.json mathics/data/operator-tables.json
 	$(PIP) install -e .[dev]
 
 # See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies
-develop-full:  mathics/data/op-tables.json
+develop-full:  mathics/data/op-tables.json mathics/data/operators.json
 	$(PIP) install -e .[dev,full]
 
 # See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies and Cython
-develop-full-cython: mathics/data/op-tables.json
+develop-full-cython: mathics/data/op-tables.json mathics/data/operators.json
 	$(PIP) install -e .[dev,full,cython]
 
 
-#: Make distirbution: wheels, eggs, tarball
+#: Make distribution: wheels, eggs, tarball
 dist:
 	./admin-tools/make-dist.sh
 
@@ -84,13 +86,16 @@ install:
 #: Run the most extensive set of tests
 check: pytest gstest doctest
 
+#: Run the most extensive set of tests
+check-for-Windows: pytest-for-windows gstest doctest
+
 #: Build and check manifest of Builtins
 check-builtin-manifest:
 	$(PYTHON) admin-tools/build_and_check_manifest.py
 
 #: Run pytest consistency and style checks
 check-consistency-and-style:
-	MATHICS_LINT=t $(PYTHON) -m pytest test/consistency-and-style
+	MATHICS_LINT=t $(PYTHON) -m pytest $(PYTEST_OPTIONS) test/consistency-and-style
 
 check-full: check-builtin-manifest check-builtin-manifest check
 
@@ -113,9 +118,9 @@ clean: clean-cython clean-cache
 	rm -f mathics/data/op-tables || true; \
 	rm -rf build || true
 
-#: Run py.test tests. Use environment variable "o" for pytest options
+#: Run pytest tests. Use environment variable "PYTEST_OPTIONS" for pytest options
 pytest:
-	MATHICS_CHARACTER_ENCODING="ASCII" $(PYTHON) -m pytest $(PYTEST_WORKERS) test $o
+	MATHICS_CHARACTER_ENCODING="ASCII" $(PYTHON) -m pytest $(PYTEST_OPTIONS) $(PYTEST_WORKERS) test
 
 
 #: Run a more extensive pattern-matching test
@@ -128,17 +133,17 @@ gstest:
 doctest-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/documentation/images/*
 	MATHICS_CHARACTER_ENCODING="UTF-8" $(PYTHON) mathics/docpipeline.py --output --keep-going $(MATHICS3_MODULE_OPTION)
 
-#: Run tests that appear in docstring in the code.
+#: Run tests that appear in docstring in the code. Use environment variable "DOCTEST_OPTIONS" for doctest options
 doctest:
-	MATHICS_CHARACTER_ENCODING="ASCII" SANDBOX=$(SANDBOX) $(PYTHON) mathics/docpipeline.py $o
+	MATHICS_CHARACTER_ENCODING="ASCII" SANDBOX=$(SANDBOX) $(PYTHON) mathics/docpipeline.py $(DOCTEST_OPTIONS)
 
 #: Make Mathics PDF manual via Asymptote and LaTeX
 latexdoc texdoc doc:
 	(cd mathics/doc/latex && $(MAKE) doc)
 
-#: Build JSON ASCII to unicode opcode tables
-mathics/data/op-tables.json:
-	$(BASH) ./admin-tools/make-op-tables.sh
+#: Build JSON ASCII to unicode opcode table and operator table
+mathics/data/operator-tables.json mathics/data/op-tables.json mathics/data/operators.json:
+	$(BASH) ./admin-tools/make-JSON-tables.sh
 
 #: Remove ChangeLog
 rmChangeLog:
@@ -147,3 +152,4 @@ rmChangeLog:
 #: Create a ChangeLog from git via git log and git2cl
 ChangeLog: rmChangeLog
 	git log --pretty --numstat --summary | $(GIT2CL) >$@
+	patch -R ChangeLog < ChangeLog-spell-corrected.diff

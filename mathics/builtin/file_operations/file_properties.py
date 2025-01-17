@@ -6,11 +6,11 @@ import os
 import os.path as osp
 import time
 
-from mathics.builtin.base import Builtin, MessageException
 from mathics.builtin.exp_structure.size_and_sig import Hash
 from mathics.builtin.files_io.files import MathicsOpen
 from mathics.core.atoms import Real, String
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin, MessageException
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
@@ -19,6 +19,8 @@ from mathics.core.streams import path_search
 from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import SymbolAbsoluteTime, SymbolFailed, SymbolNone
 from mathics.eval.nevaluator import eval_N
+
+sort_order = "mathics.builtin.file-operations.file_properties"
 
 
 class FileDate(Builtin):
@@ -48,17 +50,6 @@ class FileDate(Builtin):
 
     >>  FileDate["ExampleData/sunflowers.jpg", "Rules"]
      = ...
-
-    #>  FileDate["MathicsNonExistantExample"]
-     : File not found during FileDate[MathicsNonExistantExample].
-     = FileDate[MathicsNonExistantExample]
-    #>  FileDate["MathicsNonExistantExample", "Modification"]
-     : File not found during FileDate[MathicsNonExistantExample, Modification].
-     = FileDate[MathicsNonExistantExample, Modification]
-
-    #> FileDate["ExampleData/sunflowers.jpg", "Fail"]
-     : Date type Fail should be "Access", "Modification", "Creation" (Windows only), "Change" (Macintosh and Unix only), or "Rules".
-     = FileDate[ExampleData/sunflowers.jpg, Fail]
     """
 
     messages = {
@@ -155,24 +146,6 @@ class FileHash(Builtin):
 
     >> FileHash["ExampleData/sunflowers.jpg", "SHA256"]
      = 111619807552579450300684600241129773909359865098672286468229443390003894913065
-
-    #> FileHash["ExampleData/sunflowers.jpg", "CRC32"]
-     = 933095683
-    #> FileHash["ExampleData/sunflowers.jpg", "SHA"]
-     = 851696818771101405642332645949480848295550938123
-    #> FileHash["ExampleData/sunflowers.jpg", "SHA224"]
-     = 8723805623766373862936267623913366865806344065103917676078120867011
-    #> FileHash["ExampleData/sunflowers.jpg", "SHA384"]
-     = 28288410602533803613059815846847184383722061845493818218404754864571944356226472174056863474016709057507799332611860
-    #> FileHash["ExampleData/sunflowers.jpg", "SHA512"]
-     = 10111462070211820348006107532340854103555369343736736045463376555356986226454343186097958657445421102793096729074874292511750542388324853755795387877480102
-
-    #> FileHash["ExampleData/sunflowers.jpg", xyzsymbol]
-     = FileHash[ExampleData/sunflowers.jpg, xyzsymbol]
-    #> FileHash["ExampleData/sunflowers.jpg", "xyzstr"]
-     = FileHash[ExampleData/sunflowers.jpg, xyzstr, Integer]
-    #> FileHash[xyzsymbol]
-     = FileHash[xyzsymbol]
     """
 
     attributes = A_PROTECTED | A_READ_PROTECTED
@@ -221,10 +194,6 @@ class FileType(Builtin):
      = Directory
     >> FileType["ExampleData/nonexistent"]
      = None
-
-    #> FileType[x]
-     : File specification x is not a string of one or more characters.
-     = FileType[x]
     """
 
     messages = {
@@ -272,22 +241,7 @@ class SetFileDate(Builtin):
 
     >> SetFileDate[tmpfilename, {2002, 1, 1, 0, 0, 0.}, "Access"];
 
-    >> FileDate[tmpfilename, "Access"]
-     = {2002, 1, 1, 0, 0, 0.}
-
-    #> SetFileDate[tmpfilename, {2002, 1, 1, 0, 0, 0.}];
-    #> FileDate[tmpfilename, "Access"]
-     = {2002, 1, 1, 0, 0, 0.}
-
-    #> SetFileDate[tmpfilename]
-    #> FileDate[tmpfilename, "Access"]
-     = {...}
-
     #> DeleteFile[tmpfilename]
-
-    #> SetFileDate["MathicsNonExample"]
-     : File not found during SetFileDate[MathicsNonExample].
-     = $Failed
     """
 
     messages = {

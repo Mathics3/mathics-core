@@ -4,7 +4,6 @@ Clearing Assignments
 """
 
 
-from mathics.builtin.base import Builtin, PostfixOperator
 from mathics.core.assignment import is_protected
 from mathics.core.atoms import String
 from mathics.core.attributes import (
@@ -16,6 +15,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import Builtin, PostfixOperator
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol, SymbolNull, symbol_set
 from mathics.core.systemsymbols import (
@@ -179,6 +179,7 @@ class Remove(Builtin):
       <dt>'Remove[$x$]'
       <dd>removes the definition associated to $x$.
     </dl>
+
     >> a := 2
     >> Names["Global`a"]
      = {a}
@@ -189,7 +190,6 @@ class Remove(Builtin):
 
     attributes = A_HOLD_ALL | A_LOCKED | A_PROTECTED
 
-    precedence = 670
     summary_text = "remove the definition of a symbol"
 
     def eval(self, symb, evaluation):
@@ -214,6 +214,7 @@ class Unset(PostfixOperator):
       <dt>'$x$=.'
       <dd>removes any value belonging to $x$.
     </dl>
+
     >> a = 2
      = 2
     >> a =.
@@ -245,45 +246,14 @@ class Unset(PostfixOperator):
     >> a = b = 3;
     >> {a, {b}} =.
      = {Null, {Null}}
-
-    #> x = 2;
-    #> OwnValues[x] =.
-    #> x
-     = x
-    #> f[a][b] = 3;
-    #> SubValues[f] =.
-    #> f[a][b]
-     = f[a][b]
-    #> PrimeQ[p] ^= True
-     = True
-    #> PrimeQ[p]
-     = True
-    #> UpValues[p] =.
-    #> PrimeQ[p]
-     = False
-
-    #> a + b ^= 5;
-    #> a =.
-    #> a + b
-     = 5
-    #> {UpValues[a], UpValues[b]} =.
-     = {Null, Null}
-    #> a + b
-     = a + b
-
-    #> Unset[Messages[1]]
-     : First argument in Messages[1] is not a symbol or a string naming a symbol.
-     = $Failed
     """
 
     attributes = A_HOLD_FIRST | A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
-    operator = "=."
 
     messages = {
         "norep": "Assignment on `2` for `1` not found.",
         "usraw": "Cannot unset raw object `1`.",
     }
-    precedence = 670
     summary_text = "unset a value of the LHS"
 
     def eval(self, expr, evaluation):

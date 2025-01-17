@@ -15,12 +15,12 @@ from sympy.physics.matrices import msigma
 from sympy.physics.quantum.cg import CG
 from sympy.physics.wigner import wigner_3j, wigner_6j
 
-from mathics.builtin.base import SympyFunction
 from mathics.core.atoms import Integer
 from mathics.core.attributes import (  # A_LISTABLE,; A_NUMERIC_FUNCTION,
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import SympyFunction
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluation import Evaluation
@@ -106,10 +106,10 @@ class PauliMatrix(SympyFunction):
     >> PauliMatrix[1] . PauliMatrix[2] == I PauliMatrix[3]
      = True
 
-    >> MatrixExp[I \[Phi]/2 PauliMatrix[3]]
+    >> MatrixExp[I \\[Phi]/2 PauliMatrix[3]]
      = {{E ^ (I / 2 ϕ), 0}, {0, E ^ ((-I / 2) ϕ)}}
 
-    >> % /. \[Phi] -> 2 Pi
+    >> % /. \\[Phi] -> 2 Pi
      = {{-1, 0}, {0, -1}}
     """
 

@@ -73,7 +73,7 @@ def gridbox(self, elements=None, **box_options) -> str:
 
     cells = [
         [
-            # TODO: check if this evaluation is necesary.
+            # TODO: check if this evaluation is necessary.
             boxes_to_text(item, **box_options).splitlines()
             for item in row
         ]

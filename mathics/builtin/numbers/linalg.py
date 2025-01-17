@@ -8,8 +8,8 @@ import mpmath
 import sympy
 from sympy import im, re
 
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer, Integer0
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.matrix import matrix_data
 from mathics.core.convert.mpmath import from_mpmath, to_mpmath_matrix
@@ -106,9 +106,11 @@ class Eigenvalues(Builtin):
     <dl>
       <dt>'Eigenvalues[$m$]'
       <dd>computes the eigenvalues of the matrix $m$.
-      By default Sympy's routine is used. Sometimes this is slow and
-      less good than the corresponding mpmath routine. Use option Method->"mpmath" if you want
-      to use mpmath's routine instead.
+
+      By default, Sympy's routine is used. Sometimes this is slow and \
+      less good than the corresponding mpmath routine.
+
+      Use option Method->"mpmath" if you want to use mpmath's routine instead.
     </dl>
 
     Numeric eigenvalues are sorted in order of decreasing absolute value:
@@ -124,10 +126,6 @@ class Eigenvalues(Builtin):
 
     >> Eigenvalues[{{7, 1}, {-4, 3}}]
      = {5, 5}
-
-    #> Eigenvalues[{{1, 0}, {0}}]
-     : Argument {{1, 0}, {0}} at position 1 is not a non-empty rectangular matrix.
-     = Eigenvalues[{{1, 0}, {0}}]
     """
 
     messages = {
@@ -221,9 +219,6 @@ class Eigenvectors(Builtin):
     >> Eigenvectors[{{0.1, 0.2}, {0.8, 0.5}}]
      = ...
     ### = {{-0.355518, -1.15048}, {-0.62896, 0.777438}}
-
-    #> Eigenvectors[{{-2, 1, -1}, {-3, 2, 1}, {-1, 1, 0}}]
-     = {{1, 7, 3}, {1, 1, 0}, {0, 0, 0}}
     """
 
     messages = {
@@ -365,18 +360,6 @@ class LeastSquares(Builtin):
     >> LeastSquares[{{1, 1, 1}, {1, 1, 2}}, {1, 3}]
      : Solving for underdetermined system not implemented.
      = LeastSquares[{{1, 1, 1}, {1, 1, 2}}, {1, 3}]
-
-    ## Inconsistent system - ideally we'd print a different message
-    #> LeastSquares[{{1, 1, 1}, {1, 1, 1}}, {1, 0}]
-     : Solving for underdetermined system not implemented.
-     = LeastSquares[{{1, 1, 1}, {1, 1, 1}}, {1, 0}]
-
-    #> LeastSquares[{1, {2}}, {1, 2}]
-     : Argument {1, {2}} at position 1 is not a non-empty rectangular matrix.
-     = LeastSquares[{1, {2}}, {1, 2}]
-    #> LeastSquares[{{1, 2}, {3, 4}}, {1, {2}}]
-     : Argument {1, {2}} at position 2 is not a non-empty rectangular matrix.
-     = LeastSquares[{{1, 2}, {3, 4}}, {1, {2}}]
     """
 
     messages = {
@@ -510,13 +493,6 @@ class LinearSolve(Builtin):
     >> LinearSolve[{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, {1, -2, 3}]
      : Linear equation encountered that has no solution.
      = LinearSolve[{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, {1, -2, 3}]
-
-    #> LinearSolve[{1, {2}}, {1, 2}]
-     : Argument {1, {2}} at position 1 is not a non-empty rectangular matrix.
-     = LinearSolve[{1, {2}}, {1, 2}]
-    #> LinearSolve[{{1, 2}, {3, 4}}, {1, {2}}]
-     : Argument {1, {2}} at position 2 is not a non-empty rectangular matrix.
-     = LinearSolve[{{1, 2}, {3, 4}}, {1, {2}}]
     """
 
     messages = {
@@ -582,13 +558,6 @@ class MatrixExp(Builtin):
 
     >> MatrixExp[{{1.5, 0.5}, {0.5, 2.0}}]
      = {{5.16266, 3.02952}, {3.02952, 8.19218}}
-
-    #> MatrixExp[{{a, 0}, {0, b}}]
-     = {{E ^ a, 0}, {0, E ^ b}}
-
-    #> MatrixExp[{{1, 0}, {0}}]
-     : Argument {{1, 0}, {0}} at position 1 is not a non-empty rectangular matrix.
-     = MatrixExp[{{1, 0}, {0}}]
     """
 
     messages = {
@@ -628,13 +597,6 @@ class MatrixPower(Builtin):
 
     >> MatrixPower[{{1, 2}, {2, 5}}, -3]
      = {{169, -70}, {-70, 29}}
-
-    #> MatrixPower[{{0, x}, {0, 0}}, n]
-     = MatrixPower[{{0, x}, {0, 0}}, n]
-
-    #> MatrixPower[{{1, 0}, {0}}, 2]
-     : Argument {{1, 0}, {0}} at position 1 is not a non-empty rectangular matrix.
-     = MatrixPower[{{1, 0}, {0}}, 2]
     """
 
     messages = {
@@ -681,10 +643,6 @@ class MatrixRank(Builtin):
      = 3
     >> MatrixRank[{{a, b}, {3 a, 3 b}}]
      = 1
-
-    #> MatrixRank[{{1, 0}, {0}}]
-     : Argument {{1, 0}, {0}} at position 1 is not a non-empty rectangular matrix.
-     = MatrixRank[{{1, 0}, {0}}]
     """
 
     messages = {
@@ -721,10 +679,6 @@ class NullSpace(Builtin):
      = {}
     >> MatrixRank[A]
      = 3
-
-    #> NullSpace[{1, {2}}]
-     : Argument {1, {2}} at position 1 is not a non-empty rectangular matrix.
-     = NullSpace[{1, {2}}]
     """
 
     messages = {
@@ -764,10 +718,6 @@ class PseudoInverse(Builtin):
 
     >> PseudoInverse[{{1.0, 2.5}, {2.5, 1.0}}]
      = {{-0.190476, 0.47619}, {0.47619, -0.190476}}
-
-    #> PseudoInverse[{1, {2}}]
-    : Argument {1, {2}} at position 1 is not a non-empty rectangular matrix.
-    = PseudoInverse[{1, {2}}]
     """
 
     messages = {
@@ -798,10 +748,6 @@ class QRDecomposition(Builtin):
 
     >> QRDecomposition[{{1, 2}, {3, 4}, {5, 6}}]
      = {{{Sqrt[35] / 35, 3 Sqrt[35] / 35, Sqrt[35] / 7}, {13 Sqrt[210] / 210, 2 Sqrt[210] / 105, -Sqrt[210] / 42}}, {{Sqrt[35], 44 Sqrt[35] / 35}, {0, 2 Sqrt[210] / 35}}}
-
-    #> QRDecomposition[{1, {2}}]
-     : Argument {1, {2}} at position 1 is not a non-empty rectangular matrix.
-     = QRDecomposition[{1, {2}}]
     """
 
     messages = {
@@ -844,10 +790,6 @@ class RowReduce(Builtin):
      . 0   1   2
      .
      . 0   0   0
-
-    #> RowReduce[{{1, 0}, {0}}]
-     : Argument {{1, 0}, {0}} at position 1 is not a non-empty rectangular matrix.
-     = RowReduce[{{1, 0}, {0}}]
     """
 
     messages = {
@@ -881,15 +823,6 @@ class SingularValueDecomposition(Builtin):
 
     >> SingularValueDecomposition[{{1.5, 2.0}, {2.5, 3.0}}]
      = {{{0.538954, 0.842335}, {0.842335, -0.538954}}, {{4.63555, 0.}, {0., 0.107862}}, {{0.628678, 0.777666}, {-0.777666, 0.628678}}}
-
-
-    #> SingularValueDecomposition[{{3/2, 2}, {5/2, 3}}]
-     : Symbolic SVD is not implemented, performing numerically.
-     = {{{0.538954, 0.842335}, {0.842335, -0.538954}}, {{4.63555, 0.}, {0., 0.107862}}, {{0.628678, 0.777666}, {-0.777666, 0.628678}}}
-
-    #> SingularValueDecomposition[{1, {2}}]
-     : Argument {1, {2}} at position 1 is not a non-empty rectangular matrix.
-     = SingularValueDecomposition[{1, {2}}]
     """
 
     # Sympy lacks symbolic SVD

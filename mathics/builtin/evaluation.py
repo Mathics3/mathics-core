@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
+"""Evaluation Control
 
 
-from mathics.builtin.base import Builtin, Predefined
+Mathics3 takes an expression that it is given, and evaluates it. Built \
+into the evaluation are primitives that allow finer control over the \
+process of evaluation in cases where it is needed.
+"""
+
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
-from mathics.core.evaluation import (
-    MAX_RECURSION_DEPTH,
-    Evaluation,
-    set_python_recursion_limit,
-)
+from mathics.core.builtin import Builtin, Predefined
+from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 
 
 class RecursionLimit(Predefined):
@@ -38,28 +40,6 @@ class RecursionLimit(Predefined):
     >> a = a + a
      : Recursion depth of 512 exceeded.
      = $Aborted
-
-    #> $RecursionLimit = 20
-     = 20
-    #> a = a + a
-     : Recursion depth of 20 exceeded.
-     = $Aborted
-
-    #> $RecursionLimit = 200
-     = 200
-
-    #> ClearAll[f];
-    #> f[x_, 0] := x; f[x_, n_] := f[x + 1, n - 1];
-    #> Block[{$RecursionLimit = 20}, f[0, 100]]
-     = 100
-    #> ClearAll[f];
-
-    #> ClearAll[f];
-    #> f[x_, 0] := x; f[x_, n_] := Module[{y = x + 1}, f[y, n - 1]];
-    #> Block[{$RecursionLimit = 20}, f[0, 100]]
-     : Recursion depth of 20 exceeded.
-     = $Aborted
-    #> ClearAll[f];
     """
 
     name = "$RecursionLimit"
@@ -103,30 +83,8 @@ class IterationLimit(Predefined):
 
     Calculations terminated by '$IterationLimit' return '$Aborted':
 
-    > $IterationLimit
+    >> $IterationLimit
      = 1000
-    #> ClearAll[f]; f[x_] := f[x + 1];
-    #> f[x]
-     : Iteration limit of 1000 exceeded.
-     = $Aborted
-    #> ClearAll[f];
-
-    #> $IterationLimit = x;
-     : Cannot set $IterationLimit to x; value must be an integer between 20 and Infinity.
-
-    #> ClearAll[f];
-    #> f[x_, 0] := x; f[x_, n_] := f[x + 1, n - 1];
-    #> Block[{$IterationLimit = 20}, f[0, 100]]
-     : Iteration limit of 20 exceeded.
-     = $Aborted
-    #> ClearAll[f];
-
-    # FIX Later
-    # #> ClearAll[f];
-    # #> f[x_, 0] := x; f[x_, n_] := Module[{y = x + 1}, f[y, n - 1]];
-    # #> Block[{$IterationLimit = 20}, f[0, 100]]
-    #  = 100
-    # #> ClearAll[f];
     """
 
     name = "$IterationLimit"
@@ -161,6 +119,7 @@ class Hold(Builtin):
     <dt>'Hold[$expr$]'
         <dd>prevents $expr$ from being evaluated.
     </dl>
+
     >> Attributes[Hold]
      = {HoldAll, Protected}
     """
@@ -178,6 +137,7 @@ class HoldComplete(Builtin):
         <dd>prevents $expr$ from being evaluated, and also prevents
         'Sequence' objects from being spliced into argument lists.
     </dl>
+
     >> Attributes[HoldComplete]
      = {HoldAllComplete, Protected}
     """
@@ -280,10 +240,6 @@ class Unevaluated(Builtin):
     >> g[Unevaluated[Sequence[a, b, c]]]
      = g[Unevaluated[Sequence[a, b, c]]]
 
-    #> Attributes[h] = Flat;
-    #> h[items___] := Plus[items]
-    #> h[1, Unevaluated[Sequence[Unevaluated[2], 3]], Sequence[4, Unevaluated[5]]]
-     = 15
     """
 
     attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED
@@ -299,6 +255,7 @@ class ReleaseHold(Builtin):
         <dd>removes any 'Hold', 'HoldForm', 'HoldPattern' or
         'HoldComplete' head from $expr$.
     </dl>
+
     >> x = 3;
     >> Hold[x]
      = Hold[x]
@@ -352,37 +309,4 @@ class Sequence(Builtin):
         "a sequence of arguments that will automatically be spliced into any function"
     )
 
-
-class Quit(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Quit.html</url>
-
-    <dl>
-      <dt>'Quit'[]
-      <dd> Terminates the Mathics session.
-
-      <dt>'Quit[$n$]'
-      <dd> Terminates the mathics session with exit code $n$.
-    </dl>
-
-    <dl>
-      <dt>'Exit'[]
-      <dd> Terminates the Mathics session.
-
-      <dt>'Exit[$n$]'
-      <dd> Terminates the mathics session with exit code $n$.
-    </dl>
-
-    """
-
-    rules = {
-        "Exit[n___]": "Quit[n]",
-    }
-    summary_text = "terminate the session"
-
-    def eval(self, evaluation: Evaluation, n):
-        "%(name)s[n___]"
-        exitcode = 0
-        if isinstance(n, Integer):
-            exitcode = n.get_int_value()
-        raise SystemExit(exitcode)
+    formats = {"Sequence[elems___]": "HoldForm[Sequence][elems]"}

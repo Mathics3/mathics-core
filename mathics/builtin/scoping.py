@@ -3,15 +3,16 @@
 Scoping Constructs
 """
 
-from mathics_scanner import is_symbol_name
+from mathics_scanner.tokeniser import is_symbol_name
 
-from mathics.builtin.base import Builtin, Predefined
 from mathics.core.assignment import get_symbol_list
 from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, attribute_string_to_number
+from mathics.core.builtin import Builtin, Predefined
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, fully_qualified_symbol_name
+from mathics.eval.scoping import eval_contexts, eval_contexts_with_string
 
 
 def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
@@ -26,6 +27,7 @@ def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
     scoping_vars = set()
     for var in vars:
         var_name = None
+        new_def = None
         if var.has_form("Set", 2):
             var_name = var.elements[0].get_name()
             new_def = var.elements[1]
@@ -216,15 +218,6 @@ class Context_(Predefined):
 
     >> $Context
     = Global`
-
-    #> InputForm[$Context]
-    = "Global`"
-
-    ## Test general context behaviour
-    #> Plus === Global`Plus
-     = False
-    #> `Plus === Global`Plus
-     = True
     """
 
     messages = {"cxset": "`1` is not a valid context name ending in `."}
@@ -241,24 +234,38 @@ class Contexts(Builtin):
 
     <dl>
       <dt>'Contexts[]'
-      <dd>yields a list of all contexts.
+      <dd>returns a list of contexts.
+      <dt>'Contexts["string"]'
+      <dd>returns a list of contexts that match the string.
     </dl>
 
-    ## this assignment makes sure that a definition in Global` exists
-    ## >> x = 5;
-    ## X> Contexts[] // InputForm
+    'Contexts' allows the string patterns with the following metacharacters:
+    <ul>
+     <li> '*' zero or more characters
+     <li> '@' one or more characters, excluding uppercase letters
+    </ul>
+
+    Get a list of all contexts:
+    >> Contexts[]
+     = ...
+
+    Get a list of HTML contexts only:
+    >> Contexts["HTML*"]
+     = {HTML`, HTML`Parser`}
     """
 
-    summary_text = "list all the defined contexts"
+    summary_text = "list defined contexts"
 
-    def eval(self, evaluation: Evaluation):
+    def eval(self, evaluation: Evaluation) -> ListExpression:
         "Contexts[]"
 
-        contexts = set()
-        for name in evaluation.definitions.get_names():
-            contexts.add(String(name[: name.rindex("`") + 1]))
+        return eval_contexts(evaluation.definitions)
 
-        return ListExpression(*sorted(contexts))
+    def eval_with_string(self, string, evaluation: Evaluation) -> ListExpression:
+        "Contexts[string_]"
+        if not isinstance(string, String):
+            return ListExpression()
+        return eval_contexts_with_string(string.value, evaluation.definitions)
 
 
 class ContextPath_(Predefined):
@@ -549,9 +556,6 @@ class Unique(Predefined):
     >> Unique["x"]
     = x...
 
-    #> Unique[{}]
-    = {}
-
     ## FIXME: include the rest of these in test/builtin/test-unique.py
     ## Each use of Unique[symbol] increments $ModuleNumber:
     ## >> {$ModuleNumber, Unique[x], $ModuleNumber}
@@ -611,7 +615,7 @@ class Unique(Predefined):
         new_name = "$%d" % (self.seq_number)
         self.seq_number += 1
         # Next symbol in case of new name is defined before
-        while evaluation.definitions.get_definition(new_name, True) is not None:
+        while evaluation.definitions.have_definition(new_name):
             new_name = "$%d" % (self.seq_number)
             self.seq_number += 1
         return Symbol(new_name)
@@ -651,7 +655,7 @@ class Unique(Predefined):
                 new_name = f"{symbol.get_string_value()}{self.seq_number}"
                 self.seq_number += 1
                 # Next symbol in case of new name is defined before
-                while evaluation.definitions.get_definition(new_name, True) is not None:
+                while evaluation.definitions.have_definition(new_name):
                     new_name = f"{symbol.get_string_value()}{self.seq_number}"
                     self.seq_number += 1
                 list.append(Symbol(new_name))
@@ -724,5 +728,4 @@ class With(Builtin):
 
         vars = dict(get_scoping_vars(vars, "With", evaluation))
         result = expr.replace_vars(vars)
-        result.evaluate(evaluation)
-        return result
+        return result.evaluate(evaluation)

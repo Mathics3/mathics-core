@@ -4,8 +4,8 @@ Input and Output
 
 import re
 
-from mathics.builtin.base import Builtin, Predefined
 from mathics.core.attributes import A_NO_ATTRIBUTES
+from mathics.core.builtin import Builtin, Predefined
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression

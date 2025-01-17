@@ -10,16 +10,6 @@ from typing import Optional
 
 import sympy
 
-from mathics.builtin.base import (
-    Builtin,
-    IterationFunction,
-    MPMathFunction,
-    Predefined,
-    SympyFunction,
-    SympyObject,
-    Test,
-)
-from mathics.builtin.inference import get_assumptions_list
 from mathics.builtin.numeric import Abs
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
@@ -40,6 +30,15 @@ from mathics.core.attributes import (
     A_NO_ATTRIBUTES,
     A_NUMERIC_FUNCTION,
     A_PROTECTED,
+)
+from mathics.core.builtin import (
+    Builtin,
+    IterationFunction,
+    MPMathFunction,
+    Predefined,
+    SympyFunction,
+    SympyObject,
+    Test,
 )
 from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
 from mathics.core.element import BaseElement
@@ -71,8 +70,9 @@ from mathics.core.systemsymbols import (
     SymbolTable,
     SymbolUndefined,
 )
-from mathics.eval.arithmetic import eval_Sign
+from mathics.eval.inference import get_assumptions_list
 from mathics.eval.nevaluator import eval_N
+from mathics.eval.numeric import eval_Sign
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.mathematical-functions"
@@ -180,6 +180,7 @@ class Assuming(Builtin):
       <dt>'Assuming[$cond$, $expr$]'
       <dd>Evaluates $expr$ assuming the conditions $cond$.
     </dl>
+
     >> $Assumptions = { x > 0 }
      = {x > 0}
     >> Assuming[y>0, ConditionalExpression[y x^2, y>0]//Simplify]
@@ -384,7 +385,7 @@ class Conjugate(MPMathFunction):
     """
     <url>:Complex Conjugate:
     https://en.wikipedia.org/wiki/Complex_conjugate</url> \
-    (<url>:WMA:https://reference.wolfram.com/language/ref/Conjugate.html</url>)
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Conjugate.html</url>
 
     <dl>
       <dt>'Conjugate[$z$]'
@@ -507,7 +508,7 @@ class DirectedInfinity(SympyFunction):
                 else:
                     normalized_direction = direction / Abs(direction)
             elif isinstance(ndir, Complex):
-                re, im = ndir.value
+                re, im = ndir.real, ndir.imag
                 if abs(re.value**2 + im.value**2 - 1.0) < 1.0e-9:
                     normalized_direction = direction
                 else:
@@ -539,7 +540,7 @@ class DirectedInfinity(SympyFunction):
 class Element(Builtin):
     """
     <url>:Element of:https://en.wikipedia.org/wiki/Element_(mathematics)</url> \
-    (<url>:WMA:https://reference.wolfram.com/language/ref/Element.html</url>)
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Element.html</url>
 
     <dl>
       <dt>'Element[$expr$, $domain$]'
@@ -603,7 +604,7 @@ Rationals, Algebraics, Reals, Complexes, or Booleans.
             return None
         if len(unknown) == 0:
             return SymbolTrue
-        # If some of the items remain unkown, return a reduced expression
+        # If some of the items remain unknown, return a reduced expression
         return Element(Expression(elems.head, *unknown), domain)
 
 
@@ -856,26 +857,29 @@ class Real_(Builtin):
     name = "Real"
 
 
-class RealNumberQ(Test):
+class RealValuedNumberQ(Test):
     """
-    ## Not found in WMA
-    ## <url>:WMA link:https://reference.wolfram.com/language/ref/RealNumberQ.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RealValuedNumberQ.html</url>
 
     <dl>
-      <dt>'RealNumberQ[$expr$]'
+      <dt>'RealValuedNumberQ[$expr$]'
       <dd>returns 'True' if $expr$ is an explicit number with no imaginary component.
     </dl>
 
-    >> RealNumberQ[10]
+    >> RealValuedNumberQ[10]
      = True
-    >> RealNumberQ[4.0]
+    >> RealValuedNumberQ[4.0]
      = True
-    >> RealNumberQ[1+I]
+    >> RealValuedNumberQ[1+I]
      = False
-    >> RealNumberQ[0 * I]
+    >> RealValuedNumberQ[0 * I]
      = True
-    >> RealNumberQ[0.0 * I]
+    >> RealValuedNumberQ[0.0 * I]
      = False
+
+    "Underflow[]" and "Overflow[]" are considered Real valued numbers:
+    >> {RealValuedNumberQ[Underflow[]], RealValuedNumberQ[Overflow[]]}
+     = {True, True}
     """
 
     attributes = A_NO_ATTRIBUTES
@@ -883,7 +887,11 @@ class RealNumberQ(Test):
     summary_text = "test whether an expression is a real number"
 
     def test(self, expr) -> bool:
-        return isinstance(expr, (Integer, Rational, Real))
+        return (
+            isinstance(expr, (Integer, Rational, Real))
+            or expr.has_form("Underflow", 0)
+            or expr.has_form("Overflow", 0)
+        )
 
 
 class Sum(IterationFunction, SympyFunction):
@@ -952,13 +960,13 @@ class Sum(IterationFunction, SympyFunction):
     >> Sum[x ^ 2, {x, 1, y}] - y * (y + 1) * (2 * y + 1) / 6
      = 0
 
-
-    ## Issue #302
-    ## The sum should not converge since the first term is 1/0.
-    #> Sum[i / Log[i], {i, 1, Infinity}]
-     = Sum[i / Log[i], {i, 1, Infinity}]
-    #> Sum[Cos[Pi i], {i, 1, Infinity}]
-     = Sum[Cos[i Pi], {i, 1, Infinity}]
+    Non-integer bounds:
+    >> Sum[i, {i, 1, 2.5}]
+     = 3
+    >> Sum[i, {i, 1.1, 2.5}]
+     = 3.2
+    >> Sum[k, {k, I, I + 1.5}]
+     = 1 + 2 I
     """
 
     summary_text = "discrete sum"
@@ -1013,14 +1021,18 @@ class Sum(IterationFunction, SympyFunction):
             # test should be broader.
             if isinstance(f_sympy, sympy.core.basic.Basic):
                 # sympy.summation() won't be able to handle Mathics functions in
-                # in its first argument, the function paramameter.
+                # in its first argument, the function parameter.
                 # For example in Sum[Identity[x], {x, 3}], sympy.summation can't
-                # evaluate Indentity[x].
+                # evaluate Identity[x].
                 # In general we want to avoid using Sympy if we can.
                 # If we have integer bounds, we'll use Mathics's iterator Sum
                 # (which is Plus)
 
-                if all(hasattr(i, "is_integer") and i.is_integer for i in bounds[1:]):
+                if all(
+                    (hasattr(i, "is_integer") and i.is_integer)
+                    or (hasattr(i, "is_finite") and i.is_finite and i.is_constant())
+                    for i in bounds[1:]
+                ):
                     # When we have integer bounds, it is better to not use Sympy but
                     # use Mathics evaluation. We turn:
                     # Sum[f[x], {<limits>}] into
@@ -1029,9 +1041,10 @@ class Sum(IterationFunction, SympyFunction):
                     values = Expression(SymbolTable, *expr.elements).evaluate(
                         evaluation
                     )
-                    ret = self.get_result(values.elements).evaluate(evaluation)
-                    # Make sure to convert the result back to sympy.
-                    return ret.to_sympy()
+                    if values.get_head_name() != SymbolTable.get_name():
+                        ret = self.get_result(values.elements).evaluate(evaluation)
+                        # Make sure to convert the result back to sympy.
+                        return ret.to_sympy()
 
             if None not in bounds:
                 return sympy.summation(f_sympy, bounds)

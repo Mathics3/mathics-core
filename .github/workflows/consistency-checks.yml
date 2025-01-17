@@ -13,20 +13,26 @@ jobs:
       matrix:
         python-version: ['3.11']
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        sudo apt update -qq && sudo apt install llvm-dev
+        sudo apt update -qq && sudo apt install llvm-dev remake
         python -m pip install --upgrade pip
         # We can comment out after next Mathics-Scanner release
         python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        git clone https://github.com/Mathics3/mathics-scanner.git
+        cd mathics-scanner/
+        pip install -e .
+        cd ..
+
     - name: Install Mathics with minimum dependencies
       run: |
         make develop
     - name: Test Mathics Consistency and Style
       run: |
         make check-consistency-and-style
+        make check-builtin-manifest

@@ -10,15 +10,15 @@ Numeric, Arithmetic, or Symbolic constants like Pi, E, or Infinity.
 sort_order = "mathics.builtin.mathematical-constants"
 
 import math
-from typing import Optional
+from typing import Dict, Optional
 
 import mpmath
 import numpy
 import sympy
 
-from mathics.builtin.base import Builtin, Predefined, SympyObject
 from mathics.core.atoms import NUMERICAL_CONSTANTS, MachineReal, PrecisionReal
 from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin, Predefined, SympyObject
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.number import MACHINE_DIGITS, PrecisionValueError, get_precision, prec
@@ -71,7 +71,7 @@ def sympy_constant(fn, d=None):
 
 
 class _Constant_Common(Predefined):
-    is_numeric = True
+    _is_numeric = True
     attributes = A_CONSTANT | A_PROTECTED | A_READ_PROTECTED
     nargs = {0}
     options = {"Method": "Automatic"}
@@ -155,9 +155,9 @@ class _MPMathConstant(_Constant_Common):
     """Representation of a constant in mpmath, e.g. Pi, E, I, etc."""
 
     # Subclasses should define this.
-    mpmath_name = None
+    mpmath_name: Optional[str] = None
 
-    mathics_to_mpmath = {}
+    mathics_to_mpmath: Dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -175,9 +175,9 @@ class _NumpyConstant(_Constant_Common):
     """Representation of a constant in numpy, e.g. Pi, E, etc."""
 
     # Subclasses should define this.
-    numpy_name = None
+    numpy_name: Optional[str] = None
 
-    mathics_to_numpy = {}
+    mathics_to_numpy: Dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -198,7 +198,7 @@ class _SympyConstant(_Constant_Common, SympyObject):
     """Representation of a constant in Sympy, e.g. Pi, E, I, Catalan, etc."""
 
     # Subclasses should define this.
-    sympy_name = None
+    sympy_name: Optional[str] = None
 
     def to_sympy(self, expr=None, **kwargs):
         if expr is None or isinstance(expr, Atom):
@@ -246,7 +246,7 @@ class ComplexInfinity(_SympyConstant):
     is an infinite number in the complex plane whose complex argument \
     is unknown or undefined. (<url>
     :SymPy:
-    https://docs.sympy.org/latest/modules/core.html?highlight=zoo#complexinfinity</url>, <url>
+    https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.ComplexInfinity</url>, <url>
     :MathWorld:
     https://mathworld.wolfram.com/ComplexInfinity.html</url>, <url>
     :WMA:
@@ -257,12 +257,25 @@ class ComplexInfinity(_SympyConstant):
       <dd>represents an infinite complex quantity of undetermined direction.
     </dl>
 
+    ComplexInfinity can appear as the result of a computation such as dividing by zero:
+    >> 1 / 0
+     : Infinite expression 1 / 0 encountered.
+     = ComplexInfinity
+
+    But it can be used as an explicit value in an expression:
     >> 1 / ComplexInfinity
      = 0
+
     >> ComplexInfinity * Infinity
      = ComplexInfinity
+
+    ComplexInfinity though is a special case of DirectedInfinity:
     >> FullForm[ComplexInfinity]
      = DirectedInfinity[]
+
+    See also <url>
+    :'DirectedInfinity':
+    /doc/reference-of-built-in-symbols/mathematical-functions/directedinfinity/</url>.
     """
 
     summary_text = "infinite complex quantity of undetermined direction"
@@ -285,6 +298,7 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
       <dt>'Degree'
       <dd>is the number of radians in one degree. It has a numerical value of \u03c0 / 180.
     </dl>
+
     >> Cos[60 Degree]
      = 1 / 2
 
@@ -320,7 +334,7 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
             return
 
         # FIXME: There are all sorts of interactions between in the trig functions,
-        # that are expected to work out right. Until we have convertion between
+        # that are expected to work out right. Until we have conversion between
         # mpmath and sympy worked out so that values can be made the to the same
         # precision and compared. we have to not use mpmath right now.
         # return self.get_constant(precision, evaluation, preference="mpmath")
@@ -484,14 +498,31 @@ class Infinity(_SympyConstant):
       <dd>a symbol that represents an infinite real quantity.
     </dl>
 
+    'Infinity' sometimes appears as the result of a calculation:
+    >> Precision[1]
+     = Infinity
+
+    But 'Infinity' it often used as a value in expressions:
     >> 1 / Infinity
      = 0
+
     >> Infinity + 100
      = Infinity
 
-    Use 'Infinity' in sum and limit calculations:
+    'Infinity' often appears in sum and limit calculations:
     >> Sum[1/x^2, {x, 1, Infinity}]
      = Pi ^ 2 / 6
+
+    >> Limit[1/x, x->0]
+     = -Infinity
+
+    However, 'Infinity' a shorthand for 'DirectedInfinity[1]':
+    >> FullForm[Infinity]
+     = DirectedInfinity[1]
+
+    See also <url>
+    :'DirectedInfinity':
+    /doc/reference-of-built-in-symbols/mathematical-functions/directedinfinity/</url>.
     """
 
     sympy_name = "oo"
@@ -725,3 +756,8 @@ for cls in (Catalan, Degree, Glaisher, GoldenRatio, Khinchin):
     instance = cls(expression=False)
     val = instance.get_constant()
     NUMERICAL_CONSTANTS[instance.symbol] = MachineReal(val.value)
+
+# Remove these variables to prevent errors in the SYMBOL_MANIFEST check.
+del cls
+del instance
+del val

@@ -1,9 +1,107 @@
 *One can always dream...*
 
-.. contents::
+2024-2025 Roadmap
+=================
 
-The following 2023 road map that appears the 6.0.0 hasn't gone through enough discussion. This provisional.
-Check the github repository for updates.
+Released 7.0.0: small bug fixes to assist downstream packager of OS distributions.
+
+From [2023 Roadmap]
+--------------------
+
+For more details on the items, see the links in this section header. Here, I am going to just list the items with some small notes.
+
+## `Forms, Boxing, and Formatting <https://github.com/Mathics3/mathics-core/blob/master/FUTURE.rst#2023-roadmap>`_
+
+It feels like this should be doable, or at least we start on this path. I believe we should be able to prototype in Mathics3, but I am open to making small changes in the code. I think something like a change to the implementation of `MakeBoxes` was requested where we need to be looking at "upvalues" instead of "ourvalues" or maybe it is the other way around. I do however believe there is a way where we can prototype this before committing to a full implementation.
+
+## `Performance <https://github.com/Mathics3/mathics-core/blob/master/FUTURE.rst#2023-roadmap>`_
+
+This is a more nebulous overall and needs to be broken down more. There are some shorter-term and more measurable steps you will below and elsewhere.
+
+### Initial Startup Time
+
+With the work done in 2023 to allow ``mathics.builtin`` modules to be loaded deterministically through a "load" function, we can probably reduce startup time by as much as 2 seconds or so. And at the same time, addresses problems that would be caused by scaling the number of built-in functions up many times.
+
+More Custom kinds of (compound) Expressions and Fewer Conversions
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Python/Numpy literal expressions fall into this category and this is especially useful in data crunching and rendering graphics.
+
+Compilation
+++++++++++++
+
+With the work done in 2023 towards providing access to instruction-like procedure calls, we probably are in a better position to handle smarter compilation, i.e. something other than turning it into Cython, and hope that Cython and figure out how to speed up what we don't have a handle on.
+
+Further Code Reorganization in Core and Eval
+--------------------------------------------
+
+Core object like `BaseElement` and possibly `Symbol`, (and
+probably others) are _still_ too "fat": they have too many custom methods that
+are not applicable for most of the subclasses support.  It is likely
+another pass will be made over this.
+
+We have started moving "eval" code out of the "eval" methods and into its own module.
+
+Deferred
+---------
+
+I hope Pattern Matching and rewrite rules will be started sometime in 2024. Otherwise, not much to say here.
+
+Jupyter integration depends on getting Boxing under control.
+
+## Migration of the documentation system to  `Sphinx <https://www.sphinx-doc.org>`_
+
+This is important but probably less important than performance, boxing & formatting, and pattern matching.
+
+And in the interim, we will probably be making more smaller fixes. Sigh. I am optimistic that the smaller fixes can work in the direction of making moving out easier. Modularity here.
+
+# New Work
+
+## Sparse Array Implementation
+
+Li-Xiang-Ideal mentioned this. Perhaps he can elaborate.
+
+Debugger
+--------
+
+Rocky is writeing a debugger for Mathics3.
+
+This is be done largely outside of Mathics-core although it heavily relies on Mathics-Core internals.
+
+Operator Precedence Tables
+--------------------------
+
+This pulls out of Mathics Core any knowledge of Operator Precedence and instead uses tables found in mathics-scanner.
+This would be based on Robert Jacobson's work.
+
+Miscellaneous Small Things
+---------------------------
+
+* Revised to support Python 3.12 along with dropping Python 3.7 support
+* Possible miscellaneous updates in packages and git commit hooks
+* Be on the lookout for Open-Source WMA Packages like KnotTheory or Rubi that can be run in Mathics3
+
+# Individual Leads or Responsibilities
+
+Rocky
+-----
+
+- Debugger
+- Compilation
+- Literal Expressions for performance (e.g. data processing and graphics rendering)
+- Mathics Autoloading (with mmatera)
+- Operator Precedence (with mmatera)
+- Releases (with mmatera)
+
+mmatera
+-------
+
+- Forms, Boxing and Formatting
+
+Li-Xiang-Ideal
+--------------
+
+- Sparse Array Implementation
 
 
 2023 Roadmap

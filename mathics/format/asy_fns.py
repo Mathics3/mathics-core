@@ -5,9 +5,11 @@ Asymptote-related functions
 """
 
 from itertools import chain
-from typing import Optional, Type, Union
+from typing import Optional, Union
 
-RealType = Type[Union[int, float]]
+from mathics.builtin.colors.color_directives import _ColorObject
+
+RealType = Union[int, float]
 
 
 def asy_add_bezier_fn(self) -> str:
@@ -94,7 +96,7 @@ def asy_bezier(*segments):
         connect = p[-1:]
 
 
-def asy_color(self):
+def asy_color(self: _ColorObject):
     """Return an asymptote rgba string fragment for object's RGB or RGBA
     value and it opacity (alpha) value"""
     rgba = self.to_rgba()
@@ -106,8 +108,8 @@ def asy_color(self):
 
 
 def asy_create_pens(
-    edge_color: Optional[str] = None,
-    face_color: Optional[str] = None,
+    edge_color: Optional[_ColorObject] = None,
+    face_color: Optional[_ColorObject] = None,
     edge_opacity: Optional[RealType] = None,
     face_opacity: Optional[RealType] = None,
     stroke_width=None,

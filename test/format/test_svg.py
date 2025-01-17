@@ -1,25 +1,46 @@
 import re
+from test.helper import session
 
 from mathics.builtin.makeboxes import MakeBoxes
-from mathics.core.atoms import Integer0, Integer1
-from mathics.core.evaluation import Evaluation
+from mathics.core.atoms import Integer0, Integer1, Real
 from mathics.core.expression import Expression
 from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolPoint
-from mathics.session import MathicsSession
 
-session = MathicsSession(add_builtin=True, catch_interrupt=False)
-evaluation = Evaluation(session.definitions)
+evaluation = session.evaluation
 
 GraphicsSymbol = Symbol("Graphics")
 ListSymbol = Symbol("List")
 
+DISK_TEST_EXPR = Expression(
+    Symbol("Disk")
+)  # , ListExpression(Integer0, Integer0), Integer1)
+COLOR_RED = Expression(Symbol("RGBColor"), Integer1, Integer0, Integer0)
+COLOR_RED_ALPHA = Expression(
+    Symbol("RGBColor"), Integer1, Integer0, Integer0, Real(0.25)
+)
+
+
 svg_wrapper_pat = r"""\s*<svg width="[0-9.]+px" height="[0-9.]+px" xmlns:svg="http://www.w3.org/2000/svg"
 \s*xmlns="http://www.w3.org/2000/svg"
-\s*version="1\.1"
 """
+
+
+# TODO: consider replace the following functions by something that parses SVG and produce a better
+# structure, like a dict, containing information about the size, background and the primitives.
+
+
+def extract_svg_background(svg):
+    matches = re.match(svg_wrapper_pat, svg)
+    assert matches
+    svg = svg[len(matches.group(0)) :]
+    rest_re = r"^\s+viewBox=(.*)\s+((?s:[<].*))<!--GraphicsElements-->((?s:.*))"
+    parts_match = re.match(rest_re, svg)
+    if parts_match:
+        return parts_match.groups()[1].strip().replace("\n", " ")
+    return ""
 
 
 def extract_svg_body(svg):
@@ -32,7 +53,6 @@ def extract_svg_body(svg):
     )
     assert view_inner_match
     inner_svg = view_inner_match.group(1)
-    print(inner_svg)
     return inner_svg
 
 
@@ -41,7 +61,6 @@ def get_svg(expression):
     boxes = MakeBoxes(expression).evaluate(evaluation)
 
     # Would be nice to DRY this boilerplate from boxes_to_mathml
-
     elements = boxes._elements
     elements, calc_dimensions = boxes._prepare_elements(
         elements, options=options, neg_y=True
@@ -82,7 +101,6 @@ def test_svg_point():
 
     # Circles are implemented as ellipses with equal major and minor axes.
     # Check for that.
-    print(inner_svg)
     matches = re.match(r'^<circle cx="(\S+)" cy="(\S+)"', inner_svg)
     assert matches
     assert matches.group(1) == matches.group(2)
@@ -110,8 +128,44 @@ def test_svg_arrowbox():
     # assert matches
 
 
-def test_svg_bezier_curve():
+def test_svg_background():
+    # If not specified, the background is empty
+    expression = Expression(
+        GraphicsSymbol,
+        DISK_TEST_EXPR,
+    ).evaluate(evaluation)
+    svg = get_svg(expression)
+    assert extract_svg_background(svg) == ""
 
+    # Other possibilities...
+    def check(expr, result):
+        svg = get_svg(expression)
+        background_svg = extract_svg_background(svg)
+        matches = re.match(r'[<]rect(.*)style="(.*)"(.*[>])[<]/rect[>]', background_svg)
+        assert matches
+        background_fill = matches.groups()[1]
+        assert background_fill == result
+
+    # RGB color
+    expression = Expression(
+        GraphicsSymbol,
+        DISK_TEST_EXPR,
+        Expression(Symbol("Rule"), Symbol("System`Background"), COLOR_RED),
+    ).evaluate(evaluation)
+
+    check(expression, "fill:rgb(100.0%, 0.0%, 0.0%)")
+
+    # RGBA color
+    expression = Expression(
+        GraphicsSymbol,
+        DISK_TEST_EXPR,
+        Expression(Symbol("Rule"), Symbol("System`Background"), COLOR_RED_ALPHA),
+    ).evaluate(evaluation)
+
+    check(expression, "fill:rgba(100.0%, 0.0%, 0.0%, 25.0%)")
+
+
+def test_svg_bezier_curve():
     expression = Expression(
         GraphicsSymbol,
         Expression(

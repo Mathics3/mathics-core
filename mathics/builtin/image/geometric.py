@@ -10,8 +10,8 @@ import PIL.ImageEnhance
 import PIL.ImageFilter
 import PIL.ImageOps
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.image.base import Image
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -156,21 +156,6 @@ class ImageReflect(Builtin):
      = -Image-
     >> ImageReflect[ein, Left -> Top]
      = -Image-
-
-    #> ein == ImageReflect[ein, Left -> Left] == ImageReflect[ein, Right -> Right] == ImageReflect[ein, Top -> Top] == ImageReflect[ein, Bottom -> Bottom]
-     = True
-    #> ImageReflect[ein, Left -> Right] == ImageReflect[ein, Right -> Left] == ImageReflect[ein, Left] == ImageReflect[ein, Right]
-     = True
-    #> ImageReflect[ein, Bottom -> Top] == ImageReflect[ein, Top -> Bottom] == ImageReflect[ein, Top] == ImageReflect[ein, Bottom]
-     = True
-    #> ImageReflect[ein, Left -> Top] == ImageReflect[ein, Right -> Bottom]     (* Transpose *)
-     = True
-    #> ImageReflect[ein, Left -> Bottom] == ImageReflect[ein, Right -> Top]     (* Anti-Transpose *)
-     = True
-
-    #> ImageReflect[ein, x -> Top]
-     : x -> Top is not a valid 2D reflection specification.
-     = ImageReflect[-Image-, x -> Top]
     """
 
     summary_text = "reflect an image"
@@ -239,10 +224,6 @@ class ImageRotate(Builtin):
 
     >> ImageRotate[ein, Pi / 4]
      = -Image-
-
-    #> ImageRotate[ein, ein]
-     : Angle -Image- should be a real number, one of Top, Bottom, Left, Right, or a rule from one to another.
-     = ImageRotate[-Image-, -Image-]
     """
 
     messages = {

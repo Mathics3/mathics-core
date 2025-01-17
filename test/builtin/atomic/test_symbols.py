@@ -2,8 +2,9 @@
 """
 Unit tests from mathics.builtin.atomic.symbols.
 """
-
 from test.helper import check_evaluation
+
+import pytest
 
 
 def test_downvalues():
@@ -25,3 +26,46 @@ def test_downvalues():
         ),
     ):
         check_evaluation(str_expr, str_expected, message)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "warnings", "str_expected", "fail_msg"),
+    [
+        ## placeholder for general context-related tests
+        ("x === Global`x", None, "True", None),
+        ("`x === Global`x", None, "True", None),
+        ("a`x === Global`x", None, "False", None),
+        ("a`x === a`x", None, "True", None),
+        ("a`x === b`x", None, "False", None),
+        ## awkward parser cases
+        ("FullForm[a`b_]", None, "Pattern[a`b, Blank[]]", None),
+        ("a = 2;", None, "Null", None),
+        ("Information[a]", ("a = 2\n",), "Null", None),
+        ("f[x_] := x ^ 2;", None, "Null", None),
+        ("g[f] ^:= 2;", None, "Null", None),
+        ('f::usage = "f[x] returns the square of x";', None, "Null", None),
+        (
+            "Information[f]",
+            (("f[x] returns the square of x\n\n" "f[x_] = x ^ 2\n\n" "g[f] ^= 2\n"),),
+            "Null",
+            None,
+        ),
+        ('Length[Names["System`*"]] > 350', None, "True", None),
+        (
+            "{\\[Eta], \\[CapitalGamma]\\[Beta], Z\\[Infinity], \\[Angle]XYZ, \\[FilledSquare]r, i\\[Ellipsis]j}",
+            None,
+            "{\u03b7, \u0393\u03b2, Z\u221e, \u2220XYZ, \u25a0r, i\u2026j}",
+            None,
+        ),
+        ("SymbolName[a`b`x] // InputForm", None, '"x"', None),
+        ("ValueQ[True]", None, "False", None),
+    ],
+)
+def test_private_doctests_symbol(str_expr, warnings, str_expected, fail_msg):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        failure_message="",
+        expected_messages=warnings,
+        hold_expected=True,
+    )

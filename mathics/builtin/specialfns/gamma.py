@@ -1,19 +1,26 @@
 """
 Gamma and Related Functions
 """
+
 import sys
+from typing import Iterable
 
 import mpmath
 import sympy
 
-from mathics.builtin.base import (
+from mathics.core.atoms import Integer, Integer0, Number
+from mathics.core.attributes import (
+    A_LISTABLE,
+    A_NUMERIC_FUNCTION,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+)
+from mathics.core.builtin import (
     MPMathFunction,
     MPMathMultiFunction,
     PostfixOperator,
     SympyFunction,
 )
-from mathics.core.atoms import Integer, Integer0, Number
-from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
@@ -21,7 +28,7 @@ from mathics.core.expression import Expression
 from mathics.core.number import FP_MANTISA_BINARY_DIGITS, dps, min_prec
 from mathics.core.symbols import Symbol, SymbolSequence
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolGamma
-from mathics.eval.arithmetic import call_mpmath
+from mathics.eval.arithmetic import run_mpmath
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 
@@ -42,6 +49,7 @@ class Beta(MPMathMultiFunction):
           <dt>'Beta[$z$, $a$, $b$]'
           <dd>gives the incomplete Beta function.
         </dl>
+
         The Beta function satisfies the property
         Beta[x, y] = Integrate[t^(x-1)(1-t)^(y-1),{t,0,1}] = Gamma[a] Gamma[b] / Gamma[a + b]
         >> Beta[2, 3]
@@ -90,7 +98,7 @@ class Beta(MPMathMultiFunction):
         """Beta[z_, a_, b_]"""
         # Here I needed to do that because the order of the arguments in WL
         # is different from the order in mpmath. Most of the code is the same
-        # thatn in
+        # that in MPMathMultiFunction.eval
         if not all(isinstance(q, Number) for q in (a, b, z)):
             return
 
@@ -107,7 +115,7 @@ class Beta(MPMathMultiFunction):
             if None in float_args:
                 return
 
-            result = call_mpmath(
+            result = run_mpmath(
                 mpmath_function, tuple(float_args), FP_MANTISA_BINARY_DIGITS
             )
         else:
@@ -118,7 +126,7 @@ class Beta(MPMathMultiFunction):
                 mpmath_args = [x.to_mpmath() for x in args]
                 if None in mpmath_args:
                     return
-                result = call_mpmath(mpmath_function, tuple(mpmath_args), prec)
+                result = run_mpmath(mpmath_function, tuple(mpmath_args), prec)
         return result
 
 
@@ -155,15 +163,11 @@ class Factorial(PostfixOperator, MPMathFunction):
     >> !a! //FullForm
      = Not[Factorial[a]]
 
-    #> 0!
-     = 1
     """
 
-    attributes = A_NUMERIC_FUNCTION | A_PROTECTED
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
 
     mpmath_name = "factorial"
-    operator = "!"
-    precedence = 610
     summary_text = "factorial"
 
 
@@ -176,6 +180,7 @@ class Factorial2(PostfixOperator, MPMathFunction):
       <dt>'$n$!!'
       <dd>computes the double factorial of $n$.
     </dl>
+
     The double factorial or semifactorial of a number $n$, is the product of all the \
     integers from 1 up to n that have the same parity (odd or even) as $n$.
 
@@ -194,9 +199,7 @@ class Factorial2(PostfixOperator, MPMathFunction):
      = 3.35237
     """
 
-    attributes = A_NUMERIC_FUNCTION | A_PROTECTED
-    operator = "!!"
-    precedence = 610
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
     mpmath_name = "fac2"
     sympy_name = "factorial2"
     messages = {
@@ -301,22 +304,6 @@ class Gamma(MPMathMultiFunction):
     Both 'Gamma' and 'Factorial' functions are continuous:
     >> Plot[{Gamma[x], x!}, {x, 0, 4}]
      = -Graphics-
-
-    ## Issue 203
-    #> N[Gamma[24/10], 100]
-     = 1.242169344504305404913070252268300492431517240992022966055507541481863694148882652446155342679460339
-    #> N[N[Gamma[24/10],100]/N[Gamma[14/10],100],100]
-     = 1.400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-    #> % // Precision
-     = 100.
-
-    #> Gamma[1.*^20]
-     : Overflow occurred in computation.
-     = Overflow[]
-
-    ## Needs mpmath support for lowergamma
-    #> Gamma[1., 2.]
-     = Gamma[1., 2.]
     """
 
     mpmath_names = {
@@ -342,8 +329,8 @@ class Gamma(MPMathMultiFunction):
     def get_sympy_names(self):
         return ["gamma", "uppergamma", "lowergamma"]
 
-    def from_sympy(self, sympy_name, elements):
-        if sympy_name == "lowergamma":
+    def from_sympy(self, elements: Iterable) -> Expression:
+        if self.sympy_name == "lowergamma":
             # lowergamma(z, x) -> Gamma[z, 0, x]
             z, x = elements
             return Expression(Symbol(self.get_name()), z, Integer0, x)
@@ -529,3 +516,26 @@ class StieltjesGamma(SympyFunction):
 
     summary_text = "Stieltjes' function"
     sympy_name = "stieltjes"
+
+
+class Subfactorial(MPMathFunction):
+    """
+    <url>
+    :Derangement: https://en.wikipedia.org/wiki/Derangement</url> (<url>
+    :SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.factorials.subfactorial</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/Subfactorial.html</url>)
+
+    <dl>
+      <dt>'Subfactorial[$n$]'
+      <dd>computes the subfactorial of $n$.
+    </dl>
+
+    >> Subfactorial[6]
+     = 265
+    """
+
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
+
+    mpmath_name = "subfactorial"
+    sympy_name = "subfactorial"
+    summary_text = "subfactorial"

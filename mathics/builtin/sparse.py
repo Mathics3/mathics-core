@@ -5,8 +5,8 @@ Sparse Array Functions
 """
 
 
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer, Integer0
+from mathics.core.builtin import Builtin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -17,7 +17,7 @@ from mathics.core.systemsymbols import (
     SymbolSparseArray,
     SymbolTable,
 )
-from mathics.eval.parts import walk_parts
+from mathics.eval.list.eol import eval_Part
 
 
 class SparseArray(Builtin):
@@ -135,7 +135,7 @@ class SparseArray(Builtin):
         for item in data.elements:
             pos, val = item.elements
             if pos.has_form("List", None):
-                walk_parts([table], pos.elements, evaluation, val)
+                eval_Part([table], pos.elements, evaluation, val)
         return table
 
     def find_dimensions(self, rules, evaluation: Evaluation):
@@ -148,8 +148,7 @@ class SparseArray(Builtin):
                 for i, idx in enumerate(pos.elements):
                     if isinstance(idx, Integer):
                         j = idx.get_int_value()
-                        if dims[i] < j:
-                            dims[i] = j
+                        dims[i] = max(dims[i], j)
         if any(d == 0 for d in dims):
             return
         return ListExpression(*[Integer(d) for d in dims])

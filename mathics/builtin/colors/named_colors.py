@@ -4,7 +4,7 @@
 Mathics has definitions for the most common color names which can be used in a graphics or style specification.
 """
 
-from mathics.builtin.base import Builtin
+from mathics.core.builtin import Builtin
 from mathics.core.symbols import strip_context
 
 

@@ -8,7 +8,7 @@ MathML formatting is usually initiated in Mathics via MathMLForm[].
 import base64
 import html
 
-from mathics_scanner import is_symbol_name
+from mathics_scanner.tokeniser import is_symbol_name
 
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
@@ -301,24 +301,6 @@ def graphicsbox(self, elements=None, **options) -> str:
 
 
 add_conversion_fn(GraphicsBox, graphicsbox)
-
-
-def sqrtbox(self, **options):
-    _options = self.box_options.copy()
-    _options.update(options)
-    options = _options
-    if self.index:
-        return "<mroot> %s %s </mroot>" % (
-            lookup_conversion_method(self.radicand, "mathml")(self.radicand, **options),
-            lookup_conversion_method(self.index, "mathml")(self.index, **options),
-        )
-
-    return "<msqrt> %s </msqrt>" % lookup_conversion_method(self.radicand, "mathml")(
-        self.radicand, **options
-    )
-
-
-add_conversion_fn(SqrtBox, sqrtbox)
 
 
 def graphics3dbox(self, elements=None, **options) -> str:

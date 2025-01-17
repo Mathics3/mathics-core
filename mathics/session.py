@@ -9,12 +9,55 @@ In particular we provide:
 * read and set Mathics Settings.
 """
 
+import os
 import os.path as osp
+from os.path import join as osp_join
 from typing import Optional
 
-from mathics.core.definitions import Definitions, autoload_files
-from mathics.core.evaluation import Evaluation
+from mathics.core.definitions import Definitions
+from mathics.core.evaluation import Evaluation, Result
 from mathics.core.parser import MathicsSingleLineFeeder, parse
+
+
+def autoload_files(
+    defs: Definitions,
+    root_dir_path: str,
+    autoload_dir: str,
+    block_global_definitions: bool = True,
+):
+    """
+    Load Mathics code from the autoload-folder files.
+    """
+    from mathics.eval.files_io.files import eval_Get
+
+    for root, _, files in os.walk(osp_join(root_dir_path, autoload_dir)):
+        for path in [osp_join(root, f) for f in files if f.endswith(".m")]:
+            # Autoload definitions should be go in the System context
+            # by default, rather than the Global context.
+            defs.set_current_context("System`")
+            eval_Get(path, Evaluation(defs))
+            # Restore default context to Global
+            defs.set_current_context("Global`")
+
+    if block_global_definitions:
+        # Move any user definitions created by autoloaded files to
+        # builtins, and clear out the user definitions list. This
+        # means that any autoloaded definitions become shared
+        # between users and no longer disappear after a Quit[].
+        #
+        # Autoloads that accidentally define a name in Global`
+        # could cause confusion, so check for this.
+
+        for name in defs.user:
+            if name.startswith("Global`"):
+                raise ValueError(f"autoload defined {name}.")
+
+    # Move the user definitions to builtin:
+    for symbol_name in defs.user:
+        defs.builtin[symbol_name] = defs.get_definition(symbol_name)
+
+    defs.user = {}
+    defs.clear_cache()
 
 
 def load_default_settings_files(
@@ -37,10 +80,11 @@ def get_settings_value(definitions: Definitions, setting_name: str):
     """Get a Mathics Settings` value with name "setting_name" from
     definitions. If setting_name is not defined return None.
     """
-    settings_value = definitions.get_ownvalue(setting_name)
-    if settings_value is None:
+    try:
+        settings_value = definitions.get_ownvalue(setting_name)
+    except ValueError:
         return None
-    return settings_value.replace.to_python(string_quotes=False)
+    return settings_value.to_python(string_quotes=False)
 
 
 def set_settings_value(definitions: Definitions, setting_name: str, value):
@@ -73,25 +117,52 @@ class MathicsSession:
         if character_encoding is not None:
             mathics.settings.SYSTEM_CHARACTER_ENCODING = character_encoding
         self.form = form
+        self.last_result = None
         self.reset(add_builtin, catch_interrupt)
 
     def reset(self, add_builtin=True, catch_interrupt=False):
         """
         reset the definitions and the evaluation objects.
         """
-        self.definitions = Definitions(add_builtin)
+        try:
+            self.definitions = Definitions(add_builtin)
+        except KeyError:
+            from mathics.core.load_builtin import import_and_load_builtins
+
+            import_and_load_builtins()
+            self.definitions = Definitions(add_builtin)
+
         self.evaluation = Evaluation(
             definitions=self.definitions, catch_interrupt=catch_interrupt
         )
         self.last_result = None
 
     def evaluate(self, str_expression, timeout=None, form=None):
+        """Parse str_expression and evaluate using the `evaluate` method of the Expression"""
         self.evaluation.out.clear()
         expr = parse(self.definitions, MathicsSingleLineFeeder(str_expression))
         if form is None:
             form = self.form
         self.last_result = expr.evaluate(self.evaluation)
         return self.last_result
+
+    def evaluate_as_in_cli(self, str_expression, timeout=None, form=None, src_name=""):
+        """This method parse and evaluate the expression using the session.evaluation.evaluate method"""
+        self.evaluation.out = []
+        query = self.evaluation.parse(str_expression, src_name)
+        if query is not None:
+            res = self.evaluation.evaluate(query, timeout=timeout, format=form)
+        else:
+            res = Result(
+                self.evaluation.out,
+                None,
+                self.evaluation.definitions.get_line_no(),
+                None,
+                form,
+            )
+            self.evaluation.out = []
+        self.evaluation.stopped = False
+        return res
 
     def format_result(self, str_expression=None, timeout=None, form=None):
         if str_expression:
@@ -102,8 +173,10 @@ class MathicsSession:
             form = self.form
         return res.do_format(self.evaluation, form)
 
-    def parse(self, str_expression):
+    def parse(self, str_expression, src_name=""):
         """
         Just parse the expression
         """
-        return parse(self.definitions, MathicsSingleLineFeeder(str_expression))
+        return parse(
+            self.definitions, MathicsSingleLineFeeder(str_expression, src_name)
+        )

@@ -6,11 +6,11 @@ M-Expression as its AST (Abstract Syntax Tree).
 
 There is a separate `README
 <https://github.com/Mathics3/mathics-core/blob/master/mathics/core/parser/README.md>`_
-for decribing how this works.
+for describing how this works.
 """
 
 
-from mathics_scanner import is_symbol_name
+from mathics_scanner.tokeniser import is_symbol_name
 
 from mathics.core.parser.feed import (
     MathicsFileLineFeeder,

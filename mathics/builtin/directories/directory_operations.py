@@ -7,9 +7,9 @@ import os.path as osp
 import shutil
 import tempfile
 
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import String
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_expression
 from mathics.core.evaluation import Evaluation
 from mathics.core.symbols import SymbolNull

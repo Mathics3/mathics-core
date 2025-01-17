@@ -8,11 +8,12 @@ These functions reorder and rearrange lists.
 import functools
 from collections import defaultdict
 from itertools import chain
-from typing import Callable
+from typing import Callable, Optional
 
-from mathics.builtin.base import Builtin, MessageException
-from mathics.core.atoms import Integer, Integer0
+from mathics.core.atoms import Integer, Integer0, Integer1, Number
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
+from mathics.core.builtin import Builtin, MessageException
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, structure
 from mathics.core.expression_predefined import MATHICS3_INFINITY
@@ -76,7 +77,6 @@ class _IllegalPaddingDepth(Exception):
 
 class _Pad(Builtin):
     messages = {
-        "normal": "Expression at position 1 in `` must not be an atom.",
         "level": "Cannot pad list `3` which has `4` using padding `1` which specifies `2`.",
         "ilsm": "Expected an integer or a list of integers at position `1` in `2`.",
     }
@@ -175,7 +175,7 @@ class _Pad(Builtin):
 
     def _pad(self, in_l, in_n, in_x, in_m, evaluation, expr):
         if not isinstance(in_l, Expression):
-            evaluation.message(self.get_name(), "normal", expr())
+            evaluation.message(self.get_name(), "normal", Integer1, expr())
             return
 
         py_n = None
@@ -232,7 +232,7 @@ class _Pad(Builtin):
             Integer0,
             Integer0,
             evaluation,
-            lambda: Expression(self.get_name(), element, n),
+            lambda: Expression(Symbol(self.get_name()), element, n),
         )
 
     def eval(self, element, n, x, evaluation: Evaluation):
@@ -243,7 +243,7 @@ class _Pad(Builtin):
             x,
             Integer0,
             evaluation,
-            lambda: Expression(self.get_name(), element, n, x),
+            lambda: Expression(Symbol(self.get_name()), element, n, x),
         )
 
     def eval_margin(self, element, n, x, m, evaluation: Evaluation):
@@ -254,7 +254,7 @@ class _Pad(Builtin):
             x,
             m,
             evaluation,
-            lambda: Expression(self.get_name(), element, n, x, m),
+            lambda: Expression(Symbol(self.get_name()), element, n, x, m),
         )
 
 
@@ -299,7 +299,6 @@ class _GatherOperation(Builtin):
     rules = {"%(name)s[list_]": "%(name)s[list, SameQ]"}
 
     messages = {
-        "normal": "Nonatomic expression expected at position `1` in `2`.",
         "list": "List expected at position `2` in `1`.",
         "smtst": (
             "Application of the SameTest yielded `1`, which evaluates "
@@ -323,7 +322,7 @@ class _GatherOperation(Builtin):
     def _check_list(self, values, arg2, evaluation: Evaluation):
         if isinstance(values, Atom):
             expr = Expression(Symbol(self.get_name()), values, arg2)
-            evaluation.message(self.get_name(), "normal", 1, expr)
+            evaluation.message(self.get_name(), "normal", Integer1, expr)
             return False
 
         if values.get_head_name() != "System`List":
@@ -354,6 +353,8 @@ class _GatherOperation(Builtin):
 class _Rotate(Builtin):
     messages = {"rspec": "`` should be an integer or a list of integers."}
 
+    _sign: int
+
     def _rotate(self, expr, n, evaluation: Evaluation):
         if not isinstance(expr, Expression):
             return expr
@@ -363,12 +364,12 @@ class _Rotate(Builtin):
             return expr
 
         index = (self._sign * n[0]) % len(elements)  # with Python's modulo: index >= 1
-        new_elements = chain(elements[index:], elements[:index])
+        new_elements = tuple(chain(elements[index:], elements[:index]))
 
         if len(n) > 1:
-            new_elements = [
+            new_elements = tuple(
                 self._rotate(item, n[1:], evaluation) for item in new_elements
-            ]
+            )
 
         return expr.restructure(expr.head, new_elements, evaluation)
 
@@ -395,7 +396,6 @@ class _Rotate(Builtin):
 
 class _SetOperation(Builtin):
     messages = {
-        "normal": "Non-atomic expression expected at position `1` in `2`.",
         "heads": (
             "Heads `1` and `2` at positions `3` and `4` are expected " "to be the same."
         ),
@@ -429,7 +429,7 @@ class _SetOperation(Builtin):
                 evaluation.message(
                     self.get_name(),
                     "normal",
-                    pos + 1,
+                    Integer(pos + 1),
                     Expression(Symbol(self.get_name()), *seq),
                 )
                 return
@@ -542,17 +542,6 @@ class Complement(_SetOperation):
      = f[w, y]
     >> Complement[{c, b, a}]
      = {a, b, c}
-
-    #> Complement[a, b]
-     : Non-atomic expression expected at position 1 in Complement[a, b].
-     = Complement[a, b]
-    #> Complement[f[a], g[b]]
-     : Heads f and g at positions 1 and 2 are expected to be the same.
-     = Complement[f[a], g[b]]
-    #> Complement[{a, b, c}, {a, c}, SameTest->(True&)]
-     = {}
-    #> Complement[{a, b, c}, {a, c}, SameTest->(False&)]
-     = {a, b, c}
     """
 
     summary_text = "find the complement with respect to a universal set"
@@ -586,12 +575,6 @@ class DeleteDuplicates(_GatherOperation):
 
     >> DeleteDuplicates[{3,2,1,2,3,4}, Less]
      = {3, 2, 1}
-
-    #> DeleteDuplicates[{3,2,1,2,3,4}, Greater]
-     = {3, 3, 4}
-
-    #> DeleteDuplicates[{}]
-     = {}
     """
 
     summary_text = "delete duplicate elements in a list"
@@ -658,38 +641,6 @@ class Flatten(Builtin):
     Flatten also works in irregularly shaped arrays
     >> Flatten[{{1, 2, 3}, {4}, {6, 7}, {8, 9, 10}}, {{2}, {1}}]
      = {{1, 4, 6, 8}, {2, 7, 9}, {3, 10}}
-
-    #> Flatten[{{1, 2}, {3, 4}}, {{-1, 2}}]
-     : Levels to be flattened together in {{-1, 2}} should be lists of positive integers.
-     = Flatten[{{1, 2}, {3, 4}}, {{-1, 2}}, List]
-
-    #> Flatten[{a, b}, {{1}, {2}}]
-     : Level 2 specified in {{1}, {2}} exceeds the levels, 1, which can be flattened together in {a, b}.
-     = Flatten[{a, b}, {{1}, {2}}, List]
-
-    ## Check `n` completion
-    #> m = {{{1, 2}, {3}}, {{4}, {5, 6}}};
-    #> Flatten[m, {{2}, {1}, {3}, {4}}]
-     : Level 4 specified in {{2}, {1}, {3}, {4}} exceeds the levels, 3, which can be flattened together in {{{1, 2}, {3}}, {{4}, {5, 6}}}.
-     = Flatten[{{{1, 2}, {3}}, {{4}, {5, 6}}}, {{2}, {1}, {3}, {4}}, List]
-
-    ## Test from issue #251
-    #> m = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-    #> Flatten[m, {3}]
-     : Level 3 specified in {3} exceeds the levels, 2, which can be flattened together in {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}.
-     = Flatten[{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}, {3}, List]
-
-    ## Reproduce strange head behaviour
-    #> Flatten[{{1}, 2}, {1, 2}]
-     : Level 2 specified in {1, 2} exceeds the levels, 1, which can be flattened together in {{1}, 2}.
-     = Flatten[{{1}, 2}, {1, 2}, List]
-    #> Flatten[a[b[1, 2], b[3]], {1, 2}, b]     (* MMA BUG: {{1, 2}} not {1, 2}  *)
-     : Level 1 specified in {1, 2} exceeds the levels, 0, which can be flattened together in a[b[1, 2], b[3]].
-     = Flatten[a[b[1, 2], b[3]], {1, 2}, b]
-
-    #> Flatten[{{1, 2}, {3, {4}}}, {{1, 2, 3}}]
-     : Level 3 specified in {{1, 2, 3}} exceeds the levels, 2, which can be flattened together in {{1, 2}, {3, {4}}}.
-     = Flatten[{{1, 2}, {3, {4}}}, {{1, 2, 3}}, List]
     """
 
     messages = {
@@ -806,11 +757,12 @@ class Flatten(Builtin):
 
         return Expression(h, *insert_element(elements))
 
-    def eval(self, expr, n, h, evaluation):
+    def eval(self, expr: BaseElement, n: Number, h, evaluation):
         "Flatten[expr_, n_, h_]"
 
+        n_int: Optional[int]
         if n.sameQ(MATHICS3_INFINITY):
-            n = -1  # a negative number indicates an unbounded level
+            n_int = -1  # a negative number indicates an unbounded level
         else:
             n_int = n.get_int_value()
             # Here we test for negative since in Mathics Flatten[] as opposed to flatten_with_respect_to_head()
@@ -818,9 +770,12 @@ class Flatten(Builtin):
             if n_int is None or n_int < 0:
                 evaluation.message("Flatten", "flpi", n)
                 return
-            n = n_int
 
-        return expr.flatten_with_respect_to_head(h, level=n)
+        if not isinstance(expr, Expression):
+            evaluation.message("Flatten", "normal", Integer1, expr)
+            return
+
+        return expr.flatten_with_respect_to_head(h, level=n_int)
 
 
 class GatherBy(_GatherOperation):
@@ -861,14 +816,15 @@ class GatherBy(_GatherOperation):
     summary_text = "gather based on values of a function applied to elements"
     _bin = _GatherBin
 
-    def eval(self, values, func, evaluation: Evaluation):
+    def eval(self, values: BaseElement, func, evaluation: Evaluation):
         "%(name)s[values_, func_]"
 
         if not self._check_list(values, func, evaluation):
             return
 
         keys = Expression(SymbolMap, func, values).evaluate(evaluation)
-        if len(keys.elements) != len(values.elements):
+        assert keys is not None
+        if len(keys.get_elements()) != len(values.get_elements()):
             return
 
         return self._gather(keys, values, _FastEquivalence())
@@ -899,16 +855,6 @@ class Join(Builtin):
     >> Join[a + b, c * d]
      : Heads Plus and Times are expected to be the same.
      = Join[a + b, c d]
-
-    #> Join[x, y]
-     = Join[x, y]
-    #> Join[x + y, z]
-     = Join[x + y, z]
-    #> Join[x + y, y z, a]
-     : Heads Plus and Times are expected to be the same.
-     = Join[x + y, y z, a]
-    #> Join[x, y + z, y z]
-     = Join[x, y + z, y z]
     """
 
     attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
@@ -1022,7 +968,7 @@ class Partition(Builtin):
       <dt>'Partition[$list$, $n$]'
       <dd>partitions $list$ into sublists of length $n$.
 
-      <dt>'Parition[$list$, $n$, $d$]'
+      <dt>'Partition[$list$, $n$, $d$]'
       <dd>partitions $list$ into sublists of length $n$ which overlap $d$ \
           indices.
     </dl>
@@ -1032,9 +978,6 @@ class Partition(Builtin):
 
     >> Partition[{a, b, c, d, e, f}, 3, 1]
      = {{a, b, c}, {b, c, d}, {c, d, e}, {d, e, f}}
-
-    #> Partition[{a, b, c, d, e}, 2]
-     = {{a, b}, {c, d}}
     """
 
     # TODO: Nested list length specifications
@@ -1044,7 +987,7 @@ class Partition(Builtin):
     """
     summary_text = "partition a list into sublists of a given length"
     rules = {
-        "Parition[list_, n_, d_, k]": "Partition[list, n, d, {k, k}]",
+        "Partition[list_, n_, d_, k]": "Partition[list, n, d, {k, k}]",
     }
 
     def _partition(self, expr, n, d, evaluation: Evaluation):
@@ -1206,20 +1149,6 @@ class Riffle(Builtin):
      = {a, x, b, y, c, z}
     >> Riffle[{a, b, c, d, e, f}, {x, y, z}]
      = {a, x, b, y, c, z, d, x, e, y, f}
-
-    #> Riffle[{1, 2, 3, 4}, {x, y, z, t}]
-     = {1, x, 2, y, 3, z, 4, t}
-    #> Riffle[{1, 2}, {1, 2, 3}]
-     = {1, 1, 2}
-    #> Riffle[{1, 2}, {1, 2}]
-     = {1, 1, 2, 2}
-
-    #> Riffle[{a,b,c}, {}]
-     = {a, {}, b, {}, c}
-    #> Riffle[{}, {}]
-     = {}
-    #> Riffle[{}, {a,b}]
-     = {}
     """
 
     summary_text = "intersperse additional elements"
@@ -1313,9 +1242,6 @@ class Split(Builtin):
     >> Split[{x, x, x, y, x, y, y, z}]
      = {{x, x, x}, {y}, {x}, {y, y}, {z}}
 
-    #> Split[{x, x, x, y, x, y, y, z}, x]
-     = {{x}, {x}, {x}, {y}, {x}, {y}, {y}, {z}}
-
     Split into increasing or decreasing runs of elements
     >> Split[{1, 5, 6, 3, 6, 1, 6, 3, 4, 5, 4}, Less]
      = {{1, 5, 6}, {3, 6}, {1, 6}, {3, 4, 5}, {4}}
@@ -1326,23 +1252,12 @@ class Split(Builtin):
     Split based on first element
     >> Split[{x -> a, x -> y, 2 -> a, z -> c, z -> a}, First[#1] === First[#2] &]
      = {{x -> a, x -> y}, {2 -> a}, {z -> c, z -> a}}
-
-    #> Split[{}]
-     = {}
-
-    #> A[x__] := 321 /; Length[{x}] == 5;
-    #> Split[A[x, x, x, y, x, y, y, z]]
-     = 321
-    #> ClearAll[A];
     """
 
     rules = {
         "Split[list_]": "Split[list, SameQ]",
     }
 
-    messages = {
-        "normal": "Nonatomic expression expected at position `1` in `2`.",
-    }
     summary_text = "split into runs of identical elements"
 
     def eval(self, mlist, test, evaluation: Evaluation):
@@ -1351,7 +1266,7 @@ class Split(Builtin):
         expr = Expression(SymbolSplit, mlist, test)
 
         if isinstance(mlist, Atom):
-            evaluation.message("Select", "normal", 1, expr)
+            evaluation.message("Select", "normal", Integer1, expr)
             return
 
         if not mlist.elements:
@@ -1387,14 +1302,7 @@ class SplitBy(Builtin):
 
     >> SplitBy[{1, 2, 1, 1.2}, {Round, Identity}]
      = {{{1}}, {{2}}, {{1}, {1.2}}}
-
-    #> SplitBy[Tuples[{1, 2}, 3], First]
-     = {{{1, 1, 1}, {1, 1, 2}, {1, 2, 1}, {1, 2, 2}}, {{2, 1, 1}, {2, 1, 2}, {2, 2, 1}, {2, 2, 2}}}
     """
-
-    messages = {
-        "normal": "Nonatomic expression expected at position `1` in `2`.",
-    }
 
     rules = {
         "SplitBy[list_]": "SplitBy[list, Identity]",
@@ -1408,7 +1316,7 @@ class SplitBy(Builtin):
         expr = Expression(SymbolSplit, mlist, func)
 
         if isinstance(mlist, Atom):
-            evaluation.message("Select", "normal", 1, expr)
+            evaluation.message("Select", "normal", Integer1, expr)
             return
 
         plist = [t for t in mlist.elements]
@@ -1432,7 +1340,7 @@ class SplitBy(Builtin):
         expr = Expression(SymbolSplit, mlist, funcs)
 
         if isinstance(mlist, Atom):
-            evaluation.message("Select", "normal", 1, expr)
+            evaluation.message("Select", "normal", Integer1, expr)
             return
 
         result = mlist
@@ -1494,9 +1402,6 @@ class Union(_SetOperation):
 
     >> Union[{1, 2, 3}, {2, 3, 4}, SameTest->Less]
      = {1, 2, 2, 3, 4}
-
-    #> Union[{1, -1, 2}, {-2, 3}, SameTest -> (Abs[#1] == Abs[#2] &)]
-     = {-2, 1, 3}
     """
 
     summary_text = "enumerate all distinct elements in a list"
@@ -1533,9 +1438,6 @@ class Intersection(_SetOperation):
 
     >> Intersection[{1, 2, 3}, {2, 3, 4}, SameTest->Less]
      = {3}
-
-    #> Intersection[{1, -1, -2, 2, -3}, {1, -2, 2, 3}, SameTest -> (Abs[#1] == Abs[#2] &)]
-     = {-3, -2, 1}
     """
 
     summary_text = "enumerate common elements"

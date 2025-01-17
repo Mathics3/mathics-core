@@ -3,8 +3,8 @@
 Atomic Primitives
 """
 
-from mathics.builtin.base import Builtin, Test
 from mathics.core.atoms import Atom
+from mathics.core.builtin import Builtin, Test
 
 
 class AtomQ(Test):

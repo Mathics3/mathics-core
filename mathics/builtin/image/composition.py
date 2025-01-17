@@ -6,9 +6,9 @@ from collections import defaultdict
 
 import numpy
 
-from mathics.builtin.base import Builtin, String
 from mathics.builtin.image.base import Image
 from mathics.core.atoms import Integer, Rational, Real
+from mathics.core.builtin import Builtin, String
 from mathics.core.evaluation import Evaluation
 from mathics.core.symbols import Symbol
 from mathics.eval.image import pixels_as_float
@@ -79,13 +79,6 @@ class ImageAdd(_ImageArithmetic):
     >> ImageAdd[i, i]
      = -Image-
 
-    #> ImageAdd[i, 0.2, i, 0.1]
-     = -Image-
-
-    #> ImageAdd[i, x]
-     : Expecting a number, image, or graphics instead of x.
-     = ImageAdd[-Image-, x]
-
     >> ein = Import["ExampleData/Einstein.jpg"];
     >> noise = RandomImage[{-0.1, 0.1}, ImageDimensions[ein]];
     >> ImageAdd[noise, ein]
@@ -117,16 +110,6 @@ class ImageMultiply(_ImageArithmetic):
     >> ImageMultiply[i, i]
      = -Image-
 
-    #> ImageMultiply[i, 0.2, i, 0.1]
-     = -Image-
-
-    #> ImageMultiply[i, x]
-     : Expecting a number, image, or graphics instead of x.
-     = ImageMultiply[-Image-, x]
-
-    S> ein = Import["ExampleData/Einstein.jpg"];
-    S> noise = RandomImage[{0.7, 1.3}, ImageDimensions[ein]];
-    S> ImageMultiply[noise, ein]
      = -Image-
     """
 
@@ -151,16 +134,9 @@ class ImageSubtract(_ImageArithmetic):
 
     >> ImageSubtract[i, i]
      = -Image-
-
-    #> ImageSubtract[i, 0.2, i, 0.1]
-     = -Image-
-
-    #> ImageSubtract[i, x]
-     : Expecting a number, image, or graphics instead of x.
-     = ImageSubtract[-Image-, x]
     """
 
-    summary_text = "build an image substracting pixel values of another image "
+    summary_text = "build an image subtracting pixel values of another image "
 
 
 class WordCloud(Builtin):

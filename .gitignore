@@ -16,9 +16,12 @@
 /.cache
 /.gdbinit
 /.python-version
+/.pyodide-xbuildenv-*
 /Mathics.egg-info
 /Mathics3.egg-info
 ChangeLog
+ChangeLog.orig
+ChangeLog.rej
 Documents/
 Homepage/
 Test/

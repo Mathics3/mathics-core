@@ -12,9 +12,9 @@ sort_order = "mathics.builtin.solving-recurrence-equations"
 
 import sympy
 
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import IntegerM1
 from mathics.core.attributes import A_CONSTANT
+from mathics.core.builtin import Builtin
 from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -40,18 +40,18 @@ class RSolve(Builtin):
 
     No boundary conditions gives two general parameters:
     >> RSolve[{a[n + 2] == a[n]}, a, n]
-     = {{a -> (Function[{n}, C[0] + C[1] (-1) ^ n])}}
+     = {{a -> Function[{n}, C[0] + C[1] (-1) ^ n]}}
 
     Include one boundary condition:
     >> RSolve[{a[n + 2] == a[n], a[0] == 1}, a, n]
      = ...
-    ## Order of terms depends on intepreter:
-    ## PyPy:    {{a -> (Function[{n}, 1 - C[1] + C[1] -1 ^ n])}}
-    ## CPython: {{a -> (Function[{n}, 1 + C[1] -1 ^ n - C[1]])}
+    ## Order of terms depends on interpreter:
+    ## PyPy:    {{a -> Function[{n}, 1 - C[1] + C[1] -1 ^ n]}}
+    ## CPython: {{a -> Function[{n}, 1 + C[1] -1 ^ n - C[1]]}
 
-    Geta "pure function" solution for a with two boundary conditions:
+    Get a "pure function" solution for a with two boundary conditions:
     >> RSolve[{a[n + 2] == a[n], a[0] == 1, a[1] == 4}, a, n]
-     = {{a -> (Function[{n}, 5 / 2 - 3 (-1) ^ n / 2])}}
+     = {{a -> Function[{n}, 5 / 2 - 3 (-1) ^ n / 2]}}
     """
 
     messages = {
@@ -106,7 +106,7 @@ class RSolve(Builtin):
         if n not in func.elements:
             evaluation.message("DSolve", "deqx")
 
-        # Seperate relations from conditions
+        # Separate relations from conditions
         conditions = {}
 
         def is_relation(eqn):
@@ -118,7 +118,6 @@ class RSolve(Builtin):
                     and isinstance(le.elements[0].to_python(), int)
                     and ri.is_numeric(evaluation)
                 ):
-
                     r_sympy = ri.to_sympy()
                     if r_sympy is None:
                         raise ValueError
@@ -154,7 +153,7 @@ class RSolve(Builtin):
 
         try:
             # Sympy raises error when given empty conditions. Fixed in
-            # upcomming sympy release.
+            # upcoming sympy release.
             if sym_conds != {}:
                 sym_result = sympy.rsolve(sym_eq, sym_func, sym_conds)
             else:

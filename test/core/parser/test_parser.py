@@ -21,7 +21,7 @@ class ParserTests(unittest.TestCase):
     def setUp(self):
         self.parser = Parser()
 
-    def parse(self, s):
+    def parse(self, s: str):
         return self.parser.parse(SingleLineFeeder(s))
 
     def check(self, expr1, expr2):
@@ -49,12 +49,13 @@ class ParserTests(unittest.TestCase):
 class PrecedenceTests(ParserTests):
     def test_minuslike(self):
         self.check("a * + b", "Times[a, Plus[b]]")
-        self.check("- a . b", "Times[-1, Dot[a, b]]"),
-        self.check("- a / b", "Times[-1, a, Power[b, -1]]"),
+        self.check("- a . b", "Times[-1, Dot[a, b]]")
+        self.check("- a / b", "Times[-1, a, Power[b, -1]]")
         self.check("- a / - b", "Times[-1, a, Power[Times[-1, b], -1]]")
         self.check("- a / - b", "Times[-1, a, Power[Times[-1, b], -1]]")
         self.check("a + b!", "Plus[a, Factorial[b]]")
         self.check("!a!", "Not[Factorial[a]]")
+        self.check("a ;; b ;; c;; d", "(a;;b;;c) (1;;d)")
         self.check("+ + a", "Plus[a]")  # only one plus
 
 
@@ -74,6 +75,7 @@ class AssocTests(ParserTests):
 
     def test_nonassoc(self):
         self.invalid_error("a ? b ? c")
+        self.invalid_error("a ~ b + c")
 
     def test_Function(self):
         self.check("a==b&", "Function[Equal[a, b]]")
@@ -118,6 +120,13 @@ class AtomTests(ParserTests):
         self.check("- 1", "-1")
         self.check("- - 1", "Times[-1, -1]")
         self.check("x=.01", "x = .01")
+        self.scan_error(r"\:000G")
+        self.scan_error(r"\:000")
+        self.scan_error(r"\009")
+        self.scan_error(r"\00")
+        self.scan_error(r"\.0G")
+        self.scan_error(r"\.0")
+        self.scan_error(r"\.0G")
 
     def testNumberBase(self):
         self.check_number("8^^23")
@@ -152,9 +161,13 @@ class AtomTests(ParserTests):
         self.check(r'"abc"', String("abc"))
         self.incomplete_error(r'"abc')
         self.check(r'"abc(*def*)"', String("abc(*def*)"))
-        self.check(r'"a\"b\\c"', String(r"a\"b\\c"))
+
+        # The following check is not correct.
+        # the answer *should* be r'a"b\\c"'
+        # self.check(r'"a\"b\\c"', String(r"a\"b\\c"))
         self.incomplete_error(r'"\"')
         self.invalid_error(r'\""')
+        self.invalid_error(r"abc \[fake]")
 
     def testAccuracy(self):
         self.scan_error("1.5``")
@@ -171,6 +184,8 @@ class AtomTests(ParserTests):
 
 class GeneralTests(ParserTests):
     def testCompound(self):
+        self.invalid_error("FullForm[Hold[; a]]")
+        self.invalid_error("FullForm[Hold[; a ;]]")
         self.check(
             "a ; {b}",
             Node("CompoundExpression", Symbol("a"), Node("List", Symbol("b"))),
@@ -279,6 +294,8 @@ class GeneralTests(ParserTests):
         self.check("f'", "Derivative[1][f]")
         self.check("f''", "Derivative[2][f]")
         self.check("f' '", "Derivative[2][f]")
+        self.check("f '' ''", "Derivative[4][f]")
+        self.check("Derivative[x][4] '", "Derivative[1][Derivative[x][4]]")
 
     def testPlus(self):
         self.check("+1", Node("Plus", Number("1")))
@@ -829,6 +846,16 @@ class IncompleteTests(ParserTests):
         self.incomplete_error("f[x")  # bktmcp
         self.incomplete_error("{x")  # bktmcp
         self.incomplete_error("f[[x")  # bktmcp
+
+    def testBracketMismatch(self):
+        self.invalid_error("(x]")  # sntxf
+        self.invalid_error("(x,)")  # sntxf
+        self.invalid_error("{x]")  # sntxf
+        self.invalid_error("f{x)")  # sntxf
+        self.invalid_error("a[[x)]")  # sntxf
+
+        self.invalid_error("x /: y , z")  # sntxf
+        self.invalid_error("a :: 1")  # sntxf
 
     def testBracketIncompleteInvalid(self):
         self.invalid_error("(x,")

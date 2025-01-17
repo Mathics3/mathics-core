@@ -2,7 +2,6 @@
 """
 Logical Combinations
 """
-from mathics.builtin.base import BinaryOperator, Builtin, Predefined, PrefixOperator
 from mathics.core.attributes import (
     A_FLAT,
     A_HOLD_ALL,
@@ -11,6 +10,7 @@ from mathics.core.attributes import (
     A_ORDERLESS,
     A_PROTECTED,
 )
+from mathics.core.builtin import Builtin, InfixOperator, Predefined, PrefixOperator
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Expression
@@ -66,7 +66,7 @@ class _ManyTrue(Builtin):
         return self._no_short_circuit()
 
 
-class And(BinaryOperator):
+class And(InfixOperator):
     """
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/And.html</url>
@@ -89,8 +89,6 @@ class And(BinaryOperator):
     """
 
     attributes = A_FLAT | A_HOLD_ALL | A_ONE_IDENTITY | A_PROTECTED
-    operator = "&&"
-    precedence = 215
     summary_text = "logic conjunction"
     #    rules = {
     #        "And[a_]": "a",
@@ -142,9 +140,6 @@ class AnyTrue(_ManyTrue):
 
     >> AnyTrue[{1, 4, 5}, EvenQ]
      = True
-
-    #> AnyTrue[{}, EvenQ]
-     = False
     """
 
     summary_text = "some of the elements are True"
@@ -175,9 +170,6 @@ class AllTrue(_ManyTrue):
 
     >> AllTrue[{2, 4, 7}, EvenQ]
      = False
-
-    #> AllTrue[{}, EvenQ]
-     = True
     """
 
     summary_text = "all the elements are True"
@@ -190,7 +182,7 @@ class AllTrue(_ManyTrue):
         return SymbolTrue
 
 
-class Equivalent(BinaryOperator):
+class Equivalent(InfixOperator):
     """
     <url>
     :WMA link:
@@ -214,15 +206,9 @@ class Equivalent(BinaryOperator):
      Otherwise, 'Equivalent' returns a result in DNF
     >> Equivalent[a, b, True, c]
      = a && b && c
-    #> Equivalent[]
-     = True
-    #> Equivalent[a]
-     = True
     """
 
     attributes = A_ORDERLESS | A_PROTECTED
-    operator = "\u29E6"
-    precedence = 205
     summary_text = "logic equivalence"
 
     def eval(self, args, evaluation: Evaluation):
@@ -265,7 +251,7 @@ class False_(Predefined):
     summary_text = "boolean constant for False"
 
 
-class Implies(BinaryOperator):
+class Implies(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Implies.html</url>
 
@@ -289,8 +275,6 @@ class Implies(BinaryOperator):
      = a Implies b Implies c
     """
 
-    operator = "\u21D2"
-    precedence = 200
     grouping = "Right"
     summary_text = "logic implication"
 
@@ -330,9 +314,6 @@ class NoneTrue(_ManyTrue):
 
     >> NoneTrue[{1, 4, 5}, EvenQ]
      = False
-
-    #> NoneTrue[{}, EvenQ]
-     = True
     """
 
     summary_text = "all the elements are False"
@@ -345,7 +326,7 @@ class NoneTrue(_ManyTrue):
         return SymbolTrue
 
 
-class Or(BinaryOperator):
+class Or(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Or.html</url>
 
@@ -367,8 +348,6 @@ class Or(BinaryOperator):
     """
 
     attributes = A_FLAT | A_HOLD_ALL | A_ONE_IDENTITY | A_PROTECTED
-    operator = "||"
-    precedence = 215
     summary_text = "logic (inclusive) disjunction"
 
     #    rules = {
@@ -396,7 +375,7 @@ class Or(BinaryOperator):
             return SymbolFalse
 
 
-class Nand(Builtin):
+class Nand(InfixOperator):
     """
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/Nand.html</url>
@@ -407,18 +386,18 @@ class Nand(Builtin):
       <dt>$expr1$ \u22BC $expr2$ \u22BC ...
       <dd> Implements the logical NAND function.  The same as 'Not[And['$expr1$, $expr2$, ...']]'
     </dl>
+
     >> Nand[True, False]
      = True
     """
 
-    operator = "\u22BC"
     rules = {
         "Nand[expr___]": "Not[And[expr]]",
     }
     summary_text = "negation of logic conjunction"
 
 
-class Nor(Builtin):
+class Nor(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Nor.html</url>
 
@@ -428,11 +407,11 @@ class Nor(Builtin):
       <dt>$expr1$ \u22BD $expr2$ \u22BD ...
       <dd>Implements the logical NOR function.  The same as 'Not[Or['$expr1$, $expr2$, ...']]'
     </dl>
+
     >> Nor[True, False]
      = False
     """
 
-    operator = "\u22BD"
     rules = {
         "Nor[expr___]": "Not[Or[expr]]",
     }
@@ -457,8 +436,9 @@ class Not(PrefixOperator):
      = !b
     """
 
+    # FIXME: If we remove this we pick up unicode unconditionally
+    # which wew don't want to do.
     operator = "!"
-    precedence = 230
 
     rules = {
         "Not[True]": "False",
@@ -483,7 +463,7 @@ class True_(Predefined):
     summary_text = "boolean constant for True"
 
 
-class Xor(BinaryOperator):
+class Xor(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Xor.html</url>
 
@@ -505,21 +485,9 @@ class Xor(BinaryOperator):
     returns a result in symbolic form:
     >> Xor[a, False, b]
      = a \\[Xor] b
-    #> Xor[]
-     = False
-    #> Xor[a]
-     = a
-    #> Xor[False]
-     = False
-    #> Xor[True]
-     = True
-    #> Xor[a, b]
-     = a \\[Xor] b
     """
 
     attributes = A_FLAT | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
-    operator = "\u22BB"
-    precedence = 215
     summary_text = "logic (exclusive) disjunction"
 
     def eval(self, args, evaluation: Evaluation):

@@ -8,13 +8,6 @@ on a calculator.
 """
 
 from mathics.builtin.arithmetic import create_infix
-from mathics.builtin.base import (
-    BinaryOperator,
-    Builtin,
-    MPMathFunction,
-    PrefixOperator,
-    SympyFunction,
-)
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -36,6 +29,13 @@ from mathics.core.attributes import (
     A_ORDERLESS,
     A_PROTECTED,
     A_READ_PROTECTED,
+)
+from mathics.core.builtin import (
+    Builtin,
+    InfixOperator,
+    MPMathFunction,
+    PrefixOperator,
+    SympyFunction,
 )
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.sympy import from_sympy
@@ -59,7 +59,7 @@ from mathics.core.systemsymbols import (
     SymbolPattern,
     SymbolSequence,
 )
-from mathics.eval.arithmetic import eval_Plus, eval_Times
+from mathics.eval.arithfns.basic import eval_Plus, eval_Times
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 
@@ -107,7 +107,7 @@ class CubeRoot(Builtin):
         )
 
 
-class Divide(BinaryOperator):
+class Divide(InfixOperator):
     """
     <url>
     :Division:
@@ -120,6 +120,7 @@ class Divide(BinaryOperator):
       <dt>'$a$ / $b$'
       <dd>represents the division of $a$ by $b$.
     </dl>
+
     >> 30 / 5
      = 6
     >> 1 / 8
@@ -157,8 +158,6 @@ class Divide(BinaryOperator):
     }
 
     grouping = "Left"
-    operator = "/"
-    precedence = 470
 
     rules = {
         "Divide[x_, y_]": "Times[x, Power[y, -1]]",
@@ -206,9 +205,6 @@ class Minus(PrefixOperator):
         ),
     }
 
-    operator = "-"
-    precedence = 480
-
     rules = {
         "Minus[x_]": "Times[-1, x]",
     }
@@ -220,7 +216,7 @@ class Minus(PrefixOperator):
         return Integer(-x.value)
 
 
-class Plus(BinaryOperator, SympyFunction):
+class Plus(InfixOperator, SympyFunction):
     """
     <url>
     :Addition:
@@ -280,9 +276,6 @@ class Plus(BinaryOperator, SympyFunction):
     defaults = {
         None: "0",
     }
-
-    operator = "+"
-    precedence = 310
 
     summary_text = "add"
 
@@ -347,7 +340,7 @@ class Plus(BinaryOperator, SympyFunction):
         return eval_Plus(*items_tuple)
 
 
-class Power(BinaryOperator, MPMathFunction):
+class Power(InfixOperator, MPMathFunction):
     """
     <url>
     :Exponentiation:
@@ -433,9 +426,6 @@ class Power(BinaryOperator, MPMathFunction):
     }
 
     nargs = {2}
-    operator = "^"
-    precedence = 590
-
     rules = {
         "Power[]": "1",
         "Power[x_]": "x",
@@ -528,7 +518,7 @@ class Sqrt(SympyFunction):
     summary_text = "square root"
 
 
-class Subtract(BinaryOperator):
+class Subtract(InfixOperator):
     """
     <url>
     :Subtraction:
@@ -554,9 +544,6 @@ class Subtract(BinaryOperator):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     grouping = "Left"
 
-    operator = "-"
-    precedence = 310
-    precedence_parse = 311
     rules = {
         "Subtract[x_, y_]": "Plus[x, Times[-1, y]]",
     }
@@ -564,7 +551,7 @@ class Subtract(BinaryOperator):
     summary_text = "subtract"
 
 
-class Times(BinaryOperator, SympyFunction):
+class Times(InfixOperator, SympyFunction):
     """
     <url>
     :Multiplication:
@@ -579,6 +566,7 @@ class Times(BinaryOperator, SympyFunction):
       <dt>'$a$ $b$ ...'
       <dd>represents the product of the terms $a$, $b$, ...
     </dl>
+
     >> 10 * 2
      = 20
     >> 10 2
@@ -618,17 +606,15 @@ class Times(BinaryOperator, SympyFunction):
 
     formats = {}
 
-    operator = "*"
     operator_display = " "
 
-    precedence = 400
     rules = {}
 
     # FIXME Note this is deprecated in 1.11
     # Remember to up sympy doc link when this is corrected
     sympy_name = "Mul"
 
-    summary_text = "mutiply"
+    summary_text = "multiply"
 
     def format_times(self, items, evaluation, op="\u2062"):
         "Times[items__]"
@@ -690,15 +676,15 @@ class Times(BinaryOperator, SympyFunction):
         return result
 
     def format_inputform(self, items, evaluation):
-        "InputForm: Times[items__]"
+        "(InputForm,): Times[items__]"
         return self.format_times(items, evaluation, op="*")
 
     def format_standardform(self, items, evaluation):
-        "StandardForm: Times[items__]"
+        "(StandardForm,): Times[items__]"
         return self.format_times(items, evaluation, op=" ")
 
     def format_outputform(self, items, evaluation):
-        "OutputForm: Times[items__]"
+        "(OutputForm,): Times[items__]"
         return self.format_times(items, evaluation, op=" ")
 
     def eval(self, items, evaluation):

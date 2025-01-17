@@ -3,17 +3,18 @@
 # No external builtins appear here.
 # Also no docstring which may confuse the doc system
 
+from abc import ABC
 
-from mathics.builtin.base import BuiltinElement
 from mathics.builtin.box.expression import BoxExpression
+from mathics.core.builtin import BuiltinElement
 from mathics.core.exceptions import BoxExpressionError
 from mathics.core.symbols import Symbol, system_symbols_dict
 
-# Signals to Mathics doc processing not to include this module in its documentation.
+# Signals to Mathics3 doc processing not to include this module in its documentation.
 no_doc = True
 
 
-class _GraphicsDirective(BuiltinElement):
+class _GraphicsDirective(BuiltinElement, ABC):
     def init(self, graphics, item=None):
         if item is not None and not item.has_form(self.get_name(), None):
             raise BoxExpressionError
@@ -24,7 +25,7 @@ class _GraphicsDirective(BuiltinElement):
         return klass(graphics, item)
 
 
-class _GraphicsElementBox(BoxExpression):
+class _GraphicsElementBox(BoxExpression, ABC):
     def init(self, graphics, item=None, style=None, opacity=1.0):
         if item is not None and not item.has_form(self.get_name(), None):
             raise BoxExpressionError

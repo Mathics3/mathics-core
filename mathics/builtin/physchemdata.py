@@ -8,8 +8,8 @@ Physical and Chemical data
 import os
 from csv import reader as csvreader
 
-from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer, String
+from mathics.core.builtin import Builtin
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -87,9 +87,6 @@ class ElementData(Builtin):
 
     >> ListPlot[Table[ElementData[z, "AtomicWeight"], {z, 118}]]
      = -Graphics-
-
-    ## Ensure all data parses #664
-    #> Outer[ElementData, Range[118], ElementData["Properties"]];
     """
 
     messages = {

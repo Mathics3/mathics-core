@@ -12,9 +12,9 @@ These functions often are used in cryptography to encode and decode messages.
 
 import sympy
 
-from mathics.builtin.base import SympyFunction
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
+from mathics.core.builtin import SympyFunction
 from mathics.core.convert.sympy import from_sympy, to_numeric_sympy_args
 from mathics.eval.numerify import numerify
 

@@ -11,7 +11,6 @@ as a function of the preceding terms.
 
 from sympy.functions.combinatorial.numbers import stirling
 
-from mathics.builtin.base import Builtin, MPMathFunction
 from mathics.core.atoms import Integer
 from mathics.core.attributes import (
     A_LISTABLE,
@@ -19,6 +18,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import Builtin, MPMathFunction
 from mathics.core.evaluation import Evaluation
 
 
@@ -29,6 +29,8 @@ class Fibonacci(MPMathFunction):
     <dl>
       <dt>'Fibonacci[$n$]'
       <dd>computes the $n$th Fibonacci number.
+      <dt>'Fibonacci[$n$, $x$]'
+      <dd>computes the Fibonacci polynomial $F$_$n$($x$).
     </dl>
 
     >> Fibonacci[0]
@@ -39,6 +41,8 @@ class Fibonacci(MPMathFunction):
      = 55
     >> Fibonacci[200]
      = 280571172992510140037611932413038677189525
+    >> Fibonacci[7, x]
+     = 1 + 6 x ^ 2 + 5 x ^ 4 + x ^ 6
     """
 
     nargs = {1}
@@ -47,11 +51,16 @@ class Fibonacci(MPMathFunction):
     mpmath_name = "fibonacci"
     summary_text = "Fibonacci's numbers"
 
+    rules = {
+        "Fibonacci[0, x_]": "0",
+        "Fibonacci[n_Integer?Negative, x_]": "Fibonacci[-n, x]",
+    }
+
 
 class HarmonicNumber(MPMathFunction):
     """
-    <url>:Harmonic Number:https://en.wikipedia.org/wiki/Harmonic_number</url> \(
-    <url>:WMA link:https://reference.wolfram.com/language/ref/HarmonicNumber.html</url>)
+    <url>:Harmonic Number:https://en.wikipedia.org/wiki/Harmonic_number</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/HarmonicNumber.html</url>)
 
     <dl>
       <dt>'HarmonicNumber[n]'
@@ -63,9 +72,6 @@ class HarmonicNumber(MPMathFunction):
 
     >> HarmonicNumber[3.8]
      = 2.03806
-
-    #> HarmonicNumber[-1.5]
-     = 0.613706
     """
 
     rules = {
@@ -74,6 +80,31 @@ class HarmonicNumber(MPMathFunction):
     summary_text = "Harmonic numbers"
     mpmath_name = "harmonic"
     sympy_name = "harmonic"
+
+
+class LinearRecurrence(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LinearRecurrence.html</url>
+
+    <dl>
+      <dt>'LinearRecurrence[$ker$, $init$, $n$]'
+      <dd>computes $n$ terms of the linear recurrence with kernel $ker$ and initial values $init$
+    </dl>
+
+    >> LinearRecurrence[{1, 1}, {1, 1}, 10]
+     = {1, 1, 2, 3, 5, 8, 13, 21, 34, 55}
+    >> LinearRecurrence[{1, 1}, {1, 1}, {5, 5}]
+     = {5}
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "linear recurrence"
+
+    rules = {
+        "LinearRecurrence[ker_List, init_List, n_Integer]": "Nest[Append[#, Reverse[ker] . Take[#, -Length[ker]]] &, init, n - Length[init]]",
+        "LinearRecurrence[ker_List, init_List, {n_Integer?Positive}]": "LinearRecurrence[ker, init, n][[n]]",
+        "LinearRecurrence[ker_List, init_List, {nmin_Integer?Positive, nmax_Integer?Positive}]": "LinearRecurrence[ker, init, nmax][[nmin;;nmax]]",
+    }
 
 
 # Note: WL allows StirlingS1[{2, 4, 6}, 2], but we don't (yet).

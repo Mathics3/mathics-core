@@ -5,7 +5,6 @@ Basic Image Processing
 import numpy
 import PIL
 
-from mathics.builtin.base import Builtin, String
 from mathics.builtin.image.base import Image, image_common_messages
 from mathics.core.atoms import (
     Integer,
@@ -14,6 +13,7 @@ from mathics.core.atoms import (
     MachineReal,
     is_integer_rational_or_real,
 )
+from mathics.core.builtin import Builtin, String
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
@@ -193,19 +193,6 @@ class ImagePartition(Builtin):
 
     >> ImagePartition[hedy, {512, 128}]
      = {{-Image-}, {-Image-}, {-Image-}, {-Image-}, {-Image-}, {-Image-}}
-
-    #> ImagePartition[hedy, 257]
-     = {{-Image-, -Image-}, {-Image-, -Image-}, {-Image-, -Image-}}
-    #> ImagePartition[hedy, 646]
-     = {{-Image-}}
-    #> ImagePartition[hedy, 647]
-     = {}
-    #> ImagePartition[hedy, {256, 300}]
-     = {{-Image-, -Image-}, {-Image-, -Image-}}
-
-    #> ImagePartition[hedy, {0, 300}]
-     : {0, 300} is not a valid size specification for image partitions.
-     = ImagePartition[-Image-, {0, 300}]
     """
 
     messages = {"arg2": "`1` is not a valid size specification for image partitions."}
@@ -293,7 +280,7 @@ class Threshold(Builtin):
 
     >> img = Import["ExampleData/hedy.tif"];
     >> Threshold[img]
-     = 0.408203
+     = ...
     X> Binarize[img, %]
      = -Image-
     X> Threshold[img, Method -> "Mean"]

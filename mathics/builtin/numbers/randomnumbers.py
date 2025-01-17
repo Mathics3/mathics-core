@@ -16,9 +16,9 @@ from operator import mul as operator_mul
 
 import numpy
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.numpy_utils import instantiate_elements, stack
 from mathics.core.atoms import Complex, Integer, Real, String
+from mathics.core.builtin import Builtin
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolDivide, SymbolNull
@@ -217,24 +217,36 @@ class _RandomSelection(_RandomBase):
 # FIXME: This class should be removed and put in a Mathematica V.5 compatibility package
 class Random(Builtin):
     """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/Random.html</url>
-    <dl>
-      <dt>'Random[]'
-      <dd>gives a uniformly distributed pseudorandom Real number in the range 0 to 1.
+     <url>:Randomness:
+     https://en.wikipedia.org/wiki/Randomness</url> (<url>:WMA link:
+     https://reference.wolfram.com/language/ref/Random.html</url>)
+     <dl>
+       <dt>'Random[]'
+       <dd>gives a pseudorandom real number in the range 0 to 1.
 
-      <dt>'Random[$type$, $range$]'
-      <dd>gives a uniformly distributed pseudorandom number of the type \
-          $type$, in the specified interval $range$. Possible types are \
-          'Integer', 'Real' or 'Complex'.
-    </dl>
-    Legacy function. Superseded by RandomReal, RandomInteger and RandomComplex.
+       <dt>'Random[$type$, $range$]'
+       <dd>gives a pseudorandom number of the type $type$, in the specified interval $range$.
+           Possible types are 'Integer', 'Real' or 'Complex'.
+     </dl>
 
+     Legacy function. Superseded by <url>
+     :RandomReal:/doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/random-number-generation/randomreal
+     </url>, <url>
+    :RandomInteger:/doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/random-number-generation/randominteger
+     </url>, and <url>
+    :RandomComplex:/doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/random-number-generation/randomcomplex</url>.
+
+     Four random numbers in the range 0..1:
+     >> Table[Random[], {4}]
+      = ...
+
+     Eight random integers in the range 1..100:
+     >> Table[Random[Integer, {1, 100}], {8}]
+      = ...
     """
 
     rules = {
-        "Random[]": "RandomReal[0, 1]",
+        "Random[]": "RandomReal[]",
         "Random[Integer]": "RandomInteger[]",
         "Random[Integer,  zmax_Integer]": "RandomInteger[zmax]",
         "Random[Integer, {zmin_Integer, zmax_Integer}]": "RandomInteger[{zmin, zmax}]",
@@ -246,7 +258,7 @@ class Random(Builtin):
         "Random[Complex, {zmin_?NumberQ, zmax_?NumberQ}]": "RandomComplex[{zmin, zmax}]",
     }
 
-    summary_text = "pick a random number"
+    summary_text = "pick a random number (legacy function)"
 
 
 class RandomChoice(_RandomSelection):
@@ -334,25 +346,15 @@ class RandomComplex(Builtin):
 
     >> RandomComplex[]
      = ...
-    #> 0 <= Re[%] <= 1 && 0 <= Im[%] <= 1
-     = True
 
     >> RandomComplex[{1+I, 5+5I}]
      = ...
-    #> 1 <= Re[%] <= 5 && 1 <= Im[%] <= 5
-     = True
 
     >> RandomComplex[1+I, 5]
      = {..., ..., ..., ..., ...}
 
     >> RandomComplex[{1+I, 2+2I}, {2, 2}]
      = {{..., ...}, {..., ...}}
-
-    #> RandomComplex[{6, 2 Pi + I}]
-     = 6...
-
-    #> RandomComplex[{6.3, 2.5 I}] // FullForm
-     = Complex[..., ...]
     """
 
     messages = {
@@ -425,7 +427,7 @@ class RandomComplex(Builtin):
         if not isinstance(py_ns, list):
             py_ns = [py_ns]
 
-        if not all([isinstance(i, int) and i >= 0 for i in py_ns]):
+        if not all(isinstance(i, int) and i >= 0 for i in py_ns):
             evaluation.message("RandomComplex", "array", ns, expr)
             return
 
@@ -463,8 +465,6 @@ class RandomInteger(Builtin):
 
     >> RandomInteger[{1, 5}]
      = ...
-    #> 1 <= % <= 5
-     = True
 
     >> RandomInteger[100, {2, 3}] // TableForm
      = ...   ...   ...
@@ -542,21 +542,8 @@ class RandomReal(Builtin):
 
     >> RandomReal[]
      = ...
-    #> 0 <= % <= 1
-     = True
-
     >> RandomReal[{1, 5}]
      = ...
-
-    ## needs too much horizontal space in TeX form
-    #> RandomReal[100, {2, 3}] // TableForm
-     = ...   ...   ...
-     .
-     . ...   ...   ...
-
-    #> RandomReal[{0, 1}, {1, -1}]
-     : The array dimensions {1, -1} given in position 2 of RandomReal[{0, 1}, {1, -1}] should be a list of non-negative machine-sized integers giving the dimensions for the result.
-     = RandomReal[{0, 1}, {1, -1}]
     """
 
     messages = {
@@ -605,12 +592,12 @@ class RandomReal(Builtin):
         min_value, max_value = xmin.to_python(), xmax.to_python()
         result = ns.to_python()
 
-        if not all([isinstance(i, int) and i >= 0 for i in result]):
+        if not all(isinstance(i, int) and i >= 0 for i in result):
             expr = Expression(SymbolRandomReal, ListExpression(xmin, xmax), ns)
             evaluation.message("RandomReal", "array", expr, ns)
             return
 
-        assert all([isinstance(i, int) for i in result])
+        assert all(isinstance(i, int) for i in result)
 
         with RandomEnv(evaluation) as rand:
             return instantiate_elements(
@@ -691,10 +678,6 @@ class SeedRandom(Builtin):
     >> SeedRandom[]
     >> RandomInteger[100]
      = ...
-
-    #> SeedRandom[x]
-     : Argument x should be an integer or string.
-     = SeedRandom[x]
     """
 
     messages = {

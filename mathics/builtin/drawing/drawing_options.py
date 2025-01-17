@@ -15,7 +15,7 @@ option values are described here.
 # builtins.
 
 
-from mathics.builtin.base import Builtin
+from mathics.core.builtin import Builtin
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.graphing-and-drawing.drawing-options-and-option-values"
@@ -78,6 +78,32 @@ class Axis(Builtin):
     summary_text = "graph option value to fill plot from curve to the axis"
 
 
+class Background(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Background.html</url>
+
+    <dl>
+      <dt>'Background'
+      <dd>is an option that specifies the color of the background.
+    </dl>
+
+    The specification must be a Color specification or 'Automatic':
+
+    >> Graphics3D[{Arrow[{{0,0,0},{1,0,1},{0,-1,0},{1,1,1}}]}, Background -> Red]
+     = -Graphics3D-
+
+    Notice that opacity cannot be specified by passing a 'List' containing 'Opacity' \
+    together with a color specification like '{Red, Opacity[.1]}'. Use a color \
+    directive with an alpha channel instead:
+
+    >> Plot[{Sin[x], Cos[x], x / 3}, {x, -Pi, Pi}, Background -> RGBColor[0.5, .5, .5, 0.1]]
+     = -Graphics-
+
+    """
+
+    summary_text = "graphic option for the color of the background"
+
+
 class Bottom(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Bottom.html</url>
@@ -120,6 +146,7 @@ class ChartLegends(Builtin):
       <dd>is an option for charting functions that specifies the legends to be used \
           for chart elements.
     </dl>
+
     """
 
     summary_text = "chart option for giving legends to a chart"
@@ -149,6 +176,7 @@ class Full(Builtin):
       <dt>'Full'
       <dd>is a possible value for the 'Mesh' and 'PlotRange' options.
     </dl>
+
     """
 
     summary_text = "graph option value for Mesh and PlotRange"
@@ -229,6 +257,14 @@ class Mesh(Builtin):
           specifies the mesh to be drawn. The default is 'Mesh->None'.
      </dl>
 
+    Options include:
+
+    <ul>
+      <li>None: No mesh is drawn
+      <li>All: mesh divisions between elements
+      <li>Full: mesh divisions between regular datapoints
+    </ul>
+
     >> Plot[Sin[Cos[x^2]],{x,-4,4},Mesh->All]
      = -Graphics-
 
@@ -275,6 +311,7 @@ class PlotRange(Builtin):
       <dd>is a charting option, such as for 'Plot', 'BarChart', 'PieChart', \
           etc. that gives the range of coordinates to include in a plot.
     </dl>
+
     <ul>
       <li>All all points are included.
       <li>Automatic - outlying points are dropped.

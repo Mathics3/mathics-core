@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from mathics.builtin.base import Builtin
+from mathics.core.builtin import Builtin
 
 from .helper import check_evaluation
 

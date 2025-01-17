@@ -14,8 +14,8 @@ from itertools import chain
 
 import mpmath
 
-from mathics.builtin.base import Builtin, MPMathFunction
 from mathics.core.atoms import Integer, Integer0, IntegerM1, Real
+from mathics.core.builtin import Builtin, MPMathFunction
 from mathics.core.convert.python import from_python
 from mathics.core.exceptions import IllegalStepSpecification
 from mathics.core.expression import Expression
@@ -550,21 +550,6 @@ class ArcTan(MPMathFunction):
 
     >> ArcTan[1, 1]
      = Pi / 4
-    #> ArcTan[-1, 1]
-     = 3 Pi / 4
-    #> ArcTan[1, -1]
-     = -Pi / 4
-    #> ArcTan[-1, -1]
-     = -3 Pi / 4
-
-    #> ArcTan[1, 0]
-     = 0
-    #> ArcTan[-1, 0]
-     = Pi
-    #> ArcTan[0, 1]
-     = Pi / 2
-    #> ArcTan[0, -1]
-     = -Pi / 2
     """
 
     mpmath_name = "atan"
@@ -572,10 +557,11 @@ class ArcTan(MPMathFunction):
     rules = {
         "ArcTan[0]": "0",
         "ArcTan[1]": "Pi/4",
+        "ArcTan[DirectedInfinity[]]": "Indeterminate",
         "ArcTan[Undefined]": "Undefined",
         "ArcTan[Undefined, x_]": "Undefined",
         "ArcTan[y_, Undefined]": "Undefined",
-        "ArcTan[x_?RealNumberQ, y_?RealNumberQ]": """If[x == 0, If[y == 0, 0, If[y > 0, Pi/2, -Pi/2]], If[x > 0,
+        "ArcTan[x_?RealValuedNumberQ, y_?RealValuedNumberQ]": """If[x == 0, If[y == 0, 0, If[y > 0, Pi/2, -Pi/2]], If[x > 0,
             ArcTan[y/x], If[y >= 0, ArcTan[y/x] + Pi, ArcTan[y/x] - Pi]]]""",
         "Derivative[1][ArcTan]": "1/(1+#^2)&",
     }
@@ -603,9 +589,6 @@ class Cos(MPMathFunction):
 
     >> Cos[3 Pi]
      = -1
-
-    #> Cos[1.5 Pi]
-     = -1.83697×10^-16
     """
 
     mpmath_name = "cos"
@@ -815,9 +798,6 @@ class Sin(MPMathFunction):
 
     >> Plot[Sin[x], {x, -Pi, Pi}]
      = -Graphics-
-
-    #> N[Sin[1], 40]
-     = 0.8414709848078965066525023216302989996226
     """
 
     mpmath_name = "sin"
@@ -855,9 +835,6 @@ class Tan(MPMathFunction):
      = 0
     >> Tan[Pi / 2]
      = ComplexInfinity
-
-    #> Tan[0.5 Pi]
-     = 1.63312×10^16
     """
 
     mpmath_name = "tan"

@@ -6,8 +6,7 @@ formatting rules.
 """
 
 
-import typing
-from typing import Any, Dict, Type
+from typing import Any, Callable, Dict, List, Optional, Type
 
 from mathics.core.atoms import Complex, Integer, Rational, Real, String, SymbolI
 from mathics.core.convert.expression import to_expression_with_specialization
@@ -40,15 +39,6 @@ from mathics.core.systemsymbols import (
     SymbolStandardForm,
 )
 
-# An operator precedence value that will ensure that whatever operator
-# this is attached to does not have parenthesis surrounding it.
-# Operator precedence values are integers; If if an operator
-# "op" is greater than the surrounding precedence, then "op"
-# will be surrounded by parenthesis, e.g. ... (...op...) ...
-# In named-characters.yml of mathics-scanner we start at 0.
-# However, negative values would also work.
-NEVER_ADD_PARENTHESIS = 0
-
 # These Strings are used in Boxing output
 StringElipsis = String("...")
 StringLParen = String("(")
@@ -57,7 +47,10 @@ StringRepeated = String("..")
 
 builtins_precedence: Dict[Symbol, int] = {}
 
-element_formatters = {}
+element_formatters: Dict[
+    Type[BaseElement],
+    Callable[[BaseElement, Evaluation, Symbol], Optional[BaseElement]],
+] = {}
 
 
 # this temporarily replaces the _BoxedString class
@@ -67,9 +60,116 @@ def _boxed_string(string: str, **options):
     return StyleBox(String(string), **options)
 
 
+def compare_precedence(
+    element: BaseElement, precedence: Optional[int] = None
+) -> Optional[int]:
+    """
+    compare the precedence of the element regarding a precedence value.
+    If both precedences are equal, return 0. If precedence of the
+    first element is higher, return 1, otherwise -1.
+    If precedences cannot be compared, return None.
+    """
+    while element.has_form("HoldForm", 1):
+        element = element.elements[0]
+
+    if precedence is None:
+        return None
+    if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
+        element_prec = element.elements[2].value
+    elif element.has_form("PrecedenceForm", 2):
+        element_prec = element.elements[1].value
+    # For negative values, ensure that the element_precedence is at least the precedence. (Fixes #332)
+    elif isinstance(element, (Integer, Real)) and element.value < 0:
+        element_prec = precedence
+    else:
+        element_prec = builtins_precedence.get(element.get_head_name())
+
+    if element_prec is None:
+        return None
+    return 0 if element_prec == precedence else (1 if element_prec > precedence else -1)
+
+
+# 640 = sys.int_info.str_digits_check_threshold.
+# Someday when 3.11 is the minimum version of Python supported,
+# we can replace the magic value 640 below with sys.int.str_digits_check_threshold.
+def int_to_string_shorter_repr(value: int, form: Symbol, max_digits=640):
+    """Convert value to a String, restricted to max_digits characters.
+
+    if value has an n-digit decimal representation,
+      value = d_1 *10^{n-1} d_2 * 10^{n-2} + d_3 10^{n-3} + ..... +
+              d_{n-2}*100 +d_{n-1}*10 + d_{n}
+    is represented as the string
+
+    "d_1d_2d_3...d_{k}<<n-2k>>d_{n-k-1}...d_{n-2}d_{n-1}d_{n}"
+
+    where n-2k digits are replaced by a placeholder.
+    """
+    if max_digits == 0:
+        return String(str(value))
+
+    # Normalize to positive quantities
+    is_negative = value < 0
+    if is_negative:
+        value = -value
+        max_digits = max_digits - 1
+
+    # Estimate the number of decimal digits
+    num_digits = int(value.bit_length() * 0.3)
+
+    # If the estimated number is below the threshold,
+    # return it as it is.
+    if num_digits <= max_digits:
+        if is_negative:
+            return String("-" + str(value))
+        return String(str(value))
+
+    # estimate the size of the placeholder
+    size_placeholder = len(str(num_digits)) + 6
+    # Estimate the number of available decimal places
+    avaliable_digits = max(max_digits - size_placeholder, 0)
+    # how many most significative digits include
+    len_msd = (avaliable_digits + 1) // 2
+    # how many least significative digits to include:
+    len_lsd = avaliable_digits - len_msd
+    # Compute the msd.
+    msd = str(value // 10 ** (num_digits - len_msd))
+    if msd == "0":
+        msd = ""
+
+    # If msd has more digits than the expected, it means that
+    # num_digits was wrong.
+    extra_msd_digits = len(msd) - len_msd
+    if extra_msd_digits > 0:
+        # Remove the extra digit and fix the real
+        # number of digits.
+        msd = msd[:len_msd]
+        num_digits = num_digits + 1
+
+    lsd = ""
+    if len_lsd > 0:
+        lsd = str(value % 10 ** (len_lsd))
+        # complete decimal positions in the lsd:
+        lsd = (len_lsd - len(lsd)) * "0" + lsd
+
+    # Now, compute the true number of hiding
+    # decimal places, and built the placeholder
+    remaining = num_digits - len_lsd - len_msd
+    placeholder = f" <<{remaining}>> "
+    # Check if the shorten string is actually
+    # shorter than the full string representation:
+    if len(placeholder) < remaining:
+        value_str = f"{msd}{placeholder}{lsd}"
+    else:
+        value_str = str(value)
+
+    if is_negative:
+        value_str = "-" + value_str
+    return String(value_str)
+
+
 def eval_fullform_makeboxes(
     self, expr, evaluation: Evaluation, form=SymbolStandardForm
-) -> Expression:
+) -> Optional[BaseElement]:
     """
     This function takes the definitions provided by the evaluation
     object, and produces a boxed form for expr.
@@ -82,8 +182,8 @@ def eval_fullform_makeboxes(
 
 
 def eval_makeboxes(
-    self, expr, evaluation: Evaluation, form=SymbolStandardForm
-) -> Expression:
+    expr, evaluation: Evaluation, form=SymbolStandardForm
+) -> Optional[BaseElement]:
     """
     This function takes the definitions provided by the evaluation
     object, and produces a boxed fullform for expr.
@@ -96,11 +196,14 @@ def eval_makeboxes(
 
 def format_element(
     element: BaseElement, evaluation: Evaluation, form: Symbol, **kwargs
-) -> Type[BaseElement]:
+) -> Optional[BaseElement]:
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
+    evaluation.is_boxing = True
     expr = do_format(element, evaluation, form)
+    if expr is None:
+        return None
     result = Expression(SymbolMakeBoxes, expr, form)
     result_box = result.evaluate(evaluation)
     if isinstance(result_box, String):
@@ -116,19 +219,18 @@ def format_element(
 
 def do_format(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> Type[BaseElement]:
+) -> Optional[BaseElement]:
     do_format_method = element_formatters.get(type(element), do_format_element)
     return do_format_method(element, evaluation, form)
 
 
 def do_format_element(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> Type[BaseElement]:
+) -> Optional[BaseElement]:
     """
     Applies formats associated to the expression and removes
     superfluous enclosing formats.
     """
-
     from mathics.core.definitions import OutputForms
 
     evaluation.inc_recursion_depth()
@@ -140,7 +242,7 @@ def do_format_element(
         # If the expression is enclosed by a Format
         # takes the form from the expression and
         # removes the format from the expression.
-        if head in OutputForms and len(expr.elements) == 1:
+        if head in OutputForms and len(elements) == 1:
             expr = elements[0]
             if not form.sameQ(head):
                 form = head
@@ -151,6 +253,7 @@ def do_format_element(
             if include_form:
                 expr = Expression(form, expr)
             return expr
+
         # Repeated and RepeatedNull confuse the formatter,
         # so we need to hardlink their format rules:
         if head is SymbolRepeated:
@@ -196,9 +299,9 @@ def do_format_element(
 
         formatted = format_expr(expr) if isinstance(expr, EvalMixin) else None
         if formatted is not None:
-            do_format = element_formatters.get(type(formatted), do_format_element)
-            result = do_format(formatted, evaluation, form)
-            if include_form:
+            do_format_fn = element_formatters.get(type(formatted), do_format_element)
+            result = do_format_fn(formatted, evaluation, form)
+            if include_form and result is not None:
                 result = Expression(form, result)
             return result
 
@@ -212,23 +315,26 @@ def do_format_element(
             # Form[expr, opts]
             # then the format was not stripped. Then,
             # just return it as it is.
-            if len(expr.elements) != 1:
+            if len(expr.get_elements()) != 1:
                 return expr
-            do_format = element_formatters.get(type(element), do_format_element)
-            expr = do_format(expr, evaluation, form)
+            do_format_fn = element_formatters.get(type(element), do_format_element)
+            result = do_format_fn(expr, evaluation, form)
+            if isinstance(result, Expression):
+                expr = result
 
         elif (
             head is not SymbolNumberForm
             and not isinstance(expr, (Atom, BoxElementMixin))
             and head not in (SymbolGraphics, SymbolGraphics3D)
         ):
-            # print("Not inside graphics or numberform, and not is atom")
-            new_elements = [
-                element_formatters.get(type(element), do_format_element)(
-                    element, evaluation, form
+            new_elements = tuple(
+                (
+                    element_formatters.get(type(element), do_format_element)(
+                        element, evaluation, form
+                    )
+                    for element in expr.elements
                 )
-                for element in expr.elements
-            ]
+            )
             expr_head = expr.head
             do_format = element_formatters.get(type(expr_head), do_format_element)
             head = do_format(expr_head, evaluation, form)
@@ -243,7 +349,9 @@ def do_format_element(
 
 def do_format_rational(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> Type[BaseElement]:
+) -> Optional[BaseElement]:
+    if not isinstance(element, Rational):
+        return None
     if form is SymbolFullForm:
         return do_format_expression(
             Expression(
@@ -268,7 +376,9 @@ def do_format_rational(
 
 def do_format_complex(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> Type[BaseElement]:
+) -> Optional[BaseElement]:
+    if not isinstance(element, Complex):
+        return None
     if form is SymbolFullForm:
         return do_format_expression(
             Expression(
@@ -278,7 +388,7 @@ def do_format_complex(
             form,
         )
 
-    parts: typing.List[Any] = []
+    parts: List[Any] = []
     if element.is_machine_precision() or not element.real.is_zero:
         parts.append(element.real)
     if element.imag.sameQ(Integer(1)):
@@ -296,7 +406,7 @@ def do_format_complex(
 
 def do_format_expression(
     element: BaseElement, evaluation: Evaluation, form: Symbol
-) -> Type[BaseElement]:
+) -> Optional[BaseElement]:
     # # not sure how much useful is this format_cache
     # if element._format_cache is None:
     #    element._format_cache = {}
@@ -316,8 +426,11 @@ def do_format_expression(
 
 
 def parenthesize(
-    precedence: int, element: Type[BaseElement], element_boxes, when_equal: bool
-) -> Type[Expression]:
+    precedence: Optional[int],
+    element: Expression,
+    element_boxes,
+    when_equal: bool,
+) -> Expression:
     """
     "Determines if ``element_boxes`` needs to be surrounded with parenthesis.
     This is done based on ``precedence`` and the computed preceence of
@@ -326,27 +439,12 @@ def parenthesize(
     If when_equal is True, parentheses will be added if the two
     precedence values are equal.
     """
-    while element.has_form("HoldForm", 1):
-        element = element.elements[0]
-
-    if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
-        element_prec = element.elements[2].value
-    elif element.has_form("PrecedenceForm", 2):
-        element_prec = element.elements[1].value
-    # If "element" is a negative number, we need to parenthesize the number. (Fixes #332)
-    elif isinstance(element, (Integer, Real)) and element.value < 0:
-        # Force parenthesis by adjusting the surrounding context's precedence value,
-        # We can't change the precedence for the number since it, doesn't
-        # have a precedence value.
-        element_prec = precedence
-    else:
-        element_prec = builtins_precedence.get(element.get_head())
-    if precedence is not None and element_prec is not None:
-        if precedence > element_prec or (precedence == element_prec and when_equal):
-            return Expression(
-                SymbolRowBox,
-                ListExpression(StringLParen, element_boxes, StringRParen),
-            )
+    cmp = compare_precedence(element, precedence)
+    if cmp is not None and (cmp == -1 or cmp == 0 and when_equal):
+        return Expression(
+            SymbolRowBox,
+            ListExpression(String("("), element_boxes, String(")")),
+        )
     return element_boxes
 
 

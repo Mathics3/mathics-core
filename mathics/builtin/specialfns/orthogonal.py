@@ -3,8 +3,8 @@ Orthogonal Polynomials
 """
 
 
-from mathics.builtin.base import MPMathFunction
 from mathics.core.atoms import Integer0
+from mathics.core.builtin import MPMathFunction
 
 
 class ChebyshevT(MPMathFunction):
@@ -269,9 +269,6 @@ class SphericalHarmonicY(MPMathFunction):
     ## Results depend on sympy version
     >> SphericalHarmonicY[3, 1, theta, phi]
      = ...
-
-    #> SphericalHarmonicY[1,1,x,y]
-     = -Sqrt[6] E ^ (I y) Sin[x] / (4 Sqrt[Pi])
     """
 
     nargs = {4}

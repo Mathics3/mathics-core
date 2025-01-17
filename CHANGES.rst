@@ -1,5 +1,3 @@
-	.. contents::
-
 CHANGES
 =======
 
@@ -7,37 +5,200 @@ CHANGES
 New Builtins
 ++++++++++++
 
+* ``Between``
+* ``CheckAbort``
+* ``FileNameDrop``
+* ``SetEnvironment``
+* ``SequenceForm``
 
-* `Elements`
-* `RealAbs` and `RealSign`
+By `@davidar <https://github.com/davidar>`_:
+
+* ``BellB``
+* ``DivisorSigma``
+* ``DivisorSum``
+* ``EulerE``
+* ``HypergeometricU``
+* ``IntegerPart``
+* ``IntegerPartitions``
+* ``JacobiSymbol``
+* ``KroneckerSymbol``
+* ``LambertW``
+* ``LinearRecurrence``
+* ``LucasL``
+* ``MersennePrimeExponent``
+* ``MoebiusMu``
+* ``NumberDigit``
+* ``PolygonalNumber``
+* ``PolyLog``
+* ``PowersRepresentations``
+* ``ReverseSort``
+* ``RootSum``
+* ``SeriesCoefficient``
+* ``SquaresR``
+* ``Subfactorial``
+
+``mathics`` command line
+++++++++++++++++++++++++
+
+* ``--post-mortem`` option added which will go into the `trepan3k debugger <https https://pypi.org/project/trepan3k/>`_ on an unrecoverable error.
+
+Compatibility
+-------------
+
+* ``GetEnvironment`` expanded to handle ``[]`` and ``{var1, var2,...}`` forms
+* The system ``packages`` directory has been renamed ``Packages`` to conformance with WMA.
+* ``$Path`` now includes a ``Packages`` directory under ``$HOME``.
+
+Internals
+---------
+
+* Operator information has been gone over and is picked up from JSON
+tables produced from the Mathics Scanner project.
+* Patterns in ``eval_`` and ``format_`` methods of builtin classes
+  parses patterns in docstrings of the form
+  ``Symbol: Expr`` as `Pattern[Symbol, Expr]`.
+  To specify associated format in ``format_`` methods the
+  docstring, the list of format must be wrapped in parenthesis, like
+  ``(InputForm,): Definitions[...]`` instead of just ``InputForm: Definitions[...]``.
+
+
+Performance
+-----------
+
+* ``Blank*`` patterns without arguments are now singletons.
+
+API incompatibility
+-------------------
+
+* ``Matcher`` now requires an additional ``evaluation`` parameter
+* ``Romberg`` removed as an ``NIntegrate[]`` method. It is deprecated in SciPy and is to be removed by SciPy 1.15.
+* The signature of the ``Definition.__init__`` now receives a single dict parameter instead of the several `*values` parameters.
+* Rule positions in ``Definition.{get|set}_values`` now includes the word ``values``. For example ``pos="up"`` now is ``pos="upvalues"``.
+* ``Definitions.get_ownvalue`` now returns a ``BaseElement`` instead of a ``BaseRule`` object.
+
+
+Bugs
+----
+
+* Fix infinite recursion when formatting ``Sequence[...]``
+
+Mathics3 Packages
++++++++++++++++++
+
+* ``BoolEval``
+* ``CleanSlate``
+* ``Combinatorica`` moved to a separate repository and v.9 renamed to 0.9.1.
+    More code v0.9.1 works. v2.0 renamed v2.0.1 and some code now works.
+* ``Rubi`` version 4.17 (work in progress; algebraic integrations work)
+
+
+Python Package Updates
++++++++++++++++++++++++
+
+#. Python 3.12 is now supported
+#. SymPy 1.13 is now supported
+
+
+7.0.0
+-----
+
+Some work was done here in support of planned future improvements like
+lazy loading of builtin functions.  A bit of effort was also spent to
+modernize Python code and style, add more type annotations, remove
+spelling errors, and use newer versions of important software like
+SymPy and Python itself.
+
+
+New Builtins
+++++++++++++
+
+* ``$MaxLengthIntStringConversion``
+* ``Elements``
+* ``ComplexExpand`` (thanks to vitrun)
+* ``ConjugateTranspose``
+* ``LeviCivitaTensor``
+* ``RealAbs`` and ``RealSign``
+* ``RealValuedNumberQ``
+
+
+Documentation
++++++++++++++
+
+Many formatting issues with the PDF file have been addressed. In particular, the spacing of section numbers
+in chapter and section table of contents has been increased. The margin space around builtin definitions has a
+also been increased. Numerous spelling corrections to the document have been applied.
+
+The code to run doctests and produce LaTeX documentation has been
+revised and refactored to allow incremental builtin update, and to DRY the code.
+
+Section Head-Related Operations is a new section off of "Expression
+Structure". The title of the PDF has changed from Mathics to Mathics3
+and the introduction has been updated and revised.
 
 Compatibility
 -------------
 
 * ``*Plot`` does not show messages during the evaluation.
-
+* ``Range[]`` now handles a negative ``di`` PR #951
+* Improved support for ``DirectedInfinity`` and ``Indeterminate``.
+* ``Graphics`` and ``Graphics3D`` including wrong primitives and directives
+  are shown with a pink background. In the Mathics-Django interface, a tooltip
+  error message is also shown.
+* Improving support for ``$CharacterEncoding``. Now it is possible to change it
+  from inside the session.
 
 
 Internals
----
+---------
 
 * ``eval_abs`` and ``eval_sign`` extracted from ``Abs`` and ``Sign`` and added to ``mathics.eval.arithmetic``.
 * Maximum number of digits allowed in a string set to 7000 and can be adjusted using environment variable
   ``MATHICS_MAX_STR_DIGITS`` on Python versions that don't adjust automatically (like pyston).
-* Real number comparisons implemented is based now in the internal implementation of `RealSign`.
+* Real number comparisons implemented is based now in the internal implementation of ``RealSign``.
+* For Python 3.11, the variable ``$MaxLengthIntStringConversion`` controls the maximum size of
+  the literal conversion between large integers and Strings.
+* Older style non-appearing and non-pedagogical doctests have been converted to pytest
+* Built-in code is directed explicitly rather than implicitly. This facilitates the ability to lazy load
+  builtins or "autoload" them a la GNU Emacs autoload.
+* add mpmath lru cache
+* Some works was done to make it possible so that in the future we can speed up initial loading and reduce the initial memory footprint
+
 
 Bugs
 ----
 
-* Improved support for ``DirectedInfinity`` and ``Indeterminate``.
 * ``Definitions`` is compatible with ``pickle``.
+* Improved support for ``Quantity`` expressions, including conversions, formatting and arithmetic operations.
+* ``Background`` option for ``Graphics`` and ``Graphics3D`` is operative again.
+* Numeric comparisons against expressions involving ``String``; Issue #797)
+* ``Switch[]`` involving ``Infinity``. Issue #956
+* ``Outer[]`` on ``SparseArray``. Issue #939
+* ``ArrayQ[]`` detects ``SparseArray`` PR #947
+* ``BoxExpressionError`` exceptions handled Issue. PR #970
+* ``Derivative`` evaluation of ``True``, ``False`` and ``List[]`` corrected. PR #971, #973
+* ``Combinatorica`` package fixes. PR #974
+* ``Exit[]`` not working. PR #998
+* ``BaseForm`` is now listed as in ``$OutputForms``
 
+API
++++
+
+We now require an explicit call to a new function
+``import_and_load_builtins()``. Previously loading was implicit and
+indeterminate as to when this occurred as it was based on import
+order. We need this so that we can support in the future lazy loading
+of builtin modules.
 
 Package updates
 +++++++++++++++
 
 #. Python 3.11 is now supported
+#. Sympy 1.12 is now supported
 
+6.0.2 to 6.0.4
+--------------
+
+Small fixes noticed by users and packagers, such as OpenSUSE Tumpleweed
 
 6.0.1
 -----
@@ -89,14 +250,14 @@ API
 
 
 Package update
-..............
+--------------
 
 #. SymPy 1.11.1 accepted
 #. Numpy 1.24.0 accepted
 
 
 New Builtins
-+++++++++++
+++++++++++++
 
 #. ``$BoxForms``
 #. ``$OutputForms``
@@ -131,7 +292,7 @@ Documentation
 #. "Exponential Functional" split out from "Trigonometry Functions"
 #. "Functional Programming" section split out.
 #. "Image Manipulation" has been split off from Graphics and Drawing and turned into a guide section.
-#. Image examples now appear in the LaTeX and therfore the PDF doc
+#. Image examples now appear in the LaTeX and therefore the PDF doc
 #. "Logic and Boolean Algebra" section reinstated.
 #. "Forms of Input and Output" is its own guide section.
 #. More URL links to Wiki pages added; more internal cross links added.
@@ -168,7 +329,7 @@ Bugs
 #. Better handling of ``Infinite`` quantities.
 #. Improved ``Precision`` and ``Accuracy``compatibility with WMA. In particular, ``Precision[0.]`` and ``Accuracy[0.]``
 #. Accuracy in numbers using the notation ``` n.nnn``acc ```  now is properly handled.
-#. numeric precision in mpmath was not reset after operations that changed these. This cause huges slowdowns after an operation that set the mpmath precison high. This was the source of several-minute slowdowns in testing.
+#. numeric precision in mpmath was not reset after operations that changed these. This cause huges slowdowns after an operation that set the mpmath precision high. This was the source of several-minute slowdowns in testing.
 #. GIF87a (```MadTeaParty.gif`` or ExampleData) image loading fixed
 #. Replace non-free Leena image with a a freely distributable image. Issue #728
 
@@ -329,7 +490,7 @@ Internals
 #. ``Definition`` has a new property ``is_numeric``.
 
 Speed improvements:
-...................
+-------------------
 
 #. Creating two ``Symbol`` objects with the same name will give the same object. This avoids unnecessary string comparisons, and calls to ``ensure_context``.
 #. Attributes are now stored in a bitset instead of a tuple of strings.
@@ -341,7 +502,7 @@ Speed improvements:
 
 
 Package update
-..............
+--------------
 
 #. SymPy 1.10.1
 
@@ -350,8 +511,7 @@ Compatibility
 
 #. ``ScriptCommandLine`` now returns, as the first element, the name of the script file (when available), for compatibility with WMA. Issue #132.
 #. ``Expression.numerify`` improved in a way to obtain a behavior closer to WMA.
-#. ``NumericQ`` lhs expressions are now handled as a special case in assignment. For example ``NumericQ[a]=True`` tells the interpreter that ``a`` must be considered
-  a numeric quantity, so ``NumericQ[Sin[a]]`` evaluates to ``True``.
+#. ``NumericQ`` lhs expressions are now handled as a special case in assignment. For example, ``NumericQ[a]=True`` tells the interpreter that ``a`` must be considered a numeric quantity, so ``NumericQ[Sin[a]]`` evaluates to ``True``.
 
 Bugs
 ++++
@@ -383,8 +543,7 @@ Incompatible changes
 
 The following changes were motivated by a need to speed up the interpreter.
 
-#. ``Expression`` arguments differ. The first parameter has to be a ``Symbol`` while the remaining arguments have to be some sort of ``BaseElement`` rather than something that can be converted to an element.
-  Properties for the collection of elements can be specified when they are known. To get the old behavior, use ``to_expression``
+#. ``Expression`` arguments differ. The first parameter has to be a ``Symbol`` while the remaining arguments have to be some sort of ``BaseElement`` rather than something that can be converted to an element. Properties for the collection of elements can be specified when they are known. To get the old behavior, use ``to_expression``
 #. Expressions which are lists are a new kind of class, ``ListExpression``. As with expressions, the constructor requires valid elements, not something convertible to an element. Use ``to_mathics_list``
 
 
@@ -446,11 +605,9 @@ Bugs
 ++++
 
 #. Fix and document better behavior of ``Quantile``
-#. Improve Asymptote ``BezierCurve``implementation
-#. ``Rationalize`` gives symmetric results for +/- like MMA does. If
-  the result is an integer, it stays that way.
-#. stream processing was redone. ``InputStream``, ``OutputStream`` and
-  ``StringToStream`` should all open, close, and assign stream numbers now
+#. Improve Asymptote ``BezierCurve`` implementation
+#. ``Rationalize`` gives symmetric results for +/- like MMA does. If the result is an integer, it stays that way.
+#. stream processing was redone. ``InputStream``, ``OutputStream`` and ``StringToStream`` should all open, close, and assign stream numbers now
 
 4.0.0
 #.----
@@ -475,42 +632,25 @@ Enhancements
 
 #. a Graphics3D protocol, mentioned above, has been started
 #. ``mathics.setting`` have been gone over to simplify.
-#. A rudimentary and crude SVG Density Plot was added. The prior method
-  relied on mysterious secret handshakes in JSON between Mathics Core
-  and Mathics Django. While the density plot output was nicer in
-  Mathics Django, from an overall API perspective this was untenable. A
-  future version may improve SVG handling of Density plots using
-  elliptic density gratings in SVG. And/or we may define this in the
-  JSON API.
-#. SVG and Asymptote drawing now includes inline comments indicating
-  which Box Structures are being implemented in code
+#. A rudimentary and crude SVG Density Plot was added. The prior method relied on mysterious secret handshakes in JSON between Mathics Core and Mathics Django. While the density plot output was nicer in Mathics Django, from an overall API perspective this was untenable. A future version may improve SVG handling of Density plots using elliptic density gratings in SVG. And/or we may define this in the JSON API.
+#. SVG and Asymptote drawing now includes inline comments indicating which Box Structures are being implemented in code
 
 Documentation
-.............
++++++++++++++
 
-#. Document data used in producing PDFs and HTML-rendered documents is now stored
-  in both the user space, where it can be extended, and in the package install
-  space -- which is useful when there is no user-space data.
-#. The documentation pipeline has been gone over. Turning the internal data
-  into a LaTeX file is now a separate own program. See ``mathics/doc/test/README.rst``
-  for an overview of the dataflow needed to create a PDF.
-#. Summary text for various built-in functions has been started. These
-  summaries are visible in Mathics Django when lists links are given
-  in Chapters, Guide Sections, or Sections.
-#. A Sections for Lists has been started and grouping for these
-  have been added. So code and sections have moved around here.
+#. Document data used in producing PDFs and HTML-rendered documents is now stored in both the user space, where it can be extended, and in the package install space -- which is useful when there is no user-space data.
+#. The documentation pipeline has been gone over. Turning the internal data into a LaTeX file is now a separate own program. See ``mathics/doc/test/README.rst`` for an overview of the dataflow needed to create a PDF.
+#. Summary text for various built-in functions has been started. These  summaries are visible in Mathics Django when lists links are given in Chapters, Guide Sections, or Sections.
+#. A Sections for Lists has been started and grouping for these have been added. So code and sections have moved around here.
 #. Regexp detection of tests versus document text has been improved.
 #. Documentation improved
-#. The flakiness around showing sine graphs with filling on the axes or below has
-  been addressed. We now warn when a version of Asymptote or Ghostscript is used
-  that is likely to give a problem.
+#. The flakiness around showing sine graphs with filling on the axes or below has been addressed. We now warn when a version of Asymptote or Ghostscript is used that is likely to give a problem.
 
 Bugs
 ++++
 
 #. A small SVGTransform bug was fixed. Thanks to axelclk for spotting.
-#. Elliptic arcs are now supported in Asymptote. There still is a bug however
-  in calculating the bounding box when this happens.
+#. Elliptic arcs are now supported in Asymptote. There still is a bug however in calculating the bounding box when this happens.
 #. A bug in image decoding introduced in 3.1.0 or so was fixed.
 #. A bug SVG LineBoxes was fixed
 
@@ -518,16 +658,11 @@ Regressions
 +++++++++++
 
 #. Some of the test output for builtins inside a guide sections is not automatically rendered
-#. Density plot rendered in Mathics Django do not render as nice since we no longer
-  use the secret protocol handshake hack. We may fix this in a future release
-#. Some of the Asymptote graphs look different. Graphic3D mesh lines are not as
-  prominent or don't appear. This is due to using a newer version of Asymptote, and
-  we will address this in a future release.
-
------------------
+#. Density plot rendered in Mathics Django do not render as nice since we no longer use the secret protocol handshake hack. We may fix this in a future release
+#. Some of the Asymptote graphs look different. Graphic3D mesh lines are not as prominent or don't appear. This is due to using a newer version of Asymptote, and we will address this in a future release.
 
 3.1.0
-----
+-----
 
 New variables and builtins
 ++++++++++++++++++++++++++
@@ -566,7 +701,7 @@ Bugs
 
 
 3.0.0
-----
+-----
 
 Overall there is a major refactoring underway of how formatting works
 and its interaction with graphics.  More work will come in later releases.
@@ -629,8 +764,7 @@ have been revised such as for ``PieChart``, ``Pi`` and others.
 The Mathics Gallery examples have been updated.
 
 Some slight improvements were made to producing the PDF and more kinds
-of non-ASCII symbols are tolerated. Expect more work on this in the
-future via tables from the `Mathics Scanner <https://pypi.org/project/Mathics-Scanner/1.2.1/>`_ project.
+of non-ASCII symbols are tolerated. Expect more work on this in the future via tables from the `Mathics Scanner <https://pypi.org/project/Mathics-Scanner/1.2.1/>`_ project.
 
 Chapters are no longer in Roman Numerals.
 
@@ -639,18 +773,14 @@ Internal changes
 ++++++++++++++++
 
 #. ``docpipline.py``  accepts the option ``--chapters`` or ``-c`` to narrow tests to a particular chapter
-#. Format routines have been isolated into its own module. Currently we have format routines for SVG, JSON and
-  Asymptote. Expect more reorganization in the future.
+#. Format routines have been isolated into its own module. Currently we have format routines for SVG, JSON and Asymptote. Expect more reorganization in the future.
 #. Boxing routines have been isolated to its own module.
 #. The entire code base has been run through the Python formatter `black <https://black.readthedocs.io/en/stable/>`_.
 #. More Python3 types to function signatures have been added.
-#. More document tests that were not user-visible have been moved to
-  unit tests which run faster. More work is needed here.
-
------------------
+#. More document tests that were not user-visible have been moved to unit tests which run faster. More work is needed here.
 
 2.2.0
-----
+-----
 
 Package update
 ++++++++++++++
@@ -702,11 +832,8 @@ Enhancements
 #. ``ToExpression`` handles multi-line string input.
 #. ``$VersionNumber`` now set to 10.0 (was 6.0).
 #. The implementation of Streams was redone.
-#. Function ``mathics.core.definitions.autoload_files`` was added and
-  exposed to allow front-ends to provide their own custom Mathics.
-  settings.
-#. String output in the ``mathics`` terminal has surrounding quotes to make it more visually distinct from unexpanded and symbol output.
-  To disable this behavior use ``--strict-wl-output``.
+#. Function ``mathics.core.definitions.autoload_files`` was added and exposed to allow front-ends to provide their own custom Mathics. settings.
+#. String output in the ``mathics`` terminal has surrounding quotes to make it more visually distinct from unexpanded and symbol output. To disable this behavior use ``--strict-wl-output``.
 
 
 Bug fixes
@@ -728,19 +855,13 @@ Incompatible changes
 Internal changes
 #.---------------
 
-#. ``docpipeline.py``  accepts the option ``-d`` to show how long it takes to parse, evaluate and compare each individual test.
-  ``-x`` option (akin to ``pytests -x`` is a short-hand for stop on first error
-#. Some builtin functions have been grouped together in a module
-  underneath the top-level builtin directory.  As a result, in the
-  documents you will list some builtins listed under an overarching
-  category like ``Specific Functions`` or ``Graphics, Drawing, and
-  Images``. More work is expected in the future to improve document sectioning.
+#. ``docpipeline.py``  accepts the option ``-d`` to show how long it takes to parse, evaluate and compare each individual test. ``-x`` option (akin to ``pytests -x`` is a short-hand for stop on first error
+#. Some builtin functions have been grouped together in a module underneath the top-level builtin directory.  As a result, in the documents you will list some builtins listed under an overarching category like ``Specific Functions`` or ``Graphics, Drawing, and Images``. More work is expected in the future to improve document sectioning.
 #. ``System`$Notebooks`` is removed from settings. It is in all of the front-ends now.
 
-------
 
 2.1.0
-----
+-----
 
 New builtins
 ++++++++++++
@@ -761,10 +882,7 @@ Enhancements
 #. The Mathics version is checked for builtin modules at load time. A message is given when a builtin doesn't load.
 #. Automatic detection for the best strategy to numeric evaluation of constants.
 #. ``FileNameJoin`` now implements ``OperatingSystem`` option
-#. Mathics functions are accepted by ``Compile[]``. The return value or
-  type will be ``Compile[] and CompiledFunction[]``.  Every Mathics
-  Expression can have a compiled form, which may be implemented as a
-  Python function.
+#. Mathics functions are accepted by ``Compile[]``. The return value or type will be ``Compile[] and CompiledFunction[]``.  Every Mathics Expression can have a compiled form, which may be implemented as a Python function.
 #. ``Equal[]`` now compares complex against other numbers properly.
 #. Improvements in handling products with infinite factors: ``0 Infinity``-> ``Indeterminate``, and ``expr Infinity``-> ``DirectedInfinite[expr]``
 #. ``$Path`` is now ``Unprotected`` by default
@@ -785,11 +903,8 @@ Pymathics Modules
 +++++++++++++++++
 
 #. Pymathics modules now can run initialization code when are loaded.
-#. The ``builtins`` list is not hard-linked to the library anymore. This simplifies
-  the loading and reloading of pymathics modules.
-#. Decoupling of BoxConstructors from the library. Now are defined at the
-  level of the definition objects. This is useful for customizing the
-  Graphics output if it is available.
+#. The ``builtins`` list is not hard-linked to the library anymore. This simplifies the loading and reloading of pymathics modules.
+#. Decoupling of BoxConstructors from the library. Now are defined at the level of the definition objects. This is useful for customizing the Graphics output if it is available.
 
 
 Miscellanea
@@ -814,16 +929,15 @@ What's to expect in a Future Release
 #. ``Collect[]`` See `Issue #1194 <https://github.com/mathics/Mathics/issues/1194>`_.
 #. ``Series[]`` See `Issue #1193 <https://github.com/mathics/Mathics/issues/1194>`_.
 
------
 
 2.0.0
-----
+-----
 
 To accommodate growth and increased use of pieces of Mathics inside other packages, parts of Mathics have been split off and moved to separate packages. In particular:
 
 #. The Django front-end is now a PyPI installable package called `Mathics-Django <https://pypi.org/project/Mathics-Django/>`_.
-#. Scanner routines, character translation tables to/from Unicode, and character properties are now `mathics-scanner https://github.com/Mathics3/mathics-scanner`_.
-#. Specific builtins involving heavy, non-standard routines were moved to pymathics modules `pymathics-graph https://github.com/Mathics3/pymathics-graph`_, `pymathics-natlang https://github.com/Mathics3/pymathics-natlang`_.
+#. Scanner routines, character translation tables to/from Unicode, and character properties are now `mathics-scanner <https://github.com/Mathics3/mathics-scanner>`_.
+#. Specific builtins involving heavy, non-standard routines were moved to pymathics modules `pymathics-graph <https://github.com/Mathics3/pymathics-graph>`_, `pymathics-natlang <https://github.com/Mathics3/pymathics-natlang>`_.
 
 Incompatible changes:
 +++++++++++++++++++++
@@ -919,10 +1033,8 @@ Future
 #. A method option ("mpmath", "sympy", or "numpy") will be added to the ``N[]``. See `PR #1144 <https://github.com/mathics/Mathics/pull/1144>`_.
 
 
-----
-
 1.1.1
-----
+-----
 
 This may be the last update before some major refactoring and interface changing occurs.
 
@@ -937,8 +1049,7 @@ Package updates
 
 Mathics Packages added:
 
-#. ``DiscreteMath`CombinatoricaV0.9`` (preferred) and
-  ``DiscreteMath`CombinatoricaV0.6``.
+#. ``DiscreteMath`CombinatoricaV0.9`` (preferred) and ``DiscreteMath`CombinatoricaV0.6``.
 
 Both of these correspond to Steven Skiena's *older* book: *Implementing Discrete Mathematics: Combinatorics and Graph Theory*.
 
@@ -951,9 +1062,7 @@ New builtins
 
 #. ``StirlingS1``, ``StirlingS2`` (not all WL variations handled)
 #. ``MapAt`` (not all WL variations handled)
-#. ``PythonForm``, ``SympyForm``: not in WL.
-  Will show a crude translation to SymPy or Python.
-  Expect more and better translation later
+#. ``PythonForm``, ``SympyForm``: not in WL. Expect more and better translation later as Mathics3 modules.
 #. ``Throw`` and ``Catch``
 #. ``With``
 #. ``FileNameTake``
@@ -981,7 +1090,7 @@ Enhancements and bug fixes
 ----
 
 1.1.0
-----
+-----
 
 So we can get onto PyPI, the PyPI install name has changed from Mathics to Mathics3.
 
@@ -1002,7 +1111,7 @@ Enhancements and bug fixes
 ----
 
 1.1.0 rc1
---------
+---------
 
 Package updates
 +++++++++++++++
@@ -1046,7 +1155,7 @@ New features (50+ builtins)
 #. ``SubsetQ`` and ``Delete[]`` #688, #784,
 #. ``Subsets`` #685
 #. ``SystemTimeZone`` and correct ``TimeZone`` #924
-#. ``System\`Byteordering`` and ``System\`Environemnt`` #859
+#. ``System\`Byteordering`` and ``System\`Environment`` #859
 #. ``$UseSansSerif`` #908
 #. ``randchoice`` option for ``NoNumPyRandomEnv`` #820
 #. Support for ``MATHICS_MAX_RECURSION_DEPTH``
@@ -1104,21 +1213,9 @@ Other changes
 Backward incompatibilities
 ++++++++++++++++++++++++++
 
-#. Support for Python 3.5 and earlier, and in particular Python 2.7,
-  was dropped.
-#. The ``graphs`` module (for Graphs) has been pulled until Mathics
-  supports pymathics and graphics using networkx better. It will
-  reappear as a pymathics module.
-#. The ``natlang`` (for Natural Language processing) has also been
-  pulled.  The problem here too is that the pymathics mechanism needs
-  a small amount of work to make it scalable, and in 1.0 these were
-  hard coded. Also, both this module and ``graphs`` pulled in some
-  potentially hard-to-satisfy non-Python dependencies such as
-  matplotlib, or NLP libraries, and word lists. All of this made
-  installation of Mathics harder, and the import of these libraries,
-  ``natlang`` in particular, took some time. All of this points to having
-  these live in their own repositories and get imported on lazily on
-  demand.
+#. Support for Python 3.5 and earlier, and in particular Python 2.7, was dropped.
+#. The ``graphs`` module (for Graphs) has been pulled until Mathics   supports  pymathics and graphics using ``networkx`` better. It will reappear as a pymathics module.
+#. The ``natlang`` (for Natural Language processing) has also been pulled.  The problem here too is that the pymathics mechanism needs a small amount of work to make it scalable, and in 1.0 these were hard coded. Also, both this module and ``graphs`` pulled in some   potentially hard-to-satisfy non-Python dependencies such as matplotlib, or NLP libraries, and word lists. All of this made installation of Mathics harder, and the import of these libraries,   ``natlang`` in particular, took some time. All of this points to having these live in their own repositories and get imported on lazily on demand.
 
 
 -----
@@ -1365,18 +1462,15 @@ Bugs fixed
 ++++++++++
 
 #. Fix unevaluated index handling (issue #217)
-#. Fix ``Solve`` treating one solution equal to 1 as a tautology (issue
-  #208)
-#. Fix temporary symbols appearing in the result when taking
-  derivatives with respect to t (issue #184)
-#. typo in save worksheet help text (issue #199)
+#. Fix ``Solve`` treating one solution equal to 1 as a tautology (issue #208)
+#. Fix temporary symbols appearing in the result when taking derivatives with respect to ``t`` (issue #184)
+#. Typo in save worksheet help text (issue #199)
 #. Fix mathicsserver wildcard address binding
 #. Fix ``Dot`` acting on matrices in MatrixForm (issue #145)
 #. Fix Sum behaviour when using range to generate index values (issue #149)
 #. Fix behaviour of plot with unevaluated arguments (issue #150)
 #. Fix zero-width space between factors in MathJax output (issue #45)
-#. Fix ``{{2*a, 0},{0,0}}//MatrixForm`` crashing in the web interface
-  (issue #182)
+#. Fix ``{{2*a, 0},{0,0}}//MatrixForm`` crashing in the web interface (issue #182)
 
 --------------
 
@@ -1396,7 +1490,7 @@ New features
 #. ``PolarPlot``
 #. IPython style (coloured) input
 #. ``VectorAnalysis`` Package
-#. More special functions (Bessel functions and othogonal polynomials)
+#. More special functions (Bessel functions and orthogonal polynomials)
 #. More NumberTheory functions
 #. ``Import``, ``Export``, ``Get``, ``Needs`` and other IO related functions
 #. PyPy compatibility
@@ -1423,8 +1517,7 @@ Bugs fixed
 #. 3D graphics and plots using WebGL in the browser and Asymptote in TeX output
 #. Plot: adaptive sampling
 #. MathJax 2.0 and line breaking
-#. New symbols: ``Graphics3D`` etc., ``Plot3D``, ``ListPlot``,
-  ``ListLinePlot``, ``ParametricPlot``, ``Prime``, ``Names``, ``$Version``
+#. New symbols: ``Graphics3D`` etc., ``Plot3D``, ``ListPlot``, ``ListLinePlot``, ``ParametricPlot``, ``Prime``, ``Names``, ``$Version``
 #. Fixed issues: 1, 4, 6, 8-21, 23-27
 #. Lots of minor fixes and improvements
 #. Number of built-in symbols: 386
@@ -1434,13 +1527,13 @@ Bugs fixed
 0.4
 ---
 
-Compatibility to Sage 4.0 and other latest libraries
+Compatibility with Sage 4.0 and other latest libraries
 
 -------
 
 
 0.3 (beta only)
---------------
+---------------
 
 Resolved several issues
 
@@ -1448,6 +1541,6 @@ Resolved several issues
 
 
 0.1 (alpha only)
---------------
+-----------------
 
 Initial version

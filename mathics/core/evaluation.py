@@ -3,9 +3,8 @@
 import os
 import sys
 import time
-from queue import Queue
-from threading import Thread, stack_size as set_thread_stack_size
-from typing import List, Optional, Tuple, Union
+from abc import ABC
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union, overload
 
 from mathics_scanner import TranslateError
 
@@ -56,16 +55,6 @@ SymbolPre = Symbol("System`$Pre")
 SymbolPrePrint = Symbol("System`$PrePrint")
 SymbolPost = Symbol("System`$Post")
 
-
-def _thread_target(request, queue) -> None:
-    try:
-        result = request()
-        queue.put((True, result))
-    except BaseException:
-        exc_info = sys.exc_info()
-        queue.put((False, exc_info))
-
-
 # MAX_RECURSION_DEPTH gives the maximum value allowed for $RecursionLimit. it's usually set to its
 # default settings.DEFAULT_MAX_RECURSION_DEPTH.
 
@@ -95,61 +84,17 @@ def set_python_recursion_limit(n) -> None:
         raise OverflowError
 
 
-def run_with_timeout_and_stack(request, timeout, evaluation):
-    """
-    interrupts evaluation after a given time period. Provides a suitable stack environment.
-    """
-
-    # only use set_thread_stack_size if max recursion depth was changed via the environment variable
-    # MATHICS_MAX_RECURSION_DEPTH. if it is set, we always use a thread, even if timeout is None, in
-    # order to be able to set the thread stack size.
-
-    if MAX_RECURSION_DEPTH > settings.DEFAULT_MAX_RECURSION_DEPTH:
-        set_thread_stack_size(python_stack_size(MAX_RECURSION_DEPTH))
-    elif timeout is None:
-        return request()
-
-    queue = Queue(maxsize=1)  # stores the result or exception
-    thread = Thread(target=_thread_target, args=(request, queue))
-    thread.start()
-
-    # Thead join(timeout) can leave zombie threads (we are the parent)
-    # when a time out occurs, but the thread hasn't terminated.  See
-    # https://docs.python.org/3/library/multiprocessing.shared_memory.html
-    # for a detailed discussion of this.
-    #
-    # To reduce this problem, we make use of specific properties of
-    # the Mathics3 evaluator: if we set "evaluation.timeout", the
-    # next call to "Expression.evaluate" in the thread will finish it
-    # immediately.
-    #
-    # However this still will not terminate long-running processes
-    # in Sympy or or libraries called by Mathics3 that might hang or run
-    # for a long time.
-    thread.join(timeout)
-    if thread.is_alive():
-        evaluation.timeout = True
-        while thread.is_alive():
-            pass
-        evaluation.timeout = False
-        evaluation.stopped = False
-        raise TimeoutInterrupt()
-
-    success, result = queue.get()
-    if success:
-        return result
-    else:
-        raise result[0].with_traceback(result[1], result[2])
-
-
 class _Out(KeyComparable):
     def __init__(self) -> None:
         self.is_message = False
         self.is_print = False
         self.text = ""
 
-    def get_sort_key(self) -> Tuple[bool, bool, str]:
+    def get_sort_key(self):
         return (self.is_message, self.is_print, self.text)
+
+    def get_data(self) -> Dict[str, Any]:
+        raise NotImplementedError
 
 
 class Evaluation:
@@ -160,15 +105,15 @@ class Evaluation:
 
         if definitions is None:
             definitions = Definitions()
-        self.definitions = definitions
+        self.definitions: Definitions = definitions
         self.recursion_depth = 0
         self.timeout = False
-        self.timeout_queue = []
+        self.timeout_queue: List[Tuple[float, float]] = []
         self.stopped = False
-        self.out = []
+        self.out: List[_Out] = []
         self.output = output if output else Output()
-        self.listeners = {}
-        self.options = None
+        self.listeners: Dict[str, List[Callable]] = {}
+        self.options: Optional[Dict[str, Any]] = None
         self.predetermined_out = None
 
         self.quiet_all = False
@@ -177,17 +122,19 @@ class Evaluation:
         self.SymbolNull = SymbolNull
 
         # status of last evaluate
-        self.exc_result = self.SymbolNull
+        self.exc_result: Optional[Symbol] = self.SymbolNull
         self.last_eval = None
         # Used in ``mathics.builtin.numbers.constants.get_constant`` and
         # ``mathics.builtin.numeric.N``.
-        self._preferred_n_method = []
+        self._preferred_n_method: List[str] = []
 
-    def parse(self, query):
+        self.is_boxing = False
+
+    def parse(self, query, src_name: str = ""):
         "Parse a single expression and print the messages."
         from mathics.core.parser import MathicsSingleLineFeeder
 
-        return self.parse_feeder(MathicsSingleLineFeeder(query))
+        return self.parse_feeder(MathicsSingleLineFeeder(query, src_name))
 
     def parse_evaluate(self, query, timeout=None):
         expr = self.parse(query)
@@ -291,7 +238,7 @@ class Evaluation:
 
         try:
             try:
-                result = run_with_timeout_and_stack(evaluate, timeout, self)
+                result = evaluate()
             except KeyboardInterrupt:
                 if self.catch_interrupt:
                     self.exc_result = SymbolAborted
@@ -308,19 +255,14 @@ class Evaluation:
                 else:
                     raise
             except WLThrowInterrupt as ti:
-                if ti.tag:
-                    self.exc_result = Expression(
-                        SymbolHold, Expression(SymbolThrow, ti.value, ti.tag)
-                    )
-                else:
-                    self.exc_result = Expression(
-                        SymbolHold, Expression(SymbolThrow, ti.value)
-                    )
-                self.message("Throw", "nocatch", self.exc_result)
-            #            except OverflowError:
-            #                print("Catch the overflow")
-            #                self.message("General", "ovfl")
-            #                self.exc_result = Expression(SymbolOverflow)
+                msg_expr = (
+                    Expression(SymbolThrow, ti.value, ti.tag)
+                    if ti.tag
+                    else Expression(SymbolThrow, ti.value)
+                )
+                self.message("Throw", "nocatch", msg_expr)
+                self.exc_result = Expression(SymbolHold, msg_expr)
+
             except BreakInterrupt:
                 self.message("Break", "nofdw")
                 self.exc_result = Expression(SymbolHold, Expression(SymbolBreak))
@@ -379,9 +321,17 @@ class Evaluation:
     def stop(self) -> None:
         self.stopped = True
 
+    @overload
+    def format_output(self, expr: BaseElement, format: Optional[dict] = None) -> dict:
+        ...
+
+    @overload
     def format_output(
         self, expr: BaseElement, format: Optional[str] = None
-    ) -> Union[BaseElement, str]:
+    ) -> Union[BaseElement, str, None]:
+        ...
+
+    def format_output(self, expr, format=None):
         """
         This function takes an expression `expr` and
         a format `format`. If `format` is None, then returns `expr`. Otherwise,
@@ -416,6 +366,9 @@ class Evaluation:
         else:
             raise ValueError
 
+        if result is None:
+            return None
+
         try:
             # With the new implementation, if result is not a ``BoxExpression``
             # then we should raise a BoxError here.
@@ -436,7 +389,7 @@ class Evaluation:
     def get_quiet_messages(self):
         from mathics.core.expression import Expression
 
-        value = self.definitions.get_definition("Internal`$QuietMessages").ownvalues
+        value = self.definitions.get_ownvalues("Internal`$QuietMessages")
         if value:
             try:
                 value = value[0].replace
@@ -446,10 +399,9 @@ class Evaluation:
             return []
         return value.elements
 
-    def message(self, symbol_name: str, tag, *msgs) -> "Message":
+    def message(self, symbol_name: str, tag: str, *msgs) -> Optional["Message"]:
         """
-        Format message given its components, ``symbol``, ``tag``
-
+        Format message given its components, ``symbol_name``, ``tag``
 
         """
         from mathics.core.expression import Expression
@@ -462,7 +414,7 @@ class Evaluation:
         pattern = Expression(SymbolMessageName, Symbol(symbol), String(tag))
 
         if pattern in quiet_messages or self.quiet_all:
-            return
+            return None
 
         # Shorten the symbol's name according to the current context
         # settings. This makes sure we print the context, if it would
@@ -471,24 +423,27 @@ class Evaluation:
         symbol_shortname = self.definitions.shorten_name(symbol)
 
         if settings.DEBUG_PRINT:
-            print("MESSAGE: %s::%s (%s)" % (symbol_shortname, tag, msgs))
+            print(f"MESSAGE: {symbol_shortname}::{tag} ({msgs})")
 
-        text = self.definitions.get_value(symbol, "System`Messages", pattern, self)
-        if text is None:
-            pattern = Expression(SymbolMessageName, Symbol("General"), String(tag))
-            text = self.definitions.get_value(
-                "System`General", "System`Messages", pattern, self
+        try:
+            text: BaseElement = self.definitions.get_value(
+                symbol, "System`Messages", pattern, self
             )
+        except ValueError:
+            pattern = Expression(SymbolMessageName, Symbol("General"), String(tag))
+            try:
+                text = self.definitions.get_value(
+                    "System`General", "System`Messages", pattern, self
+                )
+            except ValueError:
+                text = String(f"Message {symbol_shortname}::{tag} not found.")
 
-        if text is None:
-            text = String("Message %s::%s not found." % (symbol_shortname, tag))
-
-        text = self.format_output(
+        formatted_text = self.format_output(
             Expression(SymbolStringForm, text, *(from_python(arg) for arg in msgs)),
             "text",
         )
 
-        message = Message(symbol_shortname, tag, text)
+        message = Message(symbol_shortname, tag, str(formatted_text))
         self.out.append(message)
         self.output.out(self.out[-1])
         return message
@@ -499,6 +454,7 @@ class Evaluation:
         if self.definitions.trace_evaluation:
             self.definitions.trace_evaluation = False
             text = self.format_output(from_python(text), "text")
+            self.is_boxing = False
             self.definitions.trace_evaluation = True
         else:
             text = self.format_output(from_python(text), "text")
@@ -526,12 +482,11 @@ class Evaluation:
         from mathics.core.symbols import Symbol
 
         if len(needed) == 1:
-            needed = needed[0]
-            if given > 1 and needed > 1:
-                self.message(symbol, "argrx", Symbol(symbol), given, needed)
+            if given > 1 and needed[0] > 1:
+                self.message(symbol, "argrx", Symbol(symbol), given, *needed)
             elif given == 1:
-                self.message(symbol, "argr", Symbol(symbol), needed)
-            elif needed == 1:
+                self.message(symbol, "argr", Symbol(symbol), *needed)
+            elif needed[0] == 1:
                 self.message(symbol, "argx", Symbol(symbol), given)
         elif len(needed) == 2:
             if given == 1:
@@ -551,8 +506,7 @@ class Evaluation:
             "$RecursionLimit", MAX_RECURSION_DEPTH
         )
         if limit is not None:
-            if limit < 20:
-                limit = 20
+            limit = max(limit, 20)
             self.recursion_depth += 1
             if self.recursion_depth > limit:
                 self.error("$RecursionLimit", "reclim", limit)
@@ -560,16 +514,16 @@ class Evaluation:
     def dec_recursion_depth(self) -> None:
         self.recursion_depth -= 1
 
-    def add_listener(self, tag, listener) -> None:
+    def add_listener(self, tag: str, listener: Callable) -> None:
         existing = self.listeners.get(tag)
         if existing is None:
             existing = self.listeners[tag] = []
         existing.insert(0, listener)
 
-    def remove_listener(self, tag, listener) -> None:
-        self.listeners.get(tag).remove(listener)
+    def remove_listener(self, tag: str, listener: Callable) -> None:
+        self.listeners.get(tag, []).remove(listener)
 
-    def publish(self, tag, *args, **kwargs) -> None:
+    def publish(self, tag: str, *args, **kwargs) -> None:
         listeners = self.listeners.get(tag, [])
         for listener in listeners:
             if listener(*args, **kwargs):
@@ -587,8 +541,9 @@ class Message(_Out):
                 use a string.
         tag: a short slug string that indicates the kind of message
 
-        In Django we need to use a string for symbol, since we need something that is JSON serializable
-        and a Mathics3 Symbol is not like this.
+        In Django we need to use a string for symbol, since we need
+        something that is JSON serializable and a Mathics3 Symbol is not
+        like this.
         """
         super(Message, self).__init__()
         self.is_message = True  # Why do we need this?
@@ -607,7 +562,7 @@ class Message(_Out):
             "message": True,
             "symbol": self.symbol,
             "tag": self.tag,
-            "prefix": "%s::%s" % (self.symbol, self.tag),
+            "prefix": f"{self.symbol}::{self.tag}",
             "text": self.text,
         }
 
@@ -631,9 +586,17 @@ class Print(_Out):
         }
 
 
-class Output:
-    def max_stored_size(self, settings) -> int:
-        return settings.MAX_STORED_SIZE
+class Output(ABC):
+    """
+    Base class for Mathics output history.
+    This needs to be subclassed.
+    """
+
+    def max_stored_size(self, output_settings) -> int:
+        """
+        Return the largeet number of history items allowed.
+        """
+        return output_settings.MAX_STORED_SIZE
 
     def out(self, out):
         pass
@@ -671,7 +634,7 @@ class Result:
     """
 
     def __init__(
-        self, out: OutputLines, result, line_no: int, last_eval=None, form=None
+        self, out: List[_Out], result, line_no: int, last_eval=None, form=None
     ) -> None:
         self.out = out
         self.result = result

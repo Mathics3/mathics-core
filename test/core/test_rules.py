@@ -28,7 +28,7 @@ Out[2]= True
 because it ignores that the attribute is clean at the time in which the rule is applied.
 
 
-In Mathics, on the other hand, attributes are taken into accout just
+In Mathics, on the other hand, attributes are taken into account just
 at the moment of the replacement, so the output of both expressions
 are the opposite.
 
@@ -184,3 +184,48 @@ def test_flat_on_rules(str_expr, str_expected, msg):
 @pytest.mark.xfail
 def test_default_optional_on_rules(str_expr, str_expected, msg):
     check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
+        # Two default arguments (linear)
+        ("rule=A[a_.+B[b_.*x_]]->{a,b,x};", None, "Null", None),
+        ("A[B[1]] /. rule", None, "{0, 1, 1}", None),
+        ("A[B[x]] /. rule", None, "{0, 1, x}", None),
+        ("A[B[2*x]] /. rule", None, "{0, x, 2}", None),
+        ("A[1+B[x]] /. rule", None, "{1, 1, x}", None),
+        ("A[1+B[2*x]] /. rule", None, "{1, x, 2}", None),
+        # Default argument (power)
+        ("rule=A[x_^n_.]->{x,n};", None, "Null", None),
+        ("A[1] /. rule", None, "{1, 1}", None),
+        ("A[x] /. rule", None, "{x, 1}", None),
+        ("A[x^1] /. rule", None, "{x, 1}", None),
+        ("A[x^2] /. rule", None, "{x, 2}", None),
+        # Two default arguments (power)
+        ("rule=A[x_.^n_.]->{x,n};", None, "Null", None),
+        ("A[] /. rule", None, "A[]", None),
+        ("A[1] /. rule", None, "{1, 1}", None),
+        ("A[x] /. rule", None, "{x, 1}", None),
+        ("A[x^1] /. rule", None, "{x, 1}", None),
+        ("A[x^2] /. rule", None, "{x, 2}", None),
+        # Two default arguments (no non-head)
+        ("rule=A[a_. + B[b_.*x_.]]->{a,b,x};", None, "Null", None),
+        ("A[B[]] /. rule", None, "A[B[]]", None),
+        ("A[B[1]] /. rule", None, "{0, 1, 1}", None),
+        ("A[B[x]] /. rule", None, "{0, 1, x}", None),
+        ("A[1 + B[x]] /. rule", None, "{1, 1, x}", None),
+        ("A[1 + B[2*x]] /. rule", None, "{1, 2, x}", None),
+    ],
+)
+def test_pattern_rules(str_expr, msgs, str_expected, fail_msg):
+    """pattern_rules"""
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )

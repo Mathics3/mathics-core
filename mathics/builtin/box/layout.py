@@ -8,11 +8,11 @@ At the other end, the top level, we have a Notebook which is just a \
 collection of Expressions usually contained in boxes.
 """
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Atom, String
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin
 from mathics.core.element import BoxElementMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import BoxConstructError
@@ -38,7 +38,7 @@ def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
     """
     This function takes the expression ``x``
     and tries to reduce it to a ``BoxElementMixin``
-    expression unsing an evaluation object.
+    expression using an evaluation object.
     """
     if isinstance(x, BoxElementMixin):
         return x
@@ -203,11 +203,11 @@ class InterpretationBox(BoxExpression):
     summary_text = "box associated to an input expression"
 
     def eval_to_expression(boxexpr, form, evaluation):
-        """ToExpression[boxexpr_IntepretationBox, form___]"""
+        """ToExpression[boxexpr_InterpretationBox, form___]"""
         return boxexpr.elements[1]
 
     def eval_display(boxexpr, evaluation):
-        """DisplayForm[boxexpr_IntepretationBox]"""
+        """DisplayForm[boxexpr_InterpretationBox]"""
         return boxexpr.elements[0]
 
 
@@ -226,7 +226,7 @@ class RowBox(BoxExpression):
     summary_text = "horizontal arrange of boxes"
 
     def __repr__(self):
-        return "RowBox[List[" + self.items.__repr__() + "]]"
+        return "RowBox[List[" + self.elements.__repr__() + "]]"
 
     def eval_list(self, boxes, evaluation):
         """RowBox[boxes_List]"""
@@ -303,7 +303,7 @@ class ShowStringCharacters(Builtin):
     <i>This option can sometimes be output, but currently it is not interpreted.</i>
     """
 
-    summary_text = "cell option directing wither show show quotes around strings"
+    summary_text = "cell option directing whether show quotes around strings"
 
 
 class SqrtBox(BoxExpression):
@@ -380,7 +380,7 @@ class StyleBox(BoxExpression):
         return None
 
     def init(self, boxes, style=None, **options):
-        # This implementation superseeds Expresion.process_style_box
+        # This implementation supersedes Expression.process_style_box
         if isinstance(boxes, StyleBox):
             options.update(boxes.box_options)
             boxes = boxes.boxes

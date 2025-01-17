@@ -12,7 +12,7 @@ A fair bit of code refactoring has gone on so that we might be able to
 scale the code, get it to be more performant, and more in line with
 other interpreters. There is Greater use of Symbols as opposed to strings.
 
-The buitin Functions have been organized into grouping akind to what is found in WMA.
+The builtin Functions have been organized into grouping akind to what is found in WMA.
 This is not just for documentation purposes, but it better modularizes the code and keep
 the modules smaller while suggesting where functions below as we scale.
 
@@ -34,14 +34,14 @@ Boxing and Formatting
 While some work on formatting is done has been made and the change in API reflects a little of this.
 However a lot more work needs to be done.
 
-Excecution Performance
+Execution Performance
 ----------------------
 
 This has improved a slight bit, but not because it has been a focus, but
 rather because in going over the code organization, we are doing this
 less dumb, e.g. using Symbols more where symbols are intended. Or
 fixing bugs like resetting mpmath numeric precision on operations that
-need to chnage it temporarily.
+need to change it temporarily.
 
 Simpler Things
 --------------
@@ -50,6 +50,6 @@ A number of items here remain, but should not be thought as independent items, b
 "Forms, Boxing and Formatting".
 
 "Making StandardOutput of polynomials match WMA" is really are Forms, Boxing and Formatting issue;
-"Working on Jupyter integrations" is also very dependant this.
+"Working on Jupyter integrations" is also very dependent this.
 
 So the next major refactor will be on Forms, Boxing and Formatting.

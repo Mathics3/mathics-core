@@ -9,11 +9,11 @@ Functions for manipulating colors and color images.
 import itertools
 from math import floor
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_directives import ColorError, RGBColor, _ColorObject
 from mathics.builtin.colors.color_internals import convert_color
 from mathics.builtin.image.base import Image
 from mathics.core.atoms import Integer, MachineReal, Rational, Real, String
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -79,15 +79,15 @@ class Blend(Builtin):
 
     def do_blend(self, colors, values):
         type = None
-        homogenous = True
+        homogeneous = True
         for color in colors:
             if type is None:
                 type = color.__class__
             else:
                 if color.__class__ != type:
-                    homogenous = False
+                    homogeneous = False
                     break
-        if not homogenous:
+        if not homogeneous:
             colors = [RGBColor(components=color.to_rgba()) for color in colors]
             type = RGBColor
         total = sum(values)
@@ -130,7 +130,9 @@ class Blend(Builtin):
                 values = 0.0
             use_list = False
         if values is None:
-            evaluation.message("Blend", "argl", u, ListExpression(colors_orig))
+            evaluation.message(
+                "Blend", "argl", u, ListExpression(*colors_orig.elements)
+            )
             return
 
         if use_list:
@@ -205,7 +207,7 @@ class ColorConvert(Builtin):
 class ColorNegate(Builtin):
     """
     Color Inversion (<url>
-    :WMA:
+    :WMA link:
     https://reference.wolfram.com/language/ref/ColorNegate.html</url>)
 
     <dl>
@@ -454,7 +456,7 @@ class DominantColors(Builtin):
                         yield to_expression(
                             Symbol(out_palette_head),
                             *prototype,
-                            elements_conversion_fn=MachineReal
+                            elements_conversion_fn=MachineReal,
                         )
 
         return to_mathics_list(*itertools.islice(result(), 0, at_most))

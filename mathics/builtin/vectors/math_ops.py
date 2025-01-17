@@ -6,8 +6,8 @@ Mathematical Operations
 
 import sympy
 
-from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.attributes import A_PROTECTED
+from mathics.core.builtin import Builtin, SympyFunction
 from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
 from mathics.eval.math_ops import eval_Norm, eval_Norm_p
 

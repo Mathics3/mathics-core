@@ -9,13 +9,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python 3.11
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.11
       - name: Install click, black and isort
-        run: pip install 'click==8.0.4' 'black==22.3.0' 'isort==5.10.1'
+        run: pip install 'click==8.0.4' 'black==23.12.1' 'isort==5.13.2'
       - name: Run isort --check .
         run: isort --check .
       - name: Run black --check .

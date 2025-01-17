@@ -11,7 +11,7 @@ and regular star polyhedra.
 # Here we are also hiding "drawing" since this can erroneously appear at the top level.
 sort_order = "mathics.builtin.uniform-polyhedra"
 
-from mathics.builtin.base import Builtin
+from mathics.core.builtin import Builtin
 from mathics.core.evaluation import Evaluation
 
 uniform_polyhedra_names = "tetrahedron, octahedron, dodecahedron, icosahedron"

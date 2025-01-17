@@ -14,8 +14,8 @@ exact values and simplification rules are not implemented yet.
 
 from typing import Optional
 
-from mathics.builtin.base import Builtin, MPMathFunction, SympyFunction
 from mathics.core.atoms import IntegerM1
+from mathics.core.builtin import Builtin, MPMathFunction, SympyFunction
 from mathics.core.convert.sympy import SympyExpression
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -52,8 +52,6 @@ class ArcCosh(MPMathFunction):
      = 0. + 1.5708 I
     >> ArcCosh[0.00000000000000000000000000000000000000]
      = 1.5707963267948966192313216916397514421 I
-    #> ArcCosh[1.4]
-     = 0.867015
     """
 
     mpmath_name = "acosh"
@@ -94,9 +92,6 @@ class ArcCoth(MPMathFunction):
      = 0. + 1.5708 I
     >> ArcCoth[0.5]
      = 0.549306 - 1.5708 I
-
-    #> ArcCoth[0.000000000000000000000000000000000000000]
-     = 1.57079632679489661923132169163975144210 I
     """
 
     summary_text = "inverse hyperbolic cotangent function"

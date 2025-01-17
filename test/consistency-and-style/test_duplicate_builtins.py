@@ -2,13 +2,14 @@
 Checks that builtin functions do not get redefined.
 
 In the past when reorganizing builtin functions we sometimes
-had missing or duplicate build-in functions definitions.
+had missing or duplicate built-in functions definitions.
 """
+
 import os
 
 import pytest
 
-from mathics.builtin.base import Builtin
+from mathics.core.builtin import Builtin
 from mathics.core.load_builtin import mathics3_builtins_modules, name_is_builtin_symbol
 
 

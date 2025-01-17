@@ -18,25 +18,28 @@ def test_is_literal():
     coming out of initial conversion are set accurately.
     """
 
-    for str_expression, is_literal, assert_msg in [
+    for str_expression, is_literal, value, assert_msg in [
         # fmt: off
-        # expr                  is_literal? assert message
-        ("5",                   True,       "an atomic Integer is a literals"),
-        ('"5"',                 True,       "an atomic String is a literal"),
-        ("1/2",                 False,      "a ratio is not a literal"),
-        ("X",                   False,      "a variable symbol is not a literal"),
-        ("{1, 2, 3}",           True,       "a list of Integers is a literal"),
-        ("{1, 2, Pi}",          False,      "a list with a symbolic constant is not a literal"),
-        ('{"x", 2, 3.0}',       True,       "a list of literals is a literal"),
-        ('{"x", {2, 3, {}}}',   True,       "a nested list of literals is a literal"),
-        ('{"x", {2, 3}, 1/2}',  False,      "a nested list containing a ratio is not a literal "),
+        # expr                  is_literal? Python      assert message
+        ("5",                   True,       5,          "an atomic Integer is a literals"),
+        ('"5"',                 True,       "5",        "an atomic String is a literal"),
+        ("1/2",                 False,      None,       "a ratio is not a literal"),
+        ("X",                   False,      None,       "a variable symbol is not a literal"),
+        ("{1, 2, 3}",           True,       (1, 2, 3),  "a list of Integers is a literal"),
+        ("{1, 2, Pi}",          False,      None,       "a list with a symbolic constant is not a literal"),
+        ('{"x", {2, 3}, 1/2}',  False,      None,       "a nested list containing a ratio is not a literal "),
+        ('{"x", 2, 3.0}',       True,       ("x", 2, 3.0),          "a list of literals is a literal"),
+        ('{"x", {2, 3, {}}}',   True,       ("x", (2, 3, tuple())), "a nested list of literals is a literal"),
     ]:
         # fmt: on
         session.evaluation.out.clear()
         feeder = MathicsSingleLineFeeder(str_expression)
         ast = parser.parse(feeder)
+        # print("XXX", ast)
 
         # convert() creates the initial Expression. In that various properties should
         # be set.
         expr = convert(ast, session.definitions)
         assert expr.is_literal == is_literal, assert_msg
+        if value is not None:
+            assert expr.value == value

@@ -11,12 +11,13 @@ import math
 from collections import namedtuple
 from contextlib import contextmanager
 from itertools import chain
+from typing import Iterable
 
 import mpmath
 
-from mathics.builtin.base import Builtin, MPMathFunction
 from mathics.core.atoms import Real
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
+from mathics.core.builtin import Builtin, MPMathFunction
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolPower
@@ -176,9 +177,6 @@ class Exp(MPMathFunction):
 
     >> Plot[Exp[x], {x, 0, 3}]
      = -Graphics-
-    #> Exp[1.*^20]
-     : Overflow occurred in computation.
-     = Overflow[]
     """
 
     rules = {
@@ -187,7 +185,7 @@ class Exp(MPMathFunction):
     }
     summary_text = "exponential function"
 
-    def from_sympy(self, sympy_name, elements):
+    def from_sympy(self, elements: Iterable) -> Expression:
         return Expression(SymbolPower, SymbolE, elements[0])
 
 
@@ -206,21 +204,6 @@ class Log(MPMathFunction):
      = Indeterminate
     >> Plot[Log[x], {x, 0, 5}]
      = -Graphics-
-
-    #> Log[1000] / Log[10] // Simplify
-     = 3
-
-    #> Log[1.4]
-     = 0.336472
-
-    #> Log[Exp[1.4]]
-     = 1.4
-
-    #> Log[-1.4]
-     = 0.336472 + 3.14159 I
-
-    #> N[Log[10], 30]
-     = 2.30258509299404568401799145468
     """
 
     summary_text = "logarithm function"
@@ -316,9 +299,6 @@ class LogisticSigmoid(Builtin):
 
     >> LogisticSigmoid[{-0.2, 0.1, 0.3}]
      = {0.450166, 0.524979, 0.574443}
-
-    #> LogisticSigmoid[I Pi]
-     = LogisticSigmoid[I Pi]
     """
 
     summary_text = "logistic function"

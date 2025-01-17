@@ -3,26 +3,13 @@
 String Patterns
 """
 
-import re
-
-from mathics.builtin.atomic.strings import (
-    _evaluate_match,
-    _parallel_match,
-    _pattern_search,
-    _StringFind,
-    anchor_pattern,
-    to_regex,
-)
-from mathics.builtin.base import BinaryOperator, Builtin
-from mathics.core.atoms import Integer1, String
-from mathics.core.attributes import A_FLAT, A_LISTABLE, A_ONE_IDENTITY, A_PROTECTED
+from mathics.builtin.atomic.strings import _evaluate_match, _parallel_match, _StringFind
+from mathics.core.atoms import String
+from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
+from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
-
-SymbolStringMatchQ = Symbol("StringMatchQ")
-SymbolStringExpression = Symbol("StringExpression")
+from mathics.eval.strings import eval_StringFind
 
 
 class DigitCharacter(Builtin):
@@ -44,9 +31,6 @@ class DigitCharacter(Builtin):
 
     >> StringMatchQ["123245", DigitCharacter..]
      = True
-
-    #> StringMatchQ["123245a6", DigitCharacter..]
-     = False
     """
 
     summary_text = "digit 0-9"
@@ -205,10 +189,6 @@ class StringCases(_StringFind):
     >> StringCases["abc-abc xyz-uvw", Shortest[x : WordCharacter .. ~~ "-" ~~ x_] -> x]
      = {abc}
 
-    #> StringCases["abc-abc xyz-uvw", Shortest[x : WordCharacter .. ~~ "-" ~~ x : LetterCharacter] -> x]
-     : Ignored restriction given for x in x : LetterCharacter as it does not match previous occurrences of x.
-     = {abc}
-
     >> StringCases["abba", {"a" -> 10, "b" -> 20}, 2]
      = {10, 20}
 
@@ -237,10 +217,10 @@ class StringCases(_StringFind):
     def eval(self, string, rule, n, evaluation: Evaluation, options: dict):
         "%(name)s[string_, rule_, OptionsPattern[%(name)s], n_:System`Private`Null]"
         # this pattern is a slight hack to get around missing Shortest/Longest.
-        return self._apply(string, rule, n, evaluation, options, True)
+        return eval_StringFind(self, string, rule, n, evaluation, options, True)
 
 
-class StringExpression(BinaryOperator):
+class StringExpression(InfixOperator):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/StringExpression.html</url>
 
@@ -251,17 +231,9 @@ class StringExpression(BinaryOperator):
 
     >> "a" ~~ "b" // FullForm
      = "ab"
-
-    #> "a" ~~ "b" ~~ "c" // FullForm
-     = "abc"
-
-    #> a ~~ b
-     = a ~~ b
     """
 
     attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
-    operator = "~~"
-    precedence = 135
 
     messages = {
         "invld": "Element `1` is not a valid string or pattern element in `2`.",
@@ -276,226 +248,6 @@ class StringExpression(BinaryOperator):
         if None in args:
             return
         return String("".join(args))
-
-
-class StringFreeQ(Builtin):
-    """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/StringFreeQ.html</url>
-
-    <dl>
-      <dt>'StringFreeQ["$string$", $patt$]'
-      <dd>returns True if no substring in $string$ matches the string \
-      expression $patt$, and returns False otherwise.
-
-      <dt>'StringFreeQ[{"s1", "s2", ...}, patt]'
-      <dd>returns the list of results for each element of string list.
-
-      <dt>'StringFreeQ["string", {p1, p2, ...}]'
-      <dd>returns True if no substring matches any of the $pi$.
-
-      <dt>'StringFreeQ[patt]'
-      <dd>represents an operator form of StringFreeQ that can be applied \
-        to an expression.
-    </dl>
-
-    >> StringFreeQ["mathics", "m" ~~ __ ~~ "s"]
-     = False
-
-    >> StringFreeQ["mathics", "a" ~~ __ ~~ "m"]
-     = True
-
-    #> StringFreeQ["Hello", "o"]
-     = False
-
-    #> StringFreeQ["a"]["abcd"]
-     = False
-
-    #> StringFreeQ["Mathics", "ma", IgnoreCase -> False]
-     = True
-
-    >> StringFreeQ["Mathics", "MA" , IgnoreCase -> True]
-     = False
-
-    #> StringFreeQ["", "Empty String"]
-     = True
-
-    #> StringFreeQ["", ___]
-     = False
-
-    #> StringFreeQ["Empty Pattern", ""]
-     = False
-
-    #> StringFreeQ[notastring, "n"]
-     : String or list of strings expected at position 1 in StringFreeQ[notastring, n].
-     = StringFreeQ[notastring, n]
-
-    #> StringFreeQ["Welcome", notapattern]
-     : Element notapattern is not a valid string or pattern element in notapattern.
-     = StringFreeQ[Welcome, notapattern]
-
-    >> StringFreeQ[{"g", "a", "laxy", "universe", "sun"}, "u"]
-     = {True, True, True, False, False}
-
-    #> StringFreeQ[{}, "list of string is empty"]
-     = {}
-
-    >> StringFreeQ["e" ~~ ___ ~~ "u"] /@ {"The Sun", "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"}
-     = {False, False, False, True, True, True, True, True, False}
-
-    #> StringFreeQ[{"A", "Galaxy", "Far", "Far", "Away"}, {"F" ~~ __ ~~ "r", "aw" ~~ ___}]
-     = {True, True, False, False, True}
-
-    >> StringFreeQ[{"A", "Galaxy", "Far", "Far", "Away"}, {"F" ~~ __ ~~ "r", "aw" ~~ ___}, IgnoreCase -> True]
-     = {True, True, False, False, False}
-
-    #> StringFreeQ[{"A", "Galaxy", "Far", "Far", "Away"}, {}]
-     = {True, True, True, True, True}
-
-    #> StringFreeQ[{"A", Galaxy, "Far", "Far", Away}, {"F" ~~ __ ~~ "r", "aw" ~~ ___}]
-     : String or list of strings expected at position 1 in StringFreeQ[{A, Galaxy, Far, Far, Away}, {F ~~ __ ~~ r, aw ~~ ___}].
-     = StringFreeQ[{A, Galaxy, Far, Far, Away}, {F ~~ __ ~~ r, aw ~~ ___}]
-
-    #> StringFreeQ[{"A", "Galaxy", "Far", "Far", "Away"}, {F ~~ __ ~~ "r", aw ~~ ___}]
-     : Element F ~~ __ ~~ r is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
-     = StringFreeQ[{A, Galaxy, Far, Far, Away}, {F ~~ __ ~~ r, aw ~~ ___}]
-    ## Mathematica can detemine correct invalid element in the pattern, it reports error:
-    ## Element F is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
-    """
-
-    messages = {
-        "strse": "String or list of strings expected at position `1` in `2`.",
-    }
-
-    options = {
-        "IgnoreCase": "False",
-    }
-
-    rules = {
-        "StringFreeQ[patt_][expr_]": "StringFreeQ[expr, patt]",
-    }
-
-    summary_text = "test whether a string is free of substrings matching a pattern"
-
-    def eval(self, string, patt, evaluation: Evaluation, options: dict):
-        "StringFreeQ[string_, patt_, OptionsPattern[%(name)s]]"
-        return _pattern_search(
-            self.__class__.__name__, string, patt, evaluation, options, False
-        )
-
-
-class StringMatchQ(Builtin):
-    r"""
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/StringMatchQ.html</url>
-
-    <dl>
-      <dt>'StringMatchQ["string", $pattern$]'
-      <dd> checks  is "string" matches $pattern$
-    </dl>
-
-    >> StringMatchQ["abc", "abc"]
-     = True
-
-    >> StringMatchQ["abc", "abd"]
-     = False
-
-    >> StringMatchQ["15a94xcZ6", (DigitCharacter | LetterCharacter)..]
-     = True
-
-    #> StringMatchQ["abc1", LetterCharacter]
-     = False
-
-    #> StringMatchQ["abc", "ABC"]
-     = False
-    #> StringMatchQ["abc", "ABC", IgnoreCase -> True]
-     = True
-
-    ## Words containing nonword characters
-    #> StringMatchQ[{"monkey", "don't", "AAA", "S&P"}, ___ ~~ Except[WordCharacter] ~~ ___]
-     = {False, True, False, True}
-
-    ## Try to match a literal number
-    #> StringMatchQ[1.5, NumberString]
-     : String or list of strings expected at position 1 in StringMatchQ[1.5, NumberString].
-     = StringMatchQ[1.5, NumberString]
-
-    Use StringMatchQ as an operator
-    >> StringMatchQ[LetterCharacter]["a"]
-     = True
-
-    ## Abbreviated string patterns Issue #517
-    #> StringMatchQ["abcd", "abc*"]
-     = True
-    #> StringMatchQ["abc", "abc*"]
-     = True
-    #> StringMatchQ["abc\\", "abc\\"]
-     = True
-    #> StringMatchQ["abc*d", "abc\\*d"]
-     = True
-    #> StringMatchQ["abc*d", "abc\\**"]
-     = True
-    #> StringMatchQ["abcde", "a*f"]
-     = False
-
-    #> StringMatchQ["abcde", "a@e"]
-     = True
-    #> StringMatchQ["aBCDe", "a@e"]
-     = False
-    #> StringMatchQ["ae", "a@e"]
-     = False
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED
-
-    options = {
-        "IgnoreCase": "False",
-        "SpellingCorrections": "None",
-    }
-
-    messages = {
-        "strse": "String or list of strings expected at position `1` in `2`.",
-    }
-
-    rules = {
-        "StringMatchQ[patt_][expr_]": "StringMatchQ[expr, patt]",
-    }
-    summary_text = "test whether a string matches a pattern"
-
-    def eval(self, string, patt, evaluation: Evaluation, options: dict):
-        "StringMatchQ[string_, patt_, OptionsPattern[%(name)s]]"
-        py_string = string.get_string_value()
-        if py_string is None:
-            evaluation.message(
-                "StringMatchQ",
-                "strse",
-                Integer1,
-                Expression(SymbolStringMatchQ, string, patt),
-            )
-            return
-
-        re_patt = to_regex(
-            patt, show_message=evaluation.message, abbreviated_patterns=True
-        )
-        if re_patt is None:
-            evaluation.message(
-                "StringExpression",
-                "invld",
-                patt,
-                Expression(SymbolStringExpression, patt),
-            )
-            return
-
-        re_patt = anchor_pattern(re_patt)
-
-        flags = re.MULTILINE
-        if options["System`IgnoreCase"] is SymbolTrue:
-            flags = flags | re.IGNORECASE
-
-        if re.match(re_patt, py_string, flags=flags) is None:
-            return SymbolFalse
-        else:
-            return SymbolTrue
 
 
 class WhitespaceCharacter(Builtin):
@@ -524,7 +276,6 @@ class WhitespaceCharacter(Builtin):
     summary_text = "space, newline, tab, or other whitespace character"
 
 
-# strings.to_regex() seems to have the implementation here.
 class WordBoundary(Builtin):
     """
     <url>:WMA link:

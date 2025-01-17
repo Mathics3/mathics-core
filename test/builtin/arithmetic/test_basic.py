@@ -449,3 +449,35 @@ def test_cuberoot(str_expr, str_expected, msgs, failmsg):
     check_evaluation(
         str_expr, str_expected, expected_messages=msgs, failure_message=failmsg
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
+        ## Issue #302
+        ## The sum should not converge since the first term is 1/0.
+        (
+            "Sum[i / Log[i], {i, 1, Infinity}]",
+            None,
+            "Sum[i / Log[i], {i, 1, Infinity}]",
+            None,
+        ),
+        (
+            "Sum[Cos[Pi i], {i, 1, Infinity}]",
+            None,
+            "Sum[Cos[i Pi], {i, 1, Infinity}]",
+            None,
+        ),
+    ],
+)
+def test_private_doctests_arithmetic(str_expr, msgs, str_expected, fail_msg):
+    """ """
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )

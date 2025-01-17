@@ -7,7 +7,7 @@ Up until around  2017 was maintained by:
 - Angus Griffith @sn6uv
 - Ben Jones @bnjones
 
-Currently it is maintained by the Mathics Team
+Currently it is maintained by the Mathics3 Team
 
 Additional contributions were made by:
 
@@ -36,6 +36,8 @@ Additional contributions were made by:
 - Pablo Emilio Escobar Gaviria @GarkGarcia
 - Rocky Bernstein @rocky
 - Tiago Cavalcante Trindade @TiagoCavalcante
+- Li Xiang @Li-Xiang-Ideal
+- Kevin Cao @kejcao
 
 Thanks to the authors of all projects that are used in Mathics:
 - Django

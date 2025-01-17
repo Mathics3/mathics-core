@@ -9,6 +9,50 @@ from mathics.builtin.forms.base import FormBaseClass
 from mathics.builtin.makeboxes import MakeBoxes
 from mathics.core.atoms import String
 from mathics.core.element import EvalMixin
+from mathics.eval.strings import eval_ToString
+
+
+class SequenceForm(FormBaseClass):
+    """
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/SequenceForm.html</url>
+
+    <dl>
+      <dt>'SequenceForm[$expr1$, $expr2$, ..]'
+      <dd>format the textual concatenation of the printed forms of $expi$.
+    </dl>
+    'SequenceForm' has been superseded by <url>:Row:
+    /doc/reference-of-built-in-symbols/layout/row
+    </url> and 'Text' (which is not implemented yet).
+
+    >> SequenceForm["[", "x = ", 56, "]"]
+     = [x = 56]
+    """
+
+    in_outputforms = False
+    in_printforms = False
+
+    options = {
+        "CharacterEncoding": '"Unicode"',
+    }
+
+    summary_text = "format make an string from a template and a list of parameters"
+
+    def eval_makeboxes(self, args, form, evaluation, options: dict):
+        """MakeBoxes[SequenceForm[args___, OptionsPattern[SequenceForm]],
+        form:StandardForm|TraditionalForm|OutputForm]"""
+        encoding = options["System`CharacterEncoding"]
+        return RowBox(
+            *[
+                (
+                    arg
+                    if isinstance(arg, String)
+                    else eval_ToString(arg, form, encoding.value, evaluation)
+                )
+                for arg in args.get_sequence()
+            ]
+        )
 
 
 class StringForm(FormBaseClass):
@@ -31,9 +75,9 @@ class StringForm(FormBaseClass):
     in_printforms = False
     summary_text = "make an string from a template and a list of parameters"
 
-    def eval_makeboxes(self, s, args, f, evaluation):
+    def eval_makeboxes(self, s, args, form, evaluation):
         """MakeBoxes[StringForm[s_String, args___],
-        f:StandardForm|TraditionalForm|OutputForm]"""
+        form:StandardForm|TraditionalForm|OutputForm]"""
 
         s = s.value
         args = args.get_sequence()
@@ -46,15 +90,14 @@ class StringForm(FormBaseClass):
                 index = int(match.group(2))
             else:
                 index = last_index + 1
-            if index > last_index:
-                last_index = index
+            last_index = max(index, last_index)
             if start > pos:
                 result.append(to_boxes(String(s[pos:start]), evaluation))
             pos = end
             if 1 <= index <= len(args):
                 arg = args[index - 1]
                 result.append(
-                    to_boxes(MakeBoxes(arg, f).evaluate(evaluation), evaluation)
+                    to_boxes(MakeBoxes(arg, form).evaluate(evaluation), evaluation)
                 )
         if pos < len(s):
             result.append(to_boxes(String(s[pos:]), evaluation))

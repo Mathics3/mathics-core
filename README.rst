@@ -6,7 +6,7 @@ Welcome to Mathics Core!
 |Packaging status|
 
 
-Mathics is a general-purpose computer algebra system (CAS).
+Mathics3 is a general-purpose computer algebra system (CAS).
 
 However this repository contains just the Python modules for WL Built-in functions, variables, core primitives, e.g. Symbol, a parser to create Expressions, and an evaluator to execute them.
 
@@ -17,7 +17,7 @@ Installing
 
 Installing locally, requires a number of dependencies and OS package dependencies.
 
-See the `Installing Mathics <https://mathics-development-guide.readthedocs.io/en/latest/installing.html>`_ for instructions on installing Mathics3.
+See the `Installing Mathics3 <https://mathics-development-guide.readthedocs.io/en/latest/installing.html>`_ for instructions on installing Mathics3.
 
 Running:
 --------

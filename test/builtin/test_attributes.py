@@ -4,7 +4,7 @@ Unit tests from mathics.builtin.attributes.
 """
 
 import os
-from test.helper import check_evaluation
+from test.helper import check_evaluation, check_evaluation_as_in_cli, session
 
 import pytest
 
@@ -226,3 +226,60 @@ def test_Attributes_wrong_args(str_expr, arg_count):
             f"SetAttributes called with {arg_count} arguments; 2 arguments are expected.",
         ),
     )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
+        ("CleanAll[u];CleanAll[v];", None, None, None),
+        ("SetAttributes[{u, v}, Flat];u[x_] := {x};u[]", None, "u[]", None),
+        ("u[a]", None, "{a}", None),
+        ("v[x_] := x;v[]", None, "v[]", None),
+        ("v[a]", None, "a", None),
+        (
+            "v[a, b]",
+            None,
+            "v[a, b]",
+            "in Mathematica: Iteration limit of 4096 exceeded.",
+        ),
+        ("CleanAll[u];CleanAll[v];", None, None, None),
+    ],
+)
+def test_private_doctests_attributes(str_expr, msgs, str_expected, fail_msg):
+    """ """
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
+        ("CleanAll[u];CleanAll[v];", None, None, None),
+        (
+            "SetAttributes[{u, v}, Flat];u[x_] := {x};u[a, b]",
+            ("Iteration limit of 1000 exceeded.",),
+            "$Aborted",
+            None,
+        ),
+        ("u[a, b, c]", ("Iteration limit of 1000 exceeded.",), "$Aborted", None),
+        (
+            "v[x_] := x;v[a,b,c]",
+            ("Iteration limit of 1000 exceeded.",),
+            "$Aborted",
+            "in Mathematica: Iteration limit of 4096 exceeded.",
+        ),
+        ("CleanAll[u];CleanAll[v];", None, None, None),
+    ],
+)
+def test_private_doctests_attributes_with_exceptions(
+    str_expr, msgs, str_expected, fail_msg
+):
+    """These tests check the behavior of $RecursionLimit and $IterationLimit"""
+    check_evaluation_as_in_cli(str_expr, str_expected, fail_msg, msgs)

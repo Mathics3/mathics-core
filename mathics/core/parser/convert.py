@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Conversion from AST node to Mathic BaseElement objects
+Conversion from AST node to Mathics3 BaseElement objects
 """
 
 from math import log10
-from typing import Tuple
+from typing import Optional, Tuple
 
 import sympy
 
@@ -18,6 +18,15 @@ from mathics.core.parser.ast import (
     Symbol as AST_Symbol,
 )
 from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.util import canonic_filename
+
+# A StringValueToken is a tuple pair contaiing a token
+# name, either: "String, "Lookup", or "Symbol"
+# a token's string value. Examples:
+#   ["String" "/etc/hosts"]
+#   ["Symbol" "System`Infinity"]
+#   ["Lookup" "Infinity"]
+StringValueToken = Tuple[str, str]
 
 
 class GenericConverter:
@@ -35,27 +44,29 @@ class GenericConverter:
             children = [self.do_convert(child) for child in node.children]
             return "Expression", head, children
 
+    # FIXME REMOVE this.
     @staticmethod
-    def string_escape(s):
+    def string_escape(s: str) -> str:
         return s.encode("raw_unicode_escape").decode("unicode_escape")
 
-    def convert_Symbol(self, node: AST_Symbol) -> Tuple[str, str]:
+    def convert_Symbol(self, node: AST_Symbol) -> StringValueToken:
         if node.context is not None:
             return "Symbol", node.context + "`" + node.value
         else:
             return "Lookup", node.value
 
-    def convert_String(self, node: AST_String) -> Tuple[str, str]:
-        value = self.string_escape(node.value)
-        return "String", value
+    def convert_String(self, node: AST_String) -> StringValueToken:
+        return "String", node.value
 
-    def convert_Filename(self, node: AST_Filename):
+    def convert_Filename(self, node: AST_Filename) -> StringValueToken:
         s = node.value
         if s.startswith('"'):
             assert s.endswith('"')
             s = s[1:-1]
+
+        s = self.string_escape(canonic_filename(s))
         s = self.string_escape(s)
-        s = s.replace("\\", "\\\\")
+
         return "String", s
 
     def convert_Number(self, node: AST_Number) -> tuple:
@@ -104,14 +115,10 @@ class GenericConverter:
                 # For 0, a finite absolute precision even if
                 # the number is an integer, it is stored as a
                 # PrecisionReal number.
-                if x == 0:
-                    prec10 = acc
-                else:
-                    prec10 = acc + log10(abs(x))
                 return (
                     "PrecisionReal",
                     ("DecimalString", str("-" + s if sign == -1 else s)),
-                    prec10,
+                    acc + log10(abs(x)) if x != 0 else acc,
                 )
             else:
                 # A single Reversed Prime ("`") represents a fixed precision
@@ -149,6 +156,7 @@ class GenericConverter:
         x = float(sympy.Rational(p, q))
 
         # determine `prec10` the digits of precision in base 10
+        prec10: Optional[float]
         if suffix is None:
             acc = len(s[1])
             acc10 = acc * log10(base)

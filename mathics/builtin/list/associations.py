@@ -9,10 +9,10 @@ actual keys found in the collection.
 """
 
 
-from mathics.builtin.base import Builtin, Test
 from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED
+from mathics.core.builtin import Builtin, Test
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -46,38 +46,6 @@ class Association(Builtin):
     Associations can be nested:
     >> <|a -> x, b -> y, <|a -> z, d -> t|>|>
      = <|a -> z, b -> y, d -> t|>
-
-    #> <|a -> x, b -> y, c -> <|d -> t|>|>
-     = <|a -> x, b -> y, c -> <|d -> t|>|>
-    #> %["s"]
-     = Missing[KeyAbsent, s]
-
-    #> <|a -> x, b + c -> y, {<|{}|>, a -> {z}}|>
-     = <|a -> {z}, b + c -> y|>
-    #> %[a]
-     = {z}
-
-    #> <|"x" -> 1, {y} -> 1|>
-     = <|x -> 1, {y} -> 1|>
-    #> %["x"]
-     = 1
-
-    #> <|<|a -> v|> -> x, <|b -> y, a -> <|c -> z|>, {}, <||>|>, {d}|>[c]
-     =  Association[Association[a -> v] -> x, Association[b -> y, a -> Association[c -> z], {}, Association[]], {d}][c]
-
-    #> <|<|a -> v|> -> x, <|b -> y, a -> <|c -> z|>, {d}|>, {}, <||>|>[a]
-     = Association[Association[a -> v] -> x, Association[b -> y, a -> Association[c -> z], {d}], {}, Association[]][a]
-
-    #> <|<|a -> v|> -> x, <|b -> y, a -> <|c -> z, {d}|>, {}, <||>|>, {}, <||>|>
-     = <|<|a -> v|> -> x, b -> y, a -> Association[c -> z, {d}]|>
-    #> %[a]
-     = Association[c -> z, {d}]
-
-    #> <|a -> x, b -> y, c -> <|d -> t|>|> // ToBoxes
-     = RowBox[{<|, RowBox[{RowBox[{a, ->, x}], ,, RowBox[{b, ->, y}], ,, RowBox[{c, ->, RowBox[{<|, RowBox[{d, ->, t}], |>}]}]}], |>}]
-
-    #> Association[a -> x, b -> y, c -> Association[d -> t, Association[e -> u]]] // ToBoxes
-     = RowBox[{<|, RowBox[{RowBox[{a, ->, x}], ,, RowBox[{b, ->, y}], ,, RowBox[{c, ->, RowBox[{<|, RowBox[{RowBox[{d, ->, t}], ,, RowBox[{e, ->, u}]}], |>}]}]}], |>}]
     """
 
     error_idx = 0
@@ -237,41 +205,6 @@ class Keys(Builtin):
     Keys are listed in the order of their appearance:
     >> Keys[{c -> z, b -> y, a -> x}]
      = {c, b, a}
-
-    #> Keys[a -> x]
-     = a
-
-    #> Keys[{a -> x, a -> y, {a -> z, <|b -> t|>, <||>, {}}}]
-     = {a, a, {a, {b}, {}, {}}}
-
-    #> Keys[{a -> x, a -> y, <|a -> z, {b -> t}, <||>, {}|>}]
-     = {a, a, {a, b}}
-
-    #> Keys[<|a -> x, a -> y, <|a -> z, <|b -> t|>, <||>, {}|>|>]
-     = {a, b}
-
-    #> Keys[<|a -> x, a -> y, {a -> z, {b -> t}, <||>, {}}|>]
-     = {a, b}
-
-    #> Keys[<|a -> x, <|a -> y, b|>|>]
-     : The argument Association[a -> x, Association[a -> y, b]] is not a valid Association or a list of rules.
-     = Keys[Association[a -> x, Association[a -> y, b]]]
-
-    #> Keys[<|a -> x, {a -> y, b}|>]
-     : The argument Association[a -> x, {a -> y, b}] is not a valid Association or a list of rules.
-     = Keys[Association[a -> x, {a -> y, b}]]
-
-    #> Keys[{a -> x, <|a -> y, b|>}]
-     : The argument Association[a -> y, b] is not a valid Association or a list of rules.
-     = Keys[{a -> x, Association[a -> y, b]}]
-
-    #> Keys[{a -> x, {a -> y, b}}]
-     : The argument b is not a valid Association or a list of rules.
-     = Keys[{a -> x, {a -> y, b}}]
-
-    #> Keys[a -> x, b -> y]
-     : Keys called with 2 arguments; 1 argument is expected.
-     = Keys[a -> x, b -> y]
     """
 
     attributes = A_PROTECTED
@@ -339,6 +272,7 @@ class Missing(Builtin):
       <dd>'Missing[]'
       <dt> represents a data that is missing.
     </dl>
+
     >> ElementData["Meitnerium","MeltingPoint"]
      = Missing[NotAvailable]
     """
@@ -372,40 +306,6 @@ class Values(Builtin):
     >> Values[{c -> z, b -> y, a -> x}]
      = {z, y, x}
 
-    #> Values[a -> x]
-     = x
-
-    #> Values[{a -> x, a -> y, {a -> z, <|b -> t|>, <||>, {}}}]
-     = {x, y, {z, {t}, {}, {}}}
-
-    #> Values[{a -> x, a -> y, <|a -> z, {b -> t}, <||>, {}|>}]
-     = {x, y, {z, t}}
-
-    #> Values[<|a -> x, a -> y, <|a -> z, <|b -> t|>, <||>, {}|>|>]
-     = {z, t}
-
-    #> Values[<|a -> x, a -> y, {a -> z, {b -> t}, <||>, {}}|>]
-     = {z, t}
-
-    #> Values[<|a -> x, <|a -> y, b|>|>]
-     : The argument Association[a -> x, Association[a -> y, b]] is not a valid Association or a list of rules.
-     = Values[Association[a -> x, Association[a -> y, b]]]
-
-    #> Values[<|a -> x, {a -> y, b}|>]
-     : The argument Association[a -> x, {a -> y, b}] is not a valid Association or a list of rules.
-     = Values[Association[a -> x, {a -> y, b}]]
-
-    #> Values[{a -> x, <|a -> y, b|>}]
-     : The argument {a -> x, Association[a -> y, b]} is not a valid Association or a list of rules.
-     = Values[{a -> x, Association[a -> y, b]}]
-
-    #> Values[{a -> x, {a -> y, b}}]
-     : The argument {a -> x, {a -> y, b}} is not a valid Association or a list of rules.
-     = Values[{a -> x, {a -> y, b}}]
-
-    #> Values[a -> x, b -> y]
-     : Values called with 2 arguments; 1 argument is expected.
-     = Values[a -> x, b -> y]
     """
 
     attributes = A_PROTECTED

@@ -3,18 +3,18 @@
 """
 Importing and Exporting
 
-Many kinds data formats can be read into \Mathics. Variable <url>
+Many kinds data formats can be read into \\Mathics. Variable <url>
 :$ExportFormats:
-/doc/reference-of-built-in-symbols/importing-and-exporting/$exportformats</url> \
+/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/$exportformats</url> \
 contains a list of file formats that are supported by <url>
 :Export:
-/doc/reference-of-built-in-symbols/importing-and-exporting/export</url>, \
+/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/export</url>, \
 while <url>
 :$ImportFormats:
-/doc/reference-of-built-in-symbols/importing-and-exporting/$importformats</url> \
+/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/$importformats</url> \
 does the corresponding thing for <url>
 :Import:
-/doc/reference-of-built-in-symbols/importing-and-exporting/import</url>.
+/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/import</url>.
 """
 
 import base64
@@ -25,10 +25,10 @@ import urllib.request as request
 from itertools import chain
 from urllib.error import HTTPError, URLError
 
-from mathics.builtin.base import Builtin, Integer, Predefined, String, get_option
 from mathics.builtin.pymimesniffer import magic
 from mathics.core.atoms import ByteArrayAtom
 from mathics.core.attributes import A_NO_ATTRIBUTES, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin, Integer, Predefined, String, get_option
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
@@ -220,7 +220,6 @@ EXTENSIONMAPPINGS = {
     "*.cs1": "Raw",
     "*.csa": "HarwellBoeing",
     "*.cse": "HarwellBoeing",
-    "*.css": "CSS",
     "*.css": "CSS",
     "*.csv": "CSV",
     "*.ct": "SCT",
@@ -588,8 +587,6 @@ FORMATMAPPINGS = {
     "BYTE": "Byte",
     "BYU": "BYU",
     "BZ2": "BZIP2",
-    "BZ2": "BZIP2",
-    "BZIP": "BZIP2",
     "BZIP": "BZIP2",
     "BZIP2": "BZIP2",
     "C": "C",
@@ -796,7 +793,6 @@ FORMATMAPPINGS = {
     "PYTHONEXPRESSION": "PythonExpression",
     "QUICKTIME": "QuickTime",
     "RAW": "Raw",
-    "RAW": "Raw",
     "RAWBITMAP": "RawBitmap",
     "RAWJSON": "RawJSON",
     "REAL128": "Real128",
@@ -877,10 +873,8 @@ FORMATMAPPINGS = {
     "WARC": "WARC",
     "WAV": "WAV",
     "WAVE": "WAV",
-    "WAVE": "WAV",
     "WAVE64": "Wave64",
     "WDX": "WDX",
-    "WEBP": "WebP",
     "WEBP": "WebP",
     "WINDOWS/METAFILE": "WMF",
     "WLNET": "WLNet",
@@ -1197,7 +1191,7 @@ class RegisterExport(Builtin):
     >> FilePrint["sample.txt"]
      | Encode this string!
 
-    #> DeleteFile["sample.txt"]
+    >> DeleteFile["sample.txt"]
 
     Very basic encrypted text exporter:
     >> ExampleExporter2[filename_, data_, opts___] := Module[{strm = OpenWrite[filename], char}, (* TODO: Check data *) char = FromCharacterCode[Mod[ToCharacterCode[data] - 84, 26] + 97]; WriteString[strm, char]; Close[strm]]
@@ -1209,7 +1203,7 @@ class RegisterExport(Builtin):
     >> FilePrint["sample.txt"]
      | rapbqrguvffgevat
 
-    #> DeleteFile["sample.txt"]
+    >> DeleteFile["sample.txt"]
     """
 
     summary_text = "register an exporter for a file format"
@@ -1247,13 +1241,6 @@ class URLFetch(Builtin):
       <dt>'URLFetch[$URL$]'
       <dd> Returns the content of $URL$ as a string.
     </dl>
-
-
-    #> Quiet[URLFetch["https:////", {}]]
-     = $Failed
-
-    ##> Quiet[URLFetch["https://www.example.com", {}]]
-    # = ...
     """
 
     summary_text = "fetch data from a URL"
@@ -1333,45 +1320,29 @@ class Import(Builtin):
       <dt>'Import["$file$"]'
       <dd>imports data from a file.
 
+      <dt>'Import["$file$", "$fmt$"]'
+      <dd>imports file assuming the specified file format.
+
       <dt>'Import["$file$", $elements$]'
       <dd>imports the specified elements from a file.
+
+      <dt>'Import["$file$", {"$fmt$", $elements$}]'
+      <dd>imports the specified elements from a file asuming the specified file format.
 
       <dt>'Import["http://$url$", ...]' and 'Import["ftp://$url$", ...]'
       <dd>imports from a URL.
     </dl>
 
-    #> Import["ExampleData/ExampleData.tx"]
-     : File not found during Import.
-     = $Failed
-    #> Import[x]
-     : First argument x is not a valid file, directory, or URL specification.
-     = $Failed
-
-    ## CSV
-    #> Import["ExampleData/numberdata.csv", "Elements"]
-     = {Data, Grid}
-    #> Import["ExampleData/numberdata.csv", "Data"]
-    = {{0.88, 0.60, 0.94}, {0.76, 0.19, 0.51}, {0.97, 0.04, 0.26}, {0.33, 0.74, 0.79}, {0.42, 0.64, 0.56}}
-    #> Import["ExampleData/numberdata.csv"]
-    = {{0.88, 0.60, 0.94}, {0.76, 0.19, 0.51}, {0.97, 0.04, 0.26}, {0.33, 0.74, 0.79}, {0.42, 0.64, 0.56}}
-    #> Import["ExampleData/numberdata.csv", "FieldSeparators" -> "."]
-    = {{0, 88,0, 60,0, 94}, {0, 76,0, 19,0, 51}, {0, 97,0, 04,0, 26}, {0, 33,0, 74,0, 79}, {0, 42,0, 64,0, 56}}
 
     ## Text
     >> Import["ExampleData/ExampleData.txt", "Elements"]
      = {Data, Lines, Plaintext, String, Words}
     >> Import["ExampleData/ExampleData.txt", "Lines"]
      = ...
-    #> Import["ExampleData/Middlemarch.txt"];
-     : An invalid unicode sequence was encountered and ignored.
 
     ## JSON
     >> Import["ExampleData/colors.json"]
      = {colorsArray -> {{colorName -> black, rgbValue -> (0, 0, 0), hexValue -> #000000}, {colorName -> red, rgbValue -> (255, 0, 0), hexValue -> #FF0000}, {colorName -> green, rgbValue -> (0, 255, 0), hexValue -> #00FF00}, {colorName -> blue, rgbValue -> (0, 0, 255), hexValue -> #0000FF}, {colorName -> yellow, rgbValue -> (255, 255, 0), hexValue -> #FFFF00}, {colorName -> cyan, rgbValue -> (0, 255, 255), hexValue -> #00FFFF}, {colorName -> magenta, rgbValue -> (255, 0, 255), hexValue -> #FF00FF}, {colorName -> white, rgbValue -> (255, 255, 255), hexValue -> #FFFFFF}}}
-
-    ## XML
-    #> Import["ExampleData/InventionNo1.xml", "Tags"]
-     = {accidental, alter, arpeggiate, ..., words}
     """
 
     messages = {
@@ -1440,7 +1411,6 @@ class Import(Builtin):
 
         for el in elements:
             if not isinstance(el, String):
-
                 evaluation.message("Import", "noelem", el)
                 evaluation.predetermined_out = current_predetermined_out
                 return SymbolFailed
@@ -1632,26 +1602,6 @@ class ImportString(Import):
       <dd>attempts to determine the format of the string from its content.
     </dl>
 
-
-    #> ImportString[x]
-     : First argument x is not a string.
-     = $Failed
-
-    ## CSV
-    #> datastring = "0.88, 0.60, 0.94\\n.076, 0.19, .51\\n0.97, 0.04, .26";
-    #> ImportString[datastring, "Elements"]
-     = {Data, Lines, Plaintext, String, Words}
-    #> ImportString[datastring, {"CSV","Elements"}]
-     = {Data, Grid}
-    #> ImportString[datastring, {"CSV", "Data"}]
-    = {{0.88,  0.60,  0.94}, {.076,  0.19,  .51}, {0.97,  0.04,  .26}}
-    #> ImportString[datastring]
-    = 0.88, 0.60, 0.94
-    .  .076, 0.19, .51
-    .  0.97, 0.04, .26
-    #> ImportString[datastring, "CSV","FieldSeparators" -> "."]
-    = {{0, 88, 0, 60, 0, 94}, {076, 0, 19, , 51}, {0, 97, 0, 04, , 26}}
-
     ## Text
     >> str = "Hello!\\n    This is a testing text\\n";
     >> ImportString[str, "Elements"]
@@ -1736,49 +1686,6 @@ class Export(Builtin):
       <dt>'Export["$file$", $exprs$, $elems$]'
       <dd>exports $exprs$ to a file as elements specified by $elems$.
     </dl>
-
-    ## Invalid Filename
-    #> Export["abc.", 1+2]
-     : Cannot infer format of file abc..
-     = $Failed
-    #> Export[".ext", 1+2]
-     : Cannot infer format of file .ext.
-     = $Failed
-    #> Export[x, 1+2]
-     : First argument x is not a valid file specification.
-     = $Failed
-
-    ## Explicit Format
-    #> Export["abc.txt", 1+x, "JPF"]
-     : {JPF} is not a valid set of export elements for the Text format.
-     = $Failed
-    #> Export["abc.txt", 1+x, {"JPF"}]
-     : {JPF} is not a valid set of export elements for the Text format.
-     = $Failed
-
-    ## Empty elems
-    #> Export["123.txt", 1+x, {}]
-     = 123.txt
-    #> Export["123.jcp", 1+x, {}]
-     : Cannot infer format of file 123.jcp.
-     = $Failed
-
-    ## Compression
-    ## #> Export["abc.txt", 1+x, "ZIP"]    (* MMA Bug - Export::type *)
-    ##  : {ZIP} is not a valid set of export elements for the Text format.
-    ##  = $Failed
-    ## #> Export["abc.txt", 1+x, "BZIP"]   (* MMA Bug - General::stop *)
-    ##  : {BZIP} is not a valid set of export elements for the Text format.
-    ##  = $Failed
-    ## #> Export["abc.txt", 1+x, {"BZIP", "ZIP", "Text"}]
-    ##  = abc.txt
-    ## #> Export["abc.txt", 1+x, {"GZIP", "Text"}]
-    ##  = abc.txt
-    ## #> Export["abc.txt", 1+x, {"BZIP2", "Text"}]
-    ##  = abc.txt
-
-    ## FORMATS
-
     """
 
     messages = {
@@ -1790,7 +1697,7 @@ class Export(Builtin):
     }
 
     # TODO: This hard-linked dictionary should be
-    # replaced by a definition accesible from inside
+    # replaced by a definition accessible from inside
     # WL
     _extdict = {
         "bmp": "BMP",
@@ -1831,7 +1738,7 @@ class Export(Builtin):
     def _infer_form(self, filename, evaluation: Evaluation):
         ext = Expression(SymbolFileExtension, filename).evaluate(evaluation)
         ext = ext.get_string_value().lower()
-        # TODO: This dictionary should be accesible from the WL API
+        # TODO: This dictionary should be accessible from the WL API
         # to allow defining specific converters
         return self._extdict.get(ext)
 
@@ -1918,7 +1825,7 @@ class Export(Builtin):
                 exporter_symbol,
                 filename,
                 expr,
-                *list(chain(stream_options, custom_options))
+                *list(chain(stream_options, custom_options)),
             )
             res = exporter_function.evaluate(evaluation)
         elif function_channels == ListExpression(String("Streams")):
@@ -1933,7 +1840,7 @@ class Export(Builtin):
                 exporter_symbol,
                 stream,
                 expr,
-                *list(chain(stream_options, custom_options))
+                *list(chain(stream_options, custom_options)),
             )
             res = exporter_function.evaluate(evaluation)
             Expression(SymbolClose, stream).evaluate(evaluation)
@@ -2060,7 +1967,7 @@ class ExportString(Builtin):
                 exporter_symbol,
                 filename,
                 expr,
-                *list(chain(stream_options, custom_options))
+                *list(chain(stream_options, custom_options)),
             )
             exportres = exporter_function.evaluate(evaluation)
             if exportres != SymbolNull:
@@ -2106,7 +2013,7 @@ class ExportString(Builtin):
                 exporter_symbol,
                 outstream,
                 expr,
-                *list(chain(stream_options, custom_options))
+                *list(chain(stream_options, custom_options)),
             )
             res = exporter_function.evaluate(evaluation)
             if res is SymbolNull:
@@ -2146,43 +2053,6 @@ class FileFormat(Builtin):
 
     >> FileFormat["ExampleData/hedy.tif"]
      = TIFF
-
-    ## ASCII text
-    #> FileFormat["ExampleData/BloodToilTearsSweat.txt"]
-     = Text
-    #> FileFormat["ExampleData/MadTeaParty.gif"]
-     = GIF
-    #> FileFormat["ExampleData/moon.tif"]
-     = TIFF
-
-    #> FileFormat["ExampleData/numberdata.csv"]
-     = CSV
-
-    #> FileFormat["ExampleData/EinsteinSzilLetter.txt"]
-     = Text
-
-    #> FileFormat["ExampleData/BloodToilTearsSweat.txt"]
-     = Text
-
-    ## Doesn't work on Microsoft Windows
-    ## S> FileFormat["ExampleData/benzene.xyz"]
-    ##  = XYZ
-
-    #> FileFormat["ExampleData/colors.json"]
-     = JSON
-
-    #> FileFormat["ExampleData/some-typo.extension"]
-     : File not found during FileFormat[ExampleData/some-typo.extension].
-     = $Failed
-
-    #> FileFormat["ExampleData/Testosterone.svg"]
-     = SVG
-
-    #> FileFormat["ExampleData/colors.json"]
-     = JSON
-
-    #> FileFormat["ExampleData/InventionNo1.xml"]
-     = XML
     """
 
     summary_text = "determine the file format of a file"
@@ -2223,7 +2093,7 @@ class FileFormat(Builtin):
                 result.append(mimetype_dict[key])
 
         # the following fixes an extremely annoying behaviour on some (not all)
-        # installations of Windows, where we end up classifying .csv files als XLS.
+        # installations of Windows, where we end up classifying .csv files as XLS.
         if len(result) == 1 and result[0] == "XLS" and path.lower().endswith(".csv"):
             return String("CSV")
 

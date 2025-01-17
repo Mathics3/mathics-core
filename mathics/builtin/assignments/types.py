@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
 # This module follows Mathematica 5
-# conventions. In current Mathematica a number of these functiions
+# conventions. In current Mathematica a number of these functions
 # don't exist.  Some of the functions in Mathematica 5 appear now
 # under Information.
 
 # FIXME: put this inside a Pymathics module.
-# We alos should have compatibility modes for for earlier Mathemathica versions.
+# We should also have compatibility modes for for earlier Mathemathica versions.
 """
 Types of Values
 """
 
 
-from mathics.builtin.base import Builtin
 from mathics.core.assignment import get_symbol_values
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
+from mathics.core.builtin import Builtin
 
 
 class DefaultValues(Builtin):
@@ -53,7 +53,9 @@ class DefaultValues(Builtin):
     def eval(self, symbol, evaluation):
         "DefaultValues[symbol_]"
 
-        return get_symbol_values(symbol, "System`DefaultValues", "default", evaluation)
+        return get_symbol_values(
+            symbol, "System`DefaultValues", "defaultvalues", evaluation
+        )
 
 
 class Messages(Builtin):
@@ -133,7 +135,7 @@ class NValues(Builtin):
     def eval(self, symbol, evaluation):
         "NValues[symbol_]"
 
-        return get_symbol_values(symbol, "NValues", "n", evaluation)
+        return get_symbol_values(symbol, "NValues", "nvalues", evaluation)
 
 
 class SubValues(Builtin):
@@ -164,4 +166,4 @@ class SubValues(Builtin):
     def eval(self, symbol, evaluation):
         "SubValues[symbol_]"
 
-        return get_symbol_values(symbol, "SubValues", "sub", evaluation)
+        return get_symbol_values(symbol, "SubValues", "subvalues", evaluation)

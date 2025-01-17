@@ -5,4 +5,5 @@ psutil # SystemMemory and MemoryAvailable
 pyocr # Used for TextRecognize
 scikit-image >= 0.17 # FindMinimum can use this; used by Image as well
 unidecode # Used in Transliterate
-wordcloud # Used in builtin/image.py by WordCloud()
+wordcloud >= 1.9.3 # Used in builtin/image.py by WordCloud(). Previous versions assume "image.textsize" which no longer exists
+llvmlite # Used for llvm compiling

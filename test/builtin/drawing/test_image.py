@@ -9,7 +9,7 @@ from test.helper import evaluate
 
 import pytest
 
-from mathics.builtin.base import check_requires_list
+from mathics.core.builtin import check_requires_list
 from mathics.core.symbols import SymbolNull
 
 # Note we test with tif, jpg, and gif. Add others?

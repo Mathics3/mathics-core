@@ -21,7 +21,7 @@ def make_expression(head, *elements, **kwargs) -> Expression:
 def to_expression(
     head: Union[str, Symbol],
     *elements: Any,
-    elements_conversion_fn: Callable = from_python
+    elements_conversion_fn: Callable = from_python,
 ) -> Expression:
     """
     This is an expression constructor that can be used when the Head and elements are not Mathics
@@ -45,14 +45,14 @@ def to_expression(
         head,
         *elements_tuple,
         elements_properties=elements_properties,
-        literal_values=literal_values
+        literal_values=literal_values,
     )
 
 
 def to_expression_with_specialization(
-    head: Union[str, Symbol],
+    head: BaseElement,
     *elements: Any,
-    elements_conversion_fn: Callable = from_python
+    elements_conversion_fn: Callable = from_python,
 ) -> Union[ListExpression, Expression]:
     """
     This expression constructor will figure out what the right kind of
@@ -65,26 +65,25 @@ def to_expression_with_specialization(
 
 
 def to_mathics_list(
-    *elements: Any, elements_conversion_fn: Callable = from_python, is_literal=False
+    *elements: Any,
+    elements_conversion_fn: Callable = from_python,
 ) -> ListExpression:
     """
     This is an expression constructor for list that can be used when the elements are not Mathics
     objects. For example:
        to_mathics_list(1, 2, 3)
-       to_mathics_list(1, 2, 3, elements_conversion_fn=Integer, is_literal=True)
+       to_mathics_list(1, 2, 3, elements_conversion_fn=Integer)
     """
-    elements_tuple, elements_properties, values = convert_expression_elements(
+    elements_tuple, elements_properties, _ = convert_expression_elements(
         elements, elements_conversion_fn
     )
     list_expression = ListExpression(
         *elements_tuple, elements_properties=elements_properties
     )
-    if is_literal:
-        list_expression.value = elements
     return list_expression
 
 
-def to_numeric_args(mathics_args: Type[BaseElement], evaluation) -> list:
+def to_numeric_args(mathics_args: BaseElement, evaluation) -> tuple:
     """
     Convert Mathics arguments, such as the arguments in an evaluation
     method a Python list that is suitable for feeding as arguments
@@ -92,8 +91,8 @@ def to_numeric_args(mathics_args: Type[BaseElement], evaluation) -> list:
 
     We make use of fast conversions for literals.
     """
-    return (
-        tuple(mathics_args.value)
+    return tuple(
+        mathics_args.value  # type: ignore[attr-defined]
         if mathics_args.is_literal
         else numerify(mathics_args, evaluation).get_sequence()
     )

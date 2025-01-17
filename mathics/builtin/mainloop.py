@@ -23,8 +23,8 @@ Similarly, if you assign a function to global variable '$Pre', it will be applie
 input, the second step listed above.
 """
 
-from mathics.builtin.base import Builtin
 from mathics.core.attributes import A_LISTABLE, A_NO_ATTRIBUTES, A_PROTECTED
+from mathics.core.builtin import Builtin
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.the-main-loop"
@@ -37,6 +37,7 @@ class HistoryLength(Builtin):
       <dt>'$HistoryLength'
       <dd>specifies the maximum number of 'In' and 'Out' entries.
     </dl>
+
     >> $HistoryLength
      = 100
     >> $HistoryLength = 1;
@@ -68,6 +69,7 @@ class In(Builtin):
       <dt>'In[$k$]'
         <dd>gives the $k$th line of input.
       </dl>
+
     >> x = 1
      = 1
     >> x = x + 1
@@ -207,6 +209,7 @@ class Line(Builtin):
       <dt>'$Line'
       <dd>holds the current input line number.
     </dl>
+
     >> $Line
      = 1
     >> $Line
@@ -222,56 +225,3 @@ class Line(Builtin):
 
     name = "$Line"
     summary_text = "current line number"
-
-
-class Out(Builtin):
-    """
-    <url>:WMA: https://reference.wolfram.com/language/ref/$Out</url>
-    <dl>
-      <dt>'Out[$k$]'
-      <dt>'%$k$'
-      <dd>gives the result of the $k$th input line.
-
-      <dt>'%', '%%', etc.
-      <dd>gives the result of the previous input line, of the line before the previous input line, etc.
-    </dl>
-
-    >> 42
-     = 42
-    >> %
-     = 42
-    >> 43;
-    >> %
-     = 43
-    >> 44
-     = 44
-    >> %1
-     = 42
-    >> %%
-     = 44
-    >> Hold[Out[-1]]
-     = Hold[%]
-    >> Hold[%4]
-     = Hold[%4]
-    >> Out[0]
-     = Out[0]
-
-    #> 10
-     = 10
-    #> Out[-1] + 1
-     = 11
-    #> Out[] + 1
-     = 12
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED
-
-    rules = {
-        "Out[k_Integer?Negative]": "Out[$Line + k]",
-        "Out[]": "Out[$Line - 1]",
-        "MakeBoxes[Out[k_Integer?((-10 <= # < 0)&)],"
-        "    f:StandardForm|TraditionalForm|InputForm|OutputForm]": r'StringJoin[ConstantArray["%%", -k]]',
-        "MakeBoxes[Out[k_Integer?Positive],"
-        "    f:StandardForm|TraditionalForm|InputForm|OutputForm]": r'"%%" <> ToString[k]',
-    }
-    summary_text = "result of the Kth input line"

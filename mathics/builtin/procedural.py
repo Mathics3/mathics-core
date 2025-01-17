@@ -16,14 +16,13 @@ Procedural functions are integrated into \\Mathics symbolic programming \
 environment.
 """
 
-
-from mathics.builtin.base import BinaryOperator, Builtin, IterationFunction
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_REST,
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.builtin import Builtin, InfixOperator, IterationFunction
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.interrupt import (
@@ -34,7 +33,8 @@ from mathics.core.interrupt import (
     WLThrowInterrupt,
 )
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import SymbolMatchQ
+from mathics.core.systemsymbols import SymbolMatchQ, SymbolPause
+from mathics.eval.datetime import eval_pause, valid_time_from_expression
 from mathics.eval.patterns import match
 
 SymbolWhich = Symbol("Which")
@@ -49,6 +49,7 @@ class Abort(Builtin):
       <dt>'Abort[]'
       <dd>aborts an evaluation completely and returns '$Aborted'.
     </dl>
+
     >> Print["a"]; Abort[]; Print["b"]
      | a
      = $Aborted
@@ -70,6 +71,7 @@ class Break(Builtin):
       <dt>'Break[]'
       <dd>exits a 'For', 'While', or 'Do' loop.
     </dl>
+
     >> n = 0;
     >> While[True, If[n>10, Break[]]; n=n+1]
     >> n
@@ -150,7 +152,37 @@ class Catch(Builtin):
         return ret
 
 
-class CompoundExpression(BinaryOperator):
+class CheckAbort(Builtin):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/CheckAbort.html</url>
+
+    <dl>
+      <dt>'CheckAbort[$expr$, $failexpr$]'
+        <dd>evaluates $expr$, returning $failexpr$ if an abort occurs.
+    </dl>
+
+    >> CheckAbort[Abort[]; 1, 2] + x
+     = 2 + x
+
+    >> CheckAbort[1, 2] + x
+     = 1 + x
+    """
+
+    attributes = A_HOLD_ALL | A_PROTECTED
+
+    summary_text = "catch an Abort[] exception"
+
+    def eval(self, expr, failexpr, evaluation):
+        "CheckAbort[expr_, failexpr_]"
+
+        try:
+            return expr.evaluate(evaluation)
+        except AbortInterrupt:
+            return failexpr
+
+
+class CompoundExpression(InfixOperator):
     """
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/CompoundExpression.html</url>
@@ -165,44 +197,9 @@ class CompoundExpression(BinaryOperator):
      = d
     If the last argument is omitted, 'Null' is taken:
     >> a;
-
-    ## Parser Tests
-    #> FullForm[Hold[; a]]
-     : "FullForm[Hold[" cannot be followed by "; a]]" (line 1 of "<test>").
-    #> FullForm[Hold[; a ;]]
-     : "FullForm[Hold[" cannot be followed by "; a ;]]" (line 1 of "<test>").
-
-    ## Issue331
-    #> CompoundExpression[x, y, z]
-     = z
-    #> %
-     = z
-
-    #> CompoundExpression[x, y, Null]
-    #> %
-     = y
-
-    #> CompoundExpression[CompoundExpression[x, y, Null], Null]
-    #> %
-     = y
-
-    #> CompoundExpression[x, Null, Null]
-    #> %
-     = x
-
-    #> CompoundExpression[]
-    #> %
-
-    ## Issue 531
-    #> z = Max[1, 1 + x]; x = 2; z
-     = 3
-
-    #> Clear[x]; Clear[z]
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
-    operator = ";"
-    precedence = 10
 
     summary_text = "execute expressions in sequence"
 
@@ -278,6 +275,7 @@ class Do(IterationFunction):
       <dd>evaluates $expr$ for each $j$ from $jmin$ to $jmax$, for each $i$ from $imin$
           to $imax$, etc.
     </dl>
+
     >> Do[Print[i], {i, 2, 4}]
      | 2
      | 3
@@ -294,10 +292,6 @@ class Do(IterationFunction):
      | 5
      | 7
      | 9
-
-    #> Do[Print["hi"],{1+1}]
-     | hi
-     | hi
     """
 
     allow_loopcontrol = True
@@ -330,12 +324,6 @@ class For(Builtin):
      = 3628800
     >> n == 10!
      = True
-
-    #> n := 1
-    #> For[i=1, i<=10, i=i+1, If[i > 5, Return[i]]; n = n * i]
-     = 6
-    #> n
-     = 120
     """
 
     attributes = A_HOLD_REST | A_PROTECTED
@@ -435,6 +423,7 @@ class Interrupt(Builtin):
       <dt>'Interrupt[]'
       <dd>Interrupt an evaluation and returns '$Aborted'.
     </dl>
+
     >> Print["a"]; Interrupt[]; Print["b"]
      | a
      = $Aborted
@@ -446,6 +435,40 @@ class Interrupt(Builtin):
         "Interrupt[]"
 
         raise AbortInterrupt
+
+
+class Pause(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Pause.html</url>
+
+    <dl>
+    <dt>'Pause[n]'
+      <dd>pauses for at least $n$ seconds.
+    </dl>
+
+    >> Pause[0.5]
+    """
+
+    messages = {
+        "numnm": (
+            "Non-negative machine-sized number expected at " "position 1 in `1`."
+        ),
+    }
+
+    summary_text = "pause for a number of seconds"
+
+    # Number of timeout polls per second that we perform in looking
+    # for a timeout.
+
+    def eval(self, n, evaluation: Evaluation):
+        "Pause[n_]"
+        try:
+            sleep_time = valid_time_from_expression(n, evaluation)
+        except ValueError:
+            evaluation.message("Pause", "numnm", Expression(SymbolPause, n))
+            return
+        eval_pause(sleep_time, evaluation)
+        return SymbolNull
 
 
 class Return(Builtin):
@@ -473,17 +496,6 @@ class Return(Builtin):
     >> g[x_] := (Do[If[x < 0, Return[0]], {i, {2, 1, 0, -1}}]; x)
     >> g[-1]
      = -1
-
-    #> h[x_] := (If[x < 0, Return[]]; x)
-    #> h[1]
-     = 1
-    #> h[-1]
-
-    ## Issue 513
-    #> f[x_] := Return[x];
-    #> g[y_] := Module[{}, z = f[y]; 2]
-    #> g[1]
-     = 2
     """
 
     rules = {
@@ -519,15 +531,14 @@ class Switch(Builtin):
      : Switch called with 2 arguments. Switch must be called with an odd number of arguments.
      = Switch[2, 1]
 
-    #> a; Switch[b, b]
-     : Switch called with 2 arguments. Switch must be called with an odd number of arguments.
-     = Switch[b, b]
 
-    ## Issue 531
-    #> z = Switch[b, b];
-     : Switch called with 2 arguments. Switch must be called with an odd number of arguments.
-    #> z
-     = Switch[b, b]
+    Notice that 'Switch' evaluates each pattern before it against \
+    $expr$, stopping after the first match:
+    >> a:=(Print["a->p"];p); b:=(Print["b->q"];q);
+    >> Switch[p,a,1,b,2]
+     | a->p
+     = 1
+    >> a=.; b=.;
     """
 
     summary_text = "switch based on a value, with patterns allowed"
@@ -550,9 +561,53 @@ class Switch(Builtin):
             evaluation.message("Switch", "argct", "Switch", len(rules) + 1)
             return
         for pattern, value in zip(rules[::2], rules[1::2]):
-            if match(expr, pattern, evaluation):
+            # The match is done against the result of the evaluation
+            # of `pattern`. HoldRest allows to evaluate the patterns
+            # just until a match is found.
+            if match(expr, pattern.evaluate(evaluation), evaluation):
                 return value.evaluate(evaluation)
         # return unevaluated Switch when no pattern matches
+
+
+class Throw(Builtin):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Throw.html</url>
+
+    <dl>
+      <dt>'Throw[`value`]'
+      <dd> stops evaluation and returns `value` as the value of the nearest \
+           enclosing 'Catch'.
+
+      <dt>'Catch[`value`, `tag`]'
+      <dd> is caught only by `Catch[expr,form]`, where tag matches form.
+    </dl>
+
+    Using Throw can affect the structure of what is returned by a function:
+
+    >> NestList[#^2 + 1 &, 1, 7]
+     = ...
+    >> Catch[NestList[If[# > 1000, Throw[#], #^2 + 1] &, 1, 7]]
+     = 458330
+
+    >> Throw[1]
+     : Uncaught Throw[1] returned to top level.
+     = Hold[Throw[1]]
+    """
+
+    messages = {
+        "nocatch": "Uncaught `1` returned to top level.",
+    }
+
+    summary_text = "throw an expression to be caught by a surrounding 'Catch'"
+
+    def eval(self, value, evaluation: Evaluation):
+        "Throw[value_]"
+        raise WLThrowInterrupt(value)
+
+    def eval_with_tag(self, value, tag, evaluation: Evaluation):
+        "Throw[value_, tag_]"
+        raise WLThrowInterrupt(value, tag)
 
 
 class Which(Builtin):
@@ -636,9 +691,6 @@ class While(Builtin):
     >> While[b != 0, {a, b} = {b, Mod[a, b]}];
     >> a
      = 3
-
-    #> i = 1; While[True, If[i^2 > 100, Return[i + 1], i++]]
-     = 12
     """
 
     summary_text = "evaluate an expression while a criterion is true"
@@ -661,43 +713,3 @@ class While(Builtin):
             except ReturnInterrupt as e:
                 return e.expr
         return SymbolNull
-
-
-class Throw(Builtin):
-    """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/Throw.html</url>
-
-    <dl>
-      <dt>'Throw[`value`]'
-      <dd> stops evaluation and returns `value` as the value of the nearest \
-           enclosing 'Catch'.
-
-      <dt>'Catch[`value`, `tag`]'
-      <dd> is caught only by `Catch[expr,form]`, where tag matches form.
-    </dl>
-
-    Using Throw can affect the structure of what is returned by a function:
-
-    >> NestList[#^2 + 1 &, 1, 7]
-     = ...
-    >> Catch[NestList[If[# > 1000, Throw[#], #^2 + 1] &, 1, 7]]
-     = 458330
-
-    X> Throw[1]
-      = Null
-    """
-
-    messages = {
-        "nocatch": "Uncaught `1` returned to top level.",
-    }
-
-    summary_text = "throw an expression to be caught by a surrounding 'Catch'"
-
-    def eval(self, value, evaluation: Evaluation):
-        "Throw[value_]"
-        raise WLThrowInterrupt(value)
-
-    def eval_with_tag(self, value, tag, evaluation: Evaluation):
-        "Throw[value_, tag_]"
-        raise WLThrowInterrupt(value, tag)

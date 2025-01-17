@@ -35,7 +35,7 @@ def test_expression_constructor():
     e4 = Expression(
         SymbolPlus,
         *integer_ones,
-        elements_properties=ElementsProperties(True, True, True)
+        elements_properties=ElementsProperties(True, True, True),
     )
     attribute_check(e4, "e4")
     assert e1 == e4

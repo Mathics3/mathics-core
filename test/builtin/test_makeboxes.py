@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
-from test.helper import check_evaluation, session
+from test.helper import check_evaluation
 
 import pytest
-from mathics_scanner.errors import IncompleteSyntaxError
 
 # To check the progress in the improvement of formatting routines, set this variable to 1.
 # Otherwise, the tests are going to be skipped.

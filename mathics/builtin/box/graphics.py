@@ -2,11 +2,8 @@
 """
 Boxing Symbols for 2D Graphics
 """
-# Docs are not yet ready for prime time. Maybe after release 6.0.0.
-no_doc = True
-
-
 from math import atan2, ceil, cos, degrees, floor, log10, pi, sin
+from typing import Optional
 
 from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.colors.color_directives import (
@@ -42,13 +39,16 @@ from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolTraditionalForm
 from mathics.eval.makeboxes import format_element
 
+# Docs are not yet ready for prime time. Maybe after release 6.0.0.
+no_doc = True
+
 SymbolRegularPolygonBox = Symbol("RegularPolygonBox")
 SymbolStandardForm = Symbol("StandardForm")
 
 
 # Note: has to come before _ArcBox
 class _RoundBox(_GraphicsElementBox):
-    face_element = None
+    face_element: Optional[bool] = None
 
     def init(self, graphics, style, item):
         super(_RoundBox, self).init(graphics, item, style)
@@ -474,7 +474,10 @@ class GraphicsBox(BoxExpression):
         ):
             self.background_color = None
         else:
-            self.background_color = _ColorObject.create(background)
+            try:
+                self.background_color = _ColorObject.create(background)
+            except ColorError:
+                self.background_color = None
 
         base_width, base_height, size_multiplier, size_aspect = self._get_image_size(
             options, self.graphics_options, max_width
@@ -491,6 +494,11 @@ class GraphicsBox(BoxExpression):
         if evaluation is None:
             evaluation = self.evaluation
         elements = GraphicsElements(elements[0], evaluation, neg_y)
+        if hasattr(elements, "background_color"):
+            self.background_color = elements.background_color
+        if hasattr(elements, "tooltip_text"):
+            self.tooltip_text = elements.tooltip_text
+
         axes = []  # to be filled further down
 
         def calc_dimensions(final_pass=True):
@@ -697,9 +705,8 @@ class GraphicsBox(BoxExpression):
         return svg_body
 
     def create_axes(self, elements, graphics_options, xmin, xmax, ymin, ymax) -> tuple:
-
         # Note that Asymptote has special commands for drawing axes, like "xaxis"
-        # "yaxis", "xtick" "labelx", "labely". Entend our language
+        # "yaxis", "xtick" "labelx", "labely". Extend our language
         # here and use those in render-like routines.
 
         use_log_for_y_axis = graphics_options.get("System`LogPlot", False)
@@ -795,6 +802,16 @@ class GraphicsBox(BoxExpression):
                 ),
             ]
         ):
+            # Where should the placement of tick mark labels go?
+            if index == 0:
+                # x labels go under tick marks
+                alignment = "bottom"
+            elif index == 1:
+                # y labels go to the left of tick marks
+                alignment = "left"
+            else:
+                alignment = None
+
             if axes[index]:
                 add_element(
                     LineBox(
@@ -851,6 +868,7 @@ class GraphicsBox(BoxExpression):
                             ),
                             opos=p_self0(1),
                             opacity=1.0,
+                            alignment=alignment,
                         )
                     )
                 for x in ticks_small:
@@ -985,6 +1003,7 @@ class InsetBox(_GraphicsElementBox):
         pos=None,
         opos=(0, 0),
         opacity=None,
+        alignment=None,
     ):
         super(InsetBox, self).init(graphics, item, style)
 
@@ -1001,6 +1020,7 @@ class InsetBox(_GraphicsElementBox):
             opacity = Opacity(1.0)
 
         self.opacity = opacity
+        self.alignment = alignment
 
         if item is not None:
             if len(item.elements) not in (1, 2, 3):
@@ -1069,7 +1089,7 @@ class PointBox(_Polyline):
     """
     <dl>
       <dt>'PointBox']
-      <dd>is the symbol used in boxing 'Point' expessions.
+      <dd>is the symbol used in boxing 'Point' expressions.
     </dl>
 
     Options include the edge color and the point radius for each of the points.

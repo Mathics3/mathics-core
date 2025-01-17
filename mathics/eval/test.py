@@ -20,7 +20,15 @@ def item_is_free(item, form, evaluation):
         # return False
 
     try:
-        form.match(yield_match, item, {}, evaluation, fully=False)
+        form.match(
+            item,
+            pattern_context={
+                "yield_func": yield_match,
+                "vars_dict": {},
+                "evaluation": evaluation,
+                "fully": False,
+            },
+        )
     except _StopGeneratorBaseElementIsFree as exc:
         return exc.value
 

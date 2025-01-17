@@ -4,7 +4,7 @@ from test.helper import check_evaluation, evaluate_value
 
 import pytest
 
-from mathics.builtin.base import check_requires_list
+from mathics.core.builtin import check_requires_list
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolPlus, SymbolTimes
 

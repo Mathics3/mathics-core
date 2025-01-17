@@ -8,8 +8,9 @@ import os
 import os.path as osp
 import sys
 from pathlib import Path
+from typing import List
 
-import pkg_resources
+from mathics.core.util import canonic_filename
 
 
 def get_srcdir():
@@ -18,7 +19,6 @@ def get_srcdir():
 
 
 DEBUG = True
-
 DEBUG_PRINT = False
 
 # Maximum recursion depth is safe for all Python environments
@@ -48,21 +48,22 @@ TIMEOUT = None
 # historically 10000 was used on public mathics servers
 MAX_STORED_SIZE = 10000
 
-ROOT_DIR = pkg_resources.resource_filename("mathics", "")
+ROOT_DIR = osp.dirname(__file__)
 if sys.platform.startswith("win"):
-    DATA_DIR = osp.join(os.environ["APPDATA"], "Python", "Mathics")
+    DATA_DIR = canonic_filename(osp.join(os.environ["APPDATA"], "Python", "Mathics"))
 else:
     DATA_DIR = osp.join(
-        os.environ.get("APPDATA", osp.expanduser("~/.local/var/mathics/"))
+        os.environ.get("APPDATA", osp.expanduser("~/.local/var/Mathics3/"))
     )
+USER_PACKAGE_DIR = osp.join(DATA_DIR, "Packages")
 
 # In contrast to ROOT_DIR, LOCAL_ROOT_DIR is used in building
 # LaTeX documentation. When Mathics is installed, we don't want LaTeX file documentation.tex
-# to get put in the installation directory, but instead we build documentaiton
+# to get put in the installation directory, but instead we build documentation
 # from checked-out source and that is where this should be put.
 LOCAL_ROOT_DIR = get_srcdir()
 
-# Location of doctests and test results formated for LaTeX.  This data
+# Location of doctests and test results formatted for LaTeX.  This data
 # is stoared as a Python Pickle format, but storing this in JSON if
 # possible would be preferable and faster
 
@@ -95,12 +96,21 @@ ENABLE_FILES_MODULE = True
 
 # Rocky: this is probably a hack. LoadModule[] needs to handle
 # whatever it is that setting this thing did.
-default_pymathics_modules = []
+default_pymathics_modules: List[str] = []
 
 character_encoding = os.environ.get(
     "MATHICS_CHARACTER_ENCODING", sys.getdefaultencoding()
 )
 SYSTEM_CHARACTER_ENCODING = "UTF-8" if character_encoding == "utf-8" else "ASCII"
+
+
+def ensure_directory(directory: str):
+    """
+    Create directory `directory` if it does not exist.
+    """
+    dir_path = Path(directory)
+    if not dir_path.is_dir():
+        os.mkdir(directory)
 
 
 def get_doctest_latex_data_path(should_be_readable=False, create_parent=False) -> str:

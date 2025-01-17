@@ -19,65 +19,17 @@ of any rank can be handled.
 """
 
 
-from mathics.builtin.base import BinaryOperator, Builtin
-from mathics.core.atoms import Integer, String
+from mathics.core.atoms import Integer
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
+from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
-from mathics.eval.parts import get_part
-
-
-def get_default_distance(p):
-    if all(q.is_numeric() for q in p):
-        return Symbol("SquaredEuclideanDistance")
-    elif all(q.get_head_name() == "System`List" for q in p):
-        dimensions = [get_dimensions(q) for q in p]
-        if len(dimensions) < 1:
-            return None
-        d0 = dimensions[0]
-        if not all(d == d0 for d in dimensions[1:]):
-            return None
-        if len(dimensions[0]) == 1:  # vectors?
-
-            def is_boolean(x):
-                return x.get_head_name() == "System`Symbol" and x in (
-                    SymbolTrue,
-                    SymbolFalse,
-                )
-
-            if all(all(is_boolean(e) for e in q.elements) for q in p):
-                return Symbol("JaccardDissimilarity")
-        return Symbol("SquaredEuclideanDistance")
-    elif all(isinstance(q, String) for q in p):
-        return Symbol("EditDistance")
-    else:
-        from mathics.builtin.colors.color_directives import expression_to_color
-
-        if all(expression_to_color(q) is not None for q in p):
-            return Symbol("ColorDistance")
-
-        return None
-
-
-def get_dimensions(expr, head=None):
-    if isinstance(expr, Atom):
-        return []
-    else:
-        if head is not None and not expr.head.sameQ(head):
-            return []
-        sub_dim = None
-        sub = []
-        for element in expr.elements:
-            sub = get_dimensions(element, expr.head)
-            if sub_dim is None:
-                sub_dim = sub
-            else:
-                if sub_dim != sub:
-                    sub = []
-                    break
-        return [len(expr.elements)] + sub
+from mathics.eval.tensors import (
+    eval_Inner,
+    eval_LeviCivitaTensor,
+    eval_Outer,
+    get_dimensions,
+)
 
 
 class ArrayDepth(Builtin):
@@ -128,11 +80,6 @@ class Dimensions(Builtin):
     The expression can have any head:
     >> Dimensions[f[f[a, b, c]]]
      = {1, 3}
-
-    #> Dimensions[{}]
-     = {0}
-    #> Dimensions[{{}}]
-     = {1, 0}
     """
 
     summary_text = "the dimensions of a tensor"
@@ -143,7 +90,7 @@ class Dimensions(Builtin):
         return ListExpression(*[Integer(dim) for dim in get_dimensions(expr)])
 
 
-class Dot(BinaryOperator):
+class Dot(InfixOperator):
     """
     <url>:Dot product:https://en.wikipedia.org/wiki/Dot_product</url> \
     (<url>:WMA link: https://reference.wolfram.com/language/ref/Dot.html</url>)
@@ -167,8 +114,6 @@ class Dot(BinaryOperator):
      = a . b
     """
 
-    operator = "."
-    precedence = 490
     attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
 
     rules = {
@@ -202,15 +147,6 @@ class Inner(Builtin):
     Inner works with tensors of any depth:
     >> Inner[f, {{{a, b}}, {{c, d}}}, {{1}, {2}}, g]
      = {{{g[f[a, 1], f[b, 2]]}}, {{g[f[c, 1], f[d, 2]]}}}
-
-
-    ## Issue #670
-    #> A = {{ b ^ ( -1 / 2), 0}, {a * b ^ ( -1 / 2 ), b ^ ( 1 / 2 )}}
-     = {{1 / Sqrt[b], 0}, {a / Sqrt[b], Sqrt[b]}}
-    #> A . Inverse[A]
-     = {{1, 0}, {0, 1}}
-    #> A
-     = {{1 / Sqrt[b], 0}, {a / Sqrt[b], Sqrt[b]}}
     """
 
     messages = {
@@ -229,46 +165,7 @@ class Inner(Builtin):
     def eval(self, f, list1, list2, g, evaluation: Evaluation):
         "Inner[f_, list1_, list2_, g_]"
 
-        m = get_dimensions(list1)
-        n = get_dimensions(list2)
-
-        if not m or not n:
-            evaluation.message("Inner", "normal")
-            return
-        if list1.get_head() != list2.get_head():
-            evaluation.message("Inner", "heads", list1.get_head(), list2.get_head())
-            return
-        if m[-1] != n[0]:
-            evaluation.message("Inner", "incom", m[-1], len(m), list1, n[0], list2)
-            return
-
-        head = list1.get_head()
-        inner_dim = n[0]
-
-        def rec(i_cur, j_cur, i_rest, j_rest):
-            evaluation.check_stopped()
-            if i_rest:
-                elements = []
-                for i in range(1, i_rest[0] + 1):
-                    elements.append(rec(i_cur + [i], j_cur, i_rest[1:], j_rest))
-                return Expression(head, *elements)
-            elif j_rest:
-                elements = []
-                for j in range(1, j_rest[0] + 1):
-                    elements.append(rec(i_cur, j_cur + [j], i_rest, j_rest[1:]))
-                return Expression(head, *elements)
-            else:
-
-                def summand(i):
-                    part1 = get_part(list1, i_cur + [i])
-                    part2 = get_part(list2, [i] + j_cur)
-                    return Expression(f, part1, part2)
-
-                part = Expression(g, *[summand(i) for i in range(1, inner_dim + 1)])
-                # cur_expr.elements.append(part)
-                return part
-
-        return rec([], [], m[:-1], n[1:])
+        return eval_Inner(f, list1, list2, g, evaluation)
 
 
 class Outer(Builtin):
@@ -288,9 +185,20 @@ class Outer(Builtin):
     >> Outer[Times, {{a, b}, {c, d}}, {{1, 2}, {3, 4}}]
      = {{{{a, 2 a}, {3 a, 4 a}}, {{b, 2 b}, {3 b, 4 b}}}, {{{c, 2 c}, {3 c, 4 c}}, {{d, 2 d}, {3 d, 4 d}}}}
 
+    Outer product of two sparse arrays:
+    >> Outer[Times, SparseArray[{{1, 2} -> a, {2, 1} -> b}], SparseArray[{{1, 2} -> c, {2, 1} -> d}]]
+     = SparseArray[Automatic, {2, 2, 2, 2}, 0, {{1, 2, 1, 2} -> a c, {1, 2, 2, 1} -> a d, {2, 1, 1, 2} -> b c, {2, 1, 2, 1} -> b d}]
+
     'Outer' of multiple lists:
     >> Outer[f, {a, b}, {x, y, z}, {1, 2}]
      = {{{f[a, x, 1], f[a, x, 2]}, {f[a, y, 1], f[a, y, 2]}, {f[a, z, 1], f[a, z, 2]}}, {{f[b, x, 1], f[b, x, 2]}, {f[b, y, 1], f[b, y, 2]}, {f[b, z, 1], f[b, z, 2]}}}
+
+    'Outer' converts input sparse arrays to lists if f=!=Times, or if the input is a mixture of sparse arrays and lists:
+    >> Outer[f, SparseArray[{{1, 2} -> a, {2, 1} -> b}], SparseArray[{{1, 2} -> c, {2, 1} -> d}]]
+     = {{{{f[0, 0], f[0, c]}, {f[0, d], f[0, 0]}}, {{f[a, 0], f[a, c]}, {f[a, d], f[a, 0]}}}, {{{f[b, 0], f[b, c]}, {f[b, d], f[b, 0]}}, {{f[0, 0], f[0, c]}, {f[0, d], f[0, 0]}}}}
+
+    >> Outer[Times, SparseArray[{{1, 2} -> a, {2, 1} -> b}], {c, d}]
+     = {{{0, 0}, {a c, a d}}, {{b c, b d}, {0, 0}}}
 
     Arrays can be ragged:
     >> Outer[Times, {{1, 2}}, {{a, b}, {c, d, e}}]
@@ -313,32 +221,7 @@ class Outer(Builtin):
     def eval(self, f, lists, evaluation: Evaluation):
         "Outer[f_, lists__]"
 
-        lists = lists.get_sequence()
-        head = None
-        for list in lists:
-            if isinstance(list, Atom):
-                evaluation.message("Outer", "normal")
-                return
-            if head is None:
-                head = list.head
-            elif not list.head.sameQ(head):
-                evaluation.message("Outer", "heads", head, list.head)
-                return
-
-        def rec(item, rest_lists, current):
-            evaluation.check_stopped()
-            if isinstance(item, Atom) or not item.head.sameQ(head):
-                if rest_lists:
-                    return rec(rest_lists[0], rest_lists[1:], current + [item])
-                else:
-                    return Expression(f, *(current + [item]))
-            else:
-                elements = []
-                for element in item.elements:
-                    elements.append(rec(element, rest_lists, current))
-                return Expression(head, *elements)
-
-        return rec(lists[0], lists[1:], [])
+        return eval_Outer(f, lists, evaluation)
 
 
 class RotationTransform(Builtin):
@@ -464,7 +347,7 @@ class Transpose(Builtin):
     :WMA: https://reference.wolfram.com/language/ref/Transpose.html</url>)
 
     <dl>
-      <dt>'Tranpose[$m$]'
+      <dt>'Transpose[$m$]'
       <dd>transposes rows and columns in the matrix $m$.
     </dl>
 
@@ -489,8 +372,6 @@ class Transpose(Builtin):
      = True
 
     #> Clear[matrix, square]
-    #> Transpose[x]
-     = Transpose[x]
     """
 
     summary_text = "transpose to rearrange indices in any way"
@@ -506,3 +387,57 @@ class Transpose(Builtin):
                 else:
                     result[col_index].append(item)
         return ListExpression(*[ListExpression(*row) for row in result])
+
+
+class ConjugateTranspose(Builtin):
+    """
+    <url>
+    :Conjugate transpose: https://en.wikipedia.org/wiki/Conjugate_transpose</url> (<url>
+    :WMA: https://reference.wolfram.com/language/ref/ConjugateTranspose.html</url>)
+
+    <dl>
+      <dt>'ConjugateTranspose[$m$]'
+      <dd>gives the conjugate transpose of $m$.
+    </dl>
+
+    >> ConjugateTranspose[{{0, I}, {0, 0}}]
+     = {{0, 0}, {-I, 0}}
+
+    >> ConjugateTranspose[{{1, 2 I, 3}, {3 + 4 I, 5, I}}]
+     = {{1, 3 - 4 I}, {-2 I, 5}, {3, -I}}
+    """
+
+    rules = {
+        "ConjugateTranspose[m_]": "Conjugate[Transpose[m]]",
+    }
+    summary_text = "give the conjugate transpose"
+
+
+class LeviCivitaTensor(Builtin):
+    """
+    <url>:Levi-Civita tensor:https://en.wikipedia.org/wiki/Levi-Civita_symbol</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/LeviCivitaTensor.html</url>)
+
+    <dl>
+      <dt>'LeviCivitaTensor[$d$]'
+      <dd>gives the $d$-dimensional Levi-Civita totally antisymmetric tensor.
+    </dl>
+
+    >> LeviCivitaTensor[3]
+     = SparseArray[Automatic, {3, 3, 3}, 0, {{1, 2, 3} -> 1, {1, 3, 2} -> -1, {2, 1, 3} -> -1, {2, 3, 1} -> 1, {3, 1, 2} -> 1, {3, 2, 1} -> -1}]
+
+    >> LeviCivitaTensor[3, List]
+     = {{{0, 0, 0}, {0, 0, 1}, {0, -1, 0}}, {{0, 0, -1}, {0, 0, 0}, {1, 0, 0}}, {{0, 1, 0}, {-1, 0, 0}, {0, 0, 0}}}
+    """
+
+    rules = {
+        "LeviCivitaTensor[d_Integer]/; Greater[d, 0]": "LeviCivitaTensor[d, SparseArray]",
+        "LeviCivitaTensor[d_Integer, List] /; Greater[d, 0]": "LeviCivitaTensor[d, SparseArray] // Normal",
+    }
+
+    summary_text = "give the Levi-Civita tensor with a given dimension"
+
+    def eval(self, d, type, evaluation: Evaluation):
+        "LeviCivitaTensor[d_Integer, type_]"
+
+        return eval_LeviCivitaTensor(d, type)

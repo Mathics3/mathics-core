@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Unit tests for mathics.builtins.numbers.algebra
+Unit tests for mathics.builtins.numbers.algebra and
+mathics.builtins.numbers.integer
 """
 from test.helper import check_evaluation
 
@@ -286,6 +287,15 @@ def test_factor_terms_list():
         check_evaluation(str_expr, str_expected)
 
 
+def test_polynomialq():
+    for str_expr, str_expected in [
+        ("PolynomialQ[1/x[1]^2]", "False"),
+        ("PolynomialQ[x[1]^2]", "True"),
+        ("PolynomialQ[y[1] ^ 3 / 6 + y[3] / 3 + y[1] y[2] / 2]", "True"),
+    ]:
+        check_evaluation(str_expr, str_expected)
+
+
 def test_simplify():
     for str_expr, str_expected in (
         (
@@ -329,3 +339,183 @@ def test_fullsimplify():
         ),
     ):
         check_evaluation(str_expr, str_expected, failure_message)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
+        ("Attributes[f] = {HoldAll}; Apart[f[x + x]]", None, "f[x + x]", None),
+        ("Attributes[f] = {}; Apart[f[x + x]]", None, "f[2 x]", None),
+        ## Errors:
+        (
+            "Coefficient[x + y + 3]",
+            ("Coefficient called with 1 argument; 2 or 3 arguments are expected.",),
+            "Coefficient[3 + x + y]",
+            None,
+        ),
+        (
+            "Coefficient[x + y + 3, 5]",
+            ("5 is not a valid variable.",),
+            "Coefficient[3 + x + y, 5]",
+            None,
+        ),
+        ## This is known bug of Sympy 1.0, next Sympy version will fix it by this commit
+        ## https://github.com/sympy/sympy/commit/25bf64b64d4d9a2dc563022818d29d06bc740d47
+        ("Coefficient[x * y, z, 0]", None, "x y", "Sympy 1.0 retuns 0"),
+        ## TODO: Support Modulus
+        # ("Coefficient[(x + 2)^3 + (x + 3)^2, x, 0, {Modulus -> 3, Modulus -> 2, Modulus -> 10}]",
+        # None,"{2, 1, 7}", None),
+        (
+            "CoefficientList[x + y, 5]",
+            ("5 is not a valid variable.",),
+            "CoefficientList[x + y, 5]",
+            None,
+        ),
+        (
+            "CoefficientList[(x - 2 y)^4, {x, 2}]",
+            ("2 is not a valid variable.",),
+            "CoefficientList[(x - 2 y) ^ 4, {x, 2}]",
+            None,
+        ),
+        (
+            "CoefficientList[x / y, {x, y}]",
+            ("x / y is not a polynomial.",),
+            "CoefficientList[x / y, {x, y}]",
+            None,
+        ),
+        ("Expand[x, Modulus -> -1]  (* copy odd MMA behaviour *)", None, "0", None),
+        (
+            "Expand[x, Modulus -> x]",
+            ("Value of option Modulus -> x should be an integer.",),
+            "Expand[x, Modulus -> x]",
+            None,
+        ),
+        ("a(b(c+d)+e) // Expand", None, "a b c + a b d + a e", None),
+        ("(y^2)^(1/2)/(2x+2y)//Expand", None, "Sqrt[y ^ 2] / (2 x + 2 y)", None),
+        (
+            "2(3+2x)^2/(5+x^2+3x)^3 // Expand",
+            None,
+            "24 x / (5 + 3 x + x ^ 2) ^ 3 + 8 x ^ 2 / (5 + 3 x + x ^ 2) ^ 3 + 18 / (5 + 3 x + x ^ 2) ^ 3",
+            None,
+        ),
+        ## Modulus option
+        (
+            "ExpandDenominator[1 / (x + y)^3, Modulus -> 3]",
+            None,
+            "1 / (x ^ 3 + y ^ 3)",
+            None,
+        ),
+        (
+            "ExpandDenominator[1 / (x + y)^6, Modulus -> 4]",
+            None,
+            "1 / (x ^ 6 + 2 x ^ 5 y + 3 x ^ 4 y ^ 2 + 3 x ^ 2 y ^ 4 + 2 x y ^ 5 + y ^ 6)",
+            None,
+        ),
+        (
+            "ExpandDenominator[2(3+2x)^2/(5+x^2+3x)^3]",
+            None,
+            "2 (3 + 2 x) ^ 2 / (125 + 225 x + 210 x ^ 2 + 117 x ^ 3 + 42 x ^ 4 + 9 x ^ 5 + x ^ 6)",
+            None,
+        ),
+        ## errors:
+        (
+            "Exponent[x^2]",
+            ("Exponent called with 1 argument; 2 or 3 arguments are expected.",),
+            "Exponent[x ^ 2]",
+            None,
+        ),
+        ## Issue659
+        ("Factor[{x+x^2}]", None, "{x (1 + x)}", None),
+        ("FactorTermsList[2 x^2 - 2, x]", None, "{2, 1, -1 + x ^ 2}", None),
+        (
+            "MinimalPolynomial[7a, x]",
+            ("7 a is not an explicit algebraic number.",),
+            "MinimalPolynomial[7 a, x]",
+            None,
+        ),
+        (
+            "MinimalPolynomial[3x^3 + 2x^2 + y^2 + ab, x]",
+            ("ab + 2 x ^ 2 + 3 x ^ 3 + y ^ 2 is not an explicit algebraic number.",),
+            "MinimalPolynomial[ab + 2 x ^ 2 + 3 x ^ 3 + y ^ 2, x]",
+            None,
+        ),
+        ## PurePoly
+        ("MinimalPolynomial[Sqrt[2 + Sqrt[3]]]", None, "1 - 4 #1 ^ 2 + #1 ^ 4", None),
+        (
+            "PolynomialQ[x, x, y]",
+            ("PolynomialQ called with 3 arguments; 1 or 2 arguments are expected.",),
+            "PolynomialQ[x, x, y]",
+            None,
+        ),
+        ## Always return True if argument is Null
+        (
+            "PolynomialQ[x^3 - 2 x/y + 3xz, ]",
+            None,
+            "True",
+            "Always return True if argument is Null",
+        ),
+        (
+            "PolynomialQ[, {x, y, z}]",
+            None,
+            "True",
+            "True if the expression is Null",
+        ),
+        (
+            "PolynomialQ[, ]",
+            None,
+            "True",
+            None,
+        ),
+        ## TODO: MMA and Sympy handle these cases differently
+        ## #> PolynomialQ[x^(1/2) + 6xyz]
+        ##  : No variable is not supported in PolynomialQ.
+        ##  = True
+        ## #> PolynomialQ[x^(1/2) + 6xyz, {}]
+        ##  : No variable is not supported in PolynomialQ.
+        ##  = True
+        ## #> PolynomialQ[x^3 - 2 x/y + 3xz]
+        ##  : No variable is not supported in PolynomialQ.
+        ##  = False
+        ## #> PolynomialQ[x^3 - 2 x/y + 3xz, {}]
+        ##  : No variable is not supported in PolynomialQ.
+        ##  = False
+        ("f[x]/x+f[x]/x^2//Together", None, "f[x] (1 + x) / x ^ 2", None),
+        ## failing test case from MMA docs
+        ("Variables[E^x]", None, "{}", None),
+    ],
+)
+def test_private_doctests_algebra(str_expr, msgs, str_expected, fail_msg):
+    """doctests for algebra"""
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "msgs", "str_expected", "fail_msg"),
+    [
+        (
+            "FromDigits[x]",
+            ("The input must be a string of digits or a list.",),
+            "FromDigits[x, 10]",
+            None,
+        ),
+    ],
+)
+def test_private_doctests_integer(str_expr, msgs, str_expected, fail_msg):
+    """doctests for integer"""
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )

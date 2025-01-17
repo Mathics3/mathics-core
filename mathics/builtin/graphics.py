@@ -5,11 +5,12 @@
 Drawing Graphics
 """
 
+import logging
 from math import sqrt
 
-from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_directives import (
     CMYKColor,
+    ColorError,
     GrayLevel,
     Hue,
     LABColor,
@@ -29,6 +30,7 @@ from mathics.builtin.drawing.graphics_internals import (
 from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Integer, Rational, Real
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
+from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.exceptions import BoxExpressionError
 from mathics.core.expression import Expression
@@ -67,6 +69,9 @@ GRAPHICS_OPTIONS = {
 
 # fraction of point relative canvas width
 DEFAULT_POINT_FACTOR = 0.005
+
+
+ERROR_BACKGROUND_COLOR = RGBColor(components=[1, 0.3, 0.3, 0.25])
 
 
 class CoordinatesError(BoxExpressionError):
@@ -262,14 +267,18 @@ class Graphics(Builtin):
     >> Graphics[Rectangle[]] // ToBoxes // Head
      = GraphicsBox
 
+    The 'Background' option allows to set the color of the background:
+    >> Graphics[{Green, Disk[]}, Background->RGBColor[.6, .7, 1.]]
+     = -Graphics-
+
     In 'TeXForm', 'Graphics' produces Asymptote figures:
     >> Graphics[Circle[]] // TeXForm
      = #<--#
      . \begin{asy}
      . usepackage("amsmath");
-     . size(5.8556cm, 5.8333cm);
-     . draw(ellipse((175,175),175,175), rgb(0, 0, 0)+linewidth(0.66667));
-     . clip(box((-0.33333,0.33333), (350.33,349.67)));
+     . size(5.8445cm, 5.8333cm);
+     . draw(ellipse((175,175),175,175), rgb(0, 0, 0)+linewidth(0.33333));
+     . clip(box((-0.16667,0.16667), (350.17,349.83)));
      . \end{asy}
     """
 
@@ -402,7 +411,7 @@ class _Size(_GraphicsDirective):
     def init(self, graphics, item=None, value=None):
         super(_Size, self).init(graphics, item)
         if item is not None:
-            self.value = item.elements[0].round_to_float()
+            self.value = item.elements[0].round_to_float() * 0.7
         elif value is not None:
             self.value = value
         else:
@@ -476,7 +485,9 @@ class PointSize(_Size):
       <dt>'PointSize[$t$]'
       <dd>sets the diameter of points to $t$, which is relative to the overall width.
     </dl>
-    'PointSize' can be used for both two- and three-dimensional graphics. The initial default pointsize is 0.008 for two-dimensional graphics and 0.01 for three-dimensional graphics.
+
+    'PointSize' can be used for both two- and three-dimensional graphics. \
+    The initial default pointsize is 0.008 for two-dimensional graphics and 0.01 for three-dimensional graphics.
 
     >> Table[Graphics[{PointSize[r], Point[{0, 0}]}], {r, {0.02, 0.05, 0.1, 0.3}}]
      = {-Graphics-, -Graphics-, -Graphics-, -Graphics-}
@@ -629,7 +640,7 @@ class RegularPolygon(Builtin):
     = -Graphics-
     """
 
-    summary_text = "graphics primitve for a regular polygon in 2D"
+    summary_text = "graphics primitive for a regular polygon in 2D"
 
 
 class Arrow(Builtin):
@@ -1027,15 +1038,15 @@ class Style:
     def get_option(self, name):
         return self.options.get(name, None)
 
-    def get_line_width(self, face_element=True):
+    def get_line_width(self, face_element=True) -> float:
         if self.graphics.pixel_width is None:
-            return 0
+            return 0.0
         edge_style, _ = self.get_style(
             _Thickness, default_to_faces=face_element, consider_forms=face_element
         )
         if edge_style is None:
-            return 0
-        return edge_style.get_thickness()
+            return 0.0
+        return edge_style.get_thickness() / 2.0
 
 
 def _flatten(elements):
@@ -1087,6 +1098,8 @@ class _GraphicsElements:
                     raise BoxExpressionError
             return new_style
 
+        failed = []
+
         def convert(content, style):
             if content.has_form("List", None):
                 items = content.elements
@@ -1098,31 +1111,57 @@ class _GraphicsElements:
                     continue
                 head = item.get_head()
                 if head in style_and_form_heads:
-                    style.append(item)
+                    try:
+                        style.append(item)
+                    except ColorError:
+                        failed.append(head)
                 elif head is Symbol("System`StyleBox"):
                     if len(item.elements) < 1:
-                        raise BoxExpressionError
+                        failed.append(item.head)
                     for element in convert(
                         item.elements[0], stylebox_style(style, item.elements[1:])
                     ):
                         yield element
                 elif head.name[-3:] == "Box":  # and head[:-3] in element_heads:
                     element_class = get_class(head)
+                    if element_class is None:
+                        failed.append(head)
+                        continue
                     options = get_options(head.name[:-3])
                     if options:
                         data, options = _data_and_options(item.elements, options)
                         new_item = Expression(head, *data)
-                        element = element_class(self, style, new_item, options)
+                        try:
+                            element = element_class(self, style, new_item, options)
+                        except (BoxExpressionError, CoordinatesError):
+                            failed.append(head)
+                            continue
                     else:
-                        element = element_class(self, style, item)
+                        try:
+                            element = element_class(self, style, item)
+                        except (BoxExpressionError, CoordinatesError):
+                            failed.append(head)
+                            continue
                     yield element
                 elif head is SymbolList:
                     for element in convert(item, style):
                         yield element
                 else:
-                    raise BoxExpressionError
+                    failed.append(head)
+                    continue
+
+            # if failed:
+            #    yield build_error_box2(style)
+            #    raise BoxExpressionError(messages)
 
         self.elements = list(convert(content, self.style_class(self)))
+        if failed:
+            messages = "\n".join(
+                [f"{str(h)} is not a valid primitive or directive." for h in failed]
+            )
+            self.tooltip_text = messages
+            self.background_color = ERROR_BACKGROUND_COLOR
+            logging.warning(messages)
 
     def create_style(self, expr):
         style = self.style_class(self)
@@ -1203,7 +1242,6 @@ class GraphicsElements(_GraphicsElements):
     def set_size(
         self, xmin, ymin, extent_width, extent_height, pixel_width, pixel_height
     ):
-
         self.xmin, self.ymin = xmin, ymin
         self.extent_width, self.extent_height = extent_width, extent_height
         self.pixel_width, self.pixel_height = pixel_width, pixel_height
@@ -1301,6 +1339,7 @@ class EdgeForm(Builtin):
       <dt> 'EdgeForm[$g$]'
       <dd> is a graphics directive that specifies that edges of filled graphics objects are to be drawn using the graphics directive or list of directives $g$.
     </dl>
+
     >> Graphics[{EdgeForm[{Thick, Green}], Disk[]}]
      = -Graphics-
 
@@ -1449,9 +1488,6 @@ class Text(Inset):
     </dl>
 
     >> Graphics[{Text["First", {0, 0}], Text["Second", {1, 1}]}, Axes->True, PlotRange->{{-2, 2}, {-2, 2}}]
-     = -Graphics-
-
-    #> Graphics[{Text[x, {0,0}]}]
      = -Graphics-
     """
 

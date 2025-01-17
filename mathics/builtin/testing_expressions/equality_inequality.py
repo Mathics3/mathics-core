@@ -3,13 +3,13 @@
 Equality and Inequality
 """
 
-from typing import Any, Optional
+from abc import ABC
+from typing import Any, Optional, Union
 
 import sympy
 
-from mathics.builtin.base import BinaryOperator, Builtin, SympyFunction
 from mathics.builtin.numbers.constants import mp_convert_constant
-from mathics.core.atoms import COMPARE_PREC, Integer, Integer1, Number, String
+from mathics.core.atoms import COMPARE_PREC, Number, String
 from mathics.core.attributes import (
     A_FLAT,
     A_NUMERIC_FUNCTION,
@@ -17,24 +17,19 @@ from mathics.core.attributes import (
     A_ORDERLESS,
     A_PROTECTED,
 )
-from mathics.core.convert.expression import to_expression, to_numeric_args
+from mathics.core.builtin import Builtin, InfixOperator, SympyFunction
+from mathics.core.convert.expression import to_numeric_args
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.expression_predefined import (
-    MATHICS3_COMPLEX_INFINITY,
-    MATHICS3_INFINITY,
-    MATHICS3_NEG_INFINITY,
-)
+from mathics.core.expression_predefined import MATHICS3_INFINITY, MATHICS3_NEG_INFINITY
 from mathics.core.number import dps
-from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAnd,
     SymbolDirectedInfinity,
     SymbolExactNumberQ,
     SymbolInequality,
-    SymbolInfinity,
     SymbolMaxExtraPrecision,
-    SymbolMaxPrecision,
-    SymbolSign,
 )
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
@@ -50,22 +45,29 @@ operators = {
 }
 
 
-class _InequalityOperator(BinaryOperator):
-    precedence = 290
+class _InequalityOperator(InfixOperator, ABC):
+    """
+    A class for builtin functions with element inequality
+    comparisons in a chain e.g. a != b != c compares a != b and b !=
+    c.
+    """
+
     grouping = "NonAssociative"
 
     @staticmethod
-    def numerify_args(items, evaluation) -> list:
-        items_sequence = items.get_sequence()
+    def numerify_args(elements, evaluation: Evaluation) -> Union[list, tuple]:
+        element_sequence = elements.get_sequence()
         all_numeric = all(
             item.is_numeric(evaluation) and item.get_precision() is None
-            for item in items_sequence
+            for item in element_sequence
         )
 
         # All expressions are numeric but exact and they are not all numbers,
-        if all_numeric and any(not isinstance(item, Number) for item in items_sequence):
+        if all_numeric and any(
+            not isinstance(item, Number) for item in element_sequence
+        ):
             # so apply N and compare them.
-            items = items_sequence
+            items = element_sequence
             n_items = []
             for item in items:
                 if not isinstance(item, Number):
@@ -73,27 +75,30 @@ class _InequalityOperator(BinaryOperator):
                 n_items.append(item)
             items = n_items
         else:
-            items = to_numeric_args(items, evaluation)
+            items = to_numeric_args(elements, evaluation)
         return items
 
 
-class _ComparisonOperator(_InequalityOperator):
-    "Compares arguments in a chain e.g. a < b < c compares a < b and b < c."
+class _ComparisonOperator(_InequalityOperator, ABC):
+    """
+    A class for builtin functions with element comparisons in a
+    chain e.g. a < b < c compares a < b and b < c.
+    """
 
-    def eval(self, items, evaluation):
-        "%(name)s[items___]"
-        items_sequence = items.get_sequence()
-        if len(items_sequence) <= 1:
+    def eval(self, elements, evaluation: Evaluation):
+        "%(name)s[elements___]"
+        elements_sequence = elements.get_sequence()
+        if len(elements_sequence) <= 1:
             return SymbolTrue
-        items = self.numerify_args(items, evaluation)
+        elements = self.numerify_args(elements, evaluation)
         wanted = operators[self.get_name()]
-        if isinstance(items[-1], String):
+        if isinstance(elements[-1], String):
             return None
-        for i in range(len(items) - 1):
-            x = items[i]
+        for i in range(len(elements) - 1):
+            x = elements[i]
             if isinstance(x, String):
                 return None
-            y = items[i + 1]
+            y = elements[i + 1]
             c = do_cmp(x, y)
             if c is None:
                 return
@@ -103,8 +108,11 @@ class _ComparisonOperator(_InequalityOperator):
         return SymbolTrue
 
 
-class _EqualityOperator(_InequalityOperator):
-    "Compares all pairs e.g. a == b == c compares a == b, b == c, and a == c."
+class _EqualityOperator(_InequalityOperator, ABC):
+    """
+    A class for builtin functions with element equality in a
+    chain e.g. a == b == c compares a == b and b == c.
+    """
 
     @staticmethod
     def get_pairs(args):
@@ -151,6 +159,15 @@ class _EqualityOperator(_InequalityOperator):
             return self.equal2(lhs_elements[0], rhs_elements[0], max_extra_prec)
         # DirectedInfinity with more than two elements cannot be compared here...
         return None
+
+    # Below, we default to the method used for equality builtin functions.
+    # Inequality builtin functions will redefine this method.
+    @staticmethod
+    def operator_sense(value) -> bool:
+        """function used to check whether `value` is the right Boolean-valued
+        sense needed for a particluar equality or inequality builtin function.
+        """
+        return bool(value)
 
     def sympy_equal(self, lhs, rhs, max_extra_prec=None) -> Optional[bool]:
         try:
@@ -210,28 +227,28 @@ class _EqualityOperator(_InequalityOperator):
                 return c
         return None
 
-    def eval(self, items, evaluation):
-        "%(name)s[items___]"
-        items_sequence = items.get_sequence()
-        n = len(items_sequence)
+    def eval(self, elements, evaluation: Evaluation):
+        "%(name)s[elements___]"
+        elements_sequence = elements.get_sequence()
+        n = len(elements_sequence)
         if n <= 1:
             return SymbolTrue
         is_exact_vals = [
             Expression(SymbolExactNumberQ, arg).evaluate(evaluation)
-            for arg in items_sequence
+            for arg in elements_sequence
         ]
         if not all(val is SymbolTrue for val in is_exact_vals):
-            return self.eval_other(items, evaluation)
-        args = self.numerify_args(items, evaluation)
+            return self.eval_other(elements, evaluation)
+        args = self.numerify_args(elements, evaluation)
         for x, y in self.get_pairs(args):
             c = do_cplx_equal(x, y)
             if c is None:
                 return
-            if not self._op(c):
+            if not self.operator_sense(c):
                 return SymbolFalse
         return SymbolTrue
 
-    def eval_other(self, args, evaluation):
+    def eval_other(self, args, evaluation: Evaluation):
         "%(name)s[args___?(!ExactNumberQ[#]&)]"
 
         args = args.get_sequence()
@@ -247,18 +264,25 @@ class _EqualityOperator(_InequalityOperator):
             c = self.equal2(x, y, max_extra_prec)
             if c is None:
                 return
-            if not self._op(c):
+            if not self.operator_sense(c):
                 return SymbolFalse
         return SymbolTrue
 
 
 class _MinMax(Builtin):
-
     attributes = (
         A_FLAT | A_NUMERIC_FUNCTION | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
     )
 
-    def eval(self, items, evaluation):
+    # "sense" should be either 1 for Maximum or -1 for Minimum
+    # This field is used to in comparison if figure out
+    # maximum/minimum sense.
+    # Below we default to value used for the Max builtin function
+    # The Min builtin function will redefine this.
+
+    sense = 1
+
+    def eval(self, items, evaluation: Evaluation):
         "%(name)s[items___]"
         if hasattr(items, "flatten_with_respect_to_head"):
             items = items.flatten_with_respect_to_head(SymbolList)
@@ -315,6 +339,51 @@ class _SympyComparison(SympyFunction):
         return to_sympy(expr, **kwargs)
 
 
+class Between(Builtin):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Between.html</url>
+
+    <dl>
+      <dt>'Between'[$x$, {$min$, $max$}]
+      <dd>equivalent to $min$ <= $x$ <= $max$.
+      <dt>'Between[$x$, { {$min1$, $max1$}, {$min2$, $max2$}, ...]'
+      <dd>equivalent to $min1$ <= $x$ <= $max1$' || $min2$ <= $x$ <= $max2$ ...
+      <dt>'Between[$range$]'
+      <dd>operator form that yields 'Between'[$x$, $range$] when applied to expression $x$.
+    </dl>
+
+    Check that 6 is in range 4..10:
+    >> Between[6, {4, 10}]
+     = True
+
+    Same as above in operator form:
+    >> Between[{4, 10}][6]
+     = True
+
+    'Between' works with irrational numbers:
+    >> Between[2, {E, Pi}]
+     = False
+
+    If more than an interval is given, 'Between' returns 'True' if $x$ belongs \\
+    to one of them:
+
+    >> {Between[3, {1, 2}, {4, 6}], Between[5, {1, 2}, {4, 6}]}
+     = {False, True}
+    """
+
+    attributes = A_PROTECTED
+
+    rules = {
+        "Between[x_, {min_, max_}]": "min <= x <= max",  # FIXME add error checking
+        "Between[x_, ranges__List]": "Module[{range},Do[If[Between[x,range], Return[True]],{range, {ranges}}]===True]",
+        "Between[range_List][x_]": "Between[x, range]",  # operator form
+    }
+
+    summary_text = "test if value or values are in range"
+
+
 class BooleanQ(Builtin):
     """
     <url>
@@ -337,12 +406,6 @@ class BooleanQ(Builtin):
 
     >> BooleanQ[1 < 2]
      = True
-
-    #> BooleanQ["string"]
-     = False
-
-    #> BooleanQ[Together[x/y + y/x]]
-     = False
     """
 
     rules = {
@@ -476,7 +539,6 @@ class Equal(_EqualityOperator, _SympyComparison):
     """
 
     grouping = "None"
-    operator = "=="
     summary_text = "numerical equality"
     sympy_name = "Eq"
 
@@ -486,8 +548,8 @@ class Equal(_EqualityOperator, _SympyComparison):
             yield (args[i], args[i + 1])
 
     @staticmethod
-    def _op(x):
-        return x
+    def operator_sense(value):
+        return value
 
 
 class Greater(_ComparisonOperator, _SympyComparison):
@@ -511,7 +573,6 @@ class Greater(_ComparisonOperator, _SympyComparison):
      = True
     """
 
-    operator = ">"
     summary_text = "greater than"
     sympy_name = "StrictGreaterThan"
 
@@ -524,13 +585,12 @@ class GreaterEqual(_ComparisonOperator, _SympyComparison):
 
     <dl>
       <dt>'GreaterEqual[$x$, $y$]'
-      <dt>$x$ \u2256 $y$ or '$x$ >= $y$'
+      <dt>$x$ \u2265 $y$ or '$x$ >= $y$'
       <dd>yields 'True' if $x$ is known to be greater than or equal
         to $y$.
     </dl>
     """
 
-    operator = ">="
     summary_text = "greater than or equal to"
     sympy_name = "GreaterThan"
 
@@ -566,10 +626,10 @@ class Inequality(Builtin):
     }
     summary_text = "chain of inequalities"
 
-    def eval(self, items, evaluation):
-        "Inequality[items___]"
+    def eval(self, elements, evaluation: Evaluation):
+        "Inequality[elements___]"
 
-        elements = numerify(items, evaluation).get_sequence()
+        elements = numerify(elements, evaluation).get_sequence()
         count = len(elements)
         if count == 1:
             return SymbolTrue
@@ -608,7 +668,6 @@ class Less(_ComparisonOperator, _SympyComparison):
      = 1 < 3 < x < 2
     """
 
-    operator = "<"
     summary_text = "less than"
     sympy_name = "StrictLessThan"
 
@@ -631,7 +690,6 @@ class LessEqual(_ComparisonOperator, _SympyComparison):
 
     """
 
-    operator = "<="
     summary_text = "less than or equal to"
     sympy_name = "LessThan"  # in contrast to StrictLessThan
 
@@ -668,12 +726,9 @@ class Max(_MinMax):
     'Max' does not compare strings or symbols:
     >> Max[-1.37, 2, "a", b]
      = Max[2, a, b]
-    #> Max[x]
-     = x
     """
 
-    sense = 1
-    summary_text = "the maximum value"
+    summary_text = "get maximum value"
 
 
 class Min(_MinMax):
@@ -704,13 +759,10 @@ class Min(_MinMax):
     With no arguments, 'Min' gives 'Infinity':
     >> Min[]
      = Infinity
-
-    #> Min[x]
-     = x
     """
 
     sense = -1
-    summary_text = "the minimum value"
+    summary_text = "get minimum value"
 
 
 class SameQ(_ComparisonOperator):
@@ -761,19 +813,17 @@ class SameQ(_ComparisonOperator):
     """
 
     grouping = "None"  # Indeterminate grouping: Neither left nor right
-    operator = "==="
-    precedence = 290
 
     summary_text = "literal symbolic identity"
 
-    def eval_list(self, items, evaluation):
-        "%(name)s[items___]"
-        items_sequence = items.get_sequence()
-        if len(items_sequence) <= 1:
+    def eval_list(self, elements, evaluation: Evaluation):
+        "%(name)s[elements___]"
+        elements_sequence = elements.get_sequence()
+        if len(elements_sequence) <= 1:
             return SymbolTrue
 
-        first_item = items_sequence[0]
-        for item in items_sequence[1:]:
+        first_item = elements_sequence[0]
+        for item in elements_sequence[1:]:
             if not first_item.sameQ(item):
                 return SymbolFalse
         return SymbolTrue
@@ -850,34 +900,17 @@ class Unequal(_EqualityOperator, _SympyComparison):
     >> "a" != "a"
      = False
 
-    #> Pi != N[Pi]
-     = False
-
-    #> a_ != b_
-     = a_ != b_
-
-    #> Clear[a, b];
-    #> a != a != a
-     = False
-    #> "abc" != "def" != "abc"
-     = False
-
-    ## Reproduce strange MMA behaviour
-    #> a != b != a
-     = a != b != a
-
     'Unequal' using an empty parameter or list, or a list with one element is True. This is the same as 'Equal".
 
     >> {Unequal[], Unequal[x], Unequal[1]}
      = {True, True, True}
     """
 
-    operator = "!="
     summary_text = "numerical inequality"
     sympy_name = "Ne"
 
     @staticmethod
-    def _op(x):
+    def operator_sense(x):
         return not x
 
 
@@ -914,19 +947,17 @@ class UnsameQ(_ComparisonOperator):
     """
 
     grouping = "None"  # Indeterminate grouping: Neither left nor right
-    operator = "=!="
-    precedence = 290
 
     summary_text = "not literal symbolic identity"
 
-    def eval_list(self, items, evaluation):
-        "%(name)s[items___]"
-        items_sequence = items.get_sequence()
-        if len(items_sequence) <= 1:
+    def eval_list(self, elements, evaluation: Evaluation):
+        "%(name)s[elements___]"
+        elements_sequence = elements.get_sequence()
+        if len(elements_sequence) <= 1:
             return SymbolTrue
 
-        for index, first_item in enumerate(items_sequence):
-            for second_item in items_sequence[index + 1 :]:
+        for index, first_item in enumerate(elements_sequence):
+            for second_item in elements_sequence[index + 1 :]:
                 if first_item.sameQ(second_item):
                     return SymbolFalse
         return SymbolTrue

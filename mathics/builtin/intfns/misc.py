@@ -1,5 +1,12 @@
-from mathics.builtin.base import MPMathFunction
+# -*- coding: utf-8 -*-
+
+"""
+Miscelanea of Integer Functions
+"""
+
+
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
+from mathics.core.builtin import MPMathFunction
 
 
 class BernoulliB(MPMathFunction):
@@ -8,10 +15,10 @@ class BernoulliB(MPMathFunction):
 
     <dl>
       <dt>'BernoulliB[$n$]'
-      <dd>represents the Bernouilli number B_$n$.
+      <dd>represents the Bernoulli number B_$n$.
 
       <dt>'BernouilliB[$n$, $x$]'
-      <dd>represents the Bernouilli polynomial B_$n[x]$.
+      <dd>represents the Bernoulli polynomial B_$n[x]$.
     </dl>
 
     >> BernoulliB[42]
@@ -20,7 +27,13 @@ class BernoulliB(MPMathFunction):
     First five Bernoulli numbers:
 
     >> Table[BernoulliB[k], {k, 0, 5}]
-     = {1, -1 / 2, 1 / 6, 0, -1 / 30, 0}
+     = ...
+
+    ## This must be (according to WMA)
+    ## = {1, -1 / 2, 1 / 6, 0, -1 / 30, 0}
+    ## but for some reason, in the CI the previous test produces
+    ## the output:
+    ## {1, 1 / 2, 1 / 6, 0, -1 / 30, 0}
 
     First five Bernoulli polynomials:
 

@@ -2,10 +2,9 @@
 """
 Boxing Symbols for 3D Graphics
 """
-# Docs are not yet ready for prime time. Maybe after release 6.0.0.
-no_doc = True
 
 import json
+import logging
 import numbers
 
 from mathics.builtin.box.graphics import (
@@ -15,7 +14,12 @@ from mathics.builtin.box.graphics import (
     PointBox,
     PolygonBox,
 )
-from mathics.builtin.colors.color_directives import Opacity, RGBColor, _ColorObject
+from mathics.builtin.colors.color_directives import (
+    ColorError,
+    Opacity,
+    RGBColor,
+    _ColorObject,
+)
 from mathics.builtin.drawing.graphics3d import Coords3D, Graphics3DElements, Style3D
 from mathics.builtin.drawing.graphics_internals import (
     GLOBALS3D,
@@ -27,6 +31,9 @@ from mathics.core.formatter import lookup_method
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.eval.nevaluator import eval_N
 
+# Docs are not yet ready for prime time. Maybe after release 7.0.0.
+no_doc = True
+
 
 class Graphics3DBox(GraphicsBox):
     """
@@ -36,7 +43,7 @@ class Graphics3DBox(GraphicsBox):
     </dl>
     """
 
-    summary_text = "symbol used boxing Graphics3D expresssions"
+    summary_text = "symbol used boxing Graphics3D expressions"
 
     def _prepare_elements(self, elements, options, max_width=None):
         if not elements:
@@ -51,7 +58,11 @@ class Graphics3DBox(GraphicsBox):
         ):
             self.background_color = None
         else:
-            self.background_color = _ColorObject.create(background)
+            try:
+                self.background_color = _ColorObject.create(background)
+            except ColorError:
+                logging.warning(f"{str(background)} is not a valid color spec.")
+                self.background_color = None
 
         evaluation = options["evaluation"]
 
@@ -227,6 +238,11 @@ class Graphics3DBox(GraphicsBox):
             raise BoxExpressionError
 
         elements = Graphics3DElements(elements[0], evaluation)
+        # If one of the primitives or directives fails to be
+        # converted into a box expression, then the background color
+        # is set to pink, overwriting the options.
+        if hasattr(elements, "background_color"):
+            self.background_color = elements.background_color
 
         def calc_dimensions(final_pass=True):
             if "System`Automatic" in plot_range:
@@ -356,6 +372,18 @@ class Graphics3DBox(GraphicsBox):
             boxscale,
         ) = self._prepare_elements(elements, options)
 
+        background = "rgba(100.0%, 100.0%, 100.0%, 100.0%)"
+        if self.background_color:
+            components = self.background_color.to_rgba()
+            if len(components) == 3:
+                background = "rgb(" + ", ".join(f"{100*c}%" for c in components) + ")"
+            else:
+                background = "rgba(" + ", ".join(f"{100*c}%" for c in components) + ")"
+
+        tooltip_text = (
+            elements.tooltip_text if hasattr(elements, "tooltip_text") else ""
+        )
+
         js_ticks_style = [s.to_js() for s in ticks_style]
 
         elements._apply_boxscaling(boxscale)
@@ -370,6 +398,8 @@ class Graphics3DBox(GraphicsBox):
         json_repr = json.dumps(
             {
                 "elements": format_fn(elements, **options),
+                "background_color": background,
+                "tooltip_text": tooltip_text,
                 "axes": {
                     "hasaxes": axes,
                     "ticks": ticks,
@@ -526,7 +556,7 @@ class Cone3DBox(_GraphicsElementBox):
 
     def extent(self):
         result = []
-        # FIXME: the extent is roughly wrong. It is using the extent of a shpere at each coordinate.
+        # FIXME: the extent is roughly wrong. It is using the extent of a sphere at each coordinate.
         # Anyway, it is very difficult to calculate the extent of a cone.
         result.extend(
             [

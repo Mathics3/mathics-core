@@ -5,10 +5,10 @@ Image Colors
 import numpy
 import PIL
 
-from mathics.builtin.base import Builtin, String
 from mathics.builtin.colors.color_internals import colorspaces as known_colorspaces
 from mathics.builtin.image.base import Image, image_common_messages
 from mathics.core.atoms import Integer, is_integer_rational_or_real
+from mathics.core.builtin import Builtin, String
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression

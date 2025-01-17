@@ -64,7 +64,7 @@ def test_string_split():
         (
             'StringSplit["This is a sentence, which goes on.",  Except[WordCharacter] ..]',
             "{This, is, a, sentence, which, goes, on}",
-        )
+        ),
         # #  FIXME: these forms are not implemented yet:
         # ('StringSplit["11a22b3", _?LetterQ]', '{11, 22, 3}'),
         # ('StringSplit["a b::c d::e f g", "::" -> "--"]'), '{a, b, --, c d, --, e f g}'),

@@ -2,8 +2,8 @@
 Image Properties
 """
 
-from mathics.builtin.base import Builtin, String
 from mathics.core.atoms import Integer
+from mathics.core.builtin import Builtin, String
 from mathics.core.convert.expression import from_python, to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -93,10 +93,6 @@ class ImageData(Builtin):
 
     >> ImageData[Image[{{0, 1}, {1, 0}, {1, 1}}], "Bit"]
      = {{0, 1}, {1, 0}, {1, 1}}
-
-    #> ImageData[img, "Bytf"]
-     : Unsupported pixel format "Bytf".
-     = ImageData[-Image-, Bytf]
     """
 
     messages = {"pixelfmt": 'Unsupported pixel format "``".'}

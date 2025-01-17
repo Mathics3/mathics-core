@@ -11,10 +11,10 @@ import re
 import shutil
 from typing import List
 
-from mathics.builtin.base import Builtin, MessageException, Predefined
 from mathics.builtin.files_io.files import MathicsOpen
 from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_LISTABLE, A_LOCKED, A_PROTECTED
+from mathics.core.builtin import Builtin, MessageException, Predefined
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.convert.regex import to_regex
@@ -36,6 +36,7 @@ from mathics.core.systemsymbols import (
     SymbolPackages,
 )
 from mathics.eval.directories import DIRECTORY_STACK
+from mathics.eval.files_io.files import eval_Get
 
 SymbolAbsoluteTime = Symbol("AbsoluteTime")
 
@@ -53,9 +54,6 @@ class AbsoluteFileName(Builtin):
     >> AbsoluteFileName["ExampleData/sunflowers.jpg"]
      = ...
 
-    #> AbsoluteFileName["Some/NonExistant/Path.ext"]
-     : File not found during AbsoluteFileName[Some/NonExistant/Path.ext].
-     = $Failed
     """
 
     messages = {
@@ -349,80 +347,6 @@ class Directory(Builtin):
         return String(result)
 
 
-class DirectoryName(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/DirectoryName.html</url>
-
-    <dl>
-      <dt>'DirectoryName["$name$"]'
-      <dd>extracts the directory name from a filename.
-    </dl>
-
-    >> DirectoryName["a/b/c"]
-     = a/b
-
-    >> DirectoryName["a/b/c", 2]
-     = a
-
-    #> DirectoryName["a/b/c", 3] // InputForm
-     = ""
-    #> DirectoryName[""] // InputForm
-     = ""
-
-    #> DirectoryName["a/b/c", x]
-     : Positive machine-sized integer expected at position 2 in DirectoryName[a/b/c, x].
-     = DirectoryName[a/b/c, x]
-
-    #> DirectoryName["a/b/c", -1]
-     : Positive machine-sized integer expected at position 2 in DirectoryName[a/b/c, -1].
-     = DirectoryName[a/b/c, -1]
-
-    #> DirectoryName[x]
-     : String expected at position 1 in DirectoryName[x].
-     = DirectoryName[x]
-    """
-
-    messages = {
-        "string": "String expected at position 1 in `1`.",
-        "intpm": ("Positive machine-sized integer expected at " "position 2 in `1`."),
-    }
-
-    options = {
-        "OperatingSystem": "$OperatingSystem",
-    }
-    summary_text = "directory part of a filename"
-
-    def eval_with_n(self, name, n, evaluation: Evaluation, options: dict):
-        "DirectoryName[name_, n_, OptionsPattern[DirectoryName]]"
-
-        if n is None:
-            expr = to_expression("DirectoryName", name)
-            py_n = 1
-        else:
-            expr = to_expression("DirectoryName", name, n)
-            py_n = n.to_python()
-
-        if not (isinstance(py_n, int) and py_n > 0):
-            evaluation.message("DirectoryName", "intpm", expr)
-            return
-
-        py_name = name.to_python()
-        if not (isinstance(py_name, str) and py_name[0] == py_name[-1] == '"'):
-            evaluation.message("DirectoryName", "string", expr)
-            return
-        py_name = py_name[1:-1]
-
-        result = py_name
-        for i in range(py_n):
-            (result, tmp) = osp.split(result)
-
-        return String(result)
-
-    def eval(self, name, evaluation: Evaluation, options: dict):
-        "DirectoryName[name_, OptionsPattern[DirectoryName]]"
-        return self.eval_with_n(name, None, evaluation, options)
-
-
 class DirectoryStack(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/DirectoryStack.html</url>
@@ -508,12 +432,6 @@ class FileBaseName(Builtin):
 
     >> FileBaseName["file.tar.gz"]
      = file.tar
-
-    #> FileBaseName["file."]
-     = file
-
-    #> FileBaseName["file"]
-     = file
     """
 
     options = {
@@ -627,11 +545,6 @@ class FileExtension(Builtin):
 
     >> FileExtension["file.tar.gz"]
      = gz
-
-    #> FileExtension["file."]
-     = #<--#
-    #> FileExtension["file"]
-     = #<--#
     """
 
     options = {
@@ -660,9 +573,6 @@ class FileInformation(Builtin):
 
     >> FileInformation["ExampleData/sunflowers.jpg"]
      = {File -> ..., FileType -> File, ByteCount -> 142286, Date -> ...}
-
-    #> FileInformation["ExampleData/missing_file.jpg"]
-     = {}
     """
 
     rules = {
@@ -688,9 +598,6 @@ class FindFile(Builtin):
 
     >> FindFile["VectorAnalysis`VectorAnalysis`"]
      = ...
-
-    #> FindFile["SomeTypoPackage`"]
-     = $Failed
     """
 
     messages = {
@@ -938,97 +845,6 @@ class Needs(Builtin):
     </dl>
 
     >> Needs["VectorAnalysis`"]
-    #> Needs["VectorAnalysis`"]
-
-    #> Needs["SomeFakePackageOrTypo`"]
-     : Cannot open SomeFakePackageOrTypo`.
-     : Context SomeFakePackageOrTypo` was not created when Needs was evaluated.
-     = $Failed
-
-    #> Needs["VectorAnalysis"]
-     : Invalid context specified at position 1 in Needs[VectorAnalysis]. A context must consist of valid symbol names separated by and ending with `.
-     = Needs[VectorAnalysis]
-
-    ## --- VectorAnalysis ---
-
-    #> Needs["VectorAnalysis`"]
-
-    #> DotProduct[{1,2,3}, {4,5,6}]
-     = 32
-    #> DotProduct[{-1.4, 0.6, 0.2}, {0.1, 0.6, 1.7}]
-     = 0.56
-
-    #> CrossProduct[{1,2,3}, {4,5,6}]
-     = {-3, 6, -3}
-    #> CrossProduct[{-1.4, 0.6, 0.2}, {0.1, 0.6, 1.7}]
-     = {0.9, 2.4, -0.9}
-
-    #> ScalarTripleProduct[{-2,3,1},{0,4,0},{-1,3,3}]
-     = -20
-    #> ScalarTripleProduct[{-1.4,0.6,0.2}, {0.1,0.6,1.7}, {0.7,-1.5,-0.2}]
-     = -2.79
-
-    #> CoordinatesToCartesian[{2, Pi, 3}, Spherical]
-     = {0, 0, -2}
-    #> CoordinatesFromCartesian[%, Spherical]
-     = {2, Pi, 0}
-    #> CoordinatesToCartesian[{2, Pi, 3}, Cylindrical]
-     = {-2, 0, 3}
-    #> CoordinatesFromCartesian[%, Cylindrical]
-     = {2, Pi, 3}
-    ## Needs Sin/Cos exact value (PR #100) for these tests to pass
-    ## #> CoordinatesToCartesian[{2, Pi / 4, Pi / 3}, Spherical]
-    ##  = {Sqrt[2] / 2, Sqrt[6] / 2, Sqrt[2]}
-    ## #> CoordinatesFromCartesian[%, Spherical]
-    ##  = {2, Pi / 4, Pi / 3}
-    ## #> CoordinatesToCartesian[{2, Pi / 4, -1}, Cylindrical]
-    ##  = {Sqrt[2], Sqrt[2], -1}
-    ## #> CoordinatesFromCartesian[%, Cylindrical]
-    ##  = {2, Pi / 4, -1}
-    #> CoordinatesToCartesian[{0.27, 0.51, 0.92}, Cylindrical]
-     = {0.235641, 0.131808, 0.92}
-    #> CoordinatesToCartesian[{0.27, 0.51, 0.92}, Spherical]
-     = {0.0798519, 0.104867, 0.235641}
-
-    #> Coordinates[]
-     = {Xx, Yy, Zz}
-    #> Coordinates[Spherical]
-     = {Rr, Ttheta, Pphi}
-    #> SetCoordinates[Cylindrical]
-     = Cylindrical[Rr, Ttheta, Zz]
-    #> Coordinates[]
-     = {Rr, Ttheta, Zz}
-    #> CoordinateSystem
-     = Cylindrical
-    #> Parameters[]
-     = {}
-    #> CoordinateRanges[]
-    ## = {0 <= Rr < Infinity, -Pi < Ttheta <= Pi, -Infinity < Zz < Infinity}
-     = {0 <= Rr && Rr < Infinity, -Pi < Ttheta && Ttheta <= Pi, -Infinity < Zz < Infinity}
-    #> CoordinateRanges[Cartesian]
-     = {-Infinity < Xx < Infinity, -Infinity < Yy < Infinity, -Infinity < Zz < Infinity}
-    #> ScaleFactors[Cartesian]
-     = {1, 1, 1}
-    #> ScaleFactors[Spherical]
-     = {1, Rr, Rr Sin[Ttheta]}
-    #> ScaleFactors[Cylindrical]
-     = {1, Rr, 1}
-    #> ScaleFactors[{2, 1, 3}, Cylindrical]
-     = {1, 2, 1}
-    #> JacobianDeterminant[Cartesian]
-     = 1
-    #> JacobianDeterminant[Spherical]
-     = Rr ^ 2 Sin[Ttheta]
-    #> JacobianDeterminant[Cylindrical]
-     = Rr
-    #> JacobianDeterminant[{2, 1, 3}, Cylindrical]
-     = 2
-    #> JacobianMatrix[Cartesian]
-     = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}
-    #> JacobianMatrix[Spherical]
-     = {{Cos[Pphi] Sin[Ttheta], Rr Cos[Pphi] Cos[Ttheta], -Rr Sin[Pphi] Sin[Ttheta]}, {Sin[Pphi] Sin[Ttheta], Rr Cos[Ttheta] Sin[Pphi], Rr Cos[Pphi] Sin[Ttheta]}, {Cos[Ttheta], -Rr Sin[Ttheta], 0}}
-    #> JacobianMatrix[Cylindrical]
-     = {{Cos[Ttheta], -Rr Sin[Ttheta], 0}, {Sin[Ttheta], Rr Cos[Ttheta], 0}, {0, 0, 1}}
     """
 
     messages = {
@@ -1043,14 +859,14 @@ class Needs(Builtin):
 
     def eval(self, context, evaluation):
         "Needs[context_String]"
-        contextstr = context.get_string_value()
-        if contextstr == "":
+        context_str = context.value
+        if context_str == "":
             return SymbolNull
-        if contextstr[0] == "`":
+        if context_str[0] == "`":
             curr_ctxt = evaluation.definitions.get_current_context()
-            contextstr = curr_ctxt + contextstr[1:]
-            context = String(contextstr)
-        if not valid_context_name(contextstr):
+            context_str = curr_ctxt + context_str[1:]
+            context = String(context_str)
+        if not valid_context_name(context_str):
             evaluation.message("Needs", "ctx", Expression(SymbolNeeds, context), 1, "`")
             return
         test_loaded = Expression(SymbolMemberQ, SymbolPackages, context)
@@ -1058,7 +874,7 @@ class Needs(Builtin):
         if test_loaded is SymbolTrue:
             # Already loaded
             return SymbolNull
-        result = Expression(SymbolGet, context).evaluate(evaluation)
+        result = eval_Get(context_str, evaluation)
 
         if result is SymbolFailed:
             evaluation.message("Needs", "nocont", context)
@@ -1223,10 +1039,6 @@ class SetDirectory(Builtin):
 
     S> SetDirectory[]
     = ...
-
-    #> SetDirectory["MathicsNonExample"]
-     : Cannot set current directory to MathicsNonExample.
-     = $Failed
     """
 
     messages = {

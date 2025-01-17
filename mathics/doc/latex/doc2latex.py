@@ -10,14 +10,13 @@ The information for this comes from:
   on the command line
 
 * doctest tests and test result that have been stored in a Python
-  Pickle file, from a privious docpipeline.py run.  Ideally the
+  Pickle file, from a previous docpipeline.py run.  Ideally the
   Mathics3 Modules given to docpipeline.py are the same as
   given on the command line for this program
 """
 
 import os
 import os.path as osp
-import pickle
 import subprocess
 import sys
 from argparse import ArgumentParser
@@ -28,10 +27,11 @@ from numpy import __version__ as NumPyVersion
 from sympy import __version__ as SymPyVersion
 
 import mathics
-from mathics import __version__, settings, version_string
+from mathics import __version__, settings, version_info, version_string
 from mathics.core.definitions import Definitions
 from mathics.core.load_builtin import import_and_load_builtins
 from mathics.doc.latex_doc import LaTeXMathicsDocumentation
+from mathics.doc.utils import load_doctest_data, open_ensure_dir
 from mathics.eval.pymathics import PyMathicsLoadException, eval_LoadModule
 
 # Global variables
@@ -63,46 +63,7 @@ def read_doctest_data(quiet=False) -> Optional[Dict[tuple, dict]]:
         )
     except KeyboardInterrupt:
         print("\nAborted.\n")
-        return
-
-
-def load_doctest_data(data_path, quiet=False) -> Dict[tuple, dict]:
-    """
-    Read doctest information from PCL file and return this.
-
-    The return value is a dictionary of test results. The key is a tuple
-    of:
-    * Part name,
-    * Chapter name,
-    * [Guide Section name],
-    * Section name,
-    * Subsection name,
-    * test number
-    and the value is a dictionary of a Result.getdata() dictionary.
-    """
-    if not quiet:
-        print(f"Loading LaTeX internal data from {data_path}")
-    with open_ensure_dir(data_path, "rb") as doc_data_fp:
-        return pickle.load(doc_data_fp)
-
-
-def open_ensure_dir(f, *args, **kwargs):
-    try:
-        return open(f, *args, **kwargs)
-    except (IOError, OSError):
-        d = osp.dirname(f)
-        if d and not osp.exists(d):
-            os.makedirs(d)
-        return open(f, *args, **kwargs)
-
-
-def print_and_log(*args):
-    global logfile
-    a = [a.decode("utf-8") if isinstance(a, bytes) else a for a in args]
-    string = "".join(a)
-    print(string)
-    if logfile:
-        logfile.write(string)
+        return None
 
 
 def get_versions():
@@ -128,6 +89,7 @@ def get_versions():
         ["GhostscriptVersion", ("gs", "--version"), "stdout"],
     ):
         versions[name] = try_cmd(cmd, field)
+    versions.update(version_info)
     return versions
 
 
@@ -157,7 +119,6 @@ def write_latex(
 
 
 def main():
-
     global logfile
 
     parser = ArgumentParser(description="Mathics test suite.", add_help=False)
