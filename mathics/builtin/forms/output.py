@@ -158,7 +158,7 @@ class MathMLForm(FormBaseClass):
     summary_text = "formatted expression as MathML commands"
 
     def eval_mathml(self, expr, evaluation) -> Expression:
-        "MakeBoxes[expr_, MathMLForm]"
+        "MakeBoxes[MathMLForm[expr_], _Symbol]"
         return eval_mathmlform(expr, evaluation)
 
 
@@ -635,7 +635,7 @@ class TeXForm(FormBaseClass):
     summary_text = "formatted expression as TeX commands"
 
     def eval_tex(self, expr, evaluation) -> Expression:
-        "MakeBoxes[expr_, TeXForm]"
+        "MakeBoxes[TeXForm[expr_], _Symbol]"
         return eval_texform(expr, evaluation)
 
 

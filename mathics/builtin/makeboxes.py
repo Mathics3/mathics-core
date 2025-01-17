@@ -91,17 +91,21 @@ class MakeBoxes(Builtin):
     attributes = A_HOLD_ALL_COMPLETE
 
     rules = {
+        # Default infix rule
         "MakeBoxes[Infix[head_[elements___]], "
-        "    f:StandardForm|TraditionalForm|OutputForm|InputForm]": (
+        "    _Symbol]": (
             'MakeBoxes[Infix[head[elements], StringForm["~`1`~", head]], f]'
         ),
+        # If no format is provided, assume StandardForm
         "MakeBoxes[expr_]": "MakeBoxes[expr, StandardForm]",
-        "MakeBoxes[(form:StandardForm|TraditionalForm|OutputForm|TeXForm|"
-        "MathMLForm)[expr_], StandardForm|TraditionalForm]": ("MakeBoxes[expr, form]"),
-        "MakeBoxes[(form:StandardForm|OutputForm|MathMLForm|TeXForm)[expr_], OutputForm]": "MakeBoxes[expr, form]",
+        # BoxForms in the first argument overrides the second argument:
+        "MakeBoxes[(form:StandardForm|TraditionalForm|OutputForm)[expr_], _Symbol]": (
+            "MakeBoxes[expr, form]"
+        ),
         "MakeBoxes[InputForm[expr_], StandardForm|TraditionalForm|OutputForm]": "StyleBox[MakeBoxes[expr, InputForm], ShowStringCharacters->True]",
-        "MakeBoxes[expr_, FullForm]": "MakeBoxes[FullForm[expr], StandardForm]",
-        "MakeBoxes[PrecedenceForm[expr_, prec_], f_]": "MakeBoxes[expr, f]",
+        # This rule does not exists in WMA, and is keep just for backward compatibility.
+        "MakeBoxes[expr_, form:(FullForm|TeXForm|MathMLForm)]": "MakeBoxes[form[expr], StandardForm]",
+        # Handle `Style`
         "MakeBoxes[Style[expr_, OptionsPattern[Style]], f_]": (
             "StyleBox[MakeBoxes[expr, f], "
             "ImageSizeMultipliers -> OptionValue[ImageSizeMultipliers]]"

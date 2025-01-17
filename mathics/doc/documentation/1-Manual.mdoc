@@ -895,12 +895,12 @@ Except some other form is applied first:
   = b
 'MakeBoxes' for another form:
 
-  >> MakeBoxes[b, TeXForm] = "d";
+  >> MakeBoxes[TeXForm[b], s_] = "d";
   >> b // TeXForm
   = d
 You can cause a much bigger mess by overriding 'MakeBoxes' than by sticking to 'Format', e.g. generate invalid XML:
 
-  >> MakeBoxes[c, MathMLForm] = "<not closed";
+  >> MakeBoxes[MathMLForm[c], s_] = "<not closed";
   >> c // MathMLForm
   = <not closed
 

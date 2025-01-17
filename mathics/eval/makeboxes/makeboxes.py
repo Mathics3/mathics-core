@@ -19,7 +19,9 @@ from mathics.core.symbols import (
     SymbolList,
     SymbolMakeBoxes,
 )
-from mathics.core.systemsymbols import SymbolRule, SymbolRuleDelayed, SymbolStandardForm
+from mathics.core.systemsymbols import (  # SymbolRule, SymbolRuleDelayed,
+    SymbolStandardForm,
+)
 from mathics.eval.makeboxes.formatvalues import do_format
 from mathics.eval.makeboxes.precedence import parenthesize
 
