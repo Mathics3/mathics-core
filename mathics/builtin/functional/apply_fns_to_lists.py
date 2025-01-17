@@ -187,7 +187,7 @@ class MapAt(Builtin):
     >> MapAt[0&, {{1, 1}, {1, 1}}, {2, 1}]
      = {{1, 1}, {0, 1}}
 
-    When the dimension of the replacment expression is less than the vector, \
+    When the dimension of the replacement expression is less than the vector, \
     that element's dimension changes:
 
     >> MapAt[0&, {{0, 1}, {1, 0}}, 2]
