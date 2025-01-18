@@ -173,21 +173,21 @@ class MapAt(Builtin):
       <dd>applies $f$ to the part of $expr$ at position {$i$, $j$, ...}.
 
       <dt>'MapAt[$f$, $pos$]'
-      <dd>represents an operator form of MapAt that can be applied to an expression.
+      <dd>represents an operator form of 'MapAt' that can be applied to an expression.
     </dl>
 
     Map function $f$ to the second element of an simple flat list:
     >> MapAt[f, {a, b, c}, 2]
      = {a, f[b], c}
 
-    Above we specified a simple integer value 2. In general, the expression can an arbitrary vector.
+    Above, we specified a simple integer value 2. In general, the expression can an arbitrary vector.
 
     Using 'MapAt' with 'Function[0]', we can zero a value or values in a vector:
 
     >> MapAt[0&, {{1, 1}, {1, 1}}, {2, 1}]
      = {{1, 1}, {0, 1}}
 
-    When the dimension of the replacment expression is less than the vector, \
+    When the dimension of the replacement expression is less than the vector, \
     that element's dimension changes:
 
     >> MapAt[0&, {{0, 1}, {1, 0}}, 2]
@@ -396,7 +396,7 @@ class Scan(Builtin):
       <dt>'Scan[$f$, $expr$]'
       <dd>applies $f$ to each element of $expr$ and returns 'Null'.
 
-      <dt>'Scan[$f$, $expr$, $levelspec$]
+      <dt>'Scan[$f$, $expr$, $levelspec$]'
       <dd>applies $f$ to each level specified by $levelspec$ of $expr$.
     </dl>
 
