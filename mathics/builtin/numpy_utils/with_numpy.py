@@ -17,6 +17,12 @@ from mathics.core.list import ListExpression
 # INTERNAL FUNCTIONS
 #
 
+# Backward compatibility
+try:
+    ast_Str = ast.Constant
+except AttributeError:
+    ast_Str = lambda x: ast.Str(s=x)
+
 
 def _promote(x, shape):
     if isinstance(x, (int, float)):
@@ -396,9 +402,9 @@ class _ConditionalTransformer(ast.NodeTransformer):
             test = node.test
             tests.append(test)
 
-            if type(test) == ast.Name:
+            if type(test) is ast.Name:
                 shapes.append(test)
-            elif type(test) == ast.Compare:
+            elif type(test) is ast.Compare:
                 if isinstance(test.left, ast.Name):
                     shapes.append(test.left)
                 elif isinstance(test.right, ast.Name):
@@ -440,7 +446,7 @@ class _ConditionalTransformer(ast.NodeTransformer):
         for test, value in zip(tests, (block.value for block in blocks)):
             elements = []
             if test == _else_case_id:
-                elements.append(ast.Str(s=test))
+                elements.append(ast_Str(test))
             else:
                 elements.append(_create_ast_lambda([], test))
 

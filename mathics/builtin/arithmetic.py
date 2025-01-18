@@ -122,15 +122,15 @@ class Arg(MPMathFunction):
      >> Arg[-3]
       = Pi
 
-     Same as above using sympy's method:
+     Same as above, but using SymPy's method:
      >> Arg[-3, Method->"sympy"]
       = Pi
 
     >> Arg[1-I]
      = -Pi / 4
 
-    Arg evaluate the direction of DirectedInfinity quantities by
-    the Arg of they arguments:
+    'Arg' evaluates the direction of 'DirectedInfinity' quantities by \
+    the 'Arg' of its arguments:
     >> Arg[DirectedInfinity[1+I]]
      = Pi / 4
     >> Arg[DirectedInfinity[]]

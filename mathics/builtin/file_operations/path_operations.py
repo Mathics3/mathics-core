@@ -34,7 +34,7 @@ class FileNameDrop(Builtin):
       <dd>drops the last path elements in the file name $path$.
     </dl>
 
-    >> path = FileNameJoin{"a","b","c"}
+    >> path = FileNameJoin[{"a","b","c"}]
      = ...
 
     >> FileNameDrop[path, -1]
