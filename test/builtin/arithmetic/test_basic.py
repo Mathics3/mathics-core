@@ -112,7 +112,7 @@ def test_exponential(str_expr, str_expected):
         (
             "HoldForm[Times[]]",
             "Times[]",
-            "Times without arguments is nor formatted",
+            "Times without arguments is not formatted",
         ),
         (
             "HoldForm[Times[x]]",
