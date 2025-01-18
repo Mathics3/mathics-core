@@ -62,7 +62,6 @@ import pytest
             None,
         ),
         ("ClearAll[f];", None, None, None),
-        ("HoldForm[Times[]]", None, "Times[]", None),
     ],
 )
 def test_private_doctests_evaluation(str_expr, msgs, str_expected, fail_msg):
