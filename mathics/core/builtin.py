@@ -239,12 +239,16 @@ class Builtin:
     def contribute(self, definitions: Definitions, is_pymodule=False):
         from mathics.core.parser import parse_builtin_rule
 
-        # Set the default context
-        if not self.context:
-            self.context = "Pymathics`" if is_pymodule else "System`"
         name = self.get_name()
         attributes = self.attributes
         options = {}
+        # Set the default context
+        if not self.context:
+            self.context = "Pymathics`" if is_pymodule else "System`"
+            # get_name takes the context from the class, not from the
+            # instance, so even if we set the context here,
+            # self.get_name() does not includes the context.
+            name = self.context + name
 
         # - 'Strict': warn and fail with unsupported options
         # - 'Warn': warn about unsupported options, but continue
@@ -468,7 +472,15 @@ class Builtin:
                 if pattern is None:  # Fixes PyPy bug
                     continue
                 else:
-                    m = re.match(r"[(]([\w,]+),[)]\:\s*(.*)", pattern)
+                    # TODO: consider to use a more sophisticated
+                    # regular expression, which handles breaklines
+                    # more properly, that supports format names
+                    # with contexts (context`name) and be less
+                    # fragile against leaving spaces between the
+                    # elements.
+                    m = re.match(
+                        r"[(]([\w,]+),[ ]*[)]\:\s*(.*)", pattern.replace("\n", " ")
+                    )
                 if m is not None:
                     attrs = m.group(1).split(",")
                     pattern = m.group(2)
