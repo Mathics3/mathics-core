@@ -9,10 +9,17 @@ from test.helper import check_evaluation, evaluate
 
 import pytest
 
+try:
+    from stopit import __version__ as stopit_version
+except ImportError:
+    have_stopit_for_timeconstrained = False
+else:
+    have_stopit_for_timeconstrained = stopit_version.split(".")[:3] >= ["1", "1", "3"]
+
 
 @pytest.mark.skipif(
     sys.platform in ("emscripten",),
-    reason="TimeConstrained is not supported in Pyodide",
+    reason="TimeRemaining[] is not supported in Pyodide",
 )
 def test_timeremaining():
     str_expr = "TimeConstrained[1+2; TimeRemaining[], 0.9]"
@@ -22,7 +29,7 @@ def test_timeremaining():
 
 @pytest.mark.skipif(
     sys.platform in ("emscripten",),
-    reason="TimeConstrained is not supported in Pyodide",
+    reason="TimeConstrained[] is not supported in Pyodide",
 )
 def test_timeconstrained1():
     """
@@ -144,8 +151,8 @@ def test_private_doctests_datetime(str_expr, msgs, str_expected, fail_msg):
 
 
 @pytest.mark.skipif(
-    sys.platform in ("emscripten",),
-    reason="TimeConstrained is not supported in Piodide",
+    sys.platform in ("emscripten",) or not have_stopit_for_timeconstrained,
+    reason="TimeConstrained[] is not supported in Pyodide or an unpatched 'stopit'",
 )
 @pytest.mark.parametrize(
     ("str_expr", "msgs", "str_expected", "fail_msg"),

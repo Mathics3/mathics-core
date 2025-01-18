@@ -349,7 +349,7 @@ class Between(Builtin):
       <dt>'Between'[$x$, {$min$, $max$}]
       <dd>equivalent to $min$ <= $x$ <= $max$.
       <dt>'Between[$x$, { {$min1$, $max1$}, {$min2$, $max2$}, ...]'
-      <dd>equivalent to $min1$ <= $x$ <= $max1$' || $min2$ <= $x$ <= $max2$ ...
+      <dd>equivalent to $min1$ <= $x$ <= $max1$ || $min2$ <= $x$ <= $max2$ ...
       <dt>'Between[$range$]'
       <dd>operator form that yields 'Between'[$x$, $range$] when applied to expression $x$.
     </dl>

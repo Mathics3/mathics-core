@@ -153,7 +153,7 @@ class Stacktrace(_TraceBase):
 
     <dl>
       <dt>'Stacktrace[]'
-      <dd>Print Mathics3 stack trace of evalutations leading to this point
+      <dd>Print Mathics3 stack trace of evaluations leading to this point
     </dl>
 
     To show the Mathics3 evaluation stack at the \
