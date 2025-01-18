@@ -26,26 +26,39 @@ class TrialBuiltin(Builtin):
         "nomsg": "Test message `1`.",
     }
 
+    # A Downvalue
     def eval_downvalue(self, expr, evaluation):
         """expr: TrialBuiltin[_:Symbol]"""
         return
 
+    # An Upvalue
     def eval_upvalue(self, expr, x, evaluation):
         """expr: G[TrialBuiltin[x_:Symbol]]"""
         return
 
+    # A format rule for a custom format
     def format_parm1(self, expr, x, evaluation):
         """(CustomForm,): expr: TrialBuiltin[x_:Symbol]"""
         return
 
+    # A MakeBoxes rule, using a name pattern,
+    # with a line break.
     def format_parm2(self, expr, x, y, evaluation):
         """(MakeBoxes, ):expr: TrialBuiltin[x_:Symbol,
         y_]
         """
         return
 
+    # A format rule for OutputForm
     def format_parmb(self, expr, x, y, evaluation):
         """(OutputForm,): expr: TrialBuiltin[x_:Symbol,
+        y:P|Q]
+        """
+        return
+
+    # A general format rule.
+    def format_parm_general(self, expr, x, y, evaluation):
+        """expr: TrialBuiltin[x_:Symbol,
         y:P|Q]
         """
         return
@@ -82,9 +95,14 @@ def test_builtin_get_functions():
     evalrules = list(builtin.get_functions("format_"))
     for r in evalrules:
         assert isinstance(r, tuple) and len(r) == 2
-        assert isinstance(r[0], tuple)
-        assert isinstance(r[0][0], list)
-        assert isinstance(r[0][1], BaseElement)
+        # For formatvalues, the pattern can be both a BaseElement
+        # or a tuple of a string with a format name and a BaseElement.
+        if isinstance(r[0], tuple):
+            assert len(r[0]) == 2
+            assert isinstance(r[0][0], list)
+            assert isinstance(r[0][1], BaseElement)
+        else:
+            assert isinstance(r[0], BaseElement)
 
 
 def test_contribute_builtin():
