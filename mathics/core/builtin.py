@@ -503,7 +503,7 @@ class Builtin:
                     yield (pattern, function)
 
     @staticmethod
-    def get_option(options, name, evaluation, pop=False):
+    def get_option(options, name, evaluation, pop=False) -> Optional[BaseElement]:
         return get_option(options, name, evaluation, pop)
 
     def _get_unavailable_function(self) -> Optional[Callable]:
@@ -515,7 +515,7 @@ class Builtin:
         requires = getattr(self, "requires", [])
         return None if check_requires_list(requires) else UnavailableFunction(self)
 
-    def get_option_string(self, *params):
+    def get_option_string(self, *params) -> Tuple[Optional[str], Optional[BaseElement]]:
         """
         Return a tuple of a `str` representing the option name,
         and the proper Mathics value of the option.
