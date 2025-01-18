@@ -515,7 +515,12 @@ class Builtin:
         requires = getattr(self, "requires", [])
         return None if check_requires_list(requires) else UnavailableFunction(self)
 
-    def get_option_string(self, *params):
+    def get_option_string(self, *params) -> Tuple[str, BaseElement]:
+        """
+        Return a tuple of a `str` representing the option name,
+        and the proper Mathics value of the option.
+        If the value does not have a name, the name is None.
+        """
         s = self.get_option(*params)
         if isinstance(s, String):
             return s.get_string_value(), s
@@ -801,7 +806,9 @@ def check_requires_list(requires: list) -> bool:
     return True
 
 
-def get_option(options: dict, name, evaluation, pop=False, evaluate=True):
+def get_option(
+    options: dict, name, evaluation, pop=False, evaluate=True
+) -> Optional[BaseElement]:
     # we do not care whether an option X is given as System`X,
     # Global`X, or with any prefix from $ContextPath for that
     # matter. Also, the quoted string form "X" is ok. all these
