@@ -1327,7 +1327,7 @@ class Import(Builtin):
       <dd>imports the specified elements from a file.
 
       <dt>'Import["$file$", {"$fmt$", $elements$}]'
-      <dd>imports the specified elements from a file asuming the specified file format.
+      <dd>imports the specified elements from a file assuming the specified file format.
 
       <dt>'Import["http://$url$", ...]' and 'Import["ftp://$url$", ...]'
       <dd>imports from a URL.

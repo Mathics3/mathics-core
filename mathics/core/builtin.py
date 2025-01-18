@@ -933,7 +933,7 @@ class IterationFunction(Builtin, ABC):
     allow_loopcontrol = False
     throw_iterb = True
 
-    def get_result(self, elements) -> ListExpression:
+    def get_result(self, elements) -> Expression:
         raise NotImplementedError
 
     def eval_symbol(self, expr, iterator, evaluation):
