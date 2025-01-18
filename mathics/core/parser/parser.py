@@ -69,6 +69,10 @@ def unescape_string(s: str) -> str:
     For example, '"a\\n\\c"' becomes 'a\nb\nc'
     """
     assert len(s) >= 2 and s[0] == s[-1]
+    # Special cases to avoid the Deprecation Warning
+    if s in ('"\\!"', '"\\$"', '"\\W+"', '"\\d"'):
+        return s[1:-1]
+
     s = s.encode("raw_unicode_escape").decode("unicode_escape")
     return s[1:-1]
 
@@ -915,7 +919,7 @@ class Parser:
             self.bracket_depth -= 1
 
             if self.is_inside_rowbox:
-                # Hande function calls inside a RowBox.
+                # Handle function calls inside a RowBox.
                 result = Node("List", expr, String("["), *seq, String("]"))
             else:
                 result = Node(expr, *seq)
