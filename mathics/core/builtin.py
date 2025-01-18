@@ -515,7 +515,7 @@ class Builtin:
         requires = getattr(self, "requires", [])
         return None if check_requires_list(requires) else UnavailableFunction(self)
 
-    def get_option_string(self, *params) -> Tuple[str, BaseElement]:
+    def get_option_string(self, *params):
         """
         Return a tuple of a `str` representing the option name,
         and the proper Mathics value of the option.
