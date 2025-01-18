@@ -627,7 +627,7 @@ class I_(Predefined, SympyObject):
     name = "I"
     sympy_name = "I"
     sympy_obj = sympy.I
-    summary_text = "imaginary unit"
+    summary_text = "imaginary unit number Sqrt[-1]"
     python_equivalent = 1j
 
     def is_constant(self) -> bool:
@@ -658,7 +658,7 @@ class Im(SympyFunction):
      = -Graphics-
     """
 
-    summary_text = "imaginary part"
+    summary_text = "imaginary part of a complex number"
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     def eval_complex(self, number, evaluation: Evaluation):
@@ -817,9 +817,13 @@ class Re(SympyFunction):
      = -Graphics-
     """
 
-    summary_text = "real part"
+    summary_text = "real part of a complex number"
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     sympy_name = "re"
+
+    def eval(self, number, evaluation: Evaluation):
+        "Re[number_]"
+        return from_sympy(sympy.re(number.to_sympy().expand(complex=True)))
 
     def eval_complex(self, number, evaluation: Evaluation):
         "Re[number_Complex]"
@@ -830,10 +834,6 @@ class Re(SympyFunction):
         "Re[number_?NumberQ]"
 
         return number
-
-    def eval(self, number, evaluation: Evaluation):
-        "Re[number_]"
-        return from_sympy(sympy.re(number.to_sympy().expand(complex=True)))
 
 
 class Real_(Builtin):
@@ -987,8 +987,8 @@ class Sum(IterationFunction, SympyFunction):
         }
     )
 
-    def get_result(self, items):
-        return Expression(SymbolPlus, *items)
+    def get_result(self, elements) -> Expression:
+        return Expression(SymbolPlus, *elements)
 
     def to_sympy(self, expr, **kwargs) -> Optional[SympyExpression]:
         """
