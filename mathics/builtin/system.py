@@ -576,7 +576,7 @@ class SetEnvironment(Builtin):
       = FOO -> bar
 
      Set two environment variables:
-     >> SetEnvironment[{"FOO" -> "baz", "A" -> "B"}]
+     S> SetEnvironment[{"FOO" -> "baz", "A" -> "B"}]
       = SetEnvironment[{FOO -> baz, A -> B}]
 
      See that the environment variable has changed:
@@ -613,9 +613,11 @@ class SetEnvironment(Builtin):
             evaluation.message("SetEnvironment", "value", env_var_value)
             return SymbolFailed
 
-        if not isinstance(env_var_name, String):
-            env_var_name = String(env_var_name)
-        os.environ[env_var_name.value] = env_var_value.value
+        if isinstance(env_var_name, String):
+            # WMA does not give an error message if env_var_name is not a String - weird.
+            os.environ[env_var_name.value] = (
+                None if None is SymbolNone else env_var_value.value
+            )
         return SymbolNull
 
     def eval_list(self, rules: Expression, evaluation: Evaluation):
