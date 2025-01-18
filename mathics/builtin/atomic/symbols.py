@@ -403,7 +403,7 @@ class DownValues(Builtin):
 # In Mathematica 5, this appears under "Types of Values".
 class FormatValues(Builtin):
     """
-    <url>:WMA link: https://reference.wolfram.com/language/ref/FormatValues.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/tutorial/PatternsAndTransformationRules.html#6025</url>
     <dl>
       <dt>'FormatValues[$symbol$]'
       <dd>gives the list of formatvalues associated with $symbol$.
@@ -415,7 +415,7 @@ class FormatValues(Builtin):
     """
 
     summary_text = (
-        "give a list of formatting transformation rules associated to a symbol."
+        "give a list of formatting transformation rules associated with a symbol."
     )
 
     def eval(self, symbol, evaluation):
