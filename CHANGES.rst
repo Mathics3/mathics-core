@@ -8,6 +8,7 @@ New Builtins
 * ``Between``
 * ``CheckAbort``
 * ``FileNameDrop``
+* ``FormatValues``
 * ``SetEnvironment``
 * ``SequenceForm``
 
