@@ -12,19 +12,13 @@ from mathics.core.atoms import (
     Integer2,
     Integer3,
     IntegerM1,
-    MachineReal,
-    PrecisionReal,
     Rational,
-    RationalOneHalf,
     Real,
     String,
 )
 from mathics.core.convert.sympy import from_sympy, sympy_singleton_to_mathics
 from mathics.core.expression import Expression
-from mathics.core.expression_predefined import (
-    MATHICS3_COMPLEX_INFINITY,
-    MATHICS3_INFINITY,
-)
+from mathics.core.expression_predefined import MATHICS3_COMPLEX_INFINITY
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
@@ -34,18 +28,7 @@ from mathics.core.symbols import (
     SymbolTimes,
     SymbolTrue,
 )
-from mathics.core.systemsymbols import (
-    SymbolAnd,
-    SymbolComplexInfinity,
-    SymbolDirectedInfinity,
-    SymbolE,
-    SymbolExp,
-    SymbolI,
-    SymbolIndeterminate,
-    SymbolInfinity,
-    SymbolPi,
-    SymbolSin,
-)
+from mathics.core.systemsymbols import SymbolE, SymbolExp, SymbolI, SymbolPi, SymbolSin
 
 Symbol_a = Symbol("Global`a")
 Symbol_b = Symbol("Global`b")

@@ -287,16 +287,16 @@ class Plus(InfixOperator, SympyFunction):
         "Plus[items__]"
 
         def negate(item):  # -> Expression (see FIXME below)
-            if item.has_form("Times", 1, None):
+            if item.has_form("Times", 2, None):
                 if isinstance(item.elements[0], Number):
-                    neg = -item.elements[0]
-                    if neg.sameQ(Integer1):
-                        if len(item.elements) == 1:
-                            return neg
-                        else:
-                            return Expression(SymbolTimes, *item.elements[1:])
-                    else:
-                        return Expression(SymbolTimes, neg, *item.elements[1:])
+                    first, *rest = item.elements
+                    first = -first
+                    if first.sameQ(Integer1):
+                        if len(rest) == 1:
+                            return rest[0]
+                        return Expression(SymbolTimes, *rest)
+
+                    return Expression(SymbolTimes, first, *rest)
                 else:
                     return Expression(SymbolTimes, IntegerM1, *item.elements)
             elif isinstance(item, Number):
@@ -632,6 +632,8 @@ class Times(InfixOperator, SympyFunction):
                 return item
 
         items = items.get_sequence()
+        if len(items) < 2:
+            return
         positive = []
         negative = []
         for item in items:
