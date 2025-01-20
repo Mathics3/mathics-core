@@ -312,6 +312,8 @@ class Evaluation:
         """Return `eval_result` stripped of any format, e.g. FullForm, MathML, TeX
         that it might have been wrapped in.
         """
+        if eval_result is None:
+            return None
         head = eval_result.get_head()
         if head in output_forms:
             return eval_result.elements[0]

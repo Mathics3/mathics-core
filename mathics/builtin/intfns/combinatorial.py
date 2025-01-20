@@ -230,8 +230,13 @@ class EulerE(SympyFunction):
       <dd>Euler polynomial $E$_$n$($x$).
     </dl>
 
-    >> Table[EulerE[k], {k, 0, 10}]
-     = {1, 0, -1, 0, 5, 0, -61, 0, 1385, 0, -50521}
+    Odd-index Euler numbers are zero:
+    >> Table[EulerE[k], {k, 1, 9, 2}]
+     = {0, 0, 0, 0, 0}
+
+    Even-index Euler numbers alternate in sign:
+    >> Table[EulerE[k], {k, 0, 8, 2}]
+     = {1, -1, 5, -61, 1385}
 
     >> EulerE[5, z]
      = -1 / 2 + 5 z ^ 2 / 2 - 5 z ^ 4 / 2 + z ^ 5
