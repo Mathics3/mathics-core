@@ -5,7 +5,7 @@ Image Colors
 import numpy
 import PIL
 
-from mathics.builtin.colors.color_internals import colorspaces as known_colorspaces
+# from mathics.builtin.colors.color_internals import colorspaces as known_colorspaces
 from mathics.builtin.image.base import Image, image_common_messages
 from mathics.core.atoms import Integer, is_integer_rational_or_real
 from mathics.core.builtin import Builtin, String
@@ -18,6 +18,7 @@ from mathics.core.systemsymbols import (
     SymbolMatrixQ,
     SymbolThreshold,
 )
+from mathics.eval.drawing.colors import gradient_palette
 from mathics.eval.image import linearize_numpy_array, matrix_to_numpy, pixels_as_ubyte
 
 # This tells documentation how to sort this module
@@ -285,7 +286,7 @@ class Colorize(Builtin):
         ):
             color_function = String("LakeColors")
 
-        from mathics.builtin.drawing.plot import gradient_palette
+        #         from mathics.eval.drawing.colors import gradient_palette
 
         cmap = gradient_palette(color_function, n, evaluation)
         if not cmap:
