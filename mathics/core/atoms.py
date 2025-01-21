@@ -472,7 +472,7 @@ class MachineReal(Real[float]):
         return True
 
     def make_boxes(self, form):
-        from mathics.builtin.makeboxes import NumberForm_to_String
+        from mathics.eval.makeboxes import NumberForm_to_String
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat
         if form in ("System`InputForm", "System`FullForm"):
@@ -573,7 +573,7 @@ class PrecisionReal(Real[sympy.Float]):
         return self.value.is_zero or False
 
     def make_boxes(self, form):
-        from mathics.builtin.makeboxes import NumberForm_to_String
+        from mathics.eval.makeboxes import NumberForm_to_String
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat
         return NumberForm_to_String(

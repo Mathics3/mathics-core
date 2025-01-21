@@ -10,7 +10,7 @@ collection of Expressions usually contained in boxes.
 
 from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.options import options_to_rules
-from mathics.core.atoms import Atom, String
+from mathics.core.atoms import String
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin
 from mathics.core.element import BoxElementMixin
@@ -18,43 +18,19 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolFullForm
+from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
     SymbolFractionBox,
     SymbolRowBox,
     SymbolSqrtBox,
-    SymbolStandardForm,
     SymbolSubscriptBox,
     SymbolSubsuperscriptBox,
     SymbolSuperscriptBox,
 )
-from mathics.eval.makeboxes import eval_makeboxes
+from mathics.eval.makeboxes import to_boxes
 
 # Docs are not yet ready for prime time. Maybe after release 6.0.0.
 no_doc = True
-
-
-def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
-    """
-    This function takes the expression ``x``
-    and tries to reduce it to a ``BoxElementMixin``
-    expression using an evaluation object.
-    """
-    if isinstance(x, BoxElementMixin):
-        return x
-    if isinstance(x, Atom):
-        x = x.atom_to_boxes(SymbolStandardForm, evaluation)
-        return to_boxes(x, evaluation, options)
-    if isinstance(x, Expression):
-        if x.has_form("MakeBoxes", None):
-            x_boxed = x.evaluate(evaluation)
-        else:
-            x_boxed = eval_makeboxes(x, evaluation)
-        if isinstance(x_boxed, BoxElementMixin):
-            return x_boxed
-        if isinstance(x_boxed, Atom):
-            return to_boxes(x_boxed, evaluation, options)
-    raise eval_makeboxes(Expression(SymbolFullForm, x), evaluation)
 
 
 class BoxData(Builtin):
@@ -146,6 +122,7 @@ class GridBox(BoxExpression):
     # >> MathMLForm[TableForm[{{a,b},{c,d}}]]
     #  = ...
     """
+
     options = {"ColumnAlignments": "Center"}
     summary_text = "low-level representation of an arbitrary 2D layout"
 
