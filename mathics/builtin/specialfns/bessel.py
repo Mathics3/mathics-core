@@ -571,13 +571,24 @@ class HypergeometricU(MPMathFunction):
 
     >> HypergeometricU[3, 2, 1.]
      = 0.105479
+
+    Plot 'U'[3, 2, x] from 0 to 2 in steps of 0.5:
+    >> Plot[HypergeometricU[3, 2, x], {x, 0.5, 2}]
+     = -Graphics-
+
+    We handle this special case:
+    >> HypergeometricU[0, c, z]
+     = 1
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
-    summary_text = "Tricomi confluent hypergeometric function"
     mpmath_name = "hyperu"
-    sympy_name = ""
     nargs = {3}
+    rules = {
+        "HypergeometricU[0, c_, z_]": "1",
+    }
+    summary_text = "Tricomi confluent hypergeometric function"
+    sympy_name = ""
 
 
 # Kelvin Functions

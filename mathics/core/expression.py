@@ -1416,13 +1416,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 if not isinstance(result, EvalMixin):
                     return result, False
                 if result.sameQ(new):
-                    # Even though result and new may be the same,
-                    # new can be a Expression[SymbolConstant: System`List...]
-                    # while "result' might be ListExpression!?
-                    # So make sure to use "result", not "new".
-                    if isinstance(result, Expression):
-                        result._timestamp_cache(evaluation)
-                    return result, False
+                    new._timestamp_cache(evaluation)
+                    return new, False
                 else:
                     return result, True
 

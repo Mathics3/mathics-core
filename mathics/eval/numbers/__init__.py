@@ -1,4 +1,4 @@
 # -*- coding: utf-8 -*-
 """
-Implementation of mathics.builtin.numbers
+Evaluation functions in support of builtin functions under mathics.builtin.numbers
 """

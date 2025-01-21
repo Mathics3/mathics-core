@@ -22,7 +22,6 @@ from io import StringIO
 from time import time
 from typing import Callable
 
-import mathics.eval.trace
 import mathics.eval.tracing
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
 from mathics.core.builtin import Builtin
@@ -144,46 +143,6 @@ class PrintTrace(_TraceBase):
             evaluation=evaluation,
         )
 
-        return SymbolNull
-
-
-class Stacktrace(_TraceBase):
-    """
-    ## <url>:trace native symbol:</url>
-
-    <dl>
-      <dt>'Stacktrace[]'
-      <dd>Print Mathics3 stack trace of evaluations leading to this point
-    </dl>
-
-    To show the Mathics3 evaluation stack at the \
-    point where expression $expr$ is evaluated, wrap $expr$ inside '{$expr$ Stacktrace[]}[1]]' \
-    or something similar.
-
-    Here is a complete example. To show the evaluation stack when computing a homegrown \
-    factorial function:
-
-    >> F[0] := {1, Stacktrace[]}[[1]]; F[n_] := n * F[n-1]
-
-    >> F[3] (* See console log *)
-     = 6
-
-    The actual 'Stacktrace[0]' call is hidden from the output; so when \
-    run on its own, nothing appears.
-
-    >> Stacktrace[]
-
-    #> Clear[F]
-    """
-
-    summary_text = "print Mathics3 function stacktrace"
-
-    def eval(self, evaluation: Evaluation):
-        "Stacktrace[]"
-
-        # Use longer-form resolve call
-        # so a debugger can change this.
-        mathics.eval.trace.eval_Stacktrace()
         return SymbolNull
 
 
@@ -433,8 +392,7 @@ class TraceEvaluation(Builtin):
             options["System`ShowTimeBySteps"] is SymbolTrue
         )
         try:
-            result = expr.evaluate(evaluation)
-            return result
+            return expr.evaluate(evaluation)
         except Exception:
             raise
         finally:
