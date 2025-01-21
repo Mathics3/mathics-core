@@ -124,6 +124,11 @@ class Evaluation:
         # status of last evaluate
         self.exc_result: Optional[Symbol] = self.SymbolNull
         self.last_eval = None
+
+        # A place for Trace and friend to store information about the
+        # last evaluation
+        self.trace_info: Optional[Any] = None
+
         # Used in ``mathics.builtin.numbers.constants.get_constant`` and
         # ``mathics.builtin.numeric.N``.
         self._preferred_n_method: List[str] = []
@@ -312,6 +317,8 @@ class Evaluation:
         """Return `eval_result` stripped of any format, e.g. FullForm, MathML, TeX
         that it might have been wrapped in.
         """
+        if eval_result is None:
+            return None
         head = eval_result.get_head()
         if head in output_forms:
             return eval_result.elements[0]

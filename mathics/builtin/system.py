@@ -20,6 +20,7 @@ from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolNone,
@@ -54,10 +55,10 @@ class Breakpoint(Builtin):
     </dl>
 
 
-    Mathics3 also provides "breakpoint" handler, 'mathics.disabled_breakpoint', which \
-    notes that a ether 'Breakpoint[]' was encountered in Mathics3, or 'breakpoint()' was encountered \
-    in the Mathics3 source code. Either way, this breakpoint handler does not stop inside Python \
-    as you might do for debugging.
+    Mathics3 code includes a breakpoint handler function, 'mathics.disabled_breakpoint' which \
+    reports whether 'Breakpoint[]' was encountered in Mathics3, or 'breakpoint()' was encountered \
+    in the Mathics3 source code. In contrast to 'pdb', 'trepan3k' and other handlers, this breakpoint \
+    handler does not stop inside, it just reports.
 
     Here is how to use 'mathics.disabled_breakpoint':
 
@@ -67,10 +68,8 @@ class Breakpoint(Builtin):
     = Hit disabled breakpoint.
     = Breakpoint[]
 
-    The environment variable 'PYTHONBREAKPOINT' can be changed as \
-    often as you want at runtime to switch 'breakpoint()' and \
-    'Breakpoint[]' behavior.
-
+    The environment variable 'PYTHONBREAKPOINT' can be changed at runtime to switch \
+    'breakpoint()' and 'Breakpoint[]' behavior.
     """
 
     summary_text = "invoke Python breakpoint()"
@@ -569,7 +568,6 @@ class SetEnvironment(Builtin):
 
      Set a single environment variable:
      S> SetEnvironment["FOO" -> "bar"]
-      = SetEnvironment[FOO -> bar]
 
      See that the environment variable has changed:
      S> GetEnvironment["FOO"]
@@ -587,18 +585,14 @@ class SetEnvironment(Builtin):
 
      S> SetEnvironment["FOO" -> 5]
       : 5 must be a string or None.
-      = SetEnvironment[FOO -> 5]
+      = $Failed
 
      S> GetEnvironment["FOO"]
       = FOO -> baz
 
     If the environment name is not a string, the evaluation fails without a message.
 
-     S> SetEnvironment[FOO -> "bar"]
-      = SetEnvironment[FOO -> bar]
-
-     S> GetEnvironment["FOO"]
-      = FOO -> baz
+     S> SetEnvironment[1 -> "bar"]
 
      See also <url>
      :'Environment':
@@ -615,14 +609,14 @@ class SetEnvironment(Builtin):
         env_var_name, env_var_value = rule.elements
         if not (env_var_value is SymbolNone or isinstance(env_var_value, String)):
             evaluation.message("SetEnvironment", "value", env_var_value)
-            return None
+            return SymbolFailed
 
         if isinstance(env_var_name, String):
             # WMA does not give an error message if env_var_name is not a String - weird.
             os.environ[env_var_name.value] = (
                 None if None is SymbolNone else env_var_value.value
             )
-        return None
+        return SymbolNull
 
     def eval_list(self, rules: Expression, evaluation: Evaluation):
         "SetEnvironment[{rules__}]"

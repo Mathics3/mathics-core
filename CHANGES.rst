@@ -6,10 +6,13 @@ New Builtins
 ++++++++++++
 
 * ``Between``
+* ``Breakpoint`` - forces a Python ``breakpoint()``
 * ``CheckAbort``
 * ``FileNameDrop``
+* ``FormatValues``
 * ``SetEnvironment``
 * ``SequenceForm``
+* ``Stack``
 
 By `@davidar <https://github.com/davidar>`_:
 
@@ -56,7 +59,7 @@ Internals
 tables produced from the Mathics Scanner project.
 * Patterns in ``eval_`` and ``format_`` methods of builtin classes
   parses patterns in docstrings of the form
-  ``Symbol: Expr`` as `Pattern[Symbol, Expr]`.
+  ``Symbol: Expr`` as ``Pattern[Symbol, Expr]``.
   To specify associated format in ``format_`` methods the
   docstring, the list of format must be wrapped in parenthesis, like
   ``(InputForm,): Definitions[...]`` instead of just ``InputForm: Definitions[...]``.
@@ -85,12 +88,17 @@ Bugs
 Mathics3 Packages
 +++++++++++++++++
 
-* ``BoolEval``
-* ``CleanSlate``
+* Added ``BoolEval``
+* Added ``CleanSlate``
 * ``Combinatorica`` moved to a separate repository and v.9 renamed to 0.9.1.
     More code v0.9.1 works. v2.0 renamed v2.0.1 and some code now works.
 * ``Rubi`` version 4.17 (work in progress; algebraic integrations work)
 
+
+Mathics3 Modules
+++++++++++++++++
+
+* Added preliminary Mathics3 debugger ("pymathics.trepan")
 
 Python Package Updates
 +++++++++++++++++++++++
@@ -808,13 +816,13 @@ New variables and builtins
 Enhancements
 ++++++++++++
 
-#. a function `evaluate_predicate` allows for a basic predicate evaluation using `$Assumptions`.
+#. a function ``evaluate_predicate`` allows for a basic predicate evaluation using ``$Assumptions``.
 #. ``Attributes`` accepts a string parameter.
 #. ``Cases`` accepts Heads option. Issue #1302.
 #. ``ColorNegate`` for colors is supported.
 #. ``D`` and ``Derivative`` improvements.
 #. ``Expand`` and ``ExpandAll`` now support a second parameter ``patt`` Issue #1301.
-#. ``Expand`` and ``ExpandAll`` works with hyperbolic functions (`Sinh`, `Cosh`, `Tanh`, `Coth`).
+#. ``Expand`` and ``ExpandAll`` works with hyperbolic functions (``Sinh``, ``Cosh``, ``Tanh``, ``Coth``).
 #. ``FileNames`` returns a sorted list. Issue #1250.
 #. ``FindRoot`` now accepts several optional parameters like ``Method`` and ``MaxIterations``. See Issue #1235.
 #. ``FixedPoint`` now supports the ``SameTest`` option.
@@ -899,10 +907,10 @@ Bug fixes
 ``TeXForm[]`` for integrals are now properly formatted.
 
 
-Pymathics Modules
-+++++++++++++++++
+Mathics3 Modules
+++++++++++++++++
 
-#. Pymathics modules now can run initialization code when are loaded.
+#. Mathics3 modules now can run initialization code when are loaded.
 #. The ``builtins`` list is not hard-linked to the library anymore. This simplifies the loading and reloading of pymathics modules.
 #. Decoupling of BoxConstructors from the library. Now are defined at the level of the definition objects. This is useful for customizing the Graphics output if it is available.
 
