@@ -79,8 +79,8 @@ By `@davidar <https://github.com/davidar>`_:
 
 * ``--post-mortem`` option added which will go into the `trepan3k debugger <https https://pypi.org/project/trepan3k/>`_ on an unrecoverable error.
 
-Compatibility
--------------
+WMA Compatibility
+-----------------
 
 * ``GetEnvironment`` expanded to handle ``[]`` and ``{var1, var2,...}`` forms
 * The system ``packages`` directory has been renamed ``Packages`` to conformance with WMA.
@@ -91,13 +91,6 @@ Internals
 
 * Operator information has been gone over and is picked up from JSON
 tables produced from the Mathics Scanner project.
-* Patterns in ``eval_`` and ``format_`` methods of builtin classes
-  parses patterns in docstrings of the form
-  ``Symbol: Expr`` as ``Pattern[Symbol, Expr]``.
-  To specify associated format in ``format_`` methods the
-  docstring, the list of format must be wrapped in parenthesis, like
-  ``(InputForm,): Definitions[...]`` instead of just ``InputForm: Definitions[...]``.
-
 
 Performance
 -----------
@@ -112,6 +105,13 @@ API incompatibility
 * The signature of the ``Definition.__init__`` now receives a single dict parameter instead of the several `*values` parameters.
 * Rule positions in ``Definition.{get|set}_values`` now includes the word ``values``. For example ``pos="up"`` now is ``pos="upvalues"``.
 * ``Definitions.get_ownvalue`` now returns a ``BaseElement`` instead of a ``BaseRule`` object.
+* Patterns in ``eval_`` and ``format_`` methods of builtin classes
+  parses patterns in docstrings of the form
+  ``Symbol: Expr`` as ``Pattern[Symbol, Expr]``.
+  To specify associated format in ``format_`` methods the
+  docstring, the list of format must be wrapped in parenthesis, like
+  ``(InputForm,): Definitions[...]`` instead of just ``InputForm: Definitions[...]``.
+
 
 
 Bugs
