@@ -674,8 +674,10 @@ class MantissaExponent(Builtin):
 class MersennePrimeExponent(SympyFunction):
     """
     <url>
+    :Mersenne Prime:
+    https://en.wikipedia.org/wiki/Mersenne_prime</url> exponent (<url>
     :SymPy: https://docs.sympy.org/latest/modules/ntheory.html#sympy.ntheory.factor_.mersenne_prime_exponent</url>, <url>
-    :WMA: https://reference.wolfram.com/language/ref/MersennePrimeExponent.html</url>
+    :WMA: https://reference.wolfram.com/language/ref/MersennePrimeExponent.html</url>)
 
     <dl>
       <dt>'MersennePrimeExponent[$n$]'
@@ -705,12 +707,11 @@ class MoebiusMu(SympyFunction):
 
     <dl>
       <dt>'MoebiusMu[$n$]'
-      <dd>returns μ($n$)
+      <dd>returns μ($n$).
     </dl>
 
     >> Array[MoebiusMu, 10]
     = {1, -1, -1, 0, -1, 1, -1, 0, 0, 1}
-
     """
 
     attributes = A_LISTABLE | A_PROTECTED
