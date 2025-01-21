@@ -94,7 +94,7 @@ class ProductLog(MPMathFunction):
 
     <dl>
       <dt>'ProductLog[$z$]'
-      <dd>returns the principle solution for $w$ in $z$ == $wE^w$.
+      <dd>returns the principle solution for $w$ in $z$ == $wE$^$w$.
 
       <dt>'ProductLog[$k$, $z$]'
       <dd>gives the $k$th solution.
