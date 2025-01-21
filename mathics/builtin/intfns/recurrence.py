@@ -24,7 +24,10 @@ from mathics.core.evaluation import Evaluation
 
 class Fibonacci(MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Fibonacci.html</url>
+    <url>
+    :Fibonacci Sequence:
+    https://en.wikipedia.org/wiki/Fibonacci_sequence</url>, <url>(
+    :WMA link:https://reference.wolfram.com/language/ref/Fibonacci.html</url>)
 
     <dl>
       <dt>'Fibonacci[$n$]'
@@ -43,6 +46,10 @@ class Fibonacci(MPMathFunction):
      = 280571172992510140037611932413038677189525
     >> Fibonacci[7, x]
      = 1 + 6 x ^ 2 + 5 x ^ 4 + x ^ 6
+
+    See also <url>
+    :LinearRecurrence:
+    /doc/reference-of-built-in-symbols/integer-functions/recurrence-and-sum-functions/linearrecurrence</url>.
     """
 
     nargs = {1}
@@ -84,17 +91,36 @@ class HarmonicNumber(MPMathFunction):
 
 class LinearRecurrence(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/LinearRecurrence.html</url>
+    <url>:Linear recurrence with constant coefficients:
+      https://en.wikipedia.org/wiki/Linear_recurrence_with_constant_coefficients</url>, <url>
+      :WMA link:https://reference.wolfram.com/language/ref/LinearRecurrence.html</url>
 
     <dl>
       <dt>'LinearRecurrence[$ker$, $init$, $n$]'
-      <dd>computes $n$ terms of the linear recurrence with kernel $ker$ and initial values $init$
+      <dd>computes $n$ terms of the linear recurrence with kernel $ker$ and initial values $init$.
+
+      <dt>'LinearRecurrence[$ker$, $init$, {$n$}]'
+      <dd>computes the $n$th term.
+
+      <dt>'LinearRecurrence[$ker$, $init$, {$n_min$, $n_max$}]'
+      <dd>computes $n$ terms of the linear recurrence with kernel $ker$ and initial values $init$.
     </dl>
 
+    Generate first 10 items of the Fibonacci Sequence, 'F'[0]=1, 'F'[1]=1:
     >> LinearRecurrence[{1, 1}, {1, 1}, 10]
      = {1, 1, 2, 3, 5, 8, 13, 21, 34, 55}
-    >> LinearRecurrence[{1, 1}, {1, 1}, {5, 5}]
-     = {5}
+
+    Extract the 3rd to 5th elements:
+    >> LinearRecurrence[{1, 1}, {1, 1}, {3, 5}]
+     = {2, 3, 5}
+
+    Now just the 6th element:
+    >> LinearRecurrence[{1, 1}, {1, 1}, {6}]
+     = 8
+
+    See also <url>
+    :Fibonacci:
+    /doc/reference-of-built-in-symbols/integer-functions/recurrence-and-sum-functions/fibonacci</url>.
     """
 
     attributes = A_PROTECTED | A_READ_PROTECTED
