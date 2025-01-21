@@ -10,7 +10,7 @@ import itertools
 import numbers
 from abc import ABC
 from functools import lru_cache
-from math import cos, pi, sin, sqrt
+from math import cos, pi, sin
 from typing import Callable, Optional
 
 import palettable
@@ -29,37 +29,36 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolBlack,
-    SymbolBlend,
     SymbolColorData,
     SymbolEdgeForm,
     SymbolFunction,
     SymbolGraphics,
     SymbolGraphics3D,
-    SymbolGrid,
     SymbolLine,
     SymbolLog10,
-    SymbolMap,
     SymbolPolygon,
     SymbolRGBColor,
-    SymbolRow,
     SymbolRule,
     SymbolSlot,
     SymbolStyle,
 )
+from mathics.eval.drawing.charts import eval_chart
+from mathics.eval.drawing.colors import COLOR_PALETTES, get_color_palette
 from mathics.eval.drawing.plot import (
     ListPlotType,
+    check_plot_range,
     compile_quiet_function,
     eval_ListPlot,
     eval_Plot,
     get_plot_range,
 )
+from mathics.eval.drawing.plot3d import eval_plot3d
 from mathics.eval.nevaluator import eval_N
 
 # This tells documentation how to sort this module
 # Here we are also hiding "drawing" since this erroneously appears at the top level.
 sort_order = "mathics.builtin.plotting-data"
 
-SymbolColorDataFunction = Symbol("ColorDataFunction")
 SymbolDisk = Symbol("Disk")
 SymbolFaceForm = Symbol("FaceForm")
 SymbolRectangle = Symbol("Rectangle")
@@ -67,55 +66,6 @@ SymbolText = Symbol("Text")
 
 TwoTenths = Real(0.2)
 MTwoTenths = -TwoTenths
-
-
-# PlotRange Option
-def check_plot_range(range, range_type) -> bool:
-    """
-    Return True if `range` has two numbers, the first number less than the second number,
-    and that both numbers have type `range_type`
-    """
-    if range in ("System`Automatic", "System`All"):
-        return True
-    if isinstance(range, list) and len(range) == 2:
-        if isinstance(range[0], range_type) and isinstance(range[1], range_type):
-            return True
-    return False
-
-
-def gradient_palette(
-    color_function, n, evaluation: Evaluation
-):  # always returns RGB values
-    if isinstance(color_function, String):
-        color_data = Expression(SymbolColorData, color_function).evaluate(evaluation)
-        if not color_data.has_form("ColorDataFunction", 4):
-            return
-        name, kind, interval, blend = color_data.elements
-        if not isinstance(kind, String) or kind.get_string_value() != "Gradients":
-            return
-        if not interval.has_form("List", 2):
-            return
-        x0, x1 = (x.round_to_float() for x in interval.elements)
-    else:
-        blend = color_function
-        x0 = 0.0
-        x1 = 1.0
-
-    xd = x1 - x0
-    offsets = [MachineReal(x0 + float(xd * i) / float(n - 1)) for i in range(n)]
-    colors = Expression(SymbolMap, blend, ListExpression(*offsets)).evaluate(evaluation)
-    if len(colors.elements) != n:
-        return
-
-    from mathics.builtin.colors.color_directives import ColorError, expression_to_color
-
-    try:
-        objects = [expression_to_color(x) for x in colors.elements]
-        if any(x is None for x in objects):
-            return None
-        return [x.to_rgba()[:3] for x in objects]
-    except ColorError:
-        return
 
 
 class _Chart(Builtin):
@@ -137,144 +87,7 @@ class _Chart(Builtin):
 
     def eval(self, points, evaluation: Evaluation, options: dict):
         "%(name)s[points_, OptionsPattern[%(name)s]]"
-
-        points = points.evaluate(evaluation)
-
-        if points.get_head_name() != "System`List" or not points.elements:
-            return
-
-        if points.elements[0].get_head_name() == "System`List":
-            if not all(
-                group.get_head_name() == "System`List" for group in points.elements
-            ):
-                return
-            multiple_colors = True
-            groups = points.elements
-        else:
-            multiple_colors = False
-            groups = [points]
-
-        chart_legends = self.get_option(options, "ChartLegends", evaluation)
-        has_chart_legends = chart_legends.get_head_name() == "System`List"
-        if has_chart_legends:
-            multiple_colors = True
-
-        def to_number(x):
-            if isinstance(x, Integer):
-                return float(x.get_int_value())
-            return x.round_to_float(evaluation=evaluation)
-
-        data = [[to_number(x) for x in group.elements] for group in groups]
-
-        chart_style = self.get_option(options, "ChartStyle", evaluation)
-        if (
-            isinstance(chart_style, Symbol)
-            and chart_style.get_name() == "System`Automatic"
-        ):
-            chart_style = String("Automatic")
-
-        if chart_style.get_head_name() == "System`List":
-            colors = chart_style.elements
-            spread_colors = False
-        elif isinstance(chart_style, String):
-            if chart_style.get_string_value() == "Automatic":
-                mpl_colors = palettable.wesanderson.Moonrise1_5.mpl_colors
-            else:
-                mpl_colors = ColorData.colors(chart_style.get_string_value())
-                if mpl_colors is None:
-                    return
-                multiple_colors = True
-
-            if not multiple_colors and not self.never_monochrome:
-                colors = [to_expression(SymbolRGBColor, *mpl_colors[0])]
-            else:
-                colors = [to_expression(SymbolRGBColor, *c) for c in mpl_colors]
-            spread_colors = True
-        else:
-            return
-
-        def legends(names):
-            if not data:
-                return
-
-            n = len(data[0])
-            for d in data[1:]:
-                if len(d) != n:
-                    return  # data groups should have same size
-
-            def box(color):
-                return Expression(
-                    SymbolGraphics,
-                    ListExpression(
-                        Expression(SymbolFaceForm, color), Expression(SymbolRectangle)
-                    ),
-                    Expression(
-                        SymbolRule,
-                        Symbol("ImageSize"),
-                        ListExpression(Integer(50), Integer(50)),
-                    ),
-                )
-
-            rows_per_col = 5
-
-            n_cols = 1 + len(names) // rows_per_col
-            if len(names) % rows_per_col == 0:
-                n_cols -= 1
-
-            if n_cols == 1:
-                n_rows = len(names)
-            else:
-                n_rows = rows_per_col
-
-            for i in range(n_rows):
-                items = []
-                for j in range(n_cols):
-                    k = 1 + i + j * rows_per_col
-                    if k - 1 < len(names):
-                        items.extend([box(color(k, n)), names[k - 1]])
-                    else:
-                        items.extend([String(""), String("")])
-                yield ListExpression(*items)
-
-        def color(k, n):
-            if spread_colors and n < len(colors):
-                index = int(k * (len(colors) - 1)) // n
-                return colors[index]
-            else:
-                return colors[(k - 1) % len(colors)]
-
-        chart = self._draw(data, color, evaluation, options)
-
-        if has_chart_legends:
-            grid = Expression(
-                SymbolGrid, ListExpression(*list(legends(chart_legends.elements)))
-            )
-            chart = Expression(SymbolRow, ListExpression(chart, grid))
-
-        return chart
-
-
-class _GradientColorScheme:
-    def color_data_function(self, name):
-        colors = ListExpression(
-            *[
-                to_expression(
-                    SymbolRGBColor, *color, elements_conversion_fn=MachineReal
-                )
-                for color in self.colors()
-            ]
-        )
-        blend = Expression(
-            SymbolFunction,
-            Expression(SymbolBlend, colors, Expression(SymbolSlot, Integer1)),
-        )
-        arguments = [
-            String(name),
-            String("Gradients"),
-            ListExpression(Integer0, Integer1),
-            blend,
-        ]
-        return Expression(SymbolColorDataFunction, *arguments)
+        return eval_chart(self, points, evaluation, options)
 
 
 class _ListPlot(Builtin, ABC):
@@ -300,7 +113,8 @@ class _ListPlot(Builtin, ABC):
 
         class_name = self.__class__.__name__
 
-        # Scale point values down by Log 10. Tick mark values will be adjusted to be 10^n in GraphicsBox.
+        # Scale point values down by Log 10. Tick mark values will be adjusted
+        # to be 10^n in GraphicsBox.
         if self.use_log_scale:
             points = ListExpression(
                 *(
@@ -390,18 +204,6 @@ class _ListPlot(Builtin, ABC):
             list_plot_type=plot_type,
             options=options,
         )
-
-
-class _PalettableGradient(_GradientColorScheme):
-    def __init__(self, palette, reversed):
-        self.palette = palette
-        self.reversed = reversed
-
-    def colors(self):
-        colors = self.palette.mpl_colors
-        if self.reversed:
-            colors = list(reversed(colors))
-        return colors
 
 
 class _Plot(Builtin, ABC):
@@ -669,448 +471,9 @@ class _Plot3D(Builtin):
     ):
         """%(name)s[functions_, {x_Symbol, xstart_, xstop_},
         {y_Symbol, ystart_, ystop_}, OptionsPattern[%(name)s]]"""
-        xexpr_limits = ListExpression(x, xstart, xstop)
-        yexpr_limits = ListExpression(y, ystart, ystop)
-        expr = Expression(
-            Symbol(self.get_name()),
-            functions,
-            xexpr_limits,
-            yexpr_limits,
-            *options_to_rules(options),
+        return eval_plot3d(
+            self, functions, x, xstart, xstop, y, ystart, ystop, evaluation, options
         )
-
-        functions = self.get_functions_param(functions)
-        plot_name = self.get_name()
-
-        def convert_limit(value, limits):
-            result = value.round_to_float(evaluation)
-            if result is None:
-                evaluation.message(plot_name, "plln", value, limits)
-            return result
-
-        xstart = convert_limit(xstart, xexpr_limits)
-        xstop = convert_limit(xstop, xexpr_limits)
-        ystart = convert_limit(ystart, yexpr_limits)
-        ystop = convert_limit(ystop, yexpr_limits)
-        if None in (xstart, xstop, ystart, ystop):
-            return
-
-        if ystart >= ystop:
-            evaluation.message(plot_name, "plln", ystop, expr)
-            return
-
-        if xstart >= xstop:
-            evaluation.message(plot_name, "plln", xstop, expr)
-            return
-
-        # Mesh Option
-        mesh_option = self.get_option(options, "Mesh", evaluation)
-        mesh = mesh_option.to_python()
-        if mesh not in ["System`None", "System`Full", "System`All"]:
-            evaluation.message("Mesh", "ilevels", mesh_option)
-            mesh = "System`Full"
-
-        # PlotPoints Option
-        plotpoints_option = self.get_option(options, "PlotPoints", evaluation)
-        plotpoints = plotpoints_option.to_python()
-
-        def check_plotpoints(steps):
-            if isinstance(steps, int) and steps > 0:
-                return True
-            return False
-
-        if plotpoints == "System`None":
-            plotpoints = [7, 7]
-        elif check_plotpoints(plotpoints):
-            plotpoints = [plotpoints, plotpoints]
-
-        if not (
-            isinstance(plotpoints, list)
-            and len(plotpoints) == 2
-            and check_plotpoints(plotpoints[0])
-            and check_plotpoints(plotpoints[1])
-        ):
-            evaluation.message(self.get_name(), "invpltpts", plotpoints)
-            plotpoints = [7, 7]
-
-        # MaxRecursion Option
-        maxrec_option = self.get_option(options, "MaxRecursion", evaluation)
-        max_depth = maxrec_option.to_python()
-        if isinstance(max_depth, int):
-            if max_depth < 0:
-                max_depth = 0
-                evaluation.message(self.get_name(), "invmaxrec", max_depth, 15)
-            elif max_depth > 15:
-                max_depth = 15
-                evaluation.message(self.get_name(), "invmaxrec", max_depth, 15)
-            else:
-                pass  # valid
-        elif max_depth == float("inf"):
-            max_depth = 15
-            evaluation.message(self.get_name(), "invmaxrec", max_depth, 15)
-        else:
-            max_depth = 0
-            evaluation.message(self.get_name(), "invmaxrec", max_depth, 15)
-
-        # Plot the functions
-        graphics = []
-        for indx, f in enumerate(functions):
-            stored = {}
-
-            compiled_fn = compile_quiet_function(
-                f, [x.get_name(), y.get_name()], evaluation, False
-            )
-
-            def apply_fn(compiled_fn: Callable, x_value, y_value):
-                try:
-                    # Try to used cached value first
-                    return stored[(x_value, y_value)]
-                except KeyError:
-                    value = compiled_fn(x_value, y_value)
-                    if value is not None:
-                        value = float(value)
-                    stored[(x_value, y_value)] = value
-                    return value
-
-            triangles = []
-
-            split_edges = set()  # subdivided edges
-
-            def triangle(x1, y1, x2, y2, x3, y3, depth=0):
-                v1, v2, v3 = (
-                    apply_fn(compiled_fn, x1, y1),
-                    apply_fn(compiled_fn, x2, y2),
-                    apply_fn(compiled_fn, x3, y3),
-                )
-
-                if (v1 is v2 is v3 is None) and (depth > max_depth // 2):
-                    # fast finish because the entire region is undefined but
-                    # recurse 'a little' to avoid missing well defined regions
-                    return
-                elif v1 is None or v2 is None or v3 is None:
-                    # 'triforce' pattern recursion to find the edge of defined region
-                    #         1
-                    #         /\
-                    #      4 /__\ 6
-                    #       /\  /\
-                    #      /__\/__\
-                    #     2   5    3
-                    if depth < max_depth:
-                        x4, y4 = 0.5 * (x1 + x2), 0.5 * (y1 + y2)
-                        x5, y5 = 0.5 * (x2 + x3), 0.5 * (y2 + y3)
-                        x6, y6 = 0.5 * (x1 + x3), 0.5 * (y1 + y3)
-                        split_edges.add(
-                            ((x1, y1), (x2, y2))
-                            if (x2, y2) > (x1, y1)
-                            else ((x2, y2), (x1, y1))
-                        )
-                        split_edges.add(
-                            ((x2, y2), (x3, y3))
-                            if (x3, y3) > (x2, y2)
-                            else ((x3, y3), (x2, y2))
-                        )
-                        split_edges.add(
-                            ((x1, y1), (x3, y3))
-                            if (x3, y3) > (x1, y1)
-                            else ((x3, y3), (x1, y1))
-                        )
-                        triangle(x1, y1, x4, y4, x6, y6, depth + 1)
-                        triangle(x4, y4, x2, y2, x5, y5, depth + 1)
-                        triangle(x6, y6, x5, y5, x3, y3, depth + 1)
-                        triangle(x4, y4, x5, y5, x6, y6, depth + 1)
-                    return
-                triangles.append(sorted(((x1, y1, v1), (x2, y2, v2), (x3, y3, v3))))
-
-            # linear (grid) sampling
-            numx = plotpoints[0] * 1.0
-            numy = plotpoints[1] * 1.0
-            for xi in range(plotpoints[0]):
-                for yi in range(plotpoints[1]):
-                    # Decide which way to break the square grid into triangles
-                    # by looking at diagonal lengths.
-                    #
-                    # 3___4        3___4
-                    # |\  |        |  /|
-                    # | \ | versus | / |
-                    # |__\|        |/__|
-                    # 1   2        1   2
-                    #
-                    # Approaching the boundary of the well defined region is
-                    # important too. Use first strategy if 1 or 4 are undefined
-                    # and strategy 2 if either 2 or 3 are undefined.
-                    #
-                    (x1, x2, x3, x4) = (
-                        xstart + value * (xstop - xstart)
-                        for value in (
-                            xi / numx,
-                            (xi + 1) / numx,
-                            xi / numx,
-                            (xi + 1) / numx,
-                        )
-                    )
-                    (y1, y2, y3, y4) = (
-                        ystart + value * (ystop - ystart)
-                        for value in (
-                            yi / numy,
-                            yi / numy,
-                            (yi + 1) / numy,
-                            (yi + 1) / numy,
-                        )
-                    )
-
-                    v1 = apply_fn(compiled_fn, x1, y1)
-                    v2 = apply_fn(compiled_fn, x2, y2)
-                    v3 = apply_fn(compiled_fn, x3, y3)
-                    v4 = apply_fn(compiled_fn, x4, y4)
-
-                    if v1 is None or v4 is None:
-                        triangle(x1, y1, x2, y2, x3, y3)
-                        triangle(x4, y4, x3, y3, x2, y2)
-                    elif v2 is None or v3 is None:
-                        triangle(x2, y2, x1, y1, x4, y4)
-                        triangle(x3, y3, x4, y4, x1, y1)
-                    else:
-                        if abs(v3 - v2) > abs(v4 - v1):
-                            triangle(x2, y2, x1, y1, x4, y4)
-                            triangle(x3, y3, x4, y4, x1, y1)
-                        else:
-                            triangle(x1, y1, x2, y2, x3, y3)
-                            triangle(x4, y4, x3, y3, x2, y2)
-
-            # adaptive resampling
-            # TODO: optimise this
-            # Cos of the maximum angle between successive line segments
-            ang_thresh = cos(20 * pi / 180)
-            for depth in range(1, max_depth):
-                needs_removal = set()
-                lent = len(triangles)  # number of initial triangles
-                for i1 in range(lent):
-                    for i2 in range(lent):
-                        # find all edge pairings
-                        if i1 == i2:
-                            continue
-                        t1 = triangles[i1]
-                        t2 = triangles[i2]
-
-                        edge_pairing = (
-                            (t1[0], t1[1]) == (t2[0], t2[1])
-                            or (t1[0], t1[1]) == (t2[1], t2[2])
-                            or (t1[0], t1[1]) == (t2[0], t2[2])
-                            or (t1[1], t1[2]) == (t2[0], t2[1])
-                            or (t1[1], t1[2]) == (t2[1], t2[2])
-                            or (t1[1], t1[2]) == (t2[0], t2[2])
-                            or (t1[0], t1[2]) == (t2[0], t2[1])
-                            or (t1[0], t1[2]) == (t2[1], t2[2])
-                            or (t1[0], t1[2]) == (t2[0], t2[2])
-                        )
-                        if not edge_pairing:
-                            continue
-                        v1 = [t1[1][i] - t1[0][i] for i in range(3)]
-                        w1 = [t1[2][i] - t1[0][i] for i in range(3)]
-                        v2 = [t2[1][i] - t2[0][i] for i in range(3)]
-                        w2 = [t2[2][i] - t2[0][i] for i in range(3)]
-                        n1 = (  # surface normal for t1
-                            (v1[1] * w1[2]) - (v1[2] * w1[1]),
-                            (v1[2] * w1[0]) - (v1[0] * w1[2]),
-                            (v1[0] * w1[1]) - (v1[1] * w1[0]),
-                        )
-                        n2 = (  # surface normal for t2
-                            (v2[1] * w2[2]) - (v2[2] * w2[1]),
-                            (v2[2] * w2[0]) - (v2[0] * w2[2]),
-                            (v2[0] * w2[1]) - (v2[1] * w2[0]),
-                        )
-                        try:
-                            angle = (
-                                n1[0] * n2[0] + n1[1] * n2[1] + n1[2] * n2[2]
-                            ) / sqrt(
-                                (n1[0] ** 2 + n1[1] ** 2 + n1[2] ** 2)
-                                * (n2[0] ** 2 + n2[1] ** 2 + n2[2] ** 2)
-                            )
-                        except ZeroDivisionError:
-                            angle = 0.0
-                        if abs(angle) < ang_thresh:
-                            for i, t in ((i1, t1), (i2, t2)):
-                                # subdivide
-                                x1, y1 = t[0][0], t[0][1]
-                                x2, y2 = t[1][0], t[1][1]
-                                x3, y3 = t[2][0], t[2][1]
-                                x4, y4 = 0.5 * (x1 + x2), 0.5 * (y1 + y2)
-                                x5, y5 = 0.5 * (x2 + x3), 0.5 * (y2 + y3)
-                                x6, y6 = 0.5 * (x1 + x3), 0.5 * (y1 + y3)
-                                needs_removal.add(i)
-                                split_edges.add(
-                                    ((x1, y1), (x2, y2))
-                                    if (x2, y2) > (x1, y1)
-                                    else ((x2, y2), (x1, y1))
-                                )
-                                split_edges.add(
-                                    ((x2, y2), (x3, y3))
-                                    if (x3, y3) > (x2, y2)
-                                    else ((x3, y3), (x2, y2))
-                                )
-                                split_edges.add(
-                                    ((x1, y1), (x3, y3))
-                                    if (x3, y3) > (x1, y1)
-                                    else ((x3, y3), (x1, y1))
-                                )
-                                triangle(x1, y1, x4, y4, x6, y6, depth=depth)
-                                triangle(x2, y2, x4, y4, x5, y5, depth=depth)
-                                triangle(x3, y3, x5, y5, x6, y6, depth=depth)
-                                triangle(x4, y4, x5, y5, x6, y6, depth=depth)
-                # remove subdivided triangles which have been divided
-                triangles = [
-                    t for i, t in enumerate(triangles) if i not in needs_removal
-                ]
-
-            # fix up subdivided edges
-            #
-            # look at every triangle and see if its edges need updating.
-            # depending on how many edges require subdivision we proceede with
-            # one of two subdivision strategies
-            #
-            # TODO possible optimisation: don't look at every triangle again
-            made_changes = True
-            while made_changes:
-                made_changes = False
-                new_triangles = []
-                for i, t in enumerate(triangles):
-                    new_points = []
-                    if ((t[0][0], t[0][1]), (t[1][0], t[1][1])) in split_edges:
-                        new_points.append([0, 1])
-                    if ((t[1][0], t[1][1]), (t[2][0], t[2][1])) in split_edges:
-                        new_points.append([1, 2])
-                    if ((t[0][0], t[0][1]), (t[2][0], t[2][1])) in split_edges:
-                        new_points.append([0, 2])
-
-                    if len(new_points) == 0:
-                        continue
-                    made_changes = True
-                    # 'triforce' subdivision
-                    #         1
-                    #         /\
-                    #      4 /__\ 6
-                    #       /\  /\
-                    #      /__\/__\
-                    #     2   5    3
-                    # if less than three edges require subdivision bisect them
-                    # anyway but fake their values by averaging
-                    x4 = 0.5 * (t[0][0] + t[1][0])
-                    y4 = 0.5 * (t[0][1] + t[1][1])
-                    v4 = stored.get((x4, y4), 0.5 * (t[0][2] + t[1][2]))
-
-                    x5 = 0.5 * (t[1][0] + t[2][0])
-                    y5 = 0.5 * (t[1][1] + t[2][1])
-                    v5 = stored.get((x5, y5), 0.5 * (t[1][2] + t[2][2]))
-
-                    x6 = 0.5 * (t[0][0] + t[2][0])
-                    y6 = 0.5 * (t[0][1] + t[2][1])
-                    v6 = stored.get((x6, y6), 0.5 * (t[0][2] + t[2][2]))
-
-                    if not (v4 is None or v6 is None):
-                        new_triangles.append(sorted((t[0], (x4, y4, v4), (x6, y6, v6))))
-                    if not (v4 is None or v5 is None):
-                        new_triangles.append(sorted((t[1], (x4, y4, v4), (x5, y5, v5))))
-                    if not (v5 is None or v6 is None):
-                        new_triangles.append(sorted((t[2], (x5, y5, v5), (x6, y6, v6))))
-                    if not (v4 is None or v5 is None or v6 is None):
-                        new_triangles.append(
-                            sorted(((x4, y4, v4), (x5, y5, v5), (x6, y6, v6)))
-                        )
-                    triangles[i] = None
-
-                triangles.extend(new_triangles)
-                triangles = [t for t in triangles if t is not None]
-
-            # add the mesh
-            mesh_points = []
-            if mesh == "System`Full":
-                for xi in range(plotpoints[0] + 1):
-                    xval = xstart + xi / numx * (xstop - xstart)
-                    mesh_row = []
-                    for yi in range(plotpoints[1] + 1):
-                        yval = ystart + yi / numy * (ystop - ystart)
-                        z = stored[(xval, yval)]
-                        mesh_row.append((xval, yval, z))
-                    mesh_points.append(mesh_row)
-
-                for yi in range(plotpoints[1] + 1):
-                    yval = ystart + yi / numy * (ystop - ystart)
-                    mesh_col = []
-                    for xi in range(plotpoints[0] + 1):
-                        xval = xstart + xi / numx * (xstop - xstart)
-                        z = stored[(xval, yval)]
-                        mesh_col.append((xval, yval, z))
-                    mesh_points.append(mesh_col)
-
-                # handle edge subdivisions
-                made_changes = True
-                while made_changes:
-                    made_changes = False
-                    for mesh_line in mesh_points:
-                        i = 0
-                        while i < len(mesh_line) - 1:
-                            x1, y1, v1 = mesh_line[i]
-                            x2, y2, v2 = mesh_line[i + 1]
-                            key = (
-                                ((x1, y1), (x2, y2))
-                                if (x2, y2) > (x1, y1)
-                                else ((x2, y2), (x1, y1))
-                            )
-                            if key in split_edges:
-                                x3 = 0.5 * (x1 + x2)
-                                y3 = 0.5 * (y1 + y2)
-                                v3 = stored[(x3, y3)]
-                                mesh_line.insert(i + 1, (x3, y3, v3))
-                                made_changes = True
-                                i += 1
-                            i += 1
-
-                # handle missing regions
-                old_meshpoints, mesh_points = mesh_points, []
-                for mesh_line in old_meshpoints:
-                    mesh_points.extend(
-                        [
-                            sorted(g)
-                            for k, g in itertools.groupby(
-                                mesh_line, lambda x: x[2] is None
-                            )
-                        ]
-                    )
-                mesh_points = [
-                    mesh_line
-                    for mesh_line in mesh_points
-                    if not any(x[2] is None for x in mesh_line)
-                ]
-            elif mesh == "System`All":
-                mesh_points = set()
-                for t in triangles:
-                    mesh_points.add((t[0], t[1]) if t[1] > t[0] else (t[1], t[0]))
-                    mesh_points.add((t[1], t[2]) if t[2] > t[1] else (t[2], t[1]))
-                    mesh_points.add((t[0], t[2]) if t[2] > t[0] else (t[2], t[0]))
-                mesh_points = list(mesh_points)
-
-            # find the max and min height
-            v_min = v_max = None
-            for t in triangles:
-                for tx, ty, v in t:
-                    if v_min is None or v < v_min:
-                        v_min = v
-                    if v_max is None or v > v_max:
-                        v_max = v
-            graphics.extend(
-                self.construct_graphics(
-                    triangles, mesh_points, v_min, v_max, options, evaluation
-                )
-            )
-        return self.final_graphics(graphics, options)
-
-
-class _PredefinedGradient(_GradientColorScheme):
-    def __init__(self, colors):
-        self._colors = colors
-
-    def colors(self):
-        return self._colors
 
 
 class BarChart(_Chart):
@@ -1288,55 +651,7 @@ class ColorData(Builtin):
         "notent": "`1` is not a known color scheme. ColorData[] gives you lists of schemes.",
     }
 
-    palettes = {
-        "LakeColors": _PredefinedGradient(
-            [
-                (0.293416, 0.0574044, 0.529412),
-                (0.563821, 0.527565, 0.909499),
-                (0.762631, 0.846998, 0.914031),
-                (0.941176, 0.906538, 0.834043),
-            ]
-        ),
-        "Pastel": _PalettableGradient(
-            palettable.colorbrewer.qualitative.Pastel1_9, False
-        ),
-        "Rainbow": _PalettableGradient(
-            palettable.colorbrewer.diverging.Spectral_9, True
-        ),
-        "RedBlueTones": _PalettableGradient(
-            palettable.colorbrewer.diverging.RdBu_11, False
-        ),
-        "GreenPinkTones": _PalettableGradient(
-            palettable.colorbrewer.diverging.PiYG_9, False
-        ),
-        "GrayTones": _PalettableGradient(
-            palettable.colorbrewer.sequential.Greys_9, False
-        ),
-        "SolarColors": _PalettableGradient(
-            palettable.colorbrewer.sequential.OrRd_9, True
-        ),
-        "CherryTones": _PalettableGradient(
-            palettable.colorbrewer.sequential.Reds_9, True
-        ),
-        "FuchsiaTones": _PalettableGradient(
-            palettable.colorbrewer.sequential.RdPu_9, True
-        ),
-        "SiennaTones": _PalettableGradient(
-            palettable.colorbrewer.sequential.Oranges_9, True
-        ),
-        # specific to Mathics
-        "Paired": _PalettableGradient(
-            palettable.colorbrewer.qualitative.Paired_9, False
-        ),
-        "Accent": _PalettableGradient(
-            palettable.colorbrewer.qualitative.Accent_8, False
-        ),
-        "Aquatic": _PalettableGradient(palettable.wesanderson.Aquatic1_5, False),
-        "Zissou": _PalettableGradient(palettable.wesanderson.Zissou_5, False),
-        "Tableau": _PalettableGradient(palettable.tableau.Tableau_20, False),
-        "TrafficLight": _PalettableGradient(palettable.tableau.TrafficLight_9, False),
-        "Moonrise1": _PalettableGradient(palettable.wesanderson.Moonrise1_5, False),
-    }
+    palettes = COLOR_PALETTES
 
     def eval_directory(self, evaluation: Evaluation):
         "ColorData[]"
@@ -1355,11 +670,7 @@ class ColorData(Builtin):
 
     @staticmethod
     def colors(name, evaluation):
-        palette = ColorData.palettes.get(name, None)
-        if palette is None:
-            evaluation.message("ColorData", "notent", name)
-            return None
-        return palette.colors()
+        return get_color_palette(name, evaluation)
 
 
 class ColorDataFunction(Builtin):

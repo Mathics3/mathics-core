@@ -84,6 +84,22 @@ def automatic_plot_range(values):
     return vmin, vmax
 
 
+# PlotRange Option
+def check_plot_range(range_spec, range_type) -> bool:
+    """
+    Return True if `range` has two numbers, the first number less than the second number,
+    and that both numbers have type `range_type`
+    """
+    if range_spec in ("System`Automatic", "System`All"):
+        return True
+    if isinstance(range_spec, list) and len(range_spec) == 2:
+        if isinstance(range_spec[0], range_type) and isinstance(
+            range_spec[1], range_type
+        ):
+            return True
+    return False
+
+
 def compile_quiet_function(expr, arg_names, evaluation, list_is_expected: bool):
     """
     Given an expression return a quiet callable version.
