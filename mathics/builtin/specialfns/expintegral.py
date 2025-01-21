@@ -54,23 +54,38 @@ class ExpIntegralEi(MPMathFunction):
 
 class LambertW(Builtin):
     """
-    <url>:Lambert W-Function: https://mathworld.wolfram.com/LambertW-Function.html</url>
+    <url>
+      :Lambert <i>W</i> Function:
+      https://en.wikipedia.org/wiki/Lambert_W_function</url>, <url>:MathWorld:
+      https://mathworld.wolfram.com/LambertW-Function.html</url>
 
     <dl>
+      <dt>'LambertW[$k$]'
+      <dd>alias for ProductLog[$z$].
+
       <dt>'LambertW[$k$, $z$]'
       <dd>alias for ProductLog[$k$, $z$].
     </dl>
 
     >> LambertW[k, z]
      = ProductLog[k, z]
+
+    >> Plot[LambertW[x], {x, -1/E, E}]
+     = -Graphics-
+
+    See also <url>
+    :ProductLog:
+    /doc/reference-of-built-in-symbols/special-functions/exponential-integral-and-special-functions/productlog</url>.
     """
 
     attributes = A_LISTABLE | A_PROTECTED
-    summary_text = "undocumented alias"
+    mpmath_name = "lambertw"
     rules = {
         "LambertW[z_]": "ProductLog[z]",
         "LambertW[k_, z_]": "ProductLog[k, z]",
     }
+    summary_text = "Lambert W function"
+    sympy_name = "LambertW"  # function called LambertW in SymPy
 
 
 class ProductLog(MPMathFunction):
@@ -79,7 +94,10 @@ class ProductLog(MPMathFunction):
 
     <dl>
       <dt>'ProductLog[$z$]'
-      <dd>returns the value of the Lambert W function at $z$.
+      <dd>returns the principle solution for $w$ in $z$ == $wE^w$.
+
+      <dt>'ProductLog[$k$, $z$]'
+      <dd>gives the $k$th solution.
     </dl>
 
     The defining equation:
@@ -92,14 +110,15 @@ class ProductLog(MPMathFunction):
     >> ProductLog[E]
      = 1
 
+    >> ProductLog[-1.5]
+     = -0.0327837 + 1.54964 I
+
     The graph of 'ProductLog':
     >> Plot[ProductLog[x], {x, -1/E, E}]
      = -Graphics-
     """
 
     attributes = A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
-    summary_text = "Lambert's W function"
-    sympy_name = "LambertW"  # function called LambertW in SymPy
     mpmath_name = "lambertw"
 
     rules = {
@@ -108,9 +127,11 @@ class ProductLog(MPMathFunction):
         "ProductLog[z_] * E ^ ProductLog[z_]": "z",
         "Derivative[1][ProductLog]": "ProductLog[#] / (# (ProductLog[#] + 1))&",
     }
+    summary_text = "Lambert's W function"
+    sympy_name = "LambertW"  # function called LambertW in SymPy
 
 
-# TODO: Zernike polynomials not yet implemented in mpmath nor sympy
+# TODO: Zernike polynomials not yet implemented in mpmath nor SymPy
 #
 # class ZernikeR(MPMathFunction):
 #    """
