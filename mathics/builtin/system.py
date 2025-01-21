@@ -55,10 +55,10 @@ class Breakpoint(Builtin):
     </dl>
 
 
-    Mathics3 also provides "breakpoint" handler, 'mathics.disabled_breakpoint', which \
-    notes that a ether 'Breakpoint[]' was encountered in Mathics3, or 'breakpoint()' was encountered \
-    in the Mathics3 source code. Either way, this breakpoint handler does not stop inside Python \
-    as you might do for debugging.
+    Mathics3 code includes a breakpoint handler function, 'mathics.disabled_breakpoint' which \
+    reports whether 'Breakpoint[]' was encountered in Mathics3, or 'breakpoint()' was encountered \
+    in the Mathics3 source code. In contrast to 'pdb', 'trepan3k' and other handlers, this breakpoint \
+    handler does not stop inside, it just reports.
 
     Here is how to use 'mathics.disabled_breakpoint':
 
@@ -68,10 +68,8 @@ class Breakpoint(Builtin):
     = Hit disabled breakpoint.
     = Breakpoint[]
 
-    The environment variable 'PYTHONBREAKPOINT' can be changed as \
-    often as you want at runtime to switch 'breakpoint()' and \
-    'Breakpoint[]' behavior.
-
+    The environment variable 'PYTHONBREAKPOINT' can be changed at runtime to switch \
+    'breakpoint()' and 'Breakpoint[]' behavior.
     """
 
     summary_text = "invoke Python breakpoint()"
