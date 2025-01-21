@@ -11,7 +11,6 @@ New Builtins
 * ``SetEnvironment``
 * ``SequenceForm``
 * ``Stack``
->>>>>>> ad8bbefe (Add Stack[])
 
 By `@davidar <https://github.com/davidar>`_:
 
