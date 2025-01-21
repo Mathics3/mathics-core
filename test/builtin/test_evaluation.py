@@ -5,7 +5,7 @@ Unit tests from mathics.builtin.evaluation.
 
 
 import sys
-from test.helper import check_evaluation_as_in_cli, session
+from test.helper import check_evaluation_as_in_cli
 
 import pytest
 

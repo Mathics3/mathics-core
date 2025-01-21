@@ -400,6 +400,29 @@ class DownValues(Builtin):
         return get_symbol_values(symbol, "DownValues", "downvalues", evaluation)
 
 
+# In Mathematica 5, this appears under "Types of Values".
+class FormatValues(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/tutorial/PatternsAndTransformationRules.html#6025</url>
+    <dl>
+      <dt>'FormatValues[$symbol$]'
+      <dd>gives the list of formatvalues associated with $symbol$.
+    </dl>
+
+    >> Format[F[x_], OutputForm]:= Subscript[x, F]
+    >> FormatValues[F]
+     = {HoldPattern[Format[Subscript[x_, F], OutputForm]] :> Subscript[x, F]}
+    """
+
+    summary_text = (
+        "give a list of formatting transformation rules associated with a symbol."
+    )
+
+    def eval(self, symbol, evaluation):
+        """FormatValues[symbol_]"""
+        return get_symbol_values(symbol, "FormatValues", "formatvalues", evaluation)
+
+
 class Information(PrefixOperator):
     """
     <url>:WMA link:
