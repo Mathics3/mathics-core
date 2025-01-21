@@ -1,6 +1,39 @@
 CHANGES
 =======
 
+This release is to get out some of the major changes that have gone on
+already in advance of redoing Boxing and Formatting.
+
+Operators are now controlled from a new operators YAML table from the
+``mathics-scanner`` repository. A pass was made over the Mathics parser
+to handle box operators more properly. More work is needed here.
+
+We started adding more debugging capabilites:
+
+* ``Breakpoint[]``
+* ``Stack[]``, and
+* ``Trace[]``
+
+And in the ``Mathics3-Trepan`` repository:
+
+* ``DebugActivate[]``
+* ``Debugger[]``, and
+* ``TraceActivate[]``
+
+This code is very much alpha quality, but it greatly improves the
+ability to debug problems in loading existing packages written from
+Mathematica. So packages ``BoolEval`` and ``CleanSlate`` were added to
+the repostiory.
+
+Also as a result of the improved ability to debug Mathics3, we now
+provide a version of Rubi 4.17 using git submodules . To use this you
+will need a patched version of ``stopit``.  Aravindh Krishnamoorthy
+led the initial port of Rubi.
+
+David A. Roberts worked on ensuring Mathics3 runs on pyodide and
+contributed a number of new Built-in Functions that are found in `The
+On-Line Encyclopedia of Integer Sequences (OEIS) <https://oeis.org/>`_
+
 
 New Builtins
 ++++++++++++
@@ -13,6 +46,7 @@ New Builtins
 * ``SetEnvironment``
 * ``SequenceForm``
 * ``Stack``
+* ``Trace``
 
 By `@davidar <https://github.com/davidar>`_:
 
