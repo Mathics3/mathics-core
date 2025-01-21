@@ -12,6 +12,7 @@ New Builtins
 * ``FormatValues``
 * ``SetEnvironment``
 * ``SequenceForm``
+* ``Stack``
 
 By `@davidar <https://github.com/davidar>`_:
 
