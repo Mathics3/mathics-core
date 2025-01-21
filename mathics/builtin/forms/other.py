@@ -37,7 +37,7 @@ class SequenceForm(FormBaseClass):
         "CharacterEncoding": '"Unicode"',
     }
 
-    summary_text = "format make an string from a template and a list of parameters"
+    summary_text = "format a string from a template and a list of parameters"
 
     def eval_makeboxes(self, args, form, evaluation, options: dict):
         """MakeBoxes[SequenceForm[args___, OptionsPattern[SequenceForm]],
@@ -73,7 +73,7 @@ class StringForm(FormBaseClass):
 
     in_outputforms = False
     in_printforms = False
-    summary_text = "make an string from a template and a list of parameters"
+    summary_text = "format a string from a template and a list of parameters"
 
     def eval_makeboxes(self, s, args, form, evaluation):
         """MakeBoxes[StringForm[s_String, args___],

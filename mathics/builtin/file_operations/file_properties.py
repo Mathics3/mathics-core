@@ -67,7 +67,7 @@ class FileDate(Builtin):
             "Change" -> FileDate[filepath, "Change"],
             "Modification" -> FileDate[filepath, "Modification"]}""",
     }
-    summary_text = "date and time of the last change in a file"
+    summary_text = "get date and time of the last change in a file"
 
     def eval(self, path, timetype, evaluation):
         "FileDate[path_, timetype_]"
@@ -107,7 +107,10 @@ class FileDate(Builtin):
         epochtime_expr = Expression(
             SymbolAbsoluteTime, String(time.strftime("%Y-%m-%d %H:%M", time.gmtime(0)))
         )
-        epochtime = eval_N(epochtime_expr, evaluation).to_python()
+        epochtime_N = eval_N(epochtime_expr, evaluation)
+        if epochtime_N is None:
+            return None
+        epochtime = epochtime_N.to_python()
         result += epochtime
 
         return to_expression("DateList", Real(result))
@@ -201,7 +204,7 @@ class FileType(Builtin):
             "File specification `1` is not a string of " "one or more characters."
         ),
     }
-    summary_text = "type of a file"
+    summary_text = "get the file extension or file type of a file"
 
     def eval(self, filename, evaluation):
         "FileType[filename_]"
@@ -210,7 +213,7 @@ class FileType(Builtin):
             return
         path = filename.to_python()[1:-1]
 
-        path, is_temporary_file = path_search(path)
+        path, _ = path_search(path)
 
         if path is None:
             return SymbolNone
@@ -288,7 +291,7 @@ class SetFileDate(Builtin):
         ):
             evaluation.message("SetFileDate", "fstr", filename)
             return
-        py_filename, is_temporary_file = path_search(py_filename[1:-1])
+        py_filename, _ = path_search(py_filename[1:-1])
 
         if py_filename is None:
             evaluation.message("SetFileDate", "nffil", expr)
@@ -317,9 +320,11 @@ class SetFileDate(Builtin):
         )
 
         stattime = to_expression("AbsoluteTime", from_python(py_datelist))
-        stattime = eval_N(stattime, evaluation).to_python()
+        stattime_N = eval_N(stattime, evaluation)
+        if stattime_N is None:
+            return
 
-        stattime -= epochtime
+        stattime = stattime_N.to_python() - epochtime
 
         try:
             os.stat(py_filename)
