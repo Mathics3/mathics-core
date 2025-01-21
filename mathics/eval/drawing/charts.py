@@ -6,25 +6,36 @@ Note that this is distinct from boxing, formatting and rendering e.g. to SVG.
 That is done as another pass after M-expression evaluation finishes.
 """
 
+import itertools
+
 import palettable
 
-from mathics.core.atoms import Integer, String
-from mathics.core.convert.expression import to_expression
+from mathics.builtin.options import options_to_rules
+from mathics.core.atoms import Integer, Integer0, MachineReal, String
+from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
+    SymbolBlack,
+    SymbolEdgeForm,
     SymbolFaceForm,
     SymbolGraphics,
     SymbolGrid,
+    SymbolLine,
     SymbolRGBColor,
     SymbolRow,
     SymbolRule,
+    SymbolStyle,
 )
 from mathics.eval.drawing.colors import get_color_palette
+from mathics.eval.drawing.plot import get_plot_range
 
+SymbolText = Symbol("Text")
 SymbolRectangle = Symbol("System`Rectangle")
+TwoTenths = MachineReal(0.2)
+MTwoTenths = -TwoTenths
 
 
 def eval_chart(self, points, evaluation: Evaluation, options: dict):
@@ -137,3 +148,93 @@ def eval_chart(self, points, evaluation: Evaluation, options: dict):
         chart = Expression(SymbolRow, ListExpression(chart, grid))
 
     return chart
+
+
+def draw_bar_chart(self, data, color, evaluation, options):
+    def vector2(x, y) -> ListExpression:
+        return to_mathics_list(x, y)
+
+    def boxes():
+        w = 0.9
+        s = 0.06
+        w_half = 0.5 * w
+        x = 0.1 + s + w_half
+
+        for y_values in data:
+            y_length = len(y_values)
+            for i, y in enumerate(y_values):
+                x0 = x - w_half
+                x1 = x0 + w
+                yield (i + 1, y_length), x0, x1, y
+                x = x1 + s + w_half
+
+            x += 0.2
+
+    def rectangles():
+        yield Expression(SymbolEdgeForm, SymbolBlack)
+
+        last_x1 = 0
+
+        for (k, n), x0, x1, y in boxes():
+            yield Expression(
+                SymbolStyle,
+                Expression(
+                    SymbolRectangle,
+                    to_mathics_list(x0, 0),
+                    to_mathics_list(x1, y),
+                ),
+                color(k, n),
+            )
+
+            last_x1 = x1
+
+        yield Expression(
+            SymbolLine, ListExpression(vector2(0, 0), vector2(last_x1, Integer0))
+        )
+
+    def axes():
+        yield Expression(SymbolFaceForm, SymbolBlack)
+
+        def points(x):
+            return ListExpression(vector2(x, 0), vector2(x, MTwoTenths))
+
+        for (k, n), x0, x1, y in boxes():
+            if k == 1:
+                yield Expression(SymbolLine, points(x0))
+            if k == n:
+                yield Expression(SymbolLine, points(x1))
+
+    def labels(names):
+        yield Expression(SymbolFaceForm, SymbolBlack)
+
+        for (k, n), x0, x1, y in boxes():
+            if k <= len(names):
+                name = names[k - 1]
+                yield Expression(SymbolText, name, vector2((x0 + x1) / 2, MTwoTenths))
+
+    x_coords = list(itertools.chain(*[[x0, x1] for (k, n), x0, x1, y in boxes()]))
+    y_coords = [0] + [y for (k, n), x0, x1, y in boxes()]
+
+    graphics = list(rectangles()) + list(axes())
+
+    x_range = "System`All"
+    y_range = "System`All"
+
+    x_range = list(get_plot_range(x_coords, x_coords, x_range))
+    y_range = list(get_plot_range(y_coords, y_coords, y_range))
+
+    chart_labels = self.get_option(options, "ChartLabels", evaluation)
+    if chart_labels.get_head_name() == "System`List":
+        graphics.extend(list(labels(chart_labels.elements)))
+        y_range[0] = -0.4  # room for labels at the bottom
+
+    # FIXME: this can't be right...
+    # always specify -.1 as the minimum x plot range, as this will make the y axis appear
+    # at origin (0,0); otherwise it will be shifted right; see GraphicsBox.axis_ticks().
+    x_range[0] = -0.1
+
+    options["System`PlotRange"] = ListExpression(vector2(*x_range), vector2(*y_range))
+
+    return Expression(
+        SymbolGraphics, ListExpression(*graphics), *options_to_rules(options)
+    )

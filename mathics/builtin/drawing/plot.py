@@ -6,7 +6,6 @@ Plotting functions take a function as a parameter and data, often a range of \
 points, as another parameter, and plot or show the function applied to the data.
 """
 
-import itertools
 import numbers
 from abc import ABC
 from functools import lru_cache
@@ -38,7 +37,7 @@ from mathics.core.systemsymbols import (
     SymbolRGBColor,
     SymbolStyle,
 )
-from mathics.eval.drawing.charts import eval_chart
+from mathics.eval.drawing.charts import draw_bar_chart, eval_chart
 from mathics.eval.drawing.colors import COLOR_PALETTES, get_color_palette
 from mathics.eval.drawing.plot import (
     ListPlotType,
@@ -46,7 +45,9 @@ from mathics.eval.drawing.plot import (
     compile_quiet_function,
     eval_ListPlot,
     eval_Plot,
+    get_filling_option,
     get_plot_range,
+    get_plot_range_option,
 )
 from mathics.eval.drawing.plot3d import construct_density_plot, eval_plot3d
 from mathics.eval.nevaluator import eval_N
@@ -141,46 +142,8 @@ class _ListPlot(Builtin, ABC):
         else:
             plot_type = None
 
-        plotrange_option = self.get_option(options, "PlotRange", evaluation)
-        plotrange = eval_N(plotrange_option, evaluation).to_python()
-        if plotrange == "System`All":
-            plotrange = ["System`All", "System`All"]
-        elif plotrange == "System`Automatic":
-            plotrange = ["System`Automatic", "System`Automatic"]
-        elif isinstance(plotrange, numbers.Real):
-            plotrange = [[-plotrange, plotrange], [-plotrange, plotrange]]
-        elif isinstance(plotrange, list) and len(plotrange) == 2:
-            if all(isinstance(pr, numbers.Real) for pr in plotrange):
-                plotrange = ["System`All", plotrange]
-            elif all(check_plot_range(pr, numbers.Real) for pr in plotrange):
-                pass
-        else:
-            evaluation.message(self.get_name(), "prng", plotrange_option)
-            plotrange = ["System`Automatic", "System`Automatic"]
-
-        x_range, y_range = plotrange[0], plotrange[1]
-        assert x_range in ("System`Automatic", "System`All") or isinstance(
-            x_range, list
-        )
-        assert y_range in ("System`Automatic", "System`All") or isinstance(
-            y_range, list
-        )
-
-        # Filling option
-        # TODO: Fill between corresponding points in two datasets:
-        filling_option = self.get_option(options, "Filling", evaluation)
-        filling = eval_N(filling_option, evaluation).to_python()
-        if filling in [
-            "System`Top",
-            "System`Bottom",
-            "System`Axis",
-        ] or isinstance(  # noqa
-            filling, numbers.Real
-        ):
-            pass
-        else:
-            # Mathematica does not even check that filling is sane
-            filling = None
+        x_range, y_range = get_plot_range_option(options, evaluation, self.get_name())
+        filling = get_filling_option(options, evaluation)
 
         # Joined Option
         joined_option = self.get_option(options, "Joined", evaluation)
@@ -356,6 +319,7 @@ class _Plot(Builtin, ABC):
         )
 
     def get_functions_param(self, functions):
+        """Get the numbers of parameters in a function"""
         if functions.has_form("List", None):
             functions = list(functions.elements)
         else:
@@ -363,6 +327,7 @@ class _Plot(Builtin, ABC):
         return functions
 
     def get_plotrange(self, plotrange, start, stop):
+        """Determine the plot range for each variable"""
         x_range = y_range = None
         if isinstance(plotrange, numbers.Real):
             plotrange = ["System`Full", [-plotrange, plotrange]]
@@ -384,6 +349,7 @@ class _Plot(Builtin, ABC):
     def process_function_and_options(
         self, functions, x, start, stop, evaluation: Evaluation, options: dict
     ) -> tuple:
+        """Process the arguments of a plot expression."""
         if isinstance(functions, Symbol) and functions.name is not x.get_name():
             rules = evaluation.definitions.get_ownvalues(functions.name)
             for rule in rules:
@@ -417,22 +383,7 @@ class _Plot(Builtin, ABC):
             evaluation.message(self.get_name(), "plld", expr_limits)
             return
 
-        plotrange_option = self.get_option(options, "PlotRange", evaluation)
-        plot_range = eval_N(plotrange_option, evaluation).to_python()
-        x_range, y_range = self.get_plotrange(plot_range, py_start, py_stop)
-        if not check_plot_range(x_range, numbers.Real) or not check_plot_range(
-            y_range, numbers.Real
-        ):
-            evaluation.message(self.get_name(), "prng", plotrange_option)
-            x_range, y_range = [start, stop], "Automatic"
-
-        # x_range and y_range are now either Automatic, All, or of the form [min, max]
-        assert x_range in ("System`Automatic", "System`All") or isinstance(
-            x_range, list
-        )
-        assert y_range in ("System`Automatic", "System`All") or isinstance(
-            y_range, list
-        )
+        x_range, y_range = get_plot_range_option(options, evaluation, self.get_name())
         return functions, x_name, py_start, py_stop, x_range, y_range, expr_limits, expr
 
 
@@ -525,97 +476,8 @@ class BarChart(_Chart):
     summary_text = "draw a bar chart"
 
     def _draw(self, data, color, evaluation, options):
-        def vector2(x, y) -> ListExpression:
-            return to_mathics_list(x, y)
-
-        def boxes():
-            w = 0.9
-            s = 0.06
-            w_half = 0.5 * w
-            x = 0.1 + s + w_half
-
-            for y_values in data:
-                y_length = len(y_values)
-                for i, y in enumerate(y_values):
-                    x0 = x - w_half
-                    x1 = x0 + w
-                    yield (i + 1, y_length), x0, x1, y
-                    x = x1 + s + w_half
-
-                x += 0.2
-
-        def rectangles():
-            yield Expression(SymbolEdgeForm, SymbolBlack)
-
-            last_x1 = 0
-
-            for (k, n), x0, x1, y in boxes():
-                yield Expression(
-                    SymbolStyle,
-                    Expression(
-                        SymbolRectangle,
-                        to_mathics_list(x0, 0),
-                        to_mathics_list(x1, y),
-                    ),
-                    color(k, n),
-                )
-
-                last_x1 = x1
-
-            yield Expression(
-                SymbolLine, ListExpression(vector2(0, 0), vector2(last_x1, Integer0))
-            )
-
-        def axes():
-            yield Expression(SymbolFaceForm, SymbolBlack)
-
-            def points(x):
-                return ListExpression(vector2(x, 0), vector2(x, MTwoTenths))
-
-            for (k, n), x0, x1, y in boxes():
-                if k == 1:
-                    yield Expression(SymbolLine, points(x0))
-                if k == n:
-                    yield Expression(SymbolLine, points(x1))
-
-        def labels(names):
-            yield Expression(SymbolFaceForm, SymbolBlack)
-
-            for (k, n), x0, x1, y in boxes():
-                if k <= len(names):
-                    name = names[k - 1]
-                    yield Expression(
-                        SymbolText, name, vector2((x0 + x1) / 2, MTwoTenths)
-                    )
-
-        x_coords = list(itertools.chain(*[[x0, x1] for (k, n), x0, x1, y in boxes()]))
-        y_coords = [0] + [y for (k, n), x0, x1, y in boxes()]
-
-        graphics = list(rectangles()) + list(axes())
-
-        x_range = "System`All"
-        y_range = "System`All"
-
-        x_range = list(get_plot_range(x_coords, x_coords, x_range))
-        y_range = list(get_plot_range(y_coords, y_coords, y_range))
-
-        chart_labels = self.get_option(options, "ChartLabels", evaluation)
-        if chart_labels.get_head_name() == "System`List":
-            graphics.extend(list(labels(chart_labels.elements)))
-            y_range[0] = -0.4  # room for labels at the bottom
-
-        # FIXME: this can't be right...
-        # always specify -.1 as the minimum x plot range, as this will make the y axis appear
-        # at origin (0,0); otherwise it will be shifted right; see GraphicsBox.axis_ticks().
-        x_range[0] = -0.1
-
-        options["System`PlotRange"] = ListExpression(
-            vector2(*x_range), vector2(*y_range)
-        )
-
-        return Expression(
-            SymbolGraphics, ListExpression(*graphics), *options_to_rules(options)
-        )
+        """Draw a bar chart"""
+        return draw_bar_chart(self, data, color, evaluation, options)
 
 
 class ColorData(Builtin):
@@ -657,7 +519,7 @@ class ColorData(Builtin):
         "ColorData[name_String]"
         py_name = name.get_string_value()
         if py_name == "Gradients":
-            return ListExpression(*[String(name) for name in self.palettes.keys()])
+            return ListExpression(*[String(name) for name in self.palettes])
         palette = ColorData.palettes.get(py_name, None)
         if palette is None:
             evaluation.message("ColorData", "notent", name)
@@ -666,6 +528,7 @@ class ColorData(Builtin):
 
     @staticmethod
     def colors(name, evaluation):
+        """Get a color palette by its name"""
         return get_color_palette(name, evaluation)
 
 
