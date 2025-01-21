@@ -11,10 +11,20 @@ from math import cos, pi, sqrt
 from typing import Callable
 
 from mathics.builtin.options import options_to_rules
+from mathics.core.atoms import Integer1, Real, String
+from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolTrue
+from mathics.core.systemsymbols import (
+    SymbolColorData,
+    SymbolFunction,
+    SymbolLine,
+    SymbolPolygon,
+    SymbolRule,
+    SymbolSlot,
+)
 from mathics.eval.drawing.plot import compile_quiet_function
 
 ListPlotNames = (
@@ -474,3 +484,104 @@ def eval_plot3d(
                 )
             )
         return self.final_graphics(graphics, options)
+
+
+def construct_density_plot(
+    self, triangles, mesh_points, v_min, v_max, options, evaluation
+):
+    """
+    Construct a density plot
+    """
+    color_function = self.get_option(options, "ColorFunction", evaluation, pop=True)
+    color_function_scaling = self.get_option(
+        options, "ColorFunctionScaling", evaluation, pop=True
+    )
+
+    color_function_min = color_function_max = None
+    if color_function.get_name() == "System`Automatic":
+        color_function = String("LakeColors")
+    if color_function.get_string_value():
+        func = Expression(
+            SymbolColorData, String(color_function.get_string_value())
+        ).evaluate(evaluation)
+        if func.has_form("ColorDataFunction", 4):
+            color_function_min = func.elements[2].elements[0].round_to_float()
+            color_function_max = func.elements[2].elements[1].round_to_float()
+            color_function = Expression(
+                SymbolFunction,
+                Expression(func.elements[3], Expression(SymbolSlot, Integer1)),
+            )
+        else:
+            evaluation.message("DensityPlot", "color", func)
+            return
+    if color_function.has_form("ColorDataFunction", 4):
+        color_function_min = color_function.elements[2].elements[0].round_to_float()
+        color_function_max = color_function.elements[2].elements[1].round_to_float()
+
+    color_function_scaling = color_function_scaling is SymbolTrue
+    v_range = v_max - v_min
+
+    if v_range == 0:
+        v_range = 1
+
+    if color_function.has_form("ColorDataFunction", 4):
+        color_func = color_function.elements[3]
+    else:
+        color_func = color_function
+    if (
+        color_function_scaling
+        and color_function_min is not None  # noqa
+        and color_function_max is not None
+    ):
+        color_function_range = color_function_max - color_function_min
+
+    colors = {}
+
+    def eval_color(x, y, v):
+        v_scaled = (v - v_min) / v_range
+        if (
+            color_function_scaling
+            and color_function_min is not None  # noqa
+            and color_function_max is not None
+        ):
+            v_color_scaled = color_function_min + v_scaled * color_function_range
+        else:
+            v_color_scaled = v
+
+        # Calculate and store 100 different shades max.
+        v_lookup = int(v_scaled * 100 + 0.5)
+
+        value = colors.get(v_lookup)
+        if value is None:
+            value = Expression(color_func, Real(v_color_scaled))
+            value = value.evaluate(evaluation)
+            colors[v_lookup] = value
+        return value
+
+    points = []
+    vertex_colors = []
+    graphics = []
+    for p in triangles:
+        points.append(ListExpression(*(to_mathics_list(*x[:2]) for x in p)))
+        vertex_colors.append(ListExpression(*(eval_color(*x) for x in p)))
+
+    graphics.append(
+        Expression(
+            SymbolPolygon,
+            ListExpression(*points),
+            Expression(
+                SymbolRule,
+                Symbol("VertexColors"),
+                ListExpression(*vertex_colors),
+            ),
+        )
+    )
+
+    # add mesh
+    for xi in range(len(mesh_points)):
+        line = []
+        for yi in range(len(mesh_points[xi])):
+            line.append(to_mathics_list(mesh_points[xi][yi][0], mesh_points[xi][yi][1]))
+        graphics.append(Expression(SymbolLine, ListExpression(*line)))
+
+    return graphics
