@@ -466,7 +466,7 @@ class IntegerPartitions(Builtin):
       <dd>lists all partitions into at most $k$ integers.
 
       <dt>'IntegerPartitions[$n$, {$k$}]'
-      <dd>lists all partitions with exacty $k$ integers.
+      <dd>lists all partitions with exactly $k$ integers.
 
       <dt>'IntegerPartitions[$n$, {$k_min$, $k_max$}]'
       <dd>lists partitions between $k_min$ and $k_max$ integers.
