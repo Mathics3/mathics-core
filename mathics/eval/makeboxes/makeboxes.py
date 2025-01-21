@@ -263,6 +263,7 @@ def format_element(
     if formatted_expr is None:
         return None
     result_box = eval_makeboxes(formatted_expr, evaluation, form)
+
     if isinstance(result_box, String):
         return result_box
     if isinstance(result_box, BoxElementMixin):

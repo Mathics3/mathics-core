@@ -1,6 +1,39 @@
 CHANGES
 =======
 
+This release is to get out some of the major changes that have gone on
+already in advance of redoing Boxing and Formatting.
+
+Operators are now controlled from a new operators YAML table from the
+``mathics-scanner`` repository. A pass was made over the Mathics parser
+to handle box operators more properly. More work is needed here.
+
+We started adding more debugging capabilites:
+
+* ``Breakpoint[]``
+* ``Stack[]``, and
+* ``Trace[]``
+
+And in the ``Mathics3-Trepan`` repository:
+
+* ``DebugActivate[]``
+* ``Debugger[]``, and
+* ``TraceActivate[]``
+
+This code is very much alpha quality, but it greatly improves the
+ability to debug problems in loading existing packages written from
+Mathematica. So packages ``BoolEval`` and ``CleanSlate`` were added to
+the repostiory.
+
+Also as a result of the improved ability to debug Mathics3, we now
+provide a version of Rubi 4.17 using git submodules . To use this you
+will need a patched version of ``stopit``.  Aravindh Krishnamoorthy
+led the initial port of Rubi.
+
+David A. Roberts worked on ensuring Mathics3 runs on pyodide and
+contributed a number of new Built-in Functions that are found in `The
+On-Line Encyclopedia of Integer Sequences (OEIS) <https://oeis.org/>`_
+
 
 New Builtins
 ++++++++++++
@@ -13,6 +46,7 @@ New Builtins
 * ``SetEnvironment``
 * ``SequenceForm``
 * ``Stack``
+* ``Trace``
 
 By `@davidar <https://github.com/davidar>`_:
 
@@ -45,8 +79,8 @@ By `@davidar <https://github.com/davidar>`_:
 
 * ``--post-mortem`` option added which will go into the `trepan3k debugger <https https://pypi.org/project/trepan3k/>`_ on an unrecoverable error.
 
-Compatibility
--------------
+WMA Compatibility
+-----------------
 
 * ``GetEnvironment`` expanded to handle ``[]`` and ``{var1, var2,...}`` forms
 * The system ``packages`` directory has been renamed ``Packages`` to conformance with WMA.
@@ -57,13 +91,6 @@ Internals
 
 * Operator information has been gone over and is picked up from JSON
 tables produced from the Mathics Scanner project.
-* Patterns in ``eval_`` and ``format_`` methods of builtin classes
-  parses patterns in docstrings of the form
-  ``Symbol: Expr`` as ``Pattern[Symbol, Expr]``.
-  To specify associated format in ``format_`` methods the
-  docstring, the list of format must be wrapped in parenthesis, like
-  ``(InputForm,): Definitions[...]`` instead of just ``InputForm: Definitions[...]``.
-
 
 Performance
 -----------
@@ -78,6 +105,13 @@ API incompatibility
 * The signature of the ``Definition.__init__`` now receives a single dict parameter instead of the several `*values` parameters.
 * Rule positions in ``Definition.{get|set}_values`` now includes the word ``values``. For example ``pos="up"`` now is ``pos="upvalues"``.
 * ``Definitions.get_ownvalue`` now returns a ``BaseElement`` instead of a ``BaseRule`` object.
+* Patterns in ``eval_`` and ``format_`` methods of builtin classes
+  parses patterns in docstrings of the form
+  ``Symbol: Expr`` as ``Pattern[Symbol, Expr]``.
+  To specify associated format in ``format_`` methods the
+  docstring, the list of format must be wrapped in parenthesis, like
+  ``(InputForm,): Definitions[...]`` instead of just ``InputForm: Definitions[...]``.
+
 
 
 Bugs
