@@ -44,14 +44,20 @@ New Builtins
 ++++++++++++
 
 * ``Between``
-* ``Breakpoint`` - forces a Python ``breakpoint()``
+* ``Breakpoint`` - (not WMA; forces a Python ``breakpoint()``
 * ``CheckAbort``
 * ``FileNameDrop``
 * ``FormatValues``
-* ``SetEnvironment``
+* ``ListStepPlot``
+* ``MapApply``
+* ``PythonCProfileEvaluation`` (not WMA; interface to Python cProfile)
+* ``RealValuedNumberQ``
 * ``SequenceForm``
+* ``SetEnvironment``
 * ``Stack``
+* ``SyntaxQ``
 * ``Trace``
+* ``UnitStep``
 
 By `@davidar <https://github.com/davidar>`_:
 
