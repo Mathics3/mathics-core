@@ -88,6 +88,10 @@ By `@davidar <https://github.com/davidar>`_:
 ``mathics`` command line
 ++++++++++++++++++++++++
 
+Option ``--post-mortem`` was added which goes into the `trepan3k
+debugger <https https://pypi.org/project/trepan3k/>`_ on an
+unrecoverable error. This option is available on other front-ends..
+
 WMA Compatibility
 -----------------
 
