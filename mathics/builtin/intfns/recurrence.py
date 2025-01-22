@@ -138,14 +138,13 @@ class StirlingS1(Builtin):
     """
     <url>
     :Stirling numbers of first kind:
-    https://en.wikipedia.org/wiki/Stirling_numbers_of_the_first_kind</url> \
-    (<url>
+    https://en.wikipedia.org/wiki/Stirling_numbers_of_the_first_kind</url> (<url>
     :WMA link:
     https://reference.wolfram.com/language/ref/StirlingS1.html</url>)
 
     <dl>
       <dt>'StirlingS1[$n$, $m$]'
-      <dd>gives the Stirling number of the first kind $ _n^m$.
+      <dd>gives the Stirling number of the first kind.
     </dl>
 
     Integer mathematical function, suitable for both symbolic and numerical manipulation.
@@ -173,18 +172,16 @@ class StirlingS2(Builtin):
     """
     <url>
     :Stirling numbers of second kind:
-    https://en.wikipedia.org/wiki/Stirling_numbers_of_the_second_kind</url> \
-    (<url>
-    :WMA link
-    :https://reference.wolfram.com/language/ref/StirlingS2.html</url>)
+    https://en.wikipedia.org/wiki/Stirling_numbers_of_the_second_kind</url> (<url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/StirlingS2.html</url>)
 
     <dl>
       <dt>'StirlingS2[$n$, $m$]'
-      <dd>gives the Stirling number of the second kind  _n^m.
+      <dd>gives the Stirling number of the second kind. Returns the number of ways \
+      of partitioning a set of $n$ elements into $m$ non empty subsets.
     </dl>
 
-    returns the number of ways of partitioning a set of $n$ elements into $m$ \
-    non empty subsets.
 
     >> Table[StirlingS2[10, m], {m, 10}]
     = {1, 511, 9330, 34105, 42525, 22827, 5880, 750, 45, 1}

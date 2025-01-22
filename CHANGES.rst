@@ -1,6 +1,9 @@
 CHANGES
 =======
 
+8.0.0
+-----
+
 This release is to get out some of the major changes that have gone on
 already in advance of redoing Boxing and Formatting.
 
@@ -20,33 +23,41 @@ And in the ``Mathics3-Trepan`` repository:
 * ``Debugger[]``, and
 * ``TraceActivate[]``
 
-This code is very much alpha quality, but it greatly improves the
-ability to debug problems in loading existing packages written from
-Mathematica. So packages ``BoolEval`` and ``CleanSlate`` were added to
-the repostiory.
+Option ``--post-mortem`` was added which goes into the `trepan3k debugger <https https://pypi.org/project/trepan3k/>`_ on an unrecoverable error. This option is  available on other front-ends..
+
+This debuggign code is very much alpha quality, but it greatly
+improves the ability to debug problems in loading existing packages
+written from Mathematica. So packages ``BoolEval`` and ``CleanSlate``
+were added to the repostiory.
 
 Also as a result of the improved ability to debug Mathics3, we now
 provide a version of Rubi 4.17 using git submodules . To use this you
 will need a patched version of ``stopit``.  Aravindh Krishnamoorthy
-led the initial port of Rubi.
+led the initial port of `Rubi <https://github.com/Mathics3/Mathics3-Rubi>`_.
 
 David A. Roberts worked on ensuring Mathics3 runs on pyodide and
 contributed a number of new Built-in Functions that are found in `The
-On-Line Encyclopedia of Integer Sequences (OEIS) <https://oeis.org/>`_
+On-Line Encyclopedia of Integer Sequences (OEIS) <https://oeis.org/>`_.
 
 
 New Builtins
 ++++++++++++
 
 * ``Between``
-* ``Breakpoint`` - forces a Python ``breakpoint()``
+* ``Breakpoint`` - (not WMA; forces a Python ``breakpoint()``
 * ``CheckAbort``
 * ``FileNameDrop``
 * ``FormatValues``
-* ``SetEnvironment``
+* ``ListStepPlot``
+* ``MapApply``
+* ``PythonCProfileEvaluation`` (not WMA; interface to Python cProfile)
+* ``RealValuedNumberQ``
 * ``SequenceForm``
+* ``SetEnvironment``
 * ``Stack``
+* ``SyntaxQ``
 * ``Trace``
+* ``UnitStep``
 
 By `@davidar <https://github.com/davidar>`_:
 
@@ -77,8 +88,6 @@ By `@davidar <https://github.com/davidar>`_:
 ``mathics`` command line
 ++++++++++++++++++++++++
 
-* ``--post-mortem`` option added which will go into the `trepan3k debugger <https https://pypi.org/project/trepan3k/>`_ on an unrecoverable error.
-
 WMA Compatibility
 -----------------
 
@@ -89,8 +98,10 @@ WMA Compatibility
 Internals
 ---------
 
-* Operator information has been gone over and is picked up from JSON
-tables produced from the Mathics Scanner project.
+* More of the on-OO evaluation code that forms what might be an
+  instruction evaluator has been moved out of module
+  ``mathics.builtins`` put in ``mathics.eval``. This includes code for
+  plotting, and making boxes.
 
 Performance
 -----------
@@ -111,7 +122,7 @@ API incompatibility
   To specify associated format in ``format_`` methods the
   docstring, the list of format must be wrapped in parenthesis, like
   ``(InputForm,): Definitions[...]`` instead of just ``InputForm: Definitions[...]``.
-
+* Character and Operator information that has been gone over in the Mathics Scanner project. The information in JSON tables, the keys, and values have thus change. Here, we read this information in and use that instead of previously hard-coded values.
 
 
 Bugs
@@ -132,7 +143,7 @@ Mathics3 Packages
 Mathics3 Modules
 ++++++++++++++++
 
-* Added preliminary Mathics3 debugger ("pymathics.trepan")
+* Added preliminary `Mathics3 debugger `Mathics3-Trepan <https://github.com/Mathics3/mathics3-trepan>`_.
 
 Python Package Updates
 +++++++++++++++++++++++
