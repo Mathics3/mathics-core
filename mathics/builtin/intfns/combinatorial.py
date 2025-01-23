@@ -295,19 +295,26 @@ class LucasL(SympyFunction):
     <dl>
       <dt>'LucasL[$n$]'
       <dd>gives the $n$th Lucas number.
+
+      <dt>'LucasL[$n$, $x$]'
+      <dd>gives the $n$th Lucas polynomical $L$_($x$).
     </dl>
 
     A list of the first five Lucas numbers:
     >> Table[LucasL[n], {n, 1, 5}]
      = {1, 3, 4, 7, 11}
+
     >> Series[LucasL[1/2, x], {x, 0, 5}]
      = 1 + 1 / 4 x + 1 / 32 x ^ 2 + (-1 / 128) x ^ 3 + (-5 / 2048) x ^ 4 + 7 / 8192 x ^ 5 + O[x] ^ 6
+
+    >> Plot[LucasL[1/2, x], {x, -5, 5}]
+     = -Graphics-
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
 
-    summary_text = "lucas number"
     sympy_name = "lucas"
+    summary_text = "get a Lucas number or polynomial"
 
     rules = {
         "LucasL[n_, 1]": "LucasL[n]",
