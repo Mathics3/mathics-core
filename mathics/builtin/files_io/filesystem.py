@@ -60,7 +60,7 @@ class AbsoluteFileName(Builtin):
         "fstr": ("File specification x is not a string of one or more characters."),
         "nffil": "File not found during `1`.",
     }
-    summary_text = "absolute path"
+    summary_text = "get absolute file path"
 
     def eval(self, name, evaluation):
         "AbsoluteFileName[name_]"

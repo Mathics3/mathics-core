@@ -229,8 +229,8 @@ class Machine(Predefined):
      = ...
     """
 
-    summary_text = "the type of computer system over with Mathics is running"
     name = "$Machine"
+    summary_text = "get the OS platform of the system running Mathics3"
 
     def evaluate(self, evaluation: Evaluation) -> String:
         return String(sys.platform)
@@ -428,8 +428,8 @@ class ParentProcessID(Predefined):
 
     """
 
-    summary_text = "id of the process that invoked Mathics"
     name = "$ParentProcessID"
+    summary_text = "get process id of the process that invoked Mathics3"
 
     def evaluate(self, evaluation: Evaluation) -> Integer:
         return Integer(os.getppid())
@@ -449,8 +449,8 @@ class ProcessID(Predefined):
      = ...
     """
 
-    summary_text = "id of the Mathics process"
     name = "$ProcessID"
+    summary_text = "get process id of the Mathics process"
 
     def evaluate(self, evaluation: Evaluation) -> Integer:
         return Integer(os.getpid())

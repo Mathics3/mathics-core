@@ -902,9 +902,7 @@ class FindRoot(_BaseFinder):
     }
     messages = _BaseFinder.messages.copy()
     methods = {}
-    summary_text = (
-        "Looks for a root of an equation or a zero of a numerical expression."
-    )
+    summary_text = "look for a root of an equation or a zero of a numerical expression."
 
     try:
         from mathics.eval.numbers.calculus.optimizers import (
@@ -1642,7 +1640,7 @@ class Root(SympyFunction):
         "iidx": "Argument `1` at position 2 is out of bounds",
     }
 
-    summary_text = "the i-th root of a polynomial."
+    summary_text = "compute the i-th root of a polynomial."
     sympy_name = "CRootOf"
 
     def eval(self, f, i, evaluation: Evaluation):
@@ -1699,29 +1697,31 @@ class Root(SympyFunction):
 
 class RootSum(SympyFunction):
     """
-    <url>:WMA link: https://reference.wolfram.com/language/ref/RootSum.html</url>
+     <url>:WMA link: https://reference.wolfram.com/language/ref/RootSum.html</url>
 
-    <dl>
-      <dt>'RootSum[$f$, $form$]'
-      <dd>sums $form$[$x$] for all roots of the polynomial $f$[$x$].
-    </dl>
+     <dl>
+       <dt>'RootSum[$f$, $form$]'
+       <dd>sums $form$[$x$] for all roots of the polynomial $f$[$x$].
+     </dl>
 
-    >> Integrate[1/(x^5 + 11 x + 1), {x, 1, 3}]
-     = RootSum[-1 - 212960 #1 ^ 3 - 9680 #1 ^ 2 - 165 #1 + 41232181 #1 ^ 5&, (Log[3749971 - 3512322106304 #1 ^ 4 + 453522741 #1 + 16326568676 #1 ^ 2 + 79825502416 #1 ^ 3] - 4 Log[5]) #1&] - RootSum[-1 - 212960 #1 ^ 3 - 9680 #1 ^ 2 - 165 #1 + 41232181 #1 ^ 5&, (Log[3748721 - 3512322106304 #1 ^ 4 + 453522741 #1 + 16326568676 #1 ^ 2 + 79825502416 #1 ^ 3] - 4 Log[5]) #1&]
-    >> N[%, 50]
-     = 0.051278805184286949884270940103072421286139857550894
+    Integrating a rational function of any order:
+     >> Integrate[1/(x^5 + 11 x + 1), {x, 1, 3}]
+      = RootSum[-1 - 212960 #1 ^ 3 - 9680 #1 ^ 2 - 165 #1 + 41232181 #1 ^ 5&, (Log[3749971 - 3512322106304 #1 ^ 4 + 453522741 #1 + 16326568676 #1 ^ 2 + 79825502416 #1 ^ 3] - 4 Log[5]) #1&] - RootSum[-1 - 212960 #1 ^ 3 - 9680 #1 ^ 2 - 165 #1 + 41232181 #1 ^ 5&, (Log[3748721 - 3512322106304 #1 ^ 4 + 453522741 #1 + 16326568676 #1 ^ 2 + 79825502416 #1 ^ 3] - 4 Log[5]) #1&]
+     >> N[%, 50]
+      = 0.051278805184286949884270940103072421286139857550894
 
-    >> RootSum[#^5 - 11 # + 1 &, (#^2 - 1)/(#^3 - 2 # + c) &]
-     = (538 - 88 c + 396 c ^ 2 + 5 c ^ 3 - 5 c ^ 4) / (97 - 529 c - 53 c ^ 2 + 88 c ^ 3 + c ^ 5)
+     Simplification of 'RootSum' expression
+     >> RootSum[#^5 - 11 # + 1 &, (#^2 - 1)/(#^3 - 2 # + c) &]
+      = (538 - 88 c + 396 c ^ 2 + 5 c ^ 3 - 5 c ^ 4) / (97 - 529 c - 53 c ^ 2 + 88 c ^ 3 + c ^ 5)
 
-    >> RootSum[#^5 - 3 # - 7 &, Sin] //N//Chop
-     = 0.292188
+     >> RootSum[#^5 - 3 # - 7 &, Sin] //N//Chop
+      = 0.292188
 
-    Use 'Normal' to expand 'RootSum':
-    >> RootSum[1+#+#^2+#^3+#^4 &, Log[x + #] &]
-     = RootSum[1 + #1 ^ 2 + #1 ^ 3 + #1 ^ 4 + #1&, Log[x + #1]&]
-    >> %//Normal
-     = Log[-1 / 4 - Sqrt[5] / 4 - I Sqrt[5 / 8 - Sqrt[5] / 8] + x] + Log[-1 / 4 - Sqrt[5] / 4 + I Sqrt[5 / 8 - Sqrt[5] / 8] + x] + Log[-1 / 4 - I Sqrt[5 / 8 + Sqrt[5] / 8] + Sqrt[5] / 4 + x] + Log[-1 / 4 + I Sqrt[5 / 8 + Sqrt[5] / 8] + Sqrt[5] / 4 + x]
+     Use 'Normal' to expand 'RootSum':
+     >> RootSum[1+#+#^2+#^3+#^4 &, Log[x + #] &]
+      = RootSum[1 + #1 ^ 2 + #1 ^ 3 + #1 ^ 4 + #1&, Log[x + #1]&]
+     >> %//Normal
+      = Log[-1 / 4 - Sqrt[5] / 4 - I Sqrt[5 / 8 - Sqrt[5] / 8] + x] + Log[-1 / 4 - Sqrt[5] / 4 + I Sqrt[5 / 8 - Sqrt[5] / 8] + x] + Log[-1 / 4 - I Sqrt[5 / 8 + Sqrt[5] / 8] + Sqrt[5] / 4 + x] + Log[-1 / 4 + I Sqrt[5 / 8 + Sqrt[5] / 8] + Sqrt[5] / 4 + x]
     """
 
     summary_text = "sum polynomial roots"

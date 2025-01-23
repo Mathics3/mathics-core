@@ -94,7 +94,7 @@ class CubeRoot(Builtin):
         ),
     }
 
-    summary_text = "cube root"
+    summary_text = "compute cube root of a number"
 
     def eval(self, n, evaluation):
         "CubeRoot[n_Complex]"
@@ -166,7 +166,7 @@ class Divide(InfixOperator):
         ),
     }
 
-    summary_text = "divide"
+    summary_text = "divide a number"
 
 
 class Minus(PrefixOperator):
@@ -209,7 +209,7 @@ class Minus(PrefixOperator):
         "Minus[x_]": "Times[-1, x]",
     }
 
-    summary_text = "arithmetic negate"
+    summary_text = "perform an arithmetic negation on a number"
 
     def eval_int(self, x: Integer, evaluation):
         "Minus[x_Integer]"
@@ -277,7 +277,7 @@ class Plus(InfixOperator, SympyFunction):
         None: "0",
     }
 
-    summary_text = "add"
+    summary_text = "add a number"
 
     # FIXME Note this is deprecated in 1.11
     # Remember to up sympy doc link when this is corrected
@@ -431,7 +431,7 @@ class Power(InfixOperator, MPMathFunction):
         "Power[x_]": "x",
     }
 
-    summary_text = "exponentiate"
+    summary_text = "exponentiate a number"
 
     # FIXME Note this is deprecated in 1.11
     # Remember to up sympy doc link when this is corrected
@@ -515,7 +515,7 @@ class Sqrt(SympyFunction):
         ),
     }
 
-    summary_text = "square root"
+    summary_text = "take the square root of a number"
 
 
 class Subtract(InfixOperator):
@@ -548,7 +548,7 @@ class Subtract(InfixOperator):
         "Subtract[x_, y_]": "Plus[x, Times[-1, y]]",
     }
 
-    summary_text = "subtract"
+    summary_text = "subtract from a number"
 
 
 class Times(InfixOperator, SympyFunction):
@@ -614,7 +614,7 @@ class Times(InfixOperator, SympyFunction):
     # Remember to up sympy doc link when this is corrected
     sympy_name = "Mul"
 
-    summary_text = "multiply"
+    summary_text = "multiply a number"
 
     def format_times(self, items, evaluation, op="\u2062"):
         "Times[items__]"
