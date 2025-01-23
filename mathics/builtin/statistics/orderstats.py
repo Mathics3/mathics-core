@@ -279,10 +279,21 @@ class ReverseSort(Builtin):
 
     >> ReverseSort[{c, b, d, a}]
      = {d, c, b, a}
+
+    You can specify a binary comparison function:
+    >> ReverseSort[{1, 2, 0, 3}, Less]
+     = {3, 2, 1, 0}
+
+    Using 'Greater' for the above, reverses the reverse sort:
+    >> ReverseSort[{1, 2, 0, 3}, Greater]
+     = {0, 1, 2, 3}
+
+    See also <url>:Sort:
+    /doc/reference-of-built-in-symbols/descriptive-statistics/order-statistics/sort/</url>.
     """
 
     attributes = A_PROTECTED
-    summary_text = "reverse sort"
+    summary_text = "sort in reverse order"
 
     rules = {
         "ReverseSort[list_]": "Reverse[Sort[list]]",
@@ -318,10 +329,13 @@ class Sort(Builtin):
      = {2 + c_, 1 + b__}
     >> Sort[{x_ + n_*y_, x_ + y_}, PatternsOrderedQ]
      = {x_ + n_ y_, x_ + y_}
+
+    See also <url>:ReverseSort:
+    /doc/reference-of-built-in-symbols/descriptive-statistics/order-statistics/reversesort/</url>.
     """
 
     attributes = A_PROTECTED
-    summary_text = "sort lexicographically or with any comparison function"
+    summary_text = "sort lexicographically or with a comparison function"
 
     def eval(self, list, evaluation: Evaluation):
         "Sort[list_]"

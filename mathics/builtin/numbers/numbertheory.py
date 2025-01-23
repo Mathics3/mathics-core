@@ -831,10 +831,21 @@ class PowersRepresentations(Builtin):
       <dd>represent $n$ as a sum of $k$ non-negative integers raised to the power of $p$.
     </dl>
 
+    Get the ways licence plate number 1729 can be represented as the sum of two cubes:
     >> PowersRepresentations[1729, 2, 3]
      = {{1, 12}, {9, 10}}
-    >> PowersRepresentations[50, 3, 2]
-     = {{0, 1, 7}, {0, 5, 5}, {3, 4, 5}}
+
+    See <url>:1729:https://en.wikipedia.org/wiki/1729_(number)</url> for the full backstory.
+
+    Demonstrate the validity of the Pythagorian triple: 3^2 + 4^2 == 5^2
+    >> PowersRepresentations[25, 2, 2]
+     = {{0, 5}, {3, 4}}
+
+    Since 0 is allowed in the sum, 'PowersRepresentations[$n$, $k$+1, $p$]' is includes \
+   'PowersRepresentations[$n$, $k$, $p$]' with by inserting a zero element at the beginning:
+
+    >> PowersRepresentations[25, 3, 2]
+     = {{0, 0, 5}, {0, 3, 4}}
     """
 
     attributes = A_PROTECTED | A_READ_PROTECTED

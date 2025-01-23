@@ -52,7 +52,7 @@ class Association(Builtin):
 
     attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED
 
-    summary_text = "an association between keys and values"
+    summary_text = "make an association between keys and values"
 
     def eval_makeboxes(self, rules, f, evaluation: Evaluation):
         """MakeBoxes[<|rules___|>,

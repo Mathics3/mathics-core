@@ -227,11 +227,12 @@ class FromDigits(Builtin):
 
     <dl>
       <dt>'FromDigits[$l$]'
-      <dd>returns the integer corresponding to the decimal representation given by $l$. $l$ can be a list of
-        digits or a string.
+      <dd>returns the integer corresponding to the decimal representation given by $l$. $l$ can \
+          be a list of digits or a string.
+
       <dt>'FromDigits[$l$, $b$]'
-      <dd>returns the integer corresponding to the base $b$ representation given by $l$. $l$ can be a list of
-        digits or a string.
+      <dd>returns the integer corresponding to the base $b$ representation given by $l$. $l$ can \
+          be a list of digits or a string.
     </dl>
 
     >> FromDigits["123"]
@@ -258,10 +259,9 @@ class FromDigits(Builtin):
      = 0
     """
 
-    summary_text = "integer from a list of digits"
-    rules = {"FromDigits[l_]": "FromDigits[l, 10]"}
-
     messages = {"nlst": "The input must be a string of digits or a list."}
+    rules = {"FromDigits[l_]": "FromDigits[l, 10]"}
+    summary_text = "get integer from a list of digits"
 
     @staticmethod
     def _parse_string(s, b):

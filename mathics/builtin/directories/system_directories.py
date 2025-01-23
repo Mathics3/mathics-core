@@ -89,7 +89,7 @@ class RootDirectory(Predefined):
     """
 
     name = "$RootDirectory"
-    summary_text = "system root directory"
+    summary_text = "get system root directory"
 
     def evaluate(self, evaluation):
         return String(SYS_ROOT_DIR)

@@ -114,7 +114,7 @@ class Abs(MPMathFunction):
     rules = {
         "Abs[Undefined]": "Undefined",
     }
-    summary_text = "absolute value of a number"
+    summary_text = "get absolute value of a number"
     sympy_name = "Abs"
 
     def eval(self, x, evaluation: Evaluation):
@@ -578,7 +578,7 @@ class RealAbs(Builtin):
         "Integrate[RealAbs[x_],x_]": "1/2 x RealAbs[x]",
         "Integrate[RealAbs[u_],{u_,a_,b_}]": "1/2 b RealAbs[b]-1/2 a RealAbs[a]",
     }
-    summary_text = "real absolute value"
+    summary_text = "get absolute value of a real number"
 
     def eval(self, x: Number, evaluation: Evaluation):
         """RealAbs[x_]"""
