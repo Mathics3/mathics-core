@@ -300,7 +300,7 @@ class SquaredEuclideanDistance(Builtin):
      = 8
     """
 
-    summary_text = "square of the euclidean distance"
+    summary_text = "compute square of the Euclidean distance"
 
     def eval(self, u, v, evaluation: Evaluation):
         "SquaredEuclideanDistance[u_, v_]"

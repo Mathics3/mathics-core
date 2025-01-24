@@ -1413,7 +1413,7 @@ class Large(Builtin):
     </dl>
     """
 
-    summary_text = "large size style or option setting"
+    summary_text = "large size symbol for style or option setting"
 
 
 class Medium(Builtin):
@@ -1426,7 +1426,7 @@ class Medium(Builtin):
     </dl>
     """
 
-    summary_text = "medium size style or option setting"
+    summary_text = "medium size symbol for style or option setting"
 
 
 class Offset(Builtin):

@@ -1109,7 +1109,6 @@ class SquaresR(Builtin):
     """
 
     attributes = A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
-    summary_text = "function to compute the sum of squares"
 
     rules = {
         "SquaresR[d_Integer, 0]": "1",
@@ -1118,3 +1117,4 @@ class SquaresR(Builtin):
         "SquaresR[6, n_Integer?Positive]": "4 Total[#^2 * (4 * KroneckerSymbol[-4, n/#] - KroneckerSymbol[-4, #]) & /@ Divisors[n]]",
         "SquaresR[8, n_Integer?Positive]": "16 Total[(-1)^(n + #) #^3 & /@ Divisors[n]]",
     }
+    summary_text = "compute the sum of squares"

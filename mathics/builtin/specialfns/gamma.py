@@ -31,6 +31,7 @@ from mathics.core.systemsymbols import SymbolAutomatic, SymbolGamma
 from mathics.eval.arithmetic import run_mpmath
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
+from mathics.eval.sympy import eval_sympy
 
 
 class Beta(MPMathMultiFunction):
@@ -58,7 +59,6 @@ class Beta(MPMathMultiFunction):
          = 1.
     """
 
-    summary_text = "Euler's Beta function"
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     mpmath_names = {
         2: "beta",  # two arguments
@@ -72,6 +72,8 @@ class Beta(MPMathMultiFunction):
     rules = {
         "Derivative[1, 0, 0][Beta]": "(#1^(#2-1) * (1-#1)^(#3-1) )&",
     }
+
+    summary_text = "compute Euler's Beta function"
 
     def get_sympy_names(self):
         return ["beta", "betainc"]
@@ -168,7 +170,7 @@ class Factorial(PostfixOperator, MPMathFunction):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
 
     mpmath_name = "factorial"
-    summary_text = "factorial"
+    summary_text = "compute factorial of a number"
 
 
 class Factorial2(PostfixOperator, MPMathFunction):
@@ -206,7 +208,7 @@ class Factorial2(PostfixOperator, MPMathFunction):
         "ndf": "`1` evaluation error: `2`.",
         "unknownp": "'`1`' not in ('Automatic', 'sympy', 'mpmath')",
     }
-    summary_text = "semi-factorial"
+    summary_text = "compute semi-factorial of a number"
     options = {"Method": "Automatic"}
 
     def eval(self, number, evaluation, options={}):
@@ -313,7 +315,7 @@ class Gamma(MPMathMultiFunction):
         1: "gamma",  # one argument
         2: "uppergamma",
     }
-    summary_text = "complete and incomplete gamma functions"
+    summary_text = "compute the complete and incomplete gamma functions"
 
     rules = {
         "Gamma[z_, x0_, x1_]": "Gamma[z, x0] - Gamma[z, x1]",
@@ -367,7 +369,7 @@ class LogGamma(MPMathMultiFunction):
 
     """
 
-    summary_text = "logarithm of the gamma function"
+    summary_text = "compute the logarithm of the gamma function"
 
     mpmath_names = {
         1: "loggamma",  # one argument
@@ -437,7 +439,7 @@ class Pochhammer(SympyFunction):
         "Derivative[1,0][Pochhammer]": "(Pochhammer[#1, #2]*(-PolyGamma[0, #1] + PolyGamma[0, #1 + #2]))&",
         "Derivative[0,1][Pochhammer]": "(Pochhammer[#1, #2]*PolyGamma[0, #1 + #2])&",
     }
-    summary_text = "Pochhammer's symbols"
+    summary_text = "compute Pochhammer's symbols"
     sympy_name = "RisingFactorial"
 
 
@@ -479,7 +481,7 @@ class PolyGamma(MPMathMultiFunction):
         "PolyGamma[y_, Undefined]": "Undefined",
     }
 
-    summary_text = "polygamma function"
+    summary_text = "compute polygamma function"
     sympy_names = {1: "digamma", 2: "polygamma"}  # 1 argument
 
 
@@ -514,11 +516,11 @@ class StieltjesGamma(SympyFunction):
         "StieltjesGamma[y_, Undefined]": "Undefined",
     }
 
-    summary_text = "Stieltjes' function"
+    summary_text = "compute Stieltjes' function"
     sympy_name = "stieltjes"
 
 
-class Subfactorial(MPMathFunction):
+class Subfactorial(SympyFunction):
     """
     <url>
     :Derangement: https://en.wikipedia.org/wiki/Derangement</url> (<url>
@@ -530,12 +532,39 @@ class Subfactorial(MPMathFunction):
       <dd>computes the subfactorial of $n$.
     </dl>
 
-    >> Subfactorial[6]
+    Here are the first few derangements:
+    >> Subfactorial[{0, 1, 2, 3}]
+     = {1, 0, 1, 2}
+
+    We can handle 'MachineReal' numbers:
+    >> Subfactorial[6.0]
      = 265
+
+    Here is how the exponential, 'Factorial', and 'Subfactoral' grow in comparison:
+    >> LogPlot[{10^x, Factorial[x], Subfactorial[x]}, {x, 0, 25}, PlotPoints->26]
+     = -Graphics-
+
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
 
-    mpmath_name = "subfactorial"
+    rules = {
+        "Subfactorial[elements_List]": "Subfactorial @@ elements",
+    }
+    summary_text = "compute the subfactorial (derangment) of a number"
     sympy_name = "subfactorial"
-    summary_text = "subfactorial"
+
+    def eval(self, element, evaluation):
+        "Subfactorial[element_]"
+        if not isinstance(element, Number):
+            return
+        if not isinstance(element, Integer):
+            if not hasattr(element, "value"):
+                return
+            value = element.value
+            if value != int(value):
+                # Right now we can't handle machine reals
+                return
+            element = Integer(value)
+
+        return eval_sympy(self, element, evaluation)
