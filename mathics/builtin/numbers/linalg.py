@@ -366,7 +366,7 @@ class LeastSquares(Builtin):
         "underdetermined": "Solving for underdetermined system not implemented.",
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix.",
     }
-    summary_text = "least square solver for linear problems"
+    summary_text = "compute least squares of linear problems"
 
     def eval(self, m, b, evaluation: Evaluation):
         "LeastSquares[m_, b_]"

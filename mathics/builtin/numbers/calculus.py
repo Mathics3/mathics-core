@@ -1745,34 +1745,41 @@ class RootSum(SympyFunction):
 
 class Series(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Series.html</url>
+     <url>:WMA link:https://reference.wolfram.com/language/ref/Series.html</url>
 
-    <dl>
-      <dt>'Series[$f$, {$x$, $x0$, $n$}]'
-      <dd>Represents the series expansion around '$x$=$x0$' up to order $n$.
-    </dl>
+     <dl>
+       <dt>'Series[$f$, {$x$, $x0$, $n$}]'
+       <dd>Represents the series expansion around '$x$=$x0$' up to order $n$.
+     </dl>
 
-    For elementary expressions, 'Series' returns the explicit power series as a 'SeriesData' expression:
-    >> Series[Exp[x], {x,0,2}]
-     = 1 + x + 1 / 2 x ^ 2 + O[x] ^ 3
-    >> % // FullForm
-     = SeriesData[x, 0, {1,1,Rational[1, 2]}, 0, 3, 1]
-    Replacing the variable by a value, the series will not be evaluated as
-    an expression, but as a 'SeriesData' object:
-    >> s = Series[Exp[x^2],{x,0,2}]
-     = 1 + x ^ 2 + O[x] ^ 3
-    >> s /. x->4
-     = 1 + 4 ^ 2 + O[4] ^ 3
+     For elementary expressions, 'Series' returns the explicit power series as a 'SeriesData' expression:
+     >> series = Series[Exp[x^2], {x,0,2}]
+      = 1 + x ^ 2 + O[x] ^ 3
 
-    'Normal' transforms a 'SeriesData' expression into a polynomial:
-    >> s // Normal
-     = 1 + x ^ 2
-    >> (s // Normal) /. x-> 4
-     = 17
-    >> Clear[s];
-    We can also expand over multiple variables
-    >> Series[Exp[x-y], {x, 0, 2}, {y, 0, 2}]
-     = (1 - y + 1 / 2 y ^ 2 + O[y] ^ 3) + (1 - y + 1 / 2 y ^ 2 + O[y] ^ 3) x + (1 / 2 + (-1 / 2) y + 1 / 4 y ^ 2 + O[y] ^ 3) x ^ 2 + O[x] ^ 3
+     The expression created is a 'SeriesData' object:
+     >> series // FullForm
+      = SeriesData[x, 0, {1,0,1}, 0, 3, 1]
+
+     Replacing $x$ with does a value produces another 'SeriesData' object:
+     >> series /. x->4
+      = 1 + 4 ^ 2 + O[4] ^ 3
+
+     'Normal' transforms a 'SeriesData' expression into a polynomial:
+     >> series // Normal
+      = 1 + x ^ 2
+     >> (series // Normal) /. x-> 4
+      = 17
+     >> Clear[series];
+
+     We can also expand over multiple variables:
+     >> Series[Exp[x-y], {x, 0, 2}, {y, 0, 2}]
+      = (1 - y + 1 / 2 y ^ 2 + O[y] ^ 3) + (1 - y + 1 / 2 y ^ 2 + O[y] ^ 3) x + (1 / 2 + (-1 / 2) y + 1 / 4 y ^ 2 + O[y] ^ 3) x ^ 2 + O[x] ^ 3
+
+    See also <url>
+     :'SeriesCoefficient':
+     /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/calculus/seriescoefficient/</url> and <url>
+     :'SeriesData':
+     /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/calculus/seriesdata/</url>.
 
     """
 
@@ -1782,7 +1789,7 @@ class Series(Builtin):
         "sspec": "Series specification `1` is not a list with three elements.",
     }
 
-    summary_text = "power series and asymptotic expansions"
+    summary_text = "compute power series and asymptotic expansions"
 
     def eval_series(self, f, x, x0, n, evaluation: Evaluation):
         """Series[f_, {x_Symbol, x0_, n_Integer}]"""
@@ -1810,13 +1817,24 @@ class SeriesCoefficient(Builtin):
 
     <dl>
       <dt>'SeriesCoefficient[$series$, $n$]'
-      <dd>Find the $n$th coefficient in the given $series$
+      <dd>Find the $n$th coefficient in the given $series$.
+
+      <dt>'SeriesCoefficient[$f$, {$x$, $x0$, $n$}]'
+      <dd>Find the ($x$-$x0$)^n in the expansion of $f$ about the point $x$=$x0$.
     </dl>
 
-    >> SeriesCoefficient[Series[Exp[Sin[x]], {x, 0, 10}], 8]
-     = 31 / 5760
-    >> SeriesCoefficient[Exp[-x], {x, 0, 5}]
-     = -1 / 120
+    First we list 5 terms of a series:
+    >> Series[Exp[Sin[x]], {x, 0, 5}]
+     = 1 + x + 1 / 2 x ^ 2 + (-1 / 8) x ^ 4 + (-1 / 15) x ^ 5 + O[x] ^ 6
+
+    Now get the $x$^4 coefficient:
+    >> SeriesCoefficient[%, 4]
+     = -1 / 8
+
+    Do the same thing, but without calling 'Series' first:
+    >> SeriesCoefficient[Exp[Sin[x]], {x, 0, 4}]
+     = -1 / 8
+
     >> SeriesCoefficient[2x, {x, 0, 2}]
      = 0
 
@@ -1826,14 +1844,19 @@ class SeriesCoefficient(Builtin):
      = 0
     >> SeriesCoefficient[SeriesData[x, c, Table[i^2, {i, 10}], 7, 17, 3], 17/3]
      = Indeterminate
+
+    See also <url>
+    :'Series':
+    /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/calculus/series/</url> and <url>
+    :'SeriesData':
+    /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/calculus/seriesdata/</url>.
     """
 
     attributes = A_PROTECTED
-    summary_text = "power series coefficient"
-
     rules = {
         "SeriesCoefficient[f_, {x_Symbol, x0_, n_Integer}]": "SeriesCoefficient[Series[f, {x, x0, n}], n]"
     }
+    summary_text = "compute power series coefficient"
 
     def eval(self, series: Expression, n: Rational, evaluation: Evaluation):
         """SeriesCoefficient[series_SeriesData, n_]"""
@@ -1856,25 +1879,48 @@ class SeriesData(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/SeriesData.html</url>
 
     <dl>
-      <dt>'SeriesData[...]'
-      <dd>Represents a series expansion.
+      <dt>'SeriesData[$x$, $x0$, {$a0$, $a1$, ...}, $nmin$, $nmax$, $den$]'
+      <dd>produces a power series in the variable $x$ about point $x0$. The \
+      $ai$ are the coefficients of the power series. The powers of ($x$-$x0$) that appear \
+      are $nmin$/$den$, ($nmin$+1)/$den$, ..., $nmax$/$den$.
     </dl>
 
-    Sum of two series:
-    >> Series[Cosh[x],{x,0,2}] + Series[Sinh[x],{x,0,3}]
+    'SeriesData' is the 'Head' of expressions generated by 'Series':
+
+    >> series = Series[Cosh[x],{x,0,2}]
+     = 1 + 1 / 2 x ^ 2 + O[x] ^ 3
+
+    >> Head[series]
+     = SeriesData
+
+    >> series // FullForm
+     = SeriesData[x, 0, {1,0,Rational[1, 2]}, 0, 3, 1]
+
+    You can apply certain mathematical operations to 'SeriesData' objects to get \
+    new 'SeriesData' objects truncated to the appropriate order.
+
+    >> series + Series[Sinh[x],{x,0,3}]
      = 1 + x + 1 / 2 x ^ 2 + O[x] ^ 3
+
     >> Series[f[x],{x,0,2}] * g[w]
      = f[0] g[w] + g[w] f'[0] x + g[w] f''[0] / 2 x ^ 2 + O[x] ^ 3
-    The product of two series on the same neighbourhood of the same variable are multiplied
+
+    The product of two series on the same neighborhood of the same variable are multiplied:
     >> Series[Exp[-a x],{x,0,2}] * Series[Exp[-b x],{x,0,2}]
      = 1 + (-a - b) x + (a ^ 2 / 2 + a b + b ^ 2 / 2) x ^ 2 + O[x] ^ 3
     >> D[Series[Exp[-a x],{x,0,2}],a]
      = -x + a x ^ 2 + O[x] ^ 3
+
+    See also <url>
+    :'Series':
+    /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/calculus/series/</url> and <url>
+    :'SeriesCoefficient':
+    /doc/reference-of-built-in-symbols/integer-and-number-theoretical-functions/calculus/seriescoefficient/</url>.
     """
 
     # TODO: Implement sum, product and composition of series
 
-    summary_text = "power series of a variable about a point"
+    summary_text = "compute power series of a variable about a point"
 
     def eval_reduce(
         self, x, x0, data, nummin: Integer, nummax: Integer, den, evaluation: Evaluation

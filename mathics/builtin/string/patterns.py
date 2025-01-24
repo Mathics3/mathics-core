@@ -100,7 +100,7 @@ class LetterCharacter(Builtin):
      = True
     """
 
-    summary_text = "letter"
+    summary_text = "letter-match symbol"
 
 
 class StartOfLine(Builtin):
