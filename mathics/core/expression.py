@@ -317,7 +317,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     def __str__(self) -> str:
         return "%s[%s]" % (
-            str(self.head),
+            self.get_head_name(short=True),
             ", ".join([str(element) for element in self.elements]),
         )
 
@@ -765,8 +765,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     def get_head(self):
         return self._head
 
-    def get_head_name(self):
-        return self._head.name if isinstance(self._head, Symbol) else ""
+    def get_head_name(self, short=False) -> str:
+        """Returns an Expression's Head[] as a string. If
+        `short` is True, we remove leading context paths.
+        """
+        head_name = self._head.name if isinstance(self._head, Symbol) else ""
+        return head_name.split("`")[-1] if short else head_name
 
     def get_lookup_name(self) -> str:
         """
