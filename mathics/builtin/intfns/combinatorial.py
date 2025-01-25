@@ -297,7 +297,7 @@ class LucasL(SympyFunction):
       <dd>gives the $n$th Lucas number.
 
       <dt>'LucasL[$n$, $x$]'
-      <dd>gives the $n$th Lucas polynomical $L$_($x$).
+      <dd>gives the $n$th Lucas polynomial $L$_($x$).
     </dl>
 
     A list of the first five Lucas numbers:
@@ -410,7 +410,7 @@ class PolygonalNumber(Builtin):
 
     'PolygonalNumber'[$r$, $n$] can be interpreted as the number of points arranged in the form of $n$-1 polygons of $r$ sides.
 
-    List the tenth $r-gonal number of regular polygons from 3 to 8:
+    List the tenth $r$-gonal number of regular polygons from 3 to 8:
     >> Table[PolygonalNumber[r, 10], {r, 3, 8}]
      = {55, 100, 145, 190, 235, 280}
 
