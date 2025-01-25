@@ -116,11 +116,11 @@ def arcbox(self, **options) -> str:
         if closed:
             yield "Z"
 
-    l = self.style.get_line_width(face_element=self.face_element)
+    line_width = self.style.get_line_width(face_element=self.face_element)
     style = create_css(
         self.edge_color,
         self.face_color,
-        stroke_width=l,
+        stroke_width=line_width,
         edge_opacity=self.edge_opacity,
         face_opacity=self.face_opacity,
     )
@@ -349,7 +349,7 @@ def graphics_elements(self, **options) -> str:
     for element in self.elements:
         try:
             format_fn = lookup_method(element, "svg")
-        except:
+        except Exception:
             # Note error and continue
             result.append(f"""unhandled {element}""")
             continue
@@ -427,6 +427,12 @@ def line_box(self, **options) -> str:
         stroke_width=line_width,
         edge_opacity=self.edge_opacity,
     )
+
+    # The following line options come from looking at SVG produced from WMA.
+    # In the future we may incorporate these into create_css or
+    # narrow this based on context.
+    style += "; stroke-linecap:square; stroke-linejoin:miter; stroke-miterlimit:3.25"
+
     svg = "<!--LineBox-->\n"
     for line in self.lines:
         svg += '<polyline points="%s" style="%s" />' % (
@@ -453,6 +459,11 @@ def pointbox(self, **options) -> str:
         edge_opacity=self.edge_opacity,
         face_opacity=self.face_opacity,
     )
+
+    # The following line options come from looking at SVG produced from WMA.
+    # In the future we may incorporate these into create_css or
+    style += "; fill-rule:even-odd"
+
     svg = "<!--PointBox-->"
     for line in self.lines:
         for coords in line:
