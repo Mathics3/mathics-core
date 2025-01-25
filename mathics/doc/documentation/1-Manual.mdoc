@@ -110,6 +110,11 @@ Be warned though that \Mathics does not yet offer the full range and features an
 
 To submit a command to \Mathics, press 'Shift+Return' in the Web interface or 'Return' in the console interface. The result will be printed in a new line below your query.
 
+The result of the previous query to \Mathics can be accessed by '%':
+
+  >> % ^ 2
+  = 9
+
 \Mathics understands all basic arithmetic operators and applies the usual operator precedence. Use parentheses when needed:
 
   >> 1 - 2 * (3 + 5) / 4
@@ -206,20 +211,6 @@ There is also the value, <url>:'Indeterminate':/doc/reference-of-built-in-symbol
   >> 0 ^ 0
  : Indeterminate expression 0 ^ 0 encountered.
    = Indeterminate
-
-<!--
-TODO: Find some suitable place for the below. It does not belong here.
-
-The result of the previous query to \Mathics can be accessed by '%':
-
-  >> 3 + 4
-  = 7
-
-  >> % ^ 2
-  = 49
-
-  ##
--->
 
 </section>
 
@@ -491,7 +482,7 @@ Even lists are function calls of the function 'List':
   >> Head[{1, 2, 3}]
   = List
 
-However, its full form is presented with ${\ldots}$
+However, its full form is presented with '{...}'
   >> FullForm[{1, 2, 3}]
    = {1,2,3}
 
@@ -596,7 +587,7 @@ In fact, <em>functions</em> in \Mathics are just one aspect of <em>patterns</em>
   <dt>'_' or 'Blank[]'
   <dd>matches one expression.
   <dt>'Pattern[$x$, $p$]'
-  <dd>matches the pattern $p$ and stores the value in $x$.
+  <dd>matches the pattern $p$ and stores the matching sub-expression into $x$.
   <dt>'$x$_' or 'Pattern[$x$, Blank[]]'
   <dd>matches one expression and stores it in $x$.
   <dt>'__' or 'BlankSequence[]'
