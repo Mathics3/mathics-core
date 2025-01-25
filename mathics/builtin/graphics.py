@@ -68,7 +68,7 @@ GRAPHICS_OPTIONS = {
 }
 
 # fraction of point relative canvas width
-DEFAULT_POINT_FACTOR = 0.005
+DEFAULT_POINT_FACTOR = 0.007
 
 
 ERROR_BACKGROUND_COLOR = RGBColor(components=[1, 0.3, 0.3, 0.25])
@@ -276,9 +276,9 @@ class Graphics(Builtin):
      = #<--#
      . \begin{asy}
      . usepackage("amsmath");
-     . size(5.8445cm, 5.8333cm);
-     . draw(ellipse((175,175),175,175), rgb(0, 0, 0)+linewidth(0.33333));
-     . clip(box((-0.16667,0.16667), (350.17,349.83)));
+     . size(5.869cm, 5.8333cm);
+     . draw(ellipse((175,175),175,175), rgb(0, 0, 0)+linewidth(1.0667));
+     . clip(box((-0.53333,0.53333), (350.53,349.47)));
      . \end{asy}
     """
 
@@ -1016,7 +1016,7 @@ class Style:
                 edge_style = self.get_default_edge_color()
         elif style_class == _Thickness:
             if not default_to_faces:
-                edge_style = AbsoluteThickness(self.graphics, value=0.5)
+                edge_style = AbsoluteThickness(self.graphics, value=1.6)
         for item in self.styles:
             if isinstance(item, style_class):
                 if default_to_faces:

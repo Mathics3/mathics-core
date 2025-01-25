@@ -668,10 +668,10 @@ class DiscretePlot(_Plot):
     )
 
     rules = {
-        # One argument-form of DiscretePlot
-        "DiscretePlot[expr_, {var_Symbol, nmax_Integer}]": "DiscretePlot[expr, {var, 1, nmax, 1}]",
-        # Two argument-form of DiscretePlot
-        "DiscretePlot[expr_, {var_Symbol, nmin_Integer, nmax_Integer}]": "DiscretePlot[expr, {var, nmin, nmax, 1}]",
+        # One-argument plot range form of DiscretePlot
+        "DiscretePlot[expr_, {var_Symbol, nmax_Integer}, options___]": "DiscretePlot[expr, {var, 1, nmax, 1}, options]",
+        # Two-argument plot range form of DiscretePlot
+        "DiscretePlot[expr_, {var_Symbol, nmin_Integer, nmax_Integer}, options___]": "DiscretePlot[expr, {var, nmin, nmax, 1, options}]",
     }
 
     summary_text = "discrete plot of a one-paremeter function"
