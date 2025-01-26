@@ -21,4 +21,5 @@ repos:
     hooks:
     - id: black
       language_version: python3
+      exclude: 'mathics/version.py'
       stages: [pre-commit]
