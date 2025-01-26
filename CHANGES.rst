@@ -7,6 +7,9 @@ CHANGES
 This release is to get out some of the major changes that have gone on
 already in advance of redoing Boxing and Formatting.
 
+Code now supports the emscripten platform, so this code can be installed
+in pyodide using ``micropip.install``.
+
 Operators are now controlled from a new operators YAML table from the
 ``mathics-scanner`` repository. A pass was made over the Mathics parser
 to handle box operators more properly. More work is needed here.
@@ -25,7 +28,7 @@ And in the ``Mathics3-Trepan`` repository:
 
 Option ``--post-mortem`` was added which goes into the `trepan3k debugger <https https://pypi.org/project/trepan3k/>`_ on an unrecoverable error. This option is  available on other front-ends..
 
-This debuggign code is very much alpha quality, but it greatly
+This debugging code is very much alpha quality, but it greatly
 improves the ability to debug problems in loading existing packages
 written from Mathematica. So packages ``BoolEval`` and ``CleanSlate``
 were added to the repostiory.
