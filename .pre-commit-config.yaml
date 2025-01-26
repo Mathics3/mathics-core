@@ -7,8 +7,10 @@ repos:
     - id: check-merge-conflict
     - id: debug-statements
       stages: [pre-commit]
+      exclude: ChangeLog-spell-corrected.diff
     - id: end-of-file-fixer
       stages: [pre-commit]
+      exclude: ChangeLog-spell-corrected.diff
 -   repo: https://github.com/pycqa/isort
     rev: 5.13.2
     hooks:
@@ -19,4 +21,5 @@ repos:
     hooks:
     - id: black
       language_version: python3
+      exclude: 'mathics/version.py'
       stages: [pre-commit]

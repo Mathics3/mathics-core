@@ -4,14 +4,19 @@ CHANGES
 8.0.0
 -----
 
+Jan 26, 2025
+
 This release is to get out some of the major changes that have gone on
 already in advance of redoing Boxing and Formatting.
+
+Code now supports the emscripten platform, so this code can be installed
+in pyodide using ``micropip.install``.
 
 Operators are now controlled from a new operators YAML table from the
 ``mathics-scanner`` repository. A pass was made over the Mathics parser
 to handle box operators more properly. More work is needed here.
 
-We started adding more debugging capabilites:
+We started adding more debugging capabilities:
 
 * ``Breakpoint[]``
 * ``Stack[]``, and
@@ -23,12 +28,12 @@ And in the ``Mathics3-Trepan`` repository:
 * ``Debugger[]``, and
 * ``TraceActivate[]``
 
-Option ``--post-mortem`` was added which goes into the `trepan3k debugger <https https://pypi.org/project/trepan3k/>`_ on an unrecoverable error. This option is  available on other front-ends..
+Option ``--post-mortem`` was added which goes into the `trepan3k debugger <https https://pypi.org/project/trepan3k/>`_ on an unrecoverable error. This option is available on other front ends..
 
-This debuggign code is very much alpha quality, but it greatly
+This debugging code is very much alpha quality, but it greatly
 improves the ability to debug problems in loading existing packages
 written from Mathematica. So packages ``BoolEval`` and ``CleanSlate``
-were added to the repostiory.
+were added to the repository.
 
 Also as a result of the improved ability to debug Mathics3, we now
 provide a version of Rubi 4.17 using git submodules . To use this you
@@ -85,6 +90,12 @@ By `@davidar <https://github.com/davidar>`_:
 * ``SquaresR``
 * ``Subfactorial``
 
+Documentation
++++++++++++++
+
+* Unicode operators appears in Django documentation. In the PDF, AMSLaTeX is used.
+* Summaries of builtin functions have been improved and regularized
+
 ``mathics`` command line
 ++++++++++++++++++++++++
 
@@ -98,14 +109,19 @@ WMA Compatibility
 * ``GetEnvironment`` expanded to handle ``[]`` and ``{var1, var2,...}`` forms
 * The system ``packages`` directory has been renamed ``Packages`` to conformance with WMA.
 * ``$Path`` now includes a ``Packages`` directory under ``$HOME``.
+* All of the 100 or so Unicode operators without a pre-defined meaning are now supported
 
 Internals
 ---------
 
 * More of the on-OO evaluation code that forms what might be an
-  instruction evaluator has been moved out of module
+  instruction evaluator has been moved out of the module
   ``mathics.builtins`` put in ``mathics.eval``. This includes code for
   plotting, and making boxes.
+* nested ``TimeConstraint[]`` works via external Python module ``stopit``.
+* ``Pause[]`` is more interuptable
+* More code has been linted, more type errors removed, and docstrings added/improved
+
 
 Performance
 -----------
@@ -133,6 +149,8 @@ Bugs
 ----
 
 * Fix infinite recursion when formatting ``Sequence[...]``
+* Parsing ``\(`` ... ``\)`` improved
+* Fixed #1105, #1106, #1107, #1172 #1173, #1195, #1205, #1221, #1223, and #1228 among others
 
 Mathics3 Packages
 +++++++++++++++++
@@ -158,6 +176,8 @@ Python Package Updates
 
 7.0.0
 -----
+
+Aug 9, 2024
 
 Some work was done here in support of planned future improvements like
 lazy loading of builtin functions.  A bit of effort was also spent to
