@@ -39,13 +39,14 @@ jobs:
         pip install -e .
         cd ..
         # We can comment out after next Mathics-Scanner release
-        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
-        git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
+        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        # git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
         # git clone --single-branch --branch operator-refactor-part1.5 https://github.com/Mathics3/mathics-scanner.git
-        cd mathics-scanner
+        # cd mathics-scanner
+        # pip install -e .
+        # python -m mathics_scanner.generate.build_tables
+        # cd ..
         pip install -e .
-        python -m mathics_scanner.generate.build_tables
-        cd ..
 
         # python -m pip install Mathics-Scanner[full]
         make develop-full
