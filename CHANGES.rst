@@ -28,7 +28,7 @@ And in the ``Mathics3-Trepan`` repository:
 * ``Debugger[]``, and
 * ``TraceActivate[]``
 
-Option ``--post-mortem`` was added which goes into the `trepan3k debugger <https https://pypi.org/project/trepan3k/>`_ on an unrecoverable error. This option is available on other front ends..
+Option ``--post-mortem`` was added which goes into the `trepan3k debugger <https https://pypi.org/project/trepan3k/>`_ on an unrecoverable error. This option is available on other front ends.
 
 This debugging code is very much alpha quality, but it greatly
 improves the ability to debug problems in loading existing packages
@@ -93,7 +93,7 @@ By `@davidar <https://github.com/davidar>`_:
 Documentation
 +++++++++++++
 
-* Unicode operators appears in Django documentation. In the PDF, AMSLaTeX is used.
+* Unicode operators appear in Django documentation. In the PDF, AMSLaTeX is used.
 * Summaries of builtin functions have been improved and regularized
 
 ``mathics`` command line
@@ -119,7 +119,7 @@ Internals
   ``mathics.builtins`` put in ``mathics.eval``. This includes code for
   plotting, and making boxes.
 * nested ``TimeConstraint[]`` works via external Python module ``stopit``.
-* ``Pause[]`` is more interuptable
+* ``Pause[]`` is more interruptible
 * More code has been linted, more type errors removed, and docstrings added/improved
 
 
@@ -139,7 +139,7 @@ API incompatibility
 * Patterns in ``eval_`` and ``format_`` methods of builtin classes
   parses patterns in docstrings of the form
   ``Symbol: Expr`` as ``Pattern[Symbol, Expr]``.
-  To specify associated format in ``format_`` methods the
+  To specify the associated format in ``format_`` methods the
   docstring, the list of format must be wrapped in parenthesis, like
   ``(InputForm,): Definitions[...]`` instead of just ``InputForm: Definitions[...]``.
 * Character and Operator information that has been gone over in the Mathics Scanner project. The information in JSON tables, the keys, and values have thus change. Here, we read this information in and use that instead of previously hard-coded values.
@@ -157,8 +157,8 @@ Mathics3 Packages
 
 * Added ``BoolEval``
 * Added ``CleanSlate``
-* ``Combinatorica`` moved to a separate repository and v.9 renamed to 0.9.1.
-    More code v0.9.1 works. v2.0 renamed v2.0.1 and some code now works.
+* ``Combinatorica`` moved to a separate repository and v.9 was renamed to 0.9.1.
+    More code v0.9.1 works. v2.0 was renamed v2.0.1 and some code now works.
 * ``Rubi`` version 4.17 (work in progress; algebraic integrations work)
 
 
