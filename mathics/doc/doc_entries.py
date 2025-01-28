@@ -93,7 +93,7 @@ TESTCASE_RE = re.compile(
     r"""(?mx)^  # re.MULTILINE (multi-line match)
                 # and re.VERBOSE (readable regular expressions
         ((?:.|\n)*?)
-        ^\s+([>#SX])>[ ](.*)  # test-code indicator
+        ^\s*([>#SX])>[ ](.*)  # test-code indicator
         ((?:\n\s*(?:[:|=.][ ]|\.).*)*)  # test-code results"""
 )
 TESTCASE_OUT_RE = re.compile(r"^\s*([:|=])(.*)$")
