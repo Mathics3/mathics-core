@@ -216,10 +216,7 @@ def parse_docstring_to_DocumentationEntry_items(
         logging.warning("``key_part`` is deprecated. Its value is discarded.")
 
     # Remove commented lines.
-    doc = filter_comments(doc).strip(r"\s")
-
-    # Remove leading <dl>...</dl>
-    # doc = DL_RE.sub("", doc)
+    doc = filter_comments(doc)  # .strip("\s")
 
     # pre-substitute Python code because it might contain tests
     doc, post_substitutions = pre_sub(
@@ -394,11 +391,16 @@ class DocTest:
             # Mismatched number of output lines, and we don't have "..."
             return False
 
+        # Python 3.13 replaces tabs by a single space in docstrings.
+        # In doctests we replace tabs by sequences of four spaces.
+        def tabs_to_spaces(val):
+            return val.text.replace("\t", 4 * " ")
+
         # Need to check all output line by line
         for got, wanted in zip(outs, wanted_outs):
             if wanted.text == "...":
                 return True
-            if not got == wanted:
+            if not tabs_to_spaces(got) == tabs_to_spaces(wanted):
                 return False
 
         return True
