@@ -984,10 +984,10 @@ class Integrate(SympyFunction):
     >> Integrate[4 Sin[x] Cos[x], x]
      = 2 Sin[x] ^ 2
 
-    > Integrate[-Infinity, {x, 0, Infinity}]
+    >> Integrate[-Infinity, {x, 0, Infinity}]
      = -Infinity
 
-    > Integrate[-Infinity, {x, Infinity, 0}]
+    >> Integrate[-Infinity, {x, Infinity, 0}]
      = Infinity
 
     Integration in TeX:
@@ -995,7 +995,7 @@ class Integrate(SympyFunction):
      = \int_a^b f\left[x\right] \, dx
 
     Sometimes there is a loss of precision during integration.
-    You can check the precision of your result with the following sequence
+    You can check the precision of your result with the following sequence \
     of commands.
     >> Integrate[Abs[Sin[phi]], {phi, 0, 2Pi}] // N
      = 4.
