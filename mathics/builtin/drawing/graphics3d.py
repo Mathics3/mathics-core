@@ -247,16 +247,16 @@ class Cuboid(Builtin):
 
     Cuboid also known as interval, rectangle, square, cube, rectangular parallelepiped, tesseract, orthotope, and box.
     <dl>
-      <dt>'Cuboid[$p_min$]'
+      <dt>'Cuboid'[$p_{min}$]
       <dd>is a unit cube/square with its lower corner at point $p_min$.
 
-      <dt>'Cuboid[$p_min$, $p_max$]
+      <dt>'Cuboid'[$p_{min}$, $p_{max}$]
       <dd>is a 2d square with with lower corner $p_min$ and upper corner $p_max$.
 
-      <dt>'Cuboid[{$p_min$, $p_max$}]'
-      <dd>is a cuboid with lower corner $p_min$ and upper corner $p_max$.
+      <dt>'Cuboid'[{$p_{min}$, $p_{max}$}]
+      <dd>is a cuboid with lower corner $p_{min}$ and upper corner $p_{max}$.
 
-      <dt>'Cuboid[{$p1_min$, $p1_max$, ...}]'
+      <dt>'Cuboid'[{$p1_{min}$, $p1_{max}$, ...}]
       <dd>is a collection of cuboids.
 
       <dt>'Cuboid[]' is equivalent to 'Cuboid[{0,0,0}]'.
