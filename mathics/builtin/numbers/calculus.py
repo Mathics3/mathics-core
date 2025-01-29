@@ -952,8 +952,10 @@ class Integers(Builtin):
 
 class Integrate(SympyFunction):
     r"""
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/Integrate.html</url>
+    <url>:Integral:https://en.wikipedia.org/wiki/Integral</url> (<url>:SymPy:
+    https://docs.sympy.org/latest/modules/integrals/integrals.html</url>, \
+    <url>:WMA:
+    https://reference.wolfram.com/language/ref/Integrate.html</url>)
 
     <dl>
       <dt>'Integrate[$f$, $x$]'
@@ -984,18 +986,20 @@ class Integrate(SympyFunction):
     >> Integrate[4 Sin[x] Cos[x], x]
      = 2 Sin[x] ^ 2
 
-    > Integrate[-Infinity, {x, 0, Infinity}]
+    >> Integrate[-Infinity, {x, 0, Infinity}]
      = -Infinity
 
-    > Integrate[-Infinity, {x, Infinity, 0}]
-     = Infinity
+    Integrating something ill-defined returns the expression untouched:
 
-    Integration in TeX:
+    >> Integrate[1, {x, Infinity, 0}]
+     = Integrate[1, {x, Infinity, 0}]
+
+    Here how is an example of converting integral equation to TeX:
     >> Integrate[f[x], {x, a, b}] // TeXForm
      = \int_a^b f\left[x\right] \, dx
 
     Sometimes there is a loss of precision during integration.
-    You can check the precision of your result with the following sequence
+    You can check the precision of your result with the following sequence \
     of commands.
     >> Integrate[Abs[Sin[phi]], {phi, 0, 2Pi}] // N
      = 4.
@@ -1113,6 +1117,10 @@ class Integrate(SympyFunction):
         except NotImplementedError:
             # e.g. NotImplementedError: Result depends on the sign of
             # -sign(_u`j)*sign(_u`w)
+            return
+        except TypeError:
+            # SymPy can give this. For example:
+            # Integrate[-Infinity, {x, 0, Infinity}]
             return
         if prec is not None and isinstance(sympy_result, sympy.Integral):
             # TODO MaxExtraPrecision -> maxn
