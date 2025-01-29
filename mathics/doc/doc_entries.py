@@ -216,7 +216,7 @@ def parse_docstring_to_DocumentationEntry_items(
         logging.warning("``key_part`` is deprecated. Its value is discarded.")
 
     # Remove commented lines.
-    doc = filter_comments(doc)  # .strip("\s")
+    doc = filter_comments(doc)
 
     # pre-substitute Python code because it might contain tests
     doc, post_substitutions = pre_sub(
