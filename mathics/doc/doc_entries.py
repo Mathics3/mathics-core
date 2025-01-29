@@ -66,7 +66,7 @@ IMG_RE = re.compile(
     r'<img src="(?P<src>.*?)" title="(?P<title>.*?)" label="(?P<label>.*?)">'
 )
 # Preserve space before and after in-line code variables.
-LATEX_RE = re.compile(r"(\s?)\$([A-Za-z]+?)\$(\s?)")
+LATEX_RE = re.compile(r"(\s?)\$(\w+?)\$(\s?)")
 
 LIST_ITEM_RE = re.compile(r"(?s)<li>(.*?)(?:</li>|(?=<li>)|$)")
 LIST_RE = re.compile(r"(?s)<(?P<tag>ul|ol)>(?P<content>.*?)</(?P=tag)>")
