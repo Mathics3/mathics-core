@@ -468,6 +468,8 @@ class Builtin:
         for name in dir(self):
             if name.startswith(prefix):
                 function = getattr(self, name)
+                if not hasattr(function, "__call__"):
+                    continue
                 pattern = function.__doc__
                 if pattern is None:  # Fixes PyPy bug
                     continue
