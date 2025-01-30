@@ -195,11 +195,15 @@ class Sphere(Builtin):
 
 class Cone(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Cone.html</url>
+    <url>:Cone:https://en.wikipedia.org/wiki/Cone</url> (<url>
+    :WMA:https://reference.wolfram.com/language/ref/Cone.html</url>)
 
     <dl>
+      <dt>'Cone[]'
+      <dd>is a cone of radius 1 and height 2 oriented in the upward $z$ direction.
+
       <dt>'Cone[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}]'
-      <dd>represents a cone of radius 1.
+      <dd>is a cone of radius 1.
 
       <dt>'Cone[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}, $r$]'
       <dd>is a cone of radius $r$ starting at ($x1$, $y1$, $z1$) and ending at \
@@ -208,6 +212,9 @@ class Cone(Builtin):
       <dt>'Cone[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}, ... }, $r$]'
       <dd>is a collection cones of radius $r$.
     </dl>
+
+    >> Graphics3D[Cone[]]
+     = -Graphics3D-
 
     >> Graphics3D[Cone[{{0, 0, 0}, {1, 1, 1}}, 1]]
      = -Graphics3D-
@@ -223,7 +230,7 @@ class Cone(Builtin):
     }
 
     rules = {
-        "Cone[]": "Cone[{{0, 0, 0}, {1, 1, 1}}, 1]",
+        "Cone[]": "Cone[{{0, 0, 0}, {0, 0, 2}}, 1]",
         "Cone[positions_List]": "Cone[positions, 1]",
     }
 
