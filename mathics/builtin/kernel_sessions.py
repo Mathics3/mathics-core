@@ -8,8 +8,8 @@ from mathics.core.evaluation import Evaluation
 
 
 class Out(Builtin):
-    """
-    <url>:WMA: https://reference.wolfram.com/language/ref/$Out</url>
+    r"""
+    <url>:WMA: https://reference.wolfram.com/language/ref/\$Out</url>
     <dl>
       <dt>'%$k$' or 'Out[$k$]'
       <dd>gives the result of the $k$th input line.

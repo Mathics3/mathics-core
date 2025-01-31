@@ -766,7 +766,7 @@ class Min(_MinMax):
 
 
 class SameQ(_ComparisonOperator):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/SameQ.html</url>
 
     <dl>
@@ -809,7 +809,7 @@ class SameQ(_ComparisonOperator):
     $0.222`3$ is not equivalent to $0.2222`3$:
     >> .2222222`6 === .222`3
      = False
-    15.9546 is the value of '$MaxPrecision'
+    15.9546 is the value of '\$MaxPrecision'
     """
 
     grouping = "None"  # Indeterminate grouping: Neither left nor right

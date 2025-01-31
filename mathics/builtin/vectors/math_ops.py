@@ -94,7 +94,7 @@ class Curl(SympyFunction):
       <dt>'Curl[{$f1$, $f2$}, {$x1$, $x2$}]'
       <dd>returns the curl $df2$/$dx1$ - $df1$/$dx2$
 
-      <dt>'Curl[{$f1$, $f2$, $f3} {$x1$, $x2$, $x3}]'
+      <dt>'Curl[{$f1$, $f2$, $f3$} {$x1$, $x2$, $x3$}]'
       <dd>returns the curl ($df3$/$dx2$ - $df2$/$dx3$, $dx3$/$df$3 - $df3$/$dx1$, $df2$/$df1$ - $df1$/$dx2$)
     </dl>
 

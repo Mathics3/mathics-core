@@ -1525,7 +1525,7 @@ class Simplify(Builtin):
       <dd>simplifies $expr$.
 
       <dt>'Simplify[$expr$, $assump$]'
-      <dd>simplifies $expr$ assuming $assump$ instead of $Assumptions$.
+      <dd>simplifies $expr$ assuming $assump$ instead of '\$Assumptions'.
     </dl>
 
     >> Simplify[2*Sin[x]^2 + 2*Cos[x]^2]
@@ -1535,23 +1535,23 @@ class Simplify(Builtin):
     >> Simplify[f[x]]
      = f[x]
 
-    Simplify over conditional expressions uses $\$Assumptions$, or $assump$
+    Simplify over conditional expressions uses '\$Assumptions', or $assump$
     to evaluate the condition:
     >> $Assumptions={a <= 0};
     >> Simplify[ConditionalExpression[1, a > 0]]
      = Undefined
-    The $assump$ option  override $\$Assumption$:
+    The $assump$ option  override '\$Assumption':
     >> Simplify[ConditionalExpression[1, a > 0] ConditionalExpression[1, b > 0], { b > 0 }]
      = ConditionalExpression[1, a > 0]
-    On the other hand, $Assumptions$ option does not override $\$Assumption$, but add to them:
+    On the other hand, 'Assumptions' option does not override '\$Assumptions', but add to them:
     >> Simplify[ConditionalExpression[1, a > 0] ConditionalExpression[1, b > 0], Assumptions -> { b > 0 }]
      = ConditionalExpression[1, a > 0]
-    Passing both options overwrites $Assumptions with the union of $assump$ the option
+    Passing both options overwrites '\$Assumptions' with the union of $assump$ the option
     >> Simplify[ConditionalExpression[1, a > 0] ConditionalExpression[1, b > 0], {a>0},Assumptions -> { b > 0 }]
      = 1
     >> $Assumptions={};
 
-    The option $ComplexityFunction$ allows to control the way in which the \
+    The option 'ComplexityFunction' allows to control the way in which the \
     evaluator decides if one expression is simpler than another. For example, \
     by default, 'Simplify' tries to avoid expressions involving numbers with many digits:
     >> Simplify[20 Log[2]]

@@ -792,7 +792,7 @@ class GatherBy(_GatherOperation):
       <dt>'GatherBy[$list$, {$f$, $g$, ...}]'
       <dd>gathers elements of $list$ into sub lists of items whose image \
       under $f$ identical. Then, gathers these sub lists again into sub \
-      sub lists, that are identical under $g.
+      sub lists, that are identical under $g$.
     </dl>
 
     >> GatherBy[{{1, 3}, {2, 2}, {1, 1}}, Total]
@@ -891,7 +891,7 @@ class PadLeft(_Pad):
       <dd>pads $list$ to length $n$ by adding 0 on the left.
       <dt>'PadLeft[$list$, $n$, $x$]'
       <dd>pads $list$ to length $n$ by adding $x$ on the left.
-      <dt>'PadLeft[$list$, {$n1$, $n2, ...}, $x$]'
+      <dt>'PadLeft[$list$, {$n1$, $n2$, ...}, $x$]'
       <dd>pads $list$ to lengths $n1$, $n2$ at levels 1, 2, ... respectively by adding $x$ on the left.
       <dt>'PadLeft[$list$, $n$, $x$, $m$]'
       <dd>pads $list$ to length $n$ by adding $x$ on the left and adding a margin of $m$ on the right.
@@ -929,7 +929,7 @@ class PadRight(_Pad):
       <dd>pads $list$ to length $n$ by adding 0 on the right.
       <dt>'PadRight[$list$, $n$, $x$]'
       <dd>pads $list$ to length $n$ by adding $x$ on the right.
-      <dt>'PadRight[$list$, {$n1$, $n2, ...}, $x$]'
+      <dt>'PadRight[$list$, {$n1$, $n2$, ...}, $x$]'
       <dd>pads $list$ to lengths $n1$, $n2$ at levels 1, 2, ... respectively by adding $x$ on the right.
       <dt>'PadRight[$list$, $n$, $x$, $m$]'
       <dd>pads $list$ to length $n$ by adding $x$ on the left and adding a margin of $m$ on the left.
@@ -1360,7 +1360,7 @@ class Tally(_GatherOperation):
           the result as a list of pairs {object, count}.
 
       <dt>'Tally[$list$, $test$]'
-      <dd>counts the number of occurrences of objects and uses $test to \
+      <dd>counts the number of occurrences of objects and uses $test$ to \
           determine if two objects should be counted in the same bin.
     </dl>
 

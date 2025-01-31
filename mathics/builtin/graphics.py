@@ -1393,7 +1393,7 @@ class Inset(Builtin):
       <dt>'Text[$obj$, $pos$]'
       <dd>represents an object $obj$ inset in a graphic at position $pos$.
 
-      <dt>'Text[$obj$, $pos$, $$]'
+      <dt>'Text[$obj$, $pos$, $opos$]'
       <dd>represents an object $obj$ inset in a graphic at position $pos$, \
           in away that the position $opos$ of $obj$ coincides with $pos$ \
           in the enclosing graphic.

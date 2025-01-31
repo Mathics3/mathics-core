@@ -24,7 +24,7 @@ class BoxMatrix(Builtin):
     https://reference.wolfram.com/language/ref/BoxMatrix.html</url>
 
     <dl>
-      <dt>'BoxMatrix[$s]'
+      <dt>'BoxMatrix[$s$]'
       <dd>Gives a box shaped kernel of size 2 $s$ + 1.
     </dl>
 
@@ -90,7 +90,7 @@ class DiamondMatrix(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/DiamondMatrix.html</url>
 
     <dl>
-      <dt>'DiamondMatrix[$s]'
+      <dt>'DiamondMatrix[$s$]'
       <dd>Gives a diamond shaped kernel of size 2 $s$ + 1.
     </dl>
 
@@ -127,7 +127,7 @@ class DiskMatrix(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/DiskMatrix.html</url>
 
     <dl>
-      <dt>'DiskMatrix[$s]'
+      <dt>'DiskMatrix[$s$]'
       <dd>Gives a disk shaped kernel of size 2 $s$ + 1.
     </dl>
 

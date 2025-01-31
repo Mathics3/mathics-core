@@ -14,18 +14,18 @@ from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_li
 
 
 class RecursionLimit(Predefined):
-    """
+    r"""
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/$RecursionLimit.html</url>
+    https://reference.wolfram.com/language/ref/\$RecursionLimit.html</url>
 
     <dl>
-      <dt>'$RecursionLimit'
+      <dt>'\$RecursionLimit'
       <dd>specifies the maximum allowable recursion depth after which a \
           calculation is terminated.
     </dl>
 
-    Calculations terminated by '$RecursionLimit' return '$Aborted':
+    Calculations terminated by '\$RecursionLimit' return '\$Aborted':
     >> a = a + a
      : Recursion depth of 200 exceeded.
      = $Aborted
@@ -71,17 +71,17 @@ class RecursionLimit(Predefined):
 
 
 class IterationLimit(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$IterationLimit.html</url>
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$IterationLimit.html</url>
 
     <dl>
-        <dt>'$IterationLimit'
+        <dt>'\$IterationLimit'
 
         <dd>specifies the maximum number of times a reevaluation of an expression may happen.
 
     </dl>
 
-    Calculations terminated by '$IterationLimit' return '$Aborted':
+    Calculations terminated by '\$IterationLimit' return '\$Aborted':
 
     >> $IterationLimit
      = 1000

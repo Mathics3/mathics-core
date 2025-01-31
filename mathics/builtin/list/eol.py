@@ -424,7 +424,7 @@ class DeleteCases(Builtin):
       <dd>returns the elements of $list$ that do not match $pattern$.
 
       <dt>'DeleteCases[$list$, $pattern$, $levelspec$]'
-      <dd> removes all parts of $list on levels specified by $levelspec$ that match pattern (not fully implemented).
+      <dd> removes all parts of $list$ on levels specified by $levelspec$ that match pattern (not fully implemented).
 
       <dt>'DeleteCases[$list$, $pattern$, $levelspec$, $n$]'
       <dd> removes the first $n$ parts of $list$ that match $pattern$.
