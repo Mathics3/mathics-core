@@ -588,13 +588,13 @@ In fact, <em>functions</em> in \Mathics are just one aspect of <em>patterns</em>
   <dd>matches one expression.
   <dt>'Pattern[$x$, $p$]'
   <dd>matches the pattern $p$ and stores the matching sub-expression into $x$.
-  <dt>'$x$_' or 'Pattern[$x$, Blank[]]'
+  <dt>$x$'_' or 'Pattern[$x$, Blank[]]'
   <dd>matches one expression and stores it in $x$.
   <dt>'__' or 'BlankSequence[]'
   <dd>matches a sequence of one or more expressions.
   <dt>'___' or 'BlankNullSequence[]'
   <dd>matches a sequence of zero or more expressions.
-  <dt>'_$h$' or 'Blank[$h$]'
+  <dt>'_'$h$ or 'Blank[$h$]'
   <dd>matches one expression with head $h$.
   <dt>'$x$_$h$' or 'Pattern[$x$, Blank[$h$]]'
   <dd>matches one expression with head $h$ and stores it in $x$.
@@ -602,7 +602,7 @@ In fact, <em>functions</em> in \Mathics are just one aspect of <em>patterns</em>
   <dd>matches either pattern $p$ or $q$.
   <dt>'$p$ ? $t$' or 'PatternTest[$p$, $t$]'
   <dd>matches $p$ if the test '$t$[$p$]' yields 'True'.
-  <dt>'$p$ /; $c$' or 'Condition[$p$, $c$]'
+  <dt>'$p$ '/;' $c$' or 'Condition[$p$, $c$]'
   <dd>matches $p$ if condition $c$ holds.
   <dt>'Verbatim[$p$]'
   <dd>matches an expression that equals $p$, without regarding patterns inside $p$.
@@ -704,9 +704,9 @@ Like most programming languages, \Mathics has common program-flow control statem
   <dd>evaluates $expr$ $max$ times, substituting $i$ in $expr$ with values from 1 to $max$.
 <dt>'For[$start$, $test$, $incr$, $body$]'
         <dd>evaluates $start$, and then iteratively $body$ and $incr$ as long as $test$ evaluates to 'True'.
-<dt>'While[$test$, $body$]'
+<dt>'While'[$test$, $body$]
         <dd>evaluates $body$ as long as $test$ evaluates to 'True'.
-<dt>'Nest[$f$, $expr$, $n$]'
+<dt>'Nest'[$f$, $expr$, $n$]
         <dd>returns an expression with $f$ applied $n$ times to $expr$.
 <dt>'NestWhile[$f$, $expr$, $test$]'
         <dd>applies a function $f$ repeatedly on an expression $expr$, until
