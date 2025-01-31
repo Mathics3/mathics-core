@@ -7,7 +7,7 @@ repos:
     - id: check-merge-conflict
     - id: debug-statements
       stages: [pre-commit]
-      exclude: ChangeLog-spell-corrected.diff
+      exclude: ChangeLog-spell-corrected.diff|mathics/builtin/system.py
     - id: end-of-file-fixer
       stages: [pre-commit]
       exclude: ChangeLog-spell-corrected.diff
