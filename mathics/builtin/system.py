@@ -76,10 +76,7 @@ class Breakpoint(Builtin):
 
     def eval(self, evaluation: Evaluation):
         "Breakpoint[]"
-        # I have to comment out this to pass the
-        # "precommit". @rocky, any idea about how to
-        # remove the comment?
-        # breakpoint()
+        breakpoint()
 
 
 class CommandLine(Predefined):
