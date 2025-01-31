@@ -153,11 +153,11 @@ class Block(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Block.html</url>
 
     <dl>
-      <dt>'Block[{$x$, $y$, ...}, $expr$]'
+      <dt>'Block'[{$x$, $y$, ...}, $expr$]
       <dd>temporarily removes the definitions of the given variables, evaluates \
           $expr$, and restores the original definitions afterwards.
 
-      <dt>'Block[{$x$=$x0$, $y$=$y0$, ...}, $expr$]'
+      <dt>'Block'[{$x$=$x0$, $y$=$y0$, ...}, $expr$]
       <dd>assigns temporary values to the variables during the evaluation of $expr$.
     </dl>
 
@@ -414,7 +414,7 @@ class Module(Builtin):
     https://reference.wolfram.com/language/ref/Module.html</url>
 
     <dl>
-      <dt>'Module[{$vars$}, $expr$]'
+      <dt>'Module'[{$vars$}, $expr$]
       <dd>localizes variables by giving them a temporary name of the form \
           'name\$number', where number is the current value of '\$ModuleNumber'. \
           Each time a module is evaluated, '\$ModuleNumber' is incremented.
@@ -678,7 +678,7 @@ class With(Builtin):
     https://reference.wolfram.com/language/ref/With.html</url>
 
     <dl>
-      <dt>'With[{$x$=$x0$, $y$=$y0$, ...}, $expr$]'
+      <dt>'With'[{$x$=$x0$, $y$=$y0$, ...}, $expr$]
       <dd>specifies that all occurrences of the symbols $x$, $y$, ... in \
           $expr$ should be replaced by $x0$, $y0$, ...
     </dl>

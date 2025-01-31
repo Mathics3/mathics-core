@@ -45,7 +45,7 @@ class MakeBoxes(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/MakeBoxes.html</url>
 
     <dl>
-      <dt>'MakeBoxes[$expr$]'
+      <dt>'MakeBoxes'[$expr$]
       <dd>is a low-level formatting primitive that converts $expr$
         to box form, without evaluating it.
       <dt>'\\( ... \\)'
@@ -139,7 +139,7 @@ class ToBoxes(Builtin):
     https://reference.wolfram.com/language/ref/ToBoxes.html</url>
 
     <dl>
-      <dt>'ToBoxes[$expr$]'
+      <dt>'ToBoxes'[$expr$]
       <dd>evaluates $expr$ and converts the result to box form.
     </dl>
 

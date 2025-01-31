@@ -28,7 +28,7 @@ class LoadModule(Builtin):
     ## <url>:mathics native for pymathics:</url>
 
     <dl>
-      <dt>'LoadModule[$module$]'
+      <dt>'LoadModule'[$module$]
       <dd>'Load Mathics definitions from the python module $module$
     </dl>
 
@@ -65,7 +65,7 @@ class Set(InfixOperator):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Set.html</url>
 
     <dl>
-      <dt>'Set[$expr$, $value$]'
+      <dt>'Set'[$expr$, $value$]
 
       <dt>$expr$ = $value$
       <dd>evaluates $value$ and assigns it to $expr$.
@@ -150,7 +150,7 @@ class SetDelayed(Set):
     https://reference.wolfram.com/language/ref/SetDelayed.html</url>
 
     <dl>
-      <dt>'SetDelayed[$expr$, $value$]'
+      <dt>'SetDelayed'[$expr$, $value$]
 
       <dt>$expr$ := $value$
       <dd>assigns $value$ to $expr$, without evaluating $value$.
@@ -233,7 +233,7 @@ class TagSet(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/TagSet.html</url>
 
     <dl>
-      <dt>'TagSet[$f$, $expr$, $value$]'
+      <dt>'TagSet'[$f$, $expr$, $value$]
 
       <dt>'$f$ /: $expr$ = $value$'
       <dd>assigns $value$ to $expr$, associating the corresponding assignment \
@@ -292,7 +292,7 @@ class TagSetDelayed(TagSet):
          https://reference.wolfram.com/language/ref/TagSetDelayed.html</url>
 
     <dl>
-      <dt>'TagSetDelayed[$f$, $expr$, $value$]'
+      <dt>'TagSetDelayed'[$f$, $expr$, $value$]
 
       <dt>'$f$ /: $expr$ := $value$'
       <dd>is the delayed version of 'TagSet'.
@@ -374,7 +374,7 @@ class UpSetDelayed(UpSet):
          https://reference.wolfram.com/language/ref/UpSetDelayed.html</url>
 
     <dl>
-       <dt>'UpSetDelayed[$expression$, $value$]'
+       <dt>'UpSetDelayed'[$expression$, $value$]
 
        <dt>'$expression$ ^:= $value$'
        <dd>assigns $expression$ to the value of $f$[$x$] \

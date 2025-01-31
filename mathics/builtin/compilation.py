@@ -37,10 +37,10 @@ class Compile(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Compile.html</url>
 
     <dl>
-      <dt>'Compile[{$x1$, $x2$, ...}, $expr$]'
+      <dt>'Compile'[{$x1$, $x2$, ...}, $expr$]
       <dd>Compiles $expr$ assuming each $xi$ is a $Real$ number.
 
-      <dt>'Compile[{{$x1$, $t1$} {$x2$, $t1$} ...}, $expr$]'
+      <dt>'Compile'[{{$x1$, $t1$} {$x2$, $t1$} ...}, $expr$]
       <dd>Compiles assuming each $xi$ matches type $ti$.
     </dl>
 
@@ -166,7 +166,7 @@ class CompiledFunction(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/CompiledFunction.html</url>
 
     <dl>
-      <dt>'CompiledFunction[$args$...]'
+      <dt>'CompiledFunction'[$args$...]
       <dd>represents compiled code for evaluating a compiled function.
     </dl>
 

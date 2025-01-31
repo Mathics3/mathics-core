@@ -177,7 +177,7 @@ class Assuming(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Assuming.html</url>
 
     <dl>
-      <dt>'Assuming[$cond$, $expr$]'
+      <dt>'Assuming'[$cond$, $expr$]
       <dd>Evaluates $expr$ assuming the conditions $cond$.
     </dl>
 
@@ -270,7 +270,7 @@ class Complex_(Builtin):
       <dt>'Complex'
       <dd>is the head of complex numbers.
 
-      <dt>'Complex[$a$, $b$]'
+      <dt>'Complex'[$a$, $b$]
       <dd>constructs the complex number '$a$ + I $b$'.
     </dl>
 
@@ -301,7 +301,7 @@ class ConditionalExpression(Builtin):
 language/ref/ConditionalExpression.html</url>
 
     <dl>
-      <dt>'ConditionalExpression[$expr$, $cond$]'
+      <dt>'ConditionalExpression'[$expr$, $cond$]
       <dd>returns $expr$ if $cond$ evaluates to $True$, $Undefined$ if $cond$ \
           evaluates to $False$.
     </dl>
@@ -388,7 +388,7 @@ class Conjugate(MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Conjugate.html</url>
 
     <dl>
-      <dt>'Conjugate[$z$]'
+      <dt>'Conjugate'[$z$]
       <dd>returns the complex conjugate of the complex number $z$.
     </dl>
 
@@ -421,7 +421,7 @@ class DirectedInfinity(SympyFunction):
     https://reference.wolfram.com/language/ref/DirectedInfinity.html</url>
 
     <dl>
-      <dt>'DirectedInfinity[$z$]'
+      <dt>'DirectedInfinity'[$z$]
       <dd>represents an infinite multiple of the complex number $z$.
       <dt>'DirectedInfinity[]'
       <dd>is the same as 'ComplexInfinity'.
@@ -543,9 +543,9 @@ class Element(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Element.html</url>
 
     <dl>
-      <dt>'Element[$expr$, $domain$]'
+      <dt>'Element'[$expr$, $domain$]
       <dd>returns $True$ if $expr$ is an element of $domain$
-      <dt>'Element[$expr_1$|$expr_2$|..., $domain$]'
+      <dt>'Element'[$expr_1$|$expr_2$|..., $domain$]
       <dd>returns $True$ if all the $expr_i$ belongs to $domain$, and \
     $False$ if one of the items doesn't.
     </dl>
@@ -647,7 +647,7 @@ class Im(SympyFunction):
     https://reference.wolfram.com/language/ref/Im.html</url>
 
     <dl>
-      <dt>'Im[$z$]'
+      <dt>'Im'[$z$]
       <dd>returns the imaginary component of the complex number $z$.
     </dl>
 
@@ -699,16 +699,16 @@ class Product(IterationFunction, SympyFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Product.html</url>
 
     <dl>
-      <dt>'Product[$expr$, {$i$, $imin$, $imax$}]'
+      <dt>'Product'[$expr$, {$i$, $imin$, $imax$}]
       <dd>evaluates the discrete product of $expr$ with $i$ ranging from $imin$ to $imax$.
 
-      <dt>'Product[$expr$, {$i$, $imax$}]'
+      <dt>'Product'[$expr$, {$i$, $imax$}]
       <dd>same as 'Product[$expr$, {$i$, 1, $imax$}]'.
 
-      <dt>'Product[$expr$, {$i$, $imin$, $imax$, $di$}]'
+      <dt>'Product'[$expr$, {$i$, $imin$, $imax$, $di$}]
       <dd>$i$ ranges from $imin$ to $imax$ in steps of $di$.
 
-      <dt>'Product[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]'
+      <dt>'Product'[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]
       <dd>evaluates $expr$ as a multiple product, with {$i$, ...}, {$j$, ...}, ... being in outermost-to-innermost order.
     </dl>
 
@@ -778,7 +778,7 @@ class Rational_(Builtin):
     <dl>
       <dt>'Rational'
       <dd>is the head of rational numbers.
-      <dt>'Rational[$a$, $b$]'
+      <dt>'Rational'[$a$, $b$]
       <dd>constructs the rational number $a$ / $b$.
     </dl>
 
@@ -806,7 +806,7 @@ class Re(SympyFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Re.html</url>
 
     <dl>
-      <dt>'Re[$z$]'
+      <dt>'Re'[$z$]
       <dd>returns the real component of the complex number $z$.
     </dl>
 
@@ -862,7 +862,7 @@ class RealValuedNumberQ(Test):
     <url>:WMA link:https://reference.wolfram.com/language/ref/RealValuedNumberQ.html</url>
 
     <dl>
-      <dt>'RealValuedNumberQ[$expr$]'
+      <dt>'RealValuedNumberQ'[$expr$]
       <dd>returns 'True' if $expr$ is an explicit number with no imaginary component.
     </dl>
 
@@ -899,16 +899,16 @@ class Sum(IterationFunction, SympyFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Sum.html</url>
 
     <dl>
-      <dt>'Sum[$expr$, {$i$, $imin$, $imax$}]'
+      <dt>'Sum'[$expr$, {$i$, $imin$, $imax$}]
       <dd>evaluates the discrete sum of $expr$ with $i$ ranging from $imin$ to $imax$.
 
-      <dt>'Sum[$expr$, {$i$, $imax$}]'
+      <dt>'Sum'[$expr$, {$i$, $imax$}]
       <dd>same as 'Sum[$expr$, {$i$, 1, $imax$}]'.
 
-      <dt>'Sum[$expr$, {$i$, $imin$, $imax$, $di$}]'
+      <dt>'Sum'[$expr$, {$i$, $imin$, $imax$, $di$}]
       <dd>$i$ ranges from $imin$ to $imax$ in steps of $di$.
 
-      <dt>'Sum[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]'
+      <dt>'Sum'[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]
       <dd>evaluates $expr$ as a multiple sum, with {$i$, ...}, {$j$, ...}, ... being \
           in outermost-to-innermost order.
     </dl>
