@@ -14,10 +14,10 @@ class BernoulliB(MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/BernoulliB.html</url>
 
     <dl>
-      <dt>'BernoulliB[$n$]'
+      <dt>'BernoulliB'[$n$]
       <dd>represents the Bernoulli number B_$n$.
 
-      <dt>'BernouilliB[$n$, $x$]'
+      <dt>'BernouilliB'[$n$, $x$]
       <dd>represents the Bernoulli polynomial B_$n[x]$.
     </dl>
 

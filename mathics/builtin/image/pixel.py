@@ -19,7 +19,7 @@ class PixelValue(Builtin):
     https://reference.wolfram.com/language/ref/PixelValue.html</url>
 
     <dl>
-      <dt>'PixelValue[$image$, {$x$, $y$}]'
+      <dt>'PixelValue'[$image$, {$x$, $y$}]
       <dd>gives the value of the pixel at position {$x$, $y$} in $image$.
     </dl>
 
@@ -53,7 +53,7 @@ class PixelValuePositions(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/PixelValuePositions.html</url>
 
     <dl>
-      <dt>'PixelValuePositions[$image$, $val$]'
+      <dt>'PixelValuePositions'[$image$, $val$]
       <dd>gives the positions of all pixels in $image$ that have value $val$.
     </dl>
 

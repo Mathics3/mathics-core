@@ -29,7 +29,7 @@ from mathics.eval.image import extract_exif
 class ImageExport(Builtin):
     """
     <dl>
-      <dt> 'ImageExport["path", $image$]'
+      <dt> 'ImageExport'["path", $image$]
       <dd> export $image$ as file in "path".
     </dl>
     """
@@ -107,13 +107,13 @@ class RandomImage(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/RandomImage.html</url>
 
     <dl>
-      <dt>'RandomImage[$max$]'
+      <dt>'RandomImage'[$max$]
       <dd>creates an image of random pixels with values 0 to $max$.
 
-      <dt>'RandomImage[{$min$, $max$}]'
+      <dt>'RandomImage'[{$min$, $max$}]
       <dd>creates an image of random pixels with values $min$ to $max$.
 
-      <dt>'RandomImage[..., $size$]'
+      <dt>'RandomImage'[..., $size$]
       <dd>creates an image of the given $size$.
     </dl>
 
@@ -173,7 +173,7 @@ class EdgeDetect(Builtin):
     https://reference.wolfram.com/language/ref/EdgeDetect.html</url>
 
     <dl>
-      <dt>'EdgeDetect[$image$]'
+      <dt>'EdgeDetect'[$image$]
       <dd>returns an image showing the edges in $image$.
     </dl>
 
@@ -218,7 +218,7 @@ class TextRecognize(Builtin):
     https://reference.wolfram.com/language/ref/TextRecognize.html</url>
 
     <dl>
-      <dt>'TextRecognize[$image$]'
+      <dt>'TextRecognize'[$image$]
       <dd>Recognizes text in $image$ and returns it as a 'String'.
     </dl>
 

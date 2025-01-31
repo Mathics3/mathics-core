@@ -32,14 +32,14 @@ class Binarize(Builtin):
     https://reference.wolfram.com/language/ref/Binarize.html</url>
 
     <dl>
-      <dt>'Binarize[$image$]'
+      <dt>'Binarize'[$image$]
       <dd>gives a binarized version of $image$, in which each pixel is either 0 or 1.
 
-      <dt>'Binarize[$image$, $t$]'
+      <dt>'Binarize'[$image$, $t$]
       <dd>map values $x$ > $t$ to 1, and values $x$ <= $t$ to 0.
 
-      <dt>'Binarize[$image$, {$t1$, $t2$}]'
-      <dd>map $t1$ < $x$ < $t2$ to 1, and all other values to 0.
+      <dt>'Binarize'[$image$, {$t_1$, $t_2$}]
+      <dd>map $t_1$ < $x$ < $t_2$ to 1, and all other values to 0.
     </dl>
 
     >> hedy = Import["ExampleData/hedy.tif"];
@@ -118,7 +118,7 @@ class Binarize(Builtin):
 #     <url>:WMA link:https://reference.wolfram.com/language/ref/ColorCombine.html</url>
 
 #     <dl>
-#       <dt>'ColorCombine[$channels$, $colorspace$]'
+#       <dt>'ColorCombine'[$channels$, $colorspace$]
 #       <dd>Gives an image with $colorspace$ and the respective components described by the given channels.
 #     </dl>
 
@@ -157,7 +157,7 @@ class ColorQuantize(Builtin):
     https://reference.wolfram.com/language/ref/ColorQuantize.html</url>
 
     <dl>
-      <dt>'ColorQuantize[$image$, $n$]'
+      <dt>'ColorQuantize'[$image$, $n$]
       <dd>gives a version of $image$ using only $n$ colors.
     </dl>
 
@@ -201,7 +201,7 @@ class ColorSeparate(Builtin):
     https://reference.wolfram.com/language/ref/ColorSeparate.html</url>
 
     <dl>
-      <dt>'ColorSeparate[$image$]'
+      <dt>'ColorSeparate'[$image$]
       <dd>Gives each channel of $image$ as a separate grayscale image.
     </dl>
 
@@ -236,13 +236,13 @@ class Colorize(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Colorize.html</url>
 
     <dl>
-      <dt>'Colorize[$values$]'
+      <dt>'Colorize'[$values$]
       <dd>returns an image where each number in the rectangular matrix \
           $values$ is a pixel and each occurrence of the same number is \
           displayed in the same unique color, which is different from the \
           colors of all non-identical numbers.
 
-      <dt>'Colorize[$image$]'
+      <dt>'Colorize'[$image$]
       <dd>gives a colorized version of $image$.
     </dl>
 
@@ -308,7 +308,7 @@ class ImageColorSpace(Builtin):
     https://reference.wolfram.com/language/ref/ImageColorSpace.html</url>
 
     <dl>
-      <dt>'ImageColorSpace[$image$]'
+      <dt>'ImageColorSpace'[$image$]
       <dd>gives $image$'s color space, e.g. "RGB" or "CMYK".
     </dl>
 

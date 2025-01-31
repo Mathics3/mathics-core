@@ -73,7 +73,7 @@ class Append(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Append.html</url>
 
     <dl>
-      <dt>'Append[$expr$, $elem$]'
+      <dt>'Append'[$expr$, $elem$]
       <dd>returns $expr$ with $elem$ appended.
     </dl>
 
@@ -114,7 +114,7 @@ class AppendTo(Builtin):
     https://reference.wolfram.com/language/ref/AppendTo.html</url>
 
     <dl>
-      <dt>'AppendTo[$s$, $elem$]'
+      <dt>'AppendTo'[$s$, $elem$]
       <dd>append $elem$ to value of $s$ and sets $s$ to the result.
     </dl>
 
@@ -159,13 +159,13 @@ class Cases(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Cases.html</url>
 
     <dl>
-      <dt>'Cases[$list$, $pattern$]'
+      <dt>'Cases'[$list$, $pattern$]
       <dd>returns the elements of $list$ that match $pattern$.
 
-      <dt>'Cases[$list$, $pattern$, $ls$]'
+      <dt>'Cases'[$list$, $pattern$, $ls$]
       <dd>returns the elements matching at levelspec $ls$.
 
-      <dt>'Cases[$list$, $pattern$, Heads->$bool$]'
+      <dt>'Cases'[$list$, $pattern$, Heads->$bool$]
       <dd>Match including the head of the expression in the search.
     </dl>
 
@@ -245,10 +245,10 @@ class Count(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Count.html</url>
 
     <dl>
-      <dt>'Count[$list$, $pattern$]'
+      <dt>'Count'[$list$, $pattern$]
       <dd>returns the number of times $pattern$ appears in $list$.
 
-      <dt>'Count[$list$, $pattern$, $ls$]'
+      <dt>'Count'[$list$, $pattern$, $ls$]
       <dd>counts the elements matching at levelspec $ls$.
     </dl>
 
@@ -273,11 +273,11 @@ class Delete(Builtin):
     https://reference.wolfram.com/language/ref/Delete.html</url>
 
     <dl>
-      <dt>'Delete[$expr$, $i$]'
+      <dt>'Delete'[$expr$, $i$]
       <dd>deletes the element at position $i$ in $expr$. The position is counted from the end if $i$ is negative.
-      <dt>'Delete[$expr$, {$m$, $n$, ...}]'
+      <dt>'Delete'[$expr$, {$m$, $n$, ...}]
       <dd>deletes the element at position {$m$, $n$, ...}.
-      <dt>'Delete[$expr$, {{$m1$, $n1$, ...}, {$m2$, $n2$, ...}, ...}]'
+      <dt>'Delete'[$expr$, {{$m_1$, $n_1$, ...}, {$m_2$, $n_2$, ...}, ...}]
       <dd>deletes the elements at several positions.
     </dl>
 
@@ -420,13 +420,13 @@ class DeleteCases(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/DeleteCases.html</url>
 
     <dl>
-      <dt>'DeleteCases[$list$, $pattern$]'
+      <dt>'DeleteCases'[$list$, $pattern$]
       <dd>returns the elements of $list$ that do not match $pattern$.
 
-      <dt>'DeleteCases[$list$, $pattern$, $levelspec$]'
+      <dt>'DeleteCases'[$list$, $pattern$, $levelspec$]
       <dd> removes all parts of $list$ on levels specified by $levelspec$ that match pattern (not fully implemented).
 
-      <dt>'DeleteCases[$list$, $pattern$, $levelspec$, $n$]'
+      <dt>'DeleteCases'[$list$, $pattern$, $levelspec$, $n$]
       <dd> removes the first $n$ parts of $list$ that match $pattern$.
     </dl>
 
@@ -524,11 +524,11 @@ class Drop(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Drop.html</url>
 
     <dl>
-      <dt>'Drop[$list$, $n$]'
+      <dt>'Drop'[$list$, $n$]
       <dd>returns $list$ with the first $n$ elements removed.
-      <dt>'Drop[$list$, -$n$]'
+      <dt>'Drop'[$list$, -$n$]
       <dd>returns $list$ with its last $n$ elements removed.
-      <dt>'Drop[$list$, {$m$, $n$}]'
+      <dt>'Drop'[$list$, {$m$, $n$}]
       <dd>returns $list$ with elements $m$ though $n$ removed.
     </dl>
 
@@ -598,10 +598,10 @@ class Extract(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Extract.html</url>
 
     <dl>
-      <dt>'Extract[$expr$, $list$]'
+      <dt>'Extract'[$expr$, $list$]
       <dd>extracts parts of $expr$ specified by $list$.
 
-      <dt>'Extract[$expr$, {$list1$, $list2$, ...}]'
+      <dt>'Extract'[$expr$, {$list_1$, $list_2$, ...}]
       <dd>extracts a list of parts.
     </dl>
 
@@ -628,10 +628,10 @@ class First(Builtin):
          https://reference.wolfram.com/language/ref/First.html</url>
 
     <dl>
-      <dt>'First[$expr$]'
+      <dt>'First'[$expr$]
       <dd>returns the first element in $expr$.
 
-      <dt>'First[$expr$, $def$]'
+      <dt>'First'[$expr$, $def$]
       <dd>returns the first element in $expr$ if it exists or $def$ otherwise.
     </dl>
 
@@ -705,10 +705,10 @@ class FirstCase(Builtin):
          https://reference.wolfram.com/language/ref/FirstCase.html</url>
 
     <dl>
-      <dt> FirstCase[{$e1$, $e2$, ...}, $pattern$]
+      <dt> FirstCase[{$e_1$, $e_2$, ...}, $pattern$]
       <dd>gives the first $ei$ to match $pattern$, or $Missing[\"NotFound\"]$ if none matching pattern is found.
 
-      <dt> FirstCase[{$e1$,$e2$, ...}, $pattern$ -> $rhs$]
+      <dt> FirstCase[{$e_1$,$e_2$, ...}, $pattern$ -> $rhs$]
       <dd> gives the value of $rhs$ corresponding to the first $ei$ to match pattern.
       <dt> FirstCase[$expr$, $pattern$, $default$]
       <dd> gives $default$ if no element matching $pattern$ is found.
@@ -738,13 +738,13 @@ class FirstPosition(Builtin):
          https://reference.wolfram.com/language/ref/FirstPosition.html</url>
 
     <dl>
-      <dt>'FirstPosition[$expr$, $pattern$]'
+      <dt>'FirstPosition'[$expr$, $pattern$]
       <dd>gives the position of the first element in $expr$ that matches $pattern$, or Missing["NotFound"] if no such element is found.
 
-      <dt>'FirstPosition[$expr$, $pattern$, $default$]'
+      <dt>'FirstPosition'[$expr$, $pattern$, $default$]
       <dd>gives default if no element matching $pattern$ is found.
 
-      <dt>'FirstPosition[$expr$, $pattern$, $default$, $levelspec$]'
+      <dt>'FirstPosition'[$expr$, $pattern$, $default$, $levelspec$]
       <dd>finds only objects that appear on levels specified by $levelspec$.
     </dl>
 
@@ -871,7 +871,7 @@ class Insert(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Insert.html</url>
 
     <dl>
-      <dt>'Insert[$list$, $elem$, $n$]'
+      <dt>'Insert'[$list$, $elem$, $n$]
       <dd>inserts $elem$ at position $n$ in $list$. When $n$ is negative, \
           the position is counted from the end.
     </dl>
@@ -901,10 +901,10 @@ class Last(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Last.html</url>
 
     <dl>
-      <dt>'Last[$expr$]'
+      <dt>'Last'[$expr$]
       <dd>returns the last element in $expr$.
 
-      <dt>'Last[$expr$, $def$]'
+      <dt>'Last'[$expr$, $def$]
       <dd>returns the last element in $expr$ if it exists or $def$ otherwise.
     </dl>
 
@@ -969,7 +969,7 @@ class Length(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Length.html</url>
 
     <dl>
-      <dt>'Length[$expr$]'
+      <dt>'Length'[$expr$]
       <dd>returns the number of elements in $expr$.
     </dl>
 
@@ -1013,7 +1013,7 @@ class Most(Builtin):
     https://reference.wolfram.com/language/ref/Most.html</url>
 
     <dl>
-      <dt>'Most[$expr$]'
+      <dt>'Most'[$expr$]
       <dd>returns $expr$ with the last element removed.
     </dl>
 
@@ -1044,7 +1044,7 @@ class Part(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Part.html</url>
 
     <dl>
-      <dt>'Part[$expr$, $i$]'
+      <dt>'Part'[$expr$, $i$]
       <dd>returns part $i$ of $expr$.
     </dl>
 
@@ -1194,10 +1194,10 @@ class Pick(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Pick.html</url>
 
     <dl>
-      <dt>'Pick[$list$, $sel$]'
+      <dt>'Pick'[$list$, $sel$]
       <dd>returns those items in $list$ that are True in $sel$.
 
-      <dt>'Pick[$list$, $sel$, $patt$]'
+      <dt>'Pick'[$list$, $sel$, $patt$]
       <dd>returns those items in $list$ that match $patt$ in $sel$.
     </dl>
 
@@ -1245,10 +1245,10 @@ class Position(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Position.html</url>
 
     <dl>
-      <dt>'Position[$expr$, $patt$]'
+      <dt>'Position'[$expr$, $patt$]
       <dd>returns the list of positions for which $expr$ matches $patt$.
 
-      <dt>'Position[$expr$, $patt$, $ls$]'
+      <dt>'Position'[$expr$, $patt$, $ls$]
       <dd>returns the positions on levels specified by levelspec $ls$.
     </dl>
 
@@ -1314,10 +1314,10 @@ class Prepend(Builtin):
     https://reference.wolfram.com/language/ref/Prepend.html</url>
 
     <dl>
-      <dt>'Prepend[$expr$, $item$]'
+      <dt>'Prepend'[$expr$, $item$]
       <dd>returns $expr$ with $item$ prepended to its elements.
 
-      <dt>'Prepend[$expr$]'
+      <dt>'Prepend'[$expr$]
       <dd>'Prepend[$elem$][$expr$]' is equivalent to 'Prepend[$expr$,$elem$]'.
     </dl>
 
@@ -1359,7 +1359,7 @@ class PrependTo(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/PrependTo.html</url>
 
     <dl>
-      <dt>'PrependTo[$s$, $item$]'
+      <dt>'PrependTo'[$s$, $item$]
       <dd>prepends $item$ to value of $s$ and sets $s$ to the result.
     </dl>
 
@@ -1410,11 +1410,11 @@ class ReplacePart(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ReplacePart.html</url>
 
     <dl>
-      <dt>'ReplacePart[$expr$, $i$ -> $new$]'
+      <dt>'ReplacePart'[$expr$, $i$ -> $new$]
       <dd>replaces part $i$ in $expr$ with $new$.
 
-      <dt>'ReplacePart[$expr$, {{$i$, $j$} -> $e1$, {$k$, $l$} -> $e2$}]'
-      <dd>replaces parts $i$ and $j$ with $e1$, and parts $k$ and $l$ with $e2$.
+      <dt>'ReplacePart'[$expr$, {{$i$, $j$} -> $e_1$, {$k$, $l$} -> $e_2$}]
+      <dd>replaces parts $i$ and $j$ with $e_1$, and parts $k$ and $l$ with $e_2$.
     </dl>
 
     >> ReplacePart[{a, b, c}, 1 -> t]
@@ -1502,7 +1502,7 @@ class Rest(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Rest.html</url>
 
     <dl>
-      <dt>'Rest[$expr$]'
+      <dt>'Rest'[$expr$]
       <dd>returns $expr$ with the first element removed.
     </dl>
 
@@ -1543,9 +1543,9 @@ class Select(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Select.html</url>
 
     <dl>
-      <dt>'Select[{$e1$, $e2$, ...}, $crit$]'
+      <dt>'Select'[{$e_1$, $e_2$, ...}, $crit$]
       <dd>returns a list of the elements $ei$ for which $crit$[$ei$] is 'True'.
-      <dt>'Select[{$e1$, $e2$, ...}, $crit$, n]'
+      <dt>'Select'[{$e_1$, $e_2$, ...}, $crit$, n]
       <dd>returns a list of the first $n$ elements $ei$ for which $crit$[$ei$] is 'True'.
     </dl>
 
@@ -1632,11 +1632,11 @@ class Take(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Take.html</url>
 
     <dl>
-      <dt>'Take[$expr$, $n$]'
+      <dt>'Take'[$expr$, $n$]
       <dd>returns $expr$ with all but the first $n$ elements removed.
-      <dt>'Take[$list$, -$n$]'
+      <dt>'Take'[$list$, -$n$]
       <dd>returns last $n$ elements of $list$.
-      <dt>'Take[$list$, {$m$, $n$}]'
+      <dt>'Take'[$list$, {$m$, $n$}]
       <dd>returns elements $m$ through $n$ of $list$.
     </dl>
 

@@ -14,7 +14,7 @@ class BinaryImageQ(Test):
     https://reference.wolfram.com/language/ref/BinaryImageQ.html</url>
 
     <dl>
-      <dt>'BinaryImageQ[$image]'
+      <dt>'BinaryImageQ'[$image]
       <dd>returns True if the pixels of $image are binary bit values, and False otherwise.
     </dl>
 
@@ -40,7 +40,7 @@ class ImageQ(Test):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ImageQ.html</url>
 
     <dl>
-      <dt>'ImageQ[Image[$pixels]]'
+      <dt>'ImageQ[Image'[$pixels]]
       <dd>returns True if $pixels has dimensions from which an Image can be constructed, and False otherwise.
     </dl>
 
