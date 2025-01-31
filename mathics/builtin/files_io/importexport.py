@@ -1036,7 +1036,7 @@ class RegisterImport(Builtin):
     ## <url>:internal native symbol:</url>
 
     <dl>
-      <dt>'RegisterImport["$format$", $defaultFunction$]'
+      <dt>'RegisterImport'["$format$", $defaultFunction$]
       <dd>register '$defaultFunction$' as the default function used when \
           importing from a file of type '"$format$"'.
 
@@ -1176,7 +1176,7 @@ class RegisterExport(Builtin):
     ## <url>:internal native symbol:</url>
 
     <dl>
-      <dt>'RegisterExport["$format$", $func$]'
+      <dt>'RegisterExport'["$format$", $func$]
       <dd>register '$func$' as the default function used when exporting from a file of \
           type '"$format$"'.
     </dl>
@@ -1238,7 +1238,7 @@ class URLFetch(Builtin):
     https://reference.wolfram.com/language/ref/URLFetch.html</url>
 
     <dl>
-      <dt>'URLFetch[$URL$]'
+      <dt>'URLFetch'[$URL$]
       <dd> Returns the content of $URL$ as a string.
     </dl>
     """
@@ -1317,19 +1317,19 @@ class Import(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Import.html</url>
 
     <dl>
-      <dt>'Import["$file$"]'
+      <dt>'Import'["$file$"]
       <dd>imports data from a file.
 
-      <dt>'Import["$file$", "$fmt$"]'
+      <dt>'Import'["$file$", "$fmt$"]
       <dd>imports file assuming the specified file format.
 
-      <dt>'Import["$file$", $elements$]'
+      <dt>'Import'["$file$", $elements$]
       <dd>imports the specified elements from a file.
 
-      <dt>'Import["$file$", {"$fmt$", $elements$}]'
+      <dt>'Import'["$file$", {"$fmt$", $elements$}]
       <dd>imports the specified elements from a file assuming the specified file format.
 
-      <dt>'Import["http://$url$", ...]' and 'Import["ftp://$url$", ...]'
+      <dt>'Import["http://$url$", ...]' and 'Import'["ftp://$url$", ...]
       <dd>imports from a URL.
     </dl>
 
@@ -1592,13 +1592,13 @@ class ImportString(Import):
     https://reference.wolfram.com/language/ref/ImportString.html</url>
 
     <dl>
-      <dt>'ImportString["$data$", "$format$"]'
+      <dt>'ImportString'["$data$", "$format$"]
       <dd>imports data in the specified format from a string.
 
-      <dt>'ImportString["$file$", $elements$]'
+      <dt>'ImportString'["$file$", $elements$]
       <dd>imports the specified elements from a string.
 
-      <dt>'ImportString["$data$"]'
+      <dt>'ImportString'["$data$"]
       <dd>attempts to determine the format of the string from its content.
     </dl>
 
@@ -1677,13 +1677,13 @@ class Export(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Export.html</url>
 
     <dl>
-      <dt>'Export["$file$.$ext$", $expr$]'
+      <dt>'Export'["$file$.$ext$", $expr$]
       <dd>exports $expr$ to a file, using the extension $ext$ to determine the format.
 
-      <dt>'Export["$file$", $expr$, "$format$"]'
+      <dt>'Export'["$file$", $expr$, "$format$"]
       <dd>exports $expr$ to a file in the specified format.
 
-      <dt>'Export["$file$", $exprs$, $elems$]'
+      <dt>'Export'["$file$", $exprs$, $elems$]
       <dd>exports $exprs$ to a file as elements specified by $elems$.
     </dl>
     """
@@ -1856,10 +1856,10 @@ class ExportString(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ExportString.html</url>
 
     <dl>
-      <dt>'ExportString[$expr$, $form$]'
+      <dt>'ExportString'[$expr$, $form$]
       <dd>exports $expr$ to a string, in the format $form$.
 
-      <dt>'Export["$file$", $exprs$, $elems$]'
+      <dt>'Export'["$file$", $exprs$, $elems$]
       <dd>exports $exprs$ to a string as elements specified by $elems$.
     </dl>
 
@@ -2040,7 +2040,7 @@ class FileFormat(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FileFormat.html</url>
 
     <dl>
-    <dt>'FileFormat["$name$"]'
+    <dt>'FileFormat'["$name$"]
       <dd>attempts to determine what format 'Import' should use to import specified file.
     </dl>
 
@@ -2111,7 +2111,7 @@ class B64Decode(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/B64Decode.html</url>
     <dl>
-    <dt> 'System`Convert`B64Dump`B64Decode[$string$]'
+    <dt> 'System`Convert`B64Dump`B64Decode'[$string$]
     <dd>Decode  $string$ in Base64 coding to an expression.
     </dl>
 
@@ -2148,7 +2148,7 @@ class B64Encode(Builtin):
     :https://reference.wolfram.com/language/ref/B64Encode.html</url>
 
     <dl>
-      <dt> 'System`Convert`B64Dump`B64Encode[$expr$]'
+      <dt> 'System`Convert`B64Dump`B64Encode'[$expr$]
       <dd>Encodes $expr$ in Base64 coding
     </dl>
 

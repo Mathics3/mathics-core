@@ -21,7 +21,7 @@ class MapApply(InfixOperator):
     https://reference.wolfram.com/language/ref/MapApply.html</url>
 
     <dl>
-      <dt>'MapApply[$f$, $expr$]'
+      <dt>'MapApply'[$f$, $expr$]
 
       <dt>'$f$ @@@ $expr$'
       <dd>is equivalent to 'Apply[$f$, $expr$, {1}]'.
@@ -45,7 +45,7 @@ class Depth(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Depth.html</url>
 
     <dl>
-      <dt>'Depth[$expr$]'
+      <dt>'Depth'[$expr$]
       <dd>gives the depth of $expr$.
     </dl>
 
@@ -84,7 +84,7 @@ class FreeQ(Builtin):
     https://reference.wolfram.com/language/ref/FreeQ.html</url>
 
     <dl>
-      <dt>'FreeQ[$expr$, $x$]'
+      <dt>'FreeQ'[$expr$, $x$]
       <dd>returns 'True' if $expr$ does not contain the expression $x$.
     </dl>
 
@@ -127,7 +127,7 @@ class Level(Builtin):
     https://reference.wolfram.com/language/ref/Level.html</url>
 
     <dl>
-      <dt>'Level[$expr$, $levelspec$]'
+      <dt>'Level'[$expr$, $levelspec$]
       <dd>gives a list of all subexpressions of $expr$ at the
         level(s) specified by $levelspec$.
     </dl>
@@ -232,13 +232,13 @@ class SortBy(Builtin):
     https://reference.wolfram.com/language/ref/SortBy.html</url>
 
     <dl>
-      <dt>'SortBy[$list$, $f$]'
+      <dt>'SortBy'[$list$, $f$]
       <dd>sorts $list$ (or the elements of any other expression) according to \
          canonical ordering of the keys that are extracted from the $list$'s \
          elements using $f$. Chunks of elements that appear the same under $f$ \
          are sorted according to their natural order (without applying $f$).
 
-      <dt>'SortBy[$f$]'
+      <dt>'SortBy'[$f$]
       <dd>creates an operator function that, when applied, sorts by $f$.
     </dl>
 
