@@ -23,7 +23,7 @@ class CreateDirectory(Builtin):
     https://reference.wolfram.com/language/ref/CreateDirectory.html</url>
 
     <dl>
-      <dt>'CreateDirectory["$dir$"]'
+      <dt>'CreateDirectory'["$dir$"]
       <dd>creates a directory called $dir$.
 
       <dt>'CreateDirectory[]'
@@ -88,7 +88,7 @@ class DeleteDirectory(Builtin):
     https://reference.wolfram.com/language/ref/DeleteDirectory.html</url>
 
     <dl>
-      <dt>'DeleteDirectory["$dir$"]'
+      <dt>'DeleteDirectory'["$dir$"]
       <dd>deletes a directory called $dir$.
     </dl>
 
@@ -152,7 +152,7 @@ class RenameDirectory(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/RenameDirectory.html</url>
 
     <dl>
-      <dt>'RenameDirectory["$dir1$", "$dir2$"]'
+      <dt>'RenameDirectory'["$dir1$", "$dir2$"]
       <dd>renames directory $dir1$ to $dir2$.
     </dl>
     """

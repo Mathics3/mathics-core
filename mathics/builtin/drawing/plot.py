@@ -427,8 +427,8 @@ class BarChart(_Chart):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/BarChart.html</url>
     <dl>
-        <dt>'BarChart[{$b1$, $b2$ ...}]'
-        <dd>makes a bar chart with lengths $b1$, $b2$, ....
+        <dt>'BarChart'[{$b_1$, $b_2$ ...}]
+        <dd>makes a bar chart with lengths $b_1$, $b_2$, ....
     </dl>
 
     Drawing options include -
@@ -484,7 +484,7 @@ class ColorData(Builtin):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/ColorData.html</url>
     <dl>
-      <dt>'ColorData["$name$"]'
+      <dt>'ColorData'["$name$"]
       <dd>returns a color function with the given $name$.
     </dl>
 
@@ -550,7 +550,7 @@ class DensityPlot(_Plot3D):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/DensityPlot.html</url>
     <dl>
-      <dt>'DensityPlot[$f$, {$x$, $xmin$, $xmax$}, {$y$, $ymin$, $ymax$}]'
+      <dt>'DensityPlot'[$f$, {$x$, $xmin$, $xmax$}, {$y$, $ymin$, $ymax$}]
       <dd>plots a density plot of $f$ with $x$ ranging from $xmin$ to $xmax$ and $y$ ranging from $ymin$ to $ymax$.
     </dl>
 
@@ -610,16 +610,16 @@ class DiscretePlot(_Plot):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/DiscretePlot.html</url>
     <dl>
-      <dt>'DiscretePlot[$expr$, {$x$, $n_max$}]'
+      <dt>'DiscretePlot'[$expr$, {$x$, $n_max$}]
       <dd>plots $expr$ with $x$ ranging from 1 to $n_max$.
 
-      <dt>'DiscretePlot[$expr$, {$x$, $n_min$, $n_max$}]'
+      <dt>'DiscretePlot'[$expr$, {$x$, $n_min$, $n_max$}]
       <dd>plots $expr$ with $x$ ranging from $n_min$ to $n_max$.
 
-      <dt>'DiscretePlot[$expr$, {$x$, $n_min$, $n_max$, $dn$}]'
+      <dt>'DiscretePlot'[$expr$, {$x$, $n_min$, $n_max$, $dn$}]
       <dd>plots $expr$ with $x$ ranging from $n_min$ to $n_max$ usings steps $dn$.
 
-      <dt>'DiscretePlot[{$expr1$, $expr2$, ...}, ...]'
+      <dt>'DiscretePlot'[{$expr1$, $expr2$, ...}, ...]
       <dd>plots the values of all $expri$.
     </dl>
 
@@ -791,8 +791,8 @@ class Histogram(Builtin):
     (<url>:WMA link: https://reference.wolfram.com/language/ref/ColorDataFunction.html</url>)
 
     <dl>
-        <dt>'Histogram[{$x1$, $x2$ ...}]'
-        <dd>plots a histogram using the values $x1$, $x2$, ....
+        <dt>'Histogram'[{$x_1$, $x_2$ ...}]
+        <dd>plots a histogram using the values $x_1$, $x_2$, ....
     </dl>
 
     >> Histogram[{3, 8, 10, 100, 1000, 500, 300, 200, 10, 20, 200, 100, 200, 300, 500}]
@@ -1044,13 +1044,13 @@ class ListPlot(_ListPlot):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/ListPlot.html</url>
     <dl>
-      <dt>'ListPlot[{$y_1$, $y_2$, ...}]'
+      <dt>'ListPlot'[{$y_1$, $y_2$, ...}]
       <dd>plots a list of y-values, assuming integer x-values 1, 2, 3, ...
 
-      <dt>'ListPlot[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]'
+      <dt>'ListPlot'[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]
       <dd>plots a list of $x$, $y$ pairs.
 
-      <dt>'ListPlot[{$list_1$, $list_2$, ...}]'
+      <dt>'ListPlot'[{$list_1$, $list_2$, ...}]
       <dd>plots several lists of points.
     </dl>
 
@@ -1098,13 +1098,13 @@ class ListLinePlot(_ListPlot):
     :WMA link:
     https://reference.wolfram.com/language/ref/ListLinePlot.html</url>
     <dl>
-      <dt>'ListLinePlot[{$y_1$, $y_2$, ...}]'
+      <dt>'ListLinePlot'[{$y_1$, $y_2$, ...}]
       <dd>plots a line through a list of $y$-values, assuming integer $x$-values 1, 2, 3, ...
 
-      <dt>'ListLinePlot[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]'
+      <dt>'ListLinePlot'[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]
       <dd>plots a line through a list of $x$, $y$ pairs.
 
-      <dt>'ListLinePlot[{$list_1$, $list_2$, ...}]'
+      <dt>'ListLinePlot'[{$list_1$, $list_2$, ...}]
       <dd>plots several lines.
     </dl>
 
@@ -1140,13 +1140,13 @@ class ListStepPlot(_ListPlot):
     :WMA link:
     https://reference.wolfram.com/language/ref/ListStepPlot.html</url>
     <dl>
-      <dt>'ListStepPlot[{$y_1$, $y_2$, ...}]'
+      <dt>'ListStepPlot'[{$y_1$, $y_2$, ...}]
       <dd>plots a line through a list of $y$-values, assuming integer $x$-values 1, 2, 3, ...
 
-      <dt>'ListStepPlot[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]'
+      <dt>'ListStepPlot'[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]
       <dd>plots a line through a list of $x$, $y$ pairs.
 
-      <dt>'ListStepPlot[{$list_1$, $list_2$, ...}]'
+      <dt>'ListStepPlot'[{$list_1$, $list_2$, ...}]
       <dd>plots several lines.
     </dl>
 
@@ -1187,13 +1187,13 @@ class ListLogPlot(_ListPlot):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/ListLogPlot.html</url>
     <dl>
-      <dt>'ListLogPlot[{$y_1$, $y_2$, ...}]'
+      <dt>'ListLogPlot'[{$y_1$, $y_2$, ...}]
       <dd>log plots a list of y-values, assuming integer x-values 1, 2, 3, ...
 
-      <dt>'ListLogPlot[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]'
+      <dt>'ListLogPlot'[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]
       <dd>log plots a list of $x$, $y$ pairs.
 
-      <dt>'ListLogPlot[{$list_1$, $list_2$, ...}]'
+      <dt>'ListLogPlot'[{$list_1$, $list_2$, ...}]
       <dd>log plots several lists of points.
     </dl>
 
@@ -1234,10 +1234,10 @@ class LogPlot(_Plot):
     :WMA link:
     https://reference.wolfram.com/language/ref/LogPlot.html</url>)
     <dl>
-      <dt>'LogPlot[$f$, {$x$, $xmin$, $xmax$}]'
+      <dt>'LogPlot'[$f$, {$x$, $xmin$, $xmax$}]
       <dd>log plots $f$ with $x$ ranging from $xmin$ to $xmax$.
 
-      <dt>'Plot[{$f1$, $f2$, ...}, {$x$, $xmin$, $xmax$}]'
+      <dt>'Plot'[{$f1$, $f2$, ...}, {$x$, $xmin$, $xmax$}]
       <dd>log plots several functions $f1$, $f2$, ...
 
     </dl>
@@ -1260,7 +1260,7 @@ class NumberLinePlot(_ListPlot):
      <url>:WMA link:
      https://reference.wolfram.com/language/ref/NumberLinePlot.html</url>
      <dl>
-       <dt>'NumberLinePlot[{$v_1$, $v_2$, ...}]'
+       <dt>'NumberLinePlot'[{$v_1$, $v_2$, ...}]
        <dd>plots a list of values along a line.
      </dl>
 
@@ -1312,8 +1312,8 @@ class PieChart(_Chart):
     <url>:Pie Chart: https://en.wikipedia.org/wiki/Pie_chart</url> \
     (<url>:WMA link: https://reference.wolfram.com/language/ref/PieChart.html</url>)
     <dl>
-      <dt>'PieChart[{$a1$, $a2$ ...}]'
-      <dd>draws a pie chart with sector angles proportional to $a1$, $a2$, ....
+      <dt>'PieChart'[{$a_1$, $a_2$ ...}]
+      <dd>draws a pie chart with sector angles proportional to $a_1$, $a_2$, ....
     </dl>
 
     Drawing options include -
@@ -1501,10 +1501,10 @@ class Plot(_Plot):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/Plot.html</url>
     <dl>
-      <dt>'Plot[$f$, {$x$, $xmin$, $xmax$}]'
+      <dt>'Plot'[$f$, {$x$, $xmin$, $xmax$}]
       <dd>plots $f$ with $x$ ranging from $xmin$ to $xmax$.
 
-      <dt>'Plot[{$f1$, $f2$, ...}, {$x$, $xmin$, $xmax$}]'
+      <dt>'Plot'[{$f1$, $f2$, ...}, {$x$, $xmin$, $xmax$}]
       <dd>plots several functions $f1$, $f2$, ...
 
     </dl>
@@ -1547,16 +1547,16 @@ class ParametricPlot(_Plot):
     :WMA link
     : https://reference.wolfram.com/language/ref/ParametricPlot.html</url>
     <dl>
-      <dt>'ParametricPlot[{$f_x$, $f_y$}, {$u$, $umin$, $umax$}]'
+      <dt>'ParametricPlot'[{$f_x$, $f_y$}, {$u$, $umin$, $umax$}]
       <dd>plots a parametric function $f$ with the parameter $u$ ranging from $umin$ to $umax$.
 
-      <dt>'ParametricPlot[{{$f_x$, $f_y$}, {$g_x$, $g_y$}, ...}, {$u$, $umin$, $umax$}]'
+      <dt>'ParametricPlot'[{{$f_x$, $f_y$}, {$g_x$, $g_y$}, ...}, {$u$, $umin$, $umax$}]
       <dd>plots several parametric functions $f$, $g$, ...
 
-      <dt>'ParametricPlot[{$f_x$, $f_y$}, {$u$, $umin$, $umax$}, {$v$, $vmin$, $vmax$}]'
+      <dt>'ParametricPlot'[{$f_x$, $f_y$}, {$u$, $umin$, $umax$}, {$v$, $vmin$, $vmax$}]
       <dd>plots a parametric area.
 
-      <dt>'ParametricPlot[{{$f_x$, $f_y$}, {$g_x$, $g_y$}, ...}, {$u$, $umin$, $umax$}, {$v$, $vmin$, $vmax$}]'
+      <dt>'ParametricPlot'[{{$f_x$, $f_y$}, {$g_x$, $g_y$}, ...}, {$u$, $umin$, $umax$}, {$v$, $vmin$, $vmax$}]
       <dd>plots several parametric areas.
     </dl>
 
@@ -1614,7 +1614,7 @@ class PolarPlot(_Plot):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/PolarPlot.html</url>
     <dl>
-      <dt>'PolarPlot[$r$, {$t$, $t_min$, $t_max$}]'
+      <dt>'PolarPlot'[$r$, {$t$, $t_min$, $t_max$}]
       <dd>creates a polar plot of curve with radius $r$ as a function of angle $t$ \
       ranging from $t_min$ to $t_max$.
     </dl>
@@ -1692,7 +1692,7 @@ class Plot3D(_Plot3D):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/Plot3D.html</url>
     <dl>
-      <dt>'Plot3D[$f$, {$x$, $xmin$, $xmax$}, {$y$, $ymin$, $ymax$}]'
+      <dt>'Plot3D'[$f$, {$x$, $xmin$, $xmax$}, {$y$, $ymin$, $ymax$}]
       <dd>creates a three-dimensional plot of $f$ with $x$ ranging from $xmin$ to \
           $xmax$ and $y$ ranging from $ymin$ to $ymax$.
 
