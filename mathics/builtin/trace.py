@@ -151,7 +151,7 @@ class TraceBuiltins(_TraceBase):
     ## <url>:trace native symbol:</url>
 
     <dl>
-      <dt>'TraceBuiltins[$expr$]'
+      <dt>'TraceBuiltins'[$expr$]
       <dd>Evaluate $expr$ and then print a list of the Built-in Functions called \
           in evaluating $expr$ along with the number of times is each called, \
           and combined elapsed time in milliseconds spent in each.
@@ -349,7 +349,7 @@ class TraceEvaluation(Builtin):
     ## <url>:trace native symbol:</url>
 
     <dl>
-      <dt>'TraceEvaluation[$expr$]'
+      <dt>'TraceEvaluation'[$expr$]
       <dd>Evaluate $expr$ and print each step of the evaluation.
     </dl>
 
@@ -464,7 +464,7 @@ class PythonCProfileEvaluation(Builtin):
     <url>:Python:https://docs.python.org/3/library/profile.html</url>
 
     <dl>
-      <dt>'PythonProfileEvaluation[$expr$]'
+      <dt>'PythonProfileEvaluation'[$expr$]
       <dd>profile $expr$ with the Python's cProfiler.
     </dl>
 

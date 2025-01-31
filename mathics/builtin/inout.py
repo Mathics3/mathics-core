@@ -43,7 +43,7 @@ class Print(Builtin):
     https://reference.wolfram.com/language/ref/Print.html</url>
 
     <dl>
-      <dt>'Print[$expr$, ...]'
+      <dt>'Print'[$expr$, ...]
       <dd>prints each $expr$ in string form.
     </dl>
 

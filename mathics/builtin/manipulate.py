@@ -252,22 +252,22 @@ Interactive Manipulation
 #     https://reference.wolfram.com/language/ref/Manipulate.html</url>
 
 #     <dl>
-#       <dt>'Manipulate[$expr1$, {$u$, $u_min$, $u_max$}]'
+#       <dt>'Manipulate'[$expr1$, {$u$, $u_min$, $u_max$}]
 #       <dd>interactively compute and display an expression with different values of $u$.
 
-#       <dt>'Manipulate[$expr1$, {$u$, $u_min$, $u_max$, $du$}]'
+#       <dt>'Manipulate'[$expr1$, {$u$, $u_min$, $u_max$, $du$}]
 #       <dd>allows $u$ to vary between $u_min$ and $u_max$ in steps of $du$.
 
-#       <dt>'Manipulate[$expr1$, {{$u$, $u_init$}, $u_min$, $u_max$, ...}]'
+#       <dt>'Manipulate'[$expr1$, {{$u$, $u_init$}, $u_min$, $u_max$, ...}]
 #       <dd>starts with initial value of $u_init$.
 
-#       <dt>'Manipulate[$expr1$, {{$u$, $u_init$, $u_lbl$}, ...}]'
+#       <dt>'Manipulate'[$expr1$, {{$u$, $u_init$, $u_lbl$}, ...}]
 #       <dd>labels the $u$ control by $u_lbl$.
 
-#       <dt>'Manipulate[$expr1$, {$u$, {$u_1$, $u_2$, ...}}]'
+#       <dt>'Manipulate'[$expr1$, {$u$, {$u_1$, $u_2$, ...}}]
 #       <dd>sets $u$ to take discrete values $u_1$, $u_2$, ... .
 
-#       <dt>'Manipulate[$expr1$, {$u$, ...}, {$v$, ...}, ...]'
+#       <dt>'Manipulate'[$expr1$, {$u$, ...}, {$v$, ...}, ...]
 #       <dd>control each of $u$, $v$, ... .
 #     </dl>
 

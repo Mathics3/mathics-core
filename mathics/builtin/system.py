@@ -106,7 +106,7 @@ class Environment(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Environment.html</url>
 
     <dl>
-      <dt>'Environment[$var$]'
+      <dt>'Environment'[$var$]
       <dd>gives the value of an operating system environment variable.
     </dl>
 
@@ -136,11 +136,11 @@ class GetEnvironment(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/GetEnvironment.html</url>
 
     <dl>
-      <dt>'GetEnvironment["$var$"]'
+      <dt>'GetEnvironment'["$var$"]
       <dd>gives the setting corresponding to the variable "var" in the operating \
       system environment.
 
-      <dt>'GetEnvironment[{"$var1$", "$var2$", ...}]'
+      <dt>'GetEnvironment'[{"$var1$", "$var2$", ...}]
       <dd>gives a list rules for each of the environment variables listed.
 
       <dt>'GetEnvironment[]'
@@ -509,7 +509,7 @@ class Run(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Run.html</url>
 
     <dl>
-      <dt>'Run[$command$]'
+      <dt>'Run'[$command$]
       <dd>runs command as an external operating system command, returning the exit \
          code returned from running the system command.
     </dl>
@@ -558,10 +558,10 @@ class SetEnvironment(Builtin):
      <url>:WMA link:https://reference.wolfram.com/language/ref/SetEnvironment.html</url>
 
      <dl>
-       <dt>'SetEnvironment["$var$" -> "$value$"]'
+       <dt>'SetEnvironment'["$var$" -> "$value$"]
        <dd>sets the value of an operating system environment variable.
 
-       <dt>'SetEnvironment[{"$var$" -> "$value$", ...}]'
+       <dt>'SetEnvironment'[{"$var$" -> "$value$", ...}]
        <dd>sets more than one environment variable.
      </dl>
 

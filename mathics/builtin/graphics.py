@@ -194,7 +194,7 @@ class Show(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Show.html</url>
 
     <dl>
-      <dt>'Show[$graphics$, $options$]'
+      <dt>'Show'[$graphics$, $options$]
       <dd>shows a list of graphics with the specified options added.
     </dl>
 
@@ -235,7 +235,7 @@ class Graphics(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Graphics.html</url>
 
     <dl>
-      <dt>'Graphics[$primitives$, $options$]'
+      <dt>'Graphics'[$primitives$, $options$]
       <dd>represents a graphic.
     </dl>
 
@@ -431,7 +431,7 @@ class AbsoluteThickness(_Thickness):
     https://reference.wolfram.com/language/ref/AbsoluteThickness.html</url>
 
     <dl>
-      <dt>'AbsoluteThickness[$p$]'
+      <dt>'AbsoluteThickness'[$p$]
       <dd>sets the line thickness for subsequent graphics primitives to $p$ \
           points.
     </dl>
@@ -451,9 +451,9 @@ class Point(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Point.html</url>
 
     <dl>
-      <dt>'Point[{$point_1$, $point_2$ ...}]'
+      <dt>'Point'[{$point_1$, $point_2$ ...}]
       <dd>represents the point primitive.
-      <dt>'Point[{{$p_11$, $p_12$, ...}, {$p_21$, $p_22$, ...}, ...}]'
+      <dt>'Point'[{{$p_11$, $p_12$, ...}, {$p_21$, $p_22$, ...}, ...}]
       <dd>represents a number of point primitives.
     </dl>
 
@@ -482,7 +482,7 @@ class PointSize(_Size):
     <url>:WMA link:https://reference.wolfram.com/language/ref/PointSize.html</url>
 
     <dl>
-      <dt>'PointSize[$t$]'
+      <dt>'PointSize'[$t$]
       <dd>sets the diameter of points to $t$, which is relative to the overall width.
     </dl>
 
@@ -514,10 +514,10 @@ class Line(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Line.html</url>
 
     <dl>
-      <dt>'Line[{$point_1$, $point_2$ ...}]'
+      <dt>'Line'[{$point_1$, $point_2$ ...}]
       <dd>represents the line primitive.
 
-      <dt>'Line[{{$p_11$, $p_12$, ...}, {$p_21$, $p_22$, ...}, ...}]'
+      <dt>'Line'[{{$p_11$, $p_12$, ...}, {$p_21$, $p_22$, ...}, ...}]
       <dd>represents a number of line primitives.
     </dl>
 
@@ -571,7 +571,7 @@ class FilledCurve(Builtin):
     https://reference.wolfram.com/language/ref/FilledCurve.html</url>
 
     <dl>
-      <dt>'FilledCurve[{$segment1$, $segment2$ ...}]'
+      <dt>'FilledCurve'[{$segment1$, $segment2$ ...}]
       <dd>represents a filled curve.
     </dl>
 
@@ -590,10 +590,10 @@ class Polygon(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Polygon.html</url>
 
     <dl>
-      <dt>'Polygon[{$point_1$, $point_2$ ...}]'
+      <dt>'Polygon'[{$point_1$, $point_2$ ...}]
       <dd>represents the filled polygon primitive.
 
-      <dt>'Polygon[{{$p_11$, $p_12$, ...}, {$p_21$, $p_22$, ...}, ...}]'
+      <dt>'Polygon'[{{$p_11$, $p_12$, ...}, {$p_21$, $p_22$, ...}, ...}]
       <dd>represents a number of filled polygon primitives.
     </dl>
 
@@ -623,13 +623,13 @@ class RegularPolygon(Builtin):
     https://reference.wolfram.com/language/ref/RegularPolygon.html</url>
 
     <dl>
-      <dt>'RegularPolygon[$n$]'
+      <dt>'RegularPolygon'[$n$]
       <dd>gives the regular polygon with $n$ edges.
-      <dt>'RegularPolygon[$r$, $n$]'
+      <dt>'RegularPolygon'[$r$, $n$]
       <dd>gives the regular polygon with $n$ edges and radius $r$.
-      <dt>'RegularPolygon[{$r$, $phi$}, $n$]'
+      <dt>'RegularPolygon'[{$r$, $phi$}, $n$]
       <dd>gives the regular polygon with radius $r$ with one vertex drawn at angle $phi$.
-      <dt>'RegularPolygon[{$x, $y}, $r$, $n$]'
+      <dt>'RegularPolygon'[{$x, $y}, $r$, $n$]
       <dd>gives the regular polygon centered at the position {$x, $y}.
     </dl>
 
@@ -650,17 +650,17 @@ class Arrow(Builtin):
     https://reference.wolfram.com/language/ref/Arrow.html</url>
 
     <dl>
-      <dt>'Arrow[{$p1$, $p2$}]'
+      <dt>'Arrow'[{$p1$, $p2$}]
       <dd>represents a line from $p1$ to $p2$ that ends with an arrow at $p2$.
 
-      <dt>'Arrow[{$p1$, $p2$}, $s$]'
+      <dt>'Arrow'[{$p1$, $p2$}, $s$]
       <dd>represents a line with arrow that keeps a distance of $s$ from $p1$ and $p2$.
 
-      <dt>'Arrow[{$point_1$, $point_2$}, {$s1$, $s2$}]'
+      <dt>'Arrow'[{$point_1$, $point_2$}, {$s1$, $s2$}]
       <dd>represents a line with arrow that keeps a distance of $s1$ from $p1$ and a \
           distance of $s2$ from $p2$.
 
-      <dt>'Arrow[{$point_1$, $point_2$}, {$s1$, $s2$}]'
+      <dt>'Arrow'[{$point_1$, $point_2$}, {$s1$, $s2$}]
       <dd>represents a line with arrow that keeps a distance of $s1$ from $p1$ and a \
           distance of $s2$ from $p2$.
     </dl>
@@ -693,23 +693,23 @@ class Arrowheads(_GraphicsDirective):
     https://reference.wolfram.com/language/ref/Arrowheads.html</url>
 
     <dl>
-      <dt>'Arrowheads[$s$]'
+      <dt>'Arrowheads'[$s$]
       <dd>specifies that Arrow[] draws one arrow of size $s$ (relative to width of \
           image, defaults to 0.04).
 
-      <dt>'Arrowheads[{$spec1$, $spec2$, ..., $specn$}]'
+      <dt>'Arrowheads'[{$spec1$, $spec2$, ..., $specn$}]
       <dd>specifies that Arrow[] draws n arrows as defined by $spec1$, $spec2$, \
           ... $specn$.
 
-      <dt>'Arrowheads[{{$s$}}]'
+      <dt>'Arrowheads'[{{$s$}}]
       <dd>specifies that one arrow of size $s$ should be drawn.
 
-      <dt>'Arrowheads[{{$s$, $pos$}}]'
+      <dt>'Arrowheads'[{{$s$, $pos$}}]
       <dd>specifies that one arrow of size $s$ should be drawn at position $pos$ (for \
           the arrow to be on the line, $pos$ has to be between 0, i.e. the start for \
           the line, and 1, i.e. the end of the line).
 
-      <dt>'Arrowheads[{{$s$, $pos$, $g$}}]'
+      <dt>'Arrowheads'[{{$s$, $pos$, $g$}}]
       <dd>specifies that one arrow of size $s$ should be drawn at position $pos$ \
           using Graphics $g$.
     </dl>
@@ -1252,13 +1252,13 @@ class Circle(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Circle.html</url>
 
     <dl>
-      <dt>'Circle[{$cx$, $cy$}, $r$]'
+      <dt>'Circle'[{$cx$, $cy$}, $r$]
       <dd>draws a circle with center '($cx$, $cy$)' and radius $r$.
 
-      <dt>'Circle[{$cx$, $cy$}, {$rx$, $ry$}]'
+      <dt>'Circle'[{$cx$, $cy$}, {$rx$, $ry$}]
       <dd>draws an ellipse.
 
-      <dt>'Circle[{$cx$, $cy$}]'
+      <dt>'Circle'[{$cx$, $cy$}]
       <dd>chooses radius 1.
 
       <dt>'Circle[]'
@@ -1284,19 +1284,19 @@ class Disk(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Disk.html</url>
 
     <dl>
-      <dt>'Disk[{$cx$, $cy$}, $r$]'
+      <dt>'Disk'[{$cx$, $cy$}, $r$]
       <dd>fills a circle with center '($cx$, $cy$)' and radius $r$.
 
-      <dt>'Disk[{$cx$, $cy$}, {$rx$, $ry$}]'
+      <dt>'Disk'[{$cx$, $cy$}, {$rx$, $ry$}]
       <dd>fills an ellipse.
 
-      <dt>'Disk[{$cx$, $cy$}]'
+      <dt>'Disk'[{$cx$, $cy$}]
       <dd>chooses radius 1.
 
       <dt>'Disk[]'
       <dd>chooses center '(0, 0)' and radius 1.
 
-      <dt>'Disk[{$x$, $y$}, ..., {$t1$, $t2$}]'
+      <dt>'Disk'[{$x$, $y$}, ..., {$t1$, $t2$}]
       <dd>is a sector from angle $t1$ to $t2$.
     </dl>
 
@@ -1336,7 +1336,7 @@ class EdgeForm(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/EdgeForm.html</url>
 
     <dl>
-      <dt> 'EdgeForm[$g$]'
+      <dt> 'EdgeForm'[$g$]
       <dd> is a graphics directive that specifies that edges of filled graphics objects are to be drawn using the graphics directive or list of directives $g$.
     </dl>
 
@@ -1356,7 +1356,7 @@ class FaceForm(Builtin):
     :https://reference.wolfram.com/language/ref/FaceForm.html</url>
 
     <dl>
-      <dt> 'FaceForm[$g$]'
+      <dt> 'FaceForm'[$g$]
       <dd> is a graphics directive that specifies that faces of filled graphics\
            objects are to be drawn using the graphics directive or list of \
            directives $g$.
@@ -1387,13 +1387,13 @@ class Inset(Builtin):
     https://reference.wolfram.com/language/ref/Inset.html</url>
 
     <dl>
-      <dt>'Text[$obj$]'
+      <dt>'Text'[$obj$]
       <dd>represents an object $obj$ inset in a graphic.
 
-      <dt>'Text[$obj$, $pos$]'
+      <dt>'Text'[$obj$, $pos$]
       <dd>represents an object $obj$ inset in a graphic at position $pos$.
 
-      <dt>'Text[$obj$, $pos$, $opos$]'
+      <dt>'Text'[$obj$, $pos$, $opos$]
       <dd>represents an object $obj$ inset in a graphic at position $pos$, \
           in away that the position $opos$ of $obj$ coincides with $pos$ \
           in the enclosing graphic.
@@ -1434,7 +1434,7 @@ class Offset(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Offset.html</url>
 
     <dl>
-      <dt>'Offset[{$dx$, $dy$}, $position$]'
+      <dt>'Offset'[{$dx$, $dy$}, $position$]
       <dd>gives the position of a graphical object obtained by starting at the specified $position$ and then moving by absolute offset {$dx$,$dy$}.
     </dl>
     """
@@ -1447,7 +1447,7 @@ class Rectangle(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Rectangle.html</url>
 
     <dl>
-      <dt>'Rectangle[{$xmin$, $ymin$}]'
+      <dt>'Rectangle'[{$xmin$, $ymin$}]
       <dd>represents a unit square with bottom-left corner at {$xmin$, $ymin$}.
 
       <dt>'Rectangle[{$xmin$, $ymin$}, {$xmax$, $ymax$}]
@@ -1483,7 +1483,7 @@ class Text(Inset):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Text.html</url>
 
     <dl>
-      <dt>'Text["$text$", {$x$, $y$}]'
+      <dt>'Text'["$text$", {$x$, $y$}]
       <dd>draws $text$ centered on position '{$x$, $y$}'.
     </dl>
 
@@ -1527,7 +1527,7 @@ class Thickness(_Thickness):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Thickness.html</url>
 
     <dl>
-      <dt>'Thickness[$t$]'
+      <dt>'Thickness'[$t$]
       <dd>sets the line thickness for subsequent graphics primitives to $t$ times the size of the plot area.
     </dl>
 

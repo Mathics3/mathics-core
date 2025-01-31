@@ -72,7 +72,7 @@ class CubeRoot(Builtin):
     https://reference.wolfram.com/language/ref/CubeRoot.html</url>)
 
     <dl>
-      <dt>'CubeRoot[$n$]'
+      <dt>'CubeRoot'[$n$]
       <dd>finds the real-valued cube root of the given $n$.
     </dl>
 
@@ -116,7 +116,7 @@ class Divide(InfixOperator):
     https://reference.wolfram.com/language/ref/Divide.html</url>)
 
     <dl>
-      <dt>'Divide[$a$, $b$]'
+      <dt>'Divide'[$a$, $b$]
       <dt>'$a$ / $b$'
       <dd>represents the division of $a$ by $b$.
     </dl>
@@ -178,7 +178,7 @@ class Minus(PrefixOperator):
     https://reference.wolfram.com/language/ref/Minus.html</url>)
 
     <dl>
-      <dt>'Minus[$expr$]'
+      <dt>'Minus'[$expr$]
       <dd> is the negation of $expr$.
     </dl>
 
@@ -227,7 +227,7 @@ class Plus(InfixOperator, SympyFunction):
     https://reference.wolfram.com/language/ref/Plus.html</url>)
 
     <dl>
-      <dt>'Plus[$a$, $b$, ...]'
+      <dt>'Plus'[$a$, $b$, ...]
       <dt>$a$ + $b$ + ...
       <dd>represents the sum of the terms $a$, $b$, ...
     </dl>
@@ -351,7 +351,7 @@ class Power(InfixOperator, MPMathFunction):
     https://reference.wolfram.com/language/ref/Power.html</url>)
 
     <dl>
-      <dt>'Power[$a$, $b$]'
+      <dt>'Power'[$a$, $b$]
       <dt>'$a$ ^ $b$'
       <dd>represents $a$ raised to the power of $b$.
     </dl>
@@ -483,7 +483,7 @@ class Sqrt(SympyFunction):
     https://reference.wolfram.com/language/ref/Sqrt.html</url>)
 
     <dl>
-      <dt>'Sqrt[$expr$]'
+      <dt>'Sqrt'[$expr$]
       <dd>returns the square root of $expr$.
     </dl>
 
@@ -526,7 +526,7 @@ class Subtract(InfixOperator):
     https://reference.wolfram.com/language/ref/Subtract.html</url>)
 
     <dl>
-      <dt>'Subtract[$a$, $b$]'
+      <dt>'Subtract'[$a$, $b$]
       <dt>$a$ - $b$
       <dd>represents the subtraction of $b$ from $a$.
     </dl>
@@ -561,7 +561,7 @@ class Times(InfixOperator, SympyFunction):
     :WMA:https://reference.wolfram.com/language/ref/Times.html</url>)
 
     <dl>
-      <dt>'Times[$a$, $b$, ...]'
+      <dt>'Times'[$a$, $b$, ...]
       <dt>'$a$ * $b$ * ...'
       <dt>'$a$ $b$ ...'
       <dd>represents the product of the terms $a$, $b$, ...

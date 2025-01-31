@@ -27,13 +27,13 @@ class SparseArray(Builtin):
     https://reference.wolfram.com/language/ref/SparseArray.html</url>
 
     <dl>
-      <dt>'SparseArray[$rules$]'
+      <dt>'SparseArray'[$rules$]
       <dd>Builds a sparse array according to the list of $rules$.
 
-      <dt>'SparseArray[$rules$, $dims$]'
+      <dt>'SparseArray'[$rules$, $dims$]
       <dd>Builds a sparse array of dimensions $dims$ according to the $rules$.
 
-      <dt>'SparseArray[$list$]'
+      <dt>'SparseArray'[$list$]
       <dd>Builds a sparse representation of $list$.
     </dl>
 

@@ -88,7 +88,7 @@ class Abs(MPMathFunction):
     :WMA: https://reference.wolfram.com/language/ref/Abs</url>)
 
     <dl>
-      <dt>'Abs[$x$]'
+      <dt>'Abs'[$x$]
       <dd>returns the absolute value of $x$.
     </dl>
 
@@ -130,10 +130,10 @@ class Chop(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Chop.html</url>
 
     <dl>
-      <dt>'Chop[$expr$]'
+      <dt>'Chop'[$expr$]
       <dd>replaces floating point numbers close to 0 by 0.
 
-      <dt>'Chop[$expr$, $delta$]'
+      <dt>'Chop'[$expr$, $delta$]
       <dd>uses a tolerance of $delta$. The default tolerance is '10^-10'.
     </dl>
 
@@ -174,7 +174,7 @@ class N(Builtin):
     https://reference.wolfram.com/language/ref/N.html</url>
 
     <dl>
-    <dt>'N[$expr$, $prec$]'
+    <dt>'N'[$expr$, $prec$]
         <dd>evaluates $expr$ numerically with a precision of $prec$ digits.
     </dl>
 
@@ -423,11 +423,11 @@ class Rationalize(Builtin):
     https://reference.wolfram.com/language/ref/Rationalize.html</url>
 
     <dl>
-      <dt>'Rationalize[$x$]'
+      <dt>'Rationalize'[$x$]
       <dd>converts a real number $x$ to a nearby rational number with \
           small denominator.
 
-      <dt>'Rationalize[$x$, $dx$]'
+      <dt>'Rationalize'[$x$, $dx$]
       <dd>finds the rational number lies within $dx$ of $x$.
     </dl>
 
@@ -556,7 +556,7 @@ class RealAbs(Builtin):
     https://reference.wolfram.com/language/ref/RealAbs.html</url>)
 
     <dl>
-      <dt>'RealAbs[$x$]'
+      <dt>'RealAbs'[$x$]
       <dd>returns the absolute value of a real number $x$.
     </dl>
 
@@ -598,7 +598,7 @@ class RealSign(Builtin):
     https://reference.wolfram.com/language/ref/RealSign.html</url>)
 
     <dl>
-      <dt>'RealSign[$x$]'
+      <dt>'RealSign'[$x$]
       <dd>returns -1, 0 or 1 depending on whether $x$ is negative,
       zero or positive.
     </dl>
@@ -662,10 +662,10 @@ class Round(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Round.html</url>
 
     <dl>
-      <dt>'Round[$expr$]'
+      <dt>'Round'[$expr$]
       <dd>rounds $expr$ to the nearest integer.
 
-      <dt>'Round[$expr$, $k$]'
+      <dt>'Round'[$expr$, $k$]
       <dd>rounds $expr$ to the closest multiple of $k$.
     </dl>
 
@@ -741,7 +741,7 @@ class Sign(SympyFunction):
     https://reference.wolfram.com/language/ref/Sign.html</url>)
 
     <dl>
-      <dt>'Sign[$x$]'
+      <dt>'Sign'[$x$]
       <dd>return -1, 0, or 1 depending on whether $x$ is negative, zero, or positive.
     </dl>
 
@@ -801,9 +801,9 @@ class UnitStep(Builtin):
     https://reference.wolfram.com/language/ref/UnitStep.html</url>)
 
     <dl>
-      <dt>'UnitStep[$x$]'
+      <dt>'UnitStep'[$x$]
       <dd>return 0 if $x$ < 0, and 1 if $x$ >= 0.
-      <dt>'UnitStep[$x1$, $x2$, ...]'
+      <dt>'UnitStep'[$x1$, $x2$, ...]
       <dd>return the multidimensional unit step function which is 1 only if none of the $xi$ are negative.
     </dl>
 

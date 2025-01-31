@@ -348,13 +348,13 @@ class AbsoluteTime(_DateFormat):
       <dd>gives the local time in seconds since epoch January 1, 1900, in your \
           time zone.
 
-      <dt>'AbsoluteTime[{$y$, $m$, $d$, $h$, $m$, $s$}]'
+      <dt>'AbsoluteTime'[{$y$, $m$, $d$, $h$, $m$, $s$}]
       <dd>gives the absolute time specification corresponding to a date list.
 
-      <dt>'AbsoluteTime["$string$"]'
+      <dt>'AbsoluteTime'["$string$"]
       <dd>gives the absolute time specification for a given date string.
 
-      <dt>'AbsoluteTime[{"$string$",{$e1$, $e2$, ...}}]'
+      <dt>'AbsoluteTime'[{"$string$",{$e1$, $e2$, ...}}]
       <dd>takgs the date string to contain the elements "$ei$".
     </dl>
 
@@ -401,7 +401,7 @@ class AbsoluteTiming(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/AbsoluteTiming.html</url>
 
     <dl>
-      <dt>'AbsoluteTiming[$expr$]'
+      <dt>'AbsoluteTiming'[$expr$]
       <dd>evaluates $expr$, returning a list of the absolute number of seconds in \
           real time that have elapsed, together with the result obtained.
     </dl>
@@ -430,13 +430,13 @@ class DateDifference(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/DateDifference.html</url>
 
     <dl>
-      <dt>'DateDifference[$date1$, $date2$]'
+      <dt>'DateDifference'[$date1$, $date2$]
       <dd>returns the difference between $date1$ and $date2$ in days.
 
-      <dt>'DateDifference[$date1$, $date2$, $unit$]'
+      <dt>'DateDifference'[$date1$, $date2$, $unit$]
       <dd>returns the difference in the specified $unit$.
 
-      <dt>'DateDifference[$date1$, $date2$, {$unit1$, $unit2$, ...}]'
+      <dt>'DateDifference'[$date1$, $date2$, {$unit1$, $unit2$, ...}]
       <dd>represents the difference as a list of integer multiples of each $unit$, with any remainder expressed in the smallest unit.
     </dl>
 
@@ -717,19 +717,19 @@ class DatePlus(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/DatePlus.html</url>
 
     <dl>
-      <dt>'DatePlus[$date$, $n$]'
+      <dt>'DatePlus'[$date$, $n$]
       <dd>finds the date $n$ days after $date$.
 
-      <dt>'DatePlus[$date$, {$n$, "$unit$"}]'
+      <dt>'DatePlus'[$date$, {$n$, "$unit$"}]
       <dd>finds the date $n$ units after $date$.
 
-      <dt>'DatePlus[$date$, {{$n1$, "$unit1$"}, {$n2$, "$unit2$"}, ...}]'
+      <dt>'DatePlus'[$date$, {{$n1$, "$unit1$"}, {$n2$, "$unit2$"}, ...}]
       <dd>finds the date which is $n_i$ specified units after $date$.
 
-      <dt>'DatePlus[$n$]'
+      <dt>'DatePlus'[$n$]
       <dd>finds the date $n$ days after the current date.
 
-      <dt>'DatePlus[$offset$]'
+      <dt>'DatePlus'[$offset$]
       <dd>finds the date which is offset from the current date.
     </dl>
 
@@ -820,10 +820,10 @@ class DateList(_DateFormat):
       <dt>'DateList[]'
       <dd>returns the current local time in the form {$year$, $month$, $day$, $hour$, $minute$, $second$}.
 
-      <dt>'DateList[$time$]'
+      <dt>'DateList'[$time$]
       <dd>returns a formatted date for the number of seconds $time$ since epoch Jan 1 1900.
 
-      <dt>'DateList[{$y$, $m$, $d$, $h$, $m$, $s$}]'
+      <dt>'DateList'[{$y$, $m$, $d$, $h$, $m$, $s$}]
       <dd>converts an incomplete date list to the standard representation.
     </dl>
 
@@ -888,22 +888,22 @@ class DateString(_DateFormat):
       <dt>'DateString[]'
       <dd>returns the current local time and date as a string.
 
-      <dt>'DateString[$elem$]'
+      <dt>'DateString'[$elem$]
       <dd>returns the time formatted according to $elems$.
 
-      <dt>'DateString[{$e1$, $e2$, ...}]'
+      <dt>'DateString'[{$e1$, $e2$, ...}]
       <dd>concatenates the time formatted according to elements $ei$.
 
-      <dt>'DateString[$time$]'
+      <dt>'DateString'[$time$]
       <dd>returns the date string of an AbsoluteTime.
 
-      <dt>'DateString[{$y$, $m$, $d$, $h$, $m$, $s$}]'
+      <dt>'DateString'[{$y$, $m$, $d$, $h$, $m$, $s$}]
       <dd>returns the date string of a date list specification.
 
-      <dt>'DateString[$string$]'
+      <dt>'DateString'[$string$]
       <dd>returns the formatted date string of a date string specification.
 
-      <dt>'DateString[$spec$, $elems$]'
+      <dt>'DateString'[$spec$, $elems$]
       <dd>formats the time in turns of $elems$. Both $spec$ and $elems$ can take any of the above formats.
     </dl>
 
@@ -1009,7 +1009,7 @@ class EasterSunday(Builtin):  # Calendar`EasterSunday
     https://reference.wolfram.com/language/Calendar/ref/EasterSunday.html</url>)
 
     <dl>
-      <dt>'EasterSunday[$year$]'
+      <dt>'EasterSunday'[$year$]
       <dd>returns the date of the Gregorian Easter Sunday as {year, month, day}.
     </dl>
 
@@ -1094,10 +1094,10 @@ class TimeConstrained(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/TimeConstrained.html</url>
 
     <dl>
-      <dt>'TimeConstrained[$expr$, $t$]'
+      <dt>'TimeConstrained'[$expr$, $t$]
       <dd>'evaluates $expr$, stopping after $t$ seconds.'
 
-      <dt>'TimeConstrained[$expr$, $t$, $failexpr$]'
+      <dt>'TimeConstrained'[$expr$, $t$, $failexpr$]
       <dd>'returns $failexpr$ if the time constraint is not met.'
     </dl>
 
@@ -1212,7 +1212,7 @@ class Timing(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Timing.html</url>
 
     <dl>
-      <dt>'Timing[$expr$]'
+      <dt>'Timing'[$expr$]
       <dd>measures the processor time taken to evaluate $expr$.
           It returns a list containing the measured time in seconds and \
           the result of the evaluation.
@@ -1272,7 +1272,7 @@ class TimeRemaining(Builtin):
       <dd>Gives the number of seconds remaining until the earliest enclosing \
           'TimeConstrained' will request the current computation to stop.
 
-      <dt>'TimeConstrained[$expr$, $t$, $failexpr$]'
+      <dt>'TimeConstrained'[$expr$, $t$, $failexpr$]
       <dd>returns $failexpr$ if the time constraint is not met.
     </dl>
 

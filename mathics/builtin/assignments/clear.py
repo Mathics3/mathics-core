@@ -39,7 +39,7 @@ class Clear(Builtin):
     https://reference.wolfram.com/language/ref/Clear.html</url>
 
     <dl>
-      <dt>'Clear[$symb1$, $symb2$, ...]'
+      <dt>'Clear'[$symb1$, $symb2$, ...]
       <dd>clears all values of the given symbols. The arguments can also be given as strings containing symbol names.
     </dl>
 
@@ -138,7 +138,7 @@ class ClearAll(Clear):
     https://reference.wolfram.com/language/ref/ClearAll.html</url>
 
     <dl>
-      <dt>'ClearAll[$symb1$, $symb2$, ...]'
+      <dt>'ClearAll'[$symb1$, $symb2$, ...]
       <dd>clears all values, attributes, messages and options associated with the given symbols.
       The arguments can also be given as strings containing symbol names.
     </dl>
@@ -176,7 +176,7 @@ class Remove(Builtin):
     https://reference.wolfram.com/language/ref/Remove.html</url>
 
     <dl>
-      <dt>'Remove[$x$]'
+      <dt>'Remove'[$x$]
       <dd>removes the definition associated to $x$.
     </dl>
 
@@ -210,7 +210,7 @@ class Unset(PostfixOperator):
     https://reference.wolfram.com/language/ref/Unset.html</url>
 
     <dl>
-      <dt>'Unset[$x$]'
+      <dt>'Unset'[$x$]
       <dt>'$x$=.'
       <dd>removes any value belonging to $x$.
     </dl>
