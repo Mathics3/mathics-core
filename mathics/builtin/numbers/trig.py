@@ -167,27 +167,27 @@ class AnglePath(Builtin):
     https://reference.wolfram.com/language/ref/AnglePath.html</url>
 
     <dl>
-      <dt>'AnglePath[{$phi1$, $phi2$, ...}]'
+      <dt>'AnglePath'[{$phi1$, $phi2$, ...}]
       <dd>returns the points formed by a turtle starting at {0, 0} and angled \
           at 0 degrees going through
           the turns given by angles $phi1$, $phi2$, ... and using distance 1 \
           for each step.
 
-      <dt>'AnglePath[{{$r1$, $phi1$}, {$r2$, $phi2$}, ...}]'
-      <dd>instead of using 1 as distance, use $r1$, $r2$, ... as distances for \
+      <dt>'AnglePath'[{{$r_1$, $phi1$}, {$r_2$, $phi2$}, ...}]
+      <dd>instead of using 1 as distance, use $r_1$, $r_2$, ... as distances for \
           the respective steps.
 
-      <dt>'AnglePath[$phi0$, {$phi1$, $phi2$, ...}]'
+      <dt>'AnglePath'[$phi0$, {$phi1$, $phi2$, ...}]
       <dd>starts with direction $phi0$ instead of 0.
 
-      <dt>'AnglePath[{$x$, $y$}, {$phi1$, $phi2$, ...}]'
+      <dt>'AnglePath'[{$x$, $y$}, {$phi1$, $phi2$, ...}]
       <dd>starts at {$x, $y} instead of {0, 0}.
 
-      <dt>'AnglePath[{{$x$, $y$}, $phi0$}, {$phi1$, $phi2$, ...}]'
+      <dt>'AnglePath'[{{$x$, $y$}, $phi0$}, {$phi1$, $phi2$, ...}]
       <dd>specifies initial position {$x$, $y$} and initial direction $phi0$.
 
-      <dt>'AnglePath[{{$x$, $y$}, {$dx$, $dy$}}, {$phi1$, $phi2$, ...}]'
-      <dd>specifies initial position {$x$, $y$} and a slope {$dx$, $dy$} that is \
+      <dt>'AnglePath'[{{$x$, $y$}, {$d_x$, $d_y$}}, {$phi1$, $phi2$, ...}]
+      <dd>specifies initial position {$x$, $y$} and a slope {$d_x$, $d_y$} that is \
           understood to be the initial direction of the turtle.
     </dl>
 
@@ -346,7 +346,7 @@ class ArcCos(MPMathFunction):
     https://reference.wolfram.com/language/ref/ArcCos.html</url>)
 
     <dl>
-      <dt>'ArcCos[$z$]'
+      <dt>'ArcCos'[$z$]
       <dd>returns the inverse cosine of $z$.
     </dl>
 
@@ -383,7 +383,7 @@ class ArcCot(MPMathFunction):
     https://reference.wolfram.com/language/ref/ArcCot.html</url>)
 
     <dl>
-      <dt>'ArcCot[$z$]'
+      <dt>'ArcCot'[$z$]
       <dd>returns the inverse cotangent of $z$.
     </dl>
 
@@ -418,7 +418,7 @@ class ArcCsc(MPMathFunction):
     https://reference.wolfram.com/language/ref/ArcCsc.html</url>)
 
     <dl>
-      <dt>'ArcCsc[$z$]'
+      <dt>'ArcCsc'[$z$]
       <dd>returns the inverse cosecant of $z$.
     </dl>
 
@@ -459,7 +459,7 @@ class ArcSec(MPMathFunction):
     https://reference.wolfram.com/language/ref/ArcSec.html</url>)
 
     <dl>
-      <dt>'ArcSec[$z$]'
+      <dt>'ArcSec'[$z$]
       <dd>returns the inverse secant of $z$.
     </dl>
 
@@ -501,7 +501,7 @@ class ArcSin(MPMathFunction):
     https://reference.wolfram.com/language/ref/ArcSin.html</url>)
 
     <dl>
-      <dt>'ArcSin[$z$]'
+      <dt>'ArcSin'[$z$]
       <dd>returns the inverse sine of $z$.
     </dl>
 
@@ -537,7 +537,7 @@ class ArcTan(MPMathFunction):
     https://reference.wolfram.com/language/ref/ArcTan.html</url>)
 
     <dl>
-      <dt>'ArcTan[$z$]'
+      <dt>'ArcTan'[$z$]
       <dd>returns the inverse tangent of $z$.
     </dl>
 
@@ -583,7 +583,7 @@ class Cos(MPMathFunction):
     https://reference.wolfram.com/language/ref/Cos.html</url>)
 
     <dl>
-      <dt>'Cos[$z$]'
+      <dt>'Cos'[$z$]
       <dd>returns the cosine of $z$.
     </dl>
 
@@ -619,7 +619,7 @@ class Cot(MPMathFunction):
     https://reference.wolfram.com/language/ref/Cot.html</url>)
 
     <dl>
-      <dt>'Cot[$z$]'
+      <dt>'Cot'[$z$]
       <dd>returns the cotangent of $z$.
     </dl>
 
@@ -654,7 +654,7 @@ class Csc(MPMathFunction):
     https://reference.wolfram.com/language/ref/Csc.html</url>)
 
     <dl>
-      <dt>'Csc[$z$]'
+      <dt>'Csc'[$z$]
       <dd>returns the cosecant of $z$.
     </dl>
 
@@ -691,7 +691,7 @@ class Haversine(MPMathFunction):
     https://reference.wolfram.com/language/ref/Haversine.html</url>
 
     <dl>
-      <dt>'Haversine[$z$]'
+      <dt>'Haversine'[$z$]
       <dd>returns the haversine function of $z$.
     </dl>
 
@@ -713,7 +713,7 @@ class InverseHaversine(MPMathFunction):
     https://reference.wolfram.com/language/ref/InverseHaversine.html</url>
 
     <dl>
-      <dt>'InverseHaversine[$z$]'
+      <dt>'InverseHaversine'[$z$]
       <dd>returns the inverse haversine function of $z$.
     </dl>
 
@@ -741,7 +741,7 @@ class Sec(MPMathFunction):
     https://reference.wolfram.com/language/ref/Sec.html</url>)
 
     <dl>
-      <dt>'Sec[$z$]'
+      <dt>'Sec'[$z$]
       <dd>returns the secant of $z$.
     </dl>
 
@@ -783,7 +783,7 @@ class Sin(MPMathFunction):
     https://reference.wolfram.com/language/ref/Sin.html</url>)
 
     <dl>
-      <dt>'Sin[$z$]'
+      <dt>'Sin'[$z$]
       <dd>returns the sine of $z$.
     </dl>
 
@@ -827,7 +827,7 @@ class Tan(MPMathFunction):
     https://reference.wolfram.com/language/ref/Tan.html</url>)
 
     <dl>
-      <dt>'Tan[$z$]'
+      <dt>'Tan'[$z$]
       <dd>returns the tangent of $z$.
     </dl>
 

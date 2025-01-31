@@ -60,7 +60,7 @@ class BitLength(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/BitLength.html</url>
 
     <dl>
-      <dt>'BitLength[$x$]'
+      <dt>'BitLength'[$x$]
       <dd>gives the number of bits needed to represent the integer $x$. $x$'s sign is ignored.
     </dl>
 
@@ -90,7 +90,7 @@ class Ceiling(SympyFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Ceiling.html</url>
 
     <dl>
-      <dt>'Ceiling[$x$]'
+      <dt>'Ceiling'[$x$]
       <dd>gives the smallest integer greater than or equal to $x$.
     </dl>
 
@@ -121,11 +121,11 @@ class DigitCount(_IntBaseBuiltin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/DigitCount.html</url>
 
     <dl>
-      <dt>'DigitCount[$n$, $b$, $d$]'
+      <dt>'DigitCount'[$n$, $b$, $d$]
       <dd>returns the number of times digit $d$ occurs in the base $b$ representation of $n$.
-      <dt>'DigitCount[$n$, $b$]'
+      <dt>'DigitCount'[$n$, $b$]
       <dd>returns a list indicating the number of times each digit occurs in the base $b$ representation of $n$.
-      <dt>'DigitCount[$n$, $b$]'
+      <dt>'DigitCount'[$n$, $b$]
       <dd>returns a list indicating the number of times each digit occurs in the decimal representation of $n$.
     </dl>
 
@@ -177,10 +177,10 @@ class Floor(SympyFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Floor.html</url>
 
     <dl>
-      <dt>'Floor[$x$]'
+      <dt>'Floor'[$x$]
       <dd>gives the greatest integer less than or equal to $x$.
 
-      <dt>'Floor[$x$, $a$]'
+      <dt>'Floor'[$x$, $a$]
       <dd>gives the greatest multiple of $a$ less than or equal to $x$.
     </dl>
 
@@ -226,11 +226,11 @@ class FromDigits(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FromDigits.html</url>
 
     <dl>
-      <dt>'FromDigits[$l$]'
+      <dt>'FromDigits'[$l$]
       <dd>returns the integer corresponding to the decimal representation given by $l$. $l$ can \
           be a list of digits or a string.
 
-      <dt>'FromDigits[$l$, $b$]'
+      <dt>'FromDigits'[$l$, $b$]
       <dd>returns the integer corresponding to the base $b$ representation given by $l$. $l$ can \
           be a list of digits or a string.
     </dl>
@@ -310,15 +310,15 @@ class IntegerDigits(_IntBaseBuiltin):
          https://reference.wolfram.com/language/ref/IntegerDigits.html</url>
 
     <dl>
-      <dt>'IntegerDigits[$n$]'
+      <dt>'IntegerDigits'[$n$]
       <dd>returns the decimal representation of integer $x$ as list of digits. \
           $x$'s sign is ignored.
 
-      <dt>'IntegerDigits[$n$, $b$]'
+      <dt>'IntegerDigits'[$n$, $b$]
       <dd>returns the base $b$ representation of integer $x$ as list of digits. \
           $x$'s sign is ignored.
 
-      <dt>'IntegerDigits[$n$, $b$, $length$]'
+      <dt>'IntegerDigits'[$n$, $b$, $length$]
       <dd>returns a list of length $length$. If the number is too short, the \
           list gets padded with 0 on the left. If the number is too long, the \
           $length$ least significant digits are returned.
@@ -392,11 +392,11 @@ class IntegerString(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/IntegerString.html</url>
 
     <dl>
-      <dt>'IntegerString[$n$]'
+      <dt>'IntegerString'[$n$]
       <dd>returns the decimal representation of integer $x$ as string. $x$'s sign is ignored.
-      <dt>'IntegerString[$n$, $b$]'
+      <dt>'IntegerString'[$n$, $b$]
       <dd>returns the base $b$ representation of integer $x$ as string. $x$'s sign is ignored.
-      <dt>'IntegerString[$n$, $b$, $length$]'
+      <dt>'IntegerString'[$n$, $b$, $length$]
       <dd>returns a string of length $length$. If the number is too short, the string gets padded
         with 0 on the left. If the number is too long, the $length$ least significant digits are
         returned.
@@ -472,11 +472,11 @@ class IntegerReverse(_IntBaseBuiltin):
     https://reference.wolfram.com/language/ref/IntegerReverse.html</url>
 
     <dl>
-      <dt>'IntegerReverse[$n$]'
+      <dt>'IntegerReverse'[$n$]
       <dd>returns the integer that has the reverse decimal representation \
           of $x$ without sign.
 
-      <dt>'IntegerReverse[$n$, $b$]'
+      <dt>'IntegerReverse'[$n$, $b$]
       <dd>returns the integer that has the reverse base $b$ representation \
           of $x$ without sign.
     </dl>

@@ -30,9 +30,9 @@ class Alternatives(InfixOperator, PatternObject):
     https://reference.wolfram.com/language/ref/Alternatives.html</url>
 
     <dl>
-      <dt>'Alternatives[$p1$, $p2$, ..., $p_i$]'
-      <dt>'$p1$ | $p2$ | ... | $p_i$'
-      <dd>is a pattern that matches any of the patterns $p1$, $p2$, \
+      <dt>'Alternatives'[$p_1$, $p_2$, ..., $p_i$]
+      <dt>'$p_1$ | $p_2$ | ... | $p_i$'
+      <dd>is a pattern that matches any of the patterns $p_1$, $p_2$, \
         ...., $p_i$.
     </dl>
 
@@ -87,11 +87,11 @@ class Except(PatternObject):
     https://reference.wolfram.com/language/ref/Except.html</url>
 
     <dl>
-      <dt>'Except[$c$]'
+      <dt>'Except'[$c$]
       <dd>represents a pattern object that matches any expression except \
           those matching $c$.
 
-      <dt>'Except[$c$, $p$]'
+      <dt>'Except'[$c$, $p$]
       <dd>represents a pattern object that matches $p$ but not $c$.
     </dl>
 
@@ -142,7 +142,7 @@ class HoldPattern(PatternObject):
     <url>:WMA link:https://reference.wolfram.com/language/ref/HoldPattern.html</url>
 
     <dl>
-      <dt>'HoldPattern[$expr$]'
+      <dt>'HoldPattern'[$expr$]
       <dd>is equivalent to $expr$ for pattern matching, but \
         maintains it in an unevaluated form.
     </dl>
@@ -181,7 +181,7 @@ class Longest(Builtin):
     https://reference.wolfram.com/language/ref/Longest.html</url>
 
     <dl>
-      <dt>'Longest[$pat$]'
+      <dt>'Longest'[$pat$]
       <dd>is a pattern object that matches the longest sequence consistent \
       with the pattern $pat$.
     </dl>
@@ -203,13 +203,13 @@ class OptionsPattern(PatternObject):
     https://reference.wolfram.com/language/ref/OptionsPattern.html</url>
 
     <dl>
-      <dt>'OptionsPattern[$f$]'
+      <dt>'OptionsPattern'[$f$]
       <dd>is a pattern that stands for a sequence of options given \
         to a function, with default values taken from 'Options[$f$]'. \
         The options can be of the form '$opt$->$value$' or \
         '$opt$:>$value$', and might be in arbitrarily nested lists.
 
-      <dt>'OptionsPattern[{$opt1$->$value1$, ...}]'
+      <dt>'OptionsPattern'[{$opt_1$->$value_1$, ...}]
       <dd>takes explicit default values from the given list. The \
         list may also contain symbols $f$, for which 'Options[$f$]' is \
         taken into account; it may be arbitrarily nested. \
@@ -308,7 +308,7 @@ class Pattern(PatternObject):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Pattern.html</url>
 
     <dl>
-      <dt>'Pattern[$symb$, $pat$]'
+      <dt>'Pattern'[$symb$, $pat$]
       <dt>'$symb$ : $pat$'
       <dd>assigns the name $symb$ to the pattern $pat$.
       <dt>'$symb$_$head$'
@@ -448,7 +448,7 @@ class Repeated(PostfixOperator, PatternObject):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Repeated.html</url>
 
     <dl>
-      <dt>'Repeated[$pat$]'
+      <dt>'Repeated'[$pat$]
       <dd>matches one or more occurrences of $pat$.
     </dl>
 
@@ -539,7 +539,7 @@ class RepeatedNull(Repeated):
     <url>:WMA link:https://reference.wolfram.com/language/ref/RepeatedNull.html</url>
 
     <dl>
-      <dt>'RepeatedNull[$pat$]'
+      <dt>'RepeatedNull'[$pat$]
       <dd>matches zero or more occurrences of $pat$.
     </dl>
 
@@ -562,7 +562,7 @@ class Shortest(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Shortest.html</url>
 
     <dl>
-      <dt>'Shortest[$pat$]'
+      <dt>'Shortest'[$pat$]
       <dd>is a pattern object that matches the shortest sequence consistent with the pattern $pat$.
     </dl>
 
@@ -583,7 +583,7 @@ class Verbatim(PatternObject):
     https://reference.wolfram.com/language/ref/Verbatim.html</url>
 
     <dl>
-      <dt>'Verbatim[$expr$]'
+      <dt>'Verbatim'[$expr$]
       <dd>prevents pattern constructs in $expr$ from taking effect, \
         allowing them to match themselves.
     </dl>
