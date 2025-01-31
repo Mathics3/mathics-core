@@ -48,8 +48,8 @@ class AddTo(InfixOperator, InplaceInfixOperator):
 
     <dl>
       <dt>'AddTo'[$x$, $dx$]
-      <dt>'$x$ += $dx$'
-      <dd>is equivalent to '$x$ = $x$ + $dx$'.
+      <dt>$x$ '+=' $dx$
+      <dd>is equivalent to $x$ '=' $x$ '+' $dx$.
     </dl>
 
     >> a = 10;
@@ -88,7 +88,7 @@ class Decrement(InplaceInfixOperator, InfixOperator, PostfixOperator):
     <dl>
       <dt>'Decrement'[$x$]
 
-      <dt>'$x$--'
+      <dt>$x$'--'
       <dd>decrements $x$ by 1, returning the original value of $x$.
     </dl>
 
@@ -133,8 +133,8 @@ class DivideBy(InplaceInfixOperator, InfixOperator):
 
     <dl>
       <dt>'DivideBy'[$x$, $dx$]
-      <dt>'$x$ /= $dx$'
-      <dd>is equivalent to '$x$ = $x$ / $dx$'.
+      <dt>$x$ '/=' $dx$
+      <dd>is equivalent to $x$ = $x$ '/' $dx$.
     </dl>
 
     >> a = 10;
@@ -161,7 +161,7 @@ class Increment(InplaceInfixOperator, InfixOperator, PostfixOperator):
     <dl>
       <dt>'Increment'[$x$]
 
-      <dt>'$x$++'
+      <dt>$x$'++'
       <dd>increments $x$ by 1, returning the original value of $x$.
     </dl>
 
@@ -217,11 +217,11 @@ class PreDecrement(InplaceInfixOperator, PrefixOperator):
     <dl>
       <dt>'PreDecrement'[$x$]
 
-      <dt>'--$x$'
+      <dt>'--'$x$
       <dd>decrements $x$ by 1, returning the new value of $x$.
     </dl>
 
-    '--$a$' is equivalent to '$a$ = $a$ - 1':
+    '--'$a$ is equivalent to $a$ '=' $a$ '- 1':
     >> a = 2;
     >> --a
      = 1
@@ -251,11 +251,11 @@ class PreIncrement(InplaceInfixOperator, PrefixOperator):
 
     <dl>
       <dt>'PreIncrement'[$x$]
-      <dt>'++$x$'
+      <dt>'++'$x$
       <dd>increments $x$ by 1, returning the new value of $x$.
     </dl>
 
-    '++$a$' is equivalent to '$a$ = $a$ + 1':
+    '++'$a$ is equivalent to $a$ '=' $a$ '+ 1':
     >> a = 2
      = 2
 
@@ -304,8 +304,8 @@ class SubtractFrom(InfixOperator):
 
     <dl>
       <dt>'SubtractFrom'[$x$, $dx$]
-      <dt>'$x$ -= $dx$'
-      <dd>is equivalent to '$x$ = $x$ - $dx$'.
+      <dt>$x$ '-=' $dx$
+      <dd>is equivalent to $x$ '=' $x$ '-' $dx$.
     </dl>
 
     >> a = 10;
@@ -332,8 +332,8 @@ class TimesBy(InfixOperator):
 
     <dl>
       <dt>'TimesBy'[$x$, $dx$]
-      <dt>'$x$ *= $dx$'
-      <dd>is equivalent to '$x$ = $x$ * $dx$'.
+      <dt>$x$ '*=' $dx$
+      <dd>is equivalent to $x$ '=' $x$ '*' $dx$.
     </dl>
 
     >> a = 10;

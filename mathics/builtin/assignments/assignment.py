@@ -235,7 +235,7 @@ class TagSet(Builtin):
     <dl>
       <dt>'TagSet'[$f$, $expr$, $value$]
 
-      <dt>'$f$ /: $expr$ = $value$'
+      <dt>$f$ '/:' $expr$ '=' $value$
       <dd>assigns $value$ to $expr$, associating the corresponding assignment \
           with the symbol $f$.
     </dl>
@@ -331,7 +331,7 @@ class UpSet(InfixOperator):
          https://reference.wolfram.com/language/ref/UpSet.html</url>
 
     <dl>
-      <dt>$f$[$x$] ^= $expression$
+      <dt>$f$[$x$] '^=' $expression$
       <dd>evaluates $expression$ and assigns it to the value of $f$[$x$], \
           associating the value with $x$.
     </dl>
@@ -376,7 +376,7 @@ class UpSetDelayed(UpSet):
     <dl>
        <dt>'UpSetDelayed'[$expression$, $value$]
 
-       <dt>'$expression$ ^:= $value$'
+       <dt>$expression$ '^:=' $value$
        <dd>assigns $expression$ to the value of $f$[$x$] \
            (without evaluating $expression$), associating the value with $x$.
     </dl>
