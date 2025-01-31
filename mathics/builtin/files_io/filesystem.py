@@ -47,7 +47,7 @@ class AbsoluteFileName(Builtin):
     https://reference.wolfram.com/language/ref/AbsoluteFileName.html</url>
 
     <dl>
-      <dt>'AbsoluteFileName["$name$"]'
+      <dt>'AbsoluteFileName'["$name$"]
       <dd>returns the absolute version of the given filename.
     </dl>
 
@@ -89,8 +89,8 @@ class CopyDirectory(Builtin):
     https://reference.wolfram.com/language/ref/CopyDirectory.html</url>
 
     <dl>
-      <dt>'CopyDirectory["$dir1$", "$dir2$"]'
-      <dd>copies directory $dir1$ to $dir2$.
+      <dt>'CopyDirectory'["$dir_1$", "$dir_2$"]
+      <dd>copies directory $dir_1$ to $dir_2$.
     </dl>
     """
 
@@ -140,7 +140,7 @@ class CopyFile(Builtin):
     https://reference.wolfram.com/language/ref/CopyFile.html</url>
 
     <dl>
-      <dt>'CopyFile["$file1$", "$file2$"]'
+      <dt>'CopyFile'["$file1$", "$file2$"]
       <dd>copies $file1$ to $file2$.
     </dl>
 
@@ -263,10 +263,10 @@ class DeleteFile(Builtin):
     https://reference.wolfram.com/language/ref/DeleteFile.html</url>
 
     <dl>
-      <dt>'Delete["$file$"]'
+      <dt>'Delete'["$file$"]
       <dd>deletes $file$.
 
-      <dt>'Delete[{"$file1$", "$file2$", ...}]'
+      <dt>'Delete'[{"$file1$", "$file2$", ...}]
       <dd>deletes a list of files.
     </dl>
 
@@ -373,7 +373,7 @@ class ExpandFileName(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ExpandFileName.html</url>
 
     <dl>
-      <dt>'ExpandFileName["$name$"]'
+      <dt>'ExpandFileName'["$name$"]
       <dd>expands $name$ to an absolute filename for your system.
     </dl>
 
@@ -408,7 +408,7 @@ class File(Builtin):
     https://reference.wolfram.com/language/ref/File.html</url>
 
     <dl>
-      <dt>'File["$file$"]'
+      <dt>'File'["$file$"]
       <dd>is a symbolic representation of an element in the local file system.
     </dl>
     """
@@ -423,7 +423,7 @@ class FileBaseName(Builtin):
     https://reference.wolfram.com/language/ref/FileBaseName.html</url>
 
     <dl>
-      <dt>'FileBaseName["$file$"]'
+      <dt>'FileBaseName'["$file$"]
       <dd>gives the base name for the specified file name.
     </dl>
 
@@ -452,7 +452,7 @@ class FileByteCount(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FileByteCount.html</url>
 
     <dl>
-      <dt>'FileByteCount[$file$]'
+      <dt>'FileByteCount'[$file$]
       <dd>returns the number of bytes in $file$.
     </dl>
 
@@ -498,7 +498,7 @@ class FileExistsQ(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FileExistsQ.html</url>
 
     <dl>
-      <dt>'FileExistsQ["$file$"]'
+      <dt>'FileExistsQ'["$file$"]
       <dd>returns 'True' if $file$ exists and 'False' otherwise.
     </dl>
 
@@ -536,7 +536,7 @@ class FileExtension(Builtin):
     https://reference.wolfram.com/language/ref/FileExtension.html</url>
 
     <dl>
-      <dt>'FileExtension["$file$"]'
+      <dt>'FileExtension'["$file$"]
       <dd>gives the extension for the specified file name.
     </dl>
 
@@ -565,7 +565,7 @@ class FileInformation(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FileInformation.html</url>
 
     <dl>
-      <dt>'FileInformation["$file$"]'
+      <dt>'FileInformation'["$file$"]
       <dd>returns information about $file$.
     </dl>
 
@@ -586,7 +586,7 @@ class FindFile(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FileFind.html</url>
 
     <dl>
-      <dt>'FindFile[$name$]'
+      <dt>'FindFile'[$name$]
       <dd>searches '$Path' for the given filename.
     </dl>
 
@@ -633,21 +633,21 @@ class FileNames(Builtin):
       <dt>'FileNames[]'
       <dd>Returns a list with the filenames in the current working folder.
 
-      <dt>'FileNames[$form$]'
+      <dt>'FileNames'[$form$]
       <dd>Returns a list with the filenames in the current working folder that \
           matches with $form$.
 
-      <dt>'FileNames[{$form_1$, $form_2$, ...}]'
+      <dt>'FileNames'[{$form_1$, $form_2$, ...}]
       <dd>Returns a list with the filenames in the current working folder that \
           matches with one of $form_1$, $form_2$, ....
 
-      <dt>'FileNames[{$form_1$, $form_2$, ...},{$dir_1$, $dir_2$, ...}]'
+      <dt>'FileNames'[{$form_1$, $form_2$, ...},{$dir_1$, $dir_2$, ...}]
       <dd>Looks into the directories $dir_1$, $dir_2$, ....
 
-      <dt>'FileNames[{$form_1$, $form_2$, ...},{$dir_1$, $dir_2$, ...}]'
+      <dt>'FileNames'[{$form_1$, $form_2$, ...},{$dir_1$, $dir_2$, ...}]
       <dd>Looks into the directories $dir_1$, $dir_2$, ....
 
-      <dt>'FileNames[{$forms$, $dirs$, $n$]'
+      <dt>'FileNames'[{$forms$, $dirs$, $n$]
       <dd>Look for files up to the level $n$.
     </dl>
 
@@ -794,13 +794,13 @@ class FileNameTake(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FileNameTake.html</url>
 
     <dl>
-      <dt>'FileNameTake["$file$"]'
+      <dt>'FileNameTake'["$file$"]
       <dd>returns the last path element in the file name $name$.
 
-      <dt>'FileNameTake["$file$", $n$]'
+      <dt>'FileNameTake'["$file$", $n$]
       <dd>returns the first $n$ path elements in the file name $name$.
 
-      <dt>'FileNameTake["$file$", $-n$]'
+      <dt>'FileNameTake'["$file$", $-n$]
       <dd>returns the last $n$ path elements in the file name $name$.
     </dl>
 
@@ -940,7 +940,7 @@ class RenameFile(Builtin):
     https://reference.wolfram.com/language/ref/RenameFile.html</url>
 
     <dl>
-    <dt>'RenameFile["$file1$", "$file2$"]'
+    <dt>'RenameFile'["$file1$", "$file2$"]
       <dd>renames $file1$ to $file2$.
     </dl>
 
@@ -1033,7 +1033,7 @@ class SetDirectory(Builtin):
     https://reference.wolfram.com/language/ref/SetDirectory.html</url>
 
     <dl>
-    <dt>'SetDirectory[$dir$]'
+    <dt>'SetDirectory'[$dir$]
       <dd>sets the current working directory to $dir$.
     </dl>
 
@@ -1080,7 +1080,7 @@ class ToFileName(Builtin):
     https://reference.wolfram.com/language/ref/ToFileName.html</url>
 
     <dl>
-    <dt>'ToFileName[{"$dir_1$", "$dir_2$", ...}]'
+    <dt>'ToFileName'[{"$dir_1$", "$dir_2$", ...}]
       <dd>joins the $dir_i$ together into one path.
     </dl>
 
@@ -1113,7 +1113,7 @@ class URLSave(Builtin):
       <dt>'URLSave["url"]'
       <dd>Save "url" in a temporary file.
 
-      <dt>'URLSave["url", $filename$]'
+      <dt>'URLSave'["url", $filename$]
       <dd>Save "url" in $filename$.
     </dl>
     """
