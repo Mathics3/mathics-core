@@ -41,7 +41,7 @@ class Compile(Builtin):
       <dd>Compiles $expr$ assuming each $xi$ is a $Real$ number.
 
       <dt>'Compile'[{{$x_1$, $t_1$} {$x_2$, $t_1$} ...}, $expr$]
-      <dd>Compiles assuming each $xi$ matches type $ti$.
+      <dd>Compiles assuming each $x_i$ matches type $t_i$.
     </dl>
 
     Compilation is performed using llvmlite , or Python's builtin

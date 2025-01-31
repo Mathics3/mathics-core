@@ -1449,7 +1449,6 @@ class Rectangle(Builtin):
     <dl>
       <dt>'Rectangle'[{$x_{min}$, $y_{min}$}]
       <dd>represents a unit square with bottom-left corner at {$x_{min}$, $y_{min}$}.
-
       <dt>'Rectangle[{$x_{min}$, $y_{min}$}, {$x_{max}$, $y_{max}$}]
       <dd>is a rectangle extending from {$x_{min}$, $y_{min}$} to {$x_{max}$, $y_{max}$}.
     </dl>
