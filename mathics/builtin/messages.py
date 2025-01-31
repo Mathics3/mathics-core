@@ -2,7 +2,6 @@
 Message-related functions.
 """
 
-
 import typing
 from typing import Any
 
@@ -17,11 +16,11 @@ from mathics.core.systemsymbols import SymbolMessageName, SymbolQuiet
 
 
 class Aborted(Predefined):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/Aborted.html</url>
 
     <dl>
-    <dt>'$Aborted'
+    <dt>'\$Aborted'
         <dd>is returned by a calculation that has been aborted.
     </dl>
     """
@@ -125,10 +124,10 @@ class Check(Builtin):
 
 
 class Failed(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$Failed.html</url>
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$Failed.html</url>
     <dl>
-    <dt>'$Failed'
+    <dt>'\$Failed'
         <dd>is returned by some functions in the event of an error.
     </dl>
     """

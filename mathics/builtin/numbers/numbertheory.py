@@ -88,7 +88,7 @@ class DivisorSigma(SympyFunction):
 
     <dl>
       <dt>'DivisorSigma[$k$, $n$]'
-      <dd>returns $\sigma_k$($n$)
+      <dd>returns $\sigma_k(n)$
     </dl>
 
     For reference, let us first get the integer divisors of 20:
@@ -1001,7 +1001,7 @@ class RandomPrime(Builtin):
     <url>:Prime numbers:https://reference.wolfram.com/language/ref/RandomPrime.html</url>
 
     <dl>
-      <dt>'RandomPrime[{$imin$, $imax}]'
+      <dt>'RandomPrime[{$imin$, $imax$}]'
       <dd>gives a random prime between $imin$ and $imax$.
 
       <dt>'RandomPrime[$imax$]'

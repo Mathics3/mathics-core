@@ -746,8 +746,8 @@ However, sometimes "local" variables are needed in order not to disturb the glob
 <dl>
   <dt>'Module[{$vars$}, $expr$]'
   <dd>localizes variables by giving them a temporary name of the form
-      'name$number', where number is the current value of '$ModuleNumber'. Each time a module
-      is evaluated, '$ModuleNumber' is incremented.
+      'name\$number', where number is the current value of '\$ModuleNumber'. Each time a module
+      is evaluated, '\$ModuleNumber' is incremented.
 
   <dt>'Block[{$vars$}, $expr$]'
   <dd>temporarily stores the definitions of certain variables, evaluates

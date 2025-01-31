@@ -41,13 +41,13 @@ SymbolWhich = Symbol("Which")
 
 
 class Abort(Builtin):
-    """
+    r"""
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/Abort.html</url>
 
     <dl>
       <dt>'Abort[]'
-      <dd>aborts an evaluation completely and returns '$Aborted'.
+      <dd>aborts an evaluation completely and returns '\$Aborted'.
     </dl>
 
     >> Print["a"]; Abort[]; Print["b"]
@@ -416,12 +416,12 @@ class If(Builtin):
 
 
 class Interrupt(Builtin):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/Interrupt.html</url>
 
     <dl>
       <dt>'Interrupt[]'
-      <dd>Interrupt an evaluation and returns '$Aborted'.
+      <dd>Interrupt an evaluation and returns '\$Aborted'.
     </dl>
 
     >> Print["a"]; Interrupt[]; Print["b"]
