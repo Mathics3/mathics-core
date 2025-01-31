@@ -48,10 +48,10 @@ class BellB(SympyFunction):
     :SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.bell</url>, <url>
     :WMA: https://reference.wolfram.com/language/ref/BellB.html</url>)
     <dl>
-      <dt>'BellB[$n$]'
+      <dt>'BellB'[$n$]
       <dd>Bell number $B$_$n$.
 
-      <dt>'BellB[$n$, $x$]'
+      <dt>'BellB'[$n$, $x$]
       <dd>Bell polynomial $B$_$n$($x$).
     </dl>
 
@@ -129,7 +129,7 @@ class Binomial(MPMathFunction):
     https://reference.wolfram.com/language/ref/Binomial.html</url>)
 
     <dl>
-      <dt>'Binomial[$n$, $k$]'
+      <dt>'Binomial'[$n$, $k$]
       <dd>gives the binomial coefficient $n$ choose $k$.
     </dl>
 
@@ -167,7 +167,7 @@ class CatalanNumber(SympyFunction):
     https://reference.wolfram.com/language/ref/CatalanNumber.html</url>)
 
     <dl>
-      <dt>'CatalanNumber[$n$]'
+      <dt>'CatalanNumber'[$n$]
       <dd>gives the $n$th Catalan number.
     </dl>
 
@@ -198,7 +198,7 @@ class DiceDissimilarity(_BooleanDissimilarity):
     :DiceDissimilarity:
     https://reference.wolfram.com/language/ref/DiceDissimilarity.html</url>)
     <dl>
-      <dt>'DiceDissimilarity[$u$, $v$]'
+      <dt>'DiceDissimilarity'[$u$, $v$]
       <dd>returns the Dice dissimilarity between the two boolean 1-D lists $u$ and $v$.
       This is defined as ($c_tf$ + $c_ft$) / (2 * $c_tt$ + $c_ft$ + c_tf).
       $n$ is len($u$) and $c_ij$ is the number of occurrences of $u$[$k$]=$i$ and $v$[$k$]=$j$ for $k$ < $n$.
@@ -223,10 +223,10 @@ class EulerE(SympyFunction):
     :SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.euler</url>, <url>
     :WMA: https://reference.wolfram.com/language/ref/EulerE.html</url>)
     <dl>
-      <dt>'EulerE[$n$]'
+      <dt>'EulerE'[$n$]
       <dd>Euler number $E$_$n$.
 
-      <dt>'EulerE[$n$, $x$]'
+      <dt>'EulerE'[$n$, $x$]
       <dd>Euler polynomial $E$_$n$($x$).
     </dl>
 
@@ -261,7 +261,7 @@ class JaccardDissimilarity(_BooleanDissimilarity):
     :WMA:
     https://reference.wolfram.com/language/ref/JaccardDissimilarity.html</url>)
     <dl>
-      <dt>'JaccardDissimilarity[$u$, $v$]'
+      <dt>'JaccardDissimilarity'[$u$, $v$]
       <dd>returns the Jaccard-Needham dissimilarity between the two boolean \
           1-D lists $u$ and $v$, which is defined as \
           ($c_tf$ + $c_ft$) / ($c_tt$ + $c_ft$ + $c_tf$), where $n$ is \
@@ -293,10 +293,10 @@ class LucasL(SympyFunction):
     https://reference.wolfram.com/language/ref/LucasL.html</url>)
 
     <dl>
-      <dt>'LucasL[$n$]'
+      <dt>'LucasL'[$n$]
       <dd>gives the $n$th Lucas number.
 
-      <dt>'LucasL[$n$, $x$]'
+      <dt>'LucasL'[$n$, $x$]
       <dd>gives the $n$th Lucas polynomial $L$_($x$).
     </dl>
 
@@ -331,7 +331,7 @@ class MatchingDissimilarity(_BooleanDissimilarity):
     <url>:WMA link:https://reference.wolfram.com/language/ref/MatchingDissimilarity.html</url>
 
     <dl>
-      <dt>'MatchingDissimilarity[$u$, $v$]'
+      <dt>'MatchingDissimilarity'[$u$, $v$]
       <dd>returns the Matching dissimilarity between the two boolean \
       1-D lists $u$ and $v$, which is defined as ($c_tf$ + $c_ft$) / $n$, \
       where $n$ is len($u$) and $c_ij$ is the number of occurrences of \
@@ -355,8 +355,8 @@ class Multinomial(Builtin):
     https://en.wikipedia.org/wiki/Multinomial_distribution</url> (<url>\
     :WMA: https://reference.wolfram.com/language/ref/Multinomial.html</url>)
     <dl>
-      <dt>'Multinomial[$n1$, $n2$, ...]'
-      <dd>gives the multinomial coefficient '($n1$+$n2$+...)!/($n1$!$n2$!...)'.
+      <dt>'Multinomial'[$n_1$, $n_2$, ...]
+      <dd>gives the multinomial coefficient '($n_1$+$n_2$+...)!/($n_1$!$n_2$!...)'.
     </dl>
 
     >> Multinomial[2, 3, 4, 5]
@@ -394,10 +394,10 @@ class PolygonalNumber(Builtin):
     :Polygonal number: https://en.wikipedia.org/wiki/Polygonal_number</url> (<url>
     :WMA: https://reference.wolfram.com/language/ref/PolygonalNumber.html</url>)
     <dl>
-      <dt>'PolygonalNumber[$n$]'
+      <dt>'PolygonalNumber'[$n$]
       <dd>gives the $n$th triangular number.
 
-      <dt>'PolygonalNumber[$r$, $n$]'
+      <dt>'PolygonalNumber'[$r$, $n$]
       <dd>gives the $n$th $r$-gonal number.
     </dl>
 
@@ -436,7 +436,7 @@ class RogersTanimotoDissimilarity(_BooleanDissimilarity):
     https://reference.wolfram.com/language/ref/RogersTanimotoDissimilarity.html</url>
 
     <dl>
-      <dt>'RogersTanimotoDissimilarity[$u$, $v$]'
+      <dt>'RogersTanimotoDissimilarity'[$u$, $v$]
       <dd>returns the Rogers-Tanimoto dissimilarity between the two boolean \
       1-D lists $u$ and $v$, which is defined as \
       $R$ / (c_tt + c_ff + $R$) where $n$ is len($u$), c_ij is \
@@ -462,7 +462,7 @@ class RussellRaoDissimilarity(_BooleanDissimilarity):
     https://reference.wolfram.com/language/ref/RusselRaoDissimilarity.html</url>
 
     <dl>
-      <dt>'RussellRaoDissimilarity[$u$, $v$]'
+      <dt>'RussellRaoDissimilarity'[$u$, $v$]
       <dd>returns the Russell-Rao dissimilarity between the two boolean \
       1-D lists $u$ and $v$, which is defined as ($n$ - $c_tt$) / $c_tt$ \
       where $n$ is len($u$) and $c_ij$ is \
@@ -486,7 +486,7 @@ class SokalSneathDissimilarity(_BooleanDissimilarity):
     https://reference.wolfram.com/language/ref/SokalSneathDissimilarity.html</url>
 
     <dl>
-      <dt>'SokalSneathDissimilarity[$u$, $v$]'
+      <dt>'SokalSneathDissimilarity'[$u$, $v$]
       <dd>returns the Sokal-Sneath dissimilarity between the two boolean \
       1-D lists $u$ and $v$, which is defined as $R$ / (c_tt + $R$) where \
       $n$ is len($u$), $c_ij$ is the number of occurrences of \
@@ -513,23 +513,23 @@ class Subsets(Builtin):
     https://reference.wolfram.com/language/ref/Subsets.html</url>)
 
     <dl>
-      <dt>'Subsets[$list$]'
+      <dt>'Subsets'[$list$]
       <dd>finds a list of all possible subsets of $list$.
 
-      <dt>'Subsets[$list$, $n$]'
+      <dt>'Subsets'[$list$, $n$]
       <dd>finds a list of all possible subsets containing at most $n$ elements.
 
-      <dt>'Subsets[$list$, {$n$}]'
+      <dt>'Subsets'[$list$, {$n$}]
       <dd>finds a list of all possible subsets containing exactly $n$ elements.
 
-      <dt>'Subsets[$list$, {$min$, $max$}]'
+      <dt>'Subsets'[$list$, {$min$, $max$}]
       <dd>finds a list of all possible subsets containing between $min$ and \
           $max$ elements.
 
-      <dt>'Subsets[$list$, $spec$, $n$]'
+      <dt>'Subsets'[$list$, $spec$, $n$]
       <dd>finds a list of the first $n$ possible subsets.
 
-      <dt>'Subsets[$list$, $spec$, {$n$}]'
+      <dt>'Subsets'[$list$, $spec$, {$n$}]
       <dd>finds the $n$th possible subset.
     </dl>
 
@@ -701,7 +701,7 @@ class YuleDissimilarity(_BooleanDissimilarity):
     <url>:WMA link:https://reference.wolfram.com/language/ref/YuleDissimilarity.html</url>
 
     <dl>
-      <dt>'YuleDissimilarity[$u$, $v$]'
+      <dt>'YuleDissimilarity'[$u$, $v$]
       <dd>returns the Yule dissimilarity between the two boolean 1-D lists $u$ \
           and $v$, which is defined as $R$ / ($c_tt$ * $c_ff$ + $R$ / 2) \
           where $n$ is len($u$), $c_ij$ is the number of occurrences of \

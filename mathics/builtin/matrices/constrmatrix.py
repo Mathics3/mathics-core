@@ -24,7 +24,7 @@ class BoxMatrix(Builtin):
     https://reference.wolfram.com/language/ref/BoxMatrix.html</url>
 
     <dl>
-      <dt>'BoxMatrix[$s$]'
+      <dt>'BoxMatrix'[$s$]
       <dd>Gives a box shaped kernel of size 2 $s$ + 1.
     </dl>
 
@@ -55,7 +55,7 @@ class DiagonalMatrix(Builtin):
     https://reference.wolfram.com/language/ref/DiagonalMatrix.html</url>
 
     <dl>
-      <dt>'DiagonalMatrix[$list$]'
+      <dt>'DiagonalMatrix'[$list$]
       <dd>gives a matrix with the values in $list$ on its diagonal and \
       zeroes elsewhere.
     </dl>
@@ -90,7 +90,7 @@ class DiamondMatrix(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/DiamondMatrix.html</url>
 
     <dl>
-      <dt>'DiamondMatrix[$s$]'
+      <dt>'DiamondMatrix'[$s$]
       <dd>Gives a diamond shaped kernel of size 2 $s$ + 1.
     </dl>
 
@@ -127,7 +127,7 @@ class DiskMatrix(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/DiskMatrix.html</url>
 
     <dl>
-      <dt>'DiskMatrix[$s$]'
+      <dt>'DiskMatrix'[$s$]
       <dd>Gives a disk shaped kernel of size 2 $s$ + 1.
     </dl>
 
@@ -158,7 +158,7 @@ class IdentityMatrix(Builtin):
     https://reference.wolfram.com/language/ref/IdentityMatrix.html</url>
 
     <dl>
-      <dt>'IdentityMatrix[$n$]'
+      <dt>'IdentityMatrix'[$n$]
       <dd>gives the identity matrix with $n$ rows and columns.
     </dl>
 

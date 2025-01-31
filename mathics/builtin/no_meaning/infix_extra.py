@@ -18,7 +18,7 @@ class DirectedEdge(InfixOperator):
     https://reference.wolfram.com/language/ref/DirectedEdge.html</url>
 
     <dl>
-      <dt>'DirectedEdge[$x$, $y$, ...]'
+      <dt>'DirectedEdge'[$x$, $y$, ...]
       <dd>displays $x$ → $y$ → ...
 
       Directed edges are typically used in network graphs. In Mathics3, \
@@ -53,7 +53,7 @@ class UndirectedEdge(InfixOperator):
     https://reference.wolfram.com/language/ref/UndirectedEdge.html</url>
 
     <dl>
-      <dt>'UndirectedEdge[$x$, $y$, ...]'
+      <dt>'UndirectedEdge'[$x$, $y$, ...]
       <dd>displays $x$ ↔ $y$ ...
 
       Undirected edges are typically used in network graphs. In Mathics3, \\
