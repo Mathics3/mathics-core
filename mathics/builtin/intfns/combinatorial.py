@@ -416,9 +416,9 @@ class PolygonalNumber(Builtin):
 
     See also <url>
     :Binomial:
-    doc/reference-of-built-in-symbols/integer-functions/combinatorial-functions/binomial/</url>, and <url>
+    /doc/reference-of-built-in-symbols/integer-functions/combinatorial-functions/binomial/</url>, and <url>
     :RegularPolygon:
-    doc/reference-of-built-in-symbols/drawing-graphics/regularpolygon/</url>.
+    /doc/reference-of-built-in-symbols/drawing-graphics/regularpolygon/</url>.
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
