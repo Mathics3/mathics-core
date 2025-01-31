@@ -40,8 +40,8 @@ class ClebschGordan(SympyFunction):
 
     <dl>
       <dt>'ClebschGordan[{$j1$, $m1$}, {$j2$, $m2$}, {$j$ $m$}]'
-      <dd>returns the Clebsch-Gordan coefficient for the decomposition of |$j$,$m$> \
-      in terms of |$j1$, $m$>, |$j2$, $m2$>.
+      <dd>returns the Clebsch-Gordan coefficient for the decomposition of $|j, m\rangle$ \
+      in terms of $|j1, m\rangle$, $|j2, m2\rangle$.
     </dl>
 
     >> ClebschGordan[{3 / 2, 3 / 2}, {1 / 2, -1 / 2}, {1, 1}]
@@ -143,7 +143,7 @@ class SixJSymbol(SympyFunction):
     https://reference.wolfram.com/language/ref/SixJSymbol.html</url>)
 
     <dl>
-      <dt>'SixJSymbol[{$j1, $j2$, $j3$}, {$j4$, $j5$, $j6$}]'
+      <dt>'SixJSymbol[{$j1$, $j2$, $j3$}, {$j4$, $j5$, $j6$}]'
       <dd>returns the values of the Wigner 6-$j$ symbol.
     </dl>
 

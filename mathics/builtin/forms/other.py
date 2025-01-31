@@ -1,5 +1,5 @@
-"""
-Forms which are not in '$OutputForms'
+r"""
+Forms which are not in '\$OutputForms'
 """
 
 import re
@@ -13,7 +13,7 @@ from mathics.eval.strings import eval_ToString
 
 
 class SequenceForm(FormBaseClass):
-    """
+    r"""
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/SequenceForm.html</url>
@@ -56,7 +56,7 @@ class SequenceForm(FormBaseClass):
 
 
 class StringForm(FormBaseClass):
-    """
+    r"""
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/StringForm.html</url>

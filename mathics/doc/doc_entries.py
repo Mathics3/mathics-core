@@ -10,7 +10,7 @@ system, and the functions used to parse docstrings into these objects.
 import logging
 import re
 from os import getenv
-from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Tuple
 
 from mathics.core.evaluation import Message, Print, _Out
 
@@ -160,9 +160,11 @@ def filter_comments(doc: str) -> str:
 POST_SUBSTITUTION_TAG = "_POST_SUBSTITUTION%d_"
 
 
-def pre_sub(regexp, text: str, repl_func: Callable):
+def pre_sub(
+    regexp, text: str, repl_func: Callable, prev_subst: Tuple = tuple()
+) -> Tuple[str, Tuple]:
     """apply substitutions previous to parse the text"""
-    post_substitutions: List[str] = []
+    post_substitutions: List[str] = list(prev_subst)
 
     def repl_pre(match):
         repl = repl_func(match)
@@ -172,10 +174,10 @@ def pre_sub(regexp, text: str, repl_func: Callable):
 
     text = regexp.sub(repl_pre, text)
 
-    return text, post_substitutions
+    return text, tuple(post_substitutions)
 
 
-def post_sub(text: str, post_substitutions) -> str:
+def post_sub(text: str, post_substitutions: Tuple) -> str:
     """apply substitutions after parsing the doctests."""
     for index, sub in enumerate(post_substitutions):
         text = text.replace(POST_SUBSTITUTION_TAG % index, sub)

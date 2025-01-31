@@ -235,11 +235,11 @@ class SortBy(Builtin):
       <dt>'SortBy[$list$, $f$]'
       <dd>sorts $list$ (or the elements of any other expression) according to \
          canonical ordering of the keys that are extracted from the $list$'s \
-         elements using $f. Chunks of elements that appear the same under $f \
-         are sorted according to their natural order (without applying $f).
+         elements using $f$. Chunks of elements that appear the same under $f$ \
+         are sorted according to their natural order (without applying $f$).
 
       <dt>'SortBy[$f$]'
-      <dd>creates an operator function that, when applied, sorts by $f.
+      <dd>creates an operator function that, when applied, sorts by $f$.
     </dl>
 
     >> SortBy[{{5, 1}, {10, -1}}, Last]

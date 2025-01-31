@@ -22,12 +22,12 @@ from mathics.eval.makeboxes import (
 
 
 class BoxForms_(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$BoxForms.html</url>
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$BoxForms.html</url>
 
     <dl>
-      <dt>
-      <dd>$BoxForms is the list of box formats.
+      <dt>'\$BoxForms'
+      <dd>contains the list of box formats.
     </dl>
 
     >> $BoxForms
