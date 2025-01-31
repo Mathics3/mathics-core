@@ -29,11 +29,11 @@ class EllipticE(SympyFunction):
     https://reference.wolfram.com/language/ref/EllipticE.html</url>)
 
     <dl>
-      <dt>'EllipticE[$m$]'
-      <dd>computes the complete elliptic integral $E$($m$).
+      <dt>'EllipticE'[$m$]
+      <dd>computes the complete elliptic integral $E(m)$.
 
-      <dt>'EllipticE[phi|$m$]'
-      <dd>computes the complete elliptic integral of the second kind $E$($m$|$phi$).
+      <dt>'EllipticE'[$\phi$|$m$]
+      <dd>computes the complete elliptic integral of the second kind $E(m|\phi)$.
     </dl>
 
     Elliptic curves give Pi / 2 when evaluated at zero:
@@ -89,8 +89,8 @@ special.html#sympy.functions.special.elliptic_integrals.elliptic_f</url>, <url>
     https://reference.wolfram.com/language/ref/EllipticF.html</url>)
 
     <dl>
-      <dt>'EllipticF[$phi$, $m$]'
-      <dd>computes the elliptic integral of the first kind $F$($ϕ$|$m$).
+      <dt>'EllipticF'[$\phi$, $m$]
+      <dd>computes the elliptic integral of the first kind $F(\phi|m)$.
     </dl>
 
     >> EllipticF[0.3, 0.8]
@@ -132,8 +132,8 @@ class EllipticK(SympyFunction):
     https://reference.wolfram.com/language/ref/EllipticK.html</url>)
 
     <dl>
-      <dt>'EllipticK[$m$]'
-      <dd>computes the elliptic integral of the first kind $K$($m$).
+      <dt>'EllipticK'[$m$]
+      <dd>computes the elliptic integral of the first kind $K(m)$.
     </dl>
 
     >> EllipticK[0.5]
@@ -179,8 +179,8 @@ class EllipticPi(SympyFunction):
     https://reference.wolfram.com/language/ref/EllipticPi.html</url>)
 
     <dl>
-      <dt>'EllipticPi[$n$, $m$]'
-      <dd>computes the elliptic integral of the third kind $Pi$($m$).
+      <dt>'EllipticPi'[$n$, $m$]
+      <dd>computes the elliptic integral of the third kind $Pi(m)$.
     </dl>
 
     >> EllipticPi[0.4, 0.6]

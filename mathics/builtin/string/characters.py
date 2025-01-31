@@ -19,7 +19,7 @@ class Characters(Builtin):
     https://reference.wolfram.com/language/ref/Characters.html</url>
 
     <dl>
-      <dt>'Characters["$string$"]'
+      <dt>'Characters'["$string$"]
       <dd>returns a list of the characters in $string$.
     </dl>
 
@@ -43,7 +43,7 @@ class CharacterRange(Builtin):
     https://reference.wolfram.com/language/ref/CharacterRange.html</url>
 
     <dl>
-      <dt>'CharacterRange["$a$", "$b$"]'
+      <dt>'CharacterRange'["$a$", "$b$"]
       <dd>returns a list of the Unicode characters from $a$ to $b$ inclusive.
     </dl>
 
@@ -77,7 +77,7 @@ class LowerCaseQ(Test):
     <url>:WMA link:https://reference.wolfram.com/language/ref/LowerCaseQ.html</url>
 
     <dl>
-      <dt>'LowerCaseQ[$s$]'
+      <dt>'LowerCaseQ'[$s$]
       <dd>returns True if $s$ consists wholly of lower case characters.
     </dl>
 
@@ -102,7 +102,7 @@ class ToLowerCase(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ToLowerCase.html</url>
 
     <dl>
-      <dt>'ToLowerCase[$s$]'
+      <dt>'ToLowerCase'[$s$]
       <dd>returns $s$ in all lower case.
     </dl>
 
@@ -123,7 +123,7 @@ class ToUpperCase(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ToUpperCase.html</url>
 
     <dl>
-      <dt>'ToUpperCase[$s$]'
+      <dt>'ToUpperCase'[$s$]
       <dd>returns $s$ in all upper case.
     </dl>
 
@@ -144,7 +144,7 @@ class UpperCaseQ(Test):
     <url>:WMA link:https://reference.wolfram.com/language/ref/UpperCaseQ.html</url>
 
     <dl>
-     <dt>'UpperCaseQ[$s$]'
+     <dt>'UpperCaseQ'[$s$]
      <dd>returns True if $s$ consists wholly of upper case characters.
     </dl>
 

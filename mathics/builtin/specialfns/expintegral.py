@@ -19,7 +19,7 @@ class ExpIntegralE(MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ExpIntegralE.html</url>
 
     <dl>
-    <dt>'ExpIntegralE[$n$, $z$]'
+    <dt>'ExpIntegralE'[$n$, $z$]
       <dd>returns the exponential integral function $E$_$n$($z$).
     </dl>
 
@@ -39,7 +39,7 @@ class ExpIntegralEi(MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ExpIntegralEi.html</url>
 
     <dl>
-      <dt>'ExpIntegralEi[$z$]'
+      <dt>'ExpIntegralEi'[$z$]
       <dd>returns the exponential integral function Ei($z$).
     </dl>
 
@@ -60,10 +60,10 @@ class LambertW(Builtin):
       https://mathworld.wolfram.com/LambertW-Function.html</url>
 
     <dl>
-      <dt>'LambertW[$k$]'
+      <dt>'LambertW'[$k$]
       <dd>alias for ProductLog[$z$].
 
-      <dt>'LambertW[$k$, $z$]'
+      <dt>'LambertW'[$k$, $z$]
       <dd>alias for ProductLog[$k$, $z$].
     </dl>
 
@@ -93,10 +93,10 @@ class ProductLog(MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ProductLog.html</url>
 
     <dl>
-      <dt>'ProductLog[$z$]'
+      <dt>'ProductLog'[$z$]
       <dd>returns the principle solution for $w$ in $z$ == $wE$^$w$.
 
-      <dt>'ProductLog[$k$, $z$]'
+      <dt>'ProductLog'[$k$, $z$]
       <dd>gives the $k$th solution.
     </dl>
 
@@ -136,7 +136,7 @@ class ProductLog(MPMathFunction):
 # class ZernikeR(MPMathFunction):
 #    """
 #    <dl>
-#    <dt>'ZernikeR[$n$, $m$,  $r$]'
+#    <dt>'ZernikeR'[$n$, $m$,  $r$]
 #      <dd>returns the radial Zernike polynomial R_$n$^$m$($r$).
 #    </dl>
 #

@@ -12,7 +12,7 @@ class ChebyshevT(MPMathFunction):
     <url>:Chebyshev polynomial of the first kind: https://en.wikipedia.org/wiki/Chebyshev_polynomials</url> (<url>:Sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.polynomials.chebyshevt</url>, <url>:WMA: https://reference.wolfram.com/language/ref/ChebyshevT.html</url>)
 
     <dl>
-      <dt>'ChebyshevT[$n$, $x$]'
+      <dt>'ChebyshevT'[$n$, $x$]
       <dd>returns the Chebyshev polynomial of the first kind T_$n$($x$).
     </dl>
 
@@ -35,7 +35,7 @@ class ChebyshevU(MPMathFunction):
 
 
     <dl>
-      <dt>'ChebyshevU[$n$, $x$]'
+      <dt>'ChebyshevU'[$n$, $x$]
       <dd>returns the Chebyshev polynomial of the second kind U_$n$($x$).
     </dl>
 
@@ -57,7 +57,7 @@ class GegenbauerC(MPMathFunction):
     <url>:Gegenbauer polynomials: https://en.wikipedia.org/wiki/Gegenbauer_polynomials</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.polynomials.gegenbauer</url>, <url>:WMA: https://reference.wolfram.com/language/ref/GegenbauerC.html</url>)
 
     <dl>
-      <dt>'GegenbauerC[$n$, $m$, $x$]'
+      <dt>'GegenbauerC'[$n$, $m$, $x$]
       <dd>returns the Gegenbauer polynomial C_$n$^($m$)($x$).
     </dl>
 
@@ -80,7 +80,7 @@ class HermiteH(MPMathFunction):
     """
     <url>:Hermite polynomial: https://en.wikipedia.org/wiki/Hermite_polynomials</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.polynomials.hermite</url>, <url>:WMA: https://reference.wolfram.com/language/ref/HermiteH.html</url>)
     <dl>
-      <dt>'HermiteH[$n$, $x$]'
+      <dt>'HermiteH'[$n$, $x$]
       <dd>returns the Hermite polynomial H_$n$($x$).
     </dl>
 
@@ -105,7 +105,7 @@ class JacobiP(MPMathFunction):
     <url>:Jacobi polynomials: https://en.wikipedia.org/wiki/Jacobi_polynomials</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.polynomials.jacobi</url>, <url>:WMA: https://reference.wolfram.com/language/ref/JacobiP.html</url>)
 
     <dl>
-      <dt>'JacobiP[$n$, $a$, $b$, $x$]'
+      <dt>'JacobiP'[$n$, $a$, $b$, $x$]
       <dd>returns the Jacobi polynomial P_$n$^($a$,$b$)($x$).
     </dl>
 
@@ -127,10 +127,10 @@ class LaguerreL(MPMathFunction):
     <url>:Laguerre polynomials: https://en.wikipedia.org/wiki/Laguerre_polynomials</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.polynomials.leguarre_poly</url>, <url>:WMA: https://reference.wolfram.com/language/ref/LeguerreL.html</url>)
 
      <dl>
-       <dt>'LaguerreL[$n$, $x$]'
+       <dt>'LaguerreL'[$n$, $x$]
        <dd>returns the Laguerre polynomial L_$n$($x$).
 
-       <dt>'LaguerreL[$n$, $a$, $x$]'
+       <dt>'LaguerreL'[$n$, $a$, $x$]
        <dd>returns the generalised Laguerre polynomial L^$a$_$n$($x$).
      </dl>
 
@@ -163,10 +163,10 @@ class LegendreP(MPMathFunction):
     """
     <url>:Lengendre polynomials: https://en.wikipedia.org/wiki/Legendre_polynomials</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.polynomials.legendre</url>, <url>:WMA: https://reference.wolfram.com/language/ref/LegendreP</url>)
     <dl>
-      <dt>'LegendreP[$n$, $x$]'
+      <dt>'LegendreP'[$n$, $x$]
       <dd>returns the Legendre polynomial P_$n$($x$).
 
-      <dt>'LegendreP[$n$, $m$, $x$]'
+      <dt>'LegendreP'[$n$, $m$, $x$]
       <dd>returns the associated Legendre polynomial P^$m$_$n$($x$).
     </dl>
 
@@ -214,10 +214,10 @@ class LegendreQ(MPMathFunction):
     """
     <url>:Legendre functions of the second kind: https://mathworld.wolfram.com/LegendreFunctionoftheSecondKind.html</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/orthogonal.html#mpmath.legenq</url>, <url>:WMA: https://reference.wolfram.com/language/ref/LegendreQ</url>)
     <dl>
-      <dt>'LegendreQ[$n$, $x$]'
+      <dt>'LegendreQ'[$n$, $x$]
       <dd>returns the Legendre function of the second kind Q_$n$($x$).
 
-      <dt>'LegendreQ[$n$, $m$, $x$]'
+      <dt>'LegendreQ'[$n$, $m$, $x$]
       <dd>returns the associated Legendre function of the second Q^$m$_$n$($x$).
     </dl>
 
@@ -259,7 +259,7 @@ class SphericalHarmonicY(MPMathFunction):
     """
     <url>:Spherical Harmonic https://mathworld.wolfram.com/SphericalHarmonic.html</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/orthogonal.html#mpmath.sperharm</url>, <url>:WMA: https://reference.wolfram.com/language/ref/SphericalHarmonicY.html</url>)
     <dl>
-      <dt>'SphericalHarmonicY[$l$, $m$, $theta$, $phi$]'
+      <dt>'SphericalHarmonicY'[$l$, $m$, $theta$, $phi$]
       <dd>returns the spherical harmonic function Y_$l$^$m$(theta, phi).
     </dl>
 
@@ -292,7 +292,7 @@ class SphericalHarmonicY(MPMathFunction):
 #     <ulr>:Zermike polynomials: https://en.wikipedia.org/wiki/Zernike_polynomials</url>.
 
 #    <dl>
-#      <dt>'ZernikeR[$n$, $m$,  $r$]'
+#      <dt>'ZernikeR'[$n$, $m$,  $r$]
 #      <dd>returns the radial Zernike polynomial R_$n$^$m$($r$).
 #    </dl>
 #

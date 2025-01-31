@@ -61,7 +61,7 @@ class PolyLog(MPMathFunction):
     https://reference.wolfram.com/language/ref/PolyLog.html</url>
 
     <dl>
-      <dt>'PolyLog[$n$, $z$]'
+      <dt>'PolyLog'[$n$, $z$]
       <dd>returns the polylogarithm function Li_$n$($z$).
     </dl>
 
@@ -91,7 +91,7 @@ class Zeta(MPMathFunction):
     https://reference.wolfram.com/language/ref/Zeta.html</url>
 
     <dl>
-      <dt>'Zeta[$z$]'
+      <dt>'Zeta'[$z$]
       <dd>returns the Riemann zeta function of $z$.
     </dl>
 
