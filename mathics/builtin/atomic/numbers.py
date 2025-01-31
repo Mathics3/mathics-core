@@ -73,7 +73,7 @@ class Accuracy(Builtin):
     https://reference.wolfram.com/language/ref/Accuracy.html</url>)
 
     <dl>
-      <dt>'Accuracy[$x$]'
+      <dt>'Accuracy'[$x$]
       <dd>examines the number of significant digits of $expr$ after the \
       decimal point in the number x.
     </dl>
@@ -145,7 +145,7 @@ class IntegerExponent(Builtin):
     https://reference.wolfram.com/language/ref/IntegerExponent.html</url>
 
     <dl>
-      <dt>'IntegerExponent[$n$, $b$]'
+      <dt>'IntegerExponent'[$n$, $b$]
       <dd>gives the highest exponent of $b$ that divides $n$.
     </dl>
 
@@ -218,10 +218,10 @@ class IntegerLength(Builtin):
     https://reference.wolfram.com/language/ref/IntegerLength.html</url>
 
     <dl>
-      <dt>'IntegerLength[$x$]'
+      <dt>'IntegerLength'[$x$]
       <dd>gives the number of digits in the base-10 representation of $x$.
 
-      <dt>'IntegerLength[$x$, $b$]'
+      <dt>'IntegerLength'[$x$, $b$]
       <dd>gives the number of base-$b$ digits in $x$.
     </dl>
 
@@ -301,10 +301,10 @@ class NumberDigit(Builtin):
     https://reference.wolfram.com/language/ref/NumberDigit.html</url>
 
     <dl>
-      <dt>'NumberDigit[$x$, $n$]'
+      <dt>'NumberDigit'[$x$, $n$]
       <dd>returns the digit coefficient of 10^$n$ for the real-valued number $x$.
 
-      <dt>'NumberDigit[$x$, $n$, $b$]'
+      <dt>'NumberDigit'[$x$, $n$, $b$]
       <dd>returns the coefficient of $b$^$n$ in the base-$b$ representation of $x$.
     </dl>
 
@@ -339,18 +339,18 @@ class RealDigits(Builtin):
     https://reference.wolfram.com/language/ref/RealDigits.html</url>
 
     <dl>
-      <dt>'RealDigits[$n$]'
+      <dt>'RealDigits'[$n$]
       <dd>returns the decimal representation of the real number $n$ as list \
       of digits, together with the number of digits that are to the left of \
       the decimal point.
 
-      <dt>'RealDigits[$n$, $b$]'
+      <dt>'RealDigits'[$n$, $b$]
       <dd>returns a list of base_$b$ representation of the real number $n$.
 
-      <dt>'RealDigits[$n$, $b$, $len$]'
+      <dt>'RealDigits'[$n$, $b$, $len$]
       <dd>returns a list of $len$ digits.
 
-      <dt>'RealDigits[$n$, $b$, $len$, $p$]'
+      <dt>'RealDigits'[$n$, $b$, $len$, $p$]
       <dd>return $len$ digits starting with the coefficient of $b$^$p$
     </dl>
 
@@ -734,7 +734,7 @@ class Precision(Builtin):
     https://reference.wolfram.com/language/ref/Precision.html</url>
 
     <dl>
-      <dt>'Precision[$expr$]'
+      <dt>'Precision'[$expr$]
       <dd>examines the number of significant digits of $expr$.
     </dl>
 

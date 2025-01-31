@@ -224,7 +224,7 @@ class Alphabet(Builtin):
       <dt>'Alphabet'[]
       <dd>gives the list of lowercase letters a-z in the English alphabet .
 
-      <dt>'Alphabet[$type$]'
+      <dt>'Alphabet'[$type$]
       <dd> gives the alphabet for the language or class $type$.
     </dl>
 
@@ -374,7 +374,7 @@ class InterpretedBox(PrefixOperator):
     https://reference.wolfram.com/language/ref/InterpretationBox.html</url>
 
     <dl>
-      <dt>'InterpretedBox[$box$]'
+      <dt>'InterpretedBox'[$box$]
       <dd>is the ad hoc fullform for \! $box$. just for internal use...
     </dl>
 
@@ -405,7 +405,7 @@ class LetterNumber(Builtin):
 
       <dt>'LetterNumber["string"]'
       <dd>returns a list of the positions of characters in string.
-      <dt>'LetterNumber["string", $alpha$]'
+      <dt>'LetterNumber'["string", $alpha$]
       <dd>returns a list of the positions of characters in string, regarding the alphabet $alpha$.
     </dl>
 
@@ -540,7 +540,7 @@ class RemoveDiacritics(Builtin):
     :WMA link:
     https://reference.wolfram.com/language/ref/RemoveDiacritics.html</url>
     <dl>
-      <dt>'RemoveDiacritics[$s$]'
+      <dt>'RemoveDiacritics'[$s$]
       <dd>returns a version of $s$ with all diacritics removed.
     </dl>
 
@@ -610,7 +610,7 @@ class StringContainsQ(Builtin):
     :WMA link:
     https://reference.wolfram.com/language/ref/StringContainsQ.html</url>
     <dl>
-      <dt>'StringContainsQ["$string$", $patt$]'
+      <dt>'StringContainsQ'["$string$", $patt$]
       <dd>returns True if any part of $string$ matches $patt$, and returns False otherwise.
 
       <dt>'StringContainsQ[{"s1", "s2", ...}, patt]'
@@ -657,10 +657,10 @@ class StringRepeat(Builtin):
     :WMA link:
     https://reference.wolfram.com/language/ref/StringRepeat.html</url>
     <dl>
-      <dt>'StringRepeat["$string$", $n$]'
+      <dt>'StringRepeat'["$string$", $n$]
       <dd>gives $string$ repeated $n$ times.
 
-      <dt>'StringRepeat["$string$", $n$, $max$]'
+      <dt>'StringRepeat'["$string$", $n$, $max$]
       <dd>gives $string$ repeated $n$ times, but not more than $max$ characters.
 
     </dl>
@@ -736,13 +736,13 @@ class ToExpression(Builtin):
     :WMA link:
     https://reference.wolfram.com/language/ref/ToExpression.html</url>
     <dl>
-      <dt>'ToExpression[$input$]'
+      <dt>'ToExpression'[$input$]
       <dd>interprets a given string as Mathics input.
 
-      <dt>'ToExpression[$input$, $form$]'
+      <dt>'ToExpression'[$input$, $form$]
       <dd>reads the given input in the specified $form$.
 
-      <dt>'ToExpression[$input$, $form$, $h$]'
+      <dt>'ToExpression'[$input$, $form$, $h$]
       <dd>applies the head $h$ to the expression before evaluating it.
 
     </dl>
@@ -854,10 +854,10 @@ class ToString(Builtin):
     :WMA link:
     https://reference.wolfram.com/language/ref/ToString.html</url>
     <dl>
-      <dt>'ToString[$expr$]'
+      <dt>'ToString'[$expr$]
       <dd>returns a string representation of $expr$.
 
-      <dt>'ToString[$expr$, $form$]'
+      <dt>'ToString'[$expr$, $form$]
       <dd>returns a string representation of $expr$ in the form $form$.
     </dl>
 
@@ -905,7 +905,7 @@ class Transliterate(Builtin):
     :WMA link:
     https://reference.wolfram.com/language/ref/Transliterate.html</url>
     <dl>
-      <dt>'Transliterate[$s$]'
+      <dt>'Transliterate'[$s$]
       <dd>transliterates a text in some script into an ASCII string.
     </dl>
 

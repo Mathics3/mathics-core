@@ -650,19 +650,19 @@ class Arrow(Builtin):
     https://reference.wolfram.com/language/ref/Arrow.html</url>
 
     <dl>
-      <dt>'Arrow'[{$p1$, $p2$}]
-      <dd>represents a line from $p1$ to $p2$ that ends with an arrow at $p2$.
+      <dt>'Arrow'[{$p_1$, $p_2$}]
+      <dd>represents a line from $p_1$ to $p_2$ that ends with an arrow at $p_2$.
 
-      <dt>'Arrow'[{$p1$, $p2$}, $s$]
-      <dd>represents a line with arrow that keeps a distance of $s$ from $p1$ and $p2$.
-
-      <dt>'Arrow'[{$point_1$, $point_2$}, {$s_1$, $s_2$}]
-      <dd>represents a line with arrow that keeps a distance of $s_1$ from $p1$ and a \
-          distance of $s_2$ from $p2$.
+      <dt>'Arrow'[{$p_1$, $p_2$}, $s$]
+      <dd>represents a line with arrow that keeps a distance of $s$ from $p_1$ and $p_2$.
 
       <dt>'Arrow'[{$point_1$, $point_2$}, {$s_1$, $s_2$}]
-      <dd>represents a line with arrow that keeps a distance of $s_1$ from $p1$ and a \
-          distance of $s_2$ from $p2$.
+      <dd>represents a line with arrow that keeps a distance of $s_1$ from $p_1$ and a \
+          distance of $s_2$ from $p_2$.
+
+      <dt>'Arrow'[{$point_1$, $point_2$}, {$s_1$, $s_2$}]
+      <dd>represents a line with arrow that keeps a distance of $s_1$ from $p_1$ and a \
+          distance of $s_2$ from $p_2$.
     </dl>
 
     >> Graphics[Arrow[{{0,0}, {1,1}}]]
@@ -1447,11 +1447,11 @@ class Rectangle(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Rectangle.html</url>
 
     <dl>
-      <dt>'Rectangle'[{$xmin$, $ymin$}]
-      <dd>represents a unit square with bottom-left corner at {$xmin$, $ymin$}.
+      <dt>'Rectangle'[{$x_{min}$, $y_{min}$}]
+      <dd>represents a unit square with bottom-left corner at {$x_{min}$, $y_{min}$}.
 
-      <dt>'Rectangle[{$xmin$, $ymin$}, {$xmax$, $ymax$}]
-      <dd>is a rectangle extending from {$xmin$, $ymin$} to {$xmax$, $ymax$}.
+      <dt>'Rectangle[{$x_{min}$, $y_{min}$}, {$x_{max}$, $y_{max}$}]
+      <dd>is a rectangle extending from {$x_{min}$, $y_{min}$} to {$x_{max}$, $y_{max}$}.
     </dl>
 
     >> Graphics[Rectangle[]]

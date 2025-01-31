@@ -252,13 +252,13 @@ Interactive Manipulation
 #     https://reference.wolfram.com/language/ref/Manipulate.html</url>
 
 #     <dl>
-#       <dt>'Manipulate'[$expr1$, {$u$, $u_min$, $u_max$}]
+#       <dt>'Manipulate'[$expr1$, {$u$, $u_{min}$, $u_{max}$}]
 #       <dd>interactively compute and display an expression with different values of $u$.
 
-#       <dt>'Manipulate'[$expr1$, {$u$, $u_min$, $u_max$, $du$}]
-#       <dd>allows $u$ to vary between $u_min$ and $u_max$ in steps of $du$.
+#       <dt>'Manipulate'[$expr1$, {$u$, $u_{min}$, $u_{max}$, $du$}]
+#       <dd>allows $u$ to vary between $u_{min}$ and $u_{max}$ in steps of $du$.
 
-#       <dt>'Manipulate'[$expr1$, {{$u$, $u_init$}, $u_min$, $u_max$, ...}]
+#       <dt>'Manipulate'[$expr1$, {{$u$, $u_init$}, $u_{min}$, $u_{max}$, ...}]
 #       <dd>starts with initial value of $u_init$.
 
 #       <dt>'Manipulate'[$expr1$, {{$u$, $u_init$, $u_lbl$}, ...}]
