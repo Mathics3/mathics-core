@@ -542,7 +542,7 @@ class Put(InfixOperator):
     <dl>
       <dt>'$expr$ >> $filename$'
       <dd>write $expr$ to a file.
-    <dt>'Put'[$expr_1$, $expr_2$, ..., $filename$]
+    <dt>'Put'[$expr_1$, $expr_2$, ..., "$filename$"]
       <dd>write a sequence of expressions to a file.
     </dl>
 
