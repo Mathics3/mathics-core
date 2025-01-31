@@ -101,7 +101,7 @@ class ClearTrace(Builtin):
 
 
 class PrintTrace(_TraceBase):
-    """
+    r"""
     ## <url>:trace native symbol:</url>
 
     <dl>
@@ -120,7 +120,7 @@ class PrintTrace(_TraceBase):
     Note that in a browser the information only appears in a console.
 
 
-    Note: before '$TraceBuiltins' is set to 'True', 'PrintTrace[]' will print an empty
+    Note: before '\$TraceBuiltins' is set to 'True', 'PrintTrace[]' will print an empty
     list.
     >> PrintTrace[] (* See console log *)
 
@@ -277,11 +277,11 @@ class TraceBuiltins(_TraceBase):
 # The convention is to use the name of the variable without the "$" as
 # the class name, but it is already taken by the builtin `TraceBuiltins`
 class TraceBuiltinsVariable(Builtin):
-    """
+    r"""
     ## <url>:trace native symbol:</url>
 
     <dl>
-      <dt>'$TraceBuiltins'
+      <dt>'\$TraceBuiltins'
       <dd>A Boolean Built-in variable when True collects function evaluation statistics.
     </dl>
 
@@ -310,7 +310,7 @@ class TraceBuiltinsVariable(Builtin):
     To  clear statistics collected use 'ClearTrace[]':
     X> ClearTrace[]
 
-    '$TraceBuiltins'  cannot be set to a non-boolean value.
+    '\$TraceBuiltins'  cannot be set to a non-boolean value.
     >> $TraceBuiltins = x
      : x should be True or False.
      = x
@@ -404,11 +404,11 @@ class TraceEvaluation(Builtin):
 
 
 class TraceEvaluationVariable(Builtin):
-    """
+    r"""
     ## <url>:trace native symbol:</url>
 
     <dl>
-      <dt>'$TraceEvaluation'
+      <dt>'\$TraceEvaluation'
       <dd>A Boolean variable which when set True traces Expression evaluation calls and returns.
     </dl>
 
@@ -429,7 +429,7 @@ class TraceEvaluationVariable(Builtin):
 
     >> a + a
      = 2 a
-    '$TraceEvaluation' cannot be set to a non-boolean value.
+    '\$TraceEvaluation' cannot be set to a non-boolean value.
     >> $TraceEvaluation = x
      : x should be True or False.
      = x

@@ -52,11 +52,11 @@ from mathics.eval.makeboxes import do_format, format_element
 
 
 class Input_(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$Input.html</url>
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$Input.html</url>
 
     <dl>
-      <dt>'$Input'
+      <dt>'\$Input'
       <dd>is the name of the stream from which input is currently being read.
     </dl>
 
@@ -364,7 +364,7 @@ class Get(PrefixOperator):
       <dt>'Get[$name$, Trace->True]'
       <dd>Runs Get tracing each line before it is evaluated.
 
-     'Settings`$TraceGet' can be also used to trace lines on all 'Get[]' calls.
+     'Settings`\$TraceGet' can be also used to trace lines on all 'Get[]' calls.
     </dl>
 
 
@@ -409,17 +409,17 @@ class Get(PrefixOperator):
 
 
 class InputFileName_(Predefined):
-    """
+    r"""
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/$InputFileName.html</url>
+    https://reference.wolfram.com/language/ref/\$InputFileName.html</url>
 
     <dl>
-      <dt>'$InputFileName'
+      <dt>'\$InputFileName'
       <dd>is the name of the file from which input is currently being read.
     </dl>
 
-    While in interactive mode, '$InputFileName' is "".
+    While in interactive mode, '\$InputFileName' is "".
     X> $InputFileName
     """
 
@@ -1126,7 +1126,7 @@ class ReadList(Read):
         py_n = n.get_int_value()
         if py_n < 0:
             evaluation.message(
-                "ReadList", "intnm", to_expression("ReadList", file, types, m)
+                "ReadList", "intnm", to_expression("ReadList", file, types, n)
             )
             return
 

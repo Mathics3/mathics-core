@@ -11,21 +11,21 @@ from mathics.core.list import ListExpression
 class PrintForms_(Predefined):
     r"""
     <dl>
-      <dt>'$PrintForms'
+      <dt>'\$PrintForms'
       <dd>contains the list of basic print forms. It is updated automatically when new 'PrintForms' are defined by setting format values.
     </dl>
 
     >> $PrintForms
      = ...
 
-    Suppose now that we want to add a new format 'MyForm'. Initially, it does not belong to '$PrintForms':
+    Suppose now that we want to add a new format 'MyForm'. Initially, it does not belong to '\$PrintForms':
     >> MemberQ[$PrintForms, MyForm]
      = False
 
     Now, let's define a format rule:
     >> Format[F[x_], MyForm] := "F<<" <> ToString[x] <> ">>"
 
-    Now, the new format belongs to the '$PrintForms' list
+    Now, the new format belongs to the '\$PrintForms' list
     >> MemberQ[$PrintForms, MyForm]
      = True
 
@@ -42,7 +42,7 @@ class PrintForms_(Predefined):
 class OutputForms_(Predefined):
     r"""
     <dl>
-      <dt>'$OutputForms'
+      <dt>'\$OutputForms'
       <dd>contains the list of all output forms. It is updated automatically when new 'OutputForms' are defined by setting format values.
     </dl>
 

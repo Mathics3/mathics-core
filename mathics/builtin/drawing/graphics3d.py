@@ -66,7 +66,7 @@ class Graphics3D(Graphics):
         <url>:WMA link:https://reference.wolfram.com/language/ref/Graphics3D.html</url>
 
         <dl>
-          <dt>'Graphics3D[$primitives$, $options$]'
+          <dt>'Graphics3D'[$primitives$, $options$]
           <dd>represents a three-dimensional graphic.
 
           See <url>:Drawing Option and Option Values:
@@ -170,11 +170,11 @@ class Sphere(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Sphere.html</url>
 
     <dl>
-    <dt>'Sphere[{$x$, $y$, $z$}]'
+    <dt>'Sphere'[{$x$, $y$, $z$}]
         <dd>is a sphere of radius 1 centered at the point {$x$, $y$, $z$}.
-    <dt>'Sphere[{$x$, $y$, $z$}, $r$]'
+    <dt>'Sphere'[{$x$, $y$, $z$}, $r$]
         <dd>is a sphere of radius $r$ centered at the point {$x$, $y$, $z$}.
-    <dt>'Sphere[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}, ... }, $r$]'
+    <dt>'Sphere'[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}, ... }, $r$]
         <dd>is a collection spheres of radius $r$ centered at the points \
             {$x1$, $y2$, $z2$}, {$x2$, $y2$, $z2$}, ...
     </dl>
@@ -195,19 +195,23 @@ class Sphere(Builtin):
 
 class Cone(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Cone.html</url>
+    <url>:Cone:https://en.wikipedia.org/wiki/Cone</url> (<url>
+    :WMA:https://reference.wolfram.com/language/ref/Cone.html</url>)
 
     <dl>
-      <dt>'Cone[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}]'
-      <dd>represents a cone of radius 1.
+      <dt>'Cone'[]
+      <dd>is a cone of radius 1 and height 2 oriented in the upward $z$ direction.
 
-      <dt>'Cone[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}, $r$]'
-      <dd>is a cone of radius $r$ starting at ($x1$, $y1$, $z1$) and ending at \
-          ($x2$, $y2$, $z2$).
+      <dt>'Cone'[{{$x_1$, $y_1$, $z_1$}, {$x_2$, $y_2$, $z_2$}}, $r$]
+      <dd>is a cone of radius $r$ starting at ($x_1$, $y_1$, $z_1$) and ending at \
+          ($x2$, $y_2$, $z_2$).
 
-      <dt>'Cone[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}, ... }, $r$]'
+      <dt>'Cone'[{{$x_1$, $y_1$, $z_1$}, {$x_2$, $y_2$, $z_2$}, ... }, $r$]
       <dd>is a collection cones of radius $r$.
     </dl>
+
+    >> Graphics3D[Cone[]]
+     = -Graphics3D-
 
     >> Graphics3D[Cone[{{0, 0, 0}, {1, 1, 1}}, 1]]
      = -Graphics3D-
@@ -223,7 +227,7 @@ class Cone(Builtin):
     }
 
     rules = {
-        "Cone[]": "Cone[{{0, 0, 0}, {1, 1, 1}}, 1]",
+        "Cone[]": "Cone[{{0, 0, 0}, {0, 0, 2}}, 1]",
         "Cone[positions_List]": "Cone[positions, 1]",
     }
 
@@ -300,14 +304,14 @@ class Cylinder(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Cylinder.html</url>
 
     <dl>
-      <dt>'Cylinder[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}]'
+      <dt>'Cylinder'[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}]
       <dd>represents a cylinder of radius 1.
 
-      <dt>'Cylinder[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}, $r$]'
+      <dt>'Cylinder'[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}, $r$]
       <dd>is a cylinder of radius $r$ starting at ($x1$, $y1$, $z1$) and ending at \
           ($x2$, $y2$, $z2$).
 
-      <dt>'Cylinder[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}, ... }, $r$]'
+      <dt>'Cylinder'[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}, ... }, $r$]
       <dd>is a collection cylinders of radius $r$.
     </dl>
 
@@ -348,10 +352,10 @@ class Tube(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Tube.html</url>
 
     <dl>
-      <dt>'Tube[{$p1$, $p2$, ...}]'
+      <dt>'Tube'[{$p1$, $p2$, ...}]
       <dd>represents a tube passing through $p1$, $p2$, ... with radius 1.
 
-      <dt>'Tube[{$p1$, $p2$, ...}, $r$]'
+      <dt>'Tube'[{$p1$, $p2$, ...}, $r$]
       <dd>represents a tube with radius $r$.
     </dl>
 

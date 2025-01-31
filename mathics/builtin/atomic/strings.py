@@ -269,10 +269,10 @@ class CharacterEncoding(Predefined):
     https://reference.wolfram.com/language/ref/$CharacterEncoding.html</url>
 
     <dl>
-      <dt>'$CharacterEncoding'
+      <dt>'\\$CharacterEncoding'
       <dd>specifies the default raw character encoding to use for input and \
       output when no encoding is explicitly specified. \
-      Initially this is set to '$SystemCharacterEncoding'.
+      Initially this is set to '\\$SystemCharacterEncoding'.
     </dl>
 
     See the character encoding current is in effect and used in input and \
@@ -281,7 +281,7 @@ class CharacterEncoding(Predefined):
     >> $CharacterEncoding
      = ...
 
-    By setting its value to one of the values in '$CharacterEncodings', \
+    By setting its value to one of the values in '\\$CharacterEncodings', \
     operators are formatted differently. For example,
 
     >> $CharacterEncoding = "ASCII"; a -> b
@@ -290,13 +290,13 @@ class CharacterEncoding(Predefined):
      = ...
 
     Setting its value to 'None' restore the value to \
-    '$SystemCharacterEncoding':
+    '\\$SystemCharacterEncoding':
     >> $CharacterEncoding = None;
     >> $SystemCharacterEncoding == $CharacterEncoding
      = True
 
     See also <url>
-    :$SystemCharacterEncoding:
+    :\\$SystemCharacterEncoding:
     /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/string-manipulation/$systemcharacterencoding/</url>.
     """
 
@@ -329,7 +329,7 @@ class CharacterEncodings(Predefined):
     https://reference.wolfram.com/language/ref/$CharacterEncodings.html</url>
 
     <dl>
-      <dt>'$CharacterEncodings'
+      <dt>'\\$CharacterEncodings'
       <dd>stores the list of available character encodings.
     </dl>
 
@@ -430,6 +430,7 @@ class LetterNumber(Builtin):
      = 2
 
     """
+
     # FIXME: put the right unicode characters in a way that the
     # following test works...
     r"""
@@ -706,9 +707,9 @@ class SystemCharacterEncoding(Predefined):
     """
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/$SystemCharacterEncoding.html</url>
+    https://reference.wolfram.com/language/ref/\\$SystemCharacterEncoding.html</url>
     <dl>
-      <dt>$SystemCharacterEncoding
+      <dt>\\$SystemCharacterEncoding
       <dd>gives the default character encoding of the system.
 
       On startup, the value of environment variable 'MATHICS_CHARACTER_ENCODING' \
@@ -899,7 +900,7 @@ class ToString(Builtin):
 
 
 class Transliterate(Builtin):
-    """
+    r"""
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/Transliterate.html</url>
@@ -955,4 +956,5 @@ class Whitespace(Builtin):
     >> StringReplace[" this has leading and trailing whitespace \n ", (StartOfString ~~ Whitespace) | (Whitespace ~~ EndOfString) -> ""] <> " removed" // FullForm
      = "this has leading and trailing whitespace removed"
     """
+
     summary_text = "sequence of whitespace characters"

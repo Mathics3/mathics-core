@@ -318,7 +318,7 @@ class PlotRange(Builtin):
       <li>$max$ - explicit limit for each function.
       <li>{$min$, $max$} - explicit limits for $y$ (2D), $z$ (3D), \
           or array values.
-      <li>{{$x$_$min$, $x$_$max$}, {{$y_min}, {$y_max}} - explicit limits for \
+      <li>{{$x_{min}$, $x_{max}$}, {{$y_{min}$}, {$y_{max}$}} - explicit limits for \
           $x$ and $y$.
     </ul>
 
