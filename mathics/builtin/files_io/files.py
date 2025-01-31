@@ -542,7 +542,7 @@ class Put(InfixOperator):
     <dl>
       <dt>'$expr$ >> $filename$'
       <dd>write $expr$ to a file.
-    <dt>'Put'[$expr1$, $expr2$, ..., $filename$]
+    <dt>'Put'[$expr_1$, $expr_2$, ..., "$filename$"]
       <dd>write a sequence of expressions to a file.
     </dl>
 
@@ -648,7 +648,7 @@ class PutAppend(InfixOperator):
       <dt>'$expr$ >>> $filename$'
       <dd>append $expr$ to a file.
 
-      <dt>'PutAppend'[$expr1$, $expr2$, ..., "$filename$"]
+      <dt>'PutAppend'[$expr_1$, $expr_2$, ..., "$filename$"]
       <dd>write a sequence of expressions to a file.
     </dl>
 
@@ -1548,7 +1548,7 @@ class Write(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Write.html</url>
 
     <dl>
-      <dt>'Write'[$channel$, $expr1$, $expr2$, ...]
+      <dt>'Write'[$channel$, $expr_1$, $expr_2$, ...]
       <dd>writes the expressions to the output channel followed by a newline.
     </dl>
 
@@ -1599,7 +1599,7 @@ class WriteString(Builtin):
     https://reference.wolfram.com/language/ref/WriteString.html</url>
 
     <dl>
-      <dt>'WriteString'[$stream$, $str1, $str2$, ... ]
+      <dt>'WriteString'[$stream$, $str_1$, $str_2$, ... ]
       <dd>writes the strings to the output stream.
     </dl>
 

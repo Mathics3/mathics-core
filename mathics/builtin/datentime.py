@@ -354,7 +354,7 @@ class AbsoluteTime(_DateFormat):
       <dt>'AbsoluteTime'["$string$"]
       <dd>gives the absolute time specification for a given date string.
 
-      <dt>'AbsoluteTime'[{"$string$",{$e1$, $e2$, ...}}]
+      <dt>'AbsoluteTime'[{"$string$",{$e_1$, $e_2$, ...}}]
       <dd>takgs the date string to contain the elements "$ei$".
     </dl>
 
@@ -430,13 +430,13 @@ class DateDifference(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/DateDifference.html</url>
 
     <dl>
-      <dt>'DateDifference'[$date1$, $date2$]
-      <dd>returns the difference between $date1$ and $date2$ in days.
+      <dt>'DateDifference'[$date_1$, $date_2$]
+      <dd>returns the difference between $date_1$ and $date_2$ in days.
 
-      <dt>'DateDifference'[$date1$, $date2$, $unit$]
+      <dt>'DateDifference'[$date_1$, $date_2$, $unit$]
       <dd>returns the difference in the specified $unit$.
 
-      <dt>'DateDifference'[$date1$, $date2$, {$unit1$, $unit2$, ...}]
+      <dt>'DateDifference'[$date_1$, $date_2$, {$unit_1$, $unit_2$, ...}]
       <dd>represents the difference as a list of integer multiples of each $unit$, with any remainder expressed in the smallest unit.
     </dl>
 
@@ -723,7 +723,7 @@ class DatePlus(Builtin):
       <dt>'DatePlus'[$date$, {$n$, "$unit$"}]
       <dd>finds the date $n$ units after $date$.
 
-      <dt>'DatePlus'[$date$, {{$n1$, "$unit1$"}, {$n2$, "$unit2$"}, ...}]
+      <dt>'DatePlus'[$date$, {{$n_1$, "$unit_1$"}, {$n_2$, "$unit_2$"}, ...}]
       <dd>finds the date which is $n_i$ specified units after $date$.
 
       <dt>'DatePlus'[$n$]
@@ -891,7 +891,7 @@ class DateString(_DateFormat):
       <dt>'DateString'[$elem$]
       <dd>returns the time formatted according to $elems$.
 
-      <dt>'DateString'[{$e1$, $e2$, ...}]
+      <dt>'DateString'[{$e_1$, $e_2$, ...}]
       <dd>concatenates the time formatted according to elements $ei$.
 
       <dt>'DateString'[$time$]

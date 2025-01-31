@@ -188,8 +188,8 @@ class CompoundExpression(InfixOperator):
     https://reference.wolfram.com/language/ref/CompoundExpression.html</url>
 
     <dl>
-      <dt>'CompoundExpression'[$e1$, $e2$, ...]
-      <dt>'$e1$; $e2$; ...'
+      <dt>'CompoundExpression'[$e_1$, $e_2$, ...]
+      <dt>'$e_1$; $e_2$; ...'
         <dd>evaluates its arguments in turn, returning the last result.
     </dl>
 
@@ -617,8 +617,8 @@ class Which(Builtin):
     https://reference.wolfram.com/language/ref/Which.html</url>
 
     <dl>
-      <dt>'Which'[$cond1$, $expr1$, $cond2$, $expr2$, ...]
-      <dd>yields $expr1$ if $cond1$ evaluates to 'True', $expr2$ if $cond2$ \
+      <dt>'Which'[$cond_1$, $expr_1$, $cond_2$, $expr_2$, ...]
+      <dd>yields $expr_1$ if $cond_1$ evaluates to 'True', $expr_2$ if $cond_2$ \
           evaluates to 'True', etc.
     </dl>
 
