@@ -70,9 +70,9 @@ class Set(InfixOperator):
       <dt>$expr$ = $value$
       <dd>evaluates $value$ and assigns it to $expr$.
 
-      <dt>{$s1$, $s2$, $s3$} = {$v1$, $v2$, $v3$}
-      <dd>sets multiple symbols ($s1$, $s2$, ...) to the corresponding \
-          values ($v1$, $v2$, ...).
+      <dt>{$s_1$, $s_2$, $s_3$} = {$v_1$, $v_2$, $v_3$}
+      <dd>sets multiple symbols ($s_1$, $s_2$, ...) to the corresponding \
+          values ($v_1$, $v_2$, ...).
     </dl>
 
     'Set' can be used to give a symbol a value:

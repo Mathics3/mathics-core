@@ -656,13 +656,13 @@ class Arrow(Builtin):
       <dt>'Arrow'[{$p1$, $p2$}, $s$]
       <dd>represents a line with arrow that keeps a distance of $s$ from $p1$ and $p2$.
 
-      <dt>'Arrow'[{$point_1$, $point_2$}, {$s1$, $s2$}]
-      <dd>represents a line with arrow that keeps a distance of $s1$ from $p1$ and a \
-          distance of $s2$ from $p2$.
+      <dt>'Arrow'[{$point_1$, $point_2$}, {$s_1$, $s_2$}]
+      <dd>represents a line with arrow that keeps a distance of $s_1$ from $p1$ and a \
+          distance of $s_2$ from $p2$.
 
-      <dt>'Arrow'[{$point_1$, $point_2$}, {$s1$, $s2$}]
-      <dd>represents a line with arrow that keeps a distance of $s1$ from $p1$ and a \
-          distance of $s2$ from $p2$.
+      <dt>'Arrow'[{$point_1$, $point_2$}, {$s_1$, $s_2$}]
+      <dd>represents a line with arrow that keeps a distance of $s_1$ from $p1$ and a \
+          distance of $s_2$ from $p2$.
     </dl>
 
     >> Graphics[Arrow[{{0,0}, {1,1}}]]
@@ -1296,8 +1296,8 @@ class Disk(Builtin):
       <dt>'Disk[]'
       <dd>chooses center '(0, 0)' and radius 1.
 
-      <dt>'Disk'[{$x$, $y$}, ..., {$t1$, $t2$}]
-      <dd>is a sector from angle $t1$ to $t2$.
+      <dt>'Disk'[{$x$, $y$}, ..., {$t_1$, $t_2$}]
+      <dd>is a sector from angle $t_1$ to $t_2$.
     </dl>
 
     >> Graphics[{Blue, Disk[{0, 0}, {2, 1}]}]

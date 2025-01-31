@@ -438,8 +438,8 @@ class Quiet(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Quiet.html</url>
 
     <dl>
-      <dt>'Quiet'[$expr$, {$s1$::$t1$, ...}]
-      <dd>evaluates $expr$, without messages '{$s1$::$t1$, ...}' being displayed.
+      <dt>'Quiet'[$expr$, {$s_1$::$t_1$, ...}]
+      <dd>evaluates $expr$, without messages '{$s_1$::$t_1$, ...}' being displayed.
       <dt>'Quiet'[$expr$, All]
       <dd>evaluates $expr$, without any messages being displayed.
       <dt>'Quiet'[$expr$, None]

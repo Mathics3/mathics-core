@@ -16,7 +16,7 @@ class ByteArray(Builtin):
     https://reference.wolfram.com/language/ref/ByteArray.html</url>
 
     <dl>
-      <dt>'ByteArray[{$b_1$, $b_2$, ...}]'
+      <dt>'ByteArray'[{$b_1$, $b_2$, ...}]
       <dd> Represents a sequence of Bytes $b_1$, $b_2$, ...
 
       <dt>'ByteArray["string"]'
