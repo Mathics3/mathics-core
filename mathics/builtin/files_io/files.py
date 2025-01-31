@@ -648,7 +648,7 @@ class PutAppend(InfixOperator):
       <dt>'$expr$ >>> $filename$'
       <dd>append $expr$ to a file.
 
-      <dt>'PutAppend'[$expr1$, $expr2$, ..., $"filename"$]
+      <dt>'PutAppend'[$expr1$, $expr2$, ..., "$filename$"]
       <dd>write a sequence of expressions to a file.
     </dl>
 
