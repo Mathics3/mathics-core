@@ -140,8 +140,8 @@ class CopyFile(Builtin):
     https://reference.wolfram.com/language/ref/CopyFile.html</url>
 
     <dl>
-      <dt>'CopyFile'["$file1$", "$file2$"]
-      <dd>copies $file1$ to $file2$.
+      <dt>'CopyFile'["$file_1$", "$file_2$"]
+      <dd>copies $file_1$ to $file_2$.
     </dl>
 
     X> CopyFile["ExampleData/sunflowers.jpg", "MathicsSunflowers.jpg"]
@@ -266,7 +266,7 @@ class DeleteFile(Builtin):
       <dt>'Delete'["$file$"]
       <dd>deletes $file$.
 
-      <dt>'Delete'[{"$file1$", "$file2$", ...}]
+      <dt>'Delete'[{"$file_1$", "$file_2$", ...}]
       <dd>deletes a list of files.
     </dl>
 
@@ -940,8 +940,8 @@ class RenameFile(Builtin):
     https://reference.wolfram.com/language/ref/RenameFile.html</url>
 
     <dl>
-    <dt>'RenameFile'["$file1$", "$file2$"]
-      <dd>renames $file1$ to $file2$.
+    <dt>'RenameFile'["$file_1$", "$file_2$"]
+      <dd>renames $file_1$ to $file_2$.
     </dl>
 
     >> CopyFile["ExampleData/sunflowers.jpg", "MathicsSunflowers.jpg"]

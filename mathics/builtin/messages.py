@@ -262,7 +262,7 @@ class Message(Builtin):
     https://reference.wolfram.com/language/ref/Message.html</url>
 
     <dl>
-      <dt>'Message'[$symbol$::$msg$, $expr1$, $expr2$, ...]
+      <dt>'Message'[$symbol$::$msg$, $expr_1$, $expr_2$, ...]
       <dd>displays the specified message, replacing placeholders in
         the message text with the corresponding expressions.
     </dl>
