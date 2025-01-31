@@ -21,7 +21,7 @@ class DirectoryName(Builtin):
     https://reference.wolfram.com/language/ref/DirectoryName.html</url>
 
     <dl>
-      <dt>'DirectoryName["$name$"]'
+      <dt>'DirectoryName'["$name$"]
       <dd>extracts the directory name from a filename.
     </dl>
 
@@ -79,7 +79,7 @@ class DirectoryQ(Builtin):
     https://reference.wolfram.com/language/ref/DirectoryQ.html</url>
 
     <dl>
-      <dt>'DirectoryQ["$name$"]'
+      <dt>'DirectoryQ'["$name$"]
       <dd>returns 'True' if the directory called $name$ exists and 'False' otherwise.
     </dl>
 
@@ -118,7 +118,7 @@ class FileNameDepth(Builtin):
     https://reference.wolfram.com/language/ref/FileNameDepth.html</url>
 
     <dl>
-      <dt>'FileNameDepth["$name$"]'
+      <dt>'FileNameDepth'["$name$"]
       <dd>gives the number of path parts in the given filename.
     </dl>
 
@@ -145,7 +145,7 @@ class FileNameJoin(Builtin):
     https://reference.wolfram.com/language/ref/FileNameJoin.html</url>
 
     <dl>
-      <dt>'FileNameJoin[{"$dir_1$", "$dir_2$", ...}]'
+      <dt>'FileNameJoin'[{"$dir_1$", "$dir_2$", ...}]
       <dd>joins the $dir_i$ together into one path.
 
       <dt>'FileNameJoin[..., OperatingSystem->"os"]'
@@ -219,7 +219,7 @@ class FileNameSplit(Builtin):
     https://reference.wolfram.com/language/ref/FileNameSplit.html</url>
 
     <dl>
-      <dt>'FileNameSplit["$filenames$"]'
+      <dt>'FileNameSplit'["$filenames$"]
       <dd>splits a $filename$ into a list of parts.
     </dl>
 
@@ -280,7 +280,7 @@ class ParentDirectory(Builtin):
       <dt>'ParentDirectory[]'
       <dd>returns the parent of the current working directory.
 
-      <dt>'ParentDirectory["$dir$"]'
+      <dt>'ParentDirectory'["$dir$"]
       <dd>returns the parent $dir$.
     </dl>
 

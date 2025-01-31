@@ -803,7 +803,7 @@ class UnitStep(Builtin):
     <dl>
       <dt>'UnitStep'[$x$]
       <dd>return 0 if $x$ < 0, and 1 if $x$ >= 0.
-      <dt>'UnitStep'[$x1$, $x2$, ...]
+      <dt>'UnitStep'[$x_1$, $x_2$, ...]
       <dd>return the multidimensional unit step function which is 1 only if none of the $xi$ are negative.
     </dl>
 

@@ -510,7 +510,7 @@ class Protect(Builtin):
     https://reference.wolfram.com/language/ref/Protect.html</url>
 
     <dl>
-      <dt>'Protect'[$s1$, $s2$, ...]
+      <dt>'Protect'[$s_1$, $s_2$, ...]
       <dd>sets the attribute 'Protected' for the symbols $si$.
 
       <dt>'Protect'[$str1$, $str2$, ...]
@@ -743,7 +743,7 @@ class Unprotect(Builtin):
     https://reference.wolfram.com/language/ref/Unprotect.html</url>
 
     <dl>
-      <dt>'Unprotect'[$s1$, $s2$, ...]
+      <dt>'Unprotect'[$s_1$, $s_2$, ...]
       <dd>removes the attribute 'Protected' for the symbols $si$.
 
       <dt>'Unprotect'[$str$]

@@ -82,7 +82,7 @@ class Grid(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Grid.html</url>
 
     <dl>
-      <dt>'Grid'[{{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}]
+      <dt>'Grid'[{{$a_1$, $a_2$, ...}, {$b_1$, $b_2$, ...}, ...}]
       <dd>formats several expressions inside a 'GridBox'.
     </dl>
 

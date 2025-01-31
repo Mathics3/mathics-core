@@ -277,7 +277,7 @@ class Sequence(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Sequence.html</url>
 
     <dl>
-    <dt>'Sequence'[$x1$, $x2$, ...]
+    <dt>'Sequence'[$x_1$, $x_2$, ...]
         <dd>represents a sequence of arguments to a function.
     </dl>
 

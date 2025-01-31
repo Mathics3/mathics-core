@@ -15,10 +15,10 @@ class Operate(Builtin):
     https://reference.wolfram.com/language/ref/Operate.html</url>
 
     <dl>
-      <dt>'Operate[$p$, $expr$]'
+      <dt>'Operate'[$p$, $expr$]
       <dd>applies $p$ to the head of $expr$.
 
-      <dt>'Operate[$p$, $expr$, $n$]'
+      <dt>'Operate'[$p$, $expr$, $n$]
       <dd>applies $p$ to the $n$th head of $expr$.
     </dl>
 
@@ -81,7 +81,7 @@ class Through(Builtin):
     https://reference.wolfram.com/language/ref/Through.html</url>
 
     <dl>
-      <dt>'Through[$p$[$f$][$x$]]'
+      <dt>'Through'[$p$[$f$][$x$]]
       <dd>gives $p$[$f$[$x$]].
     </dl>
 

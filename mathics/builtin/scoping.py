@@ -157,7 +157,7 @@ class Block(Builtin):
       <dd>temporarily removes the definitions of the given variables, evaluates \
           $expr$, and restores the original definitions afterwards.
 
-      <dt>'Block'[{$x$=$x0$, $y$=$y0$, ...}, $expr$]
+      <dt>'Block'[{$x$=$x_0$, $y$=$y_0$, ...}, $expr$]
       <dd>assigns temporary values to the variables during the evaluation of $expr$.
     </dl>
 
@@ -678,9 +678,9 @@ class With(Builtin):
     https://reference.wolfram.com/language/ref/With.html</url>
 
     <dl>
-      <dt>'With'[{$x$=$x0$, $y$=$y0$, ...}, $expr$]
+      <dt>'With'[{$x$=$x_0$, $y$=$y_0$, ...}, $expr$]
       <dd>specifies that all occurrences of the symbols $x$, $y$, ... in \
-          $expr$ should be replaced by $x0$, $y0$, ...
+          $expr$ should be replaced by $x_0$, $y_0$, ...
     </dl>
 
     ## >> n = 10
