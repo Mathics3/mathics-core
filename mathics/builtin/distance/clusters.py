@@ -383,11 +383,11 @@ class Nearest(Builtin):
       <dt>'Nearest'[$list$, $x$, {$n$, $r$}]
       <dd>returns up to $n$ nearest items that are not farther from $x$ than $r$.
 
-      <dt>'Nearest'[{$p1$ -> $q1$, $p2$ -> $q2$, ...}, $x$]
-      <dd>returns $q1$, $q2$, ... but measures the distances using $p1$, $p2$, ...
+      <dt>'Nearest'[{$p_1$ -> $q_1$, $p_2$ -> $q_2$, ...}, $x$]
+      <dd>returns $q_1$, $q_2$, ... but measures the distances using $p_1$, $p_2$, ...
 
-      <dt>'Nearest'[{$p1$, $p2$, ...} -> {$q1$, $q2$, ...}, $x$]
-      <dd>returns $q1$, $q2$, ... but measures the distances using $p1$, $p2$, ...
+      <dt>'Nearest'[{$p_1$, $p_2$, ...} -> {$q_1$, $q_2$, ...}, $x$]
+      <dd>returns $q_1$, $q_2$, ... but measures the distances using $p_1$, $p_2$, ...
     </dl>
 
     >> Nearest[{5, 2.5, 10, 11, 15, 8.5, 14}, 12]

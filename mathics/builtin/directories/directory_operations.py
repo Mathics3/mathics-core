@@ -152,8 +152,8 @@ class RenameDirectory(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/RenameDirectory.html</url>
 
     <dl>
-      <dt>'RenameDirectory'["$dir1$", "$dir2$"]
-      <dd>renames directory $dir1$ to $dir2$.
+      <dt>'RenameDirectory'["$dir_1$", "$dir_2$"]
+      <dd>renames directory $dir_1$ to $dir_2$.
     </dl>
     """
 

@@ -352,10 +352,10 @@ class Tube(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Tube.html</url>
 
     <dl>
-      <dt>'Tube'[{$p1$, $p2$, ...}]
-      <dd>represents a tube passing through $p1$, $p2$, ... with radius 1.
+      <dt>'Tube'[{$p_1$, $p_2$, ...}]
+      <dd>represents a tube passing through $p_1$, $p_2$, ... with radius 1.
 
-      <dt>'Tube'[{$p1$, $p2$, ...}, $r$]
+      <dt>'Tube'[{$p_1$, $p_2$, ...}, $r$]
       <dd>represents a tube with radius $r$.
     </dl>
 
