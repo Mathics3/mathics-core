@@ -427,8 +427,8 @@ class Rationalize(Builtin):
       <dd>converts a real number $x$ to a nearby rational number with \
           small denominator.
 
-      <dt>'Rationalize'[$x$, $dx$]
-      <dd>finds the rational number lies within $dx$ of $x$.
+      <dt>'Rationalize'[$x$, $d_x$]
+      <dd>finds the rational number lies within $d_x$ of $x$.
     </dl>
 
     >> Rationalize[2.2]

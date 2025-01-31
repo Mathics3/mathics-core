@@ -513,7 +513,7 @@ class Protect(Builtin):
       <dt>'Protect'[$s_1$, $s_2$, ...]
       <dd>sets the attribute 'Protected' for the symbols $si$.
 
-      <dt>'Protect'[$str1$, $str2$, ...]
+      <dt>'Protect'[$str_1$, $str_2$, ...]
       <dd>protects all symbols whose names textually match $stri$.
     </dl>
 

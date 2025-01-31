@@ -517,7 +517,7 @@ class Line(Builtin):
       <dt>'Line'[{$point_1$, $point_2$ ...}]
       <dd>represents the line primitive.
 
-      <dt>'Line'[{{$p_11$, $p_12$, ...}, {$p_21$, $p_22$, ...}, ...}]
+      <dt>'Line'[{{$point_{11}$, $point_{12}$, ...}, {$point_{21}$, $point_{22}$, ...}, ...}]
       <dd>represents a number of line primitives.
     </dl>
 
@@ -571,7 +571,7 @@ class FilledCurve(Builtin):
     https://reference.wolfram.com/language/ref/FilledCurve.html</url>
 
     <dl>
-      <dt>'FilledCurve'[{$segment1$, $segment2$ ...}]
+      <dt>'FilledCurve'[{$segment_1$, $segment_2$ ...}]
       <dd>represents a filled curve.
     </dl>
 
@@ -616,7 +616,7 @@ class Polygon(Builtin):
 
 
 class RegularPolygon(Builtin):
-    """
+    r"""
 
     <url>
     :WMA link:
@@ -627,10 +627,10 @@ class RegularPolygon(Builtin):
       <dd>gives the regular polygon with $n$ edges.
       <dt>'RegularPolygon'[$r$, $n$]
       <dd>gives the regular polygon with $n$ edges and radius $r$.
-      <dt>'RegularPolygon'[{$r$, $phi$}, $n$]
-      <dd>gives the regular polygon with radius $r$ with one vertex drawn at angle $phi$.
-      <dt>'RegularPolygon'[{$x, $y}, $r$, $n$]
-      <dd>gives the regular polygon centered at the position {$x, $y}.
+      <dt>'RegularPolygon'[{$r$, $\phi$}, $n$]
+      <dd>gives the regular polygon with radius $r$ with one vertex drawn at angle $\phi$.
+      <dt>'RegularPolygon'[{$x$, $y$}, $r$, $n$]
+      <dd>gives the regular polygon centered at the position {$x$, $y$}.
     </dl>
 
     >> Graphics[RegularPolygon[5]]
@@ -697,9 +697,9 @@ class Arrowheads(_GraphicsDirective):
       <dd>specifies that Arrow[] draws one arrow of size $s$ (relative to width of \
           image, defaults to 0.04).
 
-      <dt>'Arrowheads'[{$spec1$, $spec2$, ..., $specn$}]
-      <dd>specifies that Arrow[] draws n arrows as defined by $spec1$, $spec2$, \
-          ... $specn$.
+      <dt>'Arrowheads'[{$spec_1$, $spec_2$, ..., $spec_n$}]
+      <dd>specifies that Arrow[] draws n arrows as defined by $spec_1$, $spec_2$, \
+          ... $spec_n$.
 
       <dt>'Arrowheads'[{{$s$}}]
       <dd>specifies that one arrow of size $s$ should be drawn.
@@ -1252,13 +1252,13 @@ class Circle(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Circle.html</url>
 
     <dl>
-      <dt>'Circle'[{$cx$, $cy$}, $r$]
-      <dd>draws a circle with center '($cx$, $cy$)' and radius $r$.
+      <dt>'Circle'[{$c_x$, $c_y$}, $r$]
+      <dd>draws a circle with center '($c_x$, $c_y$)' and radius $r$.
 
-      <dt>'Circle'[{$cx$, $cy$}, {$rx$, $ry$}]
+      <dt>'Circle'[{$c_x$, $c_y$}, {$r_x$, $r_y$}]
       <dd>draws an ellipse.
 
-      <dt>'Circle'[{$cx$, $cy$}]
+      <dt>'Circle'[{$c_x$, $c_y$}]
       <dd>chooses radius 1.
 
       <dt>'Circle[]'
@@ -1284,13 +1284,13 @@ class Disk(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Disk.html</url>
 
     <dl>
-      <dt>'Disk'[{$cx$, $cy$}, $r$]
-      <dd>fills a circle with center '($cx$, $cy$)' and radius $r$.
+      <dt>'Disk'[{$c_x$, $c_y$}, $r$]
+      <dd>fills a circle with center '($c_x$, $c_y$)' and radius $r$.
 
-      <dt>'Disk'[{$cx$, $cy$}, {$rx$, $ry$}]
+      <dt>'Disk'[{$c_x$, $c_y$}, {$r_x$, $r_y$}]
       <dd>fills an ellipse.
 
-      <dt>'Disk'[{$cx$, $cy$}]
+      <dt>'Disk'[{$c_x$, $c_y$}]
       <dd>chooses radius 1.
 
       <dt>'Disk[]'
@@ -1434,8 +1434,8 @@ class Offset(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Offset.html</url>
 
     <dl>
-      <dt>'Offset'[{$dx$, $dy$}, $position$]
-      <dd>gives the position of a graphical object obtained by starting at the specified $position$ and then moving by absolute offset {$dx$,$dy$}.
+      <dt>'Offset'[{$d_x$, $d_y$}, $position$]
+      <dd>gives the position of a graphical object obtained by starting at the specified $position$ and then moving by absolute offset {$d_x$,$d_y$}.
     </dl>
     """
 
@@ -1449,7 +1449,6 @@ class Rectangle(Builtin):
     <dl>
       <dt>'Rectangle'[{$x_{min}$, $y_{min}$}]
       <dd>represents a unit square with bottom-left corner at {$x_{min}$, $y_{min}$}.
-
       <dt>'Rectangle[{$x_{min}$, $y_{min}$}, {$x_{max}$, $y_{max}$}]
       <dd>is a rectangle extending from {$x_{min}$, $y_{min}$} to {$x_{max}$, $y_{max}$}.
     </dl>

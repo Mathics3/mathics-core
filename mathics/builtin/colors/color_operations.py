@@ -40,8 +40,8 @@ class Blend(Builtin):
       <dd>represents the color formed by blending $c_1$ and $c_2$ with
           factors 1 - $x$ and $x$ respectively.
 
-      <dt>'Blend'[{$c_1$, $c_2$, ..., $cn$}, $x$]
-      <dd>blends between the colors $c_1$ to $cn$ according to the
+      <dt>'Blend'[{$c_1$, $c_2$, ..., $c_n$}, $x$]
+      <dd>blends between the colors $c_1$ to $c_n$ according to the
           factor $x$.
     </dl>
 
