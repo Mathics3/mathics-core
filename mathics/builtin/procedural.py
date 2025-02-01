@@ -189,7 +189,7 @@ class CompoundExpression(InfixOperator):
 
     <dl>
       <dt>'CompoundExpression'[$e_1$, $e_2$, ...]
-      <dt>'$e_1$; $e_2$; ...'
+      <dt>$e_1$';' $e_2$';' ...
         <dd>evaluates its arguments in turn, returning the last result.
     </dl>
 
