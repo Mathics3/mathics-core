@@ -745,36 +745,38 @@ def tube_3d_box(self: Tube3DBox, **options) -> str:
 add_conversion_fn(Tube3DBox, tube_3d_box)
 
 
-def dodecahedron(position, length, color_str):
+def dodecahedron(center, length, color_str):
     return f"""
     real phi=(sqrt(5)+1)/2;
     real g=(phi-1)/2;
     real s=1/2;
     real a=sqrt(1-phi*phi/4-g*g)+phi/2;
 
+    triple center={center};
+    real length={length};
     triple[] d;
-    d[0]=(phi/2,phi/2,phi/2);
-    d[1]=(-phi/2,phi/2,phi/2);
-    d[2]=(phi/2,-phi/2,phi/2);
-    d[3]=(phi/2,phi/2,-phi/2);
-    d[4]=(-phi/2,-phi/2,phi/2);
-    d[5]=(phi/2,-phi/2,-phi/2);
-    d[6]=(-phi/2,phi/2,-phi/2);
-    d[7]=(-phi/2,-phi/2,-phi/2);
+    d[0]=center + length*(phi/2,phi/2,phi/2);
+    d[1]=center + length*(-phi/2,phi/2,phi/2);
+    d[2]=center + length*(phi/2,-phi/2,phi/2);
+    d[3]=center + length*(phi/2,phi/2,-phi/2);
+    d[4]=center + length*(-phi/2,-phi/2,phi/2);
+    d[5]=center + length*(phi/2,-phi/2,-phi/2);
+    d[6]=center + length*(-phi/2,phi/2,-phi/2);
+    d[7]=center + length*(-phi/2,-phi/2,-phi/2);
 
     triple[] n;
-    n[0]=(0,s,a);
-    n[1]=(0,-s,a);
-    n[2]=(0,s,-a);
-    n[3]=(0,-s,-a);
-    n[4]=(s,a,0);
-    n[5]=(-s,a,0);
-    n[6]=(s,-a,0);
-    n[7]=(-s,-a,0);
-    n[8]=(a,0,s);
-    n[9]=(a,0,-s);
-    n[10]=(-a,0,s);
-    n[11]=(-a,0,-s);
+    n[0]=center + length*(0,s,a);
+    n[1]=center + length*(0,-s,a);
+    n[2]=center + length*(0,s,-a);
+    n[3]=center + length*(0,-s,-a);
+    n[4]=center + length*(s,a,0);
+    n[5]=center + length*(-s,a,0);
+    n[6]=center + length*(s,-a,0);
+    n[7]=center + length*(-s,-a,0);
+    n[8]=center + length*(a,0,s);
+    n[9]=center + length*(a,0,-s);
+    n[10]=center + length*(-a,0,s);
+    n[11]=center + length*(-a,0,-s);
 
     path3[] p;
     p[0]=d[0]--n[0]--d[1]--n[5]--n[4]--cycle;
@@ -813,7 +815,6 @@ def uniform_polyhedron_3d_box(self: UniformPolyhedron3DBox, **options) -> str:
     face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
     opacity = self.face_opacity
     color_str = build_3d_pen_color(face_color, opacity)
-    print("XXX", self.sub_type)
     if self.sub_type == "dodecahedron":
         result = "  // Dodecahedron\n"
         for coord in self.points:
