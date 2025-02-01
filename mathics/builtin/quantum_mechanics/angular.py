@@ -39,7 +39,7 @@ class ClebschGordan(SympyFunction):
     https://reference.wolfram.com/language/ref/ClebschGordan</url>)
 
     <dl>
-      <dt>'ClebschGordan[{$j1$, $m1$}, {$j2$, $m2$}, {$j$ $m$}]'
+      <dt>'ClebschGordan'[{$j_1$, $m_1$}, {$j_2$, $m_2$}, {$j$ $m$}]
       <dd>returns the Clebsch-Gordan coefficient for the decomposition of $|j, m\rangle$ \
       in terms of $|j1, m\rangle$, $|j2, m2\rangle$.
     </dl>
@@ -96,7 +96,7 @@ class PauliMatrix(SympyFunction):
     https://reference.wolfram.com/language/ref/PauliMatrix.html</url>)
 
     <dl>
-      <dt>'PauliMatrix[$k$]'
+      <dt>'PauliMatrix'[$k$]
       <dd>returns the $k$th Pauli spin matrix).
     </dl>
 
@@ -143,7 +143,7 @@ class SixJSymbol(SympyFunction):
     https://reference.wolfram.com/language/ref/SixJSymbol.html</url>)
 
     <dl>
-      <dt>'SixJSymbol[{$j1$, $j2$, $j3$}, {$j4$, $j5$, $j6$}]'
+      <dt>'SixJSymbol'[{$j_1$, $j_2$, $j_3$}, {$j_4$, $j_5$, $j_6$}]
       <dd>returns the values of the Wigner 6-$j$ symbol.
     </dl>
 
@@ -227,7 +227,7 @@ class ThreeJSymbol(SympyFunction):
     https://reference.wolfram.com/language/ref/ThreeJSymbol.html</url>)
 
     <dl>
-      <dt>'ThreeJSymbol[{$j1, $m1}, {$j2$, $m2$}, {$j3$, $m3$}]'
+      <dt>'ThreeJSymbol'[{$j1, $m1}, {$j_2$, $m_2$}, {$j_3$, $m_3$}]
       <dd>returns the values of the Wigner 3-$j$ symbol.
     </dl>
 

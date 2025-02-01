@@ -45,9 +45,9 @@ class Beta(MPMathMultiFunction):
         https://reference.wolfram.com/language/ref/Beta.html</url>)
 
         <dl>
-          <dt>'Beta[$a$, $b$]'
+          <dt>'Beta'[$a$, $b$]
           <dd>is the Euler's Beta function.
-          <dt>'Beta[$z$, $a$, $b$]'
+          <dt>'Beta'[$z$, $a$, $b$]
           <dd>gives the incomplete Beta function.
         </dl>
 
@@ -143,7 +143,7 @@ class Factorial(PostfixOperator, MPMathFunction):
     https://reference.wolfram.com/language/ref/Factorial.html</url>)
 
     <dl>
-      <dt>'Factorial[$n$]'
+      <dt>'Factorial'[$n$]
       <dt>'$n$!'
       <dd>computes the factorial of $n$.
     </dl>
@@ -178,7 +178,7 @@ class Factorial2(PostfixOperator, MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Factorial2.html</url>
 
     <dl>
-      <dt>'Factorial2[$n$]'
+      <dt>'Factorial2'[$n$]
       <dt>'$n$!!'
       <dd>computes the double factorial of $n$.
     </dl>
@@ -273,14 +273,14 @@ class Gamma(MPMathMultiFunction):
     the non-positive integers.
 
     <dl>
-      <dt>'Gamma[$z$]'
+      <dt>'Gamma'[$z$]
       <dd>is the gamma function on the complex number $z$.
 
-      <dt>'Gamma[$z$, $x$]'
+      <dt>'Gamma'[$z$, $x$]
       <dd>is the upper incomplete gamma function.
 
-      <dt>'Gamma[$z$, $x0$, $x1$]'
-      <dd>is equivalent to 'Gamma[$z$, $x0$] - Gamma[$z$, $x1$]'.
+      <dt>'Gamma'[$z$, $x_0$, $x_1$]
+      <dd>is equivalent to 'Gamma[$z$, $x_0$] - Gamma[$z$, $x_1$]'.
     </dl>
 
     'Gamma[$z$]' is equivalent to '($z$ - 1)!':
@@ -348,7 +348,7 @@ class LogGamma(MPMathMultiFunction):
     https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.gamma_functions.loggamma</url>, <url>
     :WMA:https://reference.wolfram.com/language/ref/LogGamma.html</url>)
     <dl>
-      <dt>'LogGamma[$z$]'
+      <dt>'LogGamma'[$z$]
       <dd>is the logarithm of the gamma function on the complex number $z$.
     </dl>
 
@@ -401,7 +401,7 @@ class Pochhammer(SympyFunction):
     The Pochammer symbol has a definite value even when the gamma \
     functions which appear in its definition are infinite.
     <dl>
-      <dt>'Pochhammer[$a$, $n$]'
+      <dt>'Pochhammer'[$a$, $n$]
       <dd>is the Pochhammer symbol $a_n$.
     </dl>
 
@@ -496,10 +496,10 @@ class StieltjesGamma(SympyFunction):
     https://reference.wolfram.com/language/ref/StieltjesGamma.html</url>)
 
     <dl>
-      <dt>'StieltjesGamma[$n$]'
+      <dt>'StieltjesGamma'[$n$]
       <dd>returns the Stieltjes constant for $n$.
 
-      <dt>'StieltjesGamma[$n$, $a$]'
+      <dt>'StieltjesGamma'[$n$, $a$]
       <dd>gives the generalized Stieltjes constant of its parameters
     </dl>
 
@@ -528,7 +528,7 @@ class Subfactorial(SympyFunction):
     :WMA: https://reference.wolfram.com/language/ref/Subfactorial.html</url>)
 
     <dl>
-      <dt>'Subfactorial[$n$]'
+      <dt>'Subfactorial'[$n$]
       <dd>computes the subfactorial of $n$.
     </dl>
 

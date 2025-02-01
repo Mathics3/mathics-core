@@ -36,7 +36,7 @@ class AiryAi(MPMathFunction):
     :SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.airyai</url>, <url>
     :WMA: https://reference.wolfram.com/language/ref/AiryAi.html</url>)
     <dl>
-      <dt>'AiryAi[$x$]'
+      <dt>'AiryAi'[$x$]
       <dd>returns the Airy function Ai($x$).
     </dl>
 
@@ -71,7 +71,7 @@ class AiryAiPrime(MPMathFunction):
     :WMA link:
     https://reference.wolfram.com/language/ref/AiryAiPrime.html</url>)
     <dl>
-      <dt>'AiryAiPrime[$x$]'
+      <dt>'AiryAiPrime'[$x$]
       <dd>returns the derivative of the Airy function 'AiryAi[$x$]'.
     </dl>
 
@@ -102,7 +102,7 @@ class AiryAiZero(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/AiryAiZero.html</url>
 
     <dl>
-      <dt>'AiryAiZero[$k$]'
+      <dt>'AiryAiZero'[$k$]
       <dd>returns the $k$th zero of the Airy function Ai($z$).
     </dl>
 
@@ -110,7 +110,7 @@ class AiryAiZero(Builtin):
      = -2.33811
     """
 
-    # TODO: 'AiryAiZero[$k$, $x0$]' - $k$th zero less than x0
+    # TODO: 'AiryAiZero[$k$, $x_0$]' - $k$th zero less than x0
 
     attributes = (
         A_LISTABLE
@@ -151,7 +151,7 @@ class AiryBi(MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/AiryBi.html</url>
 
     <dl>
-    <dt>'AiryBi[$x$]'
+    <dt>'AiryBi'[$x$]
       <dd>returns the Airy function of the second kind Bi($x$).
     </dl>
 
@@ -184,7 +184,7 @@ class AiryBiPrime(MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/AiryBiPrime.html</url>
 
     <dl>
-    <dt>'AiryBiPrime[$x$]'
+    <dt>'AiryBiPrime'[$x$]
         <dd>returns the derivative of the Airy function of the second
         kind 'AiryBi[$x$]'.
     </dl>
@@ -216,7 +216,7 @@ class AiryBiZero(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/AiryBiZero.html</url>
 
     <dl>
-    <dt>'AiryBiZero[$k$]'
+    <dt>'AiryBiZero'[$k$]
       <dd>returns the $k$th zero of the Airy function Bi($z$).
     </dl>
 
@@ -224,7 +224,7 @@ class AiryBiZero(Builtin):
      = -1.17371
     """
 
-    # TODO: 'AiryBiZero[$k$, $x0$]' - $k$th zero less than x0
+    # TODO: 'AiryBiZero[$k$, $x_0$]' - $k$th zero less than x0
 
     attributes = (
         A_LISTABLE
@@ -270,7 +270,7 @@ class AngerJ(_Bessel):
     :WMA:
     https://reference.wolfram.com/language/ref/AngerJ.html</url>)
     <dl>
-      <dt>'AngerJ[$n$, $z$]'
+      <dt>'AngerJ'[$n$, $z$]
       <dd>returns the Anger function J_$n$($z$).
     </dl>
 
@@ -306,7 +306,7 @@ class BesselI(_Bessel):
         https://reference.wolfram.com/language/ref/BesselI.html</url>)
 
         <dl>
-        <dt>'BesselI[$n$, $z$]'
+        <dt>'BesselI'[$n$, $z$]
           <dd>returns the modified Bessel function of the first kind I_$n$($z$).
         </dl>
 
@@ -348,7 +348,7 @@ class BesselJ(_Bessel):
     https://reference.wolfram.com/language/ref/BesselJ.html</url>)
 
     <dl>
-    <dt>'BesselJ[$n$, $z$]'
+    <dt>'BesselJ'[$n$, $z$]
       <dd>returns the Bessel function of the first kind J_$n$($z$).
     </dl>
 
@@ -396,7 +396,7 @@ class BesselK(_Bessel):
     https://reference.wolfram.com/language/ref/BesselJ.html</url>)
 
     <dl>
-      <dt>'BesselK[$n$, $z$]'
+      <dt>'BesselK'[$n$, $z$]
       <dd>returns the modified Bessel function of the second kind K_$n$($z$).
     </dl>
 
@@ -435,7 +435,7 @@ class BesselY(_Bessel):
     https://reference.wolfram.com/language/ref/BesselY.html</url>)
 
     <dl>
-      <dt>'BesselY[$n$, $z$]'
+      <dt>'BesselY'[$n$, $z$]
       <dd>returns the Bessel function of the second kind Y_$n$($z$).
     </dl>
 
@@ -474,7 +474,7 @@ class BesselJZero(_Bessel):
     <url>:WMA link:https://reference.wolfram.com/language/ref/BesselJZero.html</url>
 
     <dl>
-      <dt>'BesselJZero[$n$, $k$]'
+      <dt>'BesselJZero'[$n$, $k$]
       <dd>returns the $k$th zero of the Bessel function of the first kind J_$n$($z$).
     </dl>
 
@@ -495,7 +495,7 @@ class BesselYZero(_Bessel):
     <url>:WMA link:https://reference.wolfram.com/language/ref/BesselYZero.html</url>
 
     <dl>
-      <dt>'BesselYZero[$n$, $k$]'
+      <dt>'BesselYZero'[$n$, $k$]
       <dd>returns the $k$th zero of the Bessel function of the second kind Y_$n$($z$).
     </dl>
 
@@ -519,7 +519,7 @@ class HankelH1(_Bessel):
     <url>:WMA link:https://reference.wolfram.com/language/ref/HankelH1.html</url>
 
     <dl>
-      <dt>'HankelH1[$n$, $z$]'
+      <dt>'HankelH1'[$n$, $z$]
       <dd>returns the Hankel function of the first kind H_$n$^1 ($z$).
     </dl>
 
@@ -541,7 +541,7 @@ class HankelH2(_Bessel):
     <url>:WMA link:https://reference.wolfram.com/language/ref/HankelH2.html</url>
 
     <dl>
-      <dt>'HankelH2[$n$, $z$]'
+      <dt>'HankelH2'[$n$, $z$]
       <dd>returns the Hankel function of the second kind H_$n$^2 ($z$).
     </dl>
 
@@ -565,7 +565,7 @@ class HypergeometricU(MPMathFunction):
     :mpmath: https://mpmath.org/doc/current/functions/bessel.html#mpmath.hyperu</url>, <url>
     :WMA: https://reference.wolfram.com/language/ref/HypergeometricU.html</url>)
     <dl>
-      <dt>'HypergeometricU[$a$, $b$, $z$]'
+      <dt>'HypergeometricU'[$a$, $b$, $z$]
       <dd>returns $U$($a$, $b$, $z$).
     </dl>
 
@@ -606,10 +606,10 @@ class KelvinBei(_Bessel):
     https://reference.wolfram.com/language/ref/KelvinBei.html</url>)
 
     <dl>
-      <dt>'KelvinBei[$z$]'
+      <dt>'KelvinBei'[$z$]
       <dd>returns the Kelvin function bei($z$).
 
-      <dt>'KelvinBei[$n$, $z$]'
+      <dt>'KelvinBei'[$n$, $z$]
       <dd>returns the Kelvin function bei_$n$($z$).
     </dl>
 
@@ -646,10 +646,10 @@ class KelvinBer(_Bessel):
     :WMA:
     https://reference.wolfram.com/language/ref/KelvinBer.html</url>)
     <dl>
-      <dt>'KelvinBer[$z$]'
+      <dt>'KelvinBer'[$z$]
       <dd>returns the Kelvin function ber($z$).
 
-      <dt>'KelvinBer[$n$, $z$]'
+      <dt>'KelvinBer'[$n$, $z$]
       <dd>returns the Kelvin function ber_$n$($z$).
     </dl>
 
@@ -688,10 +688,10 @@ class KelvinKei(_Bessel):
     https://reference.wolfram.com/language/ref/KelvinKei.html</url>)
 
     <dl>
-      <dt>'KelvinKei[$z$]'
+      <dt>'KelvinKei'[$z$]
       <dd>returns the Kelvin function kei($z$).
 
-      <dt>'KelvinKei[$n$, $z$]'
+      <dt>'KelvinKei'[$n$, $z$]
       <dd>returns the Kelvin function kei_$n$($z$).
     </dl>
 
@@ -723,9 +723,9 @@ class KelvinKer(_Bessel):
     <url>:Kelvin function ker: https://en.wikipedia.org/wiki/Kelvin_functions#ker(x)</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/bessel.html#ker</url>, <url>:WMA: https://reference.wolfram.com/language/ref/KelvinKer.html</url>)
 
     <dl>
-      <dt>'KelvinKer[$z$]'
+      <dt>'KelvinKer'[$z$]
       <dd>returns the Kelvin function ker($z$).
-    <dt>'KelvinKer[$n$, $z$]'
+    <dt>'KelvinKer'[$n$, $z$]
       <dd>returns the Kelvin function ker_$n$($z$).
     </dl>
 
@@ -761,7 +761,7 @@ class SphericalBesselJ(_Bessel):
     https://reference.wolfram.com/language/ref/SphericalBesselJ.html</url>)
 
     <dl>
-      <dt>'SphericalBesselJ[$n$, $z$]'
+      <dt>'SphericalBesselJ'[$n$, $z$]
       <dd>returns the spherical Bessel function of the first kind Y_$n$($z$).
     </dl>
 
@@ -790,7 +790,7 @@ class SphericalBesselY(_Bessel):
     https://reference.wolfram.com/language/ref/SphericalBesselY.html</url>)
 
     <dl>
-      <dt>'SphericalBesselY[$n$, $z$]'
+      <dt>'SphericalBesselY'[$n$, $z$]
       <dd>returns the spherical Bessel function of the second kind Y_$n$($z$).
     </dl>
 
@@ -813,7 +813,7 @@ class SphericalHankelH1(_Bessel):
     (<url>:WMA link:https://reference.wolfram.com/language/ref/SphericalHankelH1.html</url>)
 
     <dl>
-      <dt>'SphericalHankelH1[$n$, $z$]'
+      <dt>'SphericalHankelH1'[$n$, $z$]
       <dd>returns the spherical Hankel function of the first kind h_$n$^(1)($z$).
     </dl>
 
@@ -834,7 +834,7 @@ class SphericalHankelH2(_Bessel):
     (<url>:WMA link:https://reference.wolfram.com/language/ref/SphericalHankelH2.html</url>)
 
     <dl>
-      <dt>'SphericalHankelH1[$n$, $z$]'
+      <dt>'SphericalHankelH1'[$n$, $z$]
       <dd>returns the spherical Hankel function of the second kind h_$n$^(2)($z$).
     </dl>
 
@@ -856,7 +856,7 @@ class StruveH(_Bessel):
     (<url>:WMA:https://reference.wolfram.com/language/ref/StruveH.html</url>)
 
     <dl>
-      <dt>'StruveH[$n$, $z$]'
+      <dt>'StruveH'[$n$, $z$]
       <dd>returns the Struve function H_$n$($z$).
     </dl>
 
@@ -880,7 +880,7 @@ class StruveL(_Bessel):
     """
     <url>:Modified Struve functions L: https://en.wikipedia.org/wiki/Struve_function</url>
     <dl>
-      <dt>'StruveL[$n$, $z$]'
+      <dt>'StruveL'[$n$, $z$]
       <dd>returns the modified Struve function L_$n$($z$).
     </dl>
 
@@ -905,7 +905,7 @@ class WeberE(_Bessel):
     <url>:WMA link:https://reference.wolfram.com/language/ref/WeberE.html</url>
 
     <dl>
-      <dt>'WeberE[$n$, $z$]'
+      <dt>'WeberE'[$n$, $z$]
       <dd>returns the Weber function E_$n$($z$).
     </dl>
 
