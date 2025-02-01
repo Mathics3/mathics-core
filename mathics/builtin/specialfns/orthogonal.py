@@ -13,7 +13,7 @@ class ChebyshevT(MPMathFunction):
 
     <dl>
       <dt>'ChebyshevT'[$n$, $x$]
-      <dd>returns the Chebyshev polynomial of the first kind T_$n$($x$).
+      <dd>returns the Chebyshev polynomial of the first kind $T_n(x)$.
     </dl>
 
     >> ChebyshevT[8, x]
@@ -36,7 +36,7 @@ class ChebyshevU(MPMathFunction):
 
     <dl>
       <dt>'ChebyshevU'[$n$, $x$]
-      <dd>returns the Chebyshev polynomial of the second kind U_$n$($x$).
+      <dd>returns the Chebyshev polynomial of the second kind $U_n(x)$.
     </dl>
 
     >> ChebyshevU[8, x]
@@ -58,7 +58,7 @@ class GegenbauerC(MPMathFunction):
 
     <dl>
       <dt>'GegenbauerC'[$n$, $m$, $x$]
-      <dd>returns the Gegenbauer polynomial C_$n$^($m$)($x$).
+      <dd>returns the Gegenbauer polynomial $C_n^{(m)}(x)$.
     </dl>
 
     >> GegenbauerC[6, 1, x]
@@ -81,7 +81,7 @@ class HermiteH(MPMathFunction):
     <url>:Hermite polynomial: https://en.wikipedia.org/wiki/Hermite_polynomials</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.polynomials.hermite</url>, <url>:WMA: https://reference.wolfram.com/language/ref/HermiteH.html</url>)
     <dl>
       <dt>'HermiteH'[$n$, $x$]
-      <dd>returns the Hermite polynomial H_$n$($x$).
+      <dd>returns the Hermite polynomial $H_n(x)$.
     </dl>
 
     >> HermiteH[8, x]
@@ -106,7 +106,7 @@ class JacobiP(MPMathFunction):
 
     <dl>
       <dt>'JacobiP'[$n$, $a$, $b$, $x$]
-      <dd>returns the Jacobi polynomial P_$n$^($a$,$b$)($x$).
+      <dd>returns the Jacobi polynomial $P_n^{(a,b)}(x)$.
     </dl>
 
     >> JacobiP[1, a, b, z]
@@ -128,10 +128,11 @@ class LaguerreL(MPMathFunction):
 
      <dl>
        <dt>'LaguerreL'[$n$, $x$]
-       <dd>returns the Laguerre polynomial L_$n$($x$).
+       <dd>returns the Laguerre polynomial $L_n(x)$.
 
        <dt>'LaguerreL'[$n$, $a$, $x$]
-       <dd>returns the generalised Laguerre polynomial L^$a$_$n$($x$).
+       <dd>returns the generalised Laguerre polynomial of order $n$
+           and index $a$, $L^a_n(x)$.
      </dl>
 
      >> LaguerreL[8, x]
@@ -164,10 +165,10 @@ class LegendreP(MPMathFunction):
     <url>:Lengendre polynomials: https://en.wikipedia.org/wiki/Legendre_polynomials</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.polynomials.legendre</url>, <url>:WMA: https://reference.wolfram.com/language/ref/LegendreP</url>)
     <dl>
       <dt>'LegendreP'[$n$, $x$]
-      <dd>returns the Legendre polynomial P_$n$($x$).
+      <dd>returns the Legendre polynomial $P_n(x)$.
 
       <dt>'LegendreP'[$n$, $m$, $x$]
-      <dd>returns the associated Legendre polynomial P^$m$_$n$($x$).
+      <dd>returns the associated Legendre polynomial $P^m_n(x)$.
     </dl>
 
     >> LegendreP[4, x]
@@ -215,10 +216,10 @@ class LegendreQ(MPMathFunction):
     <url>:Legendre functions of the second kind: https://mathworld.wolfram.com/LegendreFunctionoftheSecondKind.html</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/orthogonal.html#mpmath.legenq</url>, <url>:WMA: https://reference.wolfram.com/language/ref/LegendreQ</url>)
     <dl>
       <dt>'LegendreQ'[$n$, $x$]
-      <dd>returns the Legendre function of the second kind Q_$n$($x$).
+      <dd>returns the Legendre function of the second kind $Q_n(x)$.
 
       <dt>'LegendreQ'[$n$, $m$, $x$]
-      <dd>returns the associated Legendre function of the second Q^$m$_$n$($x$).
+      <dd>returns the associated Legendre function of the second $Q^m_n(x)$.
     </dl>
 
     >> LegendreQ[5/2, 1.5]
@@ -256,11 +257,11 @@ class LegendreQ(MPMathFunction):
 
 
 class SphericalHarmonicY(MPMathFunction):
-    """
+    r"""
     <url>:Spherical Harmonic https://mathworld.wolfram.com/SphericalHarmonic.html</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/orthogonal.html#mpmath.sperharm</url>, <url>:WMA: https://reference.wolfram.com/language/ref/SphericalHarmonicY.html</url>)
     <dl>
-      <dt>'SphericalHarmonicY'[$l$, $m$, $theta$, $phi$]
-      <dd>returns the spherical harmonic function Y_$l$^$m$(theta, phi).
+      <dt>'SphericalHarmonicY'[$l$, $m$, $\theta$, $\phi$]
+      <dd>returns the spherical harmonic function $Y_l^m(\theta, \phi)$.
     </dl>
 
     >> SphericalHarmonicY[3/4, 0.5, Pi/5, Pi/3]

@@ -20,7 +20,7 @@ from mathics.eval.numerify import numerify
 
 
 class EllipticE(SympyFunction):
-    """
+    r"""
     <url>
     :Elliptic complete elliptic integral of the second kind:
     https://en.wikipedia.org/wiki/Elliptic_integral#Complete_elliptic_integral_of_the_second_kind</url> (<url>:SymPy:
@@ -77,7 +77,7 @@ class EllipticE(SympyFunction):
 
 
 class EllipticF(SympyFunction):
-    """
+    r"""
     <url>
     :Complete elliptic integral of the first kind:
     https://en.wikipedia.org/wiki/\

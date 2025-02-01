@@ -359,11 +359,18 @@ class D(SympyFunction):
 
 
 class Derivative(PostfixOperator, SympyFunction):
-    """
+    r"""
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/Derivative.html</url>
 
     <dl>
+      <dt>$f$'\''[$x$,...]
+      <dd>represents the derivative of $f$ with respect to the first \
+          argument $x$.
+
+      <dt>$f$'\'\''[$x$,...]
+      <dd>represents the 2nd derivative of $f$ with respect to $x$.
+
       <dt>'Derivative'[$n$][$f$]
       <dd>represents the $n$th derivative of the function $f$.
 
