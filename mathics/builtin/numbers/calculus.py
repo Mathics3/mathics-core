@@ -125,17 +125,17 @@ class D(SympyFunction):
     (<url>:WMA:https://reference.wolfram.com/language/ref/D.html</url>)
 
     <dl>
-      <dt>'D[$f$, $x$]'
+      <dt>'D'[$f$, $x$]
       <dd>gives the partial derivative of $f$ with respect to $x$.
 
-      <dt>'D[$f$, $x$, $y$, ...]'
+      <dt>'D'[$f$, $x$, $y$, ...]
       <dd>differentiates successively with respect to $x$, $y$, etc.
 
-      <dt>'D[$f$, {$x$, $n$}]'
+      <dt>'D'[$f$, {$x$, $n$}]
       <dd>gives the multiple derivative of order $n$.
 
-      <dt>'D[$f$, {{$x1$, $x2$, ...}}]'
-      <dd>gives the vector derivative of $f$ with respect to $x1$, $x2$, etc.
+      <dt>'D'[$f$, {{$x_1$, $x_2$, ...}}]
+      <dd>gives the vector derivative of $f$ with respect to $x_1$, $x_2$, etc.
     </dl>
 
     First-order derivative of a polynomial:
@@ -364,10 +364,10 @@ class Derivative(PostfixOperator, SympyFunction):
     https://reference.wolfram.com/language/ref/Derivative.html</url>
 
     <dl>
-      <dt>'Derivative[$n$][$f$]'
+      <dt>'Derivative'[$n$][$f$]
       <dd>represents the $n$th derivative of the function $f$.
 
-      <dt>'Derivative[$n1$, $n2$, ...][$f$]'
+      <dt>'Derivative'[$n_1$, $n_2$, ...][$f$]
       <dd>represents a multivariate derivative.
     </dl>
 
@@ -548,7 +548,7 @@ class DiscreteLimit(Builtin):
     https://reference.wolfram.com/language/ref/DiscreteLimit.html</url>
 
     <dl>
-      <dt>'DiscreteLimit[$f$, $k$->Infinity]'
+      <dt>'DiscreteLimit'[$f$, $k$->Infinity]
       <dd>gives the limit of the sequence $f$ as $k$ tends to infinity.
     </dl>
 
@@ -745,8 +745,8 @@ class FindMaximum(_BaseFinder):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FindMaximum.html</url>
 
     <dl>
-    <dt>'FindMaximum[$f$, {$x$, $x0$}]'
-        <dd>searches for a numerical maximum of $f$, starting from '$x$=$x0$'.
+    <dt>'FindMaximum'[$f$, {$x$, $x_0$}]
+        <dd>searches for a numerical maximum of $f$, starting from '$x$=$x_0$'.
     </dl>
 
     'FindMaximum' by default uses Newton\'s method, so the function of \
@@ -795,8 +795,8 @@ class FindMinimum(_BaseFinder):
     https://reference.wolfram.com/language/ref/FindMinimum.html</url>
 
     <dl>
-    <dt>'FindMinimum[$f$, {$x$, $x0$}]'
-        <dd>searches for a numerical minimum of $f$, starting from '$x$=$x0$'.
+    <dt>'FindMinimum'[$f$, {$x$, $x_0$}]
+        <dd>searches for a numerical minimum of $f$, starting from '$x$=$x_0$'.
     </dl>
 
     'FindMinimum' by default uses Newton\'s method, so the function of \
@@ -847,10 +847,10 @@ class FindRoot(_BaseFinder):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FindRoot.html</url>
 
     <dl>
-      <dt>'FindRoot[$f$, {$x$, $x0$}]'
-      <dd>searches for a numerical root of $f$, starting from '$x$=$x0$'.
+      <dt>'FindRoot'[$f$, {$x$, $x_0$}]
+      <dd>searches for a numerical root of $f$, starting from '$x$=$x_0$'.
 
-      <dt>'FindRoot[$lhs$ == $rhs$, {$x$, $x0$}]'
+      <dt>'FindRoot'[$lhs$ == $rhs$, {$x$, $x_0$}]
       <dd>tries to solve the equation '$lhs$ == $rhs$'.
     </dl>
 
@@ -958,11 +958,11 @@ class Integrate(SympyFunction):
     https://reference.wolfram.com/language/ref/Integrate.html</url>)
 
     <dl>
-      <dt>'Integrate[$f$, $x$]'
+      <dt>'Integrate'[$f$, $x$]
       <dd>integrates $f$ with respect to $x$. The result does not contain the \
       additive integration constant.
 
-      <dt>'Integrate[$f$, {$x$, $a$, $b$}]'
+      <dt>'Integrate'[$f$, {$x$, $a$, $b$}]
       <dd>computes the definite integral of $f$ with respect to $x$ from $a$ to $b$.
     </dl>
 
@@ -1230,14 +1230,14 @@ class Limit(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Limit.html</url>
 
     <dl>
-      <dt>'Limit[$expr$, $x$->$x0$]'
-      <dd>gives the limit of $expr$ as $x$ approaches $x0$.
+      <dt>'Limit'[$expr$, $x$->$x_0$]
+      <dd>gives the limit of $expr$ as $x$ approaches $x_0$.
 
-      <dt>'Limit[$expr$, $x$->$x0$, Direction->1]'
-      <dd>approaches $x0$ from smaller values.
+      <dt>'Limit'[$expr$, $x$->$x_0$, Direction->1]
+      <dd>approaches $x_0$ from smaller values.
 
-      <dt>'Limit[$expr$, $x$->$x0$, Direction->-1]'
-      <dd>approaches $x0$ from larger values.
+      <dt>'Limit'[$expr$, $x$->$x_0$, Direction->-1]
+      <dd>approaches $x_0$ from larger values.
     </dl>
 
     >> Limit[x, x->2]
@@ -1303,13 +1303,13 @@ class NIntegrate(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/NIntegrate.html</url>
 
     <dl>
-       <dt>'NIntegrate[$expr$, $interval$]'
+       <dt>'NIntegrate'[$expr$, $interval$]
        <dd>returns a numeric approximation to the definite integral of $expr$ with \
            limits $interval$ and with a precision of $prec$ digits.
 
-        <dt>'NIntegrate[$expr$, $interval1$, $interval2$, ...]'
+        <dt>'NIntegrate'[$expr$, $interval_1$, $interval_2$, ...]
         <dd>returns a numeric approximation to the multiple integral of $expr$ with \
-            limits $interval1$, $interval2$ and with a precision of $prec$ digits.
+            limits $interval_1$, $interval_2$ and with a precision of $prec$ digits.
     </dl>
 
     >> NIntegrate[Exp[-x],{x,0,Infinity},Tolerance->1*^-6, Method->"Internal"]
@@ -1628,7 +1628,7 @@ class Root(SympyFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Root.html</url>
 
     <dl>
-      <dt>'Root[$f$, $i$]'
+      <dt>'Root'[$f$, $i$]
       <dd>represents the i-th complex root of the polynomial $f$.
     </dl>
 
@@ -1708,7 +1708,7 @@ class RootSum(SympyFunction):
      <url>:WMA link: https://reference.wolfram.com/language/ref/RootSum.html</url>
 
      <dl>
-       <dt>'RootSum[$f$, $form$]'
+       <dt>'RootSum'[$f$, $form$]
        <dd>sums $form$[$x$] for all roots of the polynomial $f$[$x$].
      </dl>
 
@@ -1756,8 +1756,8 @@ class Series(Builtin):
      <url>:WMA link:https://reference.wolfram.com/language/ref/Series.html</url>
 
      <dl>
-       <dt>'Series[$f$, {$x$, $x0$, $n$}]'
-       <dd>Represents the series expansion around '$x$=$x0$' up to order $n$.
+       <dt>'Series'[$f$, {$x$, $x_0$, $n$}]
+       <dd>Represents the series expansion around '$x$=$x_0$' up to order $n$.
      </dl>
 
      For elementary expressions, 'Series' returns the explicit power series as a 'SeriesData' expression:
@@ -1824,11 +1824,11 @@ class SeriesCoefficient(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/SeriesCoefficient.html</url>
 
     <dl>
-      <dt>'SeriesCoefficient[$series$, $n$]'
+      <dt>'SeriesCoefficient'[$series$, $n$]
       <dd>Find the $n$th coefficient in the given $series$.
 
-      <dt>'SeriesCoefficient[$f$, {$x$, $x0$, $n$}]'
-      <dd>Find the ($x$-$x0$)^n in the expansion of $f$ about the point $x$=$x0$.
+      <dt>'SeriesCoefficient'[$f$, {$x$, $x_0$, $n$}]
+      <dd>Find the ($x$-$x_0$)^n in the expansion of $f$ about the point $x$=$x_0$.
     </dl>
 
     First we list 5 terms of a series:
@@ -1887,10 +1887,10 @@ class SeriesData(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/SeriesData.html</url>
 
     <dl>
-      <dt>'SeriesData[$x$, $x0$, {$a0$, $a1$, ...}, $nmin$, $nmax$, $den$]'
-      <dd>produces a power series in the variable $x$ about point $x0$. The \
-      $ai$ are the coefficients of the power series. The powers of ($x$-$x0$) that appear \
-      are $nmin$/$den$, ($nmin$+1)/$den$, ..., $nmax$/$den$.
+      <dt>'SeriesData'[$x$, $x_0$, {$a_0$, $a_1$, ...}, $n_{min}$, $n_{max}$, $den$]
+      <dd>produces a power series in the variable $x$ about point $x_0$. The \
+      $ai$ are the coefficients of the power series. The powers of ($x$-$x_0$) that appear \
+      are $n_{min}$/$den$, ($n_{min}$+1)/$den$, ..., $n_{max}$/$den$.
     </dl>
 
     'SeriesData' is the 'Head' of expressions generated by 'Series':
@@ -2293,10 +2293,10 @@ class Solve(Builtin):
     https://reference.wolfram.com/language/ref/Solve.html</url>)
 
     <dl>
-      <dt>'Solve[$equation$, $vars$]'
+      <dt>'Solve'[$equation$, $vars$]
       <dd>attempts to solve $equation$ for the variables $vars$.
 
-      <dt>'Solve[$equation$, $vars$, $domain$]'
+      <dt>'Solve'[$equation$, $vars$, $domain$]
       <dd>restricts variables to $domain$, which can be 'Complexes' \
          or 'Reals' or 'Integers'.
     </dl>

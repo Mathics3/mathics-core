@@ -117,7 +117,7 @@ class Divide(InfixOperator):
 
     <dl>
       <dt>'Divide'[$a$, $b$]
-      <dt>'$a$ / $b$'
+      <dt> $a$ '/' $b$
       <dd>represents the division of $a$ by $b$.
     </dl>
 
@@ -352,7 +352,7 @@ class Power(InfixOperator, MPMathFunction):
 
     <dl>
       <dt>'Power'[$a$, $b$]
-      <dt>'$a$ ^ $b$'
+      <dt>$a$ '^' $b$
       <dd>represents $a$ raised to the power of $b$.
     </dl>
 
@@ -527,7 +527,7 @@ class Subtract(InfixOperator):
 
     <dl>
       <dt>'Subtract'[$a$, $b$]
-      <dt>$a$ - $b$
+      <dt>$a$ '-' $b$
       <dd>represents the subtraction of $b$ from $a$.
     </dl>
 
@@ -562,8 +562,8 @@ class Times(InfixOperator, SympyFunction):
 
     <dl>
       <dt>'Times'[$a$, $b$, ...]
-      <dt>'$a$ * $b$ * ...'
-      <dt>'$a$ $b$ ...'
+      <dt>$a$ '*' $b$ '* ...'
+      <dt>$a$ $b$ ...'
       <dd>represents the product of the terms $a$, $b$, ...
     </dl>
 

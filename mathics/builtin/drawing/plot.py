@@ -610,16 +610,16 @@ class DiscretePlot(_Plot):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/DiscretePlot.html</url>
     <dl>
-      <dt>'DiscretePlot'[$expr$, {$x$, $n_max$}]
-      <dd>plots $expr$ with $x$ ranging from 1 to $n_max$.
+      <dt>'DiscretePlot'[$expr$, {$x$, $n_{max}$}]
+      <dd>plots $expr$ with $x$ ranging from 1 to $n_{max}$.
 
-      <dt>'DiscretePlot'[$expr$, {$x$, $n_min$, $n_max$}]
-      <dd>plots $expr$ with $x$ ranging from $n_min$ to $n_max$.
+      <dt>'DiscretePlot'[$expr$, {$x$, $n_{min}$, $n_{max}$}]
+      <dd>plots $expr$ with $x$ ranging from $n_{min}$ to $n_{max}$.
 
-      <dt>'DiscretePlot'[$expr$, {$x$, $n_min$, $n_max$, $dn$}]
-      <dd>plots $expr$ with $x$ ranging from $n_min$ to $n_max$ usings steps $dn$.
+      <dt>'DiscretePlot'[$expr$, {$x$, $n_{min}$, $n_{max}$, $dn$}]
+      <dd>plots $expr$ with $x$ ranging from $n_{min}$ to $n_{max}$ usings steps $dn$.
 
-      <dt>'DiscretePlot'[{$expr1$, $expr2$, ...}, ...]
+      <dt>'DiscretePlot'[{$expr_1$, $expr_2$, ...}, ...]
       <dd>plots the values of all $expri$.
     </dl>
 
@@ -631,7 +631,7 @@ class DiscretePlot(_Plot):
     >> DiscretePlot[2.5 Sqrt[k], {k, 100}]
      = -Graphics-
 
-    Notice in the above that when the starting value, $n_min$,  is 1, we can \
+    Notice in the above that when the starting value, $n_{min}$,  is 1, we can \
     omit it.
 
     A plot can contain several functions, using the same parameter, here $x$:
@@ -1237,8 +1237,8 @@ class LogPlot(_Plot):
       <dt>'LogPlot'[$f$, {$x$, $x_{min}$, $x_{max}$}]
       <dd>log plots $f$ with $x$ ranging from $x_{min}$ to $x_{max}$.
 
-      <dt>'Plot'[{$f1$, $f2$, ...}, {$x$, $x_{min}$, $x_{max}$}]
-      <dd>log plots several functions $f1$, $f2$, ...
+      <dt>'Plot'[{$f_1$, $f_2$, ...}, {$x$, $x_{min}$, $x_{max}$}]
+      <dd>log plots several functions $f_1$, $f_2$, ...
 
     </dl>
 
@@ -1504,8 +1504,8 @@ class Plot(_Plot):
       <dt>'Plot'[$f$, {$x$, $x_{min}$, $x_{max}$}]
       <dd>plots $f$ with $x$ ranging from $x_{min}$ to $x_{max}$.
 
-      <dt>'Plot'[{$f1$, $f2$, ...}, {$x$, $x_{min}$, $x_{max}$}]
-      <dd>plots several functions $f1$, $f2$, ...
+      <dt>'Plot'[{$f_1$, $f_2$, ...}, {$x$, $x_{min}$, $x_{max}$}]
+      <dd>plots several functions $f_1$, $f_2$, ...
 
     </dl>
 
