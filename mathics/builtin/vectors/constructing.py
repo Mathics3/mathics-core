@@ -12,7 +12,7 @@ from mathics.core.builtin import Builtin
 
 
 class AngleVector(Builtin):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/AngleVector.html</url>
 
     <dl>
