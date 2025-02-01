@@ -161,32 +161,32 @@ class Fold:
 
 
 class AnglePath(Builtin):
-    """
+    r"""
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/AnglePath.html</url>
 
     <dl>
-      <dt>'AnglePath'[{$phi1$, $phi2$, ...}]
+      <dt>'AnglePath'[{$\phi_1$, $\phi_2$, ...}]
       <dd>returns the points formed by a turtle starting at {0, 0} and angled \
           at 0 degrees going through
-          the turns given by angles $phi1$, $phi2$, ... and using distance 1 \
+          the turns given by angles $\phi_1$, $\phi_2$, ... and using distance 1 \
           for each step.
 
-      <dt>'AnglePath'[{{$r_1$, $phi1$}, {$r_2$, $phi2$}, ...}]
+      <dt>'AnglePath'[{{$r_1$, $\phi_1$}, {$r_2$, $\phi_2$}, ...}]
       <dd>instead of using 1 as distance, use $r_1$, $r_2$, ... as distances for \
           the respective steps.
 
-      <dt>'AnglePath'[$phi0$, {$phi1$, $phi2$, ...}]
-      <dd>starts with direction $phi0$ instead of 0.
+      <dt>'AnglePath'[$\phi_0$, {$\phi_1$, $\phi_2$, ...}]
+      <dd>starts with direction $\phi_0$ instead of 0.
 
-      <dt>'AnglePath'[{$x$, $y$}, {$phi1$, $phi2$, ...}]
-      <dd>starts at {$x, $y} instead of {0, 0}.
+      <dt>'AnglePath'[{$x$, $y$}, {$\phi_1$, $\phi_2$, ...}]
+      <dd>starts at {$x$, $y$} instead of {0, 0}.
 
-      <dt>'AnglePath'[{{$x$, $y$}, $phi0$}, {$phi1$, $phi2$, ...}]
-      <dd>specifies initial position {$x$, $y$} and initial direction $phi0$.
+      <dt>'AnglePath'[{{$x$, $y$}, $\phi_0$}, {$\phi_1$, $\phi_2$, ...}]
+      <dd>specifies initial position {$x$, $y$} and initial direction $\phi_0$.
 
-      <dt>'AnglePath'[{{$x$, $y$}, {$d_x$, $d_y$}}, {$phi1$, $phi2$, ...}]
+      <dt>'AnglePath'[{{$x$, $y$}, {$d_x$, $d_y$}}, {$\phi_1$, $\phi_2$, ...}]
       <dd>specifies initial position {$x$, $y$} and a slope {$d_x$, $d_y$} that is \
           understood to be the initial direction of the turtle.
     </dl>

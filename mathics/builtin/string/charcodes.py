@@ -130,7 +130,7 @@ class FromCharacterCode(Builtin):
       <dt>'FromCharacterCode'[{$n_1$, $n_2$, ...}]
       <dd>returns a string with characters corresponding to $n_i$.
 
-      <dt>'FromCharacterCode'[{{$n11$, $n12$, ...}, {$n21$, $n22$, ...}, ...}]
+      <dt>'FromCharacterCode'[{{$n_{11}$, $n_{12}$, ...}, {$n_{21}$, $n_{22}$, ...}, ...}]
       <dd>returns a list of strings.
     </dl>
 

@@ -138,8 +138,8 @@ class FilterRules(Builtin):
       <dt>'FilterRules'[$rules$, $pattern$]
       <dd>gives those $rules$ that have a left side that matches $pattern$.
 
-      <dt>'FilterRules'[$rules$, {$pattern1$, $pattern2$, ...}]
-      <dd>gives those $rules$ that have a left side that match at least one of $pattern1$, $pattern2$, ...
+      <dt>'FilterRules'[$rules$, {$pattern_1$, $pattern_2$, ...}]
+      <dd>gives those $rules$ that have a left side that match at least one of $pattern_1$, $pattern_2$, ...
     </dl>
 
     >> FilterRules[{x -> 100, y -> 1000}, x]

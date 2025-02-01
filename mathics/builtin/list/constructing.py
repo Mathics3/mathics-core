@@ -399,12 +399,12 @@ class Reap(Builtin):
       <dd>only yields values sown with a tag matching $pattern$.
         'Reap[$expr$]' is equivalent to 'Reap[$expr$, _]'.
 
-      <dt>'Reap'[$expr$, {$pattern1$, $pattern2$, ...}]
+      <dt>'Reap'[$expr$, {$pattern_1$, $pattern_2$, ...}]
       <dd>uses multiple patterns.
 
       <dt>'Reap'[$expr$, $pattern$, $f$]
       <dd>applies $f$ on each tag and the corresponding values sown \
-          in the form '$f$[tag, {e1, e2, ...}]'.
+          in the form '$f$[$tag$, {$e_1$, $e_2$, ...}]'.
     </dl>
 
     >> Reap[Sow[3]; Sow[1]]
@@ -487,7 +487,7 @@ class Sow(Builtin):
       <dt>'Sow'[$e$, $tag$]
       <dd>sows $e$ using $tag$. 'Sow[$e$]' is equivalent to 'Sow[$e$, Null]'.
 
-      <dt>'Sow'[$e$, {$tag1$, $tag2$, ...}]
+      <dt>'Sow'[$e$, {$tag_1$, $tag_2$, ...}]
       <dd>uses multiple tags.
     </dl>
     """

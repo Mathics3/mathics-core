@@ -195,6 +195,16 @@ def check_code_and_latex(docstr: str, instance: Builtin, module_name: str):
         assert "$" not in match.group(1), f"'{match.group(1)}' contains equations"
         return "<code>"
 
+    for eq in equations:
+        if eq[-1] in "0123456789" and len(eq) > 1:
+            assert (
+                "_" in eq
+            ), f"indiced vars must be subindex in {module_name}:{Builtin}"
+        assert eq[-4:] not in (
+            "_min",
+            "_max",
+        ), f"subindex with multi characters must be inside brackets, in {module_name}:{Builtin}"
+
     return
 
 

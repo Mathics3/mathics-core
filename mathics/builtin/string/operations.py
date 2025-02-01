@@ -380,7 +380,7 @@ class StringPosition(Builtin):
       <dd>gives a list of starting and ending positions where $patt$ matches "$string$".
       <dt>'StringPosition'["$string$", $patt$, $n$]
       <dd>returns the first $n$ matches only.
-      <dt>'StringPosition'["$string$", {$patt1$, $patt2$, ...}, $n$]
+      <dt>'StringPosition'["$string$", {$patt_1$, $patt_2$, ...}, $n$]
       <dd>matches multiple patterns.
       <dt>'StringPosition'[{$s_1$, $s_2$, ...}, $patt$]
       <dd>returns a list of matches for multiple strings.
@@ -509,7 +509,7 @@ class StringReplace(_StringFind):
     <dl>
       <dt>'StringReplace'["$string$", "$a$"->"$b$"]
       <dd>replaces each occurrence of $old$ with $new$ in $string$.
-      <dt>'StringReplace'["$string$", {"$s_1$"->"$sp1$", "$s_2$"->"$sp2$"}]
+      <dt>'StringReplace'["$string$", {"$s_1$"->"$sp_1$", "$s_2$"->"$sp_2$"}]
       <dd>performs multiple replacements of each $si$ by the
         corresponding $spi$ in $string$.
       <dt>'StringReplace'["$string$", $srules$, $n$]
