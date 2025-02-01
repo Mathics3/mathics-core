@@ -87,6 +87,8 @@ DOC_DIR = osp.join(LOCAL_ROOT_DIR, "doc", "documentation")
 DOC_LATEX_DIR = osp.join(LOCAL_ROOT_DIR, "doc", "latex")
 DOC_LATEX_FILE = osp.join(DOC_LATEX_DIR, "documentation.tex")
 
+DOC_RST_DIR = osp.join(LOCAL_ROOT_DIR, "doc", "RsT")
+
 # Set this True if you prefer 12 hour time to be the default
 TIME_12HOUR = False
 

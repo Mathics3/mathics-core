@@ -68,6 +68,12 @@ IMG_RE = re.compile(
 # Preserve space before and after in-line code variables.
 LATEX_RE = re.compile(r"(\s?)\$(\w+?)\$(\s?)")
 
+LATEX_DISPLAY_EQUATION_RE = re.compile(r"(?m)(?<!\\)\$\$([\s\S]+?)(?<!\\)\$\$")
+LATEX_INLINE_EQUATION_RE = re.compile(r"(?m)(?<!\\)\$([\s\S]+?)(?<!\\)\$")
+LATEX_HREF_RE = re.compile(r"(?s)\\href\{(?P<content>.*?)\}\{(?P<text>.*?)\}")
+LATEX_URL_RE = re.compile(r"(?s)\\url\{(?P<content>.*?)\}")
+
+
 LIST_ITEM_RE = re.compile(r"(?s)<li>(.*?)(?:</li>|(?=<li>)|$)")
 LIST_RE = re.compile(r"(?s)<(?P<tag>ul|ol)>(?P<content>.*?)</(?P=tag)>")
 MATHICS_RE = re.compile(r"(?<!\\)\'(.*?)(?<!\\)\'")
@@ -277,6 +283,14 @@ class DocTest:
       `|`  Prints output.
     """
 
+    index: int
+    outs: List[_Out]
+    test: str
+    result: str
+    private: bool
+    ignore: bool
+    _key: Optional[tuple]
+
     def __init__(
         self,
         index: int,
@@ -302,7 +316,7 @@ class DocTest:
 
         self.index = index
         self.outs: List[_Out] = []
-        self.result = None
+        result_value = None
 
         # Private test cases are executed, but NOT shown as part of the docs
         self.private = testcase[0] == "#"
@@ -317,7 +331,7 @@ class DocTest:
             self.ignore = False
 
         self.test = strip_sentinal(testcase[1])
-        self._key: Optional[tuple] = key_prefix + (index,) if key_prefix else None
+        self._key = key_prefix + (index,) if key_prefix else None
 
         outs = testcase[2].splitlines()
         for line in outs:
@@ -328,8 +342,8 @@ class DocTest:
                     if text.startswith(" "):
                         text = text[1:]
                     text = "\n" + text
-                    if self.result is not None:
-                        self.result += text
+                    if result_value is not None:
+                        result_value += text
                     elif self.outs:
                         self.outs[-1].text += text
                     continue
@@ -340,11 +354,12 @@ class DocTest:
                 symbol, text = match.group(1), match.group(2)
                 text = text.strip()
                 if symbol == "=":
-                    self.result = text
+                    result_value = text
                 elif symbol == ":":
                     self.outs.append(Message("", "", text))
                 elif symbol == "|":
                     self.outs.append(Print(text))
+        self.result = result_value or ""
 
     def __str__(self) -> str:
         return self.test
@@ -363,8 +378,9 @@ class DocTest:
         if wanted in ("...", result):
             return True
 
-        if result is None or wanted is None:
-            return False
+        if result is None:
+            return wanted == ""
+
         result_list = result.splitlines()
         wanted_list = wanted.splitlines()
         if result_list == [] and wanted_list == ["#<--#"]:
@@ -419,6 +435,16 @@ class DocTest:
         self._key = value
         return self._key
 
+    def rst(self, test_data=None) -> str:
+        result = ">>> " + self.test + "\n"
+        test_result = self.result
+        if test_result == "":
+            return result
+
+        result += "  = " + "\n    ".join(line for line in test_result.split("\n"))
+        # TODO, use the result stored in test_data.
+        return result
+
 
 class DocTests:
     """
@@ -441,6 +467,9 @@ class DocTests:
 
     def __str__(self) -> str:
         return "\n".join(str(test) for test in self.tests)
+
+    def rst(self, test_data=None) -> str:
+        return "\n" + "\n".join(test.rst(test_data) for test in self.get_tests()) + "\n"
 
     def test_indices(self) -> List[int]:
         """indices of the tests"""
@@ -474,6 +503,48 @@ class DocText:
     #     """the test is private, meaning that it will not be included in the
     #     documentation, but tested in the doctest cycle."""
     #     return False
+
+    def rst(self, test_data=None) -> str:
+        """ReStructuredText version of the documentation entry text"""
+        item = str(self.text)
+        item = "\n".join(line.strip() for line in item.split("\n"))
+
+        item = item.replace(r"\'", "_SIMPLEQUOTE_")
+        item = item.replace(r"\$", "_DOLARSYMBOL_")
+        item = item.replace(r"'", "")
+
+        def repl_hypertext(match) -> str:
+            tag = match.group("tag")
+            content = match.group("content")
+            if tag == "em":
+                return f"`<{content}>`_"
+
+            text = match.group("text")
+            return f"`{text} <{content}>`_"
+
+        item = HYPERTEXT_RE.sub(repl_hypertext, item)
+
+        def repl_display_eq(match) -> str:
+            eq = match.group(1)
+            return f":math:`{eq}`"
+
+        item = LATEX_DISPLAY_EQUATION_RE.sub(repl_display_eq, item)
+
+        def repl_inline_eq(match) -> str:
+            eq = match.group(1)
+            return f":math:`{eq}`"
+
+        item = LATEX_INLINE_EQUATION_RE.sub(repl_inline_eq, item)
+
+        item = item.replace("<dl>", "")
+        item = item.replace("</dl>", "")
+        item = item.replace("<dt>", "")
+        item = item.replace("</dt>", "")
+        item = item.replace("<dd>", "    ")
+        item = item.replace("</dd>", "")
+        item = item.replace("_SIMPLEQUOTE_", "'")
+        item = item.replace("_DOLARSYMBOL_", "$")
+        return item
 
     def test_indices(self) -> List[int]:
         """indices of the tests"""
@@ -539,6 +610,9 @@ class DocumentationEntry:
 
     def __str__(self) -> str:
         return "\n\n".join(str(item) for item in self.items)
+
+    def rst(self, test_data=None) -> str:
+        return "\n".join([item.rst(test_data) for item in self.items])
 
     def text(self) -> str:
         """text version of the documentation entry"""
@@ -631,3 +705,6 @@ class Tests:
         assert self._key is None
         self._key = value
         return self._key
+
+    def rst(self, test_data=None) -> str:
+        return "\n".join(test.rst(test_data) for test in self.tests)
