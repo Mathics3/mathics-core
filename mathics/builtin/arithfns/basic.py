@@ -562,8 +562,8 @@ class Times(InfixOperator, SympyFunction):
 
     <dl>
       <dt>'Times'[$a$, $b$, ...]
-      <dt>$a$ '*' $b$ '* ...'
-      <dt>$a$ $b$ ...'
+      <dt>$a$ '*' $b$ '*' ...
+      <dt>$a$ $b$ ...
       <dd>represents the product of the terms $a$, $b$, ...
     </dl>
 
