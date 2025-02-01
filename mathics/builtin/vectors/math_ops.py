@@ -23,7 +23,7 @@ class Cross(Builtin):
     https://reference.wolfram.com/language/ref/Cross.html</url>)
 
     <dl>
-      <dt>'Cross[$a$, $b$]'
+      <dt>'Cross'[$a$, $b$]
       <dd>computes the vector cross product of $a$ and $b$.
     </dl>
 
@@ -91,11 +91,11 @@ class Curl(SympyFunction):
     :WMA: https://reference.wolfram.com/language/ref/Curl.html</url>)
 
     <dl>
-      <dt>'Curl[{$f1$, $f2$}, {$x1$, $x2$}]'
-      <dd>returns the curl $df2$/$dx1$ - $df1$/$dx2$
+      <dt>'Curl'[{$f_1$, $f_2$}, {$x_1$, $x_2$}]
+      <dd>returns the curl $df_2$/$dx_1$ - $df_1$/$dx_2$
 
-      <dt>'Curl[{$f1$, $f2$, $f3$} {$x1$, $x2$, $x3$}]'
-      <dd>returns the curl ($df3$/$dx2$ - $df2$/$dx3$, $dx3$/$df$3 - $df3$/$dx1$, $df2$/$df1$ - $df1$/$dx2$)
+      <dt>'Curl'[{$f_1$, $f_2$, $f_3$} {$x_1$, $x_2$, $x_3$}]
+      <dd>returns the curl ($df_3$/$dx_2$ - $df_2$/$dx_3$, $dx_3$/$df_3$ - $df_3$/$dx_1$, $df_2$/$df_1$ - $df_1$/$dx_2$)
     </dl>
 
     Two-dimensional 'Curl':
@@ -138,10 +138,10 @@ class Norm(Builtin):
     https://reference.wolfram.com/language/ref/Norm.html</url>)
 
     <dl>
-      <dt>'Norm[$m$, $p$]'
+      <dt>'Norm'[$m$, $p$]
       <dd>computes the p-norm of matrix m.
 
-      <dt>'Norm[$m$]'
+      <dt>'Norm'[$m$]
      <dd>computes the 2-norm of matrix m.
     </dl>
 

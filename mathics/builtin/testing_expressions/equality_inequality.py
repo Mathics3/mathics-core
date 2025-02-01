@@ -348,9 +348,9 @@ class Between(Builtin):
     <dl>
       <dt>'Between'[$x$, {$min$, $max$}]
       <dd>equivalent to $min$ <= $x$ <= $max$.
-      <dt>'Between[$x$, { {$min1$, $max1$}, {$min2$, $max2$}, ...]'
-      <dd>equivalent to $min1$ <= $x$ <= $max1$ || $min2$ <= $x$ <= $max2$ ...
-      <dt>'Between[$range$]'
+      <dt>'Between'[$x$, { {$min_1$, $max_1$}, {$min_2$, $max_2$}, ...]
+      <dd>equivalent to $min_1$ <= $x$ <= $max_1$ || $min_2$ <= $x$ <= $max_2$ ...
+      <dt>'Between'[$range$]
       <dd>operator form that yields 'Between'[$x$, $range$] when applied to expression $x$.
     </dl>
 
@@ -391,7 +391,7 @@ class BooleanQ(Builtin):
     https://reference.wolfram.com/language/ref/BooleanQ.html</url>
 
     <dl>
-      <dt>'BooleanQ[$expr$]'
+      <dt>'BooleanQ'[$expr$]
       <dd>returns 'True' if $expr$ is either 'True' or 'False'.
     </dl>
 
@@ -421,7 +421,7 @@ class Equal(_EqualityOperator, _SympyComparison):
     https://reference.wolfram.com/language/ref/Equal.html</url>
 
     <dl>
-      <dt>'Equal[$x$, $y$]'
+      <dt>'Equal'[$x$, $y$]
       <dt>'$x$ == $y$'
       <dd>is 'True' if $x$ and $y$ are known to be equal, or
         'False' if $x$ and $y$ are known to be unequal, in which case
@@ -557,7 +557,7 @@ class Greater(_ComparisonOperator, _SympyComparison):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Greater.html</url>
 
     <dl>
-      <dt>'Greater[$x$, $y$]' or '$x$ > $y$'
+      <dt>'Greater'[$x$, $y$] or '$x$ > $y$'
       <dd>yields 'True' if $x$ is known to be greater than $y$.
     </dl>
 
@@ -584,7 +584,7 @@ class GreaterEqual(_ComparisonOperator, _SympyComparison):
     https://reference.wolfram.com/language/ref/GreaterEqual.html</url>
 
     <dl>
-      <dt>'GreaterEqual[$x$, $y$]'
+      <dt>'GreaterEqual'[$x$, $y$]
       <dt>$x$ \u2265 $y$ or '$x$ >= $y$'
       <dd>yields 'True' if $x$ is known to be greater than or equal
         to $y$.
@@ -652,7 +652,7 @@ class Less(_ComparisonOperator, _SympyComparison):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Less.html</url>
 
     <dl>
-      <dt>'Less[$x$, $y$]' or $x$ < $y$
+      <dt>'Less'[$x$, $y$] or $x$ < $y$
       <dd>yields 'True' if $x$ is known to be less than $y$.
     </dl>
 
@@ -677,7 +677,7 @@ class LessEqual(_ComparisonOperator, _SympyComparison):
     <url>:WMA link:https://reference.wolfram.com/language/ref/LessEqual.html</url>
 
     <dl>
-      <dt>'LessEqual[$x$, $y$, ...]' or $x$ <= $y$ or $x$ \u2264 $y$
+      <dt>'LessEqual'[$x$, $y$, ...] or $x$ <= $y$ or $x$ \u2264 $y$
       <dd>yields 'True' if $x$ is known to be less than or equal to $y$.
     </dl>
 
@@ -699,7 +699,7 @@ class Max(_MinMax):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Max.html</url>
 
     <dl>
-      <dt>'Max[$e_1$, $e_2$, ..., $e_i$]'
+      <dt>'Max'[$e_1$, $e_2$, ..., $e_i$]
       <dd>returns the expression with the greatest value among the $e_i$.
     </dl>
 
@@ -736,7 +736,7 @@ class Min(_MinMax):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Min.html</url>
 
     <dl>
-      <dt>'Min[$e_1$, $e_2$, ..., $e_i$]'
+      <dt>'Min'[$e_1$, $e_2$, ..., $e_i$]
       <dd>returns the expression with the lowest value among the $e_i$.
     </dl>
 
@@ -770,7 +770,7 @@ class SameQ(_ComparisonOperator):
     <url>:WMA link:https://reference.wolfram.com/language/ref/SameQ.html</url>
 
     <dl>
-      <dt>'SameQ[$x$, $y$]'
+      <dt>'SameQ'[$x$, $y$]
       <dt>'$x$ === $y$'
       <dd>returns 'True' if $x$ and $y$ are structurally identical. \
           Commutative properties apply, so if $x$ === $y$ then $y$ === $x$.
@@ -781,7 +781,7 @@ class SameQ(_ComparisonOperator):
       <li>'SameQ' requires exact correspondence between expressions, expect that \
            it still considers 'Real' numbers equal if they differ in their last \
            binary digit.
-      <li>$e1$ === $e2$ === $e3$ gives 'True' if all the $ei$'s are identical.
+      <li>$e_1$ === $e_2$ === $e_3$ gives 'True' if all the $ei$'s are identical.
       <li>'SameQ[]' and 'SameQ[$expr$]' always yield 'True'.
     </ul>
 
@@ -834,7 +834,7 @@ class TrueQ(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/TrueQ.html</url>
 
     <dl>
-      <dt>'TrueQ[$expr$]'
+      <dt>'TrueQ'[$expr$]
       <dd>returns 'True' if and only if $expr$ is 'True'.
     </dl>
 
@@ -861,7 +861,7 @@ class Unequal(_EqualityOperator, _SympyComparison):
     https://reference.wolfram.com/language/ref/Unequal.html</url>
 
     <dl>
-      <dt>'Unequal[$x$, $y$]' or $x$ != $y$ or $x$ \u2260 $y$
+      <dt>'Unequal'[$x$, $y$] or $x$ != $y$ or $x$ \u2260 $y$
       <dd>is 'False' if $x$ and $y$ are known to be equal, or 'True' if $x$ \
           and $y$ are known to be unequal.
 
@@ -919,7 +919,7 @@ class UnsameQ(_ComparisonOperator):
     <url>:WMA link:https://reference.wolfram.com/language/ref/UnsameQ.html</url>
 
     <dl>
-      <dt>'UnsameQ[$x$, $y$]'
+      <dt>'UnsameQ'[$x$, $y$]
       <dt>'$x$ =!= $y$'
       <dd>returns 'True' if $x$ and $y$ are not structurally identical.
       Commutative properties apply, so if $x$ =!= $y$, then $y$ =!= $x$.

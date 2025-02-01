@@ -140,7 +140,7 @@ class GetEnvironment(Builtin):
       <dd>gives the setting corresponding to the variable "var" in the operating \
       system environment.
 
-      <dt>'GetEnvironment'[{"$var1$", "$var2$", ...}]
+      <dt>'GetEnvironment'[{"$var_1$", "$var_2$", ...}]
       <dd>gives a list rules for each of the environment variables listed.
 
       <dt>'GetEnvironment[]'

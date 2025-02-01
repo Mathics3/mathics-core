@@ -26,7 +26,7 @@ class DigitQ(Builtin):
     https://reference.wolfram.com/language/ref/DigitQ.html</url>
 
     <dl>
-      <dt>'DigitQ[$string$]'
+      <dt>'DigitQ'[$string$]
       <dd>yields 'True' if all the characters in the $string$ are \
           digits, and yields 'False' otherwise.
 
@@ -61,7 +61,7 @@ class LetterQ(Builtin):
     https://reference.wolfram.com/language/ref/LetterQ.html</url>
 
     <dl>
-      <dt>'LetterQ[$string$]'
+      <dt>'LetterQ'[$string$]
       <dd> yields 'True' if all the characters in the $string$ are \
            letters, and yields 'False' otherwise.
     </dl>
@@ -93,7 +93,7 @@ class StringFreeQ(Builtin):
     https://reference.wolfram.com/language/ref/StringFreeQ.html</url>
 
     <dl>
-      <dt>'StringFreeQ["$string$", $patt$]'
+      <dt>'StringFreeQ'["$string$", $patt$]
       <dd>returns True if no substring in $string$ matches the string \
       expression $patt$, and returns False otherwise.
 
@@ -152,7 +152,7 @@ class StringMatchQ(Builtin):
     https://reference.wolfram.com/language/ref/StringMatchQ.html</url>
 
     <dl>
-      <dt>'StringMatchQ["string", $pattern$]'
+      <dt>'StringMatchQ'["string", $pattern$]
       <dd> checks  is "string" matches $pattern$
     </dl>
 
@@ -224,7 +224,7 @@ class StringQ(Test):
     :WMA link:
     https://reference.wolfram.com/language/ref/StringQ.html</url>
     <dl>
-      <dt>'StringQ[$expr$]'
+      <dt>'StringQ'[$expr$]
       <dd>returns 'True' if $expr$ is a 'String', or 'False' otherwise.
     </dl>
 

@@ -1040,15 +1040,15 @@ class RegisterImport(Builtin):
       <dd>register '$defaultFunction$' as the default function used when \
           importing from a file of type '"$format$"'.
 
-      <dt>'RegisterImport["$format$", {"$elem1$" :> $conditionalFunction1$, \
-          "$elem2$" :> $conditionalFunction2$, ..., $defaultFunction$}]'
-      <dd>registers multiple elements ($elem1$, ...) and their corresponding \
-          converter functions ($conditionalFunction1$, ...) in addition to the $defaultFunction$.
+      <dt>'RegisterImport["$format$", {"$elem_1$" :> $conditionalFunction_1$, \
+          "$elem_2$" :> $conditionalFunction_2$, ..., $defaultFunction$}]'
+      <dd>registers multiple elements ($elem_1$, ...) and their corresponding \
+          converter functions ($conditionalFunction_1$, ...) in addition to the $defaultFunction$.
 
       <dt>'RegisterImport["$format$", {"$conditionalFunctions$, $defaultFunction$, \
-           "$elem3$" :> $postFunction3$, "$elem4$" :> $postFunction4$, ...}]'
-      <dd>also registers additional elements ($elem3$, ...) whose converters \
-          ($postFunction3$, ...) act on output from the low-level functions.
+           "$elem_3$" :> $postFunction_3$, "$elem_4$" :> $postFunction_4$, ...}]'
+      <dd>also registers additional elements ($elem_3$, ...) whose converters \
+          ($postFunction_3$, ...) act on output from the low-level functions.
     </dl>
 
     First, define the default function used to import the data.

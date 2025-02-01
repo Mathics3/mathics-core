@@ -31,7 +31,7 @@ class KroneckerProduct(SympyFunction):
     https://reference.wolfram.com/language/ref/KroneckerProduct.html</url>)
 
     <dl>
-      <dt>'KroneckerProduct[$m1$, $m2$, ...]'
+      <dt>'KroneckerProduct'[$m_1$, $m_2$, ...]
       <dd>returns the Kronecker product of the arrays $mi$
     </dl>
 
@@ -72,10 +72,10 @@ class Normalize(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/KroneckerProduct.html</url>
 
     <dl>
-      <dt>'Normalize[$v$]'
+      <dt>'Normalize'[$v$]
       <dd>calculates the normalized vector $v$.
 
-      <dt>'Normalize[$z$]'
+      <dt>'Normalize'[$z$]
       <dd>calculates the normalized complex number $z$.
     </dl>
 
@@ -96,7 +96,7 @@ class Projection(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Projection.html</url>
 
     <dl>
-      <dt>'Projection[$u$, $v$]'
+      <dt>'Projection'[$u$, $v$]
       <dd>gives the projection of the vector $u$ onto $v$
     </dl>
 
@@ -161,10 +161,10 @@ class UnitVector(Builtin):
     https://reference.wolfram.com/language/ref/UnitVector.html</url>)
 
     <dl>
-      <dt>'UnitVector[$n$, $k$]'
+      <dt>'UnitVector'[$n$, $k$]
       <dd>returns the $n$-dimensional unit vector with a 1 in position $k$.
 
-      <dt>'UnitVector[$k$]'
+      <dt>'UnitVector'[$k$]
       <dd>is equivalent to 'UnitVector[2, $k$]'.
     </dl>
 
@@ -208,7 +208,7 @@ class VectorAngle(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/VectorAngle.html</url>
 
     <dl>
-      <dt>'VectorAngle[$u$, $v$]'
+      <dt>'VectorAngle'[$u$, $v$]
       <dd>gives the angles between vectors $u$ and $v$
     </dl>
 

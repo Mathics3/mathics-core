@@ -586,25 +586,25 @@ In fact, <em>functions</em> in \Mathics are just one aspect of <em>patterns</em>
 <dl>
   <dt>'_' or 'Blank[]'
   <dd>matches one expression.
-  <dt>'Pattern[$x$, $p$]'
+  <dt>'Pattern'[$x$, $p$]
   <dd>matches the pattern $p$ and stores the matching sub-expression into $x$.
-  <dt>'$x$_' or 'Pattern[$x$, Blank[]]'
+  <dt>$x$'_' or 'Pattern[$x$, Blank[]]'
   <dd>matches one expression and stores it in $x$.
   <dt>'__' or 'BlankSequence[]'
   <dd>matches a sequence of one or more expressions.
   <dt>'___' or 'BlankNullSequence[]'
   <dd>matches a sequence of zero or more expressions.
-  <dt>'_$h$' or 'Blank[$h$]'
+  <dt>'_'$h$ or 'Blank'[$h$]
   <dd>matches one expression with head $h$.
-  <dt>'$x$_$h$' or 'Pattern[$x$, Blank[$h$]]'
+  <dt>'$x$_$h$' or 'Pattern[$x$, Blank'[$h$]]
   <dd>matches one expression with head $h$ and stores it in $x$.
-  <dt>'$p$ | $q$' or 'Alternatives[$p$, $q$]'
+  <dt>'$p$ | $q$' or 'Alternatives'[$p$, $q$]
   <dd>matches either pattern $p$ or $q$.
-  <dt>'$p$ ? $t$' or 'PatternTest[$p$, $t$]'
+  <dt>'$p$ ? $t$' or 'PatternTest'[$p$, $t$]
   <dd>matches $p$ if the test '$t$[$p$]' yields 'True'.
-  <dt>'$p$ /; $c$' or 'Condition[$p$, $c$]'
+  <dt>'$p$ '/;' $c$' or 'Condition'[$p$, $c$]
   <dd>matches $p$ if condition $c$ holds.
-  <dt>'Verbatim[$p$]'
+  <dt>'Verbatim'[$p$]
   <dd>matches an expression that equals $p$, without regarding patterns inside $p$.
 </dl>
 
@@ -696,22 +696,22 @@ Functions can be applied using prefix or postfix notation, in addition to using 
 <section title="Program-Flow Control Statements">
 Like most programming languages, \Mathics has common program-flow control statements for conditions, loops, etc.:
 <dl>
-<dt>'If[$cond$, $pos$, $neg$]'
+<dt>'If'[$cond$, $pos$, $neg$]
   <dd>returns $pos$ if $cond$ evaluates to 'True', and $neg$ if it evaluates to 'False'.
-<dt>'Which[$cond1$, $expr1$, $cond2$, $expr2$, ...]'
-        <dd>yields $expr1$ if $cond1$ evaluates to 'True', $expr2$ if $cond2$ evaluates to 'True', etc.
-<dt>'Do[$expr$, {$i$, $max$}]'
+<dt>'Which'[$cond_1$, $expr_1$, $cond_2$, $expr_2$, ...]
+        <dd>yields $expr_1$ if $cond_1$ evaluates to 'True', $expr_2$ if $cond_2$ evaluates to 'True', etc.
+<dt>'Do'[$expr$, {$i$, $max$}]
   <dd>evaluates $expr$ $max$ times, substituting $i$ in $expr$ with values from 1 to $max$.
-<dt>'For[$start$, $test$, $incr$, $body$]'
+<dt>'For'[$start$, $test$, $incr$, $body$]
         <dd>evaluates $start$, and then iteratively $body$ and $incr$ as long as $test$ evaluates to 'True'.
-<dt>'While[$test$, $body$]'
+<dt>'While'[$test$, $body$]
         <dd>evaluates $body$ as long as $test$ evaluates to 'True'.
-<dt>'Nest[$f$, $expr$, $n$]'
+<dt>'Nest'[$f$, $expr$, $n$]
         <dd>returns an expression with $f$ applied $n$ times to $expr$.
-<dt>'NestWhile[$f$, $expr$, $test$]'
+<dt>'NestWhile'[$f$, $expr$, $test$]
         <dd>applies a function $f$ repeatedly on an expression $expr$, until
         applying $test$ on the result no longer yields 'True'.
-<dt>'FixedPoint[$f$, $expr$]'
+<dt>'FixedPoint'[$f$, $expr$]
         <dd>starting with $expr$, repeatedly applies $f$ until the result no longer changes.
 </dl>
 
@@ -744,12 +744,12 @@ However, sometimes "local" variables are needed in order not to disturb the glob
 <li><em>dynamic scoping</em> by 'Block'.
 </ul>
 <dl>
-  <dt>'Module[{$vars$}, $expr$]'
+  <dt>'Module'[{$vars$}, $expr$]
   <dd>localizes variables by giving them a temporary name of the form
       'name\$number', where number is the current value of '\$ModuleNumber'. Each time a module
       is evaluated, '\$ModuleNumber' is incremented.
 
-  <dt>'Block[{$vars$}, $expr$]'
+  <dt>'Block'[{$vars$}, $expr$]
   <dd>temporarily stores the definitions of certain variables, evaluates
       $expr$ with reset values and restores the original definitions afterward.
 </dl>
@@ -834,13 +834,13 @@ Special formats might not be very relevant for individual symbols, but rather fo
   = <an r object>
 You can use several helper functions to format expressions:
 <dl>
-<dt>'Infix[$expr$, $op$]'
+<dt>'Infix'[$expr$, $op$]
   <dd>formats the arguments of $expr$ with infix operator $op$.
-<dt>'Prefix[$expr$, $op$]'
+<dt>'Prefix'[$expr$, $op$]
   <dd>formats the argument of $expr$ with prefix operator $op$.
-<dt>'Postfix[$expr$, $op$]'
+<dt>'Postfix'[$expr$, $op$]
   <dd>formats the argument of $expr$ with postfix operator $op$.
-<dt>'StringForm[$form$, $arg1$, $arg2$, ...]'
+<dt>'StringForm'[$form$, $arg1$, $arg2$, ...]
   <dd>formats arguments using a format string.
 </dl>
 
@@ -856,9 +856,9 @@ There are several methods to display expressions in 2-D:
   <dd>displays expressions in a row.
 <dt>'Grid[{{...}}]'
   <dd>displays a matrix in two-dimensional form.
-<dt>'Subscript[$expr$, $i1$, $i2$, ...]'
-  <dd>displays $expr$ with subscript indices $i1$, $i2$, ...
-<dt>'Superscript[$expr$, $exp$]'
+<dt>'Subscript'[$expr$, $i_1$, $i_2$, ...]
+  <dd>displays $expr$ with subscript indices $i_1$, $i_2$, ...
+<dt>'Superscript'[$expr$, $exp$]
   <dd>displays $expr$ with superscript (exponent) $exp$.
 </dl>
 
@@ -961,21 +961,21 @@ The list elements in this 'RowBox' are strings, though string delimiters are not
 <section title="Graphics Introduction Examples">
 Two-dimensional graphics can be created using the function 'Graphics' and a list of graphics primitives. For three-dimensional graphics see the following section. The following primitives are available:
 <dl>
-<dt>'Circle[{$x$, $y$}, $r$]'
+<dt>'Circle'[{$x$, $y$}, $r$]
   <dd>draws a circle.
-  <dt>'Disk[{$x$, $y$}, $r$]'
+  <dt>'Disk'[{$x$, $y$}, $r$]
 
   <dd>draws a filled disk.
-  <dt>'Rectangle[{$x1$, $y1$}, {$x2$, $y2$}]'
+  <dt>'Rectangle'[{$x_1$, $y_1$}, {$x_2$, $y_2$}]
 
   <dd>draws a filled rectangle.
-  <dt>'Polygon[{{$x1$, $y1$}, {$x2$, $y2$}, ...}]'
+  <dt>'Polygon'[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]
 
   <dd>draws a filled polygon.
-  <dt>'Line[{{$x1$, $y1$}, {$x2$, $y2$}, ...}]'
+  <dt>'Line'[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]
 
   <dd>draws a line.
-  <dt>'Text[$text$, {$x$, $y$}]'
+  <dt>'Text'[$text$, {$x$, $y$}]
   <dd>draws text in a graphics.
 </dl>
 
@@ -987,16 +987,16 @@ Two-dimensional graphics can be created using the function 'Graphics' and a list
 
 Colors can be added in the list of graphics primitives to change the drawing color. The following ways to specify colors are supported:
 <dl>
-  <dt>'RGBColor[$r$, $g$, $b$]'
+  <dt>'RGBColor'[$r$, $g$, $b$]
   <dd>specifies a color using red, green, and blue.
 
-  <dt>'CMYKColor[$c$, $m$, $y$, $k$]'
+  <dt>'CMYKColor'[$c$, $m$, $y$, $k$]
   <dd>specifies a color using cyan, magenta, yellow, and black.
 
-  <dt>'Hue[$h$, $s$, $b$]'
+  <dt>'Hue'[$h$, $s$, $b$]
   <dd>specifies a color using hue, saturation, and brightness.
 
-  <dt>'GrayLevel[$l$]'
+  <dt>'GrayLevel'[$l$]
   <dd>specifies a color using a gray level.
 </dl>
 
@@ -1014,11 +1014,11 @@ Table of hues:
 
 Colors can be mixed and altered using the following functions:
 <dl>
-<dt>'Blend[{$color1$, $color2$}, $ratio$]'
+<dt>'Blend'[{$color1$, $color2$}, $ratio$]
   <dd>mixes $color1$ and $color2$ with $ratio$, where a ratio of 0 returns $color1$ and a ratio of 1 returns $color2$.
-<dt>'Lighter[$color$]'
+<dt>'Lighter'[$color$]
   <dd>makes $color$ lighter (mixes it with 'White').
-<dt>'Darker[$color$]'
+<dt>'Darker'[$color$]
   <dd>makes $color$ darker (mixes it with 'Black').
 </dl>
 
@@ -1035,11 +1035,11 @@ Colors can be mixed and altered using the following functions:
 <section title="3D Graphics">
 Three-dimensional graphics are created using the function 'Graphics3D' and a list of 3D primitives. The following primitives are supported so far:
 <dl>
-<dt>'Polygon[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z3$}, ...}]'
+<dt>'Polygon'[{{$x_1$, $y_1$, $z_1$}, {$x_2$, $y_2$, $z_3$}, ...}]
   <dd>draws a filled polygon.
-<dt>'Line[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z3$}, ...}]'
+<dt>'Line'[{{$x_1$, $y_1$, $z_1$}, {$x_2$, $y_2$, $z_3$}, ...}]
   <dd>draws a line.
-<dt>'Point[{$x1$, $y1$, $z1$}]'
+<dt>'Point'[{$x_1$, $y_1$, $z_1$}]
   <dd>draws a point.
 </dl>
 

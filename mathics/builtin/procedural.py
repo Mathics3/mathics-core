@@ -268,12 +268,12 @@ class Do(IterationFunction):
       <dt>'Do'[$expr$, {$i$, $min$, $max$, $step$}]
       <dd>uses a step size of $step$.
 
-      <dt>'Do'[$expr$, {$i$, {$i1$, $i2$, ...}}]
-      <dd>uses values $i1$, $i2$, ... for $i$.
+      <dt>'Do'[$expr$, {$i$, {$i_1$, $i_2$, ...}}]
+      <dd>uses values $i_1$, $i_2$, ... for $i$.
 
-      <dt>'Do'[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]
-      <dd>evaluates $expr$ for each $j$ from $jmin$ to $jmax$, for each $i$ from $imin$
-          to $imax$, etc.
+      <dt>'Do'[$expr$, {$i$, $i_{min}$, $i_{max}$}, {$j$, $j_{min}$, $j_{max}$}, ...]
+      <dd>evaluates $expr$ for each $j$ from $j_{min}$ to $j_{max}$, for each $i$ from $i_{min}$
+          to $i_{max}$, etc.
     </dl>
 
     >> Do[Print[i], {i, 2, 4}]
@@ -516,7 +516,7 @@ class Switch(Builtin):
     https://reference.wolfram.com/language/ref/Switch.html</url>
 
     <dl>
-      <dt>'Switch'[$expr$, $pattern1$, $value1$, $pattern2$, $value2$, ...]
+      <dt>'Switch'[$expr$, $pattern_1$, $value_1$, $pattern_2$, $value_2$, ...]
       <dd>yields the first $value$ for which $expr$ matches the corresponding \
           $pattern$.
     </dl>
