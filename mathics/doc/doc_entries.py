@@ -553,8 +553,18 @@ class DocumentationEntry:
         item = item.replace("</dt>", "")
         item = item.replace("<dd>", "    ")
         item = item.replace("</dd>", "")
+        item = item.replace("\\$", "_DOLARSIGN_")
+        item = (
+            item.replace("\\'", "_SINGLEQUOTE_")
+            .replace("'", "")
+            .replace("_SINGLEQUOTE_", "'")
+        )
         item = "\n".join(line for line in item.split("\n") if not line.isspace())
         item = re.sub(r"\$([0-9a-zA-Z]*)\$", r"\1", item)
+
+        item = re.sub(r"\$([0-9a-zA-Z]*)\_\{([0-9a-zA-Z]*)\}\$", r"\1\2", item)
+        item = re.sub(r"\$([0-9a-zA-Z]*)\_([0-9a-zA-Z]*)\$", r"\1\2", item)
+        item = item.replace("_DOLARSIGN_", "$")
         return item
 
     def get_tests(self) -> List["DocTest"]:
