@@ -1,6 +1,19 @@
 CHANGES
 =======
 
+
+8.0.1
+-----
+
+
+Compatibility
+-------------
+
+* When the result of an evaluation is ``Symbol`Null``, Mathics CLI
+  now does not show an ``Out[...]=`` line, following the behavior of
+  the WMA CLI.
+
+
 8.0.0
 -----
 
