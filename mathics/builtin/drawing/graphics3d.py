@@ -90,7 +90,7 @@ class Graphics3D(Graphics):
          . import tube;
          . size(6.6667cm, 6.6667cm);
          . currentprojection=perspective(2.6,-4.8,4.0);
-         . currentlight=light(rgb(0.5,0.5,0.5), specular=red, (2,0,2), (2,2,2), (0,2,2));
+         . currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
          . // Sphere3DBox
          . draw(surface(sphere((0, 0, 0), 1)), rgb(1,1,1)+opacity(1));
          . draw(((-1,-1,-1)--(1,-1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
@@ -165,34 +165,6 @@ class Graphics3DElements(_GraphicsElements):
             element._apply_boxscaling(boxscale)
 
 
-class Sphere(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Sphere.html</url>
-
-    <dl>
-    <dt>'Sphere'[{$x$, $y$, $z$}]
-        <dd>is a sphere of radius 1 centered at the point {$x$, $y$, $z$}.
-    <dt>'Sphere'[{$x$, $y$, $z$}, $r$]
-        <dd>is a sphere of radius $r$ centered at the point {$x$, $y$, $z$}.
-    <dt>'Sphere'[{{$x_1$, $y_1$, $z_1$}, {$x_2$, $y_2$, $z_2$}, ... }, $r$]
-        <dd>is a collection spheres of radius $r$ centered at the points \
-            {$x_1$, $y_2$, $z_2$}, {$x_2$, $y_2$, $z_2$}, ...
-    </dl>
-
-    >> Graphics3D[Sphere[{0, 0, 0}, 1]]
-     = -Graphics3D-
-
-    >> Graphics3D[{Yellow, Sphere[{{-1, 0, 0}, {1, 0, 0}, {0, 0, Sqrt[3.]}}, 1]}]
-     = -Graphics3D-
-    """
-
-    summary_text = "a sphere"
-    rules = {
-        "Sphere[]": "Sphere[{0, 0, 0}, 1]",
-        "Sphere[positions_]": "Sphere[positions, 1]",
-    }
-
-
 class Cone(Builtin):
     """
     <url>:Cone:https://en.wikipedia.org/wiki/Cone</url> (<url>
@@ -220,7 +192,7 @@ class Cone(Builtin):
      = -Graphics3D-
     """
 
-    summary_text = "a cone"
+    summary_text = "represent a cone"
     messages = {
         "oddn": "The number of points must be even.",
         "nrr": "The radius must be a real number",
@@ -247,9 +219,13 @@ class Cone(Builtin):
 
 class Cuboid(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Cuboid.html</url>
 
-    Cuboid also known as interval, rectangle, square, cube, rectangular parallelepiped, tesseract, orthotope, and box.
+    <url>:Cuboid:
+      https://en.wikipedia.org/wiki/Cuboid</url> (<url>
+      :WMA:https://reference.wolfram.com/language/ref/Cuboid.html</url>)
+
+    Cuboid also known as interval, rectangle, square, cube, rectangular parallelepiped, \
+    tesseract, orthotope, and box.
     <dl>
       <dt>'Cuboid'[$p_{min}$]
       <dd>is a unit cube/square with its lower corner at point $p_{min}$.
@@ -263,7 +239,7 @@ class Cuboid(Builtin):
       <dt>'Cuboid'[{$p1_{min}$, $p1_{max}$, ...}]
       <dd>is a collection of cuboids.
 
-      <dt>'Cuboid[]' is equivalent to 'Cuboid[{0,0,0}]'.
+      <dt>'Cuboid[]' is equivalent to 'Cuboid'[{0,0,0}].
     </dl>
 
     >> Graphics3D[Cuboid[{0, 0, 1}]]
@@ -274,8 +250,6 @@ class Cuboid(Builtin):
 
     >> Graphics[Cuboid[{0, 0}]]
      = -Graphics-
-
-    ##
     """
 
     messages = {"oddn": "The number of points must be even."}
@@ -287,7 +261,7 @@ class Cuboid(Builtin):
         "Cuboid[{xmin_, ymin_, zmin_}]": "Cuboid[{{xmin, ymin, zmin}, {xmin + 1, ymin + 1, zmin + 1}}]",
     }
 
-    summary_text = "unit cube"
+    summary_text = "represent a unit cube"
 
     def eval_check(self, positions, evaluation: Evaluation):
         "Cuboid[positions_List]"
@@ -301,18 +275,20 @@ class Cuboid(Builtin):
 
 class Cylinder(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Cylinder.html</url>
+    <url>:Cylinder:
+    https://en.wikipedia.org/wiki/Cylinder</url> (<url>
+    :WMA:https://reference.wolfram.com/language/ref/Cylinder.html</url>)
 
     <dl>
       <dt>'Cylinder'[{{$x_1$, $y_1$, $z_1$}, {$x_2$, $y_2$, $z_2$}}]
       <dd>represents a cylinder of radius 1.
 
       <dt>'Cylinder'[{{$x_1$, $y_1$, $z_1$}, {$x_2$, $y_2$, $z_2$}}, $r$]
-      <dd>is a cylinder of radius $r$ starting at ($x_1$, $y_1$, $z_1$) and ending at \
+      <dd>represents a cylinder of radius $r$ starting at ($x_1$, $y_1$, $z_1$) and ending at \
           ($x_2$, $y_2$, $z_2$).
 
       <dt>'Cylinder'[{{$x_1$, $y_1$, $z_1$}, {$x_2$, $y_2$, $z_2$}, ... }, $r$]
-      <dd>is a collection cylinders of radius $r$.
+      <dd>represents is a collection cylinders of radius $r$.
     </dl>
 
     >> Graphics3D[Cylinder[{{0, 0, 0}, {1, 1, 1}}, 1]]
@@ -322,7 +298,7 @@ class Cylinder(Builtin):
      = -Graphics3D-
     """
 
-    summary_text = "a cylinder"
+    summary_text = "represent a cylinder"
     messages = {
         "oddn": "The number of points must be even.",
         "nrr": "The radius must be a real number",
@@ -347,6 +323,34 @@ class Cylinder(Builtin):
         return
 
 
+class Sphere(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Sphere.html</url>
+
+    <dl>
+    <dt>'Sphere'[{$x$, $y$, $z$}]
+        <dd>is a sphere of radius 1 centered at the point {$x$, $y$, $z$}.
+    <dt>'Sphere'[{$x$, $y$, $z$}, $r$]
+        <dd>is a sphere of radius $r$ centered at the point {$x$, $y$, $z$}.
+    <dt>'Sphere'[{{$x_1$, $y_1$, $z_1$}, {$x_2$, $y_2$, $z_2$}, ... }, $r$]
+        <dd>is a collection spheres of radius $r$ centered at the points \
+            {$x_1$, $y_2$, $z_2$}, {$x_2$, $y_2$, $z_2$}, ...
+    </dl>
+
+    >> Graphics3D[Sphere[{0, 0, 0}, 1]]
+     = -Graphics3D-
+
+    >> Graphics3D[{Yellow, Sphere[{{-1, 0, 0}, {1, 0, 0}, {0, 0, Sqrt[3.]}}, 1]}]
+     = -Graphics3D-
+    """
+
+    summary_text = "represet a sphere"
+    rules = {
+        "Sphere[]": "Sphere[{0, 0, 0}, 1]",
+        "Sphere[positions_]": "Sphere[positions, 1]",
+    }
+
+
 class Tube(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Tube.html</url>
@@ -366,7 +370,7 @@ class Tube(Builtin):
     = -Graphics3D-
     """
 
-    summary_text = "a tube"
+    summary_text = "represent a tube"
     rules = {
         "Tube[]": "Tube[{{0, 0, 0}, {1, 1, 1}}, 1]",
         "Tube[positions_]": "Tube[positions, 1]",
