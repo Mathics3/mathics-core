@@ -13,7 +13,7 @@ description = "A general-purpose computer algebra system."
 dependencies = [
     "Mathics-Scanner >= 1.4.1",
     "mpmath>=1.2.0",
-    "numpy<1.27",
+    "numpy<2.3",
     "palettable",
     # Pillow 9.1.0 supports BigTIFF with big-endian byte order.
     # ExampleData image hedy.tif is in this format.
