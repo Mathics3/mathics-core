@@ -17,7 +17,7 @@ def dodecahedron(center: tuple, length: float, color_str: str) -> str:
     real a=sqrt(1-phi*phi/4-g*g)+phi/2;
 
     triple center={center};
-    real length={length};
+    real length={length} / 2;
     triple[] d;
     d[0]=center + length*(phi/2,phi/2,phi/2);
     d[1]=center + length*(-phi/2,phi/2,phi/2);
@@ -73,6 +73,48 @@ def dodecahedron(center: tuple, length: float, color_str: str) -> str:
     """
 
 
+def octahedron(center: tuple, length: float, color_str: str) -> str:
+    """
+    Return an asymptote program string to draw a tetrahedron at `center`
+    with length `length`.
+    """
+    return f"""
+    triple center={center};
+    real vertex_position = 0.30615 * {length};
+
+    triple[] d;
+    path3[] p;
+
+    d[0]=center + (0, vertex_position, 0);
+    d[1]=center + (0, 0, vertex_position);
+    d[2]=center + (-vertex_position, 0, 0);
+    d[3]=center + (0, 0, -vertex_position);
+    d[4]=center + (vertex_position, 0, 0);
+    d[5]=center + (0, -vertex_position, 0);
+
+    p[0]=d[0]--d[1]--d[2]--cycle;
+    p[1]=d[0]--d[2]--d[3]--cycle;
+    p[2]=d[0]--d[3]--d[4]--cycle;
+    p[3]=d[0]--d[4]--d[1]--cycle;
+
+    p[4]=d[5]--d[1]--d[2]--cycle;
+    p[5]=d[5]--d[2]--d[3]--cycle;
+    p[6]=d[5]--d[3]--d[4]--cycle;
+    p[7]=d[5]--d[4]--d[1]--cycle;
+
+    pen sides={color_str};
+
+    draw(surface(p[0]),sides);
+    draw(surface(p[1]),sides);
+    draw(surface(p[2]),sides);
+    draw(surface(p[3]),sides);
+    draw(surface(p[4]),sides);
+    draw(surface(p[5]),sides);
+    draw(surface(p[6]),sides);
+    draw(surface(p[7]),sides);
+    """
+
+
 def tetrahedron(center: tuple, length: float, color_str: str) -> str:
     """
     Return an asymptote program string to draw a tetrahedron at `center`
@@ -109,5 +151,6 @@ def unimplimented_polygon(center: tuple, length: float, color_str: str) -> str:
 
 HEDRON_NAME_MAP: Dict[str, Callable] = {
     "dodecahedron": dodecahedron,
+    "octahedron": octahedron,
     "tetrahedron": tetrahedron,
 }
