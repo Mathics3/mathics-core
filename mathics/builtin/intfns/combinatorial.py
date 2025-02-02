@@ -11,7 +11,7 @@ applications ranging from logic to statistical physics, from evolutionary \
 biology to computer science, etc.
 """
 
-
+from abc import ABC
 from itertools import combinations
 
 from mathics.core.atoms import Integer, Integer1
@@ -71,7 +71,7 @@ class BellB(SympyFunction):
         return super().eval(z, evaluation)
 
 
-class _BooleanDissimilarity(Builtin):
+class _BooleanDissimilarity(Builtin, ABC):
     @staticmethod
     def _to_bool_vector(u):
         def generate():
@@ -97,7 +97,10 @@ class _BooleanDissimilarity(Builtin):
         except _NoBoolVector:
             return None
 
-    def eval(self, u, v, evaluation):
+    def _compute(self, n, c_ff, c_ft, c_tf, c_tt) -> Expression:
+        raise NotImplementedError
+
+    def eval(self, u, v, evaluation: Evaluation):
         "%(name)s[u_List, v_List]"
         if len(u.elements) != len(v.elements):
             return
@@ -199,7 +202,7 @@ class DiceDissimilarity(_BooleanDissimilarity):
     https://reference.wolfram.com/language/ref/DiceDissimilarity.html</url>)
     <dl>
       <dt>'DiceDissimilarity'[$u$, $v$]
-      <dd>returns the Dice dissimilarity between the two boolean 1-D lists $u$ and $v$.
+      <dd>returns the Dice dissimilarity between the two Boolean 1-D lists $u$ and $v$.
       This is defined as ($c_tf$ + $c_ft$) / (2 * $c_tt$ + $c_ft$ + c_tf).
       $n$ is len($u$) and $c_ij$ is the number of occurrences of $u$[$k$]=$i$ and $v$[$k$]=$j$ for $k$ < $n$.
     </dl>
@@ -210,7 +213,7 @@ class DiceDissimilarity(_BooleanDissimilarity):
 
     summary_text = "Dice dissimilarity"
 
-    def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
+    def _compute(self, n, c_ff, c_ft, c_tf, c_tt) -> Expression:
         return Expression(
             SymbolDivide, Integer(c_tf + c_ft), Integer(2 * c_tt + c_ft + c_tf)
         )
@@ -262,11 +265,11 @@ class JaccardDissimilarity(_BooleanDissimilarity):
     https://reference.wolfram.com/language/ref/JaccardDissimilarity.html</url>)
     <dl>
       <dt>'JaccardDissimilarity'[$u$, $v$]
-      <dd>returns the Jaccard-Needham dissimilarity between the two boolean \
+      <dd>returns the Jaccard-Needham dissimilarity between the two Boolean \
           1-D lists $u$ and $v$, which is defined as \
-          ($c_tf$ + $c_ft$) / ($c_tt$ + $c_ft$ + $c_tf$), where $n$ is \
+          $(c_tf + c_ft) / (c_tt + c_ft + c_tf)$, where $n$ is \
           len($u$) and $c_ij$ is the number of occurrences of \
-          $u$[$k$]=$i$ and $v$[$k$]=$j$ for $k$ < $n$.
+          $u[k]=i$ and $v[k]=j$ for $k < n$.
     </dl>
 
     >> JaccardDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -297,7 +300,7 @@ class LucasL(SympyFunction):
       <dd>gives the $n$th Lucas number.
 
       <dt>'LucasL'[$n$, $x$]
-      <dd>gives the $n$th Lucas polynomial $L$_($x$).
+      <dd>gives the $n$th Lucas polynomial $L_(x)$.
     </dl>
 
     A list of the first five Lucas numbers:
@@ -332,10 +335,10 @@ class MatchingDissimilarity(_BooleanDissimilarity):
 
     <dl>
       <dt>'MatchingDissimilarity'[$u$, $v$]
-      <dd>returns the Matching dissimilarity between the two boolean \
-      1-D lists $u$ and $v$, which is defined as ($c_tf$ + $c_ft$) / $n$, \
+      <dd>returns the Matching dissimilarity between the two Boolean \
+      1-D lists $u$ and $v$, which is defined as $(c_tf + c_ft) / n$, \
       where $n$ is len($u$) and $c_ij$ is the number of occurrences of \
-      $u$[$k$]=$i$ and $v$[$k$]=$j$ for $k$ < $n$.
+      $u[k]=i$ and $v[k]=j$ for $k < n$.
     </dl>
 
     >> MatchingDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -356,7 +359,7 @@ class Multinomial(Builtin):
     :WMA: https://reference.wolfram.com/language/ref/Multinomial.html</url>)
     <dl>
       <dt>'Multinomial'[$n_1$, $n_2$, ...]
-      <dd>gives the multinomial coefficient '($n_1$+$n_2$+...)!/($n_1$!$n_2$!...)'.
+      <dd>gives the multinomial coefficient $(n_1+n_2+...)!/(n_1!n_2!...)$.
     </dl>
 
     >> Multinomial[2, 3, 4, 5]
@@ -369,6 +372,10 @@ class Multinomial(Builtin):
     'Multinomial[$n$-$k$, $k$]' is equivalent to 'Binomial[$n$, $k$]'.
     >> Multinomial[2, 3]
      = 10
+
+    See also <url>
+    :'Binomial':
+    /doc/reference-of-built-in-symbols/integer-functions/combinatorial-functions/binomial/</url>.
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_ORDERLESS | A_PROTECTED
@@ -431,17 +438,19 @@ class PolygonalNumber(Builtin):
 
 class RogersTanimotoDissimilarity(_BooleanDissimilarity):
     """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/RogersTanimotoDissimilarity.html</url>
+    <url>:Rogers Tanimoto coefficient:
+      https://en.wikipedia.org/wiki/Qualitative_variation#Rogers%E2%80%93Tanimoto_coefficient
+      </url> (<url>
+     :WMA:
+     https://reference.wolfram.com/language/ref/RogersTanimotoDissimilarity.html</url>)
 
     <dl>
       <dt>'RogersTanimotoDissimilarity'[$u$, $v$]
-      <dd>returns the Rogers-Tanimoto dissimilarity between the two boolean \
+      <dd>returns the Rogers-Tanimoto dissimilarity between the two Boolean \
       1-D lists $u$ and $v$, which is defined as \
-      $R$ / (c_tt + c_ff + $R$) where $n$ is len($u$), c_ij is \
-      the number of occurrences of $u$[$k$]=$i$ and $v$[$k]$=$j$ for $k$<n, \
-      and $R$ = 2 * ($c_tf$ + $c_ft$).
+      $R / (c_tt + c_ff + R)$ where $n$ is $len(u)$, $c_ij$ is \
+      the number of occurrences of $u[k]=i$, $v[k]=j$ for $k<n$, \
+      and $R = 2 (c_tf + c_ft)$.
     </dl>
 
     >> RogersTanimotoDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -457,16 +466,17 @@ class RogersTanimotoDissimilarity(_BooleanDissimilarity):
 
 class RussellRaoDissimilarity(_BooleanDissimilarity):
     """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/RusselRaoDissimilarity.html</url>
+    <url>:Russel-Rao coefficient:
+    https://en.wikipedia.org/wiki/Qualitative_variation#Russel%E2%80%93Rao_coefficient</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/RusselRaoDissimilarity.html</url>)
 
     <dl>
       <dt>'RussellRaoDissimilarity'[$u$, $v$]
-      <dd>returns the Russell-Rao dissimilarity between the two boolean \
-      1-D lists $u$ and $v$, which is defined as ($n$ - $c_tt$) / $c_tt$ \
-      where $n$ is len($u$) and $c_ij$ is \
-      the number of occurrences of $u$[k]=i and $v$[$k$]=$j$ for $k$ < $n$.
+      <dd>returns the Russell-Rao dissimilarity between the two Boolean \
+      1-D lists $u$ and $v$, which is defined as $(n - c_tt) / c_tt$ \
+      where $n$ is $len(u)$, $c_ij$ is \
+      the number of occurrences of $u[k]=i$ and $v[k]=j$ for $k < n$.
     </dl>
 
     >> RussellRaoDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -481,17 +491,19 @@ class RussellRaoDissimilarity(_BooleanDissimilarity):
 
 class SokalSneathDissimilarity(_BooleanDissimilarity):
     """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/SokalSneathDissimilarity.html</url>
+
+    <url>:Snokal-Sneath coefficient:
+    https://en.wikipedia.org/wiki/Qualitative_variation#Sokal%E2%80%93Sneath_coefficient</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/SokalSneathDissimilarity.html</url>)
 
     <dl>
       <dt>'SokalSneathDissimilarity'[$u$, $v$]
-      <dd>returns the Sokal-Sneath dissimilarity between the two boolean \
-      1-D lists $u$ and $v$, which is defined as $R$ / (c_tt + $R$) where \
-      $n$ is len($u$), $c_ij$ is the number of occurrences of \
-      $u$[$k$]=$i$ and $v$[k]=$j$ for $k$ < $n$, \
-      and $R$ = 2 * ($c_tf$ + $c_ft$).
+      <dd>returns the Sokal-Sneath dissimilarity between the two Boolean \
+      1-D lists $u$ and $v$, which is defined as $R / (c_tt + R)$ where \
+      $n$ is $len(u)$, $c_ij$ is the number of occurrences of \
+      $u[k]=i$, $v[k]=j$ for $k < n$, \
+      and $R = 2 (c_tf + c_ft)$.
     </dl>
 
     >> SokalSneathDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -702,11 +714,11 @@ class YuleDissimilarity(_BooleanDissimilarity):
 
     <dl>
       <dt>'YuleDissimilarity'[$u$, $v$]
-      <dd>returns the Yule dissimilarity between the two boolean 1-D lists $u$ \
-          and $v$, which is defined as $R$ / ($c_tt$ * $c_ff$ + $R$ / 2) \
-          where $n$ is len($u$), $c_ij$ is the number of occurrences of \
-          $u$[$k$]=$i$ and $v$[$k$]=$j$ for $k$<$n$, \
-          and $R$ = 2 * $c_tf$ * $c_ft$.
+      <dd>returns the Yule dissimilarity between the two Boolean 1-D lists $u$ \
+          and $v$, which is defined as $R / (c_tt c_ff + R / 2)$ \
+          where $n$ is $len(u)$, $c_ij$ is the number of occurrences of \
+          $u[k]=i$, $v[k]=j$ for $k<n$, \
+          and $R = 2 c_tf c_ft$.
     </dl>
 
     >> YuleDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
