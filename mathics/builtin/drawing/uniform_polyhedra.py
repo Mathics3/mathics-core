@@ -51,7 +51,7 @@ class Dodecahedron(Builtin):
 class Icosahedron(Builtin):
     """
     <url>:Icosahedron:
-    https://en.wikipedia.org/wiki/Icosaahedron</url> (<url>:WMA:
+    https://en.wikipedia.org/wiki/Icosahedron</url> (<url>:WMA:
     :WMA link:
     https://reference.wolfram.com/language/ref/Icosahedron.html</url>)
 
@@ -63,7 +63,7 @@ class Icosahedron(Builtin):
       <dd>a regular icosahedron centered at the origin with edge length $l$.
 
       <dt>'Icosahedron'[{$x$, $y$, $z$}, ...]
-      <dd>a regular icosaahedron centered at {$x$ $y$, $z$}.
+      <dd>a regular icosahedron centered at {$x$ $y$, $z$}.
 
     </dl>
 
@@ -81,8 +81,9 @@ class Icosahedron(Builtin):
 
 class Octahedron(Builtin):
     """
-    <url>:WMA link
-    :https://reference.wolfram.com/language/ref/Octahedron.html</url>
+    <url>:Octahedron:
+    https://en.wikipedia.org/wiki/Octahedron</url> (<url>:WMA:
+    :https://reference.wolfram.com/language/ref/Octahedron.html</url>)
 
     <dl>
       <dt>'Octahedron[]'
@@ -111,9 +112,9 @@ class Octahedron(Builtin):
 class Tetrahedron(Builtin):
     """
     <url>:Tetrahedron:
-    https://en.wikipedia.org/wiki/Tetrahedron</url> (<url>:WMA:
-    :WMA link
-    :https://reference.wolfram.com/language/ref/Tetrahedron.html</url>)
+    https://en.wikipedia.org/wiki/Tetrahedron</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Tetrahedron.html</url>)
 
     <dl>
       <dt>'Tetrahedron'[]
@@ -144,8 +145,9 @@ class Tetrahedron(Builtin):
 
 class UniformPolyhedron(Builtin):
     """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/UniformPolyhedron.html</url>
+    <url>:Uniform polyhedron:
+    https://en.wikipedia.org/wiki/Uniform_polyhedron</url> (<url>:WMA link:
+    https://reference.wolfram.com/language/ref/UniformPolyhedron.html</url>)
 
     <dl>
       <dt>'UniformPolyhedron["name"]'

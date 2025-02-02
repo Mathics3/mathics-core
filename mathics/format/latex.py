@@ -559,8 +559,7 @@ import solids;
 import tube;
 size({0}cm, {1}cm);
 currentprojection=perspective({2[0]},{2[1]},{2[2]});
-currentlight=light(0,5,10);
-//currentlight=light(rgb(0.5,0.5,0.5), {5}specular=red, (2,0,2), (2,2,2), (0,2,2));
+currentlight=light(rgb(0.5,0.5,0.5), {5}specular=red, (2,0,2), (2,2,2), (0,2,2));
 {3}
 {4}
 \end{{asy}}
