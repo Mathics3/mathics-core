@@ -26,13 +26,13 @@ class Dodecahedron(Builtin):
     https://reference.wolfram.com/language/ref/Dodecahedron.html</url>)
 
     <dl>
-      <dt>'Dodecahedron[]'
+      <dt>'Dodecahedron'[]
       <dd>a regular dodecahedron centered at the origin with unit edge length.
 
-      <dt>'Dodecahedron[$l$]'
+      <dt>'Dodecahedron'[$l$]
       <dd>a regular dodecahedron centered at the origin with edge length $l$.
 
-      <dt>'Dodecahedron[{$x$, $y$, $z$}, ...]'
+      <dt>'Dodecahedron'[{$x$, $y$, $z$}, ...]'
       <dd>a regular dodecahedron centered at {$x$ $y$, $z$}.
     </dl>
 
@@ -52,17 +52,17 @@ class Icosahedron(Builtin):
     """
     <url>:Icosahedron:
     https://en.wikipedia.org/wiki/Icosaahedron</url> (<url>:WMA:
-    <url>:WMA link:
+    :WMA link:
     https://reference.wolfram.com/language/ref/Icosahedron.html</url>)
 
     <dl>
-      <dt>'Icosahedron[]'
+      <dt>'Icosahedron'[]
       <dd>a regular Icosahedron centered at the origin with unit edge length.
 
-      <dt>'Icosahedron[$l$]'
+      <dt>'Icosahedron'[$l$]
       <dd>a regular icosahedron centered at the origin with edge length $l$.
 
-      <dt>'Icosahedron[{$x$, $y$, $z$}, ...]'
+      <dt>'Icosahedron'[{$x$, $y$, $z$}, ...]
       <dd>a regular icosaahedron centered at {$x$ $y$, $z$}.
 
     </dl>
@@ -112,17 +112,17 @@ class Tetrahedron(Builtin):
     """
     <url>:Tetrahedron:
     https://en.wikipedia.org/wiki/Tetrahedron</url> (<url>:WMA:
-    <url>:WMA link
+    :WMA link
     :https://reference.wolfram.com/language/ref/Tetrahedron.html</url>)
 
     <dl>
-      <dt>'Tetrahedron[]'
+      <dt>'Tetrahedron'[]
       <dd>a regular tetrahedron centered at the origin with unit edge length.
 
-      <dt>'Tetrahedron[$l$]'
+      <dt>'Tetrahedron'[$l$]
       <dd>a regular tetrahedron centered at the origin with edge length $l$.
 
-      <dt>'Tetrahedron[{$x$, $y$, $z$}, ...]'
+      <dt>'Tetrahedron'[{$x$, $y$, $z$}, ...]
       <dd>a regular tetrahedron centered at {$x$ $y$, $z$}.
 
     </dl>
