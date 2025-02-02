@@ -699,17 +699,18 @@ class Product(IterationFunction, SympyFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Product.html</url>
 
     <dl>
-      <dt>'Product'[$expr$, {$i$, $imin$, $imax$}]
-      <dd>evaluates the discrete product of $expr$ with $i$ ranging from $imin$ to $imax$.
+      <dt>'Product'[$f$, {$i$, $i_{min}$, $i_{max}$}]
+      <dd>evaluates the discrete product of $f$ with $i$ ranging from $i_{min}$ to $i_{max}$.
 
-      <dt>'Product'[$expr$, {$i$, $imax$}]
-      <dd>same as 'Product[$expr$, {$i$, 1, $imax$}]'.
+      <dt>'Product'[$f$, {$i$, $i_{max}$}]
+      <dd>same as 'Product'[$f$, {$i, 1, i_{max}$}].
 
-      <dt>'Product'[$expr$, {$i$, $imin$, $imax$, $di$}]
-      <dd>$i$ ranges from $imin$ to $imax$ in steps of $di$.
+      <dt>'Product'[$f$, {$i, i_{min}, i_{max}$, $di$}]
+      <dd>$i$ ranges from $i_{min}$ to $i_{max}$ in steps of $di$.
 
-      <dt>'Product'[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]
-      <dd>evaluates $expr$ as a multiple product, with {$i$, ...}, {$j$, ...}, ... being in outermost-to-innermost order.
+      <dt>'Product'[$f$, {$i, i_{min}, i_{max}$}, {$j, j_{min}, j_{max}$}, ...]
+      <dd>evaluates $f$ as a multiple product, with {$i$, ...}, {$j$, ...}, ... being in \
+      outermost-to-innermost order.
     </dl>
 
     >> Product[k, {k, 1, 10}]
