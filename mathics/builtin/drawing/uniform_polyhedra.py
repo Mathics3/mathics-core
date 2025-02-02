@@ -14,8 +14,38 @@ from mathics.core.evaluation import Evaluation
 # Here we are also hiding "drawing" since this can erroneously appear at the top level.
 sort_order = "mathics.builtin.uniform-polyhedra"
 
-uniform_polyhedra_names = "tetrahedron, octahedron, dodecahedron, icosahedron"
+uniform_polyhedra_names = "cube, tetrahedron, octahedron, dodecahedron, icosahedron"
 uniform_polyhedra_set = frozenset(uniform_polyhedra_names.split(", "))
+
+
+class Cube(Builtin):
+    """
+
+    <url>:Cube:
+    https://en.wikipedia.org/wiki/Cube</url> (<url>:WMA:
+    https://reference.wolfram.com/language/ref/Cube.html</url>)
+
+    <dl>
+      <dt>'Cube'[]
+      <dd>represents a regular cube centered at the origin with unit edge length.
+
+      <dt>'Cube'[$l$]
+      <dd>represents a cube centered at the origin with edge length $l$.
+
+      <dt>'Cube'[{$x$, $y$, $z$}, ...]
+      <dd>represents a cube centered at {$x$ $y$, $z$}.
+    </dl>
+
+    >> Graphics3D[Cube[]]
+     = -Graphics3D-
+    """
+
+    summary_text = "produce a cube"
+    rules = {
+        "Cube[]": """UniformPolyhedron["cube"]""",
+        "Cube[l_?NumberQ]": """UniformPolyhedron["cube", {{0, 0, 0}}, l]""",
+        "Cube[positions_List, l_?NumberQ]": """UniformPolyhedron["cube", positions, l]""",
+    }
 
 
 class Dodecahedron(Builtin):
@@ -32,7 +62,7 @@ class Dodecahedron(Builtin):
       <dt>'Dodecahedron'[$l$]
       <dd>a regular dodecahedron centered at the origin with edge length $l$.
 
-      <dt>'Dodecahedron'[{$x$, $y$, $z$}, ...]'
+      <dt>'Dodecahedron'[{$x$, $y$, $z$}, ...]
       <dd>a regular dodecahedron centered at {$x$ $y$, $z$}.
     </dl>
 

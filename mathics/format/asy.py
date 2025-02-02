@@ -45,12 +45,7 @@ from mathics.format.asy_fns import (
     asy_create_pens,
     asy_number,
 )
-from mathics.format.asy_polyhedra import (
-    HEDRON_NAME_MAP,
-    dodecahedron,
-    tetrahedron,
-    unimplimented_polygon,
-)
+from mathics.format.asy_polyhedra import HEDRON_NAME_MAP, unimplimented_polygon
 
 INVERSE_POINT_FACTOR = 1 / DEFAULT_POINT_FACTOR
 

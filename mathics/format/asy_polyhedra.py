@@ -5,6 +5,45 @@ Functions to draw regular polyhdra in Asymptote vector graphics
 from typing import Callable, Dict
 
 
+def cube(center: tuple, length: float, color_str: str) -> str:
+    """
+    Return an asymptote program string to draw a cube at `center`
+    with length `length`.
+    """
+    return f"""
+    real length={length};
+
+    triple center={center};
+    real unit_corner = sqrt(3) / 4;
+    triple[] d;
+    d[0]=center + length*(unit_corner,unit_corner,unit_corner);
+    d[1]=center + length*(unit_corner,-unit_corner,unit_corner);
+    d[2]=center + length*(-unit_corner,-unit_corner,unit_corner);
+    d[3]=center + length*(-unit_corner,unit_corner,unit_corner);
+    d[4]=center + length*(-unit_corner,unit_corner,-unit_corner);
+    d[5]=center + length*(-unit_corner,-unit_corner,-unit_corner);
+    d[6]=center + length*(unit_corner,-unit_corner,-unit_corner);
+    d[7]=center + length*(unit_corner,unit_corner,-unit_corner);
+
+    path3[] p;
+    p[0]=d[0]--d[1]--d[2]--d[3]--cycle;
+    p[1]=d[0]--d[3]--d[4]--d[7]--cycle;
+    p[2]=d[0]--d[1]--d[6]--d[7]--cycle;
+    p[3]=d[3]--d[4]--d[5]--d[2]--cycle;
+    p[4]=d[7]--d[6]--d[5]--d[4]--cycle;
+    p[5]=d[1]--d[2]--d[5]--d[6]--cycle;
+
+    pen sides={color_str};
+
+    draw(surface(p[0]),sides);
+    draw(surface(p[1]),sides);
+    draw(surface(p[2]),sides);
+    draw(surface(p[3]),sides);
+    draw(surface(p[4]),sides);
+    draw(surface(p[5]),sides);
+    """
+
+
 def dodecahedron(center: tuple, length: float, color_str: str) -> str:
     """
     Return an asymptote program string to draw a dodecahedron at `center`
@@ -150,6 +189,7 @@ def unimplimented_polygon(center: tuple, length: float, color_str: str) -> str:
 
 
 HEDRON_NAME_MAP: Dict[str, Callable] = {
+    "cube": cube,
     "dodecahedron": dodecahedron,
     "octahedron": octahedron,
     "tetrahedron": tetrahedron,

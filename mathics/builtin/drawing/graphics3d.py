@@ -219,7 +219,6 @@ class Cone(Builtin):
 
 class Cuboid(Builtin):
     """
-
     <url>:Cuboid:
       https://en.wikipedia.org/wiki/Cuboid</url> (<url>
       :WMA:https://reference.wolfram.com/language/ref/Cuboid.html</url>)
