@@ -26,7 +26,7 @@ class Cube(Builtin):
     https://reference.wolfram.com/language/ref/Cube.html</url>)
 
     <dl>
-      <dt>'Cube'[]
+      <dt>'Cube[]'
       <dd>represents a regular cube centered at the origin with unit edge length.
 
       <dt>'Cube'[$l$]
@@ -63,14 +63,6 @@ class Dodecahedron(Builtin):
       <dd>a regular dodecahedron centered at the origin with edge length $l$.
 
       <dt>'Dodecahedron'[{$x$, $y$, $z$}, ...]
-      <dt>'Dodecahedron[$l$]'
-      <dd>a regular dodecahedron centered at the origin with edge length $l$.
-
-      <dt>'Dodecahedron[{$x$, $y$, $z$}, ...]'
-      <dt>'Dodecahedron'[$l$]
-      <dd>a regular dodecahedron centered at the origin with edge length $l$.
-
-      <dt>'Dodecahedron'[{$x$, $y$, $z$}, ...]'
       <dd>a regular dodecahedron centered at {$x$ $y$, $z$}.
     </dl>
 

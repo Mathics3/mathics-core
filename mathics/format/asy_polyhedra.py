@@ -112,7 +112,6 @@ def dodecahedron(center: tuple, length: float, color_str: str) -> str:
     """
 
 
-<<<<<<< HEAD
 def octahedron(center: tuple, length: float, color_str: str) -> str:
     """
     Return an asymptote program string to draw a tetrahedron at `center`
@@ -155,8 +154,6 @@ def octahedron(center: tuple, length: float, color_str: str) -> str:
     """
 
 
-=======
->>>>>>> 3ac5e1c0 (Clean up code a little)
 def tetrahedron(center: tuple, length: float, color_str: str) -> str:
     """
     Return an asymptote program string to draw a tetrahedron at `center`
@@ -192,12 +189,8 @@ def unimplimented_polygon(center: tuple, length: float, color_str: str) -> str:
 
 
 HEDRON_NAME_MAP: Dict[str, Callable] = {
-<<<<<<< HEAD
     "cube": cube,
     "dodecahedron": dodecahedron,
     "octahedron": octahedron,
-=======
-    "dodecahedron": dodecahedron,
->>>>>>> 3ac5e1c0 (Clean up code a little)
     "tetrahedron": tetrahedron,
 }
