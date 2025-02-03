@@ -52,7 +52,7 @@ class BrayCurtisDistance(Builtin):
        <dd>returns the Bray-Curtis distance between $u$ and $v$.
     </dl>
 
-    The Bray-Curtis distance is equivalent to Total[Abs[u-v]]/Total[Abs[u+v]].
+    The Bray-Curtis distance is equivalent to 'Total[Abs[u-v]]/Total[Abs[u+v]]'.
     >> BrayCurtisDistance[-7, 5]
      = 6
 
@@ -154,7 +154,7 @@ class CosineDistance(Builtin):
       <dd>returns the angular cosine distance between vectors $u$ and $v$.
     </dl>
 
-    The cosine distance is equivalent to 1 - ($u$.Conjugate[$v$]) / ('Norm[$u$] Norm[$v$]').
+    The cosine distance is equivalent to $1 - (u.Conjugate[v]) / (Norm[u] Norm[v])$.
 
     >> N[CosineDistance[{7, 9}, {71, 89}]]
      = 0.0000759646

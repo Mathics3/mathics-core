@@ -50,17 +50,16 @@ class Quantile(Builtin):
       <dt>'Quantile'[$list$, $q$]
       <dd>returns the $q$th quantile of $list$.
 
-      <dt>'Quantile'[$list$, $q$, {{$a$,$b$}, {$c$,$d$}}]
+      <dt>'Quantile'[$list$, $q$, {{$a,b$}, {$c,d$}}]
       <dd>uses the quantile definition specified by parameters $a$, $b$, $c$, $d$.
 
-      <dt>For a list of length $n$:
-      'Quantile[$list$, $q$, {{$a$,$b$}, {$c$,$d$}}]'
-      depends on $x$=$a$+($n$+$b$)$q$.
+      For a list of length $n$, 'Quantile'[$list$, $q$, {{$a ,b$}, {$c, d$}}] depends \
+      on $x=a+(n+b)q$.
 
-      If $x$ is an integer, the result is '$s$[[$x$]]', where $s$='Sort[list,Less]'.
+      If $x$ is an integer, the result is $s[[x]]$, where $s$='Sort[list,Less]'.
 
       Otherwise, the result is:
-      's[[Floor[x]]]+(s[[Ceiling[x]]]-s[[Floor[x]]])(c+dFractionalPart[x])',
+      's[[Floor[x]]] + (s[[Ceiling[x]]] - s[[Floor[x]]])(c + d FractionalPart[x])',
       with the indices taken to be 1 or n if they are out of range.
 
       The default choice of parameters is '{{0,0},{1,0}}'.
@@ -378,15 +377,16 @@ class TakeLargest(_RankedTakeLargest):
       <dd>returns the a sorted list of the $n$ largest items in $list$.
     </dl>
 
+    List the largest two numbers of a list:
     >> TakeLargest[{100, -1, 50, 10}, 2]
      = {100, 50}
 
-    None, Null, Indeterminate and expressions with head Missing are ignored
+    None, Null, Indeterminate and expressions with head Missing are ignored \
     by default:
     >> TakeLargest[{-8, 150, Missing[abc]}, 2]
      = {150, -8}
 
-    You may specify which items are ignored using the option ExcludedForms:
+    You may specify which items are ignored using the option 'ExcludedForms':
     >> TakeLargest[{-8, 150, Missing[abc]}, 2, ExcludedForms -> {}]
      = {Missing[abc], 150}
     """
@@ -408,10 +408,13 @@ class TakeSmallest(_RankedTakeSmallest):
       <dd>returns the a sorted list of the $n$ smallest items in $list$.
     </dl>
 
-    For details on how to use the ExcludedForms option, see TakeLargest[].
-
+    List the smallest two numbers of a list:
     >> TakeSmallest[{100, -1, 50, 10}, 2]
      = {-1, 10}
+
+    For details on how to use the 'ExcludedForms' option, see <url>
+    :TakeLargest:
+    /doc/reference-of-built-in-symbols/descriptive-statistics/order-statistics/takelargest/</url>.
     """
 
     attributes = A_PROTECTED

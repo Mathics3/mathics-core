@@ -89,7 +89,7 @@ class Accuracy(Builtin):
     Notice that the value is not exactly equal to the obtained in WMA: \
     This is due to the different way in which 'Precision' is handled in SymPy.
 
-    Accuracy for exact atoms is $Infinity$:
+    Accuracy for exact atoms is 'Infinity':
     >> Accuracy[1]
      = Infinity
     >> Accuracy[A]
@@ -170,7 +170,7 @@ class IntegerExponent(Builtin):
         "IntegerExponent[n_]": "IntegerExponent[n, 10]",
     }
 
-    summary_text = "number of trailing 0s in a given base"
+    summary_text = "get the number of trailing 0s in a given base"
 
     def eval_two_arg_integers(self, n: Integer, b: Integer, evaluation: Evaluation):
         """IntegerExponent[n_Integer, b_Integer]"""
@@ -257,7 +257,7 @@ class IntegerLength(Builtin):
         "IntegerLength[n_]": "IntegerLength[n, 10]",
     }
 
-    summary_text = "total number of digits in any base"
+    summary_text = "get total number of digits in any base"
 
     def eval(self, n, b, evaluation):
         """IntegerLength[n_, b_]"""
@@ -340,18 +340,18 @@ class RealDigits(Builtin):
 
     <dl>
       <dt>'RealDigits'[$n$]
-      <dd>returns the decimal representation of the real number $n$ as list \
+      <dd>returns the decimal representation for the real number $n$ as list \
       of digits, together with the number of digits that are to the left of \
       the decimal point.
 
       <dt>'RealDigits'[$n$, $b$]
-      <dd>returns a list of base_$b$ representation of the real number $n$.
+      <dd>returns a list of the "digits" in base-b representation for the real number $n$.
 
       <dt>'RealDigits'[$n$, $b$, $len$]
       <dd>returns a list of $len$ digits.
 
       <dt>'RealDigits'[$n$, $b$, $len$, $p$]
-      <dd>return $len$ digits starting with the coefficient of $b$^$p$
+      <dd>return $len$ digits starting with the coefficient of $b^p$.
     </dl>
 
     Return the list of digits and exponent:
@@ -391,7 +391,7 @@ class RealDigits(Builtin):
         "intm": "Machine-sized integer expected at position 4 in `1`.",
     }
 
-    summary_text = "digits of a real number"
+    summary_text = "get digits of a real number"
 
     def eval_complex(self, n, var, evaluation):
         "%(name)s[n_Complex, var___]"
@@ -611,7 +611,7 @@ class MaxPrecision(Predefined):
         "$MaxPrecision": "Infinity",
     }
 
-    summary_text = "settable global maximum precision bound"
+    summary_text = "settable global maximum precision bound variable"
 
 
 class MachineEpsilon_(Predefined):
@@ -636,7 +636,7 @@ class MachineEpsilon_(Predefined):
     _is_numeric = True
     name = "$MachineEpsilon"
 
-    summary_text = "the difference between 1.0 and the next-nearest number representable as a machine-precision number"
+    summary_text = "get the difference between 1.0 and the next-nearest number representable as a machine-precision number"
 
     def evaluate(self, evaluation):
         return MachineReal(MACHINE_EPSILON)
@@ -658,7 +658,7 @@ class MachinePrecision_(Predefined):
     name = "$MachinePrecision"
 
     summary_text = (
-        "the number of decimal digits of precision for machine-precision numbers"
+        "get the number of decimal digits of precision for machine-precision numbers"
     )
     _is_numeric = True
     rules = {
