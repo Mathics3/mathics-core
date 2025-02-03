@@ -191,7 +191,7 @@ class UniformPolyhedron(Builtin):
     >> Graphics3D[UniformPolyhedron["dodecahedron"]]
      = -Graphics3D-
 
-    >> Graphics3D[{"$Brown$", UniformPolyhedron["tetrahedron"]}]
+    >> Graphics3D[{"Brown", UniformPolyhedron["tetrahedron"]}]
      = -Graphics3D-
     """
 
