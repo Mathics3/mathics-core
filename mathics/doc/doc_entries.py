@@ -33,7 +33,6 @@ ALLOWED_TAGS = (
     "i",
     "ol",
     "li",
-    "con",
     "console",
     "img",
     "imgpng",
@@ -52,7 +51,9 @@ END_LINE_SENTINAL = "#<--#"
 # The regular expressions below (strings ending with _RE
 # pull out information from docstring or text in a file. Ghetto parsing.
 
-CONSOLE_RE = re.compile(r"(?s)<(?P<tag>con|console)>(?P<content>.*?)</(?P=tag)>")
+# <(?<tag>console)> in the following rule is just keep for compatibility
+# with Mathics-Django documentation.
+CONSOLE_RE = re.compile(r"(?s)<(?P<tag>console)>(?P<content>.*?)</console>")
 DL_ITEM_RE = re.compile(
     r"(?s)<(?P<tag>d[td])>(?P<content>.*?)(?:</(?P=tag)>|)\s*(?:(?=<d[td]>)|$)"
 )

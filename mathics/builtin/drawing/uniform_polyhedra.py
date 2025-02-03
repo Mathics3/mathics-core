@@ -115,9 +115,9 @@ class UniformPolyhedron(Builtin):
     https://reference.wolfram.com/language/ref/UniformPolyhedron.html</url>
 
     <dl>
-      <dt>'UniformPolyhedron["name"]'
+      <dt>'UniformPolyhedron'["$name$"]
       <dd>return a uniform polyhedron with the given name.
-      <dd>Names are "tetrahedron", "octahedron", "dodecahedron", or "icosahedron".
+      <dd>Names are "$tetrahedron$", "$octahedron$", "$dodecahedron$", or "$icosahedron$".
     </dl>
 
     >> Graphics3D[UniformPolyhedron["octahedron"]]

@@ -69,12 +69,12 @@ A <url>:docker image of the v.9 release: https://hub.docker.com/r/arkadi/mathics
 Around 2017, the project was largely abandoned in its largely Python 2.7 state, with some support for Python 3.2-3.5 via six.
 
 Subsequently, around mid 2020, it was picked up by the current developers. A list of authors and contributors can be found in the <url>
-:<con>AUTHORS.txt</con>:
+:<console>AUTHORS.txt</console>:
 https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url> file.
 </section>
 
 <section title="What is missing?">
-There are lots of ways in which \Mathics could still be improved. <url>:<con>FUTURE.rst</con>: https://github.com/Mathics3/mathics-core/blob/master/FUTURE.rst</url> has the current roadmap.
+There are lots of ways in which \Mathics could still be improved. <url>:<console>FUTURE.rst</console>: https://github.com/Mathics3/mathics-core/blob/master/FUTURE.rst</url> has the current roadmap.
 
 We always could use help in Python programming and improving the documentation. But there are other ways to help. For example:
 
@@ -1346,19 +1346,19 @@ When you use the Django-based Web interface of \Mathics, a browser session is cr
 
 This implies that you should not store sensitive, private information in \Mathics variables when using the online Web interface. In addition to their values being stored in a database on the server, your queries might be saved for debugging purposes. However, the fact that they are transmitted over plain HTTP should make you aware that you should not transmit any sensitive information. When you want to do calculations with that kind of stuff, simply install \Mathics locally!
 
-If you are using a public terminal, to erase all your definitions and close the browser window. When you use \Mathics in a browser, use the command <con>Quit[]</con> or its alias, <con>Exit[]</con>.
+If you are using a public terminal, to erase all your definitions and close the browser window. When you use \Mathics in a browser, use the command 'Quit[]' or its alias, 'Exit[]'.
 
-When you reload the current page in a browser using the default URL, e.g., <con>http:localhost:8000</con>, all of the previous input and output disappears.
+When you reload the current page in a browser using the default URL, e.g., <console>http:localhost:8000</console>, all of the previous input and output disappears.
 
-On the other hand, Definitions as described above do not, unless <con>Quit[]</con> or <con>Exit[]</con> is entered as described above.
+On the other hand, Definitions as described above do not, unless 'Quit[]' or 'Exit[]' is entered as described above.
 
 If you want a URL that records the input entered, the <em>Generate Input Hash</em> button does this. The button looks like this:
 
 <imgpng src="generate-hash-button.png" title="Mathics Generate Input Hash Button" label="generate-input-hash-button">
 
-For example, assuming you have a \Mathics server running at port 8000 on <con>localhost</con>, and you enter the URL <con>http://localhost:8000/#cXVlcmllcz14</con>, you should see a single line of input containing <con>x</con> entered.
+For example, assuming you have a \Mathics server running at port 8000 on <console>localhost</console>, and you enter the URL <console>http://localhost:8000/#cXVlcmllcz14</console>, you should see a single line of input containing 'x' entered.
 
-Of course, what the value of this is when evaluated depends on whether <con>x</con> has been previously defined.
+Of course, what the value of this is when evaluated depends on whether 'x' has been previously defined.
 
 </section>
 

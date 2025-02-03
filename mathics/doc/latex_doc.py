@@ -324,12 +324,9 @@ def escape_latex(text):
     text = REF_RE.sub(repl_ref, text)
 
     def repl_console(match):
-        tag = match.group("tag")
         content = match.group("content")
         content = content.strip()
         content = content.replace(r"\$", "$")
-        if tag == "con":
-            return "\\console{%s}" % content
         return "\\begin{lstlisting}\n%s\n\\end{lstlisting}" % content
 
     text = CONSOLE_RE.sub(repl_console, text)
