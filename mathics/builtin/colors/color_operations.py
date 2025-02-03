@@ -253,9 +253,9 @@ class Darker(Builtin):
 
     <dl>
     <dt>'Darker'[$c$, $f$]
-        <dd>is equivalent to 'Blend[{$c$, Black}, $f$]'.
+        <dd>is equivalent to 'Blend'[{$c$, 'Black'}, $f$].
     <dt>'Darker'[$c$]
-        <dd>is equivalent to 'Darker[$c$, 1/3]'.
+        <dd>is equivalent to 'Darker'[$c$, '1/3'].
     </dl>
 
     >> Graphics[{Darker[Red], Disk[]}]
@@ -468,10 +468,10 @@ class Lighter(Builtin):
 
     <dl>
       <dt>'Lighter'[$c$, $f$]
-      <dd>is equivalent to 'Blend[{$c$, White}, $f$]'.
+      <dd>is equivalent to 'Blend'[{$c$, 'White'}, $f$].
 
       <dt>'Lighter'[$c$]
-      <dd>is equivalent to 'Lighter[$c$, 1/3]'.
+      <dd>is equivalent to 'Lighter'[$c$, '1/3'].
     </dl>
 
     >> Lighter[Orange, 1/4]

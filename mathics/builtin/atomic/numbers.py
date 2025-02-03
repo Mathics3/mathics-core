@@ -580,11 +580,11 @@ class RealDigits(Builtin):
 
 
 class MaxPrecision(Predefined):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/$MaxPrecision.html</url>
 
     <dl>
-      <dt>'$MaxPrecision'
+      <dt>'\$MaxPrecision'
       <dd>represents the maximum number of digits of precision permitted \
           in abitrary-precision numbers.
     </dl>
@@ -615,12 +615,12 @@ class MaxPrecision(Predefined):
 
 
 class MachineEpsilon_(Predefined):
-    """
+    r"""
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/$MachineEpsilon.html</url>
 
     <dl>
-      <dt>'$MachineEpsilon'
+      <dt>'\$MachineEpsilon'
       <dd>is the distance between '1.0' and the next \
           nearest representable machine-precision number.
     </dl>
@@ -643,11 +643,11 @@ class MachineEpsilon_(Predefined):
 
 
 class MachinePrecision_(Predefined):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/$MachinePrecision.html</url>
 
     <dl>
-      <dt>'$MachinePrecision'
+      <dt>'\$MachinePrecision'
       <dd>is the number of decimal digits of precision for machine-precision numbers.
     </dl>
 
@@ -691,12 +691,12 @@ class MachinePrecision(Predefined):
 
 
 class MinPrecision(Builtin):
-    """
+    r"""
     <url>
     :WMA link:https://reference.wolfram.com/language/ref/$MinPrecision.html</url>
 
     <dl>
-      <dt>'$MinPrecision'
+      <dt>'\$MinPrecision'
       <dd>represents the minimum number of digits of precision permitted in \
           abitrary-precision numbers.
     </dl>

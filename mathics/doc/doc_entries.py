@@ -61,9 +61,6 @@ DL_RE = re.compile(r"(?s)<dl>(.*?)</dl>")
 HYPERTEXT_RE = re.compile(
     r"(?s)<(?P<tag>em|url)>(\s*:(?P<text>.*?):\s*)?(?P<content>.*?)</(?P=tag)>"
 )
-IMG_PNG_RE = re.compile(
-    r'<imgpng src="(?P<src>.*?)" title="(?P<title>.*?)" label="(?P<label>.*?)">'
-)
 IMG_RE = re.compile(
     r'<img src="(?P<src>.*?)" title="(?P<title>.*?)" label="(?P<label>.*?)">'
 )
@@ -187,7 +184,17 @@ def pre_sub(
 
 def post_sub(text: str, post_substitutions: Tuple) -> str:
     """apply substitutions after parsing the doctests."""
-    for index, sub in enumerate(post_substitutions):
+
+    # Substitutions must be applied in reverse order,
+    # because one substitution can contain previous sustititions.
+    # For instance ``<url>"A link":http://example.org</url>
+    # first is replaced by
+    # ``<url>_POST_SUBSTITUTION0_:http://example.org</url>
+    # with ``_POST_SUBSTITUTION0_`` storing ``"A link"``
+    # and then by
+    # POST_SUBSTITUTION1_
+    substitutions = tuple(enumerate(post_substitutions))
+    for index, sub in substitutions[::-1]:
         text = text.replace(POST_SUBSTITUTION_TAG % index, sub)
     return text
 
