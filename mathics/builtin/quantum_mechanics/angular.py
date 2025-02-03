@@ -227,7 +227,7 @@ class ThreeJSymbol(SympyFunction):
     https://reference.wolfram.com/language/ref/ThreeJSymbol.html</url>)
 
     <dl>
-      <dt>'ThreeJSymbol'[{$j1, $m_1$}, {$j_2$, $m_2$}, {$j_3$, $m_3$}]
+      <dt>'ThreeJSymbol'[{$j_1$, $m_1$}, {$j_2$, $m_2$}, {$j_3$, $m_3$}]
       <dd>returns the values of the Wigner 3-$j$ symbol.
     </dl>
 
