@@ -440,7 +440,7 @@ class RandomComplex(Builtin):
 
 
 class RandomInteger(Builtin):
-    """
+    r"""
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/RandomInteger.html</url>

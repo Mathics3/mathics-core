@@ -1090,7 +1090,7 @@ class Now(Predefined):
 
 
 class TimeConstrained(Builtin):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/TimeConstrained.html</url>
 
     <dl>
