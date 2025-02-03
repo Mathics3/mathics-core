@@ -170,7 +170,7 @@ class IntegerExponent(Builtin):
         "IntegerExponent[n_]": "IntegerExponent[n, 10]",
     }
 
-summary_text = "get the number of trailing 0s in a given base"
+    summary_text = "get the number of trailing 0s in a given base"
 
     def eval_two_arg_integers(self, n: Integer, b: Integer, evaluation: Evaluation):
         """IntegerExponent[n_Integer, b_Integer]"""
