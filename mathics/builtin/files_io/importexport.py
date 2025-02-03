@@ -42,6 +42,7 @@ from mathics.core.systemsymbols import (
     SymbolRule,
     SymbolToString,
 )
+from mathics.eval.files_io.files import eval_Close
 
 # This tells documentation how to sort this module
 # Here we are also hiding "file_io" since this can erroneously appear at the top level.
@@ -49,7 +50,6 @@ sort_order = "mathics.builtin.importing-and-exporting"
 
 mimetypes.add_type("application/vnd.wolfram.mathematica.package", ".m")
 
-SymbolClose = Symbol("Close")
 SymbolDeleteFile = Symbol("DeleteFile")
 SymbolFileExtension = Symbol("FileExtension")
 SymbolFileFormat = Symbol("FileFormat")
@@ -1467,7 +1467,7 @@ class Import(Builtin):
                         Expression(SymbolWriteString, data).evaluate(evaluation)
                     else:
                         Expression(SymbolWriteString, String("")).evaluate(evaluation)
-                    Expression(SymbolClose, stream).evaluate(evaluation)
+                    eval_Close(stream, evaluation)
                     stream = None
                 import_expression = Expression(tmp_function, findfile, *joined_options)
                 tmp = import_expression.evaluate(evaluation)
@@ -1489,7 +1489,7 @@ class Import(Builtin):
                 tmp = Expression(tmp_function, stream, *custom_options).evaluate(
                     evaluation
                 )
-                Expression(SymbolClose, stream).evaluate(evaluation)
+                eval_Close(stream, evaluation)
             else:
                 # TODO message
                 evaluation.predetermined_out = current_predetermined_out
@@ -1843,7 +1843,7 @@ class Export(Builtin):
                 *list(chain(stream_options, custom_options)),
             )
             res = exporter_function.evaluate(evaluation)
-            Expression(SymbolClose, stream).evaluate(evaluation)
+            eval_Close(stream, evaluation)
         if res is SymbolNull:
             evaluation.predetermined_out = current_predetermined_out
             return filename
@@ -2025,7 +2025,7 @@ class ExportString(Builtin):
                     res = String(str(pystream.getvalue()))
             else:
                 res = Symbol("$Failed")
-            Expression(SymbolClose, outstream).evaluate(evaluation)
+            eval_Close(outstream, evaluation)
         else:
             evaluation.message("ExportString", "emptyfch")
             evaluation.predetermined_out = current_predetermined_out
