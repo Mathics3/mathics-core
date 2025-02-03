@@ -107,6 +107,12 @@ class DocSection(BaseDocElement):
         """Get children"""
         return list(self.subsections)
 
+    def get_tests(self):
+        """yield tests"""
+        if self.installed:
+            for test in self.doc.get_tests():
+                yield test
+
     @property
     def parent(self):
         "the container where the section is"
@@ -116,12 +122,6 @@ class DocSection(BaseDocElement):
     def parent(self, value):
         "the container where the section is"
         raise TypeError("parent is a read-only property")
-
-    def get_tests(self):
-        """yield tests"""
-        if self.installed:
-            for test in self.doc.get_tests():
-                yield test
 
 
 # DocChapter has to appear before DocGuideSection which uses it.
@@ -412,16 +412,16 @@ class Documentation(BaseDocElement):
     def get_children(self):
         return self.parts
 
-    def get_part(self, part_slug):
-        """return a section from part key"""
-        return self.parts_by_slug.get(part_slug)
-
     def get_chapter(self, part_slug, chapter_slug):
         """return a section from part and chapter keys"""
         part = self.parts_by_slug.get(part_slug)
         if part:
             return part.chapters_by_slug.get(chapter_slug)
         return None
+
+    def get_part(self, part_slug):
+        """return a section from part key"""
+        return self.parts_by_slug.get(part_slug)
 
     def get_section(self, part_slug, chapter_slug, section_slug):
         """return a section from part, chapter and section keys"""
@@ -671,6 +671,12 @@ class DocSubsection(BaseDocElement):
         """Get children"""
         return list(self.subsections)
 
+    def get_tests(self):
+        """yield tests"""
+        if self.installed:
+            for test in self.doc.get_tests():
+                yield test
+
     @property
     def parent(self):
         """the chapter where the section is"""
@@ -680,12 +686,6 @@ class DocSubsection(BaseDocElement):
     def parent(self, value):
         "the container where the section is"
         raise TypeError("parent is a read-only property")
-
-    def get_tests(self):
-        """yield tests"""
-        if self.installed:
-            for test in self.doc.get_tests():
-                yield test
 
 
 class MathicsMainDocumentation(Documentation):

@@ -163,30 +163,33 @@ def write_rst(
         part_entry = process_doc_element(
             part, doc_data, quiet, filter_chapters, filter_sections
         )
+        print("part entry:", part_entry, part.is_appendix)
         if part.is_appendix:
             appendices.append(part_entry)
         else:
             parts.append(part_entry)
-            # text = "\n\\appendix\n" + text
         if parts_set == seen_parts:
             break
 
-    for part in parts:
-        print(part)
-    for part in appendices:
-        print(part)
+    len_curr_path = len(DOC_RST_DIR) + 1
+    content = 30 * " " + "Mathics User Guide" + 30 * " " + "\n"
+    content += 30 * " " + len("Mathics User Guide") * "#" + 30 * " " + "\n"
+    content += "\n\n"
+    content += ".. toctree::\n    :maxdepth: 4\n\n    "
+    content += "\n    ".join(child[1][len_curr_path:] for child in parts)
+    content += "\n    ".join(child[1][len_curr_path:] for child in appendices)
+    content += "\n\n"
 
-    # with open(osp.join(DOC_RST_DIR,"main.rst")) as f:
-    #    for title,slug in parts:
-    #        f.write(title+": "+slug)
+    with open(osp.join(DOC_RST_DIR, "index.rst"), "w") as outfile:
+        outfile.write(content)
 
-    # DOC_VERSION_FILE = osp.join(DOC_RST_DIR, "version-info.tex")
-    # if not quiet:
-    #    print(f"Writing Mathics Core Version Information to {DOC_VERSION_FILE}")
-    # with open(DOC_VERSION_FILE, "w") as doc:
-    #    doc.write("%% Mathics core version number created via doc2latex.py\n\n")
-    #    for name, version_info in get_versions().items():
-    #        doc.write("""\\newcommand{\\%s}{%s}\n""" % (name, version_info))
+        DOC_VERSION_FILE = osp.join(DOC_RST_DIR, "version-info.tex")
+    if not quiet:
+        print(f"Writing Mathics Core Version Information to {DOC_VERSION_FILE}")
+        with open(DOC_VERSION_FILE, "w") as doc:
+            doc.write("%% Mathics core version number created via doc2latex.py\n\n")
+            for name, version_info in get_versions().items():
+                doc.write("""\\newcommand{\\%s}{%s}\n""" % (name, version_info))
 
 
 def main():
