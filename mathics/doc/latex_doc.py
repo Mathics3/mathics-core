@@ -14,7 +14,11 @@ from mathics.doc.doc_entries import (
     HYPERTEXT_RE,
     IMG_PNG_RE,
     IMG_RE,
+    LATEX_DISPLAY_EQUATION_RE,
+    LATEX_HREF_RE,
+    LATEX_INLINE_EQUATION_RE,
     LATEX_RE,
+    LATEX_URL_RE,
     LIST_ITEM_RE,
     LIST_RE,
     MATHICS_RE,
@@ -57,11 +61,6 @@ LATEX_ARRAY_RE = re.compile(
 LATEX_CHAR_RE = re.compile(r"(?<!\\)(\^)")
 LATEX_CONSOLE_RE = re.compile(r"\\console\{(.*?)\}")
 LATEX_INLINE_END_RE = re.compile(r"(?s)(?P<all>\\lstinline'[^']*?'\}?[.,;:])")
-
-LATEX_DISPLAY_EQUATION_RE = re.compile(r"(?m)(?<!\\)\$\$([\s\S]+?)(?<!\\)\$\$")
-LATEX_INLINE_EQUATION_RE = re.compile(r"(?m)(?<!\\)\$([\s\S]+?)(?<!\\)\$")
-LATEX_HREF_RE = re.compile(r"(?s)\\href\{(?P<content>.*?)\}\{(?P<text>.*?)\}")
-LATEX_URL_RE = re.compile(r"(?s)\\url\{(?P<content>.*?)\}")
 
 
 LATEX_TEXT_RE = re.compile(
@@ -132,7 +131,7 @@ def escape_latex(text):
 
     * First the verbatim Python code is extracted.
     * Then,  URLs are and references are collected.
-    * After that, anything sorrounded by '$' or '$$'
+    * After that, anything surrounded by '$' or '$$'
       is processed.
     * Then, some LaTeX special characters, like brackets,
       are escaped.
