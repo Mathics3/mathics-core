@@ -2,7 +2,7 @@
 """
 Definition Attributes
 
-While a definition like 'cube[$x_$] = $x$^3' gives a way to specify \
+While a definition like 'cube[x_] = x^3' gives a way to specify \
 <em>values</em> of a function, <em>attributes</em> allow a way to \
 specify general properties of functions and symbols. This is \
 independent of the parameters they take and the values they produce.
@@ -443,7 +443,7 @@ class OneIdentity(Predefined):
 
     <dl>
       <dt>'OneIdentity'
-      <dd>is an attribute assigned to a symbol, say $f$, indicating that '$f$[$x$]', $f$[$f$[$x$]], etc. are all \
+      <dd>is an attribute assigned to a symbol, say $f$, indicating that $f[x]$, $f[f[x]]$, etc. are all \
           equivalent to $x$ in pattern matching.
     </dl>
 

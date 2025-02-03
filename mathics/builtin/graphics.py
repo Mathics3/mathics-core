@@ -1285,7 +1285,7 @@ class Disk(Builtin):
 
     <dl>
       <dt>'Disk'[{$c_x$, $c_y$}, $r$]
-      <dd>fills a circle with center '($c_x$, $c_y$)' and radius $r$.
+      <dd>fills a circle with center ($c_x$, $c_y$) and radius $r$.
 
       <dt>'Disk'[{$c_x$, $c_y$}, {$r_x$, $r_y$}]
       <dd>fills an ellipse.
@@ -1294,7 +1294,7 @@ class Disk(Builtin):
       <dd>chooses radius 1.
 
       <dt>'Disk[]'
-      <dd>chooses center '(0, 0)' and radius 1.
+      <dd>chooses center $(0, 0)$' and radius 1.
 
       <dt>'Disk'[{$x$, $y$}, ..., {$t_1$, $t_2$}]
       <dd>is a sector from angle $t_1$ to $t_2$.
@@ -1483,7 +1483,7 @@ class Text(Inset):
 
     <dl>
       <dt>'Text'["$text$", {$x$, $y$}]
-      <dd>draws $text$ centered on position '{$x$, $y$}'.
+      <dd>draws $text$ centered on position {$x$, $y$}.
     </dl>
 
     >> Graphics[{Text["First", {0, 0}], Text["Second", {1, 1}]}, Axes->True, PlotRange->{{-2, 2}, {-2, 2}}]

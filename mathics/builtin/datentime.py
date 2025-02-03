@@ -1107,7 +1107,7 @@ class TimeConstrained(Builtin):
     evaluation, the function will return '$Aborted' and the results will not affect
     the state of the Mathics3 kernel.
 
-    
+
     ## >> TimeConstrained[Pause[5]; a, 1]
     ##  = $Aborted
 
@@ -1276,7 +1276,7 @@ class TimeRemaining(Builtin):
       <dd>returns $failexpr$ if the time constraint is not met.
     </dl>
 
-    If TimeConstrained is called out of a TimeConstrained expression, returns `Infinity`
+    If TimeConstrained is called out of a TimeConstrained expression, returns 'Infinity':
     >> TimeRemaining[]
      = Infinity
 
