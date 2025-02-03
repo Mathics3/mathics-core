@@ -9,6 +9,7 @@ system, and the functions used to parse docstrings into these objects.
 
 import logging
 import re
+from abc import ABC
 from os import getenv
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Tuple
 
@@ -67,6 +68,12 @@ IMG_RE = re.compile(
 )
 # Preserve space before and after in-line code variables.
 LATEX_RE = re.compile(r"(\s?)\$(\w+?)\$(\s?)")
+
+LATEX_DISPLAY_EQUATION_RE = re.compile(r"(?m)(?<!\\)\$\$([\s\S]+?)(?<!\\)\$\$")
+LATEX_INLINE_EQUATION_RE = re.compile(r"(?m)(?<!\\)\$([\s\S]+?)(?<!\\)\$")
+LATEX_HREF_RE = re.compile(r"(?s)\\href\{(?P<content>.*?)\}\{(?P<text>.*?)\}")
+LATEX_URL_RE = re.compile(r"(?s)\\url\{(?P<content>.*?)\}")
+
 
 LIST_ITEM_RE = re.compile(r"(?s)<li>(.*?)(?:</li>|(?=<li>)|$)")
 LIST_RE = re.compile(r"(?s)<(?P<tag>ul|ol)>(?P<content>.*?)</(?P=tag)>")
@@ -259,6 +266,37 @@ def parse_docstring_to_DocumentationEntry_items(
     return items
 
 
+class BaseDocElement(ABC):
+    """Base class for elements of the documentation system."""
+
+    def get_ancestors(self) -> list:
+        """
+        Get a list of the DocElements such that
+        each element is the parent of the following.
+        """
+        ancestors = []
+        parent = self.parent
+        while isinstance(parent, BaseDocElement):
+            ancestors.append(parent)
+            parent = parent.parent
+
+        ancestors = ancestors[::-1]
+        return ancestors
+
+    def get_children(self) -> list:
+        raise NotImplementedError
+
+    @property
+    def parent(self):
+        "the container where the element is"
+        raise NotImplementedError
+
+    @parent.setter
+    def parent(self, value):
+        "the container where the section is"
+        raise TypeError("parent is a read-only property")
+
+
 class DocTest:
     """
     Class to hold a single doctest.
@@ -276,6 +314,14 @@ class DocTest:
     * `:`  Compares an (error) message.
       `|`  Prints output.
     """
+
+    index: int
+    outs: List[_Out]
+    test: str
+    result: str
+    private: bool
+    ignore: bool
+    _key: Optional[tuple]
 
     def __init__(
         self,
@@ -302,7 +348,7 @@ class DocTest:
 
         self.index = index
         self.outs: List[_Out] = []
-        self.result = None
+        result_value = None
 
         # Private test cases are executed, but NOT shown as part of the docs
         self.private = testcase[0] == "#"
@@ -317,7 +363,7 @@ class DocTest:
             self.ignore = False
 
         self.test = strip_sentinal(testcase[1])
-        self._key: Optional[tuple] = key_prefix + (index,) if key_prefix else None
+        self._key = key_prefix + (index,) if key_prefix else None
 
         outs = testcase[2].splitlines()
         for line in outs:
@@ -328,8 +374,8 @@ class DocTest:
                     if text.startswith(" "):
                         text = text[1:]
                     text = "\n" + text
-                    if self.result is not None:
-                        self.result += text
+                    if result_value is not None:
+                        result_value += text
                     elif self.outs:
                         self.outs[-1].text += text
                     continue
@@ -340,11 +386,12 @@ class DocTest:
                 symbol, text = match.group(1), match.group(2)
                 text = text.strip()
                 if symbol == "=":
-                    self.result = text
+                    result_value = text
                 elif symbol == ":":
                     self.outs.append(Message("", "", text))
                 elif symbol == "|":
                     self.outs.append(Print(text))
+        self.result = result_value or ""
 
     def __str__(self) -> str:
         return self.test
@@ -355,31 +402,6 @@ class DocTest:
         True if the test should be considered a success.
         """
         return self.compare_result(result) and self.compare_out(out)
-
-    def compare_result(self, result: Optional[str]):
-        """Compare a result with the expected result"""
-        wanted = self.result
-        # Check result
-        if wanted in ("...", result):
-            return True
-
-        if result is None or wanted is None:
-            return False
-        result_list = result.splitlines()
-        wanted_list = wanted.splitlines()
-        if result_list == [] and wanted_list == ["#<--#"]:
-            return True
-
-        if len(result_list) != len(wanted_list):
-            return False
-
-        for res, want in zip(result_list, wanted_list):
-            wanted_re = re.escape(want.strip())
-            wanted_re = wanted_re.replace("\\.\\.\\.", ".*?")
-            wanted_re = f"^{wanted_re}$"
-            if not re.match(wanted_re, res.strip()):
-                return False
-        return True
 
     def compare_out(self, outs: tuple = tuple()) -> bool:
         """Compare messages and warnings produced during the evaluation of
@@ -407,6 +429,32 @@ class DocTest:
 
         return True
 
+    def compare_result(self, result: Optional[str]):
+        """Compare a result with the expected result"""
+        wanted = self.result
+        # Check result
+        if wanted in ("...", result):
+            return True
+
+        if result is None:
+            return wanted == ""
+
+        result_list = result.splitlines()
+        wanted_list = wanted.splitlines()
+        if result_list == [] and wanted_list == ["#<--#"]:
+            return True
+
+        if len(result_list) != len(wanted_list):
+            return False
+
+        for res, want in zip(result_list, wanted_list):
+            wanted_re = re.escape(want.strip())
+            wanted_re = wanted_re.replace("\\.\\.\\.", ".*?")
+            wanted_re = f"^{wanted_re}$"
+            if not re.match(wanted_re, res.strip()):
+                return False
+        return True
+
     @property
     def key(self):
         """key identifier of the test"""
@@ -429,6 +477,9 @@ class DocTests:
         self.tests = []
         self.text = ""
 
+    def __str__(self) -> str:
+        return "\n".join(str(test) for test in self.tests)
+
     def get_tests(self) -> list:
         """
         Returns lists test objects.
@@ -438,9 +489,6 @@ class DocTests:
     # def is_private(self) -> bool:
     #     """Returns True if this test is "private" not supposed to be visible as example documentation."""
     #     return all(test.private for test in self.tests)
-
-    def __str__(self) -> str:
-        return "\n".join(str(test) for test in self.tests)
 
     def test_indices(self) -> List[int]:
         """indices of the tests"""
@@ -481,7 +529,7 @@ class DocText:
 
 
 # Former XMLDoc
-class DocumentationEntry:
+class DocumentationEntry(BaseDocElement):
     """
     A class to hold the content of a documentation entry,
     in our custom XML-like format.
@@ -540,6 +588,48 @@ class DocumentationEntry:
     def __str__(self) -> str:
         return "\n\n".join(str(item) for item in self.items)
 
+    def get_children(self) -> list:
+        """Get children"""
+        return []
+
+    def get_tests(self) -> List["DocTest"]:
+        """retrieve a list of tests in the documentation entry"""
+        tests = []
+        for item in self.items:
+            tests.extend(item.get_tests())
+        return tests
+
+    @property
+    def parent(self):
+        "the container where the element is"
+        return self._parent
+
+    @parent.setter
+    def parent(self, value):
+        "the container where the section is"
+        raise TypeError("parent is a read-only property")
+
+    def set_parent_path(self, parent):
+        """Set the parent path"""
+        self._parent = parent
+        if parent is None:
+            return self
+
+        path_objs = parent.get_ancestors()[1:] + [parent]
+        path = [element.title for element in path_objs]
+        # Set the key on each test
+        for test in self.get_tests():
+            assert test.key is None
+            # For backward compatibility, we need
+            # to reduce this to three fields.
+            # TODO: remove me and ensure that this
+            # works here and in Mathics Django
+            if len(path) > 3:
+                path = path[:2] + [path[-1]]
+            test.key = tuple(path) + (test.index,)
+
+        return self
+
     def text(self) -> str:
         """text version of the documentation entry"""
         # used for introspection
@@ -566,39 +656,6 @@ class DocumentationEntry:
         item = re.sub(r"\$([0-9a-zA-Z]*)\_([0-9a-zA-Z]*)\$", r"\1\2", item)
         item = item.replace("_DOLARSIGN_", "$")
         return item
-
-    def get_tests(self) -> List["DocTest"]:
-        """retrieve a list of tests in the documentation entry"""
-        tests = []
-        for item in self.items:
-            tests.extend(item.get_tests())
-        return tests
-
-    def set_parent_path(self, parent):
-        """Set the parent path"""
-        self.path = None
-        path = []
-        while hasattr(parent, "parent"):
-            path = [parent.title] + path
-            parent = parent.parent
-
-        if hasattr(parent, "title"):
-            path = [parent.title] + path
-
-        if path:
-            self.path = path
-            # Set the key on each test
-            for test in self.get_tests():
-                assert test.key is None
-                # For backward compatibility, we need
-                # to reduce this to three fields.
-                # TODO: remove me and ensure that this
-                # works here and in Mathics Django
-                if len(path) > 3:
-                    path = path[:2] + [path[-1]]
-                test.key = tuple(path) + (test.index,)
-
-        return self
 
 
 class Tests:

@@ -95,4 +95,7 @@ def test_create_doctest():
     for index, test_case in enumerate(test_cases):
         doctest = DocTest(1, test_case["test"], key)
         for property_key, value in test_case["properties"].items():
-            assert getattr(doctest, property_key) == value
+            if property_key == "result" and value is None:
+                assert getattr(doctest, property_key) == ""
+            else:
+                assert getattr(doctest, property_key) == value
