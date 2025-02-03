@@ -30,7 +30,6 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     SymbolFailed,
-    SymbolGet,
     SymbolMemberQ,
     SymbolNeeds,
     SymbolPackages,
@@ -1124,11 +1123,13 @@ class URLSave(Builtin):
     }
     summary_text = "save the content of an URL"
 
-    def eval_1(self, url, evaluation, **options):
+    def eval_with_url(self, url, evaluation: Evaluation, **options):
         "URLSave[url_String, OptionsPattern[URLSave]]"
-        return self.eval_2(url, None, evaluation, **options)
+        return self.eval_with_url_and_filename(url, None, evaluation, **options)
 
-    def eval_2(self, url, filename, evaluation, **options):
+    def eval_with_url_and_filename(
+        self, url, filename, evaluation: Evaluation, **options
+    ):
         "URLSave[url_String, filename_, OptionsPattern[URLSave]]"
         url = url.value
         if filename is None:
