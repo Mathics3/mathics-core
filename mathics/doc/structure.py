@@ -17,7 +17,13 @@ from mathics.core.load_builtin import (
     builtins_by_module as global_builtins_by_module,
     mathics3_builtins_modules,
 )
-from mathics.doc.doc_entries import DocTest, DocumentationEntry, Tests, filter_comments
+from mathics.doc.doc_entries import (
+    BaseDocElement,
+    DocTest,
+    DocumentationEntry,
+    Tests,
+    filter_comments,
+)
 from mathics.doc.utils import slugify
 from mathics.eval.pymathics import pymathics_builtins_by_module, pymathics_modules
 
@@ -42,7 +48,7 @@ MATHICS3_MODULES_TITLE = "Mathics3 Modules"
 
 
 # DocSection has to appear before DocGuideSection which uses it.
-class DocSection:
+class DocSection(BaseDocElement):
     """An object for a Documented Section.
     A Section is part of a Chapter. It can contain subsections.
     """
@@ -97,15 +103,14 @@ class DocSection:
     def __str__(self) -> str:
         return f"    == {self.title} ==\n{self.doc}"
 
+    def get_children(self) -> list:
+        """Get children"""
+        return self.subsections
+
     @property
     def parent(self):
         "the container where the section is"
         return self.chapter
-
-    @parent.setter
-    def parent(self, value):
-        "the container where the section is"
-        raise TypeError("parent is a read-only property")
 
     def get_tests(self):
         """yield tests"""
@@ -115,7 +120,7 @@ class DocSection:
 
 
 # DocChapter has to appear before DocGuideSection which uses it.
-class DocChapter:
+class DocChapter(BaseDocElement):
     """An object for a Documented Chapter.
     A Chapter is part of a Part[dChapter. It can contain (Guide or plain) Sections.
     """
@@ -163,6 +168,10 @@ class DocChapter:
         "guides and normal sections"
         return sorted(self.guide_sections) + sorted(self.sections)
 
+    def get_children(self) -> list:
+        """Get children"""
+        return self.all_sections
+
     @property
     def parent(self):
         "the container where the chapter is"
@@ -196,7 +205,7 @@ class DocGuideSection(DocSection):
             print("    DEBUG Creating Guide Section", title)
 
 
-class DocPart:
+class DocPart(BaseDocElement):
     """
     Represents one of the main parts of the document. Parts
     can be loaded from a mdoc file, generated automatically from
@@ -222,8 +231,17 @@ class DocPart:
             str(chapter) for chapter in sorted_chapters(self.chapters)
         )
 
+    def get_children(self) -> list:
+        """Get children"""
+        return self.chapters
 
-class Documentation:
+    @property
+    def parent(self):
+        "the container where the element is"
+        return self.documentation
+
+
+class Documentation(BaseDocElement):
     """
     `Documentation` describes an object containing the whole documentation system.
     Documentation
@@ -380,6 +398,9 @@ class Documentation:
 
         builtin_part = self.part_class(self, title, is_reference=start)
         self.parts.append(builtin_part)
+
+    def get_children(self):
+        return self.parts
 
     def get_part(self, part_slug):
         """return a section from part key"""
@@ -547,8 +568,13 @@ class Documentation:
             self.parts.append(part)
         return chapter_order
 
+    @property
+    def parent(self):
+        "the container where the element is"
+        return None
 
-class DocSubsection:
+
+class DocSubsection(BaseDocElement):
     """An object for a Documented Subsection.
     A Subsection is part of a Section.
     """
@@ -626,14 +652,14 @@ class DocSubsection:
     def __str__(self) -> str:
         return f"=== {self.title} ===\n{self.doc}"
 
+    def get_children(self) -> list:
+        """Get children"""
+        return self.subsections
+
     @property
     def parent(self):
         """the chapter where the section is"""
         return self.section
-
-    @parent.setter
-    def parent(self, value):
-        raise TypeError("parent is a read-only property")
 
     def get_tests(self):
         """yield tests"""
@@ -698,9 +724,9 @@ def sorted_chapters(chapters: List[DocChapter]) -> List[DocChapter]:
     """Return chapters sorted by title"""
     return sorted(
         chapters,
-        key=lambda chapter: str(chapter.sort_order)
-        if chapter.sort_order is not None
-        else chapter.title,
+        key=lambda chapter: (
+            str(chapter.sort_order) if chapter.sort_order is not None else chapter.title
+        ),
     )
 
 
@@ -709,7 +735,7 @@ def sorted_modules(modules) -> list:
     exists, or the module's name if not."""
     return sorted(
         modules,
-        key=lambda module: module.sort_order
-        if hasattr(module, "sort_order")
-        else module.__name__,
+        key=lambda module: (
+            module.sort_order if hasattr(module, "sort_order") else module.__name__
+        ),
     )

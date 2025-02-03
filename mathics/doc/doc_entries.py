@@ -9,6 +9,7 @@ system, and the functions used to parse docstrings into these objects.
 
 import logging
 import re
+from abc import ABC
 from os import getenv
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Tuple
 
@@ -263,6 +264,37 @@ def parse_docstring_to_DocumentationEntry_items(
         items.append(tests)
         tests = None
     return items
+
+
+class BaseDocElement(ABC):
+    """Base class for elements of the documentation system."""
+
+    @property
+    def parent(self):
+        "the container where the element is"
+        raise NotImplementedError
+
+    @parent.setter
+    def parent(self, value):
+        "the container where the section is"
+        raise TypeError("parent is a read-only property")
+
+    def get_ancestors(self) -> list:
+        """
+        Get a list of the DocElements such that
+        each element is the parent of the following.
+        """
+        ancestors = []
+        parent = self.parent
+        while isinstance(parent, BaseDocElement):
+            ancestors.append(parent)
+            parent = parent.parent
+
+        ancestors = ancestors[::-1]
+        return ancestors
+
+    def get_children(self) -> list:
+        raise NotImplementedError
 
 
 class DocTest:
@@ -552,7 +584,7 @@ class DocText:
 
 
 # Former XMLDoc
-class DocumentationEntry:
+class DocumentationEntry(BaseDocElement):
     """
     A class to hold the content of a documentation entry,
     in our custom XML-like format.
@@ -611,6 +643,15 @@ class DocumentationEntry:
     def __str__(self) -> str:
         return "\n\n".join(str(item) for item in self.items)
 
+    def get_children(self) -> list:
+        """Get children"""
+        return []
+
+    @property
+    def parent(self):
+        "the container where the element is"
+        return self._parent
+
     def rst(self, test_data=None) -> str:
         return "\n".join([item.rst(test_data) for item in self.items])
 
@@ -650,27 +691,22 @@ class DocumentationEntry:
 
     def set_parent_path(self, parent):
         """Set the parent path"""
-        self.path = None
-        path = []
-        while hasattr(parent, "parent"):
-            path = [parent.title] + path
-            parent = parent.parent
+        self._parent = parent
+        if parent is None:
+            return self
 
-        if hasattr(parent, "title"):
-            path = [parent.title] + path
-
-        if path:
-            self.path = path
-            # Set the key on each test
-            for test in self.get_tests():
-                assert test.key is None
-                # For backward compatibility, we need
-                # to reduce this to three fields.
-                # TODO: remove me and ensure that this
-                # works here and in Mathics Django
-                if len(path) > 3:
-                    path = path[:2] + [path[-1]]
-                test.key = tuple(path) + (test.index,)
+        path_objs = parent.get_ancestors()[1:] + [parent]
+        path = [element.title for element in path_objs]
+        # Set the key on each test
+        for test in self.get_tests():
+            assert test.key is None
+            # For backward compatibility, we need
+            # to reduce this to three fields.
+            # TODO: remove me and ensure that this
+            # works here and in Mathics Django
+            if len(path) > 3:
+                path = path[:2] + [path[-1]]
+            test.key = tuple(path) + (test.index,)
 
         return self
 
