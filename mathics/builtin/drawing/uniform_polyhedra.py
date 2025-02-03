@@ -185,13 +185,13 @@ class UniformPolyhedron(Builtin):
       <dd>Names are "tetrahedron", "octahedron", "dodecahedron", or "icosahedron".
     </dl>
 
-    >> 'Graphics3D'['UniformPolyhedron'["octahedron"]]
+    >> Graphics3D[UniformPolyhedron["octahedron"]]
      = -Graphics3D-
 
-    >> 'Graphics3D'['UniformPolyhedron'["dodecahedron"]]
+    >> Graphics3D[UniformPolyhedron["dodecahedron"]]
      = -Graphics3D-
 
-    >> 'Graphics3D'[{"$Brown$", 'UniformPolyhedron'["tetrahedron"]}]
+    >> Graphics3D[{"$Brown$", UniformPolyhedron["tetrahedron"]}]
      = -Graphics3D-
     """
 
