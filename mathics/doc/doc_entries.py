@@ -652,6 +652,11 @@ class DocumentationEntry(BaseDocElement):
         "the container where the element is"
         return self._parent
 
+    @parent.setter
+    def parent(self, value):
+        "the container where the section is"
+        raise TypeError("parent is a read-only property")
+
     def rst(self, test_data=None) -> str:
         return "\n".join([item.rst(test_data) for item in self.items])
 

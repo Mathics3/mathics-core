@@ -105,12 +105,17 @@ class DocSection(BaseDocElement):
 
     def get_children(self) -> list:
         """Get children"""
-        return self.subsections
+        return list(self.subsections)
 
     @property
     def parent(self):
         "the container where the section is"
         return self.chapter
+
+    @parent.setter
+    def parent(self, value):
+        "the container where the section is"
+        raise TypeError("parent is a read-only property")
 
     def get_tests(self):
         """yield tests"""
@@ -239,6 +244,11 @@ class DocPart(BaseDocElement):
     def parent(self):
         "the container where the element is"
         return self.documentation
+
+    @parent.setter
+    def parent(self, value):
+        "the container where the section is"
+        raise TypeError("parent is a read-only property")
 
 
 class Documentation(BaseDocElement):
@@ -573,6 +583,11 @@ class Documentation(BaseDocElement):
         "the container where the element is"
         return None
 
+    @parent.setter
+    def parent(self, value):
+        "the container where the section is"
+        raise TypeError("parent is a read-only property")
+
 
 class DocSubsection(BaseDocElement):
     """An object for a Documented Subsection.
@@ -654,12 +669,17 @@ class DocSubsection(BaseDocElement):
 
     def get_children(self) -> list:
         """Get children"""
-        return self.subsections
+        return list(self.subsections)
 
     @property
     def parent(self):
         """the chapter where the section is"""
         return self.section
+
+    @parent.setter
+    def parent(self, value):
+        "the container where the section is"
+        raise TypeError("parent is a read-only property")
 
     def get_tests(self):
         """yield tests"""
