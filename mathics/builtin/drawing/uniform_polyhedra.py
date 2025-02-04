@@ -154,10 +154,6 @@ class Tetrahedron(Builtin):
       <dd>a regular tetrahedron centered at the origin with edge length $l$.
 
       <dt>'Tetrahedron'[{$x$, $y$, $z$}, ...]
-      <dt>'Tetrahedron'[$l$]
-      <dd>a regular tetrahedron centered at the origin with edge length $l$.
-
-      <dt>'Tetrahedron'[{$x$, $y$, $z$}, ...]
       <dd>a regular tetrahedron centered at {$x$ $y$, $z$}.
 
     </dl>
