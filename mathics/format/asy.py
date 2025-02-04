@@ -45,6 +45,7 @@ from mathics.format.asy_fns import (
     asy_create_pens,
     asy_number,
 )
+from mathics.format.asy_polyhedra import HEDRON_NAME_MAP, unimplimented_polygon
 
 INVERSE_POINT_FACTOR = 1 / DEFAULT_POINT_FACTOR
 
@@ -751,15 +752,10 @@ def uniform_polyhedron_3d_box(self: UniformPolyhedron3DBox, **options) -> str:
     face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
     opacity = self.face_opacity
     color_str = build_3d_pen_color(face_color, opacity)
-
-    return (
-        "// UniformPolyhedron3DBox\n // Still not really implemented. Draw a sphere instead\n"
-        + "\n".join(
-            "draw(surface(sphere({0}, {1})), {2});".format(
-                tuple(coord.pos()[0]), self.edge_length, color_str
-            )
-            for coord in self.points
-        )
+    render_fn = HEDRON_NAME_MAP.get(self.sub_type, unimplimented_polygon)
+    return f"// {self.sub_type}\n" + "\n".join(
+        render_fn(tuple(coord.pos()[0]), self.edge_length, color_str)
+        for coord in self.points
     )
 
 
