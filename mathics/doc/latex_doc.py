@@ -12,7 +12,6 @@ from mathics.doc.doc_entries import (
     DL_ITEM_RE,
     DL_RE,
     HYPERTEXT_RE,
-    IMG_PNG_RE,
     IMG_RE,
     LATEX_DISPLAY_EQUATION_RE,
     LATEX_HREF_RE,
@@ -141,7 +140,6 @@ def escape_latex(text):
       form.
 
     """
-
     # Single line, no spaces,  maybe a Symbol name
     if "\n" not in text and " " not in text:
         if MATHICS_VARIABLE_NAME.match(text):
@@ -162,10 +160,32 @@ def escape_latex(text):
     # Protect Python code from further replacements.
     text, post_substitutions = pre_sub(PYTHON_RE, text, repl_python)
 
-    # Process hyperrefs
+    # Process pictures
+    def repl_img(match):
+        src = match.group("src")
+        return r"\includegraphics[scale=1.0]{images/%(src)s}" % {"src": src}
+
+    text, post_substitutions = pre_sub(
+        IMG_RE, text, repl_img, tuple(post_substitutions)
+    )
+
+    # Protect LaTeX equations from further replacements.
+    text, post_substitutions = pre_sub(
+        LATEX_DISPLAY_EQUATION_RE, text, repl_eq, tuple(post_substitutions)
+    )
+    text, post_substitutions = pre_sub(
+        LATEX_INLINE_EQUATION_RE, text, repl_eq, tuple(post_substitutions)
+    )
+
+    # Process quotations
     def repl_quotation(match):
         return r"``%s''" % match.group(1)
 
+    text, post_substitutions = pre_sub(
+        QUOTATIONS_RE, text, repl_quotation, tuple(post_substitutions)
+    )
+
+    # Process hyperrefs
     def ensure_sharp_escape_in_url(content) -> str:
         content = content.replace(" ", "").replace("\n", "")
         return content.replace("#", r"\#").replace(r"\\#", r"\#")
@@ -212,7 +232,6 @@ def escape_latex(text):
         content = ensure_sharp_escape_in_url(match.group("content"))
         return r"\url{%s}" % (content,)
 
-    text, post_substitutions = pre_sub(QUOTATIONS_RE, text, repl_quotation)
     text, post_substitutions = pre_sub(
         HYPERTEXT_RE, text, repl_hypertext, tuple(post_substitutions)
     )
@@ -221,14 +240,6 @@ def escape_latex(text):
     )
     text, post_substitutions = pre_sub(
         LATEX_URL_RE, text, repl_url, tuple(post_substitutions)
-    )
-
-    # Protect LaTeX equations from further replacements.
-    text, post_substitutions = pre_sub(
-        LATEX_DISPLAY_EQUATION_RE, text, repl_eq, tuple(post_substitutions)
-    )
-    text, post_substitutions = pre_sub(
-        LATEX_INLINE_EQUATION_RE, text, repl_eq, tuple(post_substitutions)
     )
 
     text = replace_all(
@@ -294,29 +305,6 @@ def escape_latex(text):
         }[char]
 
     text = LATEX_CHAR_RE.sub(repl_char, text)
-
-    def repl_img(match):
-        src = match.group("src")
-        title = match.group("title")
-        label = match.group("label")
-        return r"""\begin{figure*}[htp]
-\centering
-\includegraphics[width=\textwidth]{images/%(src)s}
-\caption{%(title)s}
-\label{%(label)s}
-\end{figure*}""" % {
-            "src": src,
-            "title": title,
-            "label": label,
-        }
-
-    text = IMG_RE.sub(repl_img, text)
-
-    def repl_imgpng(match):
-        src = match.group("src")
-        return r"\includegraphics[scale=1.0]{images/%(src)s}" % {"src": src}
-
-    text = IMG_PNG_RE.sub(repl_imgpng, text)
 
     def repl_ref(match):
         return r"figure \ref{%s}" % match.group("label")

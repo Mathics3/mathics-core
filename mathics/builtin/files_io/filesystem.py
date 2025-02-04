@@ -581,12 +581,12 @@ class FileInformation(Builtin):
 
 
 class FindFile(Builtin):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/FileFind.html</url>
 
     <dl>
       <dt>'FindFile'[$name$]
-      <dd>searches '$Path' for the given filename.
+      <dd>searches '\$Path' for the given filename.
     </dl>
 
     >> FindFile["ExampleData/sunflowers.jpg"]
@@ -835,12 +835,12 @@ class FileNameTake(Builtin):
 
 
 class Needs(Builtin):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/Needs.html</url>
 
     <dl>
     <dt>'Needs["context`"]'
-        <dd>loads the specified context if not already in '$Packages'.
+        <dd>loads the specified context if not already in '\$Packages'.
     </dl>
 
     >> Needs["VectorAnalysis`"]
@@ -883,12 +883,12 @@ class Needs(Builtin):
 
 
 class OperatingSystem(Predefined):
-    """
+    r"""
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/OperatingSystem.html</url>
 
     <dl>
-      <dt>'$OperatingSystem'
+      <dt>'\$OperatingSystem'
       <dd>gives the type of operating system running Mathics.
     </dl>
 
@@ -912,13 +912,13 @@ class OperatingSystem(Predefined):
 
 
 class PathnameSeparator(Predefined):
-    """
+    r"""
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/$PathnameSeparator.html</url>
 
     <dl>
-      <dt>'$PathnameSeparator'
+      <dt>'\$PathnameSeparator'
       <dd>returns a string for the separator in paths.
     </dl>
 

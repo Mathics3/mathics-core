@@ -440,7 +440,7 @@ class RandomComplex(Builtin):
 
 
 class RandomInteger(Builtin):
-    """
+    r"""
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/RandomInteger.html</url>
@@ -471,7 +471,7 @@ class RandomInteger(Builtin):
      .
      . ...   ...   ...
 
-    Calling 'RandomInteger' changes '$RandomState':
+    Calling 'RandomInteger' changes '\$RandomState':
     >> previousState = $RandomState;
     >> RandomInteger[]
      = ...
@@ -606,11 +606,11 @@ class RandomReal(Builtin):
 
 
 class RandomState(Builtin):
-    """
+    r"""
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/RandomState.html</url>
     <dl>
-      <dt>'$RandomState'
+      <dt>'\$RandomState'
       <dd>is a long number representing the internal state of the \
           pseudo-random number generator.
     </dl>

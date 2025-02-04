@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
-"""
+r"""
 Importing and Exporting
 
 Many kinds data formats can be read into \\Mathics. Variable <url>
-:$ExportFormats:
-/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/$exportformats</url> \
+:\$ExportFormats:
+/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/\$exportformats</url> \
 contains a list of file formats that are supported by <url>
 :Export:
 /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/export</url>, \
 while <url>
-:$ImportFormats:
-/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/$importformats</url> \
+:\$ImportFormats:
+/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/\$importformats</url> \
 does the corresponding thing for <url>
 :Import:
 /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/import</url>.
@@ -942,11 +942,11 @@ def _importer_exporter_options(
 
 
 class ConverterDumpsExtensionMappings(Predefined):
-    """
+    r"""
     ## <url>:internal native symbol:</url>
 
     <dl>
-      <dt>'System`ConvertersDump`$ExtensionMappings'
+      <dt>'System`ConvertersDump`\$ExtensionMappings'
       <dd>Returns a list of associations between file extensions and file types.
     </dl>
 
@@ -966,11 +966,11 @@ class ConverterDumpsExtensionMappings(Predefined):
 
 
 class ConverterDumpsFormatMappings(Predefined):
-    """
+    r"""
     ## <url>:internal native symbol:</url>
 
     <dl>
-      <dt>'System`ConverterDump$FormatMappings'
+      <dt>'System`ConverterDump\$FormatMappings'
       <dd>Returns a list of associations between file extensions and file types.
     </dl>
 
@@ -992,11 +992,11 @@ class ConverterDumpsFormatMappings(Predefined):
 
 
 class ExportFormats(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$ExportFormats.html</url>
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$ExportFormats.html</url>
 
     <dl>
-      <dt>'$ExportFormats'
+      <dt>'\$ExportFormats'
       <dd>returns a list of file formats supported by Export.
     </dl>
 
@@ -1012,11 +1012,11 @@ class ExportFormats(Predefined):
 
 
 class ImportFormats(Predefined):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/$ImportFormats.html</url>
 
     <dl>
-      <dt>'$ImportFormats'
+      <dt>'\$ImportFormats'
       <dd>returns a list of file formats supported by Import.
     </dl>
 
