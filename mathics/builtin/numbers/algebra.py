@@ -1847,7 +1847,7 @@ class PowerExpand(Builtin):
 
     <dl>
       <dt>'PowerExpand'[$expr$]
-      <dd>expands out powers of the form '(x^y)^z' and '(x*y)^z' in $expr$.
+      <dd>expands out powers of the form $(x^y)^z$ and $(x y)^z$ in $expr$.
     </dl>
 
     >> PowerExpand[(a ^ b) ^ c]
