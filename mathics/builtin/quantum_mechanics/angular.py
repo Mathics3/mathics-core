@@ -41,7 +41,7 @@ class ClebschGordan(SympyFunction):
     <dl>
       <dt>'ClebschGordan'[{$j_1$, $m_1$}, {$j_2$, $m_2$}, {$j$ $m$}]
       <dd>returns the Clebsch-Gordan coefficient for the decomposition of $|j, m\\rangle$ \
-      in terms of $|j1, m\\rangle$, $|j2, m2\\rangle$.
+      in terms of $|j_1, m\\rangle$, $|j_2, m2\\rangle$.
     </dl>
 
     >> ClebschGordan[{3 / 2, 3 / 2}, {1 / 2, -1 / 2}, {1, 1}]
