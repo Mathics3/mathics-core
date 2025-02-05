@@ -56,7 +56,7 @@ class StringDrop(Builtin):
       <dd>gives $string$ with the last $n$ characters dropped.
 
       <dt>'StringDrop'["$string$", {$n$}]
-      <dd>gives $string$ with the $n$th character dropped.
+      <dd>gives $string$ with the $n$-th character dropped.
 
       <dt>'StringDrop'["$string$", {$m$, $n$}]
       <dd>gives $string$ with the characters $m$ through $n$ dropped.

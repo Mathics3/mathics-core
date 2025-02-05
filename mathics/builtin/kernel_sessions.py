@@ -12,7 +12,7 @@ class Out(Builtin):
     <url>:WMA: https://reference.wolfram.com/language/ref/\$Out</url>
     <dl>
       <dt>'%$k$' or 'Out'[$k$]
-      <dd>gives the result of the $k$th input line.
+      <dd>gives the result of the $k$-th input line.
 
       <dt>'%'
       <dd>gives the last result.
