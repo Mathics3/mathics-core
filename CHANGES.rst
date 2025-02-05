@@ -412,6 +412,7 @@ Bugs
 # Reading certain GIFs now work again
 #. ``Random[]`` works now.
 #. ``RandomSample`` with one list argument now returns a random ordering of the list items. Previously it would return just one item.
+#. `RowBox` now have an `elements` attribute, in a way that expressions like `Part[RowBox[{"a"}],1]` does not raises an unhandled exception.
 #. Origin placement corrected on ``ListPlot`` and ``LinePlot``.
 #. Fix long-standing bugs in Image handling
 #. Some scikit image routines line ``EdgeDetect`` were getting omitted due to overly stringent PyPI requirements
@@ -428,6 +429,7 @@ PyPI Package requirements
 +++++++++++++++++++++++++
 
 Mathics3 aims at a more richer set of functionality.
+
 
 Therefore NumPy and Pillow (9.10 or later) are required Python
 packages where they had been optional before.  In truth, probably
