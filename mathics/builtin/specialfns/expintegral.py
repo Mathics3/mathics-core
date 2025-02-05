@@ -20,7 +20,7 @@ class ExpIntegralE(MPMathFunction):
 
     <dl>
     <dt>'ExpIntegralE'[$n$, $z$]
-      <dd>returns the exponential integral function $E$_$n$($z$).
+      <dd>returns the exponential integral function $E_n(z)$.
     </dl>
 
     >> ExpIntegralE[2.0, 2.0]
