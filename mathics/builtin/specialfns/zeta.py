@@ -19,14 +19,14 @@ from mathics.core.convert.sympy import from_sympy
 
 
 class LerchPhi(MPMathFunction):
-    """
+    r"""
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/LerchPhi.html</url>
 
     <dl>
       <dt>'LerchPhi[z,s,a]'
-      <dd>gives the Lerch transcendent Φ(z,s,a).
+      <dd>gives the Lerch transcendent $\Phi(z,s,a)$.
     </dl>
 
     >> LerchPhi[2, 3, -1.5]
@@ -62,7 +62,7 @@ class PolyLog(MPMathFunction):
 
     <dl>
       <dt>'PolyLog'[$n$, $z$]
-      <dd>returns the polylogarithm function Li_$n$($z$).
+      <dd>returns the polylogarithm function $Li_n(z)$.
     </dl>
 
     >> PolyLog[s, 1]
