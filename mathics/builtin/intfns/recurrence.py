@@ -31,9 +31,9 @@ class Fibonacci(MPMathFunction):
 
     <dl>
       <dt>'Fibonacci'[$n$]
-      <dd>computes the $n$th Fibonacci number.
+      <dd>computes the $n$-th Fibonacci number.
       <dt>'Fibonacci'[$n$, $x$]
-      <dd>computes the Fibonacci polynomial $F$_$n$($x$).
+      <dd>computes the Fibonacci polynomial $F_n(x)$.
     </dl>
 
     >> Fibonacci[0]
@@ -71,7 +71,7 @@ class HarmonicNumber(MPMathFunction):
 
     <dl>
       <dt>'HarmonicNumber[n]'
-      <dd>returns the $n$th harmonic number.
+      <dd>returns the $n$-th harmonic number.
     </dl>
 
     >> Table[HarmonicNumber[n], {n, 8}]
@@ -100,7 +100,7 @@ class LinearRecurrence(Builtin):
       <dd>computes $n$ terms of the linear recurrence with kernel $ker$ and initial values $init$.
 
       <dt>'LinearRecurrence'[$ker$, $init$, {$n$}]
-      <dd>computes the $n$th term.
+      <dd>computes the $n$-th term.
 
       <dt>'LinearRecurrence'[$ker$, $init$, {$n_{min}$, $n_{max}$}]
       <dd>computes $n$ terms of the linear recurrence with kernel $ker$ and initial values $init$.

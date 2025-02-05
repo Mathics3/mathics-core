@@ -67,7 +67,7 @@ class In(Builtin):
     <url>:WMA: https://reference.wolfram.com/language/ref/In</url>
     <dl>
       <dt>'In'[$k$]
-        <dd>gives the $k$th line of input.
+        <dd>gives the $k$-th line of input.
       </dl>
 
     >> x = 1

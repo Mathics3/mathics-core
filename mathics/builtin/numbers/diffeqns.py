@@ -178,7 +178,7 @@ class C(Builtin):
 
     <dl>
       <dt>'C'[$n$]
-      <dd>represents the $n$th constant in a solution to a differential equation.
+      <dd>represents the $n$-th constant in a solution to a differential equation.
     </dl>
     """
 

@@ -309,14 +309,14 @@ class Pattern(PatternObject):
 
     <dl>
       <dt>'Pattern'[$symb$, $pat$]
-      <dt>'$symb$ : $pat$'
+      <dt>$symb$ ':' $pat$
       <dd>assigns the name $symb$ to the pattern $pat$.
-      <dt>'$symb$_$head$'
-      <dd>is equivalent to '$symb$ : _$head$' (accordingly with '__' \
+      <dt>$symb$'_'$head$
+      <dd>is equivalent to $symb$' : _'$head$ (accordingly with '__' \
         and '___').
-      <dt>'$symb$ : $pat$ : $default$'
+      <dt>$symb$' : '$pat$' : '$default$
       <dd>is a pattern with name $symb$ and default value $default$, \
-        equivalent to 'Optional[$pat$ : $symb$, $default$]'.
+        equivalent to 'Optional'[$pat$ : $symb$, $default$].
     </dl>
 
     >> FullForm[a_b]

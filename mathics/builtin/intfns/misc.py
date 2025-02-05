@@ -15,10 +15,10 @@ class BernoulliB(MPMathFunction):
 
     <dl>
       <dt>'BernoulliB'[$n$]
-      <dd>represents the Bernoulli number B_$n$.
+      <dd>represents the Bernoulli number $B_n$.
 
       <dt>'BernouilliB'[$n$, $x$]
-      <dd>represents the Bernoulli polynomial B_$n[x]$.
+      <dd>represents the Bernoulli polynomial $B_n(x)$.
     </dl>
 
     >> BernoulliB[42]

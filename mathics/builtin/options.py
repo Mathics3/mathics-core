@@ -81,10 +81,10 @@ class Default(Builtin):
       <dd>gives the default value for an omitted parameter of $f$.
 
       <dt>'Default'[$f$, $k$]
-      <dd>gives the default value for a parameter on the $k$th position.
+      <dd>gives the default value for a parameter on the $k$-th position.
 
       <dt>'Default'[$f$, $k$, $n$]
-      <dd>gives the default value for the $k$th parameter out of $n$.
+      <dd>gives the default value for the $k$-th parameter out of $n$.
     </dl>
 
     Assign values to 'Default' to specify default values.

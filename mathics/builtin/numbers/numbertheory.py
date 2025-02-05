@@ -681,7 +681,7 @@ class MersennePrimeExponent(SympyFunction):
 
     <dl>
       <dt>'MersennePrimeExponent'[$n$]
-      <dd>returns the exponent of the $n$th Mersenne prime.
+      <dd>returns the exponent of the $n$-th Mersenne prime.
     </dl>
 
     >> Table[MersennePrimeExponent[n], {n, 10}]

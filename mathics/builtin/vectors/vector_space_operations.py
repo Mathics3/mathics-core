@@ -32,7 +32,7 @@ class KroneckerProduct(SympyFunction):
 
     <dl>
       <dt>'KroneckerProduct'[$m_1$, $m_2$, ...]
-      <dd>returns the Kronecker product of the arrays $mi$
+      <dd>returns the Kronecker product of the arrays $m_i$
     </dl>
 
     Show symbolically how the Kronecker product works on two two-dimensional arrays:

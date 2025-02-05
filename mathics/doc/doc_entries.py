@@ -53,7 +53,7 @@ END_LINE_SENTINAL = "#<--#"
 
 # <(?<tag>console)> in the following rule is just keep for compatibility
 # with Mathics-Django documentation.
-CONSOLE_RE = re.compile(r"(?s)<(?P<tag>console)>(?P<content>.*?)</console>")
+CONSOLE_RE = re.compile(r"(?m)(?s)<(?P<tag>console)>(?P<content>[\s\S]+?)</console>")
 DL_ITEM_RE = re.compile(
     r"(?s)<(?P<tag>d[td])>(?P<content>.*?)(?:</(?P=tag)>|)\s*(?:(?=<d[td]>)|$)"
 )

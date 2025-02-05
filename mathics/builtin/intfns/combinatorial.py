@@ -49,10 +49,10 @@ class BellB(SympyFunction):
     :WMA: https://reference.wolfram.com/language/ref/BellB.html</url>)
     <dl>
       <dt>'BellB'[$n$]
-      <dd>Bell number $B$_$n$.
+      <dd>Bell number $B_n$.
 
       <dt>'BellB'[$n$, $x$]
-      <dd>Bell polynomial $B$_$n$($x$).
+      <dd>Bell polynomial $B_n(x)$.
     </dl>
 
     >> BellB[10]
@@ -171,7 +171,7 @@ class CatalanNumber(SympyFunction):
 
     <dl>
       <dt>'CatalanNumber'[$n$]
-      <dd>gives the $n$th Catalan number.
+      <dd>gives the $n$-th Catalan number.
     </dl>
 
     A list of the first five Catalan numbers:
@@ -203,8 +203,8 @@ class DiceDissimilarity(_BooleanDissimilarity):
     <dl>
       <dt>'DiceDissimilarity'[$u$, $v$]
       <dd>returns the Dice dissimilarity between the two Boolean 1-D lists $u$ and $v$.
-      This is defined as ($c_tf$ + $c_ft$) / (2 * $c_tt$ + $c_ft$ + c_tf).
-      $n$ is len($u$) and $c_ij$ is the number of occurrences of $u$[$k$]=$i$ and $v$[$k$]=$j$ for $k$ < $n$.
+      This is defined as ($c_{tf}$ + $c_{ft}$) / (2 * $c_{tt}$ + $c_{ft}$ + $c_{tf}$).
+      $n$ is len($u$) and $c_{ij}$ is the number of occurrences of $u[k]=i$ and $v[k]=j$ for $k < n$.
     </dl>
 
     >> DiceDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -227,10 +227,10 @@ class EulerE(SympyFunction):
     :WMA: https://reference.wolfram.com/language/ref/EulerE.html</url>)
     <dl>
       <dt>'EulerE'[$n$]
-      <dd>Euler number $E$_$n$.
+      <dd>Euler number $E_n$.
 
       <dt>'EulerE'[$n$, $x$]
-      <dd>Euler polynomial $E$_$n$($x$).
+      <dd>Euler polynomial $E_n(x)$.
     </dl>
 
     Odd-index Euler numbers are zero:
@@ -267,8 +267,8 @@ class JaccardDissimilarity(_BooleanDissimilarity):
       <dt>'JaccardDissimilarity'[$u$, $v$]
       <dd>returns the Jaccard-Needham dissimilarity between the two Boolean \
           1-D lists $u$ and $v$, which is defined as \
-          $(c_tf + c_ft) / (c_tt + c_ft + c_tf)$, where $n$ is \
-          len($u$) and $c_ij$ is the number of occurrences of \
+          $(c_{tf} + c_{ft}) / (c_{tt} + c_{ft} + c_{tf})$, where $n$ is \
+          len($u$) and $c_{ij}$ is the number of occurrences of \
           $u[k]=i$ and $v[k]=j$ for $k < n$.
     </dl>
 
@@ -336,8 +336,8 @@ class MatchingDissimilarity(_BooleanDissimilarity):
     <dl>
       <dt>'MatchingDissimilarity'[$u$, $v$]
       <dd>returns the Matching dissimilarity between the two Boolean \
-      1-D lists $u$ and $v$, which is defined as $(c_tf + c_ft) / n$, \
-      where $n$ is len($u$) and $c_ij$ is the number of occurrences of \
+      1-D lists $u$ and $v$, which is defined as $(c_{tf} + c_{ft}) / n$, \
+      where $n$ is len($u$) and $c_{ij}$ is the number of occurrences of \
       $u[k]=i$ and $v[k]=j$ for $k < n$.
     </dl>
 
@@ -402,10 +402,10 @@ class PolygonalNumber(Builtin):
     :WMA: https://reference.wolfram.com/language/ref/PolygonalNumber.html</url>)
     <dl>
       <dt>'PolygonalNumber'[$n$]
-      <dd>gives the $n$th triangular number.
+      <dd>gives the $n$-th triangular number.
 
       <dt>'PolygonalNumber'[$r$, $n$]
-      <dd>gives the $n$th $r$-gonal number.
+      <dd>gives the $n$-th $r$-gonal number.
     </dl>
 
     >> Table[PolygonalNumber[n], {n, 10}]
@@ -448,9 +448,9 @@ class RogersTanimotoDissimilarity(_BooleanDissimilarity):
       <dt>'RogersTanimotoDissimilarity'[$u$, $v$]
       <dd>returns the Rogers-Tanimoto dissimilarity between the two Boolean \
       1-D lists $u$ and $v$, which is defined as \
-      $R / (c_tt + c_ff + R)$ where $n$ is $len(u)$, $c_ij$ is \
+      $R / (c_{tt} + c_{ff} + R)$ where $n$ is $len(u)$, $c_{ij}$ is \
       the number of occurrences of $u[k]=i$, $v[k]=j$ for $k<n$, \
-      and $R = 2 (c_tf + c_ft)$.
+      and $R = 2 (c_{tf} + c_{ft})$.
     </dl>
 
     >> RogersTanimotoDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -474,8 +474,8 @@ class RussellRaoDissimilarity(_BooleanDissimilarity):
     <dl>
       <dt>'RussellRaoDissimilarity'[$u$, $v$]
       <dd>returns the Russell-Rao dissimilarity between the two Boolean \
-      1-D lists $u$ and $v$, which is defined as $(n - c_tt) / c_tt$ \
-      where $n$ is $len(u)$, $c_ij$ is \
+      1-D lists $u$ and $v$, which is defined as $(n - c_{tt}) / c_{tt}$ \
+      where $n$ is $len(u)$, $c_{ij}$ is \
       the number of occurrences of $u[k]=i$ and $v[k]=j$ for $k < n$.
     </dl>
 
@@ -500,10 +500,10 @@ class SokalSneathDissimilarity(_BooleanDissimilarity):
     <dl>
       <dt>'SokalSneathDissimilarity'[$u$, $v$]
       <dd>returns the Sokal-Sneath dissimilarity between the two Boolean \
-      1-D lists $u$ and $v$, which is defined as $R / (c_tt + R)$ where \
-      $n$ is $len(u)$, $c_ij$ is the number of occurrences of \
+      1-D lists $u$ and $v$, which is defined as $R / (c_{tt} + R)$ where \
+      $n$ is $len(u)$, $c_{ij}$ is the number of occurrences of \
       $u[k]=i$, $v[k]=j$ for $k < n$, \
-      and $R = 2 (c_tf + c_ft)$.
+      and $R = 2 (c_{tf} + c_{ft})$.
     </dl>
 
     >> SokalSneathDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -542,7 +542,7 @@ class Subsets(Builtin):
       <dd>finds a list of the first $n$ possible subsets.
 
       <dt>'Subsets'[$list$, $spec$, {$n$}]
-      <dd>finds the $n$th possible subset.
+      <dd>finds the $n$-th possible subset.
     </dl>
 
     All possible subsets (power set):
@@ -569,7 +569,7 @@ class Subsets(Builtin):
     >> Subsets[Range[5], All, {25}]
      = {{2, 4, 5}}
 
-    The odd-numbered subsets of {a,b,c,d} in reverse order:
+    The odd-numbered subsets of {$a$,$b$,$c$,$d$} in reverse order:
     >> Subsets[{a, b, c, d}, All, {15, 1, -2}]
      = {{b, c, d}, {a, b, d}, {c, d}, {b, c}, {a, c}, {d}, {b}, {}}
     """
@@ -715,10 +715,10 @@ class YuleDissimilarity(_BooleanDissimilarity):
     <dl>
       <dt>'YuleDissimilarity'[$u$, $v$]
       <dd>returns the Yule dissimilarity between the two Boolean 1-D lists $u$ \
-          and $v$, which is defined as $R / (c_tt c_ff + R / 2)$ \
-          where $n$ is $len(u)$, $c_ij$ is the number of occurrences of \
+          and $v$, which is defined as $R / (c_{tt} c_{ff} + R / 2)$ \
+          where $n$ is $len(u)$, $c_{ij}$ is the number of occurrences of \
           $u[k]=i$, $v[k]=j$ for $k<n$, \
-          and $R = 2 c_tf c_ft$.
+          and $R = 2 c_{tf} c_{ft}$.
     </dl>
 
     >> YuleDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
