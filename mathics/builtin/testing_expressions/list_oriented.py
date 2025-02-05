@@ -91,8 +91,8 @@ class IntersectingQ(Builtin):
 
     <dl>
       <dt>'IntersectingQ'[$a$, $b$]
-      <dd>gives True if there are any common elements in $a and $b, or \
-          False if $a and $b are disjoint.
+      <dd>gives True if there are any common elements in $a$ and $b$, or \
+          False if $a$ and $b$ are disjoint.
     </dl>
     """
 
