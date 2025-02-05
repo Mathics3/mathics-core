@@ -106,7 +106,7 @@ class Arg(MPMathFunction):
     :WMA link:https://reference.wolfram.com/language/ref/Arg.html</url>)
 
     <dl>
-      <dt>'Arg'[$z$, $method_option$]
+      <dt>'Arg'[$z$, 'Method ->' "$option$"]
       <dd>returns the argument of a complex value $z$.
     </dl>
 
