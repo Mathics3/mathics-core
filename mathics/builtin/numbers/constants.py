@@ -571,7 +571,7 @@ class Overflow(Builtin):
 
     See also <url>
     :Integer Overflow:
-    <https://en.wikipedia.org/wiki/Integer_overflow></url>.
+    https://en.wikipedia.org/wiki/Integer_overflow</url>.
 
     <dl>
       <dt>'Overflow[]'

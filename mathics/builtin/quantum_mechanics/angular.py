@@ -97,7 +97,7 @@ class PauliMatrix(SympyFunction):
 
     <dl>
       <dt>'PauliMatrix'[$k$]
-      <dd>returns the $k$th Pauli spin matrix).
+      <dd>returns the $k$-th Pauli spin matrix).
     </dl>
 
     >> Table[PauliMatrix[i], {i, 1, 3}]

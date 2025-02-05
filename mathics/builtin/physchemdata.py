@@ -51,7 +51,7 @@ class ElementData(Builtin):
         <dd>gives the value of the $property$ for the chemical
         specified by $name$.
     <dt>'ElementData'[$n$, "$property$"]
-        <dd>gives the value of the $property$ for the $n$th chemical element.
+        <dd>gives the value of the $property$ for the $n$-th chemical element.
     </dl>
 
     >> ElementData[74]

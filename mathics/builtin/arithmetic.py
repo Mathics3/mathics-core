@@ -212,11 +212,11 @@ class Assuming(Builtin):
 
 
 class Assumptions(Predefined):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/$Assumptions.html</url>
     <dl>
-      <dt>'$Assumptions'
-      <dd>is the default setting for the Assumptions option used in such functions as Simplify, Refine, and Integrate.
+      <dt>'\$Assumptions'
+      <dd>is the default setting for the 'Assumptions' option used in such functions as 'Simplify', 'Refine', and 'Integrate'.
     </dl>
     """
 
@@ -728,7 +728,7 @@ class Product(IterationFunction, SympyFunction):
     >> Product[k, {k, 3, n}]
      = n! / 2
 
-    Evaluate the $n$th primorial:
+    Evaluate the $n$-th primorial:
     >> primorial[0] = 1;
     >> primorial[n_Integer] := Product[Prime[k], {k, 1, n}];
     >> primorial[12]

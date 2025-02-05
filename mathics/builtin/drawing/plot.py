@@ -1544,8 +1544,8 @@ class Plot(_Plot):
 class ParametricPlot(_Plot):
     """
     <url>
-    :WMA link
-    : https://reference.wolfram.com/language/ref/ParametricPlot.html</url>
+    :WMA link:\
+    https://reference.wolfram.com/language/ref/ParametricPlot.html</url>
     <dl>
       <dt>'ParametricPlot'[{$f_x$, $f_y$}, {$u$, $u_{min}$, $u_{max}$}]
       <dd>plots a parametric function $f$ with the parameter $u$ ranging from $u_{min}$ to $u_{max}$.
