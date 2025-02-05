@@ -37,7 +37,7 @@ class AiryAi(MPMathFunction):
     :WMA: https://reference.wolfram.com/language/ref/AiryAi.html</url>)
     <dl>
       <dt>'AiryAi'[$x$]
-      <dd>returns the Airy function Ai($x$).
+      <dd>returns the Airy function $Ai(x)$.
     </dl>
 
     Exact values:
@@ -72,7 +72,7 @@ class AiryAiPrime(MPMathFunction):
     https://reference.wolfram.com/language/ref/AiryAiPrime.html</url>)
     <dl>
       <dt>'AiryAiPrime'[$x$]
-      <dd>returns the derivative of the Airy function 'AiryAi[$x$]'.
+      <dd>returns the derivative of the Airy function 'AiryAi'[$x$].
     </dl>
 
     Exact values:
@@ -103,7 +103,7 @@ class AiryAiZero(Builtin):
 
     <dl>
       <dt>'AiryAiZero'[$k$]
-      <dd>returns the $k$th zero of the Airy function Ai($z$).
+      <dd>returns the $k$th zero of the Airy function $Ai(z)$.
     </dl>
 
     >> N[AiryAiZero[1]]
@@ -152,7 +152,7 @@ class AiryBi(MPMathFunction):
 
     <dl>
     <dt>'AiryBi'[$x$]
-      <dd>returns the Airy function of the second kind Bi($x$).
+      <dd>returns the Airy function of the second kind $Bi(x)$.
     </dl>
 
     Exact values:
@@ -186,7 +186,7 @@ class AiryBiPrime(MPMathFunction):
     <dl>
     <dt>'AiryBiPrime'[$x$]
         <dd>returns the derivative of the Airy function of the second
-        kind 'AiryBi[$x$]'.
+        kind 'AiryBi'[$x$].
     </dl>
 
     Exact values:
@@ -217,7 +217,7 @@ class AiryBiZero(Builtin):
 
     <dl>
     <dt>'AiryBiZero'[$k$]
-      <dd>returns the $k$th zero of the Airy function Bi($z$).
+      <dd>returns the $k$th zero of the Airy function $Bi(z)$.
     </dl>
 
     >> N[AiryBiZero[1]]
@@ -271,7 +271,7 @@ class AngerJ(_Bessel):
     https://reference.wolfram.com/language/ref/AngerJ.html</url>)
     <dl>
       <dt>'AngerJ'[$n$, $z$]
-      <dd>returns the Anger function J_$n$($z$).
+      <dd>returns the Anger function $J_n(z)$.
     </dl>
 
     >> AngerJ[1.5, 3.5]
@@ -292,9 +292,7 @@ class AngerJ(_Bessel):
 
 
 class BesselI(_Bessel):
-    """
-
-
+    r"""
         <url>
         :Modified Bessel function of the first kind:
         https://en.wikipedia.org/
@@ -307,7 +305,7 @@ class BesselI(_Bessel):
 
         <dl>
         <dt>'BesselI'[$n$, $z$]
-          <dd>returns the modified Bessel function of the first kind I_$n$($z$).
+          <dd>returns the modified Bessel function of the first kind $I_n(z)$.
         </dl>
 
         >> BesselI[0, 0]
@@ -349,7 +347,7 @@ class BesselJ(_Bessel):
 
     <dl>
     <dt>'BesselJ'[$n$, $z$]
-      <dd>returns the Bessel function of the first kind J_$n$($z$).
+      <dd>returns the Bessel function of the first kind $J_n(z)$.
     </dl>
 
     >> BesselJ[0, 5.2]
@@ -397,7 +395,7 @@ class BesselK(_Bessel):
 
     <dl>
       <dt>'BesselK'[$n$, $z$]
-      <dd>returns the modified Bessel function of the second kind K_$n$($z$).
+      <dd>returns the modified Bessel function of the second kind $K_n(z)$.
     </dl>
 
     >> BesselK[1.5, 4]
@@ -436,7 +434,7 @@ class BesselY(_Bessel):
 
     <dl>
       <dt>'BesselY'[$n$, $z$]
-      <dd>returns the Bessel function of the second kind Y_$n$($z$).
+      <dd>returns the Bessel function of the second kind $Y_n(z)$.
     </dl>
 
     >> BesselY[1.5, 4]
@@ -475,7 +473,7 @@ class BesselJZero(_Bessel):
 
     <dl>
       <dt>'BesselJZero'[$n$, $k$]
-      <dd>returns the $k$th zero of the Bessel function of the first kind J_$n$($z$).
+      <dd>returns the $k$th zero of the Bessel function of the first kind $J_n(z)$.
     </dl>
 
     >> N[BesselJZero[0, 1]]
@@ -496,7 +494,7 @@ class BesselYZero(_Bessel):
 
     <dl>
       <dt>'BesselYZero'[$n$, $k$]
-      <dd>returns the $k$th zero of the Bessel function of the second kind Y_$n$($z$).
+      <dd>returns the $k$th zero of the Bessel function of the second kind $Y_n(z)$.
     </dl>
 
     >> N[BesselYZero[0, 1]]
@@ -520,7 +518,7 @@ class HankelH1(_Bessel):
 
     <dl>
       <dt>'HankelH1'[$n$, $z$]
-      <dd>returns the Hankel function of the first kind H_$n$^1 ($z$).
+      <dd>returns the Hankel function of the first kind $H_n^1(z)$.
     </dl>
 
     >> HankelH1[1.5, 4]
@@ -542,7 +540,7 @@ class HankelH2(_Bessel):
 
     <dl>
       <dt>'HankelH2'[$n$, $z$]
-      <dd>returns the Hankel function of the second kind H_$n$^2 ($z$).
+      <dd>returns the Hankel function of the second kind $H_n^2(z)$.
     </dl>
 
     >> HankelH2[1.5, 4]
@@ -566,7 +564,7 @@ class HypergeometricU(MPMathFunction):
     :WMA: https://reference.wolfram.com/language/ref/HypergeometricU.html</url>)
     <dl>
       <dt>'HypergeometricU'[$a$, $b$, $z$]
-      <dd>returns $U$($a$, $b$, $z$).
+      <dd>returns $U(a, b, z)$.
     </dl>
 
     >> HypergeometricU[3, 2, 1.]
@@ -607,10 +605,10 @@ class KelvinBei(_Bessel):
 
     <dl>
       <dt>'KelvinBei'[$z$]
-      <dd>returns the Kelvin function bei($z$).
+      <dd>returns the Kelvin function $bei(z)$.
 
       <dt>'KelvinBei'[$n$, $z$]
-      <dd>returns the Kelvin function bei_$n$($z$).
+      <dd>returns the Kelvin function $bei_n(z)$.
     </dl>
 
     >> KelvinBei[0.5]
@@ -647,10 +645,10 @@ class KelvinBer(_Bessel):
     https://reference.wolfram.com/language/ref/KelvinBer.html</url>)
     <dl>
       <dt>'KelvinBer'[$z$]
-      <dd>returns the Kelvin function ber($z$).
+      <dd>returns the Kelvin function $ber(z)$.
 
       <dt>'KelvinBer'[$n$, $z$]
-      <dd>returns the Kelvin function ber_$n$($z$).
+      <dd>returns the Kelvin function $ber_n(z)$.
     </dl>
 
     >> KelvinBer[0.5]
@@ -689,10 +687,10 @@ class KelvinKei(_Bessel):
 
     <dl>
       <dt>'KelvinKei'[$z$]
-      <dd>returns the Kelvin function kei($z$).
+      <dd>returns the Kelvin function $kei(z)$.
 
       <dt>'KelvinKei'[$n$, $z$]
-      <dd>returns the Kelvin function kei_$n$($z$).
+      <dd>returns the Kelvin function $kei_n(z)$.
     </dl>
 
     >> KelvinKei[0.5]
@@ -724,9 +722,9 @@ class KelvinKer(_Bessel):
 
     <dl>
       <dt>'KelvinKer'[$z$]
-      <dd>returns the Kelvin function ker($z$).
+      <dd>returns the Kelvin function $ker(z)$.
     <dt>'KelvinKer'[$n$, $z$]
-      <dd>returns the Kelvin function ker_$n$($z$).
+      <dd>returns the Kelvin function $ker_n(z)$.
     </dl>
 
     >> KelvinKer[0.5]
@@ -762,7 +760,7 @@ class SphericalBesselJ(_Bessel):
 
     <dl>
       <dt>'SphericalBesselJ'[$n$, $z$]
-      <dd>returns the spherical Bessel function of the first kind Y_$n$($z$).
+      <dd>returns the spherical Bessel function of the first kind $Y_n(z)$.
     </dl>
 
     >> SphericalBesselJ[1, 5.2]
@@ -791,7 +789,7 @@ class SphericalBesselY(_Bessel):
 
     <dl>
       <dt>'SphericalBesselY'[$n$, $z$]
-      <dd>returns the spherical Bessel function of the second kind Y_$n$($z$).
+      <dd>returns the spherical Bessel function of the second kind $Y_n(z)$.
     </dl>
 
     >> SphericalBesselY[1, 5.5]
@@ -814,7 +812,7 @@ class SphericalHankelH1(_Bessel):
 
     <dl>
       <dt>'SphericalHankelH1'[$n$, $z$]
-      <dd>returns the spherical Hankel function of the first kind h_$n$^(1)($z$).
+      <dd>returns the spherical Hankel function of the first kind $h_n^{(1)}(z)$.
     </dl>
 
     >> SphericalHankelH1[3, 1.5]
@@ -835,7 +833,7 @@ class SphericalHankelH2(_Bessel):
 
     <dl>
       <dt>'SphericalHankelH1'[$n$, $z$]
-      <dd>returns the spherical Hankel function of the second kind h_$n$^(2)($z$).
+      <dd>returns the spherical Hankel function of the second kind $h_n^{(2)}(z)$.
     </dl>
 
     >> SphericalHankelH2[3, 1.5]
@@ -857,7 +855,7 @@ class StruveH(_Bessel):
 
     <dl>
       <dt>'StruveH'[$n$, $z$]
-      <dd>returns the Struve function H_$n$($z$).
+      <dd>returns the Struve function $H_n(z)$.
     </dl>
 
     >> StruveH[1.5, 3.5]
@@ -881,7 +879,7 @@ class StruveL(_Bessel):
     <url>:Modified Struve functions L: https://en.wikipedia.org/wiki/Struve_function</url>
     <dl>
       <dt>'StruveL'[$n$, $z$]
-      <dd>returns the modified Struve function L_$n$($z$).
+      <dd>returns the modified Struve function $L_n(z)$.
     </dl>
 
     >> StruveL[1.5, 3.5]
@@ -906,7 +904,7 @@ class WeberE(_Bessel):
 
     <dl>
       <dt>'WeberE'[$n$, $z$]
-      <dd>returns the Weber function E_$n$($z$).
+      <dd>returns the Weber function $E_n(z)$.
     </dl>
 
     >> WeberE[1.5, 3.5]
