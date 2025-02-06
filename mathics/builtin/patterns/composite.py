@@ -31,7 +31,7 @@ class Alternatives(InfixOperator, PatternObject):
 
     <dl>
       <dt>'Alternatives'[$p_1$, $p_2$, ..., $p_i$]
-      <dt>'$p_1$ | $p_2$ | ... | $p_i$'
+      <dt>$p_1$ '|' $p_2$ '|' ... '|' $p_i$
       <dd>is a pattern that matches any of the patterns $p_1$, $p_2$, \
         ...., $p_i$.
     </dl>

@@ -2,6 +2,10 @@
 
 """
 Error Function and Related Functions
+
+See also <url>
+:Chapter 7 Error Functions, Dawson's and Fresnel Integrals:
+https://dlmf.nist.gov/7</url>.
 """
 
 

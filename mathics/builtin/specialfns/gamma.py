@@ -1,5 +1,9 @@
 """
 Gamma and Related Functions
+
+See also <url>
+:Chapter 5 Gamma Function in the Digital Library of Mathematical Functions:
+https://dlmf.nist.gov/5</url>.
 """
 
 import sys

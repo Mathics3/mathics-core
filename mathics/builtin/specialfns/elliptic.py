@@ -8,6 +8,10 @@ originates from their originally arising in connection with the problem of \
 finding the arc length of an ellipse.
 
 These functions often are used in cryptography to encode and decode messages.
+
+See also <url>
+:Chapter 19 Elliptic Integrals in the Digital Library of Mathematical Functions:
+https://dlmf.nist.gov/19</url>.
 """
 
 import sympy
