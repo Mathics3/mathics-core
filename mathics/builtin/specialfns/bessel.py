@@ -1,5 +1,9 @@
 """
 Bessel and Related Functions
+
+See also <url>
+:Chapter 10 Bessel Functions in the Digital Library of Mathematical Functions:
+https://dlmf.nist.gov/10</url>.
 """
 
 import mpmath
@@ -82,6 +86,9 @@ class AiryAiPrime(MPMathFunction):
     Numeric evaluation:
     >> AiryAiPrime[0.5]
      = -0.224911
+
+    >> Plot[AiryAiPrime[x], {x, -10, 10}]
+     = -Graphics-
     """
 
     mpmath_name = ""
@@ -196,16 +203,19 @@ class AiryBiPrime(MPMathFunction):
     Numeric evaluation:
     >> AiryBiPrime[0.5]
      = 0.544573
+
+    >> Plot[AiryBiPrime[x], {x, -10, 2}]
+     = -Graphics-
     """
 
     mpmath_name = ""
-    sympy_name = "airybiprime"
 
     rules = {
         "Derivative[1][AiryBiPrime]": "(#1 AiryBi[#1])&",
     }
 
     summary_text = "derivative of the Airy's function Bi"
+    sympy_name = "airybiprime"
 
     def get_mpmath_function(self, args):
         return lambda x: mpmath.airybi(x, derivative=1)
