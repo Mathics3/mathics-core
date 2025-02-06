@@ -554,15 +554,7 @@ class Documentation(BaseDocElement):
                         chapter, title, text, operator=None, installed=True
                     )
                     chapter.sections.append(section)
-                    subsections = SUBSECTION_RE.findall(text)
-                    for subsection_title in subsections:
-                        subsection = self.subsection_class(
-                            chapter,
-                            section,
-                            subsection_title,
-                            text,
-                        )
-                        section.subsections.append(subsection)
+                    # Subsections are processed inside the Documentation entry.
                 else:
                     section = None
                 if not chapter.doc:
