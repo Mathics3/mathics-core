@@ -102,6 +102,7 @@ include = ["mathics*"]
     "autoload-cli/*.m",
     "autoload/formats/*/Import.m",
     "autoload/formats/*/Export.m",
+    "autoload/*/*.m",
     "Packages/*/*.m",
     "Packages/*/Kernel/init.m",
 ]
