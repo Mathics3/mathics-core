@@ -2,6 +2,10 @@
 
 """
 Zeta Functions and Polylogarithms
+
+See also <url>
+:Chapters 25 Zeta and Related Functions in the Digital Libary of Mathematical Functions:
+https://dlmf.nist.gov/25</url>.
 """
 
 import mpmath
@@ -34,8 +38,13 @@ class LerchPhi(MPMathFunction):
     >> LerchPhi[2, 3, -1.5]
      = 19.3893 - 2.1346 I
 
-    >> LerchPhi[1, 2, 1/4]
-     = 17.1973
+    >> LerchPhi[1, 2, 1/4] == 8 Catalan + Pi^2
+     = True
+
+    Plot between between -1 and 1:
+    >> Plot[LerchPhi[x, 1, 2], {x, -1, 1}]
+     = -Graphics-
+
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
@@ -72,6 +81,10 @@ class PolyLog(MPMathFunction):
      = Zeta[s]
     >> PolyLog[-7, I] //Chop
      = 136.
+
+    Dilogarithm function $Li_2(x)$:
+    >> Plot[PolyLog[2,x], {x, -20, 1}]
+     = -Graphics-
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
@@ -103,6 +116,9 @@ class Zeta(MPMathFunction):
 
     >> Zeta[-2.5 + I]
      = 0.0235936 + 0.0014078 I
+
+    >> Plot[Zeta[z], {z, -20, 10}]
+     = -Graphics-
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
