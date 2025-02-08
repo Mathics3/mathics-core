@@ -99,7 +99,7 @@ class DispatchAtom(AtomBuiltin):
     """
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/DispatchAtom.html</url>
+    https://reference.wolfram.com/language/ref/Dispatch.html</url>
 
     <dl>
       <dt>'Dispatch'[$rulelist$]
@@ -135,7 +135,7 @@ class DispatchAtom(AtomBuiltin):
         self, rules: ListExpression, evaluation: Evaluation
     ) -> OptionalType[BaseElement]:
         """Dispatch[rules_List]"""
-        result = eval_dispatch_atom(rules, evaluation)
+        result = eval_dispatch_atom(rules.elements, evaluation)
         return result
 
     def eval(
