@@ -13,16 +13,14 @@ See the <url>:installation instructions:https://mathics-development-guide.readth
 
 For implementation details, please refer to the <url>:Developers Guide:https://mathics-development-guide.readthedocs.io/en/latest</url>.
 
-<section title="Why try to recreate Wolfram Language?">
-\Mathematica is great, but it has a couple of disadvantages.
+<section title="Why recreate Wolfram Language?">
+\Mathematica is great, but it might have some disadvantages, depending on on your point of view.
 
 <ul>
   <li>It is not open source.
   <li>Its development is tightly controlled and centralized and as such
   <li>It can't hook into different kinds of open-source packages that have independently developed algorithms and methods
 </ul>
-
-The second point some may find an advantage.
 
 However, even if you are willing to pay hundreds of dollars for the software, you would not be able to see what\'s going on "inside" the program if that is your interest. That\'s what free, open-source, and community-supported software is for!
 
@@ -35,7 +33,7 @@ However, even if you are willing to pay hundreds of dollars for the software, yo
   <li><url>:SciPy: https://www.scipy.org/</url> for Scientific calculations.
 </ul>
 
-Performance of \Mathics is not, right now, practical in large-scale projects and calculations. However, it can be used as a tool for exploration and education. There is promise that it can provide better debugging.
+Performance of \Mathics is not, right now, practical in large-scale projects and calculations. However, it can be used as a tool for exploration and education. There is promise that it can provide better debugging, since we can be completely transparent about every aspect of its operation.
 
 </section>
 
@@ -52,8 +50,10 @@ Outside of the "core" \Mathics kernel (which has only a primitive command-line i
 <ul>
   <li>a <url>:command-line interface:https://pypi.org/project/mathicsscript/</url> using either <url>:prompt-toolkit:https://python-prompt-toolkit.readthedocs.io/en/master/</url>, or GNU Readline
   <li>a <url>:Django-based web server:https://pypi.org/project/Mathics-Django/</url>
+  <li>a <url>:A browser-based no-install online front-end:https://mathics3.github.io/Mathics3-live/</url>
   <li>a <url>:Mathics3 module for Graphs:https://pypi.org/project/pymathics-graph/</url> (via <url>:NetworkX:https://networkx.org/</url>),
   <li>a <url>:Mathics3 module for NLP:https://pypi.org/project/pymathics-natlang/</url> (via <url>:nltk:https://www.nltk.org/</url>, <url>:spacy:https://spacy.io/</url>, and others)
+  <li>a <url>:Mathics3 Debugger Module:https://pypi.org/project/Mathics3-trepan/</url> (experimental)
   <li>a <url>:A docker container:https://hub.docker.com/r/mathicsorg/mathics</url> which bundles all of the above
 </ul>
 
