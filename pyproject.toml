@@ -106,8 +106,9 @@ include = ["mathics*"]
     "data/*.yaml",
     "data/*.yml",
     "data/ExampleData/*",
-    "doc/tex/data",
-    "doc/xml/data",
+    # Documentation stuff that will be removed in 9.0.0 or before
+    "doc/latex/mathics.pdf",
+    # End doc stuff
     "test/data/*",
 ]
 "mathics.doc" = [
