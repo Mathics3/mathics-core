@@ -18,8 +18,8 @@ class ContainsOnly(Builtin):
     https://reference.wolfram.com/language/ref/ContainsOnly.html</url>
 
     <dl>
-      <dt>'ContainsOnly[$list1$, $list2$]'
-      <dd>yields True if $list1$ contains only elements that appear in $list2$.
+      <dt>'ContainsOnly'[$list_1$, $list_2$]
+      <dd>yields True if $list_1$ contains only elements that appear in $list_2$.
     </dl>
 
     >> ContainsOnly[{b, a, a}, {a, b, c}]

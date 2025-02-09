@@ -22,16 +22,16 @@ class ImageTake(Builtin):
     Extract Image parts <url>:WMA link:
     https://reference.wolfram.com/language/ref/ImageTake.html</url>
     <dl>
-      <dt>'ImageTake[$image$, $n$]'
+      <dt>'ImageTake'[$image$, $n$]
       <dd>gives the first $n$ rows of $image$.
 
-      <dt>'ImageTake[$image$, -$n$]'
+      <dt>'ImageTake'[$image$, -$n$]
       <dd>gives the last $n$ rows of $image$.
 
-      <dt>'ImageTake[$image$, {$r1$, $r2$}]'
-      <dd>gives rows $r1$, ..., $r2$ of $image$.
+      <dt>'ImageTake'[$image$, {$r_1$, $r_2$}]
+      <dd>gives rows $r_1$, ..., $r_2$ of $image$.
 
-      <dt>'ImageTake[$image$, {$r1$, $r2$}, {$c1$, $c2$}]'
+      <dt>'ImageTake'[$image$, {$r_1$, $r_2$}, {$c_1$, $c_2$}]
       <dd>gives a cropped version of $image$.
     </dl>
 

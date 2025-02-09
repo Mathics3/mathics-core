@@ -77,14 +77,14 @@ class Default(Builtin):
       https://reference.wolfram.com/language/ref/Default.html</url>
 
     <dl>
-      <dt>'Default[$f$]'
+      <dt>'Default'[$f$]
       <dd>gives the default value for an omitted parameter of $f$.
 
-      <dt>'Default[$f$, $k$]'
-      <dd>gives the default value for a parameter on the $k$th position.
+      <dt>'Default'[$f$, $k$]
+      <dd>gives the default value for a parameter on the $k$-th position.
 
-      <dt>'Default[$f$, $k$, $n$]'
-      <dd>gives the default value for the $k$th parameter out of $n$.
+      <dt>'Default'[$f$, $k$, $n$]
+      <dd>gives the default value for the $k$-th parameter out of $n$.
     </dl>
 
     Assign values to 'Default' to specify default values.
@@ -135,11 +135,11 @@ class FilterRules(Builtin):
       https://reference.wolfram.com/language/ref/FilterRules.html</url>
 
     <dl>
-      <dt>'FilterRules[$rules$, $pattern$]'
+      <dt>'FilterRules'[$rules$, $pattern$]
       <dd>gives those $rules$ that have a left side that matches $pattern$.
 
-      <dt>'FilterRules[$rules$, {$pattern1$, $pattern2$, ...}]'
-      <dd>gives those $rules$ that have a left side that match at least one of $pattern1$, $pattern2$, ...
+      <dt>'FilterRules'[$rules$, {$pattern_1$, $pattern_2$, ...}]
+      <dd>gives those $rules$ that have a left side that match at least one of $pattern_1$, $pattern_2$, ...
     </dl>
 
     >> FilterRules[{x -> 100, y -> 1000}, x]
@@ -200,7 +200,7 @@ class NotOptionQ(Test):
     https://reference.wolfram.com/language/ref/NotOptionQ.html</url>
 
     <dl>
-      <dt>'NotOptionQ[$expr$]'
+      <dt>'NotOptionQ'[$expr$]
       <dd>returns 'True' if $expr$ does not have the form of a valid \
           option specification.
     </dl>
@@ -238,7 +238,7 @@ class OptionQ(Test):
     https://reference.wolfram.com/language/ref/OptionQ.html</url>
 
     <dl>
-      <dt>'OptionQ[$expr$]'
+      <dt>'OptionQ'[$expr$]
       <dd>returns 'True' if $expr$ has the form of a valid option \
          specification.
     </dl>
@@ -290,7 +290,7 @@ class Options(Builtin):
       https://reference.wolfram.com/language/ref/Options.html</url>
 
     <dl>
-      <dt>'Options[$f$]'
+      <dt>'Options'[$f$]
       <dd>gives a list of optional arguments to $f$ and their \
         default values.
     </dl>
@@ -361,16 +361,16 @@ class OptionValue(Builtin):
     https://reference.wolfram.com/language/ref/OptionValue.html</url>
 
     <dl>
-      <dt>'OptionValue[$name$]'
+      <dt>'OptionValue'[$name$]
       <dd>gives the value of the option $name$ as specified in a call to a function with 'OptionsPattern'.
 
-      <dt>'OptionValue[$f$, $name$]'
+      <dt>'OptionValue'[$f$, $name$]
       <dd>recover the value of the option $name$ associated to the symbol $f$.
 
-      <dt>'OptionValue[$f$, $optvals$, $name$]'
+      <dt>'OptionValue'[$f$, $optvals$, $name$]
       <dd>recover the value of the option $name$ associated to the symbol $f$, extracting the values from $optvals$ if available.
 
-      <dt>'OptionValue[..., $list$]'
+      <dt>'OptionValue'[..., $list$]
       <dd>recover the value of the options in $list$ .
     </dl>
 
@@ -490,7 +490,7 @@ class SetOptions(Builtin):
       https://reference.wolfram.com/language/ref/SetOptions.html</url>
 
     <dl>
-      <dt>'SetOptions[$s$, name1 -> value1, name2 -> value2, ...]'
+      <dt>'SetOptions'[$s$, name1 -> value1, name2 -> value2, ...]
       <dd>sets the specified default options for a symbol $s$. \
       The entire set of options for $s$ is returned.
     </dl>

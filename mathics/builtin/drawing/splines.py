@@ -26,7 +26,7 @@ class BernsteinBasis(Builtin):
     'BernsteinBasis[d,n,x]' equals 'Binomial[d, n] x^n (1-x)^(d-n)' in the interval [0, 1] and zero elsewhere.
 
     <dl>
-      <dt>'BernsteinBasis[$d$,$n$,$x$]'
+      <dt>'BernsteinBasis'[$d$,$n$,$x$]
       <dd>returns the $n$th Bernstein basis of degree $d$ at $x$.
     </dl>
 
@@ -46,7 +46,7 @@ class BezierFunction(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/BezierFunction.html</url>
     <dl>
-      <dt>'BezierFunction[{$pt_1$, $pt_2$, ...}]'
+      <dt>'BezierFunction'[{$pt_1$, $pt_2$, ...}]
       <dd>returns a Bézier function for the curve defined by points $pt_i$.
       The embedding dimension for the curve represented by 'BezierFunction[{$pt_1$,$pt_2$,...}]' is given by the length of the lists $pt_i$.
     </dl>
@@ -78,7 +78,7 @@ class BezierCurve(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/BezierCurve.html</url>
 
      <dl>
-       <dt>'BezierCurve[{$pt_1$, $pt_2$ ...}]'
+       <dt>'BezierCurve'[{$pt_1$, $pt_2$ ...}]
        <dd>represents a Bézier curve with control points $p_i$.
        <dd>The result is a curve by combining the Bézier curves when points are taken triples at a time.
      </dl>

@@ -50,7 +50,7 @@ class BoxData(Builtin):
 class ButtonBox(BoxExpression):
     """
     <dl>
-      <dt>'ButtonBox[$boxes$]'
+      <dt>'ButtonBox'[$boxes$]
       <dd> is a low-level box construct that represents a button \
            in a notebook expression.
     </dl>
@@ -74,7 +74,7 @@ class FractionBox(BoxExpression):
     https://reference.wolfram.com/language/ref/FractionBox.html</url>
 
     <dl>
-      <dt>'FractionBox[$x$, $y$]'
+      <dt>'FractionBox'[$x$, $y$]
       <dd> FractionBox[x, y] is a low-level formatting construct that represents $\frac{x}{y}$.
     </dl>
     """
@@ -289,9 +289,9 @@ class SqrtBox(BoxExpression):
     :WMA link:
     https://reference.wolfram.com/language/ref/SqrtData.html</url>
     <dl>
-      <dt>'SqrtBox[$x$]'
+      <dt>'SqrtBox'[$x$]
       <dd> is a low-level formatting construct that represents $\\sqrt{x}$.
-      <dt>'SqrtBox[$x$, $y$]'
+      <dt>'SqrtBox'[$x$, $y$]
       <dd> represents $\\sqrt[y]{x}$.
     </dl>
     """
@@ -381,7 +381,7 @@ class StyleBox(BoxExpression):
 class SubscriptBox(BoxExpression):
     """
     <dl>
-      <dt>'SubscriptBox[$a$, $b$]'
+      <dt>'SubscriptBox'[$a$, $b$]
       <dd>is a box construct that represents $a_b$.
     </dl>
 
@@ -426,7 +426,7 @@ class SubsuperscriptBox(BoxExpression):
     https://reference.wolfram.com/language/ref/SubsuperscriptBox.html</url>
 
     <dl>
-      <dt>'SubsuperscriptBox[$a$, $b$, $c$]'
+      <dt>'SubsuperscriptBox'[$a$, $b$, $c$]
       <dd>is a box construct that represents $a_b^c$.
     </dl>
     """
@@ -467,7 +467,7 @@ class SuperscriptBox(BoxExpression):
     :WMA link:
     https://reference.wolfram.com/language/ref/SuperscriptBox.html</url>
     <dl>
-      <dt>'SuperscriptBox[$a$, $b$]'
+      <dt>'SuperscriptBox'[$a$, $b$]
       <dd>is a box construct that represents $a^b$.
     </dl>
 
@@ -522,7 +522,7 @@ class TemplateBox(BoxExpression):
     :WMA link:
     https://reference.wolfram.com/language/ref/TemplateBox.html</url>
     <dl>
-      <dt>'TemplateBox[{$box_1$, $box_2$,...}, tag]'
+      <dt>'TemplateBox'[{$box_1$, $box_2$,...}, tag]
       <dd>is a low-level box structure that parameterizes the display and evaluation of the boxes $box_i$ .
     </dl>
     """

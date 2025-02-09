@@ -33,7 +33,7 @@ class _ColorObject(Builtin):
             "name": strip_context(self.get_name()),
             "text_name": text_name,
         }
-        self.summary_text = f"{text_name} color"
+        self.summary_text = f"specify {text_name} color"
         if self.__doc__ is None:
             self.__doc__ = doc
         else:

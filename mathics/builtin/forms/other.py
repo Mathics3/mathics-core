@@ -1,5 +1,5 @@
-"""
-Forms which are not in '$OutputForms'
+r"""
+Forms which are not in '\$OutputForms'
 """
 
 import re
@@ -13,13 +13,13 @@ from mathics.eval.strings import eval_ToString
 
 
 class SequenceForm(FormBaseClass):
-    """
+    r"""
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/SequenceForm.html</url>
 
     <dl>
-      <dt>'SequenceForm[$expr1$, $expr2$, ..]'
+      <dt>'SequenceForm'[$expr_1$, $expr_2$, ..]
       <dd>format the textual concatenation of the printed forms of $expi$.
     </dl>
     'SequenceForm' has been superseded by <url>:Row:
@@ -56,13 +56,13 @@ class SequenceForm(FormBaseClass):
 
 
 class StringForm(FormBaseClass):
-    """
+    r"""
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/StringForm.html</url>
 
     <dl>
-      <dt>'StringForm[$str$, $expr1$, $expr2$, ...]'
+      <dt>'StringForm'[$str$, $expr_1$, $expr_2$, ...]
       <dd>displays the string $str$, replacing placeholders in $str$
         with the corresponding expressions.
     </dl>

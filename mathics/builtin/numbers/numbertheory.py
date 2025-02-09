@@ -46,10 +46,10 @@ class ContinuedFraction(SympyFunction):
     :SymPy: https://docs.sympy.org/latest/modules/ntheory.html#module-sympy.ntheory.continued_fraction</url>, <url>
     :WMA: https://reference.wolfram.com/language/ref/ContinuedFraction.html</url>)
     <dl>
-      <dt>'ContinuedFraction[$x$, $n$]'
+      <dt>'ContinuedFraction'[$x$, $n$]
       <dd>generate the first $n$ terms in the continued fraction representation of $x$.
 
-      <dt>'ContinuedFraction[$x$]'
+      <dt>'ContinuedFraction'[$x$]
       <dd>the complete continued fraction representation for a rational or quadradic irrational number.
     </dl>
 
@@ -87,8 +87,8 @@ class DivisorSigma(SympyFunction):
     :WMA: https://reference.wolfram.com/language/ref/DivisorSigma.html</url>)
 
     <dl>
-      <dt>'DivisorSigma[$k$, $n$]'
-      <dd>returns $\sigma_k$($n$)
+      <dt>'DivisorSigma'[$k$, $n$]
+      <dd>returns $\sigma_k(n)$
     </dl>
 
     For reference, let us first get the integer divisors of 20:
@@ -133,7 +133,7 @@ class DivisorSum(Builtin):
     <url>:WMA: https://reference.wolfram.com/language/ref/DivisorSum.html</url>
 
     <dl>
-      <dt>'DivisorSum[$n$, $form$]'
+      <dt>'DivisorSum'[$n$, $form$]
       <dd>transform the divisors of $n$ using $form$ and take their sum
     </dl>
 
@@ -163,7 +163,7 @@ class Divisors(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Divisors.html</url>
 
     <dl>
-    <dt>'Divisors[$n$]'
+    <dt>'Divisors'[$n$]
         <dd>returns a list of the integers that divide $n$.
     </dl>
 
@@ -238,7 +238,7 @@ class EulerPhi(SympyFunction):
     This function counts positive integers up to $n$ that are relatively prime to $n$.
     It is typically used in cryptography and in many applications in elementary number theory.
     <dl>
-      <dt>'EulerPhi[$n$]'
+      <dt>'EulerPhi'[$n$]
       <dd>returns the Euler totient function .
     </dl>
 
@@ -288,7 +288,7 @@ class FactorInteger(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FactorInteger.html</url>
 
     <dl>
-      <dt>'FactorInteger[$n$]'
+      <dt>'FactorInteger'[$n$]
       <dd>returns the factorization of $n$ as a list of factors and exponents.
     </dl>
 
@@ -355,7 +355,7 @@ class FractionalPart(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FractionalPart.html</url>
 
     <dl>
-    <dt>'FractionalPart[$n$]'
+    <dt>'FractionalPart'[$n$]
         <dd>finds the fractional part of $n$.
     </dl>
 
@@ -392,7 +392,7 @@ class FromContinuedFraction(SympyFunction):
     https://reference.wolfram.com/language/ref/FromContinuedFraction.html</url>
 
     <dl>
-      <dt>'FromContinuedFraction[$list$]'
+      <dt>'FromContinuedFraction'[$list$]
       <dd>reconstructs a number from the list of its continued fraction terms.
     </dl>
 
@@ -420,7 +420,7 @@ class IntegerPart(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/IntegerPart.html</url>
 
     <dl>
-      <dt>'IntegerPart[$n$]'
+      <dt>'IntegerPart'[$n$]
       <dd>finds the integer part of $n$.
     </dl>
 
@@ -459,19 +459,19 @@ class IntegerPartitions(Builtin):
     :WMA: https://reference.wolfram.com/language/ref/IntegerPartitions.html</url>)
 
     <dl>
-      <dt>'IntegerPartitions[$n$]'
+      <dt>'IntegerPartitions'[$n$]
       <dd>lists all possible ways to partition integer $n$ into smaller integers.
 
-      <dt>'IntegerPartitions[$n$, $k$]'
+      <dt>'IntegerPartitions'[$n$, $k$]
       <dd>lists all partitions into at most $k$ integers.
 
-      <dt>'IntegerPartitions[$n$, {$k$}]'
+      <dt>'IntegerPartitions'[$n$, {$k$}]
       <dd>lists all partitions with exactly $k$ integers.
 
-      <dt>'IntegerPartitions[$n$, {$k_min$, $k_max$}]'
-      <dd>lists partitions between $k_min$ and $k_max$ integers.
+      <dt>'IntegerPartitions'[$n$, {$k_{min}$, $k_{max}$}]
+      <dd>lists partitions between $k_{min}$ and $k_{max}$ integers.
 
-      <dt>'IntegerPartitions[$n$, $kspec$, {$s_1$, $s_2$, ...}]'
+      <dt>'IntegerPartitions'[$n$, $kspec$, {$s_1$, $s_2$, ...}]
       <dd>lists partitions involving only the $s_i$.
 
     </dl>
@@ -531,7 +531,7 @@ class JacobiSymbol(Builtin):
     :Jacobi symbol: https://en.wikipedia.org/wiki/Jacobi_symbol</url> (<url>
     :WMA: https://reference.wolfram.com/language/ref/JacobiSymbol.html</url>)
     <dl>
-      <dt>'JacobiSymbol[$a$, $n$]'
+      <dt>'JacobiSymbol'[$a$, $n$]
       <dd>returns the Jacobi symbol ($a$/$n$).
     </dl>
 
@@ -554,7 +554,7 @@ class KroneckerSymbol(Builtin):
     :Kronecker symbol: https://en.wikipedia.org/wiki/Kronecker_symbol</url> (<url>
     :WMA: https://reference.wolfram.com/language/ref/KroneckerSymbol.html</url>)
     <dl>
-      <dt>'KroneckerSymbol[$a$, $n$]'
+      <dt>'KroneckerSymbol'[$a$, $n$]
       <dd>returns the Kronecker symbol ($a$/$n$).
     </dl>
 
@@ -581,10 +581,10 @@ class MantissaExponent(Builtin):
     https://reference.wolfram.com/language/ref/MantissaExponent.html</url>
 
     <dl>
-      <dt>'MantissaExponent[$n$]'
+      <dt>'MantissaExponent'[$n$]
       <dd>finds a list containing the mantissa and exponent of a given number $n$.
 
-      <dt>'MantissaExponent[$n$, $b$]'
+      <dt>'MantissaExponent'[$n$, $b$]
       <dd>finds the base b mantissa and exponent of $n$.
     </dl>
 
@@ -680,8 +680,8 @@ class MersennePrimeExponent(SympyFunction):
     :WMA: https://reference.wolfram.com/language/ref/MersennePrimeExponent.html</url>)
 
     <dl>
-      <dt>'MersennePrimeExponent[$n$]'
-      <dd>returns the exponent of the $n$th Mersenne prime.
+      <dt>'MersennePrimeExponent'[$n$]
+      <dd>returns the exponent of the $n$-th Mersenne prime.
     </dl>
 
     >> Table[MersennePrimeExponent[n], {n, 10}]
@@ -706,7 +706,7 @@ class MoebiusMu(SympyFunction):
     :WMA: https://reference.wolfram.com/language/ref/MoebiusMu.html</url>)
 
     <dl>
-      <dt>'MoebiusMu[$n$]'
+      <dt>'MoebiusMu'[$n$]
       <dd>returns μ($n$).
     </dl>
 
@@ -728,10 +728,10 @@ class NextPrime(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/NextPrime.html</url>
 
     <dl>
-      <dt>'NextPrime[$n$]'
+      <dt>'NextPrime'[$n$]
       <dd>gives the next prime after $n$.
 
-      <dt>'NextPrime[$n$,$k$]'
+      <dt>'NextPrime'[$n$,$k$]
       <dd>gives the $k$th  prime after $n$.
     </dl>
 
@@ -802,7 +802,7 @@ class PartitionsP(SympyFunction):
     https://reference.wolfram.com/language/ref/PartitionsP.html</url>
 
     <dl>
-      <dt>'PartitionsP[$n$]'
+      <dt>'PartitionsP'[$n$]
       <dd>return the number $p$($n$) of unrestricted partitions of the integer $n$.
     </dl>
 
@@ -827,14 +827,25 @@ class PowersRepresentations(Builtin):
     """
     <url>:WMA: https://reference.wolfram.com/language/ref/PowersRepresentations.html</url>
     <dl>
-      <dt>'PowersRepresentations[$n$, $k$, $p$]'
+      <dt>'PowersRepresentations'[$n$, $k$, $p$]
       <dd>represent $n$ as a sum of $k$ non-negative integers raised to the power of $p$.
     </dl>
 
+    Get the ways licence plate number 1729 can be represented as the sum of two cubes:
     >> PowersRepresentations[1729, 2, 3]
      = {{1, 12}, {9, 10}}
-    >> PowersRepresentations[50, 3, 2]
-     = {{0, 1, 7}, {0, 5, 5}, {3, 4, 5}}
+
+    See <url>:1729:https://en.wikipedia.org/wiki/1729_(number)</url> for the full backstory.
+
+    Demonstrate the validity of the Pythagorian triple: 3^2 + 4^2 == 5^2
+    >> PowersRepresentations[25, 2, 2]
+     = {{0, 5}, {3, 4}}
+
+    Since 0 is allowed in the sum, 'PowersRepresentations[$n$, $k$+1, $p$]' is includes \
+   'PowersRepresentations[$n$, $k$, $p$]' with by inserting a zero element at the beginning:
+
+    >> PowersRepresentations[25, 3, 2]
+     = {{0, 0, 5}, {0, 3, 4}}
     """
 
     attributes = A_PROTECTED | A_READ_PROTECTED
@@ -851,8 +862,8 @@ class Prime(SympyFunction):
     https://reference.wolfram.com/language/ref/Prime.html</url>
 
     <dl>
-      <dt>'Prime[$n$]'
-      <dt>'Prime'[{$n0$, $n1$, ...}]
+      <dt>'Prime'[$n$]
+      <dt>'Prime'[{$n_0$, $n_1$, ...}]
       <dd>returns the $n$th prime number where $n$ is an positive Integer.
       If given a list of integers, the return value is a list with 'Prime' applied to each.
     </dl>
@@ -894,7 +905,7 @@ class PrimePi(SympyFunction):
     <url>:Prime numbers:https://reference.wolfram.com/language/ref/PrimePi.html</url>
 
     <dl>
-    <dt>'PrimePi[$x$]'
+    <dt>'PrimePi'[$x$]
         <dd>gives the number of primes less than or equal to $x$.
     </dl>
 
@@ -934,7 +945,7 @@ class PrimePowerQ(Builtin):
     <url>:Prime numbers:https://reference.wolfram.com/language/ref/PrimePowerQ.html</url>
 
     <dl>
-    <dt>'PrimePowerQ[$n$]'
+    <dt>'PrimePowerQ'[$n$]
         <dd>returns 'True' if $n$ is a power of a prime number.
     </dl>
 
@@ -990,13 +1001,13 @@ class RandomPrime(Builtin):
     <url>:Prime numbers:https://reference.wolfram.com/language/ref/RandomPrime.html</url>
 
     <dl>
-      <dt>'RandomPrime[{$imin$, $imax}]'
-      <dd>gives a random prime between $imin$ and $imax$.
+      <dt>'RandomPrime'[{$i_{min}$, $i_{max}$}]
+      <dd>gives a random prime between $i_{min}$ and $i_{max}$.
 
-      <dt>'RandomPrime[$imax$]'
-      <dd>gives a random prime between 2 and $imax$.
+      <dt>'RandomPrime'[$i_{max}$]
+      <dd>gives a random prime between 2 and $i_{max}$.
 
-      <dt>'RandomPrime[$range$, $n$]'
+      <dt>'RandomPrime'[$range$, $n$]
       <dd>gives a list of $n$ random primes in $range$.
     </dl>
 
@@ -1081,7 +1092,7 @@ class SquaresR(Builtin):
     :WMA: https://reference.wolfram.com/language/ref/SquaresR.html</url>)
 
     <dl>
-      <dt>'SquaresR[$d$, $n$]'
+      <dt>'SquaresR'[$d$, $n$]
       <dd>returns the number of ways to represent $n$ as a sum of $d$ squares.
     </dl>
 
@@ -1098,7 +1109,6 @@ class SquaresR(Builtin):
     """
 
     attributes = A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
-    summary_text = "function to compute the sum of squares"
 
     rules = {
         "SquaresR[d_Integer, 0]": "1",
@@ -1107,3 +1117,4 @@ class SquaresR(Builtin):
         "SquaresR[6, n_Integer?Positive]": "4 Total[#^2 * (4 * KroneckerSymbol[-4, n/#] - KroneckerSymbol[-4, #]) & /@ Divisors[n]]",
         "SquaresR[8, n_Integer?Positive]": "16 Total[(-1)^(n + #) #^3 & /@ Divisors[n]]",
     }
+    summary_text = "compute the sum of squares"
