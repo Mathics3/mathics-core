@@ -1,5 +1,9 @@
 """
 Gamma and Related Functions
+
+See also <url>
+:Chapter 5 Gamma Function in the Digital Library of Mathematical Functions:
+https://dlmf.nist.gov/5</url>.
 """
 
 import sys
@@ -31,6 +35,7 @@ from mathics.core.systemsymbols import SymbolAutomatic, SymbolGamma
 from mathics.eval.arithmetic import run_mpmath
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
+from mathics.eval.sympy import eval_sympy
 
 
 class Beta(MPMathMultiFunction):
@@ -44,9 +49,9 @@ class Beta(MPMathMultiFunction):
         https://reference.wolfram.com/language/ref/Beta.html</url>)
 
         <dl>
-          <dt>'Beta[$a$, $b$]'
+          <dt>'Beta'[$a$, $b$]
           <dd>is the Euler's Beta function.
-          <dt>'Beta[$z$, $a$, $b$]'
+          <dt>'Beta'[$z$, $a$, $b$]
           <dd>gives the incomplete Beta function.
         </dl>
 
@@ -58,7 +63,6 @@ class Beta(MPMathMultiFunction):
          = 1.
     """
 
-    summary_text = "Euler's Beta function"
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     mpmath_names = {
         2: "beta",  # two arguments
@@ -72,6 +76,8 @@ class Beta(MPMathMultiFunction):
     rules = {
         "Derivative[1, 0, 0][Beta]": "(#1^(#2-1) * (1-#1)^(#3-1) )&",
     }
+
+    summary_text = "compute Euler's Beta function"
 
     def get_sympy_names(self):
         return ["beta", "betainc"]
@@ -141,7 +147,7 @@ class Factorial(PostfixOperator, MPMathFunction):
     https://reference.wolfram.com/language/ref/Factorial.html</url>)
 
     <dl>
-      <dt>'Factorial[$n$]'
+      <dt>'Factorial'[$n$]
       <dt>'$n$!'
       <dd>computes the factorial of $n$.
     </dl>
@@ -168,7 +174,7 @@ class Factorial(PostfixOperator, MPMathFunction):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
 
     mpmath_name = "factorial"
-    summary_text = "factorial"
+    summary_text = "compute factorial of a number"
 
 
 class Factorial2(PostfixOperator, MPMathFunction):
@@ -176,7 +182,7 @@ class Factorial2(PostfixOperator, MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Factorial2.html</url>
 
     <dl>
-      <dt>'Factorial2[$n$]'
+      <dt>'Factorial2'[$n$]
       <dt>'$n$!!'
       <dd>computes the double factorial of $n$.
     </dl>
@@ -206,7 +212,7 @@ class Factorial2(PostfixOperator, MPMathFunction):
         "ndf": "`1` evaluation error: `2`.",
         "unknownp": "'`1`' not in ('Automatic', 'sympy', 'mpmath')",
     }
-    summary_text = "semi-factorial"
+    summary_text = "compute semi-factorial of a number"
     options = {"Method": "Automatic"}
 
     def eval(self, number, evaluation, options={}):
@@ -271,14 +277,14 @@ class Gamma(MPMathMultiFunction):
     the non-positive integers.
 
     <dl>
-      <dt>'Gamma[$z$]'
+      <dt>'Gamma'[$z$]
       <dd>is the gamma function on the complex number $z$.
 
-      <dt>'Gamma[$z$, $x$]'
+      <dt>'Gamma'[$z$, $x$]
       <dd>is the upper incomplete gamma function.
 
-      <dt>'Gamma[$z$, $x0$, $x1$]'
-      <dd>is equivalent to 'Gamma[$z$, $x0$] - Gamma[$z$, $x1$]'.
+      <dt>'Gamma'[$z$, $x_0$, $x_1$]
+      <dd>is equivalent to 'Gamma[$z$, $x_0$] - Gamma[$z$, $x_1$]'.
     </dl>
 
     'Gamma[$z$]' is equivalent to '($z$ - 1)!':
@@ -313,7 +319,7 @@ class Gamma(MPMathMultiFunction):
         1: "gamma",  # one argument
         2: "uppergamma",
     }
-    summary_text = "complete and incomplete gamma functions"
+    summary_text = "compute the complete and incomplete gamma functions"
 
     rules = {
         "Gamma[z_, x0_, x1_]": "Gamma[z, x0] - Gamma[z, x1]",
@@ -346,7 +352,7 @@ class LogGamma(MPMathMultiFunction):
     https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.gamma_functions.loggamma</url>, <url>
     :WMA:https://reference.wolfram.com/language/ref/LogGamma.html</url>)
     <dl>
-      <dt>'LogGamma[$z$]'
+      <dt>'LogGamma'[$z$]
       <dd>is the logarithm of the gamma function on the complex number $z$.
     </dl>
 
@@ -367,7 +373,7 @@ class LogGamma(MPMathMultiFunction):
 
     """
 
-    summary_text = "logarithm of the gamma function"
+    summary_text = "compute the logarithm of the gamma function"
 
     mpmath_names = {
         1: "loggamma",  # one argument
@@ -399,7 +405,7 @@ class Pochhammer(SympyFunction):
     The Pochammer symbol has a definite value even when the gamma \
     functions which appear in its definition are infinite.
     <dl>
-      <dt>'Pochhammer[$a$, $n$]'
+      <dt>'Pochhammer'[$a$, $n$]
       <dd>is the Pochhammer symbol $a_n$.
     </dl>
 
@@ -437,7 +443,7 @@ class Pochhammer(SympyFunction):
         "Derivative[1,0][Pochhammer]": "(Pochhammer[#1, #2]*(-PolyGamma[0, #1] + PolyGamma[0, #1 + #2]))&",
         "Derivative[0,1][Pochhammer]": "(Pochhammer[#1, #2]*PolyGamma[0, #1 + #2])&",
     }
-    summary_text = "Pochhammer's symbols"
+    summary_text = "compute Pochhammer's symbols"
     sympy_name = "RisingFactorial"
 
 
@@ -479,7 +485,7 @@ class PolyGamma(MPMathMultiFunction):
         "PolyGamma[y_, Undefined]": "Undefined",
     }
 
-    summary_text = "polygamma function"
+    summary_text = "compute polygamma function"
     sympy_names = {1: "digamma", 2: "polygamma"}  # 1 argument
 
 
@@ -494,10 +500,10 @@ class StieltjesGamma(SympyFunction):
     https://reference.wolfram.com/language/ref/StieltjesGamma.html</url>)
 
     <dl>
-      <dt>'StieltjesGamma[$n$]'
+      <dt>'StieltjesGamma'[$n$]
       <dd>returns the Stieltjes constant for $n$.
 
-      <dt>'StieltjesGamma[$n$, $a$]'
+      <dt>'StieltjesGamma'[$n$, $a$]
       <dd>gives the generalized Stieltjes constant of its parameters
     </dl>
 
@@ -514,11 +520,11 @@ class StieltjesGamma(SympyFunction):
         "StieltjesGamma[y_, Undefined]": "Undefined",
     }
 
-    summary_text = "Stieltjes' function"
+    summary_text = "compute Stieltjes' function"
     sympy_name = "stieltjes"
 
 
-class Subfactorial(MPMathFunction):
+class Subfactorial(SympyFunction):
     """
     <url>
     :Derangement: https://en.wikipedia.org/wiki/Derangement</url> (<url>
@@ -526,16 +532,43 @@ class Subfactorial(MPMathFunction):
     :WMA: https://reference.wolfram.com/language/ref/Subfactorial.html</url>)
 
     <dl>
-      <dt>'Subfactorial[$n$]'
+      <dt>'Subfactorial'[$n$]
       <dd>computes the subfactorial of $n$.
     </dl>
 
-    >> Subfactorial[6]
+    Here are the first few derangements:
+    >> Subfactorial[{0, 1, 2, 3}]
+     = {1, 0, 1, 2}
+
+    We can handle 'MachineReal' numbers:
+    >> Subfactorial[6.0]
      = 265
+
+    Here is how the exponential, 'Factorial', and 'Subfactoral' grow in comparison:
+    >> LogPlot[{10^x, Factorial[x], Subfactorial[x]}, {x, 0, 25}, PlotPoints->26]
+     = -Graphics-
+
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
 
-    mpmath_name = "subfactorial"
+    rules = {
+        "Subfactorial[elements_List]": "Subfactorial @@ elements",
+    }
+    summary_text = "compute the subfactorial (derangment) of a number"
     sympy_name = "subfactorial"
-    summary_text = "subfactorial"
+
+    def eval(self, element, evaluation):
+        "Subfactorial[element_]"
+        if not isinstance(element, Number):
+            return
+        if not isinstance(element, Integer):
+            if not hasattr(element, "value"):
+                return
+            value = element.value
+            if value != int(value):
+                # Right now we can't handle machine reals
+                return
+            element = Integer(value)
+
+        return eval_sympy(self, element, evaluation)

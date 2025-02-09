@@ -2,6 +2,10 @@
 
 """
 Exponential Integral and Special Functions
+
+See also <url>
+:Chapters 4.2-4.13 Logarithm, Exponential, Powers in the Digital Libary of Mathematical Functions:
+https://dlmf.nist.gov/4#PT2</url>.
 """
 
 
@@ -19,8 +23,8 @@ class ExpIntegralE(MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ExpIntegralE.html</url>
 
     <dl>
-    <dt>'ExpIntegralE[$n$, $z$]'
-      <dd>returns the exponential integral function $E$_$n$($z$).
+    <dt>'ExpIntegralE'[$n$, $z$]
+      <dd>returns the exponential integral function $E_n(z)$.
     </dl>
 
     >> ExpIntegralE[2.0, 2.0]
@@ -39,8 +43,8 @@ class ExpIntegralEi(MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ExpIntegralEi.html</url>
 
     <dl>
-      <dt>'ExpIntegralEi[$z$]'
-      <dd>returns the exponential integral function Ei($z$).
+      <dt>'ExpIntegralEi'[$z$]
+      <dd>returns the exponential integral function $Ei(z)$.
     </dl>
 
     >> ExpIntegralEi[2.0]
@@ -60,10 +64,10 @@ class LambertW(Builtin):
       https://mathworld.wolfram.com/LambertW-Function.html</url>
 
     <dl>
-      <dt>'LambertW[$k$]'
+      <dt>'LambertW'[$k$]
       <dd>alias for ProductLog[$z$].
 
-      <dt>'LambertW[$k$, $z$]'
+      <dt>'LambertW'[$k$, $z$]
       <dd>alias for ProductLog[$k$, $z$].
     </dl>
 
@@ -93,11 +97,11 @@ class ProductLog(MPMathFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ProductLog.html</url>
 
     <dl>
-      <dt>'ProductLog[$z$]'
-      <dd>returns the principle solution for $w$ in $z$ == $wE$^$w$.
+      <dt>'ProductLog'[$z$]
+      <dd>returns the principle solution for $w$ in $z == wE^w$.
 
-      <dt>'ProductLog[$k$, $z$]'
-      <dd>gives the $k$th solution.
+      <dt>'ProductLog'[$k$, $z$]
+      <dd>gives the $k$-th solution.
     </dl>
 
     The defining equation:
@@ -136,7 +140,7 @@ class ProductLog(MPMathFunction):
 # class ZernikeR(MPMathFunction):
 #    """
 #    <dl>
-#    <dt>'ZernikeR[$n$, $m$,  $r$]'
+#    <dt>'ZernikeR'[$n$, $m$,  $r$]
 #      <dd>returns the radial Zernike polynomial R_$n$^$m$($r$).
 #    </dl>
 #

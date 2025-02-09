@@ -478,8 +478,8 @@ class Catenate(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Catenate.html</url>
 
     <dl>
-      <dt>'Catenate[{$l1$, $l2$, ...}]'
-      <dd>concatenates the lists $l1$, $l2$, ...
+      <dt>'Catenate'[{$l_1$, $l_2$, ...}]
+      <dd>concatenates the lists $l_1$, $l_2$, ...
     </dl>
 
     >> Catenate[{{1, 2, 3}, {4, 5}}]
@@ -519,16 +519,16 @@ class Complement(_SetOperation):
     https://reference.wolfram.com/language/ref/Complement.html</url>
 
     <dl>
-      <dt>'Complement[$all$, $e1$, $e2$, ...]'
+      <dt>'Complement'[$all$, $e_1$, $e_2$, ...]
       <dd>returns an expression containing the elements in the set $all$ \
-          that are not in any of $e1$, $e2$, etc.
+          that are not in any of $e_1$, $e_2$, etc.
 
-      <dt>'Complement[$all$, $e1$, $e2$, ..., SameTest->$test$]'
+      <dt>'Complement'[$all$, $e_1$, $e_2$, ..., SameTest->$test$]
       <dd>applies $test$ to the elements in $all$ and each of the $ei$ to \
           determine equality.
     </dl>
 
-    The sets $all$, $e1$, etc can have any head, which must all match.
+    The sets $all$, $e_1$, etc can have any head, which must all match.
 
     The returned expression has the same head as the input \
     expressions. The expression will be sorted and each element will \
@@ -560,10 +560,10 @@ class DeleteDuplicates(_GatherOperation):
     https://reference.wolfram.com/language/ref/DeleteDuplicates.html</url>
 
     <dl>
-      <dt>'DeleteDuplicates[$list$]'
+      <dt>'DeleteDuplicates'[$list$]
       <dd>deletes duplicates from $list$.
 
-      <dt>'DeleteDuplicates[$list$, $test$]'
+      <dt>'DeleteDuplicates'[$list$, $test$]
       <dd>deletes elements from $list$ based on whether the function $test$ yields \
           'True' on pairs of elements.
 
@@ -588,10 +588,10 @@ class Gather(_GatherOperation):
     https://reference.wolfram.com/language/ref/Gather.html</url>
 
     <dl>
-      <dt>'Gather[$list$, $test$]'
+      <dt>'Gather'[$list$, $test$]
       <dd>gathers elements of $list$ into sub lists of items that are the same according to $test$.
 
-      <dt>'Gather[$list$]'
+      <dt>'Gather'[$list$]
       <dd>gathers elements of $list$ into sub lists of items that are the same.
     </dl>
 
@@ -615,13 +615,13 @@ class Flatten(Builtin):
     https://reference.wolfram.com/language/ref/Flatten.html</url>
 
     <dl>
-      <dt>'Flatten[$expr$]'
+      <dt>'Flatten'[$expr$]
       <dd>flattens out nested lists in $expr$.
 
-      <dt>'Flatten[$expr$, $n$]'
+      <dt>'Flatten'[$expr$, $n$]
       <dd>stops flattening at level $n$.
 
-      <dt>'Flatten[$expr$, $n$, $h$]'
+      <dt>'Flatten'[$expr$, $n$, $h$]
       <dd>flattens expressions with head $h$ instead of 'List'.
     </dl>
 
@@ -785,14 +785,14 @@ class GatherBy(_GatherOperation):
     https://reference.wolfram.com/language/ref/GatherBy.html</url>
 
     <dl>
-      <dt>'GatherBy[$list$, $f$]'
+      <dt>'GatherBy'[$list$, $f$]
       <dd>gathers elements of $list$ into sub lists of items whose image \
       under $f$ identical.
 
-      <dt>'GatherBy[$list$, {$f$, $g$, ...}]'
+      <dt>'GatherBy'[$list$, {$f$, $g$, ...}]
       <dd>gathers elements of $list$ into sub lists of items whose image \
       under $f$ identical. Then, gathers these sub lists again into sub \
-      sub lists, that are identical under $g.
+      sub lists, that are identical under $g$.
     </dl>
 
     >> GatherBy[{{1, 3}, {2, 2}, {1, 1}}, Total]
@@ -837,8 +837,8 @@ class Join(Builtin):
     https://reference.wolfram.com/language/ref/Join.html</url>
 
     <dl>
-      <dt>'Join[$l1$, $l2$]'
-      <dd>concatenates the lists $l1$ and $l2$.
+      <dt>'Join'[$l_1$, $l_2$]
+      <dd>concatenates the lists $l_1$ and $l_2$.
     </dl>
 
     'Join' concatenates lists:
@@ -887,18 +887,18 @@ class PadLeft(_Pad):
     <url>:WMA link:https://reference.wolfram.com/language/ref/PadLeft.html</url>
 
     <dl>
-      <dt>'PadLeft[$list$, $n$]'
+      <dt>'PadLeft'[$list$, $n$]
       <dd>pads $list$ to length $n$ by adding 0 on the left.
-      <dt>'PadLeft[$list$, $n$, $x$]'
+      <dt>'PadLeft'[$list$, $n$, $x$]
       <dd>pads $list$ to length $n$ by adding $x$ on the left.
-      <dt>'PadLeft[$list$, {$n1$, $n2, ...}, $x$]'
-      <dd>pads $list$ to lengths $n1$, $n2$ at levels 1, 2, ... respectively by adding $x$ on the left.
-      <dt>'PadLeft[$list$, $n$, $x$, $m$]'
+      <dt>'PadLeft'[$list$, {$n_1$, $n_2$, ...}, $x$]
+      <dd>pads $list$ to lengths $n_1$, $n_2$ at levels 1, 2, ... respectively by adding $x$ on the left.
+      <dt>'PadLeft'[$list$, $n$, $x$, $m$]
       <dd>pads $list$ to length $n$ by adding $x$ on the left and adding a margin of $m$ on the right.
-      <dt>'PadLeft[$list$, $n$, $x$, {$m1$, $m2$, ...}]'
-      <dd>pads $list$ to length $n$ by adding $x$ on the left and adding margins of $m1$, $m2$, ...
+      <dt>'PadLeft'[$list$, $n$, $x$, {$m_1$, $m_2$, ...}]
+      <dd>pads $list$ to length $n$ by adding $x$ on the left and adding margins of $m_1$, $m_2$, ...
          on levels 1, 2, ... on the right.
-      <dt>'PadLeft[$list$]'
+      <dt>'PadLeft'[$list$]
       <dd>turns the ragged list $list$ into a regular list by adding 0 on the left.
     </dl>
 
@@ -925,18 +925,18 @@ class PadRight(_Pad):
     <url>:WMA link:https://reference.wolfram.com/language/ref/PadRight.html</url>
 
     <dl>
-      <dt>'PadRight[$list$, $n$]'
+      <dt>'PadRight'[$list$, $n$]
       <dd>pads $list$ to length $n$ by adding 0 on the right.
-      <dt>'PadRight[$list$, $n$, $x$]'
+      <dt>'PadRight'[$list$, $n$, $x$]
       <dd>pads $list$ to length $n$ by adding $x$ on the right.
-      <dt>'PadRight[$list$, {$n1$, $n2, ...}, $x$]'
-      <dd>pads $list$ to lengths $n1$, $n2$ at levels 1, 2, ... respectively by adding $x$ on the right.
-      <dt>'PadRight[$list$, $n$, $x$, $m$]'
+      <dt>'PadRight'[$list$, {$n_1$, $n_2$, ...}, $x$]
+      <dd>pads $list$ to lengths $n_1$, $n_2$ at levels 1, 2, ... respectively by adding $x$ on the right.
+      <dt>'PadRight'[$list$, $n$, $x$, $m$]
       <dd>pads $list$ to length $n$ by adding $x$ on the left and adding a margin of $m$ on the left.
-      <dt>'PadRight[$list$, $n$, $x$, {$m1$, $m2$, ...}]'
-      <dd>pads $list$ to length $n$ by adding $x$ on the right and adding margins of $m1$, $m2$, ...
+      <dt>'PadRight'[$list$, $n$, $x$, {$m_1$, $m_2$, ...}]
+      <dd>pads $list$ to length $n$ by adding $x$ on the right and adding margins of $m_1$, $m_2$, ...
          on levels 1, 2, ... on the left.
-      <dt>'PadRight[$list$]'
+      <dt>'PadRight'[$list$]
       <dd>turns the ragged list $list$ into a regular list by adding 0 on the right.
     </dl>
 
@@ -965,10 +965,10 @@ class Partition(Builtin):
     https://reference.wolfram.com/language/ref/Partition.html</url>
 
     <dl>
-      <dt>'Partition[$list$, $n$]'
+      <dt>'Partition'[$list$, $n$]
       <dd>partitions $list$ into sublists of length $n$.
 
-      <dt>'Partition[$list$, $n$, $d$]'
+      <dt>'Partition'[$list$, $n$, $d$]
       <dd>partitions $list$ into sublists of length $n$ which overlap $d$ \
           indices.
     </dl>
@@ -1029,14 +1029,14 @@ class Reverse(Builtin):
     https://reference.wolfram.com/language/ref/Reverse.html</url>
 
     <dl>
-      <dt>'Reverse[$expr$]'
+      <dt>'Reverse'[$expr$]
       <dd>reverses the order of $expr$'s items (on the top level)
 
-      <dt>'Reverse[$expr$, $n$]'
+      <dt>'Reverse'[$expr$, $n$]
       <dd>reverses the order of items in $expr$ on level $n$
 
-      <dt>'Reverse[$expr$, {$n1$, $n2$, ...}]'
-      <dd>reverses the order of items in $expr$ on levels $n1$, $n2$, ...
+      <dt>'Reverse'[$expr$, {$n_1$, $n_2$, ...}]
+      <dd>reverses the order of items in $expr$ on levels $n_1$, $n_2$, ...
     </dl>
 
     >> Reverse[{1, 2, 3}]
@@ -1136,11 +1136,11 @@ class Riffle(Builtin):
     https://reference.wolfram.com/language/ref/Riffle.html</url>
 
     <dl>
-      <dt>'Riffle[$list$, $x$]'
+      <dt>'Riffle'[$list$, $x$]
       <dd>inserts a copy of $x$ between each element of $list$.
 
-      <dt>'Riffle[{$a1$, $a2$, ...}, {$b1$, $b2$, ...}]'
-      <dd>interelements the elements of both lists, returning '{$a1$, $b1$, $a2$, $b2$, ...}'.
+      <dt>'Riffle'[{$a_1$, $a_2$, ...}, {$b_1$, $b_2$, ...}]
+      <dd>interelements the elements of both lists, returning '{$a_1$, $b_1$, $a_2$, $b_2$, ...}'.
     </dl>
 
     >> Riffle[{a, b, c}, x]
@@ -1171,15 +1171,15 @@ class RotateLeft(_Rotate):
     https://reference.wolfram.com/language/ref/RotateLeft.html</url>
 
     <dl>
-      <dt>'RotateLeft[$expr$]'
+      <dt>'RotateLeft'[$expr$]
       <dd>rotates the items of $expr$' by one item to the left.
 
-      <dt>'RotateLeft[$expr$, $n$]'
+      <dt>'RotateLeft'[$expr$, $n$]
       <dd>rotates the items of $expr$' by $n$ items to the left.
 
-      <dt>'RotateLeft[$expr$, {$n1$, $n2$, ...}]'
-      <dd>rotates the items of $expr$' by $n1$ items to the left at \
-          the first level, by $n2$ items to the left at the second level, and so on.
+      <dt>'RotateLeft'[$expr$, {$n_1$, $n_2$, ...}]
+      <dd>rotates the items of $expr$' by $n_1$ items to the left at \
+          the first level, by $n_2$ items to the left at the second level, and so on.
     </dl>
 
     >> RotateLeft[{1, 2, 3}]
@@ -1203,14 +1203,14 @@ class RotateRight(_Rotate):
     https://reference.wolfram.com/language/ref/RotateRight.html</url>
 
     <dl>
-      <dt>'RotateRight[$expr$]'
+      <dt>'RotateRight'[$expr$]
       <dd>rotates the items of $expr$' by one item to the right.
 
-      <dt>'RotateRight[$expr$, $n$]'
+      <dt>'RotateRight'[$expr$, $n$]
       <dd>rotates the items of $expr$' by $n$ items to the right.
 
-      <dt>'RotateRight[$expr$, {$n1$, $n2$, ...}]'
-      <dd>rotates the items of $expr$' by $n1$ items to the right at the first level, by $n2$ items to the right at the second level, and so on.
+      <dt>'RotateRight'[$expr$, {$n_1$, $n_2$, ...}]
+      <dd>rotates the items of $expr$' by $n_1$ items to the right at the first level, by $n_2$ items to the right at the second level, and so on.
     </dl>
 
     >> RotateRight[{1, 2, 3}]
@@ -1232,9 +1232,9 @@ class Split(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Split.html</url>
 
     <dl>
-      <dt>'Split[$list$]'
+      <dt>'Split'[$list$]
       <dd>splits $list$ into collections of consecutive identical elements.
-      <dt>'Split[$list$, $test$]'
+      <dt>'Split'[$list$, $test$]
       <dd>splits $list$ based on whether the function $test$ yields
         'True' on consecutive elements.
     </dl>
@@ -1292,7 +1292,7 @@ class SplitBy(Builtin):
     https://reference.wolfram.com/language/ref/SplitBy.html</url>
 
     <dl>
-      <dt>'SplitBy[$list$, $f$]'
+      <dt>'SplitBy'[$list$, $f$]
       <dd>splits $list$ into collections of consecutive elements
         that give the same result when $f$ is applied.
     </dl>
@@ -1355,12 +1355,12 @@ class Tally(_GatherOperation):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Tally.html</url>
 
     <dl>
-      <dt>'Tally[$list$]'
+      <dt>'Tally'[$list$]
       <dd>counts and returns the number of occurrences of objects and returns \
           the result as a list of pairs {object, count}.
 
-      <dt>'Tally[$list$, $test$]'
-      <dd>counts the number of occurrences of objects and uses $test to \
+      <dt>'Tally'[$list$, $test$]
+      <dd>counts the number of occurrences of objects and uses $test$ to \
           determine if two objects should be counted in the same bin.
     </dl>
 
@@ -1383,7 +1383,7 @@ class Union(_SetOperation):
     https://reference.wolfram.com/language/ref/Union.html</url>
 
     <dl>
-      <dt>'Union[$a$, $b$, ...]'
+      <dt>'Union'[$a$, $b$, ...]
       <dd>gives the union of the given set or sets. The resulting list \
           will be sorted and each element will only occur once.
     </dl>
@@ -1422,7 +1422,7 @@ class Intersection(_SetOperation):
     https://reference.wolfram.com/language/ref/Intersection.html</url>
 
     <dl>
-      <dt>'Intersection[$a$, $b$, ...]'
+      <dt>'Intersection'[$a$, $b$, ...]
       <dd>gives the intersection of the sets. The resulting list \
       will be sorted and each element will only occur once.
     </dl>

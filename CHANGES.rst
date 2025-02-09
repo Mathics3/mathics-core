@@ -1,14 +1,62 @@
 CHANGES
 =======
 
+
+8.0.1
+-----
+
+Feb 8, 2025
+
+Some work was made to the Mathics3 Kernel to work in Python 3.13.
+The maximum version of numpy was increased to < 2.3 so as to allow marimo to work.
+
+
+Bugs
+----
+
+Correct for mismatch between ListExpression and tuple in ``DispatchAtom``.
+This is needed for PacletManager code to work better.
+
+
+Compatibility
+-------------
+
+* When the result of an evaluation is ``Symbol`Null``, Mathics CLI
+  now does not show an ``Out[...]=`` line, following the behavior of
+  the WMA CLI.
+* Aymptote rendering of platonic solids added.
+
+
+Internals
+---------
+
+Document tagging code handles TeX math mode more completely. Image tags in PDF properly.
+
+Documentation
+-------------
+
+* Documentation has been gone over so that expressions are tagged in TeX. As a result the user guide and reference manual render much nicer in the PDF as well as in Django.
+* More links have been added. References to The Digital Library of Mathematical Functions https://dlmf.nist.gov/ have been added where appropriate.
+* Add mention of MathicsLive
+* Platonic solid render properly in PDF
+
+
+  8.0.0
+-----
+
+Jan 26, 2025
+
 This release is to get out some of the major changes that have gone on
 already in advance of redoing Boxing and Formatting.
+
+Code now supports the emscripten platform, so this code can be installed
+in pyodide using ``micropip.install``.
 
 Operators are now controlled from a new operators YAML table from the
 ``mathics-scanner`` repository. A pass was made over the Mathics parser
 to handle box operators more properly. More work is needed here.
 
-We started adding more debugging capabilites:
+We started adding more debugging capabilities:
 
 * ``Breakpoint[]``
 * ``Stack[]``, and
@@ -20,33 +68,41 @@ And in the ``Mathics3-Trepan`` repository:
 * ``Debugger[]``, and
 * ``TraceActivate[]``
 
-This code is very much alpha quality, but it greatly improves the
-ability to debug problems in loading existing packages written from
-Mathematica. So packages ``BoolEval`` and ``CleanSlate`` were added to
-the repostiory.
+Option ``--post-mortem`` was added which goes into the `trepan3k debugger <https https://pypi.org/project/trepan3k/>`_ on an unrecoverable error. This option is available on other front ends.
+
+This debugging code is very much alpha quality, but it greatly
+improves the ability to debug problems in loading existing packages
+written from Mathematica. So packages ``BoolEval`` and ``CleanSlate``
+were added to the repository.
 
 Also as a result of the improved ability to debug Mathics3, we now
 provide a version of Rubi 4.17 using git submodules . To use this you
 will need a patched version of ``stopit``.  Aravindh Krishnamoorthy
-led the initial port of Rubi.
+led the initial port of `Rubi <https://github.com/Mathics3/Mathics3-Rubi>`_.
 
 David A. Roberts worked on ensuring Mathics3 runs on pyodide and
 contributed a number of new Built-in Functions that are found in `The
-On-Line Encyclopedia of Integer Sequences (OEIS) <https://oeis.org/>`_
+On-Line Encyclopedia of Integer Sequences (OEIS) <https://oeis.org/>`_.
 
 
 New Builtins
 ++++++++++++
 
 * ``Between``
-* ``Breakpoint`` - forces a Python ``breakpoint()``
+* ``Breakpoint`` - (not WMA; forces a Python ``breakpoint()``
 * ``CheckAbort``
 * ``FileNameDrop``
 * ``FormatValues``
-* ``SetEnvironment``
+* ``ListStepPlot``
+* ``MapApply``
+* ``PythonCProfileEvaluation`` (not WMA; interface to Python cProfile)
+* ``RealValuedNumberQ``
 * ``SequenceForm``
+* ``SetEnvironment``
 * ``Stack``
+* ``SyntaxQ``
 * ``Trace``
+* ``UnitStep``
 
 By `@davidar <https://github.com/davidar>`_:
 
@@ -74,10 +130,18 @@ By `@davidar <https://github.com/davidar>`_:
 * ``SquaresR``
 * ``Subfactorial``
 
+Documentation
++++++++++++++
+
+* Unicode operators appear in Django documentation. In the PDF, AMSLaTeX is used.
+* Summaries of builtin functions have been improved and regularized
+
 ``mathics`` command line
 ++++++++++++++++++++++++
 
-* ``--post-mortem`` option added which will go into the `trepan3k debugger <https https://pypi.org/project/trepan3k/>`_ on an unrecoverable error.
+Option ``--post-mortem`` was added which goes into the `trepan3k
+debugger <https https://pypi.org/project/trepan3k/>`_ on an
+unrecoverable error. This option is available on other front-ends..
 
 WMA Compatibility
 -----------------
@@ -85,12 +149,19 @@ WMA Compatibility
 * ``GetEnvironment`` expanded to handle ``[]`` and ``{var1, var2,...}`` forms
 * The system ``packages`` directory has been renamed ``Packages`` to conformance with WMA.
 * ``$Path`` now includes a ``Packages`` directory under ``$HOME``.
+* All of the 100 or so Unicode operators without a pre-defined meaning are now supported
 
 Internals
 ---------
 
-* Operator information has been gone over and is picked up from JSON
-tables produced from the Mathics Scanner project.
+* More of the on-OO evaluation code that forms what might be an
+  instruction evaluator has been moved out of the module
+  ``mathics.builtins`` put in ``mathics.eval``. This includes code for
+  plotting, and making boxes.
+* nested ``TimeConstraint[]`` works via external Python module ``stopit``.
+* ``Pause[]`` is more interruptible
+* More code has been linted, more type errors removed, and docstrings added/improved
+
 
 Performance
 -----------
@@ -108,31 +179,33 @@ API incompatibility
 * Patterns in ``eval_`` and ``format_`` methods of builtin classes
   parses patterns in docstrings of the form
   ``Symbol: Expr`` as ``Pattern[Symbol, Expr]``.
-  To specify associated format in ``format_`` methods the
+  To specify the associated format in ``format_`` methods the
   docstring, the list of format must be wrapped in parenthesis, like
   ``(InputForm,): Definitions[...]`` instead of just ``InputForm: Definitions[...]``.
-
+* Character and Operator information that has been gone over in the Mathics Scanner project. The information in JSON tables, the keys, and values have thus change. Here, we read this information in and use that instead of previously hard-coded values.
 
 
 Bugs
 ----
 
 * Fix infinite recursion when formatting ``Sequence[...]``
+* Parsing ``\(`` ... ``\)`` improved
+* Fixed #1105, #1106, #1107, #1172 #1173, #1195, #1205, #1221, #1223, and #1228 among others
 
 Mathics3 Packages
 +++++++++++++++++
 
 * Added ``BoolEval``
 * Added ``CleanSlate``
-* ``Combinatorica`` moved to a separate repository and v.9 renamed to 0.9.1.
-    More code v0.9.1 works. v2.0 renamed v2.0.1 and some code now works.
+* ``Combinatorica`` moved to a separate repository and v.9 was renamed to 0.9.1.
+    More code v0.9.1 works. v2.0 was renamed v2.0.1 and some code now works.
 * ``Rubi`` version 4.17 (work in progress; algebraic integrations work)
 
 
 Mathics3 Modules
 ++++++++++++++++
 
-* Added preliminary Mathics3 debugger ("pymathics.trepan")
+* Added preliminary `Mathics3 debugger `Mathics3-Trepan <https://github.com/Mathics3/mathics3-trepan>`_.
 
 Python Package Updates
 +++++++++++++++++++++++
@@ -143,6 +216,8 @@ Python Package Updates
 
 7.0.0
 -----
+
+Aug 9, 2024
 
 Some work was done here in support of planned future improvements like
 lazy loading of builtin functions.  A bit of effort was also spent to

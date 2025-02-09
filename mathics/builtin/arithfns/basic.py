@@ -72,7 +72,7 @@ class CubeRoot(Builtin):
     https://reference.wolfram.com/language/ref/CubeRoot.html</url>)
 
     <dl>
-      <dt>'CubeRoot[$n$]'
+      <dt>'CubeRoot'[$n$]
       <dd>finds the real-valued cube root of the given $n$.
     </dl>
 
@@ -94,7 +94,7 @@ class CubeRoot(Builtin):
         ),
     }
 
-    summary_text = "cube root"
+    summary_text = "compute cube root of a number"
 
     def eval(self, n, evaluation):
         "CubeRoot[n_Complex]"
@@ -116,8 +116,8 @@ class Divide(InfixOperator):
     https://reference.wolfram.com/language/ref/Divide.html</url>)
 
     <dl>
-      <dt>'Divide[$a$, $b$]'
-      <dt>'$a$ / $b$'
+      <dt>'Divide'[$a$, $b$]
+      <dt> $a$ '/' $b$
       <dd>represents the division of $a$ by $b$.
     </dl>
 
@@ -166,7 +166,7 @@ class Divide(InfixOperator):
         ),
     }
 
-    summary_text = "divide"
+    summary_text = "divide a number"
 
 
 class Minus(PrefixOperator):
@@ -178,7 +178,7 @@ class Minus(PrefixOperator):
     https://reference.wolfram.com/language/ref/Minus.html</url>)
 
     <dl>
-      <dt>'Minus[$expr$]'
+      <dt>'Minus'[$expr$]
       <dd> is the negation of $expr$.
     </dl>
 
@@ -209,7 +209,7 @@ class Minus(PrefixOperator):
         "Minus[x_]": "Times[-1, x]",
     }
 
-    summary_text = "arithmetic negate"
+    summary_text = "perform an arithmetic negation on a number"
 
     def eval_int(self, x: Integer, evaluation):
         "Minus[x_Integer]"
@@ -227,7 +227,7 @@ class Plus(InfixOperator, SympyFunction):
     https://reference.wolfram.com/language/ref/Plus.html</url>)
 
     <dl>
-      <dt>'Plus[$a$, $b$, ...]'
+      <dt>'Plus'[$a$, $b$, ...]
       <dt>$a$ + $b$ + ...
       <dd>represents the sum of the terms $a$, $b$, ...
     </dl>
@@ -277,7 +277,7 @@ class Plus(InfixOperator, SympyFunction):
         None: "0",
     }
 
-    summary_text = "add"
+    summary_text = "add a number"
 
     # FIXME Note this is deprecated in 1.11
     # Remember to up sympy doc link when this is corrected
@@ -351,8 +351,8 @@ class Power(InfixOperator, MPMathFunction):
     https://reference.wolfram.com/language/ref/Power.html</url>)
 
     <dl>
-      <dt>'Power[$a$, $b$]'
-      <dt>'$a$ ^ $b$'
+      <dt>'Power'[$a$, $b$]
+      <dt>$a$ '^' $b$
       <dd>represents $a$ raised to the power of $b$.
     </dl>
 
@@ -431,7 +431,7 @@ class Power(InfixOperator, MPMathFunction):
         "Power[x_]": "x",
     }
 
-    summary_text = "exponentiate"
+    summary_text = "exponentiate a number"
 
     # FIXME Note this is deprecated in 1.11
     # Remember to up sympy doc link when this is corrected
@@ -483,7 +483,7 @@ class Sqrt(SympyFunction):
     https://reference.wolfram.com/language/ref/Sqrt.html</url>)
 
     <dl>
-      <dt>'Sqrt[$expr$]'
+      <dt>'Sqrt'[$expr$]
       <dd>returns the square root of $expr$.
     </dl>
 
@@ -515,7 +515,7 @@ class Sqrt(SympyFunction):
         ),
     }
 
-    summary_text = "square root"
+    summary_text = "take the square root of a number"
 
 
 class Subtract(InfixOperator):
@@ -526,8 +526,8 @@ class Subtract(InfixOperator):
     https://reference.wolfram.com/language/ref/Subtract.html</url>)
 
     <dl>
-      <dt>'Subtract[$a$, $b$]'
-      <dt>$a$ - $b$
+      <dt>'Subtract'[$a$, $b$]
+      <dt>$a$ '-' $b$
       <dd>represents the subtraction of $b$ from $a$.
     </dl>
 
@@ -548,7 +548,7 @@ class Subtract(InfixOperator):
         "Subtract[x_, y_]": "Plus[x, Times[-1, y]]",
     }
 
-    summary_text = "subtract"
+    summary_text = "subtract from a number"
 
 
 class Times(InfixOperator, SympyFunction):
@@ -561,9 +561,9 @@ class Times(InfixOperator, SympyFunction):
     :WMA:https://reference.wolfram.com/language/ref/Times.html</url>)
 
     <dl>
-      <dt>'Times[$a$, $b$, ...]'
-      <dt>'$a$ * $b$ * ...'
-      <dt>'$a$ $b$ ...'
+      <dt>'Times'[$a$, $b$, ...]
+      <dt>$a$ '*' $b$ '*' ...
+      <dt>$a$ $b$ ...
       <dd>represents the product of the terms $a$, $b$, ...
     </dl>
 
@@ -614,7 +614,7 @@ class Times(InfixOperator, SympyFunction):
     # Remember to up sympy doc link when this is corrected
     sympy_name = "Mul"
 
-    summary_text = "multiply"
+    summary_text = "multiply a number"
 
     def format_times(self, items, evaluation, op="\u2062"):
         "Times[items__]"

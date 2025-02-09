@@ -2,7 +2,6 @@
 Message-related functions.
 """
 
-
 import typing
 from typing import Any
 
@@ -17,11 +16,11 @@ from mathics.core.systemsymbols import SymbolMessageName, SymbolQuiet
 
 
 class Aborted(Predefined):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/Aborted.html</url>
 
     <dl>
-    <dt>'$Aborted'
+    <dt>'\$Aborted'
         <dd>is returned by a calculation that has been aborted.
     </dl>
     """
@@ -38,10 +37,10 @@ class Check(Builtin):
     https://reference.wolfram.com/language/ref/Check.html</url>
 
     <dl>
-      <dt>'Check[$expr$, $failexpr$]'
+      <dt>'Check'[$expr$, $failexpr$]
       <dd>evaluates $expr$, and returns the result, unless messages were \
           generated, in which case it evaluates and $failexpr$ will be returned.
-      <dt>'Check[$expr$, $failexpr$, {s1::t1,s2::t2,...}]'
+      <dt>'Check'[$expr$, $failexpr$, {s1::t1,s2::t2,...}]
       <dd>checks only for the specified messages.
     </dl>
 
@@ -79,7 +78,7 @@ class Check(Builtin):
         "Check[expr_, failexpr_, params___]"
 
         # Todo: To implement the third form of this function , we need to implement the function $MessageGroups first
-        # <dt>'Check[$expr$, $failexpr$, "name"]'
+        # <dt>'Check'[$expr$, $failexpr$, "name"]
         # <dd>checks only for messages in the named message group.
 
         def get_msg_list(exprs):
@@ -125,10 +124,10 @@ class Check(Builtin):
 
 
 class Failed(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$Failed.html</url>
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$Failed.html</url>
     <dl>
-    <dt>'$Failed'
+    <dt>'\$Failed'
         <dd>is returned by some functions in the event of an error.
     </dl>
     """
@@ -263,7 +262,7 @@ class Message(Builtin):
     https://reference.wolfram.com/language/ref/Message.html</url>
 
     <dl>
-      <dt>'Message[$symbol$::$msg$, $expr1$, $expr2$, ...]'
+      <dt>'Message'[$symbol$::$msg$, $expr_1$, $expr_2$, ...]
       <dd>displays the specified message, replacing placeholders in
         the message text with the corresponding expressions.
     </dl>
@@ -306,7 +305,7 @@ class MessageName(InfixOperator):
     <url>:WMA link:https://reference.wolfram.com/language/ref/MessageName.html</url>
 
     <dl>
-      <dt>'MessageName[$symbol$, $tag$]'
+      <dt>'MessageName'[$symbol$, $tag$]
       <dt>'$symbol$::$tag$'
       <dd>identifies a message.
     </dl>
@@ -352,7 +351,7 @@ class Off(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Off.html</url>
 
     <dl>
-      <dt>'Off[$symbol$::$tag$]'
+      <dt>'Off'[$symbol$::$tag$]
       <dd>turns a message off so it is no longer printed.
     </dl>
 
@@ -395,7 +394,7 @@ class On(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/On.html</url>
 
     <dl>
-      <dt>'On[$symbol$::$tag$]'
+      <dt>'On'[$symbol$::$tag$]
       <dd>turns a message on for printing.
     </dl>
 
@@ -439,13 +438,13 @@ class Quiet(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Quiet.html</url>
 
     <dl>
-      <dt>'Quiet[$expr$, {$s1$::$t1$, ...}]'
-      <dd>evaluates $expr$, without messages '{$s1$::$t1$, ...}' being displayed.
-      <dt>'Quiet[$expr$, All]'
+      <dt>'Quiet'[$expr$, {$s_1$::$t_1$, ...}]
+      <dd>evaluates $expr$, without messages '{$s_1$::$t_1$, ...}' being displayed.
+      <dt>'Quiet'[$expr$, All]
       <dd>evaluates $expr$, without any messages being displayed.
-      <dt>'Quiet[$expr$, None]'
+      <dt>'Quiet'[$expr$, None]
       <dd>evaluates $expr$, without all messages being displayed.
-      <dt>'Quiet[$expr$, $off$, $on$]'
+      <dt>'Quiet'[$expr$, $off$, $on$]
       <dd>evaluates $expr$, with messages $off$ being suppressed, but messages $on$ being displayed.
     </dl>
 
