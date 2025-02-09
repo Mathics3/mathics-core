@@ -12,7 +12,7 @@ class AtomQ(Test):
     <url>:WMA link:https://reference.wolfram.com/language/ref/AtomQ.html</url>
 
     <dl>
-      <dt>'AtomQ[$expr$]'
+      <dt>'AtomQ'[$expr$]
       <dd>returns 'True' if $expr$ is an expression which cannot be divided into \
       subexpressions, or 'False' otherwise.
 
@@ -65,7 +65,7 @@ class Head(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Head.html</url>
 
     <dl>
-      <dt>'Head[$expr$]'
+      <dt>'Head'[$expr$]
       <dd>returns the head of the expression or atom $expr$.
     </dl>
 

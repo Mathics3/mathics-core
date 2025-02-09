@@ -7,7 +7,7 @@ BASH ?= /bin/bash
 #-quiet
 
 # Location of Python Pickle file containing doctest tests and test results formatted for LaTeX
-DOCTEST_LATEX_DATA_PCL ?= $(HOME)/.local/var/mathics/doctest_latex_data.pcl
+DOCTEST_LATEX_DATA_PCL ?= $(HOME)/.local/var/Mathics3/doctest_latex_data.pcl
 
 # Variable indicating Mathics3 Modules you have available on your system, in latex2doc option format
 MATHICS3_MODULE_OPTION ?=--load-module pymathics.trepan,pymathics.graph,pymathics.natlang
@@ -43,7 +43,7 @@ logo-heptatom.pdf logo-text-nodrop.pdf:
 	(cd .. && $(BASH) ./images.sh)
 
 #: The build of the documentation which is derived from docstrings in the Python code and doctest data
-documentation.tex: $(DOCTEST_LATEX_DATA_PCL) 1-Manual.mdoc
+documentation.tex: $(DOCTEST_LATEX_DATA_PCL) ../documentation/1-Manual.mdoc
 	$(PYTHON) ./doc2latex.py $(MATHICS3_MODULE_OPTION) && $(BASH) ./sed-hack.sh
 
 #: Same as mathics.pdf

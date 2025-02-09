@@ -27,14 +27,14 @@ class Function(PostfixOperator, SympyFunction):
       https://reference.wolfram.com/language/ref/Function.html</url>
 
     <dl>
-      <dt>'Function[$body$]'
+      <dt>'Function'[$body$]
       <dt>'$body$ &'
       <dd>represents a pure function with parameters '#1', '#2', etc.
 
-      <dt>'Function[{$x1$, $x2$, ...}, $body$]'
-      <dd>represents a pure function with parameters $x1$, $x2$, etc.
+      <dt>'Function'[{$x_1$, $x_2$, ...}, $body$]
+      <dd>represents a pure function with parameters $x_1$, $x_2$, etc.
 
-      <dt>'Function[{$x1$, $x2$, ...}, $body$, $attr$]'
+      <dt>'Function'[{$x_1$, $x_2$, ...}, $body$, $attr$]
       <dd>assume that the function has the attributes $attr$.
     </dl>
 
@@ -172,7 +172,7 @@ class Slot(SympyFunction, PrefixOperator):
 
     <dl>
       <dt>'#$n$'
-      <dd>represents the $n$th argument to a pure function.
+      <dd>represents the $n$-th argument to a pure function.
 
       <dt>'#'
       <dd>is short-hand for '#1'.
@@ -220,7 +220,7 @@ class SlotSequence(PrefixOperator, Builtin):
       <dd>is the sequence of arguments supplied to a pure function.
 
       <dt>'##$n$'
-      <dd>starts with the $n$th argument.
+      <dd>starts with the $n$-th argument.
     </dl>
 
     >> Plus[##]& [1, 2, 3]

@@ -22,13 +22,13 @@ class ArrayQ(Builtin):
     https://reference.wolfram.com/language/ref/ArrayQ.html</url>
 
     <dl>
-      <dt>'ArrayQ[$expr$]'
+      <dt>'ArrayQ'[$expr$]
       <dd>tests whether $expr$ is a full array.
 
-      <dt>'ArrayQ[$expr$, $pattern$]'
+      <dt>'ArrayQ'[$expr$, $pattern$]
       <dd>also tests whether the array depth of $expr$ matches $pattern$.
 
-      <dt>'ArrayQ[$expr$, $pattern$, $test$]'
+      <dt>'ArrayQ'[$expr$, $pattern$, $test$]
       <dd>furthermore tests whether $test$ yields 'True' for all elements of $expr$.
         'ArrayQ[$expr$]' is equivalent to 'ArrayQ[$expr$, _, True&]'.
     </dl>
@@ -73,7 +73,7 @@ class DisjointQ(Test):
     https://reference.wolfram.com/language/ref/DisjointQ.html</url>
 
     <dl>
-      <dt>'DisjointQ[$a$, $b$]'
+      <dt>'DisjointQ'[$a$, $b$]
       <dd>gives True if $a$ and $b$ are disjoint, or False if $a$ and \
       $b$ have any common elements.
     </dl>
@@ -90,9 +90,9 @@ class IntersectingQ(Builtin):
     https://reference.wolfram.com/language/ref/IntersectingQ.html</url>
 
     <dl>
-      <dt>'IntersectingQ[$a$, $b$]'
-      <dd>gives True if there are any common elements in $a and $b, or \
-          False if $a and $b are disjoint.
+      <dt>'IntersectingQ'[$a$, $b$]
+      <dd>gives True if there are any common elements in $a$ and $b$, or \
+          False if $a$ and $b$ are disjoint.
     </dl>
     """
 
@@ -103,7 +103,7 @@ class IntersectingQ(Builtin):
 class LevelQ(Test):
     """
     <dl>
-      <dt>'LevelQ[$expr$]'
+      <dt>'LevelQ'[$expr$]
       <dd>tests whether $expr$ is a valid level specification. This function \
           is primarily used in function patterns for specifying type of a \
           parameter.
@@ -158,10 +158,10 @@ class MatrixQ(Builtin):
     https://reference.wolfram.com/language/ref/MatrixQ.html</url>
 
     <dl>
-      <dt>'MatrixQ[$m$]'
+      <dt>'MatrixQ'[$m$]
       <dd>gives 'True' if $m$ is a list of equal-length lists.
 
-      <dt>'MatrixQ[$m$, $f$]'
+      <dt>'MatrixQ'[$m$, $f$]
       <dd>gives 'True' only if '$f$[$x$]' returns 'True' for when applied to \
          element $x$ of the matrix $m$.
     </dl>
@@ -199,7 +199,7 @@ class MemberQ(Builtin):
     https://reference.wolfram.com/language/ref/MemberQ.html</url>
 
     <dl>
-      <dt>'MemberQ[$list$, $pattern$]'
+      <dt>'MemberQ'[$list$, $pattern$]
       <dd>returns 'True' if $pattern$ matches any element of $list$, or 'False' otherwise.
     </dl>
 
@@ -223,7 +223,7 @@ class MemberQ(Builtin):
 class NotListQ(Test):
     """
     <dl>
-      <dt>'NotListQ[$expr$]'
+      <dt>'NotListQ'[$expr$]
       <dd>returns 'True' if $expr$ is not a list. This function is primarily \
           used in function patterns for specifying type of a parameter.
     </dl>
@@ -263,8 +263,8 @@ class SubsetQ(Builtin):
     https://reference.wolfram.com/language/ref/SubsetQ.html</url>
 
     <dl>
-      <dt>'SubsetQ[$list1$, $list2$]'
-      <dd>returns True if $list2$ is a subset of $list1$, and False otherwise.
+      <dt>'SubsetQ'[$list_1$, $list_2$]
+      <dd>returns True if $list_2$ is a subset of $list_1$, and False otherwise.
     </dl>
 
     >> SubsetQ[{1, 2, 3}, {3, 1}]
@@ -330,10 +330,10 @@ class VectorQ(Builtin):
     https://reference.wolfram.com/language/ref/VectorQ.html</url>
 
     <dl>
-      <dt>'VectorQ[$v$]'
+      <dt>'VectorQ'[$v$]
       <dd>returns 'True' if $v$ is a list of elements which are not themselves lists.
 
-      <dt>'VectorQ[$v$, $f$]'
+      <dt>'VectorQ'[$v$, $f$]
       <dd>returns 'True' if $v$ is a vector and '$f$[$x$]' returns 'True' for each element $x$ of $v$.
     </dl>
 

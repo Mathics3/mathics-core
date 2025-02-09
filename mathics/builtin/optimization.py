@@ -39,7 +39,7 @@ class Maximize(Builtin):
     https://reference.wolfram.com/language/ref/Maximize.html</url>
 
     <dl>
-      <dt>'Maximize[$f$, $x$]'
+      <dt>'Maximize'[$f$, $x$]
       <dd>compute the maximum of $f$ respect $x$ that change between \
       $a$ and $b$.
     </dl>
@@ -95,7 +95,7 @@ class Minimize(Builtin):
     https://reference.wolfram.com/language/ref/Minimize.html</url>
 
     <dl>
-    <dt>'Minimize[$f$, $x$]'
+    <dt>'Minimize'[$f$, $x$]
         <dd>compute the minimum of $f$ respect $x$ that change between \
         $a$ and $b$.
     </dl>

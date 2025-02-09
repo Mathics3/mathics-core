@@ -16,10 +16,10 @@ class ByteArray(Builtin):
     https://reference.wolfram.com/language/ref/ByteArray.html</url>
 
     <dl>
-      <dt>'ByteArray[{$b_1$, $b_2$, ...}]'
+      <dt>'ByteArray'[{$b_1$, $b_2$, ...}]
       <dd> Represents a sequence of Bytes $b_1$, $b_2$, ...
 
-      <dt>'ByteArray["string"]'
+      <dt>'ByteArray'["$string$"]
       <dd> Constructs a byte array where bytes comes from decode a b64-encoded \
            String
     </dl>

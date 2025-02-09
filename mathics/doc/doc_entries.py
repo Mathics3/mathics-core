@@ -9,8 +9,9 @@ system, and the functions used to parse docstrings into these objects.
 
 import logging
 import re
+from abc import ABC
 from os import getenv
-from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Sequence, Tuple
 
 from mathics.core.evaluation import Message, Print, _Out
 
@@ -32,7 +33,6 @@ ALLOWED_TAGS = (
     "i",
     "ol",
     "li",
-    "con",
     "console",
     "img",
     "imgpng",
@@ -51,7 +51,9 @@ END_LINE_SENTINAL = "#<--#"
 # The regular expressions below (strings ending with _RE
 # pull out information from docstring or text in a file. Ghetto parsing.
 
-CONSOLE_RE = re.compile(r"(?s)<(?P<tag>con|console)>(?P<content>.*?)</(?P=tag)>")
+# <(?<tag>console)> in the following rule is just keep for compatibility
+# with Mathics-Django documentation.
+CONSOLE_RE = re.compile(r"(?m)(?s)<(?P<tag>console)>(?P<content>[\s\S]+?)</console>")
 DL_ITEM_RE = re.compile(
     r"(?s)<(?P<tag>d[td])>(?P<content>.*?)(?:</(?P=tag)>|)\s*(?:(?=<d[td]>)|$)"
 )
@@ -59,14 +61,17 @@ DL_RE = re.compile(r"(?s)<dl>(.*?)</dl>")
 HYPERTEXT_RE = re.compile(
     r"(?s)<(?P<tag>em|url)>(\s*:(?P<text>.*?):\s*)?(?P<content>.*?)</(?P=tag)>"
 )
-IMG_PNG_RE = re.compile(
-    r'<imgpng src="(?P<src>.*?)" title="(?P<title>.*?)" label="(?P<label>.*?)">'
-)
 IMG_RE = re.compile(
     r'<img src="(?P<src>.*?)" title="(?P<title>.*?)" label="(?P<label>.*?)">'
 )
 # Preserve space before and after in-line code variables.
 LATEX_RE = re.compile(r"(\s?)\$(\w+?)\$(\s?)")
+
+LATEX_DISPLAY_EQUATION_RE = re.compile(r"(?m)(?<!\\)\$\$([\s\S]+?)(?<!\\)\$\$")
+LATEX_INLINE_EQUATION_RE = re.compile(r"(?m)(?<!\\)\$([\s\S]+?)(?<!\\)\$")
+LATEX_HREF_RE = re.compile(r"(?s)\\href\{(?P<content>.*?)\}\{(?P<text>.*?)\}")
+LATEX_URL_RE = re.compile(r"(?s)\\url\{(?P<content>.*?)\}")
+
 
 LIST_ITEM_RE = re.compile(r"(?s)<li>(.*?)(?:</li>|(?=<li>)|$)")
 LIST_RE = re.compile(r"(?s)<(?P<tag>ul|ol)>(?P<content>.*?)</(?P=tag)>")
@@ -93,7 +98,7 @@ TESTCASE_RE = re.compile(
     r"""(?mx)^  # re.MULTILINE (multi-line match)
                 # and re.VERBOSE (readable regular expressions
         ((?:.|\n)*?)
-        ^\s+([>#SX])>[ ](.*)  # test-code indicator
+        ^\s*([>#SX])>[ ](.*)  # test-code indicator
         ((?:\n\s*(?:[:|=.][ ]|\.).*)*)  # test-code results"""
 )
 TESTCASE_OUT_RE = re.compile(r"^\s*([:|=])(.*)$")
@@ -160,9 +165,11 @@ def filter_comments(doc: str) -> str:
 POST_SUBSTITUTION_TAG = "_POST_SUBSTITUTION%d_"
 
 
-def pre_sub(regexp, text: str, repl_func: Callable):
+def pre_sub(
+    regexp, text: str, repl_func: Callable, prev_subst: Tuple = tuple()
+) -> Tuple[str, Tuple]:
     """apply substitutions previous to parse the text"""
-    post_substitutions: List[str] = []
+    post_substitutions: List[str] = list(prev_subst)
 
     def repl_pre(match):
         repl = repl_func(match)
@@ -172,12 +179,22 @@ def pre_sub(regexp, text: str, repl_func: Callable):
 
     text = regexp.sub(repl_pre, text)
 
-    return text, post_substitutions
+    return text, tuple(post_substitutions)
 
 
-def post_sub(text: str, post_substitutions) -> str:
+def post_sub(text: str, post_substitutions: Tuple) -> str:
     """apply substitutions after parsing the doctests."""
-    for index, sub in enumerate(post_substitutions):
+
+    # Substitutions must be applied in reverse order,
+    # because one substitution can contain previous sustititions.
+    # For instance ``<url>"A link":http://example.org</url>
+    # first is replaced by
+    # ``<url>_POST_SUBSTITUTION0_:http://example.org</url>
+    # with ``_POST_SUBSTITUTION0_`` storing ``"A link"``
+    # and then by
+    # POST_SUBSTITUTION1_
+    substitutions = tuple(enumerate(post_substitutions))
+    for index, sub in substitutions[::-1]:
         text = text.replace(POST_SUBSTITUTION_TAG % index, sub)
     return text
 
@@ -216,10 +233,7 @@ def parse_docstring_to_DocumentationEntry_items(
         logging.warning("``key_part`` is deprecated. Its value is discarded.")
 
     # Remove commented lines.
-    doc = filter_comments(doc).strip(r"\s")
-
-    # Remove leading <dl>...</dl>
-    # doc = DL_RE.sub("", doc)
+    doc = filter_comments(doc)
 
     # pre-substitute Python code because it might contain tests
     doc, post_substitutions = pre_sub(
@@ -260,6 +274,37 @@ def parse_docstring_to_DocumentationEntry_items(
     return items
 
 
+class BaseDocElement(ABC):
+    """Base class for elements of the documentation system."""
+
+    def get_ancestors(self) -> list:
+        """
+        Get a list of the DocElements such that
+        each element is the parent of the following.
+        """
+        ancestors = []
+        parent = self.parent
+        while isinstance(parent, BaseDocElement):
+            ancestors.append(parent)
+            parent = parent.parent
+
+        ancestors = ancestors[::-1]
+        return ancestors
+
+    def get_children(self) -> list:
+        raise NotImplementedError
+
+    @property
+    def parent(self):
+        "the container where the element is"
+        raise NotImplementedError
+
+    @parent.setter
+    def parent(self, value):
+        "the container where the section is"
+        raise TypeError("parent is a read-only property")
+
+
 class DocTest:
     """
     Class to hold a single doctest.
@@ -277,6 +322,14 @@ class DocTest:
     * `:`  Compares an (error) message.
       `|`  Prints output.
     """
+
+    index: int
+    outs: List[_Out]
+    test: str
+    result: str
+    private: bool
+    ignore: bool
+    _key: Optional[tuple]
 
     def __init__(
         self,
@@ -303,7 +356,7 @@ class DocTest:
 
         self.index = index
         self.outs: List[_Out] = []
-        self.result = None
+        result_value = None
 
         # Private test cases are executed, but NOT shown as part of the docs
         self.private = testcase[0] == "#"
@@ -318,7 +371,7 @@ class DocTest:
             self.ignore = False
 
         self.test = strip_sentinal(testcase[1])
-        self._key: Optional[tuple] = key_prefix + (index,) if key_prefix else None
+        self._key = key_prefix + (index,) if key_prefix else None
 
         outs = testcase[2].splitlines()
         for line in outs:
@@ -329,8 +382,8 @@ class DocTest:
                     if text.startswith(" "):
                         text = text[1:]
                     text = "\n" + text
-                    if self.result is not None:
-                        self.result += text
+                    if result_value is not None:
+                        result_value += text
                     elif self.outs:
                         self.outs[-1].text += text
                     continue
@@ -341,11 +394,12 @@ class DocTest:
                 symbol, text = match.group(1), match.group(2)
                 text = text.strip()
                 if symbol == "=":
-                    self.result = text
+                    result_value = text
                 elif symbol == ":":
                     self.outs.append(Message("", "", text))
                 elif symbol == "|":
                     self.outs.append(Print(text))
+        self.result = result_value or ""
 
     def __str__(self) -> str:
         return self.test
@@ -357,6 +411,32 @@ class DocTest:
         """
         return self.compare_result(result) and self.compare_out(out)
 
+    def compare_out(self, outs: tuple = tuple()) -> bool:
+        """Compare messages and warnings produced during the evaluation of
+        the test with the expected messages and warnings."""
+        # Check out
+        wanted_outs = self.outs
+        if len(wanted_outs) == 1 and wanted_outs[0].text == "...":
+            # If we have ... don't check
+            return True
+        if len(outs) != len(wanted_outs):
+            # Mismatched number of output lines, and we don't have "..."
+            return False
+
+        # Python 3.13 replaces tabs by a single space in docstrings.
+        # In doctests we replace tabs by sequences of four spaces.
+        def tabs_to_spaces(val):
+            return val.text.replace("\t", 4 * " ")
+
+        # Need to check all output line by line
+        for got, wanted in zip(outs, wanted_outs):
+            if wanted.text == "...":
+                return True
+            if not tabs_to_spaces(got) == tabs_to_spaces(wanted):
+                return False
+
+        return True
+
     def compare_result(self, result: Optional[str]):
         """Compare a result with the expected result"""
         wanted = self.result
@@ -364,8 +444,9 @@ class DocTest:
         if wanted in ("...", result):
             return True
 
-        if result is None or wanted is None:
-            return False
+        if result is None:
+            return wanted == ""
+
         result_list = result.splitlines()
         wanted_list = wanted.splitlines()
         if result_list == [] and wanted_list == ["#<--#"]:
@@ -380,27 +461,6 @@ class DocTest:
             wanted_re = f"^{wanted_re}$"
             if not re.match(wanted_re, res.strip()):
                 return False
-        return True
-
-    def compare_out(self, outs: tuple = tuple()) -> bool:
-        """Compare messages and warnings produced during the evaluation of
-        the test with the expected messages and warnings."""
-        # Check out
-        wanted_outs = self.outs
-        if len(wanted_outs) == 1 and wanted_outs[0].text == "...":
-            # If we have ... don't check
-            return True
-        if len(outs) != len(wanted_outs):
-            # Mismatched number of output lines, and we don't have "..."
-            return False
-
-        # Need to check all output line by line
-        for got, wanted in zip(outs, wanted_outs):
-            if wanted.text == "...":
-                return True
-            if not got == wanted:
-                return False
-
         return True
 
     @property
@@ -425,6 +485,9 @@ class DocTests:
         self.tests = []
         self.text = ""
 
+    def __str__(self) -> str:
+        return "\n".join(str(test) for test in self.tests)
+
     def get_tests(self) -> list:
         """
         Returns lists test objects.
@@ -434,9 +497,6 @@ class DocTests:
     # def is_private(self) -> bool:
     #     """Returns True if this test is "private" not supposed to be visible as example documentation."""
     #     return all(test.private for test in self.tests)
-
-    def __str__(self) -> str:
-        return "\n".join(str(test) for test in self.tests)
 
     def test_indices(self) -> List[int]:
         """indices of the tests"""
@@ -477,7 +537,7 @@ class DocText:
 
 
 # Former XMLDoc
-class DocumentationEntry:
+class DocumentationEntry(BaseDocElement):
     """
     A class to hold the content of a documentation entry,
     in our custom XML-like format.
@@ -536,6 +596,48 @@ class DocumentationEntry:
     def __str__(self) -> str:
         return "\n\n".join(str(item) for item in self.items)
 
+    def get_children(self) -> list:
+        """Get children"""
+        return []
+
+    def get_tests(self) -> List["DocTest"]:
+        """retrieve a list of tests in the documentation entry"""
+        tests = []
+        for item in self.items:
+            tests.extend(item.get_tests())
+        return tests
+
+    @property
+    def parent(self):
+        "the container where the element is"
+        return self._parent
+
+    @parent.setter
+    def parent(self, value):
+        "the container where the section is"
+        raise TypeError("parent is a read-only property")
+
+    def set_parent_path(self, parent):
+        """Set the parent path"""
+        self._parent = parent
+        if parent is None:
+            return self
+
+        path_objs = parent.get_ancestors()[1:] + [parent]
+        path = [element.title for element in path_objs]
+        # Set the key on each test
+        for test in self.get_tests():
+            assert test.key is None
+            # For backward compatibility, we need
+            # to reduce this to three fields.
+            # TODO: remove me and ensure that this
+            # works here and in Mathics Django
+            if len(path) > 3:
+                path = path[:2] + [path[-1]]
+            test.key = tuple(path) + (test.index,)
+
+        return self
+
     def text(self) -> str:
         """text version of the documentation entry"""
         # used for introspection
@@ -549,42 +651,19 @@ class DocumentationEntry:
         item = item.replace("</dt>", "")
         item = item.replace("<dd>", "    ")
         item = item.replace("</dd>", "")
+        item = item.replace("\\$", "_DOLARSIGN_")
+        item = (
+            item.replace("\\'", "_SINGLEQUOTE_")
+            .replace("'", "")
+            .replace("_SINGLEQUOTE_", "'")
+        )
         item = "\n".join(line for line in item.split("\n") if not line.isspace())
         item = re.sub(r"\$([0-9a-zA-Z]*)\$", r"\1", item)
+
+        item = re.sub(r"\$([0-9a-zA-Z]*)\_\{([0-9a-zA-Z]*)\}\$", r"\1\2", item)
+        item = re.sub(r"\$([0-9a-zA-Z]*)\_([0-9a-zA-Z]*)\$", r"\1\2", item)
+        item = item.replace("_DOLARSIGN_", "$")
         return item
-
-    def get_tests(self) -> List["DocTest"]:
-        """retrieve a list of tests in the documentation entry"""
-        tests = []
-        for item in self.items:
-            tests.extend(item.get_tests())
-        return tests
-
-    def set_parent_path(self, parent):
-        """Set the parent path"""
-        self.path = None
-        path = []
-        while hasattr(parent, "parent"):
-            path = [parent.title] + path
-            parent = parent.parent
-
-        if hasattr(parent, "title"):
-            path = [parent.title] + path
-
-        if path:
-            self.path = path
-            # Set the key on each test
-            for test in self.get_tests():
-                assert test.key is None
-                # For backward compatibility, we need
-                # to reduce this to three fields.
-                # TODO: remove me and ensure that this
-                # works here and in Mathics Django
-                if len(path) > 3:
-                    path = path[:2] + [path[-1]]
-                test.key = tuple(path) + (test.index,)
-
-        return self
 
 
 class Tests:

@@ -38,7 +38,7 @@ class CompositeQ(Builtin):
     https://reference.wolfram.com/language/ref/CompositeQ.html</url>
 
     <dl>
-      <dt>'CompositeQ[$n$]'
+      <dt>'CompositeQ'[$n$]
       <dd>returns 'True' if $n$ is a composite number
     </dl>
 
@@ -66,7 +66,7 @@ class Divisible(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Divisible.html</url>
 
     <dl>
-      <dt>'Divisible[$n$, $m$]'
+      <dt>'Divisible'[$n$, $m$]
       <dd>returns 'True' if $n$ is divisible by $m$, and 'False' otherwise.
     </dl>
 
@@ -97,7 +97,7 @@ class GCD(Builtin):
     https://reference.wolfram.com/language/ref/GCD.html</url>
 
     <dl>
-      <dt>'GCD[$n1$, $n2$, ...]'
+      <dt>'GCD'[$n_1$, $n_2$, ...]
       <dd>computes the greatest common divisor of the given integers.
     </dl>
 
@@ -134,7 +134,7 @@ class LCM(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/LCM.html</url>
 
     <dl>
-      <dt>'LCM[$n1$, $n2$, ...]'
+      <dt>'LCM'[$n_1$, $n_2$, ...]
       <dd>computes the least common multiple of the given integers.
     </dl>
 
@@ -165,7 +165,7 @@ class Mod(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Mod.html</url>
 
     <dl>
-      <dt>'Mod[$x$, $m$]'
+      <dt>'Mod'[$x$, $m$]
       <dd>returns $x$ modulo $m$.
     </dl>
 
@@ -203,7 +203,7 @@ class ModularInverse(SympyFunction):
     </url>)
 
     <dl>
-      <dt>'ModularInverse[$k$, $n$]'
+      <dt>'ModularInverse'[$k$, $n$]
       <dd>returns the modular inverse $k$^(-1) mod $n$.
     </dl>
 
@@ -243,7 +243,7 @@ class PowerMod(Builtin):
     See <url>https://en.wikipedia.org/wiki/Modular_exponentiation</url>.
 
     <dl>
-      <dt>'PowerMod[$x$, $y$, $m$]'
+      <dt>'PowerMod'[$x$, $y$, $m$]
       <dd>computes $x$^$y$ modulo $m$.
     </dl>
 

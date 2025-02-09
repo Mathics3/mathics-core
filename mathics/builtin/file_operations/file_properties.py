@@ -29,7 +29,7 @@ class FileDate(Builtin):
     :WMA link:https://reference.wolfram.com/language/ref/FileDate.html</url>
 
     <dl>
-      <dt>'FileDate[$file$, $types$]'
+      <dt>'FileDate'[$file$, $types$]
       <dd>returns the time and date at which the file was last modified.
     </dl>
 
@@ -126,15 +126,15 @@ class FileHash(Builtin):
     https://reference.wolfram.com/language/ref/FileHash.html</url>
 
     <dl>
-      <dt>'FileHash[$file$]'
+      <dt>'FileHash'[$file$]
       <dd>returns an integer hash for the given $file$.
 
-      <dt>'FileHash[$file$, $type$]'
+      <dt>'FileHash'[$file$, $type$]
       <dd>returns an integer hash of the specified $type$ for the given $file$.
       <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", "SHA256", \
           "SHA384", and "SHA512".
 
-      <dt>'FileHash[$file$, $type$, $format$]'
+      <dt>'FileHash'[$file$, $type$, $format$]
       <dd>gives a hash code in the specified format.
     </dl>
 
@@ -186,7 +186,7 @@ class FileType(Builtin):
     https://reference.wolfram.com/language/ref/FileType.html</url>
 
     <dl>
-      <dt>'FileType["$file$"]'
+      <dt>'FileType'["$file$"]
       <dd>gives the type of a file, a string. This is typically 'File', 'Directory' \
           or 'None'.
     </dl>
@@ -229,11 +229,11 @@ class SetFileDate(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/SetFileDate.html</url>
 
     <dl>
-    <dt>'SetFileDate["$file$"]'
+    <dt>'SetFileDate'["$file$"]
       <dd>set the file access and modification dates of $file$ to the current date.
-    <dt>'SetFileDate["$file$", $date$]'
+    <dt>'SetFileDate'["$file$", $date$]
       <dd>set the file access and modification dates of $file$ to the specified date list.
-    <dt>'SetFileDate["$file$", $date$, "$type$"]'
+    <dt>'SetFileDate'["$file$", $date$, "$type$"]
       <dd>set the file date of $file$ to the specified date list.
       The "$type$" can be one of "$Access$", "$Creation$", "$Modification$", or 'All'.
     </dl>

@@ -5,7 +5,11 @@ Special Functions
 
 There are a number of functions found in mathematical physics and found in standard handbooks.
 
-One thing to note is that the technical literature often contains several conflicting definitions. So beware and check for conformance with the Mathics documentation.
+One good source is <url>
+:The NIST Digital Library of Mathematical Functions:
+https://dlmf.nist.gov/</url>.
+
+The technical literature often contains several conflicting definitions. So beware, and check for conformance with the Mathics3 documentation.
 
 A number of special functions can be evaluated for arbitrary complex values of their arguments. However defining relations may apply only for some special choices of arguments. Here, the full function corresponds to an extension or "analytic continuation" of the defining relation.
 

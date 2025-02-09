@@ -69,7 +69,7 @@ class UserBaseDirectory(Predefined):
     """
 
     name = "$UserBaseDirectory"
-    summary_text = "directory where user configurations are stored"
+    summary_text = "get directory where user configurations are stored"
 
     def evaluate(self, evaluation: Evaluation):
         return String(HOME_DIR + os.sep + ".mathics")

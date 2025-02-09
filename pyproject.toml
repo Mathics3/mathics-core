@@ -1,9 +1,11 @@
 [build-system]
 requires = [
-    "setuptools>=70.0.0", # CVE-2024-38335 recommends this
+    "setuptools",
     "cython>=0.15.1; implementation_name!='pypy'",
     # For mathics-generate-json-table
-    "Mathics-Scanner >= 1.3.0",
+    "Mathics-Scanner >= 1.4.0",
+    # "packaging" is needed for testing the SymPy Version
+    # in PartionsP
     "packaging",
 ]
 build-backend = "setuptools.build_meta"
@@ -11,14 +13,13 @@ build-backend = "setuptools.build_meta"
 [project]
 description = "A general-purpose computer algebra system."
 dependencies = [
-    "Mathics-Scanner >= 1.3.0",
+    "Mathics-Scanner >= 1.4.1",
     "mpmath>=1.2.0",
-    "numpy<1.27",
+    "numpy<2.3",
     "palettable",
     # Pillow 9.1.0 supports BigTIFF with big-endian byte order.
     # ExampleData image hedy.tif is in this format.
     # Pillow 9.2 handles sunflowers.jpg
-    "stopit; platform_system != 'Emscripten'",
     "pillow >= 9.2",
     "pint",
     "python-dateutil",
@@ -27,9 +28,11 @@ dependencies = [
     "requests",
     "scipy",
     "setuptools",
+    # stopit is needed in TimeRemaining[]
+    "stopit; platform_system != 'Emscripten'",
     "sympy>=1.13,<1.14",
 ]
-license = {text = "GPL"}
+license = {text = "GPL3"}
 name = "Mathics3"
 requires-python = ">=3.8" # Sympy 1.11 is supported only down to 3.8
 readme = "README.rst"
@@ -46,6 +49,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
     "Topic :: Scientific/Engineering",
@@ -89,20 +93,23 @@ include = ["mathics*"]
 
 [tool.setuptools.package-data]
 "mathics" = [
-    "data/*.csv",
-    "data/*.json",
-    "data/*.yml",
-    "data/*.yaml",
-    "data/*.pcl",
-    "data/ExampleData/*",
-    "doc/xml/data",
-    "doc/tex/data",
-    "autoload/*.m",
-    "autoload-cli/*.m",
-    "autoload/formats/*/Import.m",
-    "autoload/formats/*/Export.m",
     "Packages/*/*.m",
     "Packages/*/Kernel/init.m",
+    "autoload-cli/*.m",
+    "autoload/*.m",
+    "autoload/*/*.m",
+    "autoload/formats/*/Export.m",
+    "autoload/formats/*/Import.m",
+    "data/*.csv",
+    "data/*.json",
+    "data/*.pcl",
+    "data/*.yaml",
+    "data/*.yml",
+    "data/ExampleData/*",
+    # Documentation stuff that will be removed in 9.0.0 or before
+    "doc/latex/mathics.pdf",
+    # End doc stuff
+    "test/data/*",
 ]
 "mathics.doc" = [
     "documentation/*.mdoc",

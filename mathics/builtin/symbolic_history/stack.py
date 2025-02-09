@@ -44,7 +44,7 @@ class Trace(Builtin):
     https://reference.wolfram.com/language/ref/Trace.html</url>
 
     <dl>
-      <dt>'Trace[$expr$]'
+      <dt>'Trace'[$expr$]
       <dd>generate a list of all expressions used in the evaluation of $expr$.
     </dl>
 
