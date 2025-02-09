@@ -113,9 +113,13 @@ class MakeBoxes(Builtin):
     }
     summary_text = "settable low-level translator from expression to display boxes"
 
+    def eval_fullform(self, expr, evaluation):
+        """MakeBoxes[expr_, FullForm]"""
+        return eval_makeboxes_fullform(expr, evaluation)
+
     def eval_general(self, expr, f, evaluation):
         """MakeBoxes[expr_,
-        f:TraditionalForm|StandardForm|OutputForm|InputForm|FullForm]"""
+        f:TraditionalForm|StandardForm|OutputForm|InputForm]"""
         return eval_generic_makeboxes(self, expr, f, evaluation)
 
     def eval_fullform(self, expr, evaluation):
