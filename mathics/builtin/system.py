@@ -76,15 +76,14 @@ class Breakpoint(Builtin):
 
     def eval(self, evaluation: Evaluation):
         "Breakpoint[]"
-
         breakpoint()
 
 
 class CommandLine(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$CommandLine.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\\$CommandLine.html</url>
     <dl>
-    <dt>'$CommandLine'
+    <dt>'\\$CommandLine'
       <dd>is a list of strings passed on the command line to launch the Mathics3 session.
     </dl>
 
@@ -107,7 +106,7 @@ class Environment(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Environment.html</url>
 
     <dl>
-      <dt>'Environment[$var$]'
+      <dt>'Environment'[$var$]
       <dd>gives the value of an operating system environment variable.
     </dl>
 
@@ -137,11 +136,11 @@ class GetEnvironment(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/GetEnvironment.html</url>
 
     <dl>
-      <dt>'GetEnvironment["$var$"]'
+      <dt>'GetEnvironment'["$var$"]
       <dd>gives the setting corresponding to the variable "var" in the operating \
       system environment.
 
-      <dt>'GetEnvironment[{"$var1$", "$var2$", ...}]'
+      <dt>'GetEnvironment'[{"$var_1$", "$var_2$", ...}]
       <dd>gives a list rules for each of the environment variables listed.
 
       <dt>'GetEnvironment[]'
@@ -217,10 +216,10 @@ class GetEnvironment(Builtin):
 
 class Machine(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$Machine.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\\$Machine.html</url>
 
     <dl>
-    <dt>'$Machine'
+    <dt>'\\$Machine'
         <dd>returns a string describing the type of computer system on which the \
             Mathics3 is being run.
     </dl>
@@ -229,8 +228,8 @@ class Machine(Predefined):
      = ...
     """
 
-    summary_text = "the type of computer system over with Mathics is running"
     name = "$Machine"
+    summary_text = "get the OS platform of the system running Mathics3"
 
     def evaluate(self, evaluation: Evaluation) -> String:
         return String(sys.platform)
@@ -241,7 +240,7 @@ class MachineName(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/MachineName.html</url>
 
     <dl>
-      <dt>'$MachineName'
+      <dt>'\\$MachineName'
       <dd>is a string that gives the assigned name of the computer on which Mathics3 \
           is being run, if such a name is defined.
     </dl>
@@ -287,7 +286,7 @@ class MaxLengthIntStringConversion(Predefined):
           string value is too large, then the middle of the integer contains \
           an indication of the number of digits elided inside << >>.
 
-          If '$MaxLengthIntStringConversion' is set to 0, there is no \
+          If '\\$MaxLengthIntStringConversion' is set to 0, there is no \
           bound. Aside from 0, 640 is the smallest value allowed.
 
           The initial value can be set via environment variable \
@@ -303,7 +302,7 @@ class MaxLengthIntStringConversion(Predefined):
     the number of digits allows when converting a large integer into \
     a string.
 
-    Show the default value of '$MaxLengthIntStringConversion':
+    Show the default value of '\\$MaxLengthIntStringConversion':
     >> $MaxLengthIntStringConversion
      = ...
 
@@ -311,14 +310,14 @@ class MaxLengthIntStringConversion(Predefined):
     >> 500! //ToString//StringLength
      = ...
 
-    We first set '$MaxLengthIntStringConversion' to the smallest value allowed, \
+    We first set '\\$MaxLengthIntStringConversion' to the smallest value allowed, \
     so that we can see the truncation of digits in the middle:
     >> $MaxLengthIntStringConversion = 640
     ## Pyston 2.3.5 returns 0 while CPython returns 640
     ## Therefore output testing below is generic.
      = ...
 
-    Note that setting '$MaxLengthIntStringConversion' has an effect only on Python 3.11 and later;
+    Note that setting '\\$MaxLengthIntStringConversion' has an effect only on Python 3.11 and later;
     Pyston 2.x however ignores this.
 
     Now when we print the string value of 500! and Pyston 2.x is not used, \
@@ -397,7 +396,7 @@ class Packages(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Packages.html</url>
 
     <dl>
-      <dt>'$Packages'
+      <dt>'\\$Packages'
       <dd>returns a list of the contexts corresponding to all packages which have \
           been loaded into Mathics.
     </dl>
@@ -418,7 +417,7 @@ class ParentProcessID(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/$ParentProcessID.html</url>
 
     <dl>
-      <dt>'$ParentProcesID'
+      <dt>'\$ParentProcesID'
       <dd>gives the ID assigned to the process which invokes Mathics3 by the operating \
           system under which it is run.
     </dl>
@@ -428,8 +427,8 @@ class ParentProcessID(Predefined):
 
     """
 
-    summary_text = "id of the process that invoked Mathics"
     name = "$ParentProcessID"
+    summary_text = "get process id of the process that invoked Mathics3"
 
     def evaluate(self, evaluation: Evaluation) -> Integer:
         return Integer(os.getppid())
@@ -440,7 +439,7 @@ class ProcessID(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ProcessID.html</url>
 
     <dl>
-      <dt>'$ProcessID'
+      <dt>'\$ProcessID'
       <dd>gives the ID assigned to the Mathics3 process by the operating system under \
           which it is run.
     </dl>
@@ -449,8 +448,8 @@ class ProcessID(Predefined):
      = ...
     """
 
-    summary_text = "id of the Mathics process"
     name = "$ProcessID"
+    summary_text = "get process id of the Mathics process"
 
     def evaluate(self, evaluation: Evaluation) -> Integer:
         return Integer(os.getpid())
@@ -463,7 +462,7 @@ class ProcessorType(Predefined):
     https://reference.wolfram.com/language/ref/ProcessorType.html</url>
 
     <dl>
-      <dt>'$ProcessorType'
+      <dt>'\\$ProcessorType'
       <dd>gives a string giving the architecture of the processor on which \
           Mathics3 is being run.
     </dl>
@@ -487,7 +486,7 @@ class PythonImplementation(Predefined):
     ## <url>:PythonImplementation native symbol:</url>
 
     <dl>
-    <dt>'$PythonImplementation'
+    <dt>'\$PythonImplementation'
         <dd>gives a string indication the Python implementation used to run Mathics3.
     </dl>
 
@@ -510,7 +509,7 @@ class Run(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Run.html</url>
 
     <dl>
-      <dt>'Run[$command$]'
+      <dt>'Run'[$command$]
       <dd>runs command as an external operating system command, returning the exit \
          code returned from running the system command.
     </dl>
@@ -532,7 +531,7 @@ class ScriptCommandLine(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ScriptCommandLine.html</url>
 
     <dl>
-      <dt>'$ScriptCommandLine'
+      <dt>'\\$ScriptCommandLine'
       <dd>is a list of string arguments when running the kernel is script mode.
     </dl>
 
@@ -559,10 +558,10 @@ class SetEnvironment(Builtin):
      <url>:WMA link:https://reference.wolfram.com/language/ref/SetEnvironment.html</url>
 
      <dl>
-       <dt>'SetEnvironment["$var$" -> $value"]'
+       <dt>'SetEnvironment'["$var$" -> "$value$"]
        <dd>sets the value of an operating system environment variable.
 
-       <dt>'SetEnvironment[{"$var$" -> $value", ...}]'
+       <dt>'SetEnvironment'[{"$var$" -> "$value$", ...}]
        <dd>sets more than one environment variable.
      </dl>
 
@@ -682,7 +681,7 @@ class SystemID(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/SystemID.html</url>
 
     <dl>
-       <dt>'$SystemID'
+       <dt>'\$SystemID'
        <dd>is a short string that identifies the type of computer system on which the \Mathics is being run.
     </dl>
 
@@ -702,7 +701,7 @@ class SystemWordLength(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/SystemWordLength.html</url>
 
     <dl>
-      <dt>'$SystemWordLength'
+      <dt>'\$SystemWordLength'
       <dd>gives the effective number of bits in raw machine words on the computer \
           system where Mathics3 is running.
     </dl>
@@ -729,7 +728,7 @@ class UserName(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/UserName.html</url>
 
     <dl>
-      <dt>$UserName
+      <dt>\$UserName
       <dd>returns the login name, according to the operative system, of the user that started the current
       \Mathics session.
     </dl>
@@ -776,7 +775,7 @@ class VersionNumber(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/VersionNumber.html</url>
 
     <dl>
-      <dt>'$VersionNumber'
+      <dt>'\$VersionNumber'
       <dd>is a real number which gives the current Wolfram Language version that \Mathics tries to be compatible with.
     </dl>
 
@@ -801,7 +800,7 @@ if have_psutil:
         <url>:WMA link:https://reference.wolfram.com/language/ref/SystemMemory.html</url>
 
         <dl>
-          <dt>'$SystemMemory'
+          <dt>'\\$SystemMemory'
           <dd>Returns the total amount of physical memory.
         </dl>
 
@@ -828,7 +827,7 @@ if have_psutil:
         >> MemoryAvailable[]
          = ...
 
-        The relationship between $SystemMemory, MemoryAvailable, and MemoryInUse:
+        The relationship between \\$SystemMemory, MemoryAvailable, and MemoryInUse:
         >> $SystemMemory > MemoryAvailable[] > MemoryInUse[]
          = True
         """

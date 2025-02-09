@@ -47,20 +47,19 @@ class Quantile(Builtin):
 
     Quantile is also known as value at risk (VaR) or fractile.
     <dl>
-      <dt>'Quantile[$list$, $q$]'
+      <dt>'Quantile'[$list$, $q$]
       <dd>returns the $q$th quantile of $list$.
 
-      <dt>'Quantile[$list$, $q$, {{$a$,$b$}, {$c$,$d$}}]'
+      <dt>'Quantile'[$list$, $q$, {{$a,b$}, {$c,d$}}]
       <dd>uses the quantile definition specified by parameters $a$, $b$, $c$, $d$.
 
-      <dt>For a list of length $n$:
-      'Quantile[$list$, $q$, {{$a$,$b$}, {$c$,$d$}}]'
-      depends on $x$=$a$+($n$+$b$)$q$.
+      For a list of length $n$, 'Quantile'[$list$, $q$, {{$a ,b$}, {$c, d$}}] depends \
+      on $x=a+(n+b)q$.
 
-      If $x$ is an integer, the result is '$s$[[$x$]]', where $s$='Sort[list,Less]'.
+      If $x$ is an integer, the result is $s[[x]]$, where $s$='Sort[list,Less]'.
 
       Otherwise, the result is:
-      's[[Floor[x]]]+(s[[Ceiling[x]]]-s[[Floor[x]]])(c+dFractionalPart[x])',
+      's[[Floor[x]]] + (s[[Ceiling[x]]] - s[[Floor[x]]])(c + d FractionalPart[x])',
       with the indices taken to be 1 or n if they are out of range.
 
       The default choice of parameters is '{{0,0},{1,0}}'.
@@ -177,7 +176,7 @@ class Quartiles(Builtin):
     :WMA link:
     https://reference.wolfram.com/language/ref/Quartiles.html</url>)
     <dl>
-      <dt>'Quartiles[$list$]'
+      <dt>'Quartiles'[$list$]
       <dd>returns the 1/4, 1/2, and 3/4 quantiles of $list$.
     </dl>
 
@@ -197,7 +196,7 @@ class RankedMax(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/RankedMax.html</url>
 
     <dl>
-      <dt>'RankedMax[$list$, $n$]'
+      <dt>'RankedMax'[$list$, $n$]
       <dd>returns the $n$th largest element of $list$ (with $n$ = 1 yielding the largest element,
       $n$ = 2 yielding the second largest element, and so on).
     </dl>
@@ -234,7 +233,7 @@ class RankedMin(Builtin):
     https://reference.wolfram.com/language/ref/RankedMin.html</url>
 
     <dl>
-      <dt>'RankedMin[$list$, $n$]'
+      <dt>'RankedMin'[$list$, $n$]
       <dd>returns the $n$th smallest element of $list$ (with \
           $n$ = 1 yielding the smallest element, $n$ = 2 yielding \
           the second smallest element, and so on).
@@ -269,20 +268,31 @@ class ReverseSort(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ReverseSort.html</url>
 
     <dl>
-      <dt>'ReverseSort[$list$]'
+      <dt>'ReverseSort'[$list$]
       <dd>sorts $list$ (or the elements of any other expression) according \
           to reverse canonical ordering.
 
-      <dt>'ReverseSort[$list$, $p$]'
+      <dt>'ReverseSort'[$list$, $p$]
       <dd>sorts using $p$ to determine the order of two elements.
     </dl>
 
     >> ReverseSort[{c, b, d, a}]
      = {d, c, b, a}
+
+    You can specify a binary comparison function:
+    >> ReverseSort[{1, 2, 0, 3}, Less]
+     = {3, 2, 1, 0}
+
+    Using 'Greater' for the above, reverses the reverse sort:
+    >> ReverseSort[{1, 2, 0, 3}, Greater]
+     = {0, 1, 2, 3}
+
+    See also <url>:Sort:
+    /doc/reference-of-built-in-symbols/descriptive-statistics/order-statistics/sort/</url>.
     """
 
     attributes = A_PROTECTED
-    summary_text = "reverse sort"
+    summary_text = "sort in reverse order"
 
     rules = {
         "ReverseSort[list_]": "Reverse[Sort[list]]",
@@ -295,11 +305,11 @@ class Sort(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Sort.html</url>
 
     <dl>
-      <dt>'Sort[$list$]'
+      <dt>'Sort'[$list$]
       <dd>sorts $list$ (or the elements of any other expression) according \
           to canonical ordering.
 
-      <dt>'Sort[$list$, $p$]'
+      <dt>'Sort'[$list$, $p$]
       <dd>sorts using $p$ to determine the order of two elements.
     </dl>
 
@@ -318,10 +328,13 @@ class Sort(Builtin):
      = {2 + c_, 1 + b__}
     >> Sort[{x_ + n_*y_, x_ + y_}, PatternsOrderedQ]
      = {x_ + n_ y_, x_ + y_}
+
+    See also <url>:ReverseSort:
+    /doc/reference-of-built-in-symbols/descriptive-statistics/order-statistics/reversesort/</url>.
     """
 
     attributes = A_PROTECTED
-    summary_text = "sort lexicographically or with any comparison function"
+    summary_text = "sort lexicographically or with a comparison function"
 
     def eval(self, list, evaluation: Evaluation):
         "Sort[list_]"
@@ -360,19 +373,20 @@ class TakeLargest(_RankedTakeLargest):
     https://reference.wolfram.com/language/ref/TakeLargest.html</url>
 
     <dl>
-      <dt>'TakeLargest[$list$, $f$, $n$]'
+      <dt>'TakeLargest'[$list$, $f$, $n$]
       <dd>returns the a sorted list of the $n$ largest items in $list$.
     </dl>
 
+    List the largest two numbers of a list:
     >> TakeLargest[{100, -1, 50, 10}, 2]
      = {100, 50}
 
-    None, Null, Indeterminate and expressions with head Missing are ignored
+    None, Null, Indeterminate and expressions with head Missing are ignored \
     by default:
     >> TakeLargest[{-8, 150, Missing[abc]}, 2]
      = {150, -8}
 
-    You may specify which items are ignored using the option ExcludedForms:
+    You may specify which items are ignored using the option 'ExcludedForms':
     >> TakeLargest[{-8, 150, Missing[abc]}, 2, ExcludedForms -> {}]
      = {Missing[abc], 150}
     """
@@ -390,14 +404,17 @@ class TakeSmallest(_RankedTakeSmallest):
     <url>:WMA link:https://reference.wolfram.com/language/ref/TakeSmallest.html</url>
 
     <dl>
-      <dt>'TakeSmallest[$list$, $n$]'
+      <dt>'TakeSmallest'[$list$, $n$]
       <dd>returns the a sorted list of the $n$ smallest items in $list$.
     </dl>
 
-    For details on how to use the ExcludedForms option, see TakeLargest[].
-
+    List the smallest two numbers of a list:
     >> TakeSmallest[{100, -1, 50, 10}, 2]
      = {-1, 10}
+
+    For details on how to use the 'ExcludedForms' option, see <url>
+    :TakeLargest:
+    /doc/reference-of-built-in-symbols/descriptive-statistics/order-statistics/takelargest/</url>.
     """
 
     attributes = A_PROTECTED

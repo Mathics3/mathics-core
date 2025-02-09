@@ -19,7 +19,7 @@ class CentralMoment(Builtin):
     https://reference.wolfram.com/language/ref/CentralMoment.html</url>)
 
     <dl>
-      <dt>'CentralMoment[$list$, $r$]'
+      <dt>'CentralMoment'[$list$, $r$]
       <dd>gives the the $r$th central moment (i.e. the $r$th moment about the mean) of $list$.
     </dl>
 
@@ -36,7 +36,7 @@ class CentralMoment(Builtin):
 # class Moment(SympyFunction):
 #     """
 #     <dl>
-#       <dt>'Moment[$sample_List$, $r$]'
+#       <dt>'Moment'[$sample_List$, $r$]
 #       <dd>gives the the $r$th sample moment of the elements of $list$.
 #     </dl>
 

@@ -2,7 +2,7 @@
 """
 Definition Attributes
 
-While a definition like 'cube[$x_$] = $x$^3' gives a way to specify \
+While a definition like 'cube[x_] = x^3' gives a way to specify \
 <em>values</em> of a function, <em>attributes</em> allow a way to \
 specify general properties of functions and symbols. This is \
 independent of the parameters they take and the values they produce.
@@ -51,7 +51,7 @@ class Attributes(Builtin):
       <dt>'Attributes'["$string$"]
       <dd>returns the attributes of 'Symbol'["$string$"].
 
-      <dt>'Attributes'[$symbol$] = {$attr1$, $attr2$}
+      <dt>'Attributes'[$symbol$] = {$attr_1$, $attr_2$}
       <dd>sets the attributes of $symbol$, replacing any existing attributes.
     </dl>
 
@@ -443,7 +443,7 @@ class OneIdentity(Predefined):
 
     <dl>
       <dt>'OneIdentity'
-      <dd>is an attribute assigned to a symbol, say $f$, indicating that '$f$[$x$]', $f$[$f$[$x$]], etc. are all \
+      <dd>is an attribute assigned to a symbol, say $f$, indicating that $f[x]$, $f[f[x]]$, etc. are all \
           equivalent to $x$ in pattern matching.
     </dl>
 
@@ -478,7 +478,7 @@ class Orderless(Predefined):
       <dt>'Orderless'
       <dd>is an attribute that can be assigned to a symbol $f$ to \
         indicate that the elements $ei$ in expressions of the form \
-        $f$[$e1$, $e2$, ...] should automatically be sorted into \
+        $f$[$e_1$, $e_2$, ...] should automatically be sorted into \
         canonical order. This property is accounted for in pattern \
         matching.
     </dl>
@@ -510,10 +510,10 @@ class Protect(Builtin):
     https://reference.wolfram.com/language/ref/Protect.html</url>
 
     <dl>
-      <dt>'Protect'[$s1$, $s2$, ...]
+      <dt>'Protect'[$s_1$, $s_2$, ...]
       <dd>sets the attribute 'Protected' for the symbols $si$.
 
-      <dt>'Protect'[$str1$, $str2$, ...]
+      <dt>'Protect'[$str_1$, $str_2$, ...]
       <dd>protects all symbols whose names textually match $stri$.
     </dl>
 
@@ -743,7 +743,7 @@ class Unprotect(Builtin):
     https://reference.wolfram.com/language/ref/Unprotect.html</url>
 
     <dl>
-      <dt>'Unprotect'[$s1$, $s2$, ...]
+      <dt>'Unprotect'[$s_1$, $s_2$, ...]
       <dd>removes the attribute 'Protected' for the symbols $si$.
 
       <dt>'Unprotect'[$str$]

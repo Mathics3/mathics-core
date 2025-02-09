@@ -244,11 +244,11 @@ class ClusteringComponents(_Cluster):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ClusteringComponents.html</url>
 
     <dl>
-      <dt>'ClusteringComponents[$list$]'
+      <dt>'ClusteringComponents'[$list$]
       <dd>forms clusters from $list$ and returns a list of cluster indices, in which each
         element shows the index of the cluster in which the corresponding element in $list$
         ended up.
-      <dt>'ClusteringComponents[$list$, $k$]'
+      <dt>'ClusteringComponents'[$list$, $k$]
       <dd>forms $k$ clusters from $list$ and returns a list of cluster indices, in which
         each element shows the index of the cluster in which the corresponding element in
         $list$ ended up.
@@ -293,10 +293,10 @@ class FindClusters(_Cluster):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FindClusters.html</url>
 
     <dl>
-      <dt>'FindClusters[$list$]'
+      <dt>'FindClusters'[$list$]
       <dd>returns a list of clusters formed from the elements of $list$. The number of cluster is determined
         automatically.
-      <dt>'FindClusters[$list$, $k$]'
+      <dt>'FindClusters'[$list$, $k$]
       <dd>returns a list of $k$ clusters formed from the elements of $list$.
     </dl>
 
@@ -374,20 +374,20 @@ class Nearest(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Nearest.html</url>
 
     <dl>
-      <dt>'Nearest[$list$, $x$]'
+      <dt>'Nearest'[$list$, $x$]
       <dd>returns the one item in $list$ that is nearest to $x$.
 
-      <dt>'Nearest[$list$, $x$, $n$]'
+      <dt>'Nearest'[$list$, $x$, $n$]
       <dd>returns the $n$ nearest items.
 
-      <dt>'Nearest[$list$, $x$, {$n$, $r$}]'
+      <dt>'Nearest'[$list$, $x$, {$n$, $r$}]
       <dd>returns up to $n$ nearest items that are not farther from $x$ than $r$.
 
-      <dt>'Nearest[{$p1$ -> $q1$, $p2$ -> $q2$, ...}, $x$]'
-      <dd>returns $q1$, $q2$, ... but measures the distances using $p1$, $p2$, ...
+      <dt>'Nearest'[{$p_1$ -> $q_1$, $p_2$ -> $q_2$, ...}, $x$]
+      <dd>returns $q_1$, $q_2$, ... but measures the distances using $p_1$, $p_2$, ...
 
-      <dt>'Nearest[{$p1$, $p2$, ...} -> {$q1$, $q2$, ...}, $x$]'
-      <dd>returns $q1$, $q2$, ... but measures the distances using $p1$, $p2$, ...
+      <dt>'Nearest'[{$p_1$, $p_2$, ...} -> {$q_1$, $q_2$, ...}, $x$]
+      <dd>returns $q_1$, $q_2$, ... but measures the distances using $p_1$, $p_2$, ...
     </dl>
 
     >> Nearest[{5, 2.5, 10, 11, 15, 8.5, 14}, 12]

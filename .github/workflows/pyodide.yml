@@ -55,12 +55,12 @@ jobs:
           pip install "setuptools>=70.0.0" PyYAML click packaging pytest
 
           # We can comment out after next Mathics-Scanner release
-          git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
+          # git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
           # git clone --single-branch --branch operator-refactor-part1.5 https://github.com/Mathics3/mathics-scanner.git
-          cd mathics-scanner/
-          pip install --no-build-isolation -e .
-          cd ..
+          # cd mathics-scanner/
+          # pip install --no-build-isolation -e .
+          # cd ..
 
-          make mathics/data/op-tables.json mathics/data/operator-tables.json
           pip install --no-build-isolation -e .
+          make mathics/data/op-tables.json mathics/data/operator-tables.json
           make -j3 check
