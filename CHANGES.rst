@@ -4,7 +4,8 @@ CHANGES
 New Builtins
 ++++++++++++
 
-* ``$SessionID
+* ``$SessionID``
+* ``BinaryReadList``
 
 8.0.1
 -----
