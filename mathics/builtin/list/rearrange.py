@@ -1424,7 +1424,12 @@ class Union(_SetOperation):
      = {1, 2, 2, 3, 4}
     """
 
-    attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED | A_READ_PROTECTED
+    # FIXME: WMA add the A_FLAT attribute, but that messes up function parsing.
+    # In particular:
+    #   Union[{1, -1, 2}, {-2, 3}, SameTest -> (Abs[#1] == Abs[#2] &)]
+    # is parsed/passed as
+    #   Union[{1, -1, 2}, SameTest -> (Abs[#1] == Abs[#2] &)]
+    attributes = A_ONE_IDENTITY | A_PROTECTED | A_READ_PROTECTED
     summary_text = "union distinct elements of list(s) or association(s)"
     _operation = "union"
 
