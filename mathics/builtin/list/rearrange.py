@@ -12,7 +12,12 @@ from itertools import chain
 from typing import Callable, Optional
 
 from mathics.core.atoms import Integer, Integer0, Integer1, Number
-from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
+from mathics.core.attributes import (
+    A_FLAT,
+    A_ONE_IDENTITY,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+)
 from mathics.core.builtin import Builtin, MessageException
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
@@ -1419,6 +1424,7 @@ class Union(_SetOperation):
      = {1, 2, 2, 3, 4}
     """
 
+    attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED | A_READ_PROTECTED
     summary_text = "enumerate all distinct elements in a list"
     _operation = "union"
 
