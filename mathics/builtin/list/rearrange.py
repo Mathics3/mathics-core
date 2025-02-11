@@ -435,7 +435,7 @@ class _SetOperation(Builtin, ABC):
         return self.eval(lists, evaluation, SymbolSameQ)
 
     def eval(self, lists, evaluation, sametest):
-        "%(name)s[lists__, SameTest->sametest_:SameQ]"
+        "%(name)s[lists__, SameTest->sametest_]"
 
         seq = lists.get_sequence()
 
@@ -1410,13 +1410,15 @@ class Union(_SetOperation):
     >> Union[{a -> b}, {c -> d}]
      = {a -> b, c -> d}
 
-    A union of one item is the item, however note that the list is sorted:
-    >> Union[{5, 1, 3, 7, 1, 8, 3}]
-     = {1, 3, 5, 7, 8}
-
+    A union of one item is the item. Note that the list is sorted:
     >> Union[{c, b, a}]
      = {a, b, c}
 
+    As usual, 'Union' removes duplicate values:
+    >> Union[{5, 1, 3, 7, 1, 8, 3}]
+     = {1, 3, 5, 7, 8}
+
+    'Union' using a custom test which compares using the last coordinate of each element list:
     >> Union[{{a, 1}, {b, 2}}, {{c, 1}, {d, 3}}, SameTest->(SameQ[Last[#1],Last[#2]]&)]
      = {{b, 2}, {c, 1}, {d, 3}}
 
