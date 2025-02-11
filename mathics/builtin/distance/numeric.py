@@ -48,11 +48,11 @@ class BrayCurtisDistance(Builtin):
     https://reference.wolfram.com/language/ref/BrayCurtisDistance.html</url>)
 
     <dl>
-      <dt>'BrayCurtisDistance[$u$, $v$]'
+      <dt>'BrayCurtisDistance'[$u$, $v$]
        <dd>returns the Bray-Curtis distance between $u$ and $v$.
     </dl>
 
-    The Bray-Curtis distance is equivalent to Total[Abs[u-v]]/Total[Abs[u+v]].
+    The Bray-Curtis distance is equivalent to 'Total[Abs[u-v]]/Total[Abs[u+v]]'.
     >> BrayCurtisDistance[-7, 5]
      = 6
 
@@ -85,7 +85,7 @@ class CanberraDistance(Builtin):
     https://reference.wolfram.com/language/ref/CanberraDistance.html</url>)
 
     <dl>
-      <dt>'CanberraDistance[$u$, $v$]'
+      <dt>'CanberraDistance'[$u$, $v$]
        <dd>returns the canberra distance between $u$ and $v$, which is a weighted version of the Manhattan distance.
     </dl>
 
@@ -122,7 +122,7 @@ class ChessboardDistance(Builtin):
     https://reference.wolfram.com/language/ref/ChessboardDistance.html</url>)
 
     <dl>
-      <dt>'ChessboardDistance[$u$, $v$]'
+      <dt>'ChessboardDistance'[$u$, $v$]
       <dd>returns the chessboard distance (also known as Chebyshev distance) between $u$ and $v$, which is the number of moves a king on a chessboard needs to get from square $u$ to square $v$.
     </dl>
 
@@ -150,11 +150,11 @@ class CosineDistance(Builtin):
     https://reference.wolfram.com/language/ref/CosineDistance.html</url>)
 
     <dl>
-      <dt>'CosineDistance[$u$, $v$]'
+      <dt>'CosineDistance'[$u$, $v$]
       <dd>returns the angular cosine distance between vectors $u$ and $v$.
     </dl>
 
-    The cosine distance is equivalent to 1 - ($u$.Conjugate[$v$]) / ('Norm[$u$] Norm[$v$]').
+    The cosine distance is equivalent to $1 - (u.Conjugate[v]) / (Norm[u] Norm[v])$.
 
     >> N[CosineDistance[{7, 9}, {71, 89}]]
      = 0.0000759646
@@ -229,7 +229,7 @@ class EuclideanDistance(Builtin):
     https://reference.wolfram.com/language/ref/EuclideanDistance.html</url>)
 
     <dl>
-      <dt>'EuclideanDistance[$u$, $v$]'
+      <dt>'EuclideanDistance'[$u$, $v$]
       <dd>returns the euclidean distance between $u$ and $v$.
     </dl>
 
@@ -262,7 +262,7 @@ class ManhattanDistance(Builtin):
     https://reference.wolfram.com/language/ref/ManhattanDistance.html</url>)
 
     <dl>
-      <dt>'ManhattanDistance[$u$, $v$]'
+      <dt>'ManhattanDistance'[$u$, $v$]
       <dd>returns the Manhattan distance between $u$ and $v$, which is the number of horizontal or vertical moves in the gridlike Manhattan city layout to get from $u$ to $v$.
     </dl>
 
@@ -289,7 +289,7 @@ class SquaredEuclideanDistance(Builtin):
     https://reference.wolfram.com/language/ref/SquaredEuclideanDistance.html</url>
 
     <dl>
-      <dt>'SquaredEuclideanDistance[$u$, $v$]'
+      <dt>'SquaredEuclideanDistance'[$u$, $v$]
       <dd>returns squared the euclidean distance between $u$ and $v$.
     </dl>
 
@@ -300,7 +300,7 @@ class SquaredEuclideanDistance(Builtin):
      = 8
     """
 
-    summary_text = "square of the euclidean distance"
+    summary_text = "compute square of the Euclidean distance"
 
     def eval(self, u, v, evaluation: Evaluation):
         "SquaredEuclideanDistance[u_, v_]"

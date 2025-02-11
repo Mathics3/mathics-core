@@ -51,7 +51,7 @@ class BaseForm(FormBaseClass):
       https://reference.wolfram.com/language/ref/BaseForm.html</url>
 
     <dl>
-      <dt>'BaseForm[$expr$, $n$]'
+      <dt>'BaseForm'[$expr$, $n$]
       <dd>prints numbers in $expr$ in base $n$.
     </dl>
 
@@ -109,7 +109,7 @@ class FullForm(FormBaseClass):
       https://reference.wolfram.com/language/ref/FullForm.html</url>
 
     <dl>
-      <dt>'FullForm[$expr$]'
+      <dt>'FullForm'[$expr$]
       <dd>displays the underlying form of $expr$.
     </dl>
 
@@ -133,7 +133,7 @@ class MathMLForm(FormBaseClass):
       https://reference.wolfram.com/language/ref/MathMLForm.html</url>
 
     <dl>
-      <dt>'MathMLForm[$expr$]'
+      <dt>'MathMLForm'[$expr$]
       <dd>displays $expr$ as a MathML expression.
     </dl>
 
@@ -170,7 +170,7 @@ class InputForm(FormBaseClass):
       https://reference.wolfram.com/language/ref/InputForm.html</url>
 
     <dl>
-      <dt>'InputForm[$expr$]'
+      <dt>'InputForm'[$expr$]
       <dd>displays $expr$ in an unambiguous form suitable for input.
     </dl>
 
@@ -320,10 +320,10 @@ class NumberForm(_NumberForm):
       https://reference.wolfram.com/language/ref/NumberForm.html</url>
 
     <dl>
-      <dt>'NumberForm[$expr$, $n$]'
+      <dt>'NumberForm'[$expr$, $n$]
       <dd>prints a real number $expr$ with $n$-digits of precision.
 
-      <dt>'NumberForm[$expr$, {$n$, $f$}]'
+      <dt>'NumberForm'[$expr$, {$n$, $f$}]
       <dd>prints with $n$-digits and $f$ digits to the right of the decimal point.
     </dl>
 
@@ -473,7 +473,7 @@ class OutputForm(FormBaseClass):
       https://reference.wolfram.com/language/ref/OutputForm.html</url>
 
     <dl>
-      <dt>'OutputForm[$expr$]'
+      <dt>'OutputForm'[$expr$]
       <dd>displays $expr$ in a plain-text form.
     </dl>
 
@@ -502,7 +502,7 @@ class OutputForm(FormBaseClass):
 class PythonForm(FormBaseClass):
     """
     <dl>
-      <dt>'PythonForm[$expr$]'
+      <dt>'PythonForm'[$expr$]
       <dd>returns an approximate equivalent of $expr$ in Python, when that is possible. We assume
       that Python has SymPy imported. No explicit import will be include in the result.
     </dl>
@@ -545,7 +545,7 @@ class PythonForm(FormBaseClass):
 class SympyForm(FormBaseClass):
     """
     <dl>
-      <dt>'SympyForm[$expr$]'
+      <dt>'SympyForm'[$expr$]
       <dd>returns an Sympy $expr$ in Python. Sympy is used internally
       to implement a number of Mathics functions, like Simplify.
     </dl>
@@ -581,7 +581,7 @@ class StandardForm(FormBaseClass):
       https://reference.wolfram.com/language/ref/StandardForm.html</url>
 
     <dl>
-      <dt>'StandardForm[$expr$]'
+      <dt>'StandardForm'[$expr$]
       <dd>displays $expr$ in the default form.
     </dl>
 
@@ -605,7 +605,7 @@ class TraditionalForm(FormBaseClass):
       https://reference.wolfram.com/language/ref/TraditionalForm.html</url>
 
     <dl>
-      <dt>'TraditionalForm[$expr$]'
+      <dt>'TraditionalForm'[$expr$]
       <dd>displays $expr$ in a format similar to the traditional mathematical notation, where
            function evaluations are represented by brackets instead of square brackets.
     </dl>
@@ -628,7 +628,7 @@ class TeXForm(FormBaseClass):
       https://reference.wolfram.com/language/ref/TeXForm.html</url>
 
     <dl>
-      <dt>'TeXForm[$expr$]'
+      <dt>'TeXForm'[$expr$]
       <dd>displays $expr$ using TeX math mode commands.
     </dl>
 
@@ -652,7 +652,7 @@ class TableForm(FormBaseClass):
       https://reference.wolfram.com/language/ref/TableForm.html</url>
 
     <dl>
-      <dt>'TableForm[$expr$]'
+      <dt>'TableForm'[$expr$]
       <dd>displays $expr$ as a table.
     </dl>
 
@@ -702,7 +702,7 @@ class MatrixForm(TableForm):
       https://reference.wolfram.com/language/ref/MatrixForm.html</url>
 
     <dl>
-      <dt>'MatrixForm[$m$]'
+      <dt>'MatrixForm'[$m$]
       <dd>displays a matrix $m$, hiding the underlying list structure.
     </dl>
 

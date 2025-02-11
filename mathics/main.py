@@ -185,8 +185,9 @@ class TerminalShell(MathicsLineFeeder):
         return input(prompt)
 
     def print_result(self, result, no_out_prompt=False, strict_wl_output=False):
-        if result is None:
-            # FIXME decide what to do here
+        if result is None or result.last_eval is SymbolNull:
+            # Following WMA CLI, if the result is `SymbolNull`, just print an empty line.
+            print("")
             return
 
         form = result.form

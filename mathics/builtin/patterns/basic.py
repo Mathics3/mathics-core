@@ -55,7 +55,7 @@ class Blank(_Blank):
       <dt>'Blank[]'
       <dt>'_'
       <dd>represents any single expression in a pattern.
-      <dt>'Blank[$h$]'
+      <dt>'Blank'[$h$]
       <dt>'_$h$'
       <dd>represents any expression with head $h$.
     </dl>
@@ -153,7 +153,7 @@ class BlankSequence(_Blank):
       <dt>'__'
       <dd>represents any non-empty sequence of expression elements in \
         a pattern.
-      <dt>'BlankSequence[$h$]'
+      <dt>'BlankSequence'[$h$]
       <dt>'__$h$'
       <dd>represents any sequence of elements, all of which have head $h$.
     </dl>

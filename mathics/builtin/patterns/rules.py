@@ -99,10 +99,10 @@ class DispatchAtom(AtomBuiltin):
     """
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/DispatchAtom.html</url>
+    https://reference.wolfram.com/language/ref/Dispatch.html</url>
 
     <dl>
-      <dt>'Dispatch[$rulelist$]'
+      <dt>'Dispatch'[$rulelist$]
       <dd>Introduced for compatibility. Currently, it just return $rulelist$. \
           In the future, it should return an optimized DispatchRules atom, \
           containing an optimized set of rules.
@@ -135,7 +135,7 @@ class DispatchAtom(AtomBuiltin):
         self, rules: ListExpression, evaluation: Evaluation
     ) -> OptionalType[BaseElement]:
         """Dispatch[rules_List]"""
-        result = eval_dispatch_atom(rules, evaluation)
+        result = eval_dispatch_atom(rules.elements, evaluation)
         return result
 
     def eval(
@@ -174,16 +174,16 @@ class Replace(Builtin):
     https://reference.wolfram.com/language/ref/Replace.html</url>
 
     <dl>
-      <dt>'Replace[$expr$, $x$ -> $y$]'
+      <dt>'Replace'[$expr$, $x$ -> $y$]
       <dd>yields the result of replacing $expr$ with $y$ if it \
         matches the pattern $x$.
-      <dt>'Replace[$expr$, $x$ -> $y$, $levelspec$]'
+      <dt>'Replace'[$expr$, $x$ -> $y$, $levelspec$]
       <dd>replaces only subexpressions at levels specified through \
         $levelspec$.
-      <dt>'Replace[$expr$, {$x$ -> $y$, ...}]'
+      <dt>'Replace'[$expr$, {$x$ -> $y$, ...}]
       <dd>performs replacement with multiple rules, yielding a \
         single result expression.
-      <dt>'Replace[$expr$, {{$a$ -> $b$, ...}, {$c$ -> $d$, ...}, ...}]'
+      <dt>'Replace'[$expr$, {{$a$ -> $b$, ...}, {$c$ -> $d$, ...}, ...}]
       <dd>returns a list containing the result of performing each \
         set of replacements.
     </dl>
@@ -254,7 +254,7 @@ class ReplaceAll(InfixOperator):
     https://reference.wolfram.com/language/ref/ReplaceAll.html</url>
 
     <dl>
-      <dt>'ReplaceAll[$expr$, $x$ -> $y$]'
+      <dt>'ReplaceAll'[$expr$, $x$ -> $y$]
       <dt>'$expr$ /. $x$ -> $y$'
       <dd>yields the result of replacing all subexpressions of \
         $expr$ matching the pattern $x$ with $y$.
@@ -322,10 +322,10 @@ class ReplaceList(Builtin):
     https://reference.wolfram.com/language/ref/ReplaceList.html</url>
 
     <dl>
-      <dt>'ReplaceList[$expr$, $rules$]'
+      <dt>'ReplaceList'[$expr$, $rules$]
       <dd>returns a list of all possible results when applying $rules$ \
         to $expr$.
-      <dt>'ReplaceList[$expr$, $rules$, $n$]'
+      <dt>'ReplaceList'[$expr$, $rules$, $n$]
       <dd>returns a list of at most $n$ results when applying $rules$ \
         to $expr$.
     </dl>
@@ -409,7 +409,7 @@ class ReplaceRepeated(InfixOperator):
     https://reference.wolfram.com/language/ref/ReplaceRepeated.html</url>
 
     <dl>
-      <dt>'ReplaceRepeated[$expr$, $x$ -> $y$]'
+      <dt>'ReplaceRepeated'[$expr$, $x$ -> $y$]
       <dt>'$expr$ //. $x$ -> $y$'
       <dd>repeatedly applies the rule '$x$ -> $y$' to $expr$ until
         the result no longer changes.
@@ -494,7 +494,7 @@ class Rule_(InfixOperator):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Rule_.html</url>
 
     <dl>
-      <dt>'Rule[$x$, $y$]'
+      <dt>'Rule'[$x$, $y$]
       <dt>'$x$ -> $y$'
       <dd>represents a rule replacing $x$ with $y$.
     </dl>
@@ -531,7 +531,7 @@ class RuleDelayed(InfixOperator):
     <url>:WMA link:https://reference.wolfram.com/language/ref/RuleDelayed.html</url>
 
     <dl>
-      <dt>'RuleDelayed[$x$, $y$]'
+      <dt>'RuleDelayed'[$x$, $y$]
       <dt>'$x$ :> $y$'
       <dd>represents a rule replacing $x$ with $y$, with $y$ held \
         unevaluated.

@@ -15,7 +15,7 @@ class Accumulate(Builtin):
     https://reference.wolfram.com/language/ref/Accumulate.html</url>
 
     <dl>
-      <dt>'Accumulate[$list$]'
+      <dt>'Accumulate'[$list$]
       <dd>accumulates the values of $list$, returning a new list.
     </dl>
 
@@ -32,16 +32,16 @@ class Total(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Total.html</url>
 
     <dl>
-      <dt>'Total[$list$]'
+      <dt>'Total'[$list$]
       <dd>adds all values in $list$.
 
-      <dt>'Total[$list$, $n$]'
+      <dt>'Total'[$list$, $n$]
       <dd>adds all values up to level $n$.
 
-      <dt>'Total[$list$, {$n$}]'
+      <dt>'Total'[$list$, {$n$}]
       <dd>totals only the values at level {$n$}.
 
-      <dt>'Total[$list$, {$n_1$, $n_2$}]'
+      <dt>'Total'[$list$, {$n_1$, $n_2$}]
       <dd>totals at levels {$n_1$, $n_2$}.
     </dl>
 

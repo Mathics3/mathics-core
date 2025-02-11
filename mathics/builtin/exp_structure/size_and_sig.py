@@ -43,7 +43,7 @@ class ByteCount(Builtin):
     https://reference.wolfram.com/language/ref/ByteCount.html</url>
 
     <dl>
-      <dt>'ByteCount[$expr$]'
+      <dt>'ByteCount'[$expr$]
       <dd>gives the internal memory space used by $expr$, in bytes.
     </dl>
 
@@ -66,15 +66,15 @@ class Hash(Builtin):
     (<url>:WMA link:https://reference.wolfram.com/language/ref/Hash.html</url>)
 
     <dl>
-      <dt>'Hash[$expr$]'
+      <dt>'Hash'[$expr$]
       <dd>returns an integer hash for the given $expr$.
 
-      <dt>'Hash[$expr$, $type$]'
+      <dt>'Hash'[$expr$, $type$]
       <dd>returns an integer hash of the specified $type$ for the given $expr$.
       <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", \
           "SHA256", "SHA384", and "SHA512".
 
-      <dt>'Hash[$expr$, $type$, $format$]'
+      <dt>'Hash'[$expr$, $type$, $format$]
       <dd>Returns the hash in the specified format.
     </dl>
 
@@ -147,7 +147,7 @@ class LeafCount(Builtin):
     https://reference.wolfram.com/language/ref/LeafCount.html</url>
 
     <dl>
-      <dt>'LeafCount[$expr$]'
+      <dt>'LeafCount'[$expr$]
       <dd>returns the total number of indivisible subexpressions in $expr$.
     </dl>
 

@@ -19,7 +19,7 @@ class Mean(Builtin):
     https://reference.wolfram.com/language/ref/Mean.html</url>
 
     <dl>
-    <dt>'Mean[$list$]'
+    <dt>'Mean'[$list$]
       <dd>returns the statistical mean of $list$.
     </dl>
 
@@ -46,7 +46,7 @@ class Median(Rectangular):
     https://reference.wolfram.com/language/ref/Median.html</url>
 
     <dl>
-      <dt>'Median[$list$]'
+      <dt>'Median'[$list$]
       <dd>returns the median of $list$.
     </dl>
 
