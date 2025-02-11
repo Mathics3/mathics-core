@@ -1425,7 +1425,7 @@ class Union(_SetOperation):
     """
 
     attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED | A_READ_PROTECTED
-    summary_text = "enumerate all distinct elements in a list"
+    summary_text = "union distinct elements of list(s) or association(s)"
     _operation = "union"
 
     def _elementwise(self, a, b, sameQ: Callable[..., bool]):
