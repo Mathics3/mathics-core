@@ -6,12 +6,18 @@ These functions reorder and rearrange lists.
 """
 
 import functools
+from abc import ABC
 from collections import defaultdict
 from itertools import chain
 from typing import Callable, Optional
 
 from mathics.core.atoms import Integer, Integer0, Integer1, Number
-from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
+from mathics.core.attributes import (
+    A_FLAT,
+    A_ONE_IDENTITY,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+)
 from mathics.core.builtin import Builtin, MessageException
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
@@ -19,7 +25,12 @@ from mathics.core.expression import Expression, structure
 from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolTrue
-from mathics.core.systemsymbols import SymbolMap, SymbolReverse, SymbolSplit
+from mathics.core.systemsymbols import (
+    SymbolMap,
+    SymbolReverse,
+    SymbolSameQ,
+    SymbolSplit,
+)
 from mathics.eval.parts import walk_levels
 
 
@@ -37,7 +48,7 @@ def _test_pair(test, a, b, evaluation, name):
 def _is_sameq(same_test):
     # System`SameQ is protected, so nobody should ever be able to change
     # it (see Set::wrsym). We just check for its name here thus.
-    return isinstance(same_test, Symbol) and same_test.get_name() == "System`SameQ"
+    return same_test is SymbolSameQ
 
 
 class _FastEquivalence:
@@ -394,7 +405,7 @@ class _Rotate(Builtin):
         return self._rotate(expr, py_cycles, evaluation)
 
 
-class _SetOperation(Builtin):
+class _SetOperation(Builtin, ABC):
     messages = {
         "heads": (
             "Heads `1` and `2` at positions `3` and `4` are expected " "to be the same."
@@ -419,8 +430,12 @@ class _SetOperation(Builtin):
                 result.append(a)
         return result
 
-    def eval(self, lists, evaluation, options={}):
-        "%(name)s[lists__, OptionsPattern[%(name)s]]"
+    def eval_empty(self, lists, evaluation):
+        "%(name)s[lists__]"
+        return self.eval(lists, evaluation, SymbolSameQ)
+
+    def eval(self, lists, evaluation, sametest):
+        "%(name)s[lists__, SameTest->sametest_]"
 
         seq = lists.get_sequence()
 
@@ -442,12 +457,11 @@ class _SetOperation(Builtin):
                 )
                 return
 
-        same_test = self.get_option(options, "SameTest", evaluation)
         operands = [li.elements for li in seq]
-        if not _is_sameq(same_test):
+        if not _is_sameq(sametest):
 
             def sameQ(a, b):
-                return _test_pair(same_test, a, b, evaluation, self.get_name())
+                return _test_pair(sametest, a, b, evaluation, self.get_name())
 
             operands = [self._remove_duplicates(op, sameQ) for op in operands]
             items = functools.reduce(
@@ -1388,15 +1402,23 @@ class Union(_SetOperation):
           will be sorted and each element will only occur once.
     </dl>
 
-    >> Union[{5, 1, 3, 7, 1, 8, 3}]
-     = {1, 3, 5, 7, 8}
-
+    A union of two lists:
     >> Union[{a, b, c}, {c, d, e}]
      = {a, b, c, d, e}
 
+    A union of two associations:
+    >> Union[{a -> b}, {c -> d}]
+     = {a -> b, c -> d}
+
+    A union of one item is the item. Note that the list is sorted:
     >> Union[{c, b, a}]
      = {a, b, c}
 
+    As usual, 'Union' removes duplicate values:
+    >> Union[{5, 1, 3, 7, 1, 8, 3}]
+     = {1, 3, 5, 7, 8}
+
+    'Union' using a custom test which compares using the last coordinate of each element list:
     >> Union[{{a, 1}, {b, 2}}, {{c, 1}, {d, 3}}, SameTest->(SameQ[Last[#1],Last[#2]]&)]
      = {{b, 2}, {c, 1}, {d, 3}}
 
@@ -1404,7 +1426,13 @@ class Union(_SetOperation):
      = {1, 2, 2, 3, 4}
     """
 
-    summary_text = "enumerate all distinct elements in a list"
+    # FIXME: WMA add the A_FLAT attribute, but that messes up function parsing.
+    # In particular:
+    #   Union[{1, -1, 2}, {-2, 3}, SameTest -> (Abs[#1] == Abs[#2] &)]
+    # is parsed/passed as
+    #   Union[{1, -1, 2}, SameTest -> (Abs[#1] == Abs[#2] &)]
+    attributes = A_ONE_IDENTITY | A_PROTECTED | A_READ_PROTECTED
+    summary_text = "union distinct elements of list(s) or association(s)"
     _operation = "union"
 
     def _elementwise(self, a, b, sameQ: Callable[..., bool]):
