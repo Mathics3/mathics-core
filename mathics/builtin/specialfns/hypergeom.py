@@ -26,6 +26,7 @@ from mathics.core.number import (
     prec as _prec,
 )
 
+
 class Hypergeometric1F1(MPMathFunction):
     """
     <url>
