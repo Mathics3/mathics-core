@@ -329,6 +329,13 @@ class Options(Builtin):
     >> Options[a + b] = {a -> b}
      : Argument a + b at position 1 is expected to be a symbol.
      = {a -> b}
+
+    See also <url>
+    :'OptionValue':
+    /doc/reference-of-built-in-symbols/options-management/optionsvalue/</url> and <url>
+    :'OptionsPattern':
+    /doc/reference-of-built-in-symbols/rules-and-patterns/composite-patterns/optionspattern/</url>.
+
     """
 
     summary_text = "the list of optional arguments and their default values"
@@ -346,8 +353,6 @@ class Options(Builtin):
                 return
         else:
             options = evaluation.definitions.get_options(name)
-            if options == []:
-                return ListExpression()
         result = []
         for option, value in sorted(options.items(), key=lambda item: item[0]):
             # Don't use HoldPattern, since the returned List should be
@@ -364,37 +369,61 @@ class OptionValue(Builtin):
 
     <dl>
       <dt>'OptionValue'[$name$]
-      <dd>gives the value of the option $name$ as specified in a call to a function with 'OptionsPattern'.
+      <dd>gives the value of the option $name$ matched by 'OptionsPattern'.
 
       <dt>'OptionValue'[$f$, $name$]
-      <dd>recover the value of the option $name$ associated to the symbol $f$.
+      <dd>recover the value of the option $name$ associated with the head $f$.
 
       <dt>'OptionValue'[$f$, $opts$, $name$]
-      <dd>recover the value of the option $name$ associated to the symbol $f$, extracting the values from $optvals$ if available.
+      <dd>recover the value of the option $name$ associated with the symbol $f$, extracting the values from $optvals$ if available.
 
       <dt>'OptionValue'[..., $list$]
       <dd>recover the value of the options in $list$ .
     </dl>
 
+    First, set up a symbol with some options using 'Options':
+    >> Options[MySetting] = {"foo" -> 5, "bar" -> 6}
+     = {foo -> 5, bar -> 6}
+
+    Now get a value previously set:
+
+    >> OptionValue[MySetting, "bar"]
+     = 6
+
+    If the option does exist we get a message:
+    >> OptionValue[MySetting, "baz"]
+     : Option name baz not found in defaults for MySetting.
+     = baz
+
+    Use 'OptionValue' to get the value of option 'a' inside 'OptionsPattern' 'a->3'
     >> f[a->3] /. f[OptionsPattern[{}]] -> {OptionValue[a]}
      = {3}
 
-    Unavailable options generate a message:
+    An unavailable option returns argument and does not generate a message:
     >> f[a->3] /. f[OptionsPattern[{}]] -> {OptionValue[b]}
-     : Option name b not found.
      = {b}
 
     The argument of 'OptionValue' must be a symbol:
     >> f[a->3] /. f[OptionsPattern[{}]] -> {OptionValue[a+b]}
      : Argument a + b at position 1 is expected to be a symbol.
      = {OptionValue[a + b]}
-    However, it can be evaluated dynamically:
+
+    However, the symbol can be evaluated dynamically:
     >> f[a->5] /. f[OptionsPattern[{}]] -> {OptionValue[Symbol["a"]]}
      = {5}
+
+
+    #> Clear[MySetting]
+
+    See also <url>
+    :'Options':
+    /doc/reference-of-built-in-symbols/options-management/options/</url> and <url>
+    :'OptionsPattern':
+    /doc/reference-of-built-in-symbols/rules-and-patterns/composite-patterns/optionspattern/</url>.
     """
 
     messages = {
-        "optnf": "Option name `1` not found.",
+        "optnf": "Option name `1` not found in defaults for `2`.",
     }
 
     rules = {
@@ -425,7 +454,6 @@ class OptionValue(Builtin):
 
         val = get_option(evaluation.options, name, evaluation)
         if val is None:
-            evaluation.message("OptionValue", "optnf", optname)
             return Symbol(name)
         return val
 
@@ -476,9 +504,10 @@ class OptionValue(Builtin):
                                 break
                         else:
                             values = element.get_option_values(evaluation)
-                            val = get_option(values, name, evaluation)
-                            if val:
-                                break
+                            if values:
+                                val = get_option(values, name, evaluation)
+                                if val:
+                                    break
 
         if val is None and evaluation.options:
             val = get_option(evaluation.options, name, evaluation)
@@ -528,7 +557,7 @@ class SetOptions(Builtin):
             if isinstance(element, Symbol):
                 option_symbol = element
                 option_value = next(options_pairs)
-            elif element.head is SymbolRule:
+            elif hasattr(element, "head") and element.head is SymbolRule:
                 option_symbol, option_value = element.elements
             else:
                 evaluation.message("SetOptions", "rep", element)
