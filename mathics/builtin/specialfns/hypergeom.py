@@ -41,7 +41,7 @@ class Hypergeometric1F1(MPMathFunction):
     >> Hypergeometric1F1[3, 2, 1.]
      = 4.07742
 
-    Plot 'U'[3, 2, x] from 0 to 2 in steps of 0.5:
+    Plot 'M'[3, 2, x] from 0 to 2 in steps of 0.5:
     >> Plot[Hypergeometric1F1[3, 2, x], {x, 0.5, 2}]
      = -Graphics-
 
@@ -59,5 +59,5 @@ class Hypergeometric1F1(MPMathFunction):
         "Hypergeometric1F1[0, b_, z_]": "1",
         "Hypergeometric1F1[b_, b_, z_]": "Exp[z]",
     }
-    summary_text = "Kummer confluent hypergeometric function"
+    summary_text = "compute Kummer confluent hypergeometric function"
     sympy_name = ""
