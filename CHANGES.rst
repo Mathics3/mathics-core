@@ -1,6 +1,10 @@
 CHANGES
 =======
 
+New Builtins
+++++++++++++
+
+* ``$SessionID
 
 8.0.1
 -----
