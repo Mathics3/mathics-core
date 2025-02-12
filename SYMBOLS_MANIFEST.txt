@@ -63,6 +63,7 @@ System`$RandomState
 System`$RecursionLimit
 System`$RootDirectory
 System`$ScriptCommandLine
+System`$SessionID
 System`$SyntaxHandler
 System`$SystemCharacterEncoding
 System`$SystemID
