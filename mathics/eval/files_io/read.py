@@ -67,11 +67,11 @@ class MathicsOpen(Stream):
                 # We should not specify an encoding for a binary mode
                 encoding = None
             elif encoding is None:
-                raise MessageException("General", "charcode", self.encoding)
+                raise MessageException("General", "charcode", encoding)
         self.encoding = encoding
         if name is None:
             name = path
-        super().__init__(name, mode=mode, path=path, encoding=self.encoding)
+        super().__init__(name, mode=mode, path=path, encoding=encoding)
         self.is_temporary_file = is_temporary_file
 
         # The following are set in __enter__ and __exit__
