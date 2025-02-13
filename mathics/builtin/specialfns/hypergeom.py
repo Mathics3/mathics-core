@@ -8,8 +8,7 @@ https://dlmf.nist.gov/15</url>.
 
 import mpmath
 import sympy
-from mathics.core.convert.mpmath import from_mpmath
-from mathics.core.convert.sympy import from_sympy
+
 from mathics.core.attributes import (
     A_LISTABLE,
     A_N_HOLD_FIRST,
@@ -17,8 +16,11 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
-from mathics.core.builtin import SympyFunction, MPMathFunction
+from mathics.core.builtin import MPMathFunction, SympyFunction
+from mathics.core.convert.mpmath import from_mpmath
+from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluation import Evaluation
+
 
 class HypergeometricPFQ(MPMathFunction):
     """
@@ -71,9 +73,12 @@ class HypergeometricPFQ(MPMathFunction):
     def eval_N(self, a, b, z, evaluation: Evaluation):
         "N[HypergeometricPFQ[a_, b_, z_]]"
         try:
-            return from_mpmath(mpmath.hyper(a.to_python(), b.to_python(), z.to_python()))
+            return from_mpmath(
+                mpmath.hyper(a.to_python(), b.to_python(), z.to_python())
+            )
         except Exception:
             pass
+
 
 class Hypergeometric1F1(MPMathFunction):
     """
@@ -88,10 +93,10 @@ class Hypergeometric1F1(MPMathFunction):
      = 4.07742
     >> Hypergeometric1F1[a, b, z]
      = HypergeometricPFQ[{a}, {b}, z]
-    
+
     Plot 'M'[3, 2, x] from 0 to 2 in steps of 0.5:
     >> Plot[Hypergeometric1F1[3, 2, x], {x, 0.5, 2}]
-     = -Graphics-    
+     = -Graphics-
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
