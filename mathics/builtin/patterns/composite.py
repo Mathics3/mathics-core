@@ -234,6 +234,12 @@ class OptionsPattern(PatternObject):
     Options might be given in nested lists:
     >> f[x, {{{n->4}}}]
      = x ^ 4
+
+    See also <url>
+    :'Options':
+    /doc/reference-of-built-in-symbols/options-management/options/</url> and <url>
+    :'OptionValue':
+    /doc/reference-of-built-in-symbols/options-management/optionvalue/</url>.
     """
 
     arg_counts = [0, 1]
