@@ -1536,7 +1536,7 @@ class Import(Builtin):
                 evaluation.predetermined_out = current_predetermined_out
                 return result
         else:
-            assert len(elements) == 1
+            assert len(elements) >= 1
             el = elements[0]
             if el == "Elements":
                 defaults = get_results(default_function, findfile)
