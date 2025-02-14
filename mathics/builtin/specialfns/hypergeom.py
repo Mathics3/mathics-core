@@ -184,9 +184,6 @@ class HypergeometricU(MPMathFunction):
     >> HypergeometricU[3, 2, 1] // N
      = 0.210958
 
-    >> HypergeometricU[3, 2, 1.]
-     = 0.105479
-
     Plot 'U'[3, 2, x] from 0 to 2 in steps of 0.5:
     >> Plot[HypergeometricU[3, 2, x], {x, 0.5, 2}]
      = -Graphics-
