@@ -16,11 +16,11 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
-from mathics.core.builtin import MPMathFunction, SympyFunction
+from mathics.core.builtin import MPMathFunction
 from mathics.core.convert.sympy import from_sympy
+from mathics.core.evaluation import Evaluation
 from mathics.core.number import FP_MANTISA_BINARY_DIGITS
 from mathics.eval.arithmetic import run_mpmath
-from mathics.core.evaluation import Evaluation
 
 
 class HypergeometricPFQ(MPMathFunction):
@@ -34,11 +34,17 @@ class HypergeometricPFQ(MPMathFunction):
       <dt>'HypergeometricPFQ'[${a_1, a_2, a_p}, {b_1, b_2, b_q}, z$]
       <dd>returns ${}_p F_q({a_1, a_2, a_p}, {b_1, b_2, b_q}, z)$.
     </dl>
-
     >> HypergeometricPFQ[{2}, {2}, 1]
-     = 2.71828
+     = E
 
-    We handle the following special cases:
+    Result is symbollicaly simplified by default:
+    >> HypergeometricPFQ[{3}, {2}, 1]
+     = HypergeometricPFQ[{3}, {2}, 1]
+    unless a numerical evaluation is explicitly requested:
+    >> HypergeometricPFQ[{3}, {2}, 1] // N
+     = 4.07742
+
+    The following special cases are handled:
     >> HypergeometricPFQ[{}, {}, z]
      = 1
     >> HypergeometricPFQ[{0}, {b}, z]
@@ -67,16 +73,13 @@ class HypergeometricPFQ(MPMathFunction):
         except Exception:
             pass
 
-    def eval_numeric(self, a, b, z, evaluation: Evaluation):
-        "HypergeometricPFQ[a:{__?NumericQ}, b:{__?NumericQ}, z_?NumericQ]"
-        return self.eval_N(a, b, z, evaluation)
-
     def eval_N(self, a, b, z, evaluation: Evaluation):
         "N[HypergeometricPFQ[a_, b_, z_]]"
         try:
             return run_mpmath(
-                mpmath.hyper, tuple([a.to_python(), b.to_python(), z.to_python()]),
-                FP_MANTISA_BINARY_DIGITS
+                mpmath.hyper,
+                tuple([a.to_python(), b.to_python(), z.to_python()]),
+                FP_MANTISA_BINARY_DIGITS,
             )
         except Exception:
             pass
@@ -92,14 +95,18 @@ class Hypergeometric1F1(MPMathFunction):
       <dt>'Hypergeometric1F1'[$a$, $b$, $z$]
       <dd>returns $M(a, b, z)$.
     </dl>
+
+    Result is symbollicaly simplified by default:
     >> Hypergeometric1F1[3, 2, 1]
+     = HypergeometricPFQ[{3}, {2}, 1]
+    unless a numerical evaluation is explicitly requested:
+    >> Hypergeometric1F1[3, 2, 1] // N
      = 4.07742
-    >> Hypergeometric1F1[a, b, z]
-     = HypergeometricPFQ[{a}, {b}, z]
 
     Plot 'M'[3, 2, x] from 0 to 2 in steps of 0.5:
     >> Plot[Hypergeometric1F1[3, 2, x], {x, 0.5, 2}]
      = -Graphics-
+    Here, plot explicitly requests numerical results.
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
