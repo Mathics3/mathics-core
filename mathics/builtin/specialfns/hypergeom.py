@@ -197,7 +197,7 @@ class HypergeometricU(MPMathFunction):
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
-    mpmath_name = "hyperu"
+    mpmath_name = ""
     nargs = {3}
     rules = {
         "HypergeometricU[0, c_, z_]": "1",
