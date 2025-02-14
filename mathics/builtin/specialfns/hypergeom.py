@@ -105,7 +105,7 @@ class Hypergeometric1F1(MPMathFunction):
      = 4.07742
 
     Plot 'M'[3, 2, x] from 0 to 2 in steps of 0.5:
-    >> Plot[Hypergeometric1F1[3, 2, x], {x, 0.5, 2}]
+    >> Plot[Hypergeometric1F1[3, 2, x], {x, 0, 2, 0.5}]
      = -Graphics-
     Here, plot explicitly requests a numerical evaluation.
     """
@@ -184,8 +184,8 @@ class HypergeometricU(MPMathFunction):
     >> HypergeometricU[3, 2, 1] // N
      = 0.210958
 
-    Plot 'U'[3, 2, x] from 0 to 2 in steps of 0.5:
-    >> Plot[HypergeometricU[3, 2, x], {x, 0.5, 2}]
+    Plot 'U'[3, 2, x] from 0 to 10 in steps of 0.5:
+    >> Plot[HypergeometricU[3, 2, x], {x, 0, 10, 0.5}]
      = -Graphics-
 
     We handle this special case:
