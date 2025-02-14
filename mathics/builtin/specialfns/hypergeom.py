@@ -180,7 +180,7 @@ class HypergeometricU(MPMathFunction):
     >> HypergeometricU[3, 2, 1]
      = MeijerG[{{1, 2}, {}}, {{3}, {}}, 1]
     unless a numerical evaluation is explicitly requested:
-    >> MeijerG[{{1, 2},{}}, {{3},{}}, 1] // N
+    >> HypergeometricU[3, 2, 1] // N
      = 0.210958
 
     >> HypergeometricU[3, 2, 1.]
@@ -202,7 +202,7 @@ class HypergeometricU(MPMathFunction):
         "HypergeometricU[0, c_, z_]": "1",
         "HypergeometricU[a_, b_, z_]": "MeijerG[{{1-a},{}},{{0,1-b},{}},z]/Gamma[a]/Gamma[a-b+1]",
     }
-    summary_text = "Tricomi confluent hypergeometric function"
+    summary_text = "compute the Tricomi confluent hypergeometric function"
     sympy_name = ""
 
     def eval_N(self, a, b, z, evaluation: Evaluation):
