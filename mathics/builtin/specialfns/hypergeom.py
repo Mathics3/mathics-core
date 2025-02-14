@@ -17,8 +17,9 @@ from mathics.core.attributes import (
     A_READ_PROTECTED,
 )
 from mathics.core.builtin import MPMathFunction, SympyFunction
-from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
+from mathics.core.number import FP_MANTISA_BINARY_DIGITS
+from mathics.eval.arithmetic import run_mpmath
 from mathics.core.evaluation import Evaluation
 
 
@@ -73,8 +74,9 @@ class HypergeometricPFQ(MPMathFunction):
     def eval_N(self, a, b, z, evaluation: Evaluation):
         "N[HypergeometricPFQ[a_, b_, z_]]"
         try:
-            return from_mpmath(
-                mpmath.hyper(a.to_python(), b.to_python(), z.to_python())
+            return run_mpmath(
+                mpmath.hyper, tuple([a.to_python(), b.to_python(), z.to_python()]),
+                FP_MANTISA_BINARY_DIGITS
             )
         except Exception:
             pass
@@ -84,6 +86,7 @@ class Hypergeometric1F1(MPMathFunction):
     """
     <url>
     :Kummer confluent hypergeometric function: https://en.wikipedia.org/wiki/Confluent_hypergeometric_function</url> (<url>
+    :mpmath: https://mpmath.org/doc/current/functions/hypergeometric.html#hyper</url>, <url>
     :WMA: https://reference.wolfram.com/language/ref/Hypergeometric1F1.html</url>)
     <dl>
       <dt>'Hypergeometric1F1'[$a$, $b$, $z$]
