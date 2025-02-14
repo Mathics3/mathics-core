@@ -212,7 +212,7 @@ class HypergeometricU(MPMathFunction):
             return run_mpmath(
                 mpmath.hyperu,
                 tuple([a.to_python(), b.to_python(), z.to_python()]),
-                prec.to_python()
+                prec.to_python(),
             )
         except Exception:
             pass
