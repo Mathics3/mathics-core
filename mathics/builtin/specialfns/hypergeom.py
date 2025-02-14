@@ -74,8 +74,8 @@ class HypergeometricPFQ(MPMathFunction):
         except Exception:
             pass
 
-    def eval_N(self, a, b, z, evaluation: Evaluation):
-        "N[HypergeometricPFQ[a_, b_, z_]]"
+    def eval_N(self, a, b, z, prec, evaluation: Evaluation):
+        "N[HypergeometricPFQ[a_, b_, z_], prec_]"
         try:
             return run_mpmath(
                 mpmath.hyper,
@@ -155,8 +155,8 @@ class MeijerG(MPMathFunction):
         except Exception:
             pass
 
-    def eval_N(self, a, b, z, evaluation: Evaluation):
-        "N[MeijerG[a_, b_, z_]]"
+    def eval_N(self, a, b, z, prec, evaluation: Evaluation):
+        "N[MeijerG[a_, b_, z_], prec_]"
         try:
             return run_mpmath(
                 mpmath.meijerg,
