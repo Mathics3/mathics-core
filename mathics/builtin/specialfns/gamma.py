@@ -12,7 +12,15 @@ from typing import Iterable
 import mpmath
 import sympy
 
-from mathics.core.atoms import Integer, Integer0, Number
+import mathics.eval.tracing as tracing
+from mathics.core.atoms import (
+    Integer,
+    Integer0,
+    MachineReal,
+    MachineReal0,
+    Number,
+    PrecisionReal,
+)
 from mathics.core.attributes import (
     A_LISTABLE,
     A_NUMERIC_FUNCTION,
@@ -28,6 +36,7 @@ from mathics.core.builtin import (
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.number import FP_MANTISA_BINARY_DIGITS, dps, min_prec
 from mathics.core.symbols import Symbol, SymbolSequence
@@ -419,9 +428,9 @@ class Pochhammer(SympyFunction):
     >> Pochhammer[1, 3] == Pochhammer[2, 2]
      = True
 
-    Although sometimes 'Pochhammer[0, $n$]' is taken to be 1, in Mathics it is 0:
-    >> Pochhammer[0, n]
-     = 0
+    'Pochhammer['0, $-n$']' for positive integer $n$, is $-1^n 1 / |n|!$:
+    >> Table[Pochhammer[0, n], {n, 0, -4, -1}]
+     = {1, -1, 1 / 2, -1 / 6, 1 / 24}
 
     Pochhammer uses Gamma for non-Integer values of $n$:
 
@@ -438,13 +447,26 @@ class Pochhammer(SympyFunction):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     rules = {
-        "Pochhammer[0, n_]": "0",  # Wikipedia says it should be 1 though.
+        "Pochhammer[0, 0]": "1",
         "Pochhammer[a_, n_]": "Gamma[a + n] / Gamma[a]",
         "Derivative[1,0][Pochhammer]": "(Pochhammer[#1, #2]*(-PolyGamma[0, #1] + PolyGamma[0, #1 + #2]))&",
         "Derivative[0,1][Pochhammer]": "(Pochhammer[#1, #2]*PolyGamma[0, #1 + #2])&",
     }
     summary_text = "compute Pochhammer's symbols"
     sympy_name = "RisingFactorial"
+
+    def eval_negative_int(self, n, evaluation: Evaluation):
+        "Pochhammer[0, n_?Negative]"
+
+        n_value = n.value
+        if isinstance(n, (MachineReal, PrecisionReal)):
+            if n_value == int(n_value):
+                n_value = int(n_value)
+            else:
+                return MachineReal0
+
+        sympy_result = tracing.run_sympy(sympy.rf, 0, n.value)
+        return from_sympy(sympy_result)
 
 
 class PolyGamma(MPMathMultiFunction):
