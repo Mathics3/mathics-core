@@ -206,17 +206,13 @@ class HypergeometricU(MPMathFunction):
     summary_text = "compute the Tricomi confluent hypergeometric function"
     sympy_name = ""
 
-    def eval_N_prec(self, a, b, z, prec, evaluation: Evaluation):
-        "N[HypergeometricU[a_, b_, z_], prec_]"
+    def eval_N(self, a, b, z, evaluation: Evaluation):
+        "N[HypergeometricU[a_, b_, z_]]"
         try:
             return run_mpmath(
                 mpmath.hyperu,
                 tuple([a.to_python(), b.to_python(), z.to_python()]),
-                prec.to_python(),
+                FP_MANTISA_BINARY_DIGITS,
             )
         except Exception:
             pass
-
-    def eval_N(self, a, b, z, evaluation: Evaluation):
-        "N[HypergeometricU[a_, b_, z_]]"
-        return self.eval_N_prec(a, b, z, SymbolMachinePrecision, evaluation)
