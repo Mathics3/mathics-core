@@ -332,7 +332,7 @@ class Gamma(MPMathMultiFunction):
 
     rules = {
         "Gamma[z_, x0_, x1_]": "Gamma[z, x0] - Gamma[z, x1]",
-        "Gamma[1 + z_?IntegerQ]": "z!",
+        "Gamma[1 + z_Integer]": "z!",
         "Gamma[Undefined]": "Undefined",
         "Gamma[x_, Undefined]": "Undefined",
         "Gamma[Undefined, y_]": "Undefined",
