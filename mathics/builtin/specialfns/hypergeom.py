@@ -9,6 +9,7 @@ https://dlmf.nist.gov/15</url>.
 import mpmath
 import sympy
 
+import mathics.eval.tracing as tracing
 from mathics.core.attributes import (
     A_LISTABLE,
     A_N_HOLD_FIRST,
@@ -17,11 +18,10 @@ from mathics.core.attributes import (
     A_READ_PROTECTED,
 )
 from mathics.core.builtin import MPMathFunction
+from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.number import FP_MANTISA_BINARY_DIGITS
-from mathics.core.symbols import SymbolMachinePrecision
-from mathics.eval.arithmetic import run_mpmath
 
 
 class HypergeometricPFQ(MPMathFunction):
@@ -70,18 +70,20 @@ class HypergeometricPFQ(MPMathFunction):
         try:
             a_sympy = [e.to_sympy() for e in a]
             b_sympy = [e.to_sympy() for e in b]
-            return from_sympy(sympy.hyper(a_sympy, b_sympy, z.to_sympy()))
+            result_sympy = tracing.run_sympy(
+                sympy.hyper, a_sympy, b_sympy, z.to_sympy()
+            )
+            return from_sympy(result_sympy)
         except Exception:
             pass
 
     def eval_N(self, a, b, z, prec, evaluation: Evaluation):
         "N[HypergeometricPFQ[a_, b_, z_], prec_]"
         try:
-            return run_mpmath(
-                mpmath.hyper,
-                tuple([a.to_python(), b.to_python(), z.to_python()]),
-                FP_MANTISA_BINARY_DIGITS,
+            result_mpmath = tracing.run_mpmath(
+                mpmath.hyper, a.to_python(), b.to_python(), z.to_python()
             )
+            return from_mpmath(result_mpmath)
         except Exception:
             pass
 
@@ -149,20 +151,22 @@ class MeijerG(MPMathFunction):
     def eval(self, a, b, z, evaluation: Evaluation):
         "MeijerG[a_, b_, z_]"
         try:
-            a_sympy = [e.to_sympy() for e in a]
-            b_sympy = [e.to_sympy() for e in b]
-            return from_sympy(sympy.meijerg(a_sympy, b_sympy, z.to_sympy()))
+            a_sympy = [[e2.to_sympy() for e2 in e1] for e1 in a]
+            b_sympy = [[e2.to_sympy() for e2 in e1] for e1 in b]
+            result_sympy = tracing.run_sympy(
+                sympy.meijerg, a_sympy, b_sympy, z.to_sympy()
+            )
+            return from_sympy(result_sympy)
         except Exception:
             pass
 
     def eval_N(self, a, b, z, prec, evaluation: Evaluation):
         "N[MeijerG[a_, b_, z_], prec_]"
         try:
-            return run_mpmath(
-                mpmath.meijerg,
-                tuple([a.to_python(), b.to_python(), z.to_python()]),
-                FP_MANTISA_BINARY_DIGITS,
+            result_mpmath = tracing.run_mpmath(
+                mpmath.meijerg, a.to_python(), b.to_python(), z.to_python()
             )
+            return from_mpmath(result_mpmath)
         except Exception:
             pass
 
