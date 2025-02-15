@@ -14,12 +14,12 @@ from mathics.core.atoms import Complex, Integer, MachineReal, Real, String
 from mathics.core.builtin import Builtin
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.mpmath import from_mpmath
-from mathics.core.expression import Expression
 from mathics.core.expression_predefined import (
     MATHICS3_I_INFINITY,
     MATHICS3_I_NEG_INFINITY,
     MATHICS3_INFINITY,
     MATHICS3_NEG_INFINITY,
+    Expression,
 )
 from mathics.core.streams import stream_manager
 from mathics.core.symbols import Symbol
@@ -57,7 +57,7 @@ class _BinaryFormat:
         return Complex(MachineReal(real), MachineReal(imag))
 
     @classmethod
-    def get_readers(cls):
+    def get_readers(cls) -> dict:
         readers = {}
         for funcname in dir(cls):
             if funcname.startswith("_") and funcname.endswith("_reader"):
@@ -376,13 +376,18 @@ class BinaryRead(Builtin):
     >> Close[strm];
     >> strm = OpenRead[%, BinaryFormat -> True]
      = InputStream[...]
-    >> BinaryRead[strm, {"Character8", "Character8", "Character8"}]
-     = {a, b, c}
+    >> BinaryRead[strm]
+     = 97
+    >> BinaryRead[strm, {"Character8", "Character8"}]
+      = {b, c}
+
+    If you read past the end of the file, you will get 'EndOfFile' symbols:
+
+    >> BinaryRead[strm, {"Character8", "Character8"}]
+      = {EndOfFile, EndOfFile}
+
     >> DeleteFile[Close[strm]];
     """
-
-    summary_text = "read an object of the specified type"
-    readers = _BinaryFormat.get_readers()
 
     messages = {
         "format": "`1` is not a recognized binary format.",
@@ -390,21 +395,24 @@ class BinaryRead(Builtin):
         "bfmt": "The stream `1` has been opened with BinaryFormat -> False and cannot be used with binary data.",
     }
 
+    readers = _BinaryFormat.get_readers()
+    summary_text = "read an object of the specified type"
+
     def eval_empty(self, name, n, evaluation):
         "BinaryRead[InputStream[name_, n_Integer]]"
         return self.eval(name, n, None, evaluation)
 
-    def eval(self, name, n, typ, evaluation):
-        "BinaryRead[InputStream[name_, n_Integer], typ_]"
+    def eval(self, name, n, kind, evaluation):
+        "BinaryRead[InputStream[name_, n_Integer], kind_]"
 
         channel = to_expression("InputStream", name, n)
 
-        # Check typ
-        if typ is None:
+        # Check kind
+        if kind is None:
             expr = to_expression("BinaryRead", channel)
-            typ = String("Byte")
+            kind = String("Byte")
         else:
-            expr = to_expression("BinaryRead", channel, typ)
+            expr = to_expression("BinaryRead", channel, kind)
 
         # Check channel
         stream = stream_manager.lookup_stream(n.value)
@@ -417,25 +425,25 @@ class BinaryRead(Builtin):
             evaluation.message("BinaryRead", "bfmt", channel)
             return expr
 
-        if typ.has_form("List", None):
-            types = typ.elements
+        if kind.has_form("List", None):
+            kinds = kind.elements
         else:
-            types = [typ]
+            kinds = [kind]
 
-        types = [t.get_string_value() for t in types]
-        if not all(t in self.readers for t in types):
-            evaluation.message("BinaryRead", "format", typ)
+        python_kinds = [t.get_string_value() for t in kinds]
+        if not all(t in self.readers for t in python_kinds):
+            evaluation.message("BinaryRead", "format", kind)
             return expr
 
         # Read from stream
         result = []
-        for t in types:
+        for t in python_kinds:
             try:
                 result.append(self.readers[t](stream.io))
             except struct.error:
                 result.append(SymbolEndOfFile)
 
-        if typ.has_form("List", None):
+        if kind.has_form("List", None):
             return to_mathics_list(*result)
         else:
             if len(result) == 1:
@@ -527,17 +535,17 @@ class BinaryWrite(Builtin):
         "BinaryWrite[OutputStream[name_, n_], b_]"
         return self.eval(name, n, b, None, evaluation)
 
-    def eval(self, name, n, b, typ, evaluation):
-        "BinaryWrite[OutputStream[name_, n_], b_, typ_]"
+    def eval(self, name, n, b, kind, evaluation):
+        "BinaryWrite[OutputStream[name_, n_], b_, kind_]"
 
         channel = to_expression("OutputStream", name, n)
 
-        # Check Empty Type
-        if typ is None:
+        # Check Empty kind
+        if kind is None:
             expr = Expression(SymbolBinaryWrite, channel, b)
-            typ = to_expression("List")
+            kind = to_expression("List")
         else:
-            expr = Expression(SymbolBinaryWrite, channel, b, typ)
+            expr = Expression(SymbolBinaryWrite, channel, b, kind)
 
         # Check channel
         stream = stream_manager.lookup_stream(n.get_int_value())
@@ -557,17 +565,17 @@ class BinaryWrite(Builtin):
             pyb = [b]
 
         # Check Type
-        if typ.has_form("List", None):
-            types = typ.elements
+        if kind.has_form("List", None):
+            kinds = kind.elements
         else:
-            types = [typ]
+            kinds = [kind]
 
-        if len(types) == 0:  # Default type is "Bytes"
-            types = [String("Byte")]
+        if len(kinds) == 0:  # Default type is "Bytes"
+            kinds = [String("Byte")]
 
-        types = [t.get_string_value() for t in types]
-        if not all(t in self.writers for t in types):
-            evaluation.message("BinaryRead", "format", typ)
+        kinds = [t.get_string_value() for t in kinds]
+        if not all(t in self.writers for t in kinds):
+            evaluation.message("BinaryRead", "format", kind)
             return expr
 
         # Write to stream
@@ -575,8 +583,8 @@ class BinaryWrite(Builtin):
         # TODO: please, modularize me.
         while i < len(pyb):
             x = pyb[i]
-            # Types are "repeated as many times as necessary"
-            t = types[i % len(types)]
+            # Kinds are "repeated as many times as necessary"
+            t = kinds[i % len(kinds)]
 
             # Coerce x
             if t == "TerminatedString":
