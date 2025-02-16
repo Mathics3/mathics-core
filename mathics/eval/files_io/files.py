@@ -12,14 +12,14 @@ from mathics_scanner.errors import IncompleteSyntaxError, InvalidSyntaxError
 import mathics
 import mathics.core.parser
 import mathics.core.streams
-from mathics.core.atoms import String
+from mathics.core.atoms import Integer, String
 from mathics.core.builtin import MessageException
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BaseElement, Expression
 from mathics.core.parser import MathicsFileLineFeeder, MathicsMultiLineFeeder, parse
-from mathics.core.streams import stream_manager
+from mathics.core.streams import path_search, stream_manager
 from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import (
     SymbolEndOfFile,
@@ -167,6 +167,42 @@ def eval_Get(
         INPUT_VAR = outer_input_var
         definitions.set_inputfile(outer_inputfile)
     return result
+
+
+def eval_Open(
+    name: String,
+    mode: str,
+    stream_type,
+    encoding: Optional[str],
+    evaluation: Evaluation,
+):
+    path = name.value
+    tmp, is_temporary_file = path_search(path)
+    if tmp is None:
+        if mode in ["r", "rb"]:
+            evaluation.message("General", "noopen", name)
+            return
+    else:
+        path = tmp
+
+    try:
+        opener = MathicsOpen(
+            path,
+            mode=mode,
+            name=name.value,
+            encoding=encoding,
+            is_temporary_file=is_temporary_file,
+        )
+        opener.__enter__(is_temporary_file=is_temporary_file)
+        n = opener.n
+    except IOError:
+        evaluation.message("General", "noopen", name)
+        return
+    except MessageException as e:
+        e.message(evaluation)
+        return
+
+    return Expression(Symbol(stream_type), name, Integer(n))
 
 
 def eval_Read(
