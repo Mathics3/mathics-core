@@ -29,7 +29,7 @@ def create_class_function(
                 operator_name=operator_name, operator_string=operator_string
             ),
             "operator": operator_string,
-            "summary_text": f"""{operator_name} postfix operator "{operator_string}" (no pre-set meaning attached)""",
+            "summary_text": f"""{operator_name} infix operator "{operator_string}" (no pre-set meaning attached)""",
             "formats": {
                 (
                     ("InputForm", "OutputForm", "StandardForm"),
