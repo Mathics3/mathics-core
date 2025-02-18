@@ -713,14 +713,14 @@ class Product(IterationFunction, SympyFunction):
       outermost-to-innermost order.
     </dl>
 
-    >> Product[k, {k, 1, 10}]
-     = 3628800
-    >> 10!
-     = 3628800
-    >> Product[x^k, {k, 2, 20, 2}]
-     = x ^ 110
+    The product of the first 10 integers is its factorial:
+    >> Product[k, {k, 1, 10}] == 10!
+     = True
+
+    'Product' can be used symbolically:
     >> Product[2 ^ i, {i, 1, n}]
      = 2 ^ (n / 2 + n ^ 2 / 2)
+
     >> Product[f[i], {i, 1, 7}]
      = f[1] f[2] f[3] f[4] f[5] f[6] f[7]
 
