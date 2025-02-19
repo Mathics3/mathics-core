@@ -720,7 +720,7 @@ class Product(IterationFunction, SympyFunction):
     >> Product[k, {k, i, n}]
      = n! / (-1 + i)!
 
-    In particular, when  $i=1$ we get the factorial function:
+    When $i$ is 1, we get the factorial function:
     >> Product[k, {k, 1, n}]
      = n!
 
