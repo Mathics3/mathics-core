@@ -753,6 +753,12 @@ class Product(IterationFunction, SympyFunction, PrefixOperator):
 
     """
 
+    # FIXME Product[k, {k, 3, n}] is rewritten using Factorial via
+    # Pochhammer rewrite rules. We want this for Product, but WMA
+    # does not rewrite using Factorial for Pochhammer alone, although it could.
+    # Nevertheless, if and when our Pochhammer is adjusted to remove
+    # this transformation to Factorial to match WMA behavior,
+    # we will need to add a rule that transforms to Factorial here.
     rules = IterationFunction.rules.copy()
     rules.update(
         {
