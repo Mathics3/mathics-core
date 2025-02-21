@@ -48,28 +48,28 @@ from mathics.eval.sympy import eval_sympy
 
 
 class Beta(MPMathMultiFunction):
-    """
-        <url>
-        :Euler beta function:
-        https://en.wikipedia.org/wiki/Beta_function</url> (<url>:SymPy:
-        https://docs.sympy.org/latest/modules/functions/
+    r"""
+    <url>
+    :Euler beta function:
+    https://en.wikipedia.org/wiki/Beta_function</url> (<url>:SymPy:
+    https://docs.sympy.org/latest/modules/functions/
     special.html#sympy.functions.special.beta_functions.beta</url>, <url>
-        :WMA:
-        https://reference.wolfram.com/language/ref/Beta.html</url>)
+    :WMA:
+    https://reference.wolfram.com/language/ref/Beta.html</url>)
 
-        <dl>
-          <dt>'Beta'[$a$, $b$]
-          <dd>is the Euler's Beta function.
-          <dt>'Beta'[$z$, $a$, $b$]
-          <dd>gives the incomplete Beta function.
-        </dl>
+    <dl>
+      <dt>'Beta'[$a$, $b$]
+      <dd>is the Euler's Beta function $\mathrm{B}(a, b)$.
+      <dt>'Beta'[$z$, $a$, $b$]
+      <dd>gives the incomplete Beta function $\mathrm{B}_z(a, b)$.
+    </dl>
 
-        The Beta function satisfies the property
-        Beta[x, y] = Integrate[t^(x-1)(1-t)^(y-1),{t,0,1}] = Gamma[a] Gamma[b] / Gamma[a + b]
-        >> Beta[2, 3]
-         = 1 / 12
-        >> 12* Beta[1., 2, 3]
-         = 1.
+    The Beta function satisfies the property:
+    $\mathrm{B} = \int_0^t t^{(x-1)(1-t)^(y-1)} = \Gamma(a) \Gamma(b) / \Gamma(a + b)$
+    >> Beta[2, 3]
+     = 1 / 12
+    >> 12* Beta[1., 2, 3]
+     = 1.
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
@@ -272,7 +272,7 @@ class Factorial2(PostfixOperator, MPMathFunction):
 
 
 class Gamma(MPMathMultiFunction):
-    """
+    r"""
     <url>:Gamma function:
     https://en.wikipedia.org/wiki/Gamma_function</url> (<url>
     :SymPy:https://docs.sympy.org/latest/modules/functions
@@ -287,34 +287,38 @@ class Gamma(MPMathMultiFunction):
 
     <dl>
       <dt>'Gamma'[$z$]
-      <dd>is the gamma function on the complex number $z$.
+      <dd>is the Euler gamma function, $\Gamma(z)$ on the complex number $z$.
 
-      <dt>'Gamma'[$z$, $x$]
-      <dd>is the upper incomplete gamma function.
+      <dt>'Gamma'[$a$, $z$]
+      <dd>is the upper incomplete gamma function, $\Gamma(a, z)$.
 
-      <dt>'Gamma'[$z$, $x_0$, $x_1$]
-      <dd>is equivalent to 'Gamma[$z$, $x_0$] - Gamma[$z$, $x_1$]'.
+      <dt>'Gamma'[$a$, $z_0$, $z_1$]
+      <dd>is the generalized incomplete gamma function $\Gamma[a, z_0] - \Gamma(a, z_1)$.
     </dl>
 
-    'Gamma[$z$]' is equivalent to '($z$ - 1)!':
+    'Gamma[$z$]' is equivalent to $(z - 1)!$:
     >> Simplify[Gamma[z] - (z - 1)!]
      = 0
 
-    Exact arguments:
+    Examples of using 'Gamma' with exact numeric arguments:
     >> Gamma[8]
      = 5040
+
     >> Gamma[1/2]
      = Sqrt[Pi]
-    >> Gamma[1, x]
+
+    >> Gamma[123.78]
+     = 4.21078×10^204
+
+    >> Gamma[1. + I]
+     = 0.498016 - 0.15495 I
+
+    Examples of 'Gamma' with symbolic arguments:
+
+   >> Gamma[1, x]
      = E ^ (-x)
     >> Gamma[0, x]
      = ExpIntegralE[1, x]
-
-    Numeric arguments:
-    >> Gamma[123.78]
-     = 4.21078×10^204
-    >> Gamma[1. + I]
-     = 0.498016 - 0.15495 I
 
     Both 'Gamma' and 'Factorial' functions are continuous:
     >> Plot[{Gamma[x], x!}, {x, 0, 4}]

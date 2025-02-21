@@ -1279,7 +1279,7 @@ class NoMeaningInfixOperator(InfixOperator):
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
     <dl>
-      <dt>'{operator_name}[$x$, $y$, ...]'
+      <dt>'{operator_name}['$x$, $y$, ...']'
       <dd>displays $x$ {operator_string} $y$ {operator_string} ...
     </dl>
 
@@ -1379,7 +1379,7 @@ class NoMeaningPostfixOperator(PostfixOperator):
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
     <dl>
-      <dt>'{operator_name}[$x$]'
+      <dt>'{operator_name}['$x$']'
       <dd>displays $x$ {operator_string}
     </dl>
 
@@ -1421,7 +1421,7 @@ class NoMeaningPrefixOperator(PrefixOperator):
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
     <dl>
-      <dt>'{operator_name}[$x$]'
+      <dt>'{operator_name}['$x$']'
       <dd>displays {operator_string} $x$
     </dl>
 
