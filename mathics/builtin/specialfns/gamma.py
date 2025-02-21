@@ -336,7 +336,6 @@ class Gamma(MPMathMultiFunction):
 
     rules = {
         "Gamma[z_, x0_, x1_]": "Gamma[z, x0] - Gamma[z, x1]",
-        "Gamma[1 + z_]": "z!",
         "Gamma[Undefined]": "Undefined",
         "Gamma[x_, Undefined]": "Undefined",
         "Gamma[Undefined, y_]": "Undefined",
@@ -452,7 +451,16 @@ class Pochhammer(SympyFunction):
 
     rules = {
         "Pochhammer[0, 0]": "1",
-        "Pochhammer[a_, n_]": "Gamma[a + n] / Gamma[a]",
+        # FIXME: In WMA, if n is an Number with an integer value, it
+        # is rewritten to expanded terms not using
+        # Factorial as we do below. For example, Pochhammer[i, 2] is
+        # i (i + 1) instead of (1 + i)! / (-1 + i)! as the rule below
+        # gives.  Ideally, we should match this behavior. However if
+        # this is done, we will *also* need to adjust Product, because
+        # WMA Product is sometimes rewritten as an expression using Factorial.
+        # In particular, Product[k, {k, 3, n}] == n! / 2 in both Mathics3
+        # and WMA.
+        "Pochhammer[a_, n_]": "Factorial[a + n - 1] / Factorial[a - 1]",
         "Derivative[1,0][Pochhammer]": "(Pochhammer[#1, #2]*(-PolyGamma[0, #1] + PolyGamma[0, #1 + #2]))&",
         "Derivative[0,1][Pochhammer]": "(Pochhammer[#1, #2]*PolyGamma[0, #1 + #2])&",
     }
