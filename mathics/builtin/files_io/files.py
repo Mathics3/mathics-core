@@ -40,7 +40,7 @@ from mathics.core.systemsymbols import (
     SymbolOutputStream,
 )
 from mathics.eval.directories import TMP_DIR
-from mathics.eval.files_io.files import eval_Close, eval_Get, eval_Read
+from mathics.eval.files_io.files import eval_Close, eval_Get, eval_Open, eval_Read
 from mathics.eval.files_io.read import (
     MathicsOpen,
     channel_to_stream,
@@ -95,6 +95,7 @@ class _OpenAction(Builtin):
     }
 
     mode = "r"  # A default; this is changed in subclassing.
+    stream_type = "unknown"
 
     def eval_empty(self, evaluation: Evaluation, options: dict):
         "%(name)s[OptionsPattern[]]"
@@ -119,48 +120,23 @@ class _OpenAction(Builtin):
 
         # Options
         # BinaryFormat
-        mode = self.mode
-        if options["System`BinaryFormat"] is SymbolTrue:
-            if not self.mode.endswith("b"):
-                mode += "b"
-
         if not (isinstance(name, String) and len(name.to_python()) > 2):
             evaluation.message(self.__class__.__name__, "fstr", name)
             return
 
-        name_string = name.get_string_value()
+        mode = self.mode
 
-        tmp, is_temporary_file = path_search(name_string)
-        if tmp is None:
-            if mode in ["r", "rb"]:
-                evaluation.message("General", "noopen", name)
-                return
-            path_string = name_string
-        else:
-            path_string = tmp
+        if options.get("System`BinaryFormat") is SymbolTrue:
+            if not mode.endswith("b"):
+                mode += "b"
 
-        try:
-            encoding = self.get_option(options, "CharacterEncoding", evaluation)
-            if not isinstance(encoding, String):
-                return
+        stream_type = self.stream_type
 
-            opener = MathicsOpen(
-                path_string,
-                mode=mode,
-                name=name_string,
-                encoding=encoding.value,
-                is_temporary_file=is_temporary_file,
-            )
-            opener.__enter__(is_temporary_file=is_temporary_file)
-            n = opener.n
-        except IOError:
-            evaluation.message("General", "noopen", name)
-            return
-        except MessageException as e:
-            e.message(evaluation)
+        encoding = self.get_option(options, "CharacterEncoding", evaluation)
+        if not isinstance(encoding, String):
             return
 
-        return Expression(Symbol(self.stream_type), name, Integer(n))
+        return eval_Open(name, mode, stream_type, encoding.value, evaluation)
 
 
 class Character(Builtin):

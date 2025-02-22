@@ -158,6 +158,7 @@ System`BezierFunction
 System`Binarize
 System`BinaryImageQ
 System`BinaryRead
+System`BinaryReadList
 System`BinaryWrite
 System`Binomial
 System`BitLength
