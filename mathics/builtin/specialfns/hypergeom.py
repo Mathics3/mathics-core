@@ -22,6 +22,7 @@ from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.number import FP_MANTISA_BINARY_DIGITS
+from mathics.core.systemsymbols import SymbolMachinePrecision
 
 
 class HypergeometricPFQ(MPMathFunction):
@@ -43,6 +44,8 @@ class HypergeometricPFQ(MPMathFunction):
      = HypergeometricPFQ[{3}, {2}, 1]
     unless a numerical evaluation is explicitly requested:
     >> HypergeometricPFQ[{3}, {2}, 1] // N
+     = 4.07742
+    >> HypergeometricPFQ[{3}, {2}, 1.]
      = 4.07742
 
     The following special cases are handled:
@@ -87,6 +90,10 @@ class HypergeometricPFQ(MPMathFunction):
         except Exception:
             pass
 
+    def eval_numeric(self, a, b, z, evaluation: Evaluation):
+        "HypergeometricPFQ[a:{__?NumericQ}, b:{__?NumericQ}, z_?MachineNumberQ]"
+        return self.eval_N(a, b, z, SymbolMachinePrecision, evaluation)
+
 
 class Hypergeometric1F1(MPMathFunction):
     """
@@ -104,6 +111,8 @@ class Hypergeometric1F1(MPMathFunction):
      = HypergeometricPFQ[{3}, {2}, 1]
     unless a numerical evaluation is explicitly requested:
     >> Hypergeometric1F1[3, 2, 1] // N
+     = 4.07742
+    >> Hypergeometric1F1[3, 2, 1.]
      = 4.07742
 
     Plot 'M'[3, 2, x] from 0 to 2 in steps of 0.5:
@@ -139,6 +148,8 @@ class MeijerG(MPMathFunction):
     unless a numerical evaluation is explicitly requested:
     >> MeijerG[{{1, 2},{}}, {{3},{}}, 1] // N
      = 0.210958
+    >> MeijerG[{{1, 2},{}}, {{3},{}}, 1.]
+     = 0.210958
     """
 
     attributes = A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
@@ -170,6 +181,10 @@ class MeijerG(MPMathFunction):
         except Exception:
             pass
 
+    def eval_numeric(self, a, b, z, evaluation: Evaluation):
+        "MeijerG[a:{___List?(AllTrue[#, NumericQ, Infinity]&)}, b:{___List?(AllTrue[#, NumericQ, Infinity]&)}, z_?MachineNumberQ]"
+        return self.eval_N(a, b, z, SymbolMachinePrecision, evaluation)
+
 
 class HypergeometricU(MPMathFunction):
     """
@@ -186,7 +201,9 @@ class HypergeometricU(MPMathFunction):
      = MeijerG[{{1, 2}, {}}, {{3}, {}}, 1]
     unless a numerical evaluation is explicitly requested:
     >> HypergeometricU[3, 2, 1] // N
-     = 0.210958
+     = 0.105479
+    >> HypergeometricU[3, 2, 1.]
+     = 0.105479
 
     Plot 'U'[3, 2, x] from 0 to 10 in steps of 0.5:
     >> Plot[HypergeometricU[3, 2, x], {x, 0.5, 10}]
