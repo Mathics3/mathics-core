@@ -88,6 +88,12 @@ import pytest
             "1",
             None
         ),
+        (
+            "HypergeometricPFQ[{c1,c2},{c1,c2},z]",
+            None,
+            "E ^ z",
+            None
+        )
     ],
 )
 def test_private_hypergeom(str_expr, msgs, str_expected, fail_msg):
