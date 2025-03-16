@@ -22,7 +22,7 @@ from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.number import FP_MANTISA_BINARY_DIGITS
-from mathics.core.systemsymbols import SymbolMachinePrecision
+from mathics.core.systemsymbols import SymbolComplexInfinity, SymbolMachinePrecision
 
 
 class HypergeometricPFQ(MPMathFunction):
@@ -87,7 +87,9 @@ class HypergeometricPFQ(MPMathFunction):
                 mpmath.hyper, a.to_python(), b.to_python(), z.to_python()
             )
             return from_mpmath(result_mpmath)
-        except Exception:
+        except ZeroDivisionError:
+            return SymbolComplexInfinity
+        except Exception as ex:
             pass
 
     def eval_numeric(self, a, b, z, evaluation: Evaluation):
@@ -178,6 +180,8 @@ class MeijerG(MPMathFunction):
                 mpmath.meijerg, a.to_python(), b.to_python(), z.to_python()
             )
             return from_mpmath(result_mpmath)
+        except ZeroDivisionError:
+            return SymbolComplexInfinity
         except Exception:
             pass
 
