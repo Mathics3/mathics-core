@@ -200,9 +200,11 @@ class HypergeometricU(MPMathFunction):
       <dt>'HypergeometricU'[$a$, $b$, $z$]
       <dd>returns $U(a, b, z)$.
     </dl>
-    Result is symbollicaly simplified by default:
+    Result is symbollicaly simplified, where possible:
     >> HypergeometricU[3, 2, 1]
      = MeijerG[{{1, 2}, {}}, {{3}, {}}, 1]
+    >> HypergeometricU[1,4,8]
+     = HypergeometricU[1, 4, 8]
     unless a numerical evaluation is explicitly requested:
     >> HypergeometricU[3, 2, 1] // N
      = 0.105479
