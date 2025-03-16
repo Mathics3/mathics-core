@@ -219,11 +219,11 @@ class HypergeometricU(MPMathFunction):
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
-    mpmath_name = ""
+    mpmath_name = "hyperu"
     nargs = {3}
     rules = {
         "HypergeometricU[0, c_, z_]": "1",
-        "HypergeometricU[a_, b_, z_]": "MeijerG[{{1-a},{}},{{0,1-b},{}},z]/Gamma[a]/Gamma[a-b+1]",
+        "HypergeometricU[a_, b_, z_] /; (a > 0) && (a-b+1 > 0)": "MeijerG[{{1-a},{}},{{0,1-b},{}},z]/Gamma[a]/Gamma[a-b+1]",
     }
     summary_text = "compute the Tricomi confluent hypergeometric function"
     sympy_name = ""
