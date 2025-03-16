@@ -53,8 +53,6 @@ class HypergeometricPFQ(MPMathFunction):
      = 1
     >> HypergeometricPFQ[{0}, {b}, z]
      = 1
-    >> HypergeometricPFQ[{b}, {b}, z]
-     = E ^ z
     """
 
     attributes = A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
@@ -63,7 +61,6 @@ class HypergeometricPFQ(MPMathFunction):
     rules = {
         "HypergeometricPFQ[{}, {}, z_]": "1",
         "HypergeometricPFQ[{0}, b_, z_]": "1",
-        "HypergeometricPFQ[b_, b_, z_]": "Exp[z]",
     }
     summary_text = "compute the generalized hypergeometric function"
     sympy_name = "hyper"
@@ -117,6 +114,10 @@ class Hypergeometric1F1(MPMathFunction):
     >> Hypergeometric1F1[3, 2, 1.]
      = 4.07742
 
+    The following special cases are handled:
+    >> Hypergeometric1F1[b, b, z]
+     = E ^ z
+
     Plot 'M'[3, 2, x] from 0 to 2 in steps of 0.5:
     >> Plot[Hypergeometric1F1[3, 2, x], {x, 0.5, 2}]
      = -Graphics-
@@ -128,6 +129,7 @@ class Hypergeometric1F1(MPMathFunction):
     nargs = {3}
     rules = {
         "Hypergeometric1F1[a_, b_, z_]": "HypergeometricPFQ[{a},{b},z]",
+        "Hypergeometric1F1[b_, b_, z_]": "Exp[z]",
     }
     summary_text = "compute Kummer confluent hypergeometric function"
     sympy_name = ""
