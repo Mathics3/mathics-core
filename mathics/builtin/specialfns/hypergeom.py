@@ -121,7 +121,7 @@ class Hypergeometric1F1(MPMathFunction):
     Here, plot explicitly requests a numerical evaluation.
     """
 
-    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     mpmath_name = ""
     nargs = {3}
     rules = {
