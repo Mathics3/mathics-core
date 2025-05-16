@@ -6,8 +6,6 @@ import time
 from abc import ABC
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, overload
 
-from mathics_scanner import TranslateError
-
 from mathics import settings
 from mathics.core.atoms import Integer, String
 from mathics.core.convert.python import from_python
@@ -161,16 +159,15 @@ class Evaluation:
         Parse a single expression from feeder, print the messages it produces and
         return the result, the source code for this and evaluated
         messages created in evaluation.
+
+        If there was was a TranslateError, the source code returned is "" and the result is None.
         """
         from mathics.core.parser.util import parse_returning_code
 
-        try:
-            result, source_code = parse_returning_code(self.definitions, feeder)
-        except TranslateError:
+        result, source_code = parse_returning_code(self.definitions, feeder)
+        if result is None:
             self.recursion_depth = 0
             self.stopped = False
-            source_code = ""
-            result = None
         messages = feeder.send_messages(self)
         return result, source_code, messages
 

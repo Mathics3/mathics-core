@@ -3,10 +3,13 @@
 
 from typing import Any, FrozenSet, Tuple
 
+from mathics_scanner.errors import TranslateError, TranslateErrorNew
+
 from mathics.core.parser.convert import convert
 from mathics.core.parser.feed import MathicsSingleLineFeeder
 from mathics.core.parser.parser import Parser
 from mathics.core.symbols import ensure_context
+from mathics.core.systemsymbols import SymbolFailed
 
 parser = Parser()
 
@@ -27,13 +30,23 @@ def parse_returning_code(definitions, feeder) -> Tuple[Any, str]:
     Look up symbols according to the Definitions instance supplied.
 
     Feeder must implement the feed and empty methods, see core/parser/feed.py.
+
+    The result is the AST parsed, and the source-code text.
+
+    If there was an error in parsing, AST is set to None.
     """
-    ast = parser.parse(feeder)
-    source_code = parser.tokeniser.code if hasattr(parser.tokeniser, "code") else ""
-    if ast is not None:
-        return convert(ast, definitions), source_code
-    else:
-        return None, source_code
+
+    try:
+        ast = parser.parse(feeder)
+    except (TranslateError, TranslateErrorNew):
+        ast = SymbolFailed
+
+    source_code = (
+        parser.tokeniser.source_text if hasattr(parser.tokeniser, "source_text") else ""
+    )
+    if ast is None or ast is SymbolFailed:
+        return ast, source_code
+    return convert(ast, definitions), source_code
 
 
 class SystemDefinitions:

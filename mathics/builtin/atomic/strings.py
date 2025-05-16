@@ -11,7 +11,7 @@ from binascii import unhexlify
 from heapq import heappop, heappush
 from typing import Any, List
 
-from mathics_scanner import TranslateError
+from mathics_scanner.errors import TranslateError, TranslateErrorNew
 
 from mathics.core.atoms import Integer, Integer0, Integer1, String
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
@@ -808,6 +808,7 @@ class ToExpression(Builtin):
             )
             return
 
+        result = None
         # Apply the different forms
         if form is SymbolInputForm:
             if isinstance(inp, String):
@@ -820,7 +821,7 @@ class ToExpression(Builtin):
                     while not feeder.empty():
                         try:
                             query = parse(evaluation.definitions, feeder)
-                        except TranslateError:
+                        except (TranslateError, TranslateErrorNew):
                             return SymbolFailed
                         finally:
                             feeder.send_messages(evaluation)
@@ -835,8 +836,8 @@ class ToExpression(Builtin):
             return
 
         # Apply head if present
-        if head is not None:
-            result = Expression(head, result).evaluate(evaluation)
+        if head is not None and result is not None:
+            return Expression(head, result).evaluate(evaluation)
 
         return result
 

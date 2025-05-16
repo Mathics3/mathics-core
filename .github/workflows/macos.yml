@@ -33,11 +33,8 @@ jobs:
         cd stopit/
         pip install -e .
         cd ..
-        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
         # We can comment out after next Mathics-Scanner release
-        git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
-        # git clone --single-branch --branch operator-refactor-part1.5 https://github.com/Mathics3/mathics-scanner.git
-        cd mathics-scanner/
+        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner@revise-escape-sequence-scanning#egg=Mathics-Scanner[full]
         pip install -e .
         cd ..
         # python -m pip install Mathics-Scanner[full]
