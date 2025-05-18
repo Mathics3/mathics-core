@@ -3,12 +3,12 @@
 
 from typing import Any, FrozenSet, Tuple
 
-from mathics_scanner.errors import TranslateError, TranslateErrorNew
+from mathics_scanner.errors import InvalidSyntaxError, TranslateError, TranslateErrorNew
 
 from mathics.core.parser.convert import convert
 from mathics.core.parser.feed import MathicsSingleLineFeeder
 from mathics.core.parser.parser import Parser
-from mathics.core.symbols import ensure_context
+from mathics.core.symbols import Symbol, SymbolNull, ensure_context
 from mathics.core.systemsymbols import SymbolFailed
 
 parser = Parser()
@@ -22,6 +22,34 @@ def parse(definitions, feeder) -> Any:
     Feeder must implement the feed and empty methods, see core/parser/feed.py.
     """
     return parse_returning_code(definitions, feeder)[0]
+
+
+def parse_incrementally_by_line(definitions, feeder) -> Any:
+    """Parse input incrementally by line. This is in contrast to parse() or
+    parser_returning_code(), which parse the *entire*
+    input which could be many line.
+
+    This routine is called via Read[] which parses by line, possibly
+    leaving of the input unparsed, depending on whether Read[]
+    requires more expressions.
+
+    By working incrementally, we may avoid reading lots of input that
+    is not going to be needed.
+
+    As a result, we do *not* handle exceptions raised. Instead, we leave that for the
+    eval_Read() routine to handle, so it can ask for another line.
+
+    Feeder must implement the feed and empty methods, see core/parser/feed.py.
+
+    The result is the AST parsed or syhmbols like $Failed or NullType. Or there can be
+    an excpetion raised in parse which filters through this routine.
+
+    """
+
+    ast = parser.parse(feeder)
+    if ast is None or isinstance(ast, Symbol):
+        return ast
+    return convert(ast, definitions)
 
 
 def parse_returning_code(definitions, feeder) -> Tuple[Any, str]:
@@ -38,13 +66,19 @@ def parse_returning_code(definitions, feeder) -> Tuple[Any, str]:
 
     try:
         ast = parser.parse(feeder)
-    except (TranslateError, TranslateErrorNew):
-        ast = SymbolFailed
+    except (TranslateError, TranslateErrorNew) as e:
+        # Here, we are just trying to match WMA's return value behavior.
+        # Until we have a general model of how this works, we resort to a hacky
+        # case-by-case approach.
+        if isinstance(e, InvalidSyntaxError):
+            ast = SymbolNull
+        else:
+            ast = SymbolFailed
 
     source_code = (
         parser.tokeniser.source_text if hasattr(parser.tokeniser, "source_text") else ""
     )
-    if ast is None or ast is SymbolFailed:
+    if ast is None or isinstance(ast, Symbol):
         return ast, source_code
     return convert(ast, definitions), source_code
 

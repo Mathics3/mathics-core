@@ -508,8 +508,8 @@ class Parser:
         elif self.is_inside_rowbox:
             return None
         else:
-            self.tokeniser.sntx_message(token.pos)
-            raise InvalidSyntaxError()
+            tag, pre_error, post_error = self.tokeniser.sntx_message(token.pos)
+            raise InvalidSyntaxError(tag, pre_error, post_error)
 
     def parse_postfix(
         self, expr1, token: Token, expr1_precedence: int
