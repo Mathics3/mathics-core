@@ -1,9 +1,14 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 from typing import Any, FrozenSet, Tuple
 
-from mathics_scanner.errors import InvalidSyntaxError, TranslateError, TranslateErrorNew
+from mathics_scanner.errors import (
+    IncompleteSyntaxError,
+    InvalidSyntaxError,
+    TranslateError,
+    TranslateErrorNew,
+)
+from mathics_scanner.feed import LineFeeder
 
 from mathics.core.parser.convert import convert
 from mathics.core.parser.feed import MathicsSingleLineFeeder
@@ -14,7 +19,7 @@ from mathics.core.systemsymbols import SymbolFailed
 parser = Parser()
 
 
-def parse(definitions, feeder) -> Any:
+def parse(definitions, feeder: LineFeeder) -> Any:
     """
     Parse input (from the frontend, -e, input files, ToExpression etc).
     Look up symbols according to the Definitions instance supplied.
@@ -24,7 +29,7 @@ def parse(definitions, feeder) -> Any:
     return parse_returning_code(definitions, feeder)[0]
 
 
-def parse_incrementally_by_line(definitions, feeder) -> Any:
+def parse_incrementally_by_line(definitions, feeder: LineFeeder) -> Any:
     """Parse input incrementally by line. This is in contrast to parse() or
     parser_returning_code(), which parse the *entire*
     input which could be many line.
@@ -39,7 +44,7 @@ def parse_incrementally_by_line(definitions, feeder) -> Any:
     As a result, we do *not* handle exceptions raised. Instead, we leave that for the
     eval_Read() routine to handle, so it can ask for another line.
 
-    Feeder must implement the feed and empty methods, see core/parser/feed.py.
+    Feeder must implement the feed and empty methods.
 
     The result is the AST parsed or syhmbols like $Failed or NullType. Or there can be
     an excpetion raised in parse which filters through this routine.
@@ -52,7 +57,7 @@ def parse_incrementally_by_line(definitions, feeder) -> Any:
     return convert(ast, definitions)
 
 
-def parse_returning_code(definitions, feeder) -> Tuple[Any, str]:
+def parse_returning_code(definitions, feeder: LineFeeder) -> Tuple[Any, str]:
     """
     Parse input (from the frontend, -e, input files, ToExpression etc).
     Look up symbols according to the Definitions instance supplied.
@@ -70,7 +75,7 @@ def parse_returning_code(definitions, feeder) -> Tuple[Any, str]:
         # Here, we are just trying to match WMA's return value behavior.
         # Until we have a general model of how this works, we resort to a hacky
         # case-by-case approach.
-        if isinstance(e, InvalidSyntaxError):
+        if isinstance(e, (InvalidSyntaxError, IncompleteSyntaxError)):
             ast = SymbolNull
         else:
             ast = SymbolFailed
