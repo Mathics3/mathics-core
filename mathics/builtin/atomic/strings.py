@@ -20,7 +20,9 @@ from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.parser import MathicsFileLineFeeder, parse
+from mathics.core.parser import MathicsFileLineFeeder
+from mathics.core.parser.convert import convert
+from mathics.core.parser.util import parser
 from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolInputForm,
@@ -788,7 +790,7 @@ class ToExpression(Builtin):
     def eval(self, seq, evaluation: Evaluation):
         "ToExpression[seq__]"
 
-        # Organise Arguments
+        # From `seq`, extract `inp`, `form`, and `head`.
         py_seq = seq.get_sequence()
         if len(py_seq) == 1:
             (inp, form, head) = (py_seq[0], SymbolInputForm, None)
@@ -820,13 +822,14 @@ class ToExpression(Builtin):
                     feeder = MathicsFileLineFeeder(f)
                     while not feeder.empty():
                         try:
-                            query = parse(evaluation.definitions, feeder)
+                            ast = parser.parse(feeder)
                         except (TranslateError, TranslateErrorNew):
                             return SymbolFailed
                         finally:
                             feeder.send_messages(evaluation)
-                        if query is None:  # blank line / comment
+                        if ast is None:  # blank line / comment
                             continue
+                        query = convert(ast, evaluation.definitions)
                         result = query.evaluate(evaluation)
 
             else:

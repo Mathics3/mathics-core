@@ -1384,10 +1384,10 @@ class NoMeaningPostfixOperator(PostfixOperator):
     </dl>
 
     >> {operator_name}[x]
-     = x {operator_string}
+     = x{operator_string}
 
-    >> x \[{operator_name}]
-     = x {operator_string}
+    >> x\[{operator_name}]
+     = x{operator_string}
 
     """
     attributes = A_NO_ATTRIBUTES
