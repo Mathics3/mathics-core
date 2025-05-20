@@ -75,10 +75,10 @@ def parse_returning_code(definitions, feeder: LineFeeder) -> Tuple[Any, str]:
         # Here, we are just trying to match WMA's return value behavior.
         # Until we have a general model of how this works, we resort to a hacky
         # case-by-case approach.
-        if isinstance(e, (InvalidSyntaxError, IncompleteSyntaxError)):
-            ast = SymbolNull
-        else:
+        if not isinstance(e, (InvalidSyntaxError, IncompleteSyntaxError)):
             ast = SymbolFailed
+        else:
+            raise
 
     source_code = (
         parser.tokeniser.source_text if hasattr(parser.tokeniser, "source_text") else ""

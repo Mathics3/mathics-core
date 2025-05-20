@@ -19,6 +19,8 @@ import subprocess
 import sys
 from typing import List
 
+from mathics_scanner.errors import IncompleteSyntaxError
+
 import mathics.core as mathics_core
 from mathics import __version__, license_string, settings, version_string
 from mathics.builtin.trace import TraceBuiltins, traced_apply_function
@@ -316,6 +318,8 @@ def interactive_eval_loop(
             result = evaluation.evaluate(query, timeout=settings.TIMEOUT)
             if result is not None:
                 shell.print_result(result, strict_wl_output=strict_wl_output)
+        except IncompleteSyntaxError:
+            pass
         except KeyboardInterrupt:
             print("\nKeyboardInterrupt")
         except EOFError:
