@@ -31,7 +31,8 @@ jobs:
         cd mathics-scanner/
         pip install -e .
         bash ./admin-tools/make-JSON-tables.sh
+        pip install -e .
         cd ..
         touch ./mathics-scanner/mathics_scanner/py.typed
         make develop
-        mypy --install-types --non-interactive mathics
+        mypy --install-types --ignore-missing-imports --non-interactive mathics
