@@ -22,13 +22,9 @@ jobs:
       run: |
         sudo apt update -qq && sudo apt install llvm-dev remake
         python -m pip install --upgrade pip
-        pip install -e .
         # We can comment out after next Mathics-Scanner release
-        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
-        # git clone https://github.com/Mathics3/mathics-scanner.git
-        # cd mathics-scanner/
-        # pip install -e .
-        # cd ..
+        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner@mini-tweaks#egg=Mathics-Scanner[full]
+        pip install -e .
 
     - name: Install Mathics with minimum dependencies
       run: |
