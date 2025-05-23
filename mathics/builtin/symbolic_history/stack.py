@@ -15,7 +15,7 @@ class Stack(Builtin):
 
     <dl>
       <dt>'Stack[]'
-      <dd>Print Mathics3 stack trace of evalutations leading to this point.
+      <dd>Print Mathics3 stack trace of evaluations leading to this point.
     </dl>
 
     >> f[g[1, Print[Stack[]] ; 2]]
