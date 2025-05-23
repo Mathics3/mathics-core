@@ -2,7 +2,7 @@
 Orthogonal Polynomials
 
 See also <url>
-:Chapters 18.3 Classical Orthogonal Polynomials in the Digital Libary of Mathematical Functions:
+:Chapters 18.3 Classical Orthogonal Polynomials in the Digital Library of Mathematical Functions:
 https://dlmf.nist.gov/18.3</url>.
 """
 

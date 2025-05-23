@@ -2,7 +2,7 @@
 # FIXME: rewrite this and split up to
 # have eval functions for mathics.builtin.arithmetic.
 # Those other functions that remain, e.g tracing functions
-# put somewher else.
+# put somewhere else.
 
 """
 arithmetic-related evaluation functions.
