@@ -578,7 +578,7 @@ class Subfactorial(SympyFunction):
     >> Subfactorial[6.0]
      = 265
 
-    Here is how the exponential, 'Factorial', and 'Subfactoral' grow in comparison:
+    Here is how the exponential, 'Factorial', and 'Subfactorial' grow in comparison:
     >> LogPlot[{10^x, Factorial[x], Subfactorial[x]}, {x, 0, 25}, PlotPoints->26]
      = -Graphics-
 
@@ -589,7 +589,7 @@ class Subfactorial(SympyFunction):
     rules = {
         "Subfactorial[elements_List]": "Subfactorial @@ elements",
     }
-    summary_text = "compute the subfactorial (derangment) of a number"
+    summary_text = "compute the subfactorial (derangement) of a number"
     sympy_name = "subfactorial"
 
     def eval(self, element, evaluation):

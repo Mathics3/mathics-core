@@ -1027,7 +1027,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         `is_uncertain_final_definitions()` we don't need a
         `definitions` parameter.
         """
-        # Right now we are pessimisitic. We might consider changing this for
+        # Right now we are pessimistic. We might consider changing this for
         # Lists. Lists definitions can't be changed right?
         return False
         # If we have a List we may do something like:

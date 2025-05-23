@@ -978,7 +978,7 @@ class ReadList(Read):
     See <url>
     :RecordSeparators:
     https://reference.wolfram.com/language/ref/RecordSeprators.html</url> \
-    works analgously for records as 'WordSeparators' does for words.
+    works analogously for records as 'WordSeparators' does for words.
 
     To allow both periods and newlines as record separators:
 

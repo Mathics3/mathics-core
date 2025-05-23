@@ -365,7 +365,7 @@ class HexadecimalCharacter(Builtin):
 
 # This isn't your normal Box class. We'll keep this here rather than
 # in mathics.builtin.box for now.
-# mmatera commenct: This does not even exist in WMA. \! should be associated
+# mmatera comment: This does not even exist in WMA. \! should be associated
 # to `ToExpression`, but it was not  properly implemented by now...
 class InterpretedBox(PrefixOperator):
     r"""
