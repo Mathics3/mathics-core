@@ -29,17 +29,18 @@ sympy_slot_prefix = "_#"
 class NumericOperators:
     """
     This is a mixin class for Element-like objects that might have numeric values.
-    It adds or "mixes in" numeric functions for these objects like round_to_float().
+    It adds or "mixes in" numeric functions for these objects like ``round_to_float()``.
 
     It also adds methods to the class to facilite building
-    ``Expression``s in the Mathics Python code using Python syntax.
+    ``Expression`` s in the Mathics Python code using Python syntax.
 
-    So for example, instead of writing in Python:
+    So for example, instead of writing in Python::
 
         to_expression("Abs", -8)
         Expression(SymbolPlus, Integer1, Integer2)
 
-    you can instead have:
+    you can instead have::
+
         abs(Integer(-8))
         Integer(1) + Integer(2)
     """

@@ -69,10 +69,13 @@ def to_mathics_list(
     elements_conversion_fn: Callable = from_python,
 ) -> ListExpression:
     """
-    This is an expression constructor for list that can be used when the elements are not Mathics
-    objects. For example:
-       to_mathics_list(1, 2, 3)
-       to_mathics_list(1, 2, 3, elements_conversion_fn=Integer)
+    This is an expression constructor for list that can be used when
+    the elements are not Mathics objects.
+
+    For example::
+
+        to_mathics_list(1, 2, 3)
+        to_mathics_list(1, 2, 3, elements_conversion_fn=Integer)
     """
     elements_tuple, elements_properties, _ = convert_expression_elements(
         elements, elements_conversion_fn

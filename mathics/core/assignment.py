@@ -176,11 +176,13 @@ def is_protected(tag: str, definitions: Definitions) -> bool:
 
 def normalize_lhs(lhs, evaluation):
     """
-    Process the lhs in a way that
+    Process the lhs in a way that:
+
     * if it is a conditional expression, reduce it to
       a shallow conditional expression
       ( Conditional[Conditional[...],tst] -> Conditional[stripped_lhs, tst])
       with `stripped_lhs` the result of strip all the conditions from lhs.
+
     * if ``stripped_lhs`` is not a ``List`` or a ``Part`` expression, evaluate the
       elements.
 

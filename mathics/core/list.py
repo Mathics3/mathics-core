@@ -19,11 +19,13 @@ class ListExpression(Expression):
     A Mathics3 List is a specialization of Expression where the head is SymbolList.
 
     positional Arguments:
-        - *elements - optional: the remaining elements
+
+    - ``*elements`` - optional: the remaining elements
 
     Keyword Arguments:
-        - elements_properties -- properties of the collection of elements
-        - literal_values -- if this is not None, then it is a tuple of Python values
+
+    - ``elements_properties`` -- properties of the collection of elements
+    - ``literal_values`` -- if this is not ``None``, then it is a tuple of Python values
     """
 
     _is_literal: bool
