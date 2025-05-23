@@ -50,7 +50,7 @@ class ContinuedFraction(SympyFunction):
       <dd>generate the first $n$ terms in the continued fraction representation of $x$.
 
       <dt>'ContinuedFraction'[$x$]
-      <dd>the complete continued fraction representation for a rational or quadradic irrational number.
+      <dd>the complete continued fraction representation for a rational or quadratic irrational number.
     </dl>
 
     >> ContinuedFraction[Pi, 10]

@@ -377,7 +377,7 @@ class Gudermannian(Builtin):
     """
 
     # See https://mathworld.wolfram.com/Gudermannian.html for a number
-    # of relatiions to trigonometric and hyperbolic functions that could be
+    # of relations to trigonometric and hyperbolic functions that could be
     # used if needed.
     rules = {
         "Gudermannian[Undefined]": "Undefined",

@@ -262,7 +262,7 @@ class LegendreQ(MPMathFunction):
 
 class SphericalHarmonicY(MPMathFunction):
     r"""
-    <url>:Spherical Harmonic https://mathworld.wolfram.com/SphericalHarmonic.html</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/orthogonal.html#mpmath.sperharm</url>, <url>:WMA: https://reference.wolfram.com/language/ref/SphericalHarmonicY.html</url>)
+    <url>:Spherical Harmonic https://mathworld.wolfram.com/SphericalHarmonic.html</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/orthogonal.html#mpmath.spherharm</url>, <url>:WMA: https://reference.wolfram.com/language/ref/SphericalHarmonicY.html</url>)
     <dl>
       <dt>'SphericalHarmonicY'[$l$, $m$, $\theta$, $\phi$]
       <dd>returns the spherical harmonic function $Y_l^m(\theta, \phi)$.

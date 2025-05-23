@@ -157,8 +157,7 @@ def eval_Times(*items: BaseElement) -> Optional[BaseElement]:
                     exp,
                 )
                 continue
-        else:
-            item = item
+
         # Otherwise, just append the element...
         elements.append(item)
 
