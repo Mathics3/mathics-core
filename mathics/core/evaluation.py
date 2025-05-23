@@ -541,16 +541,17 @@ class Evaluation:
 class Message(_Out):
     def __init__(self, symbol: Union[Symbol, str], tag: str, text: str) -> None:
         """
-        A Mathics3 message of some sort. symbol_or_string can either be a symbol or a
-        string.
+        A Mathics3 message of some sort. ``symbol`` can either
+        be a symbol or a string.
 
-        Symbol: classifies which predefined or variable this comes from? If there is none
-                use a string.
-        tag: a short slug string that indicates the kind of message
+        ``symbol``: classifies which predefined or variable this comes
+        from? If there is none use a string.
+
+        ``tag``: a short slug string that indicates the kind of message
 
         In Django we need to use a string for symbol, since we need
-        something that is JSON serializable and a Mathics3 Symbol is not
-        like this.
+        something that is JSON serializable and a Mathics3 Symbol is
+        not like this.
         """
         super(Message, self).__init__()
         self.is_message = True  # Why do we need this?
@@ -625,8 +626,10 @@ class Result:
     In particular, there are the following fields:
 
     result: the actual result produced.
-    out: a list of additional output strings. These are warning or error messages. See "form"
-         for exactly what they are.
+
+    out: a list of additional output strings. These are warning or
+         error messages. See "form" for exactly what they are.
+
     form: is the *format* of the result which tags the kind of result .
           Think of this as something like a mime/type. Some formats:
 
