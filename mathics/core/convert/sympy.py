@@ -129,7 +129,7 @@ def to_sympy_matrix(data, **kwargs) -> Optional[sympy.MutableDenseMatrix]:
         return None
 
 
-class SympyExpression(BasicSympy):
+class SympyExpression(sympy.Expr):
     """A Sympy expression with an associated Mathics expression"""
 
     is_Function = True

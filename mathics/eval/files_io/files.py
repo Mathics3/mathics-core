@@ -18,7 +18,8 @@ from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BaseElement, Expression
-from mathics.core.parser import MathicsFileLineFeeder, MathicsMultiLineFeeder, parse
+from mathics.core.parser import MathicsFileLineFeeder, MathicsMultiLineFeeder
+from mathics.core.parser.util import parse_incrementally_by_line
 from mathics.core.streams import path_search, stream_manager
 from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import (
@@ -264,14 +265,18 @@ def eval_Read(
                 result.append(tmp)
             elif typ in (SymbolExpression, SymbolHoldExpression):
                 tmp = next(read_record)
+                assert isinstance(tmp, str)
                 while True:
                     try:
                         feeder = MathicsMultiLineFeeder(tmp)
-                        expr = parse(evaluation.definitions, feeder)
+                        expr = parse_incrementally_by_line(
+                            evaluation.definitions, feeder
+                        )
                         break
                     except (IncompleteSyntaxError, InvalidSyntaxError):
                         try:
                             nextline = next(read_record)
+                            assert isinstance(nextline, str)
                             tmp = tmp + "\n" + nextline
                         except EOFError:
                             expr = SymbolEndOfFile

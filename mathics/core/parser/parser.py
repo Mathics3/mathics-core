@@ -10,7 +10,7 @@ https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overvi
 import string
 from typing import Optional, Union
 
-from mathics_scanner import InvalidSyntaxError, TranslateError
+from mathics_scanner.errors import InvalidSyntaxError, TranslateError, TranslateErrorNew
 from mathics_scanner.tokeniser import Token, Tokeniser, is_symbol_name
 
 from mathics.core.convert.op import builtin_constants
@@ -122,11 +122,11 @@ class Parser:
         if token.tag == expected_tag:
             self.consume()
         else:
-            self.tokeniser.sntx_message(token.pos)
-            raise InvalidSyntaxError()
+            tag, pre_error, post_error = self.tokeniser.sntx_message(token.pos)
+            raise InvalidSyntaxError(tag, pre_error, post_error)
 
-    def incomplete(self, pos: int):
-        self.tokeniser.incomplete()
+    def get_more_input(self, pos: int):
+        self.tokeniser.get_more_input()
         self.backtrack(pos)
 
     @property
@@ -148,7 +148,7 @@ class Parser:
             token = self.next()
             if token.tag != "END":
                 return token
-            self.incomplete(token.pos)
+            self.get_more_input(token.pos)
 
     def parse(self, feeder) -> Optional[Node]:
         """
@@ -225,8 +225,8 @@ class Parser:
             and expr1.get_head_name() == tag
             and not expr1.parenthesised
         ):
-            self.tokeniser.sntx_message(token.pos)
-            raise InvalidSyntaxError()
+            tag, pre_error, post_error = self.tokeniser.sntx_message(token.pos)
+            raise InvalidSyntaxError(tag, pre_error, post_error)
 
         result = Node(tag, expr1, expr2)
 
@@ -266,7 +266,7 @@ class Parser:
             elif tag in ("OtherscriptBox", "RightRowBox"):
                 break
             elif tag == "END":
-                self.incomplete(token.pos)
+                self.get_more_input(token.pos)
             elif result is None and tag != "END":
                 self.consume()
                 # TODO: handle non-box expressions inside RowBox
@@ -446,8 +446,10 @@ class Parser:
                     if self.is_inside_rowbox:
                         break
                     else:
-                        self.tokeniser.sntx_message(token.pos)
-                        raise InvalidSyntaxError()
+                        tag, pre_error, post_error = self.tokeniser.sntx_message(
+                            token.pos
+                        )
+                        raise InvalidSyntaxError(tag, pre_error, post_error)
             else:
                 token = self.next()
 
@@ -508,8 +510,8 @@ class Parser:
         elif self.is_inside_rowbox:
             return None
         else:
-            self.tokeniser.sntx_message(token.pos)
-            raise InvalidSyntaxError()
+            tag, pre_error, post_error = self.tokeniser.sntx_message(token.pos)
+            raise InvalidSyntaxError(tag, pre_error, post_error)
 
     def parse_postfix(
         self, expr1, token: Token, expr1_precedence: int
@@ -805,12 +807,12 @@ class Parser:
             elif token.tag == "String":
                 element = self.p_String(token)
             else:
-                self.tokeniser.sntx_message(token.pos)
-                raise InvalidSyntaxError()
+                tag, pre, post = self.tokeniser.sntx_message(token.pos)
+                raise InvalidSyntaxError(tag, pre, post)
             elements.append(element)
         return Node("MessageName", *elements)
 
-    def e_Minus(self, expr1, token: Token, p: int) -> Optional[Node]:
+    def e_Minus(self, expr1, _: Token, p: int) -> Optional[Node]:
         q = left_binary_operators["Subtract"]
         if q < p:
             return None
@@ -822,7 +824,7 @@ class Parser:
             expr2 = Node("Times", NumberM1, expr2).flatten()
         return Node("Plus", expr1, expr2).flatten()
 
-    def e_Prefix(self, expr1, token: Token, expr1_precedence: int) -> Optional[Node]:
+    def e_Prefix(self, expr1, _: Token, expr1_precedence: int) -> Optional[Node]:
         """
         Used to parse:
            expr1 @ expr2
@@ -966,7 +968,7 @@ class Parser:
         # XXX look for next expr otherwise backtrack
         try:
             expr2 = self.parse_expr(operator_precedence + 1)
-        except TranslateError:
+        except (TranslateError, TranslateErrorNew):
             self.backtrack(pos)
             self.feeder.messages = messages
             expr2 = NullSymbol
@@ -993,7 +995,7 @@ class Parser:
             messages = list(self.feeder.messages)
             try:
                 expr2 = self.parse_expr(q + 1)
-            except TranslateError:
+            except (TranslateError, TranslateErrorNew):
                 expr2 = Symbol("All")
                 self.backtrack(token.pos)
                 self.feeder.messages = messages
@@ -1004,7 +1006,7 @@ class Parser:
             try:
                 expr3 = self.parse_expr(q + 1)
                 return Node("Span", expr1, expr2, expr3)
-            except TranslateError:
+            except (TranslateError, TranslateErrorNew):
                 self.backtrack(token.pos)
                 self.feeder.messages = messages
         return Node("Span", expr1, expr2)
@@ -1025,8 +1027,8 @@ class Parser:
         elif tag == "Unset":
             head = "TagUnset"
         else:
-            self.tokeniser.sntx_message(token.pos)
-            raise InvalidSyntaxError()
+            tag, pre_error, post_error = self.tokeniser.sntx_message(token.pos)
+            raise InvalidSyntaxError(tag, pre_error, post_error)
         self.consume()
         if head == "TagUnset":
             return Node(head, expr1, expr2)
@@ -1063,7 +1065,7 @@ class Parser:
         q = prefix_operators["Information"]
         child = self.parse_expr(q)
         if child.__class__ is not Symbol:
-            raise InvalidSyntaxError()
+            return Node("Missing", String("UnknownSymbol"), child)
         return Node(
             "Information", child, Node("Rule", Symbol("LongForm"), Symbol("True"))
         )
@@ -1091,6 +1093,7 @@ class Parser:
         self.consume()
         children = []
         self.box_depth += 1
+        self.tokeniser.is_inside_box = True
         token = self.next()
         while token.tag not in ("RightRowBox", "OtherscriptBox"):
             newnode = self.parse_box_expr(NEVER_ADD_PARENTHESIS)
@@ -1105,6 +1108,7 @@ class Parser:
             result = Node("RowBox", Node("List", *children))
         self.expect("RightRowBox")
         self.box_depth -= 1
+        self.tokeniser.is_inside_box = self.box_depth > 0
         result.parenthesised = True
         return result
 
@@ -1169,8 +1173,8 @@ class Parser:
             base, s = int(base_parts[0]), base_parts[1]
             if not 2 <= base <= 36:
                 self.tokeniser.feeder.message("General", "base", base, token.text, 36)
-                self.tokeniser.sntx_message(token.pos)
-                raise InvalidSyntaxError()
+                _, pre_error, post_error = self.tokeniser.sntx_message(token.pos)
+                raise InvalidSyntaxError("General", "base", pre_error, post_error)
 
         # mantissa
         mantissa_parts = s.split("*^")
@@ -1190,8 +1194,8 @@ class Parser:
         for i, c in enumerate(s.lower()):
             if permitted_digits[c] >= base:
                 self.tokeniser.feeder.message("General", "digit", i + 1, s, base)
-                self.tokeniser.sntx_message(token.pos)
-                raise InvalidSyntaxError()
+                _, pre_error, post_error = self.tokeniser.sntx_message(token.pos)
+                raise InvalidSyntaxError("General", "digit", pre_error, post_error)
 
         result = Number(s, sign=sign, base=base, suffix=suffix, exp=exp)
         self.consume()

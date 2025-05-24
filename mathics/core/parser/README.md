@@ -90,8 +90,8 @@ def parse_binary(self, expr1, token, expr1_precedence: int) -> Node:
 
                                             # handle nonassoc operators
     if tag in nonassoc_binary_ops and expr1.get_head_name() == tag and not expr1.parenthesised:
-        self.tokeniser.sntx_message(token.pos)
-        raise InvalidSyntaxError()
+        tag, pre_error, post_error = self.tokeniser.sntx_message(token.pos)
+        raise InvalidSyntaxError(tag, pre_error, post_error)
 
     result = Node(tag, expr1, expr2)        # construct the result: `BINARY[expr1, expr2]`
 

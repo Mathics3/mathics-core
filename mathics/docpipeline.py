@@ -200,6 +200,7 @@ class TestStatus:
 
 def test_case(
     test: DocTest,
+    src_name: str,
     test_pipeline: DocTestPipeline,
     fail: Callable,
 ) -> bool:
@@ -213,7 +214,7 @@ def test_case(
     test_parameters = test_pipeline.parameters
     try:
         time_start = datetime.now()
-        result = test_pipeline.session.evaluate_as_in_cli(test.test, src_name="<test>")
+        result = test_pipeline.session.evaluate_as_in_cli(test.test, src_name=src_name)
         out = result.out
         result = result.result
     except Exception as exc:
@@ -428,6 +429,7 @@ def test_section_in_chapter(
             continue
         section_name_for_print = test_status.section_name_for_print(doctest)
         test_status.show_section(doctest)
+        assert doctest.key is not None
         key = list(doctest.key)[1:-1]
         if key != test_status.prev_key:
             index = 1
@@ -451,6 +453,7 @@ def test_section_in_chapter(
 
         success = test_case(
             doctest,
+            f"<test-{section.title}-{index}>",
             test_pipeline,
             fail=fail_message,
         )
@@ -643,6 +646,7 @@ def test_sections(
                 #     show_test_summary(test_pipeline, "sections", section_names)
                 #     return
 
+    assert section_names is not None
     show_test_summary(test_pipeline, "sections", section_names)
     return
 

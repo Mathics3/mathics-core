@@ -22,21 +22,17 @@ jobs:
       run: |
         sudo apt update -qq && sudo apt install llvm-dev remake
         python -m pip install --upgrade pip
-        pip install -e .
-        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
-        # We can comment out after next Mathics-Scanner release
-        # git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
-        # cd mathics-scanner/
-        # pip install -e .
-        # cd ..
 
-    - name: Install Mathics with minimum dependencies
-      run: |
-        make develop
     - name: Run mypy
       run: |
         pip install mypy==1.13 sympy==1.12
-        git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
+        # Adjust below for right branch
+        git clone --depth 1 --branch mini-tweaks https://github.com/Mathics3/mathics-scanner.git
+        cd mathics-scanner/
+        pip install -e .
+        bash ./admin-tools/make-JSON-tables.sh
+        pip install -e .
+        cd ..
         touch ./mathics-scanner/mathics_scanner/py.typed
-        pip install ./mathics-scanner/
-        mypy --install-types --non-interactive mathics
+        make develop
+        mypy --install-types --ignore-missing-imports --non-interactive mathics
