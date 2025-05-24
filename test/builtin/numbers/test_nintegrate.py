@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Unit tests for mathics.buitin.numbers.nintegrate
+Unit tests for mathics.builtin.numbers.nintegrate
 
 NIntegrate[] tests
 

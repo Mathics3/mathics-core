@@ -20,7 +20,7 @@ def check_pattern(str_expr, str_pattern):
     expr = parse(defintions, MathicsSingleLineFeeder(str_expr))
     pattern = ExpressionPattern(parse(defintions, MathicsSingleLineFeeder(str_pattern)))
     ret = Matcher(pattern, session.evaluation).match(expr, session.evaluation)
-    assert ret == True
+    assert ret is True
 
 
 @pytest.mark.parametrize(

@@ -454,7 +454,7 @@ class DateDifference(Builtin):
     """
 
     # FIXME: Since timedelta does not use large time units (years, months etc)
-    # this method can be innacuarate. The example below gives fractional Days
+    # this method can be inaccurate. The example below gives fractional Days
     # (20.1666666667 not 20).
 
     """

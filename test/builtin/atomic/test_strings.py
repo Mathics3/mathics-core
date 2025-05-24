@@ -100,8 +100,8 @@ def test_alphabet(str_expr, str_expected, fail_msg, warnings):
             "StringContainsQ[{A, Galaxy, Far, Far, Away}, {F ~~ __ ~~ r, aw ~~ ___}]",
             None,
         ),
-        ## Mathematica can detemine correct invalid element in the pattern, it reports error:
-        ## Element F is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
+        # Mathematica can determine correct invalid element in the pattern, it reports error:
+        # Element F is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
         (
             'StringRepeat["x", 0]',
             ("A positive integer is expected at position 2 in StringRepeat[x, 0].",),
