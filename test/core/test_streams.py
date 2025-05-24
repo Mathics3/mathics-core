@@ -23,7 +23,7 @@ def test_path_search():
     for expect_find, expect_temporary, filename, assert_msg in (
         (True, False, "fortytwo`", "should find with .m extension"),
         (False, False, "fortytwo", "should not find without backtick (`) added"),
-        (True, False, "recursive-gcd`", "should find wit .wl extension"),
+        (True, False, "recursive-gcd`", "should find with .wl extension"),
     ):
         resolved_file, is_temporary = path_search(filename)
         assert expect_find == bool(resolved_file), assert_msg
