@@ -560,9 +560,11 @@ class Quiet(Builtin):
             evaluation.set_quiet_messages(old_quiet_messages)
 
 
+# Consider removing. If this was this added just to test some expressions,
+# this should be done in pytests instead.
 class Syntax(Builtin):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Syntax.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/guide/Syntax.html</url>
 
     <dl>
       <dt>'Syntax'
@@ -570,16 +572,16 @@ class Syntax(Builtin):
     </dl>
 
     >> 1 +
-     : Incomplete expression; more input is needed (line 1 of "<test>").
+     : Incomplete expression; more input is needed (line 1 of "<test-Syntax-1>").
 
     >> Sin[1)
-     : "Sin[1" cannot be followed by ")" (line 1 of "<test>").
+     : "Sin[1" cannot be followed by ")" (line 1 of "<test-Syntax-2>").
 
     >> ^ 2
-     : Expression cannot begin with "^ 2" (line 1 of "<test>").
+     : Expression cannot begin with "^ 2" (line 1 of "<test-Syntax-3>").
 
     >> 1.5``
-     : "1.5`" cannot be followed by "`" (line 1 of "<test>").
+     : "1.5`" cannot be followed by "`" (line 1 of "<test-Syntax-4>").
     """
 
     # Extension: WMA does not provide lineno and filename in its error messages

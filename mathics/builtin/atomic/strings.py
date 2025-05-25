@@ -11,7 +11,7 @@ from binascii import unhexlify
 from heapq import heappop, heappush
 from typing import Any, List
 
-from mathics_scanner import TranslateError
+from mathics_scanner.errors import TranslateError, TranslateErrorNew
 
 from mathics.core.atoms import Integer, Integer0, Integer1, String
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
@@ -20,7 +20,9 @@ from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.parser import MathicsFileLineFeeder, parse
+from mathics.core.parser import MathicsFileLineFeeder
+from mathics.core.parser.convert import convert
+from mathics.core.parser.util import parser
 from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolInputForm,
@@ -788,7 +790,7 @@ class ToExpression(Builtin):
     def eval(self, seq, evaluation: Evaluation):
         "ToExpression[seq__]"
 
-        # Organise Arguments
+        # From `seq`, extract `inp`, `form`, and `head`.
         py_seq = seq.get_sequence()
         if len(py_seq) == 1:
             (inp, form, head) = (py_seq[0], SymbolInputForm, None)
@@ -808,6 +810,7 @@ class ToExpression(Builtin):
             )
             return
 
+        result = None
         # Apply the different forms
         if form is SymbolInputForm:
             if isinstance(inp, String):
@@ -819,13 +822,14 @@ class ToExpression(Builtin):
                     feeder = MathicsFileLineFeeder(f)
                     while not feeder.empty():
                         try:
-                            query = parse(evaluation.definitions, feeder)
-                        except TranslateError:
+                            ast = parser.parse(feeder)
+                        except (TranslateError, TranslateErrorNew):
                             return SymbolFailed
                         finally:
                             feeder.send_messages(evaluation)
-                        if query is None:  # blank line / comment
+                        if ast is None:  # blank line / comment
                             continue
+                        query = convert(ast, evaluation.definitions)
                         result = query.evaluate(evaluation)
 
             else:
@@ -835,8 +839,8 @@ class ToExpression(Builtin):
             return
 
         # Apply head if present
-        if head is not None:
-            result = Expression(head, result).evaluate(evaluation)
+        if head is not None and result is not None:
+            return Expression(head, result).evaluate(evaluation)
 
         return result
 
