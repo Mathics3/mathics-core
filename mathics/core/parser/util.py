@@ -47,7 +47,7 @@ def parse_incrementally_by_line(definitions, feeder: LineFeeder) -> Any:
     Feeder must implement the feed and empty methods.
 
     The result is the AST parsed or syhmbols like $Failed or NullType. Or there can be
-    an excpetion raised in parse which filters through this routine.
+    an exception raised in parse which filters through this routine.
 
     """
 

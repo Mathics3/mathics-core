@@ -162,7 +162,7 @@ class Evaluation:
         return the result, the source code for this and evaluated
         messages created in evaluation.
 
-        If there was was a TranslateError, the source code returned is "" and the result is None.
+        If there was a TranslateError, the source code returned is "" and the result is None.
         """
         from mathics.core.parser.util import parse_returning_code
 
