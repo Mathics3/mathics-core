@@ -6,8 +6,11 @@ File related evaluation functions.
 import os
 from typing import Callable, Literal, Optional
 
-from mathics_scanner import TranslateError
-from mathics_scanner.errors import IncompleteSyntaxError, InvalidSyntaxError
+from mathics_scanner.errors import (
+    IncompleteSyntaxError,
+    InvalidSyntaxError,
+    ScannerError,
+)
 
 import mathics
 import mathics.core.parser
@@ -149,7 +152,7 @@ def eval_Get(
                     # Note: we use mathics.core.parser.parse
                     # so that tracing/debugging can intercept parse()
                     query = mathics.core.parser.parse(definitions, feeder)
-                except TranslateError:
+                except ScannerError:
                     return SymbolNull
                 finally:
                     feeder.send_messages(evaluation)

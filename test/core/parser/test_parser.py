@@ -10,7 +10,7 @@ from mathics_scanner.errors import (
     IncompleteSyntaxError,
     InvalidSyntaxError,
     NamedCharacterSyntaxError,
-    ScanError,
+    ScannerError,
 )
 
 from mathics.core.parser.ast import Filename, Node, Number, String, Symbol
@@ -37,7 +37,7 @@ class ParserTests(unittest.TestCase):
             self.assertEqual(expr1, expr2)
 
     def scan_error(self, string):
-        self.assertRaises(ScanError, self.parse, string)
+        self.assertRaises(ScannerError, self.parse, string)
 
     def incomplete_error(self, string):
         self.assertRaises(IncompleteSyntaxError, self.parse, string)

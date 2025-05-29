@@ -14,8 +14,7 @@ from mathics_scanner.errors import (
     EscapeSyntaxError,
     InvalidSyntaxError,
     NamedCharacterSyntaxError,
-    TranslateError,
-    TranslateErrorNew,
+    ScannerError,
 )
 from mathics_scanner.tokeniser import Token, Tokeniser, is_symbol_name
 
@@ -980,7 +979,7 @@ class Parser:
         # XXX look for next expr otherwise backtrack
         try:
             expr2 = self.parse_expr(operator_precedence + 1)
-        except (TranslateError, TranslateErrorNew):
+        except ScannerError:
             self.backtrack(pos)
             self.feeder.messages = messages
             expr2 = NullSymbol
@@ -1007,7 +1006,7 @@ class Parser:
             messages = list(self.feeder.messages)
             try:
                 expr2 = self.parse_expr(q + 1)
-            except (TranslateError, TranslateErrorNew):
+            except ScannerError:
                 expr2 = Symbol("All")
                 self.backtrack(token.pos)
                 self.feeder.messages = messages
@@ -1018,7 +1017,7 @@ class Parser:
             try:
                 expr3 = self.parse_expr(q + 1)
                 return Node("Span", expr1, expr2, expr3)
-            except (TranslateError, TranslateErrorNew):
+            except ScannerError:
                 self.backtrack(token.pos)
                 self.feeder.messages = messages
         return Node("Span", expr1, expr2)
