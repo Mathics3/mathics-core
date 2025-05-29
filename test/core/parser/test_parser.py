@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 
@@ -6,11 +5,12 @@ import random
 import sys
 import unittest
 
-from mathics_scanner import (
+from mathics_scanner import SingleLineFeeder
+from mathics_scanner.errors import (
     IncompleteSyntaxError,
     InvalidSyntaxError,
+    NamedCharacterSyntaxError,
     ScanError,
-    SingleLineFeeder,
 )
 
 from mathics.core.parser.ast import Filename, Node, Number, String, Symbol
@@ -44,6 +44,9 @@ class ParserTests(unittest.TestCase):
 
     def invalid_error(self, string):
         self.assertRaises(InvalidSyntaxError, self.parse, string)
+
+    def named_character_error(self, string):
+        self.assertRaises(NamedCharacterSyntaxError, self.parse, string)
 
 
 class PrecedenceTests(ParserTests):
@@ -167,7 +170,7 @@ class AtomTests(ParserTests):
         # self.check(r'"a\"b\\c"', String(r"a\"b\\c"))
         self.incomplete_error(r'"\"')
         self.invalid_error(r'\""')
-        self.invalid_error(r"abc \[fake]")
+        self.named_character_error(r"abc \[fake]")
 
     def testAccuracy(self):
         self.scan_error("1.5``")

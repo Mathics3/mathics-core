@@ -35,7 +35,7 @@ jobs:
         cd ..
         # We can comment out after next Mathics-Scanner release
         # python -m pip install Mathics-Scanner[full]
-        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner@mini-tweaks#egg=Mathics-Scanner[full]
+        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner@revise-escape-sequence-scanning#egg=Mathics-Scanner[full]
         pip install -e .
         remake -x develop-full
     - name: Test Mathics3
