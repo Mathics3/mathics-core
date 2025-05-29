@@ -6,7 +6,7 @@ from mathics_scanner import SingleLineFeeder
 from mathics_scanner.errors import (
     IncompleteSyntaxError,
     InvalidSyntaxError,
-    ScannerError,
+    SyntaxError,
 )
 
 from mathics.core.atoms import Integer, Integer0, Integer1, Rational, Real, String
@@ -35,7 +35,7 @@ class ConvertTests(unittest.TestCase):
             assert expr1.sameQ(expr2)
 
     def scan_error(self, string):
-        self.assertRaises(ScannerError, self.parse, string)
+        self.assertRaises(SyntaxError, self.parse, string)
 
     def incomplete_error(self, string):
         self.assertRaises(IncompleteSyntaxError, self.parse, string)

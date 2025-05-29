@@ -11,7 +11,7 @@ from binascii import unhexlify
 from heapq import heappop, heappush
 from typing import Any, List
 
-from mathics_scanner.errors import ScannerError
+from mathics_scanner.errors import SyntaxError
 
 from mathics.core.atoms import Integer, Integer0, Integer1, String
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
@@ -823,7 +823,7 @@ class ToExpression(Builtin):
                     while not feeder.empty():
                         try:
                             ast = parser.parse(feeder)
-                        except ScannerError:
+                        except SyntaxError:
                             return SymbolFailed
                         finally:
                             feeder.send_messages(evaluation)

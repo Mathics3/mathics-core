@@ -9,7 +9,7 @@ from typing import Callable, Literal, Optional
 from mathics_scanner.errors import (
     IncompleteSyntaxError,
     InvalidSyntaxError,
-    ScannerError,
+    SyntaxError,
 )
 
 import mathics
@@ -152,7 +152,7 @@ def eval_Get(
                     # Note: we use mathics.core.parser.parse
                     # so that tracing/debugging can intercept parse()
                     query = mathics.core.parser.parse(definitions, feeder)
-                except ScannerError:
+                except SyntaxError:
                     return SymbolNull
                 finally:
                     feeder.send_messages(evaluation)
