@@ -2,19 +2,12 @@
 
 from typing import Any, FrozenSet, Tuple
 
-from mathics_scanner.errors import (
-    IncompleteSyntaxError,
-    InvalidSyntaxError,
-    TranslateError,
-    TranslateErrorNew,
-)
 from mathics_scanner.feed import LineFeeder
 
 from mathics.core.parser.convert import convert
 from mathics.core.parser.feed import MathicsSingleLineFeeder
 from mathics.core.parser.parser import Parser
-from mathics.core.symbols import Symbol, SymbolNull, ensure_context
-from mathics.core.systemsymbols import SymbolFailed
+from mathics.core.symbols import Symbol, ensure_context
 
 parser = Parser()
 

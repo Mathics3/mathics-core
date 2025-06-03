@@ -4,7 +4,7 @@ String Tests
 
 import re
 
-from mathics_scanner import SingleLineFeeder, TranslateError, TranslateErrorNew
+from mathics_scanner import SingleLineFeeder, SyntaxError
 
 from mathics.builtin.atomic.strings import anchor_pattern
 from mathics.core.atoms import Integer1, String
@@ -281,7 +281,7 @@ class SyntaxQ(Builtin):
         feeder = SingleLineFeeder(string.value)
         try:
             parser.parse(feeder)
-        except (TranslateError, TranslateErrorNew):
+        except SyntaxError:
             return SymbolFalse
         else:
             return SymbolTrue

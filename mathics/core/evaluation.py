@@ -6,7 +6,7 @@ import time
 from abc import ABC
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union, overload
 
-from mathics_scanner.errors import IncompleteSyntaxError, InvalidSyntaxError, ScanError
+from mathics_scanner.errors import SyntaxError
 
 from mathics import settings
 from mathics.core.atoms import Integer, String
@@ -162,13 +162,13 @@ class Evaluation:
         return the result, the source code for this and evaluated
         messages created in evaluation.
 
-        If there was a TranslateError, the source code returned is "" and the result is None.
+        If there was a SyntaxError, the source code returned is "" and the result is None.
         """
         from mathics.core.parser.util import parse_returning_code
 
         try:
             result, source_code = parse_returning_code(self.definitions, feeder)
-        except (InvalidSyntaxError, IncompleteSyntaxError, ScanError):
+        except SyntaxError:
             result = None
             source_code = ""
 

@@ -10,7 +10,12 @@ https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overvi
 import string
 from typing import Optional, Union
 
-from mathics_scanner.errors import InvalidSyntaxError, TranslateError, TranslateErrorNew
+from mathics_scanner.errors import (
+    EscapeSyntaxError,
+    InvalidSyntaxError,
+    NamedCharacterSyntaxError,
+    SyntaxError,
+)
 from mathics_scanner.tokeniser import Token, Tokeniser, is_symbol_name
 
 from mathics.core.convert.op import builtin_constants
@@ -451,7 +456,13 @@ class Parser:
                         )
                         raise InvalidSyntaxError(tag, pre_error, post_error)
             else:
-                token = self.next()
+                try:
+                    token = self.next()
+                except (NamedCharacterSyntaxError, EscapeSyntaxError) as escape_error:
+                    self.tokeniser.feeder.message(
+                        escape_error.name, escape_error.tag, *escape_error.args
+                    )
+                    raise
 
             tag = token.tag
             method = getattr(self, "e_" + tag, None)
@@ -968,7 +979,7 @@ class Parser:
         # XXX look for next expr otherwise backtrack
         try:
             expr2 = self.parse_expr(operator_precedence + 1)
-        except (TranslateError, TranslateErrorNew):
+        except SyntaxError:
             self.backtrack(pos)
             self.feeder.messages = messages
             expr2 = NullSymbol
@@ -995,7 +1006,7 @@ class Parser:
             messages = list(self.feeder.messages)
             try:
                 expr2 = self.parse_expr(q + 1)
-            except (TranslateError, TranslateErrorNew):
+            except SyntaxError:
                 expr2 = Symbol("All")
                 self.backtrack(token.pos)
                 self.feeder.messages = messages
@@ -1006,7 +1017,7 @@ class Parser:
             try:
                 expr3 = self.parse_expr(q + 1)
                 return Node("Span", expr1, expr2, expr3)
-            except (TranslateError, TranslateErrorNew):
+            except SyntaxError:
                 self.backtrack(token.pos)
                 self.feeder.messages = messages
         return Node("Span", expr1, expr2)
@@ -1328,7 +1339,7 @@ class Parser:
         return self.e_Span(Number1, token, 0)
 
     def p_String(self, token: Token) -> String:
-        result = String(unescape_string(token.text))
+        result = String(token.text[1:-1])
         self.consume()
         return result
 
