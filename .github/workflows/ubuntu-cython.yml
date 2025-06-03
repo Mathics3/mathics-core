@@ -30,7 +30,7 @@ jobs:
         pip install -e .
         cd ..
         # We can comment out after next Mathics-Scanner release
-        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner@revise-escape-sequence-scanning#egg=Mathics-Scanner[full]
+        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
         pip install -e .
         cd ..
 
