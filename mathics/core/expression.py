@@ -1942,22 +1942,20 @@ def structure(head, origins, evaluation, structure_cache={}):
 
     if isinstance(origins, (Expression, Structure)):
         cache = origins._cache
-        if cache is not None and not _is_neutral_head(
-            head, structure_cache, evaluation
-        ):
-            cache = None
+        if cache and not _is_neutral_head(head, structure_cache, evaluation):
+            cache = {}
     elif isinstance(origins, (list, tuple)):
         if _is_neutral_head(head, structure_cache, evaluation):
             cache = ExpressionCache.union(origins, evaluation)
         else:
-            cache = None
+            cache = {}
     else:
         raise ValueError("expected Expression, Structure, tuple or list as orig param")
 
-    if cache is None:
-        return UnlinkedStructure(head)
-    else:
+    if cache:
         return LinkedStructure(head, cache)
+    else:
+        return UnlinkedStructure(head)
 
 
 def atom_list_constructor(evaluation, head, *atom_names):
