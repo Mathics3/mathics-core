@@ -1120,7 +1120,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             if hasattr(element, "has_symbol")
         )
 
-    def restructure(self, head, elements, evaluation, structure_cache=None, deps=None):
+    def restructure(self, head, elements, evaluation, structure_cache={}, deps=None):
         """Faster equivalent of: ``Expression(head, *elements)``
 
         The caller guarantees that _all_ elements are either from
@@ -1924,7 +1924,7 @@ def _is_neutral_head(head, cache, evaluation):
     return _is_neutral_symbol(head.get_name(), cache, evaluation)
 
 
-def structure(head, origins, evaluation, structure_cache=None):
+def structure(head, origins, evaluation, structure_cache={}):
     """
     Creates a Structure for building Expressions with head "head" and elements
     originating (exclusively) from "origins" (elements are passed into the functions
