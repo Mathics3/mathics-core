@@ -1120,7 +1120,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             if hasattr(element, "has_symbol")
         )
 
-    def restructure(self, head, elements, evaluation, structure_cache={}, deps=None):
+    def restructure(self, head, elements, evaluation, structure_cache=None, deps=None):
         """Faster equivalent of: ``Expression(head, *elements)``
 
         The caller guarantees that _all_ elements are either from
@@ -1134,6 +1134,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         if deps is None:
             deps = self
+        if structure_cache is None:
+            structure_cache = {}
+
         # FIXME: look over
         s = structure(head, deps, evaluation, structure_cache=structure_cache)
         return s(list(elements))
