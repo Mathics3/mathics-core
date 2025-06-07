@@ -1134,6 +1134,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         if deps is None:
             deps = self
+        if structure_cache is None:
+            structure_cache = {}
+
         # FIXME: look over
         s = structure(head, deps, evaluation, structure_cache=structure_cache)
         return s(list(elements))
@@ -1924,7 +1927,7 @@ def _is_neutral_head(head, cache, evaluation):
     return _is_neutral_symbol(head.get_name(), cache, evaluation)
 
 
-def structure(head, origins, evaluation, structure_cache=None):
+def structure(head, origins, evaluation, structure_cache={}):
     """
     Creates a Structure for building Expressions with head "head" and elements
     originating (exclusively) from "origins" (elements are passed into the functions
@@ -1942,22 +1945,20 @@ def structure(head, origins, evaluation, structure_cache=None):
 
     if isinstance(origins, (Expression, Structure)):
         cache = origins._cache
-        if cache is not None and not _is_neutral_head(
-            head, structure_cache, evaluation
-        ):
-            cache = None
+        if cache and not _is_neutral_head(head, structure_cache, evaluation):
+            cache = {}
     elif isinstance(origins, (list, tuple)):
         if _is_neutral_head(head, structure_cache, evaluation):
             cache = ExpressionCache.union(origins, evaluation)
         else:
-            cache = None
+            cache = {}
     else:
         raise ValueError("expected Expression, Structure, tuple or list as orig param")
 
-    if cache is None:
-        return UnlinkedStructure(head)
-    else:
+    if cache:
         return LinkedStructure(head, cache)
+    else:
+        return UnlinkedStructure(head)
 
 
 def atom_list_constructor(evaluation, head, *atom_names):
