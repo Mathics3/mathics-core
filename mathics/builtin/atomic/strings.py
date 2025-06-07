@@ -793,11 +793,11 @@ class ToExpression(Builtin):
         # From `seq`, extract `inp`, `form`, and `head`.
         py_seq = seq.get_sequence()
         if len(py_seq) == 1:
-            (inp, form, head) = (py_seq[0], SymbolInputForm, None)
+            inp, form, head = (py_seq[0], SymbolInputForm, None)
         elif len(py_seq) == 2:
-            (inp, form, head) = (py_seq[0], py_seq[1], None)
+            inp, form, head = (py_seq[0], py_seq[1], None)
         elif len(py_seq) == 3:
-            (inp, form, head) = (py_seq[0], py_seq[1], py_seq[2])
+            inp, form, head = (py_seq[0], py_seq[1], py_seq[2])
         else:
             assert len(py_seq) > 3  # 0 case handled by apply_empty
             evaluation.message(

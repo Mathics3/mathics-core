@@ -220,7 +220,7 @@ def eval_plot3d(
                     # important too. Use first strategy if 1 or 4 are undefined
                     # and strategy 2 if either 2 or 3 are undefined.
                     #
-                    (x1, x2, x3, x4) = (
+                    x1, x2, x3, x4 = (
                         xstart + value * (xstop - xstart)
                         for value in (
                             xi / numx,
@@ -229,7 +229,7 @@ def eval_plot3d(
                             (xi + 1) / numx,
                         )
                     )
-                    (y1, y2, y3, y4) = (
+                    y1, y2, y3, y4 = (
                         ystart + value * (ystop - ystart)
                         for value in (
                             yi / numy,

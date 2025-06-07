@@ -406,14 +406,12 @@ class RealDigits(Builtin):
             return self.eval_with_base(n, b, evaluation)
         else:
             exp = log_n_b(py_n, py_b)
-            (head, tails) = convert_repeating_decimal(
+            head, tails = convert_repeating_decimal(
                 py_n.as_numer_denom()[0], py_n.as_numer_denom()[1], py_b
             )
 
-            elements = []
-            for x in head:
-                if x != "0":
-                    elements.append(Integer(int(x)))
+            elements = [Integer(int(x)) for x in head if x != "0"]
+
             elements.append(from_python(tails))
             list_expr = ListExpression(*elements)
         return ListExpression(list_expr, Integer(exp))
