@@ -19,10 +19,10 @@ hook_exit_fn: Optional[Callable] = None
 
 def skip_trivial_evaluation(expr, status: str, orig_expr=None) -> bool:
     """
-    Look for expr what are uninteresting and so we should avoid showing
-    printing or stopping at that expr.
+    Look for uninteresting evaluations that we should avoid showing
+    printing tracing status or stopping in a debugger.
 
-    This includes things like
+    This includes things like:
     * the evaluation is a literal that evaluates to the same thing,
     * evaluating a Symbol which the Symbol.
     * Showing the return value of a ListExpression literal
