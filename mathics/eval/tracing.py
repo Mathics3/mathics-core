@@ -17,6 +17,38 @@ hook_entry_fn: Optional[Callable] = None
 hook_exit_fn: Optional[Callable] = None
 
 
+def skip_trivial_evaluation(expr, status: str, orig_expr=None) -> bool:
+    """
+    Look for expr what are uninteresting and so we should avoid showing
+    printing or stopping at that expr.
+
+    This includes things like
+    * the evaluation is a literal that evaluates to the same thing,
+    * evaluating a Symbol which the Symbol.
+    * Showing the return value of a ListExpression literal
+    """
+    from mathics.core.symbols import Symbol, SymbolConstant
+
+    if isinstance(expr, Symbol) and not isinstance(expr, SymbolConstant):
+        return True
+
+    if (
+        status == "Returning"
+        and hasattr(expr, "is_literal")
+        and expr.is_literal
+        and hasattr(orig_expr, "is_literal")
+        and orig_expr.is_literal
+    ):
+        return True
+
+    if orig_expr == expr:
+        # If the two expressions are the same, there is no point in
+        # repeating the output.
+        return True
+
+    return False
+
+
 def print_evaluate(expr, evaluation, status: str, fn: Callable, orig_expr=None):
     """
     Called from a decorated Python @trace_evaluate .evaluate()
@@ -26,27 +58,7 @@ def print_evaluate(expr, evaluation, status: str, fn: Callable, orig_expr=None):
     if evaluation.definitions.timing_trace_evaluation:
         evaluation.print_out(time.time() - evaluation.start_time)
 
-    # Test and dispose of various situations where showing information
-    # is pretty useless: evaluating a Symbol is the Symbol.
-    # Showing the return value of a ListExpression literal is
-    # also useless.
-    from mathics.core.symbols import Symbol, SymbolConstant
-
-    if isinstance(expr, Symbol) and not isinstance(expr, SymbolConstant):
-        return
-
-    if (
-        status == "Returning"
-        and hasattr(expr, "is_literal")
-        and expr.is_literal
-        and hasattr(orig_expr, "is_literal")
-        and orig_expr.is_literal
-    ):
-        return
-
-    if orig_expr == expr:
-        # If the two expressions are the same, there is no point in
-        # repeating the output.
+    if skip_trivial_evaluation(expr, status, orig_expr):
         return
 
     indents = "  " * evaluation.recursion_depth
@@ -108,7 +120,7 @@ def trace_evaluate(func: Callable) -> Callable:
         if not skip_call:
             result = func(expr, evaluation)
             if trace_evaluate_on_return is not None and not was_boxing:
-                trace_evaluate_on_return(result, evaluation, "Returning", func, expr)
+                trace_evaluate_on_return(result, evaluation, "Returning", expr, result)
             evaluation.is_boxing = was_boxing
         return result
 
