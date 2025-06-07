@@ -1516,9 +1516,7 @@ class Import(Builtin):
             # return {a.get_string_value() : b for a,b in map(lambda x:
             # x.get_elements(), tmp)}
             evaluation.predetermined_out = current_predetermined_out
-            return {
-                a.get_string_value(): b for a, b in (x.get_elements() for x in tmp)
-            }
+            return {a.get_string_value(): b for a, b in (x.get_elements() for x in tmp)}
 
         # Perform the import
         defaults = None

@@ -178,9 +178,7 @@ class Eigenvalues(Builtin):
                     key=lambda v: (abs(v[0]), -re(v[0]), -im(v[0])), reverse=True
                 )
 
-                eigenvalues = [
-                    from_sympy(v) for v, c in eigenvalues for _ in range(c)
-                ]
+                eigenvalues = [from_sympy(v) for v, c in eigenvalues for _ in range(c)]
 
                 return ListExpression(*eigenvalues)
             except TypeError:
