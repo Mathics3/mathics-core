@@ -64,7 +64,7 @@ class DirectoryName(Builtin):
 
         result = py_name
         for i in range(py_n):
-            (result, tmp) = osp.split(result)
+            result, tmp = osp.split(result)
 
         return String(result)
 

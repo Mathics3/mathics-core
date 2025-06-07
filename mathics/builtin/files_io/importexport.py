@@ -1156,7 +1156,7 @@ class RegisterImport(Builtin):
 
         conditionals = {
             elem.get_string_value(): expr
-            for (elem, expr) in (x.get_elements() for x in elements[:-1])
+            for elem, expr in (x.get_elements() for x in elements[:-1])
         }
         default = elements[-1]
         posts = {}
@@ -1428,7 +1428,7 @@ class Import(Builtin):
             return SymbolFailed
 
         # Load the importer
-        (conditionals, default_function, posts, importer_options) = IMPORTERS[filetype]
+        conditionals, default_function, posts, importer_options = IMPORTERS[filetype]
 
         stream_options, custom_options = _importer_exporter_options(
             importer_options.get("System`Options"), options, "System`Import", evaluation
@@ -1513,12 +1513,12 @@ class Import(Builtin):
                 evaluation.predetermined_out = current_predetermined_out
                 return None
 
-            # return {a.get_string_value() : b for (a,b) in map(lambda x:
+            # return {a.get_string_value() : b for a,b in map(lambda x:
             # x.get_elements(), tmp)}
             evaluation.predetermined_out = current_predetermined_out
-            return dict(
-                (a.get_string_value(), b) for (a, b) in [x.get_elements() for x in tmp]
-            )
+            return {
+                a.get_string_value(): b for a, b in (x.get_elements() for x in tmp)
+            }
 
         # Perform the import
         defaults = None

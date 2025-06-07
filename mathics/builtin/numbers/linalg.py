@@ -171,7 +171,7 @@ class Eigenvalues(Builtin):
             return
 
         eigenvalues = list(sympy_matrix.eigenvals().items())
-        if all(v.is_complex for (v, _) in eigenvalues):
+        if all(v.is_complex for v, _ in eigenvalues):
             # Try to sort the eigenvalues in the Mathematica convention: largest first.
             try:
                 eigenvalues.sort(
@@ -179,19 +179,19 @@ class Eigenvalues(Builtin):
                 )
 
                 eigenvalues = [
-                    from_sympy(v) for (v, c) in eigenvalues for _ in range(c)
+                    from_sympy(v) for v, c in eigenvalues for _ in range(c)
                 ]
 
                 return ListExpression(*eigenvalues)
             except TypeError:
                 pass
 
-        eigenvalues = [(from_sympy(v), c) for (v, c) in eigenvalues]
+        eigenvalues = [(from_sympy(v), c) for v, c in eigenvalues]
 
         # Sort the eigenvalues by their sort key
         eigenvalues.sort(key=lambda v: v[0].get_sort_key())
 
-        eigenvalues = [v for (v, c) in eigenvalues for _ in range(c)]
+        eigenvalues = [v for v, c in eigenvalues for _ in range(c)]
 
         return ListExpression(*eigenvalues)
 
@@ -244,7 +244,7 @@ class Eigenvectors(Builtin):
             return
 
         # Try to sort the eigenvectors by their corresponding eigenvalues
-        if all(v.is_complex for (v, _, _) in eigenvects):
+        if all(v.is_complex for v, _, _ in eigenvects):
             try:
                 eigenvects.sort(
                     key=lambda v: (abs(v[0]), -re(v[0]), -im(v[0])), reverse=True
