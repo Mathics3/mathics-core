@@ -53,6 +53,10 @@ class MatchQ(Builtin):
     >> MatchQ[3, Pattern[3]]
      : First element in pattern Pattern[3] is not a valid pattern name.
      = False
+
+    See also <url>
+    :'Cases':
+    /doc/reference-of-built-in-symbols/list-functions/elements-of-lists/cases/</url>.
     """
 
     rules = {"MatchQ[form_][expr_]": "MatchQ[expr, form]"}
