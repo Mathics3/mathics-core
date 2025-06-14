@@ -29,22 +29,30 @@ def skip_trivial_evaluation(expr, status: str, orig_expr=None) -> bool:
     """
     from mathics.core.symbols import Symbol, SymbolConstant
 
-    if isinstance(expr, Symbol) and not isinstance(expr, SymbolConstant):
-        return True
+    if status == "Returning":
+        if (
+            hasattr(expr, "is_literal")
+            and expr.is_literal
+            and hasattr(orig_expr, "is_literal")
+            and orig_expr.is_literal
+        ):
+            return True
+        pass
+        if isinstance(expr, Symbol) and not isinstance(expr, SymbolConstant):
+            # Evaluation of a symbol, like Plus isn't that interesting
+            return True
 
-    if (
-        status == "Returning"
-        and hasattr(expr, "is_literal")
-        and expr.is_literal
-        and hasattr(orig_expr, "is_literal")
-        and orig_expr.is_literal
-    ):
-        return True
+    else:
+        # Status != "Returning", i.e. executing
 
-    if orig_expr == expr:
-        # If the two expressions are the same, there is no point in
-        # repeating the output.
-        return True
+        if isinstance(expr, Symbol):
+            # Evaluation of a symbol, like Plus isn't that interesting
+            return True
+
+        if orig_expr == expr:
+            # If the two expressions are the same, there is no point in
+            # repeating the output.
+            return True
 
     return False
 
@@ -52,7 +60,8 @@ def skip_trivial_evaluation(expr, status: str, orig_expr=None) -> bool:
 def print_evaluate(expr, evaluation, status: str, fn: Callable, orig_expr=None):
     """
     Called from a decorated Python @trace_evaluate .evaluate()
-    method when TraceActivate["evaluate" -> True]
+    method when TraceActivate["evaluate" -> True] or
+    running TraceEvaluation.
     """
 
     if evaluation.definitions.timing_trace_evaluation:
@@ -64,7 +73,8 @@ def print_evaluate(expr, evaluation, status: str, fn: Callable, orig_expr=None):
     indents = "  " * evaluation.recursion_depth
 
     if orig_expr is not None:
-        if fn.__name__ == "rewrite_apply_eval_step":
+        fn_name = fn.__name__ if hasattr(fn, "__name__") else None
+        if fn_name == "rewrite_apply_eval_step":
             assert isinstance(expr, tuple)
             if orig_expr != expr[0]:
                 if status == "Returning":
@@ -120,7 +130,13 @@ def trace_evaluate(func: Callable) -> Callable:
         if not skip_call:
             result = func(expr, evaluation)
             if trace_evaluate_on_return is not None and not was_boxing:
-                trace_evaluate_on_return(result, evaluation, "Returning", expr, result)
+                trace_evaluate_on_return(
+                    expr=result,
+                    evaluation=evaluation,
+                    status="Returning",
+                    fn=expr,
+                    orig_expr=expr,
+                )
             evaluation.is_boxing = was_boxing
         return result
 
