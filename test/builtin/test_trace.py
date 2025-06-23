@@ -4,7 +4,7 @@ Unit tests for mathics.builtin.trace
 """
 from inspect import isfunction, ismethod
 from test.helper import evaluate, session
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
 import pytest
 
@@ -26,7 +26,7 @@ def test_TraceEvaluation():
 
     def counting_print_evaluate(
         expr, evaluation: Evaluation, status: str, fn: Callable, orig_expr=None
-    ) -> bool:
+    ) -> Optional[Any]:
         """
         A replacement for mathics.eval.tracing.print_evaluate() that counts the
         number of evaluation calls.
@@ -36,7 +36,7 @@ def test_TraceEvaluation():
         assert status in ("Evaluating", "Returning")
         if "cython" not in version_info:
             assert isfunction(fn), "Expecting 4th argument to be a function"
-        return False
+        return None
 
     try:
         # Set a small recursion limit,
@@ -83,7 +83,7 @@ def test_skip_trivial_evaluation():
         global event_queue
         event_queue = []
 
-    def call_event_func(event: TraceEvent, fn: Callable, *args) -> bool:
+    def call_event_func(event: TraceEvent, fn: Callable, *args) -> Optional[Any]:
         """
         Capture filtered calls in event_queue.
         """
@@ -92,7 +92,7 @@ def test_skip_trivial_evaluation():
         else:
             name = str(fn)
         event_queue.append(f"{event.name} call  : {name}{args[:3]}")
-        return False
+        return None
 
     def return_event_func(event: TraceEvent, result: Any) -> Any:
         """
