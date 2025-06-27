@@ -18,7 +18,6 @@ from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import BaseElement, fully_qualified_symbol_name
-from mathics.core.load_builtin import definition_contribute, mathics3_builtins_modules
 from mathics.core.rules import BaseRule, Rule
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.util import canonic_filename
@@ -1066,6 +1065,10 @@ def load_builtin_definitions(
     """
     Load definitions from Builtin classes, autoload files and extension modules.
     """
+    from mathics.core.load_builtin import (
+        definition_contribute,
+        mathics3_builtins_modules,
+    )
     from mathics.eval.files_io.files import get_file_time
     from mathics.eval.pymathics import PyMathicsLoadException, load_pymathics_module
     from mathics.session import autoload_files
