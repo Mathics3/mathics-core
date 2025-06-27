@@ -484,7 +484,15 @@ class Builtin:
                 definition_class = (
                     PyMathicsDefinitions() if is_pymodule else SystemDefinitions()
                 )
-                pattern = parse_builtin_rule(pattern, definition_class)
+
+                # Passing the function parameter is in a way
+                # redundant, because creating FunctionApplyRule has
+                # access to the function and sets the postion this
+                # way. But revised afte the dust has settled and
+                # we have a very good idea of what is desirable and useful.
+                pattern = parse_builtin_rule(
+                    pattern, definition_class, location=function
+                )
                 if unavailable_function:
                     function = unavailable_function
                 if attrs:

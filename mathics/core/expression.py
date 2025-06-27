@@ -4,6 +4,7 @@
 import math
 from bisect import bisect_left
 from itertools import chain
+from types import MethodType
 from typing import (
     Any,
     Callable,
@@ -18,6 +19,7 @@ from typing import (
 )
 
 import sympy
+from mathics_scanner.location import SourceRange
 
 from mathics.core.atoms import Integer1, String
 from mathics.core.attributes import (
@@ -275,6 +277,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     elements_properties: Optional[ElementsProperties]
     options: Optional[Dict[str, Any]]
     pattern_sequence: bool
+    location: Optional[Union[SourceRange, MethodType]]
 
     def __init__(
         self,
@@ -300,6 +303,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         self._sequences = None
         self._cache = None
+        self.location = None
 
         # self.copy creates this
         self.original: Optional[Expression] = None

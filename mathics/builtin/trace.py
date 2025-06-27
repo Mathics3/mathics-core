@@ -22,16 +22,24 @@ from io import StringIO
 from time import time
 from typing import Callable
 
+import mathics_scanner.location
+
 import mathics.eval.tracing
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
-from mathics.core.builtin import Builtin
+from mathics.core.builtin import Builtin, Predefined
 from mathics.core.convert.python import from_bool, from_python
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import FunctionApplyRule
-from mathics.core.symbols import SymbolFalse, SymbolNull, SymbolTrue, strip_context
+from mathics.core.symbols import (
+    Symbol,
+    SymbolFalse,
+    SymbolNull,
+    SymbolTrue,
+    strip_context,
+)
 
 
 def traced_apply_function(
@@ -493,3 +501,33 @@ class PythonCProfileEvaluation(Builtin):
         else:
             result = expr.evaluate(evaluation)
         return ListExpression(result, profile_result)
+
+
+class TrackLocations(Predefined):
+    r"""## <url>:TrackLocations native symbol:</url>
+
+    <dl>
+      <dt>'$TrackLocations'
+      <dd>specifies whether we should track \
+      source-text location information during evaluation. This \
+      can be helpful in debugging when there is a failure.
+    </dl>
+    """
+
+    name = "$TrackLocations"
+    messages = {"bool": "`1` should be True or False."}
+
+    summary_text = "track source-text locations in evaluation"
+
+    def evaluate(self, evaluation: Evaluation) -> Symbol:
+        print(mathics_scanner.position.MATHICS3_PATHS)
+        return from_bool(mathics_scanner.position.TRACK_LOCATIONS)
+
+    def eval_set(self, value, evaluation):
+        """Set[$TrackLocations, value_]"""
+        if value is SymbolTrue or value is SymbolFalse:
+            evaluation.definitions.set_ownvalue("System`$TrackLocations", value)
+            mathics.core.parser.parser.TRACK_LOCATIONS = value.to_python()
+        else:
+            evaluation.message("$TrackLocations", "bool", value)
+        return value

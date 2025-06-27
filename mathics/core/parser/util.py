@@ -3,6 +3,7 @@
 from typing import FrozenSet, Optional, Tuple
 
 from mathics_scanner.feed import LineFeeder
+from mathics_scanner.location import ContainerKind, SourceRange
 
 from mathics.core.definitions import Definitions
 from mathics.core.element import BaseElement
@@ -68,13 +69,25 @@ def parse_returning_code(
 
     ast = parser.parse(feeder)
 
+    # For expressions which make their way to
+    # FunctionApplyRule, saving a position here is
+    # extraneous because the FunctionApplyRule an get
+    # the position.  But deal with this redundancy
+    # after the dust settles, and we have experience
+    # on what is desired.
+    location = (
+        feeder.container
+        if feeder.container_kind == ContainerKind.PYTHON
+        else SourceRange(0, parser.tokeniser.pos, feeder.container_index)
+    )
     source_text = parser.tokeniser.source_text
 
     if ast is None:
         return None, source_text
 
     converted = convert(ast, definitions)
-
+    if isinstance(converted, Expression):
+        converted.location = location
     return converted, source_text
 
 
@@ -124,9 +137,12 @@ class PyMathicsDefinitions:
         return ensure_context(name, context)
 
 
-def parse_builtin_rule(string, definitions=SystemDefinitions()):
+def parse_builtin_rule(string, definitions=SystemDefinitions(), location=None):
     """
     Parse rules specified in builtin docstrings/attributes. Every symbol
     in the input is created in the System` context.
     """
-    return parse(definitions, MathicsSingleLineFeeder(string, "<builtin_rules>"))
+    return parse(
+        definitions,
+        MathicsSingleLineFeeder(string, location, ContainerKind.PYTHON),
+    )
