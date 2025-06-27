@@ -14,6 +14,8 @@ import os.path as osp
 from os.path import join as osp_join
 from typing import Optional
 
+from mathics_scanner.location import ContainerKind
+
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Result
 from mathics.core.parser import MathicsSingleLineFeeder, parse
@@ -140,7 +142,10 @@ class MathicsSession:
     def evaluate(self, str_expression, timeout=None, form=None):
         """Parse str_expression and evaluate using the `evaluate` method of the Expression"""
         self.evaluation.out.clear()
-        expr = parse(self.definitions, MathicsSingleLineFeeder(str_expression))
+        expr = parse(
+            self.definitions,
+            MathicsSingleLineFeeder(str_expression, ContainerKind.STREAM),
+        )
         if form is None:
             form = self.form
         self.last_result = expr.evaluate(self.evaluation)

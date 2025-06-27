@@ -427,6 +427,7 @@ class ExpressionPattern(BasePattern):
         evaluation: Optional[Evaluation] = None,
     ):
         self.expr = expr
+        self.location = expr.location if hasattr(expr, "location") else None
         head = expr.head
         if attributes is None and evaluation:
             attributes = head.get_attributes(evaluation.definitions)

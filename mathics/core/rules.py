@@ -98,6 +98,7 @@ class BaseRule(KeyComparable, ABC):
         evaluation: Optional[Evaluation] = None,
         attributes: Optional[int] = None,
     ) -> None:
+        self.location = None
         self.pattern = BasePattern.create(
             pattern, attributes=attributes, evaluation=evaluation
         )
@@ -335,7 +336,7 @@ class FunctionApplyRule(BaseRule):
             pattern, system=system, attributes=attributes, evaluation=evaluation
         )
         self.name = name
-        self.function = function
+        self.location = self.function = function
         self.check_options = check_options
 
     # If you update this, you must also update traced_apply_function
