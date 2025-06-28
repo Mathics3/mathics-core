@@ -114,7 +114,11 @@ def trace_evaluate(func: Callable) -> Callable:
     def wrapper(expr, evaluation) -> Any:
         from mathics.core.symbols import SymbolConstant
 
-        skip_call = False
+        # trace_evaluate_action allows for trace_evaluate_on_call()
+        # and trace_evaluate_return() to set the value of the
+        # expression instead of calling the function or replacing
+        # of return value of a Mathics3 function call.
+        trace_evaluate_action: Optional[Any] = None
         result = None
         was_boxing = evaluation.is_boxing
         if (
@@ -125,19 +129,33 @@ def trace_evaluate(func: Callable) -> Callable:
             # We may use boxing in print_evaluate_fn(). So turn off
             # boxing temporarily.
             evaluation.is_boxing = True
-            skip_call = trace_evaluate_on_call(expr, evaluation, "Evaluating", func)
+            trace_evaluate_action = trace_evaluate_on_call(
+                expr, evaluation, "Evaluating", func
+            )
             evaluation.is_boxing = was_boxing
-        if not skip_call:
+        if trace_evaluate_action is None:
             result = func(expr, evaluation)
             if trace_evaluate_on_return is not None and not was_boxing:
-                trace_evaluate_on_return(
+                trace_evaluate_action = trace_evaluate_on_return(
                     expr=result,
                     evaluation=evaluation,
                     status="Returning",
                     fn=expr,
                     orig_expr=expr,
                 )
+            if trace_evaluate_action is not None:
+                result = (
+                    (trace_evaluate_action, False)
+                    if func.__name__ == "rewrite_apply_eval_step"
+                    else trace_evaluate_action
+                )
             evaluation.is_boxing = was_boxing
+        else:
+            result = (
+                (trace_evaluate_action, False)
+                if func.__name__ == "rewrite_apply_eval_step"
+                else trace_evaluate_action
+            )
         return result
 
     return wrapper
