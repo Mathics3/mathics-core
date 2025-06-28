@@ -16,6 +16,7 @@ from mathics_scanner.errors import (
     NamedCharacterSyntaxError,
     SyntaxError,
 )
+from mathics_scanner.location import ContainerKind, SourceRange
 from mathics_scanner.tokeniser import Token, Tokeniser, is_symbol_name
 
 from mathics.core.convert.op import builtin_constants
@@ -97,6 +98,7 @@ class Parser:
                 "DifferentialD",
             ]
         )
+        self.loctation = None
 
     def backtrack(self, pos):
         """
@@ -166,7 +168,36 @@ class Parser:
         self.current_token = None
         self.bracket_depth = 0
         self.box_depth = 0
-        return self.parse_e()
+
+        self.tokeniser._skip_blank()
+        start_pos = self.tokeniser.pos
+        start_line = feeder.lineno
+
+        parsed_node = self.parse_e()
+        if parsed_node is None:
+            return None
+
+        # Save location information
+        # For expressions which make their way to
+        # FunctionApplyRule, saving a position here is
+        # extraneous because the FunctionApplyRule an get
+        # the position.  But deal with this redundancy
+        # after the dust settles, and we have experience
+        # on what is desired.
+        if self.feeder.container_kind == ContainerKind.PYTHON:
+            self.location = feeder.container
+        else:
+            end_pos = self.tokeniser.pos
+            end_line = feeder.lineno
+            self.location = SourceRange(
+                start_line=start_line,
+                start_pos=start_pos,
+                end_line=end_line,
+                end_pos=end_pos,
+                container=feeder.container_index,
+            )
+
+        return parsed_node
 
     def parse_e(self) -> Optional[Node]:
         """
