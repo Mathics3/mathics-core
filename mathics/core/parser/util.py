@@ -69,25 +69,15 @@ def parse_returning_code(
 
     ast = parser.parse(feeder)
 
-    # For expressions which make their way to
-    # FunctionApplyRule, saving a position here is
-    # extraneous because teh FunctionApplyRule an get
-    # the position.  But deal with this redundancy
-    # after the dust settles, and we have experience
-    # on what is desired.
-    location = (
-        feeder.container
-        if feeder.container_kind == ContainerKind.PYTHON
-        else SourceRange(0, parser.tokeniser.pos, feeder.container_index)
-    )
     source_text = parser.tokeniser.source_text
 
     if ast is None:
         return None, source_text
 
     converted = convert(ast, definitions)
+
     if isinstance(converted, Expression):
-        converted.location = location
+        converted.location = parser.location
     return converted, source_text
 
 
