@@ -401,7 +401,9 @@ class AtomPattern(BasePattern):
 
     @property
     def short_name(self) -> str:
-        return self.atom.short_name
+        return (
+            self.atom.short_name if hasattr(self.atom, "short_name") else str(self.atom)
+        )
 
 
 # class StopGenerator_ExpressionPattern_match(StopGenerator):

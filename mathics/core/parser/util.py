@@ -15,7 +15,7 @@ from mathics.core.symbols import Symbol, ensure_context
 parser = Parser()
 
 
-def parse(definitions, feeder: LineFeeder) -> BaseElement:
+def parse(definitions, feeder: LineFeeder) -> Optional[BaseElement]:
     """
     Parse input (from the frontend, -e, input files, ToExpression etc).
     Look up symbols according to the Definitions instance supplied.
@@ -57,7 +57,7 @@ def parse_incrementally_by_line(
 
 def parse_returning_code(
     definitions: Definitions, feeder: LineFeeder
-) -> Tuple[BaseElement, str]:
+) -> Tuple[Optional[BaseElement], str]:
     """Parse input (from the frontend, -e, input files, ToExpression etc).
     Look up symbols according to the Definitions instance supplied.
 

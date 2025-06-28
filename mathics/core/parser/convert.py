@@ -194,6 +194,7 @@ class Converter(GenericConverter):
         self.definitions = definitions
         result = self.do_convert(node)
         self.definitions = None
+        self.location = None
         return result
 
     def do_convert(self, node):
