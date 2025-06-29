@@ -12,6 +12,7 @@ from mathics_scanner.errors import (
     NamedCharacterSyntaxError,
     SyntaxError,
 )
+from mathics_scanner.location import ContainerKind
 
 from mathics.core.parser.ast import Filename, Node, Number, String, Symbol
 from mathics.core.parser.parser import Parser
@@ -22,7 +23,9 @@ class ParserTests(unittest.TestCase):
         self.parser = Parser()
 
     def parse(self, s: str):
-        return self.parser.parse(SingleLineFeeder(s))
+        return self.parser.parse(
+            SingleLineFeeder(s, "<ParserTests>", ContainerKind.STRING)
+        )
 
     def check(self, expr1, expr2):
         if isinstance(expr1, str):

@@ -6,6 +6,7 @@ Unit tests for mathics.eval.patterns
 from test.helper import session
 
 import pytest
+from mathics_scanner.location import ContainerKind
 
 from mathics.core.definitions import Definitions
 from mathics.core.parser import MathicsSingleLineFeeder, parse
@@ -17,8 +18,18 @@ defintions = Definitions(True)
 
 
 def check_pattern(str_expr, str_pattern):
-    expr = parse(defintions, MathicsSingleLineFeeder(str_expr))
-    pattern = ExpressionPattern(parse(defintions, MathicsSingleLineFeeder(str_pattern)))
+    expr = parse(
+        defintions,
+        MathicsSingleLineFeeder(str_expr, "<test_patterns_expr>", ContainerKind.STRING),
+    )
+    pattern = ExpressionPattern(
+        parse(
+            defintions,
+            MathicsSingleLineFeeder(
+                str_pattern, "<check_pattern>", ContainerKind.STRING
+            ),
+        )
+    )
     ret = Matcher(pattern, session.evaluation).match(expr, session.evaluation)
     assert ret is True
 
