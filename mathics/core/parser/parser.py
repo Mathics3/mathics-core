@@ -49,7 +49,7 @@ special_symbols = builtin_constants.copy()
 # FIXME: should rework so we don't have to do this
 # We have the character name ImaginaryI and ImaginaryJ, but we should
 # have the *operator* name, "I".
-special_symbols["\uF74F"] = special_symbols["\uF74E"] = "I"
+special_symbols["\uf74f"] = special_symbols["\uf74e"] = "I"
 
 
 # An operator precedence value that will ensure that whatever operator
