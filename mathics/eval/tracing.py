@@ -26,8 +26,18 @@ def skip_trivial_evaluation(expr, status: str, orig_expr=None) -> bool:
     * the evaluation is a literal that evaluates to the same thing,
     * evaluating a Symbol which the Symbol.
     * Showing the return value of a ListExpression literal
+    * Evaluating Pattern[] which define a pattern.
     """
+    from mathics.core.expression import Expression
     from mathics.core.symbols import Symbol, SymbolConstant
+    from mathics.core.systemsymbols import SymbolBlank, SymbolPattern
+
+    if isinstance(expr, tuple):
+        expr = expr[0]
+
+    if isinstance(expr, Expression):
+        if expr.head in (SymbolPattern, SymbolBlank):
+            return True
 
     if status == "Returning":
         if (
@@ -39,7 +49,9 @@ def skip_trivial_evaluation(expr, status: str, orig_expr=None) -> bool:
             return True
         pass
         if isinstance(expr, Symbol) and not isinstance(expr, SymbolConstant):
-            # Evaluation of a symbol, like Plus isn't that interesting
+            # Evaluation of a symbol, like Plus isn't that interesting.
+            # Right now, SymbolConstant are not literals. If this
+            # changes, we don't need this clause.
             return True
 
     else:

@@ -495,6 +495,8 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         for rule in rules:
             result = rule.apply(self, evaluation, fully=True)
             if result is not None and not result.sameQ(self):
+                if result.is_literal:
+                    return result
                 return result.evaluate(evaluation)
         return self
 
@@ -743,7 +745,12 @@ class BooleanType(SymbolConstant):
     the constant is either SymbolTrue or SymbolFalse.
     """
 
-    pass
+    @property
+    def is_literal(self) -> bool:
+        """
+        We don't allow changing Boolean values True and False.
+        """
+        return True
 
 
 def symbol_set(*symbols: Symbol) -> FrozenSet[Symbol]:
