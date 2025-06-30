@@ -520,8 +520,8 @@ class TrackLocations(Predefined):
     summary_text = "track source-text locations in evaluation"
 
     def evaluate(self, evaluation: Evaluation) -> Symbol:
-        print(mathics_scanner.position.MATHICS3_PATHS)
-        return from_bool(mathics_scanner.position.TRACK_LOCATIONS)
+        print(mathics_scanner.location.MATHICS3_PATHS)
+        return from_bool(mathics_scanner.location.TRACK_LOCATIONS)
 
     def eval_set(self, value, evaluation):
         """Set[$TrackLocations, value_]"""

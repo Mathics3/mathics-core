@@ -31,6 +31,7 @@ from mathics.core.parser.ast import (
     String,
     Symbol,
 )
+from mathics.core.parser.location import track_location
 from mathics.core.parser.operators import (
     all_operators,
     binary_operators,
@@ -98,7 +99,7 @@ class Parser:
                 "DifferentialD",
             ]
         )
-        self.loctation = None
+        self.location = None
 
     def backtrack(self, pos):
         """
@@ -169,36 +170,12 @@ class Parser:
         self.bracket_depth = 0
         self.box_depth = 0
 
+        # Advance past white space and comments to assist location tracking.
         self.tokeniser._skip_blank()
-        start_pos = self.tokeniser.pos
-        start_line = feeder.lineno
 
-        parsed_node = self.parse_e()
-        if parsed_node is None:
-            return None
+        return self.parse_e()
 
-        # Save location information
-        # For expressions which make their way to
-        # FunctionApplyRule, saving a position here is
-        # extraneous because the FunctionApplyRule an get
-        # the position.  But deal with this redundancy
-        # after the dust settles, and we have experience
-        # on what is desired.
-        if self.feeder.container_kind == ContainerKind.PYTHON:
-            self.location = feeder.container
-        else:
-            end_pos = self.tokeniser.pos
-            end_line = feeder.lineno
-            self.location = SourceRange(
-                start_line=start_line,
-                start_pos=start_pos,
-                end_line=end_line,
-                end_pos=end_pos,
-                container=feeder.container_index,
-            )
-
-        return parsed_node
-
+    @track_location
     def parse_e(self) -> Optional[Node]:
         """
         Parse the single top-level or "start" expression.
@@ -214,6 +191,7 @@ class Parser:
         else:
             return None
 
+    @track_location
     def parse_binary_operator(
         self, expr1, token: Token, expr1_precedence: int
     ) -> Optional[Node]:
@@ -385,6 +363,7 @@ class Parser:
 
         return result
 
+    @track_location
     def parse_comparison(
         self, expr1, token: Token, expr1_precedence: int
     ) -> Optional[Node]:
@@ -440,6 +419,7 @@ class Parser:
             expr1 = Node(tag, expr1, expr2).flatten()
         return expr1
 
+    @track_location
     def parse_expr(self, precedence: int) -> Optional[Node]:
         """
         Parse an expression returning an AST Node tree for this.
@@ -533,6 +513,7 @@ class Parser:
                 result = new_result
         return result
 
+    @track_location
     def parse_p(self):
         """Parse a "p_"-tagged expression.
         "p_" tags include prefix operators, left-bracketed expressions
