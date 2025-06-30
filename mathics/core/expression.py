@@ -1254,6 +1254,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 head, *elements, elements_properties=self.elements_properties
             )
 
+        if hasattr(self, "location"):
+            new.location = self.location
+
         # Step 3: Now, process the attributes of head
         # If there are sequence, flatten them if the attributes allow it.
         if (
