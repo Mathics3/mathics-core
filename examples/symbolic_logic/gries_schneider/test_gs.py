@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from mathics_scanner.location import ContainerKind
 
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
@@ -13,5 +14,8 @@ definitions = Definitions(add_builtin=True)
 for i in range(0, 4):
     evaluation = Evaluation(definitions=definitions, catch_interrupt=False)
 
-    expr = parse(definitions, MathicsSingleLineFeeder(f"<< GS{i}.m"))
+    expr = parse(
+        definitions,
+        MathicsSingleLineFeeder(f"<< GS{i}.m", "<test_gs>", ContainerKind.STRING),
+    )
     expr.evaluate(evaluation)

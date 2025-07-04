@@ -3,6 +3,8 @@
 Test mathics.core property on BaseElement is_literal.
 """
 
+from mathics_scanner.location import ContainerKind
+
 from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.core.parser.convert import convert
 from mathics.core.parser.parser import Parser
@@ -33,7 +35,9 @@ def test_is_literal():
     ]:
         # fmt: on
         session.evaluation.out.clear()
-        feeder = MathicsSingleLineFeeder(str_expression)
+        feeder = MathicsSingleLineFeeder(
+            str_expression, "<test_is_literal>", ContainerKind.STRING
+        )
         ast = parser.parse(feeder)
         # print("XXX", ast)
 
