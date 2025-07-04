@@ -21,7 +21,7 @@ class MathicsLineFeeder(LineFeeder):
 
 
 class MathicsSingleLineFeeder(SingleLineFeeder, MathicsLineFeeder):
-    "A feeder that feeds lines from an open ``File`` object"
+    "A feeder that feeds lines from an open location container object"
 
 
 class MathicsFileLineFeeder(FileLineFeeder, MathicsLineFeeder):
@@ -29,4 +29,4 @@ class MathicsFileLineFeeder(FileLineFeeder, MathicsLineFeeder):
 
 
 class MathicsMultiLineFeeder(MultiLineFeeder, MathicsLineFeeder):
-    "A feeder that feeds lines from an open ``File`` object"
+    "A feeder that feeds lines from an open contianer object"

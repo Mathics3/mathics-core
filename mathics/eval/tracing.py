@@ -17,6 +17,19 @@ hook_entry_fn: Optional[Callable] = None
 hook_exit_fn: Optional[Callable] = None
 
 
+def is_performing_rewrite(func) -> bool:
+    """ "
+    Returns true if we are in the rewrite expression phase
+    as opposed to the apply-function/evaluation phase of
+    evaluation. The way we determine this is highly specific
+    to the Mathics3 code as it stands right now. So this
+    code is highly fragile and can change when the
+    evaluation code changes. However encapsulating this
+    in a function helps narrows the fragility to one place.
+    """
+    return hasattr(func, "__name__") and func.__name__ == "rewrite_apply_eval_step"
+
+
 def skip_trivial_evaluation(expr, status: str, orig_expr=None) -> bool:
     """
     Look for uninteresting evaluations that we should avoid showing
@@ -85,8 +98,7 @@ def print_evaluate(expr, evaluation, status: str, fn: Callable, orig_expr=None):
     indents = "  " * evaluation.recursion_depth
 
     if orig_expr is not None:
-        fn_name = fn.__name__ if hasattr(fn, "__name__") else None
-        if fn_name == "rewrite_apply_eval_step":
+        if is_performing_rewrite(fn):
             assert isinstance(expr, tuple)
             if orig_expr != expr[0]:
                 if status == "Returning":
@@ -103,9 +115,12 @@ def print_evaluate(expr, evaluation, status: str, fn: Callable, orig_expr=None):
                     f"{indents}{status}: {expr[0]}" + arrow + str(expr)
                 )
         else:
+            if status == "Returning" and isinstance(expr, tuple):
+                status = "Evaluating/Replacing"
+                expr = expr[0]
             evaluation.print_out(f"{indents}{status}: {orig_expr} = " + str(expr))
 
-    elif fn.__name__ != "rewrite_apply_eval_step":
+    elif not is_performing_rewrite(fn):
         evaluation.print_out(f"{indents}{status}: {expr}")
     return
 
@@ -140,9 +155,10 @@ def trace_evaluate(func: Callable) -> Callable:
         ):
             # We may use boxing in print_evaluate_fn(). So turn off
             # boxing temporarily.
+            phase_name = "Rewriting" if is_performing_rewrite(func) else "Evaluating"
             evaluation.is_boxing = True
             trace_evaluate_action = trace_evaluate_on_call(
-                expr, evaluation, "Evaluating", func
+                expr, evaluation, phase_name, func
             )
             evaluation.is_boxing = was_boxing
         if trace_evaluate_action is None:
@@ -158,14 +174,14 @@ def trace_evaluate(func: Callable) -> Callable:
             if trace_evaluate_action is not None:
                 result = (
                     (trace_evaluate_action, False)
-                    if func.__name__ == "rewrite_apply_eval_step"
+                    if is_performing_rewrite(func)
                     else trace_evaluate_action
                 )
             evaluation.is_boxing = was_boxing
         else:
             result = (
                 (trace_evaluate_action, False)
-                if func.__name__ == "rewrite_apply_eval_step"
+                if is_performing_rewrite(func)
                 else trace_evaluate_action
             )
         return result

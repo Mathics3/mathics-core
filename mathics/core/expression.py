@@ -19,7 +19,7 @@ from typing import (
 )
 
 import sympy
-from mathics_scanner.location import SourceRange
+from mathics_scanner.location import SourceRange, SourceRange2
 
 from mathics.core.atoms import Integer1, String
 from mathics.core.attributes import (
@@ -277,7 +277,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     elements_properties: Optional[ElementsProperties]
     options: Optional[Dict[str, Any]]
     pattern_sequence: bool
-    location: Optional[Union[SourceRange, MethodType]]
+    location: Optional[Union[SourceRange, SourceRange2, MethodType]]
 
     def __init__(
         self,
@@ -1254,7 +1254,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 head, *elements, elements_properties=self.elements_properties
             )
 
-        if hasattr(self, "location"):
+        if hasattr(self, "location") and self.location is not None:
             new.location = self.location
 
         # Step 3: Now, process the attributes of head
