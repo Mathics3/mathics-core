@@ -1193,7 +1193,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 recompute_properties = False
                 for index in indices:
                     element = elements[index]
-                    if not element.has_form("Unevaluated", 1):
+                    if not (element.is_literal or element.has_form("Unevaluated", 1)):
                         if isinstance(element, EvalMixin):
                             new_value = element.evaluate(evaluation)
                             # We need id() because != by itself is too permissive
@@ -1209,7 +1209,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                         return
                     for index in indices:
                         element = elements[index]
-                        if element.has_form("Evaluate", 1):
+                        if not element.is_literal and element.has_form("Evaluate", 1):
                             if isinstance(element, EvalMixin):
                                 new_value = element.evaluate(evaluation)
                                 # We need id() because != by itself is too permissive

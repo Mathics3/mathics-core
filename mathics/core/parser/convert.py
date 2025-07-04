@@ -10,6 +10,7 @@ import sympy
 
 from mathics.core.atoms import Integer, MachineReal, PrecisionReal, Rational, String
 from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.element import BaseElement
 from mathics.core.number import RECONSTRUCT_MACHINE_PRECISION_DIGITS
 from mathics.core.parser.ast import (
     Filename as AST_Filename,
@@ -189,7 +190,7 @@ class Converter(GenericConverter):
     def __init__(self):
         self.definitions = None
 
-    def convert(self, node, definitions):
+    def convert(self, node, definitions) -> BaseElement:
         self.definitions = definitions
         result = self.do_convert(node)
         self.definitions = None
