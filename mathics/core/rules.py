@@ -180,6 +180,12 @@ class BaseRule(KeyComparable, ABC):
                 expr._elements_fully_evaluated = False
                 expr._is_flat = False  # I think this is fully updated
                 expr._is_ordered = False
+            if (
+                hasattr(expression, "location")
+                and hasattr(expr, "location")
+                and expression.location is not None
+            ):
+                expr.location = expression.location
             return expr
 
         if return_list:

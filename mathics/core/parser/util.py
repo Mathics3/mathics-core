@@ -2,8 +2,9 @@
 
 from typing import FrozenSet, Optional, Tuple
 
+import mathics_scanner.location
 from mathics_scanner.feed import LineFeeder
-from mathics_scanner.location import ContainerKind, SourceRange2
+from mathics_scanner.location import ContainerKind
 
 from mathics.core.definitions import Definitions
 from mathics.core.element import BaseElement
@@ -65,18 +66,21 @@ def parse_returning_code(
     methods. See the mathics_scanner.feed module.
 
     """
-    from mathics.core.expression import Expression
-
     ast = parser.parse(feeder)
 
     source_text = parser.tokeniser.source_text
+    if (
+        mathics_scanner.location.TRACK_LOCATIONS
+        and feeder.container_kind == ContainerKind.STREAM
+    ):
+        feeder.container.append(source_text)
 
     if ast is None:
         return None, source_text
 
     converted = convert(ast, definitions)
 
-    if isinstance(converted, Expression):
+    if hasattr(converted, "location") and ast.location:
         converted.location = ast.location
     return converted, source_text
 

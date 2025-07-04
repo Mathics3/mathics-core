@@ -16,7 +16,6 @@ from mathics_scanner.errors import (
     NamedCharacterSyntaxError,
     SyntaxError,
 )
-from mathics_scanner.location import ContainerKind, SourceRange
 from mathics_scanner.tokeniser import Token, Tokeniser, is_symbol_name
 
 from mathics.core.convert.op import builtin_constants
@@ -31,7 +30,7 @@ from mathics.core.parser.ast import (
     String,
     Symbol,
 )
-from mathics.core.parser.location import track_location
+from mathics.core.parser.location import track_location, track_token_location
 from mathics.core.parser.operators import (
     all_operators,
     binary_operators,
@@ -169,9 +168,6 @@ class Parser:
         self.current_token = None
         self.bracket_depth = 0
         self.box_depth = 0
-
-        # Advance past white space and comments to assist location tracking.
-        self.tokeniser._skip_blank()
 
         return self.parse_e()
 
@@ -564,6 +560,7 @@ class Parser:
 
     # Note: returning a list is different from how most other parse_ routines
     # work and it makes the type system more complicated.
+    @track_location
     def parse_seq(self) -> list:
         result: list = []
         while True:
@@ -725,7 +722,7 @@ class Parser:
         expr2 = self.parse_expr(q + 1)
         return Node("Alternatives", expr1, expr2).flatten()
 
-    def e_ApplyList(self, expr1, token: Token, p: int) -> Optional[Node]:
+    def e_ApplyList(self, expr1, _: Token, p: int) -> Optional[Node]:
         operator_precedence = right_binary_operators["Apply"]
         if operator_precedence < p:
             return None
@@ -734,7 +731,7 @@ class Parser:
         expr3 = Node("List", Number1)
         return Node("Apply", expr1, expr2, expr3)
 
-    def e_Derivative(self, expr1, token: Token, p: int) -> Optional[Node]:
+    def e_Derivative(self, expr1, _: Token, p: int) -> Optional[Node]:
         q = postfix_operators["Derivative"]
         if q < p:
             return None
@@ -745,7 +742,7 @@ class Parser:
         head = Node("Derivative", Number(str(n)))
         return Node(head, expr1)
 
-    def e_Divide(self, expr1, token: Token, expr1_precedence: int):
+    def e_Divide(self, expr1, _: Token, expr1_precedence: int):
         """
         Implements parsing and transformation of Divide
            expr1 /  expr2
@@ -780,7 +777,8 @@ class Parser:
         expr2 = self.parse_expr(operator_precedence + 1)
         return Node("Times", expr1, Node("Power", expr2, NumberM1)).flatten()
 
-    def e_Infix(self, expr1, token: Token, expr1_precedence) -> Optional[Node]:
+    @track_location
+    def e_Infix(self, expr1, _: Token, expr1_precedence) -> Optional[Node]:
         """
         Used to implement the rule:
            expr : expr1 '~' expr2 '~' expr3
@@ -873,7 +871,7 @@ class Parser:
         expr2 = self.parse_expr(operator_precedence)
         return Node(expr1, expr2)
 
-    def e_Postfix(self, expr1, token: Token, expr1_precedence: int) -> Optional[Node]:
+    def e_Postfix(self, expr1, _: Token, expr1_precedence: int) -> Optional[Node]:
         """
         Used to parse
            expr1 // expr2
@@ -903,7 +901,7 @@ class Parser:
         expr2 = self.parse_expr(operator_precedence + 1)
         return Node(expr2, expr1)
 
-    def e_RawColon(self, expr1, token: Token, p: int) -> Optional[Node]:
+    def e_RawColon(self, expr1, _: Token, p: int) -> Optional[Node]:
         head_name = expr1.get_head_name()
         if head_name == "Symbol":
             head = "Pattern"
@@ -924,6 +922,7 @@ class Parser:
         expr2 = self.parse_expr(q + 1)
         return Node(head, expr1, expr2)
 
+    @track_location
     def e_RawLeftBracket(self, expr, token: Token, p: int) -> Optional[Node]:
         q = all_operators["Part"]
         if q < p:
@@ -952,7 +951,8 @@ class Parser:
             result.parenthesised = True
             return result
 
-    def e_Semicolon(self, expr1, token: Token, expr1_precedence: int) -> Optional[Node]:
+    @track_location
+    def e_Semicolon(self, expr1, _: Token, expr1_precedence: int) -> Optional[Node]:
         """
         Used to parse
            expr1 ; expr2
@@ -997,6 +997,7 @@ class Parser:
             expr2 = NullSymbol
         return Node("CompoundExpression", expr1, expr2).flatten()
 
+    @track_location
     def e_Span(self, expr1, token: Token, p) -> Optional[Node]:
         q = ternary_operators["Span"]
         if q < p:
@@ -1058,7 +1059,8 @@ class Parser:
         expr3 = self.parse_expr(q + 1)
         return Node(head, expr1, expr2, expr3)
 
-    def e_Unset(self, expr1, token: Token, p: int) -> Optional[Node]:
+    @track_location
+    def e_Unset(self, expr1, _: Token, p: int) -> Optional[Node]:
         q = all_operators["Set"]
         if q < p:
             return None
@@ -1073,17 +1075,17 @@ class Parser:
     # can uniquely identified by a prefix character or string.
 
     # FIXME DRY with pre_Decrement
-    def p_Decrement(self, token: Token) -> Node:
+    def p_Decrement(self, _: Token) -> Node:
         self.consume()
         q = prefix_operators["PreDecrement"]
         return Node("PreDecrement", self.parse_expr(q))
 
-    def p_Increment(self, token: Token) -> Node:
+    def p_Increment(self, _: Token) -> Node:
         self.consume()
         q = prefix_operators["PreIncrement"]
         return Node("PreIncrement", self.parse_expr(q))
 
-    def p_Information(self, token: Token) -> Node:
+    def p_Information(self, _: Token) -> Node:
         self.consume()
         q = prefix_operators["Information"]
         child = self.parse_expr(q)
@@ -1093,7 +1095,7 @@ class Parser:
             "Information", child, Node("Rule", Symbol("LongForm"), Symbol("True"))
         )
 
-    def p_Integral(self, token: Token) -> Node:
+    def p_Integral(self, _: Token) -> Node:
         self.consume()
         inner_prec, outer_prec = all_operators["Sum"] + 1, all_operators["Power"] - 1
         expr1 = self.parse_expr(inner_prec)
@@ -1101,17 +1103,19 @@ class Parser:
         expr2 = self.parse_expr(outer_prec)
         return Node("Integrate", expr1, expr2)
 
-    def p_Factorial2(self, token: Token) -> Node:
+    def p_Factorial2(self, _: Token) -> Node:
         self.consume()
         q = prefix_operators["Not"]
         child = self.parse_expr(q)
         return Node("Not", Node("Not", child))
 
+    @track_token_location
     def p_Filename(self, token: Token) -> Filename:
         result = Filename(token.text)
         self.consume()
         return result
 
+    @track_token_location
     def p_LeftRowBox(self, token: Token) -> Union[Node, String]:
         self.consume()
         children = []
@@ -1135,7 +1139,8 @@ class Parser:
         result.parenthesised = True
         return result
 
-    def p_Minus(self, token: Token) -> Optional[Node]:
+    @track_token_location
+    def p_Minus(self, _: Token) -> Optional[Node]:
         """
         Used to parse:
            - expr1
@@ -1152,7 +1157,8 @@ class Parser:
         else:
             return Node("Times", NumberM1, expr).flatten()
 
-    def p_MinusPlus(self, token: Token) -> Node:
+    @track_token_location
+    def p_MinusPlus(self, _: Token) -> Node:
         """
         Used to parse:
            ∓ expr1
@@ -1165,7 +1171,8 @@ class Parser:
         operator_precedence = operator_precedences["UnaryMinusPlus"]
         return Node("MinusPlus", self.parse_expr(operator_precedence))
 
-    def p_Not(self, token: Token) -> Node:
+    @track_token_location
+    def p_Not(self, _: Token) -> Node:
         self.consume()
         operator_precedence = prefix_operators["Not"]
         child = self.parse_expr(operator_precedence)
@@ -1177,6 +1184,7 @@ class Parser:
     # See if we can fix this mess.
     p_Factorial = p_Not
 
+    @track_token_location
     def p_Number(self, token: Token) -> Number:
         s = token.text
 
@@ -1272,7 +1280,8 @@ class Parser:
             "Information", child, Node("Rule", Symbol("LongForm"), Symbol("False"))
         )
 
-    def p_Plus(self, token: Token):
+    @track_token_location
+    def p_Plus(self, _: Token):
         """
         Used to parse:
            + expr1
