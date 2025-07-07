@@ -267,9 +267,8 @@ class FilePrint(Builtin):
     """
 
     messages = {
-        "fstr": (
-            "File specification `1` is not a string of " "one or more characters."
-        ),
+        "zstr": ("The file name cannot be an empty string."),
+        "badfile": ("The specified argument, `1`, should be a valid string."),
     }
 
     options = {
@@ -281,33 +280,35 @@ class FilePrint(Builtin):
 
     def eval(self, path, evaluation: Evaluation, options: dict):
         "FilePrint[path_, OptionsPattern[FilePrint]]"
+
+        if not isinstance(path, String):
+            evaluation.message("FilePrint", "badfile", path)
+            return
+
         pypath = path.to_python()
+
         if not (
             isinstance(pypath, str)
             and pypath[0] == pypath[-1] == '"'
             and len(pypath) > 2
         ):
-            evaluation.message("FilePrint", "fstr", path)
+            evaluation.message("FilePrint", "zstr", path)
             return
-        pypath, _ = path_search(pypath[1:-1])
+        resolved_pypath, _ = path_search(pypath[1:-1])
 
         # Options
         record_separators = options["System`RecordSeparators"].to_python()
-        assert isinstance(record_separators, list)
-        assert all(
-            isinstance(s, str) and s[0] == s[-1] == '"' for s in record_separators
-        )
-        record_separators = [s[1:-1] for s in record_separators]
+        assert isinstance(record_separators, tuple)
 
-        if pypath is None:
+        if resolved_pypath is None:
             evaluation.message("General", "noopen", path)
             return
 
-        if not osp.isfile(pypath):
+        if not osp.isfile(resolved_pypath):
             return SymbolFailed
 
         try:
-            with MathicsOpen(pypath, "r") as f:
+            with MathicsOpen(resolved_pypath, "r") as f:
                 result = f.read()
         except IOError:
             evaluation.message("General", "noopen", path)
@@ -1374,18 +1375,26 @@ class Find(Read):
 
         stream = to_expression("InputStream", name, n)
 
-        if not isinstance(py_text, list):
+        if not isinstance(py_text, (list, tuple)):
             py_text = [py_text]
 
-        if not all(isinstance(t, str) and t[0] == t[-1] == '"' for t in py_text):
+        if not all(isinstance(t, str) for t in py_text):
             evaluation.message("Find", "unknown", to_expression("Find", stream, text))
             return
 
-        py_text = [t[1:-1] for t in py_text]
+        # If py_text comes from a (literal) value, then there are no
+        # leading/trailing quotes around strings.  If it is still
+        # possible that py_text can be a list, then there could be
+        # leading/traling quotes.
+        if isinstance(py_text, list):
+            py_text = [t[1:-1] if t[0] == t[-1] == '"' else t for t in py_text]
 
         while True:
             tmp = super(Find, self).eval(stream, Symbol("Record"), evaluation, options)
-            py_tmp = tmp.to_python()[1:-1]
+            if not isinstance(tmp, String):
+                return SymbolFailed
+
+            py_tmp = tmp.value
 
             if py_tmp == "System`EndOfFile":
                 evaluation.message(

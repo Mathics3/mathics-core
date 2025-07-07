@@ -353,9 +353,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         values = []
         for element in self._elements:
             # Test for the literalness, and the three properties mentioned above
-            if element.is_literal:
-                values.append(element.value)
-            else:
+            if not element.is_literal:
                 self.elements_properties.elements_fully_evaluated = False
 
             if isinstance(element, Expression):
@@ -1547,7 +1545,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     def to_mpmath(self):
         return None
 
-    def to_python(self, *args, **kwargs):
+    def to_python(self, *args, **kwargs) -> Any:
         """
         Convert the Expression to a Python object:
         List[...]  -> Python list
@@ -1562,6 +1560,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         If kwarg n_evaluation is given, apply N first to the expression.
         """
         from mathics.core.builtin import mathics_to_python
+
+        # When self.value of is None, it might mean either it is
+        # not set or it is legitamately the None value.
+        # If self.value is legitimately None, we'll
+        # catch further down.
+        if hasattr(self, "value") and self.value is not None:
+            return self.value
 
         n_evaluation = kwargs.get("n_evaluation", None)
         assert n_evaluation is None

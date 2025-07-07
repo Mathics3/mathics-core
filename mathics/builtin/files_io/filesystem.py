@@ -66,10 +66,12 @@ class AbsoluteFileName(Builtin):
 
         py_name = name.to_python()
 
-        if not (isinstance(py_name, str) and py_name[0] == py_name[-1] == '"'):
+        if not isinstance(py_name, str):
             evaluation.message("AbsoluteFileName", "fstr", name)
             return
-        py_name = py_name[1:-1]
+
+        if py_name[0] == py_name[-1] == '"':
+            py_name = py_name[1:-1]
 
         result, _ = path_search(py_name)
 
@@ -164,15 +166,18 @@ class CopyFile(Builtin):
         py_dest = dest.to_python()
 
         # Check filenames
-        if not (isinstance(py_source, str) and py_source[0] == py_source[-1] == '"'):
+        if not (isinstance(py_source, str)):
             evaluation.message("CopyFile", "fstr", source)
             return
-        if not (isinstance(py_dest, str) and py_dest[0] == py_dest[-1] == '"'):
+        if not (isinstance(py_dest, str)):
             evaluation.message("CopyFile", "fstr", dest)
             return
 
-        py_source = py_source[1:-1]
-        py_dest = py_dest[1:-1]
+        if py_source[0] == py_source[-1] == '"':
+            py_source = py_source[1:-1]
+
+        if py_dest[0] == py_dest[-1] == '"':
+            py_dest = py_dest[1:-1]
 
         py_source, _ = path_search(py_source)
 
@@ -290,13 +295,13 @@ class DeleteFile(Builtin):
         "DeleteFile[filename_]"
 
         py_path = filename.to_python()
-        if not isinstance(py_path, list):
+        if not isinstance(py_path, (list, tuple)):
             py_path = [py_path]
 
         py_paths = []
         for path in py_path:
             # Check filenames
-            if not (isinstance(path, str) and path[0] == path[-1] == '"'):
+            if not isinstance(path, str):
                 evaluation.message(
                     "DeleteFile",
                     "strs",
@@ -305,7 +310,8 @@ class DeleteFile(Builtin):
                 )
                 return
 
-            path = path[1:-1]
+            if path[0] == path[-1] == '"':
+                path = path[1:-1]
             path, _ = path_search(path)
 
             if path is None:

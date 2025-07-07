@@ -508,7 +508,7 @@ class PythonForm(FormBaseClass):
     >> E // PythonForm
     = sympy.E
     >> {1, 2, 3} // PythonForm
-    = [1, 2, 3]
+    = (1, 2, 3)
     """
 
     in_outputforms = True

@@ -4,21 +4,18 @@ File Properties
 
 import os
 import os.path as osp
-import time
+from datetime import datetime
 
 from mathics.builtin.exp_structure.size_and_sig import Hash
 from mathics.builtin.files_io.files import MathicsOpen
-from mathics.core.atoms import Real, String
+from mathics.core.atoms import String
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.builtin import Builtin, MessageException
 from mathics.core.convert.expression import to_expression
-from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
 from mathics.core.streams import path_search
 from mathics.core.symbols import Symbol, SymbolNull
-from mathics.core.systemsymbols import SymbolAbsoluteTime, SymbolFailed, SymbolNone
-from mathics.eval.nevaluator import eval_N
+from mathics.core.systemsymbols import SymbolFailed, SymbolNone
 
 sort_order = "mathics.builtin.file-operations.file_properties"
 
@@ -103,17 +100,17 @@ class FileDate(Builtin):
             evaluation.message("FileDate", "datetype")
             return
 
-        # Offset for system epoch
-        epochtime_expr = Expression(
-            SymbolAbsoluteTime, String(time.strftime("%Y-%m-%d %H:%M", time.gmtime(0)))
+        dt_object = datetime.fromtimestamp(result)
+        # Extract the year, month, day, hour, and minute into a tuple
+        datetime_tuple = (
+            dt_object.year,
+            dt_object.month,
+            dt_object.day,
+            dt_object.hour,
+            dt_object.minute,
+            dt_object.second,
         )
-        epochtime_N = eval_N(epochtime_expr, evaluation)
-        if epochtime_N is None:
-            return None
-        epochtime = epochtime_N.to_python()
-        result += epochtime
-
-        return to_expression("DateList", Real(result))
+        return to_expression("DateList", datetime_tuple)
 
     def eval_default(self, path, evaluation):
         "FileDate[path_]"
@@ -299,7 +296,7 @@ class SetFileDate(Builtin):
 
         # Check datelist
         if not (
-            isinstance(py_datelist, list)
+            isinstance(py_datelist, (list, tuple))
             and len(py_datelist) == 6
             and all(isinstance(d, int) for d in py_datelist[:-1])
             and isinstance(py_datelist[-1], float)
@@ -311,25 +308,13 @@ class SetFileDate(Builtin):
             evaluation.message("SetFileDate", "datetype")
             return
 
-        epochtime = (
-            to_expression(
-                "AbsoluteTime", time.strftime("%Y-%m-%d %H:%M", time.gmtime(0))
-            )
-            .evaluate(evaluation)
-            .to_python()
-        )
-
-        stattime = to_expression("AbsoluteTime", from_python(py_datelist))
-        stattime_N = eval_N(stattime, evaluation)
-        if stattime_N is None:
-            return
-
-        stattime = stattime_N.to_python() - epochtime
+        file_timestamp = datetime(*py_datelist[:4]).timestamp()
 
         try:
             os.stat(py_filename)
             if py_attr == '"Access"':
-                os.utime(py_filename, (stattime, osp.getatime(py_filename)))
+                os.utime(py_filename, (file_timestamp, osp.getatime(py_filename)))
+                return SymbolNull
             if py_attr == '"Creation"':
                 if os.name == "posix":
                     evaluation.message("SetFileDate", "nocreationunix")
@@ -338,9 +323,9 @@ class SetFileDate(Builtin):
                     # TODO: Note: This is windows only
                     return SymbolFailed
             if py_attr == '"Modification"':
-                os.utime(py_filename, (osp.getatime(py_filename), stattime))
-            if py_attr == "All":
-                os.utime(py_filename, (stattime, stattime))
+                os.utime(py_filename, (osp.getatime(py_filename), file_timestamp))
+            elif py_attr == "All":
+                os.utime(py_filename, (file_timestamp, file_timestamp))
         except OSError:
             # evaluation.message(...)
             return SymbolFailed
