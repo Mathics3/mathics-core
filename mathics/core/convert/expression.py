@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from typing import Any, Callable, Type, Union
+from typing import Any, Callable, Union
 
 from mathics.core.convert.python import from_python
 from mathics.core.element import BaseElement
@@ -52,7 +52,7 @@ def to_expression(
 def to_expression_with_specialization(
     head: BaseElement,
     *elements: Any,
-    elements_conversion_fn: Callable = from_python,
+    _: Callable = from_python,
 ) -> Union[ListExpression, Expression]:
     """
     This expression constructor will figure out what the right kind of
@@ -77,11 +77,13 @@ def to_mathics_list(
         to_mathics_list(1, 2, 3)
         to_mathics_list(1, 2, 3, elements_conversion_fn=Integer)
     """
-    elements_tuple, elements_properties, _ = convert_expression_elements(
+    elements_tuple, elements_properties, literal_values = convert_expression_elements(
         elements, elements_conversion_fn
     )
     list_expression = ListExpression(
-        *elements_tuple, elements_properties=elements_properties
+        *elements_tuple,
+        elements_properties=elements_properties,
+        literal_values=literal_values,
     )
     return list_expression
 
@@ -102,5 +104,5 @@ def to_numeric_args(mathics_args: BaseElement, evaluation) -> tuple:
 
 
 expression_constructor_map = {
-    SymbolList: lambda head, *args, **kwargs: ListExpression(*args, **kwargs)
+    SymbolList: lambda _, *args, **kwargs: ListExpression(*args, **kwargs)
 }

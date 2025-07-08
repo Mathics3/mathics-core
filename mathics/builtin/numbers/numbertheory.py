@@ -1062,7 +1062,7 @@ class RandomPrime(Builtin):
         py_n = n.to_python()
 
         py_int = interval.to_python()
-        if not (isinstance(py_int, list) and len(py_int) == 2):
+        if not (isinstance(py_int, (list, tuple)) and len(py_int) == 2):
             evaluation.message("RandomPrime", "prmrng", interval)
 
         imin, imax = min(py_int), max(py_int)

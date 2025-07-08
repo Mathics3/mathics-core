@@ -13,7 +13,7 @@ import re
 import sys
 import time
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Union
 
 import dateutil.parser
 
@@ -97,16 +97,7 @@ DATE_STRING_FORMATS = {
 
 EPOCH_START = datetime(1900, 1, 1)
 
-if not hasattr(timedelta, "total_seconds"):
-
-    def total_seconds(td):
-        return (
-            float(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6)
-            / 10**6
-        )
-
-else:
-    total_seconds = timedelta.total_seconds
+total_seconds = timedelta.total_seconds
 
 SymbolDateObject = Symbol("DateObject")
 SymbolDateString = Symbol("DateString")
@@ -114,8 +105,10 @@ SymbolGregorian = Symbol("Gregorian")
 
 
 class _Date:
-    def __init__(self, datelist=[], absolute=None, datestr=None):
-        datelist += [1900, 1, 1, 0, 0, 0.0][len(datelist) :]
+    def __init__(
+        self, datelist_arg: Union[list, tuple] = [], absolute=None, datestr=None
+    ):
+        datelist = list(datelist_arg) + [1900, 1, 1, 0, 0, 0.0][len(datelist_arg) :]
         self.date = datetime(
             datelist[0],
             datelist[1],
@@ -249,7 +242,7 @@ class _DateFormat(Builtin):
             ]
             return datelist
 
-        if not isinstance(etime, list):
+        if not isinstance(etime, (list, tuple)):
             evaluation.message(form_name, "arg", etime)
             return
 
@@ -258,7 +251,7 @@ class _DateFormat(Builtin):
             for i, val in enumerate(etime)
         ):
             default_date = [1900, 1, 1, 0, 0, 0.0]
-            datelist = etime + default_date[len(etime) :]
+            datelist = list(etime) + default_date[len(etime) :]
             prec_part, imprec_part = datelist[:2], datelist[2:]
 
             try:
@@ -289,12 +282,16 @@ class _DateFormat(Builtin):
         if len(etime) == 2:
             if (
                 isinstance(etime[0], str)
-                and isinstance(etime[1], list)  # noqa
+                and isinstance(etime[1], (list, tuple))  # noqa
                 and all(isinstance(s, str) for s in etime[1])
             ):
                 is_spec = [
                     str(s).strip('"') in DATE_STRING_FORMATS.keys() for s in etime[1]
                 ]
+
+                if isinstance(etime, tuple):
+                    etime = list(etime)
+
                 etime[1] = [str(s).strip('"') for s in etime[1]]
 
                 if sum(is_spec) == len(is_spec):
@@ -389,7 +386,7 @@ class AbsoluteTime(_DateFormat):
         if datelist is None:
             return
 
-        date = _Date(datelist=datelist)
+        date = _Date(datelist_arg=datelist)
         tdelta = date.date - EPOCH_START
         if tdelta.microseconds == 0:
             return Integer(int(total_seconds(tdelta)))
@@ -487,8 +484,8 @@ class DateDifference(Builtin):
         # Process dates
         pydate1, pydate2 = date1.to_python(), date2.to_python()
 
-        if isinstance(pydate1, list):  # Date List
-            idate = _Date(datelist=pydate1)
+        if isinstance(pydate1, (list, tuple)):  # Date List
+            idate = _Date(datelist_arg=pydate1)
         elif isinstance(pydate1, (float, int)):  # Absolute Time
             idate = _Date(absolute=pydate1)
         elif isinstance(pydate1, str):  # Date string
@@ -497,8 +494,8 @@ class DateDifference(Builtin):
             evaluation.message("DateDifference", "date", date1)
             return
 
-        if isinstance(pydate2, list):  # Date List
-            fdate = _Date(datelist=pydate2)
+        if isinstance(pydate2, (list, tuple)):  # Date List
+            fdate = _Date(datelist_arg=pydate2)
         elif isinstance(pydate2, (int, float)):  # Absolute Time
             fdate = _Date(absolute=pydate2)
         elif isinstance(pydate1, str):  # Date string
@@ -517,7 +514,9 @@ class DateDifference(Builtin):
         pyunits = units.to_python()
         if isinstance(pyunits, str):
             pyunits = [str(pyunits.strip('"'))]
-        elif isinstance(pyunits, list) and all(isinstance(p, str) for p in pyunits):
+        elif isinstance(pyunits, (list, tuple)) and all(
+            isinstance(p, str) for p in pyunits
+        ):
             pyunits = [p.strip('"') for p in pyunits]
 
         if not all(p in TIME_INCREMENTS.keys() for p in pyunits):
@@ -762,9 +761,9 @@ class DatePlus(Builtin):
 
         # Process date
         pydate = date.to_python()
-        if isinstance(pydate, list):
+        if isinstance(pydate, (list, tuple)):
             date_prec = len(pydate)
-            idate = _Date(datelist=pydate)
+            idate = _Date(datelist_arg=pydate)
         elif isinstance(pydate, float) or isinstance(pydate, int):
             date_prec = "absolute"
             idate = _Date(absolute=pydate)
@@ -779,13 +778,17 @@ class DatePlus(Builtin):
         pyoff = off.to_python()
         if isinstance(pyoff, float) or isinstance(pyoff, int):
             pyoff = [[pyoff, '"Day"']]
-        elif isinstance(pyoff, list) and len(pyoff) == 2 and isinstance(pyoff[1], str):
+        elif (
+            isinstance(pyoff, (list, tuple))
+            and len(pyoff) == 2
+            and isinstance(pyoff[1], str)
+        ):
             pyoff = [pyoff]
 
         # Strip " marks
         pyoff = [[x[0], x[1].strip('"')] for x in pyoff]
 
-        if isinstance(pyoff, list) and all(  # noqa
+        if isinstance(pyoff, (list, tuple)) and all(  # noqa
             len(o) == 2
             and o[1] in TIME_INCREMENTS.keys()
             and isinstance(o[0], (float, int))
@@ -940,15 +943,16 @@ class DateString(_DateFormat):
         self, epochtime: BaseElement, form: BaseElement, evaluation: Evaluation
     ) -> Optional[String]:
         "DateString[epochtime_, form_]"
+
         datelist = self.to_datelist(epochtime, evaluation)
 
         if datelist is None:
             return
 
-        date = _Date(datelist=datelist)
+        date = _Date(datelist_arg=datelist)
 
         pyform = form.to_python()
-        if not isinstance(pyform, list):
+        if not isinstance(pyform, (list, tuple)):
             pyform = [pyform]
 
         pyform = [x.strip('"') for x in pyform]

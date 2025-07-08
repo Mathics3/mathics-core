@@ -682,19 +682,21 @@ class Flatten(Builtin):
         # prepare levels
         # find max depth which matches `h`
         expr, max_depth = walk_levels(expr)
-        max_depth = {"max_depth": max_depth}  # hack to modify max_depth from callback
+        max_depth_dict = {
+            "max_depth": max_depth
+        }  # hack to modify max_depth from callback
 
         def callback(expr, pos):
-            if len(pos) < max_depth["max_depth"] and (
+            if len(pos) < max_depth_dict["max_depth"] and (
                 isinstance(expr, Atom) or expr.head != h
             ):
-                max_depth["max_depth"] = len(pos)
+                max_depth_dict["max_depth"] = len(pos)
             return expr
 
-        expr, depth = walk_levels(expr, callback=callback, include_pos=True, start=0)
-        max_depth = max_depth["max_depth"]
+        expr, _ = walk_levels(expr, callback=callback, include_pos=True, start=0)
+        max_depth = max_depth_dict["max_depth"]
 
-        levels = n.to_python()
+        levels = list(n.to_python())
 
         # mappings
         if isinstance(levels, list) and all(isinstance(level, int) for level in levels):
@@ -706,7 +708,7 @@ class Flatten(Builtin):
             return
         seen_levels = []
         for level in levels:
-            if not (isinstance(level, list) and len(level) > 0):
+            if not (isinstance(level, (list, tuple)) and len(level) > 0):
                 evaluation.message("Flatten", "flpi", n)
                 return
             for r in level:
