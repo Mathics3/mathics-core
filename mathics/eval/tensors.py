@@ -322,3 +322,31 @@ def eval_LeviCivitaTensor(d, type):
             for p in perms
         ]
         return Expression(SymbolSparseArray, from_python(rules), from_python([d] * d))
+
+
+def eval_Transpose2D(m) -> Expression:
+    "Transpose of a 2D matrix"
+
+    # Below is some skeletal code that might get used in the future.
+    # NumPy handles complex numbers differently.
+    # There is a bigger problem in handling literals and
+    # value.
+
+    # if m.is_literal:
+    #     m.numpy = np.array(m.value)
+    #     transposed = np.transpose(m.numpy)
+    #     transposed_list_of_lists = transposed.tolist()
+    #     mathics_transposed = ListExpression(
+    #         *[to_mathics_list(*row) for row in transposed_list_of_lists]
+    #     )
+    #     mathics_transposed.numpy = transposed
+    #     return mathics_transposed
+
+    transposed_list_of_lists = []
+    for row_index, row in enumerate(m.elements):
+        for col_index, item in enumerate(row.elements):
+            if row_index == 0:
+                transposed_list_of_lists.append([item])
+            else:
+                transposed_list_of_lists[col_index].append(item)
+    return ListExpression(*[ListExpression(*row) for row in transposed_list_of_lists])

@@ -631,14 +631,23 @@ class I_(Predefined, SympyObject):
     summary_text = "imaginary unit number Sqrt[-1]"
     python_equivalent = 1j
 
-    def is_constant(self) -> bool:
-        return True
-
-    def to_sympy(self, symb, **kwargs):
-        return self.sympy_obj
-
     def evaluate(self, evaluation: Evaluation):
         return Complex(Integer0, Integer1)
+
+    def is_constant(self) -> bool:
+        """The value and evaluation of this object can never change."""
+        return True
+
+    @property
+    def is_literal(self):
+        return True
+
+    @property
+    def value(self) -> complex:
+        return complex(0, 1)
+
+    def to_sympy(self, expr, **kwargs):
+        return self.sympy_obj
 
 
 class Im(SympyFunction):

@@ -739,6 +739,10 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
                 f"Argument 'image' must be an Integer, Real, or Rational type; is {imag}."
             )
 
+        # Note: for the below test, imag.value == 0 catches more
+        # reals.  In particular, MachineReals that have an imaginary
+        # value of floating point 0.0. But MachineReal 0.0 is "approximate 0",
+        # not exactly 0. So "Complex[0., 0.]" is "0. + 0." and not "0."
         if imag.sameQ(Integer0):
             return real
 

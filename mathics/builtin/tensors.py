@@ -18,7 +18,6 @@ Mathics3 represents tensors of vectors and matrices as lists; tensors \
 of any rank can be handled.
 """
 
-
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
 from mathics.core.builtin import Builtin, InfixOperator
@@ -28,6 +27,7 @@ from mathics.eval.tensors import (
     eval_Inner,
     eval_LeviCivitaTensor,
     eval_Outer,
+    eval_Transpose2D,
     get_dimensions,
 )
 
@@ -378,15 +378,7 @@ class Transpose(Builtin):
 
     def eval(self, m, evaluation: Evaluation):
         "Transpose[m_?MatrixQ]"
-
-        result = []
-        for row_index, row in enumerate(m.elements):
-            for col_index, item in enumerate(row.elements):
-                if row_index == 0:
-                    result.append([item])
-                else:
-                    result[col_index].append(item)
-        return ListExpression(*[ListExpression(*row) for row in result])
+        return eval_Transpose2D(m)
 
 
 class ConjugateTranspose(Builtin):
