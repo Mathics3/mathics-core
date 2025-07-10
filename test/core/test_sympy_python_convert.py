@@ -225,7 +225,7 @@ class PythonConvert(unittest.TestCase):
         self.compare(Complex(Integer1, Integer0), 1)
 
     def testList(self):
-        self.compare(ListExpression(Integer1), [1])
+        self.compare(ListExpression(Integer1), (1,))
 
 
 if __name__ == "__main__":

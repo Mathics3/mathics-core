@@ -120,9 +120,6 @@ class Minimize(Builtin):
         for candidate in candidates:
             value = second_derivative.subs(candidate)
             if value.is_real and value > 0:
-                if candidate is not list:
-                    candidate = candidate
-
                 minimum_list.append([candidate[sympy_x], sympy_f.subs(candidate)])
 
         return ListExpression(

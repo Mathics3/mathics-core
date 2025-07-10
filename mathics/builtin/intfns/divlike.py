@@ -239,7 +239,7 @@ class ModularInverse(SympyFunction):
 
 class PowerMod(Builtin):
     """
-    Modular exponentiaion.
+    Modular exponentiation.
     See <url>https://en.wikipedia.org/wiki/Modular_exponentiation</url>.
 
     <dl>

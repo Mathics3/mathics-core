@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from test.helper import check_evaluation, session
+from test.helper import check_evaluation
 
 import pytest
 

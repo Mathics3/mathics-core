@@ -437,7 +437,7 @@ class Not(PrefixOperator):
     """
 
     # FIXME: If we remove this we pick up unicode unconditionally
-    # which wew don't want to do.
+    # which we don't want to do.
     operator = "!"
 
     rules = {

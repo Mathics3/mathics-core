@@ -1,6 +1,18 @@
 CHANGES
 =======
 
+New Builtins
+++++++++++++
+
+* ``$SessionID``
+* ``BinaryReadList``
+
+Internals
+---------
+
+Mathics scanner exceptions of class TranslateError are incompatible
+with previous versions, and now store error parameters, "name", "tag", and
+"args".
 
 8.0.1
 -----
@@ -24,7 +36,7 @@ Compatibility
 * When the result of an evaluation is ``Symbol`Null``, Mathics CLI
   now does not show an ``Out[...]=`` line, following the behavior of
   the WMA CLI.
-* Aymptote rendering of platonic solids added.
+* Asymptote rendering of platonic solids added.
 
 
 Internals

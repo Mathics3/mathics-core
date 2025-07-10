@@ -740,7 +740,7 @@ class StringSplit(Builtin):
     >> StringSplit["x", "x"]
      = {}
 
-    Split using a delmiter that has nonzero list of 12's
+    Split using a delimiter that has nonzero list of 12's
     >> StringSplit["12312123", "12"..]
      = {3, 3}
 

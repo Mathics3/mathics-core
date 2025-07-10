@@ -154,7 +154,7 @@ Interactive Manipulation
 
 #         def new_callback(**kwargs):
 #             callback(
-#                 **dict((name, parsers[name](value)) for (name, value) in kwargs.items())
+#                 **dict((name, parsers[name](value)) for name, value in kwargs.items())
 #             )
 
 #         return new_callback

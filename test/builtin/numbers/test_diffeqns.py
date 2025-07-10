@@ -66,7 +66,7 @@ import pytest
             "DSolve[f[x] == 0, f, {}]",
             None,
         ),
-        # # Order of arguments shoudn't matter
+        # Order of arguments should not matter
         (
             "DSolve[D[f[x, y], x] == D[f[x, y], y], f, {x, y}]",
             None,

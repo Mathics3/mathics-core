@@ -4,7 +4,7 @@
 Zeta Functions and Polylogarithms
 
 See also <url>
-:Chapters 25 Zeta and Related Functions in the Digital Libary of Mathematical Functions:
+:Chapters 25 Zeta and Related Functions in the Digital Library of Mathematical Functions:
 https://dlmf.nist.gov/25</url>.
 """
 
