@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 
-"""
+r"""
 Importing and Exporting
 
 Many kinds data formats can be read into \\Mathics. Variable <url>
-:$ExportFormats:
-/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/$exportformats</url> \
+:\$ExportFormats:
+/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/\$exportformats</url> \
 contains a list of file formats that are supported by <url>
 :Export:
 /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/export</url>, \
 while <url>
-:$ImportFormats:
-/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/$importformats</url> \
+:\$ImportFormats:
+/doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/\$importformats</url> \
 does the corresponding thing for <url>
 :Import:
 /doc/reference-of-built-in-symbols/inputoutput-files-and-filesystem/importing-and-exporting/import</url>.
@@ -42,6 +42,7 @@ from mathics.core.systemsymbols import (
     SymbolRule,
     SymbolToString,
 )
+from mathics.eval.files_io.files import eval_Close, eval_Open
 
 # This tells documentation how to sort this module
 # Here we are also hiding "file_io" since this can erroneously appear at the top level.
@@ -49,12 +50,10 @@ sort_order = "mathics.builtin.importing-and-exporting"
 
 mimetypes.add_type("application/vnd.wolfram.mathematica.package", ".m")
 
-SymbolClose = Symbol("Close")
 SymbolDeleteFile = Symbol("DeleteFile")
 SymbolFileExtension = Symbol("FileExtension")
 SymbolFileFormat = Symbol("FileFormat")
 SymbolFindFile = Symbol("FindFile")
-SymbolOpenRead = Symbol("OpenRead")
 SymbolOpenWrite = Symbol("OpenWrite")
 SymbolOutputStream = Symbol("OutputStream")
 SymbolStringToStream = Symbol("StringToStream")
@@ -67,19 +66,19 @@ mimetypes.add_type("application/json", ".json")
 # TODO: Add more file formats
 
 mimetype_dict = {
-    "application/dicom": "DICOM",
     "application/dbase": "DBF",
     "application/dbf": "DBF",
+    "application/dicom": "DICOM",
     "application/eps": "EPS",
     "application/fits": "FITS",
     "application/json": "JSON",
     "application/mathematica": "NB",
-    "application/mdb": "MDB",
     "application/mbox": "MBOX",
+    "application/mdb": "MDB",
     "application/msaccess": "MDB",
     "application/octet-stream": "OBJ",
-    "application/pdf": "PDF",
     "application/pcx": "PCX",
+    "application/pdf": "PDF",
     "application/postscript": "EPS",
     "application/rss+xml": "RSS",
     "application/rtf": "RTF",
@@ -88,15 +87,13 @@ mimetype_dict = {
     "application/vnd.google-earth.kml+xml": "KML",
     "application/vnd.ms-excel": "XLS",
     "application/vnd.ms-pki.stl": "STL",
+    "application/vnd.msaccess": "MDB",
     "application/vnd.oasis.opendocument.spreadsheet": "ODS",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "XLSX",  # nopep8
     "application/vnd.sun.xml.calc": "SXC",
-    "application/vnd.msaccess": "MDB",
     "application/vnd.wolfram.cdf": "CDF",
     "application/vnd.wolfram.cdf.text": "CDF",
     "application/vnd.wolfram.mathematica.package": "Package",
-    "application/xhtml+xml": "XHTML",
-    "application/xml": "XML",
     "application/x-3ds": "3DS",
     "application/x-cdf": "NASACDF",
     "application/x-eps": "EPS",
@@ -107,6 +104,8 @@ mimetype_dict = {
     "application/x-netcdf": "NetCDF",
     "application/x-shockwave-flash": "SWF",
     "application/x-tex": "TeX",  # Also TeX
+    "application/xhtml+xml": "XHTML",
+    "application/xml": "XML",
     "audio/aiff": "AIFF",
     "audio/basic": "AU",  # Also SND
     "audio/midi": "MIDI",
@@ -114,10 +113,10 @@ mimetype_dict = {
     "audio/x-aiff": "AIFF",
     "audio/x-flac": "FLAC",
     "audio/x-wav": "WAV",
-    "chemical/seq-na-genbank": "GenBank",
     "chemical/seq-aa-fasta": "FASTA",
     "chemical/seq-na-fasta": "FASTA",
     "chemical/seq-na-fastq": "FASTQ",
+    "chemical/seq-na-genbank": "GenBank",
     "chemical/seq-na-sff": "SFF",
     "chemical/x-cif": "CIF",
     "chemical/x-daylight-smiles": "SMILES",
@@ -158,10 +157,10 @@ mimetype_dict = {
     "image/x-portable-graymap": "PGM",
     "image/x-portable-pixmap": "PPM",
     "image/x-xbitmap": "XBM",
-    "model/x3d+xml": "X3D",
     "model/vrml": "VRML",
     "model/x-lwo": "LWO",
     "model/x-pov": "POV",
+    "model/x3d+xml": "X3D",
     "text/calendar": "ICS",
     "text/comma-separated-values": "CSV",
     "text/csv": "CSV",
@@ -173,6 +172,7 @@ mimetype_dict = {
     "text/tab-separated-values": "TSV",
     "text/texmacs": "Text",
     "text/vnd.graphviz": "DOT",
+    "text/x-comma-separated-values": "CSV",
     "text/x-csrc": "C",
     "text/x-tex": "TeX",
     "text/x-vcalendar": "VCS",
@@ -919,9 +919,9 @@ def _importer_exporter_options(
                 py_name = None
 
             if py_name:
-                value = get_option(remaining_options, py_name, evaluation, pop=True)
-                if value is not None:
-                    expr = Expression(SymbolRule, String(py_name), value)
+                option = get_option(remaining_options, py_name, evaluation, pop=True)
+                if option is not None:
+                    expr = Expression(SymbolRule, String(py_name), option)
                     if py_name == "CharacterEncoding":
                         stream_options.append(expr)
                     else:
@@ -942,11 +942,11 @@ def _importer_exporter_options(
 
 
 class ConverterDumpsExtensionMappings(Predefined):
-    """
+    r"""
     ## <url>:internal native symbol:</url>
 
     <dl>
-      <dt>'System`ConvertersDump`$ExtensionMappings'
+      <dt>'System`ConvertersDump`\$ExtensionMappings'
       <dd>Returns a list of associations between file extensions and file types.
     </dl>
 
@@ -966,11 +966,11 @@ class ConverterDumpsExtensionMappings(Predefined):
 
 
 class ConverterDumpsFormatMappings(Predefined):
-    """
+    r"""
     ## <url>:internal native symbol:</url>
 
     <dl>
-      <dt>'System`ConverterDump$FormatMappings'
+      <dt>'System`ConverterDump\$FormatMappings'
       <dd>Returns a list of associations between file extensions and file types.
     </dl>
 
@@ -992,11 +992,11 @@ class ConverterDumpsFormatMappings(Predefined):
 
 
 class ExportFormats(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$ExportFormats.html</url>
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\$ExportFormats.html</url>
 
     <dl>
-      <dt>'$ExportFormats'
+      <dt>'\$ExportFormats'
       <dd>returns a list of file formats supported by Export.
     </dl>
 
@@ -1012,11 +1012,11 @@ class ExportFormats(Predefined):
 
 
 class ImportFormats(Predefined):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/$ImportFormats.html</url>
 
     <dl>
-      <dt>'$ImportFormats'
+      <dt>'\$ImportFormats'
       <dd>returns a list of file formats supported by Import.
     </dl>
 
@@ -1036,19 +1036,19 @@ class RegisterImport(Builtin):
     ## <url>:internal native symbol:</url>
 
     <dl>
-      <dt>'RegisterImport["$format$", $defaultFunction$]'
+      <dt>'RegisterImport'["$format$", $defaultFunction$]
       <dd>register '$defaultFunction$' as the default function used when \
           importing from a file of type '"$format$"'.
 
-      <dt>'RegisterImport["$format$", {"$elem1$" :> $conditionalFunction1$, \
-          "$elem2$" :> $conditionalFunction2$, ..., $defaultFunction$}]'
-      <dd>registers multiple elements ($elem1$, ...) and their corresponding \
-          converter functions ($conditionalFunction1$, ...) in addition to the $defaultFunction$.
+      <dt>'RegisterImport["$format$", {"$elem_1$" :> $conditionalFunction_1$, \
+          "$elem_2$" :> $conditionalFunction_2$, ..., $defaultFunction$}]'
+      <dd>registers multiple elements ($elem_1$, ...) and their corresponding \
+          converter functions ($conditionalFunction_1$, ...) in addition to the $defaultFunction$.
 
       <dt>'RegisterImport["$format$", {"$conditionalFunctions$, $defaultFunction$, \
-           "$elem3$" :> $postFunction3$, "$elem4$" :> $postFunction4$, ...}]'
-      <dd>also registers additional elements ($elem3$, ...) whose converters \
-          ($postFunction3$, ...) act on output from the low-level functions.
+           "$elem_3$" :> $postFunction_3$, "$elem_4$" :> $postFunction_4$, ...}]'
+      <dd>also registers additional elements ($elem_3$, ...) whose converters \
+          ($postFunction_3$, ...) act on output from the low-level functions.
     </dl>
 
     First, define the default function used to import the data.
@@ -1060,16 +1060,16 @@ class RegisterImport(Builtin):
     >> FilePrint["ExampleData/ExampleData.txt"]
      | Example File Format
      | Created by Angus
-     | 0.629452	0.586355
-     | 0.711009	0.687453
-     | 0.246540	0.433973
-     | 0.926871	0.887255
-     | 0.825141	0.940900
-     | 0.847035	0.127464
-     | 0.054348	0.296494
-     | 0.838545	0.247025
-     | 0.838697	0.436220
-     | 0.309496	0.833591
+     | 0.629452    0.586355
+     | 0.711009    0.687453
+     | 0.246540    0.433973
+     | 0.926871    0.887255
+     | 0.825141    0.940900
+     | 0.847035    0.127464
+     | 0.054348    0.296494
+     | 0.838545    0.247025
+     | 0.838697    0.436220
+     | 0.309496    0.833591
 
     >> Import["ExampleData/ExampleData.txt", {"ExampleFormat1", "Elements"}]
      = {Data, Header}
@@ -1156,7 +1156,7 @@ class RegisterImport(Builtin):
 
         conditionals = {
             elem.get_string_value(): expr
-            for (elem, expr) in (x.get_elements() for x in elements[:-1])
+            for elem, expr in (x.get_elements() for x in elements[:-1])
         }
         default = elements[-1]
         posts = {}
@@ -1176,7 +1176,7 @@ class RegisterExport(Builtin):
     ## <url>:internal native symbol:</url>
 
     <dl>
-      <dt>'RegisterExport["$format$", $func$]'
+      <dt>'RegisterExport'["$format$", $func$]
       <dd>register '$func$' as the default function used when exporting from a file of \
           type '"$format$"'.
     </dl>
@@ -1238,7 +1238,7 @@ class URLFetch(Builtin):
     https://reference.wolfram.com/language/ref/URLFetch.html</url>
 
     <dl>
-      <dt>'URLFetch[$URL$]'
+      <dt>'URLFetch'[$URL$]
       <dd> Returns the content of $URL$ as a string.
     </dl>
     """
@@ -1263,11 +1263,7 @@ class URLFetch(Builtin):
             f = request.build_opener(request.HTTPCookieProcessor).open(py_url)
 
             try:
-                if sys.version_info >= (3, 0):
-                    content_type = f.info().get_content_type()
-                else:
-                    content_type = f.headers["content-type"]
-
+                content_type = f.info().get_content_type()
                 os.write(temp_handle, f.read())
             finally:
                 f.close()
@@ -1317,19 +1313,19 @@ class Import(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Import.html</url>
 
     <dl>
-      <dt>'Import["$file$"]'
+      <dt>'Import'["$file$"]
       <dd>imports data from a file.
 
-      <dt>'Import["$file$", "$fmt$"]'
+      <dt>'Import'["$file$", "$fmt$"]
       <dd>imports file assuming the specified file format.
 
-      <dt>'Import["$file$", $elements$]'
+      <dt>'Import'["$file$", $elements$]
       <dd>imports the specified elements from a file.
 
-      <dt>'Import["$file$", {"$fmt$", $elements$}]'
-      <dd>imports the specified elements from a file asuming the specified file format.
+      <dt>'Import'["$file$", {"$fmt$", $elements$}]
+      <dd>imports the specified elements from a file assuming the specified file format.
 
-      <dt>'Import["http://$url$", ...]' and 'Import["ftp://$url$", ...]'
+      <dt>'Import'["http://$url$", ...] and 'Import'["ftp://$url$", ...]
       <dd>imports from a URL.
     </dl>
 
@@ -1432,7 +1428,7 @@ class Import(Builtin):
             return SymbolFailed
 
         # Load the importer
-        (conditionals, default_function, posts, importer_options) = IMPORTERS[filetype]
+        conditionals, default_function, posts, importer_options = IMPORTERS[filetype]
 
         stream_options, custom_options = _importer_exporter_options(
             importer_options.get("System`Options"), options, "System`Import", evaluation
@@ -1467,7 +1463,7 @@ class Import(Builtin):
                         Expression(SymbolWriteString, data).evaluate(evaluation)
                     else:
                         Expression(SymbolWriteString, String("")).evaluate(evaluation)
-                    Expression(SymbolClose, stream).evaluate(evaluation)
+                    eval_Close(stream, evaluation)
                     stream = None
                 import_expression = Expression(tmp_function, findfile, *joined_options)
                 tmp = import_expression.evaluate(evaluation)
@@ -1479,9 +1475,27 @@ class Import(Builtin):
                 if findfile is None:
                     stream = Expression(SymbolStringToStream, data).evaluate(evaluation)
                 else:
-                    stream = Expression(
-                        SymbolOpenRead, findfile, *stream_options
-                    ).evaluate(evaluation)
+                    mode = "r"
+                    if options.get("System`BinaryFormat") is SymbolTrue:
+                        if not mode.endswith("b"):
+                            mode += "b"
+
+                    encoding_option = options.get("System`CharacterEncoding")
+                    encoding = (
+                        encoding_option.value
+                        if isinstance(encoding_option, String)
+                        else None
+                    )
+
+                    stream = eval_Open(
+                        name=findfile,
+                        mode=mode,
+                        stream_type="InputStream",
+                        encoding=encoding,
+                        evaluation=evaluation,
+                    )
+                if stream is None:
+                    return
                 if stream.get_head_name() != "System`InputStream":
                     evaluation.message("Import", "nffil")
                     evaluation.predetermined_out = current_predetermined_out
@@ -1489,7 +1503,7 @@ class Import(Builtin):
                 tmp = Expression(tmp_function, stream, *custom_options).evaluate(
                     evaluation
                 )
-                Expression(SymbolClose, stream).evaluate(evaluation)
+                eval_Close(stream, evaluation)
             else:
                 # TODO message
                 evaluation.predetermined_out = current_predetermined_out
@@ -1499,12 +1513,10 @@ class Import(Builtin):
                 evaluation.predetermined_out = current_predetermined_out
                 return None
 
-            # return {a.get_string_value() : b for (a,b) in map(lambda x:
+            # return {a.get_string_value() : b for a,b in map(lambda x:
             # x.get_elements(), tmp)}
             evaluation.predetermined_out = current_predetermined_out
-            return dict(
-                (a.get_string_value(), b) for (a, b) in [x.get_elements() for x in tmp]
-            )
+            return {a.get_string_value(): b for a, b in (x.get_elements() for x in tmp)}
 
         # Perform the import
         defaults = None
@@ -1535,7 +1547,7 @@ class Import(Builtin):
                 evaluation.predetermined_out = current_predetermined_out
                 return result
         else:
-            assert len(elements) == 1
+            assert len(elements) >= 1
             el = elements[0]
             if el == "Elements":
                 defaults = get_results(default_function, findfile)
@@ -1592,13 +1604,13 @@ class ImportString(Import):
     https://reference.wolfram.com/language/ref/ImportString.html</url>
 
     <dl>
-      <dt>'ImportString["$data$", "$format$"]'
+      <dt>'ImportString'["$data$", "$format$"]
       <dd>imports data in the specified format from a string.
 
-      <dt>'ImportString["$file$", $elements$]'
+      <dt>'ImportString'["$file$", $elements$]
       <dd>imports the specified elements from a string.
 
-      <dt>'ImportString["$data$"]'
+      <dt>'ImportString'["$data$"]
       <dd>attempts to determine the format of the string from its content.
     </dl>
 
@@ -1677,13 +1689,13 @@ class Export(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Export.html</url>
 
     <dl>
-      <dt>'Export["$file$.$ext$", $expr$]'
+      <dt>'Export'["$file$.$ext$", $expr$]
       <dd>exports $expr$ to a file, using the extension $ext$ to determine the format.
 
-      <dt>'Export["$file$", $expr$, "$format$"]'
+      <dt>'Export'["$file$", $expr$, "$format$"]
       <dd>exports $expr$ to a file in the specified format.
 
-      <dt>'Export["$file$", $exprs$, $elems$]'
+      <dt>'Export'["$file$", $exprs$, $elems$]
       <dd>exports $exprs$ to a file as elements specified by $elems$.
     </dl>
     """
@@ -1843,7 +1855,7 @@ class Export(Builtin):
                 *list(chain(stream_options, custom_options)),
             )
             res = exporter_function.evaluate(evaluation)
-            Expression(SymbolClose, stream).evaluate(evaluation)
+            eval_Close(stream, evaluation)
         if res is SymbolNull:
             evaluation.predetermined_out = current_predetermined_out
             return filename
@@ -1856,10 +1868,10 @@ class ExportString(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ExportString.html</url>
 
     <dl>
-      <dt>'ExportString[$expr$, $form$]'
+      <dt>'ExportString'[$expr$, $form$]
       <dd>exports $expr$ to a string, in the format $form$.
 
-      <dt>'Export["$file$", $exprs$, $elems$]'
+      <dt>'Export'["$file$", $exprs$, $elems$]
       <dd>exports $exprs$ to a string as elements specified by $elems$.
     </dl>
 
@@ -2025,7 +2037,7 @@ class ExportString(Builtin):
                     res = String(str(pystream.getvalue()))
             else:
                 res = Symbol("$Failed")
-            Expression(SymbolClose, outstream).evaluate(evaluation)
+            eval_Close(outstream, evaluation)
         else:
             evaluation.message("ExportString", "emptyfch")
             evaluation.predetermined_out = current_predetermined_out
@@ -2040,7 +2052,7 @@ class FileFormat(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/FileFormat.html</url>
 
     <dl>
-    <dt>'FileFormat["$name$"]'
+    <dt>'FileFormat'["$name$"]
       <dd>attempts to determine what format 'Import' should use to import specified file.
     </dl>
 
@@ -2111,7 +2123,7 @@ class B64Decode(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/B64Decode.html</url>
     <dl>
-    <dt> 'System`Convert`B64Dump`B64Decode[$string$]'
+    <dt> 'System`Convert`B64Dump`B64Decode'[$string$]
     <dd>Decode  $string$ in Base64 coding to an expression.
     </dl>
 
@@ -2148,7 +2160,7 @@ class B64Encode(Builtin):
     :https://reference.wolfram.com/language/ref/B64Encode.html</url>
 
     <dl>
-      <dt> 'System`Convert`B64Dump`B64Encode[$expr$]'
+      <dt> 'System`Convert`B64Dump`B64Encode'[$expr$]
       <dd>Encodes $expr$ in Base64 coding
     </dl>
 

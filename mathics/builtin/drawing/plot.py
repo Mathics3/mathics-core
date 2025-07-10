@@ -6,11 +6,10 @@ Plotting functions take a function as a parameter and data, often a range of \
 points, as another parameter, and plot or show the function applied to the data.
 """
 
-import itertools
 import numbers
 from abc import ABC
 from functools import lru_cache
-from math import cos, pi, sin, sqrt
+from math import cos, pi, sin
 from typing import Callable, Optional
 
 import palettable
@@ -26,40 +25,37 @@ from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolList, SymbolTrue
+from mathics.core.symbols import Symbol, SymbolList
 from mathics.core.systemsymbols import (
     SymbolBlack,
-    SymbolBlend,
-    SymbolColorData,
     SymbolEdgeForm,
-    SymbolFunction,
     SymbolGraphics,
     SymbolGraphics3D,
-    SymbolGrid,
     SymbolLine,
     SymbolLog10,
-    SymbolMap,
     SymbolPolygon,
     SymbolRGBColor,
-    SymbolRow,
-    SymbolRule,
-    SymbolSlot,
     SymbolStyle,
 )
+from mathics.eval.drawing.charts import draw_bar_chart, eval_chart
+from mathics.eval.drawing.colors import COLOR_PALETTES, get_color_palette
 from mathics.eval.drawing.plot import (
     ListPlotType,
+    check_plot_range,
     compile_quiet_function,
     eval_ListPlot,
     eval_Plot,
+    get_filling_option,
     get_plot_range,
+    get_plot_range_option,
 )
+from mathics.eval.drawing.plot3d import construct_density_plot, eval_plot3d
 from mathics.eval.nevaluator import eval_N
 
 # This tells documentation how to sort this module
 # Here we are also hiding "drawing" since this erroneously appears at the top level.
 sort_order = "mathics.builtin.plotting-data"
 
-SymbolColorDataFunction = Symbol("ColorDataFunction")
 SymbolDisk = Symbol("Disk")
 SymbolFaceForm = Symbol("FaceForm")
 SymbolRectangle = Symbol("Rectangle")
@@ -67,55 +63,6 @@ SymbolText = Symbol("Text")
 
 TwoTenths = Real(0.2)
 MTwoTenths = -TwoTenths
-
-
-# PlotRange Option
-def check_plot_range(range, range_type) -> bool:
-    """
-    Return True if `range` has two numbers, the first number less than the second number,
-    and that both numbers have type `range_type`
-    """
-    if range in ("System`Automatic", "System`All"):
-        return True
-    if isinstance(range, list) and len(range) == 2:
-        if isinstance(range[0], range_type) and isinstance(range[1], range_type):
-            return True
-    return False
-
-
-def gradient_palette(
-    color_function, n, evaluation: Evaluation
-):  # always returns RGB values
-    if isinstance(color_function, String):
-        color_data = Expression(SymbolColorData, color_function).evaluate(evaluation)
-        if not color_data.has_form("ColorDataFunction", 4):
-            return
-        name, kind, interval, blend = color_data.elements
-        if not isinstance(kind, String) or kind.get_string_value() != "Gradients":
-            return
-        if not interval.has_form("List", 2):
-            return
-        x0, x1 = (x.round_to_float() for x in interval.elements)
-    else:
-        blend = color_function
-        x0 = 0.0
-        x1 = 1.0
-
-    xd = x1 - x0
-    offsets = [MachineReal(x0 + float(xd * i) / float(n - 1)) for i in range(n)]
-    colors = Expression(SymbolMap, blend, ListExpression(*offsets)).evaluate(evaluation)
-    if len(colors.elements) != n:
-        return
-
-    from mathics.builtin.colors.color_directives import ColorError, expression_to_color
-
-    try:
-        objects = [expression_to_color(x) for x in colors.elements]
-        if any(x is None for x in objects):
-            return None
-        return [x.to_rgba()[:3] for x in objects]
-    except ColorError:
-        return
 
 
 class _Chart(Builtin):
@@ -137,144 +84,7 @@ class _Chart(Builtin):
 
     def eval(self, points, evaluation: Evaluation, options: dict):
         "%(name)s[points_, OptionsPattern[%(name)s]]"
-
-        points = points.evaluate(evaluation)
-
-        if points.get_head_name() != "System`List" or not points.elements:
-            return
-
-        if points.elements[0].get_head_name() == "System`List":
-            if not all(
-                group.get_head_name() == "System`List" for group in points.elements
-            ):
-                return
-            multiple_colors = True
-            groups = points.elements
-        else:
-            multiple_colors = False
-            groups = [points]
-
-        chart_legends = self.get_option(options, "ChartLegends", evaluation)
-        has_chart_legends = chart_legends.get_head_name() == "System`List"
-        if has_chart_legends:
-            multiple_colors = True
-
-        def to_number(x):
-            if isinstance(x, Integer):
-                return float(x.get_int_value())
-            return x.round_to_float(evaluation=evaluation)
-
-        data = [[to_number(x) for x in group.elements] for group in groups]
-
-        chart_style = self.get_option(options, "ChartStyle", evaluation)
-        if (
-            isinstance(chart_style, Symbol)
-            and chart_style.get_name() == "System`Automatic"
-        ):
-            chart_style = String("Automatic")
-
-        if chart_style.get_head_name() == "System`List":
-            colors = chart_style.elements
-            spread_colors = False
-        elif isinstance(chart_style, String):
-            if chart_style.get_string_value() == "Automatic":
-                mpl_colors = palettable.wesanderson.Moonrise1_5.mpl_colors
-            else:
-                mpl_colors = ColorData.colors(chart_style.get_string_value())
-                if mpl_colors is None:
-                    return
-                multiple_colors = True
-
-            if not multiple_colors and not self.never_monochrome:
-                colors = [to_expression(SymbolRGBColor, *mpl_colors[0])]
-            else:
-                colors = [to_expression(SymbolRGBColor, *c) for c in mpl_colors]
-            spread_colors = True
-        else:
-            return
-
-        def legends(names):
-            if not data:
-                return
-
-            n = len(data[0])
-            for d in data[1:]:
-                if len(d) != n:
-                    return  # data groups should have same size
-
-            def box(color):
-                return Expression(
-                    SymbolGraphics,
-                    ListExpression(
-                        Expression(SymbolFaceForm, color), Expression(SymbolRectangle)
-                    ),
-                    Expression(
-                        SymbolRule,
-                        Symbol("ImageSize"),
-                        ListExpression(Integer(50), Integer(50)),
-                    ),
-                )
-
-            rows_per_col = 5
-
-            n_cols = 1 + len(names) // rows_per_col
-            if len(names) % rows_per_col == 0:
-                n_cols -= 1
-
-            if n_cols == 1:
-                n_rows = len(names)
-            else:
-                n_rows = rows_per_col
-
-            for i in range(n_rows):
-                items = []
-                for j in range(n_cols):
-                    k = 1 + i + j * rows_per_col
-                    if k - 1 < len(names):
-                        items.extend([box(color(k, n)), names[k - 1]])
-                    else:
-                        items.extend([String(""), String("")])
-                yield ListExpression(*items)
-
-        def color(k, n):
-            if spread_colors and n < len(colors):
-                index = int(k * (len(colors) - 1)) // n
-                return colors[index]
-            else:
-                return colors[(k - 1) % len(colors)]
-
-        chart = self._draw(data, color, evaluation, options)
-
-        if has_chart_legends:
-            grid = Expression(
-                SymbolGrid, ListExpression(*list(legends(chart_legends.elements)))
-            )
-            chart = Expression(SymbolRow, ListExpression(chart, grid))
-
-        return chart
-
-
-class _GradientColorScheme:
-    def color_data_function(self, name):
-        colors = ListExpression(
-            *[
-                to_expression(
-                    SymbolRGBColor, *color, elements_conversion_fn=MachineReal
-                )
-                for color in self.colors()
-            ]
-        )
-        blend = Expression(
-            SymbolFunction,
-            Expression(SymbolBlend, colors, Expression(SymbolSlot, Integer1)),
-        )
-        arguments = [
-            String(name),
-            String("Gradients"),
-            ListExpression(Integer0, Integer1),
-            blend,
-        ]
-        return Expression(SymbolColorDataFunction, *arguments)
+        return eval_chart(self, points, evaluation, options)
 
 
 class _ListPlot(Builtin, ABC):
@@ -300,7 +110,8 @@ class _ListPlot(Builtin, ABC):
 
         class_name = self.__class__.__name__
 
-        # Scale point values down by Log 10. Tick mark values will be adjusted to be 10^n in GraphicsBox.
+        # Scale point values down by Log 10. Tick mark values will be adjusted
+        # to be 10^n in GraphicsBox.
         if self.use_log_scale:
             points = ListExpression(
                 *(
@@ -331,46 +142,8 @@ class _ListPlot(Builtin, ABC):
         else:
             plot_type = None
 
-        plotrange_option = self.get_option(options, "PlotRange", evaluation)
-        plotrange = eval_N(plotrange_option, evaluation).to_python()
-        if plotrange == "System`All":
-            plotrange = ["System`All", "System`All"]
-        elif plotrange == "System`Automatic":
-            plotrange = ["System`Automatic", "System`Automatic"]
-        elif isinstance(plotrange, numbers.Real):
-            plotrange = [[-plotrange, plotrange], [-plotrange, plotrange]]
-        elif isinstance(plotrange, list) and len(plotrange) == 2:
-            if all(isinstance(pr, numbers.Real) for pr in plotrange):
-                plotrange = ["System`All", plotrange]
-            elif all(check_plot_range(pr, numbers.Real) for pr in plotrange):
-                pass
-        else:
-            evaluation.message(self.get_name(), "prng", plotrange_option)
-            plotrange = ["System`Automatic", "System`Automatic"]
-
-        x_range, y_range = plotrange[0], plotrange[1]
-        assert x_range in ("System`Automatic", "System`All") or isinstance(
-            x_range, list
-        )
-        assert y_range in ("System`Automatic", "System`All") or isinstance(
-            y_range, list
-        )
-
-        # Filling option
-        # TODO: Fill between corresponding points in two datasets:
-        filling_option = self.get_option(options, "Filling", evaluation)
-        filling = eval_N(filling_option, evaluation).to_python()
-        if filling in [
-            "System`Top",
-            "System`Bottom",
-            "System`Axis",
-        ] or isinstance(  # noqa
-            filling, numbers.Real
-        ):
-            pass
-        else:
-            # Mathematica does not even check that filling is sane
-            filling = None
+        x_range, y_range = get_plot_range_option(options, evaluation, self.get_name())
+        filling = get_filling_option(options, evaluation)
 
         # Joined Option
         joined_option = self.get_option(options, "Joined", evaluation)
@@ -390,18 +163,6 @@ class _ListPlot(Builtin, ABC):
             list_plot_type=plot_type,
             options=options,
         )
-
-
-class _PalettableGradient(_GradientColorScheme):
-    def __init__(self, palette, reversed):
-        self.palette = palette
-        self.reversed = reversed
-
-    def colors(self):
-        colors = self.palette.mpl_colors
-        if self.reversed:
-            colors = list(reversed(colors))
-        return colors
 
 
 class _Plot(Builtin, ABC):
@@ -558,6 +319,7 @@ class _Plot(Builtin, ABC):
         )
 
     def get_functions_param(self, functions):
+        """Get the numbers of parameters in a function"""
         if functions.has_form("List", None):
             functions = list(functions.elements)
         else:
@@ -565,6 +327,7 @@ class _Plot(Builtin, ABC):
         return functions
 
     def get_plotrange(self, plotrange, start, stop):
+        """Determine the plot range for each variable"""
         x_range = y_range = None
         if isinstance(plotrange, numbers.Real):
             plotrange = ["System`Full", [-plotrange, plotrange]]
@@ -586,6 +349,7 @@ class _Plot(Builtin, ABC):
     def process_function_and_options(
         self, functions, x, start, stop, evaluation: Evaluation, options: dict
     ) -> tuple:
+        """Process the arguments of a plot expression."""
         if isinstance(functions, Symbol) and functions.name is not x.get_name():
             rules = evaluation.definitions.get_ownvalues(functions.name)
             for rule in rules:
@@ -619,22 +383,7 @@ class _Plot(Builtin, ABC):
             evaluation.message(self.get_name(), "plld", expr_limits)
             return
 
-        plotrange_option = self.get_option(options, "PlotRange", evaluation)
-        plot_range = eval_N(plotrange_option, evaluation).to_python()
-        x_range, y_range = self.get_plotrange(plot_range, py_start, py_stop)
-        if not check_plot_range(x_range, numbers.Real) or not check_plot_range(
-            y_range, numbers.Real
-        ):
-            evaluation.message(self.get_name(), "prng", plotrange_option)
-            x_range, y_range = [start, stop], "Automatic"
-
-        # x_range and y_range are now either Automatic, All, or of the form [min, max]
-        assert x_range in ("System`Automatic", "System`All") or isinstance(
-            x_range, list
-        )
-        assert y_range in ("System`Automatic", "System`All") or isinstance(
-            y_range, list
-        )
+        x_range, y_range = get_plot_range_option(options, evaluation, self.get_name())
         return functions, x_name, py_start, py_stop, x_range, y_range, expr_limits, expr
 
 
@@ -669,456 +418,17 @@ class _Plot3D(Builtin):
     ):
         """%(name)s[functions_, {x_Symbol, xstart_, xstop_},
         {y_Symbol, ystart_, ystop_}, OptionsPattern[%(name)s]]"""
-        xexpr_limits = ListExpression(x, xstart, xstop)
-        yexpr_limits = ListExpression(y, ystart, ystop)
-        expr = Expression(
-            Symbol(self.get_name()),
-            functions,
-            xexpr_limits,
-            yexpr_limits,
-            *options_to_rules(options),
+        return eval_plot3d(
+            self, functions, x, xstart, xstop, y, ystart, ystop, evaluation, options
         )
-
-        functions = self.get_functions_param(functions)
-        plot_name = self.get_name()
-
-        def convert_limit(value, limits):
-            result = value.round_to_float(evaluation)
-            if result is None:
-                evaluation.message(plot_name, "plln", value, limits)
-            return result
-
-        xstart = convert_limit(xstart, xexpr_limits)
-        xstop = convert_limit(xstop, xexpr_limits)
-        ystart = convert_limit(ystart, yexpr_limits)
-        ystop = convert_limit(ystop, yexpr_limits)
-        if None in (xstart, xstop, ystart, ystop):
-            return
-
-        if ystart >= ystop:
-            evaluation.message(plot_name, "plln", ystop, expr)
-            return
-
-        if xstart >= xstop:
-            evaluation.message(plot_name, "plln", xstop, expr)
-            return
-
-        # Mesh Option
-        mesh_option = self.get_option(options, "Mesh", evaluation)
-        mesh = mesh_option.to_python()
-        if mesh not in ["System`None", "System`Full", "System`All"]:
-            evaluation.message("Mesh", "ilevels", mesh_option)
-            mesh = "System`Full"
-
-        # PlotPoints Option
-        plotpoints_option = self.get_option(options, "PlotPoints", evaluation)
-        plotpoints = plotpoints_option.to_python()
-
-        def check_plotpoints(steps):
-            if isinstance(steps, int) and steps > 0:
-                return True
-            return False
-
-        if plotpoints == "System`None":
-            plotpoints = [7, 7]
-        elif check_plotpoints(plotpoints):
-            plotpoints = [plotpoints, plotpoints]
-
-        if not (
-            isinstance(plotpoints, list)
-            and len(plotpoints) == 2
-            and check_plotpoints(plotpoints[0])
-            and check_plotpoints(plotpoints[1])
-        ):
-            evaluation.message(self.get_name(), "invpltpts", plotpoints)
-            plotpoints = [7, 7]
-
-        # MaxRecursion Option
-        maxrec_option = self.get_option(options, "MaxRecursion", evaluation)
-        max_depth = maxrec_option.to_python()
-        if isinstance(max_depth, int):
-            if max_depth < 0:
-                max_depth = 0
-                evaluation.message(self.get_name(), "invmaxrec", max_depth, 15)
-            elif max_depth > 15:
-                max_depth = 15
-                evaluation.message(self.get_name(), "invmaxrec", max_depth, 15)
-            else:
-                pass  # valid
-        elif max_depth == float("inf"):
-            max_depth = 15
-            evaluation.message(self.get_name(), "invmaxrec", max_depth, 15)
-        else:
-            max_depth = 0
-            evaluation.message(self.get_name(), "invmaxrec", max_depth, 15)
-
-        # Plot the functions
-        graphics = []
-        for indx, f in enumerate(functions):
-            stored = {}
-
-            compiled_fn = compile_quiet_function(
-                f, [x.get_name(), y.get_name()], evaluation, False
-            )
-
-            def apply_fn(compiled_fn: Callable, x_value, y_value):
-                try:
-                    # Try to used cached value first
-                    return stored[(x_value, y_value)]
-                except KeyError:
-                    value = compiled_fn(x_value, y_value)
-                    if value is not None:
-                        value = float(value)
-                    stored[(x_value, y_value)] = value
-                    return value
-
-            triangles = []
-
-            split_edges = set()  # subdivided edges
-
-            def triangle(x1, y1, x2, y2, x3, y3, depth=0):
-                v1, v2, v3 = (
-                    apply_fn(compiled_fn, x1, y1),
-                    apply_fn(compiled_fn, x2, y2),
-                    apply_fn(compiled_fn, x3, y3),
-                )
-
-                if (v1 is v2 is v3 is None) and (depth > max_depth // 2):
-                    # fast finish because the entire region is undefined but
-                    # recurse 'a little' to avoid missing well defined regions
-                    return
-                elif v1 is None or v2 is None or v3 is None:
-                    # 'triforce' pattern recursion to find the edge of defined region
-                    #         1
-                    #         /\
-                    #      4 /__\ 6
-                    #       /\  /\
-                    #      /__\/__\
-                    #     2   5    3
-                    if depth < max_depth:
-                        x4, y4 = 0.5 * (x1 + x2), 0.5 * (y1 + y2)
-                        x5, y5 = 0.5 * (x2 + x3), 0.5 * (y2 + y3)
-                        x6, y6 = 0.5 * (x1 + x3), 0.5 * (y1 + y3)
-                        split_edges.add(
-                            ((x1, y1), (x2, y2))
-                            if (x2, y2) > (x1, y1)
-                            else ((x2, y2), (x1, y1))
-                        )
-                        split_edges.add(
-                            ((x2, y2), (x3, y3))
-                            if (x3, y3) > (x2, y2)
-                            else ((x3, y3), (x2, y2))
-                        )
-                        split_edges.add(
-                            ((x1, y1), (x3, y3))
-                            if (x3, y3) > (x1, y1)
-                            else ((x3, y3), (x1, y1))
-                        )
-                        triangle(x1, y1, x4, y4, x6, y6, depth + 1)
-                        triangle(x4, y4, x2, y2, x5, y5, depth + 1)
-                        triangle(x6, y6, x5, y5, x3, y3, depth + 1)
-                        triangle(x4, y4, x5, y5, x6, y6, depth + 1)
-                    return
-                triangles.append(sorted(((x1, y1, v1), (x2, y2, v2), (x3, y3, v3))))
-
-            # linear (grid) sampling
-            numx = plotpoints[0] * 1.0
-            numy = plotpoints[1] * 1.0
-            for xi in range(plotpoints[0]):
-                for yi in range(plotpoints[1]):
-                    # Decide which way to break the square grid into triangles
-                    # by looking at diagonal lengths.
-                    #
-                    # 3___4        3___4
-                    # |\  |        |  /|
-                    # | \ | versus | / |
-                    # |__\|        |/__|
-                    # 1   2        1   2
-                    #
-                    # Approaching the boundary of the well defined region is
-                    # important too. Use first strategy if 1 or 4 are undefined
-                    # and strategy 2 if either 2 or 3 are undefined.
-                    #
-                    (x1, x2, x3, x4) = (
-                        xstart + value * (xstop - xstart)
-                        for value in (
-                            xi / numx,
-                            (xi + 1) / numx,
-                            xi / numx,
-                            (xi + 1) / numx,
-                        )
-                    )
-                    (y1, y2, y3, y4) = (
-                        ystart + value * (ystop - ystart)
-                        for value in (
-                            yi / numy,
-                            yi / numy,
-                            (yi + 1) / numy,
-                            (yi + 1) / numy,
-                        )
-                    )
-
-                    v1 = apply_fn(compiled_fn, x1, y1)
-                    v2 = apply_fn(compiled_fn, x2, y2)
-                    v3 = apply_fn(compiled_fn, x3, y3)
-                    v4 = apply_fn(compiled_fn, x4, y4)
-
-                    if v1 is None or v4 is None:
-                        triangle(x1, y1, x2, y2, x3, y3)
-                        triangle(x4, y4, x3, y3, x2, y2)
-                    elif v2 is None or v3 is None:
-                        triangle(x2, y2, x1, y1, x4, y4)
-                        triangle(x3, y3, x4, y4, x1, y1)
-                    else:
-                        if abs(v3 - v2) > abs(v4 - v1):
-                            triangle(x2, y2, x1, y1, x4, y4)
-                            triangle(x3, y3, x4, y4, x1, y1)
-                        else:
-                            triangle(x1, y1, x2, y2, x3, y3)
-                            triangle(x4, y4, x3, y3, x2, y2)
-
-            # adaptive resampling
-            # TODO: optimise this
-            # Cos of the maximum angle between successive line segments
-            ang_thresh = cos(20 * pi / 180)
-            for depth in range(1, max_depth):
-                needs_removal = set()
-                lent = len(triangles)  # number of initial triangles
-                for i1 in range(lent):
-                    for i2 in range(lent):
-                        # find all edge pairings
-                        if i1 == i2:
-                            continue
-                        t1 = triangles[i1]
-                        t2 = triangles[i2]
-
-                        edge_pairing = (
-                            (t1[0], t1[1]) == (t2[0], t2[1])
-                            or (t1[0], t1[1]) == (t2[1], t2[2])
-                            or (t1[0], t1[1]) == (t2[0], t2[2])
-                            or (t1[1], t1[2]) == (t2[0], t2[1])
-                            or (t1[1], t1[2]) == (t2[1], t2[2])
-                            or (t1[1], t1[2]) == (t2[0], t2[2])
-                            or (t1[0], t1[2]) == (t2[0], t2[1])
-                            or (t1[0], t1[2]) == (t2[1], t2[2])
-                            or (t1[0], t1[2]) == (t2[0], t2[2])
-                        )
-                        if not edge_pairing:
-                            continue
-                        v1 = [t1[1][i] - t1[0][i] for i in range(3)]
-                        w1 = [t1[2][i] - t1[0][i] for i in range(3)]
-                        v2 = [t2[1][i] - t2[0][i] for i in range(3)]
-                        w2 = [t2[2][i] - t2[0][i] for i in range(3)]
-                        n1 = (  # surface normal for t1
-                            (v1[1] * w1[2]) - (v1[2] * w1[1]),
-                            (v1[2] * w1[0]) - (v1[0] * w1[2]),
-                            (v1[0] * w1[1]) - (v1[1] * w1[0]),
-                        )
-                        n2 = (  # surface normal for t2
-                            (v2[1] * w2[2]) - (v2[2] * w2[1]),
-                            (v2[2] * w2[0]) - (v2[0] * w2[2]),
-                            (v2[0] * w2[1]) - (v2[1] * w2[0]),
-                        )
-                        try:
-                            angle = (
-                                n1[0] * n2[0] + n1[1] * n2[1] + n1[2] * n2[2]
-                            ) / sqrt(
-                                (n1[0] ** 2 + n1[1] ** 2 + n1[2] ** 2)
-                                * (n2[0] ** 2 + n2[1] ** 2 + n2[2] ** 2)
-                            )
-                        except ZeroDivisionError:
-                            angle = 0.0
-                        if abs(angle) < ang_thresh:
-                            for i, t in ((i1, t1), (i2, t2)):
-                                # subdivide
-                                x1, y1 = t[0][0], t[0][1]
-                                x2, y2 = t[1][0], t[1][1]
-                                x3, y3 = t[2][0], t[2][1]
-                                x4, y4 = 0.5 * (x1 + x2), 0.5 * (y1 + y2)
-                                x5, y5 = 0.5 * (x2 + x3), 0.5 * (y2 + y3)
-                                x6, y6 = 0.5 * (x1 + x3), 0.5 * (y1 + y3)
-                                needs_removal.add(i)
-                                split_edges.add(
-                                    ((x1, y1), (x2, y2))
-                                    if (x2, y2) > (x1, y1)
-                                    else ((x2, y2), (x1, y1))
-                                )
-                                split_edges.add(
-                                    ((x2, y2), (x3, y3))
-                                    if (x3, y3) > (x2, y2)
-                                    else ((x3, y3), (x2, y2))
-                                )
-                                split_edges.add(
-                                    ((x1, y1), (x3, y3))
-                                    if (x3, y3) > (x1, y1)
-                                    else ((x3, y3), (x1, y1))
-                                )
-                                triangle(x1, y1, x4, y4, x6, y6, depth=depth)
-                                triangle(x2, y2, x4, y4, x5, y5, depth=depth)
-                                triangle(x3, y3, x5, y5, x6, y6, depth=depth)
-                                triangle(x4, y4, x5, y5, x6, y6, depth=depth)
-                # remove subdivided triangles which have been divided
-                triangles = [
-                    t for i, t in enumerate(triangles) if i not in needs_removal
-                ]
-
-            # fix up subdivided edges
-            #
-            # look at every triangle and see if its edges need updating.
-            # depending on how many edges require subdivision we proceede with
-            # one of two subdivision strategies
-            #
-            # TODO possible optimisation: don't look at every triangle again
-            made_changes = True
-            while made_changes:
-                made_changes = False
-                new_triangles = []
-                for i, t in enumerate(triangles):
-                    new_points = []
-                    if ((t[0][0], t[0][1]), (t[1][0], t[1][1])) in split_edges:
-                        new_points.append([0, 1])
-                    if ((t[1][0], t[1][1]), (t[2][0], t[2][1])) in split_edges:
-                        new_points.append([1, 2])
-                    if ((t[0][0], t[0][1]), (t[2][0], t[2][1])) in split_edges:
-                        new_points.append([0, 2])
-
-                    if len(new_points) == 0:
-                        continue
-                    made_changes = True
-                    # 'triforce' subdivision
-                    #         1
-                    #         /\
-                    #      4 /__\ 6
-                    #       /\  /\
-                    #      /__\/__\
-                    #     2   5    3
-                    # if less than three edges require subdivision bisect them
-                    # anyway but fake their values by averaging
-                    x4 = 0.5 * (t[0][0] + t[1][0])
-                    y4 = 0.5 * (t[0][1] + t[1][1])
-                    v4 = stored.get((x4, y4), 0.5 * (t[0][2] + t[1][2]))
-
-                    x5 = 0.5 * (t[1][0] + t[2][0])
-                    y5 = 0.5 * (t[1][1] + t[2][1])
-                    v5 = stored.get((x5, y5), 0.5 * (t[1][2] + t[2][2]))
-
-                    x6 = 0.5 * (t[0][0] + t[2][0])
-                    y6 = 0.5 * (t[0][1] + t[2][1])
-                    v6 = stored.get((x6, y6), 0.5 * (t[0][2] + t[2][2]))
-
-                    if not (v4 is None or v6 is None):
-                        new_triangles.append(sorted((t[0], (x4, y4, v4), (x6, y6, v6))))
-                    if not (v4 is None or v5 is None):
-                        new_triangles.append(sorted((t[1], (x4, y4, v4), (x5, y5, v5))))
-                    if not (v5 is None or v6 is None):
-                        new_triangles.append(sorted((t[2], (x5, y5, v5), (x6, y6, v6))))
-                    if not (v4 is None or v5 is None or v6 is None):
-                        new_triangles.append(
-                            sorted(((x4, y4, v4), (x5, y5, v5), (x6, y6, v6)))
-                        )
-                    triangles[i] = None
-
-                triangles.extend(new_triangles)
-                triangles = [t for t in triangles if t is not None]
-
-            # add the mesh
-            mesh_points = []
-            if mesh == "System`Full":
-                for xi in range(plotpoints[0] + 1):
-                    xval = xstart + xi / numx * (xstop - xstart)
-                    mesh_row = []
-                    for yi in range(plotpoints[1] + 1):
-                        yval = ystart + yi / numy * (ystop - ystart)
-                        z = stored[(xval, yval)]
-                        mesh_row.append((xval, yval, z))
-                    mesh_points.append(mesh_row)
-
-                for yi in range(plotpoints[1] + 1):
-                    yval = ystart + yi / numy * (ystop - ystart)
-                    mesh_col = []
-                    for xi in range(plotpoints[0] + 1):
-                        xval = xstart + xi / numx * (xstop - xstart)
-                        z = stored[(xval, yval)]
-                        mesh_col.append((xval, yval, z))
-                    mesh_points.append(mesh_col)
-
-                # handle edge subdivisions
-                made_changes = True
-                while made_changes:
-                    made_changes = False
-                    for mesh_line in mesh_points:
-                        i = 0
-                        while i < len(mesh_line) - 1:
-                            x1, y1, v1 = mesh_line[i]
-                            x2, y2, v2 = mesh_line[i + 1]
-                            key = (
-                                ((x1, y1), (x2, y2))
-                                if (x2, y2) > (x1, y1)
-                                else ((x2, y2), (x1, y1))
-                            )
-                            if key in split_edges:
-                                x3 = 0.5 * (x1 + x2)
-                                y3 = 0.5 * (y1 + y2)
-                                v3 = stored[(x3, y3)]
-                                mesh_line.insert(i + 1, (x3, y3, v3))
-                                made_changes = True
-                                i += 1
-                            i += 1
-
-                # handle missing regions
-                old_meshpoints, mesh_points = mesh_points, []
-                for mesh_line in old_meshpoints:
-                    mesh_points.extend(
-                        [
-                            sorted(g)
-                            for k, g in itertools.groupby(
-                                mesh_line, lambda x: x[2] is None
-                            )
-                        ]
-                    )
-                mesh_points = [
-                    mesh_line
-                    for mesh_line in mesh_points
-                    if not any(x[2] is None for x in mesh_line)
-                ]
-            elif mesh == "System`All":
-                mesh_points = set()
-                for t in triangles:
-                    mesh_points.add((t[0], t[1]) if t[1] > t[0] else (t[1], t[0]))
-                    mesh_points.add((t[1], t[2]) if t[2] > t[1] else (t[2], t[1]))
-                    mesh_points.add((t[0], t[2]) if t[2] > t[0] else (t[2], t[0]))
-                mesh_points = list(mesh_points)
-
-            # find the max and min height
-            v_min = v_max = None
-            for t in triangles:
-                for tx, ty, v in t:
-                    if v_min is None or v < v_min:
-                        v_min = v
-                    if v_max is None or v > v_max:
-                        v_max = v
-            graphics.extend(
-                self.construct_graphics(
-                    triangles, mesh_points, v_min, v_max, options, evaluation
-                )
-            )
-        return self.final_graphics(graphics, options)
-
-
-class _PredefinedGradient(_GradientColorScheme):
-    def __init__(self, colors):
-        self._colors = colors
-
-    def colors(self):
-        return self._colors
 
 
 class BarChart(_Chart):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/BarChart.html</url>
     <dl>
-        <dt>'BarChart[{$b1$, $b2$ ...}]'
-        <dd>makes a bar chart with lengths $b1$, $b2$, ....
+        <dt>'BarChart'[{$b_1$, $b_2$ ...}]
+        <dd>makes a bar chart with lengths $b_1$, $b_2$, ....
     </dl>
 
     Drawing options include -
@@ -1166,104 +476,15 @@ class BarChart(_Chart):
     summary_text = "draw a bar chart"
 
     def _draw(self, data, color, evaluation, options):
-        def vector2(x, y) -> ListExpression:
-            return to_mathics_list(x, y)
-
-        def boxes():
-            w = 0.9
-            s = 0.06
-            w_half = 0.5 * w
-            x = 0.1 + s + w_half
-
-            for y_values in data:
-                y_length = len(y_values)
-                for i, y in enumerate(y_values):
-                    x0 = x - w_half
-                    x1 = x0 + w
-                    yield (i + 1, y_length), x0, x1, y
-                    x = x1 + s + w_half
-
-                x += 0.2
-
-        def rectangles():
-            yield Expression(SymbolEdgeForm, SymbolBlack)
-
-            last_x1 = 0
-
-            for (k, n), x0, x1, y in boxes():
-                yield Expression(
-                    SymbolStyle,
-                    Expression(
-                        SymbolRectangle,
-                        to_mathics_list(x0, 0),
-                        to_mathics_list(x1, y),
-                    ),
-                    color(k, n),
-                )
-
-                last_x1 = x1
-
-            yield Expression(
-                SymbolLine, ListExpression(vector2(0, 0), vector2(last_x1, Integer0))
-            )
-
-        def axes():
-            yield Expression(SymbolFaceForm, SymbolBlack)
-
-            def points(x):
-                return ListExpression(vector2(x, 0), vector2(x, MTwoTenths))
-
-            for (k, n), x0, x1, y in boxes():
-                if k == 1:
-                    yield Expression(SymbolLine, points(x0))
-                if k == n:
-                    yield Expression(SymbolLine, points(x1))
-
-        def labels(names):
-            yield Expression(SymbolFaceForm, SymbolBlack)
-
-            for (k, n), x0, x1, y in boxes():
-                if k <= len(names):
-                    name = names[k - 1]
-                    yield Expression(
-                        SymbolText, name, vector2((x0 + x1) / 2, MTwoTenths)
-                    )
-
-        x_coords = list(itertools.chain(*[[x0, x1] for (k, n), x0, x1, y in boxes()]))
-        y_coords = [0] + [y for (k, n), x0, x1, y in boxes()]
-
-        graphics = list(rectangles()) + list(axes())
-
-        x_range = "System`All"
-        y_range = "System`All"
-
-        x_range = list(get_plot_range(x_coords, x_coords, x_range))
-        y_range = list(get_plot_range(y_coords, y_coords, y_range))
-
-        chart_labels = self.get_option(options, "ChartLabels", evaluation)
-        if chart_labels.get_head_name() == "System`List":
-            graphics.extend(list(labels(chart_labels.elements)))
-            y_range[0] = -0.4  # room for labels at the bottom
-
-        # FIXME: this can't be right...
-        # always specify -.1 as the minimum x plot range, as this will make the y axis appear
-        # at origin (0,0); otherwise it will be shifted right; see GraphicsBox.axis_ticks().
-        x_range[0] = -0.1
-
-        options["System`PlotRange"] = ListExpression(
-            vector2(*x_range), vector2(*y_range)
-        )
-
-        return Expression(
-            SymbolGraphics, ListExpression(*graphics), *options_to_rules(options)
-        )
+        """Draw a bar chart"""
+        return draw_bar_chart(self, data, color, evaluation, options)
 
 
 class ColorData(Builtin):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/ColorData.html</url>
     <dl>
-      <dt>'ColorData["$name$"]'
+      <dt>'ColorData'["$name$"]
       <dd>returns a color function with the given $name$.
     </dl>
 
@@ -1288,55 +509,7 @@ class ColorData(Builtin):
         "notent": "`1` is not a known color scheme. ColorData[] gives you lists of schemes.",
     }
 
-    palettes = {
-        "LakeColors": _PredefinedGradient(
-            [
-                (0.293416, 0.0574044, 0.529412),
-                (0.563821, 0.527565, 0.909499),
-                (0.762631, 0.846998, 0.914031),
-                (0.941176, 0.906538, 0.834043),
-            ]
-        ),
-        "Pastel": _PalettableGradient(
-            palettable.colorbrewer.qualitative.Pastel1_9, False
-        ),
-        "Rainbow": _PalettableGradient(
-            palettable.colorbrewer.diverging.Spectral_9, True
-        ),
-        "RedBlueTones": _PalettableGradient(
-            palettable.colorbrewer.diverging.RdBu_11, False
-        ),
-        "GreenPinkTones": _PalettableGradient(
-            palettable.colorbrewer.diverging.PiYG_9, False
-        ),
-        "GrayTones": _PalettableGradient(
-            palettable.colorbrewer.sequential.Greys_9, False
-        ),
-        "SolarColors": _PalettableGradient(
-            palettable.colorbrewer.sequential.OrRd_9, True
-        ),
-        "CherryTones": _PalettableGradient(
-            palettable.colorbrewer.sequential.Reds_9, True
-        ),
-        "FuchsiaTones": _PalettableGradient(
-            palettable.colorbrewer.sequential.RdPu_9, True
-        ),
-        "SiennaTones": _PalettableGradient(
-            palettable.colorbrewer.sequential.Oranges_9, True
-        ),
-        # specific to Mathics
-        "Paired": _PalettableGradient(
-            palettable.colorbrewer.qualitative.Paired_9, False
-        ),
-        "Accent": _PalettableGradient(
-            palettable.colorbrewer.qualitative.Accent_8, False
-        ),
-        "Aquatic": _PalettableGradient(palettable.wesanderson.Aquatic1_5, False),
-        "Zissou": _PalettableGradient(palettable.wesanderson.Zissou_5, False),
-        "Tableau": _PalettableGradient(palettable.tableau.Tableau_20, False),
-        "TrafficLight": _PalettableGradient(palettable.tableau.TrafficLight_9, False),
-        "Moonrise1": _PalettableGradient(palettable.wesanderson.Moonrise1_5, False),
-    }
+    palettes = COLOR_PALETTES
 
     def eval_directory(self, evaluation: Evaluation):
         "ColorData[]"
@@ -1346,7 +519,7 @@ class ColorData(Builtin):
         "ColorData[name_String]"
         py_name = name.get_string_value()
         if py_name == "Gradients":
-            return ListExpression(*[String(name) for name in self.palettes.keys()])
+            return ListExpression(*[String(name) for name in self.palettes])
         palette = ColorData.palettes.get(py_name, None)
         if palette is None:
             evaluation.message("ColorData", "notent", name)
@@ -1355,11 +528,8 @@ class ColorData(Builtin):
 
     @staticmethod
     def colors(name, evaluation):
-        palette = ColorData.palettes.get(name, None)
-        if palette is None:
-            evaluation.message("ColorData", "notent", name)
-            return None
-        return palette.colors()
+        """Get a color palette by its name"""
+        return get_color_palette(name, evaluation)
 
 
 class ColorDataFunction(Builtin):
@@ -1380,8 +550,8 @@ class DensityPlot(_Plot3D):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/DensityPlot.html</url>
     <dl>
-      <dt>'DensityPlot[$f$, {$x$, $xmin$, $xmax$}, {$y$, $ymin$, $ymax$}]'
-      <dd>plots a density plot of $f$ with $x$ ranging from $xmin$ to $xmax$ and $y$ ranging from $ymin$ to $ymax$.
+      <dt>'DensityPlot'[$f$, {$x$, $x_{min}$, $x_{max}$}, {$y$, $y_{min}$, $y_{max}$}]
+      <dd>plots a density plot of $f$ with $x$ ranging from $x_{min}$ to $x_{max}$ and $y$ ranging from $y_{min}$ to $y_{max}$.
     </dl>
 
     >> DensityPlot[x ^ 2 + 1 / y, {x, -1, 1}, {y, 1, 4}]
@@ -1424,101 +594,9 @@ class DensityPlot(_Plot3D):
     def construct_graphics(
         self, triangles, mesh_points, v_min, v_max, options, evaluation
     ):
-        color_function = self.get_option(options, "ColorFunction", evaluation, pop=True)
-        color_function_scaling = self.get_option(
-            options, "ColorFunctionScaling", evaluation, pop=True
+        return construct_density_plot(
+            self, triangles, mesh_points, v_min, v_max, options, evaluation
         )
-
-        color_function_min = color_function_max = None
-        if color_function.get_name() == "System`Automatic":
-            color_function = String("LakeColors")
-        if color_function.get_string_value():
-            func = Expression(
-                SymbolColorData, String(color_function.get_string_value())
-            ).evaluate(evaluation)
-            if func.has_form("ColorDataFunction", 4):
-                color_function_min = func.elements[2].elements[0].round_to_float()
-                color_function_max = func.elements[2].elements[1].round_to_float()
-                color_function = Expression(
-                    SymbolFunction,
-                    Expression(func.elements[3], Expression(SymbolSlot, Integer1)),
-                )
-            else:
-                evaluation.message("DensityPlot", "color", func)
-                return
-        if color_function.has_form("ColorDataFunction", 4):
-            color_function_min = color_function.elements[2].elements[0].round_to_float()
-            color_function_max = color_function.elements[2].elements[1].round_to_float()
-
-        color_function_scaling = color_function_scaling is SymbolTrue
-        v_range = v_max - v_min
-
-        if v_range == 0:
-            v_range = 1
-
-        if color_function.has_form("ColorDataFunction", 4):
-            color_func = color_function.elements[3]
-        else:
-            color_func = color_function
-        if (
-            color_function_scaling
-            and color_function_min is not None  # noqa
-            and color_function_max is not None
-        ):
-            color_function_range = color_function_max - color_function_min
-
-        colors = {}
-
-        def eval_color(x, y, v):
-            v_scaled = (v - v_min) / v_range
-            if (
-                color_function_scaling
-                and color_function_min is not None  # noqa
-                and color_function_max is not None
-            ):
-                v_color_scaled = color_function_min + v_scaled * color_function_range
-            else:
-                v_color_scaled = v
-
-            # Calculate and store 100 different shades max.
-            v_lookup = int(v_scaled * 100 + 0.5)
-
-            value = colors.get(v_lookup)
-            if value is None:
-                value = Expression(color_func, Real(v_color_scaled))
-                value = value.evaluate(evaluation)
-                colors[v_lookup] = value
-            return value
-
-        points = []
-        vertex_colors = []
-        graphics = []
-        for p in triangles:
-            points.append(ListExpression(*(to_mathics_list(*x[:2]) for x in p)))
-            vertex_colors.append(ListExpression(*(eval_color(*x) for x in p)))
-
-        graphics.append(
-            Expression(
-                SymbolPolygon,
-                ListExpression(*points),
-                Expression(
-                    SymbolRule,
-                    Symbol("VertexColors"),
-                    ListExpression(*vertex_colors),
-                ),
-            )
-        )
-
-        # add mesh
-        for xi in range(len(mesh_points)):
-            line = []
-            for yi in range(len(mesh_points[xi])):
-                line.append(
-                    to_mathics_list(mesh_points[xi][yi][0], mesh_points[xi][yi][1])
-                )
-            graphics.append(Expression(SymbolLine, ListExpression(*line)))
-
-        return graphics
 
     def final_graphics(self, graphics, options):
         return Expression(
@@ -1532,16 +610,16 @@ class DiscretePlot(_Plot):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/DiscretePlot.html</url>
     <dl>
-      <dt>'DiscretePlot[$expr$, {$x$, $n_max$}]'
-      <dd>plots $expr$ with $x$ ranging from 1 to $n_max$.
+      <dt>'DiscretePlot'[$expr$, {$x$, $n_{max}$}]
+      <dd>plots $expr$ with $x$ ranging from 1 to $n_{max}$.
 
-      <dt>'DiscretePlot[$expr$, {$x$, $n_min$, $n_max$}]'
-      <dd>plots $expr$ with $x$ ranging from $n_min$ to $n_max$.
+      <dt>'DiscretePlot'[$expr$, {$x$, $n_{min}$, $n_{max}$}]
+      <dd>plots $expr$ with $x$ ranging from $n_{min}$ to $n_{max}$.
 
-      <dt>'DiscretePlot[$expr$, {$x$, $n_min$, $n_max$, $dn$}]'
-      <dd>plots $expr$ with $x$ ranging from $n_min$ to $n_max$ usings steps $dn$.
+      <dt>'DiscretePlot'[$expr$, {$x$, $n_{min}$, $n_{max}$, $dn$}]
+      <dd>plots $expr$ with $x$ ranging from $n_{min}$ to $n_{max}$ usings steps $dn$.
 
-      <dt>'DiscretePlot[{$expr1$, $expr2$, ...}, ...]'
+      <dt>'DiscretePlot'[{$expr_1$, $expr_2$, ...}, ...]
       <dd>plots the values of all $expri$.
     </dl>
 
@@ -1553,7 +631,7 @@ class DiscretePlot(_Plot):
     >> DiscretePlot[2.5 Sqrt[k], {k, 100}]
      = -Graphics-
 
-    Notice in the above that when the starting value, $n_min$,  is 1, we can \
+    Notice in the above that when the starting value, $n_{min}$,  is 1, we can \
     omit it.
 
     A plot can contain several functions, using the same parameter, here $x$:
@@ -1590,13 +668,13 @@ class DiscretePlot(_Plot):
     )
 
     rules = {
-        # One argument-form of DiscretePlot
-        "DiscretePlot[expr_, {var_Symbol, nmax_Integer}]": "DiscretePlot[expr, {var, 1, nmax, 1}]",
-        # Two argument-form of DiscretePlot
-        "DiscretePlot[expr_, {var_Symbol, nmin_Integer, nmax_Integer}]": "DiscretePlot[expr, {var, nmin, nmax, 1}]",
+        # One-argument plot range form of DiscretePlot
+        "DiscretePlot[expr_, {var_Symbol, nmax_Integer}, options___]": "DiscretePlot[expr, {var, 1, nmax, 1}, options]",
+        # Two-argument plot range form of DiscretePlot
+        "DiscretePlot[expr_, {var_Symbol, nmin_Integer, nmax_Integer}, options___]": "DiscretePlot[expr, {var, nmin, nmax, 1, options}]",
     }
 
-    summary_text = "discrete plot of a one-paremeter function"
+    summary_text = "discrete plot of a one-parameter function"
 
     def eval(
         self, functions, x, start, nmax, step, evaluation: Evaluation, options: dict
@@ -1713,8 +791,8 @@ class Histogram(Builtin):
     (<url>:WMA link: https://reference.wolfram.com/language/ref/ColorDataFunction.html</url>)
 
     <dl>
-        <dt>'Histogram[{$x1$, $x2$ ...}]'
-        <dd>plots a histogram using the values $x1$, $x2$, ....
+        <dt>'Histogram'[{$x_1$, $x_2$ ...}]
+        <dd>plots a histogram using the values $x_1$, $x_2$, ....
     </dl>
 
     >> Histogram[{3, 8, 10, 100, 1000, 500, 300, 200, 10, 20, 200, 100, 200, 300, 500}]
@@ -1966,13 +1044,13 @@ class ListPlot(_ListPlot):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/ListPlot.html</url>
     <dl>
-      <dt>'ListPlot[{$y_1$, $y_2$, ...}]'
+      <dt>'ListPlot'[{$y_1$, $y_2$, ...}]
       <dd>plots a list of y-values, assuming integer x-values 1, 2, 3, ...
 
-      <dt>'ListPlot[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]'
+      <dt>'ListPlot'[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]
       <dd>plots a list of $x$, $y$ pairs.
 
-      <dt>'ListPlot[{$list_1$, $list_2$, ...}]'
+      <dt>'ListPlot'[{$list_1$, $list_2$, ...}]
       <dd>plots several lists of points.
     </dl>
 
@@ -1980,7 +1058,7 @@ class ListPlot(_ListPlot):
     >> ListPlot[Prime[Range[30]]]
      = -Graphics-
 
-    seems very roughly to fit a table of quadradic numbers:
+    seems very roughly to fit a table of quadratic numbers:
     >> ListPlot[Table[n ^ 2 / 8, {n, 30}]]
      = -Graphics-
 
@@ -2020,13 +1098,13 @@ class ListLinePlot(_ListPlot):
     :WMA link:
     https://reference.wolfram.com/language/ref/ListLinePlot.html</url>
     <dl>
-      <dt>'ListLinePlot[{$y_1$, $y_2$, ...}]'
+      <dt>'ListLinePlot'[{$y_1$, $y_2$, ...}]
       <dd>plots a line through a list of $y$-values, assuming integer $x$-values 1, 2, 3, ...
 
-      <dt>'ListLinePlot[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]'
+      <dt>'ListLinePlot'[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]
       <dd>plots a line through a list of $x$, $y$ pairs.
 
-      <dt>'ListLinePlot[{$list_1$, $list_2$, ...}]'
+      <dt>'ListLinePlot'[{$list_1$, $list_2$, ...}]
       <dd>plots several lines.
     </dl>
 
@@ -2062,13 +1140,13 @@ class ListStepPlot(_ListPlot):
     :WMA link:
     https://reference.wolfram.com/language/ref/ListStepPlot.html</url>
     <dl>
-      <dt>'ListStepPlot[{$y_1$, $y_2$, ...}]'
+      <dt>'ListStepPlot'[{$y_1$, $y_2$, ...}]
       <dd>plots a line through a list of $y$-values, assuming integer $x$-values 1, 2, 3, ...
 
-      <dt>'ListStepPlot[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]'
+      <dt>'ListStepPlot'[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]
       <dd>plots a line through a list of $x$, $y$ pairs.
 
-      <dt>'ListStepPlot[{$list_1$, $list_2$, ...}]'
+      <dt>'ListStepPlot'[{$list_1$, $list_2$, ...}]
       <dd>plots several lines.
     </dl>
 
@@ -2109,13 +1187,13 @@ class ListLogPlot(_ListPlot):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/ListLogPlot.html</url>
     <dl>
-      <dt>'ListLogPlot[{$y_1$, $y_2$, ...}]'
+      <dt>'ListLogPlot'[{$y_1$, $y_2$, ...}]
       <dd>log plots a list of y-values, assuming integer x-values 1, 2, 3, ...
 
-      <dt>'ListLogPlot[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]'
+      <dt>'ListLogPlot'[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]
       <dd>log plots a list of $x$, $y$ pairs.
 
-      <dt>'ListLogPlot[{$list_1$, $list_2$, ...}]'
+      <dt>'ListLogPlot'[{$list_1$, $list_2$, ...}]
       <dd>log plots several lists of points.
     </dl>
 
@@ -2156,11 +1234,11 @@ class LogPlot(_Plot):
     :WMA link:
     https://reference.wolfram.com/language/ref/LogPlot.html</url>)
     <dl>
-      <dt>'LogPlot[$f$, {$x$, $xmin$, $xmax$}]'
-      <dd>log plots $f$ with $x$ ranging from $xmin$ to $xmax$.
+      <dt>'LogPlot'[$f$, {$x$, $x_{min}$, $x_{max}$}]
+      <dd>log plots $f$ with $x$ ranging from $x_{min}$ to $x_{max}$.
 
-      <dt>'Plot[{$f1$, $f2$, ...}, {$x$, $xmin$, $xmax$}]'
-      <dd>log plots several functions $f1$, $f2$, ...
+      <dt>'Plot'[{$f_1$, $f_2$, ...}, {$x$, $x_{min}$, $x_{max}$}]
+      <dd>log plots several functions $f_1$, $f_2$, ...
 
     </dl>
 
@@ -2182,7 +1260,7 @@ class NumberLinePlot(_ListPlot):
      <url>:WMA link:
      https://reference.wolfram.com/language/ref/NumberLinePlot.html</url>
      <dl>
-       <dt>'NumberLinePlot[{$v_1$, $v_2$, ...}]'
+       <dt>'NumberLinePlot'[{$v_1$, $v_2$, ...}]
        <dd>plots a list of values along a line.
      </dl>
 
@@ -2234,8 +1312,8 @@ class PieChart(_Chart):
     <url>:Pie Chart: https://en.wikipedia.org/wiki/Pie_chart</url> \
     (<url>:WMA link: https://reference.wolfram.com/language/ref/PieChart.html</url>)
     <dl>
-      <dt>'PieChart[{$a1$, $a2$ ...}]'
-      <dd>draws a pie chart with sector angles proportional to $a1$, $a2$, ....
+      <dt>'PieChart'[{$a_1$, $a_2$ ...}]
+      <dd>draws a pie chart with sector angles proportional to $a_1$, $a_2$, ....
     </dl>
 
     Drawing options include -
@@ -2423,11 +1501,11 @@ class Plot(_Plot):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/Plot.html</url>
     <dl>
-      <dt>'Plot[$f$, {$x$, $xmin$, $xmax$}]'
-      <dd>plots $f$ with $x$ ranging from $xmin$ to $xmax$.
+      <dt>'Plot'[$f$, {$x$, $x_{min}$, $x_{max}$}]
+      <dd>plots $f$ with $x$ ranging from $x_{min}$ to $x_{max}$.
 
-      <dt>'Plot[{$f1$, $f2$, ...}, {$x$, $xmin$, $xmax$}]'
-      <dd>plots several functions $f1$, $f2$, ...
+      <dt>'Plot'[{$f_1$, $f_2$, ...}, {$x$, $x_{min}$, $x_{max}$}]
+      <dd>plots several functions $f_1$, $f_2$, ...
 
     </dl>
 
@@ -2466,19 +1544,19 @@ class Plot(_Plot):
 class ParametricPlot(_Plot):
     """
     <url>
-    :WMA link
-    : https://reference.wolfram.com/language/ref/ParametricPlot.html</url>
+    :WMA link:\
+    https://reference.wolfram.com/language/ref/ParametricPlot.html</url>
     <dl>
-      <dt>'ParametricPlot[{$f_x$, $f_y$}, {$u$, $umin$, $umax$}]'
-      <dd>plots a parametric function $f$ with the parameter $u$ ranging from $umin$ to $umax$.
+      <dt>'ParametricPlot'[{$f_x$, $f_y$}, {$u$, $u_{min}$, $u_{max}$}]
+      <dd>plots a parametric function $f$ with the parameter $u$ ranging from $u_{min}$ to $u_{max}$.
 
-      <dt>'ParametricPlot[{{$f_x$, $f_y$}, {$g_x$, $g_y$}, ...}, {$u$, $umin$, $umax$}]'
+      <dt>'ParametricPlot'[{{$f_x$, $f_y$}, {$g_x$, $g_y$}, ...}, {$u$, $u_{min}$, $u_{max}$}]
       <dd>plots several parametric functions $f$, $g$, ...
 
-      <dt>'ParametricPlot[{$f_x$, $f_y$}, {$u$, $umin$, $umax$}, {$v$, $vmin$, $vmax$}]'
+      <dt>'ParametricPlot'[{$f_x$, $f_y$}, {$u$, $u_{min}$, $u_{max}$}, {$v$, $v_{min}$, $v_{max}$}]
       <dd>plots a parametric area.
 
-      <dt>'ParametricPlot[{{$f_x$, $f_y$}, {$g_x$, $g_y$}, ...}, {$u$, $umin$, $umax$}, {$v$, $vmin$, $vmax$}]'
+      <dt>'ParametricPlot'[{{$f_x$, $f_y$}, {$g_x$, $g_y$}, ...}, {$u$, $u_{min}$, $u_{max}$}, {$v$, $v_{min}$, $v_{max}$}]
       <dd>plots several parametric areas.
     </dl>
 
@@ -2536,9 +1614,9 @@ class PolarPlot(_Plot):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/PolarPlot.html</url>
     <dl>
-      <dt>'PolarPlot[$r$, {$t$, $t_min$, $t_max$}]'
+      <dt>'PolarPlot'[$r$, {$t$, $t_{min}$, $t_{max}$}]
       <dd>creates a polar plot of curve with radius $r$ as a function of angle $t$ \
-      ranging from $t_min$ to $t_max$.
+      ranging from $t_{min}$ to $t_{max}$.
     </dl>
 
     In a Polar Plot, a <url>:polar coordinate system:
@@ -2614,9 +1692,9 @@ class Plot3D(_Plot3D):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/Plot3D.html</url>
     <dl>
-      <dt>'Plot3D[$f$, {$x$, $xmin$, $xmax$}, {$y$, $ymin$, $ymax$}]'
-      <dd>creates a three-dimensional plot of $f$ with $x$ ranging from $xmin$ to \
-          $xmax$ and $y$ ranging from $ymin$ to $ymax$.
+      <dt>'Plot3D'[$f$, {$x$, $x_{min}$, $x_{max}$}, {$y$, $y_{min}$, $y_{max}$}]
+      <dd>creates a three-dimensional plot of $f$ with $x$ ranging from $x_{min}$ to \
+          $x_{max}$ and $y$ ranging from $y_{min}$ to $y_{max}$.
 
           See <url>:Drawing Option and Option Values:
     /doc/reference-of-built-in-symbols/graphics-and-drawing/drawing-options-and-option-values

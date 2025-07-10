@@ -63,6 +63,7 @@ System`$RandomState
 System`$RecursionLimit
 System`$RootDirectory
 System`$ScriptCommandLine
+System`$SessionID
 System`$SyntaxHandler
 System`$SystemCharacterEncoding
 System`$SystemID
@@ -150,12 +151,14 @@ System`BesselK
 System`BesselY
 System`BesselYZero
 System`Beta
+System`Between
 System`BezierCurve
 System`BezierCurveBox
 System`BezierFunction
 System`Binarize
 System`BinaryImageQ
 System`BinaryRead
+System`BinaryReadList
 System`BinaryWrite
 System`Binomial
 System`BitLength
@@ -174,6 +177,7 @@ System`BoxData
 System`BoxMatrix
 System`BrayCurtisDistance
 System`Break
+System`Breakpoint
 System`Brown
 System`ButtonBox
 System`Byte
@@ -326,6 +330,7 @@ System`DigitCount
 System`DigitQ
 System`Dilation
 System`Dimensions
+System`DirectedEdge
 System`DirectedInfinity
 System`Directive
 System`Directory
@@ -475,6 +480,7 @@ System`FoldList
 System`FontColor
 System`For
 System`Format
+System`FormatValues
 System`FractionBox
 System`FractionalPart
 System`FreeQ
@@ -797,6 +803,7 @@ System`NotDoubleVerticalBar
 System`NotGreater
 System`NotGreaterEqual
 System`NotGreaterFullEqual
+System`NotGreaterGreater
 System`NotGreaterLess
 System`NotGreaterTilde
 System`NotLeftTriangle
@@ -1057,6 +1064,7 @@ System`Sech
 System`SeedRandom
 System`Select
 System`Sequence
+System`SequenceForm
 System`SequenceHold
 System`Series
 System`SeriesCoefficient
@@ -1069,7 +1077,6 @@ System`SetDirectory
 System`SetEnvironment
 System`SetFileDate
 System`SetOptions
-System`SequenceForm
 System`SetStreamPosition
 System`Share
 System`Sharpen
@@ -1120,7 +1127,7 @@ System`SquareSupersetEqual
 System`SquareUnion
 System`SquaredEuclideanDistance
 System`SquaresR
-System`Stacktrace
+System`Stack
 System`StandardDeviation
 System`StandardForm
 System`Star
@@ -1184,6 +1191,7 @@ System`SymbolName
 System`SymbolQ
 System`SympyForm
 System`Syntax
+System`SyntaxQ
 System`Table
 System`TableForm
 System`TagBox
@@ -1236,6 +1244,7 @@ System`TooltipBox
 System`Top
 System`Total
 System`Tr
+System`Trace
 System`TraceBuiltins
 System`TraceEvaluation
 System`TraditionalForm
@@ -1253,6 +1262,7 @@ System`URLSave
 System`Uncompress
 System`Undefined
 System`Underflow
+System`UndirectedEdge
 System`Unequal
 System`Unevaluated
 System`UniformPolyhedron
@@ -1261,6 +1271,7 @@ System`Union
 System`UnionPlus
 System`Unique
 System`UnitConvert
+System`UnitStep
 System`UnitVector
 System`Unprotect
 System`UnsameQ

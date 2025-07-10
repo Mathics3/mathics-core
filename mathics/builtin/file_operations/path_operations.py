@@ -21,20 +21,20 @@ class FileNameDrop(Builtin):
     https://reference.wolfram.com/language/ref/FileNameDrop.html</url>
 
     <dl>
-      <dt>'FileNameDrop["$path$", $n$]'
+      <dt>'FileNameDrop'["$path$", $n$]
       <dd>drops the first $n$ path elements in the file name $path$.
 
-      <dt>'FileNameDrop["$path$", -$n$]'
+      <dt>'FileNameDrop'["$path$", -$n$]
       <dd>drops the last $n$ path elements in the file name $path$.
 
-      <dt>'FileNameDrop["$path$", {$m$, $n$}]'
+      <dt>'FileNameDrop'["$path$", {$m$, $n$}]
       <dd>drops elements $m$ through $n$ path elements in the file name $path$.
 
-      <dt>'FileNameDrop["$path$"]'
+      <dt>'FileNameDrop'["$path$"]
       <dd>drops the last path elements in the file name $path$.
     </dl>
 
-    >> path = FileNameJoin{"a","b","c"}
+    >> path = FileNameJoin[{"a","b","c"}]
      = ...
 
     >> FileNameDrop[path, -1]

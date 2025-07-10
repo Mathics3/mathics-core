@@ -21,6 +21,7 @@ from mathics.core.systemsymbols import (
     SymbolAnd,
     SymbolBlank,
     SymbolCondition,
+    SymbolFormat,
     SymbolHoldPattern,
     SymbolOptionValue,
     SymbolPart,
@@ -116,6 +117,46 @@ def get_symbol_values(
         return ListExpression()
 
     elements = []
+
+    if position == "formatvalues":
+        format_rules = definition.formatvalues
+        for key, rules in format_rules.items():
+            if key == "System`MakeBoxes":
+                elements.extend(rules)
+                continue
+            if key:
+                elements.extend(
+                    (
+                        Expression(
+                            SymbolRuleDelayed,
+                            Expression(
+                                SymbolHoldPattern,
+                                Expression(
+                                    SymbolFormat, rule.pattern.expr, Symbol(key)
+                                ),
+                            ),
+                            rule.replace,
+                        )
+                        for rule in rules
+                    )
+                )
+            else:
+                elements.extend(
+                    (
+                        Expression(
+                            SymbolRuleDelayed,
+                            Expression(
+                                SymbolHoldPattern,
+                                Expression(SymbolFormat, rule.pattern.expr),
+                            ),
+                            rule.replace,
+                        )
+                        for rule in rules
+                    )
+                )
+        elements.sort()
+        return ListExpression(*elements)
+
     for rule in definition.get_values_list(position):
         if isinstance(rule, Rule):
             pattern = rule.pattern
@@ -135,11 +176,13 @@ def is_protected(tag: str, definitions: Definitions) -> bool:
 
 def normalize_lhs(lhs, evaluation):
     """
-    Process the lhs in a way that
+    Process the lhs in a way that:
+
     * if it is a conditional expression, reduce it to
       a shallow conditional expression
       ( Conditional[Conditional[...],tst] -> Conditional[stripped_lhs, tst])
       with `stripped_lhs` the result of strip all the conditions from lhs.
+
     * if ``stripped_lhs`` is not a ``List`` or a ``Part`` expression, evaluate the
       elements.
 

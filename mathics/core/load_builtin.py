@@ -237,7 +237,7 @@ def import_and_load_builtins():
 
 def import_builtin_module(import_name: str, modules: List[ModuleType]):
     """
-    Imports ``the list of Mathics3 Built-in modules so that inside
+    Imports the list of Mathics3 Built-in modules so that inside
     Mathics3 Builtin Functions, like Plus[], List[] are defined.
 
     List ``module_names`` is updated.

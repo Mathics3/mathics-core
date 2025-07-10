@@ -128,7 +128,7 @@ class TakeLargestBy(_RankedTakeLargest):
     <url>:WMA link:https://reference.wolfram.com/language/ref/TakeLargestBy.html</url>
 
     <dl>
-      <dt>'TakeLargestBy[$list$, $f$, $n$]'
+      <dt>'TakeLargestBy'[$list$, $f$, $n$]
       <dd>returns the a sorted list of the $n$ largest items in $list$
         using $f$ to retrieve the items' keys to compare them.
     </dl>
@@ -155,7 +155,7 @@ class TakeSmallestBy(_RankedTakeSmallest):
     https://reference.wolfram.com/language/ref/TakeSmallestBy.html</url>
 
     <dl>
-      <dt>'TakeSmallestBy[$list$, $f$, $n$]'
+      <dt>'TakeSmallestBy'[$list$, $f$, $n$]
       <dd>returns the a sorted list of the $n$ smallest items in $list$
         using $f$ to retrieve the items' keys to compare them.
     </dl>

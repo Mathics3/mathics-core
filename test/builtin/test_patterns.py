@@ -49,7 +49,7 @@ def test_replace_all():
             "Dispatch[]",
             "dispatch with 0 arguments",
         ),
-        ("Dispatch[a]", None, "Dispatch[a]", "A simbol. Keep unevaluated."),
+        ("Dispatch[a]", None, "Dispatch[a]", "A symbol. Keep unevaluated."),
         ("Dispatch[a -> b]", None, "Dispatch[<1>]", "single rule"),
         ("Dispatch[{}]", None, "{}", "empty rule"),
         ("Dispatch[{a -> 1}]", None, "Dispatch[<1>]", "single rule"),

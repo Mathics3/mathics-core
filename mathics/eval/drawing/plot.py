@@ -6,14 +6,16 @@ Note that this is distinct from boxing, formatting and rendering e.g. to SVG.
 That is done as another pass after M-expression evaluation finishes.
 """
 
+import numbers
 from enum import Enum
 from math import cos, isinf, isnan, pi, sqrt
-from typing import Callable, Iterable, List, Optional, Type, Union
+from typing import Callable, Iterable, List, Optional, Tuple, Type, Union
 
 from mathics.builtin.numeric import chop
 from mathics.builtin.options import options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import Integer, Integer0, Real
+from mathics.core.builtin import get_option
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.element import BaseElement
@@ -30,6 +32,7 @@ from mathics.core.systemsymbols import (
     SymbolPoint,
     SymbolPolygon,
 )
+from mathics.eval.nevaluator import eval_N
 
 ListPlotNames = (
     "DiscretePlot",
@@ -84,6 +87,74 @@ def automatic_plot_range(values):
     return vmin, vmax
 
 
+# PlotRange Option
+def check_plot_range(range_spec, range_type) -> bool:
+    """
+    Return True if `range` has two numbers, the first number less than the second number,
+    and that both numbers have type `range_type`
+    """
+    if range_spec in ("System`Automatic", "System`All"):
+        return True
+    if isinstance(range_spec, list) and len(range_spec) == 2:
+        if isinstance(range_spec[0], range_type) and isinstance(
+            range_spec[1], range_type
+        ):
+            return True
+    return False
+
+
+def get_plot_range_option(
+    options: dict, evaluation: Evaluation, name: str, dimensions: int = 2
+) -> Tuple[list, list]:
+    """
+    Get the value of PlotRange, and bring it
+       to its standard form
+    """
+    plotrange_option = get_option(options, "PlotRange", evaluation)
+    plotrange = eval_N(plotrange_option, evaluation).to_python()
+    if isinstance(plotrange, str):
+        plotrange = dimensions * [plotrange]
+    elif isinstance(plotrange, numbers.Real):
+        plotrange = [[-plotrange, plotrange]] * dimensions
+    elif isinstance(plotrange, list) and len(plotrange) == 2:
+        if all(isinstance(pr, numbers.Real) for pr in plotrange):
+            plotrange = ["System`All"] * (dimensions - 1) + [plotrange]
+        elif all(check_plot_range(pr, numbers.Real) for pr in plotrange):
+            pass
+    else:
+        evaluation.message(name, "prng", plotrange_option)
+        plotrange = ["System`Automatic", "System`Automatic"]
+
+    assert all(
+        pr
+        in (
+            "System`Automatic",
+            "System`All",
+        )
+        or isinstance(pr, (list, tuple))
+        for pr in plotrange
+    )
+    return plotrange
+
+
+def get_filling_option(options, evaluation):
+    # Filling option
+    # TODO: Fill between corresponding points in two datasets:
+    filling_option = get_option(options, "Filling", evaluation)
+    filling = eval_N(filling_option, evaluation).to_python()
+    if filling in [
+        "System`Top",
+        "System`Bottom",
+        "System`Axis",
+    ] or isinstance(  # noqa
+        filling, numbers.Real
+    ):
+        return filling
+
+    # Mathematica does not even check that filling is sane
+    return None
+
+
 def compile_quiet_function(expr, arg_names, evaluation, list_is_expected: bool):
     """
     Given an expression return a quiet callable version.
@@ -98,7 +169,7 @@ def compile_quiet_function(expr, arg_names, evaluation, list_is_expected: bool):
             pass
         else:
 
-            def quiet_f(*args):
+            def quiet_cf(*args):
                 try:
                     result = cfunc(*args)
                     if not (isnan(result) or isinf(result)):
@@ -107,7 +178,7 @@ def compile_quiet_function(expr, arg_names, evaluation, list_is_expected: bool):
                     pass
                 return None
 
-            return quiet_f
+            return quiet_cf
     expr: Optional[Type[BaseElement]] = Expression(SymbolN, expr).evaluate(evaluation)
 
     def quiet_f(*args):

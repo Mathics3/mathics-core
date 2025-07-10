@@ -1,8 +1,8 @@
 import pytest
 import sympy
 
-from mathics.builtin.makeboxes import int_to_tuple_info, real_to_tuple_info
 from mathics.core.atoms import Integer, Integer0, Integer1, IntegerM1, Real
+from mathics.eval.makeboxes.numberform import int_to_tuple_info, real_to_tuple_info
 
 # from packaging.version import Version
 

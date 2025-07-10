@@ -22,7 +22,6 @@ from io import StringIO
 from time import time
 from typing import Callable
 
-import mathics.eval.trace
 import mathics.eval.tracing
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
 from mathics.core.builtin import Builtin
@@ -42,8 +41,6 @@ def traced_apply_function(
         if not self.check_options(options, evaluation):
             return None
     vars_noctx = dict(((strip_context(s), vars[s]) for s in vars))
-    if self.pass_expression:
-        vars_noctx["expression"] = expression
     builtin_name = self.function.__qualname__.split(".")[0]
     stat = TraceBuiltins.function_stats[builtin_name]
     t_start = time()
@@ -104,7 +101,7 @@ class ClearTrace(Builtin):
 
 
 class PrintTrace(_TraceBase):
-    """
+    r"""
     ## <url>:trace native symbol:</url>
 
     <dl>
@@ -123,7 +120,7 @@ class PrintTrace(_TraceBase):
     Note that in a browser the information only appears in a console.
 
 
-    Note: before '$TraceBuiltins' is set to 'True', 'PrintTrace[]' will print an empty
+    Note: before '\$TraceBuiltins' is set to 'True', 'PrintTrace[]' will print an empty
     list.
     >> PrintTrace[] (* See console log *)
 
@@ -149,52 +146,12 @@ class PrintTrace(_TraceBase):
         return SymbolNull
 
 
-class Stacktrace(_TraceBase):
-    """
-    ## <url>:trace native symbol:</url>
-
-    <dl>
-      <dt>'Stacktrace[]'
-      <dd>Print Mathics3 stack trace of evalutations leading to this point
-    </dl>
-
-    To show the Mathics3 evaluation stack at the \
-    point where expression $expr$ is evaluated, wrap $expr$ inside '{$expr$ Stacktrace[]}[1]]' \
-    or something similar.
-
-    Here is a complete example. To show the evaluation stack when computing a homegrown \
-    factorial function:
-
-    >> F[0] := {1, Stacktrace[]}[[1]]; F[n_] := n * F[n-1]
-
-    >> F[3] (* See console log *)
-     = 6
-
-    The actual 'Stacktrace[0]' call is hidden from the output; so when \
-    run on its own, nothing appears.
-
-    >> Stacktrace[]
-
-    #> Clear[F]
-    """
-
-    summary_text = "print Mathics3 function stacktrace"
-
-    def eval(self, evaluation: Evaluation):
-        "Stacktrace[]"
-
-        # Use longer-form resolve call
-        # so a debugger can change this.
-        mathics.eval.trace.eval_Stacktrace()
-        return SymbolNull
-
-
 class TraceBuiltins(_TraceBase):
     """
     ## <url>:trace native symbol:</url>
 
     <dl>
-      <dt>'TraceBuiltins[$expr$]'
+      <dt>'TraceBuiltins'[$expr$]
       <dd>Evaluate $expr$ and then print a list of the Built-in Functions called \
           in evaluating $expr$ along with the number of times is each called, \
           and combined elapsed time in milliseconds spent in each.
@@ -320,11 +277,11 @@ class TraceBuiltins(_TraceBase):
 # The convention is to use the name of the variable without the "$" as
 # the class name, but it is already taken by the builtin `TraceBuiltins`
 class TraceBuiltinsVariable(Builtin):
-    """
+    r"""
     ## <url>:trace native symbol:</url>
 
     <dl>
-      <dt>'$TraceBuiltins'
+      <dt>'\$TraceBuiltins'
       <dd>A Boolean Built-in variable when True collects function evaluation statistics.
     </dl>
 
@@ -353,7 +310,7 @@ class TraceBuiltinsVariable(Builtin):
     To  clear statistics collected use 'ClearTrace[]':
     X> ClearTrace[]
 
-    '$TraceBuiltins'  cannot be set to a non-boolean value.
+    '\$TraceBuiltins'  cannot be set to a non-boolean value.
     >> $TraceBuiltins = x
      : x should be True or False.
      = x
@@ -392,7 +349,7 @@ class TraceEvaluation(Builtin):
     ## <url>:trace native symbol:</url>
 
     <dl>
-      <dt>'TraceEvaluation[$expr$]'
+      <dt>'TraceEvaluation'[$expr$]
       <dd>Evaluate $expr$ and print each step of the evaluation.
     </dl>
 
@@ -435,8 +392,7 @@ class TraceEvaluation(Builtin):
             options["System`ShowTimeBySteps"] is SymbolTrue
         )
         try:
-            result = expr.evaluate(evaluation)
-            return result
+            return expr.evaluate(evaluation)
         except Exception:
             raise
         finally:
@@ -448,11 +404,11 @@ class TraceEvaluation(Builtin):
 
 
 class TraceEvaluationVariable(Builtin):
-    """
+    r"""
     ## <url>:trace native symbol:</url>
 
     <dl>
-      <dt>'$TraceEvaluation'
+      <dt>'\$TraceEvaluation'
       <dd>A Boolean variable which when set True traces Expression evaluation calls and returns.
     </dl>
 
@@ -473,7 +429,7 @@ class TraceEvaluationVariable(Builtin):
 
     >> a + a
      = 2 a
-    '$TraceEvaluation' cannot be set to a non-boolean value.
+    '\$TraceEvaluation' cannot be set to a non-boolean value.
     >> $TraceEvaluation = x
      : x should be True or False.
      = x
@@ -508,7 +464,7 @@ class PythonCProfileEvaluation(Builtin):
     <url>:Python:https://docs.python.org/3/library/profile.html</url>
 
     <dl>
-      <dt>'PythonProfileEvaluation[$expr$]'
+      <dt>'PythonProfileEvaluation'[$expr$]
       <dd>profile $expr$ with the Python's cProfiler.
     </dl>
 

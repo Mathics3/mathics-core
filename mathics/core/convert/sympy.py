@@ -129,7 +129,7 @@ def to_sympy_matrix(data, **kwargs) -> Optional[sympy.MutableDenseMatrix]:
         return None
 
 
-class SympyExpression(BasicSympy):
+class SympyExpression(sympy.Expr):
     """A Sympy expression with an associated Mathics expression"""
 
     is_Function = True
@@ -476,7 +476,10 @@ def old_from_sympy(expr) -> BaseElement:
                     else:
                         factors.append(Expression(SymbolPower, slot, from_sympy(exp)))
             if factors:
-                result.append(Expression(SymbolTimes, *factors))
+                if len(factors) == 1:
+                    result.append(factors[0])
+                else:
+                    result.append(Expression(SymbolTimes, *factors))
             else:
                 result.append(Integer1)
         return Expression(SymbolFunction, Expression(SymbolPlus, *sorted(result)))

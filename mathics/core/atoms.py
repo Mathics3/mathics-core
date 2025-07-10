@@ -63,8 +63,20 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         """
         return (self._value,)
 
+    def __eq__(self, other):
+        if isinstance(other, Number):
+            return self.get_sort_key() == other.get_sort_key()
+        else:
+            return False
+
     def __str__(self) -> str:
         return str(self.value)
+
+    def default_format(self, evaluation, form) -> str:
+        return str(self.value)
+
+    def do_copy(self) -> "Number":
+        raise NotImplementedError
 
     # FIXME: can we refactor or subclass objects to remove pattern_sort?
     def get_sort_key(self, pattern_sort=False) -> tuple:
@@ -109,21 +121,15 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
                 return mpmath.mpf(self.value)
         return mpmath.mpf(self.value)
 
-    @property
-    def value(self) -> T:
+    def to_python(self, *_, **kwargs):
+        """Returns a native builtin Python object
+        something in (int, float, complex, str, tuple, list or dict.).
+        (See discussions in
+        https://github.com/Mathics3/mathics-core/discussions/550
+        and
+        https://github.com/Mathics3/mathics-core/pull/551
         """
-        Returns this number's value.
-        """
-        return self._value
-
-    def __eq__(self, other):
-        if isinstance(other, Number):
-            return self.get_sort_key() == other.get_sort_key()
-        else:
-            return False
-
-    def default_format(self, evaluation, form) -> str:
-        return str(self.value)
+        return self.value
 
     def round(self, d: Optional[int] = None) -> "Number":
         """
@@ -131,8 +137,12 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         """
         return self
 
-    def do_copy(self) -> "Number":
-        raise NotImplementedError
+    @property
+    def value(self) -> T:
+        """
+        Equivalent value in Python's native datatype.
+        """
+        return self._value
 
 
 def _ExponentFunction(value):
@@ -256,11 +266,23 @@ class Integer(Number[int]):
             else super().__ne__(other)
         )
 
+    def __neg__(self) -> "Integer":
+        return Integer(-self._value)
+
     def abs(self) -> "Integer":
         return -self if self < Integer0 else self
 
     def atom_to_boxes(self, f, evaluation):
         return self.make_boxes(f.get_name())
+
+    def get_int_value(self) -> int:
+        return self._value
+
+    @property
+    def is_zero(self) -> bool:
+        # Note: 0 is self._value or the other way around is a syntax
+        # error.
+        return self._value == 0
 
     def make_boxes(self, form) -> "String":
         from mathics.eval.makeboxes import _boxed_string
@@ -281,12 +303,6 @@ class Integer(Number[int]):
 
             return int_to_string_shorter_repr(self._value, form)
 
-    def to_sympy(self, **kwargs):
-        return sympy.Integer(self._value)
-
-    def to_python(self, *args, **kwargs):
-        return self.value
-
     def round(self, d: Optional[int] = None) -> Union["MachineReal", "PrecisionReal"]:
         """
         Produce a Real approximation of ``self`` with decimal precision ``d``.
@@ -302,8 +318,8 @@ class Integer(Number[int]):
                 d = MACHINE_PRECISION_VALUE
         return PrecisionReal(sympy.Float(self.value, d))
 
-    def get_int_value(self) -> int:
-        return self._value
+    def to_sympy(self, **_):
+        return sympy.Integer(self._value)
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""
@@ -314,15 +330,6 @@ class Integer(Number[int]):
 
     def user_hash(self, update):
         update(b"System`Integer>" + str(self._value).encode("utf8"))
-
-    def __neg__(self) -> "Integer":
-        return Integer(-self._value)
-
-    @property
-    def is_zero(self) -> bool:
-        # Note: 0 is self._value or the other way around is a syntax
-        # error.
-        return self._value == 0
 
 
 Integer0 = Integer(0)
@@ -472,7 +479,7 @@ class MachineReal(Real[float]):
         return True
 
     def make_boxes(self, form):
-        from mathics.builtin.makeboxes import NumberForm_to_String
+        from mathics.eval.makeboxes import NumberForm_to_String
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat
         if form in ("System`InputForm", "System`FullForm"):
@@ -573,7 +580,7 @@ class PrecisionReal(Real[sympy.Float]):
         return self.value.is_zero or False
 
     def make_boxes(self, form):
-        from mathics.builtin.makeboxes import NumberForm_to_String
+        from mathics.eval.makeboxes import NumberForm_to_String
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat
         return NumberForm_to_String(

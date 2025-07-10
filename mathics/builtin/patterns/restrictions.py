@@ -25,7 +25,7 @@ class Condition(InfixOperator, PatternObject):
     https://reference.wolfram.com/language/ref/Condition.html</url>
 
     <dl>
-      <dt>'Condition[$pattern$, $expr$]'
+      <dt>'Condition'[$pattern$, $expr$]
       <dt>'$pattern$ /; $expr$'
       <dd>places an additional constraint on $pattern$ that only \
           allows it to match if $expr$ evaluates to 'True'.
@@ -89,7 +89,7 @@ class PatternTest(InfixOperator, PatternObject):
     https://reference.wolfram.com/language/ref/PatternTest.html</url>
 
     <dl>
-      <dt>'PatternTest[$pattern$, $test$]'
+      <dt>'PatternTest'[$pattern$, $test$]
       <dt>'$pattern$ ? $test$'
       <dd>constrains $pattern$ to match $expr$ only if the \
           evaluation of '$test$[$expr$]' yields 'True'.

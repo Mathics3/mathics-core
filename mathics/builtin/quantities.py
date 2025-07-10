@@ -42,7 +42,7 @@ class KnownUnitQ(Test):
     https://reference.wolfram.com/language/ref/KnownUnitQ.html</url>
 
     <dl>
-      <dt>'KnownUnitQ[$unit$]'
+      <dt>'KnownUnitQ'[$unit$]
       <dd>returns True if $unit$ is a canonical unit, and False otherwise.
     </dl>
 
@@ -69,10 +69,10 @@ class Quantity(Builtin):
     https://reference.wolfram.com/language/ref/Quantity.html</url>
 
     <dl>
-      <dt>'Quantity[$magnitude$, $unit$]'
+      <dt>'Quantity'[$magnitude$, $unit$]
       <dd>represents a quantity with size $magnitude$ and unit specified by $unit$.
 
-      <dt>'Quantity[$unit$]'
+      <dt>'Quantity'[$unit$]
       <dd>assumes the magnitude of the specified $unit$ to be 1.
     </dl>
 
@@ -227,10 +227,10 @@ class QuantityMagnitude(Builtin):
     https://reference.wolfram.com/language/ref/QuantityMagnitude.html</url>
 
     <dl>
-      <dt>'QuantityMagnitude[$quantity$]'
+      <dt>'QuantityMagnitude'[$quantity$]
       <dd>gives the amount of the specified $quantity$.
 
-      <dt>'QuantityMagnitude[$quantity$, $unit$]'
+      <dt>'QuantityMagnitude'[$quantity$, $unit$]
       <dd>gives the value corresponding to $quantity$ when converted to $unit$.
     </dl>
 
@@ -303,7 +303,7 @@ class QuantityQ(Test):
     :WMA link:
     https://reference.wolfram.com/language/ref/QuantityQ.html</url>
     <dl>
-      <dt>'QuantityQ[$expr$]'
+      <dt>'QuantityQ'[$expr$]
       <dd>return True if $expr$ is a valid Association object, and False otherwise.
     </dl>
 
@@ -338,7 +338,7 @@ class QuantityUnit(Builtin):
     https://reference.wolfram.com/language/ref/QuantityUnit.html</url>
 
     <dl>
-      <dt>'QuantityUnit[$quantity$]'
+      <dt>'QuantityUnit'[$quantity$]
       <dd>returns the unit associated with the specified $quantity$.
     </dl>
 

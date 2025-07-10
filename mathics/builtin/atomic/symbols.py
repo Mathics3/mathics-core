@@ -177,7 +177,7 @@ class Context(Builtin):
     <url>:WMA link:
        https://reference.wolfram.com/language/ref/Context.html</url>
     <dl>
-      <dt>'Context[$symbol$]'
+      <dt>'Context'[$symbol$]
       <dd>yields the name of the context where $symbol$ is defined in.
 
       <dt>'Context[]'
@@ -218,7 +218,7 @@ class Definition(Builtin):
     <url>:WMA link:
       https://reference.wolfram.com/language/ref/Definition.html</url>
     <dl>
-      <dt>'Definition[$symbol$]'
+      <dt>'Definition'[$symbol$]
       <dd>prints as the definitions given for $symbol$.
       This is in a form that can e stored in a package.
     </dl>
@@ -322,7 +322,7 @@ class Definition(Builtin):
     def format_definition(
         self, symbol: Symbol, evaluation: Evaluation, grid: bool = True
     ) -> Symbol:
-        "StandardForm,TraditionalForm,OutputForm: Definition[symbol_]"
+        "(StandardForm,TraditionalForm,OutputForm,): Definition[symbol_]"
 
         lines = gather_and_format_definition_rules(symbol, evaluation)
         if lines:
@@ -339,7 +339,7 @@ class Definition(Builtin):
         return SymbolNull
 
     def format_definition_input(self, symbol: Symbol, evaluation: Evaluation) -> Symbol:
-        "InputForm: Definition[symbol_]"
+        "(InputForm,): Definition[symbol_]"
         return self.format_definition(symbol, evaluation, grid=False)
 
 
@@ -348,7 +348,7 @@ class DownValues(Builtin):
     """
     <url>:WMA link: https://reference.wolfram.com/language/ref/DownValues.html</url>
     <dl>
-      <dt>'DownValues[$symbol$]'
+      <dt>'DownValues'[$symbol$]
       <dd>gives the list of downvalues associated with $symbol$.
     </dl>
 
@@ -400,12 +400,35 @@ class DownValues(Builtin):
         return get_symbol_values(symbol, "DownValues", "downvalues", evaluation)
 
 
+# In Mathematica 5, this appears under "Types of Values".
+class FormatValues(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/tutorial/PatternsAndTransformationRules.html#6025</url>
+    <dl>
+      <dt>'FormatValues'[$symbol$]
+      <dd>gives the list of formatvalues associated with $symbol$.
+    </dl>
+
+    >> Format[F[x_], OutputForm]:= Subscript[x, F]
+    >> FormatValues[F]
+     = {HoldPattern[Format[Subscript[x_, F], OutputForm]] :> Subscript[x, F]}
+    """
+
+    summary_text = (
+        "give a list of formatting transformation rules associated with a symbol."
+    )
+
+    def eval(self, symbol, evaluation):
+        """FormatValues[symbol_]"""
+        return get_symbol_values(symbol, "FormatValues", "formatvalues", evaluation)
+
+
 class Information(PrefixOperator):
     """
     <url>:WMA link:
       https://reference.wolfram.com/language/ref/Information.html</url>
     <dl>
-      <dt>'Information[$symbol$]'
+      <dt>'Information'[$symbol$]
       <dd>Prints information about a $symbol$
     </dl>
 
@@ -424,7 +447,7 @@ class Information(PrefixOperator):
     def format_information(
         self, symbol: Symbol, evaluation: Evaluation, options: dict, grid: bool = True
     ) -> Symbol:
-        "StandardForm,TraditionalForm,OutputForm: Information[symbol_, OptionsPattern[Information]]"
+        "(StandardForm,TraditionalForm,OutputForm,): Information[symbol_, OptionsPattern[Information]]"
         ret = SymbolNull
         lines = []
         if isinstance(symbol, String):
@@ -458,7 +481,7 @@ class Information(PrefixOperator):
     def format_information_input(
         self, symbol: Symbol, evaluation: Evaluation, options: dict
     ) -> Symbol:
-        "InputForm: Information[symbol_, OptionsPattern[Information]]"
+        "(InputForm,): Information[symbol_, OptionsPattern[Information]]"
         self.format_information(symbol, evaluation, options, grid=False)
         ret = SymbolNull
         return ret
@@ -469,7 +492,7 @@ class Names(Builtin):
     <url>:WMA link:
       https://reference.wolfram.com/language/ref/Names.html</url>
     <dl>
-      <dt>'Names["$pattern$"]'
+      <dt>'Names'["$pattern$"]
       <dd>returns the list of names matching $pattern$.
     </dl>
 
@@ -522,7 +545,7 @@ class OwnValues(Builtin):
     <url>:WMA link:
       https://reference.wolfram.com/language/ref/OwnValues.html</url>
     <dl>
-      <dt>'OwnValues[$symbol$]'
+      <dt>'OwnValues'[$symbol$]
       <dd>gives the list of ownvalue associated with $symbol$.
     </dl>
 
@@ -596,7 +619,7 @@ class SymbolName(Builtin):
     <url>:WMA link:
       https://reference.wolfram.com/language/ref/SymbolName.html</url>
     <dl>
-      <dt>'SymbolName[$s$]'
+      <dt>'SymbolName'[$s$]
       <dd>returns the name of the symbol $s$ (without any leading \
         context name).
     </dl>
@@ -620,7 +643,7 @@ class SymbolQ(Test):
     <url>:WMA link:
       https://reference.wolfram.com/language/ref/SymbolName.html</url>
     <dl>
-      <dt>'SymbolQ[$x$]'
+      <dt>'SymbolQ'[$x$]
       <dd>is 'True' if $x$ is a symbol, or 'False' otherwise.
     </dl>
 
@@ -643,7 +666,7 @@ class ValueQ(Builtin):
     <url>:WMA link:
       https://reference.wolfram.com/language/ref/ValueQ.html</url>
     <dl>
-      <dt>'ValueQ[$expr$]'
+      <dt>'ValueQ'[$expr$]
       <dd>returns 'True' if and only if $expr$ is defined.
     </dl>
 

@@ -118,9 +118,9 @@ class PatternArgumentError(PatternError):
 
 class Builtin:
     """
-    A base class for a Built-in function symbols, like List, or
-    variables, like $SystemID, and Built-in Objects, like
-    DateTimeObject.
+    A base class for a Built-in function symbols, like ``List``, or
+    variables, like ``$SystemID``, and Built-in Objects, like
+    ``DateTimeObject``.
 
     Some of the class variables of the Builtin object are used to
     create a definition object for that built-in symbol.  In particular,
@@ -136,11 +136,11 @@ class Builtin:
 
     For example:
 
-    ```
+    .. code-block:: python
+
         def eval(x, evaluation):
              "F[x_Real]"
              return Expression(Symbol("G"), x*2)
-    ```
 
     adds a ``FunctionApplyRule`` to the symbol's definition object that implements
     ``F[x_]->G[x*2]``.
@@ -239,12 +239,16 @@ class Builtin:
     def contribute(self, definitions: Definitions, is_pymodule=False):
         from mathics.core.parser import parse_builtin_rule
 
-        # Set the default context
-        if not self.context:
-            self.context = "Pymathics`" if is_pymodule else "System`"
         name = self.get_name()
         attributes = self.attributes
         options = {}
+        # Set the default context
+        if not self.context:
+            self.context = "Pymathics`" if is_pymodule else "System`"
+            # get_name takes the context from the class, not from the
+            # instance, so even if we set the context here,
+            # self.get_name() does not includes the context.
+            name = self.context + name
 
         # - 'Strict': warn and fail with unsupported options
         # - 'Warn': warn about unsupported options, but continue
@@ -290,18 +294,6 @@ class Builtin:
         for pattern, function in self.get_functions(
             prefix="eval", is_pymodule=is_pymodule
         ):
-            pat_attr = attributes if pattern.get_head_name() == name else None
-            rules.append(
-                FunctionApplyRule(
-                    name,
-                    pattern,
-                    function,
-                    check_options,
-                    attributes=pat_attr,
-                    system=True,
-                )
-            )
-        for pattern, function in self.get_functions(is_pymodule=is_pymodule):
             pat_attr = attributes if pattern.get_head_name() == name else None
             rules.append(
                 FunctionApplyRule(
@@ -464,11 +456,21 @@ class Builtin:
         for name in dir(self):
             if name.startswith(prefix):
                 function = getattr(self, name)
+                if not hasattr(function, "__call__"):
+                    continue
                 pattern = function.__doc__
                 if pattern is None:  # Fixes PyPy bug
                     continue
                 else:
-                    m = re.match(r"([\w,]+)\:\s*(.*)", pattern)
+                    # TODO: consider to use a more sophisticated
+                    # regular expression, which handles breaklines
+                    # more properly, that supports format names
+                    # with contexts (context`name) and be less
+                    # fragile against leaving spaces between the
+                    # elements.
+                    m = re.match(
+                        r"[(]([\w,]+),[ ]*[)]\:\s*(.*)", pattern.replace("\n", " ")
+                    )
                 if m is not None:
                     attrs = m.group(1).split(",")
                     pattern = m.group(2)
@@ -491,7 +493,7 @@ class Builtin:
                     yield (pattern, function)
 
     @staticmethod
-    def get_option(options, name, evaluation, pop=False):
+    def get_option(options, name, evaluation, pop=False) -> Optional[BaseElement]:
         return get_option(options, name, evaluation, pop)
 
     def _get_unavailable_function(self) -> Optional[Callable]:
@@ -503,7 +505,12 @@ class Builtin:
         requires = getattr(self, "requires", [])
         return None if check_requires_list(requires) else UnavailableFunction(self)
 
-    def get_option_string(self, *params):
+    def get_option_string(self, *params) -> Tuple[Optional[str], Optional[BaseElement]]:
+        """
+        Return a tuple of a `str` representing the option name,
+        and the proper Mathics value of the option.
+        If the value does not have a name, the name is None.
+        """
         s = self.get_option(*params)
         if isinstance(s, String):
             return s.get_string_value(), s
@@ -583,7 +590,7 @@ class SympyObject(Builtin):
 
 # This has to come before MPMathFunction
 class SympyFunction(SympyObject):
-    def eval(self, z, evaluation: Evaluation):
+    def eval(self, elements, evaluation: Evaluation):
         # Note: we omit a docstring here, so as not to confuse
         # function signature collector ``contribute``.
 
@@ -591,8 +598,8 @@ class SympyFunction(SympyObject):
         # to call the corresponding sympy function. Arguments are
         # converted to python and the result is converted from sympy
         #
-        # "%(name)s[z__]"
-        return eval_sympy(self, z, evaluation)
+        # "%(name)s[elements]"
+        return eval_sympy(self, elements, evaluation)
 
     def get_constant(self, precision, evaluation, have_mpmath=False):
         try:
@@ -789,7 +796,9 @@ def check_requires_list(requires: list) -> bool:
     return True
 
 
-def get_option(options: dict, name, evaluation, pop=False, evaluate=True):
+def get_option(
+    options: dict, name, evaluation, pop=False, evaluate=True
+) -> Optional[BaseElement]:
     # we do not care whether an option X is given as System`X,
     # Global`X, or with any prefix from $ContextPath for that
     # matter. Also, the quoted string form "X" is ok. all these
@@ -933,7 +942,7 @@ class IterationFunction(Builtin, ABC):
     allow_loopcontrol = False
     throw_iterb = True
 
-    def get_result(self, elements) -> ListExpression:
+    def get_result(self, elements) -> Expression:
         raise NotImplementedError
 
     def eval_symbol(self, expr, iterator, evaluation):
@@ -1270,7 +1279,7 @@ class NoMeaningInfixOperator(InfixOperator):
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
     <dl>
-      <dt>'{operator_name}[$x$, $y$, ...]'
+      <dt>'{operator_name}['$x$, $y$, ...']'
       <dd>displays $x$ {operator_string} $y$ {operator_string} ...
     </dl>
 
@@ -1370,7 +1379,7 @@ class NoMeaningPostfixOperator(PostfixOperator):
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
     <dl>
-      <dt>'{operator_name}[$x$]'
+      <dt>'{operator_name}['$x$']'
       <dd>displays $x$ {operator_string}
     </dl>
 
@@ -1412,7 +1421,7 @@ class NoMeaningPrefixOperator(PrefixOperator):
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
     <dl>
-      <dt>'{operator_name}[$x$]'
+      <dt>'{operator_name}['$x$']'
       <dd>displays {operator_string} $x$
     </dl>
 

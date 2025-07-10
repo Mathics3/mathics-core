@@ -19,16 +19,15 @@ looking for other rules to be applied over `F[2]`.
 
 On the other hand, suppose that we define a `FunctionApplyRule` that associates `F[x_]` with the function:
 
-```
-...
-class MyFunction(Builtin):
-    ...
-    def eval_f(self, x, evaluation) -> Optional[Expression]:
-        "F[x_]"   # pattern part of FunctionApplyRule
-        if x>3:
-            return Expression(SymbolPower, x, Integer2)
-        return None
-```
+.. code-block:: python
+
+    class MyFunction(Builtin):
+        ...
+        def eval_f(self, x, evaluation) -> Optional[Expression]:
+            "F[x_]"   # pattern part of FunctionApplyRule
+            if x>3:
+                return Expression(SymbolPower, x, Integer2)
+            return None
 
 Then, if we apply the rule to `F[2]`, the function is evaluated returning `None`. Then, in the evaluation loop, we get the same
 effect as if the pattern didn't match with the expression. The loop continues then with the next rule associated with `F`.
@@ -217,13 +216,12 @@ class Rule(BaseRule):
     finishes.
 
     Here is an example of a Rule::
-        F[x_] -> x^2   (* The same thing as: Rule[x_, x^2] *)
 
+        F[x_] -> x^2   (* The same thing as: Rule[x_, x^2] *)
 
     ``F[x_]`` is a pattern and ``x^2`` is the replacement term. When
     applied to the expression ``G[F[1.], F[a]]`` the result is
     ``G[1.^2, a^2]``
-
 
     Note: we want Rules to be serializable so that we can dump and
     restore Rules in order to make startup time faster.
@@ -315,8 +313,8 @@ class FunctionApplyRule(BaseRule):
 
     when applied to the expression ``SetAttributes[F,  NumericFunction]``
 
-    sets the attribute ``NumericFunction`` in the  definition of the symbol ``F`` and
-    returns Null (``SymbolNull`)`.
+    sets the attribute ``NumericFunction`` in the  definition of the symbol
+    ``F`` and returns Null (``SymbolNull``).
 
     This will cause `Expression.evaluate() to perform an additional
     ``rewrite_apply_eval()`` step.
@@ -339,7 +337,6 @@ class FunctionApplyRule(BaseRule):
         self.name = name
         self.function = function
         self.check_options = check_options
-        self.pass_expression = "expression" in function_arguments(function)
 
     # If you update this, you must also update traced_apply_function
     # (that's in the same file TraceBuiltins is)
@@ -353,8 +350,6 @@ class FunctionApplyRule(BaseRule):
         # argument names corresponding to the symbol names without
         # context marks.
         vars_noctx = dict(((strip_context(s), vars[s]) for s in vars))
-        if self.pass_expression:
-            vars_noctx["expression"] = expression
         if options:
             return self.function(evaluation=evaluation, options=options, **vars_noctx)
         else:

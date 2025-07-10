@@ -47,11 +47,11 @@ class ElementData(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ElementData.html</url>
 
     <dl>
-    <dt>'ElementData["$name$", "$property$"]'
+    <dt>'ElementData'["$name$", "$property$"]
         <dd>gives the value of the $property$ for the chemical
         specified by $name$.
-    <dt>'ElementData[$n$, "$property$"]'
-        <dd>gives the value of the $property$ for the $n$th chemical element.
+    <dt>'ElementData'[$n$, "$property$"]
+        <dd>gives the value of the $property$ for the $n$-th chemical element.
     </dl>
 
     >> ElementData[74]

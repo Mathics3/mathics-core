@@ -23,7 +23,7 @@ class Optional(InfixOperator, PatternObject):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Optional.html</url>
 
     <dl>
-      <dt>'Optional[$pattern$, $default$]'
+      <dt>'Optional'[$pattern$, $default$]
       <dt>'$pattern$ : $default$'
       <dd>is a pattern which matches $pattern$, which if omitted
         should be replaced by $default$.

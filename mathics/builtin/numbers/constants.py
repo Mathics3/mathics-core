@@ -571,7 +571,7 @@ class Overflow(Builtin):
 
     See also <url>
     :Integer Overflow:
-    <https://en.wikipedia.org/wiki/Integer_overflow></url>.
+    https://en.wikipedia.org/wiki/Integer_overflow</url>.
 
     <dl>
       <dt>'Overflow[]'
@@ -595,19 +595,19 @@ class Overflow(Builtin):
 
 
 class MaxMachineNumber(Predefined):
-    """
+    r"""
     Largest normalizable machine number (<url>
     :WMA:
-    https://reference.wolfram.com/language/ref/$MaxMachineNumber.html
+    https://reference.wolfram.com/language/ref/\$MaxMachineNumber.html
     </url>)
 
     <dl>
-      <dt>'$MaxMachineNumber'
+      <dt>'\$MaxMachineNumber'
       <dd>Represents the largest positive number that can be represented \
           as a normalized machine number in the system.
     </dl>
 
-    The product of '$MaxMachineNumber' and  '$MinMachineNumber' is a constant:
+    The product of '\$MaxMachineNumber' and  '\$MinMachineNumber' is a constant:
     >> $MaxMachineNumber * $MinMachineNumber
      = 4.
 
@@ -621,14 +621,14 @@ class MaxMachineNumber(Predefined):
 
 
 class MinMachineNumber(Predefined):
-    """
+    r"""
     Smallest normalizable machine number (<url>
     :WMA:
-    https://reference.wolfram.com/language/ref/$MinMachineNumber.html
+    https://reference.wolfram.com/language/ref/\$MinMachineNumber.html
     </url>)
 
     <dl>
-      <dt>'$MinMachineNumber'
+      <dt>'\$MinMachineNumber'
       <dd>Represents the smallest positive number that can be represented \
           as a normalized machine number in the system.
     </dl>

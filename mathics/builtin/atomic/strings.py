@@ -11,7 +11,7 @@ from binascii import unhexlify
 from heapq import heappop, heappush
 from typing import Any, List
 
-from mathics_scanner import TranslateError
+from mathics_scanner.errors import SyntaxError
 
 from mathics.core.atoms import Integer, Integer0, Integer1, String
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
@@ -20,7 +20,9 @@ from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.parser import MathicsFileLineFeeder, parse
+from mathics.core.parser import MathicsFileLineFeeder
+from mathics.core.parser.convert import convert
+from mathics.core.parser.util import parser
 from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolInputForm,
@@ -224,7 +226,7 @@ class Alphabet(Builtin):
       <dt>'Alphabet'[]
       <dd>gives the list of lowercase letters a-z in the English alphabet .
 
-      <dt>'Alphabet[$type$]'
+      <dt>'Alphabet'[$type$]
       <dd> gives the alphabet for the language or class $type$.
     </dl>
 
@@ -269,10 +271,10 @@ class CharacterEncoding(Predefined):
     https://reference.wolfram.com/language/ref/$CharacterEncoding.html</url>
 
     <dl>
-      <dt>'$CharacterEncoding'
+      <dt>'\\$CharacterEncoding'
       <dd>specifies the default raw character encoding to use for input and \
       output when no encoding is explicitly specified. \
-      Initially this is set to '$SystemCharacterEncoding'.
+      Initially this is set to '\\$SystemCharacterEncoding'.
     </dl>
 
     See the character encoding current is in effect and used in input and \
@@ -281,7 +283,7 @@ class CharacterEncoding(Predefined):
     >> $CharacterEncoding
      = ...
 
-    By setting its value to one of the values in '$CharacterEncodings', \
+    By setting its value to one of the values in '\\$CharacterEncodings', \
     operators are formatted differently. For example,
 
     >> $CharacterEncoding = "ASCII"; a -> b
@@ -290,13 +292,13 @@ class CharacterEncoding(Predefined):
      = ...
 
     Setting its value to 'None' restore the value to \
-    '$SystemCharacterEncoding':
+    '\\$SystemCharacterEncoding':
     >> $CharacterEncoding = None;
     >> $SystemCharacterEncoding == $CharacterEncoding
      = True
 
     See also <url>
-    :$SystemCharacterEncoding:
+    :\\$SystemCharacterEncoding:
     /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/string-manipulation/$systemcharacterencoding/</url>.
     """
 
@@ -329,7 +331,7 @@ class CharacterEncodings(Predefined):
     https://reference.wolfram.com/language/ref/$CharacterEncodings.html</url>
 
     <dl>
-      <dt>'$CharacterEncodings'
+      <dt>'\\$CharacterEncodings'
       <dd>stores the list of available character encodings.
     </dl>
 
@@ -365,7 +367,7 @@ class HexadecimalCharacter(Builtin):
 
 # This isn't your normal Box class. We'll keep this here rather than
 # in mathics.builtin.box for now.
-# mmatera commenct: This does not even exist in WMA. \! should be associated
+# mmatera comment: This does not even exist in WMA. \! should be associated
 # to `ToExpression`, but it was not  properly implemented by now...
 class InterpretedBox(PrefixOperator):
     r"""
@@ -374,7 +376,7 @@ class InterpretedBox(PrefixOperator):
     https://reference.wolfram.com/language/ref/InterpretationBox.html</url>
 
     <dl>
-      <dt>'InterpretedBox[$box$]'
+      <dt>'InterpretedBox'[$box$]
       <dd>is the ad hoc fullform for \! $box$. just for internal use...
     </dl>
 
@@ -405,7 +407,7 @@ class LetterNumber(Builtin):
 
       <dt>'LetterNumber["string"]'
       <dd>returns a list of the positions of characters in string.
-      <dt>'LetterNumber["string", $alpha$]'
+      <dt>'LetterNumber'["string", $alpha$]
       <dd>returns a list of the positions of characters in string, regarding the alphabet $alpha$.
     </dl>
 
@@ -430,6 +432,7 @@ class LetterNumber(Builtin):
      = 2
 
     """
+
     # FIXME: put the right unicode characters in a way that the
     # following test works...
     r"""
@@ -539,7 +542,7 @@ class RemoveDiacritics(Builtin):
     :WMA link:
     https://reference.wolfram.com/language/ref/RemoveDiacritics.html</url>
     <dl>
-      <dt>'RemoveDiacritics[$s$]'
+      <dt>'RemoveDiacritics'[$s$]
       <dd>returns a version of $s$ with all diacritics removed.
     </dl>
 
@@ -609,7 +612,7 @@ class StringContainsQ(Builtin):
     :WMA link:
     https://reference.wolfram.com/language/ref/StringContainsQ.html</url>
     <dl>
-      <dt>'StringContainsQ["$string$", $patt$]'
+      <dt>'StringContainsQ'["$string$", $patt$]
       <dd>returns True if any part of $string$ matches $patt$, and returns False otherwise.
 
       <dt>'StringContainsQ[{"s1", "s2", ...}, patt]'
@@ -656,10 +659,10 @@ class StringRepeat(Builtin):
     :WMA link:
     https://reference.wolfram.com/language/ref/StringRepeat.html</url>
     <dl>
-      <dt>'StringRepeat["$string$", $n$]'
+      <dt>'StringRepeat'["$string$", $n$]
       <dd>gives $string$ repeated $n$ times.
 
-      <dt>'StringRepeat["$string$", $n$, $max$]'
+      <dt>'StringRepeat'["$string$", $n$, $max$]
       <dd>gives $string$ repeated $n$ times, but not more than $max$ characters.
 
     </dl>
@@ -677,16 +680,16 @@ class StringRepeat(Builtin):
 
     summary_text = "build a string by concatenating repetitions"
 
-    def eval(self, s, n, expression, evaluation):
-        "StringRepeat[s_String, n_]"
+    def eval(self, expression, s, n, evaluation):
+        "expression: StringRepeat[s_String, n_]"
         py_n = n.value if isinstance(n, Integer) else 0
         if py_n < 1:
             evaluation.message("StringRepeat", "intp", 2, expression)
         else:
             return String(s.value * py_n)
 
-    def eval_truncated(self, s, n, m, expression, evaluation):
-        "StringRepeat[s_String, n_Integer, m_Integer]"
+    def eval_truncated(self, expression, s, n, m, evaluation):
+        "expression: StringRepeat[s_String, n_Integer, m_Integer]"
         # The above rule insures that n and m are boht Integer type
         py_n = n.value
         py_m = m.value
@@ -706,9 +709,9 @@ class SystemCharacterEncoding(Predefined):
     """
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/$SystemCharacterEncoding.html</url>
+    https://reference.wolfram.com/language/ref/\\$SystemCharacterEncoding.html</url>
     <dl>
-      <dt>$SystemCharacterEncoding
+      <dt>\\$SystemCharacterEncoding
       <dd>gives the default character encoding of the system.
 
       On startup, the value of environment variable 'MATHICS_CHARACTER_ENCODING' \
@@ -735,13 +738,13 @@ class ToExpression(Builtin):
     :WMA link:
     https://reference.wolfram.com/language/ref/ToExpression.html</url>
     <dl>
-      <dt>'ToExpression[$input$]'
+      <dt>'ToExpression'[$input$]
       <dd>interprets a given string as Mathics input.
 
-      <dt>'ToExpression[$input$, $form$]'
+      <dt>'ToExpression'[$input$, $form$]
       <dd>reads the given input in the specified $form$.
 
-      <dt>'ToExpression[$input$, $form$, $h$]'
+      <dt>'ToExpression'[$input$, $form$, $h$]
       <dd>applies the head $h$ to the expression before evaluating it.
 
     </dl>
@@ -787,14 +790,14 @@ class ToExpression(Builtin):
     def eval(self, seq, evaluation: Evaluation):
         "ToExpression[seq__]"
 
-        # Organise Arguments
+        # From `seq`, extract `inp`, `form`, and `head`.
         py_seq = seq.get_sequence()
         if len(py_seq) == 1:
-            (inp, form, head) = (py_seq[0], SymbolInputForm, None)
+            inp, form, head = (py_seq[0], SymbolInputForm, None)
         elif len(py_seq) == 2:
-            (inp, form, head) = (py_seq[0], py_seq[1], None)
+            inp, form, head = (py_seq[0], py_seq[1], None)
         elif len(py_seq) == 3:
-            (inp, form, head) = (py_seq[0], py_seq[1], py_seq[2])
+            inp, form, head = (py_seq[0], py_seq[1], py_seq[2])
         else:
             assert len(py_seq) > 3  # 0 case handled by apply_empty
             evaluation.message(
@@ -807,6 +810,7 @@ class ToExpression(Builtin):
             )
             return
 
+        result = None
         # Apply the different forms
         if form is SymbolInputForm:
             if isinstance(inp, String):
@@ -818,13 +822,14 @@ class ToExpression(Builtin):
                     feeder = MathicsFileLineFeeder(f)
                     while not feeder.empty():
                         try:
-                            query = parse(evaluation.definitions, feeder)
-                        except TranslateError:
+                            ast = parser.parse(feeder)
+                        except SyntaxError:
                             return SymbolFailed
                         finally:
                             feeder.send_messages(evaluation)
-                        if query is None:  # blank line / comment
+                        if ast is None:  # blank line / comment
                             continue
+                        query = convert(ast, evaluation.definitions)
                         result = query.evaluate(evaluation)
 
             else:
@@ -834,8 +839,8 @@ class ToExpression(Builtin):
             return
 
         # Apply head if present
-        if head is not None:
-            result = Expression(head, result).evaluate(evaluation)
+        if head is not None and result is not None:
+            return Expression(head, result).evaluate(evaluation)
 
         return result
 
@@ -853,10 +858,10 @@ class ToString(Builtin):
     :WMA link:
     https://reference.wolfram.com/language/ref/ToString.html</url>
     <dl>
-      <dt>'ToString[$expr$]'
+      <dt>'ToString'[$expr$]
       <dd>returns a string representation of $expr$.
 
-      <dt>'ToString[$expr$, $form$]'
+      <dt>'ToString'[$expr$, $form$]
       <dd>returns a string representation of $expr$ in the form $form$.
     </dl>
 
@@ -899,12 +904,12 @@ class ToString(Builtin):
 
 
 class Transliterate(Builtin):
-    """
+    r"""
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/Transliterate.html</url>
     <dl>
-      <dt>'Transliterate[$s$]'
+      <dt>'Transliterate'[$s$]
       <dd>transliterates a text in some script into an ASCII string.
     </dl>
 
@@ -955,4 +960,5 @@ class Whitespace(Builtin):
     >> StringReplace[" this has leading and trailing whitespace \n ", (StartOfString ~~ Whitespace) | (Whitespace ~~ EndOfString) -> ""] <> " removed" // FullForm
      = "this has leading and trailing whitespace removed"
     """
+
     summary_text = "sequence of whitespace characters"
