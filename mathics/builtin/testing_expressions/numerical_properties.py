@@ -68,7 +68,7 @@ class CoprimeQ(Builtin):
         if not all(isinstance(i, int) or isinstance(i, complex) for i in py_args):
             return SymbolFalse
 
-        if all(sympy.gcd(n, m) == 1 for (n, m) in combinations(py_args, 2)):
+        if all(sympy.gcd(n, m) == 1 for n, m in combinations(py_args, 2)):
             return SymbolTrue
         else:
             return SymbolFalse

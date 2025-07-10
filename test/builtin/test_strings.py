@@ -323,8 +323,8 @@ def test_private_doctests_operations(str_expr, msgs, str_expected, fail_msg):
             "StringFreeQ[{A, Galaxy, Far, Far, Away}, {F ~~ __ ~~ r, aw ~~ ___}]",
             None,
         ),
-        ## Mathematica can detemine correct invalid element in the pattern, it reports error:
-        ## Element F is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
+        # Mathematica can determine correct invalid element in the pattern, it reports error:
+        # Element F is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
         ('StringMatchQ["abc1", LetterCharacter]', None, "False", None),
         ('StringMatchQ["abc", "ABC"]', None, "False", None),
         ('StringMatchQ["abc", "ABC", IgnoreCase -> True]', None, "True", None),

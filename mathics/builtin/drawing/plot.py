@@ -674,7 +674,7 @@ class DiscretePlot(_Plot):
         "DiscretePlot[expr_, {var_Symbol, nmin_Integer, nmax_Integer}, options___]": "DiscretePlot[expr, {var, nmin, nmax, 1, options}]",
     }
 
-    summary_text = "discrete plot of a one-paremeter function"
+    summary_text = "discrete plot of a one-parameter function"
 
     def eval(
         self, functions, x, start, nmax, step, evaluation: Evaluation, options: dict
@@ -1058,7 +1058,7 @@ class ListPlot(_ListPlot):
     >> ListPlot[Prime[Range[30]]]
      = -Graphics-
 
-    seems very roughly to fit a table of quadradic numbers:
+    seems very roughly to fit a table of quadratic numbers:
     >> ListPlot[Table[n ^ 2 / 8, {n, 30}]]
      = -Graphics-
 

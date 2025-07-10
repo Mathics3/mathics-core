@@ -111,7 +111,7 @@ def test_close():
         ('Close["abc"]', ("abc is not open.",), "Close[abc]", ""),
         (
             "exp = Sin[1]; FilePrint[exp]",
-            ("File specification Sin[1] is not a string of one or more characters.",),
+            ("The specified argument, Sin[1], should be a valid string.",),
             "FilePrint[Sin[1]]",
             "",
         ),
@@ -123,7 +123,7 @@ def test_close():
         ),
         (
             'FilePrint[""]',
-            ("File specification  is not a string of one or more characters.",),
+            ("The file name cannot be an empty string.",),
             "FilePrint[]",
             "",
         ),
@@ -344,7 +344,12 @@ def test_close():
             "Null",
             "",
         ),
-        ('FileDate[tmpfilename, "Access"]', None, "{2002, 1, 1, 0, 0, 0.}", ""),
+        (
+            'FileDate[tmpfilename, "Access"]',
+            None,
+            "{2002, 1, 1, 0, 0, 0.}",
+            "",
+        ),
         ("DeleteFile[tmpfilename]", None, "Null", ""),
     ],
 )
@@ -524,18 +529,6 @@ def test_write_string():
 # I do not know what this is it supposed to test with this...
 # def test_Inputget_and_put():
 #    stream = Expression('Plus', Symbol('x'), Integer(2))
-
-# TODO: add these Unix-specific test. Be sure not to test
-# sys.platform for not Windows and to test for applicability
-# ## writing to dir
-# S> x >> /var/
-#  : Cannot open /var/.
-#  = x >> /var/
-
-# ## writing to read only file
-# S> x >> /proc/uptime
-#  : Cannot open /proc/uptime.
-#  = x >> /proc/uptime
 
 # ## writing to full file
 # S> x >> /dev/full

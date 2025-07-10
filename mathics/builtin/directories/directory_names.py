@@ -64,7 +64,7 @@ class DirectoryName(Builtin):
 
         result = py_name
         for i in range(py_n):
-            (result, tmp) = osp.split(result)
+            result, tmp = osp.split(result)
 
         return String(result)
 
@@ -177,14 +177,19 @@ class FileNameJoin(Builtin):
     def eval(self, pathlist, evaluation: Evaluation, options: dict):
         "FileNameJoin[pathlist_List, OptionsPattern[FileNameJoin]]"
 
+        # Convert pathlist to a Python list, and strip leading and trailing
+        # quotes if that appears.
         py_pathlist = pathlist.to_python()
-        if not all(isinstance(p, str) and p[0] == p[-1] == '"' for p in py_pathlist):
-            return
-        py_pathlist = [p[1:-1] for p in py_pathlist]
 
-        operating_system = (
-            options["System`OperatingSystem"].evaluate(evaluation).get_string_value()
-        )
+        if not all(isinstance(p, str) for p in py_pathlist):
+            return
+
+        if isinstance(py_pathlist, tuple):
+            py_pathlist = list(py_pathlist)
+        else:
+            py_pathlist = [p[1:-1] if p[0] == p[-1] == '"' else p for p in py_pathlist]
+
+        operating_system = options["System`OperatingSystem"].evaluate(evaluation).value
 
         if operating_system not in ["MacOSX", "Windows", "Unix"]:
             evaluation.message(

@@ -424,7 +424,7 @@ class RandomComplex(Builtin):
             return
 
         py_ns = ns.to_python()
-        if not isinstance(py_ns, list):
+        if not isinstance(py_ns, (list, tuple)):
             py_ns = [py_ns]
 
         if not all(isinstance(i, int) and i >= 0 for i in py_ns):
