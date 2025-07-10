@@ -81,6 +81,7 @@ class _Constant_Common(Predefined):
         return self.get_constant(precision, evaluation)
 
     def is_constant(self) -> bool:
+        """The value and evaluation of this object can never change."""
         return True
 
     def get_constant(

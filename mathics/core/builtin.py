@@ -573,18 +573,21 @@ class SympyObject(Builtin):
             self.sympy_name = strip_context(self.get_name()).lower()
         self.mathics_to_sympy[self.__class__.__name__] = self.sympy_name
 
-    def is_constant(self) -> bool:
-        return False
-
     def get_sympy_names(self) -> List[str]:
         if self.sympy_name:
             return [self.sympy_name]
         return []
 
-    def to_sympy(self, expr=None, **kwargs):
-        raise NotImplementedError
+    def is_constant(self) -> bool:
+        """Returns true if the value of evaluation of this object can
+        never change.
+        """
+        return False
 
     def from_sympy(self, elements: Tuple[BaseElement, ...]) -> Expression:
+        raise NotImplementedError
+
+    def to_sympy(self, expr=None, **kwargs):
         raise NotImplementedError
 
 
