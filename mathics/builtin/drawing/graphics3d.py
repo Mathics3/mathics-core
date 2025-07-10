@@ -343,7 +343,7 @@ class Sphere(Builtin):
      = -Graphics3D-
     """
 
-    summary_text = "represet a sphere"
+    summary_text = "represent a sphere"
     rules = {
         "Sphere[]": "Sphere[{0, 0, 0}, 1]",
         "Sphere[positions_]": "Sphere[positions, 1]",

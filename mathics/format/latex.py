@@ -543,7 +543,7 @@ def graphics3dbox(self, elements=None, **options) -> str:
                 path = "--".join(["({0},{1},{2})".format(*coords) for coords in line])
                 boundbox_asy += "draw(({0}), {1});\n".format(path, pen)
 
-    (height, width) = (400, 400)  # TODO: Proper size
+    height, width = (400, 400)  # TODO: Proper size
 
     # Background color
     if self.background_color:

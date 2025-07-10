@@ -31,6 +31,7 @@ import pytest
             "Overflow",
         ),
         ("Gamma[1., 2.]", None, "Gamma[1., 2.]", "needs mpmath for lowergamma"),
+        ("Gamma[1 + x]", None, "Gamma[1 + x]", "Gamma should not expand to factorial"),
     ],
 )
 def test_private_doctests_gamma(str_expr, msgs, str_expected, fail_msg):

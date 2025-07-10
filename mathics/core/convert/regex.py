@@ -156,7 +156,7 @@ def to_regex_internal(
         return REGEXP_FOR_SYMBOLS.get(expr)
 
     if expr.has_form("CharacterRange", 2):
-        (start, stop) = (element.get_string_value() for element in expr.elements)
+        start, stop = (element.get_string_value() for element in expr.elements)
         if all(x is not None and len(x) == 1 for x in (start, stop)):
             return f"[{re.escape(start)}-{re.escape(stop)}]"
 

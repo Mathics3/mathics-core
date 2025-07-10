@@ -131,7 +131,7 @@ def get_plot_range_option(
             "System`Automatic",
             "System`All",
         )
-        or isinstance(pr, list)
+        or isinstance(pr, (list, tuple))
         for pr in plotrange
     )
     return plotrange
