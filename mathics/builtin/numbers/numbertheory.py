@@ -50,7 +50,7 @@ class ContinuedFraction(SympyFunction):
       <dd>generate the first $n$ terms in the continued fraction representation of $x$.
 
       <dt>'ContinuedFraction'[$x$]
-      <dd>the complete continued fraction representation for a rational or quadradic irrational number.
+      <dd>the complete continued fraction representation for a rational or quadratic irrational number.
     </dl>
 
     >> ContinuedFraction[Pi, 10]
@@ -1062,7 +1062,7 @@ class RandomPrime(Builtin):
         py_n = n.to_python()
 
         py_int = interval.to_python()
-        if not (isinstance(py_int, list) and len(py_int) == 2):
+        if not (isinstance(py_int, (list, tuple)) and len(py_int) == 2):
             evaluation.message("RandomPrime", "prmrng", interval)
 
         imin, imax = min(py_int), max(py_int)

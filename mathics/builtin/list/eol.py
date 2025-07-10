@@ -181,6 +181,10 @@ class Cases(Builtin):
     Also include the head of the expression in the previous search:
     >> Cases[{b, 6, \[Pi]}, _Symbol, Heads -> True]
      = {List, b, Pi}
+
+    See also <url>
+    :'MatchQ':
+    /doc/reference-of-built-in-symbols/testing-expressions/expression-tests/matchq/</url>.
     """
 
     rules = {

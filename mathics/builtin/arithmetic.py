@@ -36,6 +36,7 @@ from mathics.core.builtin import (
     IterationFunction,
     MPMathFunction,
     Predefined,
+    PrefixOperator,
     SympyFunction,
     SympyObject,
     Test,
@@ -412,7 +413,7 @@ class Conjugate(MPMathFunction):
     rules = {
         "Conjugate[Undefined]": "Undefined",
     }
-    summary_text = "complex conjugation"
+    summary_text = "compute complex conjugation"
 
 
 class DirectedInfinity(SympyFunction):
@@ -694,9 +695,11 @@ class Integer_(Builtin):
     name = "Integer"
 
 
-class Product(IterationFunction, SympyFunction):
+class Product(IterationFunction, SympyFunction, PrefixOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Product.html</url>
+    <url>:Direct product:https://en.wikipedia.org/wiki/Direct_product</url> (<url>
+      :SymPy:https://docs.sympy.org/latest/modules/concrete.html#sympy.concrete.products.Product</url>, <url>
+      :WMA:https://reference.wolfram.com/language/ref/Product.html</url>)
 
     <dl>
       <dt>'Product'[$f$, {$i$, $i_{min}$, $i_{max}$}]
@@ -713,34 +716,49 @@ class Product(IterationFunction, SympyFunction):
       outermost-to-innermost order.
     </dl>
 
-    >> Product[k, {k, 1, 10}]
-     = 3628800
-    >> 10!
-     = 3628800
-    >> Product[x^k, {k, 2, 20, 2}]
-     = x ^ 110
-    >> Product[2 ^ i, {i, 1, n}]
-     = 2 ^ (n / 2 + n ^ 2 / 2)
-    >> Product[f[i], {i, 1, 7}]
-     = f[1] f[2] f[3] f[4] f[5] f[6] f[7]
+    'Product[k, {k, i, n}]' is defined in terms of <url>
+    :Factorial:
+    /doc/reference-of-built-in-symbols/special-functions/gamma-and-related-functions/factorial/</url>:
+
+    >> Product[k, {k, i, n}]
+     = n! / (-1 + i)!
+
+    When $i$ is 1, we get the factorial function:
+    >> Product[k, {k, 1, n}]
+     = n!
+
+    Or more succinctly:
+    >> Product[k, {k, n}]
+     = n!
 
     Symbolic products involving the factorial are evaluated:
     >> Product[k, {k, 3, n}]
      = n! / 2
 
-    Evaluate the $n$-th primorial:
-    >> primorial[0] = 1;
-    >> primorial[n_Integer] := Product[Prime[k], {k, 1, n}];
-    >> primorial[12]
+    Examples of numeric evaluation using more complex functions:
+    >> Product[x^k, {k, 2, 20, 2}]
+     = x ^ 110
+
+    >> Product[2 ^ i, {i, 1, n}]
+     = 2 ^ (n / 2 + n ^ 2 / 2)
+
+    >> Product[f[i], {i, 1, 7}]
+     = f[1] f[2] f[3] f[4] f[5] f[6] f[7]
+
+    Evaluate the $n$-th <url>:Primorial:https://en.wikipedia.org/wiki/Primorial</url>:
+    >> Primorial[0] = 1;
+    >> Primorial[n_Integer] := Product[Prime[k], {k, 1, n}];
+    >> Primorial[12]
      = 7420738134810
 
     """
 
-    summary_text = "discrete product"
-    throw_iterb = False
-
-    sympy_name = "Product"
-
+    # FIXME Product[k, {k, 3, n}] is rewritten using Factorial via
+    # Pochhammer rewrite rules. We want this for Product, but WMA
+    # does not rewrite using Factorial for Pochhammer alone, although it could.
+    # Nevertheless, if and when our Pochhammer is adjusted to remove
+    # this transformation to Factorial to match WMA behavior,
+    # we will need to add a rule that transforms to Factorial here.
     rules = IterationFunction.rules.copy()
     rules.update(
         {
@@ -752,9 +770,12 @@ class Product(IterationFunction, SympyFunction):
             ),
         }
     )
+    summary_text = "compute the direct product"
+    sympy_name = "Product"
+    throw_iterb = False
 
-    def get_result(self, items):
-        return Expression(SymbolTimes, *items)
+    def get_result(self, elements):
+        return Expression(SymbolTimes, *elements)
 
     def to_sympy(self, expr, **kwargs):
         if expr.has_form("Product", 2) and expr.elements[1].has_form("List", 3):
@@ -895,22 +916,24 @@ class RealValuedNumberQ(Test):
         )
 
 
-class Sum(IterationFunction, SympyFunction):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Sum.html</url>
+class Sum(IterationFunction, SympyFunction, PrefixOperator):
+    r"""
+    <url>:Summation:https://en.wikipedia.org/wiki/Summation</url> (<url>
+    :SymPy:https://docs.sympy.org/latest/modules/concrete.html#sympy.concrete.summations.Sum</url>, <url>
+    :WMA:https://reference.wolfram.com/language/ref/Sum.html</url>)
 
     <dl>
-      <dt>'Sum'[$expr$, {$i$, $imin$, $imax$}]
-      <dd>evaluates the discrete sum of $expr$ with $i$ ranging from $imin$ to $imax$.
+      <dt>'Sum['$f, \{i, i_{min}, i_{max}\}$']'
+      <dd>evaluates the discrete sum of $f$ with $i$ ranging from $i_{min}$ to $i_{max}$.
 
-      <dt>'Sum'[$expr$, {$i$, $imax$}]
-      <dd>same as 'Sum[$expr$, {$i$, 1, $imax$}]'.
+      <dt>'Sum['$f, \{i, i_{max}\}$']'
+      <dd>same as 'Sum['$f, \{i, 1, i_{max}\}$']'.
 
-      <dt>'Sum'[$expr$, {$i$, $imin$, $imax$, $di$}]
-      <dd>$i$ ranges from $imin$ to $imax$ in steps of $di$.
+      <dt>'Sum['$f, \{i, i_{min}, i_{max}, di\}$']'
+      <dd>$i$ ranges from $i_{min}$ to $i_{max}$ in steps of $di$.
 
-      <dt>'Sum'[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]
-      <dd>evaluates $expr$ as a multiple sum, with {$i$, ...}, {$j$, ...}, ... being \
+      <dt>'Sum['$f, \{i, i_{min}, i_{max}, \{j, j_{min}, j_{max}, ...$']'
+      <dd>evaluates $f$ as a multiple sum, with {$i, ...$}, {$j, ...$}, ... being \
           in outermost-to-innermost order.
     </dl>
 
@@ -970,12 +993,6 @@ class Sum(IterationFunction, SympyFunction):
      = 1 + 2 I
     """
 
-    summary_text = "discrete sum"
-    # Do not throw warning message for symbolic iteration bounds
-    throw_iterb = False
-
-    sympy_name = "Sum"
-
     rules = IterationFunction.rules.copy()
     rules.update(
         {
@@ -987,6 +1004,12 @@ class Sum(IterationFunction, SympyFunction):
             ),
         }
     )
+
+    summary_text = "compute a summation"
+    sympy_name = "Sum"
+
+    # Do not throw warning message for symbolic iteration bounds
+    throw_iterb = False
 
     def get_result(self, elements) -> Expression:
         return Expression(SymbolPlus, *elements)

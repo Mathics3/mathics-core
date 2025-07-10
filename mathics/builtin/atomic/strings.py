@@ -11,7 +11,7 @@ from binascii import unhexlify
 from heapq import heappop, heappush
 from typing import Any, List
 
-from mathics_scanner import TranslateError
+from mathics_scanner.errors import SyntaxError
 
 from mathics.core.atoms import Integer, Integer0, Integer1, String
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
@@ -20,7 +20,9 @@ from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.parser import MathicsFileLineFeeder, parse
+from mathics.core.parser import MathicsFileLineFeeder
+from mathics.core.parser.convert import convert
+from mathics.core.parser.util import parser
 from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolInputForm,
@@ -365,7 +367,7 @@ class HexadecimalCharacter(Builtin):
 
 # This isn't your normal Box class. We'll keep this here rather than
 # in mathics.builtin.box for now.
-# mmatera commenct: This does not even exist in WMA. \! should be associated
+# mmatera comment: This does not even exist in WMA. \! should be associated
 # to `ToExpression`, but it was not  properly implemented by now...
 class InterpretedBox(PrefixOperator):
     r"""
@@ -788,14 +790,14 @@ class ToExpression(Builtin):
     def eval(self, seq, evaluation: Evaluation):
         "ToExpression[seq__]"
 
-        # Organise Arguments
+        # From `seq`, extract `inp`, `form`, and `head`.
         py_seq = seq.get_sequence()
         if len(py_seq) == 1:
-            (inp, form, head) = (py_seq[0], SymbolInputForm, None)
+            inp, form, head = (py_seq[0], SymbolInputForm, None)
         elif len(py_seq) == 2:
-            (inp, form, head) = (py_seq[0], py_seq[1], None)
+            inp, form, head = (py_seq[0], py_seq[1], None)
         elif len(py_seq) == 3:
-            (inp, form, head) = (py_seq[0], py_seq[1], py_seq[2])
+            inp, form, head = (py_seq[0], py_seq[1], py_seq[2])
         else:
             assert len(py_seq) > 3  # 0 case handled by apply_empty
             evaluation.message(
@@ -808,6 +810,7 @@ class ToExpression(Builtin):
             )
             return
 
+        result = None
         # Apply the different forms
         if form is SymbolInputForm:
             if isinstance(inp, String):
@@ -819,13 +822,14 @@ class ToExpression(Builtin):
                     feeder = MathicsFileLineFeeder(f)
                     while not feeder.empty():
                         try:
-                            query = parse(evaluation.definitions, feeder)
-                        except TranslateError:
+                            ast = parser.parse(feeder)
+                        except SyntaxError:
                             return SymbolFailed
                         finally:
                             feeder.send_messages(evaluation)
-                        if query is None:  # blank line / comment
+                        if ast is None:  # blank line / comment
                             continue
+                        query = convert(ast, evaluation.definitions)
                         result = query.evaluate(evaluation)
 
             else:
@@ -835,8 +839,8 @@ class ToExpression(Builtin):
             return
 
         # Apply head if present
-        if head is not None:
-            result = Expression(head, result).evaluate(evaluation)
+        if head is not None and result is not None:
+            return Expression(head, result).evaluate(evaluation)
 
         return result
 

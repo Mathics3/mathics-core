@@ -44,11 +44,11 @@ def test_string_split():
             "{{11, 12, 13}, {21, 22, 23}, {31, 32, 33}}",
         ),
         (
-            'StringSplit["A tree, an apple, four pears. And more: two sacks", RegularExpression["\\W+"]]',
+            r'StringSplit["A tree, an apple, four pears. And more: two sacks", RegularExpression["\\W+"]]',
             "{A, tree, an, apple, four, pears, And, more, two, sacks}",
         ),
         (
-            'StringSplit["primes: 2 two 3 three 5 five ...",  Whitespace ~~ RegularExpression["\\d"] ~~ Whitespace]',
+            r'StringSplit["primes: 2 two 3 three 5 five ...",  Whitespace ~~ RegularExpression["\\d"] ~~ Whitespace]',
             "{primes:, two, three, five ...}",
         ),
         ('StringSplit["a-b:c-d:e-f-g", {":", "-"}]', "{a, b, c, d, e, f, g}"),

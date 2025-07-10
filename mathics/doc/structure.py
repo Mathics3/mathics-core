@@ -723,7 +723,7 @@ class MathicsMainDocumentation(Documentation):
 
     def gather_doctest_data(self):
         """
-        Populates the documentatation.
+        Populates the documentation.
         (deprecated)
         """
         logging.warning(

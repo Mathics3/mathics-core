@@ -4,7 +4,7 @@ String Tests
 
 import re
 
-from mathics_scanner import SingleLineFeeder, TranslateError
+from mathics_scanner import SingleLineFeeder, SyntaxError
 
 from mathics.builtin.atomic.strings import anchor_pattern
 from mathics.core.atoms import Integer1, String
@@ -13,7 +13,7 @@ from mathics.core.builtin import Builtin, Test
 from mathics.core.convert.regex import to_regex
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.parser.util import parse
+from mathics.core.parser.util import parser
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolStringExpression, SymbolStringMatchQ
 from mathics.eval.strings import eval_StringContainsQ
@@ -280,8 +280,8 @@ class SyntaxQ(Builtin):
 
         feeder = SingleLineFeeder(string.value)
         try:
-            parse(evaluation.definitions, feeder)
-        except TranslateError:
+            parser.parse(feeder)
+        except SyntaxError:
             return SymbolFalse
         else:
             return SymbolTrue

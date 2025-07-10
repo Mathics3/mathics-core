@@ -118,9 +118,9 @@ class PatternArgumentError(PatternError):
 
 class Builtin:
     """
-    A base class for a Built-in function symbols, like List, or
-    variables, like $SystemID, and Built-in Objects, like
-    DateTimeObject.
+    A base class for a Built-in function symbols, like ``List``, or
+    variables, like ``$SystemID``, and Built-in Objects, like
+    ``DateTimeObject``.
 
     Some of the class variables of the Builtin object are used to
     create a definition object for that built-in symbol.  In particular,
@@ -136,11 +136,11 @@ class Builtin:
 
     For example:
 
-    ```
+    .. code-block:: python
+
         def eval(x, evaluation):
              "F[x_Real]"
              return Expression(Symbol("G"), x*2)
-    ```
 
     adds a ``FunctionApplyRule`` to the symbol's definition object that implements
     ``F[x_]->G[x*2]``.
@@ -1279,7 +1279,7 @@ class NoMeaningInfixOperator(InfixOperator):
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
     <dl>
-      <dt>'{operator_name}[$x$, $y$, ...]'
+      <dt>'{operator_name}['$x$, $y$, ...']'
       <dd>displays $x$ {operator_string} $y$ {operator_string} ...
     </dl>
 
@@ -1379,7 +1379,7 @@ class NoMeaningPostfixOperator(PostfixOperator):
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
     <dl>
-      <dt>'{operator_name}[$x$]'
+      <dt>'{operator_name}['$x$']'
       <dd>displays $x$ {operator_string}
     </dl>
 
@@ -1421,7 +1421,7 @@ class NoMeaningPrefixOperator(PrefixOperator):
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
     <dl>
-      <dt>'{operator_name}[$x$]'
+      <dt>'{operator_name}['$x$']'
       <dd>displays {operator_string} $x$
     </dl>
 

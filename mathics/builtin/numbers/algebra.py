@@ -309,7 +309,7 @@ def find_all_vars(expr):
                 if lv_sympy is not None:
                     find_vars(lv, lv_sympy)
         elif e.has_form("Power", 2):
-            (a, b) = e.elements  # a^b
+            a, b = e.elements  # a^b
             a_sympy, b_sympy = a.to_sympy(), b.to_sympy()
             if a_sympy is None or b_sympy is None:
                 return

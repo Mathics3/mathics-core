@@ -4,6 +4,7 @@
 Global System Information
 """
 
+import _thread
 import gc
 import os
 import platform
@@ -91,11 +92,11 @@ class CommandLine(Predefined):
      = {...}
     """
 
+    name = "$CommandLine"
     summary_text = (
-        "the command line arguments passed when the current Mathics3 "
+        "get the command line arguments passed when the current Mathics3 "
         "session was launched"
     )
-    name = "$CommandLine"
 
     def evaluate(self, evaluation: Evaluation) -> Expression:
         return ListExpression(*(String(arg) for arg in sys.argv))
@@ -249,8 +250,8 @@ class MachineName(Predefined):
      = ...
     """
 
-    summary_text = "the name of computer over with Mathics is running"
     name = "$MachineName"
+    summary_text = "get the name of computer that Mathics3 is running"
 
     def evaluate(self, evaluation: Evaluation) -> String:
         return String(platform.uname().node)
@@ -269,7 +270,7 @@ class MathicsVersion(Predefined):
     = ...
     """
 
-    summary_text = "the version of the mathics core"
+    summary_text = "get the version of the Mathics3 kernel"
 
     def evaluate(self, evaluation: Evaluation) -> String:
         return String(__version__)
@@ -341,7 +342,9 @@ class MaxLengthIntStringConversion(Predefined):
     attributes = A_CONSTANT
     messages = {"inv": "`1` is not 0 or an Integer value greater than 640."}
     name = "$MaxLengthIntStringConversion"
-    summary_text = "the maximum length for which an integer is converted to a String"
+    summary_text = (
+        "get the maximum length for which an integer is converted to a String"
+    )
 
     def evaluate(self, evaluation: Evaluation) -> Integer:
         try:
@@ -383,7 +386,7 @@ class MemoryInUse(Builtin):
      = ...
     """
 
-    summary_text = "number of bytes of memory currently being used by Mathics3"
+    summary_text = "get the number of bytes of memory currently being used by Mathics3"
 
     def eval(self, evaluation: Evaluation) -> Integer:
         """MemoryInUse[]"""
@@ -473,9 +476,7 @@ class ProcessorType(Predefined):
 
     name = "$ProcessorType"
 
-    summary_text = (
-        "name of the architecture of the processor over which Mathics3 is running"
-    )
+    summary_text = "get the name of the architecture of the processor over which Mathics3 is running"
 
     def evaluate(self, evaluation):
         return String(platform.machine())
@@ -496,7 +497,7 @@ class PythonImplementation(Predefined):
 
     name = "$PythonImplementation"
 
-    summary_text = "name of the Python implementation running Mathics3"
+    summary_text = "get the name of the Python implementation running Mathics3"
 
     def evaluate(self, evaluation: Evaluation):
         from mathics.system_info import python_implementation
@@ -551,6 +552,34 @@ class ScriptCommandLine(Predefined):
         scriptname = "" if dash_index == 0 else sys.argv[dash_index - 1]
         params = [scriptname] + [s for s in sys.argv[dash_index + 1 :]]
         return to_mathics_list(*params, elements_conversion_fn=String)
+
+
+class SessionID(Predefined):
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SessionID.html</url>
+
+    <dl>
+       <dt>'\$SessionID'
+       <dd>is a number which is unique to a particular \Mathics System session.
+    </dl>
+
+    X> $SessionID
+     = ...
+    """
+
+    name = "$SessionID"
+    summary_text = "get a unique session id"
+
+    def evaluate(self, evaluation: Evaluation) -> Integer:
+        # In theory, it is possible for two different sessions to have
+        # the same id since threading ID's are recycled. Also in
+        # theory, on different processes the thread numbers might be
+        # the same.  In practice, however, this is unlikely.  What we
+        # want here is something that is likely to be available on all
+        # platforms and OS's including enscripten. I had considered
+        # folding in the os.getpid() value, but this is not available
+        # on the enscripten platform.
+        return Integer(_thread.get_ident())
 
 
 class SetEnvironment(Builtin):
@@ -689,8 +718,8 @@ class SystemID(Predefined):
      = linux
     """
 
-    summary_text = "id for the type of computer system"
     name = "$SystemID"
+    summary_text = "get id for the type of computer system"
 
     def evaluate(self, evaluation: Evaluation) -> String:
         return String(sys.platform)
@@ -710,8 +739,8 @@ class SystemWordLength(Predefined):
     = 64
     """
 
-    summary_text = "word length of computer system"
     name = "$SystemWordLength"
+    summary_text = "get word length of computer system"
 
     def evaluate(self, evaluation: Evaluation) -> Integer:
         # https://docs.python.org/3/library/platform.html#module-platform
@@ -737,8 +766,8 @@ class UserName(Predefined):
      = ...
     """
 
-    summary_text = "login name of the user that invoked the current session"
     name = "$UserName"
+    summary_text = "get login name of the user that invoked the current session"
 
     def evaluate(self, evaluation: Evaluation) -> String:
         try:
@@ -763,10 +792,10 @@ class Version(Predefined):
      = Mathics3 ...
     """
 
-    summary_text = "the current Mathics version"
     name = "$Version"
+    summary_text = "get the current Mathics3 version"
 
-    def evaluate(self, evaluation) -> String:
+    def evaluate(self, evaluation: Evaluation) -> String:
         return String(version_string.replace("\n", " "))
 
 
@@ -783,9 +812,9 @@ class VersionNumber(Predefined):
     = ...
     """
 
-    summary_text = "the version number of the current Mathics core"
     name = "$VersionNumber"
     value = 10.0
+    summary_text = "get the version number of the current Mathics3 Kernel"
 
     def evaluate(self, evaluation: Evaluation) -> Real:
         # Make this be whatever the latest Mathematica release is,
@@ -808,8 +837,8 @@ if have_psutil:
          = ...
         """
 
-        summary_text = "the total amount of physical memory in the system"
         name = "$SystemMemory"
+        summary_text = "get the total amount of physical memory in the system"
 
         def evaluate(self, evaluation: Evaluation) -> Integer:
             totalmem = psutil.virtual_memory().total
@@ -832,7 +861,7 @@ if have_psutil:
          = True
         """
 
-        summary_text = "the available amount of physical memory in the system"
+        summary_text = "get the available amount of physical memory in the system"
 
         def eval(self, evaluation: Evaluation) -> Integer:
             """MemoryAvailable[]"""
@@ -875,7 +904,7 @@ else:
          = -1
         """
 
-        summary_text = "the available amount of physical memory in the system"
+        summary_text = "get the available amount of physical memory in the system"
 
         def eval(self, evaluation: Evaluation) -> Integer:
             """MemoryAvailable[]"""

@@ -173,7 +173,7 @@ class RenameDirectory(Builtin):
         if len(seq) != 2:
             evaluation.message("RenameDirectory", "argr", "RenameDirectory", 2)
             return
-        (dir1, dir2) = (s.to_python() for s in seq)
+        dir1, dir2 = (s.to_python() for s in seq)
 
         if not (isinstance(dir1, str) and dir1[0] == dir1[-1] == '"'):
             evaluation.message("RenameDirectory", "fstr", seq[0])
