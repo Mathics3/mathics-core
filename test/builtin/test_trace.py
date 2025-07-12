@@ -33,7 +33,7 @@ def test_TraceEvaluation():
         """
         global trace_evaluation_calls
         trace_evaluation_calls += 1
-        assert status in ("Evaluating", "Returning")
+        assert status in ("Evaluating", "Returning", "Rewriting")
         if "cython" not in version_info:
             assert isfunction(fn), "Expecting 4th argument to be a function"
         return None
@@ -119,9 +119,9 @@ def test_skip_trivial_evaluation():
         assert [
             "  Evaluating: System`Plus[System`Times[2, 3], 4]",
             "    Evaluating: System`Times[2, 3]",
-            "      Returning: System`Times[2, 3] = (<Integer: 6>, False)",
+            "      Evaluating/Replacing: System`Times[2, 3] = 6",
             "    Returning: System`Times[2, 3] = 6",
-            "    Returning: System`Plus[System`Times[2, 3], 4] = (<Integer: 10>, False)",
+            "    Evaluating/Replacing: System`Plus[System`Times[2, 3], 4] = 10",
             "  Returning: System`Plus[System`Times[2, 3], 4] = 10",
         ] == event_queue
         # print()
