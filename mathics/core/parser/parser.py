@@ -8,7 +8,7 @@ https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overvi
 
 
 import string
-from typing import Optional, Union
+from typing import Literal, Optional, Union
 
 from mathics_scanner.errors import (
     EscapeSyntaxError,
@@ -60,7 +60,7 @@ special_symbols["\uf74f"] = special_symbols["\uf74e"] = "I"
 # will be surrounded by parenthesis, e.g. ... (...op...) ...
 # In named-characters.yml of mathics-scanner we start at 0.
 # However, negative values would also work.
-NEVER_ADD_PARENTHESIS: int = 0
+NEVER_ADD_PARENTHESIS: Literal[0] = 0
 
 permitted_digits = {c: i for i, c in enumerate(string.digits + string.ascii_lowercase)}
 permitted_digits["."] = 0
@@ -258,6 +258,7 @@ class Parser:
         <b_tag_fn(expr1)>
         | \( box-expr \)
         | \( box-expr <box-operator> box-expr \)
+        | \( \* box-expr \)
 
         """
         result = None
@@ -277,6 +278,11 @@ class Parser:
                 break
             elif tag == "END":
                 self.get_more_input(token.pos)
+            elif tag == "BoxInputEscape":
+                # FIXME, this is not a complete implementation of \*
+                # For now, we'll just strip off the BoxInputEscape token.
+                self.consume()
+                new_result = self.parse_box_escape(precedence)
             elif result is None and tag != "END":
                 self.consume()
                 # TODO: handle non-box expressions inside RowBox
@@ -333,7 +339,7 @@ class Parser:
         we return Node(<box-operator>, expr1, expr2)
         """
         tag = token.tag
-        operator_precedence = binary_operators[tag]
+        operator_precedence = binary_operators.get(tag, NEVER_ADD_PARENTHESIS)
         if box_expr1_precedence > operator_precedence:
             return None
         self.consume()
@@ -416,8 +422,67 @@ class Parser:
         return expr1
 
     @track_location
-    def parse_expr(self, precedence: int) -> Optional[Node]:
+    def parse_box_escape(self, precedence: int) -> Optional[Node]:
+        r"""
+        Parse the "..." part of "\( \* ... \)".
+        For now, we are just handling "..." where it is a (Boxing) function.
+        We don't actually check the function to see if it does boxing though.
         """
+        result = self.parse_p()
+
+        # Note: Number and String below are the mathics.core.parser's Number, String and Symbol,
+        # not mathics.core.atom's Number and String, and Symbol.
+        if self.is_inside_rowbox and isinstance(result, Number):
+            tag, pre_error, post_error = self.tokeniser.sntx_message(token.pos)
+            raise InvalidSyntaxError(tag, pre_error, post_error)
+
+        while True:
+            if self.bracket_depth > 0 or self.is_inside_rowbox:
+                token = self.next_noend()
+                if token.tag in ("OtherscriptBox", "RightRowBox"):
+                    if self.is_inside_rowbox:
+                        break
+                    else:
+                        tag, pre_error, post_error = self.tokeniser.sntx_message(
+                            token.pos
+                        )
+                        raise InvalidSyntaxError(tag, pre_error, post_error)
+            else:
+                try:
+                    token = self.next()
+                except (NamedCharacterSyntaxError, EscapeSyntaxError) as escape_error:
+                    self.tokeniser.feeder.message(
+                        escape_error.name, escape_error.tag, *escape_error.args
+                    )
+                    raise
+
+            tag = token.tag
+            method = getattr(self, "e_" + tag, None)
+            if method is not None:
+                # Temporarily set inside rowbox to be False, which we do by setting the box depth.
+                # By doing this boxing function is treated like a function, e.g. RowBox[a],
+                # than a list of strings: "RowBox", "[", "a", "]".
+                old_depth = self.box_depth
+                self.box_depth = 0
+                new_result = method(result, token, precedence)
+                self.box_depth = old_depth
+            elif (
+                tag not in self.halt_tags
+                and flat_binary_operators["Times"] >= precedence
+            ):
+                if tag in box_operators:
+                    new_result = self.parse_box_operator(result, token, precedence)
+            else:
+                new_result = None
+            if new_result is None:
+                break
+            else:
+                result = new_result
+        return result
+
+    @track_location
+    def parse_expr(self, precedence: int) -> Optional[Node]:
+        r"""
         Parse an expression returning an AST Node tree for this.
 
         This code recognizes grammar rules of the form:
@@ -427,7 +492,7 @@ class Parser:
         | expr1 binary_operator expr2 ...
         | expr1 ternary_operator expr2 ternary_operator2 expr3 ...
         | expr1 postfix_operator ...
-        | box-expr box-operator box-expr2 (* only if inside rowbox *)
+        | box-expr (* only if inside rowbox *)
         | expr1 expr2 ... (* implicit multiplication *)
 
         and transforming this into its corresponding Node S-expression form.
