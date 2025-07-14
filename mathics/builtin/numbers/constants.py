@@ -6,9 +6,6 @@ Mathematical Constants
 Numeric, Arithmetic, or Symbolic constants like Pi, E, or Infinity.
 """
 
-# This tells documentation how to sort this module
-sort_order = "mathics.builtin.mathematical-constants"
-
 import math
 from typing import Dict, Optional
 
@@ -24,6 +21,9 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.number import MACHINE_DIGITS, PrecisionValueError, get_precision, prec
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolIndeterminate
+
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.mathematical-constants"
 
 
 def mp_constant(fn: str, d=None) -> mpmath.mpf:
@@ -191,7 +191,7 @@ class _NumpyConstant(_Constant_Common):
             value_float = self.to_numpy(self.symbol)
         NUMERICAL_CONSTANTS[self.symbol] = MachineReal(value_float)
 
-    def to_numpy(self, args):
+    def to_numpy(self, _):
         return NUMERICAL_CONSTANTS[self.symbol]
 
 
@@ -286,6 +286,10 @@ class ComplexInfinity(_SympyConstant):
         "ComplexInfinity": "DirectedInfinity[]",
     }
 
+    @property
+    def sympy(self) -> sympy.core.numbers.ComplexInfinity:
+        return zoo
+
 
 class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
@@ -376,6 +380,10 @@ class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
         "N[E, precision_]"
         return self.get_constant(precision, evaluation)
 
+    @property
+    def sympy(self) -> sympy.core.numbers.Exp1:
+        return SymPyE
+
 
 class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
@@ -401,6 +409,10 @@ class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
     mpmath_name = "euler"
     numpy_name = "euler_gamma"
     sympy_name = "EulerGamma"
+
+    @property
+    def sympy(self) -> sympy.core.numbers.EulerGamma:
+        return S.EulerGamma
 
 
 class Glaisher(_MPMathConstant):

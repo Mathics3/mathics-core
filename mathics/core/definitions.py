@@ -412,7 +412,7 @@ class Definitions:
                 return ctx_name
         return with_context
 
-    def get_package_names(self) -> List[str]:
+    def get_package_names(self) -> List[Optional[str]]:
         """Return the list of names of the packages loaded in the system."""
         try:
             packages = self.get_ownvalue("System`$Packages")
@@ -420,7 +420,11 @@ class Definitions:
             return []
 
         assert packages.has_form("System`List", None)
-        return [c.get_string_value() for c in packages.get_elements()]
+        return [
+            c.get_string_value()
+            for c in packages.get_elements()
+            if c.get_string_value() is not None
+        ]
         # return sorted({name.split("`")[0] for name in self.get_names()})
 
     def shorten_name(self, name_with_ctx: str) -> str:

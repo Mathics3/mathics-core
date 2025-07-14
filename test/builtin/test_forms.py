@@ -3,7 +3,7 @@
 Unit tests from mathics.builtin.forms.
 """
 
-from test.helper import check_evaluation, session
+from test.helper import check_evaluation
 
 import pytest
 

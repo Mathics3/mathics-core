@@ -129,8 +129,6 @@ def eval_SameQ(self, other):
     # The next element in the tree. Maybe should be an iterator?
     def next_elem():
         nonlocal len_elements
-        nonlocal parents
-        nonlocal pos
 
         while pos and pos[-1] == len_elements:
             pos.pop()
@@ -1185,10 +1183,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             self._build_elements_properties()
             assert self.elements_properties is not None
 
+        recompute_properties = False
+
         # @timeit
         def eval_elements():
-            nonlocal recompute_properties
-
             # @timeit
             def eval_range(indices):
                 nonlocal recompute_properties
@@ -1237,7 +1235,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # * evaluate elements,
         # * run to_python() on them in Expression construction, or
         # * convert Expression elements from a tuple to a list and back
-        recompute_properties = False
         elements: Sequence[BaseElement]
         if self.elements_properties.elements_fully_evaluated:
             elements = self._elements

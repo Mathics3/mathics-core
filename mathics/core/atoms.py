@@ -8,6 +8,7 @@ from typing import Any, Dict, Generic, Optional, Tuple, TypeVar, Union
 
 import mpmath
 import sympy
+from sympy.core import numbers as sympy_numbers
 
 from mathics.core.element import BoxElementMixin, ImmutableValueMixin
 from mathics.core.number import (
@@ -108,7 +109,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
 
     def to_mpmath(self, precision: Optional[int] = None) -> mpmath.ctx_mp_python.mpf:
         """
-        Convert self._value to an mpmath number with precision ``precision``
+        Convert self.value to an mpmath number with precision ``precision``
         If ``precision`` is None, use mpmath's default precision.
 
         A mpmath number is the default implementation for Number.
@@ -139,8 +140,9 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
 
     @property
     def value(self) -> T:
-        """
-        Equivalent value in Python's native datatype.
+        """Equivalent value in either SymPy's or Python's native
+        datatype if that exist. Note the SymPy value
+        and the Python value might be the same thing.
         """
         return self._value
 
@@ -195,6 +197,8 @@ class Integer(Number[int]):
     # dictionary's value is the corresponding Mathics Integer object.
     _integers: Dict[Any, "Integer"] = {}
 
+    _sympy: sympy_numbers.Integer
+
     # We use __new__ here to ensure that two Integer's that have the same value
     # return the same object, and to set an object hash value.
     # Consider also @lru_cache, and mechanisms for limiting and
@@ -209,6 +213,7 @@ class Integer(Number[int]):
 
             # Cache object so we don't allocate again.
             self._integers[value] = self
+            self._sympy = sympy_numbers.Integer(value)
 
             # Set a value for self.__hash__() once so that every time
             # it is used this is fast. Note that in contrast to the
@@ -318,12 +323,16 @@ class Integer(Number[int]):
                 d = MACHINE_PRECISION_VALUE
         return PrecisionReal(sympy.Float(self.value, d))
 
-    def to_sympy(self, **_):
-        return sympy.Integer(self._value)
+    @property
+    def sympy(self) -> sympy_numbers.Integer:
+        return self._sympy
 
-    def sameQ(self, other) -> bool:
+    def to_sympy(self, **_) -> sympy_numbers.Integer:
+        return self.sympy
+
+    def sameQ(self, rhs) -> bool:
         """Mathics SameQ"""
-        return isinstance(other, Integer) and self._value == other.value
+        return isinstance(rhs, Integer) and self._value == rhs.value
 
     def do_copy(self) -> "Integer":
         return Integer(self._value)
@@ -492,25 +501,25 @@ class MachineReal(Real[float]):
     def is_zero(self) -> bool:
         return self.value == 0.0
 
-    def sameQ(self, other) -> bool:
+    def sameQ(self, rhs) -> bool:
         """Mathics SameQ for MachineReal.
-        If the other comparison value is a MachineReal, the values
-        have to be equal.  If the other value is a PrecisionReal though, then
+        If the rhs comparison value is a MachineReal, the values
+        have to be equal.  If the rhs value is a PrecisionReal though, then
         the two values have to be within 1/2 ** (precision) of
-        other-value's precision.  For any other type, sameQ is False.
+        rhs-value's precision.  For any rhs type, sameQ is False.
         """
-        if isinstance(other, MachineReal):
-            return self.value == other.value
-        if isinstance(other, PrecisionReal):
-            other_value = other.value
+        if isinstance(rhs, MachineReal):
+            return self.value == rhs.value
+        if isinstance(rhs, PrecisionReal):
+            rhs_value = rhs.value
             value = self.to_sympy()
             # If sympy fixes the issue, this comparison would be
             # enough
-            if (value - other_value).is_zero:
+            if (value - rhs_value).is_zero:
                 return True
             # this handles the issue...
-            diff = abs(value - other_value)
-            prec = min(value._prec, other_value._prec)
+            diff = abs(value - rhs_value)
+            prec = min(value._prec, rhs_value._prec)
             return diff < 0.5 ** (prec)
         else:
             return False
@@ -539,13 +548,14 @@ class PrecisionReal(Real[sympy.Float]):
     # The key is the PrecisionReal's sympy.Float, and the
     # dictionary's value is the corresponding Mathics PrecisionReal object.
     _precision_reals: Dict[Any, "PrecisionReal"] = {}
+    _sympy: Number
 
     def __new__(cls, value) -> "PrecisionReal":
         n = sympy.Float(value)
         self = cls._precision_reals.get(n)
         if self is None:
             self = Number.__new__(cls)
-            self._value = n
+            self._sympy = self._value = n
 
             # Cache object so we don't allocate again.
             self._precision_reals[n] = self
@@ -593,12 +603,12 @@ class PrecisionReal(Real[sympy.Float]):
         _prec = min(prec(d), self.value._prec)
         return PrecisionReal(sympy.Float(self.value, precision=_prec))
 
-    def sameQ(self, other) -> bool:
+    def sameQ(self, rhs) -> bool:
         """Mathics SameQ for PrecisionReal"""
-        if isinstance(other, PrecisionReal):
-            other_value = other.value
-        elif isinstance(other, MachineReal):
-            other_value = other.to_sympy()
+        if isinstance(rhs, PrecisionReal):
+            other_value = rhs.value
+        elif isinstance(rhs, MachineReal):
+            other_value = rhs.to_sympy()
         else:
             return False
         value = self.value
@@ -679,11 +689,11 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
         """
         return True
 
-    def sameQ(self, other) -> bool:
+    def sameQ(self, rhs) -> bool:
         """Mathics SameQ"""
         # FIX: check
-        if isinstance(other, ByteArrayAtom):
-            return self.value == other.value
+        if isinstance(rhs, ByteArrayAtom):
+            return self.value == rhs.value
         return False
 
     def get_string_value(self) -> Optional[str]:
@@ -822,12 +832,10 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         else:
             return (0, 0, self.real.get_sort_key()[2], self.imag.get_sort_key()[2], 1)
 
-    def sameQ(self, other) -> bool:
+    def sameQ(self, rhs) -> bool:
         """Mathics SameQ"""
         return (
-            isinstance(other, Complex)
-            and self.real == other.real
-            and self.imag == other.imag
+            isinstance(rhs, Complex) and self.real == rhs.real and self.imag == rhs.imag
         )
 
     def round(self, d=None) -> "Complex":
@@ -951,9 +959,9 @@ class Rational(Number[sympy.Rational]):
         else:
             return PrecisionReal(self.value.n(d))
 
-    def sameQ(self, other) -> bool:
+    def sameQ(self, rhs) -> bool:
         """Mathics SameQ"""
-        return isinstance(other, Rational) and self.value == other.value
+        return isinstance(rhs, Rational) and self.value == rhs.value
 
     def numerator(self) -> "Integer":
         return Integer(self.value.as_numer_denom()[0])
@@ -1059,9 +1067,9 @@ class String(Atom, BoxElementMixin):
         """
         return True
 
-    def sameQ(self, other) -> bool:
+    def sameQ(self, rhs) -> bool:
         """Mathics SameQ"""
-        return isinstance(other, String) and self.value == other.value
+        return isinstance(rhs, String) and self.value == rhs.value
 
     def to_expression(self):
         return self

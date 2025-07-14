@@ -359,7 +359,7 @@ class BaseElement(KeyComparable, ABC):
         else:
             return tuple([self])
 
-    def get_string_value(self):
+    def get_string_value(self) -> Optional[str]:
         return None
 
     @property
