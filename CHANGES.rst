@@ -1,6 +1,10 @@
 CHANGES
 =======
 
+We support a limited form of Boxing escape ``\*`` that handles a single Boxing function.
+This is enough to not error on packages CellsToTeX and FeynCalc.
+
+
 New Builtins
 ++++++++++++
 

@@ -279,8 +279,6 @@ class Parser:
             elif tag == "END":
                 self.get_more_input(token.pos)
             elif tag == "BoxInputEscape":
-                # FIXME, this is not a complete implementation of \*
-                # For now, we'll just strip off the BoxInputEscape token.
                 self.consume()
                 new_result = self.parse_box_escape(token, precedence)
             elif result is None and tag != "END":
