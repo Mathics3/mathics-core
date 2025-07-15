@@ -282,7 +282,7 @@ class Parser:
                 # FIXME, this is not a complete implementation of \*
                 # For now, we'll just strip off the BoxInputEscape token.
                 self.consume()
-                new_result = self.parse_box_escape(precedence)
+                new_result = self.parse_box_escape(token, precedence)
             elif result is None and tag != "END":
                 self.consume()
                 # TODO: handle non-box expressions inside RowBox
@@ -422,7 +422,7 @@ class Parser:
         return expr1
 
     @track_location
-    def parse_box_escape(self, precedence: int) -> Optional[Node]:
+    def parse_box_escape(self, token: Token, precedence: int) -> Optional[Node]:
         r"""
         Parse the "..." part of "\( \* ... \)".
         For now, we are just handling "..." where it is a (Boxing) function.
