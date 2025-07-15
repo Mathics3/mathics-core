@@ -272,9 +272,7 @@ def eval_Read(
                 assert isinstance(tmp, str)
                 while True:
                     try:
-                        feeder = MathicsMultiLineFeeder(
-                            tmp, "<Read[]>", ContainerKind.STREAM
-                        )
+                        feeder = MathicsMultiLineFeeder(tmp, [], ContainerKind.STREAM)
                         expr = parse_incrementally_by_line(
                             evaluation.definitions, feeder
                         )
