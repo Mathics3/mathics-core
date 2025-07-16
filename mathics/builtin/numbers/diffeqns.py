@@ -20,7 +20,7 @@ class DSolve(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/DSolve.html</url>
 
     <dl>
-    <dt>'DSolve[$eq$, $y$[$x$], $x$]'
+    <dt>'DSolve[$eq$, $y$'[$x$], $x$]
         <dd>solves a differential equation for the function $y$[$x$].
     </dl>
 
@@ -178,7 +178,7 @@ class C(Builtin):
 
     <dl>
       <dt>'C'[$n$]
-      <dd>represents the $n$th constant in a solution to a differential equation.
+      <dd>represents the $n$-th constant in a solution to a differential equation.
     </dl>
     """
 

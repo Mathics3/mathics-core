@@ -10,6 +10,7 @@ from typing import Optional as OptionalType
 from mathics.core.builtin import PatternObject
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.symbols import BaseElement
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.rules-and-patterns.basic"
@@ -55,7 +56,7 @@ class Blank(_Blank):
       <dt>'Blank[]'
       <dt>'_'
       <dd>represents any single expression in a pattern.
-      <dt>'Blank[$h$]'
+      <dt>'Blank'[$h$]
       <dt>'_$h$'
       <dd>represents any expression with head $h$.
     </dl>
@@ -89,7 +90,7 @@ class Blank(_Blank):
     }
     summary_text = "match to any single expression"
 
-    def match(self, expression: Expression, pattern_context: dict):
+    def match(self, expression: BaseElement, pattern_context: dict):
         vars_dict = pattern_context["vars_dict"]
         yield_func = pattern_context["yield_func"]
 
@@ -153,7 +154,7 @@ class BlankSequence(_Blank):
       <dt>'__'
       <dd>represents any non-empty sequence of expression elements in \
         a pattern.
-      <dt>'BlankSequence[$h$]'
+      <dt>'BlankSequence'[$h$]
       <dt>'__$h$'
       <dd>represents any sequence of elements, all of which have head $h$.
     </dl>

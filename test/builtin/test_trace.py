@@ -2,9 +2,9 @@
 """
 Unit tests for mathics.builtin.trace
 """
-from inspect import isfunction
-from test.helper import evaluate
-from typing import Callable
+from inspect import isfunction, ismethod
+from test.helper import evaluate, session
+from typing import Any, Callable, Optional
 
 import pytest
 
@@ -12,6 +12,7 @@ import mathics.eval.tracing
 from mathics import version_info
 from mathics.core.evaluation import Evaluation
 from mathics.core.interrupt import AbortInterrupt
+from mathics.eval.tracing import TraceEvent
 
 trace_evaluation_calls = 0
 
@@ -25,17 +26,17 @@ def test_TraceEvaluation():
 
     def counting_print_evaluate(
         expr, evaluation: Evaluation, status: str, fn: Callable, orig_expr=None
-    ) -> bool:
+    ) -> Optional[Any]:
         """
         A replacement for mathics.eval.tracing.print_evaluate() that counts the
         number of evaluation calls.
         """
         global trace_evaluation_calls
         trace_evaluation_calls += 1
-        assert status in ("Evaluating", "Returning")
+        assert status in ("Evaluating", "Returning", "Rewriting")
         if "cython" not in version_info:
             assert isfunction(fn), "Expecting 4th argument to be a function"
-        return False
+        return None
 
     try:
         # Set a small recursion limit,
@@ -68,3 +69,79 @@ def test_TraceEvaluation():
         mathics.eval.tracing.print_evaluate = old_evaluation_hook
         old_recursion_limit = evaluate(f"$RecursionLimit = {old_recursion_limit.value}")
     assert mathics.eval.tracing.print_evaluate == old_evaluation_hook
+
+
+event_queue = []
+
+
+def test_skip_trivial_evaluation():
+    """
+    Test of TraceEvaluate[] to filter events
+    """
+
+    def empty_queue():
+        global event_queue
+        event_queue = []
+
+    def call_event_func(event: TraceEvent, fn: Callable, *args) -> Optional[Any]:
+        """
+        Capture filtered calls in event_queue.
+        """
+        if isinstance(type(fn), type) or ismethod(fn) or isfunction(fn):
+            name = f"{fn.__module__}.{fn.__qualname__}"
+        else:
+            name = str(fn)
+        event_queue.append(f"{event.name} call  : {name}{args[:3]}")
+        return None
+
+    def return_event_func(event: TraceEvent, result: Any) -> Any:
+        """
+        A somewhat generic function to print a traced call's
+        return value.
+        """
+        event_queue.append(f"{event.name} result: {result}")
+        return result
+
+    def capture_print(s: str):
+        """
+        A somewhat generic function to print a traced call's
+        return value.
+        """
+        event_queue.append(s)
+
+    session.reset()
+    old_print_out = session.evaluation.print_out
+    session.evaluation.print_out = capture_print
+    empty_queue()
+
+    try:
+        session.evaluate("TraceEvaluation[2 3 + 4]")
+        assert [
+            "  Evaluating: System`Plus[System`Times[2, 3], 4]",
+            "    Evaluating: System`Times[2, 3]",
+            "      Evaluating/Replacing: System`Times[2, 3] = 6",
+            "    Returning: System`Times[2, 3] = 6",
+            "    Evaluating/Replacing: System`Plus[System`Times[2, 3], 4] = 10",
+            "  Returning: System`Plus[System`Times[2, 3], 4] = 10",
+        ] == event_queue
+        # print()
+        # for line in event_queue:
+        #     print(line)
+
+        empty_queue()
+        session.evaluate("TraceEvaluation[(2 + 3) 4]")
+        assert [
+            "  Evaluating: System`Times[System`Plus[2, 3], 4]"
+            "    Evaluating: System`Plus[2, 3]",
+            "      Returning: System`Plus[2, 3] = (<Integer: 5>, False)",
+            "    Returning: System`Plus[2, 3] = 5",
+            "  Returning: System`Times[System`Plus[2, 3], 4] = (<Integer: 20>, False)",
+        ]
+        # print()
+        # for line in event_queue:
+        #     print(line)
+
+    finally:
+        # Just in case, restore everything back to what it was before running this test.
+        session.evaluation.print_out = old_print_out
+        session.reset()

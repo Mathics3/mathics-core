@@ -34,12 +34,12 @@ class Apply(InfixOperator):
 
 
     <dl>
-      <dt>'Apply[$f$, $expr$]'
+      <dt>'Apply'[$f$, $expr$]
 
       <dt>'$f$ @@ $expr$'
       <dd>replaces the head of $expr$ with $f$.
 
-      <dt>'Apply[$f$, $expr$, $levelspec$]'
+      <dt>'Apply'[$f$, $expr$, $levelspec$]
       <dd>applies $f$ on the parts specified by $levelspec$.
     </dl>
 
@@ -108,10 +108,10 @@ class Map(InfixOperator):
       https://reference.wolfram.com/language/ref/Map.html</url>
 
     <dl>
-      <dt>'Map[$f$, $expr$]' or '$f$ /@ $expr$'
+      <dt>'Map'[$f$, $expr$] or '$f$ /@ $expr$'
       <dd>applies $f$ to each part on the first level of $expr$.
 
-      <dt>'Map[$f$, $expr$, $levelspec$]'
+      <dt>'Map'[$f$, $expr$, $levelspec$]
       <dd>applies $f$ to each level specified by $levelspec$ of $expr$.
     </dl>
 
@@ -166,13 +166,13 @@ class MapAt(Builtin):
       https://reference.wolfram.com/language/ref/MapAt.html</url>
 
     <dl>
-      <dt>'MapAt[$f$, $expr$, $n$]'
+      <dt>'MapAt'[$f$, $expr$, $n$]
       <dd>applies $f$ to the element at position $n$ in $expr$. If $n$ is negative, the position is counted from the end.
 
-      <dt>'MapAt[f, $expr$, {$i$, $j$ ...}]'
+      <dt>'MapAt'[f, $expr$, {$i$, $j$ ...}]
       <dd>applies $f$ to the part of $expr$ at position {$i$, $j$, ...}.
 
-      <dt>'MapAt[$f$, $pos$]'
+      <dt>'MapAt'[$f$, $pos$]
       <dd>represents an operator form of 'MapAt' that can be applied to an expression.
     </dl>
 
@@ -231,10 +231,10 @@ class MapIndexed(Builtin):
       https://reference.wolfram.com/language/ref/MapIndexed.html</url>
 
     <dl>
-      <dt>'MapIndexed[$f$, $expr$]'
+      <dt>'MapIndexed'[$f$, $expr$]
       <dd>applies $f$ to each part on the first level of $expr$, including the part positions in the call to $f$.
 
-      <dt>'MapIndexed[$f$, $expr$, $levelspec$]'
+      <dt>'MapIndexed'[$f$, $expr$, $levelspec$]
       <dd>applies $f$ to each level specified by $levelspec$ of $expr$.
     </dl>
 
@@ -303,10 +303,10 @@ class MapThread(Builtin):
       https://reference.wolfram.com/language/ref/MapThread.html</url>
 
     <dl>
-      <dt>'MapThread[$f$, {{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}]
-      <dd>returns '{$f$[$a1$, $b1$, ...], $f$[$a2$, $b2$, ...], ...}'.
+      <dt>'MapThread[$f$, {{$a_1$, $a_2$, ...}, {$b_1$, $b_2$, ...}, ...}]
+      <dd>returns '{$f$[$a_1$, $b_1$, ...], $f$[$a_2$, $b_2$, ...], ...}'.
 
-      <dt>'MapThread[$f$, {$expr1$, $expr2$, ...}, $n$]'
+      <dt>'MapThread'[$f$, {$expr_1$, $expr_2$, ...}, $n$]
       <dd>applies $f$ at level $n$.
     </dl>
 
@@ -393,10 +393,10 @@ class Scan(Builtin):
       https://reference.wolfram.com/language/ref/Scan.html</url>
 
     <dl>
-      <dt>'Scan[$f$, $expr$]'
+      <dt>'Scan'[$f$, $expr$]
       <dd>applies $f$ to each element of $expr$ and returns 'Null'.
 
-      <dt>'Scan[$f$, $expr$, $levelspec$]'
+      <dt>'Scan'[$f$, $expr$, $levelspec$]
       <dd>applies $f$ to each level specified by $levelspec$ of $expr$.
     </dl>
 
@@ -446,10 +446,10 @@ class Thread(Builtin):
       https://reference.wolfram.com/language/ref/Thread.html</url>
 
     <dl>
-      <dt>'Thread[$f$[$args$]]'
+      <dt>'Thread[$f$'[$args$]]
       <dd>threads $f$ over any lists that appear in $args$.
 
-      <dt>'Thread[$f$[$args$], $h$]'
+      <dt>'Thread[$f$'[$args$], $h$]
       <dd>threads over any parts with head $h$.
     </dl>
 

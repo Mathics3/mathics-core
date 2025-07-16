@@ -39,7 +39,7 @@ class Correlation(Builtin):
     https://reference.wolfram.com/language/ref/Correlation.html</url>)
 
     <dl>
-      <dt>'Correlation[$a$, $b$]'
+      <dt>'Correlation'[$a$, $b$]
       <dd>computes Pearson's correlation of two equal-sized vectors $a$ and $b$.
     </dl>
 
@@ -78,7 +78,7 @@ class Covariance(Builtin):
     :WMA:
     https://reference.wolfram.com/language/ref/Covariance.html</url>)
     <dl>
-      <dt>'Covariance[$a$, $b$]'
+      <dt>'Covariance'[$a$, $b$]
       <dd>computes the covariance between the equal-sized vectors $a$ and $b$.
     </dl>
 
@@ -119,12 +119,12 @@ class StandardDeviation(Rectangular):
     :WMA:
     https://reference.wolfram.com/language/ref/StandardDeviation.html</url>)
     <dl>
-      <dt>'StandardDeviation[$list$]'
+      <dt>'StandardDeviation'[$list$]
       <dd>computes the standard deviation of $list. $list$ may consist of \
           numerical values or symbols. Numerical values may be real or complex.
 
-      StandardDeviation[{{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}] will yield
-      {StandardDeviation[{$a1$, $b1$, ...}, StandardDeviation[{$a2$, $b2$, ...}], ...}.
+      StandardDeviation[{{$a_1$, $a_2$, ...}, {$b_1$, $b_2$, ...}, ...}] will yield
+      {StandardDeviation[{$a_1$, $b_1$, ...}, StandardDeviation[{$a_2$, $b_2$, ...}], ...}.
     </dl>
 
     >> StandardDeviation[{1, 2, 3}]
@@ -171,10 +171,10 @@ class Variance(Rectangular):
     :WMA:
     https://reference.wolfram.com/language/ref/Variance.html</url>)
     <dl>
-      <dt>'Variance[$list$]'
+      <dt>'Variance'[$list$]
       <dd>computes the variance of $list. $list$ may consist of numerical values or symbols. Numerical values may be real or complex.
 
-      Variance[{{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}] will yield {Variance[{$a1$, $b1$, ...}, Variance[{$a2$, $b2$, ...}], ...}.
+      Variance[{{$a_1$, $a_2$, ...}, {$b_1$, $b_2$, ...}, ...}] will yield {Variance[{$a_1$, $b_1$, ...}, Variance[{$a_2$, $b_2$, ...}], ...}.
     </dl>
 
     >> Variance[{1, 2, 3}]

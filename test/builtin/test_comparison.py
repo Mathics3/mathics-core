@@ -78,13 +78,13 @@ import pytest
         ("g[a]<g[a]", "g[a] < g[a]", "not comparable expressions (like in WMA)"),
         ("g[1]<g[1]", "g[1] < g[1]", "not comparable expressions (like in WMA)"),
         #
-        ('Wo["x"]>3', "Wo[x] > 3", "isue #797"),
-        ('Wo["x"]<3', "Wo[x] < 3", "isue #797"),
-        ('Wo["x"]==3', "Wo[x] == 3", "isue #797"),
-        ('3>Wo["x"]', "3 > Wo[x]", "isue #797"),
-        ('3<Wo["x"]', "3 < Wo[x]", "isue #797"),
-        ('3==Wo["x"]', "3 == Wo[x]", "isue #797"),
-        ('Wo[f["x"],2]>0', "Wo[f[x], 2] > 0", "isue #797"),
+        ('Wo["x"]>3', "Wo[x] > 3", "issue #797"),
+        ('Wo["x"]<3', "Wo[x] < 3", "issue #797"),
+        ('Wo["x"]==3', "Wo[x] == 3", "issue #797"),
+        ('3>Wo["x"]', "3 > Wo[x]", "issue #797"),
+        ('3<Wo["x"]', "3 < Wo[x]", "issue #797"),
+        ('3==Wo["x"]', "3 == Wo[x]", "issue #797"),
+        ('Wo[f["x"],2]>0', "Wo[f[x], 2] > 0", "issue #797"),
         #
         # chained compare
         ("a != a != b", "False", "Strange MMA behavior"),
@@ -180,8 +180,8 @@ def test_sameq(str_lhs, str_rhs, str_expected):
     [  # UnsameQ returns True with 0 or 1 arguments
         ("UnsameQ[]", "True"),
         ("UnsameQ[expr]", "True"),
-        # With 2 or more argments, UnsameQ returns True if all expressions are
-        # structurally distinct and False otherwise
+        # With 2 or more arguments, UnsameQ returns True if all
+        # expressions are structurally distinct and False otherwise
         ("x =!= x", "False"),
         ("x =!= y", "True"),
         ("1 =!= 2 =!= 3 =!= 4", "True"),

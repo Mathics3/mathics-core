@@ -309,7 +309,7 @@ def find_all_vars(expr):
                 if lv_sympy is not None:
                     find_vars(lv, lv_sympy)
         elif e.has_form("Power", 2):
-            (a, b) = e.elements  # a^b
+            a, b = e.elements  # a^b
             a_sympy, b_sympy = a.to_sympy(), b.to_sympy()
             if a_sympy is None or b_sympy is None:
                 return
@@ -362,9 +362,9 @@ class Apart(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Apart.html</url>
 
     <dl>
-      <dt>'Apart[$expr$]'
+      <dt>'Apart'[$expr$]
       <dd>writes $expr$ as a sum of individual fractions.
-      <dt>'Apart[$expr$, $var$]'
+      <dt>'Apart'[$expr$, $var$]
       <dd>treats $var$ as the main variable.
     </dl>
 
@@ -418,7 +418,7 @@ class Cancel(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Cancel.html</url>
 
     <dl>
-      <dt>'Cancel[$expr$]'
+      <dt>'Cancel'[$expr$]
       <dd>cancels out common factors in numerators and denominators.
     </dl>
 
@@ -777,7 +777,7 @@ class CoefficientArrays(_CoefficientHandler):
     https://reference.wolfram.com/language/ref/CoefficientArrays.html</url>
 
     <dl>
-      <dt>'CoefficientArrays[$polys$, $vars$]'
+      <dt>'CoefficientArrays'[$polys$, $vars$]
       <dd>returns a list of arrays of coefficients of the variables $vars$ \
           in the polynomial  $poly$.
     </dl>
@@ -1016,14 +1016,14 @@ class Collect(_CoefficientHandler):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Collect.html</url>
 
     <dl>
-      <dt>'Collect[$expr$, $x$]'
+      <dt>'Collect'[$expr$, $x$]
       <dd> Expands $expr$ and collect together terms having the same power of $x$.
 
-      <dt>'Collect[$expr$, {$x_1$, $x_2$, ...}]'
+      <dt>'Collect'[$expr$, {$x_1$, $x_2$, ...}]
       <dd> Expands $expr$ and collect together terms having the same powers of \
          $x_1$, $x_2$, ....
 
-      <dt>'Collect[$expr$, {$x_1$, $x_2$, ...}, $filter$]'
+      <dt>'Collect'[$expr$, {$x_1$, $x_2$, ...}, $filter$]
       <dd> After collect the terms, applies $filter$ to each coefficient.
     </dl>
 
@@ -1064,7 +1064,7 @@ class Denominator(Builtin):
     https://reference.wolfram.com/language/ref/Denominator.html</url>
 
     <dl>
-      <dt>'Denominator[$expr$]'
+      <dt>'Denominator'[$expr$]
       <dd>gives the denominator in $expr$.
     </dl>
 
@@ -1128,7 +1128,7 @@ class Expand(_Expand):
     https://reference.wolfram.com/language/ref/Expand.html</url>
 
     <dl>
-      <dt>'Expand[$expr$]'
+      <dt>'Expand'[$expr$]
       <dd>expands out positive integer powers and products of sums in $expr$, as \
           well as trigonometric identities.
 
@@ -1210,10 +1210,10 @@ class ExpandAll(_Expand):
     https://reference.wolfram.com/language/ref/ExpandAll.html</url>
 
     <dl>
-      <dt>'ExpandAll[$expr$]'
+      <dt>'ExpandAll'[$expr$]
       <dd>expands out negative integer powers and products of sums in $expr$.
 
-      <dt>'ExpandAll[$expr$, $target$]'
+      <dt>'ExpandAll'[$expr$, $target$]
       <dd>just expands those parts involving $target$.
     </dl>
 
@@ -1272,7 +1272,7 @@ class ExpandDenominator(_Expand):
     https://reference.wolfram.com/language/ref/ExpandDenominator.html</url>
 
     <dl>
-      <dt>'ExpandDenominator[$expr$]'
+      <dt>'ExpandDenominator'[$expr$]
       <dd>expands out negative integer powers and products of sums in $expr$.
     </dl>
 
@@ -1358,7 +1358,7 @@ class Factor(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Factor.html</url>
 
     <dl>
-      <dt>'Factor[$expr$]'
+      <dt>'Factor'[$expr$]
       <dd>factors the polynomial expression $expr$.
     </dl>
 
@@ -1521,11 +1521,11 @@ class Simplify(Builtin):
     https://reference.wolfram.com/language/ref/Simplify.html</url>
 
     <dl>
-      <dt>'Simplify[$expr$]'
+      <dt>'Simplify'[$expr$]
       <dd>simplifies $expr$.
 
-      <dt>'Simplify[$expr$, $assump$]'
-      <dd>simplifies $expr$ assuming $assump$ instead of $Assumptions$.
+      <dt>'Simplify'[$expr$, $assump$]
+      <dd>simplifies $expr$ assuming $assump$ instead of '\$Assumptions'.
     </dl>
 
     >> Simplify[2*Sin[x]^2 + 2*Cos[x]^2]
@@ -1535,23 +1535,23 @@ class Simplify(Builtin):
     >> Simplify[f[x]]
      = f[x]
 
-    Simplify over conditional expressions uses $\$Assumptions$, or $assump$
+    Simplify over conditional expressions uses '\$Assumptions', or $assump$
     to evaluate the condition:
     >> $Assumptions={a <= 0};
     >> Simplify[ConditionalExpression[1, a > 0]]
      = Undefined
-    The $assump$ option  override $\$Assumption$:
+    The $assump$ option  override '\$Assumption':
     >> Simplify[ConditionalExpression[1, a > 0] ConditionalExpression[1, b > 0], { b > 0 }]
      = ConditionalExpression[1, a > 0]
-    On the other hand, $Assumptions$ option does not override $\$Assumption$, but add to them:
+    On the other hand, 'Assumptions' option does not override '\$Assumptions', but add to them:
     >> Simplify[ConditionalExpression[1, a > 0] ConditionalExpression[1, b > 0], Assumptions -> { b > 0 }]
      = ConditionalExpression[1, a > 0]
-    Passing both options overwrites $Assumptions with the union of $assump$ the option
+    Passing both options overwrites '\$Assumptions' with the union of $assump$ the option
     >> Simplify[ConditionalExpression[1, a > 0] ConditionalExpression[1, b > 0], {a>0},Assumptions -> { b > 0 }]
      = 1
     >> $Assumptions={};
 
-    The option $ComplexityFunction$ allows to control the way in which the \
+    The option 'ComplexityFunction' allows to control the way in which the \
     evaluator decides if one expression is simpler than another. For example, \
     by default, 'Simplify' tries to avoid expressions involving numbers with many digits:
     >> Simplify[20 Log[2]]
@@ -1637,9 +1637,9 @@ class FullSimplify(Simplify):
     https://reference.wolfram.com/language/ref/FullSimplify.html</url>
 
     <dl>
-      <dt>'FullSimplify[$expr$]'
+      <dt>'FullSimplify'[$expr$]
       <dd>simplifies $expr$ using an extended set of simplification rules.
-      <dt>'FullSimplify[$expr$, $assump$]'
+      <dt>'FullSimplify'[$expr$, $assump$]
       <dd>simplifies $expr$ assuming $assump$ instead of $Assumptions$.
     </dl>
 
@@ -1715,7 +1715,7 @@ class Numerator(Builtin):
     https://reference.wolfram.com/language/ref/Numerator.html</url>
 
     <dl>
-      <dt>'Numerator[$expr$]'
+      <dt>'Numerator'[$expr$]
       <dd>gives the numerator in $expr$.
     </dl>
 
@@ -1846,8 +1846,8 @@ class PowerExpand(Builtin):
     https://reference.wolfram.com/language/ref/PowerExpand.html</url>
 
     <dl>
-      <dt>'PowerExpand[$expr$]'
-      <dd>expands out powers of the form '(x^y)^z' and '(x*y)^z' in $expr$.
+      <dt>'PowerExpand'[$expr$]
+      <dd>expands out powers of the form $(x^y)^z$ and $(x y)^z$ in $expr$.
     </dl>
 
     >> PowerExpand[(a ^ b) ^ c]
@@ -1880,7 +1880,7 @@ class Together(Builtin):
     https://reference.wolfram.com/language/ref/Together.html</url>
 
     <dl>
-      <dt>'Together[$expr$]'
+      <dt>'Together'[$expr$]
       <dd>writes sums of fractions in $expr$ together.
     </dl>
 
@@ -1915,7 +1915,7 @@ class Variables(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Variables.html</url>
 
     <dl>
-      <dt>'Variables[$expr$]'
+      <dt>'Variables'[$expr$]
       <dd>gives a list of the variables that appear in the polynomial $expr$.
     </dl>
 

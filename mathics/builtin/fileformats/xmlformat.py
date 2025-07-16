@@ -246,7 +246,7 @@ class XMLElement(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/XMLElement.html</url>
 
     <dl>
-    <dt>'XMLElement[$tag$, {$attr_1$, $val_1$, ...}, {$data$, ...}]'
+    <dt>'XMLElement'[$tag$, {$attr_1$, $val_1$, ...}, {$data$, ...}]
     <dd>   represents an element in symbolic XML.
     </dl>
     """

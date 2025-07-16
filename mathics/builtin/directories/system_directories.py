@@ -11,12 +11,12 @@ from mathics.settings import ROOT_DIR
 
 
 class BaseDirectory_(Predefined):
-    """
+    r"""
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/$BaseDirectory.html</url>
 
     <dl>
-      <dt>'$BaseDirectory'
+      <dt>'\$BaseDirectory'
       <dd>returns the folder where user configurations are stored.
     </dl>
 
@@ -32,12 +32,12 @@ class BaseDirectory_(Predefined):
 
 
 class InitialDirectory(Predefined):
-    """
+    r"""
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/$InitialDirectory.html</url>
 
     <dl>
-      <dt>'$InitialDirectory'
+      <dt>'\$InitialDirectory'
       <dd>returns the directory from which \\Mathics was started.
     </dl>
 
@@ -53,12 +53,12 @@ class InitialDirectory(Predefined):
 
 
 class InstallationDirectory(Predefined):
-    """
+    r"""
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/InstallationDirectory.html</url>
 
     <dl>
-      <dt>'$InstallationDirectory'
+      <dt>'\$InstallationDirectory'
       <dd>returns the top-level directory in which \\Mathics was installed.
     </dl>
 
@@ -76,11 +76,11 @@ class InstallationDirectory(Predefined):
 
 
 class RootDirectory(Predefined):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/$RootDirectory.html</url>
 
     <dl>
-    <dt>'$RootDirectory'
+    <dt>'\$RootDirectory'
       <dd>returns the system root directory.
     </dl>
 
@@ -96,12 +96,12 @@ class RootDirectory(Predefined):
 
 
 class TemporaryDirectory(Predefined):
-    """
+    r"""
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/$TemporaryDirectory.html</url>
 
     <dl>
-    <dt>'$TemporaryDirectory'
+    <dt>'\$TemporaryDirectory'
       <dd>returns the directory used for temporary files.
     </dl>
 

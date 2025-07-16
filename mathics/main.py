@@ -19,6 +19,9 @@ import subprocess
 import sys
 from typing import List
 
+import mathics_scanner.location
+from mathics_scanner.location import ContainerKind
+
 import mathics.core as mathics_core
 from mathics import __version__, license_string, settings, version_string
 from mathics.builtin.trace import TraceBuiltins, traced_apply_function
@@ -79,7 +82,7 @@ class TerminalShell(MathicsLineFeeder):
         in_prefix: str = "In",
         out_prefix: str = "Out",
     ):
-        super(TerminalShell, self).__init__("<stdin>")
+        super(TerminalShell, self).__init__([], ContainerKind.STREAM)
         self.input_encoding = locale.getpreferredencoding()
         self.lineno = 0
         self.in_prefix = in_prefix
@@ -185,8 +188,9 @@ class TerminalShell(MathicsLineFeeder):
         return input(prompt)
 
     def print_result(self, result, no_out_prompt=False, strict_wl_output=False):
-        if result is None:
-            # FIXME decide what to do here
+        if result is None or result.last_eval is SymbolNull:
+            # Following WMA CLI, if the result is `SymbolNull`, just print an empty line.
+            print("")
             return
 
         form = result.form
@@ -249,6 +253,8 @@ class TerminalShell(MathicsLineFeeder):
 
     def feed(self):
         result = self.read_line(self.get_in_prompt()) + "\n"
+        if mathics_scanner.location.TRACK_LOCATIONS:
+            self.container.append(self.source_text)
         if result == "\n":
             return ""  # end of input
         self.lineno += 1

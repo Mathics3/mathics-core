@@ -603,7 +603,6 @@ class GraphicsBox(BoxExpression):
             if width > base_width:
                 width = base_width
                 height = width * aspect
-            height = height
 
             width *= size_multiplier
             height *= size_multiplier

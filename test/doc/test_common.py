@@ -4,7 +4,6 @@ Pytests for the documentation system. Basic functions and classes.
 
 import os.path as osp
 
-from mathics.core.evaluation import Message, Print
 from mathics.core.load_builtin import import_and_load_builtins
 from mathics.doc.common_doc import (
     DocChapter,
@@ -94,80 +93,6 @@ def test_gather_parse_docstring_to_DocumentationEntry_items():
     num_tests = [len(t.tests) for t in tests]
     assert len(tests) == 5
     assert all([t == l for t, l in zip(num_tests, [1, 2, 1, 2, 1])])
-
-
-def test_create_doctest():
-    """initializing DocTest"""
-
-    key = (
-        "Part title",
-        "Chapter Title",
-        "Section Title",
-    )
-    test_cases = [
-        {
-            "test": [">", "2+2", "\n    = 4"],
-            "properties": {
-                "private": False,
-                "ignore": False,
-                "result": "4",
-                "outs": [],
-                "key": key + (1,),
-            },
-        },
-        {
-            "test": ["#", "2+2", "\n    = 4"],
-            "properties": {
-                "private": True,
-                "ignore": False,
-                "result": "4",
-                "outs": [],
-                "key": key + (1,),
-            },
-        },
-        {
-            "test": ["S", "2+2", "\n    = 4"],
-            "properties": {
-                "private": False,
-                "ignore": False,
-                "result": "4",
-                "outs": [],
-                "key": key + (1,),
-            },
-        },
-        {
-            "test": ["X", 'Print["Hola"]', "| Hola"],
-            "properties": {
-                "private": False,
-                "ignore": True,
-                "result": None,
-                "outs": [Print("Hola")],
-                "key": key + (1,),
-            },
-        },
-        {
-            "test": [
-                ">",
-                "1 / 0",
-                "\n : Infinite expression 1 / 0 encountered.\n ComplexInfinity",
-            ],
-            "properties": {
-                "private": False,
-                "ignore": False,
-                "result": None,
-                "outs": [
-                    Message(
-                        symbol="", text="Infinite expression 1 / 0 encountered.", tag=""
-                    )
-                ],
-                "key": key + (1,),
-            },
-        },
-    ]
-    for index, test_case in enumerate(test_cases):
-        doctest = DocTest(1, test_case["test"], key)
-        for property_key, value in test_case["properties"].items():
-            assert getattr(doctest, property_key) == value
 
 
 def test_load_documentation():

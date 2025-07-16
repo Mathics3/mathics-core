@@ -543,7 +543,7 @@ def graphics3dbox(self, elements=None, **options) -> str:
                 path = "--".join(["({0},{1},{2})".format(*coords) for coords in line])
                 boundbox_asy += "draw(({0}), {1});\n".format(path, pen)
 
-    (height, width) = (400, 400)  # TODO: Proper size
+    height, width = (400, 400)  # TODO: Proper size
 
     # Background color
     if self.background_color:
@@ -559,7 +559,7 @@ import solids;
 import tube;
 size({0}cm, {1}cm);
 currentprojection=perspective({2[0]},{2[1]},{2[2]});
-currentlight=light(rgb(0.5,0.5,1), {5}specular=red, (2,0,2), (2,2,2), (0,2,2));
+currentlight=light(rgb(0.5,0.5,0.5), {5}specular=red, (2,0,2), (2,2,2), (0,2,2));
 {3}
 {4}
 \end{{asy}}

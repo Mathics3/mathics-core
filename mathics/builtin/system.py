@@ -4,6 +4,7 @@
 Global System Information
 """
 
+import _thread
 import gc
 import os
 import platform
@@ -76,15 +77,14 @@ class Breakpoint(Builtin):
 
     def eval(self, evaluation: Evaluation):
         "Breakpoint[]"
-
         breakpoint()
 
 
 class CommandLine(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$CommandLine.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\\$CommandLine.html</url>
     <dl>
-    <dt>'$CommandLine'
+    <dt>'\\$CommandLine'
       <dd>is a list of strings passed on the command line to launch the Mathics3 session.
     </dl>
 
@@ -92,11 +92,11 @@ class CommandLine(Predefined):
      = {...}
     """
 
+    name = "$CommandLine"
     summary_text = (
-        "the command line arguments passed when the current Mathics3 "
+        "get the command line arguments passed when the current Mathics3 "
         "session was launched"
     )
-    name = "$CommandLine"
 
     def evaluate(self, evaluation: Evaluation) -> Expression:
         return ListExpression(*(String(arg) for arg in sys.argv))
@@ -107,7 +107,7 @@ class Environment(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Environment.html</url>
 
     <dl>
-      <dt>'Environment[$var$]'
+      <dt>'Environment'[$var$]
       <dd>gives the value of an operating system environment variable.
     </dl>
 
@@ -137,11 +137,11 @@ class GetEnvironment(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/GetEnvironment.html</url>
 
     <dl>
-      <dt>'GetEnvironment["$var$"]'
+      <dt>'GetEnvironment'["$var$"]
       <dd>gives the setting corresponding to the variable "var" in the operating \
       system environment.
 
-      <dt>'GetEnvironment[{"$var1$", "$var2$", ...}]'
+      <dt>'GetEnvironment'[{"$var_1$", "$var_2$", ...}]
       <dd>gives a list rules for each of the environment variables listed.
 
       <dt>'GetEnvironment[]'
@@ -217,10 +217,10 @@ class GetEnvironment(Builtin):
 
 class Machine(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$Machine.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/\\$Machine.html</url>
 
     <dl>
-    <dt>'$Machine'
+    <dt>'\\$Machine'
         <dd>returns a string describing the type of computer system on which the \
             Mathics3 is being run.
     </dl>
@@ -241,7 +241,7 @@ class MachineName(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/MachineName.html</url>
 
     <dl>
-      <dt>'$MachineName'
+      <dt>'\\$MachineName'
       <dd>is a string that gives the assigned name of the computer on which Mathics3 \
           is being run, if such a name is defined.
     </dl>
@@ -250,8 +250,8 @@ class MachineName(Predefined):
      = ...
     """
 
-    summary_text = "the name of computer over with Mathics is running"
     name = "$MachineName"
+    summary_text = "get the name of computer that Mathics3 is running"
 
     def evaluate(self, evaluation: Evaluation) -> String:
         return String(platform.uname().node)
@@ -270,7 +270,7 @@ class MathicsVersion(Predefined):
     = ...
     """
 
-    summary_text = "the version of the mathics core"
+    summary_text = "get the version of the Mathics3 kernel"
 
     def evaluate(self, evaluation: Evaluation) -> String:
         return String(__version__)
@@ -287,7 +287,7 @@ class MaxLengthIntStringConversion(Predefined):
           string value is too large, then the middle of the integer contains \
           an indication of the number of digits elided inside << >>.
 
-          If '$MaxLengthIntStringConversion' is set to 0, there is no \
+          If '\\$MaxLengthIntStringConversion' is set to 0, there is no \
           bound. Aside from 0, 640 is the smallest value allowed.
 
           The initial value can be set via environment variable \
@@ -303,7 +303,7 @@ class MaxLengthIntStringConversion(Predefined):
     the number of digits allows when converting a large integer into \
     a string.
 
-    Show the default value of '$MaxLengthIntStringConversion':
+    Show the default value of '\\$MaxLengthIntStringConversion':
     >> $MaxLengthIntStringConversion
      = ...
 
@@ -311,14 +311,14 @@ class MaxLengthIntStringConversion(Predefined):
     >> 500! //ToString//StringLength
      = ...
 
-    We first set '$MaxLengthIntStringConversion' to the smallest value allowed, \
+    We first set '\\$MaxLengthIntStringConversion' to the smallest value allowed, \
     so that we can see the truncation of digits in the middle:
     >> $MaxLengthIntStringConversion = 640
     ## Pyston 2.3.5 returns 0 while CPython returns 640
     ## Therefore output testing below is generic.
      = ...
 
-    Note that setting '$MaxLengthIntStringConversion' has an effect only on Python 3.11 and later;
+    Note that setting '\\$MaxLengthIntStringConversion' has an effect only on Python 3.11 and later;
     Pyston 2.x however ignores this.
 
     Now when we print the string value of 500! and Pyston 2.x is not used, \
@@ -342,7 +342,9 @@ class MaxLengthIntStringConversion(Predefined):
     attributes = A_CONSTANT
     messages = {"inv": "`1` is not 0 or an Integer value greater than 640."}
     name = "$MaxLengthIntStringConversion"
-    summary_text = "the maximum length for which an integer is converted to a String"
+    summary_text = (
+        "get the maximum length for which an integer is converted to a String"
+    )
 
     def evaluate(self, evaluation: Evaluation) -> Integer:
         try:
@@ -384,7 +386,7 @@ class MemoryInUse(Builtin):
      = ...
     """
 
-    summary_text = "number of bytes of memory currently being used by Mathics3"
+    summary_text = "get the number of bytes of memory currently being used by Mathics3"
 
     def eval(self, evaluation: Evaluation) -> Integer:
         """MemoryInUse[]"""
@@ -397,7 +399,7 @@ class Packages(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Packages.html</url>
 
     <dl>
-      <dt>'$Packages'
+      <dt>'\\$Packages'
       <dd>returns a list of the contexts corresponding to all packages which have \
           been loaded into Mathics.
     </dl>
@@ -418,7 +420,7 @@ class ParentProcessID(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/$ParentProcessID.html</url>
 
     <dl>
-      <dt>'$ParentProcesID'
+      <dt>'\$ParentProcesID'
       <dd>gives the ID assigned to the process which invokes Mathics3 by the operating \
           system under which it is run.
     </dl>
@@ -440,7 +442,7 @@ class ProcessID(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ProcessID.html</url>
 
     <dl>
-      <dt>'$ProcessID'
+      <dt>'\$ProcessID'
       <dd>gives the ID assigned to the Mathics3 process by the operating system under \
           which it is run.
     </dl>
@@ -463,7 +465,7 @@ class ProcessorType(Predefined):
     https://reference.wolfram.com/language/ref/ProcessorType.html</url>
 
     <dl>
-      <dt>'$ProcessorType'
+      <dt>'\\$ProcessorType'
       <dd>gives a string giving the architecture of the processor on which \
           Mathics3 is being run.
     </dl>
@@ -474,9 +476,7 @@ class ProcessorType(Predefined):
 
     name = "$ProcessorType"
 
-    summary_text = (
-        "name of the architecture of the processor over which Mathics3 is running"
-    )
+    summary_text = "get the name of the architecture of the processor over which Mathics3 is running"
 
     def evaluate(self, evaluation):
         return String(platform.machine())
@@ -487,7 +487,7 @@ class PythonImplementation(Predefined):
     ## <url>:PythonImplementation native symbol:</url>
 
     <dl>
-    <dt>'$PythonImplementation'
+    <dt>'\$PythonImplementation'
         <dd>gives a string indication the Python implementation used to run Mathics3.
     </dl>
 
@@ -497,7 +497,7 @@ class PythonImplementation(Predefined):
 
     name = "$PythonImplementation"
 
-    summary_text = "name of the Python implementation running Mathics3"
+    summary_text = "get the name of the Python implementation running Mathics3"
 
     def evaluate(self, evaluation: Evaluation):
         from mathics.system_info import python_implementation
@@ -510,7 +510,7 @@ class Run(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Run.html</url>
 
     <dl>
-      <dt>'Run[$command$]'
+      <dt>'Run'[$command$]
       <dd>runs command as an external operating system command, returning the exit \
          code returned from running the system command.
     </dl>
@@ -532,7 +532,7 @@ class ScriptCommandLine(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ScriptCommandLine.html</url>
 
     <dl>
-      <dt>'$ScriptCommandLine'
+      <dt>'\\$ScriptCommandLine'
       <dd>is a list of string arguments when running the kernel is script mode.
     </dl>
 
@@ -554,15 +554,43 @@ class ScriptCommandLine(Predefined):
         return to_mathics_list(*params, elements_conversion_fn=String)
 
 
+class SessionID(Predefined):
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SessionID.html</url>
+
+    <dl>
+       <dt>'\$SessionID'
+       <dd>is a number which is unique to a particular \Mathics System session.
+    </dl>
+
+    X> $SessionID
+     = ...
+    """
+
+    name = "$SessionID"
+    summary_text = "get a unique session id"
+
+    def evaluate(self, evaluation: Evaluation) -> Integer:
+        # In theory, it is possible for two different sessions to have
+        # the same id since threading ID's are recycled. Also in
+        # theory, on different processes the thread numbers might be
+        # the same.  In practice, however, this is unlikely.  What we
+        # want here is something that is likely to be available on all
+        # platforms and OS's including enscripten. I had considered
+        # folding in the os.getpid() value, but this is not available
+        # on the enscripten platform.
+        return Integer(_thread.get_ident())
+
+
 class SetEnvironment(Builtin):
     """
      <url>:WMA link:https://reference.wolfram.com/language/ref/SetEnvironment.html</url>
 
      <dl>
-       <dt>'SetEnvironment["$var$" -> $value"]'
+       <dt>'SetEnvironment'["$var$" -> "$value$"]
        <dd>sets the value of an operating system environment variable.
 
-       <dt>'SetEnvironment[{"$var$" -> $value", ...}]'
+       <dt>'SetEnvironment'[{"$var$" -> "$value$", ...}]
        <dd>sets more than one environment variable.
      </dl>
 
@@ -682,7 +710,7 @@ class SystemID(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/SystemID.html</url>
 
     <dl>
-       <dt>'$SystemID'
+       <dt>'\$SystemID'
        <dd>is a short string that identifies the type of computer system on which the \Mathics is being run.
     </dl>
 
@@ -690,8 +718,8 @@ class SystemID(Predefined):
      = linux
     """
 
-    summary_text = "id for the type of computer system"
     name = "$SystemID"
+    summary_text = "get id for the type of computer system"
 
     def evaluate(self, evaluation: Evaluation) -> String:
         return String(sys.platform)
@@ -702,7 +730,7 @@ class SystemWordLength(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/SystemWordLength.html</url>
 
     <dl>
-      <dt>'$SystemWordLength'
+      <dt>'\$SystemWordLength'
       <dd>gives the effective number of bits in raw machine words on the computer \
           system where Mathics3 is running.
     </dl>
@@ -711,8 +739,8 @@ class SystemWordLength(Predefined):
     = 64
     """
 
-    summary_text = "word length of computer system"
     name = "$SystemWordLength"
+    summary_text = "get word length of computer system"
 
     def evaluate(self, evaluation: Evaluation) -> Integer:
         # https://docs.python.org/3/library/platform.html#module-platform
@@ -729,7 +757,7 @@ class UserName(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/UserName.html</url>
 
     <dl>
-      <dt>$UserName
+      <dt>\$UserName
       <dd>returns the login name, according to the operative system, of the user that started the current
       \Mathics session.
     </dl>
@@ -738,8 +766,8 @@ class UserName(Predefined):
      = ...
     """
 
-    summary_text = "login name of the user that invoked the current session"
     name = "$UserName"
+    summary_text = "get login name of the user that invoked the current session"
 
     def evaluate(self, evaluation: Evaluation) -> String:
         try:
@@ -764,10 +792,10 @@ class Version(Predefined):
      = Mathics3 ...
     """
 
-    summary_text = "the current Mathics version"
     name = "$Version"
+    summary_text = "get the current Mathics3 version"
 
-    def evaluate(self, evaluation) -> String:
+    def evaluate(self, evaluation: Evaluation) -> String:
         return String(version_string.replace("\n", " "))
 
 
@@ -776,7 +804,7 @@ class VersionNumber(Predefined):
     <url>:WMA link:https://reference.wolfram.com/language/ref/VersionNumber.html</url>
 
     <dl>
-      <dt>'$VersionNumber'
+      <dt>'\$VersionNumber'
       <dd>is a real number which gives the current Wolfram Language version that \Mathics tries to be compatible with.
     </dl>
 
@@ -784,9 +812,9 @@ class VersionNumber(Predefined):
     = ...
     """
 
-    summary_text = "the version number of the current Mathics core"
     name = "$VersionNumber"
     value = 10.0
+    summary_text = "get the version number of the current Mathics3 Kernel"
 
     def evaluate(self, evaluation: Evaluation) -> Real:
         # Make this be whatever the latest Mathematica release is,
@@ -801,7 +829,7 @@ if have_psutil:
         <url>:WMA link:https://reference.wolfram.com/language/ref/SystemMemory.html</url>
 
         <dl>
-          <dt>'$SystemMemory'
+          <dt>'\\$SystemMemory'
           <dd>Returns the total amount of physical memory.
         </dl>
 
@@ -809,8 +837,8 @@ if have_psutil:
          = ...
         """
 
-        summary_text = "the total amount of physical memory in the system"
         name = "$SystemMemory"
+        summary_text = "get the total amount of physical memory in the system"
 
         def evaluate(self, evaluation: Evaluation) -> Integer:
             totalmem = psutil.virtual_memory().total
@@ -828,12 +856,12 @@ if have_psutil:
         >> MemoryAvailable[]
          = ...
 
-        The relationship between $SystemMemory, MemoryAvailable, and MemoryInUse:
+        The relationship between \\$SystemMemory, MemoryAvailable, and MemoryInUse:
         >> $SystemMemory > MemoryAvailable[] > MemoryInUse[]
          = True
         """
 
-        summary_text = "the available amount of physical memory in the system"
+        summary_text = "get the available amount of physical memory in the system"
 
         def eval(self, evaluation: Evaluation) -> Integer:
             """MemoryAvailable[]"""
@@ -876,7 +904,7 @@ else:
          = -1
         """
 
-        summary_text = "the available amount of physical memory in the system"
+        summary_text = "get the available amount of physical memory in the system"
 
         def eval(self, evaluation: Evaluation) -> Integer:
             """MemoryAvailable[]"""

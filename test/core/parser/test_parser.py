@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 
@@ -6,12 +5,14 @@ import random
 import sys
 import unittest
 
-from mathics_scanner import (
+from mathics_scanner import SingleLineFeeder
+from mathics_scanner.errors import (
     IncompleteSyntaxError,
     InvalidSyntaxError,
-    ScanError,
-    SingleLineFeeder,
+    NamedCharacterSyntaxError,
+    SyntaxError,
 )
+from mathics_scanner.location import ContainerKind
 
 from mathics.core.parser.ast import Filename, Node, Number, String, Symbol
 from mathics.core.parser.parser import Parser
@@ -22,7 +23,9 @@ class ParserTests(unittest.TestCase):
         self.parser = Parser()
 
     def parse(self, s: str):
-        return self.parser.parse(SingleLineFeeder(s))
+        return self.parser.parse(
+            SingleLineFeeder(s, "<ParserTests>", ContainerKind.STRING)
+        )
 
     def check(self, expr1, expr2):
         if isinstance(expr1, str):
@@ -37,13 +40,16 @@ class ParserTests(unittest.TestCase):
             self.assertEqual(expr1, expr2)
 
     def scan_error(self, string):
-        self.assertRaises(ScanError, self.parse, string)
+        self.assertRaises(SyntaxError, self.parse, string)
 
     def incomplete_error(self, string):
         self.assertRaises(IncompleteSyntaxError, self.parse, string)
 
     def invalid_error(self, string):
         self.assertRaises(InvalidSyntaxError, self.parse, string)
+
+    def named_character_error(self, string):
+        self.assertRaises(NamedCharacterSyntaxError, self.parse, string)
 
 
 class PrecedenceTests(ParserTests):
@@ -167,7 +173,7 @@ class AtomTests(ParserTests):
         # self.check(r'"a\"b\\c"', String(r"a\"b\\c"))
         self.incomplete_error(r'"\"')
         self.invalid_error(r'\""')
-        self.invalid_error(r"abc \[fake]")
+        self.named_character_error(r"abc \[fake]")
 
     def testAccuracy(self):
         self.scan_error("1.5``")
@@ -630,7 +636,7 @@ class GeneralTests(ParserTests):
     def testInformation(self):
         self.check("??a", "Information[a, LongForm -> True]")
         self.check("a ?? b", "a Information[b, LongForm -> True]")
-        self.invalid_error("a ?? + b")
+        self.check("a ?? + b", 'Times[a, Missing["UnknownSymbol", Plus[b]]]')
         self.check("a + ?? b", "a + Information[b, LongForm -> True]")
         self.check("??a + b", "Information[a, LongForm -> True] + b")
         self.check("??a * b", "Information[a, Rule[LongForm, True]]*b")

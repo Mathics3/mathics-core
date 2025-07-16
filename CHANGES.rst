@@ -1,7 +1,59 @@
 CHANGES
 =======
 
-8.0.0
+New Builtins
+++++++++++++
+
+* ``$SessionID``
+* ``BinaryReadList``
+
+Internals
+---------
+
+Mathics scanner exceptions of class TranslateError are incompatible
+with previous versions, and now store error parameters, "name", "tag", and
+"args".
+
+8.0.1
+-----
+
+Feb 8, 2025
+
+Some work was made to the Mathics3 Kernel to work in Python 3.13.
+The maximum version of numpy was increased to < 2.3 so as to allow marimo to work.
+
+
+Bugs
+----
+
+Correct for mismatch between ListExpression and tuple in ``DispatchAtom``.
+This is needed for PacletManager code to work better.
+
+
+Compatibility
+-------------
+
+* When the result of an evaluation is ``Symbol`Null``, Mathics CLI
+  now does not show an ``Out[...]=`` line, following the behavior of
+  the WMA CLI.
+* Asymptote rendering of platonic solids added.
+
+
+Internals
+---------
+
+Document tagging code handles TeX math mode more completely. Image tags in PDF properly.
+
+Documentation
+-------------
+
+* Documentation has been gone over so that expressions are tagged in TeX. As a result the user guide and reference manual render much nicer in the PDF as well as in Django.
+* More links have been added. References to The Digital Library of Mathematical Functions https://dlmf.nist.gov/ have been added where appropriate.
+* Add mention of MathicsLive
+* Platonic solid render properly in PDF
+
+
+  8.0.0
 -----
 
 Jan 26, 2025

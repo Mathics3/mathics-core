@@ -17,7 +17,7 @@ def test_integrate():
         (
             "h=x;Integrate[Do[h=x*h,{5}]; h,x]",
             "x^7/7",
-            "a more agressive SymPy translation.",
+            "a more aggressive SymPy translation.",
         ),
     ):
         session.evaluate("Clear[h]; Clear[g]; Clear[f];")

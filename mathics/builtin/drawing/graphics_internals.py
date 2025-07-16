@@ -26,7 +26,7 @@ class _GraphicsDirective(BuiltinElement, ABC):
 
 
 class _GraphicsElementBox(BoxExpression, ABC):
-    def init(self, graphics, item=None, style=None, opacity=1.0):
+    def init(self, graphics, item=None, style={}, opacity=1.0):
         if item is not None and not item.has_form(self.get_name(), None):
             raise BoxExpressionError
         self.graphics = graphics

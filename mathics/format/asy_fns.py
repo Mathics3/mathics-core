@@ -51,7 +51,7 @@ def asy_bezier(*segments):
             list(chain(p1, p2, p3))
         )
 
-    def quadratric(qp0, qp1, qp2):
+    def quadratic(qp0, qp1, qp2):
         # asymptote only supports cubic beziers, so we convert this quadratic
         # bezier to a cubic bezier, see http://fontforge.github.io/bezier.html
 
@@ -75,7 +75,7 @@ def asy_bezier(*segments):
     def linear(p0, p1):
         return "--(%.5g,%.5g)" % p1
 
-    forms = (linear, quadratric, cubic)
+    forms = (linear, quadratic, cubic)
 
     def path(max_degree, p):
         max_degree = min(max_degree, len(forms))

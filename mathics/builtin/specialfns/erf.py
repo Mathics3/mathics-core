@@ -2,6 +2,10 @@
 
 """
 Error Function and Related Functions
+
+See also <url>
+:Chapter 7 Error Functions, Dawson's and Fresnel Integrals:
+https://dlmf.nist.gov/7</url>.
 """
 
 
@@ -20,11 +24,11 @@ class Erf(MPMathMultiFunction):
     :WMA: https://reference.wolfram.com/language/ref/Erf.html</url>)
 
     <dl>
-      <dt>'Erf[$z$]'
+      <dt>'Erf'[$z$]
       <dd>returns the error function of $z$.
 
-      <dt>'Erf[$z0$, $z1$]'
-      <dd>returns the result of 'Erf[$z1$] - Erf[$z0$]'.
+      <dt>'Erf'[$z_0$, $z_1$]
+      <dd>returns the result of 'Erf[$z_1$] - Erf[$z_0$]'.
     </dl>
 
     'Erf[$x$]' is an odd function:
@@ -67,7 +71,7 @@ class Erfc(MPMathFunction):
     https://reference.wolfram.com/language/ref/Erfc.html</url>)
 
     <dl>
-      <dt>'Erfc[$z$]'
+      <dt>'Erfc'[$z$]
       <dd>returns the complementary error function of $z$.
     </dl>
 
@@ -99,7 +103,7 @@ class FresnelC(MPMathFunction):
     :WMA:
     https://reference.wolfram.com/language/ref/FresnelC.html</url>)
     <dl>
-      <dt>'FresnelC[$z$]'
+      <dt>'FresnelC'[$z$]
       <dd>is the Fresnel C integral $C$($z$).
     </dl>
 
@@ -130,7 +134,7 @@ class FresnelS(MPMathFunction):
     https://reference.wolfram.com/language/ref/FresnelS.html</url>)
 
     <dl>
-      <dt>'FresnelS[$z$]'
+      <dt>'FresnelS'[$z$]
       <dd>is the Fresnel S integral $S$($z$).
     </dl>
 
@@ -160,7 +164,7 @@ class InverseErf(MPMathFunction):
      https://reference.wolfram.com/language/ref/InverseErf.html</url>)
 
     <dl>
-      <dt>'InverseErf[$z$]'
+      <dt>'InverseErf'[$z$]
       <dd>returns the inverse error function of $z$.
     </dl>
 
@@ -209,7 +213,7 @@ class InverseErfc(MPMathFunction):
     :WMA:
     https://reference.wolfram.com/language/ref/InverseErfc.html</url>)
     <dl>
-      <dt>'InverseErfc[$z$]'
+      <dt>'InverseErfc'[$z$]
       <dd>returns the inverse complementary error function of $z$.
     </dl>
 

@@ -6,9 +6,6 @@ Mathematical Constants
 Numeric, Arithmetic, or Symbolic constants like Pi, E, or Infinity.
 """
 
-# This tells documentation how to sort this module
-sort_order = "mathics.builtin.mathematical-constants"
-
 import math
 from typing import Dict, Optional
 
@@ -24,6 +21,9 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.number import MACHINE_DIGITS, PrecisionValueError, get_precision, prec
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolIndeterminate
+
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.mathematical-constants"
 
 
 def mp_constant(fn: str, d=None) -> mpmath.mpf:
@@ -81,6 +81,7 @@ class _Constant_Common(Predefined):
         return self.get_constant(precision, evaluation)
 
     def is_constant(self) -> bool:
+        """The value and evaluation of this object can never change."""
         return True
 
     def get_constant(
@@ -190,7 +191,7 @@ class _NumpyConstant(_Constant_Common):
             value_float = self.to_numpy(self.symbol)
         NUMERICAL_CONSTANTS[self.symbol] = MachineReal(value_float)
 
-    def to_numpy(self, args):
+    def to_numpy(self, _):
         return NUMERICAL_CONSTANTS[self.symbol]
 
 
@@ -285,6 +286,10 @@ class ComplexInfinity(_SympyConstant):
         "ComplexInfinity": "DirectedInfinity[]",
     }
 
+    @property
+    def sympy(self) -> sympy.core.numbers.ComplexInfinity:
+        return zoo
+
 
 class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
@@ -375,6 +380,10 @@ class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
         "N[E, precision_]"
         return self.get_constant(precision, evaluation)
 
+    @property
+    def sympy(self) -> sympy.core.numbers.Exp1:
+        return SymPyE
+
 
 class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
@@ -400,6 +409,10 @@ class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
     mpmath_name = "euler"
     numpy_name = "euler_gamma"
     sympy_name = "EulerGamma"
+
+    @property
+    def sympy(self) -> sympy.core.numbers.EulerGamma:
+        return S.EulerGamma
 
 
 class Glaisher(_MPMathConstant):
@@ -571,7 +584,7 @@ class Overflow(Builtin):
 
     See also <url>
     :Integer Overflow:
-    <https://en.wikipedia.org/wiki/Integer_overflow></url>.
+    https://en.wikipedia.org/wiki/Integer_overflow</url>.
 
     <dl>
       <dt>'Overflow[]'
@@ -595,19 +608,19 @@ class Overflow(Builtin):
 
 
 class MaxMachineNumber(Predefined):
-    """
+    r"""
     Largest normalizable machine number (<url>
     :WMA:
-    https://reference.wolfram.com/language/ref/$MaxMachineNumber.html
+    https://reference.wolfram.com/language/ref/\$MaxMachineNumber.html
     </url>)
 
     <dl>
-      <dt>'$MaxMachineNumber'
+      <dt>'\$MaxMachineNumber'
       <dd>Represents the largest positive number that can be represented \
           as a normalized machine number in the system.
     </dl>
 
-    The product of '$MaxMachineNumber' and  '$MinMachineNumber' is a constant:
+    The product of '\$MaxMachineNumber' and  '\$MinMachineNumber' is a constant:
     >> $MaxMachineNumber * $MinMachineNumber
      = 4.
 
@@ -621,14 +634,14 @@ class MaxMachineNumber(Predefined):
 
 
 class MinMachineNumber(Predefined):
-    """
+    r"""
     Smallest normalizable machine number (<url>
     :WMA:
-    https://reference.wolfram.com/language/ref/$MinMachineNumber.html
+    https://reference.wolfram.com/language/ref/\$MinMachineNumber.html
     </url>)
 
     <dl>
-      <dt>'$MinMachineNumber'
+      <dt>'\$MinMachineNumber'
       <dd>Represents the smallest positive number that can be represented \
           as a normalized machine number in the system.
     </dl>

@@ -47,9 +47,9 @@ class AddTo(InfixOperator, InplaceInfixOperator):
     <url>:WMA link:https://reference.wolfram.com/language/ref/AddTo.html</url>
 
     <dl>
-      <dt>'AddTo[$x$, $dx$]'
-      <dt>'$x$ += $dx$'
-      <dd>is equivalent to '$x$ = $x$ + $dx$'.
+      <dt>'AddTo'[$x$, $dx$]
+      <dt>$x$ '+=' $dx$
+      <dd>is equivalent to $x$ '=' $x$ '+' $dx$.
     </dl>
 
     >> a = 10;
@@ -86,9 +86,9 @@ class Decrement(InplaceInfixOperator, InfixOperator, PostfixOperator):
     :https://reference.wolfram.com/language/ref/Decrement.html</url>
 
     <dl>
-      <dt>'Decrement[$x$]'
+      <dt>'Decrement'[$x$]
 
-      <dt>'$x$--'
+      <dt>$x$'--'
       <dd>decrements $x$ by 1, returning the original value of $x$.
     </dl>
 
@@ -132,9 +132,9 @@ class DivideBy(InplaceInfixOperator, InfixOperator):
     <url>:WMA link:https://reference.wolfram.com/language/ref/DivideBy.html</url>
 
     <dl>
-      <dt>'DivideBy[$x$, $dx$]'
-      <dt>'$x$ /= $dx$'
-      <dd>is equivalent to '$x$ = $x$ / $dx$'.
+      <dt>'DivideBy'[$x$, $dx$]
+      <dt>$x$ '/=' $dx$
+      <dd>is equivalent to $x$ = $x$ '/' $dx$.
     </dl>
 
     >> a = 10;
@@ -159,9 +159,9 @@ class Increment(InplaceInfixOperator, InfixOperator, PostfixOperator):
     https://reference.wolfram.com/language/ref/Increment.html</url>
 
     <dl>
-      <dt>'Increment[$x$]'
+      <dt>'Increment'[$x$]
 
-      <dt>'$x$++'
+      <dt>$x$'++'
       <dd>increments $x$ by 1, returning the original value of $x$.
     </dl>
 
@@ -215,13 +215,13 @@ class PreDecrement(InplaceInfixOperator, PrefixOperator):
     https://reference.wolfram.com/language/ref/PreDecrement.html</url>
 
     <dl>
-      <dt>'PreDecrement[$x$]'
+      <dt>'PreDecrement'[$x$]
 
-      <dt>'--$x$'
+      <dt>'--'$x$
       <dd>decrements $x$ by 1, returning the new value of $x$.
     </dl>
 
-    '--$a$' is equivalent to '$a$ = $a$ - 1':
+    '--'$a$ is equivalent to $a$ '=' $a$ '- 1':
     >> a = 2;
     >> --a
      = 1
@@ -250,12 +250,12 @@ class PreIncrement(InplaceInfixOperator, PrefixOperator):
     https://reference.wolfram.com/language/ref/PreIncrement.html</url>
 
     <dl>
-      <dt>'PreIncrement[$x$]'
-      <dt>'++$x$'
+      <dt>'PreIncrement'[$x$]
+      <dt>'++'$x$
       <dd>increments $x$ by 1, returning the new value of $x$.
     </dl>
 
-    '++$a$' is equivalent to '$a$ = $a$ + 1':
+    '++'$a$ is equivalent to $a$ '=' $a$ '+ 1':
     >> a = 2
      = 2
 
@@ -303,9 +303,9 @@ class SubtractFrom(InfixOperator):
     https://reference.wolfram.com/language/ref/SubtractFrom.html</url>
 
     <dl>
-      <dt>'SubtractFrom[$x$, $dx$]'
-      <dt>'$x$ -= $dx$'
-      <dd>is equivalent to '$x$ = $x$ - $dx$'.
+      <dt>'SubtractFrom'[$x$, $dx$]
+      <dt>$x$ '-=' $dx$
+      <dd>is equivalent to $x$ '=' $x$ '-' $dx$.
     </dl>
 
     >> a = 10;
@@ -331,9 +331,9 @@ class TimesBy(InfixOperator):
     <url>:WMA link:https://reference.wolfram.com/language/ref/TimesBy.html</url>
 
     <dl>
-      <dt>'TimesBy[$x$, $dx$]'
-      <dt>'$x$ *= $dx$'
-      <dd>is equivalent to '$x$ = $x$ * $dx$'.
+      <dt>'TimesBy'[$x$, $dx$]
+      <dt>$x$ '*=' $dx$
+      <dd>is equivalent to $x$ '=' $x$ '*' $dx$.
     </dl>
 
     >> a = 10;
