@@ -22,16 +22,24 @@ from io import StringIO
 from time import time
 from typing import Callable
 
+import mathics_scanner.location
+
 import mathics.eval.tracing
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
-from mathics.core.builtin import Builtin
+from mathics.core.builtin import Builtin, Predefined
 from mathics.core.convert.python import from_bool, from_python
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import FunctionApplyRule
-from mathics.core.symbols import SymbolFalse, SymbolNull, SymbolTrue, strip_context
+from mathics.core.symbols import (
+    Symbol,
+    SymbolFalse,
+    SymbolNull,
+    SymbolTrue,
+    strip_context,
+)
 
 
 def traced_apply_function(
@@ -101,7 +109,7 @@ class ClearTrace(Builtin):
 
 
 class PrintTrace(_TraceBase):
-    """
+    r"""
     ## <url>:trace native symbol:</url>
 
     <dl>
@@ -120,7 +128,7 @@ class PrintTrace(_TraceBase):
     Note that in a browser the information only appears in a console.
 
 
-    Note: before '$TraceBuiltins' is set to 'True', 'PrintTrace[]' will print an empty
+    Note: before '\$TraceBuiltins' is set to 'True', 'PrintTrace[]' will print an empty
     list.
     >> PrintTrace[] (* See console log *)
 
@@ -151,7 +159,7 @@ class TraceBuiltins(_TraceBase):
     ## <url>:trace native symbol:</url>
 
     <dl>
-      <dt>'TraceBuiltins[$expr$]'
+      <dt>'TraceBuiltins'[$expr$]
       <dd>Evaluate $expr$ and then print a list of the Built-in Functions called \
           in evaluating $expr$ along with the number of times is each called, \
           and combined elapsed time in milliseconds spent in each.
@@ -277,11 +285,11 @@ class TraceBuiltins(_TraceBase):
 # The convention is to use the name of the variable without the "$" as
 # the class name, but it is already taken by the builtin `TraceBuiltins`
 class TraceBuiltinsVariable(Builtin):
-    """
+    r"""
     ## <url>:trace native symbol:</url>
 
     <dl>
-      <dt>'$TraceBuiltins'
+      <dt>'\$TraceBuiltins'
       <dd>A Boolean Built-in variable when True collects function evaluation statistics.
     </dl>
 
@@ -310,7 +318,7 @@ class TraceBuiltinsVariable(Builtin):
     To  clear statistics collected use 'ClearTrace[]':
     X> ClearTrace[]
 
-    '$TraceBuiltins'  cannot be set to a non-boolean value.
+    '\$TraceBuiltins'  cannot be set to a non-boolean value.
     >> $TraceBuiltins = x
      : x should be True or False.
      = x
@@ -349,7 +357,7 @@ class TraceEvaluation(Builtin):
     ## <url>:trace native symbol:</url>
 
     <dl>
-      <dt>'TraceEvaluation[$expr$]'
+      <dt>'TraceEvaluation'[$expr$]
       <dd>Evaluate $expr$ and print each step of the evaluation.
     </dl>
 
@@ -404,11 +412,11 @@ class TraceEvaluation(Builtin):
 
 
 class TraceEvaluationVariable(Builtin):
-    """
+    r"""
     ## <url>:trace native symbol:</url>
 
     <dl>
-      <dt>'$TraceEvaluation'
+      <dt>'\$TraceEvaluation'
       <dd>A Boolean variable which when set True traces Expression evaluation calls and returns.
     </dl>
 
@@ -429,7 +437,7 @@ class TraceEvaluationVariable(Builtin):
 
     >> a + a
      = 2 a
-    '$TraceEvaluation' cannot be set to a non-boolean value.
+    '\$TraceEvaluation' cannot be set to a non-boolean value.
     >> $TraceEvaluation = x
      : x should be True or False.
      = x
@@ -464,7 +472,7 @@ class PythonCProfileEvaluation(Builtin):
     <url>:Python:https://docs.python.org/3/library/profile.html</url>
 
     <dl>
-      <dt>'PythonProfileEvaluation[$expr$]'
+      <dt>'PythonProfileEvaluation'[$expr$]
       <dd>profile $expr$ with the Python's cProfiler.
     </dl>
 
@@ -493,3 +501,33 @@ class PythonCProfileEvaluation(Builtin):
         else:
             result = expr.evaluate(evaluation)
         return ListExpression(result, profile_result)
+
+
+class TrackLocations(Predefined):
+    r"""## <url>:TrackLocations native symbol:</url>
+
+    <dl>
+      <dt>'$TrackLocations'
+      <dd>specifies whether we should track \
+      source-text location information during evaluation. This \
+      can be helpful in debugging when there is a failure.
+    </dl>
+    """
+
+    name = "$TrackLocations"
+    messages = {"bool": "`1` should be True or False."}
+
+    summary_text = "track source-text locations in evaluation"
+
+    def evaluate(self, evaluation: Evaluation) -> Symbol:
+        print(mathics_scanner.location.MATHICS3_PATHS)
+        return from_bool(mathics_scanner.location.TRACK_LOCATIONS)
+
+    def eval_set(self, value, evaluation):
+        """Set[$TrackLocations, value_]"""
+        if value is SymbolTrue or value is SymbolFalse:
+            evaluation.definitions.set_ownvalue("System`$TrackLocations", value)
+            mathics.core.parser.parser.TRACK_LOCATIONS = value.to_python()
+        else:
+            evaluation.message("$TrackLocations", "bool", value)
+        return value

@@ -18,7 +18,6 @@ Mathics3 represents tensors of vectors and matrices as lists; tensors \
 of any rank can be handled.
 """
 
-
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
 from mathics.core.builtin import Builtin, InfixOperator
@@ -28,6 +27,7 @@ from mathics.eval.tensors import (
     eval_Inner,
     eval_LeviCivitaTensor,
     eval_Outer,
+    eval_Transpose2D,
     get_dimensions,
 )
 
@@ -38,7 +38,7 @@ class ArrayDepth(Builtin):
     https://reference.wolfram.com/language/ref/ArrayDepth.html</url>
 
     <dl>
-      <dt>'ArrayDepth[$a$]'
+      <dt>'ArrayDepth'[$a$]
       <dd>returns the depth of the non-ragged array $a$, defined as \
       'Length[Dimensions[$a$]]'.
     </dl>
@@ -61,7 +61,7 @@ class Dimensions(Builtin):
     <url>:WMA: https://reference.wolfram.com/language/ref/Dimensions.html</url>
 
     <dl>
-    <dt>'Dimensions[$expr$]'
+    <dt>'Dimensions'[$expr$]
         <dd>returns a list of the dimensions of the expression $expr$.
     </dl>
 
@@ -96,7 +96,7 @@ class Dot(InfixOperator):
     (<url>:WMA link: https://reference.wolfram.com/language/ref/Dot.html</url>)
 
     <dl>
-      <dt>'Dot[$x$, $y$]'
+      <dt>'Dot'[$x$, $y$]
       <dt>'$x$ . $y$'
       <dd>computes the vector dot product or matrix product $x$ . $y$.
     </dl>
@@ -128,7 +128,7 @@ class Inner(Builtin):
     <url>:WMA link: https://reference.wolfram.com/language/ref/Inner.html</url>
 
     <dl>
-    <dt>'Inner[$f$, $x$, $y$, $g$]'
+    <dt>'Inner'[$f$, $x$, $y$, $g$]
         <dd>computes a generalised inner product of $x$ and $y$, using
         a multiplication function $f$ and an addition function $g$.
     </dl>
@@ -174,7 +174,7 @@ class Outer(Builtin):
     (<url>:WMA link: https://reference.wolfram.com/language/ref/Outer.html</url>)
 
     <dl>
-      <dt>'Outer[$f$, $x$, $y$]'
+      <dt>'Outer'[$f$, $x$, $y$]
       <dd>computes a generalised outer product of $x$ and $y$, using the function $f$ in place of multiplication.
     </dl>
 
@@ -229,10 +229,10 @@ class RotationTransform(Builtin):
     <url>:WMA link: https://reference.wolfram.com/language/ref/RotationTransform.html</url>
 
     <dl>
-      <dt>'RotationTransform[$phi$]'
+      <dt>'RotationTransform'[$phi$]
       <dd>gives a rotation by $phi$.
 
-      <dt>'RotationTransform[$phi$, $p$]'
+      <dt>'RotationTransform'[$phi$, $p$]
       <dd>gives a rotation by $phi$ around the point $p$.
     </dl>
     """
@@ -249,10 +249,10 @@ class ScalingTransform(Builtin):
     <url>:WMA link: https://reference.wolfram.com/language/ref/ScalingTransform.html</url>
 
     <dl>
-      <dt>'ScalingTransform[$v$]'
+      <dt>'ScalingTransform'[$v$]
       <dd>gives a scaling transform of $v$. $v$ may be a scalar or a vector.
 
-      <dt>'ScalingTransform[$phi$, $p$]'
+      <dt>'ScalingTransform'[$phi$, $p$]
       <dd>gives a scaling transform of $v$ that is centered at the point $p$.
     </dl>
     """
@@ -269,11 +269,11 @@ class ShearingTransform(Builtin):
     <url>:WMA link: https://reference.wolfram.com/language/ref/ShearingTransform.html</url>
 
     <dl>
-    <dt>'ShearingTransform[$phi$, {1, 0}, {0, 1}]'
+    <dt>'ShearingTransform'[$phi$, {1, 0}, {0, 1}]
         <dd>gives a horizontal shear by the angle $phi$.
-    <dt>'ShearingTransform[$phi$, {0, 1}, {1, 0}]'
+    <dt>'ShearingTransform'[$phi$, {0, 1}, {1, 0}]
         <dd>gives a vertical shear by the angle $phi$.
-    <dt>'ShearingTransform[$phi$, $u$, $u$, $p$]'
+    <dt>'ShearingTransform'[$phi$, $u$, $u$, $p$]
         <dd>gives a shear centered at the point $p$.
     </dl>
     """
@@ -291,7 +291,7 @@ class TransformationFunction(Builtin):
     <url>:WMA link: https://reference.wolfram.com/language/ref/TransformationFunction.html</url>
 
     <dl>
-      <dt>'TransformationFunction[$m$]'
+      <dt>'TransformationFunction'[$m$]
       <dd>represents a transformation.
     </dl>
 
@@ -316,7 +316,7 @@ class TranslationTransform(Builtin):
     https://reference.wolfram.com/language/ref/TranslationTransform.html</url>
 
     <dl>
-      <dt>'TranslationTransform[$v$]'
+      <dt>'TranslationTransform'[$v$]
       <dd>gives a 'TransformationFunction' that translates points by vector $v$.
     </dl>
 
@@ -347,7 +347,7 @@ class Transpose(Builtin):
     :WMA: https://reference.wolfram.com/language/ref/Transpose.html</url>)
 
     <dl>
-      <dt>'Transpose[$m$]'
+      <dt>'Transpose'[$m$]
       <dd>transposes rows and columns in the matrix $m$.
     </dl>
 
@@ -378,15 +378,7 @@ class Transpose(Builtin):
 
     def eval(self, m, evaluation: Evaluation):
         "Transpose[m_?MatrixQ]"
-
-        result = []
-        for row_index, row in enumerate(m.elements):
-            for col_index, item in enumerate(row.elements):
-                if row_index == 0:
-                    result.append([item])
-                else:
-                    result[col_index].append(item)
-        return ListExpression(*[ListExpression(*row) for row in result])
+        return eval_Transpose2D(m)
 
 
 class ConjugateTranspose(Builtin):
@@ -396,7 +388,7 @@ class ConjugateTranspose(Builtin):
     :WMA: https://reference.wolfram.com/language/ref/ConjugateTranspose.html</url>)
 
     <dl>
-      <dt>'ConjugateTranspose[$m$]'
+      <dt>'ConjugateTranspose'[$m$]
       <dd>gives the conjugate transpose of $m$.
     </dl>
 
@@ -419,7 +411,7 @@ class LeviCivitaTensor(Builtin):
     (<url>:WMA link:https://reference.wolfram.com/language/ref/LeviCivitaTensor.html</url>)
 
     <dl>
-      <dt>'LeviCivitaTensor[$d$]'
+      <dt>'LeviCivitaTensor'[$d$]
       <dd>gives the $d$-dimensional Levi-Civita totally antisymmetric tensor.
     </dl>
 

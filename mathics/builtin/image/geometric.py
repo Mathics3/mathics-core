@@ -27,10 +27,10 @@ class ImageResize(Builtin):
     https://reference.wolfram.com/language/ref/ImageResize.html</url>
 
     <dl>
-      <dt>'ImageResize[$image$, $width$]'
+      <dt>'ImageResize'[$image$, $width$]
       <dd>
 
-      <dt>'ImageResize[$image$, {$width$, $height$}]'
+      <dt>'ImageResize'[$image$, {$width$, $height$}]
       <dd>
     </dl>
 
@@ -139,13 +139,13 @@ class ImageReflect(Builtin):
     :WMA link:
     https://reference.wolfram.com/language/ref/ImageReflect.html</url>
     <dl>
-      <dt>'ImageReflect[$image$]'
+      <dt>'ImageReflect'[$image$]
       <dd>Flips $image$ top to bottom.
 
-      <dt>'ImageReflect[$image$, $side$]'
+      <dt>'ImageReflect'[$image$, $side$]
       <dd>Flips $image$ so that $side$ is interchanged with its opposite.
 
-      <dt>'ImageReflect[$image$, $side_1$ -> $side_2$]'
+      <dt>'ImageReflect'[$image$, $side_1$ -> $side_2$]
       <dd>Flips $image$ so that $side_1$ is interchanged with $side_2$.
     </dl>
 
@@ -208,9 +208,9 @@ class ImageRotate(Builtin):
     https://reference.wolfram.com/language/ref/ImageRotate.html</url>
 
     <dl>
-    <dt>'ImageRotate[$image$]'
+    <dt>'ImageRotate'[$image$]
       <dd>Rotates $image$ 90 degrees counterclockwise.
-    <dt>'ImageRotate[$image$, $theta$]'
+    <dt>'ImageRotate'[$image$, $theta$]
       <dd>Rotates $image$ by a given angle $theta$
     </dl>
 

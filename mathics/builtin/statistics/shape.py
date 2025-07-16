@@ -11,7 +11,7 @@ class Kurtosis(Builtin):
     """
     <url>:Kurtosis: https://en.wikipedia.org/wiki/Kurtosis</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Kurtosis.html</url>)
     <dl>
-      <dt>'Kurtosis[$list$]'
+      <dt>'Kurtosis'[$list$]
       <dd>gives the Pearson measure of kurtosis for $list$ (a measure of existing outliers).
     </dl>
 
@@ -30,7 +30,7 @@ class Skewness(Builtin):
     <url>:Skewness: https://en.wikipedia.org/wiki/Skewness</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Skewness.html</url>)
 
     <dl>
-      <dt>'Skewness[$list$]'
+      <dt>'Skewness'[$list$]
       <dd>gives Pearson's moment coefficient of skewness for $list$ (a measure for estimating the symmetry of a distribution).
     </dl>
 

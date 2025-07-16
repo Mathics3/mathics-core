@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.11']
+        python-version: ['3.13']
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
@@ -26,12 +26,6 @@ jobs:
         python -m pip install --upgrade pip
         # We can comment out after next Mathics-Scanner release
         python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
-        git clone --depth 1 https://github.com/Mathics3/mathics-scanner.git
-        # git clone --single-branch --branch operator-refactor-part1.5 https://github.com/Mathics3/mathics-scanner.git
-        cd src/mathics-scanner/
-        pip install -e .
-        python -m mathics_scanner.generate.build_tables
-        cd ../..
     - name: Run Mathics3 Combinatorica tests
       run: |
         git submodule init

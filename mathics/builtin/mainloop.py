@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 The Main Loop
 
 An interactive session operates a loop, called the "main loop" in this way:
@@ -16,10 +16,10 @@ As part of this loop, various global objects in this section are consulted.
 There are a variety of "hooks" that allow you to insert functions to be applied to the expressions at various stages \
 in the main loop.
 
-If you assign a function to the global variable '$PreRead' it will be applied with the input that is read in the first \
+If you assign a function to the global variable '\$PreRead' it will be applied with the input that is read in the first \
 step listed above.
 
-Similarly, if you assign a function to global variable '$Pre', it will be applied with the input before processing the \
+Similarly, if you assign a function to global variable '\$Pre', it will be applied with the input before processing the \
 input, the second step listed above.
 """
 
@@ -31,10 +31,10 @@ sort_order = "mathics.builtin.the-main-loop"
 
 
 class HistoryLength(Builtin):
-    """
+    r"""
     <url>:WMA: https://reference.wolfram.com/language/ref/$HistoryLength</url>
     <dl>
-      <dt>'$HistoryLength'
+      <dt>'\$HistoryLength'
       <dd>specifies the maximum number of 'In' and 'Out' entries.
     </dl>
 
@@ -66,8 +66,8 @@ class In(Builtin):
     """
     <url>:WMA: https://reference.wolfram.com/language/ref/In</url>
     <dl>
-      <dt>'In[$k$]'
-        <dd>gives the $k$th line of input.
+      <dt>'In'[$k$]
+        <dd>gives the $k$-th line of input.
       </dl>
 
     >> x = 1
@@ -104,10 +104,10 @@ class In(Builtin):
 
 
 class IOHookPreRead(Builtin):
-    """
-    <url>:WMA: https://reference.wolfram.com/language/ref/$PreRead</url>
+    r"""
+    <url>:WMA: https://reference.wolfram.com/language/ref/\$PreRead</url>
     <dl>
-      <dt>$PreRead
+      <dt>\$PreRead
       <dd> is a global variable whose value, if set, is applied to the \
       text or box form of every input expression before it is fed to the parser.
 
@@ -123,15 +123,15 @@ class IOHookPreRead(Builtin):
 
 
 class IOHookPre(Builtin):
-    """
-    <url>:WMA: https://reference.wolfram.com/language/ref/$Pre</url>
+    r"""
+    <url>:WMA: https://reference.wolfram.com/language/ref/\$Pre</url>
     <dl>
-      <dt>$Pre
+      <dt>'\$Pre'
       <dd>is a global variable whose value, if set, is applied to every input expression.
     </dl>
 
-    Set $Timing$ as the $Pre function, stores the elapsed time in a variable,
-    stores just the result in Out[$Line] and print a formatted version showing the elapsed time
+    Set 'Timing' as the '\$Pre' function, stores the elapsed time in a variable,
+    stores just the result in 'Out[\$Line]' and print a formatted version showing the elapsed time
     >> $Pre := (Print["[Processing input...]"];#1)&
     >> $Post := (Print["[Storing result...]"]; #1)&
      | [Processing input...]
@@ -156,10 +156,10 @@ class IOHookPre(Builtin):
 
 
 class IOHookPost(Builtin):
-    """
-    <url>:WMA: https://reference.wolfram.com/language/ref/$Post</url>
+    r"""
+    <url>:WMA: https://reference.wolfram.com/language/ref/\$Post</url>
     <dl>
-      <dt>$Post
+      <dt>'\$Post'
       <dd>is a global variable whose value, if set, is applied to every output expression.
     </dl>
     """
@@ -170,10 +170,10 @@ class IOHookPost(Builtin):
 
 
 class IOHookPrePrint(Builtin):
-    """
-    <url>:WMA: https://reference.wolfram.com/language/ref/$PrePrint</url>
+    r"""
+    <url>:WMA: https://reference.wolfram.com/language/ref/\$PrePrint</url>
     <dl>
-      <dt>$PrePrint
+      <dt>'\$PrePrint'
       <dd>is a global variable whose value, if set, is applied to every output expression before it is printed.
     </dl>
     """
@@ -186,10 +186,10 @@ class IOHookPrePrint(Builtin):
 
 
 class IOHookSyntaxHandler(Builtin):
-    """
-    <url>:WMA: https://reference.wolfram.com/language/ref/$SyntaxHandler</url>
+    r"""
+    <url>:WMA: https://reference.wolfram.com/language/ref/\$SyntaxHandler</url>
     <dl>
-      <dt>$SyntaxHandler
+      <dt>'\$SyntaxHandler'
       <dd>is a global variable whose value, if set, is applied to any input string that is found to contain a syntax \
           error.
 
@@ -203,10 +203,10 @@ class IOHookSyntaxHandler(Builtin):
 
 
 class Line(Builtin):
-    """
+    r"""
     <url>:WMA: https://reference.wolfram.com/language/ref/$Line</url>
     <dl>
-      <dt>'$Line'
+      <dt>'\$Line'
       <dd>holds the current input line number.
     </dl>
 

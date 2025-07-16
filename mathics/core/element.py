@@ -359,7 +359,7 @@ class BaseElement(KeyComparable, ABC):
         else:
             return tuple([self])
 
-    def get_string_value(self):
+    def get_string_value(self) -> Optional[str]:
         return None
 
     @property
@@ -431,13 +431,13 @@ class BaseElement(KeyComparable, ABC):
         raise NotImplementedError
 
     def to_python(self, *args, **kwargs):
-        # Returns a native builtin Python object
-        # something in (int, float, complex, str, tuple, list or dict.).
-        # (See discussions in
-        #  https://github.com/Mathics3/mathics-core/discussions/550
-        # and
-        # https://github.com/Mathics3/mathics-core/pull/551
-        #
+        """Returns a native builtin Python object
+        something in (int, float, complex, str, tuple, list or dict.).
+        (See discussions in
+        https://github.com/Mathics3/mathics-core/discussions/550
+        and
+        https://github.com/Mathics3/mathics-core/pull/551
+        """
         raise NotImplementedError
 
     def to_mpmath(self):

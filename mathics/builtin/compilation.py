@@ -37,11 +37,11 @@ class Compile(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Compile.html</url>
 
     <dl>
-      <dt>'Compile[{$x1$, $x2$, ...}, $expr$]'
+      <dt>'Compile'[{$x_1$, $x_2$, ...}, $expr$]
       <dd>Compiles $expr$ assuming each $xi$ is a $Real$ number.
 
-      <dt>'Compile[{{$x1$, $t1$} {$x2$, $t1$} ...}, $expr$]'
-      <dd>Compiles assuming each $xi$ matches type $ti$.
+      <dt>'Compile'[{{$x_1$, $t_1$} {$x_2$, $t_1$} ...}, $expr$]
+      <dd>Compiles assuming each $x_i$ matches type $t_i$.
     </dl>
 
     Compilation is performed using llvmlite , or Python's builtin
@@ -166,7 +166,7 @@ class CompiledFunction(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/CompiledFunction.html</url>
 
     <dl>
-      <dt>'CompiledFunction[$args$...]'
+      <dt>'CompiledFunction'[$args$...]
       <dd>represents compiled code for evaluating a compiled function.
     </dl>
 

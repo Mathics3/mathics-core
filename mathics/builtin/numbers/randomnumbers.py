@@ -224,7 +224,7 @@ class Random(Builtin):
        <dt>'Random[]'
        <dd>gives a pseudorandom real number in the range 0 to 1.
 
-       <dt>'Random[$type$, $range$]'
+       <dt>'Random'[$type$, $range$]
        <dd>gives a pseudorandom number of the type $type$, in the specified interval $range$.
            Possible types are 'Integer', 'Real' or 'Complex'.
      </dl>
@@ -269,27 +269,27 @@ class RandomChoice(_RandomSelection):
 
     <dl>
 
-      <dt>'RandomChoice[$items$]'
+      <dt>'RandomChoice'[$items$]
       <dd>randomly picks one item from $items$.
 
-      <dt>'RandomChoice[$items$, $n$]'
+      <dt>'RandomChoice'[$items$, $n$]
       <dd>randomly picks $n$ items from $items$. Each pick in the $n$ picks happens \
           from the given set of $items$, so each item can be picked any number of times.
 
-      <dt>'RandomChoice[$items$, {$n1$, $n2$, ...}]'
+      <dt>'RandomChoice'[$items$, {$n_1$, $n_2$, ...}]
       <dd>randomly picks items from $items$ and arranges the picked items in the \
-          nested list structure described by {$n1$, $n2$, ...}.
+          nested list structure described by {$n_1$, $n_2$, ...}.
 
-      <dt>'RandomChoice[$weights$ -> $items$, $n$]'
+      <dt>'RandomChoice'[$weights$ -> $items$, $n$]
       <dd>randomly picks $n$ items from $items$ and uses the corresponding numeric \
           values in $weights$ to determine how probable it is for each item in $items$ \
           to get picked (in the long run, items with higher weights will get picked \
           more often than ones with lower weight).
 
-      <dt>'RandomChoice[$weights$ -> $items$]'
+      <dt>'RandomChoice'[$weights$ -> $items$]
       <dd>randomly picks one items from $items$ using weights $weights$.
 
-      <dt>'RandomChoice[$weights$ -> $items$, {$n1$, $n2$, ...}]'
+      <dt>'RandomChoice'[$weights$ -> $items$, {$n_1$, $n_2$, ...}]
       <dd>randomly picks a structured list of items from $items$ using weights \
           $weights$.
     </dl>
@@ -325,22 +325,22 @@ class RandomComplex(Builtin):
     https://reference.wolfram.com/language/ref/RandomComplex.html</url>
 
     <dl>
-      <dt>'RandomComplex[{$z_min$, $z_max$}]'
+      <dt>'RandomComplex'[{$z_{min}$, $z_{max}$}]
       <dd>yields a pseudorandom complex number in the rectangle with complex corners \
-          $z_min$ and $z_max$.
+          $z_{min}$ and $z_{max}$.
 
-      <dt>'RandomComplex[$z_max$]'
+      <dt>'RandomComplex'[$z_{max}$]
       <dd>yields a pseudorandom complex number in the rectangle with corners at the \
-          origin and at $z_max$.
+          origin and at $z_{max}$.
 
       <dt>'RandomComplex[]'
       <dd>yields a pseudorandom complex number with real and imaginary parts from 0 \
           to 1.
 
-      <dt>'RandomComplex[$range$, $n$]'
+      <dt>'RandomComplex'[$range$, $n$]
       <dd>gives a list of $n$ pseudorandom complex numbers.
 
-      <dt>'RandomComplex[$range$, {$n1$, $n2$, ...}]'
+      <dt>'RandomComplex'[$range$, {$n_1$, $n_2$, ...}]
       <dd>gives a nested list of pseudorandom complex numbers.
     </dl>
 
@@ -424,7 +424,7 @@ class RandomComplex(Builtin):
             return
 
         py_ns = ns.to_python()
-        if not isinstance(py_ns, list):
+        if not isinstance(py_ns, (list, tuple)):
             py_ns = [py_ns]
 
         if not all(isinstance(i, int) and i >= 0 for i in py_ns):
@@ -440,26 +440,26 @@ class RandomComplex(Builtin):
 
 
 class RandomInteger(Builtin):
-    """
+    r"""
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/RandomInteger.html</url>
     <dl>
-      <dt>'RandomInteger[{$min$, $max$}]'
+      <dt>'RandomInteger'[{$min$, $max$}]
       <dd>yields a pseudorandom integer in the range from $min$ to \
           $max$ inclusive.
 
-      <dt>'RandomInteger[$max$]'
+      <dt>'RandomInteger'[$max$]
       <dd>yields a pseudorandom integer in the range from 0 to $max$ \
          inclusive.
 
       <dt>'RandomInteger[]'
       <dd>gives 0 or 1.
 
-      <dt>'RandomInteger[$range$, $n$]'
+      <dt>'RandomInteger'[$range$, $n$]
       <dd>gives a list of $n$ pseudorandom integers.
 
-      <dt>'RandomInteger[$range$, {$n1$, $n2$, ...}]'
+      <dt>'RandomInteger'[$range$, {$n_1$, $n_2$, ...}]
       <dd>gives a nested list of pseudorandom integers.
     </dl>
 
@@ -471,7 +471,7 @@ class RandomInteger(Builtin):
      .
      . ...   ...   ...
 
-    Calling 'RandomInteger' changes '$RandomState':
+    Calling 'RandomInteger' changes '\$RandomState':
     >> previousState = $RandomState;
     >> RandomInteger[]
      = ...
@@ -524,20 +524,20 @@ class RandomReal(Builtin):
     https://reference.wolfram.com/language/ref/RandomReal.html</url>
 
     <dl>
-      <dt>'RandomReal[{$min$, $max$}]'
+      <dt>'RandomReal'[{$min$, $max$}]
       <dd>yields a pseudorandom real number in the range from $min$ to $max$.
 
-      <dt>'RandomReal[$max$]'
+      <dt>'RandomReal'[$max$]
       <dd>yields a pseudorandom real number in the range from 0 to $max$.
 
       <dt>'RandomReal[]'
       <dd>yields a pseudorandom real number in the range from 0 to 1.
 
-      <dt>'RandomReal[$range$, $n$]'
+      <dt>'RandomReal'[$range$, $n$]
       <dd>gives a list of $n$ pseudorandom real numbers.
 
-      <dt>'RandomReal[$range$, {$n1$, $n2$, ...}]'
-      <dd>gives an $n1$ x $n2$ array of pseudorandom real numbers.
+      <dt>'RandomReal'[$range$, {$n_1$, $n_2$, ...}]
+      <dd>gives an $n_1$ x $n_2$ array of pseudorandom real numbers.
     </dl>
 
     >> RandomReal[]
@@ -606,11 +606,11 @@ class RandomReal(Builtin):
 
 
 class RandomState(Builtin):
-    """
+    r"""
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/RandomState.html</url>
     <dl>
-      <dt>'$RandomState'
+      <dt>'\$RandomState'
       <dd>is a long number representing the internal state of the \
           pseudo-random number generator.
     </dl>
@@ -649,7 +649,7 @@ class SeedRandom(Builtin):
     :WMA link:
     https://reference.wolfram.com/language/ref/SeedRandom.html</url>
     <dl>
-      <dt>'SeedRandom[$n$]'
+      <dt>'SeedRandom'[$n$]
       <dd>resets the pseudorandom generator with seed $n$.
 
       <dt>'SeedRandom[]'
@@ -717,31 +717,31 @@ class RandomSample(_RandomSelection):
     https://reference.wolfram.com/language/ref/RandomSample.html</url>
 
     <dl>
-      <dt>'RandomSample[$items$]'
+      <dt>'RandomSample'[$items$]
       <dd>randomly picks one item from $items$.
 
-      <dt>'RandomSample[$items$, $n$]'
+      <dt>'RandomSample'[$items$, $n$]
       <dd>randomly picks $n$ items from $items$. Each pick in the $n$ picks happens \
           after the previous items picked have been removed from $items$, so each item \
           can be picked at most once.
 
-      <dt>'RandomSample[$items$, {$n1$, $n2$, ...}]'
+      <dt>'RandomSample'[$items$, {$n_1$, $n_2$, ...}]
       <dd>randomly picks items from $items$ and arranges the picked items in the \
-          nested list structure described by {$n1$, $n2$, ...}. \
+          nested list structure described by {$n_1$, $n_2$, ...}. \
           Each item gets picked at most once.
 
-      <dt>'RandomSample[$weights$ -> $items$, $n$]'
+      <dt>'RandomSample'[$weights$ -> $items$, $n$]
       <dd>randomly picks $n$ items from $items$ and uses the corresponding numeric \
           values in $weights$ to determine how probable it is for each item in $items$ \
           to get picked (in the long run, items with higher weights will get \
           picked more often than ones with lower weight). Each item gets picked at\
           most once.
 
-      <dt>'RandomSample[$weights$ -> $items$]'
+      <dt>'RandomSample'[$weights$ -> $items$]
       <dd>randomly picks one items from $items$ using weights $weights$. \
           Each item gets picked at most once.
 
-      <dt>'RandomSample[$weights$ -> $items$, {$n1$, $n2$, ...}]'
+      <dt>'RandomSample'[$weights$ -> $items$, {$n_1$, $n_2$, ...}]
       <dd>randomly picks a structured list of items from $items$ using weights $weights$.
           Each item gets picked at most once.
     </dl>

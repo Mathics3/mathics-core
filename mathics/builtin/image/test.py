@@ -14,8 +14,8 @@ class BinaryImageQ(Test):
     https://reference.wolfram.com/language/ref/BinaryImageQ.html</url>
 
     <dl>
-      <dt>'BinaryImageQ[$image]'
-      <dd>returns True if the pixels of $image are binary bit values, and False otherwise.
+      <dt>'BinaryImageQ'[$image$]
+      <dd>returns 'True' if the pixels of $image$ are binary bit values, and 'False' otherwise.
     </dl>
 
     S> img = Import["ExampleData/hedy.tif"];
@@ -40,8 +40,8 @@ class ImageQ(Test):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ImageQ.html</url>
 
     <dl>
-      <dt>'ImageQ[Image[$pixels]]'
-      <dd>returns True if $pixels has dimensions from which an Image can be constructed, and False otherwise.
+      <dt>'ImageQ[Image'[$pixels$]]
+      <dd>returns 'True' if $pixels$ has dimensions from which an Image can be constructed, and 'False' otherwise.
     </dl>
 
     >> ImageQ[Image[{{0, 1}, {1, 0}}]]

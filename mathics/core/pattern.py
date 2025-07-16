@@ -399,6 +399,12 @@ class AtomPattern(BasePattern):
         """The number of matches"""
         return (1, 1)
 
+    @property
+    def short_name(self) -> str:
+        return (
+            self.atom.short_name if hasattr(self.atom, "short_name") else str(self.atom)
+        )
+
 
 # class StopGenerator_ExpressionPattern_match(StopGenerator):
 #    pass
@@ -421,6 +427,7 @@ class ExpressionPattern(BasePattern):
         evaluation: Optional[Evaluation] = None,
     ):
         self.expr = expr
+        self.location = expr.location if hasattr(expr, "location") else None
         head = expr.head
         if attributes is None and evaluation:
             attributes = head.get_attributes(evaluation.definitions)

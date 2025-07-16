@@ -18,7 +18,6 @@ from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import BaseElement, fully_qualified_symbol_name
-from mathics.core.load_builtin import definition_contribute, mathics3_builtins_modules
 from mathics.core.rules import BaseRule, Rule
 from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.util import canonic_filename
@@ -413,7 +412,7 @@ class Definitions:
                 return ctx_name
         return with_context
 
-    def get_package_names(self) -> List[str]:
+    def get_package_names(self) -> List[Optional[str]]:
         """Return the list of names of the packages loaded in the system."""
         try:
             packages = self.get_ownvalue("System`$Packages")
@@ -421,7 +420,11 @@ class Definitions:
             return []
 
         assert packages.has_form("System`List", None)
-        return [c.get_string_value() for c in packages.get_elements()]
+        return [
+            c.get_string_value()
+            for c in packages.get_elements()
+            if c.get_string_value() is not None
+        ]
         # return sorted({name.split("`")[0] for name in self.get_names()})
 
     def shorten_name(self, name_with_ctx: str) -> str:
@@ -1066,6 +1069,10 @@ def load_builtin_definitions(
     """
     Load definitions from Builtin classes, autoload files and extension modules.
     """
+    from mathics.core.load_builtin import (
+        definition_contribute,
+        mathics3_builtins_modules,
+    )
     from mathics.eval.files_io.files import get_file_time
     from mathics.eval.pymathics import PyMathicsLoadException, load_pymathics_module
     from mathics.session import autoload_files

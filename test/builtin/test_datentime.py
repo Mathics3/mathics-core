@@ -34,16 +34,19 @@ def test_timeremaining():
 def test_timeconstrained1():
     """
     This test checks that
-    * TimeConstrained manages to return $Aborted when the
-      evaluated expression exceeds the walltime.
-    * That the evaluation does not proceeds after the walltime.
 
-    If `Pause` and TimeConstrained were absolutely accurate,
+    - ``TimeConstrained`` manages to return ``$Aborted`` when the
+      evaluated expression exceeds the walltime.
+
+    - That the evaluation does not proceed after the walltime.
+
+    If ``Pause`` and ``TimeConstrained`` were absolutely accurate,
     `a` should be always less than 11. However, sometimes
-    the innacuracies in time could allow to reach more than 10
-    iterations before get stopped. 20 iterations should be a safe
+    the inaccuracies in time could allow to reach more than 10
+    iterations before being stopped. 20 iterations should be a safe
     bound.
-    After `TimeConstrained` returns `$Abort`, iterations should stop,
+
+    After ``TimeConstrained`` returns ``$Abort``, iterations should stop,
     so if we check one second after the end of the evaluation, `a`
     should not change its value.
     """

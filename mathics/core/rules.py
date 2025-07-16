@@ -19,16 +19,15 @@ looking for other rules to be applied over `F[2]`.
 
 On the other hand, suppose that we define a `FunctionApplyRule` that associates `F[x_]` with the function:
 
-```
-...
-class MyFunction(Builtin):
-    ...
-    def eval_f(self, x, evaluation) -> Optional[Expression]:
-        "F[x_]"   # pattern part of FunctionApplyRule
-        if x>3:
-            return Expression(SymbolPower, x, Integer2)
-        return None
-```
+.. code-block:: python
+
+    class MyFunction(Builtin):
+        ...
+        def eval_f(self, x, evaluation) -> Optional[Expression]:
+            "F[x_]"   # pattern part of FunctionApplyRule
+            if x>3:
+                return Expression(SymbolPower, x, Integer2)
+            return None
 
 Then, if we apply the rule to `F[2]`, the function is evaluated returning `None`. Then, in the evaluation loop, we get the same
 effect as if the pattern didn't match with the expression. The loop continues then with the next rule associated with `F`.
@@ -99,6 +98,7 @@ class BaseRule(KeyComparable, ABC):
         evaluation: Optional[Evaluation] = None,
         attributes: Optional[int] = None,
     ) -> None:
+        self.location: Optional[Callable] = None
         self.pattern = BasePattern.create(
             pattern, attributes=attributes, evaluation=evaluation
         )
@@ -180,6 +180,12 @@ class BaseRule(KeyComparable, ABC):
                 expr._elements_fully_evaluated = False
                 expr._is_flat = False  # I think this is fully updated
                 expr._is_ordered = False
+            if (
+                hasattr(expression, "location")
+                and hasattr(expr, "location")
+                and expression.location is not None
+            ):
+                expr.location = expression.location
             return expr
 
         if return_list:
@@ -217,13 +223,12 @@ class Rule(BaseRule):
     finishes.
 
     Here is an example of a Rule::
-        F[x_] -> x^2   (* The same thing as: Rule[x_, x^2] *)
 
+        F[x_] -> x^2   (* The same thing as: Rule[x_, x^2] *)
 
     ``F[x_]`` is a pattern and ``x^2`` is the replacement term. When
     applied to the expression ``G[F[1.], F[a]]`` the result is
     ``G[1.^2, a^2]``
-
 
     Note: we want Rules to be serializable so that we can dump and
     restore Rules in order to make startup time faster.
@@ -282,44 +287,44 @@ class Rule(BaseRule):
 
 class FunctionApplyRule(BaseRule):
     """
-    A FunctionApplyRule is a rule that has a replacement term that
-    is associated a Python function rather than a Mathics Expression
-    as happens in a transformation Rule.
+        A FunctionApplyRule is a rule that has a replacement term that
+        is associated a Python function rather than a Mathics Expression
+        as happens in a transformation Rule.
 
-    Each time the Pattern part of the Rule matches an Expression, the
-    matching subexpression is replaced by the expression returned
-    by application of that function to the remaining terms.
+        Each time the Pattern part of the Rule matches an Expression, the
+        matching subexpression is replaced by the expression returned
+        by application of that function to the remaining terms.
 
-    Parameters for the function are bound to parameters matched by the pattern.
+        Parameters for the function are bound to parameters matched by the pattern.
 
-    Here is an example taken from the symbol ``System`Plus``.
-    It has has associated a FunctionApplyRule::
+        Here is an example taken from the symbol ``System`Plus``.
+        It has has associated a FunctionApplyRule::
 
-        Plus[items___] -> mathics.builtin.arithfns.basic.Plus.apply
+            Plus[items___] -> mathics.builtin.arithfns.basic.Plus.apply
 
-    The pattern ``items___`` matches a list of Expressions.
+        The pattern ``items___`` matches a list of Expressions.
 
-    When applied to the expression ``F[a+a]`` the method
-    ``mathics.builtin.arithfns.basic.Plus.apply`` is called
-    binding the parameter  ``items`` to the value ``Sequence[a,a]``.
+        When applied to the expression ``F[a+a]`` the method
+        ``mathics.builtin.arithfns.basic.Plus.apply`` is called
+        binding the parameter  ``items`` to the value ``Sequence[a,a]``.
 
-    The return value of this function is ``Times[2, a]`` (or more compactly: ``2*a``).
-    When replaced in the original expression, the result is: ``F[2*a]``.
+        The return value of this function is ``Times[2, a]`` (or more compactly: ``2*a``).
+        When replaced in the original expression, the result is: ``F[2*a]``.
 
-    In contrast to (transformation) Rules, FunctionApplyRules can
-    change the state of definitions in the the system.
+        In contrast to (transformation) Rules, FunctionApplyRules can
+        change the state of definitions in the the system.
+    p
+        For example, the rule::
 
-    For example, the rule::
+            SetAttributes[a_,b_] -> mathics.builtin.attributes.SetAttributes.apply
 
-        SetAttributes[a_,b_] -> mathics.builtin.attributes.SetAttributes.apply
+        when applied to the expression ``SetAttributes[F,  NumericFunction]``
 
-    when applied to the expression ``SetAttributes[F,  NumericFunction]``
+        sets the attribute ``NumericFunction`` in the  definition of the symbol
+        ``F`` and returns Null (``SymbolNull``).
 
-    sets the attribute ``NumericFunction`` in the  definition of the symbol ``F`` and
-    returns Null (``SymbolNull`)`.
-
-    This will cause `Expression.evaluate() to perform an additional
-    ``rewrite_apply_eval()`` step.
+        This will cause `Expression.evaluate() to perform an additional
+        ``rewrite_apply_eval()`` step.
 
     """
 
@@ -337,7 +342,7 @@ class FunctionApplyRule(BaseRule):
             pattern, system=system, attributes=attributes, evaluation=evaluation
         )
         self.name = name
-        self.function = function
+        self.location = self.function = function
         self.check_options = check_options
 
     # If you update this, you must also update traced_apply_function

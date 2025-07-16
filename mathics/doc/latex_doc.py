@@ -12,9 +12,12 @@ from mathics.doc.doc_entries import (
     DL_ITEM_RE,
     DL_RE,
     HYPERTEXT_RE,
-    IMG_PNG_RE,
     IMG_RE,
+    LATEX_DISPLAY_EQUATION_RE,
+    LATEX_HREF_RE,
+    LATEX_INLINE_EQUATION_RE,
     LATEX_RE,
+    LATEX_URL_RE,
     LIST_ITEM_RE,
     LIST_RE,
     MATHICS_RE,
@@ -58,6 +61,7 @@ LATEX_CHAR_RE = re.compile(r"(?<!\\)(\^)")
 LATEX_CONSOLE_RE = re.compile(r"\\console\{(.*?)\}")
 LATEX_INLINE_END_RE = re.compile(r"(?s)(?P<all>\\lstinline'[^']*?'\}?[.,;:])")
 
+
 LATEX_TEXT_RE = re.compile(
     r"(?s)\\text\{([^{}]*?(?:[^{}]*?\{[^{}]*?(?:[^{}]*?\{[^{}]*?\}[^{}]*?)*?"
     r"[^{}]*?\}[^{}]*?)*?[^{}]*?)\}"
@@ -69,6 +73,7 @@ LATEX_TESTOUT_RE = re.compile(
 
 LATEX_TESTOUT_DELIM_RE = re.compile(r", ")
 
+MATHICS_VARIABLE_NAME = re.compile(r"[\$\`A-Za-z0-9]*")
 # The goal of the following pattern is to enclose the numbers included in
 # expressions produced by tests between ```\allowbreak{}```. The pattern matches
 # with negative numbers or positive numbers preceded by a space character.
@@ -91,7 +96,55 @@ def escape_latex_code(text) -> str:
 
 
 def escape_latex(text):
-    """Escape documentation text"""
+    """
+    Escape documentation text.
+
+    A block of text in the docstring documentation system
+    is a mixture of XML, LaTeX, and *literal* Python and
+    WL code, in a mixture that is not fully compatible
+    with Markdown or RST text, so we are not able to use
+    an standard parser.
+
+    To convert this into pure LaTeX code, this function
+    collects certain parts like LaTeX equations or verbatim
+    WL code using Python regular expressions. These blocks
+    are processed and stored, and replaced in the original
+    text by numerated placeholders.
+
+    The remaining text is then parsed to replace or escape
+    special characters, and some special markers.
+
+    Finally, the placeholders are replaced by the processed
+    blocks, to get a valid LaTeX code.
+
+    Notice that to use the `$` character as a character and
+    not as an equation marker, it should be escaped.
+
+    An special case is the one of variable names. In that case,
+    that consists of numbers, alphabetic characters, and
+    the special characters '`' and '$' is treated different,
+    because they come from Symbol names and not from docstrings.
+
+    For general, multiline code, the processing is done in the
+    following order:
+
+    * First the verbatim Python code is extracted.
+    * Then,  URLs are and references are collected.
+    * After that, anything surrounded by '$' or '$$'
+      is processed.
+    * Then, some LaTeX special characters, like brackets,
+      are escaped.
+    * After that, the remaining WL code and XML code is translated
+      to LaTeX.
+    * Finally, all the placeholders are replaced to the postprocessed
+      form.
+
+    """
+    # Single line, no spaces,  maybe a Symbol name
+    if "\n" not in text and " " not in text:
+        if MATHICS_VARIABLE_NAME.match(text):
+            text = text.replace("$", r"\$")
+            return text
 
     def repl_python(match):
         return (
@@ -101,138 +154,45 @@ def escape_latex(text):
             % match.group(1).strip()
         )
 
+    def repl_eq(match):
+        return "$" + match.group(1) + "$"
+
+    # Protect Python code from further replacements.
     text, post_substitutions = pre_sub(PYTHON_RE, text, repl_python)
 
-    text = replace_all(
-        text,
-        [
-            ("\\", "\\\\"),
-            ("{", "\\{"),
-            ("}", "\\}"),
-            ("~", "\\~{ }"),
-            ("&", "\\&"),
-            ("%", "\\%"),
-            ("#", "\\#"),
-        ],
-    )
-
-    def repl(match):
-        text = match.group(1)
-        if text:
-            text = replace_all(text, [("\\'", "'"), ("^", "\\^")])
-            escape_char = get_latex_escape_char(text)
-            text = LATEX_RE.sub(
-                lambda m: "%s%s\\codevar{\\textit{%s}}%s\\lstinline%s"
-                % (escape_char, m.group(1), m.group(2), m.group(3), escape_char),
-                text,
-            )
-            if text.startswith(" "):
-                text = r"\ " + text[1:]
-            if text.endswith(" "):
-                text = text[:-1] + r"\ "
-            return "\\code{\\lstinline%s%s%s}" % (escape_char, text, escape_char)
-        else:
-            # treat double '' literally
-            return "''"
-
-    text = MATHICS_RE.sub(repl, text)
-
-    text = LATEX_RE.sub(
-        lambda m: "%s\\textit{%s}%s" % (m.group(1), m.group(2), m.group(3)), text
-    )
-
-    text = text.replace("\\\\'", "'")
-
-    def repl_dl(match):
-        text = match.group(1)
-        text = DL_ITEM_RE.sub(
-            lambda m: "\\%(tag)s{%(content)s}\n" % m.groupdict(), text
-        )
-        return "\\begin{definitions}%s\\end{definitions}" % text
-
-    text = DL_RE.sub(repl_dl, text)
-
-    def repl_list(match):
-        tag = match.group("tag")
-        content = match.group("content")
-        content = LIST_ITEM_RE.sub(lambda m: "\\item %s\n" % m.group(1), content)
-        env = "itemize" if tag == "ul" else "enumerate"
-        return "\\begin{%s}%s\\end{%s}" % (env, content, env)
-
-    text = LIST_RE.sub(repl_list, text)
-
-    # FIXME: get this from MathicsScanner
-    text = replace_all(
-        text,
-        [
-            ("$", r"\$"),
-            ("\00f1", r"\~n"),
-            ("\u00e7", r"\c{c}"),
-            ("\u2216", r"\\"),
-            ("\u00e9", r"\'e"),
-            ("\u00ea", r"\^e"),
-            ("\u03b3", r"$\gamma$"),
-            ("\u03b8", r"$\theta$"),
-            ("\u03bc", r"$\mu$"),
-            ("\u03c0", r"$\pi$"),
-            ("\u03d5", r"$\phi$"),
-            ("\u2107", r"$\mathrm{e}$"),
-            ("\u222b", r"\int"),
-            ("\u2243", r"$\simeq$"),
-            ("\u2026", r"$\dots$"),
-            ("\u2260", r"$\ne$"),
-            ("\u2264", r"$\le$"),
-            ("\u2265", r"$\ge$"),
-            ("\u22bb", r"$\oplus$"),  # The WL veebar-looking symbol isn't in AMSLaTeX
-            ("\u22bc", r"$\barwedge$"),
-            ("\u22bd", r"$\veebar$"),
-            ("\u21d2", r"$\Rightarrow$"),
-            ("\uf74c", r"d"),
-        ],
-    )
-
-    def repl_char(match):
-        char = match.group(1)
-        return {
-            "^": "$^\\wedge$",
-        }[char]
-
-    text = LATEX_CHAR_RE.sub(repl_char, text)
-
+    # Process pictures
     def repl_img(match):
-        src = match.group("src")
-        title = match.group("title")
-        label = match.group("label")
-        return r"""\begin{figure*}[htp]
-\centering
-\includegraphics[width=\textwidth]{images/%(src)s}
-\caption{%(title)s}
-\label{%(label)s}
-\end{figure*}""" % {
-            "src": src,
-            "title": title,
-            "label": label,
-        }
-
-    text = IMG_RE.sub(repl_img, text)
-
-    def repl_imgpng(match):
         src = match.group("src")
         return r"\includegraphics[scale=1.0]{images/%(src)s}" % {"src": src}
 
-    text = IMG_PNG_RE.sub(repl_imgpng, text)
+    text, post_substitutions = pre_sub(
+        IMG_RE, text, repl_img, tuple(post_substitutions)
+    )
 
-    def repl_ref(match):
-        return r"figure \ref{%s}" % match.group("label")
+    # Protect LaTeX equations from further replacements.
+    text, post_substitutions = pre_sub(
+        LATEX_DISPLAY_EQUATION_RE, text, repl_eq, tuple(post_substitutions)
+    )
+    text, post_substitutions = pre_sub(
+        LATEX_INLINE_EQUATION_RE, text, repl_eq, tuple(post_substitutions)
+    )
 
-    text = REF_RE.sub(repl_ref, text)
-
+    # Process quotations
     def repl_quotation(match):
         return r"``%s''" % match.group(1)
 
+    text, post_substitutions = pre_sub(
+        QUOTATIONS_RE, text, repl_quotation, tuple(post_substitutions)
+    )
+
+    # Process hyperrefs
+    def ensure_sharp_escape_in_url(content) -> str:
+        content = content.replace(" ", "").replace("\n", "")
+        return content.replace("#", r"\#").replace(r"\\#", r"\#")
+
     def repl_hypertext(match) -> str:
         tag = match.group("tag")
-        content = match.group("content")
+        content = ensure_sharp_escape_in_url(match.group("content"))
         #
         # Sometimes it happens that the URL does not
         # fit in 80 characters. Then, to avoid that
@@ -245,7 +205,6 @@ def escape_latex(text):
         # characters, which would spoil the URL,
         # producing a single line, space-free string.
         #
-        content = content.replace(" ", "").replace("\n", "")
         if tag == "em":
             return r"\emph{%s}" % content
         elif tag == "url":
@@ -265,16 +224,97 @@ def escape_latex(text):
                     return "\\href{%s}{%s}" % (content, text)
         return "\\href{%s}{%s}" % (content, text)
 
-    text = QUOTATIONS_RE.sub(repl_quotation, text)
-    text = HYPERTEXT_RE.sub(repl_hypertext, text)
+    def repl_href(match) -> str:
+        content = ensure_sharp_escape_in_url(match.group("content"))
+        return r"\href{%s}{%s}" % (content, match.group("text"))
+
+    def repl_url(match) -> str:
+        content = ensure_sharp_escape_in_url(match.group("content"))
+        return r"\url{%s}" % (content,)
+
+    text, post_substitutions = pre_sub(
+        HYPERTEXT_RE, text, repl_hypertext, tuple(post_substitutions)
+    )
+    text, post_substitutions = pre_sub(
+        LATEX_HREF_RE, text, repl_href, tuple(post_substitutions)
+    )
+    text, post_substitutions = pre_sub(
+        LATEX_URL_RE, text, repl_url, tuple(post_substitutions)
+    )
+
+    text = replace_all(
+        text,
+        [
+            ("{", "\\{"),
+            ("}", "\\}"),
+            ("~", "\\~{ }"),
+            ("&", "\\&"),
+            ("%", "\\%"),
+            ("#", "\\#"),
+        ],
+    )
+
+    def repl(match):
+        text = match.group(1)
+        if text:
+            text = replace_all(text, [(r"\'", "'"), ("^", r"\^")])
+            escape_char = get_latex_escape_char(text)
+            text = LATEX_RE.sub(
+                lambda m: "%s%s\\codevar{\\textit{%s}}%s\\lstinline%s"
+                % (escape_char, m.group(1), m.group(2), m.group(3), escape_char),
+                text,
+            )
+            if text.startswith(" "):
+                text = r"\ " + text[1:]
+            if text.endswith(" "):
+                text = text[:-1] + r"\ "
+            return "\\code{\\lstinline%s%s%s}" % (escape_char, text, escape_char)
+        else:
+            # treat double '' literally
+            return "''"
+
+    text = MATHICS_RE.sub(repl, text)
+
+    text = text.replace("\\\\'", "'")
+
+    def repl_dl(match):
+        text = match.group(1)
+
+        def repl_dd_dt(match):
+            match_dict = match.groupdict()
+            return "\\%(tag)s{%(content)s}\n" % match_dict
+
+        text = DL_ITEM_RE.sub(repl_dd_dt, text)
+        return "\\begin{definitions}%s\\end{definitions}" % text
+
+    text = DL_RE.sub(repl_dl, text)
+
+    def repl_list(match):
+        tag = match.group("tag")
+        content = match.group("content")
+        content = LIST_ITEM_RE.sub(lambda m: "\\item %s\n" % m.group(1), content)
+        env = "itemize" if tag == "ul" else "enumerate"
+        return "\\begin{%s}%s\\end{%s}" % (env, content, env)
+
+    text = LIST_RE.sub(repl_list, text)
+
+    def repl_char(match):
+        char = match.group(1)
+        return {
+            "^": "$^\\wedge$",
+        }[char]
+
+    text = LATEX_CHAR_RE.sub(repl_char, text)
+
+    def repl_ref(match):
+        return r"figure \ref{%s}" % match.group("label")
+
+    text = REF_RE.sub(repl_ref, text)
 
     def repl_console(match):
-        tag = match.group("tag")
         content = match.group("content")
         content = content.strip()
         content = content.replace(r"\$", "$")
-        if tag == "con":
-            return "\\console{%s}" % content
         return "\\begin{lstlisting}\n%s\n\\end{lstlisting}" % content
 
     text = CONSOLE_RE.sub(repl_console, text)
@@ -303,8 +343,7 @@ def escape_latex(text):
     text = SUBSECTION_END_RE.sub("", text)
 
     for key, (xml, tex) in SPECIAL_COMMANDS.items():
-        # "\" has been escaped already => 2 \
-        text = text.replace("\\\\" + key, tex)
+        text = text.replace("\\" + key, tex)
 
     text = post_sub(text, post_substitutions)
 

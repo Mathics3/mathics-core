@@ -67,11 +67,11 @@ class MathicsOpen(Stream):
                 # We should not specify an encoding for a binary mode
                 encoding = None
             elif encoding is None:
-                raise MessageException("General", "charcode", self.encoding)
+                raise MessageException("General", "charcode", encoding)
         self.encoding = encoding
         if name is None:
             name = path
-        super().__init__(name, mode=mode, path=path, encoding=self.encoding)
+        super().__init__(name, mode=mode, path=path, encoding=encoding)
         self.is_temporary_file = is_temporary_file
 
         # The following are set in __enter__ and __exit__
@@ -168,7 +168,7 @@ def parse_read_options(options) -> dict:
         record_separators = options["System`RecordSeparators"].to_python(
             string_quotes=False
         )
-        assert isinstance(record_separators, list)
+        assert isinstance(record_separators, (list, tuple))
         # assert all(
         #     isinstance(s, str) and s[0] == s[-1] == '"' for s in record_separators
         # )
@@ -180,7 +180,7 @@ def parse_read_options(options) -> dict:
         word_separators = options["System`WordSeparators"].to_python(
             string_quotes=False
         )
-        assert isinstance(word_separators, list)
+        assert isinstance(word_separators, (list, tuple))
         result["WordSeparators"] = word_separators
 
     # NullRecords
@@ -308,7 +308,7 @@ def read_check_options(options: dict, evaluation: Evaluation) -> Optional[dict]:
         record_separators = options["System`RecordSeparators"].to_python(
             string_quotes=False
         )
-        assert isinstance(record_separators, list)
+        assert isinstance(record_separators, (list, tuple))
         result["RecordSeparators"] = record_separators
 
     # WordSeparators
@@ -316,7 +316,7 @@ def read_check_options(options: dict, evaluation: Evaluation) -> Optional[dict]:
         word_separators = options["System`WordSeparators"].to_python(
             string_quotes=False
         )
-        assert isinstance(word_separators, list)
+        assert isinstance(word_separators, (list, tuple))
         result["WordSeparators"] = word_separators
 
     # NullRecords
@@ -334,7 +334,9 @@ def read_check_options(options: dict, evaluation: Evaluation) -> Optional[dict]:
     # TokenWords
     if "System`TokenWords" in keys:
         token_words = options["System`TokenWords"].to_python(string_quotes=False)
-        if not (isinstance(token_words, list) or isinstance(token_words, String)):
+        if not (
+            isinstance(token_words, (list, tuple)) or isinstance(token_words, String)
+        ):
             evaluation.message("ReadList", "opstl", token_words)
             return None
         result["TokenWords"] = token_words
@@ -344,7 +346,7 @@ def read_check_options(options: dict, evaluation: Evaluation) -> Optional[dict]:
 
 def read_get_separators(
     options, evaluation: Evaluation
-) -> Optional[Tuple[dict, dict, dict]]:
+) -> Optional[Tuple[list, list, list]]:
     """Get record and word separators from apply "options"."""
     # Options
     # TODO Implement extra options
@@ -357,7 +359,7 @@ def read_get_separators(
     token_words = py_options.get("TokenWords", {})
     word_separators = py_options["WordSeparators"]
 
-    return record_separators, token_words, word_separators
+    return list(record_separators), list(token_words), list(word_separators)
 
 
 def read_from_stream(

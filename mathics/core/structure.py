@@ -46,7 +46,8 @@ class Structure(ABC):
 class UnlinkedStructure(Structure):
     """
     UnlinkedStructure produces Expressions that are not linked to "origins" in terms of cache.
-    This produces the same thing as doing Expression(head, *elements).
+
+    This produces the same thing as doing ``Expression(head, *elements)``.
     """
 
     def __init__(self, head):

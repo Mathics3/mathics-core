@@ -50,7 +50,7 @@ import pytest
             "x=.;a=.;b=.;c=.;f=.; g=.;d=.;m=.;n=.;Delete[1 + x ^ (a + b + c), {2, 2, 3}]",
             None,
             "1 + x ^ (a + b)",
-            "Faiing?",
+            "Failing?",
         ),
         ("Delete[f[a, g[b, c], d], {{2}, {2, 1}}]", None, "f[a, d]", None),
         (

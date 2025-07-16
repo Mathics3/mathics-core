@@ -7,6 +7,7 @@ import time
 from typing import Optional
 
 from mathics_scanner import SingleLineFeeder
+from mathics_scanner.location import ContainerKind
 
 from mathics.core.parser.parser import Parser
 
@@ -14,12 +15,14 @@ from mathics.core.parser.parser import Parser
 # Note we don't import mathics.session here since we
 # are testing just the parse layer, not the evaluation layer.
 # Simpler is better.
-parser = Parser()
+core_parser = Parser()
 
 
 def check_evaluation(str_expr: str, str_expected: str, assert_message: Optional[str]):
-    def parse(s: str):
-        return parser.parse(SingleLineFeeder(s))
+    def parse(source_text: str):
+        return core_parser.parse(
+            SingleLineFeeder(source_text, "<test_box_parser>", ContainerKind.STRING)
+        )
 
     result = parse(str_expr)
     expected = parse(str_expected)

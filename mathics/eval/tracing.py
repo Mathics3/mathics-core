@@ -17,42 +17,88 @@ hook_entry_fn: Optional[Callable] = None
 hook_exit_fn: Optional[Callable] = None
 
 
+def is_performing_rewrite(func) -> bool:
+    """ "
+    Returns true if we are in the rewrite expression phase
+    as opposed to the apply-function/evaluation phase of
+    evaluation. The way we determine this is highly specific
+    to the Mathics3 code as it stands right now. So this
+    code is highly fragile and can change when the
+    evaluation code changes. However encapsulating this
+    in a function helps narrows the fragility to one place.
+    """
+    return hasattr(func, "__name__") and func.__name__ == "rewrite_apply_eval_step"
+
+
+def skip_trivial_evaluation(expr, status: str, orig_expr=None) -> bool:
+    """
+    Look for uninteresting evaluations that we should avoid showing
+    printing tracing status or stopping in a debugger.
+
+    This includes things like:
+    * the evaluation is a literal that evaluates to the same thing,
+    * evaluating a Symbol which the Symbol.
+    * Showing the return value of a ListExpression literal
+    * Evaluating Pattern[] which define a pattern.
+    """
+    from mathics.core.expression import Expression
+    from mathics.core.symbols import Symbol, SymbolConstant
+    from mathics.core.systemsymbols import SymbolBlank, SymbolPattern
+
+    if isinstance(expr, tuple):
+        expr = expr[0]
+
+    if isinstance(expr, Expression):
+        if expr.head in (SymbolPattern, SymbolBlank):
+            return True
+
+    if status == "Returning":
+        if (
+            hasattr(expr, "is_literal")
+            and expr.is_literal
+            and hasattr(orig_expr, "is_literal")
+            and orig_expr.is_literal
+        ):
+            return True
+        pass
+        if isinstance(expr, Symbol) and not isinstance(expr, SymbolConstant):
+            # Evaluation of a symbol, like Plus isn't that interesting.
+            # Right now, SymbolConstant are not literals. If this
+            # changes, we don't need this clause.
+            return True
+
+    else:
+        # Status != "Returning", i.e. executing
+
+        if isinstance(expr, Symbol):
+            # Evaluation of a symbol, like Plus isn't that interesting
+            return True
+
+        if orig_expr == expr:
+            # If the two expressions are the same, there is no point in
+            # repeating the output.
+            return True
+
+    return False
+
+
 def print_evaluate(expr, evaluation, status: str, fn: Callable, orig_expr=None):
     """
     Called from a decorated Python @trace_evaluate .evaluate()
-    method when TraceActivate["evaluate" -> True]
+    method when TraceActivate["evaluate" -> True] or
+    running TraceEvaluation.
     """
 
     if evaluation.definitions.timing_trace_evaluation:
         evaluation.print_out(time.time() - evaluation.start_time)
 
-    # Test and dispose of various situations where showing information
-    # is pretty useless: evaluating a Symbol is the Symbol.
-    # Showing the return value of a ListExpression literal is
-    # also useless.
-    from mathics.core.symbols import Symbol, SymbolConstant
-
-    if isinstance(expr, Symbol) and not isinstance(expr, SymbolConstant):
-        return
-
-    if (
-        status == "Returning"
-        and hasattr(expr, "is_literal")
-        and expr.is_literal
-        and hasattr(orig_expr, "is_literal")
-        and orig_expr.is_literal
-    ):
-        return
-
-    if orig_expr == expr:
-        # If the two expressions are the same, there is no point in
-        # repeating the output.
+    if skip_trivial_evaluation(expr, status, orig_expr):
         return
 
     indents = "  " * evaluation.recursion_depth
 
     if orig_expr is not None:
-        if fn.__name__ == "rewrite_apply_eval_step":
+        if is_performing_rewrite(fn):
             assert isinstance(expr, tuple)
             if orig_expr != expr[0]:
                 if status == "Returning":
@@ -69,9 +115,12 @@ def print_evaluate(expr, evaluation, status: str, fn: Callable, orig_expr=None):
                     f"{indents}{status}: {expr[0]}" + arrow + str(expr)
                 )
         else:
+            if status == "Returning" and isinstance(expr, tuple):
+                status = "Evaluating/Replacing"
+                expr = expr[0]
             evaluation.print_out(f"{indents}{status}: {orig_expr} = " + str(expr))
 
-    elif fn.__name__ != "rewrite_apply_eval_step":
+    elif not is_performing_rewrite(fn):
         evaluation.print_out(f"{indents}{status}: {expr}")
     return
 
@@ -92,7 +141,11 @@ def trace_evaluate(func: Callable) -> Callable:
     def wrapper(expr, evaluation) -> Any:
         from mathics.core.symbols import SymbolConstant
 
-        skip_call = False
+        # trace_evaluate_action allows for trace_evaluate_on_call()
+        # and trace_evaluate_return() to set the value of the
+        # expression instead of calling the function or replacing
+        # of return value of a Mathics3 function call.
+        trace_evaluate_action: Optional[Any] = None
         result = None
         was_boxing = evaluation.is_boxing
         if (
@@ -102,14 +155,35 @@ def trace_evaluate(func: Callable) -> Callable:
         ):
             # We may use boxing in print_evaluate_fn(). So turn off
             # boxing temporarily.
+            phase_name = "Rewriting" if is_performing_rewrite(func) else "Evaluating"
             evaluation.is_boxing = True
-            skip_call = trace_evaluate_on_call(expr, evaluation, "Evaluating", func)
+            trace_evaluate_action = trace_evaluate_on_call(
+                expr, evaluation, phase_name, func
+            )
             evaluation.is_boxing = was_boxing
-        if not skip_call:
+        if trace_evaluate_action is None:
             result = func(expr, evaluation)
             if trace_evaluate_on_return is not None and not was_boxing:
-                trace_evaluate_on_return(result, evaluation, "Returning", func, expr)
+                trace_evaluate_action = trace_evaluate_on_return(
+                    expr=result,
+                    evaluation=evaluation,
+                    status="Returning",
+                    fn=expr,
+                    orig_expr=expr,
+                )
+            if trace_evaluate_action is not None:
+                result = (
+                    (trace_evaluate_action, False)
+                    if is_performing_rewrite(func)
+                    else trace_evaluate_action
+                )
             evaluation.is_boxing = was_boxing
+        else:
+            result = (
+                (trace_evaluate_action, False)
+                if is_performing_rewrite(func)
+                else trace_evaluate_action
+            )
         return result
 
     return wrapper

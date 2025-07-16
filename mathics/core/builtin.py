@@ -118,9 +118,9 @@ class PatternArgumentError(PatternError):
 
 class Builtin:
     """
-    A base class for a Built-in function symbols, like List, or
-    variables, like $SystemID, and Built-in Objects, like
-    DateTimeObject.
+    A base class for a Built-in function symbols, like ``List``, or
+    variables, like ``$SystemID``, and Built-in Objects, like
+    ``DateTimeObject``.
 
     Some of the class variables of the Builtin object are used to
     create a definition object for that built-in symbol.  In particular,
@@ -136,11 +136,11 @@ class Builtin:
 
     For example:
 
-    ```
+    .. code-block:: python
+
         def eval(x, evaluation):
              "F[x_Real]"
              return Expression(Symbol("G"), x*2)
-    ```
 
     adds a ``FunctionApplyRule`` to the symbol's definition object that implements
     ``F[x_]->G[x*2]``.
@@ -305,18 +305,6 @@ class Builtin:
                     system=True,
                 )
             )
-        for pattern, function in self.get_functions(is_pymodule=is_pymodule):
-            pat_attr = attributes if pattern.get_head_name() == name else None
-            rules.append(
-                FunctionApplyRule(
-                    name,
-                    pattern,
-                    function,
-                    check_options,
-                    attributes=pat_attr,
-                    system=True,
-                )
-            )
         for pattern_str, replace_str in self.rules.items():
             pattern_str = pattern_str % {"name": name}
             pattern = parse_builtin_rule(pattern_str, definition_class)
@@ -468,6 +456,8 @@ class Builtin:
         for name in dir(self):
             if name.startswith(prefix):
                 function = getattr(self, name)
+                if not hasattr(function, "__call__"):
+                    continue
                 pattern = function.__doc__
                 if pattern is None:  # Fixes PyPy bug
                     continue
@@ -494,7 +484,15 @@ class Builtin:
                 definition_class = (
                     PyMathicsDefinitions() if is_pymodule else SystemDefinitions()
                 )
-                pattern = parse_builtin_rule(pattern, definition_class)
+
+                # Passing the function parameter is in a way
+                # redundant, because creating FunctionApplyRule has
+                # access to the function and sets the postion this
+                # way. But revised afte the dust has settled and
+                # we have a very good idea of what is desirable and useful.
+                pattern = parse_builtin_rule(
+                    pattern, definition_class, location=function
+                )
                 if unavailable_function:
                     function = unavailable_function
                 if attrs:
@@ -583,18 +581,21 @@ class SympyObject(Builtin):
             self.sympy_name = strip_context(self.get_name()).lower()
         self.mathics_to_sympy[self.__class__.__name__] = self.sympy_name
 
-    def is_constant(self) -> bool:
-        return False
-
     def get_sympy_names(self) -> List[str]:
         if self.sympy_name:
             return [self.sympy_name]
         return []
 
-    def to_sympy(self, expr=None, **kwargs):
-        raise NotImplementedError
+    def is_constant(self) -> bool:
+        """Returns true if the value of evaluation of this object can
+        never change.
+        """
+        return False
 
     def from_sympy(self, elements: Tuple[BaseElement, ...]) -> Expression:
+        raise NotImplementedError
+
+    def to_sympy(self, expr=None, **kwargs):
         raise NotImplementedError
 
 
@@ -1289,7 +1290,7 @@ class NoMeaningInfixOperator(InfixOperator):
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
     <dl>
-      <dt>'{operator_name}[$x$, $y$, ...]'
+      <dt>'{operator_name}['$x$, $y$, ...']'
       <dd>displays $x$ {operator_string} $y$ {operator_string} ...
     </dl>
 
@@ -1389,7 +1390,7 @@ class NoMeaningPostfixOperator(PostfixOperator):
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
     <dl>
-      <dt>'{operator_name}[$x$]'
+      <dt>'{operator_name}['$x$']'
       <dd>displays $x$ {operator_string}
     </dl>
 
@@ -1431,7 +1432,7 @@ class NoMeaningPrefixOperator(PrefixOperator):
     https://reference.wolfram.com/language/ref/{operator_name}.html</url>
 
     <dl>
-      <dt>'{operator_name}[$x$]'
+      <dt>'{operator_name}['$x$']'
       <dd>displays {operator_string} $x$
     </dl>
 

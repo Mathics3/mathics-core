@@ -31,7 +31,7 @@ class GaussianFilter(Builtin):
     https://reference.wolfram.com/language/ref/GaussianFilter.html</url>
 
     <dl>
-      <dt>'GaussianFilter[$image$, $r$]'
+      <dt>'GaussianFilter'[$image$, $r$]
       <dd>blurs $image$ using a Gaussian blur filter of radius $r$.
     </dl>
 
@@ -79,7 +79,7 @@ class ImageConvolve(Builtin):
     https://reference.wolfram.com/language/ref/ImageConvolve.html</url>
 
     <dl>
-      <dt>'ImageConvolve[$image$, $kernel$]'
+      <dt>'ImageConvolve'[$image$, $kernel$]
       <dd>Computes the convolution of $image$ using $kernel$.
     </dl>
 
@@ -113,7 +113,7 @@ class MaxFilter(_PillowImageFilter):
     https://reference.wolfram.com/language/ref/MaxFilter.html</url>
 
     <dl>
-      <dt>'MaxFilter[$image$, $r$]'
+      <dt>'MaxFilter'[$image$, $r$]
       <dd>gives $image$ with a maximum filter of radius $r$ applied on it. This always \
           picks the largest value in the filter's area.
     </dl>
@@ -137,7 +137,7 @@ class MedianFilter(_PillowImageFilter):
     https://reference.wolfram.com/language/ref/MedianFilter.html</url>
 
     <dl>
-      <dt>'MedianFilter[$image$, $r$]'
+      <dt>'MedianFilter'[$image$, $r$]
       <dd>gives $image$ with a median filter of radius $r$ applied on it. This always \
           picks the median value in the filter's area.
     </dl>
@@ -161,7 +161,7 @@ class MinFilter(_PillowImageFilter):
     https://reference.wolfram.com/language/ref/MinFilter.html</url>
 
     <dl>
-    <dt>'MinFilter[$image$, $r$]'
+    <dt>'MinFilter'[$image$, $r$]
       <dd>gives $image$ with a minimum filter of radius $r$ applied on it. This always \
           picks the smallest value in the filter's area.
     </dl>
