@@ -463,32 +463,6 @@ class DocTest:
                 return False
         return True
 
-    def compare_out(self, outs: tuple = tuple()) -> bool:
-        """Compare messages and warnings produced during the evaluation of
-        the test with the expected messages and warnings."""
-        # Check out
-        wanted_outs = self.outs
-        if len(wanted_outs) == 1 and wanted_outs[0].text == "...":
-            # If we have ... don't check
-            return True
-        if len(outs) != len(wanted_outs):
-            # Mismatched number of output lines, and we don't have "..."
-            return False
-
-        # Python 3.13 replaces tabs by a single space in docstrings.
-        # In doctests we replace tabs by sequences of four spaces.
-        def tabs_to_spaces(val):
-            return val.text.replace("\t", 4 * " ")
-
-        # Need to check all output line by line
-        for got, wanted in zip(outs, wanted_outs):
-            if wanted.text == "...":
-                return True
-            if not tabs_to_spaces(got) == tabs_to_spaces(wanted):
-                return False
-
-        return True
-
     @property
     def key(self):
         """key identifier of the test"""
