@@ -5,7 +5,7 @@ from sympy.tensor.array.expressions import PermuteDims
 from sympy.utilities.iterables import permutations
 
 from mathics.core.atoms import Integer, Integer0, Integer1, String
-from mathics.core.convert.matrix import to_sympy_matrix
+from mathics.core.convert.matrix import to_sympy_array, to_sympy_matrix
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy_matrix
 from mathics.core.evaluation import Evaluation
@@ -328,14 +328,15 @@ def eval_LeviCivitaTensor(d, type):
 
 
 def eval_Transpose(m, dimensions: int) -> Optional[Expression]:
-    """Transpose a two-dimensional matrix"""
+    """Transpose a two- or three-dimensional matrix"""
 
+    if dimensions == 3:
+        sympy_m = to_sympy_array(m)
+        # The below seems to be the default permuatation WMA uses
+        # for 3D matrices.
+        p = PermuteDims(sympy_m, (1, 0, 2))
+        return from_sympy_matrix(p.as_explicit())
+
+    assert dimensions == 2
     sympy_m = to_sympy_matrix(m)
-    if sympy_m is None:
-        return None
-
-    if dimensions == 2:
-        return from_sympy_matrix(sympy_m.T)
-    elif dimensions == 3:
-        # Swap the last two dimensions
-        return from_sympy_matrix(PermuteDims(sympy_m, (0, 2, 1)))
+    return None if sympy_m is None else from_sympy_matrix(sympy_m.T)

@@ -347,8 +347,8 @@ class Transpose(Builtin):
     :WMA: https://reference.wolfram.com/language/ref/Transpose.html</url>)
 
     <dl>
-      <dt>'Transpose'[$m$]
-      <dd>transposes rows and columns in the matrix $m$.
+      <dt>'Transpose'[$list$]
+      <dd>transposes the first two levels in $list$. The rank of $list$ should be less than 4.
     </dl>
 
     >> square = {{1, 2, 3}, {4, 5, 6}}; Transpose[square]
@@ -366,12 +366,27 @@ class Transpose(Builtin):
      .
      . 2   4   6
 
-    Transpose is its own inverse. Transposing a matrix twice will give you back the same thing you started out with:
+    >> matrix3D = {{{1, 2}, {3, 4}}, {{5, 6}, {7, 8}}}; Transpose[matrix3D]
+     = {{{1, 2}, {5, 6}}, {{3, 4}, {7, 8}}}
+
+    Transpose is its own inverse. Transposing a matrix twice will give you back the same \
+    thing you started out with:
 
     >> Transpose[Transpose[matrix]] == matrix
      = True
 
-    #> Clear[matrix, square]
+    >> Transpose[Transpose[matrix3D]] == matrix3D
+     = True
+
+    If the rank of the list is 0 or 1, you get the list back
+
+    >> Transpose[{}]
+     = {}
+
+    >> Transpose[{a, b, c}]
+     = {a, b, c}
+
+    #> Clear[matrix, matrix3D, square]
     """
 
     summary_text = "transpose to rearrange indices in any way"
@@ -385,8 +400,9 @@ class Transpose(Builtin):
         if not (0 <= n <= 3):
             return
         if n < 2:
+            # Transpose of a 0 or 1-dimensional tensor is itself.
             return m
-        if n == 2:
+        if n == 3:
             n_0 = dimensions[0]
             if not all(sublist == n_0 for sublist in dimensions[1:]):
                 return
