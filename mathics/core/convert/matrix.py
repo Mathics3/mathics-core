@@ -18,6 +18,7 @@ def matrix_data(m):
         result = [item.to_sympy() for item in m.elements]
         if None not in result:
             return result
+    return None
 
 
 def to_sympy_array(m) -> Optional[Array]:
@@ -36,6 +37,7 @@ def to_sympy_array(m) -> Optional[Array]:
         result = [item.to_sympy() for item in m.elements]
         if None not in result:
             return Array(result)
+    return None
 
 
 def to_sympy_matrix(m) -> Optional[Matrix]:
@@ -47,8 +49,6 @@ def to_sympy_matrix(m) -> Optional[Matrix]:
     if not m.has_form("List", None):
         return None
     if all(element.has_form("List", None) for element in m.elements):
-        if m.is_literal and m.value is not None:
-            return Matrix(m.value)
         result = [[item.to_sympy() for item in row.elements] for row in m.elements]
         if not any(None in row for row in result):
             return Matrix(result)
@@ -56,3 +56,4 @@ def to_sympy_matrix(m) -> Optional[Matrix]:
         result = [item.to_sympy() for item in m.elements]
         if None not in result:
             return Matrix(result)
+    return None
