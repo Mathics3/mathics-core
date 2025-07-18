@@ -27,7 +27,7 @@ jobs:
       run: |
         pip install mypy==1.13 sympy==1.12
         # Adjust below for right branch
-        git clone --depth 1 https://github.com/Mathics3/mathics-scanner
+        git clone --depth 1 --branch BoxInputEscape https://github.com/Mathics3/mathics-scanner
         cd mathics-scanner/
         pip install -e .
         bash ./admin-tools/make-JSON-tables.sh

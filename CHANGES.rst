@@ -1,6 +1,9 @@
 CHANGES
 =======
 
+We support a limited form of Boxing escape ``\*`` that handles a single Boxing function.
+
+
 New Builtins
 ++++++++++++
 
