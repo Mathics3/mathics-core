@@ -1,10 +1,13 @@
-from typing import Union
+from typing import Optional, Union
 
 from sympy.combinatorics import Permutation
+from sympy.tensor.array.expressions import PermuteDims
 from sympy.utilities.iterables import permutations
 
 from mathics.core.atoms import Integer, Integer0, Integer1, String
+from mathics.core.convert.matrix import to_sympy_matrix
 from mathics.core.convert.python import from_python
+from mathics.core.convert.sympy import from_sympy_matrix
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import BaseElement, Expression
 from mathics.core.list import ListExpression
@@ -324,29 +327,15 @@ def eval_LeviCivitaTensor(d, type):
         return Expression(SymbolSparseArray, from_python(rules), from_python([d] * d))
 
 
-def eval_Transpose2D(m) -> Expression:
-    "Transpose of a 2D matrix"
+def eval_Transpose(m, dimensions: int) -> Optional[Expression]:
+    """Transpose a two-dimensional matrix"""
 
-    # Below is some skeletal code that might get used in the future.
-    # NumPy handles complex numbers differently.
-    # There is a bigger problem in handling literals and
-    # value.
+    sympy_m = to_sympy_matrix(m)
+    if sympy_m is None:
+        return None
 
-    # if m.is_literal:
-    #     m.numpy = np.array(m.value)
-    #     transposed = np.transpose(m.numpy)
-    #     transposed_list_of_lists = transposed.tolist()
-    #     mathics_transposed = ListExpression(
-    #         *[to_mathics_list(*row) for row in transposed_list_of_lists]
-    #     )
-    #     mathics_transposed.numpy = transposed
-    #     return mathics_transposed
-
-    transposed_list_of_lists = []
-    for row_index, row in enumerate(m.elements):
-        for col_index, item in enumerate(row.elements):
-            if row_index == 0:
-                transposed_list_of_lists.append([item])
-            else:
-                transposed_list_of_lists[col_index].append(item)
-    return ListExpression(*[ListExpression(*row) for row in transposed_list_of_lists])
+    if dimensions == 2:
+        return from_sympy_matrix(sympy_m.T)
+    elif dimensions == 3:
+        # Swap the last two dimensions
+        return from_sympy_matrix(PermuteDims(sympy_m, (0, 2, 1)))

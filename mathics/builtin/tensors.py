@@ -27,7 +27,7 @@ from mathics.eval.tensors import (
     eval_Inner,
     eval_LeviCivitaTensor,
     eval_Outer,
-    eval_Transpose2D,
+    eval_Transpose,
     get_dimensions,
 )
 
@@ -377,8 +377,21 @@ class Transpose(Builtin):
     summary_text = "transpose to rearrange indices in any way"
 
     def eval(self, m, evaluation: Evaluation):
-        "Transpose[m_?MatrixQ]"
-        return eval_Transpose2D(m)
+        """Transpose[m_List]"""
+        dimensions = get_dimensions(m)
+        if dimensions is None:
+            return
+        n = len(dimensions)
+        if not (0 <= n <= 3):
+            return
+        if n < 2:
+            return m
+        if n == 2:
+            n_0 = dimensions[0]
+            if not all(sublist == n_0 for sublist in dimensions[1:]):
+                return
+        # FIXME: check 3D dimensions
+        return eval_Transpose(m, n)
 
 
 class ConjugateTranspose(Builtin):
