@@ -32,7 +32,7 @@ dependencies = [
     "stopit; platform_system != 'Emscripten'",
     "sympy>=1.13,<1.14",
 ]
-license = {text = "GPL3"}
+license = "GPL-3.0-or-later"
 name = "Mathics3"
 requires-python = ">=3.8" # Sympy 1.11 is supported only down to 3.8
 readme = "README.rst"
@@ -43,7 +43,6 @@ maintainers = [
 classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
