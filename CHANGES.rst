@@ -1,18 +1,54 @@
 CHANGES
 =======
 
-We support a limited form of Boxing escape ``\*`` that handles a single Boxing function.
+9.0.0
+-----
+
+Support for Python 3.13. Python 3.8 support dropped.
+
+Note: There are incompatible changes. Use with Mathics-scanner 2.0.0 or greater.
+
+Boxing operators have been added. The full range of escape equences
+is supported.  A limited form of boxing escape ``\*`` that handles a
+single Boxing function has been added.
+
+Preliminary work to track locations has been started. This is useful
+in debugging and error reporting, and is controlled on via a Boolean
+System variable ``$TrackLocations``.
 
 
 New Builtins
 ++++++++++++
 
-* ``$SessionID``
-* ``BinaryReadList``
+#. ``$SessionID``
+#. ``$TrackLocations`` (not WMA)
+#. ``BinaryReadList[]`` (needed to support importing gzip files)
 * ``Hypergeometric2F1``
 
-Internals
----------
+By Aravindh Krishnamoorthy (needed for better Rubi suppor):
+
+#. ``Hypergeometric1F1[]``
+#. ``HypergeometricPFQ[]``
+#. ``MeijerG[]``
+#. ``HypergeometricU[]``
+
+
+Documentation
++++++++++++++
+
+Go over docs for ``Beta[]``, ``Gamma[]``, ``Product[]``, and infix operators with no meaning.
+Expand ``Transpose[]`` documentation.
+
+
+Bugs
+++++
+
+#. #1383 Support for hypergeometric functions
+#. #1384 Option management tweaks
+#. #1388 In WMA, ``Pochhammer[0,-2]`` returns 1/2
+#. #1395 Match WMA for ``Gamma[1+x]`` and ``Product[...]``
+#. #1405 structure_cache in ``mathics.core.expression.structure`` is ``None`` but we try to set it in ``_is_neutral_symbol()``
+#. #1412 ``Transpose[]`` does not work on three-dimensional array
 
 * Mathics scanner exceptions of class TranslateError are incompatible
 with previous versions, and now store error parameters, "name", "tag", and
@@ -48,36 +84,36 @@ The maximum version of numpy was increased to < 2.3 so as to allow marimo to wor
 
 
 Bugs
-----
+++++
 
 Correct for mismatch between ListExpression and tuple in ``DispatchAtom``.
 This is needed for PacletManager code to work better.
 
-
 Compatibility
--------------
++++++++++++++
 
-* When the result of an evaluation is ``Symbol`Null``, Mathics CLI
+#. When the result of an evaluation is ``Symbol`Null``, Mathics CLI
   now does not show an ``Out[...]=`` line, following the behavior of
   the WMA CLI.
-* Asymptote rendering of platonic solids added.
+#. Asymptote rendering of platonic solids added.
 
 
 Internals
----------
++++++++++
 
-Document tagging code handles TeX math mode more completely. Image tags in PDF properly.
+* Document tagging code handles TeX math mode more completely. Image tags in PDF properly.
+* Numerous spelling fixes and typos by Frédéric Chapoton (@fchapoton)
 
 Documentation
--------------
++++++++++++++
 
-* Documentation has been gone over so that expressions are tagged in TeX. As a result the user guide and reference manual render much nicer in the PDF as well as in Django.
-* More links have been added. References to The Digital Library of Mathematical Functions https://dlmf.nist.gov/ have been added where appropriate.
-* Add mention of MathicsLive
-* Platonic solid render properly in PDF
+#. Documentation has been gone over so that expressions are tagged in TeX. As a result the user guide and reference manual render much nicer in the PDF as well as in Django.
+#. More links have been added. References to The Digital Library of Mathematical Functions https://dlmf.nist.gov/ have been added where appropriate.
+#. Add mention of MathicsLive
+#. Platonic solid render properly in PDF
 
 
-  8.0.0
+8.0.0
 -----
 
 Jan 26, 2025
@@ -124,47 +160,47 @@ On-Line Encyclopedia of Integer Sequences (OEIS) <https://oeis.org/>`_.
 New Builtins
 ++++++++++++
 
-* ``Between``
-* ``Breakpoint`` - (not WMA; forces a Python ``breakpoint()``
-* ``CheckAbort``
-* ``FileNameDrop``
-* ``FormatValues``
-* ``ListStepPlot``
-* ``MapApply``
+* ``Between[]``
+* ``Breakpoint[]`` - (not WMA; forces a Python ``breakpoint()``
+* ``CheckAbort[]``
+* ``FileNameDrop[]``
+* ``FormatValues[]``
+* ``ListStepPlot[]``
+* ``MapApply[]``
 * ``PythonCProfileEvaluation`` (not WMA; interface to Python cProfile)
-* ``RealValuedNumberQ``
-* ``SequenceForm``
-* ``SetEnvironment``
-* ``Stack``
-* ``SyntaxQ``
-* ``Trace``
-* ``UnitStep``
+* ``RealValuedNumberQ[]``
+* ``SequenceForm[]``
+* ``SetEnvironment[]``
+* ``Stack[]``
+* ``SyntaxQ[]``
+* ``Trace[]``
+* ``UnitStep[]``
 
 By `@davidar <https://github.com/davidar>`_:
 
-* ``BellB``
-* ``DivisorSigma``
-* ``DivisorSum``
-* ``EulerE``
-* ``HypergeometricU``
-* ``IntegerPart``
-* ``IntegerPartitions``
-* ``JacobiSymbol``
-* ``KroneckerSymbol``
-* ``LambertW``
-* ``LinearRecurrence``
-* ``LucasL``
-* ``MersennePrimeExponent``
-* ``MoebiusMu``
-* ``NumberDigit``
-* ``PolygonalNumber``
-* ``PolyLog``
-* ``PowersRepresentations``
-* ``ReverseSort``
-* ``RootSum``
-* ``SeriesCoefficient``
-* ``SquaresR``
-* ``Subfactorial``
+* ``BellB[]``
+* ``DivisorSigma[]``
+* ``DivisorSum[]``
+* ``EulerE[]``
+* ``HypergeometricU[]``
+* ``IntegerPart[]``
+* ``IntegerPartitions[]``
+* ``JacobiSymbol[]``
+* ``KroneckerSymbol[]``
+* ``LambertW[]``
+* ``LinearRecurrence[]``
+* ``LucasL[]``
+* ``MersennePrimeExponent[]``
+* ``MoebiusMu[]``
+* ``NumberDigit[]``
+* ``PolygonalNumber[]``
+* ``PolyLog[]``
+* ``PowersRepresentations[]``
+* ``ReverseSort[]``
+* ``RootSum[]``
+* ``SeriesCoefficient[]``
+* ``SquaresR[]``
+* ``Subfactorial[]``
 
 Documentation
 +++++++++++++
@@ -180,7 +216,7 @@ debugger <https https://pypi.org/project/trepan3k/>`_ on an
 unrecoverable error. This option is available on other front-ends..
 
 WMA Compatibility
------------------
++++++++++++++++++
 
 * ``GetEnvironment`` expanded to handle ``[]`` and ``{var1, var2,...}`` forms
 * The system ``packages`` directory has been renamed ``Packages`` to conformance with WMA.
@@ -188,7 +224,7 @@ WMA Compatibility
 * All of the 100 or so Unicode operators without a pre-defined meaning are now supported
 
 Internals
----------
+++++++++++
 
 * More of the on-OO evaluation code that forms what might be an
   instruction evaluator has been moved out of the module
@@ -200,12 +236,12 @@ Internals
 
 
 Performance
------------
++++++++++++
 
 * ``Blank*`` patterns without arguments are now singletons.
 
 API incompatibility
--------------------
++++++++++++++++++++
 
 * ``Matcher`` now requires an additional ``evaluation`` parameter
 * ``Romberg`` removed as an ``NIntegrate[]`` method. It is deprecated in SciPy and is to be removed by SciPy 1.15.
@@ -222,7 +258,7 @@ API incompatibility
 
 
 Bugs
-----
+++++
 
 * Fix infinite recursion when formatting ``Sequence[...]``
 * Parsing ``\(`` ... ``\)`` improved
@@ -289,7 +325,7 @@ Structure". The title of the PDF has changed from Mathics to Mathics3
 and the introduction has been updated and revised.
 
 Compatibility
--------------
++++++++++++++
 
 * ``*Plot`` does not show messages during the evaluation.
 * ``Range[]`` now handles a negative ``di`` PR #951
@@ -302,7 +338,7 @@ Compatibility
 
 
 Internals
----------
++++++++++
 
 * ``eval_abs`` and ``eval_sign`` extracted from ``Abs`` and ``Sign`` and added to ``mathics.eval.arithmetic``.
 * Maximum number of digits allowed in a string set to 7000 and can be adjusted using environment variable
@@ -318,7 +354,7 @@ Internals
 
 
 Bugs
-----
+++++
 
 * ``Definitions`` is compatible with ``pickle``.
 * Improved support for ``Quantity`` expressions, including conversions, formatting and arithmetic operations.
@@ -415,24 +451,24 @@ New Builtins
 #. ``$BoxForms``
 #. ``$OutputForms``
 #. ``$PrintForms``
-#. ``$PythonImplementation``
-#. ``Accuracy``
-#. ``ClebschGordan``
-#. ``ComplexExpand`` (@yzrun)
-#. ``Curl`` (2-D and 3-D vector forms only)
-#. ``DiscretePlot``
-#. ``Kurtosis``
-#. ``ListLogPlot``
-#. ``LogPlot``
+#. ``$PythonImplementation`` (not WMA)
+#. ``Accuracy[]``
+#. ``ClebschGordan[]``
+#. ``ComplexExpand[]`` (@yzrun)
+#. ``Curl[]`` (2-D and 3-D vector forms only)
+#. ``DiscretePlot[]``
+#. ``Kurtosis[]``
+#. ``ListLogPlot[]``
+#. ``LogPlot[]``
 #. ``$MaxMachineNumber``
 #. ``$MinMachineNumber``
-#. ``NumberLinePlot``
-#. ``PauliMatrix``
-#. ``Remove``
-#. ``SetOptions``
-#. ``SixJSymbol``
-#. ``Skewness``
-#. ``ThreeJSymbol``
+#. ``NumberLinePlot[]``
+#. ``PauliMatrix[]``
+#. ``Remove[]``
+#. ``SetOptions[]``
+#. ``SixJSymbol[]``
+#. ``Skewness[]``
+#. ``ThreeJSymbol[]``
 
 
 Documentation
@@ -562,47 +598,47 @@ More work will continue in subsequent releases.
 New Builtins
 ++++++++++++
 #. Euler's ``Beta`` function.
-#. ``Bernoulli``.
-#. ``CatalanNumber`` (Integer arguments only).
-#. ``CompositeQ``.
-#. ``Diagonal``. Issue #115.
-#. ``Divisible``.
-#. ``EllipticE``
-#. ``EllipticF``
-#. ``EllipticK``
-#. ``EllipticPi``
-#. ``EulerPhi``
+#. ``Bernoulli[]``.
+#. ``CatalanNumber[]`` (Integer arguments only).
+#. ``CompositeQ[]``.
+#. ``Diagonal[]``. Issue #115.
+#. ``Divisible[]``.
+#. ``EllipticE[]``
+#. ``EllipticF[]``
+#. ``EllipticK[]``
+#. ``EllipticPi[]``
+#. ``EulerPhi[]``
 #. ``$Echo``. Issue #42.
-#. ``FindRoot`` was improved for supporting numerical derivatives Issue #67, as well as the use of scipy libraries when are available.
-#. ``FindRoot`` (for the ``newton`` method) partially supports ``EvaluationMonitor`` and ``StepMonitor`` options.
-#. ``FindMinimum`` and ``FindMaximum`` now have a minimal implementation for 1D problems and the use of scipy libraries when are available.
-#. ``LogGamma``.
-#. ``ModularInverse``.
-#. ``NumericFunction``.
-#. ``Projection``.
+#. ``FindRoot[]`` was improved for supporting numerical derivatives Issue #67, as well as the use of scipy libraries when are available.
+#. ``FindRoot[]`` (for the ``newton`` method) partially supports ``EvaluationMonitor`` and ``StepMonitor`` options.
+#. ``FindMinimum[]`` and ``FindMaximum[]`` now have a minimal implementation for 1D problems and the use of scipy libraries when are available.
+#. ``LogGamma[]``.
+#. ``ModularInverse[]``.
+#. ``NumericFunction[]``.
+#. ``Projection[]``.
 #. Partial support for Graphics option ``Opacity``.
-#. ``SeriesData`` operations was improved.
+#. ``SeriesData[]`` operations was improved.
 #. ``TraceEvaluation[]`` shows expression name calls and return values of it argument.
    -  Pass option ``ShowTimeBySteps``, to show accumulated time before each step
    - The variable ``$TraceEvalution`` when set True will show all expression evaluations.
-#. ``TraditionalForm``
+#. ``TraditionalForm[]``
 
 
 Enhancements
 ++++++++++++
 
-#. ``D`` acts over ``Integrate`` and  ``NIntegrate``. Issue #130.
-#. ``SameQ`` (``===``) handles chaining, e.g. ``a == b == c`` or ``SameQ[a, b, c]``.
-#. ``Simplify`` handles expressions of the form ``Simplify[0^a]`` Issue #167.
-#. ``Simplify`` and ``FullSimplify`` support optional parameters ``Assumptions`` and ``ComplexityFunction``.
-#. ``UnsameQ`` (``=!=``) handles chaining, e.g. ``a =!= b =!= c`` or ``UnsameQ[a, b, c]``.
+#. ``D[]`` acts over ``Integrate`` and  ``NIntegrate``. Issue #130.
+#. ``SameQ[]`` (``===``) handles chaining, e.g. ``a == b == c`` or ``SameQ[a, b, c]``.
+#. ``Simplify[]`` handles expressions of the form ``Simplify[0^a]`` Issue #167.
+#. ``Simplify[]`` and ``FullSimplify`` support optional parameters ``Assumptions`` and ``ComplexityFunction``.
+#. ``UnsameQ[]`` (``=!=``) handles chaining, e.g. ``a =!= b =!= c`` or ``UnsameQ[a, b, c]``.
 #. Assignments to usage messages associated with ``Symbols`` is allowed as it is in WMA. With this and other changes, Combinatorica 2.0 works as written.
 #. ``Share[]`` performs an explicit call to the Python garbage collection and returns the amount of memory free.
 #. Improve the compatibility of ``TeXForm`` and ``MathMLForm`` outputs with WMA. MathML tags around numbers appear as "<mn>" tags instead of "<mtext>", except in the case of ``InputForm`` expressions. In TeXForm some quotes around strings have been removed to conform to WMA. It is not clear whether this is the correct behavior.
 #. Allow ``scipy`` and ``skimage`` to be optional. In particular: revise ``Nintegrate[]`` to use ``Method="Internal"`` when scipy isn't available.
 #. Pyston up to versions from 2.2 to 2.3.4 are supported as are PyPy versions from 3.7-7.3.9.0 up 3.9-7.3.9. However those Python interpreters may have limitations and limitations on packages that they support.
 #. Improved support for ``Series`` Issue #46.
-#. ``Cylinder`` rendering is implemented in Asymptote.
+#. ``Cylinder[]`` rendering is implemented in Asymptote.
 
 
 Documentation
