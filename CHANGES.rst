@@ -15,15 +15,16 @@ which happens a lot in plotting graphics. Also, Python 3.13 is a bit
 faster than previous versions. Previously, rendering via ``asymptote`` was
 slow. This is no longer the situation.
 
-The debugging interface has been improved. ``TraceEvaluation[]``
-and ``TraceDebug[]`` filter and colorize output for Mathics3
-constructs much better.
-
 Preliminary work to track locations has been started. This is useful in debugging and error reporting, and is controlled via a Boolean
 System variable ``$TrackLocations``.
 
 Boxing operators have been added. The full range of escape sequences is supported.  A limited form of boxing escape ``\*`` that handles a
 single Boxing function has been added.
+
+A basic interrupt handler was added that loosely follows wolframscript's interrupt handle. Interrupt commands "abort", "exit", "continue", "show", and "inspect" are available, but "trace" will be added later.
+
+``main.py`` has been moved to ``__main__.py`` following Python conventions for main routines. This makes ``python -m mathics`` work.
+GNU Readline history is enabled for "mathics" when it is available. It shares history files with ``mathicsscript``.
 
 
 New Builtins
@@ -48,6 +49,17 @@ Documentation
 Go over docs for ``Beta[]``, ``Gamma[]``, ``Product[]``, and infix operators with no meaning.
 Expand ``Transpose[]`` documentation.
 
+
+Enhancements
+++++++++++++
+
+#. ``mathics`` CLI options are more like wolframscript
+#. The debugging interface has been improved. ``TraceEvaluation[]`` and ``TraceDebug[]`` filter and colorize output for Mathics3
+   constructs much better. . Single-dash long options like
+   ``-help``, ``-file`` are now accepted. Short option ``-f`` is associated
+   with ``-file`` rather than ``--fullform``; ``-F`` is is now used for
+   ``FullForm``. Option ``--read`` with alias ``-r`` is now ``-code`` and short option ``-c``.
+#. Boolen Options ``ShowRewrites`` and ``ShowEvaluation`` were added to ``TraceEvalation[]`` These filtering for either rewrites rules or evaluation expressions. Presumably, you don't want to filter both.
 
 Bugs
 ++++
@@ -82,6 +94,12 @@ Bugs
 * Fixed #1187
 
 
+=======
+Incompatible changes
++++++++++++++++++++++
+
+Scanner API has changed. Options on ``mathics`` CLI have changed. See above for the changes.
+Location of ``mathics`` in ``mathics.__main__``, the more usual locaiton, rather than ``mathics.main``.
 
 8.0.1
 -----
