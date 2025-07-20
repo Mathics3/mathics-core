@@ -15,10 +15,6 @@ which happens a lot in plotting graphics. Also, Python 3.13 is a bit
 faster than previous versions. Previously, rendering via ``asymptote`` was
 slow. This is no longer the situation.
 
-The debugging interface has been improved. ``TraceEvaluation[]``
-and ``TraceDebug[]`` filter and colorize output for Mathics3
-constructs much better.
-
 Preliminary work to track locations has been started. This is useful in debugging and error reporting, and is controlled via a Boolean
 System variable ``$TrackLocations``.
 
@@ -48,6 +44,16 @@ Go over docs for ``Beta[]``, ``Gamma[]``, ``Product[]``, and infix operators wit
 Expand ``Transpose[]`` documentation.
 
 
+Enhancements
+++++++++++++
+
+#. ``mathics`` CLI options are more like wolframscript
+#. The debugging interface has been improved. ``TraceEvaluation[]`` and ``TraceDebug[]`` filter and colorize output for Mathics3
+   constructs much better. . Single-dash long options like
+   ``-help``, ``-file`` are now accepted. Short option ``-f`` is associated
+   with ``-file`` rather than ``--fullform``; ``-F`` is is now used for
+   ``FullForm``. Option ``--read`` with alias ``-r`` is now ``-code`` and short option ``-c``.
+
 Bugs
 ++++
 
@@ -58,6 +64,11 @@ Bugs
 #. #1405 structure_cache in ``mathics.core.expression.structure`` is ``None`` but we try to set it in ``_is_neutral_symbol()``
 #. #1412 ``Transpose[]`` does not work on three-dimensional array
 
+
+Incompatible changes
++++++++++++++++++++++
+
+Scanner API has changed. Options on ``mathics`` CLI have changed. See above for the changes.
 
 8.0.1
 -----
