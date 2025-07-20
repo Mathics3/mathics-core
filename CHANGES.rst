@@ -8,13 +8,24 @@ Support for Python 3.13. Python 3.8 support dropped.
 
 Note: There are incompatible changes. Use with Mathics-scanner 2.0.0 or greater.
 
-Boxing operators have been added. The full range of escape equences
-is supported.  A limited form of boxing escape ``\*`` that handles a
-single Boxing function has been added.
+You may notices a speedup in performance, especially graphics
+performance in this version. There is speedup due to removing
+conversions from Mathics3 to Python and vice versa for literal data,
+which happens a lot in plotting graphics. Also, Python 3.13 is a bit
+faster than previous versions. Previously, rendering via asymptote was
+slow. This is no longer the situtation.
+
+The interface for debugging, has been improved. ``TraceEvaluation[]``
+and ``TraceDebug[]`` filter and colorize output for Mathics3
+constructs much better.
 
 Preliminary work to track locations has been started. This is useful
 in debugging and error reporting, and is controlled on via a Boolean
 System variable ``$TrackLocations``.
+
+Boxing operators have been added. The full range of escape equences
+is supported.  A limited form of boxing escape ``\*`` that handles a
+single Boxing function has been added.
 
 
 New Builtins
