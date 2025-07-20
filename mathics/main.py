@@ -351,14 +351,17 @@ Please contribute to Mathics!""",
     )
 
     argparser.add_argument(
-        "FILE",
+        "-f",
+        "-file",
+        "--file",
         nargs="?",
+        metavar="PATH",
         type=argparse.FileType("r"),
-        help="execute commands from FILE",
+        help="execute commands from PATH",
     )
 
     argparser.add_argument(
-        "--help", "-h", help="show this help message and exit", action="help"
+        "--help", "-help", "-h", help="show this help message and exit", action="help"
     )
 
     argparser.add_argument(
@@ -405,11 +408,12 @@ Please contribute to Mathics!""",
     )
 
     argparser.add_argument(
-        "--execute",
-        "-e",
+        "--code",
+        "-code",
+        "-c",
         action="append",
-        metavar="EXPR",
-        help="evaluate EXPR before processing any input files (may be given "
+        metavar="TEXT",
+        help="evaluate TEXT before processing any input files (may be given "
         "multiple times)",
     )
 
@@ -516,25 +520,25 @@ Please contribute to Mathics!""",
         else:
             sys.excepthook = post_mortem_excepthook
 
-    if args.FILE is not None:
-        set_input_var(args.FILE.name)
-        definitions.set_inputfile(args.FILE.name)
-        feeder = MathicsFileLineFeeder(args.FILE)
+    if args.file is not None:
+        set_input_var(args.file.name)
+        definitions.set_inputfile(args.file.name)
+        feeder = MathicsFileLineFeeder(args.file)
         eval_loop(feeder, shell)
 
         if args.persist:
             definitions.set_line_no(0)
-        elif not args.execute:
+        elif not args.code:
             return exit_rc
 
-    if args.execute:
+    if args.code:
 
         def run_it():
             evaluation = Evaluation(shell.definitions, output=TerminalOutput(shell))
             return evaluation.parse_evaluate(expr, timeout=settings.TIMEOUT), evaluation
 
-        for expr in args.execute:
-            if sys.version_info >= (3, 8) and args.cprofile:
+        for expr in args.code:
+            if args.cprofile:
                 with cProfile.Profile() as pr:
                     result, evaluation = run_it()
                     pr.print_stats()
@@ -553,7 +557,6 @@ Please contribute to Mathics!""",
             else:
                 exit_rc = -3
 
-        if not args.persist:
             return exit_rc
 
     if not args.quiet:
