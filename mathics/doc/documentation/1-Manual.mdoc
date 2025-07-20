@@ -7,18 +7,18 @@
 
 The programming language and built-in functions of \Mathics try to match the \Wolfram Language, which is continually evolving.
 
-\Mathics is in no way affiliated or supported by \Wolfram. \Mathics will probably never have the power to compete with \Mathematica in industrial applications; it is a free alternative though. It also invites community development at all levels.
+\Mathics is in no way affiliated or supported by \Wolfram. \Mathics will probably never have the power to compete with \Mathematica in industrial applications; it is a free alternative, though. It also invites community development at all levels.
 
 See the <url>:installation instructions:https://mathics-development-guide.readthedocs.io/en/latest/installing.html</url> for the most recent instructions for installing from PyPI, or the source.
 
 For implementation details, please refer to the <url>:Developers Guide:https://mathics-development-guide.readthedocs.io/en/latest</url>.
 
 <section title="Why recreate Wolfram Language?">
-\Mathematica is great, but it might have some disadvantages, depending on on your point of view.
+\Mathematica is great, but it might have some disadvantages, depending on your point of view.
 
 <ul>
   <li>It is not open source.
-  <li>Its development is tightly controlled and centralized and as such
+  <li>Its development is tightly controlled and centralized, and as such
   <li>It can't hook into different kinds of open-source packages that have independently developed algorithms and methods
 </ul>
 
@@ -66,54 +66,39 @@ A couple of the notable Mathematica packages that work on \Mathics3 are  <url>:C
 </section>
 
 <section title="History">
-The first alpha versions of \Mathics were done in 2011 by Jan Pöschko. He worked on it for a couple of years to about the v0.5 release in 2012. By then, it had 386 built-in symbols. Currently there are over a 1,000, and even more when \Mathics modules are included.
+The first alpha versions of \Mathics were done in 2011 by Jan Pöschko. He worked on it for a couple of years until the v0.5 release in 2012. By then, it had 386 built-in symbols. Currently, there are over 1,000, and even more when \Mathics modules are included.
 
-After that, Angus Griffith took over primary leadership and rewrote the parser to pretty much the stage it is in now. He and later Ben Jones worked on it from 2013 to about 2017 to the v1.0 release. Towards the end of this period, Bernhard Liebl worked on this, mostly focused on graphics.
+After that, Angus Griffith took over primary leadership and rewrote the parser to pretty much the stage it is in now. He and later Ben Jones worked on it from 2013 to about 2017 to the v1.0 release. Towards the end of this period, Bernhard Liebl worked on this, mostly focusing on graphics.
 
 A <url>:docker image of the v.9 release: https://hub.docker.com/r/arkadi/mathics</url> can be found on dockerhub.
 
 Around 2017, the project was largely abandoned in its largely Python 2.7 state, with some support for Python 3.2-3.5 via six.
 
-Subsequently, around mid 2020, it was picked up by the current developers. A list of authors and contributors can be found in the <url>:AUTHORS.txt:https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url> file.
-</section>
-
-<section title="Partial list of Mathematica Packages">
-
-While there are Mathematica packages that don't run on \Mathics3, here are a few larger packages:
-
-<ul>
-  <li>a <url>:Combinatorica :https://github.com/Mathics3/Mathics3-Combinatorica</url>
-  <li>a <url>:Rubi:https://github.com/Mathics3/Mathics3-Rubi/</url>
-  <li>a <url>:BoolEval:https://github.com/szhorvat/BoolEval</url>
-  <li>a <url>:Mathics3 module for NLP:https://pypi.org/project/pymathics-natlang/</url> (via <url>:nltk:https://www.nltk.org/</url>, <url>:spacy:https://spacy.io/</url>, and others)
-  <li>a <url>:Mathics3 Debugger Module:https://pypi.org/project/Mathics3-trepan/</url> (experimental)
-  <li>a <url>:A docker container:https://hub.docker.com/r/mathicsorg/mathics</url> which bundles all of the above
-</ul>
->>>>>>> 3eba786d9 (Go over manual and update CHANGES.rst)
+Subsequently, around mid-2020, it was picked up by the current developers. A list of authors and contributors can be found in the <url>:AUTHORS.txt:https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url> file.
 </section>
 
 <section title="What is missing?">
 There are lots of ways in which \Mathics could still be improved. <url>:FUTURE.rst: https://github.com/Mathics3/mathics-core/blob/master/FUTURE.rst</url> has the current roadmap.
 
-However many WMA Builtin functions have not been implemented. To get a list run:
+However, many WMA Builtin functions have not been implemented. To get a list run:
 
 <console>   git grep -n "# TODO: " mathics/builtin</console>
 
 from the Mathics3 core <url>:github repository: https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url>.
 
-We have a tutorial for <url>:adding a new Mathics3 functions: https://mathics-development-guide.readthedocs.io/en/latest/extending/developing-code/extending/tutorial.html</url>.
+We have a tutorial for <url>:adding new Mathics3 functions: https://mathics-development-guide.readthedocs.io/en/latest/extending/developing-code/extending/tutorial.html</url>.
 
-Many of the existing Mathics3 Builtin functions are incomplete, or work differently such as checking for different error conditions.
+Many of the existing Mathics3 Built-in functions are incomplete, or work differently, such as checking for different error conditions.
 
-Although we always can use help in Python programming, there are other ways to help. For example:
+Although we can always use help in Python programming, there are other ways to help. For example:
 
 <ul>
-<li>Ensure this document is complete and accurate. We could use help to ensure all of the Builtin functions are described properly and fully, and that they have a link to corresponding Wiki, SymPy, WMA and/or mpath links.</li>
-<li>Work on a making a comprehensive list of missing or incomplete builtin functions.
-Make sure the builtin summaries and examples are clear and useful.</li>
-<li>We could use help in LaTeX styling, and going over this document to remove overfull boxes and things of that nature. We could also use help and our use of Asymptote. The are some graphics primitives such as for polyhedra that haven't been implemented. Similar graphics options are sometimes missing in Asymptote that we have available in other graphics backends.</li>
+<li>Ensure this document is complete and accurate. We could use help to ensure all of the Built-in functions are described properly and fully, and that they have a link to the corresponding Wiki, SymPy, WMA, and/or mpath links.</li>
+<li>Work on making a comprehensive list of missing or incomplete built-in functions.</li>
+Make sure the built-in summaries and examples are clear and useful.</li>
+<li>We could use help in LaTeX styling, and going over this document to remove overfull boxes and things of that nature. We could also use help and our use of Asymptote. The are some graphics primitives, such as for polyhedra, that haven't been implemented. Similar graphics options are sometimes missing in Asymptote that we have available in other graphics backends.</li>
 
-<li>Add another graphics backend: it could be a javascript library like <url>:jsfiddle: https://jsfiddle.net/.</li>
+<li>Add another graphics backend: it could be a JavaScript library like <url>:jsfiddle: https://jsfiddle.net/.</li>
 
 <li>Consider donating via <url>:Github Sponsors: https://github.com/sponsors</url> or some other mechanism.</li>
 </ul>
@@ -128,9 +113,9 @@ See <url>:The Mathics3 Developer Guide:https://mathics-development-guide.readthe
 
 The following sections are introductions to the basic principles of the language of \Mathics. A few examples and functions are presented. Only their most common usages are listed; for a full description of a Symbol's possible arguments, options, etc., see its entry in the Reference of Built-in Symbols.
 
-However, if you google for "Mathematica Tutorials" you will find easily dozens of other tutorials that are applicable. For example, see <url>:An Elementary Introduction to the Wolfram Language:https://www.wolfram.com/language/elementary-introduction/</url>. In the <url>:docker image that we supply:https://hub.docker.com/r/mathicsorg/mathics</url>, you can load "workspaces" containing the examples described in the chapters of this introduction.
+However, if you Google for "Mathematica Tutorials," you will find easily dozens of other tutorials that are applicable. For example, see <url>:An Elementary Introduction to the Wolfram Language:https://www.wolfram.com/language/elementary-introduction/</url>. In the <url>:docker image that we supply:https://hub.docker.com/r/mathicsorg/mathics</url>, you can load "workspaces" containing the examples described in the chapters of this introduction.
 
-Be warned though that \Mathics does not yet offer the full range and features and capabilities of \Mathematica.
+Be warned, though, that \Mathics does not yet offer the full range and features and capabilities of \Mathematica.
 
 <section title="Basic calculations">
 \Mathics can be used to calculate basic stuff:
@@ -499,7 +484,7 @@ It is an error to combine lists with unequal lengths:
 </section>
 
 <section title="The Structure of \Mathics Objects">
-Every expression in \Mathics is built upon the same principle: it consists of a <em>head</em> and an arbitrary number of <em>children</em>, unless it is an <em>atom</em>, i.e. it can not be subdivided any further. To put it another way: everything is a function call. This can be best seen when displaying expressions in their "full form":
+Every expression in \Mathics is built upon the same principle: it consists of a <em>head</em> and an arbitrary number of <em>children</em>, unless it is an <em>atom</em>, i.e., it can not be subdivided any further. To put it another way: everything is a function call. This can be best seen when displaying expressions in their "full form":
 
   >> FullForm[a + b + c]
   = Plus[a, b, c]
@@ -675,12 +660,12 @@ This is useful when the right side of a rule should not be evaluated immediately
   >> {1, 2} /. x_Integer -> N[x]
   = {1, 2}
 
-Here, 'N' is applied to 'x' before the actual matching, simply yielding 'x'. With a delayed rule this can be avoided:
+Here, 'N' is applied to 'x' before the actual matching, simply yielding 'x'. With a delayed rule, this can be avoided:
   >> {1, 2} /. x_Integer :> N[x]
   = {1., 2.}
 
 'ReplaceAll' and 'ReplaceRepeated' take the first possible match.
-However 'ReplaceList' returns a list of all possible matches.
+However, 'ReplaceList' returns a list of all possible matches.
 This can be used to get all subsequences of a list, for instance:
 
   >> ReplaceList[{a, b, c}, {___, x__, ___} -> {x}]
@@ -689,7 +674,7 @@ This can be used to get all subsequences of a list, for instance:
   >> ReplaceAll[{a, b, c}, {___, x__, ___} -> {x}]
    = {a}
 
-In addition to defining functions as rules for certain patterns, there are <em>pure</em> functions that can be defined using the '&' postfix operator, where everything before it is treated as the function body, and '#' can be used as argument placeholder:
+In addition to defining functions as rules for certain patterns, there are <em>pure</em> functions that can be defined using the '&' postfix operator, where everything before it is treated as the function body, and '#' can be used as an argument placeholder:
 
   >> h = # ^ 2 &;
   >> h[3]
@@ -767,7 +752,7 @@ Inside 'For', 'While', and 'Do' loops, 'Break[]' exits the loop, and 'Continue[]
 </section>
 
 <section title="Scoping">
-By default, all symbols are "global" in \Mathics, i.e. they can be read and written in any part of your program.
+By default, all symbols are "global" in \Mathics, i.e., they can be read and written in any part of your program.
 However, sometimes "local" variables are needed in order not to disturb the global namespace. \Mathics provides two ways to support this:
 <ul>
 <li><em>lexical scoping</em> by 'Module', and
@@ -781,7 +766,7 @@ However, sometimes "local" variables are needed in order not to disturb the glob
 
   <dt>'Block'[{$vars$}, $expr$]
   <dd>temporarily stores the definitions of certain variables, evaluates
-      $expr$ with reset values and restores the original definitions afterward.
+      $expr$ with reset values, and restores the original definitions afterward.
 </dl>
 
 Both scoping constructs shield inner variables from affecting outer ones:
