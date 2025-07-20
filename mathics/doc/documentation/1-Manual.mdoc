@@ -33,7 +33,7 @@ However, even if you are willing to pay hundreds of dollars for the software, yo
   <li><url>:SciPy: https://www.scipy.org/</url> for Scientific calculations.
 </ul>
 
-Performance of \Mathics is not, right now, practical in large-scale projects and calculations. However, it can be used as a tool for exploration and education. There is promise that it can provide better debugging, since we can be completely transparent about every aspect of its operation.
+Performance of \Mathics is not, right now, fast in large-scale projects and calculations. However, it can be used as a tool for exploration and education and non-computationally intensive use. And \Mathics provides better debugging and tracing, since we can be completely transparent about every aspect of its operation.
 
 </section>
 
@@ -57,6 +57,12 @@ Outside of the "core" \Mathics kernel (which has only a primitive command-line i
   <li>a <url>:A docker container:https://hub.docker.com/r/mathicsorg/mathics</url> which bundles all of the above
 </ul>
 
+In the future, we might provide better interaction with other Open-source projects and tools. For example, we might be able someday to read and write Jupyter notebooks, or translate into pure SymPy and \Mathics.
+
+
+A couple of the notable Mathematica packages that work on \Mathics3 are  <url>:Combinatorica :https://github.com/Mathics3/Mathics3-Combinatorica</url>,and <url>:Rubi:https://github.com/Mathics3/Mathics3-Rubi/</url>.
+
+
 </section>
 
 <section title="History">
@@ -68,22 +74,46 @@ A <url>:docker image of the v.9 release: https://hub.docker.com/r/arkadi/mathics
 
 Around 2017, the project was largely abandoned in its largely Python 2.7 state, with some support for Python 3.2-3.5 via six.
 
-Subsequently, around mid 2020, it was picked up by the current developers. A list of authors and contributors can be found in the <url>
-:<console>AUTHORS.txt</console>:
-https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url> file.
+Subsequently, around mid 2020, it was picked up by the current developers. A list of authors and contributors can be found in the <url>:AUTHORS.txt:https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url> file.
+</section>
+
+<section title="Partial list of Mathematica Packages">
+
+While there are Mathematica packages that don't run on \Mathics3, here are a few larger packages:
+
+<ul>
+  <li>a <url>:Combinatorica :https://github.com/Mathics3/Mathics3-Combinatorica</url>
+  <li>a <url>:Rubi:https://github.com/Mathics3/Mathics3-Rubi/</url>
+  <li>a <url>:BoolEval:https://github.com/szhorvat/BoolEval</url>
+  <li>a <url>:Mathics3 module for NLP:https://pypi.org/project/pymathics-natlang/</url> (via <url>:nltk:https://www.nltk.org/</url>, <url>:spacy:https://spacy.io/</url>, and others)
+  <li>a <url>:Mathics3 Debugger Module:https://pypi.org/project/Mathics3-trepan/</url> (experimental)
+  <li>a <url>:A docker container:https://hub.docker.com/r/mathicsorg/mathics</url> which bundles all of the above
+</ul>
+>>>>>>> 3eba786d9 (Go over manual and update CHANGES.rst)
 </section>
 
 <section title="What is missing?">
-There are lots of ways in which \Mathics could still be improved. <url>:<console>FUTURE.rst</console>: https://github.com/Mathics3/mathics-core/blob/master/FUTURE.rst</url> has the current roadmap.
+There are lots of ways in which \Mathics could still be improved. <url>:FUTURE.rst: https://github.com/Mathics3/mathics-core/blob/master/FUTURE.rst</url> has the current roadmap.
 
-We always could use help in Python programming and improving the documentation. But there are other ways to help. For example:
+However many WMA Builtin functions have not been implemented. To get a list run:
+
+<console>   git grep -n "# TODO: " mathics/builtin</console>
+
+from the Mathics3 core <url>:github repository: https://github.com/Mathics3/mathics-core/blob/master/AUTHORS.txt</url>.
+
+We have a tutorial for <url>:adding a new Mathics3 functions: https://mathics-development-guide.readthedocs.io/en/latest/extending/developing-code/extending/tutorial.html</url>.
+
+Many of the existing Mathics3 Builtin functions are incomplete, or work differently such as checking for different error conditions.
+
+Although we always can use help in Python programming, there are other ways to help. For example:
 
 <ul>
-<li>Ensure this document is complete and accurate. We could use help to ensure all of the Builtin functions are described properly and fully, and that they have a link to corresponding Wiki, SymPy, WMA and/or mpath links.
+<li>Ensure this document is complete and accurate. We could use help to ensure all of the Builtin functions are described properly and fully, and that they have a link to corresponding Wiki, SymPy, WMA and/or mpath links.</li>
+<li>Work on a making a comprehensive list of missing or incomplete builtin functions.
 Make sure the builtin summaries and examples are clear and useful.</li>
 <li>We could use help in LaTeX styling, and going over this document to remove overfull boxes and things of that nature. We could also use help and our use of Asymptote. The are some graphics primitives such as for polyhedra that haven't been implemented. Similar graphics options are sometimes missing in Asymptote that we have available in other graphics backends.</li>
 
-<li>add another graphics backend: it could be a javascript library like jsfiddle</li>
+<li>Add another graphics backend: it could be a javascript library like <url>:jsfiddle: https://jsfiddle.net/.</li>
 
 <li>Consider donating via <url>:Github Sponsors: https://github.com/sponsors</url> or some other mechanism.</li>
 </ul>
