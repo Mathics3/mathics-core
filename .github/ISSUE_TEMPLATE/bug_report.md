@@ -30,7 +30,7 @@ For Django:
 
 For a command-line environment:
 
-$mathics -e 'E ^ (Pi I)'  # adjust expression E ^ (Pi I) for the specific bug
+$mathics -c 'E ^ (Pi I)'  # adjust expression E ^ (Pi I) for the specific bug
 
 -->
 
