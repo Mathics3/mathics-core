@@ -41,7 +41,9 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolCondition,
     SymbolDefault,
+    SymbolHoldPattern,
     SymbolMachinePrecision,
+    SymbolPatternTest,
 )
 from mathics.eval.list.eol import eval_Part
 
@@ -86,6 +88,19 @@ def eval_assign(
         True if the assignment was successful.
 
     """
+    focus = get_focus(lhs)
+    if isinstance(focus, Symbol):
+        if upset:
+            evaluation.message(self.get_name(), "nosym", lhs)
+        if tags and focus.get_name() not in tags:
+            evaluation.message("tagnf", focus, lhs)
+
+        try:
+            return eval_assign_to_symbol(self, lhs, focus, rhs, evaluation)
+        except AssignmentException:
+            return False
+
+    # Old approach for all the other cases...
     lhs, lookup_name = normalize_lhs(lhs, evaluation)
     try:
         # Using a builtin name, find which assignment procedure to perform,
@@ -179,8 +194,6 @@ def eval_assign_context(
     lhs: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: List,
-    upset: bool,
 ) -> bool:
     """
     Process the case where lhs is ``$Context``
@@ -195,10 +208,6 @@ def eval_assign_context(
         the expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
-        the list of symbols to be associated to the rule.
-    upset : bool
-        `True` if the rule is an Up value.
 
     Raises
     ------
@@ -242,8 +251,6 @@ def eval_assign_context_path(
     lhs: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list,
-    upset: bool,
 ) -> bool:
     """
     Assignment to the `$ContextPath` variable.
@@ -258,10 +265,6 @@ def eval_assign_context_path(
         the expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
-        the list of symbols to be associated to the rule.
-    upset : bool
-        `True` if the rule is an Up value.
 
     Raises
     ------
@@ -471,7 +474,7 @@ def eval_assign_format(
 
 
 def eval_assign_iteration_limit(
-    lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
+    self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
 ) -> bool:
     """
     Set ownvalue for the $IterationLimit symbol.
@@ -491,8 +494,6 @@ def eval_assign_line_number_and_history_length(
     lhs: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list,
-    upset: bool,
 ) -> bool:
     """
     Set ownvalue for the $Line and $HistoryLength symbols.
@@ -507,10 +508,6 @@ def eval_assign_line_number_and_history_length(
         the expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
-        the list of symbols to be associated to the rule.
-    upset : bool
-        `True` if the rule is an Up value.
 
     Raises
     ------
@@ -636,8 +633,6 @@ def eval_assign_minprecision(
     lhs: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list,
-    upset: bool,
 ) -> bool:
     """
     Implement the assignment to the `$MinPrecision` symbol.
@@ -652,10 +647,6 @@ def eval_assign_minprecision(
         the expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
-        the list of symbols to be associated to the rule.
-    upset : bool
-        `True` if the rule is an Up value.
 
     Raises
     ------
@@ -686,8 +677,6 @@ def eval_assign_maxprecision(
     lhs: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list,
-    upset: bool,
 ) -> bool:
     """
     Implement the assignment to the `$MaxPrecision` symbol.
@@ -702,10 +691,6 @@ def eval_assign_maxprecision(
         the expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
-        the list of symbols to be associated to the rule.
-    upset : bool
-        `True` if the rule is an Up value.
 
     Raises
     ------
@@ -792,7 +777,7 @@ def eval_assign_messagename(
 
 
 def eval_assign_module_number(
-    lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
+    self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
 ) -> bool:
     """
     Set ownvalue for the $ModuleNumber symbol.
@@ -1039,15 +1024,15 @@ def eval_assign_other(
     )
     lhs_name = lhs.get_name()
     if lhs_name == "System`$RecursionLimit":
-        eval_assign_recursion_limit(lhs, rhs, evaluation)
+        eval_assign_recursion_limit(self, lhs, rhs, evaluation)
     elif lhs_name in ("System`$Line", "System`$HistoryLength"):
         eval_assign_line_number_and_history_length(
             self, lhs, rhs, evaluation, tags, upset
         )
     elif lhs_name == "System`$IterationLimit":
-        eval_assign_iteration_limit(lhs, rhs, evaluation)
+        eval_assign_iteration_limit(self, lhs, rhs, evaluation)
     elif lhs_name == "System`$ModuleNumber":
-        eval_assign_module_number(lhs, rhs, evaluation)
+        eval_assign_module_number(self, lhs, rhs, evaluation)
     elif lhs_name == "System`$MinPrecision":
         eval_assign_minprecision(self, lhs, rhs, evaluation, tags, upset)
     elif lhs_name == "System`$MaxPrecision":
@@ -1119,8 +1104,6 @@ def eval_assign_random_state(
     lhs: BaseElement,
     rhs: BaseElement,
     evaluation: Evaluation,
-    tags: list,
-    upset: bool,
 ) -> bool:
     """
     Assign to expressions of the form `$RandomState`.
@@ -1135,10 +1118,6 @@ def eval_assign_random_state(
         the expression representing the replacement.
     evaluation : Evaluation
         DESCRIPTION.
-    tags : list
-        the list of symbols to be associated to the rule.
-    upset : bool
-        `True` if the rule is an Up value.
 
     Raises
     ------
@@ -1170,7 +1149,7 @@ def eval_assign_random_state(
     return False
 
 
-def eval_assign_recursion_limit(lhs, rhs, evaluation):
+def eval_assign_recursion_limit(self, lhs, rhs, evaluation):
     """
     Set ownvalue for the $RecursionLimit symbol.
     """
@@ -1245,6 +1224,40 @@ def eval_assign_store_rules_by_tag(
     return count > 0
 
 
+def eval_assign_to_symbol(
+    self, lhs: BaseElement, focus: BaseElement, rhs: BaseElement, evaluation: Evaluation
+) -> bool:
+    """
+    self:
+        The builtin class.
+    lhs : BaseElement
+        The pattern of the rule to be included.
+    focus:
+        The symbol to be assigned
+    rhs : BaseElement.
+        the RHS.
+    evaluation : Evaluation
+        The evaluation object.
+
+    """
+    # This is how WMA works: if the LHS is a symbol, do the special
+    # evaluation. So, HoldPattern[$RecursionLimit]:=10 set the
+    # ownvalue of $RecursionLimit to 10, but in evaluations, $RecursionLimit
+    # is not modified.
+    special_fn = EVAL_ASSIGN_SPECIAL_SYMBOLS.get(lhs.get_name(), None)
+    if special_fn:
+        ignore_protection = True
+        special_fn(self, lhs, rhs, evaluation)
+    else:
+        ignore_protection = False
+
+    tag = focus.get_name()
+    if rejected_because_protected(self, lhs, tag, evaluation, ignore_protection):
+        return False
+    evaluation.definitions.add_rule(tag, Rule(lhs, rhs), position="ownvalues")
+    return True
+
+
 def find_tag_and_check(
     lhs: BaseElement, tags: Optional[List[str]], evaluation: Evaluation
 ) -> str:
@@ -1286,6 +1299,19 @@ def find_tag_and_check(
         evaluation.message(name, "wrsym", Symbol(tag))
         raise AssignmentException(lhs, None)
     return tag
+
+
+def get_focus(lhs: BaseElement):
+    """
+    Strip `Condition`, `PatternTest` and `HoldPattern` from an expression
+    """
+    while lhs.get_head() in (
+        SymbolHoldPattern,
+        SymbolCondition,
+        SymbolPatternTest,
+    ):
+        lhs = lhs.elements[0]
+    return lhs
 
 
 def process_rhs_conditions(
@@ -1477,9 +1503,6 @@ def process_tags_and_upset_allow_custom(
 
 # Below is a mapping from Symbol name (as a string) into an assignment eval function.
 ASSIGNMENT_FUNCTION_MAP = {
-    "System`$Context": eval_assign_context,
-    "System`$ContextPath": eval_assign_context_path,
-    "System`$RandomState": eval_assign_random_state,
     "System`Attributes": eval_assign_attributes,
     "System`Default": eval_assign_default,
     "System`DefaultValues": eval_assign_definition_values,
@@ -1497,4 +1520,18 @@ ASSIGNMENT_FUNCTION_MAP = {
     "System`Part": eval_assign_part,
     "System`SubValues": eval_assign_definition_values,
     "System`UpValues": eval_assign_definition_values,
+}
+
+
+EVAL_ASSIGN_SPECIAL_SYMBOLS = {
+    "System`$Context": eval_assign_context,
+    "System`$ContextPath": eval_assign_context_path,
+    "System`$HistoryLength": eval_assign_line_number_and_history_length,
+    "System`$IterationLimit": eval_assign_iteration_limit,
+    "System`$Line": eval_assign_line_number_and_history_length,
+    "System`$MaxPrecision": eval_assign_maxprecision,
+    "System`$MinPrecision": eval_assign_minprecision,
+    "System`$ModuleNumber": eval_assign_module_number,
+    "System`$RandomState": eval_assign_random_state,
+    "System`$RecursionLimit": eval_assign_recursion_limit,
 }

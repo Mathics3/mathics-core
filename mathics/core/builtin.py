@@ -462,12 +462,17 @@ class Builtin:
                 if pattern is None:  # Fixes PyPy bug
                     continue
                 else:
-                    # TODO: consider to use a more sophisticated
+                    # TODO 1: consider to use a more sophisticated
                     # regular expression, which handles breaklines
                     # more properly, that supports format names
                     # with contexts (context`name) and be less
                     # fragile against leaving spaces between the
                     # elements.
+                    #
+                    # TODO 2: allow
+                    # expr: pat
+                    # to allow passing the whole expression instead their elements.
+                    # This requires to change how Format rules are stored...
                     m = re.match(
                         r"[(]([\w,]+),[ ]*[)]\:\s*(.*)", pattern.replace("\n", " ")
                     )

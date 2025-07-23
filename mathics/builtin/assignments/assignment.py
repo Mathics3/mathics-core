@@ -4,7 +4,7 @@ Forms of Assignment
 """
 from typing import Optional
 
-from mathics.core.atoms import String
+from mathics.core.atoms import Integer1, String
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
@@ -355,6 +355,10 @@ class UpSet(InfixOperator):
     attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
     grouping = "Right"
 
+    messages = {
+        "normal": "Nonatomic expression expected at position `1` in `2`.",
+        "nosym": "`1` does not contain a symbol to attach a rule to.",
+    }
     summary_text = (
         "set value and associate the assignment with symbols that occur at level one"
     )
@@ -363,6 +367,11 @@ class UpSet(InfixOperator):
         self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
     ) -> Optional[BaseElement]:
         "lhs_ ^= rhs_"
+        if not hasattr(lhs, "elements"):
+            # This should be the argument of this method...
+            expression = Expression(Symbol(self.get_name()), lhs, rhs)
+            evaluation.message(self.get_name(), "normal", Integer1, expression)
+            return None
 
         eval_assign(self, lhs, rhs, evaluation, upset=True)
         return rhs
@@ -399,6 +408,11 @@ class UpSetDelayed(UpSet):
         self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
     ) -> Symbol:
         "lhs_ ^:= rhs_"
+        if not hasattr(lhs, "elements"):
+            # This should be the argument of this method...
+            expression = Expression(Symbol(self.get_name()), lhs, rhs)
+            evaluation.message(self.get_name(), "normal", Integer1, expression)
+            return None
 
         if eval_assign(self, lhs, rhs, evaluation, upset=True):
             return SymbolNull
