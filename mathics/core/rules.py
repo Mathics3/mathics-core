@@ -256,7 +256,8 @@ class Rule(BaseRule):
 
         while new.has_form("System`Condition", 2):
             new, cond = new.get_elements()
-            cond = cond.evaluate(evaluation)
+            if isinstance(cond, Expression):
+                cond = cond.evaluate(evaluation)
             if cond is not SymbolTrue:
                 return None
 
