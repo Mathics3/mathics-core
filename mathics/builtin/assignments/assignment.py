@@ -137,9 +137,9 @@ class Set(InfixOperator):
 
     summary_text = "assign a value"
 
-    def eval(self, lhs, rhs, evaluation):
-        "lhs_ = rhs_"
-
+    def eval(self, expr, evaluation):
+        "Pattern[expr, _ = _]"
+        lhs, rhs = expr.elements
         eval_assign(self, lhs, rhs, evaluation)
         return rhs
 
@@ -217,11 +217,9 @@ class SetDelayed(Set):
 
     summary_text = "test a delayed value; used in defining functions"
 
-    def eval(
-        self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
-    ) -> Symbol:
-        "lhs_ := rhs_"
-
+    def eval(self, expr: BaseElement, evaluation: Evaluation) -> Symbol:
+        "Pattern[expr, _ := _]"
+        lhs, rhs = expr.elements
         if eval_assign(self, lhs, rhs, evaluation):
             return SymbolNull
 
@@ -363,14 +361,12 @@ class UpSet(InfixOperator):
         "set value and associate the assignment with symbols that occur at level one"
     )
 
-    def eval(
-        self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
-    ) -> Optional[BaseElement]:
-        "lhs_ ^= rhs_"
+    def eval(self, expr: BaseElement, evaluation: Evaluation) -> Optional[BaseElement]:
+        "Pattern[expr, _ ^=_]"
+        lhs, rhs = expr.elements
         if not hasattr(lhs, "elements"):
             # This should be the argument of this method...
-            expression = Expression(Symbol(self.get_name()), lhs, rhs)
-            evaluation.message(self.get_name(), "normal", Integer1, expression)
+            evaluation.message(self.get_name(), "normal", Integer1, expr)
             return None
 
         eval_assign(self, lhs, rhs, evaluation, upset=True)
@@ -404,14 +400,13 @@ class UpSetDelayed(UpSet):
         "with symbols that occur at level one"
     )
 
-    def eval(
-        self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
-    ) -> Symbol:
-        "lhs_ ^:= rhs_"
+    def eval(self, expr: BaseElement, evaluation: Evaluation) -> Symbol:
+        "Pattern[expr, _ ^:=_]"
+        lhs, rhs = expr.elements
         if not hasattr(lhs, "elements"):
             # This should be the argument of this method...
             expression = Expression(Symbol(self.get_name()), lhs, rhs)
-            evaluation.message(self.get_name(), "normal", Integer1, expression)
+            evaluation.message(self.get_name(), "normal", Integer1, expr)
             return None
 
         if eval_assign(self, lhs, rhs, evaluation, upset=True):
