@@ -57,7 +57,7 @@ from mathics.core.element import BaseElement, KeyComparable
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.pattern import BasePattern, StopGenerator
-from mathics.core.symbols import strip_context
+from mathics.core.symbols import SymbolTrue, strip_context
 
 
 def _python_function_arguments(f):
@@ -253,6 +253,12 @@ class Rule(BaseRule):
     ):
         new = self.replace.replace_vars(vars)
         new.options = options
+
+        while new.has_form("System`Condition", 2):
+            new, cond = new.get_elements()
+            cond = cond.evaluate(evaluation)
+            if cond is not SymbolTrue:
+                return None
 
         # If options is a non-empty dict, we need to ensure
         # reevaluation of the whole expression, since 'new' will

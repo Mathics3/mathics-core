@@ -74,6 +74,7 @@ System`$TemporaryDirectory
 System`$TimeZone
 System`$TraceBuiltins
 System`$TraceEvaluation
+System`$TrackLocations
 System`$UserBaseDirectory
 System`$UserName
 System`$Version
@@ -284,6 +285,7 @@ System`CreateFile
 System`CreateTemporary
 System`Cross
 System`Csc
+System`Cube
 System`CubeRoot
 System`Cuboid
 System`Cuboid3DBox
@@ -543,6 +545,8 @@ System`HoldRest
 System`Hue
 System`HumpDownHump
 System`HumpEqual
+System`Hypergeometric1F1
+System`HypergeometricPFQ
 System`HypergeometricU
 System`I
 System`Icosahedron
@@ -748,6 +752,7 @@ System`Mean
 System`Median
 System`MedianFilter
 System`Medium
+System`MeijerG
 System`MemberQ
 System`MemoryAvailable
 System`MemoryInUse
