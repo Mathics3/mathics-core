@@ -111,7 +111,7 @@ def eval_assign(
         assignment_func = ASSIGNMENT_FUNCTION_MAP.get(lookup_name, None)
         if assignment_func:
             return assignment_func(self, lhs, focus, rhs, evaluation, tags, upset)
-        if isinstance(lhs, Expression) and focus_expr is lhs:
+        if isinstance(lhs, Expression) and not lhs.has_form("System`HoldPattern", 1):
             lhs = lhs.evaluate_elements(evaluation)
             focus_expr = get_focus_expression(lhs)
             focus = (
@@ -369,7 +369,6 @@ def eval_assign_default(
     tags = process_tags_and_upset_dont_allow_custom(
         tags, upset, self, lhs, focus, evaluation
     )
-    lhs, rhs = process_rhs_conditions(lhs, rhs, None, evaluation)
     rule = Rule(lhs, rhs)
     for tag in tags:
         if rejected_because_protected(self, lhs, tag, evaluation):
@@ -468,8 +467,8 @@ def eval_assign_format(
         True if the assignment was successful.
 
     """
-    lhs, condition = unroll_conditions(lhs)
-    lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
+    lhs = pop_focus_head(lhs, focus)
+    lhs = lhs.evaluate_elements(evaluation)
     count = 0
     defs = evaluation.definitions
 
@@ -495,11 +494,12 @@ def eval_assign_format(
             "System`TeXForm",
             "System`MathMLForm",
         ]
-    lhs = focus = lhs.elements[0]
+    lhs = lhs.elements[0]
+    focus = get_focus_expression(lhs)
+    focus = focus.get_head() if isinstance(focus, Expression) else focus
     tags = process_tags_and_upset_dont_allow_custom(
         tags, upset, self, lhs, focus, evaluation
     )
-    lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
     rule = Rule(lhs, rhs)
     for tag in tags:
         if rejected_because_protected(self, lhs, tag, evaluation):
@@ -796,8 +796,8 @@ def eval_assign_messagename(
     if lhs.get_head() is not focus:
         return eval_assign_store_rules_by_tag(self, lhs, focus, rhs, evaluation)
 
-    lhs, condition = unroll_conditions(lhs)
-    lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
+    lhs = pop_focus_head(lhs, focus)
+
     count = 0
     defs = evaluation.definitions
     if len(lhs.elements) != 2:
@@ -807,7 +807,6 @@ def eval_assign_messagename(
     tags = process_tags_and_upset_dont_allow_custom(
         tags, upset, self, lhs, focus, evaluation
     )
-    lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
     rule = Rule(lhs, rhs)
     for tag in tags:
         # Messages can be assigned even if the symbol is protected...
@@ -931,8 +930,8 @@ def eval_assign_numericq(
         True if the assignment was successful.
 
     """
-    # lhs, condition = unroll_conditions(lhs)
-    lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
+    lhs = pop_focus_head(lhs, focus)
+
     if rhs not in (SymbolTrue, SymbolFalse):
         evaluation.message("NumericQ", "set", lhs, rhs)
         # raise AssignmentException(lhs, rhs)
@@ -1017,7 +1016,6 @@ def eval_assign_n(
         tags, upset, self, lhs, focus, evaluation
     )
     count = 0
-    lhs, rhs = process_rhs_conditions(lhs, rhs, None, evaluation)
     rule = Rule(lhs, rhs)
     for tag in tags:
         if rejected_because_protected(self, lhs, tag, evaluation):
@@ -1191,8 +1189,6 @@ def eval_assign_store_rules_by_tag(
         True if the assignment was successful.
 
     """
-    # lhs, condition = unroll_conditions(lhs)
-    # lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
     defs = evaluation.definitions
     tags, focus_expr = process_tags_and_upset_allow_custom(
         tags, upset, self, lhs, rhs, evaluation
@@ -1200,7 +1196,6 @@ def eval_assign_store_rules_by_tag(
     # In WMA, this does not happens. However, if we remove this,
     # some combinatorica tests fail.
     # Also, should not be at the beginning?
-    lhs, rhs = process_rhs_conditions(lhs, rhs, [], evaluation)
     count = 0
     rule = Rule(lhs, rhs)
     position = "upvalues" if upset else None
@@ -1320,26 +1315,6 @@ def get_focus_expression(lhs: BaseElement) -> BaseElement:
         lhs_head = lhs.get_head()
 
     return lhs
-
-
-def process_rhs_conditions(
-    lhs: BaseElement, rhs: BaseElement, condition: Expression, evaluation: Evaluation
-) -> Tuple[BaseElement, Optional[BaseElement]]:
-    """
-    Add back the lhs conditions.
-    """
-    # To Handle `OptionValue` in `Condition`
-    rulopc = build_rulopc(lhs.get_head())
-    rhs_name = rhs.get_head_name()
-
-    # Now, let's add the conditions on the LHS
-    if condition:
-        lhs = Expression(
-            SymbolCondition,
-            lhs,
-            condition.elements[1].do_apply_rules([rulopc], evaluation)[0],
-        )
-    return lhs, rhs
 
 
 def process_tags_and_upset_allow_custom(

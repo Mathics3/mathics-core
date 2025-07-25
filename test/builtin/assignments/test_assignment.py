@@ -56,10 +56,10 @@ def test_upset():
             ("Tag List in List /; x is Protected.",),
         ),
         # Behavior with symbols in the LHS
-        ("ClearAll[A,T];A=T; T=2; {2, 2}", "{2, 2}", "Assignment to symbols", None),
+        ("ClearAll[A,T];A=T; T=2; {A, T}", "{2, 2}", "Assignment to symbols", None),
         (
-            "ClearAll[A,T];A=T; A=2; {2, T}",
-            "{2, 2}",
+            "ClearAll[A,T];A=T; A=2; Clear[A]; A=3; {A, T}",
+            "{3, T}",
             "Assignment to symbols. Rewrite value.",
             None,
         ),
@@ -80,8 +80,14 @@ def test_upset():
         ),
         (
             "ClearAll[A, T];  A=T; HoldPattern[A[x_]]=x^2;  {A[u], T[u]}",
+            "{T[u], T[u]}",
+            "Hold Pattern prevents the evaluation of the LHS. The ownvalue comes first...",
+            None,
+        ),
+        (
+            "ClearAll[A, T];  A=T; HoldPattern[A[x_]]=x^2; A=.;  {A[u], T[u]}",
             "{u^2, T[u]}",
-            "Hold Pattern prevents the evaluation of the LHS.",
+            "Hold Pattern prevents the evaluation of the LHS. Removing the ownvalue.",
             None,
         ),
         # HoldPattern on the LHS
@@ -118,7 +124,7 @@ def test_upset():
         # In this case, we erase all the rules associated to A:
         (
             "ClearAll[A, T]; A=T; HoldPattern[A[x_]]:=x^2; ClearAll[A];  {A[u], T[u]}",
-            "{A[u], u^2}",
+            "{A[u], T[u]}",
             "Head and elements on the LHS are evaluated before the assignment.",
             None,
         ),
@@ -137,12 +143,18 @@ def test_upset():
         ),
         (
             "ClearAll[A,T,x];A=T;x=3; Condition[A, x>2]=2; {2, T}",
-            "{2, 2}",
+            "{2, T}",
             "Assignment to symbols. Rewrite value.",
             None,
         ),
         (
             "ClearAll[A,T,x];A=T;x=3; Condition[A[x_],x>2]:=x^2; {A[u], T[u], A[4], T[4]}",
+            "{A[u], T[u], 16, 16}",
+            "Assignment to symbols.",
+            None,
+        ),
+        (
+            "ClearAll[A,T,x];A=T;x=3; Condition[A[x_],x>2]:=x^2;A=.; {A[u], T[u], A[4], T[4]}",
             "{A[u], T[u], A[4], 16}",
             "Assignment to symbols.",
             None,
@@ -155,6 +167,12 @@ def test_upset():
         ),
         (
             "ClearAll[A, T];  A=T; HoldPattern[A[x_]]:=x^2;  {A[u], T[u]}",
+            "{T[u], T[u]}",
+            "Hold Pattern prevents the evaluation of the LHS.",
+            None,
+        ),
+        (
+            "ClearAll[A, T];  A=T; HoldPattern[A[x_]]:=x^2;A=.;  {A[u], T[u]}",
             "{u^2, T[u]}",
             "Hold Pattern prevents the evaluation of the LHS.",
             None,
@@ -173,7 +191,7 @@ def test_upset():
             None,
         ),
         (
-            'ClearAll[A,T,x]; A=T; Format[A[x_]]:={x,"a"}; A[2]//ToString',
+            'ClearAll[A,T,x]; A=T; Format[A[x_]]:={x,"a"}; A=.;A[2]//ToString',
             '"A[2]"',
             "but not for A",
             None,
@@ -206,13 +224,13 @@ def test_upset():
         # Conditionals
         (
             'ClearAll[A,T,x]; A=T; Format[Condition[A[x_],x>0]]:={x,"a"}; A=.; A[2]//ToString',
-            '"{2,a}"',
+            '"A[2]"',
             "store the conditional rule for T...",
             None,
         ),
         (
             'ClearAll[A,T,x]; A=T; Format[Condition[A[x_],x>0]]:={x,"a"}; A=.; T[2]//ToString',
-            '"A[2]"',
+            '"{2, a}"',
             "store the conditional rule for T...",
             None,
         ),
@@ -239,11 +257,11 @@ def test_upset():
             "ClearAll[F,A,Y,x]; A=T; F[{a,b,c},Y[x_]]^:=x^2; ClearAll[A,F]; F[{a,b,c},Y[2]]",
             "4",
             "There is a warning, because a rule cannot be associated to List, but it is stored on Y.",
-            ("UpSetDelayed::write: Tag List in F[{a, b, c}, Y[x_]] is Protected.",),
+            ("Tag List in F[{a, b, c}, Y[x_]] is Protected.",),
         ),
     ],
 )
-@pytest.mark.xfail
+# @pytest.mark.xfail
 def test_assignment(expr, expect, fail_msg, expected_msgs):
     check_evaluation(
         expr, expect, failure_message=fail_msg, expected_messages=expected_msgs

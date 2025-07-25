@@ -202,7 +202,7 @@ def normalize_lhs(lhs, evaluation):
     return lhs, lookup_name
 
 
-def pop_focus_head(lhs: BaseElement, focus: BaseElement):
+def pop_focus_head(lhs: Expression, focus: BaseElement):
     """
     Convert expressions of the form
     ```

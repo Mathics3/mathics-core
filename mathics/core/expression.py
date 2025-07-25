@@ -623,9 +623,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 if result is not None:
                     element = result
             elements.append(element)
-        head = self._head
-        if isinstance(head, Expression):
-            head = head.evaluate_elements(evaluation)
+        head = self._head.evaluate(evaluation)
+        # if isinstance(head, Expression):
+        #    head = head.evaluate_elements(evaluation)
         return Expression(head, *elements)
 
     def filter(self, head, cond, evaluation: Evaluation, count: Optional[int] = None):
