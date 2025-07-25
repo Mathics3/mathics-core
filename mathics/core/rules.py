@@ -255,7 +255,7 @@ class Rule(BaseRule):
         new.options = options
 
         while new.has_form("System`Condition", 2):
-            new, cond = new.elements
+            new, cond = new.get_elements()
             cond = cond.evaluate(evaluation)
             if cond is not SymbolTrue:
                 return None
