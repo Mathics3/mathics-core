@@ -202,6 +202,35 @@ def normalize_lhs(lhs, evaluation):
     return lhs, lookup_name
 
 
+def pop_focus_head(lhs: BaseElement, focus: BaseElement):
+    """
+    Convert expressions of the form
+    ```
+    Head1[Head2[...Headn[FocusHead[a,b],p1],p2,...]..]
+    ```
+    into
+    ```
+    FocusHead[Head1[Head2[...Headn[a],p1],p2,...]..],b]
+    ```
+    Used in eval_assign_[n|format|...]
+    """
+    if lhs is focus:
+        return lhs
+
+    lhs_head = lhs.get_head()
+    if lhs_head is focus:
+        return lhs
+
+    elems = lhs.elements
+    focus_expr = elems[0]
+    if focus_expr.get_head() is not focus:
+        focus_expr = pop_focus_head(focus_expr, focus)
+
+    focus_elems = focus_expr.elements
+    inner = Expression(lhs_head, focus_elems[0], *elems[1:])
+    return Expression(focus, inner, *focus_elems[1:])
+
+
 def repl_pattern_by_symbol(expr: BaseElement) -> BaseElement:
     """
     If `expr` is a named pattern expression `Pattern[symb, pat]`,
