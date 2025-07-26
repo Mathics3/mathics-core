@@ -9,6 +9,7 @@ New Builtins
 
 * ``$SessionID``
 * ``BinaryReadList``
+* ``Hypergeometric2F1``
 
 Internals
 ---------
