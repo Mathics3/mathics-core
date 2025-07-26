@@ -12,7 +12,6 @@ import sympy
 import mathics.eval.tracing as tracing
 from mathics.core.attributes import (
     A_LISTABLE,
-    A_N_HOLD_FIRST,
     A_NUMERIC_FUNCTION,
     A_PROTECTED,
     A_READ_PROTECTED,
@@ -21,8 +20,12 @@ from mathics.core.builtin import MPMathFunction
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluation import Evaluation
-from mathics.core.number import FP_MANTISA_BINARY_DIGITS
 from mathics.core.systemsymbols import SymbolComplexInfinity, SymbolMachinePrecision
+from mathics.eval.specialfns.hypergeom import (
+    eval_Hypergeometric2F1,
+    eval_HypergeometricPQF,
+    eval_N_HypergeometricPQF,
+)
 
 
 class HypergeometricPFQ(MPMathFunction):
@@ -70,27 +73,12 @@ class HypergeometricPFQ(MPMathFunction):
 
     def eval(self, a, b, z, evaluation: Evaluation):
         "HypergeometricPFQ[a_, b_, z_]"
-        try:
-            a_sympy = [e.to_sympy() for e in a]
-            b_sympy = [e.to_sympy() for e in b]
-            result_sympy = tracing.run_sympy(
-                sympy.hyper, a_sympy, b_sympy, z.to_sympy()
-            )
-            return from_sympy(result_sympy)
-        except Exception:
-            pass
+        return eval_HypergeometricPQF(a, b, z)
 
     def eval_N(self, a, b, z, prec, evaluation: Evaluation):
         "N[HypergeometricPFQ[a_, b_, z_], prec_]"
-        try:
-            result_mpmath = tracing.run_mpmath(
-                mpmath.hyper, a.to_python(), b.to_python(), z.to_python()
-            )
-            return from_mpmath(result_mpmath)
-        except ZeroDivisionError:
-            return SymbolComplexInfinity
-        except Exception as ex:
-            pass
+        # FIXME: prec is not used. Why?
+        return eval_N_HypergeometricPQF(a, b, z)
 
     def eval_numeric(self, a, b, z, evaluation: Evaluation):
         "HypergeometricPFQ[a:{__?NumericQ}, b:{__?NumericQ}, z_?MachineNumberQ]"
@@ -124,13 +112,52 @@ class Hypergeometric1F1(MPMathFunction):
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
-    mpmath_name = ""
+    mpmath_name = "hymp1f1"
     nargs = {3}
     rules = {
         "Hypergeometric1F1[a_, b_, z_]": "HypergeometricPFQ[{a},{b},z]",
     }
     summary_text = "compute Kummer confluent hypergeometric function"
     sympy_name = ""
+
+
+class Hypergeometric2F1(MPMathFunction):
+    """
+    <url>
+    :Hypergeometric function: https://en.wikipedia.org/wiki/Hypergeometric_function</url> (<url>
+    :mpmath: https://mpmath.org/doc/current/functions/hypergeometric.html#mpmath.hyp2f1</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/Hypergeometric2F1.html</url>)
+    <dl>
+      <dt>'Hypergeometric2F1'[$a$, $b$, $c$, $z$]
+      <dd>returns ${}_2 F_1(a; b; c; z)$.
+    </dl>
+
+    >> Hypergeometric2F1[2., 3., 4., 5.0]
+     = 0.156542 + 0.150796 I
+
+    Evaluate symbolically:
+    >> Hypergeometric2F1[2, 3, 4, x]
+     = 6 Log[1 - x] / x ^ 3 + (-6 + 3 x) / (-x ^ 2 + x ^ 3)
+
+    Evaluate using complex arguments:
+    >> Hypergeometric2F1[2 + I, -I, 3/4, 0.5 - 0.5 I]
+     = -0.972167 - 0.181659 I
+
+    Plot over a subset of the reals:
+    >> Plot[Hypergeometric2F1[1/3, 1/3, 2/3, x], {x, -1, 1}]
+     = -Graphics-
+    """
+
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    mpmath_name = "hyp2f1"
+    nargs = {4}
+    summary_text = "compute Gauss hypergeometric function function"
+    sympy_name = "hyper"
+
+    def eval(self, a, b, c, z, evaluation: Evaluation):
+        "Hypergeometric2F1[a_, b_, c_, z_]"
+
+        return eval_Hypergeometric2F1(a, b, c, z)
 
 
 class MeijerG(MPMathFunction):
