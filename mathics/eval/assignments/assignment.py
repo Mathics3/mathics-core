@@ -1292,22 +1292,11 @@ def process_rhs_conditions(
     lhs: BaseElement, rhs: BaseElement, condition: Expression, evaluation: Evaluation
 ) -> Tuple[BaseElement, Optional[BaseElement]]:
     """
-    lhs = Condition[rhs, test] -> Condition[lhs, test]  = rhs
+    Add back the lhs conditions.
     """
     # To Handle `OptionValue` in `Condition`
     rulopc = build_rulopc(lhs.get_head())
     rhs_name = rhs.get_head_name()
-    while rhs_name == "System`Condition":
-        if len(rhs.elements) != 2:
-            evaluation.message_args("Condition", len(rhs.elements), 2)
-            raise AssignmentException(lhs, None)
-        lhs = Expression(
-            SymbolCondition,
-            lhs,
-            rhs.elements[1].do_apply_rules([rulopc], evaluation)[0],
-        )
-        rhs = rhs.elements[0]
-        rhs_name = rhs.get_head_name()
 
     # Now, let's add the conditions on the LHS
     if condition:
