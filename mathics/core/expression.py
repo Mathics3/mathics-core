@@ -613,17 +613,31 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     def evaluate_elements(self, evaluation) -> "Expression":
         """
-        return a new expression with the same head, and the
-        evaluable elements evaluated.
+        return a new expression with the head and the
+        evaluable elements evaluated, according to the attributes.
         """
+        head = self._head.evaluate(evaluation) or head
+        attributes = head.get_attributes(evaluation.definitions)
+        if (A_HOLD_ALL | A_HOLD_ALL_COMPLETE) & attributes:
+            return Expression(head, *self._elements)
+        if A_HOLD_REST & attributes:
+            first, *rest = self._elements
+            if isinstance(first, EvalMixin):
+                first = first.evaluate(evaluation) or first
+            return Expression(head, first, *rest)
+
         elements = []
-        for element in self._elements:
+        for pos, element in enumerate(self._elements):
+            if pos == 0 and (A_HOLD_FIRST & attributes):
+                elements.append(element)
+                continue
+
             if isinstance(element, EvalMixin):
                 result = element.evaluate(evaluation)
                 if result is not None:
                     element = result
             elements.append(element)
-        head = self._head.evaluate(evaluation)
+
         # if isinstance(head, Expression):
         #    head = head.evaluate_elements(evaluation)
         return Expression(head, *elements)

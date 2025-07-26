@@ -161,8 +161,11 @@ def test_upset():
         ),
         (
             "ClearAll[A,T,x];A=T;x=3; Condition[A[x_],x>2]:=x^2; ClearAll[A];  {A[u], T[u]}",
-            "{A[u], u^2}",
-            "Head and elements on the LHS are evaluated before the assignment.",
+            "{A[u], T[u]}",
+            (
+                "Head and elements on the LHS are evaluated before the assignment, but noticing that "
+                "Condition has the attribute `HoldRest`..."
+            ),
             None,
         ),
         (
