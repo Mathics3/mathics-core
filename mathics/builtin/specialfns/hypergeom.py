@@ -7,7 +7,6 @@ https://dlmf.nist.gov/15</url>.
 """
 
 import mpmath
-import sympy
 
 import mathics.eval.tracing as tracing
 from mathics.core.attributes import (
@@ -18,13 +17,13 @@ from mathics.core.attributes import (
 )
 from mathics.core.builtin import MPMathFunction
 from mathics.core.convert.mpmath import from_mpmath
-from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.systemsymbols import SymbolComplexInfinity, SymbolMachinePrecision
 from mathics.eval.specialfns.hypergeom import (
     eval_Hypergeometric1F1,
     eval_Hypergeometric2F1,
     eval_HypergeometricPQF,
+    eval_MeijerG,
     eval_N_HypergeometricPQF,
 )
 
@@ -202,63 +201,6 @@ class Hypergeometric2F1(MPMathFunction):
         return eval_Hypergeometric2F1(a, b, c, z)
 
 
-class MeijerG(MPMathFunction):
-    """
-    <url>
-    :Meijer G-function: https://en.wikipedia.org/wiki/Meijer_G-function</url> (<url>
-    :mpmath: https://mpmath.org/doc/current/functions/hypergeometric.html#meijerg</url>, <url>
-    :sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.hyper.meijerg</url>, <url>
-    :WMA: https://reference.wolfram.com/language/ref/MeijerG.html</url>)
-    <dl>
-      <dt>'MeijerG'[${{a_1, ..., a_n}, {a_{n+1}, ..., a_p}}, {{b_1, ..., b_m}, {b_{m+1}, ..., a_q}}, z$]
-      <dd>returns $G^{m,n}_{p,q}(z | {a_1, ..., a_p}; {b_1, ..., b_q})$.
-    </dl>
-    Result is symbollicaly simplified by default:
-    >> MeijerG[{{1, 2}, {}}, {{3}, {}}, 1]
-     = MeijerG[{{1, 2}, {}}, {{3}, {}}, 1]
-    unless a numerical evaluation is explicitly requested:
-    >> MeijerG[{{1, 2},{}}, {{3},{}}, 1] // N
-     = 0.210958
-    >> MeijerG[{{1, 2},{}}, {{3},{}}, 1.]
-     = 0.210958
-    """
-
-    attributes = A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
-    mpmath_name = "meijerg"
-    nargs = {3}
-    rules = {}
-    summary_text = "compute the Meijer G-function"
-    sympy_name = "meijerg"
-
-    def eval(self, a, b, z, evaluation: Evaluation):
-        "MeijerG[a_, b_, z_]"
-        try:
-            a_sympy = [[e2.to_sympy() for e2 in e1] for e1 in a]
-            b_sympy = [[e2.to_sympy() for e2 in e1] for e1 in b]
-            result_sympy = tracing.run_sympy(
-                sympy.meijerg, a_sympy, b_sympy, z.to_sympy()
-            )
-            return from_sympy(result_sympy)
-        except Exception:
-            pass
-
-    def eval_N(self, a, b, z, prec, evaluation: Evaluation):
-        "N[MeijerG[a_, b_, z_], prec_]"
-        try:
-            result_mpmath = tracing.run_mpmath(
-                mpmath.meijerg, a.to_python(), b.to_python(), z.to_python()
-            )
-            return from_mpmath(result_mpmath)
-        except ZeroDivisionError:
-            return SymbolComplexInfinity
-        except Exception:
-            pass
-
-    def eval_numeric(self, a, b, z, evaluation: Evaluation):
-        "MeijerG[a:{___List?(AllTrue[#, NumericQ, Infinity]&)}, b:{___List?(AllTrue[#, NumericQ, Infinity]&)}, z_?MachineNumberQ]"
-        return self.eval_N(a, b, z, SymbolMachinePrecision, evaluation)
-
-
 class HypergeometricU(MPMathFunction):
     """
     <url>
@@ -298,3 +240,52 @@ class HypergeometricU(MPMathFunction):
     }
     summary_text = "compute the Tricomi confluent hypergeometric function"
     sympy_name = ""
+
+
+class MeijerG(MPMathFunction):
+    """
+    <url>
+    :Meijer G-function: https://en.wikipedia.org/wiki/Meijer_G-function</url> (<url>
+    :mpmath: https://mpmath.org/doc/current/functions/hypergeometric.html#meijerg</url>, <url>
+    :sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.hyper.meijerg</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/MeijerG.html</url>)
+    <dl>
+      <dt>'MeijerG'[${{a_1, ..., a_n}, {a_{n+1}, ..., a_p}}, {{b_1, ..., b_m}, {b_{m+1}, ..., a_q}}, z$]
+      <dd>returns $G^{m,n}_{p,q}(z | {a_1, ..., a_p}; {b_1, ..., b_q})$.
+    </dl>
+    Result is symbollicaly simplified by default:
+    >> MeijerG[{{1, 2}, {}}, {{3}, {}}, 1]
+     = MeijerG[{{1, 2}, {}}, {{3}, {}}, 1]
+    unless a numerical evaluation is explicitly requested:
+    >> MeijerG[{{1, 2},{}}, {{3},{}}, 1] // N
+     = 0.210958
+    >> MeijerG[{{1, 2},{}}, {{3},{}}, 1.]
+     = 0.210958
+    """
+
+    attributes = A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
+    mpmath_name = "meijerg"
+    nargs = {3}
+    rules = {}
+    summary_text = "compute the Meijer G-function"
+    sympy_name = "meijerg"
+
+    def eval(self, a, b, z, evaluation: Evaluation):
+        "MeijerG[a_, b_, z_]"
+        return eval_MeijerG(a, b, z)
+
+    def eval_N(self, a, b, z, prec, evaluation: Evaluation):
+        "N[MeijerG[a_, b_, z_], prec_]"
+        try:
+            result_mpmath = tracing.run_mpmath(
+                mpmath.meijerg, a.to_python(), b.to_python(), z.to_python()
+            )
+            return from_mpmath(result_mpmath)
+        except ZeroDivisionError:
+            return SymbolComplexInfinity
+        except Exception:
+            pass
+
+    def eval_numeric(self, a, b, z, evaluation: Evaluation):
+        "MeijerG[a:{___List?(AllTrue[#, NumericQ, Infinity]&)}, b:{___List?(AllTrue[#, NumericQ, Infinity]&)}, z_?MachineNumberQ]"
+        return self.eval_N(a, b, z, SymbolMachinePrecision, evaluation)

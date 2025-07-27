@@ -2,7 +2,7 @@
 Evaluation functions for built-in Hypergeometric functions
 """
 
-from typing import Sequence, cast
+from typing import Sequence, Tuple, cast
 
 import mpmath
 import sympy
@@ -27,23 +27,7 @@ def eval_Hypergeometric1F1(a, b, z):
     """
 
     args = (a, b, z)
-
-    sympy_args = []
-    all_numeric = True
-    for arg in args:
-        if isinstance(arg, Number):
-            # FIXME: in the future, .value
-            # should work on Complex numbers.
-            if isinstance(arg, Complex):
-                sympy_arg = arg.to_python()
-            else:
-                sympy_arg = arg.value
-        else:
-            sympy_arg = arg.to_sympy()
-            all_numeric = False
-
-        sympy_args.append(sympy_arg)
-
+    sympy_args, all_numeric = to_sympy_with_classification(args)
     sympy_result = tracing.run_sympy(
         sympy.hyper, [sympy_args[0]], [sympy_args[1]], sympy_args[2]
     )
@@ -79,20 +63,7 @@ def eval_Hypergeometric2F1(a, b, c, z):
     """
 
     args = (a, b, c, z)
-    sympy_args = []
-    all_numeric = True
-    for arg in args:
-        if isinstance(arg, Number):
-            if isinstance(arg, Complex):
-                sympy_arg = arg.to_python()
-            else:
-                sympy_arg = arg.value
-        else:
-            sympy_arg = arg.to_sympy()
-            all_numeric = False
-
-        sympy_args.append(sympy_arg)
-
+    sympy_args, all_numeric = to_sympy_with_classification(args)
     if all_numeric:
         args = cast(Sequence[Number], args)
 
@@ -138,7 +109,66 @@ def eval_N_HypergeometricPQF(a, b, z):
         return None
 
 
+def eval_MeijerG(a, b, z):
+    """
+    Use sympy.meijerg to compute MeijerG(a, b, z)
+    """
+    try:
+        a_sympy = [[e2.to_sympy() for e2 in e1] for e1 in a]
+        b_sympy = [[e2.to_sympy() for e2 in e1] for e1 in b]
+        result_sympy = tracing.run_sympy(sympy.meijerg, a_sympy, b_sympy, z.to_sympy())
+        # For now, we don't allow simplification and conversion
+        # to other functions like Bessel, because this can introduce
+        # SymPy's exp_polar() function for which we don't have a
+        # Mathics3 equivalent for yet.
+        # return from_sympy(sympy.hyperexpand(result_sympy))
+        return from_sympy(result_sympy)
+    except Exception:
+        return None
+
+
+# FIXME: ADDING THIS causes test/doc/test_common.py to fail! It reports that Hypergeometric has been included more than once
+# Weird!
+
+# def eval_N_MeijerG(a, b, z):
+#     "N[MeijerG[a_, b_, z_], prec_]"
+#     try:
+#         result_mpmath = tracing.run_mpmath(
+#             mpmath.meijerg, a.to_python(), b.to_python(), z.to_python()
+#         )
+#         return from_mpmath(result_mpmath)
+#     except ZeroDivisionError:
+#         return SymbolComplexInfinity
+#     except Exception:
+#         return None
+
+
 def run_sympy_hyper(a, b, z):
     sympy_result = tracing.run_sympy(sympy.hyper, a, b, z)
     result = sympy.hyperexpand(sympy_result)
     return from_sympy(result)
+
+
+def to_sympy_with_classification(args: tuple) -> Tuple[list, bool]:
+    """Converts `args` to its corresponding SymPy form.  However, if
+    all elements of args are numeric, then we detect and report that.
+    We do this so that the caller can decide whether to use mpmath if
+    SymPy fails. One might expect SymPy to do this automatically, but
+    it doesn't catch all opportunites.
+    """
+    sympy_args = []
+    all_numeric = True
+    for arg in args:
+        if isinstance(arg, Number):
+            # FIXME: in the future, .value
+            # should work on Complex numbers.
+            if isinstance(arg, Complex):
+                sympy_arg = arg.to_python()
+            else:
+                sympy_arg = arg.value
+        else:
+            sympy_arg = arg.to_sympy()
+            all_numeric = False
+
+        sympy_args.append(sympy_arg)
+    return sympy_args, all_numeric
