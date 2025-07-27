@@ -22,6 +22,7 @@ from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.systemsymbols import SymbolComplexInfinity, SymbolMachinePrecision
 from mathics.eval.specialfns.hypergeom import (
+    eval_Hypergeometric1F1,
     eval_Hypergeometric2F1,
     eval_HypergeometricPQF,
     eval_N_HypergeometricPQF,
@@ -44,30 +45,42 @@ class HypergeometricPFQ(MPMathFunction):
 
     Result is symbollicaly simplified by default:
     >> HypergeometricPFQ[{3}, {2}, 1]
-     = HypergeometricPFQ[{3}, {2}, 1]
+     = 3 E / 2
+
     unless a numerical evaluation is explicitly requested:
     >> HypergeometricPFQ[{3}, {2}, 1] // N
      = 4.07742
+
     >> HypergeometricPFQ[{3}, {2}, 1.]
      = 4.07742
 
+    >> Plot[HypergeometricPFQ[{1, 1}, {3, 3, 3}, x], {x, -30, 30}]
+     = -Graphics-
+
+    >> HypergeometricPFQ[{1, 1, 2}, {3, 3}, z]
+     = -4 PolyLog[2, z] / z ^ 2 + 4 Log[1 - z] / z ^ 2 - 4 Log[1 - z] / z + 8 / z
+
     The following special cases are handled:
     >> HypergeometricPFQ[{}, {}, z]
-     = 1
+     = E ^ z
     >> HypergeometricPFQ[{0}, {b}, z]
      = 1
-    >> Hypergeometric1F1[b, b, z]
-     = E ^ z
+
+     >> HypergeometricPFQ[{1, 1, 3}, {2, 2}, x]
+      = -Log[1 - x] / (2 x) - 1 / (-2 + 2 x)
+
+    'HypergeometricPFQ' evaluates to a polynomial if any of the parameters $a_k$ is a non-positive integer:
+    >> HypergeometricPFQ[{-2, a}, {b}, x]
+     = (-2 a x (1 + b) + a x ^ 2 (1 + a) + b (1 + b)) / (b (1 + b))
+
+    Value at origin:
+    >> HypergeometricPFQ[{a1, b2, a3}, {b1, b2, b3}, 0]
+     = 1
     """
 
     attributes = A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
     mpmath_name = "hyper"
     nargs = {3}
-    rules = {
-        "HypergeometricPFQ[{}, {}, z_]": "1",
-        "HypergeometricPFQ[{0}, b_, z_]": "1",
-        "HypergeometricPFQ[b_, b_, z_]": "Exp[z]",
-    }
     summary_text = "compute the generalized hypergeometric function"
     sympy_name = "hyper"
 
@@ -89,36 +102,65 @@ class Hypergeometric1F1(MPMathFunction):
     """
     <url>
     :Kummer confluent hypergeometric function: https://en.wikipedia.org/wiki/Confluent_hypergeometric_function</url> (<url>
-    :mpmath: https://mpmath.org/doc/current/functions/hypergeometric.html#hyper</url>, <url>
+    :mpmath: https://mpmath.org/doc/current/functions/hypergeometric.html#hyp1f1</url>, <url>
     :WMA: https://reference.wolfram.com/language/ref/Hypergeometric1F1.html</url>)
     <dl>
       <dt>'Hypergeometric1F1'[$a$, $b$, $z$]
       <dd>returns ${}_1 F_1(a; b; z)$.
     </dl>
 
-    Result is symbollicaly simplified by default:
-    >> Hypergeometric1F1[3, 2, 1]
-     = HypergeometricPFQ[{3}, {2}, 1]
-    unless a numerical evaluation is explicitly requested:
-    >> Hypergeometric1F1[3, 2, 1] // N
-     = 4.07742
-    >> Hypergeometric1F1[3, 2, 1.]
-     = 4.07742
+    Numeric evaluation:
+    >> Hypergeometric1F1[1, 2, 3.0]
+     = 6.36185
 
-    Plot 'M'[3, 2, x] from 0 to 2 in steps of 0.5:
-    >> Plot[Hypergeometric1F1[3, 2, x], {x, 0.5, 2}]
+    Plot over a subset of reals:
+    >> Plot[Hypergeometric1F1[1, 2, x], {x, -5, 5}]
      = -Graphics-
-    Here, plot explicitly requests a numerical evaluation.
+
+    >> Plot[{Hypergeometric1F1[1/2, Sqrt[2], x], Hypergeometric1F1[1/2, Sqrt[3], x], Hypergeometric1F1[1/2, Sqrt[5], x]}, {x, -4, 4}]
+     = -Graphics-
+
+    >> Plot[{Hypergeometric1F1[Sqrt[3], Sqrt[2], z], -0.01}, {z, -10, -2}]
+     = -Graphics-
+
+    >> Plot[{Hypergeometric1F1[Sqrt[2], b, 1], Hypergeometric1F1[Sqrt[5], b, 1], Hypergeometric1F1[Sqrt[7], b, 1]}, {b, -3, 3}]
+     = -Graphics-
+
+    Compute the elementwise values of an array:
+    >> Hypergeometric1F1[1, 1, {{1, 0}, {0, 1}}]
+     = {{E, 1}, {1, E}}
+
+    >> Hypergeometric1F1[1/2, 1, x]
+     = BesselI[0, x / 2] E ^ (x / 2)
+
+    Evaluate using complex arguments:
+    >> Hypergeometric1F1[2 + I, 2, 0.5]
+     = 1.61833 + 0.379258 I
+
+    Large numbers are supported:
+    >> Hypergeometric1F1[3, 4, 10^10]
+     = -3 / 500000000000000000000000000000 + 149999999970000000003 E ^ 10000000000 / 500000000000000000000000000000
+
+    'Hypergeometric1F1' evaluates to simpler functions for certain parameters:
+    >> Hypergeometric1F1[1/2, 1, x]
+     = BesselI[0, x / 2] E ^ (x / 2)
+
+    >> Hypergeometric1F1[2, 1, x]
+     = (1 + x) E ^ x
+
+    >> Hypergeometric1F1[1, 1/2, x]
+     = -Sqrt[x] (-E ^ (-x) / Sqrt[x] - Sqrt[Pi] Erf[Sqrt[x]]) E ^ x
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
-    mpmath_name = "hymp1f1"
+    mpmath_name = "hyp1f1"
     nargs = {3}
-    rules = {
-        "Hypergeometric1F1[a_, b_, z_]": "HypergeometricPFQ[{a},{b},z]",
-    }
     summary_text = "compute Kummer confluent hypergeometric function"
     sympy_name = ""
+
+    def eval(self, a, b, z, evaluation: Evaluation):
+        "Hypergeometric1F1[a_, b_, z_]"
+        return eval_Hypergeometric1F1(a, b, z)
 
 
 class Hypergeometric2F1(MPMathFunction):
