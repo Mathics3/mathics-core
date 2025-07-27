@@ -18,6 +18,19 @@ Mathics scanner exceptions of class TranslateError are incompatible
 with previous versions, and now store error parameters, "name", "tag", and
 "args".
 
+WMA Compatibility
+-----------------
+
+Hypergeometric functions have been revised to conform better to WMA behavior by
+expanding hypergeometric results.
+
+Bugs
+----
+
+* Fixed #1187
+
+
+
 8.0.1
 -----
 

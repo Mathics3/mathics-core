@@ -33,7 +33,7 @@ def eval_Hypergeometric1F1(a, b, z):
     )
     expanded_result = sympy.hyperexpand(sympy_result)
 
-    # Oddly, expansion sometimes doesn't work for when complex arguments are given.
+    # Oddly, SymPy expansion sometimes doesn't work when complex arguments are given.
     # However mpmath can handle this.
     # I imagine at some point in the future this will be fixed.
     if isinstance(expanded_result, sympy.hyper) and all_numeric:
@@ -58,8 +58,8 @@ def eval_Hypergeometric1F1(a, b, z):
 def eval_Hypergeometric2F1(a, b, c, z):
     """Hypergeometric2F1[a_, b_, c_, z_]
 
-    Uses mpmath hyp2f1 if all args are numeric, otherwise,
-    we use sympy's hyper and expand the symbolic result.
+    Uses mpmath hyp2f1 if all args are numeric. Otherwise,
+    we use SymPy's hyper and expand the symbolic result.
     """
 
     args = (a, b, c, z)
@@ -80,7 +80,7 @@ def eval_Hypergeometric2F1(a, b, c, z):
             mpmath.hyp2f1, *cast(Sequence[Number], args), prec=prec
         )
     else:
-        return run_sympy_hyper(
+        return run_sympy_hyper_and_expand(
             [sympy_args[0], sympy_args[1]], [sympy_args[2]], sympy_args[3]
         )
 
@@ -90,7 +90,7 @@ def eval_HypergeometricPQF(a, b, z):
     try:
         a_sympy = [e.to_sympy() for e in a]
         b_sympy = [e.to_sympy() for e in b]
-        return run_sympy_hyper(a_sympy, b_sympy, z.to_sympy())
+        return run_sympy_hyper_and_expand(a_sympy, b_sympy, z.to_sympy())
     except Exception:
         return None
 
@@ -143,7 +143,8 @@ def eval_MeijerG(a, b, z):
 #         return None
 
 
-def run_sympy_hyper(a, b, z):
+def run_sympy_hyper_and_expand(a, b, z):
+    """Ruy SymPy's hyper function and expand the result."""
     sympy_result = tracing.run_sympy(sympy.hyper, a, b, z)
     result = sympy.hyperexpand(sympy_result)
     return from_sympy(result)
