@@ -136,7 +136,7 @@ class BaseRule(KeyComparable, ABC):
             )
             new_expression = apply_fn(expression, vars, options, evaluation)
             if new_expression is None:
-                new_expression = expression
+                return None
             if rest[0] or rest[1]:
                 result = Expression(
                     expression.get_head(),

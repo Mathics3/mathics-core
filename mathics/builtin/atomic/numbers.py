@@ -20,6 +20,7 @@ However, things like 'N[Pi, 100]' should work as expected.
 import mpmath
 
 from mathics.core.atoms import (
+    Complex,
     Integer,
     Integer0,
     Integer3,
@@ -393,7 +394,7 @@ class RealDigits(Builtin):
 
     summary_text = "get digits of a real number"
 
-    def eval_complex(self, n, var, evaluation):
+    def __eval_complex(self, n, var, evaluation):
         "%(name)s[n_Complex, var___]"
         evaluation.message("RealDigits", "realx", n)
 
@@ -436,6 +437,10 @@ class RealDigits(Builtin):
     def eval_with_base(self, n, b, evaluation, nr_elements=None, pos=None):
         """%(name)s[n_?NumericQ, b_Integer]"""
 
+        if isinstance(n, Complex):
+            evaluation.message("RealDigits", "realx", n)
+            return
+
         expr = Expression(SymbolRealDigits, n)
         rational_no = (
             True if isinstance(n, Rational) else False
@@ -460,10 +465,6 @@ class RealDigits(Builtin):
 
         if not py_b > 1:
             evaluation.message("RealDigits", "rbase", py_b)
-            return
-
-        if isinstance(py_n, complex):
-            evaluation.message("RealDigits", "realx", expr)
             return
 
         if isinstance(n, Integer):
