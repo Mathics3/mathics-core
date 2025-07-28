@@ -79,6 +79,22 @@ class Alternatives(InfixOperator, PatternObject):
                     range_lst[1] = sub[1]
         return tuple(range_lst)
 
+    def get_sort_key(self, pattern_sort=True):
+        if not pattern_sort:
+            return self.expr.get_sort_key()
+
+        min_key = (4,)
+        min = None
+        for element in self.elements:
+            key = element.get_sort_key(True)
+            if key < min_key:
+                min = element
+                min_key = key
+        if min is None:
+            # empty alternatives -> very restrictive pattern
+            return (2, 1)
+        return min_key
+
 
 class Except(PatternObject):
     """
@@ -308,6 +324,21 @@ class OptionsPattern(PatternObject):
 
         return tuple((element for element in elements if _match(element)))
 
+    def get_sort_key(self, pattern_sort: bool = True):
+        if not pattern_sort:
+            return self.expr.get_sort_key()
+        return (
+            2,
+            40,
+            0,
+            1,
+            1,
+            0,
+            self.expr.head,
+            tuple(elem.get_sort_key(True) for elem in self.elements),
+            1,
+        )
+
 
 class Pattern(PatternObject):
     """
@@ -448,6 +479,13 @@ class Pattern(PatternObject):
         verbatim = Verbatim(verbatim_expr)
         return verbatim.get_match_candidates(elements, pattern_context)
 
+    def get_sort_key(self, pattern_sort: bool = True):
+        if not pattern_sort:
+            return self.expr.get_sort_key()
+        sub = list(self.pattern.get_sort_key(True))
+        sub[3] = 0
+        return tuple(sub)
+
 
 class Repeated(PostfixOperator, PatternObject):
     """
@@ -539,6 +577,20 @@ class Repeated(PostfixOperator, PatternObject):
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (self.min, self.max)
 
+    def get_sort_key(self, pattern_sort=True):
+        if pattern_sort:
+            return (
+                2,
+                0,
+                1,
+                1,
+                0,
+                (0, 0, 1, 1, 0, 0, 0, 1),  # sort key for Atoms
+                (self.pattern.get_sort_key(True), 4),  # Just one element...
+                1,
+            )
+        return self.expr.get_sort_key()
+
 
 class RepeatedNull(Repeated):
     """
@@ -621,6 +673,13 @@ class Verbatim(PatternObject):
 
         if self.content.sameQ(expression):
             yield_func(vars_dict, None)
+
+    def get_sort_key(self, pattern_sort=True):
+        if not pattern_sort:
+            return self.expr.get_sort_key()
+
+        assert len(self.expr._elements) == 1
+        return self.elements[0].get_sort_key(True)
 
 
 # TODO: Implement `KeyValuePattern`, `PatternSequence`, and `OrderlessPatternSequence`

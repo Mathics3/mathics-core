@@ -4,7 +4,9 @@ Expression Tests
 from mathics.core.atoms import Integer0, Integer1, IntegerM1
 from mathics.core.builtin import Builtin, PatternError, Test
 from mathics.core.evaluation import Evaluation
+from mathics.core.pattern import BasePattern
 from mathics.core.symbols import SymbolFalse, SymbolTrue
+from mathics.core.systemsymbols import SymbolRule, SymbolRuleDelayed
 from mathics.eval.patterns import match
 
 
@@ -163,7 +165,9 @@ class PatternsOrderedQ(Builtin):
 
     def eval(self, p1, p2, evaluation: Evaluation):
         "PatternsOrderedQ[p1_, p2_]"
-
+        # Convert the expressions into patterns first
+        p1 = BasePattern.create(p1)
+        p2 = BasePattern.create(p2)
         if p1.get_sort_key(True) <= p2.get_sort_key(True):
             return SymbolTrue
         else:

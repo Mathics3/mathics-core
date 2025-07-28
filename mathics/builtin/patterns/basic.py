@@ -10,6 +10,7 @@ from typing import Optional as OptionalType
 from mathics.core.builtin import PatternObject
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.pattern import ATOM_PATTERN_SORT_KEY
 from mathics.core.symbols import BaseElement
 
 # This tells documentation how to sort this module
@@ -101,6 +102,20 @@ class Blank(_Blank):
             else:
                 yield_func(vars_dict, None)
 
+    def get_sort_key(self, pattern_sort=True):
+        if pattern_sort:
+            return (
+                2,
+                11 if self.elements else 21,
+                1,
+                1,
+                0,
+                ATOM_PATTERN_SORT_KEY,
+                tuple(elem.get_sort_key(True) for elem in self.elements),
+                1,
+            )
+        return self.expr.get_sort_key()
+
 
 class BlankNullSequence(_Blank):
     """
@@ -143,6 +158,20 @@ class BlankNullSequence(_Blank):
 
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (0, None)
+
+    def get_sort_key(self, pattern_sort=True):
+        if pattern_sort:
+            return (
+                2,
+                13 if self.elements else 23,
+                1,
+                1,
+                0,
+                ATOM_PATTERN_SORT_KEY,
+                tuple(elem.get_sort_key(True) for elem in self.elements),
+                1,
+            )
+        return self.expr.get_sort_key()
 
 
 class BlankSequence(_Blank):
@@ -203,3 +232,17 @@ class BlankSequence(_Blank):
 
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (1, None)
+
+    def get_sort_key(self, pattern_sort=True):
+        if pattern_sort:
+            return (
+                2,
+                12 if self.elements else 22,
+                1,
+                1,
+                0,
+                ATOM_PATTERN_SORT_KEY,
+                tuple(elem.get_sort_key(True) for elem in self.elements),
+                1,
+            )
+        return self.expr.get_sort_key()

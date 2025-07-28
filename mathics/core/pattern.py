@@ -32,7 +32,7 @@ from mathics.core.atoms import Integer
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_ORDERLESS
 from mathics.core.element import BaseElement, ensure_context
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, SymbolVerbatim
 from mathics.core.symbols import Atom, Symbol, symbol_set
 from mathics.core.systemsymbols import (
     SymbolAlternatives,
@@ -67,6 +67,9 @@ SYSTEM_SYMBOLS_PATTERNS = symbol_set(
     SymbolRepeated,
     SymbolRepeatedNull,
 )
+
+ATOM_PATTERN_SORT_KEY = (0, 0, 1, 1, 0, 0, 0, 1)
+
 
 pattern_objects: Dict[str, Type["PatternObject"]] = {}
 
@@ -243,7 +246,9 @@ class BasePattern(ABC):
 
     def get_sort_key(self, pattern_sort: bool = False) -> tuple:
         """The sort key of the expression"""
-        return self.expr.get_sort_key(pattern_sort=pattern_sort)
+        if pattern_sort:
+            return pattern_sort_key(self)
+        return self.expr.get_sort_key(pattern_sort=False)
 
     def get_option_values(
         self, evaluation: Evaluation, allow_symbols=False, stop_on_error=True
@@ -1199,3 +1204,40 @@ def get_pre_choices_orderless(
     # def yield_name(setting):
     #    yield_func(setting)
     per_name(yield_choice, tuple(groups.items()), vars_dict)
+
+
+# FIXME: return type should be a specific kind of Tuple, not a tuple.
+def pattern_sort_key(pat) -> tuple:
+    """
+    Pattern sort key structure:
+        0: 0/2:        Atom / Expression
+        1: pattern:    0 / 11-31 for blanks / 1 for empty Alternatives /
+                           40 for OptionsPattern
+        2: 0/1:        0 for PatternTest
+        3: 0/1:        0 for Pattern
+        4: 0/1:        1 for Optional
+        5: head / 0 for atoms
+        6: elements / 0 for atoms
+        7: 0/1:        0 for Condition
+    """
+    if isinstance(pat, AtomPattern):
+        return ATOM_PATTERN_SORT_KEY
+
+    # Append (4,) to elements so that longer expressions have higher
+    # precedence
+    result = (
+        2,
+        0,
+        1,
+        1,
+        0,
+        pat.head.get_sort_key(True),
+        tuple(
+            chain(
+                (element.get_sort_key(True) for element in pat.elements),
+                ((4,),),
+            )
+        ),
+        1,
+    )
+    return result
