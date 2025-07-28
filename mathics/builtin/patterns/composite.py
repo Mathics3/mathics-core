@@ -324,6 +324,21 @@ class OptionsPattern(PatternObject):
 
         return tuple((element for element in elements if _match(element)))
 
+    def get_sort_key(self, pattern_sort: bool = True):
+        if not pattern_sort:
+            return self.expr.get_sort_key()
+        return (
+            2,
+            40,
+            0,
+            1,
+            1,
+            0,
+            self.expr.head,
+            tuple(elem.get_sort_key(True) for elem in self.elements),
+            1,
+        )
+
 
 class Pattern(PatternObject):
     """
@@ -463,6 +478,13 @@ class Pattern(PatternObject):
         verbatim_expr = Expression(SymbolVerbatim, existing)
         verbatim = Verbatim(verbatim_expr)
         return verbatim.get_match_candidates(elements, pattern_context)
+
+    def get_sort_key(self, pattern_sort: bool = True):
+        if not pattern_sort:
+            return self.expr.get_sort_key()
+        sub = list(self.pattern.get_sort_key(True))
+        sub[3] = 0
+        return tuple(sub)
 
 
 class Repeated(PostfixOperator, PatternObject):

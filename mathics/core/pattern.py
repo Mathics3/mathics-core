@@ -1223,55 +1223,21 @@ def pattern_sort_key(pat) -> tuple:
     if isinstance(pat, AtomPattern):
         return ATOM_PATTERN_SORT_KEY
 
-    self = pat.expr
-    head = self._head
-    pattern = 0
-    if head is SymbolPattern:
-        print("   simbol pattern")
-        if len(self._elements) != 2:
-            return (3, 0, 0, 0, 0, head, self._elements, 1)
-        if pat.elements[1].get_sort_key(True) is None:
-            print(pat.elements[1])
-        sub = list(pat.elements[1].get_sort_key(True))
-        sub[3] = 0
-        return tuple(sub)
-    elif head is SymbolOptional:
-        print("   simbol optional")
-        if len(self._elements) not in (1, 2):
-            return (3, 0, 0, 0, 0, head, self._elements, 1)
-        sub = list(pat.elements[0].get_sort_key(True))
-        sub[4] = 1
-        return tuple(sub)
-    elif head is SymbolOptionsPattern:
-        print("   simbol options pattern")
-        return (
-            2,
-            40,
-            0,
-            1,
-            1,
-            0,
-            head,
-            tuple(elem.get_sort_key(True) for elem in pat.elements),
-            1,
-        )
-    else:
-        # Append (4,) to elements so that longer expressions have higher
-        # precedence
-        result = (
-            2,
-            0,
-            1,
-            1,
-            0,
-            pat.head.get_sort_key(True),
-            tuple(
-                chain(
-                    (element.get_sort_key(True) for element in pat.elements),
-                    ((4,),),
-                )
-            ),
-            1,
-        )
-        print(result)
-        return result
+    # Append (4,) to elements so that longer expressions have higher
+    # precedence
+    result = (
+        2,
+        0,
+        1,
+        1,
+        0,
+        pat.head.get_sort_key(True),
+        tuple(
+            chain(
+                (element.get_sort_key(True) for element in pat.elements),
+                ((4,),),
+            )
+        ),
+        1,
+    )
+    return result
