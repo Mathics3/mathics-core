@@ -79,6 +79,22 @@ class Alternatives(InfixOperator, PatternObject):
                     range_lst[1] = sub[1]
         return tuple(range_lst)
 
+    def get_sort_key(self, pattern_sort=True):
+        if not pattern_sort:
+            return self.expr.get_sort_key()
+
+        min_key = (4,)
+        min = None
+        for element in self.elements:
+            key = element.get_sort_key(True)
+            if key < min_key:
+                min = element
+                min_key = key
+        if min is None:
+            # empty alternatives -> very restrictive pattern
+            return (2, 1)
+        return min_key
+
 
 class Except(PatternObject):
     """
@@ -635,6 +651,13 @@ class Verbatim(PatternObject):
 
         if self.content.sameQ(expression):
             yield_func(vars_dict, None)
+
+    def get_sort_key(self, pattern_sort=True):
+        if not pattern_sort:
+            return self.expr.get_sort_key()
+
+        assert len(self.expr._elements) == 1
+        return self.elements[0].get_sort_key(True)
 
 
 # TODO: Implement `KeyValuePattern`, `PatternSequence`, and `OrderlessPatternSequence`

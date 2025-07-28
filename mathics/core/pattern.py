@@ -68,6 +68,8 @@ SYSTEM_SYMBOLS_PATTERNS = symbol_set(
     SymbolRepeatedNull,
 )
 
+ATOM_PATTERN_SORT_KEY = (0, 0, 1, 1, 0, 0, 0, 1)
+
 
 pattern_objects: Dict[str, Type["PatternObject"]] = {}
 
@@ -1219,46 +1221,13 @@ def pattern_sort_key(pat) -> tuple:
         7: 0/1:        0 for Condition
     """
     if isinstance(pat, AtomPattern):
-        return (0, 0, 1, 1, 0, 0, 0, 1)
+        return ATOM_PATTERN_SORT_KEY
 
     self = pat.expr
     head = self._head
     pattern = 0
-    if head is SymbolBlank:
-        pattern = 1
-    elif head is SymbolBlankSequence:
-        pattern = 2
-    elif head is SymbolBlankNullSequence:
-        pattern = 3
-    if pattern > 0:
-        if pat.elements:
-            pattern += 10
-        else:
-            pattern += 20
-    if pattern > 0:
-        return (
-            2,
-            pattern,
-            1,
-            1,
-            0,
-            head.get_sort_key(True),
-            tuple(element.get_sort_key(True) for element in pat.elements),
-            1,
-        )
-    if head is SymbolPatternTest:
-        if len(self._elements) != 2:
-            return (3, 0, 0, 0, 0, head, self._elements, 1)
-        sub = list(pat.elements[0].get_sort_key(True))
-        sub[2] = 0
-        return tuple(sub)
-    elif head is SymbolCondition:
-        if len(self._elements) != 2:
-            return (3, 0, 0, 0, 0, head, self._elements, 1)
-        sub = list(pat.elements[0].get_sort_key(True))
-        sub[7] = 0
-        return tuple(sub)
-    elif head is SymbolPattern:
+    if head is SymbolPattern:
+        print("   simbol pattern")
         if len(self._elements) != 2:
             return (3, 0, 0, 0, 0, head, self._elements, 1)
         if pat.elements[1].get_sort_key(True) is None:
@@ -1267,28 +1236,14 @@ def pattern_sort_key(pat) -> tuple:
         sub[3] = 0
         return tuple(sub)
     elif head is SymbolOptional:
+        print("   simbol optional")
         if len(self._elements) not in (1, 2):
             return (3, 0, 0, 0, 0, head, self._elements, 1)
         sub = list(pat.elements[0].get_sort_key(True))
         sub[4] = 1
         return tuple(sub)
-    elif head is SymbolAlternatives:
-        min_key = (4,)
-        min = None
-        for element in pat.elements:
-            key = element.get_sort_key(True)
-            if key < min_key:
-                min = element
-                min_key = key
-        if min is None:
-            # empty alternatives -> very restrictive pattern
-            return (2, 1)
-        return min_key
-    elif head is SymbolVerbatim:
-        if len(self._elements) != 1:
-            return (3, 0, 0, 0, 0, head, pat.elements, 1)
-        return pat.elements[0].get_sort_key(True)
     elif head is SymbolOptionsPattern:
+        print("   simbol options pattern")
         return (
             2,
             40,
@@ -1303,7 +1258,7 @@ def pattern_sort_key(pat) -> tuple:
     else:
         # Append (4,) to elements so that longer expressions have higher
         # precedence
-        return (
+        result = (
             2,
             0,
             1,
@@ -1318,3 +1273,5 @@ def pattern_sort_key(pat) -> tuple:
             ),
             1,
         )
+        print(result)
+        return result
