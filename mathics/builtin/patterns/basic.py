@@ -101,6 +101,20 @@ class Blank(_Blank):
             else:
                 yield_func(vars_dict, None)
 
+    def get_sort_key(self, pattern_sort=True):
+        if pattern_sort:
+            return (
+                2,
+                11 if self.elements else 21,
+                1,
+                1,
+                0,
+                (0, 0, 1, 1, 0, 0, 0, 1),  # sort key for Atoms
+                tuple(elem.get_sort_key(True) for elem in self.elements),
+                1,
+            )
+        return self.expr.get_sort_key()
+
 
 class BlankNullSequence(_Blank):
     """
@@ -143,6 +157,20 @@ class BlankNullSequence(_Blank):
 
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (0, None)
+
+    def get_sort_key(self, pattern_sort=True):
+        if pattern_sort:
+            return (
+                2,
+                13 if self.elements else 23,
+                1,
+                1,
+                0,
+                (0, 0, 1, 1, 0, 0, 0, 1),  # sort key for Atoms
+                tuple(elem.get_sort_key(True) for elem in self.elements),
+                1,
+            )
+        return self.expr.get_sort_key()
 
 
 class BlankSequence(_Blank):
@@ -203,3 +231,17 @@ class BlankSequence(_Blank):
 
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (1, None)
+
+    def get_sort_key(self, pattern_sort=True):
+        if pattern_sort:
+            return (
+                2,
+                12 if self.elements else 22,
+                1,
+                1,
+                0,
+                (0, 0, 1, 1, 0, 0, 0, 1),  # sort key for Atoms
+                tuple(elem.get_sort_key(True) for elem in self.elements),
+                1,
+            )
+        return self.expr.get_sort_key()

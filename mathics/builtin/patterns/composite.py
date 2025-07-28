@@ -539,6 +539,20 @@ class Repeated(PostfixOperator, PatternObject):
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (self.min, self.max)
 
+    def get_sort_key(self, pattern_sort=True):
+        if pattern_sort:
+            return (
+                2,
+                0,
+                1,
+                1,
+                0,
+                (0, 0, 1, 1, 0, 0, 0, 1),  # sort key for Atoms
+                (self.pattern.get_sort_key(True), 4),  # Just one element...
+                1,
+            )
+        return self.expr.get_sort_key()
+
 
 class RepeatedNull(Repeated):
     """

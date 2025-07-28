@@ -362,7 +362,9 @@ class Delete(Builtin):
 
     def eval(self, expr, positions, evaluation):
         "Delete[expr_, positions___]"
+
         positions = positions.get_sequence()
+
         if len(positions) > 1:
             evaluation.message("Delete", "argt", Integer(len(positions) + 1))
             return
@@ -388,9 +390,10 @@ class Delete(Builtin):
             if isinstance(elements[0], ListExpression)
             else [positions]
         )
-        positions.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
+        # Sort the positions in ascending order
+        positions.sort()
         newexpr = expr
-        for position in positions:
+        for position in positions[::-1]:
             pos = [p.get_int_value() for p in position.get_elements()]
             if None in pos:
                 evaluation.message(
