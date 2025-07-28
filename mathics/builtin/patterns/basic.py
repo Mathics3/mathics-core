@@ -10,6 +10,7 @@ from typing import Optional as OptionalType
 from mathics.core.builtin import PatternObject
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.pattern import ATOM_PATTERN_SORT_KEY
 from mathics.core.symbols import BaseElement
 
 # This tells documentation how to sort this module
@@ -109,7 +110,7 @@ class Blank(_Blank):
                 1,
                 1,
                 0,
-                (0, 0, 1, 1, 0, 0, 0, 1),  # sort key for Atoms
+                ATOM_PATTERN_SORT_KEY,
                 tuple(elem.get_sort_key(True) for elem in self.elements),
                 1,
             )
@@ -166,7 +167,7 @@ class BlankNullSequence(_Blank):
                 1,
                 1,
                 0,
-                (0, 0, 1, 1, 0, 0, 0, 1),  # sort key for Atoms
+                ATOM_PATTERN_SORT_KEY,
                 tuple(elem.get_sort_key(True) for elem in self.elements),
                 1,
             )
@@ -240,7 +241,7 @@ class BlankSequence(_Blank):
                 1,
                 1,
                 0,
-                (0, 0, 1, 1, 0, 0, 0, 1),  # sort key for Atoms
+                ATOM_PATTERN_SORT_KEY,
                 tuple(elem.get_sort_key(True) for elem in self.elements),
                 1,
             )

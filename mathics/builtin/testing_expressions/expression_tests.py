@@ -168,9 +168,6 @@ class PatternsOrderedQ(Builtin):
         # Convert the expressions into patterns first
         p1 = BasePattern.create(p1)
         p2 = BasePattern.create(p2)
-        print("\np1:\n", p1.get_sort_key(True))
-        print("\np2:\n", p2.get_sort_key(True))
-
         if p1.get_sort_key(True) <= p2.get_sort_key(True):
             return SymbolTrue
         else:
