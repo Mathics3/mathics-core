@@ -33,7 +33,7 @@ class HypergeometricPFQ(MPMathFunction):
     <url>
     :Generalized hypergeometric function: https://en.wikipedia.org/wiki/Generalized_hypergeometric_function</url> (<url>
     :mpmath: https://mpmath.org/doc/current/functions/hypergeometric.html#hyper</url>, <url>
-    :sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.hyper.hyper</url>, <url>
+    :SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.hyper.hyper</url>, <url>
     :WMA: https://reference.wolfram.com/language/ref/HypergeometricPFQ.html</url>)
     <dl>
       <dt>'HypergeometricPFQ'[${a_1, ..., a_p}, {b_1, ..., b_q}, z$]
@@ -247,7 +247,7 @@ class MeijerG(MPMathFunction):
     <url>
     :Meijer G-function: https://en.wikipedia.org/wiki/Meijer_G-function</url> (<url>
     :mpmath: https://mpmath.org/doc/current/functions/hypergeometric.html#meijerg</url>, <url>
-    :sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.hyper.meijerg</url>, <url>
+    :SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.hyper.meijerg</url>, <url>
     :WMA: https://reference.wolfram.com/language/ref/MeijerG.html</url>)
     <dl>
       <dt>'MeijerG'[${{a_1, ..., a_n}, {a_{n+1}, ..., a_p}}, {{b_1, ..., b_m}, {b_{m+1}, ..., a_q}}, z$]
