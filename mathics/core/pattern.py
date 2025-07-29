@@ -1209,6 +1209,17 @@ def get_pre_choices_orderless(
 # FIXME: return type should be a specific kind of Tuple, not a tuple.
 def pattern_sort_key(pat) -> tuple:
     """
+    This function builds the generic sort key used when
+    patterns and rules must be sorted in the evaluation order, i.e.
+    more specific patterns should come before the most general.
+
+    Keys are sorted following the logic of Python tuples order:
+    comparisons are done element by element until the i-th element
+    of the first tuple is smaller than the i-th element of the 
+    second one. If the elements are equal, comparison continues
+    until it finishes with the shortest tuple. In that case, the shortest
+    tuple is considered the smaller one.
+
     Pattern sort key structure:
         0: 0/2:        Atom / Expression
         1: pattern:    0 / 11-31 for blanks / 1 for empty Alternatives /
