@@ -111,6 +111,9 @@ class Blank(_Blank):
                 1,
                 0,
                 ATOM_PATTERN_SORT_KEY,
+                1
+                if any(element.undefined_sequence_length() for element in pat.elements)
+                else 0,
                 tuple(elem.get_sort_key(True) for elem in self.elements),
                 1,
             )
@@ -168,10 +171,22 @@ class BlankNullSequence(_Blank):
                 1,
                 0,
                 ATOM_PATTERN_SORT_KEY,
+                1
+                if any(element.undefined_sequence_length() for element in pat.elements)
+                else 0,
                 tuple(elem.get_sort_key(True) for elem in self.elements),
                 1,
             )
         return self.expr.get_sort_key()
+
+    def undefined_sequence_length(self):
+        """
+        True if it can match with a variable number of elements.
+        For example, `BlankSequence`, `BlankNullSequence` or `RepeatedNull`
+        returns `True`. Other pattern objects like `Pattern[name, pat]` returns
+        the value associated to `pat`.
+        """
+        return False
 
 
 class BlankSequence(_Blank):
@@ -242,7 +257,19 @@ class BlankSequence(_Blank):
                 1,
                 0,
                 ATOM_PATTERN_SORT_KEY,
+                1
+                if any(element.undefined_sequence_length() for element in pat.elements)
+                else 0,
                 tuple(elem.get_sort_key(True) for elem in self.elements),
                 1,
             )
         return self.expr.get_sort_key()
+
+    def undefined_sequence_length(self):
+        """
+        True if it can match with a variable number of elements.
+        For example, `BlankSequence`, `BlankNullSequence` or `RepeatedNull`
+        returns `True`. Other pattern objects like `Pattern[name, pat]` returns
+        the value associated to `pat`.
+        """
+        return False

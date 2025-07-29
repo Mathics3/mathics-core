@@ -68,7 +68,7 @@ SYSTEM_SYMBOLS_PATTERNS = symbol_set(
     SymbolRepeatedNull,
 )
 
-ATOM_PATTERN_SORT_KEY = (0, 0, 1, 1, 0, 0, 0, 1)
+ATOM_PATTERN_SORT_KEY = (0, 0, 1, 1, 0, 0, 0, 0, 1)
 
 
 pattern_objects: Dict[str, Type["PatternObject"]] = {}
@@ -343,6 +343,15 @@ class BasePattern(ABC):
         if isinstance(other, BasePattern):
             return self.expr.sameQ(other.expr)
         return self.expr.sameQ(other)
+
+    def undefined_sequence_length(self):
+        """
+        True if it can match with a variable number of elements.
+        For example, `BlankSequence`, `BlankNullSequence` or `RepeatedNull`
+        returns `True`. Other pattern objects like `Pattern[name, pat]` returns
+        the value associated to `pat`.
+        """
+        return False
 
 
 class AtomPattern(BasePattern):
@@ -1209,6 +1218,18 @@ def get_pre_choices_orderless(
 # FIXME: return type should be a specific kind of Tuple, not a tuple.
 def pattern_sort_key(pat) -> tuple:
     """
+    This function build the generic sort key used when
+    patterns and rules must be sorted in the evaluation order, i.e.
+    more specific patterns should come before the most general.
+
+    Keys are sorted following the logic of Python tuples order:
+    comparisons are done element by element until the i-th element
+    of the first tuple is smaller than the i-th element of the
+    second one. If the elements are equal, comparison continues
+    until finish with the shortest tuple. In that case, the shortest
+    tuple is cosidered the smaller one.
+
+
     Pattern sort key structure:
         0: 0/2:        Atom / Expression
         1: pattern:    0 / 11-31 for blanks / 1 for empty Alternatives /
@@ -1217,8 +1238,10 @@ def pattern_sort_key(pat) -> tuple:
         3: 0/1:        0 for Pattern
         4: 0/1:        1 for Optional
         5: head / 0 for atoms
-        6: elements / 0 for atoms
-        7: 0/1:        0 for Condition
+        6: 0/1:        0 if the pattern has a fixed number of elements. 1 if
+                       includes  `BlankSequence`, `BlankNullSequence` or `Repeated`
+        7: elements / 0 for atoms
+        8: 0/1:        0 for Condition
     """
     if isinstance(pat, AtomPattern):
         return ATOM_PATTERN_SORT_KEY
@@ -1232,6 +1255,9 @@ def pattern_sort_key(pat) -> tuple:
         1,
         0,
         pat.head.get_sort_key(True),
+        1
+        if any(element.undefined_sequence_length() for element in pat.elements)
+        else 0,
         tuple(
             chain(
                 (element.get_sort_key(True) for element in pat.elements),
