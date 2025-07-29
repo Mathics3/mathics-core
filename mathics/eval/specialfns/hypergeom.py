@@ -8,7 +8,7 @@ import mpmath
 import sympy
 
 import mathics.eval.tracing as tracing
-from mathics.core.atoms import Complex, Number
+from mathics.core.atoms import Complex, Integer1, MachineReal1, Number
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.number import RECONSTRUCT_MACHINE_PRECISION_DIGITS, dps, min_prec
@@ -25,6 +25,18 @@ def eval_Hypergeometric1F1(a, b, z):
     We prefer SymPy because it preserves constants like E whereas mpmath will
     convert E to a precisioned number.
     """
+
+    # SymPy returns E ^ z for Hypergeometric1F1[0,0,z], but
+    # WMA gives 1.  Therefore, we add the below code to give the WMA
+    # behavior. If SymPy switches, this code be eliminated.
+    if hasattr(a, "is_zero") and a.is_zero:
+        return (
+            MachineReal1
+            if a.is_machine_precision()
+            or hasattr(z, "machine_precision")
+            and z.is_machine_precision()
+            else Integer1
+        )
 
     args = (a, b, z)
     sympy_args, all_numeric = to_sympy_with_classification(args)
@@ -87,6 +99,23 @@ def eval_Hypergeometric2F1(a, b, c, z):
 
 def eval_HypergeometricPQF(a, b, z):
     "HypergeometricPFQ[a_, b_, z_]"
+
+    # SymPy returns E for HypergeometricPFQ[{0},{0},Number], but
+    # WMA gives 1.  Therefore, we add the below code to give the WMA
+    # behavior. If SymPy switches, this code be eliminated.
+    if (
+        len(a.elements) > 0
+        and hasattr(a[0], "is_zero")
+        and a[0].is_zero
+        and isinstance(z, Number)
+    ):
+        return MachineReal1 if a[0].is_machine_precision() else Integer1
+
+    # FIXME: This isn't complete. If parameters "a" or "b" contain MachineReal
+    # numbers then the results should be MachineReal as well.
+    if z.is_machine_precision():
+        return eval_N_HypergeometricPQF(a, b, z)
+
     try:
         a_sympy = [e.to_sympy() for e in a]
         b_sympy = [e.to_sympy() for e in b]

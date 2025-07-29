@@ -9,7 +9,6 @@ https://dlmf.nist.gov/15</url>.
 import mpmath
 
 import mathics.eval.tracing as tracing
-from mathics.core.atoms import Integer1, MachineReal1, Number
 from mathics.core.attributes import (
     A_LISTABLE,
     A_NUMERIC_FUNCTION,
@@ -100,18 +99,6 @@ class Hypergeometric1F1(MPMathFunction):
 
     def eval(self, a, b, z, evaluation: Evaluation):
         "Hypergeometric1F1[a_, b_, z_]"
-
-        # SymPy returns E ^ z for Hypergeometric1F1[0,0,z], but
-        # WMA gives 1.  Therefore, we add the below code to give the WMA
-        # behavior. If SymPy switches, this code be eliminated.
-        if hasattr(a, "is_zero") and a.is_zero:
-            return (
-                MachineReal1
-                if a.is_machine_precision()
-                or hasattr(z, "machine_precision")
-                and z.is_machine_precision()
-                else Integer1
-            )
 
         return eval_Hypergeometric1F1(a, b, z)
 
@@ -222,22 +209,6 @@ class HypergeometricPFQ(MPMathFunction):
                 Expression(Symbol("Hypergeometric"), a, b, z),
             )
 
-        # SymPy returns E for HypergeometricPFQ[{0},{0},Number], but
-        # WMA gives 1.  Therefore, we add the below code to give the WMA
-        # behavior. If SymPy switches, this code be eliminated.
-        if (
-            len(a.elements) > 0
-            and hasattr(a[0], "is_zero")
-            and a[0].is_zero
-            and isinstance(z, Number)
-        ):
-            return MachineReal1 if a[0].is_machine_precision() else Integer1
-
-        # FIXME: This isn't complete. If parameters "a" or "b" contain MachineReal
-        # numbers then the results should be MachineReal as well.
-        if z.is_machine_precision():
-            return eval_N_HypergeometricPQF(a, b, z)
-
         return eval_HypergeometricPQF(a, b, z)
 
     def eval_N(self, a, b, z, prec, evaluation: Evaluation):
@@ -319,6 +290,8 @@ class MeijerG(MPMathFunction):
         "MeijerG[a_, b_, z_]"
         return eval_MeijerG(a, b, z)
 
+    # FIXME: Moving this causes test/doc/test_common.py to fail! It
+    # reports that Hypergeometric has been included more than once Weird!
     def eval_N(self, a, b, z, prec, evaluation: Evaluation):
         "N[MeijerG[a_, b_, z_], prec_]"
         try:
