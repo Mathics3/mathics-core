@@ -76,18 +76,18 @@ class Apply(InfixOperator):
         "Heads": "False",
     }
 
-    def eval(self, f, expr, ls, evaluation, options={}):
-        """Apply[f_, expr_, Optional[ls_, {0}],
+    def eval(self, f, expr, lhs, evaluation: Evaluation, options={}):
+        """Apply[f_, expr_, Optional[lhs_, {0}],
         OptionsPattern[Apply]]"""
 
-        ls = param_and_option_from_optional_place(
-            ls, options, "System`Apply", evaluation
+        lhs = param_and_option_from_optional_place(
+            lhs, options, "System`Apply", evaluation
         ) or ListExpression(Integer0)
 
         try:
-            start, stop = python_levelspec(ls)
+            start, stop = python_levelspec(lhs)
         except InvalidLevelspecError:
-            evaluation.message("Apply", "level", ls)
+            evaluation.message("Apply", "level", lhs)
             return
 
         def callback(level):
@@ -136,17 +136,17 @@ class Map(InfixOperator):
         "Heads": "False",
     }
 
-    def eval_level(self, f, expr, ls, evaluation, options={}):
-        """Map[f_, expr_, Optional[ls_, {1}],
+    def eval_level(self, f, expr, lhs, evaluation: Evaluation, options={}):
+        """Map[f_, expr_, Optional[lhs_, {1}],
         OptionsPattern[Map]]"""
 
-        ls = param_and_option_from_optional_place(
-            ls, options, "System`Map", evaluation
+        lhs = param_and_option_from_optional_place(
+            lhs, options, "System`Map", evaluation
         ) or ListExpression(Integer1)
         try:
-            start, stop = python_levelspec(ls)
+            start, stop = python_levelspec(lhs)
         except InvalidLevelspecError:
-            evaluation.message("Map", "level", ls)
+            evaluation.message("Map", "level", lhs)
             return
 
         def callback(level):
@@ -267,16 +267,16 @@ class MapIndexed(Builtin):
         "Heads": "False",
     }
 
-    def eval_level(self, f, expr, ls, evaluation, options={}):
-        """MapIndexed[f_, expr_, Optional[ls_, {1}],
+    def eval_level(self, f, expr, lhs, evaluation: Evaluation, options={}):
+        """MapIndexed[f_, expr_, Optional[lhs_, {1}],
         OptionsPattern[MapIndexed]]"""
-        ls = param_and_option_from_optional_place(
-            ls, options, "System`MapIndexed", evaluation
+        lhs = param_and_option_from_optional_place(
+            lhs, options, "System`MapIndexed", evaluation
         ) or ListExpression(Integer1)
         try:
-            start, stop = python_levelspec(ls)
+            start, stop = python_levelspec(lhs)
         except InvalidLevelspecError:
-            evaluation.message("MapIndexed", "level", ls)
+            evaluation.message("MapIndexed", "level", lhs)
             return
 
         def callback(level, pos: Iterable):
@@ -410,16 +410,16 @@ class Scan(Builtin):
         "Scan[f_][expr_]": "Scan[f, expr]",
     }
 
-    def eval_level(self, f, expr, ls, evaluation, options={}):
-        """Scan[f_, expr_, Optional[ls_, {1}],
+    def eval_level(self, f, expr, lhs, evaluation: Evaluation, options={}):
+        """Scan[f_, expr_, Optional[lhs_, {1}],
         OptionsPattern[Map]]"""
-        ls = param_and_option_from_optional_place(
-            ls, options, "System`Scan", evaluation
+        lhs = param_and_option_from_optional_place(
+            lhs, options, "System`Scan", evaluation
         ) or ListExpression(Integer0)
         try:
-            start, stop = python_levelspec(ls)
+            start, stop = python_levelspec(lhs)
         except InvalidLevelspecError:
-            evaluation.message("Map", "level", ls)
+            evaluation.message("Map", "level", lhs)
             return
 
         def callback(level):
@@ -427,7 +427,7 @@ class Scan(Builtin):
             return level
 
         heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
-        result, depth = walk_levels(expr, start, stop, heads=heads, callback=callback)
+        walk_levels(expr, start, stop, heads=heads, callback=callback)
 
         return SymbolNull
 
