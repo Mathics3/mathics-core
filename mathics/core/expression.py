@@ -858,6 +858,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     # FIXME: return type should be a specific kind of Tuple, not a tuple.
     def get_sort_key(self, pattern_sort=False) -> tuple:
         """
+        Return a tuple used as a key in sort operations.
+        The order follows the one obtained in WMA `Sort[...]`
+        The parameter `pattern_sort` is only used for compatibility
+        with the `BasePattern` interface.
+        To get the keys associated with the Evaluation-like order,
+        convert the expression first into a PatternObject.
+        
         General sort key structure:
             0: 1/2:        Numeric / General Expression
             1: 2/3         Special arithmetic (Times / Power) / General Expression
