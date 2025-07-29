@@ -357,11 +357,22 @@ class TraceEvaluation(Builtin):
     ## <url>:trace native symbol:</url>
 
     <dl>
-      <dt>'TraceEvaluation'[$expr$]
+      <dt>'TraceEvaluation'[$expr$, $options$]
       <dd>Evaluate $expr$ and print each step of the evaluation.
     </dl>
 
-    The 'ShowTimeBySteps' option prints the elapsed time before an evaluation occurs.
+    Options adjust output and filtering behavior
+    <dl>
+      <dt>'ShowTimeBySteps'
+      <dd>Print the elapsed time before an evaluation occurs. \
+      default is 'False'.
+      <dt>'ShowEvaluation'
+      <dd>Show evaluation calls and returns. The default is 'True'.
+      <dt>'ShowRewrite'
+      <dd>Show the effect of rewrite rules. The default is 'True'.
+    </dl>
+
+    <i>Note:</i> It does not make sense to set <i>both</i> 'ShowRewrite' and 'ShowEvaluation' to 'False'.
 
     >> TraceEvaluation[(x + x)^2]
      | ...
@@ -370,23 +381,36 @@ class TraceEvaluation(Builtin):
     >> TraceEvaluation[(x + x)^2, ShowTimeBySteps->True]
      | ...
      = ...
+
+    Now consider this function which consists of a function call that involves a rewrite rule:
+    >> TraceEvaluation[BesselK[0, 0]]
+     | ...
+     = ...
+
+    To see just the evaluations and return values, but not rewrites that occur:
+    >> TraceEvaluation[BesselK[0, 0], ShowRewrites-> False]
+     | ...
+     = ...
+
+    To see just the rewrite that occur:
+    >> TraceEvaluation[BesselK[0, 0], ShowEvaluation-> False]
+     | ...
+     = ...
+
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
     options = {
         "System`ShowTimeBySteps": "False",
+        "System`ShowRewrites": "True",  # Do we want to see rewrite rules?
+        "System`ShowEvaluation": "True",  # Do we want to see Evaluate and Returns?
     }
     summary_text = "trace expression evaluation"
 
     def eval(self, expr, evaluation: Evaluation, options: dict):
         "TraceEvaluation[expr_, OptionsPattern[]]"
 
-        curr_trace_evaluation = evaluation.definitions.trace_evaluation
-        curr_time_by_steps = evaluation.definitions.timing_trace_evaluation
-
-        old_evaluation_call_hook = mathics.eval.tracing.trace_evaluate_on_call
-        old_evaluation_return_hook = mathics.eval.tracing.trace_evaluate_on_return
-
+        # Do we want to save and restore these?
         mathics.eval.tracing.trace_evaluate_on_call = (
             mathics.eval.tracing.print_evaluate
         )
@@ -395,17 +419,37 @@ class TraceEvaluation(Builtin):
             mathics.eval.tracing.print_evaluate
         )
 
-        evaluation.definitions.trace_evaluation = True
+        # Save various trace settings before changing them.
+        curr_trace_evaluation = evaluation.definitions.trace_evaluation
+        curr_time_by_steps = evaluation.definitions.timing_trace_evaluation
+        curr_trace_show_rewrites = evaluation.definitions.trace_show_rewrites
+
+        # Adjust trace settings based on the options given.
+        old_evaluation_call_hook = mathics.eval.tracing.trace_evaluate_on_call
+        old_evaluation_return_hook = mathics.eval.tracing.trace_evaluate_on_return
+
         evaluation.definitions.timing_trace_evaluation = (
             options["System`ShowTimeBySteps"] is SymbolTrue
         )
+
+        evaluation.definitions.trace_evaluation = (
+            options["System`ShowEvaluation"] is SymbolTrue
+        )
+
+        evaluation.definitions.trace_show_rewrites = (
+            options["System`ShowRewrites"] is SymbolTrue
+        )
+
+        # Now perform the evaluation...
         try:
             return expr.evaluate(evaluation)
         except Exception:
             raise
         finally:
+            # Restore settings to the way the were before the TraceEvaluation.
             evaluation.definitions.trace_evaluation = curr_trace_evaluation
             evaluation.definitions.timing_trace_evaluation = curr_time_by_steps
+            evaluation.definitions.trace_show_rewrites = curr_trace_show_rewrites
 
             mathics.eval.tracing.trace_evaluate_on_call = old_evaluation_call_hook
             mathics.eval.tracing.trace_evaluate_on_return = old_evaluation_return_hook
