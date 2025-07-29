@@ -84,7 +84,7 @@ SYSTEM_SYMBOLS_PATTERNS = symbol_set(
 #        7: 0/1:        0 for Condition  (`Condition[expr,test]` comes before `expr`)
 
 # For an atom,
-ATOM_PATTERN_SORT_KEY = (0, 0, 1, 1, 0, 0, 0, 1)
+ATOM_PATTERN_SORT_KEY = (0, 0, 1, 1, 0, 0, 0, 0, 1)
 
 
 pattern_objects: Dict[str, Type["PatternObject"]] = {}
