@@ -245,7 +245,21 @@ class BasePattern(ABC):
         return self.expr.get_sequence()
 
     def get_sort_key(self, pattern_sort: bool = False) -> tuple:
-        """The sort key of the expression"""
+        """
+        The sort key of the expression.
+
+        If pattern_sort is `False`, the comparison follows
+        the expression-like order compatible with `Sort`.
+        If `pattern_sort` is `True`, the order follows the
+        evaluation-like order, where more specific patterns
+        come before the more general ones.
+
+        In BaseRule, the default value of the `pattern_sort`
+        is changed to `True`, in a way that when `Rule`
+        objects are sorted, the evaluation-like order 
+        is used. This is very important when evaluation
+        rules (`*Values`) are stored inside a `Definition` object.
+        """
         if pattern_sort:
             return pattern_sort_key(self)
         return self.expr.get_sort_key(pattern_sort=False)
