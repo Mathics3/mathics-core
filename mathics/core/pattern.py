@@ -256,7 +256,7 @@ class BasePattern(ABC):
 
         In BaseRule, the default value of the `pattern_sort`
         is changed to `True`, in a way that when `Rule`
-        objects are sorted, the evaluation-like order 
+        objects are sorted, the evaluation-like order
         is used. This is very important when evaluation
         rules (`*Values`) are stored inside a `Definition` object.
         """
@@ -1229,7 +1229,7 @@ def pattern_sort_key(pat) -> tuple:
 
     Keys are sorted following the logic of Python tuples order:
     comparisons are done element by element until the i-th element
-    of the first tuple is smaller than the i-th element of the 
+    of the first tuple is smaller than the i-th element of the
     second one. If the elements are equal, comparison continues
     until it finishes with the shortest tuple. In that case, the shortest
     tuple is considered the smaller one.

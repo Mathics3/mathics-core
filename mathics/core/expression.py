@@ -864,7 +864,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         with the `BasePattern` interface.
         To get the keys associated with the Evaluation-like order,
         convert the expression first into a PatternObject.
-        
+
         General sort key structure:
             0: 1/2:        Numeric / General Expression
             1: 2/3         Special arithmetic (Times / Power) / General Expression
