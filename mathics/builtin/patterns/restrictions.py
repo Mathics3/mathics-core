@@ -85,6 +85,7 @@ class Condition(InfixOperator, PatternObject):
         # return (3, 0, 0, 0, 0, self.expr.head, self.expr._elements, 1)
         if pattern_sort:
             sub = list(self.elements[0].get_sort_key(True))
+            sub[2] = 1
             sub[8] = 0
             return tuple(sub)
         return self.expr.get_sort_key()
@@ -370,6 +371,7 @@ class PatternTest(InfixOperator, PatternObject):
         # return (3, 0, 0, 0, 0, self.expr.head, self.expr._elements, 1)
         if pattern_sort:
             sub = list(self.pattern.get_sort_key(True))
+            sub[2] = 0
             sub[8] = 0
             return tuple(sub)
         return self.expr.get_sort_key()
