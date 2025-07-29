@@ -23,3 +23,10 @@ def test_upset():
         expected_messages=("Tag Plus in f[g, a + b, h] is Protected.",),
     )
     check_evaluation("UpValues[h]", "{HoldPattern[f[g, a + b, h]] :> 2}")
+
+
+def test_order():
+    check_evaluation(None, None)
+    check_evaluation(
+        "f[___]:=1;f[_,_]:=2; f[1,2]", "2", "f[_,_] must have priority over f[___]"
+    )
