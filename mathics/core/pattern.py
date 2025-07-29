@@ -68,6 +68,22 @@ SYSTEM_SYMBOLS_PATTERNS = symbol_set(
     SymbolRepeatedNull,
 )
 
+# Predefined Pattern keys
+# =======================
+#
+# The fields in a sort key comes in this order:
+#        0: 0/2:        Atom / Expression
+#        1: pattern:    0 / 11-31 for blanks / 1 for empty Alternatives /
+#                           40 for OptionsPattern
+#        2: 0/1:        0 for PatternTest (`PatternTest[expr,test]` comes before `expr`,
+#                                           but after `Condition[expr, test]`.)
+#        3: 0/1:        0 for Pattern  (`Pattern[expr,pat]` comes before `pat`, in mathics, not in WMA...)
+#        4: 0/1:        1 for Optional
+#        5: head / 0 for atoms
+#        6: elements / 0 for atoms
+#        7: 0/1:        0 for Condition  (`Condition[expr,test]` comes before `expr`)
+
+# For an atom,
 ATOM_PATTERN_SORT_KEY = (0, 0, 1, 1, 0, 0, 0, 1)
 
 
@@ -244,7 +260,7 @@ class BasePattern(ABC):
         """The sequence of elements in the expression"""
         return self.expr.get_sequence()
 
-    def get_sort_key(self, pattern_sort: bool = False) -> tuple:
+    def get_sort_key(self, pattern_sort: bool = True) -> tuple:
         """
         The sort key of the expression.
 
@@ -1251,11 +1267,11 @@ def pattern_sort_key(pat) -> tuple:
     # Append (4,) to elements so that longer expressions have higher
     # precedence
     result = (
-        2,
-        0,
-        1,
-        1,
-        0,
+        2,  # Expression
+        0,  # Not blank or OptionValues
+        1,  # Not pattern test
+        1,  # Not a Pattern
+        0,  # Not Optional
         pat.head.get_sort_key(True),
         tuple(
             chain(
@@ -1263,6 +1279,6 @@ def pattern_sort_key(pat) -> tuple:
                 ((4,),),
             )
         ),
-        1,
+        1,  # Not Condition
     )
     return result
