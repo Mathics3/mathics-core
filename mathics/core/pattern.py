@@ -80,8 +80,9 @@ SYSTEM_SYMBOLS_PATTERNS = symbol_set(
 #        3: 0/1:        0 for Pattern  (`Pattern[expr,pat]` comes before `pat`, in mathics, not in WMA...)
 #        4: 0/1:        1 for Optional
 #        5: head / 0 for atoms
-#        6: elements / 0 for atoms
-#        7: 0/1:        0 for Condition  (`Condition[expr,test]` comes before `expr`)
+#        6: 0 / 1       1 if elements include variable size sequences.
+#        7: elements / 0 for atoms
+#        8: 0/1:        0 for Condition  (`Condition[expr,test]` comes before `expr`)
 
 # For an atom,
 ATOM_PATTERN_SORT_KEY = (0, 0, 1, 1, 0, 0, 0, 0, 1)
