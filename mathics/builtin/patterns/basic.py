@@ -112,7 +112,7 @@ class Blank(_Blank):
                 0,
                 ATOM_PATTERN_SORT_KEY,
                 1
-                if any(element.undefined_sequence_length() for element in pat.elements)
+                if any(element.undefined_sequence_length() for element in self.elements)
                 else 0,
                 tuple(elem.get_sort_key(True) for elem in self.elements),
                 1,
@@ -172,7 +172,7 @@ class BlankNullSequence(_Blank):
                 0,
                 ATOM_PATTERN_SORT_KEY,
                 1
-                if any(element.undefined_sequence_length() for element in pat.elements)
+                if any(element.undefined_sequence_length() for element in self.elements)
                 else 0,
                 tuple(elem.get_sort_key(True) for elem in self.elements),
                 1,
@@ -258,7 +258,7 @@ class BlankSequence(_Blank):
                 0,
                 ATOM_PATTERN_SORT_KEY,
                 1
-                if any(element.undefined_sequence_length() for element in pat.elements)
+                if any(element.undefined_sequence_length() for element in self.elements)
                 else 0,
                 tuple(elem.get_sort_key(True) for elem in self.elements),
                 1,

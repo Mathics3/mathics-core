@@ -336,7 +336,7 @@ class OptionsPattern(PatternObject):
             0,
             self.expr.head,
             1
-            if any(element.undefined_sequence_length() for element in pat.elements)
+            if any(element.undefined_sequence_length() for element in self.elements)
             else 0,
             tuple(elem.get_sort_key(True) for elem in self.elements),
             1,
