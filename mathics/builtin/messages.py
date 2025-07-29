@@ -192,6 +192,7 @@ class General(Builtin):
         "fnsym": (
             "First argument in `1` is not a symbol " "or a string naming a symbol."
         ),
+        "hdiv": "`1` does not exist. Arguments are not consistent.",
         "heads": "Heads `1` and `2` are expected to be the same.",
         "ilsnn": (
             "Single or list of non-negative integers expected at " "position `1`."

@@ -9,6 +9,7 @@ https://dlmf.nist.gov/15</url>.
 import mpmath
 
 import mathics.eval.tracing as tracing
+from mathics.core.atoms import Integer1, MachineReal1, Number
 from mathics.core.attributes import (
     A_LISTABLE,
     A_NUMERIC_FUNCTION,
@@ -18,6 +19,9 @@ from mathics.core.attributes import (
 from mathics.core.builtin import MPMathFunction
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.evaluation import Evaluation
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
+from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolComplexInfinity, SymbolMachinePrecision
 from mathics.eval.specialfns.hypergeom import (
     eval_Hypergeometric1F1,
@@ -26,75 +30,6 @@ from mathics.eval.specialfns.hypergeom import (
     eval_MeijerG,
     eval_N_HypergeometricPQF,
 )
-
-
-class HypergeometricPFQ(MPMathFunction):
-    """
-    <url>
-    :Generalized hypergeometric function: https://en.wikipedia.org/wiki/Generalized_hypergeometric_function</url> (<url>
-    :mpmath: https://mpmath.org/doc/current/functions/hypergeometric.html#hyper</url>, <url>
-    :SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.hyper.hyper</url>, <url>
-    :WMA: https://reference.wolfram.com/language/ref/HypergeometricPFQ.html</url>)
-    <dl>
-      <dt>'HypergeometricPFQ'[${a_1, ..., a_p}, {b_1, ..., b_q}, z$]
-      <dd>returns ${}_p F_q({a_1, ..., a_p}; {b_1, ..., b_q}; z)$.
-    </dl>
-    >> HypergeometricPFQ[{2}, {2}, 1]
-     = E
-
-    Result is symbollicaly simplified by default:
-    >> HypergeometricPFQ[{3}, {2}, 1]
-     = 3 E / 2
-
-    unless a numerical evaluation is explicitly requested:
-    >> HypergeometricPFQ[{3}, {2}, 1] // N
-     = 4.07742
-
-    >> HypergeometricPFQ[{3}, {2}, 1.]
-     = 4.07742
-
-    >> Plot[HypergeometricPFQ[{1, 1}, {3, 3, 3}, x], {x, -30, 30}]
-     = -Graphics-
-
-    >> HypergeometricPFQ[{1, 1, 2}, {3, 3}, z]
-     = -4 PolyLog[2, z] / z ^ 2 + 4 Log[1 - z] / z ^ 2 - 4 Log[1 - z] / z + 8 / z
-
-    The following special cases are handled:
-    >> HypergeometricPFQ[{}, {}, z]
-     = E ^ z
-    >> HypergeometricPFQ[{0}, {b}, z]
-     = 1
-
-     >> HypergeometricPFQ[{1, 1, 3}, {2, 2}, x]
-      = -Log[1 - x] / (2 x) - 1 / (-2 + 2 x)
-
-    'HypergeometricPFQ' evaluates to a polynomial if any of the parameters $a_k$ is a non-positive integer:
-    >> HypergeometricPFQ[{-2, a}, {b}, x]
-     = (-2 a x (1 + b) + a x ^ 2 (1 + a) + b (1 + b)) / (b (1 + b))
-
-    Value at origin:
-    >> HypergeometricPFQ[{a1, b2, a3}, {b1, b2, b3}, 0]
-     = 1
-    """
-
-    attributes = A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
-    mpmath_name = "hyper"
-    nargs = {3}
-    summary_text = "compute the generalized hypergeometric function"
-    sympy_name = "hyper"
-
-    def eval(self, a, b, z, evaluation: Evaluation):
-        "HypergeometricPFQ[a_, b_, z_]"
-        return eval_HypergeometricPQF(a, b, z)
-
-    def eval_N(self, a, b, z, prec, evaluation: Evaluation):
-        "N[HypergeometricPFQ[a_, b_, z_], prec_]"
-        # FIXME: prec is not used. Why?
-        return eval_N_HypergeometricPQF(a, b, z)
-
-    def eval_numeric(self, a, b, z, evaluation: Evaluation):
-        "HypergeometricPFQ[a:{__?NumericQ}, b:{__?NumericQ}, z_?MachineNumberQ]"
-        return self.eval_N(a, b, z, SymbolMachinePrecision, evaluation)
 
 
 class Hypergeometric1F1(MPMathFunction):
@@ -154,11 +89,30 @@ class Hypergeometric1F1(MPMathFunction):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     mpmath_name = "hyp1f1"
     nargs = {3}
+
+    rules = {
+        "Hypergeometric1F1[0, c_, z_?MachineNumberQ]": "1.0",
+        "Hypergeometric1F1[0, c_, z_]": "1",
+    }
+
     summary_text = "compute Kummer confluent hypergeometric function"
     sympy_name = ""
 
     def eval(self, a, b, z, evaluation: Evaluation):
         "Hypergeometric1F1[a_, b_, z_]"
+
+        # SymPy returns E ^ z for Hypergeometric1F1[0,0,z], but
+        # WMA gives 1.  Therefore, we add the below code to give the WMA
+        # behavior. If SymPy switches, this code be eliminated.
+        if hasattr(a, "is_zero") and a.is_zero:
+            return (
+                MachineReal1
+                if a.is_machine_precision()
+                or hasattr(z, "machine_precision")
+                and z.is_machine_precision()
+                else Integer1
+            )
+
         return eval_Hypergeometric1F1(a, b, z)
 
 
@@ -199,6 +153,97 @@ class Hypergeometric2F1(MPMathFunction):
         "Hypergeometric2F1[a_, b_, c_, z_]"
 
         return eval_Hypergeometric2F1(a, b, c, z)
+
+
+class HypergeometricPFQ(MPMathFunction):
+    """
+    <url>
+    :Generalized hypergeometric function: https://en.wikipedia.org/wiki/Generalized_hypergeometric_function</url> (<url>
+    :mpmath: https://mpmath.org/doc/current/functions/hypergeometric.html#hyper</url>, <url>
+    :SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.hyper.hyper</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/HypergeometricPFQ.html</url>)
+    <dl>
+      <dt>'HypergeometricPFQ'[${a_1, ..., a_p}, {b_1, ..., b_q}, z$]
+      <dd>returns ${}_p F_q({a_1, ..., a_p}; {b_1, ..., b_q}; z)$.
+    </dl>
+    >> HypergeometricPFQ[{2}, {2}, 1]
+     = E
+
+    Result is symbollicaly simplified by default:
+    >> HypergeometricPFQ[{3}, {2}, 1]
+     = 3 E / 2
+
+    unless a numerical evaluation is explicitly requested:
+    >> HypergeometricPFQ[{3}, {2}, 1] // N
+     = 4.07742
+
+    >> HypergeometricPFQ[{3}, {2}, 1.]
+     = 4.07742
+
+    >> Plot[HypergeometricPFQ[{1, 1}, {3, 3, 3}, x], {x, -30, 30}]
+     = -Graphics-
+
+    >> HypergeometricPFQ[{1, 1, 2}, {3, 3}, z]
+     = -4 PolyLog[2, z] / z ^ 2 + 4 Log[1 - z] / z ^ 2 - 4 Log[1 - z] / z + 8 / z
+
+    The following special cases are handled:
+    >> HypergeometricPFQ[{}, {}, z]
+     = E ^ z
+    >> HypergeometricPFQ[{0}, {b}, z]
+     = 1
+
+     >> HypergeometricPFQ[{1, 1, 3}, {2, 2}, x]
+      = -Log[1 - x] / (2 x) - 1 / (-2 + 2 x)
+
+    'HypergeometricPFQ' evaluates to a polynomial if any of the parameters $a_k$ is a non-positive integer:
+    >> HypergeometricPFQ[{-2, a}, {b}, x]
+     = (-2 a x (1 + b) + a x ^ 2 (1 + a) + b (1 + b)) / (b (1 + b))
+
+    Value at origin:
+    >> HypergeometricPFQ[{a1, b2, a3}, {b1, b2, b3}, 0]
+     = 1
+    """
+
+    attributes = A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
+    mpmath_name = "hyper"
+    nargs = {3}
+
+    summary_text = "compute the generalized hypergeometric function"
+    sympy_name = "hyper"
+
+    def eval(self, a, b, z, evaluation: Evaluation):
+        "HypergeometricPFQ[a_, b_, z_]"
+
+        # FIXME: a lot more checking could be done here.
+        if not (isinstance(a, ListExpression)):
+            evaluation.message(
+                "HypergeometricPQF",
+                "hdiv",
+                Expression(Symbol("Hypergeometric"), a, b, z),
+            )
+
+        # SymPy returns E for HypergeometricPFQ[{0},{0},Number], but
+        # WMA gives 1.  Therefore, we add the below code to give the WMA
+        # behavior. If SymPy switches, this code be eliminated.
+        if (
+            len(a.elements) > 0
+            and hasattr(a[0], "is_zero")
+            and a[0].is_zero
+            and isinstance(z, Number)
+        ):
+            return MachineReal1 if a[0].is_machine_precision() else Integer1
+
+        # FIXME: This isn't complete. If parameters "a" or "b" contain MachineReal
+        # numbers then the results should be MachineReal as well.
+        if z.is_machine_precision():
+            return eval_N_HypergeometricPQF(a, b, z)
+
+        return eval_HypergeometricPQF(a, b, z)
+
+    def eval_N(self, a, b, z, prec, evaluation: Evaluation):
+        "N[HypergeometricPFQ[a_, b_, z_], prec_]"
+        # FIXME: prec is not used. It should be though.
+        return eval_N_HypergeometricPQF(a, b, z)
 
 
 class HypergeometricU(MPMathFunction):
