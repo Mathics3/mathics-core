@@ -387,12 +387,12 @@ class TraceEvaluation(Builtin):
      | ...
      = ...
 
-    To see just the evaluations and return values, but not rewrites that occur:
-    >> TraceEvaluation[BesselK[0, 0], ShowRewrites-> False]
+    To see just the evaluations and return values, but not rewrite that occurs:
+    >> TraceEvaluation[BesselK[0, 0], ShowRewrite-> False]
      | ...
      = ...
 
-    To see just the rewrite that occur:
+    To see just the rewrite that occurs:
     >> TraceEvaluation[BesselK[0, 0], ShowEvaluation-> False]
      | ...
      = ...
@@ -402,7 +402,7 @@ class TraceEvaluation(Builtin):
     attributes = A_HOLD_ALL | A_PROTECTED
     options = {
         "System`ShowTimeBySteps": "False",
-        "System`ShowRewrites": "True",  # Do we want to see rewrite rules?
+        "System`ShowRewrite": "True",  # Do we want to see rewrite rules?
         "System`ShowEvaluation": "True",  # Do we want to see Evaluate and Returns?
     }
     summary_text = "trace expression evaluation"
@@ -422,7 +422,7 @@ class TraceEvaluation(Builtin):
         # Save various trace settings before changing them.
         curr_trace_evaluation = evaluation.definitions.trace_evaluation
         curr_time_by_steps = evaluation.definitions.timing_trace_evaluation
-        curr_trace_show_rewrites = evaluation.definitions.trace_show_rewrites
+        curr_trace_show_rewrite = evaluation.definitions.trace_show_rewrite
 
         # Adjust trace settings based on the options given.
         old_evaluation_call_hook = mathics.eval.tracing.trace_evaluate_on_call
@@ -436,8 +436,8 @@ class TraceEvaluation(Builtin):
             options["System`ShowEvaluation"] is SymbolTrue
         )
 
-        evaluation.definitions.trace_show_rewrites = (
-            options["System`ShowRewrites"] is SymbolTrue
+        evaluation.definitions.trace_show_rewrite = (
+            options["System`ShowRewrite"] is SymbolTrue
         )
 
         # Now perform the evaluation...
@@ -449,7 +449,7 @@ class TraceEvaluation(Builtin):
             # Restore settings to the way the were before the TraceEvaluation.
             evaluation.definitions.trace_evaluation = curr_trace_evaluation
             evaluation.definitions.timing_trace_evaluation = curr_time_by_steps
-            evaluation.definitions.trace_show_rewrites = curr_trace_show_rewrites
+            evaluation.definitions.trace_show_rewrite = curr_trace_show_rewrite
 
             mathics.eval.tracing.trace_evaluate_on_call = old_evaluation_call_hook
             mathics.eval.tracing.trace_evaluate_on_return = old_evaluation_return_hook
