@@ -245,7 +245,21 @@ class BasePattern(ABC):
         return self.expr.get_sequence()
 
     def get_sort_key(self, pattern_sort: bool = False) -> tuple:
-        """The sort key of the expression"""
+        """
+        The sort key of the expression.
+
+        If pattern_sort is `False`, the comparison follows
+        the expression-like order compatible with `Sort`.
+        If `pattern_sort` is `True`, the order follows the
+        evaluation-like order, where more specific patterns
+        come before the more general ones.
+
+        In BaseRule, the default value of the `pattern_sort`
+        is changed to `True`, in a way that when `Rule`
+        objects are sorted, the evaluation-like order
+        is used. This is very important when evaluation
+        rules (`*Values`) are stored inside a `Definition` object.
+        """
         if pattern_sort:
             return pattern_sort_key(self)
         return self.expr.get_sort_key(pattern_sort=False)
@@ -1218,7 +1232,7 @@ def get_pre_choices_orderless(
 # FIXME: return type should be a specific kind of Tuple, not a tuple.
 def pattern_sort_key(pat) -> tuple:
     """
-    This function build the generic sort key used when
+    This function builds the generic sort key used when
     patterns and rules must be sorted in the evaluation order, i.e.
     more specific patterns should come before the most general.
 
@@ -1226,9 +1240,8 @@ def pattern_sort_key(pat) -> tuple:
     comparisons are done element by element until the i-th element
     of the first tuple is smaller than the i-th element of the
     second one. If the elements are equal, comparison continues
-    until finish with the shortest tuple. In that case, the shortest
-    tuple is cosidered the smaller one.
-
+    until it finishes with the shortest tuple. In that case, the shortest
+    tuple is considered the smaller one.
 
     Pattern sort key structure:
         0: 0/2:        Atom / Expression
