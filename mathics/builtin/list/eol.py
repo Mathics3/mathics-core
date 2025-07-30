@@ -91,14 +91,14 @@ class Append(Builtin):
 
     summary_text = "add an element at the end of an expression"
 
-    def eval(self, expr, item, evaluation):
-        "Append[expr_, item_]"
+    def eval(self, expr, item, expression, evaluation):
+        "Pattern[expression, Append[expr_, item_]]"
 
         if isinstance(expr, Atom):
             evaluation.message(
                 "Append", "normal", Integer1, Expression(SymbolAppend, expr, item)
             )
-            return
+            return expression
 
         return expr.restructure(
             expr.head,
@@ -136,12 +136,12 @@ class AppendTo(Builtin):
 
     summary_text = "add an element at the end of an stored list or expression"
 
-    def eval(self, s, element, evaluation):
-        "AppendTo[s_, element_]"
+    def eval(self, s, element, expression, evaluation):
+        "Pattern[expression, AppendTo[s_, element_]]"
         resolved_s = s.evaluate(evaluation)
         if s == resolved_s:
             evaluation.message("AppendTo", "rvalue", s)
-            return
+            return expression
 
         if not isinstance(resolved_s, Atom):
             result = Expression(
@@ -152,6 +152,7 @@ class AppendTo(Builtin):
         evaluation.message(
             "AppendTo", "normal", Integer1, Expression(SymbolAppendTo, s, element)
         )
+        return expression
 
 
 class Cases(Builtin):
@@ -197,8 +198,8 @@ class Cases(Builtin):
 
     summary_text = "list elements matching a pattern"
 
-    def eval(self, items, pattern, ls, evaluation, options):
-        "Cases[items_, pattern_, ls_:{1}, OptionsPattern[]]"
+    def eval(self, items, pattern, ls, expression, evaluation, options):
+        "Pattern[expression, Cases[items_, pattern_, ls_:{1}, OptionsPattern[]]]"
         if isinstance(items, Atom):
             return ListExpression()
 
@@ -208,7 +209,7 @@ class Cases(Builtin):
                 ls = ListExpression(Integer1)
             else:
                 evaluation.message("Position", "level", ls)
-                return
+                return expression
         else:
             heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
 
@@ -216,7 +217,7 @@ class Cases(Builtin):
             start, stop = python_levelspec(ls)
         except InvalidLevelspecError:
             evaluation.message("Position", "level", ls)
-            return
+            return expression
 
         results = []
 
@@ -576,8 +577,8 @@ class Drop(Builtin):
     }
     summary_text = "remove a number of elements from a list"
 
-    def eval(self, items, seqs, evaluation: Evaluation):
-        "Drop[items_, seqs___]"
+    def eval(self, items, seqs, expression, evaluation: Evaluation):
+        "Pattern[expression, Drop[items_, seqs___]]"
 
         if seqs is Integer0:
             return items
@@ -588,7 +589,7 @@ class Drop(Builtin):
             evaluation.message(
                 "Drop", "normal", Integer1, Expression(SymbolDrop, items, *seq_tuple)
             )
-            return
+            return expression
 
         try:
             return parts(
@@ -596,6 +597,7 @@ class Drop(Builtin):
             )
         except MessageException as e:
             e.message(evaluation)
+            return expression
 
 
 class Extract(Builtin):
@@ -679,18 +681,18 @@ class First(Builtin):
 
     # FIXME: the code and the code for Last are similar and can be DRY'd
     def eval(self, expr, evaluation: Evaluation, expression: Expression):
-        "expression: First[expr__]"
+        "Pattern[expression, First[expr__]]"
 
         if isinstance(expr, Atom):
             evaluation.message("First", "normal", Integer1, expression)
-            return
+            return expression
         expr_len = len(expr.elements)
         if expr_len == 0:
             evaluation.message("First", "nofirst", expr)
-            return
+            return expression
         if expr_len > 2 and expr.head is SymbolSequence:
             evaluation.message("First", "argt", expr_len)
-            return
+            return expression
 
         first_elem = expr.elements[0]
 
@@ -776,12 +778,13 @@ class FirstPosition(Builtin):
         self,
         expr,
         pattern,
+        expression,
         evaluation: Evaluation,
         default=None,
         minLevel=None,
         maxLevel=None,
     ):
-        "FirstPosition[expr_, pattern_]"
+        "Pattern[expression, FirstPosition[expr_, pattern_]]"
 
         if expr == pattern:
             return ListExpression()
@@ -822,12 +825,12 @@ class FirstPosition(Builtin):
                 else default
             )
 
-    def eval_default(self, expr, pattern, default, evaluation):
-        "FirstPosition[expr_, pattern_, default_]"
-        return self.eval(expr, pattern, evaluation, default=default)
+    def eval_default(self, expr, pattern, default, expression, evaluation):
+        "Pattern[expression, FirstPosition[expr_, pattern_, default_]]"
+        return self.eval(expr, pattern, expression, evaluation, default=default)
 
-    def eval_level(self, expr, pattern, default, level, evaluation):
-        "FirstPosition[expr_, pattern_, default_, level_]"
+    def eval_level(self, expr, pattern, default, level, expression, evaluation):
+        "Pattern[expression, FirstPosition[expr_, pattern_, default_, level_]]"
 
         def is_interger_list(expr_list):
             return all(
@@ -852,11 +855,12 @@ class FirstPosition(Builtin):
             max_Level = level.get_int_value()
         else:
             evaluation.message("FirstPosition", "level", level)
-            return
+            return expression
 
         return self.eval(
             expr,
             pattern,
+            expression,
             evaluation,
             default=default,
             minLevel=min_Level,
@@ -953,18 +957,18 @@ class Last(Builtin):
 
     # FIXME: the code and the code for First are similar and can be DRY'd
     def eval(self, expression: Expression, expr, evaluation: Evaluation):
-        "expression: Last[expr__]"
+        "Pattern[expression, Last[expr__]]"
 
         if isinstance(expr, Atom):
             evaluation.message("Last", "normal", Integer1, expression)
-            return
+            return expression
         expr_len = len(expr.elements)
         if expr_len == 0:
             evaluation.message("Last", "nolast", expr)
-            return
+            return expression
         if expr_len > 2 and expr.head is SymbolSequence:
             evaluation.message("Last", "argt", expr_len)
-            return
+            return expression
 
         return expr.elements[-1]
 
@@ -1036,11 +1040,11 @@ class Most(Builtin):
     summary_text = "remove the last element"
 
     def eval(self, expression: Expression, expr, evaluation: Evaluation):
-        "expression: Most[expr_]"
+        "Pattern[expression, Most[expr_]]"
 
         if isinstance(expr, Atom):
             evaluation.message("Most", "normal", Integer1, expression)
-            return
+            return expression
         return expr.slice(expr.head, slice(0, -1), evaluation)
 
 
@@ -1149,11 +1153,11 @@ class Part(Builtin):
         result = RowBox(list, *indices)
         return result
 
-    def eval(self, list, i, evaluation):
-        "Part[list_, i___]"
+    def eval(self, list, i, expression, evaluation):
+        "Pattern[expression, Part[list_, i___]]"
 
         if list is SymbolFailed:
-            return
+            return expression
         indices = i.get_sequence()
         # How to deal with ByteArrays
         if list.get_head() is SymbolByteArray:
@@ -1163,7 +1167,7 @@ class Part(Builtin):
                     "Part::partd1: Depth of object ByteArray[<3>] "
                     + "is not sufficient for the given part specification."
                 )
-                return
+                return expression
             idx = indices[0]
             if isinstance(idx, Integer):
                 idx = idx.value
@@ -1175,23 +1179,24 @@ class Part(Builtin):
                     idx = data - idx
                     if idx < 0:
                         evaluation.message("Part", "partw", i, list)
-                        return
+                        return expression
                 else:
                     idx = idx - 1
                     if idx > lendata:
                         evaluation.message("Part", "partw", i, list)
-                        return
+                        return expression
                 return Integer(data[idx])
             if idx is Symbol("System`All"):
                 return list
             # TODO: handling ranges and lists...
             evaluation.message("Part", "notimplemented")
-            return
+            return expression
 
         # Otherwise...
         result = eval_Part([list], indices, evaluation)
         if result:
             return result
+        return expression
 
 
 class Pick(Builtin):
@@ -1283,21 +1288,21 @@ class Position(Builtin):
     }
     summary_text = "positions of matching elements"
 
-    def eval_invalidlevel(self, patt, expr, ls, evaluation, options={}):
-        "Position[expr_, patt_, ls_, OptionsPattern[Position]]"
+    def eval_invalidlevel(self, patt, expr, ls, expression, evaluation, options={}):
+        "Pattern[expression, Position[expr_, patt_, ls_, OptionsPattern[Position]]]"
 
         evaluation.message("Position", "level", ls)
-        return
+        return expression
 
-    def eval_level(self, expr, patt, ls, evaluation, options={}):
-        """Position[expr_, patt_, Optional[Pattern[ls, _?LevelQ], {0, DirectedInfinity[1]}],
-        OptionsPattern[Position]]"""
+    def eval_level(self, expr, patt, ls, expression, evaluation, options={}):
+        """Pattern[expression, Position[expr_, patt_, Optional[Pattern[ls, _?LevelQ], {0, DirectedInfinity[1]}],
+        OptionsPattern[Position]]]"""
 
         try:
             start, stop = python_levelspec(ls)
         except InvalidLevelspecError:
             evaluation.message("Position", "level", ls)
-            return
+            return expression
 
         match = Matcher(patt, evaluation).match
         result = []
@@ -1342,14 +1347,14 @@ class Prepend(Builtin):
 
     summary_text = "add an element at the beginning"
 
-    def eval(self, expr, item, evaluation):
-        "Prepend[expr_, item_]"
+    def eval(self, expr, item, expression, evaluation):
+        "Pattern[expression, Prepend[expr_, item_]]"
 
         if isinstance(expr, Atom):
             evaluation.message(
                 "Prepend", "normal", Integer1, Expression(SymbolPrepend, expr, item)
             )
-            return
+            return expression
 
         return expr.restructure(
             expr.head,
@@ -1531,14 +1536,14 @@ class Rest(Builtin):
     summary_text = "remove the first element"
 
     def eval(self, expr, evaluation: Evaluation, expression: Expression):
-        "expression: Rest[expr_]"
+        "Pattern[expression, Rest[expr_]]"
 
         if isinstance(expr, Atom):
             evaluation.message("Rest", "normal", Integer1, expression)
-            return
+            return expression
         if len(expr.elements) == 0:
             evaluation.message("Rest", "norest", expr)
-            return
+            return expression
 
         return expr.slice(expr.head, slice(1, len(expr.elements)), evaluation)
 
@@ -1573,13 +1578,13 @@ class Select(Builtin):
 
     summary_text = "pick elements according to a criterion"
 
-    def eval(self, items, expr, evaluation: Evaluation):
-        "Select[items_, expr_]"
+    def eval(self, items, expr, expression, evaluation: Evaluation):
+        "Pattern[expression, Select[items_, expr_]]"
 
-        return self.eval_with_n(items, expr, SymbolInfinity, evaluation)
+        return self.eval_with_n(items, expr, SymbolInfinity, expression, evaluation)
 
-    def eval_with_n(self, items, expr, n, evaluation: Evaluation):
-        "Select[items_, expr_, n_]"
+    def eval_with_n(self, items, expr, n, expression, evaluation: Evaluation):
+        "Pattern[expression, Select[items_, expr_, n_]]"
 
         count_is_valid = True
         if n is SymbolInfinity or ExpressionInfinity == n:
@@ -1595,13 +1600,13 @@ class Select(Builtin):
             evaluation.message(
                 "Select", "innf", Integer3, Expression(SymbolSelect, items, expr, n)
             )
-            return
+            return expression
 
         if isinstance(items, Atom):
             evaluation.message(
                 "Select", "normal", Integer1, Expression(SymbolSelect, items, expr, n)
             )
-            return
+            return expression
 
         def cond(element):
             test = Expression(expr, element)
@@ -1678,8 +1683,8 @@ class Take(Builtin):
 
     summary_text = "pick a range of elements"
 
-    def eval(self, items, seqs, evaluation):
-        "Take[items_, seqs___]"
+    def eval(self, items, seqs, expression, evaluation):
+        "Pattern[expression, Take[items_, seqs___]]"
 
         if seqs is Integer0:
             return ListExpression()
@@ -1690,12 +1695,13 @@ class Take(Builtin):
             evaluation.message(
                 "Take", "normal", Integer1, Expression(SymbolTake, items, *seqs)
             )
-            return
+            return expression
 
         try:
             return parts(items, [take_span_selector(seq) for seq in seqs], evaluation)
         except MessageException as e:
             e.message(evaluation)
+            return expression
 
 
 class UpTo(Builtin):
