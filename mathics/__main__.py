@@ -36,6 +36,7 @@ from mathics.core.streams import stream_manager
 from mathics.core.symbols import SymbolNull, strip_context
 from mathics.eval.files_io.files import set_input_var
 from mathics.eval.files_io.read import channel_to_stream
+from mathics.interrupt import setup_signal_handler
 from mathics.session import autoload_files
 from mathics.settings import DATA_DIR, USER_PACKAGE_DIR, ensure_directory
 from mathics.timing import show_lru_cache_statistics
@@ -45,6 +46,28 @@ from mathics.timing import show_lru_cache_statistics
 #     import_and_load_builtins()
 
 import_and_load_builtins()
+
+try:
+    import readline
+except ImportError:
+
+    def user_write_history_file():
+        return
+
+    pass
+else:
+    # Set up mathics3 configuration directory
+    CONFIGHOME = os.environ.get("XDG_CONFIG_HOME", osp.expanduser("~/.config"))
+    CONFIGDIR = osp.join(CONFIGHOME, "Mathics3")
+    os.makedirs(CONFIGDIR, exist_ok=True)
+    HISTFILE = os.environ.get("MATHICS3_HISTFILE", osp.join(CONFIGDIR, "history"))
+
+    def user_write_history_file():
+        try:
+            # print(f"Writing {HISTFILE}")
+            readline.write_history_file(HISTFILE)
+        except:  # noqa
+            pass
 
 
 def get_srcdir():
@@ -84,6 +107,11 @@ class TerminalShell(MathicsLineFeeder):
     ):
         super(TerminalShell, self).__init__([], ContainerKind.STREAM)
         self.input_encoding = locale.getpreferredencoding()
+
+        # is_inside_interrupt is set True when shell has been
+        # interrupted via an interrupt handler.
+        self.is_inside_interrupt = False
+
         self.lineno = 0
         self.in_prefix = in_prefix
         self.out_prefix = out_prefix
@@ -92,8 +120,20 @@ class TerminalShell(MathicsLineFeeder):
         self.using_readline = False
         try:
             if want_readline:
-                import readline
-
+                try:
+                    # Load history from file
+                    readline.read_history_file(HISTFILE)
+                    atexit.register(user_write_history_file)
+                except FileNotFoundError:
+                    # Create an empty history file.
+                    with open(HISTFILE, "w"):
+                        pass
+                    atexit.register(user_write_history_file)
+                except IOError:
+                    pass
+                except:  # noqa
+                    # PyPy read_history_file fails
+                    pass
                 self.using_readline = sys.stdin.isatty() and sys.stdout.isatty()
                 self.ansi_color_re = re.compile("\033\\[[0-9;]+m")
                 if want_completion:
@@ -108,6 +148,7 @@ class TerminalShell(MathicsLineFeeder):
 
                     readline.parse_and_bind("tab: complete")
                     self.completion_candidates: List[str] = []
+
         except ImportError:
             pass
 
@@ -287,6 +328,7 @@ def eval_loop(feeder: MathicsFileLineFeeder, shell: TerminalShell):
                 output=TerminalOutput(shell),
                 catch_interrupt=False,
             )
+
             query = evaluation.parse_feeder(feeder)
             if query is None:
                 continue
@@ -302,9 +344,15 @@ def interactive_eval_loop(
     A read eval/loop for an interactive session.
     `shell` is a shell session
     """
+    setup_signal_handler()
     while True:
         try:
             evaluation = Evaluation(shell.definitions, output=TerminalOutput(shell))
+
+            # Store shell into the evaluation so that an interrupt handler
+            # has access to this
+            evaluation.shell = shell
+
             query, source_code = evaluation.parse_feeder_returning_code(shell)
             if mathics_core.PRE_EVALUATION_HOOK is not None:
                 mathics_core.PRE_EVALUATION_HOOK(query, evaluation)
@@ -327,7 +375,6 @@ def interactive_eval_loop(
             print("\n\nGoodbye!\n")
             break
         except SystemExit:
-            print("\n\nGoodbye!\n")
             # raise to pass the error code on, e.g. Quit[1]
             raise
         finally:
