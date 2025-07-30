@@ -102,7 +102,7 @@ def print_evaluate(expr, evaluation, status: str, fn: Callable, orig_expr=None):
             assert isinstance(expr, tuple)
             if orig_expr != expr[0]:
                 if status == "Returning":
-                    if expr[1]:
+                    if expr[1] and evaluation.definitions.trace_show_rewrites:
                         status = "Rewriting"
                         arrow = " -> "
                     else:
@@ -116,11 +116,17 @@ def print_evaluate(expr, evaluation, status: str, fn: Callable, orig_expr=None):
                 )
         else:
             if status == "Returning" and isinstance(expr, tuple):
-                status = "Evaluating/Replacing"
+                if not evaluation.definitions.trace_show_rewrite:
+                    return
+                status = "Replacing"
                 expr = expr[0]
+            elif not evaluation.definitions.trace_evaluation:
+                return
             evaluation.print_out(f"{indents}{status}: {orig_expr} = " + str(expr))
 
     elif not is_performing_rewrite(fn):
+        if not evaluation.definitions.trace_evaluation:
+            return
         evaluation.print_out(f"{indents}{status}: {expr}")
     return
 
