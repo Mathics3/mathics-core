@@ -138,7 +138,7 @@ class Evaluation:
 
         # Interrupt handlers may need access to the shell
         # that invoked the evaluation.
-        self.shell: Optional[Any] = None
+        self.shell = None
 
         self.stopped = False
         self.timeout = False

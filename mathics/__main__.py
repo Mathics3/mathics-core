@@ -337,9 +337,7 @@ def eval_loop(feeder: MathicsFileLineFeeder, shell: TerminalShell):
         print("\nKeyboardInterrupt")
 
 
-def interactive_eval_loop(
-    shell: TerminalShell, full_form: bool, strict_wl_output: bool
-):
+def interactive_eval_loop(shell, full_form: bool, strict_wl_output: bool):
     """
     A read eval/loop for an interactive session.
     `shell` is a shell session

@@ -22,21 +22,26 @@ def inspect_eval_loop(evaluation: Evaluation):
     A read eval/loop for an Interrupt's "inspect" command.
     """
     shell = evaluation.shell
-    was_inside_interrupt = shell.is_inside_interrupt
-    shell.is_inside_interrupt = True
+    if shell is not None:
+        was_inside_interrupt = shell.is_inside_interrupt
+        shell.is_inside_interrupt = True
+    else:
+        was_inside_interrupt = False
+
     previous_recursion_depth = evaluation.recursion_depth
     while True:
         try:
             query, source_code = evaluation.parse_feeder_returning_code(shell)
             # show_echo(source_code, evaluation)
-            if len(source_code) and source_code[0] == "!":
+            if len(source_code) and source_code[0] == "!" and shell is not None:
                 subprocess.run(source_code[1:], shell=True)
-                shell.definitions.increment_line_no(1)
+                if shell.definitions is not None:
+                    shell.definitions.increment_line_no(1)
                 continue
             if query is None:
                 continue
             result = evaluation.evaluate(query, timeout=settings.TIMEOUT)
-            if result is not None:
+            if result is not None and shell is not None:
                 shell.print_result(result, strict_wl_output=True)
         except TimeoutInterrupt:
             print("\nTimeout occurred - ignored.")
@@ -56,7 +61,8 @@ def inspect_eval_loop(evaluation: Evaluation):
             raise
         finally:
             evaluation.recursion_depth = previous_recursion_depth
-            shell.is_inside_interrupt = was_inside_interrupt
+            if shell is not None:
+                shell.is_inside_interrupt = was_inside_interrupt
 
 
 def mathics3_interrupt_handler(evaluation: Optional[Evaluation]):
@@ -81,12 +87,14 @@ def mathics3_interrupt_handler(evaluation: Optional[Evaluation]):
                 print("inspecting")
                 if evaluation is not None:
                     evaluation.message("Interrupt", "dgbgn")
-                inspect_eval_loop(evaluation)
+                    inspect_eval_loop(evaluation)
 
             elif user_input in ("show", "s"):
                 # In some cases we can better, by going back to the caller
                 # and reconstructing the actual call with arguments.
                 eval_frame = find_mathics3_evaluation_method(inspect.currentframe())
+                if eval_frame is None:
+                    continue
                 eval_method_name = eval_frame.f_code.co_name
                 eval_method = getattr(eval_frame.f_locals.get("self"), eval_method_name)
                 if eval_method:
@@ -121,7 +129,8 @@ def mathics3_interrupt_handler(evaluation: Optional[Evaluation]):
             #
             # Here, we note we have time'd out. This also silences
             # other handlers that we've handled this.
-            evaluation.timeout = True
+            if evaluation is not None:
+                evaluation.timeout = True
             break
         except ReturnInterrupt:
             # the interrupt shell probably isssued a Return[].
