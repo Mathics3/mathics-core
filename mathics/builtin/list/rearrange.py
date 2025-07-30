@@ -676,8 +676,8 @@ class Flatten(Builtin):
 
     summary_text = "flatten out any sequence of levels in a nested list"
 
-    def eval_list(self, expr, n, h, evaluation):
-        "Flatten[expr_, n_List, h_]"
+    def eval_list(self, expr, n, h, expression, evaluation):
+        "Pattern[expression, Flatten[expr_, n_List, h_]]"
 
         # prepare levels
         # find max depth which matches `h`
@@ -705,20 +705,20 @@ class Flatten(Builtin):
         # verify levels is list of lists of positive ints
         if not (isinstance(levels, list) and len(levels) > 0):
             evaluation.message("Flatten", "flpi", n)
-            return
+            return expression
         seen_levels = []
         for level in levels:
             if not (isinstance(level, (list, tuple)) and len(level) > 0):
                 evaluation.message("Flatten", "flpi", n)
-                return
+                return expression
             for r in level:
                 if not (isinstance(r, int) and r > 0):
                     evaluation.message("Flatten", "flpi", n)
-                    return
+                    return expression
                 if r in seen_levels:
                     # level repeated
                     evaluation.message("Flatten", "flrep", r)
-                    return
+                    return expression
                 seen_levels.append(r)
 
         # complete the level spec e.g. {{2}} -> {{2}, {1}, {3}}
@@ -731,7 +731,7 @@ class Flatten(Builtin):
             for s in level:
                 if s > max_depth:
                     evaluation.message("Flatten", "fldep", s, n, max_depth, expr)
-                    return
+                    return expression
 
         # assign new indices to each element
         new_indices = {}
@@ -773,8 +773,8 @@ class Flatten(Builtin):
 
         return Expression(h, *insert_element(elements))
 
-    def eval(self, expr: BaseElement, n: Number, h, evaluation):
-        "Flatten[expr_, n_, h_]"
+    def eval(self, expr: BaseElement, n: Number, h, expression, evaluation):
+        "Pattern[expression, Flatten[expr_, n_, h_]]"
 
         n_int: Optional[int]
         if n.sameQ(MATHICS3_INFINITY):
@@ -785,11 +785,11 @@ class Flatten(Builtin):
             # negative numbers (and None) are not allowed.
             if n_int is None or n_int < 0:
                 evaluation.message("Flatten", "flpi", n)
-                return
+                return expression
 
         if not isinstance(expr, Expression):
             evaluation.message("Flatten", "normal", Integer1, expr)
-            return
+            return expression
 
         return expr.flatten_with_respect_to_head(h, level=n_int)
 
@@ -876,19 +876,19 @@ class Join(Builtin):
     attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
     summary_text = "join lists together at any level"
 
-    def eval(self, lists, evaluation: Evaluation):
-        "Join[lists___]"
+    def eval(self, expression, evaluation: Evaluation):
+        "Pattern[expression, Join[___]]"
 
         result = []
         head = None
-        sequence = lists.get_sequence()
+        sequence = expression.elements
 
         for list in sequence:
             if isinstance(list, Atom):
-                return
+                return expression
             if head is not None and list.get_head() != head:
                 evaluation.message("Join", "heads", head, list.get_head())
-                return
+                return expression
             head = list.get_head()
             result.extend(list.elements)
 
