@@ -350,8 +350,8 @@ class Delete(Builtin):
     }
     summary_text = "delete elements from a list at given positions"
 
-    def eval_one(self, expr, position: Integer, evaluation):
-        "Delete[expr_, position_Integer]"
+    def eval_one(self, expr, position: Integer, expression, evaluation):
+        "Pattern[expression, Delete[expr_, position_Integer]]"
         pos = position.value
         try:
             return delete_one(expr, pos)
@@ -359,23 +359,24 @@ class Delete(Builtin):
             evaluation.message("Part", "partw", ListExpression(position), expr)
         except PartDepthError:
             evaluation.message("Part", "partw", ListExpression(position), expr)
+        return expression
 
-    def eval(self, expr, positions, evaluation):
-        "Delete[expr_, positions___]"
+    def eval(self, expr, positions, expression, evaluation):
+        "Pattern[expression, Delete[expr_, positions___]]"
         positions = positions.get_sequence()
         if len(positions) > 1:
             evaluation.message("Delete", "argt", Integer(len(positions) + 1))
-            return
+            return expression
         elif len(positions) == 0:
             evaluation.message("Delete", "argr")
-            return
+            return expression
 
         positions = positions[0]
         if not positions.has_form("List", None):
             evaluation.message(
                 "Delete", "pkspec", positions, Expression(SymbolKey, positions)
             )
-            return
+            return expression
 
         elements = positions.elements
         if len(elements) == 0:
@@ -396,20 +397,20 @@ class Delete(Builtin):
                 evaluation.message(
                     "Delete", "psl", position.elements[pos.index(None)], expr
                 )
-                return
+                return expression
             if len(pos) == 0:
                 evaluation.message("Delete", "psl", ListExpression(*positions), expr)
-                return
+                return expression
             try:
                 newexpr = delete_rec(newexpr, pos)
             except PartDepthError as exc:
                 evaluation.message("Part", "partw", Integer(exc.index), expr)
-                return
+                return expression
             except PartError:
                 evaluation.message(
                     "Part", "partw", ListExpression(*(Integer(p) for p in pos)), expr
                 )
-                return
+                return expression
         return newexpr
 
 

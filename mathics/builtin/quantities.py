@@ -135,11 +135,12 @@ class Quantity(Builtin):
     }
     summary_text = "represents a quantity with units"
 
-    def eval_plus(self, q1, u1, q2, u2, evaluation):
-        """Plus[Quantity[q1_, u1_], Quantity[q2_,u2_]]"""
+    def eval_plus(self, q1, u1, q2, u2, expression, evaluation):
+        """Pattern[expression, Plus[Quantity[q1_, u1_], Quantity[q2_,u2_]]]"""
         result = add_quantities(q1, u1, q2, u2, evaluation)
         if result is None:
             evaluation.message("Quantity", "compat", u1, u2)
+            return expression
         return result
 
     def format_quantity(self, mag, unit, evaluation: Evaluation):
@@ -174,14 +175,18 @@ class Quantity(Builtin):
     def eval_list_of_magnitudes_unit(self, mag, unit, evaluation: Evaluation):
         "Quantity[mag_List, unit_]"
         head = Symbol(self.get_name())
-        return ListExpression(
-            *(Expression(head, m, unit).evaluate(evaluation) for m in mag.elements)
+        results = tuple(
+            Expression(head, m, unit).evaluate(evaluation) for m in mag.elements
         )
+        return ListExpression(*results)
 
     def eval_magnitude_and_unit(
-        self, mag, unit, evaluation: Evaluation
+        self, expression, evaluation: Evaluation
     ) -> Optional[Expression]:
-        "Quantity[mag_, unit_]"
+        "Pattern[expression, Quantity[_, _]]"
+        mag, unit = expression.elements
+        if mag.has_form("List", None):
+            return self.eval_list_of_magnitudes_unit(mag, unit, evaluation)
 
         unit = unit.evaluate(evaluation)
 
@@ -197,16 +202,16 @@ class Quantity(Builtin):
             normalized_unit = normalize_unit_expression_with_magnitude(unit, mag)
         except ValueError:
             evaluation.message("Quantity", "unkunit", unit)
-            return None
+            return expression
 
         if unit.sameQ(normalized_unit):
-            return None
+            return expression
 
         return Expression(SymbolQuantity, mag, normalized_unit)
 
-    def eval_unit(self, unit, evaluation: Evaluation):
-        "Quantity[unit_]"
-        unit = unit.evaluate(evaluation)
+    def eval_unit(self, expression, evaluation: Evaluation):
+        "Pattern[expression, Quantity[_]]"
+        unit = expression.elements[0].evaluate(evaluation)
         if isinstance(unit, Number):
             return unit
         if unit.has_form("Quantity", 2):
@@ -215,7 +220,7 @@ class Quantity(Builtin):
             unit = normalize_unit_expression(unit)
         except ValueError:
             evaluation.message("Quantity", "unkunit", unit)
-            return None
+            return expression
         # TODO: add element property "fully_evaluated
         return Expression(SymbolQuantity, Integer1, unit)
 

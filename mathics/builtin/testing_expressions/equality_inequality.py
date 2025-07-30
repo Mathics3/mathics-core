@@ -282,8 +282,8 @@ class _MinMax(Builtin):
 
     sense = 1
 
-    def eval(self, items, evaluation: Evaluation):
-        "%(name)s[items___]"
+    def eval(self, items, expression, evaluation: Evaluation):
+        "Pattern[expression, %(name)s[items___]]"
         if hasattr(items, "flatten_with_respect_to_head"):
             items = items.flatten_with_respect_to_head(SymbolList)
         items = items.get_sequence()
@@ -320,7 +320,7 @@ class _MinMax(Builtin):
             # elements.
             return Expression(Symbol(self.get_name()), *results)
         # If we get here, no simplification was possible.
-        return None
+        return expression
 
 
 class _SympyComparison(SympyFunction):

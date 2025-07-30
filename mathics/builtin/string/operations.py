@@ -355,8 +355,8 @@ class StringJoin(InfixOperator):
     attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
     summary_text = "join strings together"
 
-    def eval(self, items, evaluation):
-        "StringJoin[items___]"
+    def eval(self, items, expression, evaluation):
+        "Pattern[expression, StringJoin[items___]]"
         result = ""
         if hasattr(items, "flatten_with_respect_to_head"):
             items = items.flatten_with_respect_to_head(SymbolList)
@@ -367,7 +367,7 @@ class StringJoin(InfixOperator):
         for item in items:
             if not isinstance(item, String):
                 evaluation.message("StringJoin", "string")
-                return
+                return expression
             result += item.value
         return String(result)
 

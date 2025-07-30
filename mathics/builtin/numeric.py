@@ -831,9 +831,10 @@ class UnitStep(Builtin):
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_ORDERLESS | A_PROTECTED
 
-    def eval(self, x, evaluation: Evaluation):
-        "UnitStep[x_]"
-        return eval_UnitStep(x)
+    def eval(self, expression, evaluation: Evaluation):
+        "Pattern[expression, UnitStep[_]]"
+        x = expression.elements[0]
+        return eval_UnitStep(x) or expression
 
     def eval_multidimenional(self, seqs, evaluation: Evaluation):
         "UnitStep[seqs__]"
