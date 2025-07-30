@@ -616,7 +616,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return a new expression with the head and the
         evaluable elements evaluated, according to the attributes.
         """
-        head = self._head.evaluate(evaluation) or head
+        head = self._head
+        if isinstance(head, EvalMixin):
+            head = head.evaluate(evaluation) or head
         attributes = head.get_attributes(evaluation.definitions)
         if (A_HOLD_ALL | A_HOLD_ALL_COMPLETE) & attributes:
             return Expression(head, *self._elements)
