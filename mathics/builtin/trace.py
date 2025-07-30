@@ -387,12 +387,15 @@ class TraceEvaluation(Builtin):
      | ...
      = ...
 
+    Sometimes, 'TraceEvaluation' traces can get quite large. To reduce the size, it may be helpful \
+    to filter on either the evaluations or the replacement rules.
+
     To see just the evaluations and return values, but not rewrite that occurs:
     >> TraceEvaluation[BesselK[0, 0], ShowRewrite-> False]
      | ...
      = ...
 
-    To see just the rewrite that occurs:
+    To see just the rewrite that occurs, which tends to summarizes even more:
     >> TraceEvaluation[BesselK[0, 0], ShowEvaluation-> False]
      | ...
      = ...
@@ -410,34 +413,28 @@ class TraceEvaluation(Builtin):
     def eval(self, expr, evaluation: Evaluation, options: dict):
         "TraceEvaluation[expr_, OptionsPattern[]]"
 
-        # Do we want to save and restore these?
-        mathics.eval.tracing.trace_evaluate_on_call = (
-            mathics.eval.tracing.print_evaluate
-        )
-
-        mathics.eval.tracing.trace_evaluate_on_return = (
-            mathics.eval.tracing.print_evaluate
-        )
-
         # Save various trace settings before changing them.
-        curr_trace_evaluation = evaluation.definitions.trace_evaluation
-        curr_time_by_steps = evaluation.definitions.timing_trace_evaluation
-        curr_trace_show_rewrite = evaluation.definitions.trace_show_rewrite
-
-        # Adjust trace settings based on the options given.
         old_evaluation_call_hook = mathics.eval.tracing.trace_evaluate_on_call
         old_evaluation_return_hook = mathics.eval.tracing.trace_evaluate_on_return
+        old_time_by_steps = evaluation.definitions.timing_trace_evaluation
+        old_trace_evaluation = evaluation.definitions.trace_evaluation
+        old_trace_show_rewrite = evaluation.definitions.trace_show_rewrite
 
+        # Adjust trace settings based on the options given.
         evaluation.definitions.timing_trace_evaluation = (
             options["System`ShowTimeBySteps"] is SymbolTrue
         )
-
         evaluation.definitions.trace_evaluation = (
             options["System`ShowEvaluation"] is SymbolTrue
         )
-
         evaluation.definitions.trace_show_rewrite = (
             options["System`ShowRewrite"] is SymbolTrue
+        )
+        mathics.eval.tracing.trace_evaluate_on_call = (
+            mathics.eval.tracing.print_evaluate
+        )
+        mathics.eval.tracing.trace_evaluate_on_return = (
+            mathics.eval.tracing.print_evaluate
         )
 
         # Now perform the evaluation...
@@ -447,10 +444,9 @@ class TraceEvaluation(Builtin):
             raise
         finally:
             # Restore settings to the way the were before the TraceEvaluation.
-            evaluation.definitions.trace_evaluation = curr_trace_evaluation
-            evaluation.definitions.timing_trace_evaluation = curr_time_by_steps
-            evaluation.definitions.trace_show_rewrite = curr_trace_show_rewrite
-
+            evaluation.definitions.trace_evaluation = old_trace_evaluation
+            evaluation.definitions.timing_trace_evaluation = old_time_by_steps
+            evaluation.definitions.trace_show_rewrite = old_trace_show_rewrite
             mathics.eval.tracing.trace_evaluate_on_call = old_evaluation_call_hook
             mathics.eval.tracing.trace_evaluate_on_return = old_evaluation_return_hook
 
