@@ -551,6 +551,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         definitions = evaluation.definitions
 
         old_options = evaluation.options
+        recursion_depth = evaluation.recursion_depth
         evaluation.inc_recursion_depth()
         try:
             # Evaluation loop:
@@ -561,9 +562,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 # then evaluating again will produce the same result
                 if not expr.is_uncertain_final_definitions(definitions):
                     break
-                # Here the names of the lookupname of the expression
-                # are stored. This is necessary for the implementation
-                # of the builtin `Return[]`
+
                 names.add(expr.get_lookup_name())
 
                 # This loads the default options associated
@@ -603,6 +602,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             if names.intersection(definitions.user.keys()):
                 return ret.expr
             else:
+                evaluation.recursion_depth = recursion_depth
+                # And one more for the finally below
+                evaluation.inc_recursion_depth()
                 raise ret
         finally:
             # Restores the state

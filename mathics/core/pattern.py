@@ -33,6 +33,7 @@ from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_ORDERLESS
 from mathics.core.element import BaseElement, ensure_context
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.interrupt import TimeoutInterrupt
 from mathics.core.symbols import Atom, Symbol, symbol_set
 from mathics.core.systemsymbols import (
     SymbolAlternatives,
@@ -488,7 +489,7 @@ class ExpressionPattern(BasePattern):
         if isinstance(expression, Expression):
             try:
                 basic_match_expression(self, expression, parms)
-            except StopGenerator_ExpressionPattern_match:
+            except (StopGenerator_ExpressionPattern_match, TimeoutInterrupt):
                 return
 
         if A_ONE_IDENTITY & attributes:

@@ -506,7 +506,6 @@ class Return(Builtin):
 
     def eval(self, expr, evaluation: Evaluation):
         "Return[expr_]"
-
         raise ReturnInterrupt(expr)
 
 
