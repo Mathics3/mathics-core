@@ -12,7 +12,7 @@ from mathics.builtin.atomic.strings import (
     _StringFind,
     mathics_split,
 )
-from mathics.core.atoms import Integer, Integer1, Integer3, String
+from mathics.core.atoms import Integer, Integer1, Integer3, IntegerM1, String
 from mathics.core.attributes import (
     A_FLAT,
     A_LISTABLE,
@@ -84,37 +84,80 @@ class StringDrop(Builtin):
 
     summary_text = "drop a part of a string"
 
+    def eval_generic(self, expr, evaluation):
+        """Pattern[expr, StringDrop[___]]"""
+        len_elems = len(expr.elements)
+        if len_elems != 2:
+            evaluation.message("StringDrop", "argr", Integer(len_elems))
+            return None
+        string, part = expr.elements
+
+        # Check for the first element:
+        is_list = string.has_form("System`List", None)
+        if is_list:
+            if not all(isinstance(elem, String) for elem in string):
+                evaluation.message("StringDrop", "argr", Integer(len_elems))
+            return None
+        else:
+            if not isinstance(string, String):
+                evaluation.message("StringDrop", "strse", expr)
+                return None
+        # Check the second argument:
+        if isinstance(part, Integer):
+            if is_list:
+                return ListExpression(
+                    *(self.eval_with_n(elem, part, evaluation) for elem in string)
+                )
+            return self.eval_with_n(string, part, evaluation)
+        if part.has_form("System`List", None):
+            part_elems = part.elements
+            if len(part_elems) == 1:
+                if is_list:
+                    return ListExpression(
+                        *(
+                            self.eval_with_ni(elem, *part_elements, evaluation)
+                            for elem in string
+                        )
+                    )
+                return self.eval_with_ni(string, *part_elems, evaluation)
+            if len(part_elems) == 2:
+                if is_list:
+                    return ListExpression(
+                        *(
+                            self.eval_with_ni_nf(elem, *part_elements, evaluation)
+                            for elem in string
+                        )
+                    )
+                return self.eval_with_ni_nf(string, *part_elems, evaluation)
+            # if len(part_elems)==3:
+            #    return self.eval_with_ni_nf(string, *part_elems)
+        evaluation.message("StringDrop", "seqs", expr)
+        return None
+
     def eval_with_n(self, string, n, evaluation):
-        "StringDrop[string_,n_Integer]"
-        if not isinstance(string, String):
-            evaluation.message("StringDrop", "strse")
-            return
-        if isinstance(n, Integer):
-            pos = n.value
-            if pos > len(string.get_string_value()):
-                evaluation.message("StringDrop", "drop", 1, pos, string)
-                return
-            if pos < -len(string.get_string_value()):
-                evaluation.message("StringDrop", "drop", pos, -1, string)
-                return
-            if pos > 0:
-                return String(string.get_string_value()[pos:])
-            if pos < 0:
-                return String(string.get_string_value()[:(pos)])
-            if pos == 0:
-                return string
+        "StringDrop[string_String, n_Integer]"
+        pos = n.value
+        if pos > len(string.get_string_value()):
+            evaluation.message("StringDrop", "drop", 1, pos, string)
+            return None
+        if pos < -len(string.get_string_value()):
+            evaluation.message("StringDrop", "drop", pos, -1, string)
+            return None
+        if pos > 0:
+            return String(string.get_string_value()[pos:])
+        if pos < 0:
+            return String(string.get_string_value()[:(pos)])
+        if pos == 0:
+            return string
         evaluation.message("StringDrop", "mseqs")
-        return
+        return None
 
     def eval_with_ni_nf(self, string, ni, nf, evaluation):
-        "StringDrop[string_,{ni_Integer,nf_Integer}]"
-        if not isinstance(string, String):
-            evaluation.message("StringDrop", "strse", string)
-            return
+        "StringDrop[string_String,{ni_Integer,nf_Integer}]"
 
         if ni.value == 0 or nf.value == 0:
             evaluation.message("StringDrop", "drop", ni, nf)
-            return
+            return None
         fullstring = string.get_string_value()
         lenfullstring = len(fullstring)
         posi = ni.value
@@ -126,19 +169,16 @@ class StringDrop(Builtin):
         if posf > lenfullstring or posi > lenfullstring or posf <= 0 or posi <= 0:
             # positions out or range
             evaluation.message("StringDrop", "drop", ni, nf, fullstring)
-            return
+            return None
         if posf < posi:
             return string  # this is what actually mma does
         return String(fullstring[: (posi - 1)] + fullstring[posf:])
 
     def eval_with_ni(self, string, ni, evaluation):
-        "StringDrop[string_,{ni_Integer}]"
-        if not isinstance(string, String):
-            evaluation.message("StringDrop", "strse", string)
-            return
+        "StringDrop[string_String,{ni_Integer}]"
         if ni.value == 0:
             evaluation.message("StringDrop", "drop", ni, ni)
-            return
+            return None
         fullstring = string.get_string_value()
         lenfullstring = len(fullstring)
         posi = ni.value
@@ -148,13 +188,6 @@ class StringDrop(Builtin):
             evaluation.message("StringDrop", "drop", ni, ni, fullstring)
             return
         return String(fullstring[: (posi - 1)] + fullstring[posi:])
-
-    def eval(self, string, something, evaluation):
-        "StringDrop[string_,something___]"
-        if not isinstance(string, String):
-            evaluation.message("StringDrop", "strse")
-            return
-        evaluation.message("StringDrop", "mseqs")
 
 
 class StringInsert(Builtin):
@@ -322,8 +355,8 @@ class StringJoin(InfixOperator):
     attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
     summary_text = "join strings together"
 
-    def eval(self, items, evaluation):
-        "StringJoin[items___]"
+    def eval(self, items, expression, evaluation):
+        "Pattern[expression, StringJoin[items___]]"
         result = ""
         if hasattr(items, "flatten_with_respect_to_head"):
             items = items.flatten_with_respect_to_head(SymbolList)
@@ -334,7 +367,7 @@ class StringJoin(InfixOperator):
         for item in items:
             if not isinstance(item, String):
                 evaluation.message("StringJoin", "string")
-                return
+                return expression
             result += item.value
         return String(result)
 
@@ -868,44 +901,98 @@ class StringTake(Builtin):
 
     summary_text = "sub-string from a range of positions"
 
-    def eval(self, string: String, seqspec, evaluation: Evaluation):
-        "StringTake[string_String, seqspec_]"
-        result = string.get_string_value()
-        if result is None:
-            evaluation.message("StringTake", "strse", Integer1, string)
-            return
+    def eval_generic(self, expr: Expression, evaluation: Evaluation):
+        """Pattern[expr, StringTake[___]]"""
+        len_elems = len(expr.elements)
+        if len_elems != 2:
+            evaluation.message(
+                "StringTake", "argr", expr.get_head(), Integer(len_elems)
+            )
+            return None
+        string, part = expr.elements
+        if part is SymbolAll:
+            return string
 
-        if isinstance(seqspec, Integer):
-            pos = seqspec.get_int_value()
-            if pos >= 0:
-                seq = (1, pos, 1)
-            else:
-                seq = (pos, None, 1)
+        # Check for the first element:
+        is_list = string.has_form("System`List", None)
+
+        if is_list:
+            if not all(isinstance(elem, String) for elem in string):
+                evaluation.message("StringTake", "strse", Integer(len_elems))
+                return None
         else:
-            seq = convert_seq(seqspec)
+            if not isinstance(string, String):
+                evaluation.message("StringTake", "strse", expr)
+                return None
 
-        if seq is None:
-            evaluation.message("StringTake", "mseqs")
-            return
+        # Check the second argument:
+        if isinstance(part, Integer):
+            if is_list:
+                return ListExpression(
+                    *(self._eval_with_n(elem, part, evaluation) for elem in string)
+                )
+            return self._eval_with_n(string, part, evaluation)
+        if part.has_form("System`List", None):
+            part_elems = part.elements
+            if len(part_elems) == 1:
+                if is_list:
+                    return ListExpression(
+                        *(
+                            self._eval_with_ni(elem, *part_elements, evaluation)
+                            for elem in string
+                        )
+                    )
+                return self._eval_with_ni(string, *part_elems, evaluation)
+            if len(part_elems) == 2:
+                if is_list:
+                    return ListExpression(
+                        *(
+                            self._eval_with_ni_nf(elem, *part_elements, evaluation)
+                            for elem in string
+                        )
+                    )
+                return self._eval_with_ni_nf(string, *part_elems, evaluation)
+            if len(part_elems) == 3:
+                return self._eval_with_ni_nf_slc(string, *part_elems, evaluation)
+        evaluation.message("StringTake", "mseqs", expr)
+        return None
 
-        start, stop, step = seq
+    def _eval_with_n(self, string: String, n: Integer, evaluation: Evaluation):
+        """StringTake[string_String, n_Integer]"""
+        pos = n.value
+        if pos >= 0:
+            return self._eval_with_ni_nf_slc(string, Integer1, n, Integer1, evaluation)
+        return self._eval_with_ni_nf_slc(string, n, None, Integer1, evaluation)
+
+    def _eval_with_ni(self, string: String, ni: Integer, evaluation: Evaluation):
+        """StringTake[string_String, {ni_Integer}]"""
+        return self._eval_with_ni_nf_slc(string, ni, ni, Integer1, evaluation)
+
+    def _eval_with_ni_nf(
+        self, string: String, ni: Integer, nf: Integer, evaluation: Evaluation
+    ):
+        """StringTake[string_String, {ni_Integer, nf_Integer}]"""
+        return self._eval_with_ni_nf_slc(string, ni, nf, Integer1, evaluation)
+
+    def _eval_with_ni_nf_slc(
+        self,
+        string: String,
+        ni: Integer,
+        nf: Integer,
+        slc: Integer,
+        evaluation: Evaluation,
+    ):
+        """StringTake[string_String, {ni_Integer, nf_Integer, slc_Integer}]"""
+        result = string.get_string_value()
+        start = ni.value
+        stop = None if nf is None else nf.value
+        step = 1 if slc is None else slc.value
         py_slice = python_seq(start, stop, step, len(result))
 
         if py_slice is None:
-            evaluation.message("StringTake", "take", start, stop, string)
-            return
-
+            evaluation.message("StringTake", "take", ni, nf, string)
+            return None
         return String(result[py_slice])
-
-    def eval_strings(self, strings, spec, evaluation):
-        "StringTake[strings__, spec_]"
-        result_list = []
-        for string in strings.elements:
-            result = self.eval(string, spec, evaluation)
-            if result is None:
-                return None
-            result_list.append(result)
-        return ListExpression(*result_list)
 
 
 class StringTrim(Builtin):

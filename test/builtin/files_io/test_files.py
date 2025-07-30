@@ -188,12 +188,12 @@ def test_close():
             "",
         ),
         ## writing to dir
-        ("x >>> /var/", ("Cannot open /var/.",), "x >>> /var/", ""),
+        ("x >>> /var/", ("Cannot open /var/.",), "$Failed", ""),
         ## writing to read only file
         (
             "x >>> /proc/uptime",
             ("Cannot open /proc/uptime.",),
-            "x >>> /proc/uptime",
+            "$Failed",
             "",
         ),
         ## Malformed InputString

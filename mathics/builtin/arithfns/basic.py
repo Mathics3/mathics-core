@@ -437,8 +437,8 @@ class Power(InfixOperator, MPMathFunction):
     # Remember to up sympy doc link when this is corrected
     sympy_name = "Pow"
 
-    def eval_check(self, x, y, evaluation):
-        "Power[x_, y_]"
+    def eval_check(self, x, y, expression, evaluation):
+        "Pattern[expression, Power[x_, y_]]"
 
         # Power uses MPMathFunction but does some error checking first
         if isinstance(x, Number) and x.is_zero:
@@ -468,8 +468,10 @@ class Power(InfixOperator, MPMathFunction):
             )
 
         result = self.eval(Expression(SymbolSequence, x, y), evaluation)
-        if result is None or result != SymbolNull:
-            return result
+        if result in (None, SymbolNull):
+            return expression
+
+        return result
 
 
 class Sqrt(SympyFunction):

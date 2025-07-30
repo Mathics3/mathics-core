@@ -667,7 +667,7 @@ class PutAppend(InfixOperator):
         if len(instream.elements) == 2:
             name, n = instream.elements
         else:
-            return  # opening failed
+            return SymbolFailed
         result = self.eval_input(exprs, name, n, evaluation)
         to_expression("Close", instream).evaluate(evaluation)
         return result
@@ -678,7 +678,7 @@ class PutAppend(InfixOperator):
 
         if stream is None or stream.io.closed:
             evaluation.message("Put", "openx", to_expression("OutputSteam", name, n))
-            return
+            return SymbolFailed
 
         text = [
             str(do_format(e, evaluation, SymbolOutputForm).__str__())
@@ -695,7 +695,7 @@ class PutAppend(InfixOperator):
         "PutAppend[exprs___, filename_]"
         expr = to_expression("PutAppend", exprs, filename)
         evaluation.message("PutAppend", "stream", filename)
-        return expr
+        return SymbolFailed
 
 
 def validate_read_type(name: str, typ, evaluation: Evaluation):

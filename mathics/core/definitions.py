@@ -995,10 +995,26 @@ def insert_rule(values: List[BaseRule], rule: BaseRule) -> None:
 
     """
 
-    for index, existing in enumerate(values):
-        if existing.pattern.sameQ(rule.pattern):
-            del values[index]
-            break
+    def is_conditional(x):
+        """
+        Check if the replacement rule is a conditional replacement.
+        FunctionApplyRules are always considered "conditional", while
+        replacement rules are conditional if the replace attribute is
+        a conditional expression.
+        """
+        return not hasattr(x, "replace") or x.replace.has_form("System`Condition", 2)
+
+    # If the rule is not conditional, and there are
+    # equivalent rules which are not conditional either,
+    # remove them.
+    if not is_conditional(rule):
+        for index, existing in enumerate(values):
+            if is_conditional(existing):
+                continue
+            if existing.pattern.sameQ(rule.pattern):
+                del values[index]
+                break
+
     # use insort_left to guarantee that if equal rules exist, newer rules will
     # get higher precedence by being inserted before them. see DownValues[].
     bisect.insort_left(values, rule)

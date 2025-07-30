@@ -183,11 +183,6 @@ def eval_Times(*items: BaseElement) -> Optional[BaseElement]:
         return elements[0]
 
     elements = sorted(elements)
-    items_elements = items
-    if len(elements) == len(items_elements) and all(
-        elem.sameQ(item) for elem, item in zip(elements, items_elements)
-    ):
-        return None
 
     return Expression(
         SymbolTimes,

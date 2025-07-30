@@ -136,7 +136,7 @@ class BaseRule(KeyComparable, ABC):
             )
             new_expression = apply_fn(expression, vars, options, evaluation)
             if new_expression is None:
-                new_expression = expression
+                return None
             if rest[0] or rest[1]:
                 result = Expression(
                     expression.get_head(),
@@ -290,6 +290,16 @@ class Rule(BaseRule):
 
     def __repr__(self) -> str:
         return "<Rule: %s -> %s>" % (self.pattern, self.replace)
+
+    def get_sort_key(self, pattern_sort=True) -> tuple:
+        # FIXME: check if this makes sense:
+        if not pattern_sort:
+            return tuple((self.system, self.pattern.get_sort_key(False)))
+
+        sort_key = list(self.pattern.get_sort_key(True))
+        if self.replace.has_form("System`Condition", 2):
+            sort_key[-1] = 0
+        return tuple((self.system, tuple(sort_key)))
 
 
 class FunctionApplyRule(BaseRule):

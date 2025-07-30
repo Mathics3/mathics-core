@@ -499,8 +499,8 @@ class Derivative(PostfixOperator, SympyFunction):
     def __init__(self, *args, **kwargs):
         super(Derivative, self).__init__(*args, **kwargs)
 
-    def eval_locked_symbols(self, n, **kwargs):
-        """Derivative[n__Integer][Alternatives[True|False|Symbol|TooBig|$Aborted|Removed|Locked|$PrintLiteral|$Off]]"""
+    def eval_locked_symbols(self, n, expression, **kwargs):
+        """Pattern[expression, Derivative[n__Integer][Alternatives[True|False|Symbol|TooBig|$Aborted|Removed|Locked|$PrintLiteral|$Off]]]"""
         # Prevents the evaluation for True, False, and other Locked symbols
         # as function names. This produces a recursion error in the evaluation rule for Derivative.
         # See
@@ -508,7 +508,7 @@ class Derivative(PostfixOperator, SympyFunction):
         # in issue #971
         # An alternative would be to reformulate the long rule.
         # TODO: Add other locked symbols producing the same error.
-        return
+        return expression
 
     def to_sympy(self, expr, **kwargs):
         inner = expr
@@ -645,8 +645,8 @@ class _BaseFinder(Builtin):
         "Jacobian": "Automatic",
     }
 
-    def eval(self, f, x, x0, evaluation: Evaluation, options: dict):
-        "%(name)s[f_, {x_, x0_}, OptionsPattern[]]"
+    def eval(self, f, x, x0, expression, evaluation: Evaluation, options: dict):
+        "Pattern[expression, %(name)s[f_, {x_, x0_}, OptionsPattern[]]]"
         # This is needed to get the right messages
         options["_isfindmaximum"] = self.__class__ is FindMaximum
         # First, determine x0 and x
@@ -657,11 +657,11 @@ class _BaseFinder(Builtin):
             x0 = x0.elements[0]
         if not isinstance(x0, Number):
             evaluation.message(self.get_name(), "snum", x0)
-            return
+            return expression
         x_name = x.get_name()
         if not x_name:
             evaluation.message(self.get_name(), "sym", x, 2)
-            return
+            return expression
 
         # Now, get the explicit form of f, depending of x
         # keeping x without evaluation (Like inside a "Block[{x},f])
@@ -693,7 +693,7 @@ class _BaseFinder(Builtin):
                 method,
                 [String(m) for m in self.methods.keys()],
             )
-            return
+            return expression
 
         # Determine the "jacobian"s
         if (
@@ -715,10 +715,10 @@ class _BaseFinder(Builtin):
                 method,
                 [String(m) for m in self.methods.keys()],
             )
-            return
+            return expression
         x0, success = method_caller(f, x0, x, options, evaluation)
         if not success:
-            return
+            return expression
         if isinstance(x0, tuple):
             return ListExpression(
                 x0[1],
@@ -727,8 +727,10 @@ class _BaseFinder(Builtin):
         else:
             return ListExpression(Expression(SymbolRule, x, x0))
 
-    def eval_with_x_tuple(self, f, xtuple, evaluation: Evaluation, options: dict):
-        "%(name)s[f_, xtuple_, OptionsPattern[]]"
+    def eval_with_x_tuple(
+        self, f, xtuple, expression, evaluation: Evaluation, options: dict
+    ):
+        "Pattern[expression, %(name)s[f_, xtuple_, OptionsPattern[]]]"
         f_val = f.evaluate(evaluation)
         if f_val.has_form("Equal", 2):
             f = Expression(SymbolPlus, f_val.elements[0], f_val.elements[1])
@@ -742,9 +744,9 @@ class _BaseFinder(Builtin):
                 x, x0, x1 = xtuple.evaluate(evaluation).elements
                 options["$$Region"] = (x0, x1)
             else:
-                return
-            return self.eval(f, x, x0, evaluation, options)
-        return
+                return expression
+            return self.eval(f, x, x0, expression, evaluation, options)
+        return expression
 
 
 class FindMaximum(_BaseFinder):
@@ -891,12 +893,12 @@ class FindRoot(_BaseFinder):
     The function has to return numerical values:
     >> FindRoot[f[x] == 0, {x, 0}]
      : The function value is not a number at x = 0..
-     = FindRoot[f[x] - 0, {x, 0}]
+     = FindRoot[f[x] == 0, {x, 0}]
 
     The derivative must not be 0:
     >> FindRoot[Sin[x] == x, {x, 0}]
      : Encountered a singular derivative at the point x = 0..
-     = FindRoot[Sin[x] - x, {x, 0}]
+     = FindRoot[Sin[x] == x, {x, 0}]
 
 
     >> FindRoot[x^2 - 2, {x, 1,3}, Method->"Secant"]
