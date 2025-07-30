@@ -162,7 +162,7 @@ class Definitions:
         )
         self.inputfile = ""
 
-        # These are used by TraceEvaluation to indicate
+        # These are used by TraceEvaluation to```
         # whether what information to show.
         self.trace_evaluation = False
         self.trace_show_rewrite = False
