@@ -189,6 +189,11 @@ class HoldPattern(PatternObject):
         #     yield new_vars_dict, rest
         self.pattern.match(expression, pattern_context)
 
+    def get_sort_key(self, pattern_sort=True):
+        if not pattern_sort:
+            return self.expr.get_sort_key()
+        return self.pattern.get_sort_key(True)
+
 
 class Longest(Builtin):
     """
@@ -335,6 +340,9 @@ class OptionsPattern(PatternObject):
             1,
             0,
             self.expr.head,
+            1
+            if any(element.undefined_sequence_length() for element in self.elements)
+            else 0,
             tuple(elem.get_sort_key(True) for elem in self.elements),
             1,
         )
@@ -586,10 +594,20 @@ class Repeated(PostfixOperator, PatternObject):
                 1,
                 0,
                 (0, 0, 1, 1, 0, 0, 0, 1),  # sort key for Atoms
+                0,
                 (self.pattern.get_sort_key(True), 4),  # Just one element...
                 1,
             )
         return self.expr.get_sort_key()
+
+    def undefined_sequence_length(self):
+        """
+        True if it can match with a variable number of elements.
+        For example, `BlankSequence`, `BlankNullSequence` or `RepeatedNull`
+        returns `True`. Other pattern objects like `Pattern[name, pat]` returns
+        the value associated to `pat`.
+        """
+        return True
 
 
 class RepeatedNull(Repeated):
