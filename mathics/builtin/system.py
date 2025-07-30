@@ -660,7 +660,6 @@ class SetEnvironment(Builtin):
 
         for rule in rules.elements:
             self.eval(rule, evaluation)
-        return SymbolNull
 
         return SymbolNull
 

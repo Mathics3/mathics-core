@@ -344,8 +344,9 @@ class Transpose(Builtin):
     """
     <url>
     :Transpose: https://en.wikipedia.org/wiki/Transpose</url> (<url>
+    :SymPy:
+      https://docs.sympy.org/latest/modules/matrices/expressions.html#sympy.matrices.expressions.Transpose</url>, <url>
     :WMA: https://reference.wolfram.com/language/ref/Transpose.html</url>)
-
     <dl>
       <dt>'Transpose'[$list$]
       <dd>transposes the first two levels in $list$. The rank of $list$ should be less than 4.
