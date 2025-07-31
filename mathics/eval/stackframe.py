@@ -7,6 +7,7 @@ from types import FrameType
 from typing import Optional
 
 from mathics.core.builtin import Builtin
+from mathics.core.expression import Expression
 
 
 def find_Mathics3_evaluation_method(frame: Optional[FrameType]) -> Optional[FrameType]:
@@ -28,6 +29,36 @@ def get_self(frame: FrameType) -> Optional[FrameType]:
     it does not exist.
     """
     return frame.f_locals.get("self", None)
+
+
+def get_eval_Expression() -> Optional[Expression]:
+    """Returns the Expression used in a Mathics3 evaluation() or
+    eval() Builtin method. This is often needed in an error message to
+    report what Expression was getting evaluated. None is returned if
+    not found.
+
+    The method is fragile in that it relies on the Mathics3 implementation
+    having a Expression.rewrite_apply_eval_step() method.  It walks to
+    call stack to find that Expression.
+
+    None is returned if we can't find this.
+    """
+    frame = inspect.currentframe()
+    if frame is None:
+        return None
+
+    frame = frame.f_back
+    while True:
+        if frame is None:
+            return None
+        method_code = frame.f_code
+        if method_code.co_name == "rewrite_apply_eval_step":
+            if (self_obj := get_self(frame)) is not None and isinstance(
+                self_obj, Expression
+            ):
+                return self_obj
+
+        frame = frame.f_back
 
 
 def is_Mathics3_eval_method(frame) -> bool:

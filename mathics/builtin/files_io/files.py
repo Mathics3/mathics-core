@@ -49,6 +49,7 @@ from mathics.eval.files_io.read import (
     read_name_and_stream,
 )
 from mathics.eval.makeboxes import do_format, format_element
+from mathics.eval.stack import get_eval_Expression
 
 
 class Input_(Predefined):
@@ -693,8 +694,8 @@ class PutAppend(InfixOperator):
 
     def eval_default(self, exprs, filename, evaluation):
         "PutAppend[exprs___, filename_]"
-        expr = to_expression("PutAppend", exprs, filename)
         evaluation.message("PutAppend", "stream", filename)
+        expr = get_eval_Expression()
         return expr
 
 
