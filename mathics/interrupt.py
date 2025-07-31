@@ -13,7 +13,7 @@ from typing import Optional
 from mathics import settings
 from mathics.core.evaluation import Evaluation
 from mathics.core.interrupt import AbortInterrupt, ReturnInterrupt, TimeoutInterrupt
-from mathics.eval.stack import find_mathics3_evaluation_method
+from mathics.eval.stackframe import find_Mathics3_evaluation_method
 
 
 # See also __main__'s interactive_eval_loop
@@ -65,7 +65,7 @@ def inspect_eval_loop(evaluation: Evaluation):
                 shell.is_inside_interrupt = was_inside_interrupt
 
 
-def mathics3_interrupt_handler(evaluation: Optional[Evaluation]):
+def Mathics3_interrupt_handler(evaluation: Optional[Evaluation]):
     try:
         import readline  # noqa
     except ImportError:
@@ -92,7 +92,7 @@ def mathics3_interrupt_handler(evaluation: Optional[Evaluation]):
             elif user_input in ("show", "s"):
                 # In some cases we can better, by going back to the caller
                 # and reconstructing the actual call with arguments.
-                eval_frame = find_mathics3_evaluation_method(inspect.currentframe())
+                eval_frame = find_Mathics3_evaluation_method(inspect.currentframe())
                 if eval_frame is None:
                     continue
                 eval_method_name = eval_frame.f_code.co_name
@@ -142,22 +142,23 @@ def mathics3_interrupt_handler(evaluation: Optional[Evaluation]):
             pass
 
 
-def mathics3_basic_signal_handler(sig, frame):
+def Mathics3_basic_signal_handler(sig, current_frame):
     """
     Custom signal handler for SIGINT (Ctrl+C).
     """
-    current_frame = inspect.currentframe()
     evaluation: Optional[Evaluation] = None
     # Find an evaluation object to pass to the Mathics3 interrupt handler
-    while current_frame.f_back is not None:
-        current_frame = current_frame.f_back
+    while current_frame is not None:
         if (
             evaluation := current_frame.f_locals.get("evaluation")
         ) is not None and isinstance(evaluation, Evaluation):
             break
+        current_frame = current_frame.f_back
     print()
-    mathics3_interrupt_handler(evaluation)
+    if current_frame is None:
+        print("Unable to find Evaluation frame to start on")
+    Mathics3_interrupt_handler(evaluation)
 
 
 def setup_signal_handler():
-    signal.signal(signal.SIGINT, mathics3_basic_signal_handler)
+    signal.signal(signal.SIGINT, Mathics3_basic_signal_handler)
