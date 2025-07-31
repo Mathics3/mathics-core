@@ -695,8 +695,7 @@ class PutAppend(InfixOperator):
     def eval_default(self, exprs, filename, evaluation):
         "PutAppend[exprs___, filename_]"
         evaluation.message("PutAppend", "stream", filename)
-        expr = get_eval_Expression()
-        return expr
+        return get_eval_Expression()
 
 
 def validate_read_type(name: str, typ, evaluation: Evaluation):
