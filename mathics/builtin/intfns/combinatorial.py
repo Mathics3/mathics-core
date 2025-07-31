@@ -584,23 +584,23 @@ class Subsets(Builtin):
 
     summary_text = "list all the subsets"
 
-    def eval_list(self, list, evaluation):
-        "Subsets[list_]"
+    def eval_list(self, list, expression, evaluation):
+        "Pattern[expression, Subsets[list_]]"
 
         if isinstance(list, Atom):
-            evaluation.message(
-                "Subsets", "normal", Integer1, Expression(SymbolSubsets, list)
-            )
+            evaluation.message("Subsets", "normal", Integer1, expression)
+            return expression
         else:
-            return self.eval_list_n(list, Integer(len(list.elements)), evaluation)
+            return self.eval_list_n(
+                list, Integer(len(list.elements)), expression, evaluation
+            )
 
-    def eval_list_n(self, list, n, evaluation):
-        "Subsets[list_, n_]"
+    def eval_list_n(self, list, n, expression, evaluation):
+        "Pattern[expression, Subsets[list_, n_]]"
 
-        expr = Expression(SymbolSubsets, list, n)
         if isinstance(list, Atom):
-            evaluation.message("Subsets", "normal", Integer1, expr)
-            return
+            evaluation.message("Subsets", "normal", Integer1, expression)
+            return expression
         else:
             head_t = list.head
             # Note: "n" does not have to be an Integer.
@@ -608,8 +608,8 @@ class Subsets(Builtin):
             if n_value == 0:
                 return ListExpression(ListExpression())
             if n_value is None or n_value < 0:
-                evaluation.message("Subsets", "nninfseq", expr)
-                return
+                evaluation.message("Subsets", "nninfseq", expression)
+                return expression
 
             nested_list = [
                 Expression(head_t, *c)
@@ -619,30 +619,28 @@ class Subsets(Builtin):
 
             return ListExpression(*nested_list)
 
-    def eval_list_pattern(self, list, n, evaluation):
-        "Subsets[list_, Pattern[n,_List|All|DirectedInfinity[1]]]"
-
-        expr = Expression(SymbolSubsets, list, n)
+    def eval_list_pattern(self, list, n, expression, evaluation):
+        "Pattern[expression, Subsets[list_, Pattern[n,_List|All|DirectedInfinity[1]]]]"
 
         if isinstance(list, Atom):
-            evaluation.message("Subsets", "normal", Integer1, expr)
-            return
+            evaluation.message("Subsets", "normal", Integer1, expression)
+            return expression
         else:
             head_t = list.head
             if n.get_name() == "System`All" or n.has_form("DirectedInfinity", 1):
-                return self.eval_list(list, evaluation)
+                return self.eval_list(list, expression, evaluation)
 
             n_len = len(n.elements)
 
             if n_len == 0:
-                evaluation.message("Subsets", "nninfseq", expr)
-                return
+                evaluation.message("Subsets", "nninfseq", expression)
+                return expression
 
             elif n_len == 1:
                 elem1 = n.elements[0].get_int_value()
                 if elem1 is None or elem1 < 0:
-                    evaluation.message("Subsets", "nninfseq", expr)
-                    return
+                    evaluation.message("Subsets", "nninfseq", expression)
+                    return expression
                 min_n = elem1
                 max_n = min_n + 1
                 step_n = 1
@@ -655,8 +653,8 @@ class Subsets(Builtin):
                     else len(list.elements) + 1
                 )
                 if elem1 is None or elem2 is None or elem1 < 0 or elem2 < 0:
-                    evaluation.message("Subsets", "nninfseq", expr)
-                    return
+                    evaluation.message("Subsets", "nninfseq", expression)
+                    return expression
                 min_n = elem1
                 max_n = elem2 + 1
                 step_n = 1
@@ -676,8 +674,8 @@ class Subsets(Builtin):
                     or elem1 < 0
                     or elem2 < 0
                 ):
-                    evaluation.message("Subsets", "nninfseq", expr)
-                    return
+                    evaluation.message("Subsets", "nninfseq", expression)
+                    return expression
                 step_n = elem3
                 if step_n > 0:
                     min_n = elem1
@@ -686,11 +684,11 @@ class Subsets(Builtin):
                     min_n = elem1
                     max_n = elem2 - 1
                 else:
-                    evaluation.message("Subsets", "nninfseq", expr)
-                    return
+                    evaluation.message("Subsets", "nninfseq", expression)
+                    return expression
             else:
-                evaluation.message("Subsets", "nninfseq", expr)
-                return
+                evaluation.message("Subsets", "nninfseq", expression)
+                return expression
 
             nested_list = [
                 Expression(head_t, *c)
@@ -700,12 +698,13 @@ class Subsets(Builtin):
 
             return ListExpression(*nested_list)
 
-    def eval_atom_pattern(self, list, n, spec, evaluation):
-        "Subsets[list_?AtomQ, Pattern[n,_List|All|DirectedInfinity[1]], spec_]"
+    def eval_atom_pattern(self, list, n, spec, expression, evaluation):
+        "Pattern[expression, Subsets[list_?AtomQ, Pattern[n,_List|All|DirectedInfinity[1]], spec_]]"
 
         evaluation.message(
             "Subsets", "normal", Integer1, Expression(SymbolSubsets, list, n, spec)
         )
+        return expression
 
 
 class YuleDissimilarity(_BooleanDissimilarity):

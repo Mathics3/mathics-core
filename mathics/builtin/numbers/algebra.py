@@ -1177,8 +1177,10 @@ class Expand(_Expand):
 
     summary_text = "expand out products and powers"
 
-    def eval_patt(self, expr, target, evaluation: Evaluation, options: dict):
-        "Expand[expr_, target_, OptionsPattern[Expand]]"
+    def eval_patt(
+        self, expr, target, expression, evaluation: Evaluation, options: dict
+    ):
+        "Pattern[expression, Expand[expr_, target_, OptionsPattern[Expand]]]"
 
         if target.get_head_name() in ("System`Rule", "System`DelayedRule"):
             optname = target.elements[0].get_name()
@@ -1187,19 +1189,19 @@ class Expand(_Expand):
 
         kwargs = self.convert_options(options, evaluation)
         if kwargs is None:
-            return
+            return expression
 
         if target:
             kwargs["pattern"] = BasePattern.create(target)
         kwargs["evaluation"] = evaluation
         return expand(expr, True, False, **kwargs)
 
-    def eval(self, expr, evaluation: Evaluation, options: dict):
-        "Expand[expr_, OptionsPattern[Expand]]"
-
+    def eval(self, expression, evaluation: Evaluation, options: dict):
+        "Pattern[expression, Expand[_, OptionsPattern[Expand]]]"
+        expr = expression.elements[0]
         kwargs = self.convert_options(options, evaluation)
         if kwargs is None:
-            return
+            return expression
 
         return expand(expr, True, False, **kwargs)
 
