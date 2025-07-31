@@ -38,7 +38,7 @@ def get_eval_Expression() -> Optional[Expression]:
     not found.
 
     The method is fragile in that it relies on the Mathics3 implementation
-    having a Expression.rewrite_apply_eval_step() method.  It walks to
+    having a Expression.rewrite_apply_eval_step() method.  It walks the
     call stack to find that Expression.
 
     None is returned if we can't find this.
