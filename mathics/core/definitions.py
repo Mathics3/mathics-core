@@ -869,9 +869,10 @@ def get_tag_position(pattern: BaseElement, name: str) -> Optional[str]:
             # We have to use get_head_name() below because
             # pat can either SymbolCondition or <AtomPattern: System`Condition>.
             # In the latter case, comparing to SymbolCondition is not sufficient.
-            if pat.get_head_name() == "System`Condition":
-                if len(pat.elements) > 1:
-                    return strip_pattern_name_and_condition(pat.elements[0])
+            if pat.has_form(("System`Condition", "System`PatternTest"), 2):
+                return strip_pattern_name_and_condition(pat.elements[0])
+            if pat.has_form("System`HoldPattern", 1):
+                return strip_pattern_name_and_condition(pat.elements[0])
             # The same kind of get_head_name() check is needed here as well and
             # is not the same as testing against SymbolPattern.
             if pat.get_head_name() == "System`Pattern":

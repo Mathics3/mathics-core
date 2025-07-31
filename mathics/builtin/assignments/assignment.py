@@ -4,7 +4,7 @@ Forms of Assignment
 """
 from typing import Optional
 
-from mathics.core.atoms import String
+from mathics.core.atoms import Integer1, String
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
@@ -137,9 +137,9 @@ class Set(InfixOperator):
 
     summary_text = "assign a value"
 
-    def eval(self, lhs, rhs, evaluation):
-        "lhs_ = rhs_"
-
+    def eval(self, expr, evaluation):
+        "Pattern[expr, _ = _]"
+        lhs, rhs = expr.elements
         eval_assign(self, lhs, rhs, evaluation)
         return rhs
 
@@ -217,11 +217,9 @@ class SetDelayed(Set):
 
     summary_text = "test a delayed value; used in defining functions"
 
-    def eval(
-        self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
-    ) -> Symbol:
-        "lhs_ := rhs_"
-
+    def eval(self, expr: BaseElement, evaluation: Evaluation) -> Symbol:
+        "Pattern[expr, _ := _]"
+        lhs, rhs = expr.elements
         if eval_assign(self, lhs, rhs, evaluation):
             return SymbolNull
 
@@ -355,14 +353,21 @@ class UpSet(InfixOperator):
     attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
     grouping = "Right"
 
+    messages = {
+        "normal": "Nonatomic expression expected at position `1` in `2`.",
+        "nosym": "`1` does not contain a symbol to attach a rule to.",
+    }
     summary_text = (
         "set value and associate the assignment with symbols that occur at level one"
     )
 
-    def eval(
-        self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
-    ) -> Optional[BaseElement]:
-        "lhs_ ^= rhs_"
+    def eval(self, expr: BaseElement, evaluation: Evaluation) -> Optional[BaseElement]:
+        "Pattern[expr, _ ^=_]"
+        lhs, rhs = expr.elements
+        if not hasattr(lhs, "elements"):
+            # This should be the argument of this method...
+            evaluation.message(self.get_name(), "normal", Integer1, expr)
+            return None
 
         eval_assign(self, lhs, rhs, evaluation, upset=True)
         return rhs
@@ -395,10 +400,14 @@ class UpSetDelayed(UpSet):
         "with symbols that occur at level one"
     )
 
-    def eval(
-        self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
-    ) -> Symbol:
-        "lhs_ ^:= rhs_"
+    def eval(self, expr: BaseElement, evaluation: Evaluation) -> Symbol:
+        "Pattern[expr, _ ^:=_]"
+        lhs, rhs = expr.elements
+        if not hasattr(lhs, "elements"):
+            # This should be the argument of this method...
+            expression = Expression(Symbol(self.get_name()), lhs, rhs)
+            evaluation.message(self.get_name(), "normal", Integer1, expr)
+            return None
 
         if eval_assign(self, lhs, rhs, evaluation, upset=True):
             return SymbolNull
