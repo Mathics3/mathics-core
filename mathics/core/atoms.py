@@ -532,6 +532,7 @@ class MachineReal(Real[float]):
 
 
 MachineReal0 = MachineReal(0)
+MachineReal1 = MachineReal(1)
 
 
 class PrecisionReal(Real[sympy.Float]):
