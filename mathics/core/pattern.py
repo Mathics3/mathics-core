@@ -33,6 +33,10 @@ from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_ORDERLESS
 from mathics.core.element import BaseElement, ensure_context
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.keycomparable import (
+    BASIC_ATOM_PATTERN_SORT_KEY,
+    BASIC_EXPRESSION_PATTERN_SORT_KEY,
+)
 from mathics.core.symbols import Atom, Symbol, symbol_set
 from mathics.core.systemsymbols import (
     SymbolAlternatives,
@@ -48,6 +52,7 @@ from mathics.core.systemsymbols import (
     SymbolRepeated,
     SymbolRepeatedNull,
     SymbolSequence,
+    SymbolVerbatim,
 )
 from mathics.core.util import permutations, subranges, subsets
 
@@ -237,19 +242,20 @@ class BasePattern(ABC):
         name = self.expr.get_name()
         return name.split("`")[-1] if short else name
 
-    def get_sequence(self):
-        """The sequence of elements in the expression"""
-        return self.expr.get_sequence()
-
-    def get_sort_key(self, pattern_sort: bool = False) -> tuple:
-        """The sort key of the expression"""
-        return self.expr.get_sort_key(pattern_sort=pattern_sort)
-
     def get_option_values(
         self, evaluation: Evaluation, allow_symbols=False, stop_on_error=True
     ) -> Optional[dict]:
         """Option values of the expression"""
         return self.expr.get_option_values(evaluation, allow_symbols, stop_on_error)
+
+    def get_sequence(self):
+        """The sequence of elements in the expression"""
+        return self.expr.get_sequence()
+
+    def get_sort_key(self, pattern_sort=True):
+        if pattern_sort:
+            return build_pattern_sort_key(self)
+        return self.expr.get_sort_key()
 
     def has_form(
         self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
@@ -398,6 +404,11 @@ class AtomPattern(BasePattern):
     def get_match_count(self, vars_dict: Optional[dict] = None) -> Tuple[int, int]:
         """The number of matches"""
         return (1, 1)
+
+    def get_sort_key(self, pattern_sort=True):
+        if pattern_sort:
+            return BASIC_ATOM_PATTERN_SORT_KEY
+        return self.expr.get_sort_key()
 
     @property
     def short_name(self) -> str:
@@ -1199,3 +1210,116 @@ def get_pre_choices_orderless(
     # def yield_name(setting):
     #    yield_func(setting)
     per_name(yield_choice, tuple(groups.items()), vars_dict)
+
+
+def build_pattern_sort_key(patt):
+    """
+    Pattern sort key structure:
+    0: 0/2:        Atom / Expression
+    1: pattern:    0 / 11-31 for blanks / 1 for empty Alternatives /
+                       40 for OptionsPattern
+    2: 0/1:        0 for PatternTest
+    3: 0/1:        0 for Pattern
+    4: 0/1:        1 for Optional
+    5: head / 0 for atoms
+    6: elements / 0 for atoms
+    7: 0/1:        0 for Condition
+    """
+    head = patt.expr.head
+    pattern = 0
+    if head is SymbolBlank:
+        pattern = 1
+    elif head is SymbolBlankSequence:
+        pattern = 2
+    elif head is SymbolBlankNullSequence:
+        pattern = 3
+    if pattern > 0:
+        if patt.elements:
+            pattern += 10
+        else:
+            pattern += 20
+    if pattern > 0:
+        return (
+            2,
+            pattern,
+            1,
+            1,
+            0,
+            BASIC_ATOM_PATTERN_SORT_KEY,
+            tuple(element.get_sort_key(True) for element in patt.elements),
+            1,
+        )
+    if head is SymbolPatternTest:
+        if len(patt.elements) != 2:
+            return (3, 0, 0, 0, 0, head, patt.elements, 1)
+        sub = list(patt.elements[0].get_sort_key(True))
+        sub[2] = 0
+        return tuple(sub)
+    elif head is SymbolCondition:
+        if len(patt.elements) != 2:
+            return (3, 0, 0, 0, 0, head, patt.elements, 1)
+        sub = list(patt.elements[0].get_sort_key(True))
+        sub[7] = 0
+        return tuple(sub)
+    elif head is SymbolPattern:
+        if len(patt.elements) != 2:
+            return (3, 0, 0, 0, 0, head, patt.elements, 1)
+        sub = list(patt.elements[1].get_sort_key(True))
+        sub[3] = 0
+        return tuple(sub)
+    elif head is SymbolOptional:
+        if len(patt.elements) not in (1, 2):
+            return (3, 0, 0, 0, 0, head, patt.elements, 1)
+        sub = list(patt.elements[0].get_sort_key(True))
+        sub[4] = 1
+        return tuple(sub)
+    elif head is SymbolAlternatives:
+        min_key = (4,)
+        min = None
+        for element in patt.elements:
+            key = element.get_sort_key(True)
+            if key < min_key:
+                min = element
+                min_key = key
+        if min is None:
+            # empty alternatives -> very restrictive pattern
+            return (2, 1)
+        return min_key
+    elif head is SymbolVerbatim:
+        if len(patt.elements) != 1:
+            return (
+                3,
+                0,
+                0,
+                0,
+                0,
+                patt.head.get_sort_key(True),
+                tuple(element.get_sort_key(True) for element in patt.elements),
+                1,
+            )
+        return patt.elements[0].get_sort_key(True)
+    elif head is SymbolOptionsPattern:
+        return (
+            2,
+            40,
+            0,
+            1,
+            1,
+            0,
+            patt.head.get_sort_key(True),
+            tuple(element.get_sort_key(True) for element in patt.elements),
+            1,
+        )
+    else:
+        # Append (4,) to elements so that longer expressions have higher
+        # precedence
+        return BASIC_EXPRESSION_PATTERN_SORT_KEY + (
+            patt.head.get_sort_key(True),
+            tuple(
+                chain(
+                    (element.get_sort_key(True) for element in patt.elements),
+                    ((4,),),
+                )
+            ),
+            1,
+        )

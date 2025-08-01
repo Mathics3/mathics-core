@@ -69,7 +69,7 @@ from mathics.core.list import ListExpression
 from mathics.core.number import PrecisionValueError, dps, get_precision, min_prec
 from mathics.core.parser.operators import OPERATOR_DATA
 from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
-from mathics.core.pattern import BasePattern
+from mathics.core.pattern import BasePattern, build_pattern_sort_key
 from mathics.core.rules import BaseRule, FunctionApplyRule, Rule
 from mathics.core.symbols import (
     BaseElement,
@@ -1544,7 +1544,9 @@ class PatternObject(BuiltinElement, BasePattern):
         return (1, 1)
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
-        return self.expr.get_sort_key(pattern_sort=pattern_sort)
+        if pattern_sort:
+            return build_pattern_sort_key(self)
+        return self.expr.get_sort_key()
 
 
 class Test(Builtin, ABC):

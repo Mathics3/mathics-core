@@ -63,7 +63,11 @@ class KeyComparable:
         return self.get_sort_key() <= other.get_sort_key()
 
     def __lt__(self, other) -> bool:
-        return self.get_sort_key() < other.get_sort_key()
+        try:
+            return self.get_sort_key() < other.get_sort_key()
+        except TypeError:
+            print(self.get_sort_key(), other.get_sort_key())
+            raise
 
     def __ne__(self, other) -> bool:
         return (
@@ -151,6 +155,13 @@ class Monomial:
 
 
 BASIC_ATOM_PATTERN_SORT_KEY = (0, 0, 1, 1, 0, 0, 0, 1)
+BASIC_EXPRESSION_PATTERN_SORT_KEY = (
+    2,
+    0,
+    1,
+    1,
+    0,
+)
 
 
 BASIC_ATOM_NUMBER_SORT_KEY = (

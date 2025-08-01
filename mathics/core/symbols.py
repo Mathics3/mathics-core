@@ -216,6 +216,7 @@ class Atom(BaseElement):
     #        return None if stop_on_error else {}
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
+        assert not pattern_sort
         if pattern_sort:
             return BASIC_ATOM_PATTERN_SORT_KEY
         raise NotImplementedError

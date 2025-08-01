@@ -11,6 +11,10 @@ from mathics.core.builtin import Builtin, InfixOperator, PatternObject, PostfixO
 from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.keycomparable import (
+    BASIC_ATOM_PATTERN_SORT_KEY,
+    BASIC_EXPRESSION_PATTERN_SORT_KEY,
+)
 from mathics.core.list import ListExpression
 from mathics.core.pattern import BasePattern, StopGenerator
 from mathics.core.systemsymbols import SymbolBlank, SymbolVerbatim
@@ -489,6 +493,9 @@ class Repeated(PostfixOperator, PatternObject):
         min_idx: int = 1,
         evaluation: OptionalType[Evaluation] = None,
     ):
+        self.expr = expr
+        # self.head = BasePattern.create(expr.head)
+        # self.elements = (BasePattern.create(elem) for elem in expr.elements)
         self.pattern = BasePattern.create(expr.elements[0], evaluation=evaluation)
         self.max = None
         self.min = min_idx
@@ -543,6 +550,15 @@ class Repeated(PostfixOperator, PatternObject):
 
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (self.min, self.max)
+
+    def get_sort_key(self, pattern_sort=True):
+        if pattern_sort:
+            return BASIC_EXPRESSION_PATTERN_SORT_KEY + (
+                BASIC_ATOM_PATTERN_SORT_KEY,
+                (self.pattern.get_sort_key(True), (4,)),
+                1,
+            )
+        return self.expr.get_sort_key()
 
 
 class RepeatedNull(Repeated):
