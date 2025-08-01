@@ -229,7 +229,5 @@ def format_element(
         return result_box
     if isinstance(result_box, BoxElementMixin):
         return result_box
-    elif expr is element:
-        return None  # Avoid an infinite recursion
     else:
         return format_element(element, evaluation, SymbolFullForm, **kwargs)
