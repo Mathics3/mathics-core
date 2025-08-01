@@ -35,7 +35,8 @@ def inspect_eval_loop(evaluation: Evaluation):
             # Note: this is not setting as, say, In[5]
             # to back to In[1], but instead it sets the line number position *within*
             # In[5]. The user input for "In[5]" might have several continuation lines.
-            shell.lineno = 0
+            if shell is not None and hasattr(shell, "lineno"):
+                shell.lineno = 0
 
             query, source_code = evaluation.parse_feeder_returning_code(shell)
             # show_echo(source_code, evaluation)
