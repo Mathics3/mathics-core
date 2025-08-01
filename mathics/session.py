@@ -121,6 +121,7 @@ class MathicsSession:
         self.form = form
         self.last_result = None
         self.reset(add_builtin, catch_interrupt)
+        self.shell = None
 
     def reset(self, add_builtin=True, catch_interrupt=False):
         """

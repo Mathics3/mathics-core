@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import mathics.core as mathics_core
+from mathics.__main__ import TerminalShell, interactive_eval_loop
 from mathics.core.atoms import Integer1, Integer2
 from mathics.core.definitions import Definitions
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
-from mathics.main import TerminalShell, interactive_eval_loop
 
 hook_was_called = False
 
