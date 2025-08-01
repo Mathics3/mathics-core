@@ -161,6 +161,9 @@ class Definitions:
             "Global`",
         )
         self.inputfile = ""
+
+        # These are used by TraceEvaluation to```
+        # whether what information to show.
         self.trace_evaluation = False
         self.trace_show_rewrite = False
         self.timing_trace_evaluation = False
