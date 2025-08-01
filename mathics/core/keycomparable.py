@@ -164,6 +164,64 @@ BASIC_EXPRESSION_PATTERN_SORT_KEY = (
 )
 
 
+BLANK_WITH_PATTERN_PATTERN_SORT_KEY = (
+    2,
+    11,
+    1,
+    1,
+    0,
+)
+BLANK_GENERAL_PATTERN_SORT_KEY = (
+    2,
+    21,
+    1,
+    1,
+    0,
+)
+
+BLANKSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY = (
+    2,
+    12,
+    1,
+    1,
+    0,
+)
+BLANKSEQUENCE_GENERAL_PATTERN_SORT_KEY = (
+    2,
+    22,
+    1,
+    1,
+    0,
+)
+
+BLANKNULLSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY = (
+    2,
+    13,
+    1,
+    1,
+    0,
+)
+BLANKNULLSEQUENCE_GENERAL_PATTERN_SORT_KEY = (
+    2,
+    23,
+    1,
+    1,
+    0,
+)
+
+
+EMPTY_ALTERNATIVE_PATTERN_SORT_KEY = (2, 1)
+OPTIONSPATTERN_SORT_KEY = (2, 40, 0, 1, 1, 0)
+
+VERBATIM_PATTERN_SORT_KEY = (
+    3,
+    0,
+    0,
+    0,
+    0,
+)
+
+
 BASIC_ATOM_NUMBER_SORT_KEY = (
     0,
     0,

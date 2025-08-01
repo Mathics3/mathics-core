@@ -36,6 +36,15 @@ from mathics.core.expression import Expression
 from mathics.core.keycomparable import (
     BASIC_ATOM_PATTERN_SORT_KEY,
     BASIC_EXPRESSION_PATTERN_SORT_KEY,
+    BLANK_GENERAL_PATTERN_SORT_KEY,
+    BLANK_WITH_PATTERN_PATTERN_SORT_KEY,
+    BLANKNULLSEQUENCE_GENERAL_PATTERN_SORT_KEY,
+    BLANKNULLSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY,
+    BLANKSEQUENCE_GENERAL_PATTERN_SORT_KEY,
+    BLANKSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY,
+    EMPTY_ALTERNATIVE_PATTERN_SORT_KEY,
+    OPTIONSPATTERN_SORT_KEY,
+    VERBATIM_PATTERN_SORT_KEY,
 )
 from mathics.core.symbols import Atom, Symbol, symbol_set
 from mathics.core.systemsymbols import (
@@ -1226,53 +1235,62 @@ def build_pattern_sort_key(patt):
     7: 0/1:        0 for Condition
     """
     head = patt.expr.head
-    pattern = 0
+
     if head is SymbolBlank:
-        pattern = 1
-    elif head is SymbolBlankSequence:
-        pattern = 2
-    elif head is SymbolBlankNullSequence:
-        pattern = 3
-    if pattern > 0:
-        if patt.elements:
-            pattern += 10
-        else:
-            pattern += 20
-    if pattern > 0:
-        return (
-            2,
-            pattern,
-            1,
-            1,
-            0,
+        pattern_key = (
+            BLANK_WITH_PATTERN_PATTERN_SORT_KEY
+            if patt.elements
+            else BLANK_GENERAL_PATTERN_SORT_KEY
+        )
+        return pattern_key + (
             BASIC_ATOM_PATTERN_SORT_KEY,
             tuple(element.get_sort_key(True) for element in patt.elements),
             1,
         )
+    elif head is SymbolBlankSequence:
+        pattern_key = (
+            BLANKSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY
+            if patt.elements
+            else BLANKSEQUENCE_GENERAL_PATTERN_SORT_KEY
+        )
+        return pattern_key + (
+            BASIC_ATOM_PATTERN_SORT_KEY,
+            tuple(element.get_sort_key(True) for element in patt.elements),
+            1,
+        )
+
+    elif head is SymbolBlankNullSequence:
+        pattern_key = (
+            BLANKNULLSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY
+            if patt.elements
+            else BLANKNULLSEQUENCE_GENERAL_PATTERN_SORT_KEY
+        )
+        return pattern_key + (
+            BASIC_ATOM_PATTERN_SORT_KEY,
+            tuple(element.get_sort_key(True) for element in patt.elements),
+            1,
+        )
+
     if head is SymbolPatternTest:
-        if len(patt.elements) != 2:
-            return (3, 0, 0, 0, 0, head, patt.elements, 1)
-        sub = list(patt.elements[0].get_sort_key(True))
-        sub[2] = 0
-        return tuple(sub)
+        if len(patt.elements) == 2:
+            sub = list(patt.elements[0].get_sort_key(True))
+            sub[2] = 0
+            return tuple(sub)
     elif head is SymbolCondition:
-        if len(patt.elements) != 2:
-            return (3, 0, 0, 0, 0, head, patt.elements, 1)
-        sub = list(patt.elements[0].get_sort_key(True))
-        sub[7] = 0
-        return tuple(sub)
+        if len(patt.elements) == 2:
+            sub = list(patt.elements[0].get_sort_key(True))
+            sub[7] = 0
+            return tuple(sub)
     elif head is SymbolPattern:
-        if len(patt.elements) != 2:
-            return (3, 0, 0, 0, 0, head, patt.elements, 1)
-        sub = list(patt.elements[1].get_sort_key(True))
-        sub[3] = 0
-        return tuple(sub)
+        if len(patt.elements) == 2:
+            sub = list(patt.elements[1].get_sort_key(True))
+            sub[3] = 0
+            return tuple(sub)
     elif head is SymbolOptional:
-        if len(patt.elements) not in (1, 2):
-            return (3, 0, 0, 0, 0, head, patt.elements, 1)
-        sub = list(patt.elements[0].get_sort_key(True))
-        sub[4] = 1
-        return tuple(sub)
+        if len(patt.elements) in (1, 2):
+            sub = list(patt.elements[0].get_sort_key(True))
+            sub[4] = 1
+            return tuple(sub)
     elif head is SymbolAlternatives:
         min_key = (4,)
         min = None
@@ -1283,29 +1301,18 @@ def build_pattern_sort_key(patt):
                 min_key = key
         if min is None:
             # empty alternatives -> very restrictive pattern
-            return (2, 1)
+            return EMPTY_ALTERNATIVE_PATTERN_SORT_KEY
         return min_key
     elif head is SymbolVerbatim:
         if len(patt.elements) != 1:
-            return (
-                3,
-                0,
-                0,
-                0,
-                0,
+            return VERBATIM_PATTERN_SORT_KEY + (
                 patt.head.get_sort_key(True),
                 tuple(element.get_sort_key(True) for element in patt.elements),
                 1,
             )
         return patt.elements[0].get_sort_key(True)
     elif head is SymbolOptionsPattern:
-        return (
-            2,
-            40,
-            0,
-            1,
-            1,
-            0,
+        return OPTIONSPATTERN_SORT_KEY + (
             patt.head.get_sort_key(True),
             tuple(element.get_sort_key(True) for element in patt.elements),
             1,
