@@ -13,18 +13,18 @@ def test_canonical_sort():
     check_evaluation(
         """
     Sort[{
-    "a","b", 1, 
-    ByteArray[{1,2,4,1}], 
-    2, 1.2, I, 2I-3, A, 
-    a+b, a*b, a+1, a*2, b^3, 2/3, 
-    A[x], F[2], F[x], F[x_], F[x___], F[x,t], F[x__], 
+    "a","b", 1,
+    ByteArray[{1,2,4,1}],
+    2, 1.2, I, 2I-3, A,
+    a+b, a*b, a+1, a*2, b^3, 2/3,
+    A[x], F[2], F[x], F[x_], F[x___], F[x,t], F[x__],
     Condition[A,b>2], Pattern[expr, A]
     }]
     """,
-        """{ -3 + 2*I, I, 2 / 3, 1, 1.2, 2, 
-         "a", "b", A, 2*a, a*b, b^3, 
-          A[x], F[2], F[x], F[x_], F[x___], F[x__], F[x, t], 
-          ByteArray["AQIEAQ=="], A /; b > 2, 
+        """{ -3 + 2*I, I, 2 / 3, 1, 1.2, 2,
+         "a", "b", A, 2*a, a*b, b^3,
+          A[x], F[2], F[x], F[x_], F[x___], F[x__], F[x, t],
+          ByteArray["AQIEAQ=="], A /; b > 2,
           expr:A, 1 + a, a + b}""",
     )
     # The right canonical order should be, according to WMA:
