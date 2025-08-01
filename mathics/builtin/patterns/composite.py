@@ -10,10 +10,10 @@ from mathics.core.attributes import A_HOLD_ALL, A_HOLD_FIRST, A_PROTECTED
 from mathics.core.builtin import Builtin, InfixOperator, PatternObject, PostfixOperator
 from mathics.core.element import BaseElement, EvalMixin
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression, SymbolVerbatim
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.pattern import BasePattern, StopGenerator
-from mathics.core.systemsymbols import SymbolBlank
+from mathics.core.systemsymbols import SymbolBlank, SymbolVerbatim
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.rules-and-patterns.composite"

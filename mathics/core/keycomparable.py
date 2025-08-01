@@ -1,3 +1,9 @@
+"""
+Base classes for canonical order.
+
+"""
+
+
 class KeyComparable:
     """
 
@@ -142,3 +148,32 @@ class Monomial:
 
     def __ne__(self, other) -> bool:
         return self.__cmp(other) != 0
+
+
+BASIC_ATOM_PATTERN_SORT_KEY = (0, 0, 1, 1, 0, 0, 0, 1)
+
+
+BASIC_ATOM_NUMBER_SORT_KEY = (
+    0,
+    0,
+)
+BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY = (
+    0,
+    1,
+)
+BASIC_EXPRESSION_SORT_KEY = (
+    2,
+    2,
+)
+BASIC_NUMERIC_EXPRESSION_SORT_KEY = (
+    1,
+    2,
+)
+GENERAL_EXPRESSION_SORT_KEY = (
+    2,
+    3,
+)
+GENERAL_NUMERIC_EXPRESSION_SORT_KEY = (
+    1,
+    3,
+)

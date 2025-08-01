@@ -39,11 +39,17 @@ from mathics.core.convert.python import from_python
 from mathics.core.element import ElementsProperties, EvalMixin, ensure_context
 from mathics.core.evaluation import Evaluation
 from mathics.core.interrupt import ReturnInterrupt
+from mathics.core.keycomparable import (
+    BASIC_EXPRESSION_SORT_KEY,
+    BASIC_NUMERIC_EXPRESSION_SORT_KEY,
+    GENERAL_EXPRESSION_SORT_KEY,
+    GENERAL_NUMERIC_EXPRESSION_SORT_KEY,
+    Monomial,
+)
 from mathics.core.structure import LinkedStructure
 from mathics.core.symbols import (
     Atom,
     BaseElement,
-    Monomial,
     NumericOperators,
     Symbol,
     SymbolAbs,
@@ -77,6 +83,7 @@ from mathics.core.systemsymbols import (
     SymbolSqrt,
     SymbolSubtract,
     SymbolUnevaluated,
+    SymbolVerbatim,
 )
 from mathics.eval.tracing import trace_evaluate
 
@@ -84,7 +91,6 @@ from mathics.eval.tracing import trace_evaluate
 
 SymbolEvaluate = Symbol("System`Evaluate")
 SymbolSlotSequence = Symbol("SlotSequence")
-SymbolVerbatim = Symbol("Verbatim")
 
 
 symbols_arithmetic_operations = symbol_set(
@@ -992,8 +998,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     exps[var] = exps.get(var, 0) + exp
             if exps:
                 return (
-                    1 if self.is_numeric() else 2,
-                    2,
+                    BASIC_NUMERIC_EXPRESSION_SORT_KEY
+                    if self.is_numeric()
+                    else BASIC_EXPRESSION_SORT_KEY
+                ) + (
                     Monomial(exps),
                     1,
                     head,
@@ -1002,8 +1010,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 )
             else:
                 return (
-                    1 if self.is_numeric() else 2,
-                    3,
+                    GENERAL_NUMERIC_EXPRESSION_SORT_KEY
+                    if self.is_numeric()
+                    else GENERAL_EXPRESSION_SORT_KEY
+                ) + (
                     head,
                     len(self._elements),
                     self._elements,

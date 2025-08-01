@@ -13,7 +13,12 @@ from mathics.core.element import (
 if TYPE_CHECKING:
     from mathics.core.atoms import String
 
-from mathics.core.keycomparable import Monomial
+from mathics.core.keycomparable import (
+    BASIC_ATOM_PATTERN_SORT_KEY,
+    BASIC_EXPRESSION_SORT_KEY,
+    BASIC_NUMERIC_EXPRESSION_SORT_KEY,
+    Monomial,
+)
 from mathics.eval.tracing import trace_evaluate
 
 # I put this constants here instead of inside `mathics.core.convert.sympy`
@@ -212,9 +217,8 @@ class Atom(BaseElement):
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
-            return (0, 0, 1, 1, 0, 0, 0, 1)
-        else:
-            raise NotImplementedError
+            return BASIC_ATOM_PATTERN_SORT_KEY
+        raise NotImplementedError
 
     def has_form(
         self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
@@ -509,8 +513,10 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             return super(Symbol, self).get_sort_key(True)
         else:
             return (
-                1 if self.is_numeric() else 2,
-                2,
+                BASIC_NUMERIC_EXPRESSION_SORT_KEY
+                if self.is_numeric()
+                else BASIC_EXPRESSION_SORT_KEY
+            ) + (
                 Monomial({self.name: 1}),
                 0,
                 self.name,
