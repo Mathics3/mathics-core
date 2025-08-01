@@ -97,7 +97,8 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         if pattern_sort:
             return super().get_sort_key(True)
         else:
-            return BASIC_ATOM_NUMBER_SORT_KEY + (
+            return (
+                BASIC_ATOM_NUMBER_SORT_KEY,
                 self.value,
                 0,
                 1,
@@ -687,7 +688,8 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
         if pattern_sort:
             return super().get_sort_key(True)
         else:
-            return BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY + (
+            return (
+                BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY,
                 self.value,
                 0,
                 1,
@@ -842,9 +844,10 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         if pattern_sort:
             return super().get_sort_key(True)
         else:
-            return BASIC_ATOM_NUMBER_SORT_KEY + (
-                self.real.get_sort_key()[2],
-                self.imag.get_sort_key()[2],
+            return (
+                BASIC_ATOM_NUMBER_SORT_KEY,
+                self.real.get_sort_key(False)[1],
+                self.imag.get_sort_key(False)[1],
                 1,
             )
 
@@ -993,7 +996,8 @@ class Rational(Number[sympy.Rational]):
             return super().get_sort_key(True)
         else:
             # HACK: otherwise "Bus error" when comparing 1==1.
-            return BASIC_ATOM_NUMBER_SORT_KEY + (
+            return (
+                BASIC_ATOM_NUMBER_SORT_KEY,
                 sympy.Float(self.value),
                 0,
                 1,
@@ -1074,7 +1078,8 @@ class String(Atom, BoxElementMixin):
         if pattern_sort:
             return super().get_sort_key(True)
         else:
-            return BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY + (
+            return (
+                BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY,
                 self.value,
                 0,
                 1,

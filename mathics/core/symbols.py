@@ -513,10 +513,11 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             return super(Symbol, self).get_sort_key(True)
         else:
             return (
-                BASIC_NUMERIC_EXPRESSION_SORT_KEY
-                if self.is_numeric()
-                else BASIC_EXPRESSION_SORT_KEY
-            ) + (
+                (
+                    BASIC_NUMERIC_EXPRESSION_SORT_KEY
+                    if self.is_numeric()
+                    else BASIC_EXPRESSION_SORT_KEY
+                ),
                 Monomial({self.name: 1}),
                 0,
                 self.name,

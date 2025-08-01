@@ -177,3 +177,13 @@ GENERAL_NUMERIC_EXPRESSION_SORT_KEY = (
     1,
     3,
 )
+
+
+LITERAL_EXPRESSION_SORT_KEY = (
+    0,
+    3,
+)
+IMAGE_EXPRESSION_SORT_KEY = (
+    1,
+    3,
+)

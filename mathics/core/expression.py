@@ -998,10 +998,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     exps[var] = exps.get(var, 0) + exp
             if exps:
                 return (
-                    BASIC_NUMERIC_EXPRESSION_SORT_KEY
-                    if self.is_numeric()
-                    else BASIC_EXPRESSION_SORT_KEY
-                ) + (
+                    (
+                        BASIC_NUMERIC_EXPRESSION_SORT_KEY
+                        if self.is_numeric()
+                        else BASIC_EXPRESSION_SORT_KEY
+                    ),
                     Monomial(exps),
                     1,
                     head,
@@ -1010,10 +1011,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 )
             else:
                 return (
-                    GENERAL_NUMERIC_EXPRESSION_SORT_KEY
-                    if self.is_numeric()
-                    else GENERAL_EXPRESSION_SORT_KEY
-                ) + (
+                    (
+                        GENERAL_NUMERIC_EXPRESSION_SORT_KEY
+                        if self.is_numeric()
+                        else GENERAL_EXPRESSION_SORT_KEY
+                    ),
                     head,
                     len(self._elements),
                     self._elements,
