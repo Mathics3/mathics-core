@@ -13,6 +13,7 @@ from mathics.core.element import (
 if TYPE_CHECKING:
     from mathics.core.atoms import String
 
+from mathics.core.keycomparable import Monomial
 from mathics.eval.tracing import trace_evaluate
 
 # I put this constants here instead of inside `mathics.core.convert.sympy`
@@ -120,85 +121,6 @@ def strip_context(name) -> str:
     if "`" in name:
         return name[name.rindex("`") + 1 :]
     return name
-
-
-class Monomial:
-    """
-    An object to sort monomials, used in Expression.get_sort_key and
-    Symbol.get_sort_key.
-    """
-
-    def __init__(self, exps_dict):
-        self.exps = exps_dict
-
-    def __cmp(self, other) -> int:
-        self_exps = self.exps.copy()
-        other_exps = other.exps.copy()
-        for var in self.exps:
-            if var in other.exps:
-                dec = min(self_exps[var], other_exps[var])
-                self_exps[var] -= dec
-                if not self_exps[var]:
-                    del self_exps[var]
-                other_exps[var] -= dec
-                if not other_exps[var]:
-                    del other_exps[var]
-        self_exps = sorted((var, exp) for var, exp in self_exps.items())
-        other_exps = sorted((var, exp) for var, exp in other_exps.items())
-
-        index = 0
-        self_len = len(self_exps)
-        other_len = len(other_exps)
-        while True:
-            if index >= self_len and index >= other_len:
-                return 0
-            if index >= self_len:
-                return -1  # self < other
-            if index >= other_len:
-                return 1  # self > other
-            self_var, self_exp = self_exps[index]
-            other_var, other_exp = other_exps[index]
-            if self_var < other_var:
-                return -1
-            if self_var > other_var:
-                return 1
-            if self_exp != other_exp:
-                if index + 1 == self_len or index + 1 == other_len:
-                    # smaller exponents first
-                    if self_exp < other_exp:
-                        return -1
-                    elif self_exp == other_exp:
-                        return 0
-                    else:
-                        return 1
-                else:
-                    # bigger exponents first
-                    if self_exp < other_exp:
-                        return 1
-                    elif self_exp == other_exp:
-                        return 0
-                    else:
-                        return -1
-            index += 1
-        return 0
-
-    def __eq__(self, other) -> bool:
-        return self.__cmp(other) == 0
-
-    def __le__(self, other) -> bool:
-        return self.__cmp(other) <= 0
-
-    def __lt__(self, other) -> bool:
-        return self.__cmp(other) < 0
-
-    def __ge__(self, other) -> bool:
-        return self.__cmp(other) >= 0
-
-    def __gt__(self, other) -> bool:
-        return self.__cmp(other) > 0
-
-    def __ne__(self, other) -> bool:
-        return self.__cmp(other) != 0
 
 
 class Atom(BaseElement):

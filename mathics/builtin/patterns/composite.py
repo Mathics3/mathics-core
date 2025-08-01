@@ -173,6 +173,11 @@ class HoldPattern(PatternObject):
         #     yield new_vars_dict, rest
         self.pattern.match(expression, pattern_context)
 
+    def get_sort_key(self, pattern_sort=True):
+        if pattern_sort:
+            return self.pattern.get_sort_key(True)
+        return self.expr.get_sort_key(False)
+
 
 class Longest(Builtin):
     """
