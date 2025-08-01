@@ -993,7 +993,7 @@ def insert_rule(values: List[BaseRule], rule: BaseRule) -> None:
 
     """
 
-    def is_conditional(x):
+    def is_conditional(x) -> bool:
         """
         Check if the replacement rule is a conditional replacement.
         FunctionApplyRules are always considered "conditional", while
