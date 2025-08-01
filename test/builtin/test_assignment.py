@@ -1,17 +1,9 @@
 # -*- coding: utf-8 -*-
-import os
+
 from test.helper import check_evaluation, session
 
 import pytest
 from mathics_scanner.errors import IncompleteSyntaxError
-
-DEBUGASSIGN = int(os.environ.get("DEBUGSET", "0")) == 1
-
-if DEBUGASSIGN:
-    skip_or_fail = pytest.mark.xfail
-else:
-    skip_or_fail = pytest.mark.skip
-
 
 str_test_set_with_oneidentity = """
 SetAttributes[SUNIndex, {OneIdentity}];
@@ -276,7 +268,7 @@ def test_set_and_clear(str_expr, str_expected, msg):
         (None, None, None),
         (
             (
-                "A[x_]:=B[x];B[x_]:=F[x_];F[x_]:=G[x];"
+                "A[x_]:=B[x];B[x_]:=F[x];F[x_]:=G[x];"
                 "H[A[y_]]:=Q[y]; ClearAll[F];"
                 "{H[A[5]],H[B[5]],H[F[5]],H[G[5]]}"
             ),
@@ -291,7 +283,6 @@ def test_set_and_clear(str_expr, str_expected, msg):
         ),
     ],
 )
-@skip_or_fail
 def test_set_and_clear_to_fix(str_expr, str_expected, msg):
     """
     Test calls to Set, Clear and ClearAll. If
