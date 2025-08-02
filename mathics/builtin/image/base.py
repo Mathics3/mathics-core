@@ -12,6 +12,7 @@ from mathics.core.atoms import Atom
 from mathics.core.builtin import AtomBuiltin, String
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.keycomparable import IMAGE_EXPRESSION_SORT_KEY
 from mathics.core.list import ListExpression
 from mathics.core.systemsymbols import SymbolImage, SymbolRule
 from mathics.eval.image import image_pixels, pixels_as_float, pixels_as_ubyte
@@ -119,7 +120,14 @@ class Image(Atom):
             # but with a `2` instead of `1` in the 5th position,
             # and adding two extra fields: the length in the 5th position,
             # and a hash in the 6th place.
-            return (1, 3, SymbolImage, len(self.pixels), tuple(), 2, hash(self))
+            return (
+                IMAGE_EXPRESSION_SORT_KEY,
+                SymbolImage,
+                len(self.pixels),
+                tuple(),
+                2,
+                hash(self),
+            )
 
     def grayscale(self):
         return self.color_convert("Grayscale")

@@ -1,17 +1,10 @@
-from typing import Tuple
-
 from mathics.core.atoms import (
     MATHICS3_COMPLEX_I,
     MATHICS3_COMPLEX_I_NEG,
-    Complex,
-    Integer,
-    Integer0,
     Integer1,
     IntegerM1,
-    String,
 )
 from mathics.core.element import BaseElement, ElementsProperties
-from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.systemsymbols import SymbolDirectedInfinity
 

@@ -388,9 +388,9 @@ class Delete(Builtin):
             if isinstance(elements[0], ListExpression)
             else [positions]
         )
-        positions.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
+        positions.sort()
         newexpr = expr
-        for position in positions:
+        for position in positions[::-1]:
             pos = [p.get_int_value() for p in position.get_elements()]
             if None in pos:
                 evaluation.message(
