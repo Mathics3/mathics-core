@@ -63,11 +63,7 @@ class KeyComparable:
         return self.get_sort_key() <= other.get_sort_key()
 
     def __lt__(self, other) -> bool:
-        try:
-            return self.get_sort_key() < other.get_sort_key()
-        except TypeError:
-            print(self.get_sort_key(), other.get_sort_key())
-            raise
+        return self.get_sort_key() < other.get_sort_key()
 
     def __ne__(self, other) -> bool:
         return (
@@ -154,22 +150,35 @@ class Monomial:
         return self.__cmp(other) != 0
 
 
-BASIC_ATOM_PATTERN_SORT_KEY = (0, 0, 1, 1, 0, 0, 0, 1)
+###  SORT_KEYS prefix for patterns
+#
+# Pattern sort keys have 3 elements. The first one is a "magic" tuple
+# representing different features of the element, like if
+# it is an atom or an expression, if is an special pattern like `Blank`
+# etc. The first order criteria is that these tuples are in ascending order.
+# The second element is the sort_key for the head, and the third,
+# is the list of sort_keys associated to each element of the expression,
+# finished with ``END_OF_LIST_PATTERN_SORT_KEY`` to ensure that the longest
+# list of patterns always come first.
+
+# This is the full sort_key for any Atom.
+BASIC_ATOM_PATTERN_SORT_KEY = ((0, 0, 1, 1, 0, 1), 0, 0, 1)
+# This is the magic tuple for generic expressions.
 BASIC_EXPRESSION_PATTERN_SORT_KEY = (
     2,
     0,
     1,
     1,
     0,
+    1,
 )
-
-
 BLANK_WITH_PATTERN_PATTERN_SORT_KEY = (
     2,
     11,
     1,
     1,
     0,
+    1,
 )
 BLANK_GENERAL_PATTERN_SORT_KEY = (
     2,
@@ -177,6 +186,7 @@ BLANK_GENERAL_PATTERN_SORT_KEY = (
     1,
     1,
     0,
+    1,
 )
 
 BLANKSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY = (
@@ -185,6 +195,7 @@ BLANKSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY = (
     1,
     1,
     0,
+    1,
 )
 BLANKSEQUENCE_GENERAL_PATTERN_SORT_KEY = (
     2,
@@ -192,6 +203,7 @@ BLANKSEQUENCE_GENERAL_PATTERN_SORT_KEY = (
     1,
     1,
     0,
+    1,
 )
 
 BLANKNULLSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY = (
@@ -200,6 +212,7 @@ BLANKNULLSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY = (
     1,
     1,
     0,
+    1,
 )
 BLANKNULLSEQUENCE_GENERAL_PATTERN_SORT_KEY = (
     2,
@@ -207,11 +220,15 @@ BLANKNULLSEQUENCE_GENERAL_PATTERN_SORT_KEY = (
     1,
     1,
     0,
+    1,
 )
 
+END_OF_LIST_PATTERN_SORT_KEY = ((4,),)  # Used as the last element in the third
+# field.
 
-EMPTY_ALTERNATIVE_PATTERN_SORT_KEY = (2, 1)
-OPTIONSPATTERN_SORT_KEY = (2, 40, 0, 1, 1, 0)
+# Used in the case Alternative[]
+EMPTY_ALTERNATIVE_PATTERN_SORT_KEY = ((2, 1),)
+OPTIONSPATTERN_SORT_KEY = (2, 40, 0, 1, 1, 0, 1)
 
 VERBATIM_PATTERN_SORT_KEY = (
     3,
@@ -219,8 +236,10 @@ VERBATIM_PATTERN_SORT_KEY = (
     0,
     0,
     0,
+    1,
 )
 
+###  SORT_KEYS prefix for expressions
 
 BASIC_ATOM_NUMBER_SORT_KEY = (
     0,

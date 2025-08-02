@@ -43,6 +43,7 @@ from mathics.core.keycomparable import (
     BLANKSEQUENCE_GENERAL_PATTERN_SORT_KEY,
     BLANKSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY,
     EMPTY_ALTERNATIVE_PATTERN_SORT_KEY,
+    END_OF_LIST_PATTERN_SORT_KEY,
     OPTIONSPATTERN_SORT_KEY,
     VERBATIM_PATTERN_SORT_KEY,
 )
@@ -1242,7 +1243,8 @@ def build_pattern_sort_key(patt):
             if patt.elements
             else BLANK_GENERAL_PATTERN_SORT_KEY
         )
-        return pattern_key + (
+        return (
+            pattern_key,
             BASIC_ATOM_PATTERN_SORT_KEY,
             tuple(element.get_sort_key(True) for element in patt.elements),
             1,
@@ -1253,7 +1255,8 @@ def build_pattern_sort_key(patt):
             if patt.elements
             else BLANKSEQUENCE_GENERAL_PATTERN_SORT_KEY
         )
-        return pattern_key + (
+        return (
+            pattern_key,
             BASIC_ATOM_PATTERN_SORT_KEY,
             tuple(element.get_sort_key(True) for element in patt.elements),
             1,
@@ -1265,7 +1268,8 @@ def build_pattern_sort_key(patt):
             if patt.elements
             else BLANKNULLSEQUENCE_GENERAL_PATTERN_SORT_KEY
         )
-        return pattern_key + (
+        return (
+            pattern_key,
             BASIC_ATOM_PATTERN_SORT_KEY,
             tuple(element.get_sort_key(True) for element in patt.elements),
             1,
@@ -1274,25 +1278,31 @@ def build_pattern_sort_key(patt):
     if head is SymbolPatternTest:
         if len(patt.elements) == 2:
             sub = list(patt.elements[0].get_sort_key(True))
-            sub[2] = 0
+            sub_key = list(sub[0])
+            sub_key[2] = 0
+            sub[0] = tuple(sub_key)
             return tuple(sub)
     elif head is SymbolCondition:
         if len(patt.elements) == 2:
             sub = list(patt.elements[0].get_sort_key(True))
-            sub[7] = 0
+            sub[3] = 0
             return tuple(sub)
     elif head is SymbolPattern:
         if len(patt.elements) == 2:
             sub = list(patt.elements[1].get_sort_key(True))
-            sub[3] = 0
+            sub_key = list(sub[0])
+            sub_key[3] = 0
+            sub[0] = tuple(sub_key)
             return tuple(sub)
     elif head is SymbolOptional:
         if len(patt.elements) in (1, 2):
             sub = list(patt.elements[0].get_sort_key(True))
-            sub[4] = 1
+            sub_key = list(sub[0])
+            sub_key[4] = 1
+            sub[0] = tuple(sub_key)
             return tuple(sub)
     elif head is SymbolAlternatives:
-        min_key = (4,)
+        min_key = ((4,),)
         min = None
         for element in patt.elements:
             key = element.get_sort_key(True)
@@ -1305,14 +1315,16 @@ def build_pattern_sort_key(patt):
         return min_key
     elif head is SymbolVerbatim:
         if len(patt.elements) != 1:
-            return VERBATIM_PATTERN_SORT_KEY + (
+            return (
+                VERBATIM_PATTERN_SORT_KEY,
                 patt.head.get_sort_key(True),
                 tuple(element.get_sort_key(True) for element in patt.elements),
                 1,
             )
         return patt.elements[0].get_sort_key(True)
     elif head is SymbolOptionsPattern:
-        return OPTIONSPATTERN_SORT_KEY + (
+        return (
+            OPTIONSPATTERN_SORT_KEY,
             patt.head.get_sort_key(True),
             tuple(element.get_sort_key(True) for element in patt.elements),
             1,
@@ -1320,12 +1332,13 @@ def build_pattern_sort_key(patt):
     else:
         # Append (4,) to elements so that longer expressions have higher
         # precedence
-        return BASIC_EXPRESSION_PATTERN_SORT_KEY + (
+        return (
+            BASIC_EXPRESSION_PATTERN_SORT_KEY,
             patt.head.get_sort_key(True),
             tuple(
                 chain(
                     (element.get_sort_key(True) for element in patt.elements),
-                    ((4,),),
+                    (END_OF_LIST_PATTERN_SORT_KEY,),
                 )
             ),
             1,

@@ -553,7 +553,8 @@ class Repeated(PostfixOperator, PatternObject):
 
     def get_sort_key(self, pattern_sort=True):
         if pattern_sort:
-            return BASIC_EXPRESSION_PATTERN_SORT_KEY + (
+            return (
+                BASIC_EXPRESSION_PATTERN_SORT_KEY,
                 BASIC_ATOM_PATTERN_SORT_KEY,
                 (self.pattern.get_sort_key(True), (4,)),
                 1,
