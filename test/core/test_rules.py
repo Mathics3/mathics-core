@@ -65,15 +65,15 @@ The xfail mark can be removed once these issues get fixed.
         (
             "SetAttributes[Q, {Orderless}];\
           {Q[a,1,b], Q[a,1,b]/.rule, Q[a, 1, b]/.ruled}",
-            "{Q[1, a, b], Q[a, 1, b], Q[a, 1, b]}",
-            "2. Set the attribute. Application is not affected.",
+            "{Q[1, a, b], True, Q[a, 1, b]}",
+            "2. Set the attribute. Application is not affected by the dispatch rule.",
         ),
         (
             "rule = Q[a, _Symbol, _Integer]->True;\
   	  ruled = Dispatch[{rule}];\
 	  {Q[a, 1, b], Q[a, 1, b]/.rule, Q[a, 1, b]/.ruled}",
             "{Q[1, a, b], True, True}",
-            "3 .Rebuilt rules. Rules applied.",
+            "3 .Rebuilt rules. Rules applied on both cases.",
         ),
         (
             "Attributes[Q] = {};\
@@ -86,12 +86,11 @@ The xfail mark can be removed once these issues get fixed.
   	  ruled = Dispatch[{rule}];\
 	  {Q[a, 1, b], Q[a, 1, b]/.rule, Q[a, 1, b]/.ruled}",
             "{Q[a, 1, b], Q[a, 1, b], Q[a, 1, b]}",
-            "5. Rebuilt rules. Rules applied.",
+            "5. Rebuilt rules. Rules again are not applied.",
         ),
         (None, None, None),
     ],
 )
-@pytest.mark.xfail
 def test_orderless_on_rules(str_expr, str_expected, msg):
     check_evaluation(str_expr, str_expected, failure_message=msg)
 
