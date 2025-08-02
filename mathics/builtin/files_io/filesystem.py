@@ -15,7 +15,7 @@ from mathics.builtin.files_io.files import MathicsOpen
 from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_LISTABLE, A_LOCKED, A_PROTECTED
 from mathics.core.builtin import Builtin, MessageException, Predefined
-from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.convert.regex import to_regex
 from mathics.core.evaluation import Evaluation
@@ -28,16 +28,10 @@ from mathics.core.symbols import (
     SymbolTrue,
     valid_context_name,
 )
-from mathics.core.systemsymbols import (
-    SymbolFailed,
-    SymbolMemberQ,
-    SymbolNeeds,
-    SymbolPackages,
-)
+from mathics.core.systemsymbols import SymbolFailed, SymbolMemberQ, SymbolPackages
 from mathics.eval.directories import DIRECTORY_STACK
 from mathics.eval.files_io.files import eval_Get
-
-SymbolAbsoluteTime = Symbol("AbsoluteTime")
+from mathics.eval.stackframe import get_eval_Expression
 
 
 class AbsoluteFileName(Builtin):
@@ -57,7 +51,6 @@ class AbsoluteFileName(Builtin):
 
     messages = {
         "fstr": ("File specification x is not a string of one or more characters."),
-        "nffil": "File not found during `1`.",
     }
     summary_text = "get absolute file path"
 
@@ -76,9 +69,7 @@ class AbsoluteFileName(Builtin):
         result, _ = path_search(py_name)
 
         if result is None:
-            evaluation.message(
-                "AbsoluteFileName", "nffil", to_expression("AbsoluteFileName", name)
-            )
+            evaluation.message("AbsoluteFileName", "nffil", get_eval_Expression())
             return SymbolFailed
 
         return String(osp.abspath(result))
@@ -155,7 +146,6 @@ class CopyFile(Builtin):
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
         ),
-        "nffil": "File not found during `1`.",
     }
     summary_text = "copy a file into a new path"
 
@@ -192,9 +182,7 @@ class CopyFile(Builtin):
         try:
             shutil.copy(py_source, py_dest)
         except IOError:
-            evaluation.message(
-                "CopyFile", "nffil", to_expression("CopyFile", source, dest)
-            )
+            evaluation.message("CopyFile", "nffil", get_eval_Expression())
             return SymbolFailed
 
         return dest
@@ -287,7 +275,6 @@ class DeleteFile(Builtin):
         "strs": (
             "String or non-empty list of strings expected at " "position `1` in `2`."
         ),
-        "nffil": "File not found during `1`.",
     }
     summary_text = "delete a file"
 
@@ -303,10 +290,7 @@ class DeleteFile(Builtin):
             # Check filenames
             if not isinstance(path, str):
                 evaluation.message(
-                    "DeleteFile",
-                    "strs",
-                    filename,
-                    to_expression("DeleteFile", filename),
+                    "DeleteFile", "strs", filename, get_eval_Expression()
                 )
                 return
 
@@ -315,9 +299,7 @@ class DeleteFile(Builtin):
             path, _ = path_search(path)
 
             if path is None:
-                evaluation.message(
-                    "DeleteFile", "nffil", to_expression("DeleteFile", filename)
-                )
+                evaluation.message("DeleteFile", "nffil", get_eval_Expression())
                 return SymbolFailed
             py_paths.append(path)
 
@@ -397,9 +379,7 @@ class ExpandFileName(Builtin):
         py_name = name.to_python()
 
         if not (isinstance(py_name, str) and py_name[0] == py_name[-1] == '"'):
-            evaluation.message(
-                "ExpandFileName", "string", to_expression("ExpandFileName", name)
-            )
+            evaluation.message("ExpandFileName", "string", get_eval_Expression())
             return
         py_name = py_name[1:-1]
 
@@ -618,7 +598,7 @@ class FindFile(Builtin):
         py_name = name.to_python()
 
         if not (isinstance(py_name, str) and py_name[0] == py_name[-1] == '"'):
-            evaluation.message("FindFile", "string", to_expression("FindFile", name))
+            evaluation.message("FindFile", "string", get_eval_Expression())
             return
         py_name = py_name[1:-1]
 
@@ -872,7 +852,7 @@ class Needs(Builtin):
             context_str = curr_ctxt + context_str[1:]
             context = String(context_str)
         if not valid_context_name(context_str):
-            evaluation.message("Needs", "ctx", Expression(SymbolNeeds, context), 1, "`")
+            evaluation.message("Needs", "ctx", get_eval_Expression(), 1, "`")
             return
         test_loaded = Expression(SymbolMemberQ, SymbolPackages, context)
         test_loaded = test_loaded.evaluate(evaluation)
@@ -961,7 +941,6 @@ class RenameFile(Builtin):
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
         ),
-        "nffil": "File not found during `1`.",
     }
     summary_text = "change the name of a file"
 
@@ -982,7 +961,7 @@ class RenameFile(Builtin):
         py_source = py_source[1:-1]
         py_dest = py_dest[1:-1]
 
-        py_source, is_temporary_file = path_search(py_source)
+        py_source, _ = path_search(py_source)
 
         if py_source is None:
             evaluation.message("RenameFile", "filex", source)

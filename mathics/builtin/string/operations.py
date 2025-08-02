@@ -12,7 +12,7 @@ from mathics.builtin.atomic.strings import (
     _StringFind,
     mathics_split,
 )
-from mathics.core.atoms import Integer, Integer1, Integer3, String
+from mathics.core.atoms import Integer, Integer1, Integer2, Integer3, String
 from mathics.core.attributes import (
     A_FLAT,
     A_LISTABLE,
@@ -34,11 +34,11 @@ from mathics.core.systemsymbols import (
     SymbolStringInsert,
     SymbolStringJoin,
     SymbolStringPosition,
-    SymbolStringRiffle,
     SymbolStringSplit,
 )
 from mathics.eval.list.eol import convert_seq, python_seq
 from mathics.eval.makeboxes import format_element
+from mathics.eval.stackframe import get_eval_Expression
 from mathics.eval.strings import eval_StringFind
 
 
@@ -642,11 +642,7 @@ class StringRiffle(Builtin):
     def eval(self, liststr, seps, evaluation):
         "StringRiffle[liststr_, seps___]"
         separators = seps.get_sequence()
-        exp = (
-            Expression(SymbolStringRiffle, liststr, seps)
-            if separators
-            else Expression(SymbolStringRiffle, liststr)
-        )
+        exp = get_eval_Expression()
 
         # Validate separators
         if len(separators) > 1:
@@ -657,16 +653,15 @@ class StringRiffle(Builtin):
                 if len(separators[0].elements) != 3 or any(
                     not isinstance(s, String) for s in separators[0].elements
                 ):
-                    evaluation.message("StringRiffle", "string", Integer(2), exp)
+                    evaluation.message("StringRiffle", "string", Integer2, exp)
                     return
             elif not isinstance(separators[0], String):
-                evaluation.message("StringRiffle", "string", Integer(2), exp)
+                evaluation.message("StringRiffle", "string", Integer2, exp)
                 return
 
         # Validate list of string
         if not liststr.has_form("List", None):
             evaluation.message("StringRiffle", "list", Integer1, exp)
-            evaluation.message("StringRiffle", "argmu", exp)
             return
         elif any(element.has_form("List", None) for element in liststr.elements):
             evaluation.message("StringRiffle", "sublist")

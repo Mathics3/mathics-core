@@ -2068,9 +2068,6 @@ class FileFormat(Builtin):
     """
 
     summary_text = "determine the file format of a file"
-    messages = {
-        "nffil": "File not found during `1`.",
-    }
 
     detector = None
 
