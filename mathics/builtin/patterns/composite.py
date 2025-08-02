@@ -494,9 +494,7 @@ class Pattern(PatternObject):
     def get_sort_key(self, pattern_sort=True):
         if not pattern_sort:
             return self.expr.get_sort_key()
-        sub = list(self.pattern.get_sort_key(True))
-        sub[0] = sub[0] & PATTERN_SORT_KEY_NAMEDPATTERN
-        return tuple(sub)
+        return self.pattern.get_sort_key(True)
 
 
 class Repeated(PostfixOperator, PatternObject):
