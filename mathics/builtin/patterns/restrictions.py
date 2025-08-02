@@ -80,6 +80,16 @@ class Condition(InfixOperator, PatternObject):
         pattern_context["yield_func"] = yield_match
         self.pattern.match(expression, pattern_context)
 
+    def get_sort_key(self, pattern_sort=True):
+        if not pattern_sort:
+            return self.expr.get_sort_key()
+
+        sub = list(self.pattern.get_sort_key(True))
+        sub_key = list(sub[0])
+        sub_key[5] = 0
+        sub[0] = tuple(sub_key)
+        return tuple(sub)
+
 
 class PatternTest(InfixOperator, PatternObject):
     """
@@ -355,3 +365,13 @@ class PatternTest(InfixOperator, PatternObject):
 
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> Tuple[int, int]:
         return self.pattern.get_match_count(vars_dict)
+
+    def get_sort_key(self, pattern_sort=True):
+        if not pattern_sort:
+            return self.expr.get_sort_key()
+
+        sub = list(self.pattern.get_sort_key(True))
+        sub_key = list(sub[0])
+        sub_key[2] = 0
+        sub[0] = tuple(sub_key)
+        return tuple(sub)

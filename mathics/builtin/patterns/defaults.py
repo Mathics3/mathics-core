@@ -118,3 +118,13 @@ class Optional(InfixOperator, PatternObject):
 
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (0, 1)
+
+    def get_sort_key(self, pattern_sort=True):
+        if not pattern_sort:
+            return self.expr.get_sort_key()
+
+        sub = list(self.pattern.get_sort_key(True))
+        sub_key = list(sub[0])
+        sub_key[4] = 1
+        sub[0] = tuple(sub_key)
+        return tuple(sub)

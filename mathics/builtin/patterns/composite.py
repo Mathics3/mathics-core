@@ -16,6 +16,8 @@ from mathics.core.keycomparable import (
     BASIC_EXPRESSION_PATTERN_SORT_KEY,
     EMPTY_ALTERNATIVE_PATTERN_SORT_KEY,
     END_OF_LIST_PATTERN_SORT_KEY,
+    OPTIONSPATTERN_SORT_KEY,
+    VERBATIM_PATTERN_SORT_KEY,
 )
 from mathics.core.list import ListExpression
 from mathics.core.pattern import BasePattern, StopGenerator
@@ -335,6 +337,17 @@ class OptionsPattern(PatternObject):
 
         return tuple((element for element in elements if _match(element)))
 
+    def get_sort_key(self, pattern_sort=True):
+        if not pattern_sort:
+            return self.expr.get_sort_key()
+
+        return (
+            OPTIONSPATTERN_SORT_KEY,
+            # Check if this is necesary...
+            self.head.get_sort_key(True),
+            tuple(element.get_sort_key(True) for element in self.elements),
+        )
+
 
 class Pattern(PatternObject):
     """
@@ -474,6 +487,15 @@ class Pattern(PatternObject):
         verbatim_expr = Expression(SymbolVerbatim, existing)
         verbatim = Verbatim(verbatim_expr)
         return verbatim.get_match_candidates(elements, pattern_context)
+
+    def get_sort_key(self, pattern_sort=True):
+        if not pattern_sort:
+            return self.expr.get_sort_key()
+        sub = list(self.pattern.get_sort_key(True))
+        sub_key = list(sub[0])
+        sub_key[3] = 0
+        sub[0] = tuple(sub_key)
+        return tuple(sub)
 
 
 class Repeated(PostfixOperator, PatternObject):
@@ -661,6 +683,16 @@ class Verbatim(PatternObject):
 
         if self.content.sameQ(expression):
             yield_func(vars_dict, None)
+
+    def get_sort_key(self, pattern_sort=True):
+        if not pattern_sort:
+            return self.expr.get_sort_key()
+        return (
+            VERBATIM_PATTERN_SORT_KEY,
+            # TODO: Check if this is necesary...
+            self.head.get_sort_key(True),
+            tuple(element.get_sort_key(True) for element in self.elements),
+        )
 
 
 # TODO: Implement `KeyValuePattern`, `PatternSequence`, and `OrderlessPatternSequence`

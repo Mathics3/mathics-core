@@ -36,10 +36,7 @@ from mathics.core.expression import Expression
 from mathics.core.keycomparable import (
     BASIC_ATOM_PATTERN_SORT_KEY,
     BASIC_EXPRESSION_PATTERN_SORT_KEY,
-    EMPTY_ALTERNATIVE_PATTERN_SORT_KEY,
     END_OF_LIST_PATTERN_SORT_KEY,
-    OPTIONSPATTERN_SORT_KEY,
-    VERBATIM_PATTERN_SORT_KEY,
 )
 from mathics.core.symbols import Atom, Symbol, symbol_set
 from mathics.core.systemsymbols import (
@@ -56,7 +53,6 @@ from mathics.core.systemsymbols import (
     SymbolRepeated,
     SymbolRepeatedNull,
     SymbolSequence,
-    SymbolVerbatim,
 )
 from mathics.core.util import permutations, subranges, subsets
 
@@ -1229,60 +1225,16 @@ def build_pattern_sort_key(patt):
     6: elements / 0 for atoms
     7: 0/1:        0 for Condition
     """
-    head = patt.expr.head
-
-    if head is SymbolPatternTest:
-        if len(patt.elements) == 2:
-            sub = list(patt.elements[0].get_sort_key(True))
-            sub_key = list(sub[0])
-            sub_key[2] = 0
-            sub[0] = tuple(sub_key)
-            return tuple(sub)
-    elif head is SymbolCondition:
-        if len(patt.elements) == 2:
-            sub = list(patt.elements[0].get_sort_key(True))
-            sub_key = list(sub[0])
-            sub_key[5] = 0
-            sub[0] = tuple(sub_key)
-            return tuple(sub)
-    elif head is SymbolPattern:
-        if len(patt.elements) == 2:
-            sub = list(patt.elements[1].get_sort_key(True))
-            sub_key = list(sub[0])
-            sub_key[3] = 0
-            sub[0] = tuple(sub_key)
-            return tuple(sub)
-    elif head is SymbolOptional:
-        if len(patt.elements) in (1, 2):
-            sub = list(patt.elements[0].get_sort_key(True))
-            sub_key = list(sub[0])
-            sub_key[4] = 1
-            sub[0] = tuple(sub_key)
-            return tuple(sub)
-    elif head is SymbolVerbatim:
-        if len(patt.elements) != 1:
-            return (
-                VERBATIM_PATTERN_SORT_KEY,
-                patt.head.get_sort_key(True),
-                tuple(element.get_sort_key(True) for element in patt.elements),
+    return (
+        BASIC_EXPRESSION_PATTERN_SORT_KEY,
+        patt.head.get_sort_key(True),
+        tuple(
+            chain(
+                (element.get_sort_key(True) for element in patt.elements),
+                # This last element ensures that longest patterns come first.
+                # TODO: Check if this should be always, or just in the case of
+                # conditions
+                (END_OF_LIST_PATTERN_SORT_KEY,),
             )
-        return patt.elements[0].get_sort_key(True)
-    elif head is SymbolOptionsPattern:
-        return (
-            OPTIONSPATTERN_SORT_KEY,
-            patt.head.get_sort_key(True),
-            tuple(element.get_sort_key(True) for element in patt.elements),
-        )
-    else:
-        # Append (4,) to elements so that longer expressions have higher
-        # precedence
-        return (
-            BASIC_EXPRESSION_PATTERN_SORT_KEY,
-            patt.head.get_sort_key(True),
-            tuple(
-                chain(
-                    (element.get_sort_key(True) for element in patt.elements),
-                    (END_OF_LIST_PATTERN_SORT_KEY,),
-                )
-            ),
-        )
+        ),
+    )
