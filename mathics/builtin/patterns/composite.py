@@ -160,6 +160,8 @@ class Except(PatternObject):
         else:
             self.p.match(expression, pattern_context)
 
+    # TODO: add get_sort_key, when we figure out how does it should look...
+
 
 class HoldPattern(PatternObject):
     """
