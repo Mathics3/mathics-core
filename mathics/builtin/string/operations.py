@@ -34,11 +34,11 @@ from mathics.core.systemsymbols import (
     SymbolStringInsert,
     SymbolStringJoin,
     SymbolStringPosition,
+    SymbolStringRiffle,
     SymbolStringSplit,
 )
 from mathics.eval.list.eol import convert_seq, python_seq
 from mathics.eval.makeboxes import format_element
-from mathics.eval.stackframe import get_eval_Expression
 from mathics.eval.strings import eval_StringFind
 
 
@@ -642,7 +642,11 @@ class StringRiffle(Builtin):
     def eval(self, liststr, seps, evaluation):
         "StringRiffle[liststr_, seps___]"
         separators = seps.get_sequence()
-        exp = get_eval_Expression()
+        exp = (
+            Expression(SymbolStringRiffle, liststr, seps)
+            if separators
+            else Expression(SymbolStringRiffle, liststr)
+        )
 
         # Validate separators
         if len(separators) > 1:
