@@ -1241,7 +1241,9 @@ def build_pattern_sort_key(patt):
     elif head is SymbolCondition:
         if len(patt.elements) == 2:
             sub = list(patt.elements[0].get_sort_key(True))
-            sub[3] = 0
+            sub_key = list(sub[0])
+            sub_key[5] = 0
+            sub[0] = tuple(sub_key)
             return tuple(sub)
     elif head is SymbolPattern:
         if len(patt.elements) == 2:
@@ -1263,7 +1265,6 @@ def build_pattern_sort_key(patt):
                 VERBATIM_PATTERN_SORT_KEY,
                 patt.head.get_sort_key(True),
                 tuple(element.get_sort_key(True) for element in patt.elements),
-                1,
             )
         return patt.elements[0].get_sort_key(True)
     elif head is SymbolOptionsPattern:
@@ -1271,7 +1272,6 @@ def build_pattern_sort_key(patt):
             OPTIONSPATTERN_SORT_KEY,
             patt.head.get_sort_key(True),
             tuple(element.get_sort_key(True) for element in patt.elements),
-            1,
         )
     else:
         # Append (4,) to elements so that longer expressions have higher
@@ -1285,5 +1285,4 @@ def build_pattern_sort_key(patt):
                     (END_OF_LIST_PATTERN_SORT_KEY,),
                 )
             ),
-            1,
         )

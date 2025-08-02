@@ -122,7 +122,6 @@ class Blank(_Blank):
             pattern_key,
             BASIC_ATOM_PATTERN_SORT_KEY,
             tuple(element.get_sort_key(True) for element in self.elements),
-            1,
         )
 
 
@@ -180,7 +179,6 @@ class BlankNullSequence(_Blank):
             pattern_key,
             BASIC_ATOM_PATTERN_SORT_KEY,
             tuple(element.get_sort_key(True) for element in self.elements),
-            1,
         )
 
 
@@ -255,5 +253,4 @@ class BlankSequence(_Blank):
             pattern_key,
             BASIC_ATOM_PATTERN_SORT_KEY,
             tuple(element.get_sort_key(True) for element in self.elements),
-            1,
         )
