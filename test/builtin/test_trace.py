@@ -119,9 +119,9 @@ def test_skip_trivial_evaluation():
         assert [
             "  Evaluating: System`Plus[System`Times[2, 3], 4]",
             "    Evaluating: System`Times[2, 3]",
-            "      Evaluating/Replacing: System`Times[2, 3] = 6",
+            "      Replacing: System`Times[2, 3] = 6",
             "    Returning: System`Times[2, 3] = 6",
-            "    Evaluating/Replacing: System`Plus[System`Times[2, 3], 4] = 10",
+            "    Replacing: System`Plus[System`Times[2, 3], 4] = 10",
             "  Returning: System`Plus[System`Times[2, 3], 4] = 10",
         ] == event_queue
         # print()
