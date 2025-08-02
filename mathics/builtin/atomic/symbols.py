@@ -39,7 +39,6 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     SymbolAttributes,
-    SymbolContext,
     SymbolDefinition,
     SymbolFormat,
     SymbolGrid,
@@ -50,6 +49,7 @@ from mathics.core.systemsymbols import (
     SymbolSet,
 )
 from mathics.doc.online import online_doc_string
+from mathics.eval.stackframe import get_eval_Expression
 
 
 def gather_and_format_definition_rules(
@@ -204,9 +204,7 @@ class Context(Builtin):
 
         name = symbol.get_name()
         if not name:
-            evaluation.message(
-                "Context", "normal", Integer1, Expression(SymbolContext, symbol)
-            )
+            evaluation.message("Context", "normal", Integer1, get_eval_Expression())
             return
         assert "`" in name
         context = name[: name.rindex("`") + 1]

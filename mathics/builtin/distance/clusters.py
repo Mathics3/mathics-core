@@ -25,6 +25,7 @@ from mathics.core.systemsymbols import (
     SymbolClusteringComponents,
     SymbolFailed,
     SymbolFindClusters,
+    SymbolMethod,
     SymbolRule,
 )
 from mathics.eval.distance.clusters import (
@@ -35,6 +36,7 @@ from mathics.eval.distance.clusters import (
 )
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.parts import walk_levels
+from mathics.eval.stackframe import get_eval_Expression
 from mathics.eval.tensors import get_default_distance
 
 
@@ -74,7 +76,6 @@ class _Cluster(Builtin):
         "amtd": "`1` failed to pick a suitable distance function for `2`.",
         "bdmtd": 'Method in `` must be either "Optimize", "Agglomerate" or "KMeans".',
         "intpm": "Positive integer expected at position 2 in ``.",
-        "list": "Expected a list or a rule with equally sized lists at position 1 in ``.",
         "nclst": "Cannot find more clusters than there are elements: `1` is larger than `2`.",
         "xnum": "The distance function returned ``, which is not a non-negative real value.",
         "rseed": "The random seed specified through `` must be an integer or Automatic.",
@@ -91,7 +92,7 @@ class _Cluster(Builtin):
         method_string, method = self.get_option_string(options, "Method", evaluation)
         if method_string not in ("Optimize", "Agglomerate", "KMeans"):
             evaluation.message(
-                self.get_name(), "bdmtd", Expression(SymbolRule, "Method", method)
+                self.get_name(), "bdmtd", Expression(SymbolRule, SymbolMethod, method)
             )
             return
 
@@ -407,7 +408,6 @@ class Nearest(Builtin):
 
     messages = {
         "amtd": "`1` failed to pick a suitable distance function for `2`.",
-        "list": "Expected a list or a rule with equally sized lists at position 1 in ``.",
         "nimp": "Method `1` is not implemented yet.",
     }
 
@@ -463,9 +463,7 @@ class Nearest(Builtin):
         if distance_function_string == "Automatic":
             distance_function = get_default_distance(dist_p)
             if distance_function is None:
-                evaluation.message(
-                    self.get_name(), "amtd", "Nearest", ListExpression(*dist_p)
-                )
+                evaluation.message(self.get_name(), "amtd", get_eval_Expression())
                 return
 
             if pivot.get_head_name() == "System`List":

@@ -39,6 +39,7 @@ from mathics.core.builtin import (
 )
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.sympy import from_sympy
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
@@ -283,7 +284,7 @@ class Plus(InfixOperator, SympyFunction):
     # Remember to up sympy doc link when this is corrected
     sympy_name = "Add"
 
-    def format_plus(self, items, evaluation):
+    def format_plus(self, items, evaluation: Evaluation):
         "Plus[items__]"
 
         def negate(item):  # -> Expression (see FIXME below)
@@ -334,7 +335,7 @@ class Plus(InfixOperator, SympyFunction):
             SymbolLeft,
         )
 
-    def eval(self, items, evaluation):
+    def eval(self, items, evaluation: Evaluation):
         "Plus[items___]"
         items_tuple = numerify(items, evaluation).get_sequence()
         return eval_Plus(*items_tuple)
@@ -437,7 +438,7 @@ class Power(InfixOperator, MPMathFunction):
     # Remember to up sympy doc link when this is corrected
     sympy_name = "Pow"
 
-    def eval_check(self, x, y, evaluation):
+    def eval_check(self, x, y, evaluation: Evaluation):
         "Power[x_, y_]"
 
         # Power uses MPMathFunction but does some error checking first

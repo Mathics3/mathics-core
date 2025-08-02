@@ -9,6 +9,9 @@ Functions for manipulating colors and color images.
 import itertools
 from math import floor
 
+import numpy
+import PIL.ImageOps
+
 from mathics.builtin.colors.color_directives import ColorError, RGBColor, _ColorObject
 from mathics.builtin.colors.color_internals import convert_color
 from mathics.builtin.image.base import Image
@@ -22,9 +25,6 @@ from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolRGBColor
 
 _image_requires = ("numpy", "PIL")
-
-import numpy
-import PIL.ImageOps
 
 
 class Blend(Builtin):

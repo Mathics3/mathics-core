@@ -166,10 +166,7 @@ import pytest
         ## 1st is not a list
         (
             'StringRiffle["abcdef"]',
-            (
-                "List expected at position 1 in StringRiffle[abcdef].",
-                "StringRiffle called with 1 argument; 2 or more arguments are expected.",
-            ),
+            ("List expected at position 1 in StringRiffle[abcdef].",),
             "StringRiffle[abcdef]",
             None,
         ),

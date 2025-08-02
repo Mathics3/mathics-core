@@ -2,9 +2,7 @@
 """
 Unit tests from builtins/files_io/filesystem.py
 """
-import os.path as osp
-import sys
-from test.helper import check_evaluation, evaluate
+from test.helper import check_evaluation
 
 import pytest
 
