@@ -17,6 +17,7 @@ from mathics.core.keycomparable import (
     EMPTY_ALTERNATIVE_PATTERN_SORT_KEY,
     END_OF_LIST_PATTERN_SORT_KEY,
     OPTIONSPATTERN_SORT_KEY,
+    PATTERN_SORT_KEY_NAMEDPATTERN,
     VERBATIM_PATTERN_SORT_KEY,
 )
 from mathics.core.list import ListExpression
@@ -492,9 +493,7 @@ class Pattern(PatternObject):
         if not pattern_sort:
             return self.expr.get_sort_key()
         sub = list(self.pattern.get_sort_key(True))
-        sub_key = list(sub[0])
-        sub_key[3] = 0
-        sub[0] = tuple(sub_key)
+        sub[0] = sub[0] & PATTERN_SORT_KEY_NAMEDPATTERN
         return tuple(sub)
 
 
