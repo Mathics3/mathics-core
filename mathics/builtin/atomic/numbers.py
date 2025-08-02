@@ -58,7 +58,6 @@ from mathics.eval.numbers.numbers import (
     eval_Precision,
     log_n_b,
 )
-from mathics.eval.stackframe import get_eval_Expression
 
 SymbolIntegerDigits = Symbol("IntegerDigits")
 SymbolIntegerExponent = Symbol("IntegerExponent")
@@ -556,8 +555,9 @@ class RealDigits(Builtin):
         elements = []
         if pos is not None:
             elements.append(from_python(pos))
+        expr = Expression(SymbolRealDigits, n, b, length, *elements)
         if not (isinstance(length, Integer) and length.get_int_value() >= 0):
-            evaluation.message("RealDigits", "intnm", Integer3, get_eval_Expression())
+            evaluation.message("RealDigits", "intnm", Integer3, expr)
             return
 
         return self.eval_with_base(
@@ -567,7 +567,9 @@ class RealDigits(Builtin):
     def eval_with_base_length_and_precision(self, n, b, length, p, evaluation):
         """%(name)s[n_?NumericQ, b_Integer, length_, p_]"""
         if not isinstance(p, Integer):
-            evaluation.message("RealDigits", "intm", get_eval_Expression())
+            evaluation.message(
+                "RealDigits", "intm", Expression(SymbolRealDigits, n, b, length, p)
+            )
             return
 
         return self.eval_with_base_and_length(

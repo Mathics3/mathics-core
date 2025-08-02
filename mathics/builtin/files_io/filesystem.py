@@ -15,7 +15,7 @@ from mathics.builtin.files_io.files import MathicsOpen
 from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_LISTABLE, A_LOCKED, A_PROTECTED
 from mathics.core.builtin import Builtin, MessageException, Predefined
-from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.convert.regex import to_regex
 from mathics.core.evaluation import Evaluation
@@ -28,7 +28,12 @@ from mathics.core.symbols import (
     SymbolTrue,
     valid_context_name,
 )
-from mathics.core.systemsymbols import SymbolFailed, SymbolMemberQ, SymbolPackages
+from mathics.core.systemsymbols import (
+    SymbolFailed,
+    SymbolMemberQ,
+    SymbolNeeds,
+    SymbolPackages,
+)
 from mathics.eval.directories import DIRECTORY_STACK
 from mathics.eval.files_io.files import eval_Get
 from mathics.eval.stackframe import get_eval_Expression
@@ -69,7 +74,9 @@ class AbsoluteFileName(Builtin):
         result, _ = path_search(py_name)
 
         if result is None:
-            evaluation.message("AbsoluteFileName", "nffil", get_eval_Expression())
+            evaluation.message(
+                "AbsoluteFileName", "nffil", to_expression("AbsoluteFileName", name)
+            )
             return SymbolFailed
 
         return String(osp.abspath(result))
@@ -852,7 +859,7 @@ class Needs(Builtin):
             context_str = curr_ctxt + context_str[1:]
             context = String(context_str)
         if not valid_context_name(context_str):
-            evaluation.message("Needs", "ctx", get_eval_Expression(), 1, "`")
+            evaluation.message("Needs", "ctx", Expression(SymbolNeeds, context), 1, "`")
             return
         test_loaded = Expression(SymbolMemberQ, SymbolPackages, context)
         test_loaded = test_loaded.evaluate(evaluation)
