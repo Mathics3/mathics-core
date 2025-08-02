@@ -14,6 +14,8 @@ from mathics.core.expression import Expression
 from mathics.core.keycomparable import (
     BASIC_ATOM_PATTERN_SORT_KEY,
     BASIC_EXPRESSION_PATTERN_SORT_KEY,
+    EMPTY_ALTERNATIVE_PATTERN_SORT_KEY,
+    END_OF_LIST_PATTERN_SORT_KEY,
 )
 from mathics.core.list import ListExpression
 from mathics.core.pattern import BasePattern, StopGenerator
@@ -82,6 +84,22 @@ class Alternatives(InfixOperator, PatternObject):
                 if range_lst[1] is None or sub[1] > range_lst[1]:
                     range_lst[1] = sub[1]
         return tuple(range_lst)
+
+    def get_sort_key(self, pattern_sort=True):
+        if not pattern_sort:
+            return self.expr.get_sort_key()
+
+        min_key = END_OF_LIST_PATTERN_SORT_KEY
+        min = None
+        for element in self.elements:
+            key = element.get_sort_key(True)
+            if key < min_key:
+                min = element
+                min_key = key
+        if min is None:
+            # empty alternatives -> very restrictive pattern
+            return EMPTY_ALTERNATIVE_PATTERN_SORT_KEY
+        return min_key
 
 
 class Except(PatternObject):
