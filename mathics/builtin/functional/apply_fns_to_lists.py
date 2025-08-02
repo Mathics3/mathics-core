@@ -11,7 +11,7 @@ they are always applied to every element in a list.
 
 from typing import Iterable
 
-from mathics.core.atoms import Integer, Integer3
+from mathics.core.atoms import Integer, Integer0, Integer1, Integer3
 from mathics.core.builtin import Builtin, InfixOperator
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluation import Evaluation
@@ -22,6 +22,7 @@ from mathics.core.symbols import Atom, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import SymbolMapThread
 from mathics.eval.functional.apply_fns_to_lists import eval_MapAt
 from mathics.eval.parts import python_levelspec, walk_levels
+from mathics.eval.patterns import param_and_option_from_optional_place
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.applying-functions-to-lists"
@@ -75,14 +76,13 @@ class Apply(InfixOperator):
         "Heads": "False",
     }
 
-    def eval_invalidlevel(self, f, expr, ls, evaluation, options={}):
-        "Apply[f_, expr_, ls_, OptionsPattern[Apply]]"
-
-        evaluation.message("Apply", "level", ls)
-
     def eval(self, f, expr, ls, evaluation, options={}):
-        """Apply[f_, expr_, Optional[Pattern[ls, _?LevelQ], {0}],
+        """Apply[f_, expr_, Optional[ls_, {0}],
         OptionsPattern[Apply]]"""
+
+        ls = param_and_option_from_optional_place(
+            ls, options, "System`Apply", evaluation
+        ) or ListExpression(Integer0)
 
         try:
             start, stop = python_levelspec(ls)
@@ -136,15 +136,13 @@ class Map(InfixOperator):
         "Heads": "False",
     }
 
-    def eval_invalidlevel(self, f, expr, ls, evaluation, options={}):
-        "Map[f_, expr_, ls_, OptionsPattern[Map]]"
-
-        evaluation.message("Map", "level", ls)
-
     def eval_level(self, f, expr, ls, evaluation, options={}):
-        """Map[f_, expr_, Optional[Pattern[ls, _?LevelQ], {1}],
+        """Map[f_, expr_, Optional[ls_, {1}],
         OptionsPattern[Map]]"""
 
+        ls = param_and_option_from_optional_place(
+            ls, options, "System`Map", evaluation
+        ) or ListExpression(Integer1)
         try:
             start, stop = python_levelspec(ls)
         except InvalidLevelspecError:
@@ -269,15 +267,12 @@ class MapIndexed(Builtin):
         "Heads": "False",
     }
 
-    def eval_invalidlevel(self, f, expr, ls, evaluation, options={}):
-        "MapIndexed[f_, expr_, ls_, OptionsPattern[MapIndexed]]"
-
-        evaluation.message("MapIndexed", "level", ls)
-
     def eval_level(self, f, expr, ls, evaluation, options={}):
-        """MapIndexed[f_, expr_, Optional[Pattern[ls, _?LevelQ], {1}],
+        """MapIndexed[f_, expr_, Optional[ls_, {1}],
         OptionsPattern[MapIndexed]]"""
-
+        ls = param_and_option_from_optional_place(
+            ls, options, "System`MapIndexed", evaluation
+        ) or ListExpression(Integer1)
         try:
             start, stop = python_levelspec(ls)
         except InvalidLevelspecError:
@@ -415,15 +410,12 @@ class Scan(Builtin):
         "Scan[f_][expr_]": "Scan[f, expr]",
     }
 
-    def eval_invalidlevel(self, f, expr, ls, evaluation, options={}):
-        "Scan[f_, expr_, ls_, OptionsPattern[Map]]"
-
-        evaluation.message("Map", "level", ls)
-
     def eval_level(self, f, expr, ls, evaluation, options={}):
-        """Scan[f_, expr_, Optional[Pattern[ls, _?LevelQ], {1}],
+        """Scan[f_, expr_, Optional[ls_, {1}],
         OptionsPattern[Map]]"""
-
+        ls = param_and_option_from_optional_place(
+            ls, options, "System`Scan", evaluation
+        ) or ListExpression(Integer0)
         try:
             start, stop = python_levelspec(ls)
         except InvalidLevelspecError:

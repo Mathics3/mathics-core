@@ -30,6 +30,7 @@ from mathics.core.exceptions import (
     PartRangeError,
 )
 from mathics.core.expression import Expression, ExpressionInfinity
+from mathics.core.expression_predefined import MATHICS3_INFINITY
 from mathics.core.list import ListExpression
 from mathics.core.rules import Rule
 from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
@@ -61,7 +62,7 @@ from mathics.eval.parts import (
     set_part,
     walk_levels,
 )
-from mathics.eval.patterns import Matcher
+from mathics.eval.patterns import Matcher, param_and_option_from_optional_place
 
 SymbolDeleteCases = Symbol("System`DeleteCases")
 SymbolPrepend = Symbol("System`Prepend")
@@ -362,7 +363,9 @@ class Delete(Builtin):
 
     def eval(self, expr, positions, evaluation):
         "Delete[expr_, positions___]"
+
         positions = positions.get_sequence()
+
         if len(positions) > 1:
             evaluation.message("Delete", "argt", Integer(len(positions) + 1))
             return
@@ -388,9 +391,10 @@ class Delete(Builtin):
             if isinstance(elements[0], ListExpression)
             else [positions]
         )
-        positions.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
+        # Sort the positions in ascending order
+        positions.sort()
         newexpr = expr
-        for position in positions:
+        for position in positions[::-1]:
             pos = [p.get_int_value() for p in position.get_elements()]
             if None in pos:
                 evaluation.message(
@@ -1282,16 +1286,12 @@ class Position(Builtin):
     }
     summary_text = "positions of matching elements"
 
-    def eval_invalidlevel(self, patt, expr, ls, evaluation, options={}):
-        "Position[expr_, patt_, ls_, OptionsPattern[Position]]"
-
-        evaluation.message("Position", "level", ls)
-        return
-
     def eval_level(self, expr, patt, ls, evaluation, options={}):
-        """Position[expr_, patt_, Optional[Pattern[ls, _?LevelQ], {0, DirectedInfinity[1]}],
+        """Position[expr_, patt_, Optional[ls_, {0, DirectedInfinity[1]}],
         OptionsPattern[Position]]"""
-
+        ls = param_and_option_from_optional_place(
+            ls, options, "System`Position", evaluation
+        ) or ListExpression(Integer0, MATHICS3_INFINITY)
         try:
             start, stop = python_levelspec(ls)
         except InvalidLevelspecError:
