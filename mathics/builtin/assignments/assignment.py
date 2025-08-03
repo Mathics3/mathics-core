@@ -365,7 +365,7 @@ class UpSet(InfixOperator):
         "lhs_ ^= rhs_"
         if isinstance(lhs, Atom):
             evaluation.message(
-                "UpSet", "normal", 1, Expression(SymbolUpSetDelayed, lhs, rhs)
+                "UpSet", "normal", 1, Expression(Symbol(self.get_name()), lhs, rhs)
             )
             return
         eval_assign(self, lhs, rhs, evaluation, upset=True)
@@ -405,7 +405,10 @@ class UpSetDelayed(UpSet):
         "lhs_ ^:= rhs_"
         if isinstance(lhs, Atom):
             evaluation.message(
-                "UpSetDelayed", "normal", 1, Expression(SymbolUpSetDelayed, lhs, rhs)
+                "UpSetDelayed",
+                "normal",
+                1,
+                Expression(Symbol(self.get_name()), lhs, rhs),
             )
             return
 
