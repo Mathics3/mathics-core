@@ -192,6 +192,7 @@ class General(Builtin):
         "fnsym": (
             "First argument in `1` is not a symbol " "or a string naming a symbol."
         ),
+        "hdiv": "`1` does not exist. Arguments are not consistent.",
         "heads": "Heads `1` and `2` are expected to be the same.",
         "ilsnn": (
             "Single or list of non-negative integers expected at " "position `1`."
@@ -205,9 +206,11 @@ class General(Builtin):
         "iterb": "Iterator does not have appropriate bounds.",
         "ivar": "`1` is not a valid variable.",
         "level": ("Level specification `1` is not of the form n, " "{n}, or {m, n}."),
+        "list": "Expected a list or a rule with equally sized lists at position 1 in ``.",
         "locked": "Symbol `1` is locked.",
         "matsq": "Argument `1` is not a non-empty square matrix.",
         "newpkg": "In WL, there is a new package for this.",
+        "nffil": "File not found during `1`.",
         "noopen": "Cannot open `1`.",
         "nord": "Invalid comparison with `1` attempted.",
         "normal": "Nonatomic expression expected at position `1` in `2`.",

@@ -26,6 +26,13 @@ def test_upset():
     check_evaluation("UpValues[h]", "{HoldPattern[f[g, a + b, h]] :> 2}")
 
 
+def test_order():
+    check_evaluation(None, None)
+    check_evaluation(
+        "f[___]:=1;f[_,_]:=2; f[1,2]", "2", "f[_,_] must have priority over f[___]"
+    )
+
+
 @pytest.mark.parametrize(
     ["expr", "expect", "fail_msg", "expected_msgs"],
     [
@@ -264,7 +271,6 @@ def test_upset():
         ),
     ],
 )
-# @pytest.mark.xfail
 def test_assignment(expr, expect, fail_msg, expected_msgs):
     check_evaluation(
         expr, expect, failure_message=fail_msg, expected_messages=expected_msgs
