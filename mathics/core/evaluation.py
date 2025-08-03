@@ -105,6 +105,7 @@ class Evaluation:
 
         if definitions is None:
             definitions = Definitions()
+        self.current_expression = None
         self.definitions: Definitions = definitions
         self.recursion_depth = 0
         self.timeout = False
