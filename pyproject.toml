@@ -83,7 +83,7 @@ cython = [
 ]
 
 [project.scripts]
-mathics = "mathics.main:main"
+mathics = "mathics.__main__:main"
 
 [tool.setuptools]
 include-package-data = false
