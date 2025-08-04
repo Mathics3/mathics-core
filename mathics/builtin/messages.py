@@ -187,6 +187,9 @@ class General(Builtin):
         "color": "`1` is not a valid color or gray-level specification.",
         "cxt": "`1` is not a valid context name.",
         "divz": "The argument `1` should be nonzero.",
+        "dgbgn": "Entering Dialog; enter Ctrl-D to exit.",
+        # "dgbgn": "Entering Dialog; use Return[] to exit.",
+        "dgend": "Exiting Dialog.",
         "digit": "Digit at position `1` in `2` is too large to be used in base `3`.",
         "exact": "Argument `1` is not an exact number.",
         "fnsym": (
