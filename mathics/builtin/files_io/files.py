@@ -49,6 +49,7 @@ from mathics.eval.files_io.read import (
     read_name_and_stream,
 )
 from mathics.eval.makeboxes import do_format, format_element
+from mathics.eval.stackframe import get_eval_Expression
 
 
 class Input_(Predefined):
@@ -567,7 +568,7 @@ class Put(InfixOperator):
 
     summary_text = "write an expression to a file"
 
-    def eval(self, exprs, filename, evaluation):
+    def eval(self, exprs, filename, evaluation: Evaluation):
         "Put[exprs___, filename_String]"
         instream = to_expression("OpenWrite", filename).evaluate(evaluation)
         if len(instream.elements) == 2:
@@ -581,12 +582,12 @@ class Put(InfixOperator):
         close_stream(py_instream, instream_number)
         return result
 
-    def eval_input(self, exprs, name, n, evaluation):
+    def eval_input(self, exprs, name, n, evaluation: Evaluation):
         "Put[exprs___, OutputStream[name_, n_]]"
         stream = stream_manager.lookup_stream(n.get_int_value())
 
         if stream is None or stream.io.closed:
-            evaluation.message("Put", "openx", to_expression("OutputSteam", name, n))
+            evaluation.message("Put", "openx", get_eval_Expression())
             return
 
         # In Mathics-server, evaluation.format_output is modified.
@@ -608,11 +609,10 @@ class Put(InfixOperator):
 
         return SymbolNull
 
-    def eval_default(self, exprs, filename, evaluation):
+    def eval_default(self, exprs, filename, evaluation: Evaluation):
         "Put[exprs___, filename_]"
-        expr = to_expression("Put", exprs, filename)
         evaluation.message("Put", "stream", filename)
-        return expr
+        return to_expression("Put", exprs, filename)
 
 
 class PutAppend(InfixOperator):
@@ -661,7 +661,7 @@ class PutAppend(InfixOperator):
 
     summary_text = "append an expression to a file"
 
-    def eval(self, exprs, filename, evaluation):
+    def eval(self, exprs, filename: String, evaluation):
         "PutAppend[exprs___, filename_String]"
         instream = to_expression("OpenAppend", filename).evaluate(evaluation)
         if len(instream.elements) == 2:
@@ -672,12 +672,12 @@ class PutAppend(InfixOperator):
         to_expression("Close", instream).evaluate(evaluation)
         return result
 
-    def eval_input(self, exprs, name, n, evaluation):
+    def eval_input(self, exprs, name, n, evaluation: Evaluation):
         "PutAppend[exprs___, OutputStream[name_, n_]]"
         stream = stream_manager.lookup_stream(n.get_int_value())
 
         if stream is None or stream.io.closed:
-            evaluation.message("Put", "openx", to_expression("OutputSteam", name, n))
+            evaluation.message("Put", "openx", get_eval_Expression())
             return
 
         text = [
@@ -691,11 +691,10 @@ class PutAppend(InfixOperator):
 
         return SymbolNull
 
-    def eval_default(self, exprs, filename, evaluation):
+    def eval_default(self, exprs, filename, evaluation: Evaluation):
         "PutAppend[exprs___, filename_]"
-        expr = to_expression("PutAppend", exprs, filename)
         evaluation.message("PutAppend", "stream", filename)
-        return expr
+        return get_eval_Expression()
 
 
 def validate_read_type(name: str, typ, evaluation: Evaluation):
@@ -1100,11 +1099,9 @@ class ReadList(Read):
         # token_words = py_options['TokenWords']
         # word_separators = py_options['WordSeparators']
 
-        py_n = n.get_int_value()
+        py_n = n.value
         if py_n < 0:
-            evaluation.message(
-                "ReadList", "intnm", to_expression("ReadList", file, types, n)
-            )
+            evaluation.message("ReadList", "intnm", get_eval_Expression())
             return
 
         result = []
@@ -1215,9 +1212,7 @@ class SetStreamPosition(Builtin):
 
         seekpos = m.to_python()
         if not (isinstance(seekpos, int) or seekpos == float("inf")):
-            evaluation.message(
-                "SetStreamPosition", "stmrng", to_expression("InputStream", name, n), m
-            )
+            evaluation.message("SetStreamPosition", "stmrng", get_eval_Expression(), m)
             return
 
         try:
@@ -1309,11 +1304,7 @@ class Skip(Read):
 
         py_m = m.to_python()
         if not (isinstance(py_m, int) and py_m > 0):
-            evaluation.message(
-                "Skip",
-                "intm",
-                to_expression("Skip", to_expression("InputStream", name, n), typ, m),
-            )
+            evaluation.message("Skip", "intm", get_eval_Expression())
             return
         for i in range(py_m):
             result = super(Skip, self).eval(stream, typ, evaluation, options)
@@ -1478,7 +1469,7 @@ class Streams(Builtin):
         "Streams[]"
         return self.eval_name(None, evaluation)
 
-    def eval_name(self, name, evaluation):
+    def eval_name(self, name: String, evaluation):
         "Streams[name_String]"
         result = []
         for stream in stream_manager.STREAMS.values():
