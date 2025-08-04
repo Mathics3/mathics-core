@@ -38,6 +38,7 @@ from mathics.core.keycomparable import (
     BASIC_EXPRESSION_PATTERN_SORT_KEY,
     END_OF_LIST_PATTERN_SORT_KEY,
 )
+from mathics.core.interrupt import TimeoutInterrupt
 from mathics.core.symbols import Atom, Symbol, symbol_set
 from mathics.core.systemsymbols import (
     SymbolAlternatives,
@@ -499,7 +500,7 @@ class ExpressionPattern(BasePattern):
         if isinstance(expression, Expression):
             try:
                 basic_match_expression(self, expression, parms)
-            except StopGenerator_ExpressionPattern_match:
+            except (StopGenerator_ExpressionPattern_match, TimeoutInterrupt):
                 return
 
         if A_ONE_IDENTITY & attributes:

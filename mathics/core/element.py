@@ -186,7 +186,9 @@ class BaseElement(KeyComparable, ABC):
             return self == rhs
         return None
 
-    def format(self, evaluation, form, **kwargs) -> Optional["BaseElement"]:
+    def format(
+        self, evaluation, form, **kwargs
+    ) -> Optional[Union["BaseElement", "BoxElementMixin"]]:
         from mathics.core.symbols import Symbol
         from mathics.eval.makeboxes import format_element
 

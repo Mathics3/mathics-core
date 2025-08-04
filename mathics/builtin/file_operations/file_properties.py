@@ -50,7 +50,6 @@ class FileDate(Builtin):
     """
 
     messages = {
-        "nffil": "File not found during `1`.",
         "datetype": (
             'Date type Fail should be "Access", "Modification", '
             '"Creation" (Windows only), '
@@ -248,7 +247,6 @@ class SetFileDate(Builtin):
         "fstr": (
             "File specification `1` is not a string of one or " "more characters."
         ),
-        "nffil": "File not found during `1`.",
         "fdate": (
             "Date specification should be either the number of seconds "
             "since January 1, 1900 or a {y, m, d, h, m, s} list."
