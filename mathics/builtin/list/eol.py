@@ -198,25 +198,25 @@ class Cases(Builtin):
 
     summary_text = "list elements matching a pattern"
 
-    def eval(self, items, pattern, ls, evaluation, options):
-        "Cases[items_, pattern_, ls_:{1}, OptionsPattern[]]"
+    def eval(self, items, pattern, levelspec, evaluation, options):
+        "Cases[items_, pattern_, levelspec_:{1}, OptionsPattern[]]"
         if isinstance(items, Atom):
             return ListExpression()
 
-        if ls.has_form("Rule", 2):
-            if ls.elements[0].get_name() == "System`Heads":
-                heads = ls.elements[1] is SymbolTrue
-                ls = ListExpression(Integer1)
+        if levelspec.has_form("Rule", 2):
+            if levelspec.elements[0].get_name() == "System`Heads":
+                heads = levelspec.elements[1] is SymbolTrue
+                levelspec = ListExpression(Integer1)
             else:
-                evaluation.message("Position", "level", ls)
+                evaluation.message("Position", "level", levelspec)
                 return
         else:
             heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
 
         try:
-            start, stop = python_levelspec(ls)
+            start, stop = python_levelspec(levelspec)
         except InvalidLevelspecError:
-            evaluation.message("Position", "level", ls)
+            evaluation.message("Position", "level", levelspec)
             return
 
         results = []
@@ -1286,16 +1286,16 @@ class Position(Builtin):
     }
     summary_text = "positions of matching elements"
 
-    def eval_level(self, expr, patt, ls, evaluation, options={}):
-        """Position[expr_, patt_, Optional[ls_, {0, DirectedInfinity[1]}],
+    def eval_level(self, expr, patt, levelspec, evaluation, options={}):
+        """Position[expr_, patt_, Optional[levelspec_, {0, DirectedInfinity[1]}],
         OptionsPattern[Position]]"""
-        ls = param_and_option_from_optional_place(
-            ls, options, "System`Position", evaluation
+        levelspec = param_and_option_from_optional_place(
+            levelspec, options, "System`Position", evaluation
         ) or ListExpression(Integer0, MATHICS3_INFINITY)
         try:
-            start, stop = python_levelspec(ls)
+            start, stop = python_levelspec(levelspec)
         except InvalidLevelspecError:
-            evaluation.message("Position", "level", ls)
+            evaluation.message("Position", "level", levelspec)
             return
 
         match = Matcher(patt, evaluation).match
