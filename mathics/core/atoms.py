@@ -11,6 +11,10 @@ import sympy
 from sympy.core import numbers as sympy_numbers
 
 from mathics.core.element import BoxElementMixin, ImmutableValueMixin
+from mathics.core.keycomparable import (
+    BASIC_ATOM_NUMBER_SORT_KEY,
+    BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY,
+)
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
     MACHINE_PRECISION_VALUE,
@@ -93,7 +97,12 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         if pattern_sort:
             return super().get_sort_key(True)
         else:
-            return (0, 0, self.value, 0, 1)
+            return (
+                BASIC_ATOM_NUMBER_SORT_KEY,
+                self.value,
+                0,
+                1,
+            )
 
     @property
     def is_literal(self) -> bool:
@@ -680,7 +689,12 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
         if pattern_sort:
             return super().get_sort_key(True)
         else:
-            return (0, 1, self.value, 0, 1)
+            return (
+                BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY,
+                self.value,
+                0,
+                1,
+            )
 
     @property
     def is_literal(self) -> bool:
@@ -831,7 +845,12 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         if pattern_sort:
             return super().get_sort_key(True)
         else:
-            return (0, 0, self.real.get_sort_key()[2], self.imag.get_sort_key()[2], 1)
+            return (
+                BASIC_ATOM_NUMBER_SORT_KEY,
+                self.real.get_sort_key(False)[1],
+                self.imag.get_sort_key(False)[1],
+                1,
+            )
 
     def sameQ(self, rhs) -> bool:
         """Mathics SameQ"""
@@ -978,7 +997,12 @@ class Rational(Number[sympy.Rational]):
             return super().get_sort_key(True)
         else:
             # HACK: otherwise "Bus error" when comparing 1==1.
-            return (0, 0, sympy.Float(self.value), 0, 1)
+            return (
+                BASIC_ATOM_NUMBER_SORT_KEY,
+                sympy.Float(self.value),
+                0,
+                1,
+            )
 
     def do_copy(self) -> "Rational":
         return Rational(self.value)
@@ -1055,7 +1079,12 @@ class String(Atom, BoxElementMixin):
         if pattern_sort:
             return super().get_sort_key(True)
         else:
-            return (0, 1, self.value, 0, 1)
+            return (
+                BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY,
+                self.value,
+                0,
+                1,
+            )
 
     def get_string_value(self) -> str:
         return self.value
