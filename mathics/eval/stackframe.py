@@ -37,7 +37,7 @@ def get_eval_Expression() -> Optional[Expression]:
     report what Expression was getting evaluated. None is returned if
     not found.
 
-    The method is fragile in that it relies on the Mathics3 implementation
+    The function is fragile in that it relies on the Mathics3 implementation
     having a Expression.rewrite_apply_eval_step() method.  It walks to
     call stack to find that Expression.
 
@@ -59,6 +59,27 @@ def get_eval_Expression() -> Optional[Expression]:
                 return self_obj
 
         frame = frame.f_back
+
+
+def get_eval_doc_signature() -> Optional[str]:
+    """Returns Builtin __doc__ string, essentially the Function or
+    Variable signature, for the most recent Mathics3 eval method
+
+    The function is fragile in that it relies on the Mathics3 implementation
+    protocol of having evaluation methods that start with "eval" and belong
+    to some Mathics3 Builtin class.
+
+    None is returned if we can't find such a docstring.
+    """
+
+    eval_frame = find_Mathics3_evaluation_method(inspect.currentframe().f_back)
+    if eval_frame is None:
+        return None
+    eval_method_name = eval_frame.f_code.co_name
+    eval_method = getattr(eval_frame.f_locals.get("self"), eval_method_name)
+    if eval_method:
+        return eval_method.__doc__
+    return None
 
 
 def is_Mathics3_eval_method(frame) -> bool:
