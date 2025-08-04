@@ -3,15 +3,16 @@
 Structural Expression Functions
 """
 
-from mathics.core.atoms import Integer, Integer1
+from mathics.core.atoms import Integer, Integer1, Integer2
 from mathics.core.builtin import Builtin, InfixOperator, Predefined
 from mathics.core.exceptions import InvalidLevelspecError
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import BasePattern
 from mathics.core.symbols import Atom, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolMap, SymbolSortBy
+from mathics.core.systemsymbols import SymbolMap
 from mathics.eval.parts import python_levelspec, walk_levels
+from mathics.eval.stackframe import get_eval_Expression
 
 
 class MapApply(InfixOperator):
@@ -264,13 +265,10 @@ class SortBy(Builtin):
         "SortBy[li_, f_]"
 
         if isinstance(li, Atom):
-            evaluation.message(
-                "Sort", "normal", Integer1, Expression(SymbolSortBy, li, f)
-            )
+            evaluation.message("Sort", "normal", Integer1, get_eval_Expression())
             return
         elif li.get_head_name() != "System`List":
-            expr = Expression(SymbolSortBy, li, f)
-            evaluation.message(self.get_name(), "list", expr, 1)
+            evaluation.message(self.get_name(), "list", get_eval_Expression(), Integer1)
             return
         else:
             keys_expr = Expression(SymbolMap, f, li).evaluate(evaluation)  # precompute:
@@ -282,8 +280,7 @@ class SortBy(Builtin):
                 or keys_expr.get_head_name() != "System`List"
                 or len(keys_expr.elements) != len(li.elements)
             ):
-                expr = Expression(SymbolSortBy, li, f)
-                evaluation.message("SortBy", "func", expr, 2)
+                evaluation.message("SortBy", "func", get_eval_Expression(), Integer2)
                 return
 
             keys = keys_expr.elements
