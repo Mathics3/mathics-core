@@ -587,7 +587,7 @@ class Put(InfixOperator):
         stream = stream_manager.lookup_stream(n.get_int_value())
 
         if stream is None or stream.io.closed:
-            evaluation.message("Put", "openx", to_expression("OutputSteam", name, n))
+            evaluation.message("Put", "openx", get_eval_Expression())
             return
 
         # In Mathics-server, evaluation.format_output is modified.
@@ -1304,11 +1304,7 @@ class Skip(Read):
 
         py_m = m.to_python()
         if not (isinstance(py_m, int) and py_m > 0):
-            evaluation.message(
-                "Skip",
-                "intm",
-                to_expression("Skip", stream, typ, m),
-            )
+            evaluation.message("Skip", "intm", get_eval_Expression())
             return
         for i in range(py_m):
             result = super(Skip, self).eval(stream, typ, evaluation, options)

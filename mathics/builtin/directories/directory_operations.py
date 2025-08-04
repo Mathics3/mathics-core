@@ -47,7 +47,6 @@ class CreateDirectory(Builtin):
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
         ),
-        "nffil": "File not found during `1`.",
         "filex": "`1` already exists.",
     }
     summary_text = "create a directory"
