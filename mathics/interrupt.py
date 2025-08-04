@@ -170,5 +170,23 @@ def Mathics3_basic_signal_handler(sig, interrupted_frame):
     Mathics3_interrupt_handler(evaluation, interrupted_frame, print_fn)
 
 
+def Mathics3_USR1_signal_handler(sig: int, _):
+    """
+    Custom signal handler for SIGUSR1. When we get this signal, try to
+    find an Expression that is getting evaluated, and print that. Then
+    continue.
+    """
+    print(f"USR1 ({sig}) interrupt")
+    if (eval_expression := get_eval_Expression()) is not None:
+        # If eval string is long, take just the first 100 characters
+        # of it.
+        eval_expression_str = str(eval_expression)
+        if len(eval_expression_str) > 100:
+            eval_expression_str = eval_expression_str[:100] + "..."
+
+        print(f"Expression: {eval_expression_str}")
+
+
 def setup_signal_handler():
     signal.signal(signal.SIGINT, Mathics3_basic_signal_handler)
+    signal.signal(signal.SIGUSR1, Mathics3_USR1_signal_handler)
