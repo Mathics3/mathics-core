@@ -174,12 +174,13 @@ class Dispatch(Atom):
         """
         return self.src.element_precedence
 
+    @property
     def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.
         """
-        return self.src.pattern_precedence()
+        return self.src.pattern_precedence
 
     def get_sort_key(self, pattern_sort: bool = False) -> tuple:
         return self.src.get_sort_key()

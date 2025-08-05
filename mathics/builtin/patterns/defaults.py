@@ -128,6 +128,7 @@ class Optional(InfixOperator, PatternObject):
         """
         return self.expr.element_precedence
 
+    @property
     def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting

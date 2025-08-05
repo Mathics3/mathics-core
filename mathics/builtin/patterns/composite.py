@@ -95,6 +95,7 @@ class Alternatives(InfixOperator, PatternObject):
         """
         return self.expr.element_precedence
 
+    @property
     def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting
@@ -232,12 +233,13 @@ class HoldPattern(PatternObject):
         """
         return self.expr.element_precedence
 
+    @property
     def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.
         """
-        return self.pattern.pattern_precedence()
+        return self.pattern.pattern_precedence
 
     def get_sort_key(self, pattern_sort=True):
         if pattern_sort:
@@ -387,6 +389,7 @@ class OptionsPattern(PatternObject):
         """
         return self.expr.element_precedence
 
+    @property
     def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting
@@ -558,12 +561,13 @@ class Pattern(PatternObject):
         """
         return self.expr.element_precedence
 
+    @property
     def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.
         """
-        return self.pattern.pattern_precedence()
+        return self.pattern.pattern_precedence
 
     def get_sort_key(self, pattern_sort=True):
         if not pattern_sort:
@@ -672,6 +676,7 @@ class Repeated(PostfixOperator, PatternObject):
         """
         return self.expr.element_precedence
 
+    @property
     def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting
@@ -785,6 +790,7 @@ class Verbatim(PatternObject):
         """
         return self.expr.element_precedence
 
+    @property
     def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting

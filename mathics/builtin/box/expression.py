@@ -119,12 +119,13 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         """
         return self.to_expression().element_precedence
 
+    @property
     def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.
         """
-        return self.to_expression().pattern_precedence()
+        return self.to_expression().pattern_precedence
 
     # FIXME remove/rename
     def get_sort_key(self, pattern_sort=False) -> tuple:

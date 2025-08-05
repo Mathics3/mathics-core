@@ -118,6 +118,7 @@ class Blank(_Blank):
         """
         return self.expr.element_precedence
 
+    @property
     def pattern_precedence(self, pattern_sort=True):
         pattern_key = (
             BLANK_WITH_PATTERN_PATTERN_SORT_KEY
@@ -195,6 +196,7 @@ class BlankNullSequence(_Blank):
         """
         return self.expr.element_precedence
 
+    @property
     def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting
@@ -293,6 +295,7 @@ class BlankSequence(_Blank):
         """
         return self.expr.element_precedence
 
+    @property
     def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting

@@ -96,12 +96,13 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
             1,
         )
 
+    @property
     def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.
         """
-        return super().pattern_precedence()
+        return super().pattern_precedence
 
     # FIXME: can we refactor or subclass objects to remove pattern_sort?
     def get_sort_key(self, pattern_sort=False) -> tuple:
@@ -718,12 +719,13 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
             1,
         )
 
+    @property
     def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.
         """
-        return super().pattern_precedence()
+        return super().pattern_precedence
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
@@ -887,12 +889,13 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
             1,
         )
 
+    @property
     def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.
         """
-        return super().pattern_precedence()
+        return super().pattern_precedence
 
     # Note we can
     def get_sort_key(self, pattern_sort=False) -> tuple:
@@ -1065,12 +1068,13 @@ class Rational(Number[sympy.Rational]):
             1,
         )
 
+    @property
     def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.
         """
-        return super().pattern_precedence()
+        return super().pattern_precedence
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
@@ -1168,12 +1172,13 @@ class String(Atom, BoxElementMixin):
             1,
         )
 
+    @property
     def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.
         """
-        return super().pattern_precedence()
+        return super().pattern_precedence
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
