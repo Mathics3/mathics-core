@@ -133,17 +133,8 @@ class Blank(_Blank):
 
     def get_sort_key(self, pattern_sort=True):
         if not pattern_sort:
-            return self.expr.get_sort_key()
-        pattern_key = (
-            BLANK_WITH_PATTERN_PATTERN_SORT_KEY
-            if self.elements
-            else BLANK_GENERAL_PATTERN_SORT_KEY
-        )
-        return (
-            pattern_key,
-            BASIC_ATOM_PATTERN_SORT_KEY,
-            tuple(element.get_sort_key(True) for element in self.elements),
-        )
+            return self.element_precedence
+        return self.pattern_precedence
 
 
 class BlankNullSequence(_Blank):
