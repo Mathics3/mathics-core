@@ -158,7 +158,6 @@ class SparseArray(Builtin):
         if not (rules.has_form("List", None) and len(rules.elements) > 0):
             if rules is SymbolAutomatic:
                 return
-            print(rules.has_form("List", (1,)))
             evaluation.message("SparseArray", "list", rules)
             return
 

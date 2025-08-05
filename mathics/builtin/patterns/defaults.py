@@ -10,6 +10,7 @@ from typing import Optional as OptionalType
 from mathics.core.builtin import InfixOperator, PatternObject
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.keycomparable import PATTERN_SORT_KEY_OPTIONAL
 from mathics.core.pattern import BasePattern
 from mathics.eval.patterns import get_default_value
 
@@ -124,7 +125,5 @@ class Optional(InfixOperator, PatternObject):
             return self.expr.get_sort_key()
 
         sub = list(self.pattern.get_sort_key(True))
-        sub_key = list(sub[0])
-        sub_key[4] = 1
-        sub[0] = tuple(sub_key)
+        sub[0] &= PATTERN_SORT_KEY_OPTIONAL
         return tuple(sub)
