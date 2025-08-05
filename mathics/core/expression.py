@@ -864,6 +864,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             rules.append(rule)
         return rules
 
+    @property
     def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements

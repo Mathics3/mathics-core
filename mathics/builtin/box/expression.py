@@ -111,12 +111,13 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
     def get_lookup_name(self):
         return self.get_name()
 
+    @property
     def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
-        return self.to_expression().element_precedence()
+        return self.to_expression().element_precedence
 
     def get_pattern_precedence(self) -> tuple:
         """

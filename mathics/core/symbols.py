@@ -215,6 +215,7 @@ class Atom(BaseElement):
     #        1/0
     #        return None if stop_on_error else {}
 
+    @property
     def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
@@ -523,6 +524,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         """
         return self.name.split("`")[-1] if short else self.name
 
+    @property
     def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements

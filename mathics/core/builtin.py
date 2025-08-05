@@ -1543,6 +1543,7 @@ class PatternObject(BuiltinElement, BasePattern):
     def get_match_count(self, vars_dict: Optional[dict] = None):
         return (1, 1)
 
+    @property
     def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements

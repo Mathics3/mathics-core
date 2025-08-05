@@ -110,12 +110,13 @@ class Blank(_Blank):
             else:
                 yield_func(vars_dict, None)
 
+    @property
     def element_precedence(self):
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
-        return self.expr.element_precedence()
+        return self.expr.element_precedence
 
     def get_pattern_precedence(self, pattern_sort=True):
         pattern_key = (
@@ -186,12 +187,13 @@ class BlankNullSequence(_Blank):
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (0, None)
 
+    @property
     def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
-        return self.expr.element_precedence()
+        return self.expr.element_precedence
 
     def get_pattern_precedence(self) -> tuple:
         """
@@ -283,12 +285,13 @@ class BlankSequence(_Blank):
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (1, None)
 
+    @property
     def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
-        return self.expr.element_precedence()
+        return self.expr.element_precedence
 
     def get_pattern_precedence(self) -> tuple:
         """

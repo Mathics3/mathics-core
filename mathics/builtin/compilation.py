@@ -139,6 +139,7 @@ class CompiledCode(Atom, ImmutableValueMixin):
     def default_format(self, evaluation, form):
         return str(self)
 
+    @property
     def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements

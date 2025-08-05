@@ -70,7 +70,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
 
     def __eq__(self, other):
         if isinstance(other, Number):
-            return self.element_precedence() == other.element_precedence()
+            return self.element_precedence == other.element_precedence
         else:
             return False
 
@@ -83,6 +83,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
     def do_copy(self) -> "Number":
         raise NotImplementedError
 
+    @property
     def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
@@ -704,6 +705,7 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
         value = self.value
         return '"' + value.__str__() + '"'
 
+    @property
     def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
@@ -872,6 +874,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
             self.imag.default_format(evaluation, form),
         )
 
+    @property
     def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
@@ -879,8 +882,8 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         """
         return (
             BASIC_ATOM_NUMBER_SORT_KEY,
-            self.real.element_precedence()[1],
-            self.imag.element_precedence()[1],
+            self.real.element_precedence[1],
+            self.imag.element_precedence[1],
             1,
         )
 
@@ -1152,6 +1155,7 @@ class String(Atom, BoxElementMixin):
         value = self.value.replace("\\", "\\\\").replace('"', '\\"')
         return '"%s"' % value
 
+    @property
     def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
