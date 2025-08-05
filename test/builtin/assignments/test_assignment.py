@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
 """
 Unit tests for mathics.builtins.assignments.assignment
+
+Tests here looks for reinforce the compatibility of
+the  default behavior of the different assignment operators
+with WMA.
 """
-import os
+# TODO: consider to split this module in sub-modules.
+
 from test.helper import check_evaluation, session
 
 import pytest
 from mathics_scanner.errors import IncompleteSyntaxError
-
-DEBUGASSIGN = int(os.environ.get("DEBUGSET", "0")) == 1
-
-if DEBUGASSIGN:
-    skip_or_fail = pytest.mark.xfail
-else:
-    skip_or_fail = pytest.mark.skip
 
 
 def test_upset():
@@ -42,7 +40,7 @@ def test_order():
     )
 
 
-str_test_set_with_oneidentity = """
+STR_TEST_SET_WITH_ONE_IDENTITY = """
 SetAttributes[SUNIndex, {OneIdentity}];
 SetAttributes[SUNFIndex, {OneIdentity}];
 
@@ -66,7 +64,7 @@ def test_setdelayed_oneidentity():
     symbols with the attribute OneIdentity.
     """
     expr = ""
-    for line in str_test_set_with_oneidentity.split("\n"):
+    for line in STR_TEST_SET_WITH_ONE_IDENTITY.split("\n"):
         if line in ("", "\n"):
             continue
         expr = expr + line
