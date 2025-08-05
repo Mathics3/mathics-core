@@ -202,33 +202,33 @@ def normalize_lhs(lhs, evaluation):
     return lhs, lookup_name
 
 
-def pop_focus_head(lhs: Expression, focus: BaseElement):
+def pop_reference_head(lhs: Expression, lhs_reference: BaseElement):
     """
     Convert expressions of the form
     ```
-    Head1[Head2[...Headn[FocusHead[a,b],p1],p2,...]..]
+    Head1[Head2[...Headn[ReferenceHead[a,b],p1],p2,...]..]
     ```
     into
     ```
-    FocusHead[Head1[Head2[...Headn[a],p1],p2,...]..],b]
+    ReferenceHead[Head1[Head2[...Headn[a],p1],p2,...]..],b]
     ```
     Used in eval_assign_[n|format|...]
     """
-    if lhs is focus:
+    if lhs is lhs_reference:
         return lhs
 
     lhs_head = lhs.get_head()
-    if lhs_head is focus:
+    if lhs_head is lhs_reference:
         return lhs
 
     elems = lhs.elements
-    focus_expr = elems[0]
-    if focus_expr.get_head() is not focus:
-        focus_expr = pop_focus_head(focus_expr, focus)
+    lhs_reference_expr = elems[0]
+    if lhs_reference_expr.get_head() is not lhs_reference:
+        lhs_reference_expr = pop_reference_head(lhs_reference_expr, lhs_reference)
 
-    focus_elems = focus_expr.elements
-    inner = Expression(lhs_head, focus_elems[0], *elems[1:])
-    return Expression(focus, inner, *focus_elems[1:])
+    lhs_reference_elems = lhs_reference_expr.elements
+    inner = Expression(lhs_head, lhs_reference_elems[0], *elems[1:])
+    return Expression(lhs_reference, inner, *lhs_reference_elems[1:])
 
 
 def repl_pattern_by_symbol(expr: BaseElement) -> BaseElement:

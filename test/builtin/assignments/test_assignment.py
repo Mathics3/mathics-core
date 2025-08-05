@@ -298,15 +298,15 @@ def test_set_and_clear(str_expr, str_expected, msg):
         ),
         (None, None, None),
         (
-            "F[x_]:=G[x]; H[F[y_]]^:=Q[y]; ClearAll[G]; {H[G[5]],H[F[5]]}",
+            "F[x_]=G[x]; H[F[y_]]^=Q[y]; ClearAll[G]; {H[G[5]],H[F[5]]}",
             "{H[G[5]], H[G[5]]}",
             "The arguments on the LHS are evaluated before the assignment",
         ),
         (None, None, None),
         (
             (
-                "A[x_]:=B[x];B[x_]:=F[x];F[x_]:=G[x];"
-                "H[A[y_]]:=Q[y]; ClearAll[F];"
+                "A[x_]=B[x];B[x_]=F[x];F[x_]=G[x];"
+                "H[A[y_]]=Q[y]; ClearAll[F];"
                 "{H[A[5]],H[B[5]],H[F[5]],H[G[5]]}"
             ),
             "{H[F[5]], H[F[5]], H[F[5]], Q[5]}",
@@ -314,7 +314,7 @@ def test_set_and_clear(str_expr, str_expected, msg):
         ),
         (None, None, None),
         (
-            "F[x_]:=G[x];N[F[x_]]:=x^2;ClearAll[F];{N[F[2]],N[G[2]]}",
+            "F[x_]=G[x];N[F[x_]]=x^2;ClearAll[F];{N[F[2]],N[G[2]]}",
             "{F[2.], 4.}",
             "Assign N rule",
         ),

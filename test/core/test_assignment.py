@@ -4,9 +4,9 @@ from test.helper import session
 
 import pytest
 
-from mathics.core.assignment import pop_focus_head
+from mathics.core.assignment import pop_reference_head
 from mathics.core.symbols import Symbol
-from mathics.eval.assignments.assignment import get_focus_expression
+from mathics.eval.assignments.assignment import get_reference_expression
 
 evaluation = session.evaluation
 
@@ -44,15 +44,15 @@ evaluation = session.evaluation
         ),
     ],
 )
-def test_get_focus_expression(expr_str, expected_str):
+def test_get_reference_expression(expr_str, expected_str):
     expr = evaluation.parse(expr_str)
-    result = get_focus_expression(expr)
+    result = get_reference_expression(expr)
     expected = evaluation.parse(expected_str)
     assert str(result) == str(expected)
 
 
 @pytest.mark.parametrize(
-    ("expr_str", "focus_str", "expected_str"),
+    ("expr_str", "lhs_ref_str", "expected_str"),
     [
         (
             "A",
@@ -86,11 +86,11 @@ def test_get_focus_expression(expr_str, expected_str):
         ),
     ],
 )
-def test_pop_focus_head(expr_str, focus_str, expected_str):
-    focus = evaluation.parse(focus_str)
+def test_pop_reference_head(expr_str, lhs_ref_str, expected_str):
+    lhs_ref = evaluation.parse(lhs_ref_str)
     expr = evaluation.parse(expr_str)
-    print("focus:", focus)
+    print("reference:", lhs_ref)
     print("expr:", expr)
-    result = pop_focus_head(expr, focus)
+    result = pop_reference_head(expr, lhs_ref)
     expected = evaluation.parse(expected_str)
     assert str(result) == str(expected)
