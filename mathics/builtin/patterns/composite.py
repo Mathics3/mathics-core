@@ -65,6 +65,14 @@ class Alternatives(InfixOperator, PatternObject):
             for element in expr.elements
         ]
 
+    @property
+    def element_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_precedence
+
     def match(self, expression: Expression, pattern_context: dict):
         """Match with Alternatives"""
         for alternative in self.alternatives:
@@ -87,13 +95,11 @@ class Alternatives(InfixOperator, PatternObject):
                     range_lst[1] = sub[1]
         return tuple(range_lst)
 
-    @property
-    def element_precedence(self) -> tuple:
-        """
-        Return a precedence value, a tuple, which is used in ordering elements
-        of an expression. The tuple is ultimately compared lexicographically.
-        """
-        return self.expr.element_precedence
+    def get_sort_key(self, pattern_sort=True):
+        if not pattern_sort:
+            return self.expr.pattern_precendence
+
+        return self.element_precedence
 
     @property
     def pattern_precedence(self) -> tuple:
@@ -101,22 +107,6 @@ class Alternatives(InfixOperator, PatternObject):
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.
         """
-        min_key = END_OF_LIST_PATTERN_SORT_KEY
-        min = None
-        for element in self.elements:
-            key = element.get_sort_key(True)
-            if key < min_key:
-                min = element
-                min_key = key
-        if min is None:
-            # empty alternatives -> very restrictive pattern
-            return EMPTY_ALTERNATIVE_PATTERN_SORT_KEY
-        return min_key
-
-    def get_sort_key(self, pattern_sort=True):
-        if not pattern_sort:
-            return self.expr.get_sort_key()
-
         min_key = END_OF_LIST_PATTERN_SORT_KEY
         min = None
         for element in self.elements:

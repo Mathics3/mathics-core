@@ -176,9 +176,6 @@ class BlankNullSequence(_Blank):
         else:
             yield_func(vars_dict, None)
 
-    def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
-        return (0, None)
-
     @property
     def element_precedence(self) -> tuple:
         """
@@ -187,26 +184,20 @@ class BlankNullSequence(_Blank):
         """
         return self.expr.element_precedence
 
+    def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
+        return (0, None)
+
+    def get_sort_key(self, pattern_sort=True):
+        if not pattern_sort:
+            return self.expr.element_precedence
+        return self.pattern_precedence
+
     @property
     def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.
         """
-        pattern_key = (
-            BLANKNULLSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY
-            if self.elements
-            else BLANKNULLSEQUENCE_GENERAL_PATTERN_SORT_KEY
-        )
-        return (
-            pattern_key,
-            BASIC_ATOM_PATTERN_SORT_KEY,
-            tuple(element.get_sort_key(True) for element in self.elements),
-        )
-
-    def get_sort_key(self, pattern_sort=True):
-        if not pattern_sort:
-            return self.expr.get_sort_key()
         pattern_key = (
             BLANKNULLSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY
             if self.elements

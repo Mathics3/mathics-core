@@ -213,7 +213,7 @@ class BaseRule(KeyComparable, ABC):
         of an expression. The tuple is ultimately compared lexicographically.
         """
         # FIXME: check if this makes sense:
-        return tuple((self.system, self.pattern.element_prececence))
+        return tuple((self.system, self.pattern.element_precedence))
 
     @property
     def pattern_precedence(self) -> tuple:
@@ -222,7 +222,7 @@ class BaseRule(KeyComparable, ABC):
         which pattern to select when several match.
         """
         # FIXME: check if this makes sense:
-        return tuple((self.system, self.pattern.pattern_prececence()))
+        return tuple((self.system, self.pattern.pattern_precedence()))
 
     def get_sort_key(self, pattern_sort=True) -> tuple:
         # FIXME: check if this makes sense:
