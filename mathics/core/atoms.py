@@ -70,7 +70,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
 
     def __eq__(self, other):
         if isinstance(other, Number):
-            return self.get_sort_key() == other.get_sort_key()
+            return self.get_element_precedence() == other.get_element_precedence()
         else:
             return False
 
