@@ -118,7 +118,7 @@ class Blank(_Blank):
         """
         return self.expr.element_precedence
 
-    def get_pattern_precedence(self, pattern_sort=True):
+    def pattern_precedence(self, pattern_sort=True):
         pattern_key = (
             BLANK_WITH_PATTERN_PATTERN_SORT_KEY
             if self.elements
@@ -195,7 +195,7 @@ class BlankNullSequence(_Blank):
         """
         return self.expr.element_precedence
 
-    def get_pattern_precedence(self) -> tuple:
+    def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.
@@ -293,7 +293,7 @@ class BlankSequence(_Blank):
         """
         return self.expr.element_precedence
 
-    def get_pattern_precedence(self) -> tuple:
+    def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.

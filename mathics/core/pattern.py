@@ -261,7 +261,7 @@ class BasePattern(ABC):
         """
         return self.expr.element_precedence
 
-    def get_pattern_precedence(self) -> tuple:
+    def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.
@@ -429,7 +429,7 @@ class AtomPattern(BasePattern):
         """
         return self.expr.element_precedence
 
-    def get_pattern_precedence(self) -> tuple:
+    def pattern_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.
