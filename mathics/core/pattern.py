@@ -253,6 +253,20 @@ class BasePattern(ABC):
         """The sequence of elements in the expression"""
         return self.expr.get_sequence()
 
+    def get_element_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.get_element_precedence()
+
+    def get_pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return build_pattern_sort_key(self)
+
     def get_sort_key(self, pattern_sort=True):
         if pattern_sort:
             return build_pattern_sort_key(self)
@@ -405,6 +419,20 @@ class AtomPattern(BasePattern):
     def get_match_count(self, vars_dict: Optional[dict] = None) -> Tuple[int, int]:
         """The number of matches"""
         return (1, 1)
+
+    def get_element_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.get_element_precedence()
+
+    def get_pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return BASIC_ATOM_PATTERN_SORT_KEY
 
     def get_sort_key(self, pattern_sort=True):
         if pattern_sort:

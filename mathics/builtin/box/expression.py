@@ -111,7 +111,23 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
     def get_lookup_name(self):
         return self.get_name()
 
+    def get_element_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.to_expression().get_element_precedence()
+
+    def get_pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return self.to_expression().get_pattern_precedence()
+
+    # FIXME remove/rename
     def get_sort_key(self, pattern_sort=False) -> tuple:
+        # FIXME remove "False"
         return self.to_expression().get_sort_key(pattern_sort)
 
     def get_string_value(self):

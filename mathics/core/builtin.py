@@ -1543,6 +1543,20 @@ class PatternObject(BuiltinElement, BasePattern):
     def get_match_count(self, vars_dict: Optional[dict] = None):
         return (1, 1)
 
+    def get_element_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_precedence()
+
+    def get_pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return build_pattern_sort_key(self)
+
     def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
             return build_pattern_sort_key(self)

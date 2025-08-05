@@ -84,6 +84,24 @@ class Condition(InfixOperator, PatternObject):
         pattern_context["yield_func"] = yield_match
         self.pattern.match(expression, pattern_context)
 
+    def get_element_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_precedence()
+
+    def get_pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        sub = list(self.pattern.get_sort_key(True))
+        # Remove the bit "inconditional" to increase
+        # the priority of this pattern.
+        sub[0] &= PATTERN_SORT_KEY_CONDITIONAL
+        return tuple(sub)
+
     def get_sort_key(self, pattern_sort=True):
         if not pattern_sort:
             return self.expr.get_sort_key()
@@ -369,6 +387,24 @@ class PatternTest(InfixOperator, PatternObject):
 
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> Tuple[int, int]:
         return self.pattern.get_match_count(vars_dict)
+
+    def get_element_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_precedence()
+
+    def get_pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        sub = list(self.pattern.get_sort_key(True))
+        # Remove the bit "not pattern test" to increase
+        # the priority of this pattern.
+        sub[0] &= PATTERN_SORT_KEY_PATTERNTEST
+        return tuple(sub)
 
     def get_sort_key(self, pattern_sort=True):
         if not pattern_sort:

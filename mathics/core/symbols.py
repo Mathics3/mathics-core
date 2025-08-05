@@ -215,6 +215,20 @@ class Atom(BaseElement):
     #        1/0
     #        return None if stop_on_error else {}
 
+    def get_element_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        raise NotImplementedError
+
+    def get_pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return BASIC_ATOM_PATTERN_SORT_KEY
+
     def get_sort_key(self, pattern_sort=False) -> tuple:
         assert not pattern_sort
         if pattern_sort:
@@ -508,6 +522,30 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         shortened.
         """
         return self.name.split("`")[-1] if short else self.name
+
+    def get_element_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return (
+            (
+                BASIC_NUMERIC_EXPRESSION_SORT_KEY
+                if self.is_numeric()
+                else BASIC_EXPRESSION_SORT_KEY
+            ),
+            Monomial({self.name: 1}),
+            0,
+            self.name,
+            1,
+        )
+
+    def get_pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return super(Symbol, self).get_sort_key(True)
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
