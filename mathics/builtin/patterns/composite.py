@@ -87,7 +87,7 @@ class Alternatives(InfixOperator, PatternObject):
                     range_lst[1] = sub[1]
         return tuple(range_lst)
 
-    def get_element_precedence(self) -> tuple:
+    def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
@@ -223,7 +223,7 @@ class HoldPattern(PatternObject):
         #     yield new_vars_dict, rest
         self.pattern.match(expression, pattern_context)
 
-    def get_element_precedence(self) -> tuple:
+    def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
@@ -377,7 +377,7 @@ class OptionsPattern(PatternObject):
 
         return tuple((element for element in elements if _match(element)))
 
-    def get_element_precedence(self) -> tuple:
+    def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
@@ -547,7 +547,7 @@ class Pattern(PatternObject):
         verbatim = Verbatim(verbatim_expr)
         return verbatim.get_match_candidates(elements, pattern_context)
 
-    def get_element_precedence(self) -> tuple:
+    def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
@@ -660,7 +660,7 @@ class Repeated(PostfixOperator, PatternObject):
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (self.min, self.max)
 
-    def get_element_precedence(self) -> tuple:
+    def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
@@ -772,7 +772,7 @@ class Verbatim(PatternObject):
         if self.content.sameQ(expression):
             yield_func(vars_dict, None)
 
-    def get_element_precedence(self) -> tuple:
+    def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.

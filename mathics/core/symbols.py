@@ -215,7 +215,7 @@ class Atom(BaseElement):
     #        1/0
     #        return None if stop_on_error else {}
 
-    def get_element_precedence(self) -> tuple:
+    def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
@@ -523,7 +523,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         """
         return self.name.split("`")[-1] if short else self.name
 
-    def get_element_precedence(self) -> tuple:
+    def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.

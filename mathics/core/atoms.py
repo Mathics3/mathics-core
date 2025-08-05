@@ -70,7 +70,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
 
     def __eq__(self, other):
         if isinstance(other, Number):
-            return self.get_element_precedence() == other.get_element_precedence()
+            return self.element_precedence() == other.element_precedence()
         else:
             return False
 
@@ -83,7 +83,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
     def do_copy(self) -> "Number":
         raise NotImplementedError
 
-    def get_element_precedence(self) -> tuple:
+    def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
@@ -704,7 +704,7 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
         value = self.value
         return '"' + value.__str__() + '"'
 
-    def get_element_precedence(self) -> tuple:
+    def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
@@ -872,15 +872,15 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
             self.imag.default_format(evaluation, form),
         )
 
-    def get_element_precedence(self) -> tuple:
+    def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return (
             BASIC_ATOM_NUMBER_SORT_KEY,
-            self.real.get_element_precedence()[1],
-            self.imag.get_element_precedence()[1],
+            self.real.element_precedence()[1],
+            self.imag.element_precedence()[1],
             1,
         )
 
@@ -1049,7 +1049,7 @@ class Rational(Number[sympy.Rational]):
     def default_format(self, evaluation, form) -> str:
         return "Rational[%s, %s]" % self.value.as_numer_denom()
 
-    def get_element_precedence(self) -> tuple:
+    def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
@@ -1152,7 +1152,7 @@ class String(Atom, BoxElementMixin):
         value = self.value.replace("\\", "\\\\").replace('"', '\\"')
         return '"%s"' % value
 
-    def get_element_precedence(self) -> tuple:
+    def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.

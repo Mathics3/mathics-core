@@ -90,7 +90,7 @@ class _Out(KeyComparable):
         self.is_print = False
         self.text = ""
 
-    def get_element_precedence(self) -> tuple:
+    def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
