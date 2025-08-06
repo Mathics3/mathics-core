@@ -734,7 +734,7 @@ class ExpressionPattern(BasePattern):
 
     def sort(self):
         """Sort the elements according to their sort key"""
-        self.elements.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
+        self.elements.sort(key=lambda e: e.pattern_precedence)
 
 
 def match_expression_with_one_identity(
@@ -1262,10 +1262,10 @@ def build_pattern_sort_key(patt):
     """
     return (
         BASIC_EXPRESSION_PATTERN_SORT_KEY,
-        patt.head.get_sort_key(True),
+        patt.head.pattern_precedence,
         tuple(
             chain(
-                (element.get_sort_key(True) for element in patt.elements),
+                (element.pattern_precedence for element in patt.elements),
                 # This last element ensures that longest patterns come first.
                 # TODO: Check if this should be always, or just in the case of
                 # conditions

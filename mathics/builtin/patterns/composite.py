@@ -110,7 +110,7 @@ class Alternatives(InfixOperator, PatternObject):
         min_key = END_OF_LIST_PATTERN_SORT_KEY
         min = None
         for element in self.elements:
-            key = element.get_sort_key(True)
+            key = element.pattern_precedence
             if key < min_key:
                 min = element
                 min_key = key
@@ -389,8 +389,8 @@ class OptionsPattern(PatternObject):
         return (
             OPTIONSPATTERN_SORT_KEY,
             # Check if this is necesary...
-            self.head.get_sort_key(True),
-            tuple(element.get_sort_key(True) for element in self.elements),
+            self.head.pattern_precedence,
+            tuple(element.pattern_precedence for element in self.elements),
         )
 
     def get_sort_key(self, pattern_sort=True):
@@ -672,7 +672,7 @@ class Repeated(PostfixOperator, PatternObject):
         return (
             BASIC_EXPRESSION_PATTERN_SORT_KEY,
             BASIC_ATOM_PATTERN_SORT_KEY,
-            (self.pattern.get_sort_key(True), (4,)),
+            (self.pattern.pattern_precedence, (4,)),
             1,
         )
 
@@ -782,8 +782,8 @@ class Verbatim(PatternObject):
         return (
             VERBATIM_PATTERN_SORT_KEY,
             # TODO: Check if this is necesary...
-            self.head.get_sort_key(True),
-            tuple(element.get_sort_key(True) for element in self.elements),
+            self.head.pattern_precedence,
+            tuple(element.pattern_precedence for element in self.elements),
         )
 
     def get_sort_key(self, pattern_sort=True):

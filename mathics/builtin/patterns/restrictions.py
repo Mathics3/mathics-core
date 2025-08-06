@@ -98,7 +98,7 @@ class Condition(InfixOperator, PatternObject):
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.
         """
-        sub = list(self.pattern.get_sort_key(True))
+        sub = list(self.pattern.pattern_precedence)
         # Remove the bit "inconditional" to increase
         # the priority of this pattern.
         sub[0] &= PATTERN_SORT_KEY_CONDITIONAL
@@ -400,7 +400,7 @@ class PatternTest(InfixOperator, PatternObject):
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.
         """
-        sub = list(self.pattern.get_sort_key(True))
+        sub = list(self.pattern.pattern_precedence)
         # Remove the bit "not pattern test" to increase
         # the priority of this pattern.
         sub[0] &= PATTERN_SORT_KEY_PATTERNTEST

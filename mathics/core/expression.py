@@ -1585,7 +1585,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # list sort method. Another approach would be to use sorted().
         elements = self.get_mutable_elements()
         if pattern:
-            elements.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
+            elements.sort(key=lambda e: e.pattern_precedence)
         else:
             elements.sort()
 

@@ -547,7 +547,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.
         """
-        return super(Symbol, self).get_sort_key(True)
+        return super(Symbol, self).pattern_precedence
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:

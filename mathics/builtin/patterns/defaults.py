@@ -134,7 +134,7 @@ class Optional(InfixOperator, PatternObject):
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.
         """
-        sub = list(self.pattern.get_sort_key(True))
+        sub = list(self.pattern.pattern_precedence)
         sub[0] &= PATTERN_SORT_KEY_OPTIONAL
         return tuple(sub)
 

@@ -119,7 +119,7 @@ class Blank(_Blank):
         return self.expr.element_precedence
 
     @property
-    def pattern_precedence(self, pattern_sort=True):
+    def pattern_precedence(self):
         pattern_key = (
             BLANK_WITH_PATTERN_PATTERN_SORT_KEY
             if self.elements
@@ -128,7 +128,7 @@ class Blank(_Blank):
         return (
             pattern_key,
             BASIC_ATOM_PATTERN_SORT_KEY,
-            tuple(element.get_sort_key(True) for element in self.elements),
+            tuple(element.pattern_precedence for element in self.elements),
         )
 
     def get_sort_key(self, pattern_sort=True):
@@ -206,7 +206,7 @@ class BlankNullSequence(_Blank):
         return (
             pattern_key,
             BASIC_ATOM_PATTERN_SORT_KEY,
-            tuple(element.get_sort_key(True) for element in self.elements),
+            tuple(element.pattern_precedence for element in self.elements),
         )
 
 
@@ -291,7 +291,7 @@ class BlankSequence(_Blank):
         return (
             pattern_key,
             BASIC_ATOM_PATTERN_SORT_KEY,
-            tuple(element.get_sort_key(True) for element in self.elements),
+            tuple(element.pattern_precedence for element in self.elements),
         )
 
     def get_sort_key(self, pattern_sort=True):

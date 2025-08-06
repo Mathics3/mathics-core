@@ -154,7 +154,7 @@ class CompiledCode(Atom, ImmutableValueMixin):
         Return a precedence value, a tuple, which is used in selecting
         which pattern to select when several match.
         """
-        return super(CompiledCode, self).get_sort_key(True)
+        return super().pattern_precedence
 
     # FIXME remove
     def get_sort_key(self, pattern_sort=False) -> tuple:
