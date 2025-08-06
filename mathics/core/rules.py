@@ -207,13 +207,13 @@ class BaseRule(KeyComparable, ABC):
         raise ValueError
 
     @property
-    def element_precedence(self) -> tuple:
+    def element_order(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
         # FIXME: check if this makes sense:
-        return tuple((self.system, self.pattern.element_precedence))
+        return tuple((self.system, self.pattern.element_order))
 
     @property
     def pattern_precedence(self) -> tuple:
@@ -229,7 +229,7 @@ class BaseRule(KeyComparable, ABC):
         if pattern_sort:
             return self.pattern_precedence
         else:
-            return self.element_precedence
+            return self.element_order
 
 
 # FIXME: the class name would be better called RewriteRule.

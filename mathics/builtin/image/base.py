@@ -112,7 +112,7 @@ class Image(Atom):
         return Image(numpy.dstack(channels), self.color_space)
 
     @property
-    def element_precedence(self) -> tuple:
+    def element_order(self) -> tuple:
         """
         Return a precedence value, a tuple which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
@@ -129,12 +129,6 @@ class Image(Atom):
             2,
             hash(self),
         )
-
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_precedence
 
     def grayscale(self):
         return self.color_convert("Grayscale")

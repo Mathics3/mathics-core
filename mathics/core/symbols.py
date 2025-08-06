@@ -216,7 +216,7 @@ class Atom(BaseElement):
     #        return None if stop_on_error else {}
 
     @property
-    def element_precedence(self) -> tuple:
+    def element_order(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
@@ -232,19 +232,24 @@ class Atom(BaseElement):
         return BASIC_ATOM_PATTERN_SORT_KEY
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
-        """
-        get_sort_key is used in Expression evaluation to determine how to
-        order its list of elements. The tuple returned contains
-        rank orders for different level as is found in say
-        Python version release numberso or Python package version numbers.
+        """get_sort_key is used in Expression evaluation in two different ways.
+
+        In the first way, when pattern_sort=False, it is be used to
+        determine how to order its list of elements. The tuple
+        returned contains rank orders for different level as is found
+        in say Python version release numberso or Python package
+        version numbers.
 
         This is the default routine for Number. Subclasses of Number like
         Complex may need to define this differently.
+
+        In the second way when pattern_sort=True it is used to decide whiich
+        pattern to use when several pattern match.
         """
         if pattern_sort:
             return self.pattern_precedence
         else:
-            return self.element_precedence
+            return self.element_order
 
     def has_form(
         self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
@@ -535,7 +540,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         return self.name.split("`")[-1] if short else self.name
 
     @property
-    def element_precedence(self) -> tuple:
+    def element_order(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.

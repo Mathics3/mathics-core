@@ -254,12 +254,12 @@ class BasePattern(ABC):
         return self.expr.get_sequence()
 
     @property
-    def element_precedence(self) -> tuple:
+    def element_order(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
-        return self.expr.element_precedence
+        return self.expr.element_order
 
     @property
     def pattern_precedence(self) -> tuple:
@@ -273,7 +273,7 @@ class BasePattern(ABC):
         if pattern_sort:
             return self.pattern_precedence
         else:
-            return self.element_precedence
+            return self.element_order
 
     def has_form(
         self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
@@ -424,12 +424,12 @@ class AtomPattern(BasePattern):
         return (1, 1)
 
     @property
-    def element_precedence(self) -> tuple:
+    def element_order(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
-        return self.expr.element_precedence
+        return self.expr.element_order
 
     @property
     def pattern_precedence(self) -> tuple:
@@ -443,7 +443,7 @@ class AtomPattern(BasePattern):
         if pattern_sort:
             return self.pattern_precedence
         else:
-            return self.element_precedence
+            return self.element_order
 
     @property
     def short_name(self) -> str:

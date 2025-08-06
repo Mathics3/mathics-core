@@ -112,12 +112,12 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         return self.get_name()
 
     @property
-    def element_precedence(self) -> tuple:
+    def element_order(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
-        return self.to_expression().element_precedence
+        return self.to_expression().element_order
 
     @property
     def pattern_precedence(self) -> tuple:
@@ -132,7 +132,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         if pattern_sort:
             return self.pattern_precedence
         else:
-            return self.element_precedence
+            return self.element_order
 
     def get_string_value(self):
         return "-@" + self.get_head_name() + "@-"

@@ -70,7 +70,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
 
     def __eq__(self, other):
         if isinstance(other, Number):
-            return self.element_precedence == other.element_precedence
+            return self.element_order == other.element_order
         else:
             return False
 
@@ -84,7 +84,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         raise NotImplementedError
 
     @property
-    def element_precedence(self) -> tuple:
+    def element_order(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
@@ -686,7 +686,7 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
         return '"' + value.__str__() + '"'
 
     @property
-    def element_precedence(self) -> tuple:
+    def element_order(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
@@ -845,15 +845,15 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         )
 
     @property
-    def element_precedence(self) -> tuple:
+    def element_order(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return (
             BASIC_ATOM_NUMBER_SORT_KEY,
-            self.real.element_precedence[1],
-            self.imag.element_precedence[1],
+            self.real.element_order[1],
+            self.imag.element_order[1],
             1,
         )
 
@@ -1006,7 +1006,7 @@ class Rational(Number[sympy.Rational]):
         return "Rational[%s, %s]" % self.value.as_numer_denom()
 
     @property
-    def element_precedence(self) -> tuple:
+    def element_order(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
@@ -1099,7 +1099,7 @@ class String(Atom, BoxElementMixin):
         return '"%s"' % value
 
     @property
-    def element_precedence(self) -> tuple:
+    def element_order(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.

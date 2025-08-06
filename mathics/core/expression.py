@@ -865,7 +865,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return rules
 
     @property
-    def element_precedence(self) -> tuple:
+    def element_order(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
@@ -940,7 +940,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         4: 1:        No clue...
         """
         assert not pattern_sort
-        return self.element_precedence
+        return self.element_order
 
     @property
     def head(self):

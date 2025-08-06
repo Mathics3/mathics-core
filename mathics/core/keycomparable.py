@@ -24,7 +24,7 @@ class KeyComparable:
     """
 
     @property
-    def element_precedence(self) -> tuple:
+    def element_order(self) -> tuple:
         """Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
 
@@ -35,7 +35,7 @@ class KeyComparable:
         The encoded tuple/list is selected to have the property: when
         compared against element ``expr`` in a compound expression, if
 
-           `self.element_precedence <= expr.element_precedence`
+           `self.element_order <= expr.element_order`
 
         then self comes before expr.
 

@@ -167,12 +167,12 @@ class Dispatch(Atom):
         self._head = SymbolDispatch
 
     @property
-    def element_precedence(self) -> tuple:
+    def element_order(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
-        return self.src.element_precedence
+        return self.src.element_order
 
     @property
     def pattern_precedence(self) -> tuple:
@@ -183,7 +183,7 @@ class Dispatch(Atom):
         return self.src.pattern_precedence
 
     def get_sort_key(self, pattern_sort: bool = False) -> tuple:
-        return self.src.element_precedence
+        return self.src.element_order
 
     def get_atom_name(self):
         return "System`Dispatch"
