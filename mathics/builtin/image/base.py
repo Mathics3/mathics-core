@@ -132,21 +132,9 @@ class Image(Atom):
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
-            # If pattern_sort=True, returns the sort key that matches to an Atom.
-            return super(Image, self).get_sort_key(True)
+            return self.pattern_precedence
         else:
-            # If pattern is False, return a sort_key for the expression `Image[]`,
-            # but with a `2` instead of `1` in the 5th position,
-            # and adding two extra fields: the length in the 5th position,
-            # and a hash in the 6th place.
-            return (
-                IMAGE_EXPRESSION_SORT_KEY,
-                SymbolImage,
-                len(self.pixels),
-                tuple(),
-                2,
-                hash(self),
-            )
+            return self.element_precedence
 
     def grayscale(self):
         return self.color_convert("Grayscale")

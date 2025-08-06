@@ -159,9 +159,9 @@ class CompiledCode(Atom, ImmutableValueMixin):
     # FIXME remove
     def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
-            return super(CompiledCode, self).get_sort_key(True)
+            return self.pattern_precedence
         else:
-            return (LITERAL_EXPRESSION_SORT_KEY, hex(id(self)))
+            return self.element_precedence
 
     def sameQ(self, rhs) -> bool:
         """Mathics SameQ"""

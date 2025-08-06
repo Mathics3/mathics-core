@@ -99,7 +99,7 @@ class _Out(KeyComparable):
         return (self.is_message, self.is_print, self.text)
 
     def get_sort_key(self):
-        return (self.is_message, self.is_print, self.text)
+        return self.element_precedence
 
     def get_data(self) -> Dict[str, Any]:
         raise NotImplementedError

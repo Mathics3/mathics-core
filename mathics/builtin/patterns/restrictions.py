@@ -105,14 +105,10 @@ class Condition(InfixOperator, PatternObject):
         return tuple(sub)
 
     def get_sort_key(self, pattern_sort=True):
-        if not pattern_sort:
-            return self.expr.get_sort_key()
-
-        sub = list(self.pattern.get_sort_key(True))
-        # Remove the bit "inconditional" to increase
-        # the priority of this pattern.
-        sub[0] &= PATTERN_SORT_KEY_CONDITIONAL
-        return tuple(sub)
+        if pattern_sort:
+            return self.pattern_precedence
+        else:
+            return self.element_precedence
 
 
 class PatternTest(InfixOperator, PatternObject):
@@ -411,11 +407,7 @@ class PatternTest(InfixOperator, PatternObject):
         return tuple(sub)
 
     def get_sort_key(self, pattern_sort=True):
-        if not pattern_sort:
-            return self.expr.get_sort_key()
-
-        sub = list(self.pattern.get_sort_key(True))
-        # Remove the bit "not pattern test" to increase
-        # the priority of this pattern.
-        sub[0] &= PATTERN_SORT_KEY_PATTERNTEST
-        return tuple(sub)
+        if pattern_sort:
+            return self.pattern_precedence
+        else:
+            return self.element_precedence

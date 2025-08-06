@@ -295,15 +295,7 @@ class BlankSequence(_Blank):
         )
 
     def get_sort_key(self, pattern_sort=True):
-        if not pattern_sort:
-            return self.expr.get_sort_key()
-        pattern_key = (
-            BLANKSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY
-            if self.elements
-            else BLANKSEQUENCE_GENERAL_PATTERN_SORT_KEY
-        )
-        return (
-            pattern_key,
-            BASIC_ATOM_PATTERN_SORT_KEY,
-            tuple(element.get_sort_key(True) for element in self.elements),
-        )
+        if pattern_sort:
+            return self.pattern_precedence
+        else:
+            return self.element_precedence

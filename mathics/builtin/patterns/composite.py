@@ -233,8 +233,9 @@ class HoldPattern(PatternObject):
 
     def get_sort_key(self, pattern_sort=True):
         if pattern_sort:
-            return self.pattern.get_sort_key(True)
-        return self.expr.get_sort_key(False)
+            return self.pattern_precedence
+        else:
+            return self.element_precedence
 
 
 class Longest(Builtin):
@@ -393,15 +394,10 @@ class OptionsPattern(PatternObject):
         )
 
     def get_sort_key(self, pattern_sort=True):
-        if not pattern_sort:
-            return self.expr.get_sort_key()
-
-        return (
-            OPTIONSPATTERN_SORT_KEY,
-            # Check if this is necesary...
-            self.head.get_sort_key(True),
-            tuple(element.get_sort_key(True) for element in self.elements),
-        )
+        if pattern_sort:
+            return self.pattern_precedence
+        else:
+            return self.element_precedence
 
 
 class Pattern(PatternObject):
@@ -560,9 +556,10 @@ class Pattern(PatternObject):
         return self.pattern.pattern_precedence
 
     def get_sort_key(self, pattern_sort=True):
-        if not pattern_sort:
-            return self.expr.get_sort_key()
-        return self.pattern.get_sort_key(True)
+        if pattern_sort:
+            return self.pattern_precedence
+        else:
+            return self.element_precedence
 
 
 class Repeated(PostfixOperator, PatternObject):
@@ -681,13 +678,9 @@ class Repeated(PostfixOperator, PatternObject):
 
     def get_sort_key(self, pattern_sort=True):
         if pattern_sort:
-            return (
-                BASIC_EXPRESSION_PATTERN_SORT_KEY,
-                BASIC_ATOM_PATTERN_SORT_KEY,
-                (self.pattern.get_sort_key(True), (4,)),
-                1,
-            )
-        return self.expr.get_sort_key()
+            return self.pattern_precedence
+        else:
+            return self.element_precedence
 
 
 class RepeatedNull(Repeated):
@@ -794,14 +787,10 @@ class Verbatim(PatternObject):
         )
 
     def get_sort_key(self, pattern_sort=True):
-        if not pattern_sort:
-            return self.expr.get_sort_key()
-        return (
-            VERBATIM_PATTERN_SORT_KEY,
-            # TODO: Check if this is necesary...
-            self.head.get_sort_key(True),
-            tuple(element.get_sort_key(True) for element in self.elements),
-        )
+        if pattern_sort:
+            return self.pattern_precedence
+        else:
+            return self.element_precedence
 
 
 # TODO: Implement `KeyValuePattern`, `PatternSequence`, and `OrderlessPatternSequence`

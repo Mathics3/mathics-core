@@ -129,8 +129,10 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
     # FIXME remove/rename
     def get_sort_key(self, pattern_sort=False) -> tuple:
-        # FIXME remove "False"
-        return self.to_expression().get_sort_key(pattern_sort)
+        if pattern_sort:
+            return self.pattern_precedence
+        else:
+            return self.element_precedence
 
     def get_string_value(self):
         return "-@" + self.get_head_name() + "@-"

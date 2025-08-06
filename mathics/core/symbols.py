@@ -233,8 +233,6 @@ class Atom(BaseElement):
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
         assert not pattern_sort
-        if pattern_sort:
-            return BASIC_ATOM_PATTERN_SORT_KEY
         raise NotImplementedError
 
     def has_form(
@@ -553,19 +551,9 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
-            return super(Symbol, self).get_sort_key(True)
+            return self.pattern_precedence
         else:
-            return (
-                (
-                    BASIC_NUMERIC_EXPRESSION_SORT_KEY
-                    if self.is_numeric()
-                    else BASIC_EXPRESSION_SORT_KEY
-                ),
-                Monomial({self.name: 1}),
-                0,
-                self.name,
-                1,
-            )
+            return self.element_precedence
 
     def replace_vars(self, vars, options={}, in_scoping=True):
         assert all(fully_qualified_symbol_name(v) for v in vars)

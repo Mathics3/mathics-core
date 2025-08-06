@@ -940,56 +940,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         4: 1:        No clue...
         """
         assert not pattern_sort
-        exps: Dict[str, Union[float, complex]] = {}
-        head = self._head
-        if head is SymbolTimes:
-            for element in self.elements:
-                name = element.get_name()
-                if element.has_form("Power", 2):
-                    var = element.get_element(0).get_name()
-                    expr = element.get_element(1)
-                    assert isinstance(expr, (Expression, NumericOperators))
-                    exp = expr.round_to_float()
-                    if var and exp is not None:
-                        exps[var] = exps.get(var, 0) + exp
-                elif name:
-                    exps[name] = exps.get(name, 0) + 1
-        elif self.has_form("Power", 2):
-            var = self.elements[0].get_name()
-            # TODO: Check if this is the expected behaviour.
-            # round_to_float is an attribute of Expression,
-            # but not for Atoms.
-            try:
-                exp = self.elements[1].round_to_float()
-            except AttributeError:
-                exp = None
-            if var and exp is not None:
-                exps[var] = exps.get(var, 0) + exp
-        if exps:
-            return (
-                (
-                    BASIC_NUMERIC_EXPRESSION_SORT_KEY
-                    if self.is_numeric()
-                    else BASIC_EXPRESSION_SORT_KEY
-                ),
-                Monomial(exps),
-                1,
-                head,
-                self._elements,
-                1,
-            )
-        else:
-            return (
-                (
-                    GENERAL_NUMERIC_EXPRESSION_SORT_KEY
-                    if self.is_numeric()
-                    else GENERAL_EXPRESSION_SORT_KEY
-                ),
-                head,
-                len(self._elements),
-                self._elements,
-                1,
-            )
+        return self.element_precedence
 
     @property
     def head(self):

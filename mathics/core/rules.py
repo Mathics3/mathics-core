@@ -222,11 +222,14 @@ class BaseRule(KeyComparable, ABC):
         which pattern to select when several match.
         """
         # FIXME: check if this makes sense:
-        return tuple((self.system, self.pattern.pattern_precedence()))
+        return tuple((self.system, self.pattern.pattern_precedence))
 
     def get_sort_key(self, pattern_sort=True) -> tuple:
         # FIXME: check if this makes sense:
-        return tuple((self.system, self.pattern.get_sort_key(pattern_sort)))
+        if pattern_sort:
+            return self.pattern_precedence
+        else:
+            return self.element_precedence
 
 
 # FIXME: the class name would be better called RewriteRule.

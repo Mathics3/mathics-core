@@ -116,14 +116,9 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         Complex may need to define this differently.
         """
         if pattern_sort:
-            return super().get_sort_key(True)
+            return self.pattern_precedence
         else:
-            return (
-                BASIC_ATOM_NUMBER_SORT_KEY,
-                self.value,
-                0,
-                1,
-            )
+            return self.element_precedence
 
     @property
     def is_literal(self) -> bool:
@@ -729,14 +724,9 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
-            return super().get_sort_key(True)
+            return self.pattern_precedence
         else:
-            return (
-                BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY,
-                self.value,
-                0,
-                1,
-            )
+            return self.element_precedence
 
     @property
     def is_literal(self) -> bool:
@@ -906,14 +896,9 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         Python version release numberso or Python package version numbers.
         """
         if pattern_sort:
-            return super().get_sort_key(True)
+            return self.pattern_precedence
         else:
-            return (
-                BASIC_ATOM_NUMBER_SORT_KEY,
-                self.real.get_sort_key(False)[1],
-                self.imag.get_sort_key(False)[1],
-                1,
-            )
+            return self.element_precedence
 
     def sameQ(self, rhs) -> bool:
         """Mathics SameQ"""
@@ -1055,6 +1040,7 @@ class Rational(Number[sympy.Rational]):
     def default_format(self, evaluation, form) -> str:
         return "Rational[%s, %s]" % self.value.as_numer_denom()
 
+    @property
     def element_precedence(self) -> tuple:
         """
         Return a precedence value, a tuple, which is used in ordering elements
@@ -1078,15 +1064,9 @@ class Rational(Number[sympy.Rational]):
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
-            return super().get_sort_key(True)
+            return self.pattern_precedence
         else:
-            # HACK: otherwise "Bus error" when comparing 1==1.
-            return (
-                BASIC_ATOM_NUMBER_SORT_KEY,
-                sympy.Float(self.value),
-                0,
-                1,
-            )
+            return self.element_precedence
 
     def do_copy(self) -> "Rational":
         return Rational(self.value)
@@ -1182,14 +1162,9 @@ class String(Atom, BoxElementMixin):
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
-            return super().get_sort_key(True)
+            return self.pattern_precedence
         else:
-            return (
-                BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY,
-                self.value,
-                0,
-                1,
-            )
+            return self.element_precedence
 
     def get_string_value(self) -> str:
         return self.value

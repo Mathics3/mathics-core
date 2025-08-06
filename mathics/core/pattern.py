@@ -271,8 +271,9 @@ class BasePattern(ABC):
 
     def get_sort_key(self, pattern_sort=True):
         if pattern_sort:
-            return build_pattern_sort_key(self)
-        return self.expr.get_sort_key()
+            return self.pattern_precedence
+        else:
+            return self.element_precedence
 
     def has_form(
         self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
@@ -440,8 +441,9 @@ class AtomPattern(BasePattern):
 
     def get_sort_key(self, pattern_sort=True):
         if pattern_sort:
-            return BASIC_ATOM_PATTERN_SORT_KEY
-        return self.expr.get_sort_key()
+            return self.pattern_precedence
+        else:
+            return self.element_precedence
 
     @property
     def short_name(self) -> str:
