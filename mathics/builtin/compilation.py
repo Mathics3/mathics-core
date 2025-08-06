@@ -141,13 +141,13 @@ class CompiledCode(Atom, ImmutableValueMixin):
 
     @property
     def element_order(self) -> tuple:
-        """
-        Return a precedence value, a tuple, which is used in ordering elements
-        of an expression. The tuple is ultimately compared lexicographically.
+        """Return a tuple value that is used in ordering elements of
+        an expression. The tuple is ultimately compared
+        lexicographically.
+
         """
         return (LITERAL_EXPRESSION_SORT_KEY, hex(id(self)))
 
-    # FIXME remove
     @property
     def pattern_precedence(self) -> tuple:
         """

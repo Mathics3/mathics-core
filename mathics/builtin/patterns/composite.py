@@ -68,7 +68,7 @@ class Alternatives(InfixOperator, PatternObject):
     @property
     def element_order(self) -> tuple:
         """
-        Return a precedence value, a tuple, which is used in ordering elements
+        Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return self.expr.element_precedence
@@ -212,7 +212,7 @@ class HoldPattern(PatternObject):
     @property
     def element_precedence(self) -> tuple:
         """
-        Return a precedence value, a tuple, which is used in ordering elements
+        Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return self.expr.element_precedence
@@ -369,7 +369,7 @@ class OptionsPattern(PatternObject):
     @property
     def element_precedence(self) -> tuple:
         """
-        Return a precedence value, a tuple, which is used in ordering elements
+        Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return self.expr.element_precedence
@@ -536,7 +536,7 @@ class Pattern(PatternObject):
     @property
     def element_precedence(self) -> tuple:
         """
-        Return a precedence value, a tuple, which is used in ordering elements
+        Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return self.expr.element_precedence
@@ -652,7 +652,7 @@ class Repeated(PostfixOperator, PatternObject):
     @property
     def element_precedence(self) -> tuple:
         """
-        Return a precedence value, a tuple, which is used in ordering elements
+        Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return self.expr.element_precedence
@@ -762,7 +762,7 @@ class Verbatim(PatternObject):
     @property
     def element_precedence(self) -> tuple:
         """
-        Return a precedence value, a tuple, which is used in ordering elements
+        Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return self.expr.element_precedence

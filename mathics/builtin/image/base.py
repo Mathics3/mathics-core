@@ -114,7 +114,7 @@ class Image(Atom):
     @property
     def element_order(self) -> tuple:
         """
-        Return a precedence value, a tuple which is used in ordering elements
+        Return a value which is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
         # Return the precedence the expression `Image[]`,

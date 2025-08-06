@@ -86,7 +86,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
     @property
     def element_order(self) -> tuple:
         """
-        Return a precedence value, a tuple, which is used in ordering elements
+        Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return (
@@ -688,7 +688,7 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
     @property
     def element_order(self) -> tuple:
         """
-        Return a precedence value, a tuple, which is used in ordering elements
+        Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return (
@@ -847,7 +847,7 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
     @property
     def element_order(self) -> tuple:
         """
-        Return a precedence value, a tuple, which is used in ordering elements
+        Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return (
@@ -1008,7 +1008,7 @@ class Rational(Number[sympy.Rational]):
     @property
     def element_order(self) -> tuple:
         """
-        Return a precedence value, a tuple, which is used in ordering elements
+        Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
         # HACK: otherwise "Bus error" when comparing 1==1.
@@ -1101,7 +1101,7 @@ class String(Atom, BoxElementMixin):
     @property
     def element_order(self) -> tuple:
         """
-        Return a precedence value, a tuple, which is used in ordering elements
+        Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return (

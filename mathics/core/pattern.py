@@ -256,7 +256,7 @@ class BasePattern(ABC):
     @property
     def element_order(self) -> tuple:
         """
-        Return a precedence value, a tuple, which is used in ordering elements
+        Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return self.expr.element_order
@@ -426,7 +426,7 @@ class AtomPattern(BasePattern):
     @property
     def element_order(self) -> tuple:
         """
-        Return a precedence value, a tuple, which is used in ordering elements
+        Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return self.expr.element_order

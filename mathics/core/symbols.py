@@ -218,7 +218,7 @@ class Atom(BaseElement):
     @property
     def element_order(self) -> tuple:
         """
-        Return a precedence value, a tuple, which is used in ordering elements
+        Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
         raise NotImplementedError
@@ -542,7 +542,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     @property
     def element_order(self) -> tuple:
         """
-        Return a precedence value, a tuple, which is used in ordering elements
+        Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
         return (
