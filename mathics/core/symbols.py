@@ -232,8 +232,19 @@ class Atom(BaseElement):
         return BASIC_ATOM_PATTERN_SORT_KEY
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
-        assert not pattern_sort
-        raise NotImplementedError
+        """
+        get_sort_key is used in Expression evaluation to determine how to
+        order its list of elements. The tuple returned contains
+        rank orders for different level as is found in say
+        Python version release numberso or Python package version numbers.
+
+        This is the default routine for Number. Subclasses of Number like
+        Complex may need to define this differently.
+        """
+        if pattern_sort:
+            return self.pattern_precedence
+        else:
+            return self.element_precedence
 
     def has_form(
         self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
@@ -548,12 +559,6 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         which pattern to select when several match.
         """
         return super(Symbol, self).pattern_precedence
-
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_precedence
 
     def replace_vars(self, vars, options={}, in_scoping=True):
         assert all(fully_qualified_symbol_name(v) for v in vars)

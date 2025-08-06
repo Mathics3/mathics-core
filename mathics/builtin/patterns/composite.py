@@ -95,12 +95,6 @@ class Alternatives(InfixOperator, PatternObject):
                     range_lst[1] = sub[1]
         return tuple(range_lst)
 
-    def get_sort_key(self, pattern_sort=True):
-        if not pattern_sort:
-            return self.expr.pattern_precendence
-
-        return self.element_precedence
-
     @property
     def pattern_precedence(self) -> tuple:
         """

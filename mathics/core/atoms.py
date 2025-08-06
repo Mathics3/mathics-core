@@ -104,22 +104,6 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
         """
         return super().pattern_precedence
 
-    # FIXME: can we refactor or subclass objects to remove pattern_sort?
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        """
-        get_sort_key is used in Expression evaluation to determine how to
-        order its list of elements. The tuple returned contains
-        rank orders for different level as is found in say
-        Python version release numberso or Python package version numbers.
-
-        This is the default routine for Number. Subclasses of Number like
-        Complex may need to define this differently.
-        """
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_precedence
-
     @property
     def is_literal(self) -> bool:
         """Number can't change and has a Python representation,
@@ -722,12 +706,6 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
         """
         return super().pattern_precedence
 
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_precedence
-
     @property
     def is_literal(self) -> bool:
         """For an ByteArrayAtom, the value can't change and has a Python representation,
@@ -886,19 +864,6 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
         which pattern to select when several match.
         """
         return super().pattern_precedence
-
-    # Note we can
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        """
-        get_sort_key is used in Expression evaluation to determine how to
-        order its list of elements. The tuple returned contains
-        rank orders for different level as is found in say
-        Python version release numberso or Python package version numbers.
-        """
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_precedence
 
     def sameQ(self, rhs) -> bool:
         """Mathics SameQ"""
@@ -1062,12 +1027,6 @@ class Rational(Number[sympy.Rational]):
         """
         return super().pattern_precedence
 
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_precedence
-
     def do_copy(self) -> "Rational":
         return Rational(self.value)
 
@@ -1159,12 +1118,6 @@ class String(Atom, BoxElementMixin):
         which pattern to select when several match.
         """
         return super().pattern_precedence
-
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_precedence
 
     def get_string_value(self) -> str:
         return self.value

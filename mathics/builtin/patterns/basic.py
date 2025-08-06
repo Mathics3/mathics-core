@@ -131,11 +131,6 @@ class Blank(_Blank):
             tuple(element.pattern_precedence for element in self.elements),
         )
 
-    def get_sort_key(self, pattern_sort=True):
-        if not pattern_sort:
-            return self.element_precedence
-        return self.pattern_precedence
-
 
 class BlankNullSequence(_Blank):
     """
@@ -186,11 +181,6 @@ class BlankNullSequence(_Blank):
 
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (0, None)
-
-    def get_sort_key(self, pattern_sort=True):
-        if not pattern_sort:
-            return self.expr.element_precedence
-        return self.pattern_precedence
 
     @property
     def pattern_precedence(self) -> tuple:
@@ -293,9 +283,3 @@ class BlankSequence(_Blank):
             BASIC_ATOM_PATTERN_SORT_KEY,
             tuple(element.pattern_precedence for element in self.elements),
         )
-
-    def get_sort_key(self, pattern_sort=True):
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_precedence

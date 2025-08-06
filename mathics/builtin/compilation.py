@@ -156,13 +156,6 @@ class CompiledCode(Atom, ImmutableValueMixin):
         """
         return super().pattern_precedence
 
-    # FIXME remove
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_precedence
-
     def sameQ(self, rhs) -> bool:
         """Mathics SameQ"""
         return self is rhs
