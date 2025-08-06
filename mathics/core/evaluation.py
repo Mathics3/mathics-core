@@ -112,7 +112,7 @@ class Evaluation:
 
         if definitions is None:
             definitions = Definitions()
-
+        self.current_expression: Optional[BaseElement] = None
         self.SymbolNull = SymbolNull
 
         # Used in ``mathics.builtin.numbers.constants.get_constant`` and
