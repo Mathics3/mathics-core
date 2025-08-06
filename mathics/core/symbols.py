@@ -215,11 +215,41 @@ class Atom(BaseElement):
     #        1/0
     #        return None if stop_on_error else {}
 
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        assert not pattern_sort
-        if pattern_sort:
-            return BASIC_ATOM_PATTERN_SORT_KEY
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
         raise NotImplementedError
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return BASIC_ATOM_PATTERN_SORT_KEY
+
+    def get_sort_key(self, pattern_sort=False) -> tuple:
+        """get_sort_key is used in Expression evaluation in two different ways.
+
+        In the first way, when pattern_sort=False, it is be used to
+        determine how to order its list of elements. The tuple
+        returned contains rank orders for different level as is found
+        in say Python version release numberso or Python package
+        version numbers.
+
+        This is the default routine for Number. Subclasses of Number like
+        Complex may need to define this differently.
+
+        In the second way when pattern_sort=True it is used to decide whiich
+        pattern to use when several pattern match.
+        """
+        if pattern_sort:
+            return self.pattern_precedence
+        else:
+            return self.element_order
 
     def has_form(
         self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
@@ -509,21 +539,31 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         """
         return self.name.split("`")[-1] if short else self.name
 
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return super(Symbol, self).get_sort_key(True)
-        else:
-            return (
-                (
-                    BASIC_NUMERIC_EXPRESSION_SORT_KEY
-                    if self.is_numeric()
-                    else BASIC_EXPRESSION_SORT_KEY
-                ),
-                Monomial({self.name: 1}),
-                0,
-                self.name,
-                1,
-            )
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return (
+            (
+                BASIC_NUMERIC_EXPRESSION_SORT_KEY
+                if self.is_numeric()
+                else BASIC_EXPRESSION_SORT_KEY
+            ),
+            Monomial({self.name: 1}),
+            0,
+            self.name,
+            1,
+        )
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return super(Symbol, self).pattern_precedence
 
     def replace_vars(self, vars, options={}, in_scoping=True):
         assert all(fully_qualified_symbol_name(v) for v in vars)

@@ -90,8 +90,16 @@ class _Out(KeyComparable):
         self.is_print = False
         self.text = ""
 
-    def get_sort_key(self):
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
         return (self.is_message, self.is_print, self.text)
+
+    def get_sort_key(self):
+        return self.element_order
 
     def get_data(self) -> Dict[str, Any]:
         raise NotImplementedError

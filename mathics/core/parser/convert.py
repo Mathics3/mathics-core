@@ -231,7 +231,7 @@ class Converter(GenericConverter):
         return PrecisionReal(sympy.Float(x, prec))
 
     def _make_Expression(self, head: Symbol, children: list):
-        if head == SymbolList:
+        if head is SymbolList:
             return to_mathics_list(*children)
 
         return to_expression(head, *children)

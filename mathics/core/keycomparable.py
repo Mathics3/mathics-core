@@ -23,6 +23,36 @@ class KeyComparable:
     is the primitive from which all other comparisons are based on.
     """
 
+    @property
+    def element_order(self) -> tuple:
+        """Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+
+        This is used in ``Sort[]`` comparisons and in the ordering
+        that occurs in an M-Expression which has the ``Orderless``
+        property.
+
+        The encoded tuple/list is selected to have the property: when
+        compared against element ``expr`` in a compound expression, if
+
+           `self.element_order <= expr.element_order`
+
+        then self comes before expr.
+
+        The values in the positions of the tuple are used to indicate how
+        comparison should be treated for specific element classes.
+
+        """
+        raise NotImplementedError
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        raise NotImplementedError
+
     # FIXME: return type should be a specific kind of Tuple, not a list.
     # FIXME: Describe sensible, and easy to follow rules by which one
     #        can create the kind of tuple for some new kind of element.

@@ -110,9 +110,16 @@ class Blank(_Blank):
             else:
                 yield_func(vars_dict, None)
 
-    def get_sort_key(self, pattern_sort=True):
-        if not pattern_sort:
-            return self.expr.get_sort_key()
+    @property
+    def element_order(self):
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_order
+
+    @property
+    def pattern_precedence(self):
         pattern_key = (
             BLANK_WITH_PATTERN_PATTERN_SORT_KEY
             if self.elements
@@ -121,7 +128,7 @@ class Blank(_Blank):
         return (
             pattern_key,
             BASIC_ATOM_PATTERN_SORT_KEY,
-            tuple(element.get_sort_key(True) for element in self.elements),
+            tuple(element.pattern_precedence for element in self.elements),
         )
 
 
@@ -164,12 +171,23 @@ class BlankNullSequence(_Blank):
         else:
             yield_func(vars_dict, None)
 
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_order
+
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (0, None)
 
-    def get_sort_key(self, pattern_sort=True):
-        if not pattern_sort:
-            return self.expr.get_sort_key()
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
         pattern_key = (
             BLANKNULLSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY
             if self.elements
@@ -178,7 +196,7 @@ class BlankNullSequence(_Blank):
         return (
             pattern_key,
             BASIC_ATOM_PATTERN_SORT_KEY,
-            tuple(element.get_sort_key(True) for element in self.elements),
+            tuple(element.pattern_precedence for element in self.elements),
         )
 
 
@@ -241,9 +259,20 @@ class BlankSequence(_Blank):
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (1, None)
 
-    def get_sort_key(self, pattern_sort=True):
-        if not pattern_sort:
-            return self.expr.get_sort_key()
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_order
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
         pattern_key = (
             BLANKSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY
             if self.elements
@@ -252,5 +281,5 @@ class BlankSequence(_Blank):
         return (
             pattern_key,
             BASIC_ATOM_PATTERN_SORT_KEY,
-            tuple(element.get_sort_key(True) for element in self.elements),
+            tuple(element.pattern_precedence for element in self.elements),
         )

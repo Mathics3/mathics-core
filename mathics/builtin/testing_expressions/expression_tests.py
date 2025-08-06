@@ -167,7 +167,7 @@ class PatternsOrderedQ(Builtin):
         p1_pat = BasePattern.create(p1)
         p2_pat = BasePattern.create(p2)
 
-        if p1_pat.get_sort_key(True) <= p2_pat.get_sort_key(True):
+        if p1_pat.pattern_precedence <= p2_pat.pattern_precedence:
             return SymbolTrue
         else:
             return SymbolFalse
