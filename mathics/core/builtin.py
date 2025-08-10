@@ -1549,7 +1549,7 @@ class PatternObject(BuiltinElement, BasePattern):
         Return a tuple value that is used in ordering elements
         of an expression. The tuple is ultimately compared lexicographically.
         """
-        return self.expr.element_order()
+        return self.expr.element_order
 
     @property
     def pattern_precedence(self) -> tuple:
