@@ -120,10 +120,26 @@ class Optional(InfixOperator, PatternObject):
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (0, 1)
 
-    def get_sort_key(self, pattern_sort=True):
-        if not pattern_sort:
-            return self.expr.get_sort_key()
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_order
 
-        sub = list(self.pattern.get_sort_key(True))
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        sub = list(self.pattern.pattern_precedence)
         sub[0] &= PATTERN_SORT_KEY_OPTIONAL
         return tuple(sub)
+
+    def get_sort_key(self, pattern_sort=True):
+        if pattern_sort:
+            return self.pattern_precedence
+        else:
+            return self.element_order
