@@ -56,6 +56,51 @@ The xfail mark can be removed once these issues get fixed.
     [
         (None, None, None),
         (
+            "F[1,2]/.{Condition[F[x_,y_], x>y]:>1}",
+            "F[1,2]",
+            "Condition on the LHS.False",
+        ),
+        (
+            "F[2, 1]/.{Condition[F[x_,y_], x>y]:>1}",
+            "1",
+            "Condition on the LHS. True",
+        ),
+        (
+            "F[1,2]/.{F[x_,y_]:> Condition[1, x>y]}",
+            "F[1,2]",
+            "Condition on the RHS. False",
+        ),
+        (
+            "F[2,1]/.{F[x_,y_]:> Condition[1, x>y]}",
+            "1",
+            "Condition on the RHS. True",
+        ),
+        (
+            "F[2,1]/.{Condition[F[x_,y_],y>0]:> Condition[1, x>y]}",
+            "1",
+            "Condition on both sides. True",
+        ),
+        (
+            "F[2,1]/.{Condition[F[x_,y_],y>0]:> Condition[1, x>y]+ p}",
+            "Condition[1, 2 > 1]+ p",
+            "Condition on both sides. True",
+        ),
+        (
+            "x=2;y=-2;F[2,1]/.{Condition[F[x_,y_],y>0]:> Condition[1, x>y]}",
+            "1",
+            "Variables set before. Condition on both sides. True",
+        ),
+    ],
+)
+def test_condition_in_rules(str_expr, str_expected, msg):
+    check_evaluation(str_expr, str_expected, failure_message=msg)
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        (None, None, None),
+        (
             "rule = Q[a, _Symbol, _Integer]->True;\
 	 ruled = Dispatch[{rule}];\
 	 {Q[a,1,b], Q[a,1,b]/.rule, Q[a,1,b]/.ruled}",
