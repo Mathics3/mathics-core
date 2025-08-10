@@ -57,7 +57,7 @@ from mathics.core.element import BaseElement, KeyComparable
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.pattern import BasePattern, StopGenerator
-from mathics.core.symbols import strip_context
+from mathics.core.symbols import SymbolTrue, strip_context
 
 
 def _python_function_arguments(f):
@@ -71,6 +71,15 @@ def function_arguments(f):
 class StopGenerator_BaseRule(StopGenerator):
     """
     Signals that there are no more rules to check for pattern matching
+    """
+
+    pass
+
+
+class RuleApplicationFailed(Exception):
+    """
+    Exception raised when a condition fails
+    in the RHS, indicating that the match have failed.
     """
 
     pass
@@ -134,9 +143,10 @@ class BaseRule(KeyComparable, ABC):
                 if isinstance(self, FunctionApplyRule)
                 else self.apply_rule
             )
-            new_expression = apply_fn(expression, vars, options, evaluation)
-            if new_expression is None:
-                new_expression = expression
+            try:
+                new_expression = apply_fn(expression, vars, options, evaluation)
+            except RuleApplicationFailed:
+                return None
             if rest[0] or rest[1]:
                 result = Expression(
                     expression.get_head(),
@@ -254,6 +264,13 @@ class Rule(BaseRule):
         new = self.replace.replace_vars(vars)
         new.options = options
 
+        while new.has_form("System`Condition", 2):
+            new, cond = new.get_elements()
+            if isinstance(cond, Expression):
+                cond = cond.evaluate(evaluation)
+            if cond is not SymbolTrue:
+                raise RuleApplicationFailed()
+
         # If options is a non-empty dict, we need to ensure
         # reevaluation of the whole expression, since 'new' will
         # usually contain one or more matching OptionValue[symbol_]
@@ -283,6 +300,16 @@ class Rule(BaseRule):
 
     def __repr__(self) -> str:
         return "<Rule: %s -> %s>" % (self.pattern, self.replace)
+
+    def get_sort_key(self, pattern_sort=True) -> tuple:
+        # FIXME: check if this makes sense:
+        if not pattern_sort:
+            return tuple((self.system, self.pattern.get_sort_key(False)))
+
+        sort_key = list(self.pattern.get_sort_key(True))
+        if self.replace.has_form("System`Condition", 2):
+            sort_key[-1] = 0
+        return tuple((self.system, tuple(sort_key)))
 
 
 class FunctionApplyRule(BaseRule):
@@ -358,9 +385,12 @@ class FunctionApplyRule(BaseRule):
         # context marks.
         vars_noctx = dict(((strip_context(s), vars[s]) for s in vars))
         if options:
-            return self.function(evaluation=evaluation, options=options, **vars_noctx)
+            return (
+                self.function(evaluation=evaluation, options=options, **vars_noctx)
+                or expression
+            )
         else:
-            return self.function(evaluation=evaluation, **vars_noctx)
+            return self.function(evaluation=evaluation, **vars_noctx) or expression
 
     def __repr__(self) -> str:
         # Cython doesn't allow f-string below and reports:
