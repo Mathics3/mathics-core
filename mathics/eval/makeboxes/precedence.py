@@ -28,7 +28,7 @@ def compare_precedence(
         element_prec = element.elements[2].value
     elif element.has_form("PrecedenceForm", 2):
         element_prec = element.elements[1].value
-    # For negative values, ensure that the element_prec is at least the precedence. (Fixes #332)
+    # For negative values, ensure that the element_prec (element precedence) is at least the precedence. (Fixes #332)
     elif isinstance(element, (Integer, Real)) and element.value < 0:
         element_prec = precedence
     else:
