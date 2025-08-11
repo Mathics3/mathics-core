@@ -4,7 +4,7 @@ CHANGES
 9.0.0
 -----
 
-Support for Python 3.13. Python 3.8 support dropped.
+Support for Python 3.13. Python 3.8 and 3.9 support dropped.
 
 Note: There are incompatible changes. Use with Mathics-scanner 2.0.0 or greater.
 
