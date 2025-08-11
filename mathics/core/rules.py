@@ -331,9 +331,9 @@ class Rule(BaseRule):
         """
         sort_key = self.pattern.pattern_precedence
         if self.replace.has_form("System`Condition", 2):
-            sort_key = list(sort_key)
-            sort_key[0] = sort_key[0] & PATTERN_SORT_KEY_CONDITIONAL
-            sort_key = tuple(sort_key)
+            sort_key_list = list(sort_key)
+            sort_key_list[0] = sort_key_list[0] & PATTERN_SORT_KEY_CONDITIONAL
+            sort_key = tuple(sort_key_list)
         return tuple(
             (
                 self.system,
