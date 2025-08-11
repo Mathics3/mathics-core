@@ -413,14 +413,21 @@ class FunctionApplyRule(BaseRule):
         # The Python function implementing this builtin expects
         # argument names corresponding to the symbol names without
         # context marks.
+        prev_expression = evaluation.current_expression
+        evaluation.current_expression = expression
         vars_noctx = dict(((strip_context(s), vars[s]) for s in vars))
+        # Now call the method. If the method returns `None`, then
+        # the rule is considered to be applied, and that the return value
+        # is the original expression.
         if options:
-            return (
+            result = (
                 self.function(evaluation=evaluation, options=options, **vars_noctx)
                 or expression
             )
         else:
-            return self.function(evaluation=evaluation, **vars_noctx) or expression
+            result = self.function(evaluation=evaluation, **vars_noctx) or expression
+        evaluation.current_expression = prev_expression
+        return result
 
     def __repr__(self) -> str:
         # Cython doesn't allow f-string below and reports:
