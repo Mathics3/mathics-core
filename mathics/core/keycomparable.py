@@ -160,7 +160,7 @@ class Monomial:
         return self.__cmp(other) != 0
 
 
-###  SORT_KEYS prefix for patterns
+###  SORT_KEYS prefix for pattern_precedence
 #
 # Pattern sort keys have 3 elements. The first one is a "magic" 4-bytes
 # integer number representing different features of the element, like if
@@ -216,40 +216,39 @@ MAGIC_ATOM_SORT_KEY = (
 BASIC_EXPRESSION_PATTERN_SORT_KEY = MAGIC_ATOM_SORT_KEY + PATTERN_SORT_KEY_IS_EXPRESSION
 
 # Blanks
-
 BLANK_WITH_PATTERN_PATTERN_SORT_KEY = (
     BASIC_EXPRESSION_PATTERN_SORT_KEY + PATTERN_SORT_KEY_BLANK_WITH_HEAD
-)
+)  # Blank[A]
 BLANK_GENERAL_PATTERN_SORT_KEY = (
     BASIC_EXPRESSION_PATTERN_SORT_KEY + PATTERN_SORT_KEY_BLANK_PURE
-)
+)  # Blank[]
 BLANKSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY = (
     BASIC_EXPRESSION_PATTERN_SORT_KEY + PATTERN_SORT_KEY_BLANKSEQUENCE_WITH_HEAD
-)
+)  # BlankSequence[A]
 BLANKSEQUENCE_GENERAL_PATTERN_SORT_KEY = (
     BASIC_EXPRESSION_PATTERN_SORT_KEY + PATTERN_SORT_KEY_BLANKSEQUENCE_PURE
-)
+)  # BlankSequence[]
 
 BLANKNULLSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY = (
     BASIC_EXPRESSION_PATTERN_SORT_KEY + PATTERN_SORT_KEY_BLANKNULLSEQUENCE_WITH_HEAD
-)
+)  # BlankNullSequence[A]
 BLANKNULLSEQUENCE_GENERAL_PATTERN_SORT_KEY = (
     BASIC_EXPRESSION_PATTERN_SORT_KEY + PATTERN_SORT_KEY_BLANKNULLSEQUENCE_PURE
-)
+)  # BlankNullSequence[]
 
 
 # Used in the case Alternative[]
 EMPTY_ALTERNATIVE_PATTERN_SORT_KEY = (
     PATTERN_SORT_KEY_IS_EXPRESSION + PATTERN_SORT_KEY_EMPTY_ALTERNATIVES
-)
+)  # Alternatives[]
 # OptionsPatterns
 OPTIONSPATTERN_SORT_KEY = (
     BASIC_EXPRESSION_PATTERN_SORT_KEY + PATTERN_SORT_KEY_OPTIONSPATTERN
-)
+)  # OptionsPattern[]
 # Verbatim
 VERBATIM_PATTERN_SORT_KEY = (
     PATTERN_SORT_KEY_VERBATIM | BASIC_EXPRESSION_PATTERN_SORT_KEY
-)
+)  # Verbatim[expr]
 
 # Now, two pattern sort keys that are used many times:
 # Atoms
@@ -257,11 +256,10 @@ BASIC_ATOM_PATTERN_SORT_KEY = (MAGIC_ATOM_SORT_KEY, 0, 0)
 # and "end of list" to ensure that patterns with more elements come first.
 END_OF_LIST_PATTERN_SORT_KEY = (
     PATTERN_SORT_KEY_LAST,
-)  # Used as the last element in the third
-# field.
+)  # Used as the last element in the third field.
 
 
-###  SORT_KEYS prefix for expressions
+###  SORT_KEYS prefix for expression_order
 
 BASIC_ATOM_NUMBER_SORT_KEY = 0x00
 BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY = 0x01
