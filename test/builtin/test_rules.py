@@ -110,15 +110,15 @@ def test_condition_in_rules(str_expr, str_expected, msg):
         (
             "SetAttributes[Q, {Orderless}];\
           {Q[a,1,b], Q[a,1,b]/.rule, Q[a, 1, b]/.ruled}",
-            "{Q[1, a, b], Q[a, 1, b], Q[a, 1, b]}",
-            "2. Set the attribute. Application is not affected.",
+            "{Q[1, a, b], True, Q[a, 1, b]}",
+            "2. Set the attribute. Application is not affected by the dispatch rule.",
         ),
         (
             "rule = Q[a, _Symbol, _Integer]->True;\
   	  ruled = Dispatch[{rule}];\
 	  {Q[a, 1, b], Q[a, 1, b]/.rule, Q[a, 1, b]/.ruled}",
             "{Q[1, a, b], True, True}",
-            "3 .Rebuilt rules. Rules applied.",
+            "3 .Rebuilt rules. Rules applied on both cases.",
         ),
         (
             "Attributes[Q] = {};\
@@ -131,12 +131,11 @@ def test_condition_in_rules(str_expr, str_expected, msg):
   	  ruled = Dispatch[{rule}];\
 	  {Q[a, 1, b], Q[a, 1, b]/.rule, Q[a, 1, b]/.ruled}",
             "{Q[a, 1, b], Q[a, 1, b], Q[a, 1, b]}",
-            "5. Rebuilt rules. Rules applied.",
+            "5. Rebuilt rules. Rules again are not applied.",
         ),
         (None, None, None),
     ],
 )
-@pytest.mark.xfail
 def test_orderless_on_rules(str_expr, str_expected, msg):
     check_evaluation(str_expr, str_expected, failure_message=msg)
 
@@ -238,9 +237,9 @@ def test_default_optional_on_rules(str_expr, str_expected, msg):
         ("rule=A[a_.+B[b_.*x_]]->{a,b,x};", None, "Null", None),
         ("A[B[1]] /. rule", None, "{0, 1, 1}", None),
         ("A[B[x]] /. rule", None, "{0, 1, x}", None),
-        ("A[B[2*x]] /. rule", None, "{0, x, 2}", None),
+        ("A[B[2*x]] /. rule", None, "{0, 2, x}", None),
         ("A[1+B[x]] /. rule", None, "{1, 1, x}", None),
-        ("A[1+B[2*x]] /. rule", None, "{1, x, 2}", None),
+        ("A[1+B[2*x]] /. rule", None, "{1, 2, x}", None),
         # Default argument (power)
         ("rule=A[x_^n_.]->{x,n};", None, "Null", None),
         ("A[1] /. rule", None, "{1, 1}", None),

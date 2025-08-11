@@ -69,7 +69,7 @@ from mathics.core.list import ListExpression
 from mathics.core.number import PrecisionValueError, dps, get_precision, min_prec
 from mathics.core.parser.operators import OPERATOR_DATA
 from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
-from mathics.core.pattern import BasePattern
+from mathics.core.pattern import BasePattern, build_pattern_sort_key
 from mathics.core.rules import BaseRule, FunctionApplyRule, Rule
 from mathics.core.symbols import (
     BaseElement,
@@ -1548,8 +1548,27 @@ class PatternObject(BuiltinElement, BasePattern):
     def get_match_count(self, vars_dict: Optional[dict] = None):
         return (1, 1)
 
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_order
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return build_pattern_sort_key(self)
+
     def get_sort_key(self, pattern_sort=False) -> tuple:
-        return self.expr.get_sort_key(pattern_sort=pattern_sort)
+        if pattern_sort:
+            return self.pattern_precedence
+        else:
+            return self.element_order
 
 
 class Test(Builtin, ABC):

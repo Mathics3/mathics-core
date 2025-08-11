@@ -11,6 +11,10 @@ import sympy
 from sympy.core import numbers as sympy_numbers
 
 from mathics.core.element import BoxElementMixin, ImmutableValueMixin
+from mathics.core.keycomparable import (
+    BASIC_ATOM_NUMBER_SORT_KEY,
+    BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY,
+)
 from mathics.core.number import (
     FP_MANTISA_BINARY_DIGITS,
     MACHINE_PRECISION_VALUE,
@@ -66,7 +70,7 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
 
     def __eq__(self, other):
         if isinstance(other, Number):
-            return self.get_sort_key() == other.get_sort_key()
+            return self.element_order == other.element_order
         else:
             return False
 
@@ -79,21 +83,26 @@ class Number(Atom, ImmutableValueMixin, NumericOperators, Generic[T]):
     def do_copy(self) -> "Number":
         raise NotImplementedError
 
-    # FIXME: can we refactor or subclass objects to remove pattern_sort?
-    def get_sort_key(self, pattern_sort=False) -> tuple:
+    @property
+    def element_order(self) -> tuple:
         """
-        get_sort_key is used in Expression evaluation to determine how to
-        order its list of elements. The tuple returned contains
-        rank orders for different level as is found in say
-        Python version release numberso or Python package version numbers.
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return (
+            BASIC_ATOM_NUMBER_SORT_KEY,
+            self.value,
+            0,
+            1,
+        )
 
-        This is the default routine for Number. Subclasses of Number like
-        Complex may need to define this differently.
+    @property
+    def pattern_precedence(self) -> tuple:
         """
-        if pattern_sort:
-            return super().get_sort_key(True)
-        else:
-            return (0, 0, self.value, 0, 1)
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return super().pattern_precedence
 
     @property
     def is_literal(self) -> bool:
@@ -676,11 +685,26 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
         value = self.value
         return '"' + value.__str__() + '"'
 
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return super().get_sort_key(True)
-        else:
-            return (0, 1, self.value, 0, 1)
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return (
+            BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY,
+            self.value,
+            0,
+            1,
+        )
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return super().pattern_precedence
 
     @property
     def is_literal(self) -> bool:
@@ -820,18 +844,26 @@ class Complex(Number[Tuple[Number[T], Number[T], Optional[int]]]):
             self.imag.default_format(evaluation, form),
         )
 
-    # Note we can
-    def get_sort_key(self, pattern_sort=False) -> tuple:
+    @property
+    def element_order(self) -> tuple:
         """
-        get_sort_key is used in Expression evaluation to determine how to
-        order its list of elements. The tuple returned contains
-        rank orders for different level as is found in say
-        Python version release numberso or Python package version numbers.
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
         """
-        if pattern_sort:
-            return super().get_sort_key(True)
-        else:
-            return (0, 0, self.real.get_sort_key()[2], self.imag.get_sort_key()[2], 1)
+        return (
+            BASIC_ATOM_NUMBER_SORT_KEY,
+            self.real.element_order[1],
+            self.imag.element_order[1],
+            1,
+        )
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return super().pattern_precedence
 
     def sameQ(self, rhs) -> bool:
         """Mathics SameQ"""
@@ -973,12 +1005,27 @@ class Rational(Number[sympy.Rational]):
     def default_format(self, evaluation, form) -> str:
         return "Rational[%s, %s]" % self.value.as_numer_denom()
 
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return super().get_sort_key(True)
-        else:
-            # HACK: otherwise "Bus error" when comparing 1==1.
-            return (0, 0, sympy.Float(self.value), 0, 1)
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        # HACK: otherwise "Bus error" when comparing 1==1.
+        return (
+            BASIC_ATOM_NUMBER_SORT_KEY,
+            sympy.Float(self.value),
+            0,
+            1,
+        )
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return super().pattern_precedence
 
     def do_copy(self) -> "Rational":
         return Rational(self.value)
@@ -1051,11 +1098,26 @@ class String(Atom, BoxElementMixin):
         value = self.value.replace("\\", "\\\\").replace('"', '\\"')
         return '"%s"' % value
 
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return super().get_sort_key(True)
-        else:
-            return (0, 1, self.value, 0, 1)
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return (
+            BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY,
+            self.value,
+            0,
+            1,
+        )
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return super().pattern_precedence
 
     def get_string_value(self) -> str:
         return self.value

@@ -39,11 +39,17 @@ from mathics.core.convert.python import from_python
 from mathics.core.element import ElementsProperties, EvalMixin, ensure_context
 from mathics.core.evaluation import Evaluation
 from mathics.core.interrupt import ReturnInterrupt
+from mathics.core.keycomparable import (
+    BASIC_EXPRESSION_SORT_KEY,
+    BASIC_NUMERIC_EXPRESSION_SORT_KEY,
+    GENERAL_EXPRESSION_SORT_KEY,
+    GENERAL_NUMERIC_EXPRESSION_SORT_KEY,
+    Monomial,
+)
 from mathics.core.structure import LinkedStructure
 from mathics.core.symbols import (
     Atom,
     BaseElement,
-    Monomial,
     NumericOperators,
     Symbol,
     SymbolAbs,
@@ -77,6 +83,7 @@ from mathics.core.systemsymbols import (
     SymbolSqrt,
     SymbolSubtract,
     SymbolUnevaluated,
+    SymbolVerbatim,
 )
 from mathics.eval.tracing import trace_evaluate
 
@@ -84,7 +91,6 @@ from mathics.eval.tracing import trace_evaluate
 
 SymbolEvaluate = Symbol("System`Evaluate")
 SymbolSlotSequence = Symbol("SlotSequence")
-SymbolVerbatim = Symbol("Verbatim")
 
 
 symbols_arithmetic_operations = symbol_set(
@@ -874,159 +880,83 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             rules.append(rule)
         return rules
 
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a value, a tuple, which is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        """
+        General sort key structure:
+        0: 1/2:        Numeric / General Expression
+        1: 2/3         Special arithmetic (Times / Power) / General Expression
+        2: Element:        Head
+        3: tuple:        list of Elements
+        4: 1:        No clue...
+        """
+        exps: Dict[str, Union[float, complex]] = {}
+        head = self._head
+        if head is SymbolTimes:
+            for element in self.elements:
+                name = element.get_name()
+                if element.has_form("Power", 2):
+                    var = element.get_element(0).get_name()
+                    expr = element.get_element(1)
+                    assert isinstance(expr, (Expression, NumericOperators))
+                    exp = expr.round_to_float()
+                    if var and exp is not None:
+                        exps[var] = exps.get(var, 0) + exp
+                elif name:
+                    exps[name] = exps.get(name, 0) + 1
+        elif self.has_form("Power", 2):
+            var = self.elements[0].get_name()
+            # TODO: Check if this is the expected behaviour.
+            # round_to_float is an attribute of Expression,
+            # but not for Atoms.
+            try:
+                exp = self.elements[1].round_to_float()
+            except AttributeError:
+                exp = None
+            if var and exp is not None:
+                exps[var] = exps.get(var, 0) + exp
+        if exps:
+            return (
+                (
+                    BASIC_NUMERIC_EXPRESSION_SORT_KEY
+                    if self.is_numeric()
+                    else BASIC_EXPRESSION_SORT_KEY
+                ),
+                Monomial(exps),
+                1,
+                head,
+                self._elements,
+                1,
+            )
+        else:
+            return (
+                (
+                    GENERAL_NUMERIC_EXPRESSION_SORT_KEY
+                    if self.is_numeric()
+                    else GENERAL_EXPRESSION_SORT_KEY
+                ),
+                head,
+                len(self._elements),
+                self._elements,
+                1,
+            )
+
     # FIXME: return type should be a specific kind of Tuple, not a tuple.
     def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            """
-            Pattern sort key structure:
-            0: 0/2:        Atom / Expression
-            1: pattern:    0 / 11-31 for blanks / 1 for empty Alternatives /
-                               40 for OptionsPattern
-            2: 0/1:        0 for PatternTest
-            3: 0/1:        0 for Pattern
-            4: 0/1:        1 for Optional
-            5: head / 0 for atoms
-            6: elements / 0 for atoms
-            7: 0/1:        0 for Condition
-            """
-
-            head = self._head
-            pattern = 0
-            if head is SymbolBlank:
-                pattern = 1
-            elif head is SymbolBlankSequence:
-                pattern = 2
-            elif head is SymbolBlankNullSequence:
-                pattern = 3
-            if pattern > 0:
-                if self._elements:
-                    pattern += 10
-                else:
-                    pattern += 20
-            if pattern > 0:
-                return (
-                    2,
-                    pattern,
-                    1,
-                    1,
-                    0,
-                    head.get_sort_key(True),
-                    tuple(element.get_sort_key(True) for element in self._elements),
-                    1,
-                )
-            if head is SymbolPatternTest:
-                if len(self._elements) != 2:
-                    return (3, 0, 0, 0, 0, head, self._elements, 1)
-                sub = list(self._elements[0].get_sort_key(True))
-                sub[2] = 0
-                return tuple(sub)
-            elif head is SymbolCondition:
-                if len(self._elements) != 2:
-                    return (3, 0, 0, 0, 0, head, self._elements, 1)
-                sub = list(self._elements[0].get_sort_key(True))
-                sub[7] = 0
-                return tuple(sub)
-            elif head is SymbolPattern:
-                if len(self._elements) != 2:
-                    return (3, 0, 0, 0, 0, head, self._elements, 1)
-                sub = list(self._elements[1].get_sort_key(True))
-                sub[3] = 0
-                return tuple(sub)
-            elif head is SymbolOptional:
-                if len(self._elements) not in (1, 2):
-                    return (3, 0, 0, 0, 0, head, self._elements, 1)
-                sub = list(self._elements[0].get_sort_key(True))
-                sub[4] = 1
-                return tuple(sub)
-            elif head is SymbolAlternatives:
-                min_key = (4,)
-                min = None
-                for element in self._elements:
-                    key = element.get_sort_key(True)
-                    if key < min_key:
-                        min = element
-                        min_key = key
-                if min is None:
-                    # empty alternatives -> very restrictive pattern
-                    return (2, 1)
-                return min_key
-            elif head is SymbolVerbatim:
-                if len(self._elements) != 1:
-                    return (3, 0, 0, 0, 0, head, self._elements, 1)
-                return self._elements[0].get_sort_key(True)
-            elif head is SymbolOptionsPattern:
-                return (2, 40, 0, 1, 1, 0, head, self._elements, 1)
-            else:
-                # Append (4,) to elements so that longer expressions have higher
-                # precedence
-                return (
-                    2,
-                    0,
-                    1,
-                    1,
-                    0,
-                    head.get_sort_key(True),
-                    tuple(
-                        chain(
-                            (element.get_sort_key(True) for element in self._elements),
-                            ((4,),),
-                        )
-                    ),
-                    1,
-                )
-        else:
-            """
-            General sort key structure:
-            0: 1/2:        Numeric / General Expression
-            1: 2/3         Special arithmetic (Times / Power) / General Expression
-            2: Element:        Head
-            3: tuple:        list of Elements
-            4: 1:        No clue...
-            """
-            exps: Dict[str, Union[float, complex]] = {}
-            head = self._head
-            if head is SymbolTimes:
-                for element in self.elements:
-                    name = element.get_name()
-                    if element.has_form("Power", 2):
-                        var = element.get_element(0).get_name()
-                        expr = element.get_element(1)
-                        assert isinstance(expr, (Expression, NumericOperators))
-                        exp = expr.round_to_float()
-                        if var and exp is not None:
-                            exps[var] = exps.get(var, 0) + exp
-                    elif name:
-                        exps[name] = exps.get(name, 0) + 1
-            elif self.has_form("Power", 2):
-                var = self.elements[0].get_name()
-                # TODO: Check if this is the expected behaviour.
-                # round_to_float is an attribute of Expression,
-                # but not for Atoms.
-                try:
-                    exp = self.elements[1].round_to_float()
-                except AttributeError:
-                    exp = None
-                if var and exp is not None:
-                    exps[var] = exps.get(var, 0) + exp
-            if exps:
-                return (
-                    1 if self.is_numeric() else 2,
-                    2,
-                    Monomial(exps),
-                    1,
-                    head,
-                    self._elements,
-                    1,
-                )
-            else:
-                return (
-                    1 if self.is_numeric() else 2,
-                    3,
-                    head,
-                    len(self._elements),
-                    self._elements,
-                    1,
-                )
+        """
+        General sort key structure:
+        0: 1/2:        Numeric / General Expression
+        1: 2/3         Special arithmetic (Times / Power) / General Expression
+        2: Element:        Head
+        3: tuple:        list of Elements
+        4: 1:        No clue...
+        """
+        assert not pattern_sort
+        return self.element_order
 
     @property
     def head(self):
@@ -1671,7 +1601,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # list sort method. Another approach would be to use sorted().
         elements = self.get_mutable_elements()
         if pattern:
-            elements.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
+            elements.sort(key=lambda e: e.pattern_precedence)
         else:
             elements.sort()
 

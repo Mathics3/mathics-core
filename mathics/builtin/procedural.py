@@ -216,7 +216,7 @@ class CompoundExpression(InfixOperator):
             # `expr1; expr2;` returns `Null` but assigns `expr2` to
             # `Out[n]`.  even stranger `CompoundExpression[expr1,
             # Null, Null]` assigns `expr1` to `Out[n]`.
-            if result is SymbolNull and prev_result != SymbolNull:
+            if result is SymbolNull and prev_result is not SymbolNull:
                 evaluation.predetermined_out = prev_result
 
         return result
