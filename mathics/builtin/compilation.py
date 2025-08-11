@@ -139,11 +139,22 @@ class CompiledCode(Atom, ImmutableValueMixin):
     def default_format(self, evaluation, form):
         return str(self)
 
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return super(CompiledCode, self).get_sort_key(True)
-        else:
-            return (LITERAL_EXPRESSION_SORT_KEY, hex(id(self)))
+    @property
+    def element_order(self) -> tuple:
+        """Return a tuple value that is used in ordering elements of
+        an expression. The tuple is ultimately compared
+        lexicographically.
+
+        """
+        return (LITERAL_EXPRESSION_SORT_KEY, hex(id(self)))
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return super().pattern_precedence
 
     def sameQ(self, rhs) -> bool:
         """Mathics SameQ"""

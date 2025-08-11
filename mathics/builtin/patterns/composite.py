@@ -17,7 +17,6 @@ from mathics.core.keycomparable import (
     EMPTY_ALTERNATIVE_PATTERN_SORT_KEY,
     END_OF_LIST_PATTERN_SORT_KEY,
     OPTIONSPATTERN_SORT_KEY,
-    PATTERN_SORT_KEY_NAMEDPATTERN,
     VERBATIM_PATTERN_SORT_KEY,
 )
 from mathics.core.list import ListExpression
@@ -66,6 +65,14 @@ class Alternatives(InfixOperator, PatternObject):
             for element in expr.elements
         ]
 
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_precedence
+
     def match(self, expression: Expression, pattern_context: dict):
         """Match with Alternatives"""
         for alternative in self.alternatives:
@@ -88,14 +95,16 @@ class Alternatives(InfixOperator, PatternObject):
                     range_lst[1] = sub[1]
         return tuple(range_lst)
 
-    def get_sort_key(self, pattern_sort=True):
-        if not pattern_sort:
-            return self.expr.get_sort_key()
-
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
         min_key = END_OF_LIST_PATTERN_SORT_KEY
         min = None
         for element in self.elements:
-            key = element.get_sort_key(True)
+            key = element.pattern_precedence
             if key < min_key:
                 min = element
                 min_key = key
@@ -200,10 +209,27 @@ class HoldPattern(PatternObject):
         #     yield new_vars_dict, rest
         self.pattern.match(expression, pattern_context)
 
+    @property
+    def element_precedence(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_precedence
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return self.pattern.pattern_precedence
+
     def get_sort_key(self, pattern_sort=True):
-        if not pattern_sort:
-            return self.expr.get_sort_key()
-        return self.pattern.get_sort_key(True)
+        if pattern_sort:
+            return self.pattern_precedence
+        else:
+            return self.element_precedence
 
 
 class Longest(Builtin):
@@ -340,16 +366,32 @@ class OptionsPattern(PatternObject):
 
         return tuple((element for element in elements if _match(element)))
 
-    def get_sort_key(self, pattern_sort=True):
-        if not pattern_sort:
-            return self.expr.get_sort_key()
+    @property
+    def element_precedence(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_precedence
 
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
         return (
             OPTIONSPATTERN_SORT_KEY,
             # Check if this is necesary...
-            self.head.get_sort_key(True),
-            tuple(element.get_sort_key(True) for element in self.elements),
+            self.head.pattern_precedence,
+            tuple(element.pattern_precedence for element in self.elements),
         )
+
+    def get_sort_key(self, pattern_sort=True):
+        if pattern_sort:
+            return self.pattern_precedence
+        else:
+            return self.element_precedence
 
 
 class Pattern(PatternObject):
@@ -491,10 +533,27 @@ class Pattern(PatternObject):
         verbatim = Verbatim(verbatim_expr)
         return verbatim.get_match_candidates(elements, pattern_context)
 
+    @property
+    def element_precedence(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_precedence
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return self.pattern.pattern_precedence
+
     def get_sort_key(self, pattern_sort=True):
-        if not pattern_sort:
-            return self.expr.get_sort_key()
-        return self.pattern.get_sort_key(True)
+        if pattern_sort:
+            return self.pattern_precedence
+        else:
+            return self.element_precedence
 
 
 class Repeated(PostfixOperator, PatternObject):
@@ -590,15 +649,32 @@ class Repeated(PostfixOperator, PatternObject):
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> tuple:
         return (self.min, self.max)
 
+    @property
+    def element_precedence(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_precedence
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return (
+            BASIC_EXPRESSION_PATTERN_SORT_KEY,
+            BASIC_ATOM_PATTERN_SORT_KEY,
+            (self.pattern.pattern_precedence, (4,)),
+            1,
+        )
+
     def get_sort_key(self, pattern_sort=True):
         if pattern_sort:
-            return (
-                BASIC_EXPRESSION_PATTERN_SORT_KEY,
-                BASIC_ATOM_PATTERN_SORT_KEY,
-                (self.pattern.get_sort_key(True), (4,)),
-                1,
-            )
-        return self.expr.get_sort_key()
+            return self.pattern_precedence
+        else:
+            return self.element_precedence
 
 
 class RepeatedNull(Repeated):
@@ -683,15 +759,32 @@ class Verbatim(PatternObject):
         if self.content.sameQ(expression):
             yield_func(vars_dict, None)
 
-    def get_sort_key(self, pattern_sort=True):
-        if not pattern_sort:
-            return self.expr.get_sort_key()
+    @property
+    def element_precedence(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_precedence
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
         return (
             VERBATIM_PATTERN_SORT_KEY,
             # TODO: Check if this is necesary...
-            self.head.get_sort_key(True),
-            tuple(element.get_sort_key(True) for element in self.elements),
+            self.head.pattern_precedence,
+            tuple(element.pattern_precedence for element in self.elements),
         )
+
+    def get_sort_key(self, pattern_sort=True):
+        if pattern_sort:
+            return self.pattern_precedence
+        else:
+            return self.element_precedence
 
 
 # TODO: Implement `KeyValuePattern`, `PatternSequence`, and `OrderlessPatternSequence`

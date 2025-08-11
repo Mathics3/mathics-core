@@ -469,7 +469,7 @@ class Power(InfixOperator, MPMathFunction):
             )
 
         result = self.eval(Expression(SymbolSequence, x, y), evaluation)
-        if result is None or result != SymbolNull:
+        if result is None or result is not SymbolNull:
             return result
 
 

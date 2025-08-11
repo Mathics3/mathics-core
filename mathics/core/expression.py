@@ -864,8 +864,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             rules.append(rule)
         return rules
 
-    # FIXME: return type should be a specific kind of Tuple, not a tuple.
-    def get_sort_key(self, pattern_sort=False) -> tuple:
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a value, a tuple, which is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
         """
         General sort key structure:
         0: 1/2:        Numeric / General Expression
@@ -874,7 +878,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         3: tuple:        list of Elements
         4: 1:        No clue...
         """
-        assert not pattern_sort
         exps: Dict[str, Union[float, complex]] = {}
         head = self._head
         if head is SymbolTimes:
@@ -925,6 +928,19 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 self._elements,
                 1,
             )
+
+    # FIXME: return type should be a specific kind of Tuple, not a tuple.
+    def get_sort_key(self, pattern_sort=False) -> tuple:
+        """
+        General sort key structure:
+        0: 1/2:        Numeric / General Expression
+        1: 2/3         Special arithmetic (Times / Power) / General Expression
+        2: Element:        Head
+        3: tuple:        list of Elements
+        4: 1:        No clue...
+        """
+        assert not pattern_sort
+        return self.element_order
 
     @property
     def head(self):
@@ -1569,7 +1585,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # list sort method. Another approach would be to use sorted().
         elements = self.get_mutable_elements()
         if pattern:
-            elements.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
+            elements.sort(key=lambda e: e.pattern_precedence)
         else:
             elements.sort()
 

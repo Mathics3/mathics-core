@@ -144,8 +144,8 @@ from mathics.core.pattern import BasePattern
     ],
 )
 def test_pattern_sort_key(str_expr1, str_expr2, dir, msg):
-    expr1_key = BasePattern.create(session.evaluate(str_expr1)).get_sort_key(True)
-    expr2_key = BasePattern.create(session.evaluate(str_expr2)).get_sort_key(True)
+    expr1_key = BasePattern.create(session.evaluate(str_expr1)).pattern_precedence
+    expr2_key = BasePattern.create(session.evaluate(str_expr2)).pattern_precedence
     print(str_expr1, expr1_key)
     print(str_expr2, expr2_key)
 

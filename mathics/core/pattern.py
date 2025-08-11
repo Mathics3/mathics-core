@@ -253,10 +253,27 @@ class BasePattern(ABC):
         """The sequence of elements in the expression"""
         return self.expr.get_sequence()
 
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_order
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return build_pattern_sort_key(self)
+
     def get_sort_key(self, pattern_sort=True):
         if pattern_sort:
-            return build_pattern_sort_key(self)
-        return self.expr.get_sort_key()
+            return self.pattern_precedence
+        else:
+            return self.element_order
 
     def has_form(
         self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
@@ -406,10 +423,27 @@ class AtomPattern(BasePattern):
         """The number of matches"""
         return (1, 1)
 
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_order
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        return BASIC_ATOM_PATTERN_SORT_KEY
+
     def get_sort_key(self, pattern_sort=True):
         if pattern_sort:
-            return BASIC_ATOM_PATTERN_SORT_KEY
-        return self.expr.get_sort_key()
+            return self.pattern_precedence
+        else:
+            return self.element_order
 
     @property
     def short_name(self) -> str:
@@ -700,7 +734,7 @@ class ExpressionPattern(BasePattern):
 
     def sort(self):
         """Sort the elements according to their sort key"""
-        self.elements.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
+        self.elements.sort(key=lambda e: e.pattern_precedence)
 
 
 def match_expression_with_one_identity(
@@ -1228,10 +1262,10 @@ def build_pattern_sort_key(patt):
     """
     return (
         BASIC_EXPRESSION_PATTERN_SORT_KEY,
-        patt.head.get_sort_key(True),
+        patt.head.pattern_precedence,
         tuple(
             chain(
-                (element.get_sort_key(True) for element in patt.elements),
+                (element.pattern_precedence for element in patt.elements),
                 # This last element ensures that longest patterns come first.
                 # TODO: Check if this should be always, or just in the case of
                 # conditions
