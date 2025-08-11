@@ -929,19 +929,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 1,
             )
 
-    # FIXME: return type should be a specific kind of Tuple, not a tuple.
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        """
-        General sort key structure:
-        0: 1/2:        Numeric / General Expression
-        1: 2/3         Special arithmetic (Times / Power) / General Expression
-        2: Element:        Head
-        3: tuple:        list of Elements
-        4: 1:        No clue...
-        """
-        assert not pattern_sort
-        return self.element_order
-
     @property
     def head(self):
         return self._head

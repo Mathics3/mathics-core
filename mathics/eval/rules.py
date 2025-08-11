@@ -182,9 +182,6 @@ class Dispatch(Atom):
         """
         return self.src.pattern_precedence
 
-    def get_sort_key(self, pattern_sort: bool = False) -> tuple:
-        return self.src.element_order
-
     def get_atom_name(self):
         return "System`Dispatch"
 

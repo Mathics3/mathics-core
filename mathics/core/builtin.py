@@ -1559,12 +1559,6 @@ class PatternObject(BuiltinElement, BasePattern):
         """
         return build_pattern_sort_key(self)
 
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_order
-
 
 class Test(Builtin, ABC):
     def eval(self, expr, evaluation: Evaluation) -> Optional[BooleanType]:

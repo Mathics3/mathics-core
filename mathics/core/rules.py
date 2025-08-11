@@ -235,8 +235,8 @@ class BaseRule(KeyComparable, ABC):
         # FIXME: check if this makes sense:
         return tuple((self.system, self.pattern.pattern_precedence))
 
+    # FIXME remove eventually
     def get_sort_key(self, pattern_sort=True) -> tuple:
-        # FIXME: check if this makes sense:
         if pattern_sort:
             return self.pattern_precedence
         else:
@@ -331,9 +331,9 @@ class Rule(BaseRule):
         """
         sort_key = self.pattern.pattern_precedence
         if self.replace.has_form("System`Condition", 2):
-            sort_key = list(sort_key)
-            sort_key[0] = sort_key[0] & PATTERN_SORT_KEY_CONDITIONAL
-            sort_key = tuple(sort_key)
+            sort_key_list = list(sort_key)
+            sort_key_list[0] = sort_key_list[0] & PATTERN_SORT_KEY_CONDITIONAL
+            sort_key = tuple(sort_key_list)
         return tuple(
             (
                 self.system,

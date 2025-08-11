@@ -53,29 +53,12 @@ class KeyComparable:
         """
         raise NotImplementedError
 
-    # FIXME: return type should be a specific kind of Tuple, not a list.
-    # FIXME: Describe sensible, and easy to follow rules by which one
-    #        can create the kind of tuple for some new kind of element.
+    # FIXME remove eventually
     def get_sort_key(self, pattern_sort=False) -> tuple:
-        """
-        This returns a tuple in a way that
-        it can be used to compare in expressions.
-
-        Returns a particular encoded list (better though would be a tuple) that is used
-        in ``Sort[]`` comparisons and in the ordering that occurs
-        in an M-Expression which has the ``Orderless`` property.
-
-        The encoded tuple/list is selected to have the property: when
-        compared against element ``expr`` in a compound expression, if
-
-           `self.get_sort_key() <= expr.get_sort_key()`
-
-        then self comes before expr.
-
-        The values in the positions of the list/tuple are used to indicate how
-        comparison should be treated for specific element classes.
-        """
-        raise NotImplementedError
+        if pattern_sort:
+            return self.pattern_precedence
+        else:
+            return self.element_order
 
     def __eq__(self, other) -> bool:
         return (
