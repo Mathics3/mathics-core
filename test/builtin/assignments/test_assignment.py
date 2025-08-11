@@ -1,19 +1,17 @@
 # -*- coding: utf-8 -*-
 """
 Unit tests for mathics.builtins.assignments.assignment
+
+Tests here check the compatibility of
+the  default behavior of the different assignment operators
+with WMA.
 """
-import os
+# TODO: consider to split this module in sub-modules.
+
 from test.helper import check_evaluation, session
 
 import pytest
 from mathics_scanner.errors import IncompleteSyntaxError
-
-DEBUGASSIGN = int(os.environ.get("DEBUGSET", "0")) == 1
-
-if DEBUGASSIGN:
-    skip_or_fail = pytest.mark.xfail
-else:
-    skip_or_fail = pytest.mark.skip
 
 
 def test_upset():
@@ -42,7 +40,7 @@ def test_order():
     )
 
 
-str_test_set_with_oneidentity = """
+STR_TEST_SET_WITH_ONE_IDENTITY = """
 SetAttributes[SUNIndex, {OneIdentity}];
 SetAttributes[SUNFIndex, {OneIdentity}];
 
@@ -66,7 +64,7 @@ def test_setdelayed_oneidentity():
     symbols with the attribute OneIdentity.
     """
     expr = ""
-    for line in str_test_set_with_oneidentity.split("\n"):
+    for line in STR_TEST_SET_WITH_ONE_IDENTITY.split("\n"):
         if line in ("", "\n"):
             continue
         expr = expr + line
@@ -298,15 +296,15 @@ def test_set_and_clear(str_expr, str_expected, msg):
         ),
         (None, None, None),
         (
-            "F[x_]:=G[x]; H[F[y_]]^:=Q[y]; ClearAll[G]; {H[G[5]],H[F[5]]}",
+            "F[x_]=G[x]; H[F[y_]]^=Q[y]; ClearAll[G]; {H[G[5]],H[F[5]]}",
             "{H[G[5]], H[G[5]]}",
             "The arguments on the LHS are evaluated before the assignment",
         ),
         (None, None, None),
         (
             (
-                "A[x_]:=B[x];B[x_]:=F[x_];F[x_]:=G[x];"
-                "H[A[y_]]:=Q[y]; ClearAll[F];"
+                "A[x_]=B[x];B[x_]=F[x];F[x_]=G[x];"
+                "H[A[y_]]=Q[y]; ClearAll[F];"
                 "{H[A[5]],H[B[5]],H[F[5]],H[G[5]]}"
             ),
             "{H[F[5]], H[F[5]], H[F[5]], Q[5]}",
@@ -314,13 +312,12 @@ def test_set_and_clear(str_expr, str_expected, msg):
         ),
         (None, None, None),
         (
-            "F[x_]:=G[x];N[F[x_]]:=x^2;ClearAll[F];{N[F[2]],N[G[2]]}",
+            "F[x_]=G[x];N[F[x_]]=x^2;ClearAll[F];{N[F[2]],N[G[2]]}",
             "{F[2.], 4.}",
             "Assign N rule",
         ),
     ],
 )
-@skip_or_fail
 def test_set_and_clear_to_fix(str_expr, str_expected, msg):
     """
     Test calls to Set, Clear and ClearAll. If
@@ -464,4 +461,248 @@ def test_process_assign_other():
 def test_private_doctests(str_expr, str_expected, msgs, failure_msg):
     check_evaluation(
         str_expr, str_expected, expected_messages=msgs, failure_message=failure_msg
+    )
+
+
+@pytest.mark.parametrize(
+    ["expr", "expect", "fail_msg", "expected_msgs"],
+    [
+        (None, None, None, None),
+        # Trivial cases on protected symbols
+        (
+            "List:=1;",
+            None,
+            "assign to protected element",
+            ("Symbol List is Protected.",),
+        ),
+        (
+            "HoldPattern[List]:=1;",
+            None,
+            "assign to wrapped protected element",
+            ("Tag List in HoldPattern[List] is Protected.",),
+        ),
+        (
+            "PatternTest[List, x]:=1;",
+            None,
+            "assign to wrapped protected element",
+            ("Tag List in List ? x is Protected.",),
+        ),
+        (
+            "Condition[List, x]:=1;",
+            None,
+            "assign to wrapped protected element",
+            ("Tag List in List /; x is Protected.",),
+        ),
+        # Behavior with symbols in the LHS
+        ("ClearAll[A,T];A=T; T=2; {A, T}", "{2, 2}", "Assignment to symbols", None),
+        (
+            "ClearAll[A,T];A=T; A=2; Clear[A]; A=3; {A, T}",
+            "{3, T}",
+            "Assignment to symbols. Rewrite value.",
+            None,
+        ),
+        (
+            "ClearAll[A,T];A=T; A[x_]=x^2; {A[u], T[u]}",
+            "{u^2, u^2}",
+            "Assignment to symbols.",
+            None,
+        ),
+        (
+            "ClearAll[A,T];A=T; A[x_]=x^2; ClearAll[A];  {A[u], T[u]}",
+            "{A[u], u^2}",
+            (
+                "Rules are associated to T, not A, "
+                "because the LHS is evaluated before the assignment."
+            ),
+            None,
+        ),
+        (
+            "ClearAll[A, T];  A=T; HoldPattern[A[x_]]=x^2;  {A[u], T[u]}",
+            "{T[u], T[u]}",
+            "Hold Pattern prevents the evaluation of the LHS. The ownvalue comes first...",
+            None,
+        ),
+        (
+            "ClearAll[A, T];  A=T; HoldPattern[A[x_]]=x^2; A=.;  {A[u], T[u]}",
+            "{u^2, T[u]}",
+            "Hold Pattern prevents the evaluation of the LHS. Removing the ownvalue.",
+            None,
+        ),
+        # HoldPattern on the LHS
+        (
+            "ClearAll[A,T];A=T; HoldPattern[T]=2; {2, 2}",
+            "{2, 2}",
+            "Assignment to symbols",
+            None,
+        ),
+        (
+            "ClearAll[A,T];A=T; HoldPattern[A]=2; {2, T}",
+            "{2, T}",
+            "Assignment to symbols. Rewrite value.",
+            None,
+        ),
+        (
+            "ClearAll[A,T];A=T; HoldPattern[A[x_]]:=x^2; {A[u], T[u]}",
+            "{T[u], T[u]}",
+            "Assignment to symbols.",
+            None,
+        ),
+        (
+            "ClearAll[A,T];A=T; HoldPattern[A][x_]:=x^2; {A[u], T[u]}",
+            "{T[u], T[u]}",
+            "Assignment to symbols.",
+            None,
+        ),
+        (
+            "ClearAll[A,T];A=T; HoldPattern[A[x_]]:=x^2;A=.; {A[u], T[u]}",
+            "{u ^ 2, T[u]}",
+            "Once the downvalue of A is gone, the rule applies...",
+            None,
+        ),
+        # In this case, we erase all the rules associated to A:
+        (
+            "ClearAll[A, T]; A=T; HoldPattern[A[x_]]:=x^2; ClearAll[A];  {A[u], T[u]}",
+            "{A[u], T[u]}",
+            "Head and elements on the LHS are evaluated before the assignment.",
+            None,
+        ),
+        (
+            "ClearAll[A,T];A=T; HoldPattern[HoldPattern[A[x_]]]:=x^2;A=.; {A[u], T[u]}",
+            "{u ^ 2, T[u]}",
+            "Nested HoldPattern",
+            None,
+        ),
+        # Conditions on the LHS
+        (
+            "ClearAll[A,T,x];A=T;x=3; Condition[T,x>2]=2; {2, 2}",
+            "{2, 2}",
+            "Assignment to symbols",
+            None,
+        ),
+        (
+            "ClearAll[A,T,x];A=T;x=3; Condition[A, x>2]=2; {2, T}",
+            "{2, T}",
+            "Assignment to symbols. Rewrite value.",
+            None,
+        ),
+        (
+            "ClearAll[A,T,x];A=T;x=3; Condition[A[x_],x>2]:=x^2; {A[u], T[u], A[4], T[4]}",
+            "{A[u], T[u], 16, 16}",
+            "Assignment to symbols.",
+            None,
+        ),
+        (
+            "ClearAll[A,T,x];A=T;x=3; Condition[A[x_],x>2]:=x^2;A=.; {A[u], T[u], A[4], T[4]}",
+            "{A[u], T[u], A[4], 16}",
+            "Assignment to symbols.",
+            None,
+        ),
+        (
+            "ClearAll[A,T,x];A=T;x=3; Condition[A[x_],x>2]:=x^2; ClearAll[A];  {A[u], T[u]}",
+            "{A[u], T[u]}",
+            (
+                "Head and elements on the LHS are evaluated before the assignment, but noticing that "
+                "Condition has the attribute `HoldRest`..."
+            ),
+            None,
+        ),
+        (
+            "ClearAll[A, T];  A=T; HoldPattern[A[x_]]:=x^2;  {A[u], T[u]}",
+            "{T[u], T[u]}",
+            "Hold Pattern prevents the evaluation of the LHS.",
+            None,
+        ),
+        (
+            "ClearAll[A, T];  A=T; HoldPattern[A[x_]]:=x^2;A=.;  {A[u], T[u]}",
+            "{u^2, T[u]}",
+            "Hold Pattern prevents the evaluation of the LHS.",
+            None,
+        ),
+        # Format
+        (
+            'ClearAll[A,T,x]; Format[A[x_]]:={x,"a"}; A[2]//ToString',
+            '"{2, a}"',
+            None,
+            None,
+        ),
+        (
+            'ClearAll[A,T,x]; A=T; Format[A[x_]]:={x,"a"}; T[2]//ToString',
+            '"{2, a}"',
+            "Define the format for T",
+            None,
+        ),
+        (
+            'ClearAll[A,T,x]; A=T; Format[A[x_]]:={x,"a"}; A=.;A[2]//ToString',
+            '"A[2]"',
+            "but not for A",
+            None,
+        ),
+        # Now, using HoldPattern
+        (
+            'ClearAll[A,T,x]; A=T; Format[HoldPattern[A][x_]]:={x,"a"}; T[2]//ToString',
+            '"T[2]"',
+            ("Define the format for A, " "because the HoldPattern. Do not affect T"),
+            None,
+        ),
+        (
+            'ClearAll[A,T,x]; A=T; Format[HoldPattern[A][x_]]:={x,"a"}; A[2]//ToString',
+            '"T[2]"',
+            "but A evals to T befor format...",
+            None,
+        ),
+        (
+            'ClearAll[A,T,x]; A=T; Format[HoldPattern[A][x_]]:={x,"a"}; A=.; A[2]//ToString',
+            '"{2, a}"',
+            "Now A do not eval to T...",
+            None,
+        ),
+        (
+            'ClearAll[A,T,x]; A=T; HoldPattern[Format[A[x_]]]:={x,"a"}; A=.; A[2]//ToString',
+            '"{2, a}"',
+            "The same that put HoldPattern inside format...",
+            None,
+        ),
+        # Conditionals
+        (
+            'ClearAll[A,T,x]; A=T; Format[Condition[A[x_],x>0]]:={x,"a"}; A=.; A[2]//ToString',
+            '"A[2]"',
+            "store the conditional rule for T...",
+            None,
+        ),
+        (
+            'ClearAll[A,T,x]; A=T; Format[Condition[A[x_],x>0]]:={x,"a"}; A=.; T[2]//ToString',
+            '"{2, a}"',
+            "store the conditional rule for T...",
+            None,
+        ),
+        # Upvalues
+        (
+            "ClearAll[F,A,Y,x]; A=T; F[A[x_],Y[x_]]^:=x^2; ClearAll[A,F,Y]; F[T[2],Y[2]]",
+            "4",
+            "the rule is still stored in T.",
+            None,
+        ),
+        (
+            "ClearAll[F,A,Y,x]; A=T; F[HoldPattern[A[x_]],Y[x_]]^:=x^2; ClearAll[A,F,Y]; F[T[2],Y[2]]",
+            "F[T[2],Y[2]]",
+            "the rule is still stored in T.",
+            None,
+        ),
+        (
+            "ClearAll[F,A,Y,x]; A=T; F[HoldPattern[A[x_]],Y[x_]]^:=x^2; ClearAll[A,F]; F[A[2],Y[2]]",
+            "4",
+            "the rule is still stored in Y.",
+            None,
+        ),
+        (
+            "ClearAll[F,A,Y,x]; A=T; F[{a,b,c},Y[x_]]^:=x^2; ClearAll[A,F]; F[{a,b,c},Y[2]]",
+            "4",
+            "There is a warning, because a rule cannot be associated to List, but it is stored on Y.",
+            ("Tag List in F[{a, b, c}, Y[x_]] is Protected.",),
+        ),
+    ],
+)
+def test_assignment(expr, expect, fail_msg, expected_msgs):
+    check_evaluation(
+        expr, expect, failure_message=fail_msg, expected_messages=expected_msgs
     )

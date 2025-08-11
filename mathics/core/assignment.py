@@ -202,6 +202,35 @@ def normalize_lhs(lhs, evaluation):
     return lhs, lookup_name
 
 
+def pop_reference_head(lhs: Expression, lhs_reference: BaseElement):
+    """
+    Convert expressions of the form
+    ```
+    Head1[Head2[...Headn[ReferenceHead[a,b],p1],p2,...]..]
+    ```
+    into
+    ```
+    ReferenceHead[Head1[Head2[...Headn[a],p1],p2,...]..],b]
+    ```
+    Used in eval_assign_[n|format|...]
+    """
+    if lhs is lhs_reference:
+        return lhs
+
+    lhs_head = lhs.get_head()
+    if lhs_head is lhs_reference:
+        return lhs
+
+    elems = lhs.elements
+    lhs_reference_expr = elems[0]
+    if lhs_reference_expr.get_head() is not lhs_reference:
+        lhs_reference_expr = pop_reference_head(lhs_reference_expr, lhs_reference)
+
+    lhs_reference_elems = lhs_reference_expr.elements
+    inner = Expression(lhs_head, lhs_reference_elems[0], *elems[1:])
+    return Expression(lhs_reference, inner, *lhs_reference_elems[1:])
+
+
 def repl_pattern_by_symbol(expr: BaseElement) -> BaseElement:
     """
     If `expr` is a named pattern expression `Pattern[symb, pat]`,

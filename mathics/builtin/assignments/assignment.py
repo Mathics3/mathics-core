@@ -401,6 +401,14 @@ class UpSetDelayed(UpSet):
         self, lhs: BaseElement, rhs: BaseElement, evaluation: Evaluation
     ) -> Symbol:
         "lhs_ ^:= rhs_"
+        if isinstance(lhs, Atom):
+            evaluation.message(
+                "UpSetDelayed",
+                "normal",
+                1,
+                Expression(Symbol(self.get_name()), lhs, rhs),
+            )
+            return
 
         if isinstance(lhs, Atom):
             evaluation.message(

@@ -2,6 +2,8 @@
 """
 Unit tests for mathics.builtins.assignments.assign_binaryop
 """
+# TODO: reconsider the name of the test and module, because all the test
+# involve unary operators...
 
 from test.helper import check_evaluation, session
 
