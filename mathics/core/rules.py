@@ -53,9 +53,10 @@ from inspect import signature
 from itertools import chain
 from typing import Callable, Optional
 
-from mathics.core.element import BaseElement, KeyComparable
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.keycomparable import PATTERN_SORT_KEY_CONDITIONAL, KeyComparable
 from mathics.core.pattern import BasePattern, StopGenerator
 from mathics.core.symbols import SymbolTrue, strip_context
 
@@ -216,9 +217,30 @@ class BaseRule(KeyComparable, ABC):
     def get_replace_value(self) -> BaseElement:
         raise ValueError
 
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        # FIXME: check if this makes sense:
+        return tuple((self.system, self.pattern.element_order))
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        # FIXME: check if this makes sense:
+        return tuple((self.system, self.pattern.pattern_precedence))
+
     def get_sort_key(self, pattern_sort=True) -> tuple:
         # FIXME: check if this makes sense:
-        return tuple((self.system, self.pattern.get_sort_key(pattern_sort)))
+        if pattern_sort:
+            return self.pattern_precedence
+        else:
+            return self.element_order
 
 
 # FIXME: the class name would be better called RewriteRule.
@@ -301,15 +323,23 @@ class Rule(BaseRule):
     def __repr__(self) -> str:
         return "<Rule: %s -> %s>" % (self.pattern, self.replace)
 
-    def get_sort_key(self, pattern_sort=True) -> tuple:
-        # FIXME: check if this makes sense:
-        if not pattern_sort:
-            return tuple((self.system, self.pattern.get_sort_key(False)))
-
-        sort_key = list(self.pattern.get_sort_key(True))
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        sort_key = self.pattern.pattern_precedence
         if self.replace.has_form("System`Condition", 2):
-            sort_key[-1] = 0
-        return tuple((self.system, tuple(sort_key)))
+            sort_key_list = list(sort_key)
+            sort_key_list[0] = sort_key_list[0] & PATTERN_SORT_KEY_CONDITIONAL
+            sort_key = tuple(sort_key_list)
+        return tuple(
+            (
+                self.system,
+                sort_key,
+            )
+        )
 
 
 class FunctionApplyRule(BaseRule):

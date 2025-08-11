@@ -11,6 +11,10 @@ from mathics.core.attributes import A_HOLD_REST, A_PROTECTED
 from mathics.core.builtin import InfixOperator, PatternObject, Test
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.keycomparable import (
+    PATTERN_SORT_KEY_CONDITIONAL,
+    PATTERN_SORT_KEY_PATTERNTEST,
+)
 from mathics.core.pattern import BasePattern
 from mathics.core.symbols import Atom, SymbolTrue
 
@@ -79,6 +83,32 @@ class Condition(InfixOperator, PatternObject):
         pattern_context = pattern_context.copy()
         pattern_context["yield_func"] = yield_match
         self.pattern.match(expression, pattern_context)
+
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_order
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        sub = list(self.pattern.pattern_precedence)
+        # Remove the bit "inconditional" to increase
+        # the priority of this pattern.
+        sub[0] &= PATTERN_SORT_KEY_CONDITIONAL
+        return tuple(sub)
+
+    def get_sort_key(self, pattern_sort=True):
+        if pattern_sort:
+            return self.pattern_precedence
+        else:
+            return self.element_order
 
 
 class PatternTest(InfixOperator, PatternObject):
@@ -355,3 +385,29 @@ class PatternTest(InfixOperator, PatternObject):
 
     def get_match_count(self, vars_dict: OptionalType[dict] = None) -> Tuple[int, int]:
         return self.pattern.get_match_count(vars_dict)
+
+    @property
+    def element_order(self) -> tuple:
+        """
+        Return a tuple value that is used in ordering elements
+        of an expression. The tuple is ultimately compared lexicographically.
+        """
+        return self.expr.element_order
+
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        sub = list(self.pattern.pattern_precedence)
+        # Remove the bit "not pattern test" to increase
+        # the priority of this pattern.
+        sub[0] &= PATTERN_SORT_KEY_PATTERNTEST
+        return tuple(sub)
+
+    def get_sort_key(self, pattern_sort=True):
+        if pattern_sort:
+            return self.pattern_precedence
+        else:
+            return self.element_order
