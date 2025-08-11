@@ -11,6 +11,10 @@ from mathics.core.attributes import A_HOLD_REST, A_PROTECTED
 from mathics.core.builtin import InfixOperator, PatternObject, Test
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.keycomparable import (
+    PATTERN_SORT_KEY_CONDITIONAL,
+    PATTERN_SORT_KEY_PATTERNTEST,
+)
 from mathics.core.pattern import BasePattern
 from mathics.core.symbols import Atom, SymbolTrue
 
@@ -85,9 +89,9 @@ class Condition(InfixOperator, PatternObject):
             return self.expr.get_sort_key()
 
         sub = list(self.pattern.get_sort_key(True))
-        sub_key = list(sub[0])
-        sub_key[5] = 0
-        sub[0] = tuple(sub_key)
+        # Remove the bit "inconditional" to increase
+        # the priority of this pattern.
+        sub[0] &= PATTERN_SORT_KEY_CONDITIONAL
         return tuple(sub)
 
 
@@ -371,7 +375,7 @@ class PatternTest(InfixOperator, PatternObject):
             return self.expr.get_sort_key()
 
         sub = list(self.pattern.get_sort_key(True))
-        sub_key = list(sub[0])
-        sub_key[2] = 0
-        sub[0] = tuple(sub_key)
+        # Remove the bit "not pattern test" to increase
+        # the priority of this pattern.
+        sub[0] &= PATTERN_SORT_KEY_PATTERNTEST
         return tuple(sub)

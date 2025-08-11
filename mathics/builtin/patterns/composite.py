@@ -17,6 +17,7 @@ from mathics.core.keycomparable import (
     EMPTY_ALTERNATIVE_PATTERN_SORT_KEY,
     END_OF_LIST_PATTERN_SORT_KEY,
     OPTIONSPATTERN_SORT_KEY,
+    PATTERN_SORT_KEY_NAMEDPATTERN,
     VERBATIM_PATTERN_SORT_KEY,
 )
 from mathics.core.list import ListExpression
@@ -158,6 +159,8 @@ class Except(PatternObject):
             pass
         else:
             self.p.match(expression, pattern_context)
+
+    # TODO: add get_sort_key, when we figure out how does it should look...
 
 
 class HoldPattern(PatternObject):
@@ -491,11 +494,7 @@ class Pattern(PatternObject):
     def get_sort_key(self, pattern_sort=True):
         if not pattern_sort:
             return self.expr.get_sort_key()
-        sub = list(self.pattern.get_sort_key(True))
-        sub_key = list(sub[0])
-        sub_key[3] = 0
-        sub[0] = tuple(sub_key)
-        return tuple(sub)
+        return self.pattern.get_sort_key(True)
 
 
 class Repeated(PostfixOperator, PatternObject):

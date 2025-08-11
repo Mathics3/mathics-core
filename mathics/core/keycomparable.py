@@ -159,126 +159,115 @@ class Monomial:
 
 ###  SORT_KEYS prefix for patterns
 #
-# Pattern sort keys have 3 elements. The first one is a "magic" tuple
-# representing different features of the element, like if
+# Pattern sort keys have 3 elements. The first one is a "magic" 4-bytes
+# integer number representing different features of the element, like if
 # it is an atom or an expression, if is an special pattern like `Blank`
-# etc. The first order criteria is that these tuples are in ascending order.
+# etc. The first order criteria is that these numbers are in ascending order.
 # The second element is the sort_key for the head, and the third,
 # is the list of sort_keys associated to each element of the expression,
 # finished with ``END_OF_LIST_PATTERN_SORT_KEY`` to ensure that the longest
 # list of patterns always come first.
 
-# This is the full sort_key for any Atom.
-BASIC_ATOM_PATTERN_SORT_KEY = ((0, 0, 1, 1, 0, 1), 0, 0, 1)
-# This is the magic tuple for generic expressions.
-BASIC_EXPRESSION_PATTERN_SORT_KEY = (
-    2,
-    0,
-    1,
-    1,
-    0,
-    1,
-)
-BLANK_WITH_PATTERN_PATTERN_SORT_KEY = (
-    2,
-    11,
-    1,
-    1,
-    0,
-    1,
-)
-BLANK_GENERAL_PATTERN_SORT_KEY = (
-    2,
-    21,
-    1,
-    1,
-    0,
-    1,
+# Let' s start by defining the basic magic numbers:
+
+# EXPRESSION BIT
+PATTERN_SORT_KEY_IS_EXPRESSION = 0x00020000
+PATTERN_SORT_KEY_VERBATIM = 0x00030000
+PATTERN_SORT_KEY_LAST = 0xFFFFFFFFFFFF
+
+# Blank and friends
+PATTERN_SORT_KEY_EMPTY_ALTERNATIVES = 0x00000100
+PATTERN_SORT_KEY_BLANK_WITH_HEAD = 0x00000B00
+PATTERN_SORT_KEY_BLANKSEQUENCE_WITH_HEAD = 0x00000C00
+PATTERN_SORT_KEY_BLANKNULLSEQUENCE_WITH_HEAD = 0x00000D00
+
+PATTERN_SORT_KEY_BLANK_PURE = 0x00001500
+PATTERN_SORT_KEY_BLANKSEQUENCE_PURE = 0x00001600
+PATTERN_SORT_KEY_BLANKNULLSEQUENCE_PURE = 0x00001700
+
+# OPTIONSPATTERN
+PATTERN_SORT_KEY_OPTIONSPATTERN = 0x00002800
+
+# Lower bits
+PATTERN_SORT_KEY_NOT_PATTERNTEST = 0x00000001
+PATTERN_SORT_KEY_OPTIONAL = 0x00000002
+PATTERN_SORT_KEY_UNNAMED_PATTERN = 0x00000004
+PATTERN_SORT_KEY_INCONDITIONAL = 0x00000008
+
+# Used to mark a magic code as conditional or pattern test
+PATTERN_SORT_KEY_CONDITIONAL = PATTERN_SORT_KEY_LAST - PATTERN_SORT_KEY_INCONDITIONAL
+PATTERN_SORT_KEY_PATTERNTEST = PATTERN_SORT_KEY_LAST - PATTERN_SORT_KEY_NOT_PATTERNTEST
+PATTERN_SORT_KEY_NAMEDPATTERN = PATTERN_SORT_KEY_LAST - PATTERN_SORT_KEY_UNNAMED_PATTERN
+
+
+# Now, the basic combinations of these magic numbers, used on sort keys
+
+# This is the numeric magic code for any Atom.
+MAGIC_ATOM_SORT_KEY = (
+    PATTERN_SORT_KEY_INCONDITIONAL
+    + PATTERN_SORT_KEY_UNNAMED_PATTERN
+    + PATTERN_SORT_KEY_NOT_PATTERNTEST
 )
 
+# The numeric magic code for an expression
+BASIC_EXPRESSION_PATTERN_SORT_KEY = MAGIC_ATOM_SORT_KEY + PATTERN_SORT_KEY_IS_EXPRESSION
+
+# Blanks
+
+BLANK_WITH_PATTERN_PATTERN_SORT_KEY = (
+    BASIC_EXPRESSION_PATTERN_SORT_KEY + PATTERN_SORT_KEY_BLANK_WITH_HEAD
+)
+BLANK_GENERAL_PATTERN_SORT_KEY = (
+    BASIC_EXPRESSION_PATTERN_SORT_KEY + PATTERN_SORT_KEY_BLANK_PURE
+)
 BLANKSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY = (
-    2,
-    12,
-    1,
-    1,
-    0,
-    1,
+    BASIC_EXPRESSION_PATTERN_SORT_KEY + PATTERN_SORT_KEY_BLANKSEQUENCE_WITH_HEAD
 )
 BLANKSEQUENCE_GENERAL_PATTERN_SORT_KEY = (
-    2,
-    22,
-    1,
-    1,
-    0,
-    1,
+    BASIC_EXPRESSION_PATTERN_SORT_KEY + PATTERN_SORT_KEY_BLANKSEQUENCE_PURE
 )
 
 BLANKNULLSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY = (
-    2,
-    13,
-    1,
-    1,
-    0,
-    1,
+    BASIC_EXPRESSION_PATTERN_SORT_KEY + PATTERN_SORT_KEY_BLANKNULLSEQUENCE_WITH_HEAD
 )
 BLANKNULLSEQUENCE_GENERAL_PATTERN_SORT_KEY = (
-    2,
-    23,
-    1,
-    1,
-    0,
-    1,
+    BASIC_EXPRESSION_PATTERN_SORT_KEY + PATTERN_SORT_KEY_BLANKNULLSEQUENCE_PURE
 )
 
-END_OF_LIST_PATTERN_SORT_KEY = ((4,),)  # Used as the last element in the third
-# field.
 
 # Used in the case Alternative[]
-EMPTY_ALTERNATIVE_PATTERN_SORT_KEY = ((2, 1),)
-OPTIONSPATTERN_SORT_KEY = (2, 40, 0, 1, 1, 0, 1)
-
-VERBATIM_PATTERN_SORT_KEY = (
-    3,
-    0,
-    0,
-    0,
-    0,
-    1,
+EMPTY_ALTERNATIVE_PATTERN_SORT_KEY = (
+    PATTERN_SORT_KEY_IS_EXPRESSION + PATTERN_SORT_KEY_EMPTY_ALTERNATIVES
 )
+# OptionsPatterns
+OPTIONSPATTERN_SORT_KEY = (
+    BASIC_EXPRESSION_PATTERN_SORT_KEY + PATTERN_SORT_KEY_OPTIONSPATTERN
+)
+# Verbatim
+VERBATIM_PATTERN_SORT_KEY = (
+    PATTERN_SORT_KEY_VERBATIM | BASIC_EXPRESSION_PATTERN_SORT_KEY
+)
+
+
+# Now, two pattern sort keys that are used many times:
+# Atoms
+BASIC_ATOM_PATTERN_SORT_KEY = (MAGIC_ATOM_SORT_KEY, 0, 0)
+# and "end of list" to ensure that patterns with more elements come first.
+END_OF_LIST_PATTERN_SORT_KEY = (
+    PATTERN_SORT_KEY_LAST,
+)  # Used as the last element in the third
+# field.
+
 
 ###  SORT_KEYS prefix for expressions
 
-BASIC_ATOM_NUMBER_SORT_KEY = (
-    0,
-    0,
-)
-BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY = (
-    0,
-    1,
-)
-BASIC_EXPRESSION_SORT_KEY = (
-    2,
-    2,
-)
-BASIC_NUMERIC_EXPRESSION_SORT_KEY = (
-    1,
-    2,
-)
-GENERAL_EXPRESSION_SORT_KEY = (
-    2,
-    3,
-)
-GENERAL_NUMERIC_EXPRESSION_SORT_KEY = (
-    1,
-    3,
-)
+BASIC_ATOM_NUMBER_SORT_KEY = 0x00
+BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY = 0x01
+LITERAL_EXPRESSION_SORT_KEY = 0x03
 
+BASIC_NUMERIC_EXPRESSION_SORT_KEY = 0x12
+GENERAL_NUMERIC_EXPRESSION_SORT_KEY = 0x13
+IMAGE_EXPRESSION_SORT_KEY = 0x13
 
-LITERAL_EXPRESSION_SORT_KEY = (
-    0,
-    3,
-)
-IMAGE_EXPRESSION_SORT_KEY = (
-    1,
-    3,
-)
+BASIC_EXPRESSION_SORT_KEY = 0x22
+GENERAL_EXPRESSION_SORT_KEY = 0x23
