@@ -14,9 +14,16 @@ New Builtins
 Internals
 ---------
 
-Mathics scanner exceptions of class TranslateError are incompatible
+* Mathics scanner exceptions of class TranslateError are incompatible
 with previous versions, and now store error parameters, "name", "tag", and
 "args".
+* The method `get_sort_key` was replaced by two different properties:
+  `element_order`, for canonical ordering of expressions, and
+  `pattern_precedence`, used for ordering rules according their precedence
+  in the evaluation loop.
+* In both cases, the part of the sort key related to properties of the
+  expressions and patterns are now stored as a magic number instead of
+  a tuple.
 
 WMA Compatibility
 -----------------

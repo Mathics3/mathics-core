@@ -19,8 +19,12 @@ class KeyComparable:
     This class is not complete in of itself, it is intended to be
     mixed into other classes.
 
-    Each class should provide a `get_sort_key()` method which
+    Each class should provide a `element_order` property which
     is the primitive from which all other comparisons are based on.
+
+    The class also contains a `pattern_precedence` property that provides
+    the sort key used to order a list of rules according to the
+    precedence they have in the evaluation loop.
     """
 
     @property
@@ -53,35 +57,28 @@ class KeyComparable:
         """
         raise NotImplementedError
 
-    # FIXME remove eventually
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_order
-
     def __eq__(self, other) -> bool:
         return (
-            hasattr(other, "get_sort_key")
-            and self.get_sort_key() == other.get_sort_key()
+            hasattr(other, "element_order")
+            and self.element_order == other.element_order
         )
 
     def __gt__(self, other) -> bool:
-        return self.get_sort_key() > other.get_sort_key()
+        return self.element_order > other.element_order
 
     def __ge__(self, other) -> bool:
-        return self.get_sort_key() >= other.get_sort_key()
+        return self.element_order >= other.element_order
 
     def __le__(self, other) -> bool:
-        return self.get_sort_key() <= other.get_sort_key()
+        return self.element_order <= other.element_order
 
     def __lt__(self, other) -> bool:
-        return self.get_sort_key() < other.get_sort_key()
+        return self.element_order < other.element_order
 
     def __ne__(self, other) -> bool:
         return (
-            not hasattr(other, "get_sort_key")
-        ) or self.get_sort_key() != other.get_sort_key()
+            not hasattr(other, "element_order")
+        ) or self.element_order != other.element_order
 
 
 class Monomial:

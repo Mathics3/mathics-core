@@ -1241,7 +1241,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 new._build_elements_properties()
 
         # If the attribute ``Orderless`` is set, sort the elements, according to the
-        # element's ``get_sort_key()`` method.
+        # element's ``element_sort()`` method.
         # Sorting can be time consuming which is why we note this in ``elements_properties``.
         # Checking for sortedness takes O(n) while sorting take O(n log n).
         if (
@@ -1561,7 +1561,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     def sort(self, pattern=False):
         """
         Sort the elements using the Python's list-method sort.
-        `get_sort_key() is used for comparison if `pattern` is True.
+        `pattern_precedence` is used for comparison if `pattern` is True.
         Otherwise use the the default Python 3.x compare function,
         `__lt__()` that is found in each element.
 

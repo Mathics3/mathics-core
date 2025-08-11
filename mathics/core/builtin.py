@@ -379,7 +379,7 @@ class Builtin:
                     Rule(pattern, parse_builtin_rule(replace), system=True)
                 )
         for form, formatrules in formatvalues.items():
-            formatrules.sort()
+            formatrules.sort(key=lambda x: x.pattern_precedence)
 
         if hasattr(self, "summary_text"):
             self.messages["usage"] = self.summary_text

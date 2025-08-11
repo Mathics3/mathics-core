@@ -235,13 +235,6 @@ class BaseRule(KeyComparable, ABC):
         # FIXME: check if this makes sense:
         return tuple((self.system, self.pattern.pattern_precedence))
 
-    # FIXME remove eventually
-    def get_sort_key(self, pattern_sort=True) -> tuple:
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_order
-
 
 # FIXME: the class name would be better called RewriteRule.
 class Rule(BaseRule):
