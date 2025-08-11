@@ -945,19 +945,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 1,
             )
 
-    # FIXME: return type should be a specific kind of Tuple, not a tuple.
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        """
-        General sort key structure:
-        0: 1/2:        Numeric / General Expression
-        1: 2/3         Special arithmetic (Times / Power) / General Expression
-        2: Element:        Head
-        3: tuple:        list of Elements
-        4: 1:        No clue...
-        """
-        assert not pattern_sort
-        return self.element_order
-
     @property
     def head(self):
         return self._head
@@ -1270,7 +1257,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 new._build_elements_properties()
 
         # If the attribute ``Orderless`` is set, sort the elements, according to the
-        # element's ``get_sort_key()`` method.
+        # element's ``element_sort()`` method.
         # Sorting can be time consuming which is why we note this in ``elements_properties``.
         # Checking for sortedness takes O(n) while sorting take O(n log n).
         if (
@@ -1590,7 +1577,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     def sort(self, pattern=False):
         """
         Sort the elements using the Python's list-method sort.
-        `get_sort_key() is used for comparison if `pattern` is True.
+        `pattern_precedence` is used for comparison if `pattern` is True.
         Otherwise use the the default Python 3.x compare function,
         `__lt__()` that is found in each element.
 

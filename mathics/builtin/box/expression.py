@@ -128,13 +128,6 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         """
         return self.to_expression().pattern_precedence
 
-    # FIXME remove eventually
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_order
-
     def get_string_value(self):
         return "-@" + self.get_head_name() + "@-"
 

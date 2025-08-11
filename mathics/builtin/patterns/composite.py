@@ -225,12 +225,6 @@ class HoldPattern(PatternObject):
         """
         return self.pattern.pattern_precedence
 
-    def get_sort_key(self, pattern_sort=True):
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_precedence
-
 
 class Longest(Builtin):
     """
@@ -386,12 +380,6 @@ class OptionsPattern(PatternObject):
             self.head.pattern_precedence,
             tuple(element.pattern_precedence for element in self.elements),
         )
-
-    def get_sort_key(self, pattern_sort=True):
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_precedence
 
 
 class Pattern(PatternObject):
@@ -549,12 +537,6 @@ class Pattern(PatternObject):
         """
         return self.pattern.pattern_precedence
 
-    def get_sort_key(self, pattern_sort=True):
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_precedence
-
 
 class Repeated(PostfixOperator, PatternObject):
     """
@@ -670,12 +652,6 @@ class Repeated(PostfixOperator, PatternObject):
             1,
         )
 
-    def get_sort_key(self, pattern_sort=True):
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_precedence
-
 
 class RepeatedNull(Repeated):
     """
@@ -779,12 +755,6 @@ class Verbatim(PatternObject):
             self.head.pattern_precedence,
             tuple(element.pattern_precedence for element in self.elements),
         )
-
-    def get_sort_key(self, pattern_sort=True):
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_precedence
 
 
 # TODO: Implement `KeyValuePattern`, `PatternSequence`, and `OrderlessPatternSequence`

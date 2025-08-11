@@ -137,9 +137,3 @@ class Optional(InfixOperator, PatternObject):
         sub = list(self.pattern.pattern_precedence)
         sub[0] &= PATTERN_SORT_KEY_OPTIONAL
         return tuple(sub)
-
-    def get_sort_key(self, pattern_sort=True):
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_order

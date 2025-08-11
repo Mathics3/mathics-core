@@ -231,26 +231,6 @@ class Atom(BaseElement):
         """
         return BASIC_ATOM_PATTERN_SORT_KEY
 
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        """get_sort_key is used in Expression evaluation in two different ways.
-
-        In the first way, when pattern_sort=False, it is be used to
-        determine how to order its list of elements. The tuple
-        returned contains rank orders for different level as is found
-        in say Python version release numberso or Python package
-        version numbers.
-
-        This is the default routine for Number. Subclasses of Number like
-        Complex may need to define this differently.
-
-        In the second way when pattern_sort=True it is used to decide whiich
-        pattern to use when several pattern match.
-        """
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_order
-
     def has_form(
         self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
     ) -> bool:

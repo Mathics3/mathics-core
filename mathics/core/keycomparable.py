@@ -19,8 +19,12 @@ class KeyComparable:
     This class is not complete in of itself, it is intended to be
     mixed into other classes.
 
-    Each class should provide a `get_sort_key()` method which
+    Each class should provide a `element_order` property which
     is the primitive from which all other comparisons are based on.
+
+    The class also contains a `pattern_precedence` property that provides
+    the sort key used to order a list of rules according to the
+    precedence they have in the evaluation loop.
     """
 
     @property
@@ -53,52 +57,28 @@ class KeyComparable:
         """
         raise NotImplementedError
 
-    # FIXME: return type should be a specific kind of Tuple, not a list.
-    # FIXME: Describe sensible, and easy to follow rules by which one
-    #        can create the kind of tuple for some new kind of element.
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        """
-        This returns a tuple in a way that
-        it can be used to compare in expressions.
-
-        Returns a particular encoded list (better though would be a tuple) that is used
-        in ``Sort[]`` comparisons and in the ordering that occurs
-        in an M-Expression which has the ``Orderless`` property.
-
-        The encoded tuple/list is selected to have the property: when
-        compared against element ``expr`` in a compound expression, if
-
-           `self.get_sort_key() <= expr.get_sort_key()`
-
-        then self comes before expr.
-
-        The values in the positions of the list/tuple are used to indicate how
-        comparison should be treated for specific element classes.
-        """
-        raise NotImplementedError
-
     def __eq__(self, other) -> bool:
         return (
-            hasattr(other, "get_sort_key")
-            and self.get_sort_key() == other.get_sort_key()
+            hasattr(other, "element_order")
+            and self.element_order == other.element_order
         )
 
     def __gt__(self, other) -> bool:
-        return self.get_sort_key() > other.get_sort_key()
+        return self.element_order > other.element_order
 
     def __ge__(self, other) -> bool:
-        return self.get_sort_key() >= other.get_sort_key()
+        return self.element_order >= other.element_order
 
     def __le__(self, other) -> bool:
-        return self.get_sort_key() <= other.get_sort_key()
+        return self.element_order <= other.element_order
 
     def __lt__(self, other) -> bool:
-        return self.get_sort_key() < other.get_sort_key()
+        return self.element_order < other.element_order
 
     def __ne__(self, other) -> bool:
         return (
-            not hasattr(other, "get_sort_key")
-        ) or self.get_sort_key() != other.get_sort_key()
+            not hasattr(other, "element_order")
+        ) or self.element_order != other.element_order
 
 
 class Monomial:
@@ -180,7 +160,7 @@ class Monomial:
         return self.__cmp(other) != 0
 
 
-###  SORT_KEYS prefix for patterns
+###  SORT_KEYS prefix for pattern_precedence
 #
 # Pattern sort keys have 3 elements. The first one is a "magic" 4-bytes
 # integer number representing different features of the element, like if
@@ -236,40 +216,39 @@ MAGIC_ATOM_SORT_KEY = (
 BASIC_EXPRESSION_PATTERN_SORT_KEY = MAGIC_ATOM_SORT_KEY + PATTERN_SORT_KEY_IS_EXPRESSION
 
 # Blanks
-
 BLANK_WITH_PATTERN_PATTERN_SORT_KEY = (
     BASIC_EXPRESSION_PATTERN_SORT_KEY + PATTERN_SORT_KEY_BLANK_WITH_HEAD
-)
+)  # Blank[A] (`pat_`)
 BLANK_GENERAL_PATTERN_SORT_KEY = (
     BASIC_EXPRESSION_PATTERN_SORT_KEY + PATTERN_SORT_KEY_BLANK_PURE
-)
+)  # Blank[] (`pat_`)
 BLANKSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY = (
     BASIC_EXPRESSION_PATTERN_SORT_KEY + PATTERN_SORT_KEY_BLANKSEQUENCE_WITH_HEAD
-)
+)  # BlankSequence[A] (`pat__A`)
 BLANKSEQUENCE_GENERAL_PATTERN_SORT_KEY = (
     BASIC_EXPRESSION_PATTERN_SORT_KEY + PATTERN_SORT_KEY_BLANKSEQUENCE_PURE
-)
+)  # BlankSequence[] (`pat__`)
 
 BLANKNULLSEQUENCE_WITH_PATTERN_PATTERN_SORT_KEY = (
     BASIC_EXPRESSION_PATTERN_SORT_KEY + PATTERN_SORT_KEY_BLANKNULLSEQUENCE_WITH_HEAD
-)
+)  # BlankNullSequence[A] (`pat___A`)
 BLANKNULLSEQUENCE_GENERAL_PATTERN_SORT_KEY = (
     BASIC_EXPRESSION_PATTERN_SORT_KEY + PATTERN_SORT_KEY_BLANKNULLSEQUENCE_PURE
-)
+)  # BlankNullSequence[] (`pat___`)
 
 
 # Used in the case Alternative[]
 EMPTY_ALTERNATIVE_PATTERN_SORT_KEY = (
     PATTERN_SORT_KEY_IS_EXPRESSION + PATTERN_SORT_KEY_EMPTY_ALTERNATIVES
-)
+)  # Alternatives[]
 # OptionsPatterns
 OPTIONSPATTERN_SORT_KEY = (
     BASIC_EXPRESSION_PATTERN_SORT_KEY + PATTERN_SORT_KEY_OPTIONSPATTERN
-)
+)  # OptionsPattern[]
 # Verbatim
 VERBATIM_PATTERN_SORT_KEY = (
     PATTERN_SORT_KEY_VERBATIM | BASIC_EXPRESSION_PATTERN_SORT_KEY
-)
+)  # Verbatim[expr]
 
 # Now, two pattern sort keys that are used many times:
 # Atoms
@@ -277,11 +256,10 @@ BASIC_ATOM_PATTERN_SORT_KEY = (MAGIC_ATOM_SORT_KEY, 0, 0)
 # and "end of list" to ensure that patterns with more elements come first.
 END_OF_LIST_PATTERN_SORT_KEY = (
     PATTERN_SORT_KEY_LAST,
-)  # Used as the last element in the third
-# field.
+)  # Used as the last element in the third field.
 
 
-###  SORT_KEYS prefix for expressions
+###  SORT_KEYS prefix for expression_order
 
 BASIC_ATOM_NUMBER_SORT_KEY = 0x00
 BASIC_ATOM_STRING_OR_BYTEARRAY_SORT_KEY = 0x01

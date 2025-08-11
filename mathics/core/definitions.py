@@ -553,7 +553,7 @@ class Definitions:
         """
         formats = self.get_definition(name).formatvalues
         result = formats.get(format_name, []) + formats.get("", [])
-        result.sort()
+        result.sort(key=lambda x: x.pattern_precedence)
         return result
 
     def get_nvalues(self, name: str) -> List[BaseRule]:
@@ -1018,7 +1018,7 @@ def insert_rule(values: List[BaseRule], rule: BaseRule) -> None:
 
     # use insort_left to guarantee that if equal rules exist, newer rules will
     # get higher precedence by being inserted before them. see DownValues[].
-    bisect.insort_left(values, rule)
+    bisect.insort_left(values, rule, key=lambda x: x.pattern_precedence)
 
 
 def merge_definitions(candidates: List[Definition]) -> Definition:

@@ -379,7 +379,7 @@ class Builtin:
                     Rule(pattern, parse_builtin_rule(replace), system=True)
                 )
         for form, formatrules in formatvalues.items():
-            formatrules.sort()
+            formatrules.sort(key=lambda x: x.pattern_precedence)
 
         if hasattr(self, "summary_text"):
             self.messages["usage"] = self.summary_text
@@ -1563,12 +1563,6 @@ class PatternObject(BuiltinElement, BasePattern):
         which pattern to select when several match.
         """
         return build_pattern_sort_key(self)
-
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_order
 
 
 class Test(Builtin, ABC):

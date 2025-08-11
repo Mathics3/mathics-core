@@ -269,12 +269,6 @@ class BasePattern(ABC):
         """
         return build_pattern_sort_key(self)
 
-    def get_sort_key(self, pattern_sort=True):
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_order
-
     def has_form(
         self, heads: Union[Sequence[str], str], *element_counts: Optional[int]
     ) -> bool:
@@ -438,12 +432,6 @@ class AtomPattern(BasePattern):
         which pattern to select when several match.
         """
         return BASIC_ATOM_PATTERN_SORT_KEY
-
-    def get_sort_key(self, pattern_sort=True):
-        if pattern_sort:
-            return self.pattern_precedence
-        else:
-            return self.element_order
 
     @property
     def short_name(self) -> str:
