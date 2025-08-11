@@ -53,9 +53,10 @@ from inspect import signature
 from itertools import chain
 from typing import Callable, Optional
 
-from mathics.core.element import BaseElement, KeyComparable
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.keycomparable import PATTERN_SORT_KEY_CONDITIONAL, KeyComparable
 from mathics.core.pattern import BasePattern, StopGenerator
 from mathics.core.symbols import SymbolTrue, strip_context
 
@@ -308,10 +309,9 @@ class Rule(BaseRule):
 
         sort_key = self.pattern.get_sort_key(True)
         if self.replace.has_form("System`Condition", 2):
-            head_sort_key, *rest = sort_key
-            head_sort_key_list = list(head_sort_key)
-            head_sort_key_list[-1] = 0
-            sort_key = tuple([tuple(head_sort_key_list)] + rest)
+            sort_key = list(sort_key)
+            sort_key[0] = sort_key[0] & PATTERN_SORT_KEY_CONDITIONAL
+            sort_key = tuple(sort_key)
         return tuple(
             (
                 self.system,
