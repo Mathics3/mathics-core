@@ -2,7 +2,7 @@
 """
 Unit tests for mathics.builtins.assignments.assignment
 
-Tests here looks for reinforce the compatibility of
+Tests here check the compatibility of
 the  default behavior of the different assignment operators
 with WMA.
 """
