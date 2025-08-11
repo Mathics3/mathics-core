@@ -36,6 +36,7 @@ MATHICS3_MODULE_OPTION ?= --load-module pymathics.graph,pymathics.natlang
    gstest \
    latexdoc \
    pytest \
+   pytest-x \
    rmChangeLog \
    test \
    texdoc
@@ -122,6 +123,9 @@ clean: clean-cython clean-cache
 pytest:
 	MATHICS_CHARACTER_ENCODING="ASCII" $(PYTHON) -m pytest $(PYTEST_OPTIONS) $(PYTEST_WORKERS) test
 
+#: Run pytest tests stopping at first failure.
+pytest-x :
+	PYTEST_OPTIONS="-x" $(MAKE) pytest
 
 #: Run a more extensive pattern-matching test
 gstest:
