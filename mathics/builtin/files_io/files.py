@@ -661,8 +661,13 @@ class PutAppend(InfixOperator):
 
     summary_text = "append an expression to a file"
 
-    def eval(self, exprs, filename: String, evaluation):
-        "PutAppend[exprs___, filename_String]"
+    def eval(self, exprs, filename, evaluation):
+        "PutAppend[exprs___, filename_]"
+
+        if not isinstance(filename, String):
+            evaluation.message("PutAppend", "stream", filename)
+            return
+
         instream = to_expression("OpenAppend", filename).evaluate(evaluation)
         if len(instream.elements) == 2:
             name, n = instream.elements
@@ -690,11 +695,6 @@ class PutAppend(InfixOperator):
         stream.io.write(text)
 
         return SymbolNull
-
-    def eval_default(self, exprs, filename, evaluation: Evaluation):
-        "PutAppend[exprs___, filename_]"
-        evaluation.message("PutAppend", "stream", filename)
-        return get_eval_Expression()
 
 
 def validate_read_type(name: str, typ, evaluation: Evaluation):
