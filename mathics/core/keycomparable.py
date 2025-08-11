@@ -93,14 +93,7 @@ class KeyComparable:
         return self.get_sort_key() <= other.get_sort_key()
 
     def __lt__(self, other) -> bool:
-        my_sort_key = self.get_sort_key()
-        other_sort_key = other.get_sort_key()
-        try:
-            return my_sort_key < other_sort_key
-        except:
-            print(self, my_sort_key)
-            print(other, other_sort_key)
-            raise
+        return self.get_sort_key() < other.get_sort_key()
 
     def __ne__(self, other) -> bool:
         return (
@@ -277,7 +270,6 @@ OPTIONSPATTERN_SORT_KEY = (
 VERBATIM_PATTERN_SORT_KEY = (
     PATTERN_SORT_KEY_VERBATIM | BASIC_EXPRESSION_PATTERN_SORT_KEY
 )
-
 
 # Now, two pattern sort keys that are used many times:
 # Atoms

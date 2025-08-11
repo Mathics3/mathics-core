@@ -323,12 +323,13 @@ class Rule(BaseRule):
     def __repr__(self) -> str:
         return "<Rule: %s -> %s>" % (self.pattern, self.replace)
 
-    def get_sort_key(self, pattern_sort=True) -> tuple:
-        # FIXME: check if this makes sense:
-        if not pattern_sort:
-            return tuple((self.system, self.pattern.get_sort_key(False)))
-
-        sort_key = self.pattern.get_sort_key(True)
+    @property
+    def pattern_precedence(self) -> tuple:
+        """
+        Return a precedence value, a tuple, which is used in selecting
+        which pattern to select when several match.
+        """
+        sort_key = self.pattern.pattern_precedence
         if self.replace.has_form("System`Condition", 2):
             sort_key = list(sort_key)
             sort_key[0] = sort_key[0] & PATTERN_SORT_KEY_CONDITIONAL
