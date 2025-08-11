@@ -169,6 +169,8 @@ class Except(PatternObject):
         else:
             self.p.match(expression, pattern_context)
 
+    # TODO: add get_sort_key, when we figure out how does it should look...
+
 
 class HoldPattern(PatternObject):
     """
@@ -222,9 +224,6 @@ class HoldPattern(PatternObject):
         which pattern to select when several match.
         """
         return self.pattern.pattern_precedence
-
-    # TODO: add pattern_precedence, when we figure out how
-    # does it should look...
 
 
 class Longest(Builtin):
