@@ -335,7 +335,7 @@ def eval_assign_default(
     tags = process_tags_and_upset_dont_allow_custom(
         tags, upset, self, lhs, focus, evaluation
     )
-    lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
+    lhs = put_back_lhs_conditions(lhs, condition, evaluation)
     rule = Rule(lhs, rhs)
     for tag in tags:
         if rejected_because_protected(self, lhs, tag, evaluation):
@@ -460,7 +460,7 @@ def eval_assign_format(
     tags = process_tags_and_upset_dont_allow_custom(
         tags, upset, self, lhs, focus, evaluation
     )
-    lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
+    lhs = put_back_lhs_conditions(lhs, condition, evaluation)
     rule = Rule(lhs, rhs)
     for tag in tags:
         if rejected_because_protected(self, lhs, tag, evaluation):
@@ -780,7 +780,7 @@ def eval_assign_messagename(
     tags = process_tags_and_upset_dont_allow_custom(
         tags, upset, self, lhs, focus, evaluation
     )
-    lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
+    lhs = put_back_lhs_conditions(lhs, condition, evaluation)
     rule = Rule(lhs, rhs)
     for tag in tags:
         # Messages can be assigned even if the symbol is protected...
@@ -980,7 +980,7 @@ def eval_assign_n(
         tags, upset, self, lhs, focus, evaluation
     )
     count = 0
-    lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
+    lhs = put_back_lhs_conditions(lhs, condition, evaluation)
     rule = Rule(lhs, rhs)
     for tag in tags:
         if rejected_because_protected(self, lhs, tag, evaluation):
@@ -1233,7 +1233,7 @@ def eval_assign_store_rules_by_tag(
     # In WMA, this does not happens. However, if we remove this,
     # some combinatorica tests fail.
     # Also, should not be at the beginning?
-    lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
+    lhs = put_back_lhs_conditions(lhs, condition, evaluation)
     count = 0
     rule = Rule(lhs, rhs)
     position = "upvalues" if upset else None
@@ -1288,27 +1288,14 @@ def find_tag_and_check(
     return tag
 
 
-def process_rhs_conditions(
-    lhs: BaseElement, rhs: BaseElement, condition: Expression, evaluation: Evaluation
-) -> Tuple[BaseElement, Optional[BaseElement]]:
+def put_back_lhs_conditions(
+    lhs: BaseElement, condition: Expression, evaluation: Evaluation
+) -> BaseElement:
     """
-    lhs = Condition[rhs, test] -> Condition[lhs, test]  = rhs
+    Add back the lhs conditions.
     """
     # To Handle `OptionValue` in `Condition`
     rulopc = build_rulopc(lhs.get_head())
-    rhs_name = rhs.get_head_name()
-    while rhs_name == "System`Condition":
-        if len(rhs.elements) != 2:
-            evaluation.message_args("Condition", len(rhs.elements), 2)
-            raise AssignmentException(lhs, None)
-        lhs = Expression(
-            SymbolCondition,
-            lhs,
-            rhs.elements[1].do_apply_rules([rulopc], evaluation)[0],
-        )
-        rhs = rhs.elements[0]
-        rhs_name = rhs.get_head_name()
-
     # Now, let's add the conditions on the LHS
     if condition:
         lhs = Expression(
@@ -1316,7 +1303,7 @@ def process_rhs_conditions(
             lhs,
             condition.elements[1].do_apply_rules([rulopc], evaluation)[0],
         )
-    return lhs, rhs
+    return lhs
 
 
 def process_tags_and_upset_dont_allow_custom(

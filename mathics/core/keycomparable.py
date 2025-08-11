@@ -63,7 +63,14 @@ class KeyComparable:
         return self.get_sort_key() <= other.get_sort_key()
 
     def __lt__(self, other) -> bool:
-        return self.get_sort_key() < other.get_sort_key()
+        my_sort_key = self.get_sort_key()
+        other_sort_key = other.get_sort_key()
+        try:
+            return my_sort_key < other_sort_key
+        except:
+            print(self, my_sort_key)
+            print(other, other_sort_key)
+            raise
 
     def __ne__(self, other) -> bool:
         return (

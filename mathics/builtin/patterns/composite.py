@@ -198,9 +198,9 @@ class HoldPattern(PatternObject):
         self.pattern.match(expression, pattern_context)
 
     def get_sort_key(self, pattern_sort=True):
-        if pattern_sort:
-            return self.pattern.get_sort_key(True)
-        return self.expr.get_sort_key(False)
+        if not pattern_sort:
+            return self.expr.get_sort_key()
+        return self.pattern.get_sort_key(True)
 
 
 class Longest(Builtin):
